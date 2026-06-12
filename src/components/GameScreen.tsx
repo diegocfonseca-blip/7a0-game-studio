@@ -179,7 +179,7 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
   if (state.phase === 'results' && narrating)
     return <NarrationScreen state={state} matches={state.matches} onFinish={() => setNarrating(false)} />
   if (state.phase === 'results')
-    return <ResultScreen state={state} onReplay={restart} onHome={onHome} />
+    return <ResultScreen state={state} onReplay={restart} onHome={onHome} theme={t} />
 
   // ── Derived values ────────────────────────────────────────────────────────
   const emptySlots     = state.formation.slots.map((slot, i) => ({ slot, i })).filter(({ i }) => !state.picks.find(p => p.slotIndex === i))
