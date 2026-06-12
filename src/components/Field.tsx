@@ -16,6 +16,7 @@ export default function Field({ formation, picks, selectedPlayer, onSlotClick }:
       className="relative w-full"
       style={{
         aspectRatio: '3/4',
+        maxHeight: 340,
         borderRadius: 20,
         overflow: 'hidden',
         background: 'linear-gradient(180deg, #1a4a1a 0%, #1e5c1e 25%, #226022 50%, #1e5c1e 75%, #1a4a1a 100%)',

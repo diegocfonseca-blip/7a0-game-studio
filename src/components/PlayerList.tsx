@@ -10,39 +10,39 @@ interface Props {
   availableSlots: Position[]
 }
 
-// Sector colors for position groups
 const SECTOR = (pos: string) => {
-  if (pos === 'GOL') return { bg: '#0d2d5e', accent: '#1976D2', label: '#64B5F6' }
-  if (['LD','ZAG','LE'].includes(pos)) return { bg: '#0d3320', accent: '#388E3C', label: '#81C784' }
-  if (['VOL','MC','MD','ME','MEI'].includes(pos)) return { bg: '#2d1060', accent: '#7B1FA2', label: '#CE93D8' }
-  return { bg: '#3d0d0d', accent: '#C62828', label: '#EF9A9A' }
+  if (pos === 'GOL') return { bar: '#1976D2', bg: 'rgba(25,118,210,0.12)', badge: 'rgba(25,118,210,0.25)', label: '#64B5F6' }
+  if (['LD','ZAG','LE'].includes(pos)) return { bar: '#388E3C', bg: 'rgba(56,142,60,0.1)', badge: 'rgba(56,142,60,0.22)', label: '#81C784' }
+  if (['VOL','MC','MD','ME','MEI'].includes(pos)) return { bar: '#7B1FA2', bg: 'rgba(123,31,162,0.1)', badge: 'rgba(123,31,162,0.25)', label: '#CE93D8' }
+  return { bar: '#C62828', bg: 'rgba(198,40,40,0.1)', badge: 'rgba(198,40,40,0.22)', label: '#EF9A9A' }
 }
 
-const POSITIONS_ORDER = ['GOL','LD','ZAG','LE','VOL','MC','MD','ME','MEI','PD','PE','CA']
+const POS_ORDER = ['GOL','LD','ZAG','LE','VOL','MC','MD','ME','MEI','PD','PE','CA']
 
 function ratingColor(r: number) {
-  if (r >= 95) return { text: '#FFD700', glow: 'rgba(255,215,0,0.6)' }
-  if (r >= 90) return { text: '#C9A84C', glow: 'rgba(201,168,76,0.5)' }
-  if (r >= 85) return { text: '#fff', glow: 'rgba(255,255,255,0.2)' }
-  return { text: 'rgba(255,255,255,0.4)', glow: 'none' }
+  if (r >= 95) return '#FFD700'
+  if (r >= 90) return '#C9A84C'
+  if (r >= 85) return 'rgba(255,255,255,0.85)'
+  return 'rgba(255,255,255,0.38)'
 }
 
 export default function PlayerList({ squad, mode, selectedPlayer, pickedIds, onSelect, availableSlots }: Props) {
   const sorted = [...squad.players].sort(
-    (a, b) => POSITIONS_ORDER.indexOf(a.primaryPosition) - POSITIONS_ORDER.indexOf(b.primaryPosition)
+    (a, b) => POS_ORDER.indexOf(a.primaryPosition) - POS_ORDER.indexOf(b.primaryPosition)
   )
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 420, overflowY: 'auto' }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column', gap: 4,
+      maxHeight: 380, overflowY: 'auto', overflowX: 'hidden',
+    }}>
       {sorted.map((player) => {
         const isPicked   = pickedIds.includes(player.id)
         const isSelected = selectedPlayer?.id === player.id
-        const dimmed     = !isPicked && availableSlots.length > 0 &&
-          !availableSlots.includes(player.primaryPosition) &&
-          !player.secondaryPositions.some(sp => availableSlots.includes(sp))
-
-        const sec   = SECTOR(player.primaryPosition)
-        const rc    = ratingColor(player.rating)
+        const dimmed     = !isPicked && availableSlots.length > 0
+          && !availableSlots.includes(player.primaryPosition)
+          && !player.secondaryPositions.some(sp => availableSlots.includes(sp))
+        const sec = SECTOR(player.primaryPosition)
 
         return (
           <button
@@ -50,102 +50,88 @@ export default function PlayerList({ squad, mode, selectedPlayer, pickedIds, onS
             onClick={() => !isPicked && onSelect(player)}
             disabled={isPicked}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0,
-              borderRadius: 14,
+              width: '100%',
+              display: 'flex', alignItems: 'stretch',
+              borderRadius: 12,
               overflow: 'hidden',
               border: isSelected
-                ? '1.5px solid rgba(209,46,46,0.7)'
+                ? '1.5px solid rgba(209,46,46,0.65)'
                 : '1.5px solid rgba(255,255,255,0.07)',
               background: isSelected
-                ? 'linear-gradient(90deg, rgba(209,46,46,0.25) 0%, rgba(30,10,10,0.9) 100%)'
-                : isPicked
-                ? 'rgba(255,255,255,0.02)'
-                : `linear-gradient(90deg, ${sec.bg}cc 0%, rgba(15,15,15,0.95) 100%)`,
-              opacity: isPicked ? 0.3 : dimmed ? 0.4 : 1,
+                ? 'linear-gradient(90deg, rgba(180,20,20,0.35) 0%, rgba(30,10,10,0.92) 100%)'
+                : sec.bg,
+              opacity: isPicked ? 0.28 : dimmed ? 0.38 : 1,
               cursor: isPicked ? 'not-allowed' : 'pointer',
-              boxShadow: isSelected
-                ? '0 0 16px rgba(209,46,46,0.3)'
-                : player.isLegend && !isPicked && !dimmed
-                ? '0 0 8px rgba(201,168,76,0.12)'
-                : 'none',
-              transition: 'all 0.12s',
+              transition: 'all 0.1s',
+              minHeight: 44,
             }}
           >
-            {/* Left accent bar */}
-            <div style={{
-              width: 4,
-              alignSelf: 'stretch',
-              background: isSelected ? '#D12E2E' : sec.accent,
-              flexShrink: 0,
-            }} />
+            {/* Left accent */}
+            <div style={{ width: 3, background: isSelected ? '#D12E2E' : sec.bar, flexShrink: 0 }} />
 
-            {/* Shirt number */}
+            {/* Number */}
             <div style={{
-              width: 32,
-              height: 52,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-              background: `${sec.accent}22`,
+              width: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0, background: `${sec.bar}18`,
             }}>
-              <span style={{ fontSize: 13, fontWeight: 900, color: sec.label }}>{player.shirtNumber}</span>
+              <span style={{ fontSize: 11, fontWeight: 900, color: sec.label }}>{player.shirtNumber}</span>
             </div>
 
-            {/* Position chip */}
+            {/* Position badge */}
             <div style={{
-              padding: '3px 6px',
-              background: `${sec.accent}33`,
-              border: `1px solid ${sec.accent}55`,
-              borderRadius: 6,
-              marginLeft: 8,
-              flexShrink: 0,
+              display: 'flex', alignItems: 'center',
+              padding: '0 4px 0 6px', flexShrink: 0,
             }}>
-              <span style={{ fontSize: 8, fontWeight: 900, color: sec.label, letterSpacing: '0.05em' }}>
+              <span style={{
+                fontSize: 8, fontWeight: 900, letterSpacing: '0.04em',
+                padding: '2px 5px', borderRadius: 5,
+                background: sec.badge, color: sec.label,
+                border: `1px solid ${sec.bar}44`,
+              }}>
                 {player.primaryPosition}
               </span>
             </div>
 
-            {/* Name + secondary positions */}
-            <div style={{ flex: 1, minWidth: 0, padding: '0 10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            {/* Name */}
+            <div style={{
+              flex: 1, minWidth: 0,
+              display: 'flex', flexDirection: 'column', justifyContent: 'center',
+              padding: '0 6px',
+            }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                overflow: 'hidden',
+              }}>
                 <span style={{
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: isSelected ? '#fff' : 'rgba(255,255,255,0.9)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
+                  fontSize: 13, fontWeight: 700,
+                  color: isSelected ? '#fff' : 'rgba(255,255,255,0.88)',
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
                   {player.name}
                 </span>
                 {player.isLegend && (
-                  <span style={{ fontSize: 10, color: '#C9A84C', textShadow: '0 0 6px rgba(201,168,76,0.8)', flexShrink: 0 }}>★</span>
+                  <span style={{ color: '#C9A84C', fontSize: 10, flexShrink: 0 }}>★</span>
                 )}
               </div>
               {player.secondaryPositions.length > 0 && (
-                <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.28)', marginTop: 2 }}>
+                <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.25)', marginTop: 1 }}>
                   {player.secondaryPositions.join(' · ')}
                 </div>
               )}
             </div>
 
             {/* Rating */}
-            <div style={{ paddingRight: 14, flexShrink: 0, textAlign: 'right' }}>
-              {mode === 'almanac' ? (
-                <span style={{ fontSize: 18, fontWeight: 900, color: 'rgba(255,255,255,0.12)' }}>?</span>
-              ) : (
-                <span style={{
-                  fontSize: 18,
-                  fontWeight: 900,
-                  color: rc.text,
-                  textShadow: rc.glow !== 'none' ? `0 0 12px ${rc.glow}` : 'none',
-                }}>
-                  {player.rating}
-                </span>
-              )}
+            <div style={{
+              width: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0, paddingRight: 4,
+            }}>
+              <span style={{
+                fontSize: mode === 'almanac' ? 16 : 15,
+                fontWeight: 900,
+                color: mode === 'almanac' ? 'rgba(255,255,255,0.15)' : ratingColor(player.rating),
+              }}>
+                {mode === 'almanac' ? '?' : player.rating}
+              </span>
             </div>
           </button>
         )

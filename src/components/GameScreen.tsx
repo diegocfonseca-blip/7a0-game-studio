@@ -285,32 +285,39 @@ export default function GameScreen({ category, onHome }: Props) {
               <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', margin: '4px 0 0' }}>Um craque histórico por rodada</p>
             </div>
 
-            {/* Dice button */}
+            {/* Dice button — full width */}
             <button
               onClick={roll}
               style={{
-                width: 140,
-                height: 140,
-                borderRadius: 36,
+                width: '100%',
+                padding: '28px 0',
+                borderRadius: 24,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 8,
+                gap: 10,
                 border: 'none',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                transform: diceAnim ? 'scale(0.85) rotate(12deg)' : 'scale(1)',
+                transform: diceAnim ? 'scale(0.95)' : 'scale(1)',
                 background: diceAnim
-                  ? 'linear-gradient(135deg, #C9A84C 0%, #7a5010 100%)'
-                  : 'linear-gradient(145deg, #1e1e1e 0%, #141414 100%)',
+                  ? 'linear-gradient(135deg, #b8943d 0%, #7a5010 100%)'
+                  : 'linear-gradient(145deg, rgba(201,168,76,0.12) 0%, rgba(20,16,0,0.95) 100%)',
                 boxShadow: diceAnim
-                  ? '0 0 60px rgba(201,168,76,0.7), 0 12px 40px rgba(0,0,0,0.5)'
-                  : '0 12px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(201,168,76,0.2)',
+                  ? '0 0 50px rgba(201,168,76,0.5), 0 8px 24px rgba(0,0,0,0.4)'
+                  : '0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(201,168,76,0.15), 0 0 0 1px rgba(201,168,76,0.18)',
               }}
             >
-              <span style={{ fontSize: 48, lineHeight: 1 }}>{diceAnim ? '🎰' : '🎲'}</span>
-              <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.15em', color: diceAnim ? '#111' : '#C9A84C' }}>ROLAR</span>
+              <span style={{ fontSize: 52, lineHeight: 1, filter: diceAnim ? 'brightness(0.8)' : 'none' }}>
+                {diceAnim ? '🎰' : '🎲'}
+              </span>
+              <span style={{
+                fontSize: 13, fontWeight: 900, letterSpacing: '0.2em',
+                color: diceAnim ? '#C9A84C' : '#C9A84C',
+              }}>
+                ROLAR O DADO
+              </span>
             </button>
 
             {/* Current team */}
@@ -360,23 +367,41 @@ export default function GameScreen({ category, onHome }: Props) {
                 pointerEvents: 'none',
               }} />
 
-              <div style={{ position: 'relative', padding: '20px' }}>
-                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', color: 'rgba(201,168,76,0.6)', marginBottom: 14 }}>🎲 SORTEIO</div>
-
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
-                  <span style={{ fontSize: 56, lineHeight: 1, filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.5))' }}>
-                    {state.currentRoll.squad.flagEmoji}
+              <div style={{ position: 'relative', padding: '18px 20px' }}>
+                {/* Header row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                  <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', color: 'rgba(201,168,76,0.55)' }}>🎲 SORTEIO</span>
+                  <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.2)' }}>
+                    {state.currentRoll.squad.year}
                   </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  {/* Country/Club code badge */}
+                  <div style={{
+                    width: 56, height: 56, borderRadius: 14, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'linear-gradient(135deg, rgba(201,168,76,0.25), rgba(100,70,0,0.4))',
+                    border: '1.5px solid rgba(201,168,76,0.35)',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+                  }}>
+                    <span style={{ fontSize: 13, fontWeight: 900, color: '#C9A84C', letterSpacing: '0.05em', textAlign: 'center', lineHeight: 1.1 }}>
+                      {state.currentRoll.squad.badgeEmoji ?? state.currentRoll.squad.countryCode}
+                    </span>
+                  </div>
+
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 900, fontSize: 22, lineHeight: 1.1, color: '#fff', letterSpacing: '-0.02em' }}>
+                    <div style={{ fontWeight: 900, fontSize: 20, lineHeight: 1.1, color: '#fff', letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {state.currentRoll.squad.clubName ?? state.currentRoll.squad.countryNamePt}
                     </div>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: '#C9A84C', marginTop: 4, textShadow: '0 0 8px rgba(201,168,76,0.5)' }}>
-                      {state.currentRoll.squad.trophy ?? `Copa ${state.currentRoll.squad.year}`}
+                    <div style={{ fontWeight: 700, fontSize: 12, color: '#C9A84C', marginTop: 3, textShadow: '0 0 8px rgba(201,168,76,0.4)' }}>
+                      {state.currentRoll.squad.trophy ?? `Copa do Mundo ${state.currentRoll.squad.year}`}
                     </div>
-                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 6, lineHeight: 1.4, fontStyle: 'italic' }}>
-                      {state.currentRoll.squad.notableReason}
-                    </div>
+                    {state.currentRoll.squad.notableReason && (
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 5, lineHeight: 1.4, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                        {state.currentRoll.squad.notableReason}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
