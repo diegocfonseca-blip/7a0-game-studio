@@ -7,6 +7,7 @@ import type { GameState, PickedPlayer, GameMode, GameStyle } from '../engine/gam
 import Field from './Field'
 import PlayerList from './PlayerList'
 import SimulationScreen from './SimulationScreen'
+import NarrationScreen from './NarrationScreen'
 import ResultScreen from './ResultScreen'
 
 interface Props { onHome: () => void }
@@ -56,6 +57,7 @@ export default function GameScreen({ onHome }: Props) {
   const [diceAnim, setDiceAnim] = useState(false)
   const [rerollCount, setRerollCount] = useState(0)
   const [showSettings, setShowSettings] = useState(false)
+  const [narrating, setNarrating] = useState(false)
 
   const roll = useCallback(() => {
     setDiceAnim(true)
@@ -98,10 +100,21 @@ export default function GameScreen({ onHome }: Props) {
     setSelectedPlayer(null)
   }
 
-  const startSimulation = () => {
+  const runSimulation = () => {
     const results = simulateCopa(state)
     const lastMatch = results[results.length - 1]
-    setState(s => ({ ...s, matches: results, eliminated: !lastMatch.won || lastMatch.phase !== 'Final', phase: 'results' }))
+    return { results, eliminated: !lastMatch.won || lastMatch.phase !== 'Final' }
+  }
+
+  const startSimulation = () => {
+    const { results, eliminated } = runSimulation()
+    setState(s => ({ ...s, matches: results, eliminated, phase: 'results' }))
+  }
+
+  const startNarration = () => {
+    const { results, eliminated } = runSimulation()
+    setState(s => ({ ...s, matches: results, eliminated, phase: 'results' }))
+    setNarrating(true)
   }
 
   const restart = () => {
@@ -111,10 +124,14 @@ export default function GameScreen({ onHome }: Props) {
     setDiceAnim(false)
     setRerollCount(0)
     setShowSettings(false)
+    setNarrating(false)
   }
 
   if (state.phase === 'simulating') {
-    return <SimulationScreen state={state} onSimulate={startSimulation} onHome={onHome} />
+    return <SimulationScreen state={state} onSimulate={startSimulation} onNarrate={startNarration} onHome={onHome} />
+  }
+  if (state.phase === 'results' && narrating) {
+    return <NarrationScreen state={state} matches={state.matches} onFinish={() => setNarrating(false)} />
   }
   if (state.phase === 'results') {
     return <ResultScreen state={state} onReplay={restart} onHome={onHome} />
