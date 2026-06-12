@@ -73,8 +73,9 @@ export function generateSeed(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase()
 }
 
-export function rollSquad(seed: string, rollIndex: number, exclude?: string[]): Squad {
-  const available = squads.filter(s => !exclude?.includes(s.id))
+export function rollSquad(seed: string, rollIndex: number, exclude?: string[], pool?: Squad[]): Squad {
+  const source = pool ?? squads
+  const available = source.filter(s => !exclude?.includes(s.id))
   const idx = Math.floor(sr(seed, rollIndex, 0) * available.length)
   return available[idx]
 }

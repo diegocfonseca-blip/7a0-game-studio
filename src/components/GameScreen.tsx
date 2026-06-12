@@ -1,16 +1,19 @@
 import { useState, useCallback } from 'react'
 import { FORMATIONS, canPlayPosition } from '../data/formations'
 import type { FormationSlot } from '../data/formations'
-import type { Player } from '../data/squads'
+import type { Player, Squad } from '../data/squads'
+import squads from '../data/squads'
+import clubs from '../data/clubs'
 import { generateSeed, rollSquad, computeOverall, computeAtaque, computeDefesa, simulateCopa } from '../engine/game'
 import type { GameState, PickedPlayer, GameMode, GameStyle } from '../engine/game'
+import type { GameCategory } from '../App'
 import Field from './Field'
 import PlayerList from './PlayerList'
 import SimulationScreen from './SimulationScreen'
 import NarrationScreen from './NarrationScreen'
 import ResultScreen from './ResultScreen'
 
-interface Props { onHome: () => void }
+interface Props { category: GameCategory; onHome: () => void }
 
 function initState(): GameState {
   const seed = generateSeed()
@@ -50,7 +53,8 @@ const MODE_SHORT: Record<GameMode, string> = {
   almanac: 'ALM',
 }
 
-export default function GameScreen({ onHome }: Props) {
+export default function GameScreen({ category, onHome }: Props) {
+  const pool: Squad[] = category === 'clubs' ? clubs : squads
   const [state, setState] = useState<GameState>(initState)
   const [rollIndex, setRollIndex] = useState(0)
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
@@ -63,7 +67,7 @@ export default function GameScreen({ onHome }: Props) {
     setDiceAnim(true)
     setShowSettings(false)
     setTimeout(() => setDiceAnim(false), 650)
-    const squad = rollSquad(state.seed, rollIndex, state.picks.map(p => p.squad.id))
+    const squad = rollSquad(state.seed, rollIndex, state.picks.map(p => p.squad.id), pool)
     setState(s => ({ ...s, currentRoll: { squad, rerollsLeft: 3 }, phase: 'picking' }))
     setRollIndex(i => i + 1)
     setSelectedPlayer(null)
@@ -73,7 +77,7 @@ export default function GameScreen({ onHome }: Props) {
   const reroll = (type: 'squad' | 'copa') => {
     if (!state.currentRoll || state.currentRoll.rerollsLeft <= 0) return
     const newIdx = rollIndex + 10 + (type === 'copa' ? 5 : 0)
-    const squad = rollSquad(state.seed, newIdx, state.picks.map(p => p.squad.id))
+    const squad = rollSquad(state.seed, newIdx, state.picks.map(p => p.squad.id), pool)
     setState(s => ({ ...s, currentRoll: { squad, rerollsLeft: (s.currentRoll?.rerollsLeft ?? 1) - 1 } }))
     setRollIndex(newIdx + 1)
     setSelectedPlayer(null)
@@ -280,8 +284,12 @@ export default function GameScreen({ onHome }: Props) {
                 <div className="flex items-center gap-3">
                   <span className="text-4xl">{state.currentRoll.squad.flagEmoji}</span>
                   <div>
-                    <div className="text-2xl font-black leading-tight">{state.currentRoll.squad.countryNamePt}</div>
-                    <div className="text-[#C9A84C] font-bold text-sm">Copa {state.currentRoll.squad.year}</div>
+                    <div className="text-2xl font-black leading-tight">
+                      {state.currentRoll.squad.clubName ?? state.currentRoll.squad.countryNamePt}
+                    </div>
+                    <div className="text-[#C9A84C] font-bold text-sm">
+                      {state.currentRoll.squad.trophy ?? `Copa ${state.currentRoll.squad.year}`}
+                    </div>
                   </div>
                 </div>
                 {state.currentRoll.squad.notableReason && (

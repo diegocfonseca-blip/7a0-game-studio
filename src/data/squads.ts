@@ -19,6 +19,10 @@ export interface Squad {
   flagEmoji: string
   notableReason: string
   players: Player[]
+  // clubs only
+  clubName?: string
+  trophy?: string
+  badgeEmoji?: string
 }
 
 const squads: Squad[] = [
