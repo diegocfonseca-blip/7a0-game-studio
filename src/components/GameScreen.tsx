@@ -33,9 +33,20 @@ const STYLE_LABELS: Record<GameStyle, string> = {
   offensive: 'OFENSIVO',
 }
 
+const STYLE_SHORT: Record<GameStyle, string> = {
+  defensive: 'DEF',
+  balanced: 'EQU',
+  offensive: 'OFE',
+}
+
 const MODE_LABELS: Record<GameMode, string> = {
   classic: 'CLÁSSICO',
   almanac: 'DE ALMANAQUE',
+}
+
+const MODE_SHORT: Record<GameMode, string> = {
+  classic: 'CLÁ',
+  almanac: 'ALM',
 }
 
 export default function GameScreen({ onHome }: Props) {
@@ -127,8 +138,8 @@ export default function GameScreen({ onHome }: Props) {
       {/* Top bar */}
       <div className="bg-[#1a1a1a] text-white px-4 py-2 flex items-center justify-between text-xs font-bold tracking-widest">
         <button onClick={onHome} className="text-[#C9A84C] hover:text-white transition-colors">7–0</button>
-        <div className="text-center text-[10px] text-white/60 tracking-wider">
-          {state.formation.name} · {STYLE_LABELS[state.style]} · {MODE_LABELS[state.mode]}
+        <div className="text-[10px] text-white/60 tracking-wider whitespace-nowrap">
+          {state.formation.name} · {STYLE_SHORT[state.style]} · {MODE_SHORT[state.mode]}
         </div>
         <button
           onClick={() => setShowSettings(s => !s)}
@@ -202,14 +213,14 @@ export default function GameScreen({ onHome }: Props) {
           {/* BOX SCORE */}
           <div className="bg-white rounded-lg p-3 text-xs shadow-sm">
             <div className="font-black text-[#1a1a1a] mb-2 tracking-widest text-[10px]">BOX SCORE · {state.picks.length}/11</div>
-            <div className="flex gap-2 mb-3">
-              <div className="flex-1 text-center border-r border-gray-100">
-                <div className="text-xl font-black text-[#1a1a1a]">{ataque ?? '?'}</div>
-                <div className="text-[#888] text-[9px] tracking-widest">ATAQUE</div>
+            <div className="grid grid-cols-2 mb-3 border border-gray-100 rounded-lg overflow-hidden">
+              <div className="text-center py-2 border-r border-gray-100">
+                <div className="text-2xl font-black text-[#1a1a1a] leading-none">{ataque ?? '?'}</div>
+                <div className="text-[#888] text-[9px] tracking-widest mt-0.5">ATAQUE</div>
               </div>
-              <div className="flex-1 text-center">
-                <div className="text-xl font-black text-[#1a1a1a]">{defesa ?? '?'}</div>
-                <div className="text-[#888] text-[9px] tracking-widest">DEFESA</div>
+              <div className="text-center py-2">
+                <div className="text-2xl font-black text-[#1a1a1a] leading-none">{defesa ?? '?'}</div>
+                <div className="text-[#888] text-[9px] tracking-widest mt-0.5">DEFESA</div>
               </div>
             </div>
             {state.formation.slots.map((slot, i) => {
@@ -236,9 +247,10 @@ export default function GameScreen({ onHome }: Props) {
               </p>
               <button
                 onClick={roll}
-                className={`bg-[#1a1a1a] text-white font-black text-xl px-10 py-5 rounded-xl hover:bg-[#333] transition-all shadow-lg ${diceAnim ? 'animate-bounce' : ''}`}
+                className={`bg-[#1a1a1a] text-white font-black text-2xl w-28 h-28 rounded-2xl hover:bg-[#333] transition-all shadow-lg flex flex-col items-center justify-center gap-1 ${diceAnim ? 'scale-95' : ''}`}
               >
-                ROLAR<br />🎲
+                <span className="text-3xl">🎲</span>
+                <span className="text-sm tracking-widest">ROLAR</span>
               </button>
             </div>
           )}
@@ -247,13 +259,16 @@ export default function GameScreen({ onHome }: Props) {
             <div className="animate-slide-up">
               {/* Sorteio banner */}
               <div className="bg-[#1a1a1a] text-white rounded-xl p-4 mb-3">
-                <div className="text-[#888] text-[10px] tracking-widest mb-1 font-bold">SAIU</div>
-                <div className="text-3xl font-black flex items-center gap-2 mb-0.5">
-                  {state.currentRoll.squad.flagEmoji} {state.currentRoll.squad.countryNamePt}
+                <div className="text-[#888] text-[9px] tracking-[0.2em] font-black mb-2">SAIU</div>
+                <div className="flex items-center gap-3">
+                  <span className="text-4xl">{state.currentRoll.squad.flagEmoji}</span>
+                  <div>
+                    <div className="text-2xl font-black leading-tight">{state.currentRoll.squad.countryNamePt}</div>
+                    <div className="text-[#C9A84C] font-bold text-sm">Copa {state.currentRoll.squad.year}</div>
+                  </div>
                 </div>
-                <div className="text-[#C9A84C] font-bold text-sm">Copa {state.currentRoll.squad.year}</div>
                 {state.currentRoll.squad.notableReason && (
-                  <div className="text-[#888] text-[10px] mt-1 italic">{state.currentRoll.squad.notableReason}</div>
+                  <div className="text-white/40 text-[10px] mt-2 italic leading-tight">{state.currentRoll.squad.notableReason}</div>
                 )}
               </div>
 

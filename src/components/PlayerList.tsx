@@ -12,7 +12,7 @@ interface Props {
 
 export default function PlayerList({ squad, mode, selectedPlayer, pickedIds, onSelect, availableSlots }: Props) {
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-sm max-h-96 overflow-y-auto">
+    <div className="bg-white rounded-xl overflow-hidden shadow-sm max-h-96 overflow-y-auto scrollbar-thin">
       {squad.players.map(player => {
         const isPicked = pickedIds.includes(player.id)
         const isSelected = selectedPlayer?.id === player.id
@@ -24,7 +24,7 @@ export default function PlayerList({ squad, mode, selectedPlayer, pickedIds, onS
             key={player.id}
             onClick={() => !isPicked && onSelect(player)}
             disabled={isPicked}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 border-b border-gray-100 last:border-0 transition-all text-left
+            className={`w-full flex items-center gap-3 px-3 pr-4 py-2.5 border-b border-gray-100 last:border-0 transition-all text-left
               ${isPicked ? 'opacity-30 cursor-not-allowed bg-gray-50' : ''}
               ${isSelected ? 'bg-[#D12E2E]/10 border-l-4 border-l-[#D12E2E]' : ''}
               ${!isPicked && !isSelected ? 'hover:bg-gray-50 cursor-pointer' : ''}
