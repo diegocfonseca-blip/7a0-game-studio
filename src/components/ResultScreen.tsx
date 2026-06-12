@@ -131,7 +131,7 @@ export default function ResultScreen({ state, onReplay, onHome }: Props) {
                   }}>
                   {m.phase.slice(0, 3).toUpperCase()}
                 </div>
-                <span className="text-base flex-shrink-0">{m.opponentFlag}</span>
+                <span className="text-base flex-shrink-0">{m.opponentBadge ?? m.opponentFlag}</span>
                 <span className="font-bold text-sm flex-1 truncate" style={{ color: 'rgba(255,255,255,0.8)' }}>{m.opponent}</span>
                 <span className="text-[10px] flex-shrink-0" style={{ color: 'rgba(255,255,255,0.3)' }}>{m.opponentYear}</span>
                 <span className="font-black text-sm flex-shrink-0" style={{ color: '#fff' }}>

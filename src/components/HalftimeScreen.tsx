@@ -98,7 +98,7 @@ export default function HalftimeScreen({ picks, groupMatches, formation, style, 
                 <span className="font-black text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: m.won ? 'rgba(76,175,80,0.2)' : 'rgba(209,46,46,0.2)', color: m.won ? '#4CAF50' : '#D12E2E' }}>
                   {m.won ? 'V' : 'D'}
                 </span>
-                <span className="text-base">{m.opponentFlag}</span>
+                <span className="text-base">{m.opponentBadge ?? m.opponentFlag}</span>
                 <span className="flex-1 font-bold text-sm truncate" style={{ color: 'rgba(255,255,255,0.7)' }}>{m.opponent}</span>
                 <span className="font-black text-sm" style={{ color: '#fff' }}>{m.goalsFor}–{m.goalsAgainst}</span>
               </div>

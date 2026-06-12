@@ -1,4 +1,3 @@
-import squads from '../data/squads'
 import type { Squad } from '../data/squads'
 import type { Formation, FormationSlot } from '../data/formations'
 
@@ -22,6 +21,7 @@ export interface MatchEvent {
 export interface MatchResult {
   opponent: string
   opponentFlag: string
+  opponentBadge: string
   opponentYear: number
   goalsFor: number
   goalsAgainst: number
@@ -56,7 +56,7 @@ function sr(seed: string, matchIdx: number, offset: number): number {
   return (h >>> 0) / 4294967296
 }
 
-// Poisson-distributed goal count (realistic World Cup scores: 0–4 per team)
+// Poisson-distributed goal count
 function poissonGoals(lambda: number, seed: string, matchIdx: number, offset: number): number {
   if (lambda <= 0) return 0
   const L = Math.exp(-Math.min(lambda, 5))
@@ -75,8 +75,7 @@ export function generateSeed(): string {
 }
 
 export function rollSquad(seed: string, rollIndex: number, exclude?: string[], pool?: Squad[]): Squad {
-  const source = pool ?? squads
-  const available = source.filter(s => !exclude?.includes(s.id))
+  const available = pool!.filter(s => !exclude?.includes(s.id))
   const idx = Math.floor(sr(seed, rollIndex, 0) * available.length)
   return available[idx]
 }
@@ -100,6 +99,46 @@ export function computeDefesa(picks: PickedPlayer[]): number | null {
   return Math.round(def.reduce((s, p) => s + p.player.rating, 0) / def.length)
 }
 
+// ─── Opponent generation from pool ───────────────────────────────────────────
+
+type OpponentDef = { name: string; flag: string; badge: string; year: number; phase: string; rating: number }
+
+function generateOpponents(pool: Squad[], pickedSquadIds: string[], seed: string): OpponentDef[] {
+  const available = pool.filter(s => !pickedSquadIds.includes(s.id))
+
+  // Seeded Fisher-Yates shuffle
+  const shuffled = [...available]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(sr(seed, 997, i) * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+
+  // Pick up to 7, sort weakest→strongest by average player rating
+  const selected = shuffled.slice(0, Math.min(7, shuffled.length))
+  selected.sort((a, b) => {
+    const avgA = a.players.reduce((s, p) => s + p.rating, 0) / a.players.length
+    const avgB = b.players.reduce((s, p) => s + p.rating, 0) / b.players.length
+    return avgA - avgB
+  })
+
+  // Pad if fewer than 7 available (repeat last)
+  while (selected.length < 7 && selected.length > 0) {
+    selected.push(selected[selected.length - 1])
+  }
+
+  const phases = ['Grupos', 'Grupos', 'Grupos', 'Oitavas', 'Quartas', 'Semifinal', 'Final']
+  const baseRatings = [76, 78, 80, 84, 87, 90, 93]
+
+  return selected.map((squad, i) => ({
+    name: squad.clubName ?? squad.countryNamePt,
+    flag: squad.flagEmoji,
+    badge: squad.badgeEmoji ?? squad.countryCode,
+    year: squad.year,
+    phase: phases[i],
+    rating: baseRatings[i],
+  }))
+}
+
 // ─── Match simulation ─────────────────────────────────────────────────────────
 
 function simulateMatch(
@@ -120,20 +159,15 @@ function simulateMatch(
     ? defenders.reduce((s, p) => s + p.player.rating, 0) / defenders.length
     : teamOverall
 
-  // Rating differential — stronger team attacks more, concedes less
   const diff = teamOverall - opponentRating
   const adjFor = Math.max(-0.6, Math.min(0.6, diff / 40))
-  const adjAgainst = -adjFor * 0.8  // defense slightly less impacted by diff
+  const adjAgainst = -adjFor * 0.8
 
-  // Attack/defense quality bonus vs baseline 80
   const atkBonus = (atkAvg - 80) / 100
   const defBonus = (defAvg - 80) / 120
-
-  // Legend bonus: legends create extra spark
   const legendCount = picks.filter(p => p.player.isLegend).length
   const legendBonus = Math.min(0.2, legendCount * 0.03)
 
-  // Style modifiers
   const styleAtkMod = style === 'offensive' ? 0.2 : style === 'defensive' ? -0.15 : 0
   const styleDefMod = style === 'defensive' ? -0.2 : style === 'offensive' ? 0.1 : 0
 
@@ -143,14 +177,12 @@ function simulateMatch(
   const goalsFor = poissonGoals(lambdaFor, seed, matchIdx, 1)
   const goalsAgainst = poissonGoals(lambdaAgainst, seed, matchIdx, 30)
 
-  // Build events — goal scorers weighted by rating + legend bonus
   const events: MatchEvent[] = []
   const scorerPool = attackers.length ? attackers : picks
   const assistPool = picks.filter(p => !['GOL'].includes(p.slot.position))
 
   for (let i = 0; i < goalsFor; i++) {
     const minute = Math.min(90, Math.floor(sr(seed, matchIdx, 50 + i) * 90) + 1)
-    // Weight by rating so legends score more
     const ratingSum = scorerPool.reduce((s, p) => s + p.player.rating + (p.player.isLegend ? 10 : 0), 0)
     let pick = sr(seed, matchIdx, 60 + i) * ratingSum
     let scorer = scorerPool[scorerPool.length - 1]
@@ -161,12 +193,9 @@ function simulateMatch(
     const assistIdx = Math.floor(sr(seed, matchIdx, 70 + i) * assistPool.length)
     const assister = assistPool[assistIdx]
     events.push({
-      minute,
-      type: 'goal',
+      minute, type: 'goal',
       playerName: scorer.player.name,
-      assistName: assister && assister.player.name !== scorer.player.name
-        ? assister.player.name
-        : undefined,
+      assistName: assister && assister.player.name !== scorer.player.name ? assister.player.name : undefined,
     })
   }
 
@@ -185,7 +214,6 @@ function simulatePenalties(seed: string, matchIdx: number): { goalsFor: number; 
     if (sr(seed, matchIdx, 200 + i) > 0.22) gf++
     if (sr(seed, matchIdx, 210 + i) > 0.22) ga++
   }
-  // Sudden death if tied
   if (gf === ga) {
     if (sr(seed, matchIdx, 220) > 0.5) gf++
     else ga++
@@ -193,25 +221,13 @@ function simulatePenalties(seed: string, matchIdx: number): { goalsFor: number; 
   return { goalsFor: gf, goalsAgainst: ga }
 }
 
-// ─── Opponents ────────────────────────────────────────────────────────────────
-
-const OPPONENTS = [
-  { name: 'Polônia',    flag: '🇵🇱', year: 1974, phase: 'Grupos',    rating: 76 },
-  { name: 'Camarões',   flag: '🇨🇲', year: 1990, phase: 'Grupos',    rating: 78 },
-  { name: 'Bélgica',    flag: '🇧🇪', year: 2018, phase: 'Grupos',    rating: 80 },
-  { name: 'Uruguai',    flag: '🇺🇾', year: 1970, phase: 'Oitavas',   rating: 84 },
-  { name: 'Argentina',  flag: '🇦🇷', year: 1978, phase: 'Quartas',   rating: 87 },
-  { name: 'Holanda',    flag: '🇳🇱', year: 1974, phase: 'Semifinal', rating: 90 },
-  { name: 'Brasil',     flag: '🇧🇷', year: 1970, phase: 'Final',     rating: 93 },
-]
-
 // ─── Copa simulation ──────────────────────────────────────────────────────────
 
 function runMatches(
   picks: PickedPlayer[],
   style: GameStyle,
   seed: string,
-  opponents: typeof OPPONENTS,
+  opponents: OpponentDef[],
   startIdx: number
 ): MatchResult[] {
   const overall = computeOverall(picks, style)
@@ -242,6 +258,7 @@ function runMatches(
     results.push({
       opponent: opp.name,
       opponentFlag: opp.flag,
+      opponentBadge: opp.badge,
       opponentYear: opp.year,
       goalsFor: match.goalsFor,
       goalsAgainst: match.goalsAgainst,
@@ -258,19 +275,22 @@ function runMatches(
   return results
 }
 
-export function simulateGroupStage(state: GameState): MatchResult[] {
-  return runMatches(state.picks, state.style, state.seed, OPPONENTS.slice(0, 3), 0)
+export function simulateGroupStage(state: GameState, pool: Squad[]): MatchResult[] {
+  const pickedIds = state.picks.map(p => p.squad.id)
+  const opponents = generateOpponents(pool, pickedIds, state.seed)
+  return runMatches(state.picks, state.style, state.seed, opponents.slice(0, 3), 0)
 }
 
-export function simulateKnockouts(state: GameState, groupMatches: MatchResult[]): MatchResult[] {
-  // Check if passed groups (not eliminated)
+export function simulateKnockouts(state: GameState, groupMatches: MatchResult[], pool: Squad[]): MatchResult[] {
   const groupLosses = groupMatches.filter(m => !m.won && m.phase === 'Grupos').length
   if (groupLosses >= 2) return []
-  return runMatches(state.picks, state.style, state.seed, OPPONENTS.slice(3), 3)
+  const pickedIds = state.picks.map(p => p.squad.id)
+  const opponents = generateOpponents(pool, pickedIds, state.seed)
+  return runMatches(state.picks, state.style, state.seed, opponents.slice(3), 3)
 }
 
-export function simulateCopa(state: GameState): MatchResult[] {
-  const groups = simulateGroupStage(state)
-  const knockouts = simulateKnockouts(state, groups)
+export function simulateCopa(state: GameState, pool: Squad[]): MatchResult[] {
+  const groups = simulateGroupStage(state, pool)
+  const knockouts = simulateKnockouts(state, groups, pool)
   return [...groups, ...knockouts]
 }
