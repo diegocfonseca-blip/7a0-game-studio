@@ -101,7 +101,7 @@ export function computeDefesa(picks: PickedPlayer[]): number | null {
 
 // ─── Opponent generation from pool ───────────────────────────────────────────
 
-type OpponentDef = { name: string; flag: string; badge: string; year: number; phase: string; rating: number }
+type OpponentDef = { name: string; flag: string; badge: string; year: number; phase: string; rating: number; squad: Squad }
 
 function generateOpponents(pool: Squad[], pickedSquadIds: string[], seed: string): OpponentDef[] {
   const available = pool.filter(s => !pickedSquadIds.includes(s.id))
@@ -136,6 +136,7 @@ function generateOpponents(pool: Squad[], pickedSquadIds: string[], seed: string
     year: squad.year,
     phase: phases[i],
     rating: baseRatings[i],
+    squad,
   }))
 }
 
@@ -147,7 +148,8 @@ function simulateMatch(
   picks: PickedPlayer[],
   seed: string,
   matchIdx: number,
-  style: GameStyle = 'balanced'
+  style: GameStyle = 'balanced',
+  opponentPlayers: string[] = []
 ): { goalsFor: number; goalsAgainst: number; events: MatchEvent[] } {
   const attackers = picks.filter(p => ['CA', 'MEI', 'PD', 'PE', 'MD', 'ME'].includes(p.slot.position))
   const defenders = picks.filter(p => ['GOL', 'ZAG', 'LD', 'LE', 'VOL'].includes(p.slot.position))
@@ -201,7 +203,13 @@ function simulateMatch(
 
   for (let i = 0; i < goalsAgainst; i++) {
     const minute = Math.min(90, Math.floor(sr(seed, matchIdx, 80 + i) * 90) + 1)
-    events.push({ minute, type: 'conceded' })
+    const oppAttackers = opponentPlayers.length
+      ? opponentPlayers
+      : []
+    const scorerName = oppAttackers.length
+      ? oppAttackers[Math.floor(sr(seed, matchIdx, 90 + i) * oppAttackers.length)]
+      : undefined
+    events.push({ minute, type: 'conceded', playerName: scorerName })
   }
 
   events.sort((a, b) => a.minute - b.minute)
@@ -239,7 +247,10 @@ function runMatches(
     const isKnockout = startIdx + i >= 3
     const matchIdx = startIdx + i
 
-    const match = simulateMatch(overall, opp.rating, picks, seed, matchIdx, style)
+    const oppPlayers = opp.squad.players
+      .filter(p => ['CA', 'MEI', 'PD', 'PE', 'MD', 'ME', 'VOL'].includes(p.primaryPosition))
+      .map(p => p.name)
+    const match = simulateMatch(overall, opp.rating, picks, seed, matchIdx, style, oppPlayers)
 
     let won = match.goalsFor > match.goalsAgainst
     let penalties: { goalsFor: number; goalsAgainst: number } | undefined

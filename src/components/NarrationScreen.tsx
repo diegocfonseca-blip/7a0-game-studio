@@ -46,8 +46,11 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const match = matches[matchIdx]
+  const oppScorerNames = match
+    ? match.events.filter(e => e.type === 'conceded' && e.playerName).map(e => e.playerName!)
+    : []
   const moments: MatchMoment[] = match
-    ? generateMatchMoments(state.picks, match.opponent, match.goalsFor, match.goalsAgainst, state.seed, matchIdx)
+    ? generateMatchMoments(state.picks, match.opponent, match.goalsFor, match.goalsAgainst, state.seed, matchIdx, oppScorerNames)
     : []
   const isFinished = shownCount >= moments.length
 

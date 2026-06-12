@@ -84,21 +84,29 @@ const DANGERS_OPPONENT = [
 ]
 
 const CONCEDED = [
-  (opp: string) => [
-    `GOL DO ADVERSÁRIO! ${opp} aproveita falha da defesa e marca!`,
+  (opp: string, pl: string) => [
+    `GOL DO ADVERSÁRIO! ${pl} do ${opp} aproveita falha da defesa e marca!`,
     `Nosso time precisa se reorganizar.`,
   ],
-  (opp: string) => [
-    `${opp.toUpperCase()} MARCA! Chute de fora da área sem chance para o goleiro!`,
+  (opp: string, pl: string) => [
+    `${pl.toUpperCase()} MARCA PELO ${opp.toUpperCase()}! Chute de fora da área sem chance para o goleiro!`,
     `Placar apertado agora.`,
   ],
-  (opp: string) => [
-    `GOL DE CABEÇA DO ${opp.toUpperCase()}! Escanteio aproveitado na segunda trave!`,
+  (opp: string, pl: string) => [
+    `GOL DE CABEÇA DE ${pl.toUpperCase()}! Escanteio do ${opp} aproveitado na segunda trave!`,
     `Nosso time ficou dormindo na marcação.`,
   ],
-  (opp: string) => [
-    `Contra-ataque fatal! ${opp} encontra espaço e finaliza no canto!`,
+  (opp: string, pl: string) => [
+    `Contra-ataque fatal! ${pl} do ${opp} encontra espaço e finaliza no canto!`,
     `Nossa equipe precisa voltar para o jogo.`,
+  ],
+  (opp: string, pl: string) => [
+    `GOOOOL DO ${opp.toUpperCase()}! ${pl} recebe na área e não perdoa!`,
+    `Que finalização precisa. Nada a fazer para o goleiro.`,
+  ],
+  (opp: string, pl: string) => [
+    `${pl} arrisca de longe pelo ${opp}... a bola explode no ângulo!`,
+    `Gol olímpico de categoria! Nosso goleiro foi batido.`,
   ],
 ]
 
@@ -124,7 +132,8 @@ export function generateMatchMoments(
   goalsFor: number,
   goalsAgainst: number,
   seed: string,
-  matchIdx: number
+  matchIdx: number,
+  opponentScorerNames: string[] = []
 ): MatchMoment[] {
   const r = (o: number) => {
     let h = 0
@@ -206,7 +215,8 @@ export function generateMatchMoments(
 
   // Gols concedidos
   concededMinutes.forEach((min, i) => {
-    const concededLines = pick(CONCEDED, r(i * 5 + 10))(opponent)
+    const oppScorer = opponentScorerNames[i] ?? opponentScorerNames[Math.floor(r(i * 5 + 9) * Math.max(1, opponentScorerNames.length))] ?? opponent
+    const concededLines = pick(CONCEDED, r(i * 5 + 10))(opponent, oppScorer)
     moments.push({
       minute: min,
       type: 'conceded',
