@@ -27,7 +27,7 @@ export default function ResultScreen({ state, onReplay, onHome }: Props) {
   const topAssists = Object.entries(assistMap).sort((a, b) => b[1] - a[1]).slice(0, 3)
 
   const shareText = [
-    `🏆 LENDAS DA COPA — #${state.seed}`,
+    `🏆 0a7LEGENDS — #${state.seed}`,
     isChampion ? '🥇 CAMPEÃO MUNDIAL!' : `❌ Eliminado: ${lastMatch?.phase}`,
     `${wins}V · ${totalGoals} gols · ${totalConceded} sofridos`,
     topScorers.length ? `⚽ Artilheiro: ${topScorers[0][0]} (${topScorers[0][1]}g)` : '',

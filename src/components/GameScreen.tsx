@@ -158,7 +158,7 @@ export default function GameScreen({ category, onHome }: Props) {
     <div className="min-h-screen bg-[#F5F0E8]">
       {/* Top bar */}
       <div className="bg-[#1a1a1a] text-white px-4 py-2 flex items-center justify-between text-xs font-bold tracking-widest">
-        <button onClick={onHome} className="text-[#C9A84C] hover:text-white transition-colors">7–0</button>
+        <button onClick={onHome} className="text-[#C9A84C] hover:text-white transition-colors font-black tracking-tight">0a7</button>
         <div className="text-[10px] text-white/60 tracking-wider whitespace-nowrap">
           {state.formation.name} · {STYLE_SHORT[state.style]} · {MODE_SHORT[state.mode]}
         </div>

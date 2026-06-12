@@ -29,7 +29,7 @@ export default function Home({ onPlay }: Props) {
     <div className="min-h-screen bg-[#F5F0E8]">
       {/* Header */}
       <div className="flex justify-between items-center px-6 py-4 max-w-5xl mx-auto">
-        <span className="text-xs font-bold tracking-widest text-[#888] uppercase">Lendas da Copa · 1930 — 2024</span>
+        <span className="text-xs font-bold tracking-widest text-[#888] uppercase">0a7legends · 1930 — 2024</span>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 md:px-8">
@@ -37,17 +37,14 @@ export default function Home({ onPlay }: Props) {
           {/* Left */}
           <div className="flex-1 text-left">
             <div className="leading-none mb-6">
-              <div className="text-[80px] md:text-[120px] font-black text-[#1a1a1a] leading-none tracking-tighter">
-                LENDAS
+              <div className="text-[70px] md:text-[110px] font-black text-[#1a1a1a] leading-none tracking-tighter">
+                0a7
               </div>
               <div className="flex items-center gap-4">
                 <div className="h-3 w-28 bg-[#C9A84C] rounded-full" />
-                <div className="text-[80px] md:text-[120px] font-black text-[#1a1a1a] leading-none tracking-tighter">
-                  DA
+                <div className="text-[70px] md:text-[110px] font-black text-[#D12E2E] leading-none tracking-tighter">
+                  LEGENDS
                 </div>
-              </div>
-              <div className="text-[80px] md:text-[120px] font-black text-[#1a1a1a] leading-none tracking-tighter">
-                COPA
               </div>
             </div>
 
