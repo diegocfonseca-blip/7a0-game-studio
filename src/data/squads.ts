@@ -36,8 +36,8 @@ const squads: Squad[] = [
       { id: 'b70-4', name: 'Piazza', shirtNumber: 4, primaryPosition: 'ZAG', secondaryPositions: ['VOL'], rating: 83, goalsInTournament: 0, isLegend: false },
       { id: 'b70-5', name: 'Everaldo', shirtNumber: 5, primaryPosition: 'LE', secondaryPositions: [], rating: 83, goalsInTournament: 0, isLegend: false },
       { id: 'b70-6', name: 'Clodoaldo', shirtNumber: 6, primaryPosition: 'VOL', secondaryPositions: ['MC'], rating: 87, goalsInTournament: 1, isLegend: false },
-      { id: 'b70-7', name: 'Gérson', shirtNumber: 7, primaryPosition: 'MC', secondaryPositions: [], rating: 91, goalsInTournament: 1, isLegend: true },
-      { id: 'b70-8', name: 'Jairzinho', shirtNumber: 8, primaryPosition: 'PD', secondaryPositions: ['CA'], rating: 94, goalsInTournament: 7, isLegend: true },
+      { id: 'b70-7', name: 'Jairzinho', shirtNumber: 7, primaryPosition: 'PD', secondaryPositions: ['CA'], rating: 94, goalsInTournament: 7, isLegend: true },
+      { id: 'b70-8', name: 'Gérson', shirtNumber: 8, primaryPosition: 'MC', secondaryPositions: [], rating: 91, goalsInTournament: 1, isLegend: true },
       { id: 'b70-9', name: 'Tostão', shirtNumber: 9, primaryPosition: 'MEI', secondaryPositions: ['CA'], rating: 91, goalsInTournament: 2, isLegend: true },
       { id: 'b70-10', name: 'Pelé', shirtNumber: 10, primaryPosition: 'CA', secondaryPositions: ['MEI'], rating: 99, goalsInTournament: 4, isLegend: true },
       { id: 'b70-11', name: 'Rivelino', shirtNumber: 11, primaryPosition: 'PE', secondaryPositions: ['MC'], rating: 93, goalsInTournament: 3, isLegend: true },
@@ -79,7 +79,7 @@ const squads: Squad[] = [
       { id: 'b94-5', name: 'Cafu', shirtNumber: 5, primaryPosition: 'LD', secondaryPositions: [], rating: 93, goalsInTournament: 0, isLegend: true },
       { id: 'b94-6', name: 'Mauro Silva', shirtNumber: 6, primaryPosition: 'VOL', secondaryPositions: [], rating: 82, goalsInTournament: 0, isLegend: false },
       { id: 'b94-7', name: 'Mazinho', shirtNumber: 7, primaryPosition: 'MC', secondaryPositions: ['VOL'], rating: 82, goalsInTournament: 0, isLegend: false },
-      { id: 'b94-8', name: 'Mauro Silva', shirtNumber: 8, primaryPosition: 'MC', secondaryPositions: [], rating: 81, goalsInTournament: 0, isLegend: false },
+      { id: 'b94-8', name: 'Rai', shirtNumber: 8, primaryPosition: 'MEI', secondaryPositions: ['MC'], rating: 87, goalsInTournament: 1, isLegend: false },
       { id: 'b94-9', name: 'Romário', shirtNumber: 9, primaryPosition: 'CA', secondaryPositions: [], rating: 97, goalsInTournament: 5, isLegend: true },
       { id: 'b94-10', name: 'Bebeto', shirtNumber: 10, primaryPosition: 'CA', secondaryPositions: ['MEI'], rating: 93, goalsInTournament: 3, isLegend: true },
       { id: 'b94-11', name: 'Zinho', shirtNumber: 11, primaryPosition: 'MEI', secondaryPositions: ['MC'], rating: 88, goalsInTournament: 1, isLegend: false },
@@ -102,7 +102,7 @@ const squads: Squad[] = [
       { id: 'b02-7', name: 'Kléberson', shirtNumber: 7, primaryPosition: 'MC', secondaryPositions: [], rating: 83, goalsInTournament: 0, isLegend: false },
       { id: 'b02-8', name: 'Ronaldinho', shirtNumber: 8, primaryPosition: 'MEI', secondaryPositions: ['PE'], rating: 94, goalsInTournament: 2, isLegend: true },
       { id: 'b02-9', name: 'Ronaldo', shirtNumber: 9, primaryPosition: 'CA', secondaryPositions: [], rating: 97, goalsInTournament: 8, isLegend: true },
-      { id: 'b02-10', name: 'Rivaldo', shirtNumber: 10, primaryPosition: 'MEI', secondaryPositions: ['CA'], rating: 95, goalsInTournament: 8, isLegend: true },
+      { id: 'b02-10', name: 'Rivaldo', shirtNumber: 10, primaryPosition: 'MEI', secondaryPositions: ['CA'], rating: 95, goalsInTournament: 5, isLegend: true },
       { id: 'b02-11', name: 'Edilson', shirtNumber: 11, primaryPosition: 'PD', secondaryPositions: ['CA'], rating: 82, goalsInTournament: 0, isLegend: false },
     ]
   },
@@ -115,7 +115,7 @@ const squads: Squad[] = [
     notableReason: 'Maradona carregou sozinho — a Copa da mão de Deus',
     players: [
       { id: 'a86-1', name: 'Pumpido', shirtNumber: 1, primaryPosition: 'GOL', secondaryPositions: [], rating: 86, goalsInTournament: 0, isLegend: false },
-      { id: 'a86-2', name: 'Cuciuffo', shirtNumber: 2, primaryPosition: 'ZAG', secondaryPositions: ['LD'], rating: 82, goalsInTournament: 0, isLegend: false },
+      { id: 'a86-2', name: 'Cuciuffo', shirtNumber: 2, primaryPosition: 'LD', secondaryPositions: ['ZAG'], rating: 82, goalsInTournament: 0, isLegend: false },
       { id: 'a86-3', name: 'Brown', shirtNumber: 3, primaryPosition: 'ZAG', secondaryPositions: [], rating: 84, goalsInTournament: 1, isLegend: false },
       { id: 'a86-4', name: 'Ruggeri', shirtNumber: 4, primaryPosition: 'ZAG', secondaryPositions: [], rating: 87, goalsInTournament: 0, isLegend: false },
       { id: 'a86-5', name: 'Olarticoechea', shirtNumber: 5, primaryPosition: 'LE', secondaryPositions: [], rating: 84, goalsInTournament: 0, isLegend: false },
@@ -154,7 +154,7 @@ const squads: Squad[] = [
     countryCode: 'FRA',
     countryNamePt: 'França',
     flagEmoji: '🇫🇷',
-    notableReason: 'Zidane bicampeão na final — França campeã em casa',
+    notableReason: 'Zidane marcou 2x na final — França campeã em casa',
     players: [
       { id: 'f98-1', name: 'Barthez', shirtNumber: 1, primaryPosition: 'GOL', secondaryPositions: [], rating: 91, goalsInTournament: 0, isLegend: true },
       { id: 'f98-2', name: 'Thuram', shirtNumber: 2, primaryPosition: 'LD', secondaryPositions: ['ZAG'], rating: 89, goalsInTournament: 2, isLegend: true },
@@ -164,8 +164,8 @@ const squads: Squad[] = [
       { id: 'f98-6', name: 'Deschamps', shirtNumber: 6, primaryPosition: 'VOL', secondaryPositions: ['MC'], rating: 88, goalsInTournament: 0, isLegend: true },
       { id: 'f98-7', name: 'Petit', shirtNumber: 7, primaryPosition: 'MC', secondaryPositions: [], rating: 84, goalsInTournament: 1, isLegend: false },
       { id: 'f98-8', name: 'Karembeu', shirtNumber: 8, primaryPosition: 'MC', secondaryPositions: ['VOL'], rating: 82, goalsInTournament: 0, isLegend: false },
-      { id: 'f98-9', name: 'Zidane', shirtNumber: 9, primaryPosition: 'MEI', secondaryPositions: ['MC'], rating: 98, goalsInTournament: 3, isLegend: true },
-      { id: 'f98-10', name: 'Djorkaeff', shirtNumber: 10, primaryPosition: 'PD', secondaryPositions: ['MEI'], rating: 87, goalsInTournament: 1, isLegend: false },
+      { id: 'f98-9', name: 'Djorkaeff', shirtNumber: 9, primaryPosition: 'PD', secondaryPositions: ['MEI'], rating: 87, goalsInTournament: 1, isLegend: false },
+      { id: 'f98-10', name: 'Zidane', shirtNumber: 10, primaryPosition: 'MEI', secondaryPositions: ['MC'], rating: 98, goalsInTournament: 3, isLegend: true },
       { id: 'f98-11', name: 'Dugarry', shirtNumber: 11, primaryPosition: 'CA', secondaryPositions: [], rating: 80, goalsInTournament: 1, isLegend: false },
     ]
   },
@@ -249,7 +249,7 @@ const squads: Squad[] = [
       { id: 'n74-7', name: 'Neeskens', shirtNumber: 7, primaryPosition: 'VOL', secondaryPositions: ['MC'], rating: 93, goalsInTournament: 5, isLegend: true },
       { id: 'n74-8', name: 'Van Hanegem', shirtNumber: 8, primaryPosition: 'MC', secondaryPositions: [], rating: 88, goalsInTournament: 0, isLegend: false },
       { id: 'n74-9', name: 'Rep', shirtNumber: 9, primaryPosition: 'PD', secondaryPositions: ['CA'], rating: 87, goalsInTournament: 3, isLegend: false },
-      { id: 'n74-10', name: 'Cruyff', shirtNumber: 10, primaryPosition: 'CA', secondaryPositions: ['MEI'], rating: 99, goalsInTournament: 3, isLegend: true },
+      { id: 'n74-10', name: 'Cruyff', shirtNumber: 14, primaryPosition: 'CA', secondaryPositions: ['MEI'], rating: 99, goalsInTournament: 3, isLegend: true },
       { id: 'n74-11', name: 'Rensenbrink', shirtNumber: 11, primaryPosition: 'PE', secondaryPositions: ['CA'], rating: 86, goalsInTournament: 2, isLegend: false },
     ]
   },
@@ -397,7 +397,7 @@ const squads: Squad[] = [
       { id: 'p06-8', name: 'Deco', shirtNumber: 8, primaryPosition: 'MEI', secondaryPositions: ['MC'], rating: 92, goalsInTournament: 0, isLegend: true },
       { id: 'p06-9', name: 'Figo', shirtNumber: 9, primaryPosition: 'PD', secondaryPositions: ['MEI'], rating: 93, goalsInTournament: 0, isLegend: true },
       { id: 'p06-10', name: 'Simão', shirtNumber: 10, primaryPosition: 'PE', secondaryPositions: [], rating: 86, goalsInTournament: 2, isLegend: false },
-      { id: 'p06-11', name: 'Cristiano Ronaldo', shirtNumber: 11, primaryPosition: 'CA', secondaryPositions: ['PD'], rating: 92, goalsInTournament: 1, isLegend: true },
+      { id: 'p06-11', name: 'Cristiano Ronaldo', shirtNumber: 11, primaryPosition: 'PD', secondaryPositions: ['CA'], rating: 92, goalsInTournament: 1, isLegend: true },
     ]
   },
 ]
