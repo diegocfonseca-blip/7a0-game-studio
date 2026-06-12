@@ -1,3 +1,4 @@
+import { canPlayPosition } from '../data/formations'
 import type { Formation, FormationSlot } from '../data/formations'
 import type { PickedPlayer } from '../engine/game'
 import type { Player } from '../data/squads'
@@ -26,12 +27,15 @@ export default function Field({ formation, picks, selectedPlayer, onSlotClick }:
       {formation.slots.map((slot, i) => {
         const pick = picks.find(p => p.slotIndex === i)
         const isEmpty = !pick
-        const isPickable = isEmpty && selectedPlayer !== null
+        const isCompatible = selectedPlayer
+          ? canPlayPosition(selectedPlayer.primaryPosition, selectedPlayer.secondaryPositions, slot.position)
+          : false
+        const isPickable = isEmpty && isCompatible
 
         return (
           <div
             key={i}
-            className={`absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 cursor-pointer`}
+            className={`absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 ${isPickable ? 'cursor-pointer' : 'cursor-default'}`}
             style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
             onClick={() => isPickable && onSlotClick(slot, i)}
           >
@@ -41,7 +45,9 @@ export default function Field({ formation, picks, selectedPlayer, onSlotClick }:
                 ? 'bg-white border-2 border-[#1a1a1a] text-[#1a1a1a]'
                 : isPickable
                   ? 'bg-[#D12E2E] border-2 border-white text-white animate-pulse scale-110'
-                  : 'bg-white/20 border-2 border-white/50 text-white/80'
+                  : selectedPlayer && isEmpty
+                    ? 'bg-white/10 border-2 border-white/20 text-white/40'
+                    : 'bg-white/20 border-2 border-white/50 text-white/80'
               }
             `}>
               {pick ? (pick.player.name.split(' ').pop()?.substring(0, 3) || '?') : slot.label}
