@@ -61,7 +61,6 @@ export default function GameScreen({ category, onHome }: Props) {
   const [rollIndex, setRollIndex] = useState(0)
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
   const [diceAnim, setDiceAnim] = useState(false)
-  const [rerollCount, setRerollCount] = useState(0)
   const [showSettings, setShowSettings] = useState(false)
   const [narrating, setNarrating] = useState(false)
   const [groupMatches, setGroupMatches] = useState<MatchResult[]>([])
@@ -74,7 +73,6 @@ export default function GameScreen({ category, onHome }: Props) {
     setState(s => ({ ...s, currentRoll: { squad, rerollsLeft: 3 }, phase: 'picking' }))
     setRollIndex(i => i + 1)
     setSelectedPlayer(null)
-    setRerollCount(0)
   }, [state.seed, state.picks, rollIndex])
 
   const reroll = (type: 'squad' | 'copa') => {
@@ -84,7 +82,6 @@ export default function GameScreen({ category, onHome }: Props) {
     setState(s => ({ ...s, currentRoll: { squad, rerollsLeft: (s.currentRoll?.rerollsLeft ?? 1) - 1 } }))
     setRollIndex(newIdx + 1)
     setSelectedPlayer(null)
-    setRerollCount(c => c + 1)
   }
 
   const pickPlayer = (player: Player) => setSelectedPlayer(p => p?.id === player.id ? null : player)
@@ -154,7 +151,6 @@ export default function GameScreen({ category, onHome }: Props) {
     setRollIndex(0)
     setSelectedPlayer(null)
     setDiceAnim(false)
-    setRerollCount(0)
     setShowSettings(false)
     setNarrating(false)
     setGroupMatches([])
@@ -197,7 +193,7 @@ export default function GameScreen({ category, onHome }: Props) {
   const canRoll = !state.currentRoll && (state.phase === 'setup' || state.phase === 'rolling')
 
   return (
-    <div className="min-h-screen bg-[#F5F0E8]">
+    <div className="game-shell min-h-screen bg-[#F5F0E8]">
       {/* Top bar */}
       <div className="bg-[#1a1a1a] text-white px-4 py-2 flex items-center justify-between text-xs font-bold tracking-widest">
         <button onClick={onHome} className="text-[#C9A84C] hover:text-white transition-colors font-black tracking-tight">0a7</button>
@@ -263,9 +259,9 @@ export default function GameScreen({ category, onHome }: Props) {
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-4 py-4 flex flex-col md:flex-row gap-4">
+      <div className="game-layout max-w-4xl mx-auto px-4 py-4 flex flex-col md:flex-row gap-4">
         {/* Left: field + box score */}
-        <div className="w-full md:w-56 flex-shrink-0 flex flex-col gap-3">
+        <div className="game-side w-full md:w-56 flex-shrink-0 flex flex-col gap-3">
           <Field
             formation={state.formation}
             picks={state.picks}
@@ -300,7 +296,7 @@ export default function GameScreen({ category, onHome }: Props) {
         </div>
 
         {/* Right: roll / players */}
-        <div className="flex-1">
+        <div className="game-main flex-1">
           {canRoll && (
             <div className="flex flex-col items-center justify-center h-64 gap-4">
               <p className="text-[#888] text-center text-sm font-medium">
