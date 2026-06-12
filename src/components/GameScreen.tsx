@@ -49,6 +49,7 @@ export default function GameScreen({ category, onHome }: Props) {
   const [showField, setShowField] = useState(false)
   const [narrating, setNarrating] = useState(false)
   const [groupMatches, setGroupMatches] = useState<MatchResult[]>([])
+  const [halftimePrompt, setHalftimePrompt] = useState(false)
 
   const roll = useCallback(() => {
     setDiceAnim(true)
@@ -98,7 +99,7 @@ export default function GameScreen({ category, onHome }: Props) {
       toResults(groups)
     } else {
       setGroupMatches(groups)
-      setState(s => ({ ...s, phase: 'halftime' }))
+      setHalftimePrompt(true)
     }
   }
 
@@ -127,10 +128,53 @@ export default function GameScreen({ category, onHome }: Props) {
     setShowField(false)
     setNarrating(false)
     setGroupMatches([])
+    setHalftimePrompt(false)
   }
 
   if (state.phase === 'simulating') {
     return <SimulationScreen state={state} onSimulate={startSimulation} onNarrate={startNarration} onHome={onHome} />
+  }
+  if (halftimePrompt) {
+    const gf = groupMatches.reduce((s, m) => s + m.goalsFor, 0)
+    const ga = groupMatches.reduce((s, m) => s + m.goalsAgainst, 0)
+    const wins = groupMatches.filter(m => m.won).length
+    return (
+      <div className="min-h-screen bg-[#1a1a1a] flex flex-col items-center justify-center px-6">
+        <div className="text-[#C9A84C] text-4xl mb-4">⚽</div>
+        <h2 className="text-white font-black text-2xl tracking-wider mb-1">INTERVALO</h2>
+        <p className="text-white/50 text-sm mb-6">Fase de Grupos concluída</p>
+        <div className="bg-white/10 rounded-2xl px-6 py-4 mb-8 text-center w-full max-w-xs">
+          <p className="text-white/40 text-[10px] tracking-widest mb-2">SUA CAMPANHA NA FASE DE GRUPOS</p>
+          <div className="flex justify-center gap-6 mb-3">
+            <div className="text-center"><div className="text-green-400 font-black text-2xl">{wins}V</div><div className="text-white/30 text-[9px]">VITÓRIAS</div></div>
+            <div className="text-center"><div className="text-[#C9A84C] font-black text-2xl">{gf}</div><div className="text-white/30 text-[9px]">GOLS</div></div>
+            <div className="text-center"><div className="text-[#888] font-black text-2xl">{ga}</div><div className="text-white/30 text-[9px]">SOFRIDOS</div></div>
+          </div>
+          {groupMatches.map((m, i) => (
+            <div key={i} className="flex items-center justify-between text-xs py-1 border-t border-white/10">
+              <span className={`font-black text-[10px] ${m.won ? 'text-green-400' : 'text-red-400'}`}>{m.won ? 'V' : 'D'}</span>
+              <span className="text-white/60">{m.opponentFlag} {m.opponent}</span>
+              <span className="text-white font-black">{m.goalsFor}–{m.goalsAgainst}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-white font-black text-base mb-6">Quer fazer substituições?</p>
+        <div className="flex gap-3 w-full max-w-xs">
+          <button
+            onClick={() => { setHalftimePrompt(false); setState(s => ({ ...s, phase: 'halftime' })) }}
+            className="flex-1 bg-[#C9A84C] text-[#1a1a1a] font-black py-4 rounded-2xl text-sm hover:bg-[#b8943d] transition-colors"
+          >
+            ✅ SIM
+          </button>
+          <button
+            onClick={() => { setHalftimePrompt(false); afterHalftime(state.picks, state.formation, state.style) }}
+            className="flex-1 bg-white/10 text-white font-black py-4 rounded-2xl text-sm hover:bg-white/20 transition-colors"
+          >
+            ❌ NÃO
+          </button>
+        </div>
+      </div>
+    )
   }
   if (state.phase === 'halftime') {
     return (
