@@ -16,9 +16,9 @@ export default function App() {
   }
 
   return (
-    <>
+    <div id="app-shell">
       {screen === 'home' && <Home onPlay={play} />}
       {screen === 'game' && <GameScreen category={category} onHome={() => setScreen('home')} />}
-    </>
+    </div>
   )
 }
