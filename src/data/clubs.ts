@@ -865,7 +865,7 @@ const clubs: Squad[] = [
       { id: 'cel67-5',  name: 'McNeill',       shirtNumber: 5,  primaryPosition: 'ZAG', secondaryPositions: [],          rating: 88, goalsInTournament: 1,  isLegend: true  },
       { id: 'cel67-6',  name: 'Clark J.',      shirtNumber: 6,  primaryPosition: 'ZAG', secondaryPositions: [],          rating: 84, goalsInTournament: 0,  isLegend: false },
       { id: 'cel67-7',  name: 'Gemmell',       shirtNumber: 3,  primaryPosition: 'LE',  secondaryPositions: [],          rating: 85, goalsInTournament: 2,  isLegend: false },
-      { id: 'cel67-8',  name: 'O'Neill',       shirtNumber: 4,  primaryPosition: 'LD',  secondaryPositions: ['MC'],      rating: 80, goalsInTournament: 0,  isLegend: false },
+      { id: 'cel67-8',  name: "O'Neill",       shirtNumber: 4,  primaryPosition: 'LD',  secondaryPositions: ['MC'],      rating: 80, goalsInTournament: 0,  isLegend: false },
       { id: 'cel67-9',  name: 'Brogan',        shirtNumber: 14, primaryPosition: 'LE',  secondaryPositions: [],          rating: 78, goalsInTournament: 0,  isLegend: false },
       { id: 'cel67-10', name: 'Murdoch',       shirtNumber: 8,  primaryPosition: 'VOL', secondaryPositions: ['MC'],      rating: 87, goalsInTournament: 2,  isLegend: false },
       { id: 'cel67-11', name: 'Auld B.',       shirtNumber: 10, primaryPosition: 'MC',  secondaryPositions: ['MEI'],     rating: 86, goalsInTournament: 3,  isLegend: false },
