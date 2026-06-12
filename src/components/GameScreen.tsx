@@ -64,7 +64,7 @@ export default function GameScreen({ onHome }: Props) {
     setShowSettings(false)
     setTimeout(() => setDiceAnim(false), 650)
     const squad = rollSquad(state.seed, rollIndex, state.picks.map(p => p.squad.id))
-    setState(s => ({ ...s, currentRoll: { squad, rerollsLeft: 1 }, phase: 'picking' }))
+    setState(s => ({ ...s, currentRoll: { squad, rerollsLeft: 3 }, phase: 'picking' }))
     setRollIndex(i => i + 1)
     setSelectedPlayer(null)
     setRerollCount(0)
@@ -74,10 +74,10 @@ export default function GameScreen({ onHome }: Props) {
     if (!state.currentRoll || state.currentRoll.rerollsLeft <= 0) return
     const newIdx = rollIndex + 10 + (type === 'copa' ? 5 : 0)
     const squad = rollSquad(state.seed, newIdx, state.picks.map(p => p.squad.id))
-    setState(s => ({ ...s, currentRoll: { squad, rerollsLeft: 0 } }))
+    setState(s => ({ ...s, currentRoll: { squad, rerollsLeft: (s.currentRoll?.rerollsLeft ?? 1) - 1 } }))
     setRollIndex(newIdx + 1)
     setSelectedPlayer(null)
-    setRerollCount(1)
+    setRerollCount(c => c + 1)
   }
 
   const pickPlayer = (player: Player) => setSelectedPlayer(p => p?.id === player.id ? null : player)
@@ -293,7 +293,7 @@ export default function GameScreen({ onHome }: Props) {
               {state.currentRoll.rerollsLeft > 0 && (
                 <div className="mb-3">
                   <div className="text-[10px] font-black text-[#888] tracking-widest mb-1.5">
-                    NÃO CURTIU? RE-SORTEIE · {state.currentRoll.rerollsLeft} RESTANTE
+                    NÃO CURTIU? RE-SORTEIE · {state.currentRoll.rerollsLeft} {state.currentRoll.rerollsLeft === 1 ? 'RESTANTE' : 'RESTANTES'}
                   </div>
                   <div className="flex gap-2">
                     <button

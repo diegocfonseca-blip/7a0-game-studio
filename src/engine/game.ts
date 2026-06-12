@@ -201,6 +201,7 @@ const OPPONENTS = [
 export function simulateCopa(state: GameState): MatchResult[] {
   const overall = computeOverall(state.picks, state.style)
   const results: MatchResult[] = []
+  let groupLosses = 0
 
   for (let i = 0; i < OPPONENTS.length; i++) {
     const opp = OPPONENTS[i]
@@ -214,7 +215,7 @@ export function simulateCopa(state: GameState): MatchResult[] {
 
     if (match.goalsFor === match.goalsAgainst) {
       if (isGroup) {
-        // Draw in groups = point earned, you advance (simplified: groups draw is OK)
+        // Draw in groups = 1 point, not a loss
         won = true
       } else {
         // Knockout draw → penalty shootout
@@ -222,6 +223,8 @@ export function simulateCopa(state: GameState): MatchResult[] {
         won = penalties.goalsFor > penalties.goalsAgainst
       }
     }
+
+    if (isGroup && match.goalsFor < match.goalsAgainst) groupLosses++
 
     results.push({
       opponent: opp.name,
@@ -235,9 +238,9 @@ export function simulateCopa(state: GameState): MatchResult[] {
       penalties,
     })
 
-    // Eliminated in knockout → stop
-    if (!won && isKnockout) break
-    // Lost 2+ group games → eliminate (simplified: eliminated only on losses in knockout)
+    // Eliminated: 2+ group losses OR knockout loss
+    if (isGroup && groupLosses >= 2) break
+    if (isKnockout && !won) break
   }
 
   return results
