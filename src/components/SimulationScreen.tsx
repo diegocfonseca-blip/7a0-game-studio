@@ -1,4 +1,4 @@
-import { GameState } from '../engine/game'
+import type { GameState } from '../engine/game'
 
 interface Props { state: GameState; onSimulate: () => void; onHome: () => void }
 

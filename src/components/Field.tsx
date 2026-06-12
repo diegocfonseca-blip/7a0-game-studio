@@ -1,5 +1,5 @@
-import { Formation, FormationSlot } from '../data/formations'
-import { PickedPlayer } from '../engine/game'
+import type { Formation, FormationSlot } from '../data/formations'
+import type { PickedPlayer } from '../engine/game'
 import type { Player } from '../data/squads'
 
 interface Props {

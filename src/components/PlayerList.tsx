@@ -1,5 +1,5 @@
 import type { Squad, Player, Position } from '../data/squads'
-import { GameMode } from '../engine/game'
+import type { GameMode } from '../engine/game'
 
 interface Props {
   squad: Squad

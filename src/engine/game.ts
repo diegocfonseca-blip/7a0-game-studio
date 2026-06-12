@@ -68,6 +68,18 @@ export function computeOverall(picks: PickedPlayer[], style: GameStyle): number 
   return Math.round(avg + bonus)
 }
 
+export function computeAtaque(picks: PickedPlayer[]): number | null {
+  const atk = picks.filter(p => ['CA', 'MEI', 'PD', 'PE', 'MD', 'ME'].includes(p.slot.position))
+  if (atk.length === 0) return null
+  return Math.round(atk.reduce((s, p) => s + p.player.rating, 0) / atk.length)
+}
+
+export function computeDefesa(picks: PickedPlayer[]): number | null {
+  const def = picks.filter(p => ['GOL', 'ZAG', 'LD', 'LE', 'VOL'].includes(p.slot.position))
+  if (def.length === 0) return null
+  return Math.round(def.reduce((s, p) => s + p.player.rating, 0) / def.length)
+}
+
 function simulateMatch(
   teamOverall: number,
   opponentOverall: number,
