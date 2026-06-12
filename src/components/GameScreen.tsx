@@ -123,7 +123,7 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
 
   // ── Route to sub-screens ──────────────────────────────────────────────────
   if (state.phase === 'simulating')
-    return <SimulationScreen state={state} onSimulate={startSimulation} onNarrate={startNarration} onHome={onHome} />
+    return <SimulationScreen state={state} onSimulate={startSimulation} onNarrate={startNarration} onHome={onHome} theme={t} />
 
   if (halftimePrompt) {
     const gf   = groupMatches.reduce((s, m) => s + m.goalsFor, 0)
@@ -175,7 +175,7 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
   }
 
   if (state.phase === 'halftime')
-    return <HalftimeScreen picks={state.picks} groupMatches={groupMatches} formation={state.formation} style={state.style} mode={state.mode} onContinue={afterHalftime} onHome={onHome} />
+    return <HalftimeScreen picks={state.picks} groupMatches={groupMatches} formation={state.formation} style={state.style} mode={state.mode} onContinue={afterHalftime} onHome={onHome} theme={t} />
   if (state.phase === 'results' && narrating)
     return <NarrationScreen state={state} matches={state.matches} onFinish={() => setNarrating(false)} />
   if (state.phase === 'results')
