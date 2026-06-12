@@ -8,7 +8,7 @@ import {
   generateSeed, rollSquad, computeOverall, computeAtaque, computeDefesa,
   simulateCopa, simulateGroupStage, simulateKnockouts,
 } from '../engine/game'
-import type { GameState, PickedPlayer, GameMode, GameStyle, MatchResult } from '../engine/game'
+import type { GameState, PickedPlayer, GameStyle, MatchResult } from '../engine/game'
 import type { GameCategory } from '../App'
 import type { ThemePalette } from '../theme'
 import { DARK } from '../theme'
@@ -35,7 +35,6 @@ const STYLE_LABELS: Record<GameStyle, string> = {
   defensive: 'DEFENSIVO', balanced: 'EQUILIBRADO', offensive: 'OFENSIVO',
 }
 
-const _BG_UNUSED = '' // BG is now dynamic via theme
 
 export default function GameScreen({ category, onHome, theme: themeProp, onToggleTheme }: Props) {
   const t = themeProp ?? DARK
@@ -202,13 +201,13 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
         ].map(s => (
           <div key={s.l} style={{ textAlign: 'center' }}>
             <div style={{ fontWeight: 900, fontSize: 20, lineHeight: 1, color: s.c, textShadow: `0 0 12px ${s.glow}` }}>{s.v}</div>
-            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>{s.l}</div>
+            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: '0.1em', color: t.textMuted, marginTop: 2 }}>{s.l}</div>
           </div>
         ))}
       </div>
       {!isDesktop && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.25)' }}>{state.formation.name}</span>
+          <span style={{ fontSize: 9, fontWeight: 700, color: t.textMuted }}>{state.formation.name}</span>
           <button onClick={() => setShowField(f => !f)}
             style={{ fontSize: 10, fontWeight: 900, padding: '6px 12px', borderRadius: 10, border: showField ? '1px solid rgba(201,168,76,0.4)' : '1px solid rgba(255,255,255,0.1)', background: showField ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.06)', color: showField ? '#C9A84C' : 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>
             {showField ? '☰ LISTA' : '⬛ CAMPO'}
@@ -219,17 +218,17 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
   )
 
   const currentTeamList = filled > 0 && (
-    <div style={{ borderRadius: 18, overflow: 'hidden', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-      <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)' }}>TIME ATUAL</span>
+    <div style={{ borderRadius: 18, overflow: 'hidden', background: t.surface, border: `1px solid ${t.border}` }}>
+      <div style={{ padding: '10px 16px', borderBottom: `1px solid ${t.border}` }}>
+        <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted }}>TIME ATUAL</span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: '8px 12px', gap: '0 16px' }}>
         {state.picks.map((pick, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-            <span style={{ fontSize: 9, fontWeight: 900, color: 'rgba(255,255,255,0.18)', width: 28, flexShrink: 0 }}>{pick.slot.label}</span>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: `1px solid ${t.border}` }}>
+            <span style={{ fontSize: 9, fontWeight: 900, color: t.textMuted, width: 28, flexShrink: 0 }}>{pick.slot.label}</span>
             <span style={{ fontSize: 14 }}>{pick.squad.flagEmoji}</span>
-            <span style={{ fontWeight: 700, fontSize: 12, color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{pick.player.name.split(' ').pop()}</span>
-            {pick.player.isLegend && <span style={{ fontSize: 9, color: '#C9A84C' }}>★</span>}
+            <span style={{ fontWeight: 700, fontSize: 12, color: t.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{pick.player.name.split(' ').pop()}</span>
+            {pick.player.isLegend && <span style={{ fontSize: 9, color: t.gold }}>★</span>}
           </div>
         ))}
       </div>
@@ -275,8 +274,8 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
       <div style={{ position: 'absolute', top: -40, left: -40, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.2) 0%, transparent 70%)', pointerEvents: 'none' }} />
       <div style={{ position: 'relative', padding: '18px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', color: 'rgba(201,168,76,0.55)' }}>🎲 SORTEIO</span>
-          <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.2)' }}>{state.currentRoll.squad.year}</span>
+          <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', color: t.gold, opacity: 0.6 }}>🎲 SORTEIO</span>
+          <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.1em', color: t.textMuted }}>{state.currentRoll.squad.year}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{ width: 56, height: 56, borderRadius: 14, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, rgba(201,168,76,0.25), rgba(100,70,0,0.4))', border: '1.5px solid rgba(201,168,76,0.35)', boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
@@ -285,14 +284,14 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
             </span>
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 900, fontSize: 20, lineHeight: 1.1, color: '#fff', letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div style={{ fontWeight: 900, fontSize: 20, lineHeight: 1.1, color: t.text, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {state.currentRoll.squad.clubName ?? state.currentRoll.squad.countryNamePt}
             </div>
             <div style={{ fontWeight: 700, fontSize: 12, color: '#C9A84C', marginTop: 3 }}>
               {state.currentRoll.squad.trophy ?? `Copa do Mundo ${state.currentRoll.squad.year}`}
             </div>
             {state.currentRoll.squad.notableReason && (
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 5, lineHeight: 1.4, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+              <div style={{ fontSize: 10, color: t.textDim, marginTop: 5, lineHeight: 1.4, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                 {state.currentRoll.squad.notableReason}
               </div>
             )}
@@ -303,19 +302,19 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
   )
 
   const rerollControls = state.currentRoll && state.currentRoll.rerollsLeft > 0 && (
-    <div style={{ borderRadius: 16, padding: '12px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+    <div style={{ borderRadius: 16, padding: '12px 14px', background: t.surface, border: `1px solid ${t.border}` }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)' }}>NÃO CURTIU?</span>
+        <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: t.textDim }}>NÃO CURTIU?</span>
         <div style={{ display: 'flex', gap: 5 }}>
           {[0,1,2].map(i => (
-            <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: i < state.currentRoll!.rerollsLeft ? '#C9A84C' : 'rgba(255,255,255,0.1)', boxShadow: i < state.currentRoll!.rerollsLeft ? '0 0 6px rgba(201,168,76,0.7)' : 'none' }} />
+            <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: i < state.currentRoll!.rerollsLeft ? t.gold : t.border2, boxShadow: i < state.currentRoll!.rerollsLeft ? `0 0 6px ${t.goldGlow}` : 'none' }} />
           ))}
         </div>
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
         {[{ l: '↺ OUTRO TIME', t: 'squad' as const }, { l: '↺ OUTRA COPA', t: 'copa' as const }].map(b => (
           <button key={b.t} onClick={() => reroll(b.t)}
-            style={{ flex: 1, fontWeight: 900, fontSize: 11, padding: '10px 0', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)', cursor: 'pointer' }}>
+            style={{ flex: 1, fontWeight: 900, fontSize: 11, padding: '10px 0', borderRadius: 12, border: `1px solid ${t.border}`, background: t.surface, color: t.textDim, cursor: 'pointer' }}>
             {b.l}
           </button>
         ))}
@@ -327,8 +326,8 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: 0 }}>
       {selectedPlayer && !isDesktop && (
         <div style={{ borderRadius: 16, padding: '16px', textAlign: 'center', background: 'linear-gradient(135deg, rgba(209,46,46,0.25), rgba(120,10,10,0.2))', border: '1px solid rgba(209,46,46,0.4)' }}>
-          <p style={{ fontWeight: 900, fontSize: 15, color: '#fff', margin: '0 0 4px' }}>{selectedPlayer.name}</p>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', margin: '0 0 12px' }}>Posicione no campo</p>
+          <p style={{ fontWeight: 900, fontSize: 15, color: t.text, margin: '0 0 4px' }}>{selectedPlayer.name}</p>
+          <p style={{ fontSize: 11, color: t.textDim, margin: '0 0 12px' }}>Posicione no campo</p>
           <button onClick={() => setShowField(true)}
             style={{ fontWeight: 900, fontSize: 12, padding: '10px 24px', borderRadius: 12, border: 'none', background: '#D12E2E', color: '#fff', cursor: 'pointer', boxShadow: '0 4px 16px rgba(209,46,46,0.5)' }}>
             VER CAMPO →
@@ -336,8 +335,8 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
         </div>
       )}
       {selectedPlayer && isDesktop && availableSlots.length === 0 && (
-        <div style={{ borderRadius: 14, padding: '12px 16px', textAlign: 'center', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <span style={{ fontSize: 11, fontWeight: 900, color: 'rgba(255,255,255,0.45)' }}>SEM POSIÇÃO COMPATÍVEL PARA {selectedPlayer.name.toUpperCase()}</span>
+        <div style={{ borderRadius: 14, padding: '12px 16px', textAlign: 'center', background: t.surface, border: `1px solid ${t.border}` }}>
+          <span style={{ fontSize: 11, fontWeight: 900, color: t.textDim }}>SEM POSIÇÃO COMPATÍVEL PARA {selectedPlayer.name.toUpperCase()}</span>
         </div>
       )}
       {selectedPlayer && !isDesktop && showField && availableSlots.length === 0 && (
@@ -345,7 +344,7 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
           <span style={{ fontSize: 11, fontWeight: 900, color: 'rgba(255,255,255,0.45)' }}>SEM POSIÇÃO COMPATÍVEL</span>
         </div>
       )}
-      <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)' }}>ESCOLHA UM JOGADOR</div>
+      <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted }}>ESCOLHA UM JOGADOR</div>
       <PlayerList
         squad={state.currentRoll.squad}
         mode={state.mode}
@@ -353,6 +352,7 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
         pickedIds={state.picks.map(p => p.player.id)}
         onSelect={pickPlayer}
         availableSlots={availableSlots.map(s => s.slot.position)}
+        theme={t}
       />
     </div>
   )
@@ -399,7 +399,7 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)', marginBottom: 8 }}>ESTILO</div>
+            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted, marginBottom: 8 }}>ESTILO</div>
             <div style={{ display: 'flex', gap: 6 }}>
               {(['defensive', 'balanced', 'offensive'] as GameStyle[]).map(s => (
                 <button key={s} onClick={() => setState(st => ({ ...st, style: s }))}
@@ -417,8 +417,8 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
           {/* Left column: field + stats + current team */}
-          <div style={{ width: 380, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16, padding: '20px 20px', borderRight: '1px solid rgba(255,255,255,0.07)', overflowY: 'auto', background: 'rgba(0,0,0,0.2)' }}>
-            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.2)' }}>
+          <div style={{ width: 380, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16, padding: '20px 20px', borderRight: `1px solid ${t.border}`, overflowY: 'auto', background: t.surface }}>
+            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted }}>
               CAMPO · {state.formation.name} · {STYLE_LABELS[state.style]}
             </div>
             <Field formation={state.formation} picks={state.picks} selectedPlayer={selectedPlayer} onSlotClick={placePlayer} />
@@ -431,10 +431,10 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
             {canRoll && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
                 <div style={{ textAlign: 'center' }}>
-                  <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+                  <p style={{ fontWeight: 700, fontSize: 14, color: t.textDim, margin: 0 }}>
                     {filled === 0 ? 'Role o dado para começar' : `${11 - filled} posição${11 - filled > 1 ? 'ões' : ''} restante${11 - filled > 1 ? 's' : ''}`}
                   </p>
-                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', margin: '4px 0 0' }}>Um craque histórico por rodada</p>
+                  <p style={{ fontSize: 11, color: t.textMuted, margin: '4px 0 0' }}>Um craque histórico por rodada</p>
                 </div>
                 {diceButton}
               </div>
@@ -452,7 +452,7 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
 
           {/* Field toggle on mobile */}
           {showField && filled > 0 && (
-            <div style={{ padding: '12px 16px', background: 'rgba(0,0,0,0.3)', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+            <div style={{ padding: '12px 16px', background: t.surface, borderBottom: `1px solid ${t.border}`, flexShrink: 0 }}>
               <Field formation={state.formation} picks={state.picks} selectedPlayer={selectedPlayer} onSlotClick={placePlayer} />
             </div>
           )}
@@ -461,10 +461,10 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
             {canRoll && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 16, gap: 20 }}>
                 <div style={{ textAlign: 'center' }}>
-                  <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+                  <p style={{ fontWeight: 700, fontSize: 14, color: t.textDim, margin: 0 }}>
                     {filled === 0 ? 'Role o dado para começar' : `${11 - filled} posição${11 - filled > 1 ? 'ões' : ''} restante${11 - filled > 1 ? 's' : ''}`}
                   </p>
-                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', margin: '4px 0 0' }}>Um craque histórico por rodada</p>
+                  <p style={{ fontSize: 11, color: t.textMuted, margin: '4px 0 0' }}>Um craque histórico por rodada</p>
                 </div>
                 {diceButton}
                 {currentTeamList}
@@ -476,8 +476,8 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
 
             {/* Field pick overlay on mobile */}
             {showField && state.currentRoll && selectedPlayer && (
-              <div style={{ borderRadius: 18, padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)', marginBottom: 12 }}>ESCOLHA A POSIÇÃO</div>
+              <div style={{ borderRadius: 18, padding: '16px', background: t.surface, border: `1px solid ${t.border}` }}>
+                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted, marginBottom: 12 }}>ESCOLHA A POSIÇÃO</div>
                 <Field formation={state.formation} picks={state.picks} selectedPlayer={selectedPlayer} onSlotClick={placePlayer} />
               </div>
             )}
