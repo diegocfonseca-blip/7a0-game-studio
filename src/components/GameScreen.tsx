@@ -4,7 +4,10 @@ import type { Formation, FormationSlot } from '../data/formations'
 import type { Player, Squad } from '../data/squads'
 import squads from '../data/squads'
 import clubs from '../data/clubs'
-import { generateSeed, rollSquad, computeOverall, computeAtaque, computeDefesa, simulateCopa, simulateGroupStage, simulateKnockouts } from '../engine/game'
+import {
+  generateSeed, rollSquad, computeOverall, computeAtaque, computeDefesa,
+  simulateCopa, simulateGroupStage, simulateKnockouts,
+} from '../engine/game'
 import type { GameState, PickedPlayer, GameMode, GameStyle, MatchResult } from '../engine/game'
 import type { GameCategory } from '../App'
 import Field from './Field'
@@ -30,7 +33,7 @@ const STYLE_LABELS: Record<GameStyle, string> = {
   defensive: 'DEFENSIVO', balanced: 'EQUILIBRADO', offensive: 'OFENSIVO',
 }
 
-const BG = 'linear-gradient(160deg, #0d0d0d 0%, #111 60%, #1a1200 100%)'
+const BG = 'linear-gradient(160deg, #080808 0%, #0f0f0f 55%, #120c00 100%)'
 
 export default function GameScreen({ category, onHome }: Props) {
   const pool: Squad[] = category === 'clubs' ? clubs : squads
@@ -47,7 +50,7 @@ export default function GameScreen({ category, onHome }: Props) {
   const roll = useCallback(() => {
     setDiceAnim(true)
     setShowSettings(false)
-    setTimeout(() => setDiceAnim(false), 400)
+    setTimeout(() => setDiceAnim(false), 500)
     const squad = rollSquad(state.seed, rollIndex, state.picks.map(p => p.squad.id), pool)
     setState(s => ({ ...s, currentRoll: { squad, rerollsLeft: 3 }, phase: 'picking' }))
     setRollIndex(i => i + 1)
@@ -70,100 +73,93 @@ export default function GameScreen({ category, onHome }: Props) {
     const pick: PickedPlayer = { player: selectedPlayer, squad: state.currentRoll.squad, slot, slotIndex }
     const newPicks = [...state.picks, pick]
     const overall = computeOverall(newPicks, state.style)
-    if (newPicks.length === 11) {
-      setState(s => ({ ...s, picks: newPicks, overall, currentRoll: null, phase: 'simulating' }))
-    } else {
-      setState(s => ({ ...s, picks: newPicks, overall, currentRoll: null, phase: 'rolling' }))
-    }
+    setState(s => ({
+      ...s, picks: newPicks, overall,
+      currentRoll: null,
+      phase: newPicks.length === 11 ? 'simulating' : 'rolling',
+    }))
     setSelectedPlayer(null)
     setShowField(false)
   }
 
   const toResults = (results: MatchResult[]) => {
     const lastMatch = results[results.length - 1]
-    const eliminated = !lastMatch || !lastMatch.won || lastMatch.phase !== 'Final'
-    setState(s => ({ ...s, matches: results, eliminated, phase: 'results' }))
+    setState(s => ({ ...s, matches: results, eliminated: !lastMatch?.won || lastMatch.phase !== 'Final', phase: 'results' }))
   }
 
   const startSimulation = () => {
     const groups = simulateGroupStage(state)
-    const groupLosses = groups.filter(m => !m.won && m.phase === 'Grupos').length
-    if (groupLosses >= 2) { toResults(groups) }
+    if (groups.filter(m => !m.won && m.phase === 'Grupos').length >= 2) { toResults(groups) }
     else { setGroupMatches(groups); setHalftimePrompt(true) }
   }
 
   const startNarration = () => {
     const results = simulateCopa(state)
     const lastMatch = results[results.length - 1]
-    const eliminated = !lastMatch || !lastMatch.won || lastMatch.phase !== 'Final'
-    setState(s => ({ ...s, matches: results, eliminated, phase: 'results' }))
+    setState(s => ({ ...s, matches: results, eliminated: !lastMatch?.won || lastMatch.phase !== 'Final', phase: 'results' }))
     setNarrating(true)
   }
 
   const afterHalftime = (newPicks: PickedPlayer[], newFormation: Formation, newStyle: GameStyle) => {
-    const updatedState = { ...state, picks: newPicks, formation: newFormation, style: newStyle }
-    const knockouts = simulateKnockouts(updatedState, groupMatches)
-    const allMatches = [...groupMatches, ...knockouts]
+    const updState = { ...state, picks: newPicks, formation: newFormation, style: newStyle }
+    const allMatches = [...groupMatches, ...simulateKnockouts(updState, groupMatches)]
     setState(s => ({ ...s, picks: newPicks, formation: newFormation, style: newStyle, overall: computeOverall(newPicks, newStyle) }))
     toResults(allMatches)
   }
 
   const restart = () => {
-    setState(initState())
-    setRollIndex(0); setSelectedPlayer(null); setDiceAnim(false)
-    setShowSettings(false); setShowField(false); setNarrating(false)
-    setGroupMatches([]); setHalftimePrompt(false)
+    setState(initState()); setRollIndex(0); setSelectedPlayer(null)
+    setDiceAnim(false); setShowSettings(false); setShowField(false)
+    setNarrating(false); setGroupMatches([]); setHalftimePrompt(false)
   }
 
+  // ── Route to sub-screens ──────────────────────────────────────────────────
   if (state.phase === 'simulating')
     return <SimulationScreen state={state} onSimulate={startSimulation} onNarrate={startNarration} onHome={onHome} />
 
   if (halftimePrompt) {
-    const gf = groupMatches.reduce((s, m) => s + m.goalsFor, 0)
-    const ga = groupMatches.reduce((s, m) => s + m.goalsAgainst, 0)
+    const gf   = groupMatches.reduce((s, m) => s + m.goalsFor, 0)
+    const ga   = groupMatches.reduce((s, m) => s + m.goalsAgainst, 0)
     const wins = groupMatches.filter(m => m.won).length
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ background: BG }}>
-        <div className="w-full max-w-sm">
+        <div style={{ width: '100%', maxWidth: 380 }}>
           <div className="text-center mb-6">
-            <div className="text-5xl mb-3">⏸</div>
-            <h2 className="font-black text-2xl tracking-wider mb-1" style={{ color: '#fff' }}>INTERVALO</h2>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Fase de Grupos concluída</p>
+            <div style={{ fontSize: 52, marginBottom: 8 }}>⏸</div>
+            <h2 style={{ fontWeight: 900, fontSize: 26, letterSpacing: '0.05em', color: '#fff', margin: 0 }}>INTERVALO</h2>
+            <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginTop: 4 }}>Fase de Grupos concluída</p>
           </div>
 
-          <div className="rounded-2xl p-4 mb-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <p className="text-[9px] font-black tracking-widest mb-3 text-center" style={{ color: 'rgba(255,255,255,0.3)' }}>FASE DE GRUPOS</p>
-            <div className="flex justify-center gap-8 mb-4">
-              <div className="text-center"><div className="font-black text-2xl" style={{ color: '#4CAF50' }}>{wins}V</div><div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>VITÓRIAS</div></div>
-              <div className="text-center"><div className="font-black text-2xl" style={{ color: '#C9A84C' }}>{gf}</div><div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>GOLS</div></div>
-              <div className="text-center"><div className="font-black text-2xl" style={{ color: 'rgba(255,255,255,0.4)' }}>{ga}</div><div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>SOFRIDOS</div></div>
+          <div style={{ borderRadius: 20, overflow: 'hidden', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 32, padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+              {[{ v: wins, l: 'VITÓRIAS', c: '#4CAF50' }, { v: gf, l: 'GOLS', c: '#C9A84C' }, { v: ga, l: 'SOFRIDOS', c: 'rgba(255,255,255,0.35)' }]
+                .map(s => (
+                  <div key={s.l} style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: 900, fontSize: 28, color: s.c, lineHeight: 1 }}>{s.v}</div>
+                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>{s.l}</div>
+                  </div>
+                ))}
             </div>
             {groupMatches.map((m, i) => (
-              <div key={i} className="flex items-center justify-between py-2" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                <span className={`font-black text-[10px] w-4`} style={{ color: m.won ? '#4CAF50' : '#D12E2E' }}>{m.won ? 'V' : 'D'}</span>
-                <span className="text-sm">{m.opponentFlag}</span>
-                <span className="text-sm flex-1 mx-2 truncate" style={{ color: 'rgba(255,255,255,0.6)' }}>{m.opponent}</span>
-                <span className="font-black text-sm" style={{ color: '#fff' }}>{m.goalsFor}–{m.goalsAgainst}</span>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <span style={{ fontWeight: 900, fontSize: 10, color: m.won ? '#4CAF50' : '#D12E2E', width: 12 }}>{m.won ? 'V' : 'D'}</span>
+                <span style={{ fontSize: 18 }}>{m.opponentFlag}</span>
+                <span style={{ flex: 1, fontWeight: 600, fontSize: 13, color: 'rgba(255,255,255,0.65)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.opponent}</span>
+                <span style={{ fontWeight: 900, fontSize: 14, color: '#fff' }}>{m.goalsFor}–{m.goalsAgainst}</span>
               </div>
             ))}
           </div>
 
-          <p className="font-black text-base text-center mb-4" style={{ color: '#fff' }}>Quer fazer substituições?</p>
-          <div className="flex gap-3">
+          <p style={{ fontWeight: 900, fontSize: 15, textAlign: 'center', color: '#fff', marginBottom: 14 }}>Quer fazer substituições?</p>
+          <div style={{ display: 'flex', gap: 10 }}>
             <button
               onClick={() => { setHalftimePrompt(false); setState(s => ({ ...s, phase: 'halftime' })) }}
-              className="flex-1 font-black py-4 rounded-2xl text-sm transition-all active:scale-95"
-              style={{ background: 'linear-gradient(135deg, #C9A84C, #a07830)', color: '#111', boxShadow: '0 8px 24px rgba(201,168,76,0.35)' }}
-            >
-              ✅ SIM
-            </button>
+              style={{ flex: 1, fontWeight: 900, fontSize: 14, padding: '16px 0', borderRadius: 16, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, #C9A84C, #8a6020)', color: '#111', boxShadow: '0 8px 24px rgba(201,168,76,0.4)' }}
+            >✅ SIM</button>
             <button
               onClick={() => { setHalftimePrompt(false); afterHalftime(state.picks, state.formation, state.style) }}
-              className="flex-1 font-black py-4 rounded-2xl text-sm transition-all active:scale-95"
-              style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.12)' }}
-            >
-              ❌ NÃO
-            </button>
+              style={{ flex: 1, fontWeight: 900, fontSize: 14, padding: '16px 0', borderRadius: 16, border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.7)' }}
+            >❌ NÃO</button>
           </div>
         </div>
       </div>
@@ -177,76 +173,63 @@ export default function GameScreen({ category, onHome }: Props) {
   if (state.phase === 'results')
     return <ResultScreen state={state} onReplay={restart} onHome={onHome} />
 
-  const emptySlots = state.formation.slots.map((slot, i) => ({ slot, i })).filter(({ i }) => !state.picks.find(p => p.slotIndex === i))
-  const availableSlots = selectedPlayer
-    ? emptySlots.filter(({ slot }) => canPlayPosition(selectedPlayer.primaryPosition, selectedPlayer.secondaryPositions, slot.position))
-    : []
-  const ataque = computeAtaque(state.picks)
-  const defesa = computeDefesa(state.picks)
+  // ── Derived values ────────────────────────────────────────────────────────
+  const emptySlots     = state.formation.slots.map((slot, i) => ({ slot, i })).filter(({ i }) => !state.picks.find(p => p.slotIndex === i))
+  const availableSlots = selectedPlayer ? emptySlots.filter(({ slot }) => canPlayPosition(selectedPlayer.primaryPosition, selectedPlayer.secondaryPositions, slot.position)) : []
+  const ataque  = computeAtaque(state.picks)
+  const defesa  = computeDefesa(state.picks)
   const canRoll = !state.currentRoll && (state.phase === 'setup' || state.phase === 'rolling')
-  const filled = state.picks.length
+  const filled  = state.picks.length
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: BG }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: BG }}>
 
-      {/* Top bar */}
-      <div className="px-4 py-3 flex items-center justify-between flex-shrink-0" style={{ background: 'rgba(0,0,0,0.5)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-        <button onClick={onHome} className="font-black text-base tracking-tight" style={{ color: '#C9A84C' }}>0a7</button>
+      {/* ── Top bar ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(0,0,0,0.65)', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
+        <button onClick={onHome} style={{ fontWeight: 900, fontSize: 18, color: '#C9A84C', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textShadow: '0 0 12px rgba(201,168,76,0.5)' }}>0a7</button>
 
-        {/* Progress */}
-        <div className="flex items-center gap-2">
-          <div className="flex gap-1">
+        {/* Progress bar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 3 }}>
             {Array.from({ length: 11 }).map((_, i) => (
-              <div key={i} className="rounded-full transition-all" style={{
-                width: i < filled ? 8 : 6,
-                height: i < filled ? 8 : 6,
-                background: i < filled ? '#C9A84C' : 'rgba(255,255,255,0.15)',
-                boxShadow: i < filled ? '0 0 6px rgba(201,168,76,0.6)' : 'none',
+              <div key={i} style={{
+                width: i < filled ? 9 : 6,
+                height: i < filled ? 9 : 6,
+                borderRadius: '50%',
+                background: i < filled ? '#C9A84C' : 'rgba(255,255,255,0.12)',
+                boxShadow: i < filled ? '0 0 8px rgba(201,168,76,0.7)' : 'none',
+                transition: 'all 0.2s',
               }} />
             ))}
           </div>
-          <span className="text-[10px] font-black" style={{ color: 'rgba(255,255,255,0.4)' }}>{filled}/11</span>
+          <span style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.35)' }}>{filled}/11</span>
         </div>
 
-        <button
-          onClick={() => setShowSettings(s => !s)}
-          className="text-[10px] font-black tracking-widest transition-colors"
-          style={{ color: showSettings ? '#C9A84C' : 'rgba(255,255,255,0.4)' }}
-        >
+        <button onClick={() => setShowSettings(s => !s)} style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', color: showSettings ? '#C9A84C' : 'rgba(255,255,255,0.35)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
           ⚙ AJUSTES
         </button>
       </div>
 
-      {/* Settings panel */}
+      {/* ── Settings panel ── */}
       {showSettings && (
-        <div className="px-4 py-4 flex flex-col gap-4 flex-shrink-0" style={{ background: 'rgba(0,0,0,0.6)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ padding: '16px', background: 'rgba(0,0,0,0.7)', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', gap: 14, flexShrink: 0 }}>
           <div>
-            <div className="text-[9px] font-black tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>FORMAÇÃO</div>
-            <div className="flex gap-1.5 flex-wrap">
+            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)', marginBottom: 8 }}>FORMAÇÃO</div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {Object.keys(FORMATIONS).map(f => (
                 <button key={f} onClick={() => setState(s => ({ ...s, formation: FORMATIONS[f] }))}
-                  className="text-[10px] px-3 py-1.5 font-black rounded-xl transition-all"
-                  style={{
-                    background: state.formation.name === f ? '#D12E2E' : 'rgba(255,255,255,0.07)',
-                    color: state.formation.name === f ? '#fff' : 'rgba(255,255,255,0.5)',
-                    border: state.formation.name === f ? '1px solid #D12E2E' : '1px solid rgba(255,255,255,0.1)',
-                  }}>
+                  style={{ fontSize: 10, fontWeight: 900, padding: '6px 12px', borderRadius: 10, border: state.formation.name === f ? '1px solid rgba(209,46,46,0.6)' : '1px solid rgba(255,255,255,0.1)', background: state.formation.name === f ? 'rgba(209,46,46,0.25)' : 'rgba(255,255,255,0.06)', color: state.formation.name === f ? '#fff' : 'rgba(255,255,255,0.45)', cursor: 'pointer' }}>
                   {f}
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <div className="text-[9px] font-black tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>ESTILO</div>
-            <div className="flex gap-1.5">
+            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)', marginBottom: 8 }}>ESTILO</div>
+            <div style={{ display: 'flex', gap: 6 }}>
               {(['defensive', 'balanced', 'offensive'] as GameStyle[]).map(s => (
                 <button key={s} onClick={() => setState(st => ({ ...st, style: s }))}
-                  className="text-[10px] px-3 py-1.5 font-black rounded-xl transition-all flex-1"
-                  style={{
-                    background: state.style === s ? 'rgba(201,168,76,0.25)' : 'rgba(255,255,255,0.07)',
-                    color: state.style === s ? '#C9A84C' : 'rgba(255,255,255,0.5)',
-                    border: state.style === s ? '1px solid rgba(201,168,76,0.5)' : '1px solid rgba(255,255,255,0.1)',
-                  }}>
+                  style={{ flex: 1, fontSize: 10, fontWeight: 900, padding: '8px 4px', borderRadius: 10, border: state.style === s ? '1px solid rgba(201,168,76,0.5)' : '1px solid rgba(255,255,255,0.08)', background: state.style === s ? 'rgba(201,168,76,0.18)' : 'rgba(255,255,255,0.06)', color: state.style === s ? '#C9A84C' : 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
                   {STYLE_LABELS[s]}
                 </button>
               ))}
@@ -255,95 +238,94 @@ export default function GameScreen({ category, onHome }: Props) {
         </div>
       )}
 
-      {/* Stats strip */}
+      {/* ── Stats strip ── */}
       {filled > 0 && (
-        <div className="px-4 py-2.5 flex items-center gap-3 flex-shrink-0" style={{ background: 'rgba(0,0,0,0.3)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="flex gap-4 flex-1">
-            <div className="text-center">
-              <div className="font-black text-lg leading-none" style={{ color: '#C9A84C' }}>{state.overall}</div>
-              <div className="text-[8px] font-black tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>OVR</div>
-            </div>
-            {ataque !== null && (
-              <div className="text-center">
-                <div className="font-black text-lg leading-none" style={{ color: '#D12E2E' }}>{ataque}</div>
-                <div className="text-[8px] font-black tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>ATK</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', background: 'rgba(0,0,0,0.4)', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 20, flex: 1 }}>
+            {[
+              { v: state.overall, l: 'OVR', c: '#C9A84C', glow: 'rgba(201,168,76,0.5)' },
+              ...(ataque !== null ? [{ v: ataque, l: 'ATK', c: '#EF5350', glow: 'rgba(239,83,80,0.4)' }] : []),
+              ...(defesa !== null ? [{ v: defesa, l: 'DEF', c: '#66BB6A', glow: 'rgba(102,187,106,0.4)' }] : []),
+            ].map(s => (
+              <div key={s.l} style={{ textAlign: 'center' }}>
+                <div style={{ fontWeight: 900, fontSize: 20, lineHeight: 1, color: s.c, textShadow: `0 0 12px ${s.glow}` }}>{s.v}</div>
+                <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>{s.l}</div>
               </div>
-            )}
-            {defesa !== null && (
-              <div className="text-center">
-                <div className="font-black text-lg leading-none" style={{ color: '#4CAF50' }}>{defesa}</div>
-                <div className="text-[8px] font-black tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>DEF</div>
-              </div>
-            )}
+            ))}
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[9px] font-bold" style={{ color: 'rgba(255,255,255,0.3)' }}>{state.formation.name}</span>
-            <button
-              onClick={() => setShowField(f => !f)}
-              className="text-[9px] font-black px-2.5 py-1.5 rounded-xl transition-all"
-              style={{
-                background: showField ? 'rgba(201,168,76,0.2)' : 'rgba(255,255,255,0.08)',
-                color: showField ? '#C9A84C' : 'rgba(255,255,255,0.5)',
-                border: showField ? '1px solid rgba(201,168,76,0.4)' : '1px solid rgba(255,255,255,0.1)',
-              }}
-            >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.25)' }}>{state.formation.name}</span>
+            <button onClick={() => setShowField(f => !f)}
+              style={{ fontSize: 10, fontWeight: 900, padding: '6px 12px', borderRadius: 10, border: showField ? '1px solid rgba(201,168,76,0.4)' : '1px solid rgba(255,255,255,0.1)', background: showField ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.06)', color: showField ? '#C9A84C' : 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>
               {showField ? '☰ LISTA' : '⬛ CAMPO'}
             </button>
           </div>
         </div>
       )}
 
-      {/* Field toggle */}
+      {/* ── Field toggle ── */}
       {showField && filled > 0 && (
-        <div className="flex-shrink-0 px-4 py-3" style={{ background: 'rgba(0,0,0,0.2)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ padding: '12px 16px', background: 'rgba(0,0,0,0.3)', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
           <Field formation={state.formation} picks={state.picks} selectedPlayer={selectedPlayer} onSlotClick={placePlayer} />
         </div>
       )}
 
-      {/* Main content */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
+      {/* ── Main scrollable area ── */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-        {/* ROLL STATE */}
+        {/* ══ ROLL STATE ══ */}
         {canRoll && (
-          <div className="flex flex-col items-center pt-4 gap-4">
-            <div className="text-center">
-              <p className="font-bold text-sm mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                {filled === 0 ? 'Role o dado para sortear seu time' : `${11 - filled} posição${11 - filled > 1 ? 'ões' : ''} restante${11 - filled > 1 ? 's' : ''}`}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 16, gap: 20 }}>
+
+            {/* Instruction */}
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+                {filled === 0 ? 'Role o dado para começar' : `${11 - filled} posição${11 - filled > 1 ? 'ões' : ''} restante${11 - filled > 1 ? 's' : ''}`}
               </p>
-              <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Um craque por sorteio</p>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', margin: '4px 0 0' }}>Um craque histórico por rodada</p>
             </div>
 
+            {/* Dice button */}
             <button
               onClick={roll}
-              className="flex flex-col items-center justify-center gap-2 rounded-3xl transition-all active:scale-90"
               style={{
-                width: 128, height: 128,
+                width: 140,
+                height: 140,
+                borderRadius: 36,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                transform: diceAnim ? 'scale(0.85) rotate(12deg)' : 'scale(1)',
                 background: diceAnim
-                  ? 'linear-gradient(135deg, #C9A84C, #a07830)'
-                  : 'linear-gradient(135deg, #1e1e1e, #2a2a2a)',
-                border: '2px solid rgba(201,168,76,0.3)',
+                  ? 'linear-gradient(135deg, #C9A84C 0%, #7a5010 100%)'
+                  : 'linear-gradient(145deg, #1e1e1e 0%, #141414 100%)',
                 boxShadow: diceAnim
-                  ? '0 0 40px rgba(201,168,76,0.5), 0 8px 32px rgba(0,0,0,0.4)'
-                  : '0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)',
-                transform: diceAnim ? 'scale(0.9) rotate(10deg)' : 'scale(1)',
+                  ? '0 0 60px rgba(201,168,76,0.7), 0 12px 40px rgba(0,0,0,0.5)'
+                  : '0 12px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(201,168,76,0.2)',
               }}
             >
-              <span className="text-4xl">{diceAnim ? '🎰' : '🎲'}</span>
-              <span className="text-xs font-black tracking-widest" style={{ color: diceAnim ? '#111' : '#C9A84C' }}>ROLAR</span>
+              <span style={{ fontSize: 48, lineHeight: 1 }}>{diceAnim ? '🎰' : '🎲'}</span>
+              <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.15em', color: diceAnim ? '#111' : '#C9A84C' }}>ROLAR</span>
             </button>
 
+            {/* Current team */}
             {filled > 0 && (
-              <div className="w-full rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <div className="px-4 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                  <span className="text-[9px] font-black tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>TIME ATUAL</span>
+              <div style={{ width: '100%', borderRadius: 18, overflow: 'hidden', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)' }}>TIME ATUAL</span>
                 </div>
-                <div className="grid grid-cols-2 px-3 py-1">
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: '8px 12px', gap: '0 16px' }}>
                   {state.picks.map((pick, i) => (
-                    <div key={i} className="flex items-center gap-2 py-1.5" style={{ borderBottom: i < state.picks.length - 2 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                      <span className="text-[9px] font-black w-7 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.2)' }}>{pick.slot.label}</span>
-                      <span className="text-xs">{pick.squad.flagEmoji}</span>
-                      <span className="font-bold text-[11px] truncate flex-1" style={{ color: 'rgba(255,255,255,0.8)' }}>{pick.player.name.split(' ').pop()}</span>
-                      {pick.player.isLegend && <span className="text-[9px]" style={{ color: '#C9A84C' }}>★</span>}
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <span style={{ fontSize: 9, fontWeight: 900, color: 'rgba(255,255,255,0.18)', width: 28, flexShrink: 0 }}>{pick.slot.label}</span>
+                      <span style={{ fontSize: 14 }}>{pick.squad.flagEmoji}</span>
+                      <span style={{ fontWeight: 700, fontSize: 12, color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{pick.player.name.split(' ').pop()}</span>
+                      {pick.player.isLegend && <span style={{ fontSize: 9, color: '#C9A84C' }}>★</span>}
                     </div>
                   ))}
                 </div>
@@ -352,77 +334,96 @@ export default function GameScreen({ category, onHome }: Props) {
           </div>
         )}
 
-        {/* PICK STATE */}
+        {/* ══ PICK STATE ══ */}
         {state.currentRoll && (
-          <div className="flex flex-col gap-3">
-            {/* Squad banner */}
-            <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(201,168,76,0.12) 0%, rgba(0,0,0,0.4) 100%)', border: '1px solid rgba(201,168,76,0.2)' }}>
-              <div className="px-4 pt-4 pb-3">
-                <div className="text-[9px] font-black tracking-[0.2em] mb-3" style={{ color: '#C9A84C' }}>🎲 SORTEIO</div>
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-4xl">{state.currentRoll.squad.flagEmoji}</span>
-                  <div>
-                    <div className="font-black text-xl leading-tight" style={{ color: '#fff' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+            {/* Squad card — dramatic reveal */}
+            <div style={{
+              borderRadius: 22,
+              overflow: 'hidden',
+              position: 'relative',
+              border: '1px solid rgba(201,168,76,0.25)',
+              boxShadow: '0 0 40px rgba(201,168,76,0.1), 0 8px 32px rgba(0,0,0,0.5)',
+            }}>
+              {/* Background gradient */}
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(145deg, rgba(201,168,76,0.15) 0%, rgba(10,8,0,0.9) 60%)',
+                pointerEvents: 'none',
+              }} />
+              {/* Radial glow */}
+              <div style={{
+                position: 'absolute', top: -40, left: -40, width: 200, height: 200,
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(201,168,76,0.2) 0%, transparent 70%)',
+                pointerEvents: 'none',
+              }} />
+
+              <div style={{ position: 'relative', padding: '20px' }}>
+                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', color: 'rgba(201,168,76,0.6)', marginBottom: 14 }}>🎲 SORTEIO</div>
+
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                  <span style={{ fontSize: 56, lineHeight: 1, filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.5))' }}>
+                    {state.currentRoll.squad.flagEmoji}
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 900, fontSize: 22, lineHeight: 1.1, color: '#fff', letterSpacing: '-0.02em' }}>
                       {state.currentRoll.squad.clubName ?? state.currentRoll.squad.countryNamePt}
                     </div>
-                    <div className="font-bold text-sm" style={{ color: '#C9A84C' }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: '#C9A84C', marginTop: 4, textShadow: '0 0 8px rgba(201,168,76,0.5)' }}>
                       {state.currentRoll.squad.trophy ?? `Copa ${state.currentRoll.squad.year}`}
+                    </div>
+                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 6, lineHeight: 1.4, fontStyle: 'italic' }}>
+                      {state.currentRoll.squad.notableReason}
                     </div>
                   </div>
                 </div>
-                {state.currentRoll.squad.notableReason && (
-                  <p className="text-[10px] italic leading-snug" style={{ color: 'rgba(255,255,255,0.35)' }}>{state.currentRoll.squad.notableReason}</p>
-                )}
               </div>
             </div>
 
-            {/* Reroll */}
+            {/* Reroll controls */}
             {state.currentRoll.rerollsLeft > 0 && (
-              <div className="rounded-2xl p-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <div className="flex items-center justify-between mb-2.5">
-                  <span className="text-[9px] font-black tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>NÃO CURTIU?</span>
-                  <div className="flex gap-1">
+              <div style={{ borderRadius: 16, padding: '12px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)' }}>NÃO CURTIU?</span>
+                  <div style={{ display: 'flex', gap: 5 }}>
                     {[0,1,2].map(i => (
-                      <div key={i} className="w-2 h-2 rounded-full" style={{ background: i < state.currentRoll!.rerollsLeft ? '#C9A84C' : 'rgba(255,255,255,0.1)' }} />
+                      <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: i < state.currentRoll!.rerollsLeft ? '#C9A84C' : 'rgba(255,255,255,0.1)', boxShadow: i < state.currentRoll!.rerollsLeft ? '0 0 6px rgba(201,168,76,0.7)' : 'none' }} />
                     ))}
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => reroll('squad')}
-                    className="flex-1 font-black text-[11px] py-2.5 rounded-xl transition-all active:scale-95"
-                    style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    ↺ OUTRO TIME
-                  </button>
-                  <button onClick={() => reroll('copa')}
-                    className="flex-1 font-black text-[11px] py-2.5 rounded-xl transition-all active:scale-95"
-                    style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    ↺ OUTRA COPA
-                  </button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[{ l: '↺ OUTRO TIME', t: 'squad' as const }, { l: '↺ OUTRA COPA', t: 'copa' as const }].map(b => (
+                    <button key={b.t} onClick={() => reroll(b.t)}
+                      style={{ flex: 1, fontWeight: 900, fontSize: 11, padding: '10px 0', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)', cursor: 'pointer' }}>
+                      {b.l}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* Selected player prompt */}
+            {/* Selected player CTA */}
             {selectedPlayer && !showField && (
-              <div className="rounded-2xl p-4 text-center" style={{ background: 'linear-gradient(135deg, rgba(209,46,46,0.25), rgba(209,46,46,0.1))', border: '1px solid rgba(209,46,46,0.4)' }}>
-                <p className="font-black text-sm mb-1" style={{ color: '#fff' }}>{selectedPlayer.name}</p>
-                <p className="text-[11px] mb-3" style={{ color: 'rgba(255,255,255,0.5)' }}>Escolha a posição no campo</p>
+              <div style={{ borderRadius: 16, padding: '16px', textAlign: 'center', background: 'linear-gradient(135deg, rgba(209,46,46,0.25), rgba(120,10,10,0.2))', border: '1px solid rgba(209,46,46,0.4)', boxShadow: '0 0 20px rgba(209,46,46,0.2)' }}>
+                <p style={{ fontWeight: 900, fontSize: 15, color: '#fff', margin: '0 0 4px' }}>{selectedPlayer.name}</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', margin: '0 0 12px' }}>Posicione no campo</p>
                 <button onClick={() => setShowField(true)}
-                  className="font-black text-[11px] px-5 py-2 rounded-full transition-all active:scale-95"
-                  style={{ background: '#D12E2E', color: '#fff', boxShadow: '0 4px 16px rgba(209,46,46,0.4)' }}>
+                  style={{ fontWeight: 900, fontSize: 12, padding: '10px 24px', borderRadius: 12, border: 'none', background: '#D12E2E', color: '#fff', cursor: 'pointer', boxShadow: '0 4px 16px rgba(209,46,46,0.5)' }}>
                   VER CAMPO →
                 </button>
               </div>
             )}
             {selectedPlayer && showField && availableSlots.length === 0 && (
-              <div className="rounded-2xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                <span className="text-[11px] font-black" style={{ color: 'rgba(255,255,255,0.5)' }}>SEM POSIÇÃO COMPATÍVEL PARA {selectedPlayer.name.toUpperCase()}</span>
+              <div style={{ borderRadius: 14, padding: '12px 16px', textAlign: 'center', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <span style={{ fontSize: 11, fontWeight: 900, color: 'rgba(255,255,255,0.45)' }}>SEM POSIÇÃO COMPATÍVEL PARA {selectedPlayer.name.toUpperCase()}</span>
               </div>
             )}
 
             {/* Player list */}
             <div>
-              <p className="text-[9px] font-black tracking-widest mb-2.5" style={{ color: 'rgba(255,255,255,0.3)' }}>ESCOLHA UM JOGADOR</p>
+              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)', marginBottom: 10 }}>ESCOLHA UM JOGADOR</div>
               <PlayerList
                 squad={state.currentRoll.squad}
                 mode={state.mode}
@@ -435,10 +436,10 @@ export default function GameScreen({ category, onHome }: Props) {
           </div>
         )}
 
-        {/* Field in scroll area */}
+        {/* Field shown in scroll area when picking position */}
         {showField && state.currentRoll && selectedPlayer && (
-          <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-[9px] font-black tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>ESCOLHA A POSIÇÃO</p>
+          <div style={{ borderRadius: 18, padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)', marginBottom: 12 }}>ESCOLHA A POSIÇÃO</div>
             <Field formation={state.formation} picks={state.picks} selectedPlayer={selectedPlayer} onSlotClick={placePlayer} />
           </div>
         )}
