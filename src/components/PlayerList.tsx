@@ -10,46 +10,93 @@ interface Props {
   availableSlots: Position[]
 }
 
-export default function PlayerList({ squad, mode, selectedPlayer, pickedIds, onSelect, availableSlots }: Props) {
+const POS_COLOR: Record<string, string> = {
+  GOL: '#1565C0', LD: '#2E7D32', ZAG: '#2E7D32', LE: '#2E7D32',
+  VOL: '#6A1B9A', MC: '#6A1B9A', MD: '#6A1B9A', ME: '#6A1B9A',
+  MEI: '#E65100', PD: '#B71C1C', PE: '#B71C1C', CA: '#B71C1C',
+}
+
+function RatingBadge({ rating, hidden }: { rating: number; hidden: boolean }) {
+  if (hidden) return <span className="font-black text-sm" style={{ color: 'rgba(255,255,255,0.15)', minWidth: 28, textAlign: 'right' }}>?</span>
+  const color = rating >= 95 ? '#C9A84C' : rating >= 90 ? '#fff' : rating >= 85 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.4)'
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-sm max-h-96 overflow-y-auto scrollbar-thin">
-      {squad.players.map(player => {
+    <span className="font-black text-sm" style={{ color, minWidth: 28, textAlign: 'right' }}>
+      {rating}
+    </span>
+  )
+}
+
+export default function PlayerList({ squad, mode, selectedPlayer, pickedIds, onSelect, availableSlots }: Props) {
+  const positions = ['GOL', 'LD', 'ZAG', 'LE', 'VOL', 'MC', 'MD', 'ME', 'MEI', 'PD', 'PE', 'CA']
+  const sorted = [...squad.players].sort((a, b) =>
+    positions.indexOf(a.primaryPosition) - positions.indexOf(b.primaryPosition)
+  )
+
+  return (
+    <div className="overflow-hidden rounded-2xl" style={{ maxHeight: 400, overflowY: 'auto', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+      {sorted.map((player, idx) => {
         const isPicked = pickedIds.includes(player.id)
         const isSelected = selectedPlayer?.id === player.id
         const isAvailable = availableSlots.length === 0 || availableSlots.includes(player.primaryPosition) ||
           player.secondaryPositions.some(sp => availableSlots.includes(sp))
+        const dimmed = !isPicked && availableSlots.length > 0 && !isAvailable
 
         return (
           <button
             key={player.id}
             onClick={() => !isPicked && onSelect(player)}
             disabled={isPicked}
-            className={`w-full flex items-center gap-3 px-3 pr-4 py-2.5 border-b border-gray-100 last:border-0 transition-all text-left
-              ${isPicked ? 'opacity-30 cursor-not-allowed bg-gray-50' : ''}
-              ${isSelected ? 'bg-[#D12E2E]/10 border-l-4 border-l-[#D12E2E]' : ''}
-              ${!isPicked && !isSelected ? 'hover:bg-gray-50 cursor-pointer' : ''}
-              ${!isPicked && availableSlots.length > 0 && !isAvailable ? 'opacity-50' : ''}
-            `}
+            className="w-full text-left transition-all"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '11px 14px',
+              borderBottom: idx < sorted.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+              background: isSelected
+                ? 'linear-gradient(90deg, rgba(209,46,46,0.25) 0%, rgba(209,46,46,0.08) 100%)'
+                : isPicked
+                ? 'rgba(255,255,255,0.02)'
+                : 'transparent',
+              borderLeft: isSelected ? '3px solid #D12E2E' : '3px solid transparent',
+              opacity: isPicked ? 0.3 : dimmed ? 0.45 : 1,
+              cursor: isPicked ? 'not-allowed' : 'pointer',
+            }}
           >
             {/* Shirt number */}
-            <span className="text-xs font-black text-[#888] w-5 text-center">{player.shirtNumber}</span>
+            <span className="font-black text-[10px] w-5 text-center flex-shrink-0" style={{ color: 'rgba(255,255,255,0.25)' }}>
+              {player.shirtNumber}
+            </span>
 
-            {/* Legend star */}
-            {player.isLegend && <span className="text-[10px]">⭐</span>}
+            {/* Position badge */}
+            <span
+              className="font-black text-[9px] px-1.5 py-0.5 rounded flex-shrink-0"
+              style={{
+                background: (POS_COLOR[player.primaryPosition] ?? '#555') + '33',
+                color: POS_COLOR[player.primaryPosition] ?? '#aaa',
+                border: `1px solid ${(POS_COLOR[player.primaryPosition] ?? '#555')}55`,
+                minWidth: 28,
+                textAlign: 'center',
+              }}
+            >
+              {player.primaryPosition}
+            </span>
 
-            {/* Name + position */}
+            {/* Name */}
             <div className="flex-1 min-w-0">
-              <div className="font-bold text-sm text-[#1a1a1a] truncate">{player.name}</div>
-              <div className="text-[10px] text-[#888]">
-                {player.primaryPosition}
-                {player.secondaryPositions.length > 0 && `/${player.secondaryPositions.join('/')}`}
+              <div className="font-bold text-sm truncate flex items-center gap-1.5" style={{ color: isSelected ? '#fff' : 'rgba(255,255,255,0.88)' }}>
+                {player.name}
+                {player.isLegend && <span className="text-[10px]" style={{ color: '#C9A84C' }}>★</span>}
               </div>
+              {player.secondaryPositions.length > 0 && (
+                <div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                  +{player.secondaryPositions.join(' · ')}
+                </div>
+              )}
             </div>
 
             {/* Rating */}
-            <span className={`text-sm font-black min-w-8 text-right ${player.rating >= 90 ? 'text-[#C9A84C]' : 'text-[#888]'}`}>
-              {mode === 'almanac' ? '?' : player.rating}
-            </span>
+            <RatingBadge rating={player.rating} hidden={mode === 'almanac'} />
           </button>
         )
       })}
