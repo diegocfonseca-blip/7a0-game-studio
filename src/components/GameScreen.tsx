@@ -39,43 +39,26 @@ const STYLE_LABELS: Record<GameStyle, string> = {
   offensive: 'OFENSIVO',
 }
 
-const STYLE_SHORT: Record<GameStyle, string> = {
-  defensive: 'DEF',
-  balanced: 'EQU',
-  offensive: 'OFE',
-}
-
-const MODE_LABELS: Record<GameMode, string> = {
-  classic: 'CLÁSSICO',
-  almanac: 'DE ALMANAQUE',
-}
-
-const MODE_SHORT: Record<GameMode, string> = {
-  classic: 'CLÁ',
-  almanac: 'ALM',
-}
-
 export default function GameScreen({ category, onHome }: Props) {
   const pool: Squad[] = category === 'clubs' ? clubs : squads
   const [state, setState] = useState<GameState>(initState)
   const [rollIndex, setRollIndex] = useState(0)
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
   const [diceAnim, setDiceAnim] = useState(false)
-  const [rerollCount, setRerollCount] = useState(0)
   const [showSettings, setShowSettings] = useState(false)
+  const [showField, setShowField] = useState(false)
   const [narrating, setNarrating] = useState(false)
   const [groupMatches, setGroupMatches] = useState<MatchResult[]>([])
 
   const roll = useCallback(() => {
     setDiceAnim(true)
     setShowSettings(false)
-    setTimeout(() => setDiceAnim(false), 650)
+    setTimeout(() => setDiceAnim(false), 400)
     const squad = rollSquad(state.seed, rollIndex, state.picks.map(p => p.squad.id), pool)
     setState(s => ({ ...s, currentRoll: { squad, rerollsLeft: 3 }, phase: 'picking' }))
     setRollIndex(i => i + 1)
     setSelectedPlayer(null)
-    setRerollCount(0)
-  }, [state.seed, state.picks, rollIndex])
+  }, [state.seed, state.picks, rollIndex, pool])
 
   const reroll = (type: 'squad' | 'copa') => {
     if (!state.currentRoll || state.currentRoll.rerollsLeft <= 0) return
@@ -84,19 +67,13 @@ export default function GameScreen({ category, onHome }: Props) {
     setState(s => ({ ...s, currentRoll: { squad, rerollsLeft: (s.currentRoll?.rerollsLeft ?? 1) - 1 } }))
     setRollIndex(newIdx + 1)
     setSelectedPlayer(null)
-    setRerollCount(c => c + 1)
   }
 
   const pickPlayer = (player: Player) => setSelectedPlayer(p => p?.id === player.id ? null : player)
 
   const placePlayer = (slot: FormationSlot, slotIndex: number) => {
     if (!selectedPlayer || !state.currentRoll) return
-    const pick: PickedPlayer = {
-      player: selectedPlayer,
-      squad: state.currentRoll.squad,
-      slot,
-      slotIndex,
-    }
+    const pick: PickedPlayer = { player: selectedPlayer, squad: state.currentRoll.squad, slot, slotIndex }
     const newPicks = [...state.picks, pick]
     const overall = computeOverall(newPicks, state.style)
     if (newPicks.length === 11) {
@@ -105,6 +82,7 @@ export default function GameScreen({ category, onHome }: Props) {
       setState(s => ({ ...s, picks: newPicks, overall, currentRoll: null, phase: 'rolling' }))
     }
     setSelectedPlayer(null)
+    setShowField(false)
   }
 
   const toResults = (results: MatchResult[]) => {
@@ -114,11 +92,9 @@ export default function GameScreen({ category, onHome }: Props) {
   }
 
   const startSimulation = () => {
-    // Run group stage first → if passed → halftime → knockouts
     const groups = simulateGroupStage(state)
     const groupLosses = groups.filter(m => !m.won && m.phase === 'Grupos').length
     if (groupLosses >= 2) {
-      // Eliminated in groups — skip halftime
       toResults(groups)
     } else {
       setGroupMatches(groups)
@@ -135,17 +111,10 @@ export default function GameScreen({ category, onHome }: Props) {
   }
 
   const afterHalftime = (newPicks: PickedPlayer[], newFormation: Formation, newStyle: GameStyle) => {
-    // Apply subs/tactics then simulate knockouts
     const updatedState = { ...state, picks: newPicks, formation: newFormation, style: newStyle }
     const knockouts = simulateKnockouts(updatedState, groupMatches)
     const allMatches = [...groupMatches, ...knockouts]
-    setState(s => ({
-      ...s,
-      picks: newPicks,
-      formation: newFormation,
-      style: newStyle,
-      overall: computeOverall(newPicks, newStyle),
-    }))
+    setState(s => ({ ...s, picks: newPicks, formation: newFormation, style: newStyle, overall: computeOverall(newPicks, newStyle) }))
     toResults(allMatches)
   }
 
@@ -154,8 +123,8 @@ export default function GameScreen({ category, onHome }: Props) {
     setRollIndex(0)
     setSelectedPlayer(null)
     setDiceAnim(false)
-    setRerollCount(0)
     setShowSettings(false)
+    setShowField(false)
     setNarrating(false)
     setGroupMatches([])
   }
@@ -193,69 +162,59 @@ export default function GameScreen({ category, onHome }: Props) {
 
   const ataque = computeAtaque(state.picks)
   const defesa = computeDefesa(state.picks)
-
   const canRoll = !state.currentRoll && (state.phase === 'setup' || state.phase === 'rolling')
+  const filled = state.picks.length
 
   return (
-    <div className="min-h-screen bg-[#F5F0E8]">
+    <div className="min-h-screen bg-[#F5F0E8] flex flex-col">
+
       {/* Top bar */}
-      <div className="bg-[#1a1a1a] text-white px-4 py-2 flex items-center justify-between text-xs font-bold tracking-widest">
-        <button onClick={onHome} className="text-[#C9A84C] hover:text-white transition-colors font-black tracking-tight">0a7</button>
-        <div className="text-[10px] text-white/60 tracking-wider whitespace-nowrap">
-          {state.formation.name} · {STYLE_SHORT[state.style]} · {MODE_SHORT[state.mode]}
+      <div className="bg-[#1a1a1a] text-white px-4 py-3 flex items-center justify-between flex-shrink-0">
+        <button onClick={onHome} className="text-[#C9A84C] font-black text-base tracking-tight">0a7</button>
+        <div className="flex items-center gap-2">
+          {/* Progress pills */}
+          <div className="flex gap-0.5">
+            {Array.from({ length: 11 }).map((_, i) => (
+              <div key={i} className={`w-1.5 h-1.5 rounded-full ${i < filled ? 'bg-[#C9A84C]' : 'bg-white/20'}`} />
+            ))}
+          </div>
+          <span className="text-[10px] text-white/50 font-bold">{filled}/11</span>
         </div>
         <button
           onClick={() => setShowSettings(s => !s)}
-          className="text-white/70 hover:text-white transition-colors"
+          className="text-white/60 hover:text-white text-[10px] font-black tracking-widest transition-colors"
         >
-          AJUSTES {showSettings ? '▴' : '▾'}
+          ⚙ AJUSTES
         </button>
       </div>
 
-      {/* Settings dropdown */}
+      {/* Settings panel */}
       {showSettings && (
-        <div className="bg-[#222] text-white px-4 py-4 flex flex-col gap-4">
-          {/* Formation */}
+        <div className="bg-[#1e1e1e] text-white px-4 py-4 flex flex-col gap-3 flex-shrink-0">
           <div>
-            <div className="text-[10px] text-white/40 tracking-widest mb-2">FORMAÇÃO</div>
+            <div className="text-[9px] text-white/40 tracking-widest mb-1.5">FORMAÇÃO</div>
             <div className="flex gap-1 flex-wrap">
               {Object.keys(FORMATIONS).map(f => (
                 <button
                   key={f}
                   onClick={() => setState(s => ({ ...s, formation: FORMATIONS[f] }))}
-                  className={`text-xs px-2 py-1 font-bold rounded transition-colors ${state.formation.name === f ? 'bg-[#D12E2E] text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                  className={`text-[10px] px-2.5 py-1 font-black rounded-lg transition-colors ${state.formation.name === f ? 'bg-[#D12E2E] text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                 >
                   {f}
                 </button>
               ))}
             </div>
           </div>
-          {/* Style */}
           <div>
-            <div className="text-[10px] text-white/40 tracking-widest mb-2">ESTILO</div>
+            <div className="text-[9px] text-white/40 tracking-widest mb-1.5">ESTILO</div>
             <div className="flex gap-1">
               {(['defensive', 'balanced', 'offensive'] as GameStyle[]).map(s => (
                 <button
                   key={s}
                   onClick={() => setState(st => ({ ...st, style: s }))}
-                  className={`text-xs px-3 py-1 font-bold rounded transition-colors ${state.style === s ? 'bg-[#C9A84C] text-black' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                  className={`text-[10px] px-3 py-1 font-black rounded-lg transition-colors ${state.style === s ? 'bg-[#C9A84C] text-black' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                 >
                   {STYLE_LABELS[s]}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Mode */}
-          <div>
-            <div className="text-[10px] text-white/40 tracking-widest mb-2">MODO · DIFICULDADE</div>
-            <div className="flex gap-1">
-              {(['classic', 'almanac'] as GameMode[]).map(m => (
-                <button
-                  key={m}
-                  onClick={() => setState(s => ({ ...s, mode: m }))}
-                  className={`text-xs px-3 py-1 font-bold rounded transition-colors ${state.mode === m ? 'bg-[#C9A84C] text-black' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
-                >
-                  {MODE_LABELS[m]}
                 </button>
               ))}
             </div>
@@ -263,107 +222,163 @@ export default function GameScreen({ category, onHome }: Props) {
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-4 py-4 flex flex-col md:flex-row gap-4">
-        {/* Left: field + box score */}
-        <div className="w-full md:w-56 flex-shrink-0 flex flex-col gap-3">
+      {/* Stats strip (only when has picks) */}
+      {filled > 0 && (
+        <div className="bg-white border-b border-gray-100 px-4 py-2 flex items-center gap-4 flex-shrink-0">
+          <div className="flex gap-3 flex-1">
+            <div className="text-center">
+              <div className="text-lg font-black text-[#1a1a1a] leading-none">{state.overall}</div>
+              <div className="text-[8px] text-[#aaa] tracking-widest">OVR</div>
+            </div>
+            {ataque !== null && (
+              <div className="text-center">
+                <div className="text-lg font-black text-[#D12E2E] leading-none">{ataque}</div>
+                <div className="text-[8px] text-[#aaa] tracking-widest">ATK</div>
+              </div>
+            )}
+            {defesa !== null && (
+              <div className="text-center">
+                <div className="text-lg font-black text-[#1a1a1a] leading-none">{defesa}</div>
+                <div className="text-[8px] text-[#aaa] tracking-widest">DEF</div>
+              </div>
+            )}
+          </div>
+          <div className="flex gap-2 items-center">
+            <span className="text-[9px] text-[#888] font-bold">{state.formation.name} · {state.style === 'offensive' ? 'OFE' : state.style === 'defensive' ? 'DEF' : 'EQU'}</span>
+            <button
+              onClick={() => setShowField(f => !f)}
+              className="text-[9px] font-black bg-[#1a1a1a] text-white px-2 py-1 rounded-lg"
+            >
+              {showField ? 'LISTA' : 'CAMPO'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Field (toggle) */}
+      {showField && filled > 0 && (
+        <div className="flex-shrink-0 bg-white border-b border-gray-100 px-4 py-3">
           <Field
             formation={state.formation}
             picks={state.picks}
             selectedPlayer={selectedPlayer}
             onSlotClick={placePlayer}
           />
-
-          {/* BOX SCORE */}
-          <div className="bg-white rounded-lg p-3 text-xs shadow-sm">
-            <div className="font-black text-[#1a1a1a] mb-2 tracking-widest text-[10px]">BOX SCORE · {state.picks.length}/11</div>
-            <div className="grid grid-cols-2 mb-3 border border-gray-100 rounded-lg overflow-hidden">
-              <div className="text-center py-2 border-r border-gray-100">
-                <div className="text-2xl font-black text-[#1a1a1a] leading-none">{ataque ?? '?'}</div>
-                <div className="text-[#888] text-[9px] tracking-widest mt-0.5">ATAQUE</div>
-              </div>
-              <div className="text-center py-2">
-                <div className="text-2xl font-black text-[#1a1a1a] leading-none">{defesa ?? '?'}</div>
-                <div className="text-[#888] text-[9px] tracking-widest mt-0.5">DEFESA</div>
-              </div>
-            </div>
-            {state.formation.slots.map((slot, i) => {
-              const pick = state.picks.find(p => p.slotIndex === i)
-              return (
-                <div key={i} className="flex items-center gap-1 py-0.5 border-b border-gray-100 last:border-0">
-                  <span className="text-[#888] w-7 text-[10px] font-bold">{slot.label}</span>
-                  <span className="text-[#1a1a1a] font-medium truncate flex-1 text-[10px]">{pick ? pick.player.name : '—'}</span>
-                  {pick && <span className="text-[#888] text-[10px]">{state.mode === 'almanac' ? '?' : pick.player.rating}</span>}
-                </div>
-              )
-            })}
-          </div>
         </div>
+      )}
 
-        {/* Right: roll / players */}
-        <div className="flex-1">
-          {canRoll && (
-            <div className="flex flex-col items-center justify-center h-64 gap-4">
-              <p className="text-[#888] text-center text-sm font-medium">
-                {state.picks.length === 0
-                  ? 'Role para sortear uma seleção e uma Copa do Mundo'
-                  : `${11 - state.picks.length} posições restantes — role o dado!`}
+      {/* Main scrollable area */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
+
+        {/* ── ROLL STATE ── */}
+        {canRoll && (
+          <div className="flex flex-col items-center pt-6 gap-5">
+            <div className="text-center">
+              <p className="text-[#888] text-sm font-bold mb-1">
+                {filled === 0 ? 'Role o dado para sortear seu time' : `${11 - filled} posição${11 - filled > 1 ? 'ões' : ''} restante${11 - filled > 1 ? 's' : ''}`}
               </p>
-              <button
-                onClick={roll}
-                className={`bg-[#1a1a1a] text-white font-black text-2xl w-28 h-28 rounded-2xl hover:bg-[#333] transition-all shadow-lg flex flex-col items-center justify-center gap-1 ${diceAnim ? 'scale-95' : ''}`}
-              >
-                <span className="text-3xl">🎲</span>
-                <span className="text-sm tracking-widest">ROLAR</span>
-              </button>
+              <p className="text-[10px] text-[#bbb]">Você escolhe um jogador por sorteio</p>
             </div>
-          )}
 
-          {state.currentRoll && (
-            <div className="animate-slide-up">
-              {/* Sorteio banner */}
-              <div className="bg-[#1a1a1a] text-white rounded-xl p-4 mb-3">
-                <div className="text-[#888] text-[9px] tracking-[0.2em] font-black mb-2">SAIU</div>
-                <div className="flex items-center gap-3">
-                  <span className="text-4xl">{state.currentRoll.squad.flagEmoji}</span>
-                  <div>
-                    <div className="text-2xl font-black leading-tight">
-                      {state.currentRoll.squad.clubName ?? state.currentRoll.squad.countryNamePt}
+            <button
+              onClick={roll}
+              className={`bg-[#1a1a1a] text-white w-32 h-32 rounded-3xl flex flex-col items-center justify-center gap-2 shadow-xl hover:bg-[#2a2a2a] active:scale-95 transition-all ${diceAnim ? 'scale-90' : ''}`}
+            >
+              <span className="text-4xl">{diceAnim ? '🎰' : '🎲'}</span>
+              <span className="text-xs font-black tracking-widest">ROLAR</span>
+            </button>
+
+            {/* Picked so far (compact) */}
+            {filled > 0 && (
+              <div className="w-full bg-white rounded-2xl p-3 shadow-sm">
+                <p className="text-[9px] font-black text-[#888] tracking-widest mb-2">TIME ATUAL</p>
+                <div className="grid grid-cols-2 gap-x-4">
+                  {state.picks.map((pick, i) => (
+                    <div key={i} className="flex items-center gap-1.5 py-1 border-b border-gray-50 last:border-0">
+                      <span className="text-[9px] text-[#ccc] w-6 font-black">{pick.slot.label}</span>
+                      <span className="text-xs">{pick.squad.flagEmoji}</span>
+                      <span className="font-bold text-[11px] text-[#1a1a1a] truncate flex-1">{pick.player.name.split(' ').pop()}</span>
+                      {pick.player.isLegend && <span className="text-[9px]">⭐</span>}
                     </div>
-                    <div className="text-[#C9A84C] font-bold text-sm">
-                      {state.currentRoll.squad.trophy ?? `Copa ${state.currentRoll.squad.year}`}
-                    </div>
-                  </div>
+                  ))}
                 </div>
-                {state.currentRoll.squad.notableReason && (
-                  <div className="text-white/40 text-[10px] mt-2 italic leading-tight">{state.currentRoll.squad.notableReason}</div>
-                )}
               </div>
+            )}
+          </div>
+        )}
 
-              {/* Re-roll */}
-              {state.currentRoll.rerollsLeft > 0 && (
-                <div className="mb-3">
-                  <div className="text-[10px] font-black text-[#888] tracking-widest mb-1.5">
-                    NÃO CURTIU? RE-SORTEIE · {state.currentRoll.rerollsLeft} {state.currentRoll.rerollsLeft === 1 ? 'RESTANTE' : 'RESTANTES'}
+        {/* ── PICK STATE ── */}
+        {state.currentRoll && (
+          <div className="flex flex-col gap-3">
+            {/* Sorteio banner */}
+            <div className="bg-[#1a1a1a] text-white rounded-2xl p-4">
+              <div className="text-[9px] text-[#C9A84C] tracking-[0.2em] font-black mb-2">🎲 SORTEIO</div>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-4xl">{state.currentRoll.squad.flagEmoji}</span>
+                <div>
+                  <div className="text-xl font-black leading-tight">
+                    {state.currentRoll.squad.clubName ?? state.currentRoll.squad.countryNamePt}
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => reroll('squad')}
-                      className="flex-1 bg-white border border-gray-200 text-[#1a1a1a] font-black text-xs py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      ↺ OUTRA SELEÇÃO
-                    </button>
-                    <button
-                      onClick={() => reroll('copa')}
-                      className="flex-1 bg-white border border-gray-200 text-[#1a1a1a] font-black text-xs py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      ↺ OUTRA COPA
-                    </button>
+                  <div className="text-[#C9A84C] font-bold text-sm">
+                    {state.currentRoll.squad.trophy ?? `Copa ${state.currentRoll.squad.year}`}
                   </div>
                 </div>
+              </div>
+              {state.currentRoll.squad.notableReason && (
+                <p className="text-white/40 text-[10px] italic leading-tight">{state.currentRoll.squad.notableReason}</p>
               )}
+            </div>
 
-              {/* Player list */}
-              <div className="text-[10px] font-black text-[#888] tracking-widest mb-2">ESCOLHA UM JOGADOR</div>
+            {/* Reroll */}
+            {state.currentRoll.rerollsLeft > 0 && (
+              <div className="bg-white rounded-2xl p-3 shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[9px] font-black text-[#888] tracking-widest">NÃO CURTIU?</span>
+                  <div className="flex gap-1">
+                    {[0,1,2].map(i => (
+                      <div key={i} className={`w-2 h-2 rounded-full ${i < state.currentRoll!.rerollsLeft ? 'bg-[#C9A84C]' : 'bg-gray-200'}`} />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => reroll('squad')}
+                    className="flex-1 bg-[#F5F0E8] text-[#1a1a1a] font-black text-[11px] py-2.5 rounded-xl hover:bg-gray-100 transition-colors"
+                  >
+                    ↺ OUTRO TIME
+                  </button>
+                  <button
+                    onClick={() => reroll('copa')}
+                    className="flex-1 bg-[#F5F0E8] text-[#1a1a1a] font-black text-[11px] py-2.5 rounded-xl hover:bg-gray-100 transition-colors"
+                  >
+                    ↺ OUTRA COPA
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Field slot prompt (if player selected) */}
+            {selectedPlayer && !showField && (
+              <div className="bg-[#D12E2E] text-white rounded-2xl p-3 text-center">
+                <p className="font-black text-sm">{selectedPlayer.name}</p>
+                <p className="text-[11px] text-white/70 mt-1">Escolha a posição no campo para escalar</p>
+                <button
+                  onClick={() => setShowField(true)}
+                  className="mt-2 bg-white text-[#D12E2E] font-black text-[11px] px-4 py-1.5 rounded-full"
+                >
+                  VER CAMPO →
+                </button>
+              </div>
+            )}
+            {selectedPlayer && showField && availableSlots.length === 0 && (
+              <div className="bg-[#888] text-white rounded-2xl p-3 text-center text-[11px] font-black">
+                SEM POSIÇÃO COMPATÍVEL PARA {selectedPlayer.name.toUpperCase()}
+              </div>
+            )}
+
+            {/* Player list */}
+            <div>
+              <p className="text-[9px] font-black text-[#888] tracking-widest mb-2">ESCOLHA UM JOGADOR</p>
               <PlayerList
                 squad={state.currentRoll.squad}
                 mode={state.mode}
@@ -372,27 +387,23 @@ export default function GameScreen({ category, onHome }: Props) {
                 onSelect={pickPlayer}
                 availableSlots={availableSlots.map(s => s.slot.position)}
               />
-
-              {selectedPlayer && availableSlots.length > 0 && (
-                <div className="mt-3 bg-[#D12E2E] text-white text-xs font-black text-center py-2 rounded-lg">
-                  CLIQUE NO CAMPO PARA ESCALAR {selectedPlayer.name.toUpperCase()}
-                </div>
-              )}
-              {selectedPlayer && availableSlots.length === 0 && (
-                <div className="mt-3 bg-[#888] text-white text-xs font-black text-center py-2 rounded-lg">
-                  SEM POSIÇÃO COMPATÍVEL PARA {selectedPlayer.name.toUpperCase()}
-                </div>
-              )}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* After placing a player, hint to tap for position change */}
-          {!state.currentRoll && state.picks.length > 0 && state.phase === 'rolling' && (
-            <div className="text-center text-[#888] text-xs mt-4">
-              Toque num jogador pra mudar de posição
-            </div>
-          )}
-        </div>
+        {/* Field shown inside scroll area when toggled */}
+        {showField && state.currentRoll && selectedPlayer && (
+          <div className="bg-white rounded-2xl p-3 shadow-sm">
+            <p className="text-[9px] font-black text-[#888] tracking-widest mb-2">ESCOLHA A POSIÇÃO</p>
+            <Field
+              formation={state.formation}
+              picks={state.picks}
+              selectedPlayer={selectedPlayer}
+              onSlotClick={placePlayer}
+            />
+          </div>
+        )}
+
       </div>
     </div>
   )
