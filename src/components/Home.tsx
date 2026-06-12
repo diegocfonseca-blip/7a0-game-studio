@@ -26,14 +26,14 @@ export default function Home({ onPlay }: Props) {
   const [picked, setPicked] = useState<GameCategory | null>(null)
 
   return (
-    <div className="min-h-screen bg-[#F5F0E8]">
+    <div className="home-shell min-h-screen bg-[#F5F0E8]">
       {/* Header */}
-      <div className="flex justify-between items-center px-6 py-4 max-w-5xl mx-auto">
+      <div className="home-topbar flex justify-between items-center px-6 py-4 max-w-5xl mx-auto">
         <span className="text-xs font-bold tracking-widest text-[#888] uppercase">0a7legends · 1930 — 2024</span>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 md:px-8">
-        <div className="flex flex-col md:flex-row items-center gap-8 py-8">
+      <div className="home-container max-w-5xl mx-auto px-4 md:px-8">
+        <div className="home-hero flex flex-col md:flex-row items-center gap-8 py-8">
           {/* Left */}
           <div className="flex-1 text-left">
             <div className="leading-none mb-6">
@@ -55,11 +55,11 @@ export default function Home({ onPlay }: Props) {
             {/* MODE PICKER */}
             <div className="mb-8">
               <div className="text-[10px] font-black text-[#888] tracking-[0.25em] mb-3">ESCOLHA O MODO</div>
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="home-mode-grid flex flex-col sm:flex-row gap-3">
                 {/* Seleções */}
                 <button
                   onClick={() => setPicked('national')}
-                  className={`flex-1 border-2 rounded-xl p-4 text-left transition-all ${
+                  className={`home-mode-card flex-1 border-2 rounded-xl p-4 text-left transition-all ${
                     picked === 'national'
                       ? 'border-[#D12E2E] bg-[#D12E2E]/5'
                       : 'border-gray-200 bg-white hover:border-[#D12E2E]/50'
@@ -78,7 +78,7 @@ export default function Home({ onPlay }: Props) {
                 {/* Clubes */}
                 <button
                   onClick={() => setPicked('clubs')}
-                  className={`flex-1 border-2 rounded-xl p-4 text-left transition-all ${
+                  className={`home-mode-card flex-1 border-2 rounded-xl p-4 text-left transition-all ${
                     picked === 'clubs'
                       ? 'border-[#1a1a1a] bg-[#1a1a1a]/5'
                       : 'border-gray-200 bg-white hover:border-[#1a1a1a]/40'
@@ -125,7 +125,7 @@ export default function Home({ onPlay }: Props) {
           </div>
 
           {/* Field preview */}
-          <div className="flex-shrink-0 w-full md:w-72">
+          <div className="home-field-preview flex-shrink-0 w-full md:w-72">
             <div className="relative w-full aspect-[3/4] bg-[#2d7a2d] rounded-lg overflow-hidden border-2 border-[#1a5c1a]">
               <div className="absolute inset-0">
                 <div className="absolute top-[8%] left-[15%] right-[15%] h-[14%] border border-white/30 rounded-sm" />
@@ -154,7 +154,7 @@ export default function Home({ onPlay }: Props) {
         </div>
 
         {/* Stats bar */}
-        <div className="border-t border-[#ddd] py-6 flex justify-center gap-8 text-center">
+        <div className="home-stats border-t border-[#ddd] py-6 flex justify-center gap-8 text-center">
           {[
             { value: String(TOTAL_SQUADS + TOTAL_CLUBS), label: 'times históricos' },
             { value: `${TOTAL_PLAYERS + TOTAL_CLUB_PLAYERS}+`, label: 'jogadores lendários' },
