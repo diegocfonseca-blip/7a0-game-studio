@@ -10,6 +10,8 @@ import {
 } from '../engine/game'
 import type { GameState, PickedPlayer, GameMode, GameStyle, MatchResult } from '../engine/game'
 import type { GameCategory } from '../App'
+import type { ThemePalette } from '../theme'
+import { DARK } from '../theme'
 import Field from './Field'
 import PlayerList from './PlayerList'
 import SimulationScreen from './SimulationScreen'
@@ -17,7 +19,7 @@ import NarrationScreen from './NarrationScreen'
 import HalftimeScreen from './HalftimeScreen'
 import ResultScreen from './ResultScreen'
 
-interface Props { category: GameCategory; onHome: () => void }
+interface Props { category: GameCategory; onHome: () => void; theme?: ThemePalette; onToggleTheme?: () => void }
 
 function initState(): GameState {
   const seed = generateSeed()
@@ -33,9 +35,10 @@ const STYLE_LABELS: Record<GameStyle, string> = {
   defensive: 'DEFENSIVO', balanced: 'EQUILIBRADO', offensive: 'OFENSIVO',
 }
 
-const BG = 'linear-gradient(160deg, #080808 0%, #0f0f0f 55%, #120c00 100%)'
+const _BG_UNUSED = '' // BG is now dynamic via theme
 
-export default function GameScreen({ category, onHome }: Props) {
+export default function GameScreen({ category, onHome, theme: themeProp, onToggleTheme }: Props) {
+  const t = themeProp ?? DARK
   const pool: Squad[] = category === 'clubs' ? clubs : squads
   const [state, setState] = useState<GameState>(initState)
   const [rollIndex, setRollIndex] = useState(0)
@@ -128,7 +131,7 @@ export default function GameScreen({ category, onHome }: Props) {
     const ga   = groupMatches.reduce((s, m) => s + m.goalsAgainst, 0)
     const wins = groupMatches.filter(m => m.won).length
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ background: BG }}>
+      <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ background: t.bgGrad }}>
         <div style={{ width: '100%', maxWidth: 380 }}>
           <div className="text-center mb-6">
             <div style={{ fontSize: 52, marginBottom: 8 }}>⏸</div>
@@ -356,33 +359,40 @@ export default function GameScreen({ category, onHome }: Props) {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: BG }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: t.bgGrad }}>
 
       {/* Top bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(0,0,0,0.65)', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
-        <button onClick={onHome} style={{ fontWeight: 900, fontSize: 18, color: '#C9A84C', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textShadow: '0 0 12px rgba(201,168,76,0.5)' }}>0a7</button>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: t.topbar, borderBottom: `1px solid ${t.topbarBorder}`, flexShrink: 0, backdropFilter: 'blur(8px)', position: 'sticky', top: 0, zIndex: 20 }}>
+        <button onClick={onHome} style={{ fontWeight: 900, fontSize: 18, color: t.gold, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>0a7</button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ display: 'flex', gap: 3 }}>
             {Array.from({ length: 11 }).map((_, i) => (
-              <div key={i} style={{ width: i < filled ? 9 : 6, height: i < filled ? 9 : 6, borderRadius: '50%', background: i < filled ? '#C9A84C' : 'rgba(255,255,255,0.12)', boxShadow: i < filled ? '0 0 8px rgba(201,168,76,0.7)' : 'none', transition: 'all 0.2s' }} />
+              <div key={i} style={{ width: i < filled ? 9 : 6, height: i < filled ? 9 : 6, borderRadius: '50%', background: i < filled ? t.gold : t.border2, boxShadow: i < filled ? `0 0 8px ${t.goldGlow}` : 'none', transition: 'all 0.2s' }} />
             ))}
           </div>
-          <span style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.35)' }}>{filled}/11</span>
+          <span style={{ fontSize: 10, fontWeight: 900, color: t.textDim }}>{filled}/11</span>
         </div>
-        <button onClick={() => setShowSettings(s => !s)} style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', color: showSettings ? '#C9A84C' : 'rgba(255,255,255,0.35)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-          ⚙ AJUSTES
-        </button>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {onToggleTheme && (
+            <button onClick={onToggleTheme} style={{ fontSize: 14, background: 'none', border: 'none', cursor: 'pointer', color: t.textDim, padding: 0 }}>
+              {t.mode === 'dark' ? '☀' : '🌙'}
+            </button>
+          )}
+          <button onClick={() => setShowSettings(s => !s)} style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', color: showSettings ? t.gold : t.textDim, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+            ⚙ AJUSTES
+          </button>
+        </div>
       </div>
 
       {/* Settings panel */}
       {showSettings && (
-        <div style={{ padding: '16px', background: 'rgba(0,0,0,0.7)', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', gap: 14, flexShrink: 0 }}>
+        <div style={{ padding: '16px', background: t.topbar, borderBottom: `1px solid ${t.topbarBorder}`, display: 'flex', flexDirection: 'column', gap: 14, flexShrink: 0 }}>
           <div>
-            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)', marginBottom: 8 }}>FORMAÇÃO</div>
+            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted, marginBottom: 8 }}>FORMAÇÃO</div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {Object.keys(FORMATIONS).map(f => (
                 <button key={f} onClick={() => setState(s => ({ ...s, formation: FORMATIONS[f] }))}
-                  style={{ fontSize: 10, fontWeight: 900, padding: '6px 12px', borderRadius: 10, border: state.formation.name === f ? '1px solid rgba(209,46,46,0.6)' : '1px solid rgba(255,255,255,0.1)', background: state.formation.name === f ? 'rgba(209,46,46,0.25)' : 'rgba(255,255,255,0.06)', color: state.formation.name === f ? '#fff' : 'rgba(255,255,255,0.45)', cursor: 'pointer' }}>
+                  style={{ fontSize: 10, fontWeight: 900, padding: '6px 12px', borderRadius: 10, border: state.formation.name === f ? `1px solid ${t.red}88` : `1px solid ${t.border}`, background: state.formation.name === f ? t.redDim : t.surface, color: state.formation.name === f ? t.text : t.textDim, cursor: 'pointer' }}>
                   {f}
                 </button>
               ))}
@@ -393,7 +403,7 @@ export default function GameScreen({ category, onHome }: Props) {
             <div style={{ display: 'flex', gap: 6 }}>
               {(['defensive', 'balanced', 'offensive'] as GameStyle[]).map(s => (
                 <button key={s} onClick={() => setState(st => ({ ...st, style: s }))}
-                  style={{ flex: 1, fontSize: 10, fontWeight: 900, padding: '8px 4px', borderRadius: 10, border: state.style === s ? '1px solid rgba(201,168,76,0.5)' : '1px solid rgba(255,255,255,0.08)', background: state.style === s ? 'rgba(201,168,76,0.18)' : 'rgba(255,255,255,0.06)', color: state.style === s ? '#C9A84C' : 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
+                  style={{ flex: 1, fontSize: 10, fontWeight: 900, padding: '8px 4px', borderRadius: 10, border: state.style === s ? `1px solid ${t.gold}88` : `1px solid ${t.border}`, background: state.style === s ? t.goldDim : t.surface, color: state.style === s ? t.gold : t.textDim, cursor: 'pointer' }}>
                   {STYLE_LABELS[s]}
                 </button>
               ))}

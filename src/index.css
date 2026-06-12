@@ -18,11 +18,10 @@ body {
 
 #app-shell {
   width: 100%;
-  max-width: 430px;
+  max-width: 100%;
   min-height: 100vh;
   position: relative;
-  overflow: hidden;
-  box-shadow: 0 0 80px rgba(0,0,0,0.8);
+  overflow-x: hidden;
 }
 
 .home-shell,

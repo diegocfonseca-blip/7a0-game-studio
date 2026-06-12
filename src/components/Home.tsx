@@ -1,167 +1,265 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { TOTAL_SQUADS, TOTAL_PLAYERS } from '../data/squads'
 import clubs from '../data/clubs'
 import type { GameCategory } from '../App'
+import type { ThemePalette } from '../theme'
 
-interface Props { onPlay: (category: GameCategory) => void }
+interface Props {
+  onPlay: (category: GameCategory) => void
+  theme: ThemePalette
+  onToggleTheme: () => void
+}
 
 const TOTAL_CLUBS = clubs.length
 const TOTAL_CLUB_PLAYERS = clubs.reduce((a, c) => a + c.players.length, 0)
 
-export default function Home({ onPlay }: Props) {
+export default function Home({ onPlay, theme: t, onToggleTheme }: Props) {
   const [picked, setPicked] = useState<GameCategory | null>(null)
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768)
+
+  useEffect(() => {
+    const fn = () => setIsDesktop(window.innerWidth >= 768)
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
+  }, [])
+
+  const isDark = t.mode === 'dark'
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(160deg, #0d0d0d 0%, #111 60%, #1a1200 100%)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: t.bgGrad }}>
 
-      {/* Top bar */}
-      <div className="px-5 pt-6 pb-0 flex items-center justify-between">
-        <span className="text-[10px] font-black tracking-[0.25em] uppercase" style={{ color: '#C9A84C', opacity: 0.7 }}>
+      {/* ── Top bar ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: isDesktop ? '16px 48px' : '16px 20px',
+        background: t.topbar,
+        borderBottom: `1px solid ${t.topbarBorder}`,
+        backdropFilter: 'blur(12px)',
+        position: 'sticky', top: 0, zIndex: 20,
+      }}>
+        <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: '0.2em', color: t.gold }}>
           0a7 LEGENDS
         </span>
-        <span className="text-[9px] font-bold tracking-widest" style={{ color: 'rgba(255,255,255,0.2)' }}>
-          1930 – 2024
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button onClick={onToggleTheme} style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            fontSize: 11, fontWeight: 900, padding: '6px 14px', borderRadius: 20,
+            border: `1px solid ${t.border2}`, background: t.surface2,
+            color: t.textDim, cursor: 'pointer', letterSpacing: '0.05em',
+            transition: 'all 0.2s',
+          }}>
+            <span>{isDark ? '☀' : '🌙'}</span>
+            <span>{isDark ? 'CLARO' : 'ESCURO'}</span>
+          </button>
+          <span style={{ fontSize: 10, fontWeight: 700, color: t.textMuted, letterSpacing: '0.15em' }}>
+            1930 – 2024
+          </span>
+        </div>
       </div>
 
-      {/* Hero */}
-      <div className="px-5 pt-8 pb-6">
-        <div className="mb-2">
-          <div className="text-[86px] font-black leading-none tracking-tighter" style={{ color: '#C9A84C', textShadow: '0 0 60px rgba(201,168,76,0.4), 0 0 120px rgba(201,168,76,0.15)' }}>
-            0a7
+      {/* ── Body ── */}
+      {isDesktop ? (
+        /* Desktop: hero left + picker right */
+        <div style={{ flex: 1, display: 'flex', maxWidth: 1100, margin: '0 auto', width: '100%', padding: '60px 48px', gap: 64, alignItems: 'flex-start' }}>
+
+          {/* Left: hero */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Logo */}
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 100, fontWeight: 900, lineHeight: 1, letterSpacing: '-0.04em', color: t.gold, textShadow: isDark ? '0 0 80px rgba(201,168,76,0.35)' : 'none' }}>
+                0a7
+              </div>
+              <div style={{ fontSize: 62, fontWeight: 900, lineHeight: 1, letterSpacing: '-0.03em', color: t.text }}>
+                LEGENDS
+              </div>
+            </div>
+
+            {/* Accent bars */}
+            <div style={{ display: 'flex', gap: 6, marginTop: 20, marginBottom: 24 }}>
+              <div style={{ height: 4, width: 64, borderRadius: 4, background: t.gold }} />
+              <div style={{ height: 4, width: 32, borderRadius: 4, background: t.red }} />
+              <div style={{ height: 4, width: 16, borderRadius: 4, background: t.textMuted }} />
+            </div>
+
+            <p style={{ fontSize: 16, lineHeight: 1.65, color: t.textDim, maxWidth: 360, marginBottom: 40 }}>
+              Monte um time dos sonhos com lendas históricas e dispute uma Copa do Mundo.
+            </p>
+
+            {/* Stats */}
+            <div style={{ display: 'flex', gap: 0, marginBottom: 48 }}>
+              {[
+                { v: `${TOTAL_SQUADS + TOTAL_CLUBS}`, l: 'TIMES' },
+                { v: `${TOTAL_PLAYERS + TOTAL_CLUB_PLAYERS}+`, l: 'JOGADORES' },
+                { v: '94', l: 'ANOS' },
+              ].map((s, i) => (
+                <div key={s.l} style={{ paddingRight: 32, borderRight: i < 2 ? `1px solid ${t.border}` : 'none', marginRight: i < 2 ? 32 : 0 }}>
+                  <div style={{ fontSize: 28, fontWeight: 900, lineHeight: 1, color: t.gold }}>{s.v}</div>
+                  <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.18em', color: t.textMuted, marginTop: 4 }}>{s.l}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* How it works */}
+            <div style={{ display: 'flex', gap: 24 }}>
+              {[
+                { n: '01', t: 'ROLE', d: 'Sorteia um time histórico lendário' },
+                { n: '02', t: 'MONTE', d: 'Escale um craque por sorteio' },
+                { n: '03', t: 'SIMULE', d: 'Seu time faz o 7 a 0?' },
+              ].map(s => (
+                <div key={s.n} style={{ flex: 1, padding: '16px', borderRadius: 14, background: t.surface, border: `1px solid ${t.border}` }}>
+                  <div style={{ fontSize: 22, fontWeight: 900, lineHeight: 1, color: t.red, marginBottom: 4 }}>{s.n}</div>
+                  <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', color: t.text, marginBottom: 4 }}>{s.t}</div>
+                  <div style={{ fontSize: 11, lineHeight: 1.4, color: t.textDim }}>{s.d}</div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="text-[52px] font-black leading-none tracking-tight" style={{ color: '#fff', letterSpacing: '-0.03em' }}>
-            LEGENDS
+
+          {/* Right: mode picker */}
+          <div style={{ width: 380, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', color: t.textMuted, marginBottom: 4 }}>ESCOLHA O MODO</p>
+
+            <ModeCard
+              label="Seleções Históricas"
+              icon="🌍"
+              desc="Brasil 70, Argentina 86, Holanda 74..."
+              sub={`${TOTAL_SQUADS} seleções · ${TOTAL_PLAYERS}+ jogadores`}
+              active={picked === 'national'}
+              color={t.red}
+              colorDim={t.redDim}
+              theme={t}
+              onClick={() => setPicked('national')}
+            />
+            <ModeCard
+              label="Clubes Históricos"
+              icon="🏆"
+              desc="Barça MSN, Flamengo 82, Milan 89..."
+              sub={`${TOTAL_CLUBS} clubes · ${TOTAL_CLUB_PLAYERS}+ jogadores`}
+              active={picked === 'clubs'}
+              color={t.gold}
+              colorDim={t.goldDim}
+              theme={t}
+              onClick={() => setPicked('clubs')}
+            />
+
+            <button
+              onClick={() => picked && onPlay(picked)}
+              disabled={!picked}
+              style={{
+                width: '100%', padding: '18px', borderRadius: 16,
+                fontWeight: 900, fontSize: 14, letterSpacing: '0.12em',
+                background: picked ? `linear-gradient(135deg, ${t.red} 0%, #8a1010 100%)` : t.surface,
+                color: picked ? '#fff' : t.textMuted,
+                border: 'none', cursor: picked ? 'pointer' : 'not-allowed',
+                boxShadow: picked ? `0 8px 32px ${t.redDim}` : 'none',
+                transition: 'all 0.2s',
+              }}
+            >
+              {picked ? 'JOGAR AGORA →' : 'ESCOLHA UM MODO'}
+            </button>
           </div>
         </div>
-        <div className="flex gap-2 mb-5 mt-3">
-          <div className="h-1 w-16 rounded-full" style={{ background: '#C9A84C' }} />
-          <div className="h-1 w-8 rounded-full" style={{ background: '#D12E2E' }} />
-          <div className="h-1 w-4 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
-        </div>
-        <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)', maxWidth: 280 }}>
-          Monte um time dos sonhos com lendas históricas e dispute uma Copa do Mundo.
-        </p>
-      </div>
 
-      {/* Stats strip */}
-      <div className="mx-5 rounded-2xl px-4 py-3 mb-6 flex justify-around" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        {[
-          { v: `${TOTAL_SQUADS + TOTAL_CLUBS}`, l: 'TIMES' },
-          { v: `${TOTAL_PLAYERS + TOTAL_CLUB_PLAYERS}+`, l: 'JOGADORES' },
-          { v: '94', l: 'ANOS DE HIST.' },
-        ].map(s => (
-          <div key={s.l} className="text-center">
-            <div className="text-xl font-black" style={{ color: '#C9A84C' }}>{s.v}</div>
-            <div className="text-[8px] font-black tracking-widest mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{s.l}</div>
+      ) : (
+        /* Mobile: single column */
+        <div style={{ flex: 1, padding: '32px 20px 40px', display: 'flex', flexDirection: 'column', gap: 0 }}>
+          {/* Hero */}
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ fontSize: 80, fontWeight: 900, lineHeight: 1, letterSpacing: '-0.04em', color: t.gold, textShadow: isDark ? '0 0 60px rgba(201,168,76,0.4)' : 'none' }}>0a7</div>
+            <div style={{ fontSize: 48, fontWeight: 900, lineHeight: 1, color: t.text, letterSpacing: '-0.03em' }}>LEGENDS</div>
+            <div style={{ display: 'flex', gap: 5, marginTop: 16, marginBottom: 16 }}>
+              <div style={{ height: 3, width: 56, borderRadius: 3, background: t.gold }} />
+              <div style={{ height: 3, width: 28, borderRadius: 3, background: t.red }} />
+              <div style={{ height: 3, width: 14, borderRadius: 3, background: t.textMuted }} />
+            </div>
+            <p style={{ fontSize: 13, lineHeight: 1.6, color: t.textDim, maxWidth: 280 }}>
+              Monte um time dos sonhos com lendas históricas e dispute uma Copa do Mundo.
+            </p>
           </div>
-        ))}
-      </div>
 
-      {/* Mode picker */}
-      <div className="px-5 flex-1">
-        <p className="text-[10px] font-black tracking-[0.2em] mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>ESCOLHA O MODO</p>
+          {/* Stats strip */}
+          <div style={{ borderRadius: 16, padding: '14px 16px', marginBottom: 24, display: 'flex', justifyContent: 'space-around', background: t.surface, border: `1px solid ${t.border}` }}>
+            {[
+              { v: `${TOTAL_SQUADS + TOTAL_CLUBS}`, l: 'TIMES' },
+              { v: `${TOTAL_PLAYERS + TOTAL_CLUB_PLAYERS}+`, l: 'JOGADORES' },
+              { v: '94', l: 'ANOS DE HIST.' },
+            ].map(s => (
+              <div key={s.l} style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 20, fontWeight: 900, color: t.gold }}>{s.v}</div>
+                <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted, marginTop: 2 }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
 
-        <div className="flex flex-col gap-3 mb-5">
-          {/* Seleções */}
+          {/* Mode picker */}
+          <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', color: t.textMuted, marginBottom: 12 }}>ESCOLHA O MODO</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+            <ModeCard label="Seleções Históricas" icon="🌍" desc="Brasil 70, Argentina 86, Holanda 74..." sub={`${TOTAL_SQUADS} seleções · ${TOTAL_PLAYERS}+ jogadores`} active={picked === 'national'} color={t.red} colorDim={t.redDim} theme={t} onClick={() => setPicked('national')} />
+            <ModeCard label="Clubes Históricos" icon="🏆" desc="Barça MSN, Flamengo 82, Milan 89..." sub={`${TOTAL_CLUBS} clubes · ${TOTAL_CLUB_PLAYERS}+ jogadores`} active={picked === 'clubs'} color={t.gold} colorDim={t.goldDim} theme={t} onClick={() => setPicked('clubs')} />
+          </div>
+
           <button
-            onClick={() => setPicked('national')}
-            className="w-full text-left transition-all active:scale-[0.98]"
+            onClick={() => picked && onPlay(picked)}
+            disabled={!picked}
             style={{
-              borderRadius: 20,
-              padding: '16px',
-              background: picked === 'national'
-                ? 'linear-gradient(135deg, rgba(209,46,46,0.2) 0%, rgba(209,46,46,0.08) 100%)'
-                : 'rgba(255,255,255,0.04)',
-              border: picked === 'national' ? '1.5px solid rgba(209,46,46,0.6)' : '1.5px solid rgba(255,255,255,0.08)',
-              boxShadow: picked === 'national' ? '0 0 24px rgba(209,46,46,0.2), inset 0 1px 0 rgba(255,255,255,0.07)' : 'inset 0 1px 0 rgba(255,255,255,0.04)',
+              width: '100%', padding: '16px', borderRadius: 16, marginBottom: 32,
+              fontWeight: 900, fontSize: 13, letterSpacing: '0.1em',
+              background: picked ? `linear-gradient(135deg, ${t.red} 0%, #8a1010 100%)` : t.surface,
+              color: picked ? '#fff' : t.textMuted,
+              border: 'none', cursor: picked ? 'pointer' : 'not-allowed',
+              boxShadow: picked ? `0 8px 24px ${t.redDim}` : 'none',
             }}
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-                style={{ background: picked === 'national' ? 'rgba(209,46,46,0.2)' : 'rgba(255,255,255,0.06)' }}>
-                🌍
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-black text-sm mb-0.5" style={{ color: '#fff' }}>Seleções Históricas</div>
-                <div className="text-[11px] truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>Brasil 70, Argentina 86, Holanda 74...</div>
-                <div className="text-[10px] font-black mt-1.5" style={{ color: '#C9A84C' }}>
-                  {TOTAL_SQUADS} seleções · {TOTAL_PLAYERS}+ jogadores
-                </div>
-              </div>
-              <div className="w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all"
-                style={{ borderColor: picked === 'national' ? '#D12E2E' : 'rgba(255,255,255,0.2)', background: picked === 'national' ? '#D12E2E' : 'transparent' }}>
-                {picked === 'national' && <div className="w-2 h-2 bg-white rounded-full" />}
-              </div>
-            </div>
+            {picked ? 'JOGAR AGORA →' : 'ESCOLHA UM MODO'}
           </button>
 
-          {/* Clubes */}
-          <button
-            onClick={() => setPicked('clubs')}
-            className="w-full text-left transition-all active:scale-[0.98]"
-            style={{
-              borderRadius: 20,
-              padding: '16px',
-              background: picked === 'clubs'
-                ? 'linear-gradient(135deg, rgba(201,168,76,0.18) 0%, rgba(201,168,76,0.06) 100%)'
-                : 'rgba(255,255,255,0.04)',
-              border: picked === 'clubs' ? '1.5px solid rgba(201,168,76,0.6)' : '1.5px solid rgba(255,255,255,0.08)',
-              boxShadow: picked === 'clubs' ? '0 0 24px rgba(201,168,76,0.18), inset 0 1px 0 rgba(255,255,255,0.07)' : 'inset 0 1px 0 rgba(255,255,255,0.04)',
-            }}
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-                style={{ background: picked === 'clubs' ? 'rgba(201,168,76,0.18)' : 'rgba(255,255,255,0.06)' }}>
-                🏆
+          {/* How it works */}
+          <div style={{ display: 'flex', gap: 16 }}>
+            {[
+              { n: '01', t: 'ROLE', d: 'Sorteia um time histórico lendário' },
+              { n: '02', t: 'MONTE', d: 'Escale um craque por sorteio' },
+              { n: '03', t: 'SIMULE', d: 'Seu time faz o 7 a 0?' },
+            ].map(s => (
+              <div key={s.n} style={{ flex: 1 }}>
+                <div style={{ fontSize: 20, fontWeight: 900, lineHeight: 1, color: t.red, marginBottom: 3 }}>{s.n}</div>
+                <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', color: t.text, marginBottom: 2 }}>{s.t}</div>
+                <div style={{ fontSize: 10, lineHeight: 1.4, color: t.textDim }}>{s.d}</div>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-black text-sm mb-0.5" style={{ color: '#fff' }}>Clubes Históricos</div>
-                <div className="text-[11px] truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>Barça MSN, Flamengo 82, Milan 89...</div>
-                <div className="text-[10px] font-black mt-1.5" style={{ color: '#C9A84C' }}>
-                  {TOTAL_CLUBS} clubes · {TOTAL_CLUB_PLAYERS}+ jogadores
-                </div>
-              </div>
-              <div className="w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all"
-                style={{ borderColor: picked === 'clubs' ? '#C9A84C' : 'rgba(255,255,255,0.2)', background: picked === 'clubs' ? '#C9A84C' : 'transparent' }}>
-                {picked === 'clubs' && <div className="w-2 h-2 rounded-full" style={{ background: '#1a1a1a' }} />}
-              </div>
-            </div>
-          </button>
+            ))}
+          </div>
         </div>
-
-        {/* CTA */}
-        <button
-          onClick={() => picked && onPlay(picked)}
-          disabled={!picked}
-          className="w-full py-4 rounded-2xl font-black text-sm tracking-widest uppercase transition-all active:scale-[0.97]"
-          style={{
-            background: picked
-              ? 'linear-gradient(135deg, #D12E2E 0%, #a01f1f 100%)'
-              : 'rgba(255,255,255,0.06)',
-            color: picked ? '#fff' : 'rgba(255,255,255,0.2)',
-            boxShadow: picked ? '0 8px 32px rgba(209,46,46,0.4), 0 2px 8px rgba(0,0,0,0.3)' : 'none',
-            cursor: picked ? 'pointer' : 'not-allowed',
-          }}
-        >
-          {picked ? 'JOGAR AGORA →' : 'ESCOLHA UM MODO'}
-        </button>
-
-        {/* How it works */}
-        <div className="flex gap-4 mt-8 pb-8">
-          {[
-            { n: '01', t: 'ROLE', d: 'Sorteia um time histórico lendário' },
-            { n: '02', t: 'MONTE', d: 'Escale um craque por sorteio' },
-            { n: '03', t: 'SIMULE', d: 'Seu time faz o 7 a 0?' },
-          ].map(s => (
-            <div key={s.n} className="flex-1">
-              <div className="font-black text-xl leading-none mb-1" style={{ color: '#D12E2E' }}>{s.n}</div>
-              <div className="font-black text-[10px] tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.7)' }}>{s.t}</div>
-              <div className="text-[10px] leading-tight" style={{ color: 'rgba(255,255,255,0.3)' }}>{s.d}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
     </div>
+  )
+}
+
+function ModeCard({ label, icon, desc, sub, active, color, colorDim, theme: t, onClick }: {
+  label: string; icon: string; desc: string; sub: string
+  active: boolean; color: string; colorDim: string
+  theme: ThemePalette; onClick: () => void
+}) {
+  return (
+    <button onClick={onClick} style={{
+      width: '100%', textAlign: 'left', padding: '18px',
+      borderRadius: 18,
+      background: active ? `linear-gradient(135deg, ${colorDim} 0%, transparent 100%)` : t.surface,
+      border: `1.5px solid ${active ? color : t.border}`,
+      boxShadow: active ? `0 0 28px ${colorDim}` : 'none',
+      cursor: 'pointer', transition: 'all 0.15s',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ width: 52, height: 52, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0, background: active ? colorDim : t.surface2, border: `1px solid ${active ? color + '44' : t.border}` }}>
+          {icon}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 2, color: t.text }}>{label}</div>
+          <div style={{ fontSize: 11, color: t.textDim, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 4 }}>{desc}</div>
+          <div style={{ fontSize: 10, fontWeight: 900, color: color }}>{sub}</div>
+        </div>
+        <div style={{ width: 22, height: 22, borderRadius: '50%', border: `2px solid ${active ? color : t.border2}`, background: active ? color : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          {active && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff' }} />}
+        </div>
+      </div>
+    </button>
   )
 }

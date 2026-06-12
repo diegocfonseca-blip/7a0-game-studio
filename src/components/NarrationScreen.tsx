@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import type { GameState, MatchResult } from '../engine/game'
 import { generateMatchMoments } from '../engine/commentary'
 import type { MatchMoment } from '../engine/commentary'
-import { playCrowdRoar, playWhistle } from '../engine/soundUtils'
+import { playCrowdRoar, playCrowdBoo, playCrowdTension, playWhistle, startCrowdMurmur, stopCrowdMurmur } from '../engine/soundUtils'
 
 interface Props { state: GameState; matches: MatchResult[]; onFinish: () => void }
 
@@ -51,6 +51,13 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
     : []
   const isFinished = shownCount >= moments.length
 
+  // Start/stop murmur with sound toggle
+  useEffect(() => {
+    if (soundOn && playing && !isFinished) startCrowdMurmur()
+    else stopCrowdMurmur()
+    return () => stopCrowdMurmur()
+  }, [soundOn, playing, isFinished])
+
   useEffect(() => {
     if (!playing || isFinished) return
     const delay = speed === 'fast' ? 120 : 650
@@ -59,9 +66,13 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
       if (next?.type === 'goal' && next?.forUs) {
         setGoalFlash(true)
         setConfetti(true)
-        if (soundOn) playCrowdRoar(2.2)
+        if (soundOn) { playCrowdRoar(2.5) }
         setTimeout(() => setGoalFlash(false), 1800)
         setTimeout(() => setConfetti(false), 2500)
+      } else if (next?.type === 'conceded') {
+        if (soundOn) playCrowdBoo()
+      } else if (next?.type === 'danger') {
+        if (soundOn) playCrowdTension()
       }
       setShownCount(c => c + 1)
     }, delay)
@@ -77,7 +88,7 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
       setMatchIdx(i => i + 1)
       setShownCount(0)
       setPlaying(true)
-      if (soundOn) playWhistle()
+      if (soundOn) { stopCrowdMurmur(); playWhistle(); setTimeout(startCrowdMurmur, 600) }
     } else {
       onFinish()
     }
