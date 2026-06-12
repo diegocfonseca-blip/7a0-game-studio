@@ -13,6 +13,94 @@ body {
   min-height: 100vh;
 }
 
+.home-shell,
+.game-shell {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.home-topbar,
+.home-container,
+.game-layout {
+  width: min(100% - 32px, 1024px);
+  margin-inline: auto;
+}
+
+.home-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+  padding-block: 32px;
+}
+
+.home-mode-grid,
+.home-stats,
+.game-layout {
+  display: flex;
+  gap: 16px;
+}
+
+.home-mode-card {
+  min-width: 0;
+}
+
+.home-field-preview {
+  width: min(320px, 100%);
+}
+
+.home-stats {
+  justify-content: center;
+  gap: 56px;
+}
+
+.game-layout {
+  align-items: flex-start;
+  gap: 24px;
+  padding-block: 24px;
+}
+
+.game-side {
+  width: 260px;
+  flex: 0 0 260px;
+}
+
+.game-main {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+@media (max-width: 767px) {
+  .home-topbar,
+  .home-container,
+  .game-layout {
+    width: min(100% - 24px, 1024px);
+  }
+
+  .home-hero,
+  .home-mode-grid,
+  .game-layout {
+    flex-direction: column;
+  }
+
+  .home-hero {
+    align-items: stretch;
+    gap: 28px;
+  }
+
+  .home-field-preview,
+  .game-side {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  .home-stats {
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+}
+
 @keyframes spin-dice {
   0%   { transform: rotate(0deg) scale(1); }
   50%  { transform: rotate(180deg) scale(1.3); }

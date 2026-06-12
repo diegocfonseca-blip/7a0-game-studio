@@ -1,5 +1,5 @@
 import squads from '../data/squads'
-import type { Squad, Position } from '../data/squads'
+import type { Squad } from '../data/squads'
 import type { Formation, FormationSlot } from '../data/formations'
 
 export type GameMode = 'classic' | 'almanac'
