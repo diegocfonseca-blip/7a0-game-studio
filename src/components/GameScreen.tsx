@@ -1,16 +1,17 @@
 import { useState, useCallback } from 'react'
 import { FORMATIONS, canPlayPosition } from '../data/formations'
-import type { FormationSlot } from '../data/formations'
+import type { Formation, FormationSlot } from '../data/formations'
 import type { Player, Squad } from '../data/squads'
 import squads from '../data/squads'
 import clubs from '../data/clubs'
-import { generateSeed, rollSquad, computeOverall, computeAtaque, computeDefesa, simulateCopa } from '../engine/game'
-import type { GameState, PickedPlayer, GameMode, GameStyle } from '../engine/game'
+import { generateSeed, rollSquad, computeOverall, computeAtaque, computeDefesa, simulateCopa, simulateGroupStage, simulateKnockouts } from '../engine/game'
+import type { GameState, PickedPlayer, GameMode, GameStyle, MatchResult } from '../engine/game'
 import type { GameCategory } from '../App'
 import Field from './Field'
 import PlayerList from './PlayerList'
 import SimulationScreen from './SimulationScreen'
 import NarrationScreen from './NarrationScreen'
+import HalftimeScreen from './HalftimeScreen'
 import ResultScreen from './ResultScreen'
 
 interface Props { category: GameCategory; onHome: () => void }
@@ -28,6 +29,7 @@ function initState(): GameState {
     matches: [],
     eliminated: false,
     overall: 0,
+    subsUsed: 0,
   }
 }
 
@@ -62,6 +64,7 @@ export default function GameScreen({ category, onHome }: Props) {
   const [rerollCount, setRerollCount] = useState(0)
   const [showSettings, setShowSettings] = useState(false)
   const [narrating, setNarrating] = useState(false)
+  const [groupMatches, setGroupMatches] = useState<MatchResult[]>([])
 
   const roll = useCallback(() => {
     setDiceAnim(true)
@@ -104,21 +107,46 @@ export default function GameScreen({ category, onHome }: Props) {
     setSelectedPlayer(null)
   }
 
-  const runSimulation = () => {
-    const results = simulateCopa(state)
+  const toResults = (results: MatchResult[]) => {
     const lastMatch = results[results.length - 1]
-    return { results, eliminated: !lastMatch.won || lastMatch.phase !== 'Final' }
+    const eliminated = !lastMatch || !lastMatch.won || lastMatch.phase !== 'Final'
+    setState(s => ({ ...s, matches: results, eliminated, phase: 'results' }))
   }
 
   const startSimulation = () => {
-    const { results, eliminated } = runSimulation()
-    setState(s => ({ ...s, matches: results, eliminated, phase: 'results' }))
+    // Run group stage first → if passed → halftime → knockouts
+    const groups = simulateGroupStage(state)
+    const groupLosses = groups.filter(m => !m.won && m.phase === 'Grupos').length
+    if (groupLosses >= 2) {
+      // Eliminated in groups — skip halftime
+      toResults(groups)
+    } else {
+      setGroupMatches(groups)
+      setState(s => ({ ...s, phase: 'halftime' }))
+    }
   }
 
   const startNarration = () => {
-    const { results, eliminated } = runSimulation()
+    const results = simulateCopa(state)
+    const lastMatch = results[results.length - 1]
+    const eliminated = !lastMatch || !lastMatch.won || lastMatch.phase !== 'Final'
     setState(s => ({ ...s, matches: results, eliminated, phase: 'results' }))
     setNarrating(true)
+  }
+
+  const afterHalftime = (newPicks: PickedPlayer[], newFormation: Formation, newStyle: GameStyle) => {
+    // Apply subs/tactics then simulate knockouts
+    const updatedState = { ...state, picks: newPicks, formation: newFormation, style: newStyle }
+    const knockouts = simulateKnockouts(updatedState, groupMatches)
+    const allMatches = [...groupMatches, ...knockouts]
+    setState(s => ({
+      ...s,
+      picks: newPicks,
+      formation: newFormation,
+      style: newStyle,
+      overall: computeOverall(newPicks, newStyle),
+    }))
+    toResults(allMatches)
   }
 
   const restart = () => {
@@ -129,10 +157,24 @@ export default function GameScreen({ category, onHome }: Props) {
     setRerollCount(0)
     setShowSettings(false)
     setNarrating(false)
+    setGroupMatches([])
   }
 
   if (state.phase === 'simulating') {
     return <SimulationScreen state={state} onSimulate={startSimulation} onNarrate={startNarration} onHome={onHome} />
+  }
+  if (state.phase === 'halftime') {
+    return (
+      <HalftimeScreen
+        picks={state.picks}
+        groupMatches={groupMatches}
+        formation={state.formation}
+        style={state.style}
+        mode={state.mode}
+        onContinue={afterHalftime}
+        onHome={onHome}
+      />
+    )
   }
   if (state.phase === 'results' && narrating) {
     return <NarrationScreen state={state} matches={state.matches} onFinish={() => setNarrating(false)} />

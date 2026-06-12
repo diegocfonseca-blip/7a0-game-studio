@@ -38,10 +38,11 @@ export interface GameState {
   style: GameStyle
   picks: PickedPlayer[]
   currentRoll: { squad: Squad; rerollsLeft: number } | null
-  phase: 'setup' | 'rolling' | 'picking' | 'simulating' | 'results'
+  phase: 'setup' | 'rolling' | 'picking' | 'simulating' | 'halftime' | 'results'
   matches: MatchResult[]
   eliminated: boolean
   overall: number
+  subsUsed: number
 }
 
 // ─── Seeded random ────────────────────────────────────────────────────────────
@@ -106,11 +107,11 @@ function simulateMatch(
   opponentRating: number,
   picks: PickedPlayer[],
   seed: string,
-  matchIdx: number
+  matchIdx: number,
+  style: GameStyle = 'balanced'
 ): { goalsFor: number; goalsAgainst: number; events: MatchEvent[] } {
   const attackers = picks.filter(p => ['CA', 'MEI', 'PD', 'PE', 'MD', 'ME'].includes(p.slot.position))
   const defenders = picks.filter(p => ['GOL', 'ZAG', 'LD', 'LE', 'VOL'].includes(p.slot.position))
-  const legends = picks.filter(p => p.player.isLegend)
 
   const atkAvg = attackers.length
     ? attackers.reduce((s, p) => s + p.player.rating, 0) / attackers.length
@@ -119,18 +120,25 @@ function simulateMatch(
     ? defenders.reduce((s, p) => s + p.player.rating, 0) / defenders.length
     : teamOverall
 
-  // Rating differential drives lambda adjustment (capped so it stays realistic)
+  // Rating differential — stronger team attacks more, concedes less
   const diff = teamOverall - opponentRating
-  const adjFor = Math.max(-0.5, Math.min(0.5, diff / 50))
-  const adjAgainst = -adjFor
+  const adjFor = Math.max(-0.6, Math.min(0.6, diff / 40))
+  const adjAgainst = -adjFor * 0.8  // defense slightly less impacted by diff
 
-  // Attack strength: base 1.3 goals/game, adjusted by attack rating above/below 80
-  const atkBonus = (atkAvg - 80) / 120
-  // Defense strength: base 1.0 goals conceded/game, adjusted by defense rating
-  const defBonus = (defAvg - 80) / 150
+  // Attack/defense quality bonus vs baseline 80
+  const atkBonus = (atkAvg - 80) / 100
+  const defBonus = (defAvg - 80) / 120
 
-  const lambdaFor = Math.max(0.25, 1.3 + adjFor + atkBonus)
-  const lambdaAgainst = Math.max(0.15, 1.0 + adjAgainst - defBonus)
+  // Legend bonus: legends create extra spark
+  const legendCount = picks.filter(p => p.player.isLegend).length
+  const legendBonus = Math.min(0.2, legendCount * 0.03)
+
+  // Style modifiers
+  const styleAtkMod = style === 'offensive' ? 0.2 : style === 'defensive' ? -0.15 : 0
+  const styleDefMod = style === 'defensive' ? -0.2 : style === 'offensive' ? 0.1 : 0
+
+  const lambdaFor = Math.max(0.3, 1.35 + adjFor + atkBonus + legendBonus + styleAtkMod)
+  const lambdaAgainst = Math.max(0.1, 1.05 + adjAgainst - defBonus + styleDefMod)
 
   const goalsFor = poissonGoals(lambdaFor, seed, matchIdx, 1)
   const goalsAgainst = poissonGoals(lambdaAgainst, seed, matchIdx, 30)
@@ -199,33 +207,37 @@ const OPPONENTS = [
 
 // ─── Copa simulation ──────────────────────────────────────────────────────────
 
-export function simulateCopa(state: GameState): MatchResult[] {
-  const overall = computeOverall(state.picks, state.style)
+function runMatches(
+  picks: PickedPlayer[],
+  style: GameStyle,
+  seed: string,
+  opponents: typeof OPPONENTS,
+  startIdx: number
+): MatchResult[] {
+  const overall = computeOverall(picks, style)
   const results: MatchResult[] = []
   let groupLosses = 0
 
-  for (let i = 0; i < OPPONENTS.length; i++) {
-    const opp = OPPONENTS[i]
-    const isKnockout = i >= 3
-    const isGroup = !isKnockout
+  for (let i = 0; i < opponents.length; i++) {
+    const opp = opponents[i]
+    const isKnockout = startIdx + i >= 3
+    const matchIdx = startIdx + i
 
-    const match = simulateMatch(overall, opp.rating, state.picks, state.seed, i)
+    const match = simulateMatch(overall, opp.rating, picks, seed, matchIdx, style)
 
     let won = match.goalsFor > match.goalsAgainst
     let penalties: { goalsFor: number; goalsAgainst: number } | undefined
 
     if (match.goalsFor === match.goalsAgainst) {
-      if (isGroup) {
-        // Draw in groups = 1 point, not a loss
+      if (!isKnockout) {
         won = true
       } else {
-        // Knockout draw → penalty shootout
-        penalties = simulatePenalties(state.seed, i + 100)
+        penalties = simulatePenalties(seed, matchIdx + 100)
         won = penalties.goalsFor > penalties.goalsAgainst
       }
     }
 
-    if (isGroup && match.goalsFor < match.goalsAgainst) groupLosses++
+    if (!isKnockout && match.goalsFor < match.goalsAgainst) groupLosses++
 
     results.push({
       opponent: opp.name,
@@ -239,10 +251,26 @@ export function simulateCopa(state: GameState): MatchResult[] {
       penalties,
     })
 
-    // Eliminated: 2+ group losses OR knockout loss
-    if (isGroup && groupLosses >= 2) break
+    if (!isKnockout && groupLosses >= 2) break
     if (isKnockout && !won) break
   }
 
   return results
+}
+
+export function simulateGroupStage(state: GameState): MatchResult[] {
+  return runMatches(state.picks, state.style, state.seed, OPPONENTS.slice(0, 3), 0)
+}
+
+export function simulateKnockouts(state: GameState, groupMatches: MatchResult[]): MatchResult[] {
+  // Check if passed groups (not eliminated)
+  const groupLosses = groupMatches.filter(m => !m.won && m.phase === 'Grupos').length
+  if (groupLosses >= 2) return []
+  return runMatches(state.picks, state.style, state.seed, OPPONENTS.slice(3), 3)
+}
+
+export function simulateCopa(state: GameState): MatchResult[] {
+  const groups = simulateGroupStage(state)
+  const knockouts = simulateKnockouts(state, groups)
+  return [...groups, ...knockouts]
 }
