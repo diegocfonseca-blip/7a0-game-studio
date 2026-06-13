@@ -50,7 +50,7 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
     ? match.events.filter(e => e.type === 'conceded' && e.playerName).map(e => e.playerName!)
     : []
   const moments: MatchMoment[] = match
-    ? generateMatchMoments(state.picks, match.opponent, match.goalsFor, match.goalsAgainst, state.seed, matchIdx, oppScorerNames)
+    ? generateMatchMoments(state.picks, match.opponent, match.goalsFor, match.goalsAgainst, state.seed, matchIdx, oppScorerNames, match.phase)
     : []
   const isFinished = shownCount >= moments.length
 

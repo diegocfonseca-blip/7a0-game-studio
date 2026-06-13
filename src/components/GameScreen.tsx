@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { FORMATIONS, canPlayPosition } from '../data/formations'
 import type { Formation, FormationSlot } from '../data/formations'
 import type { Player, Squad } from '../data/squads'
@@ -35,6 +35,26 @@ const STYLE_LABELS: Record<GameStyle, string> = {
   defensive: 'DEFENSIVO', balanced: 'EQUILIBRADO', offensive: 'OFENSIVO',
 }
 
+const TICKER_TEXT = '⚽ COPA DO MUNDO   🏆 LENDAS DO FUTEBOL   ★ CRAQUE HISTÓRICO   🥇 HALL DA FAMA   🎖 ÍDOLO DA NAÇÃO   ⚽ COPA DO MUNDO   🏆 LENDAS DO FUTEBOL   ★ CRAQUE HISTÓRICO   🥇 HALL DA FAMA   🎖 ÍDOLO DA NAÇÃO   '
+
+function TickerBanner() {
+  return (
+    <>
+      <style>{`
+        @keyframes ticker-slide {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+      `}</style>
+      <div style={{ overflow: 'hidden', height: 26, background: 'rgba(0,0,0,0.55)', borderTop: '1px solid rgba(201,168,76,0.12)', display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: 'flex', whiteSpace: 'nowrap', animation: 'ticker-slide 22s linear infinite', willChange: 'transform' }}>
+          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(201,168,76,0.45)', padding: '0 8px' }}>{TICKER_TEXT}</span>
+          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(201,168,76,0.45)', padding: '0 8px' }}>{TICKER_TEXT}</span>
+        </div>
+      </div>
+    </>
+  )
+}
 
 export default function GameScreen({ category, onHome, theme: themeProp, onToggleTheme }: Props) {
   const t = themeProp ?? DARK
@@ -51,9 +71,11 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
     window.addEventListener('resize', fn)
     return () => window.removeEventListener('resize', fn)
   }, [])
+  const fieldPickRef = useRef<HTMLDivElement>(null)
   const [narrating, setNarrating] = useState(false)
   const [groupMatches, setGroupMatches] = useState<MatchResult[]>([])
   const [halftimePrompt, setHalftimePrompt] = useState(false)
+  const [favoritePhase, setFavoritePhase] = useState<'ask' | 'pick' | 'done'>('ask')
 
   const roll = useCallback(() => {
     setDiceAnim(true)
@@ -74,7 +96,20 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
     setSelectedPlayer(null)
   }
 
-  const pickPlayer = (player: Player) => setSelectedPlayer(p => p?.id === player.id ? null : player)
+  const pickPlayer = (player: Player) => {
+    const next = selectedPlayer?.id === player.id ? null : player
+    setSelectedPlayer(next)
+    if (next && !isDesktop) setShowField(true)
+  }
+
+  useEffect(() => {
+    if (selectedPlayer && !isDesktop && fieldPickRef.current) {
+      const timer = setTimeout(() => {
+        fieldPickRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }, 80)
+      return () => clearTimeout(timer)
+    }
+  }, [selectedPlayer, isDesktop])
 
   const placePlayer = (slot: FormationSlot, slotIndex: number) => {
     if (!selectedPlayer || !state.currentRoll) return
@@ -115,10 +150,96 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
     toResults(allMatches)
   }
 
+  const selectFavoriteClub = (squad: Squad) => {
+    setState(s => ({ ...s, currentRoll: { squad, rerollsLeft: 3 }, phase: 'picking' }))
+    setRollIndex(i => i + 1)
+    setFavoritePhase('done')
+  }
+
   const restart = () => {
     setState(initState()); setRollIndex(0); setSelectedPlayer(null)
     setDiceAnim(false); setShowSettings(false); setShowField(false)
     setNarrating(false); setGroupMatches([]); setHalftimePrompt(false)
+    setFavoritePhase('ask')
+  }
+
+  // ── Favorite club prompt (once, at game start) ────────────────────────────
+  if (state.phase === 'setup' && state.picks.length === 0 && favoritePhase !== 'done') {
+    const topBar = (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: t.topbar, borderBottom: `1px solid ${t.topbarBorder}`, backdropFilter: 'blur(8px)' }}>
+        <button onClick={onHome} style={{ fontWeight: 900, fontSize: 18, color: t.gold, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>0a7</button>
+        <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted }}>MONTAR TIME</span>
+        <div style={{ width: 32 }} />
+      </div>
+    )
+
+    if (favoritePhase === 'ask') {
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: t.bgGrad }}>
+          {topBar}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
+            <div style={{ maxWidth: 380, width: '100%', textAlign: 'center' }}>
+              <div style={{ fontSize: 64, marginBottom: 20, filter: 'drop-shadow(0 4px 16px rgba(201,168,76,0.5))' }}>🏟</div>
+              <h2 style={{ fontWeight: 900, fontSize: 22, letterSpacing: '0.05em', color: '#fff', margin: '0 0 8px' }}>CLUBE FAVORITO</h2>
+              <p style={{ fontSize: 13, color: t.textDim, margin: '0 0 32px', lineHeight: 1.5 }}>
+                Quer começar escolhendo jogadores de um clube que você ama?
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <button
+                  onClick={() => setFavoritePhase('pick')}
+                  style={{ width: '100%', fontWeight: 900, fontSize: 15, padding: '18px 0', borderRadius: 18, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, #C9A84C, #8a6020)', color: '#111', boxShadow: '0 8px 28px rgba(201,168,76,0.4)' }}
+                >
+                  ✅ SIM, QUERO ESCOLHER
+                </button>
+                <button
+                  onClick={() => setFavoritePhase('done')}
+                  style={{ width: '100%', fontWeight: 900, fontSize: 15, padding: '18px 0', borderRadius: 18, border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)' }}
+                >
+                  🎲 NÃO, ROLAR O DADO
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    if (favoritePhase === 'pick') {
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: t.bgGrad }}>
+          {topBar}
+          <div style={{ padding: '16px 16px 8px', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+            <button onClick={() => setFavoritePhase('ask')} style={{ fontSize: 18, background: 'none', border: 'none', color: t.textDim, cursor: 'pointer', padding: 0, lineHeight: 1 }}>←</button>
+            <div>
+              <div style={{ fontWeight: 900, fontSize: 16, color: '#fff' }}>ESCOLHA SEU CLUBE</div>
+              <div style={{ fontSize: 11, color: t.textMuted }}>{pool.length} clubes históricos disponíveis</div>
+            </div>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {pool.map(squad => (
+              <button
+                key={squad.id}
+                onClick={() => selectFavoriteClub(squad)}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}
+              >
+                <div style={{ width: 46, height: 46, borderRadius: 12, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, rgba(201,168,76,0.2), rgba(80,50,0,0.4))', border: '1.5px solid rgba(201,168,76,0.25)', fontSize: 22 }}>
+                  {squad.badgeEmoji ?? squad.flagEmoji}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 900, fontSize: 15, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {squad.clubName ?? squad.countryNamePt}
+                  </div>
+                  <div style={{ fontSize: 11, color: t.gold, marginTop: 2 }}>
+                    {squad.trophy ?? `${squad.year}`}
+                  </div>
+                </div>
+                <span style={{ fontSize: 12, color: t.textMuted }}>→</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )
+    }
   }
 
   // ── Route to sub-screens ──────────────────────────────────────────────────
@@ -324,16 +445,6 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
 
   const playerListSection = state.currentRoll && (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: 0 }}>
-      {selectedPlayer && !isDesktop && (
-        <div style={{ borderRadius: 16, padding: '16px', textAlign: 'center', background: 'linear-gradient(135deg, rgba(209,46,46,0.25), rgba(120,10,10,0.2))', border: '1px solid rgba(209,46,46,0.4)' }}>
-          <p style={{ fontWeight: 900, fontSize: 15, color: t.text, margin: '0 0 4px' }}>{selectedPlayer.name}</p>
-          <p style={{ fontSize: 11, color: t.textDim, margin: '0 0 12px' }}>Posicione no campo</p>
-          <button onClick={() => setShowField(true)}
-            style={{ fontWeight: 900, fontSize: 12, padding: '10px 24px', borderRadius: 12, border: 'none', background: '#D12E2E', color: '#fff', cursor: 'pointer', boxShadow: '0 4px 16px rgba(209,46,46,0.5)' }}>
-            VER CAMPO →
-          </button>
-        </div>
-      )}
       {selectedPlayer && isDesktop && availableSlots.length === 0 && (
         <div style={{ borderRadius: 14, padding: '12px 16px', textAlign: 'center', background: t.surface, border: `1px solid ${t.border}` }}>
           <span style={{ fontSize: 11, fontWeight: 900, color: t.textDim }}>SEM POSIÇÃO COMPATÍVEL PARA {selectedPlayer.name.toUpperCase()}</span>
@@ -422,6 +533,7 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
               CAMPO · {state.formation.name} · {STYLE_LABELS[state.style]}
             </div>
             <Field formation={state.formation} picks={state.picks} selectedPlayer={selectedPlayer} onSlotClick={placePlayer} />
+            <TickerBanner />
             {statsStrip}
             {currentTeamList}
           </div>
@@ -476,9 +588,12 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
 
             {/* Field pick overlay on mobile */}
             {showField && state.currentRoll && selectedPlayer && (
-              <div style={{ borderRadius: 18, padding: '16px', background: t.surface, border: `1px solid ${t.border}` }}>
-                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted, marginBottom: 12 }}>ESCOLHA A POSIÇÃO</div>
-                <Field formation={state.formation} picks={state.picks} selectedPlayer={selectedPlayer} onSlotClick={placePlayer} />
+              <div ref={fieldPickRef} style={{ borderRadius: 18, overflow: 'hidden', background: t.surface, border: `1px solid ${t.border}` }}>
+                <div style={{ padding: '12px 16px 0', fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted }}>ESCOLHA A POSIÇÃO</div>
+                <div style={{ padding: '12px 16px 8px' }}>
+                  <Field formation={state.formation} picks={state.picks} selectedPlayer={selectedPlayer} onSlotClick={placePlayer} />
+                </div>
+                <TickerBanner />
               </div>
             )}
           </div>
