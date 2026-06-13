@@ -75,6 +75,7 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
   const [narrating, setNarrating] = useState(false)
   const [groupMatches, setGroupMatches] = useState<MatchResult[]>([])
   const [halftimePrompt, setHalftimePrompt] = useState(false)
+  const [favoritePhase, setFavoritePhase] = useState<'ask' | 'pick' | 'done'>('ask')
 
   const roll = useCallback(() => {
     setDiceAnim(true)
@@ -149,10 +150,96 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
     toResults(allMatches)
   }
 
+  const selectFavoriteClub = (squad: Squad) => {
+    setState(s => ({ ...s, currentRoll: { squad, rerollsLeft: 3 }, phase: 'picking' }))
+    setRollIndex(i => i + 1)
+    setFavoritePhase('done')
+  }
+
   const restart = () => {
     setState(initState()); setRollIndex(0); setSelectedPlayer(null)
     setDiceAnim(false); setShowSettings(false); setShowField(false)
     setNarrating(false); setGroupMatches([]); setHalftimePrompt(false)
+    setFavoritePhase('ask')
+  }
+
+  // ── Favorite club prompt (once, at game start) ────────────────────────────
+  if (state.phase === 'setup' && state.picks.length === 0 && favoritePhase !== 'done') {
+    const topBar = (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: t.topbar, borderBottom: `1px solid ${t.topbarBorder}`, backdropFilter: 'blur(8px)' }}>
+        <button onClick={onHome} style={{ fontWeight: 900, fontSize: 18, color: t.gold, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>0a7</button>
+        <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted }}>MONTAR TIME</span>
+        <div style={{ width: 32 }} />
+      </div>
+    )
+
+    if (favoritePhase === 'ask') {
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: t.bgGrad }}>
+          {topBar}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
+            <div style={{ maxWidth: 380, width: '100%', textAlign: 'center' }}>
+              <div style={{ fontSize: 64, marginBottom: 20, filter: 'drop-shadow(0 4px 16px rgba(201,168,76,0.5))' }}>🏟</div>
+              <h2 style={{ fontWeight: 900, fontSize: 22, letterSpacing: '0.05em', color: '#fff', margin: '0 0 8px' }}>CLUBE FAVORITO</h2>
+              <p style={{ fontSize: 13, color: t.textDim, margin: '0 0 32px', lineHeight: 1.5 }}>
+                Quer começar escolhendo jogadores de um clube que você ama?
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <button
+                  onClick={() => setFavoritePhase('pick')}
+                  style={{ width: '100%', fontWeight: 900, fontSize: 15, padding: '18px 0', borderRadius: 18, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, #C9A84C, #8a6020)', color: '#111', boxShadow: '0 8px 28px rgba(201,168,76,0.4)' }}
+                >
+                  ✅ SIM, QUERO ESCOLHER
+                </button>
+                <button
+                  onClick={() => setFavoritePhase('done')}
+                  style={{ width: '100%', fontWeight: 900, fontSize: 15, padding: '18px 0', borderRadius: 18, border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)' }}
+                >
+                  🎲 NÃO, ROLAR O DADO
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    if (favoritePhase === 'pick') {
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: t.bgGrad }}>
+          {topBar}
+          <div style={{ padding: '16px 16px 8px', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+            <button onClick={() => setFavoritePhase('ask')} style={{ fontSize: 18, background: 'none', border: 'none', color: t.textDim, cursor: 'pointer', padding: 0, lineHeight: 1 }}>←</button>
+            <div>
+              <div style={{ fontWeight: 900, fontSize: 16, color: '#fff' }}>ESCOLHA SEU CLUBE</div>
+              <div style={{ fontSize: 11, color: t.textMuted }}>{pool.length} clubes históricos disponíveis</div>
+            </div>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {pool.map(squad => (
+              <button
+                key={squad.id}
+                onClick={() => selectFavoriteClub(squad)}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}
+              >
+                <div style={{ width: 46, height: 46, borderRadius: 12, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, rgba(201,168,76,0.2), rgba(80,50,0,0.4))', border: '1.5px solid rgba(201,168,76,0.25)', fontSize: 22 }}>
+                  {squad.badgeEmoji ?? squad.flagEmoji}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 900, fontSize: 15, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {squad.clubName ?? squad.countryNamePt}
+                  </div>
+                  <div style={{ fontSize: 11, color: t.gold, marginTop: 2 }}>
+                    {squad.trophy ?? `${squad.year}`}
+                  </div>
+                </div>
+                <span style={{ fontSize: 12, color: t.textMuted }}>→</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )
+    }
   }
 
   // ── Route to sub-screens ──────────────────────────────────────────────────
