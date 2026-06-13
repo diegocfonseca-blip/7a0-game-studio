@@ -127,7 +127,7 @@ export async function generateAINarration(
   onProgress?.('Gerando narração...')
 
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 15000)
+  const timeoutId = setTimeout(() => controller.abort(), 30000)
 
   try {
     const res = await fetch(
@@ -137,7 +137,7 @@ export async function generateAINarration(
         signal: controller.signal,
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
         body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
+          model: 'llama-3.3-70b-versatile',
           messages: [{ role: 'user', content: prompt }],
           temperature: 1.0,
           max_tokens: 1500,

@@ -103,7 +103,7 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
       const oppRating = PHASE_RATINGS[m.phase] ?? 80
       const aiMoments = await Promise.race([
         generateAINarration(state, m, oppRating, (partial) => setAiProgress(partial)),
-        new Promise<null>(res => setTimeout(() => res(null), 20000)),
+        new Promise<null>(res => setTimeout(() => res(null), 35000)),
       ])
       setAiLoading(false)
       if (aiMoments && aiMoments.length > 0) {
