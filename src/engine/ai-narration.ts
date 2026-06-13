@@ -1,27 +1,15 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import type { MatchResult, GameState } from './game'
 import type { MatchMoment } from './commentary'
 
-export type AINarrationMoment = MatchMoment & { aiGenerated: true }
-
 function getApiKey(): string | null {
-  // First try build-time env var
-  const envKey = import.meta.env.VITE_ANTHROPIC_API_KEY
+  const envKey = import.meta.env.VITE_GEMINI_API_KEY
   if (envKey && envKey.length > 10) return envKey
-  // Then try localStorage
-  return localStorage.getItem('anthropic_api_key')
+  return localStorage.getItem('gemini_api_key')
 }
 
 export function hasApiKey(): boolean {
   return !!getApiKey()
-}
-
-export function saveApiKey(key: string) {
-  localStorage.setItem('anthropic_api_key', key)
-}
-
-export function clearApiKey() {
-  localStorage.removeItem('anthropic_api_key')
 }
 
 const SYSTEM_PROMPT = `Você é o narrador oficial da Copa do Mundo — apaixonado, dramático, profundo conhecedor de futebol histórico.
@@ -133,26 +121,21 @@ export async function generateAINarration(
   const apiKey = getApiKey()
   if (!apiKey) return null
 
-  const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true })
-
   try {
-    let fullText = ''
-
-    const stream = client.messages.stream({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: buildPrompt(state, match, matchOpponentRating) }],
+    const genAI = new GoogleGenerativeAI(apiKey)
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash',
+      systemInstruction: SYSTEM_PROMPT,
     })
 
-    for await (const chunk of stream) {
-      if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-        fullText += chunk.delta.text
-        onProgress?.(fullText)
-      }
+    let fullText = ''
+    const result = await model.generateContentStream(buildPrompt(state, match, matchOpponentRating))
+
+    for await (const chunk of result.stream) {
+      fullText += chunk.text()
+      onProgress?.(fullText)
     }
 
-    // Parse the JSON from the response
     const jsonMatch = fullText.match(/\[[\s\S]*\]/)
     if (!jsonMatch) return null
 
