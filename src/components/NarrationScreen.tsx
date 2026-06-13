@@ -133,6 +133,7 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
   const [speed, setSpeed] = useState<'slow' | 'normal' | 'fast'>('normal')
   const [soundOn, setSoundOn] = useState(true)
   const [goalFlash, setGoalFlash] = useState(false)
+  const [concededFlash, setConcededFlash] = useState(false)
   const [confetti, setConfetti] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -198,6 +199,8 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
         setTimeout(() => setGoalFlash(false), 1800)
         setTimeout(() => setConfetti(false), 2500)
       } else if (next?.type === 'conceded') {
+        setConcededFlash(true)
+        setTimeout(() => setConcededFlash(false), 1500)
         if (soundOn) playCrowdBoo()
       } else if (next?.type === 'danger') {
         if (soundOn) playCrowdTension()
@@ -237,6 +240,17 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
   }
   const isWinning = scoreFor > scoreAgainst
   const isLosing = scoreAgainst > scoreFor
+
+  const ourScorers: Record<string, number> = {}
+  const theirScorers: Record<string, number> = {}
+  for (const m of visibleMoments) {
+    if (m.type === 'goal' && m.forUs && m.playerName)
+      ourScorers[m.playerName] = (ourScorers[m.playerName] ?? 0) + 1
+    if (m.type === 'conceded' && m.playerName)
+      theirScorers[m.playerName] = (theirScorers[m.playerName] ?? 0) + 1
+  }
+  const ourScorersList = Object.entries(ourScorers).sort((a, b) => b[1] - a[1])
+  const theirScorersList = Object.entries(theirScorers).sort((a, b) => b[1] - a[1])
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #080810 0%, #0d0d14 55%, #100c02 100%)' }}>
@@ -338,14 +352,31 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
             <div style={{
               flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center',
               padding: '10px 14px', borderRadius: 14,
-              background: `linear-gradient(135deg, ${oppColor}18 0%, ${oppColor}42 100%)`,
-              border: `1px solid ${oppColor}44`,
+              background: concededFlash
+                ? `linear-gradient(135deg, ${oppColor}55 0%, ${oppColor}80 100%)`
+                : `linear-gradient(135deg, ${oppColor}18 0%, ${oppColor}42 100%)`,
+              border: `1px solid ${concededFlash ? oppColor + '99' : oppColor + '44'}`,
+              transition: 'background 0.5s',
             }}>
               <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.14em', color: `${oppColor}bb`, marginBottom: 2 }}>ADVERSÁRIO</div>
               <div style={{ fontWeight: 800, fontSize: 12, color: '#fff', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match?.opponent}</div>
               <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', marginTop: 1 }}>{match?.opponentYear}</div>
             </div>
           </div>
+
+          {/* Live scorers strip */}
+          {(ourScorersList.length > 0 || theirScorersList.length > 0) && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 16px 8px', background: 'rgba(0,0,0,0.45)', gap: 8, minHeight: 22 }}>
+              <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(212,168,64,0.9)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '0.03em' }}>
+                {ourScorersList.map(([n, g]) => `${n.split(' ').pop()}${g > 1 ? ` ${g}` : ''}⚽`).join(' · ')}
+              </span>
+              {theirScorersList.length > 0 && (
+                <span style={{ fontSize: 9, fontWeight: 700, color: `${oppColor}dd`, flexShrink: 0, textAlign: 'right', letterSpacing: '0.03em' }}>
+                  {theirScorersList.map(([n, g]) => `${n.split(' ').pop()}${g > 1 ? ` ${g}` : ''}⚽`).join(' · ')}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Result pill when finished */}
           {isFinished && (

@@ -38,6 +38,8 @@ export default function ResultScreen({ state, onReplay, onHome, theme }: Props) 
   }
   const topScorers = Object.entries(scorerMap).sort((a, b) => b[1] - a[1]).slice(0, 5)
   const topAssists = Object.entries(assistMap).sort((a, b) => b[1] - a[1]).slice(0, 3)
+  const mvpEntry = topScorers.length > 0 ? topScorers[0] : null
+  const mvpPick = mvpEntry ? state.picks.find(p => p.player.name === mvpEntry[0]) : undefined
 
   const shareText = [
     `🏆 0a7LEGENDS — #${state.seed}`,
@@ -271,33 +273,99 @@ export default function ResultScreen({ state, onReplay, onHome, theme }: Props) 
     </div>
   )
 
-  const campanha = (
-    <div style={{ borderRadius: 20, overflow: 'hidden', background: t.surface, border: `1px solid ${t.border}` }}>
-      <div style={{ padding: '13px 20px', borderBottom: `1px solid ${t.border}` }}>
-        <p style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.2em', color: t.textMuted }}>A CAMPANHA</p>
-      </div>
-      <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {state.matches.map((m, i) => (
-          <div key={i} style={{
-            display: 'flex', alignItems: 'center', gap: 10, borderRadius: 14, padding: '11px 14px',
-            background: m.won ? winBg : isDark ? 'rgba(224,53,53,0.06)' : 'rgba(224,53,53,0.05)',
-            border: `1px solid ${m.won ? winBorder : t.red + '33'}`,
-          }}>
-            <div style={{ fontSize: 9, fontWeight: 700, padding: '3px 8px', borderRadius: 20, flexShrink: 0, letterSpacing: '0.06em',
-              background: m.won ? (isDark ? 'rgba(76,175,80,0.15)' : 'rgba(46,125,50,0.1)') : (isDark ? 'rgba(224,53,53,0.15)' : 'rgba(176,24,24,0.1)'),
-              color: m.won ? winColor : t.red,
-            }}>
-              {m.phase.slice(0, 3).toUpperCase()}
+  const PHASE_ORDER = ['Grupos', 'Oitavas', 'Quartas', 'Semifinal', 'Final']
+  const PHASE_LABEL_MAP: Record<string, string> = {
+    Grupos: 'FASE DE GRUPOS', Oitavas: 'OITAVAS DE FINAL', Quartas: 'QUARTAS DE FINAL',
+    Semifinal: 'SEMIFINAL', Final: 'FINAL ★',
+  }
+  const phaseGroups = PHASE_ORDER
+    .filter(ph => state.matches.some(m => m.phase === ph))
+    .map(ph => ({ phase: ph, matches: state.matches.filter(m => m.phase === ph) }))
+
+  const timeline = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {phaseGroups.map(({ phase, matches: pm }, gi) => {
+        const allWon = pm.every(m => m.won)
+        const phaseColor = allWon ? winColor : t.red
+        const phaseBg = allWon ? winBg : isDark ? 'rgba(224,53,53,0.06)' : 'rgba(224,53,53,0.05)'
+        const phaseBorder = allWon ? winBorder : t.red + '33'
+        return (
+          <div key={phase}>
+            {gi > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '2px 0' }}>
+                <div style={{ width: 2, height: 18, background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)', borderRadius: 1 }} />
+              </div>
+            )}
+            <div style={{ borderRadius: 16, overflow: 'hidden', background: t.surface, border: `1px solid ${t.border}` }}>
+              <div style={{ padding: '8px 14px', background: phaseBg, borderBottom: `1px solid ${phaseBorder}`, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: phaseColor, flexShrink: 0, boxShadow: `0 0 6px ${phaseColor}` }} />
+                <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', color: phaseColor, flex: 1 }}>{PHASE_LABEL_MAP[phase] ?? phase.toUpperCase()}</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: phaseColor }}>
+                  {pm.filter(m => m.won).length}V {pm.filter(m => !m.won).length > 0 ? `${pm.filter(m => !m.won).length}D` : ''}
+                </span>
+              </div>
+              <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {pm.map((m, i) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10,
+                    background: m.won ? winBg : isDark ? 'rgba(224,53,53,0.06)' : 'rgba(224,53,53,0.05)',
+                    border: `1px solid ${m.won ? winBorder : t.red + '33'}`,
+                  }}>
+                    <span style={{ fontSize: 9, fontWeight: 900, width: 14, color: m.won ? winColor : t.red, flexShrink: 0 }}>{m.won ? 'V' : 'D'}</span>
+                    <span style={{ fontSize: 15, flexShrink: 0 }}>{m.opponentBadge ?? m.opponentFlag}</span>
+                    <span style={{ fontWeight: 600, fontSize: 12, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: t.text }}>{m.opponent}</span>
+                    <span style={{ fontSize: 9, color: t.textMuted, flexShrink: 0 }}>{m.opponentYear}</span>
+                    <span style={{ fontWeight: 900, fontSize: 14, color: t.text, fontFamily: OSWALD, flexShrink: 0 }}>
+                      {m.goalsFor}–{m.goalsAgainst}
+                      {m.penalties && <span style={{ fontSize: 8, color: t.textMuted }}> p.{m.penalties.goalsFor}–{m.penalties.goalsAgainst}</span>}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <span style={{ fontSize: 16, flexShrink: 0 }}>{m.opponentBadge ?? m.opponentFlag}</span>
-            <span style={{ fontWeight: 600, fontSize: 13, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: t.text }}>{m.opponent}</span>
-            <span style={{ fontSize: 10, color: t.textMuted, flexShrink: 0 }}>{m.opponentYear}</span>
-            <span style={{ fontWeight: 700, fontSize: 15, flexShrink: 0, color: t.text, fontFamily: OSWALD }}>
-              {m.goalsFor}–{m.goalsAgainst}
-              {m.penalties && <span style={{ fontSize: 9, marginLeft: 4, color: t.textMuted, fontFamily: 'inherit' }}>p.{m.penalties.goalsFor}–{m.penalties.goalsAgainst}</span>}
-            </span>
           </div>
-        ))}
+        )
+      })}
+    </div>
+  )
+
+  const mvpCard = mvpEntry && (
+    <div style={{ borderRadius: 20, background: t.surface, border: `1px solid ${t.border}`, overflow: 'hidden' }}>
+      <div style={{ padding: '10px 16px', borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.2em', color: t.textMuted }}>MVP DA COPA</span>
+        <span style={{ fontSize: 9, fontWeight: 900, padding: '3px 10px', borderRadius: 20, background: isDark ? 'rgba(224,53,53,0.18)' : 'rgba(180,0,0,0.1)', color: t.red, border: `1px solid ${t.red}44`, letterSpacing: '0.12em' }}>⭐ MVP</span>
+      </div>
+      <div style={{ padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ width: 62, height: 62, borderRadius: '50%', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(160deg, #EF5350 0%, #B71C1C 100%)', border: '2.5px solid rgba(239,83,80,0.5)', boxShadow: '0 4px 20px rgba(239,83,80,0.45)' }}>
+          <span style={{ fontSize: 18, fontWeight: 900, color: '#fff', lineHeight: 1, fontFamily: OSWALD }}>{mvpPick?.player.rating ?? '–'}</span>
+          <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.05em' }}>{mvpPick?.slot.label ?? ''}</span>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 900, fontSize: 20, color: t.text, fontFamily: OSWALD, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>
+            {mvpEntry[0].split(' ').pop()}
+          </div>
+          {mvpPick && (
+            <div style={{ fontSize: 10, color: t.textDim, marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {mvpPick.squad.flagEmoji} {mvpPick.squad.clubName ?? mvpPick.squad.countryNamePt} · {mvpPick.squad.year}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
+            <div>
+              <div style={{ fontSize: 24, fontWeight: 900, color: t.red, lineHeight: 1, fontFamily: OSWALD }}>{mvpEntry[1]}</div>
+              <div style={{ fontSize: 8, color: t.textMuted, letterSpacing: '0.12em', marginTop: 2 }}>GOLS</div>
+            </div>
+            {(assistMap[mvpEntry[0]] ?? 0) > 0 && (
+              <div>
+                <div style={{ fontSize: 24, fontWeight: 900, color: t.gold, lineHeight: 1, fontFamily: OSWALD }}>{assistMap[mvpEntry[0]]}</div>
+                <div style={{ fontSize: 8, color: t.textMuted, letterSpacing: '0.12em', marginTop: 2 }}>ASSISTS</div>
+              </div>
+            )}
+            <div>
+              <div style={{ fontSize: 24, fontWeight: 900, color: t.textDim, lineHeight: 1, fontFamily: OSWALD }}>{state.matches.length}</div>
+              <div style={{ fontSize: 8, color: t.textMuted, letterSpacing: '0.12em', marginTop: 2 }}>JOGOS</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -352,19 +420,21 @@ export default function ResultScreen({ state, onReplay, onHome, theme }: Props) 
         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, padding: '28px', maxWidth: 1100, margin: '0 auto', width: '100%', alignItems: 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {statsRow}
+            {mvpCard}
             {artilharia}
             {actions}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {campanha}
+            {timeline}
             {meuTime}
           </div>
         </div>
       ) : (
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 500, margin: '0 auto', width: '100%' }}>
           {statsRow}
+          {mvpCard}
           {artilharia}
-          {campanha}
+          {timeline}
           {meuTime}
           <div style={{ paddingBottom: 24 }}>{actions}</div>
         </div>
