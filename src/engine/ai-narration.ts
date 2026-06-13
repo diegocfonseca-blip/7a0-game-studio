@@ -2,9 +2,11 @@ import type { MatchResult, GameState } from './game'
 import type { MatchMoment } from './commentary'
 
 function getApiKey(): string | null {
+  const localKey = localStorage.getItem('gemini_api_key')
+  if (localKey && localKey.length > 10) return localKey
   const envKey = import.meta.env.VITE_GEMINI_API_KEY
   if (envKey && envKey.length > 10) return envKey
-  return localStorage.getItem('gemini_api_key')
+  return null
 }
 
 export function hasApiKey(): boolean {
