@@ -1,8 +1,5 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import type { MatchResult, GameState } from './game'
 import type { MatchMoment } from './commentary'
-
-export type AINarrationMoment = MatchMoment & { aiGenerated: true }
 
 function getApiKey(): string | null {
   const envKey = import.meta.env.VITE_GEMINI_API_KEY
@@ -14,14 +11,6 @@ export function hasApiKey(): boolean {
   return !!getApiKey()
 }
 
-export function saveApiKey(key: string) {
-  localStorage.setItem('gemini_api_key', key)
-}
-
-export function clearApiKey() {
-  localStorage.removeItem('gemini_api_key')
-}
-
 const SYSTEM_PROMPT = `Você é o narrador oficial da Copa do Mundo — apaixonado, dramático, profundo conhecedor de futebol histórico.
 Narre os momentos de uma partida em português brasileiro informal, com estilo de TV esportiva.
 
@@ -29,7 +18,7 @@ REGRAS OBRIGATÓRIAS:
 - Mencione jogadores pelo nome, evoque seus estilos históricos reais (ex: Ronaldo o Fenômeno era imparável em velocidade; Zidane dominava o meio-campo com elegância)
 - Use MAIÚSCULAS para gritos e momentos épicos
 - Use pontuação dramática: "!!!", "??", reticências "..."
-- Gere exatamente 7 a 9 momentos por partida
+- Gere exatamente 8 a 10 momentos por partida
 - Primeiro: tipo "intro" (chegada ao estádio, clima, tensão pré-jogo)
 - Para cada gol do meu time: 1 "buildup" narrativo + 1 "goal" com grito
 - Para gol sofrido: 1 "conceded" dramático
@@ -55,7 +44,9 @@ function buildPrompt(state: GameState, match: MatchResult, matchOpponentRating: 
     ? ` (após pênaltis ${match.penalties.goalsFor}–${match.penalties.goalsAgainst})`
     : ''
 
-  return `COPA DO MUNDO — ${match.phase}
+  return `${SYSTEM_PROMPT}
+
+COPA DO MUNDO — ${match.phase}
 
 MEU TIME (Overall ${state.overall}):
 ${lineup}
@@ -69,7 +60,7 @@ ${myGoals}
 GOLS SOFRIDOS:
 ${oppGoals}
 
-Gere a narração como JSON array. Exemplo de formato:
+Responda SOMENTE com o JSON array. Exemplo:
 [
   {"minute": 0, "type": "intro", "lines": ["Frase 1", "Frase 2"]},
   {"minute": 23, "type": "buildup", "lines": ["Frase"]},
@@ -77,7 +68,7 @@ Gere a narração como JSON array. Exemplo de formato:
   {"minute": 90, "type": "final", "lines": ["Frase 1", "Frase 2"]}
 ]
 
-Tipos: "intro" | "buildup" | "goal" | "conceded" | "save" | "miss" | "danger" | "final"`
+Tipos válidos: "intro" | "buildup" | "goal" | "conceded" | "save" | "miss" | "danger" | "final"`
 }
 
 interface RawMoment {
@@ -96,7 +87,6 @@ function parseAIMoments(raw: RawMoment[], match: MatchResult): MatchMoment[] {
     .map(m => {
       const isGoal = m.type === 'goal'
       const isConceded = m.type === 'conceded'
-      const forUs = isGoal || (!isConceded && m.type !== 'intro' && m.type !== 'final')
 
       let playerName: string | undefined
       if (isGoal) {
@@ -107,14 +97,14 @@ function parseAIMoments(raw: RawMoment[], match: MatchResult): MatchMoment[] {
         concededIdx++
       }
 
-      const momentType = m.type === 'intro' || m.type === 'final'
+      const momentType = (m.type === 'intro' || m.type === 'final')
         ? 'buildup'
         : m.type as MatchMoment['type']
 
       return {
         minute: m.minute ?? 0,
         type: momentType,
-        forUs: isGoal ? true : isConceded ? false : forUs,
+        forUs: isGoal ? true : isConceded ? false : true,
         isGoal,
         playerName,
         lines: m.lines.map(String).filter(Boolean),
@@ -131,29 +121,39 @@ export async function generateAINarration(
   const apiKey = getApiKey()
   if (!apiKey) return null
 
-  const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash',
-    systemInstruction: SYSTEM_PROMPT,
-  })
+  const prompt = buildPrompt(state, match, matchOpponentRating)
+  onProgress?.('Gerando narração...')
 
   try {
-    let fullText = ''
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 1.0, maxOutputTokens: 1500 },
+        }),
+      }
+    )
 
-    const result = await model.generateContentStream(buildPrompt(state, match, matchOpponentRating))
-
-    for await (const chunk of result.stream) {
-      fullText += chunk.text()
-      onProgress?.(fullText)
+    if (!res.ok) {
+      const err = await res.text()
+      console.error('Gemini API error:', res.status, err)
+      return null
     }
 
-    const jsonMatch = fullText.match(/\[[\s\S]*\]/)
+    const data = await res.json()
+    const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+    onProgress?.(text)
+
+    const jsonMatch = text.match(/\[[\s\S]*\]/)
     if (!jsonMatch) return null
 
     const raw: RawMoment[] = JSON.parse(jsonMatch[0])
     return parseAIMoments(raw, match)
   } catch (err) {
-    console.error('AI narration error:', err)
+    console.error('AI narration fetch error:', err)
     return null
   }
 }
