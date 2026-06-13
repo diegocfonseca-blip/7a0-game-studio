@@ -382,11 +382,15 @@ export function generateMatchMoments(
   seed: string,
   matchIdx: number,
   opponentScorerNames: string[] = [],
-  phase = 'Grupos'
+  phase = 'Grupos',
+  matchEvents?: import('./game').MatchEvent[]
 ): MatchMoment[] {
   const allPlayers = picks.map(p => p.player.name)
   const attackers  = picks.filter(p => ['CA', 'MEI', 'PD', 'PE', 'MD', 'ME'].includes(p.player.primaryPosition))
   const scorers    = attackers.length ? attackers : picks
+
+  // Actual scorer names from simulation (single source of truth)
+  const actualGoalScorers = matchEvents?.filter(e => e.type === 'goal').map(e => e.playerName) ?? []
 
   const moments: MatchMoment[] = []
   const usedMinutes = new Set<number>()
@@ -413,8 +417,11 @@ export function generateMatchMoments(
   const allEvents: AllEvent[] = []
 
   for (let i = 0; i < goalsFor; i++) {
-    const min    = addMinute(18 + i * 18, i * 7)
-    const scorer = scorers[Math.floor(hashR(seed, matchIdx, i * 3 + 1) * scorers.length)]
+    const min = addMinute(18 + i * 18, i * 7)
+    // Use actual scorer from simulation; fall back to hash-pick only if missing
+    const actualName = actualGoalScorers[i]
+    const scorer = (actualName ? scorers.find(s => s.player.name === actualName) : null)
+      ?? scorers[Math.floor(hashR(seed, matchIdx, i * 3 + 1) * scorers.length)]
     allEvents.push({ min, scorer, isOurs: true })
   }
 
