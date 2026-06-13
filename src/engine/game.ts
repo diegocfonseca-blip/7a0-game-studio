@@ -149,7 +149,8 @@ function simulateMatch(
   seed: string,
   matchIdx: number,
   style: GameStyle = 'balanced',
-  opponentPlayers: string[] = []
+  opponentPlayers: string[] = [],
+  prevScorers: Map<string, number> = new Map()
 ): { goalsFor: number; goalsAgainst: number; events: MatchEvent[] } {
   const attackers = picks.filter(p => ['CA', 'MEI', 'PD', 'PE', 'MD', 'ME'].includes(p.slot.position))
   const defenders = picks.filter(p => ['GOL', 'ZAG', 'LD', 'LE', 'VOL'].includes(p.slot.position))
@@ -183,14 +184,17 @@ function simulateMatch(
   const scorerPool = attackers.length ? attackers : picks
   const assistPool = picks.filter(p => !['GOL'].includes(p.slot.position))
 
-  // Decay multiplier: each time a player scores, their next-goal weight drops 5×
+  // Within-match decay: each goal lowers that player's weight for the next goal
   const scoredCount = new Map<string, number>()
 
   for (let i = 0; i < goalsFor; i++) {
     const minute = Math.min(90, Math.floor(sr(seed, matchIdx, 50 + i) * 90) + 1)
     const weights = scorerPool.map(p => {
-      const times = scoredCount.get(p.player.id) ?? 0
-      return (p.player.rating + (p.player.isLegend ? 10 : 0)) * Math.pow(0.2, times)
+      const timesThis = scoredCount.get(p.player.id) ?? 0
+      const timesPrev = prevScorers.get(p.player.name) ?? 0
+      // Compressed rating scale so lower-rated players still have meaningful chances
+      const base = Math.pow(Math.max(0.1, (p.player.rating - 65) / 30), 1.5) * (p.player.isLegend ? 1.3 : 1)
+      return Math.max(0.05, base * Math.pow(0.18, timesThis) * Math.pow(0.52, timesPrev))
     })
     const ratingSum = weights.reduce((s, w) => s + w, 0)
     let pick = sr(seed, matchIdx, 60 + i) * ratingSum
@@ -254,11 +258,13 @@ function runMatches(
   style: GameStyle,
   seed: string,
   opponents: OpponentDef[],
-  startIdx: number
+  startIdx: number,
+  prevScorers: Map<string, number> = new Map()
 ): MatchResult[] {
   const overall = computeOverall(picks, style)
   const results: MatchResult[] = []
   let groupLosses = 0
+  const crossMatchScorers = new Map<string, number>(prevScorers)
 
   for (let i = 0; i < opponents.length; i++) {
     const opp = opponents[i]
@@ -268,7 +274,12 @@ function runMatches(
     const oppPlayers = opp.squad.players
       .filter(p => ['CA', 'MEI', 'PD', 'PE', 'MD', 'ME', 'VOL'].includes(p.primaryPosition))
       .map(p => p.name)
-    const match = simulateMatch(overall, opp.rating, picks, seed, matchIdx, style, oppPlayers)
+    const match = simulateMatch(overall, opp.rating, picks, seed, matchIdx, style, oppPlayers, crossMatchScorers)
+    for (const ev of match.events) {
+      if (ev.type === 'goal' && ev.playerName) {
+        crossMatchScorers.set(ev.playerName, (crossMatchScorers.get(ev.playerName) ?? 0) + 1)
+      }
+    }
 
     let won = match.goalsFor > match.goalsAgainst
     let penalties: { goalsFor: number; goalsAgainst: number } | undefined
@@ -313,9 +324,18 @@ export function simulateGroupStage(state: GameState, pool: Squad[]): MatchResult
 export function simulateKnockouts(state: GameState, groupMatches: MatchResult[], pool: Squad[]): MatchResult[] {
   const groupLosses = groupMatches.filter(m => !m.won && m.phase === 'Grupos').length
   if (groupLosses >= 2) return []
+  // Carry scorer memory from group stage into knockouts
+  const groupScorers = new Map<string, number>()
+  for (const m of groupMatches) {
+    for (const ev of m.events) {
+      if (ev.type === 'goal' && ev.playerName) {
+        groupScorers.set(ev.playerName, (groupScorers.get(ev.playerName) ?? 0) + 1)
+      }
+    }
+  }
   const pickedIds = state.picks.map(p => p.squad.id)
   const opponents = generateOpponents(pool, pickedIds, state.seed)
-  return runMatches(state.picks, state.style, state.seed, opponents.slice(3), 3)
+  return runMatches(state.picks, state.style, state.seed, opponents.slice(3), 3, groupScorers)
 }
 
 export function simulateCopa(state: GameState, pool: Squad[]): MatchResult[] {
