@@ -124,11 +124,15 @@ export async function generateAINarration(
   const prompt = buildPrompt(state, match, matchOpponentRating)
   onProgress?.('Gerando narração...')
 
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 15000)
+
   try {
     const res = await fetch(
       'https://api.groq.com/openai/v1/chat/completions',
       {
         method: 'POST',
+        signal: controller.signal,
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
@@ -138,6 +142,7 @@ export async function generateAINarration(
         }),
       }
     )
+    clearTimeout(timeoutId)
 
     if (!res.ok) {
       const err = await res.text()
@@ -155,6 +160,7 @@ export async function generateAINarration(
     const raw: RawMoment[] = JSON.parse(jsonMatch[0])
     return parseAIMoments(raw, match)
   } catch (err) {
+    clearTimeout(timeoutId)
     console.error('AI narration fetch error:', err)
     return null
   }
