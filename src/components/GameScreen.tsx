@@ -276,14 +276,15 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
               return (
                 <div key={squad.id}>
                   {showGroupHeader && (
-                    <div style={{ padding: idx === 0 ? '4px 4px 6px' : '12px 4px 6px', fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', color: t.textMuted }}>
+                    <div style={{ padding: idx === 0 ? '4px 4px 8px' : '16px 4px 8px', fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', color: t.textDim, borderBottom: idx > 0 ? `1px solid ${t.border}` : 'none', marginBottom: 6 }}>
                       {thisName.toUpperCase()}
                     </div>
                   )}
                   <button
                     onClick={() => selectFavoriteClub(squad)}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '11px 14px', borderRadius: 14, border: `1px solid ${t.border}`, background: t.surface, cursor: 'pointer', textAlign: 'left' }}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '11px 14px 11px 18px', borderRadius: 14, border: `1px solid ${t.border}`, background: t.surface, cursor: 'pointer', textAlign: 'left', position: 'relative', overflow: 'hidden' }}
                   >
+                    <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, background: clubColors.bg, borderRadius: '14px 0 0 14px', opacity: 0.85 }} />
                     <div style={{ width: 42, height: 42, borderRadius: 10, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: clubColors.bg, border: `1.5px solid ${clubColors.border}`, boxShadow: `0 2px 8px ${clubColors.shadow}` }}>
                       {squad.clubName
                         ? <span style={{ fontSize: 11, fontWeight: 700, color: clubColors.text, letterSpacing: '0.02em', fontFamily: OSWALD }}>{clubCode}</span>
