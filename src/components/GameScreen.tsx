@@ -434,31 +434,36 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
       onClick={roll}
       style={{
         width: '100%',
-        padding: '28px 0',
+        padding: '32px 0',
         borderRadius: 24,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 10,
+        gap: 12,
         border: 'none',
         cursor: 'pointer',
-        transition: 'all 0.2s',
-        transform: diceAnim ? 'scale(0.95)' : 'scale(1)',
+        transition: 'all 0.18s',
+        transform: diceAnim ? 'scale(0.94)' : 'scale(1)',
         background: diceAnim
-          ? 'linear-gradient(135deg, #b8943d 0%, #7a5010 100%)'
-          : 'linear-gradient(145deg, rgba(201,168,76,0.12) 0%, rgba(20,16,0,0.95) 100%)',
+          ? 'linear-gradient(135deg, #c8a040 0%, #7a5010 100%)'
+          : 'linear-gradient(145deg, rgba(212,168,64,0.18) 0%, rgba(18,14,0,0.98) 100%)',
         boxShadow: diceAnim
-          ? '0 0 50px rgba(201,168,76,0.5), 0 8px 24px rgba(0,0,0,0.4)'
-          : '0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(201,168,76,0.15), 0 0 0 1px rgba(201,168,76,0.18)',
+          ? '0 0 60px rgba(212,168,64,0.6), 0 8px 32px rgba(0,0,0,0.5)'
+          : '0 6px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(212,168,64,0.2), 0 0 0 1.5px rgba(212,168,64,0.25), 0 0 24px rgba(212,168,64,0.06)',
       }}
     >
-      <span style={{ fontSize: 52, lineHeight: 1, filter: diceAnim ? 'brightness(0.8)' : 'none' }}>
+      <span style={{ fontSize: 56, lineHeight: 1, filter: diceAnim ? 'brightness(0.85) drop-shadow(0 0 12px rgba(255,200,0,0.8))' : 'drop-shadow(0 4px 8px rgba(0,0,0,0.8))' }}>
         {diceAnim ? '🎰' : '🎲'}
       </span>
-      <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: '0.2em', color: '#C9A84C' }}>
-        ROLAR O DADO
-      </span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+        <span style={{ fontSize: 14, fontWeight: 900, letterSpacing: '0.22em', color: diceAnim ? '#111' : '#D4A840' }}>
+          ROLAR O DADO
+        </span>
+        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', color: diceAnim ? 'rgba(0,0,0,0.6)' : 'rgba(212,168,64,0.4)' }}>
+          SORTEAR TIME HISTÓRICO
+        </span>
+      </div>
     </button>
   )
 
