@@ -56,7 +56,7 @@ export default function Home({ onPlay, theme: t, onToggleTheme }: Props) {
     setTestMsg('')
     try {
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${k}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${k}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
