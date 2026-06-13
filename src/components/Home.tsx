@@ -20,7 +20,8 @@ export default function Home({ onPlay, theme: t, onToggleTheme }: Props) {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768)
   const [showKeyInput, setShowKeyInput] = useState(false)
   const [keyDraft, setKeyDraft] = useState('')
-  const [keySaved, setKeySaved] = useState(false)
+  const [testState, setTestState] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle')
+  const [testMsg, setTestMsg] = useState('')
   const tapCount = useRef(0)
   const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -37,16 +38,51 @@ export default function Home({ onPlay, theme: t, onToggleTheme }: Props) {
     if (tapCount.current >= 5) {
       tapCount.current = 0
       setKeyDraft(localStorage.getItem('gemini_api_key') ?? '')
+      setTestState('idle')
+      setTestMsg('')
       setShowKeyInput(true)
     }
   }
 
-  const saveKey = () => {
+  const saveKey = async () => {
     const k = keyDraft.trim()
-    if (k) localStorage.setItem('gemini_api_key', k)
-    else localStorage.removeItem('gemini_api_key')
-    setKeySaved(true)
-    setTimeout(() => { setKeySaved(false); setShowKeyInput(false) }, 1200)
+    if (!k) {
+      localStorage.removeItem('gemini_api_key')
+      setShowKeyInput(false)
+      return
+    }
+    localStorage.setItem('gemini_api_key', k)
+    setTestState('testing')
+    setTestMsg('')
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${k}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: 'Responda apenas: OK' }] }],
+            generationConfig: { maxOutputTokens: 5 },
+          }),
+        }
+      )
+      if (res.ok) {
+        setTestState('ok')
+        setTimeout(() => { setTestState('idle'); setShowKeyInput(false) }, 2000)
+      } else {
+        let msg = `Erro ${res.status}`
+        try {
+          const body = await res.json()
+          const detail = body?.error?.message
+          if (detail) msg += `: ${detail}`
+        } catch { /* ignore */ }
+        setTestMsg(msg)
+        setTestState('error')
+      }
+    } catch {
+      setTestMsg('Sem conexão com a API')
+      setTestState('error')
+    }
   }
 
   const isDark = t.mode === 'dark'
@@ -246,15 +282,28 @@ export default function Home({ onPlay, theme: t, onToggleTheme }: Props) {
             <input
               type="text"
               value={keyDraft}
-              onChange={e => setKeyDraft(e.target.value)}
+              onChange={e => { setKeyDraft(e.target.value); setTestState('idle') }}
               placeholder="AIzaSy..."
               autoFocus
               style={{ width: '100%', padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 14, boxSizing: 'border-box', outline: 'none', fontFamily: 'monospace', marginBottom: 14 }}
             />
+            {testState === 'error' && (
+              <div style={{ marginBottom: 14, padding: '12px 14px', borderRadius: 10, background: 'rgba(224,53,53,0.15)', border: '1px solid rgba(224,53,53,0.4)', color: '#ff6b6b', fontSize: 12, lineHeight: 1.5, fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                {testMsg}
+              </div>
+            )}
+            {testState === 'ok' && (
+              <div style={{ marginBottom: 14, padding: '12px 14px', borderRadius: 10, background: 'rgba(76,175,80,0.15)', border: '1px solid rgba(76,175,80,0.4)', color: '#81C784', fontSize: 13, fontWeight: 700 }}>
+                IA FUNCIONANDO!
+              </div>
+            )}
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setShowKeyInput(false)} style={{ flex: 1, padding: '13px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>CANCELAR</button>
-              <button onClick={saveKey} style={{ flex: 2, padding: '13px', borderRadius: 12, border: 'none', background: keySaved ? '#4CAF50' : 'linear-gradient(135deg,#D4A840,#8a6020)', color: '#111', cursor: 'pointer', fontSize: 13, fontWeight: 700, letterSpacing: '0.06em' }}>
-                {keySaved ? '✓ SALVO!' : 'SALVAR'}
+              <button onClick={() => { setShowKeyInput(false); setTestState('idle') }} style={{ flex: 1, padding: '13px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>CANCELAR</button>
+              <button
+                onClick={saveKey}
+                disabled={testState === 'testing'}
+                style={{ flex: 2, padding: '13px', borderRadius: 12, border: 'none', background: testState === 'ok' ? '#4CAF50' : testState === 'error' ? '#c0392b' : 'linear-gradient(135deg,#D4A840,#8a6020)', color: '#fff', cursor: testState === 'testing' ? 'wait' : 'pointer', fontSize: 13, fontWeight: 700, letterSpacing: '0.06em', opacity: testState === 'testing' ? 0.7 : 1 }}>
+                {testState === 'testing' ? 'TESTANDO...' : testState === 'ok' ? '✓ FUNCIONANDO!' : testState === 'error' ? 'TENTAR NOVAMENTE' : 'SALVAR E TESTAR'}
               </button>
             </div>
           </div>
