@@ -56,13 +56,14 @@ export default function Home({ onPlay, theme: t, onToggleTheme }: Props) {
     setTestMsg('')
     try {
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${k}`,
+        'https://api.groq.com/openai/v1/chat/completions',
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${k}` },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: 'Responda apenas: OK' }] }],
-            generationConfig: { maxOutputTokens: 5 },
+            model: 'llama-3.3-70b-versatile',
+            messages: [{ role: 'user', content: 'Responda apenas: OK' }],
+            max_tokens: 5,
           }),
         }
       )

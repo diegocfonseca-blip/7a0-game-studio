@@ -126,25 +126,27 @@ export async function generateAINarration(
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
+      'https://api.groq.com/openai/v1/chat/completions',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 1.0, maxOutputTokens: 1500 },
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 1.0,
+          max_tokens: 1500,
         }),
       }
     )
 
     if (!res.ok) {
       const err = await res.text()
-      console.error('Gemini API error:', res.status, err)
+      console.error('Groq API error:', res.status, err)
       return null
     }
 
     const data = await res.json()
-    const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+    const text: string = data?.choices?.[0]?.message?.content ?? ''
     onProgress?.(text)
 
     const jsonMatch = text.match(/\[[\s\S]*\]/)
