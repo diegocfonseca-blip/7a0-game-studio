@@ -21,6 +21,31 @@ import ResultScreen from './ResultScreen'
 
 interface Props { category: GameCategory; onHome: () => void; theme?: ThemePalette; onToggleTheme?: () => void }
 
+function getClubCode(squad: import('../data/squads').Squad): string {
+  const name = squad.clubName ?? squad.countryNamePt
+  const words = name.split(/[\s-]+/).filter(w => w.length > 0)
+  if (words.length === 1) return name.substring(0, 3).toUpperCase()
+  if (words.length === 2) return (words[0][0] + words[1].substring(0, 2)).toUpperCase()
+  return words.slice(0, 3).map(w => w[0].toUpperCase()).join('')
+}
+
+function getBadgeColors(emoji?: string): { bg: string; text: string; border: string; shadow: string } {
+  switch (emoji) {
+    case '🔴': return { bg: '#7f1010', text: '#fff', border: '#c62828aa', shadow: 'rgba(198,40,40,0.4)' }
+    case '🔵': return { bg: '#0d3a7a', text: '#fff', border: '#1565C0aa', shadow: 'rgba(21,101,192,0.4)' }
+    case '⚫': return { bg: '#1a1a1a', text: '#fff', border: '#424242aa', shadow: 'rgba(0,0,0,0.5)' }
+    case '⚪': return { bg: '#4a4a4a', text: '#fff', border: '#757575aa', shadow: 'rgba(100,100,100,0.4)' }
+    case '🟡': return { bg: '#7a5000', text: '#ffe082', border: '#F9A825aa', shadow: 'rgba(249,168,37,0.4)' }
+    case '🟢': return { bg: '#0d3d18', text: '#a5d6a7', border: '#2E7D32aa', shadow: 'rgba(46,125,50,0.4)' }
+    case '🍀': return { bg: '#0d3d18', text: '#a5d6a7', border: '#2E7D32aa', shadow: 'rgba(46,125,50,0.4)' }
+    case '⭐': return { bg: '#5c2800', text: '#ffcc80', border: '#E65100aa', shadow: 'rgba(230,81,0,0.4)' }
+    case '⛵': return { bg: '#0a2a5c', text: '#90caf9', border: '#1565C0aa', shadow: 'rgba(21,101,192,0.4)' }
+    case '⭕': return { bg: '#7f1010', text: '#fff', border: '#c62828aa', shadow: 'rgba(198,40,40,0.4)' }
+    case '⬛': return { bg: '#1a1a2e', text: '#aaa', border: '#37474faa', shadow: 'rgba(55,71,79,0.4)' }
+    default:   return { bg: '#1a1a1a', text: '#ccc', border: '#333aa', shadow: 'rgba(0,0,0,0.3)' }
+  }
+}
+
 function initState(): GameState {
   const seed = generateSeed()
   return {
@@ -175,29 +200,37 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
 
     if (favoritePhase === 'ask') {
       return (
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: t.bgGrad }}>
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #090906 0%, #0f0e00 55%, #1a1200 100%)' }}>
           {topBar}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
-            <div style={{ maxWidth: 380, width: '100%', textAlign: 'center' }}>
-              <div style={{ fontSize: 64, marginBottom: 20, filter: 'drop-shadow(0 4px 16px rgba(201,168,76,0.5))' }}>🏟</div>
-              <h2 style={{ fontWeight: 900, fontSize: 22, letterSpacing: '0.05em', color: '#fff', margin: '0 0 8px' }}>CLUBE FAVORITO</h2>
-              <p style={{ fontSize: 13, color: t.textDim, margin: '0 0 32px', lineHeight: 1.5 }}>
-                Quer começar escolhendo jogadores de um clube que você ama?
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px' }}>
+            <div style={{ maxWidth: 360, width: '100%', textAlign: 'center' }}>
+              {/* Trophy glow */}
+              <div style={{ position: 'relative', marginBottom: 28 }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 60%, rgba(201,168,76,0.3) 0%, transparent 70%)', filter: 'blur(16px)' }} />
+                <div style={{ fontSize: 72, position: 'relative', filter: 'drop-shadow(0 0 20px rgba(201,168,76,0.6))' }}>🏆</div>
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.25em', color: 'rgba(201,168,76,0.5)', marginBottom: 8 }}>MODO LIVRE</div>
+              <h2 style={{ fontWeight: 900, fontSize: 24, letterSpacing: '0.03em', color: '#fff', margin: '0 0 10px', textShadow: '0 2px 12px rgba(0,0,0,0.8)' }}>CLUBE FAVORITO</h2>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: '0 0 36px', lineHeight: 1.6 }}>
+                Quer garantir jogadores de um time que você ama no seu elenco?
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <button
                   onClick={() => setFavoritePhase('pick')}
-                  style={{ width: '100%', fontWeight: 900, fontSize: 15, padding: '18px 0', borderRadius: 18, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, #C9A84C, #8a6020)', color: '#111', boxShadow: '0 8px 28px rgba(201,168,76,0.4)' }}
+                  style={{ width: '100%', fontWeight: 900, fontSize: 14, padding: '18px 0', borderRadius: 16, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, #C9A84C 0%, #7a5010 100%)', color: '#111', letterSpacing: '0.1em', boxShadow: '0 8px 32px rgba(201,168,76,0.4), 0 2px 8px rgba(0,0,0,0.5)' }}
                 >
-                  ✅ SIM, QUERO ESCOLHER
+                  ✅ SIM, ESCOLHER TIME
                 </button>
                 <button
                   onClick={() => setFavoritePhase('done')}
-                  style={{ width: '100%', fontWeight: 900, fontSize: 15, padding: '18px 0', borderRadius: 18, border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)' }}
+                  style={{ width: '100%', fontWeight: 900, fontSize: 14, padding: '18px 0', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.1em' }}
                 >
                   🎲 NÃO, ROLAR O DADO
                 </button>
               </div>
+              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginTop: 24, letterSpacing: '0.05em' }}>
+                Você ainda terá 3 rodadas por dado
+              </p>
             </div>
           </div>
         </div>
@@ -205,37 +238,68 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
     }
 
     if (favoritePhase === 'pick') {
+      // Sort by club/country name then year so same clubs are grouped together
+      const sortedPool = [...pool].sort((a, b) => {
+        const na = (a.clubName ?? a.countryNamePt).toLowerCase()
+        const nb = (b.clubName ?? b.countryNamePt).toLowerCase()
+        if (na !== nb) return na.localeCompare(nb, 'pt')
+        return a.year - b.year
+      })
       return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: t.bgGrad }}>
           {topBar}
-          <div style={{ padding: '16px 16px 8px', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-            <button onClick={() => setFavoritePhase('ask')} style={{ fontSize: 18, background: 'none', border: 'none', color: t.textDim, cursor: 'pointer', padding: 0, lineHeight: 1 }}>←</button>
+          <div style={{ padding: '16px 16px 8px', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0, borderBottom: `1px solid ${t.topbarBorder}` }}>
+            <button onClick={() => setFavoritePhase('ask')} style={{ fontSize: 20, background: 'none', border: 'none', color: t.textDim, cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}>←</button>
             <div>
               <div style={{ fontWeight: 900, fontSize: 16, color: '#fff' }}>ESCOLHA SEU CLUBE</div>
-              <div style={{ fontSize: 11, color: t.textMuted }}>{pool.length} clubes históricos disponíveis</div>
+              <div style={{ fontSize: 11, color: t.textMuted }}>{pool.length} times históricos</div>
             </div>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {pool.map(squad => (
-              <button
-                key={squad.id}
-                onClick={() => selectFavoriteClub(squad)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}
-              >
-                <div style={{ width: 46, height: 46, borderRadius: 12, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, rgba(201,168,76,0.2), rgba(80,50,0,0.4))', border: '1.5px solid rgba(201,168,76,0.25)', fontSize: 22 }}>
-                  {squad.badgeEmoji ?? squad.flagEmoji}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px 32px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {sortedPool.map((squad, idx) => {
+              const prevName = idx > 0 ? (sortedPool[idx-1].clubName ?? sortedPool[idx-1].countryNamePt) : ''
+              const thisName = squad.clubName ?? squad.countryNamePt
+              const showGroupHeader = thisName !== prevName
+              const clubCode = getClubCode(squad)
+              const clubColors = getBadgeColors(squad.badgeEmoji)
+              return (
+                <div key={squad.id}>
+                  {showGroupHeader && idx > 0 && <div style={{ height: 8 }} />}
+                  <button
+                    onClick={() => selectFavoriteClub(squad)}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px', borderRadius: 14, border: `1px solid ${t.border}`, background: t.surface, cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s' }}
+                  >
+                    {/* Club badge */}
+                    <div style={{
+                      width: 44, height: 44, borderRadius: 10, flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: clubColors.bg,
+                      border: `1.5px solid ${clubColors.border}`,
+                      boxShadow: `0 2px 8px ${clubColors.shadow}`,
+                    }}>
+                      {squad.clubName ? (
+                        <span style={{ fontSize: 11, fontWeight: 900, color: clubColors.text, letterSpacing: '0.02em', lineHeight: 1 }}>
+                          {clubCode}
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: 22 }}>{squad.flagEmoji}</span>
+                      )}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 900, fontSize: 14, color: t.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {thisName}
+                      </div>
+                      <div style={{ fontSize: 11, color: t.gold, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {squad.trophy ?? squad.year}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2, flexShrink: 0 }}>
+                      <span style={{ fontSize: 11, fontWeight: 900, color: t.textMuted }}>{squad.year}</span>
+                    </div>
+                  </button>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 900, fontSize: 15, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {squad.clubName ?? squad.countryNamePt}
-                  </div>
-                  <div style={{ fontSize: 11, color: t.gold, marginTop: 2 }}>
-                    {squad.trophy ?? `${squad.year}`}
-                  </div>
-                </div>
-                <span style={{ fontSize: 12, color: t.textMuted }}>→</span>
-              </button>
-            ))}
+              )
+            })}
           </div>
         </div>
       )
@@ -310,6 +374,15 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
   const canRoll = !state.currentRoll && (state.phase === 'setup' || state.phase === 'rolling')
   const filled  = state.picks.length
 
+  // Positions where all formation slots are already filled
+  const occupiedPositions = new Set<string>(
+    [...new Set(state.formation.slots.map(s => s.position))].filter(pos => {
+      const total = state.formation.slots.filter(s => s.position === pos).length
+      const used  = state.picks.filter(p => p.slot.position === pos).length
+      return used >= total
+    })
+  )
+
   // ── Reusable content blocks ──────────────────────────────────────────────
 
   const statsStrip = filled > 0 && (
@@ -361,31 +434,36 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
       onClick={roll}
       style={{
         width: '100%',
-        padding: '28px 0',
+        padding: '32px 0',
         borderRadius: 24,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 10,
+        gap: 12,
         border: 'none',
         cursor: 'pointer',
-        transition: 'all 0.2s',
-        transform: diceAnim ? 'scale(0.95)' : 'scale(1)',
+        transition: 'all 0.18s',
+        transform: diceAnim ? 'scale(0.94)' : 'scale(1)',
         background: diceAnim
-          ? 'linear-gradient(135deg, #b8943d 0%, #7a5010 100%)'
-          : 'linear-gradient(145deg, rgba(201,168,76,0.12) 0%, rgba(20,16,0,0.95) 100%)',
+          ? 'linear-gradient(135deg, #c8a040 0%, #7a5010 100%)'
+          : 'linear-gradient(145deg, rgba(212,168,64,0.18) 0%, rgba(18,14,0,0.98) 100%)',
         boxShadow: diceAnim
-          ? '0 0 50px rgba(201,168,76,0.5), 0 8px 24px rgba(0,0,0,0.4)'
-          : '0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(201,168,76,0.15), 0 0 0 1px rgba(201,168,76,0.18)',
+          ? '0 0 60px rgba(212,168,64,0.6), 0 8px 32px rgba(0,0,0,0.5)'
+          : '0 6px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(212,168,64,0.2), 0 0 0 1.5px rgba(212,168,64,0.25), 0 0 24px rgba(212,168,64,0.06)',
       }}
     >
-      <span style={{ fontSize: 52, lineHeight: 1, filter: diceAnim ? 'brightness(0.8)' : 'none' }}>
+      <span style={{ fontSize: 56, lineHeight: 1, filter: diceAnim ? 'brightness(0.85) drop-shadow(0 0 12px rgba(255,200,0,0.8))' : 'drop-shadow(0 4px 8px rgba(0,0,0,0.8))' }}>
         {diceAnim ? '🎰' : '🎲'}
       </span>
-      <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: '0.2em', color: '#C9A84C' }}>
-        ROLAR O DADO
-      </span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+        <span style={{ fontSize: 14, fontWeight: 900, letterSpacing: '0.22em', color: diceAnim ? '#111' : '#D4A840' }}>
+          ROLAR O DADO
+        </span>
+        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', color: diceAnim ? 'rgba(0,0,0,0.6)' : 'rgba(212,168,64,0.4)' }}>
+          SORTEAR TIME HISTÓRICO
+        </span>
+      </div>
     </button>
   )
 
@@ -399,11 +477,21 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
           <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.1em', color: t.textMuted }}>{state.currentRoll.squad.year}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 56, height: 56, borderRadius: 14, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, rgba(201,168,76,0.25), rgba(100,70,0,0.4))', border: '1.5px solid rgba(201,168,76,0.35)', boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
-            <span style={{ fontSize: 13, fontWeight: 900, color: '#C9A84C', letterSpacing: '0.05em', textAlign: 'center', lineHeight: 1.1 }}>
-              {state.currentRoll.squad.badgeEmoji ?? state.currentRoll.squad.countryCode}
-            </span>
-          </div>
+          {(() => {
+            const sq = state.currentRoll.squad
+            const cc = getBadgeColors(sq.badgeEmoji)
+            return (
+              <div style={{ width: 56, height: 56, borderRadius: 14, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: cc.bg, border: `1.5px solid ${cc.border}`, boxShadow: `0 4px 16px ${cc.shadow}` }}>
+                {sq.clubName ? (
+                  <span style={{ fontSize: 12, fontWeight: 900, color: cc.text, letterSpacing: '0.03em', textAlign: 'center', lineHeight: 1.1 }}>
+                    {getClubCode(sq)}
+                  </span>
+                ) : (
+                  <span style={{ fontSize: 28 }}>{sq.flagEmoji}</span>
+                )}
+              </div>
+            )
+          })()}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 900, fontSize: 20, lineHeight: 1.1, color: t.text, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {state.currentRoll.squad.clubName ?? state.currentRoll.squad.countryNamePt}
@@ -463,6 +551,7 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
         pickedIds={state.picks.map(p => p.player.id)}
         onSelect={pickPlayer}
         availableSlots={availableSlots.map(s => s.slot.position)}
+        occupiedPositions={occupiedPositions}
         theme={t}
       />
     </div>

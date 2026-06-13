@@ -28,7 +28,6 @@ export default function Field({ formation, picks, selectedPlayer, onSlotClick }:
         className="relative w-full"
         style={{
           aspectRatio: '3/4',
-          maxHeight: 380,
           borderRadius: 12,
           overflow: 'hidden',
           /* Alternating horizontal grass stripes matching the reference */
@@ -125,27 +124,27 @@ export default function Field({ formation, picks, selectedPlayer, onSlotClick }:
                 transition: 'transform 0.15s',
                 ...(pick ? {
                   background: isGol
-                    ? 'linear-gradient(160deg, #e53935 0%, #b71c1c 100%)'
-                    : 'linear-gradient(160deg, #ffffff 0%, #e8e8e8 100%)',
-                  border: isGol ? '2px solid rgba(255,200,200,0.6)' : '2.5px solid rgba(255,255,255,0.9)',
+                    ? 'linear-gradient(160deg, #ef5350 0%, #c62828 100%)'
+                    : 'linear-gradient(160deg, #ffffff 0%, #d0d0d0 100%)',
+                  border: isGol ? '2.5px solid rgba(255,160,160,0.7)' : '2.5px solid rgba(255,255,255,0.95)',
                   boxShadow: isGol
-                    ? '0 4px 16px rgba(229,57,53,0.6), 0 2px 8px rgba(0,0,0,0.5)'
-                    : '0 4px 16px rgba(0,0,0,0.5)',
+                    ? '0 4px 20px rgba(239,83,80,0.7), 0 2px 8px rgba(0,0,0,0.6)'
+                    : '0 4px 20px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.2)',
                   transform: 'translate(0,0)',
                 } : isPickable ? {
-                  background: 'rgba(229,57,53,0.15)',
-                  border: '2px dashed rgba(229,57,53,0.9)',
-                  boxShadow: '0 0 14px rgba(229,57,53,0.5)',
+                  background: 'rgba(224,53,53,0.2)',
+                  border: '2.5px dashed rgba(224,53,53,1)',
+                  boxShadow: '0 0 20px rgba(224,53,53,0.6), inset 0 0 8px rgba(224,53,53,0.2)',
                   animation: 'slot-pulse 1.3s ease-in-out infinite',
                   transform: 'translate(0,0)',
                 } : isIncompat ? {
-                  background: 'rgba(0,0,0,0.1)',
-                  border: '1.5px dashed rgba(255,255,255,0.18)',
+                  background: 'rgba(0,0,0,0.15)',
+                  border: '1.5px dashed rgba(255,255,255,0.15)',
                   animation: 'slot-idle 2.5s ease-in-out infinite',
                   transform: 'translate(0,0)',
                 } : {
-                  background: 'rgba(0,0,0,0.1)',
-                  border: '1.5px dashed rgba(255,255,255,0.45)',
+                  background: 'rgba(0,0,0,0.15)',
+                  border: '1.5px dashed rgba(255,255,255,0.5)',
                   transform: 'translate(0,0)',
                 }),
               }}>
