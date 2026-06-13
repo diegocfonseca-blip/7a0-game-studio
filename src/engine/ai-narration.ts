@@ -62,17 +62,31 @@ CONTEXTO DA PARTIDA:
 ${legendNote ? `- ${legendNote}` : ''}
 
 REGRAS DE NARRAÇÃO:
-- Mencione jogadores pelo nome com seus estilos reais históricos (Ronaldo Fenômeno: velocidade devastadora e gols impossíveis; Zidane: elegância e visão única; Messi: regate e drible; Pelé: improviso genial; etc.)
-- Varie o ritmo: momentos de tensão, alívio, explosão de alegria, desespero
-- Reflita o contexto: time superior domina diferente de um underdog que sofre; estilo ofensivo tem mais chances mas toma gol; defensivo sofre menos mas precisa de contra-ataque
+- Mencione jogadores pelo nome com seus estilos históricos reais (Ronaldo Fenômeno: explosão de velocidade, gols impossíveis; Zidane: toque de bola sublime, visão de jogo; Messi: drible desconcertante, gol de qualquer posição; Pelé: improviso genial; Maradona: drible e habilidade sobrenatural; Ronaldinho: alegria e genialidade; Roberto Carlos: chute de canhão; Cafu: velocidade pela direita; etc.)
+- VARIEDADE DE GOLS — cada gol deve ter origem diferente, escolha uma por gol:
+  • Contra-ataque fulminante após pressão adversária
+  • Jogada individual de fora da área (chutaço)
+  • Toque de cabeça em cruzamento milimétrico
+  • Cobrança de falta no ângulo
+  • Drible sobre drible até enganar o goleiro
+  • Tabelinha rápida na área com finalização de primeira
+  • Pênalti com pressão máxima
+  • Gol contra em tentativa desesperada de defender
+  • Saída errada do goleiro aproveitada de letra
+  • Bicicleta ou voleio de efeito
+  • Erro de marcação que deixou o atacante livre
+  • Tiro de meta longo que virou assistência
+- FUTEBOL É IMPREVISÍVEL: mesmo time superior pode sofrer virada, lenda pode desperdiçar chance incrível, time inferior pode marcar de forma genial — reflita isso
+- Varie o ritmo emocional: pressão crescente, alívio repentino, explosão de euforia, silêncio de choque
+- Reflita o contexto tático: estilo ofensivo cria e desperdiça mais; defensivo sofre menos mas contra-ataca; time superior pressiona mais
 - Use MAIÚSCULAS para gols e momentos épicos
 - Use pontuação dramática: "!!!", "...", "???"
 - Gere exatamente 8 a 10 momentos
-- Primeiro: "intro" (clima, expectativa, contexto do confronto)
-- Por gol marcado: 1 "buildup" (como a jogada foi construída) + 1 "goal" (explosão)
-- Por gol sofrido: 1 "conceded" (choque e reação)
+- Primeiro: "intro" (clima do estádio, expectativa, o que está em jogo)
+- Por gol marcado: 1 "buildup" (construção da jogada, quem tocou, como chegou) + 1 "goal" (explosão do gol)
+- Por gol sofrido: 1 "conceded" (como aconteceu, choque e reação)
 - Inclua 1 ou 2 momentos de tensão: "miss", "save" ou "danger"
-- Último: "final" (apito, emoção do resultado)
+- Último: "final" (apito final, emoção do resultado)
 - Cada momento: array "lines" com 2-3 frases curtas e impactantes
 - Responda SOMENTE com JSON array válido, zero texto fora do JSON
 
