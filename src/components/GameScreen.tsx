@@ -19,6 +19,8 @@ import NarrationScreen from './NarrationScreen'
 import HalftimeScreen from './HalftimeScreen'
 import ResultScreen from './ResultScreen'
 
+const OSWALD = "'Oswald', 'Impact', 'Arial Narrow', sans-serif"
+
 interface Props { category: GameCategory; onHome: () => void; theme?: ThemePalette; onToggleTheme?: () => void }
 
 function getClubCode(squad: import('../data/squads').Squad): string {
@@ -191,45 +193,43 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
   // ── Favorite club prompt (once, at game start) ────────────────────────────
   if (state.phase === 'setup' && state.picks.length === 0 && favoritePhase !== 'done') {
     const topBar = (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: t.topbar, borderBottom: `1px solid ${t.topbarBorder}`, backdropFilter: 'blur(8px)' }}>
-        <button onClick={onHome} style={{ fontWeight: 900, fontSize: 18, color: t.gold, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>0a7</button>
-        <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted }}>MONTAR TIME</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', background: t.topbar, borderBottom: `1px solid ${t.topbarBorder}`, backdropFilter: 'blur(10px)' }}>
+        <button onClick={onHome} style={{ fontWeight: 700, fontSize: 17, color: t.gold, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: OSWALD }}>0a7</button>
+        <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.2em', color: t.textMuted }}>MONTAR TIME</span>
         <div style={{ width: 32 }} />
       </div>
     )
 
     if (favoritePhase === 'ask') {
       return (
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #090906 0%, #0f0e00 55%, #1a1200 100%)' }}>
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: t.bgGrad }}>
           {topBar}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px' }}>
-            <div style={{ maxWidth: 360, width: '100%', textAlign: 'center' }}>
-              {/* Trophy glow */}
-              <div style={{ position: 'relative', marginBottom: 28 }}>
-                <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 60%, rgba(201,168,76,0.3) 0%, transparent 70%)', filter: 'blur(16px)' }} />
-                <div style={{ fontSize: 72, position: 'relative', filter: 'drop-shadow(0 0 20px rgba(201,168,76,0.6))' }}>🏆</div>
+            <div style={{ maxWidth: 340, width: '100%' }}>
+              <div style={{ textAlign: 'center', marginBottom: 36 }}>
+                <div style={{ fontSize: 64, marginBottom: 20, filter: 'drop-shadow(0 0 24px rgba(212,168,64,0.5))' }}>🏆</div>
+                <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.25em', color: t.gold, opacity: 0.6, marginBottom: 10 }}>MODO LIVRE</div>
+                <h2 style={{ fontWeight: 700, fontSize: 26, letterSpacing: '0.04em', color: t.text, margin: '0 0 12px', fontFamily: OSWALD }}>CLUBE FAVORITO</h2>
+                <p style={{ fontSize: 13, color: t.textDim, margin: 0, lineHeight: 1.65 }}>
+                  Quer garantir jogadores de um time que você ama no seu elenco?
+                </p>
               </div>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.25em', color: 'rgba(201,168,76,0.5)', marginBottom: 8 }}>MODO LIVRE</div>
-              <h2 style={{ fontWeight: 900, fontSize: 24, letterSpacing: '0.03em', color: '#fff', margin: '0 0 10px', textShadow: '0 2px 12px rgba(0,0,0,0.8)' }}>CLUBE FAVORITO</h2>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: '0 0 36px', lineHeight: 1.6 }}>
-                Quer garantir jogadores de um time que você ama no seu elenco?
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <button
                   onClick={() => setFavoritePhase('pick')}
-                  style={{ width: '100%', fontWeight: 900, fontSize: 14, padding: '18px 0', borderRadius: 16, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, #C9A84C 0%, #7a5010 100%)', color: '#111', letterSpacing: '0.1em', boxShadow: '0 8px 32px rgba(201,168,76,0.4), 0 2px 8px rgba(0,0,0,0.5)' }}
+                  style={{ width: '100%', fontWeight: 700, fontSize: 15, padding: '18px 0', borderRadius: 18, border: 'none', cursor: 'pointer', fontFamily: OSWALD, letterSpacing: '0.08em', background: `linear-gradient(135deg, #D4A840 0%, #7a5010 100%)`, color: '#111', boxShadow: '0 8px 32px rgba(212,168,64,0.35), 0 2px 8px rgba(0,0,0,0.4)' }}
                 >
-                  ✅ SIM, ESCOLHER TIME
+                  SIM, ESCOLHER TIME
                 </button>
                 <button
                   onClick={() => setFavoritePhase('done')}
-                  style={{ width: '100%', fontWeight: 900, fontSize: 14, padding: '18px 0', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.1em' }}
+                  style={{ width: '100%', fontWeight: 600, fontSize: 14, padding: '16px 0', borderRadius: 18, border: `1px solid ${t.border2}`, cursor: 'pointer', background: t.surface, color: t.textDim, letterSpacing: '0.06em' }}
                 >
-                  🎲 NÃO, ROLAR O DADO
+                  Não, rolar o dado
                 </button>
               </div>
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginTop: 24, letterSpacing: '0.05em' }}>
-                Você ainda terá 3 rodadas por dado
+              <p style={{ fontSize: 10, color: t.textMuted, marginTop: 20, letterSpacing: '0.05em', textAlign: 'center' }}>
+                Você terá 3 rerolls por rodada
               </p>
             </div>
           </div>
@@ -238,7 +238,6 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
     }
 
     if (favoritePhase === 'pick') {
-      // Sort by club/country name then year so same clubs are grouped together
       const sortedPool = [...pool].sort((a, b) => {
         const na = (a.clubName ?? a.countryNamePt).toLowerCase()
         const nb = (b.clubName ?? b.countryNamePt).toLowerCase()
@@ -248,14 +247,14 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
       return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: t.bgGrad }}>
           {topBar}
-          <div style={{ padding: '16px 16px 8px', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0, borderBottom: `1px solid ${t.topbarBorder}` }}>
-            <button onClick={() => setFavoritePhase('ask')} style={{ fontSize: 20, background: 'none', border: 'none', color: t.textDim, cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}>←</button>
+          <div style={{ padding: '14px 16px 12px', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0, borderBottom: `1px solid ${t.topbarBorder}` }}>
+            <button onClick={() => setFavoritePhase('ask')} style={{ fontSize: 18, background: 'none', border: 'none', color: t.textDim, cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}>←</button>
             <div>
-              <div style={{ fontWeight: 900, fontSize: 16, color: '#fff' }}>ESCOLHA SEU CLUBE</div>
-              <div style={{ fontSize: 11, color: t.textMuted }}>{pool.length} times históricos</div>
+              <div style={{ fontWeight: 700, fontSize: 16, color: t.text, fontFamily: OSWALD, letterSpacing: '0.04em' }}>ESCOLHA SEU CLUBE</div>
+              <div style={{ fontSize: 10, color: t.textMuted }}>{pool.length} times históricos</div>
             </div>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px 32px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '10px 12px 32px', display: 'flex', flexDirection: 'column', gap: 5 }}>
             {sortedPool.map((squad, idx) => {
               const prevName = idx > 0 ? (sortedPool[idx-1].clubName ?? sortedPool[idx-1].countryNamePt) : ''
               const thisName = squad.clubName ?? squad.countryNamePt
@@ -264,38 +263,30 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
               const clubColors = getBadgeColors(squad.badgeEmoji)
               return (
                 <div key={squad.id}>
-                  {showGroupHeader && idx > 0 && <div style={{ height: 8 }} />}
+                  {showGroupHeader && (
+                    <div style={{ padding: idx === 0 ? '4px 4px 6px' : '12px 4px 6px', fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', color: t.textMuted }}>
+                      {thisName.toUpperCase()}
+                    </div>
+                  )}
                   <button
                     onClick={() => selectFavoriteClub(squad)}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px', borderRadius: 14, border: `1px solid ${t.border}`, background: t.surface, cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s' }}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '11px 14px', borderRadius: 14, border: `1px solid ${t.border}`, background: t.surface, cursor: 'pointer', textAlign: 'left' }}
                   >
-                    {/* Club badge */}
-                    <div style={{
-                      width: 44, height: 44, borderRadius: 10, flexShrink: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: clubColors.bg,
-                      border: `1.5px solid ${clubColors.border}`,
-                      boxShadow: `0 2px 8px ${clubColors.shadow}`,
-                    }}>
-                      {squad.clubName ? (
-                        <span style={{ fontSize: 11, fontWeight: 900, color: clubColors.text, letterSpacing: '0.02em', lineHeight: 1 }}>
-                          {clubCode}
-                        </span>
-                      ) : (
-                        <span style={{ fontSize: 22 }}>{squad.flagEmoji}</span>
-                      )}
+                    <div style={{ width: 42, height: 42, borderRadius: 10, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: clubColors.bg, border: `1.5px solid ${clubColors.border}`, boxShadow: `0 2px 8px ${clubColors.shadow}` }}>
+                      {squad.clubName
+                        ? <span style={{ fontSize: 11, fontWeight: 700, color: clubColors.text, letterSpacing: '0.02em', fontFamily: OSWALD }}>{clubCode}</span>
+                        : <span style={{ fontSize: 22 }}>{squad.flagEmoji}</span>
+                      }
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 900, fontSize: 14, color: t.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: t.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {thisName}
                       </div>
                       <div style={{ fontSize: 11, color: t.gold, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {squad.trophy ?? squad.year}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2, flexShrink: 0 }}>
-                      <span style={{ fontSize: 11, fontWeight: 900, color: t.textMuted }}>{squad.year}</span>
-                    </div>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: t.textMuted, flexShrink: 0 }}>{squad.year}</span>
                   </button>
                 </div>
               )
@@ -389,13 +380,13 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: isDesktop ? '12px 0' : '10px 16px', background: isDesktop ? 'transparent' : 'rgba(0,0,0,0.4)', borderBottom: isDesktop ? 'none' : '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
       <div style={{ display: 'flex', gap: 20, flex: 1 }}>
         {[
-          { v: state.overall, l: 'OVR', c: '#C9A84C', glow: 'rgba(201,168,76,0.5)' },
+          { v: state.overall, l: 'OVR', c: t.gold, glow: t.goldGlow },
           ...(ataque !== null ? [{ v: ataque, l: 'ATK', c: '#EF5350', glow: 'rgba(239,83,80,0.4)' }] : []),
           ...(defesa !== null ? [{ v: defesa, l: 'DEF', c: '#66BB6A', glow: 'rgba(102,187,106,0.4)' }] : []),
         ].map(s => (
           <div key={s.l} style={{ textAlign: 'center' }}>
-            <div style={{ fontWeight: 900, fontSize: 20, lineHeight: 1, color: s.c, textShadow: `0 0 12px ${s.glow}` }}>{s.v}</div>
-            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: '0.1em', color: t.textMuted, marginTop: 2 }}>{s.l}</div>
+            <div style={{ fontWeight: 700, fontSize: 22, lineHeight: 1, color: s.c, textShadow: `0 0 12px ${s.glow}`, fontFamily: OSWALD }}>{s.v}</div>
+            <div style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.14em', color: t.textMuted, marginTop: 3 }}>{s.l}</div>
           </div>
         ))}
       </div>
@@ -434,81 +425,75 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
       onClick={roll}
       style={{
         width: '100%',
-        padding: '32px 0',
-        borderRadius: 24,
+        padding: '30px 0',
+        borderRadius: 22,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 12,
+        gap: 10,
         border: 'none',
         cursor: 'pointer',
         transition: 'all 0.18s',
-        transform: diceAnim ? 'scale(0.94)' : 'scale(1)',
+        transform: diceAnim ? 'scale(0.93)' : 'scale(1)',
         background: diceAnim
-          ? 'linear-gradient(135deg, #c8a040 0%, #7a5010 100%)'
-          : 'linear-gradient(145deg, rgba(212,168,64,0.18) 0%, rgba(18,14,0,0.98) 100%)',
+          ? 'linear-gradient(135deg, #D4A840 0%, #7a5010 100%)'
+          : 'linear-gradient(145deg, rgba(212,168,64,0.14) 0%, rgba(10,8,0,0.98) 100%)',
         boxShadow: diceAnim
-          ? '0 0 60px rgba(212,168,64,0.6), 0 8px 32px rgba(0,0,0,0.5)'
-          : '0 6px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(212,168,64,0.2), 0 0 0 1.5px rgba(212,168,64,0.25), 0 0 24px rgba(212,168,64,0.06)',
+          ? '0 0 60px rgba(212,168,64,0.55), 0 8px 32px rgba(0,0,0,0.5)'
+          : '0 6px 32px rgba(0,0,0,0.6), 0 0 0 1.5px rgba(212,168,64,0.22), 0 0 28px rgba(212,168,64,0.05)',
       }}
     >
-      <span style={{ fontSize: 56, lineHeight: 1, filter: diceAnim ? 'brightness(0.85) drop-shadow(0 0 12px rgba(255,200,0,0.8))' : 'drop-shadow(0 4px 8px rgba(0,0,0,0.8))' }}>
+      <span style={{ fontSize: 52, lineHeight: 1, filter: diceAnim ? 'brightness(0.9) drop-shadow(0 0 16px rgba(255,210,0,0.8))' : 'drop-shadow(0 4px 12px rgba(0,0,0,0.8))' }}>
         {diceAnim ? '🎰' : '🎲'}
       </span>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-        <span style={{ fontSize: 14, fontWeight: 900, letterSpacing: '0.22em', color: diceAnim ? '#111' : '#D4A840' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+        <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: '0.18em', color: diceAnim ? '#0a0800' : '#D4A840', fontFamily: OSWALD }}>
           ROLAR O DADO
         </span>
-        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', color: diceAnim ? 'rgba(0,0,0,0.6)' : 'rgba(212,168,64,0.4)' }}>
+        <span style={{ fontSize: 9, fontWeight: 500, letterSpacing: '0.14em', color: diceAnim ? 'rgba(0,0,0,0.5)' : 'rgba(212,168,64,0.38)' }}>
           SORTEAR TIME HISTÓRICO
         </span>
       </div>
     </button>
   )
 
-  const squadRevealCard = state.currentRoll && (
-    <div style={{ borderRadius: 22, overflow: 'hidden', position: 'relative', border: '1px solid rgba(201,168,76,0.25)', boxShadow: '0 0 40px rgba(201,168,76,0.1), 0 8px 32px rgba(0,0,0,0.5)' }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(145deg, rgba(201,168,76,0.15) 0%, rgba(10,8,0,0.9) 60%)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', top: -40, left: -40, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.2) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ position: 'relative', padding: '18px 20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', color: t.gold, opacity: 0.6 }}>🎲 SORTEIO</span>
-          <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.1em', color: t.textMuted }}>{state.currentRoll.squad.year}</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          {(() => {
-            const sq = state.currentRoll.squad
-            const cc = getBadgeColors(sq.badgeEmoji)
-            return (
-              <div style={{ width: 56, height: 56, borderRadius: 14, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: cc.bg, border: `1.5px solid ${cc.border}`, boxShadow: `0 4px 16px ${cc.shadow}` }}>
-                {sq.clubName ? (
-                  <span style={{ fontSize: 12, fontWeight: 900, color: cc.text, letterSpacing: '0.03em', textAlign: 'center', lineHeight: 1.1 }}>
-                    {getClubCode(sq)}
-                  </span>
-                ) : (
-                  <span style={{ fontSize: 28 }}>{sq.flagEmoji}</span>
-                )}
-              </div>
-            )
-          })()}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 900, fontSize: 20, lineHeight: 1.1, color: t.text, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {state.currentRoll.squad.clubName ?? state.currentRoll.squad.countryNamePt}
+  const squadRevealCard = state.currentRoll && (() => {
+    const sq = state.currentRoll.squad
+    const cc = getBadgeColors(sq.badgeEmoji)
+    return (
+      <div style={{ borderRadius: 22, overflow: 'hidden', position: 'relative', border: `1px solid ${t.gold}33`, boxShadow: `0 0 40px rgba(212,168,64,0.08), 0 8px 36px rgba(0,0,0,0.5)` }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(145deg, rgba(212,168,64,0.1) 0%, rgba(8,6,0,0.95) 65%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'relative', padding: '18px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.22em', color: t.gold, opacity: 0.55 }}>SORTEIO</span>
+            <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.1em', color: t.textMuted }}>{sq.year}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 14, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: cc.bg, border: `1.5px solid ${cc.border}`, boxShadow: `0 4px 20px ${cc.shadow}` }}>
+              {sq.clubName
+                ? <span style={{ fontSize: 12, fontWeight: 700, color: cc.text, letterSpacing: '0.02em', textAlign: 'center', lineHeight: 1.1, fontFamily: OSWALD }}>{getClubCode(sq)}</span>
+                : <span style={{ fontSize: 28 }}>{sq.flagEmoji}</span>
+              }
             </div>
-            <div style={{ fontWeight: 700, fontSize: 12, color: '#C9A84C', marginTop: 3 }}>
-              {state.currentRoll.squad.trophy ?? `Copa do Mundo ${state.currentRoll.squad.year}`}
-            </div>
-            {state.currentRoll.squad.notableReason && (
-              <div style={{ fontSize: 10, color: t.textDim, marginTop: 5, lineHeight: 1.4, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                {state.currentRoll.squad.notableReason}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: 20, lineHeight: 1.15, color: t.text, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: OSWALD }}>
+                {sq.clubName ?? sq.countryNamePt}
               </div>
-            )}
+              <div style={{ fontWeight: 600, fontSize: 12, color: t.gold, marginTop: 4 }}>
+                {sq.trophy ?? `Copa do Mundo ${sq.year}`}
+              </div>
+              {sq.notableReason && (
+                <div style={{ fontSize: 10, color: t.textDim, marginTop: 6, lineHeight: 1.45, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                  {sq.notableReason}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  )
+    )
+  })()
 
   const rerollControls = state.currentRoll && state.currentRoll.rerollsLeft > 0 && (
     <div style={{ borderRadius: 16, padding: '12px 14px', background: t.surface, border: `1px solid ${t.border}` }}>
@@ -562,23 +547,23 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: t.bgGrad }}>
 
       {/* Top bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: t.topbar, borderBottom: `1px solid ${t.topbarBorder}`, flexShrink: 0, backdropFilter: 'blur(8px)', position: 'sticky', top: 0, zIndex: 20 }}>
-        <button onClick={onHome} style={{ fontWeight: 900, fontSize: 18, color: t.gold, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>0a7</button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ display: 'flex', gap: 3 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', background: t.topbar, borderBottom: `1px solid ${t.topbarBorder}`, flexShrink: 0, backdropFilter: 'blur(10px)', position: 'sticky', top: 0, zIndex: 20 }}>
+        <button onClick={onHome} style={{ fontWeight: 700, fontSize: 17, color: t.gold, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: OSWALD }}>0a7</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
             {Array.from({ length: 11 }).map((_, i) => (
-              <div key={i} style={{ width: i < filled ? 9 : 6, height: i < filled ? 9 : 6, borderRadius: '50%', background: i < filled ? t.gold : t.border2, boxShadow: i < filled ? `0 0 8px ${t.goldGlow}` : 'none', transition: 'all 0.2s' }} />
+              <div key={i} style={{ width: i < filled ? 8 : 5, height: i < filled ? 8 : 5, borderRadius: '50%', background: i < filled ? t.gold : t.border2, boxShadow: i < filled ? `0 0 6px ${t.goldGlow}` : 'none', transition: 'all 0.18s' }} />
             ))}
           </div>
-          <span style={{ fontSize: 10, fontWeight: 900, color: t.textDim }}>{filled}/11</span>
+          <span style={{ fontSize: 10, fontWeight: 600, color: t.textDim }}>{filled}/11</span>
         </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           {onToggleTheme && (
-            <button onClick={onToggleTheme} style={{ fontSize: 14, background: 'none', border: 'none', cursor: 'pointer', color: t.textDim, padding: 0 }}>
+            <button onClick={onToggleTheme} style={{ fontSize: 15, background: 'none', border: 'none', cursor: 'pointer', color: t.textDim, padding: 0 }}>
               {t.mode === 'dark' ? '☀' : '🌙'}
             </button>
           )}
-          <button onClick={() => setShowSettings(s => !s)} style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', color: showSettings ? t.gold : t.textDim, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          <button onClick={() => setShowSettings(s => !s)} style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', color: showSettings ? t.gold : t.textDim, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
             ⚙ AJUSTES
           </button>
         </div>

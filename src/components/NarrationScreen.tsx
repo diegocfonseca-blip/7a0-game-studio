@@ -36,52 +36,37 @@ function Confetti({ active }: { active: boolean }) {
 }
 
 
-function AILoadingScreen({ match, progress }: { match: MatchResult; progress: string }) {
-  const dots = ['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏']
-  const [di, setDi] = useState(0)
+function AILoadingScreen({ match }: { match: MatchResult; progress: string }) {
+  const [frame, setFrame] = useState(0)
   useEffect(() => {
-    const t = setInterval(() => setDi(d => (d + 1) % dots.length), 100)
+    const t = setInterval(() => setFrame(f => f + 1), 600)
     return () => clearInterval(t)
   }, [])
-
-  const lines = progress.replace(/[[\]{}",]/g, ' ').split(/\n/).filter(l => l.trim().length > 6).slice(-3)
+  const dots = '.'.repeat((frame % 3) + 1).padEnd(3, ' ')
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(160deg, #0a0a10 0%, #111118 55%, #120d02 100%)', padding: '32px 24px' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(160deg, #080810 0%, #0d0d14 55%, #100c02 100%)', padding: '32px 24px' }}>
       <style>{`
-        @keyframes pulse-ring { 0%{transform:scale(0.9);opacity:0.6} 50%{transform:scale(1.1);opacity:1} 100%{transform:scale(0.9);opacity:0.6} }
-        @keyframes scan { 0%{transform:translateY(-100%)} 100%{transform:translateY(200%)} }
+        @keyframes ld-ring { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+        @keyframes ld-pulse { 0%,100%{opacity:0.5;transform:scale(0.95)} 50%{opacity:1;transform:scale(1.05)} }
       `}</style>
-      <div style={{ maxWidth: 340, width: '100%', textAlign: 'center' }}>
-        {/* Animated AI orb */}
-        <div style={{ position: 'relative', width: 100, height: 100, margin: '0 auto 24px' }}>
-          <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid rgba(212,168,64,0.3)', animation: 'pulse-ring 1.5s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', inset: 8, borderRadius: '50%', border: '1px solid rgba(212,168,64,0.5)', animation: 'pulse-ring 1.5s ease-in-out 0.3s infinite' }} />
-          <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,168,64,0.15) 0%, transparent 70%)' }} />
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40 }}>🤖</div>
+      <div style={{ maxWidth: 320, width: '100%', textAlign: 'center' }}>
+        {/* Stadium icon with spinner */}
+        <div style={{ position: 'relative', width: 88, height: 88, margin: '0 auto 28px' }}>
+          <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid rgba(212,168,64,0.15)' }} />
+          <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid transparent', borderTopColor: 'rgba(212,168,64,0.7)', animation: 'ld-ring 1.2s linear infinite' }} />
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, animation: 'ld-pulse 2s ease-in-out infinite' }}>⚽</div>
         </div>
 
-        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', color: 'rgba(212,168,64,0.6)', marginBottom: 8 }}>
-          {dots[di]} GERANDO NARRAÇÃO
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.25em', color: 'rgba(212,168,64,0.5)', marginBottom: 12, fontFamily: "'Oswald', sans-serif" }}>
+          PREPARANDO PARTIDA{dots}
         </div>
-        <div style={{ fontWeight: 900, fontSize: 18, color: '#fff', marginBottom: 4 }}>
+        <div style={{ fontWeight: 700, fontSize: 20, color: '#fff', marginBottom: 4, fontFamily: "'Oswald', sans-serif", letterSpacing: '0.04em' }}>
           {match.opponent}
         </div>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', marginBottom: 24 }}>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em' }}>
           {PHASE_LABELS[match.phase] ?? match.phase}
         </div>
-
-        {/* Live stream preview of AI generating */}
-        {lines.length > 0 && (
-          <div style={{ borderRadius: 14, padding: '14px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'left', overflow: 'hidden', position: 'relative' }}>
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, transparent, rgba(212,168,64,0.6), transparent)', animation: 'scan 1s linear infinite' }} />
-            {lines.map((l, i) => (
-              <div key={i} style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5, marginBottom: i < lines.length - 1 ? 4 : 0 }}>
-                {l.trim().substring(0, 80)}
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   )
