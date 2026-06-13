@@ -43,12 +43,152 @@ export default function ResultScreen({ state, onReplay, onHome, theme }: Props) 
     `🏆 0a7LEGENDS — #${state.seed}`,
     isChampion ? '🥇 CAMPEÃO MUNDIAL!' : `❌ Eliminado: ${lastMatch?.phase}`,
     `${wins}V · ${totalGoals} gols · ${totalConceded} sofridos`,
-    topScorers.length ? `⚽ ${topScorers[0][0]} (${topScorers[0][1]}g)` : '',
+    topScorers.length ? `⚽ ${topScorers[0][0].split(' ').pop()} (${topScorers[0][1]}g)` : '',
   ].filter(Boolean).join('\n')
 
-  const handleShare = () => {
-    if (navigator.share) navigator.share({ text: shareText })
+  const buildShareImage = async (): Promise<File | null> => {
+    try {
+      await document.fonts.ready
+      const W = 1080, H = 1080
+      const canvas = document.createElement('canvas')
+      canvas.width = W; canvas.height = H
+      const c = canvas.getContext('2d')!
+
+      // Background
+      const bg = c.createLinearGradient(0, 0, 0, H)
+      if (isChampion) { bg.addColorStop(0, '#1e1400'); bg.addColorStop(0.6, '#100c00'); bg.addColorStop(1, '#0a0800') }
+      else            { bg.addColorStop(0, '#180000'); bg.addColorStop(0.6, '#0e0000'); bg.addColorStop(1, '#080808') }
+      c.fillStyle = bg; c.fillRect(0, 0, W, H)
+
+      // Glow
+      const glow = c.createRadialGradient(W/2, H*0.35, 0, W/2, H*0.35, 420)
+      glow.addColorStop(0, isChampion ? 'rgba(212,168,64,0.22)' : 'rgba(224,53,53,0.18)')
+      glow.addColorStop(1, 'transparent')
+      c.fillStyle = glow; c.fillRect(0, 0, W, H)
+
+      // Border frame
+      c.strokeStyle = isChampion ? 'rgba(212,168,64,0.25)' : 'rgba(224,53,53,0.2)'
+      c.lineWidth = 3
+      c.strokeRect(32, 32, W - 64, H - 64)
+
+      // Logo
+      c.font = '600 52px Oswald, Impact, sans-serif'
+      c.fillStyle = '#D4A840'
+      c.textAlign = 'center'
+      c.fillText('0a7 LEGENDS', W/2, 110)
+
+      // Divider
+      c.fillStyle = '#D4A840'
+      c.fillRect(W/2 - 120, 130, 240, 2)
+      c.fillStyle = '#E03535'
+      c.fillRect(W/2 - 120, 130, 80, 2)
+
+      // Big emoji
+      c.font = '210px serif'
+      c.textAlign = 'center'
+      c.fillText(isChampion ? '🏆' : '💀', W/2, 390)
+
+      // Status
+      c.font = `bold ${isChampion ? 90 : 76}px Oswald, Impact, sans-serif`
+      c.fillStyle = isChampion ? '#D4A840' : '#ffffff'
+      if (isChampion) {
+        c.shadowColor = 'rgba(212,168,64,0.6)'; c.shadowBlur = 40
+      }
+      c.fillText(isChampion ? 'CAMPEÃO MUNDIAL!' : 'ELIMINADO', W/2, 490)
+      c.shadowBlur = 0
+
+      // Phase (if eliminated)
+      if (!isChampion && lastMatch) {
+        c.font = '500 38px Oswald, Impact, sans-serif'
+        c.fillStyle = 'rgba(255,255,255,0.4)'
+        c.fillText(`${lastMatch.phase} · ${lastMatch.opponent} ${lastMatch.opponentYear}`, W/2, 548)
+      }
+
+      // Stats row boxes
+      const stats = [
+        { v: String(state.overall), l: 'OVERALL', color: '#D4A840' },
+        { v: String(wins), l: 'VITÓRIAS', color: '#4CAF50' },
+        { v: String(totalGoals), l: 'GOLS', color: '#E03535' },
+        { v: String(totalConceded), l: 'SOFRIDOS', color: 'rgba(255,255,255,0.45)' },
+      ]
+      const boxW = 210, boxH = 120, gap = 20
+      const totalW = stats.length * boxW + (stats.length - 1) * gap
+      const startX = (W - totalW) / 2
+      const boxY = isChampion ? 560 : 620
+
+      stats.forEach((s, i) => {
+        const x = startX + i * (boxW + gap)
+        c.fillStyle = 'rgba(255,255,255,0.05)'
+        roundRect(c, x, boxY, boxW, boxH, 16)
+        c.fill()
+        c.strokeStyle = 'rgba(255,255,255,0.08)'
+        c.lineWidth = 1
+        roundRect(c, x, boxY, boxW, boxH, 16)
+        c.stroke()
+
+        c.font = 'bold 52px Oswald, Impact, sans-serif'
+        c.fillStyle = s.color
+        c.textAlign = 'center'
+        c.fillText(s.v, x + boxW/2, boxY + 62)
+        c.font = '500 20px Oswald, Impact, sans-serif'
+        c.fillStyle = 'rgba(255,255,255,0.35)'
+        c.fillText(s.l, x + boxW/2, boxY + 98)
+      })
+
+      // Top scorer
+      if (topScorers.length) {
+        const [scorerName, goals] = topScorers[0]
+        const shortName = scorerName.split(' ').pop()!
+        const sy = boxY + boxH + 64
+        c.font = '500 30px Oswald, Impact, sans-serif'
+        c.fillStyle = 'rgba(255,255,255,0.3)'
+        c.textAlign = 'center'
+        c.fillText('ARTILHEIRO', W/2, sy)
+        c.font = 'bold 64px Oswald, Impact, sans-serif'
+        c.fillStyle = '#E03535'
+        c.fillText(`⚽ ${shortName}`, W/2, sy + 72)
+        c.font = 'bold 42px Oswald, Impact, sans-serif'
+        c.fillStyle = 'rgba(255,255,255,0.6)'
+        c.fillText(`${goals} gols`, W/2, sy + 124)
+      }
+
+      // Seed + footer
+      c.font = '500 28px Oswald, Impact, sans-serif'
+      c.fillStyle = 'rgba(255,255,255,0.2)'
+      c.textAlign = 'center'
+      c.fillText(`SEED #${state.seed}`, W/2, H - 56)
+
+      return new Promise(resolve => {
+        canvas.toBlob(blob => {
+          resolve(blob ? new File([blob], '0a7legends.png', { type: 'image/png' }) : null)
+        }, 'image/png')
+      })
+    } catch {
+      return null
+    }
+  }
+
+  const handleShare = async () => {
+    const file = await buildShareImage()
+    if (file && navigator.canShare?.({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: '0a7 LEGENDS' }); return } catch { /* fall through */ }
+    }
+    if (navigator.share) { navigator.share({ text: shareText }) }
     else { navigator.clipboard.writeText(shareText); alert('Copiado!') }
+  }
+
+  function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+    ctx.beginPath()
+    ctx.moveTo(x + r, y)
+    ctx.lineTo(x + w - r, y)
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+    ctx.lineTo(x + w, y + h - r)
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+    ctx.lineTo(x + r, y + h)
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+    ctx.lineTo(x, y + r)
+    ctx.quadraticCurveTo(x, y, x + r, y)
+    ctx.closePath()
   }
 
   const winColor = isDark ? '#4CAF50' : '#2E7D32'
