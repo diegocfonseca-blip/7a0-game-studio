@@ -353,7 +353,7 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
   if (state.phase === 'halftime')
     return <HalftimeScreen picks={state.picks} groupMatches={groupMatches} formation={state.formation} style={state.style} mode={state.mode} onContinue={afterHalftime} onHome={onHome} theme={t} />
   if (state.phase === 'results' && narrating)
-    return <NarrationScreen state={state} matches={state.matches} onFinish={() => setNarrating(false)} />
+    return <NarrationScreen state={state} matches={state.matches} onFinish={() => setNarrating(false)} onHome={onHome} />
   if (state.phase === 'results')
     return <ResultScreen state={state} onReplay={restart} onHome={onHome} theme={t} />
 

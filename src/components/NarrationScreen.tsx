@@ -5,7 +5,7 @@ import type { MatchMoment } from '../engine/commentary'
 import { generateAINarration, hasApiKey } from '../engine/ai-narration'
 import { playCrowdRoar, playCrowdBoo, playCrowdTension, playWhistle, startCrowdMurmur, stopCrowdMurmur } from '../engine/soundUtils'
 
-interface Props { state: GameState; matches: MatchResult[]; onFinish: () => void }
+interface Props { state: GameState; matches: MatchResult[]; onFinish: () => void; onHome?: () => void }
 
 const PHASE_LABELS: Record<string, string> = {
   Grupos: 'FASE DE GRUPOS', Oitavas: 'OITAVAS DE FINAL',
@@ -72,7 +72,7 @@ function AILoadingScreen({ match }: { match: MatchResult; progress: string }) {
   )
 }
 
-export default function NarrationScreen({ state, matches, onFinish }: Props) {
+export default function NarrationScreen({ state, matches, onFinish, onHome }: Props) {
   const useAI = hasApiKey()
 
   const [matchIdx, setMatchIdx] = useState(0)
@@ -215,8 +215,13 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
       {/* ── Broadcast top bar ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', background: 'rgba(0,0,0,0.85)', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0, backdropFilter: 'blur(8px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {onHome && (
+            <button onClick={onHome} style={{ fontWeight: 700, fontSize: 15, color: 'rgba(212,168,64,0.8)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px 4px 0', fontFamily: "'Oswald', sans-serif", letterSpacing: '0.08em' }}>
+              0a7
+            </button>
+          )}
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#E03535', boxShadow: '0 0 10px rgba(224,53,53,0.9)', animation: playing && !isFinished ? 'blink 1s infinite' : 'none' }} />
-          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', color: 'rgba(255,255,255,0.55)' }}>NARRAÇÃO AO VIVO</span>
+          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', color: 'rgba(255,255,255,0.55)' }}>AO VIVO</span>
           {useAI && <span style={{ fontSize: 9, fontWeight: 900, padding: '2px 6px', borderRadius: 6, background: 'rgba(76,175,80,0.2)', border: '1px solid rgba(76,175,80,0.4)', color: '#81C784', letterSpacing: '0.1em' }}>IA</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
