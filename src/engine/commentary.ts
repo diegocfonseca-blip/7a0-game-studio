@@ -400,6 +400,8 @@ export function generateMatchMoments(
   const shuffledMissed   = seededShuffle(MISSED_PLAYS,   seed, matchIdx, 3)
   const shuffledDangers  = seededShuffle(DANGERS,        seed, matchIdx, 4)
   const shuffledConceded = seededShuffle(CONCEDED,       seed, matchIdx, 5)
+  // Shuffle player pool per match so different players appear in missed chances
+  const shuffledAllPlayers = seededShuffle(allPlayers, seed, matchIdx + 77, 10)
   let mIdx = 0, dIdx = 0, cIdx = 0
 
   const addMinute = (base: number, off: number): number => {
@@ -496,8 +498,8 @@ export function generateMatchMoments(
   const extraChances = 2 + Math.floor(hashR(seed, matchIdx, 99) * 3)
   for (let i = 0; i < extraChances; i++) {
     const min    = addMinute(10 + i * 15, i * 13 + 200)
-    const pIdx   = Math.floor(hashR(seed, matchIdx, i * 4 + 100) * allPlayers.length)
-    const player = allPlayers[pIdx]
+    const pIdx   = Math.floor(hashR(seed, matchIdx, i * 4 + 100) * shuffledAllPlayers.length)
+    const player = shuffledAllPlayers[pIdx]
     const missed = shuffledMissed[mIdx++ % shuffledMissed.length]
 
     moments.push({
