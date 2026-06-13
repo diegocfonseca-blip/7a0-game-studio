@@ -28,7 +28,6 @@ export default function Field({ formation, picks, selectedPlayer, onSlotClick }:
         className="relative w-full"
         style={{
           aspectRatio: '3/4',
-          maxHeight: 380,
           borderRadius: 12,
           overflow: 'hidden',
           /* Alternating horizontal grass stripes matching the reference */
