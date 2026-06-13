@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { TOTAL_SQUADS, TOTAL_PLAYERS } from '../data/squads'
 import clubs from '../data/clubs'
 import type { GameCategory } from '../App'
@@ -18,12 +18,36 @@ const OSWALD = "'Oswald', 'Impact', 'Arial Narrow', sans-serif"
 export default function Home({ onPlay, theme: t, onToggleTheme }: Props) {
   const [picked, setPicked] = useState<GameCategory | null>(null)
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768)
+  const [showKeyInput, setShowKeyInput] = useState(false)
+  const [keyDraft, setKeyDraft] = useState('')
+  const [keySaved, setKeySaved] = useState(false)
+  const tapCount = useRef(0)
+  const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const fn = () => setIsDesktop(window.innerWidth >= 768)
     window.addEventListener('resize', fn)
     return () => window.removeEventListener('resize', fn)
   }, [])
+
+  const handleLogoTap = () => {
+    tapCount.current++
+    if (tapTimer.current) clearTimeout(tapTimer.current)
+    tapTimer.current = setTimeout(() => { tapCount.current = 0 }, 1500)
+    if (tapCount.current >= 5) {
+      tapCount.current = 0
+      setKeyDraft(localStorage.getItem('gemini_api_key') ?? '')
+      setShowKeyInput(true)
+    }
+  }
+
+  const saveKey = () => {
+    const k = keyDraft.trim()
+    if (k) localStorage.setItem('gemini_api_key', k)
+    else localStorage.removeItem('gemini_api_key')
+    setKeySaved(true)
+    setTimeout(() => { setKeySaved(false); setShowKeyInput(false) }, 1200)
+  }
 
   const isDark = t.mode === 'dark'
 
@@ -39,7 +63,7 @@ export default function Home({ onPlay, theme: t, onToggleTheme }: Props) {
         backdropFilter: 'blur(12px)',
         position: 'sticky', top: 0, zIndex: 20,
       }}>
-        <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: '0.18em', color: t.gold, fontFamily: OSWALD }}>
+        <span onClick={handleLogoTap} style={{ fontSize: 15, fontWeight: 700, letterSpacing: '0.18em', color: t.gold, fontFamily: OSWALD, cursor: 'default', userSelect: 'none' }}>
           0a7 LEGENDS
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -209,6 +233,30 @@ export default function Home({ onPlay, theme: t, onToggleTheme }: Props) {
                 <div style={{ fontSize: 10, lineHeight: 1.4, color: t.textDim }}>{s.d}</div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+      {showKeyInput && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ background: '#111', border: '1px solid rgba(212,168,64,0.3)', borderRadius: 20, padding: '28px 24px', width: '100%', maxWidth: 420 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', color: 'rgba(212,168,64,0.7)', marginBottom: 16 }}>CONFIGURAR IA</p>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 16, lineHeight: 1.5 }}>
+              Cole sua chave do Google AI Studio (aistudio.google.com → Get API key)
+            </p>
+            <input
+              type="text"
+              value={keyDraft}
+              onChange={e => setKeyDraft(e.target.value)}
+              placeholder="AIzaSy..."
+              autoFocus
+              style={{ width: '100%', padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 14, boxSizing: 'border-box', outline: 'none', fontFamily: 'monospace', marginBottom: 14 }}
+            />
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setShowKeyInput(false)} style={{ flex: 1, padding: '13px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>CANCELAR</button>
+              <button onClick={saveKey} style={{ flex: 2, padding: '13px', borderRadius: 12, border: 'none', background: keySaved ? '#4CAF50' : 'linear-gradient(135deg,#D4A840,#8a6020)', color: '#111', cursor: 'pointer', fontSize: 13, fontWeight: 700, letterSpacing: '0.06em' }}>
+                {keySaved ? '✓ SALVO!' : 'SALVAR'}
+              </button>
+            </div>
           </div>
         </div>
       )}
