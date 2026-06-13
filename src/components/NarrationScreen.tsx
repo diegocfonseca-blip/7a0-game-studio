@@ -82,7 +82,7 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
   const [shownCount, setShownCount] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState<'slow' | 'normal' | 'fast'>('normal')
-  const [soundOn, setSoundOn] = useState(false)
+  const [soundOn, setSoundOn] = useState(true)
   const [goalFlash, setGoalFlash] = useState(false)
   const [confetti, setConfetti] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
