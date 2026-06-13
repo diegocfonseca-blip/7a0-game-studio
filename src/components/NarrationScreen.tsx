@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import type { GameState, MatchResult } from '../engine/game'
 import { generateMatchMoments } from '../engine/commentary'
 import type { MatchMoment } from '../engine/commentary'
+import { generateAINarration, hasApiKey, saveApiKey } from '../engine/ai-narration'
 import { playCrowdRoar, playCrowdBoo, playCrowdTension, playWhistle, startCrowdMurmur, stopCrowdMurmur } from '../engine/soundUtils'
 
 interface Props { state: GameState; matches: MatchResult[]; onFinish: () => void }
@@ -11,21 +12,22 @@ const PHASE_LABELS: Record<string, string> = {
   Quartas: 'QUARTAS DE FINAL', Semifinal: 'SEMIFINAL', Final: 'FINAL',
 }
 
+const PHASE_RATINGS: Record<string, number> = {
+  Grupos: 78, Oitavas: 84, Quartas: 87, Semifinal: 90, Final: 93,
+}
+
 function Confetti({ active }: { active: boolean }) {
   if (!active) return null
-  const colors = ['#C9A84C', '#D12E2E', '#fff', '#4CAF50', '#2196F3', '#FF9800']
+  const colors = ['#D4A840', '#E03535', '#fff', '#4CAF50', '#2196F3', '#FF9800']
   return (
     <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 50 }}>
-      {Array.from({ length: 32 }, (_, i) => (
+      {Array.from({ length: 40 }, (_, i) => (
         <div key={i} style={{
-          position: 'absolute',
-          width: 8, height: 12,
-          borderRadius: 3,
-          left: `${(i * 3.125) % 100}%`,
-          top: -12,
+          position: 'absolute', width: 8, height: 14, borderRadius: 3,
+          left: `${(i * 2.5) % 100}%`, top: -14,
           background: colors[i % colors.length],
-          transform: `rotate(${i * 47}deg)`,
-          animation: `confettiFall ${0.8 + (i % 4) * 0.3}s ease-in ${(i % 5) * 0.08}s forwards`,
+          transform: `rotate(${i * 37}deg)`,
+          animation: `confettiFall ${0.7 + (i % 5) * 0.25}s ease-in ${(i % 6) * 0.06}s forwards`,
           opacity: 0,
         }} />
       ))}
@@ -33,12 +35,148 @@ function Confetti({ active }: { active: boolean }) {
   )
 }
 
-const BG = 'linear-gradient(160deg, #080808 0%, #0d0d0d 55%, #100800 100%)'
+function ApiKeyScreen({ onKey, onSkip }: { onKey: (k: string) => void; onSkip: () => void }) {
+  const [value, setValue] = useState('')
+  const [error, setError] = useState('')
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(160deg, #0a0a10 0%, #111118 55%, #120d02 100%)', padding: '24px' }}>
+      <style>{`@keyframes sparkle { 0%,100%{opacity:0.3;transform:scale(1)} 50%{opacity:1;transform:scale(1.2)} }`}</style>
+      <div style={{ maxWidth: 400, width: '100%' }}>
+        {/* Icon */}
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <div style={{ position: 'absolute', inset: -20, background: 'radial-gradient(circle, rgba(212,168,64,0.25) 0%, transparent 70%)', filter: 'blur(12px)' }} />
+            <div style={{ fontSize: 60, position: 'relative', filter: 'drop-shadow(0 0 16px rgba(212,168,64,0.6))' }}>🤖</div>
+          </div>
+          <div style={{ marginTop: 16, fontSize: 11, fontWeight: 900, letterSpacing: '0.25em', color: 'rgba(212,168,64,0.6)' }}>NARRAÇÃO COM IA</div>
+          <h2 style={{ fontWeight: 900, fontSize: 22, color: '#fff', margin: '8px 0 6px', letterSpacing: '0.02em' }}>NARRADOR INTELIGENTE</h2>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, margin: 0 }}>
+            Use a IA do Claude para gerar narrações únicas, contextuais e dramáticas — cada jogo contado de forma diferente.
+          </p>
+        </div>
+
+        {/* Features */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+          {[
+            { icon: '🎙', text: 'Narração personalizada para cada jogador e time' },
+            { icon: '⚡', text: 'Gera em tempo real, jogo a jogo' },
+            { icon: '🧠', text: 'Entende táticas, histórico e momento do jogo' },
+          ].map(f => (
+            <div key={f.icon} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <span style={{ fontSize: 18, flexShrink: 0 }}>{f.icon}</span>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>{f.text}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* API key input */}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>
+            CHAVE ANTHROPIC API
+          </div>
+          <input
+            type="password"
+            value={value}
+            onChange={e => { setValue(e.target.value); setError('') }}
+            placeholder="sk-ant-api03-..."
+            style={{
+              width: '100%', padding: '14px 16px', borderRadius: 12,
+              border: error ? '1.5px solid #E03535' : '1.5px solid rgba(212,168,64,0.3)',
+              background: 'rgba(255,255,255,0.06)', color: '#fff',
+              fontSize: 13, fontFamily: 'monospace', outline: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
+          {error && <div style={{ fontSize: 11, color: '#EF9A9A', marginTop: 6 }}>{error}</div>}
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginTop: 6 }}>
+            Guardada localmente no browser · console.anthropic.com
+          </div>
+        </div>
+
+        <button
+          onClick={() => {
+            if (!value.startsWith('sk-ant-')) { setError('Chave inválida. Deve começar com "sk-ant-"'); return }
+            saveApiKey(value.trim())
+            onKey(value.trim())
+          }}
+          style={{ width: '100%', padding: '16px', borderRadius: 14, border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: 14, letterSpacing: '0.1em', background: 'linear-gradient(135deg, #D4A840 0%, #7a5010 100%)', color: '#111', marginBottom: 10, boxShadow: '0 8px 28px rgba(212,168,64,0.35)' }}
+        >
+          🤖 ATIVAR IA
+        </button>
+        <button
+          onClick={onSkip}
+          style={{ width: '100%', padding: '14px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', fontWeight: 900, fontSize: 13, background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)' }}
+        >
+          ▶ USAR NARRAÇÃO CLÁSSICA
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function AILoadingScreen({ match, progress }: { match: MatchResult; progress: string }) {
+  const dots = ['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏']
+  const [di, setDi] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => setDi(d => (d + 1) % dots.length), 100)
+    return () => clearInterval(t)
+  }, [])
+
+  const lines = progress.replace(/[[\]{}",]/g, ' ').split(/\n/).filter(l => l.trim().length > 6).slice(-3)
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(160deg, #0a0a10 0%, #111118 55%, #120d02 100%)', padding: '32px 24px' }}>
+      <style>{`
+        @keyframes pulse-ring { 0%{transform:scale(0.9);opacity:0.6} 50%{transform:scale(1.1);opacity:1} 100%{transform:scale(0.9);opacity:0.6} }
+        @keyframes scan { 0%{transform:translateY(-100%)} 100%{transform:translateY(200%)} }
+      `}</style>
+      <div style={{ maxWidth: 340, width: '100%', textAlign: 'center' }}>
+        {/* Animated AI orb */}
+        <div style={{ position: 'relative', width: 100, height: 100, margin: '0 auto 24px' }}>
+          <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid rgba(212,168,64,0.3)', animation: 'pulse-ring 1.5s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', inset: 8, borderRadius: '50%', border: '1px solid rgba(212,168,64,0.5)', animation: 'pulse-ring 1.5s ease-in-out 0.3s infinite' }} />
+          <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,168,64,0.15) 0%, transparent 70%)' }} />
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40 }}>🤖</div>
+        </div>
+
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', color: 'rgba(212,168,64,0.6)', marginBottom: 8 }}>
+          {dots[di]} GERANDO NARRAÇÃO
+        </div>
+        <div style={{ fontWeight: 900, fontSize: 18, color: '#fff', marginBottom: 4 }}>
+          {match.opponent}
+        </div>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', marginBottom: 24 }}>
+          {PHASE_LABELS[match.phase] ?? match.phase}
+        </div>
+
+        {/* Live stream preview of AI generating */}
+        {lines.length > 0 && (
+          <div style={{ borderRadius: 14, padding: '14px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'left', overflow: 'hidden', position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, transparent, rgba(212,168,64,0.6), transparent)', animation: 'scan 1s linear infinite' }} />
+            {lines.map((l, i) => (
+              <div key={i} style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5, marginBottom: i < lines.length - 1 ? 4 : 0 }}>
+                {l.trim().substring(0, 80)}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default function NarrationScreen({ state, matches, onFinish }: Props) {
+  const [apiPhase, setApiPhase] = useState<'check' | 'setup' | 'ready'>(() =>
+    hasApiKey() ? 'ready' : 'check'
+  )
+  const [useAI, setUseAI] = useState(hasApiKey())
+
   const [matchIdx, setMatchIdx] = useState(0)
+  const [moments, setMoments] = useState<MatchMoment[]>([])
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiProgress, setAiProgress] = useState('')
   const [shownCount, setShownCount] = useState(0)
-  const [playing, setPlaying] = useState(true)
+  const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState<'normal' | 'fast'>('normal')
   const [soundOn, setSoundOn] = useState(false)
   const [goalFlash, setGoalFlash] = useState(false)
@@ -46,30 +184,63 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const match = matches[matchIdx]
-  const oppScorerNames = match
-    ? match.events.filter(e => e.type === 'conceded' && e.playerName).map(e => e.playerName!)
-    : []
-  const moments: MatchMoment[] = match
-    ? generateMatchMoments(state.picks, match.opponent, match.goalsFor, match.goalsAgainst, state.seed, matchIdx, oppScorerNames, match.phase, match.events)
-    : []
-  const isFinished = shownCount >= moments.length
 
-  // Start/stop murmur with sound toggle
+  // Generate moments for current match (AI or template)
+  const loadMoments = useCallback(async (idx: number, aiEnabled: boolean) => {
+    const m = matches[idx]
+    if (!m) return
+    setMoments([])
+    setShownCount(0)
+    setPlaying(false)
+    setAiProgress('')
+
+    if (aiEnabled) {
+      setAiLoading(true)
+      const oppRating = PHASE_RATINGS[m.phase] ?? 80
+      const aiMoments = await generateAINarration(state, m, oppRating, (partial) => {
+        setAiProgress(partial)
+      })
+      setAiLoading(false)
+      if (aiMoments && aiMoments.length > 0) {
+        setMoments(aiMoments)
+        setPlaying(true)
+        return
+      }
+    }
+
+    // Fallback to template narration
+    const oppNames = m.events.filter(e => e.type === 'conceded' && e.playerName).map(e => e.playerName!)
+    const tmplMoments = generateMatchMoments(
+      state.picks, m.opponent, m.goalsFor, m.goalsAgainst,
+      state.seed, idx, oppNames, m.phase, m.events
+    )
+    setMoments(tmplMoments)
+    setPlaying(true)
+  }, [matches, state])
+
+  // Initial load
+  useEffect(() => {
+    if (apiPhase === 'ready') loadMoments(0, useAI)
+  }, [apiPhase]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const isFinished = shownCount >= moments.length && moments.length > 0
+
+  // Sound murmur
   useEffect(() => {
     if (soundOn && playing && !isFinished) startCrowdMurmur()
     else stopCrowdMurmur()
     return () => stopCrowdMurmur()
   }, [soundOn, playing, isFinished])
 
+  // Auto-advance moments
   useEffect(() => {
-    if (!playing || isFinished) return
-    const delay = speed === 'fast' ? 120 : 650
+    if (!playing || isFinished || moments.length === 0) return
+    const delay = speed === 'fast' ? 100 : useAI ? 900 : 650
     const timer = setTimeout(() => {
       const next = moments[shownCount]
       if (next?.type === 'goal' && next?.forUs) {
-        setGoalFlash(true)
-        setConfetti(true)
-        if (soundOn) { playCrowdRoar(2.5) }
+        setGoalFlash(true); setConfetti(true)
+        if (soundOn) playCrowdRoar(2.5)
         setTimeout(() => setGoalFlash(false), 1800)
         setTimeout(() => setConfetti(false), 2500)
       } else if (next?.type === 'conceded') {
@@ -80,69 +251,91 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
       setShownCount(c => c + 1)
     }, delay)
     return () => clearTimeout(timer)
-  }, [playing, shownCount, isFinished, speed, moments, soundOn])
+  }, [playing, shownCount, isFinished, speed, moments, soundOn, useAI])
 
+  // Auto-scroll
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
   }, [shownCount])
 
   const handleNext = () => {
     if (matchIdx + 1 < matches.length) {
-      setMatchIdx(i => i + 1)
-      setShownCount(0)
-      setPlaying(true)
+      const nextIdx = matchIdx + 1
+      setMatchIdx(nextIdx)
       if (soundOn) { stopCrowdMurmur(); playWhistle(); setTimeout(startCrowdMurmur, 600) }
+      loadMoments(nextIdx, useAI)
     } else {
       onFinish()
     }
   }
 
+  // ── API key setup screen ───────────────────────────────────────────────────
+  if (apiPhase === 'check') {
+    return (
+      <ApiKeyScreen
+        onKey={() => { setUseAI(true); setApiPhase('ready') }}
+        onSkip={() => { setUseAI(false); setApiPhase('ready') }}
+      />
+    )
+  }
+
+  // ── AI loading screen ──────────────────────────────────────────────────────
+  if (aiLoading && match) {
+    return <AILoadingScreen match={match} progress={aiProgress} />
+  }
+
+  // ── Derived display values ─────────────────────────────────────────────────
   const visibleMoments = moments.slice(0, shownCount)
   let scoreFor = 0, scoreAgainst = 0
   for (const m of visibleMoments) {
     if (m.type === 'goal' && m.forUs) scoreFor++
     if (m.type === 'conceded') scoreAgainst++
   }
-
   const isWinning = scoreFor > scoreAgainst
   const isLosing = scoreAgainst > scoreFor
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: BG }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #080810 0%, #0d0d14 55%, #100c02 100%)' }}>
       <Confetti active={confetti} />
 
       <style>{`
         @keyframes confettiFall {
-          0%   { transform: translateY(-12px) rotate(0deg); opacity: 1; }
-          100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+          0%   { transform: translateY(-14px) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(102vh) rotate(720deg); opacity: 0; }
         }
         @keyframes goalPulse {
-          0%, 100% { text-shadow: 0 0 8px #C9A84C; }
-          50%       { text-shadow: 0 0 40px #C9A84C, 0 0 80px #ff9900; }
+          0%, 100% { text-shadow: 0 0 8px #D4A840; }
+          50%       { text-shadow: 0 0 48px #D4A840, 0 0 90px #ff9900; }
         }
         @keyframes slideIn {
-          from { opacity: 0; transform: translateY(8px); }
+          from { opacity: 0; transform: translateY(6px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.9)} }
         .goal-glow { animation: goalPulse 0.5s ease-in-out 3; }
-        .slide-in  { animation: slideIn 0.25s ease-out; }
+        .slide-in  { animation: slideIn 0.3s ease-out; }
       `}</style>
 
-      {/* ── Top control bar ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', background: 'rgba(0,0,0,0.7)', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
+      {/* ── Broadcast top bar ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', background: 'rgba(0,0,0,0.85)', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0, backdropFilter: 'blur(8px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#D12E2E', boxShadow: '0 0 8px rgba(209,46,46,0.8)', animation: playing && !isFinished ? 'pulse 1s infinite' : 'none' }} />
-          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', color: 'rgba(255,255,255,0.6)' }}>NARRAÇÃO AO VIVO</span>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#E03535', boxShadow: '0 0 10px rgba(224,53,53,0.9)', animation: playing && !isFinished ? 'blink 1s infinite' : 'none' }} />
+          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', color: 'rgba(255,255,255,0.55)' }}>NARRAÇÃO AO VIVO</span>
+          {useAI && (
+            <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: '0.1em', padding: '2px 7px', borderRadius: 10, background: 'rgba(212,168,64,0.2)', border: '1px solid rgba(212,168,64,0.4)', color: '#D4A840' }}>✦ IA</span>
+          )}
         </div>
-        <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.25)' }}>{matchIdx + 1}/{matches.length}</span>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>{matchIdx + 1}/{matches.length}</span>
+          <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.1)' }} />
           <button onClick={() => setSpeed(s => s === 'fast' ? 'normal' : 'fast')}
-            style={{ fontSize: 10, fontWeight: 900, padding: '5px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: speed === 'fast' ? 'rgba(201,168,76,0.18)' : 'rgba(255,255,255,0.06)', color: speed === 'fast' ? '#C9A84C' : 'rgba(255,255,255,0.45)', cursor: 'pointer' }}>
+            style={{ fontSize: 10, fontWeight: 900, padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: speed === 'fast' ? 'rgba(212,168,64,0.18)' : 'rgba(255,255,255,0.05)', color: speed === 'fast' ? '#D4A840' : 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
             {speed === 'fast' ? '⏩ RÁPIDO' : '▶ NORMAL'}
           </button>
           {!isFinished && (
             <button onClick={() => setShownCount(moments.length)}
-              style={{ fontSize: 10, fontWeight: 900, padding: '5px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
+              style={{ fontSize: 10, fontWeight: 900, padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.35)', cursor: 'pointer' }}>
               ⏭ PULAR
             </button>
           )}
@@ -151,115 +344,128 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
 
       {/* ── Scoreboard ── */}
       <div style={{
-        padding: '20px 16px 16px',
+        padding: '20px 20px 14px',
         background: goalFlash
-          ? 'linear-gradient(180deg, rgba(201,168,76,0.2) 0%, rgba(0,0,0,0) 100%)'
-          : 'linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%)',
-        transition: 'background 0.4s',
+          ? 'linear-gradient(180deg, rgba(212,168,64,0.22) 0%, transparent 100%)'
+          : 'linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%)',
+        transition: 'background 0.5s',
         flexShrink: 0,
       }}>
-        {/* Phase label */}
-        <div style={{ textAlign: 'center', marginBottom: 12 }}>
-          <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', color: 'rgba(201,168,76,0.6)', background: 'rgba(201,168,76,0.08)', padding: '3px 12px', borderRadius: 20, border: '1px solid rgba(201,168,76,0.2)' }}>
+        {/* Phase chip */}
+        <div style={{ textAlign: 'center', marginBottom: 14 }}>
+          <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.22em', color: 'rgba(212,168,64,0.7)', background: 'rgba(212,168,64,0.08)', padding: '4px 14px', borderRadius: 20, border: '1px solid rgba(212,168,64,0.22)' }}>
             {PHASE_LABELS[match?.phase ?? ''] ?? match?.phase}
           </span>
         </div>
 
         {/* Score row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           {/* Our team */}
           <div style={{ flex: 1, textAlign: 'right' }}>
-            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>SEU TIME</div>
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.2)' }}>OVR {state.overall}</div>
+            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', marginBottom: 3 }}>SEU TIME</div>
+            <div style={{ fontSize: 9, color: 'rgba(212,168,64,0.4)', fontWeight: 700 }}>⭐ OVR {state.overall}</div>
           </div>
 
-          {/* Score */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          {/* Score display */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
             <span className={goalFlash ? 'goal-glow' : ''} style={{
-              fontWeight: 900, fontSize: 56, lineHeight: 1,
-              color: isWinning ? '#C9A84C' : isLosing ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.9)',
-              minWidth: 40, textAlign: 'center',
-              transition: 'color 0.3s',
+              fontWeight: 900, fontSize: 64, lineHeight: 1, minWidth: 44, textAlign: 'center',
+              color: isWinning ? '#D4A840' : isLosing ? 'rgba(255,255,255,0.65)' : '#fff',
+              transition: 'color 0.4s',
+              fontVariantNumeric: 'tabular-nums',
             }}>{scoreFor}</span>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-              <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
-              <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, alignItems: 'center', paddingBottom: 4 }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.18)' }} />
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.18)' }} />
             </div>
             <span style={{
-              fontWeight: 900, fontSize: 56, lineHeight: 1,
-              color: isLosing ? '#D12E2E' : 'rgba(255,255,255,0.3)',
-              minWidth: 40, textAlign: 'center',
-              transition: 'color 0.3s',
+              fontWeight: 900, fontSize: 64, lineHeight: 1, minWidth: 44, textAlign: 'center',
+              color: isLosing ? '#E03535' : 'rgba(255,255,255,0.28)',
+              transition: 'color 0.4s',
+              fontVariantNumeric: 'tabular-nums',
             }}>{scoreAgainst}</span>
           </div>
 
           {/* Opponent */}
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>ADVERSÁRIO</div>
+            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', marginBottom: 4 }}>ADVERSÁRIO</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontSize: 9, fontWeight: 900, color: 'rgba(255,255,255,0.6)' }}>{match?.opponentBadge ?? match?.opponentFlag}</span>
+              <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontSize: 9, fontWeight: 900, color: 'rgba(255,255,255,0.55)' }}>{match?.opponentBadge ?? match?.opponentFlag}</span>
               </div>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: 12, color: '#fff', lineHeight: 1.2 }}>{match?.opponent}</div>
-                <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.25)' }}>{match?.opponentYear}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 800, fontSize: 11, color: '#fff', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match?.opponent}</div>
+                <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.2)' }}>{match?.opponentYear}</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Status pill */}
+        {/* Result pill when finished */}
         {isFinished && (
           <div style={{ marginTop: 12, textAlign: 'center' }}>
             <span style={{
-              fontSize: 10, fontWeight: 900, padding: '4px 14px', borderRadius: 20,
-              background: match.won ? 'rgba(76,175,80,0.25)' : 'rgba(209,46,46,0.25)',
+              fontSize: 11, fontWeight: 900, padding: '5px 16px', borderRadius: 20,
+              background: match.won ? 'rgba(76,175,80,0.2)' : 'rgba(224,53,53,0.2)',
               color: match.won ? '#81C784' : '#EF9A9A',
-              border: `1px solid ${match.won ? 'rgba(76,175,80,0.4)' : 'rgba(209,46,46,0.4)'}`,
+              border: `1px solid ${match.won ? 'rgba(76,175,80,0.4)' : 'rgba(224,53,53,0.4)'}`,
+              letterSpacing: '0.08em',
             }}>
               {match.won ? '✓ VITÓRIA' : '✕ DERROTA'} — {match.goalsFor}×{match.goalsAgainst}
-              {match.penalties ? ` (PEN ${match.penalties.goalsFor}×${match.penalties.goalsAgainst})` : ''}
+              {match.penalties ? ` (pen. ${match.penalties.goalsFor}–${match.penalties.goalsAgainst})` : ''}
             </span>
           </div>
         )}
       </div>
 
       {/* ── Commentary feed ── */}
-      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 4, minHeight: 240 }}>
+      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '6px 14px', display: 'flex', flexDirection: 'column', gap: 3, minHeight: 200 }}>
         {visibleMoments.map((moment, i) => {
-          const isGoalEvent = moment.type === 'goal' && moment.forUs
+          const isGoalFor = moment.type === 'goal' && moment.forUs
           const isConceded = moment.type === 'conceded'
-          const isBoring = ['buildup', 'miss', 'save'].includes(moment.type)
+          const isMuted = ['buildup', 'miss', 'save', 'tactical'].includes(moment.type)
+
           return (
             <div key={i} className="slide-in" style={{
               display: 'flex', gap: 10, alignItems: 'flex-start',
-              padding: isGoalEvent ? '10px 12px' : isConceded ? '8px 12px' : '5px 8px',
-              borderRadius: 12,
-              background: isGoalEvent
-                ? 'linear-gradient(135deg, rgba(201,168,76,0.2), rgba(100,70,0,0.15))'
+              padding: isGoalFor ? '12px 14px' : isConceded ? '10px 12px' : '5px 8px',
+              borderRadius: 14, marginBottom: isGoalFor ? 2 : 0,
+              background: isGoalFor
+                ? 'linear-gradient(135deg, rgba(212,168,64,0.18) 0%, rgba(80,50,0,0.12) 100%)'
                 : isConceded
-                  ? 'rgba(209,46,46,0.12)'
+                  ? 'rgba(224,53,53,0.1)'
                   : 'transparent',
-              border: isGoalEvent
-                ? '1px solid rgba(201,168,76,0.3)'
+              border: isGoalFor
+                ? '1px solid rgba(212,168,64,0.28)'
                 : isConceded
-                  ? '1px solid rgba(209,46,46,0.2)'
+                  ? '1px solid rgba(224,53,53,0.18)'
                   : 'none',
             }}>
-              <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.2)', width: 26, flexShrink: 0, fontFamily: 'monospace', fontWeight: 700, paddingTop: 2 }}>
+              {/* Minute */}
+              <span style={{ fontSize: 9, color: isGoalFor ? 'rgba(212,168,64,0.6)' : 'rgba(255,255,255,0.18)', width: 26, flexShrink: 0, fontFamily: 'monospace', fontWeight: 700, paddingTop: 2, letterSpacing: '0.02em' }}>
                 {moment.minute}'
               </span>
-              <span style={{ fontSize: isGoalEvent ? 16 : 12, flexShrink: 0, paddingTop: 1 }}>
-                {isGoalEvent ? '⚽' : isConceded ? '⚽' : moment.type === 'save' ? '🧤' : moment.type === 'miss' ? '💨' : moment.type === 'danger' ? '⚠' : '▸'}
+
+              {/* Icon */}
+              <span style={{ fontSize: isGoalFor ? 18 : 12, flexShrink: 0, paddingTop: 1, lineHeight: 1 }}>
+                {isGoalFor ? '⚽' : isConceded ? '⚽' : moment.type === 'save' ? '🧤' : moment.type === 'miss' ? '💨' : moment.type === 'danger' ? '⚠️' : '▸'}
               </span>
+
+              {/* Text lines */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 {moment.lines.map((line, j) => (
                   <p key={j} style={{
-                    margin: j > 0 ? '2px 0 0' : 0,
-                    fontSize: isGoalEvent ? 13 : isConceded ? 12 : isBoring ? 11 : 12,
-                    fontWeight: isGoalEvent ? 900 : isConceded ? 700 : 400,
-                    lineHeight: 1.4,
-                    color: isGoalEvent ? '#C9A84C' : isConceded ? '#EF9A9A' : isBoring ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.6)',
+                    margin: j > 0 ? '3px 0 0' : 0,
+                    fontSize: isGoalFor ? 14 : isConceded ? 12 : isMuted ? 11 : 12,
+                    fontWeight: isGoalFor ? 900 : isConceded ? 700 : 400,
+                    lineHeight: 1.45,
+                    color: isGoalFor
+                      ? (j === 0 ? '#D4A840' : 'rgba(212,168,64,0.75)')
+                      : isConceded
+                        ? (j === 0 ? '#EF9A9A' : 'rgba(239,154,154,0.7)')
+                        : isMuted
+                          ? 'rgba(255,255,255,0.22)'
+                          : 'rgba(255,255,255,0.65)',
                   }}>{line}</p>
                 ))}
               </div>
@@ -267,11 +473,12 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
           )
         })}
 
-        {!isFinished && playing && (
+        {/* Typing indicator */}
+        {!isFinished && playing && moments.length > 0 && (
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '5px 8px' }}>
-            <span style={{ fontSize: 9, color: 'transparent', width: 26 }}>--</span>
-            <div style={{ display: 'flex', gap: 4 }}>
-              {[0, 180, 360].map(d => (
+            <span style={{ fontSize: 9, color: 'transparent', width: 26, fontFamily: 'monospace' }}>--</span>
+            <div style={{ display: 'flex', gap: 5 }}>
+              {[0, 150, 300].map(d => (
                 <div key={d} style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', animation: `pulse 1.2s ease-in-out ${d}ms infinite` }} />
               ))}
             </div>
@@ -280,34 +487,27 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
       </div>
 
       {/* ── Bottom controls ── */}
-      <div style={{ padding: '12px 16px 20px', borderTop: '1px solid rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.5)', flexShrink: 0 }}>
-
-        {/* Sound + pause row */}
+      <div style={{ padding: '12px 16px 20px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', flexShrink: 0 }}>
         <div style={{ display: 'flex', gap: 10, marginBottom: isFinished ? 12 : 0 }}>
-          {/* Sound toggle — prominent */}
+          {/* Sound */}
           <button onClick={() => setSoundOn(s => !s)} style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: '12px 16px', borderRadius: 14,
-            border: soundOn ? '1px solid rgba(201,168,76,0.4)' : '1px solid rgba(255,255,255,0.1)',
-            background: soundOn ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.06)',
-            cursor: 'pointer', flexShrink: 0,
+            display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 13,
+            border: soundOn ? '1px solid rgba(212,168,64,0.4)' : '1px solid rgba(255,255,255,0.09)',
+            background: soundOn ? 'rgba(212,168,64,0.14)' : 'rgba(255,255,255,0.05)', cursor: 'pointer', flexShrink: 0,
           }}>
             <span style={{ fontSize: 18 }}>{soundOn ? '🔊' : '🔇'}</span>
-            <span style={{ fontSize: 10, fontWeight: 900, color: soundOn ? '#C9A84C' : 'rgba(255,255,255,0.35)', letterSpacing: '0.1em' }}>
+            <span style={{ fontSize: 10, fontWeight: 900, color: soundOn ? '#D4A840' : 'rgba(255,255,255,0.3)', letterSpacing: '0.1em' }}>
               {soundOn ? 'SOM ON' : 'SOM OFF'}
             </span>
           </button>
 
           {/* Play/pause */}
-          {!isFinished && (
+          {!isFinished && moments.length > 0 && (
             <button onClick={() => setPlaying(p => !p)} style={{
-              flex: 1,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '12px', borderRadius: 14,
-              border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,255,255,0.06)',
-              cursor: 'pointer', fontWeight: 900, fontSize: 12,
-              color: 'rgba(255,255,255,0.6)',
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              padding: '12px', borderRadius: 13, border: '1px solid rgba(255,255,255,0.09)',
+              background: 'rgba(255,255,255,0.05)', cursor: 'pointer', fontWeight: 900, fontSize: 12,
+              color: 'rgba(255,255,255,0.55)',
             }}>
               <span style={{ fontSize: 16 }}>{playing ? '⏸' : '▶'}</span>
               {playing ? 'PAUSAR' : 'CONTINUAR'}
@@ -315,16 +515,13 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
           )}
         </div>
 
-        {/* Next match button */}
+        {/* Next match */}
         {isFinished && (
           <button onClick={handleNext} style={{
-            width: '100%',
-            padding: '16px', borderRadius: 16,
-            border: 'none', cursor: 'pointer',
+            width: '100%', padding: '17px', borderRadius: 16, border: 'none', cursor: 'pointer',
             fontWeight: 900, fontSize: 13, letterSpacing: '0.08em',
-            background: 'linear-gradient(135deg, #C9A84C, #8a6020)',
-            color: '#111',
-            boxShadow: '0 8px 24px rgba(201,168,76,0.35)',
+            background: 'linear-gradient(135deg, #D4A840 0%, #8a6020 100%)',
+            color: '#111', boxShadow: '0 8px 28px rgba(212,168,64,0.35)',
           }}>
             {matchIdx + 1 < matches.length
               ? `PRÓXIMO — ${matches[matchIdx + 1]?.opponentBadge ?? ''} ${matches[matchIdx + 1]?.opponent} →`
