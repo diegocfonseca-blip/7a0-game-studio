@@ -15,90 +15,73 @@ export default function Field({ formation, picks, selectedPlayer, onSlotClick }:
     <>
       <style>{`
         @keyframes slot-pulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(255,80,80,0.7), 0 0 18px rgba(220,50,50,0.5), 0 4px 12px rgba(0,0,0,0.5); transform: translate(-50%,-50%) scale(1.12); }
-          50%       { box-shadow: 0 0 0 8px rgba(255,80,80,0), 0 0 28px rgba(220,50,50,0.8), 0 4px 12px rgba(0,0,0,0.5); transform: translate(-50%,-50%) scale(1.22); }
+          0%, 100% { transform: translate(-50%,-50%) scale(1.05); opacity: 1; }
+          50%       { transform: translate(-50%,-50%) scale(1.18); opacity: 0.85; }
         }
         @keyframes slot-idle {
-          0%, 100% { opacity: 0.7; }
-          50%       { opacity: 0.45; }
+          0%, 100% { opacity: 0.5; }
+          50%       { opacity: 0.25; }
         }
       `}</style>
+
       <div
         className="relative w-full"
         style={{
           aspectRatio: '3/4',
-          maxHeight: 360,
-          borderRadius: 18,
+          maxHeight: 380,
+          borderRadius: 12,
           overflow: 'hidden',
-          background: `
-            repeating-linear-gradient(
-              180deg,
-              #1b5e20 0px, #1b5e20 30px,
-              #1a6b1a 30px, #1a6b1a 60px
-            )
-          `,
-          boxShadow: 'inset 0 0 80px rgba(0,0,0,0.45), 0 12px 40px rgba(0,0,0,0.7)',
-          border: '2px solid rgba(255,255,255,0.12)',
+          /* Alternating horizontal grass stripes matching the reference */
+          background: `repeating-linear-gradient(
+            180deg,
+            #3a7d3a 0px, #3a7d3a 28px,
+            #357535 28px, #357535 56px
+          )`,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+          border: '2px solid rgba(255,255,255,0.08)',
         }}
       >
-        {/* Ambient green glow */}
-        <div className="absolute inset-0 pointer-events-none" style={{
-          background: 'radial-gradient(ellipse at 50% 40%, rgba(60,150,60,0.18) 0%, transparent 70%)',
-        }} />
-
         {/* Field markings */}
         <div className="absolute inset-0 pointer-events-none">
-          {/* Outer border */}
-          <div className="absolute" style={{ top: '4%', left: '4%', right: '4%', bottom: '4%', border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: 2 }} />
+          {/* Outer pitch border */}
+          <div style={{ position: 'absolute', top: '3%', left: '5%', right: '5%', bottom: '3%', border: '1.5px solid rgba(255,255,255,0.5)', borderRadius: 1 }} />
 
-          {/* Top penalty area */}
-          <div className="absolute" style={{ top: '4%', left: '18%', right: '18%', height: '15%', border: '1.5px solid rgba(255,255,255,0.4)', borderTop: 'none' }} />
-          {/* Top goal area */}
-          <div className="absolute" style={{ top: '4%', left: '32%', right: '32%', height: '7%', border: '1.5px solid rgba(255,255,255,0.35)', borderTop: 'none' }} />
+          {/* Top penalty box */}
+          <div style={{ position: 'absolute', top: '3%', left: '20%', right: '20%', height: '14%', border: '1.5px solid rgba(255,255,255,0.5)', borderTop: 'none' }} />
+          {/* Top goal box */}
+          <div style={{ position: 'absolute', top: '3%', left: '33%', right: '33%', height: '6.5%', border: '1.5px solid rgba(255,255,255,0.45)', borderTop: 'none' }} />
           {/* Top penalty spot */}
-          <div className="absolute w-1.5 h-1.5 rounded-full" style={{ top: '17%', left: '50%', transform: 'translateX(-50%)', background: 'rgba(255,255,255,0.5)' }} />
-          {/* Top goal posts */}
-          <div className="absolute" style={{ top: '3.5%', left: '38%', right: '38%', height: '1.5%', background: 'rgba(255,255,255,0.55)', borderRadius: 2 }} />
+          <div style={{ position: 'absolute', top: '15.5%', left: '50%', transform: 'translateX(-50%)', width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.55)' }} />
 
           {/* Halfway line */}
-          <div className="absolute" style={{ top: '50%', left: '4%', right: '4%', height: '1.5px', background: 'rgba(255,255,255,0.4)', transform: 'translateY(-50%)' }} />
+          <div style={{ position: 'absolute', top: '50%', left: '5%', right: '5%', height: '1.5px', background: 'rgba(255,255,255,0.5)', transform: 'translateY(-50%)' }} />
           {/* Center circle */}
-          <div className="absolute rounded-full" style={{
-            top: '50%', left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '30%', paddingBottom: '30%',
-            border: '1.5px solid rgba(255,255,255,0.38)',
-          }} />
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '28%', paddingBottom: '28%', border: '1.5px solid rgba(255,255,255,0.48)', borderRadius: '50%' }} />
           {/* Center spot */}
-          <div className="absolute" style={{
-            top: '50%', left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 6, height: 6, borderRadius: '50%',
-            background: 'rgba(255,255,255,0.55)',
-          }} />
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.6)' }} />
 
-          {/* Bottom penalty area */}
-          <div className="absolute" style={{ bottom: '4%', left: '18%', right: '18%', height: '15%', border: '1.5px solid rgba(255,255,255,0.4)', borderBottom: 'none' }} />
-          {/* Bottom goal area */}
-          <div className="absolute" style={{ bottom: '4%', left: '32%', right: '32%', height: '7%', border: '1.5px solid rgba(255,255,255,0.35)', borderBottom: 'none' }} />
+          {/* Bottom penalty box */}
+          <div style={{ position: 'absolute', bottom: '3%', left: '20%', right: '20%', height: '14%', border: '1.5px solid rgba(255,255,255,0.5)', borderBottom: 'none' }} />
+          {/* Bottom goal box */}
+          <div style={{ position: 'absolute', bottom: '3%', left: '33%', right: '33%', height: '6.5%', border: '1.5px solid rgba(255,255,255,0.45)', borderBottom: 'none' }} />
           {/* Bottom penalty spot */}
-          <div className="absolute w-1.5 h-1.5 rounded-full" style={{ bottom: '17%', left: '50%', transform: 'translateX(-50%)', background: 'rgba(255,255,255,0.5)' }} />
-          {/* Bottom goal posts */}
-          <div className="absolute" style={{ bottom: '3.5%', left: '38%', right: '38%', height: '1.5%', background: 'rgba(255,255,255,0.55)', borderRadius: 2 }} />
+          <div style={{ position: 'absolute', bottom: '15.5%', left: '50%', transform: 'translateX(-50%)', width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.55)' }} />
+
+          {/* Bottom arc */}
+          <div style={{ position: 'absolute', bottom: '17%', left: '50%', transform: 'translateX(-50%)', width: '24%', paddingBottom: '12%', border: '1.5px solid rgba(255,255,255,0.45)', borderRadius: '50% 50% 0 0', borderBottom: 'none', clipPath: 'inset(0 0 50% 0)' }} />
 
           {/* Corner arcs */}
-          {[
-            { style: { top: '4%', left: '4%' }, clip: 'polygon(100% 0, 0 100%, 100% 100%)' },
-            { style: { top: '4%', right: '4%' }, clip: 'polygon(0 0, 0 100%, 100% 100%)' },
-            { style: { bottom: '4%', left: '4%' }, clip: 'polygon(0 0, 100% 0, 100% 100%)' },
-            { style: { bottom: '4%', right: '4%' }, clip: 'polygon(0 0, 100% 0, 0 100%)' },
-          ].map((c, i) => (
-            <div key={i} className="absolute" style={{
-              ...c.style,
-              width: 18, height: 18,
-              borderRadius: '50%',
-              border: '1.5px solid rgba(255,255,255,0.35)',
-              clipPath: c.clip,
+          {([
+            { top: '3%', left: '5%',  br: '0 100% 100% 0' },
+            { top: '3%', right: '5%', br: '100% 0 0 100%' },
+            { bottom: '3%', left: '5%',  br: '0 0 100% 100%' },
+            { bottom: '3%', right: '5%', br: '0 0 0 100%' },
+          ] as const).map((c, i) => (
+            <div key={i} style={{
+              position: 'absolute', ...c,
+              width: 16, height: 16,
+              border: '1.5px solid rgba(255,255,255,0.45)',
+              borderRadius: c.br,
             }} />
           ))}
         </div>
@@ -111,105 +94,119 @@ export default function Field({ formation, picks, selectedPlayer, onSlotClick }:
             ? canPlayPosition(selectedPlayer.primaryPosition, selectedPlayer.secondaryPositions, slot.position)
             : false
           const isPickable = isEmpty && isCompatible
-          const isIncompatibleEmpty = selectedPlayer && isEmpty && !isCompatible
-
-          const shortName = pick
-            ? (pick.player.name.split(' ').pop()?.substring(0, 6) ?? '?')
-            : slot.label
+          const isIncompat  = !!(selectedPlayer && isEmpty && !isCompatible)
+          const isGol = slot.position === 'GOL'
 
           return (
             <div
               key={i}
-              className="absolute flex flex-col items-center"
+              onClick={() => isPickable && onSlotClick(slot, i)}
               style={{
+                position: 'absolute',
                 left: `${slot.x}%`,
                 top: `${slot.y}%`,
                 transform: 'translate(-50%, -50%)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
                 cursor: isPickable ? 'pointer' : 'default',
                 zIndex: isPickable ? 10 : 5,
               }}
-              onClick={() => isPickable && onSlotClick(slot, i)}
             >
-              {/* Token */}
-              <div
-                style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: '50%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  transition: 'all 0.15s',
-                  ...(pick ? {
-                    background: 'linear-gradient(160deg, #ffffff 0%, #dde8dd 100%)',
-                    border: '2.5px solid rgba(255,255,255,0.95)',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.9)',
-                    transform: 'translate(0,0)',
-                  } : isPickable ? {
-                    background: 'linear-gradient(160deg, #e53935 0%, #b71c1c 100%)',
-                    border: '2.5px solid rgba(255,180,180,0.7)',
-                    animation: 'slot-pulse 1.4s ease-in-out infinite',
-                  } : isIncompatibleEmpty ? {
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1.5px dashed rgba(255,255,255,0.15)',
-                    animation: 'slot-idle 2.5s ease-in-out infinite',
-                  } : {
-                    background: 'rgba(255,255,255,0.14)',
-                    border: '2px solid rgba(255,255,255,0.32)',
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.45)',
-                  }),
-                }}
-              >
+              {/* Slot circle */}
+              <div style={{
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                transition: 'transform 0.15s',
+                ...(pick ? {
+                  background: isGol
+                    ? 'linear-gradient(160deg, #e53935 0%, #b71c1c 100%)'
+                    : 'linear-gradient(160deg, #ffffff 0%, #e8e8e8 100%)',
+                  border: isGol ? '2px solid rgba(255,200,200,0.6)' : '2.5px solid rgba(255,255,255,0.9)',
+                  boxShadow: isGol
+                    ? '0 4px 16px rgba(229,57,53,0.6), 0 2px 8px rgba(0,0,0,0.5)'
+                    : '0 4px 16px rgba(0,0,0,0.5)',
+                  transform: 'translate(0,0)',
+                } : isPickable ? {
+                  background: 'rgba(229,57,53,0.15)',
+                  border: '2px dashed rgba(229,57,53,0.9)',
+                  boxShadow: '0 0 14px rgba(229,57,53,0.5)',
+                  animation: 'slot-pulse 1.3s ease-in-out infinite',
+                  transform: 'translate(0,0)',
+                } : isIncompat ? {
+                  background: 'rgba(0,0,0,0.1)',
+                  border: '1.5px dashed rgba(255,255,255,0.18)',
+                  animation: 'slot-idle 2.5s ease-in-out infinite',
+                  transform: 'translate(0,0)',
+                } : {
+                  background: 'rgba(0,0,0,0.1)',
+                  border: '1.5px dashed rgba(255,255,255,0.45)',
+                  transform: 'translate(0,0)',
+                }),
+              }}>
                 {pick ? (
-                  <span style={{ fontSize: 18, lineHeight: 1, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}>
-                    {pick.squad.flagEmoji}
+                  <span style={{
+                    fontSize: 13,
+                    fontWeight: 900,
+                    color: isGol ? '#fff' : '#111',
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1,
+                  }}>
+                    {pick.player.rating}
                   </span>
                 ) : (
                   <span style={{
                     fontSize: isPickable ? 10 : 9,
-                    fontWeight: 900,
+                    fontWeight: 700,
+                    color: isPickable
+                      ? 'rgba(255,120,120,0.95)'
+                      : isIncompat
+                        ? 'rgba(255,255,255,0.2)'
+                        : 'rgba(255,255,255,0.6)',
                     letterSpacing: '0.02em',
-                    color: isPickable ? '#fff' : isIncompatibleEmpty ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.75)',
                   }}>
                     {slot.label}
                   </span>
                 )}
               </div>
 
-              {/* Name label below token */}
+              {/* Name pill below token (only when filled) */}
               {pick && (
-                <div
-                  style={{
-                    marginTop: 3,
-                    fontSize: 8,
+                <div style={{
+                  marginTop: 4,
+                  background: 'rgba(0,0,0,0.72)',
+                  borderRadius: 4,
+                  padding: '2px 5px',
+                  maxWidth: 52,
+                }}>
+                  <span style={{
+                    fontSize: 7.5,
                     fontWeight: 900,
-                    color: '#fff',
-                    textShadow: '0 1px 6px rgba(0,0,0,1), 0 0 12px rgba(0,0,0,0.9)',
-                    maxWidth: 48,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    letterSpacing: '0.02em',
+                    color: pick.player.isLegend ? '#FFD700' : '#fff',
+                    letterSpacing: '0.04em',
                     textTransform: 'uppercase',
-                  }}
-                >
-                  {shortName}
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    display: 'block',
+                    textOverflow: 'ellipsis',
+                    maxWidth: 50,
+                  }}>
+                    {pick.player.name.split(' ').pop()}
+                  </span>
                 </div>
-              )}
-
-              {/* Legend star */}
-              {pick?.player.isLegend && (
-                <div style={{ fontSize: 7, color: '#FFD700', lineHeight: 1, textShadow: '0 0 6px rgba(255,200,0,0.9), 0 0 12px rgba(255,150,0,0.5)' }}>★</div>
               )}
             </div>
           )
         })}
 
-        {/* Edge vignette */}
+        {/* Subtle edge vignette */}
         <div className="absolute inset-0 pointer-events-none" style={{
-          background: 'radial-gradient(ellipse 90% 90% at 50% 50%, transparent 55%, rgba(0,0,0,0.4) 100%)',
+          background: 'radial-gradient(ellipse 85% 85% at 50% 50%, transparent 50%, rgba(0,0,0,0.3) 100%)',
         }} />
       </div>
     </>
