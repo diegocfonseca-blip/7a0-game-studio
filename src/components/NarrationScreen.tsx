@@ -81,7 +81,7 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
   const [aiProgress, setAiProgress] = useState('')
   const [shownCount, setShownCount] = useState(0)
   const [playing, setPlaying] = useState(false)
-  const [speed, setSpeed] = useState<'normal' | 'fast'>('normal')
+  const [speed, setSpeed] = useState<'slow' | 'normal' | 'fast'>('normal')
   const [soundOn, setSoundOn] = useState(false)
   const [goalFlash, setGoalFlash] = useState(false)
   const [confetti, setConfetti] = useState(false)
@@ -140,7 +140,7 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
   // Auto-advance moments
   useEffect(() => {
     if (!playing || isFinished || moments.length === 0) return
-    const delay = speed === 'fast' ? 100 : useAI ? 900 : 650
+    const delay = speed === 'fast' ? 80 : speed === 'slow' ? 2200 : useAI ? 950 : 700
     const timer = setTimeout(() => {
       const next = moments[shownCount]
       if (next?.type === 'goal' && next?.forUs) {
@@ -227,9 +227,9 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>{matchIdx + 1}/{matches.length}</span>
           <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.1)' }} />
-          <button onClick={() => setSpeed(s => s === 'fast' ? 'normal' : 'fast')}
-            style={{ fontSize: 10, fontWeight: 900, padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: speed === 'fast' ? 'rgba(212,168,64,0.18)' : 'rgba(255,255,255,0.05)', color: speed === 'fast' ? '#D4A840' : 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
-            {speed === 'fast' ? '⏩ RÁPIDO' : '▶ NORMAL'}
+          <button onClick={() => setSpeed(s => s === 'slow' ? 'normal' : s === 'normal' ? 'fast' : 'slow')}
+            style={{ fontSize: 10, fontWeight: 900, padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: speed === 'fast' ? 'rgba(212,168,64,0.18)' : speed === 'slow' ? 'rgba(100,149,237,0.15)' : 'rgba(255,255,255,0.05)', color: speed === 'fast' ? '#D4A840' : speed === 'slow' ? '#90CAF9' : 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>
+            {speed === 'fast' ? '⏩ RÁPIDO' : speed === 'slow' ? '🐢 LENTO' : '▶ NORMAL'}
           </button>
           {!isFinished && (
             <button onClick={() => setShownCount(moments.length)}

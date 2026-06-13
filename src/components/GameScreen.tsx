@@ -64,6 +64,18 @@ const STYLE_LABELS: Record<GameStyle, string> = {
 
 const TICKER_TEXT = '⚽ COPA DO MUNDO   🏆 LENDAS DO FUTEBOL   ★ CRAQUE HISTÓRICO   🥇 HALL DA FAMA   🎖 ÍDOLO DA NAÇÃO   ⚽ COPA DO MUNDO   🏆 LENDAS DO FUTEBOL   ★ CRAQUE HISTÓRICO   🥇 HALL DA FAMA   🎖 ÍDOLO DA NAÇÃO   '
 
+function AdStrip({ theme: t }: { theme: ThemePalette }) {
+  const bg = t.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'
+  const color = t.mode === 'dark' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.3)'
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 10px', background: bg, borderTop: `1px solid ${t.border}`, borderBottom: `1px solid ${t.border}` }}>
+      <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: '0.18em', color }}>ANUNCIE AQUI</span>
+      <span style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.12em', color }}>CONTATO</span>
+      <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: '0.18em', color }}>ANUNCIE AQUI</span>
+    </div>
+  )
+}
+
 function TickerBanner() {
   return (
     <>
@@ -606,7 +618,9 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
             <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted }}>
               CAMPO · {state.formation.name} · {STYLE_LABELS[state.style]}
             </div>
+            <AdStrip theme={t} />
             <Field formation={state.formation} picks={state.picks} selectedPlayer={selectedPlayer} onSlotClick={placePlayer} />
+            <AdStrip theme={t} />
             <TickerBanner />
             {statsStrip}
             {currentTeamList}
@@ -663,10 +677,12 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
             {/* Field pick overlay on mobile */}
             {showField && state.currentRoll && selectedPlayer && (
               <div ref={fieldPickRef} style={{ borderRadius: 18, overflow: 'hidden', background: t.surface, border: `1px solid ${t.border}` }}>
-                <div style={{ padding: '12px 16px 0', fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted }}>ESCOLHA A POSIÇÃO</div>
-                <div style={{ padding: '12px 16px 8px' }}>
+                <div style={{ padding: '12px 16px 8px', fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted }}>ESCOLHA A POSIÇÃO</div>
+                <AdStrip theme={t} />
+                <div style={{ padding: '8px 12px' }}>
                   <Field formation={state.formation} picks={state.picks} selectedPlayer={selectedPlayer} onSlotClick={placePlayer} />
                 </div>
+                <AdStrip theme={t} />
                 <TickerBanner />
               </div>
             )}

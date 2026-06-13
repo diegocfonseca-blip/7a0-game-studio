@@ -16,7 +16,7 @@ export const FORMATIONS: Record<string, Formation> = {
   '4-3-3': {
     name: '4-3-3',
     slots: [
-      { position: 'GOL', x: 50, y: 92, label: 'GOL' },
+      { position: 'GOL', x: 50, y: 91, label: 'GOL' },
       { position: 'LD',  x: 80, y: 74, label: 'LD' },
       { position: 'ZAG', x: 60, y: 74, label: 'ZAG' },
       { position: 'ZAG', x: 40, y: 74, label: 'ZAG' },
@@ -24,15 +24,15 @@ export const FORMATIONS: Record<string, Formation> = {
       { position: 'MC',  x: 65, y: 54, label: 'MC' },
       { position: 'VOL', x: 50, y: 54, label: 'VOL' },
       { position: 'MC',  x: 35, y: 54, label: 'MC' },
-      { position: 'PD',  x: 75, y: 28, label: 'PD' },
+      { position: 'PD',  x: 78, y: 28, label: 'PD' },
       { position: 'CA',  x: 50, y: 18, label: 'CA' },
-      { position: 'PE',  x: 25, y: 28, label: 'PE' },
+      { position: 'PE',  x: 22, y: 28, label: 'PE' },
     ]
   },
   '4-4-2': {
     name: '4-4-2',
     slots: [
-      { position: 'GOL', x: 50, y: 92, label: 'GOL' },
+      { position: 'GOL', x: 50, y: 91, label: 'GOL' },
       { position: 'LD',  x: 80, y: 74, label: 'LD' },
       { position: 'ZAG', x: 60, y: 74, label: 'ZAG' },
       { position: 'ZAG', x: 40, y: 74, label: 'ZAG' },
@@ -48,13 +48,13 @@ export const FORMATIONS: Record<string, Formation> = {
   '4-2-3-1': {
     name: '4-2-3-1',
     slots: [
-      { position: 'GOL', x: 50, y: 92, label: 'GOL' },
+      { position: 'GOL', x: 50, y: 91, label: 'GOL' },
       { position: 'LD',  x: 80, y: 74, label: 'LD' },
       { position: 'ZAG', x: 60, y: 74, label: 'ZAG' },
       { position: 'ZAG', x: 40, y: 74, label: 'ZAG' },
       { position: 'LE',  x: 20, y: 74, label: 'LE' },
-      { position: 'VOL', x: 62, y: 56, label: 'VOL' },
-      { position: 'VOL', x: 38, y: 56, label: 'VOL' },
+      { position: 'VOL', x: 62, y: 58, label: 'VOL' },
+      { position: 'VOL', x: 38, y: 58, label: 'VOL' },
       { position: 'PD',  x: 75, y: 36, label: 'PD' },
       { position: 'MEI', x: 50, y: 36, label: 'MEI' },
       { position: 'PE',  x: 25, y: 36, label: 'PE' },
@@ -64,17 +64,81 @@ export const FORMATIONS: Record<string, Formation> = {
   '3-5-2': {
     name: '3-5-2',
     slots: [
-      { position: 'GOL', x: 50, y: 92, label: 'GOL' },
+      { position: 'GOL', x: 50, y: 91, label: 'GOL' },
       { position: 'ZAG', x: 68, y: 76, label: 'ZAG' },
       { position: 'ZAG', x: 50, y: 76, label: 'ZAG' },
       { position: 'ZAG', x: 32, y: 76, label: 'ZAG' },
-      { position: 'MD',  x: 82, y: 54, label: 'MD' },
-      { position: 'MC',  x: 65, y: 54, label: 'MC' },
-      { position: 'VOL', x: 50, y: 54, label: 'VOL' },
-      { position: 'MC',  x: 35, y: 54, label: 'MC' },
-      { position: 'ME',  x: 18, y: 54, label: 'ME' },
+      { position: 'MD',  x: 82, y: 52, label: 'MD' },
+      { position: 'MC',  x: 65, y: 52, label: 'MC' },
+      { position: 'VOL', x: 50, y: 52, label: 'VOL' },
+      { position: 'MC',  x: 35, y: 52, label: 'MC' },
+      { position: 'ME',  x: 18, y: 52, label: 'ME' },
       { position: 'CA',  x: 62, y: 22, label: 'CA' },
       { position: 'CA',  x: 38, y: 22, label: 'CA' },
+    ]
+  },
+  '4-1-4-1': {
+    name: '4-1-4-1',
+    slots: [
+      { position: 'GOL', x: 50, y: 91, label: 'GOL' },
+      { position: 'LD',  x: 80, y: 74, label: 'LD' },
+      { position: 'ZAG', x: 60, y: 74, label: 'ZAG' },
+      { position: 'ZAG', x: 40, y: 74, label: 'ZAG' },
+      { position: 'LE',  x: 20, y: 74, label: 'LE' },
+      { position: 'VOL', x: 50, y: 60, label: 'VOL' },
+      { position: 'MD',  x: 78, y: 44, label: 'MD' },
+      { position: 'MC',  x: 58, y: 44, label: 'MC' },
+      { position: 'MC',  x: 38, y: 44, label: 'MC' },
+      { position: 'ME',  x: 18, y: 44, label: 'ME' },
+      { position: 'CA',  x: 50, y: 16, label: 'CA' },
+    ]
+  },
+  '3-4-3': {
+    name: '3-4-3',
+    slots: [
+      { position: 'GOL', x: 50, y: 91, label: 'GOL' },
+      { position: 'ZAG', x: 68, y: 76, label: 'ZAG' },
+      { position: 'ZAG', x: 50, y: 76, label: 'ZAG' },
+      { position: 'ZAG', x: 32, y: 76, label: 'ZAG' },
+      { position: 'MD',  x: 75, y: 54, label: 'MD' },
+      { position: 'MC',  x: 57, y: 54, label: 'MC' },
+      { position: 'MC',  x: 39, y: 54, label: 'MC' },
+      { position: 'ME',  x: 21, y: 54, label: 'ME' },
+      { position: 'PD',  x: 75, y: 22, label: 'PD' },
+      { position: 'CA',  x: 50, y: 16, label: 'CA' },
+      { position: 'PE',  x: 25, y: 22, label: 'PE' },
+    ]
+  },
+  '5-3-2': {
+    name: '5-3-2',
+    slots: [
+      { position: 'GOL', x: 50, y: 91, label: 'GOL' },
+      { position: 'LD',  x: 84, y: 72, label: 'LD' },
+      { position: 'ZAG', x: 67, y: 76, label: 'ZAG' },
+      { position: 'ZAG', x: 50, y: 76, label: 'ZAG' },
+      { position: 'ZAG', x: 33, y: 76, label: 'ZAG' },
+      { position: 'LE',  x: 16, y: 72, label: 'LE' },
+      { position: 'MC',  x: 65, y: 50, label: 'MC' },
+      { position: 'VOL', x: 50, y: 50, label: 'VOL' },
+      { position: 'MC',  x: 35, y: 50, label: 'MC' },
+      { position: 'CA',  x: 62, y: 22, label: 'CA' },
+      { position: 'CA',  x: 38, y: 22, label: 'CA' },
+    ]
+  },
+  '4-5-1': {
+    name: '4-5-1',
+    slots: [
+      { position: 'GOL', x: 50, y: 91, label: 'GOL' },
+      { position: 'LD',  x: 80, y: 74, label: 'LD' },
+      { position: 'ZAG', x: 60, y: 74, label: 'ZAG' },
+      { position: 'ZAG', x: 40, y: 74, label: 'ZAG' },
+      { position: 'LE',  x: 20, y: 74, label: 'LE' },
+      { position: 'MD',  x: 82, y: 48, label: 'MD' },
+      { position: 'MC',  x: 64, y: 48, label: 'MC' },
+      { position: 'VOL', x: 46, y: 48, label: 'VOL' },
+      { position: 'MC',  x: 28, y: 48, label: 'MC' },
+      { position: 'ME',  x: 10, y: 48, label: 'ME' },
+      { position: 'CA',  x: 50, y: 18, label: 'CA' },
     ]
   },
 }
