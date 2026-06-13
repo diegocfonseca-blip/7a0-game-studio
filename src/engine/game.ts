@@ -183,15 +183,24 @@ function simulateMatch(
   const scorerPool = attackers.length ? attackers : picks
   const assistPool = picks.filter(p => !['GOL'].includes(p.slot.position))
 
+  // Decay multiplier: each time a player scores, their next-goal weight drops 5×
+  const scoredCount = new Map<string, number>()
+
   for (let i = 0; i < goalsFor; i++) {
     const minute = Math.min(90, Math.floor(sr(seed, matchIdx, 50 + i) * 90) + 1)
-    const ratingSum = scorerPool.reduce((s, p) => s + p.player.rating + (p.player.isLegend ? 10 : 0), 0)
+    const weights = scorerPool.map(p => {
+      const times = scoredCount.get(p.player.id) ?? 0
+      return (p.player.rating + (p.player.isLegend ? 10 : 0)) * Math.pow(0.2, times)
+    })
+    const ratingSum = weights.reduce((s, w) => s + w, 0)
     let pick = sr(seed, matchIdx, 60 + i) * ratingSum
     let scorer = scorerPool[scorerPool.length - 1]
-    for (const p of scorerPool) {
-      pick -= p.player.rating + (p.player.isLegend ? 10 : 0)
-      if (pick <= 0) { scorer = p; break }
+    for (let j = 0; j < scorerPool.length; j++) {
+      pick -= weights[j]
+      if (pick <= 0) { scorer = scorerPool[j]; break }
     }
+    scoredCount.set(scorer.player.id, (scoredCount.get(scorer.player.id) ?? 0) + 1)
+
     const assistIdx = Math.floor(sr(seed, matchIdx, 70 + i) * assistPool.length)
     const assister = assistPool[assistIdx]
     events.push({
@@ -201,14 +210,23 @@ function simulateMatch(
     })
   }
 
+  // Opponent scorers: equal weight with heavy decay to spread goals across players
+  const oppScoredCount = new Map<string, number>()
   for (let i = 0; i < goalsAgainst; i++) {
     const minute = Math.min(90, Math.floor(sr(seed, matchIdx, 80 + i) * 90) + 1)
-    const oppAttackers = opponentPlayers.length
-      ? opponentPlayers
-      : []
-    const scorerName = oppAttackers.length
-      ? oppAttackers[Math.floor(sr(seed, matchIdx, 90 + i) * oppAttackers.length)]
-      : undefined
+    const oppPool = opponentPlayers.length ? opponentPlayers : []
+    let scorerName: string | undefined
+    if (oppPool.length) {
+      const weights = oppPool.map(n => 1 / (1 + (oppScoredCount.get(n) ?? 0) * 4))
+      const total = weights.reduce((a, b) => a + b, 0)
+      let pick = sr(seed, matchIdx, 90 + i) * total
+      scorerName = oppPool[oppPool.length - 1]
+      for (let j = 0; j < oppPool.length; j++) {
+        pick -= weights[j]
+        if (pick <= 0) { scorerName = oppPool[j]; break }
+      }
+      oppScoredCount.set(scorerName, (oppScoredCount.get(scorerName) ?? 0) + 1)
+    }
     events.push({ minute, type: 'conceded', playerName: scorerName })
   }
 
