@@ -322,9 +322,6 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#E03535', boxShadow: '0 0 10px rgba(224,53,53,0.9)', animation: playing && !isFinished ? 'blink 1s infinite' : 'none' }} />
           <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', color: 'rgba(255,255,255,0.55)' }}>NARRAÇÃO AO VIVO</span>
-          {useAI && (
-            <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: '0.1em', padding: '2px 7px', borderRadius: 10, background: 'rgba(212,168,64,0.2)', border: '1px solid rgba(212,168,64,0.4)', color: '#D4A840' }}>✦ IA</span>
-          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>{matchIdx + 1}/{matches.length}</span>
