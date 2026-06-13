@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import type { GameState, MatchResult } from '../engine/game'
 import { generateMatchMoments } from '../engine/commentary'
 import type { MatchMoment } from '../engine/commentary'
-import { generateAINarration, hasApiKey, saveApiKey } from '../engine/ai-narration'
+import { generateAINarration, hasApiKey } from '../engine/ai-narration'
 import { playCrowdRoar, playCrowdBoo, playCrowdTension, playWhistle, startCrowdMurmur, stopCrowdMurmur } from '../engine/soundUtils'
 
 interface Props { state: GameState; matches: MatchResult[]; onFinish: () => void }
@@ -35,84 +35,6 @@ function Confetti({ active }: { active: boolean }) {
   )
 }
 
-function ApiKeyScreen({ onKey, onSkip }: { onKey: (k: string) => void; onSkip: () => void }) {
-  const [value, setValue] = useState('')
-  const [error, setError] = useState('')
-  return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(160deg, #0a0a10 0%, #111118 55%, #120d02 100%)', padding: '24px' }}>
-      <style>{`@keyframes sparkle { 0%,100%{opacity:0.3;transform:scale(1)} 50%{opacity:1;transform:scale(1.2)} }`}</style>
-      <div style={{ maxWidth: 400, width: '100%' }}>
-        {/* Icon */}
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ position: 'relative', display: 'inline-block' }}>
-            <div style={{ position: 'absolute', inset: -20, background: 'radial-gradient(circle, rgba(212,168,64,0.25) 0%, transparent 70%)', filter: 'blur(12px)' }} />
-            <div style={{ fontSize: 60, position: 'relative', filter: 'drop-shadow(0 0 16px rgba(212,168,64,0.6))' }}>🤖</div>
-          </div>
-          <div style={{ marginTop: 16, fontSize: 11, fontWeight: 900, letterSpacing: '0.25em', color: 'rgba(212,168,64,0.6)' }}>NARRAÇÃO COM IA</div>
-          <h2 style={{ fontWeight: 900, fontSize: 22, color: '#fff', margin: '8px 0 6px', letterSpacing: '0.02em' }}>NARRADOR INTELIGENTE</h2>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, margin: 0 }}>
-            Use a IA do Claude para gerar narrações únicas, contextuais e dramáticas — cada jogo contado de forma diferente.
-          </p>
-        </div>
-
-        {/* Features */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
-          {[
-            { icon: '🎙', text: 'Narração personalizada para cada jogador e time' },
-            { icon: '⚡', text: 'Gera em tempo real, jogo a jogo' },
-            { icon: '🧠', text: 'Entende táticas, histórico e momento do jogo' },
-          ].map(f => (
-            <div key={f.icon} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <span style={{ fontSize: 18, flexShrink: 0 }}>{f.icon}</span>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>{f.text}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* API key input */}
-        <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>
-            CHAVE ANTHROPIC API
-          </div>
-          <input
-            type="password"
-            value={value}
-            onChange={e => { setValue(e.target.value); setError('') }}
-            placeholder="sk-ant-api03-..."
-            style={{
-              width: '100%', padding: '14px 16px', borderRadius: 12,
-              border: error ? '1.5px solid #E03535' : '1.5px solid rgba(212,168,64,0.3)',
-              background: 'rgba(255,255,255,0.06)', color: '#fff',
-              fontSize: 13, fontFamily: 'monospace', outline: 'none',
-              boxSizing: 'border-box',
-            }}
-          />
-          {error && <div style={{ fontSize: 11, color: '#EF9A9A', marginTop: 6 }}>{error}</div>}
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginTop: 6 }}>
-            Guardada localmente no browser · console.anthropic.com
-          </div>
-        </div>
-
-        <button
-          onClick={() => {
-            if (!value.startsWith('sk-ant-')) { setError('Chave inválida. Deve começar com "sk-ant-"'); return }
-            saveApiKey(value.trim())
-            onKey(value.trim())
-          }}
-          style={{ width: '100%', padding: '16px', borderRadius: 14, border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: 14, letterSpacing: '0.1em', background: 'linear-gradient(135deg, #D4A840 0%, #7a5010 100%)', color: '#111', marginBottom: 10, boxShadow: '0 8px 28px rgba(212,168,64,0.35)' }}
-        >
-          🤖 ATIVAR IA
-        </button>
-        <button
-          onClick={onSkip}
-          style={{ width: '100%', padding: '14px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', fontWeight: 900, fontSize: 13, background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)' }}
-        >
-          ▶ USAR NARRAÇÃO CLÁSSICA
-        </button>
-      </div>
-    </div>
-  )
-}
 
 function AILoadingScreen({ match, progress }: { match: MatchResult; progress: string }) {
   const dots = ['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏']
@@ -166,10 +88,7 @@ function AILoadingScreen({ match, progress }: { match: MatchResult; progress: st
 }
 
 export default function NarrationScreen({ state, matches, onFinish }: Props) {
-  const [apiPhase, setApiPhase] = useState<'check' | 'setup' | 'ready'>(() =>
-    hasApiKey() ? 'ready' : 'check'
-  )
-  const [useAI, setUseAI] = useState(hasApiKey())
+  const useAI = hasApiKey()
 
   const [matchIdx, setMatchIdx] = useState(0)
   const [moments, setMoments] = useState<MatchMoment[]>([])
@@ -220,8 +139,8 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
 
   // Initial load
   useEffect(() => {
-    if (apiPhase === 'ready') loadMoments(0, useAI)
-  }, [apiPhase]) // eslint-disable-line react-hooks/exhaustive-deps
+    loadMoments(0, useAI)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const isFinished = shownCount >= moments.length && moments.length > 0
 
@@ -267,16 +186,6 @@ export default function NarrationScreen({ state, matches, onFinish }: Props) {
     } else {
       onFinish()
     }
-  }
-
-  // ── API key setup screen ───────────────────────────────────────────────────
-  if (apiPhase === 'check') {
-    return (
-      <ApiKeyScreen
-        onKey={() => { setUseAI(true); setApiPhase('ready') }}
-        onSkip={() => { setUseAI(false); setApiPhase('ready') }}
-      />
-    )
   }
 
   // ── AI loading screen ──────────────────────────────────────────────────────
