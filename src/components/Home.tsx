@@ -61,7 +61,7 @@ export default function Home({ onPlay, theme: t, onToggleTheme }: Props) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${k}` },
           body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
+            model: 'llama-3.1-8b-instant',
             messages: [{ role: 'user', content: 'Responda apenas: OK' }],
             max_tokens: 5,
           }),
