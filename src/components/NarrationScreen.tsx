@@ -16,6 +16,55 @@ const PHASE_RATINGS: Record<string, number> = {
   Grupos: 78, Oitavas: 84, Quartas: 87, Semifinal: 90, Final: 93,
 }
 
+// Team color lookup — returns [primary, secondary] hex colors
+function getTeamColors(name: string): [string, string] {
+  const n = name.toLowerCase()
+  if (n.includes('flamengo'))    return ['#C8102E', '#000000']
+  if (n.includes('fluminense'))  return ['#6B1020', '#009933']
+  if (n.includes('palmeiras'))   return ['#006437', '#FFFFFF']
+  if (n.includes('corinthians')) return ['#000000', '#FFFFFF']
+  if (n.includes('santos'))      return ['#000000', '#FFFFFF']
+  if (n.includes('são paulo') || n.includes('sao paulo')) return ['#CC0000', '#FFFFFF']
+  if (n.includes('vasco'))       return ['#000080', '#FFFFFF']
+  if (n.includes('botafogo'))    return ['#000000', '#FFFFFF']
+  if (n.includes('grêmio') || n.includes('gremio')) return ['#003087', '#FFFFFF']
+  if (n.includes('milan') && !n.includes('inter')) return ['#C8102E', '#000000']
+  if (n.includes('inter') && n.includes('milan')) return ['#003399', '#000000']
+  if (n.includes('juventus'))    return ['#000000', '#FFFFFF']
+  if (n.includes('barcelona'))   return ['#A50044', '#004D98']
+  if (n.includes('real madrid')) return ['#FEBE10', '#FFFFFF']
+  if (n.includes('atletico') && n.includes('madrid')) return ['#CC0000', '#FFFFFF']
+  if (n.includes('chelsea'))     return ['#034694', '#FFFFFF']
+  if (n.includes('arsenal'))     return ['#EF0107', '#FFFFFF']
+  if (n.includes('liverpool'))   return ['#C8102E', '#FFFFFF']
+  if (n.includes('manchester') && n.includes('united')) return ['#DA291C', '#000000']
+  if (n.includes('manchester') && n.includes('city'))   return ['#6CABDD', '#FFFFFF']
+  if (n.includes('tottenham'))   return ['#132257', '#FFFFFF']
+  if (n.includes('bayern'))      return ['#DC052D', '#FFFFFF']
+  if (n.includes('borussia') || n.includes('dortmund')) return ['#FDE100', '#000000']
+  if (n.includes('ajax'))        return ['#D2122E', '#FFFFFF']
+  if (n.includes('psg') || (n.includes('paris') && n.includes('saint'))) return ['#003370', '#FFFFFF']
+  if (n.includes('porto'))       return ['#003087', '#FFD700']
+  if (n.includes('benfica'))     return ['#C8102E', '#FFFFFF']
+  if (n.includes('brasil') || n.includes('brazil')) return ['#009C3B', '#FFDF00']
+  if (n.includes('argentina'))   return ['#74ACDF', '#FFFFFF']
+  if (n.includes('alemanha') || n.includes('germany')) return ['#000000', '#DD0000']
+  if (n.includes('itália') || n.includes('italy') || n.includes('italia')) return ['#003399', '#FFFFFF']
+  if (n.includes('espanha') || n.includes('spain')) return ['#AA151B', '#F1BF00']
+  if (n.includes('frança') || n.includes('france') || n.includes('franca')) return ['#002395', '#FFFFFF']
+  if (n.includes('holanda') || n.includes('holland') || n.includes('netherlands')) return ['#FF6600', '#FFFFFF']
+  if (n.includes('portugal'))    return ['#006600', '#CC0000']
+  if (n.includes('england') || n.includes('inglaterra')) return ['#CF091D', '#FFFFFF']
+  if (n.includes('croatia') || n.includes('croácia') || n.includes('croacia')) return ['#CC0000', '#FFFFFF']
+  if (n.includes('bélgica') || n.includes('belgium') || n.includes('belgica')) return ['#CC0000', '#000000']
+  if (n.includes('uruguai') || n.includes('uruguay')) return ['#5AAFC5', '#FFFFFF']
+  // Fallback: derive from name hash
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xFFFFFF
+  const hue = (h & 0xFF) / 255 * 360
+  return [`hsl(${hue},60%,35%)`, '#FFFFFF']
+}
+
 function Confetti({ active }: { active: boolean }) {
   if (!active) return null
   const colors = ['#D4A840', '#E03535', '#fff', '#4CAF50', '#2196F3', '#FF9800']
@@ -241,80 +290,81 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
       </div>
 
       {/* ── Scoreboard ── */}
-      <div style={{
-        padding: '20px 20px 14px',
-        background: goalFlash
-          ? 'linear-gradient(180deg, rgba(212,168,64,0.22) 0%, transparent 100%)'
-          : 'linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%)',
-        transition: 'background 0.5s',
-        flexShrink: 0,
-      }}>
-        {/* Phase chip */}
-        <div style={{ textAlign: 'center', marginBottom: 14 }}>
-          <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.22em', color: 'rgba(212,168,64,0.7)', background: 'rgba(212,168,64,0.08)', padding: '4px 14px', borderRadius: 20, border: '1px solid rgba(212,168,64,0.22)' }}>
-            {PHASE_LABELS[match?.phase ?? ''] ?? match?.phase}
-          </span>
-        </div>
-
-        {/* Score row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          {/* Our team */}
-          <div style={{ flex: 1, textAlign: 'right' }}>
-            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', marginBottom: 3 }}>SEU TIME</div>
-            <div style={{ fontSize: 9, color: 'rgba(212,168,64,0.4)', fontWeight: 700 }}>⭐ OVR {state.overall}</div>
-          </div>
-
-          {/* Score display */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-            <span className={goalFlash ? 'goal-glow' : ''} style={{
-              fontWeight: 900, fontSize: 64, lineHeight: 1, minWidth: 44, textAlign: 'center',
-              color: isWinning ? '#D4A840' : isLosing ? 'rgba(255,255,255,0.65)' : '#fff',
-              transition: 'color 0.4s',
-              fontVariantNumeric: 'tabular-nums',
-            }}>{scoreFor}</span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, alignItems: 'center', paddingBottom: 4 }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.18)' }} />
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.18)' }} />
-            </div>
-            <span style={{
-              fontWeight: 900, fontSize: 64, lineHeight: 1, minWidth: 44, textAlign: 'center',
-              color: isLosing ? '#E03535' : 'rgba(255,255,255,0.28)',
-              transition: 'color 0.4s',
-              fontVariantNumeric: 'tabular-nums',
-            }}>{scoreAgainst}</span>
-          </div>
-
-          {/* Opponent */}
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', marginBottom: 4 }}>ADVERSÁRIO</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontSize: 9, fontWeight: 900, color: 'rgba(255,255,255,0.55)' }}>{match?.opponentBadge ?? match?.opponentFlag}</span>
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontWeight: 800, fontSize: 11, color: '#fff', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match?.opponent}</div>
-                <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.2)' }}>{match?.opponentYear}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Result pill when finished */}
-        {isFinished && (
-          <div style={{ marginTop: 12, textAlign: 'center' }}>
-            <span style={{
-              fontSize: 11, fontWeight: 900, padding: '5px 16px', borderRadius: 20,
-              background: match.won ? 'rgba(76,175,80,0.2)' : 'rgba(224,53,53,0.2)',
-              color: match.won ? '#81C784' : '#EF9A9A',
-              border: `1px solid ${match.won ? 'rgba(76,175,80,0.4)' : 'rgba(224,53,53,0.4)'}`,
-              letterSpacing: '0.08em',
-            }}>
-              {match.won ? '✓ VITÓRIA' : '✕ DERROTA'} — {match.goalsFor}×{match.goalsAgainst}
-              {match.penalties ? ` (pen. ${match.penalties.goalsFor}–${match.penalties.goalsAgainst})` : ''}
+      {(() => {
+        const [oppColor] = match ? getTeamColors(match.opponent) : ['#333', '#fff']
+        return (
+        <div style={{ flexShrink: 0 }}>
+          {/* Phase chip */}
+          <div style={{ textAlign: 'center', padding: '10px 0 6px', background: 'rgba(0,0,0,0.6)' }}>
+            <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.22em', color: 'rgba(212,168,64,0.7)', background: 'rgba(212,168,64,0.08)', padding: '4px 14px', borderRadius: 20, border: '1px solid rgba(212,168,64,0.22)' }}>
+              {PHASE_LABELS[match?.phase ?? ''] ?? match?.phase}
             </span>
           </div>
-        )}
-      </div>
+
+          {/* Team color bars + score */}
+          <div style={{ display: 'flex', alignItems: 'stretch', minHeight: 72 }}>
+            {/* SEU TIME — gold/dark pastel */}
+            <div style={{
+              flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center',
+              padding: '10px 14px', textAlign: 'right',
+              background: goalFlash
+                ? 'linear-gradient(90deg, rgba(212,168,64,0.32) 0%, rgba(130,90,0,0.18) 100%)'
+                : 'linear-gradient(90deg, rgba(212,168,64,0.18) 0%, rgba(80,50,0,0.1) 100%)',
+              borderBottom: `3px solid rgba(212,168,64,0.55)`,
+              transition: 'background 0.5s',
+            }}>
+              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.14em', color: 'rgba(212,168,64,0.6)', marginBottom: 2 }}>SEU TIME</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(212,168,64,0.5)' }}>OVR {state.overall}</div>
+            </div>
+
+            {/* Score */}
+            <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 2, padding: '0 12px', background: 'rgba(0,0,0,0.7)' }}>
+              <span className={goalFlash ? 'goal-glow' : ''} style={{
+                fontWeight: 900, fontSize: 56, lineHeight: 1, minWidth: 38, textAlign: 'center',
+                color: isWinning ? '#D4A840' : 'rgba(255,255,255,0.9)',
+                transition: 'color 0.4s', fontVariantNumeric: 'tabular-nums',
+                fontFamily: "'Oswald', sans-serif",
+              }}>{scoreFor}</span>
+              <span style={{ fontSize: 24, fontWeight: 900, color: 'rgba(255,255,255,0.25)', lineHeight: 1, paddingBottom: 2 }}>:</span>
+              <span style={{
+                fontWeight: 900, fontSize: 56, lineHeight: 1, minWidth: 38, textAlign: 'center',
+                color: isLosing ? '#E03535' : 'rgba(255,255,255,0.35)',
+                transition: 'color 0.4s', fontVariantNumeric: 'tabular-nums',
+                fontFamily: "'Oswald', sans-serif",
+              }}>{scoreAgainst}</span>
+            </div>
+
+            {/* ADVERSÁRIO — team color */}
+            <div style={{
+              flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center',
+              padding: '10px 14px',
+              background: `linear-gradient(90deg, ${oppColor}22 0%, ${oppColor}55 100%)`,
+              borderBottom: `3px solid ${oppColor}99`,
+            }}>
+              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.14em', color: `${oppColor}cc`, marginBottom: 2 }}>ADVERSÁRIO</div>
+              <div style={{ fontWeight: 800, fontSize: 12, color: '#fff', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match?.opponent}</div>
+              <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', marginTop: 1 }}>{match?.opponentYear}</div>
+            </div>
+          </div>
+
+          {/* Result pill when finished */}
+          {isFinished && (
+            <div style={{ padding: '8px 16px', textAlign: 'center', background: 'rgba(0,0,0,0.5)' }}>
+              <span style={{
+                fontSize: 11, fontWeight: 900, padding: '5px 16px', borderRadius: 20,
+                background: match.won ? 'rgba(76,175,80,0.2)' : 'rgba(224,53,53,0.2)',
+                color: match.won ? '#81C784' : '#EF9A9A',
+                border: `1px solid ${match.won ? 'rgba(76,175,80,0.4)' : 'rgba(224,53,53,0.4)'}`,
+                letterSpacing: '0.08em',
+              }}>
+                {match.won ? '✓ VITÓRIA' : '✕ DERROTA'} — {match.goalsFor}×{match.goalsAgainst}
+                {match.penalties ? ` (pen. ${match.penalties.goalsFor}–${match.penalties.goalsAgainst})` : ''}
+              </span>
+            </div>
+          )}
+        </div>
+        )
+      })()}
 
       {/* ── Commentary feed ── */}
       <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '6px 14px', display: 'flex', flexDirection: 'column', gap: 3, minHeight: 200 }}>
