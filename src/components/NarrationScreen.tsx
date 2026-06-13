@@ -301,34 +301,34 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
             </span>
           </div>
 
-          {/* Team color bars + score */}
-          <div style={{ display: 'flex', alignItems: 'stretch', minHeight: 72 }}>
+          {/* Team panels + score */}
+          <div style={{ display: 'flex', alignItems: 'stretch', minHeight: 72, padding: '0 12px 10px', gap: 8, background: 'rgba(0,0,0,0.6)' }}>
             {/* SEU TIME — gold/dark pastel */}
             <div style={{
               flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center',
-              padding: '10px 14px', textAlign: 'right',
+              padding: '10px 14px', textAlign: 'right', borderRadius: 14,
               background: goalFlash
-                ? 'linear-gradient(90deg, rgba(212,168,64,0.32) 0%, rgba(130,90,0,0.18) 100%)'
-                : 'linear-gradient(90deg, rgba(212,168,64,0.18) 0%, rgba(80,50,0,0.1) 100%)',
-              borderBottom: `3px solid rgba(212,168,64,0.55)`,
+                ? 'linear-gradient(135deg, rgba(212,168,64,0.3) 0%, rgba(80,50,0,0.25) 100%)'
+                : 'linear-gradient(135deg, rgba(212,168,64,0.15) 0%, rgba(80,50,0,0.12) 100%)',
+              border: '1px solid rgba(212,168,64,0.2)',
               transition: 'background 0.5s',
             }}>
               <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.14em', color: 'rgba(212,168,64,0.6)', marginBottom: 2 }}>SEU TIME</div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(212,168,64,0.5)' }}>OVR {state.overall}</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(212,168,64,0.45)' }}>OVR {state.overall}</div>
             </div>
 
             {/* Score */}
-            <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 2, padding: '0 12px', background: 'rgba(0,0,0,0.7)' }}>
+            <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 0, padding: '0 4px' }}>
               <span className={goalFlash ? 'goal-glow' : ''} style={{
-                fontWeight: 900, fontSize: 56, lineHeight: 1, minWidth: 38, textAlign: 'center',
+                fontWeight: 900, fontSize: 54, lineHeight: 1, minWidth: 36, textAlign: 'center',
                 color: isWinning ? '#D4A840' : 'rgba(255,255,255,0.9)',
                 transition: 'color 0.4s', fontVariantNumeric: 'tabular-nums',
                 fontFamily: "'Oswald', sans-serif",
               }}>{scoreFor}</span>
-              <span style={{ fontSize: 24, fontWeight: 900, color: 'rgba(255,255,255,0.25)', lineHeight: 1, paddingBottom: 2 }}>:</span>
+              <span style={{ fontSize: 22, fontWeight: 900, color: 'rgba(255,255,255,0.2)', lineHeight: 1, padding: '0 2px' }}>:</span>
               <span style={{
-                fontWeight: 900, fontSize: 56, lineHeight: 1, minWidth: 38, textAlign: 'center',
-                color: isLosing ? '#E03535' : 'rgba(255,255,255,0.35)',
+                fontWeight: 900, fontSize: 54, lineHeight: 1, minWidth: 36, textAlign: 'center',
+                color: isLosing ? '#E03535' : 'rgba(255,255,255,0.3)',
                 transition: 'color 0.4s', fontVariantNumeric: 'tabular-nums',
                 fontFamily: "'Oswald', sans-serif",
               }}>{scoreAgainst}</span>
@@ -337,11 +337,11 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
             {/* ADVERSÁRIO — team color */}
             <div style={{
               flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center',
-              padding: '10px 14px',
-              background: `linear-gradient(90deg, ${oppColor}22 0%, ${oppColor}55 100%)`,
-              borderBottom: `3px solid ${oppColor}99`,
+              padding: '10px 14px', borderRadius: 14,
+              background: `linear-gradient(135deg, ${oppColor}18 0%, ${oppColor}42 100%)`,
+              border: `1px solid ${oppColor}44`,
             }}>
-              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.14em', color: `${oppColor}cc`, marginBottom: 2 }}>ADVERSÁRIO</div>
+              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.14em', color: `${oppColor}bb`, marginBottom: 2 }}>ADVERSÁRIO</div>
               <div style={{ fontWeight: 800, fontSize: 12, color: '#fff', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match?.opponent}</div>
               <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', marginTop: 1 }}>{match?.opponentYear}</div>
             </div>
