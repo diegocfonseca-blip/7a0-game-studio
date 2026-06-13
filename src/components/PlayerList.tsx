@@ -11,6 +11,7 @@ interface Props {
   onSelect: (p: Player) => void
   availableSlots: Position[]
   theme?: ThemePalette
+  occupiedPositions?: Set<string>
 }
 
 // Sector colors — bars and badges work on both themes
@@ -46,7 +47,7 @@ function ratingColor(r: number, isDark: boolean) {
   return isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)'
 }
 
-export default function PlayerList({ squad, mode, selectedPlayer, pickedIds, onSelect, availableSlots, theme }: Props) {
+export default function PlayerList({ squad, mode, selectedPlayer, pickedIds, onSelect, availableSlots, theme, occupiedPositions }: Props) {
   const t = theme ?? DARK
   const isDark = t.mode === 'dark'
 
@@ -62,14 +63,23 @@ export default function PlayerList({ squad, mode, selectedPlayer, pickedIds, onS
         const dimmed     = !isPicked && availableSlots.length > 0
           && !availableSlots.includes(player.primaryPosition)
           && !player.secondaryPositions.some(sp => availableSlots.includes(sp))
+        const isPositionFull = !isPicked && !!occupiedPositions &&
+          occupiedPositions.has(player.primaryPosition) &&
+          (player.secondaryPositions.length === 0 ||
+           player.secondaryPositions.every(sp => occupiedPositions.has(sp)))
         const sec = SECTOR(player.primaryPosition)
         const label = SECTOR_LABEL(player.primaryPosition, isDark)
+
+        // Badge background: more saturated/vivid; in dark mode use 0.4 opacity
+        const badgeBg = isDark
+          ? sec.bar + '66' // ~0.4 opacity in hex
+          : sec.bar + '59' // ~0.35 opacity in hex
 
         return (
           <button
             key={player.id}
-            onClick={() => !isPicked && onSelect(player)}
-            disabled={isPicked}
+            onClick={() => !isPicked && !isPositionFull && onSelect(player)}
+            disabled={isPicked || isPositionFull}
             style={{
               width: '100%',
               display: 'flex', alignItems: 'stretch',
@@ -82,8 +92,8 @@ export default function PlayerList({ squad, mode, selectedPlayer, pickedIds, onS
                   ? 'linear-gradient(90deg, rgba(180,20,20,0.35) 0%, rgba(30,10,10,0.9) 100%)'
                   : 'linear-gradient(90deg, rgba(176,24,24,0.12) 0%, rgba(255,240,235,0.9) 100%)'
                 : sec.bg,
-              opacity: isPicked ? 0.25 : dimmed ? 0.35 : 1,
-              cursor: isPicked ? 'not-allowed' : 'pointer',
+              opacity: isPicked ? 0.25 : isPositionFull ? 0.3 : dimmed ? 0.35 : 1,
+              cursor: isPicked || isPositionFull ? 'not-allowed' : 'pointer',
               transition: 'all 0.1s',
               minHeight: 44,
             }}
@@ -99,10 +109,11 @@ export default function PlayerList({ squad, mode, selectedPlayer, pickedIds, onS
             {/* Position badge */}
             <div style={{ display: 'flex', alignItems: 'center', padding: '0 4px 0 6px', flexShrink: 0 }}>
               <span style={{
-                fontSize: 8, fontWeight: 900, letterSpacing: '0.04em',
-                padding: '2px 5px', borderRadius: 5,
-                background: sec.badge, color: label,
-                border: `1px solid ${sec.bar}44`,
+                fontSize: 9, fontWeight: 900, letterSpacing: '0.04em',
+                padding: '3px 7px', borderRadius: 5,
+                background: badgeBg, color: label,
+                border: `1.5px solid ${sec.bar}66`,
+                boxShadow: isSelected ? `0 0 8px ${sec.bar}55` : undefined,
               }}>
                 {player.primaryPosition}
               </span>
