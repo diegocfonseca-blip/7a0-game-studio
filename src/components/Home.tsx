@@ -89,7 +89,7 @@ export default function Home({ onPlay, theme: t, onToggleTheme }: Props) {
   const isDark = t.mode === 'dark'
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: t.bgGrad }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: `repeating-linear-gradient(180deg, ${isDark ? 'rgba(22,70,22,0.07)' : 'rgba(15,50,15,0.04)'} 0px, ${isDark ? 'rgba(22,70,22,0.07)' : 'rgba(15,50,15,0.04)'} 52px, transparent 52px, transparent 104px), ${t.bgGrad}` }}>
 
       {/* Top bar */}
       <div style={{
@@ -124,8 +124,11 @@ export default function Home({ onPlay, theme: t, onToggleTheme }: Props) {
           {/* Left: hero */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 96, fontWeight: 700, lineHeight: 0.9, letterSpacing: '-0.02em', color: t.gold, fontFamily: OSWALD, textShadow: isDark ? '0 0 80px rgba(212,168,64,0.3)' : 'none' }}>
-                0a7
+              <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 6 }}>
+                <span style={{ fontSize: 54, lineHeight: 1, flexShrink: 0, filter: 'drop-shadow(0 0 28px rgba(212,168,64,0.75))' }}>🏆</span>
+                <div style={{ fontSize: 96, fontWeight: 900, lineHeight: 0.9, letterSpacing: '-0.02em', fontFamily: OSWALD, background: 'linear-gradient(135deg, #C9A030 0%, #FFE577 48%, #B8901E 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                  0a7
+                </div>
               </div>
               <div style={{ fontSize: 56, fontWeight: 700, lineHeight: 1, letterSpacing: '0.02em', color: t.text, fontFamily: OSWALD }}>
                 LEGENDS
@@ -177,7 +180,7 @@ export default function Home({ onPlay, theme: t, onToggleTheme }: Props) {
             <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.22em', color: t.textMuted, marginBottom: 2 }}>ESCOLHA O MODO</p>
 
             <ModeCard label="Seleções Históricas" icon="🌍" desc="Brasil 70, Argentina 86, Holanda 74..." sub={`${TOTAL_SQUADS} seleções · ${TOTAL_PLAYERS}+ jogadores`} active={picked === 'national'} color={t.red} colorDim={t.redDim} theme={t} onClick={() => setPicked('national')} />
-            <ModeCard label="Clubes Históricos" icon="🏆" desc="Barça MSN, Flamengo 82, Milan 89..." sub={`${TOTAL_CLUBS} clubes · ${TOTAL_CLUB_PLAYERS}+ jogadores`} active={picked === 'clubs'} color={t.gold} colorDim={t.goldDim} theme={t} onClick={() => setPicked('clubs')} />
+            <ModeCard label="Clubes Históricos" icon="🏟️" desc="Barça MSN, Flamengo 82, Milan 89..." sub={`${TOTAL_CLUBS} clubes · ${TOTAL_CLUB_PLAYERS}+ jogadores`} active={picked === 'clubs'} color={t.gold} colorDim={t.goldDim} theme={t} onClick={() => setPicked('clubs')} />
 
             <button
               onClick={() => picked && onPlay(picked)}
@@ -207,7 +210,10 @@ export default function Home({ onPlay, theme: t, onToggleTheme }: Props) {
         <div style={{ flex: 1, padding: '36px 20px 48px', display: 'flex', flexDirection: 'column' }}>
           {/* Hero */}
           <div style={{ marginBottom: 32 }}>
-            <div style={{ fontSize: 78, fontWeight: 700, lineHeight: 0.9, letterSpacing: '-0.02em', color: t.gold, fontFamily: OSWALD, textShadow: isDark ? '0 0 60px rgba(212,168,64,0.35)' : 'none' }}>0a7</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 6 }}>
+              <span style={{ fontSize: 40, lineHeight: 1, flexShrink: 0, filter: 'drop-shadow(0 0 18px rgba(212,168,64,0.7))' }}>🏆</span>
+              <div style={{ fontSize: 78, fontWeight: 900, lineHeight: 0.9, letterSpacing: '-0.02em', fontFamily: OSWALD, background: 'linear-gradient(135deg, #C9A030 0%, #FFE577 48%, #B8901E 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>0a7</div>
+            </div>
             <div style={{ fontSize: 44, fontWeight: 700, lineHeight: 1, letterSpacing: '0.02em', color: t.text, fontFamily: OSWALD }}>LEGENDS</div>
             <div style={{ display: 'flex', gap: 5, marginTop: 16, marginBottom: 16 }}>
               <div style={{ height: 3, width: 48, borderRadius: 3, background: t.gold }} />
@@ -237,7 +243,7 @@ export default function Home({ onPlay, theme: t, onToggleTheme }: Props) {
           <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.22em', color: t.textMuted, marginBottom: 12 }}>ESCOLHA O MODO</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
             <ModeCard label="Seleções Históricas" icon="🌍" desc="Brasil 70, Argentina 86, Holanda 74..." sub={`${TOTAL_SQUADS} seleções · ${TOTAL_PLAYERS}+ jogadores`} active={picked === 'national'} color={t.red} colorDim={t.redDim} theme={t} onClick={() => setPicked('national')} />
-            <ModeCard label="Clubes Históricos" icon="🏆" desc="Barça MSN, Flamengo 82, Milan 89..." sub={`${TOTAL_CLUBS} clubes · ${TOTAL_CLUB_PLAYERS}+ jogadores`} active={picked === 'clubs'} color={t.gold} colorDim={t.goldDim} theme={t} onClick={() => setPicked('clubs')} />
+            <ModeCard label="Clubes Históricos" icon="🏟️" desc="Barça MSN, Flamengo 82, Milan 89..." sub={`${TOTAL_CLUBS} clubes · ${TOTAL_CLUB_PLAYERS}+ jogadores`} active={picked === 'clubs'} color={t.gold} colorDim={t.goldDim} theme={t} onClick={() => setPicked('clubs')} />
           </div>
 
           <button

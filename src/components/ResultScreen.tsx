@@ -209,7 +209,7 @@ export default function ResultScreen({ state, onReplay, onHome, theme }: Props) 
     }}>
       <div style={{ position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)', width: '70%', height: '200%', background: isChampion ? `radial-gradient(ellipse, rgba(212,168,64,0.2) 0%, transparent 65%)` : `radial-gradient(ellipse, rgba(224,53,53,0.15) 0%, transparent 65%)`, pointerEvents: 'none' }} />
 
-      <div style={{ fontSize: isDesktop ? 80 : 64, lineHeight: 1, position: 'relative', marginBottom: 16 }}>
+      <div style={{ fontSize: isDesktop ? 80 : 64, lineHeight: 1, position: 'relative', marginBottom: 16, display: 'inline-block', animation: isChampion ? 'trophyBounce 0.85s cubic-bezier(0.34,1.56,0.64,1) both, heroGlow 2.5s ease-in-out 0.85s infinite' : 'skullBob 1.8s ease-in-out 0.3s infinite' }}>
         {isChampion ? '🏆' : '💀'}
       </div>
       <h1 style={{ fontFamily: OSWALD, fontSize: isDesktop ? 44 : 36, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 10, position: 'relative', color: isChampion ? t.gold : t.text, textShadow: isChampion && isDark ? `0 0 40px rgba(212,168,64,0.5)` : 'none' }}>
@@ -329,8 +329,49 @@ export default function ResultScreen({ state, onReplay, onHome, theme }: Props) 
     </div>
   )
 
+  const desktopTimeline = (
+    <div style={{ borderRadius: 20, background: t.surface, border: `1px solid ${t.border}`, padding: '16px 20px' }}>
+      <p style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.2em', color: t.textMuted, marginBottom: 16 }}>TRAJETÓRIA DA COPA</p>
+      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+        {phaseGroups.map(({ phase, matches: pm }, gi) => {
+          const allWon = pm.every(m => m.won)
+          const phaseColor = allWon ? winColor : t.red
+          const phaseBg = allWon ? winBg : isDark ? 'rgba(224,53,53,0.06)' : 'rgba(224,53,53,0.05)'
+          const phaseBorder = allWon ? winBorder : t.red + '33'
+          const phaseLabelShort: Record<string, string> = { Grupos: 'GRUPOS', Oitavas: 'OITAVAS', Quartas: 'QUARTAS', Semifinal: 'SEMI', Final: 'FINAL' }
+          return (
+            <div key={phase} style={{ display: 'flex', alignItems: 'flex-start', flex: phase === 'Grupos' ? 2 : 1, minWidth: 0 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8, padding: '0 4px' }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: phaseColor, flexShrink: 0, boxShadow: `0 0 5px ${phaseColor}` }} />
+                  <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: '0.18em', color: phaseColor, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{phaseLabelShort[phase] ?? phase.toUpperCase()}</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {pm.map((m, i) => (
+                    <div key={i} style={{ borderRadius: 10, padding: '7px 6px', background: phaseBg, border: `1px solid ${phaseBorder}`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, minWidth: 0 }}>
+                      <span style={{ fontSize: 18 }}>{m.opponentBadge ?? m.opponentFlag}</span>
+                      <span style={{ fontWeight: 900, fontSize: 12, color: t.text, fontFamily: OSWALD, lineHeight: 1 }}>{m.goalsFor}–{m.goalsAgainst}</span>
+                      <span style={{ fontSize: 8, color: m.won ? winColor : t.red, fontWeight: 700, letterSpacing: '0.06em' }}>{m.won ? 'V' : 'D'}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {gi < phaseGroups.length - 1 && (
+                <div style={{ padding: '18px 5px 0', color: t.textMuted, fontSize: 13, flexShrink: 0, fontWeight: 700, opacity: 0.5 }}>→</div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+
   const mvpCard = mvpEntry && (
-    <div style={{ borderRadius: 20, background: t.surface, border: `1px solid ${t.border}`, overflow: 'hidden' }}>
+    <div style={{ borderRadius: 20, background: t.surface, border: `1px solid ${t.border}`, overflow: 'hidden', position: 'relative' }}>
+      {/* Shimmer sweep */}
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', top: 0, bottom: 0, width: '55%', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent)', animation: 'mvpShimmer 3s ease-in-out 1.5s infinite' }} />
+      </div>
       <div style={{ padding: '10px 16px', borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.2em', color: t.textMuted }}>MVP DA COPA</span>
         <span style={{ fontSize: 9, fontWeight: 900, padding: '3px 10px', borderRadius: 20, background: isDark ? 'rgba(224,53,53,0.18)' : 'rgba(180,0,0,0.1)', color: t.red, border: `1px solid ${t.red}44`, letterSpacing: '0.12em' }}>⭐ MVP</span>
@@ -414,21 +455,47 @@ export default function ResultScreen({ state, onReplay, onHome, theme }: Props) 
   )
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: t.bgGrad }}>
-      {hero}
+    <>
+      <style>{`
+        @keyframes trophyBounce {
+          0%   { transform: scale(0) rotate(-15deg); opacity: 0; }
+          60%  { transform: scale(1.22) rotate(7deg); opacity: 1; }
+          80%  { transform: scale(0.93) rotate(-3deg); }
+          100% { transform: scale(1) rotate(0deg); }
+        }
+        @keyframes heroGlow {
+          0%, 100% { filter: drop-shadow(0 0 20px rgba(212,168,64,0.5)); }
+          50%       { filter: drop-shadow(0 0 55px rgba(212,168,64,0.95)); }
+        }
+        @keyframes skullBob {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          25%      { transform: translateY(-7px) rotate(-5deg); }
+          75%      { transform: translateY(-7px) rotate(5deg); }
+        }
+        @keyframes mvpShimmer {
+          0%   { transform: translateX(-200%); }
+          100% { transform: translateX(300%); }
+        }
+      `}</style>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: t.bgGrad }}>
+        {hero}
       {isDesktop ? (
-        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, padding: '28px', maxWidth: 1100, margin: '0 auto', width: '100%', alignItems: 'start' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {statsRow}
-            {mvpCard}
-            {artilharia}
-            {actions}
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, padding: '28px 28px 0', maxWidth: 1100, margin: '0 auto', width: '100%', alignItems: 'start' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {statsRow}
+              {mvpCard}
+              {artilharia}
+              {actions}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {meuTime}
+            </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {timeline}
-            {meuTime}
+          <div style={{ padding: '16px 28px 28px', maxWidth: 1100, margin: '0 auto', width: '100%' }}>
+            {desktopTimeline}
           </div>
-        </div>
+        </>
       ) : (
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 500, margin: '0 auto', width: '100%' }}>
           {statsRow}
@@ -440,5 +507,6 @@ export default function ResultScreen({ state, onReplay, onHome, theme }: Props) 
         </div>
       )}
     </div>
+    </>
   )
 }

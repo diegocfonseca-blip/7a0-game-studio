@@ -135,6 +135,7 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
   const [goalFlash, setGoalFlash] = useState(false)
   const [concededFlash, setConcededFlash] = useState(false)
   const [confetti, setConfetti] = useState(false)
+  const [showGoalText, setShowGoalText] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const match = matches[matchIdx]
@@ -194,10 +195,11 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
     const timer = setTimeout(() => {
       const next = moments[shownCount]
       if (next?.type === 'goal' && next?.forUs) {
-        setGoalFlash(true); setConfetti(true)
+        setGoalFlash(true); setConfetti(true); setShowGoalText(true)
         if (soundOn) playCrowdRoar(2.5)
         setTimeout(() => setGoalFlash(false), 1800)
         setTimeout(() => setConfetti(false), 2500)
+        setTimeout(() => setShowGoalText(false), 2200)
       } else if (next?.type === 'conceded') {
         setConcededFlash(true)
         setTimeout(() => setConcededFlash(false), 1500)
@@ -255,8 +257,22 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #080810 0%, #0d0d14 55%, #100c02 100%)' }}>
       <Confetti active={confetti} />
+      {showGoalText && (
+        <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60 }}>
+          <div style={{ animation: 'goalBurst 2.2s ease-out forwards', fontFamily: "'Oswald', Impact, 'Arial Narrow', sans-serif", fontWeight: 900, letterSpacing: '0.14em', color: '#D4A840', textShadow: '0 0 40px rgba(212,168,64,0.95), 0 0 90px rgba(212,168,64,0.55), 0 4px 24px rgba(0,0,0,0.9)', textAlign: 'center', fontSize: 'clamp(44px, 11vw, 74px)', lineHeight: 1 }}>
+            GOOOOOL!
+          </div>
+        </div>
+      )}
 
       <style>{`
+        @keyframes goalBurst {
+          0%   { opacity: 0; transform: scale(0.35) translateY(20px); }
+          12%  { opacity: 1; transform: scale(1.18) translateY(0); }
+          22%  { transform: scale(1) translateY(0); }
+          70%  { opacity: 1; transform: scale(1) translateY(0); }
+          100% { opacity: 0; transform: scale(1.08) translateY(-14px); }
+        }
         @keyframes confettiFall {
           0%   { transform: translateY(-14px) rotate(0deg); opacity: 1; }
           100% { transform: translateY(102vh) rotate(720deg); opacity: 0; }
@@ -358,9 +374,14 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
               border: `1px solid ${concededFlash ? oppColor + '99' : oppColor + '44'}`,
               transition: 'background 0.5s',
             }}>
-              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.14em', color: `${oppColor}bb`, marginBottom: 2 }}>ADVERSÁRIO</div>
-              <div style={{ fontWeight: 800, fontSize: 12, color: '#fff', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match?.opponent}</div>
-              <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', marginTop: 1 }}>{match?.opponentYear}</div>
+              <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: '0.14em', color: `${oppColor}bb`, marginBottom: 4 }}>ADVERSÁRIO</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>{match?.opponentBadge ?? match?.opponentFlag}</span>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 800, fontSize: 11, color: '#fff', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match?.opponent}</div>
+                  <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', marginTop: 1 }}>{match?.opponentYear}</div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -407,18 +428,19 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
           return (
             <div key={i} className="slide-in" style={{
               display: 'flex', gap: 10, alignItems: 'flex-start',
-              padding: isGoalFor ? '12px 14px' : isConceded ? '10px 12px' : '5px 8px',
-              borderRadius: 14, marginBottom: isGoalFor ? 2 : 0,
+              padding: isGoalFor ? '15px 16px' : isConceded ? '10px 12px' : '5px 8px',
+              borderRadius: isGoalFor ? 18 : 14, marginBottom: isGoalFor ? 5 : 0,
               background: isGoalFor
-                ? 'linear-gradient(135deg, rgba(212,168,64,0.18) 0%, rgba(80,50,0,0.12) 100%)'
+                ? 'linear-gradient(135deg, rgba(212,168,64,0.24) 0%, rgba(100,65,0,0.18) 100%)'
                 : isConceded
                   ? 'rgba(224,53,53,0.1)'
                   : 'transparent',
               border: isGoalFor
-                ? '1px solid rgba(212,168,64,0.28)'
+                ? '1px solid rgba(212,168,64,0.42)'
                 : isConceded
                   ? '1px solid rgba(224,53,53,0.18)'
                   : 'none',
+              boxShadow: isGoalFor ? '0 3px 18px rgba(212,168,64,0.13)' : 'none',
             }}>
               {/* Minute */}
               <span style={{ fontSize: 9, color: isGoalFor ? 'rgba(212,168,64,0.6)' : 'rgba(255,255,255,0.18)', width: 26, flexShrink: 0, fontFamily: 'monospace', fontWeight: 700, paddingTop: 2, letterSpacing: '0.02em' }}>
@@ -426,7 +448,7 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
               </span>
 
               {/* Icon */}
-              <span style={{ fontSize: isGoalFor ? 18 : 12, flexShrink: 0, paddingTop: 1, lineHeight: 1 }}>
+              <span style={{ fontSize: isGoalFor ? 24 : 12, flexShrink: 0, paddingTop: 1, lineHeight: 1 }}>
                 {isGoalFor ? '⚽' : isConceded ? '⚽' : moment.type === 'save' ? '🧤' : moment.type === 'miss' ? '💨' : moment.type === 'danger' ? '⚠️' : '▸'}
               </span>
 
@@ -435,7 +457,7 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
                 {moment.lines.map((line, j) => (
                   <p key={j} style={{
                     margin: j > 0 ? '3px 0 0' : 0,
-                    fontSize: isGoalFor ? 14 : isConceded ? 12 : isMuted ? 11 : 12,
+                    fontSize: isGoalFor ? (j === 0 ? 16 : 13) : isConceded ? 12 : isMuted ? 11 : 12,
                     fontWeight: isGoalFor ? 900 : isConceded ? 700 : 400,
                     lineHeight: 1.45,
                     color: isGoalFor
