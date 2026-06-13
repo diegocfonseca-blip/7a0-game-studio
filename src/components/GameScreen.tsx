@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { FORMATIONS, canPlayPosition } from '../data/formations'
 import type { Formation, FormationSlot } from '../data/formations'
 import type { Player, Squad } from '../data/squads'
@@ -35,6 +35,26 @@ const STYLE_LABELS: Record<GameStyle, string> = {
   defensive: 'DEFENSIVO', balanced: 'EQUILIBRADO', offensive: 'OFENSIVO',
 }
 
+const TICKER_TEXT = '⚽ COPA DO MUNDO   🏆 LENDAS DO FUTEBOL   ★ CRAQUE HISTÓRICO   🥇 HALL DA FAMA   🎖 ÍDOLO DA NAÇÃO   ⚽ COPA DO MUNDO   🏆 LENDAS DO FUTEBOL   ★ CRAQUE HISTÓRICO   🥇 HALL DA FAMA   🎖 ÍDOLO DA NAÇÃO   '
+
+function TickerBanner() {
+  return (
+    <>
+      <style>{`
+        @keyframes ticker-slide {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+      `}</style>
+      <div style={{ overflow: 'hidden', height: 26, background: 'rgba(0,0,0,0.55)', borderTop: '1px solid rgba(201,168,76,0.12)', display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: 'flex', whiteSpace: 'nowrap', animation: 'ticker-slide 22s linear infinite', willChange: 'transform' }}>
+          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(201,168,76,0.45)', padding: '0 8px' }}>{TICKER_TEXT}</span>
+          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(201,168,76,0.45)', padding: '0 8px' }}>{TICKER_TEXT}</span>
+        </div>
+      </div>
+    </>
+  )
+}
 
 export default function GameScreen({ category, onHome, theme: themeProp, onToggleTheme }: Props) {
   const t = themeProp ?? DARK
@@ -51,6 +71,7 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
     window.addEventListener('resize', fn)
     return () => window.removeEventListener('resize', fn)
   }, [])
+  const fieldPickRef = useRef<HTMLDivElement>(null)
   const [narrating, setNarrating] = useState(false)
   const [groupMatches, setGroupMatches] = useState<MatchResult[]>([])
   const [halftimePrompt, setHalftimePrompt] = useState(false)
@@ -74,7 +95,20 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
     setSelectedPlayer(null)
   }
 
-  const pickPlayer = (player: Player) => setSelectedPlayer(p => p?.id === player.id ? null : player)
+  const pickPlayer = (player: Player) => {
+    const next = selectedPlayer?.id === player.id ? null : player
+    setSelectedPlayer(next)
+    if (next && !isDesktop) setShowField(true)
+  }
+
+  useEffect(() => {
+    if (selectedPlayer && !isDesktop && fieldPickRef.current) {
+      const timer = setTimeout(() => {
+        fieldPickRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }, 80)
+      return () => clearTimeout(timer)
+    }
+  }, [selectedPlayer, isDesktop])
 
   const placePlayer = (slot: FormationSlot, slotIndex: number) => {
     if (!selectedPlayer || !state.currentRoll) return
@@ -324,16 +358,6 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
 
   const playerListSection = state.currentRoll && (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: 0 }}>
-      {selectedPlayer && !isDesktop && (
-        <div style={{ borderRadius: 16, padding: '16px', textAlign: 'center', background: 'linear-gradient(135deg, rgba(209,46,46,0.25), rgba(120,10,10,0.2))', border: '1px solid rgba(209,46,46,0.4)' }}>
-          <p style={{ fontWeight: 900, fontSize: 15, color: t.text, margin: '0 0 4px' }}>{selectedPlayer.name}</p>
-          <p style={{ fontSize: 11, color: t.textDim, margin: '0 0 12px' }}>Posicione no campo</p>
-          <button onClick={() => setShowField(true)}
-            style={{ fontWeight: 900, fontSize: 12, padding: '10px 24px', borderRadius: 12, border: 'none', background: '#D12E2E', color: '#fff', cursor: 'pointer', boxShadow: '0 4px 16px rgba(209,46,46,0.5)' }}>
-            VER CAMPO →
-          </button>
-        </div>
-      )}
       {selectedPlayer && isDesktop && availableSlots.length === 0 && (
         <div style={{ borderRadius: 14, padding: '12px 16px', textAlign: 'center', background: t.surface, border: `1px solid ${t.border}` }}>
           <span style={{ fontSize: 11, fontWeight: 900, color: t.textDim }}>SEM POSIÇÃO COMPATÍVEL PARA {selectedPlayer.name.toUpperCase()}</span>
@@ -422,6 +446,7 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
               CAMPO · {state.formation.name} · {STYLE_LABELS[state.style]}
             </div>
             <Field formation={state.formation} picks={state.picks} selectedPlayer={selectedPlayer} onSlotClick={placePlayer} />
+            <TickerBanner />
             {statsStrip}
             {currentTeamList}
           </div>
@@ -476,9 +501,12 @@ export default function GameScreen({ category, onHome, theme: themeProp, onToggl
 
             {/* Field pick overlay on mobile */}
             {showField && state.currentRoll && selectedPlayer && (
-              <div style={{ borderRadius: 18, padding: '16px', background: t.surface, border: `1px solid ${t.border}` }}>
-                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted, marginBottom: 12 }}>ESCOLHA A POSIÇÃO</div>
-                <Field formation={state.formation} picks={state.picks} selectedPlayer={selectedPlayer} onSlotClick={placePlayer} />
+              <div ref={fieldPickRef} style={{ borderRadius: 18, overflow: 'hidden', background: t.surface, border: `1px solid ${t.border}` }}>
+                <div style={{ padding: '12px 16px 0', fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', color: t.textMuted }}>ESCOLHA A POSIÇÃO</div>
+                <div style={{ padding: '12px 16px 8px' }}>
+                  <Field formation={state.formation} picks={state.picks} selectedPlayer={selectedPlayer} onSlotClick={placePlayer} />
+                </div>
+                <TickerBanner />
               </div>
             )}
           </div>
