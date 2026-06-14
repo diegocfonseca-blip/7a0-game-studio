@@ -137,6 +137,7 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
   const [confetti, setConfetti] = useState(false)
   const [showGoalText, setShowGoalText] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const globalUsedPlaysRef = useRef<Set<number>>(new Set())
 
   const match = matches[matchIdx]
 
@@ -168,7 +169,8 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
     const oppNames = m.events.filter(e => e.type === 'conceded' && e.playerName).map(e => e.playerName!)
     const tmplMoments = generateMatchMoments(
       state.picks, m.opponent, m.goalsFor, m.goalsAgainst,
-      state.seed, idx, oppNames, m.phase, m.events
+      state.seed, idx, oppNames, m.phase, m.events,
+      globalUsedPlaysRef.current
     )
     setMoments(tmplMoments)
     setPlaying(true)
