@@ -402,16 +402,23 @@ export default function NarrationScreen({ state, matches, onFinish, onHome }: Pr
           {/* Result pill when finished */}
           {isFinished && (
             <div style={{ padding: '8px 16px', textAlign: 'center', background: 'rgba(0,0,0,0.5)' }}>
-              <span style={{
-                fontSize: 11, fontWeight: 900, padding: '5px 16px', borderRadius: 20,
-                background: match.won ? 'rgba(76,175,80,0.2)' : 'rgba(224,53,53,0.2)',
-                color: match.won ? '#81C784' : '#EF9A9A',
-                border: `1px solid ${match.won ? 'rgba(76,175,80,0.4)' : 'rgba(224,53,53,0.4)'}`,
-                letterSpacing: '0.08em',
-              }}>
-                {match.won ? '✓ VITÓRIA' : '✕ DERROTA'} — {match.goalsFor}×{match.goalsAgainst}
-                {match.penalties ? ` (pen. ${match.penalties.goalsFor}–${match.penalties.goalsAgainst})` : ''}
-              </span>
+              {(() => {
+                const isDraw = match.goalsFor === match.goalsAgainst && !match.penalties
+                const bg = match.won ? 'rgba(76,175,80,0.2)' : isDraw ? 'rgba(255,193,7,0.2)' : 'rgba(224,53,53,0.2)'
+                const color = match.won ? '#81C784' : isDraw ? '#FFD54F' : '#EF9A9A'
+                const border = match.won ? 'rgba(76,175,80,0.4)' : isDraw ? 'rgba(255,193,7,0.4)' : 'rgba(224,53,53,0.4)'
+                const label = match.won ? '✓ VITÓRIA' : isDraw ? '= EMPATE' : '✕ DERROTA'
+                return (
+                  <span style={{
+                    fontSize: 11, fontWeight: 900, padding: '5px 16px', borderRadius: 20,
+                    background: bg, color, border: `1px solid ${border}`,
+                    letterSpacing: '0.08em',
+                  }}>
+                    {label} — {match.goalsFor}×{match.goalsAgainst}
+                    {match.penalties ? ` (pen. ${match.penalties.goalsFor}–${match.penalties.goalsAgainst})` : ''}
+                  </span>
+                )
+              })()}
             </div>
           )}
         </div>

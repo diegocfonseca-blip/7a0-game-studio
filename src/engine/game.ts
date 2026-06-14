@@ -174,11 +174,11 @@ function simulateMatch(
   const styleAtkMod = style === 'offensive' ? 0.2 : style === 'defensive' ? -0.15 : 0
   const styleDefMod = style === 'defensive' ? -0.2 : style === 'offensive' ? 0.1 : 0
 
-  const lambdaFor = Math.max(0.3, 1.35 + adjFor + atkBonus + legendBonus + styleAtkMod)
-  const lambdaAgainst = Math.max(0.1, 1.05 + adjAgainst - defBonus + styleDefMod)
+  const lambdaFor = Math.max(0.3, 1.55 + adjFor + atkBonus + legendBonus + styleAtkMod)
+  const lambdaAgainst = Math.max(0.1, 0.90 + adjAgainst - defBonus + styleDefMod)
 
-  const goalsFor = poissonGoals(lambdaFor, seed, matchIdx, 1)
-  const goalsAgainst = poissonGoals(lambdaAgainst, seed, matchIdx, 30)
+  const goalsFor = poissonGoals(lambdaFor, seed, matchIdx * 2, 1)
+  const goalsAgainst = poissonGoals(lambdaAgainst, seed, matchIdx * 2 + 1, 1)
 
   const events: MatchEvent[] = []
   const scorerPool = attackers.length ? attackers : picks
@@ -284,13 +284,9 @@ function runMatches(
     let won = match.goalsFor > match.goalsAgainst
     let penalties: { goalsFor: number; goalsAgainst: number } | undefined
 
-    if (match.goalsFor === match.goalsAgainst) {
-      if (!isKnockout) {
-        won = true
-      } else {
-        penalties = simulatePenalties(seed, matchIdx + 100)
-        won = penalties.goalsFor > penalties.goalsAgainst
-      }
+    if (match.goalsFor === match.goalsAgainst && isKnockout) {
+      penalties = simulatePenalties(seed, matchIdx + 100)
+      won = penalties.goalsFor > penalties.goalsAgainst
     }
 
     if (!isKnockout && match.goalsFor < match.goalsAgainst) groupLosses++

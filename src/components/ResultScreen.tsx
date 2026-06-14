@@ -285,10 +285,12 @@ export default function ResultScreen({ state, onReplay, onHome, theme }: Props) 
   const timeline = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {phaseGroups.map(({ phase, matches: pm }, gi) => {
-        const allWon = pm.every(m => m.won)
-        const phaseColor = allWon ? winColor : t.red
-        const phaseBg = allWon ? winBg : isDark ? 'rgba(224,53,53,0.06)' : 'rgba(224,53,53,0.05)'
-        const phaseBorder = allWon ? winBorder : t.red + '33'
+        const anyLoss = pm.some(m => !m.won && m.goalsFor !== m.goalsAgainst)
+        const allWon = pm.every(m => m.won) && !anyLoss
+        const drawColor = '#FFD54F'
+        const phaseColor = allWon ? winColor : anyLoss ? t.red : drawColor
+        const phaseBg = allWon ? winBg : anyLoss ? (isDark ? 'rgba(224,53,53,0.06)' : 'rgba(224,53,53,0.05)') : 'rgba(255,213,79,0.08)'
+        const phaseBorder = allWon ? winBorder : anyLoss ? t.red + '33' : 'rgba(255,213,79,0.3)'
         return (
           <div key={phase}>
             {gi > 0 && (
@@ -301,17 +303,26 @@ export default function ResultScreen({ state, onReplay, onHome, theme }: Props) 
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: phaseColor, flexShrink: 0, boxShadow: `0 0 6px ${phaseColor}` }} />
                 <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', color: phaseColor, flex: 1 }}>{PHASE_LABEL_MAP[phase] ?? phase.toUpperCase()}</span>
                 <span style={{ fontSize: 9, fontWeight: 700, color: phaseColor }}>
-                  {pm.filter(m => m.won).length}V {pm.filter(m => !m.won).length > 0 ? `${pm.filter(m => !m.won).length}D` : ''}
+                  {(() => {
+                    const v = pm.filter(m => m.won).length
+                    const e = pm.filter(m => !m.won && m.goalsFor === m.goalsAgainst && !m.penalties).length
+                    const d = pm.filter(m => !m.won && (m.goalsFor !== m.goalsAgainst || m.penalties)).length
+                    return `${v > 0 ? `${v}V ` : ''}${e > 0 ? `${e}E ` : ''}${d > 0 ? `${d}D` : ''}`.trim()
+                  })()}
                 </span>
               </div>
               <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {pm.map((m, i) => (
+                {pm.map((m, i) => {
+                  const isDraw = !m.won && m.goalsFor === m.goalsAgainst && !m.penalties
+                  const matchBadgeColor = m.won ? winColor : isDraw ? drawColor : t.red
+                  const matchBg = m.won ? winBg : isDraw ? 'rgba(255,213,79,0.08)' : (isDark ? 'rgba(224,53,53,0.06)' : 'rgba(224,53,53,0.05)')
+                  const matchBorder = m.won ? winBorder : isDraw ? 'rgba(255,213,79,0.3)' : t.red + '33'
+                  return (
                   <div key={i} style={{
                     display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10,
-                    background: m.won ? winBg : isDark ? 'rgba(224,53,53,0.06)' : 'rgba(224,53,53,0.05)',
-                    border: `1px solid ${m.won ? winBorder : t.red + '33'}`,
+                    background: matchBg, border: `1px solid ${matchBorder}`,
                   }}>
-                    <span style={{ fontSize: 9, fontWeight: 900, width: 14, color: m.won ? winColor : t.red, flexShrink: 0 }}>{m.won ? 'V' : 'D'}</span>
+                    <span style={{ fontSize: 9, fontWeight: 900, width: 14, color: matchBadgeColor, flexShrink: 0 }}>{m.won ? 'V' : isDraw ? 'E' : 'D'}</span>
                     <span style={{ fontSize: 15, flexShrink: 0 }}>{m.opponentBadge ?? m.opponentFlag}</span>
                     <span style={{ fontWeight: 600, fontSize: 12, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: t.text }}>{m.opponent}</span>
                     <span style={{ fontSize: 9, color: t.textMuted, flexShrink: 0 }}>{m.opponentYear}</span>
@@ -320,7 +331,8 @@ export default function ResultScreen({ state, onReplay, onHome, theme }: Props) 
                       {m.penalties && <span style={{ fontSize: 8, color: t.textMuted }}> p.{m.penalties.goalsFor}–{m.penalties.goalsAgainst}</span>}
                     </span>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -334,10 +346,12 @@ export default function ResultScreen({ state, onReplay, onHome, theme }: Props) 
       <p style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.2em', color: t.textMuted, marginBottom: 16 }}>TRAJETÓRIA DA COPA</p>
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         {phaseGroups.map(({ phase, matches: pm }, gi) => {
-          const allWon = pm.every(m => m.won)
-          const phaseColor = allWon ? winColor : t.red
-          const phaseBg = allWon ? winBg : isDark ? 'rgba(224,53,53,0.06)' : 'rgba(224,53,53,0.05)'
-          const phaseBorder = allWon ? winBorder : t.red + '33'
+          const anyLossD = pm.some(m => !m.won && (m.goalsFor !== m.goalsAgainst || m.penalties))
+          const allWonD = pm.every(m => m.won)
+          const drawColorD = '#FFD54F'
+          const phaseColor = allWonD ? winColor : anyLossD ? t.red : drawColorD
+          const phaseBg = allWonD ? winBg : anyLossD ? (isDark ? 'rgba(224,53,53,0.06)' : 'rgba(224,53,53,0.05)') : 'rgba(255,213,79,0.08)'
+          const phaseBorder = allWonD ? winBorder : anyLossD ? t.red + '33' : 'rgba(255,213,79,0.3)'
           const phaseLabelShort: Record<string, string> = { Grupos: 'GRUPOS', Oitavas: 'OITAVAS', Quartas: 'QUARTAS', Semifinal: 'SEMI', Final: 'FINAL' }
           return (
             <div key={phase} style={{ display: 'flex', alignItems: 'flex-start', flex: phase === 'Grupos' ? 2 : 1, minWidth: 0 }}>
@@ -347,13 +361,19 @@ export default function ResultScreen({ state, onReplay, onHome, theme }: Props) 
                   <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: '0.18em', color: phaseColor, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{phaseLabelShort[phase] ?? phase.toUpperCase()}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {pm.map((m, i) => (
-                    <div key={i} style={{ borderRadius: 10, padding: '7px 6px', background: phaseBg, border: `1px solid ${phaseBorder}`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, minWidth: 0 }}>
+                  {pm.map((m, i) => {
+                    const isDrawD = !m.won && m.goalsFor === m.goalsAgainst && !m.penalties
+                    const badgeColor = m.won ? winColor : isDrawD ? drawColorD : t.red
+                    const cardBg = m.won ? winBg : isDrawD ? 'rgba(255,213,79,0.08)' : phaseBg
+                    const cardBorder = m.won ? winBorder : isDrawD ? 'rgba(255,213,79,0.3)' : phaseBorder
+                    return (
+                    <div key={i} style={{ borderRadius: 10, padding: '7px 6px', background: cardBg, border: `1px solid ${cardBorder}`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, minWidth: 0 }}>
                       <span style={{ fontSize: 18 }}>{m.opponentBadge ?? m.opponentFlag}</span>
                       <span style={{ fontWeight: 900, fontSize: 12, color: t.text, fontFamily: OSWALD, lineHeight: 1 }}>{m.goalsFor}–{m.goalsAgainst}</span>
-                      <span style={{ fontSize: 8, color: m.won ? winColor : t.red, fontWeight: 700, letterSpacing: '0.06em' }}>{m.won ? 'V' : 'D'}</span>
+                      <span style={{ fontSize: 8, color: badgeColor, fontWeight: 700, letterSpacing: '0.06em' }}>{m.won ? 'V' : isDrawD ? 'E' : 'D'}</span>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
               {gi < phaseGroups.length - 1 && (
