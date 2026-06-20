@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/new-app-discussion-00eihk]
 
 permissions:
   contents: read
@@ -17,18 +17,48 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # Checkout old game (main)
       - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: old-game
+
+      # Checkout new game (ladrao branch)
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/new-app-discussion-00eihk
+          path: new-game
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-      - run: npm ci
-      - run: npm run build
+
+      # Build old game
+      - name: Build 0a7 Legends
+        working-directory: old-game
+        run: |
+          npm ci
+          npm run build
         env:
           VITE_GEMINI_API_KEY: ${{ secrets.LENDASSECRET }}
+
+      # Build new game with /ladrao/ base path
+      - name: Build O Ladrão de Lendas
+        working-directory: new-game
+        run: |
+          npm ci
+          DEPLOY_BASE=/7a0-game-studio/ladrao/ npm run build
+
+      # Combine: old game at root, new game at /ladrao/
+      - name: Combine builds
+        run: |
+          mkdir -p final-dist/ladrao
+          cp -r old-game/dist/. final-dist/
+          cp -r new-game/dist/. final-dist/ladrao/
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: final-dist
 
   deploy:
     needs: build
