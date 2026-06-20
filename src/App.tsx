@@ -1,43 +1,33 @@
-import { useState } from 'react'
-import Home from './components/Home'
-import GameScreen from './components/GameScreen'
-import { getTheme } from './theme'
-import type { ThemeMode } from './theme'
+import { GameProvider, useGame } from './store/gameStore'
+import IntroScreen from './screens/IntroScreen'
+import CharacterCreationScreen from './screens/CharacterCreationScreen'
+import WorldMapScreen from './screens/WorldMapScreen'
+import StealMissionScreen from './screens/StealMissionScreen'
+import MaintenanceScreen from './screens/MaintenanceScreen'
 
-export type GameCategory = 'national' | 'clubs'
-type Screen = 'home' | 'game'
+function GameRouter() {
+  const { state } = useGame()
+
+  switch (state.screen) {
+    case 'intro':
+      return <IntroScreen />
+    case 'creation':
+      return <CharacterCreationScreen />
+    case 'map':
+      return <WorldMapScreen />
+    case 'steal-mission':
+      return <StealMissionScreen />
+    case 'maintenance':
+      return <MaintenanceScreen />
+    default:
+      return <IntroScreen />
+  }
+}
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('home')
-  const [category, setCategory] = useState<GameCategory>('national')
-  const [themeMode, setThemeMode] = useState<ThemeMode>(
-    () => (localStorage.getItem('0a7-theme') as ThemeMode) ?? 'dark'
-  )
-
-  const theme = getTheme(themeMode)
-
-  const toggleTheme = () => {
-    const next: ThemeMode = themeMode === 'dark' ? 'light' : 'dark'
-    localStorage.setItem('0a7-theme', next)
-    setThemeMode(next)
-  }
-
-  const play = (cat: GameCategory) => {
-    setCategory(cat)
-    setScreen('game')
-  }
-
   return (
-    <div id="app-shell" style={{ background: theme.bg }}>
-      {screen === 'home' && <Home onPlay={play} theme={theme} onToggleTheme={toggleTheme} />}
-      {screen === 'game' && (
-        <GameScreen
-          category={category}
-          onHome={() => setScreen('home')}
-          theme={theme}
-          onToggleTheme={toggleTheme}
-        />
-      )}
-    </div>
+    <GameProvider>
+      <GameRouter />
+    </GameProvider>
   )
 }

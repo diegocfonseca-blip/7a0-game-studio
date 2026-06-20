@@ -3,12 +3,13 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: #050505;
+  background: #06060f;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  color: #1a1a1a;
+  color: #f0e6c8;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
 /* Premium scrollbar */
