@@ -442,6 +442,21 @@ export default function WorldMapScreen() {
             Você tem {playerAge} anos em {currentYear} · Quando avançar um ano, os traços decaem 8% · Sem manutenção, eles voltam pro dono
           </p>
         </div>
+
+        {/* Reset */}
+        <div className="text-center pt-2 pb-6">
+          <button
+            onClick={() => {
+              if (window.confirm('Reiniciar o jogo do zero? Todo progresso será perdido.')) {
+                dispatch({ type: 'RESET_GAME' })
+              }
+            }}
+            className="text-xs opacity-20 hover:opacity-50 transition-opacity"
+            style={{ color: '#f0e6c8', fontFamily: 'Inter' }}
+          >
+            ↺ reiniciar jogo
+          </button>
+        </div>
       </div>
 
       {selectedLegendId && <LegendProfileModal />}
