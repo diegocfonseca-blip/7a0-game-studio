@@ -1,18 +1,18 @@
 import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useGame } from '../store/gameStore'
-import { generateOpponent } from '../data/matchMoments'
+import { generateMatchOpponent } from '../data/matchMoments'
 import { generateMatchNarration } from '../data/matchNarration'
 
 const PLAYER_BIRTH_YEAR = 1975
 
 export default function MatchScreen() {
   const { state, dispatch } = useGame()
-  const { activeMatch, stolenTraits, currentYear, player, matchesPlayed } = state
+  const { activeMatch, stolenTraits, currentYear, player, matchesPlayed, clubLevel } = state
 
   useEffect(() => {
     if (!activeMatch) {
-      const opp = generateOpponent(currentYear, state.stolenFrom)
+      const opp = generateMatchOpponent(clubLevel ?? 1, currentYear)
       const { moments, goals, goalsAgainst } = generateMatchNarration(
         player?.name ?? 'Você',
         stolenTraits,
@@ -63,7 +63,7 @@ export default function MatchScreen() {
 
   // ── INTRO ──
   if (activeMatch.phase === 'intro') {
-    const opStrLabel = activeMatch.opponentStrength >= 85 ? 'LENDA EM FORMAÇÃO' : activeMatch.opponentStrength >= 70 ? 'ADVERSÁRIO FORTE' : 'ADVERSÁRIO COMUM'
+    const opStrLabel = activeMatch.opponentStrength >= 70 ? 'ADVERSÁRIO FORTE' : activeMatch.opponentStrength >= 50 ? 'ADVERSÁRIO MÉDIO' : 'ADVERSÁRIO FRACO'
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: bg }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md text-center">
@@ -84,20 +84,20 @@ export default function MatchScreen() {
             <div className="text-2xl font-black" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>VS</div>
             <div className="text-center">
               <div className="text-3xl mb-1">{activeMatch.opponentFlag}</div>
-              <div className="text-sm font-black" style={{ color: activeMatch.opponentStrength >= 85 ? '#E03535' : '#f0e6c8', fontFamily: 'Oswald' }}>
+              <div className="text-sm font-black" style={{ color: activeMatch.opponentStrength >= 70 ? '#f59e0b' : '#f0e6c8', fontFamily: 'Oswald' }}>
                 {activeMatch.opponentName}
               </div>
-              <div className="text-xs font-bold" style={{ color: activeMatch.opponentStrength >= 85 ? '#E03535' : '#f59e0b', fontFamily: 'Oswald' }}>
+              <div className="text-xs font-bold" style={{ color: activeMatch.opponentStrength >= 70 ? '#f59e0b' : 'rgba(240,230,200,0.5)', fontFamily: 'Oswald' }}>
                 {opStrLabel}
               </div>
             </div>
           </div>
 
-          {activeMatch.opponentStrength >= 85 && (
+          {activeMatch.opponentStrength >= 65 && (
             <motion.div animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
               className="mb-5 p-3 border rounded-sm text-sm"
-              style={{ color: '#E03535', borderColor: 'rgba(224,53,53,0.3)', background: 'rgba(224,53,53,0.06)', fontFamily: 'Inter' }}>
-              ⚠️ Você não roubou de {activeMatch.opponentName}. Ele cresceu forte.
+              style={{ color: '#f59e0b', borderColor: 'rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.06)', fontFamily: 'Inter' }}>
+              ⚠️ Adversário forte. Vai exigir o melhor dos seus traços.
             </motion.div>
           )}
 

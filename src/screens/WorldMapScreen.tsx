@@ -309,7 +309,10 @@ export default function WorldMapScreen() {
             <div>
               <h2 className="text-2xl font-black" style={{ fontFamily: 'Oswald', color: '#f0e6c8' }}>MAPA DE LENDAS</h2>
               <p className="text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                {availableCount} alvos disponíveis · {stolenFrom.length} roubados · ano {currentYear}
+                Você veio do futuro. Só você sabe o que essas crianças vão se tornar.
+              </p>
+              <p className="text-xs opacity-25 mt-0.5" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                {availableCount} janelas abertas · {stolenFrom.length} roubados · {currentYear}
               </p>
             </div>
             {stolenTraits.length > 0 && (
@@ -381,9 +384,14 @@ export default function WorldMapScreen() {
                           <div className="text-xs opacity-50 leading-tight mb-2" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>{legend.city}</div>
 
                           {(status === 'available' || status === 'urgent') && !alreadyStolen && (
-                            <div className="text-xs font-bold" style={{ color: canAfford ? '#22c55e' : '#E03535', fontFamily: 'Oswald' }}>
-                              {canAfford ? '✓' : '✗'} C$ {legend.traits[0].cost.toLocaleString()}+
-                            </div>
+                            <>
+                              <div className="text-xs font-bold" style={{ color: canAfford ? '#22c55e' : '#E03535', fontFamily: 'Oswald' }}>
+                                {canAfford ? '✓' : '✗'} C$ {legend.traits[0].cost.toLocaleString()}+
+                              </div>
+                              <div className="text-xs mt-1 opacity-40 italic" style={{ color: '#D4A840', fontFamily: 'Inter' }}>
+                                só você sabe
+                              </div>
+                            </>
                           )}
 
                           <div className="mt-1.5 px-1.5 py-0.5 text-xs font-bold w-fit" style={{ background: alreadyStolen ? 'rgba(34,197,94,0.15)' : cfg.badge, color: alreadyStolen ? '#22c55e' : cfg.badgeText, fontFamily: 'Oswald' }}>
