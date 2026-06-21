@@ -124,6 +124,17 @@ export default function WorldMapScreen() {
               >
                 +1 ANO →
               </button>
+              <button
+                onClick={() => {
+                  if (window.confirm('Reiniciar do zero? Todo progresso será perdido.')) {
+                    dispatch({ type: 'RESET_GAME' })
+                  }
+                }}
+                className="px-3 py-1.5 text-xs border transition-all hover:opacity-80"
+                style={{ fontFamily: 'Oswald', color: 'rgba(224,53,53,0.6)', borderColor: 'rgba(224,53,53,0.2)' }}
+              >
+                ↺
+              </button>
             </div>
           </div>
         </div>
