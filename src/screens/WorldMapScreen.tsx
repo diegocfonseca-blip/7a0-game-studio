@@ -155,6 +155,36 @@ export default function WorldMapScreen() {
         </motion.div>
       )}
 
+      {/* Critical trait alert */}
+      <AnimatePresence>
+        {criticalTraits.length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="border-b overflow-hidden"
+            style={{ background: 'rgba(224,53,53,0.06)', borderColor: 'rgba(224,53,53,0.25)' }}
+          >
+            <div className="max-w-4xl mx-auto px-4 py-2 flex items-center gap-3 flex-wrap">
+              <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 0.9, repeat: Infinity }}
+                className="text-xs font-bold tracking-widest" style={{ color: '#E03535', fontFamily: 'Oswald' }}>
+                💀 TRAÇOS MORRENDO:
+              </motion.span>
+              {criticalTraits.map(t => (
+                <button key={t.traitId} onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'maintenance' })}
+                  className="text-xs font-bold tracking-wide hover:opacity-80 transition-opacity"
+                  style={{ color: '#E03535', fontFamily: 'Inter' }}>
+                  {t.traitIcon} {t.traitName} ({t.maintenanceBar}%) →
+                </button>
+              ))}
+              <span className="text-xs opacity-60" style={{ color: '#E03535', fontFamily: 'Inter' }}>
+                Traços fracos rendem menos nas partidas
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
 
         {/* ── COMO GANHAR DINHEIRO ── */}

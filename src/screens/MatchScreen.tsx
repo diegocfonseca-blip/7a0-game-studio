@@ -34,14 +34,26 @@ export default function MatchScreen() {
   }
 
   const handleChoice = (choiceIndex: number, score: number, narration: string, traitId: string | null, traitIcon?: string) => {
-    setShowChoiceResult({ narration, score, traitIcon })
+    let effectiveScore = score
+    let effectiveNarration = narration
+
+    if (traitId) {
+      const trait = stolenTraits.find(t => t.traitId === traitId)
+      if (trait && trait.maintenanceBar < 30) {
+        effectiveScore = Math.max(1, score - 1)
+        const condition = trait.maintenanceBar <= 10 ? 'estava à beira do colapso' : 'estava enfraquecida'
+        effectiveNarration = `Sua ${trait.traitName} ${condition} (${trait.maintenanceBar}%) — ${narration.charAt(0).toLowerCase() + narration.slice(1)}`
+      }
+    }
+
+    setShowChoiceResult({ narration: effectiveNarration, score: effectiveScore, traitIcon })
     setTimeout(() => {
       setShowChoiceResult(null)
       dispatch({
         type: 'MATCH_CHOICE',
         momentIndex: activeMatch.momentIndex,
         choiceIndex,
-        score,
+        score: effectiveScore,
         traitUsed: traitId,
       })
     }, 2200)
@@ -115,14 +127,26 @@ export default function MatchScreen() {
                 TRAÇOS DISPONÍVEIS NA PARTIDA
               </div>
               <div className="flex flex-wrap gap-2 justify-center">
-                {stolenTraits.map(t => (
-                  <div key={t.traitId} className="flex items-center gap-1.5 px-2 py-1 border rounded-sm"
-                    style={{ borderColor: 'rgba(124,58,237,0.3)', background: 'rgba(124,58,237,0.1)' }}>
-                    <span>{t.traitIcon}</span>
-                    <span className="text-xs" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>{t.traitName}</span>
-                  </div>
-                ))}
+                {stolenTraits.map(t => {
+                  const isCritical = t.maintenanceBar < 30
+                  return (
+                    <div key={t.traitId} className="flex items-center gap-1.5 px-2 py-1 border rounded-sm"
+                      style={{
+                        borderColor: isCritical ? 'rgba(224,53,53,0.5)' : 'rgba(124,58,237,0.3)',
+                        background: isCritical ? 'rgba(224,53,53,0.1)' : 'rgba(124,58,237,0.1)',
+                      }}>
+                      <span>{t.traitIcon}</span>
+                      <span className="text-xs" style={{ color: isCritical ? '#E03535' : '#f0e6c8', fontFamily: 'Inter' }}>{t.traitName}</span>
+                      {isCritical && <span className="text-xs font-black" style={{ color: '#E03535', fontFamily: 'Oswald' }}>⚠️ {t.maintenanceBar}%</span>}
+                    </div>
+                  )
+                })}
               </div>
+              {stolenTraits.some(t => t.maintenanceBar < 30) && (
+                <p className="text-xs mt-2 opacity-80" style={{ color: '#E03535', fontFamily: 'Inter' }}>
+                  Traços em vermelho estão fracos — renderão menos na partida
+                </p>
+              )}
             </div>
           )}
 
@@ -207,6 +231,8 @@ export default function MatchScreen() {
                   {choices.map((choice, i) => {
                     const isTraitChoice = !!choice.requiredTraitId
                     const trait = isTraitChoice ? stolenTraits.find(t => t.traitId === choice.requiredTraitId) : null
+                    const isWeak = !!(trait && trait.maintenanceBar < 30)
+                    const barColor = isWeak ? '#E03535' : '#7c3aed'
                     return (
                       <motion.button
                         key={i}
@@ -218,20 +244,27 @@ export default function MatchScreen() {
                         onClick={() => handleChoice(i, choice.score, choice.narration, choice.requiredTraitId ?? null, choice.icon)}
                         className="w-full p-4 border rounded-sm text-left transition-all"
                         style={{
-                          background: isTraitChoice ? 'rgba(124,58,237,0.08)' : 'rgba(255,255,255,0.04)',
-                          borderColor: isTraitChoice ? 'rgba(124,58,237,0.35)' : 'rgba(255,255,255,0.1)',
-                          boxShadow: isTraitChoice ? '0 0 12px rgba(124,58,237,0.1)' : 'none',
+                          background: isTraitChoice
+                            ? (isWeak ? 'rgba(224,53,53,0.06)' : 'rgba(124,58,237,0.08)')
+                            : 'rgba(255,255,255,0.04)',
+                          borderColor: isTraitChoice
+                            ? (isWeak ? 'rgba(224,53,53,0.4)' : 'rgba(124,58,237,0.35)')
+                            : 'rgba(255,255,255,0.1)',
+                          boxShadow: isTraitChoice
+                            ? (isWeak ? '0 0 12px rgba(224,53,53,0.08)' : '0 0 12px rgba(124,58,237,0.1)')
+                            : 'none',
                         }}
                       >
                         <div className="flex items-center gap-3">
                           <span className="text-2xl">{choice.icon}</span>
                           <div className="flex-1">
-                            <div className="text-sm font-black" style={{ color: isTraitChoice ? '#c4b5fd' : '#f0e6c8', fontFamily: 'Oswald' }}>
+                            <div className="text-sm font-black" style={{ color: isTraitChoice ? (isWeak ? '#fca5a5' : '#c4b5fd') : '#f0e6c8', fontFamily: 'Oswald' }}>
                               {choice.text}
                             </div>
                             {isTraitChoice && trait && (
-                              <div className="text-xs opacity-60 mt-0.5" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                              <div className="text-xs mt-0.5" style={{ color: isWeak ? '#E03535' : 'rgba(240,230,200,0.6)', fontFamily: 'Inter' }}>
                                 traço de {trait.legendNickname} · {trait.maintenanceBar}% de carga
+                                {isWeak && ' — ENFRAQUECIDO'}
                               </div>
                             )}
                             {!isTraitChoice && (
@@ -241,11 +274,23 @@ export default function MatchScreen() {
                             )}
                           </div>
                           {isTraitChoice && (
-                            <div className="text-xs font-black px-2 py-1" style={{ background: 'rgba(124,58,237,0.2)', color: '#7c3aed', fontFamily: 'Oswald' }}>
-                              TRAÇO
+                            <div className="text-xs font-black px-2 py-1" style={{
+                              background: isWeak ? 'rgba(224,53,53,0.2)' : 'rgba(124,58,237,0.2)',
+                              color: barColor,
+                              fontFamily: 'Oswald',
+                            }}>
+                              {isWeak ? '⚠️ FRACO' : 'TRAÇO'}
                             </div>
                           )}
                         </div>
+                        {isTraitChoice && trait && (
+                          <div className="mt-2 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                            <div className="h-full rounded-full transition-all" style={{
+                              width: `${trait.maintenanceBar}%`,
+                              background: isWeak ? '#E03535' : trait.maintenanceBar > 70 ? '#22c55e' : '#f59e0b',
+                            }} />
+                          </div>
+                        )}
                       </motion.button>
                     )
                   })}
@@ -334,6 +379,50 @@ export default function MatchScreen() {
             )
           })}
         </div>
+
+        {/* Trait health post-match */}
+        {(() => {
+          const usedTraitIds = [...new Set(activeMatch.choices.map(c => c.traitUsed).filter(Boolean))]
+          if (usedTraitIds.length === 0) return null
+          const usedTraits = usedTraitIds.map(id => stolenTraits.find(t => t.traitId === id)).filter(Boolean) as typeof stolenTraits
+          return (
+            <div className="mb-6 p-4 border rounded-sm text-left" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)' }}>
+              <div className="text-xs tracking-widest mb-3 opacity-50" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>
+                ESTADO DOS TRAÇOS USADOS
+              </div>
+              <div className="space-y-2">
+                {usedTraits.map(t => {
+                  const isCritical = t.maintenanceBar < 30
+                  const barColor = t.maintenanceBar > 70 ? '#22c55e' : t.maintenanceBar > 30 ? '#f59e0b' : '#E03535'
+                  return (
+                    <div key={t.traitId}>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <span>{t.traitIcon}</span>
+                          <span className="text-xs font-bold" style={{ color: isCritical ? '#E03535' : '#f0e6c8', fontFamily: 'Oswald' }}>
+                            {t.traitName}
+                          </span>
+                        </div>
+                        <span className="text-xs font-black" style={{ color: barColor, fontFamily: 'Oswald' }}>
+                          {t.maintenanceBar}%
+                          {isCritical && ' ⚠️'}
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                        <div className="h-full rounded-full" style={{ width: `${t.maintenanceBar}%`, background: barColor }} />
+                      </div>
+                      {isCritical && (
+                        <p className="text-xs mt-1" style={{ color: '#E03535', fontFamily: 'Inter' }}>
+                          Precisando de manutenção urgente!
+                        </p>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })()}
 
         {/* Earnings */}
         <div className="grid grid-cols-3 gap-3 mb-8">
