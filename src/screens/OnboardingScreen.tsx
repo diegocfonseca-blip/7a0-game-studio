@@ -90,7 +90,7 @@ const CLUBS = [
 
 export default function OnboardingScreen() {
   const { state, dispatch } = useGame()
-  const { currentYear, player } = state
+  const { currentYear } = state
 
   const [phase, setPhase] = useState<Phase>('encounter')
   const [selectedTrait, setSelectedTrait] = useState<typeof FREE_TRAITS[0] | null>(null)
