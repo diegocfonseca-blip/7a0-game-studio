@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react'
 import type { GameState, GameScreen, StolenTrait, TraitMood, NarrationMoment } from '../types/game'
-import { generateOpponent } from '../data/matchMoments'
+import { generateMatchOpponent } from '../data/matchMoments'
 
 const INITIAL_STATE: GameState = {
   screen: 'intro',
@@ -33,7 +33,7 @@ type Action =
   | { type: 'DECAY_ALL_TRAITS' }
   | { type: 'ADVANCE_YEAR' }
   | { type: 'PLAY_MATCH' }
-  | { type: 'START_MATCH'; opponent: ReturnType<typeof generateOpponent>; moments: NarrationMoment[]; goals: number; goalsAgainst: number }
+  | { type: 'START_MATCH'; opponent: ReturnType<typeof generateMatchOpponent>; moments: NarrationMoment[]; goals: number; goalsAgainst: number }
   | { type: 'MATCH_NEXT_PHASE' }
   | { type: 'MATCH_NEXT_MOMENT' }
   | { type: 'COMPLETE_MATCH'; earned: number; repGain: number }
