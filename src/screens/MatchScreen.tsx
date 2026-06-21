@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useGame } from '../store/gameStore'
-import { MATCH_MOMENTS, generateOpponent } from '../data/matchMoments'
+import { generateOpponent } from '../data/matchMoments'
+import { generateMatchNarration } from '../data/matchNarration'
 
 const PLAYER_BIRTH_YEAR = 1975
 
@@ -9,157 +10,125 @@ export default function MatchScreen() {
   const { state, dispatch } = useGame()
   const { activeMatch, stolenTraits, currentYear, player, matchesPlayed } = state
 
-  const [showChoiceResult, setShowChoiceResult] = useState<{ narration: string; score: number; traitIcon?: string } | null>(null)
-
   useEffect(() => {
     if (!activeMatch) {
       const opp = generateOpponent(currentYear, state.stolenFrom)
-      dispatch({ type: 'START_MATCH', opponent: opp })
+      const { moments, goals, goalsAgainst } = generateMatchNarration(
+        player?.name ?? 'Você',
+        stolenTraits,
+        opp.name,
+        opp.strength,
+        state.reputation,
+      )
+      dispatch({ type: 'START_MATCH', opponent: opp, moments, goals, goalsAgainst })
     }
   }, [])
 
   if (!activeMatch) return null
 
-  const currentMoment = MATCH_MOMENTS[activeMatch.momentIndex]
   const playerAge = currentYear - PLAYER_BIRTH_YEAR
-  const totalScore = activeMatch.choices.reduce((s, c) => s + c.score, 0)
 
-  const getAvailableChoices = () => {
-    if (!currentMoment) return []
-    const traitIds = stolenTraits.map(t => t.traitId)
-    const availableTrait = currentMoment.traitChoices.filter(c =>
-      !c.requiredTraitId || traitIds.includes(c.requiredTraitId)
-    )
-    return [currentMoment.defaultChoice, ...availableTrait]
+  // Score running até o momento atual
+  const shownMoments = activeMatch.moments.slice(0, activeMatch.momentIndex)
+  const runningGoals = shownMoments.filter(m => m.scoreDelta > 0).length
+  const runningGoalsAgainst = shownMoments.filter(m => m.scoreDelta < 0).length
+
+  const currentMoment = activeMatch.moments[activeMatch.momentIndex]
+
+  const momentTypeIcon = (type: string) => {
+    if (type === 'goal') return '⚽'
+    if (type === 'opponent-goal') return '💔'
+    if (type === 'skill') return '✨'
+    if (type === 'miss') return '😤'
+    return '⏱'
   }
 
-  const handleChoice = (choiceIndex: number, score: number, narration: string, traitId: string | null, traitIcon?: string) => {
-    let effectiveScore = score
-    let effectiveNarration = narration
-
-    if (traitId) {
-      const trait = stolenTraits.find(t => t.traitId === traitId)
-      if (trait && trait.maintenanceBar < 30) {
-        effectiveScore = Math.max(1, score - 1)
-        const condition = trait.maintenanceBar <= 10 ? 'estava à beira do colapso' : 'estava enfraquecida'
-        effectiveNarration = `Sua ${trait.traitName} ${condition} (${trait.maintenanceBar}%) — ${narration.charAt(0).toLowerCase() + narration.slice(1)}`
-      }
-    }
-
-    setShowChoiceResult({ narration: effectiveNarration, score: effectiveScore, traitIcon })
-    setTimeout(() => {
-      setShowChoiceResult(null)
-      dispatch({
-        type: 'MATCH_CHOICE',
-        momentIndex: activeMatch.momentIndex,
-        choiceIndex,
-        score: effectiveScore,
-        traitUsed: traitId,
-      })
-    }, 2200)
+  const momentColor = (type: string) => {
+    if (type === 'goal') return { bg: 'rgba(34,197,94,0.06)', border: 'rgba(34,197,94,0.3)', label: '#22c55e', text: 'GOL!' }
+    if (type === 'opponent-goal') return { bg: 'rgba(224,53,53,0.06)', border: 'rgba(224,53,53,0.3)', label: '#E03535', text: 'TOMAMOS' }
+    if (type === 'skill') return { bg: 'rgba(212,168,64,0.06)', border: 'rgba(212,168,64,0.25)', label: '#D4A840', text: 'JOGAÇO' }
+    if (type === 'miss') return { bg: 'rgba(107,114,128,0.06)', border: 'rgba(107,114,128,0.2)', label: '#6b7280', text: 'PERDIDA' }
+    return { bg: 'rgba(255,255,255,0.03)', border: 'rgba(255,255,255,0.1)', label: '#6b7280', text: '' }
   }
 
-  const getResult = () => {
-    const max = MATCH_MOMENTS.length * 3
-    const pct = totalScore / max
-    if (pct >= 0.75) return { label: 'VITÓRIA', emoji: '🏆', color: '#22c55e', earned: 400 + stolenTraits.length * 80 }
-    if (pct >= 0.45) return { label: 'EMPATE', emoji: '🤝', color: '#f59e0b', earned: 180 + stolenTraits.length * 40 }
-    return { label: 'DERROTA', emoji: '💀', color: '#E03535', earned: 60 }
+  const getEarnings = () => {
+    const win = activeMatch.goals > activeMatch.goalsAgainst
+    const draw = activeMatch.goals === activeMatch.goalsAgainst
+    if (win) return { label: 'VITÓRIA', emoji: '🏆', color: '#22c55e', earned: 350 + stolenTraits.length * 70, repGain: activeMatch.goals - activeMatch.goalsAgainst + 3 }
+    if (draw) return { label: 'EMPATE', emoji: '🤝', color: '#f59e0b', earned: 150 + stolenTraits.length * 30, repGain: 2 }
+    return { label: 'DERROTA', emoji: '💀', color: '#E03535', earned: 60, repGain: 1 }
   }
 
-  const opponentStrengthLabel = activeMatch.opponentStrength >= 85
-    ? 'LENDA EM FORMAÇÃO'
-    : activeMatch.opponentStrength >= 70
-    ? 'ADVERSÁRIO FORTE'
-    : 'ADVERSÁRIO COMUM'
+  const bg = 'radial-gradient(ellipse at top, #0d0d1a 0%, #06060f 80%)'
 
   // ── INTRO ──
   if (activeMatch.phase === 'intro') {
+    const opStrLabel = activeMatch.opponentStrength >= 85 ? 'LENDA EM FORMAÇÃO' : activeMatch.opponentStrength >= 70 ? 'ADVERSÁRIO FORTE' : 'ADVERSÁRIO COMUM'
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4"
-        style={{ background: 'radial-gradient(ellipse at top, #0d0d1a 0%, #06060f 80%)' }}>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: bg }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md text-center">
 
-          <div className="text-xs tracking-widest mb-2 opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>
+          <div className="text-xs tracking-widest mb-2 opacity-30" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>
             {currentYear} · {player?.name} · {playerAge} anos
           </div>
-
-          <div className="text-4xl font-black mb-1" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>
-            PARTIDA AMISTOSA
+          <div className="text-4xl font-black mb-8" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>
+            PARTIDA
           </div>
 
-          {/* VS */}
-          <div className="my-8 flex items-center justify-center gap-6">
+          <div className="my-6 flex items-center justify-center gap-6">
             <div className="text-center">
               <div className="text-3xl mb-1">{player?.country === 'Brasil' ? '🇧🇷' : '⬜'}</div>
               <div className="text-sm font-black" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>{player?.name}</div>
               <div className="text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>você</div>
             </div>
-            <div>
-              <div className="text-2xl font-black" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>VS</div>
-            </div>
+            <div className="text-2xl font-black" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>VS</div>
             <div className="text-center">
               <div className="text-3xl mb-1">{activeMatch.opponentFlag}</div>
               <div className="text-sm font-black" style={{ color: activeMatch.opponentStrength >= 85 ? '#E03535' : '#f0e6c8', fontFamily: 'Oswald' }}>
                 {activeMatch.opponentName}
               </div>
-              <div className="text-xs font-bold" style={{
-                color: activeMatch.opponentStrength >= 85 ? '#E03535' : '#f59e0b',
-                fontFamily: 'Oswald'
-              }}>
-                {opponentStrengthLabel}
+              <div className="text-xs font-bold" style={{ color: activeMatch.opponentStrength >= 85 ? '#E03535' : '#f59e0b', fontFamily: 'Oswald' }}>
+                {opStrLabel}
               </div>
             </div>
           </div>
 
           {activeMatch.opponentStrength >= 85 && (
             <motion.div animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
-              className="mb-6 p-3 border rounded-sm text-sm"
+              className="mb-5 p-3 border rounded-sm text-sm"
               style={{ color: '#E03535', borderColor: 'rgba(224,53,53,0.3)', background: 'rgba(224,53,53,0.06)', fontFamily: 'Inter' }}>
-              ⚠️ Você não roubou de {activeMatch.opponentName}. Ele cresceu forte. Este será um jogo difícil.
+              ⚠️ Você não roubou de {activeMatch.opponentName}. Ele cresceu forte.
             </motion.div>
           )}
 
           {stolenTraits.length > 0 && (
-            <div className="mb-6 p-3 border border-white/8 rounded-sm" style={{ background: 'rgba(124,58,237,0.06)' }}>
-              <div className="text-xs tracking-widest mb-2 opacity-60" style={{ color: '#7c3aed', fontFamily: 'Oswald' }}>
-                TRAÇOS DISPONÍVEIS NA PARTIDA
-              </div>
-              <div className="flex flex-wrap gap-2 justify-center">
+            <div className="mb-6 p-3 border border-white/8 rounded-sm text-left" style={{ background: 'rgba(124,58,237,0.05)' }}>
+              <div className="text-xs tracking-widest mb-2 opacity-50" style={{ color: '#7c3aed', fontFamily: 'Oswald' }}>TRAÇOS NA PARTIDA</div>
+              <div className="flex flex-wrap gap-2">
                 {stolenTraits.map(t => {
-                  const isCritical = t.maintenanceBar < 30
+                  const crit = t.maintenanceBar < 30
                   return (
                     <div key={t.traitId} className="flex items-center gap-1.5 px-2 py-1 border rounded-sm"
-                      style={{
-                        borderColor: isCritical ? 'rgba(224,53,53,0.5)' : 'rgba(124,58,237,0.3)',
-                        background: isCritical ? 'rgba(224,53,53,0.1)' : 'rgba(124,58,237,0.1)',
-                      }}>
+                      style={{ borderColor: crit ? 'rgba(224,53,53,0.4)' : 'rgba(124,58,237,0.3)', background: crit ? 'rgba(224,53,53,0.08)' : 'rgba(124,58,237,0.08)' }}>
                       <span>{t.traitIcon}</span>
-                      <span className="text-xs" style={{ color: isCritical ? '#E03535' : '#f0e6c8', fontFamily: 'Inter' }}>{t.traitName}</span>
-                      {isCritical && <span className="text-xs font-black" style={{ color: '#E03535', fontFamily: 'Oswald' }}>⚠️ {t.maintenanceBar}%</span>}
+                      <span className="text-xs" style={{ color: crit ? '#E03535' : '#f0e6c8', fontFamily: 'Inter' }}>{t.traitName}</span>
+                      {crit && <span className="text-xs font-black" style={{ color: '#E03535' }}>⚠️{t.maintenanceBar}%</span>}
                     </div>
                   )
                 })}
               </div>
               {stolenTraits.some(t => t.maintenanceBar < 30) && (
-                <p className="text-xs mt-2 opacity-80" style={{ color: '#E03535', fontFamily: 'Inter' }}>
-                  Traços em vermelho estão fracos — renderão menos na partida
-                </p>
+                <p className="text-xs mt-2" style={{ color: '#E03535', fontFamily: 'Inter' }}>Traços em vermelho renderão menos hoje.</p>
               )}
             </div>
           )}
 
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
+          <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
             onClick={() => dispatch({ type: 'MATCH_NEXT_PHASE' })}
             className="w-full py-4 text-sm font-bold tracking-widest"
-            style={{ background: '#D4A840', color: '#06060f', fontFamily: 'Oswald' }}
-          >
+            style={{ background: '#D4A840', color: '#06060f', fontFamily: 'Oswald' }}>
             APITAR O JOGO →
           </motion.button>
-
           <button onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'map' })}
             className="mt-4 text-xs opacity-30 hover:opacity-60 transition-opacity"
             style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
@@ -170,29 +139,25 @@ export default function MatchScreen() {
     )
   }
 
-  // ── MOMENT ──
-  if (activeMatch.phase === 'moment' && currentMoment) {
-    const choices = getAvailableChoices()
-    const progress = activeMatch.momentIndex / MATCH_MOMENTS.length
+  // ── NARRAÇÃO ──
+  if (activeMatch.phase === 'narration' && currentMoment) {
+    const color = momentColor(currentMoment.type)
+    const progress = activeMatch.momentIndex / activeMatch.moments.length
 
     return (
-      <div className="min-h-screen flex flex-col"
-        style={{ background: 'radial-gradient(ellipse at top, #0d0d1a 0%, #06060f 80%)' }}>
+      <div className="min-h-screen flex flex-col" style={{ background: bg }}>
 
-        {/* Match header */}
-        <div className="border-b px-4 py-3" style={{ background: 'rgba(6,6,15,0.95)', borderColor: 'rgba(255,255,255,0.06)' }}>
+        {/* Header com placar corrente */}
+        <div className="sticky top-0 z-10 border-b px-4 py-3" style={{ background: 'rgba(6,6,15,0.95)', borderColor: 'rgba(255,255,255,0.06)' }}>
           <div className="max-w-lg mx-auto flex items-center justify-between">
             <div className="text-sm font-black" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>
-              {player?.name} <span className="opacity-40">vs</span> {activeMatch.opponentName}
+              {player?.name} <span className="opacity-30">vs</span> {activeMatch.opponentName}
             </div>
-            <div className="flex items-center gap-3">
-              <div className="text-xs opacity-50" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                Momento {activeMatch.momentIndex + 1}/{MATCH_MOMENTS.length}
-              </div>
+            <div className="text-xl font-black" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
+              {runningGoals} <span className="opacity-40 text-base">×</span> {runningGoalsAgainst}
             </div>
           </div>
-          {/* Progress bar */}
-          <div className="max-w-lg mx-auto mt-2 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+          <div className="max-w-lg mx-auto mt-2 h-0.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
             <motion.div animate={{ width: `${progress * 100}%` }} transition={{ duration: 0.5 }}
               className="h-full rounded-full" style={{ background: '#D4A840' }} />
           </div>
@@ -201,126 +166,70 @@ export default function MatchScreen() {
         <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
           <div className="w-full max-w-lg">
 
-            {/* Minute badge */}
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-              className="text-center mb-6">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 border rounded-sm"
-                style={{ borderColor: 'rgba(212,168,64,0.3)', background: 'rgba(212,168,64,0.08)' }}>
-                <span className="text-sm font-black" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
-                  ⏱ {currentMoment.minute}'
-                </span>
-              </div>
-            </motion.div>
-
-            {/* Situation */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-              className="text-center mb-8">
-              <h2 className="text-2xl font-black mb-2" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>
-                {currentMoment.situation}
-              </h2>
-              <p className="text-sm opacity-60" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                {currentMoment.context}
-              </p>
-            </motion.div>
-
-            {/* Choices */}
             <AnimatePresence mode="wait">
-              {!showChoiceResult ? (
-                <motion.div key="choices" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="space-y-3">
-                  {choices.map((choice, i) => {
-                    const isTraitChoice = !!choice.requiredTraitId
-                    const trait = isTraitChoice ? stolenTraits.find(t => t.traitId === choice.requiredTraitId) : null
-                    const isWeak = !!(trait && trait.maintenanceBar < 30)
-                    const barColor = isWeak ? '#E03535' : '#7c3aed'
-                    return (
-                      <motion.button
-                        key={i}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.08 }}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => handleChoice(i, choice.score, choice.narration, choice.requiredTraitId ?? null, choice.icon)}
-                        className="w-full p-4 border rounded-sm text-left transition-all"
-                        style={{
-                          background: isTraitChoice
-                            ? (isWeak ? 'rgba(224,53,53,0.06)' : 'rgba(124,58,237,0.08)')
-                            : 'rgba(255,255,255,0.04)',
-                          borderColor: isTraitChoice
-                            ? (isWeak ? 'rgba(224,53,53,0.4)' : 'rgba(124,58,237,0.35)')
-                            : 'rgba(255,255,255,0.1)',
-                          boxShadow: isTraitChoice
-                            ? (isWeak ? '0 0 12px rgba(224,53,53,0.08)' : '0 0 12px rgba(124,58,237,0.1)')
-                            : 'none',
-                        }}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">{choice.icon}</span>
-                          <div className="flex-1">
-                            <div className="text-sm font-black" style={{ color: isTraitChoice ? (isWeak ? '#fca5a5' : '#c4b5fd') : '#f0e6c8', fontFamily: 'Oswald' }}>
-                              {choice.text}
-                            </div>
-                            {isTraitChoice && trait && (
-                              <div className="text-xs mt-0.5" style={{ color: isWeak ? '#E03535' : 'rgba(240,230,200,0.6)', fontFamily: 'Inter' }}>
-                                traço de {trait.legendNickname} · {trait.maintenanceBar}% de carga
-                                {isWeak && ' — ENFRAQUECIDO'}
-                              </div>
-                            )}
-                            {!isTraitChoice && (
-                              <div className="text-xs opacity-40 mt-0.5" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                                opção segura
-                              </div>
-                            )}
-                          </div>
-                          {isTraitChoice && (
-                            <div className="text-xs font-black px-2 py-1" style={{
-                              background: isWeak ? 'rgba(224,53,53,0.2)' : 'rgba(124,58,237,0.2)',
-                              color: barColor,
-                              fontFamily: 'Oswald',
-                            }}>
-                              {isWeak ? '⚠️ FRACO' : 'TRAÇO'}
-                            </div>
-                          )}
-                        </div>
-                        {isTraitChoice && trait && (
-                          <div className="mt-2 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                            <div className="h-full rounded-full transition-all" style={{
-                              width: `${trait.maintenanceBar}%`,
-                              background: isWeak ? '#E03535' : trait.maintenanceBar > 70 ? '#22c55e' : '#f59e0b',
-                            }} />
-                          </div>
-                        )}
-                      </motion.button>
-                    )
-                  })}
-                </motion.div>
-              ) : (
-                // ── CHOICE RESULT ──
-                <motion.div key="result"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="p-6 border rounded-sm text-center"
-                  style={{
-                    background: showChoiceResult.score === 3 ? 'rgba(34,197,94,0.06)' : showChoiceResult.score === 2 ? 'rgba(245,158,11,0.06)' : 'rgba(255,255,255,0.04)',
-                    borderColor: showChoiceResult.score === 3 ? 'rgba(34,197,94,0.3)' : showChoiceResult.score === 2 ? 'rgba(245,158,11,0.3)' : 'rgba(255,255,255,0.1)',
-                  }}
-                >
-                  <div className="text-4xl mb-3">
-                    {showChoiceResult.score === 3 ? '⚽' : showChoiceResult.score === 2 ? '👍' : '😐'}
+              <motion.div key={activeMatch.momentIndex}
+                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.35 }}>
+
+                {/* Badge do minuto */}
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 border rounded-sm"
+                    style={{ borderColor: color.border, background: color.bg }}>
+                    <span className="text-lg">{momentTypeIcon(currentMoment.type)}</span>
+                    <span className="text-sm font-black" style={{ color: color.label, fontFamily: 'Oswald' }}>
+                      {currentMoment.minute}'
+                    </span>
+                    {color.text && (
+                      <span className="text-xs font-black tracking-widest" style={{ color: color.label, fontFamily: 'Oswald' }}>
+                        {color.text}
+                      </span>
+                    )}
                   </div>
+                </div>
+
+                {/* Texto da narração */}
+                <div className="p-6 border rounded-sm mb-6"
+                  style={{ background: currentMoment.isHighlight ? color.bg : 'rgba(255,255,255,0.02)', borderColor: currentMoment.isHighlight ? color.border : 'rgba(255,255,255,0.08)' }}>
                   <p className="text-base leading-relaxed" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                    {showChoiceResult.narration}
+                    {currentMoment.text}
                   </p>
-                  <div className="mt-3 text-xs font-bold" style={{
-                    color: showChoiceResult.score === 3 ? '#22c55e' : showChoiceResult.score === 2 ? '#f59e0b' : '#6b7280',
-                    fontFamily: 'Oswald'
-                  }}>
-                    {showChoiceResult.score === 3 ? '✨ JOGADA BRILHANTE' : showChoiceResult.score === 2 ? '👍 BOA JOGADA' : 'JOGADA COMUM'}
-                  </div>
-                </motion.div>
-              )}
+                  {currentMoment.traitUsed && (() => {
+                    const t = stolenTraits.find(tr => tr.traitId === currentMoment.traitUsed)
+                    if (!t) return null
+                    return (
+                      <div className="mt-4 pt-3 border-t flex items-center gap-2" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+                        <span>{t.traitIcon}</span>
+                        <span className="text-xs opacity-50" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                          {t.traitName} · {t.maintenanceBar}% de carga
+                        </span>
+                        {t.maintenanceBar < 30 && (
+                          <span className="text-xs font-black" style={{ color: '#E03535', fontFamily: 'Oswald' }}>⚠️ FRACO</span>
+                        )}
+                      </div>
+                    )
+                  })()}
+                </div>
+
+                {/* Progresso */}
+                <div className="flex items-center gap-2 mb-6 justify-center">
+                  {activeMatch.moments.map((m, i) => (
+                    <div key={i} className="h-1 rounded-full transition-all"
+                      style={{
+                        width: i === activeMatch.momentIndex ? 20 : 6,
+                        background: i < activeMatch.momentIndex
+                          ? (m.scoreDelta > 0 ? '#22c55e' : m.scoreDelta < 0 ? '#E03535' : 'rgba(255,255,255,0.3)')
+                          : i === activeMatch.momentIndex ? '#D4A840' : 'rgba(255,255,255,0.1)',
+                      }} />
+                  ))}
+                </div>
+
+                <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                  onClick={() => dispatch({ type: 'MATCH_NEXT_MOMENT' })}
+                  className="w-full py-4 text-sm font-bold tracking-widest"
+                  style={{ background: 'rgba(212,168,64,0.12)', color: '#D4A840', border: '1px solid rgba(212,168,64,0.25)', fontFamily: 'Oswald' }}>
+                  {activeMatch.momentIndex === activeMatch.moments.length - 1 ? 'VER RESULTADO →' : 'CONTINUAR →'}
+                </motion.button>
+              </motion.div>
             </AnimatePresence>
           </div>
         </div>
@@ -328,110 +237,85 @@ export default function MatchScreen() {
     )
   }
 
-  // ── RESULT ──
-  const result = getResult()
-  const repGain = totalScore >= 7 ? 8 : totalScore >= 5 ? 4 : 1
+  // ── RESULTADO ──
+  const result = getEarnings()
+  const isWin = activeMatch.goals > activeMatch.goalsAgainst
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4"
-      style={{ background: 'radial-gradient(ellipse at top, #0d0d1a 0%, #06060f 80%)' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: bg }}>
+      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md text-center">
 
-      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md text-center">
+        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
+          className="text-6xl mb-4">{result.emoji}</motion.div>
 
-        {/* Result badge */}
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
-          className="text-6xl mb-4"
-        >
-          {result.emoji}
-        </motion.div>
+        <h1 className="text-5xl font-black mb-1" style={{ color: result.color, fontFamily: 'Oswald' }}>{result.label}</h1>
 
-        <h1 className="text-5xl font-black mb-1" style={{ color: result.color, fontFamily: 'Oswald' }}>
-          {result.label}
-        </h1>
-        <p className="text-sm opacity-50 mb-8" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-          {player?.name} vs {activeMatch.opponentName} · {currentYear}
-        </p>
+        {/* PLACAR */}
+        <div className="my-6 flex items-center justify-center gap-6">
+          <div className="text-center">
+            <div className="text-3xl font-black" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>{activeMatch.goals}</div>
+            <div className="text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>{player?.name}</div>
+          </div>
+          <div className="text-xl opacity-30 font-black" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>×</div>
+          <div className="text-center">
+            <div className="text-3xl font-black" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>{activeMatch.goalsAgainst}</div>
+            <div className="text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>{activeMatch.opponentName}</div>
+          </div>
+        </div>
 
-        {/* Scores recap */}
-        <div className="mb-6 space-y-2">
-          {activeMatch.choices.map((c, i) => {
-            const moment = MATCH_MOMENTS[c.momentIndex]
-            const choiceOptions = [moment.defaultChoice, ...moment.traitChoices]
-            const chosen = choiceOptions[c.choiceIndex]
+        {/* Momentos resumo */}
+        <div className="mb-5 space-y-2 text-left">
+          {activeMatch.moments.map((m, i) => {
+            const c = momentColor(m.type)
             return (
-              <div key={i} className="flex items-center gap-3 p-3 border rounded-sm text-left"
-                style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.03)' }}>
-                <span className="text-lg">{chosen?.icon}</span>
+              <div key={i} className="flex items-start gap-3 p-2.5 border rounded-sm"
+                style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+                <span className="text-sm pt-0.5">{momentTypeIcon(m.type)}</span>
                 <div className="flex-1">
-                  <div className="text-xs font-bold" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>{moment.minute}' — {chosen?.text}</div>
+                  <span className="text-xs" style={{ color: 'rgba(240,230,200,0.55)', fontFamily: 'Inter' }}>{m.text}</span>
                 </div>
-                <div className="text-xs font-black" style={{
-                  color: c.score === 3 ? '#22c55e' : c.score === 2 ? '#f59e0b' : '#6b7280',
-                  fontFamily: 'Oswald'
-                }}>
-                  {c.score === 3 ? '⭐⭐⭐' : c.score === 2 ? '⭐⭐' : '⭐'}
-                </div>
+                <span className="text-xs font-black whitespace-nowrap" style={{ color: c.label, fontFamily: 'Oswald' }}>
+                  {m.minute}'
+                </span>
               </div>
             )
           })}
         </div>
 
-        {/* Trait health post-match */}
+        {/* Estado dos traços usados */}
         {(() => {
-          const usedTraitIds = [...new Set(activeMatch.choices.map(c => c.traitUsed).filter(Boolean))]
-          if (usedTraitIds.length === 0) return null
-          const usedTraits = usedTraitIds.map(id => stolenTraits.find(t => t.traitId === id)).filter(Boolean) as typeof stolenTraits
+          const used = [...new Set(activeMatch.moments.map(m => m.traitUsed).filter(Boolean))]
+          const usedTraits = used.map(id => stolenTraits.find(t => t.traitId === id)).filter(Boolean) as typeof stolenTraits
+          if (!usedTraits.length) return null
           return (
-            <div className="mb-6 p-4 border rounded-sm text-left" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)' }}>
-              <div className="text-xs tracking-widest mb-3 opacity-50" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>
-                ESTADO DOS TRAÇOS USADOS
-              </div>
-              <div className="space-y-2">
-                {usedTraits.map(t => {
-                  const isCritical = t.maintenanceBar < 30
-                  const barColor = t.maintenanceBar > 70 ? '#22c55e' : t.maintenanceBar > 30 ? '#f59e0b' : '#E03535'
-                  return (
-                    <div key={t.traitId}>
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <span>{t.traitIcon}</span>
-                          <span className="text-xs font-bold" style={{ color: isCritical ? '#E03535' : '#f0e6c8', fontFamily: 'Oswald' }}>
-                            {t.traitName}
-                          </span>
-                        </div>
-                        <span className="text-xs font-black" style={{ color: barColor, fontFamily: 'Oswald' }}>
-                          {t.maintenanceBar}%
-                          {isCritical && ' ⚠️'}
-                        </span>
-                      </div>
-                      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                        <div className="h-full rounded-full" style={{ width: `${t.maintenanceBar}%`, background: barColor }} />
-                      </div>
-                      {isCritical && (
-                        <p className="text-xs mt-1" style={{ color: '#E03535', fontFamily: 'Inter' }}>
-                          Precisando de manutenção urgente!
-                        </p>
-                      )}
+            <div className="mb-5 p-4 border rounded-sm text-left" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)' }}>
+              <div className="text-xs tracking-widest mb-3 opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>ESTADO DOS TRAÇOS USADOS</div>
+              {usedTraits.map(t => {
+                const barColor = t.maintenanceBar > 70 ? '#22c55e' : t.maintenanceBar > 30 ? '#f59e0b' : '#E03535'
+                return (
+                  <div key={t.traitId} className="mb-2">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>{t.traitIcon} {t.traitName}</span>
+                      <span className="text-xs font-black" style={{ color: barColor, fontFamily: 'Oswald' }}>{t.maintenanceBar}%{t.maintenanceBar < 30 ? ' ⚠️' : ''}</span>
                     </div>
-                  )
-                })}
-              </div>
+                    <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                      <div className="h-full rounded-full" style={{ width: `${t.maintenanceBar}%`, background: barColor }} />
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )
         })()}
 
-        {/* Earnings */}
-        <div className="grid grid-cols-3 gap-3 mb-8">
+        {/* Ganhos */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="p-3 border border-white/8 rounded-sm text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
-            <div className="text-xl font-black" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>+C$ {result.earned}</div>
+            <div className="text-xl font-black" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>+C${result.earned}</div>
             <div className="text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>ganhos</div>
           </div>
           <div className="p-3 border border-white/8 rounded-sm text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
-            <div className="text-xl font-black" style={{ color: '#7c3aed', fontFamily: 'Oswald' }}>+{repGain} REP</div>
+            <div className="text-xl font-black" style={{ color: '#7c3aed', fontFamily: 'Oswald' }}>+{result.repGain}</div>
             <div className="text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>reputação</div>
           </div>
           <div className="p-3 border border-white/8 rounded-sm text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
@@ -440,23 +324,18 @@ export default function MatchScreen() {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="space-y-3">
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => dispatch({ type: 'COMPLETE_MATCH', earned: result.earned, repGain })}
-            className="w-full py-4 text-sm font-bold tracking-widest"
-            style={{ background: '#D4A840', color: '#06060f', fontFamily: 'Oswald' }}
-          >
-            → VOLTAR AO MAPA
-          </motion.button>
-          {totalScore < MATCH_MOMENTS.length * 2 && (
-            <p className="text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-              Roube traços das lendas para ter mais opções nos momentos decisivos
-            </p>
-          )}
-        </div>
+        {!isWin && stolenTraits.length === 0 && (
+          <p className="text-xs opacity-40 mb-4" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+            Roube traços das lendas para mudar o rumo das partidas
+          </p>
+        )}
+
+        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+          onClick={() => dispatch({ type: 'COMPLETE_MATCH', earned: result.earned, repGain: result.repGain })}
+          className="w-full py-4 text-sm font-bold tracking-widest"
+          style={{ background: '#D4A840', color: '#06060f', fontFamily: 'Oswald' }}>
+          → VOLTAR AO MAPA
+        </motion.button>
       </motion.div>
     </div>
   )

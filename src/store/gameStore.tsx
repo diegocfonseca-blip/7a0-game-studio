@@ -1,16 +1,16 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react'
-import type { GameState, GameScreen, StolenTrait, TraitMood, ActiveMatch } from '../types/game'
+import type { GameState, GameScreen, StolenTrait, TraitMood, NarrationMoment } from '../types/game'
 import { generateOpponent } from '../data/matchMoments'
-import { MATCH_MOMENTS } from '../data/matchMoments'
 
 const INITIAL_STATE: GameState = {
   screen: 'intro',
   player: null,
   currentYear: 1992,
-  coins: 500,
+  coins: 0,
   reputation: 0,
   stolenTraits: [],
   currentClub: 'Sem clube',
+  clubLevel: 1,
   selectedLegendId: null,
   selectedTraitId: null,
   activeMission: null,
@@ -23,6 +23,7 @@ const INITIAL_STATE: GameState = {
 type Action =
   | { type: 'SET_SCREEN'; screen: GameScreen }
   | { type: 'CREATE_PLAYER'; player: NonNullable<GameState['player']> }
+  | { type: 'COMPLETE_ONBOARDING'; trait: StolenTrait; clubName: string; clubLevel: 1 | 2 | 3; startCoins: number }
   | { type: 'SELECT_LEGEND'; legendId: string | null }
   | { type: 'SELECT_TRAIT'; traitId: string | null }
   | { type: 'START_MISSION'; legendId: string; traitId: string }
@@ -32,9 +33,9 @@ type Action =
   | { type: 'DECAY_ALL_TRAITS' }
   | { type: 'ADVANCE_YEAR' }
   | { type: 'PLAY_MATCH' }
-  | { type: 'START_MATCH'; opponent: ReturnType<typeof generateOpponent> }
+  | { type: 'START_MATCH'; opponent: ReturnType<typeof generateOpponent>; moments: NarrationMoment[]; goals: number; goalsAgainst: number }
   | { type: 'MATCH_NEXT_PHASE' }
-  | { type: 'MATCH_CHOICE'; momentIndex: number; choiceIndex: number; score: number; traitUsed: string | null }
+  | { type: 'MATCH_NEXT_MOMENT' }
   | { type: 'COMPLETE_MATCH'; earned: number; repGain: number }
   | { type: 'SPEND_COINS'; amount: number }
   | { type: 'EARN_COINS'; amount: number }
@@ -54,7 +55,19 @@ function gameReducer(state: GameState, action: Action): GameState {
       return { ...state, screen: action.screen }
 
     case 'CREATE_PLAYER':
-      return { ...state, player: action.player, screen: 'map', coins: 800 }
+      return { ...state, player: action.player, screen: 'onboarding', coins: 0 }
+
+    case 'COMPLETE_ONBOARDING':
+      return {
+        ...state,
+        screen: 'map',
+        currentClub: action.clubName,
+        clubLevel: action.clubLevel,
+        coins: action.startCoins,
+        stolenTraits: [action.trait],
+        stolenFrom: [action.trait.legendId],
+        reputation: 5,
+      }
 
     case 'SELECT_LEGEND':
       return { ...state, selectedLegendId: action.legendId, selectedTraitId: null }
@@ -138,7 +151,8 @@ function gameReducer(state: GameState, action: Action): GameState {
           return { ...t, maintenanceBar: newBar, mood: moodFromBar(newBar) }
         })
         .filter(t => t.maintenanceBar > 0)
-      const passiveIncome = 200 + decayed.length * 50
+      const clubBonus = (state.clubLevel - 1) * 100
+      const passiveIncome = 200 + clubBonus + decayed.length * 50
       return {
         ...state,
         currentYear: state.currentYear + 1,
@@ -151,40 +165,36 @@ function gameReducer(state: GameState, action: Action): GameState {
     case 'PLAY_MATCH':
       return { ...state, screen: 'match', activeMatch: null }
 
-    case 'START_MATCH': {
-      const match: ActiveMatch = {
-        opponentName: action.opponent.name,
-        opponentFlag: action.opponent.flag,
-        opponentStrength: action.opponent.strength,
-        momentIndex: 0,
-        phase: 'intro',
-        choices: [],
-        goals: 0,
-        goalsAgainst: 0,
+    case 'START_MATCH':
+      return {
+        ...state,
+        activeMatch: {
+          opponentName: action.opponent.name,
+          opponentFlag: action.opponent.flag,
+          opponentStrength: action.opponent.strength,
+          momentIndex: 0,
+          phase: 'intro',
+          moments: action.moments,
+          goals: action.goals,
+          goalsAgainst: action.goalsAgainst,
+        },
       }
-      return { ...state, activeMatch: match }
-    }
 
     case 'MATCH_NEXT_PHASE': {
       if (!state.activeMatch) return state
-      return { ...state, activeMatch: { ...state.activeMatch, phase: 'moment' } }
+      return { ...state, activeMatch: { ...state.activeMatch, phase: 'narration' } }
     }
 
-    case 'MATCH_CHOICE': {
+    case 'MATCH_NEXT_MOMENT': {
       if (!state.activeMatch) return state
-      const newChoices = [
-        ...state.activeMatch.choices,
-        { momentIndex: action.momentIndex, choiceIndex: action.choiceIndex, score: action.score, traitUsed: action.traitUsed },
-      ]
-      const nextIndex = state.activeMatch.momentIndex + 1
-      const done = nextIndex >= MATCH_MOMENTS.length
+      const next = state.activeMatch.momentIndex + 1
+      const done = next >= state.activeMatch.moments.length
       return {
         ...state,
         activeMatch: {
           ...state.activeMatch,
-          choices: newChoices,
-          momentIndex: nextIndex,
-          phase: done ? 'result' : 'moment',
+          momentIndex: done ? state.activeMatch.momentIndex : next,
+          phase: done ? 'result' : 'narration',
         },
       }
     }
@@ -220,10 +230,11 @@ const GameContext = createContext<{
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE, (init) => {
-    const saved = localStorage.getItem('thief-of-legends-v1')
+    const saved = localStorage.getItem('thief-of-legends-v2')
     if (saved) {
       try {
-        return JSON.parse(saved) as GameState
+        const parsed = JSON.parse(saved) as GameState
+        return { ...init, ...parsed, clubLevel: parsed.clubLevel ?? 1 }
       } catch {
         return init
       }
@@ -232,7 +243,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   })
 
   useEffect(() => {
-    localStorage.setItem('thief-of-legends-v1', JSON.stringify(state))
+    localStorage.setItem('thief-of-legends-v2', JSON.stringify(state))
   }, [state])
 
   return (
