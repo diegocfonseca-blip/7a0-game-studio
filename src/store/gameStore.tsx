@@ -352,9 +352,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as GameState
+        const safeScreen = ['match', 'steal-mission'].includes(parsed.screen) ? 'intro' : parsed.screen
         return {
           ...init,
           ...parsed,
+          screen: safeScreen,
+          activeMatch: null,
           clubLevel: parsed.clubLevel ?? 1,
           pendingEvents: parsed.pendingEvents ?? [],
           pendingMatchType: parsed.pendingMatchType ?? 'amistoso',

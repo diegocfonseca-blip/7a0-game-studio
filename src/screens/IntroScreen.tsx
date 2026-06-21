@@ -14,7 +14,8 @@ const LINES = [
 ]
 
 export default function IntroScreen() {
-  const { dispatch } = useGame()
+  const { state, dispatch } = useGame()
+  const hasSave = !!state.player
   const [lineIndex, setLineIndex] = useState(0)
   const [showButton, setShowButton] = useState(false)
   const [particles] = useState(() =>
@@ -137,21 +138,54 @@ export default function IntroScreen() {
               <p className="text-sm tracking-widest opacity-60" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
                 1992 — AS LENDAS AINDA SÃO CRIANÇAS
               </p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'creation' })}
-                className="px-10 py-4 text-sm font-bold tracking-[0.3em] border transition-all duration-300"
-                style={{
-                  fontFamily: 'Oswald',
-                  color: '#06060f',
-                  background: '#D4A840',
-                  borderColor: '#D4A840',
-                  boxShadow: '0 0 30px rgba(212,168,64,0.4)',
-                }}
-              >
-                INICIAR JORNADA
-              </motion.button>
+
+              {hasSave ? (
+                <>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'map' })}
+                    className="px-10 py-4 text-sm font-bold tracking-[0.3em] border transition-all duration-300"
+                    style={{
+                      fontFamily: 'Oswald',
+                      color: '#06060f',
+                      background: '#D4A840',
+                      borderColor: '#D4A840',
+                      boxShadow: '0 0 30px rgba(212,168,64,0.4)',
+                    }}
+                  >
+                    CONTINUAR JORNADA
+                  </motion.button>
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Apagar tudo e começar do zero?')) {
+                        dispatch({ type: 'RESET_GAME' })
+                      }
+                    }}
+                    className="text-xs opacity-40 hover:opacity-70 transition-opacity"
+                    style={{ color: '#f0e6c8', fontFamily: 'Inter' }}
+                  >
+                    ↺ novo jogo
+                  </button>
+                </>
+              ) : (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'creation' })}
+                  className="px-10 py-4 text-sm font-bold tracking-[0.3em] border transition-all duration-300"
+                  style={{
+                    fontFamily: 'Oswald',
+                    color: '#06060f',
+                    background: '#D4A840',
+                    borderColor: '#D4A840',
+                    boxShadow: '0 0 30px rgba(212,168,64,0.4)',
+                  }}
+                >
+                  INICIAR JORNADA
+                </motion.button>
+              )}
+
               <p className="text-xs opacity-30" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
                 Ninguém sabe o que eles vão ser. Exceto você.
               </p>
