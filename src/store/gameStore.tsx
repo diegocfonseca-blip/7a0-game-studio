@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react'
 import type { GameState, GameScreen, StolenTrait, TraitMood, NarrationMoment, MatchType } from '../types/game'
 import { generateMatchOpponent } from '../data/matchMoments'
 import { rollYearEvents } from '../data/gameEvents'
+import type { MarketItem } from '../data/market'
 
 const INITIAL_STATE: GameState = {
   screen: 'intro',
@@ -21,6 +22,8 @@ const INITIAL_STATE: GameState = {
   matchesPlayed: 0,
   pendingEvents: [],
   pendingMatchType: 'amistoso',
+  purchasedItems: [],
+  nextMatchMult: 1.0,
 }
 
 type Action =
@@ -41,6 +44,7 @@ type Action =
   | { type: 'MATCH_NEXT_PHASE' }
   | { type: 'MATCH_NEXT_MOMENT' }
   | { type: 'COMPLETE_MATCH'; earned: number; repGain: number }
+  | { type: 'PURCHASE_ITEM'; item: MarketItem; gambleRoll: number }
   | { type: 'SPEND_COINS'; amount: number }
   | { type: 'EARN_COINS'; amount: number }
   | { type: 'RESET_GAME' }
@@ -242,8 +246,86 @@ function gameReducer(state: GameState, action: Action): GameState {
         reputation: state.reputation + action.repGain,
         matchesPlayed: (state.matchesPlayed ?? 0) + 1,
         activeMatch: null,
+        nextMatchMult: 1.0,
         screen: 'map',
       }
+
+    case 'PURCHASE_ITEM': {
+      const { item, gambleRoll } = action
+      let coins = state.coins - item.price
+      let reputation = state.reputation
+      let stolenTraits = [...state.stolenTraits]
+      let nextMatchMult = state.nextMatchMult
+      const purchasedItems = [...state.purchasedItems, item.id]
+
+      const eff = item.effect
+
+      if (eff.gamble) {
+        const won = gambleRoll < eff.gamble.winChance
+        if (won) {
+          coins += eff.gamble.win.coins
+          reputation += eff.gamble.win.reputation ?? 0
+        } else {
+          coins += eff.gamble.lose.coins ?? 0
+          if (eff.gamble.lose.traitDrain && stolenTraits.length > 0) {
+            const idx = Math.floor(gambleRoll * stolenTraits.length) % stolenTraits.length
+            stolenTraits = stolenTraits
+              .map((t, i) => {
+                if (i !== idx) return t
+                const newBar = Math.max(0, t.maintenanceBar - eff.gamble!.lose.traitDrain!)
+                return { ...t, maintenanceBar: newBar, mood: moodFromBar(newBar) }
+              })
+              .filter(t => t.maintenanceBar > 0)
+          }
+        }
+      } else {
+        if (eff.coins) coins += eff.coins
+        if (eff.reputation) reputation += eff.reputation
+      }
+
+      // Apply non-gamble effects always (even alongside reputation-only on gamble items)
+      if (!eff.gamble && eff.reputation) reputation += 0  // already done above
+      // Flat reputation on gamble items (like aposta-partida losing reputation either way)
+      if (eff.gamble && eff.reputation) reputation += eff.reputation
+
+      if (eff.nextMatchMult) nextMatchMult = Math.max(nextMatchMult, eff.nextMatchMult)
+
+      if (eff.traitBoostAll && stolenTraits.length > 0) {
+        stolenTraits = stolenTraits.map(t => {
+          const newBar = Math.min(100, t.maintenanceBar + eff.traitBoostAll!)
+          return { ...t, maintenanceBar: newBar, mood: moodFromBar(newBar) }
+        })
+      }
+
+      if (eff.traitBoostRandom && stolenTraits.length > 0) {
+        const idx = Math.floor(gambleRoll * stolenTraits.length) % stolenTraits.length
+        stolenTraits = stolenTraits.map((t, i) => {
+          if (i !== idx) return t
+          const newBar = Math.min(100, t.maintenanceBar + eff.traitBoostRandom!)
+          return { ...t, maintenanceBar: newBar, mood: moodFromBar(newBar) }
+        })
+      }
+
+      if (eff.traitDrainRandom && stolenTraits.length > 0) {
+        const idx = Math.floor((1 - gambleRoll) * stolenTraits.length) % stolenTraits.length
+        stolenTraits = stolenTraits
+          .map((t, i) => {
+            if (i !== idx) return t
+            const newBar = Math.max(0, t.maintenanceBar - eff.traitDrainRandom!)
+            return { ...t, maintenanceBar: newBar, mood: moodFromBar(newBar) }
+          })
+          .filter(t => t.maintenanceBar > 0)
+      }
+
+      return {
+        ...state,
+        coins: Math.max(0, coins),
+        reputation: Math.max(0, reputation),
+        stolenTraits,
+        nextMatchMult,
+        purchasedItems,
+      }
+    }
 
     case 'SPEND_COINS':
       return { ...state, coins: Math.max(0, state.coins - action.amount) }
@@ -276,6 +358,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           clubLevel: parsed.clubLevel ?? 1,
           pendingEvents: parsed.pendingEvents ?? [],
           pendingMatchType: parsed.pendingMatchType ?? 'amistoso',
+          purchasedItems: parsed.purchasedItems ?? [],
+          nextMatchMult: parsed.nextMatchMult ?? 1.0,
         }
       } catch {
         return init

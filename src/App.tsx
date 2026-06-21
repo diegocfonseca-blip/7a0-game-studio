@@ -6,6 +6,7 @@ import WorldMapScreen from './screens/WorldMapScreen'
 import StealMissionScreen from './screens/StealMissionScreen'
 import MaintenanceScreen from './screens/MaintenanceScreen'
 import MatchScreen from './screens/MatchScreen'
+import MarketScreen from './screens/MarketScreen'
 
 function GameRouter() {
   const { state } = useGame()
@@ -18,6 +19,7 @@ function GameRouter() {
     case 'steal-mission': return <StealMissionScreen />
     case 'maintenance':   return <MaintenanceScreen />
     case 'match':         return <MatchScreen />
+    case 'market':        return <MarketScreen />
     default:              return <IntroScreen />
   }
 }

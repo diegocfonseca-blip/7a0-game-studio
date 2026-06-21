@@ -59,6 +59,7 @@ export type GameScreen =
   | 'maintenance'
   | 'steal-mission'
   | 'match'
+  | 'market'
 
 export type MatchType = 'racha' | 'amistoso' | 'decisiva'
 
@@ -135,4 +136,6 @@ export interface GameState {
   matchesPlayed: number
   pendingEvents: GameEvent[]
   pendingMatchType: MatchType
+  purchasedItems: string[]
+  nextMatchMult: number
 }

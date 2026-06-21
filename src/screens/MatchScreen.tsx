@@ -14,7 +14,7 @@ const MATCH_TYPE_CONFIG = {
 
 export default function MatchScreen() {
   const { state, dispatch } = useGame()
-  const { activeMatch, stolenTraits, currentYear, player, matchesPlayed, clubLevel, pendingMatchType } = state
+  const { activeMatch, stolenTraits, currentYear, player, matchesPlayed, clubLevel, pendingMatchType, nextMatchMult } = state
   const mtConfig = MATCH_TYPE_CONFIG[pendingMatchType ?? 'amistoso']
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function MatchScreen() {
     const win = activeMatch.goals > activeMatch.goalsAgainst
     const draw = activeMatch.goals === activeMatch.goalsAgainst
     const mt = MATCH_TYPE_CONFIG[activeMatch.matchType ?? 'amistoso']
-    const m = mt.mult
+    const m = mt.mult * (nextMatchMult ?? 1.0)
     if (win) return { label: 'VITÓRIA', emoji: '🏆', color: '#22c55e', earned: Math.round((350 + stolenTraits.length * 70) * m), repGain: activeMatch.goals - activeMatch.goalsAgainst + 3 }
     if (draw) return { label: 'EMPATE', emoji: '🤝', color: '#f59e0b', earned: Math.round((150 + stolenTraits.length * 30) * m), repGain: 2 }
     return { label: 'DERROTA', emoji: '💀', color: '#E03535', earned: Math.round(60 * m), repGain: 1 }
@@ -106,6 +106,14 @@ export default function MatchScreen() {
               </div>
             </div>
           </div>
+
+          {(nextMatchMult ?? 1) > 1 && (
+            <motion.div animate={{ opacity: [1, 0.6, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
+              className="mb-3 p-3 border rounded-sm text-sm"
+              style={{ color: '#22c55e', borderColor: 'rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.06)', fontFamily: 'Inter' }}>
+              ✨ Bônus ativo: ×{(nextMatchMult ?? 1).toFixed(1)} nos ganhos desta partida
+            </motion.div>
+          )}
 
           {activeMatch.opponentStrength >= 65 && (
             <motion.div animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }}

@@ -34,7 +34,7 @@ export default function WorldMapScreen() {
   const { currentYear, coins, reputation, player, stolenTraits, selectedLegendId, stolenFrom, pendingEvents } = state
   const [yearSummary, setYearSummary] = useState<{ earned: number; lost: number } | null>(null)
   const [matchFlash, setMatchFlash] = useState(false)
-  const [showEvents, setShowEvents] = useState(false)
+  const [showEvents, setShowEvents] = useState(pendingEvents.length > 0)
 
   const playerAge = currentYear - PLAYER_BIRTH_YEAR
   const urgentLegends = LEGENDS.filter(l => getLegendStatus(l, currentYear) === 'urgent')
@@ -109,6 +109,13 @@ export default function WorldMapScreen() {
                 }}
               >
                 {criticalTraits.length > 0 ? '⚠️ ' : ''}MANUTENÇÃO
+              </button>
+              <button
+                onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'market' })}
+                className="px-3 py-1.5 text-xs border transition-all hover:opacity-80"
+                style={{ fontFamily: 'Oswald', color: '#D4A840', borderColor: 'rgba(212,168,64,0.3)', background: 'rgba(212,168,64,0.06)' }}
+              >
+                🛒 MERCADO
               </button>
               <button
                 onClick={handleAdvanceYear}
