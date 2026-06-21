@@ -60,6 +60,21 @@ export type GameScreen =
   | 'steal-mission'
   | 'match'
 
+export type MatchType = 'racha' | 'amistoso' | 'decisiva'
+
+export interface GameEvent {
+  id: string
+  title: string
+  text: string
+  type: 'positive' | 'negative' | 'neutral' | 'consequence'
+  effect?: {
+    coins?: number
+    reputation?: number
+    traitBoostId?: string
+    traitDrainAmount?: number
+  }
+}
+
 export interface MissionChoice {
   phase: number
   choiceIndex: number
@@ -93,6 +108,7 @@ export interface ActiveMatch {
   moments: NarrationMoment[]
   goals: number
   goalsAgainst: number
+  matchType: MatchType
 }
 
 export interface GameState {
@@ -117,4 +133,6 @@ export interface GameState {
   titles: string[]
   stolenFrom: string[]
   matchesPlayed: number
+  pendingEvents: GameEvent[]
+  pendingMatchType: MatchType
 }

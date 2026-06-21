@@ -6,9 +6,16 @@ import { generateMatchNarration } from '../data/matchNarration'
 
 const PLAYER_BIRTH_YEAR = 1975
 
+const MATCH_TYPE_CONFIG = {
+  racha:    { label: 'RACHA',    icon: '⚡', moments: 3, mult: 0.6, color: '#f59e0b' },
+  amistoso: { label: 'AMISTOSO', icon: '⚽', moments: 5, mult: 1.0, color: '#D4A840' },
+  decisiva: { label: 'DECISIVA', icon: '🏆', moments: 8, mult: 1.5, color: '#22c55e' },
+}
+
 export default function MatchScreen() {
   const { state, dispatch } = useGame()
-  const { activeMatch, stolenTraits, currentYear, player, matchesPlayed, clubLevel } = state
+  const { activeMatch, stolenTraits, currentYear, player, matchesPlayed, clubLevel, pendingMatchType } = state
+  const mtConfig = MATCH_TYPE_CONFIG[pendingMatchType ?? 'amistoso']
 
   useEffect(() => {
     if (!activeMatch) {
@@ -19,8 +26,9 @@ export default function MatchScreen() {
         opp.name,
         opp.strength,
         state.reputation,
+        mtConfig.moments,
       )
-      dispatch({ type: 'START_MATCH', opponent: opp, moments, goals, goalsAgainst })
+      dispatch({ type: 'START_MATCH', opponent: opp, moments, goals, goalsAgainst, matchType: pendingMatchType ?? 'amistoso' })
     }
   }, [])
 
@@ -54,9 +62,11 @@ export default function MatchScreen() {
   const getEarnings = () => {
     const win = activeMatch.goals > activeMatch.goalsAgainst
     const draw = activeMatch.goals === activeMatch.goalsAgainst
-    if (win) return { label: 'VITÓRIA', emoji: '🏆', color: '#22c55e', earned: 350 + stolenTraits.length * 70, repGain: activeMatch.goals - activeMatch.goalsAgainst + 3 }
-    if (draw) return { label: 'EMPATE', emoji: '🤝', color: '#f59e0b', earned: 150 + stolenTraits.length * 30, repGain: 2 }
-    return { label: 'DERROTA', emoji: '💀', color: '#E03535', earned: 60, repGain: 1 }
+    const mt = MATCH_TYPE_CONFIG[activeMatch.matchType ?? 'amistoso']
+    const m = mt.mult
+    if (win) return { label: 'VITÓRIA', emoji: '🏆', color: '#22c55e', earned: Math.round((350 + stolenTraits.length * 70) * m), repGain: activeMatch.goals - activeMatch.goalsAgainst + 3 }
+    if (draw) return { label: 'EMPATE', emoji: '🤝', color: '#f59e0b', earned: Math.round((150 + stolenTraits.length * 30) * m), repGain: 2 }
+    return { label: 'DERROTA', emoji: '💀', color: '#E03535', earned: Math.round(60 * m), repGain: 1 }
   }
 
   const bg = 'radial-gradient(ellipse at top, #0d0d1a 0%, #06060f 80%)'
@@ -71,8 +81,12 @@ export default function MatchScreen() {
           <div className="text-xs tracking-widest mb-2 opacity-30" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>
             {currentYear} · {player?.name} · {playerAge} anos
           </div>
-          <div className="text-4xl font-black mb-8" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>
-            PARTIDA
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <div className="text-4xl font-black" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>PARTIDA</div>
+            <div className="px-2.5 py-1 border rounded-sm text-sm font-black tracking-wider"
+              style={{ color: mtConfig.color, borderColor: `${mtConfig.color}40`, background: `${mtConfig.color}10`, fontFamily: 'Oswald' }}>
+              {mtConfig.icon} {mtConfig.label}
+            </div>
           </div>
 
           <div className="my-6 flex items-center justify-center gap-6">

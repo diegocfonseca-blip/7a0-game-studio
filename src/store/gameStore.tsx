@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react'
-import type { GameState, GameScreen, StolenTrait, TraitMood, NarrationMoment } from '../types/game'
+import type { GameState, GameScreen, StolenTrait, TraitMood, NarrationMoment, MatchType } from '../types/game'
 import { generateMatchOpponent } from '../data/matchMoments'
+import { rollYearEvents } from '../data/gameEvents'
 
 const INITIAL_STATE: GameState = {
   screen: 'intro',
@@ -18,6 +19,8 @@ const INITIAL_STATE: GameState = {
   titles: [],
   stolenFrom: [],
   matchesPlayed: 0,
+  pendingEvents: [],
+  pendingMatchType: 'amistoso',
 }
 
 type Action =
@@ -32,8 +35,9 @@ type Action =
   | { type: 'MAINTAIN_TRAIT'; traitId: string; cost: number }
   | { type: 'DECAY_ALL_TRAITS' }
   | { type: 'ADVANCE_YEAR' }
-  | { type: 'PLAY_MATCH' }
-  | { type: 'START_MATCH'; opponent: ReturnType<typeof generateMatchOpponent>; moments: NarrationMoment[]; goals: number; goalsAgainst: number }
+  | { type: 'DISMISS_EVENTS' }
+  | { type: 'PLAY_MATCH'; matchType: MatchType }
+  | { type: 'START_MATCH'; opponent: ReturnType<typeof generateMatchOpponent>; moments: NarrationMoment[]; goals: number; goalsAgainst: number; matchType: MatchType }
   | { type: 'MATCH_NEXT_PHASE' }
   | { type: 'MATCH_NEXT_MOMENT' }
   | { type: 'COMPLETE_MATCH'; earned: number; repGain: number }
@@ -153,17 +157,48 @@ function gameReducer(state: GameState, action: Action): GameState {
         .filter(t => t.maintenanceBar > 0)
       const clubBonus = (state.clubLevel - 1) * 100
       const passiveIncome = 200 + clubBonus + decayed.length * 50
+      const events = rollYearEvents({ ...state, stolenTraits: decayed, currentYear: state.currentYear + 1 })
       return {
         ...state,
         currentYear: state.currentYear + 1,
         coins: state.coins + passiveIncome,
         stolenTraits: decayed,
         reputation: Math.max(0, state.reputation - 1),
+        pendingEvents: events,
+      }
+    }
+
+    case 'DISMISS_EVENTS': {
+      let coins = state.coins
+      let reputation = state.reputation
+      let stolenTraits = [...state.stolenTraits]
+
+      for (const event of state.pendingEvents) {
+        if (event.effect?.coins) coins += event.effect.coins
+        if (event.effect?.reputation) reputation += event.effect.reputation
+        if (event.effect?.traitBoostId && event.effect.traitDrainAmount !== undefined) {
+          const drain = event.effect.traitDrainAmount
+          stolenTraits = stolenTraits
+            .map(t => {
+              if (t.traitId !== event.effect!.traitBoostId) return t
+              const newBar = Math.max(0, Math.min(100, t.maintenanceBar - drain))
+              return { ...t, maintenanceBar: newBar, mood: moodFromBar(newBar) }
+            })
+            .filter(t => t.maintenanceBar > 0)
+        }
+      }
+
+      return {
+        ...state,
+        pendingEvents: [],
+        coins: Math.max(0, coins),
+        reputation: Math.max(0, reputation),
+        stolenTraits,
       }
     }
 
     case 'PLAY_MATCH':
-      return { ...state, screen: 'match', activeMatch: null }
+      return { ...state, screen: 'match', activeMatch: null, pendingMatchType: action.matchType }
 
     case 'START_MATCH':
       return {
@@ -177,6 +212,7 @@ function gameReducer(state: GameState, action: Action): GameState {
           moments: action.moments,
           goals: action.goals,
           goalsAgainst: action.goalsAgainst,
+          matchType: action.matchType,
         },
       }
 
@@ -234,7 +270,13 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as GameState
-        return { ...init, ...parsed, clubLevel: parsed.clubLevel ?? 1 }
+        return {
+          ...init,
+          ...parsed,
+          clubLevel: parsed.clubLevel ?? 1,
+          pendingEvents: parsed.pendingEvents ?? [],
+          pendingMatchType: parsed.pendingMatchType ?? 'amistoso',
+        }
       } catch {
         return init
       }

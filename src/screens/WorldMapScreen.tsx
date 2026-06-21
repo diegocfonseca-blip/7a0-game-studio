@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useGame } from '../store/gameStore'
 import { LEGENDS, getLegendStatus, getLegendAge } from '../data/legends'
 import LegendProfileModal from '../components/LegendProfileModal'
-import type { Region } from '../types/game'
+import type { Region, MatchType } from '../types/game'
 
 const REGIONS: { id: Region; label: string; flag: string }[] = [
   { id: 'brasil', label: 'Brasil', flag: '🇧🇷' },
@@ -23,11 +23,18 @@ const STATUS_CONFIG = {
 // Player born 1975 per the story (33 in 2008, woke up in 1992 = age 17)
 const PLAYER_BIRTH_YEAR = 1975
 
+const MATCH_TYPES: { type: MatchType; label: string; icon: string; desc: string; moments: number; mult: number }[] = [
+  { type: 'racha',     label: 'RACHA',     icon: '⚡', desc: 'Rápido · 3 lances',  moments: 3, mult: 0.6 },
+  { type: 'amistoso',  label: 'AMISTOSO',  icon: '⚽', desc: 'Normal · 5–6 lances', moments: 5, mult: 1.0 },
+  { type: 'decisiva',  label: 'DECISIVA',  icon: '🏆', desc: 'Alto risco · 8 lances', moments: 8, mult: 1.5 },
+]
+
 export default function WorldMapScreen() {
   const { state, dispatch } = useGame()
-  const { currentYear, coins, reputation, player, stolenTraits, selectedLegendId, stolenFrom } = state
+  const { currentYear, coins, reputation, player, stolenTraits, selectedLegendId, stolenFrom, pendingEvents } = state
   const [yearSummary, setYearSummary] = useState<{ earned: number; lost: number } | null>(null)
   const [matchFlash, setMatchFlash] = useState(false)
+  const [showEvents, setShowEvents] = useState(false)
 
   const playerAge = currentYear - PLAYER_BIRTH_YEAR
   const urgentLegends = LEGENDS.filter(l => getLegendStatus(l, currentYear) === 'urgent')
@@ -41,13 +48,21 @@ export default function WorldMapScreen() {
     const passiveEarned = 200 + stolenTraits.length * 50
     dispatch({ type: 'ADVANCE_YEAR' })
     setYearSummary({ earned: passiveEarned, lost: lostCount })
-    setTimeout(() => setYearSummary(null), 3500)
+    setTimeout(() => {
+      setYearSummary(null)
+      setShowEvents(true)
+    }, 1200)
   }
 
-  const handlePlayMatch = () => {
-    dispatch({ type: 'PLAY_MATCH' })
+  const handlePlayMatch = (matchType: MatchType) => {
+    dispatch({ type: 'PLAY_MATCH', matchType })
     setMatchFlash(true)
     setTimeout(() => setMatchFlash(false), 800)
+  }
+
+  const handleDismissEvents = () => {
+    dispatch({ type: 'DISMISS_EVENTS' })
+    setShowEvents(false)
   }
 
   return (
@@ -205,28 +220,25 @@ export default function WorldMapScreen() {
           </div>
 
           <div className="grid grid-cols-3 gap-0 divide-x divide-white/5">
-            {/* Jogar Partida */}
-            <motion.button
-              whileHover={{ background: 'rgba(212,168,64,0.08)' }}
-              whileTap={{ scale: 0.97 }}
-              onClick={handlePlayMatch}
-              className="p-4 text-left flex flex-col gap-1 transition-all"
-              style={{ background: 'transparent' }}
-            >
-              <div className="text-2xl">⚽</div>
-              <div className="text-xs font-black tracking-wide" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>JOGAR PARTIDA</div>
-              <div className="text-xs opacity-50" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                Pelada amadora · Sempre disponível
-              </div>
-              <div className="text-base font-black mt-1" style={{ color: '#22c55e', fontFamily: 'Oswald' }}>
-                +C$ {matchEarning}
-              </div>
-              {stolenTraits.length > 0 && (
-                <div className="text-xs opacity-60" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                  base C$120 + {stolenTraits.length} traço(s) ×80
-                </div>
-              )}
-            </motion.button>
+            {/* 3 tipos de partida */}
+            {MATCH_TYPES.map(mt => {
+              const earned = Math.round(matchEarning * mt.mult)
+              return (
+                <motion.button
+                  key={mt.type}
+                  whileHover={{ background: 'rgba(212,168,64,0.08)' }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => handlePlayMatch(mt.type)}
+                  className="p-4 text-left flex flex-col gap-1 transition-all"
+                  style={{ background: 'transparent' }}
+                >
+                  <div className="text-2xl">{mt.icon}</div>
+                  <div className="text-xs font-black tracking-wide" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>{mt.label}</div>
+                  <div className="text-xs opacity-50" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>{mt.desc}</div>
+                  <div className="text-base font-black mt-1" style={{ color: '#22c55e', fontFamily: 'Oswald' }}>+C$ {earned}</div>
+                </motion.button>
+              )
+            })}
 
             {/* Manutenção dos traços */}
             <div className="p-4 flex flex-col gap-1">
@@ -426,6 +438,99 @@ export default function WorldMapScreen() {
       </div>
 
       {selectedLegendId && <LegendProfileModal />}
+
+      {/* EventModal */}
+      <AnimatePresence>
+        {showEvents && pendingEvents.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center px-4"
+            style={{ background: 'rgba(0,0,0,0.75)' }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 12 }}
+              className="w-full max-w-md border rounded-sm overflow-hidden"
+              style={{ background: '#0d0d1a', borderColor: 'rgba(212,168,64,0.25)' }}
+            >
+              <div className="px-5 py-4 border-b" style={{ borderColor: 'rgba(212,168,64,0.15)' }}>
+                <div className="text-xs tracking-widest opacity-40 mb-0.5" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
+                  {currentYear} — EVENTOS DO ANO
+                </div>
+                <div className="text-xl font-black" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>
+                  O QUE ACONTECEU
+                </div>
+              </div>
+
+              <div className="px-5 py-4 space-y-3 max-h-80 overflow-y-auto">
+                {pendingEvents.map((evt, i) => {
+                  const typeColor =
+                    evt.type === 'positive' ? '#22c55e' :
+                    evt.type === 'negative' ? '#E03535' :
+                    evt.type === 'consequence' ? '#7c3aed' : '#D4A840'
+                  const typeBg =
+                    evt.type === 'positive' ? 'rgba(34,197,94,0.06)' :
+                    evt.type === 'negative' ? 'rgba(224,53,53,0.06)' :
+                    evt.type === 'consequence' ? 'rgba(124,58,237,0.08)' : 'rgba(212,168,64,0.05)'
+                  const typeBorder =
+                    evt.type === 'positive' ? 'rgba(34,197,94,0.2)' :
+                    evt.type === 'negative' ? 'rgba(224,53,53,0.2)' :
+                    evt.type === 'consequence' ? 'rgba(124,58,237,0.25)' : 'rgba(212,168,64,0.15)'
+
+                  const effectLines: string[] = []
+                  if (evt.effect?.coins && evt.effect.coins > 0) effectLines.push(`+C$ ${evt.effect.coins}`)
+                  if (evt.effect?.coins && evt.effect.coins < 0) effectLines.push(`−C$ ${Math.abs(evt.effect.coins)}`)
+                  if (evt.effect?.reputation && evt.effect.reputation > 0) effectLines.push(`+${evt.effect.reputation} rep`)
+                  if (evt.effect?.reputation && evt.effect.reputation < 0) effectLines.push(`${evt.effect.reputation} rep`)
+
+                  return (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.08 }}
+                      className="p-3 border rounded-sm"
+                      style={{ background: typeBg, borderColor: typeBorder }}
+                    >
+                      <div className="text-xs font-black tracking-widest mb-1" style={{ color: typeColor, fontFamily: 'Oswald' }}>
+                        {evt.title}
+                      </div>
+                      <p className="text-xs leading-relaxed" style={{ color: 'rgba(240,230,200,0.8)', fontFamily: 'Inter' }}>
+                        {evt.text}
+                      </p>
+                      {effectLines.length > 0 && (
+                        <div className="mt-2 flex gap-2 flex-wrap">
+                          {effectLines.map((l, j) => (
+                            <span key={j} className="text-xs font-black px-1.5 py-0.5 rounded-sm"
+                              style={{ background: 'rgba(255,255,255,0.06)', color: typeColor, fontFamily: 'Oswald' }}>
+                              {l}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  )
+                })}
+              </div>
+
+              <div className="px-5 py-4 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleDismissEvents}
+                  className="w-full py-3 text-sm font-bold tracking-widest"
+                  style={{ background: '#D4A840', color: '#06060f', fontFamily: 'Oswald' }}
+                >
+                  CONTINUAR →
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
