@@ -27,6 +27,7 @@ type Action =
   | { type: 'MAINTAIN_TRAIT'; traitId: string; cost: number }
   | { type: 'DECAY_ALL_TRAITS' }
   | { type: 'ADVANCE_YEAR' }
+  | { type: 'PLAY_MATCH' }
   | { type: 'SPEND_COINS'; amount: number }
   | { type: 'EARN_COINS'; amount: number }
   | { type: 'RESET_GAME' }
@@ -128,8 +129,32 @@ function gameReducer(state: GameState, action: Action): GameState {
       return { ...state, stolenTraits: decayed }
     }
 
-    case 'ADVANCE_YEAR':
-      return { ...state, currentYear: state.currentYear + 1, coins: state.coins + 300 }
+    case 'PLAY_MATCH': {
+      const traitBonus = state.stolenTraits.length * 80
+      const earned = 120 + traitBonus
+      return {
+        ...state,
+        coins: state.coins + earned,
+        reputation: state.reputation + (state.stolenTraits.length > 0 ? 2 : 1),
+      }
+    }
+
+    case 'ADVANCE_YEAR': {
+      const decayed = state.stolenTraits
+        .map(t => {
+          const newBar = Math.max(0, t.maintenanceBar - 8)
+          return { ...t, maintenanceBar: newBar, mood: moodFromBar(newBar) }
+        })
+        .filter(t => t.maintenanceBar > 0)
+      const passiveIncome = 200 + decayed.length * 50
+      return {
+        ...state,
+        currentYear: state.currentYear + 1,
+        coins: state.coins + passiveIncome,
+        stolenTraits: decayed,
+        reputation: Math.max(0, state.reputation - 1),
+      }
+    }
 
     case 'SPEND_COINS':
       return { ...state, coins: Math.max(0, state.coins - action.amount) }
