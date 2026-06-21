@@ -134,6 +134,9 @@ export interface GameState {
   titles: string[]
   stolenFrom: string[]
   matchesPlayed: number
+  seasonWins: number
+  seasonDraws: number
+  seasonLosses: number
   pendingEvents: GameEvent[]
   pendingMatchType: MatchType
   purchasedItems: string[]

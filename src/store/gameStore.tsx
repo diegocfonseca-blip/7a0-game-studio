@@ -20,6 +20,9 @@ const INITIAL_STATE: GameState = {
   titles: [],
   stolenFrom: [],
   matchesPlayed: 0,
+  seasonWins: 0,
+  seasonDraws: 0,
+  seasonLosses: 0,
   pendingEvents: [],
   pendingMatchType: 'amistoso',
   purchasedItems: [],
@@ -43,6 +46,7 @@ type Action =
   | { type: 'START_MATCH'; opponent: ReturnType<typeof generateMatchOpponent>; moments: NarrationMoment[]; goals: number; goalsAgainst: number; matchType: MatchType }
   | { type: 'MATCH_NEXT_PHASE' }
   | { type: 'MATCH_NEXT_MOMENT' }
+  | { type: 'SKIP_TO_RESULT' }
   | { type: 'COMPLETE_MATCH'; earned: number; repGain: number }
   | { type: 'PURCHASE_ITEM'; item: MarketItem; gambleRoll: number }
   | { type: 'SPEND_COINS'; amount: number }
@@ -169,6 +173,9 @@ function gameReducer(state: GameState, action: Action): GameState {
         stolenTraits: decayed,
         reputation: Math.max(0, state.reputation - 1),
         pendingEvents: events,
+        seasonWins: 0,
+        seasonDraws: 0,
+        seasonLosses: 0,
       }
     }
 
@@ -239,16 +246,34 @@ function gameReducer(state: GameState, action: Action): GameState {
       }
     }
 
-    case 'COMPLETE_MATCH':
+    case 'SKIP_TO_RESULT': {
+      if (!state.activeMatch) return state
+      return {
+        ...state,
+        activeMatch: {
+          ...state.activeMatch,
+          momentIndex: state.activeMatch.moments.length - 1,
+          phase: 'result',
+        },
+      }
+    }
+
+    case 'COMPLETE_MATCH': {
+      const win = state.activeMatch ? state.activeMatch.goals > state.activeMatch.goalsAgainst : false
+      const draw = state.activeMatch ? state.activeMatch.goals === state.activeMatch.goalsAgainst : false
       return {
         ...state,
         coins: state.coins + action.earned,
         reputation: state.reputation + action.repGain,
         matchesPlayed: (state.matchesPlayed ?? 0) + 1,
+        seasonWins: (state.seasonWins ?? 0) + (win ? 1 : 0),
+        seasonDraws: (state.seasonDraws ?? 0) + (draw ? 1 : 0),
+        seasonLosses: (state.seasonLosses ?? 0) + (!win && !draw ? 1 : 0),
         activeMatch: null,
         nextMatchMult: 1.0,
         screen: 'map',
       }
+    }
 
     case 'PURCHASE_ITEM': {
       const { item, gambleRoll } = action
@@ -359,6 +384,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           screen: safeScreen,
           activeMatch: null,
           clubLevel: parsed.clubLevel ?? 1,
+          seasonWins: parsed.seasonWins ?? 0,
+          seasonDraws: parsed.seasonDraws ?? 0,
+          seasonLosses: parsed.seasonLosses ?? 0,
           pendingEvents: parsed.pendingEvents ?? [],
           pendingMatchType: parsed.pendingMatchType ?? 'amistoso',
           purchasedItems: parsed.purchasedItems ?? [],

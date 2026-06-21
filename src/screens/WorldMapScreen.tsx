@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useGame } from '../store/gameStore'
 import { LEGENDS, getLegendStatus, getLegendAge } from '../data/legends'
 import LegendProfileModal from '../components/LegendProfileModal'
-import type { Region, MatchType } from '../types/game'
+import type { Region } from '../types/game'
 
 const REGIONS: { id: Region; label: string; flag: string }[] = [
   { id: 'brasil', label: 'Brasil', flag: '🇧🇷' },
@@ -23,15 +23,9 @@ const STATUS_CONFIG = {
 // Player born 1975 per the story (33 in 2008, woke up in 1992 = age 17)
 const PLAYER_BIRTH_YEAR = 1975
 
-const MATCH_TYPES: { type: MatchType; label: string; icon: string; desc: string; moments: number; mult: number }[] = [
-  { type: 'racha',     label: 'RACHA',     icon: '⚡', desc: 'Rápido · 3 lances',  moments: 3, mult: 0.6 },
-  { type: 'amistoso',  label: 'AMISTOSO',  icon: '⚽', desc: 'Normal · 5–6 lances', moments: 5, mult: 1.0 },
-  { type: 'decisiva',  label: 'DECISIVA',  icon: '🏆', desc: 'Alto risco · 8 lances', moments: 8, mult: 1.5 },
-]
-
 export default function WorldMapScreen() {
   const { state, dispatch } = useGame()
-  const { currentYear, coins, reputation, player, stolenTraits, selectedLegendId, stolenFrom, pendingEvents } = state
+  const { currentYear, coins, reputation, player, stolenTraits, selectedLegendId, stolenFrom, pendingEvents, seasonWins, seasonDraws, seasonLosses, clubLevel, nextMatchMult } = state
   const [yearSummary, setYearSummary] = useState<{ earned: number; lost: number } | null>(null)
   const [matchFlash, setMatchFlash] = useState(false)
   const [showEvents, setShowEvents] = useState(pendingEvents.length > 0)
@@ -54,8 +48,11 @@ export default function WorldMapScreen() {
     }, 1200)
   }
 
-  const handlePlayMatch = (matchType: MatchType) => {
-    dispatch({ type: 'PLAY_MATCH', matchType })
+  const seasonGoal = clubLevel === 1 ? 3 : clubLevel === 2 ? 5 : 8
+  const seasonGoalMet = (seasonWins ?? 0) >= seasonGoal
+
+  const handlePlayMatch = () => {
+    dispatch({ type: 'PLAY_MATCH', matchType: 'amistoso' })
     setMatchFlash(true)
     setTimeout(() => setMatchFlash(false), 800)
   }
@@ -220,93 +217,105 @@ export default function WorldMapScreen() {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
 
-        {/* ── COMO GANHAR DINHEIRO ── */}
+        {/* ── TEMPORADA ── */}
         <div className="border rounded-sm overflow-hidden" style={{ borderColor: 'rgba(212,168,64,0.2)', background: 'rgba(212,168,64,0.03)' }}>
-          <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'rgba(212,168,64,0.15)' }}>
-            <div>
-              <div className="text-xs tracking-widest" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>COMO GANHAR C$</div>
-              <div className="text-xs opacity-50 mt-0.5" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                Jogue partidas para acumular dinheiro e financiar missões de roubo
+          <div className="px-4 py-3 border-b" style={{ borderColor: 'rgba(212,168,64,0.12)' }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-xs tracking-widest" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>TEMPORADA {currentYear}</div>
+                <div className="text-xs opacity-50 mt-0.5" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                  {state.currentClub} · {['Amador', 'Semi-pro', 'Profissional'][clubLevel - 1]}
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-center">
+                  <div className="text-xl font-black" style={{ color: '#22c55e', fontFamily: 'Oswald' }}>{seasonWins ?? 0}</div>
+                  <div className="text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>V</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-black" style={{ color: '#f59e0b', fontFamily: 'Oswald' }}>{seasonDraws ?? 0}</div>
+                  <div className="text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>E</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-black" style={{ color: '#E03535', fontFamily: 'Oswald' }}>{seasonLosses ?? 0}</div>
+                  <div className="text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>D</div>
+                </div>
               </div>
             </div>
-            {weeklyCost > 0 && (
-              <div className="text-right hidden sm:block">
-                <div className="text-xs opacity-40" style={{ color: '#E03535', fontFamily: 'Inter' }}>custo/ano</div>
-                <div className="text-sm font-black" style={{ color: '#E03535', fontFamily: 'Oswald' }}>−C$ {weeklyCost * 52}</div>
+
+            {/* Season goal progress */}
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="text-xs" style={{ color: seasonGoalMet ? '#22c55e' : 'rgba(240,230,200,0.5)', fontFamily: 'Inter' }}>
+                  {seasonGoalMet ? '✅ Meta atingida — pode avançar o ano!' : `Meta: ${seasonWins ?? 0}/${seasonGoal} vitórias esta temporada`}
+                </div>
+                {weeklyCost > 0 && (
+                  <div className="text-xs" style={{ color: 'rgba(224,53,53,0.7)', fontFamily: 'Inter' }}>−C$ {weeklyCost * 52}/ano</div>
+                )}
               </div>
-            )}
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <motion.div
+                  animate={{ width: `${Math.min(100, ((seasonWins ?? 0) / seasonGoal) * 100)}%` }}
+                  transition={{ duration: 0.5 }}
+                  className="h-full rounded-full"
+                  style={{ background: seasonGoalMet ? '#22c55e' : '#D4A840' }}
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-0 divide-x divide-white/5">
-            {/* 3 tipos de partida */}
-            {MATCH_TYPES.map(mt => {
-              const earned = Math.round(matchEarning * mt.mult)
-              return (
-                <motion.button
-                  key={mt.type}
-                  whileHover={{ background: 'rgba(212,168,64,0.08)' }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => handlePlayMatch(mt.type)}
-                  className="p-4 text-left flex flex-col gap-1 transition-all"
-                  style={{ background: 'transparent' }}
-                >
-                  <div className="text-2xl">{mt.icon}</div>
-                  <div className="text-xs font-black tracking-wide" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>{mt.label}</div>
-                  <div className="text-xs opacity-50" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>{mt.desc}</div>
-                  <div className="text-base font-black mt-1" style={{ color: '#22c55e', fontFamily: 'Oswald' }}>+C$ {earned}</div>
-                </motion.button>
-              )
-            })}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-white/5">
+            {/* JOGAR PARTIDA */}
+            <div className="p-5 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-black tracking-wide" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>PRÓXIMA PARTIDA</div>
+                  <div className="text-xs opacity-50 mt-0.5" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                    {(nextMatchMult ?? 1) > 1 ? `Bônus ativo ×${(nextMatchMult ?? 1).toFixed(1)}` : `+C$ ${matchEarning} estimado`}
+                  </div>
+                </div>
+                <div className="text-3xl">⚽</div>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={handlePlayMatch}
+                className="w-full py-3.5 text-sm font-bold tracking-widest"
+                style={{ background: '#D4A840', color: '#06060f', fontFamily: 'Oswald' }}
+              >
+                JOGAR PARTIDA →
+              </motion.button>
+            </div>
 
             {/* Manutenção dos traços */}
-            <div className="p-4 flex flex-col gap-1">
-              <div className="text-2xl">🧪</div>
-              <div className="text-xs font-black tracking-wide" style={{ color: '#7c3aed', fontFamily: 'Oswald' }}>MANUTENÇÃO</div>
-              <div className="text-xs opacity-50" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                Cada traço roubado decai 8%/ano
-              </div>
+            <div className="p-5 flex flex-col gap-2">
+              <div className="text-sm font-black tracking-wide mb-1" style={{ color: '#7c3aed', fontFamily: 'Oswald' }}>TRAÇOS ROUBADOS</div>
               {stolenTraits.length === 0 ? (
-                <div className="text-xs mt-1 opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                  Nenhum traço ainda
+                <div className="text-xs opacity-40 flex-1 flex items-center" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                  Nenhum traço ainda — roube uma lenda abaixo
                 </div>
               ) : (
-                <div className="mt-1 space-y-1">
-                  {stolenTraits.slice(0, 3).map(t => (
-                    <div key={t.traitId} className="flex items-center gap-1.5">
-                      <span className="text-xs">{t.traitIcon}</span>
-                      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                        <div className="h-full rounded-full" style={{
+                <div className="space-y-1.5">
+                  {stolenTraits.slice(0, 4).map(t => (
+                    <div key={t.traitId} className="flex items-center gap-2">
+                      <span className="text-sm">{t.traitIcon}</span>
+                      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                        <div className="h-full rounded-full transition-all" style={{
                           width: `${t.maintenanceBar}%`,
                           background: t.maintenanceBar < 30 ? '#E03535' : t.maintenanceBar < 60 ? '#f59e0b' : '#22c55e'
                         }} />
                       </div>
                       <span className="text-xs font-bold w-8 text-right" style={{
-                        color: t.maintenanceBar < 30 ? '#E03535' : 'rgba(240,230,200,0.5)',
+                        color: t.maintenanceBar < 30 ? '#E03535' : 'rgba(240,230,200,0.4)',
                         fontFamily: 'Oswald'
                       }}>{t.maintenanceBar}%</span>
                     </div>
                   ))}
-                  {stolenTraits.length > 3 && (
-                    <div className="text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>+{stolenTraits.length - 3} mais</div>
+                  {stolenTraits.length > 4 && (
+                    <div className="text-xs opacity-30" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>+{stolenTraits.length - 4} mais</div>
                   )}
                 </div>
               )}
-            </div>
-
-            {/* Loop do jogo */}
-            <div className="p-4 flex flex-col gap-1">
-              <div className="text-2xl">🔄</div>
-              <div className="text-xs font-black tracking-wide" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>LOOP DO JOGO</div>
-              <div className="text-xs opacity-50 leading-relaxed" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                Jogue partidas para ganhar C$
-              </div>
-              <div className="text-xs mt-1 space-y-0.5" style={{ fontFamily: 'Inter' }}>
-                <div style={{ color: '#22c55e' }}>① Jogue → ganhe C$</div>
-                <div style={{ color: '#D4A840' }}>② Use C$ → missão de roubo</div>
-                <div style={{ color: '#7c3aed' }}>③ Roube traço → fica mais forte</div>
-                <div style={{ color: '#f59e0b' }}>④ Mantenha traços vivos</div>
-                <div style={{ color: '#f0e6c8', opacity: 0.5 }}>⑤ Avance o ano → novas lendas</div>
-              </div>
             </div>
           </div>
         </div>
