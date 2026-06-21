@@ -57,6 +57,7 @@ export type GameScreen =
   | 'map'
   | 'maintenance'
   | 'steal-mission'
+  | 'match'
 
 export interface MissionChoice {
   phase: number
@@ -71,6 +72,24 @@ export interface ActiveMission {
   choices: MissionChoice[]
   completed: boolean
   success: boolean
+}
+
+export interface MatchChoice {
+  momentIndex: number
+  choiceIndex: number
+  score: number
+  traitUsed: string | null
+}
+
+export interface ActiveMatch {
+  opponentName: string
+  opponentFlag: string
+  opponentStrength: number
+  momentIndex: number
+  phase: 'intro' | 'moment' | 'result'
+  choices: MatchChoice[]
+  goals: number
+  goalsAgainst: number
 }
 
 export interface GameState {
@@ -90,6 +109,8 @@ export interface GameState {
   selectedLegendId: string | null
   selectedTraitId: string | null
   activeMission: ActiveMission | null
+  activeMatch: ActiveMatch | null
   titles: string[]
   stolenFrom: string[]
+  matchesPlayed: number
 }
