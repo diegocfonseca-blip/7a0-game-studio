@@ -204,7 +204,7 @@ export default function WorldMapScreen() {
             )}
           </div>
 
-          <div className="grid grid-cols-3 gap-0 divide-x" style={{ divideColor: 'rgba(255,255,255,0.06)' }}>
+          <div className="grid grid-cols-3 gap-0 divide-x divide-white/5">
             {/* Jogar Partida */}
             <motion.button
               whileHover={{ background: 'rgba(212,168,64,0.08)' }}

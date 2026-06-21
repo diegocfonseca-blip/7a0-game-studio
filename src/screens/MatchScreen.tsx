@@ -7,7 +7,7 @@ const PLAYER_BIRTH_YEAR = 1975
 
 export default function MatchScreen() {
   const { state, dispatch } = useGame()
-  const { activeMatch, stolenTraits, coins, currentYear, player, matchesPlayed } = state
+  const { activeMatch, stolenTraits, currentYear, player, matchesPlayed } = state
 
   const [showChoiceResult, setShowChoiceResult] = useState<{ narration: string; score: number; traitIcon?: string } | null>(null)
 
