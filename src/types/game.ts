@@ -54,6 +54,7 @@ export interface StolenTrait {
 export type GameScreen =
   | 'intro'
   | 'creation'
+  | 'onboarding'
   | 'map'
   | 'maintenance'
   | 'steal-mission'
@@ -74,11 +75,13 @@ export interface ActiveMission {
   success: boolean
 }
 
-export interface MatchChoice {
-  momentIndex: number
-  choiceIndex: number
-  score: number
-  traitUsed: string | null
+export interface NarrationMoment {
+  minute: number
+  type: 'goal' | 'miss' | 'skill' | 'opponent-goal' | 'pressure'
+  text: string
+  isHighlight: boolean
+  scoreDelta: number
+  traitUsed?: string
 }
 
 export interface ActiveMatch {
@@ -86,8 +89,8 @@ export interface ActiveMatch {
   opponentFlag: string
   opponentStrength: number
   momentIndex: number
-  phase: 'intro' | 'moment' | 'result'
-  choices: MatchChoice[]
+  phase: 'intro' | 'narration' | 'result'
+  moments: NarrationMoment[]
   goals: number
   goalsAgainst: number
 }
@@ -106,6 +109,7 @@ export interface GameState {
   reputation: number
   stolenTraits: StolenTrait[]
   currentClub: string
+  clubLevel: 1 | 2 | 3
   selectedLegendId: string | null
   selectedTraitId: string | null
   activeMission: ActiveMission | null
