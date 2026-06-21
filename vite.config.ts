@@ -4,5 +4,5 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: '/7a0-game-studio/',
+  base: process.env.DEPLOY_BASE ?? '/7a0-game-studio/',
 })
