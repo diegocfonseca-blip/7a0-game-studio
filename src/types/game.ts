@@ -112,6 +112,17 @@ export interface ActiveMatch {
   matchType: MatchType
 }
 
+export interface LeagueTeam {
+  id: string
+  name: string
+  strength: number
+  wins: number
+  draws: number
+  losses: number
+  goalsFor: number
+  goalsAgainst: number
+}
+
 export interface GameState {
   screen: GameScreen
   player: {
@@ -133,6 +144,9 @@ export interface GameState {
   activeMatch: ActiveMatch | null
   titles: string[]
   stolenFrom: string[]
+  league: LeagueTeam[] | null
+  leagueRound: number
+  recentForm: ('W' | 'D' | 'L')[]
   matchesPlayed: number
   seasonWins: number
   seasonDraws: number

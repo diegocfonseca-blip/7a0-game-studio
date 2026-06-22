@@ -4,6 +4,7 @@ import { useGame } from '../store/gameStore'
 import { LEGENDS, getLegendStatus, getLegendAge } from '../data/legends'
 import LegendProfileModal from '../components/LegendProfileModal'
 import type { Region } from '../types/game'
+import { getPoints, sortLeague, LEAGUE_TOTAL_ROUNDS } from '../data/leagueData'
 
 const REGIONS: { id: Region; label: string; flag: string }[] = [
   { id: 'brasil', label: 'Brasil', flag: '🇧🇷' },
@@ -25,7 +26,7 @@ const PLAYER_BIRTH_YEAR = 1975
 
 export default function WorldMapScreen() {
   const { state, dispatch } = useGame()
-  const { currentYear, coins, reputation, player, stolenTraits, selectedLegendId, stolenFrom, pendingEvents, seasonWins, seasonDraws, seasonLosses, clubLevel, nextMatchMult } = state
+  const { currentYear, coins, reputation, player, stolenTraits, selectedLegendId, stolenFrom, pendingEvents, seasonWins, seasonDraws, seasonLosses, clubLevel, nextMatchMult, league, leagueRound, recentForm } = state
   const [yearSummary, setYearSummary] = useState<{ earned: number; lost: number } | null>(null)
   const [matchFlash, setMatchFlash] = useState(false)
   const [showEvents, setShowEvents] = useState(pendingEvents.length > 0)
@@ -34,7 +35,7 @@ export default function WorldMapScreen() {
   const urgentLegends = LEGENDS.filter(l => getLegendStatus(l, currentYear) === 'urgent')
   const availableCount = LEGENDS.filter(l => { const s = getLegendStatus(l, currentYear); return s === 'available' || s === 'urgent' }).length
   const matchEarning = 120 + stolenTraits.length * 80
-  const weeklyCost = stolenTraits.reduce((s, t) => s + t.weeklyMaintenance, 0)
+
   const criticalTraits = stolenTraits.filter(t => t.maintenanceBar < 30)
 
   const handleAdvanceYear = () => {
@@ -50,6 +51,13 @@ export default function WorldMapScreen() {
 
   const seasonGoal = clubLevel === 1 ? 3 : clubLevel === 2 ? 5 : 8
   const seasonGoalMet = (seasonWins ?? 0) >= seasonGoal
+  const sortedLeague = league ? sortLeague(league) : []
+  const playerPos = sortedLeague.findIndex(t => t.id === 'player') + 1
+  const aiTeams = (league ?? []).filter(t => t.id !== 'player')
+  const currentRound = leagueRound ?? 0
+  const nextOpponent = currentRound < LEAGUE_TOTAL_ROUNDS && aiTeams.length > 0
+    ? aiTeams[currentRound % aiTeams.length]
+    : null
 
   const handlePlayMatch = () => {
     dispatch({ type: 'PLAY_MATCH', matchType: 'amistoso' })
@@ -247,22 +255,75 @@ export default function WorldMapScreen() {
             <div className="mt-3">
               <div className="flex items-center justify-between mb-1.5">
                 <div className="text-xs" style={{ color: seasonGoalMet ? '#22c55e' : 'rgba(240,230,200,0.5)', fontFamily: 'Inter' }}>
-                  {seasonGoalMet ? '✅ Meta atingida — pode avançar o ano!' : `Meta: ${seasonWins ?? 0}/${seasonGoal} vitórias esta temporada`}
+                  {playerPos > 0
+                    ? (playerPos <= 3 ? `✅ ${playerPos}º lugar — meta atingida!` : `${playerPos}º lugar — meta: top 3`)
+                    : `Meta: ${seasonWins ?? 0}/${seasonGoal} vitórias`
+                  }
                 </div>
-                {weeklyCost > 0 && (
-                  <div className="text-xs" style={{ color: 'rgba(224,53,53,0.7)', fontFamily: 'Inter' }}>−C$ {weeklyCost * 52}/ano</div>
-                )}
-              </div>
-              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                <motion.div
-                  animate={{ width: `${Math.min(100, ((seasonWins ?? 0) / seasonGoal) * 100)}%` }}
-                  transition={{ duration: 0.5 }}
-                  className="h-full rounded-full"
-                  style={{ background: seasonGoalMet ? '#22c55e' : '#D4A840' }}
-                />
+                <div className="flex items-center gap-1">
+                  {(recentForm ?? []).map((r, i) => (
+                    <div key={i} className="w-4 h-4 rounded-sm flex items-center justify-center text-xs font-black"
+                      style={{
+                        background: r === 'W' ? 'rgba(34,197,94,0.2)' : r === 'D' ? 'rgba(245,158,11,0.2)' : 'rgba(224,53,53,0.15)',
+                        color: r === 'W' ? '#22c55e' : r === 'D' ? '#f59e0b' : '#E03535',
+                        fontSize: '9px',
+                      }}>
+                      {r}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Classificação */}
+          {sortedLeague.length > 0 && (
+            <div className="border-t" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+              <div className="px-4 py-2 flex items-center justify-between border-b" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+                <div className="text-xs tracking-widest opacity-40" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>CLASSIFICAÇÃO</div>
+                <div className="text-xs opacity-30" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                  Rodada {Math.min(currentRound + 1, LEAGUE_TOTAL_ROUNDS)} de {LEAGUE_TOTAL_ROUNDS}
+                </div>
+              </div>
+              {sortedLeague.map((team, i) => {
+                const isPlayer = team.id === 'player'
+                const pts = getPoints(team)
+                const gd = team.goalsFor - team.goalsAgainst
+                return (
+                  <div key={team.id}
+                    className="flex items-center gap-2 px-4 py-2 border-b"
+                    style={{
+                      borderColor: 'rgba(255,255,255,0.03)',
+                      background: isPlayer ? 'rgba(212,168,64,0.05)' : 'transparent',
+                      borderLeft: isPlayer ? '2px solid #D4A840' : '2px solid transparent',
+                    }}>
+                    <span className="text-xs font-bold w-4 text-center flex-shrink-0"
+                      style={{ color: i === 0 ? '#D4A840' : 'rgba(240,230,200,0.25)', fontFamily: 'Oswald' }}>
+                      {i + 1}
+                    </span>
+                    <span className="flex-1 text-xs font-bold truncate"
+                      style={{ color: isPlayer ? '#D4A840' : '#f0e6c8', fontFamily: 'Oswald' }}>
+                      {isPlayer ? '★ ' : ''}{team.name}
+                    </span>
+                    <span className="text-xs font-black w-6 text-right flex-shrink-0"
+                      style={{ color: isPlayer ? '#D4A840' : '#f0e6c8', fontFamily: 'Oswald' }}>
+                      {pts}
+                    </span>
+                    <span className="text-xs w-5 text-right flex-shrink-0 hidden sm:block"
+                      style={{ color: '#22c55e', fontFamily: 'Oswald' }}>{team.wins}</span>
+                    <span className="text-xs w-5 text-right flex-shrink-0 hidden sm:block"
+                      style={{ color: '#f59e0b', fontFamily: 'Oswald' }}>{team.draws}</span>
+                    <span className="text-xs w-5 text-right flex-shrink-0 hidden sm:block"
+                      style={{ color: '#E03535', fontFamily: 'Oswald' }}>{team.losses}</span>
+                    <span className="text-xs w-7 text-right flex-shrink-0"
+                      style={{ color: gd >= 0 ? 'rgba(240,230,200,0.4)' : '#E03535', fontFamily: 'Oswald' }}>
+                      {gd >= 0 ? '+' : ''}{gd}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-white/5">
             {/* JOGAR PARTIDA */}
@@ -271,7 +332,10 @@ export default function WorldMapScreen() {
                 <div>
                   <div className="text-sm font-black tracking-wide" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>PRÓXIMA PARTIDA</div>
                   <div className="text-xs opacity-50 mt-0.5" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                    {(nextMatchMult ?? 1) > 1 ? `Bônus ativo ×${(nextMatchMult ?? 1).toFixed(1)}` : `+C$ ${matchEarning} estimado`}
+                    {nextOpponent
+                    ? `vs ${nextOpponent.name} · ${nextOpponent.strength >= 60 ? 'Adversário Forte' : nextOpponent.strength >= 40 ? 'Médio' : 'Fraco'}`
+                    : (nextMatchMult ?? 1) > 1 ? `Bônus ativo ×${(nextMatchMult ?? 1).toFixed(1)}` : `+C$ ${matchEarning} estimado`
+                  }
                   </div>
                 </div>
                 <div className="text-3xl">⚽</div>

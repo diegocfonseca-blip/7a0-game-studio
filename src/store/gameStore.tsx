@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react'
 import type { GameState, GameScreen, StolenTrait, TraitMood, NarrationMoment, MatchType } from '../types/game'
 import { generateMatchOpponent } from '../data/matchMoments'
 import { rollYearEvents } from '../data/gameEvents'
+import { generateLeague, simulateRoundAI } from '../data/leagueData'
 import type { MarketItem } from '../data/market'
 
 const INITIAL_STATE: GameState = {
@@ -19,6 +20,9 @@ const INITIAL_STATE: GameState = {
   activeMatch: null,
   titles: [],
   stolenFrom: [],
+  league: null,
+  leagueRound: 0,
+  recentForm: [],
   matchesPlayed: 0,
   seasonWins: 0,
   seasonDraws: 0,
@@ -69,7 +73,8 @@ function gameReducer(state: GameState, action: Action): GameState {
     case 'CREATE_PLAYER':
       return { ...state, player: action.player, screen: 'onboarding', coins: 0 }
 
-    case 'COMPLETE_ONBOARDING':
+    case 'COMPLETE_ONBOARDING': {
+      const league = generateLeague(action.clubName, action.clubLevel)
       return {
         ...state,
         screen: 'map',
@@ -79,7 +84,11 @@ function gameReducer(state: GameState, action: Action): GameState {
         stolenTraits: [action.trait],
         stolenFrom: [action.trait.legendId],
         reputation: 5,
+        league,
+        leagueRound: 0,
+        recentForm: [],
       }
+    }
 
     case 'SELECT_LEGEND':
       return { ...state, selectedLegendId: action.legendId, selectedTraitId: null }
@@ -176,6 +185,11 @@ function gameReducer(state: GameState, action: Action): GameState {
         seasonWins: 0,
         seasonDraws: 0,
         seasonLosses: 0,
+        league: state.league
+          ? state.league.map(t => ({ ...t, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0 }))
+          : generateLeague(state.currentClub, state.clubLevel),
+        leagueRound: 0,
+        recentForm: [],
       }
     }
 
@@ -261,6 +275,44 @@ function gameReducer(state: GameState, action: Action): GameState {
     case 'COMPLETE_MATCH': {
       const win = state.activeMatch ? state.activeMatch.goals > state.activeMatch.goalsAgainst : false
       const draw = state.activeMatch ? state.activeMatch.goals === state.activeMatch.goalsAgainst : false
+      const result: 'W' | 'D' | 'L' = win ? 'W' : draw ? 'D' : 'L'
+      const playerGoals = state.activeMatch?.goals ?? 0
+      const playerGoalsAgainst = state.activeMatch?.goalsAgainst ?? 0
+
+      // Identify league opponent for this round
+      const aiTeams = (state.league ?? []).filter(t => t.id !== 'player')
+      const opponentId = aiTeams.length > 0
+        ? aiTeams[(state.leagueRound ?? 0) % aiTeams.length]?.id ?? ''
+        : ''
+
+      // Update league table
+      let updatedLeague = (state.league ?? []).map(t => {
+        if (t.id === 'player') {
+          return {
+            ...t,
+            wins: t.wins + (win ? 1 : 0),
+            draws: t.draws + (draw ? 1 : 0),
+            losses: t.losses + (!win && !draw ? 1 : 0),
+            goalsFor: t.goalsFor + playerGoals,
+            goalsAgainst: t.goalsAgainst + playerGoalsAgainst,
+          }
+        }
+        if (opponentId && t.id === opponentId) {
+          return {
+            ...t,
+            wins: t.wins + (!win && !draw ? 1 : 0),
+            draws: t.draws + (draw ? 1 : 0),
+            losses: t.losses + (win ? 1 : 0),
+            goalsFor: t.goalsFor + playerGoalsAgainst,
+            goalsAgainst: t.goalsAgainst + playerGoals,
+          }
+        }
+        return t
+      })
+      if (opponentId && updatedLeague.length > 0) {
+        updatedLeague = simulateRoundAI(updatedLeague, opponentId)
+      }
+
       return {
         ...state,
         coins: state.coins + action.earned,
@@ -272,6 +324,9 @@ function gameReducer(state: GameState, action: Action): GameState {
         activeMatch: null,
         nextMatchMult: 1.0,
         screen: 'map',
+        league: updatedLeague.length > 0 ? updatedLeague : state.league,
+        leagueRound: (state.leagueRound ?? 0) + 1,
+        recentForm: [result, ...(state.recentForm ?? [])].slice(0, 5),
       }
     }
 
@@ -391,6 +446,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           pendingMatchType: parsed.pendingMatchType ?? 'amistoso',
           purchasedItems: parsed.purchasedItems ?? [],
           nextMatchMult: parsed.nextMatchMult ?? 1.0,
+          league: parsed.league ?? null,
+          leagueRound: parsed.leagueRound ?? 0,
+          recentForm: parsed.recentForm ?? [],
         }
       } catch {
         return init

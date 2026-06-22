@@ -9,12 +9,16 @@ const MOMENT_DELAY_MS = 2400
 
 export default function MatchScreen() {
   const { state, dispatch } = useGame()
-  const { activeMatch, stolenTraits, currentYear, player, matchesPlayed, clubLevel, pendingMatchType, nextMatchMult, currentClub } = state
+  const { activeMatch, stolenTraits, currentYear, player, matchesPlayed, clubLevel, pendingMatchType, nextMatchMult, currentClub, league, leagueRound } = state
   const [skipping, setSkipping] = useState(false)
 
   useEffect(() => {
     if (!activeMatch) {
-      const opp = generateMatchOpponent(clubLevel ?? 1, currentYear)
+      const aiTeams = (league ?? []).filter(t => t.id !== 'player')
+      const leagueOpp = aiTeams.length > 0 ? aiTeams[(leagueRound ?? 0) % aiTeams.length] : null
+      const opp = leagueOpp
+        ? { name: leagueOpp.name, flag: '🇧🇷', strength: leagueOpp.strength, club: leagueOpp.name }
+        : generateMatchOpponent(clubLevel ?? 1, currentYear)
       const { moments, goals, goalsAgainst } = generateMatchNarration(
         player?.name ?? 'Você',
         stolenTraits,
