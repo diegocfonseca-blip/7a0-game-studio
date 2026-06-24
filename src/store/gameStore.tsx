@@ -2,7 +2,8 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react'
 import type { GameState, GameScreen, StolenTrait, TraitMood, NarrationMoment, MatchType } from '../types/game'
 import { generateMatchOpponent } from '../data/matchMoments'
 import { rollYearEvents } from '../data/gameEvents'
-import { generateLeague, simulateRoundAI } from '../data/leagueData'
+import { generateLeague, simulateRoundAI, LEAGUE_TOTAL_ROUNDS } from '../data/leagueData'
+import { generateWeekEvents } from '../data/weeklyEvents'
 import type { MarketItem } from '../data/market'
 
 const INITIAL_STATE: GameState = {
@@ -31,6 +32,10 @@ const INITIAL_STATE: GameState = {
   pendingMatchType: 'amistoso',
   purchasedItems: [],
   nextMatchMult: 1.0,
+  seasonWeek: 0,
+  weekEvents: [],
+  matchDayActive: false,
+  seasonComplete: false,
 }
 
 type Action =
@@ -55,6 +60,7 @@ type Action =
   | { type: 'PURCHASE_ITEM'; item: MarketItem; gambleRoll: number }
   | { type: 'SPEND_COINS'; amount: number }
   | { type: 'EARN_COINS'; amount: number }
+  | { type: 'ADVANCE_WEEK' }
   | { type: 'RESET_GAME' }
 
 function moodFromBar(bar: number): TraitMood {
@@ -75,18 +81,27 @@ function gameReducer(state: GameState, action: Action): GameState {
 
     case 'COMPLETE_ONBOARDING': {
       const league = generateLeague(action.clubName, action.clubLevel)
-      return {
+      const baseState = {
         ...state,
-        screen: 'map',
         currentClub: action.clubName,
         clubLevel: action.clubLevel,
         coins: action.startCoins,
         stolenTraits: [action.trait],
+        currentYear: state.currentYear,
+      }
+      const weekEvents = generateWeekEvents(baseState as GameState, false)
+      return {
+        ...baseState,
+        screen: 'map',
         stolenFrom: [action.trait.legendId],
         reputation: 5,
         league,
         leagueRound: 0,
         recentForm: [],
+        seasonWeek: 1,
+        weekEvents,
+        matchDayActive: false,
+        seasonComplete: false,
       }
     }
 
@@ -190,6 +205,10 @@ function gameReducer(state: GameState, action: Action): GameState {
           : generateLeague(state.currentClub, state.clubLevel),
         leagueRound: 0,
         recentForm: [],
+        seasonWeek: 1,
+        weekEvents: generateWeekEvents({ ...state, currentYear: state.currentYear + 1 } as GameState, false),
+        matchDayActive: false,
+        seasonComplete: false,
       }
     }
 
@@ -313,6 +332,16 @@ function gameReducer(state: GameState, action: Action): GameState {
         updatedLeague = simulateRoundAI(updatedLeague, opponentId)
       }
 
+      const newLeagueRound = (state.leagueRound ?? 0) + 1
+      const isSeasonDone = newLeagueRound >= LEAGUE_TOTAL_ROUNDS
+      const postMatchState = {
+        ...state,
+        leagueRound: newLeagueRound,
+        stolenTraits: state.stolenTraits,
+        currentYear: state.currentYear,
+      }
+      const nextWeekEvents = isSeasonDone ? [] : generateWeekEvents(postMatchState as GameState, false)
+
       return {
         ...state,
         coins: state.coins + action.earned,
@@ -325,8 +354,12 @@ function gameReducer(state: GameState, action: Action): GameState {
         nextMatchMult: 1.0,
         screen: 'map',
         league: updatedLeague.length > 0 ? updatedLeague : state.league,
-        leagueRound: (state.leagueRound ?? 0) + 1,
+        leagueRound: newLeagueRound,
         recentForm: [result, ...(state.recentForm ?? [])].slice(0, 5),
+        matchDayActive: false,
+        seasonWeek: (state.seasonWeek ?? 0) + 1,
+        weekEvents: nextWeekEvents,
+        seasonComplete: isSeasonDone,
       }
     }
 
@@ -407,6 +440,16 @@ function gameReducer(state: GameState, action: Action): GameState {
       }
     }
 
+    case 'ADVANCE_WEEK': {
+      const preMatchEvents = generateWeekEvents(state, true)
+      return {
+        ...state,
+        matchDayActive: true,
+        weekEvents: preMatchEvents,
+        seasonWeek: (state.seasonWeek ?? 0) + 1,
+      }
+    }
+
     case 'SPEND_COINS':
       return { ...state, coins: Math.max(0, state.coins - action.amount) }
 
@@ -449,6 +492,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           league: parsed.league ?? null,
           leagueRound: parsed.leagueRound ?? 0,
           recentForm: parsed.recentForm ?? [],
+          seasonWeek: parsed.seasonWeek ?? 1,
+          weekEvents: parsed.weekEvents ?? [],
+          matchDayActive: parsed.matchDayActive ?? false,
+          seasonComplete: parsed.seasonComplete ?? false,
         }
       } catch {
         return init

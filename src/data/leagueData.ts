@@ -30,7 +30,7 @@ const TEAMS_BY_LEVEL: Record<1 | 2 | 3, { name: string; strength: number }[]> = 
   ],
 }
 
-export const LEAGUE_TOTAL_ROUNDS = 14
+export const LEAGUE_TOTAL_ROUNDS = 7
 
 export function generateLeague(clubName: string, clubLevel: 1 | 2 | 3): LeagueTeam[] {
   const aiData = TEAMS_BY_LEVEL[clubLevel] ?? TEAMS_BY_LEVEL[1]

@@ -1,3 +1,8 @@
+export interface WeekEvent {
+  text: string
+  type: 'treino' | 'lenda' | 'clube' | 'suspeita' | 'mundo' | 'traço'
+}
+
 export type Country =
   | 'Brasil' | 'Argentina' | 'Portugal' | 'França'
   | 'Inglaterra' | 'Itália' | 'Espanha' | 'Alemanha' | 'Holanda'
@@ -155,4 +160,8 @@ export interface GameState {
   pendingMatchType: MatchType
   purchasedItems: string[]
   nextMatchMult: number
+  seasonWeek: number
+  weekEvents: WeekEvent[]
+  matchDayActive: boolean
+  seasonComplete: boolean
 }
