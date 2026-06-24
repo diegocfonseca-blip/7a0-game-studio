@@ -175,6 +175,41 @@ export interface Opponent {
   club: string
 }
 
+export function generateMatchOpponent(clubLevel: 1 | 2 | 3, currentYear: number): Opponent {
+  const level1 = [
+    { name: 'EC Divinópolis', strength: 32 },
+    { name: 'Nacional FC-MG', strength: 30 },
+    { name: 'Araxá FC', strength: 35 },
+    { name: 'Esportivo Bambuí', strength: 28 },
+    { name: 'Uberlândia FC', strength: 38 },
+    { name: 'Pouso Alegre EC', strength: 33 },
+    { name: 'Ituiutaba EC', strength: 36 },
+  ]
+  const level2 = [
+    { name: 'Caldense', strength: 52 },
+    { name: 'Villa Nova AC', strength: 55 },
+    { name: 'Patrocinense', strength: 48 },
+    { name: 'Tombense FC', strength: 58 },
+    { name: 'Democrata GV', strength: 50 },
+    { name: 'Juazeirense', strength: 53 },
+    { name: 'Operário VG', strength: 51 },
+  ]
+  const level3 = [
+    { name: 'Santos FC B', strength: 68 },
+    { name: 'Internacional B', strength: 72 },
+    { name: 'Vasco da Gama B', strength: 70 },
+    { name: 'Sport Recife', strength: 65 },
+    { name: 'Grêmio B', strength: 74 },
+    { name: 'Fluminense B', strength: 67 },
+    { name: 'Bahia FC', strength: 63 },
+  ]
+  const pool = clubLevel === 1 ? level1 : clubLevel === 2 ? level2 : level3
+  const pick = pool[Math.floor(Math.random() * pool.length)]
+  const yearBonus = Math.round(Math.max(0, currentYear - 1992) * 0.5)
+  const strength = Math.min(82, pick.strength + yearBonus)
+  return { name: pick.name, flag: '🇧🇷', strength, club: pick.name }
+}
+
 export function generateOpponent(currentYear: number, stolenFrom: string[]): Opponent {
   const notStolenLegends = [
     { id: 'r9',          name: 'Ronaldo Nazário',    flag: '🇧🇷', baseStrength: 90 },

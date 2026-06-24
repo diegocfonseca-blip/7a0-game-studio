@@ -252,6 +252,7 @@ export function generateMatchNarration(
   opponentName: string,
   opponentStrength: number,
   reputation: number,
+  targetMoments?: number,
 ): GeneratedMatch {
   const rng = seededRng(Date.now() ^ (Math.random() * 0xffffffff))
 
@@ -290,7 +291,7 @@ export function generateMatchNarration(
   for (let i = 0; i < goals; i++) types.push('goal')
   for (let i = 0; i < goalsAgainst; i++) types.push('opp-goal')
 
-  const total = 5 + Math.floor(rng() * 2)
+  const total = targetMoments ?? (5 + Math.floor(rng() * 2))
   const remaining = total - types.length
   for (let i = 0; i < remaining; i++) {
     const x = rng()

@@ -183,15 +183,21 @@ export default function StealMissionScreen() {
               className="border rounded-sm p-6"
               style={{ background: '#0d0d1a', borderColor: `${legend.colorAccent}30` }}
             >
-              <p className="text-xs tracking-widest mb-4" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
-                SITUAÇÃO
-              </p>
+              {missionData.travelNarration && (
+                <div className="mb-5 p-3 border-l-2 rounded-sm" style={{ borderColor: '#D4A840', background: 'rgba(212,168,64,0.05)' }}>
+                  <p className="text-xs tracking-widest mb-1" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>A VIAGEM</p>
+                  <p className="text-sm leading-relaxed" style={{ color: 'rgba(240,230,200,0.75)', fontFamily: 'Inter' }}>
+                    {missionData.travelNarration}
+                  </p>
+                </div>
+              )}
+              <p className="text-xs tracking-widest mb-4" style={{ color: '#7c3aed', fontFamily: 'Oswald' }}>SITUAÇÃO</p>
               <p className="text-base leading-relaxed mb-6" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
                 {missionData.intro}
               </p>
-              <div className="p-3 border border-white/5 rounded-sm mb-6" style={{ background: 'rgba(124,58,237,0.06)' }}>
-                <p className="text-xs" style={{ color: '#7c3aed', fontFamily: 'Inter' }}>
-                  ⚡ O formigamento nas suas mãos confirma: ele está por perto. Três fases de decisão vão determinar o sucesso do roubo. Escolha com cuidado.
+              <div className="p-3 border border-white/5 rounded-sm mb-6" style={{ background: 'rgba(224,53,53,0.06)', borderColor: 'rgba(224,53,53,0.15)' }}>
+                <p className="text-xs" style={{ color: 'rgba(224,53,53,0.8)', fontFamily: 'Inter' }}>
+                  ⚡ Você vai precisar entrar no jogo com ele. Três fases — localizar, entrar, fazer a falta. O roubo acontece no contato físico. Escolha com cuidado.
                 </p>
               </div>
               <motion.button
@@ -206,63 +212,67 @@ export default function StealMissionScreen() {
                   boxShadow: '0 0 20px rgba(124,58,237,0.3)'
                 }}
               >
-                INICIAR →
+                ENTRAR NA MISSÃO →
               </motion.button>
             </motion.div>
           )}
 
           {/* PHASE */}
-          {missionState === 'phase' && currentPhaseData && (
-            <motion.div
-              key={`phase-${activeMission.phase}`}
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              className="space-y-4"
-            >
-              <div
-                className="border rounded-sm p-5"
-                style={{ background: '#0d0d1a', borderColor: 'rgba(255,255,255,0.08)' }}
+          {missionState === 'phase' && currentPhaseData && (() => {
+            const phaseLabels = ['LOCALIZAR O ALVO', 'ENTRAR NO JOGO', 'A FALTA ⚡']
+            const isFaultPhase = activeMission.phase === missionData.phases.length - 1
+            return (
+              <motion.div
+                key={`phase-${activeMission.phase}`}
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -30 }}
+                className="space-y-4"
               >
-                <p className="text-xs tracking-widest mb-3" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
-                  FASE {activeMission.phase + 1} DE {missionData.phases.length}
-                </p>
-                <p className="text-sm leading-relaxed" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                  {currentPhaseData.scene}
-                </p>
-              </div>
+                <div
+                  className="border rounded-sm p-5"
+                  style={{ background: '#0d0d1a', borderColor: isFaultPhase ? 'rgba(224,53,53,0.3)' : 'rgba(255,255,255,0.08)' }}
+                >
+                  <p className="text-xs tracking-widest mb-3" style={{ color: isFaultPhase ? '#E03535' : '#D4A840', fontFamily: 'Oswald' }}>
+                    FASE {activeMission.phase + 1} — {phaseLabels[activeMission.phase] ?? `FASE ${activeMission.phase + 1}`}
+                  </p>
+                  <p className="text-sm leading-relaxed" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                    {currentPhaseData.scene}
+                  </p>
+                </div>
 
-              <div className="space-y-2">
-                <p className="text-xs tracking-widest" style={{ color: 'rgba(240,230,200,0.4)', fontFamily: 'Oswald' }}>
-                  QUAL É SUA DECISÃO?
-                </p>
-                {currentPhaseData.choices.map((choice, i) => (
-                  <motion.button
-                    key={i}
-                    whileHover={{ scale: 1.01, x: 4 }}
-                    whileTap={{ scale: 0.99 }}
-                    onClick={() => handleChoice(i, choice.score)}
-                    className="w-full p-4 border rounded-sm text-left transition-all"
-                    style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      borderColor: 'rgba(255,255,255,0.08)',
-                      fontFamily: 'Inter',
-                    }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-sm text-xs font-bold"
-                        style={{ background: 'rgba(255,255,255,0.06)', color: '#D4A840', fontFamily: 'Oswald' }}
-                      >
-                        {String.fromCharCode(65 + i)}
+                <div className="space-y-2">
+                  <p className="text-xs tracking-widest" style={{ color: 'rgba(240,230,200,0.4)', fontFamily: 'Oswald' }}>
+                    {isFaultPhase ? 'COMO VOCÊ FAZ A FALTA?' : 'QUAL É SUA DECISÃO?'}
+                  </p>
+                  {currentPhaseData.choices.map((choice, i) => (
+                    <motion.button
+                      key={i}
+                      whileHover={{ scale: 1.01, x: 4 }}
+                      whileTap={{ scale: 0.99 }}
+                      onClick={() => handleChoice(i, choice.score)}
+                      className="w-full p-4 border rounded-sm text-left transition-all"
+                      style={{
+                        background: isFaultPhase ? 'rgba(224,53,53,0.04)' : 'rgba(255,255,255,0.03)',
+                        borderColor: isFaultPhase ? 'rgba(224,53,53,0.15)' : 'rgba(255,255,255,0.08)',
+                        fontFamily: 'Inter',
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-sm text-xs font-bold"
+                          style={{ background: isFaultPhase ? 'rgba(224,53,53,0.15)' : 'rgba(255,255,255,0.06)', color: isFaultPhase ? '#E03535' : '#D4A840', fontFamily: 'Oswald' }}
+                        >
+                          {String.fromCharCode(65 + i)}
+                        </div>
+                        <span className="text-sm" style={{ color: '#f0e6c8' }}>{choice.text}</span>
                       </div>
-                      <span className="text-sm" style={{ color: '#f0e6c8' }}>{choice.text}</span>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-          )}
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            )
+          })()}
 
           {/* CHOICE RESULT */}
           {missionState === 'choice-result' && (

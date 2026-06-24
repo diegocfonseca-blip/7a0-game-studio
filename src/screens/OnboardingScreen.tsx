@@ -3,17 +3,42 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useGame } from '../store/gameStore'
 import type { StolenTrait } from '../types/game'
 
-type Phase = 'encounter' | 'trait-pick' | 'peneira' | 'club-pick'
+type Phase = 'pelada' | 'trait-pick' | 'peneira' | 'club-pick'
+
+const PELADA_STEPS = [
+  {
+    title: 'DOMINGO NA PERIFERIA',
+    text: 'Você tem 17 anos. BH, 1992. Num racha de domingo numa quadra de cimento sem marcação, sem clube, sem nada — você está aqui porque é o que você faz desde criança. A carreira não decolou ainda.',
+  },
+  {
+    title: 'O GAROTO DO ESQUERDO',
+    text: 'Um garoto miúdo, nem doze anos completos, recebe a bola no lado esquerdo. Dois marcadores mais velhos fecham. Sem espaço. E então ele curva o pé esquerdo de um jeito que você nunca viu — a bola encosta no chão de graça e dobra no canto impossível da grade improvisada. O racha para por um segundo.',
+  },
+  {
+    title: 'A DIVIDIDA',
+    text: 'Bola rolando. Você vai pra cima com uma dividida dura. Ombro no ombro. Os pés embaralham. Normal — acontece todo domingo. Mas você sente uma faísca entre o seu pé e o dele. Não é dor. É diferente. Como se algo tivesse passado de um corpo pro outro pelo choque.',
+  },
+  {
+    title: 'ELE NÃO CONSEGUE MAIS',
+    text: 'O garoto tenta chutar de novo. O esquerdo vai torto — sem força, sem curva, rasteiro pro nada. Ele olha pro próprio pé com cara de quem perdeu alguma coisa. Não sabe o quê. Tenta de novo. Nada. O esquerdo do garoto parou de funcionar.',
+  },
+  {
+    title: 'AGORA É SEU',
+    text: 'Você bate de primeira com o esquerdo — e a bola sai curvando, pesada, do jeito exato que era a dele. Ninguém notou. O garoto ainda olha pro próprio pé tentando entender. Você entende o que ele não vai entender nunca: você roubou. E pode fazer de novo.',
+  },
+]
 
 const FREE_TRAITS: Array<{
   trait: Omit<StolenTrait, 'maintenanceBar' | 'mood' | 'stolenYear'>
+  futureFact: string
   scene: string
   peneira: string[]
   label: string
 }> = [
   {
     label: 'A Arrancada',
-    scene: 'Um garoto de 16 anos recebe a bola. Nem olhou para os lados. O primeiro passo dele foi tão explosivo que o marcador não saiu do lugar. Você sentiu aquilo na sola do pé — como se o movimento tivesse imprimido no seu músculo.',
+    futureFact: 'Esse garoto magro de 16 anos vai se tornar O Fenômeno. Dois Mundiais. Três vezes o melhor do mundo. Em 1992 ninguém acredita nisso — nem ele mesmo sabe. Só você veio do futuro. Só você sabe.',
+    scene: 'Um garoto magro de 16 anos recebe a bola. Nem olhou pros lados. O primeiro passo foi tão explosivo que o marcador não saiu do lugar. Você sentiu aquilo nas pernas — como se o movimento tivesse imprimido no seu músculo.',
     trait: {
       legendId: 'r9', legendName: 'Ronaldo Nazário', legendNickname: 'O Fenômeno',
       traitId: 'r9-speed', traitName: 'Explosão em Sprint', traitIcon: '⚡',
@@ -22,11 +47,12 @@ const FREE_TRAITS: Array<{
     peneira: [
       'A peneira começa. Um racha de aquecimento. Você recebe a bola no meio-campo. Um marcador vem na sua direção.',
       'O que acontece no primeiro passo você ainda não entende direito. Mas o marcador parou. Ficou olhando pro lado onde você estava — você já estava do outro. Algo mudou.',
-      'Um observador se levantou da cadeira. Anotou alguma coisa. Dois técnicos se olharam. Não disse nada — mas você viu.',
+      'Um observador se levantou da cadeira. Anotou alguma coisa. Dois técnicos se olharam. Não disseram nada — mas você viu.',
     ],
   },
   {
     label: 'O Drible',
+    futureFact: 'Esse baixinho de Porto Alegre vai enlouquecer o mundo inteiro com o drible. Vai dançar com a bola em Wembley, no Camp Nou, no Maracanã. Em 1992 ele ainda é só um garoto de periferia que ninguém olha. Só você sabe o que ele vai construir.',
     scene: 'Um garoto baixinho, 12 anos, recebe a bola perto da grade. Dois marcadores maiores vieram. Ele balançou o corpo pra um lado, foi pro outro — e os dois passaram por baixo. Você viu e sentiu o movimento acontecer nas suas pernas ao mesmo tempo.',
     trait: {
       legendId: 'ronaldinho', legendName: 'Ronaldo de Assis Moreira', legendNickname: 'Ronaldinho Gaúcho',
@@ -41,6 +67,7 @@ const FREE_TRAITS: Array<{
   },
   {
     label: 'O Chute',
+    futureFact: 'Esse menino gordo do Rio vai ter um chute que vai tremer estádios. O Imperador. Vai marcar gols que os goleiros não tentam nem defender. Em 1992 ele nem tem time. Ninguém investiria um centavo nele. Só você sabe.',
     scene: 'Um menino gordo, 12 anos, recebeu a bola na entrada da área num treino de futsal. O chute foi seco, pesado — o som diferente de tudo que você ouviu hoje. A rede balançou por três segundos. Algo passou pra você naquele momento.',
     trait: {
       legendId: 'adriano', legendName: 'Adriano', legendNickname: 'O Imperador',
@@ -92,9 +119,18 @@ export default function OnboardingScreen() {
   const { state, dispatch } = useGame()
   const { currentYear } = state
 
-  const [phase, setPhase] = useState<Phase>('encounter')
+  const [phase, setPhase] = useState<Phase>('pelada')
+  const [peladaStep, setPeladaStep] = useState(0)
   const [selectedTrait, setSelectedTrait] = useState<typeof FREE_TRAITS[0] | null>(null)
   const [peneiraStep, setPeneiraStep] = useState(0)
+
+  const handlePeladaNext = () => {
+    if (peladaStep < PELADA_STEPS.length - 1) {
+      setPeladaStep(p => p + 1)
+    } else {
+      setPhase('trait-pick')
+    }
+  }
 
   const handlePickTrait = (option: typeof FREE_TRAITS[0]) => {
     setSelectedTrait(option)
@@ -136,53 +172,56 @@ export default function OnboardingScreen() {
 
       <AnimatePresence mode="wait">
 
-        {/* ── ENCONTRO ── */}
-        {phase === 'encounter' && (
-          <motion.div key="encounter"
+        {/* ── PELADA ── */}
+        {phase === 'pelada' && (
+          <motion.div key={`pelada-${peladaStep}`}
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-            className="w-full max-w-md text-center">
-            <div className="text-xs tracking-widest mb-8 opacity-30" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>
-              BELO HORIZONTE · {currentYear}
+            className="w-full max-w-md">
+            <div className="text-center mb-8">
+              <div className="text-xs tracking-widest mb-2 opacity-30" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>
+                BELO HORIZONTE · {currentYear}
+              </div>
+              <h1 className="text-2xl font-black" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
+                {PELADA_STEPS[peladaStep].title}
+              </h1>
             </div>
-            <h1 className="text-3xl font-black mb-6" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
-              O ENCONTRO
-            </h1>
-            <div className="space-y-5 mb-10 text-left">
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-                className="text-base leading-relaxed" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                Você tem {currentYear - 1975} anos. Sua carreira não decolou. Você está num treino livre numa quadra de periferia de BH — sem clube, sem contrato, só chutando bola por hábito.
-              </motion.p>
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
-                className="text-base leading-relaxed" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                E então você cruza com uma criança.
-              </motion.p>
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }}
-                className="text-base leading-relaxed opacity-80" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                Ela faz uma coisa. Você vê. E algo acontece — como se o movimento tivesse passado pra você pelo ar, pela visão, pelo instinto. Você não entende. Mas sente.
-              </motion.p>
+            <div className="p-6 border rounded-sm mb-8"
+              style={{ borderColor: 'rgba(212,168,64,0.15)', background: 'rgba(212,168,64,0.04)' }}>
+              <p className="text-base leading-relaxed" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                {PELADA_STEPS[peladaStep].text}
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 mb-6 justify-center">
+              {PELADA_STEPS.map((_, i) => (
+                <div key={i} className="h-1 rounded-full transition-all"
+                  style={{ width: i === peladaStep ? 24 : 8, background: i <= peladaStep ? '#D4A840' : 'rgba(255,255,255,0.15)' }} />
+              ))}
             </div>
             <motion.button
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.2 }}
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={() => setPhase('trait-pick')}
+              onClick={handlePeladaNext}
               className="w-full py-4 font-bold tracking-widest text-sm"
-              style={{ background: '#D4A840', color: '#06060f', fontFamily: 'Oswald' }}>
-              O QUE VOCÊ VIU? →
+              style={{
+                background: peladaStep === PELADA_STEPS.length - 1 ? '#D4A840' : 'rgba(212,168,64,0.15)',
+                color: peladaStep === PELADA_STEPS.length - 1 ? '#06060f' : '#D4A840',
+                fontFamily: 'Oswald',
+              }}>
+              {peladaStep === PELADA_STEPS.length - 1 ? 'USAR O PODER →' : 'CONTINUAR →'}
             </motion.button>
           </motion.div>
         )}
 
-        {/* ── ESCOLHA DO TRAÇO ── */}
+        {/* ── ESCOLHA DO ALVO ── */}
         {phase === 'trait-pick' && (
           <motion.div key="trait-pick"
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
             className="w-full max-w-md">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-black mb-2" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
-                QUAL MOVIMENTO IMPRIMIU EM VOCÊ?
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-black mb-3" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
+                VOCÊ SABE QUEM ELES VÃO SER
               </h2>
-              <p className="text-sm opacity-50" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                Esta escolha define como você começa. Não tem resposta certa.
+              <p className="text-sm leading-relaxed opacity-70" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                Você veio do futuro. Esses jovens são desconhecidos agora — ninguém aposta neles. Mas você sabe o que vão construir. A janela está aberta. Qual você encontra primeiro?
               </p>
             </div>
             <div className="space-y-4">
@@ -203,11 +242,14 @@ export default function OnboardingScreen() {
                       <div className="font-black text-base mb-1" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
                         {option.label} — {option.trait.traitName}
                       </div>
-                      <p className="text-xs leading-relaxed opacity-70" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                      <p className="text-xs leading-relaxed mb-2" style={{ color: '#f0e6c8', fontFamily: 'Inter', opacity: 0.85 }}>
+                        {option.futureFact}
+                      </p>
+                      <p className="text-xs leading-relaxed opacity-55" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
                         {option.scene}
                       </p>
                       <div className="mt-2 text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                        De {option.trait.legendNickname} · Manutenção: C${option.trait.weeklyMaintenance}/semana
+                        Manutenção: C${option.trait.weeklyMaintenance}/semana
                       </div>
                     </div>
                   </div>
@@ -237,19 +279,21 @@ export default function OnboardingScreen() {
                 {selectedTrait.peneira[peneiraStep]}
               </p>
             </div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex gap-1.5">
-                {selectedTrait.peneira.map((_, i) => (
-                  <div key={i} className="h-1 rounded-full transition-all"
-                    style={{ width: i === peneiraStep ? 24 : 8, background: i <= peneiraStep ? '#D4A840' : 'rgba(255,255,255,0.15)' }} />
-                ))}
-              </div>
+            <div className="flex items-center gap-1.5 mb-6 justify-center">
+              {selectedTrait.peneira.map((_, i) => (
+                <div key={i} className="h-1 rounded-full transition-all"
+                  style={{ width: i === peneiraStep ? 24 : 8, background: i <= peneiraStep ? '#D4A840' : 'rgba(255,255,255,0.15)' }} />
+              ))}
             </div>
             <motion.button
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
               onClick={handlePeneiraNext}
               className="w-full py-4 font-bold tracking-widest text-sm"
-              style={{ background: peneiraStep === selectedTrait.peneira.length - 1 ? '#D4A840' : 'rgba(212,168,64,0.15)', color: peneiraStep === selectedTrait.peneira.length - 1 ? '#06060f' : '#D4A840', fontFamily: 'Oswald' }}>
+              style={{
+                background: peneiraStep === selectedTrait.peneira.length - 1 ? '#D4A840' : 'rgba(212,168,64,0.15)',
+                color: peneiraStep === selectedTrait.peneira.length - 1 ? '#06060f' : '#D4A840',
+                fontFamily: 'Oswald',
+              }}>
               {peneiraStep === selectedTrait.peneira.length - 1 ? 'VER OS CLUBES INTERESSADOS →' : 'CONTINUAR →'}
             </motion.button>
           </motion.div>

@@ -1,3 +1,8 @@
+export interface WeekEvent {
+  text: string
+  type: 'treino' | 'lenda' | 'clube' | 'suspeita' | 'mundo' | 'traço'
+}
+
 export type Country =
   | 'Brasil' | 'Argentina' | 'Portugal' | 'França'
   | 'Inglaterra' | 'Itália' | 'Espanha' | 'Alemanha' | 'Holanda'
@@ -59,6 +64,22 @@ export type GameScreen =
   | 'maintenance'
   | 'steal-mission'
   | 'match'
+  | 'market'
+
+export type MatchType = 'racha' | 'amistoso' | 'decisiva'
+
+export interface GameEvent {
+  id: string
+  title: string
+  text: string
+  type: 'positive' | 'negative' | 'neutral' | 'consequence'
+  effect?: {
+    coins?: number
+    reputation?: number
+    traitBoostId?: string
+    traitDrainAmount?: number
+  }
+}
 
 export interface MissionChoice {
   phase: number
@@ -93,6 +114,18 @@ export interface ActiveMatch {
   moments: NarrationMoment[]
   goals: number
   goalsAgainst: number
+  matchType: MatchType
+}
+
+export interface LeagueTeam {
+  id: string
+  name: string
+  strength: number
+  wins: number
+  draws: number
+  losses: number
+  goalsFor: number
+  goalsAgainst: number
 }
 
 export interface GameState {
@@ -116,5 +149,19 @@ export interface GameState {
   activeMatch: ActiveMatch | null
   titles: string[]
   stolenFrom: string[]
+  league: LeagueTeam[] | null
+  leagueRound: number
+  recentForm: ('W' | 'D' | 'L')[]
   matchesPlayed: number
+  seasonWins: number
+  seasonDraws: number
+  seasonLosses: number
+  pendingEvents: GameEvent[]
+  pendingMatchType: MatchType
+  purchasedItems: string[]
+  nextMatchMult: number
+  seasonWeek: number
+  weekEvents: WeekEvent[]
+  matchDayActive: boolean
+  seasonComplete: boolean
 }
