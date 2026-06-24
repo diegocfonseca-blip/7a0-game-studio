@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useGame } from '../store/gameStore'
 import { generateMatchOpponent } from '../data/matchMoments'
 import { generateMatchNarration } from '../data/matchNarration'
+import { getTotalSynergyMatchBonus } from '../data/synergies'
 
-const PLAYER_BIRTH_YEAR = 1975
 const MOMENT_DELAY_MS = 2600
 
 export default function MatchScreen() {
@@ -19,6 +19,7 @@ export default function MatchScreen() {
       const opp = leagueOpp
         ? { name: leagueOpp.name, flag: '🇧🇷', strength: leagueOpp.strength, club: leagueOpp.name }
         : generateMatchOpponent(clubLevel ?? 1, currentYear)
+      const synergyBonus = getTotalSynergyMatchBonus(stolenTraits)
       const { moments, goals, goalsAgainst } = generateMatchNarration(
         player?.name ?? 'Você',
         stolenTraits,
@@ -26,6 +27,7 @@ export default function MatchScreen() {
         opp.strength,
         state.reputation,
         5 + Math.floor(Math.random() * 2),
+        synergyBonus,
       )
       dispatch({ type: 'START_MATCH', opponent: opp, moments, goals, goalsAgainst, matchType: pendingMatchType ?? 'amistoso' })
     }
@@ -42,7 +44,7 @@ export default function MatchScreen() {
 
   if (!activeMatch) return null
 
-  const playerAge = currentYear - PLAYER_BIRTH_YEAR
+  const playerAge = currentYear - (player?.birthYear ?? 1975)
   const shownMoments = activeMatch.moments.slice(0, activeMatch.momentIndex)
   const runningGoals = shownMoments.filter(m => m.scoreDelta > 0).length
   const runningGoalsAgainst = shownMoments.filter(m => m.scoreDelta < 0).length

@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useGame } from '../store/gameStore'
 import { LEGENDS, getLegendStatus, getLegendAge } from '../data/legends'
 import LegendProfileModal from '../components/LegendProfileModal'
-import type { Region } from '../types/game'
+import type { Region, WeekEventChoice } from '../types/game'
 import { getPoints, sortLeague, LEAGUE_TOTAL_ROUNDS } from '../data/leagueData'
+import { getActiveSynergies, SYNERGIES } from '../data/synergies'
 
 const REGIONS: { id: Region; label: string; flag: string }[] = [
   { id: 'brasil', label: 'Brasil', flag: '🇧🇷' },
@@ -30,8 +31,6 @@ const EVENT_TYPE_CONFIG = {
   traço:    { icon: '✨', color: '#D4A840', bg: 'rgba(212,168,64,0.05)', label: 'TRAÇO' },
 }
 
-const PLAYER_BIRTH_YEAR = 1975
-
 export default function WorldMapScreen() {
   const { state, dispatch } = useGame()
   const {
@@ -40,19 +39,36 @@ export default function WorldMapScreen() {
     seasonWins, seasonDraws, seasonLosses,
     clubLevel, nextMatchMult, league, leagueRound, recentForm,
     seasonWeek, weekEvents, matchDayActive, seasonComplete,
+    generation,
   } = state
 
   const [yearSummary, setYearSummary] = useState<{ earned: number; lost: number } | null>(null)
   const [matchFlash, setMatchFlash] = useState(false)
   const [showEvents, setShowEvents] = useState(pendingEvents.length > 0)
   const [showTraitInfo, setShowTraitInfo] = useState(false)
+  const [showSynergies, setShowSynergies] = useState(false)
+  // Track which week events the player has made a choice for: { eventIndex: choiceIndex }
+  const [resolvedChoices, setResolvedChoices] = useState<Record<number, 0 | 1>>({})
+  // Consequence text to show after a choice
+  const [choiceConsequences, setChoiceConsequences] = useState<Record<number, string>>({})
+  // Retirement modal
+  const [showRetirementModal, setShowRetirementModal] = useState(false)
 
-  const playerAge = currentYear - PLAYER_BIRTH_YEAR
+  const playerBirthYear = player?.birthYear ?? 1975
+  const playerAge = currentYear - playerBirthYear
+  const canRetire = playerAge >= 35
+
   const urgentLegends = LEGENDS.filter(l => getLegendStatus(l, currentYear) === 'urgent')
   const availableCount = LEGENDS.filter(l => { const s = getLegendStatus(l, currentYear); return s === 'available' || s === 'urgent' }).length
   const matchEarning = 120 + stolenTraits.length * 80
 
-  const criticalTraits = stolenTraits.filter(t => t.maintenanceBar < 30)
+  const criticalTraits = stolenTraits.filter(t => !t.isLegacy && t.maintenanceBar < 30)
+  const activeSynergies = getActiveSynergies(stolenTraits)
+  const traitIdSet = stolenTraits.map(t => t.traitId)
+  const closeSynergies = SYNERGIES.filter(s => {
+    const missing = s.requiredTraitIds.filter(id => !traitIdSet.includes(id))
+    return missing.length === 1 && !activeSynergies.find(a => a.id === s.id)
+  })
 
   const sortedLeague = league ? sortLeague(league) : []
   const playerPos = sortedLeague.findIndex(t => t.id === 'player') + 1
@@ -63,9 +79,11 @@ export default function WorldMapScreen() {
     : null
 
   const handleAdvanceYear = () => {
-    const lostCount = stolenTraits.filter(t => t.maintenanceBar - 8 <= 0).length
+    const lostCount = stolenTraits.filter(t => !t.isLegacy && t.maintenanceBar - 8 <= 0).length
     const passiveEarned = 200 + stolenTraits.length * 50
     dispatch({ type: 'ADVANCE_YEAR' })
+    setResolvedChoices({})
+    setChoiceConsequences({})
     setYearSummary({ earned: passiveEarned, lost: lostCount })
     setTimeout(() => {
       setYearSummary(null)
@@ -74,6 +92,8 @@ export default function WorldMapScreen() {
   }
 
   const handleAdvanceWeek = () => {
+    setResolvedChoices({})
+    setChoiceConsequences({})
     dispatch({ type: 'ADVANCE_WEEK' })
   }
 
@@ -88,6 +108,16 @@ export default function WorldMapScreen() {
     setShowEvents(false)
   }
 
+  const handleEventChoice = (eventIdx: number, choiceIdx: 0 | 1, choice: WeekEventChoice) => {
+    setResolvedChoices(prev => ({ ...prev, [eventIdx]: choiceIdx }))
+    setChoiceConsequences(prev => ({ ...prev, [eventIdx]: choice.consequence }))
+    dispatch({
+      type: 'APPLY_CHOICE_EFFECT',
+      coins: choice.effect?.coins ?? 0,
+      reputation: choice.effect?.reputation ?? 0,
+    })
+  }
+
   const currentWeek = seasonWeek ?? 1
   const safeWeekEvents = weekEvents ?? []
   const isMatchDay = matchDayActive ?? false
@@ -95,6 +125,11 @@ export default function WorldMapScreen() {
   const _matchEarning = (nextMatchMult ?? 1) > 1
     ? `×${(nextMatchMult ?? 1).toFixed(1)} bônus ativo`
     : `+C$ ${matchEarning} est.`
+
+  // Events with pending choices block advancing the week
+  const hasPendingChoices = safeWeekEvents.some(
+    (e, i) => e.choices && resolvedChoices[i] === undefined
+  )
 
   return (
     <div className="min-h-screen" style={{ background: 'radial-gradient(ellipse at top, #0d0d1a 0%, #06060f 80%)' }}>
@@ -104,13 +139,32 @@ export default function WorldMapScreen() {
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div>
-              <div className="text-xs tracking-widest opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>O LADRÃO DE LENDAS</div>
+              <div className="text-xs tracking-widest opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>
+                {generation > 1 ? `GEN ${generation} · O LADRÃO` : 'O LADRÃO DE LENDAS'}
+              </div>
               <div className="text-lg font-black leading-none" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>{currentYear}</div>
             </div>
             {player && (
               <div className="hidden sm:block pl-3 border-l border-white/10">
-                <div className="text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>{player.name} · {playerAge} anos</div>
+                <div className="flex items-center gap-1.5">
+                  <div className="text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>{player.name}</div>
+                  <div className="text-xs font-black px-1.5 py-0.5 rounded-sm"
+                    style={{
+                      fontFamily: 'Oswald',
+                      background: playerAge >= 35 ? 'rgba(224,53,53,0.12)' : playerAge >= 30 ? 'rgba(245,158,11,0.1)' : 'rgba(34,197,94,0.1)',
+                      color: playerAge >= 35 ? '#E03535' : playerAge >= 30 ? '#f59e0b' : '#22c55e',
+                    }}>
+                    {playerAge}a
+                  </div>
+                </div>
                 <div className="text-sm font-bold" style={{ color: '#f0e6c8', fontFamily: 'Oswald' }}>{player.position} · {player.country}</div>
+              </div>
+            )}
+            {activeSynergies.length > 0 && (
+              <div className="hidden sm:flex items-center gap-1 pl-3 border-l border-white/10">
+                <div className="text-xs font-black px-2 py-0.5 rounded-sm" style={{ background: 'rgba(167,139,250,0.15)', color: '#a78bfa', fontFamily: 'Oswald' }}>
+                  ⚡ {activeSynergies.length} SINERGIA{activeSynergies.length > 1 ? 'S' : ''}
+                </div>
               </div>
             )}
           </div>
@@ -349,27 +403,90 @@ export default function WorldMapScreen() {
               <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.03)' }}>
                 {safeWeekEvents.map((event, i) => {
                   const cfg = EVENT_TYPE_CONFIG[event.type] ?? EVENT_TYPE_CONFIG.treino
+                  const resolved = resolvedChoices[i]
+                  const hasChoices = !!event.choices
+                  const consequence = choiceConsequences[i]
                   return (
                     <motion.div
                       key={i}
                       initial={{ opacity: 0, x: -6 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.08 }}
-                      className="px-5 py-4 flex gap-3.5"
+                      className="px-5 py-4"
                       style={{
-                        background: cfg.bg,
-                        borderLeft: `3px solid ${cfg.color}`,
+                        background: hasChoices && resolved === undefined ? `${cfg.bg}` : cfg.bg,
+                        borderLeft: `3px solid ${hasChoices && resolved === undefined ? cfg.color : resolved !== undefined ? '#22c55e' : cfg.color}`,
                       }}
                     >
-                      <span className="text-lg flex-shrink-0 mt-0.5 leading-none">{cfg.icon}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-black tracking-widest mb-1.5" style={{ color: cfg.color, fontFamily: 'Oswald' }}>
-                          {cfg.label}
+                      <div className="flex gap-3.5">
+                        <span className="text-lg flex-shrink-0 mt-0.5 leading-none">{cfg.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-black tracking-widest mb-1.5" style={{ color: cfg.color, fontFamily: 'Oswald' }}>
+                            {cfg.label}{hasChoices && resolved === undefined ? ' — VOCÊ DECIDE' : ''}
+                          </div>
+                          <p className="text-sm leading-relaxed" style={{ color: 'rgba(240,230,200,0.82)', fontFamily: 'Inter' }}>
+                            {event.text}
+                          </p>
                         </div>
-                        <p className="text-sm leading-relaxed" style={{ color: 'rgba(240,230,200,0.82)', fontFamily: 'Inter' }}>
-                          {event.text}
-                        </p>
                       </div>
+
+                      {/* Choice buttons */}
+                      {hasChoices && event.choices && resolved === undefined && (
+                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {event.choices.map((choice, ci) => (
+                            <motion.button
+                              key={ci}
+                              whileHover={{ scale: 1.01 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => handleEventChoice(i, ci as 0 | 1, choice)}
+                              className="px-4 py-3 border text-left transition-all"
+                              style={{
+                                borderColor: cfg.color + '55',
+                                background: 'rgba(255,255,255,0.02)',
+                                borderRadius: 0,
+                              }}
+                            >
+                              <div className="text-xs font-black mb-1" style={{ color: cfg.color, fontFamily: 'Oswald' }}>
+                                {ci === 0 ? 'A' : 'B'} ›
+                              </div>
+                              <div className="text-xs" style={{ color: 'rgba(240,230,200,0.75)', fontFamily: 'Inter' }}>
+                                {choice.label}
+                              </div>
+                              {choice.effect && (
+                                <div className="mt-1 flex gap-2 flex-wrap">
+                                  {choice.effect.coins && (
+                                    <span className="text-xs font-black" style={{ color: choice.effect.coins > 0 ? '#22c55e' : '#E03535', fontFamily: 'Oswald' }}>
+                                      {choice.effect.coins > 0 ? '+' : ''}C$ {choice.effect.coins}
+                                    </span>
+                                  )}
+                                  {choice.effect.reputation && (
+                                    <span className="text-xs font-black" style={{ color: choice.effect.reputation > 0 ? '#60a5fa' : '#E03535', fontFamily: 'Oswald' }}>
+                                      {choice.effect.reputation > 0 ? '+' : ''}{choice.effect.reputation} rep
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </motion.button>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Consequence after choice */}
+                      {consequence && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="mt-3 p-3 border-l-2"
+                          style={{ borderColor: '#22c55e', background: 'rgba(34,197,94,0.04)' }}
+                        >
+                          <div className="text-xs font-black mb-1" style={{ color: '#22c55e', fontFamily: 'Oswald' }}>
+                            {resolved === 0 ? 'A' : 'B'} › RESULTADO
+                          </div>
+                          <p className="text-xs leading-relaxed" style={{ color: 'rgba(240,230,200,0.7)', fontFamily: 'Inter' }}>
+                            {consequence}
+                          </p>
+                        </motion.div>
+                      )}
                     </motion.div>
                   )
                 })}
@@ -378,17 +495,32 @@ export default function WorldMapScreen() {
           </div>
 
           {/* CTA */}
-          <div className="p-4 border-t" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+          <div className="p-4 border-t space-y-2" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
             {isSeasonDone ? (
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={handleAdvanceYear}
-                className="w-full py-4 text-sm font-black tracking-widest"
-                style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', fontFamily: 'Oswald' }}
-              >
-                🏆 NOVA TEMPORADA {currentYear + 1} →
-              </motion.button>
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleAdvanceYear}
+                  className="w-full py-4 text-sm font-black tracking-widest"
+                  style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', fontFamily: 'Oswald' }}
+                >
+                  🏆 NOVA TEMPORADA {currentYear + 1} →
+                </motion.button>
+                {canRetire && (
+                  <motion.button
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setShowRetirementModal(true)}
+                    className="w-full py-3 text-sm font-bold tracking-widest border transition-all"
+                    style={{ color: '#D4A840', borderColor: 'rgba(212,168,64,0.3)', background: 'rgba(212,168,64,0.05)', fontFamily: 'Oswald' }}
+                  >
+                    🎖️ APOSENTAR E PASSAR O LEGADO →
+                  </motion.button>
+                )}
+              </>
             ) : isMatchDay ? (
               <motion.button
                 whileHover={{ scale: 1.02 }}
@@ -402,18 +534,26 @@ export default function WorldMapScreen() {
                 ⚽ JOGAR{nextOpponent ? ` vs ${nextOpponent.name}` : ''} →
               </motion.button>
             ) : (
-              <motion.button
-                whileHover={{ scale: 1.02, borderColor: 'rgba(255,255,255,0.2)' }}
-                whileTap={{ scale: 0.97 }}
-                onClick={handleAdvanceWeek}
-                className="w-full py-3.5 text-sm font-bold tracking-widest border transition-all"
-                style={{ background: 'transparent', color: 'rgba(240,230,200,0.6)', borderColor: 'rgba(255,255,255,0.1)', fontFamily: 'Oswald' }}
-              >
-                AVANÇAR SEMANA →
-              </motion.button>
+              <>
+                <motion.button
+                  whileHover={!hasPendingChoices ? { scale: 1.02, borderColor: 'rgba(255,255,255,0.2)' } : {}}
+                  whileTap={!hasPendingChoices ? { scale: 0.97 } : {}}
+                  onClick={() => !hasPendingChoices && handleAdvanceWeek()}
+                  className="w-full py-3.5 text-sm font-bold tracking-widest border transition-all"
+                  style={{
+                    background: 'transparent',
+                    color: hasPendingChoices ? 'rgba(240,230,200,0.25)' : 'rgba(240,230,200,0.6)',
+                    borderColor: hasPendingChoices ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.1)',
+                    fontFamily: 'Oswald',
+                    cursor: hasPendingChoices ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {hasPendingChoices ? '⏳ TOME SUA DECISÃO PRIMEIRO' : 'AVANÇAR SEMANA →'}
+                </motion.button>
+              </>
             )}
-            {!isMatchDay && !isSeasonDone && nextOpponent && (
-              <div className="mt-2 text-center text-xs" style={{ color: 'rgba(240,230,200,0.28)', fontFamily: 'Inter' }}>
+            {!isMatchDay && !isSeasonDone && nextOpponent && !hasPendingChoices && (
+              <div className="text-center text-xs" style={{ color: 'rgba(240,230,200,0.28)', fontFamily: 'Inter' }}>
                 Próxima partida: vs {nextOpponent.name} ·{' '}
                 {nextOpponent.strength >= 60 ? 'Adversário Forte' : nextOpponent.strength >= 40 ? 'Equilibrado' : 'Favorito'}
                 {' · '}{_matchEarning}
@@ -584,6 +724,88 @@ export default function WorldMapScreen() {
                 MANUTENÇÃO →
               </button>
             </div>
+          </div>
+        )}
+
+        {/* ── SINERGIAS ── */}
+        {stolenTraits.length >= 2 && (
+          <div className="border rounded-sm overflow-hidden" style={{ borderColor: 'rgba(167,139,250,0.18)', background: 'rgba(167,139,250,0.02)' }}>
+            <div
+              className="px-4 py-3 border-b flex items-center justify-between cursor-pointer"
+              style={{ borderColor: 'rgba(167,139,250,0.1)' }}
+              onClick={() => setShowSynergies(v => !v)}
+            >
+              <div>
+                <div className="text-xs tracking-widest font-black" style={{ color: '#a78bfa', fontFamily: 'Oswald' }}>
+                  ⚡ SINERGIAS
+                  {activeSynergies.length > 0 && (
+                    <span className="ml-2 px-1.5 py-0.5 text-xs rounded-sm" style={{ background: 'rgba(167,139,250,0.2)', color: '#a78bfa' }}>
+                      {activeSynergies.length} ATIVA{activeSynergies.length > 1 ? 'S' : ''}
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs opacity-40 mt-0.5" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                  Combinações de traços que multiplicam seu poder nas partidas
+                </div>
+              </div>
+              <span className="text-xs opacity-40" style={{ color: '#a78bfa', fontFamily: 'Oswald' }}>
+                {showSynergies ? '▲' : '▼'}
+              </span>
+            </div>
+
+            <AnimatePresence>
+              {showSynergies && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 py-3 space-y-2">
+                    {activeSynergies.length === 0 ? (
+                      <p className="text-xs opacity-40 text-center py-2" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                        Nenhuma sinergia ativa. Combine traços específicos para desbloquear.
+                      </p>
+                    ) : (
+                      activeSynergies.map(syn => (
+                        <div key={syn.id} className="p-3 border rounded-sm" style={{ borderColor: 'rgba(167,139,250,0.2)', background: 'rgba(167,139,250,0.05)' }}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-base">{syn.icon}</span>
+                            <div className="font-black text-sm" style={{ color: '#a78bfa', fontFamily: 'Oswald' }}>{syn.name}</div>
+                            <div className="ml-auto text-xs font-black" style={{ color: '#22c55e', fontFamily: 'Oswald' }}>
+                              +{Math.round(syn.matchBonus * 100)}% nas partidas
+                            </div>
+                          </div>
+                          <p className="text-xs" style={{ color: 'rgba(240,230,200,0.6)', fontFamily: 'Inter' }}>{syn.description}</p>
+                        </div>
+                      ))
+                    )}
+                    {/* Show potential synergies close to unlocking */}
+                    {closeSynergies.length > 0 && (
+                      <div className="mt-2 pt-2 border-t" style={{ borderColor: 'rgba(167,139,250,0.08)' }}>
+                        <div className="text-xs font-black tracking-widest mb-2 opacity-40" style={{ color: '#a78bfa', fontFamily: 'Oswald' }}>QUASE LÁ</div>
+                        {closeSynergies.slice(0, 2).map(s => {
+                          const traitIds = stolenTraits.map(t => t.traitId)
+                          const missing = s.requiredTraitIds.filter(id => !traitIds.includes(id))
+                          return (
+                            <div key={s.id} className="flex items-center gap-2 py-1.5 opacity-50">
+                              <span className="text-sm">{s.icon}</span>
+                              <span className="text-xs font-bold" style={{ color: '#a78bfa', fontFamily: 'Oswald' }}>{s.name}</span>
+                              <span className="text-xs opacity-60" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                                falta: {missing.join(', ')}
+                              </span>
+                              <span className="ml-auto text-xs font-black" style={{ color: '#a78bfa', fontFamily: 'Oswald' }}>
+                                +{Math.round(s.matchBonus * 100)}%
+                              </span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
 
@@ -832,6 +1054,164 @@ export default function WorldMapScreen() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Retirement Modal */}
+      <AnimatePresence>
+        {showRetirementModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center px-4"
+            style={{ background: 'rgba(0,0,0,0.88)' }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="w-full max-w-md border rounded-sm overflow-hidden"
+              style={{ background: '#0a0a18', borderColor: 'rgba(212,168,64,0.35)' }}
+            >
+              {/* Header */}
+              <div className="px-6 py-5 border-b" style={{ borderColor: 'rgba(212,168,64,0.15)', background: 'radial-gradient(ellipse at top, rgba(212,168,64,0.08) 0%, transparent 70%)' }}>
+                <div className="text-xs tracking-widest opacity-50 mb-1" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
+                  GERAÇÃO {generation} — ENCERRAMENTO
+                </div>
+                <div className="text-3xl font-black mb-2" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
+                  HORA DE PASSAR O BASTÃO
+                </div>
+                <p className="text-sm opacity-70" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                  {player?.name} tem {playerAge} anos. Uma carreira construída com talento roubado. Agora, o melhor que você tem passa para o sangue do seu filho.
+                </p>
+              </div>
+
+              {/* Best trait to inherit */}
+              {(() => {
+                const bestTrait = stolenTraits.filter(t => !t.isLegacy).sort((a, b) => b.maintenanceBar - a.maintenanceBar)[0]
+                if (!bestTrait) return null
+                return (
+                  <div className="px-6 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+                    <div className="text-xs tracking-widest mb-2 opacity-50" style={{ color: '#a78bfa', fontFamily: 'Oswald' }}>
+                      TRAÇO QUE SERÁ HERDADO
+                    </div>
+                    <div className="flex items-center gap-3 p-3 border rounded-sm" style={{ borderColor: 'rgba(212,168,64,0.2)', background: 'rgba(212,168,64,0.04)' }}>
+                      <span className="text-2xl">{bestTrait.traitIcon}</span>
+                      <div>
+                        <div className="font-black text-sm" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>{bestTrait.traitName}</div>
+                        <div className="text-xs opacity-50" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                          de {bestTrait.legendNickname} · {bestTrait.maintenanceBar}% de força
+                        </div>
+                      </div>
+                      <div className="ml-auto text-xs font-black" style={{ color: '#22c55e', fontFamily: 'Oswald' }}>
+                        PERMANENTE
+                      </div>
+                    </div>
+                    <p className="text-xs mt-2 opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                      Traços de legado não decaem. São sangue, não talento roubado.
+                    </p>
+                  </div>
+                )
+              })()}
+
+              {/* Stats summary */}
+              <div className="px-6 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: 'Anos', value: playerAge, color: '#D4A840' },
+                    { label: 'Traços', value: stolenTraits.length, color: '#a78bfa' },
+                    { label: 'C$ herdado', value: `${Math.floor(coins * 0.3)}`, color: '#22c55e' },
+                  ].map(item => (
+                    <div key={item.label} className="text-center p-2 border rounded-sm" style={{ borderColor: 'rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
+                      <div className="text-lg font-black" style={{ color: item.color, fontFamily: 'Oswald' }}>{item.value}</div>
+                      <div className="text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>{item.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="px-6 py-4 space-y-2">
+                <RetirementConfirmButton
+                  generation={generation}
+                  player={player}
+                  onConfirm={(sonName) => {
+                    const birthYear = 1992 - 17 + generation * 20
+                    dispatch({
+                      type: 'START_DYNASTY',
+                      player: {
+                        name: sonName,
+                        country: player?.country ?? 'Brasil',
+                        city: player?.city ?? 'São Paulo',
+                        faceIndex: player?.faceIndex ?? 0,
+                        position: player?.position ?? 'Atacante',
+                        birthYear,
+                      },
+                    })
+                    setShowRetirementModal(false)
+                  }}
+                />
+                <button
+                  onClick={() => setShowRetirementModal(false)}
+                  className="w-full py-2 text-xs opacity-40 hover:opacity-60 transition-opacity"
+                  style={{ color: '#f0e6c8', fontFamily: 'Inter' }}
+                >
+                  Continuar jogando ainda
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+function RetirementConfirmButton({
+  generation,
+  player,
+  onConfirm,
+}: {
+  generation: number
+  player: { name: string; country: string; city: string; faceIndex: number; position: string } | null
+  onConfirm: (sonName: string) => void
+}) {
+  const [sonName, setSonName] = useState(player ? `${player.name} Jr.` : '')
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="text-xs tracking-widest opacity-50 block mb-1.5" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
+          NOME DO FILHO (GERAÇÃO {generation + 1})
+        </label>
+        <input
+          type="text"
+          value={sonName}
+          onChange={e => setSonName(e.target.value)}
+          maxLength={24}
+          className="w-full px-3 py-2 text-sm border bg-transparent"
+          style={{
+            borderColor: 'rgba(212,168,64,0.3)',
+            color: '#f0e6c8',
+            fontFamily: 'Oswald',
+            outline: 'none',
+          }}
+          placeholder="Nome do seu filho..."
+        />
+      </div>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.97 }}
+        onClick={() => sonName.trim() && onConfirm(sonName.trim())}
+        disabled={!sonName.trim()}
+        className="w-full py-3 text-sm font-black tracking-widest transition-all"
+        style={{
+          background: sonName.trim() ? 'linear-gradient(135deg, #D4A840, #b8902e)' : 'rgba(255,255,255,0.05)',
+          color: sonName.trim() ? '#06060f' : 'rgba(240,230,200,0.2)',
+          fontFamily: 'Oswald',
+          cursor: sonName.trim() ? 'pointer' : 'not-allowed',
+        }}
+      >
+        🩸 PASSAR O LEGADO — {sonName || '???'} →
+      </motion.button>
     </div>
   )
 }

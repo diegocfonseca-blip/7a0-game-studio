@@ -1,6 +1,16 @@
+export interface WeekEventChoice {
+  label: string
+  consequence: string
+  effect?: {
+    coins?: number
+    reputation?: number
+  }
+}
+
 export interface WeekEvent {
   text: string
   type: 'treino' | 'lenda' | 'clube' | 'suspeita' | 'mundo' | 'traço'
+  choices?: [WeekEventChoice, WeekEventChoice]
 }
 
 export type Country =
@@ -14,6 +24,24 @@ export type TraitMood = '🔥' | '😊' | '😰' | '😴' | '😤'
 export type LegendStatus = 'available' | 'urgent' | 'locked' | 'closed'
 
 export type Region = 'brasil' | 'americas' | 'europa-sul' | 'europa-norte' | 'europa-oeste'
+
+export interface TraitSynergy {
+  id: string
+  name: string
+  icon: string
+  description: string
+  requiredTraitIds: string[]
+  matchBonus: number
+}
+
+export interface InheritedTrait {
+  traitId: string
+  traitName: string
+  traitIcon: string
+  legendNickname: string
+  fromGeneration: number
+  fromPlayerName: string
+}
 
 export interface Trait {
   id: string
@@ -54,6 +82,7 @@ export interface StolenTrait {
   mood: TraitMood
   stolenYear: number
   weeklyMaintenance: number
+  isLegacy?: boolean
 }
 
 export type GameScreen =
@@ -136,6 +165,7 @@ export interface GameState {
     city: string
     faceIndex: number
     position: Position
+    birthYear: number
   } | null
   currentYear: number
   coins: number
@@ -164,4 +194,6 @@ export interface GameState {
   weekEvents: WeekEvent[]
   matchDayActive: boolean
   seasonComplete: boolean
+  generation: number
+  inheritedTraits: InheritedTrait[]
 }

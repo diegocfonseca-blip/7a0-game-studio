@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react'
-import type { GameState, GameScreen, StolenTrait, TraitMood, NarrationMoment, MatchType } from '../types/game'
+import type { GameState, GameScreen, StolenTrait, TraitMood, NarrationMoment, MatchType, Country, Position, InheritedTrait } from '../types/game'
 import { generateMatchOpponent } from '../data/matchMoments'
 import { rollYearEvents } from '../data/gameEvents'
 import { generateLeague, simulateRoundAI, LEAGUE_TOTAL_ROUNDS } from '../data/leagueData'
@@ -36,12 +36,15 @@ const INITIAL_STATE: GameState = {
   weekEvents: [],
   matchDayActive: false,
   seasonComplete: false,
+  generation: 1,
+  inheritedTraits: [],
 }
 
 type Action =
   | { type: 'SET_SCREEN'; screen: GameScreen }
   | { type: 'CREATE_PLAYER'; player: NonNullable<GameState['player']> }
   | { type: 'COMPLETE_ONBOARDING'; trait: StolenTrait; clubName: string; clubLevel: 1 | 2 | 3; startCoins: number }
+  | { type: 'START_DYNASTY'; player: { name: string; country: Country; city: string; faceIndex: number; position: Position; birthYear: number } }
   | { type: 'SELECT_LEGEND'; legendId: string | null }
   | { type: 'SELECT_TRAIT'; traitId: string | null }
   | { type: 'START_MISSION'; legendId: string; traitId: string }
@@ -61,6 +64,7 @@ type Action =
   | { type: 'SPEND_COINS'; amount: number }
   | { type: 'EARN_COINS'; amount: number }
   | { type: 'ADVANCE_WEEK' }
+  | { type: 'APPLY_CHOICE_EFFECT'; coins: number; reputation: number }
   | { type: 'RESET_GAME' }
 
 function moodFromBar(bar: number): TraitMood {
@@ -81,12 +85,27 @@ function gameReducer(state: GameState, action: Action): GameState {
 
     case 'COMPLETE_ONBOARDING': {
       const league = generateLeague(action.clubName, action.clubLevel)
+      // Convert any inherited traits to legacy StolenTraits
+      const legacyTraits: StolenTrait[] = state.inheritedTraits.map(it => ({
+        legendId: `legacy-${it.traitId}`,
+        legendName: it.fromPlayerName,
+        legendNickname: `${it.legendNickname} (legado)`,
+        traitId: it.traitId,
+        traitName: it.traitName,
+        traitIcon: it.traitIcon,
+        maintenanceBar: 100,
+        mood: '🔥' as TraitMood,
+        stolenYear: state.currentYear,
+        weeklyMaintenance: 0,
+        isLegacy: true,
+      }))
+      const allTraits = [...legacyTraits, action.trait]
       const baseState = {
         ...state,
         currentClub: action.clubName,
         clubLevel: action.clubLevel,
         coins: action.startCoins,
-        stolenTraits: [action.trait],
+        stolenTraits: allTraits,
         currentYear: state.currentYear,
       }
       const weekEvents = generateWeekEvents(baseState as GameState, false)
@@ -183,6 +202,7 @@ function gameReducer(state: GameState, action: Action): GameState {
     case 'ADVANCE_YEAR': {
       const decayed = state.stolenTraits
         .map(t => {
+          if (t.isLegacy) return t
           const newBar = Math.max(0, t.maintenanceBar - 8)
           return { ...t, maintenanceBar: newBar, mood: moodFromBar(newBar) }
         })
@@ -440,6 +460,32 @@ function gameReducer(state: GameState, action: Action): GameState {
       }
     }
 
+    case 'START_DYNASTY': {
+      // Pick the best non-legacy stolen trait to pass down
+      const nonLegacy = state.stolenTraits.filter(t => !t.isLegacy)
+      const bestTrait = nonLegacy.sort((a, b) => b.maintenanceBar - a.maintenanceBar)[0]
+      const newInherited: InheritedTrait | null = bestTrait ? {
+        traitId: bestTrait.traitId,
+        traitName: bestTrait.traitName,
+        traitIcon: bestTrait.traitIcon,
+        legendNickname: bestTrait.legendNickname,
+        fromGeneration: state.generation,
+        fromPlayerName: state.player?.name ?? 'Seu pai',
+      } : null
+      const inheritedTraits = newInherited
+        ? [...state.inheritedTraits, newInherited]
+        : state.inheritedTraits
+      return {
+        ...INITIAL_STATE,
+        screen: 'creation',
+        generation: state.generation + 1,
+        inheritedTraits,
+        player: action.player,
+        currentYear: 1992,
+        coins: Math.floor(state.coins * 0.3),
+      }
+    }
+
     case 'ADVANCE_WEEK': {
       const preMatchEvents = generateWeekEvents(state, true)
       return {
@@ -455,6 +501,13 @@ function gameReducer(state: GameState, action: Action): GameState {
 
     case 'EARN_COINS':
       return { ...state, coins: state.coins + action.amount }
+
+    case 'APPLY_CHOICE_EFFECT':
+      return {
+        ...state,
+        coins: Math.max(0, state.coins + action.coins),
+        reputation: Math.max(0, state.reputation + action.reputation),
+      }
 
     case 'RESET_GAME':
       return { ...INITIAL_STATE }
@@ -496,6 +549,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           weekEvents: parsed.weekEvents ?? [],
           matchDayActive: parsed.matchDayActive ?? false,
           seasonComplete: parsed.seasonComplete ?? false,
+          generation: parsed.generation ?? 1,
+          inheritedTraits: parsed.inheritedTraits ?? [],
         }
       } catch {
         return init

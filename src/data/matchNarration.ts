@@ -253,6 +253,7 @@ export function generateMatchNarration(
   opponentStrength: number,
   reputation: number,
   targetMoments?: number,
+  synergyBonus: number = 0,
 ): GeneratedMatch {
   const rng = seededRng(Date.now() ^ (Math.random() * 0xffffffff))
 
@@ -260,10 +261,11 @@ export function generateMatchNarration(
   const weakIds = traits.filter(t => t.maintenanceBar < 30).map(t => t.traitId)
   const strongIds = traits.filter(t => t.maintenanceBar >= 30).map(t => t.traitId)
 
-  // Calcula força do jogador
+  // Calcula força do jogador (synergy bonus adds up to ~12 extra strength)
   const traitPower = traits.reduce((s, t) => s + (t.maintenanceBar / 100) * 18, 0)
   const repBonus = Math.min(25, reputation * 0.4)
-  const playerStr = Math.min(95, 40 + traitPower + repBonus)
+  const synergyStr = Math.min(12, synergyBonus * 40)
+  const playerStr = Math.min(95, 40 + traitPower + repBonus + synergyStr)
   const diff = playerStr - opponentStrength
 
   const winChance = diff > 20 ? 0.80 : diff > 10 ? 0.65 : diff > 0 ? 0.52

@@ -34,7 +34,10 @@ const SKIN_TONES = [
 ]
 
 export default function CharacterCreationScreen() {
-  const { dispatch } = useGame()
+  const { state, dispatch } = useGame()
+  const isDynasty = state.generation > 1
+  const inheritedTrait = state.inheritedTraits[state.inheritedTraits.length - 1] ?? null
+
   const [name, setName] = useState('')
   const [country, setCountry] = useState<Country>('Brasil')
   const [city, setCity] = useState('São Paulo')
@@ -53,9 +56,10 @@ export default function CharacterCreationScreen() {
 
   const handleConfirm = () => {
     if (!name.trim()) return
+    const birthYear = isDynasty ? 1992 - 17 + (state.generation - 1) * 20 : 1975
     dispatch({
       type: 'CREATE_PLAYER',
-      player: { name: name.trim(), country, city, faceIndex, position }
+      player: { name: name.trim(), country, city, faceIndex, position, birthYear }
     })
   }
 
@@ -89,7 +93,9 @@ export default function CharacterCreationScreen() {
           </div>
           <div className="text-right flex-shrink-0">
             <div className="text-xs tracking-widest opacity-30" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>1992</div>
-            <div className="text-xs opacity-20" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>O Ladrão</div>
+            <div className="text-xs opacity-20" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+              {isDynasty ? `Geração ${state.generation}` : 'O Ladrão'}
+            </div>
           </div>
         </div>
 
@@ -106,6 +112,33 @@ export default function CharacterCreationScreen() {
 
       <div className="flex-1 flex flex-col items-center justify-start px-4 py-8 max-w-2xl mx-auto w-full">
 
+        {/* Dynasty banner */}
+        {isDynasty && inheritedTrait && (
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full mb-6 p-4 border rounded-sm"
+            style={{ background: 'rgba(212,168,64,0.06)', borderColor: 'rgba(212,168,64,0.25)' }}
+          >
+            <div className="text-xs tracking-widest font-black mb-1" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
+              🩸 GERAÇÃO {state.generation} — LEGADO DO PAI
+            </div>
+            <p className="text-xs mb-3" style={{ color: 'rgba(240,230,200,0.6)', fontFamily: 'Inter' }}>
+              Seu pai passou o talento que carregava. Você nasce com isso no sangue — não decai, não se perde.
+            </p>
+            <div className="flex items-center gap-3 p-2 border rounded-sm" style={{ borderColor: 'rgba(212,168,64,0.15)', background: 'rgba(212,168,64,0.04)' }}>
+              <span className="text-xl">{inheritedTrait.traitIcon}</span>
+              <div>
+                <div className="text-sm font-black" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>{inheritedTrait.traitName}</div>
+                <div className="text-xs opacity-40" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
+                  de {inheritedTrait.legendNickname} · herdado de {inheritedTrait.fromPlayerName}
+                </div>
+              </div>
+              <div className="ml-auto text-xs font-black" style={{ color: '#22c55e', fontFamily: 'Oswald' }}>PERMANENTE</div>
+            </div>
+          </motion.div>
+        )}
+
         {/* ── STEP 1: NAME ── */}
         {step === 'name' && (
           <motion.div
@@ -116,12 +149,16 @@ export default function CharacterCreationScreen() {
             className="w-full"
           >
             <div className="text-center mb-10">
-              <div className="text-xs tracking-widest opacity-40 mb-2" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>IDENTIDADE</div>
+              <div className="text-xs tracking-widest opacity-40 mb-2" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
+                {isDynasty ? `GERAÇÃO ${state.generation} — O FILHO` : 'IDENTIDADE'}
+              </div>
               <h2 className="text-4xl md:text-5xl font-black mb-3" style={{ fontFamily: 'Oswald', color: '#f0e6c8' }}>
-                COMO TE CHAMAM?
+                {isDynasty ? 'NOME DO FILHO?' : 'COMO TE CHAMAM?'}
               </h2>
               <p className="text-sm opacity-45" style={{ color: '#f0e6c8', fontFamily: 'Inter' }}>
-                Você começa sem talento. Tudo que vai ser... você vai roubar.
+                {isDynasty
+                  ? 'O legado continua. O filho carrega o sangue do pai — e começa onde o pai parou.'
+                  : 'Você começa sem talento. Tudo que vai ser... você vai roubar.'}
               </p>
             </div>
 
