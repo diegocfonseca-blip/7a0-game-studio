@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* NOTE: do NOT add `* { margin:0; padding:0 }` here unlayered — in Tailwind v4
+   unlayered rules beat the utilities layer, which silently kills mx-auto and
+   every margin utility. Tailwind's preflight already resets margins correctly. */
+* { box-sizing: border-box; }
 
 body {
   background: #06060f;
