@@ -9,7 +9,7 @@ const INITIAL_STATE: GameState = {
   screen: 'intro',
   year: 1993,
   week: 1,
-  money: 5000,
+  money: 8000,
   reputation: 10,
   clients: [],
   pendingOffers: [],
@@ -28,6 +28,8 @@ const INITIAL_STATE: GameState = {
   ],
   seenLegendIds: [],
   purchasedUpgrades: [],
+  rejectionCounts: {},
+  lostLegends: [],
   narrative: [],
 }
 
@@ -41,6 +43,7 @@ type Action =
   | { type: 'RESOLVE_EVENT'; eventId: string; choiceIndex: 0 | 1 }
   | { type: 'PURCHASE_UPGRADE'; upgradeId: string; cost: number; effect: string }
   | { type: 'MARK_LEGEND_SEEN'; legendId: string }
+  | { type: 'LEGEND_REJECTED'; legendId: string; lost: boolean }
 
 function generateClubOffer(client: Client, year: number): ClubOffer | null {
   const rating = getCurrentRating(getLegendById(client.legendId)!, year)
@@ -119,15 +122,31 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       }
 
       const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + legend.monthlyFee / 4
+      const upfront = legend.signingFee + legend.luva
 
       return {
         ...state,
-        money: state.money - legend.signingFee,
+        money: state.money - upfront,
         clients: [...state.clients, newClient],
         weeklyExpenses,
         actionsUsed: state.actionsUsed + 1,
         seenLegendIds: [...state.seenLegendIds, action.legendId],
-        narrative: [...state.narrative, `Você assinou ${legend.nickname} por ${action.commissionRate}% de comissão.`],
+        narrative: [...state.narrative, `✍️ Você assinou ${legend.nickname} por ${action.commissionRate}% de comissão + R$${legend.luva.toLocaleString('pt-BR')} de luva.`],
+      }
+    }
+
+    case 'LEGEND_REJECTED': {
+      const count = (state.rejectionCounts[action.legendId] ?? 0) + 1
+      const legend = getLegendById(action.legendId)
+      return {
+        ...state,
+        rejectionCounts: { ...state.rejectionCounts, [action.legendId]: count },
+        lostLegends: action.lost && !state.lostLegends.includes(action.legendId)
+          ? [...state.lostLegends, action.legendId]
+          : state.lostLegends,
+        narrative: action.lost
+          ? [...state.narrative, `💔 Você PERDEU ${legend?.nickname ?? 'um talento'} pra sempre — recusou sua proposta duas vezes.`]
+          : state.narrative,
       }
     }
 
