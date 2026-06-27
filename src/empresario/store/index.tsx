@@ -178,7 +178,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
 
       // Maybe generate event
       const clientIds = updatedClients.map(c => c.legendId)
-      const newEvent = generateWeeklyEvent(newYear, actualWeek, clientIds)
+      const newEvent = generateWeeklyEvent(newYear, actualWeek, clientIds, state.purchasedUpgrades)
       const newEvents = newEvent
         ? [...state.events.filter(e => e.resolved), newEvent]
         : state.events
@@ -253,14 +253,23 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       }
     }
 
-    case 'PURCHASE_UPGRADE':
+    case 'PURCHASE_UPGRADE': {
+      const isScout = action.upgradeId.startsWith('scout')
+      const repBoost = action.upgradeId === 'escritorio-sp' ? 12 : isScout ? 3 : 0
       return {
         ...state,
         money: state.money - action.cost,
         purchasedUpgrades: [...state.purchasedUpgrades, action.upgradeId],
-        scoutSlots: action.upgradeId.startsWith('scout') ? state.scoutSlots + 2 : state.scoutSlots,
-        narrative: [...state.narrative, `Investimento: ${action.effect}`],
+        scoutSlots: isScout ? state.scoutSlots + 2 : state.scoutSlots,
+        reputation: Math.min(100, state.reputation + repBoost),
+        narrative: [
+          ...state.narrative,
+          isScout
+            ? `🔭 Novo olheiro contratado! ${action.effect}`
+            : `💼 Investimento: ${action.effect}`,
+        ],
       }
+    }
 
     case 'MARK_LEGEND_SEEN':
       return {

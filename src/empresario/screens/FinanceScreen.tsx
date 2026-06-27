@@ -1,5 +1,5 @@
 import { useEmpresario } from '../store'
-import { UPGRADE_OPTIONS } from '../data/events'
+import { SCOUT_UPGRADES, SERVICE_UPGRADES } from '../data/events'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag } from '../ui'
 
 export default function FinanceScreen() {
@@ -13,6 +13,33 @@ export default function FinanceScreen() {
   const totalClientValue = state.clients.reduce((s, c) => s + c.currentValue, 0)
   const monthlyExpenses = state.weeklyExpenses * 4
   const clubProgress = Math.min(100, (state.money / 500000) * 100)
+
+  function UpgradeRow({ up }: { up: { id: string; name: string; description: string; cost: number; effect: string; flag?: string } }) {
+    const bought = state.purchasedUpgrades.includes(up.id)
+    const canAfford = state.money >= up.cost
+    return (
+      <BrutalCard color={bought ? C.creamDark : 'white'} className="p-4" shadow={bought ? 2 : 4}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>
+              {bought ? '✅ ' : up.flag ? `${up.flag} ` : ''}{up.name}
+            </p>
+            <p className="text-black/50 text-xs font-medium mt-0.5 leading-relaxed">{up.description}</p>
+            <div className="mt-2"><BrutalTag color={C.yellow}>⚡ {up.effect}</BrutalTag></div>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="font-black text-black text-sm mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(up.cost)}</p>
+            {!bought && (
+              <BrutalButton color={canAfford ? C.green : '#C9C2AC'} disabled={!canAfford} full={false}
+                onClick={() => purchase(up.id, up.cost, up.effect)} className="!px-3 !py-2 !text-xs">
+                {canAfford ? 'Comprar' : 'Sem $'}
+              </BrutalButton>
+            )}
+          </div>
+        </div>
+      </BrutalCard>
+    )
+  }
 
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
@@ -55,35 +82,22 @@ export default function FinanceScreen() {
           </BrutalCard>
         </div>
 
-        {/* upgrades */}
-        <h2 className="font-black text-black text-lg pt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>💼 INVESTIMENTOS</h2>
-        <div className="space-y-3">
-          {UPGRADE_OPTIONS.map(up => {
-            const bought = state.purchasedUpgrades.includes(up.id)
-            const canAfford = state.money >= up.cost
-            return (
-              <BrutalCard key={up.id} color={bought ? C.creamDark : 'white'} className="p-4" shadow={bought ? 2 : 4}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>
-                      {bought && '✅ '}{up.name}
-                    </p>
-                    <p className="text-black/50 text-xs font-medium mt-0.5 leading-relaxed">{up.description}</p>
-                    <div className="mt-2"><BrutalTag color={C.yellow}>⚡ {up.effect}</BrutalTag></div>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className="font-black text-black text-sm mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(up.cost)}</p>
-                    {!bought && (
-                      <BrutalButton color={canAfford ? C.green : '#C9C2AC'} disabled={!canAfford} full={false}
-                        onClick={() => purchase(up.id, up.cost, up.effect)} className="!px-3 !py-2 !text-xs">
-                        {canAfford ? 'Comprar' : 'Sem $'}
-                      </BrutalButton>
-                    )}
-                  </div>
-                </div>
-              </BrutalCard>
-            )
-          })}
+        {/* SCOUTS */}
+        <div>
+          <h2 className="font-black text-black text-lg pt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>🔭 OLHEIROS PELO MUNDO</h2>
+          <p className="text-black/50 text-xs font-bold mb-3">Você só conhece o Brasil de cor. Contrate olheiros pra revelar lendas de outros países no Radar.</p>
+          <div className="space-y-3">
+            {SCOUT_UPGRADES.map(up => <UpgradeRow key={up.id} up={up} />)}
+          </div>
+        </div>
+
+        {/* SERVICES */}
+        <div>
+          <h2 className="font-black text-black text-lg pt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>💼 ESTRUTURA</h2>
+          <p className="text-black/50 text-xs font-bold mb-3">Serviços fixos que resolvem problemas antes de virarem prejuízo.</p>
+          <div className="space-y-3">
+            {SERVICE_UPGRADES.map(up => <UpgradeRow key={up.id} up={up} />)}
+          </div>
         </div>
 
         {/* buy a club */}
