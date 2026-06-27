@@ -7,6 +7,7 @@ export type Screen =
   | 'offers'
   | 'finance'
   | 'negotiate'
+  | 'club'
 
 export type Position = 'ATA' | 'MEI' | 'ZAG' | 'LAT' | 'GOL'
 export type Personality = 'leal' | 'ambicioso' | 'difícil' | 'humilde'
@@ -71,15 +72,45 @@ export interface Client {
   rivalOffers: number     // how many rival agents approached them
 }
 
+export interface Bid {
+  clubName: string
+  clubCountry: string
+  amount: number
+}
+
 export interface ClubOffer {
   id: string
   clubName: string
   clubCountry: string
   clientId: string
-  offerAmount: number     // transfer fee
+  offerAmount: number     // transfer fee (the current top bid)
   salary: number          // annual salary to player
   contractYears: number
   expiresInWeeks: number  // offer expires after X weeks
+  isWar?: boolean         // bidding war between multiple clubs
+  bidders?: Bid[]         // the competing clubs and their bids
+  escalations?: number    // how many times you've pushed for a higher bid
+}
+
+export interface NemesisAlert {
+  legendId: string
+  legendNickname: string
+  story: string
+  isFirst: boolean
+}
+
+export interface OwnedClub {
+  id: string
+  name: string
+  division: number        // 4 = worst, 1 = elite
+  fans: number
+  leaguePosition: number
+  cashPerWeek: number
+  placedClientIds: string[]
+  lastResult: string      // narrative of last match
+  seasonWins: number
+  seasonLosses: number
+  seasonDraws: number
 }
 
 export interface RivalAgent {
@@ -144,5 +175,9 @@ export interface GameState {
   purchasedUpgrades: string[]
   rejectionCounts: Record<string, number> // how many times each legend said no to you
   lostLegends: string[]   // legends who rejected twice — gone forever
+  nemesisTaken: string[]  // legends the rival agent snatched
+  nemesisShown: boolean   // whether the nemesis backstory was shown
+  nemesisAlert: NemesisAlert | null // pending alert to show the player
+  ownedClub: OwnedClub | null
   narrative: string[]     // log of key moments
 }
