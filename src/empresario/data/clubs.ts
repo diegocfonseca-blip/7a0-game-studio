@@ -44,3 +44,30 @@ export function getClubById(id: string): Club | undefined {
 export function getClubsByTier(tier: number): Club[] {
   return CLUBS.filter(c => c.tier === tier)
 }
+
+// Small, cheap clubs you can BUY once you're rich enough
+export interface BuyableClub {
+  id: string
+  name: string
+  city: string
+  division: number  // starts at 4 (worst)
+  price: number
+  fans: number
+  flavor: string
+}
+
+export const BUYABLE_CLUBS: BuyableClub[] = [
+  { id: 'guarani-fc', name: 'Guarani do Sertão', city: 'Interior do Ceará', division: 4, price: 500000, fans: 3000,
+    flavor: 'Estádio de terra batida, 3 mil torcedores fiéis e uma dívida no pescoço. Mas é UM CLUBE — e é seu.' },
+  { id: 'atletico-vila', name: 'Atlético Vila Nova', city: 'Periferia de SP', division: 4, price: 650000, fans: 5000,
+    flavor: 'Da várzea paulista pro profissionalismo. Torcida raiz, grana curta, vontade enorme.' },
+  { id: 'real-litoral', name: 'Real Litoral', city: 'Litoral catarinense', division: 3, price: 900000, fans: 8000,
+    flavor: 'Já está na terceira divisão. Mais caro, mas você começa mais perto da elite.' },
+]
+
+export const NEMESIS = {
+  name: 'Sérgio Cambalhota',
+  story:
+    'Você ouve falar dele nos bastidores: SÉRGIO CAMBALHOTA. Um empresário medíocre que passou a vida inteira na sua sombra, vendo você acertar TODOS os palpites enquanto ele errava feio. Ele não entende como você sempre sabe quem vai estourar — e isso o consome de inveja. Agora ele te marca de perto: cada talento que você namora e não fecha, ele tenta roubar primeiro. "Esse aí também vai pra MINHA carteira", ele jura. A guerra começou.',
+}
+

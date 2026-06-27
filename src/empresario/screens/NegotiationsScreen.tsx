@@ -4,11 +4,12 @@ import { useEmpresario } from '../store'
 import type { ClubOffer, GameEvent, Client } from '../types'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag } from '../ui'
 
-function OfferCard({ offer, clients, onAccept, onReject }: {
+function OfferCard({ offer, clients, onAccept, onReject, onEscalate }: {
   offer: ClubOffer
   clients: Client[]
   onAccept: (id: string, commission: number) => void
   onReject: (id: string) => void
+  onEscalate: (id: string) => void
 }) {
   const [open, setOpen] = useState(false)
   const [commission, setCommission] = useState(15)
@@ -17,17 +18,18 @@ function OfferCard({ offer, clients, onAccept, onReject }: {
   const earning = Math.round(offer.offerAmount * commission / 100)
 
   return (
-    <BrutalCard color="white" className="p-0 overflow-hidden">
+    <BrutalCard color={offer.isWar ? C.yellow : 'white'} className="p-0 overflow-hidden">
       <div className="p-4 cursor-pointer" onClick={() => setOpen(o => !o)}>
         <div className="flex items-start gap-3">
-          <div className="text-3xl shrink-0">🏟️</div>
+          <div className="text-3xl shrink-0">{offer.isWar ? '🔥' : '🏟️'}</div>
           <div className="flex-1 min-w-0">
-            <p className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>{offer.clubName}</p>
-            <p className="text-black/50 text-xs font-bold">{offer.clubCountry} quer <b>{client.nickname}</b></p>
+            {offer.isWar && <BrutalTag color={C.orange} textColor="#fff">GUERRA DE LANCES</BrutalTag>}
+            <p className="font-black text-black text-base mt-0.5" style={{ fontFamily: 'Oswald, sans-serif' }}>{offer.clubName}</p>
+            <p className="text-black/50 text-xs font-bold">{offer.isWar ? `lidera a disputa por` : `${offer.clubCountry} quer`} <b>{client.nickname}</b></p>
             <p className="font-black text-black text-2xl mt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(offer.offerAmount)}</p>
           </div>
           <div className="text-right shrink-0">
-            <BrutalTag color={offer.expiresInWeeks <= 1 ? C.orange : C.yellow} textColor={offer.expiresInWeeks <= 1 ? '#fff' : '#000'}>
+            <BrutalTag color={offer.expiresInWeeks <= 1 ? C.orange : C.creamDark} textColor={offer.expiresInWeeks <= 1 ? '#fff' : '#000'}>
               {offer.expiresInWeeks} SEM
             </BrutalTag>
             <p className="text-black/30 text-lg mt-1">{open ? '▲' : '▼'}</p>
@@ -39,6 +41,32 @@ function OfferCard({ offer, clients, onAccept, onReject }: {
         {open && (
           <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
             <div className="border-t-[3px] border-black p-4" style={{ backgroundColor: C.cream }}>
+              {/* bidding war: competing clubs + escalate */}
+              {offer.isWar && offer.bidders && (
+                <div className="mb-4">
+                  <p className="text-black/60 text-xs font-black uppercase mb-2">Clubes na disputa</p>
+                  <div className="space-y-1.5 mb-3">
+                    {offer.bidders.map((b, i) => (
+                      <div key={i} className="flex justify-between items-center border-2 border-black rounded-lg px-3 py-2"
+                           style={{ backgroundColor: i === 0 ? C.green : '#fff' }}>
+                        <span className={`text-xs font-black ${i === 0 ? 'text-white' : 'text-black'}`}>
+                          {i === 0 ? '👑 ' : ''}{b.clubName}
+                        </span>
+                        <span className={`text-sm font-black ${i === 0 ? 'text-white' : 'text-black/60'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>
+                          {money(b.amount)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <BrutalButton color={C.orange} textColor="#fff" onClick={() => onEscalate(offer.id)}>
+                    🔥 Provocar leilão — esperar lance maior
+                  </BrutalButton>
+                  <p className="text-black/40 text-[10px] font-bold text-center mt-1">
+                    Sobe o preço, mas gasta 1 semana e um clube pode desistir.
+                  </p>
+                </div>
+              )}
+
               <div className="flex items-end justify-between mb-2">
                 <span className="text-black/60 text-xs font-black uppercase">Sua comissão</span>
                 <div className="text-right">
@@ -139,7 +167,8 @@ export default function NegotiationsScreen() {
             {activeOffers.map(o => (
               <OfferCard key={o.id} offer={o} clients={state.clients}
                 onAccept={(id, c) => dispatch({ type: 'ACCEPT_OFFER', offerId: id, finalCommission: c })}
-                onReject={id => dispatch({ type: 'REJECT_OFFER', offerId: id })} />
+                onReject={id => dispatch({ type: 'REJECT_OFFER', offerId: id })}
+                onEscalate={id => dispatch({ type: 'ESCALATE_BID', offerId: id })} />
             ))}
           </div>
         )}

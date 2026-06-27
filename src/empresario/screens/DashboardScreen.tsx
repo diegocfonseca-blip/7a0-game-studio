@@ -1,6 +1,7 @@
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useEmpresario } from '../store'
-import { C, money, moneyFull, BrutalCard, BrutalPill, BrutalTag, POS_COLOR, FLAG, STATUS_LABEL } from '../ui'
+import { NEMESIS } from '../data/clubs'
+import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalPill, BrutalTag, POS_COLOR, FLAG, STATUS_LABEL } from '../ui'
 
 const MONTHS = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ']
 
@@ -172,6 +173,14 @@ export default function DashboardScreen() {
             <p className="text-black/60 text-xs font-bold">Investir e crescer</p>
           </BrutalCard>
 
+          {state.ownedClub && (
+            <BrutalCard color={C.purple} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'club' })}>
+              <p className="text-3xl mb-1">🏟️</p>
+              <p className="font-black text-white" style={{ fontFamily: 'Oswald, sans-serif' }}>MEU CLUBE</p>
+              <p className="text-white/60 text-xs font-bold truncate">{state.ownedClub.name}</p>
+            </BrutalCard>
+          )}
+
           <BrutalCard color={C.black} className="p-4" onClick={() => dispatch({ type: 'ADVANCE_WEEK' })}>
             <p className="text-3xl mb-1">⏩</p>
             <p className="font-black text-white" style={{ fontFamily: 'Oswald, sans-serif' }}>AVANÇAR</p>
@@ -186,6 +195,45 @@ export default function DashboardScreen() {
           </p>
         )}
       </div>
+
+      {/* ── NEMESIS ALERT MODAL ── */}
+      <AnimatePresence>
+        {state.nemesisAlert && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-5"
+            style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+          >
+            <motion.div
+              initial={{ scale: 0.85, y: 20 }} animate={{ scale: 1, y: 0 }}
+              className="w-full max-w-sm"
+            >
+              <BrutalCard color={C.cream} className="p-5" shadow={8}>
+                <div className="text-center mb-3">
+                  <div className="text-5xl mb-2">😈</div>
+                  <BrutalPill color={C.orange} textColor="#fff">
+                    {state.nemesisAlert.isFirst ? 'SEU NOVO RIVAL' : 'ELE ATACOU DE NOVO'}
+                  </BrutalPill>
+                  <h2 className="font-black text-black text-2xl mt-3" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                    {NEMESIS.name.toUpperCase()}
+                  </h2>
+                </div>
+                <BrutalCard color="white" className="p-3 mb-4" shadow={3}>
+                  <p className="text-black text-sm font-medium leading-relaxed">{state.nemesisAlert.story}</p>
+                </BrutalCard>
+                <div className="border-2 border-black rounded-lg p-2.5 mb-4" style={{ backgroundColor: C.orange }}>
+                  <p className="text-white text-xs font-black text-center">
+                    💔 Ele fechou com {state.nemesisAlert.legendNickname} — você não vê mais essa lenda no radar.
+                  </p>
+                </div>
+                <BrutalButton color={C.black} textColor="#fff" onClick={() => dispatch({ type: 'DISMISS_NEMESIS_ALERT' })}>
+                  Isso não vai ficar assim →
+                </BrutalButton>
+              </BrutalCard>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

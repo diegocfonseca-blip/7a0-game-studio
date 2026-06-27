@@ -1,5 +1,6 @@
 import { useEmpresario } from '../store'
 import { SCOUT_UPGRADES, SERVICE_UPGRADES } from '../data/events'
+import { BUYABLE_CLUBS } from '../data/clubs'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag } from '../ui'
 
 export default function FinanceScreen() {
@@ -12,7 +13,6 @@ export default function FinanceScreen() {
 
   const totalClientValue = state.clients.reduce((s, c) => s + c.currentValue, 0)
   const monthlyExpenses = state.weeklyExpenses * 4
-  const clubProgress = Math.min(100, (state.money / 500000) * 100)
 
   function UpgradeRow({ up }: { up: { id: string; name: string; description: string; cost: number; effect: string; flag?: string } }) {
     const bought = state.purchasedUpgrades.includes(up.id)
@@ -101,18 +101,44 @@ export default function FinanceScreen() {
         </div>
 
         {/* buy a club */}
-        <BrutalCard color={C.purple} className="p-5 text-center" shadow={6}>
-          <p className="text-5xl mb-2">🏟️</p>
-          <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>COMPRAR UM CLUBE</p>
-          <p className="text-white/70 text-xs font-bold mt-1">Vire DONO de um time. Coloque seus clientes nele e lucre dos dois lados.</p>
-          <div className="bg-white/20 border-2 border-black rounded-lg p-2 mt-3">
-            <div className="h-4 bg-black/20 border-2 border-black rounded-full overflow-hidden">
-              <div className="h-full rounded-full transition-all" style={{ width: `${clubProgress}%`, backgroundColor: C.yellow }} />
+        {state.ownedClub ? (
+          <BrutalCard color={C.purple} className="p-5 text-center" shadow={6} onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'club' })}>
+            <p className="text-5xl mb-2">🏟️</p>
+            <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{state.ownedClub.name}</p>
+            <p className="text-white/70 text-xs font-bold mt-1">Você já é dono de um clube! Toque para gerenciar.</p>
+          </BrutalCard>
+        ) : (
+          <div>
+            <h2 className="font-black text-black text-lg pt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>🏟️ COMPRAR UM CLUBE</h2>
+            <p className="text-black/50 text-xs font-bold mb-3">Vire DONO de um time. Coloque seus clientes nele, lucre da renda e suba de divisão — o começo do império.</p>
+            <div className="space-y-3">
+              {BUYABLE_CLUBS.map(bc => {
+                const canAfford = state.money >= bc.price
+                return (
+                  <BrutalCard key={bc.id} color={C.purple} className="p-4" shadow={5}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>{bc.name}</p>
+                        <p className="text-white/60 text-xs font-bold">{bc.city} · {bc.division}ª divisão · {bc.fans.toLocaleString('pt-BR')} torcedores</p>
+                        <p className="text-white/80 text-xs font-medium mt-1 leading-snug italic">{bc.flavor}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mt-3">
+                      <span className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(bc.price)}</span>
+                      <BrutalButton
+                        color={canAfford ? C.green : '#C9C2AC'} disabled={!canAfford} full={false}
+                        className="!px-4 !py-2 !text-xs"
+                        onClick={() => dispatch({ type: 'BUY_CLUB', clubId: bc.id, name: bc.name, division: bc.division, price: bc.price, fans: bc.fans })}
+                      >
+                        {canAfford ? 'COMPRAR' : `Falta ${money(bc.price - state.money)}`}
+                      </BrutalButton>
+                    </div>
+                  </BrutalCard>
+                )
+              })}
             </div>
-            <p className="text-white text-xs font-black mt-1">{money(state.money)} / R$500k</p>
           </div>
-          <p className="text-white/50 text-[10px] font-bold mt-2 uppercase tracking-widest">EM BREVE ✦</p>
-        </BrutalCard>
+        )}
       </div>
     </div>
   )
