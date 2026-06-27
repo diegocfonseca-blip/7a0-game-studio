@@ -466,9 +466,11 @@ const PERSONALITY_TOLERANCE: Record<Personality, number> = {
 export function getMinReputationToSign(legend: Legend, year: number): number {
   const rating = getCurrentRating(legend, year)
   const status = getCurrentStatus(legend, year)
-  let req = Math.max(0, (rating - 50) * 1.4)
-  if (status === 'estrela') req += 18
-  else if (status === 'pro') req += 6
+  // Young prospects (pelada/base) are ALWAYS signable — you're their big break.
+  // Only players who are already SOMEBODY make a no-name agent prove himself.
+  let req = 0
+  if (status === 'estrela') req = 38 + Math.max(0, rating - 80) * 2 // current stars
+  else if (status === 'pro') req = Math.max(0, (rating - 70) * 2)    // only famous pros
   return Math.round(Math.min(95, req))
 }
 

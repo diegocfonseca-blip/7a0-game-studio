@@ -71,10 +71,17 @@ function GameSelector({ onSelect }: { onSelect: (game: 'ladrao' | 'empresario') 
 }
 
 export default function App() {
-  const [selectedGame, setSelectedGame] = useState<'ladrao' | 'empresario' | null>(null)
+  const [selectedGame, setSelectedGame] = useState<'ladrao' | 'empresario' | null>(
+    () => (localStorage.getItem('selected-game') as 'ladrao' | 'empresario' | null)
+  )
+
+  function choose(game: 'ladrao' | 'empresario') {
+    localStorage.setItem('selected-game', game)
+    setSelectedGame(game)
+  }
 
   if (!selectedGame) {
-    return <GameSelector onSelect={setSelectedGame} />
+    return <GameSelector onSelect={choose} />
   }
 
   if (selectedGame === 'empresario') {
