@@ -53,7 +53,7 @@ type Action =
   | { type: 'ACCEPT_OFFER'; offerId: string; clubName: string; amount: number; clubLuva: number }
   | { type: 'REJECT_OFFER'; offerId: string }
   | { type: 'RESOLVE_EVENT'; eventId: string; choiceIndex: 0 | 1 }
-  | { type: 'PURCHASE_UPGRADE'; upgradeId: string; cost: number; effect: string }
+  | { type: 'PURCHASE_UPGRADE'; upgradeId: string; cost: number; effect: string; repGain?: number }
   | { type: 'MARK_LEGEND_SEEN'; legendId: string }
   | { type: 'LEGEND_REJECTED'; legendId: string; lost: boolean }
   | { type: 'DISMISS_NEMESIS_ALERT' }
@@ -613,7 +613,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
 
     case 'PURCHASE_UPGRADE': {
       const isScout = action.upgradeId.startsWith('scout')
-      const repBoost = action.upgradeId === 'escritorio-sp' ? 12 : isScout ? 3 : 0
+      const isLife = action.upgradeId.startsWith('life-')
+      const repBoost = action.repGain ?? (action.upgradeId === 'escritorio-sp' ? 12 : isScout ? 3 : 0)
       return {
         ...state,
         money: state.money - action.cost,
@@ -622,8 +623,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         reputation: Math.min(100, state.reputation + repBoost),
         narrative: [
           ...state.narrative,
-          isScout
-            ? `🔭 Novo olheiro contratado! ${action.effect}`
+          isScout ? `🔭 Novo olheiro contratado! ${action.effect}`
+            : isLife ? `💎 Você ostentou e ganhou status! ${action.effect}`
             : `💼 Investimento: ${action.effect}`,
         ],
       }

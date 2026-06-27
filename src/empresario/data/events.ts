@@ -467,4 +467,21 @@ export const SERVICE_UPGRADES = [
     cost: 25000, effect: '+ reputação e força nas negociações BR' },
 ]
 
-export const UPGRADE_OPTIONS = [...SCOUT_UPGRADES, ...SERVICE_UPGRADES]
+// ─── ESTILO DE VIDA & STATUS — ser rico e poderoso aumenta sua reputação,
+// e reputação destrava os jogadores mais cobiçados ───────────────
+export const LIFESTYLE_UPGRADES = [
+  { id: 'life-relogio', name: 'Relógio de grife', flag: '⌚', repGain: 3,
+    description: 'Um relógio que vale um carro. Impõe respeito numa reunião.', cost: 15000, effect: '+3 de reputação' },
+  { id: 'life-carro', name: 'Carro esportivo', flag: '🚗', repGain: 5,
+    description: 'Você chega chegando. Os jogadores notam o sucesso.', cost: 35000, effect: '+5 de reputação' },
+  { id: 'life-camarote', name: 'Camarote VIP nos estádios', flag: '🎩', repGain: 6,
+    description: 'Você passa a ser visto entre os figurões do futebol.', cost: 60000, effect: '+6 de reputação' },
+  { id: 'life-mansao', name: 'Mansão', flag: '🏡', repGain: 10,
+    description: 'Receba craques e cartolas na sua casa de cinema. Status de elite.', cost: 150000, effect: '+10 de reputação' },
+  { id: 'life-iate', name: 'Iate', flag: '🛥️', repGain: 12,
+    description: 'Festas no mar com os maiores nomes do esporte.', cost: 300000, effect: '+12 de reputação' },
+  { id: 'life-jatinho', name: 'Jatinho particular', flag: '✈️', repGain: 15,
+    description: 'Feche negócios em três continentes no mesmo dia. O auge do poder.', cost: 600000, effect: '+15 de reputação' },
+]
+
+export const UPGRADE_OPTIONS = [...SCOUT_UPGRADES, ...SERVICE_UPGRADES, ...LIFESTYLE_UPGRADES]
