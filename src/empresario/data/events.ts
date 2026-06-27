@@ -448,7 +448,10 @@ export const SCOUT_UPGRADES = [
     cost: 8000, effect: 'Revela lendas argentinas: La Pulga e a nova geração' },
   { id: 'scout-NO', region: 'NO', name: 'Olheiro na Europa do Norte', flag: '🇳🇱',
     description: 'Rede pela Holanda, Suécia e Alemanha.',
-    cost: 7000, effect: 'Revela lendas do norte europeu: Ibrahimović e cia' },
+    cost: 7000, effect: 'Revela lendas do norte europeu: Ibra, Kluivert, Ballack, Kahn' },
+  { id: 'scout-EN', region: 'EN', name: 'Olheiro na Inglaterra', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+    description: 'Contatos na terra do futebol — das academias inglesas.',
+    cost: 8000, effect: 'Revela lendas inglesas: Beckham, Gerrard, Lampard, Owen' },
 ]
 
 // ─── SERVIÇOS (ligados aos eventos) ─────────────────────────────
