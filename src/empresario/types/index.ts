@@ -8,6 +8,7 @@ export type Screen =
   | 'finance'
   | 'negotiate'
   | 'club'
+  | 'ranking'
 
 export type Position = 'ATA' | 'MEI' | 'ZAG' | 'LAT' | 'GOL'
 export type Personality = 'leal' | 'ambicioso' | 'difícil' | 'humilde'
@@ -132,6 +133,7 @@ export interface RivalAgent {
   budget: number
   reputation: number
   clients: string[]       // legend IDs they represent
+  wealth: number          // net worth for the agent ranking
 }
 
 export interface GameEvent {
@@ -193,5 +195,8 @@ export interface GameState {
   nemesisAlert: NemesisAlert | null // pending alert to show the player
   negotiationLog: NegotiationLogEntry[] // deals — yours and the rival's
   ownedClub: OwnedClub | null
+  suspicion: number       // 0–100 — how dirty your dealings look
+  clubRelations: Record<string, number> // club name → relationship (-100..100)
+  awards: number          // times you won Empresário do Ano
   narrative: string[]     // log of key moments
 }

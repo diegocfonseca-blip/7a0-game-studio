@@ -5,6 +5,7 @@ import ScoutsScreen from './screens/ScoutsScreen'
 import NegotiationsScreen from './screens/NegotiationsScreen'
 import FinanceScreen from './screens/FinanceScreen'
 import ClubScreen from './screens/ClubScreen'
+import RankingScreen from './screens/RankingScreen'
 
 function EmpresarioRouter() {
   const { state } = useEmpresario()
@@ -16,6 +17,7 @@ function EmpresarioRouter() {
     case 'offers':    return <NegotiationsScreen />
     case 'finance':   return <FinanceScreen />
     case 'club':      return <ClubScreen />
+    case 'ranking':   return <RankingScreen />
     default:          return <IntroScreen />
   }
 }

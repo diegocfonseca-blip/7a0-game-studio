@@ -36,6 +36,7 @@ export default function DashboardScreen() {
             <span className="text-white/40 font-mono text-xs">sem {state.week}</span>
           </div>
           <div className="flex items-center gap-2">
+            {state.suspicion > 30 && <BrutalTag color={C.orange} textColor="#fff">🕵️ {state.suspicion}</BrutalTag>}
             <BrutalTag color={C.teal}>REP {state.reputation}</BrutalTag>
           </div>
         </div>
@@ -187,11 +188,17 @@ export default function DashboardScreen() {
             <p className="text-black/60 text-xs font-bold">Investir e crescer</p>
           </BrutalCard>
 
+          <BrutalCard color={C.purple} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'ranking' })}>
+            <p className="text-3xl mb-1">🏆</p>
+            <p className="font-black text-white" style={{ fontFamily: 'Oswald, sans-serif' }}>CARREIRA</p>
+            <p className="text-white/60 text-xs font-bold">Ranking e objetivos</p>
+          </BrutalCard>
+
           {state.ownedClub && (
-            <BrutalCard color={C.purple} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'club' })}>
+            <BrutalCard color={C.pink} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'club' })}>
               <p className="text-3xl mb-1">🏟️</p>
-              <p className="font-black text-white" style={{ fontFamily: 'Oswald, sans-serif' }}>MEU CLUBE</p>
-              <p className="text-white/60 text-xs font-bold truncate">{state.ownedClub.name}</p>
+              <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>MEU CLUBE</p>
+              <p className="text-black/60 text-xs font-bold truncate">{state.ownedClub.name}</p>
             </BrutalCard>
           )}
 
