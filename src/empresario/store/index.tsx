@@ -6,6 +6,7 @@ import { generateWeeklyEvent, generateAmbientNews } from '../data/events'
 import type { ClientLite } from '../data/events'
 import { CLUBS, NEMESIS } from '../data/clubs'
 import { GLORIES, genericGlory } from '../data/glory'
+import { WORLD_CUP_YEARS } from '../data/career'
 
 const INITIAL_STATE: GameState = {
   screen: 'intro',
@@ -24,9 +25,9 @@ const INITIAL_STATE: GameState = {
   totalEarned: 0,
   totalDeals: 0,
   rivalAgents: [
-    { id: 'rival1', name: 'João Mendes', budget: 20000, reputation: 25, clients: [] },
-    { id: 'rival2', name: 'Carlos Primo', budget: 35000, reputation: 40, clients: [] },
-    { id: 'rival3', name: 'Sérgio Laranjo', budget: 50000, reputation: 55, clients: ['romario'] },
+    { id: 'rival1', name: 'João Mendes', budget: 20000, reputation: 25, clients: [], wealth: 40000 },
+    { id: 'rival2', name: 'Carlos Primo', budget: 35000, reputation: 40, clients: [], wealth: 180000 },
+    { id: 'rival3', name: 'Sérgio Cambalhota', budget: 50000, reputation: 55, clients: [], wealth: 600000 },
   ],
   seenLegendIds: [],
   purchasedUpgrades: [],
@@ -37,6 +38,9 @@ const INITIAL_STATE: GameState = {
   nemesisAlert: null,
   negotiationLog: [],
   ownedClub: null,
+  suspicion: 0,
+  clubRelations: {},
+  awards: 0,
   narrative: [],
 }
 
@@ -57,9 +61,10 @@ type Action =
   | { type: 'HAGGLE_OFFER'; offerId: string }
   | { type: 'BUY_CLUB'; clubId: string; name: string; division: number; price: number; fans: number }
   | { type: 'PLACE_CLIENT_IN_CLUB'; legendId: string }
+  | { type: 'DIRTY_ACTION'; kind: 'maquiar' | 'imprensa' | 'arbitro' }
   | { type: 'NEW_GAME' }
 
-function generateClubOffer(client: Client, year: number): ClubOffer | null {
+function generateClubOffer(client: Client, year: number, clubRelations: Record<string, number> = {}): ClubOffer | null {
   const rating = getCurrentRating(getLegendById(client.legendId)!, year)
   if (rating < 60 && Math.random() > 0.3) return null
   if (rating < 75 && Math.random() > 0.6) return null
@@ -76,8 +81,12 @@ function generateClubOffer(client: Client, year: number): ClubOffer | null {
   if (eligibleClubs.length === 0) return null
 
   const salaryOf = (amt: number) => Math.round(amt * 0.08 / 12 / 1000) * 1000
-  // each club pays a different kickback (luva) to the agent — 2%..9% of the fee
-  const luvaOf = (amt: number) => Math.round(amt * (0.02 + Math.random() * 0.07) / 1000) * 1000
+  // each club pays a different kickback (luva); clubs that LIKE you pay more
+  const luvaOf = (amt: number, clubName: string) => {
+    const rel = clubRelations[clubName] ?? 0
+    const relBonus = 1 + (rel / 100) * 0.5 // -50%..+50% based on relationship
+    return Math.round(amt * (0.02 + Math.random() * 0.07) * relBonus / 1000) * 1000
+  }
 
   // Market heat: the hotter the player, the more clubs fight (and likely more come)
   const interest: 'alto' | 'medio' | 'baixo' = rating >= 82 ? 'alto' : rating >= 72 ? 'medio' : 'baixo'
@@ -91,7 +100,7 @@ function generateClubOffer(client: Client, year: number): ClubOffer | null {
     const bidders: Bid[] = chosen
       .map(c => {
         const amount = Math.round(value * (0.75 + Math.random() * 0.7) / 1000) * 1000
-        return { clubName: c.name, clubCountry: c.country, amount, luva: luvaOf(amount) }
+        return { clubName: c.name, clubCountry: c.country, amount, luva: luvaOf(amount, c.name) }
       })
       .sort((a, b) => b.amount - a.amount)
     const top = bidders[0]
@@ -121,7 +130,7 @@ function generateClubOffer(client: Client, year: number): ClubOffer | null {
     clubCountry: club.country,
     clientId: client.legendId,
     offerAmount,
-    clubLuva: luvaOf(offerAmount),
+    clubLuva: luvaOf(offerAmount, club.name),
     salary: salaryOf(offerAmount),
     contractYears: 3 + Math.floor(Math.random() * 3),
     expiresInWeeks: 3 + Math.floor(Math.random() * 4),
@@ -277,21 +286,35 @@ function empresarioReducer(state: GameState, action: Action): GameState {
             happiness = Math.min(100, happiness + 8)
             extraNarrative.push(`🏆 ${g.text}`)
           }
+
+          // 🌍 WORLD CUP year: a good call-up explodes the player's value
+          if (WORLD_CUP_YEARS.includes(newYear) && newRating >= 72 && Math.random() < 0.7) {
+            newValue = Math.round(newValue * 1.3)
+            happiness = Math.min(100, happiness + 10)
+            extraNarrative.push(`🌍 ${client.nickname} foi convocado e brilhou na Copa de ${newYear}! O valor disparou e o mundo todo quer ele.`)
+          }
         }
 
         return { ...client, currentRating: newRating, currentValue: newValue, status: newStatus, happiness }
       })
 
-      // ⏳ REP CONTRACTS expiring: a player whose deal ran out leaves your agency
+      // ⏳ REP CONTRACTS expiring + ⚰️ RETIREMENT (age catches everyone)
       let activeClients = updatedClients
       if (yearRolled) {
-        const leaving = updatedClients.filter(c => c.repExpiresYear !== undefined && newYear > c.repExpiresYear)
-        if (leaving.length) {
-          activeClients = updatedClients.filter(c => !(c.repExpiresYear !== undefined && newYear > c.repExpiresYear))
-          for (const c of leaving) {
+        const kept: typeof updatedClients = []
+        for (const c of updatedClients) {
+          const age = newYear - c.birthYear
+          const expired = c.repExpiresYear !== undefined && newYear > c.repExpiresYear
+          const retires = age >= 38 || (age >= 35 && c.currentRating < 68)
+          if (retires) {
+            extraNarrative.push(`⚰️ ${c.nickname} pendurou as chuteiras aos ${age} anos. Foram bons anos juntos — obrigado, craque.`)
+          } else if (expired) {
             extraNarrative.push(`📭 O contrato de representação de ${c.nickname} venceu e você não renovou. Ele virou agente livre e deixou sua carteira.`)
+          } else {
+            kept.push(c)
           }
         }
+        activeClients = kept
       }
 
       // Weekly expenses
@@ -312,7 +335,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         )
         const eligibleClient = eligible[Math.floor(Math.random() * eligible.length)]
         if (eligibleClient) {
-          const offer = generateClubOffer(eligibleClient, newYear)
+          const offer = generateClubOffer(eligibleClient, newYear, state.clubRelations)
           if (offer) newOffers.push(offer)
         }
       }
@@ -383,6 +406,41 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         ? [...state.events.filter(e => e.resolved), newEvent]
         : state.events
 
+      // 🏆 RIVAL AGENTS grow + EMPRESÁRIO DO ANO + 🕵️ INVESTIGATION (year rollover)
+      let rivalAgents = state.rivalAgents
+      let awards = state.awards
+      let suspicion = state.suspicion
+      let money2 = runningMoney
+      let reputation2 = state.reputation
+      if (yearRolled) {
+        rivalAgents = state.rivalAgents.map(r => {
+          const growth = 1.08 + Math.random() * 0.22
+          const cambBonus = r.name.includes('Cambalhota') ? nemesisTaken.length * 250000 + r.wealth * 0.1 : 0
+          return { ...r, wealth: Math.round(r.wealth * growth + cambBonus) }
+        })
+        // your net worth vs the field
+        const myNet = money2 + activeClients.reduce((s, c) => s + c.currentValue * (c.commissionRate / 100), 0)
+        const topRival = [...rivalAgents].sort((a, b) => b.wealth - a.wealth)[0]
+        if (activeClients.length > 0 || state.totalDeals > 0) {
+          if (myNet >= (topRival?.wealth ?? 0)) {
+            awards += 1
+            extraNarrative.push(`🏆 VOCÊ FOI ELEITO O EMPRESÁRIO DO ANO DE ${newYear - 1}! O nº 1 do futebol.`)
+          } else {
+            extraNarrative.push(`📊 Empresário do Ano de ${newYear - 1}: ${topRival?.name}. Você está na cola dele.`)
+          }
+        }
+        // suspicion-driven investigation
+        if (suspicion > 55 && Math.random() < suspicion / 140) {
+          const fine = Math.round(money2 * 0.15)
+          money2 = Math.max(0, money2 - fine)
+          reputation2 = Math.max(0, reputation2 - 12)
+          suspicion = Math.max(0, suspicion - 35)
+          extraNarrative.push(`🕵️ INVESTIGAÇÃO! A federação te pegou. Multa de R$${fine.toLocaleString('pt-BR')} e reputação manchada. Pegue mais leve no submundo.`)
+        } else if (suspicion > 0) {
+          suspicion = Math.max(0, suspicion - 3) // cools slowly each year
+        }
+      }
+
       // Ambient news — rich, contextual, non-repeating. 1–2 fresh lines/week.
       const recentNews = [...state.narrative.slice(-10), ...extraNarrative]
       const n1 = generateAmbientNews(newYear, clientsLite, recentNews)
@@ -396,7 +454,11 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         ...state,
         week: actualWeek,
         year: newYear,
-        money: Math.max(0, runningMoney),
+        money: Math.max(0, money2),
+        reputation: reputation2,
+        suspicion,
+        awards,
+        rivalAgents,
         clients: activeClients,
         pendingOffers: newOffers,
         events: newEvents,
@@ -427,6 +489,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         money: state.money + earnings,
         totalEarned: state.totalEarned + earnings,
         totalDeals: state.totalDeals + 1,
+        // closing a deal warms your relationship with the buying club
+        clubRelations: { ...state.clubRelations, [action.clubName]: Math.min(100, (state.clubRelations[action.clubName] ?? 0) + 12) },
         // Drop ALL pending offers for this player — once sold, the other clubs back off.
         pendingOffers: state.pendingOffers.filter(o => o.clientId !== offer.clientId),
         clients: state.clients.map(c =>
@@ -468,6 +532,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         return {
           ...state,
           pendingOffers: state.pendingOffers.filter(o => o.id !== action.offerId),
+          // they leave annoyed — relationship sours
+          clubRelations: { ...state.clubRelations, [offer.clubName]: Math.max(-100, (state.clubRelations[offer.clubName] ?? 0) - 15) },
           narrative: [...state.narrative, `🚪 ${offer.clubName} se irritou com a pechincha e RETIROU a proposta por ${client?.nickname}.`],
         }
       }
@@ -616,6 +682,38 @@ function empresarioReducer(state: GameState, action: Action): GameState {
             ? { ...c, contractClub: state.ownedClub!.name, happiness: Math.min(100, c.happiness + 6) }
             : c
         ),
+      }
+    }
+
+    case 'DIRTY_ACTION': {
+      if (action.kind === 'maquiar') {
+        return {
+          ...state,
+          money: state.money + 80000,
+          suspicion: Math.min(100, state.suspicion + 16),
+          narrative: [...state.narrative, `💵 Você maquiou uma transferência e desviou R$80.000 pro seu caixa dois. Suspeita aumentou.`],
+        }
+      }
+      if (action.kind === 'imprensa') {
+        return {
+          ...state,
+          reputation: Math.min(100, state.reputation + 6),
+          suspicion: Math.min(100, state.suspicion + 10),
+          narrative: [...state.narrative, `🤐 Você subornou jornalistas pra falarem bem de você. Reputação subiu na marra.`],
+        }
+      }
+      // arbitro — boost your best client
+      const best = [...state.clients].sort((a, b) => b.currentValue - a.currentValue)[0]
+      if (!best) return state
+      return {
+        ...state,
+        suspicion: Math.min(100, state.suspicion + 18),
+        clients: state.clients.map(c =>
+          c.legendId === best.legendId
+            ? { ...c, currentValue: Math.round(c.currentValue * 1.12), happiness: Math.min(100, c.happiness + 8) }
+            : c
+        ),
+        narrative: [...state.narrative, `⚖️ Você comprou a arbitragem pra ${best.nickname} brilhar. Funcionou — mas alguém pode ter visto.`],
       }
     }
 

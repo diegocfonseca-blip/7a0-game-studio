@@ -140,6 +140,67 @@ export default function FinanceScreen() {
           </div>
         )}
 
+        {/* CLUB RELATIONS */}
+        {Object.keys(state.clubRelations).length > 0 && (
+          <div>
+            <h2 className="font-black text-black text-lg pt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>🤝 RELAÇÃO COM CLUBES</h2>
+            <p className="text-black/50 text-xs font-bold mb-3">Clubes que te amam pagam luvas maiores. Quem você passou a perna te evita.</p>
+            <div className="space-y-2">
+              {Object.entries(state.clubRelations).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([name, rel]) => (
+                <BrutalCard key={name} color="white" className="p-3" shadow={3}>
+                  <div className="flex items-center gap-2">
+                    <span className="flex-1 text-sm font-black text-black">{name}</span>
+                    <div className="w-24 h-3 bg-black/10 border-2 border-black rounded-full overflow-hidden relative">
+                      <div className="absolute top-0 bottom-0 rounded-full" style={{
+                        left: rel >= 0 ? '50%' : `${50 + rel / 2}%`,
+                        width: `${Math.abs(rel) / 2}%`,
+                        backgroundColor: rel >= 0 ? C.green : C.orange,
+                      }} />
+                      <div className="absolute left-1/2 top-0 bottom-0 w-px bg-black/30" />
+                    </div>
+                    <span className="text-xs font-black w-8 text-right" style={{ color: rel >= 0 ? C.tealDark : C.orange }}>{rel > 0 ? '+' : ''}{rel}</span>
+                  </div>
+                </BrutalCard>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* SUBMUNDO — dirty side */}
+        <div>
+          <h2 className="font-black text-black text-lg pt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>🕵️ O SUBMUNDO</h2>
+          <p className="text-black/50 text-xs font-bold mb-3">Atalhos sujos pra lucrar rápido — mas cada um sobe sua SUSPEITA. Se passar dos limites, a federação investiga.</p>
+          <BrutalCard color={state.suspicion > 55 ? C.orange : C.creamDark} className="p-3 mb-3" shadow={3}>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-black ${state.suspicion > 55 ? 'text-white' : 'text-black/60'}`}>SUSPEITA</span>
+              <div className="flex-1 h-3 bg-black/15 border-2 border-black rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all" style={{ width: `${state.suspicion}%`, backgroundColor: state.suspicion > 70 ? C.orange : state.suspicion > 40 ? C.yellow : C.green }} />
+              </div>
+              <span className={`text-xs font-black ${state.suspicion > 55 ? 'text-white' : 'text-black'}`}>{state.suspicion}/100</span>
+            </div>
+          </BrutalCard>
+          <div className="space-y-2">
+            {[
+              { kind: 'maquiar' as const, icon: '💵', name: 'Maquiar transferência', desc: 'Desvia R$80.000 pro caixa dois.', sus: '+16 suspeita' },
+              { kind: 'imprensa' as const, icon: '🤐', name: 'Subornar a imprensa', desc: '+6 de reputação na marra.', sus: '+10 suspeita' },
+              { kind: 'arbitro' as const, icon: '⚖️', name: 'Comprar a arbitragem', desc: 'Seu craque mais valioso brilha (+valor +moral).', sus: '+18 suspeita' },
+            ].map(d => (
+              <BrutalCard key={d.kind} color="white" className="p-3" shadow={3}>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{d.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{d.name}</p>
+                    <p className="text-black/50 text-xs font-medium">{d.desc}</p>
+                    <p className="text-[10px] font-black mt-0.5" style={{ color: C.orange }}>{d.sus}</p>
+                  </div>
+                  <BrutalButton color={C.black} textColor="#fff" full={false} className="!px-3 !py-2 !text-xs"
+                    onClick={() => dispatch({ type: 'DIRTY_ACTION', kind: d.kind })}>Fazer</BrutalButton>
+                </div>
+              </BrutalCard>
+            ))}
+          </div>
+        </div>
+
         {/* save / restart info */}
         <BrutalCard color={C.creamDark} className="p-4" shadow={3}>
           <p className="text-black/70 text-xs font-bold mb-1">💾 Seu progresso é salvo automaticamente neste navegador.</p>
