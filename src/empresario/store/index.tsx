@@ -53,6 +53,7 @@ type Action =
   | { type: 'LEGEND_REJECTED'; legendId: string; lost: boolean }
   | { type: 'DISMISS_NEMESIS_ALERT' }
   | { type: 'ESCALATE_BID'; offerId: string }
+  | { type: 'HAGGLE_OFFER'; offerId: string }
   | { type: 'BUY_CLUB'; clubId: string; name: string; division: number; price: number; fans: number }
   | { type: 'PLACE_CLIENT_IN_CLUB'; legendId: string }
   | { type: 'NEW_GAME' }
@@ -261,13 +262,17 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         .filter(o => o.expiresInWeeks > 0)
 
       if (updatedClients.length > 0 && Math.random() > 0.6) {
-        const eligible = updatedClients.filter(c => c.currentRating >= 60)
+        // Only players who: are good enough, have no pending offer, AND haven't
+        // just been transferred (clubs leave a fresh signing alone for ~2 years).
+        const eligible = updatedClients.filter(c =>
+          c.currentRating >= 60 &&
+          !newOffers.find(o => o.clientId === c.legendId) &&
+          (c.lastDealYear === undefined || newYear - c.lastDealYear >= 2)
+        )
         const eligibleClient = eligible[Math.floor(Math.random() * eligible.length)]
         if (eligibleClient) {
           const offer = generateClubOffer(eligibleClient, newYear)
-          if (offer && !newOffers.find(o => o.clientId === eligibleClient.legendId)) {
-            newOffers.push(offer)
-          }
+          if (offer) newOffers.push(offer)
         }
       }
 
@@ -378,17 +383,56 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         money: state.money + commission,
         totalEarned: state.totalEarned + commission,
         totalDeals: state.totalDeals + 1,
-        pendingOffers: state.pendingOffers.filter(o => o.id !== action.offerId),
+        // Drop ALL pending offers for this player — once sold, the other clubs back off.
+        pendingOffers: state.pendingOffers.filter(o => o.clientId !== offer.clientId),
         clients: state.clients.map(c =>
           c.legendId === offer.clientId
-            ? { ...c, contractClub: offer.clubName, contractSalary: offer.salary, contractExpiresYear: state.year + offer.contractYears }
+            ? { ...c, contractClub: offer.clubName, contractSalary: offer.salary, contractExpiresYear: state.year + offer.contractYears, lastDealYear: state.year }
             : c
         ),
         negotiationLog: [{ who: 'voce' as const, year: state.year, text: `✅ ${client?.nickname} → ${offer.clubName} por R$${offer.offerAmount.toLocaleString('pt-BR')} (sua comissão R$${commission.toLocaleString('pt-BR')})` }, ...state.negotiationLog].slice(0, 30),
         narrative: [
           ...state.narrative,
-          `NEGÓCIO FECHADO! ${client?.nickname} → ${offer.clubName} por R$${offer.offerAmount.toLocaleString('pt-BR')}. Sua comissão: R$${commission.toLocaleString('pt-BR')} (${action.finalCommission}%)`
+          `🤝 TRANSFERÊNCIA FECHADA! ${client?.nickname} → ${offer.clubName} por R$${offer.offerAmount.toLocaleString('pt-BR')}. Sua comissão: R$${commission.toLocaleString('pt-BR')} (${action.finalCommission}%)`
         ],
+      }
+    }
+
+    case 'HAGGLE_OFFER': {
+      const offer = state.pendingOffers.find(o => o.id === action.offerId)
+      if (!offer) return state
+      const client = state.clients.find(c => c.legendId === offer.clientId)
+      const tries = offer.haggles ?? 0
+      // The more you push, the more likely the club walks.
+      const agreeChance = 0.62 - tries * 0.18
+      if (Math.random() < agreeChance) {
+        const bump = 1.1 + Math.random() * 0.18
+        const newAmt = Math.round(offer.offerAmount * bump / 1000) * 1000
+        return {
+          ...state,
+          pendingOffers: state.pendingOffers.map(o =>
+            o.id === action.offerId
+              ? { ...o, offerAmount: newAmt, salary: Math.round(newAmt * 0.08 / 12 / 1000) * 1000, haggles: tries + 1 }
+              : o
+          ),
+          narrative: [...state.narrative, `💬 ${offer.clubName} cedeu! Proposta por ${client?.nickname} subiu pra R$${newAmt.toLocaleString('pt-BR')}.`],
+        }
+      }
+      // refused — chance the club gets annoyed and walks
+      const walk = Math.random() < 0.3 + tries * 0.15
+      if (walk) {
+        return {
+          ...state,
+          pendingOffers: state.pendingOffers.filter(o => o.id !== action.offerId),
+          narrative: [...state.narrative, `🚪 ${offer.clubName} se irritou com a pechincha e RETIROU a proposta por ${client?.nickname}.`],
+        }
+      }
+      return {
+        ...state,
+        pendingOffers: state.pendingOffers.map(o =>
+          o.id === action.offerId ? { ...o, haggles: tries + 1, expiresInWeeks: Math.max(1, o.expiresInWeeks - 1) } : o
+        ),
+        narrative: [...state.narrative, `😐 ${offer.clubName} disse que é "pegar ou largar". Não subiu o valor.`],
       }
     }
 

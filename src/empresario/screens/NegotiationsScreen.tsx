@@ -4,12 +4,13 @@ import { useEmpresario } from '../store'
 import type { ClubOffer, GameEvent, Client } from '../types'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag } from '../ui'
 
-function OfferCard({ offer, clients, onAccept, onReject, onEscalate }: {
+function OfferCard({ offer, clients, onAccept, onReject, onEscalate, onHaggle }: {
   offer: ClubOffer
   clients: Client[]
   onAccept: (id: string, commission: number) => void
   onReject: (id: string) => void
   onEscalate: (id: string) => void
+  onHaggle: (id: string) => void
 }) {
   const [open, setOpen] = useState(false)
   const [commission, setCommission] = useState(15)
@@ -63,6 +64,22 @@ function OfferCard({ offer, clients, onAccept, onReject, onEscalate }: {
                   </BrutalButton>
                   <p className="text-black/40 text-[10px] font-bold text-center mt-1">
                     Sobe o preço, mas gasta 1 semana e um clube pode desistir.
+                  </p>
+                </div>
+              )}
+
+              {/* haggle the transfer FEE with the club (single offers) */}
+              {!offer.isWar && (
+                <div className="mb-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-black/60 text-xs font-black uppercase">Valor da venda</span>
+                    <span className="font-black text-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(offer.offerAmount)}</span>
+                  </div>
+                  <BrutalButton color={C.yellow} textColor="#000" onClick={() => onHaggle(offer.id)}>
+                    💬 Pedir mais ao clube
+                  </BrutalButton>
+                  <p className="text-black/40 text-[10px] font-bold text-center mt-1">
+                    Pode subir o valor — mas se forçar demais, o clube se irrita e pode sair.
                   </p>
                 </div>
               )}
@@ -168,7 +185,8 @@ export default function NegotiationsScreen() {
               <OfferCard key={o.id} offer={o} clients={state.clients}
                 onAccept={(id, c) => dispatch({ type: 'ACCEPT_OFFER', offerId: id, finalCommission: c })}
                 onReject={id => dispatch({ type: 'REJECT_OFFER', offerId: id })}
-                onEscalate={id => dispatch({ type: 'ESCALATE_BID', offerId: id })} />
+                onEscalate={id => dispatch({ type: 'ESCALATE_BID', offerId: id })}
+                onHaggle={id => dispatch({ type: 'HAGGLE_OFFER', offerId: id })} />
             ))}
           </div>
         )}
