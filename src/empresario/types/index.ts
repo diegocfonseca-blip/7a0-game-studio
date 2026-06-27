@@ -113,6 +113,13 @@ export interface NegotiationLogEntry {
   year: number
 }
 
+export interface LeagueTeam {
+  name: string
+  points: number
+  played: number
+  isYou?: boolean
+}
+
 export interface OwnedClub {
   id: string
   name: string
@@ -125,6 +132,7 @@ export interface OwnedClub {
   seasonWins: number
   seasonLosses: number
   seasonDraws: number
+  table: LeagueTeam[]      // full league standings
 }
 
 export interface RivalAgent {
