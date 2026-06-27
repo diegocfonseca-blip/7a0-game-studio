@@ -11,6 +11,7 @@ export type Screen =
 export type Position = 'ATA' | 'MEI' | 'ZAG' | 'LAT' | 'GOL'
 export type Personality = 'leal' | 'ambicioso' | 'difícil' | 'humilde'
 export type Nationality = 'BR' | 'AR' | 'FR' | 'IT' | 'PT' | 'ES' | 'NL' | 'DE'
+export type PlayerStatus = 'pelada' | 'base' | 'pro' | 'estrela'
 
 export interface Legend {
   id: string
@@ -25,10 +26,20 @@ export interface Legend {
   truePotential: number   // 85–99, only YOU see this
   currentRating: number   // starts low, grows each year
   personality: Personality
+  status: PlayerStatus     // pelada / base / pro / estrela
   signingFee: number      // cost to sign representation contract
   monthlyFee: number      // what you pay them to be their agent
   futureKnowledge: string // a fact only you know from the future
+  discoveryStory: string  // where/how you find them
   club: string            // current club in that year
+}
+
+export type SigningResult = 'accept' | 'counter' | 'reject'
+
+export interface SigningEvaluation {
+  result: SigningResult
+  maxAcceptable: number   // the highest commission they'd take
+  reason: string
 }
 
 export interface Client {
@@ -37,6 +48,7 @@ export interface Client {
   nickname: string
   position: Position
   nationality: Nationality
+  status: PlayerStatus
   birthYear: number
   peakYearStart: number
   peakYearEnd: number

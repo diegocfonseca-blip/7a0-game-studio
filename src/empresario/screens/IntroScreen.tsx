@@ -1,120 +1,169 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEmpresario } from '../store'
+import { C, BrutalButton, BrutalPill } from '../ui'
 
-const SCENES = [
+interface Scene {
+  tag: string
+  tagColor: string
+  year: string
+  lines: string[]
+  bg: string
+  ink: string
+}
+
+const SCENES: Scene[] = [
   {
-    year: '2026',
-    text: 'Você tem 60 anos.\nUma vida inteira no futebol\nsem nunca chegar a lugar nenhum.',
-    subtext: 'Assistente de escolinha. R$2.200 por mês.',
-    bg: 'from-gray-900 via-gray-800 to-gray-900',
-    accent: '#888',
+    tag: 'HOJE',
+    tagColor: C.pink,
+    year: '27 de junho, 2026 — São Paulo',
+    lines: [
+      'Você tem 60 anos.',
+      'Trinta deles dados ao futebol — como roupeiro, como auxiliar, como o cara que enche as garrafas de água numa escolinha de bairro.',
+      'R$ 2.200 por mês. Aluguel atrasado. Um joelho que range.',
+    ],
+    bg: '#1a1a1a',
+    ink: '#F4ECD6',
   },
   {
-    year: '2026',
-    text: 'Você conhece o futebol como ninguém.\nSabe quem são as lendas, quem vai ser grande,\nquem vai desperdiçar o talento.',
-    subtext: 'Mas nunca ninguém te ouviu.',
-    bg: 'from-gray-900 via-slate-900 to-gray-900',
-    accent: '#aaa',
+    tag: 'O DOM',
+    tagColor: C.yellow,
+    year: 'Uma vida inteira observando',
+    lines: [
+      'Mas tem uma coisa que ninguém nunca te tirou:',
+      'você ENXERGA o jogo.',
+      'Você sabe quem vai ser craque antes de qualquer olheiro. Sempre soube. Só que ninguém nunca te ouviu — você era só o velho da escolinha.',
+    ],
+    bg: '#0d2818',
+    ink: '#F4ECD6',
   },
   {
-    year: '15 de março, 2026',
-    text: 'Volta pra casa depois do treino.\nUm carro na contramão.',
-    subtext: '',
-    bg: 'from-red-950 via-gray-900 to-gray-950',
-    accent: '#ef4444',
+    tag: 'O ACIDENTE',
+    tagColor: C.orange,
+    year: '22:47 — a caminho de casa',
+    lines: [
+      'A chuva. O farol estourado. O caminhão na contramão.',
+      'Um estrondo branco.',
+      'E então — silêncio.',
+    ],
+    bg: '#3d0a0a',
+    ink: '#F4ECD6',
   },
   {
+    tag: '',
+    tagColor: C.black,
     year: '',
-    text: '...',
-    subtext: '',
-    bg: 'from-black via-black to-black',
-    accent: '#333',
+    lines: ['...'],
+    bg: '#000000',
+    ink: '#444',
   },
   {
+    tag: 'ACORDA',
+    tagColor: C.teal,
+    year: '199...?',
+    lines: [
+      'O cheiro é outro. Cigarro no ar. Um rádio de pilha tocando Mamonas Assassinas.',
+      'Você olha as mãos: jovens. Firmes.',
+      'No jornal dobrado na mesa: 14 de março de 1993.',
+    ],
+    bg: '#2a1f08',
+    ink: '#F4ECD6',
+  },
+  {
+    tag: 'A FICHA CAI',
+    tagColor: C.yellow,
     year: '1993',
-    text: 'Você abre os olhos.',
-    subtext: 'Tudo parece diferente. O cheiro, o som, as roupas das pessoas.',
-    bg: 'from-amber-950 via-stone-900 to-amber-950',
-    accent: '#d4a840',
+    lines: [
+      'Você voltou 33 anos no tempo.',
+      'Está jovem. Está duro. Mas na sua cabeça moram TRÊS DÉCADAS de futebol que ainda não aconteceram.',
+      'Você sabe cada Copa. Cada lenda. Cada garoto de favela e de vila que vai virar mito.',
+    ],
+    bg: '#1a2e1a',
+    ink: '#F4ECD6',
   },
   {
-    year: '1993',
-    text: 'Você está jovem de novo.\nE na sua cabeça:\n30 anos de futebol que ainda não aconteceu.',
-    subtext: 'Você sabe quem vai ser lenda. Só você.',
-    bg: 'from-amber-900 via-stone-900 to-amber-950',
-    accent: '#d4a840',
+    tag: 'A JOGADA',
+    tagColor: C.orange,
+    year: '1993 — Belo Horizonte, agora',
+    lines: [
+      'Tem um magrelo de 16 anos treinando na base do Cruzeiro. Dentes pra fora, pernas de palito.',
+      'Os olheiros olham e dão de ombros.',
+      'Você olha e vê o FENÔMENO. Vê os dois gols na final de 2002.',
+      'Ninguém no mundo sabe disso. Só você.',
+    ],
+    bg: '#3a2406',
+    ink: '#F4ECD6',
   },
   {
-    year: '1993 — Belo Horizonte',
-    text: 'Tem um garoto de 17 anos\njogando no Cruzeiro.\nNinguém sabe quem ele é.',
-    subtext: 'Mas você sabe. Ele vai ser o Fenômeno.',
-    bg: 'from-amber-800 via-stone-900 to-amber-900',
-    accent: '#f0a020',
+    tag: 'SUA MISSÃO',
+    tagColor: C.blue,
+    year: '',
+    lines: [
+      'Vire empresário. Assine as lendas antes do mundo descobrir.',
+      'Negocie cada contrato no SEU favor. Fique podre de rico.',
+      'Você tem o maior trunfo da história do futebol: o futuro inteiro na memória.',
+    ],
+    bg: '#0a1340',
+    ink: '#F4ECD6',
   },
 ]
 
 export default function IntroScreen() {
   const { dispatch } = useEmpresario()
   const [scene, setScene] = useState(0)
-  const [playerName, setPlayerName] = useState('')
-  const [showNameInput, setShowNameInput] = useState(false)
+  const [showName, setShowName] = useState(false)
+  const [name, setName] = useState('')
 
-  const currentScene = SCENES[scene]
+  const s = SCENES[scene]
   const isLast = scene === SCENES.length - 1
 
   function next() {
-    if (isLast) {
-      setShowNameInput(true)
-      return
-    }
-    setScene(s => s + 1)
+    if (isLast) { setShowName(true); return }
+    setScene(v => v + 1)
   }
 
-  function startGame() {
-    const name = playerName.trim() || 'O Empresário'
-    dispatch({ type: 'START_GAME', playerName: name })
+  function start() {
+    dispatch({ type: 'START_GAME', playerName: name.trim() || 'O Empresário' })
     dispatch({ type: 'SET_SCREEN', screen: 'dashboard' })
   }
 
-  if (showNameInput) {
+  if (showName) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-6">
+      <div className="min-h-screen flex items-center justify-center p-5" style={{ backgroundColor: C.cream }}>
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-md w-full text-center space-y-8"
+          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-sm"
         >
-          <div>
-            <p className="text-amber-400 text-sm tracking-widest uppercase mb-3">Seu nome</p>
-            <p className="text-white/60 text-sm">Como te chamavam antes do acidente?</p>
+          <div className="text-center mb-6">
+            <BrutalPill color={C.orange} textColor="#fff">UM ÚLTIMO DETALHE</BrutalPill>
+            <h1 className="font-black text-3xl text-black mt-4 leading-tight" style={{ fontFamily: 'Oswald, sans-serif' }}>
+              QUAL É O SEU NOME?
+            </h1>
+            <p className="text-black/50 text-sm mt-2 font-medium">Como vão te chamar nos bastidores do futebol?</p>
           </div>
 
-          <input
-            type="text"
-            value={playerName}
-            onChange={e => setPlayerName(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && startGame()}
-            placeholder="Seu nome..."
-            maxLength={24}
-            className="w-full bg-white/5 border border-amber-500/30 rounded-xl px-5 py-4
-                       text-white text-center text-xl placeholder:text-white/20
-                       focus:outline-none focus:border-amber-500 focus:bg-white/10 transition-all"
-            autoFocus
-          />
-
-          <motion.button
-            onClick={startGame}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-black
-                       text-lg py-4 rounded-xl tracking-widest uppercase transition-colors"
+          <div
+            className="bg-white border-[3px] border-black rounded-2xl p-1 mb-5"
+            style={{ boxShadow: `5px 5px 0 0 ${C.black}` }}
           >
-            COMEÇAR EM 1993
-          </motion.button>
+            <input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && start()}
+              placeholder="Seu nome..."
+              maxLength={20}
+              autoFocus
+              className="w-full bg-transparent px-4 py-3 text-black text-center text-xl font-black
+                         placeholder:text-black/20 focus:outline-none"
+              style={{ fontFamily: 'Oswald, sans-serif' }}
+            />
+          </div>
 
-          <p className="text-white/30 text-xs">
-            Você sabe o que ninguém sabe.<br/>Use isso.
+          <BrutalButton color={C.blue} onClick={start}>
+            COMEÇAR EM 1993 →
+          </BrutalButton>
+          <p className="text-black/40 text-xs text-center mt-4 font-bold">
+            Você sabe o que ninguém sabe. Use isso.
           </p>
         </motion.div>
       </div>
@@ -122,84 +171,78 @@ export default function IntroScreen() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${currentScene.bg} flex flex-col items-center justify-center p-8 cursor-pointer`}
-         onClick={next}>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={scene}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-lg text-center space-y-6"
-        >
-          {currentScene.year && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="text-xs tracking-[0.3em] uppercase font-mono"
-              style={{ color: currentScene.accent }}
-            >
-              {currentScene.year}
-            </motion.p>
-          )}
+    <div
+      className="min-h-screen flex flex-col cursor-pointer transition-colors duration-700"
+      style={{ backgroundColor: s.bg }}
+      onClick={next}
+    >
+      {/* progress dots */}
+      <div className="flex gap-1.5 p-5 pt-6">
+        {SCENES.map((_, i) => (
+          <div
+            key={i}
+            className="h-1.5 rounded-full flex-1 transition-all duration-500 border border-black/20"
+            style={{ backgroundColor: i <= scene ? s.tagColor : 'rgba(255,255,255,0.12)' }}
+          />
+        ))}
+      </div>
 
-          <motion.h1
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="text-2xl md:text-3xl font-light text-white leading-relaxed whitespace-pre-line"
-          >
-            {currentScene.text}
-          </motion.h1>
-
-          {currentScene.subtext && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.9 }}
-              className="text-base text-white/50 leading-relaxed"
-            >
-              {currentScene.subtext}
-            </motion.p>
-          )}
-
+      <div className="flex-1 flex flex-col justify-center px-6 pb-20 max-w-md mx-auto w-full">
+        <AnimatePresence mode="wait">
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.4 }}
-            className="pt-8"
+            key={scene}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -24 }}
+            transition={{ duration: 0.5 }}
           >
-            {isLast ? (
-              <motion.button
-                onClick={e => { e.stopPropagation(); next() }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-10 py-4 rounded-xl font-black text-black text-sm tracking-widest uppercase"
-                style={{ backgroundColor: currentScene.accent }}
-              >
-                VIRAR O JOGO
-              </motion.button>
-            ) : (
-              <p className="text-white/20 text-xs tracking-widest animate-pulse">toque para continuar</p>
+            {s.tag && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+                <BrutalPill color={s.tagColor} textColor={C.black}>{s.tag}</BrutalPill>
+              </motion.div>
             )}
-          </motion.div>
 
-          <div className="flex justify-center gap-1.5 pt-2">
-            {SCENES.map((_, i) => (
-              <div
-                key={i}
-                className="h-0.5 rounded-full transition-all duration-500"
-                style={{
-                  width: i === scene ? 24 : 6,
-                  backgroundColor: i <= scene ? currentScene.accent : 'rgba(255,255,255,0.1)',
-                }}
-              />
-            ))}
+            {s.year && (
+              <motion.p
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
+                className="font-mono text-xs mt-4 mb-5 tracking-wide"
+                style={{ color: s.tagColor }}
+              >
+                {s.year}
+              </motion.p>
+            )}
+
+            <div className="space-y-4">
+              {s.lines.map((line, i) => (
+                <motion.p
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + i * 0.25 }}
+                  className={`leading-relaxed font-medium ${i === 0 ? 'text-2xl font-black' : 'text-lg'}`}
+                  style={{ color: s.ink, fontFamily: i === 0 ? 'Oswald, sans-serif' : 'inherit' }}
+                >
+                  {line}
+                </motion.p>
+              ))}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      <div className="p-6 max-w-md mx-auto w-full">
+        {isLast ? (
+          <div onClick={e => e.stopPropagation()}>
+            <BrutalButton color={s.tagColor} textColor="#fff" onClick={next}>
+              VIRAR O JOGO →
+            </BrutalButton>
           </div>
-        </motion.div>
-      </AnimatePresence>
+        ) : (
+          <p className="text-center text-xs font-bold tracking-widest animate-pulse" style={{ color: s.tagColor }}>
+            TOQUE PARA CONTINUAR
+          </p>
+        )}
+      </div>
     </div>
   )
 }

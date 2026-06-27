@@ -1,243 +1,283 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEmpresario } from '../store'
-import { getAvailableLegends, getCurrentRating, getMarketValue } from '../data/legends'
-import type { Legend } from '../types'
-
-const FLAG: Record<string, string> = {
-  BR: '🇧🇷', AR: '🇦🇷', FR: '🇫🇷', IT: '🇮🇹',
-  PT: '🇵🇹', ES: '🇪🇸', NL: '🇳🇱', DE: '🇩🇪',
-}
-
-const POS_COLORS: Record<string, string> = {
-  ATA: 'text-red-400 bg-red-500/10 border-red-500/20',
-  MEI: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
-  ZAG: 'text-green-400 bg-green-500/10 border-green-500/20',
-  LAT: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
-  GOL: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
-}
-
-function formatMoney(v: number) {
-  if (v >= 1000000) return `R$ ${(v / 1000000).toFixed(1)}M`
-  if (v >= 1000) return `R$ ${(v / 1000).toFixed(0)}k`
-  return `R$ ${v.toFixed(0)}`
-}
+import {
+  getAvailableLegends, getCurrentRating, getMarketValue,
+  getCurrentStatus, evaluateSigning,
+} from '../data/legends'
+import type { Legend, SigningEvaluation } from '../types'
+import {
+  C, money, BrutalCard, BrutalButton, BrutalPill, BrutalTag,
+  POS_COLOR, FLAG, STATUS_LABEL,
+} from '../ui'
 
 export default function ScoutsScreen() {
   const { state, dispatch } = useEmpresario()
-  const [selectedLegend, setSelectedLegend] = useState<Legend | null>(null)
-  const [commissionRate, setCommissionRate] = useState(15)
-  const [signing, setSigning] = useState(false)
+  const [selected, setSelected] = useState<Legend | null>(null)
+  const [rate, setRate] = useState(15)
+  const [result, setResult] = useState<SigningEvaluation | null>(null)
+  const [justSigned, setJustSigned] = useState<string | null>(null)
 
-  // Get available legends this week (not signed, not seen too recently)
-  const available = getAvailableLegends(state.year, [])
-  // Show 6 random ones, making sure legends already signed are not shown as signable again
   const signedIds = state.clients.map(c => c.legendId)
+  const available = getAvailableLegends(state.year, signedIds)
 
-  // Deterministic weekly selection based on year+week seed
-  const seed = state.year * 100 + state.week
-  const shuffled = [...available].sort((a, b) => {
-    const ha = Math.sin(seed * 13.7 + a.id.charCodeAt(0) * 7.3) * 10000
-    const hb = Math.sin(seed * 13.7 + b.id.charCodeAt(0) * 7.3) * 10000
-    return (ha - Math.floor(ha)) - (hb - Math.floor(hb))
-  })
-  const weeklyPool = shuffled.slice(0, 6)
+  // Deterministic weekly pool
+  const seed = state.year * 137 + state.week * 31
+  const pool = [...available]
+    .sort((a, b) => {
+      const ha = Math.abs(Math.sin(seed + a.id.charCodeAt(0) * 7.7 + a.id.charCodeAt(1) * 3.3))
+      const hb = Math.abs(Math.sin(seed + b.id.charCodeAt(0) * 7.7 + b.id.charCodeAt(1) * 3.3))
+      return ha - hb
+    })
+    .slice(0, 6)
 
-  function handleSign() {
-    if (!selectedLegend) return
-    const cost = selectedLegend.signingFee
-    if (state.money < cost) return
-
-    setSigning(true)
-    setTimeout(() => {
-      dispatch({ type: 'SIGN_CLIENT', legendId: selectedLegend.id, commissionRate })
-      setSelectedLegend(null)
-      setSigning(false)
-    }, 600)
+  function openPlayer(legend: Legend) {
+    setSelected(selected?.id === legend.id ? null : legend)
+    setRate(15)
+    setResult(null)
   }
 
-  const alreadySigned = selectedLegend ? signedIds.includes(selectedLegend.id) : false
-  const canAfford = selectedLegend ? state.money >= selectedLegend.signingFee : false
+  function tryToSign() {
+    if (!selected) return
+    if (state.money < selected.signingFee) return
+    const evalResult = evaluateSigning(selected, rate, state.reputation, state.year)
+    setResult(evalResult)
+
+    if (evalResult.result === 'accept') {
+      setTimeout(() => {
+        dispatch({ type: 'SIGN_CLIENT', legendId: selected.id, commissionRate: rate })
+        setJustSigned(selected.nickname)
+        setSelected(null)
+        setResult(null)
+        setTimeout(() => setJustSigned(null), 2200)
+      }, 900)
+    }
+  }
+
+  function acceptCounter() {
+    if (!selected || !result) return
+    dispatch({ type: 'SIGN_CLIENT', legendId: selected.id, commissionRate: result.maxAcceptable })
+    setJustSigned(selected.nickname)
+    setSelected(null)
+    setResult(null)
+    setTimeout(() => setJustSigned(null), 2200)
+  }
 
   return (
-    <div className="min-h-screen bg-[#060610] text-white">
-      {/* Header */}
-      <div className="bg-black/60 border-b border-white/10 px-4 py-3 flex items-center gap-3 sticky top-0 z-10 backdrop-blur">
-        <button onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'dashboard' })}
-                className="text-white/40 hover:text-white transition-colors text-xl">←</button>
-        <div>
-          <h1 className="text-white font-bold">Radar de Talentos</h1>
-          <p className="text-white/40 text-xs">Semana {state.week} de {state.year}</p>
-        </div>
-        <div className="ml-auto text-right">
-          <p className="text-amber-400 font-bold text-sm">R$ {state.money.toLocaleString('pt-BR')}</p>
-          <p className="text-white/30 text-xs">disponível</p>
+    <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
+      {/* header */}
+      <div className="border-b-[3px] border-black px-4 py-3 sticky top-0 z-20" style={{ backgroundColor: C.black }}>
+        <div className="max-w-md mx-auto flex items-center gap-3">
+          <button onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'dashboard' })}
+                  className="text-white text-2xl font-black">←</button>
+          <div className="flex-1">
+            <h1 className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>RADAR DE TALENTOS</h1>
+          </div>
+          <BrutalTag color={C.yellow}>{money(state.money)}</BrutalTag>
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-4 py-5 space-y-4">
-        <p className="text-white/30 text-xs text-center">
-          ✦ Apenas você vê o brilho dourado das futuras lendas
-        </p>
+      <div className="max-w-md mx-auto px-4 py-4 space-y-3">
+        <BrutalCard color={C.yellow} className="p-3">
+          <p className="text-black text-xs font-bold text-center">
+            ✦ Só VOCÊ enxerga o potencial real. Os olheiros do mundo veem só a nota atual.
+          </p>
+        </BrutalCard>
 
-        {/* Player cards */}
-        <div className="space-y-3">
-          {weeklyPool.map((legend) => {
-            const isSigned = signedIds.includes(legend.id)
-            const rating = getCurrentRating(legend, state.year)
-            const value = getMarketValue(legend, state.year)
-            const isSelected = selectedLegend?.id === legend.id
+        {pool.length === 0 && (
+          <BrutalCard color={C.creamDark} className="p-7 text-center">
+            <p className="text-4xl mb-2">🕰️</p>
+            <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>NINGUÉM NOVO ESSA SEMANA</p>
+            <p className="text-black/50 text-sm font-medium mt-1">Avance semanas — novas safras de lendas vão surgindo a cada ano.</p>
+          </BrutalCard>
+        )}
 
-            return (
-              <motion.div
-                key={legend.id}
-                onClick={() => !isSigned && setSelectedLegend(isSelected ? null : legend)}
-                whileHover={!isSigned ? { scale: 1.01 } : {}}
-                whileTap={!isSigned ? { scale: 0.99 } : {}}
-                className={`relative rounded-xl border p-4 transition-all cursor-pointer overflow-hidden
-                  ${isSigned
-                    ? 'border-white/5 bg-white/3 opacity-40 cursor-not-allowed'
-                    : isSelected
-                      ? 'border-amber-500/60 bg-amber-500/10'
-                      : 'border-white/10 bg-white/5 hover:border-white/20'
-                  }`}
+        {pool.map(legend => {
+          const rating = getCurrentRating(legend, state.year)
+          const value = getMarketValue(legend, state.year)
+          const status = getCurrentStatus(legend, state.year)
+          const st = STATUS_LABEL[status]
+          const isOpen = selected?.id === legend.id
+          const isGem = legend.truePotential >= 90
+
+          return (
+            <motion.div key={legend.id} layout>
+              <BrutalCard
+                color={isOpen ? C.cream : 'white'}
+                className="p-4"
+                onClick={() => openPlayer(legend)}
+                shadow={isGem ? 6 : 4}
               >
-                {/* Gold glow for legends */}
-                {legend.truePotential >= 90 && !isSigned && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent pointer-events-none" />
-                )}
-                {legend.truePotential >= 90 && !isSigned && (
-                  <div className="absolute top-3 right-3">
-                    <motion.div
-                      animate={{ opacity: [0.5, 1, 0.5] }}
-                      transition={{ repeat: Infinity, duration: 2 }}
-                      className="w-2 h-2 rounded-full bg-amber-400"
-                    />
-                  </div>
-                )}
-
                 <div className="flex items-start gap-3">
-                  <div className="shrink-0 text-2xl">{FLAG[legend.nationality]}</div>
+                  <div className="text-3xl shrink-0">{FLAG[legend.nationality]}</div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-white font-bold text-sm">{legend.name}</span>
-                      {isSigned && <span className="text-green-400 text-xs">✓ Seu cliente</span>}
-                    </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`text-xs px-1.5 py-0.5 rounded border ${POS_COLORS[legend.position]}`}>
-                        {legend.position}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                        {legend.name}
                       </span>
-                      <span className="text-white/30 text-xs">{state.year - legend.birthYear} anos</span>
-                      <span className="text-white/30 text-xs">·</span>
-                      <span className="text-white/30 text-xs">{legend.club}</span>
+                      {isGem && <span className="text-lg">✨</span>}
                     </div>
-
-                    {/* Stats visible to everyone */}
-                    <div className="flex items-center gap-4">
-                      <div>
-                        <p className="text-white/30 text-xs">Nota atual</p>
-                        <p className="text-white font-bold">{rating}/100</p>
-                      </div>
-                      <div>
-                        <p className="text-white/30 text-xs">Valor</p>
-                        <p className="text-white/60 font-bold">{formatMoney(value)}</p>
-                      </div>
-                      {/* Only you see the true potential */}
-                      <div className="ml-auto">
-                        <p className="text-amber-400/50 text-xs">Potencial real ✦</p>
-                        <p className="text-amber-400 font-black">{legend.truePotential}/100</p>
-                      </div>
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                      <BrutalTag color={POS_COLOR[legend.position]} textColor="#fff">{legend.position}</BrutalTag>
+                      {st && <BrutalTag color={st.color} textColor={status === 'pelada' ? '#fff' : '#000'}>{st.label}</BrutalTag>}
+                      <span className="text-black/40 text-xs font-bold">{state.year - legend.birthYear}a · {legend.club}</span>
                     </div>
-
-                    {/* Your secret knowledge */}
-                    {isSelected && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg"
-                      >
-                        <p className="text-amber-300/60 text-xs uppercase tracking-widest mb-1">Só você sabe</p>
-                        <p className="text-amber-200 text-xs leading-relaxed italic">"{legend.futureKnowledge}"</p>
-                      </motion.div>
-                    )}
                   </div>
                 </div>
-              </motion.div>
-            )
-          })}
-        </div>
 
-        {/* Sign panel */}
-        <AnimatePresence>
-          {selectedLegend && !alreadySigned && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="bg-white/5 border border-white/20 rounded-xl p-5 space-y-4"
-            >
-              <div>
-                <p className="text-white font-bold">Assinar {selectedLegend.nickname}</p>
-                <p className="text-white/40 text-xs">Taxa de exclusividade: {formatMoney(selectedLegend.signingFee)}</p>
-              </div>
-
-              {/* Commission slider */}
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-white/60 text-xs uppercase tracking-widest">Sua comissão</p>
-                  <p className="text-amber-400 font-black text-xl">{commissionRate}%</p>
+                {/* stat row */}
+                <div className="grid grid-cols-3 gap-2 mt-3">
+                  <div className="bg-black/5 border-2 border-black rounded-lg p-2 text-center">
+                    <p className="text-black/40 text-[9px] font-black uppercase">Nota hoje</p>
+                    <p className="font-black text-black text-lg leading-none mt-0.5" style={{ fontFamily: 'Oswald, sans-serif' }}>{rating}</p>
+                  </div>
+                  <div className="bg-black/5 border-2 border-black rounded-lg p-2 text-center">
+                    <p className="text-black/40 text-[9px] font-black uppercase">Valor</p>
+                    <p className="font-black text-black text-base leading-none mt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(value)}</p>
+                  </div>
+                  <div className="border-2 border-black rounded-lg p-2 text-center" style={{ backgroundColor: C.yellow }}>
+                    <p className="text-black/60 text-[9px] font-black uppercase">Potencial ✦</p>
+                    <p className="font-black text-black text-lg leading-none mt-0.5" style={{ fontFamily: 'Oswald, sans-serif' }}>{legend.truePotential}</p>
+                  </div>
                 </div>
-                <input
-                  type="range"
-                  min={5} max={30} step={1}
-                  value={commissionRate}
-                  onChange={e => setCommissionRate(Number(e.target.value))}
-                  className="w-full accent-amber-500"
-                />
-                <div className="flex justify-between text-white/20 text-xs mt-1">
-                  <span>5% (generoso)</span>
-                  <span>30% (máximo)</span>
-                </div>
-                <p className="text-white/30 text-xs mt-2">
-                  {commissionRate <= 10
-                    ? '✓ Jogador vai adorar. Fidelidade garantida.'
-                    : commissionRate <= 18
-                      ? '→ Comissão razoável. Jogador aceita.'
-                      : commissionRate <= 24
-                        ? '⚠ Alto. Jogador pode reclamar depois.'
-                        : '⚠ Muito alto. Risco de insatisfação futura.'}
-                </p>
-              </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setSelectedLegend(null)}
-                  className="flex-1 border border-white/20 rounded-xl py-3 text-white/60 text-sm hover:bg-white/5 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <motion.button
-                  onClick={handleSign}
-                  disabled={!canAfford || signing}
-                  whileHover={canAfford ? { scale: 1.02 } : {}}
-                  whileTap={canAfford ? { scale: 0.98 } : {}}
-                  className={`flex-1 rounded-xl py-3 font-black text-sm transition-colors
-                    ${canAfford
-                      ? 'bg-amber-500 hover:bg-amber-400 text-black'
-                      : 'bg-white/10 text-white/20 cursor-not-allowed'
-                    }`}
-                >
-                  {signing ? '...' : canAfford ? `ASSINAR • ${formatMoney(selectedLegend.signingFee)}` : 'Sem dinheiro'}
-                </motion.button>
-              </div>
+                <AnimatePresence>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      {/* discovery story */}
+                      <div className="mt-3 bg-white border-2 border-black rounded-lg p-3">
+                        <p className="text-black/40 text-[10px] font-black uppercase tracking-widest mb-1">📍 Onde você o achou</p>
+                        <p className="text-black text-xs font-medium leading-relaxed italic">{legend.discoveryStory}</p>
+                      </div>
+                      {/* future knowledge */}
+                      <div className="mt-2 border-2 border-black rounded-lg p-3" style={{ backgroundColor: C.blue }}>
+                        <p className="text-white/60 text-[10px] font-black uppercase tracking-widest mb-1">🔮 O que SÓ você sabe</p>
+                        <p className="text-white text-xs font-bold leading-relaxed">{legend.futureKnowledge}</p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </BrutalCard>
             </motion.div>
-          )}
-        </AnimatePresence>
-
-        <p className="text-white/20 text-xs text-center pb-4">
-          Radar atualiza toda semana. Não deixe a lenda ir pra mão do rival.
-        </p>
+          )
+        })}
       </div>
+
+      {/* ── SIGNING SHEET ── */}
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+            className="fixed bottom-0 left-0 right-0 z-30"
+          >
+            <div className="max-w-md mx-auto m-3">
+              <BrutalCard color={C.cream} className="p-5" shadow={8}>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="font-black text-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                    ASSINAR {selected.nickname.toUpperCase()}
+                  </p>
+                  <button onClick={() => { setSelected(null); setResult(null) }} className="text-black text-2xl font-black">×</button>
+                </div>
+                <p className="text-black/50 text-xs font-bold mb-4">
+                  Taxa de exclusividade: {money(selected.signingFee)} · Mensal: {money(selected.monthlyFee)}
+                </p>
+
+                {!result || result.result === 'counter' ? (
+                  <>
+                    <div className="flex items-end justify-between mb-2">
+                      <span className="text-black/60 text-xs font-black uppercase">Sua comissão</span>
+                      <span className="font-black text-black text-3xl leading-none" style={{ fontFamily: 'Oswald, sans-serif' }}>{rate}%</span>
+                    </div>
+                    <input
+                      type="range" min={5} max={30} step={1} value={rate}
+                      onChange={e => { setRate(Number(e.target.value)); setResult(null) }}
+                      className="w-full h-3 appearance-none cursor-pointer accent-black"
+                      style={{ accentColor: C.blue }}
+                    />
+                    <div className="flex justify-between text-black/40 text-[10px] font-black mt-1">
+                      <span>5% GENEROSO</span>
+                      <span>30% GANANCIOSO</span>
+                    </div>
+
+                    {/* counter feedback */}
+                    {result?.result === 'counter' && (
+                      <BrutalCard color={C.orange} className="p-3 mt-3">
+                        <p className="text-white text-xs font-bold">{result.reason}</p>
+                      </BrutalCard>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3 mt-4">
+                      {result?.result === 'counter' ? (
+                        <>
+                          <BrutalButton color="white" textColor={C.black} onClick={() => { setRate(selected ? Math.max(5, evaluateSigning(selected, 0, state.reputation, state.year).maxAcceptable) : rate); setResult(null) }}>
+                            Insistir
+                          </BrutalButton>
+                          <BrutalButton color={C.green} onClick={acceptCounter}>
+                            Topar {result.maxAcceptable}%
+                          </BrutalButton>
+                        </>
+                      ) : (
+                        <>
+                          <BrutalButton color="white" textColor={C.black} onClick={() => { setSelected(null); setResult(null) }}>
+                            Cancelar
+                          </BrutalButton>
+                          <BrutalButton
+                            color={C.blue}
+                            disabled={state.money < selected.signingFee}
+                            onClick={tryToSign}
+                          >
+                            {state.money < selected.signingFee ? 'Sem $' : 'Oferecer'}
+                          </BrutalButton>
+                        </>
+                      )}
+                    </div>
+                  </>
+                ) : result.result === 'accept' ? (
+                  <BrutalCard color={C.green} className="p-4 text-center">
+                    <p className="text-4xl mb-1">🤝</p>
+                    <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>FECHOU!</p>
+                    <p className="text-white/90 text-xs font-bold mt-1">{result.reason}</p>
+                  </BrutalCard>
+                ) : (
+                  <>
+                    <BrutalCard color={C.orange} className="p-4 text-center">
+                      <p className="text-4xl mb-1">🚫</p>
+                      <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>RECUSOU</p>
+                      <p className="text-white/90 text-xs font-bold mt-1">{result.reason}</p>
+                    </BrutalCard>
+                    <div className="grid grid-cols-2 gap-3 mt-3">
+                      <BrutalButton color="white" textColor={C.black} onClick={() => { setSelected(null); setResult(null) }}>
+                        Desistir
+                      </BrutalButton>
+                      <BrutalButton color={C.blue} onClick={() => { setRate(Math.max(5, result.maxAcceptable)); setResult(null) }}>
+                        Baixar p/ {result.maxAcceptable}%
+                      </BrutalButton>
+                    </div>
+                  </>
+                )}
+              </BrutalCard>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* signed toast */}
+      <AnimatePresence>
+        {justSigned && (
+          <motion.div
+            initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -60, opacity: 0 }}
+            className="fixed top-20 left-0 right-0 z-40 flex justify-center px-4"
+          >
+            <BrutalPill color={C.green} textColor="#fff" className="!text-sm !px-4 !py-2">
+              ✓ {justSigned} agora é seu cliente!
+            </BrutalPill>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
 import type { GameState, Screen, Client, ClubOffer } from '../types'
-import { getLegendById, getCurrentRating, getMarketValue } from '../data/legends'
+import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus } from '../data/legends'
 import { generateWeeklyEvent } from '../data/events'
 import { CLUBS } from '../data/clubs'
 
@@ -99,6 +99,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         nickname: legend.nickname,
         position: legend.position,
         nationality: legend.nationality,
+        status: getCurrentStatus(legend, state.year),
         birthYear: legend.birthYear,
         peakYearStart: legend.peakYearStart,
         peakYearEnd: legend.peakYearEnd,
@@ -141,13 +142,18 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         if (!legend) return client
         const newRating = getCurrentRating(legend, newYear)
         const newValue = getMarketValue(legend, newYear)
+        const newStatus = getCurrentStatus(legend, newYear)
 
         let happiness = client.happiness
         if (client.personality === 'ambicioso' && newRating > 80 && !client.contractClub?.includes('Milan') && !client.contractClub?.includes('Madrid')) {
           happiness = Math.max(40, happiness - 2)
         }
+        // High commission slowly erodes happiness once they get famous
+        if (client.commissionRate > 20 && newRating > 70) {
+          happiness = Math.max(20, happiness - 1)
+        }
 
-        return { ...client, currentRating: newRating, currentValue: newValue, happiness }
+        return { ...client, currentRating: newRating, currentValue: newValue, status: newStatus, happiness }
       })
 
       // Weekly expenses
