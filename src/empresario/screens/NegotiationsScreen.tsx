@@ -1,271 +1,184 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEmpresario } from '../store'
-import type { ClubOffer, GameEvent } from '../types'
-
-function formatMoney(v: number) {
-  if (v >= 1000000) return `R$ ${(v / 1000000).toFixed(2)}M`
-  if (v >= 1000) return `R$ ${(v / 1000).toFixed(0)}k`
-  return `R$ ${v.toFixed(0)}`
-}
+import type { ClubOffer, GameEvent, Client } from '../types'
+import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag } from '../ui'
 
 function OfferCard({ offer, clients, onAccept, onReject }: {
   offer: ClubOffer
-  clients: ReturnType<typeof useEmpresario>['state']['clients']
+  clients: Client[]
   onAccept: (id: string, commission: number) => void
   onReject: (id: string) => void
 }) {
-  const [expanded, setExpanded] = useState(false)
+  const [open, setOpen] = useState(false)
   const [commission, setCommission] = useState(15)
   const client = clients.find(c => c.legendId === offer.clientId)
-  const myEarning = Math.round(offer.offerAmount * commission / 100)
-
   if (!client) return null
+  const earning = Math.round(offer.offerAmount * commission / 100)
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white/5 border border-amber-500/30 rounded-xl overflow-hidden"
-    >
-      <div className="p-4 flex items-start gap-3 cursor-pointer" onClick={() => setExpanded(e => !e)}>
-        <div className="text-2xl">🏟️</div>
-        <div className="flex-1 min-w-0">
-          <p className="text-amber-300 font-bold text-sm">{offer.clubName}</p>
-          <p className="text-white/40 text-xs">{offer.clubCountry} • quer {client.nickname}</p>
-          <p className="text-white font-black text-lg mt-1">{formatMoney(offer.offerAmount)}</p>
-          <p className="text-white/30 text-xs">Salário ao jogador: {formatMoney(offer.salary)}/ano</p>
-        </div>
-        <div className="text-right shrink-0">
-          <p className="text-red-400/60 text-xs">{offer.expiresInWeeks}sem restantes</p>
-          <p className="text-white/20 text-xs mt-1">{expanded ? '▲' : '▼'}</p>
+    <BrutalCard color="white" className="p-0 overflow-hidden">
+      <div className="p-4 cursor-pointer" onClick={() => setOpen(o => !o)}>
+        <div className="flex items-start gap-3">
+          <div className="text-3xl shrink-0">🏟️</div>
+          <div className="flex-1 min-w-0">
+            <p className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>{offer.clubName}</p>
+            <p className="text-black/50 text-xs font-bold">{offer.clubCountry} quer <b>{client.nickname}</b></p>
+            <p className="font-black text-black text-2xl mt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(offer.offerAmount)}</p>
+          </div>
+          <div className="text-right shrink-0">
+            <BrutalTag color={offer.expiresInWeeks <= 1 ? C.orange : C.yellow} textColor={offer.expiresInWeeks <= 1 ? '#fff' : '#000'}>
+              {offer.expiresInWeeks} SEM
+            </BrutalTag>
+            <p className="text-black/30 text-lg mt-1">{open ? '▲' : '▼'}</p>
+          </div>
         </div>
       </div>
 
       <AnimatePresence>
-        {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="border-t border-white/10 p-4 space-y-4"
-          >
-            {/* Commission negotiation */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <p className="text-white/60 text-xs uppercase tracking-widest">Sua comissão</p>
+        {open && (
+          <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
+            <div className="border-t-[3px] border-black p-4" style={{ backgroundColor: C.cream }}>
+              <div className="flex items-end justify-between mb-2">
+                <span className="text-black/60 text-xs font-black uppercase">Sua comissão</span>
                 <div className="text-right">
-                  <p className="text-amber-400 font-black text-xl">{commission}%</p>
-                  <p className="text-green-400 text-xs">{formatMoney(myEarning)} pra você</p>
+                  <span className="font-black text-black text-3xl leading-none" style={{ fontFamily: 'Oswald, sans-serif' }}>{commission}%</span>
+                  <p className="text-xs font-black" style={{ color: C.tealDark }}>{moneyFull(earning)} pra você</p>
                 </div>
               </div>
               <input
-                type="range" min={5} max={30} step={1}
-                value={commission}
+                type="range" min={5} max={30} step={1} value={commission}
                 onChange={e => setCommission(Number(e.target.value))}
-                className="w-full accent-amber-500"
+                className="w-full h-3 cursor-pointer" style={{ accentColor: C.blue }}
               />
-              <div className="flex justify-between text-white/20 text-xs mt-1">
-                <span>5%</span>
-                <span>30%</span>
-              </div>
-
-              {/* Context: what's fair? */}
-              <div className="mt-3 p-3 bg-white/3 rounded-lg">
-                <p className="text-white/30 text-xs">
-                  {commission <= 8
-                    ? '🤝 Generoso. Jogador vai adorar você. Fidelidade de longo prazo.'
-                    : commission <= 15
-                      ? '✓ Padrão de mercado. Negociação limpa.'
-                      : commission <= 22
-                        ? '⚠ Acima do padrão. Clube pode reclamar.'
-                        : '🔥 Máximo do mercado. Aceite se estiver na mão.'}
+              <BrutalCard color={commission <= 15 ? C.teal : commission <= 22 ? C.yellow : C.orange} className="p-2.5 mt-3" shadow={3}>
+                <p className={`text-xs font-bold ${commission > 22 ? 'text-white' : 'text-black'}`}>
+                  {commission <= 8 ? '🤝 Generoso. Fidelidade garantida.'
+                    : commission <= 15 ? '✓ Padrão de mercado. Limpo.'
+                    : commission <= 22 ? '⚠ Acima do padrão. O clube pode resmungar.'
+                    : '🔥 No talo. Aceite só se estiver na mão.'}
                 </p>
-              </div>
-            </div>
+              </BrutalCard>
 
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => onReject(offer.id)}
-                className="border border-white/20 rounded-xl py-3 text-white/60 text-sm
-                           hover:bg-white/5 transition-colors"
-              >
-                Recusar
-              </button>
-              <motion.button
-                onClick={() => onAccept(offer.id, commission)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="bg-green-500 hover:bg-green-400 text-black font-black
-                           rounded-xl py-3 text-sm transition-colors"
-              >
-                FECHAR NEGÓCIO
-              </motion.button>
+              <div className="grid grid-cols-2 gap-3 mt-4">
+                <BrutalButton color="white" textColor={C.black} onClick={() => onReject(offer.id)}>Recusar</BrutalButton>
+                <BrutalButton color={C.green} onClick={() => onAccept(offer.id, commission)}>Fechar!</BrutalButton>
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </BrutalCard>
   )
+}
+
+const EVENT_ICON: Record<string, string> = {
+  injury: '🏥', scandal: '📰', rival: '🤝', breakout: '⭐', personal: '👨‍👩‍👦', press: '🎙️', offer: '📋',
 }
 
 function EventCard({ event, onResolve }: { event: GameEvent; onResolve: (id: string, idx: 0 | 1) => void }) {
   const [chosen, setChosen] = useState<0 | 1 | null>(null)
-
-  const typeIcon: Record<string, string> = {
-    injury: '🏥',
-    scandal: '📰',
-    rival: '🤝',
-    breakout: '⭐',
-    personal: '👨‍👩‍👦',
-    press: '🎙️',
-    offer: '📋',
-  }
-
-  if (event.resolved) return null
+  if (event.resolved || !event.choices) return null
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-orange-500/5 border border-orange-500/30 rounded-xl overflow-hidden"
-    >
-      <div className="p-4">
-        <div className="flex items-start gap-3 mb-3">
-          <span className="text-2xl">{typeIcon[event.type] ?? '📌'}</span>
-          <div>
-            <p className="text-orange-300 font-bold text-sm">{event.title}</p>
-            <p className="text-white/50 text-xs leading-relaxed mt-1">{event.description}</p>
-          </div>
+    <BrutalCard color={C.orange} className="p-4">
+      <div className="flex items-start gap-3 mb-3">
+        <span className="text-3xl">{EVENT_ICON[event.type] ?? '📌'}</span>
+        <div>
+          <p className="font-black text-white text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>{event.title}</p>
+          <p className="text-white/80 text-xs font-medium leading-relaxed mt-0.5">{event.description}</p>
         </div>
-
-        {event.choices && (
-          <div className="space-y-2">
-            {event.choices.map((choice, idx) => (
-              <motion.button
-                key={idx}
-                onClick={() => {
-                  setChosen(idx as 0 | 1)
-                  setTimeout(() => onResolve(event.id, idx as 0 | 1), 400)
-                }}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                disabled={chosen !== null}
-                className={`w-full text-left p-3 rounded-lg border text-sm transition-all
-                  ${chosen === idx
-                    ? 'bg-orange-500/20 border-orange-500/50 text-orange-200'
-                    : chosen !== null
-                      ? 'bg-white/3 border-white/10 text-white/30 cursor-not-allowed'
-                      : 'bg-white/5 border-white/15 text-white/70 hover:border-orange-500/40 hover:bg-orange-500/5'
-                  }`}
-              >
-                <span className="font-bold mr-2">{idx === 0 ? 'A)' : 'B)'}</span>
-                {choice.label}
-                {choice.effect.money && (
-                  <span className={`ml-2 text-xs ${choice.effect.money > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    ({choice.effect.money > 0 ? '+' : ''}{formatMoney(choice.effect.money)})
-                  </span>
-                )}
-              </motion.button>
-            ))}
-          </div>
-        )}
       </div>
-    </motion.div>
+      <div className="space-y-2">
+        {event.choices.map((choice, idx) => (
+          <motion.button
+            key={idx}
+            whileTap={{ scale: 0.98 }}
+            disabled={chosen !== null}
+            onClick={() => { setChosen(idx as 0 | 1); setTimeout(() => onResolve(event.id, idx as 0 | 1), 350) }}
+            style={{ boxShadow: chosen === null ? `3px 3px 0 0 ${C.black}` : 'none' }}
+            className={`w-full text-left p-3 rounded-xl border-[3px] border-black text-sm font-bold transition-all
+              ${chosen === idx ? 'bg-black text-white' : chosen !== null ? 'bg-white/40 text-black/30' : 'bg-white text-black active:translate-x-[3px] active:translate-y-[3px]'}`}
+          >
+            <span className="font-black mr-1">{idx === 0 ? 'A)' : 'B)'}</span>
+            {choice.label}
+            {choice.effect.money ? (
+              <span className={`ml-1 font-black ${choice.effect.money > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                ({choice.effect.money > 0 ? '+' : ''}{money(choice.effect.money)})
+              </span>
+            ) : null}
+          </motion.button>
+        ))}
+      </div>
+    </BrutalCard>
   )
 }
 
 export default function NegotiationsScreen() {
   const { state, dispatch } = useEmpresario()
-
   const activeOffers = state.pendingOffers
   const pendingEvents = state.events.filter(e => !e.resolved)
-  const resolvedEvents = state.events.filter(e => e.resolved).slice(-3)
-
-  function handleAccept(offerId: string, commission: number) {
-    dispatch({ type: 'ACCEPT_OFFER', offerId, finalCommission: commission })
-  }
-
-  function handleReject(offerId: string) {
-    dispatch({ type: 'REJECT_OFFER', offerId })
-  }
-
-  function handleResolveEvent(eventId: string, choiceIndex: 0 | 1) {
-    dispatch({ type: 'RESOLVE_EVENT', eventId, choiceIndex })
-  }
+  const resolved = state.events.filter(e => e.resolved).slice(-3)
 
   return (
-    <div className="min-h-screen bg-[#060610] text-white">
-      <div className="bg-black/60 border-b border-white/10 px-4 py-3 flex items-center gap-3 sticky top-0 z-10 backdrop-blur">
-        <button onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'dashboard' })}
-                className="text-white/40 hover:text-white transition-colors text-xl">←</button>
-        <div>
-          <h1 className="text-white font-bold">Negociações</h1>
-          <p className="text-white/40 text-xs">Propostas e eventos ativos</p>
+    <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
+      <div className="border-b-[3px] border-black px-4 py-3 sticky top-0 z-20" style={{ backgroundColor: C.black }}>
+        <div className="max-w-md mx-auto flex items-center gap-3">
+          <button onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'dashboard' })} className="text-white text-2xl font-black">←</button>
+          <h1 className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>NEGOCIAÇÕES</h1>
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-4 py-5 space-y-6">
-
-        {/* Offers */}
+      <div className="max-w-md mx-auto px-4 py-4 space-y-5">
         {activeOffers.length > 0 && (
-          <div>
-            <p className="text-white/40 text-xs uppercase tracking-widest mb-3">
-              💰 Propostas de clubes ({activeOffers.length})
-            </p>
-            <div className="space-y-3">
-              {activeOffers.map(offer => (
-                <OfferCard
-                  key={offer.id}
-                  offer={offer}
-                  clients={state.clients}
-                  onAccept={handleAccept}
-                  onReject={handleReject}
-                />
-              ))}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <h2 className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>💸 PROPOSTAS DE CLUBES</h2>
+              <BrutalTag color={C.yellow}>{activeOffers.length}</BrutalTag>
             </div>
+            {activeOffers.map(o => (
+              <OfferCard key={o.id} offer={o} clients={state.clients}
+                onAccept={(id, c) => dispatch({ type: 'ACCEPT_OFFER', offerId: id, finalCommission: c })}
+                onReject={id => dispatch({ type: 'REJECT_OFFER', offerId: id })} />
+            ))}
           </div>
         )}
 
-        {/* Events */}
         {pendingEvents.length > 0 && (
-          <div>
-            <p className="text-white/40 text-xs uppercase tracking-widest mb-3">
-              ⚡ Situações que precisam de decisão ({pendingEvents.length})
-            </p>
-            <div className="space-y-3">
-              {pendingEvents.map(event => (
-                <EventCard key={event.id} event={event} onResolve={handleResolveEvent} />
-              ))}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <h2 className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>⚡ DECISÕES</h2>
+              <BrutalTag color={C.orange} textColor="#fff">{pendingEvents.length}</BrutalTag>
             </div>
+            {pendingEvents.map(e => (
+              <EventCard key={e.id} event={e} onResolve={(id, idx) => dispatch({ type: 'RESOLVE_EVENT', eventId: id, choiceIndex: idx })} />
+            ))}
           </div>
         )}
 
-        {/* Resolved events history */}
-        {resolvedEvents.length > 0 && (
-          <div>
-            <p className="text-white/40 text-xs uppercase tracking-widest mb-3">Histórico recente</p>
-            <div className="space-y-2">
-              {resolvedEvents.map(event => (
-                <div key={event.id} className="bg-white/3 border border-white/5 rounded-xl p-3">
-                  <p className="text-white/40 text-xs">{event.title}</p>
-                  {event.chosenIndex !== undefined && event.choices && (
-                    <p className="text-white/25 text-xs mt-1">
-                      Você escolheu: {event.choices[event.chosenIndex].label}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
+        {resolved.length > 0 && (
+          <div className="space-y-2">
+            <h2 className="font-black text-black text-sm uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>Histórico</h2>
+            {resolved.map(e => (
+              <BrutalCard key={e.id} color={C.creamDark} className="p-3" shadow={3}>
+                <p className="text-black/60 text-xs font-bold">{e.title}</p>
+                {e.chosenIndex !== undefined && e.choices && (
+                  <p className="text-black/40 text-xs mt-0.5">→ {e.choices[e.chosenIndex].label}</p>
+                )}
+              </BrutalCard>
+            ))}
           </div>
         )}
 
         {activeOffers.length === 0 && pendingEvents.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-4xl mb-4">📭</p>
-            <p className="text-white/40 text-sm">Nenhuma negociação pendente.</p>
-            <p className="text-white/25 text-xs mt-2">Avance semanas para receber propostas.</p>
-          </div>
+          <BrutalCard color={C.creamDark} className="p-8 text-center">
+            <p className="text-5xl mb-2">📭</p>
+            <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>TUDO TRANQUILO</p>
+            <p className="text-black/50 text-sm font-medium mt-1">Nenhuma negociação pendente. Avance semanas para receber propostas.</p>
+            <div className="mt-4">
+              <BrutalButton color={C.blue} onClick={() => dispatch({ type: 'ADVANCE_WEEK' })}>⏩ Avançar semana</BrutalButton>
+            </div>
+          </BrutalCard>
         )}
       </div>
     </div>

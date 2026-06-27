@@ -28,39 +28,40 @@ function LadraoGame() {
 
 function GameSelector({ onSelect }: { onSelect: (game: 'ladrao' | 'empresario') => void }) {
   return (
-    <div className="min-h-screen bg-[#060610] flex flex-col items-center justify-center p-6 gap-8">
+    <div className="min-h-screen flex flex-col items-center justify-center p-5 gap-7" style={{ backgroundColor: '#F4ECD6' }}>
       <div className="text-center">
-        <p className="text-amber-400/60 text-xs tracking-[0.3em] uppercase mb-2">7A0 Game Studio</p>
-        <h1 className="text-white font-black text-3xl">Escolha seu jogo</h1>
+        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-xs font-black uppercase tracking-wide"
+              style={{ backgroundColor: '#FFC400', boxShadow: '3px 3px 0 0 #0C0C0C' }}>
+          7A0 GAME STUDIO
+        </span>
+        <h1 className="font-black text-4xl text-black mt-4" style={{ fontFamily: 'Oswald, sans-serif' }}>ESCOLHA SEU JOGO</h1>
       </div>
 
       <div className="w-full max-w-sm space-y-4">
         <motion.button
           onClick={() => onSelect('empresario')}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="w-full bg-amber-500/10 border border-amber-500/30 hover:border-amber-500/60
-                     rounded-2xl p-6 text-left transition-all group"
+          whileTap={{ x: 3, y: 3 }}
+          className="w-full text-left border-[3px] border-black rounded-2xl p-6 transition-all"
+          style={{ backgroundColor: '#2B43E8', boxShadow: '6px 6px 0 0 #0C0C0C' }}
         >
-          <div className="text-3xl mb-3">💼</div>
-          <p className="text-amber-300 font-black text-lg group-hover:text-amber-200">O Empresário</p>
-          <p className="text-white/40 text-sm mt-1">
-            Você voltou do futuro. Só você sabe quem são as lendas.
-            Assine-as, negocie, fique rico.
+          <div className="text-4xl mb-3">💼</div>
+          <p className="text-white font-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif' }}>O EMPRESÁRIO</p>
+          <p className="text-white/80 text-sm mt-1 font-medium">
+            Você voltou do futuro. Só você sabe quem são as lendas. Assine-as, negocie no seu favor, fique podre de rico.
           </p>
-          <p className="text-amber-500/50 text-xs mt-3 uppercase tracking-widest">NOVO ✦</p>
+          <span className="inline-block mt-3 border-2 border-black rounded-full px-2.5 py-0.5 text-xs font-black uppercase"
+                style={{ backgroundColor: '#FFC400', color: '#000' }}>NOVO ✦</span>
         </motion.button>
 
         <motion.button
           onClick={() => onSelect('ladrao')}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="w-full bg-white/5 border border-white/10 hover:border-white/20
-                     rounded-2xl p-6 text-left transition-all group"
+          whileTap={{ x: 3, y: 3 }}
+          className="w-full text-left border-[3px] border-black rounded-2xl p-6 transition-all"
+          style={{ backgroundColor: '#FFFFFF', boxShadow: '6px 6px 0 0 #0C0C0C' }}
         >
-          <div className="text-3xl mb-3">⚽</div>
-          <p className="text-white/80 font-black text-lg group-hover:text-white">O Ladrão de Lendas</p>
-          <p className="text-white/30 text-sm mt-1">
+          <div className="text-4xl mb-3">⚽</div>
+          <p className="text-black font-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif' }}>O LADRÃO DE LENDAS</p>
+          <p className="text-black/60 text-sm mt-1 font-medium">
             Roube habilidades das lendas e vire o melhor jogador do mundo.
           </p>
         </motion.button>
