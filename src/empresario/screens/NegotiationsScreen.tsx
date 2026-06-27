@@ -2,21 +2,28 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEmpresario } from '../store'
 import type { ClubOffer, GameEvent, Client } from '../types'
-import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag } from '../ui'
+import { C, money, BrutalCard, BrutalButton, BrutalTag } from '../ui'
+
+const INTEREST: Record<string, { label: string; hint: string; color: string }> = {
+  alto: { label: '🔥 MUITO COBIÇADO', hint: 'Vários clubes de olho — compare os lances e a luva antes de fechar.', color: C.orange },
+  medio: { label: '👀 INTERESSE MÉDIO', hint: 'Pode aparecer outra proposta com o tempo, mas não garantido.', color: C.yellow },
+  baixo: { label: '🤏 PROPOSTA ISOLADA', hint: 'Dificilmente vem outra tão cedo. Decidir agora é seguro.', color: C.creamDark },
+}
 
 function OfferCard({ offer, clients, onAccept, onReject, onEscalate, onHaggle }: {
   offer: ClubOffer
   clients: Client[]
-  onAccept: (id: string, commission: number) => void
+  onAccept: (id: string, clubName: string, amount: number, clubLuva: number) => void
   onReject: (id: string) => void
   onEscalate: (id: string) => void
   onHaggle: (id: string) => void
 }) {
   const [open, setOpen] = useState(false)
-  const [commission, setCommission] = useState(15)
   const client = clients.find(c => c.legendId === offer.clientId)
   if (!client) return null
-  const earning = Math.round(offer.offerAmount * commission / 100)
+  const comm = client.commissionRate
+  const take = (amount: number, luva: number) => Math.round(amount * comm / 100) + luva
+  const interest = INTEREST[offer.interest] ?? INTEREST.baixo
 
   return (
     <BrutalCard color={offer.isWar ? C.yellow : 'white'} className="p-0 overflow-hidden">
@@ -42,73 +49,69 @@ function OfferCard({ offer, clients, onAccept, onReject, onEscalate, onHaggle }:
         {open && (
           <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
             <div className="border-t-[3px] border-black p-4" style={{ backgroundColor: C.cream }}>
-              {/* bidding war: competing clubs + escalate */}
-              {offer.isWar && offer.bidders && (
-                <div className="mb-4">
-                  <p className="text-black/60 text-xs font-black uppercase mb-2">Clubes na disputa</p>
-                  <div className="space-y-1.5 mb-3">
+              {/* interest indicator */}
+              <div className="border-2 border-black rounded-lg px-3 py-2 mb-3" style={{ backgroundColor: interest.color }}>
+                <p className={`text-xs font-black ${offer.interest === 'alto' ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>{interest.label}</p>
+                <p className={`text-[10px] font-bold ${offer.interest === 'alto' ? 'text-white/80' : 'text-black/60'}`}>{interest.hint}</p>
+              </div>
+
+              {/* your fixed commission reminder */}
+              <p className="text-black/50 text-[11px] font-bold mb-3">
+                Sua comissão com {client.nickname} já está fechada em <b>{comm}%</b> do valor. Aqui você negocia o VALOR da venda e fica com a luva do clube.
+              </p>
+
+              {offer.isWar && offer.bidders ? (
+                <div className="mb-2">
+                  <p className="text-black/60 text-xs font-black uppercase mb-2">Escolha o melhor pro SEU bolso</p>
+                  <div className="space-y-2 mb-3">
                     {offer.bidders.map((b, i) => (
-                      <div key={i} className="flex justify-between items-center border-2 border-black rounded-lg px-3 py-2"
-                           style={{ backgroundColor: i === 0 ? C.green : '#fff' }}>
-                        <span className={`text-xs font-black ${i === 0 ? 'text-white' : 'text-black'}`}>
-                          {i === 0 ? '👑 ' : ''}{b.clubName}
-                        </span>
-                        <span className={`text-sm font-black ${i === 0 ? 'text-white' : 'text-black/60'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>
-                          {money(b.amount)}
-                        </span>
+                      <div key={i} className="border-2 border-black rounded-lg p-2.5 bg-white">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-black text-black">{b.clubName}</span>
+                          <span className="text-sm font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(b.amount)}</span>
+                        </div>
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-[10px] font-bold" style={{ color: C.orange }}>💰 luva pra você: {money(b.luva)}</span>
+                          <span className="text-[11px] font-black" style={{ color: C.tealDark }}>você embolsa {money(take(b.amount, b.luva))}</span>
+                        </div>
+                        <div className="mt-2">
+                          <BrutalButton color={C.green} onClick={() => onAccept(offer.id, b.clubName, b.amount, b.luva)} className="!py-2 !text-xs">Fechar com o {b.clubName.split(' ')[0]}</BrutalButton>
+                        </div>
                       </div>
                     ))}
                   </div>
-                  <BrutalButton color={C.orange} textColor="#fff" onClick={() => onEscalate(offer.id)}>
-                    🔥 Provocar leilão — esperar lance maior
-                  </BrutalButton>
-                  <p className="text-black/40 text-[10px] font-bold text-center mt-1">
-                    Sobe o preço, mas gasta 1 semana e um clube pode desistir.
-                  </p>
-                </div>
-              )}
-
-              {/* haggle the transfer FEE with the club (single offers) */}
-              {!offer.isWar && (
-                <div className="mb-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-black/60 text-xs font-black uppercase">Valor da venda</span>
-                    <span className="font-black text-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(offer.offerAmount)}</span>
+                  <BrutalButton color={C.orange} textColor="#fff" onClick={() => onEscalate(offer.id)}>🔥 Provocar leilão (esperar mais)</BrutalButton>
+                  <div className="mt-2">
+                    <BrutalButton color="white" textColor={C.black} onClick={() => onReject(offer.id)}>Recusar todos</BrutalButton>
                   </div>
-                  <BrutalButton color={C.yellow} textColor="#000" onClick={() => onHaggle(offer.id)}>
-                    💬 Pedir mais ao clube
-                  </BrutalButton>
-                  <p className="text-black/40 text-[10px] font-bold text-center mt-1">
-                    Pode subir o valor — mas se forçar demais, o clube se irrita e pode sair.
+                </div>
+              ) : (
+                <>
+                  <div className="bg-white border-2 border-black rounded-lg p-3 mb-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-black/60 text-xs font-black uppercase">Valor da venda</span>
+                      <span className="font-black text-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(offer.offerAmount)}</span>
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-xs font-bold" style={{ color: C.orange }}>💰 Luva do clube pra você</span>
+                      <span className="font-black text-sm" style={{ fontFamily: 'Oswald, sans-serif', color: C.orange }}>{money(offer.clubLuva)}</span>
+                    </div>
+                    <div className="border-t-2 border-black mt-2 pt-2 flex justify-between items-center">
+                      <span className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>VOCÊ EMBOLSA</span>
+                      <span className="font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif', color: C.tealDark }}>{money(take(offer.offerAmount, offer.clubLuva))}</span>
+                    </div>
+                    <p className="text-black/40 text-[10px] font-bold mt-1">comissão {comm}% ({money(Math.round(offer.offerAmount * comm / 100))}) + luva {money(offer.clubLuva)}</p>
+                  </div>
+                  <BrutalButton color={C.yellow} textColor="#000" onClick={() => onHaggle(offer.id)}>💬 Pedir mais ao clube</BrutalButton>
+                  <p className="text-black/40 text-[10px] font-bold text-center mt-1 mb-3">
+                    Pode subir o valor (e sua comissão sobe junto) — mas se forçar demais o clube pode sair.
                   </p>
-                </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <BrutalButton color="white" textColor={C.black} onClick={() => onReject(offer.id)}>Recusar</BrutalButton>
+                    <BrutalButton color={C.green} onClick={() => onAccept(offer.id, offer.clubName, offer.offerAmount, offer.clubLuva)}>Fechar!</BrutalButton>
+                  </div>
+                </>
               )}
-
-              <div className="flex items-end justify-between mb-2">
-                <span className="text-black/60 text-xs font-black uppercase">Sua comissão</span>
-                <div className="text-right">
-                  <span className="font-black text-black text-3xl leading-none" style={{ fontFamily: 'Oswald, sans-serif' }}>{commission}%</span>
-                  <p className="text-xs font-black" style={{ color: C.tealDark }}>{moneyFull(earning)} pra você</p>
-                </div>
-              </div>
-              <input
-                type="range" min={5} max={30} step={1} value={commission}
-                onChange={e => setCommission(Number(e.target.value))}
-                className="w-full h-3 cursor-pointer" style={{ accentColor: C.blue }}
-              />
-              <BrutalCard color={commission <= 15 ? C.teal : commission <= 22 ? C.yellow : C.orange} className="p-2.5 mt-3" shadow={3}>
-                <p className={`text-xs font-bold ${commission > 22 ? 'text-white' : 'text-black'}`}>
-                  {commission <= 8 ? '🤝 Generoso. Fidelidade garantida.'
-                    : commission <= 15 ? '✓ Padrão de mercado. Limpo.'
-                    : commission <= 22 ? '⚠ Acima do padrão. O clube pode resmungar.'
-                    : '🔥 No talo. Aceite só se estiver na mão.'}
-                </p>
-              </BrutalCard>
-
-              <div className="grid grid-cols-2 gap-3 mt-4">
-                <BrutalButton color="white" textColor={C.black} onClick={() => onReject(offer.id)}>Recusar</BrutalButton>
-                <BrutalButton color={C.green} onClick={() => onAccept(offer.id, commission)}>Fechar!</BrutalButton>
-              </div>
             </div>
           </motion.div>
         )}
@@ -183,7 +186,7 @@ export default function NegotiationsScreen() {
             </div>
             {activeOffers.map(o => (
               <OfferCard key={o.id} offer={o} clients={state.clients}
-                onAccept={(id, c) => dispatch({ type: 'ACCEPT_OFFER', offerId: id, finalCommission: c })}
+                onAccept={(id, clubName, amount, clubLuva) => dispatch({ type: 'ACCEPT_OFFER', offerId: id, clubName, amount, clubLuva })}
                 onReject={id => dispatch({ type: 'REJECT_OFFER', offerId: id })}
                 onEscalate={id => dispatch({ type: 'ESCALATE_BID', offerId: id })}
                 onHaggle={id => dispatch({ type: 'HAGGLE_OFFER', offerId: id })} />
