@@ -1,37 +1,47 @@
 import { useEmpresario } from '../store'
-import { SCOUT_UPGRADES, SERVICE_UPGRADES } from '../data/events'
+import { SCOUT_UPGRADES, SERVICE_UPGRADES, LIFESTYLE_UPGRADES } from '../data/events'
 import { BUYABLE_CLUBS } from '../data/clubs'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag } from '../ui'
+
+type Up = { id: string; name: string; description: string; cost: number; effect: string; flag?: string; repGain?: number }
 
 export default function FinanceScreen() {
   const { state, dispatch } = useEmpresario()
 
-  function purchase(id: string, cost: number, effect: string) {
-    if (state.money < cost || state.purchasedUpgrades.includes(id)) return
-    dispatch({ type: 'PURCHASE_UPGRADE', upgradeId: id, cost, effect })
+  function purchase(up: Up, finalCost: number) {
+    if (state.money < finalCost || state.purchasedUpgrades.includes(up.id)) return
+    dispatch({ type: 'PURCHASE_UPGRADE', upgradeId: up.id, cost: finalCost, effect: up.effect, repGain: up.repGain })
   }
 
   const totalClientValue = state.clients.reduce((s, c) => s + c.currentValue, 0)
   const monthlyExpenses = state.weeklyExpenses * 4
 
-  function UpgradeRow({ up }: { up: { id: string; name: string; description: string; cost: number; effect: string; flag?: string } }) {
+  // 🔥 OFERTA DA SEMANA — um item rotativo com 30% de desconto (muda toda semana)
+  const allBuyable = [...SCOUT_UPGRADES, ...SERVICE_UPGRADES, ...LIFESTYLE_UPGRADES].filter(u => !state.purchasedUpgrades.includes(u.id))
+  const dealId = allBuyable.length ? allBuyable[(state.year * 52 + state.week) % allBuyable.length].id : null
+
+  function UpgradeRow({ up }: { up: Up }) {
     const bought = state.purchasedUpgrades.includes(up.id)
-    const canAfford = state.money >= up.cost
+    const onDeal = up.id === dealId && !bought
+    const finalCost = onDeal ? Math.round(up.cost * 0.7) : up.cost
+    const canAfford = state.money >= finalCost
     return (
-      <BrutalCard color={bought ? C.creamDark : 'white'} className="p-4" shadow={bought ? 2 : 4}>
+      <BrutalCard color={bought ? C.creamDark : onDeal ? C.yellow : 'white'} className="p-4" shadow={bought ? 2 : 4}>
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
+            {onDeal && <div className="mb-1"><BrutalTag color={C.orange} textColor="#fff">🔥 OFERTA DA SEMANA −30%</BrutalTag></div>}
             <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>
               {bought ? '✅ ' : up.flag ? `${up.flag} ` : ''}{up.name}
             </p>
             <p className="text-black/50 text-xs font-medium mt-0.5 leading-relaxed">{up.description}</p>
-            <div className="mt-2"><BrutalTag color={C.yellow}>⚡ {up.effect}</BrutalTag></div>
+            <div className="mt-2"><BrutalTag color={onDeal ? 'white' : C.yellow}>⚡ {up.effect}</BrutalTag></div>
           </div>
           <div className="shrink-0 text-right">
-            <p className="font-black text-black text-sm mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(up.cost)}</p>
+            {onDeal && <p className="text-black/40 text-[10px] font-bold line-through">{money(up.cost)}</p>}
+            <p className="font-black text-black text-sm mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(finalCost)}</p>
             {!bought && (
               <BrutalButton color={canAfford ? C.green : '#C9C2AC'} disabled={!canAfford} full={false}
-                onClick={() => purchase(up.id, up.cost, up.effect)} className="!px-3 !py-2 !text-xs">
+                onClick={() => purchase(up, finalCost)} className="!px-3 !py-2 !text-xs">
                 {canAfford ? 'Comprar' : 'Sem $'}
               </BrutalButton>
             )}
@@ -97,6 +107,15 @@ export default function FinanceScreen() {
           <p className="text-black/50 text-xs font-bold mb-3">Serviços fixos que resolvem problemas antes de virarem prejuízo.</p>
           <div className="space-y-3">
             {SERVICE_UPGRADES.map(up => <UpgradeRow key={up.id} up={up} />)}
+          </div>
+        </div>
+
+        {/* LIFESTYLE & STATUS */}
+        <div>
+          <h2 className="font-black text-black text-lg pt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>💎 ESTILO DE VIDA & STATUS</h2>
+          <p className="text-black/50 text-xs font-bold mb-3">Ostentar dá reputação — e reputação destrava os craques mais cobiçados. Seja rico E poderoso.</p>
+          <div className="space-y-3">
+            {LIFESTYLE_UPGRADES.map(up => <UpgradeRow key={up.id} up={up} />)}
           </div>
         </div>
 

@@ -92,6 +92,58 @@ export default function DashboardScreen() {
           </BrutalCard>
         )}
 
+        {/* ── NAV GRID (menus primeiro, antes da carteira) ── */}
+        <div className="grid grid-cols-2 gap-3 pt-1">
+          <BrutalCard color={C.teal} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'scouts' })}>
+            <p className="text-3xl mb-1">🔭</p>
+            <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>RADAR</p>
+            <p className="text-black/60 text-xs font-bold">Descobrir lendas</p>
+          </BrutalCard>
+
+          <BrutalCard color={C.pink} className="p-4 relative" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'offers' })}>
+            {alerts > 0 && (
+              <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black text-white text-xs font-black flex items-center justify-center border-2 border-white">
+                {alerts}
+              </span>
+            )}
+            <p className="text-3xl mb-1">📋</p>
+            <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>NEGÓCIOS</p>
+            <p className="text-black/60 text-xs font-bold">Propostas e eventos</p>
+          </BrutalCard>
+
+          <BrutalCard color={C.yellow} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'finance' })}>
+            <p className="text-3xl mb-1">🏢</p>
+            <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>ESCRITÓRIO</p>
+            <p className="text-black/60 text-xs font-bold">Investir e crescer</p>
+          </BrutalCard>
+
+          <BrutalCard color={C.purple} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'ranking' })}>
+            <p className="text-3xl mb-1">🏆</p>
+            <p className="font-black text-white" style={{ fontFamily: 'Oswald, sans-serif' }}>CARREIRA</p>
+            <p className="text-white/60 text-xs font-bold">Ranking e objetivos</p>
+          </BrutalCard>
+
+          {state.ownedClub && (
+            <BrutalCard color={C.pink} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'club' })}>
+              <p className="text-3xl mb-1">🏟️</p>
+              <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>MEU CLUBE</p>
+              <p className="text-black/60 text-xs font-bold truncate">{state.ownedClub.name}</p>
+            </BrutalCard>
+          )}
+
+          <BrutalCard color={C.black} className="p-4" onClick={() => dispatch({ type: 'ADVANCE_WEEK' })}>
+            <p className="text-3xl mb-1">⏩</p>
+            <p className="font-black text-white" style={{ fontFamily: 'Oswald, sans-serif' }}>AVANÇAR</p>
+            <p className="text-white/50 text-xs font-bold">Próxima semana</p>
+          </BrutalCard>
+        </div>
+
+        {state.weeklyExpenses > 0 && (
+          <p className="text-center text-black/40 text-xs font-bold">
+            Custo semanal dos clientes: −{moneyFull(state.weeklyExpenses)}
+          </p>
+        )}
+
         {/* ── CLIENTES ── */}
         <div className="flex items-center justify-between pt-1">
           <h2 className="font-black text-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>SUA CARTEIRA</h2>
@@ -163,58 +215,6 @@ export default function DashboardScreen() {
           </div>
         )}
 
-        {/* ── NAV GRID ── */}
-        <div className="grid grid-cols-2 gap-3 pt-1">
-          <BrutalCard color={C.teal} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'scouts' })}>
-            <p className="text-3xl mb-1">🔭</p>
-            <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>RADAR</p>
-            <p className="text-black/60 text-xs font-bold">Descobrir lendas</p>
-          </BrutalCard>
-
-          <BrutalCard color={C.pink} className="p-4 relative" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'offers' })}>
-            {alerts > 0 && (
-              <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black text-white text-xs font-black flex items-center justify-center border-2 border-white">
-                {alerts}
-              </span>
-            )}
-            <p className="text-3xl mb-1">📋</p>
-            <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>NEGÓCIOS</p>
-            <p className="text-black/60 text-xs font-bold">Propostas e eventos</p>
-          </BrutalCard>
-
-          <BrutalCard color={C.yellow} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'finance' })}>
-            <p className="text-3xl mb-1">🏢</p>
-            <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>ESCRITÓRIO</p>
-            <p className="text-black/60 text-xs font-bold">Investir e crescer</p>
-          </BrutalCard>
-
-          <BrutalCard color={C.purple} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'ranking' })}>
-            <p className="text-3xl mb-1">🏆</p>
-            <p className="font-black text-white" style={{ fontFamily: 'Oswald, sans-serif' }}>CARREIRA</p>
-            <p className="text-white/60 text-xs font-bold">Ranking e objetivos</p>
-          </BrutalCard>
-
-          {state.ownedClub && (
-            <BrutalCard color={C.pink} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'club' })}>
-              <p className="text-3xl mb-1">🏟️</p>
-              <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>MEU CLUBE</p>
-              <p className="text-black/60 text-xs font-bold truncate">{state.ownedClub.name}</p>
-            </BrutalCard>
-          )}
-
-          <BrutalCard color={C.black} className="p-4" onClick={() => dispatch({ type: 'ADVANCE_WEEK' })}>
-            <p className="text-3xl mb-1">⏩</p>
-            <p className="font-black text-white" style={{ fontFamily: 'Oswald, sans-serif' }}>AVANÇAR</p>
-            <p className="text-white/50 text-xs font-bold">Próxima semana</p>
-          </BrutalCard>
-        </div>
-
-        {/* expense note */}
-        {state.weeklyExpenses > 0 && (
-          <p className="text-center text-black/40 text-xs font-bold">
-            Custo semanal dos clientes: −{moneyFull(state.weeklyExpenses)}
-          </p>
-        )}
       </div>
 
       {/* ── CLIENT DETAIL MODAL ── */}
