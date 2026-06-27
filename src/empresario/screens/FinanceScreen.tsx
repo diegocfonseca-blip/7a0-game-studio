@@ -139,6 +139,20 @@ export default function FinanceScreen() {
             </div>
           </div>
         )}
+
+        {/* save / restart info */}
+        <BrutalCard color={C.creamDark} className="p-4" shadow={3}>
+          <p className="text-black/70 text-xs font-bold mb-1">💾 Seu progresso é salvo automaticamente neste navegador.</p>
+          <p className="text-black/40 text-[11px] font-medium mb-3">Pode fechar e voltar depois — o jogo continua de onde parou. Atualizar a página não apaga mais nada.</p>
+          <div className="grid grid-cols-2 gap-3">
+            <BrutalButton color={C.orange} textColor="#fff" onClick={() => {
+              if (confirm('Começar um jogo NOVO? Isso apaga seu progresso atual.')) dispatch({ type: 'NEW_GAME' })
+            }}>🔄 Novo jogo</BrutalButton>
+            <BrutalButton color="white" textColor={C.black} onClick={() => {
+              localStorage.removeItem('selected-game'); location.reload()
+            }}>🎮 Trocar de jogo</BrutalButton>
+          </div>
+        </BrutalCard>
       </div>
     </div>
   )

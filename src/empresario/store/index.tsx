@@ -2,7 +2,8 @@ import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
 import type { GameState, Screen, Client, ClubOffer, Bid, OwnedClub } from '../types'
 import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, LEGENDS } from '../data/legends'
-import { generateWeeklyEvent } from '../data/events'
+import { generateWeeklyEvent, generateAmbientNews } from '../data/events'
+import type { ClientLite } from '../data/events'
 import { CLUBS, NEMESIS } from '../data/clubs'
 import { GLORIES, genericGlory } from '../data/glory'
 
@@ -53,6 +54,7 @@ type Action =
   | { type: 'ESCALATE_BID'; offerId: string }
   | { type: 'BUY_CLUB'; clubId: string; name: string; division: number; price: number; fans: number }
   | { type: 'PLACE_CLIENT_IN_CLUB'; legendId: string }
+  | { type: 'NEW_GAME' }
 
 function generateClubOffer(client: Client, year: number): ClubOffer | null {
   const rating = getCurrentRating(getLegendById(client.legendId)!, year)
@@ -319,12 +321,18 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         }
       }
 
-      // Weekly event
-      const clientIds = updatedClients.map(c => c.legendId)
-      const newEvent = generateWeeklyEvent(newYear, actualWeek, clientIds, state.purchasedUpgrades)
+      // Weekly event (personalized with the player's name)
+      const clientsLite: ClientLite[] = updatedClients.map(c => ({
+        legendId: c.legendId, nickname: c.nickname, name: c.name, position: c.position, currentRating: c.currentRating,
+      }))
+      const newEvent = generateWeeklyEvent(newYear, actualWeek, clientsLite, state.purchasedUpgrades)
       const newEvents = newEvent
         ? [...state.events.filter(e => e.resolved), newEvent]
         : state.events
+
+      // Ambient news — world events of the era + flavor about your clients
+      const news = generateAmbientNews(newYear, clientsLite)
+      if (news) extraNarrative.push(news)
 
       return {
         ...state,
@@ -428,6 +436,10 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           : [...state.seenLegendIds, action.legendId],
       }
 
+    case 'NEW_GAME':
+      localStorage.removeItem('empresario-v1')
+      return { ...INITIAL_STATE, screen: 'intro' }
+
     case 'DISMISS_NEMESIS_ALERT':
       return { ...state, nemesisAlert: null }
 
@@ -517,7 +529,19 @@ const EmpresarioContext = createContext<{
 
 export function EmpresarioProvider({ children }: { children: ReactNode }) {
   const saved = localStorage.getItem('empresario-v1')
-  const initial = saved ? { ...INITIAL_STATE, ...JSON.parse(saved), screen: 'intro' as Screen } : INITIAL_STATE
+  let initial: GameState = INITIAL_STATE
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved)
+      const hasProgress = (parsed.clients?.length ?? 0) > 0 || (parsed.week ?? 1) > 1 ||
+        (parsed.year ?? 1993) > 1993 || (parsed.totalDeals ?? 0) > 0
+      // Resume an in-progress game straight at the dashboard so a refresh
+      // never throws the player back to the intro (and never wipes the save).
+      initial = { ...INITIAL_STATE, ...parsed, nemesisAlert: null, screen: hasProgress ? 'dashboard' : 'intro' }
+    } catch {
+      initial = INITIAL_STATE
+    }
+  }
 
   const [state, dispatch] = useReducer(empresarioReducer, initial)
 

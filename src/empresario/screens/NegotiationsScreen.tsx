@@ -153,7 +153,8 @@ export default function NegotiationsScreen() {
       <div className="border-b-[3px] border-black px-4 py-3 sticky top-0 z-20" style={{ backgroundColor: C.black }}>
         <div className="max-w-md mx-auto flex items-center gap-3">
           <button onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'dashboard' })} className="text-white text-2xl font-black">←</button>
-          <h1 className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>NEGOCIAÇÕES</h1>
+          <h1 className="text-white font-black text-lg flex-1" style={{ fontFamily: 'Oswald, sans-serif' }}>NEGOCIAÇÕES</h1>
+          <BrutalTag color={C.yellow}>{state.year} · SEM {state.week}</BrutalTag>
         </div>
       </div>
 
