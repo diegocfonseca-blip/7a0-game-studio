@@ -28,6 +28,8 @@ export interface Legend {
   personality: Personality
   status: PlayerStatus     // pelada / base / pro / estrela
   signingFee: number      // cost to sign representation contract
+  luva: number            // signing bonus you must pay upfront (varies a LOT)
+  luvaReason: string      // creative narrative for what the luva pays for
   monthlyFee: number      // what you pay them to be their agent
   futureKnowledge: string // a fact only you know from the future
   discoveryStory: string  // where/how you find them
@@ -40,6 +42,8 @@ export interface SigningEvaluation {
   result: SigningResult
   maxAcceptable: number   // the highest commission they'd take
   reason: string
+  lost?: boolean          // true when this rejection means the legend is gone forever
+  fameDrible?: boolean    // rejected despite an acceptable rate, due to fame/ego
 }
 
 export interface Client {
@@ -138,5 +142,7 @@ export interface GameState {
   rivalAgents: RivalAgent[]
   seenLegendIds: string[] // legends you've already scouted
   purchasedUpgrades: string[]
+  rejectionCounts: Record<string, number> // how many times each legend said no to you
+  lostLegends: string[]   // legends who rejected twice — gone forever
   narrative: string[]     // log of key moments
 }
