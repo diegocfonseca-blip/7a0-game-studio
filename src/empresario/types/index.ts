@@ -70,6 +70,7 @@ export interface Client {
   contractSalary: number
   contractExpiresYear: number | null
   rivalOffers: number     // how many rival agents approached them
+  lastDealYear?: number   // year of last transfer — clubs leave them alone for a while
 }
 
 export interface Bid {
@@ -90,6 +91,7 @@ export interface ClubOffer {
   isWar?: boolean         // bidding war between multiple clubs
   bidders?: Bid[]         // the competing clubs and their bids
   escalations?: number    // how many times you've pushed for a higher bid
+  haggles?: number        // how many times you've haggled the fee on a single offer
 }
 
 export interface NemesisAlert {
