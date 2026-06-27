@@ -335,11 +335,40 @@ export function getLegendById(id: string): Legend | undefined {
   return LEGENDS.find(l => l.id === id)
 }
 
-export function getAvailableLegends(year: number, signedIds: string[]): Legend[] {
+// ─── SCOUT REGIONS ─────────────────────────────────────────────
+// Brazil is unlocked from the start. Other countries require hiring
+// a regional scout in the office.
+import type { Nationality } from '../types'
+
+export const SCOUT_REGIONS: Record<string, { label: string; flag: string; nationalities: Nationality[]; stars: string }> = {
+  AR: { label: 'Argentina', flag: '🇦🇷', nationalities: ['AR'], stars: 'La Pulga e a nova geração argentina' },
+  FR: { label: 'França', flag: '🇫🇷', nationalities: ['FR'], stars: 'Zidane, Henry, Drogba' },
+  IT: { label: 'Itália', flag: '🇮🇹', nationalities: ['IT'], stars: 'Totti e o calcio' },
+  IB: { label: 'Ibéria', flag: '🇵🇹', nationalities: ['PT', 'ES'], stars: 'CR7 e Iniesta' },
+  NO: { label: 'Europa do Norte', flag: '🇳🇱', nationalities: ['NL', 'DE'], stars: 'Ibrahimović e cia' },
+}
+
+export function getUnlockedNationalities(purchasedUpgrades: string[]): Nationality[] {
+  const nats: Nationality[] = ['BR'] // Brasil sempre liberado
+  for (const up of purchasedUpgrades) {
+    if (up.startsWith('scout-')) {
+      const region = SCOUT_REGIONS[up.replace('scout-', '')]
+      if (region) nats.push(...region.nationalities)
+    }
+  }
+  return nats
+}
+
+export function getLockedRegions(purchasedUpgrades: string[]): string[] {
+  return Object.keys(SCOUT_REGIONS).filter(r => !purchasedUpgrades.includes(`scout-${r}`))
+}
+
+export function getAvailableLegends(year: number, signedIds: string[], unlockedNats: Nationality[]): Legend[] {
   return LEGENDS.filter(l =>
     year >= l.emergenceYear - 2 &&
     l.birthYear <= year - 10 &&
-    !signedIds.includes(l.id)
+    !signedIds.includes(l.id) &&
+    unlockedNats.includes(l.nationality)
   )
 }
 
@@ -388,10 +417,36 @@ export function getMarketValue(legend: Legend, year: number): number {
 // personality, fame, your reputation, and the rate you ask.
 
 const PERSONALITY_TOLERANCE: Record<Personality, number> = {
-  humilde: 6,     // accepts a higher cut, grateful
-  leal: 3,
-  ambicioso: -4,  // knows their worth, fights for themselves
-  difícil: -7,    // diva, will haggle hard
+  humilde: 5,     // accepts a higher cut, grateful
+  leal: 2,
+  ambicioso: -5,  // knows their worth, fights for themselves
+  difícil: -8,    // diva, will haggle hard
+}
+
+// The highest commission this player would EVER accept right now.
+// Famous players give you far less leverage; unknown kids take almost anything.
+export function getMaxAcceptable(legend: Legend, reputation: number, year: number): number {
+  const rating = getCurrentRating(legend, year)
+  const status = getCurrentStatus(legend, year)
+
+  let m = 14 // base
+
+  // Fame: the better they already are, the less they need you
+  m -= Math.max(0, rating - 40) * 0.30
+
+  // Status: a kid in a pelada is desperate; a star has all the leverage
+  const statusBonus: Record<PlayerStatus, number> = {
+    pelada: 9, base: 4, pro: -3, estrela: -9,
+  }
+  m += statusBonus[status]
+
+  // Personality
+  m += PERSONALITY_TOLERANCE[legend.personality]
+
+  // Your reputation buys you a little more room
+  m += reputation * 0.10
+
+  return Math.round(Math.max(5, Math.min(28, m)))
 }
 
 export function evaluateSigning(
@@ -400,31 +455,8 @@ export function evaluateSigning(
   reputation: number,
   year: number,
 ): SigningEvaluation {
-  const rating = getCurrentRating(legend, year)
   const status = getCurrentStatus(legend, year)
-
-  // Base tolerance: an unknown kid is desperate, a star has leverage.
-  let maxAcceptable = 18
-
-  // Fame reduces what they'll accept (the better they are, the more leverage)
-  maxAcceptable -= Math.max(0, (rating - 45)) * 0.28
-
-  // Status modifier
-  const statusBonus: Record<PlayerStatus, number> = {
-    pelada: 10,   // nobody else wants them — they'll take any deal
-    base: 5,
-    pro: -2,
-    estrela: -8,
-  }
-  maxAcceptable += statusBonus[status]
-
-  // Personality
-  maxAcceptable += PERSONALITY_TOLERANCE[legend.personality]
-
-  // Your reputation lets you ask for more
-  maxAcceptable += reputation * 0.12
-
-  maxAcceptable = Math.round(Math.max(6, Math.min(30, maxAcceptable)))
+  const maxAcceptable = getMaxAcceptable(legend, reputation, year)
 
   if (rate <= maxAcceptable) {
     return {

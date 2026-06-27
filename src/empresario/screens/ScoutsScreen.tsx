@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useEmpresario } from '../store'
 import {
   getAvailableLegends, getCurrentRating, getMarketValue,
-  getCurrentStatus, evaluateSigning,
+  getCurrentStatus, evaluateSigning, getMaxAcceptable,
+  getUnlockedNationalities, getLockedRegions, SCOUT_REGIONS,
 } from '../data/legends'
 import type { Legend, SigningEvaluation } from '../types'
 import {
@@ -19,7 +20,17 @@ export default function ScoutsScreen() {
   const [justSigned, setJustSigned] = useState<string | null>(null)
 
   const signedIds = state.clients.map(c => c.legendId)
-  const available = getAvailableLegends(state.year, signedIds)
+  const unlockedNats = getUnlockedNationalities(state.purchasedUpgrades)
+  const lockedRegions = getLockedRegions(state.purchasedUpgrades)
+  const available = getAvailableLegends(state.year, signedIds, unlockedNats)
+
+  // live commission prediction while dragging the slider
+  const liveMax = selected ? getMaxAcceptable(selected, state.reputation, state.year) : 0
+  const livePrediction = !selected ? null
+    : rate <= liveMax - 5 ? { label: '😄 Ele topa fácil', color: C.green, text: '#fff' }
+    : rate <= liveMax ? { label: '🤝 Ele aceita', color: C.teal, text: '#000' }
+    : rate <= liveMax + 4 ? { label: '😬 Ele vai pechinchar', color: C.yellow, text: '#000' }
+    : { label: '🚫 Ele vai recusar', color: C.orange, text: '#fff' }
 
   // Deterministic weekly pool
   const seed = state.year * 137 + state.week * 31
@@ -83,6 +94,35 @@ export default function ScoutsScreen() {
             ✦ Só VOCÊ enxerga o potencial real. Os olheiros do mundo veem só a nota atual.
           </p>
         </BrutalCard>
+
+        {/* unlocked regions */}
+        <div className="flex flex-wrap gap-1.5">
+          <BrutalTag color={C.green} textColor="#fff">🇧🇷 BRASIL ✓</BrutalTag>
+          {state.purchasedUpgrades.filter(u => u.startsWith('scout-')).map(u => {
+            const r = SCOUT_REGIONS[u.replace('scout-', '')]
+            return r ? <BrutalTag key={u} color={C.teal}>{r.flag} {r.label.toUpperCase()} ✓</BrutalTag> : null
+          })}
+        </div>
+
+        {/* locked regions hint */}
+        {lockedRegions.length > 0 && (
+          <BrutalCard color={C.black} className="p-4">
+            <p className="text-white font-black text-sm mb-1" style={{ fontFamily: 'Oswald, sans-serif' }}>
+              🔒 LENDAS ESCONDIDAS LÁ FORA
+            </p>
+            <p className="text-white/60 text-xs font-bold mb-3">
+              Você só conhece o Brasil de cor. Pra achar lendas de outros países, contrate olheiros no Escritório:
+            </p>
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {lockedRegions.map(r => (
+                <BrutalTag key={r} color={C.creamDark}>{SCOUT_REGIONS[r].flag} {SCOUT_REGIONS[r].label}</BrutalTag>
+              ))}
+            </div>
+            <BrutalButton color={C.yellow} textColor="#000" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'finance' })}>
+              🔭 Contratar olheiros →
+            </BrutalButton>
+          </BrutalCard>
+        )}
 
         {pool.length === 0 && (
           <BrutalCard color={C.creamDark} className="p-7 text-center">
@@ -202,6 +242,19 @@ export default function ScoutsScreen() {
                       <span>5% GENEROSO</span>
                       <span>30% GANANCIOSO</span>
                     </div>
+
+                    {/* LIVE prediction — você vê a reação antes de oferecer */}
+                    {livePrediction && !result && (
+                      <div className="mt-3 flex items-center justify-between border-[3px] border-black rounded-xl px-3 py-2"
+                           style={{ backgroundColor: livePrediction.color }}>
+                        <span className="font-black text-sm" style={{ color: livePrediction.text, fontFamily: 'Oswald, sans-serif' }}>
+                          {livePrediction.label}
+                        </span>
+                        <span className="font-mono text-[10px] font-bold" style={{ color: livePrediction.text }}>
+                          aceita até ~{liveMax}%
+                        </span>
+                      </div>
+                    )}
 
                     {/* counter feedback */}
                     {result?.result === 'counter' && (
