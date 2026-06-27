@@ -35,6 +35,7 @@ const INITIAL_STATE: GameState = {
   nemesisTaken: [],
   nemesisShown: false,
   nemesisAlert: null,
+  negotiationLog: [],
   ownedClub: null,
   narrative: [],
 }
@@ -190,6 +191,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         weeklyExpenses,
         actionsUsed: state.actionsUsed + 1,
         seenLegendIds: [...state.seenLegendIds, action.legendId],
+        negotiationLog: [{ who: 'voce' as const, year: state.year, text: `📝 Você agenciou ${legend.nickname} (${action.commissionRate}% de comissão)` }, ...state.negotiationLog].slice(0, 30),
         narrative: [...state.narrative, `✍️ Você assinou ${legend.nickname} por ${action.commissionRate}% de comissão + R$${legend.luva.toLocaleString('pt-BR')} de luva.`],
       }
     }
@@ -273,6 +275,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       let nemesisTaken = state.nemesisTaken
       let nemesisAlert = state.nemesisAlert
       let nemesisShown = state.nemesisShown
+      let negotiationLog = state.negotiationLog
       const grabbed = nemesisTryGrab(state, newYear)
       if (grabbed) {
         const legend = getLegendById(grabbed)!
@@ -285,6 +288,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           story: isFirst ? NEMESIS.story : `${NEMESIS.name} chegou primeiro de novo e fechou com ${legend.name}. "Mais um que era pra ser seu", ele provoca.`,
           isFirst,
         }
+        negotiationLog = [{ who: 'rival' as const, year: newYear, text: `😈 Sérgio Cambalhota agenciou ${legend.name} antes de você!` }, ...negotiationLog].slice(0, 30)
         extraNarrative.push(`😈 ${NEMESIS.name} roubou ${legend.nickname} de você!`)
       }
 
@@ -324,15 +328,23 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       // Weekly event (personalized with the player's name)
       const clientsLite: ClientLite[] = updatedClients.map(c => ({
         legendId: c.legendId, nickname: c.nickname, name: c.name, position: c.position, currentRating: c.currentRating,
+        status: c.status, personality: c.personality, nationality: c.nationality,
+        birthYear: c.birthYear, currentValue: c.currentValue, peakYearStart: c.peakYearStart,
+        contractClub: c.contractClub,
       }))
       const newEvent = generateWeeklyEvent(newYear, actualWeek, clientsLite, state.purchasedUpgrades)
       const newEvents = newEvent
         ? [...state.events.filter(e => e.resolved), newEvent]
         : state.events
 
-      // Ambient news — world events of the era + flavor about your clients
-      const news = generateAmbientNews(newYear, clientsLite)
-      if (news) extraNarrative.push(news)
+      // Ambient news — rich, contextual, non-repeating. 1–2 fresh lines/week.
+      const recentNews = [...state.narrative.slice(-10), ...extraNarrative]
+      const n1 = generateAmbientNews(newYear, clientsLite, recentNews)
+      if (n1) extraNarrative.push(n1)
+      if (Math.random() < 0.5) {
+        const n2 = generateAmbientNews(newYear, clientsLite, [...recentNews, ...(n1 ? [n1] : [])])
+        if (n2 && n2 !== n1) extraNarrative.push(n2)
+      }
 
       return {
         ...state,
@@ -347,6 +359,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         nemesisTaken,
         nemesisAlert,
         nemesisShown,
+        negotiationLog,
         ownedClub,
         lostLegends: grabbed ? [...state.lostLegends, grabbed] : state.lostLegends,
         narrative: [...state.narrative, ...extraNarrative],
@@ -371,6 +384,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
             ? { ...c, contractClub: offer.clubName, contractSalary: offer.salary, contractExpiresYear: state.year + offer.contractYears }
             : c
         ),
+        negotiationLog: [{ who: 'voce' as const, year: state.year, text: `✅ ${client?.nickname} → ${offer.clubName} por R$${offer.offerAmount.toLocaleString('pt-BR')} (sua comissão R$${commission.toLocaleString('pt-BR')})` }, ...state.negotiationLog].slice(0, 30),
         narrative: [
           ...state.narrative,
           `NEGÓCIO FECHADO! ${client?.nickname} → ${offer.clubName} por R$${offer.offerAmount.toLocaleString('pt-BR')}. Sua comissão: R$${commission.toLocaleString('pt-BR')} (${action.finalCommission}%)`

@@ -99,6 +99,12 @@ export interface NemesisAlert {
   isFirst: boolean
 }
 
+export interface NegotiationLogEntry {
+  who: 'voce' | 'rival'
+  text: string
+  year: number
+}
+
 export interface OwnedClub {
   id: string
   name: string
@@ -178,6 +184,7 @@ export interface GameState {
   nemesisTaken: string[]  // legends the rival agent snatched
   nemesisShown: boolean   // whether the nemesis backstory was shown
   nemesisAlert: NemesisAlert | null // pending alert to show the player
+  negotiationLog: NegotiationLogEntry[] // deals — yours and the rival's
   ownedClub: OwnedClub | null
   narrative: string[]     // log of key moments
 }

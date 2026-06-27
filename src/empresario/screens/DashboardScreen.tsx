@@ -1,12 +1,21 @@
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEmpresario } from '../store'
 import { NEMESIS } from '../data/clubs'
+import type { Client } from '../types'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalPill, BrutalTag, POS_COLOR, FLAG, STATUS_LABEL } from '../ui'
 
 const MONTHS = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ']
+const PERSONA: Record<string, { label: string; emoji: string }> = {
+  humilde: { label: 'Humilde', emoji: '😇' },
+  leal: { label: 'Leal', emoji: '🤝' },
+  ambicioso: { label: 'Ambicioso', emoji: '🔥' },
+  difícil: { label: 'Difícil', emoji: '🎭' },
+}
 
 export default function DashboardScreen() {
   const { state, dispatch } = useEmpresario()
+  const [detail, setDetail] = useState<Client | null>(null)
   const monthIndex = Math.floor((state.week - 1) / 4.34) % 12
   const pendingEvents = state.events.filter(e => !e.resolved)
   const activeOffers = state.pendingOffers.length
@@ -95,7 +104,7 @@ export default function DashboardScreen() {
               const st = STATUS_LABEL[c.status]
               return (
                 <motion.div key={c.legendId} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
-                  <BrutalCard color="white" className="p-4">
+                  <BrutalCard color="white" className="p-4" onClick={() => setDetail(c)}>
                     <div className="flex items-center gap-3">
                       <div className="text-3xl shrink-0">{FLAG[c.nationality]}</div>
                       <div className="flex-1 min-w-0">
@@ -136,13 +145,13 @@ export default function DashboardScreen() {
           </div>
         )}
 
-        {/* ── últimas notícias ── */}
+        {/* ── últimas notícias (feed do mundo do futebol) ── */}
         {state.narrative.length > 0 && (
           <div className="pt-1">
-            <h2 className="font-black text-black text-sm mb-2 uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>📰 Últimas notícias</h2>
-            <BrutalCard color={C.creamDark} className="p-4 space-y-2">
-              {[...state.narrative].reverse().slice(0, 3).map((n, i) => (
-                <p key={i} className="text-black/70 text-xs font-medium leading-relaxed border-l-[3px] border-black pl-2">{n}</p>
+            <h2 className="font-black text-black text-sm mb-2 uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>📰 Jornal da semana</h2>
+            <BrutalCard color={C.creamDark} className="p-4 space-y-2 max-h-72 overflow-y-auto">
+              {[...state.narrative].reverse().slice(0, 12).map((n, i) => (
+                <p key={i} className={`text-xs font-medium leading-relaxed border-l-[3px] pl-2 ${i === 0 ? 'text-black border-black' : 'text-black/60 border-black/30'}`}>{n}</p>
               ))}
             </BrutalCard>
           </div>
@@ -195,6 +204,104 @@ export default function DashboardScreen() {
           </p>
         )}
       </div>
+
+      {/* ── CLIENT DETAIL MODAL ── */}
+      <AnimatePresence>
+        {detail && (() => {
+          const c = detail
+          const age = state.year - c.birthYear
+          const st = STATUS_LABEL[c.status]
+          const persona = PERSONA[c.personality]
+          const yearsWithYou = state.year - c.signedYear
+          return (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+              style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+              onClick={() => setDetail(null)}
+            >
+              <motion.div
+                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+                className="w-full max-w-md p-3"
+                onClick={e => e.stopPropagation()}
+              >
+                <BrutalCard color={C.cream} className="p-5 max-h-[85vh] overflow-y-auto" shadow={8}>
+                  {/* head */}
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="text-4xl">{FLAG[c.nationality]}</div>
+                    <div className="flex-1">
+                      <p className="font-black text-black text-2xl leading-none" style={{ fontFamily: 'Oswald, sans-serif' }}>{c.nickname}</p>
+                      <p className="text-black/50 text-sm font-bold">{c.name}</p>
+                    </div>
+                    <button onClick={() => setDetail(null)} className="text-black text-2xl font-black">×</button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    <BrutalTag color={POS_COLOR[c.position]} textColor="#fff">{c.position}</BrutalTag>
+                    {st && <BrutalTag color={st.color} textColor={c.status === 'pelada' ? '#fff' : '#000'}>{st.label}</BrutalTag>}
+                    <BrutalTag color={C.creamDark}>{age} anos</BrutalTag>
+                    {persona && <BrutalTag color={C.creamDark}>{persona.emoji} {persona.label}</BrutalTag>}
+                  </div>
+
+                  {/* current club */}
+                  <BrutalCard color={C.blue} className="p-3 mb-3" shadow={3}>
+                    <p className="text-white/60 text-[10px] font-black uppercase tracking-widest">Joga atualmente no</p>
+                    <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>🏟️ {c.contractClub ?? 'Sem clube'}</p>
+                    {c.contractExpiresYear && (
+                      <p className="text-white/60 text-xs font-bold mt-0.5">Contrato até {c.contractExpiresYear} · salário {money(c.contractSalary)}/ano</p>
+                    )}
+                  </BrutalCard>
+
+                  {/* stats grid */}
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="bg-white border-2 border-black rounded-lg p-2 text-center">
+                      <p className="text-black/40 text-[9px] font-black uppercase">Nota</p>
+                      <p className="font-black text-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{c.currentRating}</p>
+                    </div>
+                    <div className="border-2 border-black rounded-lg p-2 text-center" style={{ backgroundColor: C.yellow }}>
+                      <p className="text-black/60 text-[9px] font-black uppercase">Potencial ✦</p>
+                      <p className="font-black text-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{c.truePotential}</p>
+                    </div>
+                    <div className="bg-white border-2 border-black rounded-lg p-2 text-center">
+                      <p className="text-black/40 text-[9px] font-black uppercase">Valor</p>
+                      <p className="font-black text-black text-base mt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(c.currentValue)}</p>
+                    </div>
+                  </div>
+
+                  {/* your deal */}
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="bg-white border-2 border-black rounded-lg p-2 text-center">
+                      <p className="text-black/40 text-[9px] font-black uppercase">Comissão</p>
+                      <p className="font-black text-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{c.commissionRate}%</p>
+                    </div>
+                    <div className="bg-white border-2 border-black rounded-lg p-2 text-center">
+                      <p className="text-black/40 text-[9px] font-black uppercase">Moral</p>
+                      <p className="font-black text-black text-lg" style={{ fontFamily: 'Oswald, sans-serif', color: c.happiness > 60 ? C.tealDark : c.happiness > 35 ? '#000' : C.orange }}>{c.happiness}</p>
+                    </div>
+                    <div className="bg-white border-2 border-black rounded-lg p-2 text-center">
+                      <p className="text-black/40 text-[9px] font-black uppercase">Com você há</p>
+                      <p className="font-black text-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{yearsWithYou}a</p>
+                    </div>
+                  </div>
+
+                  {/* future knowledge */}
+                  <BrutalCard color={C.black} className="p-3" shadow={3}>
+                    <p className="text-white/50 text-[10px] font-black uppercase tracking-widest mb-1">🔮 O que SÓ você sabe</p>
+                    <p className="text-white text-xs font-bold leading-relaxed">{c.futureKnowledge}</p>
+                  </BrutalCard>
+
+                  <div className="mt-4">
+                    <BrutalButton color={C.green} onClick={() => { setDetail(null); dispatch({ type: 'SET_SCREEN', screen: 'offers' }) }}>
+                      Ver propostas e negociar →
+                    </BrutalButton>
+                  </div>
+                </BrutalCard>
+              </motion.div>
+            </motion.div>
+          )
+        })()}
+      </AnimatePresence>
 
       {/* ── NEMESIS ALERT MODAL ── */}
       <AnimatePresence>
