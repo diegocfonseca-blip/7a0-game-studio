@@ -6,6 +6,13 @@ export interface ClientLite {
   name: string
   position: string
   currentRating: number
+  status?: string
+  personality?: string
+  nationality?: string
+  birthYear?: number
+  currentValue?: number
+  peakYearStart?: number
+  contractClub?: string | null
 }
 
 let evtCounter = 0
@@ -200,48 +207,229 @@ export function generateWeeklyEvent(
   return make(c, year, week)
 }
 
-// ─── AMBIENT NEWS (sem decisão — só dão textura/dados ao mundo) ──
-// Real-flavored news of the era + flavor about your clients.
+// ─── AMBIENT NEWS ENGINE ────────────────────────────────────────
+// Builds a large, CONTEXTUAL pool every week (reacts to age, position,
+// status, personality, value, era) and never repeats the recent lines.
 
 const WORLD_NEWS: Record<number, string[]> = {
-  1993: ['📻 O futebol brasileiro discute a profissionalização dos clubes.', '🌍 A Série A italiana é a liga mais rica e cobiçada do planeta.'],
-  1994: ['🏆 BRASIL TETRACAMPEÃO MUNDIAL nos EUA! O país para.', '⚽ Romário e Bebeto comandam o título nos Estados Unidos.', '💰 Clubes europeus de olho na safra brasileira pós-Copa.'],
-  1995: ['⚖️ LEI BOSMAN! Jogadores em fim de contrato saem de graça. O mercado muda pra sempre.', '🌍 Clubes podem escalar quantos estrangeiros quiserem na Europa.'],
-  1996: ['🏟️ A Champions League cresce e vira a competição mais cobiçada da Europa.', '✈️ Êxodo de brasileiros pra Europa se acelera.'],
-  1997: ['💸 Os valores de transferência batem recordes ano após ano.', '🇧🇷 O Brasil é a maior fábrica de craques do mundo.'],
-  1998: ['🏆 França campeã do mundo em casa! Zidane vira herói nacional.', '💰 Denílson vira a transferência mais cara da história — €31,5M.'],
-  1999: ['🌍 O Real Madrid começa a era dos "Galácticos".', '⚽ O dinheiro da TV transforma o futebol num negócio bilionário.'],
-  2000: ['🏟️ A reforma de estádios moderniza o futebol mundial.', '💰 Salários de craques explodem com contratos de imagem.'],
-  2002: ['🏆 BRASIL PENTACAMPEÃO! Ronaldo se vinga do mundo com 8 gols na Copa.', '🌏 A Copa da Ásia revela mercados gigantes pro futebol.'],
-  2003: ['💰 Um bilionário russo compra o Chelsea e vira tudo de cabeça pra baixo.', '⚽ A era dos clubes-empresa de donos bilionários começa.'],
-  2004: ['🇬🇷 Grécia campeã da Euro — o azarão que calou o mundo.', '⭐ Uma nova geração de craques desponta na Europa.'],
-  2005: ['🏆 Liverpool faz a "noite de Istambul" e vira do 3x0 na final da Champions.', '🌟 Ronaldinho Gaúcho é o melhor do mundo e o Barça renasce.'],
+  1993: [
+    '📻 O futebol brasileiro discute a profissionalização dos clubes — fim da era amadora.',
+    '🌍 A Série A italiana é a liga mais rica e cobiçada do planeta.',
+    '📺 A TV paga começa a despejar dinheiro no futebol europeu.',
+    '🎵 Nos rádios: "TED Maia", axé e o som dos anos 90 embalam os vestiários.',
+    '🇮🇹 Milan de Capello atropela todo mundo com seu trio holandês.',
+  ],
+  1994: [
+    '🏆 BRASIL TETRACAMPEÃO MUNDIAL nos EUA! O país inteiro para.',
+    '⚽ Romário e Bebeto comandam o título — o "balança o nenê" roda o mundo.',
+    '💔 Tragédia: Andrés Escobar é assassinado após gol contra. O futebol chora.',
+    '💰 Clubes europeus de olho na safra brasileira pós-Copa.',
+    '🥅 Maradona é expulso da Copa por doping. Fim melancólico de um ídolo.',
+  ],
+  1995: [
+    '⚖️ LEI BOSMAN! Jogador em fim de contrato sai DE GRAÇA. O mercado muda pra sempre.',
+    '🌍 Acabam os limites de estrangeiros nos clubes europeus.',
+    '✈️ Agora qualquer brasileiro pode lotar os times da Europa.',
+    '📈 Os salários disparam: jogador livre vira ouro.',
+  ],
+  1996: [
+    '🏟️ A Champions League cresce e vira a competição mais cobiçada do mundo.',
+    '✈️ O êxodo de brasileiros pra Europa vira enxurrada.',
+    '🇳🇱 Ajax revela uma geração de ouro que encanta o continente.',
+    '🏅 Nigéria leva o ouro olímpico no futebol em Atlanta.',
+  ],
+  1997: [
+    '💸 Os valores de transferência batem recordes ano após ano.',
+    '🇧🇷 O Brasil é a maior fábrica de craques do planeta.',
+    '🏆 Borussia Dortmund surpreende e fatura a Champions.',
+    '⚽ Ronaldo brilha no Barça e o mundo descobre o "Fenômeno".',
+  ],
+  1998: [
+    '🏆 FRANÇA campeã do mundo em casa! Zidane vira herói nacional.',
+    '💰 Denílson vira a transferência mais cara da história — €31,5M pro Betis.',
+    '😱 Final bizarra: Ronaldo passa mal horas antes e o Brasil perde o título.',
+    '🌍 A Copa da França bate recordes de audiência no mundo todo.',
+  ],
+  1999: [
+    '🌍 Real Madrid começa a montar a era dos "Galácticos".',
+    '🔴 Manchester United faz a TRÍPLICE COROA com virada épica na Champions.',
+    '⚽ O dinheiro da TV transforma o futebol num negócio bilionário.',
+    '💻 A internet começa a mudar como o mundo acompanha futebol.',
+  ],
+  2000: [
+    '🏟️ Reformas de estádios modernizam o futebol mundial pro novo milênio.',
+    '💰 Contratos de imagem fazem salários de craques explodirem.',
+    '🇫🇷 França confirma hegemonia e leva também a Eurocopa.',
+    '⭐ Nasce a era dos megacontratos publicitários.',
+  ],
+  2001: [
+    '💰 Zidane custa €75M ao Real — novo recorde mundial.',
+    '🏆 Bayern reconquista a Europa após décadas.',
+    '📊 Estatística e ciência começam a entrar no futebol.',
+  ],
+  2002: [
+    '🏆 BRASIL PENTACAMPEÃO! Ronaldo se vinga do mundo com 8 gols na Copa.',
+    '🌏 A Copa da Coreia/Japão revela mercados gigantes pro futebol.',
+    '🇰🇷 Coreia do Sul faz a semifinal e enlouquece a Ásia.',
+    '⚽ O voleio de Zidane em Glasgow entra pra história da Champions.',
+  ],
+  2003: [
+    '💰 Um bilionário russo compra o Chelsea e vira tudo de cabeça pra baixo.',
+    '⚽ Começa a era dos clubes-empresa de donos bilionários.',
+    '🇵🇹 Um técnico chamado Mourinho ganha a Champions com o Porto — e o mundo anota o nome.',
+  ],
+  2004: [
+    '🇬🇷 GRÉCIA campeã da Euro — o maior azarão da história calou o mundo.',
+    '⭐ Uma nova geração desponta: o futebol troca de era.',
+    '🔥 Arsenal "Invencível" passa a temporada inteira sem perder na Inglaterra.',
+  ],
+  2005: [
+    '🏆 Liverpool faz a "NOITE DE ISTAMBUL": vira o 3x0 e é campeão nos pênaltis.',
+    '🌟 Ronaldinho Gaúcho é o melhor do mundo e o Barça renasce.',
+    '💰 O dinheiro inglês começa a dominar o mercado europeu.',
+  ],
+  2006: [
+    '🏆 ITÁLIA tetracampeã! E Zidane se despede com a cabeçada em Materazzi.',
+    '⚽ Calciopoli: escândalo de arbitragem rebaixa a Juventus.',
+    '🌍 A Copa da Alemanha é uma festa global.',
+  ],
+  2007: [
+    '🏅 Kaká é eleito o melhor do mundo — o último antes da era Messi/CR7.',
+    '🔴 Milan se vinga e fatura a Champions.',
+    '💰 Os clubes ingleses dominam as quartas da Champions.',
+  ],
+  2008: [
+    '🏆 CR7 conquista sua primeira Bola de Ouro com o United.',
+    '🇪🇸 Espanha leva a Euro e inicia uma dinastia histórica.',
+    '⚽ Nasce o duelo eterno: Messi x Cristiano.',
+  ],
 }
 
-const CLIENT_NEWS: ((c: ClientLite) => string)[] = [
-  c => `📰 ${c.nickname} foi destaque na rodada e ganhou elogios da imprensa.`,
-  c => `🗣️ Comentaristas debatem se ${c.nickname} merece a Seleção.`,
-  c => `📈 O nome de ${c.nickname} começa a circular entre olheiros europeus.`,
-  c => `🎯 ${c.nickname} treina firme e impressiona a comissão técnica.`,
-  c => `🤝 Torcida adota ${c.nickname} como ídolo e estampa faixas no estádio.`,
-  c => `🎤 ${c.nickname} deu entrevista madura e caiu nas graças do público.`,
-  c => `🔥 Rivais já reclamam que ${c.nickname} é difícil de marcar.`,
+// ── flavor cultural/era (toca quando não há notícia de mundo específica) ──
+const ERA_FLAVOR: { from: number; to: number; lines: string[] }[] = [
+  { from: 1993, to: 1996, lines: [
+    '📼 Nas locadoras, todo mundo aluga fita VHS. O som é de fita cassete.',
+    '📟 O auge do pager: craque que se preze tem um no bolso.',
+    '🎮 A molecada joga Super Nintendo e sonha em ser jogador.',
+  ]},
+  { from: 1997, to: 2000, lines: [
+    '💿 O CD toma conta e o Orkut ainda nem existe.',
+    '📱 Celulares "tijolão" viram símbolo de status entre os jogadores.',
+    '🌐 A virada do milênio assombra com o "bug do ano 2000".',
+  ]},
+  { from: 2001, to: 2005, lines: [
+    '📲 SMS vira mania e os empresários fecham negócio por torpedo.',
+    '💻 Os primeiros sites de notícia esportiva mudam o jornalismo.',
+    '🎧 iPod no vestiário: a nova geração chega plugada.',
+  ]},
+  { from: 2006, to: 2010, lines: [
+    '📱 Smartphones começam a aparecer nas mãos dos craques.',
+    '📺 A TV em alta definição revoluciona a transmissão dos jogos.',
+    '🌍 As redes sociais começam a aproximar ídolos e torcedores.',
+  ]},
 ]
 
-export function generateAmbientNews(year: number, clients: ClientLite[]): string | null {
-  const roll = Math.random()
-  // World news of the era
-  if (roll < 0.45) {
-    const pool = WORLD_NEWS[year]
-    if (pool && pool.length) return pool[Math.floor(Math.random() * pool.length)]
+// ── notícias de competição por época ──
+function competitionNews(year: number): string[] {
+  const out: string[] = []
+  out.push('🏆 A Libertadores esquenta e os clubes brasileiros sonham com a glória.')
+  out.push('🇧🇷 O Brasileirão entra na reta decisiva com clássicos pegados.')
+  if (year >= 1995) out.push('⭐ A Champions League domina as manchetes europeias.')
+  return out
+}
+
+// ── notícias contextuais sobre um cliente (reagem ao perfil dele) ──
+function clientNews(c: ClientLite, year: number): string[] {
+  const out: string[] = []
+  const age = c.birthYear ? year - c.birthYear : 22
+  const pos = c.position
+  const r = c.currentRating
+
+  // por posição
+  if (pos === 'ATA') out.push(`⚽ ${c.nickname} fez mais um golaço e a torcida grita o nome dele.`,
+    `🎯 ${c.nickname} lidera a artilharia e os zagueiros já temem o nome.`)
+  if (pos === 'MEI') out.push(`🎩 Um drible de ${c.nickname} viralizou nos programas esportivos.`,
+    `🧠 ${c.nickname} comanda o meio-campo como um maestro.`)
+  if (pos === 'ZAG' || pos === 'LAT') out.push(`🛡️ ${c.nickname} fez um corte salvador e a defesa virou muralha.`)
+  if (pos === 'GOL') out.push(`🧤 ${c.nickname} fez uma defesa milagrosa que parou o estádio.`)
+
+  // por idade / fase
+  if (age <= 18) out.push(`👶 ${c.nickname}, ainda um moleque, treina com os profissionais e impressiona.`,
+    `📚 A família de ${c.nickname} sonha alto — e você segura as pontas.`)
+  else if (age >= 30) out.push(`⏳ Comentaristas questionam por quanto tempo ${c.nickname} aguenta o ritmo.`,
+    `🎖️ ${c.nickname} vira referência no vestiário e ensina a molecada.`)
+
+  // por rating / mercado
+  if (r >= 80) out.push(`🌍 Os maiores clubes do mundo monitoram cada jogo de ${c.nickname}.`,
+    `💰 O valor de ${c.nickname} dispara e a imprensa fala em transferência milionária.`)
+  else if (r >= 60) out.push(`📈 ${c.nickname} subiu de nível e olheiros europeus lotaram a arquibancada.`)
+  else out.push(`🌱 ${c.nickname} ainda é cru, mas mostra lampejos de craque.`)
+
+  // por personalidade
+  if (c.personality === 'difícil') out.push(`🎭 ${c.nickname} arrumou confusão no vestiário — climão com o técnico.`,
+    `🌃 Boatos de que ${c.nickname} foi visto na balada véspera de jogo.`)
+  if (c.personality === 'humilde') out.push(`😇 ${c.nickname} visitou um hospital infantil e ganhou o coração da cidade.`)
+  if (c.personality === 'ambicioso') out.push(`🔥 ${c.nickname} declarou que quer ser o melhor do mundo. Polêmica garantida.`)
+  if (c.personality === 'leal') out.push(`🤝 ${c.nickname} jurou amor à camisa e a torcida o carrega nos ombros.`)
+
+  // proximidade do auge
+  if (c.peakYearStart && year >= c.peakYearStart - 1 && year <= c.peakYearStart + 1) {
+    out.push(`🚀 Todos sentem: ${c.nickname} está prestes a explodir de vez. Hora de valorizar.`)
   }
-  // Client flavor news
-  if (clients.length > 0 && roll < 0.85) {
-    const c = clients[Math.floor(Math.random() * clients.length)]
-    const make = CLIENT_NEWS[Math.floor(Math.random() * CLIENT_NEWS.length)]
-    return make(c)
+
+  // genéricas de bastidor
+  out.push(
+    `🗣️ Comentaristas debatem se ${c.nickname} merece a Seleção.`,
+    `🎤 ${c.nickname} deu uma entrevista madura e caiu nas graças do público.`,
+    `🤝 A torcida estampou faixas com o nome de ${c.nickname} no estádio.`,
+  )
+  return out
+}
+
+// ── provocações do nemesis ──
+function nemesisNews(c: ClientLite | null): string[] {
+  const out = [
+    '😈 Sérgio Cambalhota apareceu na TV se gabando de "ter o melhor faro do Brasil". Que piada.',
+    '😏 Dizem que Cambalhota anda perguntando como você sempre acerta os palpites.',
+    '🕵️ Cambalhota foi visto rondando os mesmos campos que você. Coincidência?',
+  ]
+  if (c) out.push(`👀 Cambalhota soltou nos bastidores que vai "fisgar ${c.nickname}" de você.`)
+  return out
+}
+
+function pickEra(year: number): string[] {
+  const e = ERA_FLAVOR.find(e => year >= e.from && year <= e.to)
+  return e ? e.lines : []
+}
+
+export function generateAmbientNews(
+  year: number,
+  clients: ClientLite[],
+  recent: string[] = [],
+): string | null {
+  // Build a big weighted pool
+  const pool: string[] = []
+  const world = WORLD_NEWS[year] ?? []
+  // weight world news a bit heavier by adding twice
+  pool.push(...world, ...world)
+  pool.push(...pickEra(year))
+  pool.push(...competitionNews(year))
+  if (clients.length > 0) {
+    // 2 random clients' contextual news
+    const shuffled = [...clients].sort(() => Math.random() - 0.5)
+    for (const c of shuffled.slice(0, 2)) pool.push(...clientNews(c, year))
+    if (Math.random() < 0.25) pool.push(...nemesisNews(shuffled[0]))
+  } else {
+    if (Math.random() < 0.2) pool.push(...nemesisNews(null))
   }
-  return null
+
+  if (pool.length === 0) return null
+
+  // avoid the recently shown lines
+  const recentSet = new Set(recent)
+  const fresh = pool.filter(s => !recentSet.has(s))
+  const finalPool = fresh.length ? fresh : pool
+  return finalPool[Math.floor(Math.random() * finalPool.length)]
 }
 
 // ─── SCOUTS (desbloqueiam lendas por país) ──────────────────────

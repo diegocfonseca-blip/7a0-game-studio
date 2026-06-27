@@ -146,7 +146,6 @@ export default function NegotiationsScreen() {
   const { state, dispatch } = useEmpresario()
   const activeOffers = state.pendingOffers
   const pendingEvents = state.events.filter(e => !e.resolved)
-  const resolved = state.events.filter(e => e.resolved).slice(-3)
 
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
@@ -186,29 +185,34 @@ export default function NegotiationsScreen() {
           </div>
         )}
 
-        {resolved.length > 0 && (
-          <div className="space-y-2">
-            <h2 className="font-black text-black text-sm uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>Histórico</h2>
-            {resolved.map(e => (
-              <BrutalCard key={e.id} color={C.creamDark} className="p-3" shadow={3}>
-                <p className="text-black/60 text-xs font-bold">{e.title}</p>
-                {e.chosenIndex !== undefined && e.choices && (
-                  <p className="text-black/40 text-xs mt-0.5">→ {e.choices[e.chosenIndex].label}</p>
-                )}
+        {/* MURAL DE NEGOCIAÇÕES — suas e do Cambalhota */}
+        <div className="space-y-2">
+          <h2 className="font-black text-black uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>📜 Mural de negociações</h2>
+          <p className="text-black/40 text-xs font-bold -mt-1 mb-1">Seus fechamentos e os do seu rival Sérgio Cambalhota.</p>
+          {state.negotiationLog.length === 0 ? (
+            <BrutalCard color={C.creamDark} className="p-6 text-center" shadow={3}>
+              <p className="text-3xl mb-1">🤝</p>
+              <p className="text-black/50 text-sm font-bold">Nenhuma negociação ainda. Agencie jogadores e feche transferências — elas aparecem aqui.</p>
+            </BrutalCard>
+          ) : (
+            state.negotiationLog.map((entry, i) => (
+              <BrutalCard key={i} color={entry.who === 'voce' ? 'white' : C.black} className="p-3" shadow={3}>
+                <div className="flex items-start gap-2">
+                  <BrutalTag color={entry.who === 'voce' ? C.green : C.orange} textColor="#fff">
+                    {entry.who === 'voce' ? 'VOCÊ' : 'CAMBALHOTA'}
+                  </BrutalTag>
+                  <span className={`text-xs font-bold flex-1 ${entry.who === 'voce' ? 'text-black' : 'text-white'}`}>{entry.text}</span>
+                  <span className={`text-[10px] font-black ${entry.who === 'voce' ? 'text-black/40' : 'text-white/40'}`}>{entry.year}</span>
+                </div>
               </BrutalCard>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
 
         {activeOffers.length === 0 && pendingEvents.length === 0 && (
-          <BrutalCard color={C.creamDark} className="p-8 text-center">
-            <p className="text-5xl mb-2">📭</p>
-            <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>TUDO TRANQUILO</p>
-            <p className="text-black/50 text-sm font-medium mt-1">Nenhuma negociação pendente. Avance semanas para receber propostas.</p>
-            <div className="mt-4">
-              <BrutalButton color={C.blue} onClick={() => dispatch({ type: 'ADVANCE_WEEK' })}>⏩ Avançar semana</BrutalButton>
-            </div>
-          </BrutalCard>
+          <p className="text-black/40 text-xs font-bold text-center pt-1">
+            Sem propostas pendentes. Avance as semanas no painel para receber novas.
+          </p>
         )}
       </div>
     </div>
