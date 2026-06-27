@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
-import type { GameState, Screen, Client, ClubOffer, Bid, OwnedClub } from '../types'
+import type { GameState, Screen, Client, ClubOffer, Bid, OwnedClub, LeagueTeam } from '../types'
 import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, LEGENDS } from '../data/legends'
 import { generateWeeklyEvent, generateAmbientNews } from '../data/events'
 import type { ClientLite } from '../data/events'
@@ -61,6 +61,7 @@ type Action =
   | { type: 'HAGGLE_OFFER'; offerId: string }
   | { type: 'BUY_CLUB'; clubId: string; name: string; division: number; price: number; fans: number }
   | { type: 'PLACE_CLIENT_IN_CLUB'; legendId: string }
+  | { type: 'BUY_TO_CLUB'; legendId: string }
   | { type: 'DIRTY_ACTION'; kind: 'maquiar' | 'imprensa' | 'arbitro' }
   | { type: 'NEW_GAME' }
 
@@ -88,8 +89,11 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
     return Math.round(amt * (0.02 + Math.random() * 0.07) * relBonus / 1000) * 1000
   }
 
-  // Market heat: the hotter the player, the more clubs fight (and likely more come)
-  const interest: 'alto' | 'medio' | 'baixo' = rating >= 82 ? 'alto' : rating >= 72 ? 'medio' : 'baixo'
+  // Market heat: the hotter the player, the more clubs fight (and likely more come).
+  // A FREE AGENT (no club, no transfer fee) attracts even more interest.
+  const free = !client.contractClub
+  let interest: 'alto' | 'medio' | 'baixo' = rating >= 82 ? 'alto' : rating >= 72 ? 'medio' : 'baixo'
+  if (free) interest = interest === 'baixo' ? 'medio' : 'alto'
 
   // ── BIDDING WAR: hot players attract several clubs at once ──
   const isWar = interest === 'alto' && eligibleClubs.length >= 2
@@ -136,6 +140,23 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
     expiresInWeeks: 3 + Math.floor(Math.random() * 4),
     interest,
   }
+}
+
+const RIVAL_TEAM_NAMES = [
+  'Nacional FC', 'União Operária', 'EC Vale Verde', 'Atlético Serrano',
+  'Tupi do Norte', 'Grêmio Maringá', 'Sport Litoral', 'Ferroviária', 'Juventude FC', 'Real Sertão',
+]
+
+function buildLeagueTable(clubName: string): LeagueTeam[] {
+  const opp = [...RIVAL_TEAM_NAMES].sort(() => Math.random() - 0.5).slice(0, 7)
+  return [
+    { name: clubName, points: 0, played: 0, isYou: true },
+    ...opp.map(n => ({ name: n, points: 0, played: 0 })),
+  ]
+}
+
+function sortTable(t: LeagueTeam[]): LeagueTeam[] {
+  return [...t].sort((a, b) => b.points - a.points || b.points / Math.max(1, b.played) - a.points / Math.max(1, a.played))
 }
 
 // The nemesis snatches a hot prospect you haven't signed yet.
@@ -365,7 +386,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       let ownedClub = state.ownedClub
       if (ownedClub) {
         runningMoney += ownedClub.cashPerWeek
-        // a match every 2 weeks
+        // a match every 2 weeks — yours + the whole league plays
         if (newWeek % 2 === 0) {
           const placed = activeClients.filter(c => ownedClub!.placedClientIds.includes(c.legendId))
           const squadStr = placed.length
@@ -373,24 +394,36 @@ function empresarioReducer(state: GameState, action: Action): GameState {
             : 35
           const roll = Math.random() * 100
           const winChance = Math.min(85, 30 + (squadStr - 40))
-          let result: string
+          let result: string, ptsGained = 0
           let wins = ownedClub.seasonWins, draws = ownedClub.seasonDraws, losses = ownedClub.seasonLosses
-          if (roll < winChance) { result = 'Vitória 🟢'; wins++ }
-          else if (roll < winChance + 20) { result = 'Empate 🟡'; draws++ }
+          if (roll < winChance) { result = 'Vitória 🟢'; wins++; ptsGained = 3 }
+          else if (roll < winChance + 20) { result = 'Empate 🟡'; draws++; ptsGained = 1 }
           else { result = 'Derrota 🔴'; losses++ }
-          ownedClub = { ...ownedClub, seasonWins: wins, seasonDraws: draws, seasonLosses: losses, lastResult: result }
+          // update the standings: you + simulate every rival's matchday
+          const table = (ownedClub.table ?? buildLeagueTable(ownedClub.name)).map(t => {
+            if (t.isYou) return { ...t, points: t.points + ptsGained, played: t.played + 1 }
+            const r = Math.random()
+            const p = r < 0.4 ? 3 : r < 0.7 ? 1 : 0
+            return { ...t, points: t.points + p, played: t.played + 1 }
+          })
+          ownedClub = { ...ownedClub, seasonWins: wins, seasonDraws: draws, seasonLosses: losses, lastResult: result, table }
         }
-        // promotion on year rollover if strong season
+        // promotion/relegation by FINAL STANDINGS on year rollover
         if (yearRolled) {
-          const pts = ownedClub.seasonWins * 3 + ownedClub.seasonDraws
-          if (pts >= 40 && ownedClub.division > 1) {
+          const finalTable = sortTable(ownedClub.table ?? buildLeagueTable(ownedClub.name))
+          const pos = finalTable.findIndex(t => t.isYou) + 1
+          ownedClub = { ...ownedClub, leaguePosition: pos }
+          if (pos > 0 && pos <= 2 && ownedClub.division > 1) {
             ownedClub = { ...ownedClub, division: ownedClub.division - 1, fans: Math.round(ownedClub.fans * 1.6), cashPerWeek: Math.round(ownedClub.cashPerWeek * 1.5) }
-            extraNarrative.push(`🏟️ ${ownedClub.name} subiu para a ${ownedClub.division}ª divisão! A torcida explode.`)
-          } else if (pts < 18 && ownedClub.division < 4) {
+            extraNarrative.push(`🏟️ ${ownedClub.name} terminou em ${pos}º e SUBIU para a ${ownedClub.division}ª divisão! A torcida explode.`)
+          } else if (pos >= finalTable.length - 1 && ownedClub.division < 4) {
             ownedClub = { ...ownedClub, division: ownedClub.division + 1, fans: Math.round(ownedClub.fans * 0.7) }
-            extraNarrative.push(`🏟️ ${ownedClub.name} foi rebaixado para a ${ownedClub.division}ª divisão. Aperto no caixa.`)
+            extraNarrative.push(`🏟️ ${ownedClub.name} terminou em ${pos}º e foi REBAIXADO para a ${ownedClub.division}ª divisão.`)
+          } else {
+            extraNarrative.push(`🏟️ ${ownedClub.name} terminou a temporada em ${pos}º lugar.`)
           }
-          ownedClub = { ...ownedClub, seasonWins: 0, seasonDraws: 0, seasonLosses: 0 }
+          // new season: reset table
+          ownedClub = { ...ownedClub, seasonWins: 0, seasonDraws: 0, seasonLosses: 0, table: buildLeagueTable(ownedClub.name) }
         }
       }
 
@@ -659,6 +692,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         placedClientIds: [],
         lastResult: '—',
         seasonWins: 0, seasonDraws: 0, seasonLosses: 0,
+        table: buildLeagueTable(action.name),
       }
       return {
         ...state,
@@ -668,9 +702,33 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       }
     }
 
+    case 'BUY_TO_CLUB': {
+      if (!state.ownedClub) return state
+      const c = state.clients.find(x => x.legendId === action.legendId)
+      if (!c) return state
+      const cost = Math.round(c.currentValue)
+      if (state.money < cost) return state
+      return {
+        ...state,
+        money: state.money - cost,
+        clients: state.clients.map(x =>
+          x.legendId === action.legendId
+            ? { ...x, contractClub: state.ownedClub!.name, lastDealYear: state.year, happiness: Math.min(100, x.happiness + 8) }
+            : x
+        ),
+        ownedClub: { ...state.ownedClub, placedClientIds: [...state.ownedClub.placedClientIds, action.legendId] },
+        narrative: [...state.narrative, `🔁 Você comprou ${c.nickname} (de ${c.contractClub}) pro seu ${state.ownedClub.name} por R$${cost.toLocaleString('pt-BR')}.`],
+      }
+    }
+
     case 'PLACE_CLIENT_IN_CLUB': {
       if (!state.ownedClub) return state
+      const cli = state.clients.find(c => c.legendId === action.legendId)
+      if (!cli) return state
       const already = state.ownedClub.placedClientIds.includes(action.legendId)
+      // Can only field a player who is AT your club or has no club at all.
+      const eligible = !cli.contractClub || cli.contractClub === state.ownedClub.name
+      if (!already && !eligible) return state
       const placedClientIds = already
         ? state.ownedClub.placedClientIds.filter(id => id !== action.legendId)
         : [...state.ownedClub.placedClientIds, action.legendId]
@@ -678,7 +736,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         ...state,
         ownedClub: { ...state.ownedClub, placedClientIds },
         clients: state.clients.map(c =>
-          c.legendId === action.legendId && !already
+          c.legendId === action.legendId && !already && !c.contractClub
             ? { ...c, contractClub: state.ownedClub!.name, happiness: Math.min(100, c.happiness + 6) }
             : c
         ),

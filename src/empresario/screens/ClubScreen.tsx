@@ -1,5 +1,5 @@
 import { useEmpresario } from '../store'
-import { C, money, moneyFull, BrutalCard, BrutalTag, POS_COLOR, FLAG } from '../ui'
+import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag, POS_COLOR, FLAG } from '../ui'
 
 const DIV_LABEL: Record<number, string> = { 1: '1ª (Elite)', 2: '2ª Divisão', 3: '3ª Divisão', 4: '4ª Divisão' }
 
@@ -14,9 +14,13 @@ export default function ClubScreen() {
     )
   }
 
+  // placement rules: a client can play here only if he's AT your club or clubless
+  const atClubOrFree = (c: typeof state.clients[number]) => !c.contractClub || c.contractClub === club.name
   const placed = state.clients.filter(c => club.placedClientIds.includes(c.legendId))
-  const notPlaced = state.clients.filter(c => !club.placedClientIds.includes(c.legendId))
-  const pts = club.seasonWins * 3 + club.seasonDraws
+  const placeable = state.clients.filter(c => !club.placedClientIds.includes(c.legendId) && atClubOrFree(c))
+  const elsewhere = state.clients.filter(c => c.contractClub && c.contractClub !== club.name && !club.placedClientIds.includes(c.legendId))
+
+  const table = [...(club.table ?? [])].sort((a, b) => b.points - a.points || b.played - a.played)
 
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
@@ -53,38 +57,36 @@ export default function ClubScreen() {
           </div>
         </BrutalCard>
 
-        {/* season */}
-        <BrutalCard color="white" className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>📊 TEMPORADA</h2>
-            <BrutalTag color={C.yellow}>{pts} pts</BrutalTag>
+        {/* LEAGUE TABLE */}
+        {table.length > 0 && (
+          <div>
+            <h2 className="font-black text-black mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>📊 CLASSIFICAÇÃO — {DIV_LABEL[club.division]}</h2>
+            <BrutalCard color="white" className="p-0 overflow-hidden">
+              {table.map((t, i) => {
+                const promo = i < 2
+                const releg = i >= table.length - 2 && club.division < 4
+                return (
+                  <div key={t.name} className="flex items-center gap-2 px-3 py-2 border-b-2 border-black/10"
+                       style={{ backgroundColor: t.isYou ? C.yellow : 'transparent' }}>
+                    <span className="w-5 text-center font-black text-sm" style={{ fontFamily: 'Oswald, sans-serif', color: promo ? C.tealDark : releg ? C.orange : '#000' }}>{i + 1}</span>
+                    <span className="text-xs">{promo ? '🔼' : releg ? '🔽' : '·'}</span>
+                    <span className={`flex-1 text-sm font-bold ${t.isYou ? 'text-black' : 'text-black/70'}`}>{t.isYou ? '⭐ ' : ''}{t.name}</span>
+                    <span className="text-xs text-black/40 font-bold w-6 text-right">{t.played}j</span>
+                    <span className="font-black text-black text-sm w-8 text-right" style={{ fontFamily: 'Oswald, sans-serif' }}>{t.points}</span>
+                  </div>
+                )
+              })}
+            </BrutalCard>
+            <p className="text-black/40 text-[10px] font-bold mt-1">🔼 sobem · 🔽 caem · último jogo: {club.lastResult}</p>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="border-2 border-black rounded-lg p-2 text-center" style={{ backgroundColor: C.green }}>
-              <p className="text-white font-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{club.seasonWins}</p>
-              <p className="text-white/80 text-[10px] font-black">VITÓRIAS</p>
-            </div>
-            <div className="border-2 border-black rounded-lg p-2 text-center" style={{ backgroundColor: C.yellow }}>
-              <p className="text-black font-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{club.seasonDraws}</p>
-              <p className="text-black/60 text-[10px] font-black">EMPATES</p>
-            </div>
-            <div className="border-2 border-black rounded-lg p-2 text-center" style={{ backgroundColor: C.orange }}>
-              <p className="text-white font-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{club.seasonLosses}</p>
-              <p className="text-white/80 text-[10px] font-black">DERROTAS</p>
-            </div>
-          </div>
-          <p className="text-black/50 text-xs font-bold mt-3 text-center">Último jogo: {club.lastResult}</p>
-        </BrutalCard>
+        )}
 
         {/* placed players */}
         <div>
           <h2 className="font-black text-black mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>⚽ ESCALADOS NO SEU CLUBE</h2>
-          <p className="text-black/50 text-xs font-bold mb-3">
-            Coloque seus clientes pra jogar aqui: eles ganham minutos, sobem de moral e o clube fica mais forte.
-          </p>
           {placed.length === 0 && (
             <BrutalCard color={C.creamDark} className="p-4 text-center" shadow={3}>
-              <p className="text-black/50 text-sm font-bold">Nenhum cliente escalado ainda.</p>
+              <p className="text-black/50 text-sm font-bold">Ninguém escalado. Coloque clientes que estão no seu clube (ou sem clube) pra jogar.</p>
             </BrutalCard>
           )}
           <div className="space-y-2">
@@ -97,39 +99,31 @@ export default function ClubScreen() {
                     <BrutalTag color={POS_COLOR[c.position]} textColor="#fff">{c.position}</BrutalTag>
                   </div>
                   <span className="font-black text-black text-sm">{c.currentRating}</span>
-                  <button
-                    onClick={() => dispatch({ type: 'PLACE_CLIENT_IN_CLUB', legendId: c.legendId })}
-                    className="border-2 border-black rounded-lg px-2 py-1 text-[10px] font-black bg-white"
-                  >
-                    TIRAR
-                  </button>
+                  <button onClick={() => dispatch({ type: 'PLACE_CLIENT_IN_CLUB', legendId: c.legendId })}
+                    className="border-2 border-black rounded-lg px-2 py-1 text-[10px] font-black bg-white">TIRAR</button>
                 </div>
               </BrutalCard>
             ))}
           </div>
         </div>
 
-        {/* available to place */}
-        {notPlaced.length > 0 && (
+        {/* available to place (at your club / free) */}
+        {placeable.length > 0 && (
           <div>
-            <h2 className="font-black text-black mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>📥 DISPONÍVEIS</h2>
+            <h2 className="font-black text-black mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>📥 PRONTOS PRA ESCALAR</h2>
             <div className="space-y-2">
-              {notPlaced.map(c => (
+              {placeable.map(c => (
                 <BrutalCard key={c.legendId} color="white" className="p-3" shadow={3}>
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{FLAG[c.nationality]}</span>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <span className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{c.nickname}</span>
                       <BrutalTag color={POS_COLOR[c.position]} textColor="#fff">{c.position}</BrutalTag>
+                      <p className="text-black/40 text-[10px] font-bold">{c.contractClub ? `no ${c.contractClub}` : 'sem clube — livre'}</p>
                     </div>
                     <span className="font-black text-black/50 text-sm">{c.currentRating}</span>
-                    <button
-                      onClick={() => dispatch({ type: 'PLACE_CLIENT_IN_CLUB', legendId: c.legendId })}
-                      className="border-2 border-black rounded-lg px-2 py-1 text-[10px] font-black"
-                      style={{ backgroundColor: C.green, color: '#fff' }}
-                    >
-                      ESCALAR
-                    </button>
+                    <button onClick={() => dispatch({ type: 'PLACE_CLIENT_IN_CLUB', legendId: c.legendId })}
+                      className="border-2 border-black rounded-lg px-2 py-1 text-[10px] font-black" style={{ backgroundColor: C.green, color: '#fff' }}>ESCALAR</button>
                   </div>
                 </BrutalCard>
               ))}
@@ -137,8 +131,42 @@ export default function ClubScreen() {
           </div>
         )}
 
+        {/* clients at OTHER clubs — must be bought to play here */}
+        {elsewhere.length > 0 && (
+          <div>
+            <h2 className="font-black text-black mb-1" style={{ fontFamily: 'Oswald, sans-serif' }}>🔁 TRAZER PRO CLUBE</h2>
+            <p className="text-black/50 text-xs font-bold mb-2">Estes clientes seus jogam em OUTROS times. Pra escalá-los aqui, você precisa comprá-los do clube atual.</p>
+            <div className="space-y-2">
+              {elsewhere.map(c => {
+                const cost = Math.round(c.currentValue)
+                const canAfford = state.money >= cost
+                return (
+                  <BrutalCard key={c.legendId} color={C.creamDark} className="p-3" shadow={3}>
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{FLAG[c.nationality]}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{c.nickname}</span>
+                        <BrutalTag color={POS_COLOR[c.position]} textColor="#fff">{c.position}</BrutalTag>
+                        <p className="text-black/40 text-[10px] font-bold truncate">joga no {c.contractClub}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-black text-black text-xs mb-1" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(cost)}</p>
+                        <BrutalButton color={canAfford ? C.green : '#C9C2AC'} disabled={!canAfford} full={false}
+                          className="!px-2 !py-1.5 !text-[10px]"
+                          onClick={() => dispatch({ type: 'BUY_TO_CLUB', legendId: c.legendId })}>
+                          {canAfford ? 'Comprar' : 'Sem $'}
+                        </BrutalButton>
+                      </div>
+                    </div>
+                  </BrutalCard>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         <p className="text-black/40 text-xs font-bold text-center pt-2">
-          O clube joga sozinho a cada 2 semanas. Renda de {moneyFull(club.cashPerWeek)}/semana cai direto no seu caixa.
+          O clube joga a cada 2 semanas. Renda de {moneyFull(club.cashPerWeek)}/semana cai no seu caixa.
         </p>
       </div>
     </div>

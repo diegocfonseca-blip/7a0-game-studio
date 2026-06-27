@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { EmpresarioProvider, useEmpresario } from './store'
 import IntroScreen from './screens/IntroScreen'
 import DashboardScreen from './screens/DashboardScreen'
@@ -9,6 +10,9 @@ import RankingScreen from './screens/RankingScreen'
 
 function EmpresarioRouter() {
   const { state } = useEmpresario()
+
+  // Always start a screen at the top — never land mid-scroll on a new tab
+  useEffect(() => { window.scrollTo(0, 0) }, [state.screen])
 
   switch (state.screen) {
     case 'intro':     return <IntroScreen />
