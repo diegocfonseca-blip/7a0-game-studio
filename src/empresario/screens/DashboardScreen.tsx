@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEmpresario } from '../store'
 import { NEMESIS } from '../data/clubs'
-import type { Client } from '../types'
+import { evaluateRenewal } from '../data/legends'
+import type { Client, Personality } from '../types'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalPill, BrutalTag, POS_COLOR, FLAG, STATUS_LABEL } from '../ui'
 
 const MONTHS = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ']
@@ -16,6 +17,10 @@ const PERSONA: Record<string, { label: string; emoji: string }> = {
 export default function DashboardScreen() {
   const { state, dispatch } = useEmpresario()
   const [detail, setDetail] = useState<Client | null>(null)
+  const [renewing, setRenewing] = useState(false)
+  const [rRate, setRRate] = useState(15)
+  const [rYears, setRYears] = useState(3)
+  const [rResult, setRResult] = useState<string | null>(null)
   const monthIndex = Math.floor((state.week - 1) / 4.34) % 12
   const pendingEvents = state.events.filter(e => !e.resolved)
   const activeOffers = state.pendingOffers.length
@@ -234,7 +239,7 @@ export default function DashboardScreen() {
                       <p className="font-black text-black text-2xl leading-none" style={{ fontFamily: 'Oswald, sans-serif' }}>{c.nickname}</p>
                       <p className="text-black/50 text-sm font-bold">{c.name}</p>
                     </div>
-                    <button onClick={() => setDetail(null)} className="text-black text-2xl font-black">×</button>
+                    <button onClick={() => { setDetail(null); setRenewing(false); setRResult(null) }} className="text-black text-2xl font-black">×</button>
                   </div>
 
                   <div className="flex flex-wrap gap-1.5 mb-4">
@@ -249,9 +254,85 @@ export default function DashboardScreen() {
                     <p className="text-white/60 text-[10px] font-black uppercase tracking-widest">Joga atualmente no</p>
                     <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>🏟️ {c.contractClub ?? 'Sem clube'}</p>
                     {c.contractExpiresYear && (
-                      <p className="text-white/60 text-xs font-bold mt-0.5">Contrato até {c.contractExpiresYear} · salário {money(c.contractSalary)}/ano</p>
+                      <p className="text-white/60 text-xs font-bold mt-0.5">Vínculo com o clube até {c.contractExpiresYear} · salário {money(c.contractSalary)}/ano</p>
                     )}
                   </BrutalCard>
+
+                  {/* YOUR representation contract */}
+                  {(() => {
+                    const exp = c.repExpiresYear
+                    const expiring = exp !== undefined && state.year >= exp - 1
+                    const persona2 = (c.personality as Personality)
+                    const renewEval = evaluateRenewal(c.happiness, persona2, rRate, rYears)
+                    const renewAsk = rRate + (rYears - 3) * 1.5
+                    const renewLabel = renewAsk <= renewEval.maxAcceptable - 4 ? { t: '😄 Renova fácil', col: C.green, fg: '#fff' }
+                      : renewAsk <= renewEval.maxAcceptable ? { t: '🤝 Ele topa', col: C.teal, fg: '#000' }
+                      : renewAsk <= renewEval.maxAcceptable + 4 ? { t: '😬 Vai pechinchar', col: C.yellow, fg: '#000' }
+                      : { t: '🚫 Vai recusar', col: C.orange, fg: '#fff' }
+                    return (
+                      <BrutalCard color={expiring ? C.orange : C.creamDark} className="p-3 mb-3" shadow={3}>
+                        <p className={`text-[10px] font-black uppercase tracking-widest ${expiring ? 'text-white/70' : 'text-black/50'}`}>
+                          📄 Seu contrato de representação
+                        </p>
+                        <p className={`font-black text-lg ${expiring ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>
+                          {exp ? `Você o representa até ${exp}` : 'Contrato sem prazo definido'}
+                        </p>
+                        {expiring && !renewing && (
+                          <>
+                            <p className="text-white text-xs font-bold mt-1">⚠ Vencendo! Renove ou você o PERDE de graça.</p>
+                            <div className="mt-2">
+                              <BrutalButton color="white" textColor={C.black} onClick={() => { setRenewing(true); setRRate(c.commissionRate); setRYears(3); setRResult(null) }}>
+                                Renovar contrato
+                              </BrutalButton>
+                            </div>
+                          </>
+                        )}
+                        {renewing && (
+                          <div className="mt-3 bg-white border-2 border-black rounded-lg p-3">
+                            {rResult ? (
+                              <>
+                                <p className="text-black text-sm font-bold">{rResult}</p>
+                                <div className="mt-2">
+                                  <BrutalButton color={C.black} textColor="#fff" onClick={() => { setRenewing(false); setRResult(null) }}>Fechar</BrutalButton>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-black/60 text-[11px] font-black uppercase">Comissão</span>
+                                  <span className="font-black text-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{rRate}%</span>
+                                </div>
+                                <input type="range" min={5} max={30} value={rRate} onChange={e => setRRate(Number(e.target.value))} className="w-full h-2.5" style={{ accentColor: C.blue }} />
+                                <div className="flex justify-between items-center mt-2">
+                                  <span className="text-black/60 text-[11px] font-black uppercase">Anos</span>
+                                  <span className="font-black text-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{rYears}</span>
+                                </div>
+                                <input type="range" min={1} max={6} value={rYears} onChange={e => setRYears(Number(e.target.value))} className="w-full h-2.5" style={{ accentColor: C.purple }} />
+                                <div className="border-2 border-black rounded-md px-2 py-1.5 mt-2 flex justify-between items-center" style={{ backgroundColor: renewLabel.col }}>
+                                  <span className="font-black text-xs" style={{ color: renewLabel.fg, fontFamily: 'Oswald, sans-serif' }}>{renewLabel.t}</span>
+                                  <span className="font-mono text-[10px] font-bold" style={{ color: renewLabel.fg }}>moral {c.happiness}</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                  <BrutalButton color="white" textColor={C.black} onClick={() => setRenewing(false)}>Cancelar</BrutalButton>
+                                  <BrutalButton color={C.green} onClick={() => {
+                                    const ev = evaluateRenewal(c.happiness, persona2, rRate, rYears)
+                                    if (ev.result === 'accept') {
+                                      dispatch({ type: 'RENEW_CLIENT', legendId: c.legendId, commissionRate: rRate, contractYears: rYears })
+                                      setRResult(`✅ ${ev.reason}`)
+                                    } else if (ev.result === 'counter') {
+                                      setRResult(`😬 ${ev.reason}`)
+                                    } else {
+                                      setRResult(`🚫 ${ev.reason}`)
+                                    }
+                                  }}>Propor</BrutalButton>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </BrutalCard>
+                    )
+                  })()}
 
                   {/* stats grid */}
                   <div className="grid grid-cols-3 gap-2 mb-3">

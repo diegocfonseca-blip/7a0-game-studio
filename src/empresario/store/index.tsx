@@ -43,9 +43,10 @@ const INITIAL_STATE: GameState = {
 type Action =
   | { type: 'SET_SCREEN'; screen: Screen }
   | { type: 'START_GAME'; playerName: string }
-  | { type: 'SIGN_CLIENT'; legendId: string; commissionRate: number }
+  | { type: 'SIGN_CLIENT'; legendId: string; commissionRate: number; contractYears: number }
+  | { type: 'RENEW_CLIENT'; legendId: string; commissionRate: number; contractYears: number }
   | { type: 'ADVANCE_WEEK' }
-  | { type: 'ACCEPT_OFFER'; offerId: string; finalCommission: number }
+  | { type: 'ACCEPT_OFFER'; offerId: string; clubName: string; amount: number; clubLuva: number }
   | { type: 'REJECT_OFFER'; offerId: string }
   | { type: 'RESOLVE_EVENT'; eventId: string; choiceIndex: 0 | 1 }
   | { type: 'PURCHASE_UPGRADE'; upgradeId: string; cost: number; effect: string }
@@ -75,19 +76,23 @@ function generateClubOffer(client: Client, year: number): ClubOffer | null {
   if (eligibleClubs.length === 0) return null
 
   const salaryOf = (amt: number) => Math.round(amt * 0.08 / 12 / 1000) * 1000
+  // each club pays a different kickback (luva) to the agent — 2%..9% of the fee
+  const luvaOf = (amt: number) => Math.round(amt * (0.02 + Math.random() * 0.07) / 1000) * 1000
 
-  // ── BIDDING WAR: stars attract multiple clubs fighting over them ──
-  const isWar = rating >= 80 && eligibleClubs.length >= 2 && Math.random() < 0.6
+  // Market heat: the hotter the player, the more clubs fight (and likely more come)
+  const interest: 'alto' | 'medio' | 'baixo' = rating >= 82 ? 'alto' : rating >= 72 ? 'medio' : 'baixo'
+
+  // ── BIDDING WAR: hot players attract several clubs at once ──
+  const isWar = interest === 'alto' && eligibleClubs.length >= 2
   if (isWar) {
     const shuffled = [...eligibleClubs].sort(() => Math.random() - 0.5)
     const count = Math.min(3, 2 + Math.floor(Math.random() * 2))
     const chosen = shuffled.slice(0, count)
     const bidders: Bid[] = chosen
-      .map(c => ({
-        clubName: c.name,
-        clubCountry: c.country,
-        amount: Math.round(value * (0.75 + Math.random() * 0.7) / 1000) * 1000,
-      }))
+      .map(c => {
+        const amount = Math.round(value * (0.75 + Math.random() * 0.7) / 1000) * 1000
+        return { clubName: c.name, clubCountry: c.country, amount, luva: luvaOf(amount) }
+      })
       .sort((a, b) => b.amount - a.amount)
     const top = bidders[0]
     return {
@@ -96,9 +101,11 @@ function generateClubOffer(client: Client, year: number): ClubOffer | null {
       clubCountry: top.clubCountry,
       clientId: client.legendId,
       offerAmount: top.amount,
+      clubLuva: top.luva,
       salary: salaryOf(top.amount),
       contractYears: 3 + Math.floor(Math.random() * 3),
       expiresInWeeks: 3 + Math.floor(Math.random() * 3),
+      interest,
       isWar: true,
       bidders,
       escalations: 0,
@@ -114,9 +121,11 @@ function generateClubOffer(client: Client, year: number): ClubOffer | null {
     clubCountry: club.country,
     clientId: client.legendId,
     offerAmount,
+    clubLuva: luvaOf(offerAmount),
     salary: salaryOf(offerAmount),
     contractYears: 3 + Math.floor(Math.random() * 3),
     expiresInWeeks: 3 + Math.floor(Math.random() * 4),
+    interest,
   }
 }
 
@@ -173,6 +182,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         monthlyFee: legend.monthlyFee,
         futureKnowledge: legend.futureKnowledge,
         commissionRate: action.commissionRate,
+        repContractYears: action.contractYears,
+        repExpiresYear: state.year + action.contractYears,
         happiness: 75,
         currentValue,
         signedYear: state.year,
@@ -192,8 +203,26 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         weeklyExpenses,
         actionsUsed: state.actionsUsed + 1,
         seenLegendIds: [...state.seenLegendIds, action.legendId],
-        negotiationLog: [{ who: 'voce' as const, year: state.year, text: `📝 Você agenciou ${legend.nickname} (${action.commissionRate}% de comissão)` }, ...state.negotiationLog].slice(0, 30),
-        narrative: [...state.narrative, `✍️ Você assinou ${legend.nickname} por ${action.commissionRate}% de comissão + R$${legend.luva.toLocaleString('pt-BR')} de luva.`],
+        negotiationLog: [{ who: 'voce' as const, year: state.year, text: `📝 Você agenciou ${legend.nickname} (${action.commissionRate}% · ${action.contractYears} anos)` }, ...state.negotiationLog].slice(0, 30),
+        narrative: [...state.narrative, `✍️ Você assinou ${legend.nickname}: ${action.commissionRate}% de comissão, contrato de ${action.contractYears} anos + R$${legend.luva.toLocaleString('pt-BR')} de luva.`],
+      }
+    }
+
+    case 'RENEW_CLIENT': {
+      return {
+        ...state,
+        clients: state.clients.map(c =>
+          c.legendId === action.legendId
+            ? {
+                ...c,
+                commissionRate: action.commissionRate,
+                repContractYears: action.contractYears,
+                repExpiresYear: state.year + action.contractYears,
+                happiness: Math.min(100, c.happiness + 6),
+              }
+            : c
+        ),
+        narrative: [...state.narrative, `✅ Você renovou com ${state.clients.find(c => c.legendId === action.legendId)?.nickname} por mais ${action.contractYears} anos (${action.commissionRate}%).`],
       }
     }
 
@@ -253,18 +282,30 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         return { ...client, currentRating: newRating, currentValue: newValue, status: newStatus, happiness }
       })
 
+      // ⏳ REP CONTRACTS expiring: a player whose deal ran out leaves your agency
+      let activeClients = updatedClients
+      if (yearRolled) {
+        const leaving = updatedClients.filter(c => c.repExpiresYear !== undefined && newYear > c.repExpiresYear)
+        if (leaving.length) {
+          activeClients = updatedClients.filter(c => !(c.repExpiresYear !== undefined && newYear > c.repExpiresYear))
+          for (const c of leaving) {
+            extraNarrative.push(`📭 O contrato de representação de ${c.nickname} venceu e você não renovou. Ele virou agente livre e deixou sua carteira.`)
+          }
+        }
+      }
+
       // Weekly expenses
-      const weeklyExpense = updatedClients.reduce((sum, c) => sum + c.monthlyFee / 4, 0)
+      const weeklyExpense = activeClients.reduce((sum, c) => sum + c.monthlyFee / 4, 0)
       let runningMoney = state.money - weeklyExpense
 
       // Club offers (tick down + maybe generate)
       const newOffers = [...state.pendingOffers.map(o => ({ ...o, expiresInWeeks: o.expiresInWeeks - 1 }))]
         .filter(o => o.expiresInWeeks > 0)
 
-      if (updatedClients.length > 0 && Math.random() > 0.6) {
+      if (activeClients.length > 0 && Math.random() > 0.6) {
         // Only players who: are good enough, have no pending offer, AND haven't
         // just been transferred (clubs leave a fresh signing alone for ~2 years).
-        const eligible = updatedClients.filter(c =>
+        const eligible = activeClients.filter(c =>
           c.currentRating >= 60 &&
           !newOffers.find(o => o.clientId === c.legendId) &&
           (c.lastDealYear === undefined || newYear - c.lastDealYear >= 2)
@@ -303,7 +344,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         runningMoney += ownedClub.cashPerWeek
         // a match every 2 weeks
         if (newWeek % 2 === 0) {
-          const placed = updatedClients.filter(c => ownedClub!.placedClientIds.includes(c.legendId))
+          const placed = activeClients.filter(c => ownedClub!.placedClientIds.includes(c.legendId))
           const squadStr = placed.length
             ? placed.reduce((s, c) => s + c.currentRating, 0) / placed.length
             : 35
@@ -331,7 +372,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       }
 
       // Weekly event (personalized with the player's name)
-      const clientsLite: ClientLite[] = updatedClients.map(c => ({
+      const clientsLite: ClientLite[] = activeClients.map(c => ({
         legendId: c.legendId, nickname: c.nickname, name: c.name, position: c.position, currentRating: c.currentRating,
         status: c.status, personality: c.personality, nationality: c.nationality,
         birthYear: c.birthYear, currentValue: c.currentValue, peakYearStart: c.peakYearStart,
@@ -356,7 +397,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         week: actualWeek,
         year: newYear,
         money: Math.max(0, runningMoney),
-        clients: updatedClients,
+        clients: activeClients,
         pendingOffers: newOffers,
         events: newEvents,
         actionsUsed: 0,
@@ -375,25 +416,28 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       const offer = state.pendingOffers.find(o => o.id === action.offerId)
       if (!offer) return state
 
-      const commission = Math.round(offer.offerAmount * action.finalCommission / 100)
       const client = state.clients.find(c => c.legendId === offer.clientId)
+      // Your earnings: commission (already negotiated WITH the player) of the
+      // sale fee + the buying club's luva (kickback) to you.
+      const commission = Math.round(action.amount * (client?.commissionRate ?? 10) / 100)
+      const earnings = commission + action.clubLuva
 
       return {
         ...state,
-        money: state.money + commission,
-        totalEarned: state.totalEarned + commission,
+        money: state.money + earnings,
+        totalEarned: state.totalEarned + earnings,
         totalDeals: state.totalDeals + 1,
         // Drop ALL pending offers for this player — once sold, the other clubs back off.
         pendingOffers: state.pendingOffers.filter(o => o.clientId !== offer.clientId),
         clients: state.clients.map(c =>
           c.legendId === offer.clientId
-            ? { ...c, contractClub: offer.clubName, contractSalary: offer.salary, contractExpiresYear: state.year + offer.contractYears, lastDealYear: state.year }
+            ? { ...c, contractClub: action.clubName, contractSalary: offer.salary, contractExpiresYear: state.year + offer.contractYears, lastDealYear: state.year }
             : c
         ),
-        negotiationLog: [{ who: 'voce' as const, year: state.year, text: `✅ ${client?.nickname} → ${offer.clubName} por R$${offer.offerAmount.toLocaleString('pt-BR')} (sua comissão R$${commission.toLocaleString('pt-BR')})` }, ...state.negotiationLog].slice(0, 30),
+        negotiationLog: [{ who: 'voce' as const, year: state.year, text: `✅ ${client?.nickname} → ${action.clubName} por R$${action.amount.toLocaleString('pt-BR')} · você embolsou R$${earnings.toLocaleString('pt-BR')}` }, ...state.negotiationLog].slice(0, 30),
         narrative: [
           ...state.narrative,
-          `🤝 TRANSFERÊNCIA FECHADA! ${client?.nickname} → ${offer.clubName} por R$${offer.offerAmount.toLocaleString('pt-BR')}. Sua comissão: R$${commission.toLocaleString('pt-BR')} (${action.finalCommission}%)`
+          `🤝 TRANSFERÊNCIA FECHADA! ${client?.nickname} → ${action.clubName} por R$${action.amount.toLocaleString('pt-BR')}. Você embolsou R$${earnings.toLocaleString('pt-BR')} (comissão R$${commission.toLocaleString('pt-BR')} + luva R$${action.clubLuva.toLocaleString('pt-BR')}).`
         ],
       }
     }

@@ -1,4 +1,4 @@
-import type { Legend, SigningEvaluation, Personality, PlayerStatus } from '../types'
+import type { Legend, SigningEvaluation, SigningResult, Personality, PlayerStatus } from '../types'
 
 // Names are lightly fictionalized homages. Stories are inspired by real careers.
 export const LEGENDS: Legend[] = [
@@ -509,18 +509,29 @@ export function getFameDribleChance(legend: Legend, year: number): number {
   return Math.min(0.45, (rating - 35) * 0.011) // ~0% at 35, ~45% at 76+
 }
 
+// A representation "ask" combines commission with contract length: locking a
+// player into a long deal is a big favour to YOU, so it raises the ask. A short
+// deal lowers it. A 3-year deal is the neutral baseline.
+export function repAskScore(commission: number, contractYears: number): number {
+  return commission + (contractYears - 3) * 1.5
+}
+
 export function evaluateSigning(
   legend: Legend,
   rate: number,
   reputation: number,
   year: number,
   rejectionsSoFar: number = 0,
+  contractYears: number = 3,
 ): SigningEvaluation {
   const status = getCurrentStatus(legend, year)
-  const maxAcceptable = getMaxAcceptable(legend, reputation, year)
+  const rawMax = getMaxAcceptable(legend, reputation, year)
   const willLose = rejectionsSoFar + 1 >= 2 // a reject NOW means strike #2 → gone
+  const ask = repAskScore(rate, contractYears)
+  // Max commission they'd accept AT this contract length (for the UI buttons)
+  const maxAcceptable = Math.round(Math.max(5, Math.min(30, rawMax - (contractYears - 3) * 1.5)))
 
-  if (rate <= maxAcceptable) {
+  if (ask <= rawMax) {
     // Fame drible: even an acceptable offer can be rejected out of ego
     const dribleChance = getFameDribleChance(legend, year)
     if (Math.random() < dribleChance) {
@@ -537,17 +548,17 @@ export function evaluateSigning(
     return {
       result: 'accept',
       maxAcceptable,
-      reason: rate <= maxAcceptable - 6
+      reason: ask <= rawMax - 6
         ? `${legend.nickname} aceitou na hora — achou você generoso.`
         : `${legend.nickname} apertou sua mão. Negócio fechado.`,
     }
   }
 
-  if (rate <= maxAcceptable + 4) {
+  if (ask <= rawMax + 4) {
     return {
       result: 'counter',
       maxAcceptable,
-      reason: `${legend.nickname} achou ${rate}% salgado. Topa no máximo ${maxAcceptable}%.`,
+      reason: `${legend.nickname} achou puxado (${rate}% por ${contractYears} anos). Topa no máximo ${maxAcceptable}% pra esse prazo.`,
     }
   }
 
@@ -557,10 +568,36 @@ export function evaluateSigning(
     lost: willLose,
     reason: willLose
       ? (status === 'estrela'
-          ? `${legend.nickname} se ofendeu de vez com ${rate}%. "Não quero mais te ver." PERDIDO pra sempre.`
-          : `${legend.nickname} recusou ${rate}% pela segunda vez e ficou puto. Não assina mais com você. PERDIDO.`)
+          ? `${legend.nickname} se ofendeu de vez. "Não quero mais te ver." PERDIDO pra sempre.`
+          : `${legend.nickname} recusou pela segunda vez e ficou puto. Não assina mais com você. PERDIDO.`)
       : (status === 'estrela'
-          ? `${legend.nickname} riu na sua cara. "Você é um zé-ninguém querendo ${rate}%?" — última chance.`
-          : `${legend.nickname} recusou ${rate}%. Ganancioso demais. Se recusar de novo, ele te abandona.`),
+          ? `${legend.nickname} riu na sua cara. "Você é um zé-ninguém querendo ${rate}% por ${contractYears} anos?" — última chance.`
+          : `${legend.nickname} recusou ${rate}% por ${contractYears} anos. Ganancioso demais. Se forçar de novo, ele te abandona.`),
   }
+}
+
+// ─── RENEWAL ───────────────────────────────────────────────────
+// When YOUR representation deal runs out you must renew. Whether the player
+// re-signs depends mostly on how happy you kept them, plus their personality.
+export function evaluateRenewal(
+  happiness: number,
+  personality: Personality,
+  commission: number,
+  contractYears: number,
+): { result: SigningResult; maxAcceptable: number; reason: string } {
+  let tol = 8 + happiness * 0.22
+  tol += PERSONALITY_TOLERANCE[personality]
+  const maxAcceptable = Math.round(Math.max(5, Math.min(30, tol)))
+  const ask = repAskScore(commission, contractYears)
+
+  if (happiness < 25) {
+    return { result: 'reject', maxAcceptable, reason: 'Ele está insatisfeito com você e quer ir embora. Só renova se a moral subir.' }
+  }
+  if (ask <= tol) {
+    return { result: 'accept', maxAcceptable, reason: happiness >= 70 ? 'Ele adora trabalhar com você e renovou na hora!' : 'Ele topou renovar com você.' }
+  }
+  if (ask <= tol + 4) {
+    return { result: 'counter', maxAcceptable, reason: `Ele acha puxado. Renova no máximo a ${maxAcceptable}% nesse prazo.` }
+  }
+  return { result: 'reject', maxAcceptable, reason: 'Ele recusou esses termos de renovação. Tente algo mais camarada.' }
 }

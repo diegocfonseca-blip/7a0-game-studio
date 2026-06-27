@@ -63,6 +63,8 @@ export interface Client {
   monthlyFee: number
   futureKnowledge: string
   commissionRate: number  // % you negotiated (5–30)
+  repContractYears?: number // length of YOUR representation deal
+  repExpiresYear?: number   // year your representation deal runs out
   happiness: number       // 0–100
   currentValue: number    // market value in R$
   signedYear: number
@@ -76,7 +78,8 @@ export interface Client {
 export interface Bid {
   clubName: string
   clubCountry: string
-  amount: number
+  amount: number          // transfer fee this club offers
+  luva: number            // kickback this club pays YOU to grease the deal
 }
 
 export interface ClubOffer {
@@ -85,9 +88,11 @@ export interface ClubOffer {
   clubCountry: string
   clientId: string
   offerAmount: number     // transfer fee (the current top bid)
+  clubLuva: number        // kickback the club pays YOU on top of your commission
   salary: number          // annual salary to player
   contractYears: number
   expiresInWeeks: number  // offer expires after X weeks
+  interest: 'alto' | 'medio' | 'baixo' // market heat — hints if more may come
   isWar?: boolean         // bidding war between multiple clubs
   bidders?: Bid[]         // the competing clubs and their bids
   escalations?: number    // how many times you've pushed for a higher bid

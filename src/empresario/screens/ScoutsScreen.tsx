@@ -17,6 +17,7 @@ export default function ScoutsScreen() {
   const { state, dispatch } = useEmpresario()
   const [selected, setSelected] = useState<Legend | null>(null)
   const [rate, setRate] = useState(15)
+  const [years, setYears] = useState(3)
   const [result, setResult] = useState<SigningEvaluation | null>(null)
   const [justSigned, setJustSigned] = useState<string | null>(null)
 
@@ -25,12 +26,13 @@ export default function ScoutsScreen() {
   const lockedRegions = getLockedRegions(state.purchasedUpgrades)
   const available = getAvailableLegends(state.year, signedIds, unlockedNats, state.lostLegends)
 
-  // live commission prediction while dragging the slider
+  // live prediction reacts to BOTH commission and contract length
   const liveMax = selected ? getMaxAcceptable(selected, state.reputation, state.year) : 0
+  const ask = rate + (years - 3) * 1.5
   const livePrediction = !selected ? null
-    : rate <= liveMax - 5 ? { label: '😄 Ele topa fácil', color: C.green, text: '#fff' }
-    : rate <= liveMax ? { label: '🤝 Ele aceita', color: C.teal, text: '#000' }
-    : rate <= liveMax + 4 ? { label: '😬 Ele vai pechinchar', color: C.yellow, text: '#000' }
+    : ask <= liveMax - 5 ? { label: '😄 Ele topa fácil', color: C.green, text: '#fff' }
+    : ask <= liveMax ? { label: '🤝 Ele aceita', color: C.teal, text: '#000' }
+    : ask <= liveMax + 4 ? { label: '😬 Ele vai pechinchar', color: C.yellow, text: '#000' }
     : { label: '🚫 Ele vai recusar', color: C.orange, text: '#fff' }
 
   // fame drible risk + strikes
@@ -55,6 +57,7 @@ export default function ScoutsScreen() {
   function openPlayer(legend: Legend) {
     setSelected(selected?.id === legend.id ? null : legend)
     setRate(15)
+    setYears(3)
     setResult(null)
   }
 
@@ -62,12 +65,12 @@ export default function ScoutsScreen() {
     if (!selected) return
     if (state.money < selected.signingFee + selected.luva) return
     const strikesNow = state.rejectionCounts[selected.id] ?? 0
-    const evalResult = evaluateSigning(selected, rate, state.reputation, state.year, strikesNow)
+    const evalResult = evaluateSigning(selected, rate, state.reputation, state.year, strikesNow, years)
     setResult(evalResult)
 
     if (evalResult.result === 'accept') {
       setTimeout(() => {
-        dispatch({ type: 'SIGN_CLIENT', legendId: selected.id, commissionRate: rate })
+        dispatch({ type: 'SIGN_CLIENT', legendId: selected.id, commissionRate: rate, contractYears: years })
         setJustSigned(selected.nickname)
         setSelected(null)
         setResult(null)
@@ -80,7 +83,7 @@ export default function ScoutsScreen() {
 
   function acceptCounter() {
     if (!selected || !result) return
-    dispatch({ type: 'SIGN_CLIENT', legendId: selected.id, commissionRate: result.maxAcceptable })
+    dispatch({ type: 'SIGN_CLIENT', legendId: selected.id, commissionRate: result.maxAcceptable, contractYears: years })
     setJustSigned(selected.nickname)
     setSelected(null)
     setResult(null)
@@ -318,6 +321,22 @@ export default function ScoutsScreen() {
                     <div className="flex justify-between text-black/40 text-[10px] font-black mt-1">
                       <span>5% GENEROSO</span>
                       <span>30% GANANCIOSO</span>
+                    </div>
+
+                    {/* contract length slider */}
+                    <div className="flex items-end justify-between mb-2 mt-4">
+                      <span className="text-black/60 text-xs font-black uppercase">Tempo de contrato</span>
+                      <span className="font-black text-black text-2xl leading-none" style={{ fontFamily: 'Oswald, sans-serif' }}>{years} {years === 1 ? 'ano' : 'anos'}</span>
+                    </div>
+                    <input
+                      type="range" min={1} max={6} step={1} value={years}
+                      onChange={e => { setYears(Number(e.target.value)); setResult(null) }}
+                      className="w-full h-3 appearance-none cursor-pointer"
+                      style={{ accentColor: C.purple }}
+                    />
+                    <div className="flex justify-between text-black/40 text-[10px] font-black mt-1">
+                      <span>1 ANO (ele prefere)</span>
+                      <span>6 ANOS (te trava)</span>
                     </div>
 
                     {/* LIVE prediction — você vê a reação antes de oferecer */}
