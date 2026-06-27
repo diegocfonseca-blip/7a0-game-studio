@@ -461,6 +461,17 @@ const PERSONALITY_TOLERANCE: Record<Personality, number> = {
   difícil: -8,    // diva, will haggle hard
 }
 
+// Minimum reputation a player demands before they'll even SIT with you.
+// A current star won't talk to a broke no-name agent; a kid in a pelada will.
+export function getMinReputationToSign(legend: Legend, year: number): number {
+  const rating = getCurrentRating(legend, year)
+  const status = getCurrentStatus(legend, year)
+  let req = Math.max(0, (rating - 50) * 1.4)
+  if (status === 'estrela') req += 18
+  else if (status === 'pro') req += 6
+  return Math.round(Math.min(95, req))
+}
+
 // The highest commission this player would EVER accept right now.
 // Famous players give you far less leverage; unknown kids take almost anything.
 export function getMaxAcceptable(legend: Legend, reputation: number, year: number): number {

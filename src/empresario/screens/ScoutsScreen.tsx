@@ -4,6 +4,7 @@ import { useEmpresario } from '../store'
 import {
   getAvailableLegends, getCurrentRating, getMarketValue,
   getCurrentStatus, evaluateSigning, getMaxAcceptable, getFameDribleChance,
+  getMinReputationToSign,
   getUnlockedNationalities, getLockedRegions, SCOUT_REGIONS,
 } from '../data/legends'
 import type { Legend, SigningEvaluation } from '../types'
@@ -37,6 +38,9 @@ export default function ScoutsScreen() {
   const strikes = selected ? (state.rejectionCounts[selected.id] ?? 0) : 0
   const upfrontCost = selected ? selected.signingFee + selected.luva : 0
   const canAffordUpfront = selected ? state.money >= upfrontCost : false
+  // reputation gate: famous players won't even talk to a no-name agent
+  const minRep = selected ? getMinReputationToSign(selected, state.year) : 0
+  const repBlocked = selected ? state.reputation < minRep : false
 
   // Deterministic weekly pool
   const seed = state.year * 137 + state.week * 31
@@ -169,6 +173,9 @@ export default function ScoutsScreen() {
                     <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                       <BrutalTag color={POS_COLOR[legend.position]} textColor="#fff">{legend.position}</BrutalTag>
                       {st && <BrutalTag color={st.color} textColor={status === 'pelada' ? '#fff' : '#000'}>{st.label}</BrutalTag>}
+                      {state.reputation < getMinReputationToSign(legend, state.year) && (
+                        <BrutalTag color={C.black} textColor="#fff">🔒 REP {getMinReputationToSign(legend, state.year)}+</BrutalTag>
+                      )}
                       <span className="text-black/40 text-xs font-bold">{state.year - legend.birthYear}a · {legend.club}</span>
                     </div>
                   </div>
@@ -232,6 +239,7 @@ export default function ScoutsScreen() {
                   <button onClick={() => { setSelected(null); setResult(null) }} className="text-black text-2xl font-black">×</button>
                 </div>
                 {/* upfront cost breakdown: taxa + luva */}
+                {!repBlocked && (
                 <div className="border-[3px] border-black rounded-xl p-3 mb-3" style={{ backgroundColor: '#fff' }}>
                   <div className="flex justify-between text-xs font-bold text-black/60">
                     <span>Taxa de exclusividade</span><span>{money(selected.signingFee)}</span>
@@ -246,13 +254,16 @@ export default function ScoutsScreen() {
                     </span>
                   </div>
                 </div>
+                )}
+                {!repBlocked && (
                 <div className="border-2 border-black rounded-lg p-2.5 mb-3" style={{ backgroundColor: C.yellow }}>
                   <p className="text-black/60 text-[10px] font-black uppercase tracking-widest mb-0.5">Por que a luva?</p>
                   <p className="text-black text-xs font-bold italic leading-snug">"{selected.luvaReason}"</p>
                 </div>
+                )}
 
                 {/* strike warning */}
-                {strikes >= 1 && (
+                {!repBlocked && strikes >= 1 && (
                   <BrutalCard color={C.orange} className="p-2.5 mb-3" shadow={3}>
                     <p className="text-white text-xs font-black">
                       ⚠ ÚLTIMA CHANCE! {selected.nickname} já recusou uma vez. Se recusar de novo, você o perde PRA SEMPRE.
@@ -261,7 +272,7 @@ export default function ScoutsScreen() {
                 )}
 
                 {/* fame drible risk */}
-                {fameDribleChance > 0.05 && strikes === 0 && (
+                {!repBlocked && fameDribleChance > 0.05 && strikes === 0 && (
                   <BrutalCard color={C.black} className="p-2.5 mb-3" shadow={3}>
                     <p className="text-white text-xs font-bold">
                       🎲 {selected.nickname} já tem fama — pode dar um drible e recusar mesmo achando justo (~{Math.round(fameDribleChance * 100)}% de risco).
@@ -269,7 +280,30 @@ export default function ScoutsScreen() {
                   </BrutalCard>
                 )}
 
-                {!result || result.result === 'counter' ? (
+                {repBlocked ? (
+                  <>
+                    <BrutalCard color={C.black} className="p-4 text-center">
+                      <p className="text-4xl mb-1">🔒</p>
+                      <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>ELE NEM TE RECEBE</p>
+                      <p className="text-white/80 text-xs font-bold mt-2 leading-relaxed">
+                        {selected.nickname} já é {getCurrentStatus(selected, state.year) === 'estrela' ? 'uma estrela' : 'profissional'} e não fala com um empresário desconhecido. Quem é você? Um zé-ninguém sem nome no meio.
+                      </p>
+                      <div className="border-2 border-white rounded-lg p-2 mt-3" style={{ backgroundColor: C.orange }}>
+                        <p className="text-white text-xs font-black">
+                          Precisa de REPUTAÇÃO {minRep}+ · você tem {state.reputation}
+                        </p>
+                      </div>
+                      <p className="text-white/60 text-[11px] font-bold mt-2">
+                        Construa seu nome: assine jovens, feche negócios e viva momentos de glória. Aí os grandes te procuram.
+                      </p>
+                    </BrutalCard>
+                    <div className="mt-3">
+                      <BrutalButton color="white" textColor={C.black} onClick={() => { setSelected(null); setResult(null) }}>
+                        Entendi
+                      </BrutalButton>
+                    </div>
+                  </>
+                ) : !result || result.result === 'counter' ? (
                   <>
                     <div className="flex items-end justify-between mb-2">
                       <span className="text-black/60 text-xs font-black uppercase">Sua comissão</span>
