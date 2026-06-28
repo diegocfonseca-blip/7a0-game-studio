@@ -86,3 +86,63 @@ export function yourNetWorth(s: GameState): number {
   const club = s.ownedClub ? s.ownedClub.fans * 200 : 0
   return Math.round(s.money + stake + club)
 }
+
+// ─── RARIDADE (efeito caça-níquel no garimpo) ──────────────────
+// Só você enxerga o potencial real — então a raridade é a sua dopamina.
+export type Rarity = 'comum' | 'promessa' | 'pepita' | 'fenomeno'
+export interface RarityInfo { key: Rarity; label: string; color: string; emoji: string; rank: number }
+export function rarityOf(potential: number): RarityInfo {
+  if (potential >= 96) return { key: 'fenomeno', label: 'FENÔMENO', color: '#7C3AED', emoji: '💎', rank: 4 }
+  if (potential >= 90) return { key: 'pepita',   label: 'PEPITA RARA', color: '#FFC400', emoji: '✨', rank: 3 }
+  if (potential >= 85) return { key: 'promessa', label: 'PROMESSA', color: '#16B89A', emoji: '⭐', rank: 2 }
+  return { key: 'comum', label: 'REVELAÇÃO', color: '#9A9483', emoji: '🌱', rank: 1 }
+}
+
+// ─── NÍVEL DE EMPRESÁRIO (XP) ──────────────────────────────────
+// Cada nível custa mais que o anterior — a barra nunca para de te puxar.
+export function levelInfo(xp: number): { level: number; into: number; need: number; pct: number } {
+  let level = 1, rem = Math.max(0, Math.round(xp)), need = 500
+  while (rem >= need) { rem -= need; level++; need = level * 500 }
+  return { level, into: rem, need, pct: Math.round((rem / need) * 100) }
+}
+// returns the new xp total and, if you crossed a level, the new level number
+export function grantXp(currentXp: number, amount: number): { xp: number; leveled: number | null } {
+  const before = levelInfo(currentXp).level
+  const xp = currentXp + amount
+  const after = levelInfo(xp).level
+  return { xp, leveled: after > before ? after : null }
+}
+
+// ─── MISSÃO DA SEMANA (cenoura curta e renovável) ──────────────
+export type MissionMetric = 'deals' | 'signs' | 'scouts'
+export interface Mission { id: string; label: string; reward: number; xp: number; target: number; metric: MissionMetric }
+export const MISSIONS: Mission[] = [
+  { id: 'm-sell',   label: 'Feche 1 transferência essa semana', reward: 15_000, xp: 80, target: 1, metric: 'deals' },
+  { id: 'm-scout',  label: 'Garimpe 2 novos talentos', reward: 10_000, xp: 60, target: 2, metric: 'scouts' },
+  { id: 'm-sign',   label: 'Agencie 1 novo jogador', reward: 14_000, xp: 90, target: 1, metric: 'signs' },
+  { id: 'm-sell2',  label: 'Feche 2 transferências essa semana', reward: 35_000, xp: 140, target: 2, metric: 'deals' },
+  { id: 'm-scout3', label: 'Garimpe 3 novos talentos', reward: 18_000, xp: 90, target: 3, metric: 'scouts' },
+]
+export function missionForWeek(absWeek: number): Mission {
+  return MISSIONS[Math.abs(absWeek) % MISSIONS.length]
+}
+// the running counter a mission measures against its baseline
+export function missionMetricValue(s: GameState, metric: MissionMetric): number {
+  if (metric === 'deals') return s.totalDeals
+  if (metric === 'signs') return s.everSignedIds.length
+  return s.seenLegendIds.length
+}
+
+// ─── PRESTÍGIO (New Game+) ─────────────────────────────────────
+// Recomeçar em 1993 como uma lenda: começa mais rico, mais respeitado,
+// e ganha mais em cada negócio — pra sempre.
+export const PRESTIGE_UNLOCK = 50_000_000
+export function prestigeStartMoney(prestige: number): number {
+  return Math.round(8000 * (1 + prestige * 0.6))
+}
+export function prestigeStartReputation(prestige: number): number {
+  return Math.min(60, 10 + prestige * 4)
+}
+export function prestigeEarningsMult(prestige: number): number {
+  return 1 + prestige * 0.1
+}

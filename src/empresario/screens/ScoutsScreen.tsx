@@ -7,6 +7,7 @@ import {
   getMinReputationToSign,
   getUnlockedNationalities, getLockedRegions, SCOUT_REGIONS,
 } from '../data/legends'
+import { rarityOf } from '../data/career'
 import type { Legend, SigningEvaluation } from '../types'
 import {
   C, money, BrutalCard, BrutalButton, BrutalPill, BrutalTag,
@@ -20,6 +21,7 @@ export default function ScoutsScreen() {
   const [years, setYears] = useState(3)
   const [result, setResult] = useState<SigningEvaluation | null>(null)
   const [justSigned, setJustSigned] = useState<string | null>(null)
+  const [reveal, setReveal] = useState<Legend | null>(null)
 
   const signedIds = state.clients.map(c => c.legendId)
   const unlockedNats = getUnlockedNationalities(state.purchasedUpgrades)
@@ -44,9 +46,10 @@ export default function ScoutsScreen() {
   const minRep = selected ? getMinReputationToSign(selected, state.year) : 0
   const repBlocked = selected ? state.reputation < minRep : false
 
-  // Deterministic weekly pool
+  // Deterministic weekly pool (hot targets are pinned separately, so exclude them here)
   const seed = state.year * 137 + state.week * 31
   const pool = [...available]
+    .filter(l => !(l.id in state.hotTargets))
     .sort((a, b) => {
       const ha = Math.abs(Math.sin(seed + a.id.charCodeAt(0) * 7.7 + a.id.charCodeAt(1) * 3.3))
       const hb = Math.abs(Math.sin(seed + b.id.charCodeAt(0) * 7.7 + b.id.charCodeAt(1) * 3.3))
@@ -55,11 +58,24 @@ export default function ScoutsScreen() {
     .slice(0, 6)
 
   function openPlayer(legend: Legend) {
+    // First time you lay eyes on this talent → reveal animation + album/XP
+    if (!state.seenLegendIds.includes(legend.id)) {
+      dispatch({ type: 'MARK_LEGEND_SEEN', legendId: legend.id })
+      setReveal(legend)
+      setTimeout(() => setReveal(null), 1300)
+    }
     setSelected(selected?.id === legend.id ? null : legend)
     setRate(15)
     setYears(3)
     setResult(null)
   }
+
+  // 🔥 hot targets still available to chase (with their ticking deadline)
+  const nowAbs = state.year * 52 + state.week
+  const hotList = Object.entries(state.hotTargets)
+    .map(([id, deadline]) => ({ legend: available.find(l => l.id === id), weeks: deadline - nowAbs }))
+    .filter((h): h is { legend: Legend; weeks: number } => !!h.legend && h.weeks > 0)
+    .sort((a, b) => a.weeks - b.weeks)
 
   function tryToSign() {
     if (!selected) return
@@ -140,6 +156,29 @@ export default function ScoutsScreen() {
           </BrutalCard>
         )}
 
+        {/* 🔥 ALVOS QUENTES — aja agora ou um rival leva */}
+        {hotList.length > 0 && (
+          <BrutalCard color={C.orange} className="p-3" shadow={5}>
+            <p className="text-white font-black text-sm mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>🔥 ALVOS QUENTES — AJA AGORA</p>
+            <div className="space-y-2">
+              {hotList.map(({ legend, weeks }) => {
+                const rar = rarityOf(legend.truePotential)
+                return (
+                  <div key={legend.id} onClick={() => openPlayer(legend)}
+                       className="bg-white border-2 border-black rounded-lg p-2 flex items-center gap-2 cursor-pointer active:translate-x-[2px] active:translate-y-[2px]">
+                    <span className="text-xl">{FLAG[legend.nationality]}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-black text-black text-sm truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{rar.emoji} {legend.nickname}</p>
+                      <p className="text-[10px] font-black uppercase" style={{ color: rar.color }}>{rar.label}</p>
+                    </div>
+                    <BrutalTag color={weeks <= 2 ? C.orange : C.yellow} textColor={weeks <= 2 ? '#fff' : '#000'}>⏳ {weeks} sem</BrutalTag>
+                  </div>
+                )
+              })}
+            </div>
+          </BrutalCard>
+        )}
+
         {pool.length === 0 && (
           <BrutalCard color={C.creamDark} className="p-7 text-center">
             <p className="text-4xl mb-2">🕰️</p>
@@ -154,7 +193,8 @@ export default function ScoutsScreen() {
           const status = getCurrentStatus(legend, state.year)
           const st = STATUS_LABEL[status]
           const isOpen = selected?.id === legend.id
-          const isGem = legend.truePotential >= 90
+          const rar = rarityOf(legend.truePotential)
+          const isGem = rar.rank >= 3
 
           return (
             <motion.div key={legend.id} layout>
@@ -164,6 +204,16 @@ export default function ScoutsScreen() {
                 onClick={() => openPlayer(legend)}
                 shadow={isGem ? 6 : 4}
               >
+                {/* rarity ribbon */}
+                <div className="flex items-center justify-between mb-2 -mt-1">
+                  <span className="inline-flex items-center gap-1 border-2 border-black rounded-md px-1.5 py-0.5 text-[10px] font-black uppercase"
+                        style={{ backgroundColor: rar.color, color: rar.rank >= 3 ? '#000' : '#fff' }}>
+                    {rar.emoji} {rar.label}
+                  </span>
+                  {!state.seenLegendIds.includes(legend.id) && (
+                    <BrutalTag color={C.black} textColor="#fff">NOVO</BrutalTag>
+                  )}
+                </div>
                 <div className="flex items-start gap-3">
                   <div className="text-3xl shrink-0">{FLAG[legend.nationality]}</div>
                   <div className="flex-1 min-w-0">
@@ -171,7 +221,6 @@ export default function ScoutsScreen() {
                       <span className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>
                         {legend.name}
                       </span>
-                      {isGem && <span className="text-lg">✨</span>}
                     </div>
                     <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                       <BrutalTag color={POS_COLOR[legend.position]} textColor="#fff">{legend.position}</BrutalTag>
@@ -426,6 +475,44 @@ export default function ScoutsScreen() {
             </div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* ✨ RARITY REVEAL — the gacha pop when you discover a talent */}
+      <AnimatePresence>
+        {reveal && (() => {
+          const rar = rarityOf(reveal.truePotential)
+          return (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none"
+              style={{ backgroundColor: 'rgba(0,0,0,0.55)' }}
+            >
+              <motion.div
+                initial={{ scale: 0.3, rotate: -12, opacity: 0 }}
+                animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                exit={{ scale: 1.3, opacity: 0 }}
+                transition={{ type: 'spring', damping: 12, stiffness: 220 }}
+                className="text-center"
+              >
+                <motion.div
+                  animate={{ scale: [1, 1.15, 1] }} transition={{ repeat: Infinity, duration: 0.8 }}
+                  className="text-7xl mb-2"
+                  style={{ filter: `drop-shadow(0 0 16px ${rar.color})` }}
+                >
+                  {rar.emoji}
+                </motion.div>
+                <div className="border-[3px] border-black rounded-xl px-5 py-2 inline-block"
+                     style={{ backgroundColor: rar.color, boxShadow: `5px 5px 0 0 ${C.black}` }}>
+                  <p className="font-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif', color: rar.rank >= 3 ? '#000' : '#fff' }}>
+                    {rar.label}!
+                  </p>
+                </div>
+                <p className="text-white font-black text-lg mt-3" style={{ fontFamily: 'Oswald, sans-serif' }}>{reveal.nickname}</p>
+                <p className="text-white/70 text-xs font-bold">descoberto · potencial {reveal.truePotential}</p>
+              </motion.div>
+            </motion.div>
+          )
+        })()}
       </AnimatePresence>
 
       {/* signed toast */}

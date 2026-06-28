@@ -1,6 +1,6 @@
 import { useEmpresario } from '../store'
-import { OBJECTIVES, yourNetWorth } from '../data/career'
-import { C, money, moneyFull, BrutalCard, BrutalTag } from '../ui'
+import { OBJECTIVES, yourNetWorth, levelInfo, PRESTIGE_UNLOCK } from '../data/career'
+import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag } from '../ui'
 
 export default function RankingScreen() {
   const { state, dispatch } = useEmpresario()
@@ -32,8 +32,44 @@ export default function RankingScreen() {
             {myRank}º {myRank === 1 ? '👑' : ''}
           </p>
           <p className={`text-sm font-bold mt-1 ${myRank === 1 ? 'text-black/70' : 'text-white/80'}`}>Patrimônio: {moneyFull(myNet)}</p>
-          <p className={`text-xs font-bold mt-1 ${myRank === 1 ? 'text-black/60' : 'text-white/60'}`}>Empresário do Ano: {state.awards}x</p>
+          <div className="flex gap-2 mt-2 flex-wrap">
+            <BrutalTag color={C.yellow}>⭐ Nível {levelInfo(state.xp).level}</BrutalTag>
+            <BrutalTag color={C.creamDark}>🏆 {state.awards}x do ano</BrutalTag>
+            {state.prestige > 0 && <BrutalTag color={C.purple} textColor="#fff">👑 Prestígio {state.prestige}</BrutalTag>}
+          </div>
         </BrutalCard>
+
+        {/* ── PRESTÍGIO / NEW GAME+ ── */}
+        {(() => {
+          const unlocked = state.money >= PRESTIGE_UNLOCK
+          const pct = Math.min(100, (state.money / PRESTIGE_UNLOCK) * 100)
+          return (
+            <BrutalCard color={unlocked ? C.purple : C.black} className="p-4" shadow={6}>
+              <p className="text-white font-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>👑 RECOMEÇAR COMO LENDA</p>
+              <p className="text-white/70 text-xs font-bold mt-1 leading-relaxed">
+                Construiu um império? Volte a 1993 com tudo de novo pela frente — só que mais rico, mais respeitado e ganhando <b className="text-white">+10% em cada negócio</b> a cada prestígio. Para sempre.
+              </p>
+              {unlocked ? (
+                <div className="mt-3">
+                  <BrutalButton color={C.yellow} textColor="#000" onClick={() => {
+                    if (confirm('Recomeçar em 1993 como uma lenda? Seu progresso atual será reiniciado, mas você ganha bônus permanentes de prestígio.')) {
+                      dispatch({ type: 'PRESTIGE', playerName: 'Você' })
+                    }
+                  }}>
+                    👑 Ascender ao Prestígio {state.prestige + 1} →
+                  </BrutalButton>
+                </div>
+              ) : (
+                <div className="mt-3">
+                  <div className="h-3 bg-black/30 border-2 border-white/30 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: C.yellow }} />
+                  </div>
+                  <p className="text-white/60 text-[10px] font-bold mt-1">Desbloqueia ao acumular {moneyFull(PRESTIGE_UNLOCK)} em caixa · você tem {money(state.money)}</p>
+                </div>
+              )}
+            </BrutalCard>
+          )
+        })()}
 
         {/* ranking board */}
         <div>
