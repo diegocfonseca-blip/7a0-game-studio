@@ -37,6 +37,7 @@ export default function DashboardScreen() {
             <span className="text-white/40 font-mono text-xs">sem {state.week}</span>
           </div>
           <div className="flex items-center gap-2">
+            {state.prestige > 0 && <BrutalTag color={C.purple} textColor="#fff">👑 {state.prestige}</BrutalTag>}
             {state.suspicion > 30 && <BrutalTag color={C.orange} textColor="#fff">🕵️ {state.suspicion}</BrutalTag>}
             <BrutalTag color={C.teal}>REP {state.reputation}</BrutalTag>
           </div>
