@@ -103,7 +103,7 @@ export function DraftHub() {
             </div>
             <div className="bg-white/15 border-2 border-black rounded-lg p-2 text-center">
               <p className="text-white/60 text-[10px] font-black uppercase">Força XI</p>
-              <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{Math.round(squadStrength(you.squad))}</p>
+              <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{Math.round(squadStrength(you.squad, you.lineupIds))}</p>
             </div>
             <div className="bg-white/15 border-2 border-black rounded-lg p-2 text-center">
               <p className="text-white/60 text-[10px] font-black uppercase">Lendas</p>
@@ -124,6 +124,29 @@ export function DraftHub() {
               <span className="text-2xl text-white">→</span>
             </div>
           </BrutalCard>
+        )}
+
+        {/* escalação + tática */}
+        {!state.inDraft && (
+          <div className="grid grid-cols-2 gap-3">
+            <BrutalCard color={C.teal} className="p-3" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'lineup' })}>
+              <p className="text-2xl mb-1">👔</p>
+              <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>ESCALAÇÃO</p>
+              <p className="text-black/60 text-[10px] font-bold">Monte seu XI · dê minutos aos jovens</p>
+            </BrutalCard>
+            <BrutalCard color="white" className="p-3">
+              <p className="text-black/50 text-[10px] font-black uppercase mb-1">Tática</p>
+              <div className="space-y-1">
+                {(['retranca', 'equilibrio', 'ataque'] as const).map(t => (
+                  <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', tactic: t })}
+                    className="w-full border-2 border-black rounded px-2 py-1 text-[10px] font-black uppercase text-left"
+                    style={{ backgroundColor: you.tactic === t ? C.blue : '#fff', color: you.tactic === t ? '#fff' : '#000' }}>
+                    {t === 'retranca' ? '🛡️ Retranca' : t === 'equilibrio' ? '⚖️ Equilíbrio' : '⚔️ Pra cima'}
+                  </button>
+                ))}
+              </div>
+            </BrutalCard>
+          </div>
         )}
 
         {/* advance */}
@@ -173,6 +196,7 @@ export function DraftHub() {
               return (
                 <BrutalCard key={p.id} color={p.legendId ? C.cream : 'white'} className="p-2.5" shadow={2}>
                   <div className="flex items-center gap-2">
+                    <span className="w-4 text-center">{you.lineupIds.includes(p.id) ? '⭐' : ''}</span>
                     <BrutalTag color={POS_COLOR[p.pos]} textColor="#fff">{p.pos}</BrutalTag>
                     <span className="text-base">{p.nationality ? FLAG[p.nationality] : '⚽'}</span>
                     <span className="flex-1 min-w-0 truncate font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.name}</span>
@@ -260,6 +284,54 @@ export function DraftRoom() {
             </div>
           </>
         )}
+      </div>
+    </div>
+  )
+}
+
+// ─── LINEUP ────────────────────────────────────────────────────
+export function DraftLineup() {
+  const { state, dispatch } = useDraft()
+  const you = state.managers[state.youIndex]
+  const xi = you.lineupIds.length
+  const order: Record<string, number> = { GOL: 0, ZAG: 1, LAT: 2, MEI: 3, ATA: 4 }
+  const squad = [...you.squad].sort((a, b) => (order[a.pos] - order[b.pos]) || b.rating - a.rating)
+
+  return (
+    <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
+      <div className="border-b-[3px] border-black px-4 py-3 sticky top-0 z-20" style={{ backgroundColor: C.black }}>
+        <div className="max-w-md mx-auto flex items-center gap-3">
+          <button onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'hub' })} className="text-white text-2xl font-black">←</button>
+          <h1 className="text-white font-black text-lg flex-1" style={{ fontFamily: 'Oswald, sans-serif' }}>👔 ESCALAÇÃO</h1>
+          <BrutalTag color={xi === 11 ? C.green : C.orange} textColor="#fff">{xi}/11</BrutalTag>
+        </div>
+      </div>
+      <div className="max-w-md mx-auto px-4 py-4 space-y-3">
+        <BrutalCard color={C.blue} className="p-3" shadow={4}>
+          <p className="text-white text-xs font-bold">
+            ✦ Escale 11. Botar um <b>jovem cru</b> (nota baixa, potencial alto ✨) enfraquece o time hoje — mas <b>jogar faz ele crescer</b> mais rápido. Esse é o seu dilema.
+          </p>
+        </BrutalCard>
+        <p className="text-black/50 text-xs font-bold text-center">Força do XI escalado: <b>{Math.round(squadStrength(you.squad, you.lineupIds))}</b></p>
+        <div className="space-y-2">
+          {squad.map(p => {
+            const on = you.lineupIds.includes(p.id)
+            const rar = p.potential ? rarityOf(p.potential) : null
+            return (
+              <BrutalCard key={p.id} color={on ? C.teal : 'white'} className="p-2.5" shadow={on ? 4 : 2}
+                onClick={() => dispatch({ type: 'SET_LINEUP', playerId: p.id })}>
+                <div className="flex items-center gap-2">
+                  <span className="w-5 text-center text-lg">{on ? '✅' : '⬜'}</span>
+                  <BrutalTag color={POS_COLOR[p.pos]} textColor="#fff">{p.pos}</BrutalTag>
+                  <span className="text-base">{p.nationality ? FLAG[p.nationality] : '⚽'}</span>
+                  <span className="flex-1 min-w-0 truncate font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.name}</span>
+                  {rar && <span className="text-[9px] font-black" style={{ color: rar.color }}>{rar.emoji}{p.potential}</span>}
+                  <span className="font-black text-black text-sm w-7 text-right">{p.rating}</span>
+                </div>
+              </BrutalCard>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

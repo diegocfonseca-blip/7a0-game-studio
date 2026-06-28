@@ -1,16 +1,18 @@
 import type { Position, Nationality } from '../empresario/types'
 
-export type DraftScreen = 'intro' | 'pickClub' | 'hub' | 'draft' | 'squad'
+export type DraftScreen = 'intro' | 'pickClub' | 'hub' | 'draft' | 'lineup'
+export type Tactic = 'retranca' | 'equilibrio' | 'ataque'
 
 // A roster player — either a generated "unknown" or a real legend from the DB.
 export interface DraftPlayer {
   id: string
   name: string
   pos: Position
-  rating: number          // for legends this is recomputed each year from the curve
+  rating: number          // for legends: getCurrentRating(year) + devBonus
   legendId?: string       // set when this is a legend from the shared DB
   nationality?: Nationality
   potential?: number      // truePotential — only YOU and your friends can see it
+  devBonus?: number       // permanent growth earned by getting minutes (jovem que joga cresce)
 }
 
 export interface Manager {
@@ -20,6 +22,8 @@ export interface Manager {
   clubName: string
   clubCity: string
   squad: DraftPlayer[]
+  lineupIds: string[]     // the 11 starters you picked
+  tactic: Tactic
   // standings
   points: number
   played: number
@@ -46,9 +50,11 @@ export interface DraftState {
   rosterMax: number
   // ── draft phase ──
   inDraft: boolean
-  draftOrder: number[]      // manager indices, worst-first
+  draftKind: 'initial' | 'season'
+  draftOrder: number[]      // manager indices for the current pass
   draftPos: number          // pointer into draftOrder
+  draftRoundsLeft: number   // how many full passes remain in this draft
   pendingDrop: boolean      // your squad is full — you must drop before picking
-  lastPickText: string[]    // feed of who picked whom this draft
+  lastPickText: string[]
   narrative: string[]
 }

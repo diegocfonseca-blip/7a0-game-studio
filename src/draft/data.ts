@@ -48,9 +48,17 @@ export function generateFillerSquad(): DraftPlayer[] {
   })
 }
 
-// strength of a manager's best XI (top 11 by rating)
-export function squadStrength(squad: DraftPlayer[]): number {
-  if (squad.length === 0) return 35
-  const top = [...squad].sort((a, b) => b.rating - a.rating).slice(0, 11)
-  return top.reduce((s, p) => s + p.rating, 0) / top.length
+// the ids of the strongest 11 players (default lineup / what the AI fields)
+export function bestEleven(squad: DraftPlayer[]): string[] {
+  return [...squad].sort((a, b) => b.rating - a.rating).slice(0, 11).map(p => p.id)
+}
+
+// strength of the fielded XI. Uses the chosen lineup when valid, else top 11.
+export function squadStrength(squad: DraftPlayer[], lineupIds?: string[]): number {
+  let xi: DraftPlayer[]
+  const chosen = (lineupIds ?? []).map(id => squad.find(p => p.id === id)).filter(Boolean) as DraftPlayer[]
+  if (chosen.length === 11) xi = chosen
+  else xi = [...squad].sort((a, b) => b.rating - a.rating).slice(0, 11)
+  if (xi.length === 0) return 35
+  return xi.reduce((s, p) => s + p.rating, 0) / xi.length
 }
