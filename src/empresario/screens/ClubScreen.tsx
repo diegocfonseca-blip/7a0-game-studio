@@ -22,6 +22,20 @@ export default function ClubScreen() {
 
   const table = [...(club.table ?? [])].sort((a, b) => b.points - a.points || b.played - a.played)
 
+  const stadiumLevel = club.stadiumLevel ?? 1
+  const academyLevel = club.academyLevel ?? 1
+  const tactic = club.tactic ?? 'equilibrio'
+  const trophies = club.trophies ?? []
+  const cupRound = club.cupRound ?? 0
+  const stadiumCost = 200_000 * stadiumLevel
+  const academyCost = 150_000 * academyLevel
+
+  const TACTICS: { key: 'retranca' | 'equilibrio' | 'ataque'; label: string; desc: string }[] = [
+    { key: 'retranca', label: '🛡️ Retranca', desc: 'Seguro — menos derrotas, mais empates' },
+    { key: 'equilibrio', label: '⚖️ Equilíbrio', desc: 'Equilibrado, sem exageros' },
+    { key: 'ataque', label: '⚔️ Pra cima', desc: 'Arriscado — mais vitórias E mais derrotas' },
+  ]
+
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
       <div className="border-b-[3px] border-black px-4 py-3 sticky top-0 z-20" style={{ backgroundColor: C.black }}>
@@ -57,6 +71,86 @@ export default function ClubScreen() {
           </div>
         </BrutalCard>
 
+        {/* CUP STATUS */}
+        {cupRound > 0 && (
+          <BrutalCard color={C.orange} className="p-3" shadow={3}>
+            <p className="text-white font-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>🏆 NA COPA — {cupRound}ª fase</p>
+            <p className="text-white/80 text-[11px] font-bold mt-0.5">Continue vencendo (escale seus melhores!) pra levantar a taça e faturar a premiação.</p>
+          </BrutalCard>
+        )}
+
+        {/* TROPHIES */}
+        {trophies.length > 0 && (
+          <BrutalCard color={C.yellow} className="p-3" shadow={3}>
+            <p className="text-black font-black text-sm mb-1" style={{ fontFamily: 'Oswald, sans-serif' }}>🏅 SALA DE TROFÉUS ({trophies.length})</p>
+            <div className="flex flex-wrap gap-1.5">
+              {trophies.map((t, i) => <BrutalTag key={i} color="white">{t}</BrutalTag>)}
+            </div>
+          </BrutalCard>
+        )}
+
+        {/* TACTIC */}
+        <div>
+          <h2 className="font-black text-black mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>🎯 POSTURA NO JOGO</h2>
+          <div className="grid grid-cols-3 gap-2">
+            {TACTICS.map(t => {
+              const on = tactic === t.key
+              return (
+                <BrutalCard key={t.key} color={on ? C.blue : 'white'} className="p-2 text-center" shadow={on ? 5 : 2}
+                  onClick={() => dispatch({ type: 'SET_TACTIC', tactic: t.key })}>
+                  <p className={`font-black text-xs ${on ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>{t.label}</p>
+                </BrutalCard>
+              )
+            })}
+          </div>
+          <p className="text-black/50 text-[10px] font-bold mt-1">{TACTICS.find(t => t.key === tactic)?.desc}</p>
+        </div>
+
+        {/* INFRASTRUCTURE */}
+        <div>
+          <h2 className="font-black text-black mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>🏗️ INFRAESTRUTURA</h2>
+          <div className="space-y-2">
+            {/* stadium */}
+            <BrutalCard color="white" className="p-3" shadow={3}>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🏟️</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>Estádio · nível {stadiumLevel}/5</p>
+                  <p className="text-black/50 text-[10px] font-bold">Mais torcida e mais renda nos jogos.</p>
+                </div>
+                {stadiumLevel >= 5 ? (
+                  <BrutalTag color={C.green} textColor="#fff">MÁX</BrutalTag>
+                ) : (
+                  <BrutalButton color={state.money >= stadiumCost ? C.green : '#C9C2AC'} disabled={state.money < stadiumCost} full={false}
+                    className="!px-2 !py-1.5 !text-[10px]"
+                    onClick={() => dispatch({ type: 'UPGRADE_CLUB', kind: 'stadium', cost: stadiumCost })}>
+                    {money(stadiumCost)}
+                  </BrutalButton>
+                )}
+              </div>
+            </BrutalCard>
+            {/* academy */}
+            <BrutalCard color="white" className="p-3" shadow={3}>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🎓</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>CT / Base · nível {academyLevel}/5</p>
+                  <p className="text-black/50 text-[10px] font-bold">Seus craques se valorizam mais rápido jogando aqui.</p>
+                </div>
+                {academyLevel >= 5 ? (
+                  <BrutalTag color={C.green} textColor="#fff">MÁX</BrutalTag>
+                ) : (
+                  <BrutalButton color={state.money >= academyCost ? C.green : '#C9C2AC'} disabled={state.money < academyCost} full={false}
+                    className="!px-2 !py-1.5 !text-[10px]"
+                    onClick={() => dispatch({ type: 'UPGRADE_CLUB', kind: 'academy', cost: academyCost })}>
+                    {money(academyCost)}
+                  </BrutalButton>
+                )}
+              </div>
+            </BrutalCard>
+          </div>
+        </div>
+
         {/* LEAGUE TABLE */}
         {table.length > 0 && (
           <div>
@@ -90,20 +184,28 @@ export default function ClubScreen() {
             </BrutalCard>
           )}
           <div className="space-y-2">
-            {placed.map(c => (
+            {placed.map(c => {
+              const showcase = Math.round(((c.showcaseMult ?? 1) - 1) * 100)
+              const onLoan = c.loanReturnYear !== undefined
+              return (
               <BrutalCard key={c.legendId} color={C.teal} className="p-3" shadow={3}>
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{FLAG[c.nationality]}</span>
-                  <div className="flex-1">
-                    <span className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{c.nickname}</span>
-                    <BrutalTag color={POS_COLOR[c.position]} textColor="#fff">{c.position}</BrutalTag>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{c.nickname}</span>
+                      <BrutalTag color={POS_COLOR[c.position]} textColor="#fff">{c.position}</BrutalTag>
+                      {onLoan && <BrutalTag color={C.purple} textColor="#fff">EMPRÉSTIMO</BrutalTag>}
+                    </div>
+                    {showcase > 0 && <p className="text-black/60 text-[10px] font-black mt-0.5">📈 +{showcase}% de valor pela vitrine · {money(c.currentValue)}</p>}
                   </div>
                   <span className="font-black text-black text-sm">{c.currentRating}</span>
                   <button onClick={() => dispatch({ type: 'PLACE_CLIENT_IN_CLUB', legendId: c.legendId })}
                     className="border-2 border-black rounded-lg px-2 py-1 text-[10px] font-black bg-white">TIRAR</button>
                 </div>
               </BrutalCard>
-            ))}
+              )
+            })}
           </div>
         </div>
 
@@ -135,11 +237,13 @@ export default function ClubScreen() {
         {elsewhere.length > 0 && (
           <div>
             <h2 className="font-black text-black mb-1" style={{ fontFamily: 'Oswald, sans-serif' }}>🔁 TRAZER PRO CLUBE</h2>
-            <p className="text-black/50 text-xs font-bold mb-2">Estes clientes seus jogam em OUTROS times. Pra escalá-los aqui, você precisa comprá-los do clube atual.</p>
+            <p className="text-black/50 text-xs font-bold mb-2">Estes clientes seus jogam em OUTROS times. <b>Compre</b> em definitivo ou pegue por <b>empréstimo</b> (mais barato, volta no fim da temporada) pra dar minutos e valorizar.</p>
             <div className="space-y-2">
               {elsewhere.map(c => {
                 const cost = Math.round(c.currentValue)
-                const canAfford = state.money >= cost
+                const loanFee = Math.max(2000, Math.round(c.currentValue * 0.08))
+                const canBuy = state.money >= cost
+                const canLoan = state.money >= loanFee
                 return (
                   <BrutalCard key={c.legendId} color={C.creamDark} className="p-3" shadow={3}>
                     <div className="flex items-center gap-3">
@@ -149,14 +253,18 @@ export default function ClubScreen() {
                         <BrutalTag color={POS_COLOR[c.position]} textColor="#fff">{c.position}</BrutalTag>
                         <p className="text-black/40 text-[10px] font-bold truncate">joga no {c.contractClub}</p>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="font-black text-black text-xs mb-1" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(cost)}</p>
-                        <BrutalButton color={canAfford ? C.green : '#C9C2AC'} disabled={!canAfford} full={false}
-                          className="!px-2 !py-1.5 !text-[10px]"
-                          onClick={() => dispatch({ type: 'BUY_TO_CLUB', legendId: c.legendId })}>
-                          {canAfford ? 'Comprar' : 'Sem $'}
-                        </BrutalButton>
-                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <BrutalButton color={canLoan ? C.purple : '#C9C2AC'} textColor="#fff" disabled={!canLoan} full
+                        className="!px-2 !py-2 !text-[10px]"
+                        onClick={() => dispatch({ type: 'LOAN_TO_CLUB', legendId: c.legendId })}>
+                        🤝 Emprestar {money(loanFee)}
+                      </BrutalButton>
+                      <BrutalButton color={canBuy ? C.green : '#C9C2AC'} disabled={!canBuy} full
+                        className="!px-2 !py-2 !text-[10px]"
+                        onClick={() => dispatch({ type: 'BUY_TO_CLUB', legendId: c.legendId })}>
+                        💰 Comprar {money(cost)}
+                      </BrutalButton>
                     </div>
                   </BrutalCard>
                 )
@@ -165,9 +273,13 @@ export default function ClubScreen() {
           </div>
         )}
 
-        <p className="text-black/40 text-xs font-bold text-center pt-2">
-          O clube joga a cada 2 semanas. Renda de {moneyFull(club.cashPerWeek)}/semana cai no seu caixa.
-        </p>
+        <BrutalCard color={C.creamDark} className="p-3" shadow={2}>
+          <p className="text-black/60 text-[11px] font-bold leading-relaxed">
+            💡 <b>Vitrine:</b> seus clientes escalados aqui ganham valor a cada jogo (mais rápido com CT melhor).
+            <br/>💰 <b>Dono vende caro:</b> ao vender um cliente que joga no SEU clube, além da comissão você embolsa a <b>taxa de transferência inteira</b>.
+            <br/>⚽ O clube joga a cada 2 semanas · 🏆 Copa nas semanas 10/20/30/40 · renda de {moneyFull(club.cashPerWeek)}/semana.
+          </p>
+        </BrutalCard>
       </div>
     </div>
   )
