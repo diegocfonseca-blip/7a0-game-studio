@@ -81,6 +81,9 @@ type Action =
   | { type: 'BUY_CLUB'; clubId: string; name: string; division: number; price: number; fans: number }
   | { type: 'PLACE_CLIENT_IN_CLUB'; legendId: string }
   | { type: 'BUY_TO_CLUB'; legendId: string }
+  | { type: 'LOAN_TO_CLUB'; legendId: string }
+  | { type: 'UPGRADE_CLUB'; kind: 'stadium' | 'academy'; cost: number }
+  | { type: 'SET_TACTIC'; tactic: 'retranca' | 'equilibrio' | 'ataque' }
   | { type: 'DIRTY_ACTION'; kind: 'maquiar' | 'imprensa' | 'arbitro' }
   | { type: 'CLAIM_CHALLENGE' }
   | { type: 'CLAIM_MISSION' }
@@ -167,6 +170,11 @@ const RIVAL_TEAM_NAMES = [
   'Nacional FC', 'União Operária', 'EC Vale Verde', 'Atlético Serrano',
   'Tupi do Norte', 'Grêmio Maringá', 'Sport Litoral', 'Ferroviária', 'Juventude FC', 'Real Sertão',
 ]
+
+// weekly income scales with how big your stadium is
+function clubWeeklyIncome(fans: number, stadiumLevel: number): number {
+  return Math.round(fans * 0.8 * (1 + (stadiumLevel - 1) * 0.4))
+}
 
 function buildLeagueTable(clubName: string): LeagueTeam[] {
   const opp = [...RIVAL_TEAM_NAMES].sort(() => Math.random() - 0.5).slice(0, 7)
@@ -317,7 +325,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         const legend = getLegendById(client.legendId)
         if (!legend) return client
         const newRating = getCurrentRating(legend, newYear)
-        let newValue = getMarketValue(legend, newYear)
+        // vitrine: value built up by playing at your club survives the yearly recompute
+        let newValue = Math.round(getMarketValue(legend, newYear) * (client.showcaseMult ?? 1))
         const newStatus = getCurrentStatus(legend, newYear)
 
         let happiness = client.happiness
@@ -370,6 +379,14 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           }
         }
         activeClients = kept
+        // ↩️ LOAN returns — a borrowed jewel goes back to his club after the season
+        activeClients = activeClients.map(c => {
+          if (c.loanReturnYear !== undefined && newYear >= c.loanReturnYear) {
+            extraNarrative.push(`↩️ ${c.nickname} voltou de empréstimo pro ${c.loanOriginClub} — mais maduro e valorizado.`)
+            return { ...c, contractClub: c.loanOriginClub ?? c.contractClub, loanOriginClub: undefined, loanReturnYear: undefined }
+          }
+          return c
+        })
       }
 
       // Weekly expenses — just what you pay your clients to represent them
@@ -479,48 +496,122 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       const weeklyMissionBaseline = missionMetricValue(state, mission.metric)
       const weeklyMissionClaimed = false
 
-      // 🏟️ OWNED CLUB: weekly income + match sim
+      // 🏟️ OWNED CLUB: income, matchday (tactic + vitrine), cup, derby, titles
+      let clubRepBonus = 0
       let ownedClub = state.ownedClub
       if (ownedClub) {
+        const stadiumLevel = ownedClub.stadiumLevel ?? 1
+        const academyLevel = ownedClub.academyLevel ?? 1
+        const tactic = ownedClub.tactic ?? 'equilibrio'
+        let trophies = ownedClub.trophies ?? []
+        let cupRound = ownedClub.cupRound ?? 0
+        const rivalName = ownedClub.rivalName ?? (ownedClub.table?.find(t => !t.isYou)?.name ?? 'o rival')
+
         runningMoney += ownedClub.cashPerWeek
-        // a match every 2 weeks — yours + the whole league plays
+
+        // only clients actually AT your club (or free) can be fielded
+        const validPlaced = (ownedClub.placedClientIds ?? []).filter(id => {
+          const c = activeClients.find(x => x.legendId === id)
+          return c && (!c.contractClub || c.contractClub === ownedClub!.name)
+        })
+
+        // ⚽ LEAGUE MATCH every 2 weeks
         if (newWeek % 2 === 0) {
-          const placed = activeClients.filter(c => ownedClub!.placedClientIds.includes(c.legendId))
-          const squadStr = placed.length
-            ? placed.reduce((s, c) => s + c.currentRating, 0) / placed.length
-            : 35
+          const placedC = activeClients.filter(c => validPlaced.includes(c.legendId))
+          const squadStr = placedC.length ? placedC.reduce((s, c) => s + c.currentRating, 0) / placedC.length : 35
+          const isDerby = actualWeek === 8 || actualWeek === 34
+          // tactic shifts the odds: ataque = mais vitória E mais derrota; retranca = mais empate
+          const tac = tactic === 'ataque' ? { win: 9, draw: 12 }
+                    : tactic === 'retranca' ? { win: -7, draw: 32 }
+                    : { win: 0, draw: 20 }
+          const winChance = Math.max(8, Math.min(88, 30 + (squadStr - 40) + tac.win))
           const roll = Math.random() * 100
-          const winChance = Math.min(85, 30 + (squadStr - 40))
-          let result: string, ptsGained = 0
           let wins = ownedClub.seasonWins, draws = ownedClub.seasonDraws, losses = ownedClub.seasonLosses
-          if (roll < winChance) { result = 'Vitória 🟢'; wins++; ptsGained = 3 }
-          else if (roll < winChance + 20) { result = 'Empate 🟡'; draws++; ptsGained = 1 }
-          else { result = 'Derrota 🔴'; losses++ }
-          // update the standings: you + simulate every rival's matchday
+          let result: string, ptsGained = 0, won = false
+          if (roll < winChance) { result = isDerby ? 'CLÁSSICO vencido 🟢' : 'Vitória 🟢'; wins++; ptsGained = 3; won = true }
+          else if (roll < winChance + tac.draw) { result = 'Empate 🟡'; draws++; ptsGained = 1 }
+          else { result = isDerby ? 'Clássico perdido 🔴' : 'Derrota 🔴'; losses++ }
+
+          // gate receipts on a win scale with stadium + fans
+          if (won) runningMoney += Math.round(ownedClub.fans * 0.5 * (1 + (stadiumLevel - 1) * 0.3))
+
+          // standings: you + simulate every rival's matchday
           const table = (ownedClub.table ?? buildLeagueTable(ownedClub.name)).map(t => {
             if (t.isYou) return { ...t, points: t.points + ptsGained, played: t.played + 1 }
-            const r = Math.random()
-            const p = r < 0.4 ? 3 : r < 0.7 ? 1 : 0
+            const r = Math.random(); const p = r < 0.4 ? 3 : r < 0.7 ? 1 : 0
             return { ...t, points: t.points + p, played: t.played + 1 }
           })
-          ownedClub = { ...ownedClub, seasonWins: wins, seasonDraws: draws, seasonLosses: losses, lastResult: result, table }
+
+          // 📈 VITRINE: fielded clients gain VALUE (faster with a better academy) + happiness
+          const gain = (won ? 0.04 : 0.02) * (1 + (academyLevel - 1) * 0.25)
+          if (validPlaced.length > 0) {
+            activeClients = activeClients.map(c => validPlaced.includes(c.legendId)
+              ? { ...c, showcaseMult: Math.min(1.8, (c.showcaseMult ?? 1) + gain), currentValue: Math.round(c.currentValue * (1 + gain)), happiness: Math.min(100, c.happiness + (won ? 3 : 1)) }
+              : c)
+          }
+
+          // derby flavor
+          if (isDerby && won) { ownedClub = { ...ownedClub, fans: Math.round(ownedClub.fans * 1.05) }; clubRepBonus += 3; extraNarrative.push(`🔥 CLÁSSICO! Seu ${ownedClub.name} atropelou ${rivalName} e a torcida foi à loucura.`) }
+          else if (isDerby) { extraNarrative.push(`😞 Clássico contra ${rivalName} não saiu como esperado.`) }
+
+          ownedClub = { ...ownedClub, seasonWins: wins, seasonDraws: draws, seasonLosses: losses, lastResult: result, table, placedClientIds: validPlaced }
+        } else {
+          ownedClub = { ...ownedClub, placedClientIds: validPlaced }
         }
-        // promotion/relegation by FINAL STANDINGS on year rollover
+
+        // 🏆 CUP rounds at fixed weeks of the season
+        if ([10, 20, 30, 40].includes(actualWeek)) {
+          const placedC = activeClients.filter(c => validPlaced.includes(c.legendId))
+          const squadStr = placedC.length ? placedC.reduce((s, c) => s + c.currentRating, 0) / placedC.length : 35
+          const advChance = Math.max(20, Math.min(85, 35 + (squadStr - 40)))
+          if (Math.random() * 100 < advChance) {
+            cupRound = cupRound + 1
+            const prize = 40000 * cupRound * (5 - ownedClub.division)
+            runningMoney += prize
+            if (cupRound >= 4) {
+              trophies = [...trophies, `🏆 Copa ${newYear}`]
+              runningMoney += 300000
+              clubRepBonus += 5
+              extraNarrative.push(`🏆 CAMPEÃO DA COPA ${newYear}! O ${ownedClub.name} levantou a taça — R$300.000 de premiação no caixa.`)
+              cupRound = 0
+            } else {
+              extraNarrative.push(`🏆 ${ownedClub.name} avançou na Copa (${cupRound}ª fase)! Premiação de R$${prize.toLocaleString('pt-BR')}.`)
+            }
+          } else {
+            if (cupRound > 0) extraNarrative.push(`🥲 O ${ownedClub.name} caiu na Copa — chegou até a ${cupRound}ª fase.`)
+            cupRound = 0
+          }
+          ownedClub = { ...ownedClub, cupRound, trophies }
+        }
+
+        // 🏁 END OF SEASON: title, promotion/relegation
         if (yearRolled) {
           const finalTable = sortTable(ownedClub.table ?? buildLeagueTable(ownedClub.name))
           const pos = finalTable.findIndex(t => t.isYou) + 1
           ownedClub = { ...ownedClub, leaguePosition: pos }
-          if (pos > 0 && pos <= 2 && ownedClub.division > 1) {
-            ownedClub = { ...ownedClub, division: ownedClub.division - 1, fans: Math.round(ownedClub.fans * 1.6), cashPerWeek: Math.round(ownedClub.cashPerWeek * 1.5) }
-            extraNarrative.push(`🏟️ ${ownedClub.name} terminou em ${pos}º e SUBIU para a ${ownedClub.division}ª divisão! A torcida explode.`)
-          } else if (pos >= finalTable.length - 1 && ownedClub.division < 4) {
-            ownedClub = { ...ownedClub, division: ownedClub.division + 1, fans: Math.round(ownedClub.fans * 0.7) }
-            extraNarrative.push(`🏟️ ${ownedClub.name} terminou em ${pos}º e foi REBAIXADO para a ${ownedClub.division}ª divisão.`)
-          } else {
-            extraNarrative.push(`🏟️ ${ownedClub.name} terminou a temporada em ${pos}º lugar.`)
+          if (pos === 1) {
+            trophies = [...trophies, `🥇 Campeão ${ownedClub.division}ª Div ${newYear - 1}`]
+            runningMoney += 150000
+            clubRepBonus += 4
+            extraNarrative.push(`🥇 CAMPEÃO! O ${ownedClub.name} terminou em 1º na ${ownedClub.division}ª divisão de ${newYear - 1}.`)
           }
-          // new season: reset table
-          ownedClub = { ...ownedClub, seasonWins: 0, seasonDraws: 0, seasonLosses: 0, table: buildLeagueTable(ownedClub.name) }
+          if (pos > 0 && pos <= 2 && ownedClub.division > 1) {
+            const div = ownedClub.division - 1
+            const fans = Math.round(ownedClub.fans * 1.6)
+            ownedClub = { ...ownedClub, division: div, fans, cashPerWeek: clubWeeklyIncome(fans, stadiumLevel) }
+            extraNarrative.push(`🏟️ ${ownedClub.name} SUBIU para a ${div}ª divisão! A torcida explode.`)
+          } else if (pos >= finalTable.length - 1 && ownedClub.division < 4) {
+            const div = ownedClub.division + 1
+            const fans = Math.round(ownedClub.fans * 0.7)
+            ownedClub = { ...ownedClub, division: div, fans, cashPerWeek: clubWeeklyIncome(fans, stadiumLevel) }
+            extraNarrative.push(`🏟️ ${ownedClub.name} foi REBAIXADO para a ${div}ª divisão.`)
+          } else {
+            extraNarrative.push(`🏟️ ${ownedClub.name} terminou em ${pos}º na ${ownedClub.division}ª divisão de ${newYear - 1}.`)
+          }
+          // 🎓 academy reveal — being a developer grows your name
+          if (academyLevel >= 3) { clubRepBonus += 2; extraNarrative.push(`🎓 A base do ${ownedClub.name} revelou um garoto promissor. Sua fama de formador cresce.`) }
+          // new season reset (keep trophies, infra, tactic)
+          ownedClub = { ...ownedClub, seasonWins: 0, seasonDraws: 0, seasonLosses: 0, cupRound: 0, table: buildLeagueTable(ownedClub.name), trophies }
         }
       }
 
@@ -585,7 +676,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         week: actualWeek,
         year: newYear,
         money: Math.max(0, money2),
-        reputation: reputation2,
+        reputation: Math.min(100, reputation2 + clubRepBonus),
         suspicion,
         awards,
         rivalAgents,
@@ -621,7 +712,10 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       // 🔥 COMBO: consecutive deals build a streak that boosts your take.
       const streak = state.saleStreak + 1
       const comboMult = 1 + Math.min(0.5, (streak - 1) * 0.05)  // +5% per step, capped +50%
-      const earnings = Math.round(base * comboMult)
+      // 🏟️ If this player plays at YOUR club, you're the seller too — keep the FULL fee.
+      const ownsSeller = !!state.ownedClub && state.ownedClub.placedClientIds.includes(offer.clientId)
+      const clubFee = ownsSeller ? action.amount : 0
+      const earnings = Math.round(base * comboMult) + clubFee
       const repFromStreak = streak >= 3 ? Math.min(8, Math.floor(streak / 2)) : 0
       const nowAbs = state.year * 52 + state.week
       const xpr = applyXp(state, Math.min(120, 30 + Math.round(earnings / 50000)))
@@ -640,6 +734,10 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         clubRelations: { ...state.clubRelations, [action.clubName]: Math.min(100, (state.clubRelations[action.clubName] ?? 0) + 12) },
         // Drop ALL pending offers for this player — once sold, the other clubs back off.
         pendingOffers: state.pendingOffers.filter(o => o.clientId !== offer.clientId),
+        // if he was playing for you, he leaves the pitch on his way out
+        ownedClub: ownsSeller && state.ownedClub
+          ? { ...state.ownedClub, placedClientIds: state.ownedClub.placedClientIds.filter(id => id !== offer.clientId) }
+          : state.ownedClub,
         clients: state.clients.map(c =>
           c.legendId === offer.clientId
             ? { ...c, contractClub: action.clubName, contractSalary: offer.salary, contractExpiresYear: state.year + offer.contractYears, lastDealYear: state.year }
@@ -648,7 +746,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         negotiationLog: [{ who: 'voce' as const, year: state.year, text: `✅ ${client?.nickname} → ${action.clubName} por R$${action.amount.toLocaleString('pt-BR')} · você embolsou R$${earnings.toLocaleString('pt-BR')}` }, ...state.negotiationLog].slice(0, 30),
         narrative: [
           ...state.narrative,
-          `🤝 TRANSFERÊNCIA FECHADA! ${client?.nickname} → ${action.clubName} por R$${action.amount.toLocaleString('pt-BR')}. Você embolsou R$${earnings.toLocaleString('pt-BR')} (comissão R$${commission.toLocaleString('pt-BR')} + luva R$${action.clubLuva.toLocaleString('pt-BR')}).`,
+          `🤝 TRANSFERÊNCIA FECHADA! ${client?.nickname} → ${action.clubName} por R$${action.amount.toLocaleString('pt-BR')}. Você embolsou R$${earnings.toLocaleString('pt-BR')} (comissão R$${commission.toLocaleString('pt-BR')} + luva R$${action.clubLuva.toLocaleString('pt-BR')}${ownsSeller ? ` + taxa de transferência R$${clubFee.toLocaleString('pt-BR')} (você é o dono do clube!)` : ''}).`,
           ...(streak >= 3 ? [`🔥 SEQUÊNCIA x${streak}! Você está embalado — bônus de +${Math.round((comboMult - 1) * 100)}% no negócio e +${repFromStreak} de reputação.`] : []),
           ...(xpr.line ? [xpr.line] : []),
         ],
@@ -839,23 +937,31 @@ function empresarioReducer(state: GameState, action: Action): GameState {
 
     case 'BUY_CLUB': {
       if (state.money < action.price || state.ownedClub) return state
+      const table = buildLeagueTable(action.name)
+      const rivalName = table.find(t => !t.isYou)?.name ?? 'o rival'
       const club: OwnedClub = {
         id: action.clubId,
         name: action.name,
         division: action.division,
         fans: action.fans,
         leaguePosition: 10,
-        cashPerWeek: Math.round(action.fans * 0.8),
+        cashPerWeek: clubWeeklyIncome(action.fans, 1),
         placedClientIds: [],
         lastResult: '—',
         seasonWins: 0, seasonDraws: 0, seasonLosses: 0,
-        table: buildLeagueTable(action.name),
+        table,
+        stadiumLevel: 1,
+        academyLevel: 1,
+        tactic: 'equilibrio',
+        trophies: [],
+        cupRound: 0,
+        rivalName,
       }
       return {
         ...state,
         money: state.money - action.price,
         ownedClub: club,
-        narrative: [...state.narrative, `🏟️ VOCÊ COMPROU O ${action.name.toUpperCase()}! Agora é dono de um clube — o começo do império.`],
+        narrative: [...state.narrative, `🏟️ VOCÊ COMPROU O ${action.name.toUpperCase()}! Agora é dono de um clube — o começo do império. Seu maior rival na ${action.division}ª divisão: ${rivalName}.`],
       }
     }
 
@@ -898,6 +1004,57 @@ function empresarioReducer(state: GameState, action: Action): GameState {
             : c
         ),
       }
+    }
+
+    case 'LOAN_TO_CLUB': {
+      // Bring a client who plays ELSEWHERE on a 1-season loan — cheap way to
+      // develop a jewel at your club. He returns to his club next year.
+      if (!state.ownedClub) return state
+      const c = state.clients.find(x => x.legendId === action.legendId)
+      if (!c || !c.contractClub || c.contractClub === state.ownedClub.name) return state
+      const fee = Math.max(2000, Math.round(c.currentValue * 0.08))
+      if (state.money < fee) return state
+      return {
+        ...state,
+        money: state.money - fee,
+        clients: state.clients.map(x =>
+          x.legendId === action.legendId
+            ? { ...x, loanOriginClub: x.contractClub!, contractClub: state.ownedClub!.name, loanReturnYear: state.year + 1, happiness: Math.min(100, x.happiness + 6) }
+            : x
+        ),
+        ownedClub: { ...state.ownedClub, placedClientIds: [...state.ownedClub.placedClientIds, action.legendId] },
+        narrative: [...state.narrative, `🤝 Você pegou ${c.nickname} por EMPRÉSTIMO (de ${c.contractClub}) por uma temporada — R$${fee.toLocaleString('pt-BR')}. Hora de dar minutos e valorizar.`],
+      }
+    }
+
+    case 'UPGRADE_CLUB': {
+      if (!state.ownedClub || state.money < action.cost) return state
+      const club = state.ownedClub
+      if (action.kind === 'stadium') {
+        const lvl = (club.stadiumLevel ?? 1) + 1
+        if (lvl > 5) return state
+        const fans = Math.round(club.fans * 1.25)
+        return {
+          ...state,
+          money: state.money - action.cost,
+          ownedClub: { ...club, stadiumLevel: lvl, fans, cashPerWeek: clubWeeklyIncome(fans, lvl) },
+          narrative: [...state.narrative, `🏗️ Você ampliou o estádio do ${club.name} (nível ${lvl})! Mais torcida, mais renda nos jogos.`],
+        }
+      }
+      // academy
+      const lvl = (club.academyLevel ?? 1) + 1
+      if (lvl > 5) return state
+      return {
+        ...state,
+        money: state.money - action.cost,
+        ownedClub: { ...club, academyLevel: lvl },
+        narrative: [...state.narrative, `🎓 Você investiu no CT/base do ${club.name} (nível ${lvl})! Seus craques se valorizam mais rápido jogando aqui.`],
+      }
+    }
+
+    case 'SET_TACTIC': {
+      if (!state.ownedClub) return state
+      return { ...state, ownedClub: { ...state.ownedClub, tactic: action.tactic } }
     }
 
     case 'DIRTY_ACTION': {

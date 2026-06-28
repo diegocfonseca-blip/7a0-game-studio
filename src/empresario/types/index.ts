@@ -75,6 +75,9 @@ export interface Client {
   contractExpiresYear: number | null
   rivalOffers: number     // how many rival agents approached them
   lastDealYear?: number   // year of last transfer — clubs leave them alone for a while
+  showcaseMult?: number   // value multiplier built up by playing at YOUR club (vitrine)
+  loanReturnYear?: number // if on loan to your club, the year he goes back
+  loanOriginClub?: string // the club he came from on loan
 }
 
 export interface Bid {
@@ -121,6 +124,8 @@ export interface LeagueTeam {
   isYou?: boolean
 }
 
+export type ClubTactic = 'retranca' | 'equilibrio' | 'ataque'
+
 export interface OwnedClub {
   id: string
   name: string
@@ -134,6 +139,12 @@ export interface OwnedClub {
   seasonLosses: number
   seasonDraws: number
   table: LeagueTeam[]      // full league standings
+  stadiumLevel: number    // 1–5 — bigger stadium = more fans growth + match income
+  academyLevel: number    // 1–5 — base/CT = develops your placed jewels faster
+  tactic: ClubTactic      // matchday posture
+  trophies: string[]      // titles won (league, cup)
+  cupRound: number        // current cup run (0 = out)
+  rivalName: string       // your derby rival
 }
 
 export interface RivalAgent {
