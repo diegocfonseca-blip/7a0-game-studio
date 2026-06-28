@@ -10,6 +10,9 @@ import MaintenanceScreen from './screens/MaintenanceScreen'
 import MatchScreen from './screens/MatchScreen'
 import MarketScreen from './screens/MarketScreen'
 import EmpresarioGame from './empresario'
+import DraftGame from './draft'
+
+type GameKey = 'ladrao' | 'empresario' | 'draft'
 
 function LadraoGame() {
   const { state } = useGame()
@@ -26,7 +29,7 @@ function LadraoGame() {
   }
 }
 
-function GameSelector({ onSelect }: { onSelect: (game: 'ladrao' | 'empresario') => void }) {
+function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-5 gap-7" style={{ backgroundColor: '#F4ECD6' }}>
       <div className="text-center">
@@ -38,6 +41,21 @@ function GameSelector({ onSelect }: { onSelect: (game: 'ladrao' | 'empresario') 
       </div>
 
       <div className="w-full max-w-sm space-y-4">
+        <motion.button
+          onClick={() => onSelect('draft')}
+          whileTap={{ x: 3, y: 3 }}
+          className="w-full text-left border-[3px] border-black rounded-2xl p-6 transition-all"
+          style={{ backgroundColor: '#7C3AED', boxShadow: '6px 6px 0 0 #0C0C0C' }}
+        >
+          <div className="text-4xl mb-3">⚡</div>
+          <p className="text-white font-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif' }}>OS ELEITOS DE 92</p>
+          <p className="text-white/80 text-sm mt-1 font-medium">
+            Um raio jogou você e a galera de volta a 1992. Só vocês lembram as lendas. Pegue um time da 4ª divisão e dispute o draft pra fisgar os craques antes dos amigos.
+          </p>
+          <span className="inline-block mt-3 border-2 border-black rounded-full px-2.5 py-0.5 text-xs font-black uppercase"
+                style={{ backgroundColor: '#FFC400', color: '#000' }}>NOVO ✦</span>
+        </motion.button>
+
         <motion.button
           onClick={() => onSelect('empresario')}
           whileTap={{ x: 3, y: 3 }}
@@ -71,11 +89,11 @@ function GameSelector({ onSelect }: { onSelect: (game: 'ladrao' | 'empresario') 
 }
 
 export default function App() {
-  const [selectedGame, setSelectedGame] = useState<'ladrao' | 'empresario' | null>(
-    () => (localStorage.getItem('selected-game') as 'ladrao' | 'empresario' | null)
+  const [selectedGame, setSelectedGame] = useState<GameKey | null>(
+    () => (localStorage.getItem('selected-game') as GameKey | null)
   )
 
-  function choose(game: 'ladrao' | 'empresario') {
+  function choose(game: GameKey) {
     localStorage.setItem('selected-game', game)
     setSelectedGame(game)
   }
@@ -86,6 +104,10 @@ export default function App() {
 
   if (selectedGame === 'empresario') {
     return <EmpresarioGame />
+  }
+
+  if (selectedGame === 'draft') {
+    return <DraftGame />
   }
 
   return (
