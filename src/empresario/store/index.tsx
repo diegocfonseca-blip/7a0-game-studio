@@ -1,12 +1,22 @@
 import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
 import type { GameState, Screen, Client, ClubOffer, Bid, OwnedClub, LeagueTeam } from '../types'
-import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, LEGENDS } from '../data/legends'
+import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getUnlockedNationalities, LEGENDS } from '../data/legends'
 import { generateWeeklyEvent, generateAmbientNews } from '../data/events'
 import type { ClientLite } from '../data/events'
 import { CLUBS, NEMESIS } from '../data/clubs'
 import { GLORIES, genericGlory } from '../data/glory'
-import { WORLD_CUP_YEARS, isTransferWindow, CHALLENGES } from '../data/career'
+import {
+  WORLD_CUP_YEARS, isTransferWindow, CHALLENGES,
+  grantXp, rarityOf, MISSIONS, missionForWeek, missionMetricValue,
+  PRESTIGE_UNLOCK, prestigeStartMoney, prestigeStartReputation, prestigeEarningsMult,
+} from '../data/career'
+// XP helper: bumps xp and, on a level-up, hands back a small rep bonus + a news line.
+function applyXp(state: GameState, amount: number): { xp: number; repBonus: number; line: string | null } {
+  const g = grantXp(state.xp, amount)
+  if (g.leveled) return { xp: g.xp, repBonus: 2, line: `⭐ NÍVEL ${g.leveled}! Seu nome pesa cada vez mais no mercado.` }
+  return { xp: g.xp, repBonus: 0, line: null }
+}
 
 const INITIAL_STATE: GameState = {
   screen: 'intro',
@@ -42,6 +52,16 @@ const INITIAL_STATE: GameState = {
   clubRelations: {},
   awards: 0,
   challengeIndex: 0,
+  xp: 0,
+  prestige: 0,
+  saleStreak: 0,
+  bestStreak: 0,
+  lastDealAbsWeek: 0,
+  everSignedIds: [],
+  hotTargets: {},
+  weeklyMissionId: null,
+  weeklyMissionBaseline: 0,
+  weeklyMissionClaimed: false,
   narrative: [],
 }
 
@@ -65,6 +85,8 @@ type Action =
   | { type: 'BUY_TO_CLUB'; legendId: string }
   | { type: 'DIRTY_ACTION'; kind: 'maquiar' | 'imprensa' | 'arbitro' }
   | { type: 'CLAIM_CHALLENGE' }
+  | { type: 'CLAIM_MISSION' }
+  | { type: 'PRESTIGE'; playerName: string }
   | { type: 'NEW_GAME' }
 
 function generateClubOffer(client: Client, year: number, clubRelations: Record<string, number> = {}): ClubOffer | null {
@@ -184,12 +206,21 @@ function empresarioReducer(state: GameState, action: Action): GameState {
     case 'SET_SCREEN':
       return { ...state, screen: action.screen }
 
-    case 'START_GAME':
+    case 'START_GAME': {
+      const prestige = state.prestige
       return {
         ...INITIAL_STATE,
+        prestige,
+        money: prestigeStartMoney(prestige),
+        reputation: prestigeStartReputation(prestige),
+        weeklyMissionId: missionForWeek(1993 * 52 + 1).id,
+        weeklyMissionBaseline: 0,
         screen: 'dashboard',
-        narrative: [`${action.playerName} acordou em 1993. A vida nunca mais seria a mesma.`],
+        narrative: [prestige > 0
+          ? `${action.playerName} recomeçou em 1993 — agora como uma LENDA dos bastidores (Prestígio ${prestige}). Mais rico, mais respeitado, mais faminto.`
+          : `${action.playerName} acordou em 1993. A vida nunca mais seria a mesma.`],
       }
+    }
 
     case 'SIGN_CLIENT': {
       const legend = getLegendById(action.legendId)
@@ -227,6 +258,10 @@ function empresarioReducer(state: GameState, action: Action): GameState {
 
       const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + legend.monthlyFee / 4
       const upfront = legend.signingFee + legend.luva
+      const xpr = applyXp(state, 60)
+      const hotTargets = { ...state.hotTargets }
+      delete hotTargets[action.legendId]
+      const rar = rarityOf(legend.truePotential)
 
       return {
         ...state,
@@ -234,9 +269,16 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         clients: [...state.clients, newClient],
         weeklyExpenses,
         actionsUsed: state.actionsUsed + 1,
-        seenLegendIds: [...state.seenLegendIds, action.legendId],
+        xp: xpr.xp,
+        reputation: Math.min(100, state.reputation + xpr.repBonus),
+        seenLegendIds: state.seenLegendIds.includes(action.legendId) ? state.seenLegendIds : [...state.seenLegendIds, action.legendId],
+        everSignedIds: state.everSignedIds.includes(action.legendId) ? state.everSignedIds : [...state.everSignedIds, action.legendId],
+        hotTargets,
         negotiationLog: [{ who: 'voce' as const, year: state.year, text: `📝 Você agenciou ${legend.nickname} (${action.commissionRate}% · ${action.contractYears} anos)` }, ...state.negotiationLog].slice(0, 30),
-        narrative: [...state.narrative, `✍️ Você assinou ${legend.nickname}: ${action.commissionRate}% de comissão, contrato de ${action.contractYears} anos + R$${legend.luva.toLocaleString('pt-BR')} de luva.`],
+        narrative: [...state.narrative,
+          `✍️ Você assinou ${rar.emoji} ${legend.nickname} (${rar.label}): ${action.commissionRate}% de comissão, contrato de ${action.contractYears} anos + R$${legend.luva.toLocaleString('pt-BR')} de luva.`,
+          ...(xpr.line ? [xpr.line] : []),
+        ],
       }
     }
 
@@ -391,6 +433,61 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         negotiationLog = [{ who: 'rival' as const, year: newYear, text: `😈 Sérgio Cambalhota agenciou ${legend.name} antes de você!` }, ...negotiationLog].slice(0, 30)
         extraNarrative.push(`😈 ${NEMESIS.name} roubou ${legend.nickname} de você!`)
       }
+      let lostLegends = grabbed ? [...state.lostLegends, grabbed] : state.lostLegends
+
+      // 🔥 HOT TARGETS — gems with a ticking clock. Sign them before a rival does.
+      const nowAbs = newYear * 52 + actualWeek
+      const hotTargets: Record<string, number> = { ...state.hotTargets }
+      const signedSet = new Set(activeClients.map(c => c.legendId))
+      // expire: deadline passed and still unsigned → a rival snaps them up
+      for (const [id, deadline] of Object.entries(hotTargets)) {
+        if (signedSet.has(id) || state.everSignedIds.includes(id)) { delete hotTargets[id]; continue }
+        if (nowAbs >= deadline) {
+          delete hotTargets[id]
+          if (!nemesisTaken.includes(id) && !lostLegends.includes(id)) {
+            const lg = getLegendById(id)
+            if (lg) {
+              nemesisTaken = [...nemesisTaken, id]
+              lostLegends = [...lostLegends, id]
+              extraNarrative.push(`⏳ VOCÊ DEMOROU! Um rival fechou com ${lg.nickname} enquanto você hesitava. Essa lenda escapou de vez.`)
+            }
+          }
+        }
+      }
+      // register: pin a fresh emerging gem you can chase right now
+      if (Object.keys(hotTargets).length < 3) {
+        const unlockedNats = getUnlockedNationalities(state.purchasedUpgrades)
+        const candidates = LEGENDS.filter(l =>
+          l.truePotential >= 92 &&
+          newYear >= l.emergenceYear &&
+          l.birthYear <= newYear - 14 &&
+          unlockedNats.includes(l.nationality) &&
+          !signedSet.has(l.id) &&
+          !state.everSignedIds.includes(l.id) &&
+          !nemesisTaken.includes(l.id) &&
+          !lostLegends.includes(l.id) &&
+          !(l.id in hotTargets)
+        )
+        if (candidates.length > 0 && Math.random() < 0.6) {
+          const pick = candidates[Math.floor(Math.random() * candidates.length)]
+          const weeks = 4 + Math.floor(Math.random() * 4) // 4–7 weeks to act
+          hotTargets[pick.id] = nowAbs + weeks
+          extraNarrative.push(`🔥 ALVO QUENTE: ${pick.nickname} (${rarityOf(pick.truePotential).label}) está disponível AGORA. Feche em ${weeks} semanas ou um rival leva.`)
+        }
+      }
+
+      // 💤 COMBO cooldown — momentum fades if you go too long without a deal
+      let saleStreak = state.saleStreak
+      if (saleStreak > 0 && state.lastDealAbsWeek > 0 && nowAbs - state.lastDealAbsWeek > 6) {
+        extraNarrative.push(`💤 Sua sequência de ${saleStreak} negócios esfriou — faz tempo que você não fecha nada.`)
+        saleStreak = 0
+      }
+
+      // 📋 WEEKLY MISSION rotates every week with a fresh baseline
+      const mission = missionForWeek(nowAbs)
+      const weeklyMissionId = mission.id
+      const weeklyMissionBaseline = missionMetricValue(state, mission.metric)
+      const weeklyMissionClaimed = false
 
       // 🏟️ OWNED CLUB: weekly income + match sim
       let ownedClub = state.ownedClub
@@ -512,7 +609,12 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         nemesisShown,
         negotiationLog,
         ownedClub,
-        lostLegends: grabbed ? [...state.lostLegends, grabbed] : state.lostLegends,
+        lostLegends,
+        hotTargets,
+        saleStreak,
+        weeklyMissionId,
+        weeklyMissionBaseline,
+        weeklyMissionClaimed,
         narrative: [...state.narrative, ...extraNarrative],
       }
     }
@@ -524,13 +626,27 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       const client = state.clients.find(c => c.legendId === offer.clientId)
       // Your earnings: commission (negotiated with the player) + the club's luva.
       const commission = Math.round(action.amount * (client?.commissionRate ?? 10) / 100)
-      const earnings = commission + action.clubLuva
+      const base = commission + action.clubLuva
+
+      // 🔥 COMBO: consecutive deals build a streak that boosts your take.
+      const streak = state.saleStreak + 1
+      const comboMult = 1 + Math.min(0.5, (streak - 1) * 0.05)  // +5% per step, capped +50%
+      const prestMult = prestigeEarningsMult(state.prestige)
+      const earnings = Math.round(base * comboMult * prestMult)
+      const repFromStreak = streak >= 3 ? Math.min(8, Math.floor(streak / 2)) : 0
+      const nowAbs = state.year * 52 + state.week
+      const xpr = applyXp(state, Math.min(120, 30 + Math.round(earnings / 50000)))
 
       return {
         ...state,
         money: state.money + earnings,
         totalEarned: state.totalEarned + earnings,
         totalDeals: state.totalDeals + 1,
+        saleStreak: streak,
+        bestStreak: Math.max(state.bestStreak, streak),
+        lastDealAbsWeek: nowAbs,
+        xp: xpr.xp,
+        reputation: Math.min(100, state.reputation + repFromStreak + xpr.repBonus),
         // closing a deal warms your relationship with the buying club
         clubRelations: { ...state.clubRelations, [action.clubName]: Math.min(100, (state.clubRelations[action.clubName] ?? 0) + 12) },
         // Drop ALL pending offers for this player — once sold, the other clubs back off.
@@ -543,7 +659,9 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         negotiationLog: [{ who: 'voce' as const, year: state.year, text: `✅ ${client?.nickname} → ${action.clubName} por R$${action.amount.toLocaleString('pt-BR')} · você embolsou R$${earnings.toLocaleString('pt-BR')}` }, ...state.negotiationLog].slice(0, 30),
         narrative: [
           ...state.narrative,
-          `🤝 TRANSFERÊNCIA FECHADA! ${client?.nickname} → ${action.clubName} por R$${action.amount.toLocaleString('pt-BR')}. Você embolsou R$${earnings.toLocaleString('pt-BR')} (comissão R$${commission.toLocaleString('pt-BR')} + luva R$${action.clubLuva.toLocaleString('pt-BR')}).`
+          `🤝 TRANSFERÊNCIA FECHADA! ${client?.nickname} → ${action.clubName} por R$${action.amount.toLocaleString('pt-BR')}. Você embolsou R$${earnings.toLocaleString('pt-BR')} (comissão R$${commission.toLocaleString('pt-BR')} + luva R$${action.clubLuva.toLocaleString('pt-BR')}).`,
+          ...(streak >= 3 ? [`🔥 SEQUÊNCIA x${streak}! Você está embalado — bônus de +${Math.round((comboMult - 1) * 100)}% no negócio e +${repFromStreak} de reputação.`] : []),
+          ...(xpr.line ? [xpr.line] : []),
         ],
       }
     }
@@ -639,26 +757,66 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       }
     }
 
-    case 'MARK_LEGEND_SEEN':
+    case 'MARK_LEGEND_SEEN': {
+      if (state.seenLegendIds.includes(action.legendId)) return state
+      const xpr = applyXp(state, 12)
       return {
         ...state,
-        seenLegendIds: state.seenLegendIds.includes(action.legendId)
-          ? state.seenLegendIds
-          : [...state.seenLegendIds, action.legendId],
+        seenLegendIds: [...state.seenLegendIds, action.legendId],
+        xp: xpr.xp,
+        reputation: Math.min(100, state.reputation + xpr.repBonus),
+        narrative: xpr.line ? [...state.narrative, xpr.line] : state.narrative,
       }
+    }
 
     case 'CLAIM_CHALLENGE': {
       const ch = CHALLENGES[state.challengeIndex]
       // Only pay out if there IS a current challenge and it's actually complete.
       if (!ch || !ch.done(state)) return state
+      const xpr = applyXp(state, 100)
       return {
         ...state,
         money: state.money + ch.reward,
         totalEarned: state.totalEarned + ch.reward,
-        reputation: Math.min(100, state.reputation + ch.repReward),
+        reputation: Math.min(100, state.reputation + ch.repReward + xpr.repBonus),
+        xp: xpr.xp,
         challengeIndex: state.challengeIndex + 1,
         negotiationLog: [{ who: 'voce' as const, year: state.year, text: `🎯 Desafio concluído: ${ch.title} (+R$${ch.reward.toLocaleString('pt-BR')})` }, ...state.negotiationLog].slice(0, 30),
-        narrative: [...state.narrative, `🎯 DESAFIO CONCLUÍDO — ${ch.title}! Recompensa: R$${ch.reward.toLocaleString('pt-BR')} + ${ch.repReward} de reputação.`],
+        narrative: [...state.narrative, `🎯 DESAFIO CONCLUÍDO — ${ch.title}! Recompensa: R$${ch.reward.toLocaleString('pt-BR')} + ${ch.repReward} de reputação.`, ...(xpr.line ? [xpr.line] : [])],
+      }
+    }
+
+    case 'CLAIM_MISSION': {
+      if (!state.weeklyMissionId || state.weeklyMissionClaimed) return state
+      const m = MISSIONS.find(x => x.id === state.weeklyMissionId)
+      if (!m) return state
+      const progress = missionMetricValue(state, m.metric) - state.weeklyMissionBaseline
+      if (progress < m.target) return state
+      const xpr = applyXp(state, m.xp)
+      return {
+        ...state,
+        money: state.money + m.reward,
+        totalEarned: state.totalEarned + m.reward,
+        xp: xpr.xp,
+        reputation: Math.min(100, state.reputation + xpr.repBonus),
+        weeklyMissionClaimed: true,
+        negotiationLog: [{ who: 'voce' as const, year: state.year, text: `📋 Missão da semana cumprida (+R$${m.reward.toLocaleString('pt-BR')})` }, ...state.negotiationLog].slice(0, 30),
+        narrative: [...state.narrative, `📋 MISSÃO DA SEMANA CUMPRIDA — ${m.label}! +R$${m.reward.toLocaleString('pt-BR')}.`, ...(xpr.line ? [xpr.line] : [])],
+      }
+    }
+
+    case 'PRESTIGE': {
+      if (state.money < PRESTIGE_UNLOCK) return state
+      const prestige = state.prestige + 1
+      return {
+        ...INITIAL_STATE,
+        prestige,
+        money: prestigeStartMoney(prestige),
+        reputation: prestigeStartReputation(prestige),
+        weeklyMissionId: missionForWeek(1993 * 52 + 1).id,
+        weeklyMissionBaseline: 0,
+        screen: 'dashboard',
+        narrative: [`👑 PRESTÍGIO ${prestige}! ${action.playerName} fechou um ciclo de glória e VOLTOU a 1993 como uma lenda viva — começa com R$${prestigeStartMoney(prestige).toLocaleString('pt-BR')}, reputação ${prestigeStartReputation(prestige)} e +${Math.round(prestige * 10)}% em cada negócio. O império recomeça maior.`],
       }
     }
 

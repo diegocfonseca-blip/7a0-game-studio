@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useEmpresario } from '../store'
 import { NEMESIS } from '../data/clubs'
 import { evaluateRenewal } from '../data/legends'
-import { windowInfo, CHALLENGES } from '../data/career'
+import { windowInfo, CHALLENGES, levelInfo, MISSIONS, missionForWeek, missionMetricValue } from '../data/career'
 import type { Client, Personality } from '../types'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalPill, BrutalTag, POS_COLOR, FLAG, STATUS_LABEL } from '../ui'
 
@@ -37,6 +37,7 @@ export default function DashboardScreen() {
             <span className="text-white/40 font-mono text-xs">sem {state.week}</span>
           </div>
           <div className="flex items-center gap-2">
+            {state.prestige > 0 && <BrutalTag color={C.purple} textColor="#fff">👑 {state.prestige}</BrutalTag>}
             {state.suspicion > 30 && <BrutalTag color={C.orange} textColor="#fff">🕵️ {state.suspicion}</BrutalTag>}
             <BrutalTag color={C.teal}>REP {state.reputation}</BrutalTag>
           </div>
@@ -60,6 +61,21 @@ export default function DashboardScreen() {
             <BrutalPill color={C.yellow}>💰 {money(state.totalEarned)} ganhos</BrutalPill>
             <BrutalPill color={C.orange} textColor="#fff">🤝 {state.totalDeals} deals</BrutalPill>
           </div>
+          {/* nível de empresário */}
+          {(() => {
+            const lv = levelInfo(state.xp)
+            return (
+              <div className="mt-3 pt-3 border-t-2 border-white/20">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-white font-black text-xs uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>⭐ Nível {lv.level} · Empresário</span>
+                  <span className="text-white/60 font-mono text-[10px] font-bold">{lv.into}/{lv.need} XP</span>
+                </div>
+                <div className="h-2.5 bg-black/25 border-2 border-black rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all" style={{ width: `${lv.pct}%`, backgroundColor: C.yellow }} />
+                </div>
+              </div>
+            )
+          })()}
         </BrutalCard>
 
         {/* ── JANELA DE TRANSFERÊNCIAS (período quente, não trava) ── */}
@@ -108,6 +124,57 @@ export default function DashboardScreen() {
                 </div>
               ) : (
                 <p className="text-black/35 text-[10px] font-bold mt-1">Recompensa: {money(ch.reward)} + {ch.repReward} de reputação</p>
+              )}
+            </BrutalCard>
+          )
+        })()}
+
+        {/* ── COMBO DE VENDAS ── */}
+        {state.saleStreak >= 2 && (
+          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}>
+            <BrutalCard color={C.orange} className="p-3" shadow={4}>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🔥</span>
+                <p className="flex-1 text-white font-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                  SEQUÊNCIA x{state.saleStreak}! +{Math.round(Math.min(0.5, (state.saleStreak - 1) * 0.05) * 100)}% em cada negócio
+                </p>
+                <BrutalTag color={C.yellow}>recorde {state.bestStreak}</BrutalTag>
+              </div>
+              <p className="text-white/70 text-[10px] font-bold mt-0.5">Continue fechando negócios pra manter o combo vivo!</p>
+            </BrutalCard>
+          </motion.div>
+        )}
+
+        {/* ── MISSÃO DA SEMANA ── */}
+        {(() => {
+          const mId = state.weeklyMissionId ?? missionForWeek(state.year * 52 + state.week).id
+          const mission = MISSIONS.find(m => m.id === mId)
+          if (!mission) return null
+          const progress = Math.max(0, missionMetricValue(state, mission.metric) - state.weeklyMissionBaseline)
+          const done = progress >= mission.target
+          const claimable = done && !state.weeklyMissionClaimed && !!state.weeklyMissionId
+          return (
+            <BrutalCard color={state.weeklyMissionClaimed ? C.creamDark : claimable ? C.green : 'white'} className="p-3" shadow={3}>
+              <div className="flex items-center justify-between">
+                <span className={`text-[10px] font-black uppercase tracking-widest ${claimable ? 'text-white/80' : 'text-black/50'}`}>📋 Missão da semana</span>
+                <BrutalTag color={C.yellow}>+{money(mission.reward)}</BrutalTag>
+              </div>
+              <p className={`font-black text-sm leading-tight mt-0.5 ${claimable ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>{mission.label}</p>
+              {state.weeklyMissionClaimed ? (
+                <p className="text-black/40 text-[11px] font-bold mt-1">✅ Recompensa já resgatada. Nova missão na próxima semana.</p>
+              ) : claimable ? (
+                <div className="mt-2">
+                  <BrutalButton color={C.black} textColor="#fff" onClick={() => dispatch({ type: 'CLAIM_MISSION' })}>
+                    🎁 Resgatar (+{money(mission.reward)})
+                  </BrutalButton>
+                </div>
+              ) : (
+                <div className="mt-2">
+                  <div className="h-2.5 bg-black/10 border-2 border-black rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, (progress / mission.target) * 100)}%`, backgroundColor: C.teal }} />
+                  </div>
+                  <p className="text-black/40 text-[10px] font-bold mt-1">{progress}/{mission.target} concluído</p>
+                </div>
               )}
             </BrutalCard>
           )
@@ -173,6 +240,12 @@ export default function DashboardScreen() {
             <p className="text-3xl mb-1">🏆</p>
             <p className="font-black text-white" style={{ fontFamily: 'Oswald, sans-serif' }}>CARREIRA</p>
             <p className="text-white/60 text-xs font-bold">Ranking e objetivos</p>
+          </BrutalCard>
+
+          <BrutalCard color={C.creamDark} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'album' })}>
+            <p className="text-3xl mb-1">📔</p>
+            <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>ÁLBUM</p>
+            <p className="text-black/60 text-xs font-bold">Lendas colecionadas</p>
           </BrutalCard>
 
           {state.ownedClub && (

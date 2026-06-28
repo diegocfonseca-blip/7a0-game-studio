@@ -9,6 +9,7 @@ export type Screen =
   | 'negotiate'
   | 'club'
   | 'ranking'
+  | 'album'
 
 export type Position = 'ATA' | 'MEI' | 'ZAG' | 'LAT' | 'GOL'
 export type Personality = 'leal' | 'ambicioso' | 'difícil' | 'humilde'
@@ -207,5 +208,15 @@ export interface GameState {
   clubRelations: Record<string, number> // club name → relationship (-100..100)
   awards: number          // times you won Empresário do Ano
   challengeIndex: number  // how far you've climbed the rewards challenge ladder
+  xp: number              // agent experience — drives your level
+  prestige: number        // New Game+ stars — survives a reset, boosts everything
+  saleStreak: number      // current combo of consecutive deals
+  bestStreak: number      // your best combo ever
+  lastDealAbsWeek: number // absolute week (year*52+week) of your last deal
+  everSignedIds: string[] // every legend you EVER signed (for the album's gold cards)
+  hotTargets: Record<string, number> // legendId → deadline (abs week) before a rival grabs them
+  weeklyMissionId: string | null     // current weekly mission
+  weeklyMissionBaseline: number      // metric snapshot at the start of this week
+  weeklyMissionClaimed: boolean      // already claimed this week's reward?
   narrative: string[]     // log of key moments
 }
