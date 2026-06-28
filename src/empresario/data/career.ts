@@ -133,16 +133,3 @@ export function missionMetricValue(s: GameState, metric: MissionMetric): number 
   return s.seenLegendIds.length
 }
 
-// ─── PRESTÍGIO (New Game+) ─────────────────────────────────────
-// Recomeçar em 1993 como uma lenda: começa mais rico, mais respeitado,
-// e ganha mais em cada negócio — pra sempre.
-export const PRESTIGE_UNLOCK = 50_000_000
-export function prestigeStartMoney(prestige: number): number {
-  return Math.round(8000 * (1 + prestige * 0.6))
-}
-export function prestigeStartReputation(prestige: number): number {
-  return Math.min(60, 10 + prestige * 4)
-}
-export function prestigeEarningsMult(prestige: number): number {
-  return 1 + prestige * 0.1
-}

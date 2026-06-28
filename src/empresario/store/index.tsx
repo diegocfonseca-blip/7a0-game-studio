@@ -9,7 +9,6 @@ import { GLORIES, genericGlory } from '../data/glory'
 import {
   WORLD_CUP_YEARS, isTransferWindow, CHALLENGES,
   grantXp, rarityOf, MISSIONS, missionForWeek, missionMetricValue,
-  PRESTIGE_UNLOCK, prestigeStartMoney, prestigeStartReputation, prestigeEarningsMult,
 } from '../data/career'
 // XP helper: bumps xp and, on a level-up, hands back a small rep bonus + a news line.
 function applyXp(state: GameState, amount: number): { xp: number; repBonus: number; line: string | null } {
@@ -53,7 +52,6 @@ const INITIAL_STATE: GameState = {
   awards: 0,
   challengeIndex: 0,
   xp: 0,
-  prestige: 0,
   saleStreak: 0,
   bestStreak: 0,
   lastDealAbsWeek: 0,
@@ -86,7 +84,6 @@ type Action =
   | { type: 'DIRTY_ACTION'; kind: 'maquiar' | 'imprensa' | 'arbitro' }
   | { type: 'CLAIM_CHALLENGE' }
   | { type: 'CLAIM_MISSION' }
-  | { type: 'PRESTIGE'; playerName: string }
   | { type: 'NEW_GAME' }
 
 function generateClubOffer(client: Client, year: number, clubRelations: Record<string, number> = {}): ClubOffer | null {
@@ -206,21 +203,14 @@ function empresarioReducer(state: GameState, action: Action): GameState {
     case 'SET_SCREEN':
       return { ...state, screen: action.screen }
 
-    case 'START_GAME': {
-      const prestige = state.prestige
+    case 'START_GAME':
       return {
         ...INITIAL_STATE,
-        prestige,
-        money: prestigeStartMoney(prestige),
-        reputation: prestigeStartReputation(prestige),
         weeklyMissionId: missionForWeek(1993 * 52 + 1).id,
         weeklyMissionBaseline: 0,
         screen: 'dashboard',
-        narrative: [prestige > 0
-          ? `${action.playerName} recomeçou em 1993 — agora como uma LENDA dos bastidores (Prestígio ${prestige}). Mais rico, mais respeitado, mais faminto.`
-          : `${action.playerName} acordou em 1993. A vida nunca mais seria a mesma.`],
+        narrative: [`${action.playerName} acordou em 1993. A vida nunca mais seria a mesma.`],
       }
-    }
 
     case 'SIGN_CLIENT': {
       const legend = getLegendById(action.legendId)
@@ -631,8 +621,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       // 🔥 COMBO: consecutive deals build a streak that boosts your take.
       const streak = state.saleStreak + 1
       const comboMult = 1 + Math.min(0.5, (streak - 1) * 0.05)  // +5% per step, capped +50%
-      const prestMult = prestigeEarningsMult(state.prestige)
-      const earnings = Math.round(base * comboMult * prestMult)
+      const earnings = Math.round(base * comboMult)
       const repFromStreak = streak >= 3 ? Math.min(8, Math.floor(streak / 2)) : 0
       const nowAbs = state.year * 52 + state.week
       const xpr = applyXp(state, Math.min(120, 30 + Math.round(earnings / 50000)))
@@ -802,21 +791,6 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         weeklyMissionClaimed: true,
         negotiationLog: [{ who: 'voce' as const, year: state.year, text: `📋 Missão da semana cumprida (+R$${m.reward.toLocaleString('pt-BR')})` }, ...state.negotiationLog].slice(0, 30),
         narrative: [...state.narrative, `📋 MISSÃO DA SEMANA CUMPRIDA — ${m.label}! +R$${m.reward.toLocaleString('pt-BR')}.`, ...(xpr.line ? [xpr.line] : [])],
-      }
-    }
-
-    case 'PRESTIGE': {
-      if (state.money < PRESTIGE_UNLOCK) return state
-      const prestige = state.prestige + 1
-      return {
-        ...INITIAL_STATE,
-        prestige,
-        money: prestigeStartMoney(prestige),
-        reputation: prestigeStartReputation(prestige),
-        weeklyMissionId: missionForWeek(1993 * 52 + 1).id,
-        weeklyMissionBaseline: 0,
-        screen: 'dashboard',
-        narrative: [`👑 PRESTÍGIO ${prestige}! ${action.playerName} fechou um ciclo de glória e VOLTOU a 1993 como uma lenda viva — começa com R$${prestigeStartMoney(prestige).toLocaleString('pt-BR')}, reputação ${prestigeStartReputation(prestige)} e +${Math.round(prestige * 10)}% em cada negócio. O império recomeça maior.`],
       }
     }
 

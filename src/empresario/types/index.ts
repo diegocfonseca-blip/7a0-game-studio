@@ -209,7 +209,6 @@ export interface GameState {
   awards: number          // times you won Empresário do Ano
   challengeIndex: number  // how far you've climbed the rewards challenge ladder
   xp: number              // agent experience — drives your level
-  prestige: number        // New Game+ stars — survives a reset, boosts everything
   saleStreak: number      // current combo of consecutive deals
   bestStreak: number      // your best combo ever
   lastDealAbsWeek: number // absolute week (year*52+week) of your last deal
