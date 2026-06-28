@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useEmpresario } from '../store'
 import { NEMESIS } from '../data/clubs'
 import { evaluateRenewal } from '../data/legends'
-import { windowInfo, yourNetWorth } from '../data/career'
+import { windowInfo, CHALLENGES } from '../data/career'
 import type { Client, Personality } from '../types'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalPill, BrutalTag, POS_COLOR, FLAG, STATUS_LABEL } from '../ui'
 
@@ -62,37 +62,53 @@ export default function DashboardScreen() {
           </div>
         </BrutalCard>
 
-        {/* ── JANELA DE TRANSFERÊNCIAS ── */}
+        {/* ── JANELA DE TRANSFERÊNCIAS (período quente, não trava) ── */}
         {(() => {
           const w = windowInfo(state.week)
           return (
             <BrutalCard color={w.open ? C.green : C.creamDark} className="p-3" shadow={3}>
               <div className="flex items-center gap-2">
-                <span className="text-xl">{w.open ? '🟢' : '🔴'}</span>
+                <span className="text-xl">{w.open ? '🔥' : '📅'}</span>
                 <p className={`flex-1 text-sm font-black ${w.open ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>
-                  {w.open ? `JANELA ABERTA — fecha em ${w.weeks} sem` : `Janela fechada — abre em ${w.weeks} sem`}
+                  {w.open ? `JANELA ABERTA — o mercado ferve por +${w.weeks} sem` : `Mercado tranquilo — janela abre em ${w.weeks} sem`}
                 </p>
               </div>
-              {!w.open && <p className="text-black/50 text-[10px] font-bold mt-0.5">Fora da janela os clubes não fazem propostas. Planeje suas vendas.</p>}
+              <p className={`text-[10px] font-bold mt-0.5 ${w.open ? 'text-white/80' : 'text-black/50'}`}>
+                {w.open ? '🔥 Choveram propostas! Ótima hora de vender caro.' : 'Propostas chegam o ano todo — mas na janela elas explodem.'}
+              </p>
             </BrutalCard>
           )
         })()}
 
-        {/* ── META DOS INVESTIDORES ── */}
-        {state.investorTarget > 0 && (() => {
-          const net = yourNetWorth(state)
-          const pct = Math.min(100, (net / state.investorTarget) * 100)
-          const ok = net >= state.investorTarget
+        {/* ── DESAFIO ATUAL (recompensa, sem punição) ── */}
+        {(() => {
+          const ch = CHALLENGES[state.challengeIndex]
+          if (!ch) {
+            return (
+              <BrutalCard color={C.purple} className="p-3" shadow={3}>
+                <p className="text-white font-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>🏅 TODOS OS DESAFIOS CONCLUÍDOS!</p>
+                <p className="text-white/70 text-[11px] font-bold mt-0.5">Você é uma lenda dos bastidores. Agora é só construir o império.</p>
+              </BrutalCard>
+            )
+          }
+          const ready = ch.done(state)
           return (
-            <BrutalCard color={ok ? C.teal : state.investorFails >= 2 ? C.orange : 'white'} className="p-3" shadow={3}>
-              <div className="flex items-center justify-between mb-1">
-                <span className={`text-xs font-black uppercase ${ok || state.investorFails >= 2 ? 'text-white' : 'text-black'}`}>🎯 Meta dos investidores</span>
-                <span className={`text-xs font-black ${ok || state.investorFails >= 2 ? 'text-white' : 'text-black'}`}>{money(net)} / {money(state.investorTarget)}</span>
+            <BrutalCard color={ready ? C.green : 'white'} className="p-3" shadow={3}>
+              <div className="flex items-center justify-between">
+                <span className={`text-[10px] font-black uppercase tracking-widest ${ready ? 'text-white/80' : 'text-black/50'}`}>🎯 Desafio · {state.challengeIndex + 1}/{CHALLENGES.length}</span>
+                <BrutalTag color={C.yellow}>+{money(ch.reward)}</BrutalTag>
               </div>
-              <div className="h-3 bg-black/15 border-2 border-black rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: ok ? C.green : pct > 60 ? C.yellow : C.orange }} />
-              </div>
-              {state.investorFails > 0 && <p className={`text-[10px] font-bold mt-1 ${state.investorFails >= 2 ? 'text-white' : 'text-black/50'}`}>⚠ {state.investorFails} ano(s) sem bater a meta — não falhe de novo.</p>}
+              <p className={`font-black text-base leading-tight mt-0.5 ${ready ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>{ch.title}</p>
+              <p className={`text-xs font-bold ${ready ? 'text-white/80' : 'text-black/55'}`}>{ch.desc}</p>
+              {ready ? (
+                <div className="mt-2">
+                  <BrutalButton color={C.black} textColor="#fff" onClick={() => dispatch({ type: 'CLAIM_CHALLENGE' })}>
+                    🎁 Resgatar recompensa (+{money(ch.reward)} · +{ch.repReward} rep)
+                  </BrutalButton>
+                </div>
+              ) : (
+                <p className="text-black/35 text-[10px] font-bold mt-1">Recompensa: {money(ch.reward)} + {ch.repReward} de reputação</p>
+              )}
             </BrutalCard>
           )
         })()}
