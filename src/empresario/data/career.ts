@@ -2,12 +2,9 @@ import type { GameState } from '../types'
 
 export const WORLD_CUP_YEARS = [1994, 1998, 2002, 2006, 2010]
 
-// ─── DIFFICULTY ────────────────────────────────────────────────
-// Tax on official commission (the luva/kickback stays off the books).
-export const DEAL_TAX = 0.27
-
-// The market only moves during transfer windows. Outside them it's quiet —
-// you can't dump a declining player whenever you want, so timing matters.
+// ─── TRANSFER WINDOW ───────────────────────────────────────────
+// Offers arrive all year — but during the window the market HEATS UP:
+// more clubs come knocking and the bids fly. It's an opportunity, not a gate.
 export function isTransferWindow(week: number): boolean {
   return (week >= 1 && week <= 10) || (week >= 27 && week <= 34)
 }
@@ -18,12 +15,6 @@ export function windowInfo(week: number): { open: boolean; weeks: number } {
   }
   if (week < 27) return { open: false, weeks: 27 - week }
   return { open: false, weeks: (52 - week) + 1 }
-}
-
-// Running the agency costs money — and it grows with your portfolio. Big rosters
-// and star clients drain your cash every week, so you can't just hoard forever.
-export function agencyOverhead(clientCount: number, starCount: number): number {
-  return 800 + clientCount * 250 + starCount * 600
 }
 
 export interface Objective {
@@ -45,6 +36,48 @@ export const OBJECTIVES: Objective[] = [
   { id: 'award', label: 'Ser eleito Empresário do Ano', done: s => s.awards >= 1 },
   { id: 'top', label: 'Ser o nº 1 do ranking de empresários', done: (_s, rank) => rank === 1 },
   { id: 'm100', label: 'Construir um império de R$ 100 milhões', done: s => s.money >= 100_000_000 },
+]
+
+// ─── DESAFIOS COM RECOMPENSA ───────────────────────────────────
+// A ladder of bite-sized goals. Each one you complete pays out cash + a
+// reputation bump when you claim it. No punishment — pure upside that keeps
+// pulling you toward the next milestone.
+export interface Challenge {
+  id: string
+  title: string
+  desc: string
+  reward: number          // R$ paid on claim
+  repReward: number       // reputation gained on claim
+  done: (s: GameState) => boolean
+}
+
+export const CHALLENGES: Challenge[] = [
+  { id: 'c-sign', title: 'O primeiro aperto de mão', desc: 'Agencie seu primeiro jogador.', reward: 6_000, repReward: 4,
+    done: s => s.clients.length >= 1 },
+  { id: 'c-deal', title: 'Primeira comissão', desc: 'Feche sua primeira transferência.', reward: 12_000, repReward: 5,
+    done: s => s.totalDeals >= 1 },
+  { id: 'c-gem', title: 'Olho clínico', desc: 'Tenha um jogador de potencial 90+ na sua carteira.', reward: 18_000, repReward: 6,
+    done: s => s.clients.some(c => c.truePotential >= 90) },
+  { id: 'c-three', title: 'Montando o casting', desc: 'Tenha 3 jogadores ao mesmo tempo.', reward: 25_000, repReward: 6,
+    done: s => s.clients.length >= 3 },
+  { id: 'c-deal5', title: 'Faro pra negócio', desc: 'Feche 5 transferências.', reward: 45_000, repReward: 7,
+    done: s => s.totalDeals >= 5 },
+  { id: 'c-m1', title: 'O primeiro milhão', desc: 'Acumule R$ 1 milhão em caixa.', reward: 80_000, repReward: 8,
+    done: s => s.money >= 1_000_000 },
+  { id: 'c-five', title: 'Império de talentos', desc: 'Tenha 5 jogadores na carteira ao mesmo tempo.', reward: 100_000, repReward: 8,
+    done: s => s.clients.length >= 5 },
+  { id: 'c-deal15', title: 'Tubarão do mercado', desc: 'Feche 15 transferências.', reward: 150_000, repReward: 9,
+    done: s => s.totalDeals >= 15 },
+  { id: 'c-club', title: 'Dono da bola', desc: 'Compre seu próprio clube de futebol.', reward: 200_000, repReward: 10,
+    done: s => !!s.ownedClub },
+  { id: 'c-gems', title: 'Coleção de fenômenos', desc: 'Tenha 3 fenômenos (potencial 95+) na carteira.', reward: 300_000, repReward: 12,
+    done: s => s.clients.filter(c => c.truePotential >= 95).length >= 3 },
+  { id: 'c-m10', title: 'Magnata do futebol', desc: 'Acumule R$ 10 milhões em caixa.', reward: 500_000, repReward: 12,
+    done: s => s.money >= 10_000_000 },
+  { id: 'c-award', title: 'O melhor do mundo', desc: 'Seja eleito Empresário do Ano.', reward: 750_000, repReward: 15,
+    done: s => s.awards >= 1 },
+  { id: 'c-m100', title: 'Lenda dos bastidores', desc: 'Construa um patrimônio de R$ 100 milhões.', reward: 2_000_000, repReward: 20,
+    done: s => s.money >= 100_000_000 },
 ]
 
 // your net worth for the ranking = cash + your stake in the players' values

@@ -206,7 +206,6 @@ export interface GameState {
   suspicion: number       // 0–100 — how dirty your dealings look
   clubRelations: Record<string, number> // club name → relationship (-100..100)
   awards: number          // times you won Empresário do Ano
-  investorTarget: number  // net-worth target your investors expect by year end
-  investorFails: number   // how many years you missed the target
+  challengeIndex: number  // how far you've climbed the rewards challenge ladder
   narrative: string[]     // log of key moments
 }
