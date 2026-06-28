@@ -2,6 +2,30 @@ import type { GameState } from '../types'
 
 export const WORLD_CUP_YEARS = [1994, 1998, 2002, 2006, 2010]
 
+// ─── DIFFICULTY ────────────────────────────────────────────────
+// Tax on official commission (the luva/kickback stays off the books).
+export const DEAL_TAX = 0.27
+
+// The market only moves during transfer windows. Outside them it's quiet —
+// you can't dump a declining player whenever you want, so timing matters.
+export function isTransferWindow(week: number): boolean {
+  return (week >= 1 && week <= 10) || (week >= 27 && week <= 34)
+}
+export function windowInfo(week: number): { open: boolean; weeks: number } {
+  if (isTransferWindow(week)) {
+    const end = week <= 10 ? 10 : 34
+    return { open: true, weeks: end - week + 1 }
+  }
+  if (week < 27) return { open: false, weeks: 27 - week }
+  return { open: false, weeks: (52 - week) + 1 }
+}
+
+// Running the agency costs money — and it grows with your portfolio. Big rosters
+// and star clients drain your cash every week, so you can't just hoard forever.
+export function agencyOverhead(clientCount: number, starCount: number): number {
+  return 800 + clientCount * 250 + starCount * 600
+}
+
 export interface Objective {
   id: string
   label: string

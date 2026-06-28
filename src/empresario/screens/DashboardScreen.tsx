@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useEmpresario } from '../store'
 import { NEMESIS } from '../data/clubs'
 import { evaluateRenewal } from '../data/legends'
+import { windowInfo, yourNetWorth } from '../data/career'
 import type { Client, Personality } from '../types'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalPill, BrutalTag, POS_COLOR, FLAG, STATUS_LABEL } from '../ui'
 
@@ -60,6 +61,41 @@ export default function DashboardScreen() {
             <BrutalPill color={C.orange} textColor="#fff">🤝 {state.totalDeals} deals</BrutalPill>
           </div>
         </BrutalCard>
+
+        {/* ── JANELA DE TRANSFERÊNCIAS ── */}
+        {(() => {
+          const w = windowInfo(state.week)
+          return (
+            <BrutalCard color={w.open ? C.green : C.creamDark} className="p-3" shadow={3}>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{w.open ? '🟢' : '🔴'}</span>
+                <p className={`flex-1 text-sm font-black ${w.open ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>
+                  {w.open ? `JANELA ABERTA — fecha em ${w.weeks} sem` : `Janela fechada — abre em ${w.weeks} sem`}
+                </p>
+              </div>
+              {!w.open && <p className="text-black/50 text-[10px] font-bold mt-0.5">Fora da janela os clubes não fazem propostas. Planeje suas vendas.</p>}
+            </BrutalCard>
+          )
+        })()}
+
+        {/* ── META DOS INVESTIDORES ── */}
+        {state.investorTarget > 0 && (() => {
+          const net = yourNetWorth(state)
+          const pct = Math.min(100, (net / state.investorTarget) * 100)
+          const ok = net >= state.investorTarget
+          return (
+            <BrutalCard color={ok ? C.teal : state.investorFails >= 2 ? C.orange : 'white'} className="p-3" shadow={3}>
+              <div className="flex items-center justify-between mb-1">
+                <span className={`text-xs font-black uppercase ${ok || state.investorFails >= 2 ? 'text-white' : 'text-black'}`}>🎯 Meta dos investidores</span>
+                <span className={`text-xs font-black ${ok || state.investorFails >= 2 ? 'text-white' : 'text-black'}`}>{money(net)} / {money(state.investorTarget)}</span>
+              </div>
+              <div className="h-3 bg-black/15 border-2 border-black rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: ok ? C.green : pct > 60 ? C.yellow : C.orange }} />
+              </div>
+              {state.investorFails > 0 && <p className={`text-[10px] font-bold mt-1 ${state.investorFails >= 2 ? 'text-white' : 'text-black/50'}`}>⚠ {state.investorFails} ano(s) sem bater a meta — não falhe de novo.</p>}
+            </BrutalCard>
+          )
+        })()}
 
         {/* ── ALERTAS ── */}
         {activeOffers > 0 && (
