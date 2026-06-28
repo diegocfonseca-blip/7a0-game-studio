@@ -6,7 +6,7 @@ import { generateWeeklyEvent, generateAmbientNews } from '../data/events'
 import type { ClientLite } from '../data/events'
 import { CLUBS, NEMESIS } from '../data/clubs'
 import { GLORIES, genericGlory } from '../data/glory'
-import { WORLD_CUP_YEARS } from '../data/career'
+import { WORLD_CUP_YEARS, DEAL_TAX, isTransferWindow, agencyOverhead } from '../data/career'
 
 const INITIAL_STATE: GameState = {
   screen: 'intro',
@@ -41,6 +41,8 @@ const INITIAL_STATE: GameState = {
   suspicion: 0,
   clubRelations: {},
   awards: 0,
+  investorTarget: 0,
+  investorFails: 0,
   narrative: [],
 }
 
@@ -223,7 +225,9 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         rivalOffers: 0,
       }
 
-      const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + legend.monthlyFee / 4
+      const allAfter = [...state.clients, newClient]
+      const starsAfter = allAfter.filter(c => c.currentRating >= 80).length
+      const weeklyExpenses = agencyOverhead(allAfter.length, starsAfter) + allAfter.reduce((sum, c) => sum + c.monthlyFee / 4, 0)
       const upfront = legend.signingFee + legend.luva
 
       return {
@@ -338,15 +342,31 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         activeClients = kept
       }
 
-      // Weekly expenses
-      const weeklyExpense = activeClients.reduce((sum, c) => sum + c.monthlyFee / 4, 0)
+      // ⚠️ CAREER-ENDING INJURY — rare but brutal. An asset can be wiped out.
+      if (activeClients.length > 0 && Math.random() < 0.012) {
+        const victim = activeClients[Math.floor(Math.random() * activeClients.length)]
+        const ends = Math.random() < 0.4
+        if (ends) {
+          activeClients = activeClients.filter(c => c.legendId !== victim.legendId)
+          extraNarrative.push(`🚑 TRAGÉDIA: ${victim.nickname} sofreu uma lesão gravíssima e foi forçado a se APOSENTAR. Você perdeu o craque e o investimento. O futebol é cruel.`)
+        } else {
+          activeClients = activeClients.map(c => c.legendId === victim.legendId
+            ? { ...c, currentValue: Math.round(c.currentValue * 0.45), happiness: Math.max(20, c.happiness - 20) }
+            : c)
+          extraNarrative.push(`🚑 ${victim.nickname} se machucou feio e ficará meses fora. O valor dele DESPENCOU. Reze pra ele voltar o mesmo.`)
+        }
+      }
+
+      // Weekly expenses — agency overhead that SCALES with your portfolio
+      const starCount = activeClients.filter(c => c.currentRating >= 80).length
+      const weeklyExpense = agencyOverhead(activeClients.length, starCount) + activeClients.reduce((sum, c) => sum + c.monthlyFee / 4, 0)
       let runningMoney = state.money - weeklyExpense
 
-      // Club offers (tick down + maybe generate)
+      // Club offers (tick down + maybe generate — ONLY during transfer windows)
       const newOffers = [...state.pendingOffers.map(o => ({ ...o, expiresInWeeks: o.expiresInWeeks - 1 }))]
         .filter(o => o.expiresInWeeks > 0)
 
-      if (activeClients.length > 0 && Math.random() > 0.6) {
+      if (isTransferWindow(actualWeek) && activeClients.length > 0 && Math.random() > 0.45) {
         // Only players who: are good enough, have no pending offer, AND haven't
         // just been transferred (clubs leave a fresh signing alone for ~2 years).
         const eligible = activeClients.filter(c =>
@@ -474,6 +494,34 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         }
       }
 
+      // 💼 INVESTOR PRESSURE — they expect growth every year, or they bail
+      let investorTarget = state.investorTarget
+      let investorFails = state.investorFails
+      if (yearRolled) {
+        const myNet = money2 + activeClients.reduce((s, c) => s + c.currentValue * (c.commissionRate / 100), 0)
+        if (investorTarget > 0) {
+          if (myNet < investorTarget) {
+            investorFails += 1
+            const pen = Math.round(money2 * 0.12)
+            money2 = Math.max(0, money2 - pen)
+            reputation2 = Math.max(0, reputation2 - 10)
+            if (investorFails >= 3) {
+              extraNarrative.push(`💼 Os investidores PERDERAM a paciência (3ª falha). Eles te puniram pesado: −R$${pen.toLocaleString('pt-BR')} e sua reputação despencou. Vire o jogo ou afunda.`)
+            } else {
+              extraNarrative.push(`📉 Você NÃO bateu a meta dos investidores (R$${investorTarget.toLocaleString('pt-BR')}). Eles cortaram R$${pen.toLocaleString('pt-BR')} e confiam menos em você.`)
+            }
+          } else {
+            investorFails = Math.max(0, investorFails - 1)
+            extraNarrative.push(`📈 Você BATEU a meta dos investidores! Eles seguem confiando — e já querem mais.`)
+          }
+        }
+        // set next year's target once you have a base
+        if (myNet > 60000) {
+          investorTarget = Math.round(myNet * 1.3)
+          extraNarrative.push(`🎯 Meta dos investidores até o fim de ${newYear}: patrimônio de R$${investorTarget.toLocaleString('pt-BR')}.`)
+        }
+      }
+
       // Ambient news — rich, contextual, non-repeating. 1–2 fresh lines/week.
       const recentNews = [...state.narrative.slice(-10), ...extraNarrative]
       const n1 = generateAmbientNews(newYear, clientsLite, recentNews)
@@ -491,6 +539,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         reputation: reputation2,
         suspicion,
         awards,
+        investorTarget,
+        investorFails,
         rivalAgents,
         clients: activeClients,
         pendingOffers: newOffers,
@@ -512,10 +562,11 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       if (!offer) return state
 
       const client = state.clients.find(c => c.legendId === offer.clientId)
-      // Your earnings: commission (already negotiated WITH the player) of the
-      // sale fee + the buying club's luva (kickback) to you.
+      // Your earnings: commission (taxed — it's official income) + the club's
+      // luva (kickback, off the books, tax-free). The taxman bites the commission.
       const commission = Math.round(action.amount * (client?.commissionRate ?? 10) / 100)
-      const earnings = commission + action.clubLuva
+      const tax = Math.round(commission * DEAL_TAX)
+      const earnings = (commission - tax) + action.clubLuva
 
       return {
         ...state,
@@ -534,7 +585,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         negotiationLog: [{ who: 'voce' as const, year: state.year, text: `✅ ${client?.nickname} → ${action.clubName} por R$${action.amount.toLocaleString('pt-BR')} · você embolsou R$${earnings.toLocaleString('pt-BR')}` }, ...state.negotiationLog].slice(0, 30),
         narrative: [
           ...state.narrative,
-          `🤝 TRANSFERÊNCIA FECHADA! ${client?.nickname} → ${action.clubName} por R$${action.amount.toLocaleString('pt-BR')}. Você embolsou R$${earnings.toLocaleString('pt-BR')} (comissão R$${commission.toLocaleString('pt-BR')} + luva R$${action.clubLuva.toLocaleString('pt-BR')}).`
+          `🤝 TRANSFERÊNCIA FECHADA! ${client?.nickname} → ${action.clubName} por R$${action.amount.toLocaleString('pt-BR')}. Você embolsou R$${earnings.toLocaleString('pt-BR')} (comissão R$${commission.toLocaleString('pt-BR')} − imposto R$${tax.toLocaleString('pt-BR')} + luva R$${action.clubLuva.toLocaleString('pt-BR')} livre).`
         ],
       }
     }
