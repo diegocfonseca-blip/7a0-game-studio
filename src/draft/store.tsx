@@ -309,7 +309,10 @@ function runDraft(state: DraftState): DraftState {
   return finishDraft(s)
 }
 function finishDraft(state: DraftState): DraftState {
-  const humans = state.humans.map(h => ({ ...h, lineupIds: bestEleven(h.squad) }))
+  // Keep human player's existing lineup — only auto-fill AI squads
+  const humans = state.humans.map((h, i) =>
+    i === state.youIndex ? h : { ...h, lineupIds: bestEleven(h.squad) }
+  )
   return { ...state, inDraft: false, draftOrder: [], draftPos: 0, pendingDrop: false, humans, teams: recomputeHumanStrength(state.teams, humans), screen: 'hub' }
 }
 function openDraft(state: DraftState): DraftState {
