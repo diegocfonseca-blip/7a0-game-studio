@@ -10,6 +10,13 @@ import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag, POS_COLOR, FL
 
 const DIV = (d: number) => ({ 1: '1ª (Elite)', 2: '2ª Divisão', 3: '3ª Divisão', 4: '4ª Divisão' }[d] ?? `${d}ª`)
 
+const TEAM_PALETTE = ['#ef4444','#3b82f6','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1','#14b8a6','#e11d48','#0ea5e9','#a855f7','#f43f5e','#22c55e']
+function teamColor(id: string): string {
+  let h = 0
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
+  return TEAM_PALETTE[h % TEAM_PALETTE.length]
+}
+
 // ─── INTRO ─────────────────────────────────────────────────────
 export function DraftIntro() {
   const { dispatch } = useDraft()
@@ -172,27 +179,20 @@ export function DraftHub() {
           </BrutalCard>
         )}
 
-        {/* escalação + tática */}
+        {/* escalação */}
         {!state.inDraft && (
-          <div className="grid grid-cols-2 gap-3">
-            <BrutalCard color={C.teal} className="p-3" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'lineup' })}>
-              <p className="text-2xl mb-1">👔</p>
-              <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>ESCALAÇÃO</p>
-              <p className="text-black/60 text-[10px] font-bold">Monte seu XI · dê minutos aos jovens</p>
-            </BrutalCard>
-            <BrutalCard color="white" className="p-3">
-              <p className="text-black/50 text-[10px] font-black uppercase mb-1">Tática</p>
-              <div className="space-y-1">
-                {(['retranca', 'equilibrio', 'ataque'] as const).map(t => (
-                  <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', tactic: t })}
-                    className="w-full border-2 border-black rounded px-2 py-1 text-[10px] font-black uppercase text-left"
-                    style={{ backgroundColor: you.tactic === t ? C.blue : '#fff', color: you.tactic === t ? '#fff' : '#000' }}>
-                    {t === 'retranca' ? '🛡️ Retranca' : t === 'equilibrio' ? '⚖️ Equilíbrio' : '⚔️ Pra cima'}
-                  </button>
-                ))}
+          <BrutalCard color={C.teal} className="p-4" shadow={4} onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'lineup' })}>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">👔</span>
+              <div className="flex-1">
+                <p className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>ESCALAÇÃO & TÁTICA</p>
+                <p className="text-black/60 text-xs font-bold">
+                  {you.formation ?? '4-4-2'} · {you.tactic === 'retranca' ? '🛡️ Retranca' : you.tactic === 'equilibrio' ? '⚖️ Equilíbrio' : '⚔️ Pra cima'}
+                </p>
               </div>
-            </BrutalCard>
-          </div>
+              <span className="text-2xl">→</span>
+            </div>
+          </BrutalCard>
         )}
 
         {/* advance */}
@@ -429,6 +429,20 @@ export function DraftLineup() {
           </div>
         </div>
 
+        {/* Tática */}
+        <div className="flex items-center gap-2">
+          <p className="text-black/50 text-[10px] font-black uppercase shrink-0">Tática</p>
+          <div className="flex gap-1.5 flex-1">
+            {(['retranca', 'equilibrio', 'ataque'] as const).map(t => (
+              <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', tactic: t })}
+                className="flex-1 border-2 border-black rounded-lg py-1.5 text-[10px] font-black"
+                style={{ backgroundColor: you.tactic === t ? C.blue : 'white', color: you.tactic === t ? '#fff' : '#000' }}>
+                {t === 'retranca' ? '🛡️ Retr.' : t === 'equilibrio' ? '⚖️ Equil.' : '⚔️ Atq.'}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* CAMPO VERDE */}
         <div className="rounded-xl border-[3px] border-black overflow-hidden relative"
           style={{ background: 'linear-gradient(180deg, #1e6b1e 0%, #278a27 40%, #278a27 60%, #1e6b1e 100%)', minHeight: 340 }}>
@@ -640,10 +654,10 @@ export function DraftMatch() {
                   <p className="text-white/20 text-[9px] font-black uppercase mb-0.5">{d}ª Divisão</p>
                   <div className="space-y-px">
                     {dMatches.map((m, i) => (
-                      <div key={i} className="flex items-center gap-1 px-2 py-1 rounded" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
-                        <span className="flex-1 truncate text-white/50 text-[10px] font-bold text-right">{m.homeName}</span>
-                        <span className="text-white font-black text-[11px] mx-2 tabular-nums" style={{ fontFamily: 'Oswald, sans-serif' }}>{m.gf}–{m.ga}</span>
-                        <span className="flex-1 truncate text-white/50 text-[10px] font-bold">{m.awayName}</span>
+                      <div key={i} className="flex items-center gap-1 px-2 py-1 rounded" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+                        <span className="flex-1 truncate text-[10px] font-black text-right" style={{ color: teamColor(m.homeId) }}>{m.homeName}</span>
+                        <span className="font-black text-[11px] mx-2 tabular-nums shrink-0" style={{ fontFamily: 'Oswald, sans-serif', color: (m.gf !== m.ga) ? '#facc15' : 'rgba(255,255,255,0.7)' }}>{m.gf}–{m.ga}</span>
+                        <span className="flex-1 truncate text-[10px] font-black" style={{ color: teamColor(m.awayId) }}>{m.awayName}</span>
                       </div>
                     ))}
                   </div>
