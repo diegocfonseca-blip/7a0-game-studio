@@ -1,6 +1,6 @@
 import type { Position, Nationality } from '../empresario/types'
 
-export type DraftScreen = 'lobby' | 'intro' | 'pickClub' | 'hub' | 'draft' | 'lineup' | 'table' | 'match' | 'leilao'
+export type DraftScreen = 'lobby' | 'intro' | 'pickClub' | 'hub' | 'draft' | 'lineup' | 'table' | 'match' | 'leilao' | 'ranking'
 export type Tactic = 'retranca' | 'equilibrio' | 'ataque'
 export type GameMode = 'draft' | 'leilao' | 'draft_leilao'
 export type OnlineMode = 'cpu' | 'online'
@@ -128,4 +128,6 @@ export interface DraftState {
   leilaoIndex: number
   leilaoBids: number[]
   leilaoPhase: 'bid' | 'reveal' | 'done'
+  // ── online ──
+  onlinePresence?: number[]  // player indices currently connected
 }

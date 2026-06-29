@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useDraft } from './store'
-import type { GameMode } from './types'
+import type { GameMode, DraftState } from './types'
 import { C, BrutalCard, BrutalButton } from '../empresario/ui'
 
 type LobbyPhase = 'auth' | 'menu' | 'newGame' | 'join' | 'waiting'
@@ -23,6 +23,7 @@ interface RoomInfo {
   host_id: string
   max_players: number
   status: string
+  game_state?: DraftState
 }
 
 function randCode() {
@@ -149,10 +150,32 @@ export function DraftLobby() {
   async function joinRoom() {
     if (!user || !joinCode.trim()) return
     setRoomLoading(true); setRoomError('')
+    const code = joinCode.trim().toUpperCase()
     const { data: rd, error: re } = await supabase
-      .from('game_rooms').select('*')
-      .eq('code', joinCode.trim().toUpperCase()).eq('status', 'waiting').single()
-    if (re || !rd) { setRoomError('Sala não encontrada ou já iniciada.'); setRoomLoading(false); return }
+      .from('game_rooms').select('*').eq('code', code).single()
+    if (re || !rd) { setRoomError('Sala não encontrada.'); setRoomLoading(false); return }
+
+    // Reconnect to a started room
+    if (rd.status === 'started') {
+      const { data: mySlot } = await supabase
+        .from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).single()
+      if (!mySlot) { setRoomError('Você não está nessa sala.'); setRoomLoading(false); return }
+      const { data: allPlayers } = await supabase.from('room_players').select('*').eq('room_id', rd.id).order('player_index')
+      const sorted = (allPlayers ?? []) as RoomPlayer[]
+      dispatch({
+        type: 'START_ONLINE',
+        roomId: rd.id, roomCode: rd.code,
+        isHost: rd.host_id === user.id,
+        playerIndex: mySlot.player_index,
+        mode: rd.mode as GameMode,
+        playerNames: sorted.map(p => p.manager_name),
+        gameState: rd.game_state ?? undefined,
+      })
+      setRoomLoading(false)
+      return
+    }
+
+    if (rd.status !== 'waiting') { setRoomError('Sala não está disponível.'); setRoomLoading(false); return }
     const { data: existing } = await supabase.from('room_players').select('player_index').eq('room_id', rd.id)
     const used = new Set((existing ?? []).map((p: { player_index: number }) => p.player_index))
     let nextIdx = 1; while (used.has(nextIdx)) nextIdx++

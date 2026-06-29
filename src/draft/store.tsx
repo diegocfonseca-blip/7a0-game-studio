@@ -26,7 +26,7 @@ type Action =
   | { type: 'SET_SCREEN'; screen: DraftScreen }
   | { type: 'GO_CPU' }
   | { type: 'RESTORE_SCREEN' }
-  | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; mode: GameMode; playerNames: string[] }
+  | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; mode: GameMode; playerNames: string[]; gameState?: DraftState }
   | { type: 'SYNC_STATE'; newState: DraftState }
   | { type: 'START' }
   | { type: 'PICK_CLUB'; clubId: string; managerName: string; mode: GameMode }
@@ -36,9 +36,10 @@ type Action =
   | { type: 'MAKE_SUB'; outId: string; inId: string }
   | { type: 'CHANGE_TACTIC_MATCH'; tactic: Tactic }
   | { type: 'END_MATCH' }
-  | { type: 'DRAFT_PICK'; legendId: string }
+  | { type: 'DRAFT_PICK'; legendId: string; playerIndex?: number }
   | { type: 'DROP_PLAYER'; playerId: string }
-  | { type: 'SKIP_PICK' }
+  | { type: 'SKIP_PICK'; playerIndex?: number }
+  | { type: 'SET_PRESENCE'; indices: number[] }
   | { type: 'SET_LINEUP'; playerId: string }
   | { type: 'SET_TACTIC'; tactic: Tactic }
   | { type: 'BID_LEILAO'; amount: number }
@@ -325,7 +326,12 @@ function runDraft(state: DraftState): DraftState {
   for (let g = 0; g < 100; g++) {
     if (s.draftPos >= s.draftOrder.length) return finishDraft(s)
     const hi = s.draftOrder[s.draftPos]
-    if (hi === s.youIndex) { s.pendingDrop = s.humans[s.youIndex].squad.length >= s.rosterMax; return s }
+    const isLocal = hi === s.youIndex
+    // Online mode: stop for every player's turn so each picks for themselves
+    if (isLocal || s.onlineMode === 'online') {
+      if (isLocal) s.pendingDrop = s.humans[hi].squad.length >= s.rosterMax
+      return s
+    }
     s = aiPick(s, hi); s.draftPos += 1
   }
   return finishDraft(s)
@@ -434,19 +440,18 @@ function reducer(state: DraftState, action: Action): DraftState {
       try { return { ...state, screen: (JSON.parse(saved).screen as DraftScreen) ?? 'hub' } }
       catch { return { ...state, screen: 'hub' } }
     }
-    case 'START_ONLINE':
-      return {
-        ...state,
-        screen: 'intro',
-        onlineMode: 'online',
-        roomId: action.roomId,
-        roomCode: action.roomCode,
-        isHost: action.isHost,
-        youIndex: action.playerIndex,
-        totalPlayers: action.playerNames.length,
-        playerNames: action.playerNames,
-        mode: action.mode,
+    case 'START_ONLINE': {
+      const base = {
+        onlineMode: 'online' as const, roomId: action.roomId, roomCode: action.roomCode,
+        isHost: action.isHost, youIndex: action.playerIndex,
+        totalPlayers: action.playerNames.length, playerNames: action.playerNames, mode: action.mode,
       }
+      if (action.gameState) {
+        // Reconnect: restore saved state, keep online identity
+        return { ...action.gameState, ...base }
+      }
+      return { ...state, ...base, screen: 'intro' }
+    }
     case 'SYNC_STATE':
       return {
         ...action.newState,
@@ -650,23 +655,40 @@ function reducer(state: DraftState, action: Action): DraftState {
     }
 
     case 'DRAFT_PICK': {
-      if (!state.inDraft || state.pendingDrop) return state
+      if (!state.inDraft) return state
+      const pickerIdx = action.playerIndex ?? state.youIndex
+      // Verify it's this player's turn
+      if (state.draftOrder[state.draftPos] !== pickerIdx) return state
+      // Local player roster full: must drop first
+      if (pickerIdx === state.youIndex && state.pendingDrop) return state
       const legend = LEGENDS.find(l => l.id === action.legendId)
       if (!legend || state.ownedLegendIds.includes(legend.id)) return state
       const humans = [...state.humans]
-      const you = humans[state.youIndex]
-      if (you.squad.length >= state.rosterMax) return { ...state, pendingDrop: true }
+      const picker = humans[pickerIdx]
+      if (picker.squad.length >= state.rosterMax) {
+        if (pickerIdx === state.youIndex) return { ...state, pendingDrop: true }
+        return state  // online players over limit: skip
+      }
       const player = legendToPlayer(legend, state.year)
-      humans[state.youIndex] = { ...you, squad: [...you.squad, player] }
-      const r = runDraft({ ...state, humans, ownedLegendIds: [...state.ownedLegendIds, legend.id], lastPickText: [...state.lastPickText, `⭐ VOCÊ fisgou ${legend.nickname} (nota ${player.rating} · pot ${legend.truePotential})`], draftPos: state.draftPos + 1 })
+      humans[pickerIdx] = { ...picker, squad: [...picker.squad, player] }
+      const pickLabel = pickerIdx === state.youIndex
+        ? `⭐ VOCÊ fisgou ${legend.nickname} (nota ${player.rating} · pot ${legend.truePotential})`
+        : `${picker.name} fisgou ${legend.nickname} (nota ${player.rating})`
+      const r = runDraft({ ...state, humans, ownedLegendIds: [...state.ownedLegendIds, legend.id], lastPickText: [...state.lastPickText, pickLabel], draftPos: state.draftPos + 1 })
       return { ...r, screen: r.inDraft ? 'draft' : r.screen }
     }
 
     case 'SKIP_PICK': {
       if (!state.inDraft) return state
-      const r = runDraft({ ...state, draftPos: state.draftPos + 1, pendingDrop: false, lastPickText: [...state.lastPickText, `Você passou a vez.`] })
+      const pickerIdx = action.playerIndex ?? state.youIndex
+      if (state.draftOrder[state.draftPos] !== pickerIdx) return state
+      const skipName = pickerIdx === state.youIndex ? 'Você' : state.humans[pickerIdx].name
+      const r = runDraft({ ...state, draftPos: state.draftPos + 1, pendingDrop: false, lastPickText: [...state.lastPickText, `${skipName} passou a vez.`] })
       return { ...r, screen: r.inDraft ? 'draft' : r.screen }
     }
+
+    case 'SET_PRESENCE':
+      return { ...state, onlinePresence: action.indices }
 
     case 'DROP_PLAYER': {
       const humans = [...state.humans]
@@ -787,6 +809,7 @@ export function DraftProvider({ children }: { children: ReactNode }) {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   const isHostRef = useRef(state.isHost)
   const onlineModeRef = useRef(state.onlineMode)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => { isHostRef.current = state.isHost }, [state.isHost])
   useEffect(() => { onlineModeRef.current = state.onlineMode }, [state.onlineMode])
 
@@ -824,7 +847,28 @@ export function DraftProvider({ children }: { children: ReactNode }) {
       })
     }
 
-    ch.subscribe()
+    // Presence: announce self and track others
+    ch.on('presence', { event: 'sync' }, () => {
+      const pState = ch.presenceState()
+      const indices = Object.values(pState).flat().map((p: unknown) => (p as { playerIndex: number }).playerIndex)
+      rawDispatch({ type: 'SET_PRESENCE', indices })
+    })
+
+    // Guests can request a full state snapshot from host when joining mid-game
+    ch.on('broadcast', { event: 'request_state' }, () => {
+      if (isHostRef.current) {
+        // We capture state via closure at subscribe time; host re-sends on demand
+        channelRef.current?.send({ type: 'broadcast', event: 'state', payload: state })
+      }
+    })
+
+    ch.subscribe(async () => {
+      await ch.track({ playerIndex: state.youIndex, name: state.humans[state.youIndex]?.name ?? '' })
+      // Guests request the current state snapshot from host after subscribing
+      if (!state.isHost) {
+        channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
+      }
+    })
     channelRef.current = ch
     return () => { ch.unsubscribe(); channelRef.current = null }
   }, [state.roomId, state.onlineMode, state.isHost])
@@ -836,6 +880,16 @@ export function DraftProvider({ children }: { children: ReactNode }) {
     if (prevStateRef.current === state) return
     prevStateRef.current = state
     channelRef.current?.send({ type: 'broadcast', event: 'state', payload: state })
+  }, [state])
+
+  // Debounced DB persistence: host saves game_state every 3s after changes
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.isHost || !state.roomId || !state.started) return
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => {
+      supabase.from('game_rooms').update({ game_state: state }).eq('id', state.roomId)
+    }, 3000)
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
   }, [state])
 
   return <Ctx.Provider value={{ state, dispatch }}>{children}</Ctx.Provider>

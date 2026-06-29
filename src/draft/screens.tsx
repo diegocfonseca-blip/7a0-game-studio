@@ -225,6 +225,20 @@ export function DraftHub() {
           </BrutalCard>
         )}
 
+        {/* ranking — only in online mode */}
+        {state.onlineMode === 'online' && (
+          <BrutalCard color={C.teal} className="p-4" shadow={3} onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'ranking' })}>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">🏆</span>
+              <div className="flex-1">
+                <p className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>RANKING DOS MANAGERS</p>
+                <p className="text-black/60 text-xs font-bold">Veja como todos estão indo</p>
+              </div>
+              <span className="text-2xl">→</span>
+            </div>
+          </BrutalCard>
+        )}
+
         {/* standings — your division only, link to full table */}
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -242,7 +256,12 @@ export function DraftHub() {
                   <span className="w-5 text-center font-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-black truncate ${isYou ? 'text-black' : 'text-black/70'}`}>{isYou ? '⭐ ' : ''}{t.name}</p>
-                    <p className="text-black/40 text-[10px] font-bold">{mgr ? mgr.name : t.city} · {t.lastResult}</p>
+                    <p className="text-black/40 text-[10px] font-bold flex items-center gap-1">
+                      {mgr && state.onlineMode === 'online' && (
+                        <span className={`inline-block w-1.5 h-1.5 rounded-full ${(state.onlinePresence ?? []).includes(t.humanIndex!) ? 'bg-green-500' : 'bg-gray-400'}`} />
+                      )}
+                      {mgr ? mgr.name : t.city} · {t.lastResult}
+                    </p>
                   </div>
                   <span className="text-black/40 text-[10px] font-bold">{t.played}j</span>
                   <span className="font-black text-black text-sm w-7 text-right" style={{ fontFamily: 'Oswald, sans-serif' }}>{t.points}</span>
@@ -338,6 +357,10 @@ export function DraftRoom() {
   const { state, dispatch } = useDraft()
   const pool = availableLegends(state).slice(0, 30)
   const you = state.humans[state.youIndex]
+  const currentPickerIdx = state.draftOrder[state.draftPos]
+  const isMyTurn = currentPickerIdx === state.youIndex
+  const isOnline = state.onlineMode === 'online'
+  const currentPicker = state.humans[currentPickerIdx]
 
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
@@ -345,7 +368,7 @@ export function DraftRoom() {
         <div className="max-w-md mx-auto flex items-center gap-3">
           <button onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'hub' })} className="text-white text-2xl font-black">←</button>
           <h1 className="text-white font-black text-lg flex-1" style={{ fontFamily: 'Oswald, sans-serif' }}>🎟️ O DRAFT</h1>
-          <BrutalTag color={C.yellow}>SUA VEZ</BrutalTag>
+          <BrutalTag color={isMyTurn ? C.yellow : C.purple}>{isMyTurn ? 'SUA VEZ' : '⏳ Aguardando'}</BrutalTag>
         </div>
       </div>
 
@@ -359,41 +382,54 @@ export function DraftRoom() {
           </BrutalCard>
         )}
 
-        {state.pendingDrop ? (
-          <>
-            <BrutalCard color={C.orange} className="p-4" shadow={5}>
-              <p className="text-white font-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>⚠ ELENCO CHEIO ({you.squad.length}/{state.rosterMax})</p>
-              <p className="text-white/80 text-xs font-bold mt-1">Pra fisgar um novo craque, dispense alguém do elenco.</p>
-            </BrutalCard>
-            <div className="space-y-2">
-              {[...you.squad].sort((a, b) => a.rating - b.rating).map(p => (
-                <BrutalCard key={p.id} color="white" className="p-2.5" shadow={2}>
-                  <div className="flex items-center gap-2">
-                    <BrutalTag color={POS_COLOR[p.pos]} textColor="#fff">{p.pos}</BrutalTag>
-                    <span className="flex-1 truncate font-black text-black text-sm">{p.name}</span>
-                    <span className="font-black text-black text-sm">{p.rating}</span>
-                    <BrutalButton color={C.orange} textColor="#fff" full={false} className="!px-3 !py-1.5 !text-[10px]"
-                      onClick={() => dispatch({ type: 'DROP_PLAYER', playerId: p.id })}>Dispensar</BrutalButton>
-                  </div>
-                </BrutalCard>
-              ))}
-            </div>
-          </>
-        ) : (
-          <>
-            <BrutalCard color={C.blue} className="p-3" shadow={4}>
-              <p className="text-white text-xs font-bold">
-                ✦ Você vê o <b>potencial</b> (✨) que ninguém mais vê. Os adversários só olham a nota de hoje — é sua chance de roubar o futuro craque baratinho.
-              </p>
-            </BrutalCard>
-            <div className="flex items-center justify-between">
-              <h2 className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>ESCOLHA UM JOGADOR</h2>
-              <button onClick={() => dispatch({ type: 'SKIP_PICK' })} className="border-2 border-black rounded-lg px-2 py-1 text-[10px] font-black bg-white">Passar a vez</button>
-            </div>
-            <div className="space-y-2">
-              {pool.map(l => <DraftPickCard key={l.id} legend={l} rar={rarityOf(l.truePotential)} />)}
-            </div>
-          </>
+        {/* Online: waiting for another player */}
+        {isOnline && !isMyTurn && (
+          <BrutalCard color={C.purple} className="p-5 text-center" shadow={5}>
+            <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ repeat: Infinity, duration: 1.4 }} className="text-4xl mb-3">⏳</motion.div>
+            <p className="text-white font-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>
+              Aguardando {currentPicker?.name ?? 'outro jogador'}...
+            </p>
+            <p className="text-white/60 text-xs font-bold mt-1">É a vez dele escolher no draft.</p>
+          </BrutalCard>
+        )}
+
+        {(!isOnline || isMyTurn) && (
+          state.pendingDrop ? (
+            <>
+              <BrutalCard color={C.orange} className="p-4" shadow={5}>
+                <p className="text-white font-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>⚠ ELENCO CHEIO ({you.squad.length}/{state.rosterMax})</p>
+                <p className="text-white/80 text-xs font-bold mt-1">Pra fisgar um novo craque, dispense alguém do elenco.</p>
+              </BrutalCard>
+              <div className="space-y-2">
+                {[...you.squad].sort((a, b) => a.rating - b.rating).map(p => (
+                  <BrutalCard key={p.id} color="white" className="p-2.5" shadow={2}>
+                    <div className="flex items-center gap-2">
+                      <BrutalTag color={POS_COLOR[p.pos]} textColor="#fff">{p.pos}</BrutalTag>
+                      <span className="flex-1 truncate font-black text-black text-sm">{p.name}</span>
+                      <span className="font-black text-black text-sm">{p.rating}</span>
+                      <BrutalButton color={C.orange} textColor="#fff" full={false} className="!px-3 !py-1.5 !text-[10px]"
+                        onClick={() => dispatch({ type: 'DROP_PLAYER', playerId: p.id })}>Dispensar</BrutalButton>
+                    </div>
+                  </BrutalCard>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <BrutalCard color={C.blue} className="p-3" shadow={4}>
+                <p className="text-white text-xs font-bold">
+                  ✦ Você vê o <b>potencial</b> (✨) que ninguém mais vê. Os adversários só olham a nota de hoje — é sua chance de roubar o futuro craque baratinho.
+                </p>
+              </BrutalCard>
+              <div className="flex items-center justify-between">
+                <h2 className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>ESCOLHA UM JOGADOR</h2>
+                <button onClick={() => dispatch({ type: 'SKIP_PICK', playerIndex: state.youIndex })} className="border-2 border-black rounded-lg px-2 py-1 text-[10px] font-black bg-white">Passar a vez</button>
+              </div>
+              <div className="space-y-2">
+                {pool.map(l => <DraftPickCard key={l.id} legend={l} rar={rarityOf(l.truePotential)} />)}
+              </div>
+            </>
+          )
         )}
       </div>
     </div>
@@ -570,7 +606,7 @@ function DraftPickCard({ legend, rar }: { legend: Legend; rar: ReturnType<typeof
           <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{rating} / <span style={{ color: rar.color }}>{legend.truePotential}</span></p>
         </div>
         <BrutalButton color={C.green} full={false} className="!px-3 !py-2 !text-[10px]"
-          onClick={() => dispatch({ type: 'DRAFT_PICK', legendId: legend.id })}>Fisgar</BrutalButton>
+          onClick={() => dispatch({ type: 'DRAFT_PICK', legendId: legend.id, playerIndex: state.youIndex })}>Fisgar</BrutalButton>
       </div>
     </BrutalCard>
   )
@@ -584,12 +620,13 @@ export function DraftMatch() {
   const myTeam = teamOf(state, you)
   const eventsEndRef = useRef<HTMLDivElement>(null)
 
-  // Auto-tick during first and second half
+  // Auto-tick during first and second half — host only in online mode
   useEffect(() => {
     if (!live || live.half === 'ht' || live.half === 'ft') return
+    if (state.onlineMode === 'online' && !state.isHost) return
     const id = setInterval(() => dispatch({ type: 'TICK_MATCH' }), 900)
     return () => clearInterval(id)
-  }, [live?.half, dispatch])
+  }, [live?.half, state.onlineMode, state.isHost, dispatch])
 
   // Scroll to latest event
   useEffect(() => {
@@ -972,6 +1009,88 @@ export function DraftLeilao() {
             </BrutalButton>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+// ─── RANKING DOS MANAGERS ──────────────────────────────────────
+export function DraftRanking() {
+  const { state, dispatch } = useDraft()
+
+  // Sort managers by their team's points descending
+  const ranked = state.humans.map((h, i) => {
+    const team = state.teams.find(t => t.humanIndex === i)!
+    const legendsCount = h.squad.filter(p => p.legendId).length
+    const online = state.onlineMode === 'online'
+    const isOnline = online && (state.onlinePresence ?? []).includes(i)
+    return { h, team, legendsCount, isOnline, i }
+  }).sort((a, b) => {
+    if (b.team.points !== a.team.points) return b.team.points - a.team.points
+    return (b.team.gf - b.team.ga) - (a.team.gf - a.team.ga)
+  })
+
+  return (
+    <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
+      <div className="border-b-[3px] border-black px-4 py-3 sticky top-0 z-20" style={{ backgroundColor: C.black }}>
+        <div className="max-w-md mx-auto flex items-center gap-3">
+          <button onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'hub' })} className="text-white text-2xl font-black">←</button>
+          <h1 className="text-white font-black text-lg flex-1" style={{ fontFamily: 'Oswald, sans-serif' }}>🏆 RANKING</h1>
+          <BrutalTag color={C.yellow}>TEMP {state.season}</BrutalTag>
+        </div>
+      </div>
+
+      <div className="max-w-md mx-auto px-4 py-4 space-y-3">
+        <BrutalCard color={C.blue} className="p-3">
+          <p className="text-white text-xs font-bold">📊 Posição geral de todos os managers — ordenado por pontos na tabela.</p>
+        </BrutalCard>
+
+        {ranked.map(({ h, team, legendsCount, isOnline, i }, rank) => {
+          const isYou = i === state.youIndex
+          return (
+            <BrutalCard key={i} color={isYou ? C.yellow : 'white'} className="p-4" shadow={isYou ? 6 : 3}>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full border-[3px] border-black flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: rank === 0 ? '#fbbf24' : rank === 1 ? '#e5e7eb' : rank === 2 ? '#d97706' : C.cream }}>
+                  <span className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{rank + 1}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                    <p className="font-black text-black text-base truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                      {isYou ? '⭐ ' : ''}{h.name}
+                    </p>
+                    {state.onlineMode === 'online' && (
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`} title={isOnline ? 'Online' : 'Offline'} />
+                    )}
+                  </div>
+                  <p className="text-black/50 text-[11px] font-bold truncate">{team.name} · {DIV(team.division)}</p>
+                  <div className="flex items-center gap-3 mt-2 flex-wrap">
+                    <span className="text-[11px] font-black text-black">
+                      {team.wins}V {team.draws}E {team.losses}D
+                    </span>
+                    <span className="text-[11px] font-bold text-black/50">
+                      SG {team.gf - team.ga > 0 ? '+' : ''}{team.gf - team.ga}
+                    </span>
+                    <span className="text-[11px] font-bold text-black/50">
+                      ✨ {legendsCount} lend.
+                    </span>
+                    <span className="text-[11px] font-bold text-black/50">
+                      💰 {money(h.money)}
+                    </span>
+                    <span className="text-[11px] font-bold text-black/50">
+                      💪 {Math.round(squadStrength(h.squad, h.lineupIds))}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="font-black text-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{team.points}</p>
+                  <p className="text-black/40 text-[9px] font-black uppercase">pts</p>
+                </div>
+              </div>
+              <p className="text-black/40 text-[10px] font-bold mt-2">{team.lastResult}</p>
+            </BrutalCard>
+          )
+        })}
       </div>
     </div>
   )
