@@ -10,11 +10,11 @@ import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag, POS_COLOR, FL
 
 const DIV = (d: number) => ({ 1: '1ª (Elite)', 2: '2ª Divisão', 3: '3ª Divisão', 4: '4ª Divisão' }[d] ?? `${d}ª`)
 
-const TEAM_PALETTE = ['#ef4444','#3b82f6','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1','#14b8a6','#e11d48','#0ea5e9','#a855f7','#f43f5e','#22c55e']
-function teamColor(id: string): string {
-  let h = 0
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
-  return TEAM_PALETTE[h % TEAM_PALETTE.length]
+const DIV_COLORS: Record<number, { bg: string; accent: string }> = {
+  1: { bg: 'rgba(251,191,36,0.10)',  accent: '#fbbf24' },
+  2: { bg: 'rgba(59,130,246,0.10)',  accent: '#60a5fa' },
+  3: { bg: 'rgba(16,185,129,0.10)', accent: '#34d399' },
+  4: { bg: 'rgba(249,115,22,0.10)', accent: '#fb923c' },
 }
 
 // ─── INTRO ─────────────────────────────────────────────────────
@@ -644,20 +644,26 @@ export function DraftMatch() {
 
         {/* Other matches live — all 4 divisions */}
         {live.otherMatches && live.otherMatches.length > 0 && (
-          <div>
-            <p className="text-white/30 text-[9px] font-black uppercase mb-1.5">📺 Outros Jogos · {live.minute}'</p>
+          <div className="space-y-1.5">
+            <p className="text-white/30 text-[9px] font-black uppercase">📺 Outros Jogos · {live.minute}'</p>
             {[1, 2, 3, 4].map(d => {
               const dMatches = live.otherMatches.filter(m => m.division === d)
               if (dMatches.length === 0) return null
+              const dc = DIV_COLORS[d]
               return (
-                <div key={d} className="mb-2">
-                  <p className="text-white/20 text-[9px] font-black uppercase mb-0.5">{d}ª Divisão</p>
-                  <div className="space-y-px">
+                <div key={d} className="rounded-lg overflow-hidden" style={{ border: `1px solid ${dc.accent}33` }}>
+                  <div className="px-2 py-0.5" style={{ backgroundColor: dc.accent + '28' }}>
+                    <p className="text-[9px] font-black uppercase" style={{ color: dc.accent }}>{d}ª Divisão</p>
+                  </div>
+                  <div style={{ backgroundColor: dc.bg }}>
                     {dMatches.map((m, i) => (
-                      <div key={i} className="flex items-center gap-1 px-2 py-1 rounded" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-                        <span className="flex-1 truncate text-[10px] font-black text-right" style={{ color: teamColor(m.homeId) }}>{m.homeName}</span>
-                        <span className="font-black text-[11px] mx-2 tabular-nums shrink-0" style={{ fontFamily: 'Oswald, sans-serif', color: (m.gf !== m.ga) ? '#facc15' : 'rgba(255,255,255,0.7)' }}>{m.gf}–{m.ga}</span>
-                        <span className="flex-1 truncate text-[10px] font-black" style={{ color: teamColor(m.awayId) }}>{m.awayName}</span>
+                      <div key={i} className="flex items-center px-2 py-1" style={{ borderTop: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                        <span className="flex-1 truncate text-[10px] font-bold text-right text-white/75">{m.homeName}</span>
+                        <span className="font-black text-[11px] mx-2 tabular-nums shrink-0"
+                          style={{ fontFamily: 'Oswald, sans-serif', color: m.gf !== m.ga ? '#facc15' : 'rgba(255,255,255,0.55)' }}>
+                          {m.gf}–{m.ga}
+                        </span>
+                        <span className="flex-1 truncate text-[10px] font-bold text-white/75">{m.awayName}</span>
                       </div>
                     ))}
                   </div>
