@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useDraft, availableLegends, teamOf, divTeams } from './store'
 import { START_CLUBS, squadStrength } from './data'
 import { rarityOf } from '../empresario/data/career'
-import { getCurrentRating } from '../empresario/data/legends'
+import { getCurrentRating, LEGENDS } from '../empresario/data/legends'
 import type { Legend } from '../empresario/types'
 import type { GameMode } from './types'
-import { C, money, BrutalCard, BrutalButton, BrutalTag, POS_COLOR, FLAG } from '../empresario/ui'
+import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag, POS_COLOR, FLAG } from '../empresario/ui'
 
 const DIV = (d: number) => ({ 1: '1ª (Elite)', 2: '2ª Divisão', 3: '3ª Divisão', 4: '4ª Divisão' }[d] ?? `${d}ª`)
 
@@ -481,5 +481,327 @@ function DraftPickCard({ legend, rar }: { legend: Legend; rar: ReturnType<typeof
           onClick={() => dispatch({ type: 'DRAFT_PICK', legendId: legend.id })}>Fisgar</BrutalButton>
       </div>
     </BrutalCard>
+  )
+}
+
+// ─── LIVE MATCH (Elifoot style) ────────────────────────────────
+export function DraftMatch() {
+  const { state, dispatch } = useDraft()
+  const live = state.live
+  const you = state.humans[state.youIndex]
+  const myTeam = teamOf(state, you)
+  const eventsEndRef = useRef<HTMLDivElement>(null)
+
+  // Auto-tick during first and second half
+  useEffect(() => {
+    if (!live || live.half === 'ht' || live.half === 'ft') return
+    const id = setInterval(() => dispatch({ type: 'TICK_MATCH' }), 900)
+    return () => clearInterval(id)
+  }, [live?.half, dispatch])
+
+  // Scroll to latest event
+  useEffect(() => {
+    eventsEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [live?.events.length])
+
+  if (!live) return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: C.cream }}><p className="font-black text-black">Carregando...</p></div>
+
+  const barPct = Math.min(100, (live.minute / 90) * 100)
+  const isRunning = live.half === 1 || live.half === 2
+  const isHT = live.half === 'ht'
+  const isFT = live.half === 'ft'
+  const result = live.gf > live.ga ? 'V' : live.gf === live.ga ? 'E' : 'D'
+  const resultColor = result === 'V' ? C.green : result === 'E' ? C.yellow : C.orange
+
+  // HT sub state
+  const [subOut, setSubOut] = useState<string | null>(null)
+  const [subIn, setSubIn] = useState<string | null>(null)
+  const xi = you.squad.filter(p => you.lineupIds.includes(p.id))
+  const bench = you.squad.filter(p => !you.lineupIds.includes(p.id))
+
+  return (
+    <div className="min-h-screen pb-10" style={{ backgroundColor: C.black }}>
+      {/* Header */}
+      <div className="px-4 py-3 border-b-[3px] border-white/20">
+        <div className="max-w-md mx-auto flex items-center justify-between">
+          <BrutalTag color={C.teal}>{({ 1: '1ª Divisão', 2: '2ª Divisão', 3: '3ª Divisão', 4: '4ª Divisão' }[live.division]) ?? `${live.division}ª`}</BrutalTag>
+          <span className="text-white/40 font-mono text-xs">Rodada {state.round}</span>
+          <BrutalTag color={C.yellow}>TEMP {state.season}</BrutalTag>
+        </div>
+      </div>
+
+      <div className="max-w-md mx-auto px-4 py-4 space-y-4">
+        {/* scoreboard */}
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+          <BrutalCard color={C.purple} className="p-5 text-center" shadow={8}>
+            <div className="flex items-center justify-center gap-4">
+              <div className="flex-1 text-right">
+                <p className="text-white font-black text-base truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{myTeam.name}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-white font-black text-5xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{live.gf}</span>
+                <span className="text-white/40 font-black text-3xl">–</span>
+                <span className="text-white font-black text-5xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{live.ga}</span>
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-white/60 font-black text-base truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{live.oppName}</p>
+              </div>
+            </div>
+            <div className="mt-3 flex items-center justify-center gap-2">
+              {isRunning && <span className="inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse" />}
+              <span className="text-white/60 font-mono text-sm">
+                {isFT ? '⏱ Apito final' : isHT ? '⏸ Intervalo' : `${live.minute}'`}
+              </span>
+            </div>
+          </BrutalCard>
+        </motion.div>
+
+        {/* time bar */}
+        <div className="space-y-1">
+          <div className="flex justify-between text-[10px] font-black text-white/40">
+            <span>0'</span>
+            <span style={{ color: live.half === 1 || isHT ? C.yellow : 'rgba(255,255,255,0.4)' }}>45'</span>
+            <span>90'</span>
+          </div>
+          <div className="relative h-3 rounded-full border-2 border-white/20 overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
+            <div className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${barPct}%`, backgroundColor: isHT ? C.yellow : isFT ? resultColor : C.teal }} />
+            {/* HT midline */}
+            <div className="absolute top-0 bottom-0 w-px bg-white/30" style={{ left: '50%' }} />
+          </div>
+        </div>
+
+        {/* Halftime controls */}
+        {isHT && (
+          <BrutalCard color={C.yellow} className="p-4 space-y-3" shadow={6}>
+            <p className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>⏸ INTERVALO — {live.gf}–{live.ga}</p>
+            {/* tactic change */}
+            <div>
+              <p className="text-black/60 text-[10px] font-black uppercase mb-1">Tática para o 2º tempo</p>
+              <div className="flex gap-2">
+                {(['retranca', 'equilibrio', 'ataque'] as const).map(t => (
+                  <button key={t} onClick={() => dispatch({ type: 'CHANGE_TACTIC_MATCH', tactic: t })}
+                    className="flex-1 border-2 border-black rounded px-1 py-1.5 text-[10px] font-black uppercase"
+                    style={{ backgroundColor: you.tactic === t ? C.black : '#fff', color: you.tactic === t ? '#fff' : '#000' }}>
+                    {t === 'retranca' ? '🛡️' : t === 'equilibrio' ? '⚖️' : '⚔️'} {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* substitution */}
+            {!live.subDone && (
+              <div>
+                <p className="text-black/60 text-[10px] font-black uppercase mb-1">Substituição (1 disponível)</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-black/40 text-[9px] font-black uppercase mb-1">Tirar (XI)</p>
+                    {xi.sort((a, b) => a.rating - b.rating).map(p => (
+                      <button key={p.id} onClick={() => setSubOut(p.id)}
+                        className="w-full text-left border-2 rounded px-2 py-1 mb-1 text-[10px] font-black truncate"
+                        style={{ borderColor: subOut === p.id ? C.orange : '#000', backgroundColor: subOut === p.id ? C.orange : '#fff', color: subOut === p.id ? '#fff' : '#000' }}>
+                        {p.pos} {p.name.split(' ')[0]} ({p.rating})
+                      </button>
+                    ))}
+                  </div>
+                  <div>
+                    <p className="text-black/40 text-[9px] font-black uppercase mb-1">Colocar (Banco)</p>
+                    {bench.sort((a, b) => b.rating - a.rating).map(p => (
+                      <button key={p.id} onClick={() => setSubIn(p.id)}
+                        className="w-full text-left border-2 rounded px-2 py-1 mb-1 text-[10px] font-black truncate"
+                        style={{ borderColor: subIn === p.id ? C.green : '#000', backgroundColor: subIn === p.id ? C.green : '#fff', color: subIn === p.id ? '#fff' : '#000' }}>
+                        {p.pos} {p.name.split(' ')[0]} ({p.rating})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {subOut && subIn && (
+                  <BrutalButton color={C.orange} textColor="#fff" onClick={() => { dispatch({ type: 'MAKE_SUB', outId: subOut, inId: subIn }); setSubOut(null); setSubIn(null) }}>
+                    ✅ Confirmar sub
+                  </BrutalButton>
+                )}
+              </div>
+            )}
+            {live.subDone && <p className="text-black/50 text-xs font-bold">✅ Substituição feita.</p>}
+            <BrutalButton color={C.black} textColor="#fff" onClick={() => dispatch({ type: 'START_HALF2' })}>
+              ▶ 2º TEMPO →
+            </BrutalButton>
+          </BrutalCard>
+        )}
+
+        {/* Full time */}
+        {isFT && (
+          <BrutalCard color={resultColor} className="p-4 text-center" shadow={6}>
+            <p className="font-black text-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>
+              {result === 'V' ? '🏆 VITÓRIA!' : result === 'E' ? '🤝 EMPATE' : '😞 DERROTA'}
+            </p>
+            <p className="text-black/70 text-sm font-bold mt-1">{myTeam.name} {live.gf}–{live.ga} {live.oppName}</p>
+            <BrutalButton color={C.black} textColor="#fff" className="mt-3" onClick={() => dispatch({ type: 'END_MATCH' })}>
+              Continuar →
+            </BrutalButton>
+          </BrutalCard>
+        )}
+
+        {/* events feed */}
+        <div className="space-y-1">
+          {live.events.filter(e => e.trim()).map((e, i) => {
+            const isGoal = e.includes('⚽')
+            const isOppGoal = e.includes('🔴')
+            return (
+              <motion.div key={i} initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
+                className="border-l-[3px] pl-3 py-0.5"
+                style={{ borderColor: isGoal ? C.green : isOppGoal ? C.orange : 'rgba(255,255,255,0.2)' }}>
+                <p className={`text-xs font-bold ${isGoal ? 'text-green-400' : isOppGoal ? 'text-orange-400' : 'text-white/50'}`}>{e}</p>
+              </motion.div>
+            )
+          })}
+          <div ref={eventsEndRef} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── LEILÃO CEGO ───────────────────────────────────────────────
+export function DraftLeilao() {
+  const { state, dispatch } = useDraft()
+  const you = state.humans[state.youIndex]
+  const [bid, setBid] = useState('')
+
+  const legendId = state.leilaoItems[state.leilaoIndex]
+  const legend = legendId ? LEGENDS.find(l => l.id === legendId) : null
+  const rating = legend ? getCurrentRating(legend, state.year) : 0
+  const rar = legend ? rarityOf(legend.truePotential) : null
+
+  if (!legend || !rar) return null
+
+  const isBidding = state.leilaoPhase === 'bid'
+  const isReveal = state.leilaoPhase === 'reveal'
+  const winnerIdx = isReveal ? state.leilaoBids.indexOf(Math.max(...state.leilaoBids)) : -1
+  const winner = winnerIdx >= 0 ? state.humans[winnerIdx] : null
+  const yourBid = state.leilaoBids[state.youIndex] ?? 0
+
+  return (
+    <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
+      <div className="border-b-[3px] border-black px-4 py-3 sticky top-0 z-20" style={{ backgroundColor: C.black }}>
+        <div className="max-w-md mx-auto flex items-center justify-between">
+          <h1 className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>💰 LEILÃO CEGO</h1>
+          <BrutalTag color={C.yellow}>{state.leilaoIndex + 1}/{state.leilaoItems.length}</BrutalTag>
+        </div>
+      </div>
+
+      <div className="max-w-md mx-auto px-4 py-4 space-y-4">
+        <BrutalCard color={C.blue} className="p-3">
+          <p className="text-white text-xs font-bold">💡 Lance cego — você não sabe o que os outros oferecem. Quem pagar mais leva. Defina seu limite!</p>
+        </BrutalCard>
+
+        {/* legend card */}
+        <BrutalCard color={C.cream} className="p-4" shadow={8}>
+          <div className="flex items-center gap-3">
+            <span className="text-4xl">{FLAG[legend.nationality]}</span>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <span className="font-black text-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{legend.name}</span>
+                <BrutalTag color={POS_COLOR[legend.position]} textColor="#fff">{legend.position}</BrutalTag>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="border-2 border-black rounded px-1.5 py-0.5 text-[10px] font-black uppercase" style={{ backgroundColor: rar.color, color: rar.rank >= 3 ? '#000' : '#fff' }}>
+                  {rar.emoji} {rar.label}
+                </span>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-black/40 text-[9px] font-black uppercase">nota / pot</p>
+              <p className="font-black text-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                {rating} / <span style={{ color: rar.color }}>{legend.truePotential}</span>
+              </p>
+            </div>
+          </div>
+        </BrutalCard>
+
+        {/* your money */}
+        <BrutalCard color={C.black} className="p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-white/60 text-xs font-black uppercase">Seu caixa</span>
+            <span className="text-white font-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>{moneyFull(you.money)}</span>
+          </div>
+        </BrutalCard>
+
+        {isBidding && (
+          <div className="space-y-3">
+            <BrutalCard color="white" className="p-4" shadow={4}>
+              <p className="text-black/50 text-[10px] font-black uppercase mb-2">Seu lance (R$)</p>
+              <input
+                type="number" min={0} max={you.money} value={bid}
+                onChange={e => setBid(e.target.value)}
+                placeholder="0"
+                className="w-full border-[3px] border-black rounded-lg px-3 py-3 font-black text-black text-2xl"
+                style={{ fontFamily: 'Oswald, sans-serif' }}
+              />
+              <div className="flex gap-2 mt-2">
+                {[100_000, 250_000, 500_000].map(v => (
+                  <button key={v} onClick={() => setBid(String(Math.min(v, you.money)))}
+                    className="flex-1 border-2 border-black rounded px-2 py-1.5 text-[10px] font-black bg-white">
+                    {money(v)}
+                  </button>
+                ))}
+                <button onClick={() => setBid(String(Math.floor(you.money * 0.5)))}
+                  className="flex-1 border-2 border-black rounded px-2 py-1.5 text-[10px] font-black bg-white">
+                  50%
+                </button>
+              </div>
+            </BrutalCard>
+            <BrutalButton color={C.green} textColor="#fff"
+              onClick={() => dispatch({ type: 'BID_LEILAO', amount: Number(bid) || 0 })}>
+              💰 Dar lance: {Number(bid) ? moneyFull(Number(bid)) : 'R$ 0 (passar)'}
+            </BrutalButton>
+          </div>
+        )}
+
+        {isReveal && (
+          <div className="space-y-3">
+            {/* reveal bids */}
+            <BrutalCard color="white" className="p-0 overflow-hidden" shadow={4}>
+              <div className="bg-black px-3 py-2">
+                <p className="text-white font-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>💰 LANCES REVELADOS</p>
+              </div>
+              {state.leilaoBids.map((b, i) => {
+                const mgr = state.humans[i]
+                const isWinner = i === winnerIdx && b > 0
+                return (
+                  <div key={i} className="flex items-center gap-3 px-3 py-2.5 border-b border-black/10"
+                    style={{ backgroundColor: isWinner ? C.yellow : i === state.youIndex ? '#f0f8ff' : 'transparent' }}>
+                    <span className="text-base">{isWinner ? '🏆' : '·'}</span>
+                    <span className="flex-1 font-black text-black text-sm">{mgr.name}{i === state.youIndex ? ' (você)' : ''}</span>
+                    <span className="font-black text-sm" style={{ color: b > 0 ? '#000' : '#aaa' }}>
+                      {b > 0 ? moneyFull(b) : 'Passou'}
+                    </span>
+                  </div>
+                )
+              })}
+            </BrutalCard>
+
+            {winner && yourBid > 0 && (
+              <BrutalCard color={winnerIdx === state.youIndex ? C.green : C.orange} className="p-3" shadow={4}>
+                <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                  {winnerIdx === state.youIndex
+                    ? `🏆 VOCÊ arrematou ${legend.nickname}!`
+                    : `❌ ${winner.name} levou ${legend.nickname} por ${moneyFull(state.leilaoBids[winnerIdx])}`}
+                </p>
+              </BrutalCard>
+            )}
+            {Math.max(...state.leilaoBids) === 0 && (
+              <BrutalCard color={C.creamDark} className="p-3">
+                <p className="font-black text-black text-sm">Ninguém deu lance — {legend.nickname} passa.</p>
+              </BrutalCard>
+            )}
+
+            <BrutalButton color={state.leilaoIndex + 1 >= state.leilaoItems.length ? C.teal : C.blue} textColor="#fff"
+              onClick={() => { setBid(''); dispatch({ type: 'NEXT_LEILAO' }) }}>
+              {state.leilaoIndex + 1 >= state.leilaoItems.length ? '✅ Fechar janela →' : 'Próxima disputa →'}
+            </BrutalButton>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }

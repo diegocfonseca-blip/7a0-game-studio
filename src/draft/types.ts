@@ -1,6 +1,6 @@
 import type { Position, Nationality } from '../empresario/types'
 
-export type DraftScreen = 'intro' | 'pickClub' | 'hub' | 'draft' | 'lineup' | 'table' | 'match'
+export type DraftScreen = 'intro' | 'pickClub' | 'hub' | 'draft' | 'lineup' | 'table' | 'match' | 'leilao'
 export type Tactic = 'retranca' | 'equilibrio' | 'ataque'
 export type GameMode = 'draft' | 'leilao' | 'draft_leilao'
 
@@ -11,19 +11,18 @@ export interface DraftPlayer {
   rating: number
   legendId?: string
   nationality?: Nationality
-  potential?: number      // truePotential — only humans (you + friends) can see it
-  devBonus?: number       // permanent growth from getting minutes
+  potential?: number
+  devBonus?: number
 }
 
-// Every club in the pyramid — humans and CPU alike — has a league row.
 export interface LeagueTeam {
   id: string
   name: string
   city: string
-  division: number        // 1 (elite) … 4 (bottom)
+  division: number
   isHuman: boolean
-  humanIndex?: number     // index into humans[] when isHuman
-  strength: number        // CPU: fixed-ish; human: recomputed from the fielded XI
+  humanIndex?: number
+  strength: number
   points: number
   played: number
   wins: number
@@ -34,7 +33,6 @@ export interface LeagueTeam {
   lastResult: string
 }
 
-// A human manager (you or an AI "friend").
 export interface Manager {
   id: string
   name: string
@@ -46,16 +44,25 @@ export interface Manager {
   money: number
 }
 
-// A live (Elifoot-style) match in progress — only YOUR matches are played out.
+export interface MatchEvent {
+  min: number
+  text: string
+  gfAfter: number
+  gaAfter: number
+}
+
 export interface LiveMatch {
+  oppTeamId: string
   oppName: string
   oppStrength: number
   minute: number
   gf: number
   ga: number
-  events: string[]        // minute-by-minute commentary
+  events: string[]
+  allEvents: MatchEvent[]
   half: 1 | 2 | 'ht' | 'ft'
   division: number
+  subDone: boolean
 }
 
 export interface DraftState {
@@ -64,20 +71,25 @@ export interface DraftState {
   mode: GameMode
   year: number
   season: number
-  round: number             // matchday within the season
+  round: number
   roundsPerSeason: number
-  windowEvery: number       // a draft/auction opens every N rounds
-  teams: LeagueTeam[]       // the whole 4×10 world
+  windowEvery: number
+  teams: LeagueTeam[]
   humans: Manager[]
   youIndex: number
   ownedLegendIds: string[]
   rosterMax: number
-  live: LiveMatch | null    // your match being played out
+  live: LiveMatch | null
   // ── draft window ──
   inDraft: boolean
-  draftOrder: number[]      // human indices, worst-first
+  draftOrder: number[]
   draftPos: number
   pendingDrop: boolean
   lastPickText: string[]
   narrative: string[]
+  // ── leilão window ──
+  leilaoItems: string[]
+  leilaoIndex: number
+  leilaoBids: number[]
+  leilaoPhase: 'bid' | 'reveal' | 'done'
 }

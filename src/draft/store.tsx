@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
-import type { DraftState, DraftScreen, Manager, DraftPlayer, LeagueTeam, Tactic, GameMode } from './types'
+import type { DraftState, DraftScreen, Manager, DraftPlayer, LeagueTeam, Tactic, GameMode, MatchEvent, LiveMatch } from './types'
 import { START_CLUBS, AI_MANAGERS, CPU_POOLS, divisionStrength, generateFillerSquad, squadStrength, bestEleven } from './data'
 import { LEGENDS, getCurrentRating } from '../empresario/data/legends'
 import type { Legend } from '../empresario/types'
@@ -15,6 +15,7 @@ const INITIAL: DraftState = {
   round: 0, roundsPerSeason: ROUNDS_PER_SEASON, windowEvery: WINDOW_EVERY,
   teams: [], humans: [], youIndex: 0, ownedLegendIds: [], rosterMax: ROSTER_MAX, live: null,
   inDraft: false, draftOrder: [], draftPos: 0, pendingDrop: false, lastPickText: [], narrative: [],
+  leilaoItems: [], leilaoIndex: 0, leilaoBids: [], leilaoPhase: 'done',
 }
 
 type Action =
@@ -22,11 +23,18 @@ type Action =
   | { type: 'START' }
   | { type: 'PICK_CLUB'; clubId: string; managerName: string; mode: GameMode }
   | { type: 'ADVANCE_ROUND' }
+  | { type: 'TICK_MATCH' }
+  | { type: 'START_HALF2' }
+  | { type: 'MAKE_SUB'; outId: string; inId: string }
+  | { type: 'CHANGE_TACTIC_MATCH'; tactic: Tactic }
+  | { type: 'END_MATCH' }
   | { type: 'DRAFT_PICK'; legendId: string }
   | { type: 'DROP_PLAYER'; playerId: string }
   | { type: 'SKIP_PICK' }
   | { type: 'SET_LINEUP'; playerId: string }
   | { type: 'SET_TACTIC'; tactic: Tactic }
+  | { type: 'BID_LEILAO'; amount: number }
+  | { type: 'NEXT_LEILAO' }
   | { type: 'NEW_GAME' }
 
 // ── helpers ──
@@ -66,29 +74,128 @@ function recomputeHumanStrength(teams: LeagueTeam[], humans: Manager[]): LeagueT
     : t)
 }
 
-function simulateRound(state: DraftState): { teams: LeagueTeam[]; humans: Manager[]; lines: string[] } {
-  let teams = recomputeHumanStrength(state.teams, state.humans)
-  const humans = state.humans.map(h => ({ ...h }))
-  const lines: string[] = []
-  const byId = new Map(teams.map(t => [t.id, t]))
-  for (let d = 1; d <= 4; d++) {
-    const ids = teams.filter(t => t.division === d).map(t => t.id).sort(() => Math.random() - 0.5)
-    for (let i = 0; i + 1 < ids.length; i += 2) {
-      const A = byId.get(ids[i])!, B = byId.get(ids[i + 1])!
-      const tacA: Tactic = A.isHuman ? humans[A.humanIndex!].tactic : (Math.random() < 0.3 ? 'ataque' : 'equilibrio')
-      const tacB: Tactic = B.isHuman ? humans[B.humanIndex!].tactic : (Math.random() < 0.3 ? 'ataque' : 'equilibrio')
-      const [ga, gb] = matchGoals(A.strength, tacA, B.strength, tacB)
-      byId.set(A.id, applyRow(A, ga, gb)); byId.set(B.id, applyRow(B, gb, ga))
-      if (A.isHuman) humans[A.humanIndex!].money += Math.round(gate(d) * (ga > gb ? 1.5 : ga === gb ? 1 : 0.6))
-      if (B.isHuman) humans[B.humanIndex!].money += Math.round(gate(d) * (gb > ga ? 1.5 : gb === ga ? 1 : 0.6))
-      if (A.humanIndex === state.youIndex) lines.push(`⚽ ${A.name} ${ga}–${gb} ${B.name}`)
-      if (B.humanIndex === state.youIndex) lines.push(`⚽ ${B.name} ${gb}–${ga} ${A.name}`)
-    }
-  }
-  return { teams: [...byId.values()], humans, lines }
+// ── pre-generated match events (Elifoot style) ──
+const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)]
+const GOL_YOUR = [
+  (p: string, s: string) => `⚽ GOL! ${p} chuta cruzado! ${s}`,
+  (p: string, s: string) => `⚽ ${p} de cabeça — GOOOOOL! ${s}`,
+  (p: string, s: string) => `⚽ GOOOL! ${p} na gaveta! Que golaço! ${s}`,
+  (p: string, s: string) => `⚽ Falta cobrada por ${p}! Goleiro sem chance. ${s}`,
+  (p: string, s: string) => `⚽ ${p} aproveita rebote e empurra pra rede! ${s}`,
+]
+const GOL_OPP = [
+  (o: string, s: string) => `🔴 Gol de ${o}. ${s}`,
+  (o: string, s: string) => `🔴 ${o} marca de contra-ataque. ${s}`,
+  (o: string, s: string) => `🔴 Cabeceio certeiro do ${o}. ${s}`,
+  (o: string, s: string) => `🔴 Chutão de longe, goleiro falhou. ${o} ${s}`,
+]
+const CHANCE_YOUR = [
+  '⚪ Chute na trave! Quase!',
+  '⚪ Goleiro adversário salvou no último segundo.',
+  '⚪ Cara a cara, chute fraco. Goleiro pegou.',
+  '⚪ Cruzamento na área — ninguém chegou.',
+  '⚪ Bola na trave! A torcida gritou!',
+]
+const CHANCE_OPP = [
+  '🟡 Susto! A bola bateu na trave deles.',
+  '🟡 Defesaça do nosso goleiro! Manteve o placar.',
+  '🟡 Escanteio perigoso — zagueiro salvou na linha!',
+  '🟡 Chute de meia distância, nosso goleiro tranquilo.',
+]
+const H1_MINS = [6, 12, 18, 24, 30, 36, 42]
+const H2_MINS = [48, 54, 60, 66, 72, 78, 84, 89]
+
+function pickScorer(xi: DraftPlayer[]): string {
+  const att = xi.filter(p => p.pos === 'ATA')
+  const mei = xi.filter(p => p.pos === 'MEI')
+  const pool = att.length ? att : mei.length ? mei : xi
+  return pool.length ? pick(pool).name : 'um jogador'
 }
 
-// worst-first among the HUMANS: lower division first, then fewer points
+function pregenHalfEvents(
+  rYou: number, tacYou: Tactic, rOpp: number, tacOpp: Tactic,
+  xi: DraftPlayer[], oppName: string,
+  half: 1 | 2, startGf = 0, startGa = 0
+): MatchEvent[] {
+  const minutes = half === 1 ? H1_MINS : H2_MINS
+  const xgYou = Math.max(0.4, 1.4 + (rYou - rOpp) / 12 + ATK[tacYou] - DEF[tacOpp])
+  const xgOpp = Math.max(0.4, 1.4 + (rOpp - rYou) / 12 + ATK[tacOpp] - DEF[tacYou])
+  let gf = startGf, ga = startGa
+  const events: MatchEvent[] = []
+  for (const minute of minutes) {
+    const r = Math.random()
+    const pGY = 0.12 * Math.min(2, xgYou)
+    const pGO = 0.12 * Math.min(2, xgOpp)
+    if (r < pGY) {
+      gf++
+      events.push({ min: minute, text: pick(GOL_YOUR)(pickScorer(xi), `${gf}–${ga}`), gfAfter: gf, gaAfter: ga })
+    } else if (r < pGY + pGO) {
+      ga++
+      events.push({ min: minute, text: pick(GOL_OPP)(oppName, `${gf}–${ga}`), gfAfter: gf, gaAfter: ga })
+    } else if (r < pGY + pGO + 0.14) {
+      events.push({ min: minute, text: pick(CHANCE_YOUR), gfAfter: gf, gaAfter: ga })
+    } else if (r < pGY + pGO + 0.26) {
+      events.push({ min: minute, text: pick(CHANCE_OPP), gfAfter: gf, gaAfter: ga })
+    }
+  }
+  return events
+}
+
+// ── simulate round for all teams EXCEPT the player's match ──
+function simulateOtherMatches(state: DraftState): {
+  teams: LeagueTeam[];
+  humans: Manager[];
+  narrative: string[];
+  oppTeam: LeagueTeam;
+} {
+  let teams = recomputeHumanStrength(state.teams, state.humans)
+  const humans = state.humans.map(h => ({ ...h }))
+  const narrative: string[] = []
+  const byId = new Map(teams.map(t => [t.id, t]))
+  const youTeamId = humans[state.youIndex].teamId
+
+  let oppTeam: LeagueTeam = teams[0] // placeholder
+
+  for (let d = 1; d <= 4; d++) {
+    const divIds = teams.filter(t => t.division === d).map(t => t.id).sort(() => Math.random() - 0.5)
+    const youIdx = divIds.findIndex(id => id === youTeamId)
+    // If player is in this division, pull them out and find their opponent
+    if (youIdx !== -1) {
+      const oppIdx = youIdx % 2 === 0 ? youIdx + 1 : youIdx - 1
+      if (oppIdx >= 0 && oppIdx < divIds.length) {
+        oppTeam = byId.get(divIds[oppIdx])!
+      } else {
+        // Edge case: odd team out, player gets a bye — pick last available
+        oppTeam = byId.get(divIds.find(id => id !== youTeamId)!)!
+      }
+      // Remove both from the pairing list
+      const skipPair = new Set([youTeamId, oppTeam.id])
+      for (let i = 0; i + 1 < divIds.length; i += 2) {
+        const A = byId.get(divIds[i])!, B = byId.get(divIds[i + 1])!
+        if (skipPair.has(A.id) || skipPair.has(B.id)) continue
+        const tacA: Tactic = A.isHuman ? humans[A.humanIndex!].tactic : (Math.random() < 0.3 ? 'ataque' : 'equilibrio')
+        const tacB: Tactic = B.isHuman ? humans[B.humanIndex!].tactic : (Math.random() < 0.3 ? 'ataque' : 'equilibrio')
+        const [ga, gb] = matchGoals(A.strength, tacA, B.strength, tacB)
+        byId.set(A.id, applyRow(A, ga, gb)); byId.set(B.id, applyRow(B, gb, ga))
+        if (A.isHuman) humans[A.humanIndex!].money += Math.round(gate(d) * (ga > gb ? 1.5 : ga === gb ? 1 : 0.6))
+        if (B.isHuman) humans[B.humanIndex!].money += Math.round(gate(d) * (gb > ga ? 1.5 : gb === ga ? 1 : 0.6))
+      }
+    } else {
+      for (let i = 0; i + 1 < divIds.length; i += 2) {
+        const A = byId.get(divIds[i])!, B = byId.get(divIds[i + 1])!
+        const tacA: Tactic = A.isHuman ? humans[A.humanIndex!].tactic : (Math.random() < 0.3 ? 'ataque' : 'equilibrio')
+        const tacB: Tactic = B.isHuman ? humans[B.humanIndex!].tactic : (Math.random() < 0.3 ? 'ataque' : 'equilibrio')
+        const [ga, gb] = matchGoals(A.strength, tacA, B.strength, tacB)
+        byId.set(A.id, applyRow(A, ga, gb)); byId.set(B.id, applyRow(B, gb, ga))
+        if (A.isHuman) humans[A.humanIndex!].money += Math.round(gate(d) * (ga > gb ? 1.5 : ga === gb ? 1 : 0.6))
+        if (B.isHuman) humans[B.humanIndex!].money += Math.round(gate(d) * (gb > ga ? 1.5 : gb === ga ? 1 : 0.6))
+      }
+    }
+  }
+  return { teams: [...byId.values()], humans, narrative, oppTeam }
+}
+
+// ── draft logic ──
 function humanDraftOrder(state: DraftState): number[] {
   return state.humans
     .map((h, i) => ({ i, t: state.teams.find(t => t.id === h.teamId)! }))
@@ -123,10 +230,28 @@ function finishDraft(state: DraftState): DraftState {
 }
 function openDraft(state: DraftState): DraftState {
   const order = humanDraftOrder(state)
-  const r = runDraft({ ...state, inDraft: true, draftOrder: order, draftPos: 0, lastPickText: [], narrative: [...state.narrative, `🎟️ Janela de draft (a cada ${state.windowEvery} jogos) — pior colocado escolhe primeiro.`] })
+  const r = runDraft({ ...state, inDraft: true, draftOrder: order, draftPos: 0, lastPickText: [], narrative: [...state.narrative, `🎟️ Janela de draft — pior colocado escolhe primeiro.`] })
   return { ...r, screen: r.inDraft ? 'draft' : r.screen }
 }
 
+// ── leilão logic ──
+function openLeilao(state: DraftState): DraftState {
+  const pool = availableLegends(state).slice(0, 10)
+  if (pool.length === 0) return { ...state, screen: 'hub' }
+  // Pick 3 random from the top-10 available
+  const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, 3)
+  return {
+    ...state,
+    screen: 'leilao',
+    leilaoItems: shuffled.map(l => l.id),
+    leilaoIndex: 0,
+    leilaoBids: new Array(state.humans.length).fill(0),
+    leilaoPhase: 'bid',
+    narrative: [...state.narrative, `💰 Janela de leilão! Três craques em disputa — lance cego, quem pagar mais leva.`],
+  }
+}
+
+// ── season end ──
 function seasonEnd(state: DraftState): DraftState {
   const newYear = state.year + 1
   const extra: string[] = []
@@ -157,7 +282,19 @@ function seasonEnd(state: DraftState): DraftState {
     return { ...m, squad }
   })
   teams = teams.map(t => ({ ...t, points: 0, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, lastResult: '—', strength: t.isHuman ? t.strength : divisionStrength(t.division) }))
-  return { ...state, teams: recomputeHumanStrength(teams, humans), humans, season: state.season + 1, round: 0, year: newYear, narrative: [...state.narrative, `🏁 Fim da temporada ${state.season}.`, ...extra] }
+  return { ...state, teams: recomputeHumanStrength(teams, humans), humans, season: state.season + 1, round: 0, year: newYear, screen: 'hub', narrative: [...state.narrative, `🏁 Fim da temporada ${state.season}.`, ...extra] }
+}
+
+// ── after match, check if window should open ──
+function afterMatch(state: DraftState): DraftState {
+  if (state.round >= state.roundsPerSeason) return seasonEnd(state)
+  if (state.round % state.windowEvery === 0) {
+    const wnum = Math.floor(state.round / state.windowEvery)
+    if (state.mode === 'leilao') return openLeilao(state)
+    if (state.mode === 'draft_leilao') return wnum % 2 === 0 ? openDraft(state) : openLeilao(state)
+    return openDraft(state)
+  }
+  return state
 }
 
 function reducer(state: DraftState, action: Action): DraftState {
@@ -197,13 +334,93 @@ function reducer(state: DraftState, action: Action): DraftState {
     }
 
     case 'ADVANCE_ROUND': {
-      if (state.inDraft) return state
-      const { teams, humans, lines } = simulateRound(state)
+      if (state.inDraft || state.live) return state
       const round = state.round + 1
-      const mid: DraftState = { ...state, teams, humans, round, narrative: [...state.narrative, ...lines].slice(-60) }
-      if (round >= state.roundsPerSeason) return seasonEnd(mid)
-      if (round % state.windowEvery === 0 && state.mode !== 'leilao') return openDraft(mid)
-      return mid
+      const { teams, humans, oppTeam } = simulateOtherMatches({ ...state, round })
+      const you = humans[state.youIndex]
+      const myTeam = teams.find(t => t.humanIndex === state.youIndex)!
+      const xi = you.squad.filter(p => you.lineupIds.includes(p.id))
+      const h1Events = pregenHalfEvents(myTeam.strength, you.tactic, oppTeam.strength, 'equilibrio', xi, oppTeam.name, 1)
+      const live: LiveMatch = {
+        oppTeamId: oppTeam.id,
+        oppName: oppTeam.name,
+        oppStrength: oppTeam.strength,
+        minute: 0, gf: 0, ga: 0,
+        events: [`0' · Bola rolando em ${myTeam.city}!`],
+        allEvents: h1Events,
+        half: 1, division: myTeam.division, subDone: false,
+      }
+      return { ...state, teams, humans, round, narrative: [...state.narrative].slice(-60), live, screen: 'match' }
+    }
+
+    case 'TICK_MATCH': {
+      if (!state.live) return state
+      const live = state.live
+      if (live.half === 'ht' || live.half === 'ft') return state
+      const cap = live.half === 1 ? 45 : 90
+      const advance = 7 + Math.floor(Math.random() * 7) // 7–13 min per tick
+      const newMin = Math.min(cap, live.minute + advance)
+      const newlyRevealed = live.allEvents.filter(e => e.min > live.minute && e.min <= newMin)
+      const newTexts = newlyRevealed.map(e => `${e.min}' ${e.text}`)
+      const lastScored = newlyRevealed.at(-1)
+      const updGf = lastScored ? lastScored.gfAfter : live.gf
+      const updGa = lastScored ? lastScored.gaAfter : live.ga
+      let half: LiveMatch['half'] = live.half
+      if (live.half === 1 && newMin >= 45) half = 'ht'
+      else if (live.half === 2 && newMin >= 90) half = 'ft'
+      const updLive: LiveMatch = { ...live, minute: newMin, gf: updGf, ga: updGa, events: [...live.events, ...newTexts], half }
+      if (half === 'ht') updLive.events = [...updLive.events, `45' · ⏸ Intervalo — ${updGf}–${updGa}`]
+      if (half === 'ft') updLive.events = [...updLive.events, `90' · 🏁 Apito final! ${updGf}–${updGa}`]
+      return { ...state, live: updLive }
+    }
+
+    case 'START_HALF2': {
+      if (!state.live || state.live.half !== 'ht') return state
+      const you = state.humans[state.youIndex]
+      const xi = you.squad.filter(p => you.lineupIds.includes(p.id))
+      const myTeam = state.teams.find(t => t.humanIndex === state.youIndex)!
+      const h2Events = pregenHalfEvents(
+        myTeam.strength, you.tactic, state.live.oppStrength, 'equilibrio',
+        xi, state.live.oppName, 2, state.live.gf, state.live.ga
+      )
+      return { ...state, live: { ...state.live, half: 2, minute: 45, allEvents: [...state.live.allEvents, ...h2Events] } }
+    }
+
+    case 'MAKE_SUB': {
+      if (!state.live || state.live.subDone) return state
+      const humans = [...state.humans]
+      const you = humans[state.youIndex]
+      const lineup = you.lineupIds.map(id => id === action.outId ? action.inId : id)
+      humans[state.youIndex] = { ...you, lineupIds: lineup }
+      return { ...state, humans, live: { ...state.live, subDone: true } }
+    }
+
+    case 'CHANGE_TACTIC_MATCH': {
+      const humans = [...state.humans]
+      humans[state.youIndex] = { ...humans[state.youIndex], tactic: action.tactic }
+      return { ...state, humans }
+    }
+
+    case 'END_MATCH': {
+      if (!state.live) return { ...state, screen: 'hub' }
+      const { gf, ga, oppTeamId, division } = state.live
+      const myTeam = state.teams.find(t => t.humanIndex === state.youIndex)!
+      let teams = state.teams.map(t => {
+        if (t.id === myTeam.id) return applyRow(t, gf, ga)
+        if (t.id === oppTeamId) return applyRow(t, ga, gf)
+        return t
+      })
+      const receipt = Math.round(gate(division) * (gf > ga ? 1.5 : gf === ga ? 1 : 0.6))
+      const humans = state.humans.map((h, i) => i === state.youIndex ? { ...h, money: h.money + receipt } : h)
+      teams = recomputeHumanStrength(teams, humans)
+      const oppTeam = state.teams.find(t => t.id === oppTeamId)!
+      const resultIcon = gf > ga ? '🟢' : gf === ga ? '🟡' : '🔴'
+      const line = `${resultIcon} ${myTeam.name} ${gf}–${ga} ${oppTeam.name} · rodada ${state.round}`
+      const mid: DraftState = {
+        ...state, teams, humans, live: null, screen: 'hub',
+        narrative: [...state.narrative, line].slice(-60),
+      }
+      return afterMatch(mid)
     }
 
     case 'DRAFT_PICK': {
@@ -221,7 +438,7 @@ function reducer(state: DraftState, action: Action): DraftState {
 
     case 'SKIP_PICK': {
       if (!state.inDraft) return state
-      const r = runDraft({ ...state, draftPos: state.draftPos + 1, pendingDrop: false, lastPickText: [...state.lastPickText, `VOCÊ passou a vez.`] })
+      const r = runDraft({ ...state, draftPos: state.draftPos + 1, pendingDrop: false, lastPickText: [...state.lastPickText, `Você passou a vez.`] })
       return { ...r, screen: r.inDraft ? 'draft' : r.screen }
     }
 
@@ -247,6 +464,61 @@ function reducer(state: DraftState, action: Action): DraftState {
       const humans = [...state.humans]
       humans[state.youIndex] = { ...humans[state.youIndex], tactic: action.tactic }
       return { ...state, humans }
+    }
+
+    case 'BID_LEILAO': {
+      const { leilaoItems, leilaoIndex, humans, youIndex } = state
+      const legendId = leilaoItems[leilaoIndex]
+      if (!legendId) return state
+      const legend = LEGENDS.find(l => l.id === legendId)
+      if (!legend) return state
+      const player = legendToPlayer(legend, state.year)
+      const you = humans[youIndex]
+      const yourBid = Math.min(Math.max(0, action.amount), you.money)
+      // AI bids
+      const bids = humans.map((h, i) => {
+        if (i === youIndex) return yourBid
+        if (h.squad.length >= state.rosterMax) return 0
+        const baseVal = player.rating * 12_000
+        const maxBid = Math.min(h.money * 0.35, baseVal * 1.6)
+        return Math.max(0, Math.floor(maxBid * (0.3 + Math.random() * 0.7)))
+      })
+      const maxBid = Math.max(...bids)
+      if (maxBid === 0) {
+        // Nobody bid — item passes
+        return { ...state, leilaoBids: bids, leilaoPhase: 'reveal' }
+      }
+      const winnerIdx = bids.indexOf(maxBid)
+      let newHumans = humans.map((h, i) => {
+        if (i !== winnerIdx) return h
+        let squad = [...h.squad]
+        if (squad.length >= state.rosterMax) {
+          const weakest = [...squad].sort((a, b) => a.rating - b.rating)[0]
+          squad = squad.filter(p => p.id !== weakest.id)
+        }
+        squad.push(legendToPlayer(legend, state.year))
+        return { ...h, squad, money: h.money - bids[i], lineupIds: bestEleven(squad) }
+      })
+      const ownedLegendIds = [...state.ownedLegendIds, legendId]
+      const winner = newHumans[winnerIdx]
+      const narrative = [...state.narrative,
+        `💰 ${winner.name} arrematou ${legend.nickname} por R$${bids[winnerIdx].toLocaleString('pt-BR')}!`
+      ].slice(-60)
+      return {
+        ...state,
+        humans: newHumans,
+        ownedLegendIds,
+        leilaoBids: bids,
+        leilaoPhase: 'reveal',
+        narrative,
+        teams: recomputeHumanStrength(state.teams, newHumans),
+      }
+    }
+
+    case 'NEXT_LEILAO': {
+      const next = state.leilaoIndex + 1
+      if (next >= state.leilaoItems.length) return { ...state, screen: 'hub', leilaoPhase: 'done' }
+      return { ...state, leilaoIndex: next, leilaoBids: new Array(state.humans.length).fill(0), leilaoPhase: 'bid' }
     }
 
     case 'NEW_GAME':
