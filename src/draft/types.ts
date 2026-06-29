@@ -95,6 +95,29 @@ export interface LiveMatch {
   otherMatches: OtherMatchLive[]
 }
 
+export interface CupGame {
+  homeId: string
+  homeName: string
+  awayId: string
+  awayName: string
+  homeGoals: number
+  awayGoals: number
+  winnerId: string
+  winnerName: string
+}
+
+export interface DraftCup {
+  phase: 'QF' | 'SF' | 'F' | 'done'
+  entrants: string[]      // teamIds of all 8 teams
+  entrantNames: Record<string, string>
+  alive: string[]         // teamIds still in
+  qf: CupGame[]
+  sf: CupGame[]
+  final?: CupGame
+  humanTeamId: string
+  humanOut: boolean
+}
+
 export interface DraftState {
   screen: DraftScreen
   started: boolean
@@ -128,6 +151,8 @@ export interface DraftState {
   leilaoIndex: number
   leilaoBids: number[]
   leilaoPhase: 'bid' | 'reveal' | 'done'
+  // ── copa ──
+  cup?: DraftCup
   // ── online ──
   onlinePresence?: number[]  // player indices currently connected
 }

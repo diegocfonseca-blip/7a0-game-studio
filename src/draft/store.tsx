@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react'
 import type { ReactNode } from 'react'
-import type { DraftState, DraftScreen, Manager, DraftPlayer, LeagueTeam, Tactic, GameMode, MatchEvent, LiveMatch, Formation, OtherMatchLive, OtherMatchGoal } from './types'
+import type { DraftState, DraftScreen, Manager, DraftPlayer, LeagueTeam, Tactic, GameMode, MatchEvent, LiveMatch, Formation, OtherMatchLive, OtherMatchGoal, DraftCup, CupGame } from './types'
 import { supabase } from '../lib/supabase'
 import { AI_MANAGERS, CPU_POOLS, squadStrength, bestEleven } from './data'
 import { getCpuSquad } from './rosters'
@@ -77,6 +77,99 @@ function applyRow(t: LeagueTeam, gf: number, ga: number): LeagueTeam {
 }
 function gate(division: number): number {
   return ({ 1: 600_000, 2: 300_000, 3: 150_000, 4: 80_000 }[division] ?? 80_000)
+}
+
+// ── prize money ──
+const LEAGUE_PRIZE: Record<number, number[]> = {
+  1: [2_000_000, 800_000, 300_000, 150_000],
+  2: [1_000_000, 400_000, 150_000, 80_000],
+  3: [500_000, 200_000, 80_000, 40_000],
+  4: [300_000, 100_000, 50_000, 20_000],
+}
+const CUP_PRIZE = { winner: 1_500_000, runner: 500_000, sf: 150_000, qf: 50_000 }
+const PROMOTION_BONUS = 500_000
+const RELEGATION_PENALTY = -200_000
+
+// ── copa dos viajantes ──
+function cupGame(homeId: string, homeName: string, homeStr: number, awayId: string, awayName: string, awayStr: number): CupGame {
+  let [hg, ag] = matchGoals(homeStr, 'equilibrio', awayStr, 'equilibrio')
+  if (hg === ag) { // penalty: slight edge to stronger team
+    if (Math.random() < 0.5 + (homeStr - awayStr) / 200) hg++; else ag++
+  }
+  const winnerId = hg > ag ? homeId : awayId
+  return { homeId, homeName, awayId, awayName, homeGoals: hg, awayGoals: ag, winnerId, winnerName: hg > ag ? homeName : awayName }
+}
+
+function initCup(state: DraftState): DraftCup {
+  const humanTeams = state.teams.filter(t => t.isHuman)
+  // Fill to 8 with best CPU teams (2 per division that have no human)
+  const cpuSlots = 8 - humanTeams.length
+  const cpuTeams = state.teams.filter(t => !t.isHuman)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, cpuSlots)
+  const entrants = [...humanTeams, ...cpuTeams]
+  const entrantNames: Record<string, string> = {}
+  entrants.forEach(t => { entrantNames[t.id] = t.name })
+  return {
+    phase: 'QF',
+    entrants: entrants.map(t => t.id),
+    entrantNames,
+    alive: entrants.map(t => t.id),
+    qf: [], sf: [], final: undefined,
+    humanTeamId: state.teams.find(t => t.humanIndex === state.youIndex)!.id,
+    humanOut: false,
+  }
+}
+
+function simulateCupPhase(state: DraftState): DraftState {
+  const cup = state.cup
+  if (!cup || cup.phase === 'done') return state
+  const getStr = (id: string) => state.teams.find(t => t.id === id)?.strength ?? 50
+  const getName = (id: string) => cup.entrantNames[id] ?? id
+  const narrative = [...state.narrative]
+  let newCup = { ...cup }
+
+  if (cup.phase === 'QF') {
+    const shuffled = [...cup.alive].sort(() => Math.random() - 0.5)
+    const qf = []
+    for (let i = 0; i < shuffled.length; i += 2)
+      qf.push(cupGame(shuffled[i], getName(shuffled[i]), getStr(shuffled[i]), shuffled[i+1], getName(shuffled[i+1]), getStr(shuffled[i+1])))
+    const alive = qf.map(g => g.winnerId)
+    newCup = { ...newCup, phase: 'SF', qf, alive, humanOut: !alive.includes(cup.humanTeamId) }
+    narrative.push(`🏆 Copa dos Viajantes — Quartas de Final:`)
+    qf.forEach(g => {
+      const isH = g.homeId === cup.humanTeamId || g.awayId === cup.humanTeamId
+      narrative.push(`${isH ? '⭐' : '  '} ${g.homeName} ${g.homeGoals}–${g.awayGoals} ${g.awayName}`)
+    })
+    if (newCup.humanOut) narrative.push(`😞 Eliminado nas quartas. Foco na liga!`)
+
+  } else if (cup.phase === 'SF') {
+    const shuffled = [...cup.alive].sort(() => Math.random() - 0.5)
+    const sf = []
+    for (let i = 0; i < shuffled.length; i += 2)
+      sf.push(cupGame(shuffled[i], getName(shuffled[i]), getStr(shuffled[i]), shuffled[i+1], getName(shuffled[i+1]), getStr(shuffled[i+1])))
+    const alive = sf.map(g => g.winnerId)
+    newCup = { ...newCup, phase: 'F', sf, alive, humanOut: !alive.includes(cup.humanTeamId) }
+    narrative.push(`🏆 Copa dos Viajantes — Semifinais:`)
+    sf.forEach(g => {
+      const isH = g.homeId === cup.humanTeamId || g.awayId === cup.humanTeamId
+      narrative.push(`${isH ? '⭐' : '  '} ${g.homeName} ${g.homeGoals}–${g.awayGoals} ${g.awayName}`)
+    })
+    if (newCup.humanOut) narrative.push(`😞 Semifinalista da Copa. Prêmio: R$150.000.`)
+    else narrative.push(`🔥 VOCÊ está na FINAL DA COPA! Vai encarar ${alive.filter(id => id !== cup.humanTeamId).map(getName).join(', ')}.`)
+
+  } else if (cup.phase === 'F') {
+    const [h, a] = cup.alive
+    const final = cupGame(h, getName(h), getStr(h), a, getName(a), getStr(a))
+    const humanWon = final.winnerId === cup.humanTeamId
+    newCup = { ...newCup, phase: 'done', final, alive: [final.winnerId], humanOut: !humanWon }
+    narrative.push(`🏆 FINAL DA COPA DOS VIAJANTES: ${final.homeName} ${final.homeGoals}–${final.awayGoals} ${final.awayName}`)
+    if (humanWon) narrative.push(`👑 CAMPEÃO DA COPA! Prêmio: R$1.500.000!`)
+    else if (!cup.humanOut) narrative.push(`🥈 Vice-campeão da Copa. Prêmio: R$500.000.`)
+    else narrative.push(`🏆 ${final.winnerName} é campeão da Copa dos Viajantes.`)
+  }
+
+  return { ...state, cup: newCup, narrative }
 }
 function recomputeHumanStrength(teams: LeagueTeam[], humans: Manager[]): LeagueTeam[] {
   return teams.map(t => t.isHuman && t.humanIndex !== undefined
@@ -368,23 +461,70 @@ function openLeilao(state: DraftState): DraftState {
 
 // ── season end ──
 function seasonEnd(state: DraftState): DraftState {
-  const newYear = state.year + 1
+  // Run cup final if still pending
+  let s = state
+  if (s.cup && s.cup.phase === 'F') s = simulateCupPhase(s)
+
+  const newYear = s.year + 1
   const extra: string[] = []
-  let teams = state.teams.map(t => ({ ...t }))
+  let teams = s.teams.map(t => ({ ...t }))
   const moved = new Map<string, number>()
+  // Compute final standings per division and apply promotion/relegation
+  const divStandings: Record<number, LeagueTeam[]> = {}
   for (let d = 1; d <= 4; d++) {
     const order = teams.filter(t => t.division === d).sort((a, b) => b.points - a.points || (b.gf - b.ga) - (a.gf - a.ga))
+    divStandings[d] = order
     if (d > 1) order.slice(0, 2).forEach(t => moved.set(t.id, d - 1))
     if (d < 4) order.slice(-2).forEach(t => moved.set(t.id, d + 1))
     const champ = order[0]
-    if (champ?.humanIndex === state.youIndex) extra.push(`🥇 VOCÊ foi campeão da ${d}ª divisão!`)
+    if (champ?.humanIndex !== undefined) {
+      if (champ.humanIndex === s.youIndex) extra.push(`🥇 VOCÊ foi campeão da ${d}ª divisão!`)
+    }
   }
   teams = teams.map(t => moved.has(t.id) ? { ...t, division: moved.get(t.id)! } : t)
-  const youTeam = teams.find(t => t.humanIndex === state.youIndex)!
-  const youOld = state.teams.find(t => t.id === youTeam.id)!
-  if (youTeam.division < youOld.division) extra.push(`⬆️ ${youTeam.name} SUBIU para a ${youTeam.division}ª divisão!`)
-  else if (youTeam.division > youOld.division) extra.push(`⬇️ ${youTeam.name} caiu para a ${youTeam.division}ª divisão.`)
-  const humans = state.humans.map(m => {
+  const youTeam = teams.find(t => t.humanIndex === s.youIndex)!
+  const youOld = s.teams.find(t => t.id === youTeam.id)!
+  const promoted = youTeam.division < youOld.division
+  const relegated = youTeam.division > youOld.division
+  if (promoted) extra.push(`⬆️ ${youTeam.name} SUBIU para a ${youTeam.division}ª divisão!`)
+  else if (relegated) extra.push(`⬇️ ${youTeam.name} caiu para a ${youTeam.division}ª divisão.`)
+
+  // Prize money — award to ALL human managers
+  extra.push(`💰 Prêmios da temporada ${s.season}:`)
+  const humanPrizes: number[] = s.humans.map((_, hi) => {
+    const ht = s.teams.find(t => t.humanIndex === hi)!
+    const standing = divStandings[ht.division] ?? []
+    const pos = standing.findIndex(t => t.id === ht.id)
+    const leaguePrize = (LEAGUE_PRIZE[ht.division] ?? [])[pos] ?? 0
+    const movePrize = moved.get(ht.id) !== undefined
+      ? (moved.get(ht.id)! < ht.division ? PROMOTION_BONUS : RELEGATION_PENALTY)
+      : 0
+    const cup = s.cup
+    let cupPrize = 0
+    if (cup) {
+      if (cup.phase === 'done') {
+        const myTid = s.teams.find(t => t.humanIndex === hi)?.id ?? ''
+        if (cup.final?.winnerId === myTid) cupPrize = CUP_PRIZE.winner
+        else if (cup.sf.some(g => g.homeId === myTid || g.awayId === myTid) && cup.alive.length <= 2 && cup.alive.some(id => id !== myTid)) cupPrize = CUP_PRIZE.runner
+        else if (cup.sf.some(g => g.homeId === myTid || g.awayId === myTid)) cupPrize = CUP_PRIZE.sf
+        else if (cup.qf.some(g => g.homeId === myTid || g.awayId === myTid)) cupPrize = CUP_PRIZE.qf
+      }
+    }
+    return leaguePrize + movePrize + cupPrize
+  })
+  // Announce human prizes (all managers, not just you)
+  s.humans.forEach((_h, hi) => {
+    const ht = s.teams.find(t => t.humanIndex === hi)!
+    const standing = divStandings[ht.division] ?? []
+    const pos = standing.findIndex(t => t.id === ht.id) + 1
+    const prize = humanPrizes[hi]
+    if (hi === s.youIndex) {
+      extra.push(`  ⭐ ${ht.name}: ${pos}º lugar na ${ht.division}ª div → +R$${(prize / 1000).toFixed(0)}k`)
+    }
+  })
+  const promoNames = [...moved.entries()].filter(([id, d]) => { const t = s.teams.find(t => t.id === id); return t && d < t.division && !t.isHuman }).slice(0,3).map(([id]) => s.teams.find(t => t.id === id)?.name ?? '').filter(Boolean)
+  if (promoNames.length) extra.push(`⬆️ Também sobem: ${promoNames.join(', ')}`)
+  const humans = s.humans.map((m, hi) => {
     const started = new Set(m.lineupIds ?? [])
     const squad = m.squad.map(p => {
       let upd = { ...p }
@@ -412,22 +552,32 @@ function seasonEnd(state: DraftState): DraftState {
       }
       return upd
     })
-    return { ...m, squad }
+    const prize = humanPrizes[hi] ?? 0
+    return { ...m, squad, money: m.money + prize }
   })
   teams = teams.map(t => ({ ...t, points: 0, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, lastResult: '—', strength: t.isHuman ? t.strength : (t.squad ? Math.round(squadStrength(t.squad)) : t.strength) }))
-  return { ...state, teams: recomputeHumanStrength(teams, humans), humans, season: state.season + 1, round: 0, year: newYear, screen: newYear >= 2026 ? 'ending' : 'hub', narrative: [...state.narrative, `🏁 Fim da temporada ${state.season}.`, ...extra] }
+  // Re-init cup for next season
+  const nextCupBase = { ...s, teams, humans }
+  const nextCup = initCup(nextCupBase)
+  return { ...s, teams: recomputeHumanStrength(teams, humans), humans, season: s.season + 1, round: 0, year: newYear, screen: newYear >= 2026 ? 'ending' : 'hub', narrative: [...s.narrative, `🏁 Fim da temporada ${s.season}.`, ...extra], cup: nextCup }
 }
 
 // ── after match, check if window should open ──
 function afterMatch(state: DraftState): DraftState {
-  if (state.round >= state.roundsPerSeason) return seasonEnd(state)
-  if (state.round % state.windowEvery === 0) {
-    const wnum = Math.floor(state.round / state.windowEvery)
-    if (state.mode === 'leilao') return openLeilao(state)
-    if (state.mode === 'draft_leilao') return wnum % 2 === 0 ? openDraft(state) : openLeilao(state)
-    return openDraft(state)
+  let s = state
+  // Cup rounds: QF at round 4, SF at round 8, Final at end of season (in seasonEnd)
+  if (s.cup && s.cup.phase !== 'done') {
+    if (s.round === 4 && s.cup.phase === 'QF') s = simulateCupPhase(s)
+    if (s.round === 8 && s.cup?.phase === 'SF') s = simulateCupPhase(s)
   }
-  return state
+  if (s.round >= s.roundsPerSeason) return seasonEnd(s)
+  if (s.round % s.windowEvery === 0) {
+    const wnum = Math.floor(s.round / s.windowEvery)
+    if (s.mode === 'leilao') return openLeilao(s)
+    if (s.mode === 'draft_leilao') return wnum % 2 === 0 ? openDraft(s) : openLeilao(s)
+    return openDraft(s)
+  }
+  return s
 }
 
 function reducer(state: DraftState, action: Action): DraftState {
@@ -502,14 +652,16 @@ function reducer(state: DraftState, action: Action): DraftState {
       })
 
       const modeLabel = action.mode === 'draft' ? 'DRAFT' : action.mode === 'leilao' ? 'LEILÃO' : 'DRAFT + LEILÃO'
-      return {
-        ...state, started: true, screen: 'hub', mode: action.mode, teams, humans, youIndex: 0,
+      const partialState = {
+        ...state, started: true, screen: 'hub' as const, mode: action.mode, teams, humans, youIndex: 0,
         narrative: [
           `⚡ O raio caiu na pelada dos casados e jogou a galera de volta pra 1992.`,
           `Só vocês lembram quem vai virar lenda. Modo: ${modeLabel}.`,
           `Você assumiu o ${chosenTeam.name} na 4ª divisão (R$1 milhão no caixa). A cada ${WINDOW_EVERY} jogos abre a janela pra fisgar um craque — pior colocado escolhe primeiro.`,
+          `🏆 Copa dos Viajantes começou! 8 times, 3 fases. Quartas na rodada 4.`,
         ],
       }
+      return { ...partialState, cup: initCup(partialState) }
     }
 
     case 'ADVANCE_ROUND': {

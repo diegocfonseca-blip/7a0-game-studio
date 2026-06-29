@@ -364,6 +364,40 @@ export function DraftHub() {
           </BrutalCard>
         )}
 
+        {/* copa dos viajantes */}
+        {state.cup && (() => {
+          const cup = state.cup!
+          const myTid = myTeam.id
+          const phase = cup.phase
+          const phaseLabel = phase === 'QF' ? 'Quartas (rod.4)' : phase === 'SF' ? 'Semifinal (rod.8)' : phase === 'F' ? '⚽ FINAL!' : '✅ Encerrada'
+          const stillIn = !cup.humanOut && phase !== 'done'
+          const lastRound = cup.final ?? cup.sf.at(-1) ?? cup.qf.at(-1)
+          const myLastMatch = [...(cup.qf ?? []), ...(cup.sf ?? []), ...(cup.final ? [cup.final] : [])].reverse().find(g => g.homeId === myTid || g.awayId === myTid)
+          return (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>🏆 Copa dos Viajantes</h2>
+                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border-2 border-black ${stillIn ? 'bg-yellow-300' : 'bg-gray-200'}`}>{phaseLabel}</span>
+              </div>
+              <BrutalCard color={stillIn ? C.yellow : 'white'} className="p-3 space-y-2" shadow={3}>
+                {stillIn ? (
+                  <p className="font-black text-black text-sm">🔥 Você ainda está vivo! Próxima fase: {phaseLabel}</p>
+                ) : cup.humanOut ? (
+                  <p className="font-bold text-black/60 text-sm">😞 Eliminado · {phase === 'done' ? (cup.final?.winnerName ?? '') + ' é campeão' : 'foco na liga'}</p>
+                ) : (
+                  <p className="font-black text-green-700 text-sm">👑 {cup.final?.winnerName ?? myTeam.name} é CAMPEÃO DA COPA!</p>
+                )}
+                {myLastMatch && (
+                  <p className="text-black/50 text-xs font-bold">Último: {myLastMatch.homeName} {myLastMatch.homeGoals}–{myLastMatch.awayGoals} {myLastMatch.awayName}</p>
+                )}
+                {lastRound && lastRound !== myLastMatch && (
+                  <p className="text-black/40 text-[10px] font-bold">Final: {lastRound.homeName} {lastRound.homeGoals}–{lastRound.awayGoals} {lastRound.awayName} → {lastRound.winnerName}</p>
+                )}
+              </BrutalCard>
+            </div>
+          )
+        })()}
+
         {/* standings — your division only, link to full table */}
         <div>
           <div className="flex items-center justify-between mb-2">
