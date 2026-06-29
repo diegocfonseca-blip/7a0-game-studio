@@ -1,4 +1,5 @@
 export type Screen =
+  | 'lobby'
   | 'intro'
   | 'accident'
   | 'dashboard'
@@ -7,7 +8,6 @@ export type Screen =
   | 'offers'
   | 'finance'
   | 'negotiate'
-  | 'club'
   | 'ranking'
   | 'album'
 
@@ -193,6 +193,13 @@ export interface OfficeUpgrade {
   purchased: boolean
 }
 
+export interface OnlinePlayer {
+  playerIndex: number
+  playerName: string
+  money: number
+  totalDeals: number
+}
+
 export interface GameState {
   screen: Screen
   year: number
@@ -218,7 +225,6 @@ export interface GameState {
   nemesisShown: boolean   // whether the nemesis backstory was shown
   nemesisAlert: NemesisAlert | null // pending alert to show the player
   negotiationLog: NegotiationLogEntry[] // deals — yours and the rival's
-  ownedClub: OwnedClub | null
   suspicion: number       // 0–100 — how dirty your dealings look
   clubRelations: Record<string, number> // club name → relationship (-100..100)
   awards: number          // times you won Empresário do Ano
@@ -233,4 +239,13 @@ export interface GameState {
   weeklyMissionBaseline: number      // metric snapshot at the start of this week
   weeklyMissionClaimed: boolean      // already claimed this week's reward?
   narrative: string[]     // log of key moments
+  // ── online ──
+  onlineMode: 'cpu' | 'online'
+  roomCode: string
+  isHost: boolean
+  playerNames: string[]
+  youIndex: number
+  onlineTakenLegends: Record<string, { playerIndex: number; playerName: string }>
+  onlinePlayers: OnlinePlayer[]
+  onlinePresence: number[]
 }

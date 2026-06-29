@@ -247,20 +247,37 @@ export default function DashboardScreen() {
             <p className="text-black/60 text-xs font-bold">Lendas colecionadas</p>
           </BrutalCard>
 
-          {state.ownedClub && (
-            <BrutalCard color={C.pink} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'club' })}>
-              <p className="text-3xl mb-1">🏟️</p>
-              <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>MEU CLUBE</p>
-              <p className="text-black/60 text-xs font-bold truncate">{state.ownedClub.name}</p>
-            </BrutalCard>
-          )}
-
           <BrutalCard color={C.black} className="p-4" onClick={() => dispatch({ type: 'ADVANCE_WEEK' })}>
             <p className="text-3xl mb-1">⏩</p>
             <p className="font-black text-white" style={{ fontFamily: 'Oswald, sans-serif' }}>AVANÇAR</p>
             <p className="text-white/50 text-xs font-bold">Próxima semana</p>
           </BrutalCard>
         </div>
+
+        {/* ── ONLINE RIVALS PANEL ── */}
+        {state.onlineMode === 'online' && state.onlinePlayers.length > 0 && (
+          <div className="pt-1">
+            <h2 className="font-black text-black text-sm mb-2 uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>🌐 Rivais Online</h2>
+            <div className="space-y-2">
+              {state.onlinePlayers
+                .filter(p => p.playerIndex !== state.youIndex)
+                .sort((a, b) => b.money - a.money)
+                .map(p => {
+                  const online = state.onlinePresence.includes(p.playerIndex)
+                  return (
+                    <BrutalCard key={p.playerIndex} color="white" className="p-3" shadow={3}>
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full border border-black shrink-0 ${online ? 'bg-green-500' : 'bg-gray-300'}`} />
+                        <span className="flex-1 font-black text-black text-sm truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.playerName}</span>
+                        <BrutalTag color={C.yellow}>{p.totalDeals} deals</BrutalTag>
+                        <span className="font-black text-black text-sm">R${Math.round(p.money / 1000)}k</span>
+                      </div>
+                    </BrutalCard>
+                  )
+                })}
+            </div>
+          </div>
+        )}
 
         {state.weeklyExpenses > 0 && (
           <p className="text-center text-black/40 text-xs font-bold">

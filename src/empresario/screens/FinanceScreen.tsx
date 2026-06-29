@@ -1,6 +1,5 @@
 import { useEmpresario } from '../store'
 import { SCOUT_UPGRADES, SERVICE_UPGRADES, LIFESTYLE_UPGRADES } from '../data/events'
-import { BUYABLE_CLUBS } from '../data/clubs'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag } from '../ui'
 
 type Up = { id: string; name: string; description: string; cost: number; effect: string; flag?: string; repGain?: number }
@@ -118,46 +117,6 @@ export default function FinanceScreen() {
             {LIFESTYLE_UPGRADES.map(up => <UpgradeRow key={up.id} up={up} />)}
           </div>
         </div>
-
-        {/* buy a club */}
-        {state.ownedClub ? (
-          <BrutalCard color={C.purple} className="p-5 text-center" shadow={6} onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'club' })}>
-            <p className="text-5xl mb-2">🏟️</p>
-            <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{state.ownedClub.name}</p>
-            <p className="text-white/70 text-xs font-bold mt-1">Você já é dono de um clube! Toque para gerenciar.</p>
-          </BrutalCard>
-        ) : (
-          <div>
-            <h2 className="font-black text-black text-lg pt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>🏟️ COMPRAR UM CLUBE</h2>
-            <p className="text-black/50 text-xs font-bold mb-3">Vire DONO de um time. Coloque seus clientes nele, lucre da renda e suba de divisão — o começo do império.</p>
-            <div className="space-y-3">
-              {BUYABLE_CLUBS.map(bc => {
-                const canAfford = state.money >= bc.price
-                return (
-                  <BrutalCard key={bc.id} color={C.purple} className="p-4" shadow={5}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white font-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>{bc.name}</p>
-                        <p className="text-white/60 text-xs font-bold">{bc.city} · {bc.division}ª divisão · {bc.fans.toLocaleString('pt-BR')} torcedores</p>
-                        <p className="text-white/80 text-xs font-medium mt-1 leading-snug italic">{bc.flavor}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mt-3">
-                      <span className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(bc.price)}</span>
-                      <BrutalButton
-                        color={canAfford ? C.green : '#C9C2AC'} disabled={!canAfford} full={false}
-                        className="!px-4 !py-2 !text-xs"
-                        onClick={() => dispatch({ type: 'BUY_CLUB', clubId: bc.id, name: bc.name, division: bc.division, price: bc.price, fans: bc.fans })}
-                      >
-                        {canAfford ? 'COMPRAR' : `Falta ${money(bc.price - state.money)}`}
-                      </BrutalButton>
-                    </div>
-                  </BrutalCard>
-                )
-              })}
-            </div>
-          </div>
-        )}
 
         {/* CLUB RELATIONS */}
         {Object.keys(state.clubRelations).length > 0 && (

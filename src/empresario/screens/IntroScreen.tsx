@@ -109,65 +109,20 @@ const SCENES: Scene[] = [
 ]
 
 export default function IntroScreen() {
-  const { dispatch } = useEmpresario()
+  const { state, dispatch } = useEmpresario()
   const [scene, setScene] = useState(0)
-  const [showName, setShowName] = useState(false)
-  const [name, setName] = useState('')
 
   const s = SCENES[scene]
   const isLast = scene === SCENES.length - 1
+  const playerName = (state.playerNames[state.youIndex] ?? '').trim() || 'O Empresário'
 
   function next() {
-    if (isLast) { setShowName(true); return }
+    if (isLast) { start(); return }
     setScene(v => v + 1)
   }
 
   function start() {
-    dispatch({ type: 'START_GAME', playerName: name.trim() || 'O Empresário' })
-    dispatch({ type: 'SET_SCREEN', screen: 'dashboard' })
-  }
-
-  if (showName) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-5" style={{ backgroundColor: C.cream }}>
-        <motion.div
-          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-sm"
-        >
-          <div className="text-center mb-6">
-            <BrutalPill color={C.orange} textColor="#fff">UM ÚLTIMO DETALHE</BrutalPill>
-            <h1 className="font-black text-3xl text-black mt-4 leading-tight" style={{ fontFamily: 'Oswald, sans-serif' }}>
-              QUAL É O SEU NOME?
-            </h1>
-            <p className="text-black/50 text-sm mt-2 font-medium">Como vão te chamar nos bastidores do futebol?</p>
-          </div>
-
-          <div
-            className="bg-white border-[3px] border-black rounded-2xl p-1 mb-5"
-            style={{ boxShadow: `5px 5px 0 0 ${C.black}` }}
-          >
-            <input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && start()}
-              placeholder="Seu nome..."
-              maxLength={20}
-              autoFocus
-              className="w-full bg-transparent px-4 py-3 text-black text-center text-xl font-black
-                         placeholder:text-black/20 focus:outline-none"
-              style={{ fontFamily: 'Oswald, sans-serif' }}
-            />
-          </div>
-
-          <BrutalButton color={C.blue} onClick={start}>
-            COMEÇAR EM 1993 →
-          </BrutalButton>
-          <p className="text-black/40 text-xs text-center mt-4 font-bold">
-            Você sabe o que ninguém sabe. Use isso.
-          </p>
-        </motion.div>
-      </div>
-    )
+    dispatch({ type: 'START_GAME', playerName })
   }
 
   return (
@@ -233,9 +188,12 @@ export default function IntroScreen() {
       <div className="p-6 max-w-md mx-auto w-full">
         {isLast ? (
           <div onClick={e => e.stopPropagation()}>
-            <BrutalButton color={s.tagColor} textColor="#fff" onClick={next}>
-              VIRAR O JOGO →
+            <BrutalButton color={s.tagColor} textColor="#fff" onClick={start}>
+              INICIAR JORNADA →
             </BrutalButton>
+            <p className="text-white/40 text-xs text-center mt-3 font-bold">
+              {playerName} · 1993 · Você sabe o que ninguém sabe.
+            </p>
           </div>
         ) : (
           <p className="text-center text-xs font-bold tracking-widest animate-pulse" style={{ color: s.tagColor }}>

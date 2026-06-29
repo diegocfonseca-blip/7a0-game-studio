@@ -30,7 +30,6 @@ export const OBJECTIVES: Objective[] = [
   { id: 'm1', label: 'Acumular R$ 1 milhão', done: s => s.money >= 1_000_000 || s.totalEarned >= 1_000_000 },
   { id: 'five', label: 'Ter 5 clientes ao mesmo tempo', done: s => s.clients.length >= 5 },
   { id: 'deal10', label: 'Fechar 10 transferências', done: s => s.totalDeals >= 10 },
-  { id: 'club', label: 'Comprar um clube de futebol', done: s => !!s.ownedClub },
   { id: 'm10', label: 'Acumular R$ 10 milhões', done: s => s.money >= 10_000_000 },
   { id: 'gems', label: 'Ter 3 fenômenos (potencial 95+) na carteira', done: s => s.clients.filter(c => c.truePotential >= 95).length >= 3 },
   { id: 'award', label: 'Ser eleito Empresário do Ano', done: s => s.awards >= 1 },
@@ -68,8 +67,6 @@ export const CHALLENGES: Challenge[] = [
     done: s => s.clients.length >= 5 },
   { id: 'c-deal15', title: 'Tubarão do mercado', desc: 'Feche 15 transferências.', reward: 150_000, repReward: 9,
     done: s => s.totalDeals >= 15 },
-  { id: 'c-club', title: 'Dono da bola', desc: 'Compre seu próprio clube de futebol.', reward: 200_000, repReward: 10,
-    done: s => !!s.ownedClub },
   { id: 'c-gems', title: 'Coleção de fenômenos', desc: 'Tenha 3 fenômenos (potencial 95+) na carteira.', reward: 300_000, repReward: 12,
     done: s => s.clients.filter(c => c.truePotential >= 95).length >= 3 },
   { id: 'c-m10', title: 'Magnata do futebol', desc: 'Acumule R$ 10 milhões em caixa.', reward: 500_000, repReward: 12,
@@ -83,8 +80,7 @@ export const CHALLENGES: Challenge[] = [
 // your net worth for the ranking = cash + your stake in the players' values
 export function yourNetWorth(s: GameState): number {
   const stake = s.clients.reduce((sum, c) => sum + c.currentValue * (c.commissionRate / 100), 0)
-  const club = s.ownedClub ? s.ownedClub.fans * 200 : 0
-  return Math.round(s.money + stake + club)
+  return Math.round(s.money + stake)
 }
 
 // ─── RARIDADE (efeito caça-níquel no garimpo) ──────────────────
