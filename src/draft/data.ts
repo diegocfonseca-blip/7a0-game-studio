@@ -39,9 +39,11 @@ export const CPU_POOLS: { name: string; city: string }[][] = [
     { name: 'Tricolor PR', city: 'Curitiba-PR' }, { name: 'Coelho', city: 'Belo Horizonte-MG' }, { name: 'Figueira', city: 'Florianópolis-SC' },
     { name: 'Tigre', city: 'Criciúma-SC' }, { name: 'Ju', city: 'Caxias-RS' }, { name: 'Galo AL', city: 'Maceió-AL' }, { name: 'Azulão AL', city: 'Maceió-AL' },
   ],
-  [ // 4ª divisão (humans complete this one)
+  [ // 4ª divisão — 10 times CPU (técnicos humanos se somam a eles)
     { name: 'Bolívia Q.', city: 'São Luís-MA' }, { name: 'Papão', city: 'Belém-PA' }, { name: 'Leão Azul', city: 'Belém-PA' },
     { name: 'Tigre GO', city: 'Goiânia-GO' }, { name: 'Tubarão', city: 'Londrina-PR' }, { name: 'Alvinegro RN', city: 'Natal-RN' },
+    { name: 'Gavião Norte', city: 'Macapá-AP' }, { name: 'Estrela PA', city: 'Santarém-PA' },
+    { name: 'Galo PI', city: 'Teresina-PI' }, { name: 'Azul SE', city: 'Aracaju-SE' },
   ],
 ]
 

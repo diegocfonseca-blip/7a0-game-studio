@@ -301,6 +301,38 @@ const KEYS: P[][] = [
     { name: 'Humberto ABC', pos: 'MEI', rating: 46 }, { name: 'Carlos ABC', pos: 'MEI', rating: 44 }, { name: 'Mário ABC', pos: 'MEI', rating: 41 }, { name: 'Elenaldo ABC', pos: 'MEI', rating: 37 },
     { name: 'Zé ABC', pos: 'ATA', rating: 46 }, { name: 'Ivaldo ABC', pos: 'ATA', rating: 42 }, { name: 'Sineide ABC', pos: 'ATA', rating: 37 },
   ],
+  // c36 - Gavião Norte (Macapá-AP, Div 4)
+  [
+    { name: 'Jorge Amapá', pos: 'GOL', rating: 45 }, { name: 'Davi Amapá', pos: 'GOL', rating: 36 },
+    { name: 'Raimundo Amapá', pos: 'ZAG', rating: 44 }, { name: 'Cláudio Amapá', pos: 'ZAG', rating: 42 }, { name: 'Adão Amapá', pos: 'ZAG', rating: 38 },
+    { name: 'Luís Amapá', pos: 'LAT', rating: 42 }, { name: 'Manoel Amapá', pos: 'LAT', rating: 38 },
+    { name: 'Ronaldo Amapá', pos: 'MEI', rating: 45 }, { name: 'Fábio Amapá', pos: 'MEI', rating: 43 }, { name: 'Carlos Amapá', pos: 'MEI', rating: 40 }, { name: 'Paulo Amapá', pos: 'MEI', rating: 36 },
+    { name: 'Edson Amapá', pos: 'ATA', rating: 45 }, { name: 'Wagner Amapá', pos: 'ATA', rating: 41 }, { name: 'Nilton Amapá', pos: 'ATA', rating: 36 },
+  ],
+  // c37 - Estrela PA (Santarém-PA, Div 4)
+  [
+    { name: 'Marcos Santarém', pos: 'GOL', rating: 45 }, { name: 'Edílson Santarém', pos: 'GOL', rating: 36 },
+    { name: 'Orlando Santarém', pos: 'ZAG', rating: 44 }, { name: 'Valdeci Santarém', pos: 'ZAG', rating: 42 }, { name: 'Jânio Santarém', pos: 'ZAG', rating: 38 },
+    { name: 'Pedro Santarém', pos: 'LAT', rating: 42 }, { name: 'Ailton Santarém', pos: 'LAT', rating: 38 },
+    { name: 'Sérgio Santarém', pos: 'MEI', rating: 45 }, { name: 'Anderson Santarém', pos: 'MEI', rating: 43 }, { name: 'Robson Santarém', pos: 'MEI', rating: 40 }, { name: 'Filemon Santarém', pos: 'MEI', rating: 36 },
+    { name: 'Rivaldo Santarém', pos: 'ATA', rating: 45 }, { name: 'Celso Santarém', pos: 'ATA', rating: 41 }, { name: 'Toninho Santarém', pos: 'ATA', rating: 36 },
+  ],
+  // c38 - Galo PI (Teresina-PI, Div 4)
+  [
+    { name: 'Antônio Piauí', pos: 'GOL', rating: 45 }, { name: 'Hélio Piauí', pos: 'GOL', rating: 36 },
+    { name: 'Francisco Piauí', pos: 'ZAG', rating: 44 }, { name: 'Geraldo Piauí', pos: 'ZAG', rating: 42 }, { name: 'Reginaldo Piauí', pos: 'ZAG', rating: 38 },
+    { name: 'Osvaldo Piauí', pos: 'LAT', rating: 42 }, { name: 'Carlos Piauí', pos: 'LAT', rating: 38 },
+    { name: 'Gilmar Piauí', pos: 'MEI', rating: 45 }, { name: 'Eduardo Piauí', pos: 'MEI', rating: 43 }, { name: 'Dico Piauí', pos: 'MEI', rating: 40 }, { name: 'Nazário Piauí', pos: 'MEI', rating: 36 },
+    { name: 'João Piauí', pos: 'ATA', rating: 45 }, { name: 'Walmir Piauí', pos: 'ATA', rating: 41 }, { name: 'Cícero Piauí', pos: 'ATA', rating: 36 },
+  ],
+  // c39 - Azul SE (Aracaju-SE, Div 4)
+  [
+    { name: 'Carlão Sergipe', pos: 'GOL', rating: 45 }, { name: 'Bruno Sergipe', pos: 'GOL', rating: 36 },
+    { name: 'Cosme Sergipe', pos: 'ZAG', rating: 44 }, { name: 'Hélio Sergipe', pos: 'ZAG', rating: 42 }, { name: 'Ailton Sergipe', pos: 'ZAG', rating: 38 },
+    { name: 'Sinval Sergipe', pos: 'LAT', rating: 42 }, { name: 'Marcos Sergipe', pos: 'LAT', rating: 38 },
+    { name: 'Cléber Sergipe', pos: 'MEI', rating: 45 }, { name: 'Paulo Sergipe', pos: 'MEI', rating: 43 }, { name: 'Elias Sergipe', pos: 'MEI', rating: 40 }, { name: 'Vilmar Sergipe', pos: 'MEI', rating: 36 },
+    { name: 'Nildo Sergipe', pos: 'ATA', rating: 45 }, { name: 'Rogério Sergipe', pos: 'ATA', rating: 41 }, { name: 'Jonilson Sergipe', pos: 'ATA', rating: 36 },
+  ],
 ]
 
 // Extra bench players generated from era-appropriate name pools
