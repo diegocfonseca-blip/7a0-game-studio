@@ -5,7 +5,7 @@ import { CPU_POOLS, squadStrength } from './data'
 import { rarityOf } from '../empresario/data/career'
 import { getCurrentRating, LEGENDS } from '../empresario/data/legends'
 import type { Legend } from '../empresario/types'
-import type { GameMode } from './types'
+import type { GameMode, Formation } from './types'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag, POS_COLOR, FLAG } from '../empresario/ui'
 
 const DIV = (d: number) => ({ 1: '1ª (Elite)', 2: '2ª Divisão', 3: '3ª Divisão', 4: '4ª Divisão' }[d] ?? `${d}ª`)
@@ -230,29 +230,41 @@ export function DraftHub() {
           </BrutalCard>
         </div>
 
-        {/* your squad */}
+        {/* your squad — grouped by position */}
         <div>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-3">
             <h2 className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>👕 SEU ELENCO</h2>
             <BrutalTag color={C.teal}>{you.squad.length}/{state.rosterMax}</BrutalTag>
           </div>
-          <div className="space-y-2">
-            {squad.map(p => {
-              const rar = p.potential ? rarityOf(p.potential) : null
-              return (
-                <BrutalCard key={p.id} color={p.legendId ? C.cream : 'white'} className="p-2.5" shadow={2}>
-                  <div className="flex items-center gap-2">
-                    <span className="w-4 text-center">{you.lineupIds.includes(p.id) ? '⭐' : ''}</span>
-                    <BrutalTag color={POS_COLOR[p.pos]} textColor="#fff">{p.pos}</BrutalTag>
-                    <span className="text-base">{p.nationality ? FLAG[p.nationality] : '⚽'}</span>
-                    <span className="flex-1 min-w-0 truncate font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.name}</span>
-                    {rar && <span className="text-[9px] font-black uppercase" style={{ color: rar.color }}>{rar.emoji}{p.potential}</span>}
-                    <span className="font-black text-black text-sm w-7 text-right">{p.rating}</span>
-                  </div>
-                </BrutalCard>
-              )
-            })}
-          </div>
+          {(['GOL', 'ZAG', 'LAT', 'MEI', 'ATA'] as const).map(pos => {
+            const posPlayers = squad.filter(p => p.pos === pos)
+            if (posPlayers.length === 0) return null
+            return (
+              <div key={pos} className="mb-3">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="h-px flex-1" style={{ backgroundColor: 'rgba(0,0,0,0.12)' }} />
+                  <BrutalTag color={POS_COLOR[pos]} textColor="#fff">{pos}</BrutalTag>
+                  <div className="h-px flex-1" style={{ backgroundColor: 'rgba(0,0,0,0.12)' }} />
+                </div>
+                <div className="space-y-1.5">
+                  {posPlayers.map(p => {
+                    const rar = p.potential ? rarityOf(p.potential) : null
+                    return (
+                      <BrutalCard key={p.id} color={p.legendId ? C.cream : 'white'} className="p-2.5" shadow={2}>
+                        <div className="flex items-center gap-2">
+                          <span className="w-4 text-center text-sm">{you.lineupIds.includes(p.id) ? '⭐' : ''}</span>
+                          <span className="text-base">{p.nationality ? FLAG[p.nationality] : '⚽'}</span>
+                          <span className="flex-1 min-w-0 truncate font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.name}</span>
+                          {rar && <span className="text-[9px] font-black uppercase" style={{ color: rar.color }}>{rar.emoji}{p.potential}</span>}
+                          <span className="font-black text-black text-sm w-7 text-right">{p.rating}</span>
+                        </div>
+                      </BrutalCard>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
         </div>
 
         {/* news feed */}
@@ -436,6 +448,21 @@ export function DraftLineup() {
           </p>
         </BrutalCard>
         <p className="text-black/50 text-xs font-bold text-center">Força do XI escalado: <b>{Math.round(squadStrength(you.squad, you.lineupIds))}</b></p>
+
+        {/* Formation selector */}
+        <div>
+          <p className="text-black/50 text-[10px] font-black uppercase mb-1.5">Formação</p>
+          <div className="flex gap-1.5 flex-wrap">
+            {(['4-4-2', '4-3-3', '4-2-3-1', '4-5-1', '3-5-2'] as Formation[]).map(f => (
+              <button key={f} onClick={() => dispatch({ type: 'SET_FORMATION', formation: f })}
+                className="border-2 border-black rounded-lg px-2.5 py-1.5 text-[11px] font-black"
+                style={{ backgroundColor: (you.formation ?? '4-4-2') === f ? C.purple : 'white', color: (you.formation ?? '4-4-2') === f ? '#fff' : '#000' }}>
+                {f}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="space-y-2">
           {squad.map(p => {
             const on = you.lineupIds.includes(p.id)
@@ -573,6 +600,31 @@ export function DraftMatch() {
             <div className="absolute top-0 bottom-0 w-px bg-white/30" style={{ left: '50%' }} />
           </div>
         </div>
+
+        {/* Other matches live — all 4 divisions */}
+        {live.otherMatches && live.otherMatches.length > 0 && (
+          <div>
+            <p className="text-white/30 text-[9px] font-black uppercase mb-1.5">📺 Outros Jogos · {live.minute}'</p>
+            {[1, 2, 3, 4].map(d => {
+              const dMatches = live.otherMatches.filter(m => m.division === d)
+              if (dMatches.length === 0) return null
+              return (
+                <div key={d} className="mb-2">
+                  <p className="text-white/20 text-[9px] font-black uppercase mb-0.5">{d}ª Divisão</p>
+                  <div className="space-y-px">
+                    {dMatches.map((m, i) => (
+                      <div key={i} className="flex items-center gap-1 px-2 py-1 rounded" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
+                        <span className="flex-1 truncate text-white/50 text-[10px] font-bold text-right">{m.homeName}</span>
+                        <span className="text-white font-black text-[11px] mx-2 tabular-nums" style={{ fontFamily: 'Oswald, sans-serif' }}>{m.gf}–{m.ga}</span>
+                        <span className="flex-1 truncate text-white/50 text-[10px] font-bold">{m.awayName}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         {/* Halftime controls */}
         {isHT && (

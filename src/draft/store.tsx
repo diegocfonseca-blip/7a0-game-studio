@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react'
 import type { ReactNode } from 'react'
-import type { DraftState, DraftScreen, Manager, DraftPlayer, LeagueTeam, Tactic, GameMode, MatchEvent, LiveMatch } from './types'
+import type { DraftState, DraftScreen, Manager, DraftPlayer, LeagueTeam, Tactic, GameMode, MatchEvent, LiveMatch, Formation, OtherMatchLive, OtherMatchGoal } from './types'
 import { supabase } from '../lib/supabase'
 import { AI_MANAGERS, CPU_POOLS, squadStrength, bestEleven } from './data'
 import { getCpuSquad } from './rosters'
@@ -43,6 +43,7 @@ type Action =
   | { type: 'SET_TACTIC'; tactic: Tactic }
   | { type: 'BID_LEILAO'; amount: number }
   | { type: 'NEXT_LEILAO' }
+  | { type: 'SET_FORMATION'; formation: Formation }
   | { type: 'NEW_GAME' }
 
 // ── helpers ──
@@ -169,6 +170,48 @@ function pregenHalfEvents(
     }
   }
   return events
+}
+
+// ── formation helpers ──
+const FORMATION_SLOTS: Record<Formation, Record<string, number>> = {
+  '4-4-2':   { GOL: 1, ZAG: 2, LAT: 2, MEI: 4, ATA: 2 },
+  '4-3-3':   { GOL: 1, ZAG: 2, LAT: 2, MEI: 3, ATA: 3 },
+  '4-2-3-1': { GOL: 1, ZAG: 2, LAT: 2, MEI: 5, ATA: 1 },
+  '4-5-1':   { GOL: 1, ZAG: 2, LAT: 2, MEI: 5, ATA: 1 },
+  '3-5-2':   { GOL: 1, ZAG: 3, LAT: 2, MEI: 3, ATA: 2 },
+}
+function autoLineup(squad: DraftPlayer[], formation: Formation): string[] {
+  const slots = FORMATION_SLOTS[formation]
+  const used = new Set<string>()
+  const result: string[] = []
+  for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+    const need = slots[pos] ?? 0
+    squad.filter(p => p.pos === pos && !used.has(p.id)).sort((a, b) => b.rating - a.rating).slice(0, need).forEach(p => { used.add(p.id); result.push(p.id) })
+  }
+  if (result.length < 11) squad.filter(p => !used.has(p.id)).sort((a, b) => b.rating - a.rating).slice(0, 11 - result.length).forEach(p => result.push(p.id))
+  return result.slice(0, 11)
+}
+
+// ── other-match live data ──
+function makeOtherMatchLive(home: LeagueTeam, away: LeagueTeam): OtherMatchLive {
+  const diff = (home.strength - away.strength) / 14
+  const xgH = Math.max(0.3, 1.2 + diff), xgA = Math.max(0.3, 1.2 - diff)
+  const hg = Math.max(0, Math.round(xgH + (Math.random() - 0.5) * 2.5))
+  const ag = Math.max(0, Math.round(xgA + (Math.random() - 0.5) * 2.5))
+  const goals: OtherMatchGoal[] = []
+  for (let i = 0; i < hg; i++) goals.push({ min: 1 + Math.floor(Math.random() * 89), isHome: true })
+  for (let i = 0; i < ag; i++) goals.push({ min: 1 + Math.floor(Math.random() * 89), isHome: false })
+  goals.sort((a, b) => a.min - b.min)
+  return { homeId: home.id, homeName: home.name, awayId: away.id, awayName: away.name, division: home.division, goals, gf: 0, ga: 0 }
+}
+function buildOtherMatchesLive(teams: LeagueTeam[], skipIds: string[]): OtherMatchLive[] {
+  const skip = new Set(skipIds)
+  const result: OtherMatchLive[] = []
+  for (let d = 1; d <= 4; d++) {
+    const pool = teams.filter(t => t.division === d && !skip.has(t.id)).sort(() => Math.random() - 0.5)
+    for (let i = 0; i + 1 < pool.length; i += 2) result.push(makeOtherMatchLive(pool[i], pool[i + 1]))
+  }
+  return result
 }
 
 // ── simulate round for all teams EXCEPT the player's match ──
@@ -396,10 +439,10 @@ function reducer(state: DraftState, action: Action): DraftState {
 
       const humans: Manager[] = []
       const youSquad = chosenTeam.squad ?? []
-      humans.push({ id: 'h0', name: action.managerName || 'Você', isYou: true, teamId: action.clubId, squad: youSquad, lineupIds: bestEleven(youSquad), tactic: 'equilibrio', money: START_MONEY })
+      humans.push({ id: 'h0', name: action.managerName || 'Você', isYou: true, teamId: action.clubId, squad: youSquad, lineupIds: bestEleven(youSquad), tactic: 'equilibrio', formation: '4-4-2' as Formation, money: START_MONEY })
       friendTeams.forEach((ft, i) => {
         const friendSquad = ft.squad ?? []
-        humans.push({ id: `h${i + 1}`, name: state.playerNames[i + 1] ?? aiNames[i] ?? `Técnico ${i + 2}`, isYou: false, teamId: ft.id, squad: friendSquad, lineupIds: bestEleven(friendSquad), tactic: 'equilibrio', money: START_MONEY })
+        humans.push({ id: `h${i + 1}`, name: state.playerNames[i + 1] ?? aiNames[i] ?? `Técnico ${i + 2}`, isYou: false, teamId: ft.id, squad: friendSquad, lineupIds: bestEleven(friendSquad), tactic: 'equilibrio', formation: '4-4-2' as Formation, money: START_MONEY })
       })
 
       // Mark human-controlled teams in the full 40-team array
@@ -437,6 +480,7 @@ function reducer(state: DraftState, action: Action): DraftState {
         events: [`0' · Bola rolando em ${myTeam.city}!`],
         allEvents: h1Events,
         half: 1, division: myTeam.division, subDone: false,
+        otherMatches: buildOtherMatchesLive(teams, [myTeam.id, oppTeam.id]),
       }
       return { ...state, teams, humans, round, narrative: [...state.narrative].slice(-60), live, screen: 'match' }
     }
@@ -456,7 +500,11 @@ function reducer(state: DraftState, action: Action): DraftState {
       let half: LiveMatch['half'] = live.half
       if (live.half === 1 && newMin >= 45) half = 'ht'
       else if (live.half === 2 && newMin >= 90) half = 'ft'
-      const updLive: LiveMatch = { ...live, minute: newMin, gf: updGf, ga: updGa, events: [...live.events, ...newTexts], half }
+      const updOtherMatches = (live.otherMatches ?? []).map(m => {
+        const visible = m.goals.filter(g => g.min <= newMin)
+        return { ...m, gf: visible.filter(g => g.isHome).length, ga: visible.filter(g => !g.isHome).length }
+      })
+      const updLive: LiveMatch = { ...live, minute: newMin, gf: updGf, ga: updGa, events: [...live.events, ...newTexts], half, otherMatches: updOtherMatches }
       if (half === 'ht') updLive.events = [...updLive.events, `45' · ⏸ Intervalo — ${updGf}–${updGa}`]
       if (half === 'ft') updLive.events = [...updLive.events, `90' · 🏁 Apito final! ${updGf}–${updGa}`]
       return { ...state, live: updLive }
@@ -615,6 +663,14 @@ function reducer(state: DraftState, action: Action): DraftState {
       const next = state.leilaoIndex + 1
       if (next >= state.leilaoItems.length) return { ...state, screen: 'hub', leilaoPhase: 'done' }
       return { ...state, leilaoIndex: next, leilaoBids: new Array(state.humans.length).fill(0), leilaoPhase: 'bid' }
+    }
+
+    case 'SET_FORMATION': {
+      const humans = [...state.humans]
+      const you = humans[state.youIndex]
+      const newLineup = autoLineup(you.squad, action.formation)
+      humans[state.youIndex] = { ...you, formation: action.formation, lineupIds: newLineup }
+      return { ...state, humans, teams: recomputeHumanStrength(state.teams, humans) }
     }
 
     case 'NEW_GAME':

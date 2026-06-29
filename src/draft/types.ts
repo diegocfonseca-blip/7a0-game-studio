@@ -4,6 +4,23 @@ export type DraftScreen = 'lobby' | 'intro' | 'pickClub' | 'hub' | 'draft' | 'li
 export type Tactic = 'retranca' | 'equilibrio' | 'ataque'
 export type GameMode = 'draft' | 'leilao' | 'draft_leilao'
 export type OnlineMode = 'cpu' | 'online'
+export type Formation = '4-4-2' | '4-3-3' | '4-2-3-1' | '4-5-1' | '3-5-2'
+
+export interface OtherMatchGoal {
+  min: number
+  isHome: boolean
+}
+
+export interface OtherMatchLive {
+  homeId: string
+  homeName: string
+  awayId: string
+  awayName: string
+  division: number
+  goals: OtherMatchGoal[]
+  gf: number
+  ga: number
+}
 
 export interface DraftPlayer {
   id: string
@@ -43,6 +60,7 @@ export interface Manager {
   squad: DraftPlayer[]
   lineupIds: string[]
   tactic: Tactic
+  formation?: Formation
   money: number
 }
 
@@ -65,6 +83,7 @@ export interface LiveMatch {
   half: 1 | 2 | 'ht' | 'ft'
   division: number
   subDone: boolean
+  otherMatches: OtherMatchLive[]
 }
 
 export interface DraftState {
