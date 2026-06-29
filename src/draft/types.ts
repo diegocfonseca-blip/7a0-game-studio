@@ -1,6 +1,6 @@
 import type { Position, Nationality } from '../empresario/types'
 
-export type DraftScreen = 'lobby' | 'intro' | 'pickClub' | 'hub' | 'draft' | 'lineup' | 'table' | 'match' | 'leilao' | 'ranking'
+export type DraftScreen = 'lobby' | 'intro' | 'pickClub' | 'hub' | 'draft' | 'lineup' | 'table' | 'match' | 'leilao' | 'ranking' | 'ending'
 export type Tactic = 'retranca' | 'equilibrio' | 'ataque'
 export type GameMode = 'draft' | 'leilao' | 'draft_leilao'
 export type OnlineMode = 'cpu' | 'online'

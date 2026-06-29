@@ -546,6 +546,18 @@ export function DraftRoom() {
                   ✦ Você vê o <b>potencial</b> (✨) que ninguém mais vê. Os adversários só olham a nota de hoje — é sua chance de roubar o futuro craque baratinho.
                 </p>
               </BrutalCard>
+              {/* Guia de potencial */}
+              <div className="flex gap-1.5 flex-wrap">
+                {[{pot:99,label:'Lenda Absoluta',emoji:'👑'},{pot:93,label:'Craque Mundial',emoji:'🌟'},{pot:87,label:'Estrela',emoji:'⭐'},{pot:82,label:'Muito Bom',emoji:'✅'}].map(t => {
+                  const rar = rarityOf(t.pot)
+                  return (
+                    <div key={t.pot} className="flex items-center gap-1 border-2 border-black rounded-lg px-2 py-1" style={{backgroundColor: rar.color + '22'}}>
+                      <span className="text-xs">{t.emoji}</span>
+                      <span className="text-[9px] font-black" style={{color: rar.color}}>{t.label}</span>
+                    </div>
+                  )
+                })}
+              </div>
               <div className="flex items-center justify-between">
                 <h2 className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>ESCOLHA UM JOGADOR</h2>
                 <button onClick={() => dispatch({ type: 'SKIP_PICK', playerIndex: state.youIndex })} className="border-2 border-black rounded-lg px-2 py-1 text-[10px] font-black bg-white">Passar a vez</button>
@@ -768,7 +780,8 @@ function DraftPickCard({ legend, rar }: { legend: Legend; rar: ReturnType<typeof
           </div>
           <div className="text-right">
             <p className="text-black/40 text-[9px] font-black uppercase">nota / pot</p>
-            <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{rating} / <span style={{ color: rar.color }}>{legend.truePotential}</span></p>
+            <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{rating} / <span className="text-xl font-black" style={{ color: rar.color }}>{legend.truePotential}</span></p>
+            <p className="text-[9px] font-bold text-black/50 mt-0.5">Pico: {legend.peakYearStart}–{legend.peakYearEnd}</p>
           </div>
           <div onClick={e => e.stopPropagation()}>
             <BrutalButton color={C.green} full={false} className="!px-3 !py-2 !text-[10px]"
@@ -1188,6 +1201,105 @@ export function DraftLeilao() {
             </BrutalButton>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+// ─── ENDING 2026 ──────────────────────────────────────────────
+export function DraftEnding() {
+  const { state, dispatch } = useDraft()
+  const you = state.humans[state.youIndex]
+  const myTeam = state.teams.find(t => t.humanIndex === state.youIndex)!
+  const legendsCount = you.squad.filter(p => p.legendId).length
+  // Final ranking among all managers
+  const ranked = state.humans.map((h, i) => {
+    const team = state.teams.find(t => t.humanIndex === i)!
+    return { h, team, i }
+  }).sort((a, b) => b.team.points - a.team.points || (b.team.gf - b.team.ga) - (a.team.gf - a.team.ga))
+  const yourRank = ranked.findIndex(r => r.i === state.youIndex) + 1
+  const isChampion = yourRank === 1
+
+  return (
+    <div className="min-h-screen pb-10" style={{ backgroundColor: C.black }}>
+      <div className="max-w-md mx-auto px-4 py-8 space-y-5">
+        <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2, type: 'spring' }} className="text-center">
+          <div className="text-7xl mb-4">⚡</div>
+          <h1 className="font-black text-4xl text-white" style={{ fontFamily: 'Oswald, sans-serif' }}>29 DE JUNHO DE 2026</h1>
+          <p className="text-white/50 text-sm font-bold mt-2">O raio voltou. Tudo acabou.</p>
+        </motion.div>
+
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
+          <BrutalCard color={C.cream} className="p-5" shadow={8}>
+            <p className="text-black text-sm font-bold leading-relaxed">
+              Era 29 de junho de 2026. Domingo de manhã, pelada dos casados. O mesmo campo, o mesmo céu aberto, o mesmo raio no meio do campo.
+            </p>
+            <p className="text-black text-sm font-bold leading-relaxed mt-3">
+              Quando acordaram, era 2026 de novo. Tudo voltou ao normal — exceto vocês, que agora carregam <b>34 anos de memórias de um futuro que construíram</b>.
+            </p>
+            <p className="text-black text-sm font-bold leading-relaxed mt-3 italic">
+              {isChampion
+                ? `Você foi o maior. ${myTeam.name} na história. ${legendsCount} lendas ao seu lado. Eles vão escrever livros sobre isso.`
+                : `${yourRank}º lugar entre os viajantes. Não foi o topo — mas poucos viveram o que você viveu. ${legendsCount} lendas. Uma história.`}
+            </p>
+          </BrutalCard>
+        </motion.div>
+
+        {/* stats finais */}
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.7 }}>
+          <BrutalCard color={isChampion ? C.yellow : C.purple} className="p-4" shadow={6}>
+            <p className="font-black text-black text-center text-lg mb-3" style={{ fontFamily: 'Oswald, sans-serif' }}>
+              {isChampion ? '🏆 CAMPEÃO DOS VIAJANTES' : `${yourRank}º LUGAR`}
+            </p>
+            <p className="font-black text-black text-xl text-center" style={{ fontFamily: 'Oswald, sans-serif' }}>{myTeam.name}</p>
+            <div className="grid grid-cols-3 gap-2 mt-3">
+              <div className="bg-black/10 rounded-lg p-2 text-center">
+                <p className="text-[9px] font-black uppercase text-black/60">Divisão</p>
+                <p className="font-black text-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{myTeam.division}ª</p>
+              </div>
+              <div className="bg-black/10 rounded-lg p-2 text-center">
+                <p className="text-[9px] font-black uppercase text-black/60">Lendas</p>
+                <p className="font-black text-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{legendsCount}</p>
+              </div>
+              <div className="bg-black/10 rounded-lg p-2 text-center">
+                <p className="text-[9px] font-black uppercase text-black/60">Temporadas</p>
+                <p className="font-black text-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{state.season - 1}</p>
+              </div>
+            </div>
+          </BrutalCard>
+        </motion.div>
+
+        {/* final ranking */}
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.9 }}>
+          <BrutalCard color="white" className="p-0 overflow-hidden" shadow={4}>
+            <div className="bg-black px-3 py-2">
+              <p className="text-white font-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>🏆 RANKING FINAL DOS VIAJANTES</p>
+            </div>
+            {ranked.map(({ h, team, i }, rank) => {
+              const isYou = i === state.youIndex
+              const lgCount = h.squad.filter(p => p.legendId).length
+              return (
+                <div key={i} className="flex items-center gap-3 px-3 py-2.5 border-b border-black/10"
+                  style={{ backgroundColor: isYou ? C.yellow : rank === 0 ? '#fef9c3' : 'transparent' }}>
+                  <span className="font-black text-sm w-5 text-center" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                    {rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : `${rank+1}º`}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-black text-sm truncate">{h.name}</p>
+                    <p className="text-black/40 text-[10px] font-bold">{team.name} · {lgCount} lendas · div {team.division}ª</p>
+                  </div>
+                  <span className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>{team.points}pts</span>
+                </div>
+              )
+            })}
+          </BrutalCard>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}>
+          <BrutalButton color={C.yellow} textColor="#000" onClick={() => dispatch({ type: 'NEW_GAME' })}>
+            ⚡ Jogar Novamente
+          </BrutalButton>
+        </motion.div>
       </div>
     </div>
   )

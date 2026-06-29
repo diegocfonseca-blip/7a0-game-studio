@@ -17,6 +17,7 @@ export type Nationality =
   | 'BR' | 'AR' | 'FR' | 'IT' | 'PT' | 'ES' | 'NL' | 'DE' | 'EN'
   | 'DK' | 'SE' | 'BG' | 'HR' | 'YU' | 'RO' | 'CZ' | 'UA'
   | 'NG' | 'LR' | 'CM' | 'CO' | 'CL' | 'IE'
+  | 'BE' | 'PL' | 'EG' | 'SN' | 'KR' | 'UY'
 export type PlayerStatus = 'pelada' | 'base' | 'pro' | 'estrela'
 
 export interface Legend {

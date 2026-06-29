@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { DraftProvider, useDraft } from './store'
-import { DraftIntro, DraftPickClub, DraftHub, DraftRoom, DraftLineup, DraftTable, DraftMatch, DraftLeilao, DraftRanking } from './screens'
+import { DraftIntro, DraftPickClub, DraftHub, DraftRoom, DraftLineup, DraftTable, DraftMatch, DraftLeilao, DraftRanking, DraftEnding } from './screens'
 import { DraftLobby } from './lobby'
 
 function DraftRouter() {
@@ -17,6 +17,7 @@ function DraftRouter() {
     case 'match':    return <DraftMatch />
     case 'leilao':   return <DraftLeilao />
     case 'ranking':  return <DraftRanking />
+    case 'ending':    return <DraftEnding />
     default:         return <DraftLobby />
   }
 }

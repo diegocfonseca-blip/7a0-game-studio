@@ -50,7 +50,7 @@ type Action =
 // ── helpers ──
 export function availableLegends(state: DraftState): Legend[] {
   return LEGENDS
-    .filter(l => !state.ownedLegendIds.includes(l.id) && state.year >= l.emergenceYear - 3)
+    .filter(l => !state.ownedLegendIds.includes(l.id) && state.year >= l.emergenceYear - 5)
     .sort((a, b) => getCurrentRating(b, state.year) - getCurrentRating(a, state.year))
 }
 function legendToPlayer(l: Legend, year: number): DraftPlayer {
@@ -415,7 +415,7 @@ function seasonEnd(state: DraftState): DraftState {
     return { ...m, squad }
   })
   teams = teams.map(t => ({ ...t, points: 0, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, lastResult: '—', strength: t.isHuman ? t.strength : (t.squad ? Math.round(squadStrength(t.squad)) : t.strength) }))
-  return { ...state, teams: recomputeHumanStrength(teams, humans), humans, season: state.season + 1, round: 0, year: newYear, screen: 'hub', narrative: [...state.narrative, `🏁 Fim da temporada ${state.season}.`, ...extra] }
+  return { ...state, teams: recomputeHumanStrength(teams, humans), humans, season: state.season + 1, round: 0, year: newYear, screen: newYear >= 2026 ? 'ending' : 'hub', narrative: [...state.narrative, `🏁 Fim da temporada ${state.season}.`, ...extra] }
 }
 
 // ── after match, check if window should open ──
