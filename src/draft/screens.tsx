@@ -613,14 +613,21 @@ export function DraftLineup() {
   const you = state.humans[state.youIndex]
   const formation = you.formation ?? '4-4-2'
   const xiIds = new Set(you.lineupIds)
-  const isUnavailable = (p: { injury?: number; suspended?: boolean }) => (p.injury ?? 0) > 0 || !!p.suspended
+  const isUnavailable = (p: DraftPlayer) => (p.injury ?? 0) > 0 || !!p.suspended
   const xi = you.squad.filter(p => xiIds.has(p.id))
   const posOrder: Record<string, number> = { GOL: 0, ZAG: 1, LAT: 2, MEI: 3, ATA: 4 }
-  const bench = you.squad.filter(p => !xiIds.has(p.id)).sort((a, b) => (posOrder[a.pos] ?? 5) - (posOrder[b.pos] ?? 5) || b.rating - a.rating)
   const xiCount = xi.length
   const [detailPlayer, setDetailPlayer] = useState<DraftPlayer | null>(null)
+  const [swappingIn, setSwappingIn] = useState<DraftPlayer | null>(null)
 
-  // Build pitch rows: ATA → MEI → DEF (LAT-ZAG-ZAG-LAT order) → GOL
+  // All players sorted by position, then starters first, then rating desc
+  const allSorted = [...you.squad].sort((a, b) =>
+    (posOrder[a.pos] ?? 5) - (posOrder[b.pos] ?? 5) ||
+    (xiIds.has(b.id) ? 1 : 0) - (xiIds.has(a.id) ? 1 : 0) ||
+    b.rating - a.rating
+  )
+
+  // Build pitch rows: ATA → MEI → DEF (LAT-ZAG-ZAG-LAT) → GOL
   const defPlayers = xi.filter(p => p.pos === 'ZAG' || p.pos === 'LAT')
   const defLATs = defPlayers.filter(p => p.pos === 'LAT')
   const defZAGs = defPlayers.filter(p => p.pos === 'ZAG')
@@ -633,6 +640,29 @@ export function DraftLineup() {
     { label: 'DEF', players: defOrdered },
     { label: 'GOL', players: xi.filter(p => p.pos === 'GOL') },
   ].filter(r => r.players.length > 0)
+
+  function handleRowAction(p: DraftPlayer) {
+    const isTitular = xiIds.has(p.id)
+    if (swappingIn) {
+      if (isTitular) {
+        dispatch({ type: 'SET_LINEUP', playerId: p.id })
+        dispatch({ type: 'SET_LINEUP', playerId: swappingIn.id })
+        setSwappingIn(null)
+      } else if (p.id === swappingIn.id) {
+        setSwappingIn(null)
+      } else {
+        setSwappingIn(p)
+      }
+      return
+    }
+    if (isTitular) {
+      dispatch({ type: 'SET_LINEUP', playerId: p.id })
+    } else if (!isUnavailable(p) && xiCount < 11) {
+      dispatch({ type: 'SET_LINEUP', playerId: p.id })
+    } else if (!isUnavailable(p)) {
+      setSwappingIn(p)
+    }
+  }
 
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
@@ -673,24 +703,16 @@ export function DraftLineup() {
           </div>
         </div>
 
-        {/* CAMPO VERDE */}
+        {/* CAMPO VERDE — só visual, toque abre detalhes */}
         <div className="rounded-xl border-[3px] border-black overflow-hidden relative"
-          style={{ background: 'linear-gradient(180deg, #1e6b1e 0%, #278a27 40%, #278a27 60%, #1e6b1e 100%)', minHeight: 340 }}>
-
-          {/* linhas do campo */}
+          style={{ background: 'linear-gradient(180deg, #1e6b1e 0%, #278a27 40%, #278a27 60%, #1e6b1e 100%)', minHeight: 300 }}>
           <div className="absolute inset-0 pointer-events-none">
-            {/* linha do meio */}
             <div className="absolute left-4 right-4" style={{ top: '50%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)' }} />
-            {/* círculo central */}
             <div className="absolute" style={{ top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 64, height: 64, borderRadius: 32, border: '1px solid rgba(255,255,255,0.18)' }} />
-            {/* área de cima (ataque) */}
             <div className="absolute left-1/4 right-1/4 top-0" style={{ height: 52, border: '1px solid rgba(255,255,255,0.13)', borderTop: 'none' }} />
-            {/* área de baixo (defesa) */}
             <div className="absolute left-1/4 right-1/4 bottom-0" style={{ height: 52, border: '1px solid rgba(255,255,255,0.13)', borderBottom: 'none' }} />
           </div>
-
-          {/* fileiras de jogadores */}
-          <div className="relative z-10 px-3 py-5 space-y-4">
+          <div className="relative z-10 px-3 py-4 space-y-3">
             {pitchRows.map((row, ri) => (
               <div key={ri} className="flex justify-center gap-2">
                 {row.players.map(p => {
@@ -700,65 +722,93 @@ export function DraftLineup() {
                   const age = legend ? state.year - legend.birthYear : p.age
                   return (
                     <button key={p.id} onClick={() => setDetailPlayer(p)}
-                      className="flex flex-col items-center relative" style={{ width: 60 }}>
-                      {/* círculo com posição */}
-                      <div className="w-12 h-12 rounded-full border-[3px] border-black flex items-center justify-center mb-0.5 shadow-lg relative"
+                      className="flex flex-col items-center" style={{ width: 58 }}>
+                      <div className="w-11 h-11 rounded-full border-[3px] border-black flex items-center justify-center mb-0.5 shadow-lg relative"
                         style={{ backgroundColor: isUnavailable(p) ? '#6b7280' : POS_COLOR[p.pos] }}>
-                        <span className="text-white font-black text-[10px] leading-none" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.pos}</span>
+                        <span className="text-white font-black text-[10px]" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.pos}</span>
                         {p.suspended && <span className="absolute -top-1 -right-1 text-xs">🟥</span>}
                         {(p.injury ?? 0) > 0 && !p.suspended && <span className="absolute -top-1 -right-1 text-xs">🚑</span>}
                         {(p.yellowCards ?? 0) >= 2 && !p.suspended && !(p.injury ?? 0) && <span className="absolute -top-1 -right-1 text-xs">🟡</span>}
                       </div>
-                      {/* nome */}
-                      <p className="text-white text-[9px] font-black text-center leading-tight w-full truncate px-0.5"
-                        style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
-                        {firstName}
-                      </p>
-                      {/* nota + idade */}
+                      <p className="text-white text-[9px] font-black text-center leading-tight w-full truncate" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{firstName}</p>
                       <p className="font-black text-[10px] leading-none" style={{ fontFamily: 'Oswald, sans-serif', color: rar?.color ?? '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
                         {p.rating}{p.legendId ? ' ✨' : ''}
                       </p>
-                      {age !== undefined && (
-                        <p className="text-white/60 text-[8px] font-bold leading-none" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{age}a</p>
-                      )}
+                      {age !== undefined && <p className="text-white/60 text-[8px] font-bold leading-none" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{age}a</p>}
                     </button>
                   )
                 })}
               </div>
             ))}
-            {xi.length === 0 && (
-              <p className="text-white/40 text-center text-sm font-bold py-12">Toque em um reserva para escalar →</p>
-            )}
+            {xi.length === 0 && <p className="text-white/40 text-center text-sm font-bold py-8">Escale jogadores na lista abaixo</p>}
           </div>
         </div>
 
-        <p className="text-black/40 text-[10px] font-bold text-center">Toque no jogador para ver detalhes</p>
+        {/* SWAP MODE BANNER */}
+        <AnimatePresence>
+          {swappingIn && (
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+              className="rounded-xl border-[3px] border-black px-3 py-2.5 flex items-center gap-2"
+              style={{ backgroundColor: C.yellow }}>
+              <span className="text-xl">🔄</span>
+              <span className="flex-1 text-xs font-black text-black leading-tight">
+                Toque em um <b>titular</b> para substituir por <b>{swappingIn.name.split(' ')[0]}</b>
+              </span>
+              <button onClick={() => setSwappingIn(null)} className="font-black text-black text-2xl leading-none w-7 h-7 flex items-center justify-center shrink-0">×</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* BANCO */}
+        {/* ELENCO COMPLETO */}
         <div>
-          <p className="text-black/50 text-[10px] font-black uppercase mb-2">🪑 Banco ({bench.length} jogadores)</p>
+          <p className="text-black/50 text-[10px] font-black uppercase mb-2">🎽 ELENCO ({you.squad.length})</p>
           <div className="space-y-1.5">
-            {bench.map(p => {
+            {allSorted.map(p => {
+              const isTitular = xiIds.has(p.id)
+              const isSelected = swappingIn?.id === p.id
+              const isSwapTarget = !!swappingIn && isTitular
               const rar = p.potential ? rarityOf(p.potential) : null
               const unavail = isUnavailable(p)
-              const canAdd = xiCount < 11 && !unavail
               const statusBadge = p.suspended ? '🟥' : (p.injury ?? 0) > 0 ? `🚑${p.injury}` : (p.yellowCards ?? 0) >= 2 ? '🟡🟡' : (p.yellowCards ?? 0) === 1 ? '🟡' : null
               const legend = p.legendId ? LEGENDS.find(l => l.id === p.legendId) : null
               const age = legend ? state.year - legend.birthYear : p.age
+
+              let actionIcon: string | null = null
+              let actionBg = '#d1d5db'
+              if (isSelected) { actionIcon = '×'; actionBg = C.orange }
+              else if (isSwapTarget) { actionIcon = '⇄'; actionBg = C.teal }
+              else if (isTitular) { actionIcon = '−'; actionBg = '#f87171' }
+              else if (!unavail && xiCount < 11) { actionIcon = '+'; actionBg = C.green }
+              else if (!unavail) { actionIcon = '⇄'; actionBg = '#94a3b8' }
+
+              const rowBg = isSelected ? C.yellow
+                : isSwapTarget ? '#ecfdf5'
+                : isTitular ? '#f0fdf4'
+                : unavail ? '#f3f4f6'
+                : p.legendId ? C.cream
+                : 'white'
+
               return (
-                <BrutalCard key={p.id} color={unavail ? '#e5e7eb' : p.legendId ? C.cream : 'white'} className="p-2.5" shadow={2}
-                  onClick={() => setDetailPlayer(p)}>
-                  <div className="flex items-center gap-2">
+                <div key={p.id} className="flex items-stretch rounded-xl border-[3px] border-black overflow-hidden"
+                  style={{ backgroundColor: rowBg, boxShadow: '2px 2px 0 0 #0C0C0C' }}>
+                  {isTitular && <div className="w-1 shrink-0" style={{ backgroundColor: C.green }} />}
+                  <div className="flex items-center gap-2 flex-1 px-2.5 py-2.5 min-w-0 cursor-pointer"
+                    onClick={() => setDetailPlayer(p)}>
                     <BrutalTag color={unavail ? '#9ca3af' : POS_COLOR[p.pos]} textColor="#fff">{p.pos}</BrutalTag>
                     <span className="text-base">{p.nationality ? FLAG[p.nationality] : '⚽'}</span>
                     <span className={`flex-1 min-w-0 truncate font-black text-sm ${unavail ? 'text-gray-400' : 'text-black'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>{p.name}</span>
                     {statusBadge && <span className="text-[10px] font-black shrink-0">{statusBadge}</span>}
                     {age !== undefined && <span className="text-[10px] font-bold text-black/40 shrink-0">{age}a</span>}
                     {rar && !unavail && <span className="text-[9px] font-black shrink-0" style={{ color: rar.color }}>{rar.emoji}{p.potential}</span>}
-                    <span className={`font-black text-sm w-7 text-right ${unavail ? 'text-gray-400' : 'text-black'}`}>{p.rating}</span>
-                    {canAdd && <span className="text-green-600 font-black text-lg leading-none">+</span>}
+                    <span className={`font-black text-sm w-7 text-right shrink-0 ${unavail ? 'text-gray-400' : 'text-black'}`}>{p.rating}</span>
                   </div>
-                </BrutalCard>
+                  <button
+                    onClick={() => handleRowAction(p)}
+                    className="w-11 flex items-center justify-center border-l-2 border-black shrink-0 font-black text-base text-white"
+                    style={{ backgroundColor: actionBg }}>
+                    {actionIcon}
+                  </button>
+                </div>
               )
             })}
           </div>
@@ -778,10 +828,12 @@ export function DraftLineup() {
             onClose={() => setDetailPlayer(null)}
             onAction={
               xiIds.has(detailPlayer.id)
-                ? { label: '⬅ Tirar do XI', color: C.orange, onClick: () => dispatch({ type: 'SET_LINEUP', playerId: detailPlayer.id }) }
+                ? { label: '⬅ Tirar do XI', color: C.orange, onClick: () => { dispatch({ type: 'SET_LINEUP', playerId: detailPlayer.id }); setDetailPlayer(null) } }
                 : (!isUnavailable(detailPlayer) && xiCount < 11)
-                  ? { label: '✅ Escalar', color: C.green, onClick: () => dispatch({ type: 'SET_LINEUP', playerId: detailPlayer.id }) }
-                  : undefined
+                  ? { label: '✅ Escalar', color: C.green, onClick: () => { dispatch({ type: 'SET_LINEUP', playerId: detailPlayer.id }); setDetailPlayer(null) } }
+                  : (!isUnavailable(detailPlayer))
+                    ? { label: '🔄 Trocar titular', color: C.teal, onClick: () => { setSwappingIn(detailPlayer); setDetailPlayer(null) } }
+                    : undefined
             }
           />
         )}
