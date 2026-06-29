@@ -1,8 +1,9 @@
 import type { Position, Nationality } from '../empresario/types'
 
-export type DraftScreen = 'intro' | 'pickClub' | 'hub' | 'draft' | 'lineup' | 'table' | 'match' | 'leilao'
+export type DraftScreen = 'lobby' | 'intro' | 'pickClub' | 'hub' | 'draft' | 'lineup' | 'table' | 'match' | 'leilao'
 export type Tactic = 'retranca' | 'equilibrio' | 'ataque'
 export type GameMode = 'draft' | 'leilao' | 'draft_leilao'
+export type OnlineMode = 'cpu' | 'online'
 
 export interface DraftPlayer {
   id: string
@@ -69,6 +70,12 @@ export interface DraftState {
   screen: DraftScreen
   started: boolean
   mode: GameMode
+  onlineMode: OnlineMode
+  roomId: string
+  roomCode: string
+  isHost: boolean
+  totalPlayers: number
+  playerNames: string[]
   year: number
   season: number
   round: number

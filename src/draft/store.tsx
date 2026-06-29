@@ -1,6 +1,7 @@
-import { createContext, useContext, useReducer } from 'react'
+import { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import type { DraftState, DraftScreen, Manager, DraftPlayer, LeagueTeam, Tactic, GameMode, MatchEvent, LiveMatch } from './types'
+import { supabase } from '../lib/supabase'
 import { START_CLUBS, AI_MANAGERS, CPU_POOLS, divisionStrength, generateFillerSquad, squadStrength, bestEleven } from './data'
 import { LEGENDS, getCurrentRating } from '../empresario/data/legends'
 import type { Legend } from '../empresario/types'
@@ -11,7 +12,9 @@ const ROSTER_MAX = 23
 const START_MONEY = 1_000_000
 
 const INITIAL: DraftState = {
-  screen: 'intro', started: false, mode: 'draft', year: 1992, season: 1,
+  screen: 'lobby', started: false, mode: 'draft',
+  onlineMode: 'cpu', roomId: '', roomCode: '', isHost: true, totalPlayers: 1, playerNames: [],
+  year: 1992, season: 1,
   round: 0, roundsPerSeason: ROUNDS_PER_SEASON, windowEvery: WINDOW_EVERY,
   teams: [], humans: [], youIndex: 0, ownedLegendIds: [], rosterMax: ROSTER_MAX, live: null,
   inDraft: false, draftOrder: [], draftPos: 0, pendingDrop: false, lastPickText: [], narrative: [],
@@ -20,6 +23,9 @@ const INITIAL: DraftState = {
 
 type Action =
   | { type: 'SET_SCREEN'; screen: DraftScreen }
+  | { type: 'GO_CPU' }
+  | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; mode: GameMode; playerNames: string[] }
+  | { type: 'SYNC_STATE'; newState: DraftState }
   | { type: 'START' }
   | { type: 'PICK_CLUB'; clubId: string; managerName: string; mode: GameMode }
   | { type: 'ADVANCE_ROUND' }
@@ -300,6 +306,31 @@ function afterMatch(state: DraftState): DraftState {
 function reducer(state: DraftState, action: Action): DraftState {
   switch (action.type) {
     case 'SET_SCREEN': return { ...state, screen: action.screen }
+    case 'GO_CPU': return { ...state, screen: 'intro', onlineMode: 'cpu', isHost: true }
+    case 'START_ONLINE':
+      return {
+        ...state,
+        screen: 'intro',
+        onlineMode: 'online',
+        roomId: action.roomId,
+        roomCode: action.roomCode,
+        isHost: action.isHost,
+        youIndex: action.playerIndex,
+        totalPlayers: action.playerNames.length,
+        playerNames: action.playerNames,
+        mode: action.mode,
+      }
+    case 'SYNC_STATE':
+      return {
+        ...action.newState,
+        isHost: state.isHost,
+        youIndex: state.youIndex,
+        onlineMode: state.onlineMode,
+        roomId: state.roomId,
+        roomCode: state.roomCode,
+        totalPlayers: state.totalPlayers,
+        playerNames: state.playerNames,
+      }
     case 'START': return { ...state, screen: 'pickClub' }
 
     case 'PICK_CLUB': {
@@ -308,7 +339,7 @@ function reducer(state: DraftState, action: Action): DraftState {
       const aiNames = [...AI_MANAGERS].sort(() => Math.random() - 0.5)
       const humanClubs = [
         { club: chosen, mgr: action.managerName || 'Você', you: true },
-        ...others.map((c, i) => ({ club: c, mgr: aiNames[i], you: false })),
+        ...others.map((c, i) => ({ club: c, mgr: state.playerNames[i + 1] ?? aiNames[i], you: false })),
       ]
       const humans: Manager[] = []
       const teams: LeagueTeam[] = []
@@ -530,12 +561,71 @@ function reducer(state: DraftState, action: Action): DraftState {
 }
 
 const Ctx = createContext<{ state: DraftState; dispatch: React.Dispatch<Action> } | null>(null)
+
 export function DraftProvider({ children }: { children: ReactNode }) {
   const saved = localStorage.getItem('draft-v2')
   let initial = INITIAL
-  if (saved) { try { const p = JSON.parse(saved); if (p.started) initial = { ...INITIAL, ...p } } catch { initial = INITIAL } }
-  const [state, dispatch] = useReducer(reducer, initial)
-  if (state.started) localStorage.setItem('draft-v2', JSON.stringify(state))
+  if (saved) {
+    try {
+      const p = JSON.parse(saved)
+      if (p.started && p.onlineMode !== 'online') initial = { ...INITIAL, ...p }
+    } catch { /* ignore */ }
+  }
+  const [state, rawDispatch] = useReducer(reducer, initial)
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const isHostRef = useRef(state.isHost)
+  const onlineModeRef = useRef(state.onlineMode)
+  useEffect(() => { isHostRef.current = state.isHost }, [state.isHost])
+  useEffect(() => { onlineModeRef.current = state.onlineMode }, [state.onlineMode])
+
+  // Smart dispatch: guests route actions through channel; host dispatches locally
+  const dispatch = useCallback((action: Action) => {
+    if (onlineModeRef.current === 'online' && !isHostRef.current) {
+      channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
+    } else {
+      rawDispatch(action)
+    }
+  }, [])
+
+  // Persist CPU games only
+  if (state.started && state.onlineMode !== 'online') {
+    localStorage.setItem('draft-v2', JSON.stringify(state))
+  }
+
+  // Set up Supabase Realtime channel when online game starts
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.roomId) return
+
+    const ch = supabase.channel(`eleitos92:${state.roomId}`, {
+      config: { broadcast: { self: false, ack: false } },
+    })
+
+    if (state.isHost) {
+      // Host receives guest actions and applies them
+      ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => {
+        rawDispatch(payload)
+      })
+    } else {
+      // Guests receive host state and sync
+      ch.on('broadcast', { event: 'state' }, ({ payload }: { payload: DraftState }) => {
+        rawDispatch({ type: 'SYNC_STATE', newState: payload })
+      })
+    }
+
+    ch.subscribe()
+    channelRef.current = ch
+    return () => { ch.unsubscribe(); channelRef.current = null }
+  }, [state.roomId, state.onlineMode, state.isHost])
+
+  // Host broadcasts state after every change
+  const prevStateRef = useRef<DraftState | null>(null)
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
+    if (prevStateRef.current === state) return
+    prevStateRef.current = state
+    channelRef.current?.send({ type: 'broadcast', event: 'state', payload: state })
+  }, [state])
+
   return <Ctx.Provider value={{ state, dispatch }}>{children}</Ctx.Provider>
 }
 export function useDraft() {
