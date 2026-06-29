@@ -1,14 +1,139 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useDraft, availableLegends, teamOf, divTeams } from './store'
 import { CPU_POOLS, squadStrength } from './data'
 import { rarityOf } from '../empresario/data/career'
 import { getCurrentRating, LEGENDS } from '../empresario/data/legends'
 import type { Legend } from '../empresario/types'
-import type { GameMode, Formation } from './types'
+import type { DraftPlayer, GameMode, Formation } from './types'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag, POS_COLOR, FLAG } from '../empresario/ui'
 
 const DIV = (d: number) => ({ 1: '1ª (Elite)', 2: '2ª Divisão', 3: '3ª Divisão', 4: '4ª Divisão' }[d] ?? `${d}ª`)
+
+// ─── PLAYER DETAIL MODAL ───────────────────────────────────────
+interface PlayerDetailProps {
+  player: DraftPlayer
+  year: number
+  onClose: () => void
+  onAction?: { label: string; color: string; onClick: () => void }
+}
+function PlayerDetailModal({ player, year, onClose, onAction }: PlayerDetailProps) {
+  const legend = player.legendId ? LEGENDS.find(l => l.id === player.legendId) : null
+  const rar = player.potential ? rarityOf(player.potential) : null
+  const age = legend ? year - legend.birthYear : player.age
+  const statusBadge = player.suspended ? '🟥 Suspenso' : (player.injury ?? 0) > 0 ? `🚑 Lesionado — ${player.injury} rod.` : null
+  const yellows = player.yellowCards ?? 0
+
+  const peakLabel = legend
+    ? `${legend.peakYearStart}–${legend.peakYearEnd} (pico)`
+    : null
+  const yearsToRating: { year: number; rating: number }[] = legend
+    ? [0, 2, 4, 6, 8].map(d => ({ year: year + d, rating: getCurrentRating(legend, year + d) }))
+    : []
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-end justify-center"
+      style={{ backgroundColor: 'rgba(0,0,0,0.75)' }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+        className="w-full max-w-md"
+        onClick={e => e.stopPropagation()}
+      >
+        <BrutalCard color={C.cream} className="p-5 rounded-t-2xl rounded-b-none" shadow={0}>
+          {/* header */}
+          <div className="flex items-start gap-3 mb-4">
+            <div className="text-4xl">{player.nationality ? FLAG[player.nationality] : '⚽'}</div>
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-black text-2xl leading-none truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{player.name}</p>
+              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                <BrutalTag color={POS_COLOR[player.pos]} textColor="#fff">{player.pos}</BrutalTag>
+                {rar && <BrutalTag color={rar.color} textColor="#fff">{rar.emoji} {rar.label}</BrutalTag>}
+                {age !== undefined && <BrutalTag color="white">{age} anos</BrutalTag>}
+                {peakLabel && <BrutalTag color={C.yellow}>⭐ {peakLabel}</BrutalTag>}
+              </div>
+            </div>
+            <button onClick={onClose} className="text-black/40 text-3xl font-black leading-none shrink-0">×</button>
+          </div>
+
+          {/* stat grid */}
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <div className="bg-white border-2 border-black rounded-lg p-2 text-center">
+              <p className="text-black/40 text-[9px] font-black uppercase">Nota hoje</p>
+              <p className="font-black text-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{player.rating}</p>
+            </div>
+            <div className="bg-white border-2 border-black rounded-lg p-2 text-center">
+              <p className="text-black/40 text-[9px] font-black uppercase">Potencial</p>
+              <p className="font-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif', color: rar?.color ?? '#000' }}>
+                {player.potential ?? '?'}
+              </p>
+            </div>
+            <div className="bg-white border-2 border-black rounded-lg p-2 text-center">
+              <p className="text-black/40 text-[9px] font-black uppercase">Idade</p>
+              <p className="font-black text-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{age ?? '?'}</p>
+            </div>
+          </div>
+
+          {/* status badges */}
+          {(statusBadge || yellows > 0) && (
+            <div className="flex gap-2 mb-3 flex-wrap">
+              {statusBadge && <span className="border-2 border-black rounded-lg px-2 py-1 text-xs font-black bg-orange-100">{statusBadge}</span>}
+              {yellows > 0 && !player.suspended && (
+                <span className="border-2 border-black rounded-lg px-2 py-1 text-xs font-black bg-yellow-100">
+                  {'🟡'.repeat(yellows)} {yellows}/3 amarelos
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* rating projection */}
+          {legend && yearsToRating.length > 0 && (
+            <div className="mb-3">
+              <p className="text-black/40 text-[9px] font-black uppercase tracking-widest mb-1.5">📈 Projeção de nota</p>
+              <div className="flex gap-1.5">
+                {yearsToRating.map(({ year: y, rating: r }) => (
+                  <div key={y} className="flex-1 text-center">
+                    <div className="rounded-lg border-2 border-black py-1" style={{ backgroundColor: y === year ? C.yellow : 'white' }}>
+                      <p className="font-black text-sm" style={{ fontFamily: 'Oswald, sans-serif', color: rar?.color ?? '#000' }}>{r}</p>
+                    </div>
+                    <p className="text-[9px] font-black text-black/40 mt-0.5">{y}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* legend stories */}
+          {legend?.discoveryStory && (
+            <div className="bg-white border-2 border-black rounded-lg p-3 mb-2">
+              <p className="text-black/40 text-[9px] font-black uppercase tracking-widest mb-1">📍 Como você o achou</p>
+              <p className="text-black text-xs font-medium italic leading-relaxed">{legend.discoveryStory}</p>
+            </div>
+          )}
+          {legend?.futureKnowledge && (
+            <div className="border-2 border-black rounded-lg p-3 mb-4" style={{ backgroundColor: C.blue }}>
+              <p className="text-white/60 text-[9px] font-black uppercase tracking-widest mb-1">🔮 O que só você sabe</p>
+              <p className="text-white text-xs font-bold leading-relaxed">{legend.futureKnowledge}</p>
+            </div>
+          )}
+
+          {/* action button */}
+          {onAction ? (
+            <BrutalButton color={onAction.color} textColor="#fff" onClick={() => { onAction.onClick(); onClose() }}>
+              {onAction.label}
+            </BrutalButton>
+          ) : (
+            <BrutalButton color={C.black} textColor="#fff" onClick={onClose}>Fechar</BrutalButton>
+          )}
+        </BrutalCard>
+      </motion.div>
+    </motion.div>
+  )
+}
 
 const DIV_COLORS: Record<number, { bg: string; accent: string }> = {
   1: { bg: 'rgba(251,191,36,0.10)',  accent: '#fbbf24' },
@@ -446,6 +571,7 @@ export function DraftLineup() {
   const xi = you.squad.filter(p => xiIds.has(p.id))
   const bench = you.squad.filter(p => !xiIds.has(p.id)).sort((a, b) => b.rating - a.rating)
   const xiCount = xi.length
+  const [detailPlayer, setDetailPlayer] = useState<DraftPlayer | null>(null)
 
   // Build pitch rows: ATA → MEI → DEF (ZAG+LAT) → GOL
   const pitchRows: Array<{ label: string; players: typeof xi }> = [
@@ -517,8 +643,10 @@ export function DraftLineup() {
                 {row.players.map(p => {
                   const rar = p.potential ? rarityOf(p.potential) : null
                   const firstName = p.name.split(' ')[0]
+                  const legend = p.legendId ? LEGENDS.find(l => l.id === p.legendId) : null
+                  const age = legend ? state.year - legend.birthYear : p.age
                   return (
-                    <button key={p.id} onClick={() => dispatch({ type: 'SET_LINEUP', playerId: p.id })}
+                    <button key={p.id} onClick={() => setDetailPlayer(p)}
                       className="flex flex-col items-center relative" style={{ width: 60 }}>
                       {/* círculo com posição */}
                       <div className="w-12 h-12 rounded-full border-[3px] border-black flex items-center justify-center mb-0.5 shadow-lg relative"
@@ -533,10 +661,13 @@ export function DraftLineup() {
                         style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
                         {firstName}
                       </p>
-                      {/* nota */}
+                      {/* nota + idade */}
                       <p className="font-black text-[10px] leading-none" style={{ fontFamily: 'Oswald, sans-serif', color: rar?.color ?? '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
                         {p.rating}{p.legendId ? ' ✨' : ''}
                       </p>
+                      {age !== undefined && (
+                        <p className="text-white/60 text-[8px] font-bold leading-none" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{age}a</p>
+                      )}
                     </button>
                   )
                 })}
@@ -548,7 +679,7 @@ export function DraftLineup() {
           </div>
         </div>
 
-        <p className="text-black/40 text-[10px] font-bold text-center">Toque no campo para tirar · toque no banco para escalar</p>
+        <p className="text-black/40 text-[10px] font-bold text-center">Toque no jogador para ver detalhes</p>
 
         {/* BANCO */}
         <div>
@@ -559,15 +690,18 @@ export function DraftLineup() {
               const unavail = isUnavailable(p)
               const canAdd = xiCount < 11 && !unavail
               const statusBadge = p.suspended ? '🟥' : (p.injury ?? 0) > 0 ? `🚑${p.injury}` : (p.yellowCards ?? 0) >= 2 ? '🟡🟡' : (p.yellowCards ?? 0) === 1 ? '🟡' : null
+              const legend = p.legendId ? LEGENDS.find(l => l.id === p.legendId) : null
+              const age = legend ? state.year - legend.birthYear : p.age
               return (
                 <BrutalCard key={p.id} color={unavail ? '#e5e7eb' : p.legendId ? C.cream : 'white'} className="p-2.5" shadow={2}
-                  onClick={() => canAdd && dispatch({ type: 'SET_LINEUP', playerId: p.id })}>
+                  onClick={() => setDetailPlayer(p)}>
                   <div className="flex items-center gap-2">
                     <BrutalTag color={unavail ? '#9ca3af' : POS_COLOR[p.pos]} textColor="#fff">{p.pos}</BrutalTag>
                     <span className="text-base">{p.nationality ? FLAG[p.nationality] : '⚽'}</span>
                     <span className={`flex-1 min-w-0 truncate font-black text-sm ${unavail ? 'text-gray-400' : 'text-black'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>{p.name}</span>
                     {statusBadge && <span className="text-[10px] font-black shrink-0">{statusBadge}</span>}
-                    {rar && !unavail && <span className="text-[9px] font-black" style={{ color: rar.color }}>{rar.emoji}{p.potential}</span>}
+                    {age !== undefined && <span className="text-[10px] font-bold text-black/40 shrink-0">{age}a</span>}
+                    {rar && !unavail && <span className="text-[9px] font-black shrink-0" style={{ color: rar.color }}>{rar.emoji}{p.potential}</span>}
                     <span className={`font-black text-sm w-7 text-right ${unavail ? 'text-gray-400' : 'text-black'}`}>{p.rating}</span>
                     {canAdd && <span className="text-green-600 font-black text-lg leading-none">+</span>}
                   </div>
@@ -581,6 +715,24 @@ export function DraftLineup() {
           <p className="text-white text-xs font-bold">✦ Jovem cru (pot alto ✨) enfraquece hoje — mas <b>jogar faz ele crescer</b> mais rápido.</p>
         </BrutalCard>
       </div>
+
+      {/* detail modal */}
+      <AnimatePresence>
+        {detailPlayer && (
+          <PlayerDetailModal
+            player={detailPlayer}
+            year={state.year}
+            onClose={() => setDetailPlayer(null)}
+            onAction={
+              xiIds.has(detailPlayer.id)
+                ? { label: '⬅ Tirar do XI', color: C.orange, onClick: () => dispatch({ type: 'SET_LINEUP', playerId: detailPlayer.id }) }
+                : (!isUnavailable(detailPlayer) && xiCount < 11)
+                  ? { label: '✅ Escalar', color: C.green, onClick: () => dispatch({ type: 'SET_LINEUP', playerId: detailPlayer.id }) }
+                  : undefined
+            }
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -588,27 +740,54 @@ export function DraftLineup() {
 function DraftPickCard({ legend, rar }: { legend: Legend; rar: ReturnType<typeof rarityOf> }) {
   const { state, dispatch } = useDraft()
   const rating = getCurrentRating(legend, state.year)
+  const age = state.year - legend.birthYear
+  const [open, setOpen] = useState(false)
+
+  // Build a DraftPlayer shape for the modal
+  const asPlayer: DraftPlayer = {
+    id: `lg-${legend.id}`, name: legend.name, pos: legend.position,
+    rating, legendId: legend.id, nationality: legend.nationality,
+    potential: legend.truePotential,
+    age,
+  }
+
   return (
-    <BrutalCard color="white" className="p-3" shadow={rar.rank >= 3 ? 5 : 3}>
-      <div className="flex items-center gap-2">
-        <span className="text-2xl">{FLAG[legend.nationality]}</span>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{legend.name}</span>
-            <BrutalTag color={POS_COLOR[legend.position]} textColor="#fff">{legend.position}</BrutalTag>
+    <>
+      <BrutalCard color="white" className="p-3" shadow={rar.rank >= 3 ? 5 : 3} onClick={() => setOpen(true)}>
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{FLAG[legend.nationality]}</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{legend.name}</span>
+              <BrutalTag color={POS_COLOR[legend.position]} textColor="#fff">{legend.position}</BrutalTag>
+              <span className="text-[10px] font-bold text-black/40">{age}a</span>
+            </div>
+            <span className="inline-block mt-1 border-2 border-black rounded px-1 text-[9px] font-black uppercase" style={{ backgroundColor: rar.color, color: rar.rank >= 3 ? '#000' : '#fff' }}>
+              {rar.emoji} {rar.label}
+            </span>
           </div>
-          <span className="inline-block mt-1 border-2 border-black rounded px-1 text-[9px] font-black uppercase" style={{ backgroundColor: rar.color, color: rar.rank >= 3 ? '#000' : '#fff' }}>
-            {rar.emoji} {rar.label}
-          </span>
+          <div className="text-right">
+            <p className="text-black/40 text-[9px] font-black uppercase">nota / pot</p>
+            <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{rating} / <span style={{ color: rar.color }}>{legend.truePotential}</span></p>
+          </div>
+          <div onClick={e => e.stopPropagation()}>
+            <BrutalButton color={C.green} full={false} className="!px-3 !py-2 !text-[10px]"
+              onClick={() => dispatch({ type: 'DRAFT_PICK', legendId: legend.id, playerIndex: state.youIndex })}>Fisgar</BrutalButton>
+          </div>
         </div>
-        <div className="text-right">
-          <p className="text-black/40 text-[9px] font-black uppercase">nota / pot</p>
-          <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{rating} / <span style={{ color: rar.color }}>{legend.truePotential}</span></p>
-        </div>
-        <BrutalButton color={C.green} full={false} className="!px-3 !py-2 !text-[10px]"
-          onClick={() => dispatch({ type: 'DRAFT_PICK', legendId: legend.id, playerIndex: state.youIndex })}>Fisgar</BrutalButton>
-      </div>
-    </BrutalCard>
+      </BrutalCard>
+
+      <AnimatePresence>
+        {open && (
+          <PlayerDetailModal
+            player={asPlayer}
+            year={state.year}
+            onClose={() => setOpen(false)}
+            onAction={{ label: '⭐ Fisgar este jogador', color: C.green, onClick: () => dispatch({ type: 'DRAFT_PICK', legendId: legend.id, playerIndex: state.youIndex }) }}
+          />
+        )}
+      </AnimatePresence>
+    </>
   )
 }
 
