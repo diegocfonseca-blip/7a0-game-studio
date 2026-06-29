@@ -20,6 +20,37 @@ export const START_CLUBS: { id: string; name: string; city: string }[] = [
 // The AI "friends" who came back to 1992 with you.
 export const AI_MANAGERS = ['Tonhão', 'PC Magrão', 'Régis da Vila', 'Marcão Pelado', 'Dão', 'Biriba', 'Serjão']
 
+// CPU clubs that fill the pyramid. Index 0 = 1ª divisão (elite) … 3 = 4ª.
+// The 4ª has only 6 here — the 4 human managers complete the 10.
+export const CPU_POOLS: { name: string; city: string }[][] = [
+  [ // 1ª divisão (elite)
+    { name: 'Fla', city: 'Rio-RJ' }, { name: 'Verdão', city: 'São Paulo-SP' }, { name: 'Timão', city: 'São Paulo-SP' },
+    { name: 'Tricolor SP', city: 'São Paulo-SP' }, { name: 'Peixe', city: 'Santos-SP' }, { name: 'Imortal', city: 'Porto Alegre-RS' },
+    { name: 'Colorado', city: 'Porto Alegre-RS' }, { name: 'Raposa', city: 'Belo Horizonte-MG' }, { name: 'Galo', city: 'Belo Horizonte-MG' },
+    { name: 'Gigante', city: 'Rio-RJ' },
+  ],
+  [ // 2ª divisão
+    { name: 'Fogão', city: 'Rio-RJ' }, { name: 'Flu', city: 'Rio-RJ' }, { name: 'Esquadrão', city: 'Salvador-BA' },
+    { name: 'Leão da Ilha', city: 'Recife-PE' }, { name: 'Esmeraldino', city: 'Goiânia-GO' }, { name: 'Coxa', city: 'Curitiba-PR' },
+    { name: 'Furacão', city: 'Curitiba-PR' }, { name: 'Leão BA', city: 'Salvador-BA' }, { name: 'Timbu', city: 'Recife-PE' }, { name: 'Bugre', city: 'Campinas-SP' },
+  ],
+  [ // 3ª divisão
+    { name: 'Leão SC', city: 'Florianópolis-SC' }, { name: 'Verdão SC', city: 'Chapecó-SC' }, { name: 'Macaca', city: 'Campinas-SP' },
+    { name: 'Tricolor PR', city: 'Curitiba-PR' }, { name: 'Coelho', city: 'Belo Horizonte-MG' }, { name: 'Figueira', city: 'Florianópolis-SC' },
+    { name: 'Tigre', city: 'Criciúma-SC' }, { name: 'Ju', city: 'Caxias-RS' }, { name: 'Galo AL', city: 'Maceió-AL' }, { name: 'Azulão AL', city: 'Maceió-AL' },
+  ],
+  [ // 4ª divisão (humans complete this one)
+    { name: 'Bolívia Q.', city: 'São Luís-MA' }, { name: 'Papão', city: 'Belém-PA' }, { name: 'Leão Azul', city: 'Belém-PA' },
+    { name: 'Tigre GO', city: 'Goiânia-GO' }, { name: 'Tubarão', city: 'Londrina-PR' }, { name: 'Alvinegro RN', city: 'Natal-RN' },
+  ],
+]
+
+// CPU strength by division (1ª strongest, 4ª weakest)
+export function divisionStrength(division: number): number {
+  const base = ({ 1: 76, 2: 66, 3: 56, 4: 44 }[division] ?? 44)
+  return base + Math.floor(Math.random() * 7) - 3
+}
+
 const FIRST = ['Cláudio', 'Edson', 'Wagner', 'Marcelo', 'Fábio', 'Robson', 'Luís', 'Sandro', 'Adilson', 'Nivaldo', 'Jair', 'Válter', 'Gilmar', 'Toninho', 'Reginaldo', 'Cleber', 'Mauro', 'Élton', 'Dener', 'Wilson']
 const NICK = ['Tatu', 'Pelé da Várzea', 'Cabeção', 'Foguinho', 'Perna', 'Canhota', 'Mão de Onça', 'Galo', 'Tanque', 'Pituca', 'Trovão', 'Régua', 'Boi', 'Picolé', 'Dentinho', 'Maestro', 'Muralha', 'Raposa', 'Flecha', 'Paredão']
 
