@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { useDraft, availableLegends } from './store'
+import { useDraft, availableLegends, teamOf, divTeams } from './store'
 import { START_CLUBS, squadStrength } from './data'
 import { rarityOf } from '../empresario/data/career'
 import { getCurrentRating } from '../empresario/data/legends'
 import type { Legend } from '../empresario/types'
-import { C, BrutalCard, BrutalButton, BrutalTag, POS_COLOR, FLAG } from '../empresario/ui'
+import type { GameMode } from './types'
+import { C, money, BrutalCard, BrutalButton, BrutalTag, POS_COLOR, FLAG } from '../empresario/ui'
 
 const DIV = (d: number) => ({ 1: '1ª (Elite)', 2: '2ª Divisão', 3: '3ª Divisão', 4: '4ª Divisão' }[d] ?? `${d}ª`)
 
@@ -29,7 +30,7 @@ export function DraftIntro() {
               Quando vocês acordaram, era <b>1992</b>. Você e a galera voltaram no tempo — e <b>só vocês lembram</b> quem vai virar lenda do futebol.
             </p>
             <p className="text-black text-sm font-bold leading-relaxed mt-2">
-              Agora cada um pega um timeco da <b>4ª divisão</b> e começa a corrida: a cada rodada, o <b>draft</b> abre e vocês disputam pra fisgar os futuros craques antes uns dos outros. Quem montar a maior dinastia vence.
+              Agora cada um pega um timeco da <b>4ª divisão</b> e começa a corrida: a cada 5 rodadas, o <b>draft</b> abre e vocês disputam pra fisgar os futuros craques antes uns dos outros. Quem montar a maior dinastia vence.
             </p>
           </BrutalCard>
           <BrutalButton color={C.yellow} textColor="#000" onClick={() => dispatch({ type: 'START' })}>
@@ -45,6 +46,14 @@ export function DraftIntro() {
 export function DraftPickClub() {
   const { dispatch } = useDraft()
   const [name, setName] = useState('')
+  const [mode, setMode] = useState<GameMode>('draft')
+
+  const MODES: { value: GameMode; label: string; desc: string }[] = [
+    { value: 'draft', label: '🎟️ Draft', desc: 'A cada 5 rodadas, pior escolhe primeiro' },
+    { value: 'leilao', label: '💰 Leilão', desc: 'Lance cego — quem pagar mais leva' },
+    { value: 'draft_leilao', label: '🔀 Draft + Leilão', desc: 'Alterna entre os dois modos' },
+  ]
+
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
       <div className="border-b-[3px] border-black px-4 py-3 sticky top-0 z-20" style={{ backgroundColor: C.black }}>
@@ -56,11 +65,30 @@ export function DraftPickClub() {
           <input value={name} onChange={e => setName(e.target.value)} placeholder="Como te chamam?"
             className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black" style={{ backgroundColor: '#fff' }} />
         </BrutalCard>
-        <p className="text-black/50 text-xs font-bold">Todos começam na 4ª divisão com um elenco de desconhecidos. A diferença vai ser o que você draftar.</p>
+
+        <div>
+          <p className="text-black/50 text-[10px] font-black uppercase tracking-widest mb-2">Modo de jogo</p>
+          <div className="space-y-2">
+            {MODES.map(m => (
+              <BrutalCard key={m.value} color={mode === m.value ? C.yellow : 'white'} className="p-3 cursor-pointer" shadow={mode === m.value ? 5 : 2}
+                onClick={() => setMode(m.value)}>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{mode === m.value ? '✅' : '⬜'}</span>
+                  <div>
+                    <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{m.label}</p>
+                    <p className="text-black/50 text-[11px] font-bold">{m.desc}</p>
+                  </div>
+                </div>
+              </BrutalCard>
+            ))}
+          </div>
+        </div>
+
+        <p className="text-black/50 text-xs font-bold">Todos começam na 4ª divisão com um elenco de desconhecidos. A diferença vai ser o que você fisgar.</p>
         <div className="grid grid-cols-2 gap-3">
           {START_CLUBS.map(c => (
             <BrutalCard key={c.id} color="white" className="p-3" shadow={4}
-              onClick={() => dispatch({ type: 'PICK_CLUB', clubId: c.id, managerName: name.trim() })}>
+              onClick={() => dispatch({ type: 'PICK_CLUB', clubId: c.id, managerName: name.trim(), mode })}>
               <p className="text-2xl mb-1">🛡️</p>
               <p className="font-black text-black text-sm leading-tight" style={{ fontFamily: 'Oswald, sans-serif' }}>{c.name}</p>
               <p className="text-black/40 text-[10px] font-bold">{c.city}</p>
@@ -75,9 +103,11 @@ export function DraftPickClub() {
 // ─── HUB ───────────────────────────────────────────────────────
 export function DraftHub() {
   const { state, dispatch } = useDraft()
-  const you = state.managers[state.youIndex]
-  const table = [...state.managers].sort((a, b) => b.points - a.points || (b.gf - b.ga) - (a.gf - a.ga))
-  const yourPos = table.findIndex(m => m.id === you.id) + 1
+  const you = state.humans[state.youIndex]
+  const myTeam = teamOf(state, you)
+  const division = myTeam.division
+  const divTable = divTeams(state, division)
+  const yourPos = divTable.findIndex(t => t.id === myTeam.id) + 1
   const squad = [...you.squad].sort((a, b) => b.rating - a.rating)
   const legendsCount = you.squad.filter(p => p.legendId).length
 
@@ -87,7 +117,7 @@ export function DraftHub() {
         <div className="max-w-md mx-auto flex items-center justify-between">
           <BrutalTag color={C.yellow}>TEMP {state.season} · {state.year}</BrutalTag>
           <span className="text-white/50 font-mono text-xs">rodada {state.round}/{state.roundsPerSeason}</span>
-          <BrutalTag color={C.teal}>{DIV(state.division)}</BrutalTag>
+          <BrutalTag color={C.teal}>{DIV(division)}</BrutalTag>
         </div>
       </div>
 
@@ -95,19 +125,24 @@ export function DraftHub() {
         {/* your club hero */}
         <BrutalCard color={C.purple} className="p-5" shadow={6}>
           <p className="text-white/70 font-mono text-xs uppercase tracking-widest">Seu clube</p>
-          <p className="text-white font-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{you.clubName}</p>
-          <div className="grid grid-cols-3 gap-2 mt-3">
+          <p className="text-white font-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{myTeam.name}</p>
+          <p className="text-white/50 text-xs font-bold">{myTeam.city}</p>
+          <div className="grid grid-cols-4 gap-2 mt-3">
             <div className="bg-white/15 border-2 border-black rounded-lg p-2 text-center">
-              <p className="text-white/60 text-[10px] font-black uppercase">Posição</p>
+              <p className="text-white/60 text-[10px] font-black uppercase">Pos</p>
               <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{yourPos}º</p>
             </div>
             <div className="bg-white/15 border-2 border-black rounded-lg p-2 text-center">
-              <p className="text-white/60 text-[10px] font-black uppercase">Força XI</p>
+              <p className="text-white/60 text-[10px] font-black uppercase">Força</p>
               <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{Math.round(squadStrength(you.squad, you.lineupIds))}</p>
             </div>
             <div className="bg-white/15 border-2 border-black rounded-lg p-2 text-center">
               <p className="text-white/60 text-[10px] font-black uppercase">Lendas</p>
               <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{legendsCount}</p>
+            </div>
+            <div className="bg-white/15 border-2 border-black rounded-lg p-2 text-center">
+              <p className="text-white/60 text-[10px] font-black uppercase">Caixa</p>
+              <p className="text-white font-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(you.money)}</p>
             </div>
           </div>
         </BrutalCard>
@@ -165,22 +200,30 @@ export function DraftHub() {
           </BrutalCard>
         )}
 
-        {/* standings */}
+        {/* standings — your division only, link to full table */}
         <div>
-          <h2 className="font-black text-black mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>📊 CLASSIFICAÇÃO</h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>📊 {DIV(division)}</h2>
+            <button onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'table' })}
+              className="border-2 border-black rounded-lg px-2 py-1 text-[10px] font-black bg-white">Tabela completa →</button>
+          </div>
           <BrutalCard color="white" className="p-0 overflow-hidden">
-            {table.map((m, i) => (
-              <div key={m.id} className="flex items-center gap-2 px-3 py-2 border-b-2 border-black/10"
-                   style={{ backgroundColor: m.isYou ? C.yellow : 'transparent' }}>
-                <span className="w-5 text-center font-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{i + 1}</span>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-black truncate ${m.isYou ? 'text-black' : 'text-black/70'}`}>{m.isYou ? '⭐ ' : ''}{m.clubName}</p>
-                  <p className="text-black/40 text-[10px] font-bold">{m.name} · {m.lastResult}</p>
+            {divTable.map((t, i) => {
+              const isYou = t.humanIndex === state.youIndex
+              const mgr = t.isHuman ? state.humans[t.humanIndex!] : null
+              return (
+                <div key={t.id} className="flex items-center gap-2 px-3 py-2 border-b-2 border-black/10"
+                     style={{ backgroundColor: isYou ? C.yellow : 'transparent' }}>
+                  <span className="w-5 text-center font-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-black truncate ${isYou ? 'text-black' : 'text-black/70'}`}>{isYou ? '⭐ ' : ''}{t.name}</p>
+                    <p className="text-black/40 text-[10px] font-bold">{mgr ? mgr.name : t.city} · {t.lastResult}</p>
+                  </div>
+                  <span className="text-black/40 text-[10px] font-bold">{t.played}j</span>
+                  <span className="font-black text-black text-sm w-7 text-right" style={{ fontFamily: 'Oswald, sans-serif' }}>{t.points}</span>
                 </div>
-                <span className="text-black/40 text-[10px] font-bold">{m.played}j</span>
-                <span className="font-black text-black text-sm w-7 text-right" style={{ fontFamily: 'Oswald, sans-serif' }}>{m.points}</span>
-              </div>
-            ))}
+              )
+            })}
           </BrutalCard>
         </div>
 
@@ -217,6 +260,83 @@ export function DraftHub() {
             ))}
           </BrutalCard>
         )}
+
+        {/* new game */}
+        <button onClick={() => dispatch({ type: 'NEW_GAME' })} className="w-full text-center text-[10px] font-black text-black/30 py-2">
+          ↺ Novo jogo
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── FULL TABLE (all 4 divisions) ──────────────────────────────
+export function DraftTable() {
+  const { state, dispatch } = useDraft()
+  const you = state.humans[state.youIndex]
+  const myTeam = teamOf(state, you)
+
+  return (
+    <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
+      <div className="border-b-[3px] border-black px-4 py-3 sticky top-0 z-20" style={{ backgroundColor: C.black }}>
+        <div className="max-w-md mx-auto flex items-center gap-3">
+          <button onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'hub' })} className="text-white text-2xl font-black">←</button>
+          <h1 className="text-white font-black text-lg flex-1" style={{ fontFamily: 'Oswald, sans-serif' }}>📊 TABELA GERAL</h1>
+          <BrutalTag color={C.yellow}>TEMP {state.season}</BrutalTag>
+        </div>
+      </div>
+
+      <div className="max-w-md mx-auto px-4 py-4 space-y-6">
+        {[1, 2, 3, 4].map(d => {
+          const table = divTeams(state, d)
+          return (
+            <div key={d}>
+              <h2 className="font-black text-black mb-2 flex items-center gap-2" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                {DIV(d)}
+                {d === 1 && <BrutalTag color={C.yellow}>ELITE</BrutalTag>}
+              </h2>
+              <BrutalCard color="white" className="p-0 overflow-hidden">
+                <div className="flex items-center gap-1 px-3 py-1 border-b-2 border-black bg-black text-white text-[9px] font-black uppercase">
+                  <span className="w-5 text-center">#</span>
+                  <span className="flex-1">Clube</span>
+                  <span className="w-5 text-center">J</span>
+                  <span className="w-5 text-center">V</span>
+                  <span className="w-5 text-center">E</span>
+                  <span className="w-5 text-center">D</span>
+                  <span className="w-8 text-center">SG</span>
+                  <span className="w-6 text-center">Pts</span>
+                </div>
+                {table.map((t, i) => {
+                  const isYou = t.id === myTeam.id
+                  const promoted = d > 1 && i < 2
+                  const relegated = d < 4 && i >= table.length - 2
+                  return (
+                    <div key={t.id} className="flex items-center gap-1 px-3 py-2 border-b border-black/10"
+                         style={{ backgroundColor: isYou ? C.yellow : promoted ? '#dcfce7' : relegated ? '#fee2e2' : 'transparent' }}>
+                      <span className="w-5 text-center font-black text-xs">{i + 1}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-black truncate">{isYou ? '⭐ ' : ''}{t.name}</p>
+                        {t.isHuman && <p className="text-[9px] text-black/40 font-bold">{state.humans[t.humanIndex!].name}</p>}
+                      </div>
+                      <span className="w-5 text-center text-xs font-bold text-black/60">{t.played}</span>
+                      <span className="w-5 text-center text-xs font-bold text-black/60">{t.wins}</span>
+                      <span className="w-5 text-center text-xs font-bold text-black/60">{t.draws}</span>
+                      <span className="w-5 text-center text-xs font-bold text-black/60">{t.losses}</span>
+                      <span className="w-8 text-center text-xs font-bold text-black/60">{t.gf - t.ga > 0 ? '+' : ''}{t.gf - t.ga}</span>
+                      <span className="w-6 text-center font-black text-sm">{t.points}</span>
+                    </div>
+                  )
+                })}
+              </BrutalCard>
+              {d < 4 && (
+                <div className="flex gap-4 mt-1 px-1">
+                  <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#dcfce7', border: '1px solid #86efac' }} /><span className="text-[9px] text-black/40 font-bold">Sobe</span></div>
+                  <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#fee2e2', border: '1px solid #fca5a5' }} /><span className="text-[9px] text-black/40 font-bold">Desce</span></div>
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -226,7 +346,7 @@ export function DraftHub() {
 export function DraftRoom() {
   const { state, dispatch } = useDraft()
   const pool = availableLegends(state).slice(0, 30)
-  const you = state.managers[state.youIndex]
+  const you = state.humans[state.youIndex]
 
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
@@ -292,7 +412,7 @@ export function DraftRoom() {
 // ─── LINEUP ────────────────────────────────────────────────────
 export function DraftLineup() {
   const { state, dispatch } = useDraft()
-  const you = state.managers[state.youIndex]
+  const you = state.humans[state.youIndex]
   const xi = you.lineupIds.length
   const order: Record<string, number> = { GOL: 0, ZAG: 1, LAT: 2, MEI: 3, ATA: 4 }
   const squad = [...you.squad].sort((a, b) => (order[a.pos] - order[b.pos]) || b.rating - a.rating)

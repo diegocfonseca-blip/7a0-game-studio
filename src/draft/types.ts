@@ -1,30 +1,29 @@
 import type { Position, Nationality } from '../empresario/types'
 
-export type DraftScreen = 'intro' | 'pickClub' | 'hub' | 'draft' | 'lineup'
+export type DraftScreen = 'intro' | 'pickClub' | 'hub' | 'draft' | 'lineup' | 'table' | 'match'
 export type Tactic = 'retranca' | 'equilibrio' | 'ataque'
+export type GameMode = 'draft' | 'leilao' | 'draft_leilao'
 
-// A roster player — either a generated "unknown" or a real legend from the DB.
 export interface DraftPlayer {
   id: string
   name: string
   pos: Position
-  rating: number          // for legends: getCurrentRating(year) + devBonus
-  legendId?: string       // set when this is a legend from the shared DB
+  rating: number
+  legendId?: string
   nationality?: Nationality
-  potential?: number      // truePotential — only YOU and your friends can see it
-  devBonus?: number       // permanent growth earned by getting minutes (jovem que joga cresce)
+  potential?: number      // truePotential — only humans (you + friends) can see it
+  devBonus?: number       // permanent growth from getting minutes
 }
 
-export interface Manager {
+// Every club in the pyramid — humans and CPU alike — has a league row.
+export interface LeagueTeam {
   id: string
   name: string
-  isYou: boolean
-  clubName: string
-  clubCity: string
-  squad: DraftPlayer[]
-  lineupIds: string[]     // the 11 starters you picked
-  tactic: Tactic
-  // standings
+  city: string
+  division: number        // 1 (elite) … 4 (bottom)
+  isHuman: boolean
+  humanIndex?: number     // index into humans[] when isHuman
+  strength: number        // CPU: fixed-ish; human: recomputed from the fielded XI
   points: number
   played: number
   wins: number
@@ -35,26 +34,50 @@ export interface Manager {
   lastResult: string
 }
 
+// A human manager (you or an AI "friend").
+export interface Manager {
+  id: string
+  name: string
+  isYou: boolean
+  teamId: string
+  squad: DraftPlayer[]
+  lineupIds: string[]
+  tactic: Tactic
+  money: number
+}
+
+// A live (Elifoot-style) match in progress — only YOUR matches are played out.
+export interface LiveMatch {
+  oppName: string
+  oppStrength: number
+  minute: number
+  gf: number
+  ga: number
+  events: string[]        // minute-by-minute commentary
+  half: 1 | 2 | 'ht' | 'ft'
+  division: number
+}
+
 export interface DraftState {
   screen: DraftScreen
   started: boolean
+  mode: GameMode
   year: number
-  week: number
   season: number
-  division: number          // 4 = start, 1 = elite
   round: number             // matchday within the season
   roundsPerSeason: number
-  managers: Manager[]
+  windowEvery: number       // a draft/auction opens every N rounds
+  teams: LeagueTeam[]       // the whole 4×10 world
+  humans: Manager[]
   youIndex: number
-  ownedLegendIds: string[]  // a legend, once drafted, is gone for everyone (unique!)
+  ownedLegendIds: string[]
   rosterMax: number
-  // ── draft phase ──
+  live: LiveMatch | null    // your match being played out
+  // ── draft window ──
   inDraft: boolean
-  draftKind: 'initial' | 'season'
-  draftOrder: number[]      // manager indices for the current pass
-  draftPos: number          // pointer into draftOrder
-  draftRoundsLeft: number   // how many full passes remain in this draft
-  pendingDrop: boolean      // your squad is full — you must drop before picking
+  draftOrder: number[]      // human indices, worst-first
+  draftPos: number
+  pendingDrop: boolean
   lastPickText: string[]
   narrative: string[]
 }
