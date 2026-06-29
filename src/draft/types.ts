@@ -24,6 +24,7 @@ export interface LeagueTeam {
   isHuman: boolean
   humanIndex?: number
   strength: number
+  squad?: DraftPlayer[]
   points: number
   played: number
   wins: number

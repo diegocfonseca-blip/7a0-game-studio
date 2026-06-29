@@ -13,7 +13,10 @@ export type Screen =
 
 export type Position = 'ATA' | 'MEI' | 'ZAG' | 'LAT' | 'GOL'
 export type Personality = 'leal' | 'ambicioso' | 'difícil' | 'humilde'
-export type Nationality = 'BR' | 'AR' | 'FR' | 'IT' | 'PT' | 'ES' | 'NL' | 'DE' | 'EN'
+export type Nationality =
+  | 'BR' | 'AR' | 'FR' | 'IT' | 'PT' | 'ES' | 'NL' | 'DE' | 'EN'
+  | 'DK' | 'SE' | 'BG' | 'HR' | 'YU' | 'RO' | 'CZ' | 'UA'
+  | 'NG' | 'LR' | 'CM' | 'CO' | 'CL' | 'IE'
 export type PlayerStatus = 'pelada' | 'base' | 'pro' | 'estrela'
 
 export interface Legend {

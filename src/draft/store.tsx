@@ -2,7 +2,8 @@ import { createContext, useContext, useReducer, useEffect, useRef, useCallback }
 import type { ReactNode } from 'react'
 import type { DraftState, DraftScreen, Manager, DraftPlayer, LeagueTeam, Tactic, GameMode, MatchEvent, LiveMatch } from './types'
 import { supabase } from '../lib/supabase'
-import { START_CLUBS, AI_MANAGERS, CPU_POOLS, divisionStrength, generateFillerSquad, squadStrength, bestEleven } from './data'
+import { START_CLUBS, AI_MANAGERS, CPU_POOLS, generateFillerSquad, squadStrength, bestEleven } from './data'
+import { getCpuSquad } from './rosters'
 import { LEGENDS, getCurrentRating } from '../empresario/data/legends'
 import type { Legend } from '../empresario/types'
 
@@ -288,7 +289,7 @@ function seasonEnd(state: DraftState): DraftState {
     })
     return { ...m, squad }
   })
-  teams = teams.map(t => ({ ...t, points: 0, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, lastResult: '—', strength: t.isHuman ? t.strength : divisionStrength(t.division) }))
+  teams = teams.map(t => ({ ...t, points: 0, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, lastResult: '—', strength: t.isHuman ? t.strength : (t.squad ? Math.round(squadStrength(t.squad)) : t.strength) }))
   return { ...state, teams: recomputeHumanStrength(teams, humans), humans, season: state.season + 1, round: 0, year: newYear, screen: 'hub', narrative: [...state.narrative, `🏁 Fim da temporada ${state.season}.`, ...extra] }
 }
 
@@ -358,7 +359,11 @@ function reducer(state: DraftState, action: Action): DraftState {
       let cpuId = 0
       CPU_POOLS.forEach((pool, di) => {
         const division = di + 1
-        pool.forEach(c => teams.push({ id: `c${cpuId++}`, name: c.name, city: c.city, division, isHuman: false, strength: divisionStrength(division), points: 0, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, lastResult: '—' }))
+        pool.forEach(c => {
+          const squad = getCpuSquad(cpuId, division)
+          const strength = Math.round(squadStrength(squad))
+          teams.push({ id: `c${cpuId++}`, name: c.name, city: c.city, division, isHuman: false, strength, squad, points: 0, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, lastResult: '—' })
+        })
       })
       const modeLabel = action.mode === 'draft' ? 'DRAFT' : action.mode === 'leilao' ? 'LEILÃO' : 'DRAFT + LEILÃO'
       return {
