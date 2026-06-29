@@ -2,7 +2,7 @@ import { createContext, useContext, useReducer, useEffect, useRef, useCallback }
 import type { ReactNode } from 'react'
 import type { DraftState, DraftScreen, Manager, DraftPlayer, LeagueTeam, Tactic, GameMode, MatchEvent, LiveMatch } from './types'
 import { supabase } from '../lib/supabase'
-import { START_CLUBS, AI_MANAGERS, CPU_POOLS, generateFillerSquad, squadStrength, bestEleven } from './data'
+import { AI_MANAGERS, CPU_POOLS, squadStrength, bestEleven } from './data'
 import { getCpuSquad } from './rosters'
 import { LEGENDS, getCurrentRating } from '../empresario/data/legends'
 import type { Legend } from '../empresario/types'
@@ -342,36 +342,48 @@ function reducer(state: DraftState, action: Action): DraftState {
     case 'START': return { ...state, screen: 'pickClub' }
 
     case 'PICK_CLUB': {
-      const chosen = START_CLUBS.find(c => c.id === action.clubId)!
-      const others = START_CLUBS.filter(c => c.id !== action.clubId).sort(() => Math.random() - 0.5).slice(0, 3)
-      const aiNames = [...AI_MANAGERS].sort(() => Math.random() - 0.5)
-      const humanClubs = [
-        { club: chosen, mgr: action.managerName || 'Você', you: true },
-        ...others.map((c, i) => ({ club: c, mgr: state.playerNames[i + 1] ?? aiNames[i], you: false })),
-      ]
-      const humans: Manager[] = []
-      const teams: LeagueTeam[] = []
-      humanClubs.forEach((hc, i) => {
-        const squad = generateFillerSquad()
-        humans.push({ id: `h${i}`, name: hc.mgr, isYou: hc.you, teamId: `t-${hc.club.id}`, squad, lineupIds: bestEleven(squad), tactic: 'equilibrio', money: START_MONEY })
-        teams.push({ id: `t-${hc.club.id}`, name: hc.club.name, city: hc.club.city, division: 4, isHuman: true, humanIndex: i, strength: Math.round(squadStrength(squad)), points: 0, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, lastResult: '—' })
-      })
+      // Build ALL 40 CPU teams first
+      const allTeams: LeagueTeam[] = []
       let cpuId = 0
       CPU_POOLS.forEach((pool, di) => {
         const division = di + 1
         pool.forEach(c => {
           const squad = getCpuSquad(cpuId, division)
           const strength = Math.round(squadStrength(squad))
-          teams.push({ id: `c${cpuId++}`, name: c.name, city: c.city, division, isHuman: false, strength, squad, points: 0, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, lastResult: '—' })
+          allTeams.push({ id: `c${cpuId++}`, name: c.name, city: c.city, division, isHuman: false, strength, squad, points: 0, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, lastResult: '—' })
         })
       })
+
+      // Human picks one of the div-4 teams (c30–c39)
+      const chosenTeam = allTeams.find(t => t.id === action.clubId)!
+      const div4Remaining = allTeams.filter(t => t.division === 4 && t.id !== action.clubId)
+      const aiNames = [...AI_MANAGERS].sort(() => Math.random() - 0.5)
+      const friendCount = state.onlineMode === 'online' ? state.totalPlayers - 1 : 3
+      const friendTeams = [...div4Remaining].sort(() => Math.random() - 0.5).slice(0, friendCount)
+
+      const humans: Manager[] = []
+      const youSquad = chosenTeam.squad ?? []
+      humans.push({ id: 'h0', name: action.managerName || 'Você', isYou: true, teamId: action.clubId, squad: youSquad, lineupIds: bestEleven(youSquad), tactic: 'equilibrio', money: START_MONEY })
+      friendTeams.forEach((ft, i) => {
+        const friendSquad = ft.squad ?? []
+        humans.push({ id: `h${i + 1}`, name: state.playerNames[i + 1] ?? aiNames[i] ?? `Técnico ${i + 2}`, isYou: false, teamId: ft.id, squad: friendSquad, lineupIds: bestEleven(friendSquad), tactic: 'equilibrio', money: START_MONEY })
+      })
+
+      // Mark human-controlled teams in the full 40-team array
+      const teams = allTeams.map(t => {
+        if (t.id === action.clubId) return { ...t, isHuman: true, humanIndex: 0 }
+        const fi = friendTeams.findIndex(ft => ft.id === t.id)
+        if (fi >= 0) return { ...t, isHuman: true, humanIndex: fi + 1 }
+        return t
+      })
+
       const modeLabel = action.mode === 'draft' ? 'DRAFT' : action.mode === 'leilao' ? 'LEILÃO' : 'DRAFT + LEILÃO'
       return {
         ...state, started: true, screen: 'hub', mode: action.mode, teams, humans, youIndex: 0,
         narrative: [
           `⚡ O raio caiu na pelada dos casados e jogou a galera de volta pra 1992.`,
           `Só vocês lembram quem vai virar lenda. Modo: ${modeLabel}.`,
-          `Você assumiu o ${chosen.name} na 4ª divisão (R$1 milhão no caixa). A cada ${WINDOW_EVERY} jogos abre a janela pra fisgar um craque — pior colocado escolhe primeiro.`,
+          `Você assumiu o ${chosenTeam.name} na 4ª divisão (R$1 milhão no caixa). A cada ${WINDOW_EVERY} jogos abre a janela pra fisgar um craque — pior colocado escolhe primeiro.`,
         ],
       }
     }

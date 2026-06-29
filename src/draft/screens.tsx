@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useDraft, availableLegends, teamOf, divTeams } from './store'
-import { START_CLUBS, squadStrength } from './data'
+import { CPU_POOLS, squadStrength } from './data'
 import { rarityOf } from '../empresario/data/career'
 import { getCurrentRating, LEGENDS } from '../empresario/data/legends'
 import type { Legend } from '../empresario/types'
@@ -84,16 +84,19 @@ export function DraftPickClub() {
           </div>
         </div>
 
-        <p className="text-black/50 text-xs font-bold">Todos começam na 4ª divisão com um elenco de desconhecidos. A diferença vai ser o que você fisgar.</p>
+        <p className="text-black/50 text-xs font-bold">Todos começam na 4ª divisão. Escolha seu time — elenco já montado, você decide quem contratar no draft.</p>
         <div className="grid grid-cols-2 gap-3">
-          {START_CLUBS.map(c => (
-            <BrutalCard key={c.id} color="white" className="p-3" shadow={4}
-              onClick={() => dispatch({ type: 'PICK_CLUB', clubId: c.id, managerName: name.trim(), mode })}>
-              <p className="text-2xl mb-1">🛡️</p>
-              <p className="font-black text-black text-sm leading-tight" style={{ fontFamily: 'Oswald, sans-serif' }}>{c.name}</p>
-              <p className="text-black/40 text-[10px] font-bold">{c.city}</p>
-            </BrutalCard>
-          ))}
+          {CPU_POOLS[3].map((c, i) => {
+            const id = `c${30 + i}`
+            return (
+              <BrutalCard key={id} color="white" className="p-3" shadow={4}
+                onClick={() => dispatch({ type: 'PICK_CLUB', clubId: id, managerName: name.trim(), mode })}>
+                <p className="text-2xl mb-1">🛡️</p>
+                <p className="font-black text-black text-sm leading-tight" style={{ fontFamily: 'Oswald, sans-serif' }}>{c.name}</p>
+                <p className="text-black/40 text-[10px] font-bold">{c.city}</p>
+              </BrutalCard>
+            )
+          })}
         </div>
       </div>
     </div>
