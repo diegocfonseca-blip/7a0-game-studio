@@ -77,6 +77,7 @@ export function generateFillerSquad(): DraftPlayer[] {
       pos,
       rating: 38 + Math.floor(Math.random() * 14), // 38–51, true journeymen
       nationality: 'BR' as Nationality,
+      age: 20 + Math.floor(Math.random() * 15), // 20–34
     }
   })
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useDraft, availableLegends, teamOf, divTeams } from './store'
 import { CPU_POOLS, squadStrength } from './data'
@@ -581,15 +581,22 @@ export function DraftLineup() {
   const xiIds = new Set(you.lineupIds)
   const isUnavailable = (p: { injury?: number; suspended?: boolean }) => (p.injury ?? 0) > 0 || !!p.suspended
   const xi = you.squad.filter(p => xiIds.has(p.id))
-  const bench = you.squad.filter(p => !xiIds.has(p.id)).sort((a, b) => b.rating - a.rating)
+  const posOrder: Record<string, number> = { GOL: 0, ZAG: 1, LAT: 2, MEI: 3, ATA: 4 }
+  const bench = you.squad.filter(p => !xiIds.has(p.id)).sort((a, b) => (posOrder[a.pos] ?? 5) - (posOrder[b.pos] ?? 5) || b.rating - a.rating)
   const xiCount = xi.length
   const [detailPlayer, setDetailPlayer] = useState<DraftPlayer | null>(null)
 
-  // Build pitch rows: ATA → MEI → DEF (ZAG+LAT) → GOL
+  // Build pitch rows: ATA → MEI → DEF (LAT-ZAG-ZAG-LAT order) → GOL
+  const defPlayers = xi.filter(p => p.pos === 'ZAG' || p.pos === 'LAT')
+  const defLATs = defPlayers.filter(p => p.pos === 'LAT')
+  const defZAGs = defPlayers.filter(p => p.pos === 'ZAG')
+  const defOrdered = defLATs.length >= 2
+    ? [defLATs[0], ...defZAGs, ...defLATs.slice(1)]
+    : [...defLATs, ...defZAGs]
   const pitchRows: Array<{ label: string; players: typeof xi }> = [
     { label: 'ATA', players: xi.filter(p => p.pos === 'ATA') },
     { label: 'MEI', players: xi.filter(p => p.pos === 'MEI') },
-    { label: 'DEF', players: xi.filter(p => p.pos === 'ZAG' || p.pos === 'LAT') },
+    { label: 'DEF', players: defOrdered },
     { label: 'GOL', players: xi.filter(p => p.pos === 'GOL') },
   ].filter(r => r.players.length > 0)
 
@@ -810,8 +817,6 @@ export function DraftMatch() {
   const live = state.live
   const you = state.humans[state.youIndex]
   const myTeam = teamOf(state, you)
-  const eventsEndRef = useRef<HTMLDivElement>(null)
-
   // Auto-tick during first and second half — host only in online mode
   useEffect(() => {
     if (!live || live.half === 'ht' || live.half === 'ft') return
@@ -819,11 +824,6 @@ export function DraftMatch() {
     const id = setInterval(() => dispatch({ type: 'TICK_MATCH' }), 900)
     return () => clearInterval(id)
   }, [live?.half, state.onlineMode, state.isHost, dispatch])
-
-  // Scroll to latest event
-  useEffect(() => {
-    eventsEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [live?.events.length])
 
   if (!live) return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: C.cream }}><p className="font-black text-black">Carregando...</p></div>
 
@@ -845,9 +845,26 @@ export function DraftMatch() {
     else if (ev.gaAfter > _pGa) awayGoalMins.push(ev.min)
     _pGf = ev.gfAfter; _pGa = ev.gaAfter
   }
-  const lastEvent = live.events.filter(e => e.trim()).at(-1)
-  const isLastGoal = lastEvent?.includes('⚽')
-  const isLastOppGoal = lastEvent?.includes('🔴')
+  // Build compact meaningful events (goals, cards, injuries only)
+  type MatchBadge = { min: number; icon: string; label: string; color: string }
+  const matchBadges: MatchBadge[] = []
+  let prevGf = 0, prevGa = 0
+  for (const ev of live.allEvents.filter(e => e.min <= live.minute)) {
+    if (ev.gfAfter > prevGf) matchBadges.push({ min: ev.min, icon: '⚽', label: myTeam.name.split(' ')[0], color: '#4ade80' })
+    else if (ev.gaAfter > prevGa) matchBadges.push({ min: ev.min, icon: '⚽', label: live.oppName.split(' ')[0], color: '#f87171' })
+    if (ev.yellowId) {
+      const yp = you.squad.find(p => p.id === ev.yellowId)
+      matchBadges.push({ min: ev.min, icon: '🟨', label: yp?.name.split(' ')[0] ?? '', color: '#fbbf24' })
+    }
+    if (ev.injuredId) {
+      const ip = you.squad.find(p => p.id === ev.injuredId)
+      matchBadges.push({ min: ev.min, icon: '🚑', label: ip?.name.split(' ')[0] ?? '', color: '#fb923c' })
+    }
+    prevGf = ev.gfAfter; prevGa = ev.gaAfter
+  }
+  const lastGoalEvent = [...matchBadges].reverse().find(b => b.icon === '⚽')
+  const justScored = lastGoalEvent && lastGoalEvent.color === '#4ade80' && lastGoalEvent.min === live.minute
+  const justConceded = lastGoalEvent && lastGoalEvent.color === '#f87171' && lastGoalEvent.min === live.minute
 
   // HT sub state
   const [subOut, setSubOut] = useState<string | null>(null)
@@ -1026,36 +1043,40 @@ export function DraftMatch() {
           </BrutalCard>
         )}
 
-        {/* Narração estilo Elifoot — último evento em destaque */}
-        {lastEvent && (
-          <motion.div key={lastEvent}
-            initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.25 }}
-            className="rounded-lg px-3 py-2.5 border-2"
-            style={{
-              borderColor: isLastGoal ? '#4ade80' : isLastOppGoal ? '#f87171' : 'rgba(255,255,255,0.15)',
-              backgroundColor: isLastGoal ? 'rgba(74,222,128,0.10)' : isLastOppGoal ? 'rgba(248,113,113,0.10)' : 'rgba(255,255,255,0.05)',
-            }}>
-            {isLastGoal && (
-              <motion.p key={`gol-flash-${live.gf}`}
-                initial={{ scale: 1.5, opacity: 1 }} animate={{ scale: 1, opacity: 0 }} transition={{ duration: 0.8, delay: 0.1 }}
-                className="text-center font-black text-green-400 text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>
-                ⚽ G O L !
-              </motion.p>
-            )}
-            <p className={`text-xs font-bold text-center ${isLastGoal ? 'text-green-300' : isLastOppGoal ? 'text-red-300' : 'text-white/70'}`}>
-              {lastEvent}
-            </p>
-          </motion.div>
+        {/* Animação de gol */}
+        <AnimatePresence>
+          {justScored && (
+            <motion.div key={`gol-${live.gf}`}
+              initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 1.4, opacity: 0 }}
+              transition={{ duration: 0.35 }}
+              className="rounded-xl border-[3px] border-green-400 bg-green-400/15 py-3 text-center">
+              <p className="font-black text-green-300 text-3xl" style={{ fontFamily: 'Oswald, sans-serif' }}>⚽ G O L !</p>
+              <p className="text-green-400 text-xs font-bold mt-0.5">{myTeam.name}</p>
+            </motion.div>
+          )}
+          {justConceded && (
+            <motion.div key={`ga-${live.ga}`}
+              initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 1.4, opacity: 0 }}
+              transition={{ duration: 0.35 }}
+              className="rounded-xl border-[3px] border-red-400 bg-red-400/10 py-2 text-center">
+              <p className="font-black text-red-300 text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>⚽ Gol deles...</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Log de eventos: apenas gols, cartões e lesões */}
+        {matchBadges.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {matchBadges.map((b, i) => (
+              <div key={i} className="flex items-center gap-1 rounded-full px-2 py-0.5 border border-white/20"
+                style={{ backgroundColor: b.color + '22' }}>
+                <span className="text-[11px]">{b.icon}</span>
+                <span className="text-[10px] font-black" style={{ color: b.color }}>{b.min}'</span>
+                {b.label && <span className="text-[10px] font-bold text-white/70">{b.label}</span>}
+              </div>
+            ))}
+          </div>
         )}
-        {/* Histórico compacto (últimos 3 eventos anteriores) */}
-        <div className="space-y-0.5">
-          {live.events.filter(e => e.trim()).slice(-4, -1).reverse().map((e, i) => {
-            const isG = e.includes('⚽'); const isO = e.includes('🔴')
-            return (
-              <p key={i} className={`text-[10px] font-bold text-center ${isG ? 'text-green-400/60' : isO ? 'text-red-400/60' : 'text-white/30'}`}>{e}</p>
-            )
-          })}
-        </div>
       </div>
     </div>
   )
