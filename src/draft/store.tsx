@@ -9,7 +9,7 @@ import type { Legend } from '../empresario/types'
 
 const ROUNDS_PER_SEASON = 12
 const WINDOW_EVERY = 5
-const ROSTER_MAX = 23
+const ROSTER_MAX = 30
 const START_MONEY = 1_000_000
 
 const INITIAL: DraftState = {
@@ -80,6 +80,28 @@ function recomputeHumanStrength(teams: LeagueTeam[], humans: Manager[]): LeagueT
   return teams.map(t => t.isHuman && t.humanIndex !== undefined
     ? { ...t, strength: Math.round(squadStrength(humans[t.humanIndex].squad, humans[t.humanIndex].lineupIds)) }
     : t)
+}
+
+// When a player leaves a human squad, route them appropriately and return narration.
+function releasePlayer(
+  player: DraftPlayer,
+  teamName: string,
+  mode: DraftState['mode'],
+  ownedLegendIds: string[],
+  teams: LeagueTeam[]
+): { ownedLegendIds: string[]; teams: LeagueTeam[]; narrativeLine: string } {
+  if (player.legendId) {
+    const newOwned = ownedLegendIds.filter(id => id !== player.legendId)
+    const dest = mode === 'draft'
+      ? 'livre no mercado — disponível no próximo draft'
+      : 'volta ao mercado — vai a leilão na próxima janela'
+    return { ownedLegendIds: newOwned, teams, narrativeLine: `🔓 ${teamName} dispensou ${player.name} — ${dest}.` }
+  }
+  const cpuTeams = teams.filter(t => !t.isHuman)
+  if (cpuTeams.length === 0) return { ownedLegendIds, teams, narrativeLine: `📋 ${player.name} foi dispensado por ${teamName}.` }
+  const dest = cpuTeams[Math.floor(Math.random() * cpuTeams.length)]
+  const newTeams = teams.map(t => t.id === dest.id ? { ...t, squad: [...(t.squad ?? []), player] } : t)
+  return { ownedLegendIds, teams: newTeams, narrativeLine: `📋 ${player.name} saiu de ${teamName} e foi para o ${dest.name}.` }
 }
 
 // ── pre-generated match events (Elifoot style) ──
@@ -217,10 +239,21 @@ function aiPick(state: DraftState, hi: number): DraftState {
   const player = legendToPlayer(target, state.year)
   const humans = [...state.humans]
   let squad = [...humans[hi].squad]
-  if (squad.length >= state.rosterMax) { const w = [...squad].sort((a, b) => a.rating - b.rating)[0]; squad = squad.filter(p => p.id !== w.id) }
+  let ownedLegendIds = [...state.ownedLegendIds, target.id]
+  let teams = state.teams
+  const extraNarrative: string[] = []
+  if (squad.length >= state.rosterMax) {
+    const w = [...squad].sort((a, b) => a.rating - b.rating)[0]
+    squad = squad.filter(p => p.id !== w.id)
+    const aiTeam = teams.find(t => t.humanIndex === hi)
+    const rel = releasePlayer(w, aiTeam?.name ?? humans[hi].name, state.mode, ownedLegendIds, teams)
+    ownedLegendIds = rel.ownedLegendIds
+    teams = rel.teams
+    extraNarrative.push(rel.narrativeLine)
+  }
   squad.push(player)
   humans[hi] = { ...humans[hi], squad }
-  return { ...state, humans, ownedLegendIds: [...state.ownedLegendIds, target.id], lastPickText: [...state.lastPickText, `${humans[hi].name} escolheu ${target.nickname} (nota ${player.rating})`] }
+  return { ...state, humans, ownedLegendIds, teams, lastPickText: [...state.lastPickText, `${humans[hi].name} escolheu ${target.nickname} (nota ${player.rating})`], narrative: [...state.narrative, ...extraNarrative].slice(-60) }
 }
 function runDraft(state: DraftState): DraftState {
   let s = { ...state }
@@ -500,8 +533,12 @@ function reducer(state: DraftState, action: Action): DraftState {
     case 'DROP_PLAYER': {
       const humans = [...state.humans]
       const you = humans[state.youIndex]
+      const player = you.squad.find(p => p.id === action.playerId)
+      if (!player) return state
       humans[state.youIndex] = { ...you, squad: you.squad.filter(p => p.id !== action.playerId), lineupIds: (you.lineupIds ?? []).filter(id => id !== action.playerId) }
-      return { ...state, humans, pendingDrop: false }
+      const myTeam = state.teams.find(t => t.humanIndex === state.youIndex)
+      const { ownedLegendIds, teams, narrativeLine } = releasePlayer(player, myTeam?.name ?? 'Você', state.mode, state.ownedLegendIds, state.teams)
+      return { ...state, humans, pendingDrop: false, ownedLegendIds, teams: recomputeHumanStrength(teams, humans), narrative: [...state.narrative, narrativeLine].slice(-60) }
     }
 
     case 'SET_LINEUP': {
@@ -544,29 +581,33 @@ function reducer(state: DraftState, action: Action): DraftState {
         return { ...state, leilaoBids: bids, leilaoPhase: 'reveal' }
       }
       const winnerIdx = bids.indexOf(maxBid)
+      let leilaoTeams = state.teams
+      let leilaoOwned = [...state.ownedLegendIds, legendId]
+      const leilaoNarrative: string[] = []
       let newHumans = humans.map((h, i) => {
         if (i !== winnerIdx) return h
         let squad = [...h.squad]
         if (squad.length >= state.rosterMax) {
           const weakest = [...squad].sort((a, b) => a.rating - b.rating)[0]
           squad = squad.filter(p => p.id !== weakest.id)
+          const winTeam = leilaoTeams.find(t => t.humanIndex === i)
+          const rel = releasePlayer(weakest, winTeam?.name ?? h.name, state.mode, leilaoOwned, leilaoTeams)
+          leilaoOwned = rel.ownedLegendIds
+          leilaoTeams = rel.teams
+          leilaoNarrative.push(rel.narrativeLine)
         }
         squad.push(legendToPlayer(legend, state.year))
         return { ...h, squad, money: h.money - bids[i], lineupIds: bestEleven(squad) }
       })
-      const ownedLegendIds = [...state.ownedLegendIds, legendId]
       const winner = newHumans[winnerIdx]
-      const narrative = [...state.narrative,
-        `💰 ${winner.name} arrematou ${legend.nickname} por R$${bids[winnerIdx].toLocaleString('pt-BR')}!`
-      ].slice(-60)
       return {
         ...state,
         humans: newHumans,
-        ownedLegendIds,
+        ownedLegendIds: leilaoOwned,
         leilaoBids: bids,
         leilaoPhase: 'reveal',
-        narrative,
-        teams: recomputeHumanStrength(state.teams, newHumans),
+        narrative: [...state.narrative, `💰 ${winner.name} arrematou ${legend.nickname} por R$${bids[winnerIdx].toLocaleString('pt-BR')}!`, ...leilaoNarrative].slice(-60),
+        teams: recomputeHumanStrength(leilaoTeams, newHumans),
       }
     }
 
