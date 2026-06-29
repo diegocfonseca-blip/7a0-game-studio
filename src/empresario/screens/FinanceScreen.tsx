@@ -187,9 +187,7 @@ export default function FinanceScreen() {
             <BrutalButton color={C.orange} textColor="#fff" onClick={() => {
               if (confirm('Começar um jogo NOVO? Isso apaga seu progresso atual.')) dispatch({ type: 'NEW_GAME' })
             }}>🔄 Novo jogo</BrutalButton>
-            <BrutalButton color="white" textColor={C.black} onClick={() => {
-              localStorage.removeItem('selected-game'); location.reload()
-            }}>🎮 Trocar de jogo</BrutalButton>
+            <BrutalButton color="white" textColor={C.black} onClick={() => location.reload()}>🎮 Trocar de jogo</BrutalButton>
           </div>
         </BrutalCard>
       </div>

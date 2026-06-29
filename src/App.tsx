@@ -89,12 +89,9 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
 }
 
 export default function App() {
-  const [selectedGame, setSelectedGame] = useState<GameKey | null>(
-    () => (localStorage.getItem('selected-game') as GameKey | null)
-  )
+  const [selectedGame, setSelectedGame] = useState<GameKey | null>(null)
 
   function choose(game: GameKey) {
-    localStorage.setItem('selected-game', game)
     setSelectedGame(game)
   }
 

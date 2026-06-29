@@ -430,10 +430,15 @@ export function DraftHub() {
           </BrutalCard>
         </div>
 
-        {/* new game */}
-        <button onClick={() => dispatch({ type: 'NEW_GAME' })} className="w-full text-center text-[10px] font-black text-black/30 py-2">
-          ↺ Novo jogo
-        </button>
+        {/* new game / back */}
+        <div className="flex gap-4 justify-center">
+          <button onClick={() => dispatch({ type: 'NEW_GAME' })} className="text-[10px] font-black text-black/30 py-2">
+            ↺ Novo jogo
+          </button>
+          <button onClick={() => location.reload()} className="text-[10px] font-black text-black/30 py-2">
+            ↩ Trocar de jogo
+          </button>
+        </div>
       </div>
     </div>
   )
