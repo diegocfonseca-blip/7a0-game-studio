@@ -111,7 +111,6 @@ export function DraftHub() {
   const division = myTeam.division
   const divTable = divTeams(state, division)
   const yourPos = divTable.findIndex(t => t.id === myTeam.id) + 1
-  const squad = [...you.squad].sort((a, b) => b.rating - a.rating)
   const legendsCount = you.squad.filter(p => p.legendId).length
 
   return (
@@ -149,6 +148,15 @@ export function DraftHub() {
             </div>
           </div>
         </BrutalCard>
+
+        {/* news feed — mostrar logo acima de tudo */}
+        {state.narrative.length > 0 && (
+          <BrutalCard color={C.black} className="p-3 space-y-1.5">
+            {[...state.narrative].reverse().slice(0, 5).map((n, i) => (
+              <p key={i} className={`text-xs font-medium leading-relaxed border-l-[3px] pl-2 ${i === 0 ? 'text-white border-white' : 'text-white/45 border-white/20'}`}>{n}</p>
+            ))}
+          </BrutalCard>
+        )}
 
         {/* draft open banner */}
         {state.inDraft && (
@@ -229,52 +237,6 @@ export function DraftHub() {
             })}
           </BrutalCard>
         </div>
-
-        {/* your squad — grouped by position */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>👕 SEU ELENCO</h2>
-            <BrutalTag color={C.teal}>{you.squad.length}/{state.rosterMax}</BrutalTag>
-          </div>
-          {(['GOL', 'ZAG', 'LAT', 'MEI', 'ATA'] as const).map(pos => {
-            const posPlayers = squad.filter(p => p.pos === pos)
-            if (posPlayers.length === 0) return null
-            return (
-              <div key={pos} className="mb-3">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <div className="h-px flex-1" style={{ backgroundColor: 'rgba(0,0,0,0.12)' }} />
-                  <BrutalTag color={POS_COLOR[pos]} textColor="#fff">{pos}</BrutalTag>
-                  <div className="h-px flex-1" style={{ backgroundColor: 'rgba(0,0,0,0.12)' }} />
-                </div>
-                <div className="space-y-1.5">
-                  {posPlayers.map(p => {
-                    const rar = p.potential ? rarityOf(p.potential) : null
-                    return (
-                      <BrutalCard key={p.id} color={p.legendId ? C.cream : 'white'} className="p-2.5" shadow={2}>
-                        <div className="flex items-center gap-2">
-                          <span className="w-4 text-center text-sm">{you.lineupIds.includes(p.id) ? '⭐' : ''}</span>
-                          <span className="text-base">{p.nationality ? FLAG[p.nationality] : '⚽'}</span>
-                          <span className="flex-1 min-w-0 truncate font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.name}</span>
-                          {rar && <span className="text-[9px] font-black uppercase" style={{ color: rar.color }}>{rar.emoji}{p.potential}</span>}
-                          <span className="font-black text-black text-sm w-7 text-right">{p.rating}</span>
-                        </div>
-                      </BrutalCard>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* news feed */}
-        {state.narrative.length > 0 && (
-          <BrutalCard color={C.creamDark} className="p-4 space-y-1.5 max-h-60 overflow-y-auto">
-            {[...state.narrative].reverse().slice(0, 12).map((n, i) => (
-              <p key={i} className={`text-xs font-medium leading-relaxed border-l-[3px] pl-2 ${i === 0 ? 'text-black border-black' : 'text-black/60 border-black/30'}`}>{n}</p>
-            ))}
-          </BrutalCard>
-        )}
 
         {/* new game */}
         <button onClick={() => dispatch({ type: 'NEW_GAME' })} className="w-full text-center text-[10px] font-black text-black/30 py-2">
@@ -428,9 +390,19 @@ export function DraftRoom() {
 export function DraftLineup() {
   const { state, dispatch } = useDraft()
   const you = state.humans[state.youIndex]
-  const xi = you.lineupIds.length
-  const order: Record<string, number> = { GOL: 0, ZAG: 1, LAT: 2, MEI: 3, ATA: 4 }
-  const squad = [...you.squad].sort((a, b) => (order[a.pos] - order[b.pos]) || b.rating - a.rating)
+  const formation = you.formation ?? '4-4-2'
+  const xiIds = new Set(you.lineupIds)
+  const xi = you.squad.filter(p => xiIds.has(p.id))
+  const bench = you.squad.filter(p => !xiIds.has(p.id)).sort((a, b) => b.rating - a.rating)
+  const xiCount = xi.length
+
+  // Build pitch rows: ATA → MEI → DEF (ZAG+LAT) → GOL
+  const pitchRows: Array<{ label: string; players: typeof xi }> = [
+    { label: 'ATA', players: xi.filter(p => p.pos === 'ATA') },
+    { label: 'MEI', players: xi.filter(p => p.pos === 'MEI') },
+    { label: 'DEF', players: xi.filter(p => p.pos === 'ZAG' || p.pos === 'LAT') },
+    { label: 'GOL', players: xi.filter(p => p.pos === 'GOL') },
+  ].filter(r => r.players.length > 0)
 
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
@@ -438,50 +410,105 @@ export function DraftLineup() {
         <div className="max-w-md mx-auto flex items-center gap-3">
           <button onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'hub' })} className="text-white text-2xl font-black">←</button>
           <h1 className="text-white font-black text-lg flex-1" style={{ fontFamily: 'Oswald, sans-serif' }}>👔 ESCALAÇÃO</h1>
-          <BrutalTag color={xi === 11 ? C.green : C.orange} textColor="#fff">{xi}/11</BrutalTag>
+          <BrutalTag color={xiCount === 11 ? C.green : C.orange} textColor="#fff">{xiCount}/11</BrutalTag>
         </div>
       </div>
-      <div className="max-w-md mx-auto px-4 py-4 space-y-3">
-        <BrutalCard color={C.blue} className="p-3" shadow={4}>
-          <p className="text-white text-xs font-bold">
-            ✦ Escale 11. Botar um <b>jovem cru</b> (nota baixa, potencial alto ✨) enfraquece o time hoje — mas <b>jogar faz ele crescer</b> mais rápido. Esse é o seu dilema.
-          </p>
-        </BrutalCard>
-        <p className="text-black/50 text-xs font-bold text-center">Força do XI escalado: <b>{Math.round(squadStrength(you.squad, you.lineupIds))}</b></p>
 
-        {/* Formation selector */}
-        <div>
-          <p className="text-black/50 text-[10px] font-black uppercase mb-1.5">Formação</p>
-          <div className="flex gap-1.5 flex-wrap">
+      <div className="max-w-md mx-auto px-4 py-4 space-y-3">
+        {/* Força + formation selector */}
+        <div className="flex items-center justify-between">
+          <p className="text-black/50 text-xs font-bold">Força: <b className="text-black">{Math.round(squadStrength(you.squad, you.lineupIds))}</b></p>
+          <div className="flex gap-1 flex-wrap justify-end">
             {(['4-4-2', '4-3-3', '4-2-3-1', '4-5-1', '3-5-2'] as Formation[]).map(f => (
               <button key={f} onClick={() => dispatch({ type: 'SET_FORMATION', formation: f })}
-                className="border-2 border-black rounded-lg px-2.5 py-1.5 text-[11px] font-black"
-                style={{ backgroundColor: (you.formation ?? '4-4-2') === f ? C.purple : 'white', color: (you.formation ?? '4-4-2') === f ? '#fff' : '#000' }}>
+                className="border-2 border-black rounded px-2 py-1 text-[10px] font-black"
+                style={{ backgroundColor: formation === f ? C.purple : 'white', color: formation === f ? '#fff' : '#000' }}>
                 {f}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="space-y-2">
-          {squad.map(p => {
-            const on = you.lineupIds.includes(p.id)
-            const rar = p.potential ? rarityOf(p.potential) : null
-            return (
-              <BrutalCard key={p.id} color={on ? C.teal : 'white'} className="p-2.5" shadow={on ? 4 : 2}
-                onClick={() => dispatch({ type: 'SET_LINEUP', playerId: p.id })}>
-                <div className="flex items-center gap-2">
-                  <span className="w-5 text-center text-lg">{on ? '✅' : '⬜'}</span>
-                  <BrutalTag color={POS_COLOR[p.pos]} textColor="#fff">{p.pos}</BrutalTag>
-                  <span className="text-base">{p.nationality ? FLAG[p.nationality] : '⚽'}</span>
-                  <span className="flex-1 min-w-0 truncate font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.name}</span>
-                  {rar && <span className="text-[9px] font-black" style={{ color: rar.color }}>{rar.emoji}{p.potential}</span>}
-                  <span className="font-black text-black text-sm w-7 text-right">{p.rating}</span>
-                </div>
-              </BrutalCard>
-            )
-          })}
+        {/* CAMPO VERDE */}
+        <div className="rounded-xl border-[3px] border-black overflow-hidden relative"
+          style={{ background: 'linear-gradient(180deg, #1e6b1e 0%, #278a27 40%, #278a27 60%, #1e6b1e 100%)', minHeight: 340 }}>
+
+          {/* linhas do campo */}
+          <div className="absolute inset-0 pointer-events-none">
+            {/* linha do meio */}
+            <div className="absolute left-4 right-4" style={{ top: '50%', height: 1, backgroundColor: 'rgba(255,255,255,0.18)' }} />
+            {/* círculo central */}
+            <div className="absolute" style={{ top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 64, height: 64, borderRadius: 32, border: '1px solid rgba(255,255,255,0.18)' }} />
+            {/* área de cima (ataque) */}
+            <div className="absolute left-1/4 right-1/4 top-0" style={{ height: 52, border: '1px solid rgba(255,255,255,0.13)', borderTop: 'none' }} />
+            {/* área de baixo (defesa) */}
+            <div className="absolute left-1/4 right-1/4 bottom-0" style={{ height: 52, border: '1px solid rgba(255,255,255,0.13)', borderBottom: 'none' }} />
+          </div>
+
+          {/* fileiras de jogadores */}
+          <div className="relative z-10 px-3 py-5 space-y-4">
+            {pitchRows.map((row, ri) => (
+              <div key={ri} className="flex justify-center gap-2">
+                {row.players.map(p => {
+                  const rar = p.potential ? rarityOf(p.potential) : null
+                  const firstName = p.name.split(' ')[0]
+                  return (
+                    <button key={p.id} onClick={() => dispatch({ type: 'SET_LINEUP', playerId: p.id })}
+                      className="flex flex-col items-center" style={{ width: 60 }}>
+                      {/* círculo com posição */}
+                      <div className="w-12 h-12 rounded-full border-[3px] border-black flex items-center justify-center mb-0.5 shadow-lg"
+                        style={{ backgroundColor: POS_COLOR[p.pos] }}>
+                        <span className="text-white font-black text-[10px] leading-none" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.pos}</span>
+                      </div>
+                      {/* nome */}
+                      <p className="text-white text-[9px] font-black text-center leading-tight w-full truncate px-0.5"
+                        style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
+                        {firstName}
+                      </p>
+                      {/* nota */}
+                      <p className="font-black text-[10px] leading-none" style={{ fontFamily: 'Oswald, sans-serif', color: rar?.color ?? '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
+                        {p.rating}{p.legendId ? ' ✨' : ''}
+                      </p>
+                    </button>
+                  )
+                })}
+              </div>
+            ))}
+            {xi.length === 0 && (
+              <p className="text-white/40 text-center text-sm font-bold py-12">Toque em um reserva para escalar →</p>
+            )}
+          </div>
         </div>
+
+        <p className="text-black/40 text-[10px] font-bold text-center">Toque no campo para tirar · toque no banco para escalar</p>
+
+        {/* BANCO */}
+        <div>
+          <p className="text-black/50 text-[10px] font-black uppercase mb-2">🪑 Banco ({bench.length} jogadores)</p>
+          <div className="space-y-1.5">
+            {bench.map(p => {
+              const rar = p.potential ? rarityOf(p.potential) : null
+              const canAdd = xiCount < 11
+              return (
+                <BrutalCard key={p.id} color={p.legendId ? C.cream : 'white'} className="p-2.5" shadow={2}
+                  onClick={() => canAdd && dispatch({ type: 'SET_LINEUP', playerId: p.id })}>
+                  <div className="flex items-center gap-2">
+                    <BrutalTag color={POS_COLOR[p.pos]} textColor="#fff">{p.pos}</BrutalTag>
+                    <span className="text-base">{p.nationality ? FLAG[p.nationality] : '⚽'}</span>
+                    <span className="flex-1 min-w-0 truncate font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.name}</span>
+                    {rar && <span className="text-[9px] font-black" style={{ color: rar.color }}>{rar.emoji}{p.potential}</span>}
+                    <span className="font-black text-black text-sm w-7 text-right">{p.rating}</span>
+                    {canAdd && <span className="text-green-600 font-black text-lg leading-none">+</span>}
+                  </div>
+                </BrutalCard>
+              )
+            })}
+          </div>
+        </div>
+
+        <BrutalCard color={C.blue} className="p-3">
+          <p className="text-white text-xs font-bold">✦ Jovem cru (pot alto ✨) enfraquece hoje — mas <b>jogar faz ele crescer</b> mais rápido.</p>
+        </BrutalCard>
       </div>
     </div>
   )
