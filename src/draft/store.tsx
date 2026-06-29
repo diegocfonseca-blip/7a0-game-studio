@@ -24,6 +24,7 @@ const INITIAL: DraftState = {
 type Action =
   | { type: 'SET_SCREEN'; screen: DraftScreen }
   | { type: 'GO_CPU' }
+  | { type: 'RESTORE_SCREEN' }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; mode: GameMode; playerNames: string[] }
   | { type: 'SYNC_STATE'; newState: DraftState }
   | { type: 'START' }
@@ -306,7 +307,13 @@ function afterMatch(state: DraftState): DraftState {
 function reducer(state: DraftState, action: Action): DraftState {
   switch (action.type) {
     case 'SET_SCREEN': return { ...state, screen: action.screen }
-    case 'GO_CPU': return { ...state, screen: 'intro', onlineMode: 'cpu', isHost: true }
+    case 'GO_CPU': return { ...INITIAL, screen: 'intro', onlineMode: 'cpu', isHost: true }
+    case 'RESTORE_SCREEN': {
+      const saved = localStorage.getItem('draft-v2')
+      if (!saved) return { ...state, screen: 'hub' }
+      try { return { ...state, screen: (JSON.parse(saved).screen as DraftScreen) ?? 'hub' } }
+      catch { return { ...state, screen: 'hub' } }
+    }
     case 'START_ONLINE':
       return {
         ...state,
@@ -568,7 +575,8 @@ export function DraftProvider({ children }: { children: ReactNode }) {
   if (saved) {
     try {
       const p = JSON.parse(saved)
-      if (p.started && p.onlineMode !== 'online') initial = { ...INITIAL, ...p }
+      // Always start at lobby (auth wall), but restore the rest of the saved state
+      if (p.started && p.onlineMode !== 'online') initial = { ...INITIAL, ...p, screen: 'lobby' }
     } catch { /* ignore */ }
   }
   const [state, rawDispatch] = useReducer(reducer, initial)
