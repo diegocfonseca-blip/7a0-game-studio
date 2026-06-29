@@ -362,6 +362,10 @@ const DIV_RATINGS: Record<number, number[]> = {
   4: [39, 37, 35, 33, 31, 30, 29, 28, 27, 26, 25, 24, 23],
 }
 
+function seededAge(seed: number, min: number, max: number): number {
+  return min + (seed * 13 + 7) % (max - min + 1)
+}
+
 export function getCpuSquad(cpuIndex: number, division: number): DraftPlayer[] {
   const keys = KEYS[cpuIndex] ?? []
   const result: DraftPlayer[] = keys.map((p, i) => ({
@@ -370,6 +374,7 @@ export function getCpuSquad(cpuIndex: number, division: number): DraftPlayer[] {
     pos: p.pos,
     rating: p.rating,
     nationality: 'BR' as const,
+    age: seededAge(cpuIndex * 20 + i, 20, 33),
   }))
 
   const ratings = DIV_RATINGS[division] ?? DIV_RATINGS[4]
@@ -381,6 +386,7 @@ export function getCpuSquad(cpuIndex: number, division: number): DraftPlayer[] {
       pos,
       rating: ratings[i % ratings.length] ?? 30,
       nationality: 'BR' as const,
+      age: seededAge(cpuIndex * 20 + keys.length + i + 50, 18, 34),
     })
   })
 

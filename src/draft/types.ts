@@ -31,6 +31,10 @@ export interface DraftPlayer {
   nationality?: Nationality
   potential?: number
   devBonus?: number
+  age?: number
+  injury?: number      // rounds remaining injured (0 / undefined = healthy)
+  yellowCards?: number // accumulated yellows this season (3 = suspended next match)
+  suspended?: boolean  // serving 1-match suspension
 }
 
 export interface LeagueTeam {
@@ -69,6 +73,8 @@ export interface MatchEvent {
   text: string
   gfAfter: number
   gaAfter: number
+  injuredId?: string   // player id who got injured in this event
+  yellowId?: string    // player id who got a yellow in this event
 }
 
 export interface LiveMatch {
@@ -82,7 +88,10 @@ export interface LiveMatch {
   allEvents: MatchEvent[]
   half: 1 | 2 | 'ht' | 'ft'
   division: number
-  subDone: boolean
+  subsUsed: number        // substitutions used so far (max 3)
+  isHome: boolean         // human team is playing at home
+  injuredIds: string[]    // player ids injured this match (revealed so far)
+  yellowedIds: string[]   // player ids carded this match (revealed so far)
   otherMatches: OtherMatchLive[]
 }
 

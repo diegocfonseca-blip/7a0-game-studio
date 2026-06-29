@@ -146,11 +146,12 @@ function pickScorer(xi: DraftPlayer[]): string {
 function pregenHalfEvents(
   rYou: number, tacYou: Tactic, rOpp: number, tacOpp: Tactic,
   xi: DraftPlayer[], oppName: string,
-  half: 1 | 2, startGf = 0, startGa = 0
+  half: 1 | 2, startGf = 0, startGa = 0, isHome = false
 ): MatchEvent[] {
   const minutes = half === 1 ? H1_MINS : H2_MINS
-  const xgYou = Math.max(0.4, 1.4 + (rYou - rOpp) / 12 + ATK[tacYou] - DEF[tacOpp])
-  const xgOpp = Math.max(0.4, 1.4 + (rOpp - rYou) / 12 + ATK[tacOpp] - DEF[tacYou])
+  const adj = isHome ? 3 : 0  // home advantage ~3 rating points
+  const xgYou = Math.max(0.4, 1.4 + (rYou + adj - rOpp) / 12 + ATK[tacYou] - DEF[tacOpp])
+  const xgOpp = Math.max(0.4, 1.4 + (rOpp - rYou - adj) / 12 + ATK[tacOpp] - DEF[tacYou])
   let gf = startGf, ga = startGa
   const events: MatchEvent[] = []
   for (const minute of minutes) {
@@ -169,6 +170,27 @@ function pregenHalfEvents(
       events.push({ min: minute, text: pick(CHANCE_OPP), gfAfter: gf, gaAfter: ga })
     }
   }
+
+  // Injury: ~18% chance per half — one non-GOL player leaves injured
+  const injCandidates = xi.filter(p => p.pos !== 'GOL' && !(p.injury && p.injury > 0))
+  if (injCandidates.length > 0 && Math.random() < 0.18) {
+    const victim = pick(injCandidates)
+    const min = pick(minutes)
+    const prev = events.filter(e => e.min <= min)
+    const snap = prev.at(-1)
+    events.push({ min, text: `🚑 ${victim.name.split(' ')[0]} se machucou! Saindo de campo.`, gfAfter: snap?.gfAfter ?? gf, gaAfter: snap?.gaAfter ?? ga, injuredId: victim.id })
+  }
+
+  // Yellow card: ~22% chance per half — one random XI player
+  if (xi.length > 0 && Math.random() < 0.22) {
+    const victim = pick(xi)
+    const min = pick(minutes)
+    const prev = events.filter(e => e.min <= min)
+    const snap = prev.at(-1)
+    events.push({ min, text: `🟡 Cartão amarelo para ${victim.name.split(' ')[0]}.`, gfAfter: snap?.gfAfter ?? gf, gaAfter: snap?.gaAfter ?? ga, yellowId: victim.id })
+  }
+
+  events.sort((a, b) => a.min - b.min)
   return events
 }
 
@@ -359,12 +381,30 @@ function seasonEnd(state: DraftState): DraftState {
   const humans = state.humans.map(m => {
     const started = new Set(m.lineupIds ?? [])
     const squad = m.squad.map(p => {
-      if (!p.legendId) return p
-      const lg = LEGENDS.find(l => l.id === p.legendId)!
-      let dev = p.devBonus ?? 0
-      const base = getCurrentRating(lg, newYear)
-      if (started.has(p.id) && base + dev < lg.truePotential) dev = Math.min(lg.truePotential - base, dev + 2)
-      return { ...p, devBonus: dev, rating: Math.min(lg.truePotential, base + dev) }
+      let upd = { ...p }
+      // Age up
+      if (upd.age !== undefined) upd = { ...upd, age: upd.age + 1 }
+      // Reset yellows each season
+      upd = { ...upd, yellowCards: 0, suspended: false }
+      // Clear injuries at season end
+      upd = { ...upd, injury: 0 }
+
+      if (p.legendId) {
+        // Legends: curve-based rating + devBonus for played legends
+        const lg = LEGENDS.find(l => l.id === p.legendId)!
+        let dev = p.devBonus ?? 0
+        const base = getCurrentRating(lg, newYear)
+        if (started.has(p.id) && base + dev < lg.truePotential) dev = Math.min(lg.truePotential - base, dev + 2)
+        upd = { ...upd, devBonus: dev, rating: Math.min(lg.truePotential, base + dev) }
+      } else if (upd.age !== undefined) {
+        // Non-legends: young players grow, veterans decline
+        if (upd.age < 27) {
+          upd = { ...upd, rating: Math.min((p.potential ?? 90), p.rating + 1) }
+        } else if (upd.age > 30) {
+          upd = { ...upd, rating: Math.max(30, p.rating - 1) }
+        }
+      }
+      return upd
     })
     return { ...m, squad }
   })
@@ -470,19 +510,23 @@ function reducer(state: DraftState, action: Action): DraftState {
     case 'ADVANCE_ROUND': {
       if (state.inDraft || state.live) return state
       const round = state.round + 1
+      const isHome = round % 2 === 1  // odd rounds = home, even = away
       const { teams, humans, oppTeam } = simulateOtherMatches({ ...state, round })
       const you = humans[state.youIndex]
       const myTeam = teams.find(t => t.humanIndex === state.youIndex)!
-      const xi = you.squad.filter(p => you.lineupIds.includes(p.id))
-      const h1Events = pregenHalfEvents(myTeam.strength, you.tactic, oppTeam.strength, 'equilibrio', xi, oppTeam.name, 1)
+      // Only field healthy, non-suspended players
+      const xi = you.squad.filter(p => you.lineupIds.includes(p.id) && !(p.injury && p.injury > 0) && !p.suspended)
+      const h1Events = pregenHalfEvents(myTeam.strength, you.tactic, oppTeam.strength, 'equilibrio', xi, oppTeam.name, 1, 0, 0, isHome)
+      const homeLabel = isHome ? `${myTeam.city} (casa)` : `${oppTeam.name} (fora)`
       const live: LiveMatch = {
         oppTeamId: oppTeam.id,
         oppName: oppTeam.name,
         oppStrength: oppTeam.strength,
         minute: 0, gf: 0, ga: 0,
-        events: [`0' · Bola rolando em ${myTeam.city}!`],
+        events: [`0' · Bola rolando! ${isHome ? '🏠' : '✈️'} ${homeLabel}`],
         allEvents: h1Events,
-        half: 1, division: myTeam.division, subDone: false,
+        half: 1, division: myTeam.division,
+        subsUsed: 0, isHome, injuredIds: [], yellowedIds: [],
         otherMatches: buildOtherMatchesLive(teams, [myTeam.id, oppTeam.id]),
       }
       return { ...state, teams, humans, round, narrative: [...state.narrative].slice(-60), live, screen: 'match' }
@@ -507,7 +551,14 @@ function reducer(state: DraftState, action: Action): DraftState {
         const visible = m.goals.filter(g => g.min <= newMin)
         return { ...m, gf: visible.filter(g => g.isHome).length, ga: visible.filter(g => !g.isHome).length }
       })
-      const updLive: LiveMatch = { ...live, minute: newMin, gf: updGf, ga: updGa, events: [...live.events, ...newTexts], half, otherMatches: updOtherMatches }
+      const newInjuredIds = newlyRevealed.filter(e => e.injuredId).map(e => e.injuredId!)
+      const newYellowedIds = newlyRevealed.filter(e => e.yellowId).map(e => e.yellowId!)
+      const updLive: LiveMatch = {
+        ...live, minute: newMin, gf: updGf, ga: updGa, events: [...live.events, ...newTexts], half,
+        injuredIds: [...(live.injuredIds ?? []), ...newInjuredIds],
+        yellowedIds: [...(live.yellowedIds ?? []), ...newYellowedIds],
+        otherMatches: updOtherMatches,
+      }
       if (half === 'ht') updLive.events = [...updLive.events, `45' · ⏸ Intervalo — ${updGf}–${updGa}`]
       if (half === 'ft') updLive.events = [...updLive.events, `90' · 🏁 Apito final! ${updGf}–${updGa}`]
       return { ...state, live: updLive }
@@ -516,22 +567,22 @@ function reducer(state: DraftState, action: Action): DraftState {
     case 'START_HALF2': {
       if (!state.live || state.live.half !== 'ht') return state
       const you = state.humans[state.youIndex]
-      const xi = you.squad.filter(p => you.lineupIds.includes(p.id))
+      const xi = you.squad.filter(p => you.lineupIds.includes(p.id) && !(p.injury && p.injury > 0) && !p.suspended)
       const myTeam = state.teams.find(t => t.humanIndex === state.youIndex)!
       const h2Events = pregenHalfEvents(
         myTeam.strength, you.tactic, state.live.oppStrength, 'equilibrio',
-        xi, state.live.oppName, 2, state.live.gf, state.live.ga
+        xi, state.live.oppName, 2, state.live.gf, state.live.ga, state.live.isHome
       )
       return { ...state, live: { ...state.live, half: 2, minute: 45, allEvents: [...state.live.allEvents, ...h2Events] } }
     }
 
     case 'MAKE_SUB': {
-      if (!state.live || state.live.subDone) return state
+      if (!state.live || (state.live.subsUsed ?? 0) >= 3) return state
       const humans = [...state.humans]
       const you = humans[state.youIndex]
       const lineup = you.lineupIds.map(id => id === action.outId ? action.inId : id)
       humans[state.youIndex] = { ...you, lineupIds: lineup }
-      return { ...state, humans, live: { ...state.live, subDone: true } }
+      return { ...state, humans, live: { ...state.live, subsUsed: (state.live.subsUsed ?? 0) + 1 } }
     }
 
     case 'CHANGE_TACTIC_MATCH': {
@@ -542,7 +593,7 @@ function reducer(state: DraftState, action: Action): DraftState {
 
     case 'END_MATCH': {
       if (!state.live) return { ...state, screen: 'hub' }
-      const { gf, ga, oppTeamId, division } = state.live
+      const { gf, ga, oppTeamId, division, injuredIds = [], yellowedIds = [] } = state.live
       const myTeam = state.teams.find(t => t.humanIndex === state.youIndex)!
       let teams = state.teams.map(t => {
         if (t.id === myTeam.id) return applyRow(t, gf, ga)
@@ -550,14 +601,50 @@ function reducer(state: DraftState, action: Action): DraftState {
         return t
       })
       const receipt = Math.round(gate(division) * (gf > ga ? 1.5 : gf === ga ? 1 : 0.6))
-      const humans = state.humans.map((h, i) => i === state.youIndex ? { ...h, money: h.money + receipt } : h)
+      const extraNarrative: string[] = []
+
+      // Apply post-match effects to the human player's squad
+      const humans = state.humans.map((h, hi) => {
+        if (hi !== state.youIndex) return h
+        let squad = h.squad.map(p => {
+          let upd = { ...p }
+          // Decrement pre-existing injury countdown
+          if ((upd.injury ?? 0) > 0) upd = { ...upd, injury: upd.injury! - 1 }
+          // Clear served suspension
+          if (upd.suspended) upd = { ...upd, suspended: false, yellowCards: 0 }
+          // New injury from this match
+          if (injuredIds.includes(p.id)) {
+            const rounds = 2 + Math.floor(Math.random() * 3)  // 2–4 rounds out
+            upd = { ...upd, injury: rounds }
+            extraNarrative.push(`🚑 ${p.name} lesionado — fora por ${rounds} rodadas.`)
+          }
+          // New yellow card from this match
+          if (yellowedIds.includes(p.id)) {
+            const yellows = ((p.yellowCards ?? 0)) + 1
+            if (yellows >= 3) {
+              upd = { ...upd, suspended: true, yellowCards: 0 }
+              extraNarrative.push(`🟥 ${p.name} com 3 amarelos — suspenso na próxima rodada.`)
+            } else {
+              upd = { ...upd, yellowCards: yellows }
+            }
+          }
+          return upd
+        })
+        // Auto-remove unavailable players from lineup
+        const lineupIds = h.lineupIds.filter(id => {
+          const p = squad.find(p => p.id === id)
+          return p && !(p.injury && p.injury > 0) && !p.suspended
+        })
+        return { ...h, squad, lineupIds, money: h.money + receipt }
+      })
+
       teams = recomputeHumanStrength(teams, humans)
       const oppTeam = state.teams.find(t => t.id === oppTeamId)!
       const resultIcon = gf > ga ? '🟢' : gf === ga ? '🟡' : '🔴'
       const line = `${resultIcon} ${myTeam.name} ${gf}–${ga} ${oppTeam.name} · rodada ${state.round}`
       const mid: DraftState = {
         ...state, teams, humans, live: null, screen: 'hub',
-        narrative: [...state.narrative, line].slice(-60),
+        narrative: [...state.narrative, line, ...extraNarrative].slice(-60),
       }
       return afterMatch(mid)
     }

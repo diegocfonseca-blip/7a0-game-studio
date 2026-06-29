@@ -165,6 +165,20 @@ export function DraftHub() {
           </BrutalCard>
         )}
 
+        {/* desfalques — lesionados e suspensos */}
+        {(() => {
+          const injured = you.squad.filter(p => (p.injury ?? 0) > 0)
+          const suspended = you.squad.filter(p => p.suspended)
+          if (injured.length === 0 && suspended.length === 0) return null
+          return (
+            <BrutalCard color={C.orange} className="p-3 space-y-1" shadow={3}>
+              <p className="font-black text-white text-xs uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>⚠️ Desfalques</p>
+              {injured.map(p => <p key={p.id} className="text-white/90 text-[11px] font-bold">🚑 {p.name} — {p.injury} rod. fora</p>)}
+              {suspended.map(p => <p key={p.id} className="text-white/90 text-[11px] font-bold">🟥 {p.name} — suspenso</p>)}
+            </BrutalCard>
+          )
+        })()}
+
         {/* draft open banner */}
         {state.inDraft && (
           <BrutalCard color={C.orange} className="p-4" shadow={5} onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'draft' })}>
@@ -392,6 +406,7 @@ export function DraftLineup() {
   const you = state.humans[state.youIndex]
   const formation = you.formation ?? '4-4-2'
   const xiIds = new Set(you.lineupIds)
+  const isUnavailable = (p: { injury?: number; suspended?: boolean }) => (p.injury ?? 0) > 0 || !!p.suspended
   const xi = you.squad.filter(p => xiIds.has(p.id))
   const bench = you.squad.filter(p => !xiIds.has(p.id)).sort((a, b) => b.rating - a.rating)
   const xiCount = xi.length
@@ -468,11 +483,14 @@ export function DraftLineup() {
                   const firstName = p.name.split(' ')[0]
                   return (
                     <button key={p.id} onClick={() => dispatch({ type: 'SET_LINEUP', playerId: p.id })}
-                      className="flex flex-col items-center" style={{ width: 60 }}>
+                      className="flex flex-col items-center relative" style={{ width: 60 }}>
                       {/* círculo com posição */}
-                      <div className="w-12 h-12 rounded-full border-[3px] border-black flex items-center justify-center mb-0.5 shadow-lg"
-                        style={{ backgroundColor: POS_COLOR[p.pos] }}>
+                      <div className="w-12 h-12 rounded-full border-[3px] border-black flex items-center justify-center mb-0.5 shadow-lg relative"
+                        style={{ backgroundColor: isUnavailable(p) ? '#6b7280' : POS_COLOR[p.pos] }}>
                         <span className="text-white font-black text-[10px] leading-none" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.pos}</span>
+                        {p.suspended && <span className="absolute -top-1 -right-1 text-xs">🟥</span>}
+                        {(p.injury ?? 0) > 0 && !p.suspended && <span className="absolute -top-1 -right-1 text-xs">🚑</span>}
+                        {(p.yellowCards ?? 0) >= 2 && !p.suspended && !(p.injury ?? 0) && <span className="absolute -top-1 -right-1 text-xs">🟡</span>}
                       </div>
                       {/* nome */}
                       <p className="text-white text-[9px] font-black text-center leading-tight w-full truncate px-0.5"
@@ -502,16 +520,19 @@ export function DraftLineup() {
           <div className="space-y-1.5">
             {bench.map(p => {
               const rar = p.potential ? rarityOf(p.potential) : null
-              const canAdd = xiCount < 11
+              const unavail = isUnavailable(p)
+              const canAdd = xiCount < 11 && !unavail
+              const statusBadge = p.suspended ? '🟥' : (p.injury ?? 0) > 0 ? `🚑${p.injury}` : (p.yellowCards ?? 0) >= 2 ? '🟡🟡' : (p.yellowCards ?? 0) === 1 ? '🟡' : null
               return (
-                <BrutalCard key={p.id} color={p.legendId ? C.cream : 'white'} className="p-2.5" shadow={2}
+                <BrutalCard key={p.id} color={unavail ? '#e5e7eb' : p.legendId ? C.cream : 'white'} className="p-2.5" shadow={2}
                   onClick={() => canAdd && dispatch({ type: 'SET_LINEUP', playerId: p.id })}>
                   <div className="flex items-center gap-2">
-                    <BrutalTag color={POS_COLOR[p.pos]} textColor="#fff">{p.pos}</BrutalTag>
+                    <BrutalTag color={unavail ? '#9ca3af' : POS_COLOR[p.pos]} textColor="#fff">{p.pos}</BrutalTag>
                     <span className="text-base">{p.nationality ? FLAG[p.nationality] : '⚽'}</span>
-                    <span className="flex-1 min-w-0 truncate font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.name}</span>
-                    {rar && <span className="text-[9px] font-black" style={{ color: rar.color }}>{rar.emoji}{p.potential}</span>}
-                    <span className="font-black text-black text-sm w-7 text-right">{p.rating}</span>
+                    <span className={`flex-1 min-w-0 truncate font-black text-sm ${unavail ? 'text-gray-400' : 'text-black'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>{p.name}</span>
+                    {statusBadge && <span className="text-[10px] font-black shrink-0">{statusBadge}</span>}
+                    {rar && !unavail && <span className="text-[9px] font-black" style={{ color: rar.color }}>{rar.emoji}{p.potential}</span>}
+                    <span className={`font-black text-sm w-7 text-right ${unavail ? 'text-gray-400' : 'text-black'}`}>{p.rating}</span>
                     {canAdd && <span className="text-green-600 font-black text-lg leading-none">+</span>}
                   </div>
                 </BrutalCard>
@@ -702,7 +723,10 @@ export function DraftMatch() {
         {/* Halftime controls */}
         {isHT && (
           <BrutalCard color={C.yellow} className="p-4 space-y-3" shadow={6}>
-            <p className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>⏸ INTERVALO — {live.gf}–{live.ga}</p>
+            <div className="flex items-center justify-between">
+              <p className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>⏸ INTERVALO — {live.gf}–{live.ga}</p>
+              <BrutalTag color={live.isHome ? C.green : C.blue} textColor="#fff">{live.isHome ? '🏠 Casa' : '✈️ Fora'}</BrutalTag>
+            </div>
             {/* tactic change */}
             <div>
               <p className="text-black/60 text-[10px] font-black uppercase mb-1">Tática para o 2º tempo</p>
@@ -716,10 +740,12 @@ export function DraftMatch() {
                 ))}
               </div>
             </div>
-            {/* substitution */}
-            {!live.subDone && (
+            {/* substitution — up to 3 */}
+            {(live.subsUsed ?? 0) < 3 && (
               <div>
-                <p className="text-black/60 text-[10px] font-black uppercase mb-1">Substituição (1 disponível)</p>
+                <p className="text-black/60 text-[10px] font-black uppercase mb-1">
+                  Substituições — {live.subsUsed ?? 0}/3 usadas
+                </p>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <p className="text-black/40 text-[9px] font-black uppercase mb-1">Tirar (XI)</p>
@@ -733,7 +759,9 @@ export function DraftMatch() {
                   </div>
                   <div>
                     <p className="text-black/40 text-[9px] font-black uppercase mb-1">Colocar (Banco)</p>
-                    {bench.sort((a, b) => (posOrder[a.pos] ?? 5) - (posOrder[b.pos] ?? 5) || b.rating - a.rating).map(p => (
+                    {bench.sort((a, b) => (posOrder[a.pos] ?? 5) - (posOrder[b.pos] ?? 5) || b.rating - a.rating)
+                      .filter(p => !(p.injury ?? 0) && !p.suspended)
+                      .map(p => (
                       <button key={p.id} onClick={() => setSubIn(p.id)}
                         className="w-full text-left border-2 rounded px-2 py-1 mb-1 text-[10px] font-black truncate"
                         style={{ borderColor: subIn === p.id ? C.green : '#000', backgroundColor: subIn === p.id ? C.green : '#fff', color: subIn === p.id ? '#fff' : '#000' }}>
@@ -744,12 +772,12 @@ export function DraftMatch() {
                 </div>
                 {subOut && subIn && (
                   <BrutalButton color={C.orange} textColor="#fff" onClick={() => { dispatch({ type: 'MAKE_SUB', outId: subOut, inId: subIn }); setSubOut(null); setSubIn(null) }}>
-                    ✅ Confirmar sub
+                    ✅ Confirmar sub {(live.subsUsed ?? 0) + 1}/3
                   </BrutalButton>
                 )}
               </div>
             )}
-            {live.subDone && <p className="text-black/50 text-xs font-bold">✅ Substituição feita.</p>}
+            {(live.subsUsed ?? 0) >= 3 && <p className="text-black/50 text-xs font-bold">✅ 3 substituições feitas.</p>}
             <BrutalButton color={C.black} textColor="#fff" onClick={() => dispatch({ type: 'START_HALF2' })}>
               ▶ 2º TEMPO →
             </BrutalButton>
