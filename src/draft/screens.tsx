@@ -584,6 +584,21 @@ export function DraftMatch() {
   const result = live.gf > live.ga ? 'V' : live.gf === live.ga ? 'E' : 'D'
   const resultColor = result === 'V' ? C.green : result === 'E' ? C.yellow : C.orange
 
+  const posOrder: Record<string, number> = { GOL: 0, ZAG: 1, LAT: 2, MEI: 3, ATA: 4 }
+
+  // Gols por minuto para placar estilo Elifoot
+  const homeGoalMins: number[] = []
+  const awayGoalMins: number[] = []
+  let _pGf = 0, _pGa = 0
+  for (const ev of live.allEvents.filter(e => e.min <= live.minute)) {
+    if (ev.gfAfter > _pGf) homeGoalMins.push(ev.min)
+    else if (ev.gaAfter > _pGa) awayGoalMins.push(ev.min)
+    _pGf = ev.gfAfter; _pGa = ev.gaAfter
+  }
+  const lastEvent = live.events.filter(e => e.trim()).at(-1)
+  const isLastGoal = lastEvent?.includes('⚽')
+  const isLastOppGoal = lastEvent?.includes('🔴')
+
   // HT sub state
   const [subOut, setSubOut] = useState<string | null>(null)
   const [subIn, setSubIn] = useState<string | null>(null)
@@ -602,25 +617,36 @@ export function DraftMatch() {
       </div>
 
       <div className="max-w-md mx-auto px-4 py-4 space-y-4">
-        {/* scoreboard */}
+        {/* scoreboard estilo Elifoot */}
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-          <BrutalCard color={C.purple} className="p-5 text-center" shadow={8}>
-            <div className="flex items-center justify-center gap-4">
-              <div className="flex-1 text-right">
-                <p className="text-white font-black text-base truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{myTeam.name}</p>
+          <BrutalCard color={C.purple} className="p-4" shadow={8}>
+            <div className="flex items-start gap-2">
+              {/* time da casa */}
+              <div className="flex-1 min-w-0 text-right">
+                <p className="text-white font-black text-sm truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{myTeam.name}</p>
+                <div className="flex flex-wrap justify-end gap-x-1.5 mt-0.5 min-h-[14px]">
+                  {homeGoalMins.map((m, i) => <span key={i} className="text-green-300 text-[9px] font-bold">⚽{m}'</span>)}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-white font-black text-5xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{live.gf}</span>
+              {/* placar com animação de gol */}
+              <div className="flex items-center gap-1 shrink-0 pt-0.5">
+                <motion.span key={`gf-${live.gf}`} initial={{ scale: 1.9, color: '#4ade80' }} animate={{ scale: 1, color: '#ffffff' }} transition={{ duration: 0.4 }}
+                  className="font-black text-5xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{live.gf}</motion.span>
                 <span className="text-white/40 font-black text-3xl">–</span>
-                <span className="text-white font-black text-5xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{live.ga}</span>
+                <motion.span key={`ga-${live.ga}`} initial={{ scale: 1.9, color: '#f87171' }} animate={{ scale: 1, color: '#ffffff' }} transition={{ duration: 0.4 }}
+                  className="font-black text-5xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{live.ga}</motion.span>
               </div>
-              <div className="flex-1 text-left">
-                <p className="text-white/60 font-black text-base truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{live.oppName}</p>
+              {/* adversário */}
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-white/60 font-black text-sm truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{live.oppName}</p>
+                <div className="flex flex-wrap gap-x-1.5 mt-0.5 min-h-[14px]">
+                  {awayGoalMins.map((m, i) => <span key={i} className="text-red-300 text-[9px] font-bold">⚽{m}'</span>)}
+                </div>
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-center gap-2">
-              {isRunning && <span className="inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse" />}
-              <span className="text-white/60 font-mono text-sm">
+            <div className="mt-2 flex items-center justify-center gap-2">
+              {isRunning && <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" />}
+              <span className="text-white/60 font-mono text-xs">
                 {isFT ? '⏱ Apito final' : isHT ? '⏸ Intervalo' : `${live.minute}'`}
               </span>
             </div>
@@ -697,7 +723,7 @@ export function DraftMatch() {
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <p className="text-black/40 text-[9px] font-black uppercase mb-1">Tirar (XI)</p>
-                    {xi.sort((a, b) => a.rating - b.rating).map(p => (
+                    {xi.sort((a, b) => (posOrder[a.pos] ?? 5) - (posOrder[b.pos] ?? 5) || a.rating - b.rating).map(p => (
                       <button key={p.id} onClick={() => setSubOut(p.id)}
                         className="w-full text-left border-2 rounded px-2 py-1 mb-1 text-[10px] font-black truncate"
                         style={{ borderColor: subOut === p.id ? C.orange : '#000', backgroundColor: subOut === p.id ? C.orange : '#fff', color: subOut === p.id ? '#fff' : '#000' }}>
@@ -707,7 +733,7 @@ export function DraftMatch() {
                   </div>
                   <div>
                     <p className="text-black/40 text-[9px] font-black uppercase mb-1">Colocar (Banco)</p>
-                    {bench.sort((a, b) => b.rating - a.rating).map(p => (
+                    {bench.sort((a, b) => (posOrder[a.pos] ?? 5) - (posOrder[b.pos] ?? 5) || b.rating - a.rating).map(p => (
                       <button key={p.id} onClick={() => setSubIn(p.id)}
                         className="w-full text-left border-2 rounded px-2 py-1 mb-1 text-[10px] font-black truncate"
                         style={{ borderColor: subIn === p.id ? C.green : '#000', backgroundColor: subIn === p.id ? C.green : '#fff', color: subIn === p.id ? '#fff' : '#000' }}>
@@ -743,20 +769,35 @@ export function DraftMatch() {
           </BrutalCard>
         )}
 
-        {/* events feed */}
-        <div className="space-y-1">
-          {live.events.filter(e => e.trim()).map((e, i) => {
-            const isGoal = e.includes('⚽')
-            const isOppGoal = e.includes('🔴')
+        {/* Narração estilo Elifoot — último evento em destaque */}
+        {lastEvent && (
+          <motion.div key={lastEvent}
+            initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.25 }}
+            className="rounded-lg px-3 py-2.5 border-2"
+            style={{
+              borderColor: isLastGoal ? '#4ade80' : isLastOppGoal ? '#f87171' : 'rgba(255,255,255,0.15)',
+              backgroundColor: isLastGoal ? 'rgba(74,222,128,0.10)' : isLastOppGoal ? 'rgba(248,113,113,0.10)' : 'rgba(255,255,255,0.05)',
+            }}>
+            {isLastGoal && (
+              <motion.p key={`gol-flash-${live.gf}`}
+                initial={{ scale: 1.5, opacity: 1 }} animate={{ scale: 1, opacity: 0 }} transition={{ duration: 0.8, delay: 0.1 }}
+                className="text-center font-black text-green-400 text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                ⚽ G O L !
+              </motion.p>
+            )}
+            <p className={`text-xs font-bold text-center ${isLastGoal ? 'text-green-300' : isLastOppGoal ? 'text-red-300' : 'text-white/70'}`}>
+              {lastEvent}
+            </p>
+          </motion.div>
+        )}
+        {/* Histórico compacto (últimos 3 eventos anteriores) */}
+        <div className="space-y-0.5">
+          {live.events.filter(e => e.trim()).slice(-4, -1).reverse().map((e, i) => {
+            const isG = e.includes('⚽'); const isO = e.includes('🔴')
             return (
-              <motion.div key={i} initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
-                className="border-l-[3px] pl-3 py-0.5"
-                style={{ borderColor: isGoal ? C.green : isOppGoal ? C.orange : 'rgba(255,255,255,0.2)' }}>
-                <p className={`text-xs font-bold ${isGoal ? 'text-green-400' : isOppGoal ? 'text-orange-400' : 'text-white/50'}`}>{e}</p>
-              </motion.div>
+              <p key={i} className={`text-[10px] font-bold text-center ${isG ? 'text-green-400/60' : isO ? 'text-red-400/60' : 'text-white/30'}`}>{e}</p>
             )
           })}
-          <div ref={eventsEndRef} />
         </div>
       </div>
     </div>
