@@ -193,11 +193,20 @@ export interface OfficeUpgrade {
   purchased: boolean
 }
 
+export type OnlineGameMode = 'draft' | 'leilao' | 'draft-leilao'
+
 export interface OnlinePlayer {
   playerIndex: number
   playerName: string
   money: number
   totalDeals: number
+}
+
+export interface AuctionState {
+  legendId: string
+  bids: Record<number, number>  // playerIndex → bid amount
+  endsAt: number                // Date.now() ms when auction closes
+  closed: boolean
 }
 
 export interface GameState {
@@ -245,6 +254,10 @@ export interface GameState {
   isHost: boolean
   playerNames: string[]
   youIndex: number
+  onlineGameMode: OnlineGameMode | null
+  draftTurn: number         // playerIndex whose turn it is to sign
+  draftPicksDone: number    // total picks done (drives snake order)
+  currentAuction: AuctionState | null
   onlineTakenLegends: Record<string, { playerIndex: number; playerName: string }>
   onlinePlayers: OnlinePlayer[]
   onlinePresence: number[]

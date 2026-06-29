@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEmpresario } from '../store'
+import { useBroadcast } from '../index'
 import {
   getAvailableLegends, getCurrentRating, getMarketValue,
   getCurrentStatus, evaluateSigning, getMaxAcceptable, getFameDribleChance,
-  getMinReputationToSign,
+  getMinReputationToSign, getLegendById,
   getUnlockedNationalities, getLockedRegions, SCOUT_REGIONS,
 } from '../data/legends'
 import { rarityOf } from '../data/career'
@@ -16,12 +17,21 @@ import {
 
 export default function ScoutsScreen() {
   const { state, dispatch } = useEmpresario()
+  const broadcast = useBroadcast()
   const [selected, setSelected] = useState<Legend | null>(null)
   const [rate, setRate] = useState(15)
   const [years, setYears] = useState(3)
   const [result, setResult] = useState<SigningEvaluation | null>(null)
   const [justSigned, setJustSigned] = useState<string | null>(null)
   const [reveal, setReveal] = useState<Legend | null>(null)
+
+  // ── Online mode helpers ───────────────────────────────────────────────────
+  const isOnlineDraft = state.onlineMode === 'online' &&
+    (state.onlineGameMode === 'draft' || state.onlineGameMode === 'draft-leilao')
+  const isOnlineLeilao = state.onlineMode === 'online' &&
+    (state.onlineGameMode === 'leilao' || state.onlineGameMode === 'draft-leilao')
+  const myTurn = isOnlineDraft && state.draftTurn === state.youIndex
+  const turnName = state.playerNames[state.draftTurn] ?? 'Jogador'
 
   const signedIds = state.clients.map(c => c.legendId)
   const unlockedNats = getUnlockedNationalities(state.purchasedUpgrades)
@@ -106,6 +116,41 @@ export default function ScoutsScreen() {
     setTimeout(() => setJustSigned(null), 2200)
   }
 
+  // ── Leilão helpers ─────────────────────────────────────────────────────────
+  const [bidAmount, setBidAmount] = useState(0)
+  const auction = state.currentAuction
+  const auctionLegend = auction ? getLegendById(auction.legendId) : null
+  const myBid = auction ? (auction.bids[state.youIndex] ?? 0) : 0
+  const topBid = auction ? Math.max(0, ...Object.values(auction.bids)) : 0
+
+  function startAuction(legendId: string) {
+    broadcast('auction_start', { legendId })
+    dispatch({ type: 'AUCTION_SET', auction: { legendId, bids: {}, endsAt: Date.now() + 60_000, closed: false } })
+  }
+
+  function placeBid() {
+    if (!auction || bidAmount <= 0 || state.money < bidAmount) return
+    broadcast('auction_bid', { playerIndex: state.youIndex, amount: bidAmount })
+    dispatch({ type: 'AUCTION_BID', playerIndex: state.youIndex, amount: bidAmount })
+  }
+
+  function closeAuction() {
+    if (!auction) return
+    const entries = Object.entries(auction.bids).map(([k, v]) => ({ idx: Number(k), amount: v }))
+    if (entries.length === 0) {
+      broadcast('auction_close', { legendId: auction.legendId, winnerIndex: -1, winnerAmount: 0 })
+      dispatch({ type: 'AUCTION_SET', auction: null })
+      return
+    }
+    const winner = entries.reduce((a, b) => b.amount > a.amount ? b : a)
+    broadcast('auction_close', { legendId: auction.legendId, winnerIndex: winner.idx, winnerAmount: winner.amount })
+    if (winner.idx === state.youIndex) {
+      dispatch({ type: 'AUCTION_WIN', legendId: auction.legendId, bidAmount: winner.amount })
+    } else {
+      dispatch({ type: 'AUCTION_SET', auction: null })
+    }
+  }
+
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
       {/* header */}
@@ -121,6 +166,115 @@ export default function ScoutsScreen() {
       </div>
 
       <div className="max-w-md mx-auto px-4 py-4 space-y-3">
+
+        {/* ── DRAFT MODE BANNER ── */}
+        {isOnlineDraft && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+            className="border-[3px] border-black rounded-2xl p-4 text-center"
+            style={{ backgroundColor: myTurn ? C.green : C.black, boxShadow: `4px 4px 0 ${C.black}` }}
+          >
+            {myTurn ? (
+              <>
+                <p className="text-black font-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>⚡ SUA VEZ DE ESCOLHER!</p>
+                <p className="text-black/70 text-sm font-bold mt-1">Selecione uma lenda abaixo e assine</p>
+              </>
+            ) : (
+              <>
+                <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>⏳ VEZ DE {turnName.toUpperCase()}</p>
+                <p className="text-white/50 text-sm font-bold mt-1">Aguarde sua vez — você pode explorar enquanto isso</p>
+              </>
+            )}
+          </motion.div>
+        )}
+
+        {/* ── LEILÃO ATIVO ── */}
+        {isOnlineLeilao && auction && auctionLegend && (
+          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}>
+            <BrutalCard color={C.purple} className="p-5" shadow={6}>
+              <div className="flex items-center justify-between mb-3">
+                <BrutalPill color={C.yellow} textColor={C.black}>🔨 LEILÃO ATIVO</BrutalPill>
+                {state.isHost && !auction.closed && (
+                  <button onClick={closeAuction}
+                    className="border-2 border-black rounded-lg px-3 py-1 text-xs font-black bg-white text-black">
+                    Fechar leilão
+                  </button>
+                )}
+              </div>
+              <div className="bg-white border-[3px] border-black rounded-xl p-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">{FLAG[auctionLegend.nationality]}</span>
+                  <div className="flex-1">
+                    <p className="font-black text-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{auctionLegend.nickname}</p>
+                    <div className="flex gap-1.5 mt-1 flex-wrap">
+                      <BrutalTag color={POS_COLOR[auctionLegend.position]} textColor="#fff">{auctionLegend.position}</BrutalTag>
+                      <BrutalTag color={C.yellow}>⭐ {rarityOf(auctionLegend.truePotential).label}</BrutalTag>
+                      <BrutalTag color={C.teal}>Pot. {auctionLegend.truePotential}</BrutalTag>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* bids */}
+              <div className="space-y-2 mb-4">
+                {state.playerNames.map((name, idx) => {
+                  const bid = auction.bids[idx]
+                  const isTop = bid === topBid && bid > 0
+                  return (
+                    <div key={idx} className="flex items-center gap-2 bg-white/20 border-2 border-black/30 rounded-lg px-3 py-2">
+                      <span className="text-sm">{idx === state.youIndex ? '👤' : '🎮'}</span>
+                      <span className="flex-1 font-black text-white text-sm truncate">{name}</span>
+                      {bid ? (
+                        <span className={`font-black text-sm ${isTop ? 'text-yellow-300' : 'text-white/70'}`}>
+                          {isTop ? '👑 ' : ''}{money(bid)}
+                        </span>
+                      ) : (
+                        <span className="text-white/40 text-xs font-bold">sem lance</span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+              {/* my bid input */}
+              {!auction.closed && !myBid && (
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={bidAmount || ''}
+                    onChange={e => setBidAmount(Number(e.target.value))}
+                    placeholder="Seu lance (R$)"
+                    className="flex-1 border-[3px] border-black rounded-xl px-3 py-2 font-black text-black text-lg focus:outline-none"
+                    style={{ fontFamily: 'Oswald, sans-serif' }}
+                  />
+                  <BrutalButton color={C.yellow} textColor="#000" full={false}
+                    disabled={bidAmount <= 0 || bidAmount > state.money}
+                    onClick={placeBid} className="!px-4">
+                    DAR LANCE
+                  </BrutalButton>
+                </div>
+              )}
+              {myBid > 0 && (
+                <div className="bg-yellow-300 border-2 border-black rounded-xl px-4 py-3 text-center">
+                  <p className="font-black text-black">✅ Seu lance: {money(myBid)}</p>
+                </div>
+              )}
+            </BrutalCard>
+          </motion.div>
+        )}
+
+        {/* ── LEILÃO: fila de lendas para o host iniciar ── */}
+        {isOnlineLeilao && !auction && state.isHost && (
+          <BrutalCard color={C.creamDark} className="p-4" shadow={3}>
+            <p className="font-black text-black text-sm mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>🔨 INICIAR LEILÃO</p>
+            <p className="text-black/50 text-xs font-bold mb-3">Escolha uma lenda abaixo e clique em "Leiloar" para abrir os lances a todos.</p>
+          </BrutalCard>
+        )}
+
+        {isOnlineLeilao && !auction && !state.isHost && (
+          <BrutalCard color={C.creamDark} className="p-4 text-center" shadow={2}>
+            <p className="text-black/60 font-bold text-sm">⏳ Aguardando o host iniciar o próximo leilão...</p>
+          </BrutalCard>
+        )}
+
         <BrutalCard color={C.yellow} className="p-3">
           <p className="text-black text-xs font-bold text-center">
             ✦ Só VOCÊ enxerga o potencial real. Os olheiros do mundo veem só a nota atual.
@@ -232,6 +386,19 @@ export default function ScoutsScreen() {
                     </div>
                   </div>
                 </div>
+
+                {/* leilão host button on each card */}
+                {isOnlineLeilao && state.isHost && !auction && (
+                  <div className="mt-2 flex justify-end">
+                    <button
+                      onClick={e => { e.stopPropagation(); startAuction(legend.id) }}
+                      className="border-[2px] border-black rounded-lg px-3 py-1 text-xs font-black"
+                      style={{ backgroundColor: C.purple, color: '#fff' }}
+                    >
+                      🔨 Leiloar
+                    </button>
+                  </div>
+                )}
 
                 {/* stat row */}
                 <div className="grid grid-cols-3 gap-2 mt-3">
@@ -423,13 +590,20 @@ export default function ScoutsScreen() {
                           <BrutalButton color="white" textColor={C.black} onClick={() => { setSelected(null); setResult(null) }}>
                             Cancelar
                           </BrutalButton>
-                          <BrutalButton
-                            color={C.blue}
-                            disabled={!canAffordUpfront}
-                            onClick={tryToSign}
-                          >
-                            {!canAffordUpfront ? 'Sem grana' : 'Oferecer'}
-                          </BrutalButton>
+                          {isOnlineLeilao && state.isHost && !auction ? (
+                            <BrutalButton color={C.purple} textColor="#fff" onClick={() => { startAuction(selected.id); setSelected(null); setResult(null) }}>
+                              🔨 Leiloar
+                            </BrutalButton>
+                          ) : (
+                            <BrutalButton
+                              color={isOnlineDraft && !myTurn ? '#C9C2AC' : C.blue}
+                              textColor={isOnlineDraft && !myTurn ? '#888' : '#fff'}
+                              disabled={!canAffordUpfront || (isOnlineDraft && !myTurn)}
+                              onClick={tryToSign}
+                            >
+                              {isOnlineDraft && !myTurn ? `⏳ Vez de ${turnName}` : !canAffordUpfront ? 'Sem grana' : 'Oferecer'}
+                            </BrutalButton>
+                          )}
                         </>
                       )}
                     </div>

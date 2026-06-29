@@ -4,6 +4,7 @@ import { useEmpresario } from '../store'
 import { supabase } from '../../lib/supabase'
 import { C, BrutalCard, BrutalButton, BrutalTag, BrutalPill } from '../ui'
 import type { RealtimeChannel } from '@supabase/supabase-js'
+import type { OnlineGameMode } from '../types'
 
 function makeCode() {
   return Math.random().toString(36).substring(2, 7).toUpperCase()
@@ -20,6 +21,7 @@ export default function LobbyScreen() {
   const [roomPlayers, setRoomPlayers] = useState<string[]>([])
   const [joinError, setJoinError] = useState('')
   const [connecting, setConnecting] = useState(false)
+  const [gameMode, setGameMode] = useState<OnlineGameMode>('draft')
   const channelRef = useRef<RealtimeChannel | null>(null)
 
   const playerName = name.trim() || 'O Empresário'
@@ -41,6 +43,7 @@ export default function LobbyScreen() {
       isHost: true,
       playerNames: [playerName],
       playerName,
+      onlineGameMode: null,
     })
   }
 
@@ -84,6 +87,7 @@ export default function LobbyScreen() {
 
     ch.on('broadcast', { event: 'start' }, ({ payload }) => {
       const names: string[] = payload.playerNames ?? [playerName]
+      const mode: OnlineGameMode = payload.gameMode ?? 'draft'
       cleanChannel()
       dispatch({
         type: 'INIT_ROOM',
@@ -92,6 +96,7 @@ export default function LobbyScreen() {
         isHost: false,
         playerNames: names,
         playerName,
+        onlineGameMode: mode,
       })
     })
 
@@ -118,7 +123,7 @@ export default function LobbyScreen() {
     channelRef.current.send({
       type: 'broadcast',
       event: 'start',
-      payload: { playerNames: roomPlayers },
+      payload: { playerNames: roomPlayers, gameMode },
     })
     cleanChannel()
     dispatch({
@@ -128,6 +133,7 @@ export default function LobbyScreen() {
       isHost: true,
       playerNames: roomPlayers,
       playerName,
+      onlineGameMode: gameMode,
     })
   }
 
@@ -300,14 +306,45 @@ export default function LobbyScreen() {
               </BrutalCard>
 
               {roomPlayers[0] === playerName && (
-                <BrutalButton
-                  color={roomPlayers.length >= 2 ? C.green : '#C9C2AC'}
-                  textColor={roomPlayers.length >= 2 ? '#000' : '#888'}
-                  disabled={roomPlayers.length < 2}
-                  onClick={startOnline}
-                >
-                  {roomPlayers.length < 2 ? '⏳ Aguardando pelo menos 1 rival...' : `🚀 INICIAR COM ${roomPlayers.length} JOGADORES →`}
-                </BrutalButton>
+                <>
+                  <BrutalCard color="white" className="p-4" shadow={3}>
+                    <p className="font-black text-black text-xs uppercase tracking-widest mb-3" style={{ fontFamily: 'Oswald, sans-serif' }}>Modo de jogo</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {([
+                        { key: 'draft',       icon: '📋', label: 'DRAFT',         desc: 'Turno a turno' },
+                        { key: 'leilao',      icon: '🔨', label: 'LEILÃO',        desc: 'Lances abertos' },
+                        { key: 'draft-leilao', icon: '⚡', label: 'DRAFT+LEILÃO', desc: 'Mesclado' },
+                      ] as const).map(m => (
+                        <button
+                          key={m.key}
+                          onClick={() => setGameMode(m.key)}
+                          className="border-[2px] border-black rounded-xl p-2 text-center transition-all"
+                          style={{
+                            backgroundColor: gameMode === m.key ? C.yellow : 'white',
+                            boxShadow: gameMode === m.key ? `3px 3px 0 ${C.black}` : 'none',
+                          }}
+                        >
+                          <div className="text-xl mb-1">{m.icon}</div>
+                          <p className="font-black text-black text-[10px] leading-tight" style={{ fontFamily: 'Oswald, sans-serif' }}>{m.label}</p>
+                          <p className="text-black/50 text-[9px] font-bold mt-0.5">{m.desc}</p>
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-black/40 text-[10px] font-bold mt-3 text-center">
+                      {gameMode === 'draft' && '📋 Jogadores se revezam escolhendo lendas (snake draft)'}
+                      {gameMode === 'leilao' && '🔨 O host coloca lendas em leilão — maior lance vence'}
+                      {gameMode === 'draft-leilao' && '⚡ Rodadas de draft intercaladas com leilões'}
+                    </p>
+                  </BrutalCard>
+                  <BrutalButton
+                    color={roomPlayers.length >= 2 ? C.green : '#C9C2AC'}
+                    textColor={roomPlayers.length >= 2 ? '#000' : '#888'}
+                    disabled={roomPlayers.length < 2}
+                    onClick={startOnline}
+                  >
+                    {roomPlayers.length < 2 ? '⏳ Aguardando pelo menos 1 rival...' : `🚀 INICIAR COM ${roomPlayers.length} JOGADORES →`}
+                  </BrutalButton>
+                </>
               )}
 
               {roomPlayers[0] !== playerName && (

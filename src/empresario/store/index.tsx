@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
-import type { GameState, Screen, Client, ClubOffer, Bid, OnlinePlayer } from '../types'
+import type { GameState, Screen, Client, ClubOffer, Bid, OnlinePlayer, OnlineGameMode, AuctionState } from '../types'
 import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getUnlockedNationalities, LEGENDS } from '../data/legends'
 import { generateWeeklyEvent, generateAmbientNews } from '../data/events'
 import type { ClientLite } from '../data/events'
@@ -65,6 +65,10 @@ const INITIAL_STATE: GameState = {
   isHost: false,
   playerNames: [],
   youIndex: 0,
+  onlineGameMode: null,
+  draftTurn: 0,
+  draftPicksDone: 0,
+  currentAuction: null,
   onlineTakenLegends: {},
   onlinePlayers: [],
   onlinePresence: [],
@@ -72,7 +76,7 @@ const INITIAL_STATE: GameState = {
 
 type Action =
   | { type: 'SET_SCREEN'; screen: Screen }
-  | { type: 'INIT_ROOM'; onlineMode: 'cpu' | 'online'; roomCode: string; isHost: boolean; playerNames: string[]; playerName: string }
+  | { type: 'INIT_ROOM'; onlineMode: 'cpu' | 'online'; roomCode: string; isHost: boolean; playerNames: string[]; playerName: string; onlineGameMode: OnlineGameMode | null }
   | { type: 'START_GAME'; playerName: string }
   | { type: 'SIGN_CLIENT'; legendId: string; commissionRate: number; contractYears: number }
   | { type: 'RENEW_CLIENT'; legendId: string; commissionRate: number; contractYears: number }
@@ -93,6 +97,10 @@ type Action =
   | { type: 'LEGEND_TAKEN_ONLINE'; legendId: string; playerIndex: number; playerName: string }
   | { type: 'PLAYER_UPDATE_ONLINE'; playerIndex: number; playerName: string; money: number; totalDeals: number }
   | { type: 'SET_PRESENCE'; indices: number[] }
+  | { type: 'DRAFT_ADVANCE'; picksDone: number }
+  | { type: 'AUCTION_SET'; auction: AuctionState | null }
+  | { type: 'AUCTION_BID'; playerIndex: number; amount: number }
+  | { type: 'AUCTION_WIN'; legendId: string; bidAmount: number }
 
 function generateClubOffer(client: Client, year: number, clubRelations: Record<string, number> = {}): ClubOffer | null {
   const rating = getCurrentRating(getLegendById(client.legendId)!, year)
@@ -203,6 +211,9 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         isHost: action.isHost,
         playerNames: action.playerNames,
         youIndex: action.playerNames.indexOf(action.playerName),
+        onlineGameMode: action.onlineGameMode,
+        draftTurn: 0,
+        draftPicksDone: 0,
       }
 
     case 'START_GAME':
@@ -214,6 +225,9 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         isHost: state.isHost,
         playerNames: state.playerNames,
         youIndex: state.youIndex,
+        onlineGameMode: state.onlineGameMode,
+        draftTurn: 0,
+        draftPicksDone: 0,
         weeklyMissionId: missionForWeek(1993 * 52 + 1).id,
         weeklyMissionBaseline: 0,
         screen: 'dashboard',
@@ -260,6 +274,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       const hotTargets = { ...state.hotTargets }
       delete hotTargets[action.legendId]
       const rar = rarityOf(legend.truePotential)
+      const isDraftOnline = state.onlineMode === 'online' &&
+        (state.onlineGameMode === 'draft' || state.onlineGameMode === 'draft-leilao')
 
       return {
         ...state,
@@ -272,6 +288,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         seenLegendIds: state.seenLegendIds.includes(action.legendId) ? state.seenLegendIds : [...state.seenLegendIds, action.legendId],
         everSignedIds: state.everSignedIds.includes(action.legendId) ? state.everSignedIds : [...state.everSignedIds, action.legendId],
         hotTargets,
+        draftPicksDone: isDraftOnline ? state.draftPicksDone + 1 : state.draftPicksDone,
         negotiationLog: [{ who: 'voce' as const, year: state.year, text: `📝 Você agenciou ${legend.nickname} (${action.commissionRate}% · ${action.contractYears} anos)` }, ...state.negotiationLog].slice(0, 30),
         narrative: [...state.narrative,
           `✍️ Você assinou ${rar.emoji} ${legend.nickname} (${rar.label}): ${action.commissionRate}% de comissão, contrato de ${action.contractYears} anos + R$${legend.luva.toLocaleString('pt-BR')} de luva.`,
@@ -830,6 +847,79 @@ function empresarioReducer(state: GameState, action: Action): GameState {
     case 'SET_PRESENCE':
       return { ...state, onlinePresence: action.indices }
 
+    case 'DRAFT_ADVANCE': {
+      const n = state.playerNames.length || 1
+      const done = action.picksDone
+      const round = Math.floor(done / n)
+      const pos = done % n
+      const nextTurn = round % 2 === 0 ? pos : n - 1 - pos
+      return { ...state, draftTurn: nextTurn, draftPicksDone: done }
+    }
+
+    case 'AUCTION_SET':
+      return { ...state, currentAuction: action.auction }
+
+    case 'AUCTION_BID': {
+      if (!state.currentAuction) return state
+      return {
+        ...state,
+        currentAuction: {
+          ...state.currentAuction,
+          bids: { ...state.currentAuction.bids, [action.playerIndex]: action.amount },
+        },
+      }
+    }
+
+    case 'AUCTION_WIN': {
+      const legend = getLegendById(action.legendId)
+      if (!legend) return state
+      const currentRating = getCurrentRating(legend, state.year)
+      const currentValue = getMarketValue(legend, state.year)
+      const newClient: Client = {
+        legendId: legend.id,
+        name: legend.name,
+        nickname: legend.nickname,
+        position: legend.position,
+        nationality: legend.nationality,
+        status: getCurrentStatus(legend, state.year),
+        birthYear: legend.birthYear,
+        peakYearStart: legend.peakYearStart,
+        peakYearEnd: legend.peakYearEnd,
+        truePotential: legend.truePotential,
+        currentRating,
+        personality: legend.personality,
+        monthlyFee: legend.monthlyFee,
+        futureKnowledge: legend.futureKnowledge,
+        commissionRate: 15,
+        repContractYears: 3,
+        repExpiresYear: state.year + 3,
+        happiness: 75,
+        currentValue,
+        signedYear: state.year,
+        contractClub: legend.club,
+        contractSalary: legend.monthlyFee * 10,
+        contractExpiresYear: state.year + 2,
+        rivalOffers: 0,
+      }
+      const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + legend.monthlyFee / 4
+      const xpr = applyXp(state, 60)
+      return {
+        ...state,
+        money: state.money - action.bidAmount,
+        clients: [...state.clients, newClient],
+        weeklyExpenses,
+        xp: xpr.xp,
+        reputation: Math.min(100, state.reputation + xpr.repBonus),
+        everSignedIds: state.everSignedIds.includes(action.legendId) ? state.everSignedIds : [...state.everSignedIds, action.legendId],
+        seenLegendIds: state.seenLegendIds.includes(action.legendId) ? state.seenLegendIds : [...state.seenLegendIds, action.legendId],
+        currentAuction: null,
+        narrative: [...state.narrative,
+          `🏆 LEILÃO GANHO! Você venceu o leilão de ${legend.nickname} com lance de R$${action.bidAmount.toLocaleString('pt-BR')}. 15% de comissão negociada.`,
+          ...(xpr.line ? [xpr.line] : []),
+        ],
+      }
+    }
+
     case 'DIRTY_ACTION': {
       if (action.kind === 'maquiar') {
         return {
@@ -891,6 +981,10 @@ export function EmpresarioProvider({ children }: { children: ReactNode }) {
         isHost: false,
         playerNames: [],
         youIndex: 0,
+        onlineGameMode: null,
+        draftTurn: 0,
+        draftPicksDone: 0,
+        currentAuction: null,
         onlineTakenLegends: {},
         onlinePlayers: [],
         onlinePresence: [],
