@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
-import type { GameState, Screen, Client, ClubOffer, Bid, OnlinePlayer, OnlineGameMode, AuctionState, OnlineNewsItem, OnlineClientInfo, RivalAgent } from '../types'
+import type { GameState, Screen, Client, ClubOffer, Bid, OnlinePlayer, OnlineGameMode, AuctionState, OnlineNewsItem, OnlineClientInfo, RivalAgent, GameEvent } from '../types'
 import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getUnlockedNationalities, getRetirementYear, retirementNarrative, LEGENDS } from '../data/legends'
 import { generateWeeklyEvent, generateAmbientNews, SCOUT_UPGRADES, OFFICE_UPGRADES } from '../data/events'
 import type { ClientLite } from '../data/events'
@@ -10,6 +10,8 @@ import {
   WORLD_CUP_YEARS, isTransferWindow, CHALLENGES,
   grantXp, rarityOf, MISSIONS, missionForWeek, missionMetricValue,
 } from '../data/career'
+import { getHistoricalEvents, isDeadlineDay } from '../data/historical'
+import { getLegendEvents } from '../data/legend-events'
 
 // ── CPU Agent Pool ─────────────────────────────────────────────────────────────
 // Cambalhota is ALWAYS index 0 (never changes). Others rotate based on numCpuAgents.
@@ -373,6 +375,22 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       const actualWeek = yearRolled ? 1 : newWeek
       const extraNarrative: string[] = []
 
+      const absWeekNow = newYear * 52 + actualWeek
+
+      // ── INJURY NARRATIVES ──────────────────────────────────────────────────
+      const INJURY_DESC: Record<string, string[]> = {
+        leve:     ['sofreu uma torção no tornozelo', 'sente dor muscular e vai descansar', 'tem uma contusão leve no joelho'],
+        moderada: ['rompeu o ligamento colateral — semanas fora', 'tem lesão muscular grau 2 na coxa', 'sofreu uma fratura por estresse na tíbia'],
+        grave:    ['rompeu o ligamento cruzado — cirurgia necessária', 'fraturou a fíbula — meses de recuperação', 'lesão muscular grave com risco de sequela'],
+      }
+      const injuryWeeks: Record<string, [number, number]> = {
+        leve:     [2, 4],
+        moderada: [5, 10],
+        grave:    [12, 24],
+      }
+      const injuryValueDrop: Record<string, number> = { leve: 0.90, moderada: 0.75, grave: 0.60 }
+      const injuryHappinessDrop: Record<string, number> = { leve: -5, moderada: -15, grave: -25 }
+
       // Update clients ratings and values (+ glory moments on year rollover)
       const updatedClients = state.clients.map(client => {
         const legend = getLegendById(client.legendId)
@@ -412,7 +430,52 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           }
         }
 
-        return { ...client, currentRating: newRating, currentValue: newValue, status: newStatus, happiness }
+        // 🏥 INJURY: heal if recovered, or apply new random injury
+        let injuredUntilWeek = client.injuredUntilWeek
+        let injuryLevel = client.injuryLevel
+        let injuryDescription = client.injuryDescription
+
+        if (injuredUntilWeek !== undefined && absWeekNow >= injuredUntilWeek) {
+          // Recovered!
+          extraNarrative.push(`✅ ${client.nickname} se recuperou da lesão e está de volta aos gramados. Aliviante!`)
+          newValue = Math.round(newValue * 1.08) // slight bounce back
+          happiness = Math.min(100, happiness + 8)
+          injuredUntilWeek = undefined
+          injuryLevel = undefined
+          injuryDescription = undefined
+        } else if (injuredUntilWeek === undefined) {
+          // ~3.5% weekly chance of leve, ~1% moderada, ~0.3% grave
+          const roll = Math.random()
+          let level: 'leve' | 'moderada' | 'grave' | null = null
+          if (roll < 0.003) level = 'grave'
+          else if (roll < 0.013) level = 'moderada'
+          else if (roll < 0.048) level = 'leve'
+
+          if (level) {
+            const [minW, maxW] = injuryWeeks[level]
+            const duration = minW + Math.floor(Math.random() * (maxW - minW + 1))
+            const descs = INJURY_DESC[level]
+            const desc = descs[Math.floor(Math.random() * descs.length)]
+            injuredUntilWeek = absWeekNow + duration
+            injuryLevel = level
+            injuryDescription = desc
+            newValue = Math.round(newValue * injuryValueDrop[level])
+            happiness = Math.max(0, happiness + injuryHappinessDrop[level])
+            const emoji = level === 'grave' ? '🚨' : level === 'moderada' ? '⚠️' : '🤕'
+            extraNarrative.push(`${emoji} LESÃO (${level.toUpperCase()}): ${client.nickname} ${desc}. Fica fora por ${duration} semanas.`)
+          }
+        }
+
+        return {
+          ...client,
+          currentRating: newRating,
+          currentValue: newValue,
+          status: newStatus,
+          happiness,
+          injuredUntilWeek,
+          injuryLevel,
+          injuryDescription,
+        }
       })
 
       // ⏳ REP CONTRACTS expiring + ⚰️ RETIREMENT (age catches everyone)
@@ -448,6 +511,56 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         })
       }
 
+      // ── 📰 HISTORICAL EVENTS (year rollover) ──────────────────────────────
+      let historicalRepBonus = 0
+      let historicalMoneyBonus = 0
+      if (yearRolled) {
+        const yearEvents = getHistoricalEvents(newYear)
+        for (const ev of yearEvents) {
+          // Normalise to a flat list of boost groups (covers both `boosts[]` and legacy single fields)
+          const groups = ev.boosts ?? [{
+            specificIds: ev.specificIds,
+            nationalityBoost: ev.nationalityBoost,
+            positionBoost: ev.positionBoost,
+            valueMultiplier: ev.valueMultiplier,
+            happinessBonus: ev.happinessBonus,
+          }]
+
+          let anyAffected = false
+          for (const grp of groups) {
+            const matchFn = (c: { legendId: string; nationality: string; position: string }) =>
+              (grp.specificIds?.includes(c.legendId) ?? false) ||
+              (grp.nationalityBoost !== undefined && c.nationality === grp.nationalityBoost &&
+                (grp.positionBoost === undefined || c.position === grp.positionBoost)) ||
+              (grp.positionBoost !== undefined && grp.nationalityBoost === undefined && c.position === grp.positionBoost)
+
+            activeClients = activeClients.map(c => {
+              if (!matchFn(c)) return c
+              anyAffected = true
+              return {
+                ...c,
+                currentValue: grp.valueMultiplier ? Math.round(c.currentValue * grp.valueMultiplier) : c.currentValue,
+                happiness: grp.happinessBonus ? Math.min(100, Math.max(0, c.happiness + grp.happinessBonus)) : c.happiness,
+              }
+            })
+          }
+
+          if (ev.reputationBonus) historicalRepBonus += ev.reputationBonus
+          if (ev.moneyBonus) historicalMoneyBonus += ev.moneyBonus
+
+          // Show in narrative if anything happened
+          if (anyAffected || ev.reputationBonus || ev.moneyBonus) {
+            extraNarrative.push(`📰 ${ev.title} — ${ev.text}`)
+          }
+        }
+      }
+
+      // ── 🔔 DEADLINE DAY ────────────────────────────────────────────────────
+      const isDeadline = isDeadlineDay(actualWeek)
+      if (isDeadline) {
+        extraNarrative.push(`⏰ DIA D DE TRANSFERÊNCIAS! A janela fecha HOJE. Clubes estão desesperados, valores inflacionam e propostas chegam a qualquer hora. Este é o momento de fechar.`)
+      }
+
       // Weekly expenses: client fees + scout retainers + office maintenance (all paid monthly = every 4 weeks)
       const scoutMonthlyCost = SCOUT_UPGRADES
         .filter(u => state.purchasedUpgrades.includes(u.id))
@@ -475,12 +588,14 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         // just been transferred (clubs leave a fresh signing alone for ~2 years).
         const eligible = activeClients.filter(c =>
           c.currentRating >= 60 &&
+          !c.injuredUntilWeek &&                  // no offers while injured
           !newOffers.find(o => o.clientId === c.legendId) &&
           (c.lastDealYear === undefined || newYear - c.lastDealYear >= 2)
         )
         // Window open → offers fly (85% + a shot at a second). Off-window → calmer (40%).
-        const maxOffers = windowOpen ? 2 : 1
-        const chance = windowOpen ? 0.85 : 0.4
+        // Deadline Day: guaranteed 2 offers at inflated values if window is open.
+        const maxOffers = isDeadline ? 3 : windowOpen ? 2 : 1
+        const chance = isDeadline ? 0.97 : windowOpen ? 0.85 : 0.4
         const pool = [...eligible].sort(() => Math.random() - 0.5)
         for (let i = 0; i < maxOffers && i < pool.length; i++) {
           if (Math.random() < chance) {
@@ -574,16 +689,39 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         contractClub: c.contractClub,
       }))
       const newEvent = generateWeeklyEvent(newYear, actualWeek, clientsLite, state.purchasedUpgrades)
-      const newEvents = newEvent
-        ? [...state.events.filter(e => e.resolved), newEvent]
-        : state.events
+      // Legend-specific backstory events (fire once per game, mid-year only)
+      const existingEventIds = state.events.map(e => e.id)
+      const legendBackstoryEvents = getLegendEvents(
+        newYear,
+        actualWeek,
+        activeClients.map(c => c.legendId),
+        existingEventIds,
+      ).map(le => ({
+        id: le.id,
+        week: actualWeek,
+        year: newYear,
+        type: le.type as GameEvent['type'],
+        title: le.title,
+        description: le.description,
+        choices: le.choices as GameEvent['choices'],
+        resolved: false,
+      } satisfies GameEvent))
+      // Keep unresolved events + add new ones. If a new weekly event fires, clear old unresolved weekly events first.
+      const priorEvents = newEvent
+        ? state.events.filter(e => e.resolved)  // clear old unresolved on new weekly event
+        : state.events                           // keep all (including pending) if no new event
+      const newEvents = [
+        ...priorEvents,
+        ...(newEvent ? [newEvent] : []),
+        ...legendBackstoryEvents,
+      ]
 
       // 🏆 RIVAL AGENTS grow + EMPRESÁRIO DO ANO + 🕵️ INVESTIGATION (year rollover)
       let rivalAgents = state.rivalAgents
       let awards = state.awards
       let suspicion = state.suspicion
-      let money2 = runningMoney
-      let reputation2 = state.reputation
+      let money2 = runningMoney + historicalMoneyBonus
+      let reputation2 = Math.min(100, state.reputation + historicalRepBonus)
       if (yearRolled) {
         rivalAgents = state.rivalAgents.map(r => {
           const growth = 1.08 + Math.random() * 0.22

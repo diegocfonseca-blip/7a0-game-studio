@@ -4,6 +4,7 @@ import { useEmpresario } from '../store'
 import { NEMESIS } from '../data/clubs'
 import { evaluateRenewal } from '../data/legends'
 import { windowInfo, CHALLENGES, levelInfo, MISSIONS, missionForWeek, missionMetricValue } from '../data/career'
+import { isDeadlineDay } from '../data/historical'
 import type { Client, Personality } from '../types'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalPill, BrutalTag, POS_COLOR, FLAG, STATUS_LABEL } from '../ui'
 
@@ -80,6 +81,23 @@ export default function DashboardScreen() {
         {/* ── JANELA DE TRANSFERÊNCIAS (período quente, não trava) ── */}
         {(() => {
           const w = windowInfo(state.week)
+          const deadline = isDeadlineDay(state.week)
+          if (deadline) {
+            return (
+              <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }}>
+                <BrutalCard color="#CC0000" className="p-4" shadow={6}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl animate-pulse">⏰</span>
+                    <div className="flex-1">
+                      <p className="font-black text-white text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>DIA D DE TRANSFERÊNCIAS!</p>
+                      <p className="text-white/80 text-xs font-bold">A janela fecha HOJE. Clubes estão desesperados. É agora ou nunca.</p>
+                    </div>
+                  </div>
+                  <p className="text-white/70 text-[10px] font-bold mt-1.5">📈 Valores inflacionados · propostas extras · negocie duro</p>
+                </BrutalCard>
+              </motion.div>
+            )
+          }
           return (
             <BrutalCard color={w.open ? C.green : C.creamDark} className="p-3" shadow={3}>
               <div className="flex items-center gap-2">
@@ -360,9 +378,19 @@ export default function DashboardScreen() {
           <div className="space-y-3">
             {state.clients.map((c, i) => {
               const st = STATUS_LABEL[c.status]
+              const injured = !!c.injuredUntilWeek
+              const injEmoji = c.injuryLevel === 'grave' ? '🚨' : c.injuryLevel === 'moderada' ? '⚠️' : '🤕'
               return (
                 <motion.div key={c.legendId} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
-                  <BrutalCard color="white" className="p-4" onClick={() => setDetail(c)}>
+                  <BrutalCard color={injured ? '#FFF3CD' : 'white'} className="p-4" onClick={() => setDetail(c)}>
+                    {injured && (
+                      <div className="mb-2 flex items-center gap-1.5 bg-orange-100 border-2 border-orange-400 rounded px-2 py-1">
+                        <span className="text-sm">{injEmoji}</span>
+                        <span className="text-orange-800 text-[10px] font-black uppercase tracking-wide">
+                          LESIONADO ({c.injuryLevel?.toUpperCase()}) — {c.injuryDescription}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-3">
                       <div className="text-3xl shrink-0">{FLAG[c.nationality]}</div>
                       <div className="flex-1 min-w-0">

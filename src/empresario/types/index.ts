@@ -83,6 +83,9 @@ export interface Client {
   showcaseMult?: number   // value multiplier built up by playing at YOUR club (vitrine)
   loanReturnYear?: number // if on loan to your club, the year he goes back
   loanOriginClub?: string // the club he came from on loan
+  injuredUntilWeek?: number  // absolute week (year*52+week) when injury ends
+  injuryLevel?: 'leve' | 'moderada' | 'grave'
+  injuryDescription?: string
 }
 
 export interface Bid {
