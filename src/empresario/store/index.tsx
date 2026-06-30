@@ -554,23 +554,6 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       let money2 = runningMoney
       let reputation2 = state.reputation
       if (yearRolled) {
-        // Annual fees: scout contract renewals + office IPTU/maintenance
-        const scoutAnnualTotal = SCOUT_UPGRADES
-          .filter(u => state.purchasedUpgrades.includes(u.id))
-          .reduce((s, u) => s + (u.annualFee ?? 0), 0)
-        const officeAnnualTotal = OFFICE_UPGRADES
-          .filter(u => state.purchasedUpgrades.includes(u.id))
-          .reduce((s, u) => s + (u.annualFee ?? 0), 0)
-        if (scoutAnnualTotal > 0) {
-          money2 -= scoutAnnualTotal
-          extraNarrative.push(`🔭 Renovação anual dos olheiros: -R$${scoutAnnualTotal.toLocaleString('pt-BR')}`)
-        }
-        if (officeAnnualTotal > 0) {
-          money2 -= officeAnnualTotal
-          extraNarrative.push(`🏢 Taxas anuais dos escritórios: -R$${officeAnnualTotal.toLocaleString('pt-BR')}`)
-        }
-      }
-      if (yearRolled) {
         rivalAgents = state.rivalAgents.map(r => {
           const growth = 1.08 + Math.random() * 0.22
           const cambBonus = r.name.includes('Cambalhota') ? nemesisTaken.length * 250000 + r.wealth * 0.1 : 0
