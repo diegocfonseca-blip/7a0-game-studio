@@ -418,88 +418,107 @@ export default function ScoutsScreen() {
           </BrutalCard>
         )}
 
-        <BrutalCard color={C.yellow} className="p-3">
-          <p className="text-black text-xs font-bold text-center">
-            ✦ Só VOCÊ enxerga o potencial real. Os olheiros do mundo veem só a nota atual.
-          </p>
-        </BrutalCard>
-
-        {/* unlocked regions */}
-        <div className="flex flex-wrap gap-1.5">
-          <BrutalTag color={C.green} textColor="#fff">🇧🇷 BRASIL ✓</BrutalTag>
-          {state.purchasedUpgrades.filter(u => u.startsWith('scout-')).map(u => {
-            const r = SCOUT_REGIONS[u.replace('scout-', '')]
-            return r ? <BrutalTag key={u} color={C.teal}>{r.flag} {r.label.toUpperCase()} ✓</BrutalTag> : null
-          })}
-        </div>
-
-        {/* locked regions hint */}
-        {lockedRegions.length > 0 && (
-          <BrutalCard color={C.black} className="p-4">
-            <p className="text-white font-black text-sm mb-1" style={{ fontFamily: 'Oswald, sans-serif' }}>
-              🔒 LENDAS ESCONDIDAS LÁ FORA
+        {/* ── LEILÃO CPU ATIVO: nada mais aparece abaixo ── */}
+        {isCpuLeilao && (
+          <BrutalCard color={C.creamDark} className="p-4 text-center">
+            <p className="text-black/50 text-xs font-bold">
+              Lance seu valor acima e clique em <strong>Fechar leilão</strong> para revelar o resultado.
             </p>
-            <p className="text-white/60 text-xs font-bold mb-3">
-              Você só conhece o Brasil de cor. Pra achar lendas de outros países, contrate olheiros no Escritório:
-            </p>
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {lockedRegions.map(r => (
-                <BrutalTag key={r} color={C.creamDark}>{SCOUT_REGIONS[r].flag} {SCOUT_REGIONS[r].label}</BrutalTag>
-              ))}
-            </div>
-            <BrutalButton color={C.yellow} textColor="#000" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'finance' })}>
-              🔭 Contratar olheiros →
-            </BrutalButton>
           </BrutalCard>
         )}
 
-        {/* 🔥 ALVOS QUENTES — aja agora ou um rival leva */}
-        {hotList.length > 0 && (
-          <BrutalCard color={C.orange} className="p-3" shadow={5}>
-            <p className="text-white font-black text-sm mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>🔥 ALVOS QUENTES — AJA AGORA</p>
-            <div className="space-y-2">
-              {hotList.map(({ legend, weeks }) => {
-                const rar = rarityOf(legend.truePotential)
-                return (
-                  <div key={legend.id} onClick={() => openPlayer(legend)}
-                       className="bg-white border-2 border-black rounded-lg p-2 flex items-center gap-2 cursor-pointer active:translate-x-[2px] active:translate-y-[2px]">
-                    <span className="text-xl">{FLAG[legend.nationality]}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-black text-black text-sm truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{rar.emoji} {legend.nickname}</p>
-                      <p className="text-[10px] font-black uppercase" style={{ color: rar.color }}>{rar.label}</p>
-                    </div>
-                    <BrutalTag color={weeks <= 2 ? C.orange : C.yellow} textColor={weeks <= 2 ? '#fff' : '#000'}>⏳ {weeks} sem</BrutalTag>
-                  </div>
-                )
-              })}
-            </div>
-          </BrutalCard>
-        )}
-
-        {/* ── CPU MODE: MERCADO FECHADO ── */}
-        {cpuMarketLocked && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-            <BrutalCard color={C.black} className="p-6 text-center" shadow={6}>
-              <p className="text-5xl mb-3">🔒</p>
-              <p className="font-black text-white text-xl mb-1" style={{ fontFamily: 'Oswald, sans-serif' }}>MERCADO FECHADO</p>
-              <p className="text-white/70 text-sm font-bold leading-relaxed mb-4">
-                {state.onlineGameMode === 'draft' && 'No modo Draft, você só pode assinar lendas durante a janela de draft. Avance semanas — a próxima janela abre a cada 4 semanas.'}
-                {state.onlineGameMode === 'leilao' && 'No modo Leilão, lendas são arrematadas em leilões fechados. Aguarde o próximo leilão aparecer.'}
-                {state.onlineGameMode === 'draft-leilao' && 'No modo Draft + Leilão, assinaturas só ocorrem em janelas de draft ou leilões. Avance semanas para a próxima.'}
-              </p>
-              <div className="border-[3px] border-white/30 rounded-xl p-3" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
-                <p className="text-white/50 text-xs font-black uppercase tracking-widest">Próxima janela em</p>
-                <p className="text-white font-black text-2xl mt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>
-                  {state.onlineGameMode === 'draft' || state.onlineGameMode === 'draft-leilao'
-                    ? `~${4 - ((state.week - 1) % 4)} semana${4 - ((state.week - 1) % 4) === 1 ? '' : 's'}`
-                    : 'Em breve'}
+        {/* ── CONTEÚDO PRINCIPAL (só quando NÃO há leilão CPU ativo) ── */}
+        {!isCpuLeilao && (
+          <>
+            {/* tip: só no modo livre/draft */}
+            {!cpuMarketLocked && (
+              <BrutalCard color={C.yellow} className="p-3">
+                <p className="text-black text-xs font-bold text-center">
+                  ✦ Só VOCÊ enxerga o potencial real. Os olheiros do mundo veem só a nota atual.
                 </p>
-              </div>
-            </BrutalCard>
-          </motion.div>
+              </BrutalCard>
+            )}
+
+            {/* regiões + olheiros: só no modo livre (não em CPU estruturado) */}
+            {!cpuModeActive && (
+              <>
+                <div className="flex flex-wrap gap-1.5">
+                  <BrutalTag color={C.green} textColor="#fff">🇧🇷 BRASIL ✓</BrutalTag>
+                  {state.purchasedUpgrades.filter(u => u.startsWith('scout-')).map(u => {
+                    const r = SCOUT_REGIONS[u.replace('scout-', '')]
+                    return r ? <BrutalTag key={u} color={C.teal}>{r.flag} {r.label.toUpperCase()} ✓</BrutalTag> : null
+                  })}
+                </div>
+                {lockedRegions.length > 0 && (
+                  <BrutalCard color={C.black} className="p-4">
+                    <p className="text-white font-black text-sm mb-1" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                      🔒 LENDAS ESCONDIDAS LÁ FORA
+                    </p>
+                    <p className="text-white/60 text-xs font-bold mb-3">
+                      Você só conhece o Brasil de cor. Pra achar lendas de outros países, contrate olheiros no Escritório:
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {lockedRegions.map(r => (
+                        <BrutalTag key={r} color={C.creamDark}>{SCOUT_REGIONS[r].flag} {SCOUT_REGIONS[r].label}</BrutalTag>
+                      ))}
+                    </div>
+                    <BrutalButton color={C.yellow} textColor="#000" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'finance' })}>
+                      🔭 Contratar olheiros →
+                    </BrutalButton>
+                  </BrutalCard>
+                )}
+              </>
+            )}
+
+            {/* 🔥 ALVOS QUENTES — só no modo livre */}
+            {!cpuModeActive && hotList.length > 0 && (
+              <BrutalCard color={C.orange} className="p-3" shadow={5}>
+                <p className="text-white font-black text-sm mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>🔥 ALVOS QUENTES — AJA AGORA</p>
+                <div className="space-y-2">
+                  {hotList.map(({ legend, weeks }) => {
+                    const rar = rarityOf(legend.truePotential)
+                    return (
+                      <div key={legend.id} onClick={() => openPlayer(legend)}
+                           className="bg-white border-2 border-black rounded-lg p-2 flex items-center gap-2 cursor-pointer active:translate-x-[2px] active:translate-y-[2px]">
+                        <span className="text-xl">{FLAG[legend.nationality]}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-black text-black text-sm truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{rar.emoji} {legend.nickname}</p>
+                          <p className="text-[10px] font-black uppercase" style={{ color: rar.color }}>{rar.label}</p>
+                        </div>
+                        <BrutalTag color={weeks <= 2 ? C.orange : C.yellow} textColor={weeks <= 2 ? '#fff' : '#000'}>⏳ {weeks} sem</BrutalTag>
+                      </div>
+                    )
+                  })}
+                </div>
+              </BrutalCard>
+            )}
+
+            {/* ── CPU MODE: MERCADO FECHADO (entre janelas) ── */}
+            {cpuMarketLocked && (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                <BrutalCard color={C.black} className="p-6 text-center" shadow={6}>
+                  <p className="text-5xl mb-3">🔒</p>
+                  <p className="font-black text-white text-xl mb-1" style={{ fontFamily: 'Oswald, sans-serif' }}>MERCADO FECHADO</p>
+                  <p className="text-white/70 text-sm font-bold leading-relaxed mb-4">
+                    {state.onlineGameMode === 'draft' && 'No modo Draft, você só pode assinar lendas durante a janela de draft. Avance semanas — a próxima janela abre a cada 4 semanas.'}
+                    {state.onlineGameMode === 'leilao' && 'No modo Leilão, lendas são arrematadas em leilões fechados. Aguarde o próximo leilão aparecer.'}
+                    {state.onlineGameMode === 'draft-leilao' && 'No modo Draft + Leilão, assinaturas só ocorrem em janelas de draft ou leilões. Avance semanas para a próxima.'}
+                  </p>
+                  <div className="border-[3px] border-white/30 rounded-xl p-3" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                    <p className="text-white/50 text-xs font-black uppercase tracking-widest">Próxima janela em</p>
+                    <p className="text-white font-black text-2xl mt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                      {state.onlineGameMode === 'draft' || state.onlineGameMode === 'draft-leilao'
+                        ? `~${4 - ((state.week - 1) % 4)} semana${4 - ((state.week - 1) % 4) === 1 ? '' : 's'}`
+                        : 'Em breve'}
+                    </p>
+                  </div>
+                </BrutalCard>
+              </motion.div>
+            )}
+          </>
         )}
 
-        {!cpuMarketLocked && pool.length === 0 && (
+        {!cpuMarketLocked && !isCpuLeilao && pool.length === 0 && (
           <BrutalCard color={C.creamDark} className="p-7 text-center">
             <p className="text-4xl mb-2">🕰️</p>
             <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>NINGUÉM NOVO ESSA SEMANA</p>
@@ -507,7 +526,7 @@ export default function ScoutsScreen() {
           </BrutalCard>
         )}
 
-        {pool.map(legend => {
+        {!isCpuLeilao && pool.map(legend => {
           const rating = getCurrentRating(legend, state.year)
           const value = getMarketValue(legend, state.year)
           const status = getCurrentStatus(legend, state.year)
