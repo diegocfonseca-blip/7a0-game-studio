@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
-import type { GameState, Screen, Client, ClubOffer, Bid, OnlinePlayer, OnlineGameMode, AuctionState } from '../types'
+import type { GameState, Screen, Client, ClubOffer, Bid, OnlinePlayer, OnlineGameMode, AuctionState, OnlineNewsItem, OnlineClientInfo } from '../types'
 import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getUnlockedNationalities, LEGENDS } from '../data/legends'
 import { generateWeeklyEvent, generateAmbientNews, SCOUT_UPGRADES } from '../data/events'
 import type { ClientLite } from '../data/events'
@@ -68,10 +68,13 @@ const INITIAL_STATE: GameState = {
   onlineGameMode: null,
   draftTurn: 0,
   draftPicksDone: 0,
+  draftWindowActive: false,
   currentAuction: null,
   onlineTakenLegends: {},
   onlinePlayers: [],
   onlinePresence: [],
+  onlineNews: [],
+  onlinePlayerRosters: {},
 }
 
 type Action =
@@ -102,6 +105,9 @@ type Action =
   | { type: 'AUCTION_BID'; playerIndex: number; amount: number }
   | { type: 'AUCTION_WIN'; legendId: string; bidAmount: number }
   | { type: 'REP_SOLD'; legendId: string; saleAmount: number }
+  | { type: 'DRAFT_WINDOW_SET'; active: boolean }
+  | { type: 'ONLINE_NEWS_ADD'; item: OnlineNewsItem }
+  | { type: 'PLAYER_ROSTER_UPDATE'; playerIndex: number; clients: OnlineClientInfo[] }
 
 function generateClubOffer(client: Client, year: number, clubRelations: Record<string, number> = {}): ClubOffer | null {
   const rating = getCurrentRating(getLegendById(client.legendId)!, year)
@@ -332,6 +338,10 @@ function empresarioReducer(state: GameState, action: Action): GameState {
     }
 
     case 'ADVANCE_WEEK': {
+      // Block week advance while online draft or auction window is open
+      if (state.onlineMode === 'online' && (state.draftWindowActive || state.currentAuction !== null)) {
+        return state
+      }
       const newWeek = state.week + 1
       const yearRolled = newWeek > 52
       const newYear = yearRolled ? state.year + 1 : state.year
@@ -946,6 +956,27 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           `💼 CONTRATO VENDIDO! ${nick} trocou de agente — você embolsou R$${action.saleAmount.toLocaleString('pt-BR')}.`,
           ...(xpr.line ? [xpr.line] : []),
         ],
+      }
+    }
+
+    case 'DRAFT_WINDOW_SET':
+      return { ...state, draftWindowActive: action.active }
+
+    case 'ONLINE_NEWS_ADD':
+      return { ...state, onlineNews: [action.item, ...state.onlineNews].slice(0, 50) }
+
+    case 'PLAYER_ROSTER_UPDATE': {
+      const prevRoster = state.onlinePlayerRosters[action.playerIndex] ?? []
+      const newIds = new Set(action.clients.map(c => c.legendId))
+      const freed = prevRoster.filter(c => !newIds.has(c.legendId)).map(c => c.legendId)
+      const newTaken = { ...state.onlineTakenLegends }
+      for (const id of freed) {
+        if (newTaken[id]?.playerIndex === action.playerIndex) delete newTaken[id]
+      }
+      return {
+        ...state,
+        onlinePlayerRosters: { ...state.onlinePlayerRosters, [action.playerIndex]: action.clients },
+        onlineTakenLegends: newTaken,
       }
     }
 

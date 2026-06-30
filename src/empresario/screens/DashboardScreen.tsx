@@ -247,11 +247,26 @@ export default function DashboardScreen() {
             <p className="text-black/60 text-xs font-bold">Lendas colecionadas</p>
           </BrutalCard>
 
-          <BrutalCard color={C.black} className="p-4" onClick={() => dispatch({ type: 'ADVANCE_WEEK' })}>
-            <p className="text-3xl mb-1">⏩</p>
-            <p className="font-black text-white" style={{ fontFamily: 'Oswald, sans-serif' }}>AVANÇAR</p>
-            <p className="text-white/50 text-xs font-bold">Próxima semana</p>
-          </BrutalCard>
+          {(() => {
+            const auctionLock = state.onlineMode === 'online' && state.currentAuction !== null
+            const draftLock = state.onlineMode === 'online' && state.draftWindowActive
+            const locked = auctionLock || draftLock
+            return (
+              <BrutalCard
+                color={locked ? C.orange : C.black}
+                className="p-4"
+                onClick={() => !locked && dispatch({ type: 'ADVANCE_WEEK' })}
+              >
+                <p className="text-3xl mb-1">{locked ? '🔒' : '⏩'}</p>
+                <p className={`font-black text-sm ${locked ? 'text-white' : 'text-white'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>
+                  {draftLock ? 'AGUARDE DRAFT' : auctionLock ? 'LEILÃO ATIVO' : 'AVANÇAR'}
+                </p>
+                <p className="text-white/60 text-[10px] font-bold">
+                  {locked ? 'Todos precisam jogar' : 'Próxima semana'}
+                </p>
+              </BrutalCard>
+            )
+          })()}
         </div>
 
         {/* ── ONLINE RIVALS PANEL ── */}
@@ -261,21 +276,39 @@ export default function DashboardScreen() {
             <div className="space-y-2">
               {state.onlinePlayers
                 .filter(p => p.playerIndex !== state.youIndex)
-                .sort((a, b) => b.money - a.money)
+                .sort((a, b) => b.totalDeals - a.totalDeals)
                 .map(p => {
                   const online = state.onlinePresence.includes(p.playerIndex)
+                  const roster = state.onlinePlayerRosters[p.playerIndex] ?? []
                   return (
                     <BrutalCard key={p.playerIndex} color="white" className="p-3" shadow={3}>
                       <div className="flex items-center gap-2">
                         <span className={`w-2 h-2 rounded-full border border-black shrink-0 ${online ? 'bg-green-500' : 'bg-gray-300'}`} />
                         <span className="flex-1 font-black text-black text-sm truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.playerName}</span>
                         <BrutalTag color={C.yellow}>{p.totalDeals} deals</BrutalTag>
-                        <span className="font-black text-black text-sm">R${Math.round(p.money / 1000)}k</span>
+                        <BrutalTag color={C.teal}>{roster.length} clientes</BrutalTag>
                       </div>
                     </BrutalCard>
                   )
                 })}
             </div>
+          </div>
+        )}
+
+        {/* ── ONLINE NEWS FEED ── */}
+        {state.onlineMode === 'online' && state.onlineNews.length > 0 && (
+          <div className="pt-1">
+            <h2 className="font-black text-black text-sm mb-2 uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>📡 Notícias dos Rivais</h2>
+            <BrutalCard color={C.teal} className="p-3 space-y-2 max-h-56 overflow-y-auto" shadow={3}>
+              {state.onlineNews.slice(0, 15).map((item) => (
+                <div key={item.id} className="flex items-start gap-2 border-b border-white/20 pb-1.5 last:border-0 last:pb-0">
+                  <span className="text-white/60 font-mono text-[9px] font-bold shrink-0 pt-0.5">
+                    {new Date(item.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  <p className="text-white text-[11px] font-bold leading-relaxed">{item.text}</p>
+                </div>
+              ))}
+            </BrutalCard>
           </div>
         )}
 

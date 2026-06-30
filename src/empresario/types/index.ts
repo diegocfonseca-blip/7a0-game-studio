@@ -202,6 +202,25 @@ export interface OnlinePlayer {
   totalDeals: number
 }
 
+export interface OnlineNewsItem {
+  id: string
+  playerIndex: number
+  playerName: string
+  text: string
+  timestamp: number
+}
+
+export interface OnlineClientInfo {
+  legendId: string
+  nickname: string
+  position: Position
+  nationality: Nationality
+  currentRating: number
+  commissionRate: number
+  repExpiresYear?: number
+  contractClub: string | null
+}
+
 export interface AuctionState {
   legendId: string
   bids: Record<number, number>  // playerIndex → bid amount
@@ -258,8 +277,11 @@ export interface GameState {
   onlineGameMode: OnlineGameMode | null
   draftTurn: number         // playerIndex whose turn it is to sign
   draftPicksDone: number    // total picks done (drives snake order)
+  draftWindowActive: boolean // week advance blocked while draft/leilão window is open
   currentAuction: AuctionState | null
   onlineTakenLegends: Record<string, { playerIndex: number; playerName: string }>
   onlinePlayers: OnlinePlayer[]
   onlinePresence: number[]
+  onlineNews: OnlineNewsItem[]
+  onlinePlayerRosters: Record<number, OnlineClientInfo[]>
 }
