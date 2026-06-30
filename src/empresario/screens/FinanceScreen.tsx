@@ -2,7 +2,7 @@ import { useEmpresario } from '../store'
 import { SCOUT_UPGRADES, SERVICE_UPGRADES, OFFICE_UPGRADES, LIFESTYLE_UPGRADES } from '../data/events'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag } from '../ui'
 
-type Up = { id: string; name: string; description: string; cost: number; effect: string; flag?: string; repGain?: number; monthlyCost?: number }
+type Up = { id: string; name: string; description: string; cost: number; effect: string; flag?: string; repGain?: number; monthlyCost?: number; annualFee?: number }
 
 export default function FinanceScreen() {
   const { state, dispatch } = useEmpresario()
@@ -40,6 +40,7 @@ export default function FinanceScreen() {
             <div className="mt-2 flex flex-wrap gap-1.5">
               <BrutalTag color={onDeal ? 'white' : C.yellow}>⚡ {up.effect}</BrutalTag>
               {up.monthlyCost && <BrutalTag color={C.orange} textColor="#fff">−{money(up.monthlyCost)}/mês</BrutalTag>}
+              {up.annualFee && <BrutalTag color={C.blue} textColor="#fff">📅 −{money(up.annualFee)}/ano</BrutalTag>}
             </div>
           </div>
           <div className="shrink-0 text-right">

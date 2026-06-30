@@ -433,25 +433,26 @@ export function generateAmbientNews(
 }
 
 // ─── SCOUTS (desbloqueiam lendas por país) ──────────────────────
+// cost = taxa única de contratação  |  monthlyCost = mensalidade  |  annualFee = renovação anual do contrato
 export const SCOUT_UPGRADES = [
   { id: 'scout-FR', region: 'FR', name: 'Olheiro na França', flag: '🇫🇷',
     description: 'Uma rede de contatos no futebol francês para garimpar talentos antes de qualquer um.',
-    cost: 6000, monthlyCost: 1200, effect: 'Revela lendas francesas: Zidane, Henry, Drogba' },
+    cost: 6000, monthlyCost: 1200, annualFee: 3000, effect: 'Revela lendas francesas: Zidane, Henry, Drogba' },
   { id: 'scout-IT', region: 'IT', name: 'Olheiro na Itália', flag: '🇮🇹',
     description: 'Olhos dentro das categorias de base do calcio italiano.',
-    cost: 7000, monthlyCost: 1400, effect: 'Revela lendas italianas: Totti e cia' },
+    cost: 7000, monthlyCost: 1400, annualFee: 3500, effect: 'Revela lendas italianas: Totti e cia' },
   { id: 'scout-IB', region: 'IB', name: 'Olheiro na Ibéria', flag: '🇵🇹',
     description: 'Cobertura de Portugal e Espanha — das ilhas a La Masia.',
-    cost: 9000, monthlyCost: 1800, effect: 'Revela lendas ibéricas: CR7 e Iniesta' },
+    cost: 9000, monthlyCost: 1800, annualFee: 5000, effect: 'Revela lendas ibéricas: CR7 e Iniesta' },
   { id: 'scout-AR', region: 'AR', name: 'Olheiro na Argentina', flag: '🇦🇷',
     description: 'Contatos nas divisões de base argentinas. Onde nasce a magia.',
-    cost: 8000, monthlyCost: 1600, effect: 'Revela lendas argentinas: La Pulga e a nova geração' },
+    cost: 8000, monthlyCost: 1600, annualFee: 4000, effect: 'Revela lendas argentinas: La Pulga e a nova geração' },
   { id: 'scout-NO', region: 'NO', name: 'Olheiro na Europa do Norte', flag: '🇳🇱',
     description: 'Rede pela Holanda, Suécia e Alemanha.',
-    cost: 7000, monthlyCost: 1400, effect: 'Revela lendas do norte europeu: Ibra, Kluivert, Ballack, Kahn' },
+    cost: 7000, monthlyCost: 1400, annualFee: 3500, effect: 'Revela lendas do norte europeu: Ibra, Kluivert, Ballack, Kahn' },
   { id: 'scout-EN', region: 'EN', name: 'Olheiro na Inglaterra', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     description: 'Contatos na terra do futebol — das academias inglesas.',
-    cost: 8000, monthlyCost: 1600, effect: 'Revela lendas inglesas: Beckham, Gerrard, Lampard, Owen' },
+    cost: 8000, monthlyCost: 1600, annualFee: 4500, effect: 'Revela lendas inglesas: Beckham, Gerrard, Lampard, Owen' },
 ]
 
 // ─── SERVIÇOS (ligados aos eventos) ─────────────────────────────
@@ -468,28 +469,29 @@ export const SERVICE_UPGRADES = [
 ]
 
 // ─── ESCRITÓRIOS (presença física = custo mensal + reputação) ────
+// cost = reforma/abertura  |  monthlyCost = aluguel mensal  |  annualFee = IPTU + manutenção anual
 export const OFFICE_UPGRADES = [
   { id: 'office-sp', name: 'Escritório em São Paulo', flag: '🏙️', repGain: 5,
     description: 'Presença física no centro financeiro do futebol brasileiro. Clubes da elite BR te levam mais a sério.',
-    cost: 25000, monthlyCost: 2000, effect: '+5 rep · força nas negociações BR' },
+    cost: 25000, monthlyCost: 2000, annualFee: 5000, effect: '+5 rep · força nas negociações BR' },
   { id: 'office-rio', name: 'Escritório no Rio de Janeiro', flag: '🏖️', repGain: 5,
     description: 'No coração do futebol carioca. Abre portas com Flamengo, Vasco, Fluminense e Botafogo.',
-    cost: 22000, monthlyCost: 1800, effect: '+5 rep · acesso aos clubes cariocas' },
+    cost: 22000, monthlyCost: 1800, annualFee: 4500, effect: '+5 rep · acesso aos clubes cariocas' },
   { id: 'office-lisboa', name: 'Escritório em Lisboa', flag: '🇵🇹', repGain: 8,
     description: 'A porta de entrada para a Europa. Clubes portugueses te chamam com frequência e os olheiros europeus te veem como gente séria.',
-    cost: 60000, monthlyCost: 5500, effect: '+8 rep · gateway para a Europa' },
+    cost: 60000, monthlyCost: 5500, annualFee: 14000, effect: '+8 rep · gateway para a Europa' },
   { id: 'office-madrid', name: 'Escritório em Madrid', flag: '🇪🇸', repGain: 10,
     description: 'Real Madrid e Atlético do lado de casa. Propostas espanholas chegam com mais frequência e com luvas maiores.',
-    cost: 90000, monthlyCost: 8000, effect: '+10 rep · LaLiga no seu colo' },
+    cost: 90000, monthlyCost: 8000, annualFee: 20000, effect: '+10 rep · LaLiga no seu colo' },
   { id: 'office-milan', name: 'Escritório em Milão', flag: '🇮🇹', repGain: 10,
     description: 'AC Milan e Inter do lado. A Serie A como território. Calcio nas veias.',
-    cost: 95000, monthlyCost: 8500, effect: '+10 rep · Serie A sem filtro' },
+    cost: 95000, monthlyCost: 8500, annualFee: 22000, effect: '+10 rep · Serie A sem filtro' },
   { id: 'office-paris', name: 'Escritório em Paris', flag: '🇫🇷', repGain: 11,
     description: 'A Ligue 1 está crescendo. Posicione-se antes dos petrodólares transformarem Paris no novo centro do mundo.',
-    cost: 110000, monthlyCost: 9500, effect: '+11 rep · Ligue 1 como território' },
+    cost: 110000, monthlyCost: 9500, annualFee: 25000, effect: '+11 rep · Ligue 1 como território' },
   { id: 'office-london', name: 'Escritório em Londres', flag: '🇬🇧', repGain: 14,
     description: 'A Premier League é o ápice do mercado. Um escritório aqui coloca você na mesa dos maiores cheques do futebol mundial.',
-    cost: 170000, monthlyCost: 15000, effect: '+14 rep · Premier League sem filtro' },
+    cost: 170000, monthlyCost: 15000, annualFee: 40000, effect: '+14 rep · Premier League sem filtro' },
 ]
 
 // ─── ESTILO DE VIDA & STATUS — ser rico e poderoso aumenta sua reputação,
