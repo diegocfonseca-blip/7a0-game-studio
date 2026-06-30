@@ -2,7 +2,7 @@ import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
 import type { GameState, Screen, Client, ClubOffer, Bid, OnlinePlayer, OnlineGameMode, AuctionState, OnlineNewsItem, OnlineClientInfo } from '../types'
 import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getUnlockedNationalities, LEGENDS } from '../data/legends'
-import { generateWeeklyEvent, generateAmbientNews, SCOUT_UPGRADES } from '../data/events'
+import { generateWeeklyEvent, generateAmbientNews, SCOUT_UPGRADES, OFFICE_UPGRADES } from '../data/events'
 import type { ClientLite } from '../data/events'
 import { CLUBS, NEMESIS } from '../data/clubs'
 import { GLORIES, genericGlory } from '../data/glory'
@@ -417,14 +417,19 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         })
       }
 
-      // Weekly expenses: client fees + scout monthly retainers (paid monthly = every 4 weeks)
-      const scoutWeeklyCost = SCOUT_UPGRADES
+      // Weekly expenses: client fees + scout retainers + office maintenance (all paid monthly = every 4 weeks)
+      const scoutMonthlyCost = SCOUT_UPGRADES
         .filter(u => state.purchasedUpgrades.includes(u.id))
-        .reduce((sum, u) => sum + (u.monthlyCost ?? 0) / 4, 0)
-      const weeklyExpense = activeClients.reduce((sum, c) => sum + c.monthlyFee / 4, 0) + scoutWeeklyCost
+        .reduce((sum, u) => sum + (u.monthlyCost ?? 0), 0)
+      const officeMonthlyCost = OFFICE_UPGRADES
+        .filter(u => state.purchasedUpgrades.includes(u.id))
+        .reduce((sum, u) => sum + (u.monthlyCost ?? 0), 0)
+      const weeklyFixedCost = (scoutMonthlyCost + officeMonthlyCost) / 4
+      const weeklyExpense = activeClients.reduce((sum, c) => sum + c.monthlyFee / 4, 0) + weeklyFixedCost
       let runningMoney = state.money - weeklyExpense
-      if (scoutWeeklyCost > 0 && actualWeek % 4 === 0) {
-        extraNarrative.push(`🔭 Mensalidade dos olheiros: -R$${Math.round(scoutWeeklyCost * 4).toLocaleString('pt-BR')}`)
+      if (actualWeek % 4 === 0) {
+        if (scoutMonthlyCost > 0) extraNarrative.push(`🔭 Mensalidade dos olheiros: -R$${scoutMonthlyCost.toLocaleString('pt-BR')}`)
+        if (officeMonthlyCost > 0) extraNarrative.push(`🏢 Manutenção dos escritórios: -R$${officeMonthlyCost.toLocaleString('pt-BR')}`)
       }
 
       // Club offers (tick down + maybe generate)
@@ -731,9 +736,10 @@ function empresarioReducer(state: GameState, action: Action): GameState {
     }
 
     case 'PURCHASE_UPGRADE': {
-      const isScout = action.upgradeId.startsWith('scout')
+      const isScout = action.upgradeId.startsWith('scout-')
+      const isOffice = action.upgradeId.startsWith('office-')
       const isLife = action.upgradeId.startsWith('life-')
-      const repBoost = action.repGain ?? (action.upgradeId === 'escritorio-sp' ? 12 : isScout ? 3 : 0)
+      const repBoost = action.repGain ?? (isScout ? 3 : 0)
       return {
         ...state,
         money: state.money - action.cost,
@@ -743,6 +749,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         narrative: [
           ...state.narrative,
           isScout ? `🔭 Novo olheiro contratado! ${action.effect}`
+            : isOffice ? `🏢 Escritório aberto! ${action.effect}`
             : isLife ? `💎 Você ostentou e ganhou status! ${action.effect}`
             : `💼 Investimento: ${action.effect}`,
         ],

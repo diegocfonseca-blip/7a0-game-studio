@@ -266,10 +266,12 @@ function EmpresarioRouter() {
     const myName = state.playerNames[state.youIndex] ?? 'Jogador'
     const newUpgradeId = state.purchasedUpgrades[state.purchasedUpgrades.length - 1] ?? ''
     const label = newUpgradeId.startsWith('scout-')
-      ? `contratou olheiro ${newUpgradeId.replace('scout-', '')}`
+      ? `contratou olheiro (${newUpgradeId.replace('scout-', '')})`
+      : newUpgradeId.startsWith('office-')
+      ? `abriu escritório em ${newUpgradeId.replace('office-', '').toUpperCase()}`
       : newUpgradeId.startsWith('life-')
       ? `ostentou com novo estilo de vida`
-      : `investiu no escritório`
+      : `investiu na estrutura`
     channelRef.current.send({
       type: 'broadcast',
       event: 'online_news',

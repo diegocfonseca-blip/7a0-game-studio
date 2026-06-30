@@ -1,8 +1,8 @@
 import { useEmpresario } from '../store'
-import { SCOUT_UPGRADES, SERVICE_UPGRADES, LIFESTYLE_UPGRADES } from '../data/events'
+import { SCOUT_UPGRADES, SERVICE_UPGRADES, OFFICE_UPGRADES, LIFESTYLE_UPGRADES } from '../data/events'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag } from '../ui'
 
-type Up = { id: string; name: string; description: string; cost: number; effect: string; flag?: string; repGain?: number }
+type Up = { id: string; name: string; description: string; cost: number; effect: string; flag?: string; repGain?: number; monthlyCost?: number }
 
 export default function FinanceScreen() {
   const { state, dispatch } = useEmpresario()
@@ -15,8 +15,12 @@ export default function FinanceScreen() {
   const totalClientValue = state.clients.reduce((s, c) => s + c.currentValue, 0)
   const monthlyExpenses = state.weeklyExpenses * 4
 
+  // monthly costs breakdown
+  const scoutMonthlyCost = SCOUT_UPGRADES.filter(u => state.purchasedUpgrades.includes(u.id)).reduce((s, u) => s + (u.monthlyCost ?? 0), 0)
+  const officeMonthlyCost = OFFICE_UPGRADES.filter(u => state.purchasedUpgrades.includes(u.id)).reduce((s, u) => s + (u.monthlyCost ?? 0), 0)
+
   // 🔥 OFERTA DA SEMANA — um item rotativo com 30% de desconto (muda toda semana)
-  const allBuyable = [...SCOUT_UPGRADES, ...SERVICE_UPGRADES, ...LIFESTYLE_UPGRADES].filter(u => !state.purchasedUpgrades.includes(u.id))
+  const allBuyable = [...SCOUT_UPGRADES, ...SERVICE_UPGRADES, ...OFFICE_UPGRADES, ...LIFESTYLE_UPGRADES].filter(u => !state.purchasedUpgrades.includes(u.id))
   const dealId = allBuyable.length ? allBuyable[(state.year * 52 + state.week) % allBuyable.length].id : null
 
   function UpgradeRow({ up }: { up: Up }) {
@@ -33,7 +37,10 @@ export default function FinanceScreen() {
               {bought ? '✅ ' : up.flag ? `${up.flag} ` : ''}{up.name}
             </p>
             <p className="text-black/50 text-xs font-medium mt-0.5 leading-relaxed">{up.description}</p>
-            <div className="mt-2"><BrutalTag color={onDeal ? 'white' : C.yellow}>⚡ {up.effect}</BrutalTag></div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <BrutalTag color={onDeal ? 'white' : C.yellow}>⚡ {up.effect}</BrutalTag>
+              {up.monthlyCost && <BrutalTag color={C.orange} textColor="#fff">−{money(up.monthlyCost)}/mês</BrutalTag>}
+            </div>
           </div>
           <div className="shrink-0 text-right">
             {onDeal && <p className="text-black/40 text-[10px] font-bold line-through">{money(up.cost)}</p>}
@@ -74,8 +81,13 @@ export default function FinanceScreen() {
               <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(state.totalEarned)}</p>
             </div>
           </div>
-          {monthlyExpenses > 0 && (
-            <p className="text-white/60 text-xs font-bold mt-3">Custo mensal de clientes: −{moneyFull(monthlyExpenses)}</p>
+          {(monthlyExpenses > 0 || scoutMonthlyCost > 0 || officeMonthlyCost > 0) && (
+            <div className="mt-3 pt-3 border-t-2 border-white/20 space-y-1">
+              {monthlyExpenses > 0 && <p className="text-white/60 text-xs font-bold">👥 Clientes: −{moneyFull(monthlyExpenses)}/mês</p>}
+              {scoutMonthlyCost > 0 && <p className="text-white/60 text-xs font-bold">🔭 Olheiros: −{moneyFull(scoutMonthlyCost)}/mês</p>}
+              {officeMonthlyCost > 0 && <p className="text-white/60 text-xs font-bold">🏢 Escritórios: −{moneyFull(officeMonthlyCost)}/mês</p>}
+              <p className="text-white/90 text-xs font-black pt-1">Total fixo: −{moneyFull(monthlyExpenses + scoutMonthlyCost + officeMonthlyCost)}/mês</p>
+            </div>
           )}
         </BrutalCard>
 
@@ -106,6 +118,18 @@ export default function FinanceScreen() {
           <p className="text-black/50 text-xs font-bold mb-3">Serviços fixos que resolvem problemas antes de virarem prejuízo.</p>
           <div className="space-y-3">
             {SERVICE_UPGRADES.map(up => <UpgradeRow key={up.id} up={up} />)}
+          </div>
+        </div>
+
+        {/* ESCRITÓRIOS */}
+        <div>
+          <h2 className="font-black text-black text-lg pt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>🌍 ESCRITÓRIOS PELO MUNDO</h2>
+          <p className="text-black/50 text-xs font-bold mb-3">
+            Presença física abre portas — e as melhores propostas chegam pra quem está no lugar certo.
+            Cada escritório tem um custo mensal de manutenção.
+          </p>
+          <div className="space-y-3">
+            {OFFICE_UPGRADES.map(up => <UpgradeRow key={up.id} up={up} />)}
           </div>
         </div>
 
