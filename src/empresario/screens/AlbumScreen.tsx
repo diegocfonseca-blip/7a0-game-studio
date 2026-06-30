@@ -23,12 +23,13 @@ export default function AlbumScreen() {
     return 'unknown'
   }
 
-  const order: Record<Status, number> = { signed: 0, seen: 1, stolen: 2, unknown: 3 }
-  const cards = [...LEGENDS].sort((a, b) => {
-    const d = order[statusOf(a.id)] - order[statusOf(b.id)]
-    if (d !== 0) return d
-    return b.truePotential - a.truePotential
-  })
+  // Fixed Pokédex-style order: each legend has a permanent slot based on ID hash
+  function dexNum(id: string) {
+    let h = 5381
+    for (let i = 0; i < id.length; i++) h = ((h << 5) + h) ^ id.charCodeAt(i)
+    return h >>> 0
+  }
+  const cards = [...LEGENDS].sort((a, b) => dexNum(a.id) - dexNum(b.id))
 
   const discovered = LEGENDS.filter(l => signed.has(l.id) || seen.has(l.id)).length
   const total = LEGENDS.length

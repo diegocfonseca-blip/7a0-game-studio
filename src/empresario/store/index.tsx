@@ -98,6 +98,7 @@ type Action =
   | { type: 'START_GAME'; playerName: string }
   | { type: 'SKIP_CPU_DRAFT' }
   | { type: 'CPU_AUCTION_CLOSE' }
+  | { type: 'CPU_AUCTION_BID_AND_CLOSE'; amount: number }
   | { type: 'SIGN_CLIENT'; legendId: string; commissionRate: number; contractYears: number }
   | { type: 'RENEW_CLIENT'; legendId: string; commissionRate: number; contractYears: number }
   | { type: 'ADVANCE_WEEK' }
@@ -219,6 +220,75 @@ function nemesisTryGrab(state: GameState, year: number): string | null {
   const envy = state.totalEarned > 1000000 ? 0.22 : state.clients.length >= 2 ? 0.16 : 0.1
   if (Math.random() > envy) return null
   return targets[0].id
+}
+
+// ── CPU Auction Resolution ────────────────────────────────────────────────────
+// Shared logic for CPU_AUCTION_CLOSE and CPU_AUCTION_BID_AND_CLOSE.
+function resolveCpuAuction(state: GameState, auction: AuctionState): GameState {
+  const entries = Object.entries(auction.bids).map(([k, v]) => ({ idx: Number(k), amount: v as number }))
+  if (entries.length === 0) {
+    return { ...state, currentAuction: null, narrative: [...state.narrative, `🔨 Leilão encerrado sem lances.`] }
+  }
+  const winner = entries.reduce((a, b) => b.amount > a.amount ? b : a)
+
+  if (winner.idx === 0) {
+    const legend = getLegendById(auction.legendId)
+    if (!legend) return { ...state, currentAuction: null }
+    const currentRating = getCurrentRating(legend, state.year)
+    const currentValue = getMarketValue(legend, state.year)
+    const newClient: Client = {
+      legendId: legend.id, name: legend.name, nickname: legend.nickname,
+      position: legend.position, nationality: legend.nationality,
+      status: getCurrentStatus(legend, state.year),
+      birthYear: legend.birthYear, peakYearStart: legend.peakYearStart,
+      peakYearEnd: legend.peakYearEnd, truePotential: legend.truePotential,
+      currentRating, personality: legend.personality, monthlyFee: legend.monthlyFee,
+      futureKnowledge: legend.futureKnowledge, commissionRate: 15,
+      repContractYears: 3, repExpiresYear: state.year + 3,
+      happiness: 75, currentValue, signedYear: state.year,
+      contractClub: legend.club, contractSalary: legend.monthlyFee * 10,
+      contractExpiresYear: state.year + 2, rivalOffers: 0,
+    }
+    const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + legend.monthlyFee / 4
+    const xpr = applyXp(state, 60)
+    return {
+      ...state,
+      money: state.money - winner.amount,
+      clients: [...state.clients, newClient],
+      weeklyExpenses, xp: xpr.xp,
+      reputation: Math.min(100, state.reputation + xpr.repBonus),
+      everSignedIds: state.everSignedIds.includes(auction.legendId) ? state.everSignedIds : [...state.everSignedIds, auction.legendId],
+      seenLegendIds: state.seenLegendIds.includes(auction.legendId) ? state.seenLegendIds : [...state.seenLegendIds, auction.legendId],
+      currentAuction: null,
+      narrative: [...state.narrative,
+        `🏆 LEILÃO GANHO! Você venceu com R$${winner.amount.toLocaleString('pt-BR')} e agenciou ${legend.nickname}!`,
+        ...(xpr.line ? [xpr.line] : []),
+      ],
+    }
+  } else {
+    const bidderRivalIndices = auction.cpuBidderRivalIndices ?? []
+    const rivalIdx = bidderRivalIndices[winner.idx - 1]
+    const cpuAgent = rivalIdx !== undefined ? state.rivalAgents[rivalIdx] : null
+    const legend = getLegendById(auction.legendId)
+    if (!cpuAgent || !legend) return { ...state, currentAuction: null }
+    return {
+      ...state,
+      currentAuction: null,
+      rivalAgents: state.rivalAgents.map((r, i) =>
+        i === rivalIdx
+          ? { ...r, clients: [...r.clients, auction.legendId], wealth: Math.max(0, r.wealth - winner.amount) }
+          : r
+      ),
+      onlineTakenLegends: {
+        ...state.onlineTakenLegends,
+        [auction.legendId]: { playerIndex: winner.idx, playerName: cpuAgent.name },
+      },
+      // Mark as stolen in album (rival won the auction) and ensure it's seen
+      nemesisTaken: state.nemesisTaken.includes(auction.legendId) ? state.nemesisTaken : [...state.nemesisTaken, auction.legendId],
+      seenLegendIds: state.seenLegendIds.includes(auction.legendId) ? state.seenLegendIds : [...state.seenLegendIds, auction.legendId],
+      narrative: [...state.narrative, `🔨 ${cpuAgent.name} venceu o leilão com R$${winner.amount.toLocaleString('pt-BR')} e ficou com ${legend.nickname}!`],
+    }
+  }
 }
 
 function empresarioReducer(state: GameState, action: Action): GameState {
@@ -819,6 +889,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       let cpuCurrentAuction: AuctionState | null = null
       let cpuRivalAgents = rivalAgents
       let cpuTakenLegends = { ...state.onlineTakenLegends }
+      let seenLegendIds = state.seenLegendIds
 
       if (!gameOver && state.onlineMode === 'cpu' && state.onlineGameMode !== null && actualWeek % 4 === 0) {
         const periodsElapsed = (newYear - 1993) * 13 + Math.floor((actualWeek - 1) / 4)
@@ -863,8 +934,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           if (!nemesisShown) {
             nemesisShown = true
             nemesisAlert = {
-              legendId: cpuRivalAgents[0].clients[0] ?? '',
-              legendNickname: cpuRivalAgents[0].clients[0] ? (getLegendById(cpuRivalAgents[0].clients[0])?.nickname ?? 'uma lenda') : 'uma lenda',
+              legendId: '',
+              legendNickname: '',
               story: NEMESIS.story + `\n\nEle já escolheu no draft. Você vai deixar ele ganhar?`,
               isFirst: true,
             }
@@ -891,15 +962,19 @@ function empresarioReducer(state: GameState, action: Action): GameState {
             closed: false,
             cpuBidderRivalIndices: bidderRivalIndices,
           }
+          // Mark legend as seen the moment it enters the auction so it appears in album
+          if (!seenLegendIds.includes(auctionTarget.id)) {
+            seenLegendIds = [...seenLegendIds, auctionTarget.id]
+          }
           const legend = getLegendById(auctionTarget.id)
           extraNarrative.push(`🔨 LEILÃO ABERTO! ${legend?.nickname ?? '???'} entrou em disputa. Lance seu valor no Radar ou os rivais levam.`)
           // First auction ever: introduce Cambalhota as the main rival bidder
           if (!nemesisShown) {
             nemesisShown = true
             nemesisAlert = {
-              legendId: auctionTarget.id,
-              legendNickname: legend?.nickname ?? '???',
-              story: NEMESIS.story + `\n\n🔨 E ele já está no leilão. Ele sempre vai contra você — lance com estratégia.`,
+              legendId: '',
+              legendNickname: '',
+              story: NEMESIS.story + `\n\n🔨 E ele já está no leilão disputando ${legend?.nickname ?? 'uma lenda'} contra você. Ele sempre vai contra você — lance com estratégia.`,
               isFirst: true,
             }
           }
@@ -934,6 +1009,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         draftWindowActive: cpuDraftWindowActive,
         currentAuction: cpuCurrentAuction,
         onlineTakenLegends: cpuTakenLegends,
+        seenLegendIds,
         narrative: [...state.narrative, ...extraNarrative],
       }
     }
@@ -1293,71 +1369,16 @@ function empresarioReducer(state: GameState, action: Action): GameState {
 
     case 'CPU_AUCTION_CLOSE': {
       if (!state.currentAuction) return state
-      const auction = state.currentAuction
-      const entries = Object.entries(auction.bids).map(([k, v]) => ({ idx: Number(k), amount: v }))
-      if (entries.length === 0) {
-        return { ...state, currentAuction: null, narrative: [...state.narrative, `🔨 Leilão encerrado sem lances.`] }
-      }
-      const winner = entries.reduce((a, b) => b.amount > a.amount ? b : a)
+      return resolveCpuAuction(state, state.currentAuction)
+    }
 
-      if (winner.idx === 0) {
-        // Player wins — same logic as AUCTION_WIN
-        const legend = getLegendById(auction.legendId)
-        if (!legend) return { ...state, currentAuction: null }
-        const currentRating = getCurrentRating(legend, state.year)
-        const currentValue = getMarketValue(legend, state.year)
-        const newClient: Client = {
-          legendId: legend.id, name: legend.name, nickname: legend.nickname,
-          position: legend.position, nationality: legend.nationality,
-          status: getCurrentStatus(legend, state.year),
-          birthYear: legend.birthYear, peakYearStart: legend.peakYearStart,
-          peakYearEnd: legend.peakYearEnd, truePotential: legend.truePotential,
-          currentRating, personality: legend.personality, monthlyFee: legend.monthlyFee,
-          futureKnowledge: legend.futureKnowledge, commissionRate: 15,
-          repContractYears: 3, repExpiresYear: state.year + 3,
-          happiness: 75, currentValue, signedYear: state.year,
-          contractClub: legend.club, contractSalary: legend.monthlyFee * 10,
-          contractExpiresYear: state.year + 2, rivalOffers: 0,
-        }
-        const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + legend.monthlyFee / 4
-        const xpr = applyXp(state, 60)
-        return {
-          ...state,
-          money: state.money - winner.amount,
-          clients: [...state.clients, newClient],
-          weeklyExpenses,
-          xp: xpr.xp,
-          reputation: Math.min(100, state.reputation + xpr.repBonus),
-          everSignedIds: state.everSignedIds.includes(auction.legendId) ? state.everSignedIds : [...state.everSignedIds, auction.legendId],
-          seenLegendIds: state.seenLegendIds.includes(auction.legendId) ? state.seenLegendIds : [...state.seenLegendIds, auction.legendId],
-          currentAuction: null,
-          narrative: [...state.narrative,
-            `🏆 LEILÃO GANHO! Você venceu com R$${winner.amount.toLocaleString('pt-BR')} e agenciou ${legend.nickname}!`,
-            ...(xpr.line ? [xpr.line] : []),
-          ],
-        }
-      } else {
-        // CPU agent wins
-        const bidderRivalIndices = auction.cpuBidderRivalIndices ?? []
-        const rivalIdx = bidderRivalIndices[winner.idx - 1]
-        const cpuAgent = rivalIdx !== undefined ? state.rivalAgents[rivalIdx] : null
-        const legend = getLegendById(auction.legendId)
-        if (!cpuAgent || !legend) return { ...state, currentAuction: null }
-        return {
-          ...state,
-          currentAuction: null,
-          rivalAgents: state.rivalAgents.map((r, i) =>
-            i === rivalIdx
-              ? { ...r, clients: [...r.clients, auction.legendId], wealth: Math.max(0, r.wealth - winner.amount) }
-              : r
-          ),
-          onlineTakenLegends: {
-            ...state.onlineTakenLegends,
-            [auction.legendId]: { playerIndex: winner.idx, playerName: cpuAgent.name },
-          },
-          narrative: [...state.narrative, `🔨 ${cpuAgent.name} venceu o leilão com R$${winner.amount.toLocaleString('pt-BR')} e ficou com ${legend.nickname}!`],
-        }
-      }
+    case 'CPU_AUCTION_BID_AND_CLOSE': {
+      if (!state.currentAuction) return state
+      const auction = state.currentAuction
+      const bids = action.amount > 0
+        ? { ...auction.bids, [state.youIndex]: action.amount }
+        : auction.bids
+      return resolveCpuAuction(state, { ...auction, bids })
     }
 
     case 'ONLINE_NEWS_ADD':

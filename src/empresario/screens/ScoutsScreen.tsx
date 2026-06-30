@@ -134,6 +134,13 @@ export default function ScoutsScreen() {
 
   // ── Leilão helpers ─────────────────────────────────────────────────────────
   const [bidAmount, setBidAmount] = useState(0)
+  const [bidResult, setBidResult] = useState<{
+    legendNickname: string
+    youWon: boolean
+    winnerName: string
+    winnerAmount: number
+    allBids: Array<{ name: string; amount: number; isYou: boolean; isWinner: boolean }>
+  } | null>(null)
   const auction = state.currentAuction
   const auctionLegend = auction ? getLegendById(auction.legendId) : null
   const myBid = auction ? (auction.bids[state.youIndex] ?? 0) : 0
@@ -189,6 +196,39 @@ export default function ScoutsScreen() {
         dispatch({ type: 'AUCTION_SET', auction: null })
       }
     }
+  }
+
+  // CPU leilão: bid (or not) and close in one tap — reveals all bids + winner.
+  function confirmBidAndClose(useBid: boolean) {
+    if (!auction || !auctionLegend) return
+    const amount = useBid && bidAmount > 0 ? bidAmount : 0
+    const allBidsRecord: Record<number, number> = amount > 0
+      ? { ...auction.bids, [state.youIndex]: amount }
+      : auction.bids
+    const entries = Object.entries(allBidsRecord).map(([k, v]) => ({ idx: Number(k), amount: v as number }))
+    const winner = entries.length > 0 ? entries.reduce((a, b) => b.amount > a.amount ? b : a) : null
+
+    const allBids = [
+      { name: state.playerNames[0] ?? 'Você', amount: allBidsRecord[0] ?? 0, isYou: true, isWinner: winner?.idx === 0 },
+      ...(auction.cpuBidderRivalIndices ?? []).map((rivalIdx, i) => {
+        const rival = state.rivalAgents[rivalIdx]
+        return {
+          name: rival?.name ?? `Rival ${i + 1}`,
+          amount: allBidsRecord[i + 1] ?? 0,
+          isYou: false,
+          isWinner: winner?.idx === i + 1,
+        }
+      }),
+    ]
+
+    setBidResult({
+      legendNickname: auctionLegend.nickname,
+      youWon: winner?.idx === 0,
+      winnerName: winner ? allBids.find(b => b.isWinner)?.name ?? '???' : 'Ninguém',
+      winnerAmount: winner?.amount ?? 0,
+      allBids,
+    })
+    dispatch({ type: 'CPU_AUCTION_BID_AND_CLOSE', amount })
   }
 
   return (
@@ -261,7 +301,7 @@ export default function ScoutsScreen() {
                     </p>
                   )}
                 </div>
-                {(state.isHost || auction.sellerIndex === state.youIndex || state.onlineMode === 'cpu') && !auction.closed && (
+                {(state.isHost || auction.sellerIndex === state.youIndex) && state.onlineMode !== 'cpu' && !auction.closed && (
                   <button onClick={closeAuction}
                     className="border-2 border-black rounded-lg px-3 py-1 text-xs font-black bg-white text-black">
                     Fechar leilão
@@ -342,8 +382,31 @@ export default function ScoutsScreen() {
                   })
                 )}
               </div>
-              {/* my bid input */}
-              {!auction.closed && !myBid && (
+              {/* my bid input — CPU leilão: bid + close in one tap */}
+              {state.onlineMode === 'cpu' && !auction.closed && !myBid && (
+                <div>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={bidAmount || ''}
+                      onChange={e => setBidAmount(Number(e.target.value))}
+                      placeholder="Seu lance (R$)"
+                      className="flex-1 border-[3px] border-black rounded-xl px-3 py-2 font-black text-black text-lg focus:outline-none"
+                      style={{ fontFamily: 'Oswald, sans-serif' }}
+                    />
+                    <BrutalButton color={C.yellow} textColor="#000" full={false}
+                      disabled={bidAmount <= 0 || bidAmount > state.money}
+                      onClick={() => confirmBidAndClose(true)} className="!px-4">
+                      ✅ LANCE E FECHAR
+                    </BrutalButton>
+                  </div>
+                  <button onClick={() => confirmBidAndClose(false)} className="text-black/40 text-[11px] font-bold underline mt-1.5 block mx-auto">
+                    Fechar sem dar lance
+                  </button>
+                </div>
+              )}
+              {/* my bid input — online leilão: bid only, host closes separately */}
+              {state.onlineMode !== 'cpu' && !auction.closed && !myBid && (
                 <div className="flex gap-2">
                   <input
                     type="number"
@@ -422,7 +485,7 @@ export default function ScoutsScreen() {
         {isCpuLeilao && (
           <BrutalCard color={C.creamDark} className="p-4 text-center">
             <p className="text-black/50 text-xs font-bold">
-              Lance seu valor acima e clique em <strong>Fechar leilão</strong> para revelar o resultado.
+              Digite seu lance e toque em <strong>LANCE E FECHAR</strong> para revelar o resultado na hora.
             </p>
           </BrutalCard>
         )}
@@ -884,6 +947,54 @@ export default function ScoutsScreen() {
             <BrutalPill color={C.green} textColor="#fff" className="!text-sm !px-4 !py-2">
               ✓ {justSigned} agora é seu cliente!
             </BrutalPill>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── RESULTADO DO LEILÃO CPU (todos os lances revelados) ── */}
+      <AnimatePresence>
+        {bidResult && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-5"
+            style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+          >
+            <motion.div initial={{ scale: 0.85, y: 20 }} animate={{ scale: 1, y: 0 }} className="w-full max-w-sm">
+              <BrutalCard color={C.cream} className="p-5" shadow={8}>
+                <div className="text-center mb-3">
+                  <div className="text-5xl mb-2">{bidResult.youWon ? '🏆' : '🔨'}</div>
+                  <BrutalPill color={bidResult.youWon ? C.green : C.orange} textColor="#fff">
+                    {bidResult.youWon ? 'VOCÊ VENCEU O LEILÃO!' : 'LEILÃO ENCERRADO'}
+                  </BrutalPill>
+                  <h2 className="font-black text-black text-xl mt-3" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                    {bidResult.legendNickname}
+                  </h2>
+                  {!bidResult.youWon && (
+                    <p className="text-black/60 text-sm font-bold mt-1">
+                      {bidResult.winnerName} levou por {money(bidResult.winnerAmount)}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2 mb-4">
+                  {bidResult.allBids.map((b, i) => (
+                    <div key={i} className="flex items-center gap-2 bg-white border-2 border-black rounded-lg px-3 py-2">
+                      <span className="text-sm">{b.isYou ? '👤' : '🕴️'}</span>
+                      <span className="flex-1 font-black text-black text-sm truncate">{b.name}</span>
+                      {b.amount > 0 ? (
+                        <span className={`font-black text-sm ${b.isWinner ? 'text-black' : 'text-black/50'}`}>
+                          {b.isWinner ? '👑 ' : ''}{money(b.amount)}
+                        </span>
+                      ) : (
+                        <span className="text-black/40 text-xs font-bold">sem lance</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <BrutalButton color={C.black} textColor="#fff" onClick={() => { setBidResult(null); setBidAmount(0); dispatch({ type: 'SET_SCREEN', screen: 'dashboard' }) }}>
+                  Ok →
+                </BrutalButton>
+              </BrutalCard>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

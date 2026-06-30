@@ -79,8 +79,8 @@ export default function DashboardScreen() {
           })()}
         </BrutalCard>
 
-        {/* ── JANELA DE TRANSFERÊNCIAS (período quente, não trava) ── */}
-        {(() => {
+        {/* ── JANELA DE TRANSFERÊNCIAS (período quente, não trava) — só no mercado livre ── */}
+        {!isStructured && (() => {
           const w = windowInfo(state.week)
           const deadline = isDeadlineDay(state.week)
           if (deadline) {
@@ -639,11 +639,13 @@ export default function DashboardScreen() {
                 <BrutalCard color="white" className="p-3 mb-4" shadow={3}>
                   <p className="text-black text-sm font-medium leading-relaxed">{state.nemesisAlert.story}</p>
                 </BrutalCard>
-                <div className="border-2 border-black rounded-lg p-2.5 mb-4" style={{ backgroundColor: C.orange }}>
-                  <p className="text-white text-xs font-black text-center">
-                    💔 Ele fechou com {state.nemesisAlert.legendNickname} — você não vê mais essa lenda no radar.
-                  </p>
-                </div>
+                {state.nemesisAlert.legendId !== '' && (
+                  <div className="border-2 border-black rounded-lg p-2.5 mb-4" style={{ backgroundColor: C.orange }}>
+                    <p className="text-white text-xs font-black text-center">
+                      💔 Ele fechou com {state.nemesisAlert.legendNickname} — essa lenda não está mais disponível.
+                    </p>
+                  </div>
+                )}
                 <BrutalButton color={C.black} textColor="#fff" onClick={() => dispatch({ type: 'DISMISS_NEMESIS_ALERT' })}>
                   Isso não vai ficar assim →
                 </BrutalButton>
