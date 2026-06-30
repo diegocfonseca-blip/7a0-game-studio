@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
 import type { GameState, Screen, Client, ClubOffer, Bid, OnlinePlayer, OnlineGameMode, AuctionState, OnlineNewsItem, OnlineClientInfo } from '../types'
-import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getUnlockedNationalities, LEGENDS } from '../data/legends'
+import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getUnlockedNationalities, getRetirementYear, retirementNarrative, LEGENDS } from '../data/legends'
 import { generateWeeklyEvent, generateAmbientNews, SCOUT_UPGRADES, OFFICE_UPGRADES } from '../data/events'
 import type { ClientLite } from '../data/events'
 import { CLUBS, NEMESIS } from '../data/clubs'
@@ -395,11 +395,17 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       if (yearRolled) {
         const kept: typeof updatedClients = []
         for (const c of updatedClients) {
-          const age = newYear - c.birthYear
+          const legend = getLegendById(c.legendId)
           const expired = c.repExpiresYear !== undefined && newYear > c.repExpiresYear
-          const retires = age >= 38 || (age >= 35 && c.currentRating < 68)
+          const baseRetirement = legend ? getRetirementYear(legend) : c.birthYear + 37
+          const happinessMod = c.happiness > 80 ? 2 : c.happiness < 40 ? -2 : 0
+          const retires = newYear >= baseRetirement + happinessMod
           if (retires) {
-            extraNarrative.push(`⚰️ ${c.nickname} pendurou as chuteiras aos ${age} anos. Foram bons anos juntos — obrigado, craque.`)
+            const age = newYear - c.birthYear
+            const narrative = legend
+              ? retirementNarrative(c.nickname, c.legendId, c.contractClub, legend.futureKnowledge)
+              : `🎙️ ${c.nickname} se aposentou aos ${age} anos.`
+            extraNarrative.push(narrative)
           } else if (expired) {
             extraNarrative.push(`📭 O contrato de representação de ${c.nickname} venceu e você não renovou. Ele virou agente livre e deixou sua carteira.`)
           } else {

@@ -1941,6 +1941,60 @@ export function getLegendById(id: string): Legend | undefined {
   return LEGENDS.find(l => l.id === id)
 }
 
+// ─── APOSENTADORIAS ─────────────────────────────────────────────
+// Ano real de aposentadoria por legend id. Para os demais, o store
+// usa max(peakYearEnd + 3, birthYear + 37) como fallback.
+const RETIREMENT_MAP: Record<string, number> = {
+  'r9': 2011, 'romario': 2008, 'bebeto': 2002, 'zizou': 2006,
+  'henry': 2014, 'totti': 2017, 'dinho': 2018, 'kaka': 2017,
+  'adriano': 2016, 'robinho': 2018, 'denilson': 2013,
+  'cr7': 2026, 'ibra': 2023, 'messi': 2026, 'iniesta': 2023,
+  'drogba': 2018, 'rivaldo': 2015, 'rcarlos': 2013, 'cafu': 2008,
+  'juninho': 2012, 'lucio': 2017, 'pato': 2022, 'veron': 2014,
+  'crespo': 2012, 'riquelme': 2015, 'aimar': 2015, 'tevez': 2020,
+  'mascherano': 2020, 'vieira': 2011, 'trezeguet': 2013,
+  'ribery': 2022, 'delpiero': 2014, 'buffon': 2023, 'pirlo': 2017,
+  'baggio': 2004, 'nesta': 2013, 'raul': 2015, 'xavi': 2019,
+  'casillas': 2020, 'torres': 2019, 'figo': 2009, 'deco': 2012,
+  'kluivert': 2010, 'davids': 2012, 'ballack': 2012, 'kahn': 2008,
+  'beckham': 2013, 'owen': 2013, 'gerrard': 2016, 'lampard': 2017,
+  'maldini': 2009, 'baresi': 1994, 'costacurta': 2007, 'albertini': 2008,
+  'gullit': 1998, 'van_basten': 1995, 'rijkaard': 1997, 'bergkamp': 2006,
+  'seedorf': 2014, 'matthaus': 2000, 'klinsmann': 1998, 'sammer': 1998,
+  'bierhoff': 2003, 'm_laudrup': 1998, 'b_laudrup': 1999, 'schmeichel': 2003,
+  'stoichkov': 2003, 'hagi': 2001, 'savicevic': 2001, 'prosinecki': 2006,
+  'suker': 2002, 'boban': 2002, 'nedved': 2009, 'shevchenko': 2012,
+  'weah': 2003, 'okocha': 2009, 'eto': 2019, 'valderrama': 1998,
+  'asprilla': 2002, 'zamorano': 2003, 'salas': 2009,
+  'shearer': 2006, 'giggs': 2014, 'cantona': 1997, 'keane_r': 2006,
+  'scholes': 2013, 'ferdinand': 2015, 'taffarel': 1998, 'muller_br': 2002,
+  'rai': 2002, 'zinho': 2000, 'saviola': 2013, 'aguero': 2021,
+  'higuain': 2021, 'vieri': 2009, 'inzaghi_f': 2012,
+  'ronaldo_lima': 2011, 'neymar': 2026,
+}
+
+export function getRetirementYear(legend: Legend): number {
+  return RETIREMENT_MAP[legend.id] ?? Math.max(legend.peakYearEnd + 3, legend.birthYear + 37)
+}
+
+// Returns a retirement narrative line comparing real history with your timeline
+export function retirementNarrative(legendNickname: string, legendId: string, contractClub: string | null, futureKnowledge: string): string {
+  const realYear = RETIREMENT_MAP[legendId]
+  const club = contractClub ?? 'sem clube definido'
+
+  // Extract first meaningful sentence from futureKnowledge (ends at '. ' or '.')
+  const firstFact = futureKnowledge.split(/\.\s/)[0] ?? futureKnowledge
+  const clubLine = `Pendurou as chuteiras pelo ${club}.`
+
+  // Check if career diverged — very rough: no entry in map = we don't know
+  const diverged = realYear !== undefined
+  const outro = diverged
+    ? `Na história original você sabia que aconteceria: ${firstFact}.`
+    : ''
+
+  return `🎙️ ${legendNickname} se aposentou. ${clubLine} ${outro}`.trim()
+}
+
 // ─── SCOUT REGIONS ─────────────────────────────────────────────
 // Brazil is unlocked from the start. Other countries require hiring
 // a regional scout in the office.
