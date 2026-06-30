@@ -1,13 +1,11 @@
 import { useEffect } from 'react'
 import { DraftProvider, useDraft } from './store'
-import { DraftIntro, DraftPickClub, DraftHub, DraftRoom, DraftLineup, DraftTable, DraftMatch, DraftLeilao, DraftRanking, DraftEnding } from './screens'
-import { DraftLobby } from './lobby'
+import { DraftIntro, DraftPickClub, DraftHub, DraftRoom, DraftLineup, DraftTable, DraftMatch, DraftLeilao } from './screens'
 
 function DraftRouter() {
   const { state } = useDraft()
   useEffect(() => { window.scrollTo(0, 0) }, [state.screen])
   switch (state.screen) {
-    case 'lobby':    return <DraftLobby />
     case 'intro':    return <DraftIntro />
     case 'pickClub': return <DraftPickClub />
     case 'hub':      return <DraftHub />
@@ -16,9 +14,7 @@ function DraftRouter() {
     case 'table':    return <DraftTable />
     case 'match':    return <DraftMatch />
     case 'leilao':   return <DraftLeilao />
-    case 'ranking':  return <DraftRanking />
-    case 'ending':    return <DraftEnding />
-    default:         return <DraftLobby />
+    default:         return <DraftIntro />
   }
 }
 

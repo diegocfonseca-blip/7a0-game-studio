@@ -60,13 +60,20 @@ export default function ScoutsScreen() {
   const minRep = selected ? getMinReputationToSign(selected, state.year) : 0
   const repBlocked = selected ? state.reputation < minRep : false
 
+  // In CPU draft/leilão mode, the free market is locked between windows.
+  const cpuModeActive = state.onlineMode === 'cpu' && state.onlineGameMode !== null
+  const cpuWindowOpen = cpuModeActive && (state.draftWindowActive || state.currentAuction !== null)
+  const cpuMarketLocked = cpuModeActive && !cpuWindowOpen
+
   // Online/CPU draft: show full pool sorted by rating. Solo/CPU solo: weekly rotation of 6.
   const seed = state.year * 137 + state.week * 31
-  const pool = (state.onlineMode === 'online' || (state.onlineMode === 'cpu' && state.onlineGameMode !== null))
+  const pool = (state.onlineMode === 'online' || cpuWindowOpen)
     ? [...available]
         .filter(l => !(l.id in state.hotTargets))
         .sort((a, b) => getCurrentRating(b, state.year) - getCurrentRating(a, state.year))
         .slice(0, 20)
+    : cpuMarketLocked
+    ? []  // no pool shown while locked between windows
     : [...available]
         .filter(l => !(l.id in state.hotTargets))
         .sort((a, b) => {
@@ -465,7 +472,30 @@ export default function ScoutsScreen() {
           </BrutalCard>
         )}
 
-        {pool.length === 0 && (
+        {/* ── CPU MODE: MERCADO FECHADO ── */}
+        {cpuMarketLocked && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <BrutalCard color={C.black} className="p-6 text-center" shadow={6}>
+              <p className="text-5xl mb-3">🔒</p>
+              <p className="font-black text-white text-xl mb-1" style={{ fontFamily: 'Oswald, sans-serif' }}>MERCADO FECHADO</p>
+              <p className="text-white/70 text-sm font-bold leading-relaxed mb-4">
+                {state.onlineGameMode === 'draft' && 'No modo Draft, você só pode assinar lendas durante a janela de draft. Avance semanas — a próxima janela abre a cada 4 semanas.'}
+                {state.onlineGameMode === 'leilao' && 'No modo Leilão, lendas são arrematadas em leilões fechados. Aguarde o próximo leilão aparecer.'}
+                {state.onlineGameMode === 'draft-leilao' && 'No modo Draft + Leilão, assinaturas só ocorrem em janelas de draft ou leilões. Avance semanas para a próxima.'}
+              </p>
+              <div className="border-[3px] border-white/30 rounded-xl p-3" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                <p className="text-white/50 text-xs font-black uppercase tracking-widest">Próxima janela em</p>
+                <p className="text-white font-black text-2xl mt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                  {state.onlineGameMode === 'draft' || state.onlineGameMode === 'draft-leilao'
+                    ? `~${4 - ((state.week - 1) % 4)} semana${4 - ((state.week - 1) % 4) === 1 ? '' : 's'}`
+                    : 'Em breve'}
+                </p>
+              </div>
+            </BrutalCard>
+          </motion.div>
+        )}
+
+        {!cpuMarketLocked && pool.length === 0 && (
           <BrutalCard color={C.creamDark} className="p-7 text-center">
             <p className="text-4xl mb-2">🕰️</p>
             <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>NINGUÉM NOVO ESSA SEMANA</p>
@@ -575,7 +605,7 @@ export default function ScoutsScreen() {
 
       {/* ── SIGNING SHEET ── */}
       <AnimatePresence>
-        {selected && (
+        {selected && !cpuMarketLocked && (
           <motion.div
             initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 280 }}

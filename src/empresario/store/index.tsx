@@ -1060,7 +1060,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
     }
 
     case 'NEW_GAME':
-      localStorage.removeItem('empresario-v1')
+      localStorage.removeItem('empresario-v2')
       return { ...INITIAL_STATE }
 
     case 'DISMISS_NEMESIS_ALERT':
@@ -1357,7 +1357,7 @@ const EmpresarioContext = createContext<{
 } | null>(null)
 
 export function EmpresarioProvider({ children }: { children: ReactNode }) {
-  const saved = localStorage.getItem('empresario-v1')
+  const saved = localStorage.getItem('empresario-v2')
   let initial: GameState = INITIAL_STATE
   if (saved) {
     try {
@@ -1393,7 +1393,7 @@ export function EmpresarioProvider({ children }: { children: ReactNode }) {
 
   // Persist (never persist lobby/intro/accident — those are transient)
   if (state.screen !== 'lobby' && state.screen !== 'intro' && state.screen !== 'accident') {
-    localStorage.setItem('empresario-v1', JSON.stringify(state))
+    localStorage.setItem('empresario-v2', JSON.stringify(state))
   }
 
   return (
