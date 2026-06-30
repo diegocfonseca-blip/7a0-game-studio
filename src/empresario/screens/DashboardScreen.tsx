@@ -179,6 +179,32 @@ export default function DashboardScreen() {
           )
         })()}
 
+        {/* ── CPU DRAFT / LEILÃO ALERT ── */}
+        {state.onlineMode === 'cpu' && state.draftWindowActive && (
+          <BrutalCard color={C.green} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'scouts' })} style={{ cursor: 'pointer' }}>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">📋</span>
+              <div className="flex-1">
+                <p className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>JANELA DE DRAFT ABERTA!</p>
+                <p className="text-black/60 text-xs font-bold">Os rivais já escolheram — assine sua lenda no Radar</p>
+              </div>
+              <span className="text-2xl">→</span>
+            </div>
+          </BrutalCard>
+        )}
+        {state.onlineMode === 'cpu' && state.currentAuction !== null && !state.draftWindowActive && (
+          <BrutalCard color={C.purple} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'scouts' })} style={{ cursor: 'pointer' }}>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">🔨</span>
+              <div className="flex-1">
+                <p className="font-black text-white text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>LEILÃO EM ANDAMENTO!</p>
+                <p className="text-white/60 text-xs font-bold">Lance seu valor no Radar antes de avançar semana</p>
+              </div>
+              <span className="text-2xl text-white">→</span>
+            </div>
+          </BrutalCard>
+        )}
+
         {/* ── ALERTAS ── */}
         {activeOffers > 0 && (
           <BrutalCard color={C.yellow} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'offers' })}>

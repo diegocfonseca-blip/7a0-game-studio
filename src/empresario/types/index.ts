@@ -224,10 +224,11 @@ export interface OnlineClientInfo {
 
 export interface AuctionState {
   legendId: string
-  bids: Record<number, number>  // playerIndex → bid amount
+  bids: Record<number, number>  // playerIndex → bid amount (0 = human, 1+ = CPU rivals)
   endsAt: number                // Date.now() ms when auction closes
   closed: boolean
   sellerIndex?: number          // set when selling a rep contract (not a market legend)
+  cpuBidderRivalIndices?: number[] // indices into rivalAgents for CPU mode (parallel to bids 1, 2, 3…)
 }
 
 export interface GameState {

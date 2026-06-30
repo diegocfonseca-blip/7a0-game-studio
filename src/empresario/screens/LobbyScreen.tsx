@@ -10,7 +10,12 @@ function makeCode() {
   return Math.random().toString(36).substring(2, 7).toUpperCase()
 }
 
-type Step = 'home' | 'online-pick' | 'create-wait' | 'join-form'
+type Step = 'home' | 'cpu-setup' | 'online-pick' | 'create-wait' | 'join-form'
+
+const CPU_AGENT_NAMES = [
+  'Sérgio Cambalhota', 'Wagner Ribeiro', 'Reinaldo Pitta', 'André Cury',
+  'Giuliano Bertolucci', 'Jorge Gullo', 'Gilmar Veloz', 'João Mendes Jr.',
+]
 
 export default function LobbyScreen() {
   const { dispatch } = useEmpresario()
@@ -22,6 +27,8 @@ export default function LobbyScreen() {
   const [joinError, setJoinError] = useState('')
   const [connecting, setConnecting] = useState(false)
   const [gameMode, setGameMode] = useState<OnlineGameMode>('draft')
+  const [cpuGameMode, setCpuGameMode] = useState<OnlineGameMode>('draft')
+  const [numCpuAgents, setNumCpuAgents] = useState(3)
   const channelRef = useRef<RealtimeChannel | null>(null)
 
   const playerName = name.trim() || 'O Empresário'
@@ -35,7 +42,7 @@ export default function LobbyScreen() {
 
   useEffect(() => () => { cleanChannel() }, [])
 
-  function startSolo() {
+  function startCpu() {
     dispatch({
       type: 'INIT_ROOM',
       onlineMode: 'cpu',
@@ -43,7 +50,8 @@ export default function LobbyScreen() {
       isHost: true,
       playerNames: [playerName],
       playerName,
-      onlineGameMode: null,
+      onlineGameMode: cpuGameMode,
+      numCpuAgents,
     })
   }
 
@@ -164,7 +172,7 @@ export default function LobbyScreen() {
                   <input
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && startSolo()}
+                    onKeyDown={e => e.key === 'Enter' && setStep('cpu-setup')}
                     placeholder="O Empresário..."
                     maxLength={20}
                     autoFocus
@@ -174,12 +182,12 @@ export default function LobbyScreen() {
                 </div>
               </BrutalCard>
 
-              <BrutalCard color={C.blue} className="p-5" onClick={startSolo} shadow={5} style={{ cursor: 'pointer' }}>
+              <BrutalCard color={C.blue} className="p-5" onClick={() => setStep('cpu-setup')} shadow={5} style={{ cursor: 'pointer' }}>
                 <div className="flex items-center gap-4">
                   <span className="text-5xl">🎮</span>
                   <div className="flex-1">
-                    <p className="text-white font-black text-xl leading-tight" style={{ fontFamily: 'Oswald, sans-serif' }}>JOGAR SOLO</p>
-                    <p className="text-white/60 text-sm font-bold">Construa seu império contra a IA</p>
+                    <p className="text-white font-black text-xl leading-tight" style={{ fontFamily: 'Oswald, sans-serif' }}>JOGAR CONTRA CPU</p>
+                    <p className="text-white/60 text-sm font-bold">Draft · Leilão · Ranking com rivais IA</p>
                   </div>
                   <span className="text-white text-3xl font-black">→</span>
                 </div>
@@ -201,6 +209,89 @@ export default function LobbyScreen() {
                   📔 Você tem o futuro inteiro na memória. Assine lendas antes do mundo descobrir, negocie comissões e fique podre de rico em 1993.
                 </p>
               </BrutalCard>
+            </motion.div>
+          )}
+
+          {/* ── CPU SETUP ── */}
+          {step === 'cpu-setup' && (
+            <motion.div key="cpu-setup" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="space-y-4">
+              <div className="flex items-center gap-3">
+                <button onClick={() => setStep('home')} className="text-black text-3xl font-black">←</button>
+                <BrutalPill color={C.blue} textColor="#fff">MODO CPU</BrutalPill>
+              </div>
+
+              {/* game mode picker */}
+              <BrutalCard color="white" className="p-4" shadow={3}>
+                <p className="font-black text-black text-xs uppercase tracking-widest mb-3" style={{ fontFamily: 'Oswald, sans-serif' }}>Modo de disputa</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { key: 'draft',        icon: '📋', label: 'DRAFT',          desc: 'Turno a turno' },
+                    { key: 'leilao',       icon: '🔨', label: 'LEILÃO',         desc: 'Lances abertos' },
+                    { key: 'draft-leilao', icon: '⚡', label: 'DRAFT+LEILÃO',  desc: 'Alternado' },
+                  ] as const).map(m => (
+                    <button
+                      key={m.key}
+                      onClick={() => setCpuGameMode(m.key)}
+                      className="border-[2px] border-black rounded-xl p-2 text-center transition-all"
+                      style={{
+                        backgroundColor: cpuGameMode === m.key ? C.yellow : 'white',
+                        boxShadow: cpuGameMode === m.key ? `3px 3px 0 ${C.black}` : 'none',
+                      }}
+                    >
+                      <div className="text-xl mb-1">{m.icon}</div>
+                      <p className="font-black text-black text-[10px] leading-tight" style={{ fontFamily: 'Oswald, sans-serif' }}>{m.label}</p>
+                      <p className="text-black/50 text-[9px] font-bold mt-0.5">{m.desc}</p>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-black/40 text-[10px] font-bold mt-3 text-center">
+                  {cpuGameMode === 'draft' && '📋 A cada 4 semanas, todos escolhem uma lenda em ordem'}
+                  {cpuGameMode === 'leilao' && '🔨 A cada 4 semanas, a melhor lenda disponível vai a leilão'}
+                  {cpuGameMode === 'draft-leilao' && '⚡ Draft e leilão se alternam a cada rodada'}
+                </p>
+              </BrutalCard>
+
+              {/* number of CPU agents */}
+              <BrutalCard color="white" className="p-4" shadow={3}>
+                <p className="font-black text-black text-xs uppercase tracking-widest mb-3" style={{ fontFamily: 'Oswald, sans-serif' }}>Rivais na disputa</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {[3, 5, 7].map(n => (
+                    <button
+                      key={n}
+                      onClick={() => setNumCpuAgents(n)}
+                      className="border-[2px] border-black rounded-xl p-3 text-center transition-all"
+                      style={{
+                        backgroundColor: numCpuAgents === n ? C.teal : 'white',
+                        boxShadow: numCpuAgents === n ? `3px 3px 0 ${C.black}` : 'none',
+                      }}
+                    >
+                      <p className="font-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif', color: numCpuAgents === n ? '#fff' : '#000' }}>{n}</p>
+                      <p className="font-bold text-[10px]" style={{ color: numCpuAgents === n ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.4)' }}>rivais</p>
+                    </button>
+                  ))}
+                </div>
+              </BrutalCard>
+
+              {/* rival preview */}
+              <BrutalCard color={C.black} className="p-4" shadow={4}>
+                <p className="text-white/60 text-[10px] font-black uppercase tracking-widest mb-2">Seus adversários</p>
+                <div className="space-y-1.5">
+                  {CPU_AGENT_NAMES.slice(0, numCpuAgents + 1).map((n, i) => (
+                    <div key={n} className="flex items-center gap-2">
+                      <span className="text-sm">{i === 0 ? '😈' : '🕴️'}</span>
+                      <span className={`flex-1 text-sm font-black ${i === 0 ? 'text-yellow-400' : 'text-white'}`}>{n}</span>
+                      {i === 0 && <BrutalTag color={C.orange} textColor="#fff">NEMESIS</BrutalTag>}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-white/30 text-[9px] font-bold mt-3">
+                  No leilão: Cambalhota + 3 rivais aleatórios sempre disputam
+                </p>
+              </BrutalCard>
+
+              <BrutalButton color={C.blue} textColor="#fff" onClick={startCpu}>
+                🚀 INICIAR JORNADA →
+              </BrutalButton>
             </motion.div>
           )}
 

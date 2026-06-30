@@ -30,15 +30,17 @@ export default function ScoutsScreen() {
     (state.onlineGameMode === 'draft' || state.onlineGameMode === 'draft-leilao')
   const isOnlineLeilao = state.onlineMode === 'online' &&
     (state.onlineGameMode === 'leilao' || state.onlineGameMode === 'draft-leilao')
+  const isCpuDraft = state.onlineMode === 'cpu' && state.draftWindowActive
+  const isCpuLeilao = state.onlineMode === 'cpu' && state.currentAuction !== null && !state.draftWindowActive
   const myTurn = isOnlineDraft && state.draftTurn === state.youIndex
   const turnName = state.playerNames[state.draftTurn] ?? 'Jogador'
 
   const signedIds = state.clients.map(c => c.legendId)
   const unlockedNats = getUnlockedNationalities(state.purchasedUpgrades)
   const lockedRegions = getLockedRegions(state.purchasedUpgrades)
-  // In online mode, exclude legends already taken by other players
-  const onlineTakenIds = state.onlineMode === 'online' ? Object.keys(state.onlineTakenLegends) : []
-  const available = getAvailableLegends(state.year, [...signedIds, ...onlineTakenIds], unlockedNats, state.lostLegends)
+  // Exclude legends already taken by other players (online or CPU)
+  const takenIds = Object.keys(state.onlineTakenLegends)
+  const available = getAvailableLegends(state.year, [...signedIds, ...takenIds], unlockedNats, state.lostLegends)
 
   // live prediction reacts to BOTH commission and contract length
   const liveMax = selected ? getMaxAcceptable(selected, state.reputation, state.year) : 0
@@ -58,9 +60,9 @@ export default function ScoutsScreen() {
   const minRep = selected ? getMinReputationToSign(selected, state.year) : 0
   const repBlocked = selected ? state.reputation < minRep : false
 
-  // Online mode: show full pool sorted by rating (up to 20). Solo: weekly rotation of 6.
+  // Online/CPU draft: show full pool sorted by rating. Solo/CPU solo: weekly rotation of 6.
   const seed = state.year * 137 + state.week * 31
-  const pool = state.onlineMode === 'online'
+  const pool = (state.onlineMode === 'online' || (state.onlineMode === 'cpu' && state.onlineGameMode !== null))
     ? [...available]
         .filter(l => !(l.id in state.hotTargets))
         .sort((a, b) => getCurrentRating(b, state.year) - getCurrentRating(a, state.year))
@@ -148,6 +150,11 @@ export default function ScoutsScreen() {
 
   function closeAuction() {
     if (!auction) return
+    // CPU mode: use dedicated close action (handles CPU agent winning)
+    if (state.onlineMode === 'cpu') {
+      dispatch({ type: 'CPU_AUCTION_CLOSE' })
+      return
+    }
     const sellerIdx = auction.sellerIndex
     const isRepTransfer = sellerIdx !== undefined
     const entries = Object.entries(auction.bids).map(([k, v]) => ({ idx: Number(k), amount: v }))
@@ -193,7 +200,7 @@ export default function ScoutsScreen() {
 
       <div className="max-w-md mx-auto px-4 py-4 space-y-3">
 
-        {/* ── DRAFT MODE BANNER ── */}
+        {/* ── DRAFT MODE BANNER (Online) ── */}
         {isOnlineDraft && (
           <motion.div
             initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
@@ -214,8 +221,28 @@ export default function ScoutsScreen() {
           </motion.div>
         )}
 
-        {/* ── LEILÃO ATIVO ── */}
-        {isOnlineLeilao && auction && auctionLegend && (
+        {/* ── DRAFT MODE BANNER (CPU) ── */}
+        {isCpuDraft && (
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
+            <BrutalCard color={C.green} className="p-4" shadow={5}>
+              <p className="text-black font-black text-xl text-center" style={{ fontFamily: 'Oswald, sans-serif' }}>⚡ JANELA DE DRAFT ABERTA!</p>
+              <p className="text-black/70 text-sm font-bold text-center mt-1">Os rivais já escolheram — assine uma lenda antes de avançar semana</p>
+              <div className="mt-3 flex gap-2">
+                <div className="flex-1">
+                  <button
+                    onClick={() => dispatch({ type: 'SKIP_CPU_DRAFT' })}
+                    className="w-full border-2 border-black rounded-xl px-3 py-2 text-xs font-black bg-white text-black"
+                  >
+                    ⏭ Pular esta rodada
+                  </button>
+                </div>
+              </div>
+            </BrutalCard>
+          </motion.div>
+        )}
+
+        {/* ── LEILÃO ATIVO (Online + CPU) ── */}
+        {(isOnlineLeilao || isCpuLeilao) && auction && auctionLegend && (
           <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}>
             <BrutalCard color={C.purple} className="p-5" shadow={6}>
               <div className="flex items-center justify-between mb-3">
@@ -227,7 +254,7 @@ export default function ScoutsScreen() {
                     </p>
                   )}
                 </div>
-                {(state.isHost || auction.sellerIndex === state.youIndex) && !auction.closed && (
+                {(state.isHost || auction.sellerIndex === state.youIndex || state.onlineMode === 'cpu') && !auction.closed && (
                   <button onClick={closeAuction}
                     className="border-2 border-black rounded-lg px-3 py-1 text-xs font-black bg-white text-black">
                     Fechar leilão
@@ -247,25 +274,62 @@ export default function ScoutsScreen() {
                   </div>
                 </div>
               </div>
-              {/* bids */}
+              {/* bids — online shows player names, CPU shows rival agents */}
               <div className="space-y-2 mb-4">
-                {state.playerNames.map((name, idx) => {
-                  const bid = auction.bids[idx]
-                  const isTop = bid === topBid && bid > 0
-                  return (
-                    <div key={idx} className="flex items-center gap-2 bg-white/20 border-2 border-black/30 rounded-lg px-3 py-2">
-                      <span className="text-sm">{idx === state.youIndex ? '👤' : '🎮'}</span>
-                      <span className="flex-1 font-black text-white text-sm truncate">{name}</span>
-                      {bid ? (
-                        <span className={`font-black text-sm ${isTop ? 'text-yellow-300' : 'text-white/70'}`}>
-                          {isTop ? '👑 ' : ''}{money(bid)}
-                        </span>
-                      ) : (
-                        <span className="text-white/40 text-xs font-bold">sem lance</span>
-                      )}
-                    </div>
-                  )
-                })}
+                {state.onlineMode === 'cpu' ? (
+                  <>
+                    {/* Player row */}
+                    {(() => {
+                      const bid = auction.bids[0]
+                      const isTop = bid === topBid && bid > 0
+                      return (
+                        <div className="flex items-center gap-2 bg-white/20 border-2 border-black/30 rounded-lg px-3 py-2">
+                          <span className="text-sm">👤</span>
+                          <span className="flex-1 font-black text-white text-sm">{state.playerNames[0] ?? 'Você'}</span>
+                          {bid ? (
+                            <span className={`font-black text-sm ${isTop ? 'text-yellow-300' : 'text-white/70'}`}>{isTop ? '👑 ' : ''}{money(bid)}</span>
+                          ) : (
+                            <span className="text-white/40 text-xs font-bold">sem lance</span>
+                          )}
+                        </div>
+                      )
+                    })()}
+                    {/* CPU rival rows */}
+                    {(auction.cpuBidderRivalIndices ?? []).map((rivalIdx, i) => {
+                      const rival = state.rivalAgents[rivalIdx]
+                      if (!rival) return null
+                      const bid = auction.bids[i + 1]
+                      const isTop = bid === topBid && bid > 0
+                      return (
+                        <div key={rival.id} className="flex items-center gap-2 bg-white/20 border-2 border-black/30 rounded-lg px-3 py-2">
+                          <span className="text-sm">{rivalIdx === 0 ? '😈' : '🕴️'}</span>
+                          <span className="flex-1 font-black text-white text-sm truncate">{rival.name}</span>
+                          <span className={`font-black text-sm ${isTop ? 'text-yellow-300' : 'text-white/70'}`}>
+                            {isTop ? '👑 ' : ''}{money(bid ?? 0)}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </>
+                ) : (
+                  state.playerNames.map((name, idx) => {
+                    const bid = auction.bids[idx]
+                    const isTop = bid === topBid && bid > 0
+                    return (
+                      <div key={idx} className="flex items-center gap-2 bg-white/20 border-2 border-black/30 rounded-lg px-3 py-2">
+                        <span className="text-sm">{idx === state.youIndex ? '👤' : '🎮'}</span>
+                        <span className="flex-1 font-black text-white text-sm truncate">{name}</span>
+                        {bid ? (
+                          <span className={`font-black text-sm ${isTop ? 'text-yellow-300' : 'text-white/70'}`}>
+                            {isTop ? '👑 ' : ''}{money(bid)}
+                          </span>
+                        ) : (
+                          <span className="text-white/40 text-xs font-bold">sem lance</span>
+                        )}
+                      </div>
+                    )
+                  })
+                )}
               </div>
               {/* my bid input */}
               {!auction.closed && !myBid && (
@@ -294,7 +358,7 @@ export default function ScoutsScreen() {
           </motion.div>
         )}
 
-        {/* ── LEILÃO: fila de lendas para o host iniciar ── */}
+        {/* ── LEILÃO: fila de lendas para o host iniciar (online only) ── */}
         {isOnlineLeilao && !auction && state.isHost && (
           <BrutalCard color={C.creamDark} className="p-4" shadow={3}>
             <p className="font-black text-black text-sm mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>🔨 INICIAR LEILÃO</p>

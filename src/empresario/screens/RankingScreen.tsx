@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { useEmpresario } from '../store'
 import { OBJECTIVES, yourNetWorth, levelInfo } from '../data/career'
+import { getLegendById } from '../data/legends'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag, FLAG, POS_COLOR } from '../ui'
 
 export default function RankingScreen() {
   const { state, dispatch } = useEmpresario()
+  const [expandedRival, setExpandedRival] = useState<string | null>(null)
   const [expandedPlayer, setExpandedPlayer] = useState<number | null>(null)
   const myNet = yourNetWorth(state)
 
   const board = [
-    { name: 'VOCÊ', wealth: myNet, you: true },
-    ...state.rivalAgents.map(r => ({ name: r.name, wealth: r.wealth, you: false })),
+    { name: 'VOCÊ', wealth: myNet, you: true, isCambalhota: false, rivalId: null as null | string },
+    ...state.rivalAgents.map(r => ({ name: r.name, wealth: r.wealth, you: false, isCambalhota: r.id === 'cambalhota', rivalId: r.id })),
   ].sort((a, b) => b.wealth - a.wealth)
 
   const myRank = board.findIndex(b => b.you) + 1
@@ -44,17 +46,48 @@ export default function RankingScreen() {
         <div>
           <h2 className="font-black text-black mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>📊 RANKING DE EMPRESÁRIOS</h2>
           <div className="space-y-2">
-            {board.map((b, i) => (
-              <BrutalCard key={b.name} color={b.you ? C.teal : b.name.includes('Cambalhota') ? C.black : 'white'} className="p-3" shadow={3}>
-                <div className="flex items-center gap-3">
-                  <span className={`font-black text-lg w-6 ${b.you || b.name.includes('Cambalhota') ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>{i + 1}º</span>
-                  <span className={`flex-1 font-black text-sm ${b.you ? 'text-white' : b.name.includes('Cambalhota') ? 'text-white' : 'text-black'}`}>
-                    {b.name.includes('Cambalhota') ? '😈 ' : ''}{b.name}
-                  </span>
-                  <span className={`font-black text-sm ${b.you || b.name.includes('Cambalhota') ? 'text-white' : 'text-black/60'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>{money(b.wealth)}</span>
-                </div>
-              </BrutalCard>
-            ))}
+            {board.map((b, i) => {
+              const rival = b.rivalId ? state.rivalAgents.find(r => r.id === b.rivalId) : null
+              const isExpanded = b.rivalId !== null && expandedRival === b.rivalId
+              const dark = b.isCambalhota
+              const cardColor = b.you ? C.teal : dark ? C.black : 'white'
+              const textColor = (b.you || dark) ? 'text-white' : 'text-black'
+              return (
+                <BrutalCard
+                  key={b.name}
+                  color={cardColor}
+                  className="p-3"
+                  shadow={3}
+                  onClick={rival && rival.clients.length > 0 ? () => setExpandedRival(isExpanded ? null : b.rivalId!) : undefined}
+                  style={rival && rival.clients.length > 0 ? { cursor: 'pointer' } : undefined}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`font-black text-lg w-6 ${textColor}`} style={{ fontFamily: 'Oswald, sans-serif' }}>{i + 1}º</span>
+                    <span className={`flex-1 font-black text-sm ${textColor}`}>
+                      {b.isCambalhota ? '😈 ' : !b.you && state.onlineMode === 'cpu' ? '🕴️ ' : ''}{b.name}
+                    </span>
+                    {rival && state.onlineMode === 'cpu' && (
+                      <BrutalTag color={b.isCambalhota ? C.yellow : C.creamDark} textColor={b.isCambalhota ? '#000' : '#000'}>
+                        {rival.clients.length} lendas
+                      </BrutalTag>
+                    )}
+                    <span className={`font-black text-sm ${textColor}`} style={{ fontFamily: 'Oswald, sans-serif', opacity: 0.7 }}>{money(b.wealth)}</span>
+                  </div>
+                  {isExpanded && rival && rival.clients.length > 0 && (
+                    <div className="mt-2 pt-2 border-t-2 border-white/20 flex flex-wrap gap-1.5">
+                      {rival.clients.map(id => {
+                        const l = getLegendById(id)
+                        return l ? (
+                          <span key={id} className="border-2 border-black/30 rounded-lg px-2 py-0.5 text-xs font-black text-white/80 bg-white/10">
+                            {FLAG[l.nationality]} {l.nickname}
+                          </span>
+                        ) : null
+                      })}
+                    </div>
+                  )}
+                </BrutalCard>
+              )
+            })}
           </div>
         </div>
 

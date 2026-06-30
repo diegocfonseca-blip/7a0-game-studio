@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
-import type { GameState, Screen, Client, ClubOffer, Bid, OnlinePlayer, OnlineGameMode, AuctionState, OnlineNewsItem, OnlineClientInfo } from '../types'
+import type { GameState, Screen, Client, ClubOffer, Bid, OnlinePlayer, OnlineGameMode, AuctionState, OnlineNewsItem, OnlineClientInfo, RivalAgent } from '../types'
 import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getUnlockedNationalities, getRetirementYear, retirementNarrative, LEGENDS } from '../data/legends'
 import { generateWeeklyEvent, generateAmbientNews, SCOUT_UPGRADES, OFFICE_UPGRADES } from '../data/events'
 import type { ClientLite } from '../data/events'
@@ -10,6 +10,19 @@ import {
   WORLD_CUP_YEARS, isTransferWindow, CHALLENGES,
   grantXp, rarityOf, MISSIONS, missionForWeek, missionMetricValue,
 } from '../data/career'
+
+// ── CPU Agent Pool ─────────────────────────────────────────────────────────────
+// Cambalhota is ALWAYS index 0 (never changes). Others rotate based on numCpuAgents.
+const CPU_AGENT_POOL: RivalAgent[] = [
+  { id: 'cambalhota',   name: 'Sérgio Cambalhota',    budget: 150000, reputation: 55, clients: [], wealth: 600000 },
+  { id: 'w_ribeiro',   name: 'Wagner Ribeiro',        budget: 60000,  reputation: 45, clients: [], wealth: 180000 },
+  { id: 'r_pitta',     name: 'Reinaldo Pitta',        budget: 45000,  reputation: 38, clients: [], wealth: 120000 },
+  { id: 'a_cury',      name: 'André Cury',            budget: 40000,  reputation: 35, clients: [], wealth: 100000 },
+  { id: 'g_bertolucci',name: 'Giuliano Bertolucci',   budget: 30000,  reputation: 30, clients: [], wealth:  70000 },
+  { id: 'j_gullo',     name: 'Jorge Gullo',           budget: 25000,  reputation: 25, clients: [], wealth:  50000 },
+  { id: 'g_veloz',     name: 'Gilmar Veloz',          budget: 20000,  reputation: 20, clients: [], wealth:  40000 },
+  { id: 'j_mendes',    name: 'João Mendes Jr.',       budget: 18000,  reputation: 18, clients: [], wealth:  30000 },
+]
 // XP helper: bumps xp and, on a level-up, hands back a small rep bonus + a news line.
 function applyXp(state: GameState, amount: number): { xp: number; repBonus: number; line: string | null } {
   const g = grantXp(state.xp, amount)
@@ -34,9 +47,9 @@ const INITIAL_STATE: GameState = {
   totalEarned: 0,
   totalDeals: 0,
   rivalAgents: [
-    { id: 'rival1', name: 'João Mendes', budget: 20000, reputation: 25, clients: [], wealth: 40000 },
-    { id: 'rival2', name: 'Carlos Primo', budget: 35000, reputation: 40, clients: [], wealth: 180000 },
-    { id: 'rival3', name: 'Sérgio Cambalhota', budget: 50000, reputation: 55, clients: [], wealth: 600000 },
+    { id: 'cambalhota', name: 'Sérgio Cambalhota', budget: 50000, reputation: 55, clients: [], wealth: 600000 },
+    { id: 'rival1',     name: 'João Mendes',       budget: 20000, reputation: 25, clients: [], wealth:  40000 },
+    { id: 'rival2',     name: 'Carlos Primo',      budget: 35000, reputation: 40, clients: [], wealth: 180000 },
   ],
   seenLegendIds: [],
   purchasedUpgrades: [],
@@ -79,8 +92,10 @@ const INITIAL_STATE: GameState = {
 
 type Action =
   | { type: 'SET_SCREEN'; screen: Screen }
-  | { type: 'INIT_ROOM'; onlineMode: 'cpu' | 'online'; roomCode: string; isHost: boolean; playerNames: string[]; playerName: string; onlineGameMode: OnlineGameMode | null }
+  | { type: 'INIT_ROOM'; onlineMode: 'cpu' | 'online'; roomCode: string; isHost: boolean; playerNames: string[]; playerName: string; onlineGameMode: OnlineGameMode | null; numCpuAgents?: number }
   | { type: 'START_GAME'; playerName: string }
+  | { type: 'SKIP_CPU_DRAFT' }
+  | { type: 'CPU_AUCTION_CLOSE' }
   | { type: 'SIGN_CLIENT'; legendId: string; commissionRate: number; contractYears: number }
   | { type: 'RENEW_CLIENT'; legendId: string; commissionRate: number; contractYears: number }
   | { type: 'ADVANCE_WEEK' }
@@ -209,7 +224,12 @@ function empresarioReducer(state: GameState, action: Action): GameState {
     case 'SET_SCREEN':
       return { ...state, screen: action.screen }
 
-    case 'INIT_ROOM':
+    case 'INIT_ROOM': {
+      // CPU mode: build rivals from pool (Cambalhota always first)
+      const numCpu = action.numCpuAgents ?? 3
+      const cpuRivals: RivalAgent[] = action.onlineMode === 'cpu'
+        ? CPU_AGENT_POOL.slice(0, Math.max(3, Math.min(numCpu + 1, CPU_AGENT_POOL.length)))
+        : INITIAL_STATE.rivalAgents
       return {
         ...INITIAL_STATE,
         screen: 'intro',
@@ -219,9 +239,11 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         playerNames: action.playerNames,
         youIndex: action.playerNames.indexOf(action.playerName),
         onlineGameMode: action.onlineGameMode,
+        rivalAgents: cpuRivals,
         draftTurn: 0,
         draftPicksDone: 0,
       }
+    }
 
     case 'START_GAME':
       return {
@@ -283,6 +305,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       const rar = rarityOf(legend.truePotential)
       const isDraftOnline = state.onlineMode === 'online' &&
         (state.onlineGameMode === 'draft' || state.onlineGameMode === 'draft-leilao')
+      const isDraftCpu = state.onlineMode === 'cpu' &&
+        (state.onlineGameMode === 'draft' || state.onlineGameMode === 'draft-leilao')
 
       return {
         ...state,
@@ -295,7 +319,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         seenLegendIds: state.seenLegendIds.includes(action.legendId) ? state.seenLegendIds : [...state.seenLegendIds, action.legendId],
         everSignedIds: state.everSignedIds.includes(action.legendId) ? state.everSignedIds : [...state.everSignedIds, action.legendId],
         hotTargets,
-        draftPicksDone: isDraftOnline ? state.draftPicksDone + 1 : state.draftPicksDone,
+        draftPicksDone: (isDraftOnline || isDraftCpu) ? state.draftPicksDone + 1 : state.draftPicksDone,
+        draftWindowActive: isDraftCpu ? false : state.draftWindowActive, // close window after player signs
         negotiationLog: [{ who: 'voce' as const, year: state.year, text: `📝 Você agenciou ${legend.nickname} (${action.commissionRate}% · ${action.contractYears} anos)` }, ...state.negotiationLog].slice(0, 30),
         narrative: [...state.narrative,
           `✍️ Você assinou ${rar.emoji} ${legend.nickname} (${rar.label}): ${action.commissionRate}% de comissão, contrato de ${action.contractYears} anos + R$${legend.luva.toLocaleString('pt-BR')} de luva.`,
@@ -338,8 +363,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
     }
 
     case 'ADVANCE_WEEK': {
-      // Block week advance while online draft or auction window is open
-      if (state.onlineMode === 'online' && (state.draftWindowActive || state.currentAuction !== null)) {
+      // Block week advance while draft/auction window is open (online or cpu)
+      if (state.draftWindowActive || state.currentAuction !== null) {
         return state
       }
       const newWeek = state.week + 1
@@ -562,8 +587,15 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       if (yearRolled) {
         rivalAgents = state.rivalAgents.map(r => {
           const growth = 1.08 + Math.random() * 0.22
-          const cambBonus = r.name.includes('Cambalhota') ? nemesisTaken.length * 250000 + r.wealth * 0.1 : 0
-          return { ...r, wealth: Math.round(r.wealth * growth + cambBonus) }
+          const cambBonus = r.id === 'cambalhota' ? nemesisTaken.length * 250000 + r.wealth * 0.1 : 0
+          // In CPU mode, each rival earns commission income from their signed legends
+          const cpuIncome = state.onlineMode === 'cpu'
+            ? r.clients.reduce((sum, id) => {
+                const lg = getLegendById(id)
+                return lg ? sum + Math.round(getMarketValue(lg, newYear) * 0.08) : sum
+              }, 0)
+            : 0
+          return { ...r, wealth: Math.round(r.wealth * growth + cambBonus + cpuIncome) }
         })
         // your net worth vs the field
         const myNet = money2 + activeClients.reduce((s, c) => s + c.currentValue * (c.commissionRate / 100), 0)
@@ -600,6 +632,78 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       // 🌩️ GAME END: the lightning returns on 30/06/2026
       const gameOver = newYear > 2026 || (newYear === 2026 && actualWeek >= 26)
 
+      // ── CPU DRAFT / LEILÃO ────────────────────────────────────────────────────
+      let cpuDraftWindowActive = false
+      let cpuCurrentAuction: AuctionState | null = null
+      let cpuRivalAgents = rivalAgents
+      let cpuTakenLegends = { ...state.onlineTakenLegends }
+
+      if (!gameOver && state.onlineMode === 'cpu' && state.onlineGameMode !== null && actualWeek % 4 === 0) {
+        const periodsElapsed = (newYear - 1993) * 13 + Math.floor((actualWeek - 1) / 4)
+        const isDraftTurn = state.onlineGameMode === 'leilao'
+          ? false
+          : state.onlineGameMode === 'draft'
+          ? true
+          : periodsElapsed % 2 === 0  // draft-leilao alternates
+
+        const allCpuSignedIds = new Set(cpuRivalAgents.flatMap(r => r.clients))
+        const playerSignedIds = new Set(activeClients.map(c => c.legendId))
+        const availableForCpu = LEGENDS.filter(l =>
+          newYear >= l.emergenceYear &&
+          l.birthYear <= newYear - 14 &&
+          !allCpuSignedIds.has(l.id) &&
+          !playerSignedIds.has(l.id) &&
+          !lostLegends.includes(l.id) &&
+          !nemesisTaken.includes(l.id)
+        ).sort((a, b) => b.truePotential - a.truePotential)
+
+        if (isDraftTurn && availableForCpu.length > 0) {
+          // CPU draft: each rival auto-picks their preferred legend
+          let pickPool = [...availableForCpu]
+          cpuRivalAgents = cpuRivalAgents.map(agent => {
+            if (pickPool.length === 0) return agent
+            const isCambalhota = agent.id === 'cambalhota'
+            const sliceSize = isCambalhota ? 3 : 10
+            const pickIdx = Math.floor(Math.random() * Math.min(sliceSize, pickPool.length))
+            const picked = pickPool[pickIdx]
+            pickPool = pickPool.filter(l => l.id !== picked.id)
+            const cost = Math.round(picked.signingFee * 0.8 + picked.luva * 0.8)
+            cpuTakenLegends[picked.id] = { playerIndex: cpuRivalAgents.indexOf(agent) + 1, playerName: agent.name }
+            return {
+              ...agent,
+              clients: [...agent.clients, picked.id],
+              wealth: Math.max(0, agent.wealth - cost),
+            }
+          })
+          cpuDraftWindowActive = true
+          extraNarrative.push(`📋 JANELA DE DRAFT! Os rivais escolheram suas lendas — agora é SUA VEZ. Assine alguém na aba Radar.`)
+        } else if (!isDraftTurn && availableForCpu.length > 0) {
+          // CPU leilão: pick best available for auction, pre-fill CPU bids
+          const auctionTarget = availableForCpu[0]
+          const legendValue = getMarketValue(getLegendById(auctionTarget.id)!, newYear)
+          // Cambalhota (idx 0) always bids; pick 3 random others
+          const others = cpuRivalAgents.slice(1).sort(() => Math.random() - 0.5).slice(0, 3)
+          const bidders = [cpuRivalAgents[0], ...others]
+          const bidderRivalIndices = bidders.map(b => cpuRivalAgents.indexOf(b))
+          const bids: Record<number, number> = {}
+          bidderRivalIndices.forEach((rivalIdx, i) => {
+            const agent = cpuRivalAgents[rivalIdx]
+            const budget = Math.min(agent.wealth * 0.35, agent.budget * 4, legendValue * 2)
+            const aggressiveness = rivalIdx === 0 ? (0.55 + Math.random() * 0.45) : (0.2 + Math.random() * 0.5)
+            bids[i + 1] = Math.max(10000, Math.round(budget * aggressiveness / 1000) * 1000)
+          })
+          cpuCurrentAuction = {
+            legendId: auctionTarget.id,
+            bids,
+            endsAt: Date.now() + 3_600_000,
+            closed: false,
+            cpuBidderRivalIndices: bidderRivalIndices,
+          }
+          const legend = getLegendById(auctionTarget.id)
+          extraNarrative.push(`🔨 LEILÃO ABERTO! ${legend?.nickname ?? '???'} entrou em disputa. Lance seu valor no Radar ou os rivais levam.`)
+        }
+      }
+
       return {
         ...state,
         screen: gameOver ? 'end' : state.screen,
@@ -609,7 +713,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         reputation: Math.min(100, reputation2),
         suspicion,
         awards,
-        rivalAgents,
+        rivalAgents: cpuRivalAgents,
         clients: activeClients,
         pendingOffers: newOffers,
         events: newEvents,
@@ -625,6 +729,9 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         weeklyMissionId,
         weeklyMissionBaseline,
         weeklyMissionClaimed,
+        draftWindowActive: cpuDraftWindowActive,
+        currentAuction: cpuCurrentAuction,
+        onlineTakenLegends: cpuTakenLegends,
         narrative: [...state.narrative, ...extraNarrative],
       }
     }
@@ -978,6 +1085,78 @@ function empresarioReducer(state: GameState, action: Action): GameState {
 
     case 'DRAFT_WINDOW_SET':
       return { ...state, draftWindowActive: action.active }
+
+    case 'SKIP_CPU_DRAFT':
+      return { ...state, draftWindowActive: false }
+
+    case 'CPU_AUCTION_CLOSE': {
+      if (!state.currentAuction) return state
+      const auction = state.currentAuction
+      const entries = Object.entries(auction.bids).map(([k, v]) => ({ idx: Number(k), amount: v }))
+      if (entries.length === 0) {
+        return { ...state, currentAuction: null, narrative: [...state.narrative, `🔨 Leilão encerrado sem lances.`] }
+      }
+      const winner = entries.reduce((a, b) => b.amount > a.amount ? b : a)
+
+      if (winner.idx === 0) {
+        // Player wins — same logic as AUCTION_WIN
+        const legend = getLegendById(auction.legendId)
+        if (!legend) return { ...state, currentAuction: null }
+        const currentRating = getCurrentRating(legend, state.year)
+        const currentValue = getMarketValue(legend, state.year)
+        const newClient: Client = {
+          legendId: legend.id, name: legend.name, nickname: legend.nickname,
+          position: legend.position, nationality: legend.nationality,
+          status: getCurrentStatus(legend, state.year),
+          birthYear: legend.birthYear, peakYearStart: legend.peakYearStart,
+          peakYearEnd: legend.peakYearEnd, truePotential: legend.truePotential,
+          currentRating, personality: legend.personality, monthlyFee: legend.monthlyFee,
+          futureKnowledge: legend.futureKnowledge, commissionRate: 15,
+          repContractYears: 3, repExpiresYear: state.year + 3,
+          happiness: 75, currentValue, signedYear: state.year,
+          contractClub: legend.club, contractSalary: legend.monthlyFee * 10,
+          contractExpiresYear: state.year + 2, rivalOffers: 0,
+        }
+        const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + legend.monthlyFee / 4
+        const xpr = applyXp(state, 60)
+        return {
+          ...state,
+          money: state.money - winner.amount,
+          clients: [...state.clients, newClient],
+          weeklyExpenses,
+          xp: xpr.xp,
+          reputation: Math.min(100, state.reputation + xpr.repBonus),
+          everSignedIds: state.everSignedIds.includes(auction.legendId) ? state.everSignedIds : [...state.everSignedIds, auction.legendId],
+          seenLegendIds: state.seenLegendIds.includes(auction.legendId) ? state.seenLegendIds : [...state.seenLegendIds, auction.legendId],
+          currentAuction: null,
+          narrative: [...state.narrative,
+            `🏆 LEILÃO GANHO! Você venceu com R$${winner.amount.toLocaleString('pt-BR')} e agenciou ${legend.nickname}!`,
+            ...(xpr.line ? [xpr.line] : []),
+          ],
+        }
+      } else {
+        // CPU agent wins
+        const bidderRivalIndices = auction.cpuBidderRivalIndices ?? []
+        const rivalIdx = bidderRivalIndices[winner.idx - 1]
+        const cpuAgent = rivalIdx !== undefined ? state.rivalAgents[rivalIdx] : null
+        const legend = getLegendById(auction.legendId)
+        if (!cpuAgent || !legend) return { ...state, currentAuction: null }
+        return {
+          ...state,
+          currentAuction: null,
+          rivalAgents: state.rivalAgents.map((r, i) =>
+            i === rivalIdx
+              ? { ...r, clients: [...r.clients, auction.legendId], wealth: Math.max(0, r.wealth - winner.amount) }
+              : r
+          ),
+          onlineTakenLegends: {
+            ...state.onlineTakenLegends,
+            [auction.legendId]: { playerIndex: winner.idx, playerName: cpuAgent.name },
+          },
+          narrative: [...state.narrative, `🔨 ${cpuAgent.name} venceu o leilão com R$${winner.amount.toLocaleString('pt-BR')} e ficou com ${legend.nickname}!`],
+        }
+      }
+    }
 
     case 'ONLINE_NEWS_ADD':
       return { ...state, onlineNews: [action.item, ...state.onlineNews].slice(0, 50) }
