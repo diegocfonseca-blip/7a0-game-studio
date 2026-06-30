@@ -14,39 +14,27 @@ interface Scene {
 
 const SCENES: Scene[] = [
   {
-    tag: 'HOJE',
+    tag: 'DOMINGO À TARDE',
     tagColor: C.pink,
-    year: '27 de junho, 2026 — São Paulo',
+    year: '28 de junho, 2026 — Campo do Seu Artur, São Paulo',
     lines: [
-      'Você tem 60 anos.',
-      'Trinta deles dados ao futebol — como roupeiro, como auxiliar, como o cara que enche as garrafas de água numa escolinha de bairro.',
-      'R$ 2.200 por mês. Aluguel atrasado. Um joelho que range.',
+      'Pelada de casados. Você, seus parceiros de sempre e um sol de rachar.',
+      'Um temporal chegou do nada — céu fechou em dois minutos.',
+      'Ninguém quis parar. Vocês são loucos assim.',
     ],
     bg: '#1a1a1a',
     ink: '#F4ECD6',
   },
   {
-    tag: 'O DOM',
+    tag: 'O RAIO',
     tagColor: C.yellow,
-    year: 'Uma vida inteira observando',
+    year: '16h47 — bola rolando no temporal',
     lines: [
-      'Mas tem uma coisa que ninguém nunca te tirou:',
-      'você ENXERGA o jogo.',
-      'Você sabe quem vai ser craque antes de qualquer olheiro. Sempre soube. Só que ninguém nunca te ouviu — você era só o velho da escolinha.',
+      'Um estrondo. Uma luz branca que veio do céu e engoliu o campo inteiro.',
+      'Você sentiu o cheiro de cabelo queimado.',
+      'E depois — nada.',
     ],
-    bg: '#0d2818',
-    ink: '#F4ECD6',
-  },
-  {
-    tag: 'O ACIDENTE',
-    tagColor: C.orange,
-    year: '22:47 — a caminho de casa',
-    lines: [
-      'A chuva. O farol estourado. O caminhão na contramão.',
-      'Um estrondo branco.',
-      'E então — silêncio.',
-    ],
-    bg: '#3d0a0a',
+    bg: '#3d3300',
     ink: '#F4ECD6',
   },
   {
@@ -63,7 +51,7 @@ const SCENES: Scene[] = [
     year: '199...?',
     lines: [
       'O cheiro é outro. Cigarro no ar. Um rádio de pilha tocando Mamonas Assassinas.',
-      'Você olha as mãos: jovens. Firmes.',
+      'Você olha as mãos: jovens. Firmes. Os seus amigos estão ao lado, tão perdidos quanto você.',
       'No jornal dobrado na mesa: 14 de março de 1993.',
     ],
     bg: '#2a1f08',
@@ -74,15 +62,15 @@ const SCENES: Scene[] = [
     tagColor: C.yellow,
     year: '1993',
     lines: [
-      'Você voltou 33 anos no tempo.',
-      'Está jovem. Está duro. Mas na sua cabeça moram TRÊS DÉCADAS de futebol que ainda não aconteceram.',
-      'Você sabe cada Copa. Cada lenda. Cada garoto de favela e de vila que vai virar mito.',
+      'O raio mandou vocês 33 anos pro passado.',
+      'Jovens, durnos, mas com a cabeça cheia de TRÊS DÉCADAS de futebol que ainda não aconteceram.',
+      'Cada Copa. Cada lenda. Cada garoto de favela que vai virar mito.',
     ],
     bg: '#1a2e1a',
     ink: '#F4ECD6',
   },
   {
-    tag: 'A JOGADA',
+    tag: 'O PLANO',
     tagColor: C.orange,
     year: '1993 — Belo Horizonte, agora',
     lines: [
@@ -95,13 +83,25 @@ const SCENES: Scene[] = [
     ink: '#F4ECD6',
   },
   {
+    tag: 'A APOSTA',
+    tagColor: C.pink,
+    year: '',
+    lines: [
+      'O raio vai voltar. Ele sempre volta.',
+      'No mesmo campo. No mesmo dia. Só que em 2026.',
+      'Vocês têm 33 anos pra construir o maior império do futebol mundial antes de voltar pro futuro.',
+    ],
+    bg: '#3d0a2a',
+    ink: '#F4ECD6',
+  },
+  {
     tag: 'SUA MISSÃO',
     tagColor: C.blue,
     year: '',
     lines: [
       'Vire empresário. Assine as lendas antes do mundo descobrir.',
-      'Negocie cada contrato no SEU favor. Fique podre de rico.',
-      'Você tem o maior trunfo da história do futebol: o futuro inteiro na memória.',
+      'Negocie cada contrato no SEU favor. Acumule patrimônio. Construa reputação.',
+      'Quem chegar em 2026 com mais lendas no álbum, mais rico e mais respeitado — vence.',
     ],
     bg: '#0a1340',
     ink: '#F4ECD6',

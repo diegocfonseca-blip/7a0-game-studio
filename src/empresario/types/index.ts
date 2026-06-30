@@ -10,6 +10,7 @@ export type Screen =
   | 'negotiate'
   | 'ranking'
   | 'album'
+  | 'end'
 
 export type Position = 'ATA' | 'MEI' | 'ZAG' | 'LAT' | 'GOL'
 export type Personality = 'leal' | 'ambicioso' | 'difícil' | 'humilde'

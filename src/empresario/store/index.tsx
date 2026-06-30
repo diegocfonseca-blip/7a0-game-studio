@@ -591,8 +591,12 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         if (n2 && n2 !== n1) extraNarrative.push(n2)
       }
 
+      // 🌩️ GAME END: the lightning returns on 30/06/2026
+      const gameOver = newYear > 2026 || (newYear === 2026 && actualWeek >= 26)
+
       return {
         ...state,
+        screen: gameOver ? 'end' : state.screen,
         week: actualWeek,
         year: newYear,
         money: Math.max(0, money2),

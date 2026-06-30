@@ -10,6 +10,7 @@ import NegotiationsScreen from './screens/NegotiationsScreen'
 import FinanceScreen from './screens/FinanceScreen'
 import RankingScreen from './screens/RankingScreen'
 import AlbumScreen from './screens/AlbumScreen'
+import EndScreen from './screens/EndScreen'
 import type { OnlineNewsItem, OnlineClientInfo } from './types'
 
 // ── Broadcast context so any screen can send realtime events ──────────────────
@@ -325,6 +326,7 @@ function EmpresarioRouter() {
       case 'finance':   return <FinanceScreen />
       case 'ranking':   return <RankingScreen />
       case 'album':     return <AlbumScreen />
+      case 'end':       return <EndScreen />
       default:          return <LobbyScreen />
     }
   })()
