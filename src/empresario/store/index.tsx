@@ -605,67 +605,111 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         }
       }
 
-      // 🔥 NEMESIS grabs a hot prospect you slept on
+      // 🔥 NEMESIS — behavior differs by mode
       let nemesisTaken = state.nemesisTaken
       let nemesisAlert = state.nemesisAlert
       let nemesisShown = state.nemesisShown
       let negotiationLog = state.negotiationLog
-      const grabbed = nemesisTryGrab(state, newYear)
-      if (grabbed) {
-        const legend = getLegendById(grabbed)!
-        nemesisTaken = [...state.nemesisTaken, grabbed]
-        const isFirst = !state.nemesisShown
-        nemesisShown = true
-        nemesisAlert = {
-          legendId: grabbed,
-          legendNickname: legend.nickname,
-          story: isFirst ? NEMESIS.story : `${NEMESIS.name} chegou primeiro de novo e fechou com ${legend.name}. "Mais um que era pra ser seu", ele provoca.`,
-          isFirst,
-        }
-        negotiationLog = [{ who: 'rival' as const, year: newYear, text: `😈 Sérgio Cambalhota agenciou ${legend.name} antes de você!` }, ...negotiationLog].slice(0, 30)
-        extraNarrative.push(`😈 ${NEMESIS.name} roubou ${legend.nickname} de você!`)
-      }
-      let lostLegends = grabbed ? [...state.lostLegends, grabbed] : state.lostLegends
+      let lostLegends = [...state.lostLegends]
 
-      // 🔥 HOT TARGETS — gems with a ticking clock. Sign them before a rival does.
+      const isCpuStructured = state.onlineMode === 'cpu' && state.onlineGameMode !== null
       const nowAbs = newYear * 52 + actualWeek
-      const hotTargets: Record<string, number> = { ...state.hotTargets }
-      const signedSet = new Set(activeClients.map(c => c.legendId))
-      // expire: deadline passed and still unsigned → a rival snaps them up
-      for (const [id, deadline] of Object.entries(hotTargets)) {
-        if (signedSet.has(id) || state.everSignedIds.includes(id)) { delete hotTargets[id]; continue }
-        if (nowAbs >= deadline) {
-          delete hotTargets[id]
-          if (!nemesisTaken.includes(id) && !lostLegends.includes(id)) {
-            const lg = getLegendById(id)
-            if (lg) {
-              nemesisTaken = [...nemesisTaken, id]
-              lostLegends = [...lostLegends, id]
-              extraNarrative.push(`⏳ VOCÊ DEMOROU! Um rival fechou com ${lg.nickname} enquanto você hesitava. Essa lenda escapou de vez.`)
+
+      if (!isCpuStructured) {
+        // Free market mode: nemesis steals prospects from the open market
+        const grabbed = nemesisTryGrab(state, newYear)
+        if (grabbed) {
+          const legend = getLegendById(grabbed)!
+          nemesisTaken = [...nemesisTaken, grabbed]
+          lostLegends = [...lostLegends, grabbed]
+          const isFirst = !state.nemesisShown
+          nemesisShown = true
+          nemesisAlert = {
+            legendId: grabbed,
+            legendNickname: legend.nickname,
+            story: isFirst ? NEMESIS.story : `${NEMESIS.name} chegou primeiro de novo e fechou com ${legend.name}. "Mais um que era pra ser seu", ele provoca.`,
+            isFirst,
+          }
+          negotiationLog = [{ who: 'rival' as const, year: newYear, text: `😈 Sérgio Cambalhota agenciou ${legend.name} antes de você!` }, ...negotiationLog].slice(0, 30)
+          extraNarrative.push(`😈 ${NEMESIS.name} roubou ${legend.nickname} de você!`)
+        }
+      } else {
+        // Structured mode (draft/leilão): Cambalhota competes in windows, not the open market.
+        // His threat is watching your clients' contracts expire.
+        if (yearRolled) {
+          for (const client of activeClients) {
+            const repExpiring = client.repExpiresYear !== undefined && client.repExpiresYear === newYear
+            const playExpiring = client.contractExpiresYear !== undefined && client.contractExpiresYear === newYear
+            if ((repExpiring || playExpiring) && Math.random() < 0.55) {
+              const contractType = repExpiring ? 'representação' : 'clube'
+              if (!state.nemesisShown) {
+                // First time: show his intro
+                nemesisShown = true
+                nemesisAlert = {
+                  legendId: client.legendId,
+                  legendNickname: client.nickname,
+                  story: `${NEMESIS.story}\n\n👁️ E ele já está de olho: o contrato de ${contractType} de ${client.nickname} vence ESTE ANO. Renove antes que ele apareça com uma proposta melhor.`,
+                  isFirst: true,
+                }
+              } else {
+                nemesisAlert = {
+                  legendId: client.legendId,
+                  legendNickname: client.nickname,
+                  story: `👁️ ${NEMESIS.name} foi visto conversando com ${client.nickname}. O contrato de ${contractType} dele vence este ano — renove logo ou pode perder o cliente.`,
+                  isFirst: false,
+                }
+              }
+              negotiationLog = [{ who: 'rival' as const, year: newYear, text: `👁️ Cambalhota está de olho em ${client.nickname} — contrato de ${contractType} vence em ${newYear}.` }, ...negotiationLog].slice(0, 30)
+              break // one alert per year rollover is enough
             }
           }
         }
       }
-      // register: pin a fresh emerging gem you can chase right now
-      if (Object.keys(hotTargets).length < 3) {
-        const unlockedNats = getUnlockedNationalities(state.purchasedUpgrades)
-        const candidates = LEGENDS.filter(l =>
-          l.truePotential >= 92 &&
-          newYear >= l.emergenceYear &&
-          l.birthYear <= newYear - 14 &&
-          unlockedNats.includes(l.nationality) &&
-          !signedSet.has(l.id) &&
-          !state.everSignedIds.includes(l.id) &&
-          !nemesisTaken.includes(l.id) &&
-          !lostLegends.includes(l.id) &&
-          !(l.id in hotTargets)
-        )
-        if (candidates.length > 0 && Math.random() < 0.6) {
-          const pick = candidates[Math.floor(Math.random() * candidates.length)]
-          const weeks = 4 + Math.floor(Math.random() * 4) // 4–7 weeks to act
-          hotTargets[pick.id] = nowAbs + weeks
-          extraNarrative.push(`🔥 ALVO QUENTE: ${pick.nickname} (${rarityOf(pick.truePotential).label}) está disponível AGORA. Feche em ${weeks} semanas ou um rival leva.`)
+
+      // 🔥 HOT TARGETS — only in free-market (solo) mode
+      const hotTargets: Record<string, number> = { ...state.hotTargets }
+      const signedSet = new Set(activeClients.map(c => c.legendId))
+
+      if (!isCpuStructured) {
+        // expire: deadline passed and still unsigned → a rival snaps them up
+        for (const [id, deadline] of Object.entries(hotTargets)) {
+          if (signedSet.has(id) || state.everSignedIds.includes(id)) { delete hotTargets[id]; continue }
+          if (nowAbs >= deadline) {
+            delete hotTargets[id]
+            if (!nemesisTaken.includes(id) && !lostLegends.includes(id)) {
+              const lg = getLegendById(id)
+              if (lg) {
+                nemesisTaken = [...nemesisTaken, id]
+                lostLegends = [...lostLegends, id]
+                extraNarrative.push(`⏳ VOCÊ DEMOROU! Um rival fechou com ${lg.nickname} enquanto você hesitava. Essa lenda escapou de vez.`)
+              }
+            }
+          }
         }
+        // register: pin a fresh emerging gem you can chase right now
+        if (Object.keys(hotTargets).length < 3) {
+          const unlockedNats = getUnlockedNationalities(state.purchasedUpgrades)
+          const candidates = LEGENDS.filter(l =>
+            l.truePotential >= 92 &&
+            newYear >= l.emergenceYear &&
+            l.birthYear <= newYear - 14 &&
+            unlockedNats.includes(l.nationality) &&
+            !signedSet.has(l.id) &&
+            !state.everSignedIds.includes(l.id) &&
+            !nemesisTaken.includes(l.id) &&
+            !lostLegends.includes(l.id) &&
+            !(l.id in hotTargets)
+          )
+          if (candidates.length > 0 && Math.random() < 0.6) {
+            const pick = candidates[Math.floor(Math.random() * candidates.length)]
+            const weeks = 4 + Math.floor(Math.random() * 4) // 4–7 weeks to act
+            hotTargets[pick.id] = nowAbs + weeks
+            extraNarrative.push(`🔥 ALVO QUENTE: ${pick.nickname} (${rarityOf(pick.truePotential).label}) está disponível AGORA. Feche em ${weeks} semanas ou um rival leva.`)
+          }
+        }
+      } else {
+        // In structured mode, clear any stale hotTargets from the previous game
+        for (const id of Object.keys(hotTargets)) delete hotTargets[id]
       }
 
       // 💤 COMBO cooldown — momentum fades if you go too long without a deal
@@ -815,6 +859,16 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           })
           cpuDraftWindowActive = true
           extraNarrative.push(`📋 JANELA DE DRAFT! Os rivais escolheram suas lendas — agora é SUA VEZ. Assine alguém na aba Radar.`)
+          // First window ever: introduce Cambalhota
+          if (!nemesisShown) {
+            nemesisShown = true
+            nemesisAlert = {
+              legendId: cpuRivalAgents[0].clients[0] ?? '',
+              legendNickname: cpuRivalAgents[0].clients[0] ? (getLegendById(cpuRivalAgents[0].clients[0])?.nickname ?? 'uma lenda') : 'uma lenda',
+              story: NEMESIS.story + `\n\nEle já escolheu no draft. Você vai deixar ele ganhar?`,
+              isFirst: true,
+            }
+          }
         } else if (!isDraftTurn && availableForCpu.length > 0) {
           // CPU leilão: pick best available for auction, pre-fill CPU bids
           const auctionTarget = availableForCpu[0]
@@ -839,6 +893,16 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           }
           const legend = getLegendById(auctionTarget.id)
           extraNarrative.push(`🔨 LEILÃO ABERTO! ${legend?.nickname ?? '???'} entrou em disputa. Lance seu valor no Radar ou os rivais levam.`)
+          // First auction ever: introduce Cambalhota as the main rival bidder
+          if (!nemesisShown) {
+            nemesisShown = true
+            nemesisAlert = {
+              legendId: auctionTarget.id,
+              legendNickname: legend?.nickname ?? '???',
+              story: NEMESIS.story + `\n\n🔨 E ele já está no leilão. Ele sempre vai contra você — lance com estratégia.`,
+              isFirst: true,
+            }
+          }
         }
       }
 

@@ -281,39 +281,43 @@ export default function ScoutsScreen() {
                   </div>
                 </div>
               </div>
-              {/* bids — online shows player names, CPU shows rival agents */}
+              {/* bids — online shows player names, CPU shows blind rival status */}
               <div className="space-y-2 mb-4">
                 {state.onlineMode === 'cpu' ? (
                   <>
-                    {/* Player row */}
+                    {/* ── BLIND AUCTION: you only see whether rivals bid, not how much ── */}
+                    <div className="border-2 border-white/30 rounded-lg px-3 py-1.5 text-center mb-1">
+                      <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">🔒 Leilão cego — valores revelados ao fechar</p>
+                    </div>
+                    {/* Player row — your own bid IS shown */}
                     {(() => {
                       const bid = auction.bids[0]
-                      const isTop = bid === topBid && bid > 0
                       return (
                         <div className="flex items-center gap-2 bg-white/20 border-2 border-black/30 rounded-lg px-3 py-2">
                           <span className="text-sm">👤</span>
                           <span className="flex-1 font-black text-white text-sm">{state.playerNames[0] ?? 'Você'}</span>
                           {bid ? (
-                            <span className={`font-black text-sm ${isTop ? 'text-yellow-300' : 'text-white/70'}`}>{isTop ? '👑 ' : ''}{money(bid)}</span>
+                            <span className="font-black text-yellow-300 text-sm">✓ {money(bid)}</span>
                           ) : (
                             <span className="text-white/40 text-xs font-bold">sem lance</span>
                           )}
                         </div>
                       )
                     })()}
-                    {/* CPU rival rows */}
+                    {/* CPU rival rows — only show whether they bid, not how much */}
                     {(auction.cpuBidderRivalIndices ?? []).map((rivalIdx, i) => {
                       const rival = state.rivalAgents[rivalIdx]
                       if (!rival) return null
-                      const bid = auction.bids[i + 1]
-                      const isTop = bid === topBid && bid > 0
+                      const hasBid = (auction.bids[i + 1] ?? 0) > 0
                       return (
                         <div key={rival.id} className="flex items-center gap-2 bg-white/20 border-2 border-black/30 rounded-lg px-3 py-2">
                           <span className="text-sm">{rivalIdx === 0 ? '😈' : '🕴️'}</span>
                           <span className="flex-1 font-black text-white text-sm truncate">{rival.name}</span>
-                          <span className={`font-black text-sm ${isTop ? 'text-yellow-300' : 'text-white/70'}`}>
-                            {isTop ? '👑 ' : ''}{money(bid ?? 0)}
-                          </span>
+                          {hasBid ? (
+                            <span className="text-white/60 text-xs font-black">✓ LANCE DADO</span>
+                          ) : (
+                            <span className="text-white/30 text-xs font-bold">—</span>
+                          )}
                         </div>
                       )
                     })}
