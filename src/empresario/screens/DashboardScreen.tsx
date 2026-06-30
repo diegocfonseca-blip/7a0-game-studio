@@ -24,6 +24,7 @@ export default function DashboardScreen() {
   const [rYears, setRYears] = useState(3)
   const [rResult, setRResult] = useState<string | null>(null)
   const monthIndex = Math.floor((state.week - 1) / 4.34) % 12
+  const isStructured = state.onlineGameMode !== null
   const pendingEvents = state.events.filter(e => !e.resolved)
   const activeOffers = state.pendingOffers.length
   const alerts = pendingEvents.length + activeOffers
@@ -197,26 +198,26 @@ export default function DashboardScreen() {
           )
         })()}
 
-        {/* ── CPU DRAFT / LEILÃO ALERT ── */}
-        {state.onlineMode === 'cpu' && state.draftWindowActive && (
+        {/* ── DRAFT / LEILÃO ALERT (cpu e online estruturado) ── */}
+        {isStructured && state.draftWindowActive && (
           <BrutalCard color={C.green} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'scouts' })} style={{ cursor: 'pointer' }}>
             <div className="flex items-center gap-3">
               <span className="text-3xl">📋</span>
               <div className="flex-1">
                 <p className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>JANELA DE DRAFT ABERTA!</p>
-                <p className="text-black/60 text-xs font-bold">Os rivais já escolheram — assine sua lenda no Radar</p>
+                <p className="text-black/60 text-xs font-bold">Os rivais já escolheram — hora de fazer sua escolha</p>
               </div>
               <span className="text-2xl">→</span>
             </div>
           </BrutalCard>
         )}
-        {state.onlineMode === 'cpu' && state.currentAuction !== null && !state.draftWindowActive && (
+        {isStructured && state.currentAuction !== null && !state.draftWindowActive && (
           <BrutalCard color={C.purple} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'scouts' })} style={{ cursor: 'pointer' }}>
             <div className="flex items-center gap-3">
               <span className="text-3xl">🔨</span>
               <div className="flex-1">
                 <p className="font-black text-white text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>LEILÃO EM ANDAMENTO!</p>
-                <p className="text-white/60 text-xs font-bold">Lance seu valor no Radar antes de avançar semana</p>
+                <p className="text-white/60 text-xs font-bold">Lance seu valor antes de avançar semana</p>
               </div>
               <span className="text-2xl text-white">→</span>
             </div>
@@ -256,11 +257,13 @@ export default function DashboardScreen() {
 
         {/* ── NAV GRID (menus primeiro, antes da carteira) ── */}
         <div className="grid grid-cols-2 gap-3 pt-1">
-          <BrutalCard color={C.teal} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'scouts' })}>
-            <p className="text-3xl mb-1">🔭</p>
-            <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>RADAR</p>
-            <p className="text-black/60 text-xs font-bold">Descobrir lendas</p>
-          </BrutalCard>
+          {!isStructured && (
+            <BrutalCard color={C.teal} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'scouts' })}>
+              <p className="text-3xl mb-1">🔭</p>
+              <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>RADAR</p>
+              <p className="text-black/60 text-xs font-bold">Descobrir lendas</p>
+            </BrutalCard>
+          )}
 
           <BrutalCard color={C.pink} className="p-4 relative" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'offers' })}>
             {alerts > 0 && (
@@ -292,17 +295,17 @@ export default function DashboardScreen() {
           </BrutalCard>
 
           {(() => {
-            const auctionLock = state.onlineMode === 'online' && state.currentAuction !== null
-            const draftLock = state.onlineMode === 'online' && state.draftWindowActive
+            const auctionLock = isStructured && state.currentAuction !== null
+            const draftLock = isStructured && state.draftWindowActive
             const locked = auctionLock || draftLock
             return (
               <BrutalCard
                 color={locked ? C.orange : C.black}
-                className="p-4"
+                className={`p-4${isStructured ? ' col-span-2' : ''}`}
                 onClick={() => !locked && dispatch({ type: 'ADVANCE_WEEK' })}
               >
                 <p className="text-3xl mb-1">{locked ? '🔒' : '⏩'}</p>
-                <p className={`font-black text-sm ${locked ? 'text-white' : 'text-white'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>
+                <p className="font-black text-sm text-white" style={{ fontFamily: 'Oswald, sans-serif' }}>
                   {draftLock ? 'AGUARDE DRAFT' : auctionLock ? 'LEILÃO ATIVO' : 'AVANÇAR'}
                 </p>
                 <p className="text-white/60 text-[10px] font-bold">
