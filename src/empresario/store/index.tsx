@@ -1,8 +1,8 @@
 import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
-import type { GameState, Screen, Client, ClubOffer, Bid, OwnedClub, LeagueTeam } from '../types'
-import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getUnlockedNationalities, LEGENDS } from '../data/legends'
-import { generateWeeklyEvent, generateAmbientNews } from '../data/events'
+import type { GameState, Screen, Client, ClubOffer, Bid, OnlinePlayer, OnlineGameMode, AuctionState, OnlineNewsItem, OnlineClientInfo, RivalAgent, GameEvent } from '../types'
+import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getUnlockedNationalities, getRetirementYear, retirementNarrative, LEGENDS } from '../data/legends'
+import { generateWeeklyEvent, generateAmbientNews, SCOUT_UPGRADES, OFFICE_UPGRADES } from '../data/events'
 import type { ClientLite } from '../data/events'
 import { CLUBS, NEMESIS } from '../data/clubs'
 import { GLORIES, genericGlory } from '../data/glory'
@@ -10,6 +10,21 @@ import {
   WORLD_CUP_YEARS, isTransferWindow, CHALLENGES,
   grantXp, rarityOf, MISSIONS, missionForWeek, missionMetricValue,
 } from '../data/career'
+import { getHistoricalEvents, isDeadlineDay } from '../data/historical'
+import { getLegendEvents } from '../data/legend-events'
+
+// ── CPU Agent Pool ─────────────────────────────────────────────────────────────
+// Cambalhota is ALWAYS index 0 (never changes). Others rotate based on numCpuAgents.
+const CPU_AGENT_POOL: RivalAgent[] = [
+  { id: 'cambalhota',   name: 'Sérgio Cambalhota',    budget: 150000, reputation: 55, clients: [], wealth: 600000 },
+  { id: 'w_ribeiro',   name: 'Wagner Ribeiro',        budget: 60000,  reputation: 45, clients: [], wealth: 180000 },
+  { id: 'r_pitta',     name: 'Reinaldo Pitta',        budget: 45000,  reputation: 38, clients: [], wealth: 120000 },
+  { id: 'a_cury',      name: 'André Cury',            budget: 40000,  reputation: 35, clients: [], wealth: 100000 },
+  { id: 'g_bertolucci',name: 'Giuliano Bertolucci',   budget: 30000,  reputation: 30, clients: [], wealth:  70000 },
+  { id: 'j_gullo',     name: 'Jorge Gullo',           budget: 25000,  reputation: 25, clients: [], wealth:  50000 },
+  { id: 'g_veloz',     name: 'Gilmar Veloz',          budget: 20000,  reputation: 20, clients: [], wealth:  40000 },
+  { id: 'j_mendes',    name: 'João Mendes Jr.',       budget: 18000,  reputation: 18, clients: [], wealth:  30000 },
+]
 // XP helper: bumps xp and, on a level-up, hands back a small rep bonus + a news line.
 function applyXp(state: GameState, amount: number): { xp: number; repBonus: number; line: string | null } {
   const g = grantXp(state.xp, amount)
@@ -18,7 +33,7 @@ function applyXp(state: GameState, amount: number): { xp: number; repBonus: numb
 }
 
 const INITIAL_STATE: GameState = {
-  screen: 'intro',
+  screen: 'lobby',
   year: 1993,
   week: 1,
   money: 8000,
@@ -34,9 +49,9 @@ const INITIAL_STATE: GameState = {
   totalEarned: 0,
   totalDeals: 0,
   rivalAgents: [
-    { id: 'rival1', name: 'João Mendes', budget: 20000, reputation: 25, clients: [], wealth: 40000 },
-    { id: 'rival2', name: 'Carlos Primo', budget: 35000, reputation: 40, clients: [], wealth: 180000 },
-    { id: 'rival3', name: 'Sérgio Cambalhota', budget: 50000, reputation: 55, clients: [], wealth: 600000 },
+    { id: 'cambalhota', name: 'Sérgio Cambalhota', budget: 50000, reputation: 55, clients: [], wealth: 600000 },
+    { id: 'rival1',     name: 'João Mendes',       budget: 20000, reputation: 25, clients: [], wealth:  40000 },
+    { id: 'rival2',     name: 'Carlos Primo',      budget: 35000, reputation: 40, clients: [], wealth: 180000 },
   ],
   seenLegendIds: [],
   purchasedUpgrades: [],
@@ -46,7 +61,6 @@ const INITIAL_STATE: GameState = {
   nemesisShown: false,
   nemesisAlert: null,
   negotiationLog: [],
-  ownedClub: null,
   suspicion: 0,
   clubRelations: {},
   awards: 0,
@@ -61,11 +75,29 @@ const INITIAL_STATE: GameState = {
   weeklyMissionBaseline: 0,
   weeklyMissionClaimed: false,
   narrative: [],
+  onlineMode: 'cpu',
+  roomCode: '',
+  isHost: false,
+  playerNames: [],
+  youIndex: 0,
+  onlineGameMode: null,
+  draftTurn: 0,
+  draftPicksDone: 0,
+  draftWindowActive: false,
+  currentAuction: null,
+  onlineTakenLegends: {},
+  onlinePlayers: [],
+  onlinePresence: [],
+  onlineNews: [],
+  onlinePlayerRosters: {},
 }
 
 type Action =
   | { type: 'SET_SCREEN'; screen: Screen }
+  | { type: 'INIT_ROOM'; onlineMode: 'cpu' | 'online'; roomCode: string; isHost: boolean; playerNames: string[]; playerName: string; onlineGameMode: OnlineGameMode | null; numCpuAgents?: number }
   | { type: 'START_GAME'; playerName: string }
+  | { type: 'SKIP_CPU_DRAFT' }
+  | { type: 'CPU_AUCTION_CLOSE' }
   | { type: 'SIGN_CLIENT'; legendId: string; commissionRate: number; contractYears: number }
   | { type: 'RENEW_CLIENT'; legendId: string; commissionRate: number; contractYears: number }
   | { type: 'ADVANCE_WEEK' }
@@ -78,16 +110,21 @@ type Action =
   | { type: 'DISMISS_NEMESIS_ALERT' }
   | { type: 'ESCALATE_BID'; offerId: string }
   | { type: 'HAGGLE_OFFER'; offerId: string }
-  | { type: 'BUY_CLUB'; clubId: string; name: string; division: number; price: number; fans: number }
-  | { type: 'PLACE_CLIENT_IN_CLUB'; legendId: string }
-  | { type: 'BUY_TO_CLUB'; legendId: string }
-  | { type: 'LOAN_TO_CLUB'; legendId: string }
-  | { type: 'UPGRADE_CLUB'; kind: 'stadium' | 'academy'; cost: number }
-  | { type: 'SET_TACTIC'; tactic: 'retranca' | 'equilibrio' | 'ataque' }
   | { type: 'DIRTY_ACTION'; kind: 'maquiar' | 'imprensa' | 'arbitro' }
   | { type: 'CLAIM_CHALLENGE' }
   | { type: 'CLAIM_MISSION' }
   | { type: 'NEW_GAME' }
+  | { type: 'LEGEND_TAKEN_ONLINE'; legendId: string; playerIndex: number; playerName: string }
+  | { type: 'PLAYER_UPDATE_ONLINE'; playerIndex: number; playerName: string; money: number; totalDeals: number }
+  | { type: 'SET_PRESENCE'; indices: number[] }
+  | { type: 'DRAFT_ADVANCE'; picksDone: number }
+  | { type: 'AUCTION_SET'; auction: AuctionState | null }
+  | { type: 'AUCTION_BID'; playerIndex: number; amount: number }
+  | { type: 'AUCTION_WIN'; legendId: string; bidAmount: number }
+  | { type: 'REP_SOLD'; legendId: string; saleAmount: number }
+  | { type: 'DRAFT_WINDOW_SET'; active: boolean }
+  | { type: 'ONLINE_NEWS_ADD'; item: OnlineNewsItem }
+  | { type: 'PLAYER_ROSTER_UPDATE'; playerIndex: number; clients: OnlineClientInfo[] }
 
 function generateClubOffer(client: Client, year: number, clubRelations: Record<string, number> = {}): ClubOffer | null {
   const rating = getCurrentRating(getLegendById(client.legendId)!, year)
@@ -166,28 +203,6 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
   }
 }
 
-const RIVAL_TEAM_NAMES = [
-  'Nacional FC', 'União Operária', 'EC Vale Verde', 'Atlético Serrano',
-  'Tupi do Norte', 'Grêmio Maringá', 'Sport Litoral', 'Ferroviária', 'Juventude FC', 'Real Sertão',
-]
-
-// weekly income scales with how big your stadium is
-function clubWeeklyIncome(fans: number, stadiumLevel: number): number {
-  return Math.round(fans * 0.8 * (1 + (stadiumLevel - 1) * 0.4))
-}
-
-function buildLeagueTable(clubName: string): LeagueTeam[] {
-  const opp = [...RIVAL_TEAM_NAMES].sort(() => Math.random() - 0.5).slice(0, 7)
-  return [
-    { name: clubName, points: 0, played: 0, isYou: true },
-    ...opp.map(n => ({ name: n, points: 0, played: 0 })),
-  ]
-}
-
-function sortTable(t: LeagueTeam[]): LeagueTeam[] {
-  return [...t].sort((a, b) => b.points - a.points || b.points / Math.max(1, b.played) - a.points / Math.max(1, a.played))
-}
-
 // The nemesis snatches a hot prospect you haven't signed yet.
 function nemesisTryGrab(state: GameState, year: number): string | null {
   const taken = new Set([...state.nemesisTaken, ...state.lostLegends, ...state.clients.map(c => c.legendId)])
@@ -211,9 +226,39 @@ function empresarioReducer(state: GameState, action: Action): GameState {
     case 'SET_SCREEN':
       return { ...state, screen: action.screen }
 
+    case 'INIT_ROOM': {
+      // CPU mode: build rivals from pool (Cambalhota always first)
+      const numCpu = action.numCpuAgents ?? 3
+      const cpuRivals: RivalAgent[] = action.onlineMode === 'cpu'
+        ? CPU_AGENT_POOL.slice(0, Math.max(3, Math.min(numCpu + 1, CPU_AGENT_POOL.length)))
+        : INITIAL_STATE.rivalAgents
+      return {
+        ...INITIAL_STATE,
+        screen: 'intro',
+        onlineMode: action.onlineMode,
+        roomCode: action.roomCode,
+        isHost: action.isHost,
+        playerNames: action.playerNames,
+        youIndex: action.playerNames.indexOf(action.playerName),
+        onlineGameMode: action.onlineGameMode,
+        rivalAgents: cpuRivals,
+        draftTurn: 0,
+        draftPicksDone: 0,
+      }
+    }
+
     case 'START_GAME':
       return {
         ...INITIAL_STATE,
+        // preserve online setup from lobby
+        onlineMode: state.onlineMode,
+        roomCode: state.roomCode,
+        isHost: state.isHost,
+        playerNames: state.playerNames,
+        youIndex: state.youIndex,
+        onlineGameMode: state.onlineGameMode,
+        draftTurn: 0,
+        draftPicksDone: 0,
         weeklyMissionId: missionForWeek(1993 * 52 + 1).id,
         weeklyMissionBaseline: 0,
         screen: 'dashboard',
@@ -260,6 +305,10 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       const hotTargets = { ...state.hotTargets }
       delete hotTargets[action.legendId]
       const rar = rarityOf(legend.truePotential)
+      const isDraftOnline = state.onlineMode === 'online' &&
+        (state.onlineGameMode === 'draft' || state.onlineGameMode === 'draft-leilao')
+      const isDraftCpu = state.onlineMode === 'cpu' &&
+        (state.onlineGameMode === 'draft' || state.onlineGameMode === 'draft-leilao')
 
       return {
         ...state,
@@ -272,6 +321,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         seenLegendIds: state.seenLegendIds.includes(action.legendId) ? state.seenLegendIds : [...state.seenLegendIds, action.legendId],
         everSignedIds: state.everSignedIds.includes(action.legendId) ? state.everSignedIds : [...state.everSignedIds, action.legendId],
         hotTargets,
+        draftPicksDone: (isDraftOnline || isDraftCpu) ? state.draftPicksDone + 1 : state.draftPicksDone,
+        draftWindowActive: isDraftCpu ? false : state.draftWindowActive, // close window after player signs
         negotiationLog: [{ who: 'voce' as const, year: state.year, text: `📝 Você agenciou ${legend.nickname} (${action.commissionRate}% · ${action.contractYears} anos)` }, ...state.negotiationLog].slice(0, 30),
         narrative: [...state.narrative,
           `✍️ Você assinou ${rar.emoji} ${legend.nickname} (${rar.label}): ${action.commissionRate}% de comissão, contrato de ${action.contractYears} anos + R$${legend.luva.toLocaleString('pt-BR')} de luva.`,
@@ -314,11 +365,31 @@ function empresarioReducer(state: GameState, action: Action): GameState {
     }
 
     case 'ADVANCE_WEEK': {
+      // Block week advance while draft/auction window is open (online or cpu)
+      if (state.draftWindowActive || state.currentAuction !== null) {
+        return state
+      }
       const newWeek = state.week + 1
       const yearRolled = newWeek > 52
       const newYear = yearRolled ? state.year + 1 : state.year
       const actualWeek = yearRolled ? 1 : newWeek
       const extraNarrative: string[] = []
+
+      const absWeekNow = newYear * 52 + actualWeek
+
+      // ── INJURY NARRATIVES ──────────────────────────────────────────────────
+      const INJURY_DESC: Record<string, string[]> = {
+        leve:     ['sofreu uma torção no tornozelo', 'sente dor muscular e vai descansar', 'tem uma contusão leve no joelho'],
+        moderada: ['rompeu o ligamento colateral — semanas fora', 'tem lesão muscular grau 2 na coxa', 'sofreu uma fratura por estresse na tíbia'],
+        grave:    ['rompeu o ligamento cruzado — cirurgia necessária', 'fraturou a fíbula — meses de recuperação', 'lesão muscular grave com risco de sequela'],
+      }
+      const injuryWeeks: Record<string, [number, number]> = {
+        leve:     [2, 4],
+        moderada: [5, 10],
+        grave:    [12, 24],
+      }
+      const injuryValueDrop: Record<string, number> = { leve: 0.90, moderada: 0.75, grave: 0.60 }
+      const injuryHappinessDrop: Record<string, number> = { leve: -5, moderada: -15, grave: -25 }
 
       // Update clients ratings and values (+ glory moments on year rollover)
       const updatedClients = state.clients.map(client => {
@@ -359,7 +430,52 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           }
         }
 
-        return { ...client, currentRating: newRating, currentValue: newValue, status: newStatus, happiness }
+        // 🏥 INJURY: heal if recovered, or apply new random injury
+        let injuredUntilWeek = client.injuredUntilWeek
+        let injuryLevel = client.injuryLevel
+        let injuryDescription = client.injuryDescription
+
+        if (injuredUntilWeek !== undefined && absWeekNow >= injuredUntilWeek) {
+          // Recovered!
+          extraNarrative.push(`✅ ${client.nickname} se recuperou da lesão e está de volta aos gramados. Aliviante!`)
+          newValue = Math.round(newValue * 1.08) // slight bounce back
+          happiness = Math.min(100, happiness + 8)
+          injuredUntilWeek = undefined
+          injuryLevel = undefined
+          injuryDescription = undefined
+        } else if (injuredUntilWeek === undefined) {
+          // ~3.5% weekly chance of leve, ~1% moderada, ~0.3% grave
+          const roll = Math.random()
+          let level: 'leve' | 'moderada' | 'grave' | null = null
+          if (roll < 0.003) level = 'grave'
+          else if (roll < 0.013) level = 'moderada'
+          else if (roll < 0.048) level = 'leve'
+
+          if (level) {
+            const [minW, maxW] = injuryWeeks[level]
+            const duration = minW + Math.floor(Math.random() * (maxW - minW + 1))
+            const descs = INJURY_DESC[level]
+            const desc = descs[Math.floor(Math.random() * descs.length)]
+            injuredUntilWeek = absWeekNow + duration
+            injuryLevel = level
+            injuryDescription = desc
+            newValue = Math.round(newValue * injuryValueDrop[level])
+            happiness = Math.max(0, happiness + injuryHappinessDrop[level])
+            const emoji = level === 'grave' ? '🚨' : level === 'moderada' ? '⚠️' : '🤕'
+            extraNarrative.push(`${emoji} LESÃO (${level.toUpperCase()}): ${client.nickname} ${desc}. Fica fora por ${duration} semanas.`)
+          }
+        }
+
+        return {
+          ...client,
+          currentRating: newRating,
+          currentValue: newValue,
+          status: newStatus,
+          happiness,
+          injuredUntilWeek,
+          injuryLevel,
+          injuryDescription,
+        }
       })
 
       // ⏳ REP CONTRACTS expiring + ⚰️ RETIREMENT (age catches everyone)
@@ -367,11 +483,17 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       if (yearRolled) {
         const kept: typeof updatedClients = []
         for (const c of updatedClients) {
-          const age = newYear - c.birthYear
+          const legend = getLegendById(c.legendId)
           const expired = c.repExpiresYear !== undefined && newYear > c.repExpiresYear
-          const retires = age >= 38 || (age >= 35 && c.currentRating < 68)
+          const baseRetirement = legend ? getRetirementYear(legend) : c.birthYear + 37
+          const happinessMod = c.happiness > 80 ? 2 : c.happiness < 40 ? -2 : 0
+          const retires = newYear >= baseRetirement + happinessMod
           if (retires) {
-            extraNarrative.push(`⚰️ ${c.nickname} pendurou as chuteiras aos ${age} anos. Foram bons anos juntos — obrigado, craque.`)
+            const age = newYear - c.birthYear
+            const narrative = legend
+              ? retirementNarrative(c.nickname, c.legendId, c.contractClub, legend.futureKnowledge)
+              : `🎙️ ${c.nickname} se aposentou aos ${age} anos.`
+            extraNarrative.push(narrative)
           } else if (expired) {
             extraNarrative.push(`📭 O contrato de representação de ${c.nickname} venceu e você não renovou. Ele virou agente livre e deixou sua carteira.`)
           } else {
@@ -389,9 +511,70 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         })
       }
 
-      // Weekly expenses — just what you pay your clients to represent them
-      const weeklyExpense = activeClients.reduce((sum, c) => sum + c.monthlyFee / 4, 0)
+      // ── 📰 HISTORICAL EVENTS (year rollover) ──────────────────────────────
+      let historicalRepBonus = 0
+      let historicalMoneyBonus = 0
+      if (yearRolled) {
+        const yearEvents = getHistoricalEvents(newYear)
+        for (const ev of yearEvents) {
+          // Normalise to a flat list of boost groups (covers both `boosts[]` and legacy single fields)
+          const groups = ev.boosts ?? [{
+            specificIds: ev.specificIds,
+            nationalityBoost: ev.nationalityBoost,
+            positionBoost: ev.positionBoost,
+            valueMultiplier: ev.valueMultiplier,
+            happinessBonus: ev.happinessBonus,
+          }]
+
+          let anyAffected = false
+          for (const grp of groups) {
+            const matchFn = (c: { legendId: string; nationality: string; position: string }) =>
+              (grp.specificIds?.includes(c.legendId) ?? false) ||
+              (grp.nationalityBoost !== undefined && c.nationality === grp.nationalityBoost &&
+                (grp.positionBoost === undefined || c.position === grp.positionBoost)) ||
+              (grp.positionBoost !== undefined && grp.nationalityBoost === undefined && c.position === grp.positionBoost)
+
+            activeClients = activeClients.map(c => {
+              if (!matchFn(c)) return c
+              anyAffected = true
+              return {
+                ...c,
+                currentValue: grp.valueMultiplier ? Math.round(c.currentValue * grp.valueMultiplier) : c.currentValue,
+                happiness: grp.happinessBonus ? Math.min(100, Math.max(0, c.happiness + grp.happinessBonus)) : c.happiness,
+              }
+            })
+          }
+
+          if (ev.reputationBonus) historicalRepBonus += ev.reputationBonus
+          if (ev.moneyBonus) historicalMoneyBonus += ev.moneyBonus
+
+          // Show in narrative if anything happened
+          if (anyAffected || ev.reputationBonus || ev.moneyBonus) {
+            extraNarrative.push(`📰 ${ev.title} — ${ev.text}`)
+          }
+        }
+      }
+
+      // ── 🔔 DEADLINE DAY ────────────────────────────────────────────────────
+      const isDeadline = isDeadlineDay(actualWeek)
+      if (isDeadline) {
+        extraNarrative.push(`⏰ DIA D DE TRANSFERÊNCIAS! A janela fecha HOJE. Clubes estão desesperados, valores inflacionam e propostas chegam a qualquer hora. Este é o momento de fechar.`)
+      }
+
+      // Weekly expenses: client fees + scout retainers + office maintenance (all paid monthly = every 4 weeks)
+      const scoutMonthlyCost = SCOUT_UPGRADES
+        .filter(u => state.purchasedUpgrades.includes(u.id))
+        .reduce((sum, u) => sum + (u.monthlyCost ?? 0), 0)
+      const officeMonthlyCost = OFFICE_UPGRADES
+        .filter(u => state.purchasedUpgrades.includes(u.id))
+        .reduce((sum, u) => sum + (u.monthlyCost ?? 0), 0)
+      const weeklyFixedCost = (scoutMonthlyCost + officeMonthlyCost) / 4
+      const weeklyExpense = activeClients.reduce((sum, c) => sum + c.monthlyFee / 4, 0) + weeklyFixedCost
       let runningMoney = state.money - weeklyExpense
+      if (actualWeek % 4 === 0) {
+        if (scoutMonthlyCost > 0) extraNarrative.push(`🔭 Mensalidade dos olheiros: -R$${scoutMonthlyCost.toLocaleString('pt-BR')}`)
+        if (officeMonthlyCost > 0) extraNarrative.push(`🏢 Manutenção dos escritórios: -R$${officeMonthlyCost.toLocaleString('pt-BR')}`)
+      }
 
       // Club offers (tick down + maybe generate)
       const newOffers = [...state.pendingOffers.map(o => ({ ...o, expiresInWeeks: o.expiresInWeeks - 1 }))]
@@ -405,12 +588,14 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         // just been transferred (clubs leave a fresh signing alone for ~2 years).
         const eligible = activeClients.filter(c =>
           c.currentRating >= 60 &&
+          !c.injuredUntilWeek &&                  // no offers while injured
           !newOffers.find(o => o.clientId === c.legendId) &&
           (c.lastDealYear === undefined || newYear - c.lastDealYear >= 2)
         )
         // Window open → offers fly (85% + a shot at a second). Off-window → calmer (40%).
-        const maxOffers = windowOpen ? 2 : 1
-        const chance = windowOpen ? 0.85 : 0.4
+        // Deadline Day: guaranteed 2 offers at inflated values if window is open.
+        const maxOffers = isDeadline ? 3 : windowOpen ? 2 : 1
+        const chance = isDeadline ? 0.97 : windowOpen ? 0.85 : 0.4
         const pool = [...eligible].sort(() => Math.random() - 0.5)
         for (let i = 0; i < maxOffers && i < pool.length; i++) {
           if (Math.random() < chance) {
@@ -496,125 +681,6 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       const weeklyMissionBaseline = missionMetricValue(state, mission.metric)
       const weeklyMissionClaimed = false
 
-      // 🏟️ OWNED CLUB: income, matchday (tactic + vitrine), cup, derby, titles
-      let clubRepBonus = 0
-      let ownedClub = state.ownedClub
-      if (ownedClub) {
-        const stadiumLevel = ownedClub.stadiumLevel ?? 1
-        const academyLevel = ownedClub.academyLevel ?? 1
-        const tactic = ownedClub.tactic ?? 'equilibrio'
-        let trophies = ownedClub.trophies ?? []
-        let cupRound = ownedClub.cupRound ?? 0
-        const rivalName = ownedClub.rivalName ?? (ownedClub.table?.find(t => !t.isYou)?.name ?? 'o rival')
-
-        runningMoney += ownedClub.cashPerWeek
-
-        // only clients actually AT your club (or free) can be fielded
-        const validPlaced = (ownedClub.placedClientIds ?? []).filter(id => {
-          const c = activeClients.find(x => x.legendId === id)
-          return c && (!c.contractClub || c.contractClub === ownedClub!.name)
-        })
-
-        // ⚽ LEAGUE MATCH every 2 weeks
-        if (newWeek % 2 === 0) {
-          const placedC = activeClients.filter(c => validPlaced.includes(c.legendId))
-          const squadStr = placedC.length ? placedC.reduce((s, c) => s + c.currentRating, 0) / placedC.length : 35
-          const isDerby = actualWeek === 8 || actualWeek === 34
-          // tactic shifts the odds: ataque = mais vitória E mais derrota; retranca = mais empate
-          const tac = tactic === 'ataque' ? { win: 9, draw: 12 }
-                    : tactic === 'retranca' ? { win: -7, draw: 32 }
-                    : { win: 0, draw: 20 }
-          const winChance = Math.max(8, Math.min(88, 30 + (squadStr - 40) + tac.win))
-          const roll = Math.random() * 100
-          let wins = ownedClub.seasonWins, draws = ownedClub.seasonDraws, losses = ownedClub.seasonLosses
-          let result: string, ptsGained = 0, won = false
-          if (roll < winChance) { result = isDerby ? 'CLÁSSICO vencido 🟢' : 'Vitória 🟢'; wins++; ptsGained = 3; won = true }
-          else if (roll < winChance + tac.draw) { result = 'Empate 🟡'; draws++; ptsGained = 1 }
-          else { result = isDerby ? 'Clássico perdido 🔴' : 'Derrota 🔴'; losses++ }
-
-          // gate receipts on a win scale with stadium + fans
-          if (won) runningMoney += Math.round(ownedClub.fans * 0.5 * (1 + (stadiumLevel - 1) * 0.3))
-
-          // standings: you + simulate every rival's matchday
-          const table = (ownedClub.table ?? buildLeagueTable(ownedClub.name)).map(t => {
-            if (t.isYou) return { ...t, points: t.points + ptsGained, played: t.played + 1 }
-            const r = Math.random(); const p = r < 0.4 ? 3 : r < 0.7 ? 1 : 0
-            return { ...t, points: t.points + p, played: t.played + 1 }
-          })
-
-          // 📈 VITRINE: fielded clients gain VALUE (faster with a better academy) + happiness
-          const gain = (won ? 0.04 : 0.02) * (1 + (academyLevel - 1) * 0.25)
-          if (validPlaced.length > 0) {
-            activeClients = activeClients.map(c => validPlaced.includes(c.legendId)
-              ? { ...c, showcaseMult: Math.min(1.8, (c.showcaseMult ?? 1) + gain), currentValue: Math.round(c.currentValue * (1 + gain)), happiness: Math.min(100, c.happiness + (won ? 3 : 1)) }
-              : c)
-          }
-
-          // derby flavor
-          if (isDerby && won) { ownedClub = { ...ownedClub, fans: Math.round(ownedClub.fans * 1.05) }; clubRepBonus += 3; extraNarrative.push(`🔥 CLÁSSICO! Seu ${ownedClub.name} atropelou ${rivalName} e a torcida foi à loucura.`) }
-          else if (isDerby) { extraNarrative.push(`😞 Clássico contra ${rivalName} não saiu como esperado.`) }
-
-          ownedClub = { ...ownedClub, seasonWins: wins, seasonDraws: draws, seasonLosses: losses, lastResult: result, table, placedClientIds: validPlaced }
-        } else {
-          ownedClub = { ...ownedClub, placedClientIds: validPlaced }
-        }
-
-        // 🏆 CUP rounds at fixed weeks of the season
-        if ([10, 20, 30, 40].includes(actualWeek)) {
-          const placedC = activeClients.filter(c => validPlaced.includes(c.legendId))
-          const squadStr = placedC.length ? placedC.reduce((s, c) => s + c.currentRating, 0) / placedC.length : 35
-          const advChance = Math.max(20, Math.min(85, 35 + (squadStr - 40)))
-          if (Math.random() * 100 < advChance) {
-            cupRound = cupRound + 1
-            const prize = 40000 * cupRound * (5 - ownedClub.division)
-            runningMoney += prize
-            if (cupRound >= 4) {
-              trophies = [...trophies, `🏆 Copa ${newYear}`]
-              runningMoney += 300000
-              clubRepBonus += 5
-              extraNarrative.push(`🏆 CAMPEÃO DA COPA ${newYear}! O ${ownedClub.name} levantou a taça — R$300.000 de premiação no caixa.`)
-              cupRound = 0
-            } else {
-              extraNarrative.push(`🏆 ${ownedClub.name} avançou na Copa (${cupRound}ª fase)! Premiação de R$${prize.toLocaleString('pt-BR')}.`)
-            }
-          } else {
-            if (cupRound > 0) extraNarrative.push(`🥲 O ${ownedClub.name} caiu na Copa — chegou até a ${cupRound}ª fase.`)
-            cupRound = 0
-          }
-          ownedClub = { ...ownedClub, cupRound, trophies }
-        }
-
-        // 🏁 END OF SEASON: title, promotion/relegation
-        if (yearRolled) {
-          const finalTable = sortTable(ownedClub.table ?? buildLeagueTable(ownedClub.name))
-          const pos = finalTable.findIndex(t => t.isYou) + 1
-          ownedClub = { ...ownedClub, leaguePosition: pos }
-          if (pos === 1) {
-            trophies = [...trophies, `🥇 Campeão ${ownedClub.division}ª Div ${newYear - 1}`]
-            runningMoney += 150000
-            clubRepBonus += 4
-            extraNarrative.push(`🥇 CAMPEÃO! O ${ownedClub.name} terminou em 1º na ${ownedClub.division}ª divisão de ${newYear - 1}.`)
-          }
-          if (pos > 0 && pos <= 2 && ownedClub.division > 1) {
-            const div = ownedClub.division - 1
-            const fans = Math.round(ownedClub.fans * 1.6)
-            ownedClub = { ...ownedClub, division: div, fans, cashPerWeek: clubWeeklyIncome(fans, stadiumLevel) }
-            extraNarrative.push(`🏟️ ${ownedClub.name} SUBIU para a ${div}ª divisão! A torcida explode.`)
-          } else if (pos >= finalTable.length - 1 && ownedClub.division < 4) {
-            const div = ownedClub.division + 1
-            const fans = Math.round(ownedClub.fans * 0.7)
-            ownedClub = { ...ownedClub, division: div, fans, cashPerWeek: clubWeeklyIncome(fans, stadiumLevel) }
-            extraNarrative.push(`🏟️ ${ownedClub.name} foi REBAIXADO para a ${div}ª divisão.`)
-          } else {
-            extraNarrative.push(`🏟️ ${ownedClub.name} terminou em ${pos}º na ${ownedClub.division}ª divisão de ${newYear - 1}.`)
-          }
-          // 🎓 academy reveal — being a developer grows your name
-          if (academyLevel >= 3) { clubRepBonus += 2; extraNarrative.push(`🎓 A base do ${ownedClub.name} revelou um garoto promissor. Sua fama de formador cresce.`) }
-          // new season reset (keep trophies, infra, tactic)
-          ownedClub = { ...ownedClub, seasonWins: 0, seasonDraws: 0, seasonLosses: 0, cupRound: 0, table: buildLeagueTable(ownedClub.name), trophies }
-        }
-      }
-
       // Weekly event (personalized with the player's name)
       const clientsLite: ClientLite[] = activeClients.map(c => ({
         legendId: c.legendId, nickname: c.nickname, name: c.name, position: c.position, currentRating: c.currentRating,
@@ -623,21 +689,51 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         contractClub: c.contractClub,
       }))
       const newEvent = generateWeeklyEvent(newYear, actualWeek, clientsLite, state.purchasedUpgrades)
-      const newEvents = newEvent
-        ? [...state.events.filter(e => e.resolved), newEvent]
-        : state.events
+      // Legend-specific backstory events (fire once per game, mid-year only)
+      const existingEventIds = state.events.map(e => e.id)
+      const legendBackstoryEvents = getLegendEvents(
+        newYear,
+        actualWeek,
+        activeClients.map(c => c.legendId),
+        existingEventIds,
+      ).map(le => ({
+        id: le.id,
+        week: actualWeek,
+        year: newYear,
+        type: le.type as GameEvent['type'],
+        title: le.title,
+        description: le.description,
+        choices: le.choices as GameEvent['choices'],
+        resolved: false,
+      } satisfies GameEvent))
+      // Keep unresolved events + add new ones. If a new weekly event fires, clear old unresolved weekly events first.
+      const priorEvents = newEvent
+        ? state.events.filter(e => e.resolved)  // clear old unresolved on new weekly event
+        : state.events                           // keep all (including pending) if no new event
+      const newEvents = [
+        ...priorEvents,
+        ...(newEvent ? [newEvent] : []),
+        ...legendBackstoryEvents,
+      ]
 
       // 🏆 RIVAL AGENTS grow + EMPRESÁRIO DO ANO + 🕵️ INVESTIGATION (year rollover)
       let rivalAgents = state.rivalAgents
       let awards = state.awards
       let suspicion = state.suspicion
-      let money2 = runningMoney
-      let reputation2 = state.reputation
+      let money2 = runningMoney + historicalMoneyBonus
+      let reputation2 = Math.min(100, state.reputation + historicalRepBonus)
       if (yearRolled) {
         rivalAgents = state.rivalAgents.map(r => {
           const growth = 1.08 + Math.random() * 0.22
-          const cambBonus = r.name.includes('Cambalhota') ? nemesisTaken.length * 250000 + r.wealth * 0.1 : 0
-          return { ...r, wealth: Math.round(r.wealth * growth + cambBonus) }
+          const cambBonus = r.id === 'cambalhota' ? nemesisTaken.length * 250000 + r.wealth * 0.1 : 0
+          // In CPU mode, each rival earns commission income from their signed legends
+          const cpuIncome = state.onlineMode === 'cpu'
+            ? r.clients.reduce((sum, id) => {
+                const lg = getLegendById(id)
+                return lg ? sum + Math.round(getMarketValue(lg, newYear) * 0.08) : sum
+              }, 0)
+            : 0
+          return { ...r, wealth: Math.round(r.wealth * growth + cambBonus + cpuIncome) }
         })
         // your net worth vs the field
         const myNet = money2 + activeClients.reduce((s, c) => s + c.currentValue * (c.commissionRate / 100), 0)
@@ -671,15 +767,91 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         if (n2 && n2 !== n1) extraNarrative.push(n2)
       }
 
+      // 🌩️ GAME END: the lightning returns on 30/06/2026
+      const gameOver = newYear > 2026 || (newYear === 2026 && actualWeek >= 26)
+
+      // ── CPU DRAFT / LEILÃO ────────────────────────────────────────────────────
+      let cpuDraftWindowActive = false
+      let cpuCurrentAuction: AuctionState | null = null
+      let cpuRivalAgents = rivalAgents
+      let cpuTakenLegends = { ...state.onlineTakenLegends }
+
+      if (!gameOver && state.onlineMode === 'cpu' && state.onlineGameMode !== null && actualWeek % 4 === 0) {
+        const periodsElapsed = (newYear - 1993) * 13 + Math.floor((actualWeek - 1) / 4)
+        const isDraftTurn = state.onlineGameMode === 'leilao'
+          ? false
+          : state.onlineGameMode === 'draft'
+          ? true
+          : periodsElapsed % 2 === 0  // draft-leilao alternates
+
+        const allCpuSignedIds = new Set(cpuRivalAgents.flatMap(r => r.clients))
+        const playerSignedIds = new Set(activeClients.map(c => c.legendId))
+        const availableForCpu = LEGENDS.filter(l =>
+          newYear >= l.emergenceYear &&
+          l.birthYear <= newYear - 14 &&
+          !allCpuSignedIds.has(l.id) &&
+          !playerSignedIds.has(l.id) &&
+          !lostLegends.includes(l.id) &&
+          !nemesisTaken.includes(l.id)
+        ).sort((a, b) => b.truePotential - a.truePotential)
+
+        if (isDraftTurn && availableForCpu.length > 0) {
+          // CPU draft: each rival auto-picks their preferred legend
+          let pickPool = [...availableForCpu]
+          cpuRivalAgents = cpuRivalAgents.map(agent => {
+            if (pickPool.length === 0) return agent
+            const isCambalhota = agent.id === 'cambalhota'
+            const sliceSize = isCambalhota ? 3 : 10
+            const pickIdx = Math.floor(Math.random() * Math.min(sliceSize, pickPool.length))
+            const picked = pickPool[pickIdx]
+            pickPool = pickPool.filter(l => l.id !== picked.id)
+            const cost = Math.round(picked.signingFee * 0.8 + picked.luva * 0.8)
+            cpuTakenLegends[picked.id] = { playerIndex: cpuRivalAgents.indexOf(agent) + 1, playerName: agent.name }
+            return {
+              ...agent,
+              clients: [...agent.clients, picked.id],
+              wealth: Math.max(0, agent.wealth - cost),
+            }
+          })
+          cpuDraftWindowActive = true
+          extraNarrative.push(`📋 JANELA DE DRAFT! Os rivais escolheram suas lendas — agora é SUA VEZ. Assine alguém na aba Radar.`)
+        } else if (!isDraftTurn && availableForCpu.length > 0) {
+          // CPU leilão: pick best available for auction, pre-fill CPU bids
+          const auctionTarget = availableForCpu[0]
+          const legendValue = getMarketValue(getLegendById(auctionTarget.id)!, newYear)
+          // Cambalhota (idx 0) always bids; pick 3 random others
+          const others = cpuRivalAgents.slice(1).sort(() => Math.random() - 0.5).slice(0, 3)
+          const bidders = [cpuRivalAgents[0], ...others]
+          const bidderRivalIndices = bidders.map(b => cpuRivalAgents.indexOf(b))
+          const bids: Record<number, number> = {}
+          bidderRivalIndices.forEach((rivalIdx, i) => {
+            const agent = cpuRivalAgents[rivalIdx]
+            const budget = Math.min(agent.wealth * 0.35, agent.budget * 4, legendValue * 2)
+            const aggressiveness = rivalIdx === 0 ? (0.55 + Math.random() * 0.45) : (0.2 + Math.random() * 0.5)
+            bids[i + 1] = Math.max(10000, Math.round(budget * aggressiveness / 1000) * 1000)
+          })
+          cpuCurrentAuction = {
+            legendId: auctionTarget.id,
+            bids,
+            endsAt: Date.now() + 3_600_000,
+            closed: false,
+            cpuBidderRivalIndices: bidderRivalIndices,
+          }
+          const legend = getLegendById(auctionTarget.id)
+          extraNarrative.push(`🔨 LEILÃO ABERTO! ${legend?.nickname ?? '???'} entrou em disputa. Lance seu valor no Radar ou os rivais levam.`)
+        }
+      }
+
       return {
         ...state,
+        screen: gameOver ? 'end' : state.screen,
         week: actualWeek,
         year: newYear,
         money: Math.max(0, money2),
-        reputation: Math.min(100, reputation2 + clubRepBonus),
+        reputation: Math.min(100, reputation2),
         suspicion,
         awards,
-        rivalAgents,
+        rivalAgents: cpuRivalAgents,
         clients: activeClients,
         pendingOffers: newOffers,
         events: newEvents,
@@ -689,13 +861,15 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         nemesisAlert,
         nemesisShown,
         negotiationLog,
-        ownedClub,
         lostLegends,
         hotTargets,
         saleStreak,
         weeklyMissionId,
         weeklyMissionBaseline,
         weeklyMissionClaimed,
+        draftWindowActive: cpuDraftWindowActive,
+        currentAuction: cpuCurrentAuction,
+        onlineTakenLegends: cpuTakenLegends,
         narrative: [...state.narrative, ...extraNarrative],
       }
     }
@@ -712,10 +886,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       // 🔥 COMBO: consecutive deals build a streak that boosts your take.
       const streak = state.saleStreak + 1
       const comboMult = 1 + Math.min(0.5, (streak - 1) * 0.05)  // +5% per step, capped +50%
-      // 🏟️ If this player plays at YOUR club, you're the seller too — keep the FULL fee.
-      const ownsSeller = !!state.ownedClub && state.ownedClub.placedClientIds.includes(offer.clientId)
-      const clubFee = ownsSeller ? action.amount : 0
-      const earnings = Math.round(base * comboMult) + clubFee
+      const earnings = Math.round(base * comboMult)
       const repFromStreak = streak >= 3 ? Math.min(8, Math.floor(streak / 2)) : 0
       const nowAbs = state.year * 52 + state.week
       const xpr = applyXp(state, Math.min(120, 30 + Math.round(earnings / 50000)))
@@ -730,14 +901,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         lastDealAbsWeek: nowAbs,
         xp: xpr.xp,
         reputation: Math.min(100, state.reputation + repFromStreak + xpr.repBonus),
-        // closing a deal warms your relationship with the buying club
         clubRelations: { ...state.clubRelations, [action.clubName]: Math.min(100, (state.clubRelations[action.clubName] ?? 0) + 12) },
-        // Drop ALL pending offers for this player — once sold, the other clubs back off.
         pendingOffers: state.pendingOffers.filter(o => o.clientId !== offer.clientId),
-        // if he was playing for you, he leaves the pitch on his way out
-        ownedClub: ownsSeller && state.ownedClub
-          ? { ...state.ownedClub, placedClientIds: state.ownedClub.placedClientIds.filter(id => id !== offer.clientId) }
-          : state.ownedClub,
         clients: state.clients.map(c =>
           c.legendId === offer.clientId
             ? { ...c, contractClub: action.clubName, contractSalary: offer.salary, contractExpiresYear: state.year + offer.contractYears, lastDealYear: state.year }
@@ -746,7 +911,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         negotiationLog: [{ who: 'voce' as const, year: state.year, text: `✅ ${client?.nickname} → ${action.clubName} por R$${action.amount.toLocaleString('pt-BR')} · você embolsou R$${earnings.toLocaleString('pt-BR')}` }, ...state.negotiationLog].slice(0, 30),
         narrative: [
           ...state.narrative,
-          `🤝 TRANSFERÊNCIA FECHADA! ${client?.nickname} → ${action.clubName} por R$${action.amount.toLocaleString('pt-BR')}. Você embolsou R$${earnings.toLocaleString('pt-BR')} (comissão R$${commission.toLocaleString('pt-BR')} + luva R$${action.clubLuva.toLocaleString('pt-BR')}${ownsSeller ? ` + taxa de transferência R$${clubFee.toLocaleString('pt-BR')} (você é o dono do clube!)` : ''}).`,
+          `🤝 TRANSFERÊNCIA FECHADA! ${client?.nickname} → ${action.clubName} por R$${action.amount.toLocaleString('pt-BR')}. Você embolsou R$${earnings.toLocaleString('pt-BR')} (comissão R$${commission.toLocaleString('pt-BR')} + luva R$${action.clubLuva.toLocaleString('pt-BR')}).`,
           ...(streak >= 3 ? [`🔥 SEQUÊNCIA x${streak}! Você está embalado — bônus de +${Math.round((comboMult - 1) * 100)}% no negócio e +${repFromStreak} de reputação.`] : []),
           ...(xpr.line ? [xpr.line] : []),
         ],
@@ -826,9 +991,10 @@ function empresarioReducer(state: GameState, action: Action): GameState {
     }
 
     case 'PURCHASE_UPGRADE': {
-      const isScout = action.upgradeId.startsWith('scout')
+      const isScout = action.upgradeId.startsWith('scout-')
+      const isOffice = action.upgradeId.startsWith('office-')
       const isLife = action.upgradeId.startsWith('life-')
-      const repBoost = action.repGain ?? (action.upgradeId === 'escritorio-sp' ? 12 : isScout ? 3 : 0)
+      const repBoost = action.repGain ?? (isScout ? 3 : 0)
       return {
         ...state,
         money: state.money - action.cost,
@@ -838,6 +1004,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         narrative: [
           ...state.narrative,
           isScout ? `🔭 Novo olheiro contratado! ${action.effect}`
+            : isOffice ? `🏢 Escritório aberto! ${action.effect}`
             : isLife ? `💎 Você ostentou e ganhou status! ${action.effect}`
             : `💼 Investimento: ${action.effect}`,
         ],
@@ -893,8 +1060,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
     }
 
     case 'NEW_GAME':
-      localStorage.removeItem('empresario-v1')
-      return { ...INITIAL_STATE, screen: 'intro' }
+      localStorage.removeItem('empresario-v2')
+      return { ...INITIAL_STATE }
 
     case 'DISMISS_NEMESIS_ALERT':
       return { ...state, nemesisAlert: null }
@@ -935,126 +1102,216 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       }
     }
 
-    case 'BUY_CLUB': {
-      if (state.money < action.price || state.ownedClub) return state
-      const table = buildLeagueTable(action.name)
-      const rivalName = table.find(t => !t.isYou)?.name ?? 'o rival'
-      const club: OwnedClub = {
-        id: action.clubId,
-        name: action.name,
-        division: action.division,
-        fans: action.fans,
-        leaguePosition: 10,
-        cashPerWeek: clubWeeklyIncome(action.fans, 1),
-        placedClientIds: [],
-        lastResult: '—',
-        seasonWins: 0, seasonDraws: 0, seasonLosses: 0,
-        table,
-        stadiumLevel: 1,
-        academyLevel: 1,
-        tactic: 'equilibrio',
-        trophies: [],
-        cupRound: 0,
-        rivalName,
-      }
+    case 'LEGEND_TAKEN_ONLINE': {
       return {
         ...state,
-        money: state.money - action.price,
-        ownedClub: club,
-        narrative: [...state.narrative, `🏟️ VOCÊ COMPROU O ${action.name.toUpperCase()}! Agora é dono de um clube — o começo do império. Seu maior rival na ${action.division}ª divisão: ${rivalName}.`],
+        onlineTakenLegends: {
+          ...state.onlineTakenLegends,
+          [action.legendId]: { playerIndex: action.playerIndex, playerName: action.playerName },
+        },
       }
     }
 
-    case 'BUY_TO_CLUB': {
-      if (!state.ownedClub) return state
-      const c = state.clients.find(x => x.legendId === action.legendId)
-      if (!c) return state
-      const cost = Math.round(c.currentValue)
-      if (state.money < cost) return state
+    case 'PLAYER_UPDATE_ONLINE': {
+      const existing = state.onlinePlayers.find(p => p.playerIndex === action.playerIndex)
+      const updated: OnlinePlayer = { playerIndex: action.playerIndex, playerName: action.playerName, money: action.money, totalDeals: action.totalDeals }
       return {
         ...state,
-        money: state.money - cost,
-        clients: state.clients.map(x =>
-          x.legendId === action.legendId
-            ? { ...x, contractClub: state.ownedClub!.name, lastDealYear: state.year, happiness: Math.min(100, x.happiness + 8) }
-            : x
-        ),
-        ownedClub: { ...state.ownedClub, placedClientIds: [...state.ownedClub.placedClientIds, action.legendId] },
-        narrative: [...state.narrative, `🔁 Você comprou ${c.nickname} (de ${c.contractClub}) pro seu ${state.ownedClub.name} por R$${cost.toLocaleString('pt-BR')}.`],
+        onlinePlayers: existing
+          ? state.onlinePlayers.map(p => p.playerIndex === action.playerIndex ? updated : p)
+          : [...state.onlinePlayers, updated],
       }
     }
 
-    case 'PLACE_CLIENT_IN_CLUB': {
-      if (!state.ownedClub) return state
-      const cli = state.clients.find(c => c.legendId === action.legendId)
-      if (!cli) return state
-      const already = state.ownedClub.placedClientIds.includes(action.legendId)
-      // Can only field a player who is AT your club or has no club at all.
-      const eligible = !cli.contractClub || cli.contractClub === state.ownedClub.name
-      if (!already && !eligible) return state
-      const placedClientIds = already
-        ? state.ownedClub.placedClientIds.filter(id => id !== action.legendId)
-        : [...state.ownedClub.placedClientIds, action.legendId]
+    case 'SET_PRESENCE':
+      return { ...state, onlinePresence: action.indices }
+
+    case 'DRAFT_ADVANCE': {
+      const n = state.playerNames.length || 1
+      const done = action.picksDone
+      const round = Math.floor(done / n)
+      const pos = done % n
+      const nextTurn = round % 2 === 0 ? pos : n - 1 - pos
+      return { ...state, draftTurn: nextTurn, draftPicksDone: done }
+    }
+
+    case 'AUCTION_SET':
+      return { ...state, currentAuction: action.auction }
+
+    case 'AUCTION_BID': {
+      if (!state.currentAuction) return state
       return {
         ...state,
-        ownedClub: { ...state.ownedClub, placedClientIds },
-        clients: state.clients.map(c =>
-          c.legendId === action.legendId && !already && !c.contractClub
-            ? { ...c, contractClub: state.ownedClub!.name, happiness: Math.min(100, c.happiness + 6) }
-            : c
-        ),
+        currentAuction: {
+          ...state.currentAuction,
+          bids: { ...state.currentAuction.bids, [action.playerIndex]: action.amount },
+        },
       }
     }
 
-    case 'LOAN_TO_CLUB': {
-      // Bring a client who plays ELSEWHERE on a 1-season loan — cheap way to
-      // develop a jewel at your club. He returns to his club next year.
-      if (!state.ownedClub) return state
-      const c = state.clients.find(x => x.legendId === action.legendId)
-      if (!c || !c.contractClub || c.contractClub === state.ownedClub.name) return state
-      const fee = Math.max(2000, Math.round(c.currentValue * 0.08))
-      if (state.money < fee) return state
+    case 'AUCTION_WIN': {
+      const legend = getLegendById(action.legendId)
+      if (!legend) return state
+      const currentRating = getCurrentRating(legend, state.year)
+      const currentValue = getMarketValue(legend, state.year)
+      const newClient: Client = {
+        legendId: legend.id,
+        name: legend.name,
+        nickname: legend.nickname,
+        position: legend.position,
+        nationality: legend.nationality,
+        status: getCurrentStatus(legend, state.year),
+        birthYear: legend.birthYear,
+        peakYearStart: legend.peakYearStart,
+        peakYearEnd: legend.peakYearEnd,
+        truePotential: legend.truePotential,
+        currentRating,
+        personality: legend.personality,
+        monthlyFee: legend.monthlyFee,
+        futureKnowledge: legend.futureKnowledge,
+        commissionRate: 15,
+        repContractYears: 3,
+        repExpiresYear: state.year + 3,
+        happiness: 75,
+        currentValue,
+        signedYear: state.year,
+        contractClub: legend.club,
+        contractSalary: legend.monthlyFee * 10,
+        contractExpiresYear: state.year + 2,
+        rivalOffers: 0,
+      }
+      const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + legend.monthlyFee / 4
+      const xpr = applyXp(state, 60)
       return {
         ...state,
-        money: state.money - fee,
-        clients: state.clients.map(x =>
-          x.legendId === action.legendId
-            ? { ...x, loanOriginClub: x.contractClub!, contractClub: state.ownedClub!.name, loanReturnYear: state.year + 1, happiness: Math.min(100, x.happiness + 6) }
-            : x
-        ),
-        ownedClub: { ...state.ownedClub, placedClientIds: [...state.ownedClub.placedClientIds, action.legendId] },
-        narrative: [...state.narrative, `🤝 Você pegou ${c.nickname} por EMPRÉSTIMO (de ${c.contractClub}) por uma temporada — R$${fee.toLocaleString('pt-BR')}. Hora de dar minutos e valorizar.`],
+        money: state.money - action.bidAmount,
+        clients: [...state.clients, newClient],
+        weeklyExpenses,
+        xp: xpr.xp,
+        reputation: Math.min(100, state.reputation + xpr.repBonus),
+        everSignedIds: state.everSignedIds.includes(action.legendId) ? state.everSignedIds : [...state.everSignedIds, action.legendId],
+        seenLegendIds: state.seenLegendIds.includes(action.legendId) ? state.seenLegendIds : [...state.seenLegendIds, action.legendId],
+        currentAuction: null,
+        narrative: [...state.narrative,
+          `🏆 LEILÃO GANHO! Você venceu o leilão de ${legend.nickname} com lance de R$${action.bidAmount.toLocaleString('pt-BR')}. 15% de comissão negociada.`,
+          ...(xpr.line ? [xpr.line] : []),
+        ],
       }
     }
 
-    case 'UPGRADE_CLUB': {
-      if (!state.ownedClub || state.money < action.cost) return state
-      const club = state.ownedClub
-      if (action.kind === 'stadium') {
-        const lvl = (club.stadiumLevel ?? 1) + 1
-        if (lvl > 5) return state
-        const fans = Math.round(club.fans * 1.25)
+    case 'REP_SOLD': {
+      const sold = state.clients.find(c => c.legendId === action.legendId)
+      const nick = sold?.nickname ?? 'cliente'
+      const xpr = applyXp(state, 40)
+      return {
+        ...state,
+        money: state.money + action.saleAmount,
+        totalEarned: state.totalEarned + action.saleAmount,
+        totalDeals: state.totalDeals + 1,
+        xp: xpr.xp,
+        reputation: Math.min(100, state.reputation + xpr.repBonus),
+        clients: state.clients.filter(c => c.legendId !== action.legendId),
+        weeklyExpenses: state.clients.filter(c => c.legendId !== action.legendId).reduce((s, c) => s + c.monthlyFee / 4, 0),
+        currentAuction: null,
+        negotiationLog: [{ who: 'voce' as const, year: state.year, text: `💼 Você vendeu o contrato de ${nick} por R$${action.saleAmount.toLocaleString('pt-BR')}` }, ...state.negotiationLog].slice(0, 30),
+        narrative: [...state.narrative,
+          `💼 CONTRATO VENDIDO! ${nick} trocou de agente — você embolsou R$${action.saleAmount.toLocaleString('pt-BR')}.`,
+          ...(xpr.line ? [xpr.line] : []),
+        ],
+      }
+    }
+
+    case 'DRAFT_WINDOW_SET':
+      return { ...state, draftWindowActive: action.active }
+
+    case 'SKIP_CPU_DRAFT':
+      return { ...state, draftWindowActive: false }
+
+    case 'CPU_AUCTION_CLOSE': {
+      if (!state.currentAuction) return state
+      const auction = state.currentAuction
+      const entries = Object.entries(auction.bids).map(([k, v]) => ({ idx: Number(k), amount: v }))
+      if (entries.length === 0) {
+        return { ...state, currentAuction: null, narrative: [...state.narrative, `🔨 Leilão encerrado sem lances.`] }
+      }
+      const winner = entries.reduce((a, b) => b.amount > a.amount ? b : a)
+
+      if (winner.idx === 0) {
+        // Player wins — same logic as AUCTION_WIN
+        const legend = getLegendById(auction.legendId)
+        if (!legend) return { ...state, currentAuction: null }
+        const currentRating = getCurrentRating(legend, state.year)
+        const currentValue = getMarketValue(legend, state.year)
+        const newClient: Client = {
+          legendId: legend.id, name: legend.name, nickname: legend.nickname,
+          position: legend.position, nationality: legend.nationality,
+          status: getCurrentStatus(legend, state.year),
+          birthYear: legend.birthYear, peakYearStart: legend.peakYearStart,
+          peakYearEnd: legend.peakYearEnd, truePotential: legend.truePotential,
+          currentRating, personality: legend.personality, monthlyFee: legend.monthlyFee,
+          futureKnowledge: legend.futureKnowledge, commissionRate: 15,
+          repContractYears: 3, repExpiresYear: state.year + 3,
+          happiness: 75, currentValue, signedYear: state.year,
+          contractClub: legend.club, contractSalary: legend.monthlyFee * 10,
+          contractExpiresYear: state.year + 2, rivalOffers: 0,
+        }
+        const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + legend.monthlyFee / 4
+        const xpr = applyXp(state, 60)
         return {
           ...state,
-          money: state.money - action.cost,
-          ownedClub: { ...club, stadiumLevel: lvl, fans, cashPerWeek: clubWeeklyIncome(fans, lvl) },
-          narrative: [...state.narrative, `🏗️ Você ampliou o estádio do ${club.name} (nível ${lvl})! Mais torcida, mais renda nos jogos.`],
+          money: state.money - winner.amount,
+          clients: [...state.clients, newClient],
+          weeklyExpenses,
+          xp: xpr.xp,
+          reputation: Math.min(100, state.reputation + xpr.repBonus),
+          everSignedIds: state.everSignedIds.includes(auction.legendId) ? state.everSignedIds : [...state.everSignedIds, auction.legendId],
+          seenLegendIds: state.seenLegendIds.includes(auction.legendId) ? state.seenLegendIds : [...state.seenLegendIds, auction.legendId],
+          currentAuction: null,
+          narrative: [...state.narrative,
+            `🏆 LEILÃO GANHO! Você venceu com R$${winner.amount.toLocaleString('pt-BR')} e agenciou ${legend.nickname}!`,
+            ...(xpr.line ? [xpr.line] : []),
+          ],
         }
-      }
-      // academy
-      const lvl = (club.academyLevel ?? 1) + 1
-      if (lvl > 5) return state
-      return {
-        ...state,
-        money: state.money - action.cost,
-        ownedClub: { ...club, academyLevel: lvl },
-        narrative: [...state.narrative, `🎓 Você investiu no CT/base do ${club.name} (nível ${lvl})! Seus craques se valorizam mais rápido jogando aqui.`],
+      } else {
+        // CPU agent wins
+        const bidderRivalIndices = auction.cpuBidderRivalIndices ?? []
+        const rivalIdx = bidderRivalIndices[winner.idx - 1]
+        const cpuAgent = rivalIdx !== undefined ? state.rivalAgents[rivalIdx] : null
+        const legend = getLegendById(auction.legendId)
+        if (!cpuAgent || !legend) return { ...state, currentAuction: null }
+        return {
+          ...state,
+          currentAuction: null,
+          rivalAgents: state.rivalAgents.map((r, i) =>
+            i === rivalIdx
+              ? { ...r, clients: [...r.clients, auction.legendId], wealth: Math.max(0, r.wealth - winner.amount) }
+              : r
+          ),
+          onlineTakenLegends: {
+            ...state.onlineTakenLegends,
+            [auction.legendId]: { playerIndex: winner.idx, playerName: cpuAgent.name },
+          },
+          narrative: [...state.narrative, `🔨 ${cpuAgent.name} venceu o leilão com R$${winner.amount.toLocaleString('pt-BR')} e ficou com ${legend.nickname}!`],
+        }
       }
     }
 
-    case 'SET_TACTIC': {
-      if (!state.ownedClub) return state
-      return { ...state, ownedClub: { ...state.ownedClub, tactic: action.tactic } }
+    case 'ONLINE_NEWS_ADD':
+      return { ...state, onlineNews: [action.item, ...state.onlineNews].slice(0, 50) }
+
+    case 'PLAYER_ROSTER_UPDATE': {
+      const prevRoster = state.onlinePlayerRosters[action.playerIndex] ?? []
+      const newIds = new Set(action.clients.map(c => c.legendId))
+      const freed = prevRoster.filter(c => !newIds.has(c.legendId)).map(c => c.legendId)
+      const newTaken = { ...state.onlineTakenLegends }
+      for (const id of freed) {
+        if (newTaken[id]?.playerIndex === action.playerIndex) delete newTaken[id]
+      }
+      return {
+        ...state,
+        onlinePlayerRosters: { ...state.onlinePlayerRosters, [action.playerIndex]: action.clients },
+        onlineTakenLegends: newTaken,
+      }
     }
 
     case 'DIRTY_ACTION': {
@@ -1100,16 +1357,33 @@ const EmpresarioContext = createContext<{
 } | null>(null)
 
 export function EmpresarioProvider({ children }: { children: ReactNode }) {
-  const saved = localStorage.getItem('empresario-v1')
+  const saved = localStorage.getItem('empresario-v2')
   let initial: GameState = INITIAL_STATE
   if (saved) {
     try {
       const parsed = JSON.parse(saved)
       const hasProgress = (parsed.clients?.length ?? 0) > 0 || (parsed.week ?? 1) > 1 ||
         (parsed.year ?? 1993) > 1993 || (parsed.totalDeals ?? 0) > 0
-      // Resume an in-progress game straight at the dashboard so a refresh
-      // never throws the player back to the intro (and never wipes the save).
-      initial = { ...INITIAL_STATE, ...parsed, nemesisAlert: null, screen: hasProgress ? 'dashboard' : 'intro' }
+      // Resume an in-progress game straight at the dashboard. Always reset
+      // online fields on reload — room sessions don't survive a refresh.
+      initial = {
+        ...INITIAL_STATE,
+        ...parsed,
+        nemesisAlert: null,
+        onlineMode: 'cpu',
+        roomCode: '',
+        isHost: false,
+        playerNames: [],
+        youIndex: 0,
+        onlineGameMode: null,
+        draftTurn: 0,
+        draftPicksDone: 0,
+        currentAuction: null,
+        onlineTakenLegends: {},
+        onlinePlayers: [],
+        onlinePresence: [],
+        screen: hasProgress ? 'dashboard' : 'lobby',
+      }
     } catch {
       initial = INITIAL_STATE
     }
@@ -1117,9 +1391,9 @@ export function EmpresarioProvider({ children }: { children: ReactNode }) {
 
   const [state, dispatch] = useReducer(empresarioReducer, initial)
 
-  // Persist
-  if (state.screen !== 'intro' && state.screen !== 'accident') {
-    localStorage.setItem('empresario-v1', JSON.stringify(state))
+  // Persist (never persist lobby/intro/accident — those are transient)
+  if (state.screen !== 'lobby' && state.screen !== 'intro' && state.screen !== 'accident') {
+    localStorage.setItem('empresario-v2', JSON.stringify(state))
   }
 
   return (

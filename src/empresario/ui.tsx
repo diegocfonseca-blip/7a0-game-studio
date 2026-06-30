@@ -127,6 +127,10 @@ export const POS_COLOR: Record<string, string> = {
 export const FLAG: Record<string, string> = {
   BR: '🇧🇷', AR: '🇦🇷', FR: '🇫🇷', IT: '🇮🇹',
   PT: '🇵🇹', ES: '🇪🇸', NL: '🇳🇱', DE: '🇩🇪', EN: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+  DK: '🇩🇰', SE: '🇸🇪', BG: '🇧🇬', HR: '🇭🇷', YU: '🇷🇸', RO: '🇷🇴',
+  CZ: '🇨🇿', UA: '🇺🇦', NG: '🇳🇬', LR: '🇱🇷', CM: '🇨🇲', CO: '🇨🇴',
+  CL: '🇨🇱', IE: '🇮🇪', BE: '🇧🇪', PL: '🇵🇱', EG: '🇪🇬', SN: '🇸🇳',
+  KR: '🇰🇷', UY: '🇺🇾',
 }
 
 export const STATUS_LABEL: Record<string, { label: string; color: string }> = {

@@ -589,7 +589,7 @@ export function DraftMatch() {
               </div>
             </div>
             {/* substitution */}
-            {!live.subDone && (
+            {live.subsUsed < 3 && (
               <div>
                 <p className="text-black/60 text-[10px] font-black uppercase mb-1">Substituição (1 disponível)</p>
                 <div className="grid grid-cols-2 gap-2">
@@ -621,7 +621,7 @@ export function DraftMatch() {
                 )}
               </div>
             )}
-            {live.subDone && <p className="text-black/50 text-xs font-bold">✅ Substituição feita.</p>}
+            {live.subsUsed >= 3 && <p className="text-black/50 text-xs font-bold">✅ Substituição feita.</p>}
             <BrutalButton color={C.black} textColor="#fff" onClick={() => dispatch({ type: 'START_HALF2' })}>
               ▶ 2º TEMPO →
             </BrutalButton>

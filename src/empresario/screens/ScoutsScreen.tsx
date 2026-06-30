@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEmpresario } from '../store'
+import { useBroadcast } from '../index'
 import {
   getAvailableLegends, getCurrentRating, getMarketValue,
   getCurrentStatus, evaluateSigning, getMaxAcceptable, getFameDribleChance,
-  getMinReputationToSign,
+  getMinReputationToSign, getLegendById,
   getUnlockedNationalities, getLockedRegions, SCOUT_REGIONS,
 } from '../data/legends'
 import { rarityOf } from '../data/career'
@@ -16,6 +17,7 @@ import {
 
 export default function ScoutsScreen() {
   const { state, dispatch } = useEmpresario()
+  const broadcast = useBroadcast()
   const [selected, setSelected] = useState<Legend | null>(null)
   const [rate, setRate] = useState(15)
   const [years, setYears] = useState(3)
@@ -23,10 +25,22 @@ export default function ScoutsScreen() {
   const [justSigned, setJustSigned] = useState<string | null>(null)
   const [reveal, setReveal] = useState<Legend | null>(null)
 
+  // ── Online mode helpers ───────────────────────────────────────────────────
+  const isOnlineDraft = state.onlineMode === 'online' &&
+    (state.onlineGameMode === 'draft' || state.onlineGameMode === 'draft-leilao')
+  const isOnlineLeilao = state.onlineMode === 'online' &&
+    (state.onlineGameMode === 'leilao' || state.onlineGameMode === 'draft-leilao')
+  const isCpuDraft = state.onlineMode === 'cpu' && state.draftWindowActive
+  const isCpuLeilao = state.onlineMode === 'cpu' && state.currentAuction !== null && !state.draftWindowActive
+  const myTurn = isOnlineDraft && state.draftTurn === state.youIndex
+  const turnName = state.playerNames[state.draftTurn] ?? 'Jogador'
+
   const signedIds = state.clients.map(c => c.legendId)
   const unlockedNats = getUnlockedNationalities(state.purchasedUpgrades)
   const lockedRegions = getLockedRegions(state.purchasedUpgrades)
-  const available = getAvailableLegends(state.year, signedIds, unlockedNats, state.lostLegends)
+  // Exclude legends already taken by other players (online or CPU)
+  const takenIds = Object.keys(state.onlineTakenLegends)
+  const available = getAvailableLegends(state.year, [...signedIds, ...takenIds], unlockedNats, state.lostLegends)
 
   // live prediction reacts to BOTH commission and contract length
   const liveMax = selected ? getMaxAcceptable(selected, state.reputation, state.year) : 0
@@ -46,16 +60,28 @@ export default function ScoutsScreen() {
   const minRep = selected ? getMinReputationToSign(selected, state.year) : 0
   const repBlocked = selected ? state.reputation < minRep : false
 
-  // Deterministic weekly pool (hot targets are pinned separately, so exclude them here)
+  // In CPU draft/leilão mode, the free market is locked between windows.
+  const cpuModeActive = state.onlineMode === 'cpu' && state.onlineGameMode !== null
+  const cpuWindowOpen = cpuModeActive && (state.draftWindowActive || state.currentAuction !== null)
+  const cpuMarketLocked = cpuModeActive && !cpuWindowOpen
+
+  // Online/CPU draft: show full pool sorted by rating. Solo/CPU solo: weekly rotation of 6.
   const seed = state.year * 137 + state.week * 31
-  const pool = [...available]
-    .filter(l => !(l.id in state.hotTargets))
-    .sort((a, b) => {
-      const ha = Math.abs(Math.sin(seed + a.id.charCodeAt(0) * 7.7 + a.id.charCodeAt(1) * 3.3))
-      const hb = Math.abs(Math.sin(seed + b.id.charCodeAt(0) * 7.7 + b.id.charCodeAt(1) * 3.3))
-      return ha - hb
-    })
-    .slice(0, 6)
+  const pool = (state.onlineMode === 'online' || cpuWindowOpen)
+    ? [...available]
+        .filter(l => !(l.id in state.hotTargets))
+        .sort((a, b) => getCurrentRating(b, state.year) - getCurrentRating(a, state.year))
+        .slice(0, 20)
+    : cpuMarketLocked
+    ? []  // no pool shown while locked between windows
+    : [...available]
+        .filter(l => !(l.id in state.hotTargets))
+        .sort((a, b) => {
+          const ha = Math.abs(Math.sin(seed + a.id.charCodeAt(0) * 7.7 + a.id.charCodeAt(1) * 3.3))
+          const hb = Math.abs(Math.sin(seed + b.id.charCodeAt(0) * 7.7 + b.id.charCodeAt(1) * 3.3))
+          return ha - hb
+        })
+        .slice(0, 6)
 
   function openPlayer(legend: Legend) {
     // First time you lay eyes on this talent → reveal animation + album/XP
@@ -106,6 +132,65 @@ export default function ScoutsScreen() {
     setTimeout(() => setJustSigned(null), 2200)
   }
 
+  // ── Leilão helpers ─────────────────────────────────────────────────────────
+  const [bidAmount, setBidAmount] = useState(0)
+  const auction = state.currentAuction
+  const auctionLegend = auction ? getLegendById(auction.legendId) : null
+  const myBid = auction ? (auction.bids[state.youIndex] ?? 0) : 0
+  const topBid = auction ? Math.max(0, ...Object.values(auction.bids)) : 0
+
+  function startAuction(legendId: string) {
+    broadcast('auction_start', { legendId })
+    dispatch({ type: 'AUCTION_SET', auction: { legendId, bids: {}, endsAt: Date.now() + 60_000, closed: false } })
+  }
+
+  function startRepAuction(legendId: string) {
+    broadcast('auction_start', { legendId, sellerIndex: state.youIndex })
+    dispatch({ type: 'AUCTION_SET', auction: { legendId, bids: {}, endsAt: Date.now() + 60_000, closed: false, sellerIndex: state.youIndex } })
+  }
+
+  function placeBid() {
+    if (!auction || bidAmount <= 0 || state.money < bidAmount) return
+    broadcast('auction_bid', { playerIndex: state.youIndex, amount: bidAmount })
+    dispatch({ type: 'AUCTION_BID', playerIndex: state.youIndex, amount: bidAmount })
+  }
+
+  function closeAuction() {
+    if (!auction) return
+    // CPU mode: use dedicated close action (handles CPU agent winning)
+    if (state.onlineMode === 'cpu') {
+      dispatch({ type: 'CPU_AUCTION_CLOSE' })
+      return
+    }
+    const sellerIdx = auction.sellerIndex
+    const isRepTransfer = sellerIdx !== undefined
+    const entries = Object.entries(auction.bids).map(([k, v]) => ({ idx: Number(k), amount: v }))
+    if (entries.length === 0) {
+      broadcast('auction_close', { legendId: auction.legendId, winnerIndex: -1, winnerAmount: 0, sellerIndex: sellerIdx ?? -1 })
+      dispatch({ type: 'AUCTION_SET', auction: null })
+      return
+    }
+    const winner = entries.reduce((a, b) => b.amount > a.amount ? b : a)
+    broadcast('auction_close', { legendId: auction.legendId, winnerIndex: winner.idx, winnerAmount: winner.amount, sellerIndex: sellerIdx ?? -1 })
+    if (isRepTransfer) {
+      if (winner.idx === sellerIdx) {
+        dispatch({ type: 'AUCTION_SET', auction: null })
+      } else if (winner.idx === state.youIndex) {
+        dispatch({ type: 'AUCTION_WIN', legendId: auction.legendId, bidAmount: winner.amount })
+      } else if (sellerIdx === state.youIndex) {
+        dispatch({ type: 'REP_SOLD', legendId: auction.legendId, saleAmount: winner.amount })
+      } else {
+        dispatch({ type: 'AUCTION_SET', auction: null })
+      }
+    } else {
+      if (winner.idx === state.youIndex) {
+        dispatch({ type: 'AUCTION_WIN', legendId: auction.legendId, bidAmount: winner.amount })
+      } else {
+        dispatch({ type: 'AUCTION_SET', auction: null })
+      }
+    }
+  }
+
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
       {/* header */}
@@ -121,6 +206,214 @@ export default function ScoutsScreen() {
       </div>
 
       <div className="max-w-md mx-auto px-4 py-4 space-y-3">
+
+        {/* ── DRAFT MODE BANNER (Online) ── */}
+        {isOnlineDraft && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+            className="border-[3px] border-black rounded-2xl p-4 text-center"
+            style={{ backgroundColor: myTurn ? C.green : C.black, boxShadow: `4px 4px 0 ${C.black}` }}
+          >
+            {myTurn ? (
+              <>
+                <p className="text-black font-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>⚡ SUA VEZ DE ESCOLHER!</p>
+                <p className="text-black/70 text-sm font-bold mt-1">Selecione uma lenda abaixo e assine</p>
+              </>
+            ) : (
+              <>
+                <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>⏳ VEZ DE {turnName.toUpperCase()}</p>
+                <p className="text-white/50 text-sm font-bold mt-1">Aguarde sua vez — você pode explorar enquanto isso</p>
+              </>
+            )}
+          </motion.div>
+        )}
+
+        {/* ── DRAFT MODE BANNER (CPU) ── */}
+        {isCpuDraft && (
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
+            <BrutalCard color={C.green} className="p-4" shadow={5}>
+              <p className="text-black font-black text-xl text-center" style={{ fontFamily: 'Oswald, sans-serif' }}>⚡ JANELA DE DRAFT ABERTA!</p>
+              <p className="text-black/70 text-sm font-bold text-center mt-1">Os rivais já escolheram — assine uma lenda antes de avançar semana</p>
+              <div className="mt-3 flex gap-2">
+                <div className="flex-1">
+                  <button
+                    onClick={() => dispatch({ type: 'SKIP_CPU_DRAFT' })}
+                    className="w-full border-2 border-black rounded-xl px-3 py-2 text-xs font-black bg-white text-black"
+                  >
+                    ⏭ Pular esta rodada
+                  </button>
+                </div>
+              </div>
+            </BrutalCard>
+          </motion.div>
+        )}
+
+        {/* ── LEILÃO ATIVO (Online + CPU) ── */}
+        {(isOnlineLeilao || isCpuLeilao) && auction && auctionLegend && (
+          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}>
+            <BrutalCard color={C.purple} className="p-5" shadow={6}>
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <BrutalPill color={C.yellow} textColor={C.black}>🔨 LEILÃO ATIVO</BrutalPill>
+                  {auction.sellerIndex !== undefined && (
+                    <p className="text-white/50 text-[10px] font-black mt-1">
+                      Vendedor: {state.playerNames[auction.sellerIndex] ?? 'Agente'}
+                    </p>
+                  )}
+                </div>
+                {(state.isHost || auction.sellerIndex === state.youIndex || state.onlineMode === 'cpu') && !auction.closed && (
+                  <button onClick={closeAuction}
+                    className="border-2 border-black rounded-lg px-3 py-1 text-xs font-black bg-white text-black">
+                    Fechar leilão
+                  </button>
+                )}
+              </div>
+              <div className="bg-white border-[3px] border-black rounded-xl p-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">{FLAG[auctionLegend.nationality]}</span>
+                  <div className="flex-1">
+                    <p className="font-black text-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{auctionLegend.nickname}</p>
+                    <div className="flex gap-1.5 mt-1 flex-wrap">
+                      <BrutalTag color={POS_COLOR[auctionLegend.position]} textColor="#fff">{auctionLegend.position}</BrutalTag>
+                      <BrutalTag color={C.yellow}>⭐ {rarityOf(auctionLegend.truePotential).label}</BrutalTag>
+                      <BrutalTag color={C.teal}>Pot. {auctionLegend.truePotential}</BrutalTag>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* bids — online shows player names, CPU shows rival agents */}
+              <div className="space-y-2 mb-4">
+                {state.onlineMode === 'cpu' ? (
+                  <>
+                    {/* Player row */}
+                    {(() => {
+                      const bid = auction.bids[0]
+                      const isTop = bid === topBid && bid > 0
+                      return (
+                        <div className="flex items-center gap-2 bg-white/20 border-2 border-black/30 rounded-lg px-3 py-2">
+                          <span className="text-sm">👤</span>
+                          <span className="flex-1 font-black text-white text-sm">{state.playerNames[0] ?? 'Você'}</span>
+                          {bid ? (
+                            <span className={`font-black text-sm ${isTop ? 'text-yellow-300' : 'text-white/70'}`}>{isTop ? '👑 ' : ''}{money(bid)}</span>
+                          ) : (
+                            <span className="text-white/40 text-xs font-bold">sem lance</span>
+                          )}
+                        </div>
+                      )
+                    })()}
+                    {/* CPU rival rows */}
+                    {(auction.cpuBidderRivalIndices ?? []).map((rivalIdx, i) => {
+                      const rival = state.rivalAgents[rivalIdx]
+                      if (!rival) return null
+                      const bid = auction.bids[i + 1]
+                      const isTop = bid === topBid && bid > 0
+                      return (
+                        <div key={rival.id} className="flex items-center gap-2 bg-white/20 border-2 border-black/30 rounded-lg px-3 py-2">
+                          <span className="text-sm">{rivalIdx === 0 ? '😈' : '🕴️'}</span>
+                          <span className="flex-1 font-black text-white text-sm truncate">{rival.name}</span>
+                          <span className={`font-black text-sm ${isTop ? 'text-yellow-300' : 'text-white/70'}`}>
+                            {isTop ? '👑 ' : ''}{money(bid ?? 0)}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </>
+                ) : (
+                  state.playerNames.map((name, idx) => {
+                    const bid = auction.bids[idx]
+                    const isTop = bid === topBid && bid > 0
+                    return (
+                      <div key={idx} className="flex items-center gap-2 bg-white/20 border-2 border-black/30 rounded-lg px-3 py-2">
+                        <span className="text-sm">{idx === state.youIndex ? '👤' : '🎮'}</span>
+                        <span className="flex-1 font-black text-white text-sm truncate">{name}</span>
+                        {bid ? (
+                          <span className={`font-black text-sm ${isTop ? 'text-yellow-300' : 'text-white/70'}`}>
+                            {isTop ? '👑 ' : ''}{money(bid)}
+                          </span>
+                        ) : (
+                          <span className="text-white/40 text-xs font-bold">sem lance</span>
+                        )}
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+              {/* my bid input */}
+              {!auction.closed && !myBid && (
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={bidAmount || ''}
+                    onChange={e => setBidAmount(Number(e.target.value))}
+                    placeholder="Seu lance (R$)"
+                    className="flex-1 border-[3px] border-black rounded-xl px-3 py-2 font-black text-black text-lg focus:outline-none"
+                    style={{ fontFamily: 'Oswald, sans-serif' }}
+                  />
+                  <BrutalButton color={C.yellow} textColor="#000" full={false}
+                    disabled={bidAmount <= 0 || bidAmount > state.money}
+                    onClick={placeBid} className="!px-4">
+                    DAR LANCE
+                  </BrutalButton>
+                </div>
+              )}
+              {myBid > 0 && (
+                <div className="bg-yellow-300 border-2 border-black rounded-xl px-4 py-3 text-center">
+                  <p className="font-black text-black">✅ Seu lance: {money(myBid)}</p>
+                </div>
+              )}
+            </BrutalCard>
+          </motion.div>
+        )}
+
+        {/* ── LEILÃO: fila de lendas para o host iniciar (online only) ── */}
+        {isOnlineLeilao && !auction && state.isHost && (
+          <BrutalCard color={C.creamDark} className="p-4" shadow={3}>
+            <p className="font-black text-black text-sm mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>🔨 INICIAR LEILÃO</p>
+            <p className="text-black/50 text-xs font-bold mb-3">Escolha uma lenda abaixo e clique em "Leiloar" para abrir os lances a todos.</p>
+          </BrutalCard>
+        )}
+
+        {isOnlineLeilao && !auction && !state.isHost && (
+          <BrutalCard color={C.creamDark} className="p-4 text-center" shadow={2}>
+            <p className="text-black/60 font-bold text-sm">⏳ Aguardando o host iniciar o próximo leilão...</p>
+          </BrutalCard>
+        )}
+
+        {/* ── MERCADO: vender contrato de representação ── */}
+        {isOnlineLeilao && !auction && state.clients.length > 0 && (
+          <BrutalCard color={C.black} className="p-4" shadow={4}>
+            <p className="text-white font-black text-sm mb-1" style={{ fontFamily: 'Oswald, sans-serif' }}>
+              💼 SEUS CONTRATOS — VENDER REPRESENTAÇÃO
+            </p>
+            <p className="text-white/50 text-xs font-bold mb-3">
+              Lance um contrato no mercado. Todos os agentes participam do leilão — você embolsa o maior lance.
+            </p>
+            <div className="space-y-2">
+              {state.clients.map(client => (
+                <div key={client.legendId}
+                     className="bg-white/10 border-2 border-white/20 rounded-xl p-3 flex items-center gap-3">
+                  <span className="text-xl">{FLAG[client.nationality]}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-white text-sm truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                      {client.nickname}
+                    </p>
+                    <p className="text-white/50 text-xs font-bold">
+                      {client.position} · {money(client.currentValue)} · {client.commissionRate}%
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => startRepAuction(client.legendId)}
+                    className="border-[2px] border-black rounded-lg px-3 py-1.5 text-xs font-black shrink-0"
+                    style={{ backgroundColor: C.yellow, color: '#000' }}
+                  >
+                    🔨 Leiloar
+                  </button>
+                </div>
+              ))}
+            </div>
+          </BrutalCard>
+        )}
+
         <BrutalCard color={C.yellow} className="p-3">
           <p className="text-black text-xs font-bold text-center">
             ✦ Só VOCÊ enxerga o potencial real. Os olheiros do mundo veem só a nota atual.
@@ -179,7 +472,30 @@ export default function ScoutsScreen() {
           </BrutalCard>
         )}
 
-        {pool.length === 0 && (
+        {/* ── CPU MODE: MERCADO FECHADO ── */}
+        {cpuMarketLocked && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <BrutalCard color={C.black} className="p-6 text-center" shadow={6}>
+              <p className="text-5xl mb-3">🔒</p>
+              <p className="font-black text-white text-xl mb-1" style={{ fontFamily: 'Oswald, sans-serif' }}>MERCADO FECHADO</p>
+              <p className="text-white/70 text-sm font-bold leading-relaxed mb-4">
+                {state.onlineGameMode === 'draft' && 'No modo Draft, você só pode assinar lendas durante a janela de draft. Avance semanas — a próxima janela abre a cada 4 semanas.'}
+                {state.onlineGameMode === 'leilao' && 'No modo Leilão, lendas são arrematadas em leilões fechados. Aguarde o próximo leilão aparecer.'}
+                {state.onlineGameMode === 'draft-leilao' && 'No modo Draft + Leilão, assinaturas só ocorrem em janelas de draft ou leilões. Avance semanas para a próxima.'}
+              </p>
+              <div className="border-[3px] border-white/30 rounded-xl p-3" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                <p className="text-white/50 text-xs font-black uppercase tracking-widest">Próxima janela em</p>
+                <p className="text-white font-black text-2xl mt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                  {state.onlineGameMode === 'draft' || state.onlineGameMode === 'draft-leilao'
+                    ? `~${4 - ((state.week - 1) % 4)} semana${4 - ((state.week - 1) % 4) === 1 ? '' : 's'}`
+                    : 'Em breve'}
+                </p>
+              </div>
+            </BrutalCard>
+          </motion.div>
+        )}
+
+        {!cpuMarketLocked && pool.length === 0 && (
           <BrutalCard color={C.creamDark} className="p-7 text-center">
             <p className="text-4xl mb-2">🕰️</p>
             <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>NINGUÉM NOVO ESSA SEMANA</p>
@@ -233,6 +549,19 @@ export default function ScoutsScreen() {
                   </div>
                 </div>
 
+                {/* leilão host button on each card */}
+                {isOnlineLeilao && state.isHost && !auction && (
+                  <div className="mt-2 flex justify-end">
+                    <button
+                      onClick={e => { e.stopPropagation(); startAuction(legend.id) }}
+                      className="border-[2px] border-black rounded-lg px-3 py-1 text-xs font-black"
+                      style={{ backgroundColor: C.purple, color: '#fff' }}
+                    >
+                      🔨 Leiloar
+                    </button>
+                  </div>
+                )}
+
                 {/* stat row */}
                 <div className="grid grid-cols-3 gap-2 mt-3">
                   <div className="bg-black/5 border-2 border-black rounded-lg p-2 text-center">
@@ -276,7 +605,7 @@ export default function ScoutsScreen() {
 
       {/* ── SIGNING SHEET ── */}
       <AnimatePresence>
-        {selected && (
+        {selected && !cpuMarketLocked && (
           <motion.div
             initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 280 }}
@@ -423,13 +752,20 @@ export default function ScoutsScreen() {
                           <BrutalButton color="white" textColor={C.black} onClick={() => { setSelected(null); setResult(null) }}>
                             Cancelar
                           </BrutalButton>
-                          <BrutalButton
-                            color={C.blue}
-                            disabled={!canAffordUpfront}
-                            onClick={tryToSign}
-                          >
-                            {!canAffordUpfront ? 'Sem grana' : 'Oferecer'}
-                          </BrutalButton>
+                          {isOnlineLeilao && state.isHost && !auction ? (
+                            <BrutalButton color={C.purple} textColor="#fff" onClick={() => { startAuction(selected.id); setSelected(null); setResult(null) }}>
+                              🔨 Leiloar
+                            </BrutalButton>
+                          ) : (
+                            <BrutalButton
+                              color={isOnlineDraft && !myTurn ? '#C9C2AC' : C.blue}
+                              textColor={isOnlineDraft && !myTurn ? '#888' : '#fff'}
+                              disabled={!canAffordUpfront || (isOnlineDraft && !myTurn)}
+                              onClick={tryToSign}
+                            >
+                              {isOnlineDraft && !myTurn ? `⏳ Vez de ${turnName}` : !canAffordUpfront ? 'Sem grana' : 'Oferecer'}
+                            </BrutalButton>
+                          )}
                         </>
                       )}
                     </div>

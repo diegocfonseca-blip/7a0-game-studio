@@ -4,6 +4,7 @@ import { useEmpresario } from '../store'
 import { NEMESIS } from '../data/clubs'
 import { evaluateRenewal } from '../data/legends'
 import { windowInfo, CHALLENGES, levelInfo, MISSIONS, missionForWeek, missionMetricValue } from '../data/career'
+import { isDeadlineDay } from '../data/historical'
 import type { Client, Personality } from '../types'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalPill, BrutalTag, POS_COLOR, FLAG, STATUS_LABEL } from '../ui'
 
@@ -80,6 +81,23 @@ export default function DashboardScreen() {
         {/* ── JANELA DE TRANSFERÊNCIAS (período quente, não trava) ── */}
         {(() => {
           const w = windowInfo(state.week)
+          const deadline = isDeadlineDay(state.week)
+          if (deadline) {
+            return (
+              <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }}>
+                <BrutalCard color="#CC0000" className="p-4" shadow={6}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl animate-pulse">⏰</span>
+                    <div className="flex-1">
+                      <p className="font-black text-white text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>DIA D DE TRANSFERÊNCIAS!</p>
+                      <p className="text-white/80 text-xs font-bold">A janela fecha HOJE. Clubes estão desesperados. É agora ou nunca.</p>
+                    </div>
+                  </div>
+                  <p className="text-white/70 text-[10px] font-bold mt-1.5">📈 Valores inflacionados · propostas extras · negocie duro</p>
+                </BrutalCard>
+              </motion.div>
+            )
+          }
           return (
             <BrutalCard color={w.open ? C.green : C.creamDark} className="p-3" shadow={3}>
               <div className="flex items-center gap-2">
@@ -179,6 +197,32 @@ export default function DashboardScreen() {
           )
         })()}
 
+        {/* ── CPU DRAFT / LEILÃO ALERT ── */}
+        {state.onlineMode === 'cpu' && state.draftWindowActive && (
+          <BrutalCard color={C.green} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'scouts' })} style={{ cursor: 'pointer' }}>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">📋</span>
+              <div className="flex-1">
+                <p className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>JANELA DE DRAFT ABERTA!</p>
+                <p className="text-black/60 text-xs font-bold">Os rivais já escolheram — assine sua lenda no Radar</p>
+              </div>
+              <span className="text-2xl">→</span>
+            </div>
+          </BrutalCard>
+        )}
+        {state.onlineMode === 'cpu' && state.currentAuction !== null && !state.draftWindowActive && (
+          <BrutalCard color={C.purple} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'scouts' })} style={{ cursor: 'pointer' }}>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">🔨</span>
+              <div className="flex-1">
+                <p className="font-black text-white text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>LEILÃO EM ANDAMENTO!</p>
+                <p className="text-white/60 text-xs font-bold">Lance seu valor no Radar antes de avançar semana</p>
+              </div>
+              <span className="text-2xl text-white">→</span>
+            </div>
+          </BrutalCard>
+        )}
+
         {/* ── ALERTAS ── */}
         {activeOffers > 0 && (
           <BrutalCard color={C.yellow} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'offers' })}>
@@ -247,20 +291,70 @@ export default function DashboardScreen() {
             <p className="text-black/60 text-xs font-bold">Lendas colecionadas</p>
           </BrutalCard>
 
-          {state.ownedClub && (
-            <BrutalCard color={C.pink} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'club' })}>
-              <p className="text-3xl mb-1">🏟️</p>
-              <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>MEU CLUBE</p>
-              <p className="text-black/60 text-xs font-bold truncate">{state.ownedClub.name}</p>
-            </BrutalCard>
-          )}
-
-          <BrutalCard color={C.black} className="p-4" onClick={() => dispatch({ type: 'ADVANCE_WEEK' })}>
-            <p className="text-3xl mb-1">⏩</p>
-            <p className="font-black text-white" style={{ fontFamily: 'Oswald, sans-serif' }}>AVANÇAR</p>
-            <p className="text-white/50 text-xs font-bold">Próxima semana</p>
-          </BrutalCard>
+          {(() => {
+            const auctionLock = state.onlineMode === 'online' && state.currentAuction !== null
+            const draftLock = state.onlineMode === 'online' && state.draftWindowActive
+            const locked = auctionLock || draftLock
+            return (
+              <BrutalCard
+                color={locked ? C.orange : C.black}
+                className="p-4"
+                onClick={() => !locked && dispatch({ type: 'ADVANCE_WEEK' })}
+              >
+                <p className="text-3xl mb-1">{locked ? '🔒' : '⏩'}</p>
+                <p className={`font-black text-sm ${locked ? 'text-white' : 'text-white'}`} style={{ fontFamily: 'Oswald, sans-serif' }}>
+                  {draftLock ? 'AGUARDE DRAFT' : auctionLock ? 'LEILÃO ATIVO' : 'AVANÇAR'}
+                </p>
+                <p className="text-white/60 text-[10px] font-bold">
+                  {locked ? 'Todos precisam jogar' : 'Próxima semana'}
+                </p>
+              </BrutalCard>
+            )
+          })()}
         </div>
+
+        {/* ── ONLINE RIVALS PANEL ── */}
+        {state.onlineMode === 'online' && state.onlinePlayers.length > 0 && (
+          <div className="pt-1">
+            <h2 className="font-black text-black text-sm mb-2 uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>🌐 Rivais Online</h2>
+            <div className="space-y-2">
+              {state.onlinePlayers
+                .filter(p => p.playerIndex !== state.youIndex)
+                .sort((a, b) => b.totalDeals - a.totalDeals)
+                .map(p => {
+                  const online = state.onlinePresence.includes(p.playerIndex)
+                  const roster = state.onlinePlayerRosters[p.playerIndex] ?? []
+                  return (
+                    <BrutalCard key={p.playerIndex} color="white" className="p-3" shadow={3}>
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full border border-black shrink-0 ${online ? 'bg-green-500' : 'bg-gray-300'}`} />
+                        <span className="flex-1 font-black text-black text-sm truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.playerName}</span>
+                        <BrutalTag color={C.yellow}>{p.totalDeals} deals</BrutalTag>
+                        <BrutalTag color={C.teal}>{roster.length} clientes</BrutalTag>
+                      </div>
+                    </BrutalCard>
+                  )
+                })}
+            </div>
+          </div>
+        )}
+
+        {/* ── ONLINE NEWS FEED ── */}
+        {state.onlineMode === 'online' && state.onlineNews.length > 0 && (
+          <div className="pt-1">
+            <h2 className="font-black text-black text-sm mb-2 uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>📡 Notícias dos Rivais</h2>
+            <BrutalCard color={C.teal} className="p-3 space-y-2 max-h-56 overflow-y-auto" shadow={3}>
+              {state.onlineNews.slice(0, 15).map((item) => (
+                <div key={item.id} className="flex items-start gap-2 border-b border-white/20 pb-1.5 last:border-0 last:pb-0">
+                  <span className="text-white/60 font-mono text-[9px] font-bold shrink-0 pt-0.5">
+                    {new Date(item.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  <p className="text-white text-[11px] font-bold leading-relaxed">{item.text}</p>
+                </div>
+              ))}
+            </BrutalCard>
+          </div>
+        )}
 
         {state.weeklyExpenses > 0 && (
           <p className="text-center text-black/40 text-xs font-bold">
@@ -284,9 +378,19 @@ export default function DashboardScreen() {
           <div className="space-y-3">
             {state.clients.map((c, i) => {
               const st = STATUS_LABEL[c.status]
+              const injured = !!c.injuredUntilWeek
+              const injEmoji = c.injuryLevel === 'grave' ? '🚨' : c.injuryLevel === 'moderada' ? '⚠️' : '🤕'
               return (
                 <motion.div key={c.legendId} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
-                  <BrutalCard color="white" className="p-4" onClick={() => setDetail(c)}>
+                  <BrutalCard color={injured ? '#FFF3CD' : 'white'} className="p-4" onClick={() => setDetail(c)}>
+                    {injured && (
+                      <div className="mb-2 flex items-center gap-1.5 bg-orange-100 border-2 border-orange-400 rounded px-2 py-1">
+                        <span className="text-sm">{injEmoji}</span>
+                        <span className="text-orange-800 text-[10px] font-black uppercase tracking-wide">
+                          LESIONADO ({c.injuryLevel?.toUpperCase()}) — {c.injuryDescription}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-3">
                       <div className="text-3xl shrink-0">{FLAG[c.nationality]}</div>
                       <div className="flex-1 min-w-0">

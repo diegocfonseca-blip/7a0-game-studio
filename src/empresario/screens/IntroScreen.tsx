@@ -14,39 +14,27 @@ interface Scene {
 
 const SCENES: Scene[] = [
   {
-    tag: 'HOJE',
+    tag: 'DOMINGO À TARDE',
     tagColor: C.pink,
-    year: '27 de junho, 2026 — São Paulo',
+    year: '28 de junho, 2026 — Campo do Seu Artur, São Paulo',
     lines: [
-      'Você tem 60 anos.',
-      'Trinta deles dados ao futebol — como roupeiro, como auxiliar, como o cara que enche as garrafas de água numa escolinha de bairro.',
-      'R$ 2.200 por mês. Aluguel atrasado. Um joelho que range.',
+      'Pelada de casados. Você, seus parceiros de sempre e um sol de rachar.',
+      'Um temporal chegou do nada — céu fechou em dois minutos.',
+      'Ninguém quis parar. Vocês são loucos assim.',
     ],
     bg: '#1a1a1a',
     ink: '#F4ECD6',
   },
   {
-    tag: 'O DOM',
+    tag: 'O RAIO',
     tagColor: C.yellow,
-    year: 'Uma vida inteira observando',
+    year: '16h47 — bola rolando no temporal',
     lines: [
-      'Mas tem uma coisa que ninguém nunca te tirou:',
-      'você ENXERGA o jogo.',
-      'Você sabe quem vai ser craque antes de qualquer olheiro. Sempre soube. Só que ninguém nunca te ouviu — você era só o velho da escolinha.',
+      'Um estrondo. Uma luz branca que veio do céu e engoliu o campo inteiro.',
+      'Você sentiu o cheiro de cabelo queimado.',
+      'E depois — nada.',
     ],
-    bg: '#0d2818',
-    ink: '#F4ECD6',
-  },
-  {
-    tag: 'O ACIDENTE',
-    tagColor: C.orange,
-    year: '22:47 — a caminho de casa',
-    lines: [
-      'A chuva. O farol estourado. O caminhão na contramão.',
-      'Um estrondo branco.',
-      'E então — silêncio.',
-    ],
-    bg: '#3d0a0a',
+    bg: '#3d3300',
     ink: '#F4ECD6',
   },
   {
@@ -63,7 +51,7 @@ const SCENES: Scene[] = [
     year: '199...?',
     lines: [
       'O cheiro é outro. Cigarro no ar. Um rádio de pilha tocando Mamonas Assassinas.',
-      'Você olha as mãos: jovens. Firmes.',
+      'Você olha as mãos: jovens. Firmes. Os seus amigos estão ao lado, tão perdidos quanto você.',
       'No jornal dobrado na mesa: 14 de março de 1993.',
     ],
     bg: '#2a1f08',
@@ -74,15 +62,15 @@ const SCENES: Scene[] = [
     tagColor: C.yellow,
     year: '1993',
     lines: [
-      'Você voltou 33 anos no tempo.',
-      'Está jovem. Está duro. Mas na sua cabeça moram TRÊS DÉCADAS de futebol que ainda não aconteceram.',
-      'Você sabe cada Copa. Cada lenda. Cada garoto de favela e de vila que vai virar mito.',
+      'O raio mandou vocês 33 anos pro passado.',
+      'Jovens, durnos, mas com a cabeça cheia de TRÊS DÉCADAS de futebol que ainda não aconteceram.',
+      'Cada Copa. Cada lenda. Cada garoto de favela que vai virar mito.',
     ],
     bg: '#1a2e1a',
     ink: '#F4ECD6',
   },
   {
-    tag: 'A JOGADA',
+    tag: 'O PLANO',
     tagColor: C.orange,
     year: '1993 — Belo Horizonte, agora',
     lines: [
@@ -95,13 +83,25 @@ const SCENES: Scene[] = [
     ink: '#F4ECD6',
   },
   {
+    tag: 'A APOSTA',
+    tagColor: C.pink,
+    year: '',
+    lines: [
+      'O raio vai voltar. Ele sempre volta.',
+      'No mesmo campo. No mesmo dia. Só que em 2026.',
+      'Vocês têm 33 anos pra construir o maior império do futebol mundial antes de voltar pro futuro.',
+    ],
+    bg: '#3d0a2a',
+    ink: '#F4ECD6',
+  },
+  {
     tag: 'SUA MISSÃO',
     tagColor: C.blue,
     year: '',
     lines: [
       'Vire empresário. Assine as lendas antes do mundo descobrir.',
-      'Negocie cada contrato no SEU favor. Fique podre de rico.',
-      'Você tem o maior trunfo da história do futebol: o futuro inteiro na memória.',
+      'Negocie cada contrato no SEU favor. Acumule patrimônio. Construa reputação.',
+      'Quem chegar em 2026 com mais lendas no álbum, mais rico e mais respeitado — vence.',
     ],
     bg: '#0a1340',
     ink: '#F4ECD6',
@@ -109,65 +109,20 @@ const SCENES: Scene[] = [
 ]
 
 export default function IntroScreen() {
-  const { dispatch } = useEmpresario()
+  const { state, dispatch } = useEmpresario()
   const [scene, setScene] = useState(0)
-  const [showName, setShowName] = useState(false)
-  const [name, setName] = useState('')
 
   const s = SCENES[scene]
   const isLast = scene === SCENES.length - 1
+  const playerName = (state.playerNames[state.youIndex] ?? '').trim() || 'O Empresário'
 
   function next() {
-    if (isLast) { setShowName(true); return }
+    if (isLast) { start(); return }
     setScene(v => v + 1)
   }
 
   function start() {
-    dispatch({ type: 'START_GAME', playerName: name.trim() || 'O Empresário' })
-    dispatch({ type: 'SET_SCREEN', screen: 'dashboard' })
-  }
-
-  if (showName) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-5" style={{ backgroundColor: C.cream }}>
-        <motion.div
-          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-sm"
-        >
-          <div className="text-center mb-6">
-            <BrutalPill color={C.orange} textColor="#fff">UM ÚLTIMO DETALHE</BrutalPill>
-            <h1 className="font-black text-3xl text-black mt-4 leading-tight" style={{ fontFamily: 'Oswald, sans-serif' }}>
-              QUAL É O SEU NOME?
-            </h1>
-            <p className="text-black/50 text-sm mt-2 font-medium">Como vão te chamar nos bastidores do futebol?</p>
-          </div>
-
-          <div
-            className="bg-white border-[3px] border-black rounded-2xl p-1 mb-5"
-            style={{ boxShadow: `5px 5px 0 0 ${C.black}` }}
-          >
-            <input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && start()}
-              placeholder="Seu nome..."
-              maxLength={20}
-              autoFocus
-              className="w-full bg-transparent px-4 py-3 text-black text-center text-xl font-black
-                         placeholder:text-black/20 focus:outline-none"
-              style={{ fontFamily: 'Oswald, sans-serif' }}
-            />
-          </div>
-
-          <BrutalButton color={C.blue} onClick={start}>
-            COMEÇAR EM 1993 →
-          </BrutalButton>
-          <p className="text-black/40 text-xs text-center mt-4 font-bold">
-            Você sabe o que ninguém sabe. Use isso.
-          </p>
-        </motion.div>
-      </div>
-    )
+    dispatch({ type: 'START_GAME', playerName })
   }
 
   return (
@@ -233,9 +188,12 @@ export default function IntroScreen() {
       <div className="p-6 max-w-md mx-auto w-full">
         {isLast ? (
           <div onClick={e => e.stopPropagation()}>
-            <BrutalButton color={s.tagColor} textColor="#fff" onClick={next}>
-              VIRAR O JOGO →
+            <BrutalButton color={s.tagColor} textColor="#fff" onClick={start}>
+              INICIAR JORNADA →
             </BrutalButton>
+            <p className="text-white/40 text-xs text-center mt-3 font-bold">
+              {playerName} · 1993 · Você sabe o que ninguém sabe.
+            </p>
           </div>
         ) : (
           <p className="text-center text-xs font-bold tracking-widest animate-pulse" style={{ color: s.tagColor }}>

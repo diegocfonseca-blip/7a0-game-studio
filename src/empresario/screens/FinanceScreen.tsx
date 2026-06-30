@@ -1,9 +1,8 @@
 import { useEmpresario } from '../store'
-import { SCOUT_UPGRADES, SERVICE_UPGRADES, LIFESTYLE_UPGRADES } from '../data/events'
-import { BUYABLE_CLUBS } from '../data/clubs'
+import { SCOUT_UPGRADES, SERVICE_UPGRADES, OFFICE_UPGRADES, LIFESTYLE_UPGRADES } from '../data/events'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag } from '../ui'
 
-type Up = { id: string; name: string; description: string; cost: number; effect: string; flag?: string; repGain?: number }
+type Up = { id: string; name: string; description: string; cost: number; effect: string; flag?: string; repGain?: number; monthlyCost?: number }
 
 export default function FinanceScreen() {
   const { state, dispatch } = useEmpresario()
@@ -16,8 +15,12 @@ export default function FinanceScreen() {
   const totalClientValue = state.clients.reduce((s, c) => s + c.currentValue, 0)
   const monthlyExpenses = state.weeklyExpenses * 4
 
+  // monthly costs breakdown
+  const scoutMonthlyCost = SCOUT_UPGRADES.filter(u => state.purchasedUpgrades.includes(u.id)).reduce((s, u) => s + (u.monthlyCost ?? 0), 0)
+  const officeMonthlyCost = OFFICE_UPGRADES.filter(u => state.purchasedUpgrades.includes(u.id)).reduce((s, u) => s + (u.monthlyCost ?? 0), 0)
+
   // 🔥 OFERTA DA SEMANA — um item rotativo com 30% de desconto (muda toda semana)
-  const allBuyable = [...SCOUT_UPGRADES, ...SERVICE_UPGRADES, ...LIFESTYLE_UPGRADES].filter(u => !state.purchasedUpgrades.includes(u.id))
+  const allBuyable = [...SCOUT_UPGRADES, ...SERVICE_UPGRADES, ...OFFICE_UPGRADES, ...LIFESTYLE_UPGRADES].filter(u => !state.purchasedUpgrades.includes(u.id))
   const dealId = allBuyable.length ? allBuyable[(state.year * 52 + state.week) % allBuyable.length].id : null
 
   function UpgradeRow({ up }: { up: Up }) {
@@ -34,7 +37,10 @@ export default function FinanceScreen() {
               {bought ? '✅ ' : up.flag ? `${up.flag} ` : ''}{up.name}
             </p>
             <p className="text-black/50 text-xs font-medium mt-0.5 leading-relaxed">{up.description}</p>
-            <div className="mt-2"><BrutalTag color={onDeal ? 'white' : C.yellow}>⚡ {up.effect}</BrutalTag></div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <BrutalTag color={onDeal ? 'white' : C.yellow}>⚡ {up.effect}</BrutalTag>
+              {up.monthlyCost && <BrutalTag color={C.orange} textColor="#fff">−{money(up.monthlyCost)}/mês</BrutalTag>}
+            </div>
           </div>
           <div className="shrink-0 text-right">
             {onDeal && <p className="text-black/40 text-[10px] font-bold line-through">{money(up.cost)}</p>}
@@ -75,8 +81,13 @@ export default function FinanceScreen() {
               <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(state.totalEarned)}</p>
             </div>
           </div>
-          {monthlyExpenses > 0 && (
-            <p className="text-white/60 text-xs font-bold mt-3">Custo mensal de clientes: −{moneyFull(monthlyExpenses)}</p>
+          {(monthlyExpenses > 0 || scoutMonthlyCost > 0 || officeMonthlyCost > 0) && (
+            <div className="mt-3 pt-3 border-t-2 border-white/20 space-y-1">
+              {monthlyExpenses > 0 && <p className="text-white/60 text-xs font-bold">👥 Clientes: −{moneyFull(monthlyExpenses)}/mês</p>}
+              {scoutMonthlyCost > 0 && <p className="text-white/60 text-xs font-bold">🔭 Olheiros: −{moneyFull(scoutMonthlyCost)}/mês</p>}
+              {officeMonthlyCost > 0 && <p className="text-white/60 text-xs font-bold">🏢 Escritórios: −{moneyFull(officeMonthlyCost)}/mês</p>}
+              <p className="text-white/90 text-xs font-black pt-1">Total fixo: −{moneyFull(monthlyExpenses + scoutMonthlyCost + officeMonthlyCost)}/mês</p>
+            </div>
           )}
         </BrutalCard>
 
@@ -110,6 +121,18 @@ export default function FinanceScreen() {
           </div>
         </div>
 
+        {/* ESCRITÓRIOS */}
+        <div>
+          <h2 className="font-black text-black text-lg pt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>🌍 ESCRITÓRIOS PELO MUNDO</h2>
+          <p className="text-black/50 text-xs font-bold mb-3">
+            Presença física abre portas — e as melhores propostas chegam pra quem está no lugar certo.
+            Cada escritório tem um custo mensal de manutenção.
+          </p>
+          <div className="space-y-3">
+            {OFFICE_UPGRADES.map(up => <UpgradeRow key={up.id} up={up} />)}
+          </div>
+        </div>
+
         {/* LIFESTYLE & STATUS */}
         <div>
           <h2 className="font-black text-black text-lg pt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>💎 ESTILO DE VIDA & STATUS</h2>
@@ -118,46 +141,6 @@ export default function FinanceScreen() {
             {LIFESTYLE_UPGRADES.map(up => <UpgradeRow key={up.id} up={up} />)}
           </div>
         </div>
-
-        {/* buy a club */}
-        {state.ownedClub ? (
-          <BrutalCard color={C.purple} className="p-5 text-center" shadow={6} onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'club' })}>
-            <p className="text-5xl mb-2">🏟️</p>
-            <p className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{state.ownedClub.name}</p>
-            <p className="text-white/70 text-xs font-bold mt-1">Você já é dono de um clube! Toque para gerenciar.</p>
-          </BrutalCard>
-        ) : (
-          <div>
-            <h2 className="font-black text-black text-lg pt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>🏟️ COMPRAR UM CLUBE</h2>
-            <p className="text-black/50 text-xs font-bold mb-3">Vire DONO de um time. Coloque seus clientes nele, lucre da renda e suba de divisão — o começo do império.</p>
-            <div className="space-y-3">
-              {BUYABLE_CLUBS.map(bc => {
-                const canAfford = state.money >= bc.price
-                return (
-                  <BrutalCard key={bc.id} color={C.purple} className="p-4" shadow={5}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white font-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>{bc.name}</p>
-                        <p className="text-white/60 text-xs font-bold">{bc.city} · {bc.division}ª divisão · {bc.fans.toLocaleString('pt-BR')} torcedores</p>
-                        <p className="text-white/80 text-xs font-medium mt-1 leading-snug italic">{bc.flavor}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mt-3">
-                      <span className="text-white font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>{money(bc.price)}</span>
-                      <BrutalButton
-                        color={canAfford ? C.green : '#C9C2AC'} disabled={!canAfford} full={false}
-                        className="!px-4 !py-2 !text-xs"
-                        onClick={() => dispatch({ type: 'BUY_CLUB', clubId: bc.id, name: bc.name, division: bc.division, price: bc.price, fans: bc.fans })}
-                      >
-                        {canAfford ? 'COMPRAR' : `Falta ${money(bc.price - state.money)}`}
-                      </BrutalButton>
-                    </div>
-                  </BrutalCard>
-                )
-              })}
-            </div>
-          </div>
-        )}
 
         {/* CLUB RELATIONS */}
         {Object.keys(state.clubRelations).length > 0 && (
@@ -228,9 +211,7 @@ export default function FinanceScreen() {
             <BrutalButton color={C.orange} textColor="#fff" onClick={() => {
               if (confirm('Começar um jogo NOVO? Isso apaga seu progresso atual.')) dispatch({ type: 'NEW_GAME' })
             }}>🔄 Novo jogo</BrutalButton>
-            <BrutalButton color="white" textColor={C.black} onClick={() => {
-              localStorage.removeItem('selected-game'); location.reload()
-            }}>🎮 Trocar de jogo</BrutalButton>
+            <BrutalButton color="white" textColor={C.black} onClick={() => location.reload()}>🎮 Trocar de jogo</BrutalButton>
           </div>
         </BrutalCard>
       </div>

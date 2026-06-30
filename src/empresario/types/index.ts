@@ -1,4 +1,5 @@
 export type Screen =
+  | 'lobby'
   | 'intro'
   | 'accident'
   | 'dashboard'
@@ -7,13 +8,17 @@ export type Screen =
   | 'offers'
   | 'finance'
   | 'negotiate'
-  | 'club'
   | 'ranking'
   | 'album'
+  | 'end'
 
 export type Position = 'ATA' | 'MEI' | 'ZAG' | 'LAT' | 'GOL'
 export type Personality = 'leal' | 'ambicioso' | 'difícil' | 'humilde'
-export type Nationality = 'BR' | 'AR' | 'FR' | 'IT' | 'PT' | 'ES' | 'NL' | 'DE' | 'EN'
+export type Nationality =
+  | 'BR' | 'AR' | 'FR' | 'IT' | 'PT' | 'ES' | 'NL' | 'DE' | 'EN'
+  | 'DK' | 'SE' | 'BG' | 'HR' | 'YU' | 'RO' | 'CZ' | 'UA'
+  | 'NG' | 'LR' | 'CM' | 'CO' | 'CL' | 'IE'
+  | 'BE' | 'PL' | 'EG' | 'SN' | 'KR' | 'UY'
 export type PlayerStatus = 'pelada' | 'base' | 'pro' | 'estrela'
 
 export interface Legend {
@@ -78,6 +83,9 @@ export interface Client {
   showcaseMult?: number   // value multiplier built up by playing at YOUR club (vitrine)
   loanReturnYear?: number // if on loan to your club, the year he goes back
   loanOriginClub?: string // the club he came from on loan
+  injuredUntilWeek?: number  // absolute week (year*52+week) when injury ends
+  injuryLevel?: 'leve' | 'moderada' | 'grave'
+  injuryDescription?: string
 }
 
 export interface Bid {
@@ -189,6 +197,43 @@ export interface OfficeUpgrade {
   purchased: boolean
 }
 
+export type OnlineGameMode = 'draft' | 'leilao' | 'draft-leilao'
+
+export interface OnlinePlayer {
+  playerIndex: number
+  playerName: string
+  money: number
+  totalDeals: number
+}
+
+export interface OnlineNewsItem {
+  id: string
+  playerIndex: number
+  playerName: string
+  text: string
+  timestamp: number
+}
+
+export interface OnlineClientInfo {
+  legendId: string
+  nickname: string
+  position: Position
+  nationality: Nationality
+  currentRating: number
+  commissionRate: number
+  repExpiresYear?: number
+  contractClub: string | null
+}
+
+export interface AuctionState {
+  legendId: string
+  bids: Record<number, number>  // playerIndex → bid amount (0 = human, 1+ = CPU rivals)
+  endsAt: number                // Date.now() ms when auction closes
+  closed: boolean
+  sellerIndex?: number          // set when selling a rep contract (not a market legend)
+  cpuBidderRivalIndices?: number[] // indices into rivalAgents for CPU mode (parallel to bids 1, 2, 3…)
+}
+
 export interface GameState {
   screen: Screen
   year: number
@@ -214,7 +259,6 @@ export interface GameState {
   nemesisShown: boolean   // whether the nemesis backstory was shown
   nemesisAlert: NemesisAlert | null // pending alert to show the player
   negotiationLog: NegotiationLogEntry[] // deals — yours and the rival's
-  ownedClub: OwnedClub | null
   suspicion: number       // 0–100 — how dirty your dealings look
   clubRelations: Record<string, number> // club name → relationship (-100..100)
   awards: number          // times you won Empresário do Ano
@@ -229,4 +273,20 @@ export interface GameState {
   weeklyMissionBaseline: number      // metric snapshot at the start of this week
   weeklyMissionClaimed: boolean      // already claimed this week's reward?
   narrative: string[]     // log of key moments
+  // ── online ──
+  onlineMode: 'cpu' | 'online'
+  roomCode: string
+  isHost: boolean
+  playerNames: string[]
+  youIndex: number
+  onlineGameMode: OnlineGameMode | null
+  draftTurn: number         // playerIndex whose turn it is to sign
+  draftPicksDone: number    // total picks done (drives snake order)
+  draftWindowActive: boolean // week advance blocked while draft/leilão window is open
+  currentAuction: AuctionState | null
+  onlineTakenLegends: Record<string, { playerIndex: number; playerName: string }>
+  onlinePlayers: OnlinePlayer[]
+  onlinePresence: number[]
+  onlineNews: OnlineNewsItem[]
+  onlinePlayerRosters: Record<number, OnlineClientInfo[]>
 }
