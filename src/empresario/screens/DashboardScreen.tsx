@@ -257,14 +257,6 @@ export default function DashboardScreen() {
 
         {/* ── NAV GRID (menus primeiro, antes da carteira) ── */}
         <div className="grid grid-cols-2 gap-3 pt-1">
-          {!isStructured && (
-            <BrutalCard color={C.teal} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'scouts' })}>
-              <p className="text-3xl mb-1">🔭</p>
-              <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>RADAR</p>
-              <p className="text-black/60 text-xs font-bold">Descobrir lendas</p>
-            </BrutalCard>
-          )}
-
           <BrutalCard color={C.pink} className="p-4 relative" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'offers' })}>
             {alerts > 0 && (
               <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black text-white text-xs font-black flex items-center justify-center border-2 border-white">
@@ -301,7 +293,7 @@ export default function DashboardScreen() {
             return (
               <BrutalCard
                 color={locked ? C.orange : C.black}
-                className={`p-4${isStructured ? ' col-span-2' : ''}`}
+                className="p-4 col-span-2"
                 onClick={() => !locked && dispatch({ type: 'ADVANCE_WEEK' })}
               >
                 <p className="text-3xl mb-1">{locked ? '🔒' : '⏩'}</p>
@@ -375,7 +367,7 @@ export default function DashboardScreen() {
           <BrutalCard color={C.creamDark} className="p-7 text-center">
             <p className="text-5xl mb-3">🔭</p>
             <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>NENHUM CLIENTE AINDA</p>
-            <p className="text-black/50 text-sm mt-1 font-medium">Vá ao Radar e assine as futuras lendas antes de todo mundo.</p>
+            <p className="text-black/50 text-sm mt-1 font-medium">Assine as futuras lendas antes de todo mundo.</p>
           </BrutalCard>
         ) : (
           <div className="space-y-3">
