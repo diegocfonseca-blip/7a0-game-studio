@@ -36,7 +36,7 @@ const INITIAL_STATE: GameState = {
   screen: 'lobby',
   year: 1993,
   week: 1,
-  money: 8000,
+  money: 100_000,
   reputation: 10,
   clients: [],
   pendingOffers: [],
@@ -297,10 +297,9 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       return { ...state, screen: action.screen }
 
     case 'INIT_ROOM': {
-      // CPU mode: build rivals from pool (Cambalhota always first)
-      const numCpu = action.numCpuAgents ?? 3
+      // CPU mode: always use the full pool — Cambalhota always bids, others rotate per auction
       const cpuRivals: RivalAgent[] = action.onlineMode === 'cpu'
-        ? CPU_AGENT_POOL.slice(0, Math.max(3, Math.min(numCpu + 1, CPU_AGENT_POOL.length)))
+        ? [...CPU_AGENT_POOL]
         : INITIAL_STATE.rivalAgents
       return {
         ...INITIAL_STATE,
@@ -1451,9 +1450,16 @@ export function EmpresarioProvider({ children }: { children: ReactNode }) {
         (parsed.year ?? 1993) > 1993 || (parsed.totalDeals ?? 0) > 0
       // Resume an in-progress game straight at the dashboard. Always reset
       // online fields on reload — room sessions don't survive a refresh.
+      // Migrate rivals: merge full pool with any saved clients/wealth by agent id
+      const storedRivals: RivalAgent[] = parsed.rivalAgents ?? []
+      const mergedRivals = CPU_AGENT_POOL.map(agent => {
+        const s = storedRivals.find(r => r.id === agent.id)
+        return s ? { ...agent, clients: s.clients, wealth: s.wealth } : agent
+      })
       initial = {
         ...INITIAL_STATE,
         ...parsed,
+        rivalAgents: mergedRivals,
         nemesisAlert: null,
         onlineMode: 'cpu',
         roomCode: '',
