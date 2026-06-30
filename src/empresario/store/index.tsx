@@ -2,7 +2,7 @@ import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
 import type { GameState, Screen, Client, ClubOffer, Bid, OnlinePlayer, OnlineGameMode, AuctionState } from '../types'
 import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getUnlockedNationalities, LEGENDS } from '../data/legends'
-import { generateWeeklyEvent, generateAmbientNews } from '../data/events'
+import { generateWeeklyEvent, generateAmbientNews, SCOUT_UPGRADES } from '../data/events'
 import type { ClientLite } from '../data/events'
 import { CLUBS, NEMESIS } from '../data/clubs'
 import { GLORIES, genericGlory } from '../data/glory'
@@ -101,6 +101,7 @@ type Action =
   | { type: 'AUCTION_SET'; auction: AuctionState | null }
   | { type: 'AUCTION_BID'; playerIndex: number; amount: number }
   | { type: 'AUCTION_WIN'; legendId: string; bidAmount: number }
+  | { type: 'REP_SOLD'; legendId: string; saleAmount: number }
 
 function generateClubOffer(client: Client, year: number, clubRelations: Record<string, number> = {}): ClubOffer | null {
   const rating = getCurrentRating(getLegendById(client.legendId)!, year)
@@ -406,9 +407,15 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         })
       }
 
-      // Weekly expenses — just what you pay your clients to represent them
-      const weeklyExpense = activeClients.reduce((sum, c) => sum + c.monthlyFee / 4, 0)
+      // Weekly expenses: client fees + scout monthly retainers (paid monthly = every 4 weeks)
+      const scoutWeeklyCost = SCOUT_UPGRADES
+        .filter(u => state.purchasedUpgrades.includes(u.id))
+        .reduce((sum, u) => sum + (u.monthlyCost ?? 0) / 4, 0)
+      const weeklyExpense = activeClients.reduce((sum, c) => sum + c.monthlyFee / 4, 0) + scoutWeeklyCost
       let runningMoney = state.money - weeklyExpense
+      if (scoutWeeklyCost > 0 && actualWeek % 4 === 0) {
+        extraNarrative.push(`🔭 Mensalidade dos olheiros: -R$${Math.round(scoutWeeklyCost * 4).toLocaleString('pt-BR')}`)
+      }
 
       // Club offers (tick down + maybe generate)
       const newOffers = [...state.pendingOffers.map(o => ({ ...o, expiresInWeeks: o.expiresInWeeks - 1 }))]
@@ -915,6 +922,28 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         currentAuction: null,
         narrative: [...state.narrative,
           `🏆 LEILÃO GANHO! Você venceu o leilão de ${legend.nickname} com lance de R$${action.bidAmount.toLocaleString('pt-BR')}. 15% de comissão negociada.`,
+          ...(xpr.line ? [xpr.line] : []),
+        ],
+      }
+    }
+
+    case 'REP_SOLD': {
+      const sold = state.clients.find(c => c.legendId === action.legendId)
+      const nick = sold?.nickname ?? 'cliente'
+      const xpr = applyXp(state, 40)
+      return {
+        ...state,
+        money: state.money + action.saleAmount,
+        totalEarned: state.totalEarned + action.saleAmount,
+        totalDeals: state.totalDeals + 1,
+        xp: xpr.xp,
+        reputation: Math.min(100, state.reputation + xpr.repBonus),
+        clients: state.clients.filter(c => c.legendId !== action.legendId),
+        weeklyExpenses: state.clients.filter(c => c.legendId !== action.legendId).reduce((s, c) => s + c.monthlyFee / 4, 0),
+        currentAuction: null,
+        negotiationLog: [{ who: 'voce' as const, year: state.year, text: `💼 Você vendeu o contrato de ${nick} por R$${action.saleAmount.toLocaleString('pt-BR')}` }, ...state.negotiationLog].slice(0, 30),
+        narrative: [...state.narrative,
+          `💼 CONTRATO VENDIDO! ${nick} trocou de agente — você embolsou R$${action.saleAmount.toLocaleString('pt-BR')}.`,
           ...(xpr.line ? [xpr.line] : []),
         ],
       }

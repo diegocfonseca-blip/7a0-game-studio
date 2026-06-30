@@ -36,7 +36,9 @@ export default function ScoutsScreen() {
   const signedIds = state.clients.map(c => c.legendId)
   const unlockedNats = getUnlockedNationalities(state.purchasedUpgrades)
   const lockedRegions = getLockedRegions(state.purchasedUpgrades)
-  const available = getAvailableLegends(state.year, signedIds, unlockedNats, state.lostLegends)
+  // In online mode, exclude legends already taken by other players
+  const onlineTakenIds = state.onlineMode === 'online' ? Object.keys(state.onlineTakenLegends) : []
+  const available = getAvailableLegends(state.year, [...signedIds, ...onlineTakenIds], unlockedNats, state.lostLegends)
 
   // live prediction reacts to BOTH commission and contract length
   const liveMax = selected ? getMaxAcceptable(selected, state.reputation, state.year) : 0
@@ -56,16 +58,21 @@ export default function ScoutsScreen() {
   const minRep = selected ? getMinReputationToSign(selected, state.year) : 0
   const repBlocked = selected ? state.reputation < minRep : false
 
-  // Deterministic weekly pool (hot targets are pinned separately, so exclude them here)
+  // Online mode: show full pool sorted by rating (up to 20). Solo: weekly rotation of 6.
   const seed = state.year * 137 + state.week * 31
-  const pool = [...available]
-    .filter(l => !(l.id in state.hotTargets))
-    .sort((a, b) => {
-      const ha = Math.abs(Math.sin(seed + a.id.charCodeAt(0) * 7.7 + a.id.charCodeAt(1) * 3.3))
-      const hb = Math.abs(Math.sin(seed + b.id.charCodeAt(0) * 7.7 + b.id.charCodeAt(1) * 3.3))
-      return ha - hb
-    })
-    .slice(0, 6)
+  const pool = state.onlineMode === 'online'
+    ? [...available]
+        .filter(l => !(l.id in state.hotTargets))
+        .sort((a, b) => getCurrentRating(b, state.year) - getCurrentRating(a, state.year))
+        .slice(0, 20)
+    : [...available]
+        .filter(l => !(l.id in state.hotTargets))
+        .sort((a, b) => {
+          const ha = Math.abs(Math.sin(seed + a.id.charCodeAt(0) * 7.7 + a.id.charCodeAt(1) * 3.3))
+          const hb = Math.abs(Math.sin(seed + b.id.charCodeAt(0) * 7.7 + b.id.charCodeAt(1) * 3.3))
+          return ha - hb
+        })
+        .slice(0, 6)
 
   function openPlayer(legend: Legend) {
     // First time you lay eyes on this talent → reveal animation + album/XP
@@ -128,6 +135,11 @@ export default function ScoutsScreen() {
     dispatch({ type: 'AUCTION_SET', auction: { legendId, bids: {}, endsAt: Date.now() + 60_000, closed: false } })
   }
 
+  function startRepAuction(legendId: string) {
+    broadcast('auction_start', { legendId, sellerIndex: state.youIndex })
+    dispatch({ type: 'AUCTION_SET', auction: { legendId, bids: {}, endsAt: Date.now() + 60_000, closed: false, sellerIndex: state.youIndex } })
+  }
+
   function placeBid() {
     if (!auction || bidAmount <= 0 || state.money < bidAmount) return
     broadcast('auction_bid', { playerIndex: state.youIndex, amount: bidAmount })
@@ -136,18 +148,32 @@ export default function ScoutsScreen() {
 
   function closeAuction() {
     if (!auction) return
+    const sellerIdx = auction.sellerIndex
+    const isRepTransfer = sellerIdx !== undefined
     const entries = Object.entries(auction.bids).map(([k, v]) => ({ idx: Number(k), amount: v }))
     if (entries.length === 0) {
-      broadcast('auction_close', { legendId: auction.legendId, winnerIndex: -1, winnerAmount: 0 })
+      broadcast('auction_close', { legendId: auction.legendId, winnerIndex: -1, winnerAmount: 0, sellerIndex: sellerIdx ?? -1 })
       dispatch({ type: 'AUCTION_SET', auction: null })
       return
     }
     const winner = entries.reduce((a, b) => b.amount > a.amount ? b : a)
-    broadcast('auction_close', { legendId: auction.legendId, winnerIndex: winner.idx, winnerAmount: winner.amount })
-    if (winner.idx === state.youIndex) {
-      dispatch({ type: 'AUCTION_WIN', legendId: auction.legendId, bidAmount: winner.amount })
+    broadcast('auction_close', { legendId: auction.legendId, winnerIndex: winner.idx, winnerAmount: winner.amount, sellerIndex: sellerIdx ?? -1 })
+    if (isRepTransfer) {
+      if (winner.idx === sellerIdx) {
+        dispatch({ type: 'AUCTION_SET', auction: null })
+      } else if (winner.idx === state.youIndex) {
+        dispatch({ type: 'AUCTION_WIN', legendId: auction.legendId, bidAmount: winner.amount })
+      } else if (sellerIdx === state.youIndex) {
+        dispatch({ type: 'REP_SOLD', legendId: auction.legendId, saleAmount: winner.amount })
+      } else {
+        dispatch({ type: 'AUCTION_SET', auction: null })
+      }
     } else {
-      dispatch({ type: 'AUCTION_SET', auction: null })
+      if (winner.idx === state.youIndex) {
+        dispatch({ type: 'AUCTION_WIN', legendId: auction.legendId, bidAmount: winner.amount })
+      } else {
+        dispatch({ type: 'AUCTION_SET', auction: null })
+      }
     }
   }
 
@@ -193,8 +219,15 @@ export default function ScoutsScreen() {
           <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}>
             <BrutalCard color={C.purple} className="p-5" shadow={6}>
               <div className="flex items-center justify-between mb-3">
-                <BrutalPill color={C.yellow} textColor={C.black}>🔨 LEILÃO ATIVO</BrutalPill>
-                {state.isHost && !auction.closed && (
+                <div>
+                  <BrutalPill color={C.yellow} textColor={C.black}>🔨 LEILÃO ATIVO</BrutalPill>
+                  {auction.sellerIndex !== undefined && (
+                    <p className="text-white/50 text-[10px] font-black mt-1">
+                      Vendedor: {state.playerNames[auction.sellerIndex] ?? 'Agente'}
+                    </p>
+                  )}
+                </div>
+                {(state.isHost || auction.sellerIndex === state.youIndex) && !auction.closed && (
                   <button onClick={closeAuction}
                     className="border-2 border-black rounded-lg px-3 py-1 text-xs font-black bg-white text-black">
                     Fechar leilão
@@ -272,6 +305,41 @@ export default function ScoutsScreen() {
         {isOnlineLeilao && !auction && !state.isHost && (
           <BrutalCard color={C.creamDark} className="p-4 text-center" shadow={2}>
             <p className="text-black/60 font-bold text-sm">⏳ Aguardando o host iniciar o próximo leilão...</p>
+          </BrutalCard>
+        )}
+
+        {/* ── MERCADO: vender contrato de representação ── */}
+        {isOnlineLeilao && !auction && state.clients.length > 0 && (
+          <BrutalCard color={C.black} className="p-4" shadow={4}>
+            <p className="text-white font-black text-sm mb-1" style={{ fontFamily: 'Oswald, sans-serif' }}>
+              💼 SEUS CONTRATOS — VENDER REPRESENTAÇÃO
+            </p>
+            <p className="text-white/50 text-xs font-bold mb-3">
+              Lance um contrato no mercado. Todos os agentes participam do leilão — você embolsa o maior lance.
+            </p>
+            <div className="space-y-2">
+              {state.clients.map(client => (
+                <div key={client.legendId}
+                     className="bg-white/10 border-2 border-white/20 rounded-xl p-3 flex items-center gap-3">
+                  <span className="text-xl">{FLAG[client.nationality]}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-white text-sm truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                      {client.nickname}
+                    </p>
+                    <p className="text-white/50 text-xs font-bold">
+                      {client.position} · {money(client.currentValue)} · {client.commissionRate}%
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => startRepAuction(client.legendId)}
+                    className="border-[2px] border-black rounded-lg px-3 py-1.5 text-xs font-black shrink-0"
+                    style={{ backgroundColor: C.yellow, color: '#000' }}
+                  >
+                    🔨 Leiloar
+                  </button>
+                </div>
+              ))}
+            </div>
           </BrutalCard>
         )}
 

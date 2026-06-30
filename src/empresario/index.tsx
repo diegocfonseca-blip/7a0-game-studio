@@ -74,7 +74,7 @@ function EmpresarioRouter() {
       dispatch({ type: 'DRAFT_ADVANCE', picksDone: payload.picksDone })
     })
 
-    // ── Leilão: host started an auction ──────────────────────────────────────
+    // ── Leilão: alguém abriu leilão (mercado ou venda de contrato) ───────────
     ch.on('broadcast', { event: 'auction_start' }, ({ payload }) => {
       dispatch({
         type: 'AUCTION_SET',
@@ -83,6 +83,7 @@ function EmpresarioRouter() {
           bids: {},
           endsAt: Date.now() + 60_000,
           closed: false,
+          sellerIndex: payload.sellerIndex !== undefined ? Number(payload.sellerIndex) : undefined,
         },
       })
     })
@@ -92,12 +93,26 @@ function EmpresarioRouter() {
       dispatch({ type: 'AUCTION_BID', playerIndex: payload.playerIndex, amount: payload.amount })
     })
 
-    // ── Leilão: host closed the auction ──────────────────────────────────────
+    // ── Leilão: fechou — mercado ou venda de contrato ─────────────────────────
     ch.on('broadcast', { event: 'auction_close' }, ({ payload }) => {
-      if (payload.winnerIndex === state.youIndex) {
-        dispatch({ type: 'AUCTION_WIN', legendId: payload.legendId, bidAmount: payload.winnerAmount })
+      const sellerIdx = payload.sellerIndex as number
+      const isRepTransfer = sellerIdx >= 0
+      if (isRepTransfer) {
+        if (payload.winnerIndex === sellerIdx) {
+          dispatch({ type: 'AUCTION_SET', auction: null })
+        } else if (payload.winnerIndex === state.youIndex) {
+          dispatch({ type: 'AUCTION_WIN', legendId: payload.legendId, bidAmount: payload.winnerAmount })
+        } else if (sellerIdx === state.youIndex) {
+          dispatch({ type: 'REP_SOLD', legendId: payload.legendId, saleAmount: payload.winnerAmount })
+        } else {
+          dispatch({ type: 'AUCTION_SET', auction: null })
+        }
       } else {
-        dispatch({ type: 'AUCTION_SET', auction: null })
+        if (payload.winnerIndex === state.youIndex) {
+          dispatch({ type: 'AUCTION_WIN', legendId: payload.legendId, bidAmount: payload.winnerAmount })
+        } else {
+          dispatch({ type: 'AUCTION_SET', auction: null })
+        }
       }
     })
 

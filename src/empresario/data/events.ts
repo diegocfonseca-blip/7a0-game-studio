@@ -436,22 +436,22 @@ export function generateAmbientNews(
 export const SCOUT_UPGRADES = [
   { id: 'scout-FR', region: 'FR', name: 'Olheiro na França', flag: '🇫🇷',
     description: 'Uma rede de contatos no futebol francês para garimpar talentos antes de qualquer um.',
-    cost: 6000, effect: 'Revela lendas francesas: Zidane, Henry, Drogba' },
+    cost: 6000, monthlyCost: 1200, effect: 'Revela lendas francesas: Zidane, Henry, Drogba' },
   { id: 'scout-IT', region: 'IT', name: 'Olheiro na Itália', flag: '🇮🇹',
     description: 'Olhos dentro das categorias de base do calcio italiano.',
-    cost: 7000, effect: 'Revela lendas italianas: Totti e cia' },
+    cost: 7000, monthlyCost: 1400, effect: 'Revela lendas italianas: Totti e cia' },
   { id: 'scout-IB', region: 'IB', name: 'Olheiro na Ibéria', flag: '🇵🇹',
     description: 'Cobertura de Portugal e Espanha — das ilhas a La Masia.',
-    cost: 9000, effect: 'Revela lendas ibéricas: CR7 e Iniesta' },
+    cost: 9000, monthlyCost: 1800, effect: 'Revela lendas ibéricas: CR7 e Iniesta' },
   { id: 'scout-AR', region: 'AR', name: 'Olheiro na Argentina', flag: '🇦🇷',
     description: 'Contatos nas divisões de base argentinas. Onde nasce a magia.',
-    cost: 8000, effect: 'Revela lendas argentinas: La Pulga e a nova geração' },
+    cost: 8000, monthlyCost: 1600, effect: 'Revela lendas argentinas: La Pulga e a nova geração' },
   { id: 'scout-NO', region: 'NO', name: 'Olheiro na Europa do Norte', flag: '🇳🇱',
     description: 'Rede pela Holanda, Suécia e Alemanha.',
-    cost: 7000, effect: 'Revela lendas do norte europeu: Ibra, Kluivert, Ballack, Kahn' },
+    cost: 7000, monthlyCost: 1400, effect: 'Revela lendas do norte europeu: Ibra, Kluivert, Ballack, Kahn' },
   { id: 'scout-EN', region: 'EN', name: 'Olheiro na Inglaterra', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     description: 'Contatos na terra do futebol — das academias inglesas.',
-    cost: 8000, effect: 'Revela lendas inglesas: Beckham, Gerrard, Lampard, Owen' },
+    cost: 8000, monthlyCost: 1600, effect: 'Revela lendas inglesas: Beckham, Gerrard, Lampard, Owen' },
 ]
 
 // ─── SERVIÇOS (ligados aos eventos) ─────────────────────────────

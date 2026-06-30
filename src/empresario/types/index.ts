@@ -207,6 +207,7 @@ export interface AuctionState {
   bids: Record<number, number>  // playerIndex → bid amount
   endsAt: number                // Date.now() ms when auction closes
   closed: boolean
+  sellerIndex?: number          // set when selling a rep contract (not a market legend)
 }
 
 export interface GameState {
