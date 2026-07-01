@@ -2,7 +2,7 @@ import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
 import type { GameState, Screen, Client, ClubOffer, Bid, OnlinePlayer, OnlineGameMode, AuctionState, OnlineNewsItem, OnlineClientInfo, RivalAgent, GameEvent } from '../types'
 import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getRetirementYear, retirementNarrative, LEGENDS } from '../data/legends'
-import { generateWeeklyEvent, generateAmbientNews, SCOUT_UPGRADES, OFFICE_UPGRADES } from '../data/events'
+import { generateWeeklyEvent, generateAmbientNews, SCOUT_UPGRADES, OFFICE_UPGRADES, getUnlockedClubCountries } from '../data/events'
 import type { ClientLite } from '../data/events'
 import { CLUBS, NEMESIS } from '../data/clubs'
 import { GLORIES, genericGlory } from '../data/glory'
@@ -131,7 +131,7 @@ type Action =
   | { type: 'PLAYER_ROSTER_UPDATE'; playerIndex: number; clients: OnlineClientInfo[] }
   | { type: 'PUT_IN_POOL'; legendId: string }
 
-function generateClubOffer(client: Client, year: number, clubRelations: Record<string, number> = {}): ClubOffer | null {
+function generateClubOffer(client: Client, year: number, clubRelations: Record<string, number> = {}, purchasedUpgrades: string[] = []): ClubOffer | null {
   const rating = getCurrentRating(getLegendById(client.legendId)!, year)
   if (rating < 60 && Math.random() > 0.3) return null
   if (rating < 75 && Math.random() > 0.6) return null
@@ -139,7 +139,9 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
   const value = getMarketValue(getLegendById(client.legendId)!, year)
   if (value < 50000) return null
 
+  const unlockedCountries = getUnlockedClubCountries(purchasedUpgrades)
   const eligibleClubs = CLUBS.filter(c => {
+    if (!unlockedCountries.includes(c.country)) return false
     if (rating >= 85) return c.tier === 1
     if (rating >= 75) return c.tier <= 2
     return c.tier >= 2
@@ -667,7 +669,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         const pool = [...eligible].sort(() => Math.random() - 0.5)
         for (let i = 0; i < maxOffers && i < pool.length; i++) {
           if (Math.random() < chance) {
-            const offer = generateClubOffer(pool[i], newYear, state.clubRelations)
+            const offer = generateClubOffer(pool[i], newYear, state.clubRelations, state.purchasedUpgrades)
             if (offer) newOffers.push(offer)
           }
         }

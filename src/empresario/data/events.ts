@@ -551,3 +551,25 @@ export const LIFESTYLE_UPGRADES = [
 
 export const UPGRADE_OPTIONS = [...SCOUT_UPGRADES, ...SERVICE_UPGRADES, ...OFFICE_UPGRADES, ...LIFESTYLE_UPGRADES]
 export const ALL_MONTHLY_UPGRADES = [...SCOUT_UPGRADES, ...OFFICE_UPGRADES]
+
+// Países desbloqueados para receber propostas de clubes
+// Sem escritório → apenas clubes brasileiros, holandeses e alemães (base)
+const OFFICE_COUNTRY_MAP: Record<string, string[]> = {
+  'office-sp':     ['Brasil'],
+  'office-rio':    ['Brasil'],
+  'office-lisboa': ['Portugal'],
+  'office-madrid': ['Espanha'],
+  'office-milan':  ['Itália'],
+  'office-paris':  ['França'],
+  'office-london': ['Inglaterra'],
+}
+const BASE_CLUB_COUNTRIES = ['Brasil', 'Holanda', 'Alemanha']
+
+export function getUnlockedClubCountries(purchasedUpgrades: string[]): string[] {
+  const countries = new Set(BASE_CLUB_COUNTRIES)
+  for (const up of purchasedUpgrades) {
+    const mapped = OFFICE_COUNTRY_MAP[up]
+    if (mapped) mapped.forEach(c => countries.add(c))
+  }
+  return [...countries]
+}
