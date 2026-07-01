@@ -57,6 +57,7 @@ const INITIAL_STATE: GameState = {
   purchasedUpgrades: [],
   rejectionCounts: {},
   lostLegends: [],
+  pooledLegends: [],
   nemesisTaken: [],
   nemesisShown: false,
   nemesisAlert: null,
@@ -128,6 +129,7 @@ type Action =
   | { type: 'DRAFT_WINDOW_SET'; active: boolean }
   | { type: 'ONLINE_NEWS_ADD'; item: OnlineNewsItem }
   | { type: 'PLAYER_ROSTER_UPDATE'; playerIndex: number; clients: OnlineClientInfo[] }
+  | { type: 'PUT_IN_POOL'; legendId: string }
 
 function generateClubOffer(client: Client, year: number, clubRelations: Record<string, number> = {}): ClubOffer | null {
   const rating = getCurrentRating(getLegendById(client.legendId)!, year)
@@ -827,14 +829,16 @@ function empresarioReducer(state: GameState, action: Action): GameState {
 
         const allCpuSignedIds = new Set(cpuRivalAgents.flatMap(r => r.clients))
         const playerSignedIds = new Set(activeClients.map(c => c.legendId))
-        // Mesma pool pré-emergência que o player vê — todos competem nas mesmas lendas
+        // Mesma pool que o player vê — inclui pooledLegends (devolvidos ao leilão/draft)
+        const pooledIds = state.pooledLegends
         const availableForCpu = LEGENDS.filter(l =>
-          newYear >= l.emergenceYear - 2 &&
-          newYear <= l.emergenceYear &&
-          l.birthYear <= newYear - 10 &&
           !allCpuSignedIds.has(l.id) &&
           !playerSignedIds.has(l.id) &&
-          !lostLegends.includes(l.id)
+          !lostLegends.includes(l.id) &&
+          (
+            pooledIds.includes(l.id) ||
+            (newYear >= l.emergenceYear - 2 && newYear <= l.emergenceYear && l.birthYear <= newYear - 10)
+          )
         ).sort((a, b) => getCurrentRating(b, newYear) - getCurrentRating(a, newYear))
 
         if (isDraftTurn && availableForCpu.length > 0) {
@@ -1327,22 +1331,42 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       }
     }
 
+    case 'PUT_IN_POOL': {
+      const client = state.clients.find(c => c.legendId === action.legendId)
+      if (!client) return state
+      const mode = state.onlineGameMode
+      const modeLabel = mode === 'draft' ? 'draft' : 'leilão'
+      return {
+        ...state,
+        clients: state.clients.filter(c => c.legendId !== action.legendId),
+        pooledLegends: state.pooledLegends.includes(action.legendId)
+          ? state.pooledLegends
+          : [...state.pooledLegends, action.legendId],
+        weeklyExpenses: state.clients
+          .filter(c => c.legendId !== action.legendId)
+          .reduce((s, c) => s + (c.monthlyFee ?? 0), 0),
+        narrative: [...state.narrative, `🔄 Você colocou ${client.nickname} de volta no ${modeLabel}. Outro agente pode assinar.`],
+      }
+    }
+
     case 'DIRTY_ACTION': {
       const nowAbsDirty = state.year * 52 + state.week
       function applyDirty(nextState: GameState): GameState {
         if (nextState.suspicion < 100) return nextState
         // 💥 SUSPEITA 100% — perda de todos os clientes, suspensão de 8 semanas
         const releasedNicknames = nextState.clients.map(c => c.nickname)
+        const releasedIds = nextState.clients.map(c => c.legendId)
         return {
           ...nextState,
           suspicion: 0,
           clients: [],
           weeklyExpenses: 0,
           suspendedUntilWeek: nowAbsDirty + 8,
-          nemesisTaken: [...nextState.nemesisTaken, ...nextState.clients.map(c => c.legendId).filter(id => !nextState.nemesisTaken.includes(id))],
+          pooledLegends: [...new Set([...nextState.pooledLegends, ...releasedIds])],
+          nemesisTaken: [...nextState.nemesisTaken, ...releasedIds.filter(id => !nextState.nemesisTaken.includes(id))],
           onlineTakenLegends: {},
           narrative: [...nextState.narrative,
-            `🚨 INVESTIGAÇÃO FEDERAL! A federação confiscou sua licença. ${releasedNicknames.join(', ')} voltaram ao mercado — você está SUSPENSO por 8 semanas e só pode assistir os leilões.`,
+            `🚨 INVESTIGAÇÃO FEDERAL! A federação confiscou sua licença. ${releasedNicknames.join(', ')} voltaram ao ${nextState.onlineGameMode === 'draft' ? 'draft' : 'leilão'} — você está SUSPENSO por 8 semanas e só pode assistir.`,
           ],
         }
       }
@@ -1447,6 +1471,7 @@ export function EmpresarioProvider({ children }: { children: ReactNode }) {
         onlinePlayers: [],
         onlinePresence: [],
         suspendedUntilWeek: parsed.suspendedUntilWeek ?? 0,
+        pooledLegends: parsed.pooledLegends ?? [],
         screen: hasProgress ? 'dashboard' : 'lobby',
       }
     } catch {

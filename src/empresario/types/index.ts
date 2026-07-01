@@ -253,6 +253,7 @@ export interface GameState {
   purchasedUpgrades: string[]
   rejectionCounts: Record<string, number> // how many times each legend said no to you
   lostLegends: string[]   // legends who rejected twice — gone forever
+  pooledLegends: string[] // legends returned to the next auction/draft pool
   nemesisTaken: string[]  // legends the rival agent snatched
   nemesisShown: boolean   // whether the nemesis backstory was shown
   nemesisAlert: NemesisAlert | null // pending alert to show the player

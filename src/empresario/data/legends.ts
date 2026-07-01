@@ -2036,14 +2036,20 @@ export function getAvailableLegends(
   signedIds: string[],
   unlockedNats: Nationality[],
   lostLegends: string[] = [],
+  pooledLegends: string[] = [],
 ): Legend[] {
   return LEGENDS.filter(l =>
-    year >= l.emergenceYear - 2 &&
-    year <= l.emergenceYear &&   // some da pool quando fica famoso
-    l.birthYear <= year - 10 &&
     !signedIds.includes(l.id) &&
     !lostLegends.includes(l.id) &&
-    unlockedNats.includes(l.nationality)
+    (
+      pooledLegends.includes(l.id) ||   // devolvido ao leilão/draft pelo usuário ou suspensão
+      (
+        year >= l.emergenceYear - 2 &&
+        year <= l.emergenceYear &&
+        l.birthYear <= year - 10 &&
+        unlockedNats.includes(l.nationality)
+      )
+    )
   )
 }
 

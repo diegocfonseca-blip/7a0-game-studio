@@ -661,9 +661,17 @@ export default function DashboardScreen() {
                     </BrutalCard>
                   )}
 
-                  <div className="mt-2">
+                  <div className="mt-2 grid grid-cols-2 gap-2">
                     <BrutalButton color={C.green} onClick={() => { setDetail(null); dispatch({ type: 'SET_SCREEN', screen: 'offers' }) }}>
-                      Ver propostas e negociar →
+                      Ver propostas →
+                    </BrutalButton>
+                    <BrutalButton color={C.orange} textColor="#fff" onClick={() => {
+                      if (confirm(`Colocar ${c.nickname} de volta no ${state.onlineGameMode === 'draft' ? 'draft' : 'leilão'}? Outro agente pode assinar.`)) {
+                        dispatch({ type: 'PUT_IN_POOL', legendId: c.legendId })
+                        setDetail(null)
+                      }
+                    }}>
+                      {state.onlineGameMode === 'draft' ? '📋 Colocar no Draft' : '🔨 Colocar no Leilão'}
                     </BrutalButton>
                   </div>
                 </BrutalCard>

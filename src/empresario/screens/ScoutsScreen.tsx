@@ -40,7 +40,7 @@ export default function ScoutsScreen() {
   const lockedRegions = getLockedRegions(state.purchasedUpgrades)
   // Exclude legends already taken by other players (online or CPU)
   const takenIds = Object.keys(state.onlineTakenLegends)
-  const available = getAvailableLegends(state.year, [...signedIds, ...takenIds], unlockedNats, state.lostLegends)
+  const available = getAvailableLegends(state.year, [...signedIds, ...takenIds], unlockedNats, state.lostLegends, state.pooledLegends)
   const nowAbsScouts = state.year * 52 + state.week
   const isSuspended = state.suspendedUntilWeek > nowAbsScouts
 
