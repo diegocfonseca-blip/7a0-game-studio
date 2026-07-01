@@ -140,10 +140,12 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
   if (value < 50000) return null
 
   const unlockedCountries = getUnlockedClubCountries(purchasedUpgrades)
+  // Budget cap: club can only bid if they can afford at least 40% of player's value
   const eligibleClubs = CLUBS.filter(c => {
     if (!unlockedCountries.includes(c.country)) return false
     if (rating >= 85) return c.tier === 1
     if (rating >= 75) return c.tier <= 2
+    if (c.budget < value * 0.4) return false  // can't afford even a discounted offer
     return c.tier >= 2
   })
 
@@ -156,6 +158,8 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
     const relBonus = 1 + (rel / 100) * 0.5 // -50%..+50% based on relationship
     return Math.round(amt * (0.01 + Math.random() * 0.03) * relBonus / 1000) * 1000
   }
+  // Each club's offer is limited to 80% of their annual budget
+  const clubOfferCap = (c: typeof eligibleClubs[0]) => Math.round(c.budget * 0.8 / 1000) * 1000
 
   // Market heat: the hotter the player, the more clubs fight (and likely more come).
   // A FREE AGENT (no club, no transfer fee) attracts even more interest.
@@ -171,7 +175,8 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
     const chosen = shuffled.slice(0, count)
     const bidders: Bid[] = chosen
       .map(c => {
-        const amount = Math.round(value * (0.75 + Math.random() * 0.7) / 1000) * 1000
+        const raw = Math.round(value * (0.75 + Math.random() * 0.7) / 1000) * 1000
+        const amount = Math.min(raw, clubOfferCap(c))
         return { clubName: c.name, clubCountry: c.country, amount, luva: luvaOf(amount, c.name) }
       })
       .sort((a, b) => b.amount - a.amount)
@@ -194,7 +199,8 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
   }
 
   const club = eligibleClubs[Math.floor(Math.random() * eligibleClubs.length)]
-  const offerAmount = Math.round(value * (0.8 + Math.random() * 0.6) / 1000) * 1000
+  const raw = Math.round(value * (0.8 + Math.random() * 0.6) / 1000) * 1000
+  const offerAmount = Math.min(raw, clubOfferCap(club))
 
   return {
     id: `offer-${Date.now()}-${Math.random()}`,
