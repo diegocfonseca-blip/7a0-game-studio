@@ -555,7 +555,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'baggio', name: 'Roberto Baggio', nickname: 'Divin Codino', position: 'ATA', nationality: 'IT',
-    birthYear: 1967, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1995, truePotential: 92, currentRating: 84,
+    birthYear: 1967, emergenceYear: 1988, peakYearStart: 1993, peakYearEnd: 1995, truePotential: 92, currentRating: 84,
     personality: 'humilde', status: 'estrela', signingFee: 7000, luva: 9000,
     luvaReason: 'Já é estrela mundial e budista zen. A luva reflete o status de quem já é craque consagrado.',
     monthlyFee: 1800,
@@ -731,7 +731,7 @@ export const LEGENDS: Legend[] = [
   // ─── ITÁLIA ──────────────────────────────────────────────────
   {
     id: 'maldini', name: 'Paolo Maldini', nickname: 'Il Capitano', position: 'LAT', nationality: 'IT',
-    birthYear: 1968, emergenceYear: 1993, peakYearStart: 1994, peakYearEnd: 2007, truePotential: 95, currentRating: 82,
+    birthYear: 1968, emergenceYear: 1988, peakYearStart: 1994, peakYearEnd: 2007, truePotential: 95, currentRating: 82,
     personality: 'leal', status: 'estrela', signingFee: 4000, luva: 6000,
     luvaReason: 'Filho de lenda do Milan. A luva é mais protocolo do que necessidade — ele quer respeito.',
     monthlyFee: 700,
@@ -751,7 +751,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'costacurta', name: 'Alessandro Costacurta', nickname: 'Billy', position: 'ZAG', nationality: 'IT',
-    birthYear: 1966, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1999, truePotential: 88, currentRating: 82,
+    birthYear: 1966, emergenceYear: 1988, peakYearStart: 1993, peakYearEnd: 1999, truePotential: 88, currentRating: 82,
     personality: 'leal', status: 'estrela', signingFee: 2500, luva: 3800,
     luvaReason: 'Sempre na sombra do Baresi, mas sabe que é craque. A luva é o reconhecimento que nunca vem dos jornalistas.',
     monthlyFee: 480,
@@ -887,7 +887,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'schmeichel', name: 'Peter Schmeichel', nickname: 'A Grande Muralha Dinamarquesa', position: 'GOL', nationality: 'DK',
-    birthYear: 1963, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1999, truePotential: 92, currentRating: 86,
+    birthYear: 1963, emergenceYear: 1989, peakYearStart: 1993, peakYearEnd: 1999, truePotential: 92, currentRating: 86,
     personality: 'difícil', status: 'estrela', signingFee: 4500, luva: 7000,
     luvaReason: 'Melhor goleiro do mundo e ele sabe. Grita com todo mundo — até com você.',
     monthlyFee: 820,
@@ -899,7 +899,7 @@ export const LEGENDS: Legend[] = [
   // ─── LESTE EUROPEU ────────────────────────────────────────────
   {
     id: 'stoichkov', name: 'Hristo Stoichkov', nickname: 'O Diabo de Plovdiv', position: 'ATA', nationality: 'BG',
-    birthYear: 1966, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1997, truePotential: 91, currentRating: 86,
+    birthYear: 1966, emergenceYear: 1989, peakYearStart: 1993, peakYearEnd: 1997, truePotential: 91, currentRating: 86,
     personality: 'difícil', status: 'estrela', signingFee: 4000, luva: 6500,
     luvaReason: 'Temperamento explosivo — suspensão de um ano por pisão num árbitro. A luva é pra esquecer isso.',
     monthlyFee: 780,
@@ -909,7 +909,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'hagi', name: 'Gheorghe Hagi', nickname: 'O Maradona dos Cárpatos', position: 'MEI', nationality: 'RO',
-    birthYear: 1965, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1998, truePotential: 90, currentRating: 80,
+    birthYear: 1965, emergenceYear: 1986, peakYearStart: 1993, peakYearEnd: 1998, truePotential: 90, currentRating: 80,
     personality: 'ambicioso', status: 'estrela', signingFee: 2500, luva: 4000,
     luvaReason: 'Melhor jogador da história da Romênia, e sabe disso. A luva é o mínimo que ele espera.',
     monthlyFee: 430,
@@ -919,7 +919,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'savicevic', name: 'Dragan Savicević', nickname: 'Il Genio', position: 'ATA', nationality: 'YU',
-    birthYear: 1966, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1997, truePotential: 91, currentRating: 84,
+    birthYear: 1966, emergenceYear: 1988, peakYearStart: 1993, peakYearEnd: 1997, truePotential: 91, currentRating: 84,
     personality: 'difícil', status: 'estrela', signingFee: 3500, luva: 5500,
     luvaReason: 'Melhor jogador da Iugoslávia. Humores imprevisíveis — a luva mantém ele no trilho.',
     monthlyFee: 650,
@@ -929,7 +929,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'prosinecki', name: 'Robert Prosinečki', nickname: 'Prosa', position: 'MEI', nationality: 'YU',
-    birthYear: 1969, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1997, truePotential: 86, currentRating: 78,
+    birthYear: 1969, emergenceYear: 1990, peakYearStart: 1993, peakYearEnd: 1997, truePotential: 86, currentRating: 78,
     personality: 'difícil', status: 'pro', signingFee: 1200, luva: 2000,
     luvaReason: 'Fumante inveterado, boêmio. A luva é pra ele comprar cigarro e paz de espírito.',
     monthlyFee: 230,
@@ -949,7 +949,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'boban', name: 'Zvonimir Boban', nickname: 'Zorro', position: 'MEI', nationality: 'HR',
-    birthYear: 1968, emergenceYear: 1993, peakYearStart: 1994, peakYearEnd: 2000, truePotential: 88, currentRating: 76,
+    birthYear: 1968, emergenceYear: 1990, peakYearStart: 1994, peakYearEnd: 2000, truePotential: 88, currentRating: 76,
     personality: 'leal', status: 'pro', signingFee: 1300, luva: 2100,
     luvaReason: 'Chutou um policial na rua pra defender um croata na guerra. A luva respeita a coragem.',
     monthlyFee: 250,
@@ -981,7 +981,7 @@ export const LEGENDS: Legend[] = [
   // ─── ÁFRICA ───────────────────────────────────────────────────
   {
     id: 'weah', name: 'George Weah', nickname: 'O Rei da África', position: 'ATA', nationality: 'LR',
-    birthYear: 1966, emergenceYear: 1993, peakYearStart: 1994, peakYearEnd: 1999, truePotential: 91, currentRating: 76,
+    birthYear: 1966, emergenceYear: 1991, peakYearStart: 1994, peakYearEnd: 1999, truePotential: 91, currentRating: 76,
     personality: 'leal', status: 'pro', signingFee: 1500, luva: 2500,
     luvaReason: 'Criado na miséria de Monróvia, Libéria. Sem federação, sem suporte — só talento e garra.',
     monthlyFee: 290,
@@ -1033,7 +1033,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'zamorano', name: 'Ivan Zamorano', nickname: 'Bam Bam', position: 'ATA', nationality: 'CL',
-    birthYear: 1967, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1998, truePotential: 86, currentRating: 78,
+    birthYear: 1967, emergenceYear: 1990, peakYearStart: 1993, peakYearEnd: 1998, truePotential: 86, currentRating: 78,
     personality: 'leal', status: 'estrela', signingFee: 2200, luva: 3600,
     luvaReason: 'De Santiago, Chile. Cabeça, raça e gol. A luva é modesta pra quem entrega tanto.',
     monthlyFee: 400,
@@ -1075,7 +1075,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'cantona', name: 'Éric Cantona', nickname: 'Le Roi', position: 'ATA', nationality: 'FR',
-    birthYear: 1966, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1997, truePotential: 89, currentRating: 84,
+    birthYear: 1966, emergenceYear: 1989, peakYearStart: 1993, peakYearEnd: 1997, truePotential: 89, currentRating: 84,
     personality: 'difícil', status: 'estrela', signingFee: 4500, luva: 7000,
     luvaReason: 'Gênio e vândalo. Luva alta para quem vem com ele uma inteira psicóloga embutida.',
     monthlyFee: 900,
@@ -1117,7 +1117,7 @@ export const LEGENDS: Legend[] = [
   // ─── BRASIL ERA 92 ────────────────────────────────────────────
   {
     id: 'taffarel', name: 'Cláudio Taffarel', nickname: 'Taffarel', position: 'GOL', nationality: 'BR',
-    birthYear: 1966, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1998, truePotential: 87, currentRating: 83,
+    birthYear: 1966, emergenceYear: 1989, peakYearStart: 1993, peakYearEnd: 1998, truePotential: 87, currentRating: 83,
     personality: 'leal', status: 'estrela', signingFee: 3500, luva: 5500,
     luvaReason: 'Ídolo gaúcho do Grêmio, já na Roma. Exige segurança financeira pra familia em Porto Alegre.',
     monthlyFee: 680,
@@ -1127,7 +1127,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'muller_br', name: 'Luís Müller', nickname: 'Müller', position: 'ATA', nationality: 'BR',
-    birthYear: 1966, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1996, truePotential: 84, currentRating: 80,
+    birthYear: 1966, emergenceYear: 1988, peakYearStart: 1993, peakYearEnd: 1996, truePotential: 84, currentRating: 80,
     personality: 'ambicioso', status: 'estrela', signingFee: 3000, luva: 4800,
     luvaReason: 'Goleador do São Paulo dos tricampeões. Sabe o que vale — cada gol tem preço.',
     monthlyFee: 580,
@@ -1137,7 +1137,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'rai', name: 'Raí Souza', nickname: 'Raí', position: 'MEI', nationality: 'BR',
-    birthYear: 1965, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1997, truePotential: 86, currentRating: 82,
+    birthYear: 1965, emergenceYear: 1989, peakYearStart: 1993, peakYearEnd: 1997, truePotential: 86, currentRating: 82,
     personality: 'leal', status: 'estrela', signingFee: 3200, luva: 5000,
     luvaReason: 'Capitão do grande São Paulo e irmão do Sócrates. Carisma e inteligência raros.',
     monthlyFee: 640,
@@ -1147,7 +1147,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'zinho', name: 'Zinho', nickname: 'Zinho', position: 'MEI', nationality: 'BR',
-    birthYear: 1967, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1996, truePotential: 85, currentRating: 81,
+    birthYear: 1967, emergenceYear: 1989, peakYearStart: 1993, peakYearEnd: 1996, truePotential: 85, currentRating: 81,
     personality: 'leal', status: 'estrela', signingFee: 2800, luva: 4400,
     luvaReason: 'Meia técnico do Palmeiras. A luva é pra segurança da família num mercado que o subestima.',
     monthlyFee: 560,
@@ -1157,7 +1157,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'aldair', name: 'Aldair Nascimento', nickname: 'Aldair', position: 'ZAG', nationality: 'BR',
-    birthYear: 1965, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1999, truePotential: 86, currentRating: 82,
+    birthYear: 1965, emergenceYear: 1989, peakYearStart: 1993, peakYearEnd: 1999, truePotential: 86, currentRating: 82,
     personality: 'leal', status: 'estrela', signingFee: 3000, luva: 4800,
     luvaReason: 'Titular absoluto da Roma há anos. A luva é proporcional ao respeito que lá conquistou.',
     monthlyFee: 580,
@@ -1167,7 +1167,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'branco', name: 'Branco', nickname: 'Branco', position: 'LAT', nationality: 'BR',
-    birthYear: 1964, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1995, truePotential: 84, currentRating: 80,
+    birthYear: 1964, emergenceYear: 1986, peakYearStart: 1993, peakYearEnd: 1995, truePotential: 84, currentRating: 80,
     personality: 'difícil', status: 'estrela', signingFee: 2800, luva: 4500,
     luvaReason: 'Lateral que exige reconhecimento. Difícil de gerenciar, mas bênção no campo.',
     monthlyFee: 550,
@@ -1238,7 +1238,7 @@ export const LEGENDS: Legend[] = [
   // ─── ARGENTINA (novos) ──────────────────────────────────────
   {
     id: 'batistuta', name: 'Gabriel Batistuta', nickname: 'Il Re Leone', position: 'ATA', nationality: 'AR',
-    birthYear: 1969, emergenceYear: 1993, peakYearStart: 1993, peakYearEnd: 1999, truePotential: 93, currentRating: 82,
+    birthYear: 1969, emergenceYear: 1991, peakYearStart: 1993, peakYearEnd: 1999, truePotential: 93, currentRating: 82,
     personality: 'ambicioso', status: 'estrela', signingFee: 5000, luva: 8000,
     luvaReason: 'Centroavante consagrado na Fiorentina. Exige reconhecimento à altura.',
     monthlyFee: 1500,
