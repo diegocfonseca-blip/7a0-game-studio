@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
 import type { GameState, Screen, Client, ClubOffer, Bid, OnlinePlayer, OnlineGameMode, AuctionState, OnlineNewsItem, OnlineClientInfo, RivalAgent, GameEvent } from '../types'
-import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getUnlockedNationalities, getRetirementYear, retirementNarrative, LEGENDS } from '../data/legends'
+import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getRetirementYear, retirementNarrative, LEGENDS } from '../data/legends'
 import { generateWeeklyEvent, generateAmbientNews, SCOUT_UPGRADES, OFFICE_UPGRADES } from '../data/events'
 import type { ClientLite } from '../data/events'
 import { CLUBS, NEMESIS } from '../data/clubs'
@@ -206,24 +206,7 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
   }
 }
 
-// The nemesis snatches a hot prospect you haven't signed yet (only pre-emergence legends).
-function nemesisTryGrab(state: GameState, year: number): string | null {
-  const taken = new Set([...state.nemesisTaken, ...state.lostLegends, ...state.clients.map(c => c.legendId)])
-  const targets = LEGENDS
-    .filter(l =>
-      l.truePotential >= 88 &&
-      year >= l.emergenceYear - 2 &&
-      year <= l.emergenceYear &&   // só age quando a lenda ainda não é famosa
-      l.birthYear <= year - 10 &&
-      !taken.has(l.id)
-    )
-    .sort((a, b) => b.truePotential - a.truePotential)
-  if (targets.length === 0) return null
-  // He goes for the best available gem. Higher chance as you get richer (envy).
-  const envy = state.totalEarned > 1000000 ? 0.22 : state.clients.length >= 2 ? 0.16 : 0.1
-  if (Math.random() > envy) return null
-  return targets[0].id
-}
+// nemesisTryGrab removed — Cambalhota now only competes inside auctions/drafts
 
 // ── CPU Auction Resolution ────────────────────────────────────────────────────
 // Shared logic for CPU_AUCTION_CLOSE and CPU_AUCTION_BID_AND_CLOSE.
@@ -328,7 +311,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         isHost: state.isHost,
         playerNames: state.playerNames,
         youIndex: state.youIndex,
-        onlineGameMode: state.onlineGameMode,
+        // sempre estruturado — nunca mercado livre
+        onlineGameMode: state.onlineGameMode ?? 'leilao',
         draftTurn: 0,
         draftPicksDone: 0,
         weeklyMissionId: missionForWeek(1993 * 52 + 1).id,
@@ -694,126 +678,38 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       let negotiationLog = state.negotiationLog
       let lostLegends = [...state.lostLegends]
 
-      const isCpuStructured = state.onlineMode === 'cpu' && state.onlineGameMode !== null
+      // Todos jogadores (você, CPU, online) fecham SOMENTE via leilão ou draft.
+      // Cambalhota compete nos mesmos leilões/drafts — sem roubo direto de mercado livre.
       const nowAbs = newYear * 52 + actualWeek
+      const hotTargets: Record<string, number> = {}
 
-      if (!isCpuStructured) {
-        // Free market mode: nemesis steals prospects from the open market
-        const grabbed = nemesisTryGrab(state, newYear)
-        if (grabbed) {
-          const legend = getLegendById(grabbed)!
-          nemesisTaken = [...nemesisTaken, grabbed]
-          lostLegends = [...lostLegends, grabbed]
-          const isFirst = !state.nemesisShown
-          nemesisShown = true
-          nemesisAlert = {
-            legendId: grabbed,
-            legendNickname: legend.nickname,
-            story: isFirst ? NEMESIS.story : `${NEMESIS.name} chegou primeiro de novo e fechou com ${legend.name}. "Mais um que era pra ser seu", ele provoca.`,
-            isFirst,
-          }
-          negotiationLog = [{ who: 'rival' as const, year: newYear, text: `😈 Sérgio Cambalhota agenciou ${legend.name} antes de você!` }, ...negotiationLog].slice(0, 30)
-          extraNarrative.push(`😈 ${NEMESIS.name} roubou ${legend.nickname} de você!`)
-        }
-      } else {
-        // Structured mode (draft/leilão): Cambalhota competes in windows, not the open market.
-        // His threat is watching your clients' contracts expire.
-        if (yearRolled) {
-          for (const client of activeClients) {
-            const repExpiring = client.repExpiresYear !== undefined && client.repExpiresYear === newYear
-            const playExpiring = client.contractExpiresYear !== undefined && client.contractExpiresYear === newYear
-            if ((repExpiring || playExpiring) && Math.random() < 0.55) {
-              const contractType = repExpiring ? 'representação' : 'clube'
-              if (!state.nemesisShown) {
-                // First time: show his intro
-                nemesisShown = true
-                nemesisAlert = {
-                  legendId: client.legendId,
-                  legendNickname: client.nickname,
-                  story: `${NEMESIS.story}\n\n👁️ E ele já está de olho: o contrato de ${contractType} de ${client.nickname} vence ESTE ANO. Renove antes que ele apareça com uma proposta melhor.`,
-                  isFirst: true,
-                }
-              } else {
-                nemesisAlert = {
-                  legendId: client.legendId,
-                  legendNickname: client.nickname,
-                  story: `👁️ ${NEMESIS.name} foi visto conversando com ${client.nickname}. O contrato de ${contractType} dele vence este ano — renove logo ou pode perder o cliente.`,
-                  isFirst: false,
-                }
-              }
-              negotiationLog = [{ who: 'rival' as const, year: newYear, text: `👁️ Cambalhota está de olho em ${client.nickname} — contrato de ${contractType} vence em ${newYear}.` }, ...negotiationLog].slice(0, 30)
-              break // one alert per year rollover is enough
-            }
-          }
-        }
-      }
-
-      // 🔥 HOT TARGETS — only in free-market (solo) mode
-      const hotTargets: Record<string, number> = { ...state.hotTargets }
-      const signedSet = new Set(activeClients.map(c => c.legendId))
-
-      // 🌟 EMERGÊNCIA: lendas que ficaram famosas este ano vão para um rival
-      // freshRivalClients é mesclado no rivalAgents.map() mais abaixo
-      const freshRivalClients: Record<string, string[]> = {}
+      // 🌟 Cambalhota ameaça contratos prestes a vencer — compita em leilões pra não perder clientes
       if (yearRolled) {
-        for (const l of LEGENDS) {
-          if (l.emergenceYear === newYear - 1 &&
-              !signedSet.has(l.id) &&
-              !state.everSignedIds.includes(l.id) &&
-              !nemesisTaken.includes(l.id)) {
-            // Atribui a um rival aleatório (não vai pra lostLegends — rival pode leiloar depois)
-            const rivals = state.rivalAgents
-            const rival = rivals[Math.floor(Math.random() * rivals.length)]
-            nemesisTaken = [...nemesisTaken, l.id]
-            freshRivalClients[rival.id] = [...(freshRivalClients[rival.id] ?? []), l.id]
-            extraNarrative.push(`📰 ${l.nickname} ficou famoso — ${rival.name} fechou a representação dele. Janela perdida.`)
-          }
-        }
-      }
-
-      if (!isCpuStructured) {
-        // expire: deadline passed and still unsigned → a rival snaps them up
-        for (const [id, deadline] of Object.entries(hotTargets)) {
-          if (signedSet.has(id) || state.everSignedIds.includes(id)) { delete hotTargets[id]; continue }
-          if (nowAbs >= deadline) {
-            delete hotTargets[id]
-            if (!nemesisTaken.includes(id) && !lostLegends.includes(id)) {
-              const lg = getLegendById(id)
-              if (lg) {
-                nemesisTaken = [...nemesisTaken, id]
-                lostLegends = [...lostLegends, id]
-                extraNarrative.push(`⏳ VOCÊ DEMOROU! Um rival fechou com ${lg.nickname} enquanto você hesitava. Essa lenda escapou de vez.`)
+        for (const client of activeClients) {
+          const repExpiring = client.repExpiresYear !== undefined && client.repExpiresYear === newYear
+          const playExpiring = client.contractExpiresYear !== undefined && client.contractExpiresYear === newYear
+          if ((repExpiring || playExpiring) && Math.random() < 0.55) {
+            const contractType = repExpiring ? 'representação' : 'clube'
+            if (!state.nemesisShown) {
+              nemesisShown = true
+              nemesisAlert = {
+                legendId: client.legendId,
+                legendNickname: client.nickname,
+                story: `${NEMESIS.story}\n\n👁️ E ele já está de olho: o contrato de ${contractType} de ${client.nickname} vence ESTE ANO. Renove antes que ele apareça.`,
+                isFirst: true,
+              }
+            } else {
+              nemesisAlert = {
+                legendId: client.legendId,
+                legendNickname: client.nickname,
+                story: `👁️ ${NEMESIS.name} foi visto conversando com ${client.nickname}. O contrato de ${contractType} dele vence este ano — renove logo.`,
+                isFirst: false,
               }
             }
+            negotiationLog = [{ who: 'rival' as const, year: newYear, text: `👁️ Cambalhota está de olho em ${client.nickname} — contrato de ${contractType} vence em ${newYear}.` }, ...negotiationLog].slice(0, 30)
+            break
           }
         }
-        // register: pin a fresh emerging gem you can chase right now
-        if (Object.keys(hotTargets).length < 3) {
-          const unlockedNats = getUnlockedNationalities(state.purchasedUpgrades)
-          const candidates = LEGENDS.filter(l =>
-            l.truePotential >= 92 &&
-            newYear >= l.emergenceYear - 2 &&
-            newYear < l.emergenceYear &&   // só pré-emergência — depois ficam famosos e somem
-            l.birthYear <= newYear - 10 &&
-            unlockedNats.includes(l.nationality) &&
-            !signedSet.has(l.id) &&
-            !state.everSignedIds.includes(l.id) &&
-            !nemesisTaken.includes(l.id) &&
-            !lostLegends.includes(l.id) &&
-            !(l.id in hotTargets)
-          )
-          if (candidates.length > 0 && Math.random() < 0.6) {
-            const pick = candidates[Math.floor(Math.random() * candidates.length)]
-            // deadline: semanas até emergence (quando some da pool) + margem mínima de 3 semanas
-            const weeksToEmerge = Math.max(3, (pick.emergenceYear - newYear) * 52 - state.week)
-            const weeks = Math.min(weeksToEmerge, 4 + Math.floor(Math.random() * 4))
-            hotTargets[pick.id] = nowAbs + weeks
-            extraNarrative.push(`🔥 ALVO QUENTE: ${pick.nickname} (${rarityOf(pick.truePotential).label}) ainda é desconhecido. Assine em ${weeks} semanas antes de ficar famoso!`)
-          }
-        }
-      } else {
-        // In structured mode, clear any stale hotTargets from the previous game
-        for (const id of Object.keys(hotTargets)) delete hotTargets[id]
       }
 
       // 💤 COMBO cooldown — momentum fades if you go too long without a deal
@@ -881,8 +777,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
                 return lg ? sum + Math.round(getMarketValue(lg, newYear) * 0.08) : sum
               }, 0)
             : 0
-          const freshClients = freshRivalClients[r.id] ?? []
-          return { ...r, clients: [...r.clients, ...freshClients], wealth: Math.round(r.wealth * growth + cambBonus + cpuIncome) }
+          return { ...r, wealth: Math.round(r.wealth * growth + cambBonus + cpuIncome) }
         })
         // your net worth vs the field
         const myNet = money2 + activeClients.reduce((s, c) => s + c.currentValue * (c.commissionRate / 100), 0)
@@ -921,7 +816,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       let cpuTakenLegends = { ...state.onlineTakenLegends }
       let seenLegendIds = state.seenLegendIds
 
-      if (!gameOver && state.onlineMode === 'cpu' && state.onlineGameMode !== null && actualWeek % 4 === 0) {
+      // Sempre estruturado: onlineGameMode é nunca null (START_GAME força 'leilao' como fallback)
+      if (!gameOver && state.onlineMode === 'cpu' && actualWeek % 4 === 0) {
         const periodsElapsed = (newYear - 1993) * 13 + Math.floor((actualWeek - 1) / 4)
         const isDraftTurn = state.onlineGameMode === 'leilao'
           ? false
@@ -931,13 +827,14 @@ function empresarioReducer(state: GameState, action: Action): GameState {
 
         const allCpuSignedIds = new Set(cpuRivalAgents.flatMap(r => r.clients))
         const playerSignedIds = new Set(activeClients.map(c => c.legendId))
+        // Mesma pool pré-emergência que o player vê — todos competem nas mesmas lendas
         const availableForCpu = LEGENDS.filter(l =>
-          newYear >= l.emergenceYear &&
-          l.birthYear <= newYear - 14 &&
+          newYear >= l.emergenceYear - 2 &&
+          newYear <= l.emergenceYear &&
+          l.birthYear <= newYear - 10 &&
           !allCpuSignedIds.has(l.id) &&
           !playerSignedIds.has(l.id) &&
-          !lostLegends.includes(l.id) &&
-          !nemesisTaken.includes(l.id)
+          !lostLegends.includes(l.id)
         ).sort((a, b) => getCurrentRating(b, newYear) - getCurrentRating(a, newYear))
 
         if (isDraftTurn && availableForCpu.length > 0) {
