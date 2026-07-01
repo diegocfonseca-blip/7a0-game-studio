@@ -2048,34 +2048,59 @@ export function getAvailableLegends(
 
 export function getCurrentStatus(legend: Legend, year: number): PlayerStatus {
   const age = year - legend.birthYear
+  // Estrela só no auge. Pro só 3+ anos depois de emergir. Antes disso, é moleque.
   if (year >= legend.peakYearStart) return 'estrela'
-  if (year >= legend.emergenceYear) return 'pro'
-  if (age >= 15) return 'base'
+  if (year >= legend.emergenceYear + 3) return 'pro'
+  if (year >= legend.emergenceYear) return 'base'
+  if (age >= 14) return 'base'
   return 'pelada'
 }
 
 export function getCurrentRating(legend: Legend, year: number): number {
   const peakDuration = Math.max(1, legend.peakYearEnd - legend.peakYearStart)
+  let rating: number
 
   if (year < legend.emergenceYear) {
-    // Pre-emergence: growing slowly from a low base
+    // Pré-emergência: moleque de pelada/base. Rating BAIXO.
     const yearsToEmergence = legend.emergenceYear - year
-    return Math.max(8, Math.round(legend.currentRating - yearsToEmergence * 4))
-  }
-
-  if (year < legend.peakYearStart) {
+    rating = Math.max(8, Math.round(legend.currentRating - yearsToEmergence * 6))
+  } else if (year < legend.peakYearStart) {
     const span = Math.max(1, legend.peakYearStart - legend.emergenceYear)
     const progress = (year - legend.emergenceYear) / span
-    return Math.round(legend.currentRating + (legend.truePotential - 6 - legend.currentRating) * Math.min(1, progress))
-  }
-
-  if (year <= legend.peakYearEnd) {
+    rating = Math.round(legend.currentRating + (legend.truePotential - 6 - legend.currentRating) * Math.min(1, progress))
+  } else if (year <= legend.peakYearEnd) {
     const peakProgress = Math.min(1, (year - legend.peakYearStart) / Math.max(1, peakDuration / 2))
-    return Math.round(legend.truePotential - 4 + peakProgress * 4)
+    rating = Math.round(legend.truePotential - 4 + peakProgress * 4)
+  } else {
+    const decline = Math.min(35, (year - legend.peakYearEnd) * 4)
+    rating = Math.max(50, legend.truePotential - decline)
   }
 
-  const decline = Math.min(35, (year - legend.peakYearEnd) * 4)
-  return Math.max(50, legend.truePotential - decline)
+  // Cap por status: moleque anônimo NUNCA aparece já craque.
+  const status = getCurrentStatus(legend, year)
+  if (status === 'pelada') return Math.min(rating, 32)
+  if (status === 'base')   return Math.min(rating, 48)
+  if (status === 'pro' && year < legend.peakYearStart) return Math.min(rating, 72)
+  return rating
+}
+
+// Custo mensal REAL do jogador — escala com fama, status e país.
+export function getEffectiveMonthlyFee(legend: Legend, year: number): number {
+  const status = getCurrentStatus(legend, year)
+  const statusMult: Record<PlayerStatus, number> = { pelada: 0.15, base: 0.35, pro: 1.0, estrela: 2.2 }
+  const isEuro = !['BR','AR','CO','CL','UY','LR','NG','CM','EG','SN','KR'].includes(legend.nationality)
+  const geoMult = isEuro ? 1.4 : 1.0
+  return Math.max(80, Math.round(legend.monthlyFee * statusMult[status] * geoMult))
+}
+
+// Custo de contratação/luva REAL — barato pra moleque anônimo, caríssimo pra estrela.
+export function getEffectiveSigningCost(legend: Legend, year: number): { signingFee: number; luva: number } {
+  const status = getCurrentStatus(legend, year)
+  const mult: Record<PlayerStatus, number> = { pelada: 0.10, base: 0.25, pro: 1.0, estrela: 2.5 }
+  return {
+    signingFee: Math.max(200, Math.round(legend.signingFee * mult[status])),
+    luva:       Math.max(300, Math.round(legend.luva       * mult[status])),
+  }
 }
 
 export function getMarketValue(legend: Legend, year: number): number {
