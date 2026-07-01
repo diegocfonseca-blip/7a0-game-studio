@@ -382,6 +382,19 @@ export default function ScoutsScreen() {
                   })
                 )}
               </div>
+              {/* 🔒 GATE DE SCOUT: sem olheiro na região, você nem enxerga o jogador direito */}
+              {auctionLegend && !unlockedNats.includes(auctionLegend.nationality) ? (
+                <div className="bg-black/40 border-2 border-yellow-400 rounded-xl p-3 text-center">
+                  <p className="text-yellow-300 font-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                    🔒 JOGADOR DESCONHECIDO
+                  </p>
+                  <p className="text-white/70 text-xs font-bold mt-1">
+                    Você não tem olheiro na região dele — não dá pra avaliar nem dar lance.
+                    Contrate o scout regional na loja de upgrades.
+                  </p>
+                </div>
+              ) : (
+                <>
               {/* my bid input — CPU leilão: bid + close in one tap */}
               {state.onlineMode === 'cpu' && !auction.closed && !myBid && (
                 <div>
@@ -404,6 +417,8 @@ export default function ScoutsScreen() {
                     Fechar sem dar lance
                   </button>
                 </div>
+              )}
+                </>
               )}
               {/* my bid input — online leilão: bid only, host closes separately */}
               {state.onlineMode !== 'cpu' && !auction.closed && !myBid && (
