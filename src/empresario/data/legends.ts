@@ -2039,6 +2039,7 @@ export function getAvailableLegends(
 ): Legend[] {
   return LEGENDS.filter(l =>
     year >= l.emergenceYear - 2 &&
+    year <= l.emergenceYear &&   // some da pool quando fica famoso
     l.birthYear <= year - 10 &&
     !signedIds.includes(l.id) &&
     !lostLegends.includes(l.id) &&

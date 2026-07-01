@@ -751,6 +751,20 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       const hotTargets: Record<string, number> = { ...state.hotTargets }
       const signedSet = new Set(activeClients.map(c => c.legendId))
 
+      // 🌟 EMERGÊNCIA: lendas que ficaram famosas este ano somem do mercado para sempre
+      if (yearRolled) {
+        for (const l of LEGENDS) {
+          if (l.emergenceYear === newYear - 1 &&
+              !signedSet.has(l.id) &&
+              !state.everSignedIds.includes(l.id) &&
+              !lostLegends.includes(l.id) &&
+              !nemesisTaken.includes(l.id)) {
+            lostLegends = [...lostLegends, l.id]
+            extraNarrative.push(`📰 ${l.nickname} ficou famoso e assinou com um grande clube. Você perdeu a janela.`)
+          }
+        }
+      }
+
       if (!isCpuStructured) {
         // expire: deadline passed and still unsigned → a rival snaps them up
         for (const [id, deadline] of Object.entries(hotTargets)) {
@@ -772,8 +786,9 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           const unlockedNats = getUnlockedNationalities(state.purchasedUpgrades)
           const candidates = LEGENDS.filter(l =>
             l.truePotential >= 92 &&
-            newYear >= l.emergenceYear &&
-            l.birthYear <= newYear - 14 &&
+            newYear >= l.emergenceYear - 2 &&
+            newYear < l.emergenceYear &&   // só pré-emergência — depois ficam famosos e somem
+            l.birthYear <= newYear - 10 &&
             unlockedNats.includes(l.nationality) &&
             !signedSet.has(l.id) &&
             !state.everSignedIds.includes(l.id) &&
@@ -783,9 +798,11 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           )
           if (candidates.length > 0 && Math.random() < 0.6) {
             const pick = candidates[Math.floor(Math.random() * candidates.length)]
-            const weeks = 4 + Math.floor(Math.random() * 4) // 4–7 weeks to act
+            // deadline: semanas até emergence (quando some da pool) + margem mínima de 3 semanas
+            const weeksToEmerge = Math.max(3, (pick.emergenceYear - newYear) * 52 - state.week)
+            const weeks = Math.min(weeksToEmerge, 4 + Math.floor(Math.random() * 4))
             hotTargets[pick.id] = nowAbs + weeks
-            extraNarrative.push(`🔥 ALVO QUENTE: ${pick.nickname} (${rarityOf(pick.truePotential).label}) está disponível AGORA. Feche em ${weeks} semanas ou um rival leva.`)
+            extraNarrative.push(`🔥 ALVO QUENTE: ${pick.nickname} (${rarityOf(pick.truePotential).label}) ainda é desconhecido. Assine em ${weeks} semanas antes de ficar famoso!`)
           }
         }
       } else {
