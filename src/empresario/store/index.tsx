@@ -675,23 +675,30 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       // 💸 OFFERS COME YEAR-ROUND — but the transfer window is a HOT PERIOD:
       // clubs come knocking far more often, and you can land a couple at once.
       const windowOpen = isTransferWindow(actualWeek)
+      // 💸 OFFERS COME YEAR-ROUND — but the transfer window HEATS UP.
+      const windowOpen = isTransferWindow(actualWeek)
       if (activeClients.length > 0) {
-        // Only players who: are good enough, have no pending offer, AND haven't
-        // just been transferred (clubs leave a fresh signing alone for ~2 years).
-        const eligible = activeClients.filter(c =>
-          c.currentRating >= 60 &&
-          !c.injuredUntilWeek &&                  // no offers while injured
-          !newOffers.find(o => o.clientId === c.legendId) &&
-          (c.lastDealYear === undefined || newYear - c.lastDealYear >= 2)
-        )
-        // Window open → offers fly (85% + a shot at a second). Off-window → calmer (40%).
-        // Deadline Day: guaranteed 2 offers at inflated values if window is open.
+        const nowAbsElig = newYear * 52 + actualWeek
+        const eligible = activeClients.filter(c => {
+          if (c.currentRating < 60) return false
+          if (c.injuredUntilWeek) return false
+          if (newOffers.find(o => o.clientId === c.legendId)) return false
+          if (c.lastDealYear !== undefined && newYear - c.lastDealYear < 2) return false
+          // 🔑 GATE DE CUIDADO: precisa de X semanas cuidando bem antes de qualquer proposta.
+          const signedAbs = c.signedAbsWeek ?? (c.signedYear * 52 + 1)
+          const weeksCared = nowAbsElig - signedAbs
+          const required = careWeeksRequired(c.status)
+          if (weeksCared < required) return false
+          // Jogador infeliz não atrai clube — reflete que você não cuidou direito.
+          if (c.happiness < 50) return false
+          return true
+        })
         const maxOffers = isDeadline ? 3 : windowOpen ? 2 : 1
         const chance = isDeadline ? 0.97 : windowOpen ? 0.85 : 0.4
         const pool = [...eligible].sort(() => Math.random() - 0.5)
         for (let i = 0; i < maxOffers && i < pool.length; i++) {
           if (Math.random() < chance) {
-            const offer = generateClubOffer(pool[i], newYear, state.clubRelations)
+            const offer = generateClubOffer(pool[i], newYear, state.clubRelations, state.purchasedUpgrades)
             if (offer) newOffers.push(offer)
           }
         }
