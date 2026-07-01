@@ -87,6 +87,7 @@ export interface Client {
   injuredUntilWeek?: number  // absolute week (year*52+week) when injury ends
   injuryLevel?: 'leve' | 'moderada' | 'grave'
   injuryDescription?: string
+  lowHappinessWeeks?: number // consecutive weeks with happiness < 25
 }
 
 export interface Bid {

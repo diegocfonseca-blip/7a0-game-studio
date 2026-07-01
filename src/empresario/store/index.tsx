@@ -401,7 +401,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
                 commissionRate: action.commissionRate,
                 repContractYears: action.contractYears,
                 repExpiresYear: state.year + action.contractYears,
-                happiness: Math.min(100, c.happiness + 6),
+                happiness: Math.min(100, c.happiness + 15),
+                lowHappinessWeeks: 0,
               }
             : c
         ),
@@ -461,11 +462,16 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         const newStatus = getCurrentStatus(legend, newYear)
 
         let happiness = client.happiness
+        // Base weekly decay — everyone loses a little happiness passively
+        happiness = Math.max(0, happiness - 1)
         if (client.personality === 'ambicioso' && newRating > 80 && !client.contractClub?.includes('Milan') && !client.contractClub?.includes('Madrid')) {
-          happiness = Math.max(40, happiness - 2)
+          happiness = Math.max(30, happiness - 4)
+        }
+        if (client.personality === 'difícil') {
+          happiness = Math.max(20, happiness - 2)
         }
         if (client.commissionRate > 20 && newRating > 70) {
-          happiness = Math.max(20, happiness - 1)
+          happiness = Math.max(20, happiness - 2)
         }
 
         // 🏆 GLORY: when a milestone year arrives, the world sees what you saw
@@ -533,6 +539,14 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           extraNarrative.push(`📈 ${client.nickname} está se destacando no ${client.loanOriginClub ?? 'clube emprestado'} — crescimento acelerado em empréstimo!`)
         }
 
+        // Track consecutive unhappy weeks
+        const lowHappinessWeeks = happiness < 25
+          ? (client.lowHappinessWeeks ?? 0) + 1
+          : 0
+        if (lowHappinessWeeks === 2) {
+          extraNarrative.push(`😠 ${client.nickname} está infeliz há semanas — ele pode abandonar você se nada mudar. Renove o contrato ou feche um negócio pra ele.`)
+        }
+
         return {
           ...client,
           currentRating: newRating,
@@ -542,11 +556,23 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           injuredUntilWeek,
           injuryLevel,
           injuryDescription,
+          lowHappinessWeeks,
         }
       })
 
+      // 😤 ABANDON: players who were miserable for 4+ weeks walk out
+      const abandonedIds: string[] = []
+      const afterAbandons = updatedClients.filter(c => {
+        if ((c.lowHappinessWeeks ?? 0) >= 4) {
+          abandonedIds.push(c.legendId)
+          extraNarrative.push(`💔 ${c.nickname} abandonou você. Semanas sem atenção, felicidade no chão — ele rescindiu o contrato. Cuide melhor dos seus clientes.`)
+          return false
+        }
+        return true
+      })
+
       // ⏳ REP CONTRACTS expiring + ⚰️ RETIREMENT (age catches everyone)
-      let activeClients = updatedClients
+      let activeClients = afterAbandons
       if (yearRolled) {
         const kept: typeof updatedClients = []
         for (const c of updatedClients) {
@@ -657,15 +683,15 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         // Only players who: are good enough, have no pending offer, AND haven't
         // just been transferred (clubs leave a fresh signing alone for ~2 years).
         const eligible = activeClients.filter(c =>
-          c.currentRating >= 60 &&
+          c.currentRating >= 68 &&
           !c.injuredUntilWeek &&                  // no offers while injured
           !newOffers.find(o => o.clientId === c.legendId) &&
-          (c.lastDealYear === undefined || newYear - c.lastDealYear >= 2)
+          (c.lastDealYear === undefined || newYear - c.lastDealYear >= 3)
         )
-        // Window open → offers fly (85% + a shot at a second). Off-window → calmer (40%).
-        // Deadline Day: guaranteed 2 offers at inflated values if window is open.
+        // Window open → 55% + shot at second. Off-window → raro (15%).
+        // Deadline Day: pressão máxima se janela estiver aberta.
         const maxOffers = isDeadline ? 3 : windowOpen ? 2 : 1
-        const chance = isDeadline ? 0.97 : windowOpen ? 0.85 : 0.4
+        const chance = isDeadline ? 0.95 : windowOpen ? 0.55 : 0.15
         const pool = [...eligible].sort(() => Math.random() - 0.5)
         for (let i = 0; i < maxOffers && i < pool.length; i++) {
           if (Math.random() < chance) {
@@ -979,7 +1005,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         pendingOffers: state.pendingOffers.filter(o => o.clientId !== offer.clientId),
         clients: state.clients.map(c =>
           c.legendId === offer.clientId
-            ? { ...c, contractClub: action.clubName, contractSalary: offer.salary, contractExpiresYear: state.year + offer.contractYears, lastDealYear: state.year }
+            ? { ...c, contractClub: action.clubName, contractSalary: offer.salary, contractExpiresYear: state.year + offer.contractYears, lastDealYear: state.year, happiness: Math.min(100, c.happiness + 20), lowHappinessWeeks: 0 }
             : c
         ),
         negotiationLog: [{ who: 'voce' as const, year: state.year, text: `✅ ${client?.nickname} → ${action.clubName} por R$${action.amount.toLocaleString('pt-BR')} · você embolsou R$${earnings.toLocaleString('pt-BR')}` }, ...state.negotiationLog].slice(0, 30),
