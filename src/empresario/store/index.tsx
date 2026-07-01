@@ -248,24 +248,27 @@ function resolveCpuAuction(state: GameState, auction: AuctionState): GameState {
     if (!legend) return { ...state, currentAuction: null }
     const currentRating = getCurrentRating(legend, state.year)
     const currentValue = getMarketValue(legend, state.year)
+    const effectiveFee = getEffectiveMonthlyFee(legend, state.year)
+    const nowAbsWin = state.year * 52 + state.week
     const newClient: Client = {
       legendId: legend.id, name: legend.name, nickname: legend.nickname,
       position: legend.position, nationality: legend.nationality,
       status: getCurrentStatus(legend, state.year),
       birthYear: legend.birthYear, peakYearStart: legend.peakYearStart,
       peakYearEnd: legend.peakYearEnd, truePotential: legend.truePotential,
-      currentRating, personality: legend.personality, monthlyFee: legend.monthlyFee,
+      currentRating, personality: legend.personality, monthlyFee: effectiveFee,
       futureKnowledge: legend.futureKnowledge, commissionRate: 15,
       repContractYears: 3, repExpiresYear: state.year + 3,
-      happiness: 75, currentValue, signedYear: state.year,
-      contractClub: legend.club, contractSalary: legend.monthlyFee * 10,
+      happiness: 75, currentValue, signedYear: state.year, signedAbsWeek: nowAbsWin,
+      contractClub: legend.club, contractSalary: effectiveFee * 10,
       contractExpiresYear: state.year + 2, rivalOffers: 0,
     }
-    const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + legend.monthlyFee / 4
+    const auctionSign = getEffectiveSigningCost(legend, state.year)
+    const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + effectiveFee / 4
     const xpr = applyXp(state, 60)
     return {
       ...state,
-      money: state.money - winner.amount,
+      money: state.money - winner.amount - auctionSign.signingFee, // paga leilão + burocracia
       clients: [...state.clients, newClient],
       weeklyExpenses, xp: xpr.xp,
       reputation: Math.min(100, state.reputation + xpr.repBonus),
