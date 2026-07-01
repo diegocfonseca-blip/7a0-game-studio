@@ -355,6 +355,9 @@ function empresarioReducer(state: GameState, action: Action): GameState {
 
       const currentRating = getCurrentRating(legend, state.year)
       const currentValue = getMarketValue(legend, state.year)
+      const effectiveFee = getEffectiveMonthlyFee(legend, state.year)
+      const effSign = getEffectiveSigningCost(legend, state.year)
+      const nowAbsSign = state.year * 52 + state.week
 
       const newClient: Client = {
         legendId: legend.id,
@@ -369,7 +372,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         truePotential: legend.truePotential,
         currentRating,
         personality: legend.personality,
-        monthlyFee: legend.monthlyFee,
+        monthlyFee: effectiveFee,
         futureKnowledge: legend.futureKnowledge,
         commissionRate: action.commissionRate,
         repContractYears: action.contractYears,
@@ -377,14 +380,15 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         happiness: 75,
         currentValue,
         signedYear: state.year,
+        signedAbsWeek: nowAbsSign,
         contractClub: legend.club,
-        contractSalary: legend.monthlyFee * 10,
+        contractSalary: effectiveFee * 10,
         contractExpiresYear: state.year + 2,
         rivalOffers: 0,
       }
 
-      const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + legend.monthlyFee / 4
-      const upfront = legend.signingFee + legend.luva
+      const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + effectiveFee / 4
+      const upfront = effSign.signingFee + effSign.luva
       const xpr = applyXp(state, 60)
       const hotTargets = { ...state.hotTargets }
       delete hotTargets[action.legendId]
