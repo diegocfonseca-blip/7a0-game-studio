@@ -676,7 +676,6 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       // clubs come knocking far more often, and you can land a couple at once.
       const windowOpen = isTransferWindow(actualWeek)
       // 💸 OFFERS COME YEAR-ROUND — but the transfer window HEATS UP.
-      const windowOpen = isTransferWindow(actualWeek)
       if (activeClients.length > 0) {
         const nowAbsElig = newYear * 52 + actualWeek
         const eligible = activeClients.filter(c => {
