@@ -554,11 +554,15 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           }
         }
 
+        // Custo mensal EVOLUI com a fama: virou estrela = fica caríssimo.
+        const evolvedMonthlyFee = getEffectiveMonthlyFee(legend, newYear)
+
         return {
           ...client,
           currentRating: newRating,
           currentValue: newValue,
           status: newStatus,
+          monthlyFee: evolvedMonthlyFee,
           happiness,
           injuredUntilWeek,
           injuryLevel,
