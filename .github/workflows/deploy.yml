@@ -63,7 +63,7 @@ jobs:
 
   deploy:
     needs: build
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/claude/new-app-discussion-00eihk' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
