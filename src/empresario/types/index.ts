@@ -75,6 +75,7 @@ export interface Client {
   happiness: number       // 0–100
   currentValue: number    // market value in R$
   signedYear: number
+  signedAbsWeek?: number    // absolute week (year*52+week) when you signed — measures how long you've been caring
   contractClub: string | null
   contractSalary: number
   contractExpiresYear: number | null
