@@ -2087,7 +2087,7 @@ export function getCurrentRating(legend: Legend, year: number): number {
 
 export function getMarketValue(legend: Legend, year: number): number {
   const rating = getCurrentRating(legend, year)
-  const base = Math.pow(rating / 48, 3.2) * 4500000
+  const base = Math.pow(rating / 48, 3.2) * 1_500_000
   const peakBonus = year >= legend.peakYearStart && year <= legend.peakYearEnd ? 1.9 : 1
   const eraInflation = 1 + Math.max(0, year - 1993) * 0.05
   return Math.max(0, Math.round(base * peakBonus * eraInflation / 1000) * 1000)

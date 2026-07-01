@@ -653,7 +653,11 @@ export default function ScoutsScreen() {
                       {state.reputation < getMinReputationToSign(legend, state.year) && (
                         <BrutalTag color={C.black} textColor="#fff">🔒 REP {getMinReputationToSign(legend, state.year)}+</BrutalTag>
                       )}
-                      <span className="text-black/40 text-xs font-bold">{state.year - legend.birthYear}a · {legend.club}</span>
+                      <span className="text-black/40 text-xs font-bold">{state.year - legend.birthYear}a</span>
+                      {legend.club
+                        ? <span className="text-black/60 text-xs font-bold">🏟 {legend.club}</span>
+                        : <span className="text-orange-600 text-xs font-black">Sem clube</span>
+                      }
                     </div>
                   </div>
                 </div>

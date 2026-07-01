@@ -154,7 +154,7 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
   const luvaOf = (amt: number, clubName: string) => {
     const rel = clubRelations[clubName] ?? 0
     const relBonus = 1 + (rel / 100) * 0.5 // -50%..+50% based on relationship
-    return Math.round(amt * (0.02 + Math.random() * 0.07) * relBonus / 1000) * 1000
+    return Math.round(amt * (0.01 + Math.random() * 0.03) * relBonus / 1000) * 1000
   }
 
   // Market heat: the hotter the player, the more clubs fight (and likely more come).

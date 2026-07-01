@@ -415,9 +415,15 @@ export default function DashboardScreen() {
                           </span>
                           <BrutalTag color={POS_COLOR[c.position]} textColor="#fff">{c.position}</BrutalTag>
                         </div>
-                        <div className="flex items-center gap-1.5 mt-1">
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                           {st && <BrutalTag color={st.color} textColor={c.status === 'pelada' ? '#fff' : '#000'}>{st.label}</BrutalTag>}
                           <span className="text-black/40 text-xs font-bold">{state.year - c.birthYear}a</span>
+                          {c.onStrategicLoan && c.loanOriginClub
+                            ? <BrutalTag color={C.teal} textColor="#fff">📍 {c.loanOriginClub}</BrutalTag>
+                            : c.contractClub
+                            ? <span className="text-black/50 text-xs font-bold">🏟 {c.contractClub}</span>
+                            : <BrutalTag color={C.orange} textColor="#fff">Sem clube</BrutalTag>
+                          }
                         </div>
                       </div>
                       <div className="text-right shrink-0">
