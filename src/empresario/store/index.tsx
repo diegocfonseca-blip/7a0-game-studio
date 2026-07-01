@@ -1439,7 +1439,7 @@ export function EmpresarioProvider({ children }: { children: ReactNode }) {
         isHost: false,
         playerNames: [],
         youIndex: 0,
-        onlineGameMode: null,
+        onlineGameMode: parsed.onlineGameMode ?? 'leilao',
         draftTurn: 0,
         draftPicksDone: 0,
         currentAuction: null,

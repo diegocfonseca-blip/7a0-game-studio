@@ -218,32 +218,6 @@ export default function DashboardScreen() {
           )
         })()}
 
-        {/* ── DRAFT / LEILÃO ALERT (cpu e online estruturado) ── */}
-        {isStructured && state.draftWindowActive && (
-          <BrutalCard color={C.green} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'scouts' })} style={{ cursor: 'pointer' }}>
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">📋</span>
-              <div className="flex-1">
-                <p className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>JANELA DE DRAFT ABERTA!</p>
-                <p className="text-black/60 text-xs font-bold">Os rivais já escolheram — hora de fazer sua escolha</p>
-              </div>
-              <span className="text-2xl">→</span>
-            </div>
-          </BrutalCard>
-        )}
-        {isStructured && state.currentAuction !== null && !state.draftWindowActive && (
-          <BrutalCard color={C.purple} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'scouts' })} style={{ cursor: 'pointer' }}>
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">🔨</span>
-              <div className="flex-1">
-                <p className="font-black text-white text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>LEILÃO EM ANDAMENTO!</p>
-                <p className="text-white/60 text-xs font-bold">Lance seu valor antes de avançar semana</p>
-              </div>
-              <span className="text-2xl text-white">→</span>
-            </div>
-          </BrutalCard>
-        )}
-
         {/* ── ALERTAS ── */}
         {activeOffers > 0 && (
           <BrutalCard color={C.yellow} className="p-4" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'offers' })}>
@@ -305,6 +279,22 @@ export default function DashboardScreen() {
             <p className="font-black text-black" style={{ fontFamily: 'Oswald, sans-serif' }}>ÁLBUM</p>
             <p className="text-black/60 text-xs font-bold">Lendas colecionadas</p>
           </BrutalCard>
+
+          {(() => {
+            const hasAuction = isStructured && state.currentAuction !== null
+            const hasDraft = isStructured && state.draftWindowActive
+            const radarColor = hasAuction ? C.purple : hasDraft ? C.green : C.teal
+            const radarIcon = hasAuction ? '🔨' : hasDraft ? '📋' : '🔭'
+            const radarTitle = hasAuction ? 'LEILÃO EM ANDAMENTO!' : hasDraft ? 'JANELA DE DRAFT!' : 'RADAR DE TALENTOS'
+            const radarSub = hasAuction ? 'Dê seu lance antes de avançar' : hasDraft ? 'Assine uma lenda agora' : 'Lendas disponíveis para assinar'
+            return (
+              <BrutalCard color={radarColor} className="p-4 col-span-2" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'scouts' })}>
+                <p className="text-3xl mb-1">{radarIcon}</p>
+                <p className="font-black text-white text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{radarTitle}</p>
+                <p className="text-white/60 text-[10px] font-bold">{radarSub}</p>
+              </BrutalCard>
+            )
+          })()}
 
           {(() => {
             const auctionLock = isStructured && state.currentAuction !== null
