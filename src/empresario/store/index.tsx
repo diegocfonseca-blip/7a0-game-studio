@@ -90,6 +90,7 @@ const INITIAL_STATE: GameState = {
   onlinePresence: [],
   onlineNews: [],
   onlinePlayerRosters: {},
+  suspendedUntilWeek: 0,
 }
 
 type Action =
@@ -104,14 +105,15 @@ type Action =
   | { type: 'ADVANCE_WEEK' }
   | { type: 'ACCEPT_OFFER'; offerId: string; clubName: string; amount: number; clubLuva: number }
   | { type: 'REJECT_OFFER'; offerId: string }
-  | { type: 'RESOLVE_EVENT'; eventId: string; choiceIndex: 0 | 1 }
+  | { type: 'RESOLVE_EVENT'; eventId: string; choiceIndex: 0 | 1 | 2 }
   | { type: 'PURCHASE_UPGRADE'; upgradeId: string; cost: number; effect: string; repGain?: number }
   | { type: 'MARK_LEGEND_SEEN'; legendId: string }
   | { type: 'LEGEND_REJECTED'; legendId: string; lost: boolean }
   | { type: 'DISMISS_NEMESIS_ALERT' }
   | { type: 'ESCALATE_BID'; offerId: string }
   | { type: 'HAGGLE_OFFER'; offerId: string }
-  | { type: 'DIRTY_ACTION'; kind: 'maquiar' | 'imprensa' | 'arbitro' }
+  | { type: 'DIRTY_ACTION'; kind: 'maquiar' | 'imprensa' | 'arbitro' | 'apostar' }
+  | { type: 'LOAN_CLIENT'; legendId: string; loanClub: string; loanYears: number }
   | { type: 'CLAIM_CHALLENGE' }
   | { type: 'CLAIM_MISSION' }
   | { type: 'NEW_GAME' }
@@ -535,6 +537,13 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           }
         }
 
+        // 📈 STRATEGIC LOAN: client grows ~15% faster on loan (only on year rollover)
+        if (yearRolled && client.onStrategicLoan) {
+          newValue = Math.round(newValue * 1.15)
+          happiness = Math.min(100, happiness + 5)
+          extraNarrative.push(`📈 ${client.nickname} está se destacando no ${client.loanOriginClub ?? 'clube emprestado'} — crescimento acelerado em empréstimo!`)
+        }
+
         return {
           ...client,
           currentRating: newRating,
@@ -570,11 +579,14 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           }
         }
         activeClients = kept
-        // ↩️ LOAN returns — a borrowed jewel goes back to his club after the season
+        // ↩️ LOAN returns — strategic loan client comes back grown
         activeClients = activeClients.map(c => {
           if (c.loanReturnYear !== undefined && newYear >= c.loanReturnYear) {
-            extraNarrative.push(`↩️ ${c.nickname} voltou de empréstimo pro ${c.loanOriginClub} — mais maduro e valorizado.`)
-            return { ...c, contractClub: c.loanOriginClub ?? c.contractClub, loanOriginClub: undefined, loanReturnYear: undefined }
+            const msg = c.onStrategicLoan
+              ? `🔄 ${c.nickname} voltou do empréstimo no ${c.loanOriginClub} mais forte e valorizado!`
+              : `↩️ ${c.nickname} voltou de empréstimo pro ${c.loanOriginClub} — mais maduro e valorizado.`
+            extraNarrative.push(msg)
+            return { ...c, contractClub: c.loanOriginClub ?? c.contractClub, loanOriginClub: undefined, loanReturnYear: undefined, onStrategicLoan: undefined }
           }
           return c
         })
@@ -859,15 +871,10 @@ function empresarioReducer(state: GameState, action: Action): GameState {
             extraNarrative.push(`📊 Empresário do Ano de ${newYear - 1}: ${topRival?.name}. Você está na cola dele.`)
           }
         }
-        // suspicion-driven investigation
-        if (suspicion > 55 && Math.random() < suspicion / 140) {
-          const fine = Math.round(money2 * 0.15)
-          money2 = Math.max(0, money2 - fine)
-          reputation2 = Math.max(0, reputation2 - 12)
-          suspicion = Math.max(0, suspicion - 35)
-          extraNarrative.push(`🕵️ INVESTIGAÇÃO! A federação te pegou. Multa de R$${fine.toLocaleString('pt-BR')} e reputação manchada. Pegue mais leve no submundo.`)
-        } else if (suspicion > 0) {
-          suspicion = Math.max(0, suspicion - 3) // cools slowly each year
+        // Suspicion never decays on its own — only dirty actions increase it.
+        // Only a full 100% hit (triggered in DIRTY_ACTION) resets it to 0.
+        if (suspicion >= 80) {
+          extraNarrative.push(`⚠️ SUSPEITA CRÍTICA (${suspicion}/100)! Mais uma ação sujaа e você perde TUDO.`)
         }
       }
 
@@ -1010,6 +1017,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         onlineTakenLegends: cpuTakenLegends,
         seenLegendIds,
         narrative: [...state.narrative, ...extraNarrative],
+        suspendedUntilWeek: state.suspendedUntilWeek,
       }
     }
 
@@ -1399,34 +1407,78 @@ function empresarioReducer(state: GameState, action: Action): GameState {
     }
 
     case 'DIRTY_ACTION': {
-      if (action.kind === 'maquiar') {
+      const nowAbsDirty = state.year * 52 + state.week
+      function applyDirty(nextState: GameState): GameState {
+        if (nextState.suspicion < 100) return nextState
+        // 💥 SUSPEITA 100% — perda de todos os clientes, suspensão de 8 semanas
+        const releasedNicknames = nextState.clients.map(c => c.nickname)
         return {
-          ...state,
-          money: state.money + 80000,
-          suspicion: Math.min(100, state.suspicion + 16),
-          narrative: [...state.narrative, `💵 Você maquiou uma transferência e desviou R$80.000 pro seu caixa dois. Suspeita aumentou.`],
+          ...nextState,
+          suspicion: 0,
+          clients: [],
+          weeklyExpenses: 0,
+          suspendedUntilWeek: nowAbsDirty + 8,
+          nemesisTaken: [...nextState.nemesisTaken, ...nextState.clients.map(c => c.legendId).filter(id => !nextState.nemesisTaken.includes(id))],
+          onlineTakenLegends: {},
+          narrative: [...nextState.narrative,
+            `🚨 INVESTIGAÇÃO FEDERAL! A federação confiscou sua licença. ${releasedNicknames.join(', ')} voltaram ao mercado — você está SUSPENSO por 8 semanas e só pode assistir os leilões.`,
+          ],
         }
+      }
+
+      if (action.kind === 'maquiar') {
+        return applyDirty({
+          ...state,
+          money: state.money + 800_000,
+          suspicion: Math.min(100, state.suspicion + 16),
+          narrative: [...state.narrative, `💵 Você maquiou uma transferência e desviou R$800.000 pro seu caixa dois. Suspeita subiu.`],
+        })
       }
       if (action.kind === 'imprensa') {
-        return {
+        return applyDirty({
           ...state,
-          reputation: Math.min(100, state.reputation + 6),
+          reputation: Math.min(100, state.reputation + 15),
           suspicion: Math.min(100, state.suspicion + 10),
-          narrative: [...state.narrative, `🤐 Você subornou jornalistas pra falarem bem de você. Reputação subiu na marra.`],
-        }
+          narrative: [...state.narrative, `🤐 Você subornou a imprensa. +15 de reputação na marra.`],
+        })
       }
-      // arbitro — boost your best client
+      if (action.kind === 'apostar') {
+        // Bet on a match you know the result — big money, big risk
+        const prize = 1_500_000 + Math.round(Math.random() * 1_000_000)
+        return applyDirty({
+          ...state,
+          money: state.money + prize,
+          totalEarned: state.totalEarned + prize,
+          suspicion: Math.min(100, state.suspicion + 22),
+          narrative: [...state.narrative, `🎰 Você apostou sabendo o resultado e embolsou R$${prize.toLocaleString('pt-BR')}. Perigoso mas lucrativo.`],
+        })
+      }
+      // arbitro — big boost on best client
       const best = [...state.clients].sort((a, b) => b.currentValue - a.currentValue)[0]
       if (!best) return state
-      return {
+      return applyDirty({
         ...state,
         suspicion: Math.min(100, state.suspicion + 18),
         clients: state.clients.map(c =>
           c.legendId === best.legendId
-            ? { ...c, currentValue: Math.round(c.currentValue * 1.12), happiness: Math.min(100, c.happiness + 8) }
+            ? { ...c, currentValue: Math.round(c.currentValue * 1.35), happiness: Math.min(100, c.happiness + 15) }
             : c
         ),
-        narrative: [...state.narrative, `⚖️ Você comprou a arbitragem pra ${best.nickname} brilhar. Funcionou — mas alguém pode ter visto.`],
+        narrative: [...state.narrative, `⚖️ Você comprou a arbitragem pra ${best.nickname} brilhar. Valor +35% e moral explodiu.`],
+      })
+    }
+
+    case 'LOAN_CLIENT': {
+      const loanClubs = ['Fluminense', 'Vasco da Gama', 'Santos', 'Cruzeiro', 'Grêmio', 'Botafogo', 'Atlético Mineiro', 'Colo-Colo', 'Nacional', 'Club Brugge']
+      const club = action.loanClub || loanClubs[Math.floor(Math.random() * loanClubs.length)]
+      return {
+        ...state,
+        clients: state.clients.map(c =>
+          c.legendId === action.legendId
+            ? { ...c, onStrategicLoan: true, loanOriginClub: club, loanReturnYear: state.year + action.loanYears, contractClub: club }
+            : c
+        ),
+        narrative: [...state.narrative, `✈️ EMPRÉSTIMO ESTRATÉGICO! Você emprestou ${state.clients.find(c => c.legendId === action.legendId)?.nickname} ao ${club} por ${action.loanYears} ano(s). Ele vai crescer mais rápido lá.`],
       }
     }
 
@@ -1473,6 +1525,7 @@ export function EmpresarioProvider({ children }: { children: ReactNode }) {
         onlineTakenLegends: {},
         onlinePlayers: [],
         onlinePresence: [],
+        suspendedUntilWeek: parsed.suspendedUntilWeek ?? 0,
         screen: hasProgress ? 'dashboard' : 'lobby',
       }
     } catch {

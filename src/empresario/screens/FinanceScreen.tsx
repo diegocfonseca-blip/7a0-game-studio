@@ -172,20 +172,24 @@ export default function FinanceScreen() {
         <div>
           <h2 className="font-black text-black text-lg pt-1" style={{ fontFamily: 'Oswald, sans-serif' }}>🕵️ O SUBMUNDO</h2>
           <p className="text-black/50 text-xs font-bold mb-3">Atalhos sujos pra lucrar rápido — mas cada um sobe sua SUSPEITA. Se passar dos limites, a federação investiga.</p>
-          <BrutalCard color={state.suspicion > 55 ? C.orange : C.creamDark} className="p-3 mb-3" shadow={3}>
+          <BrutalCard color={state.suspicion >= 80 ? '#CC0000' : state.suspicion > 55 ? C.orange : C.creamDark} className="p-3 mb-3" shadow={3}>
             <div className="flex items-center gap-2">
-              <span className={`text-xs font-black ${state.suspicion > 55 ? 'text-white' : 'text-black/60'}`}>SUSPEITA</span>
+              <span className={`text-xs font-black ${state.suspicion >= 80 ? 'text-white' : state.suspicion > 55 ? 'text-white' : 'text-black/60'}`}>SUSPEITA</span>
               <div className="flex-1 h-3 bg-black/15 border-2 border-black rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all" style={{ width: `${state.suspicion}%`, backgroundColor: state.suspicion > 70 ? C.orange : state.suspicion > 40 ? C.yellow : C.green }} />
+                <div className="h-full rounded-full transition-all" style={{ width: `${state.suspicion}%`, backgroundColor: state.suspicion >= 80 ? '#CC0000' : state.suspicion > 70 ? C.orange : state.suspicion > 40 ? C.yellow : C.green }} />
               </div>
-              <span className={`text-xs font-black ${state.suspicion > 55 ? 'text-white' : 'text-black'}`}>{state.suspicion}/100</span>
+              <span className={`text-xs font-black ${state.suspicion >= 80 ? 'text-white' : state.suspicion > 55 ? 'text-white' : 'text-black'}`}>{state.suspicion}/100</span>
             </div>
+            {state.suspicion >= 80 && (
+              <p className="text-white text-[10px] font-black mt-1.5">⚠️ PERIGO! Próxima ação suja pode te fazer perder TODOS os clientes e uma suspensão de 8 semanas.</p>
+            )}
           </BrutalCard>
           <div className="space-y-2">
             {[
-              { kind: 'maquiar' as const, icon: '💵', name: 'Maquiar transferência', desc: 'Desvia R$80.000 pro caixa dois.', sus: '+16 suspeita' },
-              { kind: 'imprensa' as const, icon: '🤐', name: 'Subornar a imprensa', desc: '+6 de reputação na marra.', sus: '+10 suspeita' },
-              { kind: 'arbitro' as const, icon: '⚖️', name: 'Comprar a arbitragem', desc: 'Seu craque mais valioso brilha (+valor +moral).', sus: '+18 suspeita' },
+              { kind: 'maquiar' as const, icon: '💵', name: 'Maquiar transferência', desc: 'Desvia R$800.000 pro caixa dois. Risco alto.', sus: '+16 suspeita' },
+              { kind: 'imprensa' as const, icon: '🤐', name: 'Subornar a imprensa', desc: '+15 de reputação na marra.', sus: '+10 suspeita' },
+              { kind: 'arbitro' as const, icon: '⚖️', name: 'Comprar a arbitragem', desc: 'Seu craque mais valioso brilha (+35% valor +15 moral).', sus: '+18 suspeita' },
+              { kind: 'apostar' as const, icon: '🎰', name: 'Apostar sabendo o resultado', desc: 'Embolsa R$1,5M–2,5M apostando em jogo manipulado.', sus: '+22 suspeita' },
             ].map(d => (
               <BrutalCard key={d.kind} color="white" className="p-3" shadow={3}>
                 <div className="flex items-center gap-3">

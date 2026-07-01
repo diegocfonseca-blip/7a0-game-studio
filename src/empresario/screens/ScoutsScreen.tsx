@@ -41,6 +41,8 @@ export default function ScoutsScreen() {
   // Exclude legends already taken by other players (online or CPU)
   const takenIds = Object.keys(state.onlineTakenLegends)
   const available = getAvailableLegends(state.year, [...signedIds, ...takenIds], unlockedNats, state.lostLegends)
+  const nowAbsScouts = state.year * 52 + state.week
+  const isSuspended = state.suspendedUntilWeek > nowAbsScouts
 
   // live prediction reacts to BOTH commission and contract length
   const liveMax = selected ? getMaxAcceptable(selected, state.reputation, state.year) : 0
@@ -316,7 +318,16 @@ export default function ScoutsScreen() {
                     <div className="flex gap-1.5 mt-1 flex-wrap">
                       <BrutalTag color={POS_COLOR[auctionLegend.position]} textColor="#fff">{auctionLegend.position}</BrutalTag>
                       <BrutalTag color={C.yellow}>⭐ {rarityOf(auctionLegend.truePotential).label}</BrutalTag>
-                      <BrutalTag color={C.teal}>Pot. {auctionLegend.truePotential}</BrutalTag>
+                    </div>
+                    <div className="flex gap-3 mt-2">
+                      <div className="flex-1 bg-black/5 border-2 border-black rounded-lg p-2 text-center">
+                        <p className="text-black/40 text-[9px] font-black uppercase">Nota hoje</p>
+                        <p className="font-black text-black text-xl leading-none mt-0.5" style={{ fontFamily: 'Oswald, sans-serif' }}>{getCurrentRating(auctionLegend, state.year)}</p>
+                      </div>
+                      <div className="flex-1 border-2 border-black rounded-lg p-2 text-center" style={{ backgroundColor: C.yellow }}>
+                        <p className="text-black/60 text-[9px] font-black uppercase">Potencial ✦</p>
+                        <p className="font-black text-black text-xl leading-none mt-0.5" style={{ fontFamily: 'Oswald, sans-serif' }}>{auctionLegend.truePotential}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -382,8 +393,20 @@ export default function ScoutsScreen() {
                   })
                 )}
               </div>
+              {/* suspension notice — shows instead of bid input */}
+              {isSuspended && !auction.closed && (
+                <div className="border-[3px] border-black rounded-xl p-3 text-center" style={{ backgroundColor: '#CC0000' }}>
+                  <p className="font-black text-white text-sm">🚫 SUSPENSO — SÓ PODE OBSERVAR</p>
+                  <p className="text-white/70 text-xs font-bold mt-0.5">Sua licença foi cassada. Você pode ver mas não dar lances.</p>
+                  {state.onlineMode === 'cpu' && (
+                    <button onClick={() => confirmBidAndClose(false)} className="text-white/60 text-[11px] font-bold underline mt-2 block mx-auto">
+                      Fechar leilão sem lance
+                    </button>
+                  )}
+                </div>
+              )}
               {/* my bid input — CPU leilão: bid + close in one tap */}
-              {state.onlineMode === 'cpu' && !auction.closed && !myBid && (
+              {state.onlineMode === 'cpu' && !auction.closed && !myBid && !isSuspended && (
                 <div>
                   <div className="flex gap-2">
                     <input
@@ -406,7 +429,7 @@ export default function ScoutsScreen() {
                 </div>
               )}
               {/* my bid input — online leilão: bid only, host closes separately */}
-              {state.onlineMode !== 'cpu' && !auction.closed && !myBid && (
+              {state.onlineMode !== 'cpu' && !auction.closed && !myBid && !isSuspended && (
                 <div className="flex gap-2">
                   <input
                     type="number"

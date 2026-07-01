@@ -81,8 +81,9 @@ export interface Client {
   rivalOffers: number     // how many rival agents approached them
   lastDealYear?: number   // year of last transfer — clubs leave them alone for a while
   showcaseMult?: number   // value multiplier built up by playing at YOUR club (vitrine)
-  loanReturnYear?: number // if on loan to your club, the year he goes back
-  loanOriginClub?: string // the club he came from on loan
+  loanReturnYear?: number // if on strategic loan, the year he comes back
+  loanOriginClub?: string // the club he's on loan at
+  onStrategicLoan?: boolean // true when YOU sent him on loan to grow faster
   injuredUntilWeek?: number  // absolute week (year*52+week) when injury ends
   injuryLevel?: 'leve' | 'moderada' | 'grave'
   injuryDescription?: string
@@ -172,12 +173,9 @@ export interface GameEvent {
   title: string
   description: string
   clientId?: string
-  choices?: [
-    { label: string; effect: EventEffect },
-    { label: string; effect: EventEffect }
-  ]
+  choices?: Array<{ label: string; effect: EventEffect }>
   resolved?: boolean
-  chosenIndex?: 0 | 1
+  chosenIndex?: 0 | 1 | 2
 }
 
 export interface EventEffect {
@@ -289,4 +287,5 @@ export interface GameState {
   onlinePresence: number[]
   onlineNews: OnlineNewsItem[]
   onlinePlayerRosters: Record<number, OnlineClientInfo[]>
+  suspendedUntilWeek: number // abs week when suspension ends (0 = not suspended)
 }

@@ -23,8 +23,12 @@ export default function DashboardScreen() {
   const [rRate, setRRate] = useState(15)
   const [rYears, setRYears] = useState(3)
   const [rResult, setRResult] = useState<string | null>(null)
+  const [loaning, setLoaning] = useState(false)
+  const [loanYears, setLoanYears] = useState(1)
   const monthIndex = Math.floor((state.week - 1) / 4.34) % 12
   const isStructured = state.onlineGameMode !== null
+  const nowAbsDash = state.year * 52 + state.week
+  const isSuspended = state.suspendedUntilWeek > nowAbsDash
   const pendingEvents = state.events.filter(e => !e.resolved)
   const activeOffers = state.pendingOffers.length
   const alerts = pendingEvents.length + activeOffers
@@ -46,6 +50,22 @@ export default function DashboardScreen() {
       </div>
 
       <div className="max-w-md mx-auto px-4 py-4 space-y-4">
+
+        {/* ── SUSPENSÃO BANNER ── */}
+        {isSuspended && (
+          <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }}>
+            <BrutalCard color="#CC0000" className="p-4" shadow={6}>
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">🚫</span>
+                <div className="flex-1">
+                  <p className="font-black text-white text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>VOCÊ ESTÁ SUSPENSO!</p>
+                  <p className="text-white/80 text-xs font-bold">A federação cassou sua licença temporariamente. Você pode observar os leilões mas NÃO pode dar lance.</p>
+                </div>
+              </div>
+              <p className="text-white/60 text-[10px] font-bold mt-2">Suspensão termina na semana {state.suspendedUntilWeek % 52 || 52} de {Math.floor(state.suspendedUntilWeek / 52)}</p>
+            </BrutalCard>
+          </motion.div>
+        )}
 
         {/* ── PATRIMÔNIO (hero) ── */}
         <BrutalCard color={C.blue} className="p-5" shadow={6}>
@@ -469,7 +489,7 @@ export default function DashboardScreen() {
                       <p className="font-black text-black text-2xl leading-none" style={{ fontFamily: 'Oswald, sans-serif' }}>{c.nickname}</p>
                       <p className="text-black/50 text-sm font-bold">{c.name}</p>
                     </div>
-                    <button onClick={() => { setDetail(null); setRenewing(false); setRResult(null) }} className="text-black text-2xl font-black">×</button>
+                    <button onClick={() => { setDetail(null); setRenewing(false); setRResult(null); setLoaning(false) }} className="text-black text-2xl font-black">×</button>
                   </div>
 
                   <div className="flex flex-wrap gap-1.5 mb-4">
@@ -597,12 +617,51 @@ export default function DashboardScreen() {
                   </div>
 
                   {/* future knowledge */}
-                  <BrutalCard color={C.black} className="p-3" shadow={3}>
+                  <BrutalCard color={C.black} className="p-3 mb-3" shadow={3}>
                     <p className="text-white/50 text-[10px] font-black uppercase tracking-widest mb-1">🔮 O que SÓ você sabe</p>
                     <p className="text-white text-xs font-bold leading-relaxed">{c.futureKnowledge}</p>
                   </BrutalCard>
 
-                  <div className="mt-4">
+                  {/* ── EMPRÉSTIMO ESTRATÉGICO ── */}
+                  {!c.onStrategicLoan && !c.injuredUntilWeek && (
+                    <BrutalCard color={loaning ? C.blue : C.creamDark} className="p-3 mb-3" shadow={3}>
+                      <p className={`text-[10px] font-black uppercase tracking-widest ${loaning ? 'text-white/70' : 'text-black/50'}`}>✈️ Empréstimo estratégico</p>
+                      {loaning ? (
+                        <div className="mt-2">
+                          <p className="text-white text-xs font-bold mb-2">Quantos anos de empréstimo?</p>
+                          <div className="flex items-center gap-3 mb-2">
+                            <input type="range" min={1} max={3} value={loanYears} onChange={e => setLoanYears(Number(e.target.value))} className="flex-1" style={{ accentColor: C.yellow }} />
+                            <span className="font-black text-white text-xl w-8">{loanYears}</span>
+                          </div>
+                          <p className="text-white/60 text-[10px] font-bold mb-3">Durante o empréstimo: rating cresce +15%/ano extra. Não disponível pra venda enquanto estiver lá.</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            <BrutalButton color="white" textColor={C.black} onClick={() => setLoaning(false)}>Cancelar</BrutalButton>
+                            <BrutalButton color={C.yellow} textColor="#000" onClick={() => {
+                              dispatch({ type: 'LOAN_CLIENT', legendId: c.legendId, loanClub: '', loanYears })
+                              setLoaning(false)
+                              setDetail(null)
+                            }}>✈️ Emprestar!</BrutalButton>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-black text-xs font-bold mt-0.5">Mande {c.nickname} pra um clube menor. Ele cresce mais rápido e volta mais valioso.</p>
+                          <div className="mt-2">
+                            <BrutalButton color={C.teal} onClick={() => { setLoaning(true); setLoanYears(1) }}>✈️ Enviar em empréstimo</BrutalButton>
+                          </div>
+                        </>
+                      )}
+                    </BrutalCard>
+                  )}
+                  {c.onStrategicLoan && (
+                    <BrutalCard color={C.teal} className="p-3 mb-3" shadow={3}>
+                      <p className="text-black/60 text-[10px] font-black uppercase tracking-widest">✈️ Em empréstimo estratégico</p>
+                      <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>📍 {c.loanOriginClub}</p>
+                      <p className="text-black/60 text-xs font-bold mt-0.5">Retorna em {c.loanReturnYear} · crescimento acelerado ativo</p>
+                    </BrutalCard>
+                  )}
+
+                  <div className="mt-2">
                     <BrutalButton color={C.green} onClick={() => { setDetail(null); dispatch({ type: 'SET_SCREEN', screen: 'offers' }) }}>
                       Ver propostas e negociar →
                     </BrutalButton>

@@ -51,20 +51,42 @@ const INJURY_EVENTS: Make[] = [
 const SCANDAL_EVENTS: Make[] = [
   (c, y, w) => ({
     id: eid(y, w), week: w, year: y, type: 'scandal', clientId: c.legendId,
-    title: `Fotos de ${c.nickname} vazaram`,
-    description: `${c.nickname} apareceu em fotos numa festa às 5 da manhã, véspera de jogo. A imprensa esfomeada.`,
+    title: `🚨 ESCÂNDALO: Fotos de ${c.nickname} vazaram`,
+    description: `${c.nickname} apareceu em fotos numa festa às 5 da manhã, véspera de jogo. A imprensa está esfomeada. Como você age?`,
     choices: [
-      { label: 'Contratar assessoria avulsa (R$8.000)', effect: { money: -8000, reputation: 3, happiness: 6, narrative: `Crise abafada. (Uma assessoria fixa no escritório sairia mais barato.)` } },
-      { label: 'Deixar passar', effect: { reputation: -8, clientValue: -15, narrative: `A imprensa crucificou ${c.nickname}. Valor despencou.` } },
+      { label: 'A) Abafar — contratar assessoria de crise (R$25.000)', effect: { money: -25000, reputation: 5, happiness: 8, narrative: `Crise abafada com jeitinho. ${c.nickname} agradecido — você se saiu bem.` } },
+      { label: 'B) Confirmar e deixar rolar — sem gastar nada', effect: { reputation: -12, clientValue: -20, happiness: -10, narrative: `A imprensa crucificou ${c.nickname}. Valor despencou e o clube ficou bravo.` } },
+      { label: 'C) Transformar em marketing — vender exclusiva da versão "verdadeira" (+R$15.000)', effect: { money: 15000, reputation: -5, happiness: 10, clientValue: 8, narrative: `Ousado! ${c.nickname} virou notícia — o público adorou a sinceridade, mas alguns clubes ficaram desconfiados de você.` } },
     ],
   }),
   (c, y, w) => ({
     id: eid(y, w), week: w, year: y, type: 'scandal', clientId: c.legendId,
-    title: `${c.nickname} bateu boca com a torcida`,
-    description: `${c.nickname} respondeu xingamento de torcedor e o vídeo viralizou. Climão com a diretoria do clube.`,
+    title: `🚨 ESCÂNDALO: ${c.nickname} flagrado em briga de rua`,
+    description: `${c.nickname} apareceu no meio de uma confusão noturna. O vídeo viralizou e a diretoria do clube está furiosa. Como você resolve?`,
     choices: [
-      { label: 'Marcar pedido de desculpas público', effect: { reputation: 5, happiness: -4, narrative: `${c.nickname} pediu desculpas a contragosto, mas a poeira baixou.` } },
-      { label: 'Defender seu cliente na imprensa', effect: { reputation: -3, happiness: 14, narrative: `Você comprou a briga de ${c.nickname}. Ele te abraçou — a torcida nem tanto.` } },
+      { label: 'A) Abafar — contratar relações-públicas e advogado (R$40.000)', effect: { money: -40000, reputation: 8, happiness: 5, narrative: `Você pagou caro pra sumir com a notícia. ${c.nickname} está no seu bolso.` } },
+      { label: 'B) Confirmar — deixar o jogador se explicar sozinho', effect: { reputation: -8, clientValue: -18, happiness: -15, narrative: `${c.nickname} se saiu mal na entrevista. O clube está considerando romper.` } },
+      { label: 'C) Transformar em marketing — vender documentário "a vida real do craque"', effect: { money: 30000, reputation: -8, happiness: 15, clientValue: 12, narrative: `${c.nickname} virou personagem. O documentário bomba nas redes — polêmico, mas lucrativo.` } },
+    ],
+  }),
+  (c, y, w) => ({
+    id: eid(y, w), week: w, year: y, type: 'scandal', clientId: c.legendId,
+    title: `🚨 ESCÂNDALO: ${c.nickname} acusado de doping`,
+    description: `Circula nos bastidores que ${c.nickname} teria resultado positivo num teste não oficial. Nenhuma confirmação ainda — mas o fogo está pegando.`,
+    choices: [
+      { label: 'A) Abafar — contratar laboratório particular pra rebater (R$60.000)', effect: { money: -60000, reputation: 10, happiness: 12, narrative: `Contraprova negativa. ${c.nickname} limpo — juridicamente pelo menos.` } },
+      { label: 'B) Confirmar e aceitar punição — manter credibilidade', effect: { reputation: 6, clientValue: -30, happiness: -20, narrative: `Você escolheu a transparência. ${c.nickname} leva suspensão mas sua reputação de honestidade sobe.` } },
+      { label: 'C) Transformar em marketing — "perseguição ao craque" vira campanha', effect: { money: 20000, reputation: -10, happiness: 8, clientValue: 5, narrative: `Viral! A narrativa de "perseguição" ganhou fãs apaixonados — e inimigos poderosos.` } },
+    ],
+  }),
+  (c, y, w) => ({
+    id: eid(y, w), week: w, year: y, type: 'scandal', clientId: c.legendId,
+    title: `🚨 ESCÂNDALO: Áudio de ${c.nickname} xingando o clube vazou`,
+    description: `${c.nickname} xingou a diretoria num áudio que acabou na imprensa. O presidente do clube ligou furioso pro seu celular agora mesmo.`,
+    choices: [
+      { label: 'A) Abafar — negociar reunião de paz e pagar "indenização" ao clube (R$35.000)', effect: { money: -35000, reputation: 5, happiness: -5, narrative: `Paz feita. ${c.nickname} continua no clube, mas engoliu o orgulho.` } },
+      { label: 'B) Confirmar — apoiar o jogador publicamente', effect: { reputation: -6, clientValue: -15, happiness: 18, narrative: `${c.nickname} adorou que você o defendeu. O clube não vai esquecer tão cedo.` } },
+      { label: 'C) Transformar em marketing — usar o áudio pra negociar transferência cara', effect: { money: 50000, reputation: -12, clientValue: 20, happiness: 10, narrative: `Genial ou loucura? Você usou o caos pra forçar uma venda. Funcionou — mas queimou a ponte com o clube.` } },
     ],
   }),
 ]

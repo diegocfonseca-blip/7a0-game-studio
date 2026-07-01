@@ -124,12 +124,15 @@ const EVENT_ICON: Record<string, string> = {
   injury: '🏥', scandal: '📰', rival: '🤝', breakout: '⭐', personal: '👨‍👩‍👦', press: '🎙️', offer: '📋',
 }
 
-function EventCard({ event, onResolve }: { event: GameEvent; onResolve: (id: string, idx: 0 | 1) => void }) {
-  const [chosen, setChosen] = useState<0 | 1 | null>(null)
+const CHOICE_LABEL = ['A)', 'B)', 'C)']
+
+function EventCard({ event, onResolve }: { event: GameEvent; onResolve: (id: string, idx: 0 | 1 | 2) => void }) {
+  const [chosen, setChosen] = useState<0 | 1 | 2 | null>(null)
   if (event.resolved || !event.choices) return null
+  const isScandal = event.type === 'scandal'
 
   return (
-    <BrutalCard color={C.orange} className="p-4">
+    <BrutalCard color={isScandal ? '#CC0000' : C.orange} className="p-4">
       <div className="flex items-start gap-3 mb-3">
         <span className="text-3xl">{EVENT_ICON[event.type] ?? '📌'}</span>
         <div>
@@ -143,12 +146,12 @@ function EventCard({ event, onResolve }: { event: GameEvent; onResolve: (id: str
             key={idx}
             whileTap={{ scale: 0.98 }}
             disabled={chosen !== null}
-            onClick={() => { setChosen(idx as 0 | 1); setTimeout(() => onResolve(event.id, idx as 0 | 1), 350) }}
+            onClick={() => { setChosen(idx as 0 | 1 | 2); setTimeout(() => onResolve(event.id, idx as 0 | 1 | 2), 350) }}
             style={{ boxShadow: chosen === null ? `3px 3px 0 0 ${C.black}` : 'none' }}
             className={`w-full text-left p-3 rounded-xl border-[3px] border-black text-sm font-bold transition-all
               ${chosen === idx ? 'bg-black text-white' : chosen !== null ? 'bg-white/40 text-black/30' : 'bg-white text-black active:translate-x-[3px] active:translate-y-[3px]'}`}
           >
-            <span className="font-black mr-1">{idx === 0 ? 'A)' : 'B)'}</span>
+            <span className="font-black mr-1">{CHOICE_LABEL[idx] ?? `${idx + 1})`}</span>
             {choice.label}
             {choice.effect.money ? (
               <span className={`ml-1 font-black ${choice.effect.money > 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -201,7 +204,7 @@ export default function NegotiationsScreen() {
               <BrutalTag color={C.orange} textColor="#fff">{pendingEvents.length}</BrutalTag>
             </div>
             {pendingEvents.map(e => (
-              <EventCard key={e.id} event={e} onResolve={(id, idx) => dispatch({ type: 'RESOLVE_EVENT', eventId: id, choiceIndex: idx })} />
+              <EventCard key={e.id} event={e} onResolve={(id, idx) => dispatch({ type: 'RESOLVE_EVENT', eventId: id, choiceIndex: idx as 0 | 1 | 2 })} />
             ))}
           </div>
         )}
