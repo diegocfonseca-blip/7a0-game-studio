@@ -741,7 +741,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'baresi', name: 'Franco Baresi', nickname: 'Kaiser', position: 'ZAG', nationality: 'IT',
-    birthYear: 1960, emergenceYear: 1993, peakYearStart: 1988, peakYearEnd: 1994, truePotential: 94, currentRating: 88,
+    birthYear: 1960, emergenceYear: 1982, peakYearStart: 1988, peakYearEnd: 1994, truePotential: 94, currentRating: 88,
     personality: 'difícil', status: 'estrela', signingFee: 9000, luva: 12000,
     luvaReason: 'Capitão do Milan e imperador do calcio. Só chega do lado dele quem ele respeitar.',
     monthlyFee: 1600,
@@ -773,7 +773,7 @@ export const LEGENDS: Legend[] = [
   // ─── HOLANDA ERA 92 ───────────────────────────────────────────
   {
     id: 'gullit', name: 'Ruud Gullit', nickname: 'Il Tulipano Nero', position: 'ATA', nationality: 'NL',
-    birthYear: 1962, emergenceYear: 1993, peakYearStart: 1987, peakYearEnd: 1995, truePotential: 93, currentRating: 83,
+    birthYear: 1962, emergenceYear: 1984, peakYearStart: 1987, peakYearEnd: 1995, truePotential: 93, currentRating: 83,
     personality: 'ambicioso', status: 'estrela', signingFee: 7000, luva: 10000,
     luvaReason: 'Estrela global, exige o status correspondente. A luva é o preço de tratar com alguém assim.',
     monthlyFee: 1400,
@@ -783,7 +783,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'van_basten', name: 'Marco van Basten', nickname: 'Il Cigno', position: 'ATA', nationality: 'NL',
-    birthYear: 1964, emergenceYear: 1993, peakYearStart: 1988, peakYearEnd: 1993, truePotential: 96, currentRating: 74,
+    birthYear: 1964, emergenceYear: 1985, peakYearStart: 1988, peakYearEnd: 1993, truePotential: 96, currentRating: 74,
     personality: 'leal', status: 'pro', signingFee: 3500, luva: 7000,
     luvaReason: 'O tornozelo destruído exige tratamento caro. Uma chance de ter o maior 9 da história — mas o relógio corre.',
     monthlyFee: 600,
@@ -793,7 +793,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'rijkaard', name: 'Frank Rijkaard', nickname: 'Rijkaard', position: 'MEI', nationality: 'NL',
-    birthYear: 1962, emergenceYear: 1993, peakYearStart: 1988, peakYearEnd: 1996, truePotential: 90, currentRating: 82,
+    birthYear: 1962, emergenceYear: 1984, peakYearStart: 1988, peakYearEnd: 1996, truePotential: 90, currentRating: 82,
     personality: 'leal', status: 'estrela', signingFee: 3000, luva: 4500,
     luvaReason: 'Holandês tranquilo, profissional exemplar. A luva é justa para quem já ganhou tudo.',
     monthlyFee: 550,
@@ -825,7 +825,7 @@ export const LEGENDS: Legend[] = [
   // ─── ALEMANHA ERA 92 ──────────────────────────────────────────
   {
     id: 'matthaus', name: 'Lothar Matthäus', nickname: 'Der Kaiser Novo', position: 'MEI', nationality: 'DE',
-    birthYear: 1961, emergenceYear: 1993, peakYearStart: 1988, peakYearEnd: 1995, truePotential: 92, currentRating: 87,
+    birthYear: 1961, emergenceYear: 1982, peakYearStart: 1988, peakYearEnd: 1995, truePotential: 92, currentRating: 87,
     personality: 'ambicioso', status: 'estrela', signingFee: 6000, luva: 9000,
     luvaReason: 'FIFA Melhor Jogador de 1991. Sabe o que vale — e exige isso.',
     monthlyFee: 1200,
@@ -835,7 +835,7 @@ export const LEGENDS: Legend[] = [
   },
   {
     id: 'klinsmann', name: 'Jürgen Klinsmann', nickname: 'Der Bomber', position: 'ATA', nationality: 'DE',
-    birthYear: 1964, emergenceYear: 1993, peakYearStart: 1990, peakYearEnd: 1996, truePotential: 87, currentRating: 82,
+    birthYear: 1964, emergenceYear: 1987, peakYearStart: 1990, peakYearEnd: 1996, truePotential: 87, currentRating: 82,
     personality: 'leal', status: 'estrela', signingFee: 3500, luva: 5500,
     luvaReason: 'Profissional dos pés à cabeça. Sabe o valor do seu gol e exige pagamento equivalente.',
     monthlyFee: 600,
@@ -867,7 +867,7 @@ export const LEGENDS: Legend[] = [
   // ─── ESCANDINÁVIA ─────────────────────────────────────────────
   {
     id: 'm_laudrup', name: 'Michael Laudrup', nickname: 'El Genio Dinamarquês', position: 'MEI', nationality: 'DK',
-    birthYear: 1964, emergenceYear: 1993, peakYearStart: 1989, peakYearEnd: 1997, truePotential: 91, currentRating: 86,
+    birthYear: 1964, emergenceYear: 1985, peakYearStart: 1989, peakYearEnd: 1997, truePotential: 91, currentRating: 86,
     personality: 'leal', status: 'estrela', signingFee: 5000, luva: 7500,
     luvaReason: 'Peça de Cruyff no Barcelona. A luva é compatível com quem fez o sistema 4-3-3 funcionar de verdade.',
     monthlyFee: 980,
@@ -1013,7 +1013,7 @@ export const LEGENDS: Legend[] = [
   // ─── COLÔMBIA E CHILE ─────────────────────────────────────────
   {
     id: 'valderrama', name: 'Carlos Valderrama', nickname: 'El Pibe', position: 'MEI', nationality: 'CO',
-    birthYear: 1961, emergenceYear: 1993, peakYearStart: 1989, peakYearEnd: 1997, truePotential: 87, currentRating: 82,
+    birthYear: 1961, emergenceYear: 1984, peakYearStart: 1989, peakYearEnd: 1997, truePotential: 87, currentRating: 82,
     personality: 'difícil', status: 'estrela', signingFee: 3000, luva: 4800,
     luvaReason: 'Cabelo afro loiro e orgulho colombiano. A luva compra paz num país em guerra.',
     monthlyFee: 560,
