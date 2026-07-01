@@ -1,8 +1,8 @@
 import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
 import type { GameState, Screen, Client, ClubOffer, Bid, OnlinePlayer, OnlineGameMode, AuctionState, OnlineNewsItem, OnlineClientInfo, RivalAgent, GameEvent } from '../types'
-import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getUnlockedNationalities, getRetirementYear, retirementNarrative, LEGENDS } from '../data/legends'
-import { generateWeeklyEvent, generateAmbientNews, SCOUT_UPGRADES, OFFICE_UPGRADES } from '../data/events'
+import { getLegendById, getCurrentRating, getMarketValue, getCurrentStatus, getUnlockedNationalities, getRetirementYear, retirementNarrative, getEffectiveMonthlyFee, getEffectiveSigningCost, LEGENDS } from '../data/legends'
+import { generateWeeklyEvent, generateAmbientNews, SCOUT_UPGRADES, OFFICE_UPGRADES, hasOfficeIn } from '../data/events'
 import type { ClientLite } from '../data/events'
 import { CLUBS, NEMESIS } from '../data/clubs'
 import { GLORIES, genericGlory } from '../data/glory'
@@ -127,7 +127,12 @@ type Action =
   | { type: 'ONLINE_NEWS_ADD'; item: OnlineNewsItem }
   | { type: 'PLAYER_ROSTER_UPDATE'; playerIndex: number; clients: OnlineClientInfo[] }
 
-function generateClubOffer(client: Client, year: number, clubRelations: Record<string, number> = {}): ClubOffer | null {
+function generateClubOffer(
+  client: Client,
+  year: number,
+  clubRelations: Record<string, number> = {},
+  purchasedUpgrades: string[] = [],
+): ClubOffer | null {
   const rating = getCurrentRating(getLegendById(client.legendId)!, year)
   if (rating < 60 && Math.random() > 0.3) return null
   if (rating < 75 && Math.random() > 0.6) return null
@@ -136,6 +141,8 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
   if (value < 50000) return null
 
   const eligibleClubs = CLUBS.filter(c => {
+    // 🔑 GATE POR ESCRITÓRIO: sem escritório no país, o clube nem sabe que você existe.
+    if (!hasOfficeIn(c.country, purchasedUpgrades)) return false
     if (rating >= 85) return c.tier === 1
     if (rating >= 75) return c.tier <= 2
     return c.tier >= 2
@@ -144,20 +151,16 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
   if (eligibleClubs.length === 0) return null
 
   const salaryOf = (amt: number) => Math.round(amt * 0.08 / 12 / 1000) * 1000
-  // each club pays a different kickback (luva); clubs that LIKE you pay more
   const luvaOf = (amt: number, clubName: string) => {
     const rel = clubRelations[clubName] ?? 0
-    const relBonus = 1 + (rel / 100) * 0.5 // -50%..+50% based on relationship
+    const relBonus = 1 + (rel / 100) * 0.5
     return Math.round(amt * (0.02 + Math.random() * 0.07) * relBonus / 1000) * 1000
   }
 
-  // Market heat: the hotter the player, the more clubs fight (and likely more come).
-  // A FREE AGENT (no club, no transfer fee) attracts even more interest.
   const free = !client.contractClub
   let interest: 'alto' | 'medio' | 'baixo' = rating >= 82 ? 'alto' : rating >= 72 ? 'medio' : 'baixo'
   if (free) interest = interest === 'baixo' ? 'medio' : 'alto'
 
-  // ── BIDDING WAR: hot players attract several clubs at once ──
   const isWar = interest === 'alto' && eligibleClubs.length >= 2
   if (isWar) {
     const shuffled = [...eligibleClubs].sort(() => Math.random() - 0.5)
@@ -204,6 +207,15 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
   }
 }
 
+// Semanas mínimas de cuidado antes de qualquer proposta chegar.
+// Um moleque de pelada precisa de anos; uma estrela consolidada, poucas semanas.
+function careWeeksRequired(status: string): number {
+  if (status === 'estrela') return 4
+  if (status === 'pro')     return 14
+  if (status === 'base')    return 30
+  return 50 // pelada
+}
+
 // The nemesis snatches a hot prospect you haven't signed yet.
 function nemesisTryGrab(state: GameState, year: number): string | null {
   const taken = new Set([...state.nemesisTaken, ...state.lostLegends, ...state.clients.map(c => c.legendId)])
@@ -236,24 +248,27 @@ function resolveCpuAuction(state: GameState, auction: AuctionState): GameState {
     if (!legend) return { ...state, currentAuction: null }
     const currentRating = getCurrentRating(legend, state.year)
     const currentValue = getMarketValue(legend, state.year)
+    const effectiveFee = getEffectiveMonthlyFee(legend, state.year)
+    const nowAbsWin = state.year * 52 + state.week
     const newClient: Client = {
       legendId: legend.id, name: legend.name, nickname: legend.nickname,
       position: legend.position, nationality: legend.nationality,
       status: getCurrentStatus(legend, state.year),
       birthYear: legend.birthYear, peakYearStart: legend.peakYearStart,
       peakYearEnd: legend.peakYearEnd, truePotential: legend.truePotential,
-      currentRating, personality: legend.personality, monthlyFee: legend.monthlyFee,
+      currentRating, personality: legend.personality, monthlyFee: effectiveFee,
       futureKnowledge: legend.futureKnowledge, commissionRate: 15,
       repContractYears: 3, repExpiresYear: state.year + 3,
-      happiness: 75, currentValue, signedYear: state.year,
-      contractClub: legend.club, contractSalary: legend.monthlyFee * 10,
+      happiness: 75, currentValue, signedYear: state.year, signedAbsWeek: nowAbsWin,
+      contractClub: legend.club, contractSalary: effectiveFee * 10,
       contractExpiresYear: state.year + 2, rivalOffers: 0,
     }
-    const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + legend.monthlyFee / 4
+    const auctionSign = getEffectiveSigningCost(legend, state.year)
+    const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + effectiveFee / 4
     const xpr = applyXp(state, 60)
     return {
       ...state,
-      money: state.money - winner.amount,
+      money: state.money - winner.amount - auctionSign.signingFee, // paga leilão + burocracia
       clients: [...state.clients, newClient],
       weeklyExpenses, xp: xpr.xp,
       reputation: Math.min(100, state.reputation + xpr.repBonus),
@@ -340,6 +355,9 @@ function empresarioReducer(state: GameState, action: Action): GameState {
 
       const currentRating = getCurrentRating(legend, state.year)
       const currentValue = getMarketValue(legend, state.year)
+      const effectiveFee = getEffectiveMonthlyFee(legend, state.year)
+      const effSign = getEffectiveSigningCost(legend, state.year)
+      const nowAbsSign = state.year * 52 + state.week
 
       const newClient: Client = {
         legendId: legend.id,
@@ -354,7 +372,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         truePotential: legend.truePotential,
         currentRating,
         personality: legend.personality,
-        monthlyFee: legend.monthlyFee,
+        monthlyFee: effectiveFee,
         futureKnowledge: legend.futureKnowledge,
         commissionRate: action.commissionRate,
         repContractYears: action.contractYears,
@@ -362,14 +380,15 @@ function empresarioReducer(state: GameState, action: Action): GameState {
         happiness: 75,
         currentValue,
         signedYear: state.year,
+        signedAbsWeek: nowAbsSign,
         contractClub: legend.club,
-        contractSalary: legend.monthlyFee * 10,
+        contractSalary: effectiveFee * 10,
         contractExpiresYear: state.year + 2,
         rivalOffers: 0,
       }
 
-      const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + legend.monthlyFee / 4
-      const upfront = legend.signingFee + legend.luva
+      const weeklyExpenses = state.clients.reduce((sum, c) => sum + c.monthlyFee, 0) / 4 + effectiveFee / 4
+      const upfront = effSign.signingFee + effSign.luva
       const xpr = applyXp(state, 60)
       const hotTargets = { ...state.hotTargets }
       delete hotTargets[action.legendId]
@@ -535,11 +554,15 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           }
         }
 
+        // Custo mensal EVOLUI com a fama: virou estrela = fica caríssimo.
+        const evolvedMonthlyFee = getEffectiveMonthlyFee(legend, newYear)
+
         return {
           ...client,
           currentRating: newRating,
           currentValue: newValue,
           status: newStatus,
+          monthlyFee: evolvedMonthlyFee,
           happiness,
           injuredUntilWeek,
           injuryLevel,
@@ -652,23 +675,29 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       // 💸 OFFERS COME YEAR-ROUND — but the transfer window is a HOT PERIOD:
       // clubs come knocking far more often, and you can land a couple at once.
       const windowOpen = isTransferWindow(actualWeek)
+      // 💸 OFFERS COME YEAR-ROUND — but the transfer window HEATS UP.
       if (activeClients.length > 0) {
-        // Only players who: are good enough, have no pending offer, AND haven't
-        // just been transferred (clubs leave a fresh signing alone for ~2 years).
-        const eligible = activeClients.filter(c =>
-          c.currentRating >= 60 &&
-          !c.injuredUntilWeek &&                  // no offers while injured
-          !newOffers.find(o => o.clientId === c.legendId) &&
-          (c.lastDealYear === undefined || newYear - c.lastDealYear >= 2)
-        )
-        // Window open → offers fly (85% + a shot at a second). Off-window → calmer (40%).
-        // Deadline Day: guaranteed 2 offers at inflated values if window is open.
+        const nowAbsElig = newYear * 52 + actualWeek
+        const eligible = activeClients.filter(c => {
+          if (c.currentRating < 60) return false
+          if (c.injuredUntilWeek) return false
+          if (newOffers.find(o => o.clientId === c.legendId)) return false
+          if (c.lastDealYear !== undefined && newYear - c.lastDealYear < 2) return false
+          // 🔑 GATE DE CUIDADO: precisa de X semanas cuidando bem antes de qualquer proposta.
+          const signedAbs = c.signedAbsWeek ?? (c.signedYear * 52 + 1)
+          const weeksCared = nowAbsElig - signedAbs
+          const required = careWeeksRequired(c.status)
+          if (weeksCared < required) return false
+          // Jogador infeliz não atrai clube — reflete que você não cuidou direito.
+          if (c.happiness < 50) return false
+          return true
+        })
         const maxOffers = isDeadline ? 3 : windowOpen ? 2 : 1
         const chance = isDeadline ? 0.97 : windowOpen ? 0.85 : 0.4
         const pool = [...eligible].sort(() => Math.random() - 0.5)
         for (let i = 0; i < maxOffers && i < pool.length; i++) {
           if (Math.random() < chance) {
-            const offer = generateClubOffer(pool[i], newYear, state.clubRelations)
+            const offer = generateClubOffer(pool[i], newYear, state.clubRelations, state.purchasedUpgrades)
             if (offer) newOffers.push(offer)
           }
         }

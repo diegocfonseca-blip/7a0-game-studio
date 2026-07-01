@@ -433,98 +433,121 @@ export function generateAmbientNews(
 }
 
 // ─── SCOUTS (desbloqueiam lendas por país) ──────────────────────
-// cost = taxa única de contratação  |  monthlyCost = mensalidade
+// Investimento pesado: um scout regional exige capital de verdade + mensalidade alta.
 export const SCOUT_UPGRADES = [
   { id: 'scout-FR', region: 'FR', name: 'Olheiro na França', flag: '🇫🇷',
     description: 'Uma rede de contatos no futebol francês para garimpar talentos antes de qualquer um.',
-    cost: 1_000_000, monthlyCost: 90_000, effect: 'Revela lendas francesas: Zidane, Henry, Drogba' },
+    cost: 3_500_000, monthlyCost: 280_000, effect: 'Revela lendas francesas: Zidane, Henry, Drogba' },
   { id: 'scout-IT', region: 'IT', name: 'Olheiro na Itália', flag: '🇮🇹',
     description: 'Olhos dentro das categorias de base do calcio italiano.',
-    cost: 1_200_000, monthlyCost: 110_000, effect: 'Revela lendas italianas: Totti e cia' },
+    cost: 4_000_000, monthlyCost: 330_000, effect: 'Revela lendas italianas: Totti e cia' },
   { id: 'scout-IB', region: 'IB', name: 'Olheiro na Ibéria', flag: '🇵🇹',
     description: 'Cobertura de Portugal e Espanha — das ilhas a La Masia.',
-    cost: 1_800_000, monthlyCost: 160_000, effect: 'Revela lendas ibéricas: CR7 e Iniesta' },
+    cost: 6_000_000, monthlyCost: 500_000, effect: 'Revela lendas ibéricas: CR7 e Iniesta' },
   { id: 'scout-AR', region: 'AR', name: 'Olheiro na Argentina', flag: '🇦🇷',
     description: 'Contatos nas divisões de base argentinas. Onde nasce a magia.',
-    cost: 1_500_000, monthlyCost: 130_000, effect: 'Revela lendas argentinas: La Pulga e a nova geração' },
+    cost: 5_000_000, monthlyCost: 400_000, effect: 'Revela lendas argentinas: La Pulga e a nova geração' },
   { id: 'scout-NO', region: 'NO', name: 'Olheiro na Europa do Norte', flag: '🇳🇱',
     description: 'Rede pela Holanda, Suécia e Alemanha.',
-    cost: 1_200_000, monthlyCost: 110_000, effect: 'Revela lendas do norte europeu: Ibra, Kluivert, Ballack, Kahn' },
+    cost: 4_000_000, monthlyCost: 330_000, effect: 'Revela lendas do norte europeu' },
   { id: 'scout-EN', region: 'EN', name: 'Olheiro na Inglaterra', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     description: 'Contatos na terra do futebol — das academias inglesas.',
-    cost: 1_600_000, monthlyCost: 140_000, effect: 'Revela lendas inglesas: Beckham, Gerrard, Lampard, Owen' },
+    cost: 5_500_000, monthlyCost: 450_000, effect: 'Revela lendas inglesas' },
 ]
 
-// ─── SERVIÇOS (ligados aos eventos) ─────────────────────────────
+// ─── SERVIÇOS ────────────────────────────────────────────────────
 export const SERVICE_UPGRADES = [
   { id: 'assessoria-imprensa', name: 'Assessoria de Imprensa fixa', flag: '🎙️',
-    description: 'Gerencia crises e exposição dos seus clientes. Quando vazar foto ou escândalo, ela resolve de GRAÇA — sem você pagar avulso a cada vez.',
-    cost: 400_000, effect: 'Escândalos resolvidos sem custo' },
+    description: 'Gerencia crises e exposição dos seus clientes. Quando vazar foto ou escândalo, ela resolve de GRAÇA.',
+    cost: 1_200_000, effect: 'Escândalos resolvidos sem custo' },
   { id: 'advogado', name: 'Advogado especializado fixo', flag: '⚖️',
-    description: 'Contratos blindados. Clube nenhum dá calote na sua comissão — e quando tentam, você ainda lucra.',
-    cost: 500_000, effect: 'Elimina risco de calote (vira lucro)' },
+    description: 'Contratos blindados. Clube nenhum dá calote na sua comissão.',
+    cost: 1_600_000, effect: 'Elimina risco de calote' },
   { id: 'personal-trainer', name: 'Personal trainer e nutricionista', flag: '🏋️', repGain: 3,
     description: 'Seus clientes chegam mais preparados. Menos tempo no DM e mais na mira dos clubes grandes.',
-    cost: 700_000, effect: '+3 rep · clientes valorizam mais e sofrem menos lesões' },
+    cost: 2_200_000, effect: '+3 rep · clientes valorizam mais' },
 ]
 
-// ─── ESCRITÓRIOS (presença física = custo mensal + reputação) ────
-// cost = reforma/abertura  |  monthlyCost = aluguel mensal
+// ─── ESCRITÓRIOS INTERNACIONAIS ──────────────────────────────────
+// Sem escritório no país, clubes daquele país NÃO chegam com propostas —
+// mesmo que seu jogador seja estrela mundial. É a barreira do mercado.
 export const OFFICE_UPGRADES = [
   { id: 'office-sp', name: 'Escritório em São Paulo', flag: '🏙️', repGain: 5,
-    description: 'Presença física no centro financeiro do futebol brasileiro. Clubes da elite BR te levam mais a sério.',
-    cost: 500_000, monthlyCost: 40_000, effect: '+5 rep · força nas negociações BR' },
+    description: 'Presença no centro do futebol brasileiro. Reforça sua base BR.',
+    cost: 1_500_000, monthlyCost: 120_000, effect: '+5 rep · força nas negociações BR' },
   { id: 'office-rio', name: 'Escritório no Rio de Janeiro', flag: '🏖️', repGain: 5,
-    description: 'No coração do futebol carioca. Abre portas com Flamengo, Vasco, Fluminense e Botafogo.',
-    cost: 400_000, monthlyCost: 35_000, effect: '+5 rep · acesso aos clubes cariocas' },
+    description: 'No coração do futebol carioca.',
+    cost: 1_200_000, monthlyCost: 110_000, effect: '+5 rep · acesso aos clubes cariocas' },
   { id: 'office-lisboa', name: 'Escritório em Lisboa', flag: '🇵🇹', repGain: 8,
-    description: 'A porta de entrada para a Europa. Clubes portugueses te chamam com frequência e os olheiros europeus te veem como gente séria.',
-    cost: 2_000_000, monthlyCost: 180_000, effect: '+8 rep · gateway para a Europa' },
+    description: 'Porta de entrada pra Europa. Libera propostas de clubes PORTUGUESES.',
+    cost: 6_000_000, monthlyCost: 550_000, effect: '🇵🇹 destrava propostas de Portugal' },
   { id: 'office-madrid', name: 'Escritório em Madrid', flag: '🇪🇸', repGain: 10,
-    description: 'Real Madrid e Atlético do lado de casa. Propostas espanholas chegam com mais frequência e com luvas maiores.',
-    cost: 5_000_000, monthlyCost: 400_000, effect: '+10 rep · LaLiga no seu colo' },
+    description: 'Real Madrid e Atlético do lado. Libera propostas de clubes ESPANHÓIS.',
+    cost: 15_000_000, monthlyCost: 1_200_000, effect: '🇪🇸 destrava propostas da Espanha' },
   { id: 'office-milan', name: 'Escritório em Milão', flag: '🇮🇹', repGain: 10,
-    description: 'AC Milan e Inter do lado. A Serie A como território. Calcio nas veias.',
-    cost: 6_000_000, monthlyCost: 450_000, effect: '+10 rep · Serie A sem filtro' },
+    description: 'AC Milan e Inter do lado. Libera propostas de clubes ITALIANOS.',
+    cost: 18_000_000, monthlyCost: 1_400_000, effect: '🇮🇹 destrava propostas da Itália' },
   { id: 'office-paris', name: 'Escritório em Paris', flag: '🇫🇷', repGain: 11,
-    description: 'A Ligue 1 está crescendo. Posicione-se antes dos petrodólares transformarem Paris no novo centro do mundo.',
-    cost: 8_000_000, monthlyCost: 550_000, effect: '+11 rep · Ligue 1 como território' },
-  { id: 'office-london', name: 'Escritório em Londres', flag: '🇬🇧', repGain: 14,
-    description: 'A Premier League é o ápice do mercado. Um escritório aqui coloca você na mesa dos maiores cheques do futebol mundial.',
-    cost: 15_000_000, monthlyCost: 1_000_000, effect: '+14 rep · Premier League sem filtro' },
+    description: 'Ligue 1 no seu colo. Libera propostas de clubes FRANCESES.',
+    cost: 24_000_000, monthlyCost: 1_700_000, effect: '🇫🇷 destrava propostas da França' },
+  { id: 'office-london', name: 'Escritório em Londres', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', repGain: 14,
+    description: 'Premier League é o ápice do mercado. Libera propostas de clubes INGLESES.',
+    cost: 45_000_000, monthlyCost: 3_000_000, effect: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 destrava propostas da Inglaterra' },
+  { id: 'office-berlim', name: 'Escritório em Berlim', flag: '🇩🇪', repGain: 9,
+    description: 'A Bundesliga só chega quando você planta bandeira no país. Libera clubes ALEMÃES.',
+    cost: 14_000_000, monthlyCost: 1_100_000, effect: '🇩🇪 destrava propostas da Alemanha' },
+  { id: 'office-amsterda', name: 'Escritório em Amsterdã', flag: '🇳🇱', repGain: 8,
+    description: 'Ajax, PSV, Feyenoord — a Eredivisie só vem via escritório local. Libera clubes HOLANDESES.',
+    cost: 9_000_000, monthlyCost: 800_000, effect: '🇳🇱 destrava propostas da Holanda' },
 ]
 
-// ─── ESTILO DE VIDA & STATUS — ser rico e poderoso aumenta sua reputação,
-// e reputação destrava os jogadores mais cobiçados ───────────────
+// País de cada escritório internacional (para gating de propostas por mercado).
+// Brasil é livre — você começa nele.
+export const OFFICE_COUNTRY: Record<string, string> = {
+  'office-lisboa':   'Portugal',
+  'office-madrid':   'Espanha',
+  'office-milan':    'Itália',
+  'office-paris':    'França',
+  'office-london':   'Inglaterra',
+  'office-berlim':   'Alemanha',
+  'office-amsterda': 'Holanda',
+}
+
+export function hasOfficeIn(country: string, purchasedUpgrades: string[]): boolean {
+  if (country === 'Brasil') return true // sempre — é sua casa
+  return purchasedUpgrades.some(up => OFFICE_COUNTRY[up] === country)
+}
+
+// ─── ESTILO DE VIDA & STATUS ─────────────────────────────────────
 export const LIFESTYLE_UPGRADES = [
   { id: 'life-relogio', name: 'Relógio de grife', flag: '⌚', repGain: 3,
-    description: 'Um relógio que vale um carro. Impõe respeito numa reunião.', cost: 200_000, effect: '+3 de reputação' },
+    description: 'Um relógio que vale um carro. Impõe respeito numa reunião.', cost: 600_000, effect: '+3 de reputação' },
   { id: 'life-carro', name: 'Carro de luxo', flag: '🚗', repGain: 5,
-    description: 'Você chega chegando. Os jogadores notam o sucesso.', cost: 900_000, effect: '+5 de reputação' },
+    description: 'Você chega chegando. Os jogadores notam o sucesso.', cost: 2_700_000, effect: '+5 de reputação' },
   { id: 'life-camarote', name: 'Camarote VIP nos estádios', flag: '🎩', repGain: 6,
-    description: 'Você passa a ser visto entre os figurões do futebol. Cartolas te cumprimentam pelo nome.',
-    cost: 2_000_000, effect: '+6 de reputação' },
+    description: 'Você passa a ser visto entre os figurões do futebol.',
+    cost: 6_000_000, effect: '+6 de reputação' },
   { id: 'life-resort', name: 'Resort de férias pra clientes', flag: '🏝️', repGain: 7,
-    description: 'Manda seus jogadores tirar férias de luxo no seu resort exclusivo. Eles voltam renovados e te adoram.',
-    cost: 4_000_000, effect: '+7 rep · moral de todos os clientes explode' },
+    description: 'Manda seus jogadores tirar férias de luxo. Eles voltam renovados.',
+    cost: 12_000_000, effect: '+7 rep · moral dos clientes explode' },
   { id: 'life-estudio', name: 'Estúdio de gravação e mídia', flag: '🎵', repGain: 5,
-    description: 'Seus clientes lançam música, fazem comercial, viram celebridade. A mídia fala de você o tempo todo.',
-    cost: 3_000_000, effect: '+5 rep · clientes viram marca no Brasil e fora' },
+    description: 'Seus clientes viram celebridade. A mídia fala de você o tempo todo.',
+    cost: 9_000_000, effect: '+5 rep · clientes viram marca' },
   { id: 'life-mansao', name: 'Mansão', flag: '🏡', repGain: 10,
-    description: 'Receba craques e cartolas na sua casa de cinema. Status de elite que poucos têm.',
-    cost: 8_000_000, effect: '+10 de reputação' },
+    description: 'Receba craques e cartolas na sua casa de cinema.',
+    cost: 24_000_000, effect: '+10 de reputação' },
   { id: 'life-supercar', name: 'Supercarro de coleção', flag: '🏎️', repGain: 8,
-    description: 'Um carro que não existe pra comprar, só pra encomendar. Você claramente chegou lá.',
-    cost: 15_000_000, effect: '+8 de reputação' },
+    description: 'Um carro que não existe pra comprar, só pra encomendar.',
+    cost: 45_000_000, effect: '+8 de reputação' },
   { id: 'life-arte', name: 'Coleção de arte contemporânea', flag: '🎨', repGain: 9,
-    description: 'Galerias em Paris e Milão. Você transita entre o futebol e a alta cultura europeia. Portas diferentes se abrem.',
-    cost: 20_000_000, effect: '+9 rep · prestígio nos círculos europeus' },
+    description: 'Galerias em Paris e Milão. Portas diferentes se abrem.',
+    cost: 60_000_000, effect: '+9 rep · prestígio europeu' },
   { id: 'life-iate', name: 'Iate', flag: '🛥️', repGain: 12,
-    description: 'Festas no mar com os maiores nomes do esporte e da política. Informações que não chegam de outro jeito.',
-    cost: 18_000_000, effect: '+12 de reputação' },
+    description: 'Festas no mar com os maiores nomes do esporte.',
+    cost: 55_000_000, effect: '+12 de reputação' },
   { id: 'life-jatinho', name: 'Jatinho particular', flag: '✈️', repGain: 15,
-    description: 'Feche negócios em três continentes no mesmo dia. Nenhum rival consegue acompanhar o seu ritmo.',
-    cost: 50_000_000, effect: '+15 de reputação' },
+    description: 'Feche negócios em três continentes no mesmo dia.',
+    cost: 150_000_000, effect: '+15 de reputação' },
 ]
 
 export const UPGRADE_OPTIONS = [...SCOUT_UPGRADES, ...SERVICE_UPGRADES, ...OFFICE_UPGRADES, ...LIFESTYLE_UPGRADES]
