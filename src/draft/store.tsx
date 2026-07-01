@@ -50,7 +50,12 @@ type Action =
 // ── helpers ──
 export function availableLegends(state: DraftState): Legend[] {
   return LEGENDS
-    .filter(l => !state.ownedLegendIds.includes(l.id) && state.year >= l.emergenceYear - 5)
+    .filter(l =>
+      !state.ownedLegendIds.includes(l.id) &&
+      state.year >= l.emergenceYear - 2 &&
+      state.year <= l.emergenceYear &&
+      l.birthYear <= state.year - 10
+    )
     .sort((a, b) => getCurrentRating(b, state.year) - getCurrentRating(a, state.year))
 }
 function legendToPlayer(l: Legend, year: number): DraftPlayer {
