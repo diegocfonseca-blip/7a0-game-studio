@@ -907,7 +907,7 @@ function empresarioReducer(state: GameState, action: Action): GameState {
           !playerSignedIds.has(l.id) &&
           !lostLegends.includes(l.id) &&
           !nemesisTaken.includes(l.id)
-        ).sort((a, b) => b.truePotential - a.truePotential)
+        ).sort((a, b) => getCurrentRating(b, newYear) - getCurrentRating(a, newYear))
 
         if (isDraftTurn && availableForCpu.length > 0) {
           // CPU draft: each rival auto-picks their preferred legend
