@@ -206,14 +206,15 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
   }
 }
 
-// The nemesis snatches a hot prospect you haven't signed yet.
+// The nemesis snatches a hot prospect you haven't signed yet (only pre-emergence legends).
 function nemesisTryGrab(state: GameState, year: number): string | null {
   const taken = new Set([...state.nemesisTaken, ...state.lostLegends, ...state.clients.map(c => c.legendId)])
   const targets = LEGENDS
     .filter(l =>
       l.truePotential >= 88 &&
-      year >= l.emergenceYear - 1 &&
-      l.birthYear <= year - 12 &&
+      year >= l.emergenceYear - 2 &&
+      year <= l.emergenceYear &&   // só age quando a lenda ainda não é famosa
+      l.birthYear <= year - 10 &&
       !taken.has(l.id)
     )
     .sort((a, b) => b.truePotential - a.truePotential)
@@ -751,16 +752,21 @@ function empresarioReducer(state: GameState, action: Action): GameState {
       const hotTargets: Record<string, number> = { ...state.hotTargets }
       const signedSet = new Set(activeClients.map(c => c.legendId))
 
-      // 🌟 EMERGÊNCIA: lendas que ficaram famosas este ano somem do mercado para sempre
+      // 🌟 EMERGÊNCIA: lendas que ficaram famosas este ano vão para um rival
+      // freshRivalClients é mesclado no rivalAgents.map() mais abaixo
+      const freshRivalClients: Record<string, string[]> = {}
       if (yearRolled) {
         for (const l of LEGENDS) {
           if (l.emergenceYear === newYear - 1 &&
               !signedSet.has(l.id) &&
               !state.everSignedIds.includes(l.id) &&
-              !lostLegends.includes(l.id) &&
               !nemesisTaken.includes(l.id)) {
-            lostLegends = [...lostLegends, l.id]
-            extraNarrative.push(`📰 ${l.nickname} ficou famoso e assinou com um grande clube. Você perdeu a janela.`)
+            // Atribui a um rival aleatório (não vai pra lostLegends — rival pode leiloar depois)
+            const rivals = state.rivalAgents
+            const rival = rivals[Math.floor(Math.random() * rivals.length)]
+            nemesisTaken = [...nemesisTaken, l.id]
+            freshRivalClients[rival.id] = [...(freshRivalClients[rival.id] ?? []), l.id]
+            extraNarrative.push(`📰 ${l.nickname} ficou famoso — ${rival.name} fechou a representação dele. Janela perdida.`)
           }
         }
       }
@@ -875,7 +881,8 @@ function empresarioReducer(state: GameState, action: Action): GameState {
                 return lg ? sum + Math.round(getMarketValue(lg, newYear) * 0.08) : sum
               }, 0)
             : 0
-          return { ...r, wealth: Math.round(r.wealth * growth + cambBonus + cpuIncome) }
+          const freshClients = freshRivalClients[r.id] ?? []
+          return { ...r, clients: [...r.clients, ...freshClients], wealth: Math.round(r.wealth * growth + cambBonus + cpuIncome) }
         })
         // your net worth vs the field
         const myNet = money2 + activeClients.reduce((s, c) => s + c.currentValue * (c.commissionRate / 100), 0)
