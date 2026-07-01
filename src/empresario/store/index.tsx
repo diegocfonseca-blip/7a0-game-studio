@@ -127,7 +127,12 @@ type Action =
   | { type: 'ONLINE_NEWS_ADD'; item: OnlineNewsItem }
   | { type: 'PLAYER_ROSTER_UPDATE'; playerIndex: number; clients: OnlineClientInfo[] }
 
-function generateClubOffer(client: Client, year: number, clubRelations: Record<string, number> = {}): ClubOffer | null {
+function generateClubOffer(
+  client: Client,
+  year: number,
+  clubRelations: Record<string, number> = {},
+  purchasedUpgrades: string[] = [],
+): ClubOffer | null {
   const rating = getCurrentRating(getLegendById(client.legendId)!, year)
   if (rating < 60 && Math.random() > 0.3) return null
   if (rating < 75 && Math.random() > 0.6) return null
@@ -136,6 +141,8 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
   if (value < 50000) return null
 
   const eligibleClubs = CLUBS.filter(c => {
+    // 🔑 GATE POR ESCRITÓRIO: sem escritório no país, o clube nem sabe que você existe.
+    if (!hasOfficeIn(c.country, purchasedUpgrades)) return false
     if (rating >= 85) return c.tier === 1
     if (rating >= 75) return c.tier <= 2
     return c.tier >= 2
@@ -144,20 +151,16 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
   if (eligibleClubs.length === 0) return null
 
   const salaryOf = (amt: number) => Math.round(amt * 0.08 / 12 / 1000) * 1000
-  // each club pays a different kickback (luva); clubs that LIKE you pay more
   const luvaOf = (amt: number, clubName: string) => {
     const rel = clubRelations[clubName] ?? 0
-    const relBonus = 1 + (rel / 100) * 0.5 // -50%..+50% based on relationship
+    const relBonus = 1 + (rel / 100) * 0.5
     return Math.round(amt * (0.02 + Math.random() * 0.07) * relBonus / 1000) * 1000
   }
 
-  // Market heat: the hotter the player, the more clubs fight (and likely more come).
-  // A FREE AGENT (no club, no transfer fee) attracts even more interest.
   const free = !client.contractClub
   let interest: 'alto' | 'medio' | 'baixo' = rating >= 82 ? 'alto' : rating >= 72 ? 'medio' : 'baixo'
   if (free) interest = interest === 'baixo' ? 'medio' : 'alto'
 
-  // ── BIDDING WAR: hot players attract several clubs at once ──
   const isWar = interest === 'alto' && eligibleClubs.length >= 2
   if (isWar) {
     const shuffled = [...eligibleClubs].sort(() => Math.random() - 0.5)
@@ -202,6 +205,15 @@ function generateClubOffer(client: Client, year: number, clubRelations: Record<s
     expiresInWeeks: 3 + Math.floor(Math.random() * 4),
     interest,
   }
+}
+
+// Semanas mínimas de cuidado antes de qualquer proposta chegar.
+// Um moleque de pelada precisa de anos; uma estrela consolidada, poucas semanas.
+function careWeeksRequired(status: string): number {
+  if (status === 'estrela') return 4
+  if (status === 'pro')     return 14
+  if (status === 'base')    return 30
+  return 50 // pelada
 }
 
 // The nemesis snatches a hot prospect you haven't signed yet.
