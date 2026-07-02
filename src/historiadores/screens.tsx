@@ -7,7 +7,47 @@ import { BrutalButton, BrutalCard, BrutalPill, C } from '../empresario/ui'
 
 function fmt(m: number) { return `$${Math.round(m)}M` }
 
-// ── Card display ──────────────────────────────────────────────────
+// Max reference values for stat bars
+const STAT_MAX: Record<QuestionKey, number> = {
+  gols: 100,
+  titulos: 20,
+  altura: 210,
+  assists: 40,
+  jogos: 80,
+}
+
+// ── Holographic shimmer overlay ────────────────────────────────────
+function ShimmerOverlay({ raridade }: { raridade: HistCardData['raridade'] }) {
+  if (raridade === 'mitica') {
+    return (
+      <motion.div
+        className="absolute inset-0 pointer-events-none z-10"
+        style={{
+          background: 'linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.18) 50%, transparent 80%)',
+          borderRadius: 'inherit',
+        }}
+        animate={{ x: ['-120%', '220%'] }}
+        transition={{ duration: 2.2, repeat: Infinity, ease: 'linear', repeatDelay: 1.8 }}
+      />
+    )
+  }
+  if (raridade === 'epica') {
+    return (
+      <motion.div
+        className="absolute inset-0 pointer-events-none z-10"
+        style={{
+          background: 'linear-gradient(105deg, transparent 20%, rgba(167,139,250,0.22) 50%, transparent 80%)',
+          borderRadius: 'inherit',
+        }}
+        animate={{ x: ['-120%', '220%'] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'linear', repeatDelay: 2.5 }}
+      />
+    )
+  }
+  return null
+}
+
+// ── Full card component ────────────────────────────────────────────
 function HistCard({
   cardId,
   highlightStat,
@@ -25,13 +65,15 @@ function HistCard({
 
   return (
     <div
-      className="w-full rounded-2xl border-[3px] border-black overflow-hidden"
+      className="w-full rounded-2xl border-[3px] border-black overflow-hidden relative"
       style={{
         background: colors.bg,
         boxShadow: `5px 5px 0 0 #0C0C0C, 0 0 40px ${colors.glow}55`,
       }}
     >
-      <div className="flex items-center justify-between px-4 pt-3 pb-1">
+      <ShimmerOverlay raridade={card.raridade} />
+
+      <div className="flex items-center justify-between px-4 pt-3 pb-1 relative z-20">
         <span
           className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border"
           style={{ color: colors.text, borderColor: `${colors.text}66` }}
@@ -43,7 +85,7 @@ function HistCard({
         </span>
       </div>
 
-      <div className="px-4 pb-3">
+      <div className="px-4 pb-3 relative z-20">
         <div className={compact ? 'text-2xl mb-0.5' : 'text-3xl mb-1'}>{card.flag}</div>
         <p
           className={`font-black leading-tight ${compact ? 'text-xl' : 'text-2xl'}`}
@@ -61,34 +103,51 @@ function HistCard({
 
       {!compact && (
         <div
-          className="mx-3 mb-3 rounded-xl overflow-hidden border-2"
+          className="mx-3 mb-3 rounded-xl overflow-hidden border-2 relative z-20"
           style={{ borderColor: `${colors.text}30`, backgroundColor: 'rgba(0,0,0,0.25)' }}
         >
-          {(Object.entries(card.atributos) as [QuestionKey, number][]).map(([key, val]) => {
+          {(Object.entries(card.atributos) as [QuestionKey, number][]).map(([key, val], idx) => {
             const isHL = key === highlightStat
+            const barPct = Math.min(100, (val / (STAT_MAX[key] ?? 100)) * 100)
             return (
               <div
                 key={key}
-                className="flex items-center justify-between px-3 py-2 border-b last:border-0"
+                className="px-3 pt-2 pb-1.5 border-b last:border-0"
                 style={{
                   borderColor: `${colors.text}15`,
                   backgroundColor: isHL && revealed ? 'rgba(255,184,0,0.18)' : 'transparent',
                 }}
               >
-                <span
-                  className="text-[11px] font-black uppercase tracking-wide opacity-70"
-                  style={{ color: colors.text }}
+                <div className="flex items-center justify-between mb-1">
+                  <span
+                    className="text-[11px] font-black uppercase tracking-wide opacity-70"
+                    style={{ color: colors.text }}
+                  >
+                    {key}
+                  </span>
+                  <motion.span
+                    className="font-black text-base tabular-nums"
+                    style={{ color: isHL && revealed ? '#FFB800' : colors.text }}
+                    animate={{ filter: revealed ? 'blur(0px)' : 'blur(8px)' }}
+                    transition={{ duration: 0.6, delay: isHL ? 0.05 : 0.3 + idx * 0.08 }}
+                  >
+                    {val}
+                  </motion.span>
+                </div>
+
+                {/* Stat bar — only on reveal */}
+                <div
+                  className="h-1 rounded-full overflow-hidden"
+                  style={{ backgroundColor: `${colors.text}18` }}
                 >
-                  {key}
-                </span>
-                <motion.span
-                  className="font-black text-base tabular-nums"
-                  style={{ color: isHL && revealed ? '#FFB800' : colors.text }}
-                  animate={{ filter: revealed ? 'blur(0px)' : 'blur(8px)' }}
-                  transition={{ duration: 0.7, delay: isHL ? 0.05 : 0.3 }}
-                >
-                  {val}
-                </motion.span>
+                  <motion.div
+                    className="h-full rounded-full"
+                    initial={{ width: '0%' }}
+                    animate={{ width: revealed ? `${barPct}%` : '0%' }}
+                    transition={{ duration: 0.9, delay: 0.4 + idx * 0.12, ease: 'easeOut' }}
+                    style={{ backgroundColor: isHL && revealed ? '#FFB800' : `${colors.text}CC` }}
+                  />
+                </div>
               </div>
             )
           })}
@@ -98,54 +157,141 @@ function HistCard({
   )
 }
 
-// ── Museum slot ───────────────────────────────────────────────────
-function MuseuSlot({ card, isOwned }: { card: HistCardData; isOwned: boolean }) {
+// ── Album card slot (3-column grid) ───────────────────────────────
+function AlbumSlot({
+  card,
+  isOwned,
+  onTap,
+}: {
+  card: HistCardData
+  isOwned: boolean
+  onTap: () => void
+}) {
   const colors = getRaridadeColor(card.raridade)
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.88 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="rounded-xl border-[3px] border-black overflow-hidden"
+    <motion.button
+      onClick={isOwned ? onTap : undefined}
+      whileTap={isOwned ? { scale: 0.93 } : {}}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-xl border-[3px] border-black overflow-hidden relative"
       style={{
         aspectRatio: '2/3',
-        background: isOwned ? colors.bg : '#2a2a2a',
+        background: isOwned ? colors.bg : '#1c1c1c',
         boxShadow: isOwned
-          ? `3px 3px 0 0 #0C0C0C, 0 0 14px ${colors.glow}55`
-          : '3px 3px 0 0 #0C0C0C',
+          ? `3px 3px 0 0 #0C0C0C, 0 0 16px ${colors.glow}44`
+          : '2px 2px 0 0 #0C0C0C',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
       {isOwned ? (
-        <div className="flex flex-col h-full p-1.5">
-          <span
-            className="text-[7px] font-black uppercase tracking-wider px-1 py-0.5 rounded-full self-start border mb-auto"
-            style={{ color: colors.text, borderColor: `${colors.text}55` }}
-          >
-            {getRaridadeLabel(card.raridade)}
-          </span>
-          <div>
-            <div className="text-base">{card.flag}</div>
-            <p
-              className="font-black text-[10px] leading-tight"
-              style={{ fontFamily: 'Oswald, sans-serif', color: colors.text }}
+        <>
+          <ShimmerOverlay raridade={card.raridade} />
+          <div className="flex flex-col h-full p-1.5 relative z-10">
+            <span
+              className="text-[7px] font-black uppercase tracking-wider px-1 py-0.5 rounded-full self-start border mb-auto leading-tight"
+              style={{ color: colors.text, borderColor: `${colors.text}55` }}
             >
-              {card.nome.split(' ').at(-1)}
-            </p>
-            <p className="text-[8px] font-bold opacity-60" style={{ color: colors.text }}>
-              {card.ano}
-            </p>
+              {card.raridade === 'mitica' ? 'MÍT' : card.raridade === 'epica' ? 'ÉPI' : 'COM'}
+            </span>
+            <div>
+              <div className="text-base leading-none mb-0.5">{card.flag}</div>
+              <p
+                className="font-black text-[10px] leading-tight"
+                style={{ fontFamily: 'Oswald, sans-serif', color: colors.text }}
+              >
+                {card.nome.split(' ').at(-1)}
+              </p>
+              <p className="text-[8px] font-bold opacity-50" style={{ color: colors.text }}>
+                {card.ano}
+              </p>
+            </div>
           </div>
-        </div>
+        </>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center gap-1 opacity-25">
+        <div className="flex-1 flex flex-col items-center justify-center gap-1.5 opacity-30">
           <span className="text-white text-xl">?</span>
-          <p className="text-[7px] font-black text-white uppercase">
-            {getRaridadeLabel(card.raridade)}
-          </p>
+          <div
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: colors.glow }}
+          />
         </div>
       )}
+    </motion.button>
+  )
+}
+
+// ── Card modal (full-screen expanded) ─────────────────────────────
+function CardModal({ cardId, onClose }: { cardId: string; onClose: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-5"
+      style={{ backgroundColor: 'rgba(0,0,0,0.75)' }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.82, opacity: 0, rotateY: -12 }}
+        animate={{ scale: 1, opacity: 1, rotateY: 0 }}
+        exit={{ scale: 0.82, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+        className="w-full max-w-sm"
+        style={{ transformPerspective: 1200 }}
+        onClick={e => e.stopPropagation()}
+      >
+        <HistCard cardId={cardId} revealed={true} />
+        <button
+          onClick={onClose}
+          className="w-full mt-3 border-[3px] border-black rounded-xl py-3 font-black text-sm bg-white"
+          style={{ boxShadow: '3px 3px 0 0 #0C0C0C' }}
+        >
+          FECHAR
+        </button>
+      </motion.div>
     </motion.div>
+  )
+}
+
+// ── Circular progress ring ─────────────────────────────────────────
+function RingProgress({
+  count,
+  total,
+  label,
+  color,
+}: {
+  count: number
+  total: number
+  label: string
+  color: string
+}) {
+  const r = 15
+  const circ = 2 * Math.PI * r
+  const pct = total > 0 ? count / total : 0
+  return (
+    <div className="flex-1 flex flex-col items-center border-[3px] border-black rounded-2xl p-3 bg-white"
+         style={{ boxShadow: '3px 3px 0 0 #0C0C0C' }}>
+      <div className="relative w-12 h-12 mb-1">
+        <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+          <circle cx="18" cy="18" r={r} fill="none" stroke="#0C0C0C22" strokeWidth="3" />
+          <motion.circle
+            cx="18" cy="18" r={r} fill="none"
+            stroke={color} strokeWidth="3" strokeLinecap="round"
+            strokeDasharray={circ}
+            initial={{ strokeDashoffset: circ }}
+            animate={{ strokeDashoffset: circ * (1 - pct) }}
+            transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
+          />
+        </svg>
+        <span className="absolute inset-0 flex items-center justify-center font-black text-sm">
+          {count}
+        </span>
+      </div>
+      <p className="text-[9px] font-black uppercase tracking-wider text-center">{label}</p>
+      <p className="text-[9px] text-black/40 font-bold">{count}/{total}</p>
+    </div>
   )
 }
 
@@ -225,7 +371,7 @@ export function MenuScreen() {
             textColor={C.cream}
             onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'museu' })}
           >
-            MEU MUSEU · {ownedCount} CARTA{ownedCount !== 1 ? 'S' : ''}
+            ÁLBUM DAS LENDAS · {ownedCount} CARTA{ownedCount !== 1 ? 'S' : ''}
           </BrutalButton>
         )}
 
@@ -257,7 +403,6 @@ function GuessingPhase() {
 
   return (
     <div className="min-h-screen pb-6" style={{ backgroundColor: C.cream }}>
-      {/* Header */}
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
         <div>
           <p className="text-[10px] font-black uppercase tracking-wider text-black/40">Rodada</p>
@@ -273,7 +418,6 @@ function GuessingPhase() {
         </div>
       </div>
 
-      {/* Progress */}
       <div className="mx-5 h-1.5 bg-black/10 rounded-full border border-black/15 overflow-hidden mb-4">
         <div
           className="h-full rounded-full"
@@ -281,7 +425,6 @@ function GuessingPhase() {
         />
       </div>
 
-      {/* Fase label */}
       <div className="mx-5 mb-4">
         <div
           className="border-[3px] border-black rounded-2xl px-4 py-3"
@@ -294,12 +437,10 @@ function GuessingPhase() {
         </div>
       </div>
 
-      {/* Card (blurred stats) */}
       <div className="mx-5 mb-5">
         <HistCard cardId={card.id} highlightStat={state.currentQuestion} revealed={false} />
       </div>
 
-      {/* Guess input */}
       <div className="mx-5 space-y-3">
         <BrutalCard className="p-4 space-y-3">
           <label className="text-xs font-black uppercase tracking-wider block">
@@ -324,7 +465,6 @@ function GuessingPhase() {
           </BrutalButton>
         </BrutalCard>
 
-        {/* Mini money scoreboard */}
         <div className="flex gap-1.5">
           {state.players.map(p => (
             <div
@@ -355,8 +495,6 @@ function BettingPhase() {
   const questionLabel = QUESTION_LABELS[state.currentQuestion]?.(card.ano)
   const maxAmount = Math.max(1, you.money)
   const safeAmount = Math.min(amount, maxAmount)
-
-  // Guesses sorted ascending
   const sortedGuesses = [...state.guesses].sort((a, b) => a.value - b.value)
 
   function submit() {
@@ -366,7 +504,6 @@ function BettingPhase() {
 
   return (
     <div className="min-h-screen pb-6" style={{ backgroundColor: C.cream }}>
-      {/* Header */}
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
         <div>
           <p className="text-[10px] font-black uppercase tracking-wider text-black/40">Rodada</p>
@@ -382,7 +519,6 @@ function BettingPhase() {
         </div>
       </div>
 
-      {/* Fase label */}
       <div className="mx-5 mb-4">
         <div
           className="border-[3px] border-black rounded-2xl px-4 py-3"
@@ -395,7 +531,6 @@ function BettingPhase() {
         </div>
       </div>
 
-      {/* Tapete de apostas */}
       <div className="mx-5 mb-4">
         <p className="text-xs font-black uppercase tracking-wider text-black/40 mb-2">
           TAPETE DE APOSTAS · Em qual palpite você aposta?
@@ -424,14 +559,9 @@ function BettingPhase() {
                     </p>
                     <p className="text-xs text-black/50 font-bold mt-0.5">palpitou</p>
                   </div>
-                  <div className="text-right">
-                    <p
-                      className="font-black text-3xl"
-                      style={{ fontFamily: 'Oswald, sans-serif' }}
-                    >
-                      {g.value}
-                    </p>
-                  </div>
+                  <p className="font-black text-3xl" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                    {g.value}
+                  </p>
                 </div>
               </motion.button>
             )
@@ -439,7 +569,6 @@ function BettingPhase() {
         </div>
       </div>
 
-      {/* Bet amount */}
       <AnimatePresence>
         {selectedTarget && (
           <motion.div
@@ -474,7 +603,6 @@ function BettingPhase() {
         )}
       </AnimatePresence>
 
-      {/* Submit */}
       <div className="mx-5">
         <BrutalButton
           color="#FFB800"
@@ -499,28 +627,25 @@ function RevealPhase() {
   const { realValue, winningGuessPlayerId, guessRanks, bets, cardWinnerId } = roundResult
   const questionLabel = QUESTION_LABELS[state.currentQuestion]?.(card.ano)
   const isLast = state.round >= state.totalRounds || state.deck.length === 0
+  const winningGuess = guessRanks.find(r => r.playerId === winningGuessPlayerId)
+  const betsOnWinner = bets
+    .filter(b => b.onPlayerId === winningGuessPlayerId)
+    .sort((a, b) => b.amount - a.amount)
+  const medals = ['🥇', '🥈', '🥉', '4️⃣']
 
   function playerName(id: string) {
     return state.players.find(p => p.id === id)?.nome ?? id
   }
 
-  const winningGuess = guessRanks.find(r => r.playerId === winningGuessPlayerId)
-  const betsOnWinner = bets
-    .filter(b => b.onPlayerId === winningGuessPlayerId)
-    .sort((a, b) => b.amount - a.amount)
-
-  const medals = ['🥇', '🥈', '🥉', '4️⃣']
-
   return (
     <div className="min-h-screen pb-8" style={{ backgroundColor: C.cream }}>
-      {/* Header */}
       <div className="px-5 pt-5 pb-2">
         <p className="text-[10px] font-black uppercase tracking-wider text-black/40">
           Revelação · Rodada {state.round}
         </p>
       </div>
 
-      {/* Real value — the money shot */}
+      {/* Real value */}
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -535,54 +660,42 @@ function RevealPhase() {
             <p className="text-[10px] font-black uppercase tracking-widest text-black/50">RESPOSTA CERTA</p>
             <p className="text-xs font-bold text-black/60 mt-0.5">{questionLabel}</p>
           </div>
-          <p
-            className="font-black text-5xl"
-            style={{ fontFamily: 'Oswald, sans-serif' }}
-          >
+          <p className="font-black text-5xl" style={{ fontFamily: 'Oswald, sans-serif' }}>
             {realValue}
           </p>
         </div>
       </motion.div>
 
-      {/* Winning guess highlight */}
+      {/* Winning guess */}
       {winningGuess && (
         <div className="mx-5 mb-3">
           <p className="text-[10px] font-black uppercase tracking-wider text-black/40 mb-1.5">
-            PALPITE VENCEDOR (mais próximo sem passar)
+            PALPITE VENCEDOR
           </p>
-          <BrutalCard
-            color={C.black}
-            className="p-3 flex items-center justify-between"
-          >
+          <BrutalCard color={C.black} className="p-3 flex items-center justify-between">
             <div>
               <p className="font-black text-sm text-white">
                 {playerName(winningGuess.playerId)}
-                {winningGuess.playerId === 'you' && (
-                  <span className="ml-1.5 text-[10px] opacity-60">(você)</span>
-                )}
+                {winningGuess.playerId === 'you' && <span className="ml-1.5 text-[10px] opacity-60">(você)</span>}
               </p>
               <p className="text-xs text-white/50 font-bold">
                 {winningGuess.over ? 'PASSOU' : `${winningGuess.distance} de distância`}
               </p>
             </div>
-            <p
-              className="font-black text-3xl text-white"
-              style={{ fontFamily: 'Oswald, sans-serif' }}
-            >
+            <p className="font-black text-3xl text-white" style={{ fontFamily: 'Oswald, sans-serif' }}>
               {winningGuess.value}
             </p>
           </BrutalCard>
         </div>
       )}
 
-      {/* Bets on winning guess → who gets the card */}
+      {/* Bets on winner */}
       {betsOnWinner.length > 0 && (
         <div className="mx-5 mb-3">
           <p className="text-[10px] font-black uppercase tracking-wider text-black/40 mb-1.5">
             APOSTAS NO PALPITE VENCEDOR
           </p>
 
-          {/* Tiebreak banner */}
           {roundResult.hadTiebreak && (
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -602,7 +715,7 @@ function RevealPhase() {
           )}
 
           <div className="space-y-1.5">
-            {betsOnWinner.map((bet) => {
+            {betsOnWinner.map(bet => {
               const isCardWinner = bet.playerId === cardWinnerId
               const isYou = bet.playerId === 'you'
               return (
@@ -622,7 +735,7 @@ function RevealPhase() {
                         {isYou && <span className="ml-1 text-[10px] opacity-60">(você)</span>}
                       </p>
                       {isCardWinner
-                        ? <p className="text-[10px] font-black uppercase tracking-wide">pagou · ganhou a carta</p>
+                        ? <p className="text-[10px] font-black uppercase">pagou · ganhou a carta</p>
                         : <p className="text-[10px] font-bold text-black/40 uppercase">devolvido ✓</p>
                       }
                     </div>
@@ -638,22 +751,28 @@ function RevealPhase() {
       )}
 
       {cardWinnerId === null && (
-        <div className="mx-5 mb-4">
+        <div className="mx-5 mb-3">
           <BrutalCard className="p-3 text-center">
             <p className="font-black text-sm text-black/50">
-              Ninguém apostou no palpite certo — carta volta para o baralho
+              Ninguém apostou no palpite certo — carta vai para o próximo baralho
             </p>
             <p className="text-[11px] text-black/30 font-bold mt-1">Todos os lances foram devolvidos</p>
           </BrutalCard>
         </div>
       )}
 
-      {/* Card revealed */}
-      <div className="mx-5 mb-4">
+      {/* Card revealed with flip animation */}
+      <motion.div
+        className="mx-5 mb-4"
+        initial={{ rotateY: 90, opacity: 0 }}
+        animate={{ rotateY: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.15, type: 'spring', stiffness: 200, damping: 20 }}
+        style={{ transformPerspective: 1200 }}
+      >
         <HistCard cardId={card.id} highlightStat={state.currentQuestion} revealed={true} />
-      </div>
+      </motion.div>
 
-      {/* Guess ranking + bonuses */}
+      {/* Guess rankings */}
       <div className="mx-5 mb-5">
         <p className="text-[10px] font-black uppercase tracking-wider text-black/40 mb-1.5">
           RANKING DE PALPITES
@@ -693,7 +812,6 @@ function RevealPhase() {
         </div>
       </div>
 
-      {/* Next */}
       <div className="mx-5">
         <BrutalButton color={C.black} textColor={C.cream} onClick={() => dispatch({ type: 'NEXT_CARD' })}>
           {isLast ? 'VER PLACAR FINAL →' : 'PRÓXIMA CARTA →'}
@@ -703,7 +821,7 @@ function RevealPhase() {
   )
 }
 
-// ── GameScreen (routes phases) ────────────────────────────────────
+// ── GameScreen ────────────────────────────────────────────────────
 export function GameScreen() {
   const { state } = useHist()
   switch (state.phase) {
@@ -762,7 +880,7 @@ export function ResultsScreen() {
         <div className="mx-5 mb-5">
           <BrutalCard className="p-4">
             <p className="text-xs font-black uppercase tracking-wider mb-2">
-              SEU MUSEU · {state.museuCards.length} CARTA{state.museuCards.length !== 1 ? 'S' : ''}
+              SEU ÁLBUM · {state.museuCards.length} CARTA{state.museuCards.length !== 1 ? 'S' : ''}
             </p>
             <div className="flex gap-1.5 flex-wrap">
               {state.museuCards.map(id => {
@@ -793,66 +911,131 @@ export function ResultsScreen() {
           textColor={C.cream}
           onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'museu' })}
         >
-          VER MUSEU
+          VER ÁLBUM DAS LENDAS
         </BrutalButton>
       </div>
     </div>
   )
 }
 
-// ── MuseuScreen ───────────────────────────────────────────────────
+// ── MuseuScreen → Álbum das Lendas ───────────────────────────────
 export function MuseuScreen() {
   const { state, dispatch } = useHist()
+  const [selectedCard, setSelectedCard] = useState<string | null>(null)
   const owned = new Set(state.museuCards)
+
+  const miticas = HIST_CARDS.filter(c => c.raridade === 'mitica')
+  const epicas  = HIST_CARDS.filter(c => c.raridade === 'epica')
+  const comuns  = HIST_CARDS.filter(c => c.raridade === 'comum')
+
+  const lastCard = state.museuCards.length > 0
+    ? state.museuCards[state.museuCards.length - 1]
+    : null
+  const lastCardData = lastCard ? getCard(lastCard) : null
+
   const backScreen = state.round > 0 ? 'results' : 'menu'
 
-  const sections = [
-    { label: 'MÍTICA', cards: HIST_CARDS.filter(c => c.raridade === 'mitica'), color: '#FFB800' },
-    { label: 'ÉPICA', cards: HIST_CARDS.filter(c => c.raridade === 'epica'), color: '#818CF8' },
-    { label: 'COMUM', cards: HIST_CARDS.filter(c => c.raridade === 'comum'), color: '#16B89A' },
-  ] as const
-
   return (
-    <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
-      <div className="px-5 pt-6 pb-4 flex items-start justify-between">
-        <div>
-          <BrutalPill color="#FFB800" textColor={C.black}>MEU MUSEU</BrutalPill>
-          <p className="font-black text-xs text-black/40 mt-1.5">
-            {owned.size} / {HIST_CARDS.length} cartas
-          </p>
-        </div>
-        <button
-          onClick={() => dispatch({ type: 'SET_SCREEN', screen: backScreen })}
-          className="border-[3px] border-black rounded-xl px-4 py-2 font-black text-sm bg-white"
-          style={{ boxShadow: '3px 3px 0 0 #0C0C0C' }}
-        >
-          ← voltar
-        </button>
-      </div>
-
-      <div className="px-5 space-y-6">
-        {sections.map(({ label, cards, color }) => (
-          <div key={label}>
-            <div className="flex items-center gap-2 mb-3">
-              <span
-                className="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border-2 border-black"
-                style={{ backgroundColor: color, color: '#000' }}
-              >
-                {label}
-              </span>
-              <span className="text-xs font-bold text-black/40">
-                {cards.filter(c => owned.has(c.id)).length}/{cards.length}
-              </span>
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {cards.map(c => (
-                <MuseuSlot key={c.id} card={c} isOwned={owned.has(c.id)} />
-              ))}
-            </div>
+    <>
+      <div className="min-h-screen pb-12" style={{ backgroundColor: C.cream }}>
+        {/* Header */}
+        <div className="px-5 pt-6 pb-4 flex items-start justify-between">
+          <div>
+            <BrutalPill color="#FFB800" textColor={C.black}>ÁLBUM DAS LENDAS</BrutalPill>
+            <p className="font-black text-xs text-black/40 mt-1.5">
+              {owned.size} / {HIST_CARDS.length} cartas coletadas
+            </p>
           </div>
-        ))}
+          <button
+            onClick={() => dispatch({ type: 'SET_SCREEN', screen: backScreen })}
+            className="border-[3px] border-black rounded-xl px-4 py-2 font-black text-sm bg-white"
+            style={{ boxShadow: '3px 3px 0 0 #0C0C0C' }}
+          >
+            ← voltar
+          </button>
+        </div>
 
+        {/* Rarity progress rings */}
+        <div className="px-5 mb-5">
+          <div className="flex gap-3">
+            <RingProgress
+              count={miticas.filter(c => owned.has(c.id)).length}
+              total={miticas.length}
+              label="MÍTICA"
+              color="#FFB800"
+            />
+            <RingProgress
+              count={epicas.filter(c => owned.has(c.id)).length}
+              total={epicas.length}
+              label="ÉPICA"
+              color="#818CF8"
+            />
+            <RingProgress
+              count={comuns.filter(c => owned.has(c.id)).length}
+              total={comuns.length}
+              label="COMUM"
+              color="#16B89A"
+            />
+          </div>
+        </div>
+
+        {/* Última conquista */}
+        {lastCardData && (
+          <div className="px-5 mb-5">
+            <p className="text-[10px] font-black uppercase tracking-wider text-black/40 mb-2">
+              ÚLTIMA CONQUISTA
+            </p>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="cursor-pointer"
+              onClick={() => setSelectedCard(lastCard!)}
+            >
+              <HistCard cardId={lastCard!} revealed={true} compact />
+            </motion.div>
+          </div>
+        )}
+
+        {/* Sections */}
+        <div className="px-5 space-y-6">
+          {([
+            { label: 'MÍTICA', cards: miticas, color: '#FFB800' },
+            { label: 'ÉPICA',  cards: epicas,  color: '#818CF8' },
+            { label: 'COMUM',  cards: comuns,  color: '#16B89A' },
+          ] as const).map(({ label, cards, color }) => (
+            <div key={label}>
+              <div className="flex items-center gap-2 mb-3">
+                <span
+                  className="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border-2 border-black"
+                  style={{ backgroundColor: color, color: '#000' }}
+                >
+                  {label}
+                </span>
+                <span className="text-xs font-bold text-black/40">
+                  {cards.filter(c => owned.has(c.id)).length}/{cards.length}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {cards.map(c => (
+                  <AlbumSlot
+                    key={c.id}
+                    card={c}
+                    isOwned={owned.has(c.id)}
+                    onTap={() => setSelectedCard(c.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+
+      {/* Card detail modal */}
+      <AnimatePresence>
+        {selectedCard && (
+          <CardModal cardId={selectedCard} onClose={() => setSelectedCard(null)} />
+        )}
+      </AnimatePresence>
+    </>
   )
 }
