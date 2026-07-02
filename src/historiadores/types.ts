@@ -45,6 +45,7 @@ export interface HBet {
   playerId: string    // who is betting
   onPlayerId: string  // whose guess they are backing
   amount: number
+  timestamp: number   // submission time — tiebreaker (earlier = wins)
 }
 
 // Resolved guess ranking
@@ -64,6 +65,8 @@ export interface HRoundResult {
   guessRanks: HGuesserRank[]
   bets: HBet[]
   cardWinnerId: string | null
+  hadTiebreak: boolean   // true when card winner decided by ms
+  tiebreakMs: number     // milliseconds ahead of second place
 }
 
 export interface HState {

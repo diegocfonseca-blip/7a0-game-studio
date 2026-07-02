@@ -361,7 +361,7 @@ function BettingPhase() {
 
   function submit() {
     if (!selectedTarget) return
-    dispatch({ type: 'SUBMIT_BET', onPlayerId: selectedTarget, amount: safeAmount })
+    dispatch({ type: 'SUBMIT_BET', onPlayerId: selectedTarget, amount: safeAmount, timestamp: Date.now() })
   }
 
   return (
@@ -467,7 +467,7 @@ function BettingPhase() {
                 <span>tudo ({fmt(maxAmount)})</span>
               </div>
               <p className="text-[11px] text-black/40 font-bold text-center">
-                Aposta às cegas — os outros não veem o seu lance.
+                Lances iguais: mais rápido no milissegundo leva a lenda ⚡
               </p>
             </BrutalCard>
           </motion.div>
@@ -577,10 +577,30 @@ function RevealPhase() {
 
       {/* Bets on winning guess → who gets the card */}
       {betsOnWinner.length > 0 && (
-        <div className="mx-5 mb-4">
+        <div className="mx-5 mb-3">
           <p className="text-[10px] font-black uppercase tracking-wider text-black/40 mb-1.5">
             APOSTAS NO PALPITE VENCEDOR
           </p>
+
+          {/* Tiebreak banner */}
+          {roundResult.hadTiebreak && (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.3, type: 'spring' }}
+              className="border-[3px] border-black rounded-xl px-3 py-2 mb-2 flex items-center gap-2"
+              style={{ backgroundColor: '#FF5126', boxShadow: '3px 3px 0 0 #0C0C0C' }}
+            >
+              <span className="text-lg">⚡</span>
+              <div>
+                <p className="font-black text-xs text-white uppercase tracking-wide">DESEMPATE POR VELOCIDADE</p>
+                <p className="text-[11px] text-white/80 font-bold">
+                  {playerName(cardWinnerId ?? '')} foi mais rápido por {roundResult.tiebreakMs}ms
+                </p>
+              </div>
+            </motion.div>
+          )}
+
           <div className="space-y-1.5">
             {betsOnWinner.map((bet) => {
               const isCardWinner = bet.playerId === cardWinnerId
@@ -601,9 +621,10 @@ function RevealPhase() {
                         {playerName(bet.playerId)}
                         {isYou && <span className="ml-1 text-[10px] opacity-60">(você)</span>}
                       </p>
-                      {isCardWinner && (
-                        <p className="text-[10px] font-black uppercase tracking-wide">ganhou a carta!</p>
-                      )}
+                      {isCardWinner
+                        ? <p className="text-[10px] font-black uppercase tracking-wide">pagou · ganhou a carta</p>
+                        : <p className="text-[10px] font-bold text-black/40 uppercase">devolvido ✓</p>
+                      }
                     </div>
                   </div>
                   <p className="font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>
@@ -619,7 +640,10 @@ function RevealPhase() {
       {cardWinnerId === null && (
         <div className="mx-5 mb-4">
           <BrutalCard className="p-3 text-center">
-            <p className="font-black text-sm text-black/50">Ninguém apostou no palpite certo — carta não coletada</p>
+            <p className="font-black text-sm text-black/50">
+              Ninguém apostou no palpite certo — carta volta para o baralho
+            </p>
+            <p className="text-[11px] text-black/30 font-bold mt-1">Todos os lances foram devolvidos</p>
           </BrutalCard>
         </div>
       )}

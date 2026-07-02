@@ -79,16 +79,30 @@ function resolveRound(guesses: HGuess[], bets: HBet[], real: number): HRoundResu
   const topGuess = guessRanks[0]
   const winningGuessPlayerId = topGuess?.playerId ?? null
 
-  // Card goes to the player who bet the MOST on the winning guess
-  const betsOnWinner = winningGuessPlayerId
+  // Sort bets on winning guess: highest amount first, then earliest timestamp wins
+  const betsOnWinner = (winningGuessPlayerId
     ? bets.filter(b => b.onPlayerId === winningGuessPlayerId)
     : []
-  const topBet = betsOnWinner.length > 0
-    ? betsOnWinner.reduce((a, b) => a.amount >= b.amount ? a : b)
-    : null
+  ).sort((a, b) => {
+    if (a.amount !== b.amount) return b.amount - a.amount   // higher amount first
+    return a.timestamp - b.timestamp                         // earlier timestamp wins tie
+  })
+
+  const topBet = betsOnWinner[0] ?? null
+  const secondBet = betsOnWinner[1] ?? null
   const cardWinnerId = topBet && topBet.amount > 0 ? topBet.playerId : null
 
-  return { realValue: real, winningGuessPlayerId, guessRanks, bets, cardWinnerId }
+  // Tiebreak: top two bets had equal amount → ms decided it
+  const hadTiebreak = !!(
+    topBet && secondBet &&
+    topBet.amount === secondBet.amount &&
+    topBet.amount > 0
+  )
+  const tiebreakMs = hadTiebreak && topBet && secondBet
+    ? Math.abs(secondBet.timestamp - topBet.timestamp)
+    : 0
+
+  return { realValue: real, winningGuessPlayerId, guessRanks, bets, cardWinnerId, hadTiebreak, tiebreakMs }
 }
 
 // ── initial state ─────────────────────────────────────────────
@@ -115,7 +129,7 @@ type Action =
   | { type: 'START_GAME'; playerName: string; totalRounds: number }
   | { type: 'SET_SCREEN'; screen: HScreen }
   | { type: 'SUBMIT_GUESS'; value: number }
-  | { type: 'SUBMIT_BET'; onPlayerId: string; amount: number }
+  | { type: 'SUBMIT_BET'; onPlayerId: string; amount: number; timestamp: number }
   | { type: 'NEXT_CARD' }
   | { type: 'RESET' }
 
@@ -191,14 +205,23 @@ function reducer(state: HState, action: Action): HState {
         playerId: 'you',
         onPlayerId: action.onPlayerId,
         amount: Math.min(you.money, Math.max(0, action.amount)),
+        timestamp: action.timestamp,
       }
 
+      // CPUs get random "reaction times" — some faster, some slower than human
       const cpuBets: HBet[] = state.players
         .filter(p => p.isCPU)
         .map(p => {
           const myGuess = state.guesses.find(g => g.playerId === p.id)
           const targetId = cpuPickBetTarget(state.guesses, p.id, myGuess?.value ?? real)
-          return { playerId: p.id, onPlayerId: targetId, amount: cpuBetAmount(p.money) }
+          // ±400ms around the human's timestamp — creates realistic tiebreak scenarios
+          const offset = Math.round(-400 + Math.random() * 1000)
+          return {
+            playerId: p.id,
+            onPlayerId: targetId,
+            amount: cpuBetAmount(p.money),
+            timestamp: action.timestamp + offset,
+          }
         })
 
       const allBets = [yourBet, ...cpuBets]
@@ -208,9 +231,11 @@ function reducer(state: HState, action: Action): HState {
         const myBet = allBets.find(b => b.playerId === p.id)
         const guessRank = roundResult.guessRanks.find(r => r.playerId === p.id)
         const isCardWinner = roundResult.cardWinnerId === p.id
+        // Only the card winner pays their bet — everyone else gets money back
+        const betCost = isCardWinner ? (myBet?.amount ?? 0) : 0
         return {
           ...p,
-          money: Math.max(0, p.money - (myBet?.amount ?? 0) + (guessRank?.bonus ?? 0)),
+          money: Math.max(0, p.money - betCost + (guessRank?.bonus ?? 0)),
           cartasIds: isCardWinner ? [...p.cartasIds, state.currentCardId!] : p.cartasIds,
         }
       })
