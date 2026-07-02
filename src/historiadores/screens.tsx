@@ -1103,11 +1103,15 @@ function RevealPhase() {
         </div>
       </motion.div>
 
-      {/* ── BLOCO 2: Quem cravou o palpite ── */}
+      {/* ── BLOCO 2: Quem venceu o palpite ── */}
       {winningGuess && (
         <div className="mx-5 mb-3">
           <p className="text-[10px] font-black uppercase tracking-wider text-black/40 mb-1.5">
-            CRAVOU A INFORMAÇÃO
+            {winningGuess.distance === 0
+              ? '🎯 ACERTOU NA MOSCA'
+              : !winningGuess.over
+              ? 'PALPITE MAIS PRÓXIMO (sem ultrapassar)'
+              : 'MENOS ERRADO — todos ultrapassaram o valor'}
           </p>
           <div
             className="border-[3px] border-black rounded-2xl px-4 py-3 flex items-center justify-between"
@@ -1116,18 +1120,18 @@ function RevealPhase() {
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
                 <span className="text-base">👑</span>
-                <p className="font-black text-base text-white">
+                <p className="font-black text-lg text-white">
                   {playerName(winningGuess.playerId)}
-                  {winningGuess.playerId === 'you' && <span className="ml-1.5 text-[10px] opacity-50">(você)</span>}
+                  {winningGuess.playerId === myPlayerId && <span className="ml-1.5 text-[11px] opacity-50">(você)</span>}
                 </p>
               </div>
-              <p className="text-[11px] font-bold text-white/50 ml-6">
-                Palpite: {winningGuess.value}
+              <p className="text-xs font-bold ml-6" style={{ color: winningGuess.distance === 0 ? '#FFB800' : winningGuess.over ? '#FF5126' : '#16B89A' }}>
+                Chutou {winningGuess.value} · resposta era {realValue}
                 {winningGuess.distance === 0
-                  ? ' · ACERTOU NA MOSCA 🎯'
+                  ? ' → EXATO! 🎯'
                   : winningGuess.over
-                  ? ` · passou por ${winningGuess.distance}`
-                  : ` · faltou ${winningGuess.distance}`}
+                  ? ` → passou por ${winningGuess.distance}`
+                  : ` → faltou ${winningGuess.distance}`}
               </p>
             </div>
             {winningGuess.bonus > 0 && (
@@ -1139,6 +1143,12 @@ function RevealPhase() {
               </div>
             )}
           </div>
+          {/* Mini regra contextual */}
+          <p className="text-[10px] text-black/35 font-bold mt-1.5 text-center">
+            {!winningGuess.over
+              ? 'Regra: mais próximo sem ultrapassar vence. Quem passa perde o bônus.'
+              : 'Regra: todos passaram do valor — o menos errado venceu o palpite.'}
+          </p>
         </div>
       )}
 
@@ -1230,26 +1240,27 @@ function RevealPhase() {
             {betsOnWrong.map(bet => {
               const isYou = bet.playerId === myPlayerId
               const backedGuess = state.guesses.find(g => g.playerId === bet.onPlayerId)
+              const backedGuesser = state.players.find(p => p.id === bet.onPlayerId)
               return (
                 <div
                   key={bet.playerId}
-                  className="border-2 border-black/30 rounded-xl px-3 py-2.5 flex items-center justify-between opacity-60"
-                  style={{ backgroundColor: C.cream }}
+                  className="border-2 border-black/40 rounded-xl px-3 py-2.5 flex items-center justify-between"
+                  style={{ backgroundColor: '#F0EAD8' }}
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-base shrink-0">❌</span>
                     <div className="min-w-0">
-                      <p className="font-black text-sm truncate">
+                      <p className="font-black text-sm truncate text-black">
                         {playerName(bet.playerId)}
-                        {isYou && <span className="ml-1 text-[10px] opacity-60">(você)</span>}
+                        {isYou && <span className="ml-1 text-[10px] text-black/50">(você)</span>}
                       </p>
-                      <p className="text-[10px] font-bold text-black/50">
-                        Apostou no valor {backedGuess?.value ?? '?'} (não era o certo)
+                      <p className="text-[10px] font-bold text-black/60">
+                        Apostou no palpite de {backedGuesser?.nome ?? playerName(bet.onPlayerId)} · valor {backedGuess?.value ?? '?'}
                       </p>
-                      <p className="text-[10px] font-black uppercase text-black/40">DEVOLVIDO</p>
+                      <p className="text-[10px] font-black uppercase text-red-600">Lance devolvido — palpite errado</p>
                     </div>
                   </div>
-                  <p className="font-black text-lg shrink-0 ml-2 text-black/40" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                  <p className="font-black text-lg shrink-0 ml-2 text-black/50" style={{ fontFamily: 'Oswald, sans-serif' }}>
                     {fmt(bet.amount)}
                   </p>
                 </div>
@@ -1272,39 +1283,54 @@ function RevealPhase() {
 
       {/* Ranking de palpites */}
       <div className="mx-5 mb-5">
-        <p className="text-[10px] font-black uppercase tracking-wider text-black/40 mb-1.5">
-          RANKING DE PALPITES
-        </p>
+        <div className="flex items-baseline justify-between mb-1.5">
+          <p className="text-[10px] font-black uppercase tracking-wider text-black/40">
+            RANKING DE PALPITES
+          </p>
+          <p className="text-[9px] font-bold text-black/30">sem ultrapassar → bônus · quem passa → sem bônus</p>
+        </div>
         <div className="space-y-1.5">
           {guessRanks.map((r, i) => {
-            const isYou = r.playerId === 'you'
+            const isYou = r.playerId === myPlayerId
+            const isWinner = r.playerId === winningGuessPlayerId
             const player = state.players.find(p => p.id === r.playerId)
             return (
               <div
                 key={r.playerId}
-                className="border-2 border-black rounded-xl px-3 py-2 flex items-center gap-2"
-                style={{ backgroundColor: isYou ? '#fff' : C.cream, boxShadow: isYou ? '2px 2px 0 0 #0C0C0C' : 'none' }}
+                className="border-2 border-black rounded-xl px-3 py-2.5 flex items-center gap-2"
+                style={{
+                  backgroundColor: isWinner ? '#0C0C0C' : isYou ? '#fff' : C.cream,
+                  boxShadow: isWinner ? '3px 3px 0 0 #FFB800' : isYou ? '2px 2px 0 0 #0C0C0C' : 'none',
+                }}
               >
-                <span className="text-lg w-7">{medals[i] ?? ''}</span>
+                <span className="text-lg w-7 shrink-0">{medals[i] ?? `${i + 1}.`}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-sm truncate">
+                  <p className={`font-black text-sm truncate ${isWinner ? 'text-white' : 'text-black'}`}>
                     {playerName(r.playerId)}{isYou ? ' (você)' : ''}
                   </p>
-                  <p className="text-[11px] font-bold text-black/50">
-                    Chutou {r.value}
+                  <p className="text-[11px] font-bold" style={{ color: isWinner ? '#ffffff80' : undefined }}>
+                    Chutou <span className="font-black">{r.value}</span>
                     {r.distance === 0
-                      ? <span className="text-green-600 ml-1 font-black">· CRAVOU!</span>
+                      ? <span className="text-green-400 ml-1 font-black">→ EXATO! 🎯</span>
                       : r.over
-                      ? <span className="text-red-500 ml-1">· passou por {r.distance}</span>
-                      : <span className="ml-1">· faltou {r.distance}</span>
+                      ? <span className="ml-1" style={{ color: '#FF5126' }}>→ passou {r.distance} além</span>
+                      : <span className="ml-1" style={{ color: '#16B89A' }}>→ faltou {r.distance}</span>
                     }
                   </p>
+                  {r.over && r.rank > 1 && (
+                    <p className="text-[9px] font-black uppercase" style={{ color: '#FF5126' }}>Ultrapassou → sem bônus</p>
+                  )}
                 </div>
                 <div className="text-right shrink-0">
                   {r.bonus > 0 && (
-                    <p className="font-black text-sm" style={{ color: '#16B89A' }}>+{fmt(r.bonus)}</p>
+                    <p className="font-black text-base" style={{ color: '#16B89A' }}>+{fmt(r.bonus)}</p>
                   )}
-                  <p className="text-[10px] font-bold text-black/40">{fmt(player?.money ?? 0)}</p>
+                  {r.over && (
+                    <p className="text-[9px] font-bold text-red-400">sem bônus</p>
+                  )}
+                  <p className="text-[10px] font-bold" style={{ color: isWinner ? '#ffffff50' : '#00000040' }}>
+                    {fmt(player?.money ?? 0)}
+                  </p>
                 </div>
               </div>
             )
