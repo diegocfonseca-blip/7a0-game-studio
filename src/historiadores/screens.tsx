@@ -243,7 +243,13 @@ function HistCard({
             />
 
             <div className="mx-3 mb-3 space-y-2.5 relative z-10">
-              {(Object.entries(card.atributos) as [QuestionKey, number][]).map(([key, val], idx) => {
+              {/* During guessing: only the asked stat. Otherwise: the card's 3 questions */}
+              {(highlightStat && !revealed
+                ? [[highlightStat, card.atributos[highlightStat] ?? 0] as [QuestionKey, number]]
+                : card.perguntas
+                    .map(k => [k, card.atributos[k]] as [QuestionKey, number])
+                    .filter(([, v]) => v !== undefined)
+              ).map(([key, val], idx) => {
                 const isHL = key === highlightStat
                 const barPct = Math.min(100, (val / (STAT_MAX[key] ?? 100)) * 100)
                 return (
