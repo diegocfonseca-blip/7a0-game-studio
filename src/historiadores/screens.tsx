@@ -1225,7 +1225,7 @@ function RevealPhase() {
               : backedIsWinner
               ? 'apostou no #1 · lance menor → devolvido'
               : alsoGotItRight
-              ? `${backedName} acertou o valor mas foi #${backedRank?.rank} · ${winnerName} foi #1 primeiro → devolvido`
+              ? `${backedName} também acertou, mas ${winnerName} foi mais rápido no palpite → devolvido`
               : `${backedName} não acertou o valor → devolvido`
 
             const line3Color = isCardWinner ? '#0C0C0C' : backedIsWinner ? '#059669' : alsoGotItRight ? '#92400E' : '#DC2626'
