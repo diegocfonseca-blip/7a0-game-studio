@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useDraft, availableLegends, teamOf, divTeams } from './store'
 import { START_CLUBS, squadStrength } from './data'
@@ -559,19 +559,12 @@ export function DraftMatch() {
   const live = state.live
   const you = state.humans[state.youIndex]
   const myTeam = teamOf(state, you)
-  const eventsEndRef = useRef<HTMLDivElement>(null)
-
   // Auto-tick during first and second half
   useEffect(() => {
     if (!live || live.half === 'ht' || live.half === 'ft') return
     const id = setInterval(() => dispatch({ type: 'TICK_MATCH' }), 900)
     return () => clearInterval(id)
   }, [live?.half, dispatch])
-
-  // Scroll to latest event
-  useEffect(() => {
-    eventsEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [live?.events.length])
 
   if (!live) return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: C.cream }}><p className="font-black text-black">Carregando...</p></div>
 
@@ -713,82 +706,69 @@ export function DraftMatch() {
         {/* Todos os Jogos Ao Vivo */}
         {live.otherMatches && live.otherMatches.length > 0 && (() => {
           const DIV_LABEL: Record<number, string> = { 1: '1ª Divisão', 2: '2ª Divisão', 3: '3ª Divisão', 4: '4ª Divisão' }
-          const DIV_COLOR: Record<number, string> = { 1: '#FFD700', 2: '#FF6B00', 3: '#16B89A', 4: '#9B9B9B' }
+          const DIV_COLOR: Record<number, string> = { 1: '#FFD700', 2: '#FF6B00', 3: '#16B89A', 4: '#9B6DFF' }
+          const DIV_BG: Record<number, string>    = { 1: '#1e1600', 2: '#1e0c00', 3: '#001a13', 4: '#110020' }
           const byDiv = [1, 2, 3, 4]
             .map(d => ({ div: d, matches: live.otherMatches.filter(m => m.division === d) }))
             .filter(g => g.matches.length > 0)
           return (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <p className="text-white/50 text-[10px] font-black uppercase tracking-widest">Ao Vivo — Todos os Jogos</p>
+                <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">Ao Vivo — Todos os Jogos</p>
               </div>
               {byDiv.map(({ div, matches }) => {
                 const color = DIV_COLOR[div]
+                const bg = DIV_BG[div]
                 const isMyDiv = div === live.division
                 return (
-                  <div key={div} className="space-y-1.5">
-                    {/* division header */}
-                    <div className="flex items-center gap-2">
-                      <div className="h-px flex-1" style={{ backgroundColor: color + '50' }} />
-                      <span className="text-[9px] font-black uppercase tracking-wider px-1"
-                        style={{ color, textShadow: isMyDiv ? `0 0 8px ${color}` : 'none' }}>
+                  <div key={div} className="rounded-lg overflow-hidden border-2"
+                    style={{ borderColor: color, boxShadow: isMyDiv ? `0 0 14px ${color}70` : 'none' }}>
+                    {/* colored division header bar */}
+                    <div className="px-3 py-1.5 flex items-center justify-between"
+                      style={{ backgroundColor: color }}>
+                      <span className="text-black font-black text-[11px] uppercase tracking-wider">
                         {isMyDiv ? '▶ ' : ''}{DIV_LABEL[div]}
                       </span>
-                      <div className="h-px flex-1" style={{ backgroundColor: color + '50' }} />
+                      <span className="text-black/50 text-[9px] font-black">{matches.length}j</span>
                     </div>
                     {/* match rows */}
-                    {matches.map(m => {
-                      const scored = m.goals.filter(g => g.min <= live.minute)
-                      return (
-                        <div key={m.homeId + m.awayId}
-                          className="rounded px-3 py-2 space-y-1"
-                          style={{ backgroundColor: isMyDiv ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.04)', borderLeft: `3px solid ${color}60` }}>
-                          {/* scoreline */}
-                          <div className="flex items-center gap-1">
-                            <span className="flex-1 text-white font-black text-[11px] truncate">{m.homeName}</span>
-                            <span className="shrink-0 font-black text-base px-2" style={{ fontFamily: 'Oswald, sans-serif', color }}>
-                              {m.gf} <span className="text-white/30 text-sm">–</span> {m.ga}
-                            </span>
-                            <span className="flex-1 text-white/50 font-black text-[11px] truncate text-right">{m.awayName}</span>
-                          </div>
-                          {/* goals feed */}
-                          {scored.length > 0 && (
-                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 pt-0.5 border-t border-white/10">
-                              {scored.map((g, gi) => (
-                                <motion.span key={gi} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-                                  className="text-[9px] font-bold"
-                                  style={{ color: g.isHome ? '#4ade80' : '#fb923c' }}>
-                                  ⚽ {g.min}' {g.scorer ?? '—'}{g.isHome ? '' : ' (V)'}
-                                </motion.span>
-                              ))}
+                    <div style={{ backgroundColor: bg }}>
+                      {matches.map((m, mi) => {
+                        const scored = m.goals.filter(g => g.min <= live.minute)
+                        return (
+                          <div key={m.homeId + m.awayId}
+                            className="px-3 py-2 space-y-1"
+                            style={{ borderTop: mi > 0 ? `1px solid ${color}25` : 'none' }}>
+                            <div className="flex items-center gap-1">
+                              <span className="flex-1 text-white font-black text-xs truncate">{m.homeName}</span>
+                              <span className="shrink-0 font-black text-lg px-2 tabular-nums"
+                                style={{ fontFamily: 'Oswald, sans-serif', color }}>
+                                {m.gf}<span className="text-white/25 text-base mx-0.5">–</span>{m.ga}
+                              </span>
+                              <span className="flex-1 text-white/50 font-black text-xs truncate text-right">{m.awayName}</span>
                             </div>
-                          )}
-                        </div>
-                      )
-                    })}
+                            {scored.length > 0 && (
+                              <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+                                {scored.map((g, gi) => (
+                                  <motion.span key={gi} initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }}
+                                    className="text-[9px] font-bold"
+                                    style={{ color: g.isHome ? '#4ade80' : '#fb923c' }}>
+                                    ⚽ {g.min}' {g.scorer ?? '—'}{g.isHome ? '' : ' (V)'}
+                                  </motion.span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
                 )
               })}
             </div>
           )
         })()}
-
-        {/* events feed */}
-        <div className="space-y-1">
-          {live.events.filter(e => e.trim()).map((e, i) => {
-            const isGoal = e.includes('⚽')
-            const isOppGoal = e.includes('🔴')
-            return (
-              <motion.div key={i} initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
-                className="border-l-[3px] pl-3 py-0.5"
-                style={{ borderColor: isGoal ? C.green : isOppGoal ? C.orange : 'rgba(255,255,255,0.2)' }}>
-                <p className={`text-xs font-bold ${isGoal ? 'text-green-400' : isOppGoal ? 'text-orange-400' : 'text-white/50'}`}>{e}</p>
-              </motion.div>
-            )
-          })}
-          <div ref={eventsEndRef} />
-        </div>
       </div>
     </div>
   )

@@ -60,13 +60,16 @@ export const CPU_POOLS: { name: string; city: string }[][] = [
     { name: 'Santos',       city: 'Santos-SP' },
     { name: 'Estudiantes',  city: 'La Plata-ARG' },
   ],
-  [ // 4ª divisão — base (humans complete this one)
+  [ // 4ª divisão — 9 CPU; o time humano completa os 10
     { name: 'Internacional', city: 'Porto Alegre-RS' },
     { name: 'Vasco',         city: 'Rio-RJ' },
     { name: 'Botafogo',      city: 'Rio-RJ' },
     { name: 'Fluminense',    city: 'Rio-RJ' },
     { name: 'Olimpia',       city: 'Assunção-PAR' },
     { name: 'Cruz Azul',     city: 'Cidade do México-MEX' },
+    { name: 'Colo-Colo',     city: 'Santiago-CHI' },
+    { name: 'Peñarol',       city: 'Montevidéu-URU' },
+    { name: 'América',       city: 'Cidade do México-MEX' },
   ],
 ]
 
