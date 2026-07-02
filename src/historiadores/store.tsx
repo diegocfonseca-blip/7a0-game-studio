@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, useCallback, type ReactNode } from 'react'
-import type { HState, HScreen, HPlayer, HBid, HBidResult, QuestionKey } from './types'
+import type { HState, HScreen, HPlayer, HGuess, HBet, HGuesserRank, HRoundResult, QuestionKey } from './types'
 import { HIST_CARDS, getCard } from './data'
 
 // ── helpers ─────────────────────────────────────────────────────
@@ -22,41 +22,73 @@ export function cpuGuess(real: number): number {
   return Math.max(0, Math.round(real * (1 + sign * err)))
 }
 
-function cpuBid(money: number): number {
-  const pct = 0.05 + Math.random() * 0.25   // 5–30% of budget
-  return Math.min(money, Math.max(1, Math.round((money * pct) / 5) * 5))
+function cpuBetAmount(money: number): number {
+  const pct = 0.10 + Math.random() * 0.40  // 10–50% of budget
+  return Math.min(money, Math.max(1, Math.round(money * pct)))
 }
 
-function getRealValue(cardId: string, q: QuestionKey): number {
+// CPU picks which guess to back:
+// 25% backs own guess, 60% backs guess closest to own estimate, 15% random
+function cpuPickBetTarget(guesses: HGuess[], myId: string, myEstimate: number): string {
+  const rand = Math.random()
+  if (rand < 0.25) return myId
+  if (rand < 0.85) {
+    return [...guesses]
+      .map(g => ({ id: g.playerId, dist: Math.abs(g.value - myEstimate) }))
+      .sort((a, b) => a.dist - b.dist)[0].id
+  }
+  return guesses[Math.floor(Math.random() * guesses.length)].playerId
+}
+
+export function getRealValue(cardId: string, q: QuestionKey): number {
   const card = getCard(cardId)
   if (!card) return 0
   return card.atributos[q] ?? 0
 }
 
-function erro(guess: number, real: number): number {
-  if (guess > real) return 999  // passed the value — disqualified
-  return real - guess
-}
-
-function resolveRound(bids: HBid[], cardId: string, q: QuestionKey): HBidResult[] {
-  const real = getRealValue(cardId, q)
-  // Score each bid
-  const scored = bids.map(b => ({ ...b, erro: erro(b.palpite, real) }))
-  // Sort: lowest erro first, then highest bid, then earliest timestamp
+// Rank guesses: Price is Right style.
+// Under-real wins over went-over. Among under: closest wins. Among over: closest wins.
+function resolveGuesses(guesses: HGuess[], real: number): HGuesserRank[] {
+  const scored = guesses.map(g => ({
+    ...g,
+    over: g.value > real,
+    distance: Math.abs(g.value - real),
+  }))
   const sorted = [...scored].sort((a, b) => {
-    if (a.erro !== b.erro) return a.erro - b.erro
-    if (a.lance !== b.lance) return b.lance - a.lance
+    if (a.over !== b.over) return a.over ? 1 : -1
+    if (a.distance !== b.distance) return a.distance - b.distance
     return a.timestamp - b.timestamp
   })
-  // Assign ranks
-  const ranked = sorted.map((b, i) => ({ ...b, rank: i + 1 }))
-  // Bonus table: 1st → $30M, 2nd → $15M, 3rd → $5M, 4th → 0
+
+  const allOver = sorted.every(g => g.over)
   const BONUSES = [30, 15, 5, 0]
-  return ranked.map(b => ({
-    ...b,
-    bonus: BONUSES[(b.rank - 1)] ?? 0,
-    ganhou: b.rank === 1 && b.erro < 999,
+
+  return sorted.map((g, i) => ({
+    playerId: g.playerId,
+    value: g.value,
+    over: g.over,
+    distance: g.distance,
+    rank: i + 1,
+    // No bonus if went over; no bonus for anyone if all went over
+    bonus: allOver ? 0 : (g.over ? 0 : (BONUSES[i] ?? 0)),
   }))
+}
+
+function resolveRound(guesses: HGuess[], bets: HBet[], real: number): HRoundResult {
+  const guessRanks = resolveGuesses(guesses, real)
+  const topGuess = guessRanks[0]
+  const winningGuessPlayerId = topGuess?.playerId ?? null
+
+  // Card goes to the player who bet the MOST on the winning guess
+  const betsOnWinner = winningGuessPlayerId
+    ? bets.filter(b => b.onPlayerId === winningGuessPlayerId)
+    : []
+  const topBet = betsOnWinner.length > 0
+    ? betsOnWinner.reduce((a, b) => a.amount >= b.amount ? a : b)
+    : null
+  const cardWinnerId = topBet && topBet.amount > 0 ? topBet.playerId : null
+
+  return { realValue: real, winningGuessPlayerId, guessRanks, bets, cardWinnerId }
 }
 
 // ── initial state ─────────────────────────────────────────────
@@ -69,9 +101,10 @@ export const INITIAL: HState = {
   deck: [],
   currentCardId: null,
   currentQuestion: null,
-  phase: 'bidding',
-  bids: [],
-  results: [],
+  phase: 'guessing',
+  guesses: [],
+  bets: [],
+  roundResult: null,
   round: 0,
   totalRounds: 10,
   museuCards: [],
@@ -81,7 +114,8 @@ export const INITIAL: HState = {
 type Action =
   | { type: 'START_GAME'; playerName: string; totalRounds: number }
   | { type: 'SET_SCREEN'; screen: HScreen }
-  | { type: 'SUBMIT_BID'; guess: number; lance: number }
+  | { type: 'SUBMIT_GUESS'; value: number }
+  | { type: 'SUBMIT_BET'; onPlayerId: string; amount: number }
   | { type: 'NEXT_CARD' }
   | { type: 'RESET' }
 
@@ -100,7 +134,6 @@ function reducer(state: HState, action: Action): HState {
       const [first, ...rest] = deck
       const card = getCard(first)
       const q: QuestionKey = card ? pick(card.perguntas) : 'gols'
-
       const players: HPlayer[] = [
         { id: 'you', nome: action.playerName || 'Você', isCPU: false, money: START_MONEY, cartasIds: [] },
         ...CPU_NAMES.map((n, i) => ({ id: `cpu-${i}`, nome: n, isCPU: true, money: START_MONEY, cartasIds: [] })),
@@ -113,57 +146,80 @@ function reducer(state: HState, action: Action): HState {
         deck: rest,
         currentCardId: first,
         currentQuestion: q,
-        phase: 'bidding',
-        bids: [],
-        results: [],
+        phase: 'guessing',
+        guesses: [],
+        bets: [],
+        roundResult: null,
         round: 1,
         totalRounds: action.totalRounds,
       }
     }
 
-    case 'SUBMIT_BID': {
+    case 'SUBMIT_GUESS': {
       if (!state.currentCardId || !state.currentQuestion) return state
       const real = getRealValue(state.currentCardId, state.currentQuestion)
-      const you = state.players[state.youIdx]
-      const safeGuess = Math.max(0, action.guess)
-      const safeLance = Math.min(you.money, Math.max(1, action.lance))
 
-      const yourBid: HBid = {
+      const yourGuess: HGuess = {
         playerId: 'you',
-        palpite: safeGuess,
-        lance: safeLance,
+        value: Math.max(0, action.value),
         timestamp: Date.now(),
       }
 
-      // Generate CPU bids
-      const cpuBids: HBid[] = state.players
+      const cpuGuesses: HGuess[] = state.players
         .filter(p => p.isCPU)
         .map(p => ({
           playerId: p.id,
-          palpite: cpuGuess(real),
-          lance: cpuBid(p.money),
-          timestamp: Date.now() + 1 + Math.floor(Math.random() * 300),
+          value: cpuGuess(real),
+          timestamp: Date.now() + 1 + Math.floor(Math.random() * 500),
         }))
 
-      const allBids = [yourBid, ...cpuBids]
-      const results = resolveRound(allBids, state.currentCardId, state.currentQuestion)
-      const winnerId = results.find(r => r.ganhou)?.playerId ?? null
+      return {
+        ...state,
+        phase: 'betting',
+        guesses: [yourGuess, ...cpuGuesses],
+        bets: [],
+        roundResult: null,
+      }
+    }
 
-      // Apply money changes
+    case 'SUBMIT_BET': {
+      if (!state.currentCardId || !state.currentQuestion) return state
+      const real = getRealValue(state.currentCardId, state.currentQuestion)
+      const you = state.players[state.youIdx]
+
+      const yourBet: HBet = {
+        playerId: 'you',
+        onPlayerId: action.onPlayerId,
+        amount: Math.min(you.money, Math.max(0, action.amount)),
+      }
+
+      const cpuBets: HBet[] = state.players
+        .filter(p => p.isCPU)
+        .map(p => {
+          const myGuess = state.guesses.find(g => g.playerId === p.id)
+          const targetId = cpuPickBetTarget(state.guesses, p.id, myGuess?.value ?? real)
+          return { playerId: p.id, onPlayerId: targetId, amount: cpuBetAmount(p.money) }
+        })
+
+      const allBets = [yourBet, ...cpuBets]
+      const roundResult = resolveRound(state.guesses, allBets, real)
+
       const players = state.players.map(p => {
-        const res = results.find(r => r.playerId === p.id)
-        if (!res) return p
-        const pay = res.ganhou ? res.lance : 0
-        const cartasIds = res.ganhou ? [...p.cartasIds, state.currentCardId!] : p.cartasIds
-        return { ...p, money: Math.max(0, p.money - pay + res.bonus), cartasIds }
+        const myBet = allBets.find(b => b.playerId === p.id)
+        const guessRank = roundResult.guessRanks.find(r => r.playerId === p.id)
+        const isCardWinner = roundResult.cardWinnerId === p.id
+        return {
+          ...p,
+          money: Math.max(0, p.money - (myBet?.amount ?? 0) + (guessRank?.bonus ?? 0)),
+          cartasIds: isCardWinner ? [...p.cartasIds, state.currentCardId!] : p.cartasIds,
+        }
       })
 
-      // Update museo (cards won by human player)
-      const museuCards = winnerId === 'you'
+      const museuCards = roundResult.cardWinnerId === 'you'
         ? [...new Set([...state.museuCards, state.currentCardId!])]
         : state.museuCards
 
-      return { ...state, phase: 'revealing', bids: allBids, results, players, museuCards }
+      return { ...state, phase: 'revealing', bets: allBets, roundResult, players, museuCards }
     }
 
     case 'NEXT_CARD': {
@@ -178,9 +234,10 @@ function reducer(state: HState, action: Action): HState {
         deck: rest,
         currentCardId: next,
         currentQuestion: q,
-        phase: 'bidding',
-        bids: [],
-        results: [],
+        phase: 'guessing',
+        guesses: [],
+        bets: [],
+        roundResult: null,
         round: state.round + 1,
       }
     }
@@ -205,4 +262,4 @@ export function useHist() {
   return ctx
 }
 
-export { getRealValue }
+

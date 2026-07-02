@@ -1,13 +1,13 @@
 export type Raridade = 'comum' | 'epica' | 'mitica'
 export type QuestionKey = 'gols' | 'titulos' | 'altura' | 'assists' | 'jogos'
-export type HScreen = 'menu' | 'game' | 'reveal' | 'results' | 'museu'
+export type HScreen = 'menu' | 'game' | 'results' | 'museu'
 
 export interface AtributosOcultos {
-  gols?: number       // gols na temporada/copa do ano
-  titulos?: number    // títulos na carreira até o ano
-  altura?: number     // altura em cm
-  assists?: number    // assistências no ano
-  jogos?: number      // jogos no ano
+  gols?: number
+  titulos?: number
+  altura?: number
+  assists?: number
+  jogos?: number
 }
 
 export interface HistCardData {
@@ -15,14 +15,14 @@ export interface HistCardData {
   nome: string
   apelido: string
   ano: number
-  nascimento: number  // ano de nascimento
-  flag: string        // emoji de bandeira
+  nascimento: number
+  flag: string
   raridade: Raridade
   posicao: string
-  clube: string       // clube em destaque no ano
-  cor: string         // cor de destaque da carta
+  clube: string
+  cor: string
   atributos: AtributosOcultos
-  perguntas: QuestionKey[]  // quais perguntas essa carta usa
+  perguntas: QuestionKey[]
 }
 
 export interface HPlayer {
@@ -33,31 +33,51 @@ export interface HPlayer {
   cartasIds: string[]
 }
 
-export interface HBid {
+// Phase 1: guess
+export interface HGuess {
   playerId: string
-  palpite: number
-  lance: number
+  value: number
   timestamp: number
 }
 
-export interface HBidResult extends HBid {
-  erro: number        // distância absoluta do valor real (999 = passou do valor)
-  rank: number        // 1 = melhor, 4 = pior
-  bonus: number       // dinheiro recebido como bônus
-  ganhou: boolean     // ganhou a carta?
+// Phase 2: blind bet on a specific guess
+export interface HBet {
+  playerId: string    // who is betting
+  onPlayerId: string  // whose guess they are backing
+  amount: number
+}
+
+// Resolved guess ranking
+export interface HGuesserRank {
+  playerId: string
+  value: number
+  over: boolean       // went over the real value
+  distance: number    // absolute distance from real value
+  rank: number        // 1 = best
+  bonus: number       // $M bonus for this rank (0 if went over)
+}
+
+// Full round result after reveal
+export interface HRoundResult {
+  realValue: number
+  winningGuessPlayerId: string | null
+  guessRanks: HGuesserRank[]
+  bets: HBet[]
+  cardWinnerId: string | null
 }
 
 export interface HState {
   screen: HScreen
   players: HPlayer[]
   youIdx: number
-  deck: string[]           // ids restantes (embaralhados)
+  deck: string[]
   currentCardId: string | null
   currentQuestion: QuestionKey | null
-  phase: 'bidding' | 'revealing'
-  bids: HBid[]
-  results: HBidResult[]
+  phase: 'guessing' | 'betting' | 'revealing'
+  guesses: HGuess[]
+  bets: HBet[]
+  roundResult: HRoundResult | null
   round: number
   totalRounds: number
-  museuCards: string[]     // cartas já coletadas pelo jogador (persistência leve)
+  museuCards: string[]
 }
