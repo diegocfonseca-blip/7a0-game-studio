@@ -628,9 +628,6 @@ function RevealPhase() {
   const questionLabel = QUESTION_LABELS[state.currentQuestion]?.(card.ano)
   const isLast = state.round >= state.totalRounds || state.deck.length === 0
   const winningGuess = guessRanks.find(r => r.playerId === winningGuessPlayerId)
-  const betsOnWinner = bets
-    .filter(b => b.onPlayerId === winningGuessPlayerId)
-    .sort((a, b) => b.amount - a.amount)
   const medals = ['🥇', '🥈', '🥉', '4️⃣']
 
   function playerName(id: string) {
@@ -689,77 +686,91 @@ function RevealPhase() {
         </div>
       )}
 
-      {/* Bets on winner */}
-      {betsOnWinner.length > 0 && (
+      {/* Tiebreak banner */}
+      {roundResult.hadTiebreak && (
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.3, type: 'spring' }}
+          className="mx-5 mb-3 border-[3px] border-black rounded-xl px-3 py-2 flex items-center gap-2"
+          style={{ backgroundColor: '#FF5126', boxShadow: '3px 3px 0 0 #0C0C0C' }}
+        >
+          <span className="text-lg">⚡</span>
+          <div>
+            <p className="font-black text-xs text-white uppercase tracking-wide">DESEMPATE POR VELOCIDADE</p>
+            <p className="text-[11px] text-white/80 font-bold">
+              {playerName(cardWinnerId ?? '')} foi mais rápido por {roundResult.tiebreakMs}ms
+            </p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* No card winner */}
+      {cardWinnerId === null && (
         <div className="mx-5 mb-3">
-          <p className="text-[10px] font-black uppercase tracking-wider text-black/40 mb-1.5">
-            APOSTAS NO PALPITE VENCEDOR
-          </p>
-
-          {roundResult.hadTiebreak && (
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.3, type: 'spring' }}
-              className="border-[3px] border-black rounded-xl px-3 py-2 mb-2 flex items-center gap-2"
-              style={{ backgroundColor: '#FF5126', boxShadow: '3px 3px 0 0 #0C0C0C' }}
-            >
-              <span className="text-lg">⚡</span>
-              <div>
-                <p className="font-black text-xs text-white uppercase tracking-wide">DESEMPATE POR VELOCIDADE</p>
-                <p className="text-[11px] text-white/80 font-bold">
-                  {playerName(cardWinnerId ?? '')} foi mais rápido por {roundResult.tiebreakMs}ms
-                </p>
-              </div>
-            </motion.div>
-          )}
-
-          <div className="space-y-1.5">
-            {betsOnWinner.map(bet => {
-              const isCardWinner = bet.playerId === cardWinnerId
-              const isYou = bet.playerId === 'you'
-              return (
-                <div
-                  key={bet.playerId}
-                  className="border-[3px] border-black rounded-xl px-3 py-2.5 flex items-center justify-between"
-                  style={{
-                    backgroundColor: isCardWinner ? '#FFB800' : isYou ? '#fff' : C.cream,
-                    boxShadow: isCardWinner ? '3px 3px 0 0 #0C0C0C' : 'none',
-                  }}
-                >
-                  <div className="flex items-center gap-2">
-                    {isCardWinner && <span className="text-base">🏆</span>}
-                    <div>
-                      <p className="font-black text-sm">
-                        {playerName(bet.playerId)}
-                        {isYou && <span className="ml-1 text-[10px] opacity-60">(você)</span>}
-                      </p>
-                      {isCardWinner
-                        ? <p className="text-[10px] font-black uppercase">pagou · ganhou a carta</p>
-                        : <p className="text-[10px] font-bold text-black/40 uppercase">devolvido ✓</p>
-                      }
-                    </div>
-                  </div>
-                  <p className="font-black text-lg" style={{ fontFamily: 'Oswald, sans-serif' }}>
-                    {fmt(bet.amount)}
-                  </p>
-                </div>
-              )
-            })}
+          <div
+            className="border-[3px] border-black rounded-xl px-4 py-3 flex items-center gap-2"
+            style={{ backgroundColor: '#FF5126', boxShadow: '3px 3px 0 0 #0C0C0C' }}
+          >
+            <span className="text-xl">⚠️</span>
+            <div>
+              <p className="font-black text-sm text-white">Ninguém apostou no palpite vencedor</p>
+              <p className="text-[11px] text-white/70 font-bold mt-0.5">
+                Carta volta pro baralho · todos os lances devolvidos
+              </p>
+            </div>
           </div>
         </div>
       )}
 
-      {cardWinnerId === null && (
-        <div className="mx-5 mb-3">
-          <BrutalCard className="p-3 text-center">
-            <p className="font-black text-sm text-black/50">
-              Ninguém apostou no palpite certo — carta vai para o próximo baralho
-            </p>
-            <p className="text-[11px] text-black/30 font-bold mt-1">Todos os lances foram devolvidos</p>
-          </BrutalCard>
+      {/* ALL bets — full transparency */}
+      <div className="mx-5 mb-3">
+        <p className="text-[10px] font-black uppercase tracking-wider text-black/40 mb-1.5">
+          LANCES DA RODADA
+        </p>
+        <div className="space-y-1.5">
+          {bets.map(bet => {
+            const isCardWinner = bet.playerId === cardWinnerId
+            const isYou = bet.playerId === 'you'
+            const backedName = playerName(bet.onPlayerId)
+            const backedGuess = state.guesses.find(g => g.playerId === bet.onPlayerId)
+            const backedWinner = bet.onPlayerId === winningGuessPlayerId
+            return (
+              <div
+                key={bet.playerId}
+                className="border-[3px] border-black rounded-xl px-3 py-2.5 flex items-center justify-between"
+                style={{
+                  backgroundColor: isCardWinner ? '#FFB800' : isYou ? '#fff' : C.cream,
+                  boxShadow: isCardWinner ? '3px 3px 0 0 #0C0C0C' : isYou ? '2px 2px 0 0 #0C0C0C' : 'none',
+                }}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  {isCardWinner && <span className="text-base shrink-0">🏆</span>}
+                  <div className="min-w-0">
+                    <p className="font-black text-sm truncate">
+                      {playerName(bet.playerId)}
+                      {isYou && <span className="ml-1 text-[10px] opacity-60">(você)</span>}
+                    </p>
+                    <p className="text-[10px] font-bold text-black/50 truncate">
+                      apostou no {backedName === playerName(bet.playerId) ? 'próprio' : backedName} · palpite {backedGuess?.value ?? '?'}
+                    </p>
+                    <p className={`text-[10px] font-black uppercase ${isCardWinner ? '' : backedWinner ? 'text-green-700' : 'text-black/35'}`}>
+                      {isCardWinner
+                        ? 'pagou · ganhou a carta'
+                        : backedWinner
+                        ? 'devolvido ✓'
+                        : 'palpite errado · devolvido ✓'}
+                    </p>
+                  </div>
+                </div>
+                <p className="font-black text-lg shrink-0 ml-2" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                  {fmt(bet.amount)}
+                </p>
+              </div>
+            )
+          })}
         </div>
-      )}
+      </div>
 
       {/* Card revealed with flip animation */}
       <motion.div
