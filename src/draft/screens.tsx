@@ -161,27 +161,20 @@ export function DraftHub() {
           </BrutalCard>
         )}
 
-        {/* escalação + tática */}
+        {/* escalação */}
         {!state.inDraft && (
-          <div className="grid grid-cols-2 gap-3">
-            <BrutalCard color={C.teal} className="p-3" onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'lineup' })}>
-              <p className="text-2xl mb-1">👔</p>
-              <p className="font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>ESCALAÇÃO</p>
-              <p className="text-black/60 text-[10px] font-bold">Monte seu XI · dê minutos aos jovens</p>
-            </BrutalCard>
-            <BrutalCard color="white" className="p-3">
-              <p className="text-black/50 text-[10px] font-black uppercase mb-1">Tática</p>
-              <div className="space-y-1">
-                {(['retranca', 'equilibrio', 'ataque'] as const).map(t => (
-                  <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', tactic: t })}
-                    className="w-full border-2 border-black rounded px-2 py-1 text-[10px] font-black uppercase text-left"
-                    style={{ backgroundColor: you.tactic === t ? C.blue : '#fff', color: you.tactic === t ? '#fff' : '#000' }}>
-                    {t === 'retranca' ? '🛡️ Retranca' : t === 'equilibrio' ? '⚖️ Equilíbrio' : '⚔️ Pra cima'}
-                  </button>
-                ))}
+          <BrutalCard color={C.teal} className="p-4" shadow={5} onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'lineup' })}>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">👔</span>
+              <div className="flex-1">
+                <p className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>ESCALAÇÃO</p>
+                <p className="text-black/60 text-xs font-bold">
+                  Monte seu XI · formação · tática · minutos aos jovens
+                </p>
               </div>
-            </BrutalCard>
-          </div>
+              <span className="text-2xl text-black/50">→</span>
+            </div>
+          </BrutalCard>
         )}
 
         {/* advance */}
