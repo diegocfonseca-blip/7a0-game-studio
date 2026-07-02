@@ -512,37 +512,54 @@ export function DraftLineup() {
           </div>
         </BrutalCard>
 
-        <BrutalCard color={C.blue} className="p-3" shadow={4}>
-          <p className="text-white text-xs font-bold">
-            ✦ Escale 11. Botar um <b>jovem cru</b> (nota baixa, potencial alto ✨) enfraquece o time hoje — mas <b>jogar faz ele crescer</b> mais rápido. Esse é o seu dilema.
+        {/* Jogadores — visual estilo intervalo na cor do clube */}
+        <BrutalCard color={clubColor} className="p-3 space-y-2" shadow={5}>
+          <p className="text-white/70 text-[10px] font-black uppercase tracking-wider">
+            Toque para entrar/sair — XI selecionados: {xi}/{11}
           </p>
-        </BrutalCard>
-
-        <div className="space-y-2">
-          {squad.map(p => {
-            const on = you.lineupIds.includes(p.id)
-            const rar = p.potential ? rarityOf(p.potential) : null
-            const isLegend = !!p.legendId
-            return (
-              <BrutalCard key={p.id} color={on ? C.teal : 'white'} className="p-2.5" shadow={on ? 4 : 2}
-                onClick={() => dispatch({ type: 'SET_LINEUP', playerId: p.id })}>
-                <div className="flex items-center gap-2">
-                  <span className="w-5 text-center text-lg">{on ? '✅' : '⬜'}</span>
-                  <BrutalTag color={POS_COLOR[p.pos]} textColor="#fff">{p.pos}</BrutalTag>
-                  <span className="text-base">{p.nationality ? FLAG[p.nationality] : '⚽'}</span>
-                  <div className="flex-1 min-w-0">
-                    <span className="truncate font-black text-sm block" style={{ fontFamily: 'Oswald, sans-serif', color: isLegend ? '#b8860b' : '#000' }}>
-                      {isLegend ? '⭐ ' : ''}{p.name}
+          <div className="grid grid-cols-2 gap-2">
+            {/* Coluna XI */}
+            <div>
+              <p className="text-white/50 text-[9px] font-black uppercase mb-1">XI ({xi})</p>
+              {squad.filter(p => you.lineupIds.includes(p.id)).sort((a, b) => {
+                const order: Record<string, number> = { GOL: 0, ZAG: 1, LAT: 2, MEI: 3, ATA: 4 }
+                return (order[a.pos] - order[b.pos]) || b.rating - a.rating
+              }).map(p => {
+                const rar = p.potential ? rarityOf(p.potential) : null
+                return (
+                  <button key={p.id} onClick={() => dispatch({ type: 'SET_LINEUP', playerId: p.id })}
+                    className="w-full text-left border-2 rounded px-2 py-1 mb-1 text-[10px] font-black truncate"
+                    style={{ borderColor: 'rgba(255,255,255,0.35)', backgroundColor: 'rgba(255,255,255,0.18)', color: '#fff' }}>
+                    <span className="text-white/50">{p.pos}</span> {p.legendId ? '⭐' : ''}{p.name.split(' ')[0]}
+                    {p.age ? <span className="text-white/40"> {p.age}a</span> : null}
+                    <span className="float-right font-black">
+                      {rar ? <span style={{ color: rar.color }}>{rar.emoji}</span> : null}{p.rating}
                     </span>
-                    {p.age && <span className="text-[9px] text-black/40 font-bold">{p.age} anos</span>}
-                  </div>
-                  {rar && <span className="text-[9px] font-black" style={{ color: rar.color }}>{rar.emoji}{p.potential}</span>}
-                  <span className="font-black text-black text-sm w-7 text-right">{p.rating}</span>
-                </div>
-              </BrutalCard>
-            )
-          })}
-        </div>
+                  </button>
+                )
+              })}
+            </div>
+            {/* Coluna Banco */}
+            <div>
+              <p className="text-white/50 text-[9px] font-black uppercase mb-1">Banco</p>
+              {squad.filter(p => !you.lineupIds.includes(p.id)).sort((a, b) => b.rating - a.rating).map(p => {
+                const rar = p.potential ? rarityOf(p.potential) : null
+                return (
+                  <button key={p.id} onClick={() => dispatch({ type: 'SET_LINEUP', playerId: p.id })}
+                    className="w-full text-left border-2 rounded px-2 py-1 mb-1 text-[10px] font-black truncate"
+                    style={{ borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.55)' }}>
+                    <span className="opacity-60">{p.pos}</span> {p.legendId ? '⭐' : ''}{p.name.split(' ')[0]}
+                    {p.age ? <span className="opacity-40"> {p.age}a</span> : null}
+                    <span className="float-right">
+                      {rar ? <span style={{ color: rar.color }}>{rar.emoji}</span> : null}{p.rating}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          <p className="text-white/30 text-[9px] font-bold">✦ Jovem cru (nota baixa, pot. alto ✨) cresce mais rápido jogando</p>
+        </BrutalCard>
       </div>
     </div>
   )
@@ -597,56 +614,11 @@ export function DraftMatch() {
   const result = live.gf > live.ga ? 'V' : live.gf === live.ga ? 'E' : 'D'
   const resultColor = result === 'V' ? C.green : result === 'E' ? C.yellow : C.orange
 
-  const clubColor = START_CLUBS.find(c => c.id === you.teamId)?.color ?? '#1e7e3a'
-
   // HT sub state
   const [subOut, setSubOut] = useState<string | null>(null)
   const [subIn, setSubIn] = useState<string | null>(null)
   const xi = you.squad.filter(p => you.lineupIds.includes(p.id))
   const bench = you.squad.filter(p => !you.lineupIds.includes(p.id))
-
-  const HTMiniPitch = () => {
-    const lineupSquad = you.squad.filter(p => you.lineupIds.includes(p.id))
-    const gk  = lineupSquad.filter(p => p.pos === 'GOL')
-    const def = lineupSquad.filter(p => p.pos === 'ZAG' || p.pos === 'LAT')
-    const mid = lineupSquad.filter(p => p.pos === 'MEI')
-    const fwd = lineupSquad.filter(p => p.pos === 'ATA')
-    const Row = ({ players }: { players: DraftPlayer[] }) => (
-      <div className="flex justify-around items-center">
-        {players.map(p => {
-          const short = p.name.match(/"([^"]+)"/) ? p.name.match(/"([^"]+)"/)![1] : p.name.split(' ')[0]
-          return (
-            <div key={p.id} className="flex flex-col items-center gap-0.5">
-              <div className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center shadow"
-                style={{ backgroundColor: 'rgba(255,255,255,0.92)' }}>
-                <span className="font-black text-[10px] text-black">{p.rating}</span>
-              </div>
-              <span className="text-white text-[7px] font-bold max-w-[36px] truncate text-center drop-shadow">
-                {p.legendId ? '⭐' : ''}{short}
-              </span>
-            </div>
-          )
-        })}
-      </div>
-    )
-    return (
-      <div className="relative rounded-lg overflow-hidden border-2 border-white/30" style={{ minHeight: 200 }}>
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 200" preserveAspectRatio="none">
-          <rect x="3" y="3" width="314" height="194" rx="3" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
-          <line x1="0" y1="100" x2="320" y2="100" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
-          <circle cx="160" cy="100" r="28" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
-          <rect x="96" y="3" width="128" height="36" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
-          <rect x="96" y="161" width="128" height="36" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
-        </svg>
-        <div className="relative z-10 flex flex-col justify-around py-3" style={{ minHeight: 200 }}>
-          <Row players={fwd} />
-          <Row players={mid} />
-          <Row players={def} />
-          <Row players={gk} />
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: C.black }}>
@@ -702,18 +674,16 @@ export function DraftMatch() {
 
         {/* Halftime controls */}
         {isHT && (
-          <BrutalCard color={clubColor} className="p-4 space-y-3" shadow={6}>
-            <p className="font-black text-white text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>⏸ INTERVALO — {live.gf}–{live.ga}</p>
-            {/* mini pitch */}
-            <HTMiniPitch />
+          <BrutalCard color={C.yellow} className="p-4 space-y-3" shadow={6}>
+            <p className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>⏸ INTERVALO — {live.gf}–{live.ga}</p>
             {/* tactic change */}
             <div>
-              <p className="text-white/60 text-[10px] font-black uppercase mb-1">Tática para o 2º tempo</p>
+              <p className="text-black/60 text-[10px] font-black uppercase mb-1">Tática para o 2º tempo</p>
               <div className="flex gap-2">
                 {(['retranca', 'equilibrio', 'ataque'] as const).map(t => (
                   <button key={t} onClick={() => dispatch({ type: 'CHANGE_TACTIC_MATCH', tactic: t })}
-                    className="flex-1 border-2 border-white/40 rounded px-1 py-1.5 text-[10px] font-black uppercase"
-                    style={{ backgroundColor: you.tactic === t ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.12)', color: you.tactic === t ? '#000' : '#fff' }}>
+                    className="flex-1 border-2 border-black rounded px-1 py-1.5 text-[10px] font-black uppercase"
+                    style={{ backgroundColor: you.tactic === t ? C.black : '#fff', color: you.tactic === t ? '#fff' : '#000' }}>
                     {t === 'retranca' ? '🛡️' : t === 'equilibrio' ? '⚖️' : '⚔️'} {t}
                   </button>
                 ))}
@@ -722,24 +692,24 @@ export function DraftMatch() {
             {/* substitution */}
             {live.subsUsed < 3 && (
               <div>
-                <p className="text-white/60 text-[10px] font-black uppercase mb-1">Substituição (1 disponível)</p>
+                <p className="text-black/60 text-[10px] font-black uppercase mb-1">Substituição (1 disponível)</p>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <p className="text-white/40 text-[9px] font-black uppercase mb-1">Tirar (XI)</p>
+                    <p className="text-black/40 text-[9px] font-black uppercase mb-1">Tirar (XI)</p>
                     {xi.sort((a, b) => a.rating - b.rating).map(p => (
                       <button key={p.id} onClick={() => setSubOut(p.id)}
                         className="w-full text-left border-2 rounded px-2 py-1 mb-1 text-[10px] font-black truncate"
-                        style={{ borderColor: subOut === p.id ? C.orange : 'rgba(255,255,255,0.4)', backgroundColor: subOut === p.id ? C.orange : 'rgba(255,255,255,0.12)', color: '#fff' }}>
+                        style={{ borderColor: subOut === p.id ? C.orange : '#000', backgroundColor: subOut === p.id ? C.orange : '#fff', color: subOut === p.id ? '#fff' : '#000' }}>
                         {p.pos} {p.name.split(' ')[0]} ({p.rating})
                       </button>
                     ))}
                   </div>
                   <div>
-                    <p className="text-white/40 text-[9px] font-black uppercase mb-1">Colocar (Banco)</p>
+                    <p className="text-black/40 text-[9px] font-black uppercase mb-1">Colocar (Banco)</p>
                     {bench.sort((a, b) => b.rating - a.rating).map(p => (
                       <button key={p.id} onClick={() => setSubIn(p.id)}
                         className="w-full text-left border-2 rounded px-2 py-1 mb-1 text-[10px] font-black truncate"
-                        style={{ borderColor: subIn === p.id ? C.green : 'rgba(255,255,255,0.4)', backgroundColor: subIn === p.id ? C.green : 'rgba(255,255,255,0.12)', color: '#fff' }}>
+                        style={{ borderColor: subIn === p.id ? C.green : '#000', backgroundColor: subIn === p.id ? C.green : '#fff', color: subIn === p.id ? '#fff' : '#000' }}>
                         {p.pos} {p.name.split(' ')[0]} ({p.rating})
                       </button>
                     ))}
@@ -752,7 +722,7 @@ export function DraftMatch() {
                 )}
               </div>
             )}
-            {live.subsUsed >= 3 && <p className="text-white/60 text-xs font-bold">✅ Substituição feita.</p>}
+            {live.subsUsed >= 3 && <p className="text-black/50 text-xs font-bold">✅ Substituição feita.</p>}
             <BrutalButton color={C.black} textColor="#fff" onClick={() => dispatch({ type: 'START_HALF2' })}>
               ▶ 2º TEMPO →
             </BrutalButton>
