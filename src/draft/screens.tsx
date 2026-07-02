@@ -624,46 +624,35 @@ export function DraftMatch() {
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-4 py-4 space-y-4">
-        {/* scoreboard */}
-        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-          <BrutalCard color={C.purple} className="p-5 text-center" shadow={8}>
-            <div className="flex items-center justify-center gap-4">
-              <div className="flex-1 text-right">
-                <p className="text-white font-black text-base truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{myTeam.name}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-white font-black text-5xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{live.gf}</span>
-                <span className="text-white/40 font-black text-3xl">–</span>
-                <span className="text-white font-black text-5xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{live.ga}</span>
-              </div>
-              <div className="flex-1 text-left">
-                <p className="text-white/60 font-black text-base truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{live.oppName}</p>
-              </div>
-            </div>
-            <div className="mt-3 flex items-center justify-center gap-2">
-              {isRunning && <span className="inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse" />}
-              <span className="text-white/60 font-mono text-sm">
-                {isFT ? '⏱ Apito final' : isHT ? '⏸ Intervalo' : `${live.minute}'`}
+      <div className="max-w-md mx-auto px-4 py-3 space-y-3">
+        {/* scoreboard compacto */}
+        <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="rounded-xl border-2 px-3 py-2 space-y-1.5"
+            style={{ borderColor: C.purple, backgroundColor: '#16002b' }}>
+            <div className="flex items-center gap-2">
+              <span className="flex-1 text-white font-black text-sm text-right truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{myTeam.name}</span>
+              <span className="font-black text-3xl px-3 tabular-nums shrink-0" style={{ fontFamily: 'Oswald, sans-serif', color: C.purple }}>
+                {live.gf}<span className="text-white/25 mx-1">–</span>{live.ga}
               </span>
+              <span className="flex-1 text-white/50 font-black text-sm truncate" style={{ fontFamily: 'Oswald, sans-serif' }}>{live.oppName}</span>
             </div>
-          </BrutalCard>
+            {/* barra de tempo integrada */}
+            <div className="flex items-center gap-2">
+              <span className="text-white/30 font-mono text-[9px] shrink-0">0'</span>
+              <div className="flex-1 relative h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                <div className="h-full rounded-full transition-all duration-700"
+                  style={{ width: `${barPct}%`, backgroundColor: isHT ? C.yellow : isFT ? resultColor : C.purple }} />
+                <div className="absolute top-0 bottom-0 w-px bg-white/20" style={{ left: '50%' }} />
+              </div>
+              <span className="shrink-0 flex items-center gap-1 font-mono text-[10px]"
+                style={{ color: isFT ? resultColor : isHT ? C.yellow : C.purple }}>
+                {isRunning && <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />}
+                {isFT ? 'FT' : isHT ? 'HT' : `${live.minute}'`}
+              </span>
+              <span className="text-white/30 font-mono text-[9px] shrink-0">90'</span>
+            </div>
+          </div>
         </motion.div>
-
-        {/* time bar */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-[10px] font-black text-white/40">
-            <span>0'</span>
-            <span style={{ color: live.half === 1 || isHT ? C.yellow : 'rgba(255,255,255,0.4)' }}>45'</span>
-            <span>90'</span>
-          </div>
-          <div className="relative h-3 rounded-full border-2 border-white/20 overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
-            <div className="h-full rounded-full transition-all duration-700"
-              style={{ width: `${barPct}%`, backgroundColor: isHT ? C.yellow : isFT ? resultColor : C.teal }} />
-            {/* HT midline */}
-            <div className="absolute top-0 bottom-0 w-px bg-white/30" style={{ left: '50%' }} />
-          </div>
-        </div>
 
         {/* Halftime controls */}
         {isHT && (
@@ -736,13 +725,13 @@ export function DraftMatch() {
         )}
 
         {/* Todos os Jogos Ao Vivo */}
-        {live.otherMatches && live.otherMatches.length > 0 && (() => {
+        {(() => {
           const DIV_LABEL: Record<number, string> = { 1: '1ª Divisão', 2: '2ª Divisão', 3: '3ª Divisão', 4: '4ª Divisão' }
           const DIV_COLOR: Record<number, string> = { 1: '#FFD700', 2: '#FF6B00', 3: '#16B89A', 4: '#9B6DFF' }
           const DIV_BG: Record<number, string>    = { 1: '#1e1600', 2: '#1e0c00', 3: '#001a13', 4: '#110020' }
           const byDiv = [1, 2, 3, 4]
-            .map(d => ({ div: d, matches: live.otherMatches.filter(m => m.division === d) }))
-            .filter(g => g.matches.length > 0)
+            .map(d => ({ div: d, matches: (live.otherMatches ?? []).filter(m => m.division === d) }))
+            .filter(g => g.matches.length > 0 || g.div === live.division)
           return (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -753,25 +742,53 @@ export function DraftMatch() {
                 const color = DIV_COLOR[div]
                 const bg = DIV_BG[div]
                 const isMyDiv = div === live.division
+                const totalCount = matches.length + (isMyDiv ? 1 : 0)
                 return (
                   <div key={div} className="rounded-lg overflow-hidden border-2"
-                    style={{ borderColor: color, boxShadow: isMyDiv ? `0 0 14px ${color}70` : 'none' }}>
-                    {/* colored division header bar */}
+                    style={{ borderColor: isMyDiv ? C.purple : color, boxShadow: isMyDiv ? `0 0 16px ${C.purple}60` : 'none' }}>
+                    {/* division header bar */}
                     <div className="px-3 py-1.5 flex items-center justify-between"
-                      style={{ backgroundColor: color }}>
-                      <span className="text-black font-black text-[11px] uppercase tracking-wider">
+                      style={{ backgroundColor: isMyDiv ? C.purple : color }}>
+                      <span className="font-black text-[11px] uppercase tracking-wider" style={{ color: '#fff' }}>
                         {isMyDiv ? '▶ ' : ''}{DIV_LABEL[div]}
                       </span>
-                      <span className="text-black/50 text-[9px] font-black">{matches.length}j</span>
+                      <span className="text-white/50 text-[9px] font-black">{totalCount}j</span>
                     </div>
                     {/* match rows */}
-                    <div style={{ backgroundColor: bg }}>
+                    <div style={{ backgroundColor: isMyDiv ? '#16002b' : bg }}>
+                      {/* meu jogo — sempre primeiro na minha divisão */}
+                      {isMyDiv && (
+                        <div className="px-3 py-2 space-y-1" style={{ borderBottom: `1px solid ${C.purple}40` }}>
+                          <div className="flex items-center gap-1">
+                            <span className="flex-1 font-black text-xs truncate" style={{ color: '#fff' }}>
+                              {live.isHome ? myTeam.name : live.oppName}
+                            </span>
+                            <span className="shrink-0 font-black text-lg px-2 tabular-nums"
+                              style={{ fontFamily: 'Oswald, sans-serif', color: C.purple }}>
+                              {live.isHome ? live.gf : live.ga}
+                              <span className="text-white/25 text-base mx-0.5">–</span>
+                              {live.isHome ? live.ga : live.gf}
+                            </span>
+                            <span className="flex-1 text-white/50 font-black text-xs truncate text-right">
+                              {live.isHome ? live.oppName : myTeam.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded" style={{ backgroundColor: C.purple, color: '#fff' }}>
+                              VOCÊ
+                            </span>
+                            <span className="text-white/40 text-[9px] font-mono">
+                              {isFT ? 'FT' : isHT ? 'HT' : `${live.minute}'`}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                       {matches.map((m, mi) => {
                         const scored = m.goals.filter(g => g.min <= live.minute)
                         return (
                           <div key={m.homeId + m.awayId}
                             className="px-3 py-2 space-y-1"
-                            style={{ borderTop: mi > 0 ? `1px solid ${color}25` : 'none' }}>
+                            style={{ borderTop: (mi > 0 || isMyDiv) ? `1px solid ${color}25` : 'none' }}>
                             <div className="flex items-center gap-1">
                               <span className="flex-1 text-white font-black text-xs truncate">{m.homeName}</span>
                               <span className="shrink-0 font-black text-lg px-2 tabular-nums"
