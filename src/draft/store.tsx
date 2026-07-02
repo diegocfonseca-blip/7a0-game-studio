@@ -2,7 +2,7 @@ import { createContext, useContext, useReducer, useEffect, useRef, useCallback }
 import type { ReactNode } from 'react'
 import type { DraftState, DraftScreen, Manager, DraftPlayer, LeagueTeam, Tactic, GameMode, MatchEvent, LiveMatch, Formation, OtherMatchLive, OtherMatchGoal, DraftCup, CupGame } from './types'
 import { supabase } from '../lib/supabase'
-import { AI_MANAGERS, CPU_POOLS, squadStrength, bestEleven } from './data'
+import { AI_MANAGERS, CPU_POOLS, START_CLUBS, squadStrength, bestEleven, generateFillerSquad } from './data'
 import { getCpuSquad } from './rosters'
 import { LEGENDS, getCurrentRating } from '../empresario/data/legends'
 import type { Legend } from '../empresario/types'
@@ -631,40 +631,52 @@ function reducer(state: DraftState, action: Action): DraftState {
     case 'START': return { ...state, screen: 'pickClub' }
 
     case 'PICK_CLUB': {
-      // Build ALL 40 CPU teams first
-      const allTeams: LeagueTeam[] = []
+      // Build all 36 CPU teams from CPU_POOLS (divisions 1–4, 6 in div4)
+      const cpuTeams: LeagueTeam[] = []
       let cpuId = 0
       CPU_POOLS.forEach((pool, di) => {
         const division = di + 1
         pool.forEach(c => {
           const squad = getCpuSquad(cpuId, division)
           const strength = Math.round(squadStrength(squad))
-          allTeams.push({ id: `c${cpuId++}`, name: c.name, city: c.city, division, isHuman: false, strength, squad, points: 0, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, lastResult: '—' })
+          cpuTeams.push({ id: `c${cpuId++}`, name: c.name, city: c.city, division, isHuman: false, strength, squad, points: 0, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, lastResult: '—' })
         })
       })
 
-      // Human picks one of the div-4 teams (c30–c39)
-      const chosenTeam = allTeams.find(t => t.id === action.clubId)!
-      const div4Remaining = allTeams.filter(t => t.division === 4 && t.id !== action.clubId)
+      // Human club comes from START_CLUBS — create the team with a filler squad
+      const startClub = START_CLUBS.find(c => c.id === action.clubId)
+        ?? { id: action.clubId, name: action.clubId, city: '—' }
+      const youSquad = generateFillerSquad()
+      const humanTeam: LeagueTeam = {
+        id: action.clubId, name: startClub.name, city: startClub.city,
+        division: 4, isHuman: true, humanIndex: 0,
+        strength: Math.round(squadStrength(youSquad)),
+        squad: youSquad,
+        points: 0, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, lastResult: '—',
+      }
+
+      // AI friends take from the 6 CPU div-4 teams
+      const div4Cpu = cpuTeams.filter(t => t.division === 4)
       const aiNames = [...AI_MANAGERS].sort(() => Math.random() - 0.5)
       const friendCount = state.onlineMode === 'online' ? state.totalPlayers - 1 : 3
-      const friendTeams = [...div4Remaining].sort(() => Math.random() - 0.5).slice(0, friendCount)
+      const friendTeams = [...div4Cpu].sort(() => Math.random() - 0.5).slice(0, friendCount)
 
       const humans: Manager[] = []
-      const youSquad = chosenTeam.squad ?? []
       humans.push({ id: 'h0', name: action.managerName || 'Você', isYou: true, teamId: action.clubId, squad: youSquad, lineupIds: bestEleven(youSquad), tactic: 'equilibrio', formation: '4-4-2' as Formation, money: START_MONEY })
       friendTeams.forEach((ft, i) => {
         const friendSquad = ft.squad ?? []
         humans.push({ id: `h${i + 1}`, name: state.playerNames[i + 1] ?? aiNames[i] ?? `Técnico ${i + 2}`, isYou: false, teamId: ft.id, squad: friendSquad, lineupIds: bestEleven(friendSquad), tactic: 'equilibrio', formation: '4-4-2' as Formation, money: START_MONEY })
       })
 
-      // Mark human-controlled teams in the full 40-team array
-      const teams = allTeams.map(t => {
-        if (t.id === action.clubId) return { ...t, isHuman: true, humanIndex: 0 }
-        const fi = friendTeams.findIndex(ft => ft.id === t.id)
-        if (fi >= 0) return { ...t, isHuman: true, humanIndex: fi + 1 }
-        return t
-      })
+      // Full 40-team array: human team + all CPU teams (friends marked as human)
+      const teams: LeagueTeam[] = [
+        humanTeam,
+        ...cpuTeams.map(t => {
+          const fi = friendTeams.findIndex(ft => ft.id === t.id)
+          if (fi >= 0) return { ...t, isHuman: true, humanIndex: fi + 1 }
+          return t
+        }),
+      ]
 
       const modeLabel = action.mode === 'draft' ? 'DRAFT' : action.mode === 'leilao' ? 'LEILÃO' : 'DRAFT + LEILÃO'
       const partialState = {
@@ -672,7 +684,7 @@ function reducer(state: DraftState, action: Action): DraftState {
         narrative: [
           `⚡ O raio caiu na pelada dos casados e jogou a galera de volta pra 1992.`,
           `Só vocês lembram quem vai virar lenda. Modo: ${modeLabel}.`,
-          `Você assumiu o ${chosenTeam.name} na 4ª divisão (R$1 milhão no caixa). A cada ${WINDOW_EVERY} jogos abre a janela pra fisgar um craque — pior colocado escolhe primeiro.`,
+          `Você assumiu o ${startClub.name} na 4ª divisão (R$1 milhão no caixa). A cada ${WINDOW_EVERY} jogos abre a janela pra fisgar um craque — pior colocado escolhe primeiro.`,
           `🏆 Copa dos Viajantes começou! 8 times, 3 fases. Quartas na rodada 4.`,
         ],
       }
