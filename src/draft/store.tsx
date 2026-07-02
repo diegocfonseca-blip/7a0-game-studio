@@ -52,6 +52,7 @@ export function availableLegends(state: DraftState): Legend[] {
   return LEGENDS
     .filter(l =>
       !state.ownedLegendIds.includes(l.id) &&
+      l.status !== 'estrela' &&
       state.year >= l.emergenceYear - 2 &&
       state.year <= l.emergenceYear &&
       l.birthYear <= state.year - 10

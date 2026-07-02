@@ -2044,6 +2044,7 @@ export function getAvailableLegends(
     (
       pooledLegends.includes(l.id) ||   // devolvido ao leilão/draft pelo usuário ou suspensão
       (
+        l.status !== 'estrela' &&        // estrelas já conhecidas não entram no pool de descoberta
         year >= l.emergenceYear - 2 &&
         year <= l.emergenceYear &&
         l.birthYear <= year - 10 &&
