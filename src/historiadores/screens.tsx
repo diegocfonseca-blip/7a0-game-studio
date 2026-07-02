@@ -1154,11 +1154,12 @@ function RevealPhase() {
 
       {/* ── BLOCO 3: O Leilão Cego ── */}
       <div className="mx-5 mb-3">
-        <p className="text-[10px] font-black uppercase tracking-wider text-black/40 mb-1.5">
-          O LEILÃO CEGO
-        </p>
+        <div className="flex items-baseline justify-between mb-1.5">
+          <p className="text-[10px] font-black uppercase tracking-wider text-black/40">O LEILÃO CEGO</p>
+          <p className="text-[9px] font-bold text-black/30">cada um apostou num palpiteiro</p>
+        </div>
 
-        {/* Ninguém apostou no certo */}
+        {/* Ninguém apostou no palpiteiro vencedor */}
         {cardWinnerId === null && (
           <div
             className="border-[3px] border-black rounded-xl px-4 py-3 flex items-center gap-2 mb-2"
@@ -1166,7 +1167,7 @@ function RevealPhase() {
           >
             <span className="text-xl">⚠️</span>
             <div>
-              <p className="font-black text-sm text-white">Ninguém apostou no palpite certo</p>
+              <p className="font-black text-sm text-white">Ninguém apostou no palpiteiro vencedor</p>
               <p className="text-[11px] text-white/70 font-bold mt-0.5">
                 Carta volta pro baralho · todos os lances devolvidos
               </p>
@@ -1193,94 +1194,95 @@ function RevealPhase() {
           </motion.div>
         )}
 
-        {/* Quem apostou no palpite certo */}
-        {betsOnRight.length > 0 && (
-          <div className="space-y-1.5 mb-2">
-            {betsOnRight.map(bet => {
-              const isCardWinner = bet.playerId === cardWinnerId
-              const isYou = bet.playerId === myPlayerId
-              return (
-                <div
-                  key={bet.playerId}
-                  className="border-[3px] border-black rounded-xl px-3 py-2.5 flex items-center justify-between"
-                  style={{
-                    backgroundColor: isCardWinner ? '#FFB800' : '#fff',
-                    boxShadow: isCardWinner ? '3px 3px 0 0 #0C0C0C' : '2px 2px 0 0 #0C0C0C',
-                  }}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-base shrink-0">{isCardWinner ? '🏆' : '✅'}</span>
-                    <div className="min-w-0">
-                      <p className="font-black text-sm truncate">
-                        {playerName(bet.playerId)}
-                        {isYou && <span className="ml-1 text-[10px] opacity-60">(você)</span>}
-                      </p>
-                      <p className="text-[10px] font-bold text-black/50">
-                        Apostou no palpite certo (valor: {winningGuess?.value ?? realValue})
-                      </p>
-                      <p className="text-[10px] font-black uppercase">
-                        {isCardWinner
-                          ? 'MAIOR LANCE → GANHOU A CARTA'
-                          : 'LANCE SUPERADO → DEVOLVIDO'}
-                      </p>
-                    </div>
+        {/* Todos os lances — quem apostou em quem */}
+        <div className="space-y-1.5">
+          {/* Apostas no palpiteiro vencedor */}
+          {betsOnRight.map(bet => {
+            const isCardWinner = bet.playerId === cardWinnerId
+            const isYou = bet.playerId === myPlayerId
+            const isSelf = bet.playerId === bet.onPlayerId
+            const winnerName = playerName(winningGuessPlayerId ?? '')
+            return (
+              <div
+                key={bet.playerId}
+                className="border-[3px] border-black rounded-xl px-3 py-2.5 flex items-center justify-between"
+                style={{
+                  backgroundColor: isCardWinner ? '#FFB800' : '#fff',
+                  boxShadow: isCardWinner ? '3px 3px 0 0 #0C0C0C' : '2px 2px 0 0 #0C0C0C',
+                }}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-base shrink-0">{isCardWinner ? '🏆' : '✅'}</span>
+                  <div className="min-w-0">
+                    <p className="font-black text-sm truncate">
+                      {playerName(bet.playerId)}
+                      {isYou && <span className="ml-1 text-[10px] opacity-60">(você)</span>}
+                    </p>
+                    <p className="text-[10px] font-bold text-black/50">
+                      {isSelf
+                        ? `Apostou em si mesmo · chutou ${winningGuess?.value ?? realValue}`
+                        : `Apostou no palpite de ${winnerName} · chutou ${winningGuess?.value ?? realValue}`}
+                    </p>
+                    <p className="text-[10px] font-black uppercase">
+                      {isCardWinner ? 'MAIOR LANCE → GANHOU A CARTA' : 'LANCE SUPERADO → DEVOLVIDO'}
+                    </p>
                   </div>
-                  <p className="font-black text-lg shrink-0 ml-2" style={{ fontFamily: 'Oswald, sans-serif' }}>
-                    {fmt(bet.amount)}
-                  </p>
                 </div>
-              )
-            })}
-          </div>
-        )}
+                <p className="font-black text-lg shrink-0 ml-2" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                  {fmt(bet.amount)}
+                </p>
+              </div>
+            )
+          })}
 
-        {/* Quem apostou no palpite errado (ou num empate que perdeu) */}
-        {betsOnWrong.length > 0 && (
-          <div className="space-y-1.5">
-            {betsOnWrong.map(bet => {
-              const isYou = bet.playerId === myPlayerId
-              const backedGuess = state.guesses.find(g => g.playerId === bet.onPlayerId)
-              const backedGuesser = state.players.find(p => p.id === bet.onPlayerId)
-              const backedRank = guessRanks.find(r => r.playerId === bet.onPlayerId)
-              // O valor do apostado era igualmente correto — perdeu só no desempate de ranking
-              const tiedCorrect = backedRank && winningGuess
-                && backedRank.distance === winningGuess.distance
-                && backedRank.over === winningGuess.over
-              return (
-                <div
-                  key={bet.playerId}
-                  className="border-2 rounded-xl px-3 py-2.5 flex items-center justify-between"
-                  style={{
-                    backgroundColor: tiedCorrect ? '#FFF7E6' : '#F0EAD8',
-                    borderColor: tiedCorrect ? '#F59E0B' : '#00000040',
-                  }}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-base shrink-0">{tiedCorrect ? '🔶' : '❌'}</span>
-                    <div className="min-w-0">
-                      <p className="font-black text-sm truncate text-black">
-                        {playerName(bet.playerId)}
-                        {isYou && <span className="ml-1 text-[10px] text-black/50">(você)</span>}
-                      </p>
-                      <p className="text-[10px] font-bold text-black/60">
-                        Apostou em {backedGuesser?.nome ?? playerName(bet.onPlayerId)} · chutou {backedGuess?.value ?? '?'}
-                        {tiedCorrect ? ' (valor correto!)' : ''}
-                      </p>
-                      <p className="text-[10px] font-black uppercase" style={{ color: tiedCorrect ? '#B45309' : '#DC2626' }}>
-                        {tiedCorrect
-                          ? 'Empate no palpite — perdeu no ranking · devolvido'
-                          : 'Palpite errado · devolvido'}
-                      </p>
-                    </div>
+          {/* Apostas em outros palpiteiros */}
+          {betsOnWrong.map(bet => {
+            const isYou = bet.playerId === myPlayerId
+            const backedGuess = state.guesses.find(g => g.playerId === bet.onPlayerId)
+            const backedGuesser = state.players.find(p => p.id === bet.onPlayerId)
+            const backedRank = guessRanks.find(r => r.playerId === bet.onPlayerId)
+            const isSelf = bet.playerId === bet.onPlayerId
+            const backedName = backedGuesser?.nome ?? playerName(bet.onPlayerId)
+            const winnerName = playerName(winningGuessPlayerId ?? '')
+            // Apostado também acertou o valor, mas não era o #1 do ranking
+            const alsoCorrect = backedRank && winningGuess
+              && backedRank.distance === winningGuess.distance
+              && backedRank.over === winningGuess.over
+            return (
+              <div
+                key={bet.playerId}
+                className="border-2 rounded-xl px-3 py-2.5 flex items-center justify-between"
+                style={{
+                  backgroundColor: alsoCorrect ? '#FFF3CD' : '#F0EAD8',
+                  borderColor: alsoCorrect ? '#D97706' : '#00000040',
+                }}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-base shrink-0">{alsoCorrect ? '🔶' : '❌'}</span>
+                  <div className="min-w-0">
+                    <p className="font-black text-sm truncate text-black">
+                      {playerName(bet.playerId)}
+                      {isYou && <span className="ml-1 text-[10px] text-black/50">(você)</span>}
+                    </p>
+                    <p className="text-[10px] font-bold text-black/60">
+                      {isSelf
+                        ? `Apostou em si mesmo · chutou ${backedGuess?.value ?? '?'}`
+                        : `Apostou no palpite de ${backedName} · chutou ${backedGuess?.value ?? '?'}`}
+                    </p>
+                    <p className="text-[10px] font-black uppercase" style={{ color: alsoCorrect ? '#92400E' : '#DC2626' }}>
+                      {alsoCorrect
+                        ? `${backedName} acertou mas era #${backedRank?.rank} — vencedor era ${winnerName}`
+                        : `Palpite de ${backedName} estava errado · devolvido`}
+                    </p>
                   </div>
-                  <p className="font-black text-lg shrink-0 ml-2 text-black/50" style={{ fontFamily: 'Oswald, sans-serif' }}>
-                    {fmt(bet.amount)}
-                  </p>
                 </div>
-              )
-            })}
-          </div>
-        )}
+                <p className="font-black text-lg shrink-0 ml-2 text-black/50" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                  {fmt(bet.amount)}
+                </p>
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       {/* Card revealed with flip animation */}
