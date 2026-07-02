@@ -1,20 +1,20 @@
 import type { Position, Nationality } from '../empresario/types'
 import type { DraftPlayer } from './types'
 
-// Real-ish Brazilian lower-division / regional clubs to start from.
+// Clubs available for human managers to pick — Brazilian clubs fitting 4th division of a world pyramid.
 export const START_CLUBS: { id: string; name: string; city: string }[] = [
-  { id: 'tombense', name: 'Tombense', city: 'Tombos-MG' },
-  { id: 'brusque', name: 'Brusque', city: 'Brusque-SC' },
-  { id: 'ypiranga', name: 'Ypiranga', city: 'Erechim-RS' },
-  { id: 'caldense', name: 'Caldense', city: 'Poços de Caldas-MG' },
-  { id: 'aimore', name: 'Aimoré', city: 'São Leopoldo-RS' },
-  { id: 'boa', name: 'Boa Esporte', city: 'Varginha-MG' },
-  { id: 'operario', name: 'Operário', city: 'Ponta Grossa-PR' },
-  { id: 'treze', name: 'Treze', city: 'Campina Grande-PB' },
-  { id: 'globo', name: 'Globo FC', city: 'Ceará-Mirim-RN' },
-  { id: 'real-noroeste', name: 'Real Noroeste', city: 'Águia Branca-ES' },
-  { id: 'portovelho', name: 'Porto Velho', city: 'Porto Velho-RO' },
-  { id: 'brasiliense', name: 'Brasiliense', city: 'Taguatinga-DF' },
+  { id: 'america-mg',     name: 'América-MG',      city: 'Belo Horizonte-MG' },
+  { id: 'goias',          name: 'Goiás',            city: 'Goiânia-GO' },
+  { id: 'sport',          name: 'Sport',            city: 'Recife-PE' },
+  { id: 'vitoria',        name: 'Vitória',          city: 'Salvador-BA' },
+  { id: 'coritiba',       name: 'Coritiba',         city: 'Curitiba-PR' },
+  { id: 'avai',           name: 'Avaí',             city: 'Florianópolis-SC' },
+  { id: 'nautico',        name: 'Náutico',          city: 'Recife-PE' },
+  { id: 'ponte-preta',    name: 'Ponte Preta',      city: 'Campinas-SP' },
+  { id: 'remo',           name: 'Remo',             city: 'Belém-PA' },
+  { id: 'paysandu',       name: 'Paysandu',         city: 'Belém-PA' },
+  { id: 'crb',            name: 'CRB',              city: 'Maceió-AL' },
+  { id: 'sampaio',        name: 'Sampaio Corrêa',   city: 'São Luís-MA' },
 ]
 
 // The AI "friends" who came back to 1992 with you.
