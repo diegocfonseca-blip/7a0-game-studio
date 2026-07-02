@@ -1206,29 +1206,29 @@ function RevealPhase() {
               && backedRank.distance === winningGuess.distance
               && backedRank.over === winningGuess.over
 
-            const icon   = isCardWinner ? '🏆' : backedIsWinner ? '↩️' : alsoGotItRight ? '🔶' : '❌'
-            const bg     = isCardWinner ? '#FFB800' : backedIsWinner ? '#E8E8E8' : alsoGotItRight ? '#FFF3CD' : '#F0EAD8'
-            const border = isCardWinner ? '3px solid #0C0C0C' : backedIsWinner ? '2px solid rgba(0,0,0,0.2)' : alsoGotItRight ? '2px solid #D97706' : '2px solid rgba(0,0,0,0.2)'
+            const icon   = isCardWinner ? '🏆' : '🔶'
+            const bg     = isCardWinner ? '#FFB800' : '#FFF3CD'
+            const border = isCardWinner ? '3px solid #0C0C0C' : '2px solid #D97706'
             const shadow = isCardWinner ? '3px 3px 0 #0C0C0C' : 'none'
 
             const winnerName = playerName(winningGuessPlayerId ?? '')
 
-            // Linha 2: quem apostou em quem + o valor que esse palpiteiro chutou
+            // Linha 2: quem apostou em quem + valor chutado
             const backedGuessValue = state.guesses.find(g => g.playerId === bet.onPlayerId)?.value
             const line2 = isSelf
               ? `apostou em si mesmo — chutou ${backedGuessValue ?? '?'}`
               : `apostou em ${backedName} — chutou ${backedGuessValue ?? '?'}`
 
-            // Linha 3: motivo do resultado
+            // Linha 3: motivo específico do devolvido
             const line3 = isCardWinner
               ? 'maior lance → ganhou a carta'
               : backedIsWinner
-              ? 'apostou no #1 · lance menor → devolvido'
+              ? `apostou no #1 (${winnerName}), mas lance menor → devolvido`
               : alsoGotItRight
-              ? `${backedName} também acertou, mas ${winnerName} foi mais rápido no palpite → devolvido`
+              ? `${backedName} também acertou, mas ${winnerName} foi mais rápido → devolvido`
               : `${backedName} não acertou o valor → devolvido`
 
-            const line3Color = isCardWinner ? '#0C0C0C' : backedIsWinner ? '#555555' : alsoGotItRight ? '#92400E' : '#DC2626'
+            const line3Color = isCardWinner ? '#0C0C0C' : '#92400E'
 
             return (
               <div
