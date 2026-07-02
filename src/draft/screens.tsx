@@ -5,7 +5,7 @@ import { START_CLUBS, squadStrength } from './data'
 import { rarityOf } from '../empresario/data/career'
 import { getCurrentRating, LEGENDS } from '../empresario/data/legends'
 import type { Legend } from '../empresario/types'
-import type { GameMode } from './types'
+import type { GameMode, DraftPlayer } from './types'
 import { C, money, moneyFull, BrutalCard, BrutalButton, BrutalTag, POS_COLOR, FLAG } from '../empresario/ui'
 
 const DIV = (d: number) => ({ 1: '1ª (Elite)', 2: '2ª Divisão', 3: '3ª Divisão', 4: '4ª Divisão' }[d] ?? `${d}ª`)
@@ -417,6 +417,32 @@ export function DraftLineup() {
   const order: Record<string, number> = { GOL: 0, ZAG: 1, LAT: 2, MEI: 3, ATA: 4 }
   const squad = [...you.squad].sort((a, b) => (order[a.pos] - order[b.pos]) || b.rating - a.rating)
 
+  const lineupSquad = you.squad.filter(p => you.lineupIds.includes(p.id))
+  const gk  = lineupSquad.filter(p => p.pos === 'GOL')
+  const def = lineupSquad.filter(p => p.pos === 'ZAG' || p.pos === 'LAT')
+  const mid = lineupSquad.filter(p => p.pos === 'MEI')
+  const fwd = lineupSquad.filter(p => p.pos === 'ATA')
+
+  const PitchRow = ({ players }: { players: DraftPlayer[] }) => (
+    <div className="flex justify-around items-center">
+      {players.map(p => {
+        const rar = p.potential ? rarityOf(p.potential) : null
+        const shortName = p.name.match(/"([^"]+)"/) ? p.name.match(/"([^"]+)"/)![1] : p.name.split(' ')[0]
+        return (
+          <button key={p.id} className="flex flex-col items-center gap-0.5"
+            onClick={() => dispatch({ type: 'SET_LINEUP', playerId: p.id })}>
+            <div className="w-10 h-10 rounded-full border-[2.5px] border-white flex items-center justify-center shadow-md"
+              style={{ backgroundColor: rar ? rar.color : C.yellow }}>
+              <span className="font-black text-[11px]" style={{ color: rar && rar.rank >= 3 ? '#000' : '#000' }}>{p.rating}</span>
+            </div>
+            <span className="text-white text-[8px] font-bold leading-tight max-w-[44px] truncate text-center drop-shadow">{shortName}</span>
+            <span className="text-[7px] font-black rounded px-0.5" style={{ backgroundColor: POS_COLOR[p.pos], color: '#fff' }}>{p.pos}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
       <div className="border-b-[3px] border-black px-4 py-3 sticky top-0 z-20" style={{ backgroundColor: C.black }}>
@@ -426,13 +452,56 @@ export function DraftLineup() {
           <BrutalTag color={xi === 11 ? C.green : C.orange} textColor="#fff">{xi}/11</BrutalTag>
         </div>
       </div>
+
       <div className="max-w-md mx-auto px-4 py-4 space-y-3">
+
+        {/* Campo */}
+        <div className="relative rounded-xl overflow-hidden border-[3px] border-black shadow-[4px_4px_0_#000]"
+          style={{ backgroundColor: '#1e7e3a', minHeight: 260 }}>
+          {/* linhas do campo */}
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 260" preserveAspectRatio="none">
+            <rect x="4" y="4" width="312" height="252" rx="4" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
+            <line x1="0" y1="130" x2="320" y2="130" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5"/>
+            <circle cx="160" cy="130" r="32" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5"/>
+            <rect x="96" y="4" width="128" height="48" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+            <rect x="96" y="208" width="128" height="48" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+            <rect x="128" y="4" width="64" height="20" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5"/>
+            <rect x="128" y="236" width="64" height="20" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5"/>
+          </svg>
+          {/* jogadores — FWD no topo, GK embaixo */}
+          <div className="relative z-10 flex flex-col justify-around py-4" style={{ minHeight: 260 }}>
+            <PitchRow players={fwd} />
+            <PitchRow players={mid} />
+            <PitchRow players={def} />
+            <PitchRow players={gk} />
+          </div>
+          {/* força no canto */}
+          <div className="absolute bottom-2 right-3 z-20">
+            <span className="text-white/70 text-[9px] font-black">Força {Math.round(squadStrength(you.squad, you.lineupIds))}</span>
+          </div>
+        </div>
+
+        {/* Tática */}
+        <BrutalCard color="white" className="p-3" shadow={4}>
+          <p className="text-black/50 text-[10px] font-black uppercase mb-2">Tática</p>
+          <div className="grid grid-cols-3 gap-2">
+            {(['retranca', 'equilibrio', 'ataque'] as const).map(t => (
+              <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', tactic: t })}
+                className="border-2 border-black rounded px-1 py-2 text-[10px] font-black uppercase flex flex-col items-center gap-0.5"
+                style={{ backgroundColor: you.tactic === t ? C.blue : '#fff', color: you.tactic === t ? '#fff' : '#000' }}>
+                <span className="text-base">{t === 'retranca' ? '🛡️' : t === 'equilibrio' ? '⚖️' : '⚔️'}</span>
+                {t === 'retranca' ? 'Retranca' : t === 'equilibrio' ? 'Equilíbrio' : 'Pra cima'}
+              </button>
+            ))}
+          </div>
+        </BrutalCard>
+
         <BrutalCard color={C.blue} className="p-3" shadow={4}>
           <p className="text-white text-xs font-bold">
             ✦ Escale 11. Botar um <b>jovem cru</b> (nota baixa, potencial alto ✨) enfraquece o time hoje — mas <b>jogar faz ele crescer</b> mais rápido. Esse é o seu dilema.
           </p>
         </BrutalCard>
-        <p className="text-black/50 text-xs font-bold text-center">Força do XI escalado: <b>{Math.round(squadStrength(you.squad, you.lineupIds))}</b></p>
+
         <div className="space-y-2">
           {squad.map(p => {
             const on = you.lineupIds.includes(p.id)
