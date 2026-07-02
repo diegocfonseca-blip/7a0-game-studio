@@ -2,19 +2,19 @@ import type { Position, Nationality } from '../empresario/types'
 import type { DraftPlayer } from './types'
 
 // Clubs available for human managers to pick — Brazilian clubs fitting 4th division of a world pyramid.
-export const START_CLUBS: { id: string; name: string; city: string }[] = [
-  { id: 'america-mg',     name: 'América-MG',      city: 'Belo Horizonte-MG' },
-  { id: 'goias',          name: 'Goiás',            city: 'Goiânia-GO' },
-  { id: 'sport',          name: 'Sport',            city: 'Recife-PE' },
-  { id: 'vitoria',        name: 'Vitória',          city: 'Salvador-BA' },
-  { id: 'coritiba',       name: 'Coritiba',         city: 'Curitiba-PR' },
-  { id: 'avai',           name: 'Avaí',             city: 'Florianópolis-SC' },
-  { id: 'nautico',        name: 'Náutico',          city: 'Recife-PE' },
-  { id: 'ponte-preta',    name: 'Ponte Preta',      city: 'Campinas-SP' },
-  { id: 'remo',           name: 'Remo',             city: 'Belém-PA' },
-  { id: 'paysandu',       name: 'Paysandu',         city: 'Belém-PA' },
-  { id: 'crb',            name: 'CRB',              city: 'Maceió-AL' },
-  { id: 'sampaio',        name: 'Sampaio Corrêa',   city: 'São Luís-MA' },
+export const START_CLUBS: { id: string; name: string; city: string; color: string }[] = [
+  { id: 'america-mg',  name: 'América-MG',    city: 'Belo Horizonte-MG', color: '#007B3B' },
+  { id: 'goias',       name: 'Goiás',          city: 'Goiânia-GO',        color: '#007B3B' },
+  { id: 'sport',       name: 'Sport',          city: 'Recife-PE',         color: '#CC0000' },
+  { id: 'vitoria',     name: 'Vitória',        city: 'Salvador-BA',       color: '#CC0000' },
+  { id: 'coritiba',    name: 'Coritiba',       city: 'Curitiba-PR',       color: '#005C2D' },
+  { id: 'avai',        name: 'Avaí',           city: 'Florianópolis-SC',  color: '#003DA5' },
+  { id: 'nautico',     name: 'Náutico',        city: 'Recife-PE',         color: '#CC0000' },
+  { id: 'ponte-preta', name: 'Ponte Preta',    city: 'Campinas-SP',       color: '#111111' },
+  { id: 'remo',        name: 'Remo',           city: 'Belém-PA',          color: '#003DA5' },
+  { id: 'paysandu',    name: 'Paysandu',       city: 'Belém-PA',          color: '#003DA5' },
+  { id: 'crb',         name: 'CRB',            city: 'Maceió-AL',         color: '#CC0000' },
+  { id: 'sampaio',     name: 'Sampaio Corrêa', city: 'São Luís-MA',       color: '#8B0000' },
 ]
 
 // The AI "friends" who came back to 1992 with you.
@@ -103,6 +103,7 @@ export function generateFillerSquad(): DraftPlayer[] {
       pos,
       rating: 38 + Math.floor(Math.random() * 14), // 38–51, true journeymen
       nationality: 'BR' as Nationality,
+      age: 18 + Math.floor(Math.random() * 15), // 18–32
     }
   })
 }

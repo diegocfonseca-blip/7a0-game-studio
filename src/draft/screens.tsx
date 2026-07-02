@@ -417,6 +417,8 @@ export function DraftLineup() {
   const order: Record<string, number> = { GOL: 0, ZAG: 1, LAT: 2, MEI: 3, ATA: 4 }
   const squad = [...you.squad].sort((a, b) => (order[a.pos] - order[b.pos]) || b.rating - a.rating)
 
+  const clubColor = START_CLUBS.find(c => c.id === you.teamId)?.color ?? '#1e7e3a'
+
   const lineupSquad = you.squad.filter(p => you.lineupIds.includes(p.id))
   const gk  = lineupSquad.filter(p => p.pos === 'GOL')
   const def = lineupSquad.filter(p => p.pos === 'ZAG' || p.pos === 'LAT')
@@ -426,16 +428,17 @@ export function DraftLineup() {
   const PitchRow = ({ players }: { players: DraftPlayer[] }) => (
     <div className="flex justify-around items-center">
       {players.map(p => {
-        const rar = p.potential ? rarityOf(p.potential) : null
         const shortName = p.name.match(/"([^"]+)"/) ? p.name.match(/"([^"]+)"/)![1] : p.name.split(' ')[0]
         return (
           <button key={p.id} className="flex flex-col items-center gap-0.5"
             onClick={() => dispatch({ type: 'SET_LINEUP', playerId: p.id })}>
             <div className="w-10 h-10 rounded-full border-[2.5px] border-white flex items-center justify-center shadow-md"
-              style={{ backgroundColor: rar ? rar.color : C.yellow }}>
-              <span className="font-black text-[11px]" style={{ color: rar && rar.rank >= 3 ? '#000' : '#000' }}>{p.rating}</span>
+              style={{ backgroundColor: 'rgba(255,255,255,0.95)' }}>
+              <span className="font-black text-[11px] text-black">{p.rating}</span>
             </div>
-            <span className="text-white text-[8px] font-bold leading-tight max-w-[44px] truncate text-center drop-shadow">{shortName}</span>
+            <span className="text-white text-[8px] font-bold leading-tight max-w-[44px] truncate text-center drop-shadow">
+              {p.legendId ? '⭐' : ''}{shortName}
+            </span>
             <span className="text-[7px] font-black rounded px-0.5" style={{ backgroundColor: POS_COLOR[p.pos], color: '#fff' }}>{p.pos}</span>
           </button>
         )
@@ -445,7 +448,7 @@ export function DraftLineup() {
 
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: C.cream }}>
-      <div className="border-b-[3px] border-black px-4 py-3 sticky top-0 z-20" style={{ backgroundColor: C.black }}>
+      <div className="border-b-[3px] border-black px-4 py-3 sticky top-0 z-20" style={{ backgroundColor: clubColor }}>
         <div className="max-w-md mx-auto flex items-center gap-3">
           <button onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'hub' })} className="text-white text-2xl font-black">←</button>
           <h1 className="text-white font-black text-lg flex-1" style={{ fontFamily: 'Oswald, sans-serif' }}>👔 ESCALAÇÃO</h1>
@@ -455,9 +458,9 @@ export function DraftLineup() {
 
       <div className="max-w-md mx-auto px-4 py-4 space-y-3">
 
-        {/* Campo */}
+        {/* Campo com cor do clube */}
         <div className="relative rounded-xl overflow-hidden border-[3px] border-black shadow-[4px_4px_0_#000]"
-          style={{ backgroundColor: '#1e7e3a', minHeight: 260 }}>
+          style={{ backgroundColor: clubColor, minHeight: 260 }}>
           {/* linhas do campo */}
           <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 260" preserveAspectRatio="none">
             <rect x="4" y="4" width="312" height="252" rx="4" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
@@ -475,7 +478,6 @@ export function DraftLineup() {
             <PitchRow players={def} />
             <PitchRow players={gk} />
           </div>
-          {/* força no canto */}
           <div className="absolute bottom-2 right-3 z-20">
             <span className="text-white/70 text-[9px] font-black">Força {Math.round(squadStrength(you.squad, you.lineupIds))}</span>
           </div>
@@ -488,7 +490,7 @@ export function DraftLineup() {
             {(['retranca', 'equilibrio', 'ataque'] as const).map(t => (
               <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', tactic: t })}
                 className="border-2 border-black rounded px-1 py-2 text-[10px] font-black uppercase flex flex-col items-center gap-0.5"
-                style={{ backgroundColor: you.tactic === t ? C.blue : '#fff', color: you.tactic === t ? '#fff' : '#000' }}>
+                style={{ backgroundColor: you.tactic === t ? clubColor : '#fff', color: you.tactic === t ? '#fff' : '#000' }}>
                 <span className="text-base">{t === 'retranca' ? '🛡️' : t === 'equilibrio' ? '⚖️' : '⚔️'}</span>
                 {t === 'retranca' ? 'Retranca' : t === 'equilibrio' ? 'Equilíbrio' : 'Pra cima'}
               </button>
@@ -506,6 +508,7 @@ export function DraftLineup() {
           {squad.map(p => {
             const on = you.lineupIds.includes(p.id)
             const rar = p.potential ? rarityOf(p.potential) : null
+            const isLegend = !!p.legendId
             return (
               <BrutalCard key={p.id} color={on ? C.teal : 'white'} className="p-2.5" shadow={on ? 4 : 2}
                 onClick={() => dispatch({ type: 'SET_LINEUP', playerId: p.id })}>
@@ -513,7 +516,12 @@ export function DraftLineup() {
                   <span className="w-5 text-center text-lg">{on ? '✅' : '⬜'}</span>
                   <BrutalTag color={POS_COLOR[p.pos]} textColor="#fff">{p.pos}</BrutalTag>
                   <span className="text-base">{p.nationality ? FLAG[p.nationality] : '⚽'}</span>
-                  <span className="flex-1 min-w-0 truncate font-black text-black text-sm" style={{ fontFamily: 'Oswald, sans-serif' }}>{p.name}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="truncate font-black text-sm block" style={{ fontFamily: 'Oswald, sans-serif', color: isLegend ? '#b8860b' : '#000' }}>
+                      {isLegend ? '⭐ ' : ''}{p.name}
+                    </span>
+                    {p.age && <span className="text-[9px] text-black/40 font-bold">{p.age} anos</span>}
+                  </div>
                   {rar && <span className="text-[9px] font-black" style={{ color: rar.color }}>{rar.emoji}{p.potential}</span>}
                   <span className="font-black text-black text-sm w-7 text-right">{p.rating}</span>
                 </div>

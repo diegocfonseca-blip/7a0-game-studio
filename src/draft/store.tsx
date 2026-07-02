@@ -60,7 +60,7 @@ export function availableLegends(state: DraftState): Legend[] {
     .sort((a, b) => getCurrentRating(b, state.year) - getCurrentRating(a, state.year))
 }
 function legendToPlayer(l: Legend, year: number): DraftPlayer {
-  return { id: `lg-${l.id}`, name: l.nickname, pos: l.position, rating: getCurrentRating(l, year), legendId: l.id, nationality: l.nationality, potential: l.truePotential, devBonus: 0 }
+  return { id: `lg-${l.id}`, name: l.nickname, pos: l.position, rating: getCurrentRating(l, year), legendId: l.id, nationality: l.nationality, potential: l.truePotential, devBonus: 0, age: year - l.birthYear }
 }
 export function teamOf(state: DraftState, m: Manager): LeagueTeam {
   return state.teams.find(t => t.id === m.teamId)!
@@ -655,10 +655,10 @@ function reducer(state: DraftState, action: Action): DraftState {
         points: 0, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, lastResult: '—',
       }
 
-      // AI friends take from the 6 CPU div-4 teams
+      // In solo mode: 0 AI friends (user vs 9 pure CPU). Online: other human players take div-4 CPU slots.
       const div4Cpu = cpuTeams.filter(t => t.division === 4)
       const aiNames = [...AI_MANAGERS].sort(() => Math.random() - 0.5)
-      const friendCount = state.onlineMode === 'online' ? state.totalPlayers - 1 : 3
+      const friendCount = state.onlineMode === 'online' ? state.totalPlayers - 1 : 0
       const friendTeams = [...div4Cpu].sort(() => Math.random() - 0.5).slice(0, friendCount)
 
       const humans: Manager[] = []
