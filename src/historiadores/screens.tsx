@@ -1328,7 +1328,7 @@ function RevealPhase() {
       <div className="mx-5 mb-5">
         <div className="flex items-baseline justify-between mb-1.5">
           <p className="text-[10px] font-black uppercase tracking-wider text-black/40">
-            RANKING DE PALPITES
+            PALPITES DESTA RODADA
           </p>
           <p className="text-[9px] font-bold text-black/30">sem ultrapassar → bônus · quem passa → sem bônus</p>
         </div>
@@ -1371,9 +1371,12 @@ function RevealPhase() {
                   {r.over && (
                     <p className="text-[9px] font-bold text-red-400">sem bônus</p>
                   )}
-                  <p className="text-[10px] font-bold" style={{ color: isWinner ? '#ffffff50' : '#00000040' }}>
-                    {fmt(player?.money ?? 0)}
-                  </p>
+                  <div>
+                    <p className="text-[8px] font-black uppercase" style={{ color: isWinner ? '#ffffff35' : '#00000030' }}>saldo</p>
+                    <p className="text-[10px] font-bold" style={{ color: isWinner ? '#ffffff50' : '#00000040' }}>
+                      {fmt(player?.money ?? 0)}
+                    </p>
+                  </div>
                 </div>
               </div>
             )
