@@ -21,33 +21,58 @@ export const START_CLUBS: { id: string; name: string; city: string }[] = [
 export const AI_MANAGERS = ['Tonhão', 'PC Magrão', 'Régis da Vila', 'Marcão Pelado', 'Dão', 'Biriba', 'Serjão']
 
 // CPU clubs that fill the pyramid. Index 0 = 1ª divisão (elite) … 3 = 4ª.
+// Organised by 1992 world-ranking — humans start in 4ª and work up.
 // The 4ª has only 6 here — the 4 human managers complete the 10.
 export const CPU_POOLS: { name: string; city: string }[][] = [
-  [ // 1ª divisão (elite)
-    { name: 'Fla', city: 'Rio-RJ' }, { name: 'Verdão', city: 'São Paulo-SP' }, { name: 'Timão', city: 'São Paulo-SP' },
-    { name: 'Tricolor SP', city: 'São Paulo-SP' }, { name: 'Peixe', city: 'Santos-SP' }, { name: 'Imortal', city: 'Porto Alegre-RS' },
-    { name: 'Colorado', city: 'Porto Alegre-RS' }, { name: 'Raposa', city: 'Belo Horizonte-MG' }, { name: 'Galo', city: 'Belo Horizonte-MG' },
-    { name: 'Gigante', city: 'Rio-RJ' },
+  [ // 1ª divisão — elite mundial
+    { name: 'Barcelona',    city: 'Barcelona-ESP' },
+    { name: 'Real Madrid',  city: 'Madrid-ESP' },
+    { name: 'AC Milan',     city: 'Milão-ITA' },
+    { name: 'Juventus',     city: 'Turim-ITA' },
+    { name: 'Ajax',         city: 'Amsterdam-HOL' },
+    { name: 'Man. United',  city: 'Manchester-ENG' },
+    { name: 'PSG',          city: 'Paris-FRA' },
+    { name: 'Porto',        city: 'Porto-POR' },
+    { name: 'Benfica',      city: 'Lisboa-POR' },
+    { name: 'Olympique',    city: 'Marseille-FRA' },
   ],
-  [ // 2ª divisão
-    { name: 'Fogão', city: 'Rio-RJ' }, { name: 'Flu', city: 'Rio-RJ' }, { name: 'Esquadrão', city: 'Salvador-BA' },
-    { name: 'Leão da Ilha', city: 'Recife-PE' }, { name: 'Esmeraldino', city: 'Goiânia-GO' }, { name: 'Coxa', city: 'Curitiba-PR' },
-    { name: 'Furacão', city: 'Curitiba-PR' }, { name: 'Leão BA', city: 'Salvador-BA' }, { name: 'Timbu', city: 'Recife-PE' }, { name: 'Bugre', city: 'Campinas-SP' },
+  [ // 2ª divisão — forte internacional + top sul-americano
+    { name: 'Bayern',       city: 'Munique-GER' },
+    { name: 'Arsenal',      city: 'Londres-ENG' },
+    { name: 'Inter',        city: 'Milão-ITA' },
+    { name: 'Atlético',     city: 'Madrid-ESP' },
+    { name: 'São Paulo',    city: 'São Paulo-SP' },
+    { name: 'Boca Juniors', city: 'Buenos Aires-ARG' },
+    { name: 'River Plate',  city: 'Buenos Aires-ARG' },
+    { name: 'Flamengo',     city: 'Rio-RJ' },
+    { name: 'B. Dortmund',  city: 'Dortmund-GER' },
+    { name: 'Nacional',     city: 'Montevidéu-URU' },
   ],
-  [ // 3ª divisão
-    { name: 'Leão SC', city: 'Florianópolis-SC' }, { name: 'Verdão SC', city: 'Chapecó-SC' }, { name: 'Macaca', city: 'Campinas-SP' },
-    { name: 'Tricolor PR', city: 'Curitiba-PR' }, { name: 'Coelho', city: 'Belo Horizonte-MG' }, { name: 'Figueira', city: 'Florianópolis-SC' },
-    { name: 'Tigre', city: 'Criciúma-SC' }, { name: 'Ju', city: 'Caxias-RS' }, { name: 'Galo AL', city: 'Maceió-AL' }, { name: 'Azulão AL', city: 'Maceió-AL' },
+  [ // 3ª divisão — forte regional + brasileiro de expressão
+    { name: 'Grêmio',       city: 'Porto Alegre-RS' },
+    { name: 'Cruzeiro',     city: 'Belo Horizonte-MG' },
+    { name: 'Palmeiras',    city: 'São Paulo-SP' },
+    { name: 'Corinthians',  city: 'São Paulo-SP' },
+    { name: 'Celtic',       city: 'Glasgow-SCO' },
+    { name: 'PSV',          city: 'Eindhoven-HOL' },
+    { name: 'Sevilla',      city: 'Sevilha-ESP' },
+    { name: 'Independiente',city: 'Avellaneda-ARG' },
+    { name: 'Santos',       city: 'Santos-SP' },
+    { name: 'Estudiantes',  city: 'La Plata-ARG' },
   ],
-  [ // 4ª divisão (humans complete this one)
-    { name: 'Bolívia Q.', city: 'São Luís-MA' }, { name: 'Papão', city: 'Belém-PA' }, { name: 'Leão Azul', city: 'Belém-PA' },
-    { name: 'Tigre GO', city: 'Goiânia-GO' }, { name: 'Tubarão', city: 'Londrina-PR' }, { name: 'Alvinegro RN', city: 'Natal-RN' },
+  [ // 4ª divisão — base (humans complete this one)
+    { name: 'Internacional', city: 'Porto Alegre-RS' },
+    { name: 'Vasco',         city: 'Rio-RJ' },
+    { name: 'Botafogo',      city: 'Rio-RJ' },
+    { name: 'Fluminense',    city: 'Rio-RJ' },
+    { name: 'Olimpia',       city: 'Assunção-PAR' },
+    { name: 'Cruz Azul',     city: 'Cidade do México-MEX' },
   ],
 ]
 
 // CPU strength by division (1ª strongest, 4ª weakest)
 export function divisionStrength(division: number): number {
-  const base = ({ 1: 76, 2: 66, 3: 56, 4: 44 }[division] ?? 44)
+  const base = ({ 1: 83, 2: 71, 3: 59, 4: 46 }[division] ?? 46)
   return base + Math.floor(Math.random() * 7) - 3
 }
 

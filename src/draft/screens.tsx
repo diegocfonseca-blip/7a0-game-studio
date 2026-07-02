@@ -641,73 +641,66 @@ export function DraftMatch() {
           </BrutalCard>
         )}
 
-        {/* Outros Jogos */}
+        {/* Todos os Jogos Ao Vivo */}
         {live.otherMatches && live.otherMatches.length > 0 && (() => {
-          const myDiv = live.division
-          const sameDivMatches = live.otherMatches.filter(m => m.division === myDiv)
-          const otherDivMatches = live.otherMatches.filter(m => m.division !== myDiv)
-          const visibleGoals = (m: typeof live.otherMatches[0]) =>
-            m.goals.filter(g => g.min <= live.minute)
+          const DIV_LABEL: Record<number, string> = { 1: '1ª Divisão', 2: '2ª Divisão', 3: '3ª Divisão', 4: '4ª Divisão' }
+          const DIV_COLOR: Record<number, string> = { 1: '#FFD700', 2: '#FF6B00', 3: '#16B89A', 4: '#9B9B9B' }
+          const byDiv = [1, 2, 3, 4]
+            .map(d => ({ div: d, matches: live.otherMatches.filter(m => m.division === d) }))
+            .filter(g => g.matches.length > 0)
           return (
-            <div className="space-y-2">
-              <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Outros jogos</p>
-              {sameDivMatches.map((m, i) => {
-                const scored = visibleGoals(m)
-                const divLabel = ({ 1: '1ª', 2: '2ª', 3: '3ª', 4: '4ª' } as Record<number,string>)[m.division] ?? `${m.division}ª`
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <p className="text-white/50 text-[10px] font-black uppercase tracking-widest">Ao Vivo — Todos os Jogos</p>
+              </div>
+              {byDiv.map(({ div, matches }) => {
+                const color = DIV_COLOR[div]
+                const isMyDiv = div === live.division
                 return (
-                  <motion.div key={m.homeId + m.awayId}
-                    initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                    <BrutalCard color="#1a1a2e" className="p-3" shadow={4}>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-white/50 font-black text-[9px] uppercase">{divLabel}</span>
-                        <div className="flex-1 flex items-center justify-between">
-                          <span className="text-white font-black text-xs truncate max-w-[90px]">{m.homeName}</span>
-                          <span className="text-white font-black text-lg mx-2" style={{ fontFamily: 'Oswald, sans-serif' }}>
-                            {m.gf} <span className="text-white/30">–</span> {m.ga}
-                          </span>
-                          <span className="text-white/60 font-black text-xs truncate max-w-[90px] text-right">{m.awayName}</span>
+                  <div key={div} className="space-y-1.5">
+                    {/* division header */}
+                    <div className="flex items-center gap-2">
+                      <div className="h-px flex-1" style={{ backgroundColor: color + '50' }} />
+                      <span className="text-[9px] font-black uppercase tracking-wider px-1"
+                        style={{ color, textShadow: isMyDiv ? `0 0 8px ${color}` : 'none' }}>
+                        {isMyDiv ? '▶ ' : ''}{DIV_LABEL[div]}
+                      </span>
+                      <div className="h-px flex-1" style={{ backgroundColor: color + '50' }} />
+                    </div>
+                    {/* match rows */}
+                    {matches.map(m => {
+                      const scored = m.goals.filter(g => g.min <= live.minute)
+                      return (
+                        <div key={m.homeId + m.awayId}
+                          className="rounded px-3 py-2 space-y-1"
+                          style={{ backgroundColor: isMyDiv ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.04)', borderLeft: `3px solid ${color}60` }}>
+                          {/* scoreline */}
+                          <div className="flex items-center gap-1">
+                            <span className="flex-1 text-white font-black text-[11px] truncate">{m.homeName}</span>
+                            <span className="shrink-0 font-black text-base px-2" style={{ fontFamily: 'Oswald, sans-serif', color }}>
+                              {m.gf} <span className="text-white/30 text-sm">–</span> {m.ga}
+                            </span>
+                            <span className="flex-1 text-white/50 font-black text-[11px] truncate text-right">{m.awayName}</span>
+                          </div>
+                          {/* goals feed */}
+                          {scored.length > 0 && (
+                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 pt-0.5 border-t border-white/10">
+                              {scored.map((g, gi) => (
+                                <motion.span key={gi} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
+                                  className="text-[9px] font-bold"
+                                  style={{ color: g.isHome ? '#4ade80' : '#fb923c' }}>
+                                  ⚽ {g.min}' {g.scorer ?? '—'}{g.isHome ? '' : ' (V)'}
+                                </motion.span>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      </div>
-                      {scored.length > 0 && (
-                        <div className="mt-2 space-y-0.5 border-t border-white/10 pt-2">
-                          {scored.map((g, gi) => (
-                            <motion.div key={gi} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                              className="flex items-center gap-1.5">
-                              <span className="text-green-400 text-[10px]">⚽</span>
-                              <span className="text-white/60 font-mono text-[9px]">{g.min}'</span>
-                              <span className={`font-black text-[10px] truncate ${g.isHome ? 'text-white' : 'text-white/50'}`}>
-                                {g.scorer ?? '—'}
-                              </span>
-                              {!g.isHome && <span className="text-white/30 text-[9px] ml-auto">(vis)</span>}
-                            </motion.div>
-                          ))}
-                        </div>
-                      )}
-                    </BrutalCard>
-                  </motion.div>
+                      )
+                    })}
+                  </div>
                 )
               })}
-              {otherDivMatches.length > 0 && (
-                <div className="grid grid-cols-2 gap-1.5">
-                  {otherDivMatches.map(m => {
-                    const divLabel = ({ 1: '1ª', 2: '2ª', 3: '3ª', 4: '4ª' } as Record<number,string>)[m.division] ?? `${m.division}ª`
-                    return (
-                      <div key={m.homeId + m.awayId}
-                        className="border border-white/10 rounded px-2 py-1.5 flex items-center justify-between gap-1"
-                        style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
-                        <div className="min-w-0">
-                          <p className="text-white/30 text-[8px] font-black uppercase">{divLabel}</p>
-                          <p className="text-white/60 text-[9px] font-bold truncate">{m.homeName}</p>
-                          <p className="text-white/40 text-[9px] font-bold truncate">{m.awayName}</p>
-                        </div>
-                        <span className="text-white font-black text-sm shrink-0" style={{ fontFamily: 'Oswald, sans-serif' }}>
-                          {m.gf}–{m.ga}
-                        </span>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
             </div>
           )
         })()}
