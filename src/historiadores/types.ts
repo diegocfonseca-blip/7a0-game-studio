@@ -23,6 +23,7 @@ export interface HistCardData {
   cor: string
   atributos: AtributosOcultos
   perguntas: QuestionKey[]
+  wikiTitle?: string
 }
 
 export interface HPlayer {

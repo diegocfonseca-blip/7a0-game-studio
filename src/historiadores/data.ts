@@ -15,6 +15,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#FFB800',
     atributos: { gols: 8, titulos: 3, altura: 173, assists: 6, jogos: 6 },
     perguntas: ['gols', 'titulos', 'assists'],
+    wikiTitle: 'Pelé',
   },
   {
     id: 'maradona-1986', nome: 'Diego Maradona', apelido: 'El Pibe de Oro', ano: 1986, nascimento: 1960,
@@ -22,6 +23,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#FFB800',
     atributos: { gols: 5, titulos: 2, altura: 165, assists: 5, jogos: 7 },
     perguntas: ['gols', 'titulos', 'assists'],
+    wikiTitle: 'Diego Maradona',
   },
   {
     id: 'r9-1998', nome: 'Ronaldo Nazário', apelido: 'O Fenômeno', ano: 1998, nascimento: 1976,
@@ -29,6 +31,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#FFB800',
     atributos: { gols: 4, titulos: 2, altura: 183, assists: 3, jogos: 7 },
     perguntas: GTA,
+    wikiTitle: 'Ronaldo (Brazilian footballer)',
   },
   {
     id: 'zidane-1998', nome: 'Zinedine Zidane', apelido: 'Zizou', ano: 1998, nascimento: 1972,
@@ -36,6 +39,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#FFB800',
     atributos: { gols: 2, titulos: 6, altura: 185, assists: 4, jogos: 7 },
     perguntas: ['gols', 'titulos', 'assists'],
+    wikiTitle: 'Zinedine Zidane',
   },
   {
     id: 'ronaldinho-2005', nome: 'Ronaldinho', apelido: 'Dinho', ano: 2005, nascimento: 1980,
@@ -43,6 +47,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#FFB800',
     atributos: { gols: 17, titulos: 11, assists: 13, jogos: 45 },
     perguntas: GAT,
+    wikiTitle: 'Ronaldinho',
   },
   {
     id: 'messi-2012', nome: 'Lionel Messi', apelido: 'La Pulga', ano: 2012, nascimento: 1987,
@@ -50,6 +55,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#FFB800',
     atributos: { gols: 91, titulos: 15, altura: 170, assists: 29, jogos: 69 },
     perguntas: GAT,
+    wikiTitle: 'Lionel Messi',
   },
   {
     id: 'cr7-2013', nome: 'Cristiano Ronaldo', apelido: 'CR7', ano: 2013, nascimento: 1985,
@@ -57,6 +63,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#FFB800',
     atributos: { gols: 55, titulos: 10, altura: 187, assists: 13, jogos: 57 },
     perguntas: GTA,
+    wikiTitle: 'Cristiano Ronaldo',
   },
 
   // ── ÉPICA (azul/roxo) ──────────────────────────────────────────
@@ -66,6 +73,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#7C3AED',
     atributos: { gols: 5, titulos: 8, altura: 169, assists: 2, jogos: 7 },
     perguntas: GT,
+    wikiTitle: 'Romário',
   },
   {
     id: 'bebeto-1994', nome: 'Bebeto', apelido: 'Bebeto', ano: 1994, nascimento: 1964,
@@ -73,6 +81,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#7C3AED',
     atributos: { gols: 3, titulos: 5, altura: 176, assists: 5, jogos: 7 },
     perguntas: GTA,
+    wikiTitle: 'Bebeto',
   },
   {
     id: 'henry-2003', nome: 'Thierry Henry', apelido: 'Titi', ano: 2003, nascimento: 1977,
@@ -80,6 +89,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#7C3AED',
     atributos: { gols: 32, titulos: 6, altura: 188, assists: 23, jogos: 52 },
     perguntas: GTA,
+    wikiTitle: 'Thierry Henry',
   },
   {
     id: 'totti-2001', nome: 'Francesco Totti', apelido: 'Il Capitano', ano: 2001, nascimento: 1976,
@@ -87,6 +97,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#7C3AED',
     atributos: { gols: 18, titulos: 3, altura: 180, assists: 10, jogos: 40 },
     perguntas: GP,
+    wikiTitle: 'Francesco Totti',
   },
   {
     id: 'kaka-2007', nome: 'Kaká', apelido: 'Kaká', ano: 2007, nascimento: 1982,
@@ -94,6 +105,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#7C3AED',
     atributos: { gols: 16, titulos: 7, altura: 186, assists: 10, jogos: 43 },
     perguntas: GTA,
+    wikiTitle: 'Kaká',
   },
   {
     id: 'adriano-2004', nome: 'Adriano', apelido: 'Imperador', ano: 2004, nascimento: 1982,
@@ -101,6 +113,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#7C3AED',
     atributos: { gols: 28, titulos: 4, altura: 188, assists: 7, jogos: 48 },
     perguntas: GP,
+    wikiTitle: 'Adriano (footballer, born 1982)',
   },
   {
     id: 'ibra-2012', nome: 'Zlatan Ibrahimović', apelido: 'Ibra', ano: 2012, nascimento: 1981,
@@ -108,6 +121,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#7C3AED',
     atributos: { gols: 35, titulos: 16, altura: 195, assists: 16, jogos: 51 },
     perguntas: ['gols', 'titulos', 'altura'],
+    wikiTitle: 'Zlatan Ibrahimović',
   },
   {
     id: 'van-basten-1988', nome: 'Marco van Basten', apelido: 'Il Cigno', ano: 1988, nascimento: 1964,
@@ -115,6 +129,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#7C3AED',
     atributos: { gols: 9, titulos: 3, altura: 188, assists: 3, jogos: 11 },
     perguntas: GJ,
+    wikiTitle: 'Marco van Basten',
   },
   {
     id: 'stoichkov-1994', nome: 'Hristo Stoichkov', apelido: 'Stoichkov', ano: 1994, nascimento: 1966,
@@ -122,6 +137,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#7C3AED',
     atributos: { gols: 6, titulos: 9, altura: 176, jogos: 7 },
     perguntas: GJ,
+    wikiTitle: 'Hristo Stoichkov',
   },
   {
     id: 'rivaldo-2002', nome: 'Rivaldo', apelido: 'Rivaldo', ano: 2002, nascimento: 1972,
@@ -129,6 +145,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#7C3AED',
     atributos: { gols: 5, titulos: 9, altura: 181, assists: 4, jogos: 7 },
     perguntas: GT,
+    wikiTitle: 'Rivaldo',
   },
   {
     id: 'drogba-2010', nome: 'Didier Drogba', apelido: 'Drogba', ano: 2010, nascimento: 1978,
@@ -136,6 +153,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#7C3AED',
     atributos: { gols: 29, titulos: 6, altura: 189, assists: 8, jogos: 40 },
     perguntas: GP,
+    wikiTitle: 'Didier Drogba',
   },
   {
     id: 'beckham-1999', nome: 'David Beckham', apelido: 'Beckham', ano: 1999, nascimento: 1975,
@@ -143,6 +161,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#7C3AED',
     atributos: { gols: 6, titulos: 8, altura: 183, assists: 15, jogos: 56 },
     perguntas: TA,
+    wikiTitle: 'David Beckham',
   },
   {
     id: 'roberto-carlos-1997', nome: 'Roberto Carlos', apelido: 'Roberto Carlos', ano: 1997, nascimento: 1973,
@@ -150,6 +169,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#7C3AED',
     atributos: { gols: 7, titulos: 4, altura: 168, assists: 9, jogos: 54 },
     perguntas: ['gols', 'altura', 'assists'],
+    wikiTitle: 'Roberto Carlos',
   },
 
   // ── COMUM (branca) ──────────────────────────────────────────────
@@ -159,6 +179,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#16B89A',
     atributos: { gols: 4, titulos: 13, altura: 177, assists: 4, jogos: 5 },
     perguntas: GJ,
+    wikiTitle: 'Zico',
   },
   {
     id: 'socrates-1982', nome: 'Sócrates', apelido: 'Doutor', ano: 1982, nascimento: 1954,
@@ -166,6 +187,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#16B89A',
     atributos: { gols: 4, titulos: 5, altura: 192, assists: 3, jogos: 5 },
     perguntas: ['gols', 'altura'],
+    wikiTitle: 'Sócrates (footballer)',
   },
   {
     id: 'falcao-1982', nome: 'Paulo Roberto Falcão', apelido: 'Falcão', ano: 1982, nascimento: 1953,
@@ -173,6 +195,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#16B89A',
     atributos: { gols: 2, titulos: 4, altura: 178, assists: 5, jogos: 5 },
     perguntas: GP,
+    wikiTitle: 'Paulo Roberto Falcão',
   },
   {
     id: 'jardel-2001', nome: 'Mário Jardel', apelido: 'Jardel', ano: 2001, nascimento: 1973,
@@ -180,6 +203,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#16B89A',
     atributos: { gols: 42, titulos: 3, altura: 190, jogos: 51 },
     perguntas: GP,
+    wikiTitle: 'Mário Jardel',
   },
   {
     id: 'edmundo-1997', nome: 'Edmundo', apelido: 'Animal', ano: 1997, nascimento: 1971,
@@ -187,6 +211,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#16B89A',
     atributos: { gols: 29, titulos: 3, altura: 180, jogos: 48 },
     perguntas: GP,
+    wikiTitle: 'Edmundo (footballer)',
   },
   {
     id: 'robinho-2005', nome: 'Robinho', apelido: 'Robinho', ano: 2005, nascimento: 1984,
@@ -194,6 +219,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#16B89A',
     atributos: { gols: 14, titulos: 2, altura: 172, assists: 10, jogos: 47 },
     perguntas: GP,
+    wikiTitle: 'Robinho',
   },
   {
     id: 'denilson-1998', nome: 'Denílson', apelido: 'Denílson', ano: 1998, nascimento: 1977,
@@ -201,6 +227,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#16B89A',
     atributos: { gols: 1, titulos: 1, altura: 173, jogos: 6 },
     perguntas: ['titulos', 'jogos'],
+    wikiTitle: 'Denílson (Brazilian footballer)',
   },
   {
     id: 'cafu-2002', nome: 'Marcos Cafu', apelido: 'Cafu', ano: 2002, nascimento: 1970,
@@ -208,6 +235,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#16B89A',
     atributos: { gols: 2, titulos: 3, altura: 176, assists: 6, jogos: 54 },
     perguntas: ['titulos', 'jogos'],
+    wikiTitle: 'Cafu',
   },
   {
     id: 'roberto-baggio-1994', nome: 'Roberto Baggio', apelido: 'Il Codino', ano: 1994, nascimento: 1967,
@@ -215,6 +243,7 @@ export const HIST_CARDS: HistCardData[] = [
     cor: '#16B89A',
     atributos: { gols: 5, titulos: 5, altura: 174, assists: 2, jogos: 7 },
     perguntas: GJ,
+    wikiTitle: 'Roberto Baggio',
   },
 ]
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useHist } from './store'
+import { useWikiPhoto } from './useWikiPhoto'
 import { getCard, getRaridadeColor, getRaridadeLabel, QUESTION_LABELS, HIST_CARDS } from './data'
 import type { HistCardData, QuestionKey } from './types'
 import { BrutalButton, BrutalCard, BrutalPill, C } from '../empresario/ui'
@@ -60,6 +61,7 @@ function HistCard({
   compact?: boolean
 }) {
   const card = getCard(cardId)
+  const photoUrl = useWikiPhoto(card?.wikiTitle)
   if (!card) return null
   const colors = getRaridadeColor(card.raridade)
 
@@ -73,6 +75,7 @@ function HistCard({
     >
       <ShimmerOverlay raridade={card.raridade} />
 
+      {/* Badges row */}
       <div className="flex items-center justify-between px-4 pt-3 pb-1 relative z-20">
         <span
           className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border"
@@ -85,8 +88,35 @@ function HistCard({
         </span>
       </div>
 
+      {/* Photo — only in non-compact mode */}
+      {!compact && (
+        <div className="relative h-44 overflow-hidden mx-3 mb-2 rounded-xl border-2" style={{ borderColor: `${colors.text}30` }}>
+          {photoUrl ? (
+            <>
+              <img
+                src={photoUrl}
+                alt={card.nome}
+                className="w-full h-full object-cover object-top"
+                loading="lazy"
+              />
+              <div
+                className="absolute inset-0"
+                style={{ background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.55) 100%)' }}
+              />
+              <div className="absolute bottom-2 left-2 flex items-center gap-1">
+                <span className="text-lg leading-none">{card.flag}</span>
+              </div>
+            </>
+          ) : (
+            <div className="h-full flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.15)' }}>
+              <span className="text-7xl opacity-20">{card.flag}</span>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="px-4 pb-3 relative z-20">
-        <div className={compact ? 'text-2xl mb-0.5' : 'text-3xl mb-1'}>{card.flag}</div>
+        {compact && <div className="text-2xl mb-0.5">{card.flag}</div>}
         <p
           className={`font-black leading-tight ${compact ? 'text-xl' : 'text-2xl'}`}
           style={{ fontFamily: 'Oswald, sans-serif', color: colors.text }}
