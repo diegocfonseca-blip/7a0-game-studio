@@ -1201,10 +1201,34 @@ function RevealPhase() {
             const backedName = backedPlayer?.nome ?? playerName(bet.onPlayerId)
             const backedRank = guessRanks.find(r => r.playerId === bet.onPlayerId)
 
-            const icon = isCardWinner ? '🏆' : backedIsWinner ? '✅' : '❌'
-            const bg = isCardWinner ? '#FFB800' : backedIsWinner ? '#fff' : '#F0EAD8'
-            const border = isCardWinner ? '3px solid #0C0C0C' : backedIsWinner ? '2px solid #0C0C0C' : '2px solid rgba(0,0,0,0.25)'
+            // Apostou em alguém que acertou igual ao vencedor (mesmo valor), mas não era o #1
+            const alsoGotItRight = !backedIsWinner && backedRank && winningGuess
+              && backedRank.distance === winningGuess.distance
+              && backedRank.over === winningGuess.over
+
+            const icon   = isCardWinner ? '🏆' : backedIsWinner ? '✅' : alsoGotItRight ? '🔶' : '❌'
+            const bg     = isCardWinner ? '#FFB800' : backedIsWinner ? '#fff' : alsoGotItRight ? '#FFF3CD' : '#F0EAD8'
+            const border = isCardWinner ? '3px solid #0C0C0C' : backedIsWinner ? '2px solid #0C0C0C' : alsoGotItRight ? '2px solid #D97706' : '2px solid rgba(0,0,0,0.25)'
             const shadow = isCardWinner ? '3px 3px 0 #0C0C0C' : backedIsWinner ? '2px 2px 0 #0C0C0C' : 'none'
+
+            const winnerName = playerName(winningGuessPlayerId ?? '')
+
+            // Linha 2: quem apostou em quem + o valor que esse palpiteiro chutou
+            const backedGuessValue = state.guesses.find(g => g.playerId === bet.onPlayerId)?.value
+            const line2 = isSelf
+              ? `apostou em si mesmo — chutou ${backedGuessValue ?? '?'}`
+              : `apostou em ${backedName} — chutou ${backedGuessValue ?? '?'}`
+
+            // Linha 3: motivo do resultado
+            const line3 = isCardWinner
+              ? 'maior lance → ganhou a carta'
+              : backedIsWinner
+              ? 'apostou no #1 · lance menor → devolvido'
+              : alsoGotItRight
+              ? `${backedName} acertou o valor mas foi #${backedRank?.rank} · ${winnerName} foi #1 primeiro → devolvido`
+              : `${backedName} não acertou o valor → devolvido`
+
+            const line3Color = isCardWinner ? '#0C0C0C' : backedIsWinner ? '#059669' : alsoGotItRight ? '#92400E' : '#DC2626'
 
             return (
               <div
@@ -1219,20 +1243,8 @@ function RevealPhase() {
                       {playerName(bet.playerId)}
                       {isYou && <span className="ml-1 text-[10px] opacity-50">(você)</span>}
                     </p>
-                    <p className="text-[10px] font-bold text-black/55">
-                      {isSelf
-                        ? `apostou em si mesmo — era o #${backedRank?.rank ?? '?'} do palpite`
-                        : `apostou em ${backedName} — era o #${backedRank?.rank ?? '?'} do palpite`}
-                    </p>
-                    <p className="text-[10px] font-black uppercase" style={{
-                      color: isCardWinner ? '#0C0C0C' : backedIsWinner ? '#059669' : '#DC2626'
-                    }}>
-                      {isCardWinner
-                        ? 'maior lance → ganhou a carta'
-                        : backedIsWinner
-                        ? 'apostou no #1 · lance menor → devolvido'
-                        : `apostou no #${backedRank?.rank ?? '?'}, não no #1 → devolvido`}
-                    </p>
+                    <p className="text-[10px] font-bold text-black/55">{line2}</p>
+                    <p className="text-[10px] font-black uppercase" style={{ color: line3Color }}>{line3}</p>
                   </div>
                 </div>
                 <p
