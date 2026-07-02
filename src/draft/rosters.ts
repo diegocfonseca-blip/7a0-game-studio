@@ -3,335 +3,328 @@ import type { DraftPlayer } from './types'
 
 type P = { name: string; pos: Position; rating: number }
 
-// Key named players per CPU team (cpuIndex 0-35 matches CPU_POOLS order)
-// Div1=0-9, Div2=10-19, Div3=20-29, Div4=30-35
+// Key named players per CPU team (cpuIndex 0-38 matches CPU_POOLS order)
+// Div1=0-9, Div2=10-19, Div3=20-29, Div4=30-38
+// All set in 1992 — world clubs get era-appropriate international names.
 const KEYS: P[][] = [
-  // ── DIV 1 ──────────────────────────────────────────────────────
-  // c0 - Fla (Flamengo)
+  // ── DIV 1 (elite mundial) ────────────────────────────────────────
+  // c0 - Barcelona
   [
-    { name: 'Gilmar Fonseca', pos: 'GOL', rating: 76 }, { name: 'Leandro Corrêa', pos: 'GOL', rating: 63 },
-    { name: 'Carlos Mozer', pos: 'ZAG', rating: 75 }, { name: 'Leandro Baroni', pos: 'ZAG', rating: 72 }, { name: 'Nonato', pos: 'ZAG', rating: 68 },
-    { name: 'Jorginho', pos: 'LAT', rating: 74 }, { name: 'André Cruz', pos: 'LAT', rating: 70 },
-    { name: 'Tita', pos: 'MEI', rating: 77 }, { name: 'Geovani', pos: 'MEI', rating: 76 }, { name: 'Sérgio Livramento', pos: 'MEI', rating: 73 }, { name: 'Marquinhos Fla', pos: 'MEI', rating: 68 },
-    { name: 'Gaúcho', pos: 'ATA', rating: 78 }, { name: 'Viola', pos: 'ATA', rating: 74 }, { name: 'Renato Neto', pos: 'ATA', rating: 68 },
+    { name: 'Zubizarreta',   pos: 'GOL', rating: 88 }, { name: 'Unzué',         pos: 'GOL', rating: 72 },
+    { name: 'Koeman',        pos: 'ZAG', rating: 87 }, { name: 'Nadal',         pos: 'ZAG', rating: 82 }, { name: 'Ferrer',        pos: 'ZAG', rating: 78 },
+    { name: 'Sergi',         pos: 'LAT', rating: 80 }, { name: 'Eusebio',       pos: 'LAT', rating: 76 },
+    { name: 'Guardiola',     pos: 'MEI', rating: 85 }, { name: 'Bakero',        pos: 'MEI', rating: 82 }, { name: 'Laudrup',       pos: 'MEI', rating: 87 }, { name: 'Begiristain',   pos: 'MEI', rating: 79 },
+    { name: 'Stoichkov',     pos: 'ATA', rating: 89 }, { name: 'Julio Salinas', pos: 'ATA', rating: 80 }, { name: 'Goikoetxea',    pos: 'ATA', rating: 74 },
   ],
-  // c1 - Verdão (Palmeiras)
+  // c1 - Real Madrid
   [
-    { name: 'Marcos Palmeiras', pos: 'GOL', rating: 74 }, { name: 'Emerson Ramos', pos: 'GOL', rating: 62 },
-    { name: 'Antônio Carlos', pos: 'ZAG', rating: 76 }, { name: 'Adílson Zagueiro', pos: 'ZAG', rating: 74 }, { name: 'Rodrigo Botti', pos: 'ZAG', rating: 70 },
-    { name: 'Pedrão Lateral', pos: 'LAT', rating: 73 }, { name: 'Zé Maria Jnr', pos: 'LAT', rating: 68 },
-    { name: 'Mazinho', pos: 'MEI', rating: 78 }, { name: 'Everton Alvim', pos: 'MEI', rating: 74 }, { name: 'Zinho Palmeiras', pos: 'MEI', rating: 76 }, { name: 'Palhinha', pos: 'MEI', rating: 71 },
-    { name: 'Evair', pos: 'ATA', rating: 79 }, { name: 'Paulo Nunes', pos: 'ATA', rating: 75 }, { name: 'Rinaldo', pos: 'ATA', rating: 67 },
+    { name: 'Buyo',          pos: 'GOL', rating: 85 }, { name: 'Cañizares',     pos: 'GOL', rating: 73 },
+    { name: 'Sanchís',       pos: 'ZAG', rating: 84 }, { name: 'Hierro',        pos: 'ZAG', rating: 83 }, { name: 'Solana',        pos: 'ZAG', rating: 76 },
+    { name: 'Chendo',        pos: 'LAT', rating: 79 }, { name: 'Martín',        pos: 'LAT', rating: 74 },
+    { name: 'Míchel',        pos: 'MEI', rating: 83 }, { name: 'Redondo',       pos: 'MEI', rating: 86 }, { name: 'Martín Vázquez',pos: 'MEI', rating: 81 }, { name: 'Butragueño',    pos: 'MEI', rating: 78 },
+    { name: 'Hugo Sánchez',  pos: 'ATA', rating: 87 }, { name: 'Zamorano',      pos: 'ATA', rating: 85 }, { name: 'Amancio Jr',    pos: 'ATA', rating: 73 },
   ],
-  // c2 - Timão (Corinthians)
+  // c2 - AC Milan
   [
-    { name: 'Ronaldo Giovanelli', pos: 'GOL', rating: 75 }, { name: 'Neto Giovanelli', pos: 'GOL', rating: 61 },
-    { name: 'Tupãzinho', pos: 'ZAG', rating: 74 }, { name: 'Jorge do Corintiano', pos: 'ZAG', rating: 72 }, { name: 'Paulo Sérgio Z', pos: 'ZAG', rating: 68 },
-    { name: 'Sidnei', pos: 'LAT', rating: 73 }, { name: 'Marcinho Corinthians', pos: 'LAT', rating: 69 },
-    { name: 'Neto Corinthians', pos: 'MEI', rating: 77 }, { name: 'Mauro Galvão', pos: 'MEI', rating: 73 }, { name: 'Rincón', pos: 'MEI', rating: 76 }, { name: 'Caio Corinthians', pos: 'MEI', rating: 70 },
-    { name: 'Dinei', pos: 'ATA', rating: 76 }, { name: 'Hélio Neto', pos: 'ATA', rating: 73 }, { name: 'Gameiro Neto', pos: 'ATA', rating: 67 },
+    { name: 'Sebastiano Rossi', pos: 'GOL', rating: 87 }, { name: 'Pazzagli',   pos: 'GOL', rating: 70 },
+    { name: 'Baresi',        pos: 'ZAG', rating: 92 }, { name: 'Costacurta',   pos: 'ZAG', rating: 88 }, { name: 'Filippo Galli', pos: 'ZAG', rating: 79 },
+    { name: 'Maldini',       pos: 'LAT', rating: 90 }, { name: 'Tassotti',     pos: 'LAT', rating: 81 },
+    { name: 'Albertini',     pos: 'MEI', rating: 84 }, { name: 'Donadoni',     pos: 'MEI', rating: 82 }, { name: 'Evani',         pos: 'MEI', rating: 78 }, { name: 'Ancelotti',     pos: 'MEI', rating: 80 },
+    { name: 'Van Basten',    pos: 'ATA', rating: 93 }, { name: 'Savicevic',    pos: 'ATA', rating: 88 }, { name: 'Massaro',       pos: 'ATA', rating: 79 },
   ],
-  // c3 - Tricolor SP (São Paulo FC)
+  // c3 - Juventus
   [
-    { name: 'Zetti', pos: 'GOL', rating: 78 }, { name: 'Rogério Ceni Jnr', pos: 'GOL', rating: 62 },
-    { name: 'Adílson São Paulo', pos: 'ZAG', rating: 76 }, { name: 'Gilmar São Paulo', pos: 'ZAG', rating: 74 }, { name: 'Antônio Carlos SP', pos: 'ZAG', rating: 70 },
-    { name: 'Cafu', pos: 'LAT', rating: 78 }, { name: 'Leonardo', pos: 'LAT', rating: 77 },
-    { name: 'Raí', pos: 'MEI', rating: 82 }, { name: 'Cerezo', pos: 'MEI', rating: 72 }, { name: 'Palhinha SP', pos: 'MEI', rating: 75 }, { name: 'Sávio SP', pos: 'MEI', rating: 68 },
-    { name: 'Müller', pos: 'ATA', rating: 80 }, { name: 'Caio SP', pos: 'ATA', rating: 73 }, { name: 'Guerrinha', pos: 'ATA', rating: 68 },
+    { name: 'Peruzzi',       pos: 'GOL', rating: 86 }, { name: 'Tacconi',      pos: 'GOL', rating: 71 },
+    { name: 'Kohler',        pos: 'ZAG', rating: 85 }, { name: 'Julio César',  pos: 'ZAG', rating: 82 }, { name: 'Carrera',       pos: 'ZAG', rating: 78 },
+    { name: 'Torricelli',    pos: 'LAT', rating: 79 }, { name: 'De Agostini', pos: 'LAT', rating: 76 },
+    { name: 'Deschamps',     pos: 'MEI', rating: 85 }, { name: 'Möller',       pos: 'MEI', rating: 82 }, { name: 'Marocchi',      pos: 'MEI', rating: 77 }, { name: 'Baggio Di',     pos: 'MEI', rating: 74 },
+    { name: 'Roberto Baggio',pos: 'ATA', rating: 91 }, { name: 'Vialli',       pos: 'ATA', rating: 87 }, { name: 'Casiraghi',     pos: 'ATA', rating: 79 },
   ],
-  // c4 - Peixe (Santos)
+  // c4 - Ajax
   [
-    { name: 'Gilmar Peixe', pos: 'GOL', rating: 72 }, { name: 'Vander Santos', pos: 'GOL', rating: 60 },
-    { name: 'Mauro Galvão Sts', pos: 'ZAG', rating: 74 }, { name: 'Fabinho Santos', pos: 'ZAG', rating: 72 }, { name: 'Sandro Sassá', pos: 'ZAG', rating: 67 },
-    { name: 'Waldir Peres Jnr', pos: 'LAT', rating: 72 }, { name: 'Jorge Luís Santos', pos: 'LAT', rating: 67 },
-    { name: 'Diego Santos', pos: 'MEI', rating: 74 }, { name: 'Pedrinho Xavequinha', pos: 'MEI', rating: 72 }, { name: 'Zequinha', pos: 'MEI', rating: 70 }, { name: 'Marcio Santos', pos: 'MEI', rating: 67 },
-    { name: 'Clodoaldo Filho', pos: 'ATA', rating: 75 }, { name: 'Claudinho Santos', pos: 'ATA', rating: 72 }, { name: 'Sílvio Cruz', pos: 'ATA', rating: 67 },
+    { name: 'Van Breukelen', pos: 'GOL', rating: 86 }, { name: 'Menzo',        pos: 'GOL', rating: 71 },
+    { name: 'Frank de Boer', pos: 'ZAG', rating: 84 }, { name: 'Blind',        pos: 'ZAG', rating: 82 }, { name: 'Winter',        pos: 'ZAG', rating: 78 },
+    { name: 'Silooy',        pos: 'LAT', rating: 78 }, { name: "Van 't Schip", pos: 'LAT', rating: 75 },
+    { name: 'Jonk',          pos: 'MEI', rating: 83 }, { name: 'Witschge',     pos: 'MEI', rating: 80 }, { name: 'Litmanen',      pos: 'MEI', rating: 85 }, { name: 'Ronald de Boer',pos: 'MEI', rating: 80 },
+    { name: 'Bergkamp',      pos: 'ATA', rating: 89 }, { name: 'Pettersson',   pos: 'ATA', rating: 78 }, { name: 'Finidi',        pos: 'ATA', rating: 76 },
   ],
-  // c5 - Imortal (Grêmio)
+  // c5 - Man. United
   [
-    { name: 'Paulo Victor Grêmio', pos: 'GOL', rating: 74 }, { name: 'Danrlei', pos: 'GOL', rating: 65 },
-    { name: 'Pedro Geromel Jnr', pos: 'ZAG', rating: 74 }, { name: 'Adaílton Grêmio', pos: 'ZAG', rating: 73 }, { name: 'Paulo Nunes Z', pos: 'ZAG', rating: 68 },
-    { name: 'Paulo Roberto Grêmio', pos: 'LAT', rating: 72 }, { name: 'Anderson Grêmio', pos: 'LAT', rating: 68 },
-    { name: 'Caio Grêmio', pos: 'MEI', rating: 75 }, { name: 'Alcindo Grêmio', pos: 'MEI', rating: 74 }, { name: 'Carpegiani Filho', pos: 'MEI', rating: 72 }, { name: 'Sandro Grêmio', pos: 'MEI', rating: 68 },
-    { name: 'Dario Rodrigues', pos: 'ATA', rating: 77 }, { name: 'Luís Carlos Grêmio', pos: 'ATA', rating: 73 }, { name: 'Éder Lima', pos: 'ATA', rating: 67 },
+    { name: 'Schmeichel',    pos: 'GOL', rating: 90 }, { name: 'Sealey',       pos: 'GOL', rating: 69 },
+    { name: 'Pallister',     pos: 'ZAG', rating: 83 }, { name: 'Bruce',        pos: 'ZAG', rating: 82 }, { name: 'Blackmore',     pos: 'ZAG', rating: 75 },
+    { name: 'Irwin',         pos: 'LAT', rating: 82 }, { name: 'Martin',       pos: 'LAT', rating: 73 },
+    { name: 'Keane',         pos: 'MEI', rating: 86 }, { name: 'Ince',         pos: 'MEI', rating: 82 }, { name: 'Giggs',         pos: 'MEI', rating: 87 }, { name: 'McClair',       pos: 'MEI', rating: 78 },
+    { name: 'Cantona',       pos: 'ATA', rating: 90 }, { name: 'Hughes',       pos: 'ATA', rating: 84 }, { name: 'Sharpe',        pos: 'ATA', rating: 77 },
   ],
-  // c6 - Colorado (Internacional)
+  // c6 - PSG
   [
-    { name: 'Cléber Gaúcho', pos: 'GOL', rating: 73 }, { name: 'Danrlei Inter', pos: 'GOL', rating: 63 },
-    { name: 'Beto Gaúcho', pos: 'ZAG', rating: 74 }, { name: 'Mauro Galvão Inter', pos: 'ZAG', rating: 73 }, { name: 'Neto Gaúcho', pos: 'ZAG', rating: 68 },
-    { name: 'Rogério Gaúcho', pos: 'LAT', rating: 72 }, { name: 'Sérgio Inter', pos: 'LAT', rating: 68 },
-    { name: 'Emerson Inter', pos: 'MEI', rating: 77 }, { name: 'Giovane Inter', pos: 'MEI', rating: 75 }, { name: 'Fabinho Inter', pos: 'MEI', rating: 72 }, { name: 'Adriano Inter', pos: 'MEI', rating: 68 },
-    { name: 'Jardel', pos: 'ATA', rating: 78 }, { name: 'Leandro Inter', pos: 'ATA', rating: 74 }, { name: 'Marcos Gaúcho', pos: 'ATA', rating: 68 },
+    { name: 'Lama',          pos: 'GOL', rating: 84 }, { name: 'Froger',       pos: 'GOL', rating: 68 },
+    { name: 'Kombouaré',     pos: 'ZAG', rating: 80 }, { name: 'Le Guen',      pos: 'ZAG', rating: 79 }, { name: 'Roche',         pos: 'ZAG', rating: 74 },
+    { name: 'Colleter',      pos: 'LAT', rating: 77 }, { name: 'Fournier',     pos: 'LAT', rating: 72 },
+    { name: 'Ginola',        pos: 'MEI', rating: 84 }, { name: 'Valdo',        pos: 'MEI', rating: 82 }, { name: 'Raí',           pos: 'MEI', rating: 83 }, { name: 'Sassus',        pos: 'MEI', rating: 74 },
+    { name: 'Weah',          pos: 'ATA', rating: 86 }, { name: 'Guérin',       pos: 'ATA', rating: 77 }, { name: 'Nouma',         pos: 'ATA', rating: 73 },
   ],
-  // c7 - Raposa (Cruzeiro)
+  // c7 - Porto
   [
-    { name: 'Paulo Becker', pos: 'GOL', rating: 75 }, { name: 'Fábio Cruzeiro Jnr', pos: 'GOL', rating: 62 },
-    { name: 'Rildo Cruzeiro', pos: 'ZAG', rating: 74 }, { name: 'Henrique Cruzeiro', pos: 'ZAG', rating: 73 }, { name: 'Alex Nobre', pos: 'ZAG', rating: 68 },
-    { name: 'Branco Cruzeiro', pos: 'LAT', rating: 73 }, { name: 'Jorge Luís Cruzeiro', pos: 'LAT', rating: 68 },
-    { name: 'Robinho Cruzeiro', pos: 'MEI', rating: 76 }, { name: 'Mauro Silva Cruzeiro', pos: 'MEI', rating: 75 }, { name: 'Charles Cruzeiro', pos: 'MEI', rating: 72 }, { name: 'Liniker', pos: 'MEI', rating: 68 },
-    { name: 'Edmundo Cruzeiro', pos: 'ATA', rating: 77 }, { name: 'Éder Aleixo', pos: 'ATA', rating: 73 }, { name: 'Palhinha Cruzeiro', pos: 'ATA', rating: 67 },
+    { name: 'Vítor Baía',    pos: 'GOL', rating: 85 }, { name: 'Vitorino',     pos: 'GOL', rating: 69 },
+    { name: 'Aloisio',       pos: 'ZAG', rating: 79 }, { name: 'Secretário',   pos: 'ZAG', rating: 78 }, { name: 'Lima',          pos: 'ZAG', rating: 74 },
+    { name: 'Oceano',        pos: 'LAT', rating: 77 }, { name: 'Paulo Alves',  pos: 'LAT', rating: 72 },
+    { name: 'Kostadinov',    pos: 'MEI', rating: 82 }, { name: 'Rui Barros',   pos: 'MEI', rating: 80 }, { name: 'Capucho',       pos: 'MEI', rating: 76 }, { name: 'Domingos',      pos: 'MEI', rating: 74 },
+    { name: 'João Pinto',    pos: 'ATA', rating: 82 }, { name: 'Semedo',       pos: 'ATA', rating: 75 }, { name: 'Varela',        pos: 'ATA', rating: 72 },
   ],
-  // c8 - Galo (Atlético-MG)
+  // c8 - Benfica
   [
-    { name: 'Victor Galo', pos: 'GOL', rating: 73 }, { name: 'Wilson Galo', pos: 'GOL', rating: 61 },
-    { name: 'Leonardo Galo', pos: 'ZAG', rating: 73 }, { name: 'Renato Galo', pos: 'ZAG', rating: 72 }, { name: 'Sérgio Galo', pos: 'ZAG', rating: 67 },
-    { name: 'Gilson Galo', pos: 'LAT', rating: 72 }, { name: 'Jorginho Galo', pos: 'LAT', rating: 67 },
-    { name: 'Reinaldo Galo', pos: 'MEI', rating: 77 }, { name: 'Toninho Cerezo Galo', pos: 'MEI', rating: 72 }, { name: 'Carlos Galo', pos: 'MEI', rating: 72 }, { name: 'Paulo Galo', pos: 'MEI', rating: 67 },
-    { name: 'Guilherme Galo', pos: 'ATA', rating: 77 }, { name: 'Éber Galo', pos: 'ATA', rating: 73 }, { name: 'Claudinho Galo', pos: 'ATA', rating: 66 },
+    { name: "Preud'homme",   pos: 'GOL', rating: 84 }, { name: 'Heitor',       pos: 'GOL', rating: 68 },
+    { name: 'Veloso',        pos: 'ZAG', rating: 79 }, { name: 'Damas',        pos: 'ZAG', rating: 77 }, { name: 'Cabral',        pos: 'ZAG', rating: 73 },
+    { name: 'Paneira',       pos: 'LAT', rating: 76 }, { name: 'Silvestre',    pos: 'LAT', rating: 71 },
+    { name: 'Thern',         pos: 'MEI', rating: 82 }, { name: 'Isaías',       pos: 'MEI', rating: 80 }, { name: 'Schwarz',       pos: 'MEI', rating: 78 }, { name: 'Vata',          pos: 'MEI', rating: 73 },
+    { name: 'Yuran',         pos: 'ATA', rating: 82 }, { name: 'Rui Costa',    pos: 'ATA', rating: 79 }, { name: 'Pacheco',       pos: 'ATA', rating: 73 },
   ],
-  // c9 - Gigante (Vasco)
+  // c9 - Olympique (Marseille)
   [
-    { name: 'Carlos Germano', pos: 'GOL', rating: 76 }, { name: 'Acácio Vasco', pos: 'GOL', rating: 63 },
-    { name: 'Aldair Vasco', pos: 'ZAG', rating: 75 }, { name: 'Mauro Galvão Vasco', pos: 'ZAG', rating: 73 }, { name: 'Odvan Vasco', pos: 'ZAG', rating: 68 },
-    { name: 'Luís Carlos Vasco', pos: 'LAT', rating: 73 }, { name: 'Rodrigo Vasco', pos: 'LAT', rating: 68 },
-    { name: 'Ramón Vasco', pos: 'MEI', rating: 77 }, { name: 'Felipe Vasco', pos: 'MEI', rating: 75 }, { name: 'Sávio Vasco', pos: 'MEI', rating: 74 }, { name: 'Anderson Vasco', pos: 'MEI', rating: 68 },
-    { name: 'Romário Vasco', pos: 'ATA', rating: 78 }, { name: 'Túlio Vasco', pos: 'ATA', rating: 74 }, { name: 'Bebeto Jnr', pos: 'ATA', rating: 67 },
-  ],
-
-  // ── DIV 2 ──────────────────────────────────────────────────────
-  // c10 - Fogão (Botafogo)
-  [
-    { name: 'Jefferson Fogão', pos: 'GOL', rating: 68 }, { name: 'Dênis Fogão', pos: 'GOL', rating: 58 },
-    { name: 'Maurício Fogão', pos: 'ZAG', rating: 67 }, { name: 'Alexandre Fogão', pos: 'ZAG', rating: 65 }, { name: 'Lúcio Fogão', pos: 'ZAG', rating: 61 },
-    { name: 'Jailton Fogão', pos: 'LAT', rating: 66 }, { name: 'Osmar Fogão', pos: 'LAT', rating: 62 },
-    { name: 'Souza Fogão', pos: 'MEI', rating: 68 }, { name: 'Túlio Fogão', pos: 'MEI', rating: 67 }, { name: 'Andrade Fogão', pos: 'MEI', rating: 65 }, { name: 'Marcus Fogão', pos: 'MEI', rating: 61 },
-    { name: 'Maurício Fogão ATA', pos: 'ATA', rating: 68 }, { name: 'Lúcio Fogão ATA', pos: 'ATA', rating: 66 }, { name: 'Kléber Fogão', pos: 'ATA', rating: 60 },
-  ],
-  // c11 - Flu (Fluminense)
-  [
-    { name: 'Paulo Dóca', pos: 'GOL', rating: 68 }, { name: 'Élton Flu', pos: 'GOL', rating: 57 },
-    { name: 'Cléber Flu', pos: 'ZAG', rating: 66 }, { name: 'Paulo Flu ZAG', pos: 'ZAG', rating: 65 }, { name: 'Marcão Flu', pos: 'ZAG', rating: 61 },
-    { name: 'Renato Flu LAT', pos: 'LAT', rating: 65 }, { name: 'Robson Flu', pos: 'LAT', rating: 61 },
-    { name: 'Zinho Flu', pos: 'MEI', rating: 70 }, { name: 'Renato Flu', pos: 'MEI', rating: 68 }, { name: 'Carlos Flu', pos: 'MEI', rating: 65 }, { name: 'Lula Flu', pos: 'MEI', rating: 61 },
-    { name: 'Marcão Flu ATA', pos: 'ATA', rating: 68 }, { name: 'Bebeto Flu', pos: 'ATA', rating: 65 }, { name: 'Nelsinho Flu', pos: 'ATA', rating: 60 },
-  ],
-  // c12 - Esquadrão (Bahia)
-  [
-    { name: 'Marcelo Bahia', pos: 'GOL', rating: 67 }, { name: 'Paulo Bahia', pos: 'GOL', rating: 57 },
-    { name: 'Rodrigo Bahia', pos: 'ZAG', rating: 67 }, { name: 'Messias Bahia', pos: 'ZAG', rating: 65 }, { name: 'Neto Bahia', pos: 'ZAG', rating: 60 },
-    { name: 'Clênio Bahia', pos: 'LAT', rating: 65 }, { name: 'Carlos Bahia', pos: 'LAT', rating: 61 },
-    { name: 'Beto Bahia', pos: 'MEI', rating: 68 }, { name: 'Anderson Bahia', pos: 'MEI', rating: 67 }, { name: 'Jaílson Bahia', pos: 'MEI', rating: 64 }, { name: 'Lindomar Bahia', pos: 'MEI', rating: 60 },
-    { name: 'Bobó Bahia', pos: 'ATA', rating: 69 }, { name: 'Sérgio Bahia', pos: 'ATA', rating: 65 }, { name: 'Luciano Bahia', pos: 'ATA', rating: 60 },
-  ],
-  // c13 - Leão da Ilha (Sport Recife)
-  [
-    { name: 'Mauro Sport', pos: 'GOL', rating: 66 }, { name: 'Edinho Sport', pos: 'GOL', rating: 57 },
-    { name: 'Cícero Sport', pos: 'ZAG', rating: 65 }, { name: 'Flavinho Sport', pos: 'ZAG', rating: 64 }, { name: 'Bruno Sport', pos: 'ZAG', rating: 60 },
-    { name: 'Cláudio Sport', pos: 'LAT', rating: 64 }, { name: 'Rosinei Sport', pos: 'LAT', rating: 60 },
-    { name: 'Roberto Sport', pos: 'MEI', rating: 67 }, { name: 'Ricardinho Sport', pos: 'MEI', rating: 66 }, { name: 'Julio Sport', pos: 'MEI', rating: 63 }, { name: 'Wagninho Sport', pos: 'MEI', rating: 59 },
-    { name: 'Léo Sport', pos: 'ATA', rating: 67 }, { name: 'Cabinho Sport', pos: 'ATA', rating: 64 }, { name: 'Jorge Sport', pos: 'ATA', rating: 59 },
-  ],
-  // c14 - Esmeraldino (Goiás)
-  [
-    { name: 'Héverton Goiás', pos: 'GOL', rating: 65 }, { name: 'Rogério Goiás', pos: 'GOL', rating: 56 },
-    { name: 'Marcelo Goiás', pos: 'ZAG', rating: 65 }, { name: 'Pedro Goiás', pos: 'ZAG', rating: 63 }, { name: 'Rodrigo Goiás', pos: 'ZAG', rating: 59 },
-    { name: 'Jailton Goiás', pos: 'LAT', rating: 63 }, { name: 'Paulo Goiás', pos: 'LAT', rating: 59 },
-    { name: 'Sandro Goiás', pos: 'MEI', rating: 66 }, { name: 'Léo Goiás', pos: 'MEI', rating: 65 }, { name: 'Douglas Goiás', pos: 'MEI', rating: 62 }, { name: 'Anderson Goiás', pos: 'MEI', rating: 58 },
-    { name: 'Claudinho Goiás', pos: 'ATA', rating: 66 }, { name: 'Felipe Goiás', pos: 'ATA', rating: 63 }, { name: 'Junior Goiás', pos: 'ATA', rating: 58 },
-  ],
-  // c15 - Coxa (Coritiba)
-  [
-    { name: 'João Ricardo Coxa', pos: 'GOL', rating: 66 }, { name: 'Kléberson Coxa', pos: 'GOL', rating: 56 },
-    { name: 'Leandro Coxa', pos: 'ZAG', rating: 65 }, { name: 'Nilson Coxa', pos: 'ZAG', rating: 63 }, { name: 'Reinaldo Coxa', pos: 'ZAG', rating: 59 },
-    { name: 'Bernardo Coxa', pos: 'LAT', rating: 63 }, { name: 'Mancini Coxa', pos: 'LAT', rating: 59 },
-    { name: 'Kléberson Coxa MEI', pos: 'MEI', rating: 67 }, { name: 'Flávio Coxa', pos: 'MEI', rating: 65 }, { name: 'Alex Coxa', pos: 'MEI', rating: 63 }, { name: 'Adriano Coxa', pos: 'MEI', rating: 58 },
-    { name: 'Deivid Coxa', pos: 'ATA', rating: 67 }, { name: 'Fernandinho Coxa', pos: 'ATA', rating: 63 }, { name: 'Maicosuel Coxa', pos: 'ATA', rating: 58 },
-  ],
-  // c16 - Furacão (Atlético-PR)
-  [
-    { name: 'Albano Furacão', pos: 'GOL', rating: 66 }, { name: 'Neto Furacão', pos: 'GOL', rating: 56 },
-    { name: 'Manoel Furacão', pos: 'ZAG', rating: 65 }, { name: 'Léo Furacão', pos: 'ZAG', rating: 64 }, { name: 'Wálter Furacão', pos: 'ZAG', rating: 59 },
-    { name: 'Helio Furacão', pos: 'LAT', rating: 64 }, { name: 'Marquinhos Furacão', pos: 'LAT', rating: 59 },
-    { name: 'Kléberson Fur', pos: 'MEI', rating: 66 }, { name: 'João Furacão', pos: 'MEI', rating: 65 }, { name: 'Rodrigo Furacão', pos: 'MEI', rating: 62 }, { name: 'Wagner Furacão', pos: 'MEI', rating: 58 },
-    { name: 'Kléo Furacão', pos: 'ATA', rating: 67 }, { name: 'Thiago Furacão', pos: 'ATA', rating: 63 }, { name: 'Rafael Furacão', pos: 'ATA', rating: 58 },
-  ],
-  // c17 - Leão BA (Vitória)
-  [
-    { name: 'Marcão Vitória', pos: 'GOL', rating: 65 }, { name: 'Roberto Vitória', pos: 'GOL', rating: 55 },
-    { name: 'Baraka Vitória', pos: 'ZAG', rating: 64 }, { name: 'Carlinhos Vitória', pos: 'ZAG', rating: 63 }, { name: 'Diógenes Vitória', pos: 'ZAG', rating: 58 },
-    { name: 'Cléber Vitória', pos: 'LAT', rating: 63 }, { name: 'Elves Vitória', pos: 'LAT', rating: 58 },
-    { name: 'Neto Vitória', pos: 'MEI', rating: 66 }, { name: 'Josué Vitória', pos: 'MEI', rating: 64 }, { name: 'Moisés Vitória', pos: 'MEI', rating: 62 }, { name: 'Sandro Vitória', pos: 'MEI', rating: 57 },
-    { name: 'Tico Vitória', pos: 'ATA', rating: 66 }, { name: 'Samuel Vitória', pos: 'ATA', rating: 63 }, { name: 'Éder Vitória', pos: 'ATA', rating: 57 },
-  ],
-  // c18 - Timbu (Náutico)
-  [
-    { name: 'Anderson Náutico', pos: 'GOL', rating: 65 }, { name: 'Flávio Náutico', pos: 'GOL', rating: 55 },
-    { name: 'Washington Náutico', pos: 'ZAG', rating: 64 }, { name: 'Caio Náutico', pos: 'ZAG', rating: 62 }, { name: 'Pedro Náutico', pos: 'ZAG', rating: 57 },
-    { name: 'Edson Náutico', pos: 'LAT', rating: 63 }, { name: 'Oscar Náutico', pos: 'LAT', rating: 57 },
-    { name: 'Reinaldo Náutico', pos: 'MEI', rating: 66 }, { name: 'Kleber Náutico', pos: 'MEI', rating: 64 }, { name: 'Rogério Náutico', pos: 'MEI', rating: 61 }, { name: 'Genilson Náutico', pos: 'MEI', rating: 56 },
-    { name: 'Vasco Náutico', pos: 'ATA', rating: 66 }, { name: 'Rodrigo Náutico', pos: 'ATA', rating: 62 }, { name: 'Carlos Náutico', pos: 'ATA', rating: 56 },
-  ],
-  // c19 - Bugre (Guaraní Campinas)
-  [
-    { name: 'Leandro Bugre', pos: 'GOL', rating: 65 }, { name: 'Cléber Bugre', pos: 'GOL', rating: 55 },
-    { name: 'Renato Bugre', pos: 'ZAG', rating: 65 }, { name: 'Welter Bugre', pos: 'ZAG', rating: 63 }, { name: 'Fabrício Bugre', pos: 'ZAG', rating: 58 },
-    { name: 'Sandro Bugre', pos: 'LAT', rating: 64 }, { name: 'Roni Bugre', pos: 'LAT', rating: 58 },
-    { name: 'Alex Bugre', pos: 'MEI', rating: 67 }, { name: 'Tiago Bugre', pos: 'MEI', rating: 65 }, { name: 'Carlos Bugre', pos: 'MEI', rating: 62 }, { name: 'Léo Bugre', pos: 'MEI', rating: 57 },
-    { name: 'Gilmar Bugre', pos: 'ATA', rating: 66 }, { name: 'Anderson Bugre', pos: 'ATA', rating: 63 }, { name: 'William Bugre', pos: 'ATA', rating: 57 },
+    { name: 'Barthez',       pos: 'GOL', rating: 87 }, { name: 'Olmeta',       pos: 'GOL', rating: 70 },
+    { name: 'Desailly',      pos: 'ZAG', rating: 86 }, { name: 'Boli',         pos: 'ZAG', rating: 83 }, { name: 'Blanc',         pos: 'ZAG', rating: 81 },
+    { name: 'Di Meco',       pos: 'LAT', rating: 80 }, { name: 'Angloma',      pos: 'LAT', rating: 77 },
+    { name: 'Deschamps',     pos: 'MEI', rating: 85 }, { name: 'Pélé',         pos: 'MEI', rating: 78 }, { name: 'Sauzée',        pos: 'MEI', rating: 79 }, { name: 'Eydelie',       pos: 'MEI', rating: 74 },
+    { name: 'Völler',        pos: 'ATA', rating: 85 }, { name: 'Waddle',       pos: 'ATA', rating: 83 }, { name: 'Bokšić',        pos: 'ATA', rating: 79 },
   ],
 
-  // ── DIV 3 ──────────────────────────────────────────────────────
-  // c20 - Leão SC (Avaí)
+  // ── DIV 2 (forte internacional + top sul-americano) ───────────────
+  // c10 - Bayern
   [
-    { name: 'Paulo Avaí', pos: 'GOL', rating: 57 }, { name: 'Marco Avaí', pos: 'GOL', rating: 47 },
-    { name: 'Anderson Avaí', pos: 'ZAG', rating: 56 }, { name: 'Felipe Avaí', pos: 'ZAG', rating: 54 }, { name: 'Rogério Avaí', pos: 'ZAG', rating: 50 },
-    { name: 'Cláudio Avaí', pos: 'LAT', rating: 54 }, { name: 'Sérgio Avaí', pos: 'LAT', rating: 50 },
-    { name: 'Carlos Avaí', pos: 'MEI', rating: 57 }, { name: 'Eduardo Avaí', pos: 'MEI', rating: 55 }, { name: 'Gilmar Avaí', pos: 'MEI', rating: 53 }, { name: 'Wilson Avaí', pos: 'MEI', rating: 48 },
-    { name: 'Márcio Avaí', pos: 'ATA', rating: 57 }, { name: 'Luís Avaí', pos: 'ATA', rating: 53 }, { name: 'Junior Avaí', pos: 'ATA', rating: 48 },
+    { name: 'Kahn',          pos: 'GOL', rating: 82 }, { name: 'Aumann',       pos: 'GOL', rating: 68 },
+    { name: 'Helmer',        pos: 'ZAG', rating: 80 }, { name: 'Nerlinger',    pos: 'ZAG', rating: 77 }, { name: 'Kreuzer',       pos: 'ZAG', rating: 74 },
+    { name: 'Ziege',         pos: 'LAT', rating: 78 }, { name: 'Grahammer',    pos: 'LAT', rating: 70 },
+    { name: 'Matthäus',      pos: 'MEI', rating: 86 }, { name: 'Effenberg',    pos: 'MEI', rating: 83 }, { name: 'Scholl',        pos: 'MEI', rating: 80 }, { name: 'Babbel',        pos: 'MEI', rating: 73 },
+    { name: 'Klinsmann',     pos: 'ATA', rating: 84 }, { name: 'Wohlfarth',    pos: 'ATA', rating: 76 }, { name: 'Papin',         pos: 'ATA', rating: 79 },
   ],
-  // c21 - Verdão SC (Chapecoense)
+  // c11 - Arsenal
   [
-    { name: 'Nelson Chape', pos: 'GOL', rating: 57 }, { name: 'Rodrigo Chape', pos: 'GOL', rating: 46 },
-    { name: 'Sandro Chape', pos: 'ZAG', rating: 55 }, { name: 'Valmir Chape', pos: 'ZAG', rating: 54 }, { name: 'Pedro Chape', pos: 'ZAG', rating: 49 },
-    { name: 'Wander Chape', pos: 'LAT', rating: 53 }, { name: 'Ricardo Chape', pos: 'LAT', rating: 49 },
-    { name: 'Renato Chape', pos: 'MEI', rating: 57 }, { name: 'José Chape', pos: 'MEI', rating: 55 }, { name: 'Marco Chape', pos: 'MEI', rating: 52 }, { name: 'Francisco Chape', pos: 'MEI', rating: 47 },
-    { name: 'André Chape', pos: 'ATA', rating: 57 }, { name: 'Dinho Chape', pos: 'ATA', rating: 53 }, { name: 'Léo Chape', pos: 'ATA', rating: 47 },
+    { name: 'Seaman',        pos: 'GOL', rating: 82 }, { name: 'Miller',       pos: 'GOL', rating: 66 },
+    { name: 'Adams',         pos: 'ZAG', rating: 83 }, { name: 'Bould',        pos: 'ZAG', rating: 80 }, { name: 'Keown',         pos: 'ZAG', rating: 78 },
+    { name: 'Winterburn',    pos: 'LAT', rating: 79 }, { name: 'Dixon',        pos: 'LAT', rating: 77 },
+    { name: 'Davis',         pos: 'MEI', rating: 78 }, { name: 'Parlour',      pos: 'MEI', rating: 75 }, { name: 'Merson',        pos: 'MEI', rating: 79 }, { name: 'Jensen',        pos: 'MEI', rating: 73 },
+    { name: 'Wright',        pos: 'ATA', rating: 83 }, { name: 'Campbell',     pos: 'ATA', rating: 76 }, { name: 'Limpar',        pos: 'ATA', rating: 77 },
   ],
-  // c22 - Macaca (Ponte Preta)
+  // c12 - Inter
   [
-    { name: 'Ivan Ponte', pos: 'GOL', rating: 57 }, { name: 'Sérgio Ponte', pos: 'GOL', rating: 47 },
-    { name: 'Alberto Ponte', pos: 'ZAG', rating: 56 }, { name: 'Lucas Ponte', pos: 'ZAG', rating: 54 }, { name: 'Alex Ponte', pos: 'ZAG', rating: 50 },
-    { name: 'Claudinho Ponte', pos: 'LAT', rating: 54 }, { name: 'Vinícius Ponte', pos: 'LAT', rating: 50 },
-    { name: 'Fábio Ponte', pos: 'MEI', rating: 57 }, { name: 'Adriano Ponte', pos: 'MEI', rating: 56 }, { name: 'Kleber Ponte', pos: 'MEI', rating: 53 }, { name: 'Max Ponte', pos: 'MEI', rating: 48 },
-    { name: 'Chicão Ponte', pos: 'ATA', rating: 57 }, { name: 'Roni Ponte', pos: 'ATA', rating: 53 }, { name: 'Felipe Ponte', pos: 'ATA', rating: 48 },
+    { name: 'Pagliuca',      pos: 'GOL', rating: 83 }, { name: 'Zenga',        pos: 'GOL', rating: 71 },
+    { name: 'Bergomi',       pos: 'ZAG', rating: 83 }, { name: 'Paganin',      pos: 'ZAG', rating: 76 }, { name: 'Battistini',    pos: 'ZAG', rating: 73 },
+    { name: 'Brehme',        pos: 'LAT', rating: 82 }, { name: 'Fontolan',     pos: 'LAT', rating: 70 },
+    { name: 'Simeone',       pos: 'MEI', rating: 80 }, { name: 'Jonk',         pos: 'MEI', rating: 79 }, { name: 'Berti',         pos: 'MEI', rating: 76 }, { name: 'Orlandini',     pos: 'MEI', rating: 71 },
+    { name: 'Ruben Sosa',    pos: 'ATA', rating: 81 }, { name: 'Skuhravý',     pos: 'ATA', rating: 78 }, { name: 'Rambert',       pos: 'ATA', rating: 72 },
   ],
-  // c23 - Tricolor PR (Paraná Clube)
+  // c13 - Atlético (Madrid)
   [
-    { name: 'Marcelo Paraná', pos: 'GOL', rating: 57 }, { name: 'Elias Paraná', pos: 'GOL', rating: 46 },
-    { name: 'Ernesto Paraná', pos: 'ZAG', rating: 55 }, { name: 'Ciro Paraná', pos: 'ZAG', rating: 54 }, { name: 'Jair Paraná', pos: 'ZAG', rating: 49 },
-    { name: 'Reinaldo Paraná', pos: 'LAT', rating: 54 }, { name: 'Davi Paraná', pos: 'LAT', rating: 49 },
-    { name: 'Diego Paraná', pos: 'MEI', rating: 57 }, { name: 'Samuel Paraná', pos: 'MEI', rating: 55 }, { name: 'Nilton Paraná', pos: 'MEI', rating: 52 }, { name: 'Elton Paraná', pos: 'MEI', rating: 47 },
-    { name: 'Pedro Paraná', pos: 'ATA', rating: 57 }, { name: 'Ilo Paraná', pos: 'ATA', rating: 53 }, { name: 'Waldo Paraná', pos: 'ATA', rating: 47 },
+    { name: 'Abel',          pos: 'GOL', rating: 78 }, { name: 'Molina',       pos: 'GOL', rating: 65 },
+    { name: 'Solozábal',     pos: 'ZAG', rating: 77 }, { name: 'Juanito',      pos: 'ZAG', rating: 75 }, { name: 'Geli',          pos: 'ZAG', rating: 72 },
+    { name: 'Toni',          pos: 'LAT', rating: 75 }, { name: 'Ferreira',     pos: 'LAT', rating: 70 },
+    { name: 'Caminero',      pos: 'MEI', rating: 82 }, { name: 'Donato',       pos: 'MEI', rating: 78 }, { name: 'Vizcaíno',      pos: 'MEI', rating: 74 }, { name: 'Alfaro',        pos: 'MEI', rating: 70 },
+    { name: 'Futre',         pos: 'ATA', rating: 82 }, { name: 'Manolo',       pos: 'ATA', rating: 78 }, { name: 'Dertycia',      pos: 'ATA', rating: 71 },
   ],
-  // c24 - Coelho (América-MG)
+  // c14 - São Paulo
   [
-    { name: 'Gilmar América', pos: 'GOL', rating: 56 }, { name: 'Luís América', pos: 'GOL', rating: 46 },
-    { name: 'Marcelo América', pos: 'ZAG', rating: 55 }, { name: 'Paulo América', pos: 'ZAG', rating: 53 }, { name: 'Anderson América', pos: 'ZAG', rating: 49 },
-    { name: 'Roberto América', pos: 'LAT', rating: 53 }, { name: 'Moacir América', pos: 'LAT', rating: 49 },
-    { name: 'César América', pos: 'MEI', rating: 56 }, { name: 'Odair América', pos: 'MEI', rating: 55 }, { name: 'Everton América', pos: 'MEI', rating: 52 }, { name: 'Sandro América', pos: 'MEI', rating: 47 },
-    { name: 'Régis América', pos: 'ATA', rating: 57 }, { name: 'Luiz América', pos: 'ATA', rating: 52 }, { name: 'Dinho América', pos: 'ATA', rating: 47 },
+    { name: 'Zetti',         pos: 'GOL', rating: 80 }, { name: 'Gilmar Rinaldi',pos: 'GOL', rating: 64 },
+    { name: 'Adílson',       pos: 'ZAG', rating: 78 }, { name: 'Gilmar',       pos: 'ZAG', rating: 76 }, { name: 'Antônio Carlos',pos: 'ZAG', rating: 72 },
+    { name: 'Cafu',          pos: 'LAT', rating: 80 }, { name: 'Leonardo',     pos: 'LAT', rating: 79 },
+    { name: 'Raí',           pos: 'MEI', rating: 84 }, { name: 'Cerezo',       pos: 'MEI', rating: 74 }, { name: 'Mauro Silva',   pos: 'MEI', rating: 77 }, { name: 'Dinho',         pos: 'MEI', rating: 70 },
+    { name: 'Müller',        pos: 'ATA', rating: 82 }, { name: 'Caio',         pos: 'ATA', rating: 75 }, { name: 'Palhinha',      pos: 'ATA', rating: 70 },
   ],
-  // c25 - Figueira (Figueirense)
+  // c15 - Boca Juniors
   [
-    { name: 'Thiago Figueira', pos: 'GOL', rating: 56 }, { name: 'Armando Figueira', pos: 'GOL', rating: 46 },
-    { name: 'Clênio Figueira', pos: 'ZAG', rating: 56 }, { name: 'Airton Figueira', pos: 'ZAG', rating: 54 }, { name: 'Maurício Figueira', pos: 'ZAG', rating: 49 },
-    { name: 'Pedro Figueira', pos: 'LAT', rating: 54 }, { name: 'Dílson Figueira', pos: 'LAT', rating: 49 },
-    { name: 'William Figueira', pos: 'MEI', rating: 57 }, { name: 'Valter Figueira', pos: 'MEI', rating: 55 }, { name: 'Neto Figueira', pos: 'MEI', rating: 52 }, { name: 'Sílvio Figueira', pos: 'MEI', rating: 47 },
-    { name: 'Jonas Figueira', pos: 'ATA', rating: 57 }, { name: 'Régis Figueira', pos: 'ATA', rating: 52 }, { name: 'Diego Figueira', pos: 'ATA', rating: 47 },
+    { name: 'Navarro Montoya',pos: 'GOL', rating: 80 }, { name: 'Zelada',      pos: 'GOL', rating: 65 },
+    { name: 'Ruggeri',       pos: 'ZAG', rating: 81 }, { name: 'Maciel',       pos: 'ZAG', rating: 77 }, { name: 'Altamirano',    pos: 'ZAG', rating: 73 },
+    { name: 'Saldaña',       pos: 'LAT', rating: 75 }, { name: 'Vivas',        pos: 'LAT', rating: 71 },
+    { name: 'Verón',         pos: 'MEI', rating: 78 }, { name: 'Balbo',        pos: 'MEI', rating: 75 }, { name: 'Burruchaga',    pos: 'MEI', rating: 77 }, { name: 'Gracián',       pos: 'MEI', rating: 70 },
+    { name: 'Latorre',       pos: 'ATA', rating: 79 }, { name: 'Palermo',      pos: 'ATA', rating: 76 }, { name: 'Caniggia',      pos: 'ATA', rating: 82 },
   ],
-  // c26 - Tigre (Criciúma)
+  // c16 - River Plate
   [
-    { name: 'Dida Criciúma', pos: 'GOL', rating: 57 }, { name: 'Élson Criciúma', pos: 'GOL', rating: 46 },
-    { name: 'Neto Criciúma', pos: 'ZAG', rating: 56 }, { name: 'Claudinho Criciúma', pos: 'ZAG', rating: 54 }, { name: 'Cléber Criciúma', pos: 'ZAG', rating: 50 },
-    { name: 'Sidinei Criciúma', pos: 'LAT', rating: 54 }, { name: 'Rogério Criciúma', pos: 'LAT', rating: 49 },
-    { name: 'Luís Criciúma', pos: 'MEI', rating: 58 }, { name: 'Paulo Criciúma', pos: 'MEI', rating: 56 }, { name: 'Antonio Criciúma', pos: 'MEI', rating: 53 }, { name: 'Eduardo Criciúma', pos: 'MEI', rating: 48 },
-    { name: 'Wanderley Criciúma', pos: 'ATA', rating: 58 }, { name: 'José Criciúma', pos: 'ATA', rating: 53 }, { name: 'Fábio Criciúma', pos: 'ATA', rating: 48 },
+    { name: 'Burgos',        pos: 'GOL', rating: 79 }, { name: 'Carreras',     pos: 'GOL', rating: 64 },
+    { name: 'Sensini',       pos: 'ZAG', rating: 80 }, { name: 'Zapata',       pos: 'ZAG', rating: 76 }, { name: 'Hernández',     pos: 'ZAG', rating: 72 },
+    { name: 'Sorin',         pos: 'LAT', rating: 74 }, { name: 'Morales',      pos: 'LAT', rating: 70 },
+    { name: 'Francescoli',   pos: 'MEI', rating: 83 }, { name: 'Gallardo',     pos: 'MEI', rating: 77 }, { name: 'Ortega',        pos: 'MEI', rating: 76 }, { name: 'Rambert',       pos: 'MEI', rating: 70 },
+    { name: 'Salas',         pos: 'ATA', rating: 78 }, { name: 'Palma',        pos: 'ATA', rating: 74 }, { name: 'Crespo',        pos: 'ATA', rating: 72 },
   ],
-  // c27 - Ju (Juventude)
+  // c17 - Flamengo
   [
-    { name: 'Alisson Ju', pos: 'GOL', rating: 57 }, { name: 'Pedro Ju', pos: 'GOL', rating: 47 },
-    { name: 'Fabricio Ju', pos: 'ZAG', rating: 56 }, { name: 'Marcos Ju', pos: 'ZAG', rating: 54 }, { name: 'Diogo Ju', pos: 'ZAG', rating: 50 },
-    { name: 'Antônio Ju', pos: 'LAT', rating: 54 }, { name: 'Nilson Ju', pos: 'LAT', rating: 49 },
-    { name: 'Renato Ju', pos: 'MEI', rating: 57 }, { name: 'Roger Ju', pos: 'MEI', rating: 56 }, { name: 'Bruno Ju', pos: 'MEI', rating: 53 }, { name: 'Caio Ju', pos: 'MEI', rating: 48 },
-    { name: 'Léo Ju', pos: 'ATA', rating: 57 }, { name: 'Wellington Ju', pos: 'ATA', rating: 53 }, { name: 'Guilherme Ju', pos: 'ATA', rating: 48 },
+    { name: 'Gilmar Fonseca',pos: 'GOL', rating: 76 }, { name: 'Leandro Corrêa',pos: 'GOL', rating: 62 },
+    { name: 'Carlos Mozer',  pos: 'ZAG', rating: 75 }, { name: 'André Cruz',   pos: 'ZAG', rating: 72 }, { name: 'Nonato',        pos: 'ZAG', rating: 68 },
+    { name: 'Jorginho',      pos: 'LAT', rating: 74 }, { name: 'Leandro',      pos: 'LAT', rating: 70 },
+    { name: 'Tita',          pos: 'MEI', rating: 77 }, { name: 'Geovani',      pos: 'MEI', rating: 76 }, { name: 'Livramento',    pos: 'MEI', rating: 73 }, { name: 'Marquinhos',    pos: 'MEI', rating: 68 },
+    { name: 'Gaúcho',        pos: 'ATA', rating: 78 }, { name: 'Viola',        pos: 'ATA', rating: 74 }, { name: 'Renato',        pos: 'ATA', rating: 68 },
   ],
-  // c28 - Galo AL (CSA)
+  // c18 - B. Dortmund
   [
-    { name: 'Rafael CSA', pos: 'GOL', rating: 55 }, { name: 'André CSA', pos: 'GOL', rating: 45 },
-    { name: 'Carlos CSA', pos: 'ZAG', rating: 54 }, { name: 'Nelson CSA', pos: 'ZAG', rating: 53 }, { name: 'Hélio CSA', pos: 'ZAG', rating: 48 },
-    { name: 'Augusto CSA', pos: 'LAT', rating: 53 }, { name: 'Elísio CSA', pos: 'LAT', rating: 48 },
-    { name: 'Aloísio CSA', pos: 'MEI', rating: 56 }, { name: 'Valdir CSA', pos: 'MEI', rating: 54 }, { name: 'Luciano CSA', pos: 'MEI', rating: 52 }, { name: 'Djalma CSA', pos: 'MEI', rating: 46 },
-    { name: 'Tonhão CSA', pos: 'ATA', rating: 56 }, { name: 'Elias CSA', pos: 'ATA', rating: 52 }, { name: 'Renato CSA', pos: 'ATA', rating: 47 },
+    { name: 'Klos',          pos: 'GOL', rating: 79 }, { name: 'Krämer',       pos: 'GOL', rating: 64 },
+    { name: 'Schulz',        pos: 'ZAG', rating: 77 }, { name: 'Reinhardt',    pos: 'ZAG', rating: 75 }, { name: 'Sandmann',      pos: 'ZAG', rating: 71 },
+    { name: 'Heinrich',      pos: 'LAT', rating: 74 }, { name: 'Gruszecki',    pos: 'LAT', rating: 69 },
+    { name: 'Zorc',          pos: 'MEI', rating: 80 }, { name: 'Reuter',       pos: 'MEI', rating: 78 }, { name: 'Tretschok',     pos: 'MEI', rating: 74 }, { name: 'Mill',          pos: 'MEI', rating: 72 },
+    { name: 'Chapuisat',     pos: 'ATA', rating: 82 }, { name: 'Riedle',       pos: 'ATA', rating: 80 }, { name: 'Povlsen',       pos: 'ATA', rating: 74 },
   ],
-  // c29 - Azulão AL (CRB)
+  // c19 - Nacional (Uruguai)
   [
-    { name: 'Marcelo CRB', pos: 'GOL', rating: 55 }, { name: 'Sandro CRB', pos: 'GOL', rating: 45 },
-    { name: 'Fagner CRB', pos: 'ZAG', rating: 55 }, { name: 'Josemir CRB', pos: 'ZAG', rating: 53 }, { name: 'Wando CRB', pos: 'ZAG', rating: 48 },
-    { name: 'Gilvan CRB', pos: 'LAT', rating: 53 }, { name: 'Carlão CRB', pos: 'LAT', rating: 48 },
-    { name: 'Rogério CRB', pos: 'MEI', rating: 56 }, { name: 'Márcio CRB', pos: 'MEI', rating: 54 }, { name: 'Jaílton CRB', pos: 'MEI', rating: 52 }, { name: 'Claudinho CRB', pos: 'MEI', rating: 46 },
-    { name: 'Dídimo CRB', pos: 'ATA', rating: 56 }, { name: 'Leandro CRB', pos: 'ATA', rating: 52 }, { name: 'Alencar CRB', pos: 'ATA', rating: 47 },
+    { name: 'Dorado',        pos: 'GOL', rating: 74 }, { name: 'Montero',      pos: 'GOL', rating: 62 },
+    { name: 'Herrera',       pos: 'ZAG', rating: 73 }, { name: 'Tejera',       pos: 'ZAG', rating: 71 }, { name: 'Gutiérrez',     pos: 'ZAG', rating: 67 },
+    { name: 'Sosa',          pos: 'LAT', rating: 71 }, { name: 'Varela',       pos: 'LAT', rating: 67 },
+    { name: 'Poyet',         pos: 'MEI', rating: 77 }, { name: 'Bengoechea',   pos: 'MEI', rating: 75 }, { name: 'De León',       pos: 'MEI', rating: 72 }, { name: 'Ostolaza',      pos: 'MEI', rating: 68 },
+    { name: 'Recoba',        pos: 'ATA', rating: 76 }, { name: 'Zalayeta',     pos: 'ATA', rating: 73 }, { name: 'Perdomo',       pos: 'ATA', rating: 69 },
   ],
 
-  // ── DIV 4 CPU ──────────────────────────────────────────────────
-  // c30 - Bolívia Q. (Sampaio Corrêa)
+  // ── DIV 3 (forte regional + brasileiro de expressão) ──────────────
+  // c20 - Grêmio
   [
-    { name: 'João Sampaio', pos: 'GOL', rating: 47 }, { name: 'Luís Sampaio', pos: 'GOL', rating: 38 },
-    { name: 'Roberto Sampaio', pos: 'ZAG', rating: 46 }, { name: 'Otávio Sampaio', pos: 'ZAG', rating: 44 }, { name: 'Marco Sampaio', pos: 'ZAG', rating: 40 },
-    { name: 'Paulo Sampaio', pos: 'LAT', rating: 44 }, { name: 'Welbert Sampaio', pos: 'LAT', rating: 40 },
-    { name: 'Cézar Sampaio', pos: 'MEI', rating: 47 }, { name: 'Derlei Sampaio', pos: 'MEI', rating: 46 }, { name: 'Gilmar Sampaio', pos: 'MEI', rating: 43 }, { name: 'Rogério Sampaio', pos: 'MEI', rating: 38 },
-    { name: 'Linivaldo Sampaio', pos: 'ATA', rating: 47 }, { name: 'Paulo Sampaio ATA', pos: 'ATA', rating: 43 }, { name: 'Jaildo Sampaio', pos: 'ATA', rating: 38 },
+    { name: 'Danrlei',       pos: 'GOL', rating: 68 }, { name: 'Paulo Victor', pos: 'GOL', rating: 55 },
+    { name: 'Adaílton',      pos: 'ZAG', rating: 66 }, { name: 'Mauro Galvão', pos: 'ZAG', rating: 65 }, { name: 'Fonseca',       pos: 'ZAG', rating: 60 },
+    { name: 'Paulo Roberto', pos: 'LAT', rating: 64 }, { name: 'Anderson',     pos: 'LAT', rating: 60 },
+    { name: 'Alcindo',       pos: 'MEI', rating: 67 }, { name: 'Carpegiani',   pos: 'MEI', rating: 65 }, { name: 'Sandro',        pos: 'MEI', rating: 63 }, { name: 'Caio',          pos: 'MEI', rating: 60 },
+    { name: 'Dario',         pos: 'ATA', rating: 68 }, { name: 'Luís Carlos',  pos: 'ATA', rating: 64 }, { name: 'Éder',          pos: 'ATA', rating: 59 },
   ],
-  // c31 - Papão (Remo)
+  // c21 - Cruzeiro
   [
-    { name: 'Rildo Remo', pos: 'GOL', rating: 47 }, { name: 'Anderson Remo', pos: 'GOL', rating: 38 },
-    { name: 'Marcelo Remo', pos: 'ZAG', rating: 46 }, { name: 'Antônio Remo', pos: 'ZAG', rating: 44 }, { name: 'Carlos Remo', pos: 'ZAG', rating: 40 },
-    { name: 'Cláudio Remo', pos: 'LAT', rating: 44 }, { name: 'Sandro Remo', pos: 'LAT', rating: 40 },
-    { name: 'Paulo Remo', pos: 'MEI', rating: 47 }, { name: 'Rodrigo Remo', pos: 'MEI', rating: 45 }, { name: 'Fábio Remo', pos: 'MEI', rating: 43 }, { name: 'Valdir Remo', pos: 'MEI', rating: 38 },
-    { name: 'Elias Remo', pos: 'ATA', rating: 47 }, { name: 'Carlos Remo ATA', pos: 'ATA', rating: 43 }, { name: 'Junior Remo', pos: 'ATA', rating: 38 },
+    { name: 'Paulo Becker',  pos: 'GOL', rating: 67 }, { name: 'Fábio Jr',     pos: 'GOL', rating: 54 },
+    { name: 'Rildo',         pos: 'ZAG', rating: 66 }, { name: 'Henrique',     pos: 'ZAG', rating: 65 }, { name: 'Alex',          pos: 'ZAG', rating: 60 },
+    { name: 'Branco',        pos: 'LAT', rating: 65 }, { name: 'Jorge Luís',   pos: 'LAT', rating: 60 },
+    { name: 'Robinho',       pos: 'MEI', rating: 68 }, { name: 'Charles',      pos: 'MEI', rating: 65 }, { name: 'Liniker',       pos: 'MEI', rating: 62 }, { name: 'Cézar',         pos: 'MEI', rating: 59 },
+    { name: 'Edmundo',       pos: 'ATA', rating: 69 }, { name: 'Éder Aleixo',  pos: 'ATA', rating: 65 }, { name: 'Evandro',       pos: 'ATA', rating: 59 },
   ],
-  // c32 - Leão Azul (Paysandu)
+  // c22 - Palmeiras
   [
-    { name: 'Marcus Paysandu', pos: 'GOL', rating: 47 }, { name: 'Wagner Paysandu', pos: 'GOL', rating: 38 },
-    { name: 'Djalma Paysandu', pos: 'ZAG', rating: 46 }, { name: 'Milton Paysandu', pos: 'ZAG', rating: 44 }, { name: 'Elson Paysandu', pos: 'ZAG', rating: 40 },
-    { name: 'Bruno Paysandu', pos: 'LAT', rating: 44 }, { name: 'Domingos Paysandu', pos: 'LAT', rating: 39 },
-    { name: 'Robson Paysandu', pos: 'MEI', rating: 47 }, { name: 'Felix Paysandu', pos: 'MEI', rating: 45 }, { name: 'Samuel Paysandu', pos: 'MEI', rating: 42 }, { name: 'Arlindo Paysandu', pos: 'MEI', rating: 38 },
-    { name: 'Renato Paysandu', pos: 'ATA', rating: 47 }, { name: 'Adilson Paysandu', pos: 'ATA', rating: 43 }, { name: 'Gil Paysandu', pos: 'ATA', rating: 38 },
+    { name: 'Marcos',        pos: 'GOL', rating: 67 }, { name: 'Emerson',      pos: 'GOL', rating: 54 },
+    { name: 'Antônio Carlos',pos: 'ZAG', rating: 67 }, { name: 'Adílson',      pos: 'ZAG', rating: 65 }, { name: 'Rodrigo',       pos: 'ZAG', rating: 61 },
+    { name: 'Pedrão',        pos: 'LAT', rating: 64 }, { name: 'Zé Maria',     pos: 'LAT', rating: 60 },
+    { name: 'Mazinho',       pos: 'MEI', rating: 69 }, { name: 'Zinho',        pos: 'MEI', rating: 68 }, { name: 'Everton',       pos: 'MEI', rating: 65 }, { name: 'Palhinha',      pos: 'MEI', rating: 62 },
+    { name: 'Evair',         pos: 'ATA', rating: 70 }, { name: 'Paulo Nunes',  pos: 'ATA', rating: 66 }, { name: 'Rinaldo',       pos: 'ATA', rating: 59 },
   ],
-  // c33 - Tigre GO (Vila Nova)
+  // c23 - Corinthians
   [
-    { name: 'Edson Vila', pos: 'GOL', rating: 46 }, { name: 'Luciano Vila', pos: 'GOL', rating: 37 },
-    { name: 'Jonas Vila', pos: 'ZAG', rating: 45 }, { name: 'Marquinhos Vila', pos: 'ZAG', rating: 43 }, { name: 'Cleiton Vila', pos: 'ZAG', rating: 39 },
-    { name: 'José Vila', pos: 'LAT', rating: 43 }, { name: 'Júlio Vila', pos: 'LAT', rating: 39 },
-    { name: 'Wesley Vila', pos: 'MEI', rating: 46 }, { name: 'Rodrigo Vila', pos: 'MEI', rating: 44 }, { name: 'Gustavo Vila', pos: 'MEI', rating: 42 }, { name: 'Heber Vila', pos: 'MEI', rating: 37 },
-    { name: 'Rui Vila', pos: 'ATA', rating: 46 }, { name: 'Alessandro Vila', pos: 'ATA', rating: 42 }, { name: 'Leandro Vila', pos: 'ATA', rating: 37 },
+    { name: 'Ronaldo Giovanelli', pos: 'GOL', rating: 67 }, { name: 'Osmar',   pos: 'GOL', rating: 53 },
+    { name: 'Tupãzinho',     pos: 'ZAG', rating: 65 }, { name: 'Jorge',        pos: 'ZAG', rating: 63 }, { name: 'Paulo Sérgio',  pos: 'ZAG', rating: 59 },
+    { name: 'Sidnei',        pos: 'LAT', rating: 63 }, { name: 'Marcinho',     pos: 'LAT', rating: 59 },
+    { name: 'Neto',          pos: 'MEI', rating: 68 }, { name: 'Rincón',       pos: 'MEI', rating: 67 }, { name: 'Mauro',         pos: 'MEI', rating: 64 }, { name: 'Caio',          pos: 'MEI', rating: 60 },
+    { name: 'Dinei',         pos: 'ATA', rating: 67 }, { name: 'Hélio',        pos: 'ATA', rating: 63 }, { name: 'Gameiro',       pos: 'ATA', rating: 58 },
   ],
-  // c34 - Tubarão (Londrina)
+  // c24 - Celtic
   [
-    { name: 'Alex Londrina', pos: 'GOL', rating: 46 }, { name: 'Paulo Londrina', pos: 'GOL', rating: 37 },
-    { name: 'Wanderley Londrina', pos: 'ZAG', rating: 45 }, { name: 'Giovani Londrina', pos: 'ZAG', rating: 43 }, { name: 'Sérgio Londrina', pos: 'ZAG', rating: 39 },
-    { name: 'Fabíolo Londrina', pos: 'LAT', rating: 43 }, { name: 'Mário Londrina', pos: 'LAT', rating: 39 },
-    { name: 'Wilson Londrina', pos: 'MEI', rating: 46 }, { name: 'Diego Londrina', pos: 'MEI', rating: 44 }, { name: 'Rafael Londrina', pos: 'MEI', rating: 41 }, { name: 'Nivan Londrina', pos: 'MEI', rating: 37 },
-    { name: 'Osvaldo Londrina', pos: 'ATA', rating: 46 }, { name: 'Carlos Londrina', pos: 'ATA', rating: 42 }, { name: 'Eduardo Londrina', pos: 'ATA', rating: 37 },
+    { name: 'Bonner',        pos: 'GOL', rating: 63 }, { name: 'Marshall',     pos: 'GOL', rating: 51 },
+    { name: 'Boyd',          pos: 'ZAG', rating: 62 }, { name: 'McNally',      pos: 'ZAG', rating: 60 }, { name: 'Whyte',         pos: 'ZAG', rating: 57 },
+    { name: 'McKinlay',      pos: 'LAT', rating: 60 }, { name: 'Galloway',     pos: 'LAT', rating: 57 },
+    { name: 'McStay',        pos: 'MEI', rating: 65 }, { name: 'Collins',      pos: 'MEI', rating: 63 }, { name: "O'Neil",        pos: 'MEI', rating: 60 }, { name: 'Wdowczyk',      pos: 'MEI', rating: 57 },
+    { name: 'Nicholas',      pos: 'ATA', rating: 64 }, { name: 'Creaney',      pos: 'ATA', rating: 61 }, { name: 'Coyne',         pos: 'ATA', rating: 58 },
   ],
-  // c35 - Alvinegro RN (ABC)
+  // c25 - PSV
   [
-    { name: 'Raniel ABC', pos: 'GOL', rating: 46 }, { name: 'Hugo ABC', pos: 'GOL', rating: 37 },
-    { name: 'Clévio ABC', pos: 'ZAG', rating: 45 }, { name: 'Alexandre ABC', pos: 'ZAG', rating: 43 }, { name: 'Rildo ABC', pos: 'ZAG', rating: 39 },
-    { name: 'Marco ABC', pos: 'LAT', rating: 43 }, { name: 'Clébio ABC', pos: 'LAT', rating: 39 },
-    { name: 'Humberto ABC', pos: 'MEI', rating: 46 }, { name: 'Carlos ABC', pos: 'MEI', rating: 44 }, { name: 'Mário ABC', pos: 'MEI', rating: 41 }, { name: 'Elenaldo ABC', pos: 'MEI', rating: 37 },
-    { name: 'Zé ABC', pos: 'ATA', rating: 46 }, { name: 'Ivaldo ABC', pos: 'ATA', rating: 42 }, { name: 'Sineide ABC', pos: 'ATA', rating: 37 },
+    { name: 'De Goey',       pos: 'GOL', rating: 65 }, { name: 'Waterreus',    pos: 'GOL', rating: 52 },
+    { name: 'Valckx',        pos: 'ZAG', rating: 65 }, { name: 'Heintze',      pos: 'ZAG', rating: 63 }, { name: 'Numan',         pos: 'ZAG', rating: 60 },
+    { name: 'Van Aerle',     pos: 'LAT', rating: 63 }, { name: 'Bosman',       pos: 'LAT', rating: 59 },
+    { name: 'Cocu',          pos: 'MEI', rating: 66 }, { name: 'Van Gobbel',   pos: 'MEI', rating: 63 }, { name: 'Luttenberg',    pos: 'MEI', rating: 60 }, { name: 'Kieft',         pos: 'MEI', rating: 61 },
+    { name: 'Romário',       pos: 'ATA', rating: 72 }, { name: 'Nilis',        pos: 'ATA', rating: 66 }, { name: 'Jonk',          pos: 'ATA', rating: 63 },
   ],
-  // c36 - Gavião Norte (Macapá-AP, Div 4)
+  // c26 - Sevilla
   [
-    { name: 'Jorge Amapá', pos: 'GOL', rating: 45 }, { name: 'Davi Amapá', pos: 'GOL', rating: 36 },
-    { name: 'Raimundo Amapá', pos: 'ZAG', rating: 44 }, { name: 'Cláudio Amapá', pos: 'ZAG', rating: 42 }, { name: 'Adão Amapá', pos: 'ZAG', rating: 38 },
-    { name: 'Luís Amapá', pos: 'LAT', rating: 42 }, { name: 'Manoel Amapá', pos: 'LAT', rating: 38 },
-    { name: 'Ronaldo Amapá', pos: 'MEI', rating: 45 }, { name: 'Fábio Amapá', pos: 'MEI', rating: 43 }, { name: 'Carlos Amapá', pos: 'MEI', rating: 40 }, { name: 'Paulo Amapá', pos: 'MEI', rating: 36 },
-    { name: 'Edson Amapá', pos: 'ATA', rating: 45 }, { name: 'Wagner Amapá', pos: 'ATA', rating: 41 }, { name: 'Nilton Amapá', pos: 'ATA', rating: 36 },
+    { name: 'Jiménez',       pos: 'GOL', rating: 63 }, { name: 'Elosúa',       pos: 'GOL', rating: 51 },
+    { name: 'Subirats',      pos: 'ZAG', rating: 63 }, { name: 'Monchu',       pos: 'ZAG', rating: 61 }, { name: 'Vales',         pos: 'ZAG', rating: 58 },
+    { name: 'Carvajal',      pos: 'LAT', rating: 62 }, { name: 'Ferreira',     pos: 'LAT', rating: 58 },
+    { name: 'Ramírez',       pos: 'MEI', rating: 65 }, { name: 'Casanova',     pos: 'MEI', rating: 63 }, { name: 'Solano',        pos: 'MEI', rating: 60 }, { name: 'Ufarte',        pos: 'MEI', rating: 57 },
+    { name: 'Súker',         pos: 'ATA', rating: 70 }, { name: 'Maradona',     pos: 'ATA', rating: 69 }, { name: 'Rengifo',       pos: 'ATA', rating: 60 },
   ],
-  // c37 - Estrela PA (Santarém-PA, Div 4)
+  // c27 - Independiente
   [
-    { name: 'Marcos Santarém', pos: 'GOL', rating: 45 }, { name: 'Edílson Santarém', pos: 'GOL', rating: 36 },
-    { name: 'Orlando Santarém', pos: 'ZAG', rating: 44 }, { name: 'Valdeci Santarém', pos: 'ZAG', rating: 42 }, { name: 'Jânio Santarém', pos: 'ZAG', rating: 38 },
-    { name: 'Pedro Santarém', pos: 'LAT', rating: 42 }, { name: 'Ailton Santarém', pos: 'LAT', rating: 38 },
-    { name: 'Sérgio Santarém', pos: 'MEI', rating: 45 }, { name: 'Anderson Santarém', pos: 'MEI', rating: 43 }, { name: 'Robson Santarém', pos: 'MEI', rating: 40 }, { name: 'Filemon Santarém', pos: 'MEI', rating: 36 },
-    { name: 'Rivaldo Santarém', pos: 'ATA', rating: 45 }, { name: 'Celso Santarém', pos: 'ATA', rating: 41 }, { name: 'Toninho Santarém', pos: 'ATA', rating: 36 },
+    { name: 'Islas',         pos: 'GOL', rating: 64 }, { name: 'Correa',       pos: 'GOL', rating: 51 },
+    { name: 'Albornoz',      pos: 'ZAG', rating: 63 }, { name: 'Pavoni',       pos: 'ZAG', rating: 61 }, { name: 'Serrizuela',    pos: 'ZAG', rating: 57 },
+    { name: 'Morales',       pos: 'LAT', rating: 62 }, { name: 'Ruiz',         pos: 'LAT', rating: 57 },
+    { name: 'Navarro',       pos: 'MEI', rating: 65 }, { name: 'Acosta',       pos: 'MEI', rating: 63 }, { name: 'Fabbri',        pos: 'MEI', rating: 60 }, { name: 'Balcedo',       pos: 'MEI', rating: 57 },
+    { name: 'Linguerri',     pos: 'ATA', rating: 65 }, { name: 'Méndez',       pos: 'ATA', rating: 62 }, { name: 'Ávalos',        pos: 'ATA', rating: 58 },
   ],
-  // c38 - Galo PI (Teresina-PI, Div 4)
+  // c28 - Santos
   [
-    { name: 'Antônio Piauí', pos: 'GOL', rating: 45 }, { name: 'Hélio Piauí', pos: 'GOL', rating: 36 },
-    { name: 'Francisco Piauí', pos: 'ZAG', rating: 44 }, { name: 'Geraldo Piauí', pos: 'ZAG', rating: 42 }, { name: 'Reginaldo Piauí', pos: 'ZAG', rating: 38 },
-    { name: 'Osvaldo Piauí', pos: 'LAT', rating: 42 }, { name: 'Carlos Piauí', pos: 'LAT', rating: 38 },
-    { name: 'Gilmar Piauí', pos: 'MEI', rating: 45 }, { name: 'Eduardo Piauí', pos: 'MEI', rating: 43 }, { name: 'Dico Piauí', pos: 'MEI', rating: 40 }, { name: 'Nazário Piauí', pos: 'MEI', rating: 36 },
-    { name: 'João Piauí', pos: 'ATA', rating: 45 }, { name: 'Walmir Piauí', pos: 'ATA', rating: 41 }, { name: 'Cícero Piauí', pos: 'ATA', rating: 36 },
+    { name: 'Vander',        pos: 'GOL', rating: 62 }, { name: 'Osmar',        pos: 'GOL', rating: 50 },
+    { name: 'Mauro',         pos: 'ZAG', rating: 62 }, { name: 'Fabinho',      pos: 'ZAG', rating: 60 }, { name: 'Sandro',        pos: 'ZAG', rating: 56 },
+    { name: 'Waldir',        pos: 'LAT', rating: 60 }, { name: 'Jorge Luís',   pos: 'LAT', rating: 56 },
+    { name: 'Diego',         pos: 'MEI', rating: 63 }, { name: 'Pedrinho',     pos: 'MEI', rating: 61 }, { name: 'Zequinha',      pos: 'MEI', rating: 58 }, { name: 'Márcio',        pos: 'MEI', rating: 55 },
+    { name: 'Clodoaldo Jr',  pos: 'ATA', rating: 64 }, { name: 'Claudinho',    pos: 'ATA', rating: 60 }, { name: 'Sílvio',        pos: 'ATA', rating: 56 },
   ],
-  // c39 - Azul SE (Aracaju-SE, Div 4)
+  // c29 - Estudiantes
   [
-    { name: 'Carlão Sergipe', pos: 'GOL', rating: 45 }, { name: 'Bruno Sergipe', pos: 'GOL', rating: 36 },
-    { name: 'Cosme Sergipe', pos: 'ZAG', rating: 44 }, { name: 'Hélio Sergipe', pos: 'ZAG', rating: 42 }, { name: 'Ailton Sergipe', pos: 'ZAG', rating: 38 },
-    { name: 'Sinval Sergipe', pos: 'LAT', rating: 42 }, { name: 'Marcos Sergipe', pos: 'LAT', rating: 38 },
-    { name: 'Cléber Sergipe', pos: 'MEI', rating: 45 }, { name: 'Paulo Sergipe', pos: 'MEI', rating: 43 }, { name: 'Elias Sergipe', pos: 'MEI', rating: 40 }, { name: 'Vilmar Sergipe', pos: 'MEI', rating: 36 },
-    { name: 'Nildo Sergipe', pos: 'ATA', rating: 45 }, { name: 'Rogério Sergipe', pos: 'ATA', rating: 41 }, { name: 'Jonilson Sergipe', pos: 'ATA', rating: 36 },
+    { name: 'Vivaldo',       pos: 'GOL', rating: 62 }, { name: 'Ramírez',      pos: 'GOL', rating: 50 },
+    { name: 'Domínguez',     pos: 'ZAG', rating: 62 }, { name: 'Ferrero',      pos: 'ZAG', rating: 60 }, { name: 'Ramos',         pos: 'ZAG', rating: 56 },
+    { name: 'García',        pos: 'LAT', rating: 60 }, { name: 'Peralta',      pos: 'LAT', rating: 56 },
+    { name: 'Verón',         pos: 'MEI', rating: 65 }, { name: 'Flores',       pos: 'MEI', rating: 62 }, { name: 'Montes',        pos: 'MEI', rating: 59 }, { name: 'Acuña',         pos: 'MEI', rating: 56 },
+    { name: 'Medina',        pos: 'ATA', rating: 64 }, { name: 'Olivares',     pos: 'ATA', rating: 61 }, { name: 'Suárez',        pos: 'ATA', rating: 57 },
+  ],
+
+  // ── DIV 4 CPU (9 times; humanos completam os 10) ──────────────────
+  // c30 - Internacional
+  [
+    { name: 'Cléber',        pos: 'GOL', rating: 54 }, { name: 'Emerson',      pos: 'GOL', rating: 43 },
+    { name: 'Beto',          pos: 'ZAG', rating: 53 }, { name: 'Júnior',       pos: 'ZAG', rating: 51 }, { name: 'Wagner',        pos: 'ZAG', rating: 47 },
+    { name: 'Rogério',       pos: 'LAT', rating: 51 }, { name: 'Sérgio',       pos: 'LAT', rating: 47 },
+    { name: 'Giovane',       pos: 'MEI', rating: 55 }, { name: 'Fabinho',      pos: 'MEI', rating: 53 }, { name: 'Adriano',       pos: 'MEI', rating: 50 }, { name: 'Nelsinho',      pos: 'MEI', rating: 46 },
+    { name: 'Jardel',        pos: 'ATA', rating: 56 }, { name: 'Leandro',      pos: 'ATA', rating: 52 }, { name: 'Marcos',        pos: 'ATA', rating: 47 },
+  ],
+  // c31 - Vasco
+  [
+    { name: 'Carlos Germano',pos: 'GOL', rating: 55 }, { name: 'Acácio',       pos: 'GOL', rating: 43 },
+    { name: 'Odvan',         pos: 'ZAG', rating: 54 }, { name: 'Barros',       pos: 'ZAG', rating: 52 }, { name: 'Gilberto',      pos: 'ZAG', rating: 48 },
+    { name: 'Luís Carlos',   pos: 'LAT', rating: 52 }, { name: 'Rodrigo',      pos: 'LAT', rating: 47 },
+    { name: 'Ramón',         pos: 'MEI', rating: 56 }, { name: 'Felipe',       pos: 'MEI', rating: 54 }, { name: 'Sávio',         pos: 'MEI', rating: 53 }, { name: 'Anderson',      pos: 'MEI', rating: 47 },
+    { name: 'Túlio',         pos: 'ATA', rating: 56 }, { name: 'Ademir',       pos: 'ATA', rating: 52 }, { name: 'Bebeto Jr',     pos: 'ATA', rating: 47 },
+  ],
+  // c32 - Botafogo
+  [
+    { name: 'Jefferson',     pos: 'GOL', rating: 53 }, { name: 'Dênis',        pos: 'GOL', rating: 42 },
+    { name: 'Maurício',      pos: 'ZAG', rating: 52 }, { name: 'Alexandre',    pos: 'ZAG', rating: 50 }, { name: 'Lúcio',         pos: 'ZAG', rating: 46 },
+    { name: 'Jailton',       pos: 'LAT', rating: 50 }, { name: 'Osmar',        pos: 'LAT', rating: 46 },
+    { name: 'Souza',         pos: 'MEI', rating: 53 }, { name: 'Andrade',      pos: 'MEI', rating: 51 }, { name: 'Didi',          pos: 'MEI', rating: 49 }, { name: 'Marcus',        pos: 'MEI', rating: 45 },
+    { name: 'Kléber',        pos: 'ATA', rating: 53 }, { name: 'Túlio',        pos: 'ATA', rating: 50 }, { name: 'Renato',        pos: 'ATA', rating: 45 },
+  ],
+  // c33 - Fluminense
+  [
+    { name: 'Paulo',         pos: 'GOL', rating: 53 }, { name: 'Élton',        pos: 'GOL', rating: 42 },
+    { name: 'Cléber',        pos: 'ZAG', rating: 52 }, { name: 'Marcão',       pos: 'ZAG', rating: 50 }, { name: 'Robson',        pos: 'ZAG', rating: 46 },
+    { name: 'Renato',        pos: 'LAT', rating: 50 }, { name: 'Gilvan',       pos: 'LAT', rating: 45 },
+    { name: 'Zinho',         pos: 'MEI', rating: 56 }, { name: 'Carlos',       pos: 'MEI', rating: 52 }, { name: 'Lula',          pos: 'MEI', rating: 49 }, { name: 'Nelsinho',      pos: 'MEI', rating: 45 },
+    { name: 'Bebeto',        pos: 'ATA', rating: 53 }, { name: 'Claudinho',    pos: 'ATA', rating: 49 }, { name: 'Marcinho',      pos: 'ATA', rating: 45 },
+  ],
+  // c34 - Olimpia (Paraguai)
+  [
+    { name: 'Chilavert',     pos: 'GOL', rating: 56 }, { name: 'Fernández',    pos: 'GOL', rating: 44 },
+    { name: 'Ayala',         pos: 'ZAG', rating: 54 }, { name: 'Sarabia',      pos: 'ZAG', rating: 52 }, { name: 'Genes',         pos: 'ZAG', rating: 48 },
+    { name: 'Campos',        pos: 'LAT', rating: 52 }, { name: 'Ortiz',        pos: 'LAT', rating: 47 },
+    { name: 'Cardozo',       pos: 'MEI', rating: 56 }, { name: 'Enciso',       pos: 'MEI', rating: 53 }, { name: 'Barreto',       pos: 'MEI', rating: 50 }, { name: 'Delgado',       pos: 'MEI', rating: 46 },
+    { name: 'Romerito',      pos: 'ATA', rating: 55 }, { name: 'Cabañas',      pos: 'ATA', rating: 52 }, { name: 'Morínigo',      pos: 'ATA', rating: 47 },
+  ],
+  // c35 - Cruz Azul (México)
+  [
+    { name: 'Hernández',     pos: 'GOL', rating: 52 }, { name: 'Ríos',         pos: 'GOL', rating: 41 },
+    { name: 'Reynoso',       pos: 'ZAG', rating: 52 }, { name: 'Montoya',      pos: 'ZAG', rating: 50 }, { name: 'Velarde',       pos: 'ZAG', rating: 46 },
+    { name: 'García',        pos: 'LAT', rating: 50 }, { name: 'Contreras',    pos: 'LAT', rating: 45 },
+    { name: 'Berizzo',       pos: 'MEI', rating: 54 }, { name: 'Galindo',      pos: 'MEI', rating: 52 }, { name: 'Palacios',      pos: 'MEI', rating: 49 }, { name: 'Luna',          pos: 'MEI', rating: 45 },
+    { name: 'Brambila',      pos: 'ATA', rating: 53 }, { name: 'Torres',       pos: 'ATA', rating: 50 }, { name: 'Cárdenas',      pos: 'ATA', rating: 45 },
+  ],
+  // c36 - Colo-Colo (Chile)
+  [
+    { name: 'Tapia',         pos: 'GOL', rating: 52 }, { name: 'Espinoza',     pos: 'GOL', rating: 41 },
+    { name: 'Reyes',         pos: 'ZAG', rating: 52 }, { name: 'Villarroel',   pos: 'ZAG', rating: 50 }, { name: 'Acuña',         pos: 'ZAG', rating: 46 },
+    { name: 'Ramírez',       pos: 'LAT', rating: 50 }, { name: 'Olguín',       pos: 'LAT', rating: 45 },
+    { name: 'Fouilloux',     pos: 'MEI', rating: 53 }, { name: 'Vilches',      pos: 'MEI', rating: 51 }, { name: 'Martel',        pos: 'MEI', rating: 48 }, { name: 'Cornejo',       pos: 'MEI', rating: 44 },
+    { name: 'Barticciotto',  pos: 'ATA', rating: 54 }, { name: 'Covarrubias',  pos: 'ATA', rating: 51 }, { name: 'Salas',         pos: 'ATA', rating: 49 },
+  ],
+  // c37 - Peñarol (Uruguai)
+  [
+    { name: 'Zeballos',      pos: 'GOL', rating: 51 }, { name: 'Pereira',      pos: 'GOL', rating: 41 },
+    { name: 'Ramos',         pos: 'ZAG', rating: 51 }, { name: 'Gutiérrez',    pos: 'ZAG', rating: 49 }, { name: 'De León',       pos: 'ZAG', rating: 46 },
+    { name: 'González',      pos: 'LAT', rating: 49 }, { name: 'Herrera',      pos: 'LAT', rating: 44 },
+    { name: 'Silva',         pos: 'MEI', rating: 53 }, { name: 'Fonseca',      pos: 'MEI', rating: 51 }, { name: 'Abreu',         pos: 'MEI', rating: 49 }, { name: 'Morales',       pos: 'MEI', rating: 44 },
+    { name: 'Recoba',        pos: 'ATA', rating: 53 }, { name: 'Saralegui',    pos: 'ATA', rating: 50 }, { name: 'Perdomo',       pos: 'ATA', rating: 45 },
+  ],
+  // c38 - América (México)
+  [
+    { name: 'Campos',        pos: 'GOL', rating: 51 }, { name: 'Lara',         pos: 'GOL', rating: 41 },
+    { name: 'Suárez',        pos: 'ZAG', rating: 51 }, { name: 'Galindo',      pos: 'ZAG', rating: 49 }, { name: 'Mendoza',       pos: 'ZAG', rating: 45 },
+    { name: 'López',         pos: 'LAT', rating: 49 }, { name: 'Muñoz',        pos: 'LAT', rating: 44 },
+    { name: 'Bernal',        pos: 'MEI', rating: 53 }, { name: 'Reynoso',      pos: 'MEI', rating: 51 }, { name: 'Valdés',        pos: 'MEI', rating: 49 }, { name: 'Patiño',        pos: 'MEI', rating: 44 },
+    { name: 'Hermosillo',    pos: 'ATA', rating: 54 }, { name: 'Álvarez',      pos: 'ATA', rating: 51 }, { name: 'Dely Valdés',   pos: 'ATA', rating: 49 },
   ],
 ]
 

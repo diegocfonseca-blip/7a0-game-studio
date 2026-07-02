@@ -600,7 +600,7 @@ function reducer(state: DraftState, action: Action): DraftState {
     case 'SET_SCREEN': return { ...state, screen: action.screen }
     case 'GO_CPU': return { ...INITIAL, screen: 'intro', onlineMode: 'cpu', isHost: true }
     case 'RESTORE_SCREEN': {
-      const saved = localStorage.getItem('draft-v2')
+      const saved = localStorage.getItem('draft-v3')
       if (!saved) return { ...state, screen: 'hub' }
       try { return { ...state, screen: (JSON.parse(saved).screen as DraftScreen) ?? 'hub' } }
       catch { return { ...state, screen: 'hub' } }
@@ -965,7 +965,7 @@ function reducer(state: DraftState, action: Action): DraftState {
     }
 
     case 'NEW_GAME':
-      localStorage.removeItem('draft-v2')
+      localStorage.removeItem('draft-v3')
       return { ...INITIAL }
 
     default: return state
@@ -975,7 +975,7 @@ function reducer(state: DraftState, action: Action): DraftState {
 const Ctx = createContext<{ state: DraftState; dispatch: React.Dispatch<Action> } | null>(null)
 
 export function DraftProvider({ children }: { children: ReactNode }) {
-  const saved = localStorage.getItem('draft-v2')
+  const saved = localStorage.getItem('draft-v3')
   let initial = INITIAL
   if (saved) {
     try {
@@ -1003,7 +1003,7 @@ export function DraftProvider({ children }: { children: ReactNode }) {
 
   // Persist CPU games only
   if (state.started && state.onlineMode !== 'online') {
-    localStorage.setItem('draft-v2', JSON.stringify(state))
+    localStorage.setItem('draft-v3', JSON.stringify(state))
   }
 
   // Set up Supabase Realtime channel when online game starts
