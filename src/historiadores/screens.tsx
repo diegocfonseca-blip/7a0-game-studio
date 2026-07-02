@@ -1206,10 +1206,10 @@ function RevealPhase() {
               && backedRank.distance === winningGuess.distance
               && backedRank.over === winningGuess.over
 
-            const icon   = isCardWinner ? '🏆' : backedIsWinner ? '✅' : alsoGotItRight ? '🔶' : '❌'
-            const bg     = isCardWinner ? '#FFB800' : backedIsWinner ? '#fff' : alsoGotItRight ? '#FFF3CD' : '#F0EAD8'
-            const border = isCardWinner ? '3px solid #0C0C0C' : backedIsWinner ? '2px solid #0C0C0C' : alsoGotItRight ? '2px solid #D97706' : '2px solid rgba(0,0,0,0.25)'
-            const shadow = isCardWinner ? '3px 3px 0 #0C0C0C' : backedIsWinner ? '2px 2px 0 #0C0C0C' : 'none'
+            const icon   = isCardWinner ? '🏆' : backedIsWinner ? '↩️' : alsoGotItRight ? '🔶' : '❌'
+            const bg     = isCardWinner ? '#FFB800' : backedIsWinner ? '#E8E8E8' : alsoGotItRight ? '#FFF3CD' : '#F0EAD8'
+            const border = isCardWinner ? '3px solid #0C0C0C' : backedIsWinner ? '2px solid rgba(0,0,0,0.2)' : alsoGotItRight ? '2px solid #D97706' : '2px solid rgba(0,0,0,0.2)'
+            const shadow = isCardWinner ? '3px 3px 0 #0C0C0C' : 'none'
 
             const winnerName = playerName(winningGuessPlayerId ?? '')
 
@@ -1228,7 +1228,7 @@ function RevealPhase() {
               ? `${backedName} também acertou, mas ${winnerName} foi mais rápido no palpite → devolvido`
               : `${backedName} não acertou o valor → devolvido`
 
-            const line3Color = isCardWinner ? '#0C0C0C' : backedIsWinner ? '#059669' : alsoGotItRight ? '#92400E' : '#DC2626'
+            const line3Color = isCardWinner ? '#0C0C0C' : backedIsWinner ? '#555555' : alsoGotItRight ? '#92400E' : '#DC2626'
 
             return (
               <div
@@ -1249,7 +1249,7 @@ function RevealPhase() {
                 </div>
                 <p
                   className="font-black text-lg shrink-0 ml-2"
-                  style={{ fontFamily: 'Oswald, sans-serif', color: isCardWinner ? '#0C0C0C' : backedIsWinner ? '#000' : '#00000055' }}
+                  style={{ fontFamily: 'Oswald, sans-serif', color: isCardWinner ? '#0C0C0C' : '#00000055' }}
                 >
                   {fmt(bet.amount)}
                 </p>
