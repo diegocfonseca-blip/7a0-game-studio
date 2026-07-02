@@ -9,6 +9,7 @@ export type Formation = '4-4-2' | '4-3-3' | '4-2-3-1' | '4-5-1' | '3-5-2'
 export interface OtherMatchGoal {
   min: number
   isHome: boolean
+  scorer?: string
 }
 
 export interface OtherMatchLive {

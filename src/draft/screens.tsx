@@ -641,6 +641,77 @@ export function DraftMatch() {
           </BrutalCard>
         )}
 
+        {/* Outros Jogos */}
+        {live.otherMatches && live.otherMatches.length > 0 && (() => {
+          const myDiv = live.division
+          const sameDivMatches = live.otherMatches.filter(m => m.division === myDiv)
+          const otherDivMatches = live.otherMatches.filter(m => m.division !== myDiv)
+          const visibleGoals = (m: typeof live.otherMatches[0]) =>
+            m.goals.filter(g => g.min <= live.minute)
+          return (
+            <div className="space-y-2">
+              <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Outros jogos</p>
+              {sameDivMatches.map((m, i) => {
+                const scored = visibleGoals(m)
+                const divLabel = ({ 1: '1ª', 2: '2ª', 3: '3ª', 4: '4ª' } as Record<number,string>)[m.division] ?? `${m.division}ª`
+                return (
+                  <motion.div key={m.homeId + m.awayId}
+                    initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                    <BrutalCard color="#1a1a2e" className="p-3" shadow={4}>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-white/50 font-black text-[9px] uppercase">{divLabel}</span>
+                        <div className="flex-1 flex items-center justify-between">
+                          <span className="text-white font-black text-xs truncate max-w-[90px]">{m.homeName}</span>
+                          <span className="text-white font-black text-lg mx-2" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                            {m.gf} <span className="text-white/30">–</span> {m.ga}
+                          </span>
+                          <span className="text-white/60 font-black text-xs truncate max-w-[90px] text-right">{m.awayName}</span>
+                        </div>
+                      </div>
+                      {scored.length > 0 && (
+                        <div className="mt-2 space-y-0.5 border-t border-white/10 pt-2">
+                          {scored.map((g, gi) => (
+                            <motion.div key={gi} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                              className="flex items-center gap-1.5">
+                              <span className="text-green-400 text-[10px]">⚽</span>
+                              <span className="text-white/60 font-mono text-[9px]">{g.min}'</span>
+                              <span className={`font-black text-[10px] truncate ${g.isHome ? 'text-white' : 'text-white/50'}`}>
+                                {g.scorer ?? '—'}
+                              </span>
+                              {!g.isHome && <span className="text-white/30 text-[9px] ml-auto">(vis)</span>}
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
+                    </BrutalCard>
+                  </motion.div>
+                )
+              })}
+              {otherDivMatches.length > 0 && (
+                <div className="grid grid-cols-2 gap-1.5">
+                  {otherDivMatches.map(m => {
+                    const divLabel = ({ 1: '1ª', 2: '2ª', 3: '3ª', 4: '4ª' } as Record<number,string>)[m.division] ?? `${m.division}ª`
+                    return (
+                      <div key={m.homeId + m.awayId}
+                        className="border border-white/10 rounded px-2 py-1.5 flex items-center justify-between gap-1"
+                        style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
+                        <div className="min-w-0">
+                          <p className="text-white/30 text-[8px] font-black uppercase">{divLabel}</p>
+                          <p className="text-white/60 text-[9px] font-bold truncate">{m.homeName}</p>
+                          <p className="text-white/40 text-[9px] font-bold truncate">{m.awayName}</p>
+                        </div>
+                        <span className="text-white font-black text-sm shrink-0" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                          {m.gf}–{m.ga}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })()}
+
         {/* events feed */}
         <div className="space-y-1">
           {live.events.filter(e => e.trim()).map((e, i) => {

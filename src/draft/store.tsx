@@ -315,14 +315,23 @@ function autoLineup(squad: DraftPlayer[], formation: Formation): string[] {
 }
 
 // ── other-match live data ──
+function pickScorerFromSquad(squad: DraftPlayer[] | undefined): string {
+  if (!squad || squad.length === 0) return '—'
+  const atk = squad.filter(p => p.pos === 'ATA' || p.pos === 'MEI')
+  const pool = atk.length ? atk : squad
+  const p = pool[Math.floor(Math.random() * pool.length)]
+  const m = p.name.match(/"([^"]+)"/)
+  return m ? m[1] : p.name.split(' ').pop() ?? p.name
+}
+
 function makeOtherMatchLive(home: LeagueTeam, away: LeagueTeam): OtherMatchLive {
   const diff = (home.strength - away.strength) / 14
   const xgH = Math.max(0.3, 1.2 + diff), xgA = Math.max(0.3, 1.2 - diff)
   const hg = Math.max(0, Math.round(xgH + (Math.random() - 0.5) * 2.5))
   const ag = Math.max(0, Math.round(xgA + (Math.random() - 0.5) * 2.5))
   const goals: OtherMatchGoal[] = []
-  for (let i = 0; i < hg; i++) goals.push({ min: 1 + Math.floor(Math.random() * 89), isHome: true })
-  for (let i = 0; i < ag; i++) goals.push({ min: 1 + Math.floor(Math.random() * 89), isHome: false })
+  for (let i = 0; i < hg; i++) goals.push({ min: 1 + Math.floor(Math.random() * 89), isHome: true, scorer: pickScorerFromSquad(home.squad) })
+  for (let i = 0; i < ag; i++) goals.push({ min: 1 + Math.floor(Math.random() * 89), isHome: false, scorer: pickScorerFromSquad(away.squad) })
   goals.sort((a, b) => a.min - b.min)
   return { homeId: home.id, homeName: home.name, awayId: away.id, awayName: away.name, division: home.division, goals, gf: 0, ga: 0 }
 }
