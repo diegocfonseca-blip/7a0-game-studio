@@ -65,68 +65,101 @@ function HistCard({
   if (!card) return null
   const colors = getRaridadeColor(card.raridade)
 
+  const hasPhoto = !compact && !!photoUrl
+
   return (
     <div
-      className="w-full rounded-2xl border-[3px] border-black overflow-hidden relative"
+      className="w-full rounded-2xl border-[3px] border-black overflow-hidden relative flex flex-col"
       style={{
         background: colors.bg,
         boxShadow: `5px 5px 0 0 #0C0C0C, 0 0 40px ${colors.glow}55`,
+        minHeight: hasPhoto ? '380px' : undefined,
       }}
     >
       <ShimmerOverlay raridade={card.raridade} />
+
+      {/* Full-card photo background */}
+      {hasPhoto && (
+        <div className="absolute inset-0 z-0">
+          <img
+            src={photoUrl!}
+            alt={card.nome}
+            className="w-full h-full object-cover"
+            style={{ objectPosition: 'center 15%' }}
+            loading="lazy"
+          />
+          {/* gradient: semi-dark top → transparent middle → very dark bottom */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 35%, rgba(0,0,0,0.0) 52%, rgba(0,0,0,0.72) 68%, rgba(0,0,0,0.95) 100%)',
+            }}
+          />
+        </div>
+      )}
+
+      {/* No-photo fallback pattern */}
+      {!compact && !photoUrl && (
+        <div
+          className="absolute inset-0 z-0 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.12)' }}
+        >
+          <span className="text-8xl opacity-10">{card.flag}</span>
+        </div>
+      )}
 
       {/* Badges row */}
       <div className="flex items-center justify-between px-4 pt-3 pb-1 relative z-20">
         <span
           className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border"
-          style={{ color: colors.text, borderColor: `${colors.text}66` }}
+          style={{
+            color: hasPhoto ? '#fff' : colors.text,
+            borderColor: hasPhoto ? 'rgba(255,255,255,0.5)' : `${colors.text}66`,
+            backgroundColor: hasPhoto ? 'rgba(0,0,0,0.4)' : 'transparent',
+            textShadow: hasPhoto ? '0 1px 4px rgba(0,0,0,0.8)' : 'none',
+          }}
         >
           {getRaridadeLabel(card.raridade)}
         </span>
-        <span className="font-mono text-xs font-black" style={{ color: `${colors.text}BB` }}>
+        <span
+          className="font-mono text-xs font-black"
+          style={{
+            color: hasPhoto ? 'rgba(255,255,255,0.85)' : `${colors.text}BB`,
+            textShadow: hasPhoto ? '0 1px 4px rgba(0,0,0,0.8)' : 'none',
+          }}
+        >
           {card.ano}
         </span>
       </div>
 
-      {/* Photo — only in non-compact mode */}
-      {!compact && (
-        <div className="relative h-44 overflow-hidden mx-3 mb-2 rounded-xl border-2" style={{ borderColor: `${colors.text}30` }}>
-          {photoUrl ? (
-            <>
-              <img
-                src={photoUrl}
-                alt={card.nome}
-                className="w-full h-full object-cover object-top"
-                loading="lazy"
-              />
-              <div
-                className="absolute inset-0"
-                style={{ background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.55) 100%)' }}
-              />
-              <div className="absolute bottom-2 left-2 flex items-center gap-1">
-                <span className="text-lg leading-none">{card.flag}</span>
-              </div>
-            </>
-          ) : (
-            <div className="h-full flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.15)' }}>
-              <span className="text-7xl opacity-20">{card.flag}</span>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Spacer — photo shows through here */}
+      {hasPhoto && <div className="flex-1" style={{ minHeight: '100px' }} />}
 
-      <div className="px-4 pb-3 relative z-20">
+      {/* Player info */}
+      <div className="px-4 pb-2 relative z-20">
         {compact && <div className="text-2xl mb-0.5">{card.flag}</div>}
+        {hasPhoto && <div className="text-xl mb-0.5">{card.flag}</div>}
         <p
           className={`font-black leading-tight ${compact ? 'text-xl' : 'text-2xl'}`}
-          style={{ fontFamily: 'Oswald, sans-serif', color: colors.text }}
+          style={{
+            fontFamily: 'Oswald, sans-serif',
+            color: hasPhoto ? '#fff' : colors.text,
+            textShadow: hasPhoto ? '0 2px 8px rgba(0,0,0,0.9)' : 'none',
+          }}
         >
           {card.nome}
         </p>
-        <p className="text-sm font-bold opacity-70" style={{ color: colors.text }}>
+        <p
+          className="text-sm font-bold"
+          style={{ color: hasPhoto ? 'rgba(255,255,255,0.75)' : colors.text, opacity: hasPhoto ? 1 : 0.7 }}
+        >
           {card.apelido}
         </p>
-        <p className="text-xs mt-0.5 opacity-60" style={{ color: colors.text }}>
+        <p
+          className="text-xs mt-0.5"
+          style={{ color: hasPhoto ? 'rgba(255,255,255,0.6)' : colors.text, opacity: hasPhoto ? 1 : 0.6 }}
+        >
           {card.posicao} · {card.clube}
         </p>
       </div>
@@ -134,7 +167,10 @@ function HistCard({
       {!compact && (
         <div
           className="mx-3 mb-3 rounded-xl overflow-hidden border-2 relative z-20"
-          style={{ borderColor: `${colors.text}30`, backgroundColor: 'rgba(0,0,0,0.25)' }}
+          style={{
+            borderColor: hasPhoto ? 'rgba(255,255,255,0.15)' : `${colors.text}30`,
+            backgroundColor: hasPhoto ? 'rgba(0,0,0,0.72)' : 'rgba(0,0,0,0.25)',
+          }}
         >
           {(Object.entries(card.atributos) as [QuestionKey, number][]).map(([key, val], idx) => {
             const isHL = key === highlightStat
@@ -144,20 +180,20 @@ function HistCard({
                 key={key}
                 className="px-3 pt-2 pb-1.5 border-b last:border-0"
                 style={{
-                  borderColor: `${colors.text}15`,
+                  borderColor: hasPhoto ? 'rgba(255,255,255,0.08)' : `${colors.text}15`,
                   backgroundColor: isHL && revealed ? 'rgba(255,184,0,0.18)' : 'transparent',
                 }}
               >
                 <div className="flex items-center justify-between mb-1">
                   <span
-                    className="text-[11px] font-black uppercase tracking-wide opacity-70"
-                    style={{ color: colors.text }}
+                    className="text-[11px] font-black uppercase tracking-wide"
+                    style={{ color: hasPhoto ? 'rgba(255,255,255,0.6)' : colors.text, opacity: hasPhoto ? 1 : 0.7 }}
                   >
                     {key}
                   </span>
                   <motion.span
                     className="font-black text-base tabular-nums"
-                    style={{ color: isHL && revealed ? '#FFB800' : colors.text }}
+                    style={{ color: isHL && revealed ? '#FFB800' : (hasPhoto ? '#fff' : colors.text) }}
                     animate={{ filter: revealed ? 'blur(0px)' : 'blur(8px)' }}
                     transition={{ duration: 0.6, delay: isHL ? 0.05 : 0.3 + idx * 0.08 }}
                   >
@@ -165,17 +201,16 @@ function HistCard({
                   </motion.span>
                 </div>
 
-                {/* Stat bar — only on reveal */}
                 <div
                   className="h-1 rounded-full overflow-hidden"
-                  style={{ backgroundColor: `${colors.text}18` }}
+                  style={{ backgroundColor: hasPhoto ? 'rgba(255,255,255,0.15)' : `${colors.text}18` }}
                 >
                   <motion.div
                     className="h-full rounded-full"
                     initial={{ width: '0%' }}
                     animate={{ width: revealed ? `${barPct}%` : '0%' }}
                     transition={{ duration: 0.9, delay: 0.4 + idx * 0.12, ease: 'easeOut' }}
-                    style={{ backgroundColor: isHL && revealed ? '#FFB800' : `${colors.text}CC` }}
+                    style={{ backgroundColor: isHL && revealed ? '#FFB800' : (hasPhoto ? 'rgba(255,255,255,0.8)' : `${colors.text}CC`) }}
                   />
                 </div>
               </div>
