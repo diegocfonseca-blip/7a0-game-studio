@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useReducer, useCallback, useState, type ReactNode } from 'react'
 import type { HState, HScreen, HPlayer, HGuess, HBet, HGuesserRank, HRoundResult, QuestionKey } from './types'
 import { HIST_CARDS, getCard } from './data'
 
@@ -108,6 +108,10 @@ function resolveRound(guesses: HGuess[], bets: HBet[], real: number): HRoundResu
 // ── initial state ─────────────────────────────────────────────
 const START_MONEY = 100
 
+function loadMuseu(): string[] {
+  try { return JSON.parse(localStorage.getItem('hist_museu') ?? '[]') } catch { return [] }
+}
+
 export const INITIAL: HState = {
   screen: 'menu',
   players: [],
@@ -121,7 +125,7 @@ export const INITIAL: HState = {
   roundResult: null,
   round: 0,
   totalRounds: 10,
-  museuCards: [],
+  museuCards: loadMuseu(),
 }
 
 // ── actions ─────────────────────────────────────────────────────
@@ -278,6 +282,15 @@ const Ctx = createContext<{ state: HState; dispatch: React.Dispatch<Action> } | 
 export function HistProvider({ children }: { children: ReactNode }) {
   const [state, rawDispatch] = useReducer(reducer, INITIAL)
   const dispatch = useCallback((a: Action) => rawDispatch(a), [])
+
+  // Persist museum collection across page reloads
+  const { museuCards } = state
+  const [lastSaved, setLastSaved] = useState(museuCards)
+  if (museuCards !== lastSaved) {
+    setLastSaved(museuCards)
+    try { localStorage.setItem('hist_museu', JSON.stringify(museuCards)) } catch { /* ignore */ }
+  }
+
   return <Ctx.Provider value={{ state, dispatch }}>{children}</Ctx.Provider>
 }
 

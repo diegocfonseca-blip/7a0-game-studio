@@ -5,6 +5,9 @@ import { useWikiPhoto } from './useWikiPhoto'
 import { getCard, getRaridadeColor, getRaridadeLabel, QUESTION_LABELS, HIST_CARDS } from './data'
 import type { HistCardData, QuestionKey } from './types'
 import { BrutalButton, BrutalCard, BrutalPill, C } from '../empresario/ui'
+import { SoloGameProvider, OnlineGameProvider, useGameCtx } from './GameContext'
+import { useOnlineGame } from './useOnlineGame'
+import type { OnlinePlayer } from './onlineRoom'
 
 function fmt(m: number) { return `$${Math.round(m)}M` }
 
@@ -363,18 +366,29 @@ function RingProgress({
 // ── MenuScreen ────────────────────────────────────────────────────
 export function MenuScreen() {
   const { state, dispatch } = useHist()
-  const [name, setName] = useState('')
+  const [name, setName]     = useState('')
   const [rounds, setRounds] = useState(10)
+  const [mode, setMode]     = useState<'solo' | 'online'>('solo')
   const ownedCount = state.museuCards.length
+
+  // Online sub-state
+  const online = useOnlineGame()
+  const [joinCode, setJoinCode] = useState('')
+
+  // If online game is playing → show online game
+  if (online.lobbyStatus === 'playing' && online.gameState) {
+    return <OnlineGameRunner api={online} />
+  }
+  // Waiting room (lobby)
+  if (online.lobbyStatus === 'waiting') {
+    return <LobbyWaitingRoom api={online} />
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center p-5 pt-14" style={{ backgroundColor: C.cream }}>
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
         <BrutalPill color="#FFB800" textColor={C.black}>7A0 GAME STUDIO</BrutalPill>
-        <h1
-          className="font-black text-5xl mt-4 leading-none"
-          style={{ fontFamily: 'Oswald, sans-serif' }}
-        >
+        <h1 className="font-black text-5xl mt-4 leading-none" style={{ fontFamily: 'Oswald, sans-serif' }}>
           HISTO-<br />RIADORES<br />DA BOLA
         </h1>
         <p className="text-sm text-black/50 mt-3 font-bold leading-relaxed">
@@ -383,11 +397,27 @@ export function MenuScreen() {
       </div>
 
       <div className="w-full max-w-sm space-y-4">
+        {/* Mode selector */}
+        <div className="flex gap-2">
+          {(['solo', 'online'] as const).map(m => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className="flex-1 py-2.5 border-[3px] border-black rounded-xl font-black text-sm transition-all"
+              style={{
+                backgroundColor: mode === m ? '#0C0C0C' : '#fff',
+                color: mode === m ? '#F4ECD6' : '#0C0C0C',
+                boxShadow: mode === m ? '3px 3px 0 0 #FFB800' : 'none',
+              }}
+            >
+              {m === 'solo' ? '🤖 SOLO' : '🌐 ONLINE'}
+            </button>
+          ))}
+        </div>
+
         <BrutalCard className="p-5 space-y-4">
           <div>
-            <label className="text-xs font-black uppercase tracking-wider block mb-1.5">
-              Seu nome
-            </label>
+            <label className="text-xs font-black uppercase tracking-wider block mb-1.5">Seu nome</label>
             <input
               value={name}
               onChange={e => setName(e.target.value)}
@@ -398,36 +428,93 @@ export function MenuScreen() {
             />
           </div>
 
-          <div>
-            <label className="text-xs font-black uppercase tracking-wider block mb-2">
-              Rodadas
-            </label>
-            <div className="flex gap-2">
-              {([5, 10, 15] as const).map(n => (
-                <button
-                  key={n}
-                  onClick={() => setRounds(n)}
-                  className="flex-1 py-3 border-[3px] border-black rounded-xl font-black text-base transition-all"
-                  style={{
-                    backgroundColor: rounds === n ? '#FFB800' : '#fff',
-                    boxShadow: rounds === n ? '3px 3px 0 0 #0C0C0C' : 'none',
-                  }}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
+          {mode === 'solo' ? (
+            <>
+              <div>
+                <label className="text-xs font-black uppercase tracking-wider block mb-2">Rodadas</label>
+                <div className="flex gap-2">
+                  {([5, 10, 15] as const).map(n => (
+                    <button
+                      key={n}
+                      onClick={() => setRounds(n)}
+                      className="flex-1 py-3 border-[3px] border-black rounded-xl font-black text-base transition-all"
+                      style={{
+                        backgroundColor: rounds === n ? '#FFB800' : '#fff',
+                        boxShadow: rounds === n ? '3px 3px 0 0 #0C0C0C' : 'none',
+                      }}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <BrutalButton
+                color="#FFB800"
+                textColor={C.black}
+                onClick={() => dispatch({ type: 'START_GAME', playerName: name.trim() || 'Você', totalRounds: rounds })}
+              >
+                JOGAR SOLO →
+              </BrutalButton>
+            </>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-black uppercase tracking-wider block mb-2">Rodadas</label>
+                <div className="flex gap-2">
+                  {([5, 10, 15] as const).map(n => (
+                    <button
+                      key={n}
+                      onClick={() => setRounds(n)}
+                      className="flex-1 py-3 border-[3px] border-black rounded-xl font-black text-base transition-all"
+                      style={{
+                        backgroundColor: rounds === n ? '#FFB800' : '#fff',
+                        boxShadow: rounds === n ? '3px 3px 0 0 #0C0C0C' : 'none',
+                      }}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <BrutalButton
+                color="#0C0C0C"
+                textColor="#FFB800"
+                onClick={() => online.createRoom(name.trim() || 'Você', rounds)}
+                disabled={online.lobbyStatus === 'creating'}
+              >
+                {online.lobbyStatus === 'creating' ? 'CRIANDO SALA...' : '➕ CRIAR SALA'}
+              </BrutalButton>
 
-          <BrutalButton
-            color="#FFB800"
-            textColor={C.black}
-            onClick={() =>
-              dispatch({ type: 'START_GAME', playerName: name.trim() || 'Você', totalRounds: rounds })
-            }
-          >
-            JOGAR →
-          </BrutalButton>
+              <div className="flex items-center gap-1.5">
+                <div className="flex-1 h-px bg-black/20" />
+                <span className="text-[10px] font-black text-black/40">OU ENTRE COM CÓDIGO</span>
+                <div className="flex-1 h-px bg-black/20" />
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  value={joinCode}
+                  onChange={e => setJoinCode(e.target.value.toUpperCase().slice(0, 5))}
+                  placeholder="XXXXX"
+                  maxLength={5}
+                  className="flex-1 border-[3px] border-black rounded-xl px-3 py-3 font-black text-xl bg-white focus:outline-none text-center tracking-widest"
+                  style={{ boxShadow: '3px 3px 0 0 #0C0C0C' }}
+                />
+                <button
+                  onClick={() => online.joinRoom(joinCode, name.trim() || 'Você')}
+                  disabled={joinCode.length < 5 || online.lobbyStatus === 'joining'}
+                  className="border-[3px] border-black rounded-xl px-4 font-black text-sm disabled:opacity-40"
+                  style={{ backgroundColor: '#16B89A', color: '#fff', boxShadow: '3px 3px 0 0 #0C0C0C' }}
+                >
+                  {online.lobbyStatus === 'joining' ? '...' : 'ENTRAR'}
+                </button>
+              </div>
+
+              {online.errorMsg && (
+                <p className="text-xs font-black text-red-600 text-center">{online.errorMsg}</p>
+              )}
+            </div>
+          )}
         </BrutalCard>
 
         {ownedCount > 0 && (
@@ -441,8 +528,152 @@ export function MenuScreen() {
         )}
 
         <p className="text-center text-xs font-bold text-black/30 mt-2">
-          vs Tonhão · PC Magrão · Biriba
+          {mode === 'solo' ? 'vs Tonhão · PC Magrão · Biriba' : 'até 4 jogadores · CPUs completam a mesa'}
         </p>
+      </div>
+    </div>
+  )
+}
+
+// ── Lobby: sala de espera ────────────────────────────────────────────
+function LobbyWaitingRoom({ api }: { api: ReturnType<typeof useOnlineGame> }) {
+  const canStart = api.isHost && api.lobbyPlayers.length >= 1
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-5" style={{ backgroundColor: C.cream }}>
+      <BrutalPill color="#FFB800" textColor={C.black}>SALA ONLINE</BrutalPill>
+
+      {api.isHost && (
+        <div className="mt-6 mb-2 text-center">
+          <p className="text-xs font-black uppercase tracking-wider text-black/40 mb-1">Código da sala</p>
+          <div
+            className="border-[3px] border-black rounded-2xl px-8 py-4 inline-block"
+            style={{ backgroundColor: '#0C0C0C', boxShadow: '5px 5px 0 0 #FFB800' }}
+          >
+            <p className="font-black text-5xl tracking-widest" style={{ fontFamily: 'Oswald, sans-serif', color: '#FFB800' }}>
+              {api.roomCode}
+            </p>
+          </div>
+          <p className="text-xs font-bold text-black/40 mt-2">Compartilhe este código com os amigos</p>
+        </div>
+      )}
+
+      {!api.isHost && (
+        <div className="mt-6 mb-2 text-center">
+          <p className="text-xs font-black uppercase tracking-wider text-black/40 mb-1">Conectado à sala</p>
+          <p className="font-black text-3xl tracking-widest" style={{ fontFamily: 'Oswald, sans-serif', color: '#0C0C0C' }}>
+            {api.roomCode}
+          </p>
+          <p className="text-sm font-bold text-black/40 mt-2">Aguardando o host iniciar o jogo...</p>
+        </div>
+      )}
+
+      <div className="w-full max-w-sm mt-4 space-y-2">
+        <p className="text-xs font-black uppercase tracking-wider text-black/40">
+          Jogadores ({api.lobbyPlayers.length}/4)
+        </p>
+        {api.lobbyPlayers.map((p: OnlinePlayer) => (
+          <div
+            key={p.id}
+            className="border-[3px] border-black rounded-xl px-4 py-3 flex items-center gap-3"
+            style={{ backgroundColor: '#fff', boxShadow: '3px 3px 0 0 #0C0C0C' }}
+          >
+            <span className="text-xl">{p.isHost ? '👑' : '👤'}</span>
+            <div>
+              <p className="font-black text-sm">{p.nome}</p>
+              <p className="text-[10px] font-bold text-black/40">{p.isHost ? 'HOST' : 'JOGADOR'}</p>
+            </div>
+          </div>
+        ))}
+        {api.lobbyPlayers.length < 4 && (
+          <div className="border-2 border-dashed border-black/20 rounded-xl px-4 py-3 text-center">
+            <p className="text-xs font-bold text-black/30">
+              +{4 - api.lobbyPlayers.length} CPU{4 - api.lobbyPlayers.length !== 1 ? 's' : ''} completarão a mesa
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="w-full max-w-sm mt-5 space-y-3">
+        {api.isHost && (
+          <BrutalButton
+            color="#FFB800"
+            textColor={C.black}
+            onClick={api.startGame}
+            disabled={!canStart}
+          >
+            INICIAR PARTIDA →
+          </BrutalButton>
+        )}
+        <BrutalButton color="#fff" textColor={C.black} onClick={api.leaveRoom}>
+          SAIR DA SALA
+        </BrutalButton>
+      </div>
+    </div>
+  )
+}
+
+// ── Online game runner: drives game phases via OnlineGameProvider ────
+function OnlineGameRunner({ api }: { api: ReturnType<typeof useOnlineGame> }) {
+  const st = api.gameState
+  if (!st) return null
+
+  if (st.screen === 'results') {
+    return (
+      <OnlineGameProvider api={api}>
+        <OnlineResultsScreen api={api} />
+      </OnlineGameProvider>
+    )
+  }
+
+  return (
+    <OnlineGameProvider api={api}>
+      {st.phase === 'guessing'  && <GuessingPhase />}
+      {st.phase === 'betting'   && <BettingPhase />}
+      {st.phase === 'revealing' && <RevealPhase />}
+    </OnlineGameProvider>
+  )
+}
+
+function OnlineResultsScreen({ api }: { api: ReturnType<typeof useOnlineGame> }) {
+  const st = api.gameState!
+  const myId = api.myPlayerId
+  const sorted = [...st.players].sort((a, b) => b.money - a.money)
+  const winner = sorted[0]
+  const youRank = sorted.findIndex(p => p.id === myId) + 1
+  const medals = ['🥇', '🥈', '🥉', '4️⃣']
+
+  return (
+    <div className="min-h-screen pb-8" style={{ backgroundColor: C.cream }}>
+      <div className="px-5 pt-10 pb-5 text-center">
+        <BrutalPill color="#FFB800" textColor={C.black}>PLACAR FINAL · ONLINE</BrutalPill>
+        <h1 className="font-black text-4xl mt-3 leading-tight" style={{ fontFamily: 'Oswald, sans-serif' }}>
+          {youRank === 1 ? 'VOCÊ GANHOU!' : `${winner.nome} VENCEU!`}
+        </h1>
+        <p className="text-sm text-black/40 font-bold mt-1">{st.totalRounds} rodadas</p>
+      </div>
+
+      <div className="mx-5 space-y-2 mb-5">
+        {sorted.map((p, i) => (
+          <BrutalCard key={p.id} color={p.id === myId ? '#FFB800' : '#fff'} className="p-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">{medals[i] ?? ''}</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-black text-base truncate">
+                  {p.nome}{p.id === myId ? ' (você)' : p.isCPU ? ' 🤖' : ''}
+                </p>
+                <p className="text-xs font-bold text-black/50">{p.cartasIds.length} carta{p.cartasIds.length !== 1 ? 's' : ''}</p>
+              </div>
+              <p className="font-black text-xl shrink-0" style={{ fontFamily: 'Oswald, sans-serif' }}>${p.money}M</p>
+            </div>
+          </BrutalCard>
+        ))}
+      </div>
+
+      <div className="mx-5">
+        <BrutalButton color="#FFB800" textColor={C.black} onClick={api.leaveRoom}>
+          VOLTAR AO MENU →
+        </BrutalButton>
       </div>
     </div>
   )
@@ -450,20 +681,20 @@ export function MenuScreen() {
 
 // ── Fase 1: Palpite ───────────────────────────────────────────────
 function GuessingPhase() {
-  const { state, dispatch } = useHist()
+  const { state, myPlayerId, submitGuess, alreadyGuessed } = useGameCtx()
   const [guess, setGuess] = useState('')
 
   const card = getCard(state.currentCardId ?? '')
-  const you = state.players[state.youIdx]
+  const you = state.players.find(p => p.id === myPlayerId) ?? state.players[state.youIdx]
   if (!card || !state.currentQuestion || !you) return null
 
   const questionLabel = QUESTION_LABELS[state.currentQuestion]?.(card.ano) ?? state.currentQuestion
   const guessNum = parseInt(guess, 10)
-  const canSubmit = !isNaN(guessNum) && guessNum >= 0 && guess !== ''
+  const canSubmit = !alreadyGuessed && !isNaN(guessNum) && guessNum >= 0 && guess !== ''
 
   function submit() {
     if (!canSubmit) return
-    dispatch({ type: 'SUBMIT_GUESS', value: guessNum })
+    submitGuess(guessNum)
   }
 
   return (
@@ -525,9 +756,17 @@ function GuessingPhase() {
           <p className="text-[11px] text-black/40 font-bold text-center">
             Sem dinheiro ainda — só o palpite. Aposta vem depois.
           </p>
-          <BrutalButton color={C.black} textColor={C.cream} disabled={!canSubmit} onClick={submit}>
-            CONFIRMAR PALPITE →
-          </BrutalButton>
+          {alreadyGuessed ? (
+            <div className="border-[3px] border-black rounded-xl px-4 py-3 text-center"
+                 style={{ backgroundColor: '#16B89A' }}>
+              <p className="font-black text-sm text-white">✓ Palpite enviado!</p>
+              <p className="text-[11px] text-white/70 font-bold mt-0.5">Aguardando outros jogadores...</p>
+            </div>
+          ) : (
+            <BrutalButton color={C.black} textColor={C.cream} disabled={!canSubmit} onClick={submit}>
+              CONFIRMAR PALPITE →
+            </BrutalButton>
+          )}
         </BrutalCard>
 
         <div className="flex gap-1.5">
@@ -535,7 +774,7 @@ function GuessingPhase() {
             <div
               key={p.id}
               className="flex-1 border-2 border-black rounded-xl p-2 text-center"
-              style={{ backgroundColor: p.id === 'you' ? '#FFB800' : '#fff' }}
+              style={{ backgroundColor: p.id === myPlayerId ? '#FFB800' : '#fff' }}
             >
               <p className="text-[9px] font-black truncate">{p.nome}</p>
               <p className="font-black text-xs">{fmt(p.money)}</p>
@@ -549,11 +788,11 @@ function GuessingPhase() {
 
 // ── Fase 2: Tapete de Apostas ─────────────────────────────────────
 function BettingPhase() {
-  const { state, dispatch } = useHist()
+  const { state, myPlayerId, submitBet, alreadyBet } = useGameCtx()
   const [selectedTarget, setSelectedTarget] = useState<string | null>(null)
   const [amount, setAmount] = useState(10)
 
-  const you = state.players[state.youIdx]
+  const you = state.players.find(p => p.id === myPlayerId) ?? state.players[state.youIdx]
   const card = getCard(state.currentCardId ?? '')
   if (!card || !state.currentQuestion || !you) return null
 
@@ -563,8 +802,8 @@ function BettingPhase() {
   const sortedGuesses = [...state.guesses].sort((a, b) => a.value - b.value)
 
   function submit() {
-    if (!selectedTarget) return
-    dispatch({ type: 'SUBMIT_BET', onPlayerId: selectedTarget, amount: safeAmount, timestamp: Date.now() })
+    if (!selectedTarget || alreadyBet) return
+    submitBet(selectedTarget, safeAmount, Date.now())
   }
 
   return (
@@ -669,14 +908,22 @@ function BettingPhase() {
       </AnimatePresence>
 
       <div className="mx-5">
-        <BrutalButton
-          color="#FFB800"
-          textColor={C.black}
-          disabled={!selectedTarget}
-          onClick={submit}
-        >
-          {selectedTarget ? `APOSTAR ${fmt(safeAmount)} →` : 'SELECIONE UM PALPITE'}
-        </BrutalButton>
+        {alreadyBet ? (
+          <div className="border-[3px] border-black rounded-xl px-4 py-3 text-center"
+               style={{ backgroundColor: '#16B89A' }}>
+            <p className="font-black text-sm text-white">✓ Aposta enviada!</p>
+            <p className="text-[11px] text-white/70 font-bold mt-0.5">Aguardando outros jogadores...</p>
+          </div>
+        ) : (
+          <BrutalButton
+            color="#FFB800"
+            textColor={C.black}
+            disabled={!selectedTarget}
+            onClick={submit}
+          >
+            {selectedTarget ? `APOSTAR ${fmt(safeAmount)} →` : 'SELECIONE UM PALPITE'}
+          </BrutalButton>
+        )}
       </div>
     </div>
   )
@@ -684,7 +931,7 @@ function BettingPhase() {
 
 // ── Fase 3: Revelação ─────────────────────────────────────────────
 function RevealPhase() {
-  const { state, dispatch } = useHist()
+  const { state, myPlayerId, nextCard } = useGameCtx()
   const card = getCard(state.currentCardId ?? '')
   const { roundResult } = state
   if (!card || !state.currentQuestion || !roundResult) return null
@@ -819,7 +1066,7 @@ function RevealPhase() {
           <div className="space-y-1.5 mb-2">
             {betsOnRight.map(bet => {
               const isCardWinner = bet.playerId === cardWinnerId
-              const isYou = bet.playerId === 'you'
+              const isYou = bet.playerId === myPlayerId
               return (
                 <div
                   key={bet.playerId}
@@ -859,7 +1106,7 @@ function RevealPhase() {
         {betsOnWrong.length > 0 && (
           <div className="space-y-1.5">
             {betsOnWrong.map(bet => {
-              const isYou = bet.playerId === 'you'
+              const isYou = bet.playerId === myPlayerId
               const backedGuess = state.guesses.find(g => g.playerId === bet.onPlayerId)
               return (
                 <div
@@ -944,7 +1191,7 @@ function RevealPhase() {
       </div>
 
       <div className="mx-5">
-        <BrutalButton color={C.black} textColor={C.cream} onClick={() => dispatch({ type: 'NEXT_CARD' })}>
+        <BrutalButton color={C.black} textColor={C.cream} onClick={nextCard}>
           {isLast ? 'VER PLACAR FINAL →' : 'PRÓXIMA CARTA →'}
         </BrutalButton>
       </div>
@@ -952,23 +1199,24 @@ function RevealPhase() {
   )
 }
 
-// ── GameScreen ────────────────────────────────────────────────────
+// ── GameScreen — wraps phases in SoloGameProvider ─────────────────
 export function GameScreen() {
   const { state } = useHist()
-  switch (state.phase) {
-    case 'guessing':  return <GuessingPhase />
-    case 'betting':   return <BettingPhase />
-    case 'revealing': return <RevealPhase />
-    default:          return <GuessingPhase />
-  }
+  return (
+    <SoloGameProvider>
+      {state.phase === 'guessing'  && <GuessingPhase />}
+      {state.phase === 'betting'   && <BettingPhase />}
+      {state.phase === 'revealing' && <RevealPhase />}
+    </SoloGameProvider>
+  )
 }
 
 // ── ResultsScreen ─────────────────────────────────────────────────
-export function ResultsScreen() {
+export function ResultsScreen({ myPlayerId = 'you' }: { myPlayerId?: string }) {
   const { state, dispatch } = useHist()
   const sorted = [...state.players].sort((a, b) => b.money - a.money)
   const winner = sorted[0]
-  const youRank = sorted.findIndex(p => p.id === 'you') + 1
+  const youRank = sorted.findIndex(p => p.id === myPlayerId) + 1
   const medals = ['🥇', '🥈', '🥉', '4️⃣']
 
   return (
@@ -988,12 +1236,12 @@ export function ResultsScreen() {
 
       <div className="mx-5 space-y-2 mb-5">
         {sorted.map((p, i) => (
-          <BrutalCard key={p.id} color={p.id === 'you' ? '#FFB800' : '#fff'} className="p-4">
+          <BrutalCard key={p.id} color={p.id === myPlayerId ? '#FFB800' : '#fff'} className="p-4">
             <div className="flex items-center gap-3">
               <span className="text-2xl">{medals[i] ?? ''}</span>
               <div className="flex-1 min-w-0">
                 <p className="font-black text-base truncate">
-                  {p.nome}{p.id === 'you' ? ' (você)' : ''}
+                  {p.nome}{p.id === myPlayerId ? ' (você)' : ''}
                 </p>
                 <p className="text-xs font-bold text-black/50">
                   {p.cartasIds.length} carta{p.cartasIds.length !== 1 ? 's' : ''}
