@@ -108,6 +108,19 @@ function CardShimmer({ raridade }: { raridade: HistCardData['raridade'] }) {
   return null
 }
 
+// ── Corner registration marks ─────────────────────────────────────
+function CardCorners({ accent }: { accent: string }) {
+  const s = { borderColor: `${accent}55` }
+  return (
+    <>
+      <div className="absolute top-2 left-2 w-3 h-3 pointer-events-none z-30 border-t-2 border-l-2" style={s} />
+      <div className="absolute top-2 right-2 w-3 h-3 pointer-events-none z-30 border-t-2 border-r-2" style={s} />
+      <div className="absolute bottom-2 left-2 w-3 h-3 pointer-events-none z-30 border-b-2 border-l-2" style={s} />
+      <div className="absolute bottom-2 right-2 w-3 h-3 pointer-events-none z-30 border-b-2 border-r-2" style={s} />
+    </>
+  )
+}
+
 // ── Full card component ────────────────────────────────────────────
 function HistCard({
   cardId,
@@ -128,24 +141,62 @@ function HistCard({
   const hasPhoto = !compact && !!photoUrl
 
   return (
-    // Gradient-border frame
-    <div
-      className="w-full rounded-2xl relative"
-      style={{
-        background: R.frame,
-        padding: '3px',
-        boxShadow: `6px 6px 0 0 #000, 0 0 48px ${R.glow}45`,
-      }}
-    >
-      {/* Inner dark body */}
+    <div className="w-full relative">
+      {/* Pulsing ambient glow — épica/mítica only */}
+      {card.raridade !== 'comum' && (
+        <motion.div
+          className="absolute inset-0 rounded-2xl pointer-events-none"
+          style={{ boxShadow: `0 0 40px ${R.glow}` }}
+          animate={{ opacity: [0.28, 0.88, 0.28] }}
+          transition={{ duration: card.raridade === 'mitica' ? 2.0 : 3.4, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      )}
+
+      {/* Gradient-border frame */}
       <div
-        className="rounded-[13px] overflow-hidden relative flex flex-col"
+        className="w-full rounded-2xl relative overflow-hidden"
         style={{
-          background: R.bg,
-          minHeight: hasPhoto ? '400px' : undefined,
+          background: card.raridade !== 'mitica' ? R.frame : '#1C0A00',
+          padding: '3px',
+          boxShadow: '6px 6px 0 0 #000',
         }}
       >
-        <CardShimmer raridade={card.raridade} />
+        {/* Rotating conic-gradient frame — Mítica only */}
+        {card.raridade === 'mitica' && (
+          <motion.div
+            className="absolute pointer-events-none"
+            style={{
+              inset: '-150%',
+              width: '400%',
+              height: '400%',
+              background: 'conic-gradient(from 0deg, #78350F 0%, #D97706 18%, #FDE68A 32%, #FBBF24 46%, #FDE68A 56%, #D97706 72%, #92400E 86%, #78350F 100%)',
+            }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
+          />
+        )}
+
+        {/* Inner dark body */}
+        <div
+          className="rounded-[13px] overflow-hidden relative flex flex-col"
+          style={{
+            background: R.bg,
+            minHeight: hasPhoto ? '400px' : undefined,
+            zIndex: 1,
+          }}
+        >
+          {/* Grain/noise texture */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")`,
+              opacity: 0.04,
+              mixBlendMode: 'soft-light',
+              zIndex: 2,
+            }}
+          />
+          <CardShimmer raridade={card.raridade} />
+          <CardCorners accent={R.accent} />
 
         {/* Photo background */}
         {hasPhoto && (
@@ -262,11 +313,13 @@ function HistCard({
                         {STAT_SHORT[key] ?? key}
                       </span>
                       <motion.span
-                        className="font-black text-[1.15rem] tabular-nums leading-none"
+                        className="font-black tabular-nums leading-none"
                         style={{
                           fontFamily: 'Oswald, sans-serif',
+                          fontSize: isHL && revealed ? '2.4rem' : '1.15rem',
                           color: isHL && revealed ? R.accent : `${R.text}90`,
-                          textShadow: isHL && revealed ? `0 0 18px ${R.accent}` : 'none',
+                          textShadow: isHL && revealed ? `0 0 28px ${R.accent}, 0 0 8px ${R.accent}` : 'none',
+                          transition: 'font-size 0.35s cubic-bezier(0.34,1.56,0.64,1), color 0.3s',
                         }}
                         animate={{ filter: revealed ? 'blur(0px)' : 'blur(9px)' }}
                         transition={{ duration: 0.55, delay: isHL ? 0.0 : 0.22 + idx * 0.07 }}
@@ -299,6 +352,7 @@ function HistCard({
             </div>
           </>
         )}
+        </div>
       </div>
     </div>
   )
