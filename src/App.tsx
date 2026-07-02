@@ -11,8 +11,9 @@ import MatchScreen from './screens/MatchScreen'
 import MarketScreen from './screens/MarketScreen'
 import EmpresarioGame from './empresario'
 import DraftGame from './draft'
+import HistoriadorGame from './historiadores'
 
-type GameKey = 'ladrao' | 'empresario' | 'draft'
+type GameKey = 'ladrao' | 'empresario' | 'draft' | 'historiadores'
 
 function LadraoGame() {
   const { state } = useGame()
@@ -41,6 +42,21 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
       </div>
 
       <div className="w-full max-w-sm space-y-4">
+        <motion.button
+          onClick={() => onSelect('historiadores')}
+          whileTap={{ x: 3, y: 3 }}
+          className="w-full text-left border-[3px] border-black rounded-2xl p-6 transition-all"
+          style={{ backgroundColor: '#FFB800', boxShadow: '6px 6px 0 0 #0C0C0C' }}
+        >
+          <div className="text-4xl mb-3">🏆</div>
+          <p className="text-black font-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif' }}>HISTORIADORES DA BOLA</p>
+          <p className="text-black/70 text-sm mt-1 font-medium">
+            Você conhece as lendas. Prove com seu palpite e sua grana. Colecione cartas, construa seu museu.
+          </p>
+          <span className="inline-block mt-3 border-2 border-black rounded-full px-2.5 py-0.5 text-xs font-black uppercase"
+                style={{ backgroundColor: '#0C0C0C', color: '#FFB800' }}>NOVO ✦</span>
+        </motion.button>
+
         <motion.button
           onClick={() => onSelect('draft')}
           whileTap={{ x: 3, y: 3 }}
@@ -105,6 +121,10 @@ export default function App() {
 
   if (selectedGame === 'draft') {
     return <DraftGame />
+  }
+
+  if (selectedGame === 'historiadores') {
+    return <HistoriadorGame />
   }
 
   return (
