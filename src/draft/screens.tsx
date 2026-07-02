@@ -483,6 +483,20 @@ export function DraftLineup() {
           </div>
         </div>
 
+        {/* Formação */}
+        <BrutalCard color="white" className="p-3" shadow={4}>
+          <p className="text-black/50 text-[10px] font-black uppercase mb-2">Formação</p>
+          <div className="flex gap-2 flex-wrap">
+            {(['4-4-2', '4-3-3', '4-2-3-1', '4-5-1', '3-5-2'] as const).map(f => (
+              <button key={f} onClick={() => dispatch({ type: 'SET_FORMATION', formation: f })}
+                className="border-2 border-black rounded px-2 py-1.5 text-[11px] font-black"
+                style={{ backgroundColor: you.formation === f ? clubColor : '#fff', color: you.formation === f ? '#fff' : '#000' }}>
+                {f}
+              </button>
+            ))}
+          </div>
+        </BrutalCard>
+
         {/* Tática */}
         <BrutalCard color="white" className="p-3" shadow={4}>
           <p className="text-black/50 text-[10px] font-black uppercase mb-2">Tática</p>
@@ -583,11 +597,56 @@ export function DraftMatch() {
   const result = live.gf > live.ga ? 'V' : live.gf === live.ga ? 'E' : 'D'
   const resultColor = result === 'V' ? C.green : result === 'E' ? C.yellow : C.orange
 
+  const clubColor = START_CLUBS.find(c => c.id === you.teamId)?.color ?? '#1e7e3a'
+
   // HT sub state
   const [subOut, setSubOut] = useState<string | null>(null)
   const [subIn, setSubIn] = useState<string | null>(null)
   const xi = you.squad.filter(p => you.lineupIds.includes(p.id))
   const bench = you.squad.filter(p => !you.lineupIds.includes(p.id))
+
+  const HTMiniPitch = () => {
+    const lineupSquad = you.squad.filter(p => you.lineupIds.includes(p.id))
+    const gk  = lineupSquad.filter(p => p.pos === 'GOL')
+    const def = lineupSquad.filter(p => p.pos === 'ZAG' || p.pos === 'LAT')
+    const mid = lineupSquad.filter(p => p.pos === 'MEI')
+    const fwd = lineupSquad.filter(p => p.pos === 'ATA')
+    const Row = ({ players }: { players: DraftPlayer[] }) => (
+      <div className="flex justify-around items-center">
+        {players.map(p => {
+          const short = p.name.match(/"([^"]+)"/) ? p.name.match(/"([^"]+)"/)![1] : p.name.split(' ')[0]
+          return (
+            <div key={p.id} className="flex flex-col items-center gap-0.5">
+              <div className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center shadow"
+                style={{ backgroundColor: 'rgba(255,255,255,0.92)' }}>
+                <span className="font-black text-[10px] text-black">{p.rating}</span>
+              </div>
+              <span className="text-white text-[7px] font-bold max-w-[36px] truncate text-center drop-shadow">
+                {p.legendId ? '⭐' : ''}{short}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    )
+    return (
+      <div className="relative rounded-lg overflow-hidden border-2 border-white/30" style={{ minHeight: 200 }}>
+        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 200" preserveAspectRatio="none">
+          <rect x="3" y="3" width="314" height="194" rx="3" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
+          <line x1="0" y1="100" x2="320" y2="100" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+          <circle cx="160" cy="100" r="28" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+          <rect x="96" y="3" width="128" height="36" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
+          <rect x="96" y="161" width="128" height="36" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
+        </svg>
+        <div className="relative z-10 flex flex-col justify-around py-3" style={{ minHeight: 200 }}>
+          <Row players={fwd} />
+          <Row players={mid} />
+          <Row players={def} />
+          <Row players={gk} />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: C.black }}>
@@ -643,16 +702,18 @@ export function DraftMatch() {
 
         {/* Halftime controls */}
         {isHT && (
-          <BrutalCard color={C.yellow} className="p-4 space-y-3" shadow={6}>
-            <p className="font-black text-black text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>⏸ INTERVALO — {live.gf}–{live.ga}</p>
+          <BrutalCard color={clubColor} className="p-4 space-y-3" shadow={6}>
+            <p className="font-black text-white text-base" style={{ fontFamily: 'Oswald, sans-serif' }}>⏸ INTERVALO — {live.gf}–{live.ga}</p>
+            {/* mini pitch */}
+            <HTMiniPitch />
             {/* tactic change */}
             <div>
-              <p className="text-black/60 text-[10px] font-black uppercase mb-1">Tática para o 2º tempo</p>
+              <p className="text-white/60 text-[10px] font-black uppercase mb-1">Tática para o 2º tempo</p>
               <div className="flex gap-2">
                 {(['retranca', 'equilibrio', 'ataque'] as const).map(t => (
                   <button key={t} onClick={() => dispatch({ type: 'CHANGE_TACTIC_MATCH', tactic: t })}
-                    className="flex-1 border-2 border-black rounded px-1 py-1.5 text-[10px] font-black uppercase"
-                    style={{ backgroundColor: you.tactic === t ? C.black : '#fff', color: you.tactic === t ? '#fff' : '#000' }}>
+                    className="flex-1 border-2 border-white/40 rounded px-1 py-1.5 text-[10px] font-black uppercase"
+                    style={{ backgroundColor: you.tactic === t ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.12)', color: you.tactic === t ? '#000' : '#fff' }}>
                     {t === 'retranca' ? '🛡️' : t === 'equilibrio' ? '⚖️' : '⚔️'} {t}
                   </button>
                 ))}
@@ -661,24 +722,24 @@ export function DraftMatch() {
             {/* substitution */}
             {live.subsUsed < 3 && (
               <div>
-                <p className="text-black/60 text-[10px] font-black uppercase mb-1">Substituição (1 disponível)</p>
+                <p className="text-white/60 text-[10px] font-black uppercase mb-1">Substituição (1 disponível)</p>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <p className="text-black/40 text-[9px] font-black uppercase mb-1">Tirar (XI)</p>
+                    <p className="text-white/40 text-[9px] font-black uppercase mb-1">Tirar (XI)</p>
                     {xi.sort((a, b) => a.rating - b.rating).map(p => (
                       <button key={p.id} onClick={() => setSubOut(p.id)}
                         className="w-full text-left border-2 rounded px-2 py-1 mb-1 text-[10px] font-black truncate"
-                        style={{ borderColor: subOut === p.id ? C.orange : '#000', backgroundColor: subOut === p.id ? C.orange : '#fff', color: subOut === p.id ? '#fff' : '#000' }}>
+                        style={{ borderColor: subOut === p.id ? C.orange : 'rgba(255,255,255,0.4)', backgroundColor: subOut === p.id ? C.orange : 'rgba(255,255,255,0.12)', color: '#fff' }}>
                         {p.pos} {p.name.split(' ')[0]} ({p.rating})
                       </button>
                     ))}
                   </div>
                   <div>
-                    <p className="text-black/40 text-[9px] font-black uppercase mb-1">Colocar (Banco)</p>
+                    <p className="text-white/40 text-[9px] font-black uppercase mb-1">Colocar (Banco)</p>
                     {bench.sort((a, b) => b.rating - a.rating).map(p => (
                       <button key={p.id} onClick={() => setSubIn(p.id)}
                         className="w-full text-left border-2 rounded px-2 py-1 mb-1 text-[10px] font-black truncate"
-                        style={{ borderColor: subIn === p.id ? C.green : '#000', backgroundColor: subIn === p.id ? C.green : '#fff', color: subIn === p.id ? '#fff' : '#000' }}>
+                        style={{ borderColor: subIn === p.id ? C.green : 'rgba(255,255,255,0.4)', backgroundColor: subIn === p.id ? C.green : 'rgba(255,255,255,0.12)', color: '#fff' }}>
                         {p.pos} {p.name.split(' ')[0]} ({p.rating})
                       </button>
                     ))}
@@ -691,7 +752,7 @@ export function DraftMatch() {
                 )}
               </div>
             )}
-            {live.subsUsed >= 3 && <p className="text-black/50 text-xs font-bold">✅ Substituição feita.</p>}
+            {live.subsUsed >= 3 && <p className="text-white/60 text-xs font-bold">✅ Substituição feita.</p>}
             <BrutalButton color={C.black} textColor="#fff" onClick={() => dispatch({ type: 'START_HALF2' })}>
               ▶ 2º TEMPO →
             </BrutalButton>
