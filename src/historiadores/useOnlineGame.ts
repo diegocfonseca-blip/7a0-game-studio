@@ -204,7 +204,7 @@ export function useOnlineGame(): OnlineGameAPI {
     }
     const [next, ...rest] = st.deck
     const card = getCard(next)
-    const q: QuestionKey = card ? pick(card.perguntas) : 'gols'
+    const q: QuestionKey = card ? pick(card.perguntas) : 'copa_gols'
     broadcastState({
       ...st,
       screen: 'game',
@@ -335,7 +335,7 @@ export function useOnlineGame(): OnlineGameAPI {
     const deck = shuffle(HIST_CARDS.map(c => c.id)).slice(0, totalRounds)
     const [first, ...rest] = deck
     const card = getCard(first)
-    const q: QuestionKey = card ? pick(card.perguntas) : 'gols'
+    const q: QuestionKey = card ? pick(card.perguntas) : 'copa_gols'
 
     const gamePlayers = allOnline.map(p => ({
       id: p.id, nome: p.nome, isCPU: p.isCPU, money: START_MONEY, cartasIds: [],

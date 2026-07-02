@@ -151,7 +151,7 @@ function reducer(state: HState, action: Action): HState {
       const deck = shuffle(HIST_CARDS.map(c => c.id)).slice(0, action.totalRounds)
       const [first, ...rest] = deck
       const card = getCard(first)
-      const q: QuestionKey = card ? pick(card.perguntas) : 'gols'
+      const q: QuestionKey = card ? pick(card.perguntas) : 'copa_gols'
       const players: HPlayer[] = [
         { id: 'you', nome: action.playerName || 'Você', isCPU: false, money: START_MONEY, cartasIds: [] },
         ...CPU_NAMES.map((n, i) => ({ id: `cpu-${i}`, nome: n, isCPU: true, money: START_MONEY, cartasIds: [] })),
@@ -256,7 +256,7 @@ function reducer(state: HState, action: Action): HState {
       if (isLast) return { ...state, screen: 'results' }
       const [next, ...rest] = state.deck
       const card = getCard(next)
-      const q: QuestionKey = card ? pick(card.perguntas) : 'gols'
+      const q: QuestionKey = card ? pick(card.perguntas) : 'copa_gols'
       return {
         ...state,
         screen: 'game',

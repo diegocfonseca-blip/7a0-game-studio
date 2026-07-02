@@ -1,13 +1,29 @@
 export type Raridade = 'comum' | 'epica' | 'mitica'
-export type QuestionKey = 'gols' | 'titulos' | 'altura' | 'assists' | 'jogos'
+export type QuestionKey =
+  | 'copa_gols'      // WC goals across career
+  | 'copa_jogos'     // WC matches across career
+  | 'selecao_gols'   // national team goals career total
+  | 'selecao_jogos'  // national team appearances career total
+  | 'ballon_dor'     // Ballon d'Or wins
+  | 'cl_titulos'     // Champions League / Copa dos Campeões titles
+  | 'gols_carreira'  // career professional goals
+  | 'titulos'        // total career titles
+  | 'copas'          // World Cups participated in
+  | 'altura'         // height in cm
+
 export type HScreen = 'menu' | 'game' | 'results' | 'museu'
 
 export interface AtributosOcultos {
-  gols?: number
+  copa_gols?: number
+  copa_jogos?: number
+  selecao_gols?: number
+  selecao_jogos?: number
+  ballon_dor?: number
+  cl_titulos?: number
+  gols_carreira?: number
   titulos?: number
+  copas?: number
   altura?: number
-  assists?: number
-  jogos?: number
 }
 
 export interface HistCardData {

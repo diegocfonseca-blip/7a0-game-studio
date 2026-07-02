@@ -13,11 +13,16 @@ function fmt(m: number) { return `$${Math.round(m)}M` }
 
 // Max reference values for stat bars
 const STAT_MAX: Record<QuestionKey, number> = {
-  gols: 100,
-  titulos: 20,
+  copa_gols: 18,
+  copa_jogos: 26,
+  selecao_gols: 135,
+  selecao_jogos: 220,
+  ballon_dor: 8,
+  cl_titulos: 6,
+  gols_carreira: 900,
+  titulos: 50,
+  copas: 5,
   altura: 210,
-  assists: 40,
-  jogos: 80,
 }
 
 // ── Holographic shimmer overlay ────────────────────────────────────
