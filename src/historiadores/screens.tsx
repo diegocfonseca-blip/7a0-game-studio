@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useHist } from './store'
 import { useWikiPhoto } from './useWikiPhoto'
-import { getCard, getRaridadeColor, getRaridadeLabel, QUESTION_LABELS, HIST_CARDS } from './data'
+import { getCard, getRaridadeLabel, QUESTION_LABELS, HIST_CARDS } from './data'
 import type { HistCardData, QuestionKey } from './types'
 import { BrutalButton, BrutalCard, BrutalPill, C } from '../empresario/ui'
 import { SoloGameProvider, OnlineGameProvider, useGameCtx } from './GameContext'
@@ -25,31 +25,83 @@ const STAT_MAX: Record<QuestionKey, number> = {
   altura: 210,
 }
 
-// ── Holographic shimmer overlay ────────────────────────────────────
-function ShimmerOverlay({ raridade }: { raridade: HistCardData['raridade'] }) {
+// Short display labels for stat keys
+const STAT_SHORT: Record<QuestionKey, string> = {
+  copa_gols:    'Gols na Copa',
+  copa_jogos:   'Jogos na Copa',
+  selecao_gols: 'Gols Seleção',
+  selecao_jogos:'Jogos Seleção',
+  ballon_dor:   'Bola de Ouro',
+  cl_titulos:   'Champions',
+  gols_carreira:'Gols Carreira',
+  titulos:      'Títulos',
+  copas:        'Copas do Mundo',
+  altura:       'Altura (cm)',
+}
+
+// Visual identity per rarity tier
+const RF = {
+  mitica: {
+    frame: 'linear-gradient(135deg, #78350F 0%, #D97706 25%, #FDE68A 50%, #F59E0B 75%, #92400E 100%)',
+    bg: '#100C00',
+    accent: '#F59E0B',
+    glow: '#F59E0B',
+    text: '#FDE68A',
+    dimText: '#B45309',
+  },
+  epica: {
+    frame: 'linear-gradient(135deg, #2E1065 0%, #6D28D9 30%, #C4B5FD 55%, #7C3AED 80%, #1E1B4B 100%)',
+    bg: '#0B0614',
+    accent: '#A78BFA',
+    glow: '#7C3AED',
+    text: '#EDE9FE',
+    dimText: '#5B21B6',
+  },
+  comum: {
+    frame: 'linear-gradient(135deg, #164E63 0%, #0891B2 30%, #67E8F9 55%, #06B6D4 80%, #083344 100%)',
+    bg: '#03111A',
+    accent: '#22D3EE',
+    glow: '#0891B2',
+    text: '#CFFAFE',
+    dimText: '#155E75',
+  },
+} as const
+
+// ── Holographic shimmer (lives inside the clipped inner div) ───────
+function CardShimmer({ raridade }: { raridade: HistCardData['raridade'] }) {
   if (raridade === 'mitica') {
     return (
-      <motion.div
-        className="absolute inset-0 pointer-events-none z-10"
-        style={{
-          background: 'linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.18) 50%, transparent 80%)',
-          borderRadius: 'inherit',
-        }}
-        animate={{ x: ['-120%', '220%'] }}
-        transition={{ duration: 2.2, repeat: Infinity, ease: 'linear', repeatDelay: 1.8 }}
-      />
+      <>
+        <motion.div
+          className="absolute inset-0 pointer-events-none z-20"
+          style={{
+            background: 'linear-gradient(108deg, transparent 12%, rgba(255,230,80,0.45) 38%, rgba(255,180,220,0.30) 52%, rgba(110,220,255,0.40) 68%, transparent 88%)',
+            mixBlendMode: 'screen',
+          }}
+          animate={{ x: ['-170%', '270%'] }}
+          transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut', repeatDelay: 2.2 }}
+        />
+        <motion.div
+          className="absolute inset-0 pointer-events-none z-20"
+          style={{
+            background: 'linear-gradient(112deg, transparent 20%, rgba(255,220,50,0.55) 50%, transparent 80%)',
+          }}
+          animate={{ x: ['-170%', '270%'] }}
+          transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut', repeatDelay: 2.2, delay: 0.12 }}
+        />
+      </>
     )
   }
   if (raridade === 'epica') {
     return (
       <motion.div
-        className="absolute inset-0 pointer-events-none z-10"
+        className="absolute inset-0 pointer-events-none z-20"
         style={{
-          background: 'linear-gradient(105deg, transparent 20%, rgba(167,139,250,0.22) 50%, transparent 80%)',
-          borderRadius: 'inherit',
+          background: 'linear-gradient(108deg, transparent 15%, rgba(167,139,250,0.50) 45%, rgba(216,180,254,0.35) 55%, transparent 85%)',
+          mixBlendMode: 'screen',
         }}
-        animate={{ x: ['-120%', '220%'] }}
-        transition={{ duration: 3, repeat: Infinity, ease: 'linear', repeatDelay: 2.5 }}
+        animate={{ x: ['-170%', '270%'] }}
+        transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut', repeatDelay: 2.8 }}
       />
     )
   }
@@ -71,161 +123,177 @@ function HistCard({
   const card = getCard(cardId)
   const photoUrl = useWikiPhoto(card?.wikiTitle)
   if (!card) return null
-  const colors = getRaridadeColor(card.raridade)
 
+  const R = RF[card.raridade]
   const hasPhoto = !compact && !!photoUrl
 
   return (
+    // Gradient-border frame
     <div
-      className="w-full rounded-2xl border-[3px] border-black overflow-hidden relative flex flex-col"
+      className="w-full rounded-2xl relative"
       style={{
-        background: colors.bg,
-        boxShadow: `5px 5px 0 0 #0C0C0C, 0 0 40px ${colors.glow}55`,
-        minHeight: hasPhoto ? '380px' : undefined,
+        background: R.frame,
+        padding: '3px',
+        boxShadow: `6px 6px 0 0 #000, 0 0 48px ${R.glow}45`,
       }}
     >
-      <ShimmerOverlay raridade={card.raridade} />
+      {/* Inner dark body */}
+      <div
+        className="rounded-[13px] overflow-hidden relative flex flex-col"
+        style={{
+          background: R.bg,
+          minHeight: hasPhoto ? '400px' : undefined,
+        }}
+      >
+        <CardShimmer raridade={card.raridade} />
 
-      {/* Full-card photo background */}
-      {hasPhoto && (
-        <div className="absolute inset-0 z-0">
-          <img
-            src={photoUrl!}
-            alt={card.nome}
-            className="w-full h-full object-cover"
-            style={{ objectPosition: 'center 15%' }}
-            loading="lazy"
-          />
-          {/* gradient: semi-dark top → transparent middle → very dark bottom */}
-          <div
-            className="absolute inset-0"
+        {/* Photo background */}
+        {hasPhoto && (
+          <div className="absolute inset-0 z-0">
+            <img
+              src={photoUrl!}
+              alt={card.nome}
+              className="w-full h-full object-cover"
+              style={{ objectPosition: 'center 15%' }}
+              loading="lazy"
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(to bottom,
+                  rgba(0,0,0,0.62) 0%,
+                  rgba(0,0,0,0.08) 30%,
+                  rgba(0,0,0,0.0) 46%,
+                  ${R.bg}BB 64%,
+                  ${R.bg} 80%)`,
+              }}
+            />
+          </div>
+        )}
+
+        {/* No-photo ambient glow */}
+        {!compact && !photoUrl && (
+          <div className="absolute inset-0 z-0" style={{
+            background: `radial-gradient(ellipse at 40% 35%, ${R.accent}12 0%, transparent 65%)`,
+          }}>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span style={{ fontSize: '7rem', opacity: 0.04 }}>{card.flag}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Header: rarity badge + flag + year */}
+        <div className="flex items-center justify-between px-3 pt-3 pb-1 relative z-10">
+          <span
+            className="text-[9px] font-black uppercase tracking-[0.14em] px-2 py-[3px] rounded-full"
+            style={{ color: R.bg, background: R.accent }}
+          >
+            {getRaridadeLabel(card.raridade)}
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[17px] leading-none">{card.flag}</span>
+            <span
+              className="font-black text-[11px] tabular-nums tracking-wide"
+              style={{ color: `${R.text}60` }}
+            >
+              {card.ano}
+            </span>
+          </div>
+        </div>
+
+        {/* Spacer — photo shows through */}
+        {hasPhoto && <div className="flex-1" style={{ minHeight: '130px' }} />}
+
+        {/* Player identity */}
+        <div className="px-3 pb-2 relative z-10">
+          {!hasPhoto && !compact && (
+            <div className="text-4xl mb-1" style={{ opacity: 0.35 }}>{card.flag}</div>
+          )}
+          {compact && <div className="text-2xl mb-1">{card.flag}</div>}
+
+          <p
+            className={`font-black leading-none ${compact ? 'text-xl' : 'text-[1.55rem]'}`}
             style={{
-              background:
-                'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 35%, rgba(0,0,0,0.0) 52%, rgba(0,0,0,0.72) 68%, rgba(0,0,0,0.95) 100%)',
+              fontFamily: 'Oswald, sans-serif',
+              color: R.text,
+              textShadow: hasPhoto ? `0 2px 16px ${R.bg}` : 'none',
+              letterSpacing: '0.01em',
             }}
-          />
+          >
+            {card.nome}
+          </p>
+          <p className="text-[11px] font-bold mt-0.5 tracking-wide" style={{ color: `${R.text}70` }}>
+            {card.apelido}
+          </p>
+          <p className="text-[10px] mt-0.5 font-medium" style={{ color: `${R.text}45` }}>
+            {card.posicao} · {card.clube}
+          </p>
         </div>
-      )}
 
-      {/* No-photo fallback pattern */}
-      {!compact && !photoUrl && (
-        <div
-          className="absolute inset-0 z-0 flex items-center justify-center"
-          style={{ backgroundColor: 'rgba(0,0,0,0.12)' }}
-        >
-          <span className="text-8xl opacity-10">{card.flag}</span>
-        </div>
-      )}
+        {/* Stats block */}
+        {!compact && (
+          <>
+            {/* Divider with accent glow */}
+            <div
+              className="mx-3 mb-3"
+              style={{
+                height: '1px',
+                background: `linear-gradient(90deg, transparent, ${R.accent}50, transparent)`,
+              }}
+            />
 
-      {/* Badges row */}
-      <div className="flex items-center justify-between px-4 pt-3 pb-1 relative z-20">
-        <span
-          className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border"
-          style={{
-            color: hasPhoto ? '#fff' : colors.text,
-            borderColor: hasPhoto ? 'rgba(255,255,255,0.5)' : `${colors.text}66`,
-            backgroundColor: hasPhoto ? 'rgba(0,0,0,0.4)' : 'transparent',
-            textShadow: hasPhoto ? '0 1px 4px rgba(0,0,0,0.8)' : 'none',
-          }}
-        >
-          {getRaridadeLabel(card.raridade)}
-        </span>
-        <span
-          className="font-mono text-xs font-black"
-          style={{
-            color: hasPhoto ? 'rgba(255,255,255,0.85)' : `${colors.text}BB`,
-            textShadow: hasPhoto ? '0 1px 4px rgba(0,0,0,0.8)' : 'none',
-          }}
-        >
-          {card.ano}
-        </span>
+            <div className="mx-3 mb-3 space-y-2.5 relative z-10">
+              {(Object.entries(card.atributos) as [QuestionKey, number][]).map(([key, val], idx) => {
+                const isHL = key === highlightStat
+                const barPct = Math.min(100, (val / (STAT_MAX[key] ?? 100)) * 100)
+                return (
+                  <div key={key}>
+                    <div className="flex items-baseline justify-between mb-1">
+                      <span
+                        className="text-[10px] font-black uppercase tracking-[0.1em] transition-colors duration-300"
+                        style={{ color: isHL && revealed ? R.accent : `${R.text}45` }}
+                      >
+                        {STAT_SHORT[key] ?? key}
+                      </span>
+                      <motion.span
+                        className="font-black text-[1.15rem] tabular-nums leading-none"
+                        style={{
+                          fontFamily: 'Oswald, sans-serif',
+                          color: isHL && revealed ? R.accent : `${R.text}90`,
+                          textShadow: isHL && revealed ? `0 0 18px ${R.accent}` : 'none',
+                        }}
+                        animate={{ filter: revealed ? 'blur(0px)' : 'blur(9px)' }}
+                        transition={{ duration: 0.55, delay: isHL ? 0.0 : 0.22 + idx * 0.07 }}
+                      >
+                        {val}
+                      </motion.span>
+                    </div>
+
+                    {/* Bar track */}
+                    <div
+                      className="h-[3px] rounded-full overflow-hidden"
+                      style={{ background: `${R.accent}14` }}
+                    >
+                      <motion.div
+                        className="h-full rounded-full"
+                        initial={{ width: '0%' }}
+                        animate={{ width: revealed ? `${barPct}%` : '0%' }}
+                        transition={{ duration: 0.85, delay: 0.28 + idx * 0.09, ease: 'easeOut' }}
+                        style={{
+                          background: isHL && revealed
+                            ? `linear-gradient(90deg, ${R.accent}80, ${R.accent})`
+                            : `${R.accent}40`,
+                          boxShadow: isHL && revealed ? `0 0 10px ${R.accent}90` : 'none',
+                        }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
+        )}
       </div>
-
-      {/* Spacer — photo shows through here */}
-      {hasPhoto && <div className="flex-1" style={{ minHeight: '100px' }} />}
-
-      {/* Player info */}
-      <div className="px-4 pb-2 relative z-20">
-        {compact && <div className="text-2xl mb-0.5">{card.flag}</div>}
-        {hasPhoto && <div className="text-xl mb-0.5">{card.flag}</div>}
-        <p
-          className={`font-black leading-tight ${compact ? 'text-xl' : 'text-2xl'}`}
-          style={{
-            fontFamily: 'Oswald, sans-serif',
-            color: hasPhoto ? '#fff' : colors.text,
-            textShadow: hasPhoto ? '0 2px 8px rgba(0,0,0,0.9)' : 'none',
-          }}
-        >
-          {card.nome}
-        </p>
-        <p
-          className="text-sm font-bold"
-          style={{ color: hasPhoto ? 'rgba(255,255,255,0.75)' : colors.text, opacity: hasPhoto ? 1 : 0.7 }}
-        >
-          {card.apelido}
-        </p>
-        <p
-          className="text-xs mt-0.5"
-          style={{ color: hasPhoto ? 'rgba(255,255,255,0.6)' : colors.text, opacity: hasPhoto ? 1 : 0.6 }}
-        >
-          {card.posicao} · {card.clube}
-        </p>
-      </div>
-
-      {!compact && (
-        <div
-          className="mx-3 mb-3 rounded-xl overflow-hidden border-2 relative z-20"
-          style={{
-            borderColor: hasPhoto ? 'rgba(255,255,255,0.15)' : `${colors.text}30`,
-            backgroundColor: hasPhoto ? 'rgba(0,0,0,0.72)' : 'rgba(0,0,0,0.25)',
-          }}
-        >
-          {(Object.entries(card.atributos) as [QuestionKey, number][]).map(([key, val], idx) => {
-            const isHL = key === highlightStat
-            const barPct = Math.min(100, (val / (STAT_MAX[key] ?? 100)) * 100)
-            return (
-              <div
-                key={key}
-                className="px-3 pt-2 pb-1.5 border-b last:border-0"
-                style={{
-                  borderColor: hasPhoto ? 'rgba(255,255,255,0.08)' : `${colors.text}15`,
-                  backgroundColor: isHL && revealed ? 'rgba(255,184,0,0.18)' : 'transparent',
-                }}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span
-                    className="text-[11px] font-black uppercase tracking-wide"
-                    style={{ color: hasPhoto ? 'rgba(255,255,255,0.6)' : colors.text, opacity: hasPhoto ? 1 : 0.7 }}
-                  >
-                    {key}
-                  </span>
-                  <motion.span
-                    className="font-black text-base tabular-nums"
-                    style={{ color: isHL && revealed ? '#FFB800' : (hasPhoto ? '#fff' : colors.text) }}
-                    animate={{ filter: revealed ? 'blur(0px)' : 'blur(8px)' }}
-                    transition={{ duration: 0.6, delay: isHL ? 0.05 : 0.3 + idx * 0.08 }}
-                  >
-                    {val}
-                  </motion.span>
-                </div>
-
-                <div
-                  className="h-1 rounded-full overflow-hidden"
-                  style={{ backgroundColor: hasPhoto ? 'rgba(255,255,255,0.15)' : `${colors.text}18` }}
-                >
-                  <motion.div
-                    className="h-full rounded-full"
-                    initial={{ width: '0%' }}
-                    animate={{ width: revealed ? `${barPct}%` : '0%' }}
-                    transition={{ duration: 0.9, delay: 0.4 + idx * 0.12, ease: 'easeOut' }}
-                    style={{ backgroundColor: isHL && revealed ? '#FFB800' : (hasPhoto ? 'rgba(255,255,255,0.8)' : `${colors.text}CC`) }}
-                  />
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
     </div>
   )
 }
@@ -240,57 +308,100 @@ function AlbumSlot({
   isOwned: boolean
   onTap: () => void
 }) {
-  const colors = getRaridadeColor(card.raridade)
+  const R = RF[card.raridade]
+
   return (
     <motion.button
       onClick={isOwned ? onTap : undefined}
-      whileTap={isOwned ? { scale: 0.93 } : {}}
-      initial={{ opacity: 0, y: 8 }}
+      whileTap={isOwned ? { scale: 0.91 } : {}}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl border-[3px] border-black overflow-hidden relative"
       style={{
         aspectRatio: '2/3',
-        background: isOwned ? colors.bg : '#1c1c1c',
+        display: 'block',
+        position: 'relative',
+        borderRadius: '9px',
+        background: isOwned ? R.frame : '#111',
+        padding: '2px',
         boxShadow: isOwned
-          ? `3px 3px 0 0 #0C0C0C, 0 0 16px ${colors.glow}44`
-          : '2px 2px 0 0 #0C0C0C',
-        display: 'flex',
-        flexDirection: 'column',
+          ? `2px 2px 0 0 #000, 0 0 14px ${R.glow}40`
+          : '2px 2px 0 0 #0A0A0A',
       }}
     >
-      {isOwned ? (
-        <>
-          <ShimmerOverlay raridade={card.raridade} />
-          <div className="flex flex-col h-full p-1.5 relative z-10">
-            <span
-              className="text-[7px] font-black uppercase tracking-wider px-1 py-0.5 rounded-full self-start border mb-auto leading-tight"
-              style={{ color: colors.text, borderColor: `${colors.text}55` }}
-            >
-              {card.raridade === 'mitica' ? 'MÍT' : card.raridade === 'epica' ? 'ÉPI' : 'COM'}
-            </span>
-            <div>
-              <div className="text-base leading-none mb-0.5">{card.flag}</div>
-              <p
-                className="font-black text-[10px] leading-tight"
-                style={{ fontFamily: 'Oswald, sans-serif', color: colors.text }}
+      {/* Inner */}
+      <div
+        className="w-full h-full flex flex-col overflow-hidden relative"
+        style={{
+          borderRadius: '7px',
+          background: isOwned ? R.bg : '#0C0C0C',
+        }}
+      >
+        {isOwned ? (
+          <>
+            <CardShimmer raridade={card.raridade} />
+
+            {/* Ambient radial highlight */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `radial-gradient(ellipse at 50% 28%, ${R.accent}22 0%, transparent 68%)`,
+              }}
+            />
+
+            <div className="relative z-10 flex flex-col h-full p-1.5">
+              {/* Rarity micro-badge */}
+              <span
+                className="text-[7px] font-black uppercase tracking-wider px-[5px] py-[2px] rounded-full self-start leading-tight"
+                style={{ color: R.bg, background: R.accent }}
               >
-                {card.nome.split(' ').at(-1)}
-              </p>
-              <p className="text-[8px] font-bold opacity-50" style={{ color: colors.text }}>
-                {card.ano}
-              </p>
+                {card.raridade === 'mitica' ? 'MÍT' : card.raridade === 'epica' ? 'ÉPI' : 'COM'}
+              </span>
+
+              {/* Flag centered */}
+              <div className="flex-1 flex items-center justify-center">
+                <span style={{ fontSize: '1.9rem', lineHeight: 1 }}>{card.flag}</span>
+              </div>
+
+              {/* Player surname + year */}
+              <div>
+                <p
+                  className="font-black text-[10px] leading-tight truncate"
+                  style={{ fontFamily: 'Oswald, sans-serif', color: R.text }}
+                >
+                  {card.nome.split(' ').at(-1)}
+                </p>
+                <p className="text-[7px] font-bold" style={{ color: `${R.text}45` }}>
+                  {card.ano}
+                </p>
+              </div>
             </div>
-          </div>
-        </>
-      ) : (
-        <div className="flex-1 flex flex-col items-center justify-center gap-1.5 opacity-30">
-          <span className="text-white text-xl">?</span>
-          <div
-            className="w-2 h-2 rounded-full"
-            style={{ backgroundColor: colors.glow }}
-          />
-        </div>
-      )}
+          </>
+        ) : (
+          <>
+            {/* Diagonal hatch texture — hints at rarity */}
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `repeating-linear-gradient(
+                  45deg,
+                  ${R.glow}06 0px, ${R.glow}06 1px,
+                  transparent 1px, transparent 7px
+                )`,
+              }}
+            />
+            <div className="relative z-10 flex flex-col items-center justify-center h-full gap-1.5">
+              <div
+                className="w-6 h-6 rounded-full flex items-center justify-center border"
+                style={{ borderColor: `${R.glow}25`, background: `${R.glow}08` }}
+              >
+                <span className="text-[11px] font-black" style={{ color: `${R.glow}35` }}>?</span>
+              </div>
+              {/* Rarity color dot */}
+              <div className="w-1.5 h-1.5 rounded-full" style={{ background: `${R.glow}30` }} />
+            </div>
+          </>
+        )}
+      </div>
     </motion.button>
   )
 }
@@ -1270,12 +1381,12 @@ export function ResultsScreen({ myPlayerId = 'you' }: { myPlayerId?: string }) {
               {state.museuCards.map(id => {
                 const c = getCard(id)
                 if (!c) return null
-                const colors = getRaridadeColor(c.raridade)
+                const R2 = RF[c.raridade]
                 return (
                   <span
                     key={id}
-                    className="px-2 py-0.5 rounded-lg border-2 border-black text-[10px] font-black"
-                    style={{ background: colors.bg, color: colors.text }}
+                    className="px-2 py-0.5 rounded-lg border border-black/30 text-[10px] font-black"
+                    style={{ background: R2.bg, color: R2.accent }}
                   >
                     {c.apelido}
                   </span>
