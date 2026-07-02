@@ -1194,9 +1194,9 @@ function RevealPhase() {
           </motion.div>
         )}
 
-        {/* Todos os lances — quem apostou em quem */}
+        {/* Todos os lances em lista unificada */}
         <div className="space-y-1.5">
-          {/* Apostas no palpiteiro vencedor */}
+          {/* Apostas no palpiteiro vencedor (#1) */}
           {betsOnRight.map(bet => {
             const isCardWinner = bet.playerId === cardWinnerId
             const isYou = bet.playerId === myPlayerId
@@ -1219,12 +1219,11 @@ function RevealPhase() {
                       {isYou && <span className="ml-1 text-[10px] opacity-60">(você)</span>}
                     </p>
                     <p className="text-[10px] font-bold text-black/50">
-                      {isSelf
-                        ? `Apostou em si mesmo · chutou ${winningGuess?.value ?? realValue}`
-                        : `Apostou no palpite de ${winnerName} · chutou ${winningGuess?.value ?? realValue}`}
+                      {isSelf ? 'Apostou em si mesmo' : `Apostou no palpite de ${winnerName}`}
+                      {' '}· era o #1 do palpite
                     </p>
                     <p className="text-[10px] font-black uppercase">
-                      {isCardWinner ? 'MAIOR LANCE → GANHOU A CARTA' : 'LANCE SUPERADO → DEVOLVIDO'}
+                      {isCardWinner ? 'MAIOR LANCE → GANHOU A CARTA' : 'LANCE MENOR → DEVOLVIDO'}
                     </p>
                   </div>
                 </div>
@@ -1235,48 +1234,36 @@ function RevealPhase() {
             )
           })}
 
-          {/* Apostas em outros palpiteiros */}
+          {/* Apostas em palpiteiros que não eram o #1 */}
           {betsOnWrong.map(bet => {
             const isYou = bet.playerId === myPlayerId
-            const backedGuess = state.guesses.find(g => g.playerId === bet.onPlayerId)
             const backedGuesser = state.players.find(p => p.id === bet.onPlayerId)
             const backedRank = guessRanks.find(r => r.playerId === bet.onPlayerId)
             const isSelf = bet.playerId === bet.onPlayerId
             const backedName = backedGuesser?.nome ?? playerName(bet.onPlayerId)
-            const winnerName = playerName(winningGuessPlayerId ?? '')
-            // Apostado também acertou o valor, mas não era o #1 do ranking
-            const alsoCorrect = backedRank && winningGuess
-              && backedRank.distance === winningGuess.distance
-              && backedRank.over === winningGuess.over
             return (
               <div
                 key={bet.playerId}
-                className="border-2 rounded-xl px-3 py-2.5 flex items-center justify-between"
-                style={{
-                  backgroundColor: alsoCorrect ? '#FFF3CD' : '#F0EAD8',
-                  borderColor: alsoCorrect ? '#D97706' : '#00000040',
-                }}
+                className="border-2 border-black/30 rounded-xl px-3 py-2.5 flex items-center justify-between"
+                style={{ backgroundColor: '#F0EAD8' }}
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-base shrink-0">{alsoCorrect ? '🔶' : '❌'}</span>
+                  <span className="text-base shrink-0">❌</span>
                   <div className="min-w-0">
                     <p className="font-black text-sm truncate text-black">
                       {playerName(bet.playerId)}
                       {isYou && <span className="ml-1 text-[10px] text-black/50">(você)</span>}
                     </p>
                     <p className="text-[10px] font-bold text-black/60">
-                      {isSelf
-                        ? `Apostou em si mesmo · chutou ${backedGuess?.value ?? '?'}`
-                        : `Apostou no palpite de ${backedName} · chutou ${backedGuess?.value ?? '?'}`}
+                      {isSelf ? 'Apostou em si mesmo' : `Apostou no palpite de ${backedName}`}
+                      {backedRank ? ` · ${backedName} era #${backedRank.rank} do palpite` : ''}
                     </p>
-                    <p className="text-[10px] font-black uppercase" style={{ color: alsoCorrect ? '#92400E' : '#DC2626' }}>
-                      {alsoCorrect
-                        ? `${backedName} acertou mas era #${backedRank?.rank} — vencedor era ${winnerName}`
-                        : `Palpite de ${backedName} estava errado · devolvido`}
+                    <p className="text-[10px] font-black uppercase text-red-600">
+                      Não era o palpiteiro #1 · devolvido
                     </p>
                   </div>
                 </div>
-                <p className="font-black text-lg shrink-0 ml-2 text-black/50" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                <p className="font-black text-lg shrink-0 ml-2 text-black/40" style={{ fontFamily: 'Oswald, sans-serif' }}>
                   {fmt(bet.amount)}
                 </p>
               </div>
