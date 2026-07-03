@@ -10,6 +10,7 @@ export interface GameCtxValue {
   submitGuess: (value: number) => void
   submitBet: (onPlayerId: string, amount: number, ts: number) => void
   nextCard: () => void
+  stealCard?: (fromPlayerId: string, stolenCardId: string) => void
   alreadyGuessed: boolean   // true = submitted this round, waiting for others
   alreadyBet: boolean
 }
@@ -31,6 +32,7 @@ export function SoloGameProvider({ children }: { children: ReactNode }) {
     submitGuess:  (value)                     => dispatch({ type: 'SUBMIT_GUESS', value }),
     submitBet:    (onPlayerId, amount, ts)     => dispatch({ type: 'SUBMIT_BET', onPlayerId, amount, timestamp: ts }),
     nextCard:     ()                           => dispatch({ type: 'NEXT_CARD' }),
+    stealCard:    (fromPlayerId, stolenCardId) => dispatch({ type: 'STEAL_CARD', fromPlayerId, stolenCardId }),
     alreadyGuessed: false,
     alreadyBet:     false,
   }

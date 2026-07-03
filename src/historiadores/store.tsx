@@ -135,6 +135,7 @@ type Action =
   | { type: 'SUBMIT_GUESS'; value: number }
   | { type: 'SUBMIT_BET'; onPlayerId: string; amount: number; timestamp: number }
   | { type: 'NEXT_CARD' }
+  | { type: 'STEAL_CARD'; fromPlayerId: string; stolenCardId: string }
   | { type: 'RESET' }
 
 // ── reducer ─────────────────────────────────────────────────────
@@ -269,6 +270,23 @@ function reducer(state: HState, action: Action): HState {
         roundResult: null,
         round: state.round + 1,
       }
+    }
+
+    case 'STEAL_CARD': {
+      const winnerId = state.roundResult?.cardWinnerId
+      if (!winnerId || !state.currentCardId) return state
+      const victim = state.players.find(p => p.id === action.fromPlayerId)
+      if (!victim || !victim.cartasIds.includes(action.stolenCardId)) return state
+      const { stolenCardId } = action
+      const wonCardId = state.currentCardId
+      const players = state.players.map(p => {
+        if (p.id === winnerId) return { ...p, cartasIds: [...p.cartasIds.filter(c => c !== wonCardId), stolenCardId] }
+        if (p.id === action.fromPlayerId) return { ...p, cartasIds: p.cartasIds.filter(c => c !== stolenCardId) }
+        return p
+      })
+      let museuCards = state.museuCards
+      if (winnerId === 'you') museuCards = [...new Set([...museuCards.filter(c => c !== wonCardId), stolenCardId])]
+      return { ...state, players, museuCards }
     }
 
     default:

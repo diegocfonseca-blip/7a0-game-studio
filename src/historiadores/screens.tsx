@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useHist } from './store'
 import { useWikiPhoto } from './useWikiPhoto'
@@ -10,6 +10,80 @@ import { useOnlineGame } from './useOnlineGame'
 import type { OnlinePlayer } from './onlineRoom'
 
 function fmt(m: number) { return `$${Math.round(m)}M` }
+
+// ── Countdown hook ────────────────────────────────────────────────
+function useCountdown(seconds: number, active: boolean, onExpire: () => void): number {
+  const [remaining, setRemaining] = useState(seconds)
+  const cbRef = useRef(onExpire)
+  cbRef.current = onExpire
+
+  useEffect(() => { setRemaining(seconds) }, [seconds])
+
+  useEffect(() => {
+    if (!active) return
+    if (remaining <= 0) { cbRef.current(); return }
+    const t = setTimeout(() => setRemaining(r => r - 1), 1000)
+    return () => clearTimeout(t)
+  }, [active, remaining])
+
+  return remaining
+}
+
+// ── Countdown bar ─────────────────────────────────────────────────
+function CountdownBar({ remaining, total }: { remaining: number; total: number }) {
+  const pct = Math.max(0, (remaining / total) * 100)
+  const color = pct > 55 ? '#16B89A' : pct > 25 ? '#FFB800' : '#FF5126'
+  const urgent = remaining <= 5 && remaining > 0
+  return (
+    <div className="mx-5 mb-4">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[10px] font-black uppercase tracking-wider text-black/40">TEMPO</span>
+        <motion.span
+          className="font-black text-sm tabular-nums"
+          style={{ color, fontFamily: 'Oswald, sans-serif' }}
+          animate={urgent ? { scale: [1, 1.2, 1] } : { scale: 1 }}
+          transition={{ duration: 0.4, repeat: urgent ? Infinity : 0 }}
+        >
+          {remaining}s
+        </motion.span>
+      </div>
+      <div className="h-2.5 bg-black/10 rounded-full overflow-hidden border border-black/10">
+        <motion.div
+          className="h-full rounded-full"
+          style={{ backgroundColor: color }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, ease: 'linear' }}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ── Confetti (winner celebration) ─────────────────────────────────
+function Confetti() {
+  const pieces = Array.from({ length: 24 }, (_, i) => ({
+    id: i,
+    x: 3 + i * 3.9,
+    delay: (i * 0.06) % 1.1,
+    color: ['#FFB800', '#16B89A', '#7C3AED', '#FF5126', '#0C0C0C', '#FDE68A'][i % 6],
+    size: 6 + (i % 3) * 4,
+    rot: (i * 53) % 360,
+  }))
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+      {pieces.map(p => (
+        <motion.div
+          key={p.id}
+          className="absolute top-0 rounded-sm"
+          style={{ left: `${p.x}%`, width: p.size, height: p.size, backgroundColor: p.color }}
+          initial={{ y: -20, rotate: p.rot, opacity: 1 }}
+          animate={{ y: 320, rotate: p.rot + 720, opacity: [1, 1, 0] }}
+          transition={{ duration: 1.8, delay: p.delay, ease: 'easeIn', repeat: Infinity, repeatDelay: 1.2 }}
+        />
+      ))}
+    </div>
+  )
+}
 
 // Max reference values for stat bars
 const STAT_MAX: Record<QuestionKey, number> = {
@@ -859,13 +933,17 @@ function OnlineResultsScreen({ api }: { api: ReturnType<typeof useOnlineGame> })
 function GuessingPhase() {
   const { state, myPlayerId, submitGuess, alreadyGuessed } = useGameCtx()
   const [guess, setGuess] = useState('')
+  const guessNum = parseInt(guess, 10)
+
+  const remaining = useCountdown(30, !alreadyGuessed, () => {
+    if (!alreadyGuessed) submitGuess(!isNaN(guessNum) && guessNum >= 0 ? guessNum : 0)
+  })
 
   const card = getCard(state.currentCardId ?? '')
   const you = state.players.find(p => p.id === myPlayerId) ?? state.players[state.youIdx]
   if (!card || !state.currentQuestion || !you) return null
 
   const questionLabel = QUESTION_LABELS[state.currentQuestion]?.(card.ano) ?? state.currentQuestion
-  const guessNum = parseInt(guess, 10)
   const canSubmit = !alreadyGuessed && !isNaN(guessNum) && guessNum >= 0 && guess !== ''
 
   function submit() {
@@ -896,6 +974,8 @@ function GuessingPhase() {
           style={{ width: `${(state.round / state.totalRounds) * 100}%`, backgroundColor: '#FFB800' }}
         />
       </div>
+
+      <CountdownBar remaining={remaining} total={30} />
 
       <div className="mx-5 mb-4">
         <div
@@ -969,6 +1049,14 @@ function BettingPhase() {
   const [amount, setAmount] = useState(10)
 
   const you = state.players.find(p => p.id === myPlayerId) ?? state.players[state.youIdx]
+
+  const remaining = useCountdown(15, !alreadyBet, () => {
+    if (!alreadyBet && you) {
+      const target = selectedTarget ?? myPlayerId
+      submitBet(target, Math.max(1, Math.min(amount, you.money)), Date.now())
+    }
+  })
+
   const card = getCard(state.currentCardId ?? '')
   if (!card || !state.currentQuestion || !you) return null
 
@@ -998,6 +1086,8 @@ function BettingPhase() {
           </p>
         </div>
       </div>
+
+      <CountdownBar remaining={remaining} total={15} />
 
       <div className="mx-5 mb-4">
         <div
@@ -1105,9 +1195,12 @@ function BettingPhase() {
   )
 }
 
-// ── Fase 3: Revelação ─────────────────────────────────────────────
+// ── Fase 3: Revelação (suspense por passos) ───────────────────────
 function RevealPhase() {
-  const { state, myPlayerId, nextCard } = useGameCtx()
+  const { state, myPlayerId, nextCard, stealCard } = useGameCtx()
+  const [revealStep, setRevealStep] = useState(0)
+  const [stolenCardId, setStolenCardId] = useState<string | null>(null)
+
   const card = getCard(state.currentCardId ?? '')
   const { roundResult } = state
   if (!card || !state.currentQuestion || !roundResult) return null
@@ -1118,6 +1211,22 @@ function RevealPhase() {
   const winningGuess = guessRanks.find(r => r.playerId === winningGuessPlayerId)
   const medals = ['🥇', '🥈', '🥉', '4️⃣']
 
+  // Worst → best for suspense reveal
+  const guessesWorstToBest = [...guessRanks].sort((a, b) => b.rank - a.rank)
+  const numGuessers = guessesWorstToBest.length
+  // 0=mystery, 1=value+card, 2..(n+1)=guessers, n+2=leilão, n+3=done
+  const STEP_LEILAO = numGuessers + 2
+  const STEP_DONE   = numGuessers + 3
+  const isDone = revealStep >= STEP_DONE
+  const advance = () => setRevealStep(s => Math.min(s + 1, STEP_DONE))
+
+  const visibleGuessers = guessesWorstToBest.slice(0, Math.max(0, revealStep - 1))
+  const showLeilao = revealStep >= STEP_LEILAO
+
+  const isCardWinner = cardWinnerId === myPlayerId
+  const opponentsWithCards = state.players.filter(p => p.id !== myPlayerId && p.cartasIds.length > 0)
+  const canSteal = isCardWinner && opponentsWithCards.length > 0 && !!stealCard
+
   function playerName(id: string) {
     return state.players.find(p => p.id === id)?.nome ?? id
   }
@@ -1126,269 +1235,380 @@ function RevealPhase() {
 
   return (
     <div className="min-h-screen pb-8" style={{ backgroundColor: C.cream }}>
-      <div className="px-5 pt-5 pb-2">
+      <div className="px-5 pt-5 pb-2 flex items-center justify-between">
         <p className="text-[10px] font-black uppercase tracking-wider text-black/40">
           Revelação · Rodada {state.round}
         </p>
+        {revealStep > 0 && (
+          <p className="text-[10px] font-bold text-black/25">{revealStep}/{STEP_DONE}</p>
+        )}
       </div>
 
-      {/* ── BLOCO 1: A Resposta ── */}
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-        className="mx-5 mb-4"
-      >
-        <div
-          className="border-[3px] border-black rounded-2xl px-5 py-4 flex items-center justify-between"
-          style={{ backgroundColor: '#FFB800', boxShadow: '5px 5px 0 0 #0C0C0C' }}
-        >
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-black/50">RESPOSTA CERTA</p>
-            <p className="text-xs font-bold text-black/60 mt-0.5">{questionLabel}</p>
-          </div>
-          <p className="font-black text-5xl" style={{ fontFamily: 'Oswald, sans-serif' }}>
-            {realValue}
-          </p>
-        </div>
-      </motion.div>
-
-      {/* ── BLOCO 2: Quem venceu o palpite ── */}
-      {winningGuess && (
-        <div className="mx-5 mb-3">
-          <p className="text-[10px] font-black uppercase tracking-wider text-black/40 mb-1.5">
-            {winningGuess.distance === 0
-              ? '🎯 ACERTOU NA MOSCA'
-              : !winningGuess.over
-              ? 'PALPITE MAIS PRÓXIMO (sem ultrapassar)'
-              : 'MENOS ERRADO — todos ultrapassaram o valor'}
-          </p>
-          <div
-            className="border-[3px] border-black rounded-2xl px-4 py-3 flex items-center justify-between"
-            style={{ backgroundColor: '#0C0C0C', boxShadow: '4px 4px 0 0 #FFB800' }}
+      {/* ── STEP 0: MYSTERY ── */}
+      {revealStep === 0 && (
+        <div className="mx-5">
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="rounded-2xl overflow-hidden border-[3px] border-black"
+            style={{ backgroundColor: '#0C0C0C', boxShadow: '5px 5px 0 0 #FFB800' }}
           >
-            <div>
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-base">👑</span>
-                <p className="font-black text-lg text-white">
-                  {playerName(winningGuess.playerId)}
-                  {winningGuess.playerId === myPlayerId && <span className="ml-1.5 text-[11px] opacity-50">(você)</span>}
-                </p>
-              </div>
-              <p className="text-xs font-bold ml-6" style={{ color: winningGuess.distance === 0 ? '#FFB800' : winningGuess.over ? '#FF5126' : '#16B89A' }}>
-                Chutou {winningGuess.value} · resposta era {realValue}
-                {winningGuess.distance === 0
-                  ? ' → EXATO! 🎯'
-                  : winningGuess.over
-                  ? ` → passou por ${winningGuess.distance}`
-                  : ` → faltou ${winningGuess.distance}`}
+            <div className="flex flex-col items-center justify-center py-14 px-6 text-center">
+              <motion.div
+                className="text-7xl mb-4"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                🔮
+              </motion.div>
+              <p className="font-black text-2xl text-white mb-1" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                {card.apelido}
               </p>
+              <p className="text-sm text-white/40 font-bold mb-6">{questionLabel}</p>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={advance}
+                className="border-[3px] border-black rounded-2xl px-8 py-4 font-black text-lg"
+                style={{ backgroundColor: '#FFB800', boxShadow: '4px 4px 0 0 #0C0C0C' }}
+              >
+                REVELAR RESULTADO →
+              </motion.button>
             </div>
-            {winningGuess.bonus > 0 && (
-              <div className="text-right shrink-0 ml-3">
-                <p className="font-black text-xl" style={{ color: '#FFB800', fontFamily: 'Oswald, sans-serif' }}>
-                  +{fmt(winningGuess.bonus)}
-                </p>
-                <p className="text-[9px] font-black text-white/40 uppercase">bônus</p>
-              </div>
-            )}
-          </div>
-          {/* Mini regra contextual */}
-          <p className="text-[10px] text-black/35 font-bold mt-1.5 text-center">
-            {!winningGuess.over
-              ? 'Regra: mais próximo sem ultrapassar vence. Quem passa perde o bônus.'
-              : 'Regra: todos passaram do valor — o menos errado venceu o palpite.'}
-          </p>
+          </motion.div>
         </div>
       )}
 
-      {/* ── BLOCO 3: O Leilão Cego ── */}
-      <div className="mx-5 mb-3">
-        <div className="flex items-baseline justify-between mb-1.5">
-          <p className="text-[10px] font-black uppercase tracking-wider text-black/40">O LEILÃO CEGO</p>
-          <p className="text-[9px] font-bold text-black/30">cada um apostou num palpiteiro</p>
-        </div>
-
-        {/* Ninguém apostou no palpiteiro vencedor */}
-        {!anyBetOnWinner && (
-          <div
-            className="border-[3px] border-black rounded-xl px-4 py-3 flex items-center gap-2 mb-2"
-            style={{ backgroundColor: '#FF5126', boxShadow: '3px 3px 0 0 #0C0C0C' }}
-          >
-            <span className="text-xl">⚠️</span>
-            <div>
-              <p className="font-black text-sm text-white">Ninguém apostou no palpiteiro vencedor</p>
-              <p className="text-[11px] text-white/70 font-bold mt-0.5">
-                Carta volta pro baralho · todos os lances devolvidos
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Desempate por velocidade */}
-        {roundResult.hadTiebreak && (
+      {/* ── STEP 1+: REVEALED ── */}
+      {revealStep >= 1 && (
+        <>
+          {/* Real value */}
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
+            initial={{ scale: 0.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3, type: 'spring' }}
-            className="border-[3px] border-black rounded-xl px-3 py-2 mb-2 flex items-center gap-2"
-            style={{ backgroundColor: '#FF5126', boxShadow: '3px 3px 0 0 #0C0C0C' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            className="mx-5 mb-4"
           >
-            <span className="text-lg">⚡</span>
-            <div>
-              <p className="font-black text-xs text-white uppercase tracking-wide">DESEMPATE POR VELOCIDADE</p>
-              <p className="text-[11px] text-white/80 font-bold">
-                {playerName(cardWinnerId ?? '')} foi mais rápido por {roundResult.tiebreakMs}ms
+            <div
+              className="border-[3px] border-black rounded-2xl px-5 py-4 flex items-center justify-between"
+              style={{ backgroundColor: '#FFB800', boxShadow: '5px 5px 0 0 #0C0C0C' }}
+            >
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-black/50">RESPOSTA CERTA</p>
+                <p className="text-xs font-bold text-black/60 mt-0.5">{questionLabel}</p>
+              </div>
+              <p className="font-black text-5xl" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                {realValue}
               </p>
             </div>
           </motion.div>
-        )}
 
-        {/* Lista única ordenada por lance — mostra em quem cada um apostou */}
-        <div className="space-y-1.5">
-          {[...bets].sort((a, b) => b.amount - a.amount).map(bet => {
-            const isCardWinner = bet.playerId === cardWinnerId
-            const isYou = bet.playerId === myPlayerId
-            const isSelf = bet.playerId === bet.onPlayerId
-            const backedIsWinner = bet.onPlayerId === winningGuessPlayerId
-            const backedPlayer = state.players.find(p => p.id === bet.onPlayerId)
-            const backedName = backedPlayer?.nome ?? playerName(bet.onPlayerId)
-            const backedRank = guessRanks.find(r => r.playerId === bet.onPlayerId)
+          {/* Card flip */}
+          <motion.div
+            className="mx-5 mb-4"
+            initial={{ rotateY: 90, opacity: 0 }}
+            animate={{ rotateY: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.1, type: 'spring', stiffness: 200, damping: 20 }}
+            style={{ transformPerspective: 1200 }}
+          >
+            <HistCard cardId={card.id} highlightStat={state.currentQuestion} revealed={true} />
+          </motion.div>
 
-            // Apostou em alguém que acertou igual ao vencedor (mesmo valor), mas não era o #1
-            const alsoGotItRight = !backedIsWinner && backedRank && winningGuess
-              && backedRank.distance === winningGuess.distance
-              && backedRank.over === winningGuess.over
+          {/* Guessers revealed one by one */}
+          {visibleGuessers.length > 0 && (
+            <div className="mx-5 mb-3">
+              <p className="text-[10px] font-black uppercase tracking-wider text-black/40 mb-1.5">
+                {visibleGuessers.length < numGuessers ? 'REVELANDO PALPITES...' : 'TODOS OS PALPITES'}
+              </p>
+              <AnimatePresence>
+                {visibleGuessers.map((r) => {
+                  const isWinner = r.playerId === winningGuessPlayerId
+                  const isYou = r.playerId === myPlayerId
+                  return (
+                    <motion.div
+                      key={r.playerId}
+                      initial={{ x: 60, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1, scale: isWinner ? [0.95, 1.05, 1] : 1 }}
+                      transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+                      className="rounded-2xl px-4 py-3 mb-2 flex items-center gap-3 border-[3px] border-black"
+                      style={{
+                        backgroundColor: isWinner ? '#0C0C0C' : isYou ? '#fff' : C.cream,
+                        boxShadow: isWinner ? '4px 4px 0 0 #FFB800' : '2px 2px 0 0 #0C0C0C',
+                      }}
+                    >
+                      <span className="text-xl shrink-0">
+                        {isWinner ? '👑' : medals[r.rank - 1] ?? `${r.rank}.`}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className={`font-black ${isWinner ? 'text-lg text-white' : 'text-sm'} truncate`}>
+                          {playerName(r.playerId)}{isYou ? ' (você)' : ''}
+                        </p>
+                        <p className="text-xs font-bold" style={{ color: isWinner ? '#ffffff80' : undefined }}>
+                          Chutou <span className="font-black">{r.value}</span>
+                          {r.distance === 0
+                            ? <span style={{ color: isWinner ? '#FFB800' : '#22c55e' }}> → EXATO! 🎯</span>
+                            : r.over
+                            ? <span style={{ color: '#FF5126' }}> → passou {r.distance}</span>
+                            : <span style={{ color: '#16B89A' }}> → faltou {r.distance}</span>
+                          }
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        {r.bonus > 0 && (
+                          <p className="font-black text-base" style={{ color: isWinner ? '#FFB800' : '#16B89A', fontFamily: 'Oswald, sans-serif' }}>
+                            +{fmt(r.bonus)}
+                          </p>
+                        )}
+                        {r.over && r.rank > 1 && (
+                          <p className="text-[9px] font-black uppercase text-red-400">sem bônus</p>
+                        )}
+                      </div>
+                    </motion.div>
+                  )
+                })}
+              </AnimatePresence>
+            </div>
+          )}
 
-            const icon   = isCardWinner ? '🏆' : '🔶'
-            const bg     = isCardWinner ? '#FFB800' : '#FFF3CD'
-            const border = isCardWinner ? '3px solid #0C0C0C' : '2px solid #D97706'
-            const shadow = isCardWinner ? '3px 3px 0 #0C0C0C' : 'none'
-
-            const winnerName = playerName(winningGuessPlayerId ?? '')
-
-            // Linha 2: quem apostou em quem + valor chutado
-            const backedGuessValue = state.guesses.find(g => g.playerId === bet.onPlayerId)?.value
-            const line2 = isSelf
-              ? `apostou em si mesmo — chutou ${backedGuessValue ?? '?'}`
-              : `apostou em ${backedName} — chutou ${backedGuessValue ?? '?'}`
-
-            // Linha 3: motivo específico do devolvido
-            const line3 = isCardWinner
-              ? 'maior lance → ganhou a carta'
-              : backedIsWinner
-              ? `apostou no #1 (${winnerName}), mas lance menor → devolvido`
-              : alsoGotItRight
-              ? `${backedName} também acertou, mas ${winnerName} foi mais rápido → devolvido`
-              : `${backedName} não acertou o valor → devolvido`
-
-            const line3Color = isCardWinner ? '#0C0C0C' : '#92400E'
-
-            return (
-              <div
-                key={bet.playerId}
-                className="rounded-xl px-3 py-2.5 flex items-center justify-between"
-                style={{ backgroundColor: bg, border, boxShadow: shadow }}
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-base shrink-0">{icon}</span>
-                  <div className="min-w-0">
-                    <p className="font-black text-sm truncate">
-                      {playerName(bet.playerId)}
-                      {isYou && <span className="ml-1 text-[10px] opacity-50">(você)</span>}
-                    </p>
-                    <p className="text-[10px] font-bold text-black/55">{line2}</p>
-                    <p className="text-[10px] font-black uppercase" style={{ color: line3Color }}>{line3}</p>
+          {/* Leilão + ranking */}
+          {showLeilao && (
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 240, damping: 22 }}
+            >
+              {/* Winner palpite block */}
+              {winningGuess && (
+                <div className="mx-5 mb-3">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-black/40 mb-1.5">
+                    {winningGuess.distance === 0 ? '🎯 ACERTOU NA MOSCA'
+                      : !winningGuess.over ? 'PALPITE MAIS PRÓXIMO (sem ultrapassar)'
+                      : 'MENOS ERRADO — todos ultrapassaram o valor'}
+                  </p>
+                  <div
+                    className="border-[3px] border-black rounded-2xl px-4 py-3 flex items-center justify-between"
+                    style={{ backgroundColor: '#0C0C0C', boxShadow: '4px 4px 0 0 #FFB800' }}
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="text-base">👑</span>
+                        <p className="font-black text-lg text-white">
+                          {playerName(winningGuess.playerId)}
+                          {winningGuess.playerId === myPlayerId && <span className="ml-1.5 text-[11px] opacity-50">(você)</span>}
+                        </p>
+                      </div>
+                      <p className="text-xs font-bold ml-6" style={{ color: winningGuess.distance === 0 ? '#FFB800' : winningGuess.over ? '#FF5126' : '#16B89A' }}>
+                        Chutou {winningGuess.value} · resposta era {realValue}
+                        {winningGuess.distance === 0 ? ' → EXATO! 🎯' : winningGuess.over ? ` → passou por ${winningGuess.distance}` : ` → faltou ${winningGuess.distance}`}
+                      </p>
+                    </div>
+                    {winningGuess.bonus > 0 && (
+                      <div className="text-right shrink-0 ml-3">
+                        <p className="font-black text-xl" style={{ color: '#FFB800', fontFamily: 'Oswald, sans-serif' }}>+{fmt(winningGuess.bonus)}</p>
+                        <p className="text-[9px] font-black text-white/40 uppercase">bônus</p>
+                      </div>
+                    )}
                   </div>
+                  <p className="text-[10px] text-black/35 font-bold mt-1.5 text-center">
+                    {!winningGuess.over ? 'Regra: mais próximo sem ultrapassar vence. Quem passa perde o bônus.' : 'Regra: todos passaram do valor — o menos errado venceu o palpite.'}
+                  </p>
                 </div>
-                <p
-                  className="font-black text-lg shrink-0 ml-2"
-                  style={{ fontFamily: 'Oswald, sans-serif', color: isCardWinner ? '#0C0C0C' : '#00000055' }}
+              )}
+
+              {/* Leilão cego */}
+              <div className="mx-5 mb-3">
+                <div className="flex items-baseline justify-between mb-1.5">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-black/40">O LEILÃO CEGO</p>
+                  <p className="text-[9px] font-bold text-black/30">cada um apostou num palpiteiro</p>
+                </div>
+
+                {!anyBetOnWinner && (
+                  <div className="border-[3px] border-black rounded-xl px-4 py-3 flex items-center gap-2 mb-2"
+                       style={{ backgroundColor: '#FF5126', boxShadow: '3px 3px 0 0 #0C0C0C' }}>
+                    <span className="text-xl">⚠️</span>
+                    <div>
+                      <p className="font-black text-sm text-white">Ninguém apostou no palpiteiro vencedor</p>
+                      <p className="text-[11px] text-white/70 font-bold">Carta volta pro baralho · todos os lances devolvidos</p>
+                    </div>
+                  </div>
+                )}
+
+                {roundResult.hadTiebreak && (
+                  <div className="border-[3px] border-black rounded-xl px-3 py-2 mb-2 flex items-center gap-2"
+                       style={{ backgroundColor: '#FF5126', boxShadow: '3px 3px 0 0 #0C0C0C' }}>
+                    <span className="text-lg">⚡</span>
+                    <div>
+                      <p className="font-black text-xs text-white uppercase tracking-wide">DESEMPATE POR VELOCIDADE</p>
+                      <p className="text-[11px] text-white/80 font-bold">{playerName(cardWinnerId ?? '')} foi mais rápido por {roundResult.tiebreakMs}ms</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  {[...bets].sort((a, b) => b.amount - a.amount).map(bet => {
+                    const isCardWinnerBet = bet.playerId === cardWinnerId
+                    const isYou = bet.playerId === myPlayerId
+                    const isSelf = bet.playerId === bet.onPlayerId
+                    const backedIsWinner = bet.onPlayerId === winningGuessPlayerId
+                    const backedPlayer = state.players.find(p => p.id === bet.onPlayerId)
+                    const backedName = backedPlayer?.nome ?? playerName(bet.onPlayerId)
+                    const backedRank = guessRanks.find(r => r.playerId === bet.onPlayerId)
+                    const alsoGotItRight = !backedIsWinner && backedRank && winningGuess
+                      && backedRank.distance === winningGuess.distance && backedRank.over === winningGuess.over
+                    const winnerName = playerName(winningGuessPlayerId ?? '')
+                    const backedGuessValue = state.guesses.find(g => g.playerId === bet.onPlayerId)?.value
+                    const line2 = isSelf
+                      ? `apostou em si mesmo — chutou ${backedGuessValue ?? '?'}`
+                      : `apostou em ${backedName} — chutou ${backedGuessValue ?? '?'}`
+                    const line3 = isCardWinnerBet
+                      ? 'maior lance → ganhou a carta'
+                      : backedIsWinner
+                      ? `apostou no #1 (${winnerName}), mas lance menor → devolvido`
+                      : alsoGotItRight
+                      ? `${backedName} também acertou, mas ${winnerName} foi mais rápido → devolvido`
+                      : `${backedName} não acertou o valor → devolvido`
+                    const bg = isCardWinnerBet ? '#FFB800' : '#FFF3CD'
+                    const border = isCardWinnerBet ? '3px solid #0C0C0C' : '2px solid #D97706'
+                    const shadow = isCardWinnerBet ? '3px 3px 0 #0C0C0C' : 'none'
+                    return (
+                      <div key={bet.playerId} className="rounded-xl px-3 py-2.5 flex items-center justify-between"
+                           style={{ backgroundColor: bg, border, boxShadow: shadow }}>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-base shrink-0">{isCardWinnerBet ? '🏆' : '🔶'}</span>
+                          <div className="min-w-0">
+                            <p className="font-black text-sm truncate">
+                              {playerName(bet.playerId)}{isYou && <span className="ml-1 text-[10px] opacity-50">(você)</span>}
+                            </p>
+                            <p className="text-[10px] font-bold text-black/55">{line2}</p>
+                            <p className="text-[10px] font-black uppercase" style={{ color: isCardWinnerBet ? '#0C0C0C' : '#92400E' }}>{line3}</p>
+                          </div>
+                        </div>
+                        <p className="font-black text-lg shrink-0 ml-2" style={{ fontFamily: 'Oswald, sans-serif', color: isCardWinnerBet ? '#0C0C0C' : '#00000055' }}>
+                          {fmt(bet.amount)}
+                        </p>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Ranking */}
+              <div className="mx-5 mb-5">
+                <div className="flex items-baseline justify-between mb-1.5">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-black/40">PALPITES DESTA RODADA</p>
+                  <p className="text-[9px] font-bold text-black/30">sem ultrapassar → bônus</p>
+                </div>
+                <div className="space-y-1.5">
+                  {guessRanks.map((r, i) => {
+                    const isWinnerR = r.playerId === winningGuessPlayerId
+                    const isYou = r.playerId === myPlayerId
+                    const player = state.players.find(p => p.id === r.playerId)
+                    return (
+                      <div key={r.playerId} className="border-2 border-black rounded-xl px-3 py-2.5 flex items-center gap-2"
+                           style={{ backgroundColor: isWinnerR ? '#0C0C0C' : isYou ? '#fff' : C.cream, boxShadow: isWinnerR ? '3px 3px 0 0 #FFB800' : isYou ? '2px 2px 0 0 #0C0C0C' : 'none' }}>
+                        <span className="text-lg w-7 shrink-0">{medals[i] ?? `${i + 1}.`}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-black text-sm truncate ${isWinnerR ? 'text-white' : ''}`}>
+                            {playerName(r.playerId)}{isYou ? ' (você)' : ''}
+                          </p>
+                          <p className="text-[11px] font-bold" style={{ color: isWinnerR ? '#ffffff80' : undefined }}>
+                            Chutou <span className="font-black">{r.value}</span>
+                            {r.distance === 0
+                              ? <span className="text-green-400 ml-1 font-black">→ EXATO! 🎯</span>
+                              : r.over
+                              ? <span className="ml-1" style={{ color: '#FF5126' }}>→ passou {r.distance} além</span>
+                              : <span className="ml-1" style={{ color: '#16B89A' }}>→ faltou {r.distance}</span>
+                            }
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          {r.bonus > 0 && <p className="font-black text-base" style={{ color: '#16B89A' }}>+{fmt(r.bonus)}</p>}
+                          {r.over && <p className="text-[9px] font-bold text-red-400">sem bônus</p>}
+                          <div>
+                            <p className="text-[8px] font-black uppercase" style={{ color: isWinnerR ? '#ffffff35' : '#00000030' }}>saldo</p>
+                            <p className="text-[10px] font-bold" style={{ color: isWinnerR ? '#ffffff50' : '#00000040' }}>{fmt(player?.money ?? 0)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Bottom action */}
+          <div className="mx-5">
+            {!isDone ? (
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={advance}
+                className="w-full border-[3px] border-black rounded-2xl py-4 font-black text-base"
+                style={{ backgroundColor: '#0C0C0C', color: '#F4ECD6', boxShadow: '4px 4px 0 0 #FFB800' }}
+              >
+                CONTINUAR ▶
+              </motion.button>
+            ) : stolenCardId ? (
+              <div className="space-y-3">
+                <motion.div
+                  initial={{ scale: 0.85, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 280, damping: 18 }}
+                  className="border-[3px] border-black rounded-2xl px-5 py-4 text-center"
+                  style={{ backgroundColor: '#7C3AED', boxShadow: '5px 5px 0 0 #0C0C0C' }}
                 >
-                  {fmt(bet.amount)}
-                </p>
+                  <p className="font-black text-3xl text-white mb-1">😈 ROUBOU!</p>
+                  <p className="text-white/70 font-bold text-sm">{getCard(stolenCardId)?.apelido ?? stolenCardId}</p>
+                </motion.div>
+                <BrutalButton color={C.black} textColor={C.cream} onClick={nextCard}>
+                  {isLast ? 'VER PLACAR FINAL →' : 'PRÓXIMA CARTA →'}
+                </BrutalButton>
               </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Card revealed with flip animation */}
-      <motion.div
-        className="mx-5 mb-4"
-        initial={{ rotateY: 90, opacity: 0 }}
-        animate={{ rotateY: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.15, type: 'spring', stiffness: 200, damping: 20 }}
-        style={{ transformPerspective: 1200 }}
-      >
-        <HistCard cardId={card.id} highlightStat={state.currentQuestion} revealed={true} />
-      </motion.div>
-
-      {/* Ranking de palpites */}
-      <div className="mx-5 mb-5">
-        <div className="flex items-baseline justify-between mb-1.5">
-          <p className="text-[10px] font-black uppercase tracking-wider text-black/40">
-            PALPITES DESTA RODADA
-          </p>
-          <p className="text-[9px] font-bold text-black/30">sem ultrapassar → bônus · quem passa → sem bônus</p>
-        </div>
-        <div className="space-y-1.5">
-          {guessRanks.map((r, i) => {
-            const isYou = r.playerId === myPlayerId
-            const isWinner = r.playerId === winningGuessPlayerId
-            const player = state.players.find(p => p.id === r.playerId)
-            return (
-              <div
-                key={r.playerId}
-                className="border-2 border-black rounded-xl px-3 py-2.5 flex items-center gap-2"
-                style={{
-                  backgroundColor: isWinner ? '#0C0C0C' : isYou ? '#fff' : C.cream,
-                  boxShadow: isWinner ? '3px 3px 0 0 #FFB800' : isYou ? '2px 2px 0 0 #0C0C0C' : 'none',
-                }}
-              >
-                <span className="text-lg w-7 shrink-0">{medals[i] ?? `${i + 1}.`}</span>
-                <div className="flex-1 min-w-0">
-                  <p className={`font-black text-sm truncate ${isWinner ? 'text-white' : 'text-black'}`}>
-                    {playerName(r.playerId)}{isYou ? ' (você)' : ''}
+            ) : canSteal ? (
+              <div className="space-y-2">
+                <BrutalButton color={C.black} textColor={C.cream} onClick={nextCard}>
+                  {isLast ? 'GUARDAR · VER PLACAR FINAL →' : 'GUARDAR CARTA · PRÓXIMA →'}
+                </BrutalButton>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-black/30 my-2 text-center">
+                    — ou troque sua carta conquistada por uma deles —
                   </p>
-                  <p className="text-[11px] font-bold" style={{ color: isWinner ? '#ffffff80' : undefined }}>
-                    Chutou <span className="font-black">{r.value}</span>
-                    {r.distance === 0
-                      ? <span className="text-green-400 ml-1 font-black">→ EXATO! 🎯</span>
-                      : r.over
-                      ? <span className="ml-1" style={{ color: '#FF5126' }}>→ passou {r.distance} além</span>
-                      : <span className="ml-1" style={{ color: '#16B89A' }}>→ faltou {r.distance}</span>
-                    }
-                  </p>
-                  {r.over && r.rank > 1 && (
-                    <p className="text-[9px] font-black uppercase" style={{ color: '#FF5126' }}>Ultrapassou → sem bônus</p>
-                  )}
-                </div>
-                <div className="text-right shrink-0">
-                  {r.bonus > 0 && (
-                    <p className="font-black text-base" style={{ color: '#16B89A' }}>+{fmt(r.bonus)}</p>
-                  )}
-                  {r.over && (
-                    <p className="text-[9px] font-bold text-red-400">sem bônus</p>
-                  )}
-                  <div>
-                    <p className="text-[8px] font-black uppercase" style={{ color: isWinner ? '#ffffff35' : '#00000030' }}>saldo</p>
-                    <p className="text-[10px] font-bold" style={{ color: isWinner ? '#ffffff50' : '#00000040' }}>
-                      {fmt(player?.money ?? 0)}
-                    </p>
+                  <div className="space-y-2">
+                    {opponentsWithCards.map(opponent => (
+                      <motion.button
+                        key={opponent.id}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => {
+                          if (!opponent.cartasIds.length) return
+                          const idx = Math.floor(Math.random() * opponent.cartasIds.length)
+                          const picked = opponent.cartasIds[idx]
+                          stealCard?.(opponent.id, picked)
+                          setStolenCardId(picked)
+                        }}
+                        className="w-full border-[3px] border-black rounded-xl px-4 py-3 text-left"
+                        style={{ backgroundColor: '#FF5126', boxShadow: '3px 3px 0 0 #0C0C0C' }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-black text-sm text-white">😈 Roubar de {opponent.nome}</p>
+                            <p className="text-[11px] text-white/70 font-bold">
+                              {opponent.cartasIds.length} carta{opponent.cartasIds.length !== 1 ? 's' : ''} · carta aleatória
+                            </p>
+                          </div>
+                          <span className="text-2xl">🃏</span>
+                        </div>
+                      </motion.button>
+                    ))}
                   </div>
                 </div>
               </div>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="mx-5">
-        <BrutalButton color={C.black} textColor={C.cream} onClick={nextCard}>
-          {isLast ? 'VER PLACAR FINAL →' : 'PRÓXIMA CARTA →'}
-        </BrutalButton>
-      </div>
+            ) : (
+              <BrutalButton color={C.black} textColor={C.cream} onClick={nextCard}>
+                {isLast ? 'VER PLACAR FINAL →' : 'PRÓXIMA CARTA →'}
+              </BrutalButton>
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -1410,72 +1630,152 @@ export function ResultsScreen({ myPlayerId = 'you' }: { myPlayerId?: string }) {
   const { state, dispatch } = useHist()
   const sorted = [...state.players].sort((a, b) => b.money - a.money)
   const winner = sorted[0]
+  const youWon = winner?.id === myPlayerId
   const youRank = sorted.findIndex(p => p.id === myPlayerId) + 1
   const medals = ['🥇', '🥈', '🥉', '4️⃣']
+  const START_MONEY = 100
+
+  // Destaques
+  const biggestCollector = [...state.players].sort((a, b) => b.cartasIds.length - a.cartasIds.length)[0]
+  const biggestProfit = [...state.players].sort((a, b) => (b.money - START_MONEY) - (a.money - START_MONEY))[0]
 
   return (
-    <div className="min-h-screen pb-8" style={{ backgroundColor: C.cream }}>
-      <div className="px-5 pt-10 pb-5 text-center">
+    <div className="relative min-h-screen pb-8 overflow-hidden" style={{ backgroundColor: C.cream }}>
+      {youWon && <Confetti />}
+
+      {/* Hero */}
+      <div className="relative px-5 pt-10 pb-5 text-center" style={{ zIndex: 1 }}>
         <BrutalPill color="#FFB800" textColor={C.black}>PLACAR FINAL</BrutalPill>
-        <h1
-          className="font-black text-4xl mt-3 leading-tight"
-          style={{ fontFamily: 'Oswald, sans-serif' }}
+        <motion.h1
+          className="font-black mt-3 leading-tight"
+          style={{ fontFamily: 'Oswald, sans-serif', fontSize: youWon ? '2.6rem' : '2rem' }}
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 18, delay: 0.1 }}
         >
-          {youRank === 1 ? 'VOCÊ GANHOU!' : `${winner.nome} VENCEU!`}
-        </h1>
+          {youWon ? '🏆 VOCÊ GANHOU!' : `${winner.nome} VENCEU!`}
+        </motion.h1>
+        {!youWon && (
+          <motion.p
+            className="font-black text-base mt-1"
+            style={{ color: '#7C3AED' }}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+          >
+            Você ficou em {youRank}º lugar
+          </motion.p>
+        )}
         <p className="text-sm text-black/40 font-bold mt-1">
           {state.totalRounds} rodada{state.totalRounds !== 1 ? 's' : ''}
         </p>
       </div>
 
-      <div className="mx-5 space-y-2 mb-5">
-        {sorted.map((p, i) => (
-          <BrutalCard key={p.id} color={p.id === myPlayerId ? '#FFB800' : '#fff'} className="p-4">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">{medals[i] ?? ''}</span>
-              <div className="flex-1 min-w-0">
-                <p className="font-black text-base truncate">
-                  {p.nome}{p.id === myPlayerId ? ' (você)' : ''}
-                </p>
-                <p className="text-xs font-bold text-black/50">
-                  {p.cartasIds.length} carta{p.cartasIds.length !== 1 ? 's' : ''}
-                </p>
-              </div>
-              <p className="font-black text-xl shrink-0" style={{ fontFamily: 'Oswald, sans-serif' }}>
-                {fmt(p.money)}
-              </p>
-            </div>
-          </BrutalCard>
-        ))}
+      {/* Player rows */}
+      <div className="relative mx-5 space-y-2 mb-5" style={{ zIndex: 1 }}>
+        {sorted.map((p, i) => {
+          const net = p.money - START_MONEY
+          const isYou = p.id === myPlayerId
+          const isWinner = i === 0
+          return (
+            <motion.div
+              key={p.id}
+              initial={{ x: -40, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.15 + i * 0.1, type: 'spring', stiffness: 220, damping: 22 }}
+            >
+              <BrutalCard
+                color={isWinner ? '#FFB800' : isYou ? '#F0E6FF' : '#fff'}
+                className="p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl mt-0.5">{medals[i] ?? ''}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-base truncate">
+                      {p.nome}{isYou ? ' (você)' : ''}
+                    </p>
+                    {/* Card badges */}
+                    {p.cartasIds.length > 0 ? (
+                      <div className="flex gap-1 flex-wrap mt-1">
+                        {p.cartasIds.map(id => {
+                          const c = getCard(id)
+                          if (!c) return null
+                          const R2 = RF[c.raridade]
+                          return (
+                            <span
+                              key={id}
+                              className="px-1.5 py-0.5 rounded border border-black/20 text-[9px] font-black leading-none"
+                              style={{ background: R2.bg, color: R2.accent }}
+                            >
+                              {c.apelido}
+                            </span>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-black/35 font-bold mt-0.5">sem cartas</p>
+                    )}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="font-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                      {fmt(p.money)}
+                    </p>
+                    <p
+                      className="text-xs font-black"
+                      style={{ color: net >= 0 ? '#16B89A' : '#FF5126' }}
+                    >
+                      {net >= 0 ? '+' : ''}{fmt(net)}
+                    </p>
+                  </div>
+                </div>
+              </BrutalCard>
+            </motion.div>
+          )
+        })}
       </div>
 
-      {state.museuCards.length > 0 && (
-        <div className="mx-5 mb-5">
-          <BrutalCard className="p-4">
-            <p className="text-xs font-black uppercase tracking-wider mb-2">
-              SEU ÁLBUM · {state.museuCards.length} CARTA{state.museuCards.length !== 1 ? 'S' : ''}
-            </p>
-            <div className="flex gap-1.5 flex-wrap">
-              {state.museuCards.map(id => {
-                const c = getCard(id)
-                if (!c) return null
-                const R2 = RF[c.raridade]
-                return (
-                  <span
-                    key={id}
-                    className="px-2 py-0.5 rounded-lg border border-black/30 text-[10px] font-black"
-                    style={{ background: R2.bg, color: R2.accent }}
-                  >
-                    {c.apelido}
-                  </span>
-                )
-              })}
+      {/* Destaques */}
+      <motion.div
+        className="relative mx-5 mb-5"
+        style={{ zIndex: 1 }}
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.55 }}
+      >
+        <BrutalCard className="p-4">
+          <p className="text-xs font-black uppercase tracking-wider mb-3 text-black/50">⭐ DESTAQUES</p>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-black/60">🃏 Maior colecionador</span>
+              <span className="font-black text-sm">
+                {biggestCollector?.nome ?? '—'} ({biggestCollector?.cartasIds.length ?? 0} cartas)
+              </span>
             </div>
-          </BrutalCard>
-        </div>
-      )}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-black/60">📈 Maior lucro</span>
+              <span className="font-black text-sm" style={{ color: '#16B89A' }}>
+                {biggestProfit?.nome ?? '—'} ({biggestProfit && biggestProfit.money - START_MONEY >= 0 ? '+' : ''}{fmt((biggestProfit?.money ?? START_MONEY) - START_MONEY)})
+              </span>
+            </div>
+            {state.museuCards.length > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-black/60">🏛️ Álbum total</span>
+                <span className="font-black text-sm">
+                  {state.museuCards.length} carta{state.museuCards.length !== 1 ? 's' : ''} coletadas
+                </span>
+              </div>
+            )}
+          </div>
+        </BrutalCard>
+      </motion.div>
 
-      <div className="mx-5 space-y-3">
+      <motion.div
+        className="relative mx-5 space-y-3"
+        style={{ zIndex: 1 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.7 }}
+      >
         <BrutalButton color="#FFB800" textColor={C.black} onClick={() => dispatch({ type: 'RESET' })}>
           JOGAR NOVAMENTE →
         </BrutalButton>
@@ -1486,7 +1786,7 @@ export function ResultsScreen({ myPlayerId = 'you' }: { myPlayerId?: string }) {
         >
           VER ÁLBUM DAS LENDAS
         </BrutalButton>
-      </div>
+      </motion.div>
     </div>
   )
 }
