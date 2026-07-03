@@ -788,6 +788,17 @@ export function MenuScreen() {
 // ── Lobby: sala de espera ────────────────────────────────────────────
 function LobbyWaitingRoom({ api }: { api: ReturnType<typeof useOnlineGame> }) {
   const canStart = api.isHost && api.lobbyPlayers.length >= 1
+  const [copied, setCopied] = useState(false)
+
+  function copyCode() {
+    navigator.clipboard.writeText(api.roomCode).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    })
+  }
+
+  const shareText = `Vamos jogar Ladrão de Lendas! 🃏\nCódigo da sala: ${api.roomCode}\nAcesse: ${window.location.href}`
+  const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-5" style={{ backgroundColor: C.cream }}>
@@ -804,7 +815,24 @@ function LobbyWaitingRoom({ api }: { api: ReturnType<typeof useOnlineGame> }) {
               {api.roomCode}
             </p>
           </div>
-          <p className="text-xs font-bold text-black/40 mt-2">Compartilhe este código com os amigos</p>
+          <div className="flex gap-2 justify-center mt-3">
+            <button
+              onClick={copyCode}
+              className="border-[2px] border-black rounded-xl px-3 py-2 font-black text-xs"
+              style={{ backgroundColor: copied ? '#16B89A' : '#fff', color: copied ? '#fff' : '#0C0C0C', boxShadow: '2px 2px 0 0 #0C0C0C' }}
+            >
+              {copied ? '✓ COPIADO!' : '📋 COPIAR CÓDIGO'}
+            </button>
+            <a
+              href={waUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border-[2px] border-black rounded-xl px-3 py-2 font-black text-xs no-underline flex items-center gap-1"
+              style={{ backgroundColor: '#25D366', color: '#fff', boxShadow: '2px 2px 0 0 #0C0C0C' }}
+            >
+              WhatsApp ↗
+            </a>
+          </div>
         </div>
       )}
 
@@ -886,46 +914,13 @@ function OnlineGameRunner({ api }: { api: ReturnType<typeof useOnlineGame> }) {
 }
 
 function OnlineResultsScreen({ api }: { api: ReturnType<typeof useOnlineGame> }) {
-  const st = api.gameState!
-  const myId = api.myPlayerId
-  const sorted = [...st.players].sort((a, b) => b.money - a.money)
-  const winner = sorted[0]
-  const youRank = sorted.findIndex(p => p.id === myId) + 1
-  const medals = ['🥇', '🥈', '🥉', '4️⃣']
-
   return (
-    <div className="min-h-screen pb-8" style={{ backgroundColor: C.cream }}>
-      <div className="px-5 pt-10 pb-5 text-center">
-        <BrutalPill color="#FFB800" textColor={C.black}>PLACAR FINAL · ONLINE</BrutalPill>
-        <h1 className="font-black text-4xl mt-3 leading-tight" style={{ fontFamily: 'Oswald, sans-serif' }}>
-          {youRank === 1 ? 'VOCÊ GANHOU!' : `${winner.nome} VENCEU!`}
-        </h1>
-        <p className="text-sm text-black/40 font-bold mt-1">{st.totalRounds} rodadas</p>
-      </div>
-
-      <div className="mx-5 space-y-2 mb-5">
-        {sorted.map((p, i) => (
-          <BrutalCard key={p.id} color={p.id === myId ? '#FFB800' : '#fff'} className="p-4">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">{medals[i] ?? ''}</span>
-              <div className="flex-1 min-w-0">
-                <p className="font-black text-base truncate">
-                  {p.nome}{p.id === myId ? ' (você)' : p.isCPU ? ' 🤖' : ''}
-                </p>
-                <p className="text-xs font-bold text-black/50">{p.cartasIds.length} carta{p.cartasIds.length !== 1 ? 's' : ''}</p>
-              </div>
-              <p className="font-black text-xl shrink-0" style={{ fontFamily: 'Oswald, sans-serif' }}>${p.money}M</p>
-            </div>
-          </BrutalCard>
-        ))}
-      </div>
-
-      <div className="mx-5">
-        <BrutalButton color="#FFB800" textColor={C.black} onClick={api.leaveRoom}>
-          VOLTAR AO MENU →
-        </BrutalButton>
-      </div>
-    </div>
+    <ResultsView
+      state={api.gameState!}
+      myPlayerId={api.myPlayerId}
+      onPlayAgain={api.leaveRoom}
+      playAgainLabel="VOLTAR AO MENU →"
+    />
   )
 }
 
@@ -1625,9 +1620,20 @@ export function GameScreen() {
   )
 }
 
-// ── ResultsScreen ─────────────────────────────────────────────────
-export function ResultsScreen({ myPlayerId = 'you' }: { myPlayerId?: string }) {
-  const { state, dispatch } = useHist()
+// ── ResultsView (shared between solo + online) ─────────────────────
+function ResultsView({
+  state,
+  myPlayerId,
+  onPlayAgain,
+  onViewMuseum,
+  playAgainLabel = 'JOGAR NOVAMENTE →',
+}: {
+  state: import('./types').HState
+  myPlayerId: string
+  onPlayAgain: () => void
+  onViewMuseum?: () => void
+  playAgainLabel?: string
+}) {
   const sorted = [...state.players].sort((a, b) => b.money - a.money)
   const winner = sorted[0]
   const youWon = winner?.id === myPlayerId
@@ -1635,15 +1641,13 @@ export function ResultsScreen({ myPlayerId = 'you' }: { myPlayerId?: string }) {
   const medals = ['🥇', '🥈', '🥉', '4️⃣']
   const START_MONEY = 100
 
-  // Destaques
   const biggestCollector = [...state.players].sort((a, b) => b.cartasIds.length - a.cartasIds.length)[0]
-  const biggestProfit = [...state.players].sort((a, b) => (b.money - START_MONEY) - (a.money - START_MONEY))[0]
+  const biggestProfit    = [...state.players].sort((a, b) => (b.money - START_MONEY) - (a.money - START_MONEY))[0]
 
   return (
     <div className="relative min-h-screen pb-8 overflow-hidden" style={{ backgroundColor: C.cream }}>
       {youWon && <Confetti />}
 
-      {/* Hero */}
       <div className="relative px-5 pt-10 pb-5 text-center" style={{ zIndex: 1 }}>
         <BrutalPill color="#FFB800" textColor={C.black}>PLACAR FINAL</BrutalPill>
         <motion.h1
@@ -1653,7 +1657,7 @@ export function ResultsScreen({ myPlayerId = 'you' }: { myPlayerId?: string }) {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 260, damping: 18, delay: 0.1 }}
         >
-          {youWon ? '🏆 VOCÊ GANHOU!' : `${winner.nome} VENCEU!`}
+          {youWon ? '🏆 VOCÊ GANHOU!' : `${winner?.nome ?? '?'} VENCEU!`}
         </motion.h1>
         {!youWon && (
           <motion.p
@@ -1671,12 +1675,10 @@ export function ResultsScreen({ myPlayerId = 'you' }: { myPlayerId?: string }) {
         </p>
       </div>
 
-      {/* Player rows */}
       <div className="relative mx-5 space-y-2 mb-5" style={{ zIndex: 1 }}>
         {sorted.map((p, i) => {
           const net = p.money - START_MONEY
           const isYou = p.id === myPlayerId
-          const isWinner = i === 0
           return (
             <motion.div
               key={p.id}
@@ -1684,17 +1686,13 @@ export function ResultsScreen({ myPlayerId = 'you' }: { myPlayerId?: string }) {
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.15 + i * 0.1, type: 'spring', stiffness: 220, damping: 22 }}
             >
-              <BrutalCard
-                color={isWinner ? '#FFB800' : isYou ? '#F0E6FF' : '#fff'}
-                className="p-4"
-              >
+              <BrutalCard color={i === 0 ? '#FFB800' : isYou ? '#F0E6FF' : '#fff'} className="p-4">
                 <div className="flex items-start gap-3">
                   <span className="text-2xl mt-0.5">{medals[i] ?? ''}</span>
                   <div className="flex-1 min-w-0">
                     <p className="font-black text-base truncate">
-                      {p.nome}{isYou ? ' (você)' : ''}
+                      {p.nome}{isYou ? ' (você)' : p.isCPU ? ' 🤖' : ''}
                     </p>
-                    {/* Card badges */}
                     {p.cartasIds.length > 0 ? (
                       <div className="flex gap-1 flex-wrap mt-1">
                         {p.cartasIds.map(id => {
@@ -1702,11 +1700,8 @@ export function ResultsScreen({ myPlayerId = 'you' }: { myPlayerId?: string }) {
                           if (!c) return null
                           const R2 = RF[c.raridade]
                           return (
-                            <span
-                              key={id}
-                              className="px-1.5 py-0.5 rounded border border-black/20 text-[9px] font-black leading-none"
-                              style={{ background: R2.bg, color: R2.accent }}
-                            >
+                            <span key={id} className="px-1.5 py-0.5 rounded border border-black/20 text-[9px] font-black leading-none"
+                              style={{ background: R2.bg, color: R2.accent }}>
                               {c.apelido}
                             </span>
                           )
@@ -1717,13 +1712,8 @@ export function ResultsScreen({ myPlayerId = 'you' }: { myPlayerId?: string }) {
                     )}
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="font-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>
-                      {fmt(p.money)}
-                    </p>
-                    <p
-                      className="text-xs font-black"
-                      style={{ color: net >= 0 ? '#16B89A' : '#FF5126' }}
-                    >
+                    <p className="font-black text-xl" style={{ fontFamily: 'Oswald, sans-serif' }}>{fmt(p.money)}</p>
+                    <p className="text-xs font-black" style={{ color: net >= 0 ? '#16B89A' : '#FF5126' }}>
                       {net >= 0 ? '+' : ''}{fmt(net)}
                     </p>
                   </div>
@@ -1734,22 +1724,14 @@ export function ResultsScreen({ myPlayerId = 'you' }: { myPlayerId?: string }) {
         })}
       </div>
 
-      {/* Destaques */}
-      <motion.div
-        className="relative mx-5 mb-5"
-        style={{ zIndex: 1 }}
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.55 }}
-      >
+      <motion.div className="relative mx-5 mb-5" style={{ zIndex: 1 }}
+        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
         <BrutalCard className="p-4">
           <p className="text-xs font-black uppercase tracking-wider mb-3 text-black/50">⭐ DESTAQUES</p>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-black/60">🃏 Maior colecionador</span>
-              <span className="font-black text-sm">
-                {biggestCollector?.nome ?? '—'} ({biggestCollector?.cartasIds.length ?? 0} cartas)
-              </span>
+              <span className="font-black text-sm">{biggestCollector?.nome ?? '—'} ({biggestCollector?.cartasIds.length ?? 0} cartas)</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-black/60">📈 Maior lucro</span>
@@ -1760,34 +1742,38 @@ export function ResultsScreen({ myPlayerId = 'you' }: { myPlayerId?: string }) {
             {state.museuCards.length > 0 && (
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-black/60">🏛️ Álbum total</span>
-                <span className="font-black text-sm">
-                  {state.museuCards.length} carta{state.museuCards.length !== 1 ? 's' : ''} coletadas
-                </span>
+                <span className="font-black text-sm">{state.museuCards.length} carta{state.museuCards.length !== 1 ? 's' : ''} coletadas</span>
               </div>
             )}
           </div>
         </BrutalCard>
       </motion.div>
 
-      <motion.div
-        className="relative mx-5 space-y-3"
-        style={{ zIndex: 1 }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
-      >
-        <BrutalButton color="#FFB800" textColor={C.black} onClick={() => dispatch({ type: 'RESET' })}>
-          JOGAR NOVAMENTE →
+      <motion.div className="relative mx-5 space-y-3" style={{ zIndex: 1 }}
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
+        <BrutalButton color="#FFB800" textColor={C.black} onClick={onPlayAgain}>
+          {playAgainLabel}
         </BrutalButton>
-        <BrutalButton
-          color={C.black}
-          textColor={C.cream}
-          onClick={() => dispatch({ type: 'SET_SCREEN', screen: 'museu' })}
-        >
-          VER ÁLBUM DAS LENDAS
-        </BrutalButton>
+        {onViewMuseum && (
+          <BrutalButton color={C.black} textColor={C.cream} onClick={onViewMuseum}>
+            VER ÁLBUM DAS LENDAS
+          </BrutalButton>
+        )}
       </motion.div>
     </div>
+  )
+}
+
+// ── ResultsScreen ─────────────────────────────────────────────────
+export function ResultsScreen({ myPlayerId = 'you' }: { myPlayerId?: string }) {
+  const { state, dispatch } = useHist()
+  return (
+    <ResultsView
+      state={state}
+      myPlayerId={myPlayerId}
+      onPlayAgain={() => dispatch({ type: 'RESET' })}
+      onViewMuseum={() => dispatch({ type: 'SET_SCREEN', screen: 'museu' })}
+    />
   )
 }
 

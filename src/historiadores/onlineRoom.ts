@@ -66,6 +66,7 @@ export type RoomEvent =
   | { type: 'guest_guess';  payload: { playerId: string; value: number; timestamp: number } }
   | { type: 'guest_bet';    payload: { playerId: string; onPlayerId: string; amount: number; timestamp: number } }
   | { type: 'guest_next';   payload: Record<string, never> }
+  | { type: 'guest_steal';  payload: { requesterId: string; fromPlayerId: string; stolenCardId: string } }
 
 // ── Channel helpers ───────────────────────────────────────────────────
 export function getChannel(code: string) {

@@ -95,6 +95,7 @@ export interface OnlineGameAPI {
   submitGuess: (value: number) => void
   submitBet: (onPlayerId: string, amount: number, timestamp: number) => void
   nextCard: () => void
+  stealCard: (fromPlayerId: string, stolenCardId: string) => void
 }
 
 // ── Main hook ─────────────────────────────────────────────────────────
@@ -192,10 +193,32 @@ export function useOnlineGame(): OnlineGameAPI {
     broadcastState(applyRoundResult(st, allBets, roundResult))
   }, [broadcastState])
 
+  // ── Host: steal card ─────────────────────────────────────────────
+  const hostStealCard = useCallback((requesterId: string, fromPlayerId: string, stolenCardId: string) => {
+    const st = hostState.current
+    if (!st || !st.currentCardId) return
+    const winnerId = st.roundResult?.cardWinnerId
+    if (!winnerId || winnerId !== requesterId) return
+    const victim = st.players.find(p => p.id === fromPlayerId)
+    if (!victim || !victim.cartasIds.includes(stolenCardId)) return
+
+    const wonCardId = st.currentCardId
+    const players = st.players.map(p => {
+      if (p.id === winnerId) return { ...p, cartasIds: [...p.cartasIds.filter(c => c !== wonCardId), stolenCardId] }
+      if (p.id === fromPlayerId) return { ...p, cartasIds: p.cartasIds.filter(c => c !== stolenCardId) }
+      return p
+    })
+    let museuCards = st.museuCards
+    if (winnerId === st.players[st.youIdx]?.id) {
+      museuCards = [...new Set([...museuCards.filter(c => c !== wonCardId), stolenCardId])]
+    }
+    broadcastState({ ...st, players, museuCards })
+  }, [broadcastState])
+
   // ── Host: next card ───────────────────────────────────────────────
   const hostNextCard = useCallback(() => {
     const st = hostState.current
-    if (!st) return
+    if (!st || st.phase !== 'revealing') return  // idempotent: only advance from revealing
     const isLast = st.round >= st.totalRounds || st.deck.length === 0
     if (isLast) {
       broadcastState({ ...st, screen: 'results' })
@@ -261,9 +284,15 @@ export function useOnlineGame(): OnlineGameAPI {
       hostNextCard()
     })
 
+    ch.on('broadcast', { event: 'guest_steal' }, ({ payload }) => {
+      if (!asHost) return
+      const { requesterId, fromPlayerId, stolenCardId } = payload as { requesterId: string; fromPlayerId: string; stolenCardId: string }
+      hostStealCard(requesterId, fromPlayerId, stolenCardId)
+    })
+
     ch.subscribe()
     channelRef.current = ch
-  }, [hostAddGuess, hostAddBet, hostNextCard])
+  }, [hostAddGuess, hostAddBet, hostNextCard, hostStealCard])
 
   // ── Cleanup on unmount ────────────────────────────────────────────
   useEffect(() => () => { channelRef.current?.unsubscribe() }, [])
@@ -388,6 +417,14 @@ export function useOnlineGame(): OnlineGameAPI {
     }
   }, [broadcast, hostNextCard])
 
+  const stealCard = useCallback((fromPlayerId: string, stolenCardId: string) => {
+    if (isHostRef.current) {
+      hostStealCard(myId, fromPlayerId, stolenCardId)
+    } else {
+      broadcast({ type: 'guest_steal', payload: { requesterId: myId, fromPlayerId, stolenCardId } })
+    }
+  }, [myId, broadcast, hostStealCard])
+
   return {
     myPlayerId: myId,
     roomCode,
@@ -403,5 +440,6 @@ export function useOnlineGame(): OnlineGameAPI {
     submitGuess,
     submitBet,
     nextCard,
+    stealCard,
   }
 }

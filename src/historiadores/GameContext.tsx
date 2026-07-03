@@ -53,6 +53,7 @@ export function OnlineGameProvider({ children, api }: { children: ReactNode; api
     submitGuess:     api.submitGuess,
     submitBet:       api.submitBet,
     nextCard:        api.nextCard,
+    stealCard:       api.stealCard,
     alreadyGuessed:  !!(st && st.guesses.some(g => g.playerId === myId)),
     alreadyBet:      !!(st && st.bets.some(b => b.playerId === myId)),
   }
