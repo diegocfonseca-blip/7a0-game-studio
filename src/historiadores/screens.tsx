@@ -1173,7 +1173,18 @@ function BettingPhase() {
           <div className="border-[3px] border-black rounded-xl px-4 py-3 text-center"
                style={{ backgroundColor: '#16B89A' }}>
             <p className="font-black text-sm text-white">✓ Aposta enviada!</p>
-            <p className="text-[11px] text-white/70 font-bold mt-0.5">Aguardando outros jogadores...</p>
+            {(() => {
+              const myBetSent = state.bets.find(b => b.playerId === myPlayerId)
+              const tgt = myBetSent ? state.players.find(p => p.id === myBetSent.onPlayerId) : null
+              if (myBetSent && tgt) {
+                return (
+                  <p className="text-[11px] text-white/80 font-bold mt-0.5">
+                    {fmt(myBetSent.amount)} em {tgt.nome}{myBetSent.onPlayerId === myPlayerId ? ' (você mesmo)' : ''}
+                  </p>
+                )
+              }
+              return <p className="text-[11px] text-white/70 font-bold mt-0.5">Aguardando outros jogadores...</p>
+            })()}
           </div>
         ) : (
           <BrutalButton
@@ -1220,6 +1231,7 @@ function RevealPhase() {
   const isCardWinner = cardWinnerId === myPlayerId
   const opponentsWithCards = state.players.filter(p => p.id !== myPlayerId && p.cartasIds.length > 0)
   const canSteal = isCardWinner && opponentsWithCards.length > 0 && !!stealCard
+  const myBet = state.bets.find(b => b.playerId === myPlayerId)
 
   function playerName(id: string) {
     return state.players.find(p => p.id === id)?.nome ?? id
@@ -1375,9 +1387,17 @@ function RevealPhase() {
                     <p className="font-black text-sm">
                       {playerName(cardWinnerId)}{cardWinnerId === myPlayerId ? ' (você)' : ''} ganhou a carta!
                     </p>
-                    {roundResult.hadTiebreak && (
-                      <p className="text-[10px] font-bold text-black/60">⚡ Desempate: {roundResult.tiebreakMs}ms mais rápido</p>
-                    )}
+                    {(() => {
+                      const wb = state.bets.find(b => b.playerId === cardWinnerId)
+                      if (!wb) return null
+                      const tgt = wb.onPlayerId === cardWinnerId ? 'si mesmo' : playerName(wb.onPlayerId)
+                      return (
+                        <p className="text-[10px] font-bold text-black/60">
+                          apostou {fmt(wb.amount)} em {tgt} · maior lance no vencedor
+                          {roundResult.hadTiebreak && ` · ⚡ ${roundResult.tiebreakMs}ms mais rápido`}
+                        </p>
+                      )
+                    })()}
                   </div>
                 </div>
               ) : (
@@ -1399,6 +1419,7 @@ function RevealPhase() {
                     const isWinnerR = r.playerId === winningGuessPlayerId
                     const isYou = r.playerId === myPlayerId
                     const player = state.players.find(p => p.id === r.playerId)
+                    const iMyBetTarget = myBet?.onPlayerId === r.playerId
                     return (
                       <div key={r.playerId}
                            className="border-2 border-black rounded-xl px-3 py-2.5 flex items-center gap-2"
@@ -1408,9 +1429,17 @@ function RevealPhase() {
                            }}>
                         <span className="text-lg w-7 shrink-0">{medals[i] ?? `${i + 1}.`}</span>
                         <div className="flex-1 min-w-0">
-                          <p className={`font-black text-sm truncate ${isWinnerR ? 'text-white' : ''}`}>
-                            {playerName(r.playerId)}{isYou ? ' (você)' : ''}
-                          </p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className={`font-black text-sm ${isWinnerR ? 'text-white' : ''}`}>
+                              {playerName(r.playerId)}{isYou ? ' (você)' : ''}
+                            </p>
+                            {iMyBetTarget && (
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-black border border-black/20"
+                                    style={{ backgroundColor: '#FFB800', color: '#0C0C0C' }}>
+                                💰 apostei {fmt(myBet!.amount)}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-[11px] font-bold" style={{ color: isWinnerR ? '#ffffff80' : '#00000060' }}>
                             Chutou {r.value}
                             {r.distance === 0
