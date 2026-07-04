@@ -12,8 +12,9 @@ import MarketScreen from './screens/MarketScreen'
 import EmpresarioGame from './empresario'
 import DraftGame from './draft'
 import HistoriadorGame from './historiadores'
+import SuperTrunfoGame from './supertrunfo'
 
-type GameKey = 'ladrao' | 'empresario' | 'draft' | 'historiadores'
+type GameKey = 'ladrao' | 'empresario' | 'draft' | 'historiadores' | 'supertrunfo'
 
 function LadraoGame() {
   const { state } = useGame()
@@ -88,6 +89,21 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
         </motion.button>
 
         <motion.button
+          onClick={() => onSelect('supertrunfo')}
+          whileTap={{ x: 3, y: 3 }}
+          className="w-full text-left border-[3px] border-black rounded-2xl p-6 transition-all"
+          style={{ backgroundColor: '#16B89A', boxShadow: '6px 6px 0 0 #0C0C0C' }}
+        >
+          <div className="text-4xl mb-3">🃏</div>
+          <p className="text-white font-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif' }}>SUPER TRUNFO DAS LENDAS</p>
+          <p className="text-white/80 text-sm mt-1 font-medium">
+            40 lendas do futebol em duelo de atributos. Colete todas as cartas e domine o mundo.
+          </p>
+          <span className="inline-block mt-3 border-2 border-black rounded-full px-2.5 py-0.5 text-xs font-black uppercase"
+                style={{ backgroundColor: '#FFB800', color: '#000' }}>NOVO ✦</span>
+        </motion.button>
+
+        <motion.button
           onClick={() => onSelect('ladrao')}
           whileTap={{ x: 3, y: 3 }}
           className="w-full text-left border-[3px] border-black rounded-2xl p-6 transition-all"
@@ -125,6 +141,10 @@ export default function App() {
 
   if (selectedGame === 'historiadores') {
     return <HistoriadorGame />
+  }
+
+  if (selectedGame === 'supertrunfo') {
+    return <SuperTrunfoGame />
   }
 
   return (
