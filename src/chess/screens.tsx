@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { THEMES, themeById } from './themes'
 import { TIME_CONTROLS, type GameConfig, type ColorPref } from './types'
 import { AVATARS, type UserSettings } from './settings'
+import { DIFFICULTY_META, type Difficulty } from './cpu'
 
 // Chess Legends visual identity (home & menus): deep charcoal + gold
 const UI = {
@@ -87,7 +88,7 @@ function HeroBoard() {
 }
 
 // ── HOME ─────────────────────────────────────────────────────────────────
-export function HomeScreen({ onNav }: { onNav: (s: 'setup-online' | 'join' | 'setup-local' | 'settings' | 'howto') => void }) {
+export function HomeScreen({ onNav }: { onNav: (s: 'setup-online' | 'join' | 'setup-local' | 'setup-cpu' | 'settings' | 'howto') => void }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-5 py-10 gap-8" style={{ background: UI.bg }}>
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="text-center">
@@ -110,6 +111,7 @@ export function HomeScreen({ onNav }: { onNav: (s: 'setup-online' | 'join' | 'se
                   className="w-full max-w-xs space-y-2.5">
         <BigButton primary onClick={() => onNav('setup-online')}>⚔️ Jogar online com amigo</BigButton>
         <BigButton onClick={() => onNav('join')}>🔑 Entrar com código</BigButton>
+        <BigButton onClick={() => onNav('setup-cpu')}>🤖 Jogar contra o computador</BigButton>
         <BigButton onClick={() => onNav('setup-local')}>🤝 Jogar local (mesmo aparelho)</BigButton>
         <div className="flex gap-2.5">
           <div className="flex-1"><BigButton onClick={() => onNav('settings')}>⚙️ Configurações</BigButton></div>
@@ -122,10 +124,10 @@ export function HomeScreen({ onNav }: { onNav: (s: 'setup-online' | 'join' | 'se
 
 // ── SETUP (shared: local & online) ───────────────────────────────────────
 export function SetupScreen({ mode, defaultThemeId, onBack, onConfirm }: {
-  mode: 'local' | 'online'
+  mode: 'local' | 'online' | 'cpu'
   defaultThemeId: string
   onBack: () => void
-  onConfirm: (config: GameConfig, name: string) => void
+  onConfirm: (config: GameConfig, name: string, difficulty: Difficulty) => void
 }) {
   const [timeId, setTimeId] = useState('10+0')
   const [customMin, setCustomMin] = useState(10)
@@ -133,14 +135,16 @@ export function SetupScreen({ mode, defaultThemeId, onBack, onConfirm }: {
   const [colorPref, setColorPref] = useState<ColorPref>('random')
   const [themeId, setThemeId] = useState(defaultThemeId)
   const [name, setName] = useState('')
+  const [difficulty, setDifficulty] = useState<Difficulty>('medio')
 
   const confirm = () => onConfirm(
     { timeId, customInitialMin: customMin, customIncrementSec: customInc, colorPref, themeId },
     name.trim(),
+    difficulty,
   )
 
   return (
-    <Shell onBack={onBack} title={mode === 'online' ? 'CRIAR SALA' : 'PARTIDA LOCAL'}>
+    <Shell onBack={onBack} title={mode === 'online' ? 'CRIAR SALA' : mode === 'cpu' ? 'CONTRA O COMPUTADOR' : 'PARTIDA LOCAL'}>
       <div className="w-full max-w-md space-y-4 pb-6">
 
         {mode === 'online' && (
@@ -198,8 +202,28 @@ export function SetupScreen({ mode, defaultThemeId, onBack, onConfirm }: {
           )}
         </div>
 
-        {/* Color (online only) */}
-        {mode === 'online' && (
+        {/* Difficulty (cpu only) */}
+        {mode === 'cpu' && (
+          <div className="rounded-xl p-4" style={{ backgroundColor: UI.panel, border: `1px solid ${UI.borderSoft}` }}>
+            <p className="text-[10px] font-black tracking-widest mb-2.5" style={{ color: UI.subtext }}>🤖 NÍVEL DO COMPUTADOR</p>
+            <div className="grid grid-cols-3 gap-1.5">
+              {(Object.keys(DIFFICULTY_META) as Difficulty[]).map(d => (
+                <button key={d} onClick={() => setDifficulty(d)}
+                        className="py-2.5 rounded-lg text-xs font-bold transition-all"
+                        style={{
+                          backgroundColor: difficulty === d ? UI.gold : 'rgba(0,0,0,0.3)',
+                          color: difficulty === d ? '#141210' : UI.text,
+                          border: `1px solid ${difficulty === d ? UI.gold : UI.borderSoft}`,
+                        }}>
+                  {DIFFICULTY_META[d].emoji} {DIFFICULTY_META[d].label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Color (online & cpu) */}
+        {(mode === 'online' || mode === 'cpu') && (
           <div className="rounded-xl p-4" style={{ backgroundColor: UI.panel, border: `1px solid ${UI.borderSoft}` }}>
             <p className="text-[10px] font-black tracking-widest mb-2.5" style={{ color: UI.subtext }}>♟ SUA COR</p>
             <div className="grid grid-cols-3 gap-1.5">
@@ -248,7 +272,7 @@ export function SetupScreen({ mode, defaultThemeId, onBack, onConfirm }: {
         </div>
 
         <BigButton primary onClick={confirm}>
-          {mode === 'online' ? '🏰 CRIAR SALA' : '▶️ COMEÇAR PARTIDA'}
+          {mode === 'online' ? '🏰 CRIAR SALA' : mode === 'cpu' ? '🤖 DESAFIAR O COMPUTADOR' : '▶️ COMEÇAR PARTIDA'}
         </BigButton>
       </div>
     </Shell>

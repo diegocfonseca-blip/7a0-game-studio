@@ -1,16 +1,18 @@
 import { useState, useCallback, useMemo } from 'react'
 import GameView from './GameView'
 import { useLocalMatch } from './localMatch'
+import { useCpuMatch } from './cpuMatch'
 import { useOnlineChess } from './online'
 import { useSettings } from './settings'
 import { themeById } from './themes'
 import { timeLabel, type GameConfig } from './types'
+import type { Difficulty } from './cpu'
 import {
   HomeScreen, SetupScreen, JoinScreen, LobbyScreen,
   SettingsScreen, HowToScreen, ErrorScreen, ConnectingScreen,
 } from './screens'
 
-type Nav = 'home' | 'setup-online' | 'setup-local' | 'join' | 'settings' | 'howto' | 'local-game' | 'online'
+type Nav = 'home' | 'setup-online' | 'setup-local' | 'setup-cpu' | 'join' | 'settings' | 'howto' | 'local-game' | 'cpu-game' | 'online'
 
 function LocalGame({ config, onExit, settings, onSettings }: {
   config: GameConfig
@@ -19,6 +21,18 @@ function LocalGame({ config, onExit, settings, onSettings }: {
   onSettings: (p: Partial<typeof settings>) => void
 }) {
   const ctl = useLocalMatch(config, onExit)
+  return <GameView ctl={ctl} settings={settings} onSettings={onSettings} />
+}
+
+function CpuGame({ config, difficulty, playerName, onExit, settings, onSettings }: {
+  config: GameConfig
+  difficulty: Difficulty
+  playerName: string
+  onExit: () => void
+  settings: ReturnType<typeof useSettings>['settings']
+  onSettings: (p: Partial<typeof settings>) => void
+}) {
+  const ctl = useCpuMatch(config, difficulty, playerName, onExit)
   return <GameView ctl={ctl} settings={settings} onSettings={onSettings} />
 }
 
@@ -31,6 +45,7 @@ export default function ChessLegends() {
   })
   const [inviteCode] = useState(() => (new URLSearchParams(window.location.search).get('sala') ?? '').toUpperCase())
   const [localConfig, setLocalConfig] = useState<GameConfig | null>(null)
+  const [cpuSetup, setCpuSetup] = useState<{ config: GameConfig; difficulty: Difficulty } | null>(null)
 
   const goHome = useCallback(() => {
     // clear ?sala= from url so refresh doesn't re-open join
@@ -101,6 +116,28 @@ export default function ChessLegends() {
           }}
         />
       )
+
+    case 'setup-cpu':
+      return (
+        <SetupScreen
+          mode="cpu"
+          defaultThemeId={settings.themeId}
+          onBack={goHome}
+          onConfirm={(config, name, difficulty) => {
+            if (name) update({ name })
+            update({ themeId: config.themeId })
+            setCpuSetup({ config, difficulty })
+            setNav('cpu-game')
+          }}
+        />
+      )
+
+    case 'cpu-game':
+      return cpuSetup
+        ? <CpuGame config={cpuSetup.config} difficulty={cpuSetup.difficulty}
+                   playerName={settings.name || 'Você'} onExit={goHome}
+                   settings={settings} onSettings={update} />
+        : <HomeScreen onNav={setNav} />
 
     case 'local-game':
       return localConfig
