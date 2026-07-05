@@ -111,7 +111,7 @@ export const THEMES: BoardTheme[] = [
     blackPiece: '#14D9A5', blackPieceStroke: '#065F45',
   },
   {
-    id: 'flamengo', nome: 'Rubro-Negro', emoji: '🔴',
+    id: 'flamengo', nome: 'Rubro-Negro (Fla)', emoji: '🔴',
     desc: 'Vermelho e preto com dourado de glória. Pra quem tem o coração na arquibancada.',
     light: '#D8352E', dark: '#191214',
     lastMove: 'rgba(255, 200, 60, 0.45)', checkGlow: 'rgba(255, 230, 120, 0.9)',
@@ -124,7 +124,7 @@ export const THEMES: BoardTheme[] = [
     blackPiece: '#231416', blackPieceStroke: '#000000',
   },
   {
-    id: 'vasco', nome: 'Almirante', emoji: '⚓',
+    id: 'vasco', nome: 'Almirante (Vasco)', emoji: '⚓',
     desc: 'Preto, branco e a faixa dourada do almirante. Navegar é preciso.',
     light: '#EDEAE3', dark: '#17171A',
     lastMove: 'rgba(200, 170, 90, 0.5)', checkGlow: 'rgba(230, 80, 60, 0.9)',
