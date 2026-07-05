@@ -29,6 +29,7 @@ Xadrez com **100% das regras oficiais** (via [chess.js](https://github.com/jhlyw
 ### Modos
 
 - **Online com amigo** — crie uma sala, compartilhe o código (ex: `A7K9`), o link (`?sala=A7K9`) ou mande direto no WhatsApp. Quando o amigo entra, a partida começa automaticamente.
+- **Contra o computador** — 3 níveis (Fácil/Médio/Difícil), motor próprio negamax + alpha-beta com piece-square tables (`src/chess/cpu.ts`).
 - **Local** — dois jogadores no mesmo aparelho.
 
 ### Recursos
@@ -36,7 +37,7 @@ Xadrez com **100% das regras oficiais** (via [chess.js](https://github.com/jhlyw
 - **Relógio de xadrez**: sem tempo, 1 min, 1+1, 2+1, 3 min, 3+2, 5 min, 5+3, 10 min, 10+5, 15+10, 30 min ou personalizado (minutos + incremento).
 - **Escolha de cor**: brancas, pretas ou aleatório.
 - **8 temas visuais**: 2D Clássico, Madeira Premium, Mármore, Medieval, Futurista, Neon Escuro, **Rubro-Negro** 🔴 (vermelho/preto/dourado) e **Almirante** ⚓ (preto/branco/dourado náutico). Visuais inspirados, sem marcas registradas. O criador define o tema padrão da sala; cada jogador pode trocar **só na própria tela**.
-- **2D / 3D**: alternância individual por jogador (3D com tabuleiro inclinado, sombras e animação).
+- **2D / 3D**: alternância individual por jogador. O 3D é WebGL de verdade (three.js + react-three-fiber): peças torneadas com volume, sombras suaves, tabuleiro com moldura e câmera de mesa — carregado sob demanda (code-split).
 - **Chat da sala** com nome e horário.
 - **Histórico em notação algébrica** + identificação de abertura (Ruy López, Siciliana, Londres…).
 - **Análise pós-jogo**: resultado, motivo, nº de lances, tempo restante, revisão lance a lance.

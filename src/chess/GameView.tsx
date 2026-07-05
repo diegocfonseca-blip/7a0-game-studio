@@ -1,7 +1,9 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import { useState, useMemo, useRef, useEffect, useCallback, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Color, PieceSymbol, Square } from 'chess.js'
 import Board, { PieceGlyph } from './Board'
+
+const Board3D = lazy(() => import('./Board3D'))
 import { themeById, THEMES, type BoardTheme } from './themes'
 import {
   chessFromMoves, legalTargets as calcTargets, isPromotion, checkedKingSquare,
@@ -435,26 +437,53 @@ export default function GameView({ ctl, settings, onSettings }: GameViewProps) {
                         matDiff={topColor === 'w' ? Math.max(0, mat) : Math.max(0, -mat)} />
             </div>
 
-            <Board
-              pieces={pieces}
-              orientation={orientation}
-              theme={theme}
-              view={view}
-              animations={settings.animations}
-              showHints={settings.showHints}
-              selected={selected}
-              legalTargets={targets}
-              lastMove={lastMove}
-              checkSquare={checkSq}
-              occupied={occupied}
-              onSquareClick={handleSquare}
-              interactive={canMove}
-              promotion={pendingPromo ? {
-                color: turn,
-                onPick: pickPromotion,
-                onCancel: () => setPendingPromo(null),
-              } : null}
-            />
+            {view === '3d' ? (
+              <Suspense fallback={
+                <div className="w-full mx-auto flex items-center justify-center"
+                     style={{ maxWidth: 'min(94vw, 70vh, 620px)', aspectRatio: '1.06', color: theme.subtext }}>
+                  <span className="text-sm font-bold">Carregando 3D…</span>
+                </div>
+              }>
+                <Board3D
+                  pieces={pieces}
+                  orientation={orientation}
+                  theme={theme}
+                  selected={selected}
+                  legalTargets={settings.showHints ? targets : new Set<string>()}
+                  lastMove={lastMove}
+                  checkSquare={checkSq}
+                  occupied={occupied}
+                  onSquareClick={handleSquare}
+                  interactive={canMove}
+                  promotion={pendingPromo ? {
+                    color: turn,
+                    onPick: pickPromotion,
+                    onCancel: () => setPendingPromo(null),
+                  } : null}
+                />
+              </Suspense>
+            ) : (
+              <Board
+                pieces={pieces}
+                orientation={orientation}
+                theme={theme}
+                view="2d"
+                animations={settings.animations}
+                showHints={settings.showHints}
+                selected={selected}
+                legalTargets={targets}
+                lastMove={lastMove}
+                checkSquare={checkSq}
+                occupied={occupied}
+                onSquareClick={handleSquare}
+                interactive={canMove}
+                promotion={pendingPromo ? {
+                  color: turn,
+                  onPick: pickPromotion,
+                  onCancel: () => setPendingPromo(null),
+                } : null}
+              />
+            )}
 
             {reviewing && (
               <p className="text-center text-[11px] font-bold" style={{ color: theme.gold }}>
@@ -540,6 +569,14 @@ export default function GameView({ ctl, settings, onSettings }: GameViewProps) {
                   <p>Motivo: <b>{endInfo!.reason}</b></p>
                   <p>Lances: <b>{Math.ceil(sans.length / 2)}</b></p>
                   <p>⏱ Brancas: <b>{fmtClock(ctl.clocks.w)}</b> · Pretas: <b>{fmtClock(ctl.clocks.b)}</b></p>
+                  <div className="flex items-center gap-1.5">
+                    <span>Capturas ⚪:</span>
+                    {byWhite.length > 0 ? capturedRow(byWhite) : <b>—</b>}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span>Capturas ⚫:</span>
+                    {byBlack.length > 0 ? capturedRow(byBlack) : <b>—</b>}
+                  </div>
                 </div>
               </PanelBox>
             )}
