@@ -480,7 +480,13 @@ export function HowToScreen({ onBack }: { onBack: () => void }) {
           <p>8 visuais, incluindo <b>Rubro-Negro</b> 🔴 e <b>Almirante</b> ⚓. Cada jogador escolhe o seu — trocar o tema ou o modo 2D/3D só muda a SUA tela.</p>
         </S>
         <S title="🤝 Fim de jogo">
-          <p>Dá pra se render, propor empate e pedir revanche (trocando as cores ou não). Depois da partida, revise lance por lance na aba de análise.</p>
+          <p>Dá pra se render, propor empate e pedir revanche (trocando as cores ou não). Depois da partida, a <b>análise inteligente</b> mostra o gráfico de vantagem, os momentos críticos ⚡ e os 3 melhores lances em cada erro — com explicação.</p>
+        </S>
+        <S title="🏆 Carreira">
+          <p>Crie seu jogador com <b>800 de rating</b> e suba no Elo de verdade: cada vitória ranqueada aproxima você dos títulos — até <b>Grande Mestre (2500)</b>. Acima de 2100, prepare-se: os mestres com personalidade entram no seu caminho.</p>
+        </S>
+        <S title="👑 Modo História & IA com personalidade">
+          <p>Reviva 6 partidas lendárias lance a lance — ou assuma o tabuleiro e tente mudar o resultado. E enfrente IAs com estilo real: <b>Tal</b> sacrifica, <b>Capablanca</b> simplifica, <b>Kasparov</b> ataca, <b>Carlsen</b> aperta, <b>Fischer</b> não erra.</p>
         </S>
       </div>
     </Shell>

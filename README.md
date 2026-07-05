@@ -30,7 +30,12 @@ Xadrez com **100% das regras oficiais** (via [chess.js](https://github.com/jhlyw
 
 - **Online com amigo** — crie uma sala, compartilhe o código (ex: `A7K9`), o link (`?sala=A7K9`) ou mande direto no WhatsApp. Quando o amigo entra, a partida começa automaticamente.
 - **Contra o computador** — 3 níveis (Fácil/Médio/Difícil), motor próprio negamax + alpha-beta com piece-square tables (`src/chess/cpu.ts`).
+- **Modo Carreira** — crie um jogador com 800 de rating, jogue ranqueadas com Elo real e suba até Grande Mestre (2500). Títulos, estatísticas de aberturas e histórico persistidos em localStorage (`src/chess/career.ts`).
+- **Modo História** — 6 partidas lendárias (Ópera, Imortal, Sempre-Viva, Partida do Século, Fischer×Spassky G6, Imortal de Kasparov) com replay e "mudar a história": assuma o lado do mestre de qualquer posição (`src/chess/famous.ts`, lances validados via chess.js).
+- **IA com personalidade** — Tal 🔥, Capablanca 🎩, Kasparov ⚡, Carlsen 🐍 e Fischer 🎯 jogam com vieses de estilo reais sobre o mesmo motor.
+- **Mestres em ação** — modo espectador IA × IA com velocidade ajustável.
 - **Local** — dois jogadores no mesmo aparelho.
+- **Análise inteligente** — pós-jogo: gráfico de vantagem, momentos críticos clicáveis e top-3 melhores lances com explicação (`src/chess/analysis.tsx`). Modo Imersão esconde tudo menos o tabuleiro durante a partida.
 
 ### Recursos
 
