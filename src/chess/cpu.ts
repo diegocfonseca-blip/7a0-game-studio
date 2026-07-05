@@ -126,12 +126,95 @@ function negamax(chess: Chess, depth: number, alpha: number, beta: number, sign:
   return best
 }
 
-export function cpuBestMove(history: MoveInput[], difficulty: Difficulty): MoveInput | null {
+// ── Master personalities: same rules, different souls ────────────────────
+export type Persona = 'tal' | 'capablanca' | 'kasparov' | 'carlsen' | 'fischer'
+
+export const PERSONA_META: Record<Persona, {
+  nome: string; emoji: string; era: string; estilo: string; frase: string
+  depth: number; noise: number
+}> = {
+  tal: {
+    nome: 'Mikhail Tal', emoji: '🔥', era: '1936–1992',
+    estilo: 'O Mago de Riga. Sacrifica peças por ataque — correto ou não, você que prove.',
+    frase: '"Há sacrifícios corretos e os meus."',
+    depth: 2, noise: 60,
+  },
+  capablanca: {
+    nome: 'José Raúl Capablanca', emoji: '🎩', era: '1888–1942',
+    estilo: 'A máquina de xadrez. Simplifica, troca peças e te esmaga no final limpo.',
+    frase: '"Estude finais antes de tudo."',
+    depth: 2, noise: 20,
+  },
+  kasparov: {
+    nome: 'Garry Kasparov', emoji: '⚡', era: '1963–',
+    estilo: 'O Ogro de Baku. Pressão dinâmica e ataque implacável ao seu rei.',
+    frase: '"O xadrez é violência mental."',
+    depth: 3, noise: 15,
+  },
+  carlsen: {
+    nome: 'Magnus Carlsen', emoji: '🐍', era: '1990–',
+    estilo: 'Aperta posições iguais por 60 lances até você errar. E você vai errar.',
+    frase: '"Nem todo mundo aguenta sofrer."',
+    depth: 3, noise: 8,
+  },
+  fischer: {
+    nome: 'Bobby Fischer', emoji: '🎯', era: '1943–2008',
+    estilo: 'Precisão absoluta. Não perdoa uma imprecisão sequer.',
+    frase: '"Eu não acredito em psicologia. Acredito em bons lances."',
+    depth: 3, noise: 0,
+  },
+}
+
+// style bias added to root evaluation (centipawns) — this is where the
+// personality lives: same search, different taste in moves
+function personaBias(p: Persona, m: Move, chess: Chess): number {
+  let b = 0
+  const isCapture = !!m.captured || m.flags.includes('e')
+  const givesCheck = m.san.includes('+') || m.san.includes('#')
+  switch (p) {
+    case 'tal':
+      if (isCapture) b += 25
+      if (givesCheck) b += 45
+      // sacrifice appetite: capturing/attacking with the big pieces even when risky
+      if (isCapture && m.captured && VAL[m.piece] > VAL[m.captured]) b += 35
+      break
+    case 'capablanca': {
+      // loves clean trades when not worse
+      const ev = evaluate(chess)
+      const myEv = m.color === 'w' ? ev : -ev
+      if (isCapture && m.captured && VAL[m.captured] >= VAL[m.piece] && myEv >= -30) b += 30
+      if (givesCheck) b -= 10 // no cheap tricks
+      break
+    }
+    case 'kasparov': {
+      // hunt the enemy king's side of the board
+      const enemyKingRank = m.color === 'w' ? '8' : '1'
+      const toRank = m.to[1]
+      const dist = Math.abs(Number(toRank) - Number(enemyKingRank))
+      b += Math.max(0, 18 - dist * 4)
+      if (givesCheck) b += 25
+      if (m.piece === 'q' || m.piece === 'r') b += 8
+      break
+    }
+    case 'carlsen':
+      // quiet improving moves; avoids premature captures
+      if (!isCapture && !givesCheck) b += 10
+      if (m.piece === 'p') b += 6      // slow squeeze
+      if (m.piece === 'k') b += 4      // king activity
+      break
+    case 'fischer':
+      break // pure precision — no bias
+  }
+  return b
+}
+
+export function cpuBestMove(history: MoveInput[], difficulty: Difficulty, persona?: Persona): MoveInput | null {
   const chess = chessFromMoves(history)
   const legal = chess.moves({ verbose: true })
   if (legal.length === 0) return null
 
-  const { depth, noise } = DIFFICULTY_META[difficulty]
+  const meta = persona ? PERSONA_META[persona] : DIFFICULTY_META[difficulty]
+  const { depth, noise } = meta
   const sign: 1 | -1 = chess.turn() === 'w' ? 1 : -1
 
   legal.sort((a, b) => moveOrder(b) - moveOrder(a))
@@ -141,6 +224,7 @@ export function cpuBestMove(history: MoveInput[], difficulty: Difficulty): MoveI
     chess.move(m)
     let v = -negamax(chess, depth - 1, -Infinity, Infinity, sign === 1 ? -1 : 1, 1)
     chess.undo()
+    if (persona) v += personaBias(persona, m, chess)
     if (noise > 0) v += (Math.random() - 0.5) * noise
     if (v > bestV) {
       bestV = v
@@ -149,6 +233,33 @@ export function cpuBestMove(history: MoveInput[], difficulty: Difficulty): MoveI
   }
   if (!best) return null
   return { from: best.from, to: best.to, promotion: best.promotion }
+}
+
+// ── Ranked top moves for analysis (returns SAN + eval after move) ────────
+export function topMoves(history: MoveInput[], n = 3, depth = 2): Array<{ san: string; move: MoveInput; cp: number }> {
+  const chess = chessFromMoves(history)
+  const legal = chess.moves({ verbose: true })
+  const sign: 1 | -1 = chess.turn() === 'w' ? 1 : -1
+  const out: Array<{ san: string; move: MoveInput; cp: number }> = []
+  legal.sort((a, b) => moveOrder(b) - moveOrder(a))
+  for (const m of legal) {
+    chess.move(m)
+    const v = -negamax(chess, depth - 1, -Infinity, Infinity, sign === 1 ? -1 : 1, 1)
+    chess.undo()
+    out.push({ san: m.san, move: { from: m.from, to: m.to, promotion: m.promotion }, cp: v })
+  }
+  out.sort((a, b) => b.cp - a.cp)
+  return out.slice(0, n)
+}
+
+// ── Quick eval of a position (white-positive centipawns) ─────────────────
+export function quickEval(history: MoveInput[], depth = 2): number {
+  const chess = chessFromMoves(history)
+  const legal = chess.moves({ verbose: true })
+  if (legal.length === 0) return chess.inCheck() ? (chess.turn() === 'w' ? -MATE : MATE) : 0
+  const sign: 1 | -1 = chess.turn() === 'w' ? 1 : -1
+  const v = negamax(chess, depth, -Infinity, Infinity, sign, 0)
+  return sign === 1 ? v : -v
 }
 
 // CPU draw-offer policy: accepts only if clearly losing

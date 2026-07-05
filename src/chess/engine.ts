@@ -193,6 +193,21 @@ export function identifyOpening(sans: string[]): string | null {
   return null
 }
 
+// ── Convert SAN list (famous games) to MoveInput list ────────────────────
+export function movesFromSans(sans: string[]): MoveInput[] {
+  const chess = new Chess()
+  const out: MoveInput[] = []
+  for (const san of sans) {
+    try {
+      const m = chess.move(san)
+      out.push({ from: m.from, to: m.to, promotion: m.promotion })
+    } catch {
+      break
+    }
+  }
+  return out
+}
+
 // ── Format ms as clock text ──────────────────────────────────────────────
 export function fmtClock(ms: number | null): string {
   if (ms === null) return '∞'

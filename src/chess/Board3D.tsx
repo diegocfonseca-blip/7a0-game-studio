@@ -8,8 +8,8 @@ import type { PieceInst } from './engine'
 import { PieceGlyph } from './Board'
 
 // ── Real 3D board: WebGL via three.js ────────────────────────────────────
-// Pieces are lathe-turned solids (like physical chess pieces), the board is
-// a framed block with soft shadows and a fixed "sitting at the table" camera.
+// Staunton-inspired lathe-turned pieces with collar rings, glossy clearcoat
+// finish, soft shadows, framed board with coordinates and a table camera.
 
 const FILES = 'abcdefgh'
 
@@ -20,126 +20,170 @@ function squareToWorld(square: string): [number, number] {
 }
 
 // ── Piece geometries (lathe profiles, unit = square size 1) ──────────────
-function lathe(points: Array<[number, number]>, segments = 28): THREE.LatheGeometry {
+function lathe(points: Array<[number, number]>, segments = 40): THREE.LatheGeometry {
   const g = new THREE.LatheGeometry(points.map(([x, y]) => new THREE.Vector2(x, y)), segments)
   g.computeVertexNormals()
   return g
 }
 
+// classic turned base shared by all pieces: plinth + fillet + cove
+const BASE: Array<[number, number]> = [
+  [0.000, 0.000], [0.320, 0.000], [0.320, 0.055], [0.290, 0.085],
+  [0.300, 0.110], [0.250, 0.150], [0.215, 0.175],
+]
+
 function usePieceGeometries() {
   return useMemo(() => {
     const pawn = lathe([
-      [0, 0], [0.30, 0], [0.30, 0.06], [0.20, 0.14], [0.13, 0.28],
-      [0.11, 0.40], [0.17, 0.46], [0.11, 0.52], [0.16, 0.62], [0.09, 0.74], [0, 0.78],
+      ...BASE,
+      [0.160, 0.220], [0.120, 0.320], [0.105, 0.420],
+      [0.170, 0.460], [0.170, 0.490], [0.095, 0.520],   // collar ring
+      [0.135, 0.600], [0.130, 0.660], [0.075, 0.720], [0.0, 0.760],
     ])
-    const rookBody = lathe([
-      [0, 0], [0.32, 0], [0.32, 0.07], [0.22, 0.16], [0.17, 0.42],
-      [0.16, 0.62], [0.26, 0.66], [0.26, 0.84], [0.20, 0.84], [0, 0.84],
+    const rook = lathe([
+      ...BASE,
+      [0.185, 0.220], [0.150, 0.330], [0.140, 0.560],
+      [0.155, 0.600], [0.240, 0.630], [0.240, 0.660],   // parapet flare
+      [0.245, 0.820], [0.190, 0.820], [0.185, 0.740], [0.0, 0.740],
     ])
     const bishop = lathe([
-      [0, 0], [0.31, 0], [0.31, 0.07], [0.20, 0.16], [0.13, 0.34],
-      [0.11, 0.52], [0.18, 0.58], [0.12, 0.64], [0.17, 0.78], [0.10, 0.94], [0.04, 1.0], [0, 1.02],
+      ...BASE,
+      [0.170, 0.220], [0.115, 0.340], [0.095, 0.500],
+      [0.160, 0.540], [0.160, 0.570], [0.090, 0.600],   // collar
+      [0.150, 0.700], [0.155, 0.780], [0.100, 0.880], [0.045, 0.950], [0.0, 0.970],
     ])
     const queen = lathe([
-      [0, 0], [0.34, 0], [0.34, 0.07], [0.22, 0.17], [0.14, 0.38],
-      [0.11, 0.62], [0.19, 0.70], [0.12, 0.76], [0.22, 0.95], [0.13, 1.02], [0.05, 1.08], [0, 1.12],
+      ...BASE,
+      [0.180, 0.220], [0.120, 0.360], [0.095, 0.560],
+      [0.165, 0.600], [0.165, 0.630], [0.090, 0.660],   // collar
+      [0.130, 0.780], [0.210, 0.920], [0.150, 0.960],   // crown flare
+      [0.080, 0.980], [0.0, 1.000],
     ])
     const king = lathe([
-      [0, 0], [0.35, 0], [0.35, 0.07], [0.23, 0.17], [0.15, 0.40],
-      [0.12, 0.66], [0.20, 0.74], [0.13, 0.80], [0.22, 1.0], [0.10, 1.08], [0, 1.10],
+      ...BASE,
+      [0.190, 0.220], [0.130, 0.380], [0.100, 0.600],
+      [0.175, 0.640], [0.175, 0.670], [0.095, 0.700],   // collar
+      [0.140, 0.820], [0.220, 0.960], [0.130, 1.000],   // crown flare
+      [0.060, 1.020], [0.0, 1.030],
     ])
     const knightBase = lathe([
-      [0, 0], [0.31, 0], [0.31, 0.07], [0.22, 0.15], [0.19, 0.24], [0, 0.24],
+      ...BASE,
+      [0.190, 0.220], [0.170, 0.260], [0.0, 0.260],
     ])
-    // stylized horse head/neck, extruded
+
+    // stylized Staunton horse: arched neck, ears, muzzle, jaw, chest
     const shape = new THREE.Shape()
     const pts: Array<[number, number]> = [
-      [-0.20, 0.0], [-0.26, 0.28], [-0.18, 0.52], [-0.26, 0.64], [-0.14, 0.72],
-      [-0.08, 0.88], [0.02, 0.92], [0.10, 0.82], [0.06, 0.76], [0.30, 0.66],
-      [0.34, 0.56], [0.26, 0.50], [0.08, 0.50], [0.20, 0.28], [0.22, 0.0],
+      [-0.155, 0.000], [-0.230, 0.240], [-0.200, 0.420], [-0.255, 0.540],
+      [-0.200, 0.600], [-0.220, 0.700], [-0.150, 0.760],   // back of head / mane
+      [-0.085, 0.900], [-0.035, 0.980],                    // ear 1
+      [0.005, 0.900], [0.045, 0.965],                      // notch + ear 2
+      [0.090, 0.870], [0.150, 0.780],                      // forehead
+      [0.300, 0.660], [0.345, 0.590], [0.330, 0.540],      // muzzle
+      [0.260, 0.510], [0.180, 0.505],                      // mouth/jaw
+      [0.120, 0.420], [0.100, 0.320],                      // throat
+      [0.150, 0.180], [0.140, 0.000],                      // chest
     ]
     shape.moveTo(pts[0][0], pts[0][1])
     for (let i = 1; i < pts.length; i++) shape.lineTo(pts[i][0], pts[i][1])
     shape.closePath()
     const knightHead = new THREE.ExtrudeGeometry(shape, {
-      depth: 0.18, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.035, bevelSegments: 2, steps: 1,
+      depth: 0.15, bevelEnabled: true, bevelThickness: 0.055, bevelSize: 0.045, bevelSegments: 3, steps: 1,
     })
-    knightHead.translate(0, 0.22, -0.09)
+    knightHead.translate(0, 0.24, -0.075)
     knightHead.computeVertexNormals()
 
-    const merlonG = new THREE.BoxGeometry(0.10, 0.10, 0.10)
-    const crossV = new THREE.BoxGeometry(0.06, 0.22, 0.06)
-    const crossH = new THREE.BoxGeometry(0.16, 0.06, 0.06)
-    const ball = new THREE.SphereGeometry(0.06, 16, 12)
+    const merlon = new THREE.BoxGeometry(0.085, 0.095, 0.085)
+    const crossV = new THREE.BoxGeometry(0.055, 0.200, 0.055)
+    const crossH = new THREE.BoxGeometry(0.150, 0.055, 0.055)
+    const orb = new THREE.SphereGeometry(0.055, 20, 14)
+    const pearl = new THREE.SphereGeometry(0.032, 12, 10)
+    const bishopBall = new THREE.SphereGeometry(0.048, 20, 14)
 
-    return { pawn, rookBody, bishop, queen, king, knightBase, knightHead, merlonG, crossV, crossH, ball }
+    return { pawn, rook, bishop, queen, king, knightBase, knightHead, merlon, crossV, crossH, orb, pearl, bishopBall }
   }, [])
 }
 
 type Geos = ReturnType<typeof usePieceGeometries>
 
-function PieceMesh({ piece, geos, theme, selected, onClick }: {
+// glossy lacquered finish — the "premium" look
+function usePieceMaterials(theme: BoardTheme) {
+  return useMemo(() => {
+    const mk = (color: string) => new THREE.MeshPhysicalMaterial({
+      color, roughness: 0.32, metalness: 0.05,
+      clearcoat: 0.65, clearcoatRoughness: 0.22,
+      sheen: 0.3, sheenColor: new THREE.Color('#ffffff'),
+    })
+    const w = mk(theme.whitePiece)
+    const b = mk(theme.blackPiece)
+    const wSel = mk(theme.whitePiece); wSel.emissive = new THREE.Color(theme.gold); wSel.emissiveIntensity = 0.32
+    const bSel = mk(theme.blackPiece); bSel.emissive = new THREE.Color(theme.gold); bSel.emissiveIntensity = 0.32
+    return { w, b, wSel, bSel }
+  }, [theme])
+}
+
+function PieceMesh({ piece, geos, mats, selected, onClick }: {
   piece: PieceInst
   geos: Geos
-  theme: BoardTheme
+  mats: ReturnType<typeof usePieceMaterials>
   selected: boolean
   onClick: (sq: Square) => void
 }) {
   const group = useRef<THREE.Group>(null)
   const [tx, tz] = squareToWorld(piece.square!)
 
-  // smooth glide to target square
   useFrame(() => {
     const g = group.current
     if (!g) return
-    g.position.x += (tx - g.position.x) * 0.18
-    g.position.z += (tz - g.position.z) * 0.18
+    g.position.x += (tx - g.position.x) * 0.16
+    g.position.z += (tz - g.position.z) * 0.16
   })
 
-  const color = piece.color === 'w' ? theme.whitePiece : theme.blackPiece
-  const mat = useMemo(() => new THREE.MeshStandardMaterial({
-    color, roughness: 0.35, metalness: 0.18,
-    emissive: selected ? new THREE.Color(theme.gold) : new THREE.Color('#000000'),
-    emissiveIntensity: selected ? 0.35 : 0,
-  }), [color, selected, theme.gold])
-
+  const mat = piece.color === 'w' ? (selected ? mats.wSel : mats.w) : (selected ? mats.bSel : mats.b)
   const t = piece.type
-  const scale = 0.92
+  const s = t === 'p' ? 0.88 : t === 'k' ? 1.02 : 0.96
+
   return (
     <group
       ref={group}
       position={[tx, 0.13, tz]}
-      scale={[scale, scale, scale]}
+      scale={[s, s, s]}
       onPointerDown={e => { e.stopPropagation(); onClick(piece.square as Square) }}
     >
       {t === 'p' && <mesh geometry={geos.pawn} material={mat} castShadow />}
       {t === 'r' && (
         <>
-          <mesh geometry={geos.rookBody} material={mat} castShadow />
-          {[0, 1, 2, 3].map(i => {
-            const a = (i / 4) * Math.PI * 2 + Math.PI / 4
-            return <mesh key={i} geometry={geos.merlonG} material={mat} castShadow
-                         position={[Math.cos(a) * 0.19, 0.88, Math.sin(a) * 0.19]} />
+          <mesh geometry={geos.rook} material={mat} castShadow />
+          {[0, 1, 2, 3, 4].map(i => {
+            const a = (i / 5) * Math.PI * 2
+            return <mesh key={i} geometry={geos.merlon} material={mat} castShadow
+                         position={[Math.cos(a) * 0.185, 0.86, Math.sin(a) * 0.185]}
+                         rotation={[0, -a, 0]} />
           })}
         </>
       )}
       {t === 'b' && (
         <>
           <mesh geometry={geos.bishop} material={mat} castShadow />
-          <mesh geometry={geos.ball} material={mat} castShadow position={[0, 1.05, 0]} />
+          <mesh geometry={geos.bishopBall} material={mat} castShadow position={[0, 1.0, 0]} />
         </>
       )}
       {t === 'q' && (
         <>
           <mesh geometry={geos.queen} material={mat} castShadow />
-          <mesh geometry={geos.ball} material={mat} castShadow position={[0, 1.16, 0]} />
+          {[0, 1, 2, 3, 4, 5, 6, 7].map(i => {
+            const a = (i / 8) * Math.PI * 2
+            return <mesh key={i} geometry={geos.pearl} material={mat} castShadow
+                         position={[Math.cos(a) * 0.165, 0.945, Math.sin(a) * 0.165]} />
+          })}
+          <mesh geometry={geos.orb} material={mat} castShadow position={[0, 1.04, 0]} />
         </>
       )}
       {t === 'k' && (
         <>
           <mesh geometry={geos.king} material={mat} castShadow />
-          <mesh geometry={geos.crossV} material={mat} castShadow position={[0, 1.22, 0]} />
-          <mesh geometry={geos.crossH} material={mat} castShadow position={[0, 1.22, 0]} />
+          <mesh geometry={geos.crossV} material={mat} castShadow position={[0, 1.13, 0]} />
+          <mesh geometry={geos.crossH} material={mat} castShadow position={[0, 1.13, 0]} />
         </>
       )}
       {t === 'n' && (
@@ -149,6 +193,35 @@ function PieceMesh({ piece, geos, theme, selected, onClick }: {
         </group>
       )}
     </group>
+  )
+}
+
+// coordinate labels rendered onto small canvas textures
+function useLabelTexture(text: string, color: string) {
+  return useMemo(() => {
+    const c = document.createElement('canvas')
+    c.width = 64; c.height = 64
+    const ctx = c.getContext('2d')!
+    ctx.fillStyle = color
+    ctx.font = 'bold 44px Oswald, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(text, 32, 34)
+    const tex = new THREE.CanvasTexture(c)
+    tex.anisotropy = 4
+    return tex
+  }, [text, color])
+}
+
+function CoordLabel({ text, position, color, rotationZ = 0 }: {
+  text: string; position: [number, number, number]; color: string; rotationZ?: number
+}) {
+  const tex = useLabelTexture(text, color)
+  return (
+    <mesh position={position} rotation={[-Math.PI / 2, 0, rotationZ]}>
+      <planeGeometry args={[0.34, 0.34]} />
+      <meshBasicMaterial map={tex} transparent opacity={0.9} />
+    </mesh>
   )
 }
 
@@ -165,6 +238,7 @@ function Scene({ pieces, orientation, theme, selected, legalTargets, lastMove, c
   interactive: boolean
 }) {
   const geos = usePieceGeometries()
+  const mats = usePieceMaterials(theme)
   const alive = pieces.filter(p => p.square !== null)
 
   const squares = useMemo(() => {
@@ -180,22 +254,41 @@ function Scene({ pieces, orientation, theme, selected, legalTargets, lastMove, c
   }, [])
 
   const click = (sq: string) => { if (interactive) onSquareClick(sq as Square) }
+  const labelRot = orientation === 'w' ? 0 : Math.PI
 
   return (
     <group rotation={[0, orientation === 'w' ? 0 : Math.PI, 0]}>
-      {/* frame */}
-      <mesh position={[0, -0.18, 0]} receiveShadow>
-        <boxGeometry args={[9.0, 0.36, 9.0]} />
-        <meshStandardMaterial color={theme.boardBorder} roughness={0.5} metalness={0.1} />
+      {/* frame: outer plinth + inner lip */}
+      <mesh position={[0, -0.22, 0]} receiveShadow castShadow>
+        <boxGeometry args={[9.35, 0.42, 9.35]} />
+        <meshPhysicalMaterial color={theme.boardBorder} roughness={0.4} metalness={0.08} clearcoat={0.4} clearcoatRoughness={0.3} />
       </mesh>
+      <mesh position={[0, -0.02, 0]} receiveShadow>
+        <boxGeometry args={[8.55, 0.1, 8.55]} />
+        <meshStandardMaterial color={theme.gold} roughness={0.35} metalness={0.5} />
+      </mesh>
+
+      {/* coordinates on the frame */}
+      {FILES.split('').map((f, i) => (
+        <CoordLabel key={`f${f}`} text={f.toUpperCase()} color={theme.coord}
+                    position={[i - 3.5, 0.005, 4.32]} rotationZ={labelRot} />
+      ))}
+      {[1, 2, 3, 4, 5, 6, 7, 8].map(r => (
+        <CoordLabel key={`r${r}`} text={String(r)} color={theme.coord}
+                    position={[-4.32, 0.005, 3.5 - (r - 1)]} rotationZ={labelRot} />
+      ))}
+
       {/* squares */}
       {squares.map(({ sq, light, x, z }) => (
         <mesh key={sq} position={[x, 0.02, z]} receiveShadow
               onPointerDown={e => { e.stopPropagation(); click(sq) }}>
           <boxGeometry args={[1, 0.2, 1]} />
-          <meshStandardMaterial color={light ? theme.light : theme.dark} roughness={0.45} metalness={0.08} />
+          <meshPhysicalMaterial color={light ? theme.light : theme.dark}
+                                roughness={0.38} metalness={0.05}
+                                clearcoat={0.35} clearcoatRoughness={0.3} />
         </mesh>
       ))}
+
       {/* highlights */}
       {lastMove && [lastMove.from, lastMove.to].map(sq => {
         const [x, z] = squareToWorld(sq)
@@ -240,9 +333,10 @@ function Scene({ pieces, orientation, theme, selected, legalTargets, lastMove, c
           </mesh>
         )
       })}
+
       {/* pieces */}
       {alive.map(p => (
-        <PieceMesh key={p.id} piece={p} geos={geos} theme={theme}
+        <PieceMesh key={p.id} piece={p} geos={geos} mats={mats}
                    selected={selected === p.square} onClick={click} />
       ))}
     </group>
@@ -269,25 +363,27 @@ export default function Board3D(props: Board3DProps) {
     <div className="relative w-full mx-auto rounded-xl overflow-hidden"
          style={{ maxWidth: 'min(94vw, 70vh, 620px)', aspectRatio: '1.06', border: `1px solid ${theme.panelBorder}` }}>
       <Canvas
-        shadows
+        shadows={{ type: THREE.PCFSoftShadowMap }}
         dpr={[1, 2]}
         gl={{ antialias: true, alpha: true }}
-        camera={{ position: [0, 8.2, 8.6], fov: 38 }}
+        camera={{ position: [0, 8.0, 8.8], fov: 38 }}
         onCreated={({ camera }) => camera.lookAt(0, 0, 0.4)}
       >
-        <ambientLight intensity={0.65} />
+        <hemisphereLight args={['#fff6e0', '#3a2f22', 0.55]} />
         <directionalLight
-          position={[6, 12, 5]}
-          intensity={1.6}
+          position={[5, 11, 6]}
+          intensity={1.7}
           castShadow
-          shadow-mapSize-width={1024}
-          shadow-mapSize-height={1024}
-          shadow-camera-left={-6}
-          shadow-camera-right={6}
-          shadow-camera-top={6}
-          shadow-camera-bottom={-6}
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+          shadow-radius={6}
+          shadow-bias={-0.0002}
+          shadow-camera-left={-6.5}
+          shadow-camera-right={6.5}
+          shadow-camera-top={6.5}
+          shadow-camera-bottom={-6.5}
         />
-        <pointLight position={[-6, 6, -6]} intensity={0.4} />
+        <directionalLight position={[-7, 5, -5]} intensity={0.35} color="#cfe0ff" />
         <Suspense fallback={null}>
           <Scene {...props} />
         </Suspense>

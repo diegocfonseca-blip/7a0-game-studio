@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect, useCallback, lazy, Suspense } fro
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Color, PieceSymbol, Square } from 'chess.js'
 import Board, { PieceGlyph } from './Board'
+import SmartAnalysis from './analysis'
 
 const Board3D = lazy(() => import('./Board3D'))
 import { themeById, THEMES, type BoardTheme } from './themes'
@@ -237,6 +238,9 @@ export default function GameView({ ctl, settings, onSettings }: GameViewProps) {
     prevChatLen.current = len
   }, [ctl.chat?.length, settings.sound])
 
+  // immersion mode: board only, zero distraction
+  const [zen, setZen] = useState(false)
+
   // confirms
   const [confirm, setConfirm] = useState<'resign' | 'leave' | null>(null)
   const [showEnd, setShowEnd] = useState(true)
@@ -348,7 +352,11 @@ export default function GameView({ ctl, settings, onSettings }: GameViewProps) {
     </div>
   )
 
-  const controls = (
+  const controls = zen ? (
+    <div className="flex items-center justify-center">
+      <GoldButton theme={theme} subtle onClick={() => setZen(false)}>🧘 Sair da imersão</GoldButton>
+    </div>
+  ) : (
     <div className="flex flex-wrap items-center justify-center gap-1.5">
       {!ctl.end && (
         <>
@@ -367,6 +375,7 @@ export default function GameView({ ctl, settings, onSettings }: GameViewProps) {
       <GoldButton theme={theme} subtle onClick={() => onSettings({ view: view === '2d' ? '3d' : '2d' })}>
         {view === '2d' ? '🎲 3D' : '▦ 2D'}
       </GoldButton>
+      {!ctl.end && <GoldButton theme={theme} subtle onClick={() => setZen(true)}>🧘 Imersão</GoldButton>}
       <GoldButton theme={theme} subtle danger onClick={() => setConfirm('leave')}>🚪 Sair</GoldButton>
     </div>
   )
@@ -402,7 +411,7 @@ export default function GameView({ ctl, settings, onSettings }: GameViewProps) {
         <div className="lg:grid lg:gap-4 lg:items-start" style={{ gridTemplateColumns: '240px 1fr 240px' }}>
 
           {/* ── Left panel (desktop) ── */}
-          <div className="hidden lg:flex flex-col gap-3">
+          <div className={zen ? 'hidden' : 'hidden lg:flex flex-col gap-3'}>
             <PanelBox theme={theme}>
               <p className="text-[10px] font-black tracking-widest mb-2" style={{ color: theme.subtext }}>JOGADORES</p>
               <div className="space-y-2">
@@ -523,7 +532,7 @@ export default function GameView({ ctl, settings, onSettings }: GameViewProps) {
             </AnimatePresence>
 
             {/* ── Mobile tabs: lances / chat ── */}
-            <div className="lg:hidden">
+            <div className={zen ? 'hidden' : 'lg:hidden'}>
               <div className="flex gap-1 mb-2">
                 <button onClick={() => setTab('lances')}
                         className="flex-1 py-1.5 rounded-lg text-xs font-black tracking-wide"
@@ -547,13 +556,27 @@ export default function GameView({ ctl, settings, onSettings }: GameViewProps) {
                 )}
               </div>
               <PanelBox theme={theme}>
-                {tab === 'lances' ? <>{moveList}{reviewBar}</> : chatBox}
+                {tab === 'lances' ? (
+                  <>
+                    {moveList}
+                    {reviewBar}
+                    {ctl.end && (
+                      <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${theme.panelBorder}` }}>
+                        <SmartAnalysis
+                          moves={ctl.moves} sans={sans} theme={theme} shownPly={shownPly}
+                          onJump={p => { setShowEnd(false); setViewPly(p === livePly ? null : p) }}
+                          myColorLabel={ctl.myColor !== 'both' ? ctl.myColor : null}
+                        />
+                      </div>
+                    )}
+                  </>
+                ) : chatBox}
               </PanelBox>
             </div>
           </div>
 
           {/* ── Right panel (desktop) ── */}
-          <div className="hidden lg:flex flex-col gap-3">
+          <div className={zen ? 'hidden' : 'hidden lg:flex flex-col gap-3'}>
             <PanelBox theme={theme}>
               <p className="text-[10px] font-black tracking-widest mb-2" style={{ color: theme.subtext }}>
                 {ctl.end ? 'ANÁLISE PÓS-JOGO' : 'HISTÓRICO DE LANCES'}
@@ -578,6 +601,16 @@ export default function GameView({ ctl, settings, onSettings }: GameViewProps) {
                     {byBlack.length > 0 ? capturedRow(byBlack) : <b>—</b>}
                   </div>
                 </div>
+              </PanelBox>
+            )}
+            {ctl.end && (
+              <PanelBox theme={theme}>
+                <p className="text-[10px] font-black tracking-widest mb-2" style={{ color: theme.subtext }}>ANÁLISE INTELIGENTE</p>
+                <SmartAnalysis
+                  moves={ctl.moves} sans={sans} theme={theme} shownPly={shownPly}
+                  onJump={p => { setShowEnd(false); setViewPly(p === livePly ? null : p) }}
+                  myColorLabel={ctl.myColor !== 'both' ? ctl.myColor : null}
+                />
               </PanelBox>
             )}
           </div>
