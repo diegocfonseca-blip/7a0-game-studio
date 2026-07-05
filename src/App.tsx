@@ -1,35 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { GameProvider, useGame } from './store/gameStore'
-import IntroScreen from './screens/IntroScreen'
-import CharacterCreationScreen from './screens/CharacterCreationScreen'
-import OnboardingScreen from './screens/OnboardingScreen'
-import WorldMapScreen from './screens/WorldMapScreen'
-import StealMissionScreen from './screens/StealMissionScreen'
-import MaintenanceScreen from './screens/MaintenanceScreen'
-import MatchScreen from './screens/MatchScreen'
-import MarketScreen from './screens/MarketScreen'
 import EmpresarioGame from './empresario'
 import DraftGame from './draft'
 import HistoriadorGame from './historiadores'
 import SuperTrunfoGame from './supertrunfo'
+import ChessLegends from './chess'
 
-type GameKey = 'ladrao' | 'empresario' | 'draft' | 'historiadores' | 'supertrunfo'
-
-function LadraoGame() {
-  const { state } = useGame()
-  switch (state.screen) {
-    case 'intro':         return <IntroScreen />
-    case 'creation':      return <CharacterCreationScreen />
-    case 'onboarding':    return <OnboardingScreen />
-    case 'map':           return <WorldMapScreen />
-    case 'steal-mission': return <StealMissionScreen />
-    case 'maintenance':   return <MaintenanceScreen />
-    case 'match':         return <MatchScreen />
-    case 'market':        return <MarketScreen />
-    default:              return <IntroScreen />
-  }
-}
+type GameKey = 'chess' | 'empresario' | 'draft' | 'historiadores' | 'supertrunfo'
 
 function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
   return (
@@ -44,6 +21,21 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
 
       <div className="w-full max-w-sm space-y-4">
         <motion.button
+          onClick={() => onSelect('chess')}
+          whileTap={{ x: 3, y: 3 }}
+          className="w-full text-left border-[3px] border-black rounded-2xl p-6 transition-all"
+          style={{ background: 'linear-gradient(135deg, #101418 0%, #1E2630 100%)', boxShadow: '6px 6px 0 0 #C9A227' }}
+        >
+          <div className="text-4xl mb-3">♞</div>
+          <p className="font-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif', color: '#E8C766' }}>CHESS LEGENDS</p>
+          <p className="text-white/70 text-sm mt-1 font-medium">
+            Xadrez online premium. Crie uma sala, chame um amigo e dispute com relógio, chat e temas exclusivos.
+          </p>
+          <span className="inline-block mt-3 border-2 border-black rounded-full px-2.5 py-0.5 text-xs font-black uppercase"
+                style={{ backgroundColor: '#E8C766', color: '#000' }}>NOVO ✦</span>
+        </motion.button>
+
+        <motion.button
           onClick={() => onSelect('historiadores')}
           whileTap={{ x: 3, y: 3 }}
           className="w-full text-left border-[3px] border-black rounded-2xl p-6 transition-all"
@@ -54,8 +46,6 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
           <p className="text-black/70 text-sm mt-1 font-medium">
             Você conhece as lendas. Prove com seu palpite e sua grana. Colecione cartas, construa seu museu.
           </p>
-          <span className="inline-block mt-3 border-2 border-black rounded-full px-2.5 py-0.5 text-xs font-black uppercase"
-                style={{ backgroundColor: '#0C0C0C', color: '#FFB800' }}>NOVO ✦</span>
         </motion.button>
 
         <motion.button
@@ -69,8 +59,6 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
           <p className="text-white/80 text-sm mt-1 font-medium">
             Um raio jogou você e a galera de volta a 1992. Só vocês lembram as lendas. Pegue um time da 4ª divisão e dispute o draft pra fisgar os craques antes dos amigos.
           </p>
-          <span className="inline-block mt-3 border-2 border-black rounded-full px-2.5 py-0.5 text-xs font-black uppercase"
-                style={{ backgroundColor: '#FFC400', color: '#000' }}>NOVO ✦</span>
         </motion.button>
 
         <motion.button
@@ -84,8 +72,6 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
           <p className="text-white/80 text-sm mt-1 font-medium">
             Você voltou do futuro. Só você sabe quem são as lendas. Assine-as, negocie no seu favor, fique podre de rico.
           </p>
-          <span className="inline-block mt-3 border-2 border-black rounded-full px-2.5 py-0.5 text-xs font-black uppercase"
-                style={{ backgroundColor: '#FFC400', color: '#000' }}>NOVO ✦</span>
         </motion.button>
 
         <motion.button
@@ -99,21 +85,6 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
           <p className="text-white/80 text-sm mt-1 font-medium">
             40 lendas do futebol em duelo de atributos. Colete todas as cartas e domine o mundo.
           </p>
-          <span className="inline-block mt-3 border-2 border-black rounded-full px-2.5 py-0.5 text-xs font-black uppercase"
-                style={{ backgroundColor: '#FFB800', color: '#000' }}>NOVO ✦</span>
-        </motion.button>
-
-        <motion.button
-          onClick={() => onSelect('ladrao')}
-          whileTap={{ x: 3, y: 3 }}
-          className="w-full text-left border-[3px] border-black rounded-2xl p-6 transition-all"
-          style={{ backgroundColor: '#FFFFFF', boxShadow: '6px 6px 0 0 #0C0C0C' }}
-        >
-          <div className="text-4xl mb-3">⚽</div>
-          <p className="text-black font-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif' }}>O LADRÃO DE LENDAS</p>
-          <p className="text-black/60 text-sm mt-1 font-medium">
-            Roube habilidades das lendas e vire o melhor jogador do mundo.
-          </p>
         </motion.button>
       </div>
     </div>
@@ -123,12 +94,18 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
 export default function App() {
   const [selectedGame, setSelectedGame] = useState<GameKey | null>(null)
 
-  function choose(game: GameKey) {
-    setSelectedGame(game)
-  }
+  // Deep link: ?sala=CODE opens Chess Legends directly (invite links)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('sala')) setSelectedGame('chess')
+  }, [])
 
   if (!selectedGame) {
-    return <GameSelector onSelect={choose} />
+    return <GameSelector onSelect={setSelectedGame} />
+  }
+
+  if (selectedGame === 'chess') {
+    return <ChessLegends />
   }
 
   if (selectedGame === 'empresario') {
@@ -139,17 +116,9 @@ export default function App() {
     return <DraftGame />
   }
 
-  if (selectedGame === 'historiadores') {
-    return <HistoriadorGame />
-  }
-
   if (selectedGame === 'supertrunfo') {
     return <SuperTrunfoGame />
   }
 
-  return (
-    <GameProvider>
-      <LadraoGame />
-    </GameProvider>
-  )
+  return <HistoriadorGame />
 }
