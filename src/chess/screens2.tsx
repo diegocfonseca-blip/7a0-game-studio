@@ -145,18 +145,37 @@ export function HistoryViewerScreen({ game, settings, onBack, onTakeOver }: {
           <p className="text-xs leading-relaxed" style={{ color: UI.text }}>{game.historia}</p>
         </Card>
 
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={() => onTakeOver(moves.slice(0, ply), game.heroi, game)}
-          className="w-full py-3.5 rounded-xl font-black text-sm"
-          style={{ background: `linear-gradient(135deg, ${UI.gold} 0%, #B8963E 100%)`, color: '#141210' }}
-        >
-          ⚔️ MUDAR A HISTÓRIA — assumir as {game.heroi === 'w' ? 'brancas' : 'pretas'} daqui
-        </motion.button>
-        <p className="text-[10px] text-center leading-snug" style={{ color: UI.subtext }}>
-          Você joga como {game.heroi === 'w' ? game.brancas : game.pretas} a partir da posição acima,
-          contra a IA no estilo {PERSONA_META[game.vilaoPersona].nome}.
-        </p>
+        {/* choose which side to take over: relive the win, or rescue the loser */}
+        <div>
+          <p className="text-[10px] font-black tracking-widest mb-2 text-center" style={{ color: UI.subtext }}>
+            ⚔️ ASSUMA UM LADO A PARTIR DAQUI
+          </p>
+          <div className="space-y-2">
+            {(['w', 'b'] as Color[]).map(side => {
+              const isWinner = game.resultado === (side === 'w' ? '1-0' : '0-1')
+              const isDraw = game.resultado === '1/2-1/2'
+              const nome = side === 'w' ? game.brancas : game.pretas
+              const tag = isDraw ? 'empatou' : isWinner ? 'venceu ✓' : 'perdeu — reverta!'
+              return (
+                <motion.button key={side}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => onTakeOver(moves.slice(0, ply), side, game)}
+                  className="w-full py-3 px-3 rounded-xl font-black text-sm flex items-center justify-between"
+                  style={!isWinner && !isDraw
+                    ? { background: `linear-gradient(135deg, ${UI.gold} 0%, #B8963E 100%)`, color: '#141210' }
+                    : { backgroundColor: UI.panel, color: UI.text, border: `1px solid ${UI.borderSoft}` }}
+                >
+                  <span>{side === 'w' ? '⚪' : '⚫'} Jogar como {nome}</span>
+                  <span className="text-[10px] font-bold opacity-80">{tag}</span>
+                </motion.button>
+              )
+            })}
+          </div>
+          <p className="text-[10px] text-center leading-snug mt-2" style={{ color: UI.subtext }}>
+            Pegue o lado <b>perdedor</b> pra tentar mudar o final — ou reviva a vitória.
+            A IA joga o outro lado no estilo {PERSONA_META[game.vilaoPersona].nome}.
+          </p>
+        </div>
       </div>
     </Shell>
   )
