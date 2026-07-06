@@ -72,6 +72,59 @@ function GoldButton({ theme, onClick, children, subtle = false, danger = false, 
   )
 }
 
+// ── Live advantage bar (material balance), white bottom / black top ──────
+function AdvantageBar({ theme, diff, orientation }: { theme: BoardTheme; diff: number; orientation: Color }) {
+  // diff > 0 = white ahead. Map to 0..1 fill for the side that's up.
+  const clamped = Math.max(-10, Math.min(10, diff))
+  // fraction of the bar that's "white" (from the bottom if we're white-oriented)
+  const whiteFrac = 0.5 + clamped / 20   // 0..1
+  const bottomIsWhite = orientation === 'w'
+  const bottomFrac = bottomIsWhite ? whiteFrac : 1 - whiteFrac
+  const lead = Math.abs(diff)
+  return (
+    <div className="flex flex-col items-center" style={{ width: 14 }}>
+      <div className="relative flex-1 w-2.5 rounded-full overflow-hidden"
+           style={{ backgroundColor: '#111', border: `1px solid ${theme.panelBorder}` }}>
+        {/* bottom side fill */}
+        <div className="absolute left-0 right-0 bottom-0 transition-all duration-500"
+             style={{
+               height: `${bottomFrac * 100}%`,
+               backgroundColor: bottomIsWhite ? '#EDEADF' : '#2A2A2E',
+             }} />
+        {/* midline */}
+        <div className="absolute left-0 right-0" style={{ top: '50%', height: 1, backgroundColor: theme.gold, opacity: 0.6 }} />
+      </div>
+      <span className="text-[9px] font-black mt-1 tabular-nums" style={{ color: lead > 0 ? theme.gold : theme.subtext }}>
+        {lead > 0 ? `+${lead}` : '='}
+      </span>
+    </div>
+  )
+}
+
+// ── Gold confetti burst for victories ────────────────────────────────────
+const CONFETTI = Array.from({ length: 44 }, (_, i) => ({
+  id: i,
+  x: Math.random() * 100,
+  delay: Math.random() * 0.5,
+  dur: 1.6 + Math.random() * 1.4,
+  rot: Math.random() * 360,
+  color: ['#E8C766', '#F5E4A8', '#B8963E', '#FFFFFF'][i % 4],
+  size: 6 + Math.random() * 6,
+}))
+function Confetti() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-50">
+      {CONFETTI.map(c => (
+        <motion.div key={c.id} className="absolute top-0"
+          style={{ left: `${c.x}%`, width: c.size, height: c.size * 0.6, backgroundColor: c.color, borderRadius: 1 }}
+          initial={{ y: -20, opacity: 1, rotate: c.rot }}
+          animate={{ y: '105vh', opacity: [1, 1, 0], rotate: c.rot + 360 }}
+          transition={{ duration: c.dur, delay: c.delay, ease: 'easeIn' }} />
+      ))}
+    </div>
+  )
+}
+
 function ClockBox({ theme, ms, active, name, avatar, online, captured, matDiff }: {
   theme: BoardTheme; ms: number | null; active: boolean; name: string; avatar: string
   online: boolean; captured: React.ReactNode; matDiff: number
@@ -133,6 +186,7 @@ export default function GameView({ ctl, settings, onSettings }: GameViewProps) {
     ? { from: shownVerbose[shownVerbose.length - 1].from, to: shownVerbose[shownVerbose.length - 1].to }
     : null
   const checkSq = checkedKingSquare(shownChess)
+  const isMate = !!ctl.end && ctl.end.reason === 'xeque-mate' && !reviewing
   const occupied = useMemo(() => {
     const s = new Set<string>()
     for (const p of pieces) if (p.square) s.add(p.square)
@@ -468,53 +522,63 @@ export default function GameView({ ctl, settings, onSettings }: GameViewProps) {
                         matDiff={topColor === 'w' ? Math.max(0, mat) : Math.max(0, -mat)} />
             </div>
 
-            {view === '3d' ? (
-              <Suspense fallback={
-                <div className="w-full mx-auto flex items-center justify-center"
-                     style={{ maxWidth: 'min(94vw, 70vh, 620px)', aspectRatio: '1.06', color: theme.subtext }}>
-                  <span className="text-sm font-bold">Carregando 3D…</span>
-                </div>
-              }>
-                <Board3D
-                  pieces={pieces}
-                  orientation={orientation}
-                  theme={theme}
-                  selected={selected}
-                  legalTargets={settings.showHints ? targets : new Set<string>()}
-                  lastMove={lastMove}
-                  checkSquare={checkSq}
-                  occupied={occupied}
-                  onSquareClick={handleSquare}
-                  interactive={canMove}
-                  promotion={pendingPromo ? {
-                    color: turn,
-                    onPick: pickPromotion,
-                    onCancel: () => setPendingPromo(null),
-                  } : null}
-                />
-              </Suspense>
-            ) : (
-              <Board
-                pieces={pieces}
-                orientation={orientation}
-                theme={theme}
-                view="2d"
-                animations={settings.animations}
-                showHints={settings.showHints}
-                selected={selected}
-                legalTargets={targets}
-                lastMove={lastMove}
-                checkSquare={checkSq}
-                occupied={occupied}
-                onSquareClick={handleSquare}
-                interactive={canMove}
-                promotion={pendingPromo ? {
-                  color: turn,
-                  onPick: pickPromotion,
-                  onCancel: () => setPendingPromo(null),
-                } : null}
-              />
-            )}
+            <div className="flex items-stretch gap-2 justify-center">
+              {/* live advantage bar (material) */}
+              <AdvantageBar theme={theme} diff={mat} orientation={orientation} />
+              <motion.div
+                className="flex-1 min-w-0"
+                animate={isMate ? { x: [0, -6, 6, -5, 5, -3, 3, 0] } : checkSq ? { x: [0, -2, 2, 0] } : {}}
+                transition={{ duration: isMate ? 0.5 : 0.25 }}
+              >
+                {view === '3d' ? (
+                  <Suspense fallback={
+                    <div className="w-full mx-auto flex items-center justify-center"
+                         style={{ maxWidth: 'min(94vw, 70vh, 620px)', aspectRatio: '1.06', color: theme.subtext }}>
+                      <span className="text-sm font-bold">Carregando 3D…</span>
+                    </div>
+                  }>
+                    <Board3D
+                      pieces={pieces}
+                      orientation={orientation}
+                      theme={theme}
+                      selected={selected}
+                      legalTargets={settings.showHints ? targets : new Set<string>()}
+                      lastMove={lastMove}
+                      checkSquare={checkSq}
+                      occupied={occupied}
+                      onSquareClick={handleSquare}
+                      interactive={canMove}
+                      promotion={pendingPromo ? {
+                        color: turn,
+                        onPick: pickPromotion,
+                        onCancel: () => setPendingPromo(null),
+                      } : null}
+                    />
+                  </Suspense>
+                ) : (
+                  <Board
+                    pieces={pieces}
+                    orientation={orientation}
+                    theme={theme}
+                    view="2d"
+                    animations={settings.animations}
+                    showHints={settings.showHints}
+                    selected={selected}
+                    legalTargets={targets}
+                    lastMove={lastMove}
+                    checkSquare={checkSq}
+                    occupied={occupied}
+                    onSquareClick={handleSquare}
+                    interactive={canMove}
+                    promotion={pendingPromo ? {
+                      color: turn,
+                      onPick: pickPromotion,
+                      onCancel: () => setPendingPromo(null),
+                    } : null}
+                  />
+                )}
+              </motion.div>
+            </div>
 
             {reviewing && (
               <p className="text-center text-[11px] font-bold" style={{ color: theme.gold }}>
@@ -645,6 +709,7 @@ export default function GameView({ ctl, settings, onSettings }: GameViewProps) {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                       className="fixed inset-0 z-40 flex items-center justify-center p-4"
                       style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}>
+            {endInfo.winner && (ctl.myColor === 'both' || endInfo.winner === ctl.myColor) && <Confetti />}
             <motion.div initial={{ scale: 0.85, y: 16 }} animate={{ scale: 1, y: 0 }}
                         transition={{ type: 'spring', bounce: 0.35 }}
                         className="w-full max-w-sm rounded-2xl p-6 text-center"

@@ -57,7 +57,7 @@ function BigButton({ onClick, children, primary = false }: { onClick: () => void
   )
 }
 
-// ── Decorative mini board for the home hero ──────────────────────────────
+// ── Decorative mini board for the home hero (floating + glowing) ─────────
 function HeroBoard() {
   const cells = Array.from({ length: 64 }, (_, i) => {
     const x = i % 8, y = Math.floor(i / 8)
@@ -65,24 +65,38 @@ function HeroBoard() {
   })
   const pieces: Record<number, string> = { 3: '♛', 12: '♞', 25: '♝', 38: '♚', 44: '♟', 52: '♜' }
   return (
-    <div className="relative mx-auto" style={{ width: 200, height: 200, perspective: 500 }}>
-      <div className="grid grid-cols-8 w-full h-full rounded-lg overflow-hidden"
-           style={{
-             transform: 'rotateX(38deg) rotateZ(-6deg)',
-             boxShadow: '0 30px 40px -16px rgba(0,0,0,0.8), 0 0 0 4px rgba(232,199,102,0.25)',
-           }}>
+    <div className="relative mx-auto" style={{ width: 200, height: 210, perspective: 620 }}>
+      {/* pulsing gold aura */}
+      <motion.div
+        className="absolute left-1/2 top-1/2 rounded-full pointer-events-none"
+        style={{ width: 280, height: 280, x: '-50%', y: '-50%',
+                 background: 'radial-gradient(circle, rgba(232,199,102,0.18) 0%, transparent 68%)' }}
+        animate={{ opacity: [0.5, 1, 0.5], scale: [0.92, 1.05, 0.92] }}
+        transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut' }}
+      />
+      {/* the board gently floating and rocking */}
+      <motion.div
+        className="grid grid-cols-8 rounded-lg overflow-hidden"
+        style={{
+          width: 200, height: 200,
+          transformStyle: 'preserve-3d',
+          boxShadow: '0 34px 46px -16px rgba(0,0,0,0.85), 0 0 0 4px rgba(232,199,102,0.28)',
+        }}
+        initial={{ rotateX: 38, rotateZ: -6 }}
+        animate={{ rotateX: [38, 35, 38], rotateZ: [-6, -3, -6], y: [0, -8, 0] }}
+        transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
+      >
         {cells.map((light, i) => (
           <div key={i} className="flex items-center justify-center text-lg"
                style={{
                  backgroundColor: light ? '#E9DCC0' : '#3A3F4A',
                  color: light ? '#22262E' : '#E8C766',
+                 textShadow: pieces[i] ? '0 2px 4px rgba(0,0,0,0.5)' : undefined,
                }}>
             {pieces[i] ?? ''}
           </div>
         ))}
-      </div>
-      <div className="absolute -inset-4 rounded-full pointer-events-none"
-           style={{ background: 'radial-gradient(circle, rgba(232,199,102,0.12) 0%, transparent 70%)' }} />
+      </motion.div>
     </div>
   )
 }

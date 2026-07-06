@@ -225,6 +225,26 @@ function CoordLabel({ text, position, color, rotationZ = 0 }: {
   )
 }
 
+// pulsing red glow under the king in check
+function CheckPulse({ x, z }: { x: number; z: number }) {
+  const ref = useRef<THREE.Mesh>(null)
+  useFrame(({ clock }) => {
+    const m = ref.current
+    if (!m) return
+    const t = (Math.sin(clock.elapsedTime * 5) + 1) / 2
+    const mat = m.material as THREE.MeshBasicMaterial
+    mat.opacity = 0.35 + t * 0.45
+    const s = 0.9 + t * 0.12
+    m.scale.set(s, s, 1)
+  })
+  return (
+    <mesh ref={ref} position={[x, 0.128, z]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[0.98, 0.98]} />
+      <meshBasicMaterial color="#E8402F" transparent opacity={0.55} />
+    </mesh>
+  )
+}
+
 function Scene({ pieces, orientation, theme, selected, legalTargets, lastMove, checkSquare, occupied, onSquareClick, interactive }: {
   pieces: PieceInst[]
   orientation: Color
@@ -310,12 +330,7 @@ function Scene({ pieces, orientation, theme, selected, legalTargets, lastMove, c
       })()}
       {checkSquare && (() => {
         const [x, z] = squareToWorld(checkSquare)
-        return (
-          <mesh position={[x, 0.128, z]} rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[0.96, 0.96]} />
-            <meshBasicMaterial color="#E8402F" transparent opacity={0.55} />
-          </mesh>
-        )
+        return <CheckPulse x={x} z={z} />
       })()}
       {[...legalTargets].map(sq => {
         const [x, z] = squareToWorld(sq)
@@ -369,21 +384,26 @@ export default function Board3D(props: Board3DProps) {
         camera={{ position: [0, 8.0, 8.8], fov: 38 }}
         onCreated={({ camera }) => camera.lookAt(0, 0, 0.4)}
       >
-        <hemisphereLight args={['#fff6e0', '#3a2f22', 0.55]} />
+        <hemisphereLight args={['#fff6e0', '#2a2018', 0.5]} />
+        {/* key light — warm, casts the soft shadows */}
         <directionalLight
-          position={[5, 11, 6]}
-          intensity={1.7}
+          position={[5, 12, 6]}
+          intensity={1.85}
+          color="#fff3d6"
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
-          shadow-radius={6}
+          shadow-radius={7}
           shadow-bias={-0.0002}
           shadow-camera-left={-6.5}
           shadow-camera-right={6.5}
           shadow-camera-top={6.5}
           shadow-camera-bottom={-6.5}
         />
-        <directionalLight position={[-7, 5, -5]} intensity={0.35} color="#cfe0ff" />
+        {/* cool rim light from behind for separation */}
+        <directionalLight position={[-7, 6, -6]} intensity={0.45} color="#bcd0ff" />
+        {/* gold spotlight glinting off the pieces */}
+        <spotLight position={[-3, 9, 4]} angle={0.5} penumbra={0.8} intensity={0.7} color="#E8C766" />
         <Suspense fallback={null}>
           <Scene {...props} />
         </Suspense>
