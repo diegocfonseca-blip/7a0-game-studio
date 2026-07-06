@@ -22,7 +22,7 @@ const DEFAULTS: UserSettings = {
   themeId: 'wood',
   view: '2d',
   sound: true,
-  showHints: true,
+  showHints: false,
   animations: true,
 }
 
