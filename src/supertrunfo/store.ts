@@ -206,19 +206,25 @@ export function useSTGame() {
     return () => clearTimeout(t)
   }, [state.phase, state.activePlayerIdx]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-advance from revealing → next round
+  // Auto-advance ONLY while the human is out of the game (spectating the CPUs).
+  // When the human is still playing, they control the pace with the button.
   useEffect(() => {
     if (state.phase !== 'revealing') return
-    const t = setTimeout(() => dispatch({ type: 'NEXT_ROUND' }), 2800)
+    const human = state.players.find(p => p.id === 'human')
+    const humanOut = !human || human.isEliminated
+    if (!humanOut) return
+    const t = setTimeout(() => dispatch({ type: 'NEXT_ROUND' }), 2200)
     return () => clearTimeout(t)
-  }, [state.phase, state.roundNum])
+  }, [state.phase, state.roundNum, state.players])
 
   const startGame  = useCallback((humanName: string, cpuCount: number) =>
     dispatch({ type: 'START_GAME', humanName, cpuCount }), [])
   const pickAttr   = useCallback((attr: Atributo) =>
     dispatch({ type: 'PICK_ATTR', attr }), [])
+  const nextRound  = useCallback(() =>
+    dispatch({ type: 'NEXT_ROUND' }), [])
   const restart    = useCallback(() =>
     dispatch({ type: 'RESTART' }), [])
 
-  return { state, startGame, pickAttr, restart }
+  return { state, startGame, pickAttr, nextRound, restart }
 }

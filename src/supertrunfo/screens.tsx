@@ -381,11 +381,11 @@ function GameOverScreen({
 // We need the root to properly handle the menu → setup → playing flow.
 // Let's refactor with local screen state at the top level:
 export function SuperTrunfoRoot() {
-  const { state, startGame, pickAttr, restart } = useSTGame()
+  const { state, startGame, pickAttr, nextRound, restart } = useSTGame()
   const [showSetup, setShowSetup] = useState(false)
 
   if (state.screen === 'playing') {
-    return <PlayingScreenFull state={state} pickAttr={pickAttr} restart={restart} />
+    return <PlayingScreenFull state={state} pickAttr={pickAttr} nextRound={nextRound} restart={restart} />
   }
 
   if (showSetup) {
@@ -406,10 +406,12 @@ export function SuperTrunfoRoot() {
 function PlayingScreenFull({
   state,
   pickAttr,
+  nextRound,
   restart,
 }: {
   state: ReturnType<typeof useSTGame>['state']
   pickAttr: (a: Atributo) => void
+  nextRound: () => void
   restart: () => void
 }) {
   const { players, activePlayerIdx, phase, chosenAttr, roundCards, warPile, roundWinnerId } = state
@@ -463,24 +465,39 @@ function PlayingScreenFull({
         <AnimatePresence mode="wait">
           {isRevealing ? (
             <motion.div key="reveal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full max-w-md">
+              {/* which attribute was compared */}
+              {chosenAttr && (
+                <div className="mb-2 text-center">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border-2 border-black text-xs font-black"
+                        style={{ backgroundColor: 'white', boxShadow: '2px 2px 0 0 #0C0C0C' }}>
+                    {ATTR_META[chosenAttr].emoji} DISPUTANDO: {ATTR_META[chosenAttr].label}
+                  </span>
+                </div>
+              )}
               <div className="mb-3 text-center">
                 {roundWinnerId ? (
                   <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="inline-block px-4 py-2 rounded-xl border-2 border-black font-black text-sm"
+                    className="inline-block px-4 py-2.5 rounded-xl border-2 border-black font-black text-sm"
                     style={{ backgroundColor: '#FFB800', boxShadow: '3px 3px 0 0 #0C0C0C' }}
                   >
-                    🏆 {players.find(p => p.id === roundWinnerId)?.nome} ganhou!
+                    🏆 {players.find(p => p.id === roundWinnerId)?.nome === undefined ? '' : (roundWinnerId === 'human' ? 'VOCÊ VENCEU' : `${players.find(p => p.id === roundWinnerId)?.nome} VENCEU`)}
+                    <span className="block text-[11px] font-bold mt-0.5">
+                      leva {warPile.length + roundCards.length} carta{(warPile.length + roundCards.length) !== 1 ? 's' : ''} pro deck 🃏
+                    </span>
                   </motion.div>
                 ) : (
                   <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="inline-block px-4 py-2 rounded-xl border-2 border-black font-black text-sm"
+                    className="inline-block px-4 py-2.5 rounded-xl border-2 border-black font-black text-sm"
                     style={{ backgroundColor: '#FF4136', color: 'white', boxShadow: '3px 3px 0 0 #0C0C0C' }}
                   >
-                    ⚔️ EMPATE — próxima rodada em guerra!
+                    ⚔️ EMPATE!
+                    <span className="block text-[11px] font-bold mt-0.5">
+                      as {roundCards.length} cartas vão pra próxima rodada (guerra)
+                    </span>
                   </motion.div>
                 )}
               </div>
@@ -532,11 +549,27 @@ function PlayingScreenFull({
       </div>
 
       {/* Bottom bar */}
-      <div className="px-4 py-3 border-t-2 border-black text-center" style={{ backgroundColor: isMyTurn ? '#FFB800' : '#0C0C0C' }}>
+      <div className="px-4 py-3 border-t-2 border-black text-center" style={{ backgroundColor: isRevealing ? '#16B89A' : isMyTurn ? '#FFB800' : '#0C0C0C' }}>
         <AnimatePresence mode="wait">
-          {isMyTurn && <motion.p key="my" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-black text-black">⭐ SUA VEZ — toque em um atributo para jogar</motion.p>}
-          {phase === 'cpu_thinking' && <motion.p key="cpu" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-black text-white">🤖 {activePlayer?.nome} está escolhendo...</motion.p>}
-          {isRevealing && <motion.p key="rev" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-black text-white text-sm">{chosenAttr && `${ATTR_META[chosenAttr].emoji} ${ATTR_META[chosenAttr].label} — próxima rodada em breve...`}</motion.p>}
+          {isMyTurn && (
+            <motion.div key="my" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <p className="font-black text-black">⭐ SUA VEZ</p>
+              <p className="text-black/70 text-xs font-bold">Toque no atributo mais forte da sua carta — o maior valor leva todas as cartas</p>
+            </motion.div>
+          )}
+          {phase === 'cpu_thinking' && <motion.p key="cpu" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-black text-white">🤖 {activePlayer?.nome} está escolhendo o atributo...</motion.p>}
+          {isRevealing && humanPlayer.deck.length > 0 && (
+            <motion.button key="next" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                           onClick={nextRound}
+                           whileTap={{ scale: 0.97 }}
+                           className="w-full py-1 font-black text-white text-lg"
+                           style={{ fontFamily: 'Oswald, sans-serif' }}>
+              PRÓXIMA RODADA →
+            </motion.button>
+          )}
+          {isRevealing && humanPlayer.deck.length === 0 && (
+            <motion.p key="revspec" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-black text-white text-sm">avançando…</motion.p>
+          )}
         </AnimatePresence>
       </div>
     </div>
