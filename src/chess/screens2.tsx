@@ -71,6 +71,9 @@ export function HistoryListScreen({ onBack, onOpen }: { onBack: () => void; onOp
             <p className="text-xs font-bold mt-0.5" style={{ color: UI.text }}>
               ⚪ {g.brancas} × ⚫ {g.pretas}
             </p>
+            <p className="text-[11px] font-black mt-0.5" style={{ color: UI.gold }}>
+              🏆 {g.resultado === '1/2-1/2' ? 'Empate' : `${g.resultado === '1-0' ? g.brancas : g.pretas} venceu`}
+            </p>
             <p className="text-[11px] mt-1 leading-snug line-clamp-2" style={{ color: UI.subtext }}>{g.historia}</p>
           </Card>
         ))}
@@ -116,7 +119,12 @@ export function HistoryViewerScreen({ game, settings, onBack, onTakeOver }: {
     <Shell onBack={onBack} title={game.titulo.toUpperCase()}>
       <div className="w-full max-w-md space-y-3 pb-6">
         <p className="text-xs font-bold text-center" style={{ color: UI.text }}>
-          ⚪ {game.brancas} × ⚫ {game.pretas} · {game.local}, {game.ano} · <b style={{ color: UI.gold }}>{game.resultado}</b>
+          ⚪ {game.brancas} × ⚫ {game.pretas} · {game.local}, {game.ano}
+        </p>
+        <p className="text-center text-sm font-black" style={{ color: UI.gold }}>
+          🏆 {game.resultado === '1/2-1/2'
+                ? 'Terminou em empate'
+                : `Vencedor: ${game.resultado === '1-0' ? game.brancas : game.pretas} (${game.resultado === '1-0' ? 'brancas' : 'pretas'})`}
         </p>
 
         <MiniReplayBoard moves={moves} ply={ply} settings={settings} orientation={game.heroi} />
