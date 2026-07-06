@@ -637,7 +637,7 @@ export function MenuScreen() {
   return (
     <div className="min-h-screen flex flex-col items-center p-5 pt-14" style={{ backgroundColor: C.cream }}>
       <div className="text-center mb-6">
-        <BrutalPill color="#FFB800" textColor={C.black}>7A0 GAME STUDIO</BrutalPill>
+        <BrutalPill color="#FFB800" textColor={C.black}>D GAME STUDIO</BrutalPill>
         <h1 className="font-black text-5xl mt-4 leading-none" style={{ fontFamily: 'Oswald, sans-serif' }}>
           HISTO-<br />RIADORES<br />DA BOLA
         </h1>

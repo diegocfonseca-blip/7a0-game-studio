@@ -14,7 +14,7 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
       <div className="text-center">
         <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-xs font-black uppercase tracking-wide"
               style={{ backgroundColor: '#FFC400', boxShadow: '3px 3px 0 0 #0C0C0C' }}>
-          7A0 GAME STUDIO
+          D GAME STUDIO
         </span>
         <h1 className="font-black text-4xl text-black mt-4" style={{ fontFamily: 'Oswald, sans-serif' }}>ESCOLHA SEU JOGO</h1>
       </div>

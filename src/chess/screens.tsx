@@ -92,7 +92,7 @@ export function HomeScreen({ onNav }: { onNav: (s: 'setup-online' | 'join' | 'se
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-5 py-10 gap-8" style={{ background: UI.bg }}>
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-        <p className="text-[11px] font-black tracking-[0.5em] mb-3" style={{ color: UI.subtext }}>7A0 GAME STUDIO</p>
+        <p className="text-[11px] font-black tracking-[0.5em] mb-3" style={{ color: UI.subtext }}>D GAME STUDIO</p>
         <HeroBoard />
         <h1 className="font-black text-5xl mt-7 leading-none tracking-wide"
             style={{
