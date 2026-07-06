@@ -35,6 +35,8 @@ export interface MatchController {
   sendChat: ((text: string) => void) | null
   roomCode: string | null
   leave: () => void
+  // running rivalry score across rematches (null = don't show)
+  rivalry?: { mineName: string; theirsName: string; mine: number; theirs: number; draws: number } | null
 }
 
 interface GameViewProps {
@@ -437,6 +439,26 @@ export default function GameView({ ctl, settings, onSettings }: GameViewProps) {
 
           {/* ── Center: board ── */}
           <div className="flex flex-col gap-2">
+            {/* rivalry scoreboard (online vs friend, across rematches) */}
+            {ctl.rivalry && (ctl.rivalry.mine + ctl.rivalry.theirs + ctl.rivalry.draws) > 0 && !zen && (
+              <div className="flex items-center justify-center gap-3 rounded-xl px-4 py-2"
+                   style={{ backgroundColor: theme.panel, border: `1px solid ${theme.gold}55` }}>
+                <span className="text-xs font-bold truncate max-w-[30%]" style={{ color: theme.text }}>
+                  {ctl.rivalry.mineName}
+                </span>
+                <span className="font-black text-xl tabular-nums px-2" style={{ color: theme.gold, fontFamily: 'Oswald, sans-serif' }}>
+                  {ctl.rivalry.mine} <span style={{ color: theme.subtext }}>×</span> {ctl.rivalry.theirs}
+                </span>
+                <span className="text-xs font-bold truncate max-w-[30%]" style={{ color: theme.text }}>
+                  {ctl.rivalry.theirsName}
+                </span>
+                {ctl.rivalry.draws > 0 && (
+                  <span className="text-[10px] font-bold" style={{ color: theme.subtext }}>
+                    ({ctl.rivalry.draws} empate{ctl.rivalry.draws > 1 ? 's' : ''})
+                  </span>
+                )}
+              </div>
+            )}
             {/* mobile: opponent clock above board */}
             <div className="lg:hidden">
               <ClockBox theme={theme} ms={ctl.clocks[topColor]} active={turn === topColor && !ctl.end}
@@ -644,6 +666,24 @@ export default function GameView({ ctl, settings, onSettings }: GameViewProps) {
                 <p>{Math.ceil(sans.length / 2)} lances{opening ? ` · ${opening}` : ''}</p>
                 <p>⏱ restante — ⚪ {fmtClock(ctl.clocks.w)} · ⚫ {fmtClock(ctl.clocks.b)}</p>
               </div>
+              {ctl.rivalry && (ctl.rivalry.mine + ctl.rivalry.theirs + ctl.rivalry.draws) > 0 && (
+                <div className="mt-4 rounded-xl px-3 py-2.5"
+                     style={{ backgroundColor: `${theme.gold}18`, border: `1px solid ${theme.gold}` }}>
+                  <p className="text-[10px] font-black tracking-widest mb-1" style={{ color: theme.subtext }}>PLACAR DA RIVALIDADE</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-sm font-bold truncate max-w-[32%]" style={{ color: theme.text }}>{ctl.rivalry.mineName}</span>
+                    <span className="font-black text-2xl tabular-nums px-1.5" style={{ color: theme.gold, fontFamily: 'Oswald, sans-serif' }}>
+                      {ctl.rivalry.mine} <span style={{ color: theme.subtext }}>×</span> {ctl.rivalry.theirs}
+                    </span>
+                    <span className="text-sm font-bold truncate max-w-[32%]" style={{ color: theme.text }}>{ctl.rivalry.theirsName}</span>
+                  </div>
+                  {ctl.rivalry.draws > 0 && (
+                    <p className="text-[10px] text-center mt-0.5" style={{ color: theme.subtext }}>
+                      e {ctl.rivalry.draws} empate{ctl.rivalry.draws > 1 ? 's' : ''}
+                    </p>
+                  )}
+                </div>
+              )}
               <div className="flex flex-col gap-2 mt-5">
                 <GoldButton theme={theme} onClick={() => ctl.offerRematch(true)}>
                   {ctl.rematchOffer === 'outgoing' ? '⏳ Aguardando rival…' : '🔄 Pedir revanche (trocar cores)'}

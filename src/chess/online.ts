@@ -58,6 +58,10 @@ export function useOnlineChess(onExit: () => void, onGameStart?: (config: GameCo
   const [chat, setChat] = useState<ChatMsg[]>([])
   const [drawOffer, setDrawOffer] = useState<'incoming' | 'outgoing' | null>(null)
   const [rematchOffer, setRematchOffer] = useState<'incoming' | 'outgoing' | null>(null)
+  // rivalry scoreboard (wins keyed by stable player id, + draws) across rematches in this room
+  const [wins, setWins] = useState<Record<string, number>>({})
+  const [draws, setDraws] = useState(0)
+  const scoredRef = useRef(false)
 
   const channelRef = useRef<RoomChannel | null>(null)
   const myNameRef = useRef('Jogador')
@@ -335,6 +339,22 @@ export function useOnlineChess(onExit: () => void, onGameStart?: (config: GameCo
     if (ch) void supabase.removeChannel(ch)
   }, [])
 
+  // tally the rivalry score once per finished game (reset guard on rematch)
+  useEffect(() => {
+    if (end && !scoredRef.current) {
+      scoredRef.current = true
+      const st = seatsRef.current
+      if (st) {
+        if (end.winner === null) setDraws(d => d + 1)
+        else {
+          const pid = end.winner === 'w' ? st.whiteId : st.blackId
+          setWins(w => ({ ...w, [pid]: (w[pid] ?? 0) + 1 }))
+        }
+      }
+    }
+    if (!end) scoredRef.current = false
+  }, [end])
+
   // ── controller for GameView ────────────────────────────────────────────
   const makeMove = useCallback((input: MoveInput) => {
     if (endRef.current) return
@@ -412,6 +432,13 @@ export function useOnlineChess(onExit: () => void, onGameStart?: (config: GameCo
     },
     roomCode,
     leave,
+    rivalry: {
+      mineName: myColor === 'w' ? seats.whiteName : seats.blackName,
+      theirsName: myColor === 'w' ? seats.blackName : seats.whiteName,
+      mine: wins[myId] ?? 0,
+      theirs: wins[myColor === 'w' ? seats.blackId : seats.whiteId] ?? 0,
+      draws,
+    },
   } : null
 
   return { stage, error, roomCode, amHost, guestName, config, ctl, createRoom, joinRoom, leave }

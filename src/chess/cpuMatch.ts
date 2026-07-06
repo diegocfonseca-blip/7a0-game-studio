@@ -41,12 +41,19 @@ export function useCpuMatch(opts: CpuMatchOptions): MatchController {
   const chess = useMemo(() => chessFromMoves(moves), [moves])
   const turn = chess.turn()
 
-  // notify career/etc exactly once per game end
+  // rivalry tally vs the computer, across rematches
+  const [score, setScore] = useState({ mine: 0, theirs: 0, draws: 0 })
+
+  // notify career/etc exactly once per game end + update rivalry score
   const endNotified = useRef(false)
   useEffect(() => {
     if (end && !endNotified.current) {
       endNotified.current = true
       onEndRef.current?.(end, { moves: movesRef.current, playerColor })
+      setScore(s =>
+        end.winner === null ? { ...s, draws: s.draws + 1 }
+        : end.winner === playerColor ? { ...s, mine: s.mine + 1 }
+        : { ...s, theirs: s.theirs + 1 })
     }
     if (!end) endNotified.current = false
   }, [end, playerColor])
@@ -148,5 +155,12 @@ export function useCpuMatch(opts: CpuMatchOptions): MatchController {
     sendChat: null,
     roomCode: null,
     leave: onExit,
+    rivalry: {
+      mineName: humanPlayer.name,
+      theirsName: cpuName,
+      mine: score.mine,
+      theirs: score.theirs,
+      draws: score.draws,
+    },
   }
 }
