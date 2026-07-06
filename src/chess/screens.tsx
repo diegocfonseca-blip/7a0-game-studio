@@ -88,7 +88,7 @@ function HeroBoard() {
 }
 
 // ── HOME ─────────────────────────────────────────────────────────────────
-export function HomeScreen({ onNav }: { onNav: (s: 'setup-online' | 'join' | 'setup-local' | 'setup-cpu' | 'historia' | 'exhibition' | 'career' | 'settings' | 'howto') => void }) {
+export function HomeScreen({ onNav }: { onNav: (s: 'setup-online' | 'join' | 'setup-local' | 'setup-cpu' | 'historia' | 'exhibition' | 'career' | 'legends' | 'settings' | 'howto') => void }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-5 py-10 gap-8" style={{ background: UI.bg }}>
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="text-center">
@@ -116,6 +116,7 @@ export function HomeScreen({ onNav }: { onNav: (s: 'setup-online' | 'join' | 'se
         </div>
         <p className="text-[10px] font-black tracking-[0.35em] text-center pt-2" style={{ color: UI.subtext }}>— SOZINHO —</p>
         <BigButton onClick={() => onNav('career')}>🏆 Modo Carreira <span className="text-xs font-bold opacity-70">800 → Grande Mestre</span></BigButton>
+        <BigButton onClick={() => onNav('legends')}>♟️ Desafiar uma Lenda <span className="text-xs font-bold opacity-70">Magnus, Fischer, Tal…</span></BigButton>
         <div className="flex gap-2.5">
           <div className="flex-1"><BigButton onClick={() => onNav('setup-cpu')}>🤖 vs Computador</BigButton></div>
           <div className="flex-1"><BigButton onClick={() => onNav('historia')}>👑 Modo História</BigButton></div>

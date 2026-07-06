@@ -411,6 +411,86 @@ export function CareerScreen({ onBack, onPlay }: {
   )
 }
 
+// ── DESAFIAR UMA LENDA: pick a master, play against their style ──────────
+const LEGEND_RATING: Record<Persona, number> = {
+  fischer: 2785, carlsen: 2882, kasparov: 2851, tal: 2705, capablanca: 2725,
+}
+const LEGEND_ORDER: Persona[] = ['carlsen', 'kasparov', 'fischer', 'tal', 'capablanca']
+
+export function LegendsScreen({ onBack, onPick }: {
+  onBack: () => void
+  onPick: (persona: Persona, color: Color) => void
+}) {
+  const [sel, setSel] = useState<Persona | null>(null)
+  const [color, setColor] = useState<Color>('w')
+
+  return (
+    <Shell onBack={onBack} title="♟️ DESAFIAR UMA LENDA">
+      <div className="w-full max-w-md space-y-3 pb-6">
+        <p className="text-xs -mt-2" style={{ color: UI.subtext }}>
+          Escolha um mestre e enfrente o jogo dele — cada um joga no seu estilo real.
+        </p>
+
+        {LEGEND_ORDER.map(p => {
+          const m = PERSONA_META[p]
+          const active = sel === p
+          return (
+            <button key={p} onClick={() => setSel(p)}
+                    className="w-full text-left rounded-xl p-4 transition-all"
+                    style={{ backgroundColor: UI.panel, border: `2px solid ${active ? UI.gold : UI.borderSoft}` }}>
+              <div className="flex items-center gap-3">
+                <span className="text-4xl">{m.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-black text-base" style={{ color: UI.gold }}>{m.nome}</p>
+                    <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full tabular-nums"
+                          style={{ backgroundColor: 'rgba(0,0,0,0.35)', color: UI.text }}>
+                      {LEGEND_RATING[p]}
+                    </span>
+                  </div>
+                  <p className="text-[10px]" style={{ color: UI.subtext }}>{m.era}</p>
+                  <p className="text-[11px] mt-1 leading-snug" style={{ color: UI.text }}>{m.estilo}</p>
+                  {active && (
+                    <p className="text-[11px] mt-1 italic" style={{ color: UI.gold }}>{m.frase}</p>
+                  )}
+                </div>
+              </div>
+            </button>
+          )
+        })}
+
+        {sel && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+            <div className="rounded-xl p-4" style={{ backgroundColor: UI.panel, border: `1px solid ${UI.borderSoft}` }}>
+              <p className="text-[10px] font-black tracking-widest mb-2" style={{ color: UI.subtext }}>SUA COR</p>
+              <div className="grid grid-cols-3 gap-1.5">
+                {([['w', '⚪ Brancas'], ['random', '🎲 Aleatório'], ['b', '⚫ Pretas']] as Array<[string, string]>).map(([v, label]) => (
+                  <button key={v}
+                          onClick={() => setColor(v === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : v as Color)}
+                          className="py-2.5 rounded-lg text-xs font-bold transition-all"
+                          style={{
+                            backgroundColor: (v === 'w' && color === 'w') || (v === 'b' && color === 'b') ? UI.gold : 'rgba(0,0,0,0.3)',
+                            color: (v === 'w' && color === 'w') || (v === 'b' && color === 'b') ? '#141210' : UI.text,
+                            border: `1px solid ${UI.borderSoft}`,
+                          }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <motion.button whileTap={{ scale: 0.97 }}
+                           onClick={() => onPick(sel, color)}
+                           className="w-full py-3.5 rounded-xl font-black text-base"
+                           style={{ background: `linear-gradient(135deg, ${UI.gold} 0%, #B8963E 100%)`, color: '#141210' }}>
+              ⚔️ ENFRENTAR {PERSONA_META[sel].nome.toUpperCase()}
+            </motion.button>
+          </motion.div>
+        )}
+      </div>
+    </Shell>
+  )
+}
+
 // floor of the previous title band (for the progress bar)
 function TITLE_FLOOR(nextMin: number): number {
   const mins = [0, 1200, 1600, 2000, 2200, 2400, 2500]

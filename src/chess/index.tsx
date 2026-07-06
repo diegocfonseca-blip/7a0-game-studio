@@ -7,7 +7,8 @@ import { useOnlineChess } from './online'
 import { useSettings, type UserSettings } from './settings'
 import { themeById } from './themes'
 import { timeLabel, type GameConfig, type MoveInput, type EndInfo } from './types'
-import type { Difficulty } from './cpu'
+import type { Difficulty, Persona } from './cpu'
+import { PERSONA_META } from './cpu'
 import { chessFromMoves, identifyOpening } from './engine'
 import { loadCareer, saveCareer, eloDelta, type CareerOpponent } from './career'
 import type { FamousGame } from './famous'
@@ -15,13 +16,14 @@ import {
   HomeScreen, SetupScreen, JoinScreen, LobbyScreen,
   SettingsScreen, HowToScreen, ErrorScreen, ConnectingScreen,
 } from './screens'
-import { HistoryListScreen, HistoryViewerScreen, ExhibitionScreen, CareerScreen } from './screens2'
+import { HistoryListScreen, HistoryViewerScreen, ExhibitionScreen, CareerScreen, LegendsScreen } from './screens2'
 
 type Nav =
   | 'home' | 'setup-online' | 'setup-local' | 'setup-cpu' | 'join' | 'settings' | 'howto'
   | 'local-game' | 'cpu-game' | 'online'
   | 'historia' | 'historia-view' | 'historia-game'
   | 'exhibition' | 'career' | 'career-game'
+  | 'legends' | 'legend-game'
 
 function LocalGame({ config, onExit, settings, onSettings }: {
   config: GameConfig
@@ -57,6 +59,7 @@ export default function ChessLegends() {
   const [cpuSetup, setCpuSetup] = useState<{ config: GameConfig; difficulty: Difficulty } | null>(null)
   const [famousSel, setFamousSel] = useState<FamousGame | null>(null)
   const [historiaSetup, setHistoriaSetup] = useState<{ game: FamousGame; initialMoves: MoveInput[]; heroColor: Color } | null>(null)
+  const [legendSetup, setLegendSetup] = useState<{ persona: Persona; color: Color } | null>(null)
   const careerOppRef = useRef<CareerOpponent | null>(null)
 
   const goHome = useCallback(() => {
@@ -214,6 +217,34 @@ export default function ChessLegends() {
               initialMoves: historiaSetup.initialMoves,
               fixedColor: historiaSetup.heroColor,
               onExit: () => setNav('historia-view'),
+            }}
+            settings={settings} onSettings={update}
+          />
+        : <HomeScreen onNav={setNav} />
+
+    // ── Desafiar uma Lenda ─────────────────────────────────────────────
+    case 'legends':
+      return (
+        <LegendsScreen
+          onBack={goHome}
+          onPick={(persona, color) => {
+            setLegendSetup({ persona, color })
+            setNav('legend-game')
+          }}
+        />
+      )
+
+    case 'legend-game':
+      return legendSetup
+        ? <CpuGame
+            opts={{
+              config: { ...DEFAULT_CONFIG(settings.themeId), timeId: 'none' },
+              difficulty: 'dificil',
+              persona: legendSetup.persona,
+              playerName: settings.name || 'Você',
+              opponentName: `${PERSONA_META[legendSetup.persona].emoji} ${PERSONA_META[legendSetup.persona].nome}`,
+              fixedColor: legendSetup.color,
+              onExit: () => setNav('legends'),
             }}
             settings={settings} onSettings={update}
           />
