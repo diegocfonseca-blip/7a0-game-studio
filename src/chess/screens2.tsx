@@ -251,10 +251,13 @@ export function ExhibitionScreen({ settings, onBack }: { settings: UserSettings;
         <div className="grid grid-cols-2 gap-2">
           {[pWhite, pBlack].map((p, i) => (
             <Card key={i}>
-              <p className="text-xs font-black" style={{ color: UI.gold }}>
-                {i === 0 ? '⚪' : '⚫'} {PERSONA_META[p].emoji} {PERSONA_META[p].nome}
-              </p>
-              <p className="text-[10px] mt-1 leading-snug" style={{ color: UI.subtext }}>{PERSONA_META[p].estilo}</p>
+              <div className="flex items-center gap-2 mb-1">
+                <MasterMedallion persona={p} size={40} />
+                <p className="text-xs font-black leading-tight" style={{ color: UI.gold }}>
+                  {i === 0 ? '⚪' : '⚫'} {PERSONA_META[p].nome}
+                </p>
+              </div>
+              <p className="text-[10px] leading-snug" style={{ color: UI.subtext }}>{PERSONA_META[p].estilo}</p>
             </Card>
           ))}
         </div>
@@ -417,6 +420,43 @@ const LEGEND_RATING: Record<Persona, number> = {
 }
 const LEGEND_ORDER: Persona[] = ['carlsen', 'kasparov', 'fischer', 'tal', 'capablanca']
 
+// visual identity per master: flag, monogram, signature piece + accent
+const LEGEND_LOOK: Record<Persona, { flag: string; monogram: string; piece: string; accent: string }> = {
+  carlsen:    { flag: '🇳🇴', monogram: 'MC', piece: '♟', accent: '#7FB2E8' },
+  kasparov:   { flag: '🇷🇺', monogram: 'GK', piece: '♛', accent: '#E85A5A' },
+  fischer:    { flag: '🇺🇸', monogram: 'BF', piece: '♚', accent: '#5AA0E8' },
+  tal:        { flag: '🇱🇻', monogram: 'MT', piece: '♞', accent: '#F2843D' },
+  capablanca: { flag: '🇨🇺', monogram: 'JC', piece: '♝', accent: '#5AC98A' },
+}
+
+// stylized gold-ringed portrait medallion for a master
+function MasterMedallion({ persona, size = 56 }: { persona: Persona; size?: number }) {
+  const look = LEGEND_LOOK[persona]
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      {/* gold ring */}
+      <div className="absolute inset-0 rounded-full"
+           style={{ background: `conic-gradient(from 210deg, #F5E4A8, ${UI.gold}, #B8963E, ${UI.gold}, #F5E4A8)`, padding: 2 }}>
+        {/* inner disc */}
+        <div className="w-full h-full rounded-full flex items-center justify-center relative overflow-hidden"
+             style={{ background: `radial-gradient(circle at 35% 28%, ${look.accent}33 0%, #14181E 70%)` }}>
+          {/* watermark piece */}
+          <span className="absolute" style={{ fontSize: size * 0.85, color: `${look.accent}33`, top: -size * 0.12 }}>{look.piece}</span>
+          {/* monogram */}
+          <span className="relative font-black" style={{ fontSize: size * 0.34, color: UI.gold, fontFamily: 'Oswald, sans-serif', letterSpacing: '0.02em' }}>
+            {look.monogram}
+          </span>
+        </div>
+      </div>
+      {/* flag chip */}
+      <span className="absolute -bottom-0.5 -right-0.5 rounded-full flex items-center justify-center"
+            style={{ width: size * 0.4, height: size * 0.4, fontSize: size * 0.24, background: '#14181E', border: `1px solid ${UI.gold}` }}>
+        {look.flag}
+      </span>
+    </div>
+  )
+}
+
 export function LegendsScreen({ onBack, onPick }: {
   onBack: () => void
   onPick: (persona: Persona, color: Color) => void
@@ -439,10 +479,10 @@ export function LegendsScreen({ onBack, onPick }: {
                     className="w-full text-left rounded-xl p-4 transition-all"
                     style={{ backgroundColor: UI.panel, border: `2px solid ${active ? UI.gold : UI.borderSoft}` }}>
               <div className="flex items-center gap-3">
-                <span className="text-4xl">{m.emoji}</span>
+                <MasterMedallion persona={p} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="font-black text-base" style={{ color: UI.gold }}>{m.nome}</p>
+                    <p className="font-black text-base" style={{ color: UI.gold }}>{m.emoji} {m.nome}</p>
                     <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full tabular-nums"
                           style={{ backgroundColor: 'rgba(0,0,0,0.35)', color: UI.text }}>
                       {LEGEND_RATING[p]}

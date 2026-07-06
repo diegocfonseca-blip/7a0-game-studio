@@ -122,6 +122,31 @@ function usePieceMaterials(theme: BoardTheme) {
   }, [theme])
 }
 
+// procedural wood-grain grayscale texture (used as roughnessMap for a subtle grain)
+function useGrainTexture() {
+  return useMemo(() => {
+    const c = document.createElement('canvas')
+    c.width = 128; c.height = 128
+    const ctx = c.getContext('2d')!
+    ctx.fillStyle = '#808080'
+    ctx.fillRect(0, 0, 128, 128)
+    // horizontal grain streaks
+    for (let i = 0; i < 90; i++) {
+      const y = Math.random() * 128
+      const g = 96 + Math.random() * 90
+      ctx.strokeStyle = `rgba(${g},${g},${g},${0.12 + Math.random() * 0.25})`
+      ctx.lineWidth = 0.5 + Math.random() * 1.6
+      ctx.beginPath()
+      ctx.moveTo(0, y)
+      ctx.bezierCurveTo(42, y + (Math.random() * 6 - 3), 86, y + (Math.random() * 6 - 3), 128, y + (Math.random() * 4 - 2))
+      ctx.stroke()
+    }
+    const tex = new THREE.CanvasTexture(c)
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping
+    return tex
+  }, [])
+}
+
 function PieceMesh({ piece, geos, mats, selected, onClick }: {
   piece: PieceInst
   geos: Geos
@@ -259,6 +284,7 @@ function Scene({ pieces, orientation, theme, selected, legalTargets, lastMove, c
 }) {
   const geos = usePieceGeometries()
   const mats = usePieceMaterials(theme)
+  const grain = useGrainTexture()
   const alive = pieces.filter(p => p.square !== null)
 
   const squares = useMemo(() => {
@@ -281,7 +307,8 @@ function Scene({ pieces, orientation, theme, selected, legalTargets, lastMove, c
       {/* frame: outer plinth + inner lip */}
       <mesh position={[0, -0.22, 0]} receiveShadow castShadow>
         <boxGeometry args={[9.35, 0.42, 9.35]} />
-        <meshPhysicalMaterial color={theme.boardBorder} roughness={0.4} metalness={0.08} clearcoat={0.4} clearcoatRoughness={0.3} />
+        <meshPhysicalMaterial color={theme.boardBorder} roughness={0.5} metalness={0.08}
+                              clearcoat={0.4} clearcoatRoughness={0.35} roughnessMap={grain} />
       </mesh>
       <mesh position={[0, -0.02, 0]} receiveShadow>
         <boxGeometry args={[8.55, 0.1, 8.55]} />
@@ -304,8 +331,8 @@ function Scene({ pieces, orientation, theme, selected, legalTargets, lastMove, c
               onPointerDown={e => { e.stopPropagation(); click(sq) }}>
           <boxGeometry args={[1, 0.2, 1]} />
           <meshPhysicalMaterial color={light ? theme.light : theme.dark}
-                                roughness={0.38} metalness={0.05}
-                                clearcoat={0.35} clearcoatRoughness={0.3} />
+                                roughness={0.42} metalness={0.05}
+                                clearcoat={0.35} clearcoatRoughness={0.32} roughnessMap={grain} />
         </mesh>
       ))}
 

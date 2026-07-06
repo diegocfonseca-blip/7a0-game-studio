@@ -155,6 +155,7 @@ export default function Board({
 
         {/* Pieces (absolute, animated via transform) */}
         <div className="absolute inset-0 pointer-events-none">
+          <AnimatePresence>
           {alive.map(p => {
             const { x, y } = squareToXY(p.square!, orientation)
             return (
@@ -162,7 +163,8 @@ export default function Board({
                 key={p.id}
                 className="absolute flex items-center justify-center"
                 initial={false}
-                animate={{ left: `${x * 12.5}%`, top: `${y * 12.5}%` }}
+                animate={{ left: `${x * 12.5}%`, top: `${y * 12.5}%`, opacity: 1, scale: 1, rotate: 0 }}
+                exit={animations ? { opacity: 0, scale: 0.25, rotate: 55 } : { opacity: 0 }}
                 transition={animations ? { type: 'spring', stiffness: 480, damping: 38 } : { duration: 0 }}
                 style={{
                   width: '12.5%',
@@ -186,6 +188,7 @@ export default function Board({
               </motion.div>
             )
           })}
+          </AnimatePresence>
         </div>
 
         {/* Promotion picker */}

@@ -36,7 +36,14 @@ export function Shell({ children, onBack, title }: { children: React.ReactNode; 
           )}
         </div>
       )}
-      {children}
+      <motion.div
+        className="w-full flex flex-col items-center"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, ease: 'easeOut' }}
+      >
+        {children}
+      </motion.div>
     </div>
   )
 }
