@@ -455,6 +455,7 @@ function sealAndResolve(state: EscState) {
   state.currentCards = unsold
   state.submitted = []
   state.pendingEnvelopes = {}
+  state.phaseDeadline = null
 }
 
 // só humanos "presentes" precisam enviar; ausentes passam
