@@ -179,7 +179,7 @@ export function EscSetup() {
             ))}
           </div>
         </div>
-        <p className="text-xs font-semibold text-black/50">💰 Todo técnico começa com {START_MONEY} moedas. O que sobrar no fim do leilão <b>evapora</b> — gaste com sabedoria (ou sem).</p>
+        <p className="text-xs font-semibold text-black/70">💰 Todo técnico começa com {START_MONEY} moedas. O que sobrar no fim do leilão <b>evapora</b> — gaste com sabedoria (ou sem).</p>
       </Box>
       <Btn onClick={() => dispatch({ type: 'START', teamName: name, formation, rivals })} className="w-full text-lg" bg={GREEN}>
         <span className="text-white">ABRIR O PREGÃO 🔨</span>
@@ -378,7 +378,7 @@ function Reveal() {
 
   return (
     <Shell bar={<AuctionBar />}>
-      <p className="text-center text-xs font-black uppercase text-black/50 pt-1">
+      <p className="text-center text-xs font-black uppercase text-black/70 pt-1">
         Revelação {state.revealIdx + 1} / {state.revealQueue.length} · pote crescente
       </p>
       <motion.div key={item.card.id} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
@@ -386,7 +386,7 @@ function Reveal() {
           <CardFace c={item.card} big />
           <div className="mt-4 space-y-1.5">
             {item.bids.length === 0 && (
-              <p className="font-bold text-black/50">Nenhum lance. Vai pro Monte Final. 🪣</p>
+              <p className="font-bold text-black/70">Nenhum lance. Vai pro Monte Final. 🪣</p>
             )}
             {item.bids.map((b, i) => {
               const m = state.managers.find(x => x.id === b.mgr)!
@@ -426,13 +426,13 @@ function RivalsStrip() {
   const { state } = useEsc()
   return (
     <div>
-      <p className="text-xs font-black uppercase text-black/50 mb-1.5">A sala</p>
+      <p className="text-xs font-black uppercase text-black/70 mb-1.5">A sala</p>
       <div className="grid grid-cols-2 gap-2">
         {state.managers.filter(m => !m.isHuman).map(m => (
           <Box key={m.id} className="p-2.5" shadow={3}>
             <p className="font-black text-sm truncate" style={OSWALD}>{m.teamName}</p>
             <p className="text-[11px] font-semibold text-black/55">{m.formation} · 💰 {m.money} · {11 - totalHoles(m)}/11</p>
-            <p className="text-[10px] font-medium text-black/45 truncate">
+            <p className="text-[10px] font-medium text-black/70 truncate">
               {m.squad.slice(-3).map(c => c.name).join(', ') || 'ainda sem contratações'}
             </p>
           </Box>
@@ -492,13 +492,13 @@ export function EscCerimonia() {
         <p className="text-sm font-semibold text-black/60">As faixas de nível abrem. Agora todo mundo descobre o que comprou.</p>
       </div>
       <Box bg={m.isHuman ? GOLD : '#fff'} className="p-4" shadow={6}>
-        <p className="font-black text-xl" style={OSWALD}>{m.isHuman ? `🫵 ${m.teamName}` : m.teamName} <span className="text-sm font-bold text-black/50">({m.formation})</span></p>
+        <p className="font-black text-xl" style={OSWALD}>{m.isHuman ? `🫵 ${m.teamName}` : m.teamName} <span className="text-sm font-bold text-black/70">({m.formation})</span></p>
         <div className="mt-2 space-y-1.5">
           {[...m.squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(c => (
             <div key={c.id} className="flex items-center justify-between border-2 border-black rounded-lg px-3 py-1.5 bg-white">
               <div>
-                <p className="font-bold text-sm">{c.pos} · {c.name} <span className="text-black/40 text-xs">({c.club} {c.year})</span></p>
-                <p className="text-[10px] font-semibold text-black/45">{c.via === 'monte' ? 'monte (grátis)' : c.via === 'repescagem' ? `repescagem · pagou ${c.paid}` : `leilão · pagou ${c.paid}`}</p>
+                <p className="font-bold text-sm">{c.pos} · {c.name} <span className="text-black/70 text-xs">({c.club} {c.year})</span></p>
+                <p className="text-[10px] font-semibold text-black/70">{c.via === 'monte' ? 'monte (grátis)' : c.via === 'repescagem' ? `repescagem · pagou ${c.paid}` : `leilão · pagou ${c.paid}`}</p>
               </div>
               <motion.span initial={{ rotateY: 90 }} animate={{ rotateY: 0 }} transition={{ delay: 0.15 }}
                 className="border-2 border-black rounded-lg px-2 py-1 font-black text-sm"
@@ -555,7 +555,7 @@ export function EscSeason() {
         <Box className="p-4 space-y-3">
           <p className="font-black text-lg" style={OSWALD}>
             PRÓXIMO: {fixture[0] === you.id ? `${you.teamName} × ${opp.name}` : `${opp.name} × ${you.teamName}`}
-            <span className="text-xs text-black/50"> {fixture[0] === you.id ? '(em casa)' : '(fora)'}</span>
+            <span className="text-xs text-black/70"> {fixture[0] === you.id ? '(em casa)' : '(fora)'}</span>
           </p>
           <div className="grid grid-cols-3 gap-2">
             {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
@@ -575,7 +575,7 @@ export function EscSeason() {
           ) : (
             <p className="text-center text-sm font-bold text-black/55 py-2">Escolha sua tática. O host puxa a rodada. ⏳</p>
           )}
-          <p className="text-[11px] font-semibold text-black/45">Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.</p>
+          <p className="text-[11px] font-semibold text-black/70">Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.</p>
         </Box>
       )}
 
@@ -636,7 +636,7 @@ function MatchCard({ r }: { r: { homeId: number; awayId: number; hg: number; ag:
       <p className="text-center font-black text-2xl" style={OSWALD}>{h.name} {r.hg} × {r.ag} {a.name}</p>
       <div className="mt-2 space-y-0.5">
         {r.highlights.map((hl, i) => <p key={i} className="text-xs font-semibold text-black/60">{hl.min}' {hl.text}</p>)}
-        {r.highlights.length === 0 && <p className="text-xs text-center font-semibold text-black/40">Jogo truncado, sem gols pra contar.</p>}
+        {r.highlights.length === 0 && <p className="text-xs text-center font-semibold text-black/70">Jogo truncado, sem gols pra contar.</p>}
       </div>
     </Box>
   )
@@ -650,7 +650,7 @@ function TableBox({ highlight }: { highlight: number }) {
       <p className="font-black text-sm mb-2" style={OSWALD}>TABELA</p>
       <table className="w-full text-xs">
         <thead>
-          <tr className="text-left text-black/45 font-black">
+          <tr className="text-left text-black/70 font-black">
             <th className="pr-1">#</th><th>Time</th><th className="text-center">P</th><th className="text-center">V</th><th className="text-center">E</th><th className="text-center">D</th><th className="text-center">SG</th>
           </tr>
         </thead>
