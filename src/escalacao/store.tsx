@@ -583,6 +583,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.league = buildLeague(s.managers)
       s.fixtures = buildFixtures(s.league)
       s.round = 0
+      s.scorers = []
       s.screen = 'season'
       return s
     }
