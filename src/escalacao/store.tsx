@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer } from 'react'
+import { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid,
@@ -6,6 +6,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { CATALOG, makeIncognita, CPU_MANAGERS, CLASSIC_CLUBS } from './data'
+import { supabase } from '../lib/supabase'
 
 export const START_MONEY = 100
 const LEAGUE_SIZE = 20
@@ -20,6 +21,11 @@ function mulberry(seed: number) {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
+}
+function hashCode(s: string): number {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0
+  return h >>> 0
 }
 
 // ─── helpers de elenco ───────────────────────────────────────────────
@@ -44,7 +50,6 @@ function buildDeck(managers: Manager[], rng: () => number): Record<Sector, Card[
     const count = Math.ceil(demand * 1.3)
     const catalog = [...CATALOG[pos]].sort(() => rng() - 0.5)
     const cards: Card[] = []
-    // fama alta é escassa de propósito: ~1 lenda pra cada 2 técnicos
     const legendCap = Math.max(1, Math.ceil(managers.length / 2))
     let legends = 0
     for (const c of catalog) {
@@ -55,7 +60,6 @@ function buildDeck(managers: Manager[], rng: () => number): Record<Sector, Card[
       }
       cards.push({ ...c, id: `cat-${pos}-${cards.length}`, pos })
     }
-    // completa com incógnitas — garantindo joias escondidas (1 pra cada 3 técnicos)
     const gems = Math.max(1, Math.ceil(managers.length / 3))
     let gi = 0
     while (cards.length < count) {
@@ -68,8 +72,6 @@ function buildDeck(managers: Manager[], rng: () => number): Record<Sector, Card[
 }
 
 // ─── CPU: envelopes de lance ─────────────────────────────────────────
-// percepção: a CPU "conhece futebol" — vê o meio da faixa com ruído.
-// Incógnitas têm ruído grande: às vezes a CPU também pesca joia. Ou mico.
 function perceived(card: Card, rng: () => number): number {
   const mid = (card.lo + card.hi) / 2
   const noise = card.fame === 1 ? 14 : card.fame === 2 ? 7 : 3
@@ -78,13 +80,12 @@ function perceived(card: Card, rng: () => number): number {
 
 const SECTOR_WEIGHT: Record<Sector, number> = { GOL: 0.12, LAT: 0.15, ZAG: 0.19, MEI: 0.25, ATA: 0.29 }
 
-function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean): Bid[] {
+function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean): (Bid & { cardId: string })[] {
   const pos = SECTORS[sectorIdx]
   const need = openSlots(m, pos)
   if (need === 0 || m.money <= 0) return []
-  // orçamento do setor: peso do setor ÷ pesos restantes, temperado pelo arquétipo
   const remaining = SECTORS.slice(sectorIdx).reduce((s, p) => s + SECTOR_WEIGHT[p], 0)
-  const shape = 0.65 + m.aggression * 0.8 // agressivo gasta já; frio segura pro ataque
+  const shape = 0.65 + m.aggression * 0.8
   let budget = rescue
     ? Math.min(m.money, 4 + Math.floor(rng() * 6))
     : Math.max(1, Math.floor(m.money * (SECTOR_WEIGHT[pos] / remaining) * shape * (0.85 + rng() * 0.4)))
@@ -96,13 +97,11 @@ function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => nu
   let left = budget
   targets.forEach((t, i) => {
     if (left <= 0) return
-    // caçador de estrela concentra no topo; frio espalha
     const share = m.starHunger > 0.5 ? (i === 0 ? 0.7 : 0.3 / Math.max(1, targets.length - 1)) : 1 / targets.length
     let amt = Math.max(1, Math.round(budget * share * (0.75 + rng() * 0.5)))
     amt = Math.min(amt, left)
     if (amt > 0) { result.push({ mgr: m.id, amount: amt, cardId: t.c.id }); left -= amt }
   })
-  // sniper de 1 real: de vez em quando pinga 1 numa carta esquecida
   if (!rescue && left >= 1 && rng() < 0.45) {
     const cheap = ranked.slice(need + 1)
     if (cheap.length > 0) {
@@ -110,24 +109,15 @@ function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => nu
       result.push({ mgr: m.id, amount: 1, cardId: pick.c.id })
     }
   }
-  return result as unknown as Bid[]
+  return result
 }
 
-// mapa cardId → lances (usado internamente na resolução)
 type BidMap = Map<string, Bid[]>
 
-function collectCpuBids(state: EscState, cards: Card[], rescue: boolean, rng: () => number): BidMap {
-  const map: BidMap = new Map()
-  for (const m of state.managers) {
-    if (m.isHuman) continue
-    const bids = cpuEnvelope(m, cards, state.sectorIdx, rng, rescue) as unknown as (Bid & { cardId: string })[]
-    for (const b of bids) {
-      const list = map.get(b.cardId) ?? []
-      list.push({ mgr: b.mgr, amount: b.amount })
-      map.set(b.cardId, list)
-    }
-  }
-  return map
+function pushBid(map: BidMap, cardId: string, bid: Bid) {
+  const list = map.get(cardId) ?? []
+  list.push(bid)
+  map.set(cardId, list)
 }
 
 // ─── resolução: pote crescente, maior lance leva, anulação por setor cheio ──
@@ -149,7 +139,6 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     const voided: number[] = []
     let winner: number | null = null
     let paid = 0
-    // desempate: menos jogadores no elenco; persistindo, sorteio
     const sorted = [...bids].sort((a, b) => {
       if (b.amount !== a.amount) return b.amount - a.amount
       const ma = managers.find(x => x.id === a.mgr)!, mb = managers.find(x => x.id === b.mgr)!
@@ -188,7 +177,6 @@ function buildLeague(managers: Manager[]): LeagueTeam[] {
   return teams
 }
 
-// método do círculo: 20 times → 19 rodadas × 2 (turno e returno) = 38
 function buildFixtures(teams: LeagueTeam[]): [number, number][][] {
   const ids = teams.map(t => t.id)
   const n = ids.length
@@ -210,7 +198,6 @@ function buildFixtures(teams: LeagueTeam[]): [number, number][][] {
 
 interface TeamForm { atk: number; def: number; inspired: string | null }
 
-// força da rodada: rola o nível de cada carta na faixa; elo fraco pesa
 function rollManagerForm(m: Manager, tactic: Tactic, oppTactic: Tactic, rng: () => number): TeamForm {
   const rolls = m.squad.map(c => ({ c, lvl: c.lo + rng() * (c.hi - c.lo) }))
   let inspired: string | null = null
@@ -222,16 +209,14 @@ function rollManagerForm(m: Manager, tactic: Tactic, oppTactic: Tactic, rng: () 
     if (s.length === 0) return 40
     const avg = s.reduce((x, r) => x + r.lvl, 0) / s.length
     const min = Math.min(...s.map(r => r.lvl))
-    return avg - (avg - min) * 0.35 // corrente vale pelo elo mais fraco
+    return avg - (avg - min) * 0.35
   }
   const gol = sector('GOL'), lat = sector('LAT'), zag = sector('ZAG'), mei = sector('MEI'), ata = sector('ATA')
   let atk = ata * 0.45 + mei * 0.35 + lat * 0.20
   let def = gol * 0.30 + zag * 0.40 + lat * 0.15 + mei * 0.15
-  // tática
   if (tactic === 'retranca') { def += 4; atk -= 3 }
   if (tactic === 'ataque') { atk += 4; def -= 3 }
   if (tactic === 'equilibrio') { atk += 1; def += 1 }
-  // pedra-papel-tesoura: retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca
   if (tactic === 'retranca' && oppTactic === 'ataque') def += 2.5
   if (tactic === 'ataque' && oppTactic === 'equilibrio') atk += 2.5
   if (tactic === 'equilibrio' && oppTactic === 'retranca') atk += 2.5
@@ -249,24 +234,30 @@ function poisson(lambda: number, rng: () => number): number {
 const CPU_TACTICS: Tactic[] = ['retranca', 'equilibrio', 'ataque']
 
 function simMatch(state: EscState, homeId: number, awayId: number, rng: () => number): MatchResult {
-  const youId = state.managers[state.youIdx].id
-  const involveYou = homeId === youId || awayId === youId
+  const isHuman = (id: number) => state.managers.some(m => m.id === id && m.isHuman)
+  const involveHuman = isHuman(homeId) || isHuman(awayId)
+  const tacticOf = (id: number): Tactic => {
+    const m = state.managers.find(x => x.id === id)
+    if (!m) return 'equilibrio'
+    if (m.isHuman) return state.tactics[id] ?? 'equilibrio'
+    return CPU_TACTICS[Math.floor(rng() * 3)]
+  }
+  const homeTactic = tacticOf(homeId)
+  const awayTactic = tacticOf(awayId)
   const form = (id: number, opp: Tactic, own: Tactic): TeamForm => {
     const team = state.league.find(t => t.id === id)!
     if (!team.isManager) return { atk: team.baseAtk + (rng() * 6 - 3), def: team.baseDef + (rng() * 6 - 3), inspired: null }
     const m = state.managers.find(x => x.id === id)!
     return rollManagerForm(m, own, opp, rng)
   }
-  const homeTactic: Tactic = homeId === youId ? state.tactic : CPU_TACTICS[Math.floor(rng() * 3)]
-  const awayTactic: Tactic = awayId === youId ? state.tactic : CPU_TACTICS[Math.floor(rng() * 3)]
   const fh = form(homeId, awayTactic, homeTactic)
   const fa = form(awayId, homeTactic, awayTactic)
-  const lh = Math.max(0.08, 1.35 + (fh.atk - fa.def) * 0.055 + 0.25) // mando de campo
+  const lh = Math.max(0.08, 1.35 + (fh.atk - fa.def) * 0.055 + 0.25)
   const la = Math.max(0.08, 1.35 + (fa.atk - fh.def) * 0.055)
   const hg = poisson(lh, rng), ag = poisson(la, rng)
 
   const highlights: MatchHighlight[] = []
-  if (involveYou) {
+  if (involveHuman) {
     const mkScorers = (id: number, goals: number, prefix: string) => {
       const m = state.managers.find(x => x.id === id)
       for (let g = 0; g < goals; g++) {
@@ -274,7 +265,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         if (m) {
           const shooters = m.squad.filter(c => c.pos === 'ATA' || c.pos === 'MEI')
           const s = shooters[Math.floor(rng() * shooters.length)] ?? m.squad[0]
-          highlights.push({ min, text: `⚽ ${s.name} marca para ${prefix}!` })
+          highlights.push({ min, text: `⚽ ${s?.name ?? '—'} marca para ${prefix}!` })
         } else {
           highlights.push({ min, text: `⚽ Gol de ${prefix}.` })
         }
@@ -285,8 +276,11 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     mkScorers(homeId, hg, hName)
     mkScorers(awayId, ag, aName)
     highlights.sort((a, b) => a.min - b.min)
-    for (const f of [fh, fa]) {
-      if (f.inspired) state.news.unshift(`🔥 DIA INSPIRADO: ${f.inspired} acordou craque na rodada ${state.round + 1}!`)
+    for (const [id, f] of [[homeId, fh], [awayId, fa]] as [number, TeamForm][]) {
+      if (f.inspired && isHuman(id)) {
+        const tn = state.league.find(t => t.id === id)!.name
+        state.news.unshift(`🔥 DIA INSPIRADO: ${f.inspired} (${tn}) acordou craque na rodada ${state.round + 1}!`)
+      }
     }
   }
   return { homeId, awayId, hg, ag, highlights }
@@ -336,47 +330,70 @@ function takeFromMonte(state: EscState, cardId: string) {
   m.squad.push({ ...card, paid: 0, via: 'monte' })
 }
 
-// avança o ponteiro do monte, deixando CPUs escolherem sozinhas
+// avança o ponteiro do monte, deixando CPUs escolherem sozinhas.
+// Para em técnico humano (aguarda a escolha dele).
 function advanceMonte(state: EscState, rng: () => number) {
   while (state.monteIdx < state.monteOrder.length) {
     const mgrId = state.monteOrder[state.monteIdx]
     const m = state.managers.find(x => x.id === mgrId)!
     if (totalHoles(m) === 0) { state.monteIdx++; continue }
-    if (m.isHuman) return // espera o humano escolher
+    if (m.isHuman) return
     const pick = monteAutoPick(m, state.monte, rng)
     if (pick) takeFromMonte(state, pick.id)
     state.monteIdx++
   }
 }
 
+// ─── setup de técnicos ───────────────────────────────────────────────
+function makeManagers(humanNames: string[], formation: FormationKey, targetTotal: number, rng: () => number): Manager[] {
+  const forms: FormationKey[] = ['4-3-3', '4-4-2', '3-5-2', '4-5-1']
+  const humans: Manager[] = humanNames.map((name, i) => ({
+    id: i, name, teamName: name, isHuman: true,
+    formation, money: START_MONEY, squad: [], aggression: 0.5, starHunger: 0.5,
+  }))
+  const cpuCount = Math.max(0, targetTotal - humans.length)
+  const cpus: Manager[] = CPU_MANAGERS.slice(0, cpuCount).map((c, i) => ({
+    id: humans.length + i, name: c.name, teamName: c.team, isHuman: false,
+    formation: forms[Math.floor(rng() * forms.length)],
+    money: START_MONEY, squad: [], aggression: 0.25 + rng() * 0.7, starHunger: rng(),
+  }))
+  return [...humans, ...cpus]
+}
+
 // ─── estado inicial ──────────────────────────────────────────────────
 const INITIAL: EscState = {
   screen: 'intro', seed: 1,
+  onlineMode: 'cpu', roomId: '', roomCode: '', isHost: true,
+  humanCount: 1, submitted: [], pendingEnvelopes: {}, presence: [],
   managers: [], youIdx: 0,
   sectorIdx: 0, deck: { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] },
   phase: 'envelope', currentCards: [], revealQueue: [], revealIdx: 0,
   stock: { GOL: 0, LAT: 0, ZAG: 0, MEI: 0, ATA: 0 },
   monte: [], monteOrder: [], monteIdx: 0,
-  league: [], fixtures: [], round: 0, tactic: 'equilibrio',
+  league: [], fixtures: [], round: 0, tactics: {},
   lastResults: [], news: [], champion: null,
 }
 
 // ─── ações ───────────────────────────────────────────────────────────
 type Action =
+  | { type: 'GO_LOBBY' }
+  | { type: 'GO_LOBBY_ONLINE' }
   | { type: 'GO_SETUP' }
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number }
-  | { type: 'SUBMIT_ENVELOPE'; bids: { cardId: string; amount: number }[] }
+  | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; playerNames: string[] }
+  | { type: 'SYNC_STATE'; newState: EscState }
+  | { type: 'SET_PRESENCE'; indices: number[] }
+  | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[] }
   | { type: 'ADVANCE_REVEAL' }
-  | { type: 'MONTE_PICK'; cardId: string }
-  | { type: 'SET_TACTIC'; tactic: Tactic }
+  | { type: 'MONTE_PICK'; mgrId: number; cardId: string }
+  | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
   | { type: 'PLAY_ROUND' }
   | { type: 'SIM_MANY'; count: number }
   | { type: 'FINISH_CEREMONY' }
   | { type: 'NEW_GAME' }
 
 function rngOf(state: EscState): () => number {
-  // seed evolui com o progresso pra não repetir sequências
-  return mulberry(state.seed + state.sectorIdx * 977 + state.round * 131 + state.revealIdx * 7 + state.monteIdx * 13)
+  return mulberry(state.seed + state.sectorIdx * 977 + state.round * 131 + state.revealIdx * 7 + state.monteIdx * 13 + state.submitted.length * 101)
 }
 
 function startAuctionPhase(state: EscState, rescue: boolean) {
@@ -385,30 +402,46 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   state.currentCards = rescue ? state.currentCards : state.deck[pos]
   state.revealQueue = []
   state.revealIdx = 0
+  state.submitted = []
+  state.pendingEnvelopes = {}
 }
 
-// fecha o envelope (humano + CPUs), resolve e prepara a revelação
-function sealAndResolve(state: EscState, humanBids: { cardId: string; amount: number }[]) {
+// resolve o setor a partir dos envelopes coletados (humanos) + CPUs
+function sealAndResolve(state: EscState) {
   const rng = rngOf(state)
   const rescue = state.phase === 'resq_envelope'
-  const bidMap = collectCpuBids(state, state.currentCards, rescue, rng)
-  const you = state.managers[state.youIdx]
-  for (const hb of humanBids) {
-    if (hb.amount <= 0) continue
-    const list = bidMap.get(hb.cardId) ?? []
-    list.push({ mgr: you.id, amount: hb.amount })
-    bidMap.set(hb.cardId, list)
+  const bidMap: BidMap = new Map()
+  // CPUs
+  for (const m of state.managers) {
+    if (m.isHuman) continue
+    for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue)) {
+      pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: b.amount })
+    }
+  }
+  // humanos (envelopes coletados)
+  for (const [mgrIdStr, env] of Object.entries(state.pendingEnvelopes)) {
+    const mgrId = Number(mgrIdStr)
+    for (const hb of env) {
+      if (hb.amount > 0) pushBid(bidMap, hb.cardId, { mgr: mgrId, amount: hb.amount })
+    }
   }
   const { queue, unsold } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao', rng)
   state.revealQueue = queue
   state.revealIdx = 0
   state.phase = rescue ? 'resq_reveal' : 'reveal'
   state.currentCards = unsold
-  const pos = SECTORS[state.sectorIdx]
-  state.stock[pos] = 0
+  state.submitted = []
+  state.pendingEnvelopes = {}
 }
 
-// terminou a revelação de um setor: repescagem, próximo setor ou monte
+// só humanos "presentes" precisam enviar; ausentes passam
+function humansToSubmit(state: EscState, pos: Sector): number[] {
+  return state.managers
+    .filter(m => m.isHuman && openSlots(m, pos) > 0 && m.money > 0)
+    .filter(m => state.onlineMode !== 'online' || state.presence.length === 0 || state.presence.includes(m.id))
+    .map(m => m.id)
+}
+
 function afterReveal(state: EscState) {
   const rng = rngOf(state)
   const pos = SECTORS[state.sectorIdx]
@@ -416,18 +449,16 @@ function afterReveal(state: EscState) {
   if (state.phase === 'reveal') {
     const anyHole = state.managers.some(m => openSlots(m, pos) > 0)
     if (unsold.length > 0 && anyHole) {
-      startAuctionPhase(state, true) // repescagem relâmpago
+      startAuctionPhase(state, true)
       return
     }
   }
-  // manda sobras pro monte e segue
   state.monte.push(...unsold)
   state.currentCards = []
   if (state.sectorIdx < SECTORS.length - 1) {
     state.sectorIdx++
     startAuctionPhase(state, false)
   } else {
-    // fim do leilão → monte final
     state.monteOrder = buildMonteOrder(state.managers, rng)
     state.monteIdx = 0
     state.screen = 'monte'
@@ -436,56 +467,70 @@ function afterReveal(state: EscState) {
   }
 }
 
-function reducer(state: EscState, action: Action): EscState {
+export function reducer(state: EscState, action: Action): EscState {
+  if (action.type === 'SYNC_STATE') return action.newState
+  if (action.type === 'NEW_GAME') return { ...INITIAL }
   const s: EscState = JSON.parse(JSON.stringify(state))
   switch (action.type) {
-    case 'GO_SETUP': {
-      s.screen = 'setup'
-      return s
-    }
+    case 'GO_LOBBY': { s.screen = 'intro'; s.onlineMode = 'cpu'; return s }
+    case 'GO_LOBBY_ONLINE': { s.screen = 'lobby'; return s }
+    case 'GO_SETUP': { s.screen = 'setup'; return s }
+    case 'SET_PRESENCE': { s.presence = action.indices; return s }
     case 'START': {
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
-      const you: Manager = {
-        id: 0, name: 'Você', teamName: action.teamName || 'Meu Time', isHuman: true,
-        formation: action.formation, money: START_MONEY, squad: [],
-        aggression: 0.5, starHunger: 0.5,
-      }
-      const forms: FormationKey[] = ['4-3-3', '4-4-2', '3-5-2', '4-5-1']
-      const cpus: Manager[] = CPU_MANAGERS.slice(0, action.rivals).map((c, i) => ({
-        id: i + 1, name: c.name, teamName: c.team, isHuman: false,
-        formation: forms[Math.floor(rng() * forms.length)],
-        money: START_MONEY, squad: [],
-        aggression: 0.25 + rng() * 0.7, starHunger: rng(),
-      }))
-      s.managers = [you, ...cpus]
+      s.onlineMode = 'cpu'
+      s.isHost = true
+      s.humanCount = 1
+      s.managers = makeManagers([action.teamName || 'Meu Time'], action.formation, 1 + action.rivals, rng)
       s.youIdx = 0
       s.deck = buildDeck(s.managers, rng)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
-      s.sectorIdx = 0
-      s.monte = []
-      s.news = []
-      s.round = 0
-      s.champion = null
+      s.sectorIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      s.tactics = {}
+      s.screen = 'auction'
+      startAuctionPhase(s, false)
+      return s
+    }
+    case 'START_ONLINE': {
+      s.onlineMode = 'online'
+      s.roomId = action.roomId
+      s.roomCode = action.roomCode
+      s.isHost = action.isHost
+      s.youIdx = action.playerIndex
+      s.humanCount = action.playerNames.length
+      s.seed = hashCode(action.roomCode)
+      const rng = mulberry(s.seed)
+      const total = Math.max(4, action.playerNames.length)
+      s.managers = makeManagers(action.playerNames, '4-3-3', total, rng)
+      s.deck = buildDeck(s.managers, rng)
+      for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
+      s.sectorIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      s.tactics = {}
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s
     }
     case 'SUBMIT_ENVELOPE': {
       if (s.phase !== 'envelope' && s.phase !== 'resq_envelope') return s
-      sealAndResolve(s, action.bids)
+      if (s.submitted.includes(action.mgrId)) return s
+      s.pendingEnvelopes[action.mgrId] = action.bids
+      s.submitted.push(action.mgrId)
+      const pos = SECTORS[s.sectorIdx]
+      const need = humansToSubmit(s, pos)
+      const allIn = need.every(id => s.submitted.includes(id))
+      if (allIn) sealAndResolve(s)
       return s
     }
     case 'ADVANCE_REVEAL': {
       if (s.phase !== 'reveal' && s.phase !== 'resq_reveal') return s
-      if (s.revealIdx < s.revealQueue.length - 1) {
-        s.revealIdx++
-      } else {
-        afterReveal(s)
-      }
+      if (s.revealIdx < s.revealQueue.length - 1) s.revealIdx++
+      else afterReveal(s)
       return s
     }
     case 'MONTE_PICK': {
+      if (s.screen !== 'monte') return s
+      if (s.monteOrder[s.monteIdx] !== action.mgrId) return s
       const rng = rngOf(s)
       takeFromMonte(s, action.cardId)
       s.monteIdx++
@@ -496,6 +541,7 @@ function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'FINISH_CEREMONY': {
+      if (s.screen !== 'cerimonia') return s
       s.league = buildLeague(s.managers)
       s.fixtures = buildFixtures(s.league)
       s.round = 0
@@ -503,7 +549,7 @@ function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'SET_TACTIC': {
-      s.tactic = action.tactic
+      s.tactics[action.mgrId] = action.tactic
       return s
     }
     case 'PLAY_ROUND':
@@ -523,19 +569,86 @@ function reducer(state: EscState, action: Action): EscState {
       }
       return s
     }
-    case 'NEW_GAME':
-      return { ...INITIAL }
     default:
       return s
   }
 }
 
-// ─── contexto ────────────────────────────────────────────────────────
+// ─── contexto + provider (host-autoritativo, espelha o modo Draft) ───
 const Ctx = createContext<{ state: EscState; dispatch: (a: Action) => void } | null>(null)
 
 export function EscProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, INITIAL)
+  const [state, rawDispatch] = useReducer(reducer, INITIAL)
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const isHostRef = useRef(state.isHost)
+  const onlineRef = useRef(state.onlineMode)
+  const stateRef = useRef(state)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => { isHostRef.current = state.isHost }, [state.isHost])
+  useEffect(() => { onlineRef.current = state.onlineMode }, [state.onlineMode])
+  useEffect(() => { stateRef.current = state }, [state])
+
+  // convidado roteia ações pro host; host aplica local
+  const dispatch = useCallback((action: Action) => {
+    if (onlineRef.current === 'online' && !isHostRef.current && action.type !== 'GO_LOBBY' && action.type !== 'NEW_GAME') {
+      channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
+    } else {
+      rawDispatch(action)
+    }
+  }, [])
+
+  // canal realtime quando online
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.roomId) return
+    const ch = supabase.channel(`escalacao:${state.roomId}`, { config: { broadcast: { self: false, ack: false } } })
+
+    if (state.isHost) {
+      ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
+      ch.on('broadcast', { event: 'request_state' }, () => {
+        channelRef.current?.send({ type: 'broadcast', event: 'state', payload: sanitize(stateRef.current) })
+      })
+    } else {
+      ch.on('broadcast', { event: 'state' }, ({ payload }: { payload: EscState }) => rawDispatch({ type: 'SYNC_STATE', newState: payload }))
+    }
+    ch.on('presence', { event: 'sync' }, () => {
+      const pState = ch.presenceState()
+      const indices = Object.values(pState).flat().map((p: unknown) => (p as { playerIndex: number }).playerIndex)
+      rawDispatch({ type: 'SET_PRESENCE', indices })
+    })
+    ch.subscribe(async () => {
+      await ch.track({ playerIndex: state.youIdx })
+      if (!state.isHost) channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
+    })
+    channelRef.current = ch
+    return () => { ch.unsubscribe(); channelRef.current = null }
+  }, [state.roomId, state.onlineMode, state.isHost]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // host retransmite estado (sanitizado: envelopes pendentes não vazam)
+  const prevRef = useRef<EscState | null>(null)
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
+    if (prevRef.current === state) return
+    prevRef.current = state
+    channelRef.current?.send({ type: 'broadcast', event: 'state', payload: sanitize(state) })
+  }, [state])
+
+  // host persiste no banco a cada 3s
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.isHost || !state.roomId || state.screen === 'intro') return
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => {
+      supabase.from('game_rooms').update({ game_state: sanitize(state) }).eq('id', state.roomId)
+    }, 3000)
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
+  }, [state])
+
   return <Ctx.Provider value={{ state, dispatch }}>{children}</Ctx.Provider>
+}
+
+// mantém o leilão cego: convidados nunca recebem os envelopes pendentes,
+// só quem já lacrou (contador) — os valores só aparecem na revelação.
+function sanitize(state: EscState): EscState {
+  return { ...state, pendingEnvelopes: {} }
 }
 
 export function useEsc() {

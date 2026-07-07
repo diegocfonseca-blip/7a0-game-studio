@@ -115,7 +115,12 @@ export function EscIntro() {
         <p className="font-bold text-sm"><b>🎭 Níveis ocultos:</b> você dá lance no <i>nome</i>. Os níveis só aparecem na Cerimônia da Revelação — e mudam a cada rodada dentro da faixa de cada jogador. O Obina tem dias.</p>
         <p className="font-bold text-sm">🏆 <b>A prova:</b> os mesmos 11 disputam um campeonato de 38 rodadas contra a sala inteira. Sem lesão. Sem desculpa.</p>
       </Box>
-      <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-lg">COMEÇAR</Btn>
+      <div className="space-y-3">
+        <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-lg">🤖 JOGAR VS CPU</Btn>
+        <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg" bg={GREEN}>
+          <span className="text-white">👥 JOGAR ONLINE (SALA)</span>
+        </Btn>
+      </div>
     </Shell>
   )
 }
@@ -206,6 +211,31 @@ function Envelope() {
   const total = Object.values(bids).reduce((s, v) => s + v, 0)
   const myOpen = openSlots(you, pos)
   const canBid = myOpen > 0 && you.money > 0
+  const online = state.onlineMode === 'online'
+  const iSubmitted = state.submitted.includes(you.id)
+  const humanBidders = state.managers.filter(m => m.isHuman && openSlots(m, pos) > 0 && m.money > 0)
+  const waitingFor = humanBidders.filter(m => !state.submitted.includes(m.id))
+
+  // já lacrei (online): tela de espera pelos outros técnicos
+  if (online && iSubmitted) {
+    return (
+      <Shell bar={<AuctionBar />}>
+        <div className="pt-10 text-center space-y-3">
+          <div className="text-5xl">🔒</div>
+          <h2 className="font-black text-2xl" style={OSWALD}>ENVELOPE LACRADO</h2>
+          <p className="font-semibold text-black/60">Aguardando os outros técnicos lacrarem…</p>
+          <Box className="p-3 mt-2 text-left">
+            {humanBidders.map(m => (
+              <p key={m.id} className="text-sm font-bold flex justify-between">
+                <span>{m.isHuman && m.id === you.id ? '🫵 Você' : m.teamName}</span>
+                <span>{state.submitted.includes(m.id) ? '✅ lacrou' : '⏳ pensando'}</span>
+              </p>
+            ))}
+          </Box>
+        </div>
+      </Shell>
+    )
+  }
 
   function setBid(id: string, v: number) {
     setBids(prev => {
@@ -257,10 +287,13 @@ function Envelope() {
 
       <Box bg="#fff" className="p-3 flex items-center justify-between">
         <p className="font-black" style={OSWALD}>ENVELOPE: {total} / {you.money}</p>
-        <Btn onClick={() => { dispatch({ type: 'SUBMIT_ENVELOPE', bids: Object.entries(bids).map(([cardId, amount]) => ({ cardId, amount })) }); setBids({}) }} bg={RED}>
+        <Btn onClick={() => { dispatch({ type: 'SUBMIT_ENVELOPE', mgrId: you.id, bids: Object.entries(bids).map(([cardId, amount]) => ({ cardId, amount })) }); setBids({}) }} bg={RED}>
           <span className="text-white">LACRAR 🔒</span>
         </Btn>
       </Box>
+      {online && waitingFor.length > 0 && (
+        <p className="text-center text-xs font-bold text-black/50">Faltam lacrar: {waitingFor.map(m => m.teamName).join(', ')}</p>
+      )}
 
       <Campinho m={you} />
       <RivalsStrip />
@@ -276,6 +309,8 @@ function Reveal() {
   if (!item) return null
   const winnerMgr = item.winner !== null ? state.managers.find(m => m.id === item.winner) : null
   const isLast = state.revealIdx >= state.revealQueue.length - 1
+  const online = state.onlineMode === 'online'
+  const canDrive = !online || state.isHost
 
   return (
     <Shell bar={<AuctionBar />}>
@@ -313,16 +348,20 @@ function Reveal() {
           )}
         </Box>
       </motion.div>
-      <div className="flex gap-2">
-        <Btn onClick={() => dispatch({ type: 'ADVANCE_REVEAL' })} className="flex-1">
-          {isLast ? 'FECHAR SETOR ➜' : 'PRÓXIMA CARTA ➜'}
-        </Btn>
-        {!isLast && (
-          <Btn bg="#fff" onClick={() => { for (let i = state.revealIdx; i < state.revealQueue.length; i++) dispatch({ type: 'ADVANCE_REVEAL' }) }}>
-            PULAR ⏭
+      {canDrive ? (
+        <div className="flex gap-2">
+          <Btn onClick={() => dispatch({ type: 'ADVANCE_REVEAL' })} className="flex-1">
+            {isLast ? 'FECHAR SETOR ➜' : 'PRÓXIMA CARTA ➜'}
           </Btn>
-        )}
-      </div>
+          {!isLast && !online && (
+            <Btn bg="#fff" onClick={() => { for (let i = state.revealIdx; i < state.revealQueue.length; i++) dispatch({ type: 'ADVANCE_REVEAL' }) }}>
+              PULAR ⏭
+            </Btn>
+          )}
+        </div>
+      ) : (
+        <p className="text-center text-sm font-bold text-black/55 py-2">🔨 O host está conduzindo a revelação…</p>
+      )}
       <Campinho m={you} small />
     </Shell>
   )
@@ -366,7 +405,7 @@ export function EscMonte() {
           {valid.map(c => (
             <Box key={c.id} className="p-3 flex items-center justify-between">
               <CardFace c={c} />
-              <Btn onClick={() => dispatch({ type: 'MONTE_PICK', cardId: c.id })} bg={GREEN}><span className="text-white">PEGAR</span></Btn>
+              <Btn onClick={() => dispatch({ type: 'MONTE_PICK', mgrId: you.id, cardId: c.id })} bg={GREEN}><span className="text-white">PEGAR</span></Btn>
             </Box>
           ))}
         </div>
@@ -421,10 +460,14 @@ export function EscCerimonia() {
           <p className="font-black text-sm" style={OSWALD}>🐴 MICO DO PREGÃO: {worstDeal.c.name} ({worstDeal.c.lo}–{worstDeal.c.hi}) por {worstDeal.c.paid} — {worstDeal.mg.teamName}</p>
         </Box>
       )}
-      <Btn className="w-full text-lg" bg={isLastMgr ? GREEN : GOLD}
-        onClick={() => { if (isLastMgr) dispatch({ type: 'FINISH_CEREMONY' }); else setIdx(idx + 1) }}>
-        <span style={{ color: isLastMgr ? '#fff' : INK }}>{isLastMgr ? 'COMEÇAR O CAMPEONATO 🏆' : 'PRÓXIMO TIME ➜'}</span>
-      </Btn>
+      {isLastMgr && state.onlineMode === 'online' && !state.isHost ? (
+        <p className="text-center text-sm font-bold text-black/55 py-2">🔨 Aguardando o host começar o campeonato…</p>
+      ) : (
+        <Btn className="w-full text-lg" bg={isLastMgr ? GREEN : GOLD}
+          onClick={() => { if (isLastMgr) dispatch({ type: 'FINISH_CEREMONY' }); else setIdx(idx + 1) }}>
+          <span style={{ color: isLastMgr ? '#fff' : INK }}>{isLastMgr ? 'COMEÇAR O CAMPEONATO 🏆' : 'PRÓXIMO TIME ➜'}</span>
+        </Btn>
+      )}
     </Shell>
   )
 }
@@ -435,6 +478,9 @@ const TACTIC_LABEL: Record<Tactic, string> = { retranca: '🧱 Retranca', equili
 export function EscSeason() {
   const { state, dispatch } = useEsc()
   const you = state.managers[state.youIdx]
+  const online = state.onlineMode === 'online'
+  const canAdvance = !online || state.isHost
+  const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
   const youPos = table.findIndex(t => t.id === you.id) + 1
   const fixture = state.round < 38 ? state.fixtures[state.round].find(([h, a]) => h === you.id || a === you.id) : undefined
@@ -458,18 +504,22 @@ export function EscSeason() {
           </p>
           <div className="grid grid-cols-3 gap-2">
             {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
-              <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', tactic: t })}
+              <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })}
                 className="border-[3px] border-black rounded-xl py-2 text-xs font-black"
-                style={{ backgroundColor: state.tactic === t ? GOLD : '#fff', boxShadow: state.tactic === t ? `3px 3px 0 0 ${INK}` : 'none' }}>
+                style={{ backgroundColor: myTactic === t ? GOLD : '#fff', boxShadow: myTactic === t ? `3px 3px 0 0 ${INK}` : 'none' }}>
                 {TACTIC_LABEL[t]}
               </button>
             ))}
           </div>
-          <div className="flex gap-2">
-            <Btn onClick={() => dispatch({ type: 'PLAY_ROUND' })} bg={GREEN} className="flex-1"><span className="text-white">JOGAR RODADA ▶</span></Btn>
-            <Btn onClick={() => dispatch({ type: 'SIM_MANY', count: 5 })} bg="#fff">+5</Btn>
-            <Btn onClick={() => dispatch({ type: 'SIM_MANY', count: 38 - state.round })} bg="#fff">FIM ⏭</Btn>
-          </div>
+          {canAdvance ? (
+            <div className="flex gap-2">
+              <Btn onClick={() => dispatch({ type: 'PLAY_ROUND' })} bg={GREEN} className="flex-1"><span className="text-white">JOGAR RODADA ▶</span></Btn>
+              <Btn onClick={() => dispatch({ type: 'SIM_MANY', count: 5 })} bg="#fff">+5</Btn>
+              <Btn onClick={() => dispatch({ type: 'SIM_MANY', count: 38 - state.round })} bg="#fff">FIM ⏭</Btn>
+            </div>
+          ) : (
+            <p className="text-center text-sm font-bold text-black/55 py-2">Escolha sua tática. O host puxa a rodada. ⏳</p>
+          )}
           <p className="text-[11px] font-semibold text-black/45">Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.</p>
         </Box>
       )}

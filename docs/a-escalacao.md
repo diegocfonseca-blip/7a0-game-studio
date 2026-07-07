@@ -62,9 +62,32 @@ os técnicos da sala + clubes clássicos controlados pelo jogo).
 | Sniper | Lances de 1–3 moedas em cartas que ninguém olha |
 | Garimpeiro | Guarda saldo pras incógnitas e pro ataque |
 
-## Roadmap (fora do protótipo)
-- Multiplayer online (salas Supabase, como o modo Draft)
+## Modo Online (implementado)
+
+Reaproveita a infra de salas do modo Draft (Supabase Auth + tabelas
+`game_rooms`/`room_players` + canais realtime). Arquitetura **host-autoritativo**:
+o host segura o estado e o retransmite; convidados roteiam ações pro host.
+
+- **Login/cadastro** por email (Supabase Auth).
+- **Criar sala** gera um código de 6 dígitos; **entrar** por código. Até 8 técnicos
+  (CPUs completam pra no mínimo 4). A sala é marcada como Escalação em
+  `game_state.__game` pra não colidir com salas do Draft.
+- **Leilão cego de verdade**: cada humano lacra seu envelope em segredo; o setor só
+  resolve quando **todos** lacram. Os envelopes pendentes **nunca** são transmitidos
+  aos convidados (`sanitize` zera antes do broadcast) — a cegueira é real, não visual.
+- **Revelação** conduzida pelo host (evita pular em dobro); convidados assistem sincronizado.
+- **Monte Final** respeita a serpente: cada humano escolhe na sua vez.
+- **Temporada**: cada técnico define sua própria tática; o host puxa a rodada.
+- Baralho **determinístico** pelo código da sala (host e convidados veem as mesmas cartas).
+- Estado persistido no banco a cada 3s (reconexão a jogo em andamento).
+
+> ⚠️ O online exige a rede do Supabase, que o sandbox de build não alcança — a
+> lógica-núcleo foi validada por teste de unidade do reducer (14 casos), mas o
+> realtime precisa ser testado no site publicado, com dois dispositivos.
+
+## Roadmap (próximos passos)
 - Timer real de envelope (20s, fecha quando todos enviarem)
+- Cada humano escolher a própria formação no online (hoje todos usam 4-3-3)
 - Narração por IA nas partidas grandes (engine já existe no estúdio)
 - Sinergias de clube/era como bônus de química
 - Modo assíncrono de temporada (X rodadas por dia)

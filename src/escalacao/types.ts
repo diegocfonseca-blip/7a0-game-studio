@@ -93,6 +93,7 @@ export interface MatchResult {
 
 export type Screen =
   | 'intro'
+  | 'lobby'
   | 'setup'
   | 'auction'
   | 'monte'
@@ -100,9 +101,20 @@ export type Screen =
   | 'season'
   | 'end'
 
+export type OnlineMode = 'cpu' | 'online'
+
 export interface EscState {
   screen: Screen
   seed: number
+  // online
+  onlineMode: OnlineMode
+  roomId: string
+  roomCode: string
+  isHost: boolean
+  humanCount: number
+  submitted: number[]          // ids de técnicos que lacraram o envelope nesta fase
+  pendingEnvelopes: Record<number, { cardId: string; amount: number }[]> // host-only (não vaza no broadcast)
+  presence: number[]           // ids online (presence do canal)
   // sala
   managers: Manager[]
   youIdx: number
@@ -122,7 +134,7 @@ export interface EscState {
   league: LeagueTeam[]
   fixtures: [number, number][][] // 38 rodadas de pares [home, away]
   round: number // 0-based; 38 = fim
-  tactic: Tactic
+  tactics: Record<number, Tactic> // tática por técnico (cada humano define a sua)
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)
   champion: number | null
