@@ -119,7 +119,7 @@ export function EscIntro() {
     <Shell>
       <div className="text-center pt-10">
         <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-xs font-black uppercase" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
-          7A0 GAME STUDIO
+          D7 STUDIO
         </span>
         <h1 className="font-black text-5xl mt-4" style={OSWALD}>LEILÃO LEGENDS 38</h1>
         <p className="mt-2 font-semibold text-black/60">Leilão às cegas. Níveis ocultos. 38 rodadas pra provar quem entende de bola.</p>
