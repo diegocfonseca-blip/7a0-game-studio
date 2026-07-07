@@ -146,5 +146,6 @@ export interface EscState {
   news: string[] // manchetes (dias inspirados etc.)
   champion: number | null
   phaseDeadline: number | null // timestamp (ms) do fim do envelope
+  monteDeadline: number | null // timestamp (ms) do fim da vez atual no Monte (online)
   scorers: ScorerRow[] // artilharia acumulada da temporada
 }
