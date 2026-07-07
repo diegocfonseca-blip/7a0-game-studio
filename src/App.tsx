@@ -49,7 +49,7 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
           style={{ backgroundColor: '#1B7A3D', boxShadow: '6px 6px 0 0 #0C0C0C' }}
         >
           <div className="text-4xl mb-3">🔨</div>
-          <p className="text-white font-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif' }}>A ESCALAÇÃO</p>
+          <p className="text-white font-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif' }}>LEILÃO LEGENDS 38</p>
           <p className="text-white/80 text-sm mt-1 font-medium">
             Leilão cego por setor: lance secreto, níveis ocultos até a Cerimônia da Revelação e um campeonato de 38 rodadas pra provar quem entende de bola.
           </p>
@@ -105,7 +105,8 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
 }
 
 export default function App() {
-  const [selectedGame, setSelectedGame] = useState<GameKey | null>(null)
+  const forcedGame = (import.meta.env.VITE_ONLY_GAME as GameKey | undefined) ?? null
+  const [selectedGame, setSelectedGame] = useState<GameKey | null>(forcedGame)
 
   function choose(game: GameKey) {
     setSelectedGame(game)

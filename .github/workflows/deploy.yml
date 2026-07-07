@@ -40,6 +40,7 @@ jobs:
         run: |
           npm ci
           npm run build
+          mv dist ../legends-dist
         env:
           VITE_GEMINI_API_KEY: ${{ secrets.LENDASSECRET }}
 
@@ -50,12 +51,21 @@ jobs:
           npm ci
           DEPLOY_BASE=/7a0-game-studio/ladrao/ npm run build
 
-      # Combine: old game at root, new game at /ladrao/
+      # Build Leilão Legends 38 (só o jogo da escalação) a partir do main
+      - name: Build Leilão Legends 38
+        working-directory: old-game
+        run: |
+          DEPLOY_BASE=/7a0-game-studio/leilao-legends-38/ VITE_ONLY_GAME=escalacao npm run build
+          mv dist ../leilao-dist
+
+      # Combine: legends at root, ladrão at /ladrao/, leilão legends at /leilao-legends-38/
       - name: Combine builds
         run: |
-          mkdir -p final-dist/ladrao
-          cp -r old-game/dist/. final-dist/
+          mkdir -p final-dist/ladrao final-dist/leilao-legends-38
+          cp -r legends-dist/. final-dist/
           cp -r new-game/dist/. final-dist/ladrao/
+          cp -r leilao-dist/. final-dist/leilao-legends-38/
+          cp -r leilao-dist/. final-dist/leilao-legends-38/
 
       - uses: actions/upload-pages-artifact@v3
         with:
