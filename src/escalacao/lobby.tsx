@@ -195,7 +195,7 @@ export function EscLobby() {
   if (phase === 'menu') return wrap(<>
     <div className="text-center">
       <div className="text-6xl mb-2">🔨</div>
-      <h1 className="font-black text-3xl text-white" style={OSWALD}>A ESCALAÇÃO</h1>
+      <h1 className="font-black text-3xl text-white" style={OSWALD}>LEILÃO LEGENDS 38</h1>
       <p className="text-white/50 text-sm mt-1">Olá, <span className="text-white font-black">{nameOf()}</span></p>
     </div>
     <Big onClick={createRoom} color={GOLD}>{loading ? 'Criando...' : '🏠 Criar Sala'}</Big>
