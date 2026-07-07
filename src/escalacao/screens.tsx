@@ -49,34 +49,45 @@ function Shell({ children, bar }: { children: React.ReactNode; bar?: React.React
 }
 
 // ─── campinho ────────────────────────────────────────────────────────
+// linhas top→bottom: ATA · MEI · defesa (LAT-esq · ZAG · ZAG · LAT-dir) · GOL
 function Campinho({ m, small = false }: { m: Manager; small?: boolean }) {
-  const rows: { pos: Sector; cards: (WonCard | null)[] }[] = useMemo(() => {
-    return ['ATA', 'MEI', 'ZAG', 'LAT', 'GOL'].map(p => {
-      const pos = p as Sector
-      const have = m.squad.filter(c => c.pos === pos)
-      const slots = FORMATIONS[m.formation][pos]
-      const cards: (WonCard | null)[] = []
-      for (let i = 0; i < slots; i++) cards.push(have[i] ?? null)
-      return { pos, cards }
-    })
+  const rows: { key: string; slots: { pos: Sector; card: WonCard | null }[] }[] = useMemo(() => {
+    const filled = (p: Sector) => m.squad.filter(c => c.pos === p)
+    const buildRow = (p: Sector): { pos: Sector; card: WonCard | null }[] => {
+      const have = filled(p)
+      const slots = FORMATIONS[m.formation][p]
+      return Array.from({ length: slots }, (_, i) => ({ pos: p, card: have[i] ?? null }))
+    }
+    const lats = buildRow('LAT') // [esquerda, direita] quando existirem
+    const zags = buildRow('ZAG')
+    const defense: { pos: Sector; card: WonCard | null }[] = []
+    if (lats[0]) defense.push(lats[0])
+    defense.push(...zags)
+    if (lats[1]) defense.push(lats[1])
+    return [
+      { key: 'ATA', slots: buildRow('ATA') },
+      { key: 'MEI', slots: buildRow('MEI') },
+      { key: 'DEF', slots: defense },
+      { key: 'GOL', slots: buildRow('GOL') },
+    ]
   }, [m.squad, m.formation])
 
   return (
     <div className="border-[3px] border-black rounded-2xl overflow-hidden" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
       <div className="px-3 py-2 flex flex-col gap-2" style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)` }}>
         {rows.map(row => (
-          <div key={row.pos} className="flex justify-center gap-2">
-            {row.cards.map((c, i) => (
+          <div key={row.key} className="flex justify-center gap-2">
+            {row.slots.map((slot, i) => (
               <div
                 key={i}
                 className={`border-2 border-black rounded-lg text-center ${small ? 'px-1 py-0.5 min-w-[52px]' : 'px-2 py-1 min-w-[72px]'}`}
-                style={{ backgroundColor: c ? '#fff' : 'rgba(255,255,255,0.25)' }}
+                style={{ backgroundColor: slot.card ? '#fff' : 'rgba(255,255,255,0.25)' }}
               >
-                <p className="text-[9px] font-black" style={{ color: c ? RED : '#fff' }}>{row.pos}</p>
-                <p className={`font-bold leading-tight ${small ? 'text-[9px]' : 'text-[11px]'}`} style={{ color: c ? INK : 'rgba(255,255,255,0.85)' }}>
-                  {c ? c.name : 'Vazio'}
+                <p className="text-[9px] font-black" style={{ color: slot.card ? RED : '#fff' }}>{slot.pos}</p>
+                <p className={`font-bold leading-tight ${small ? 'text-[9px]' : 'text-[11px]'}`} style={{ color: slot.card ? INK : 'rgba(255,255,255,0.95)' }}>
+                  {slot.card ? slot.card.name : 'Vazio'}
                 </p>
-                {c && !small && <p className="text-[8px] text-black/50 font-medium">{c.club} {c.year}</p>}
+                {slot.card && !small && <p className="text-[8px] text-black/60 font-medium">{slot.card.club} {slot.card.year}</p>}
               </div>
             ))}
           </div>
