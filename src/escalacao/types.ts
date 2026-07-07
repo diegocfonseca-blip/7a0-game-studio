@@ -145,4 +145,6 @@ export interface EscState {
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)
   champion: number | null
+  phaseDeadline: number | null // timestamp (ms) do fim do envelope
+  scorers: ScorerRow[] // artilharia acumulada da temporada
 }
