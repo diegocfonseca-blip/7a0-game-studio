@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Card, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
-import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY } from './store'
+import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY, MONTE_SECONDS } from './store'
 
 // ─── estilo base (neubrutalista, igual ao resto do estúdio) ──────────
 const CREAM = '#F4ECD6'
@@ -36,10 +36,13 @@ function Btn({ children, onClick, bg = GOLD, disabled = false, className = '' }:
 }
 
 function Shell({ children, bar }: { children: React.ReactNode; bar?: React.ReactNode }) {
+  // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
+  // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
+  // branco (botões/fundos escuros) já define a cor explicitamente.
   return (
-    <div className="min-h-screen pb-16" style={{ backgroundColor: CREAM }}>
+    <div className="min-h-screen pb-16" style={{ backgroundColor: CREAM, color: INK }}>
       {bar && (
-        <div className="sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5" style={{ backgroundColor: '#fff' }}>
+        <div className="sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5" style={{ backgroundColor: '#fff', color: INK }}>
           {bar}
         </div>
       )}
@@ -448,15 +451,36 @@ export function EscMonte() {
   const you = state.managers[state.youIdx]
   const isYourTurn = state.monteOrder[state.monteIdx] === you.id && totalHoles(you) > 0
   const valid = state.monte.filter(c => openSlots(you, c.pos) > 0)
+  const online = state.onlineMode === 'online'
+  const curMgr = state.managers.find(m => m.id === state.monteOrder[state.monteIdx])
+
+  // contagem regressiva (só online, quando há prazo)
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!online || !state.monteDeadline) return
+    const iv = setInterval(() => setNow(Date.now()), 250)
+    return () => clearInterval(iv)
+  }, [online, state.monteDeadline])
+  const remaining = online && state.monteDeadline ? Math.max(0, Math.ceil((state.monteDeadline - now) / 1000)) : null
+
   return (
     <Shell bar={<AuctionBar />}>
       <h2 className="font-black text-3xl pt-1" style={OSWALD}>🪣 MONTE FINAL</h2>
-      <p className="text-sm font-semibold text-black/60">
+      <p className="text-sm font-semibold text-black/70">
         As sobras do pregão, de graça. Quem tem mais buracos escolhe primeiro, em serpente. Seus buracos: <b>{totalHoles(you)}</b>.
       </p>
+      {online && (
+        <p className="text-xs font-semibold text-black/60">
+          ⏱️ {remaining ?? MONTE_SECONDS}s por vez. Estourou o tempo (foi ao banheiro?), o jogo escolhe a pior sobra pra você e cobra 5 moedas de multa.
+        </p>
+      )}
       {isYourTurn ? (
         <div className="space-y-2">
-          <Box bg={GOLD} className="p-3"><p className="font-black text-center" style={OSWALD}>SUA VEZ — escolha uma carta</p></Box>
+          <Box bg={remaining !== null && remaining <= 5 ? RED : GOLD} className="p-3">
+            <p className="font-black text-center" style={{ ...OSWALD, color: remaining !== null && remaining <= 5 ? '#fff' : INK }}>
+              SUA VEZ — escolha uma carta{remaining !== null ? ` · ${remaining}s` : ''}
+            </p>
+          </Box>
           {valid.map(c => (
             <Box key={c.id} className="p-3 flex items-center justify-between">
               <CardFace c={c} />
@@ -465,7 +489,11 @@ export function EscMonte() {
           ))}
         </div>
       ) : (
-        <Box className="p-4"><p className="font-bold text-center">Aguardando a serpente chegar em você…</p></Box>
+        <Box className="p-4">
+          <p className="font-bold text-center text-black">
+            {curMgr ? <>Vez de <b>{curMgr.teamName}</b>{remaining !== null ? ` · ${remaining}s` : ''}…</> : 'Aguardando a serpente chegar em você…'}
+          </p>
+        </Box>
       )}
       <Campinho m={you} />
     </Shell>

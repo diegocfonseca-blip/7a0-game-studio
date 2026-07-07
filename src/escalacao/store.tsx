@@ -339,6 +339,28 @@ function monteAutoPick(m: Manager, monte: Card[], rng: () => number): Card | nul
   return ranked[0].c
 }
 
+// pior sobra válida — usada quando um humano deixa o tempo do Monte estourar (AFK)
+function monteWorstPick(m: Manager, monte: Card[], rng: () => number): Card | null {
+  const valid = monte.filter(c => openSlots(m, c.pos) > 0)
+  if (valid.length === 0) return null
+  const ranked = valid.map(c => ({ c, v: perceived(c, rng) })).sort((a, b) => a.v - b.v)
+  return ranked[0].c
+}
+
+const MONTE_MS = 20_000
+export const MONTE_SECONDS = MONTE_MS / 1000
+const MONTE_AFK_PENALTY = 5
+
+// define/limpa o prazo da vez atual do Monte (só vale no online, pra técnico humano)
+function refreshMonteDeadline(state: EscState) {
+  const cur = state.monteOrder[state.monteIdx]
+  const m = state.managers.find(x => x.id === cur)
+  state.monteDeadline =
+    state.onlineMode === 'online' && state.screen === 'monte' && m?.isHuman && totalHoles(m) > 0
+      ? Date.now() + MONTE_MS
+      : null
+}
+
 function takeFromMonte(state: EscState, cardId: string) {
   const idx = state.monte.findIndex(c => c.id === cardId)
   if (idx < 0) return
@@ -356,11 +378,12 @@ function advanceMonte(state: EscState, rng: () => number) {
     const mgrId = state.monteOrder[state.monteIdx]
     const m = state.managers.find(x => x.id === mgrId)!
     if (totalHoles(m) === 0) { state.monteIdx++; continue }
-    if (m.isHuman) return
+    if (m.isHuman) { refreshMonteDeadline(state); return }
     const pick = monteAutoPick(m, state.monte, rng)
     if (pick) takeFromMonte(state, pick.id)
     state.monteIdx++
   }
+  state.monteDeadline = null
 }
 
 // ─── setup de técnicos ───────────────────────────────────────────────
@@ -392,6 +415,7 @@ const INITIAL: EscState = {
   league: [], fixtures: [], round: 0, tactics: {},
   lastResults: [], news: [], champion: null,
   phaseDeadline: null, scorers: [],
+  monteDeadline: null,
 }
 
 // ─── ações ───────────────────────────────────────────────────────────
@@ -407,6 +431,7 @@ type Action =
   | { type: 'ADVANCE_REVEAL' }
   | { type: 'FORCE_SEAL' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string }
+  | { type: 'MONTE_TIMEOUT' }
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
   | { type: 'PLAY_ROUND' }
   | { type: 'SIM_MANY'; count: number }
@@ -578,6 +603,25 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       return s
     }
+    case 'MONTE_TIMEOUT': {
+      // estourou o tempo da vez de um humano (AFK): pega a PIOR sobra e -5 moedas
+      if (s.screen !== 'monte') return s
+      const mgrId = s.monteOrder[s.monteIdx]
+      const m = s.managers.find(x => x.id === mgrId)
+      if (!m || !m.isHuman) return s
+      const rng = rngOf(s)
+      const pick = monteWorstPick(m, s.monte, rng)
+      if (pick) {
+        takeFromMonte(s, pick.id)
+        m.money = Math.max(0, m.money - MONTE_AFK_PENALTY)
+      }
+      s.monteIdx++
+      advanceMonte(s, rng)
+      if (s.monteIdx >= s.monteOrder.length || s.managers.every(mm => totalHoles(mm) === 0)) {
+        s.screen = 'cerimonia'
+      }
+      return s
+    }
     case 'FINISH_CEREMONY': {
       if (s.screen !== 'cerimonia') return s
       s.league = buildLeague(s.managers)
@@ -670,6 +714,17 @@ export function EscProvider({ children }: { children: ReactNode }) {
     prevRef.current = state
     channelRef.current?.send({ type: 'broadcast', event: 'state', payload: sanitize(state) })
   }, [state])
+
+  // host: se a vez do Monte de um humano estoura o tempo (AFK), força o auto-preenchimento
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.isHost) return
+    if (state.screen !== 'monte' || !state.monteDeadline) return
+    const cur = state.monteOrder[state.monteIdx]
+    const m = state.managers.find(x => x.id === cur)
+    if (!m || !m.isHuman) return
+    const t = setTimeout(() => dispatch({ type: 'MONTE_TIMEOUT' }), Math.max(0, state.monteDeadline - Date.now()) + 300)
+    return () => clearTimeout(t)
+  }, [state.monteDeadline, state.screen, state.monteIdx, state.isHost, state.onlineMode, state.managers, state.monteOrder, dispatch])
 
   // host persiste no banco a cada 3s
   useEffect(() => {
