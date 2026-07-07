@@ -397,6 +397,8 @@ function rngOf(state: EscState): () => number {
   return mulberry(state.seed + state.sectorIdx * 977 + state.round * 131 + state.revealIdx * 7 + state.monteIdx * 13 + state.submitted.length * 101)
 }
 
+const ENVELOPE_MS = 45_000
+
 function startAuctionPhase(state: EscState, rescue: boolean) {
   const pos = SECTORS[state.sectorIdx]
   state.phase = rescue ? 'resq_envelope' : 'envelope'
@@ -405,6 +407,7 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   state.revealIdx = 0
   state.submitted = []
   state.pendingEnvelopes = {}
+  state.phaseDeadline = Date.now() + ENVELOPE_MS
 }
 
 // resolve o setor a partir dos envelopes coletados (humanos) + CPUs
