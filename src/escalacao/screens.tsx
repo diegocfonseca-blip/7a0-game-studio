@@ -354,8 +354,20 @@ function Envelope() {
 }
 
 // ─── LEILÃO: revelação ───────────────────────────────────────────────
-function Reveal() {
+function AutoAdvance({ hasBids, canDrive }: { hasBids: boolean; canDrive: boolean; isLast: boolean }) {
   const { state, dispatch } = useEsc()
+  useEffect(() => {
+    if (!canDrive) return
+    const delay = hasBids ? 2000 : 1000
+    const t = setTimeout(() => dispatch({ type: 'ADVANCE_REVEAL' }), delay)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.revealIdx, state.phase, canDrive, hasBids])
+  return null
+}
+
+function Reveal() {
+  const { state } = useEsc()
   const item = state.revealQueue[state.revealIdx]
   const you = state.managers[state.youIdx]
   if (!item) return null
