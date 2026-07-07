@@ -21,7 +21,7 @@ export interface Card {
   hi: number
 }
 
-export type Acquisition = 'leilao' | 'repescagem' | 'monte'
+export type Acquisition = 'leilao' | 'repescagem' | 'monte' | 'bot'
 
 export interface WonCard extends Card {
   paid: number
@@ -44,6 +44,11 @@ export interface Manager {
   name: string
   teamName: string
   isHuman: boolean
+  // participa do leilão (humanos sempre; CPUs rivais no modo solo). Bots de
+  // preenchimento (online, quando a sala é menor que 20) já entram com
+  // elenco pronto e NUNCA dão lance — mantém o leilão do tamanho exato da
+  // demanda real dos humanos, sem diluir com gente que nem está disputando.
+  auctionRival: boolean
   formation: FormationKey
   money: number
   squad: WonCard[]
@@ -134,6 +139,8 @@ export interface EscState {
   revealQueue: ResolvedCard[] // ordenado por pote crescente
   revealIdx: number
   stock: Record<Sector, number> // estoque restante no baralho (contador vivo)
+  sectorCursor: number // até onde já foi dealt do deck[pos] atual (levas)
+  sectorUnsoldAccum: Card[] // não vendidos acumulados nas levas do setor até a repescagem
   // monte final
   monte: Card[]
   monteOrder: number[] // sequência serpente de manager ids

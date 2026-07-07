@@ -42,12 +42,17 @@ export function totalHoles(m: Manager): number {
   return SECTORS.reduce((s, pos) => s + openSlots(m, pos), 0)
 }
 
-// ─── montagem do baralho: demanda da sala × 1,3 por setor ────────────
-function buildDeck(managers: Manager[], rng: () => number): Record<Sector, Card[]> {
+// ─── montagem do baralho ───────────────────────────────────────────────
+// `managers` aqui é só quem DISPUTA o leilão (humanos + rivais CPU no modo
+// solo — nunca bots de preenchimento). `margin` controla a folga: 1.3 no
+// solo (dá espaço pra repescagem/monte com poucos jogadores reais no
+// catálogo), 1.0 (exato) no online — 2 humanos = exatamente 2 laterais × 2
+// vagas = 4 cartas, 5 humanos = 10, e assim por diante.
+function buildDeck(managers: Manager[], rng: () => number, margin: number): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
   for (const pos of SECTORS) {
     const demand = managers.reduce((s, m) => s + slotsOf(m, pos), 0)
-    const count = Math.ceil(demand * 1.3)
+    const count = Math.max(1, Math.ceil(demand * margin))
     const catalog = [...CATALOG[pos]].sort(() => rng() - 0.5)
     const cards: Card[] = []
     const legendCap = Math.max(1, Math.ceil(managers.length / 2))
@@ -69,6 +74,11 @@ function buildDeck(managers: Manager[], rng: () => number): Record<Sector, Card[
     deck[pos] = cards
   }
   return deck
+}
+
+// managers que efetivamente brigam no leilão (exclui bots de preenchimento)
+function auctioningManagers(managers: Manager[]): Manager[] {
+  return managers.filter(m => m.isHuman || m.auctionRival)
 }
 
 // ─── CPU: envelopes de lance ─────────────────────────────────────────
@@ -387,19 +397,54 @@ function advanceMonte(state: EscState, rng: () => number) {
   state.monteDeadline = null
 }
 
+// ─── bots de preenchimento (online): elenco pronto, nunca dão lance ────
+// tier controla a força — cria variedade real na tabela (uns fortes, a
+// maioria mediana, uns fracos) sem depender do leilão pra existir.
+type Tier = 'strong' | 'mid' | 'weak'
+function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number): WonCard[] {
+  const squad: WonCard[] = []
+  for (const pos of SECTORS) {
+    const need = FORMATIONS[formation][pos]
+    const shuffled = [...CATALOG[pos]].sort(() => rng() - 0.5)
+    const pool = tier === 'strong' ? shuffled.filter(c => c.fame >= 3)
+      : tier === 'weak' ? shuffled.filter(c => c.fame <= 2)
+      : shuffled.filter(c => c.fame === 2 || c.fame === 3)
+    const picks = pool.slice(0, need)
+    let gi = 0
+    while (picks.length < need) picks.push(makeIncognita(pos, squad.length + picks.length, tier === 'strong' && gi++ < 1, rng))
+    for (const c of picks) squad.push({ ...c, id: `bot-${pos}-${squad.length}-${Math.floor(rng() * 1e6)}`, pos, paid: 0, via: 'bot' })
+  }
+  return squad
+}
+
 // ─── setup de técnicos ───────────────────────────────────────────────
-function makeManagers(humanNames: string[], formation: FormationKey, targetTotal: number, rng: () => number): Manager[] {
+// mode 'solo': CPUs são rivais de verdade, disputam o leilão junto com você.
+// mode 'online': CPUs são só preenchimento da tabela — elenco pronto,
+// nunca aparecem no leilão, pra ele ficar do tamanho exato da sala humana.
+function makeManagers(humanNames: string[], formation: FormationKey, targetTotal: number, rng: () => number, mode: 'solo' | 'online'): Manager[] {
   const forms: FormationKey[] = ['4-3-3', '4-4-2', '3-5-2', '4-5-1']
   const humans: Manager[] = humanNames.map((name, i) => ({
-    id: i, name, teamName: name, isHuman: true,
+    id: i, name, teamName: name, isHuman: true, auctionRival: true,
     formation, money: START_MONEY, squad: [], aggression: 0.5, starHunger: 0.5,
   }))
   const cpuCount = Math.max(0, targetTotal - humans.length)
-  const cpus: Manager[] = CPU_MANAGERS.slice(0, cpuCount).map((c, i) => ({
-    id: humans.length + i, name: c.name, teamName: c.team, isHuman: false,
-    formation: forms[Math.floor(rng() * forms.length)],
-    money: START_MONEY, squad: [], aggression: 0.25 + rng() * 0.7, starHunger: rng(),
-  }))
+  const names = CPU_MANAGERS.slice(0, cpuCount)
+  const strongN = Math.max(1, Math.round(cpuCount * 0.15))
+  const weakN = Math.max(1, Math.round(cpuCount * 0.15))
+  const cpus: Manager[] = names.map((c, i) => {
+    const cpuFormation = forms[Math.floor(rng() * forms.length)]
+    if (mode === 'solo') {
+      return {
+        id: humans.length + i, name: c.name, teamName: c.team, isHuman: false, auctionRival: true,
+        formation: cpuFormation, money: START_MONEY, squad: [], aggression: 0.25 + rng() * 0.7, starHunger: rng(),
+      }
+    }
+    const tier: Tier = i < strongN ? 'strong' : i >= cpuCount - weakN ? 'weak' : 'mid'
+    return {
+      id: humans.length + i, name: c.name, teamName: c.team, isHuman: false, auctionRival: false,
+      formation: cpuFormation, money: 0, squad: makeBotSquad(cpuFormation, tier, rng), aggression: 0.5, starHunger: 0.5,
+    }
+  })
   return [...humans, ...cpus]
 }
 
@@ -417,6 +462,7 @@ const INITIAL: EscState = {
   lastResults: [], news: [], champion: null,
   phaseDeadline: null, scorers: [],
   monteDeadline: null,
+  sectorCursor: 0, sectorUnsoldAccum: [],
 }
 
 // ─── ações ───────────────────────────────────────────────────────────
@@ -445,10 +491,22 @@ function rngOf(state: EscState): () => number {
 
 const ENVELOPE_MS = 45_000
 
+// cartas por leva: sala pequena cabe tudo numa tela só; sala grande (até 20
+// jogadores, 40 laterais) precisa dividir, senão a tela não tem fim.
+export const BATCH_SIZE = 12
+
 function startAuctionPhase(state: EscState, rescue: boolean) {
   const pos = SECTORS[state.sectorIdx]
   state.phase = rescue ? 'resq_envelope' : 'envelope'
-  state.currentCards = rescue ? state.currentCards : state.deck[pos]
+  if (!rescue) {
+    // pega a PRÓXIMA leva do setor (não o setor inteiro de uma vez)
+    const full = state.deck[pos]
+    const start = state.sectorCursor
+    const end = Math.min(full.length, start + BATCH_SIZE)
+    state.currentCards = full.slice(start, end)
+    state.sectorCursor = end
+  }
+  // se rescue=true, currentCards já foi preparado pelo chamador (sobras acumuladas)
   state.revealQueue = []
   state.revealIdx = 0
   state.submitted = []
@@ -461,9 +519,9 @@ function sealAndResolve(state: EscState) {
   const rng = rngOf(state)
   const rescue = state.phase === 'resq_envelope'
   const bidMap: BidMap = new Map()
-  // CPUs
+  // CPUs (só quem disputa o leilão — bots de preenchimento nunca dão lance)
   for (const m of state.managers) {
-    if (m.isHuman) continue
+    if (m.isHuman || !m.auctionRival) continue
     for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue)) {
       pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: b.amount })
     }
@@ -494,21 +552,11 @@ function humansToSubmit(state: EscState, pos: Sector): number[] {
     .map(m => m.id)
 }
 
-function afterReveal(state: EscState) {
-  const rng = rngOf(state)
-  const pos = SECTORS[state.sectorIdx]
-  const unsold = state.currentCards
-  if (state.phase === 'reveal') {
-    const anyHole = state.managers.some(m => openSlots(m, pos) > 0)
-    if (unsold.length > 0 && anyHole) {
-      startAuctionPhase(state, true)
-      return
-    }
-  }
-  state.monte.push(...unsold)
-  state.currentCards = []
+function advanceSectorOrFinish(state: EscState, rng: () => number) {
   if (state.sectorIdx < SECTORS.length - 1) {
     state.sectorIdx++
+    state.sectorCursor = 0
+    state.sectorUnsoldAccum = []
     startAuctionPhase(state, false)
   } else {
     state.monteOrder = buildMonteOrder(state.managers, rng)
@@ -517,6 +565,37 @@ function afterReveal(state: EscState) {
     advanceMonte(state, rng)
     if (state.monteIdx >= state.monteOrder.length) state.screen = 'cerimonia'
   }
+}
+
+function afterReveal(state: EscState) {
+  const rng = rngOf(state)
+  const pos = SECTORS[state.sectorIdx]
+  const unsold = state.currentCards
+  if (state.phase === 'reveal') {
+    // terminou uma leva do pregão principal — acumula os não vendidos
+    state.sectorUnsoldAccum.push(...unsold)
+    state.currentCards = []
+    if (state.sectorCursor < state.deck[pos].length) {
+      startAuctionPhase(state, false) // ainda tem leva pra vir nesse setor
+      return
+    }
+    // fechou todas as levas do setor: repescagem ÚNICA com tudo que sobrou
+    const anyHole = state.managers.some(m => openSlots(m, pos) > 0)
+    if (state.sectorUnsoldAccum.length > 0 && anyHole) {
+      state.currentCards = state.sectorUnsoldAccum
+      state.sectorUnsoldAccum = []
+      startAuctionPhase(state, true)
+      return
+    }
+    state.monte.push(...state.sectorUnsoldAccum)
+    state.sectorUnsoldAccum = []
+    advanceSectorOrFinish(state, rng)
+    return
+  }
+  // terminou a repescagem
+  state.monte.push(...unsold)
+  state.currentCards = []
+  advanceSectorOrFinish(state, rng)
 }
 
 export function reducer(state: EscState, action: Action): EscState {
@@ -548,11 +627,11 @@ export function reducer(state: EscState, action: Action): EscState {
       s.onlineMode = 'cpu'
       s.isHost = true
       s.humanCount = 1
-      s.managers = makeManagers([action.teamName || 'Meu Time'], action.formation, 1 + action.rivals, rng)
+      s.managers = makeManagers([action.teamName || 'Meu Time'], action.formation, 1 + action.rivals, rng, 'solo')
       s.youIdx = 0
-      s.deck = buildDeck(s.managers, rng)
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.3)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
-      s.sectorIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}
       s.screen = 'auction'
       startAuctionPhase(s, false)
@@ -567,11 +646,12 @@ export function reducer(state: EscState, action: Action): EscState {
       s.humanCount = action.playerNames.length
       s.seed = hashCode(action.roomCode)
       const rng = mulberry(s.seed)
-      const total = Math.max(4, action.playerNames.length)
-      s.managers = makeManagers(action.playerNames, '4-3-3', total, rng)
-      s.deck = buildDeck(s.managers, rng)
+      // a tabela sempre tem 20 times: os que faltam viram bots com elenco
+      // pronto (não brigam no leilão — só os humanos disputam as cartas)
+      s.managers = makeManagers(action.playerNames, '4-3-3', LEAGUE_SIZE, rng, 'online')
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
-      s.sectorIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}
       s.screen = 'auction'
       startAuctionPhase(s, false)

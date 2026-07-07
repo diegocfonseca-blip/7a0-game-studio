@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Card, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
-import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY, MONTE_SECONDS } from './store'
+import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY, MONTE_SECONDS, BATCH_SIZE } from './store'
 
 // ─── estilo base (neubrutalista, igual ao resto do estúdio) ──────────
 const CREAM = '#F4ECD6'
@@ -285,6 +285,8 @@ function Envelope() {
   const cards = [...state.currentCards].sort((a, b) => b.fame - a.fame || a.name.localeCompare(b.name))
   const timerColor = remaining <= 10 ? RED : remaining <= 20 ? GOLD : GREEN
   const timerTextColor = remaining <= 20 ? INK : '#fff'
+  const totalBatches = Math.ceil(state.deck[pos].length / BATCH_SIZE)
+  const curBatch = Math.min(totalBatches, Math.ceil(state.sectorCursor / BATCH_SIZE))
 
   return (
     <Shell bar={<AuctionBar />}>
@@ -298,6 +300,7 @@ function Envelope() {
               ? 'Sobras do setor, última chance de pagar por elas. Só quem ficou com buraco participa.'
               : 'Lance cego: distribua suas moedas em segredo. Ninguém vê nada até a revelação.'}
             {' '}Suas vagas: <b>{myOpen}</b>.
+            {!rescue && totalBatches > 1 && <> Leva <b>{curBatch}/{totalBatches}</b> — mais vem a seguir.</>}
           </p>
         </div>
         <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center min-w-[64px]"
@@ -418,11 +421,15 @@ function Reveal() {
 
 function RivalsStrip() {
   const { state } = useEsc()
+  // só quem REALMENTE disputa o leilão (bots de preenchimento já têm elenco
+  // pronto e nunca aparecem aqui — não fazem sentido numa disputa deles)
+  const rivals = state.managers.filter(m => !m.isHuman && m.auctionRival)
+  if (rivals.length === 0) return null
   return (
     <div>
       <p className="text-xs font-black uppercase text-black/70 mb-1.5">A sala</p>
       <div className="grid grid-cols-2 gap-2">
-        {state.managers.filter(m => !m.isHuman).map(m => (
+        {rivals.map(m => (
           <Box key={m.id} className="p-2.5" shadow={3}>
             <p className="font-black text-sm truncate" style={OSWALD}>{m.teamName}</p>
             <p className="text-[11px] font-semibold text-black/55">{m.formation} · 💰 {m.money} · {11 - totalHoles(m)}/11</p>
@@ -517,7 +524,9 @@ export function EscCerimonia() {
             <div key={c.id} className="flex items-center justify-between border-2 border-black rounded-lg px-3 py-1.5 bg-white">
               <div>
                 <p className="font-bold text-sm">{c.pos} · {c.name} <span className="text-black/70 text-xs">({c.club} {c.year})</span></p>
-                <p className="text-[10px] font-semibold text-black/70">{c.via === 'monte' ? 'monte (grátis)' : c.via === 'repescagem' ? `repescagem · pagou ${c.paid}` : `leilão · pagou ${c.paid}`}</p>
+                <p className="text-[10px] font-semibold text-black/70">
+                  {c.via === 'bot' ? 'escalado direto' : c.via === 'monte' ? 'monte (grátis)' : c.via === 'repescagem' ? `repescagem · pagou ${c.paid}` : `leilão · pagou ${c.paid}`}
+                </p>
               </div>
               <motion.span initial={{ rotateY: 90 }} animate={{ rotateY: 0 }} transition={{ delay: 0.15 }}
                 className="border-2 border-black rounded-lg px-2 py-1 font-black text-sm"
