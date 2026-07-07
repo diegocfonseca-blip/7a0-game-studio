@@ -105,7 +105,8 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
 }
 
 export default function App() {
-  const [selectedGame, setSelectedGame] = useState<GameKey | null>(null)
+  const forcedGame = (import.meta.env.VITE_ONLY_GAME as GameKey | undefined) ?? null
+  const [selectedGame, setSelectedGame] = useState<GameKey | null>(forcedGame)
 
   function choose(game: GameKey) {
     setSelectedGame(game)
