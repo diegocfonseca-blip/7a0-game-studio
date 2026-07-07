@@ -372,6 +372,7 @@ const INITIAL: EscState = {
   monte: [], monteOrder: [], monteIdx: 0,
   league: [], fixtures: [], round: 0, tactics: {},
   lastResults: [], news: [], champion: null,
+  phaseDeadline: null, scorers: [],
 }
 
 // ─── ações ───────────────────────────────────────────────────────────
