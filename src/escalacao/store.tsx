@@ -405,6 +405,7 @@ type Action =
   | { type: 'SET_PRESENCE'; indices: number[] }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[] }
   | { type: 'ADVANCE_REVEAL' }
+  | { type: 'FORCE_SEAL' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string }
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
   | { type: 'PLAY_ROUND' }
