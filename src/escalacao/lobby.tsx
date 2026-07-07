@@ -171,7 +171,7 @@ export function EscLobby() {
   if (phase === 'auth') return wrap(<>
     <div className="text-center">
       <div className="text-6xl mb-2">🔨</div>
-      <h1 className="font-black text-3xl text-white" style={OSWALD}>A ESCALAÇÃO · ONLINE</h1>
+      <h1 className="font-black text-3xl text-white" style={OSWALD}>LEILÃO LEGENDS 38 · ONLINE</h1>
     </div>
     <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
       {(['login', 'register'] as AuthTab[]).map(tab => (
