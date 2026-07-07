@@ -23,6 +23,15 @@ const GOL: C[] = [
   { name: 'Harlei', club: 'Goiás', year: 2005, fame: 2, lo: 59, hi: 78 },
   { name: 'Sérgio', club: 'Palmeiras', year: 1993, fame: 2, lo: 60, hi: 78 },
   { name: 'Wagner Leite', club: 'Atlético-MG', year: 1995, fame: 2, lo: 57, hi: 76 },
+  // ── ampliação ──
+  { name: 'Emerson Leão', club: 'Palmeiras', year: 1974, fame: 4, lo: 87, hi: 93 },
+  { name: 'Félix', club: 'Fluminense', year: 1970, fame: 3, lo: 80, hi: 87 },
+  { name: 'Júlio César', club: 'Flamengo', year: 2003, fame: 4, lo: 84, hi: 92 },
+  { name: 'Cássio', club: 'Corinthians', year: 2012, fame: 4, lo: 83, hi: 91 },
+  { name: 'Weverton', club: 'Palmeiras', year: 2019, fame: 3, lo: 78, hi: 86 },
+  { name: 'Victor', club: 'Atlético-MG', year: 2013, fame: 3, lo: 76, hi: 85 },
+  { name: 'Danrlei', club: 'Grêmio', year: 1997, fame: 2, lo: 62, hi: 82 },
+  { name: 'Aranha', club: 'Santos', year: 2011, fame: 2, lo: 60, hi: 80 },
 ]
 
 const LAT: C[] = [
@@ -43,6 +52,15 @@ const LAT: C[] = [
   { name: 'Léo', club: 'Santos', year: 2002, fame: 2, lo: 62, hi: 80 },
   { name: 'Paulo Roberto', club: 'Grêmio', year: 1981, fame: 2, lo: 60, hi: 78 },
   { name: 'Gilberto', club: 'Flamengo', year: 2001, fame: 2, lo: 59, hi: 78 },
+  // ── ampliação ──
+  { name: 'Djalma Santos', club: 'Palmeiras', year: 1962, fame: 5, lo: 93, hi: 98 },
+  { name: 'Nelinho', club: 'Cruzeiro', year: 1976, fame: 3, lo: 80, hi: 88 },
+  { name: 'Josimar', club: 'Botafogo', year: 1986, fame: 3, lo: 78, hi: 86 },
+  { name: 'Dani Alves', club: 'São Paulo', year: 2019, fame: 4, lo: 84, hi: 92 },
+  { name: 'Marcelo', club: 'Fluminense', year: 2023, fame: 4, lo: 82, hi: 90 },
+  { name: 'Marcos Rocha', club: 'Palmeiras', year: 2019, fame: 3, lo: 76, hi: 84 },
+  { name: 'Fágner', club: 'Corinthians', year: 2017, fame: 2, lo: 68, hi: 82 },
+  { name: 'Egídio', club: 'Cruzeiro', year: 2015, fame: 2, lo: 62, hi: 79 },
 ]
 
 const ZAG: C[] = [
@@ -63,6 +81,16 @@ const ZAG: C[] = [
   { name: 'Gamarra', club: 'Corinthians', year: 1998, fame: 3, lo: 79, hi: 87 },
   { name: 'Odvan', club: 'Vasco', year: 1997, fame: 2, lo: 58, hi: 79 },
   { name: 'Beto Bacamarte', club: 'Grêmio', year: 1996, fame: 2, lo: 57, hi: 77 },
+  // ── ampliação ──
+  { name: 'Hilderaldo Bellini', club: 'Vasco', year: 1958, fame: 4, lo: 85, hi: 91 },
+  { name: 'Wilson Piazza', club: 'Cruzeiro', year: 1970, fame: 4, lo: 86, hi: 92 },
+  { name: 'Brito', club: 'Vasco', year: 1970, fame: 3, lo: 80, hi: 87 },
+  { name: 'Miranda', club: 'São Paulo', year: 2010, fame: 3, lo: 80, hi: 88 },
+  { name: 'Dedé', club: 'Cruzeiro', year: 2014, fame: 3, lo: 78, hi: 87 },
+  { name: 'David Luiz', club: 'Flamengo', year: 2021, fame: 3, lo: 76, hi: 87 },
+  { name: 'Lugano', club: 'São Paulo', year: 2006, fame: 3, lo: 80, hi: 88 },
+  { name: 'Gustavo Gómez', club: 'Palmeiras', year: 2021, fame: 3, lo: 78, hi: 86 },
+  { name: 'Réver', club: 'Atlético-MG', year: 2013, fame: 2, lo: 70, hi: 82 },
 ]
 
 const MEI: C[] = [
@@ -92,6 +120,22 @@ const MEI: C[] = [
   { name: 'Felipe', club: 'Vasco', year: 2000, fame: 2, lo: 61, hi: 81 },
   { name: 'PC Caju', club: 'Botafogo', year: 1968, fame: 2, lo: 63, hi: 83 },
   { name: 'Ramires', club: 'Cruzeiro', year: 2008, fame: 2, lo: 60, hi: 79 },
+  // ── ampliação (inclui estrangeiros que brilharam no Brasil) ──
+  { name: 'Clodoaldo', club: 'Santos', year: 1970, fame: 4, lo: 85, hi: 92 },
+  { name: 'Gérson', club: 'São Paulo', year: 1972, fame: 4, lo: 86, hi: 92 },
+  { name: 'Zé Roberto', club: 'Palmeiras', year: 2010, fame: 3, lo: 82, hi: 89 },
+  { name: 'Rincón', club: 'Corinthians', year: 1998, fame: 3, lo: 80, hi: 88 },
+  { name: 'Arrascaeta', club: 'Cruzeiro', year: 2017, fame: 3, lo: 80, hi: 89 },
+  { name: "D'Alessandro", club: 'Internacional', year: 2010, fame: 3, lo: 80, hi: 89 },
+  { name: 'Mascherano', club: 'Corinthians', year: 2005, fame: 3, lo: 80, hi: 88 },
+  { name: 'Renato Augusto', club: 'Corinthians', year: 2018, fame: 3, lo: 78, hi: 87 },
+  { name: 'Diego', club: 'Flamengo', year: 2019, fame: 3, lo: 76, hi: 86 },
+  { name: 'Everton Ribeiro', club: 'Flamengo', year: 2020, fame: 3, lo: 76, hi: 85 },
+  { name: 'Montillo', club: 'Cruzeiro', year: 2012, fame: 2, lo: 70, hi: 86 },
+  { name: 'Valdivia', club: 'Palmeiras', year: 2013, fame: 2, lo: 66, hi: 88 },
+  { name: 'Marcos Assunção', club: 'Palmeiras', year: 2005, fame: 2, lo: 68, hi: 86 },
+  { name: 'Vampeta', club: 'Corinthians', year: 1999, fame: 2, lo: 62, hi: 82 },
+  { name: 'Marcelinho Paraíba', club: 'Corinthians', year: 2002, fame: 2, lo: 62, hi: 83 },
 ]
 
 const ATA: C[] = [
@@ -123,6 +167,28 @@ const ATA: C[] = [
   { name: 'Dodô', club: 'São Paulo', year: 1997, fame: 2, lo: 61, hi: 82 },
   { name: 'Baltazar', club: 'Grêmio', year: 1988, fame: 2, lo: 59, hi: 80 },
   { name: 'Kléber Gladiador', club: 'Palmeiras', year: 2010, fame: 2, lo: 57, hi: 79 },
+  // ── ampliação: históricos, estrangeiros no Brasil e cults/cômicos ──
+  { name: 'Zizinho', club: 'Flamengo', year: 1950, fame: 5, lo: 92, hi: 97 },
+  { name: 'Leônidas da Silva', club: 'Flamengo', year: 1938, fame: 5, lo: 92, hi: 97 },
+  { name: 'Ademir de Menezes', club: 'Vasco', year: 1950, fame: 4, lo: 88, hi: 94 },
+  { name: 'Vavá', club: 'Vasco', year: 1958, fame: 4, lo: 86, hi: 93 },
+  { name: 'Roberto Dinamite', club: 'Vasco', year: 1980, fame: 4, lo: 86, hi: 93 },
+  { name: 'Nunes', club: 'Flamengo', year: 1981, fame: 3, lo: 76, hi: 85 },
+  { name: 'Renato Gaúcho', club: 'Grêmio', year: 1987, fame: 3, lo: 80, hi: 88 },
+  { name: 'Hulk', club: 'Atlético-MG', year: 2021, fame: 4, lo: 84, hi: 91 },
+  { name: 'Luís Fabiano', club: 'São Paulo', year: 2011, fame: 3, lo: 80, hi: 88 },
+  { name: 'Grafite', club: 'São Paulo', year: 2008, fame: 3, lo: 78, hi: 86 },
+  { name: 'Gabigol', club: 'Flamengo', year: 2019, fame: 3, lo: 78, hi: 88 },
+  { name: 'Pedro', club: 'Flamengo', year: 2022, fame: 3, lo: 78, hi: 87 },
+  { name: 'Guerrero', club: 'Corinthians', year: 2013, fame: 3, lo: 80, hi: 88 },
+  { name: 'Germán Cano', club: 'Fluminense', year: 2022, fame: 3, lo: 78, hi: 87 },
+  { name: 'Asprilla', club: 'Palmeiras', year: 2001, fame: 2, lo: 68, hi: 88 },
+  { name: 'Barcos', club: 'Palmeiras', year: 2012, fame: 2, lo: 70, hi: 84 },
+  { name: 'Miguel Borja', club: 'Palmeiras', year: 2017, fame: 2, lo: 66, hi: 83 },
+  { name: 'Diego Tardelli', club: 'Atlético-MG', year: 2014, fame: 2, lo: 70, hi: 84 },
+  { name: 'Emerson Sheik', club: 'Corinthians', year: 2012, fame: 2, lo: 65, hi: 83 },
+  { name: 'Deyverson', club: 'Palmeiras', year: 2018, fame: 2, lo: 55, hi: 83 },
+  { name: 'Somália', club: 'Botafogo', year: 2016, fame: 2, lo: 55, hi: 78 },
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
