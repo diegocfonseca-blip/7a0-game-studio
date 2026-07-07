@@ -8,7 +8,7 @@ import type { EscState } from './types'
 // A Escalação usa as mesmas tabelas do Draft (game_rooms/room_players).
 // Marcamos a sala como nossa via game_state.__game pra não colidir com o Draft.
 const GAME_TAG = 'escalacao'
-const MAX_PLAYERS = 8
+const MAX_PLAYERS = 20 // a tabela sempre tem 20 times; os que faltam viram bots
 
 type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'

@@ -219,6 +219,18 @@ export const CPU_MANAGERS = [
   { name: 'Régis da Vila', team: 'Vila Régis' },
   { name: 'Neguinho do Apito', team: 'Apito Final' },
   { name: 'Zé do Caixote', team: 'Caixote EC' },
+  { name: 'Dedé Bigode', team: 'Bigode FC' },
+  { name: 'Adãozinho', team: 'Adão Esporte' },
+  { name: 'Cabeção da Vila', team: 'Cabeção FR' },
+  { name: 'Duda Fortuna', team: 'Fortuna SAF' },
+  { name: 'Miúdo do Gol', team: 'Miúdo EC' },
+  { name: 'Painitto', team: 'Painitto FC' },
+  { name: 'Robertão', team: 'Robertão United' },
+  { name: 'Sinhozinho', team: 'Sinhô Futebol' },
+  { name: 'Tico do Bar', team: 'Tico do Bar FR' },
+  { name: 'Xandão da Bola', team: 'Xandão EC' },
+  { name: 'Zequinha Ferro', team: 'Zequinha SAF' },
+  { name: 'Waguinho Pipa', team: 'Pipa FC' },
 ]
 
 // ─── Clubes clássicos que completam a liga de 20 ─────────────────────
