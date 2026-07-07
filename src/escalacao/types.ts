@@ -81,6 +81,7 @@ export interface LeagueTeam {
 export interface MatchHighlight {
   min: number
   text: string
+  teamId: number // de quem foi o gol — usado pro placar ao vivo no ticker de minutos
 }
 
 export interface MatchResult {

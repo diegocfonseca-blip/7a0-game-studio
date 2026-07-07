@@ -253,15 +253,6 @@ function Envelope() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining, canBid, iSubmitted])
 
-  // host força selamento quando estoura o prazo (caso outros não tenham lacrado)
-  useEffect(() => {
-    if (!state.isHost) return
-    if (state.phase !== 'envelope' && state.phase !== 'resq_envelope') return
-    if (!state.phaseDeadline) return
-    const t = setTimeout(() => dispatch({ type: 'FORCE_SEAL' }), Math.max(0, state.phaseDeadline - Date.now()) + 800)
-    return () => clearTimeout(t)
-  }, [state.phaseDeadline, state.phase, state.isHost, dispatch])
-
   // já lacrei (online): tela de espera pelos outros técnicos
   if (online && iSubmitted) {
     return (
@@ -555,8 +546,11 @@ export function EscCerimonia() {
   )
 }
 
-// ─── TEMPORADA ───────────────────────────────────────────────────────
+// ─── TEMPORADA (autoplay: 38 rodadas em ~3 min, relógio correndo) ─────
 const TACTIC_LABEL: Record<Tactic, string> = { retranca: '🧱 Retranca', equilibrio: '⚖️ Equilíbrio', ataque: '🔥 Ataque' }
+const SEASON_TOTAL_MS = 180_000
+const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // ~4,7s por rodada
+const TICK_MINUTES = 93 // 90' + acréscimos exibidos no ticker
 
 export function EscSeason() {
   const { state, dispatch } = useEsc()
@@ -570,6 +564,15 @@ export function EscSeason() {
   const opp = fixture ? state.league.find(t => t.id === (fixture[0] === you.id ? fixture[1] : fixture[0])) : undefined
   const myLast = state.lastResults.find(r => r.homeId === you.id || r.awayId === you.id)
 
+  // autoplay: só quem "puxa" a temporada dispara a próxima rodada (host no
+  // online, o próprio cliente no CPU). Os demais só recebem o resultado
+  // sincronizado e tocam a animação do próprio jogo localmente.
+  useEffect(() => {
+    if (!canAdvance || state.round >= 38) return
+    const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), ROUND_MS)
+    return () => clearTimeout(t)
+  }, [state.round, canAdvance, dispatch])
+
   return (
     <Shell bar={
       <div className="flex items-center justify-between max-w-xl mx-auto">
@@ -577,7 +580,13 @@ export function EscSeason() {
         <span className="font-black text-sm" style={OSWALD}>{youPos}º · {table[youPos - 1]?.pts ?? 0} pts</span>
       </div>
     }>
-      {myLast && <MatchCard r={myLast} />}
+      {myLast ? (
+        <MatchCard key={state.round} r={myLast} roundMs={ROUND_MS} />
+      ) : (
+        <Box bg="#fff" className="p-6" shadow={6}>
+          <p className="text-center font-black" style={OSWALD}>🏁 Aguardando o pontapé inicial…</p>
+        </Box>
+      )}
 
       {fixture && opp && (
         <Box className="p-4 space-y-3">
@@ -594,15 +603,12 @@ export function EscSeason() {
               </button>
             ))}
           </div>
-          {canAdvance ? (
-            <div className="flex gap-2">
-              <Btn onClick={() => dispatch({ type: 'PLAY_ROUND' })} bg={GREEN} className="flex-1"><span className="text-white">JOGAR RODADA ▶</span></Btn>
-              <Btn onClick={() => dispatch({ type: 'SIM_MANY', count: 5 })} bg="#fff">+5</Btn>
-              <Btn onClick={() => dispatch({ type: 'SIM_MANY', count: 38 - state.round })} bg="#fff">FIM ⏭</Btn>
+          <div className="space-y-1">
+            <div className="h-2 rounded-full border-2 border-black overflow-hidden bg-white">
+              <div className="h-full transition-all" style={{ width: `${(state.round / 38) * 100}%`, backgroundColor: GREEN }} />
             </div>
-          ) : (
-            <p className="text-center text-sm font-bold text-black/55 py-2">Escolha sua tática. O host puxa a rodada. ⏳</p>
-          )}
+            <p className="text-center text-xs font-bold text-black/60">⏱️ Temporada rolando sozinha — sente e assista.</p>
+          </div>
           <p className="text-[11px] font-semibold text-black/70">Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.</p>
         </Box>
       )}
@@ -656,15 +662,42 @@ function TopScorersBox({ highlight }: { highlight: number }) {
   )
 }
 
-function MatchCard({ r }: { r: { homeId: number; awayId: number; hg: number; ag: number; highlights: { min: number; text: string }[] } }) {
+// placar progressivo: o minuto sobe sozinho de 1 até 90+acréscimos, revelando
+// os gols conforme o relógio passa por eles — nunca mostra o resultado pronto.
+function MatchCard({ r, roundMs }: { r: { homeId: number; awayId: number; hg: number; ag: number; highlights: { min: number; text: string; teamId: number }[] }; roundMs: number }) {
   const { state } = useEsc()
   const h = state.league.find(t => t.id === r.homeId)!, a = state.league.find(t => t.id === r.awayId)!
+  const [minute, setMinute] = useState(0)
+
+  useEffect(() => {
+    const stepMs = Math.max(30, (roundMs * 0.85) / TICK_MINUTES)
+    let cur = 0
+    const iv = setInterval(() => {
+      cur++
+      setMinute(cur)
+      if (cur >= TICK_MINUTES) clearInterval(iv)
+    }, stepMs)
+    return () => clearInterval(iv)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const visible = [...r.highlights].filter(hl => hl.min <= minute).sort((x, y) => x.min - y.min)
+  const hg = visible.filter(hl => hl.teamId === r.homeId).length
+  const ag = visible.filter(hl => hl.teamId === r.awayId).length
+  const done = minute >= TICK_MINUTES
+  const minuteLabel = minute > 90 ? `90+${minute - 90}'` : `${minute}'`
+
   return (
     <Box bg="#fff" className="p-4" shadow={6}>
-      <p className="text-center font-black text-2xl" style={OSWALD}>{h.name} {r.hg} × {r.ag} {a.name}</p>
-      <div className="mt-2 space-y-0.5">
-        {r.highlights.map((hl, i) => <p key={i} className="text-xs font-semibold text-black/60">{hl.min}' {hl.text}</p>)}
-        {r.highlights.length === 0 && <p className="text-xs text-center font-semibold text-black/70">Jogo truncado, sem gols pra contar.</p>}
+      <p className="text-center text-[11px] font-black uppercase" style={{ color: done ? GREEN : RED }}>
+        {done ? '✅ FIM DE JOGO' : `⏱️ ${minuteLabel}`}
+      </p>
+      <p className="text-center font-black text-2xl" style={OSWALD}>{h.name} {hg} × {ag} {a.name}</p>
+      <div className="mt-2 space-y-0.5 min-h-[20px]">
+        {visible.map((hl, i) => (
+          <p key={i} className="text-xs font-semibold text-black/60">{hl.min > 90 ? `90+${hl.min - 90}` : hl.min}' {hl.text}</p>
+        ))}
+        {done && visible.length === 0 && <p className="text-xs text-center font-semibold text-black/70">Jogo truncado, sem gols pra contar.</p>}
       </div>
     </Box>
   )
