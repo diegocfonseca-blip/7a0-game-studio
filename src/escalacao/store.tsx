@@ -257,24 +257,39 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   const hg = poisson(lh, rng), ag = poisson(la, rng)
 
   const highlights: MatchHighlight[] = []
-  if (involveHuman) {
-    const mkScorers = (id: number, goals: number, prefix: string) => {
-      const m = state.managers.find(x => x.id === id)
-      for (let g = 0; g < goals; g++) {
-        const min = 3 + Math.floor(rng() * 88)
-        if (m) {
-          const shooters = m.squad.filter(c => c.pos === 'ATA' || c.pos === 'MEI')
-          const s = shooters[Math.floor(rng() * shooters.length)] ?? m.squad[0]
-          highlights.push({ min, text: `⚽ ${s?.name ?? '—'} marca para ${prefix}!` })
-        } else {
-          highlights.push({ min, text: `⚽ Gol de ${prefix}.` })
+  // atribui os gols a um jogador real e credita na artilharia da temporada
+  const creditGoals = (id: number, goals: number, prefix: string) => {
+    const m = state.managers.find(x => x.id === id)
+    for (let g = 0; g < goals; g++) {
+      const min = 3 + Math.floor(rng() * 88)
+      let scorerName: string | null = null
+      if (m && m.squad.length > 0) {
+        const pool: { name: string; w: number }[] = []
+        for (const c of m.squad) {
+          const w = c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05
+          pool.push({ name: c.name, w })
         }
+        const total = pool.reduce((s, p) => s + p.w, 0)
+        let r = rng() * total
+        for (const p of pool) { r -= p.w; if (r <= 0) { scorerName = p.name; break } }
+        if (!scorerName) scorerName = pool[0].name
+      }
+      if (scorerName) {
+        // credita no ranking
+        const row = state.scorers.find(s => s.name === scorerName && s.teamId === id)
+        if (row) row.goals++
+        else state.scorers.push({ name: scorerName, teamId: id, teamName: prefix, goals: 1 })
+        if (involveHuman) highlights.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!` })
+      } else if (involveHuman) {
+        highlights.push({ min, text: `⚽ Gol de ${prefix}.` })
       }
     }
-    const hName = state.league.find(t => t.id === homeId)!.name
-    const aName = state.league.find(t => t.id === awayId)!.name
-    mkScorers(homeId, hg, hName)
-    mkScorers(awayId, ag, aName)
+  }
+  const hName = state.league.find(t => t.id === homeId)!.name
+  const aName = state.league.find(t => t.id === awayId)!.name
+  creditGoals(homeId, hg, hName)
+  creditGoals(awayId, ag, aName)
+  if (involveHuman) {
     highlights.sort((a, b) => a.min - b.min)
     for (const [id, f] of [[homeId, fh], [awayId, fa]] as [number, TeamForm][]) {
       if (f.inspired && isHuman(id)) {
@@ -284,6 +299,10 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     }
   }
   return { homeId, awayId, hg, ag, highlights }
+}
+
+export function topScorers(state: EscState, limit = 10): ScorerRow[] {
+  return [...state.scorers].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, limit)
 }
 
 function applyResult(league: LeagueTeam[], r: MatchResult) {
