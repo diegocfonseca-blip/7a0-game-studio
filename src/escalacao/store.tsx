@@ -261,7 +261,8 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   const creditGoals = (id: number, goals: number, prefix: string) => {
     const m = state.managers.find(x => x.id === id)
     for (let g = 0; g < goals; g++) {
-      const min = 3 + Math.floor(rng() * 88)
+      // ~8% de chance de cair nos acréscimos (90+1 a 90+6)
+      const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 6) : 1 + Math.floor(rng() * 90)
       let scorerName: string | null = null
       if (m && m.squad.length > 0) {
         const pool: { name: string; w: number }[] = []
@@ -279,9 +280,9 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         const row = state.scorers.find(s => s.name === scorerName && s.teamId === id)
         if (row) row.goals++
         else state.scorers.push({ name: scorerName, teamId: id, teamName: prefix, goals: 1 })
-        if (involveHuman) highlights.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!` })
+        if (involveHuman) highlights.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id })
       } else if (involveHuman) {
-        highlights.push({ min, text: `⚽ Gol de ${prefix}.` })
+        highlights.push({ min, text: `⚽ Gol de ${prefix}.`, teamId: id })
       }
     }
   }
@@ -347,7 +348,7 @@ function monteWorstPick(m: Manager, monte: Card[], rng: () => number): Card | nu
   return ranked[0].c
 }
 
-const MONTE_MS = 20_000
+const MONTE_MS = 45_000
 export const MONTE_SECONDS = MONTE_MS / 1000
 const MONTE_AFK_PENALTY = 5
 
@@ -484,11 +485,12 @@ function sealAndResolve(state: EscState) {
   state.phaseDeadline = null
 }
 
-// só humanos "presentes" precisam enviar; ausentes passam
+// todo humano com vaga aberta e dinheiro precisa enviar (não filtra por presença:
+// presença é um sinal instável de rede e causava avanço prematuro/dessincronizado
+// entre jogadores — um "piscar" de conexão fazia o jogo achar que só faltava um).
 function humansToSubmit(state: EscState, pos: Sector): number[] {
   return state.managers
     .filter(m => m.isHuman && openSlots(m, pos) > 0 && m.money > 0)
-    .filter(m => state.onlineMode !== 'online' || state.presence.length === 0 || state.presence.includes(m.id))
     .map(m => m.id)
 }
 
@@ -580,6 +582,9 @@ export function reducer(state: EscState, action: Action): EscState {
     }
     case 'FORCE_SEAL': {
       if (s.phase !== 'envelope' && s.phase !== 'resq_envelope') return s
+      // reconfirma o prazo no momento de aplicar: rejeita disparo atrasado/duplicado
+      // de um cliente que ficou pra trás (ex.: outro setor já começou)
+      if (!s.phaseDeadline || Date.now() < s.phaseDeadline) return s
       const pos = SECTORS[s.sectorIdx]
       const need = humansToSubmit(s, pos)
       for (const id of need) {
@@ -606,6 +611,8 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'MONTE_TIMEOUT': {
       // estourou o tempo da vez de um humano (AFK): pega a PIOR sobra e -5 moedas
       if (s.screen !== 'monte') return s
+      // reconfirma o prazo: rejeita disparo atrasado/duplicado de outra vez já passada
+      if (!s.monteDeadline || Date.now() < s.monteDeadline) return s
       const mgrId = s.monteOrder[s.monteIdx]
       const m = s.managers.find(x => x.id === mgrId)
       if (!m || !m.isHuman) return s
@@ -715,16 +722,30 @@ export function EscProvider({ children }: { children: ReactNode }) {
     channelRef.current?.send({ type: 'broadcast', event: 'state', payload: sanitize(state) })
   }, [state])
 
-  // host: se a vez do Monte de um humano estoura o tempo (AFK), força o auto-preenchimento
+  // Vigia do Monte: se a vez de um humano estoura o tempo (AFK), força o
+  // auto-preenchimento. Roda em TODOS os clientes conectados (não só o host) —
+  // se dependesse só do host, o celular dele apagar a tela travava a sala
+  // inteira pra sempre. O reducer reconfirma o prazo antes de aplicar, então
+  // disparos duplicados de vários clientes são inofensivos.
   useEffect(() => {
-    if (state.onlineMode !== 'online' || !state.isHost) return
+    if (state.onlineMode !== 'online') return
     if (state.screen !== 'monte' || !state.monteDeadline) return
     const cur = state.monteOrder[state.monteIdx]
     const m = state.managers.find(x => x.id === cur)
     if (!m || !m.isHuman) return
     const t = setTimeout(() => dispatch({ type: 'MONTE_TIMEOUT' }), Math.max(0, state.monteDeadline - Date.now()) + 300)
     return () => clearTimeout(t)
-  }, [state.monteDeadline, state.screen, state.monteIdx, state.isHost, state.onlineMode, state.managers, state.monteOrder, dispatch])
+  }, [state.monteDeadline, state.screen, state.monteIdx, state.onlineMode, state.managers, state.monteOrder, dispatch])
+
+  // Vigia do leilão: mesmo princípio — qualquer cliente conectado pode forçar
+  // o selamento quando o prazo do envelope estoura, não só o host.
+  useEffect(() => {
+    if (state.onlineMode !== 'online') return
+    if (state.phase !== 'envelope' && state.phase !== 'resq_envelope') return
+    if (!state.phaseDeadline) return
+    const t = setTimeout(() => dispatch({ type: 'FORCE_SEAL' }), Math.max(0, state.phaseDeadline - Date.now()) + 800)
+    return () => clearTimeout(t)
+  }, [state.phaseDeadline, state.phase, state.onlineMode, dispatch])
 
   // host persiste no banco a cada 3s
   useEffect(() => {
