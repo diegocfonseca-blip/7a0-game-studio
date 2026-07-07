@@ -520,7 +520,21 @@ function afterReveal(state: EscState) {
 }
 
 export function reducer(state: EscState, action: Action): EscState {
-  if (action.type === 'SYNC_STATE') return action.newState
+  if (action.type === 'SYNC_STATE') {
+    // O host manda o estado do JOGO (managers, deck, leilão, temporada...),
+    // mas identidade é local a cada cliente: "quem sou eu" (youIdx), "sou
+    // host?", sala. Sem isso, um convidado que recebe o broadcast do host
+    // passa a se enxergar como o PRÓPRIO host — via o mesmo técnico, o
+    // mesmo elenco — exatamente o "pegamos o mesmo jogador" relatado.
+    return {
+      ...action.newState,
+      youIdx: state.youIdx,
+      isHost: state.isHost,
+      roomId: state.roomId,
+      roomCode: state.roomCode,
+      onlineMode: state.onlineMode,
+    }
+  }
   if (action.type === 'NEW_GAME') return { ...INITIAL }
   const s: EscState = JSON.parse(JSON.stringify(state))
   switch (action.type) {
