@@ -91,6 +91,13 @@ export interface MatchResult {
   highlights: MatchHighlight[] // só preenchido no jogo do humano
 }
 
+export interface ScorerRow {
+  name: string
+  teamId: number
+  teamName: string
+  goals: number
+}
+
 export type Screen =
   | 'intro'
   | 'lobby'
@@ -138,4 +145,6 @@ export interface EscState {
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)
   champion: number | null
+  phaseDeadline: number | null // timestamp (ms) do fim do envelope
+  scorers: ScorerRow[] // artilharia acumulada da temporada
 }

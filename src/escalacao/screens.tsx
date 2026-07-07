@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Card, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
-import { useEsc, openSlots, totalHoles, sortedTable, START_MONEY } from './store'
+import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY } from './store'
 
 // ─── estilo base (neubrutalista, igual ao resto do estúdio) ──────────
 const CREAM = '#F4ECD6'
@@ -49,34 +49,45 @@ function Shell({ children, bar }: { children: React.ReactNode; bar?: React.React
 }
 
 // ─── campinho ────────────────────────────────────────────────────────
+// linhas top→bottom: ATA · MEI · defesa (LAT-esq · ZAG · ZAG · LAT-dir) · GOL
 function Campinho({ m, small = false }: { m: Manager; small?: boolean }) {
-  const rows: { pos: Sector; cards: (WonCard | null)[] }[] = useMemo(() => {
-    return ['ATA', 'MEI', 'ZAG', 'LAT', 'GOL'].map(p => {
-      const pos = p as Sector
-      const have = m.squad.filter(c => c.pos === pos)
-      const slots = FORMATIONS[m.formation][pos]
-      const cards: (WonCard | null)[] = []
-      for (let i = 0; i < slots; i++) cards.push(have[i] ?? null)
-      return { pos, cards }
-    })
+  const rows: { key: string; slots: { pos: Sector; card: WonCard | null }[] }[] = useMemo(() => {
+    const filled = (p: Sector) => m.squad.filter(c => c.pos === p)
+    const buildRow = (p: Sector): { pos: Sector; card: WonCard | null }[] => {
+      const have = filled(p)
+      const slots = FORMATIONS[m.formation][p]
+      return Array.from({ length: slots }, (_, i) => ({ pos: p, card: have[i] ?? null }))
+    }
+    const lats = buildRow('LAT') // [esquerda, direita] quando existirem
+    const zags = buildRow('ZAG')
+    const defense: { pos: Sector; card: WonCard | null }[] = []
+    if (lats[0]) defense.push(lats[0])
+    defense.push(...zags)
+    if (lats[1]) defense.push(lats[1])
+    return [
+      { key: 'ATA', slots: buildRow('ATA') },
+      { key: 'MEI', slots: buildRow('MEI') },
+      { key: 'DEF', slots: defense },
+      { key: 'GOL', slots: buildRow('GOL') },
+    ]
   }, [m.squad, m.formation])
 
   return (
     <div className="border-[3px] border-black rounded-2xl overflow-hidden" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
       <div className="px-3 py-2 flex flex-col gap-2" style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)` }}>
         {rows.map(row => (
-          <div key={row.pos} className="flex justify-center gap-2">
-            {row.cards.map((c, i) => (
+          <div key={row.key} className="flex justify-center gap-2">
+            {row.slots.map((slot, i) => (
               <div
                 key={i}
                 className={`border-2 border-black rounded-lg text-center ${small ? 'px-1 py-0.5 min-w-[52px]' : 'px-2 py-1 min-w-[72px]'}`}
-                style={{ backgroundColor: c ? '#fff' : 'rgba(255,255,255,0.25)' }}
+                style={{ backgroundColor: slot.card ? '#fff' : 'rgba(255,255,255,0.25)' }}
               >
-                <p className="text-[9px] font-black" style={{ color: c ? RED : '#fff' }}>{row.pos}</p>
-                <p className={`font-bold leading-tight ${small ? 'text-[9px]' : 'text-[11px]'}`} style={{ color: c ? INK : 'rgba(255,255,255,0.85)' }}>
-                  {c ? c.name : 'Vazio'}
+                <p className="text-[9px] font-black" style={{ color: slot.card ? RED : '#fff' }}>{slot.pos}</p>
+                <p className={`font-bold leading-tight ${small ? 'text-[9px]' : 'text-[11px]'}`} style={{ color: slot.card ? INK : 'rgba(255,255,255,0.95)' }}>
+                  {slot.card ? slot.card.name : 'Vazio'}
                 </p>
-                {c && !small && <p className="text-[8px] text-black/50 font-medium">{c.club} {c.year}</p>}
+                {slot.card && !small && <p className="text-[8px] text-black/60 font-medium">{slot.card.club} {slot.card.year}</p>}
               </div>
             ))}
           </div>
@@ -168,7 +179,7 @@ export function EscSetup() {
             ))}
           </div>
         </div>
-        <p className="text-xs font-semibold text-black/50">💰 Todo técnico começa com {START_MONEY} moedas. O que sobrar no fim do leilão <b>evapora</b> — gaste com sabedoria (ou sem).</p>
+        <p className="text-xs font-semibold text-black/70">💰 Todo técnico começa com {START_MONEY} moedas. O que sobrar no fim do leilão <b>evapora</b> — gaste com sabedoria (ou sem).</p>
       </Box>
       <Btn onClick={() => dispatch({ type: 'START', teamName: name, formation, rivals })} className="w-full text-lg" bg={GREEN}>
         <span className="text-white">ABRIR O PREGÃO 🔨</span>
@@ -216,6 +227,38 @@ function Envelope() {
   const humanBidders = state.managers.filter(m => m.isHuman && openSlots(m, pos) > 0 && m.money > 0)
   const waitingFor = humanBidders.filter(m => !state.submitted.includes(m.id))
 
+  // ─── cronômetro de 45s ───────────────────────────────────────────
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const iv = setInterval(() => setNow(Date.now()), 250)
+    return () => clearInterval(iv)
+  }, [])
+  const remaining = state.phaseDeadline ? Math.max(0, Math.ceil((state.phaseDeadline - now) / 1000)) : 45
+
+  function seal() {
+    dispatch({
+      type: 'SUBMIT_ENVELOPE',
+      mgrId: you.id,
+      bids: Object.entries(bids).map(([cardId, amount]) => ({ cardId, amount })),
+    })
+    setBids({})
+  }
+
+  // auto-lacra ao zerar o timer
+  useEffect(() => {
+    if (remaining <= 0 && canBid && !iSubmitted) seal()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remaining, canBid, iSubmitted])
+
+  // host força selamento quando estoura o prazo (caso outros não tenham lacrado)
+  useEffect(() => {
+    if (!state.isHost) return
+    if (state.phase !== 'envelope' && state.phase !== 'resq_envelope') return
+    if (!state.phaseDeadline) return
+    const t = setTimeout(() => dispatch({ type: 'FORCE_SEAL' }), Math.max(0, state.phaseDeadline - Date.now()) + 800)
+    return () => clearTimeout(t)
+  }, [state.phaseDeadline, state.phase, state.isHost, dispatch])
+
   // já lacrei (online): tela de espera pelos outros técnicos
   if (online && iSubmitted) {
     return (
@@ -223,11 +266,11 @@ function Envelope() {
         <div className="pt-10 text-center space-y-3">
           <div className="text-5xl">🔒</div>
           <h2 className="font-black text-2xl" style={OSWALD}>ENVELOPE LACRADO</h2>
-          <p className="font-semibold text-black/60">Aguardando os outros técnicos lacrarem…</p>
+          <p className="font-semibold text-black/70">Aguardando os outros técnicos lacrarem… ({remaining}s)</p>
           <Box className="p-3 mt-2 text-left">
             {humanBidders.map(m => (
-              <p key={m.id} className="text-sm font-bold flex justify-between">
-                <span>{m.isHuman && m.id === you.id ? '🫵 Você' : m.teamName}</span>
+              <p key={m.id} className="text-sm font-bold flex justify-between text-black">
+                <span>{m.id === you.id ? '🫵 Você' : m.teamName}</span>
                 <span>{state.submitted.includes(m.id) ? '✅ lacrou' : '⏳ pensando'}</span>
               </p>
             ))}
@@ -246,24 +289,33 @@ function Envelope() {
   }
 
   const cards = [...state.currentCards].sort((a, b) => b.fame - a.fame || a.name.localeCompare(b.name))
+  const timerColor = remaining <= 10 ? RED : remaining <= 20 ? GOLD : GREEN
+  const timerTextColor = remaining <= 20 ? INK : '#fff'
 
   return (
     <Shell bar={<AuctionBar />}>
-      <div className="pt-1">
-        <h2 className="font-black text-3xl" style={OSWALD}>
-          {rescue ? '⚡ REPESCAGEM · ' : '🔨 '}{SECTOR_LABEL[pos].toUpperCase()}
-        </h2>
-        <p className="text-sm font-semibold text-black/60">
-          {rescue
-            ? 'Sobras do setor, última chance de pagar por elas. Só quem ficou com buraco participa.'
-            : 'Lance cego: distribua suas moedas em segredo. Ninguém vê nada até a revelação.'}
-          {' '}Suas vagas no setor: <b>{myOpen}</b>.
-        </p>
+      <div className="pt-1 flex items-start justify-between gap-3">
+        <div className="flex-1">
+          <h2 className="font-black text-3xl" style={OSWALD}>
+            {rescue ? '⚡ REPESCAGEM · ' : '🔨 '}{SECTOR_LABEL[pos].toUpperCase()}
+          </h2>
+          <p className="text-sm font-semibold text-black/70">
+            {rescue
+              ? 'Sobras do setor, última chance de pagar por elas. Só quem ficou com buraco participa.'
+              : 'Lance cego: distribua suas moedas em segredo. Ninguém vê nada até a revelação.'}
+            {' '}Suas vagas: <b>{myOpen}</b>.
+          </p>
+        </div>
+        <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center min-w-[64px]"
+          style={{ backgroundColor: timerColor, boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <p className="text-[9px] font-black uppercase" style={{ color: timerTextColor }}>Tempo</p>
+          <p className="font-black text-2xl leading-none" style={{ ...OSWALD, color: timerTextColor }}>{remaining}s</p>
+        </div>
       </div>
 
       {!canBid && (
         <Box bg="#FFE9B0" className="p-3">
-          <p className="text-sm font-bold">{myOpen === 0 ? 'Setor completo — você só assiste esta rodada.' : 'Sem dinheiro — resta torcer pelo Monte Final.'}</p>
+          <p className="text-sm font-bold text-black">{myOpen === 0 ? 'Setor completo — você só assiste esta rodada.' : 'Sem dinheiro — resta torcer pelo Monte Final.'}</p>
         </Box>
       )}
 
@@ -273,11 +325,11 @@ function Envelope() {
             <CardFace c={c} />
             {canBid && (
               <div className="flex items-center gap-1.5">
-                <button onClick={() => setBid(c.id, (bids[c.id] ?? 0) - 1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white">−</button>
-                <span className="w-9 text-center font-black" style={OSWALD}>{bids[c.id] ?? 0}</span>
+                <button onClick={() => setBid(c.id, (bids[c.id] ?? 0) - 1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</button>
+                <span className="w-9 text-center font-black text-black" style={OSWALD}>{bids[c.id] ?? 0}</span>
                 <button
                   onClick={() => total < you.money && setBid(c.id, (bids[c.id] ?? 0) + 1)}
-                  className="border-2 border-black rounded-lg w-8 h-8 font-black"
+                  className="border-2 border-black rounded-lg w-8 h-8 font-black text-black"
                   style={{ backgroundColor: GOLD }}>+</button>
               </div>
             )}
@@ -286,13 +338,13 @@ function Envelope() {
       </div>
 
       <Box bg="#fff" className="p-3 flex items-center justify-between">
-        <p className="font-black" style={OSWALD}>ENVELOPE: {total} / {you.money}</p>
-        <Btn onClick={() => { dispatch({ type: 'SUBMIT_ENVELOPE', mgrId: you.id, bids: Object.entries(bids).map(([cardId, amount]) => ({ cardId, amount })) }); setBids({}) }} bg={RED}>
+        <p className="font-black text-black" style={OSWALD}>ENVELOPE: {total} / {you.money}</p>
+        <Btn onClick={seal} bg={RED}>
           <span className="text-white">LACRAR 🔒</span>
         </Btn>
       </Box>
       {online && waitingFor.length > 0 && (
-        <p className="text-center text-xs font-bold text-black/50">Faltam lacrar: {waitingFor.map(m => m.teamName).join(', ')}</p>
+        <p className="text-center text-xs font-bold text-black/60">Faltam lacrar: {waitingFor.map(m => m.teamName).join(', ')}</p>
       )}
 
       <Campinho m={you} />
@@ -302,8 +354,20 @@ function Envelope() {
 }
 
 // ─── LEILÃO: revelação ───────────────────────────────────────────────
-function Reveal() {
+function AutoAdvance({ hasBids, canDrive }: { hasBids: boolean; canDrive: boolean; isLast: boolean }) {
   const { state, dispatch } = useEsc()
+  useEffect(() => {
+    if (!canDrive) return
+    const delay = hasBids ? 2000 : 1000
+    const t = setTimeout(() => dispatch({ type: 'ADVANCE_REVEAL' }), delay)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.revealIdx, state.phase, canDrive, hasBids])
+  return null
+}
+
+function Reveal() {
+  const { state } = useEsc()
   const item = state.revealQueue[state.revealIdx]
   const you = state.managers[state.youIdx]
   if (!item) return null
@@ -314,7 +378,7 @@ function Reveal() {
 
   return (
     <Shell bar={<AuctionBar />}>
-      <p className="text-center text-xs font-black uppercase text-black/50 pt-1">
+      <p className="text-center text-xs font-black uppercase text-black/70 pt-1">
         Revelação {state.revealIdx + 1} / {state.revealQueue.length} · pote crescente
       </p>
       <motion.div key={item.card.id} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
@@ -322,7 +386,7 @@ function Reveal() {
           <CardFace c={item.card} big />
           <div className="mt-4 space-y-1.5">
             {item.bids.length === 0 && (
-              <p className="font-bold text-black/50">Nenhum lance. Vai pro Monte Final. 🪣</p>
+              <p className="font-bold text-black/70">Nenhum lance. Vai pro Monte Final. 🪣</p>
             )}
             {item.bids.map((b, i) => {
               const m = state.managers.find(x => x.id === b.mgr)!
@@ -348,20 +412,11 @@ function Reveal() {
           )}
         </Box>
       </motion.div>
-      {canDrive ? (
-        <div className="flex gap-2">
-          <Btn onClick={() => dispatch({ type: 'ADVANCE_REVEAL' })} className="flex-1">
-            {isLast ? 'FECHAR SETOR ➜' : 'PRÓXIMA CARTA ➜'}
-          </Btn>
-          {!isLast && !online && (
-            <Btn bg="#fff" onClick={() => { for (let i = state.revealIdx; i < state.revealQueue.length; i++) dispatch({ type: 'ADVANCE_REVEAL' }) }}>
-              PULAR ⏭
-            </Btn>
-          )}
-        </div>
-      ) : (
-        <p className="text-center text-sm font-bold text-black/55 py-2">🔨 O host está conduzindo a revelação…</p>
-      )}
+      {/* auto-avanço: 1s por carta, 2s se houve lance */}
+      <AutoAdvance hasBids={item.bids.length > 0} canDrive={canDrive} isLast={isLast} />
+      <p className="text-center text-xs font-bold text-black/60 py-1">
+        {canDrive ? '🎬 Passando automaticamente…' : '🔨 O host está conduzindo a revelação…'}
+      </p>
       <Campinho m={you} small />
     </Shell>
   )
@@ -371,13 +426,13 @@ function RivalsStrip() {
   const { state } = useEsc()
   return (
     <div>
-      <p className="text-xs font-black uppercase text-black/50 mb-1.5">A sala</p>
+      <p className="text-xs font-black uppercase text-black/70 mb-1.5">A sala</p>
       <div className="grid grid-cols-2 gap-2">
         {state.managers.filter(m => !m.isHuman).map(m => (
           <Box key={m.id} className="p-2.5" shadow={3}>
             <p className="font-black text-sm truncate" style={OSWALD}>{m.teamName}</p>
             <p className="text-[11px] font-semibold text-black/55">{m.formation} · 💰 {m.money} · {11 - totalHoles(m)}/11</p>
-            <p className="text-[10px] font-medium text-black/45 truncate">
+            <p className="text-[10px] font-medium text-black/70 truncate">
               {m.squad.slice(-3).map(c => c.name).join(', ') || 'ainda sem contratações'}
             </p>
           </Box>
@@ -437,13 +492,13 @@ export function EscCerimonia() {
         <p className="text-sm font-semibold text-black/60">As faixas de nível abrem. Agora todo mundo descobre o que comprou.</p>
       </div>
       <Box bg={m.isHuman ? GOLD : '#fff'} className="p-4" shadow={6}>
-        <p className="font-black text-xl" style={OSWALD}>{m.isHuman ? `🫵 ${m.teamName}` : m.teamName} <span className="text-sm font-bold text-black/50">({m.formation})</span></p>
+        <p className="font-black text-xl" style={OSWALD}>{m.isHuman ? `🫵 ${m.teamName}` : m.teamName} <span className="text-sm font-bold text-black/70">({m.formation})</span></p>
         <div className="mt-2 space-y-1.5">
           {[...m.squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(c => (
             <div key={c.id} className="flex items-center justify-between border-2 border-black rounded-lg px-3 py-1.5 bg-white">
               <div>
-                <p className="font-bold text-sm">{c.pos} · {c.name} <span className="text-black/40 text-xs">({c.club} {c.year})</span></p>
-                <p className="text-[10px] font-semibold text-black/45">{c.via === 'monte' ? 'monte (grátis)' : c.via === 'repescagem' ? `repescagem · pagou ${c.paid}` : `leilão · pagou ${c.paid}`}</p>
+                <p className="font-bold text-sm">{c.pos} · {c.name} <span className="text-black/70 text-xs">({c.club} {c.year})</span></p>
+                <p className="text-[10px] font-semibold text-black/70">{c.via === 'monte' ? 'monte (grátis)' : c.via === 'repescagem' ? `repescagem · pagou ${c.paid}` : `leilão · pagou ${c.paid}`}</p>
               </div>
               <motion.span initial={{ rotateY: 90 }} animate={{ rotateY: 0 }} transition={{ delay: 0.15 }}
                 className="border-2 border-black rounded-lg px-2 py-1 font-black text-sm"
@@ -500,7 +555,7 @@ export function EscSeason() {
         <Box className="p-4 space-y-3">
           <p className="font-black text-lg" style={OSWALD}>
             PRÓXIMO: {fixture[0] === you.id ? `${you.teamName} × ${opp.name}` : `${opp.name} × ${you.teamName}`}
-            <span className="text-xs text-black/50"> {fixture[0] === you.id ? '(em casa)' : '(fora)'}</span>
+            <span className="text-xs text-black/70"> {fixture[0] === you.id ? '(em casa)' : '(fora)'}</span>
           </p>
           <div className="grid grid-cols-3 gap-2">
             {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
@@ -520,7 +575,7 @@ export function EscSeason() {
           ) : (
             <p className="text-center text-sm font-bold text-black/55 py-2">Escolha sua tática. O host puxa a rodada. ⏳</p>
           )}
-          <p className="text-[11px] font-semibold text-black/45">Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.</p>
+          <p className="text-[11px] font-semibold text-black/70">Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.</p>
         </Box>
       )}
 
@@ -531,8 +586,45 @@ export function EscSeason() {
       )}
 
       <TableBox highlight={you.id} />
+      <TopScorersBox highlight={you.id} />
       <Campinho m={you} small />
     </Shell>
+  )
+}
+
+function TopScorersBox({ highlight }: { highlight: number }) {
+  const { state } = useEsc()
+  const rows = topScorers(state, 10)
+  if (rows.length === 0) {
+    return (
+      <Box className="p-3">
+        <p className="font-black text-sm mb-1 text-black" style={OSWALD}>⚽ ARTILHARIA</p>
+        <p className="text-xs text-black/60 font-semibold">Sem gols ainda. Bola rolando…</p>
+      </Box>
+    )
+  }
+  return (
+    <Box className="p-3">
+      <p className="font-black text-sm mb-2 text-black" style={OSWALD}>⚽ ARTILHARIA · TEMPO REAL</p>
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="text-left text-black/60 font-black">
+            <th className="pr-1">#</th><th>Jogador</th><th>Time</th><th className="text-center">Gols</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={`${r.teamId}-${r.name}`} className="border-t border-black/10 font-semibold text-black"
+              style={{ backgroundColor: r.teamId === highlight ? GOLD : undefined }}>
+              <td className="pr-1">{i + 1}</td>
+              <td className="truncate max-w-[130px]">{r.name}</td>
+              <td className="truncate max-w-[110px] text-black/70">{r.teamName}</td>
+              <td className="text-center font-black">{r.goals}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Box>
   )
 }
 
@@ -544,7 +636,7 @@ function MatchCard({ r }: { r: { homeId: number; awayId: number; hg: number; ag:
       <p className="text-center font-black text-2xl" style={OSWALD}>{h.name} {r.hg} × {r.ag} {a.name}</p>
       <div className="mt-2 space-y-0.5">
         {r.highlights.map((hl, i) => <p key={i} className="text-xs font-semibold text-black/60">{hl.min}' {hl.text}</p>)}
-        {r.highlights.length === 0 && <p className="text-xs text-center font-semibold text-black/40">Jogo truncado, sem gols pra contar.</p>}
+        {r.highlights.length === 0 && <p className="text-xs text-center font-semibold text-black/70">Jogo truncado, sem gols pra contar.</p>}
       </div>
     </Box>
   )
@@ -558,7 +650,7 @@ function TableBox({ highlight }: { highlight: number }) {
       <p className="font-black text-sm mb-2" style={OSWALD}>TABELA</p>
       <table className="w-full text-xs">
         <thead>
-          <tr className="text-left text-black/45 font-black">
+          <tr className="text-left text-black/70 font-black">
             <th className="pr-1">#</th><th>Time</th><th className="text-center">P</th><th className="text-center">V</th><th className="text-center">E</th><th className="text-center">D</th><th className="text-center">SG</th>
           </tr>
         </thead>

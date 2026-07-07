@@ -2,7 +2,7 @@ import { createContext, useContext, useReducer, useEffect, useRef, useCallback }
 import type { ReactNode } from 'react'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid,
-  ResolvedCard, LeagueTeam, MatchResult, MatchHighlight,
+  ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { CATALOG, makeIncognita, CPU_MANAGERS, CLASSIC_CLUBS } from './data'
@@ -257,24 +257,39 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   const hg = poisson(lh, rng), ag = poisson(la, rng)
 
   const highlights: MatchHighlight[] = []
-  if (involveHuman) {
-    const mkScorers = (id: number, goals: number, prefix: string) => {
-      const m = state.managers.find(x => x.id === id)
-      for (let g = 0; g < goals; g++) {
-        const min = 3 + Math.floor(rng() * 88)
-        if (m) {
-          const shooters = m.squad.filter(c => c.pos === 'ATA' || c.pos === 'MEI')
-          const s = shooters[Math.floor(rng() * shooters.length)] ?? m.squad[0]
-          highlights.push({ min, text: `⚽ ${s?.name ?? '—'} marca para ${prefix}!` })
-        } else {
-          highlights.push({ min, text: `⚽ Gol de ${prefix}.` })
+  // atribui os gols a um jogador real e credita na artilharia da temporada
+  const creditGoals = (id: number, goals: number, prefix: string) => {
+    const m = state.managers.find(x => x.id === id)
+    for (let g = 0; g < goals; g++) {
+      const min = 3 + Math.floor(rng() * 88)
+      let scorerName: string | null = null
+      if (m && m.squad.length > 0) {
+        const pool: { name: string; w: number }[] = []
+        for (const c of m.squad) {
+          const w = c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05
+          pool.push({ name: c.name, w })
         }
+        const total = pool.reduce((s, p) => s + p.w, 0)
+        let r = rng() * total
+        for (const p of pool) { r -= p.w; if (r <= 0) { scorerName = p.name; break } }
+        if (!scorerName) scorerName = pool[0].name
+      }
+      if (scorerName) {
+        // credita no ranking
+        const row = state.scorers.find(s => s.name === scorerName && s.teamId === id)
+        if (row) row.goals++
+        else state.scorers.push({ name: scorerName, teamId: id, teamName: prefix, goals: 1 })
+        if (involveHuman) highlights.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!` })
+      } else if (involveHuman) {
+        highlights.push({ min, text: `⚽ Gol de ${prefix}.` })
       }
     }
-    const hName = state.league.find(t => t.id === homeId)!.name
-    const aName = state.league.find(t => t.id === awayId)!.name
-    mkScorers(homeId, hg, hName)
-    mkScorers(awayId, ag, aName)
+  }
+  const hName = state.league.find(t => t.id === homeId)!.name
+  const aName = state.league.find(t => t.id === awayId)!.name
+  creditGoals(homeId, hg, hName)
+  creditGoals(awayId, ag, aName)
+  if (involveHuman) {
     highlights.sort((a, b) => a.min - b.min)
     for (const [id, f] of [[homeId, fh], [awayId, fa]] as [number, TeamForm][]) {
       if (f.inspired && isHuman(id)) {
@@ -284,6 +299,10 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     }
   }
   return { homeId, awayId, hg, ag, highlights }
+}
+
+export function topScorers(state: EscState, limit = 10): ScorerRow[] {
+  return [...state.scorers].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, limit)
 }
 
 function applyResult(league: LeagueTeam[], r: MatchResult) {
@@ -372,6 +391,7 @@ const INITIAL: EscState = {
   monte: [], monteOrder: [], monteIdx: 0,
   league: [], fixtures: [], round: 0, tactics: {},
   lastResults: [], news: [], champion: null,
+  phaseDeadline: null, scorers: [],
 }
 
 // ─── ações ───────────────────────────────────────────────────────────
@@ -385,6 +405,7 @@ type Action =
   | { type: 'SET_PRESENCE'; indices: number[] }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[] }
   | { type: 'ADVANCE_REVEAL' }
+  | { type: 'FORCE_SEAL' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string }
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
   | { type: 'PLAY_ROUND' }
@@ -396,6 +417,8 @@ function rngOf(state: EscState): () => number {
   return mulberry(state.seed + state.sectorIdx * 977 + state.round * 131 + state.revealIdx * 7 + state.monteIdx * 13 + state.submitted.length * 101)
 }
 
+const ENVELOPE_MS = 45_000
+
 function startAuctionPhase(state: EscState, rescue: boolean) {
   const pos = SECTORS[state.sectorIdx]
   state.phase = rescue ? 'resq_envelope' : 'envelope'
@@ -404,6 +427,7 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   state.revealIdx = 0
   state.submitted = []
   state.pendingEnvelopes = {}
+  state.phaseDeadline = Date.now() + ENVELOPE_MS
 }
 
 // resolve o setor a partir dos envelopes coletados (humanos) + CPUs
@@ -432,6 +456,7 @@ function sealAndResolve(state: EscState) {
   state.currentCards = unsold
   state.submitted = []
   state.pendingEnvelopes = {}
+  state.phaseDeadline = null
 }
 
 // só humanos "presentes" precisam enviar; ausentes passam
@@ -528,6 +553,19 @@ export function reducer(state: EscState, action: Action): EscState {
       else afterReveal(s)
       return s
     }
+    case 'FORCE_SEAL': {
+      if (s.phase !== 'envelope' && s.phase !== 'resq_envelope') return s
+      const pos = SECTORS[s.sectorIdx]
+      const need = humansToSubmit(s, pos)
+      for (const id of need) {
+        if (!s.submitted.includes(id)) {
+          s.pendingEnvelopes[id] = s.pendingEnvelopes[id] ?? []
+          s.submitted.push(id)
+        }
+      }
+      sealAndResolve(s)
+      return s
+    }
     case 'MONTE_PICK': {
       if (s.screen !== 'monte') return s
       if (s.monteOrder[s.monteIdx] !== action.mgrId) return s
@@ -545,6 +583,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.league = buildLeague(s.managers)
       s.fixtures = buildFixtures(s.league)
       s.round = 0
+      s.scorers = []
       s.screen = 'season'
       return s
     }
