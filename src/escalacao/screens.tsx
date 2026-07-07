@@ -586,8 +586,45 @@ export function EscSeason() {
       )}
 
       <TableBox highlight={you.id} />
+      <TopScorersBox highlight={you.id} />
       <Campinho m={you} small />
     </Shell>
+  )
+}
+
+function TopScorersBox({ highlight }: { highlight: number }) {
+  const { state } = useEsc()
+  const rows = topScorers(state, 10)
+  if (rows.length === 0) {
+    return (
+      <Box className="p-3">
+        <p className="font-black text-sm mb-1 text-black" style={OSWALD}>⚽ ARTILHARIA</p>
+        <p className="text-xs text-black/60 font-semibold">Sem gols ainda. Bola rolando…</p>
+      </Box>
+    )
+  }
+  return (
+    <Box className="p-3">
+      <p className="font-black text-sm mb-2 text-black" style={OSWALD}>⚽ ARTILHARIA · TEMPO REAL</p>
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="text-left text-black/60 font-black">
+            <th className="pr-1">#</th><th>Jogador</th><th>Time</th><th className="text-center">Gols</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={`${r.teamId}-${r.name}`} className="border-t border-black/10 font-semibold text-black"
+              style={{ backgroundColor: r.teamId === highlight ? GOLD : undefined }}>
+              <td className="pr-1">{i + 1}</td>
+              <td className="truncate max-w-[130px]">{r.name}</td>
+              <td className="truncate max-w-[110px] text-black/70">{r.teamName}</td>
+              <td className="text-center font-black">{r.goals}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Box>
   )
 }
 
