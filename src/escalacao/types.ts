@@ -91,6 +91,13 @@ export interface MatchResult {
   highlights: MatchHighlight[] // só preenchido no jogo do humano
 }
 
+export interface ScorerRow {
+  name: string
+  teamId: number
+  teamName: string
+  goals: number
+}
+
 export type Screen =
   | 'intro'
   | 'lobby'
