@@ -36,10 +36,13 @@ function Btn({ children, onClick, bg = GOLD, disabled = false, className = '' }:
 }
 
 function Shell({ children, bar }: { children: React.ReactNode; bar?: React.ReactNode }) {
+  // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
+  // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
+  // branco (botões/fundos escuros) já define a cor explicitamente.
   return (
-    <div className="min-h-screen pb-16" style={{ backgroundColor: CREAM }}>
+    <div className="min-h-screen pb-16" style={{ backgroundColor: CREAM, color: INK }}>
       {bar && (
-        <div className="sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5" style={{ backgroundColor: '#fff' }}>
+        <div className="sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5" style={{ backgroundColor: '#fff', color: INK }}>
           {bar}
         </div>
       )}
