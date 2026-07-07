@@ -102,7 +102,7 @@ export default function IntroScreen() {
           className="mb-10"
         >
           <div className="text-xs tracking-[0.5em] mb-4 opacity-50" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
-            7A0 GAME STUDIO
+            D7 STUDIO
           </div>
           <div className="relative inline-block">
             <h1
