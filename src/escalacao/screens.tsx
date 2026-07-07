@@ -227,6 +227,38 @@ function Envelope() {
   const humanBidders = state.managers.filter(m => m.isHuman && openSlots(m, pos) > 0 && m.money > 0)
   const waitingFor = humanBidders.filter(m => !state.submitted.includes(m.id))
 
+  // ─── cronômetro de 45s ───────────────────────────────────────────
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const iv = setInterval(() => setNow(Date.now()), 250)
+    return () => clearInterval(iv)
+  }, [])
+  const remaining = state.phaseDeadline ? Math.max(0, Math.ceil((state.phaseDeadline - now) / 1000)) : 45
+
+  function seal() {
+    dispatch({
+      type: 'SUBMIT_ENVELOPE',
+      mgrId: you.id,
+      bids: Object.entries(bids).map(([cardId, amount]) => ({ cardId, amount })),
+    })
+    setBids({})
+  }
+
+  // auto-lacra ao zerar o timer
+  useEffect(() => {
+    if (remaining <= 0 && canBid && !iSubmitted) seal()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remaining, canBid, iSubmitted])
+
+  // host força selamento quando estoura o prazo (caso outros não tenham lacrado)
+  useEffect(() => {
+    if (!state.isHost) return
+    if (state.phase !== 'envelope' && state.phase !== 'resq_envelope') return
+    if (!state.phaseDeadline) return
+    const t = setTimeout(() => dispatch({ type: 'FORCE_SEAL' }), Math.max(0, state.phaseDeadline - Date.now()) + 800)
+    return () => clearTimeout(t)
+  }, [state.phaseDeadline, state.phase, state.isHost, dispatch])
+
   // já lacrei (online): tela de espera pelos outros técnicos
   if (online && iSubmitted) {
     return (
@@ -234,11 +266,11 @@ function Envelope() {
         <div className="pt-10 text-center space-y-3">
           <div className="text-5xl">🔒</div>
           <h2 className="font-black text-2xl" style={OSWALD}>ENVELOPE LACRADO</h2>
-          <p className="font-semibold text-black/60">Aguardando os outros técnicos lacrarem…</p>
+          <p className="font-semibold text-black/70">Aguardando os outros técnicos lacrarem… ({remaining}s)</p>
           <Box className="p-3 mt-2 text-left">
             {humanBidders.map(m => (
-              <p key={m.id} className="text-sm font-bold flex justify-between">
-                <span>{m.isHuman && m.id === you.id ? '🫵 Você' : m.teamName}</span>
+              <p key={m.id} className="text-sm font-bold flex justify-between text-black">
+                <span>{m.id === you.id ? '🫵 Você' : m.teamName}</span>
                 <span>{state.submitted.includes(m.id) ? '✅ lacrou' : '⏳ pensando'}</span>
               </p>
             ))}
@@ -257,24 +289,33 @@ function Envelope() {
   }
 
   const cards = [...state.currentCards].sort((a, b) => b.fame - a.fame || a.name.localeCompare(b.name))
+  const timerColor = remaining <= 10 ? RED : remaining <= 20 ? GOLD : GREEN
+  const timerTextColor = remaining <= 20 ? INK : '#fff'
 
   return (
     <Shell bar={<AuctionBar />}>
-      <div className="pt-1">
-        <h2 className="font-black text-3xl" style={OSWALD}>
-          {rescue ? '⚡ REPESCAGEM · ' : '🔨 '}{SECTOR_LABEL[pos].toUpperCase()}
-        </h2>
-        <p className="text-sm font-semibold text-black/60">
-          {rescue
-            ? 'Sobras do setor, última chance de pagar por elas. Só quem ficou com buraco participa.'
-            : 'Lance cego: distribua suas moedas em segredo. Ninguém vê nada até a revelação.'}
-          {' '}Suas vagas no setor: <b>{myOpen}</b>.
-        </p>
+      <div className="pt-1 flex items-start justify-between gap-3">
+        <div className="flex-1">
+          <h2 className="font-black text-3xl" style={OSWALD}>
+            {rescue ? '⚡ REPESCAGEM · ' : '🔨 '}{SECTOR_LABEL[pos].toUpperCase()}
+          </h2>
+          <p className="text-sm font-semibold text-black/70">
+            {rescue
+              ? 'Sobras do setor, última chance de pagar por elas. Só quem ficou com buraco participa.'
+              : 'Lance cego: distribua suas moedas em segredo. Ninguém vê nada até a revelação.'}
+            {' '}Suas vagas: <b>{myOpen}</b>.
+          </p>
+        </div>
+        <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center min-w-[64px]"
+          style={{ backgroundColor: timerColor, boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <p className="text-[9px] font-black uppercase" style={{ color: timerTextColor }}>Tempo</p>
+          <p className="font-black text-2xl leading-none" style={{ ...OSWALD, color: timerTextColor }}>{remaining}s</p>
+        </div>
       </div>
 
       {!canBid && (
         <Box bg="#FFE9B0" className="p-3">
-          <p className="text-sm font-bold">{myOpen === 0 ? 'Setor completo — você só assiste esta rodada.' : 'Sem dinheiro — resta torcer pelo Monte Final.'}</p>
+          <p className="text-sm font-bold text-black">{myOpen === 0 ? 'Setor completo — você só assiste esta rodada.' : 'Sem dinheiro — resta torcer pelo Monte Final.'}</p>
         </Box>
       )}
 
@@ -284,11 +325,11 @@ function Envelope() {
             <CardFace c={c} />
             {canBid && (
               <div className="flex items-center gap-1.5">
-                <button onClick={() => setBid(c.id, (bids[c.id] ?? 0) - 1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white">−</button>
-                <span className="w-9 text-center font-black" style={OSWALD}>{bids[c.id] ?? 0}</span>
+                <button onClick={() => setBid(c.id, (bids[c.id] ?? 0) - 1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</button>
+                <span className="w-9 text-center font-black text-black" style={OSWALD}>{bids[c.id] ?? 0}</span>
                 <button
                   onClick={() => total < you.money && setBid(c.id, (bids[c.id] ?? 0) + 1)}
-                  className="border-2 border-black rounded-lg w-8 h-8 font-black"
+                  className="border-2 border-black rounded-lg w-8 h-8 font-black text-black"
                   style={{ backgroundColor: GOLD }}>+</button>
               </div>
             )}
@@ -297,13 +338,13 @@ function Envelope() {
       </div>
 
       <Box bg="#fff" className="p-3 flex items-center justify-between">
-        <p className="font-black" style={OSWALD}>ENVELOPE: {total} / {you.money}</p>
-        <Btn onClick={() => { dispatch({ type: 'SUBMIT_ENVELOPE', mgrId: you.id, bids: Object.entries(bids).map(([cardId, amount]) => ({ cardId, amount })) }); setBids({}) }} bg={RED}>
+        <p className="font-black text-black" style={OSWALD}>ENVELOPE: {total} / {you.money}</p>
+        <Btn onClick={seal} bg={RED}>
           <span className="text-white">LACRAR 🔒</span>
         </Btn>
       </Box>
       {online && waitingFor.length > 0 && (
-        <p className="text-center text-xs font-bold text-black/50">Faltam lacrar: {waitingFor.map(m => m.teamName).join(', ')}</p>
+        <p className="text-center text-xs font-bold text-black/60">Faltam lacrar: {waitingFor.map(m => m.teamName).join(', ')}</p>
       )}
 
       <Campinho m={you} />
