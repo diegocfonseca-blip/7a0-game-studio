@@ -22,6 +22,16 @@ const GREEN = '#1B7A3D'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' }
 function randCode() { return Math.random().toString(36).slice(2, 8).toUpperCase() }
 
+// Guarda a sala no aparelho: no celular, trocar de app (ex.: abrir o
+// WhatsApp pra mandar o código) pode fazer o navegador descartar a aba da
+// memória. Ao voltar, a página recarrega do zero e, sem isso, o código
+// "some" — não porque saiu da sala, mas porque tudo que só existia em
+// memória foi perdido. Com isso salvo, reconectamos sozinhos.
+const LS_KEY = 'escalacao-room'
+function saveRoom(id: string) { try { localStorage.setItem(LS_KEY, id) } catch { /* ignora */ } }
+function clearSavedRoom() { try { localStorage.removeItem(LS_KEY) } catch { /* ignora */ } }
+function loadSavedRoom(): string | null { try { return localStorage.getItem(LS_KEY) } catch { return null } }
+
 function Field({ label, ...props }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div>
@@ -69,6 +79,27 @@ export function EscLobby() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Reconecta sozinho se a página recarregou com uma sala salva (ex.: o
+  // navegador descartou a aba ao trocar pro WhatsApp e voltar).
+  useEffect(() => {
+    if (!user) return
+    const savedId = loadSavedRoom()
+    if (!savedId) return
+    ;(async () => {
+      const { data: rd } = await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()
+      if (!rd || rd.game_state?.__game !== GAME_TAG) { clearSavedRoom(); return }
+      if (rd.status === 'started') { await triggerStart(rd); return }
+      if (rd.status === 'waiting') {
+        const { data: mySlot } = await supabase.from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
+        if (!mySlot) { clearSavedRoom(); return }
+        setRoom(rd); setIsHost(rd.host_id === user.id); setPhase('waiting')
+        return
+      }
+      clearSavedRoom()
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
+
   useEffect(() => {
     if (!room) return
     fetchPlayers(room.id)
@@ -85,18 +116,22 @@ export function EscLobby() {
     if (data) setPlayers(data as RoomPlayer[])
   }
 
-  function triggerStart(roomData: RoomInfo) {
-    setPlayers(cur => {
-      const myPl = cur.find(p => p.user_id === (user?.id ?? ''))
-      const sorted = [...cur].sort((a, b) => a.player_index - b.player_index)
-      dispatch({
-        type: 'START_ONLINE',
-        roomId: roomData.id, roomCode: roomData.code,
-        isHost: roomData.host_id === (user?.id ?? ''),
-        playerIndex: myPl?.player_index ?? 0,
-        playerNames: sorted.map(p => p.manager_name),
-      })
-      return cur
+  // Busca a lista de jogadores DIRETO do banco (não confia em estado local
+  // que pode estar vazio/desatualizado, ex.: logo após reconectar) — usar
+  // uma lista errada aqui faz o jogo montar o time errado como "você".
+  async function triggerStart(roomData: RoomInfo) {
+    if (!user) return
+    const { data: allPlayers } = await supabase.from('room_players').select('*').eq('room_id', roomData.id).order('player_index')
+    const sorted = (allPlayers ?? []) as RoomPlayer[]
+    const myPl = sorted.find(p => p.user_id === user.id)
+    if (!myPl) return
+    clearSavedRoom()
+    dispatch({
+      type: 'START_ONLINE',
+      roomId: roomData.id, roomCode: roomData.code,
+      isHost: roomData.host_id === user.id,
+      playerIndex: myPl.player_index,
+      playerNames: sorted.map(p => p.manager_name),
     })
   }
 
@@ -128,6 +163,7 @@ export function EscLobby() {
       .select().single()
     if (re || !rd) { setRoomError('Erro ao criar sala.'); setLoading(false); return }
     await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: 0, manager_name: nameOf(), is_ready: true })
+    saveRoom(rd.id)
     setRoom(rd); setIsHost(true); setPhase('waiting'); setLoading(false)
   }
 
@@ -149,6 +185,7 @@ export function EscLobby() {
     let idx = 1; while (used.has(idx)) idx++
     if (idx >= rd.max_players) { setRoomError('Sala cheia!'); setLoading(false); return }
     await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: idx, manager_name: nameOf(), is_ready: true })
+    saveRoom(rd.id)
     setRoom(rd); setIsHost(false); setPhase('waiting'); setLoading(false)
   }
 
@@ -159,6 +196,7 @@ export function EscLobby() {
   async function leaveRoom() {
     if (!room || !user) return
     await supabase.from('room_players').delete().eq('room_id', room.id).eq('user_id', user.id)
+    clearSavedRoom()
     setRoom(null); setPlayers([]); setPhase('menu')
   }
 

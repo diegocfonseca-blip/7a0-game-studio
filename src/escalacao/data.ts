@@ -122,7 +122,7 @@ const MEI: C[] = [
   { name: 'Ramires', club: 'Cruzeiro', year: 2008, fame: 2, lo: 60, hi: 79 },
   // ── ampliação (inclui estrangeiros que brilharam no Brasil) ──
   { name: 'Clodoaldo', club: 'Santos', year: 1970, fame: 4, lo: 85, hi: 92 },
-  { name: 'Gérson', club: 'São Paulo', year: 1972, fame: 4, lo: 86, hi: 92 },
+  { name: 'Juninho Paulista', club: 'São Paulo', year: 2009, fame: 3, lo: 79, hi: 87 },
   { name: 'Zé Roberto', club: 'Palmeiras', year: 2010, fame: 3, lo: 82, hi: 89 },
   { name: 'Rincón', club: 'Corinthians', year: 1998, fame: 3, lo: 80, hi: 88 },
   { name: 'Arrascaeta', club: 'Cruzeiro', year: 2017, fame: 3, lo: 80, hi: 89 },
