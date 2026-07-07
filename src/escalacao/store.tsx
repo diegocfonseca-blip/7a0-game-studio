@@ -553,6 +553,19 @@ export function reducer(state: EscState, action: Action): EscState {
       else afterReveal(s)
       return s
     }
+    case 'FORCE_SEAL': {
+      if (s.phase !== 'envelope' && s.phase !== 'resq_envelope') return s
+      const pos = SECTORS[s.sectorIdx]
+      const need = humansToSubmit(s, pos)
+      for (const id of need) {
+        if (!s.submitted.includes(id)) {
+          s.pendingEnvelopes[id] = s.pendingEnvelopes[id] ?? []
+          s.submitted.push(id)
+        }
+      }
+      sealAndResolve(s)
+      return s
+    }
     case 'MONTE_PICK': {
       if (s.screen !== 'monte') return s
       if (s.monteOrder[s.monteIdx] !== action.mgrId) return s
