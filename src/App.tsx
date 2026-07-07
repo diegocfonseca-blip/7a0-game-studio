@@ -11,8 +11,9 @@ import MatchScreen from './screens/MatchScreen'
 import MarketScreen from './screens/MarketScreen'
 import EmpresarioGame from './empresario'
 import DraftGame from './draft'
+import EscalacaoGame from './escalacao'
 
-type GameKey = 'ladrao' | 'empresario' | 'draft'
+type GameKey = 'ladrao' | 'empresario' | 'draft' | 'escalacao'
 
 function LadraoGame() {
   const { state } = useGame()
@@ -41,6 +42,21 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
       </div>
 
       <div className="w-full max-w-sm space-y-4">
+        <motion.button
+          onClick={() => onSelect('escalacao')}
+          whileTap={{ x: 3, y: 3 }}
+          className="w-full text-left border-[3px] border-black rounded-2xl p-6 transition-all"
+          style={{ backgroundColor: '#1B7A3D', boxShadow: '6px 6px 0 0 #0C0C0C' }}
+        >
+          <div className="text-4xl mb-3">🔨</div>
+          <p className="text-white font-black text-2xl" style={{ fontFamily: 'Oswald, sans-serif' }}>A ESCALAÇÃO</p>
+          <p className="text-white/80 text-sm mt-1 font-medium">
+            Leilão cego por setor: lance secreto, níveis ocultos até a Cerimônia da Revelação e um campeonato de 38 rodadas pra provar quem entende de bola.
+          </p>
+          <span className="inline-block mt-3 border-2 border-black rounded-full px-2.5 py-0.5 text-xs font-black uppercase"
+                style={{ backgroundColor: '#FFC400', color: '#000' }}>NOVO ✦</span>
+        </motion.button>
+
         <motion.button
           onClick={() => onSelect('draft')}
           whileTap={{ x: 3, y: 3 }}
@@ -105,6 +121,10 @@ export default function App() {
 
   if (selectedGame === 'draft') {
     return <DraftGame />
+  }
+
+  if (selectedGame === 'escalacao') {
+    return <EscalacaoGame />
   }
 
   return (
