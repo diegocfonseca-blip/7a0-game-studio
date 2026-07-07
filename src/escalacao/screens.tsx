@@ -400,20 +400,11 @@ function Reveal() {
           )}
         </Box>
       </motion.div>
-      {canDrive ? (
-        <div className="flex gap-2">
-          <Btn onClick={() => dispatch({ type: 'ADVANCE_REVEAL' })} className="flex-1">
-            {isLast ? 'FECHAR SETOR ➜' : 'PRÓXIMA CARTA ➜'}
-          </Btn>
-          {!isLast && !online && (
-            <Btn bg="#fff" onClick={() => { for (let i = state.revealIdx; i < state.revealQueue.length; i++) dispatch({ type: 'ADVANCE_REVEAL' }) }}>
-              PULAR ⏭
-            </Btn>
-          )}
-        </div>
-      ) : (
-        <p className="text-center text-sm font-bold text-black/55 py-2">🔨 O host está conduzindo a revelação…</p>
-      )}
+      {/* auto-avanço: 1s por carta, 2s se houve lance */}
+      <AutoAdvance hasBids={item.bids.length > 0} canDrive={canDrive} isLast={isLast} />
+      <p className="text-center text-xs font-bold text-black/60 py-1">
+        {canDrive ? '🎬 Passando automaticamente…' : '🔨 O host está conduzindo a revelação…'}
+      </p>
       <Campinho m={you} small />
     </Shell>
   )
