@@ -2,7 +2,7 @@ import { createContext, useContext, useReducer, useEffect, useRef, useCallback }
 import type { ReactNode } from 'react'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid,
-  ResolvedCard, LeagueTeam, MatchResult, MatchHighlight,
+  ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { CATALOG, makeIncognita, CPU_MANAGERS, CLASSIC_CLUBS } from './data'
