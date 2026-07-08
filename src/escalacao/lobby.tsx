@@ -75,6 +75,9 @@ export function EscLobby() {
   const [openRooms, setOpenRooms] = useState<OpenRoom[]>([])
   const [listLoading, setListLoading] = useState(false)
   const [search, setSearch] = useState('')
+  // edição rápida do nome de técnico (na home)
+  const [editingName, setEditingName] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -152,6 +155,16 @@ export function EscLobby() {
   }
 
   const nameOf = () => user?.user_metadata?.display_name ?? user?.email?.split('@')[0] ?? 'Técnico'
+
+  // salva o nome de técnico (display_name) — usado no chip de edição rápida
+  async function saveName() {
+    const nm = nameDraft.trim()
+    if (!nm) return
+    setLoading(true)
+    const { data, error } = await supabase.auth.updateUser({ data: { display_name: nm } })
+    if (!error && data.user) setUser(data.user)
+    setEditingName(false); setLoading(false)
+  }
 
   async function handleAuth() {
     setLoading(true); setAuthError('')
@@ -292,15 +305,35 @@ export function EscLobby() {
     const TABS: { id: 'create' | 'open' | 'join'; label: string }[] = [
       { id: 'create', label: 'Criar sala' }, { id: 'open', label: 'Salas abertas' }, { id: 'join', label: 'Entrar' },
     ]
+    const hasName = !!user?.user_metadata?.display_name
     const filtered = openRooms.filter(r => {
       const nm = r.game_state?.roomName ?? r.code
       return nm.toLowerCase().includes(search.trim().toLowerCase())
     })
     return wrap(<>
-      <div className="text-center">
-        <div className="text-6xl mb-2">🔨</div>
+      <div className="text-center space-y-2">
+        <div className="text-6xl">🔨</div>
         <h1 className="font-black text-3xl text-white" style={OSWALD}>LEILÃO LEGENDS 38</h1>
-        <p className="text-white/50 text-sm mt-1">Olá, <span className="text-white font-black">{nameOf()}</span></p>
+        {editingName ? (
+          <div className="flex gap-2 items-stretch max-w-xs mx-auto">
+            <input autoFocus value={nameDraft} onChange={e => setNameDraft(e.target.value)} maxLength={20}
+              placeholder="Seu nome de técnico" onKeyDown={e => e.key === 'Enter' && saveName()}
+              className="flex-1 border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />
+            <button onClick={saveName} disabled={loading || !nameDraft.trim()}
+              className="border-[3px] border-black rounded-lg px-3 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>OK</button>
+            <button onClick={() => setEditingName(false)}
+              className="border-[3px] border-black rounded-lg px-3 font-black text-sm bg-white text-black">✕</button>
+          </div>
+        ) : (
+          <button onClick={() => { setNameDraft(user?.user_metadata?.display_name ?? ''); setEditingName(true) }}
+            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 border-2"
+            style={{ background: hasName ? 'rgba(255,255,255,.08)' : GOLD, borderColor: hasName ? 'rgba(255,255,255,.25)' : '#000' }}>
+            <span className="font-black text-sm" style={{ color: hasName ? '#fff' : '#000' }}>
+              {hasName ? nameOf() : 'Toque pra pôr seu nome'}
+            </span>
+            <span style={{ fontSize: 13 }}>✏️</span>
+          </button>
+        )}
       </div>
 
       {/* abas */}
