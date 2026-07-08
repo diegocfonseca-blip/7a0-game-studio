@@ -48,7 +48,7 @@ export function totalHoles(m: Manager): number {
 // solo (dá espaço pra repescagem/monte com poucos jogadores reais no
 // catálogo), 1.0 (exato) no online — 2 humanos = exatamente 2 laterais × 2
 // vagas = 4 cartas, 5 humanos = 10, e assim por diante.
-function buildDeck(managers: Manager[], rng: () => number, margin: number): Record<Sector, Card[]> {
+function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set()): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
   for (const pos of SECTORS) {
     const demand = managers.reduce((s, m) => s + slotsOf(m, pos), 0)
@@ -59,10 +59,14 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number): Reco
     let legends = 0
     for (const c of catalog) {
       if (cards.length >= Math.floor(count * 0.72)) break
+      // já é o mesmo craque de outro time (bot ou outro setor) — nunca duplica
+      // o mesmo jogador real dentro da mesma partida
+      if (used.has(c.name)) continue
       if (c.fame === 5) {
         if (legends >= legendCap) continue
         legends++
       }
+      used.add(c.name)
       cards.push({ ...c, id: `cat-${pos}-${cards.length}`, pos })
     }
     const gems = Math.max(1, Math.ceil(managers.length / 3))
@@ -401,15 +405,16 @@ function advanceMonte(state: EscState, rng: () => number) {
 // tier controla a força — cria variedade real na tabela (uns fortes, a
 // maioria mediana, uns fracos) sem depender do leilão pra existir.
 type Tier = 'strong' | 'mid' | 'weak'
-function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number): WonCard[] {
+function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, used: Set<string>): WonCard[] {
   const squad: WonCard[] = []
   for (const pos of SECTORS) {
     const need = FORMATIONS[formation][pos]
-    const shuffled = [...CATALOG[pos]].sort(() => rng() - 0.5)
+    const shuffled = [...CATALOG[pos]].sort(() => rng() - 0.5).filter(c => !used.has(c.name))
     const pool = tier === 'strong' ? shuffled.filter(c => c.fame >= 3)
       : tier === 'weak' ? shuffled.filter(c => c.fame <= 2)
       : shuffled.filter(c => c.fame === 2 || c.fame === 3)
     const picks = pool.slice(0, need)
+    for (const c of picks) used.add(c.name)
     let gi = 0
     while (picks.length < need) {
       picks.push(makeIncognita(pos, squad.length + picks.length, tier === 'strong' && gi < 1, rng, picks.length))
@@ -424,8 +429,11 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number): W
 // mode 'solo': CPUs são rivais de verdade, disputam o leilão junto com você.
 // mode 'online': CPUs são só preenchimento da tabela — elenco pronto,
 // nunca aparecem no leilão, pra ele ficar do tamanho exato da sala humana.
-function makeManagers(humanNames: string[], formation: FormationKey, targetTotal: number, rng: () => number, mode: 'solo' | 'online'): Manager[] {
+// `used` acumula os nomes já escalados por bots — devolvido pra quem chamou
+// poder passar adiante pro buildDeck e nenhum craque repetir de time pra time
+function makeManagers(humanNames: string[], formation: FormationKey, targetTotal: number, rng: () => number, mode: 'solo' | 'online'): { managers: Manager[]; used: Set<string> } {
   const forms: FormationKey[] = ['4-3-3', '4-4-2']
+  const used = new Set<string>()
   const humans: Manager[] = humanNames.map((name, i) => ({
     id: i, name, teamName: name, isHuman: true, auctionRival: true,
     formation, money: START_MONEY, squad: [], aggression: 0.5, starHunger: 0.5,
@@ -445,10 +453,10 @@ function makeManagers(humanNames: string[], formation: FormationKey, targetTotal
     const tier: Tier = i < strongN ? 'strong' : i >= cpuCount - weakN ? 'weak' : 'mid'
     return {
       id: humans.length + i, name: c.name, teamName: c.team, isHuman: false, auctionRival: false,
-      formation: cpuFormation, money: 0, squad: makeBotSquad(cpuFormation, tier, rng), aggression: 0.5, starHunger: 0.5,
+      formation: cpuFormation, money: 0, squad: makeBotSquad(cpuFormation, tier, rng, used), aggression: 0.5, starHunger: 0.5,
     }
   })
-  return [...humans, ...cpus]
+  return { managers: [...humans, ...cpus], used }
 }
 
 // ─── estado inicial ──────────────────────────────────────────────────
@@ -680,9 +688,10 @@ export function reducer(state: EscState, action: Action): EscState {
       s.onlineMode = 'cpu'
       s.isHost = true
       s.humanCount = 1
-      s.managers = makeManagers([action.teamName || 'Meu Time'], action.formation, 1 + action.rivals, rng, 'solo')
+      const { managers: soloManagers, used: soloUsed } = makeManagers([action.teamName || 'Meu Time'], action.formation, 1 + action.rivals, rng, 'solo')
+      s.managers = soloManagers
       s.youIdx = 0
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.3)
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.3, soloUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}
@@ -701,10 +710,11 @@ export function reducer(state: EscState, action: Action): EscState {
       const rng = mulberry(s.seed)
       // a tabela sempre tem 20 times: os que faltam viram bots com elenco
       // pronto (não brigam no leilão — só os humanos disputam as cartas)
-      s.managers = makeManagers(action.playerNames, action.formation, LEAGUE_SIZE, rng, 'online')
+      const { managers: onlineManagers, used: onlineUsed } = makeManagers(action.playerNames, action.formation, LEAGUE_SIZE, rng, 'online')
+      s.managers = onlineManagers
       // sempre dobrado (2× a demanda dos humanos) — não é margem de folga,
       // é regra do jogo: cada rodada de vaga mostra o dobro de candidatos
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 2.0)
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 2.0, onlineUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}
