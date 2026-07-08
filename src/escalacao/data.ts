@@ -80,7 +80,7 @@ const ZAG: C[] = [
   { name: 'Chicão', club: 'Corinthians', year: 2009, fame: 2, lo: 61, hi: 82 },
   { name: 'Gamarra', club: 'Corinthians', year: 1998, fame: 3, lo: 79, hi: 87 },
   { name: 'Odvan', club: 'Vasco', year: 1997, fame: 2, lo: 58, hi: 79 },
-  { name: 'Beto Bacamarte', club: 'Grêmio', year: 1996, fame: 2, lo: 57, hi: 77 },
+  { name: 'Beto Bacamarte', club: 'Grêmio', year: 1972, fame: 2, lo: 57, hi: 77 },
   // ── ampliação ──
   { name: 'Hilderaldo Bellini', club: 'Vasco', year: 1958, fame: 4, lo: 85, hi: 91 },
   { name: 'Wilson Piazza', club: 'Cruzeiro', year: 1970, fame: 4, lo: 86, hi: 92 },

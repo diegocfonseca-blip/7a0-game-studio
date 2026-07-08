@@ -1082,7 +1082,7 @@ export function EscAlbum() {
     <Shell>
       <div className="text-center pt-4">
         <h2 className="font-black text-4xl" style={OSWALD}>📖 MEU ÁLBUM</h2>
-        <p className="font-semibold text-black/60 mt-1">Só quem é campeão do jogo ganha carta — uma por título. Vai colecionando os craques.</p>
+        <p className="font-semibold text-black/60 mt-1">Só quem é campeão no modo online ganha carta — uma por título. Vai colecionando os craques.</p>
         {cards && <p className="font-black text-lg mt-2" style={OSWALD}>{unique.length}/{CATALOG_TOTAL} craques</p>}
       </div>
       {cards === null && <p className="text-center font-bold text-black/60">Carregando…</p>}
