@@ -338,10 +338,10 @@ function Envelope() {
             {' '}Suas vagas: <b>{myOpen}</b>.
             {!rescue && totalBatches > 1 && <> Leva <b>{curBatch}/{totalBatches}</b> — mais vem a seguir.</>}
           </p>
-          {!rescue && online && (
+          {!rescue && canBid && bidLimit > 0 && (
             <p className="text-sm font-black mt-1" style={{ color: GREEN }}>
-              {roundsTotal > 1 && <>Rodada {state.roundIdx + 1}/{roundsTotal} — </>}
-              Nesta rodada você pode fechar até <b>{Math.min(roundSlots, myOpen)}</b> vaga{Math.min(roundSlots, myOpen) === 1 ? '' : 's'}.
+              {online && roundsTotal > 1 && <>Rodada {state.roundIdx + 1}/{roundsTotal} — </>}
+              Dê lance em até <b>{bidLimit}</b> jogador{bidLimit === 1 ? '' : 'es'} diferente{bidLimit === 1 ? '' : 's'} pra tentar fechar {bidLimit === 1 ? 'essa vaga' : 'essas vagas'}.
             </p>
           )}
         </div>

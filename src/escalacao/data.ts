@@ -207,7 +207,7 @@ const FOLKLORE_DUDS: { name: string; club: string; year: number; pos: Sector }[]
   { name: 'Judivan', club: 'Flamengo', year: 2011, pos: 'ZAG' },
   { name: 'Elicarlos', club: 'Flamengo', year: 2011, pos: 'ZAG' },
   { name: 'Walter Minhoca', club: 'Bangu', year: 2009, pos: 'LAT' },
-  { name: 'Sousa Caveirão', club: 'Olaria', year: 2006, pos: 'GOL' },
+  { name: 'Sousa Caveirão', club: 'Olaria', year: 2006, pos: 'ATA' },
 ]
 
 // ─── Incógnitas: geradas por partida, só como reforço quando o time B
