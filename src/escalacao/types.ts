@@ -19,6 +19,7 @@ export interface Card {
   fame: Fame
   lo: number // faixa de nível — oculta até a Cerimônia da Revelação
   hi: number
+  bio?: string // texto de referência (aparece na carta-lembrança do álbum)
 }
 
 export type Acquisition = 'leilao' | 'repescagem' | 'monte' | 'bot'
