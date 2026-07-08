@@ -438,7 +438,7 @@ function Reveal() {
                   className="flex items-center justify-between border-2 border-black rounded-lg px-3 py-1.5"
                   style={{ backgroundColor: isWinner ? GREEN : voided ? '#ddd' : '#fff' }}>
                   <p className="font-bold text-sm" style={{ color: isWinner ? '#fff' : INK }}>
-                    {m.isHuman ? '🫵 Você' : m.name}{voided ? ' · anulado (setor cheio)' : ''}
+                    {m.id === you.id ? '🫵 Você' : m.name}{voided ? ' · anulado (setor cheio)' : ''}
                   </p>
                   <p className="font-black" style={{ ...OSWALD, color: isWinner ? '#fff' : INK }}>{b.amount}</p>
                 </motion.div>
@@ -448,7 +448,7 @@ function Reveal() {
           {winnerMgr && (
             <motion.p initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: item.bids.length * 0.25 + 0.2 }}
               className="mt-3 text-center font-black text-lg" style={OSWALD}>
-              🔨 VENDIDO {winnerMgr.isHuman ? 'PRA VOCÊ' : `pro ${winnerMgr.teamName}`} por {item.paid}!
+              🔨 VENDIDO {winnerMgr.id === you.id ? 'PRA VOCÊ' : `pro ${winnerMgr.teamName}`} por {item.paid}!
             </motion.p>
           )}
         </Box>
@@ -547,6 +547,7 @@ export function EscCerimonia() {
   const { state, dispatch } = useEsc()
   const [idx, setIdx] = useState(0)
   const m = state.managers[idx]
+  const you = state.managers[state.youIdx]
   const isLastMgr = idx >= state.managers.length - 1
 
   // achados e micos da sala inteira
@@ -561,8 +562,8 @@ export function EscCerimonia() {
         <h2 className="font-black text-3xl" style={OSWALD}>🎭 CERIMÔNIA DA REVELAÇÃO</h2>
         <p className="text-sm font-semibold text-black/60">As faixas de nível abrem. Agora todo mundo descobre o que comprou.</p>
       </div>
-      <Box bg={m.isHuman ? GOLD : '#fff'} className="p-4" shadow={6}>
-        <p className="font-black text-xl" style={OSWALD}>{m.isHuman ? `🫵 ${m.teamName}` : m.teamName} <span className="text-sm font-bold text-black/70">({m.formation})</span></p>
+      <Box bg={m.id === you.id ? GOLD : '#fff'} className="p-4" shadow={6}>
+        <p className="font-black text-xl" style={OSWALD}>{m.id === you.id ? `🫵 ${m.teamName}` : m.teamName} <span className="text-sm font-bold text-black/70">({m.formation})</span></p>
         <div className="mt-2 space-y-1.5">
           {[...m.squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(c => (
             <div key={c.id} className="flex items-center justify-between border-2 border-black rounded-lg px-3 py-1.5 bg-white">
