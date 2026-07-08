@@ -14,7 +14,9 @@ type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'
 
 interface RoomPlayer { user_id: string; manager_name: string; player_index: number }
-interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: EscState & { __game?: string; formation?: FormationKey } }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string }
+interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS }
+type OpenRoom = RoomInfo & { count: number }
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -63,10 +65,16 @@ export function EscLobby() {
 
   const [joinCode, setJoinCode] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
+  const [roomName, setRoomName] = useState('')
   const [room, setRoom] = useState<RoomInfo | null>(null)
   const [players, setPlayers] = useState<RoomPlayer[]>([])
   const [isHost, setIsHost] = useState(false)
   const [roomError, setRoomError] = useState('')
+  // salas abertas (lista pública)
+  const [tab, setTab] = useState<'create' | 'open' | 'join'>('open')
+  const [openRooms, setOpenRooms] = useState<OpenRoom[]>([])
+  const [listLoading, setListLoading] = useState(false)
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -100,6 +108,12 @@ export function EscLobby() {
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
+
+  // carrega a lista quando o usuário abre a aba "Salas abertas"
+  useEffect(() => {
+    if (phase === 'menu' && tab === 'open') fetchOpenRooms()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, tab])
 
   useEffect(() => {
     if (!room) return
@@ -160,13 +174,61 @@ export function EscLobby() {
       const { data } = await supabase.from('game_rooms').select('id').eq('code', code).maybeSingle()
       if (!data) break; code = randCode()
     }
+    const name = (roomName.trim() || `Sala do ${nameOf()}`).slice(0, 24)
     const { data: rd, error: re } = await supabase.from('game_rooms')
-      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: { __game: GAME_TAG, formation } })
+      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: { __game: GAME_TAG, formation, roomName: name } })
       .select().single()
     if (re || !rd) { setRoomError('Erro ao criar sala.'); setLoading(false); return }
     await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: 0, manager_name: nameOf(), is_ready: true })
     saveRoom(rd.id)
     setRoom(rd); setIsHost(true); setPhase('waiting'); setLoading(false)
+  }
+
+  // lista pública de salas abertas (waiting) da Escalação
+  async function fetchOpenRooms() {
+    setListLoading(true)
+    // só salas recentes: uma sala "waiting" de horas atrás é sala abandonada
+    const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
+    const { data: rooms } = await supabase.from('game_rooms')
+      .select('id, code, host_id, max_players, status, game_state')
+      .eq('status', 'waiting')
+      .eq('game_state->>__game', GAME_TAG)
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+      .limit(50)
+    const list = (rooms ?? []) as RoomInfo[]
+    const ids = list.map(r => r.id)
+    const counts: Record<string, number> = {}
+    if (ids.length) {
+      const { data: pls } = await supabase.from('room_players').select('room_id').in('room_id', ids)
+      for (const p of (pls ?? []) as { room_id: string }[]) counts[p.room_id] = (counts[p.room_id] ?? 0) + 1
+    }
+    // só salas vivas: sem ninguém dentro (count 0) é sala fantasma abandonada
+    setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 })).filter(r => r.count >= 1))
+    setListLoading(false)
+  }
+
+  // entra numa sala já carregada (por código ou pela lista de salas abertas)
+  async function enterRoom(rd: RoomInfo) {
+    if (!user) return
+    if (rd.game_state?.__game !== GAME_TAG) { setRoomError('Essa sala é de outro jogo.'); setLoading(false); return }
+    if (rd.status === 'started') {
+      const { data: mySlot } = await supabase.from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
+      if (!mySlot) { setRoomError('Você não está nessa sala.'); setLoading(false); return }
+      triggerStart(rd); setLoading(false); return
+    }
+    if (rd.status !== 'waiting') { setRoomError('Sala indisponível.'); setLoading(false); return }
+    const { data: existing } = await supabase.from('room_players').select('user_id, player_index').eq('room_id', rd.id)
+    const rows = (existing ?? []) as { user_id: string; player_index: number }[]
+    // já estou nessa sala? volta pro slot que já é meu (evita duplicar)
+    const mine = rows.find(p => p.user_id === user.id)
+    if (mine) { saveRoom(rd.id); setRoom(rd); setIsHost(rd.host_id === user.id); setPhase('waiting'); setLoading(false); return }
+    const used = new Set(rows.map(p => p.player_index))
+    let idx = 1; while (used.has(idx)) idx++
+    if (idx >= rd.max_players) { setRoomError('Sala cheia!'); setLoading(false); return }
+    await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: idx, manager_name: nameOf(), is_ready: true })
+    saveRoom(rd.id)
+    setRoom(rd); setIsHost(false); setPhase('waiting'); setLoading(false)
   }
 
   async function joinRoom() {
@@ -176,19 +238,13 @@ export function EscLobby() {
     const { data: rd, error: re } = await supabase.from('game_rooms').select('*').eq('code', code).single()
     if (re || !rd) { setRoomError('Sala não encontrada.'); setLoading(false); return }
     if (rd.game_state?.__game !== GAME_TAG) { setRoomError('Esse código é de outro jogo.'); setLoading(false); return }
-    if (rd.status === 'started') {
-      const { data: mySlot } = await supabase.from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
-      if (!mySlot) { setRoomError('Você não está nessa sala.'); setLoading(false); return }
-      triggerStart(rd); setLoading(false); return
-    }
-    if (rd.status !== 'waiting') { setRoomError('Sala indisponível.'); setLoading(false); return }
-    const { data: existing } = await supabase.from('room_players').select('player_index').eq('room_id', rd.id)
-    const used = new Set((existing ?? []).map((p: { player_index: number }) => p.player_index))
-    let idx = 1; while (used.has(idx)) idx++
-    if (idx >= rd.max_players) { setRoomError('Sala cheia!'); setLoading(false); return }
-    await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: idx, manager_name: nameOf(), is_ready: true })
-    saveRoom(rd.id)
-    setRoom(rd); setIsHost(false); setPhase('waiting'); setLoading(false)
+    await enterRoom(rd)
+  }
+
+  async function joinFromList(rd: OpenRoom) {
+    if (!user) return
+    setLoading(true); setRoomError('')
+    await enterRoom(rd)
   }
 
   async function startOnline() {
@@ -232,42 +288,94 @@ export function EscLobby() {
     <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">← Voltar</button>
   </>)
 
-  if (phase === 'menu') return wrap(<>
-    <div className="text-center">
-      <div className="text-6xl mb-2">🔨</div>
-      <h1 className="font-black text-3xl text-white" style={OSWALD}>LEILÃO LEGENDS 38</h1>
-      <p className="text-white/50 text-sm mt-1">Olá, <span className="text-white font-black">{nameOf()}</span></p>
-    </div>
-    <div>
-      <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Formação da sala (vale pra todo mundo)</p>
+  if (phase === 'menu') {
+    const TABS: { id: 'create' | 'open' | 'join'; label: string }[] = [
+      { id: 'create', label: 'Criar sala' }, { id: 'open', label: 'Salas abertas' }, { id: 'join', label: 'Entrar' },
+    ]
+    const filtered = openRooms.filter(r => {
+      const nm = r.game_state?.roomName ?? r.code
+      return nm.toLowerCase().includes(search.trim().toLowerCase())
+    })
+    return wrap(<>
+      <div className="text-center">
+        <div className="text-6xl mb-2">🔨</div>
+        <h1 className="font-black text-3xl text-white" style={OSWALD}>LEILÃO LEGENDS 38</h1>
+        <p className="text-white/50 text-sm mt-1">Olá, <span className="text-white font-black">{nameOf()}</span></p>
+      </div>
+
+      {/* abas */}
       <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
-        {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => (
-          <button key={f} onClick={() => setFormation(f)}
-            className="flex-1 py-2.5 font-black text-sm uppercase" style={{ backgroundColor: formation === f ? GOLD : '#fff', color: '#000' }}>
-            {f}
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => { setTab(t.id); setRoomError('') }}
+            className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: tab === t.id ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+            {t.label}
           </button>
         ))}
       </div>
-    </div>
-    <Big onClick={createRoom} color={GOLD}>{loading ? 'Criando...' : '🏠 Criar Sala'}</Big>
-    <div className="space-y-2">
-      <Field label="Código da sala" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} placeholder="EX: ABCD12" maxLength={6}
-        onKeyDown={e => e.key === 'Enter' && joinRoom()} />
-      <Big onClick={joinRoom} color="#fff">{loading ? 'Entrando...' : '🔑 Entrar com Código'}</Big>
-    </div>
-    {roomError && <p className="text-red-400 text-sm font-bold">{roomError}</p>}
-    <Big onClick={() => dispatch({ type: 'GO_ALBUM' })} color="#fff">📖 Meu Álbum</Big>
-    <button onClick={() => supabase.auth.signOut()} className="text-white/30 text-xs underline w-full text-center">Sair da conta</button>
-    <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">← Menu inicial</button>
-  </>)
+
+      {tab === 'create' && <div className="space-y-3">
+        <Field label="Nome da sala" value={roomName} onChange={e => setRoomName(e.target.value)} placeholder={`Sala do ${nameOf()}`} maxLength={24} />
+        <div>
+          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Formação da sala (vale pra todo mundo)</p>
+          <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
+            {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => (
+              <button key={f} onClick={() => setFormation(f)}
+                className="flex-1 py-2.5 font-black text-sm uppercase" style={{ backgroundColor: formation === f ? GOLD : '#fff', color: '#000' }}>
+                {f}
+              </button>
+            ))}
+          </div>
+        </div>
+        <Big onClick={createRoom} color={GOLD}>{loading ? 'Criando...' : '🏠 Criar Sala'}</Big>
+      </div>}
+
+      {tab === 'open' && <div className="space-y-3">
+        <Field label="Buscar sala" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar sala…" />
+        <div className="space-y-2">
+          {listLoading && <p className="text-white/50 text-sm font-bold text-center py-3">Carregando salas…</p>}
+          {!listLoading && filtered.length === 0 && <p className="text-white/50 text-sm font-bold text-center py-3">Nenhuma sala aberta agora. Crie a sua! 🔨</p>}
+          {filtered.map(r => {
+            const nm = r.game_state?.roomName ?? r.code
+            const full = r.count >= r.max_players
+            return (
+              <div key={r.id} className="flex items-center gap-2 border-[3px] border-black rounded-xl p-3 bg-[#F4ECD6]" style={{ boxShadow: `3px 3px 0 ${INK}` }}>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-black text-sm truncate" style={OSWALD}>{nm}</p>
+                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}/{r.max_players} · {r.code}</p>
+                </div>
+                <button onClick={() => joinFromList(r)} disabled={loading || full}
+                  className="border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
+                  style={{ backgroundColor: full ? '#ccc' : GREEN, color: full ? '#000' : '#fff', ...OSWALD }}>
+                  {full ? 'Cheia' : 'Entrar'}
+                </button>
+              </div>
+            )
+          })}
+        </div>
+        <Big onClick={fetchOpenRooms} color="#fff">🔄 Atualizar lista</Big>
+      </div>}
+
+      {tab === 'join' && <div className="space-y-2">
+        <Field label="Código da sala" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} placeholder="EX: ABCD12" maxLength={6}
+          onKeyDown={e => e.key === 'Enter' && joinRoom()} />
+        <Big onClick={joinRoom} color="#fff">{loading ? 'Entrando...' : '🔑 Entrar com Código'}</Big>
+      </div>}
+
+      {roomError && <p className="text-red-400 text-sm font-bold">{roomError}</p>}
+      <Big onClick={() => dispatch({ type: 'GO_ALBUM' })} color="#fff">📖 Meu Álbum</Big>
+      <button onClick={() => supabase.auth.signOut()} className="text-white/30 text-xs underline w-full text-center">Sair da conta</button>
+      <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">← Menu inicial</button>
+    </>)
+  }
 
   if (phase === 'waiting' && room) {
     const ready = players.length >= 2
     return wrap(<>
       <div className="text-center">
+        {room.game_state?.roomName && <p className="text-white font-black text-xl mb-1" style={OSWALD}>{room.game_state.roomName}</p>}
         <p className="text-white/50 text-[11px] font-black uppercase tracking-widest">Código da Sala</p>
         <p className="font-black text-5xl text-white tracking-[0.2em] mt-1">{room.code}</p>
-        <p className="text-white/30 text-xs mt-1">Compartilhe com a galera</p>
+        <p className="text-white/30 text-xs mt-1">Aparece nas Salas Abertas ou compartilhe o código</p>
       </div>
       <div className="border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-3">Técnicos ({players.length}/{room.max_players})</p>
