@@ -57,8 +57,11 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     const cards: Card[] = []
     const legendCap = Math.max(1, Math.ceil(managers.length / 2))
     let legends = 0
+    // preenche o baralho INTEIRO com jogadores reais do catálogo — nada de
+    // nome inventado no leilão. Só cai pra incógnita se o catálogo real da
+    // posição realmente acabar (sala gigante), o que quase nunca acontece
     for (const c of catalog) {
-      if (cards.length >= Math.floor(count * 0.72)) break
+      if (cards.length >= count) break
       // já é o mesmo craque de outro time (bot ou outro setor) — nunca duplica
       // o mesmo jogador real dentro da mesma partida
       if (used.has(c.name)) continue
@@ -72,7 +75,7 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     const gems = Math.max(1, Math.ceil(managers.length / 3))
     let gi = 0
     while (cards.length < count) {
-      cards.push(makeIncognita(pos, cards.length, gi < gems, rng, gi))
+      cards.push(makeIncognita(pos, cards.length, gi < gems, rng))
       gi++
     }
     deck[pos] = cards
@@ -417,7 +420,7 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
     for (const c of picks) used.add(c.name)
     let gi = 0
     while (picks.length < need) {
-      picks.push(makeIncognita(pos, squad.length + picks.length, tier === 'strong' && gi < 1, rng, picks.length))
+      picks.push(makeIncognita(pos, squad.length + picks.length, tier === 'strong' && gi < 1, rng))
       gi++
     }
     for (const c of picks) squad.push({ ...c, id: `bot-${pos}-${squad.length}-${Math.floor(rng() * 1e6)}`, pos, paid: 0, via: 'bot' })
@@ -429,11 +432,13 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
 // mode 'solo': CPUs são rivais de verdade, disputam o leilão junto com você.
 // mode 'online': CPUs são só preenchimento da tabela — elenco pronto,
 // nunca aparecem no leilão, pra ele ficar do tamanho exato da sala humana.
-// `used` acumula os nomes já escalados por bots — devolvido pra quem chamou
-// poder passar adiante pro buildDeck e nenhum craque repetir de time pra time
-function makeManagers(humanNames: string[], formation: FormationKey, targetTotal: number, rng: () => number, mode: 'solo' | 'online'): { managers: Manager[]; used: Set<string> } {
+// Cria os técnicos SEM montar ainda o elenco dos bots (online). Devolve os
+// "planos" dos bots pra quem chamou: assim dá pra montar o baralho do leilão
+// PRIMEIRO (pegando os reais) e só depois escalar os bots com o que sobrar —
+// evita o bot comer todos os laterais reais e o humano ver nome inventado.
+type BotPlan = { id: number; tier: Tier; formation: FormationKey }
+function makeManagers(humanNames: string[], formation: FormationKey, targetTotal: number, rng: () => number, mode: 'solo' | 'online'): { managers: Manager[]; botPlans: BotPlan[] } {
   const forms: FormationKey[] = ['4-3-3', '4-4-2']
-  const used = new Set<string>()
   const humans: Manager[] = humanNames.map((name, i) => ({
     id: i, name, teamName: name, isHuman: true, auctionRival: true,
     formation, money: START_MONEY, squad: [], aggression: 0.5, starHunger: 0.5,
@@ -442,6 +447,7 @@ function makeManagers(humanNames: string[], formation: FormationKey, targetTotal
   const names = CPU_MANAGERS.slice(0, cpuCount)
   const strongN = Math.max(1, Math.round(cpuCount * 0.15))
   const weakN = Math.max(1, Math.round(cpuCount * 0.15))
+  const botPlans: BotPlan[] = []
   const cpus: Manager[] = names.map((c, i) => {
     const cpuFormation = forms[Math.floor(rng() * forms.length)]
     if (mode === 'solo') {
@@ -451,12 +457,22 @@ function makeManagers(humanNames: string[], formation: FormationKey, targetTotal
       }
     }
     const tier: Tier = i < strongN ? 'strong' : i >= cpuCount - weakN ? 'weak' : 'mid'
+    botPlans.push({ id: humans.length + i, tier, formation: cpuFormation })
     return {
       id: humans.length + i, name: c.name, teamName: c.team, isHuman: false, auctionRival: false,
-      formation: cpuFormation, money: 0, squad: makeBotSquad(cpuFormation, tier, rng, used), aggression: 0.5, starHunger: 0.5,
+      formation: cpuFormation, money: 0, squad: [], aggression: 0.5, starHunger: 0.5,
     }
   })
-  return { managers: [...humans, ...cpus], used }
+  return { managers: [...humans, ...cpus], botPlans }
+}
+
+// escala os bots DEPOIS do baralho do leilão já ter reservado os reais que
+// os humanos vão disputar. `used` chega com os nomes do baralho dentro.
+function dealBotSquads(managers: Manager[], botPlans: BotPlan[], rng: () => number, used: Set<string>) {
+  for (const plan of botPlans) {
+    const bot = managers.find(m => m.id === plan.id)
+    if (bot) bot.squad = makeBotSquad(plan.formation, plan.tier, rng, used)
+  }
 }
 
 // ─── estado inicial ──────────────────────────────────────────────────
@@ -692,10 +708,12 @@ export function reducer(state: EscState, action: Action): EscState {
       s.onlineMode = 'cpu'
       s.isHost = true
       s.humanCount = 1
-      const { managers: soloManagers, used: soloUsed } = makeManagers([action.teamName || 'Meu Time'], action.formation, 1 + action.rivals, rng, 'solo')
+      const { managers: soloManagers, botPlans: soloPlans } = makeManagers([action.teamName || 'Meu Time'], action.formation, 1 + action.rivals, rng, 'solo')
       s.managers = soloManagers
       s.youIdx = 0
+      const soloUsed = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.3, soloUsed)
+      dealBotSquads(s.managers, soloPlans, rng, soloUsed) // no solo não há bots de preenchimento; no-op
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}
@@ -715,11 +733,14 @@ export function reducer(state: EscState, action: Action): EscState {
       const rng = mulberry(s.seed)
       // a tabela sempre tem 20 times: os que faltam viram bots com elenco
       // pronto (não brigam no leilão — só os humanos disputam as cartas)
-      const { managers: onlineManagers, used: onlineUsed } = makeManagers(action.playerNames, action.formation, LEAGUE_SIZE, rng, 'online')
+      const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, LEAGUE_SIZE, rng, 'online')
       s.managers = onlineManagers
       // sempre dobrado (2× a demanda dos humanos) — não é margem de folga,
-      // é regra do jogo: cada rodada de vaga mostra o dobro de candidatos
+      // é regra do jogo: cada rodada de vaga mostra o dobro de candidatos.
+      // O baralho é montado ANTES dos bots pra ficar 100% com reais.
+      const onlineUsed = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 2.0, onlineUsed)
+      dealBotSquads(s.managers, onlinePlans, rng, onlineUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}
@@ -834,14 +855,17 @@ export function reducer(state: EscState, action: Action): EscState {
       const formation = s.managers.find(m => m.isHuman)?.formation ?? '4-3-3'
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
+      const used = new Set<string>()
       if (s.onlineMode === 'online') {
-        const { managers, used } = makeManagers(humanNames, formation, LEAGUE_SIZE, rng, 'online')
+        const { managers, botPlans } = makeManagers(humanNames, formation, LEAGUE_SIZE, rng, 'online')
         s.managers = managers
         s.deck = buildDeck(auctioningManagers(s.managers), rng, 2.0, used)
+        dealBotSquads(s.managers, botPlans, rng, used)
       } else {
-        const { managers, used } = makeManagers(humanNames, formation, s.managers.length, rng, 'solo')
+        const { managers, botPlans } = makeManagers(humanNames, formation, s.managers.length, rng, 'solo')
         s.managers = managers
         s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.3, used)
+        dealBotSquads(s.managers, botPlans, rng, used)
       }
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0
