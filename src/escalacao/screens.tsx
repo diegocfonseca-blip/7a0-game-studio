@@ -936,6 +936,43 @@ function HallDaFama({ roomId, isHost, seasonNo, champName, scorerName, scorerGoa
   )
 }
 
+// ─── carta de colecionador: a raridade (fama) define o visual inteiro ──
+const FAME_TIER: Record<number, { label: string; grad: string; ink: string; tierColor: string; crestBg: string; crestInk: string; holo?: boolean }> = {
+  5: { label: '👑 LENDA', grad: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', ink: '#0C0C0C', tierColor: '#7a4d00', crestBg: 'rgba(255,255,255,.42)', crestInk: '#7a4d00', holo: true },
+  4: { label: '⭐ CRAQUE', grad: 'linear-gradient(150deg,#F2F4F7,#C9D2DB 55%,#A7B3BF)', ink: '#0C0C0C', tierColor: '#4a5560', crestBg: 'rgba(255,255,255,.55)', crestInk: '#4a5560' },
+  3: { label: '🎯 BOM DE BOLA', grad: 'linear-gradient(150deg,#E8B98A,#CD8B4E 60%,#A9662B)', ink: '#0C0C0C', tierColor: '#5c3410', crestBg: 'rgba(255,255,255,.48)', crestInk: '#5c3410' },
+  2: { label: '🔥 CULT', grad: 'linear-gradient(150deg,#8DE0B8,#2FA56B 60%,#1B7A4D)', ink: '#0a2e1c', tierColor: '#e9fff2', crestBg: 'rgba(255,255,255,.4)', crestInk: '#0a3a23' },
+  1: { label: 'FOLCLORE', grad: 'linear-gradient(150deg,#E7E2D4,#CFC7B2)', ink: '#0C0C0C', tierColor: '#7a725e', crestBg: 'rgba(255,255,255,.5)', crestInk: '#7a725e' },
+}
+function CollectibleCard({ name, club, year, pos, fame, big = false }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean }) {
+  const t = FAME_TIER[fame] ?? FAME_TIER[1]
+  const initial = name.trim()[0]?.toUpperCase() ?? '?'
+  return (
+    <div className="relative overflow-hidden border-[3px] border-black rounded-2xl flex flex-col justify-between"
+      style={{ background: t.grad, aspectRatio: '3 / 4.2', boxShadow: `5px 6px 0 0 ${INK}`, padding: big ? 16 : 11 }}>
+      {t.holo && (
+        <motion.div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'linear-gradient(115deg, transparent 30%, rgba(255,255,255,.78) 48%, transparent 62%)', backgroundSize: '250% 250%' }}
+          animate={{ backgroundPosition: ['180% 180%', '-80% -80%'] }}
+          transition={{ duration: 2.6, repeat: Infinity, ease: 'linear' }} />
+      )}
+      <div className="relative flex justify-between items-start gap-1">
+        <span className="font-black rounded-lg" style={{ ...OSWALD, background: INK, color: '#fff', border: '2px solid rgba(255,255,255,.25)', fontSize: big ? 13 : 11, padding: '2px 7px' }}>{pos}</span>
+        <span className="font-black tracking-wide text-right" style={{ ...OSWALD, color: t.tierColor, fontSize: big ? 11 : 9 }}>{t.label}</span>
+      </div>
+      <div className="relative self-center rounded-full flex items-center justify-center"
+        style={{ width: big ? 100 : 66, height: big ? 100 : 66, background: t.crestBg, color: t.crestInk, border: '3px solid rgba(0,0,0,.28)', ...OSWALD, fontWeight: 900, fontSize: big ? 42 : 27, boxShadow: t.holo ? 'inset 0 0 14px rgba(255,255,255,.7)' : 'none' }}>
+        {initial}
+      </div>
+      <div className="relative">
+        <p className="font-black leading-none truncate" style={{ ...OSWALD, color: t.ink, fontSize: big ? 26 : 17 }}>{name}</p>
+        <p className="font-extrabold" style={{ color: t.ink, opacity: .62, fontSize: big ? 12 : 10 }}>{club} · {year}</p>
+        <p style={{ fontSize: big ? 13 : 11, letterSpacing: 1, marginTop: 3 }}>{'⭐'.repeat(fame)}</p>
+      </div>
+    </div>
+  )
+}
+
 // ─── prêmio de campeão: escolhe 1 carta do seu time pro álbum ─────────
 const CARD_PICK_SECONDS = 25
 function CardCollectPrompt({ you, seasonKey }: { you: Manager; seasonKey: string }) {
@@ -992,12 +1029,11 @@ function CardCollectPrompt({ you, seasonKey }: { you: Manager; seasonKey: string
 
   if (status === 'revealed' && claimed) {
     return (
-      <Box bg={claimed.fame >= 5 ? GOLD : CREAM} className="p-5 text-center" shadow={6}>
-        <motion.div initial={{ rotateY: 90, opacity: 0 }} animate={{ rotateY: 0, opacity: 1 }} transition={{ duration: 0.6, type: 'spring' }}>
-          <p className="text-xs font-black uppercase text-black/60">🎴 Foi pro seu álbum!</p>
-          <p className="font-black text-3xl mt-2" style={OSWALD}>{claimed.name}</p>
-          <p className="text-sm font-bold text-black/70">{claimed.pos} · {claimed.club} · {claimed.year}</p>
-          {claimed.fame >= 5 && <p className="text-xs font-black uppercase mt-1" style={{ color: '#B8860B' }}>✨ carta lendária ✨</p>}
+      <Box bg={CREAM} className="p-5 text-center" shadow={6}>
+        <p className="text-xs font-black uppercase text-black/60 mb-3">🎴 Foi pro seu álbum!</p>
+        <motion.div initial={{ rotateY: 90, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.7, type: 'spring', bounce: 0.35 }}
+          className="mx-auto" style={{ maxWidth: 220 }}>
+          <CollectibleCard name={claimed.name} club={claimed.club} year={claimed.year} pos={claimed.pos} fame={claimed.fame} big />
         </motion.div>
         <Btn onClick={() => dispatch({ type: 'GO_ALBUM' })} bg={GREEN} className="w-full text-lg mt-4"><span className="text-white">📖 Ver meu álbum</span></Btn>
       </Box>
@@ -1007,17 +1043,14 @@ function CardCollectPrompt({ you, seasonKey }: { you: Manager; seasonKey: string
   return (
     <Box bg={GOLD} className="p-4" shadow={6}>
       <div className="flex items-center justify-between mb-2">
-        <p className="font-black text-lg" style={OSWALD}>🎴 Escolha uma carta pro seu álbum!</p>
+        <p className="font-black text-lg" style={OSWALD}>🎴 Escolha sua carta-lembrança!</p>
         <span className="border-2 border-black rounded-lg px-2 py-1 text-xs font-black bg-white">{remaining}s</span>
       </div>
-      <p className="text-xs font-bold text-black/70 mb-2">Campeão leva uma lembrança. Se o tempo acabar, o jogo escolhe uma pra você.</p>
-      <div className="space-y-1.5 max-h-72 overflow-y-auto">
+      <p className="text-xs font-bold text-black/70 mb-3">Campeão leva um craque do próprio time pro álbum. Se o tempo acabar, o jogo escolhe uma pra você.</p>
+      <div className="grid grid-cols-3 gap-2 max-h-80 overflow-y-auto">
         {you.squad.map(c => (
-          <button key={c.id} onClick={() => claim(c)} className="w-full text-left">
-            <Box bg="#fff" className="p-2.5 flex items-center justify-between" shadow={3}>
-              <CardFace c={c} />
-              {c.fame >= 5 && <span className="text-xs font-black" style={{ color: '#B8860B' }}>✨</span>}
-            </Box>
+          <button key={c.id} onClick={() => claim(c)} className="text-left">
+            <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} />
           </button>
         ))}
       </div>
@@ -1049,8 +1082,8 @@ export function EscAlbum() {
     <Shell>
       <div className="text-center pt-4">
         <h2 className="font-black text-4xl" style={OSWALD}>📖 MEU ÁLBUM</h2>
-        <p className="font-semibold text-black/60 mt-1">Uma carta por título — vai colecionando conforme vira campeão.</p>
-        {cards && <p className="font-black text-lg mt-2" style={OSWALD}>{unique.length}/{CATALOG_TOTAL} jogadores</p>}
+        <p className="font-semibold text-black/60 mt-1">Só quem é campeão do jogo ganha carta — uma por título. Vai colecionando os craques.</p>
+        {cards && <p className="font-black text-lg mt-2" style={OSWALD}>{unique.length}/{CATALOG_TOTAL} craques</p>}
       </div>
       {cards === null && <p className="text-center font-bold text-black/60">Carregando…</p>}
       {cards && cards.length === 0 && (
@@ -1058,18 +1091,9 @@ export function EscAlbum() {
           <p className="font-bold text-black/70">Ainda sem cartas. Seja campeão de uma sala online pra ganhar a primeira!</p>
         </Box>
       )}
-      <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-3">
         {cards?.map((c, i) => (
-          <Box key={i} bg={c.card_fame >= 5 ? GOLD : '#fff'} className="p-3 flex items-center justify-between" shadow={3}>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black" style={{ backgroundColor: INK, color: '#fff' }}>{c.card_pos}</span>
-                <p className="font-black text-base" style={OSWALD}>{c.card_name}</p>
-                {c.card_fame >= 5 && <span className="text-xs font-black" style={{ color: '#B8860B' }}>✨</span>}
-              </div>
-              <p className="text-xs font-semibold text-black/60 mt-0.5">{c.card_club} · {c.card_year}</p>
-            </div>
-          </Box>
+          <CollectibleCard key={i} name={c.card_name} club={c.card_club} year={c.card_year} pos={c.card_pos} fame={c.card_fame} />
         ))}
       </div>
       <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg">← Voltar</Btn>
