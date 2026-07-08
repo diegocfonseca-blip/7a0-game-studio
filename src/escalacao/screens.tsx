@@ -465,9 +465,12 @@ function Reveal() {
 
 function RivalsStrip() {
   const { state } = useEsc()
-  // só quem REALMENTE disputa o leilão (bots de preenchimento já têm elenco
-  // pronto e nunca aparecem aqui — não fazem sentido numa disputa deles)
-  const rivals = state.managers.filter(m => !m.isHuman && m.auctionRival)
+  const you = state.managers[state.youIdx]
+  // só quem REALMENTE disputa o leilão, sem contar você mesmo: no solo são
+  // os rivais CPU; online são os amigos humanos da sala (bots de
+  // preenchimento já têm elenco pronto e nunca dão lance — não fazem
+  // sentido aqui)
+  const rivals = state.managers.filter(m => m.id !== you.id && m.auctionRival)
   if (rivals.length === 0) return null
   return (
     <div>
