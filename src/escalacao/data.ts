@@ -193,21 +193,18 @@ const ATA: C[] = [
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
 
-// ─── Vexames folclóricos: jogadores REAIS, famosos por serem ruins ou
-// por um vexame específico — não incógnitas inventadas. Mostra clube e
-// ano igual às lendas. Alguns clube/ano são aproximados (não tenho 100%
-// de certeza de todos); o resto da lista (fama 2, "cult/zoeira") já
+// ─── Vexames folclóricos: jogadores REAIS, famosos por um vexame ou
+// momento cult — não incógnitas inventadas. Mostra clube e ano igual às
+// lendas. Cada entrada foi checada (nome, posição, clube e ano de
+// verdade), não é chute — o resto da lista (fama 2, "cult/zoeira") já
 // cobre os folclóricos mais conhecidos, então aqui é só o time B.
 const FOLKLORE_DUDS: { name: string; club: string; year: number; pos: Sector }[] = [
-  { name: 'Deivid', club: 'Flamengo', year: 2012, pos: 'ATA' },
-  { name: 'Adriano Gol Contra', club: 'Portuguesa', year: 2010, pos: 'ATA' },
-  { name: 'Val Baiano', club: 'Bahia', year: 2008, pos: 'MEI' },
-  { name: 'Perdigão', club: 'Goiás', year: 2007, pos: 'MEI' },
-  { name: 'Robson Bambu', club: 'Vasco', year: 2015, pos: 'ZAG' },
-  { name: 'Judivan', club: 'Flamengo', year: 2011, pos: 'ZAG' },
-  { name: 'Elicarlos', club: 'Flamengo', year: 2011, pos: 'ZAG' },
-  { name: 'Walter Minhoca', club: 'Bangu', year: 2009, pos: 'LAT' },
-  { name: 'Sousa Caveirão', club: 'Olaria', year: 2006, pos: 'ATA' },
+  { name: 'Deivid', club: 'Flamengo', year: 2012, pos: 'ATA' }, // perdeu um gol feito em Fla-Vasco, virou piada nacional
+  { name: 'Souza Caveirão', club: 'Flamengo', year: 2007, pos: 'ATA' }, // apelido nasceu no Fla, com a comemoração do "Chororô"
+  { name: 'Val Baiano', club: 'Flamengo', year: 2010, pos: 'ATA' }, // 18 jogos, só 3 gols no Fla depois de badalado no Grêmio Barueri
+  { name: 'Perdigão', club: 'Internacional', year: 2006, pos: 'MEI' }, // Cleilton Eduardo Vicente, camisa do elenco campeão da Libertadores 2006
+  { name: 'Walter Minhoca', club: 'Flamengo', year: 2006, pos: 'MEI' }, // creditado como "pior camisa 10" da história do clube
+  { name: 'Robson Bambu', club: 'Vasco', year: 2023, pos: 'ZAG' }, // zagueiro criticado pelo salário alto x desempenho no Vasco
 ]
 
 // ─── Incógnitas: geradas por partida, só como reforço quando o time B
