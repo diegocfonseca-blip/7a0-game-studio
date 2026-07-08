@@ -38,6 +38,26 @@ export const BIOS: Record<string, string> = {
   'Hilderaldo Bellini': 'O homem que inventou o gesto de erguer a taça. Capitão do primeiro título mundial.',
   'Didi': 'O inventor da folha seca. Maestro do primeiro título mundial e melhor jogador da Copa de 58.',
   'Rivelino': 'O dono do Maracanã. Chute canhoto violento e o drible da vaca que encantou o mundo.',
+  // ⚡ Geração atual
+  'Vinicius Jr': 'O protagonista da nova geração. Velocidade e drible que decidem Champions pelo Real Madrid.',
+  'Casemiro': 'O cão de guarda mais premiado do futebol. Pilar de um Real Madrid multicampeão da Champions.',
+  'Rodrygo': 'Iluminado nos momentos de pressão. Técnica e faro de gols decisivos no Real Madrid.',
+  'Éder Militão': 'Força e velocidade no mano a mano. Pilar defensivo do Real Madrid campeão da Champions.',
+  'Marquinhos': 'Zagueiro-capitão do PSG e da Seleção. Saída de bola e liderança há mais de uma década na Europa.',
+  'Alisson': 'Paredão da Seleção e do Liverpool. Posicionamento perfeito e frieza cirúrgica nos pênaltis.',
+  'Bruno Guimarães': 'Ditador de ritmo. Une a raça inglesa com a ginga e a visão de jogo brasileira no Newcastle.',
+  'Lucas Paquetá': 'Meia criativo de muita técnica e chegada à área. Do Flamengo pra Europa como craque.',
+  'João Gomes': 'Volante de pulmão infinito. Marca, recupera e ainda chega na área — revelação do Flamengo.',
+  'Gabriel Jesus': 'Camisa 9 de muita movimentação e entrega. Do Palmeiras direto pra Premier League.',
+  'Richarlison': 'O Pombo. Centroavante de raça, gols de bicicleta e entrega máxima pela Seleção.',
+  'Endrick': 'A joia de Palmeiras e Real Madrid. Finalização precoce de craque — o futuro do ataque.',
+  'Antony': 'Ponta canhoto de dribles e chute colocado. Do São Paulo pro Ajax e Manchester United.',
+  'Vitor Roque': 'O Matador. Centroavante jovem, forte e finalizador — do Athletico ao Barcelona.',
+  'Yuri Alberto': 'Faro de gol apurado. Artilheiro jovem que virou referência no Corinthians.',
+  'Bremer': 'O muro brasileiro da Juventus. Duro no jogo aéreo e implacável na marcação.',
+  'Wesley': 'Lateral moderno do Flamengo: potência, arrancada e muita chegada ao ataque.',
+  'Caio Henrique': 'Lateral-esquerdo de bom passe e bola parada. Cresceu no Brasil e brilhou no Monaco.',
+  'Deyverson': 'O guerreiro folclórico. Roubou a bola e fez o gol do título da Libertadores de 2021 pelo Palmeiras.',
 }
 
 const GOL: C[] = [
@@ -70,6 +90,7 @@ const GOL: C[] = [
   { name: 'Gatito Fernández', club: 'Botafogo', year: 2017, fame: 2, lo: 64, hi: 82 },
   { name: 'Marcelo Grohe', club: 'Grêmio', year: 2017, fame: 3, lo: 76, hi: 85 },
   { name: 'Diego Cavalieri', club: 'Fluminense', year: 2012, fame: 2, lo: 66, hi: 82 },
+  { name: 'Alisson', club: 'Internacional', year: 2015, fame: 4, lo: 84, hi: 91 },
 ]
 
 const LAT: C[] = [
@@ -115,6 +136,8 @@ const LAT: C[] = [
   { name: 'Cortez', club: 'Grêmio', year: 2018, fame: 2, lo: 62, hi: 79 },
   { name: 'Rodinei', club: 'Flamengo', year: 2019, fame: 2, lo: 62, hi: 80 },
   { name: 'Isla', club: 'Flamengo', year: 2020, fame: 2, lo: 66, hi: 82 },
+  { name: 'Wesley', club: 'Flamengo', year: 2023, fame: 2, lo: 68, hi: 82 },
+  { name: 'Caio Henrique', club: 'Fluminense', year: 2019, fame: 2, lo: 66, hi: 82 },
 ]
 
 const ZAG: C[] = [
@@ -162,6 +185,9 @@ const ZAG: C[] = [
   { name: 'Rhodolfo', club: 'Grêmio', year: 2012, fame: 2, lo: 66, hi: 82 },
   { name: 'Anderson Martins', club: 'Vasco', year: 2018, fame: 2, lo: 64, hi: 81 },
   { name: 'Lucas Veríssimo', club: 'Santos', year: 2020, fame: 2, lo: 68, hi: 83 },
+  { name: 'Marquinhos', club: 'Corinthians', year: 2012, fame: 4, lo: 82, hi: 90 },
+  { name: 'Éder Militão', club: 'São Paulo', year: 2018, fame: 3, lo: 78, hi: 87 },
+  { name: 'Bremer', club: 'Atlético-MG', year: 2021, fame: 2, lo: 72, hi: 84 },
 ]
 
 const MEI: C[] = [
@@ -248,6 +274,10 @@ const MEI: C[] = [
   { name: 'Otávio', club: 'Athletico-PR', year: 2016, fame: 2, lo: 70, hi: 83 },
   { name: 'Camilo', club: 'Botafogo', year: 2015, fame: 2, lo: 68, hi: 82 },
   { name: 'Douglas', club: 'Grêmio', year: 2016, fame: 2, lo: 70, hi: 83 },
+  { name: 'Casemiro', club: 'São Paulo', year: 2012, fame: 4, lo: 82, hi: 90 },
+  { name: 'Bruno Guimarães', club: 'Athletico-PR', year: 2019, fame: 3, lo: 78, hi: 87 },
+  { name: 'Lucas Paquetá', club: 'Flamengo', year: 2018, fame: 3, lo: 78, hi: 87 },
+  { name: 'João Gomes', club: 'Flamengo', year: 2022, fame: 2, lo: 72, hi: 84 },
 ]
 
 const ATA: C[] = [
@@ -313,6 +343,14 @@ const ATA: C[] = [
   { name: 'Dudu', club: 'Palmeiras', year: 2018, fame: 3, lo: 76, hi: 86 },
   { name: 'Rony', club: 'Palmeiras', year: 2021, fame: 2, lo: 70, hi: 83 },
   { name: 'Keno', club: 'Atlético-MG', year: 2021, fame: 2, lo: 70, hi: 83 },
+  { name: 'Vinicius Jr', club: 'Flamengo', year: 2018, fame: 4, lo: 82, hi: 90 },
+  { name: 'Rodrygo', club: 'Santos', year: 2018, fame: 3, lo: 78, hi: 87 },
+  { name: 'Gabriel Jesus', club: 'Palmeiras', year: 2016, fame: 3, lo: 78, hi: 87 },
+  { name: 'Richarlison', club: 'Fluminense', year: 2016, fame: 3, lo: 76, hi: 86 },
+  { name: 'Endrick', club: 'Palmeiras', year: 2023, fame: 3, lo: 74, hi: 86 },
+  { name: 'Antony', club: 'São Paulo', year: 2020, fame: 2, lo: 72, hi: 84 },
+  { name: 'Vitor Roque', club: 'Athletico-PR', year: 2023, fame: 2, lo: 72, hi: 84 },
+  { name: 'Yuri Alberto', club: 'Corinthians', year: 2023, fame: 2, lo: 72, hi: 84 },
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
