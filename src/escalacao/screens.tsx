@@ -940,10 +940,24 @@ const FAME_TIER: Record<number, { label: string; grad: string; ink: string; tier
   2: { label: '🔥 CULT', grad: 'linear-gradient(150deg,#8DE0B8,#2FA56B 60%,#1B7A4D)', ink: '#0a2e1c', tierColor: '#e9fff2', crestBg: 'rgba(255,255,255,.4)', crestInk: '#0a3a23' },
   1: { label: 'FOLCLORE', grad: 'linear-gradient(150deg,#E7E2D4,#CFC7B2)', ink: '#0C0C0C', tierColor: '#7a725e', crestBg: 'rgba(255,255,255,.5)', crestInk: '#7a725e' },
 }
+// texto garantido pra QUALQUER carta: se o jogador ainda não tem uma bio
+// específica, mostra uma frase por categoria + posição — assim nenhuma
+// carta-lembrança fica sem nada escrito.
+function fallbackBio(fame: number, pos: string): string {
+  const p: Record<string, string> = { GOL: 'do gol', LAT: 'da lateral', ZAG: 'da zaga', MEI: 'do meio-campo', ATA: 'do ataque' }
+  const where = p[pos] ?? 'do futebol brasileiro'
+  switch (fame) {
+    case 5: return `Lenda ${where} — nome eterno do futebol brasileiro.`
+    case 4: return `Craque ${where}: brilhou de verdade e marcou época.`
+    case 3: return `Bom de bola ${where}, jogador de confiança e regularidade.`
+    case 2: return `Cult ${where} — a torcida amava, tinha seus dias de brilho.`
+    default: return `Folclore ${where}: puro carisma e resenha do nosso futebol.`
+  }
+}
 function CollectibleCard({ name, club, year, pos, fame, big = false, bio }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string }) {
   const t = FAME_TIER[fame] ?? FAME_TIER[1]
   const initial = name.trim()[0]?.toUpperCase() ?? '?'
-  const text = bio ?? BIOS[name]
+  const text = bio ?? BIOS[name] ?? fallbackBio(fame, pos)
   return (
     <div className="relative overflow-hidden border-[3px] border-black rounded-2xl flex flex-col justify-between"
       style={{ background: t.grad, aspectRatio: '3 / 4.2', boxShadow: `5px 6px 0 0 ${INK}`, padding: big ? 16 : 11 }}>
