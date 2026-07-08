@@ -6,7 +6,39 @@ import type { Card, Fame, Sector } from './types'
 // fama 2 = quase lenda: faixa LARGA — "o Obina tem dias"
 // fama 1 = incógnita (gerada por partida; algumas escondem joias)
 
-type C = { name: string; club: string; year: number; fame: Fame; lo: number; hi: number }
+type C = { name: string; club: string; year: number; fame: Fame; lo: number; hi: number; bio?: string }
+
+// texto de referência que aparece na carta-lembrança do álbum (só o campeão
+// ganha). Mapeado por nome — assim dá pra ir preenchendo aos poucos sem mexer
+// no catálogo. Quem não tem bio ainda mostra um texto genérico por categoria.
+export const BIOS: Record<string, string> = {
+  // 👑 Lendas
+  'Pelé': 'O Rei do Futebol. O maior de todos os tempos, topo absoluto do esporte mundial.',
+  'Garrincha': 'A alegria do povo. Dribles previsíveis, porém imparáveis, que carregaram o Brasil ao bi em 62.',
+  'Ronaldo': 'O Fenômeno. O maior camisa 9 da história: velocidade bizarra e potência que destruía defesas.',
+  'Romário': 'O gênio da grande área. Arranque curto mortal e frieza cirúrgica — campeão do mundo em 94.',
+  'Neymar': 'O maior talento técnico da última geração. O rei dos dribles plásticos.',
+  'Zico': 'O maior camisa 10 da história do Flamengo e a essência do futebol brasileiro pós-Pelé.',
+  'Ronaldinho Gaúcho': 'O auge mais plástico e mágico do futebol moderno. Fazia mágica sorrindo.',
+  'Rivaldo': 'Gênio da Copa de 2002. Passada elegante, finalização cirúrgica, eleito o melhor do mundo.',
+  'Sócrates': 'O Doutor. Inteligência pura, passes de calcanhar milimétricos e um dos maiores líderes do esporte.',
+  'Jairzinho': 'O Furacão da Copa. Único a marcar em todas as partidas de um Mundial (1970).',
+  'Zizinho': 'O grande ídolo de Pelé. Mestre do drible e do passe que dominou o futebol sul-americano.',
+  'Leônidas da Silva': 'O Diamante Negro. Inventor da bicicleta, artilheiro da Copa de 1938.',
+  'Taffarel': 'O maior goleiro da história da Seleção. O "sai que é sua" virou mantra nacional em 94.',
+  'Gilmar': 'O goleiro dos dois primeiros títulos mundiais (58 e 62). Sobriedade absoluta sob as traves.',
+  'Rogério Ceni': 'O goleiro-artilheiro que revolucionou a posição e fechou o gol no Mundial de 2005.',
+  'Carlos Alberto Torres': 'O Capita eterno do tri, autor do gol mais icônico da história das Copas.',
+  'Nílton Santos': 'A Enciclopédia do Futebol. Praticamente inventou a função do lateral moderno que ataca.',
+  'Cafu': 'Fôlego interminável, três finais de Copa seguidas e dono da lateral da Seleção por uma década.',
+  'Roberto Carlos': 'Transformou potência em arte. O chute de esquerda mais temido do planeta.',
+  'Djalma Santos': 'Uma rocha na lateral. Primeiro grande bicampeão mundial do Brasil.',
+  'Domingos da Guia': 'O Divino Mestre. Inventou a saída de bola driblando, na década de 1930.',
+  'Lúcio': 'O Cavalo de Aço. Desarmava e arrancava com a bola dominada até o ataque. Capitão de 2002.',
+  'Hilderaldo Bellini': 'O homem que inventou o gesto de erguer a taça. Capitão do primeiro título mundial.',
+  'Didi': 'O inventor da folha seca. Maestro do primeiro título mundial e melhor jogador da Copa de 58.',
+  'Rivelino': 'O dono do Maracanã. Chute canhoto violento e o drible da vaca que encantou o mundo.',
+}
 
 const GOL: C[] = [
   { name: 'Gilmar', club: 'Santos', year: 1962, fame: 5, lo: 93, hi: 97 },
