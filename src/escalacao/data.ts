@@ -449,7 +449,6 @@ const MEI: C[] = [
   { name: 'Zé Roberto', club: 'Palmeiras', year: 2010, fame: 3, lo: 82, hi: 89 },
   { name: 'Rincón', club: 'Corinthians', year: 1998, fame: 3, lo: 80, hi: 88 },
   { name: 'Arrascaeta', club: 'Cruzeiro', year: 2017, fame: 3, lo: 80, hi: 89 },
-  { name: "D'Alessandro", club: 'Internacional', year: 2010, fame: 3, lo: 80, hi: 89 },
   { name: 'Mascherano', club: 'Corinthians', year: 2005, fame: 3, lo: 80, hi: 88 },
   { name: 'Renato Augusto', club: 'Corinthians', year: 2018, fame: 3, lo: 78, hi: 87 },
   { name: 'Diego', club: 'Flamengo', year: 2019, fame: 3, lo: 76, hi: 86 },
