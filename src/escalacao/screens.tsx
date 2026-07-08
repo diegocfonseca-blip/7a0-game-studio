@@ -3,6 +3,9 @@ import { motion } from 'framer-motion'
 import type { Card, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
 import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY, MONTE_SECONDS, BATCH_SIZE, roundPlanFor } from './store'
+import { supabase } from '../lib/supabase'
+
+const GAME_URL = 'https://diegocfonseca-blip.github.io/7a0-game-studio/leilao-legends-38/'
 
 // ─── estilo base (neubrutalista, igual ao resto do estúdio) ──────────
 const CREAM = '#F4ECD6'
@@ -619,6 +622,9 @@ export function EscSeason() {
   const youPos = table.findIndex(t => t.id === you.id) + 1
   const fixture = state.round < 38 ? state.fixtures[state.round].find(([h, a]) => h === you.id || a === you.id) : undefined
   const opp = fixture ? state.league.find(t => t.id === (fixture[0] === you.id ? fixture[1] : fixture[0])) : undefined
+  // confronto direto: o adversário também é um humano da sala (não bot nem
+  // clube clássico) — só faz sentido provocar quando é gente de verdade
+  const isClassico = !!opp && state.managers.some(m => m.id === opp.id && m.isHuman)
   const myLast = state.lastResults.find(r => r.homeId === you.id || r.awayId === you.id)
 
   // autoplay: só quem "puxa" a temporada dispara a próxima rodada (host no
@@ -646,7 +652,8 @@ export function EscSeason() {
       )}
 
       {fixture && opp && (
-        <Box className="p-4 space-y-3">
+        <Box bg={isClassico ? GOLD : '#fff'} className="p-4 space-y-3">
+          {isClassico && <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>🥊 CLÁSSICO — é contra a galera!</p>}
           <p className="font-black text-lg" style={OSWALD}>
             PRÓXIMO: {fixture[0] === you.id ? `${you.teamName} × ${opp.name}` : `${opp.name} × ${you.teamName}`}
             <span className="text-xs text-black/70"> {fixture[0] === you.id ? '(em casa)' : '(fora)'}</span>
@@ -743,9 +750,13 @@ function MatchCard({ r, roundMs }: { r: { homeId: number; awayId: number; hg: nu
   const ag = visible.filter(hl => hl.teamId === r.awayId).length
   const done = minute >= TICK_MINUTES
   const minuteLabel = minute > 90 ? `90+${minute - 90}'` : `${minute}'`
+  const you = state.managers[state.youIdx]
+  const oppId = r.homeId === you.id ? r.awayId : r.homeId
+  const isClassico = state.managers.some(m => m.id === oppId && m.isHuman)
 
   return (
-    <Box bg="#fff" className="p-4" shadow={6}>
+    <Box bg={isClassico ? GOLD : '#fff'} className="p-4" shadow={6}>
+      {isClassico && <p className="text-center font-black text-[11px] uppercase" style={OSWALD}>🥊 CLÁSSICO</p>}
       <p className="text-center text-[11px] font-black uppercase" style={{ color: done ? GREEN : RED }}>
         {done ? '✅ FIM DE JOGO' : `⏱️ ${minuteLabel}`}
       </p>
@@ -813,6 +824,115 @@ function TableBox({ highlight }: { highlight: number }) {
   )
 }
 
+// ─── card de resultado pra compartilhar ────────────────────────────────
+async function buildShareCardBlob(opts: {
+  teamName: string; youPos: number; youWon: boolean; champName: string
+  pts: number; w: number; d: number; l: number; scorerName?: string; scorerGoals?: number
+}): Promise<Blob | null> {
+  const canvas = document.createElement('canvas')
+  canvas.width = 900; canvas.height = 1200
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+  try { await document.fonts.load('900 52px Oswald') } catch { /* segue com a fonte padrão */ }
+
+  ctx.fillStyle = CREAM
+  ctx.fillRect(0, 0, 900, 1200)
+  ctx.fillStyle = GOLD
+  ctx.fillRect(24, 24, 852, 140)
+  ctx.strokeStyle = INK; ctx.lineWidth = 16
+  ctx.strokeRect(24, 24, 852, 140)
+  ctx.strokeRect(24, 24, 852, 1152)
+  ctx.fillStyle = INK
+  ctx.textAlign = 'center'
+  ctx.font = '900 46px Oswald, sans-serif'
+  ctx.fillText('🔨 LEILÃO LEGENDS 38', 450, 108)
+
+  ctx.font = '160px sans-serif'
+  ctx.fillText(opts.youWon ? '🏆' : opts.youPos <= 4 ? '🥈' : opts.youPos >= 17 ? '🪦' : '⚽', 450, 400)
+
+  ctx.font = '900 78px Oswald, sans-serif'
+  ctx.fillText(opts.youWon ? 'CAMPEÃO!' : `${opts.youPos}º LUGAR`, 450, 500)
+
+  ctx.font = '700 44px Oswald, sans-serif'
+  ctx.fillText(opts.teamName, 450, 565)
+
+  ctx.textAlign = 'left'
+  ctx.font = '600 32px Inter, sans-serif'
+  let y = 680
+  ctx.fillText(`Pontos: ${opts.pts} (${opts.w}V ${opts.d}E ${opts.l}D)`, 90, y)
+  y += 55
+  if (opts.scorerName) { ctx.fillText(`Artilheiro: ${opts.scorerName} — ${opts.scorerGoals} gols`, 90, y); y += 55 }
+  if (!opts.youWon) ctx.fillText(`Campeão da temporada: ${opts.champName}`, 90, y)
+
+  ctx.textAlign = 'center'
+  ctx.font = '700 30px Oswald, sans-serif'
+  ctx.fillText('D7 STUDIO', 450, 1125)
+  ctx.font = '400 22px Inter, sans-serif'
+  ctx.fillText(GAME_URL.replace('https://', ''), 450, 1156)
+
+  return new Promise(resolve => canvas.toBlob(b => resolve(b), 'image/png'))
+}
+
+async function shareResult(opts: Parameters<typeof buildShareCardBlob>[0]) {
+  const blob = await buildShareCardBlob(opts)
+  if (!blob) return
+  const file = new File([blob], 'leilao-legends-38.png', { type: 'image/png' })
+  const shareData = { files: [file], title: 'Leilão Legends 38', text: `${opts.youWon ? 'Fui campeão' : `Terminei em ${opts.youPos}º`} no Leilão Legends 38! 🔨` }
+  if (navigator.canShare?.(shareData)) {
+    try { await navigator.share(shareData); return } catch { /* cancelou ou falhou — cai pro download */ }
+  }
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url; a.download = 'leilao-legends-38.png'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// ─── Hall da Fama da sala (só online): histórico entre revanches ──────
+interface ChampionRow { season_no: number; champion_name: string; top_scorer_name: string | null; top_scorer_goals: number | null }
+function HallDaFama({ roomId, isHost, seasonNo, champName, scorerName, scorerGoals }: {
+  roomId: string; isHost: boolean; seasonNo: number; champName: string; scorerName?: string; scorerGoals?: number
+}) {
+  const [rows, setRows] = useState<ChampionRow[] | null>(null)
+  const wroteRef = useRef(false)
+
+  useEffect(() => {
+    if (!isHost || wroteRef.current) return
+    wroteRef.current = true
+    ;(async () => {
+      // não duplica se essa temporada já foi registrada (ex.: reabriu a tela)
+      const { data: existing } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', seasonNo).maybeSingle()
+      if (existing) return
+      await supabase.from('game_champions').insert({
+        room_id: roomId, season_no: seasonNo, champion_name: champName,
+        top_scorer_name: scorerName ?? null, top_scorer_goals: scorerGoals ?? null,
+      })
+    })()
+  }, [isHost, roomId, seasonNo, champName, scorerName, scorerGoals])
+
+  useEffect(() => {
+    ;(async () => {
+      const { data } = await supabase.from('game_champions').select('season_no, champion_name, top_scorer_name, top_scorer_goals').eq('room_id', roomId).order('season_no', { ascending: true })
+      setRows((data ?? []) as ChampionRow[])
+    })()
+  }, [roomId, seasonNo])
+
+  if (!rows || rows.length === 0) return null
+  return (
+    <Box className="p-3">
+      <p className="font-black text-sm mb-2" style={OSWALD}>🏆 HALL DA FAMA DA SALA</p>
+      <div className="space-y-1.5">
+        {rows.map(r => (
+          <div key={r.season_no} className="flex items-center justify-between border-t border-black/10 pt-1.5 first:border-t-0 first:pt-0">
+            <p className="text-sm font-bold text-black">Temporada {r.season_no}: <b>{r.champion_name}</b></p>
+            {r.top_scorer_name && <p className="text-[11px] font-semibold text-black/60">⚽ {r.top_scorer_name} ({r.top_scorer_goals})</p>}
+          </div>
+        ))}
+      </div>
+    </Box>
+  )
+}
+
 // ─── FIM ─────────────────────────────────────────────────────────────
 export function EscEnd() {
   const { state, dispatch } = useEsc()
@@ -821,6 +941,9 @@ export function EscEnd() {
   const champ = table[0]
   const youPos = table.findIndex(t => t.id === you.id) + 1
   const youWon = champ.id === you.id
+  const online = state.onlineMode === 'online'
+  const canRestart = !online || state.isHost
+  const myScorer = topScorers(state, 1)[0]
   return (
     <Shell>
       <div className="text-center pt-8">
@@ -831,6 +954,19 @@ export function EscEnd() {
         </p>
       </div>
       <TableBox highlight={you.id} />
+      <TopScorersBox highlight={you.id} />
+      {online && state.roomId && (
+        <HallDaFama roomId={state.roomId} isHost={state.isHost} seasonNo={state.seasonNo} champName={champ.name}
+          scorerName={myScorer?.name} scorerGoals={myScorer?.goals} />
+      )}
+      <Btn onClick={() => shareResult({
+        teamName: you.teamName, youPos, youWon, champName: champ.name,
+        pts: table[youPos - 1]?.pts ?? 0, w: table[youPos - 1]?.w ?? 0, d: table[youPos - 1]?.d ?? 0, l: table[youPos - 1]?.l ?? 0,
+        scorerName: myScorer?.name, scorerGoals: myScorer?.goals,
+      })} bg="#fff" className="w-full text-lg">📤 Compartilhar resultado</Btn>
+      {canRestart
+        ? <Btn onClick={() => dispatch({ type: 'NEW_SEASON' })} bg={GREEN} className="w-full text-lg"><span className="text-white">🔁 Jogar nova temporada</span></Btn>
+        : <p className="text-center text-sm font-bold text-black/60">Aguardando o host começar a próxima temporada…</p>}
       <Btn onClick={() => dispatch({ type: 'NEW_GAME' })} className="w-full text-lg">NOVO PREGÃO 🔨</Btn>
     </Shell>
   )

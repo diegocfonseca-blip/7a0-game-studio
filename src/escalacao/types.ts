@@ -157,4 +157,5 @@ export interface EscState {
   phaseDeadline: number | null // timestamp (ms) do fim do envelope
   monteDeadline: number | null // timestamp (ms) do fim da vez atual no Monte (online)
   scorers: ScorerRow[] // artilharia acumulada da temporada
+  seasonNo: number // conta quantas temporadas essa sala/sessão já jogou (revanche)
 }

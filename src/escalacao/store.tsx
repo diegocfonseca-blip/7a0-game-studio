@@ -474,6 +474,7 @@ const INITIAL: EscState = {
   phaseDeadline: null, scorers: [],
   monteDeadline: null,
   sectorCursor: 0, sectorUnsoldAccum: [], roundIdx: 0,
+  seasonNo: 1,
 }
 
 // ─── ações ───────────────────────────────────────────────────────────
@@ -495,6 +496,7 @@ type Action =
   | { type: 'SIM_MANY'; count: number }
   | { type: 'FINISH_CEREMONY' }
   | { type: 'NEW_GAME' }
+  | { type: 'NEW_SEASON' }
 
 function rngOf(state: EscState): () => number {
   return mulberry(state.seed + state.sectorIdx * 977 + state.round * 131 + state.revealIdx * 7 + state.monteIdx * 13 + state.submitted.length * 101)
@@ -695,6 +697,7 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}
+      s.seasonNo = 1
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s
@@ -718,6 +721,7 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}
+      s.seasonNo = 1
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s
@@ -816,6 +820,37 @@ export function reducer(state: EscState, action: Action): EscState {
         s.champion = sortedTable(s.league)[0].id
         s.screen = 'end'
       }
+      return s
+    }
+    case 'NEW_SEASON': {
+      // revanche: mesma sala/galera e formação, temporada nova do zero —
+      // baralho e escalação dos bots sorteados de novo. Sempre disparado
+      // pelo host (o botão só aparece pra ele online); igual qualquer outra
+      // ação online, o resultado já computado vai por SYNC_STATE pros
+      // convidados, então não precisa de seed determinístico aqui.
+      const humanNames = s.managers.filter(m => m.isHuman).map(m => m.name)
+      const formation = s.managers.find(m => m.isHuman)?.formation ?? '4-3-3'
+      s.seed = Math.floor(Math.random() * 1e9)
+      const rng = mulberry(s.seed)
+      if (s.onlineMode === 'online') {
+        const { managers, used } = makeManagers(humanNames, formation, LEAGUE_SIZE, rng, 'online')
+        s.managers = managers
+        s.deck = buildDeck(auctioningManagers(s.managers), rng, 2.0, used)
+      } else {
+        const { managers, used } = makeManagers(humanNames, formation, s.managers.length, rng, 'solo')
+        s.managers = managers
+        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.3, used)
+      }
+      for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
+      s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0
+      s.monte = []; s.monteOrder = []; s.monteIdx = 0
+      s.news = []; s.round = 0; s.champion = null
+      s.league = []; s.fixtures = []; s.scorers = []; s.lastResults = []
+      s.tactics = {}
+      s.submitted = []; s.pendingEnvelopes = {}
+      s.seasonNo++
+      s.screen = 'auction'
+      startAuctionPhase(s, false)
       return s
     }
     default:
