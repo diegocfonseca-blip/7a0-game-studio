@@ -109,9 +109,10 @@ function Campinho({ m, small = false }: { m: Manager; small?: boolean }) {
 function CardFace({ c, big = false }: { c: Card; big?: boolean }) {
   return (
     <div className="text-left">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black" style={{ backgroundColor: INK, color: '#fff' }}>{c.pos}</span>
         <p className={`font-black ${big ? 'text-2xl' : 'text-base'}`} style={OSWALD}>{c.name}</p>
+        {c.folk && <span className="border-2 border-black rounded-full px-2 py-0.5 text-[9px] font-black" style={{ backgroundColor: GOLD }} title="Folclórico">🃏 FOLCLÓRICO</span>}
       </div>
       <p className={`${big ? 'text-sm' : 'text-xs'} font-semibold text-black/60 mt-0.5`}>{c.club} · {c.year}</p>
     </div>
@@ -954,7 +955,7 @@ function fallbackBio(fame: number, pos: string): string {
     default: return `Folclore ${where}: puro carisma e resenha do nosso futebol.`
   }
 }
-function CollectibleCard({ name, club, year, pos, fame, big = false, bio }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string }) {
+function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk = false }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string; folk?: boolean }) {
   const t = FAME_TIER[fame] ?? FAME_TIER[1]
   const initial = name.trim()[0]?.toUpperCase() ?? '?'
   const text = bio ?? BIOS[name] ?? fallbackBio(fame, pos)
@@ -969,7 +970,12 @@ function CollectibleCard({ name, club, year, pos, fame, big = false, bio }: { na
       )}
       <div className="relative flex justify-between items-start gap-1">
         <span className="font-black rounded-lg" style={{ ...OSWALD, background: INK, color: '#fff', border: '2px solid rgba(255,255,255,.25)', fontSize: big ? 13 : 11, padding: '2px 7px' }}>{pos}</span>
-        <span className="font-black tracking-wide text-right" style={{ ...OSWALD, color: t.tierColor, fontSize: big ? 11 : 9 }}>{t.label}</span>
+        <div className="flex flex-col items-end gap-1">
+          <span className="font-black tracking-wide text-right" style={{ ...OSWALD, color: t.tierColor, fontSize: big ? 11 : 9 }}>{t.label}</span>
+          {folk && (
+            <span className="font-black rounded-full" style={{ ...OSWALD, background: 'rgba(0,0,0,.28)', color: '#fff', fontSize: big ? 10 : 8, padding: big ? '2px 8px' : '1px 6px', letterSpacing: .5 }}>🃏 FOLCLÓRICO</span>
+          )}
+        </div>
       </div>
       <div className="relative self-center rounded-full flex items-center justify-center"
         style={{ width: big ? 100 : 66, height: big ? 100 : 66, background: t.crestBg, color: t.crestInk, border: '3px solid rgba(0,0,0,.28)', ...OSWALD, fontWeight: 900, fontSize: big ? 42 : 27, boxShadow: t.holo ? 'inset 0 0 14px rgba(255,255,255,.7)' : 'none' }}>
@@ -1047,7 +1053,7 @@ function CardCollectPrompt({ you, seasonKey }: { you: Manager; seasonKey: string
         <p className="text-xs font-black uppercase text-black/60 mb-3">🎴 Foi pro seu álbum!</p>
         <motion.div initial={{ rotateY: 90, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.7, type: 'spring', bounce: 0.35 }}
           className="mx-auto" style={{ maxWidth: 220 }}>
-          <CollectibleCard name={claimed.name} club={claimed.club} year={claimed.year} pos={claimed.pos} fame={claimed.fame} bio={claimed.bio} big />
+          <CollectibleCard name={claimed.name} club={claimed.club} year={claimed.year} pos={claimed.pos} fame={claimed.fame} bio={claimed.bio} folk={claimed.folk} big />
         </motion.div>
         <Btn onClick={() => dispatch({ type: 'GO_ALBUM' })} bg={GREEN} className="w-full text-lg mt-4"><span className="text-white">📖 Ver meu álbum</span></Btn>
       </Box>
@@ -1064,7 +1070,7 @@ function CardCollectPrompt({ you, seasonKey }: { you: Manager; seasonKey: string
       <div className="grid grid-cols-3 gap-2 max-h-80 overflow-y-auto">
         {you.squad.map(c => (
           <button key={c.id} onClick={() => claim(c)} className="text-left">
-            <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} />
+            <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} />
           </button>
         ))}
       </div>

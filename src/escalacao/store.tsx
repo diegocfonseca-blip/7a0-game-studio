@@ -78,61 +78,64 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     plan[pos] = { count, catalog }
     totalCount += count
   }
-  // ── passo 2: GARANTE lendas no leilão inteiro (não por setor) ──
-  // meta: ~1 lenda a cada 7 cartas, mínimo 2 — assim até um jogo de 2 pessoas
-  // (≈22 cartas) sempre vê ~3 lendas, e escala com mais gente. Antes era só um
-  // TETO por setor + sorteio, então dava pra sair leilão inteiro sem lenda.
-  const legendCapPos = {} as Record<Sector, number>
+  // ── passo 2: cotas por VIBE (não por sorte) ──
+  // Duas garantias no leilão inteiro (distribuídas nos setores):
+  //  • LENDA: rara mas nunca zero (~7%, mín 1) — a "carta cara" que todo mundo quer.
+  //  • FOLCLÓRICO: os caras engraçados/irreverentes (~13%, mín 1) — a graça do jogo.
+  // O folclórico é uma VIBE, não um nível: pode ser craque (Edmundo) ou perna-de-pau
+  // (Walter Minhoca). Por isso é cota separada do nível. O resto do baralho é
+  // preenchido natural (craque/bom/cult), fora lenda e folclórico pra não repetir.
+  const alloc = {} as Record<Sector, { legend: number; folk: number }>
+  SECTORS.forEach(p => { alloc[p] = { legend: 0, folk: 0 } })
+  const availOf = (pos: Sector, pred: (c: (typeof CATALOG)[Sector][number]) => boolean) =>
+    plan[pos].catalog.filter(c => pred(c) && !used.has(c.name)).length
+  const availLegend = {} as Record<Sector, number>
+  const availFolk = {} as Record<Sector, number>
   for (const pos of SECTORS) {
-    const avail = plan[pos].catalog.filter(c => c.fame === 5 && !used.has(c.name)).length
-    // teto por setor: no máx ~1/3 do setor (pra nenhum setor virar "só lenda")
-    legendCapPos[pos] = Math.min(avail, Math.max(1, Math.round(plan[pos].count / 3)), plan[pos].count)
+    availLegend[pos] = availOf(pos, c => c.fame === 5)
+    availFolk[pos] = availOf(pos, c => !!c.folk)
   }
-  const totalCap = SECTORS.reduce((s, p) => s + legendCapPos[p], 0)
-  let legendGoal = Math.min(Math.max(2, Math.round(totalCount / 7)), totalCap)
-  const legendPlan = {} as Record<Sector, number>
-  SECTORS.forEach(p => { legendPlan[p] = 0 })
-  // distribui as lendas: cada uma vai pro setor mais "merecedor" (maior, com
-  // menos lenda ainda) que ainda tem espaço no teto
-  while (legendGoal > 0) {
-    let best: Sector | null = null
-    let bestScore = -1
-    for (const pos of SECTORS) {
-      if (legendPlan[pos] >= legendCapPos[pos]) continue
-      const score = plan[pos].count / (legendPlan[pos] + 1)
-      if (score > bestScore) { bestScore = score; best = pos }
+  // distribui `goal` cartas de um tipo pros setores mais "merecedores" (maiores,
+  // com menos daquele tipo ainda), respeitando o que existe e a lotação do setor
+  const distribute = (goal: number, availByPos: Record<Sector, number>, key: 'legend' | 'folk', capFrac: number) => {
+    const cap = {} as Record<Sector, number>
+    for (const pos of SECTORS) cap[pos] = Math.min(availByPos[pos], Math.max(1, Math.round(plan[pos].count * capFrac)), plan[pos].count)
+    let left = Math.min(goal, SECTORS.reduce((s, p) => s + cap[p], 0))
+    while (left > 0) {
+      let best: Sector | null = null, bestScore = -1
+      for (const pos of SECTORS) {
+        const usedSlots = alloc[pos].legend + alloc[pos].folk
+        if (alloc[pos][key] >= cap[pos] || usedSlots >= plan[pos].count) continue
+        const score = plan[pos].count / (alloc[pos][key] + 1)
+        if (score > bestScore) { bestScore = score; best = pos }
+      }
+      if (!best) break
+      alloc[best][key]++
+      left--
     }
-    if (!best) break
-    legendPlan[best]++
-    legendGoal--
   }
-  // ── passo 3: monta cada setor — lendas garantidas primeiro, resto natural ──
+  distribute(Math.max(1, Math.round(totalCount * 0.07)), availLegend, 'legend', 1 / 3)
+  distribute(Math.max(1, Math.round(totalCount * 0.13)), availFolk, 'folk', 0.5)
+  // ── passo 3: monta cada setor — lenda + folclórico garantidos, resto natural ──
   for (const pos of SECTORS) {
     const { count, catalog } = plan[pos]
     const cards: Card[] = []
-    // 1) as lendas planejadas (embaralhadas pelo shuffle do catálogo)
-    for (const c of catalog) {
-      if (legendPlan[pos] <= 0) break
-      if (c.fame !== 5 || used.has(c.name)) continue
-      used.add(c.name)
-      cards.push({ ...c, id: `cat-${pos}-${cards.length}`, pos })
-      legendPlan[pos]--
-    }
-    // 2) o resto do baralho, natural (craque/bom/cult nas proporções do catálogo;
-    // lendas extras NÃO entram aqui — a cota já foi cumprida acima)
-    for (const c of catalog) {
-      if (cards.length >= count) break
-      if (used.has(c.name) || c.fame === 5) continue
-      used.add(c.name)
-      cards.push({ ...c, id: `cat-${pos}-${cards.length}`, pos })
-    }
-    // 3) só cai pra incógnita se o catálogo real acabar (sala gigante)
+    const take = (c: (typeof CATALOG)[Sector][number]) => { used.add(c.name); cards.push({ ...c, id: `cat-${pos}-${cards.length}`, pos }) }
+    // 1) lendas da cota
+    let needL = alloc[pos].legend
+    for (const c of catalog) { if (needL <= 0) break; if (c.fame !== 5 || used.has(c.name)) continue; take(c); needL-- }
+    // 2) folclóricos da cota (qualquer nível, menos lenda que já foi tratada)
+    let needF = alloc[pos].folk
+    for (const c of catalog) { if (needF <= 0) break; if (!c.folk || c.fame === 5 || used.has(c.name)) continue; take(c); needF-- }
+    // 3) resto natural — craque/bom/cult "normais" (fora lenda e folclórico, pra
+    //    não estourar as cotas raras)
+    for (const c of catalog) { if (cards.length >= count) break; if (used.has(c.name) || c.fame === 5 || c.folk) continue; take(c) }
+    // 4) se ainda faltar (setor pequeno de catálogo), aceita qualquer real restante
+    for (const c of catalog) { if (cards.length >= count) break; if (used.has(c.name)) continue; take(c) }
+    // 5) só cai pra incógnita se o catálogo real acabar (sala gigante)
     const gems = Math.max(1, Math.ceil(managers.length / 3))
     let gi = 0
-    while (cards.length < count) {
-      cards.push(makeIncognita(pos, cards.length, gi < gems, rng))
-      gi++
-    }
+    while (cards.length < count) { cards.push(makeIncognita(pos, cards.length, gi < gems, rng)); gi++ }
     deck[pos] = cards
   }
   return deck

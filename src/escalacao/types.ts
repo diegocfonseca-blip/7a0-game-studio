@@ -20,6 +20,7 @@ export interface Card {
   lo: number // faixa de nível — oculta até a Cerimônia da Revelação
   hi: number
   bio?: string // texto de referência (aparece na carta-lembrança do álbum)
+  folk?: boolean // "folclórico": vibe irreverente/engraçada, independe do nível
 }
 
 export type Acquisition = 'leilao' | 'repescagem' | 'monte' | 'bot'
