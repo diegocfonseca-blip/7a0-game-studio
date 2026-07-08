@@ -68,7 +68,7 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number): Reco
     const gems = Math.max(1, Math.ceil(managers.length / 3))
     let gi = 0
     while (cards.length < count) {
-      cards.push(makeIncognita(pos, cards.length, gi < gems, rng))
+      cards.push(makeIncognita(pos, cards.length, gi < gems, rng, gi))
       gi++
     }
     deck[pos] = cards
@@ -411,7 +411,10 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number): W
       : shuffled.filter(c => c.fame === 2 || c.fame === 3)
     const picks = pool.slice(0, need)
     let gi = 0
-    while (picks.length < need) picks.push(makeIncognita(pos, squad.length + picks.length, tier === 'strong' && gi++ < 1, rng))
+    while (picks.length < need) {
+      picks.push(makeIncognita(pos, squad.length + picks.length, tier === 'strong' && gi < 1, rng, picks.length))
+      gi++
+    }
     for (const c of picks) squad.push({ ...c, id: `bot-${pos}-${squad.length}-${Math.floor(rng() * 1e6)}`, pos, paid: 0, via: 'bot' })
   }
   return squad
