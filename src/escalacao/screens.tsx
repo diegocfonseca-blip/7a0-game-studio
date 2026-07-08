@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Card, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
-import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY, MONTE_SECONDS, BATCH_SIZE, roundPlanFor } from './store'
+import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY, MONTE_SECONDS, BATCH_SIZE } from './store'
 import { supabase } from '../lib/supabase'
 import { CATALOG } from './data'
 
@@ -316,15 +316,12 @@ function Envelope() {
   const timerTextColor = remaining <= 20 ? INK : '#fff'
   const totalBatches = Math.ceil(state.deck[pos].length / BATCH_SIZE)
   const curBatch = Math.min(totalBatches, Math.ceil(state.sectorCursor / BATCH_SIZE))
-  const roundPlan = online ? roundPlanFor(pos, state.managers) : []
-  const roundSlots = online ? roundPlan[state.roundIdx] ?? 1 : 0
-  const roundsTotal = roundPlan.length
-  // trava em quantos jogadores DIFERENTES dá pra apostar: no máximo o número
-  // de vagas que você pode mesmo fechar (nesta rodada, ou no total em solo).
-  // Sem isso, apostar em mais candidatos do que cabe é ambíguo — a resolução
-  // roda por ordem de menor disputa, então você pode acabar ganhando o
-  // "backup" ao invés do favorito, mesmo tendo dado lance maior nele.
-  const bidLimit = online ? Math.min(roundSlots, myOpen) : myOpen
+  // trava em quantos jogadores DIFERENTES dá pra apostar: no máximo suas
+  // vagas abertas nessa posição (dá lance em todas de uma vez). Sem isso,
+  // apostar em mais candidatos do que cabe é ambíguo — a resolução roda por
+  // ordem de menor disputa, então você poderia ganhar o "backup" ao invés do
+  // favorito, mesmo tendo dado lance maior nele.
+  const bidLimit = myOpen
   const chosenCount = Object.keys(bids).length
 
   return (
@@ -343,8 +340,7 @@ function Envelope() {
           </p>
           {!rescue && canBid && bidLimit > 0 && (
             <p className="text-sm font-black mt-1" style={{ color: GREEN }}>
-              {online && roundsTotal > 1 && <>Rodada {state.roundIdx + 1}/{roundsTotal} — </>}
-              Dê lance em até <b>{bidLimit}</b> jogador{bidLimit === 1 ? '' : 'es'} diferente{bidLimit === 1 ? '' : 's'} pra tentar fechar {bidLimit === 1 ? 'essa vaga' : 'essas vagas'}.
+              Dê lance em até <b>{bidLimit}</b> jogador{bidLimit === 1 ? '' : 'es'} diferente{bidLimit === 1 ? '' : 's'} pra tentar fechar {bidLimit === 1 ? 'sua vaga' : 'suas vagas'}.
             </p>
           )}
         </div>

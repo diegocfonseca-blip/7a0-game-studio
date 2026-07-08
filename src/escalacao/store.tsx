@@ -545,46 +545,15 @@ const ENVELOPE_MS = 45_000
 // jogadores, 40 laterais) precisa dividir, senão a tela não tem fim.
 export const BATCH_SIZE = 12
 
-// ─── plano de rodadas por vaga (só modo online) ───────────────────────
-// GOL/LAT/ZAG são sempre 1/2/2 nas duas formações permitidas — nunca
-// variam, então cada vaga vira uma rodada só (uma de cada vez). MEI/ATA
-// mudam conforme 4-3-3 (3/3) ou 4-4-2 (4/2) — agrupa de 2 em 2 vagas,
-// sobrando 1 rodada final se for ímpar.
-export function roundPlanFor(pos: Sector, managers: Manager[]): number[] {
-  const maxSlots = Math.max(1, ...managers.filter(m => m.isHuman).map(m => slotsOf(m, pos)))
-  if (pos === 'MEI' || pos === 'ATA') {
-    const plan: number[] = []
-    let left = maxSlots
-    while (left > 0) { const take = Math.min(2, left); plan.push(take); left -= take }
-    return plan
-  }
-  return Array(maxSlots).fill(1)
-}
-
-// limites cumulativos (offset final de cada rodada) dentro de deck[pos] —
-// cada rodada mostra 2× o número de humanos × as vagas daquela rodada
-function roundBoundaries(pos: Sector, managers: Manager[]): number[] {
-  const humans = managers.filter(m => m.isHuman).length
-  const bounds: number[] = []
-  let acc = 0
-  for (const slots of roundPlanFor(pos, managers)) { acc += slots * 2 * humans; bounds.push(acc) }
-  return bounds
-}
-
 function startAuctionPhase(state: EscState, rescue: boolean) {
   const pos = SECTORS[state.sectorIdx]
   state.phase = rescue ? 'resq_envelope' : 'envelope'
   if (!rescue) {
-    // pega a PRÓXIMA leva — dentro da RODADA atual (online) ou do setor
-    // inteiro (solo, sem rodadas por vaga)
+    // levas SÓ por espaço de tela: pega a próxima fatia de até BATCH_SIZE
+    // cartas do setor. Você dá lance em todas as suas vagas de uma vez.
     const full = state.deck[pos]
-    let limit = full.length
-    if (state.onlineMode === 'online') {
-      const bounds = roundBoundaries(pos, state.managers)
-      limit = Math.min(full.length, bounds[state.roundIdx] ?? full.length)
-    }
     const start = state.sectorCursor
-    const end = Math.min(limit, start + BATCH_SIZE)
+    const end = Math.min(full.length, start + BATCH_SIZE)
     state.currentCards = full.slice(start, end)
     state.sectorCursor = end
   }
@@ -635,20 +604,10 @@ function humansToSubmit(state: EscState, pos: Sector): number[] {
 }
 
 function advanceSectorOrFinish(state: EscState, rng: () => number) {
-  const pos = SECTORS[state.sectorIdx]
-  if (state.onlineMode === 'online') {
-    const bounds = roundBoundaries(pos, state.managers)
-    if (state.roundIdx < bounds.length - 1) {
-      state.roundIdx++ // próxima vaga desse MESMO setor (ex.: 2º zagueiro)
-      startAuctionPhase(state, false)
-      return
-    }
-  }
   if (state.sectorIdx < SECTORS.length - 1) {
     state.sectorIdx++
     state.sectorCursor = 0
     state.sectorUnsoldAccum = []
-    state.roundIdx = 0
     startAuctionPhase(state, false)
   } else {
     state.monteOrder = buildMonteOrder(state.managers, rng)
@@ -659,13 +618,6 @@ function advanceSectorOrFinish(state: EscState, rng: () => number) {
   }
 }
 
-// fim da leva atual: dentro da rodada (online) ou do setor inteiro (solo)?
-function roundOrSectorEnd(state: EscState, pos: Sector): number {
-  if (state.onlineMode !== 'online') return state.deck[pos].length
-  const bounds = roundBoundaries(pos, state.managers)
-  return bounds[state.roundIdx] ?? state.deck[pos].length
-}
-
 function afterReveal(state: EscState) {
   const rng = rngOf(state)
   const pos = SECTORS[state.sectorIdx]
@@ -674,12 +626,11 @@ function afterReveal(state: EscState) {
     // terminou uma leva do pregão principal — acumula os não vendidos
     state.sectorUnsoldAccum.push(...unsold)
     state.currentCards = []
-    if (state.sectorCursor < roundOrSectorEnd(state, pos)) {
-      startAuctionPhase(state, false) // ainda tem leva pra vir nessa rodada/setor
+    if (state.sectorCursor < state.deck[pos].length) {
+      startAuctionPhase(state, false) // ainda tem leva pra vir nesse setor
       return
     }
-    // fechou todas as levas da rodada (ou do setor, no solo): repescagem
-    // ÚNICA com tudo que sobrou até aqui
+    // fechou todas as levas do setor: repescagem ÚNICA com tudo que sobrou
     const anyHole = state.managers.some(m => openSlots(m, pos) > 0)
     if (state.sectorUnsoldAccum.length > 0 && anyHole) {
       state.currentCards = state.sectorUnsoldAccum
@@ -755,11 +706,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // pronto (não brigam no leilão — só os humanos disputam as cartas)
       const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, LEAGUE_SIZE, rng, 'online')
       s.managers = onlineManagers
-      // sempre dobrado (2× a demanda dos humanos) — não é margem de folga,
-      // é regra do jogo: cada rodada de vaga mostra o dobro de candidatos.
-      // O baralho é montado ANTES dos bots pra ficar 100% com reais.
+      // demanda EXATA (1× as vagas dos humanos): 2 pessoas = 4 laterais no
+      // total, tudo numa tela só; a competição é pela qualidade. O baralho é
+      // montado ANTES dos bots pra ficar 100% com reais.
       const onlineUsed = new Set<string>()
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 2.0, onlineUsed)
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed)
       dealBotSquads(s.managers, onlinePlans, rng, onlineUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
@@ -879,7 +830,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.onlineMode === 'online') {
         const { managers, botPlans } = makeManagers(humanNames, formation, LEAGUE_SIZE, rng, 'online')
         s.managers = managers
-        s.deck = buildDeck(auctioningManagers(s.managers), rng, 2.0, used)
+        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used)
         dealBotSquads(s.managers, botPlans, rng, used)
       } else {
         const { managers, botPlans } = makeManagers(humanNames, formation, s.managers.length, rng, 'solo')
