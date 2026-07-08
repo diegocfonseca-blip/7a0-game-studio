@@ -28,13 +28,13 @@ export interface WonCard extends Card {
   via: Acquisition
 }
 
-export type FormationKey = '4-3-3' | '4-4-2' | '3-5-2' | '4-5-1'
+// só duas formações — GOL/LAT/ZAG são sempre 1/2/2 nas duas (nunca variam),
+// só MEI/ATA mudam. Isso é o que sustenta o plano de rodadas por vaga.
+export type FormationKey = '4-3-3' | '4-4-2'
 
 export const FORMATIONS: Record<FormationKey, Record<Sector, number>> = {
   '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
   '4-4-2': { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 },
-  '3-5-2': { GOL: 1, LAT: 2, ZAG: 3, MEI: 3, ATA: 2 },
-  '4-5-1': { GOL: 1, LAT: 2, ZAG: 2, MEI: 5, ATA: 1 },
 }
 
 export type Tactic = 'retranca' | 'equilibrio' | 'ataque'
@@ -141,6 +141,7 @@ export interface EscState {
   stock: Record<Sector, number> // estoque restante no baralho (contador vivo)
   sectorCursor: number // até onde já foi dealt do deck[pos] atual (levas)
   sectorUnsoldAccum: Card[] // não vendidos acumulados nas levas do setor até a repescagem
+  roundIdx: number // rodada por vaga dentro do setor atual (só modo online)
   // monte final
   monte: Card[]
   monteOrder: number[] // sequência serpente de manager ids

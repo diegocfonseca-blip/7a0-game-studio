@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useEsc } from './store'
-import type { EscState } from './types'
+import type { EscState, FormationKey } from './types'
 
 // A Escalação usa as mesmas tabelas do Draft (game_rooms/room_players).
 // Marcamos a sala como nossa via game_state.__game pra não colidir com o Draft.
@@ -14,7 +14,7 @@ type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'
 
 interface RoomPlayer { user_id: string; manager_name: string; player_index: number }
-interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: EscState & { __game?: string } }
+interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: EscState & { __game?: string; formation?: FormationKey } }
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -62,6 +62,7 @@ export function EscLobby() {
   const [loading, setLoading] = useState(false)
 
   const [joinCode, setJoinCode] = useState('')
+  const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [room, setRoom] = useState<RoomInfo | null>(null)
   const [players, setPlayers] = useState<RoomPlayer[]>([])
   const [isHost, setIsHost] = useState(false)
@@ -132,6 +133,7 @@ export function EscLobby() {
       isHost: roomData.host_id === user.id,
       playerIndex: myPl.player_index,
       playerNames: sorted.map(p => p.manager_name),
+      formation: roomData.game_state?.formation ?? '4-3-3',
     })
   }
 
@@ -159,7 +161,7 @@ export function EscLobby() {
       if (!data) break; code = randCode()
     }
     const { data: rd, error: re } = await supabase.from('game_rooms')
-      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: { __game: GAME_TAG } })
+      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: { __game: GAME_TAG, formation } })
       .select().single()
     if (re || !rd) { setRoomError('Erro ao criar sala.'); setLoading(false); return }
     await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: 0, manager_name: nameOf(), is_ready: true })
@@ -235,6 +237,17 @@ export function EscLobby() {
       <div className="text-6xl mb-2">🔨</div>
       <h1 className="font-black text-3xl text-white" style={OSWALD}>LEILÃO LEGENDS 38</h1>
       <p className="text-white/50 text-sm mt-1">Olá, <span className="text-white font-black">{nameOf()}</span></p>
+    </div>
+    <div>
+      <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Formação da sala (vale pra todo mundo)</p>
+      <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
+        {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => (
+          <button key={f} onClick={() => setFormation(f)}
+            className="flex-1 py-2.5 font-black text-sm uppercase" style={{ backgroundColor: formation === f ? GOLD : '#fff', color: '#000' }}>
+            {f}
+          </button>
+        ))}
+      </div>
     </div>
     <Big onClick={createRoom} color={GOLD}>{loading ? 'Criando...' : '🏠 Criar Sala'}</Big>
     <div className="space-y-2">
