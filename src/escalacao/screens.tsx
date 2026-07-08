@@ -1126,6 +1126,12 @@ export function EscEnd() {
   const online = state.onlineMode === 'online'
   const canRestart = !online || state.isHost
   const myScorer = topScorers(state, 1)[0]
+  // check de prontidão do "Reiniciar com novos times"
+  const restartPending = state.restartPending
+  const humanIds = state.managers.filter(m => m.isHuman).map(m => m.id)
+  const presentIds = state.presence.length ? humanIds.filter(id => state.presence.includes(id)) : humanIds
+  const readyCount = state.restartReady.filter(id => presentIds.includes(id)).length
+  const iAmReady = state.restartReady.includes(state.youIdx)
   return (
     <Shell>
       <div className="text-center pt-8">
@@ -1149,9 +1155,25 @@ export function EscEnd() {
         pts: table[youPos - 1]?.pts ?? 0, w: table[youPos - 1]?.w ?? 0, d: table[youPos - 1]?.d ?? 0, l: table[youPos - 1]?.l ?? 0,
         scorerName: myScorer?.name, scorerGoals: myScorer?.goals,
       })} bg="#fff" className="w-full text-lg">📤 Compartilhar resultado</Btn>
-      {canRestart
-        ? <Btn onClick={() => dispatch({ type: 'NEW_SEASON' })} bg={GREEN} className="w-full text-lg"><span className="text-white">🔁 Jogar nova temporada</span></Btn>
-        : <p className="text-center text-sm font-bold text-black/60">Aguardando o host começar a próxima temporada…</p>}
+      {restartPending
+        ? (
+          <div className="rounded-2xl border-4 border-black p-3 space-y-2" style={{ background: '#FEF3C7' }}>
+            <p className="text-center font-black text-lg" style={OSWALD}>🔀 REINICIAR COM NOVOS TIMES</p>
+            <p className="text-center text-sm font-bold">Esperando todo mundo confirmar… {readyCount}/{presentIds.length} prontos</p>
+            {!iAmReady
+              ? <Btn onClick={() => dispatch({ type: 'CONFIRM_RESTART', mgrId: state.youIdx })} bg={GREEN} className="w-full text-lg"><span className="text-white">✅ Estou pronto</span></Btn>
+              : <p className="text-center text-sm font-bold text-black/60">Você está pronto. Aguardando os outros…</p>}
+            {canRestart && <Btn onClick={() => dispatch({ type: 'CANCEL_RESTART' })} className="w-full">Cancelar</Btn>}
+          </div>
+        )
+        : canRestart
+          ? (
+            <>
+              <Btn onClick={() => dispatch({ type: 'REPLAY_SEASON' })} bg={GREEN} className="w-full text-lg"><span className="text-white">🔁 Nova temporada (mesmo time)</span></Btn>
+              <Btn onClick={() => dispatch({ type: 'REQUEST_NEW_TEAMS' })} className="w-full text-lg">🔀 Reiniciar com novos times</Btn>
+            </>
+          )
+          : <p className="text-center text-sm font-bold text-black/60">Aguardando o host começar a próxima temporada…</p>}
       <Btn onClick={() => dispatch({ type: 'NEW_GAME' })} className="w-full text-lg">NOVO PREGÃO 🔨</Btn>
     </Shell>
   )

@@ -160,4 +160,9 @@ export interface EscState {
   monteDeadline: number | null // timestamp (ms) do fim da vez atual no Monte (online)
   scorers: ScorerRow[] // artilharia acumulada da temporada
   seasonNo: number // conta quantas temporadas essa sala/sessão já jogou (revanche)
+  // "Reiniciar com novos times" (re-draft): precisa da galera toda online e
+  // pronta antes de refazer o leilão. restartPending liga o painel de espera;
+  // restartReady junta os ids que já confirmaram "estou pronto".
+  restartPending: boolean
+  restartReady: number[]
 }
