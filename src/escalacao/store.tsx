@@ -482,6 +482,7 @@ type Action =
   | { type: 'GO_LOBBY' }
   | { type: 'GO_LOBBY_ONLINE' }
   | { type: 'GO_SETUP' }
+  | { type: 'GO_ALBUM' }
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey }
   | { type: 'SYNC_STATE'; newState: EscState }
@@ -683,6 +684,7 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'GO_LOBBY': { s.screen = 'intro'; s.onlineMode = 'cpu'; return s }
     case 'GO_LOBBY_ONLINE': { s.screen = 'lobby'; return s }
     case 'GO_SETUP': { s.screen = 'setup'; return s }
+    case 'GO_ALBUM': { s.screen = 'album'; return s }
     case 'SET_PRESENCE': { s.presence = action.indices; return s }
     case 'START': {
       s.seed = Math.floor(Math.random() * 1e9)
@@ -874,7 +876,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // convidado roteia ações pro host; host aplica local
   const dispatch = useCallback((action: Action) => {
-    if (onlineRef.current === 'online' && !isHostRef.current && action.type !== 'GO_LOBBY' && action.type !== 'NEW_GAME') {
+    if (onlineRef.current === 'online' && !isHostRef.current && action.type !== 'GO_LOBBY' && action.type !== 'NEW_GAME' && action.type !== 'GO_ALBUM') {
       channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
     } else {
       rawDispatch(action)

@@ -4,6 +4,9 @@ import type { Card, FormationKey, Manager, Sector, Tactic, WonCard } from './typ
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
 import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY, MONTE_SECONDS, BATCH_SIZE, roundPlanFor } from './store'
 import { supabase } from '../lib/supabase'
+import { CATALOG } from './data'
+
+const CATALOG_TOTAL = Object.values(CATALOG).reduce((s, arr) => s + arr.length, 0)
 
 const GAME_URL = 'https://diegocfonseca-blip.github.io/7a0-game-studio/leilao-legends-38/'
 
@@ -933,6 +936,147 @@ function HallDaFama({ roomId, isHost, seasonNo, champName, scorerName, scorerGoa
   )
 }
 
+// ─── prêmio de campeão: escolhe 1 carta do seu time pro álbum ─────────
+const CARD_PICK_SECONDS = 25
+function CardCollectPrompt({ you, seasonKey }: { you: Manager; seasonKey: string }) {
+  const { dispatch } = useEsc()
+  const [status, setStatus] = useState<'checking' | 'picking' | 'revealed'>('checking')
+  const [claimed, setClaimed] = useState<WonCard | null>(null)
+  const [deadline] = useState(() => Date.now() + CARD_PICK_SECONDS * 1000)
+  const [now, setNow] = useState(() => Date.now())
+  const claimingRef = useRef(false)
+
+  useEffect(() => {
+    ;(async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setStatus('picking'); return }
+      const { data } = await supabase.from('user_cards').select('*').eq('user_id', user.id).eq('season_key', seasonKey).maybeSingle()
+      if (data) {
+        setClaimed({ id: 'x', name: data.card_name, club: data.card_club, year: data.card_year, pos: data.card_pos, fame: data.card_fame, lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard)
+        setStatus('revealed')
+      } else {
+        setStatus('picking')
+      }
+    })()
+  }, [seasonKey])
+
+  useEffect(() => {
+    if (status !== 'picking') return
+    const iv = setInterval(() => setNow(Date.now()), 250)
+    return () => clearInterval(iv)
+  }, [status])
+  const remaining = Math.max(0, Math.ceil((deadline - now) / 1000))
+
+  async function claim(card: WonCard) {
+    if (claimingRef.current) return
+    claimingRef.current = true
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from('user_cards').insert({
+      user_id: user.id, season_key: seasonKey,
+      card_name: card.name, card_club: card.club, card_year: card.year, card_pos: card.pos, card_fame: card.fame,
+    })
+    setClaimed(card)
+    setStatus('revealed')
+  }
+
+  useEffect(() => {
+    if (status !== 'picking' || remaining > 0) return
+    // tempo esgotou: o jogo escolhe uma carta aleatória do seu time por você
+    const pick = you.squad[Math.floor(Math.random() * you.squad.length)]
+    if (pick) claim(pick)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remaining, status])
+
+  if (status === 'checking') return null
+
+  if (status === 'revealed' && claimed) {
+    return (
+      <Box bg={claimed.fame >= 5 ? GOLD : CREAM} className="p-5 text-center" shadow={6}>
+        <motion.div initial={{ rotateY: 90, opacity: 0 }} animate={{ rotateY: 0, opacity: 1 }} transition={{ duration: 0.6, type: 'spring' }}>
+          <p className="text-xs font-black uppercase text-black/60">🎴 Foi pro seu álbum!</p>
+          <p className="font-black text-3xl mt-2" style={OSWALD}>{claimed.name}</p>
+          <p className="text-sm font-bold text-black/70">{claimed.pos} · {claimed.club} · {claimed.year}</p>
+          {claimed.fame >= 5 && <p className="text-xs font-black uppercase mt-1" style={{ color: '#B8860B' }}>✨ carta lendária ✨</p>}
+        </motion.div>
+        <Btn onClick={() => dispatch({ type: 'GO_ALBUM' })} bg={GREEN} className="w-full text-lg mt-4"><span className="text-white">📖 Ver meu álbum</span></Btn>
+      </Box>
+    )
+  }
+
+  return (
+    <Box bg={GOLD} className="p-4" shadow={6}>
+      <div className="flex items-center justify-between mb-2">
+        <p className="font-black text-lg" style={OSWALD}>🎴 Escolha uma carta pro seu álbum!</p>
+        <span className="border-2 border-black rounded-lg px-2 py-1 text-xs font-black bg-white">{remaining}s</span>
+      </div>
+      <p className="text-xs font-bold text-black/70 mb-2">Campeão leva uma lembrança. Se o tempo acabar, o jogo escolhe uma pra você.</p>
+      <div className="space-y-1.5 max-h-72 overflow-y-auto">
+        {you.squad.map(c => (
+          <button key={c.id} onClick={() => claim(c)} className="w-full text-left">
+            <Box bg="#fff" className="p-2.5 flex items-center justify-between" shadow={3}>
+              <CardFace c={c} />
+              {c.fame >= 5 && <span className="text-xs font-black" style={{ color: '#B8860B' }}>✨</span>}
+            </Box>
+          </button>
+        ))}
+      </div>
+    </Box>
+  )
+}
+
+// ─── álbum: coleção de cartas ganhas sendo campeão, entre partidas ────
+interface UserCardRow { card_name: string; card_club: string; card_year: number; card_pos: string; card_fame: number; obtained_at: string }
+export function EscAlbum() {
+  const { dispatch } = useEsc()
+  const [cards, setCards] = useState<UserCardRow[] | null>(null)
+
+  useEffect(() => {
+    ;(async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setCards([]); return }
+      const { data } = await supabase.from('user_cards').select('card_name, card_club, card_year, card_pos, card_fame, obtained_at').eq('user_id', user.id).order('obtained_at', { ascending: false })
+      setCards((data ?? []) as UserCardRow[])
+    })()
+  }, [])
+
+  const unique = useMemo(() => {
+    const seen = new Set<string>()
+    return (cards ?? []).filter(c => (seen.has(c.card_name) ? false : (seen.add(c.card_name), true)))
+  }, [cards])
+
+  return (
+    <Shell>
+      <div className="text-center pt-4">
+        <h2 className="font-black text-4xl" style={OSWALD}>📖 MEU ÁLBUM</h2>
+        <p className="font-semibold text-black/60 mt-1">Uma carta por título — vai colecionando conforme vira campeão.</p>
+        {cards && <p className="font-black text-lg mt-2" style={OSWALD}>{unique.length}/{CATALOG_TOTAL} jogadores</p>}
+      </div>
+      {cards === null && <p className="text-center font-bold text-black/60">Carregando…</p>}
+      {cards && cards.length === 0 && (
+        <Box bg="#fff" className="p-6 text-center">
+          <p className="font-bold text-black/70">Ainda sem cartas. Seja campeão de uma sala online pra ganhar a primeira!</p>
+        </Box>
+      )}
+      <div className="space-y-2">
+        {cards?.map((c, i) => (
+          <Box key={i} bg={c.card_fame >= 5 ? GOLD : '#fff'} className="p-3 flex items-center justify-between" shadow={3}>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black" style={{ backgroundColor: INK, color: '#fff' }}>{c.card_pos}</span>
+                <p className="font-black text-base" style={OSWALD}>{c.card_name}</p>
+                {c.card_fame >= 5 && <span className="text-xs font-black" style={{ color: '#B8860B' }}>✨</span>}
+              </div>
+              <p className="text-xs font-semibold text-black/60 mt-0.5">{c.card_club} · {c.card_year}</p>
+            </div>
+          </Box>
+        ))}
+      </div>
+      <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg">← Voltar</Btn>
+    </Shell>
+  )
+}
+
 // ─── FIM ─────────────────────────────────────────────────────────────
 export function EscEnd() {
   const { state, dispatch } = useEsc()
@@ -953,6 +1097,9 @@ export function EscEnd() {
           {youWon ? 'O pregão foi seu, o campeonato foi seu. Resenha eterna.' : `Campeão: ${champ.name}. ${youPos >= 17 ? 'Rebaixado. O leilão cobra caro.' : 'Ano que vem tem pregão de novo.'}`}
         </p>
       </div>
+      {online && youWon && state.roomId && (
+        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}`} />
+      )}
       <TableBox highlight={you.id} />
       <TopScorersBox highlight={you.id} />
       {online && state.roomId && (
