@@ -113,6 +113,7 @@ export type Screen =
   | 'cerimonia'
   | 'season'
   | 'end'
+  | 'album'
 
 export type OnlineMode = 'cpu' | 'online'
 
