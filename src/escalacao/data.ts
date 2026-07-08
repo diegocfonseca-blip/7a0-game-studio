@@ -525,7 +525,7 @@ const ATA: C[] = [
   { name: 'Reinaldo', club: 'Atlético-MG', year: 1977, fame: 4, lo: 87, hi: 93 },
   { name: 'Robinho', club: 'Santos', year: 2002, fame: 4, lo: 85, hi: 92 },
   { name: 'Adriano', club: 'Flamengo', year: 2009, fame: 3, lo: 76, hi: 92 },
-  { name: 'Edmundo', club: 'Palmeiras', year: 1993, fame: 3, lo: 78, hi: 90, folk: true },
+  { name: 'Edmundo', club: 'Vasco', year: 1997, fame: 4, lo: 80, hi: 91 },
   { name: 'Evair', club: 'Palmeiras', year: 1993, fame: 3, lo: 79, hi: 87 },
   { name: 'Amoroso', club: 'Guarani', year: 1994, fame: 3, lo: 78, hi: 88 },
   { name: 'Müller', club: 'São Paulo', year: 1991, fame: 3, lo: 79, hi: 87 },
