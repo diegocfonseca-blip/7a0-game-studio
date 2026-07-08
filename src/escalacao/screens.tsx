@@ -290,6 +290,13 @@ function Envelope() {
   const roundPlan = online ? roundPlanFor(pos, state.managers) : []
   const roundSlots = online ? roundPlan[state.roundIdx] ?? 1 : 0
   const roundsTotal = roundPlan.length
+  // trava em quantos jogadores DIFERENTES dá pra apostar: no máximo o número
+  // de vagas que você pode mesmo fechar (nesta rodada, ou no total em solo).
+  // Sem isso, apostar em mais candidatos do que cabe é ambíguo — a resolução
+  // roda por ordem de menor disputa, então você pode acabar ganhando o
+  // "backup" ao invés do favorito, mesmo tendo dado lance maior nele.
+  const bidLimit = online ? Math.min(roundSlots, myOpen) : myOpen
+  const chosenCount = Object.keys(bids).length
 
   return (
     <Shell bar={<AuctionBar />}>
@@ -326,7 +333,10 @@ function Envelope() {
       )}
 
       <div className="space-y-2">
-        {cards.map(c => (
+        {cards.map(c => {
+          const chosen = (bids[c.id] ?? 0) > 0
+          const plusBlocked = total >= you.money || (!chosen && chosenCount >= bidLimit)
+          return (
           <Box key={c.id} className="p-3 flex items-center justify-between gap-2">
             <CardFace c={c} />
             {canBid && (
@@ -334,13 +344,15 @@ function Envelope() {
                 <button onClick={() => setBid(c.id, (bids[c.id] ?? 0) - 1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</button>
                 <span className="w-9 text-center font-black text-black" style={OSWALD}>{bids[c.id] ?? 0}</span>
                 <button
-                  onClick={() => total < you.money && setBid(c.id, (bids[c.id] ?? 0) + 1)}
-                  className="border-2 border-black rounded-lg w-8 h-8 font-black text-black"
+                  onClick={() => !plusBlocked && setBid(c.id, (bids[c.id] ?? 0) + 1)}
+                  disabled={plusBlocked}
+                  className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${plusBlocked ? 'opacity-40' : ''}`}
                   style={{ backgroundColor: GOLD }}>+</button>
               </div>
             )}
           </Box>
-        ))}
+          )
+        })}
       </div>
 
       <Box bg="#fff" className="p-3 flex items-center justify-between">
