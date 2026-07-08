@@ -109,10 +109,9 @@ function Campinho({ m, small = false }: { m: Manager; small?: boolean }) {
 function CardFace({ c, big = false }: { c: Card; big?: boolean }) {
   return (
     <div className="text-left">
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2">
         <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black" style={{ backgroundColor: INK, color: '#fff' }}>{c.pos}</span>
         <p className={`font-black ${big ? 'text-2xl' : 'text-base'}`} style={OSWALD}>{c.name}</p>
-        {c.folk && <span className="border-2 border-black rounded-full px-2 py-0.5 text-[9px] font-black" style={{ backgroundColor: GOLD }} title="Folclórico">🃏 FOLCLÓRICO</span>}
       </div>
       <p className={`${big ? 'text-sm' : 'text-xs'} font-semibold text-black/60 mt-0.5`}>{c.club} · {c.year}</p>
     </div>
