@@ -193,19 +193,43 @@ const ATA: C[] = [
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
 
-// ─── Incógnitas: geradas por partida. Algumas escondem joias. ────────
+// ─── Vexames folclóricos: jogadores REAIS, famosos por serem ruins ou
+// por um vexame específico — não incógnitas inventadas. Mostra clube e
+// ano igual às lendas. Alguns clube/ano são aproximados (não tenho 100%
+// de certeza de todos); o resto da lista (fama 2, "cult/zoeira") já
+// cobre os folclóricos mais conhecidos, então aqui é só o time B.
+const FOLKLORE_DUDS: { name: string; club: string; year: number; pos: Sector }[] = [
+  { name: 'Deivid', club: 'Flamengo', year: 2012, pos: 'ATA' },
+  { name: 'Adriano Gol Contra', club: 'Portuguesa', year: 2010, pos: 'ATA' },
+  { name: 'Val Baiano', club: 'Bahia', year: 2008, pos: 'MEI' },
+  { name: 'Perdigão', club: 'Goiás', year: 2007, pos: 'MEI' },
+  { name: 'Robson Bambu', club: 'Vasco', year: 2015, pos: 'ZAG' },
+  { name: 'Judivan', club: 'Flamengo', year: 2011, pos: 'ZAG' },
+  { name: 'Elicarlos', club: 'Flamengo', year: 2011, pos: 'ZAG' },
+  { name: 'Walter Minhoca', club: 'Bangu', year: 2009, pos: 'LAT' },
+  { name: 'Sousa Caveirão', club: 'Olaria', year: 2006, pos: 'GOL' },
+]
+
+// ─── Incógnitas: geradas por partida, só como reforço quando o time B
+// de cima acaba (salas grandes precisam de muita gente pra preencher).
+// Algumas escondem joias.
 const INC_FIRST = ['Valdir', 'Josimar', 'Cleiton', 'Ednaldo', 'Wanderson', 'Gonçalves', 'Íris', 'Baltemar', 'Osmarino', 'Delei', 'Nivaldo', 'Juraci', 'Aloísio', 'Ademilson', 'Zé Roberto', 'Toninho', 'Gersinho', 'Maurício', 'Índio', 'Fumagalli']
 const INC_NICK = ['da Ilha', 'Perna Torta', 'Bola Sete', 'do Sertão', 'Trovoada', 'Canela Fina', 'Pé de Ferro', 'Maestro', 'Furacão', 'da Baixada', 'Gaúcho', 'Paraíba', 'Matuto', 'Serrano', 'do Brejo', 'Cigano', 'Foguete', 'Peixe Frito', 'da Várzea', 'Bicudo']
 const INC_CLUBS = ['Operário', 'Treze', 'Caldense', 'Ypiranga', 'Ferroviário', 'Uberlândia', 'Anapolina', 'Itabaiana', 'River-PI', 'Sergipe', 'Central-PE', 'Mixto', 'Rio Branco', 'Olaria', 'Bangu', 'Portuguesa', 'Inter de Limeira', 'União São João', 'Tuna Luso', 'XV de Piracicaba']
 
-export function makeIncognita(pos: Sector, idx: number, gem: boolean, rng: () => number): Card {
+export function makeIncognita(pos: Sector, idx: number, gem: boolean, rng: () => number, dudIdx = idx): Card {
+  const dudPool = FOLKLORE_DUDS.filter(d => d.pos === pos)
+  const lo = gem ? 72 + Math.floor(rng() * 6) : 46 + Math.floor(rng() * 12)
+  const width = 12 + Math.floor(rng() * 7)
+  const hi = Math.min(93, lo + width)
+  if (dudIdx < dudPool.length) {
+    const d = dudPool[dudIdx]
+    return { id: `inc-${pos}-${idx}`, name: d.name, club: d.club, year: d.year, pos, fame: 1, lo, hi }
+  }
   const name = `${INC_FIRST[Math.floor(rng() * INC_FIRST.length)]} ${INC_NICK[Math.floor(rng() * INC_NICK.length)]}`
   const club = INC_CLUBS[Math.floor(rng() * INC_CLUBS.length)]
   const year = 1968 + Math.floor(rng() * 40)
-  // joia: faixa alta escondida atrás de nome desconhecido. Dud: perna de pau honesto.
-  const lo = gem ? 72 + Math.floor(rng() * 6) : 46 + Math.floor(rng() * 12)
-  const width = 12 + Math.floor(rng() * 7)
-  return { id: `inc-${pos}-${idx}`, name, club, year, pos, fame: 1, lo, hi: Math.min(93, lo + width) }
+  return { id: `inc-${pos}-${idx}`, name, club, year, pos, fame: 1, lo, hi }
 }
 
 // ─── Nomes de técnicos CPU e times ───────────────────────────────────

@@ -757,12 +757,31 @@ function MatchCard({ r, roundMs }: { r: { homeId: number; awayId: number; hg: nu
   )
 }
 
+// zona da tabela por posição (sempre 20 times): 1-3 azul (libertadores),
+// 4-10 amarelo (pré-libertadores/sula), 11-16 branco normal (meio de
+// tabela), 17-20 vermelho (rebaixamento) — tudo em tom pastel, só pra dar
+// um significado visual, sem gritar
+function zoneColor(rank: number): string | undefined {
+  if (rank <= 3) return '#D6E9FA'
+  if (rank <= 10) return '#FFF3B8'
+  if (rank <= 16) return undefined
+  return '#F9D8D3'
+}
+
 function TableBox({ highlight }: { highlight: number }) {
   const { state } = useEsc()
   const table = sortedTable(state.league)
   return (
     <Box className="p-3 overflow-x-auto">
-      <p className="font-black text-sm mb-2" style={OSWALD}>TABELA</p>
+      <div className="flex items-center justify-between mb-2">
+        <p className="font-black text-sm" style={OSWALD}>TABELA</p>
+        <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#D6E9FA' }} />G1</span>
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFF3B8' }} />G4</span>
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block border border-black/20" style={{ backgroundColor: '#fff' }} />Meio</span>
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#F9D8D3' }} />Z4</span>
+        </div>
+      </div>
       <table className="w-full text-xs">
         <thead>
           <tr className="text-left text-black/70 font-black">
@@ -772,10 +791,12 @@ function TableBox({ highlight }: { highlight: number }) {
         <tbody>
           {table.map((t, i) => {
             const isMgr = state.managers.some(m => m.id === t.id)
+            const rank = i + 1
+            const isYou = t.id === highlight
             return (
               <tr key={t.id} className="border-t border-black/10 font-semibold"
-                style={{ backgroundColor: t.id === highlight ? GOLD : undefined, fontWeight: isMgr ? 800 : 500 }}>
-                <td className="pr-1">{i + 1}</td>
+                style={{ backgroundColor: isYou ? GOLD : zoneColor(rank), fontWeight: isMgr ? 800 : 500 }}>
+                <td className="pr-1">{rank}</td>
                 <td className="truncate max-w-[130px]">{isMgr ? '👤 ' : ''}{t.name}</td>
                 <td className="text-center font-black">{t.pts}</td>
                 <td className="text-center">{t.w}</td><td className="text-center">{t.d}</td><td className="text-center">{t.l}</td>
