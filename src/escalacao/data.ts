@@ -32,6 +32,8 @@ const GOL: C[] = [
   { name: 'Victor', club: 'Atlético-MG', year: 2013, fame: 3, lo: 76, hi: 85 },
   { name: 'Danrlei', club: 'Grêmio', year: 1997, fame: 2, lo: 62, hi: 82 },
   { name: 'Aranha', club: 'Santos', year: 2011, fame: 2, lo: 60, hi: 80 },
+  { name: 'Manga', club: 'Botafogo', year: 1966, fame: 4, lo: 85, hi: 92 },
+  { name: 'Castilho', club: 'Fluminense', year: 1960, fame: 4, lo: 84, hi: 91 },
 ]
 
 const LAT: C[] = [
@@ -61,6 +63,7 @@ const LAT: C[] = [
   { name: 'Marcos Rocha', club: 'Palmeiras', year: 2019, fame: 3, lo: 76, hi: 84 },
   { name: 'Fágner', club: 'Corinthians', year: 2017, fame: 2, lo: 68, hi: 82 },
   { name: 'Egídio', club: 'Cruzeiro', year: 2015, fame: 2, lo: 62, hi: 79 },
+  { name: 'Filipe Luís', club: 'Flamengo', year: 2019, fame: 4, lo: 84, hi: 90 },
 ]
 
 const ZAG: C[] = [
@@ -91,6 +94,8 @@ const ZAG: C[] = [
   { name: 'Lugano', club: 'São Paulo', year: 2006, fame: 3, lo: 80, hi: 88 },
   { name: 'Gustavo Gómez', club: 'Palmeiras', year: 2021, fame: 3, lo: 78, hi: 86 },
   { name: 'Réver', club: 'Atlético-MG', year: 2013, fame: 2, lo: 70, hi: 82 },
+  { name: 'Geromel', club: 'Grêmio', year: 2017, fame: 3, lo: 78, hi: 86 },
+  { name: 'Kannemann', club: 'Grêmio', year: 2017, fame: 3, lo: 77, hi: 85 },
 ]
 
 const MEI: C[] = [
@@ -136,6 +141,10 @@ const MEI: C[] = [
   { name: 'Marcos Assunção', club: 'Palmeiras', year: 2005, fame: 2, lo: 68, hi: 86 },
   { name: 'Vampeta', club: 'Corinthians', year: 1999, fame: 2, lo: 62, hi: 82 },
   { name: 'Marcelinho Paraíba', club: 'Corinthians', year: 2002, fame: 2, lo: 62, hi: 83 },
+  { name: 'Neto', club: 'Corinthians', year: 1990, fame: 4, lo: 84, hi: 91 },
+  { name: 'Denílson', club: 'São Paulo', year: 1996, fame: 3, lo: 74, hi: 87 },
+  { name: 'Biro-Biro', club: 'Corinthians', year: 1983, fame: 3, lo: 76, hi: 85 },
+  { name: 'Beto Cachaça', club: 'Botafogo', year: 1995, fame: 2, lo: 62, hi: 82 },
 ]
 
 const ATA: C[] = [
@@ -189,6 +198,9 @@ const ATA: C[] = [
   { name: 'Emerson Sheik', club: 'Corinthians', year: 2012, fame: 2, lo: 65, hi: 83 },
   { name: 'Deyverson', club: 'Palmeiras', year: 2018, fame: 2, lo: 55, hi: 83 },
   { name: 'Somália', club: 'Botafogo', year: 2016, fame: 2, lo: 55, hi: 78 },
+  { name: 'Ricardo Oliveira', club: 'Santos', year: 2015, fame: 3, lo: 77, hi: 86 },
+  { name: 'Flávio Caça-Rato', club: 'Santa Cruz', year: 2013, fame: 2, lo: 58, hi: 80 },
+  { name: 'Kerlon Foquinha', club: 'Cruzeiro', year: 2007, fame: 2, lo: 55, hi: 82 },
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
