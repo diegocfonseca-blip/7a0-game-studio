@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Card, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
-import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY, MONTE_SECONDS, BATCH_SIZE } from './store'
+import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY, MONTE_SECONDS, BATCH_SIZE, roundPlanFor } from './store'
 
 // ─── estilo base (neubrutalista, igual ao resto do estúdio) ──────────
 const CREAM = '#F4ECD6'
@@ -287,6 +287,9 @@ function Envelope() {
   const timerTextColor = remaining <= 20 ? INK : '#fff'
   const totalBatches = Math.ceil(state.deck[pos].length / BATCH_SIZE)
   const curBatch = Math.min(totalBatches, Math.ceil(state.sectorCursor / BATCH_SIZE))
+  const roundPlan = online ? roundPlanFor(pos, state.managers) : []
+  const roundSlots = online ? roundPlan[state.roundIdx] ?? 1 : 0
+  const roundsTotal = roundPlan.length
 
   return (
     <Shell bar={<AuctionBar />}>
@@ -302,6 +305,12 @@ function Envelope() {
             {' '}Suas vagas: <b>{myOpen}</b>.
             {!rescue && totalBatches > 1 && <> Leva <b>{curBatch}/{totalBatches}</b> — mais vem a seguir.</>}
           </p>
+          {!rescue && online && (
+            <p className="text-sm font-black mt-1" style={{ color: GREEN }}>
+              {roundsTotal > 1 && <>Rodada {state.roundIdx + 1}/{roundsTotal} — </>}
+              Nesta rodada você pode fechar até <b>{Math.min(roundSlots, myOpen)}</b> vaga{Math.min(roundSlots, myOpen) === 1 ? '' : 's'}.
+            </p>
+          )}
         </div>
         <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center min-w-[64px]"
           style={{ backgroundColor: timerColor, boxShadow: `3px 3px 0 0 ${INK}` }}>
