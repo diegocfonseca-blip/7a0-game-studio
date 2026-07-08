@@ -61,6 +61,9 @@ export function totalHoles(m: Manager): number {
 // vagas = 4 cartas, 5 humanos = 10, e assim por diante.
 function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set()): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
+  // ── passo 1: define o tamanho de cada setor e embaralha o catálogo ──
+  const plan = {} as Record<Sector, { count: number; catalog: (typeof CATALOG)[Sector] }>
+  let totalCount = 0
   for (const pos of SECTORS) {
     const demand = managers.reduce((s, m) => s + slotsOf(m, pos), 0)
     const catalog = shuffle(CATALOG[pos], rng)
@@ -72,26 +75,58 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     // Só quando nem `demand` cabe em reais (sala gigante) é que sobra fake.
     const want = Math.max(1, Math.ceil(demand * margin))
     const count = Math.max(demand, Math.min(want, realFree))
+    plan[pos] = { count, catalog }
+    totalCount += count
+  }
+  // ── passo 2: GARANTE lendas no leilão inteiro (não por setor) ──
+  // meta: ~1 lenda a cada 7 cartas, mínimo 2 — assim até um jogo de 2 pessoas
+  // (≈22 cartas) sempre vê ~3 lendas, e escala com mais gente. Antes era só um
+  // TETO por setor + sorteio, então dava pra sair leilão inteiro sem lenda.
+  const legendCapPos = {} as Record<Sector, number>
+  for (const pos of SECTORS) {
+    const avail = plan[pos].catalog.filter(c => c.fame === 5 && !used.has(c.name)).length
+    // teto por setor: no máx ~1/3 do setor (pra nenhum setor virar "só lenda")
+    legendCapPos[pos] = Math.min(avail, Math.max(1, Math.round(plan[pos].count / 3)), plan[pos].count)
+  }
+  const totalCap = SECTORS.reduce((s, p) => s + legendCapPos[p], 0)
+  let legendGoal = Math.min(Math.max(2, Math.round(totalCount / 7)), totalCap)
+  const legendPlan = {} as Record<Sector, number>
+  SECTORS.forEach(p => { legendPlan[p] = 0 })
+  // distribui as lendas: cada uma vai pro setor mais "merecedor" (maior, com
+  // menos lenda ainda) que ainda tem espaço no teto
+  while (legendGoal > 0) {
+    let best: Sector | null = null
+    let bestScore = -1
+    for (const pos of SECTORS) {
+      if (legendPlan[pos] >= legendCapPos[pos]) continue
+      const score = plan[pos].count / (legendPlan[pos] + 1)
+      if (score > bestScore) { bestScore = score; best = pos }
+    }
+    if (!best) break
+    legendPlan[best]++
+    legendGoal--
+  }
+  // ── passo 3: monta cada setor — lendas garantidas primeiro, resto natural ──
+  for (const pos of SECTORS) {
+    const { count, catalog } = plan[pos]
     const cards: Card[] = []
-    // ~1 lenda a cada 6 cartas do baralho (garante lenda até no gol de sala
-    // pequena, e várias nas posições cheias / salas grandes)
-    const legendCap = Math.max(1, Math.round(count / 6))
-    let legends = 0
-    // preenche o baralho INTEIRO com jogadores reais do catálogo — nada de
-    // nome inventado no leilão. Só cai pra incógnita se o catálogo real da
-    // posição realmente acabar (sala gigante), o que quase nunca acontece
+    // 1) as lendas planejadas (embaralhadas pelo shuffle do catálogo)
+    for (const c of catalog) {
+      if (legendPlan[pos] <= 0) break
+      if (c.fame !== 5 || used.has(c.name)) continue
+      used.add(c.name)
+      cards.push({ ...c, id: `cat-${pos}-${cards.length}`, pos })
+      legendPlan[pos]--
+    }
+    // 2) o resto do baralho, natural (craque/bom/cult nas proporções do catálogo;
+    // lendas extras NÃO entram aqui — a cota já foi cumprida acima)
     for (const c of catalog) {
       if (cards.length >= count) break
-      // já é o mesmo craque de outro time (bot ou outro setor) — nunca duplica
-      // o mesmo jogador real dentro da mesma partida
-      if (used.has(c.name)) continue
-      if (c.fame === 5) {
-        if (legends >= legendCap) continue
-        legends++
-      }
+      if (used.has(c.name) || c.fame === 5) continue
       used.add(c.name)
       cards.push({ ...c, id: `cat-${pos}-${cards.length}`, pos })
     }
+    // 3) só cai pra incógnita se o catálogo real acabar (sala gigante)
     const gems = Math.max(1, Math.ceil(managers.length / 3))
     let gi = 0
     while (cards.length < count) {
