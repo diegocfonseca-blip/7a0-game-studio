@@ -36,6 +36,8 @@ const GOL: C[] = [
   { name: 'Castilho', club: 'Fluminense', year: 1960, fame: 4, lo: 84, hi: 91 },
   { name: 'Fábio Costa', club: 'Santos', year: 2002, fame: 2, lo: 62, hi: 82 },
   { name: 'Gatito Fernández', club: 'Botafogo', year: 2017, fame: 2, lo: 64, hi: 82 },
+  { name: 'Marcelo Grohe', club: 'Grêmio', year: 2017, fame: 3, lo: 76, hi: 85 },
+  { name: 'Diego Cavalieri', club: 'Fluminense', year: 2012, fame: 2, lo: 66, hi: 82 },
 ]
 
 const LAT: C[] = [
@@ -69,6 +71,18 @@ const LAT: C[] = [
   { name: 'Léo Moura', club: 'Flamengo', year: 2009, fame: 3, lo: 74, hi: 84 },
   { name: 'Rafinha', club: 'Flamengo', year: 2019, fame: 3, lo: 78, hi: 86 },
   { name: 'Ceará', club: 'Fluminense', year: 2012, fame: 2, lo: 62, hi: 80 },
+  { name: 'Alex Telles', club: 'Grêmio', year: 2015, fame: 3, lo: 76, hi: 86 },
+  { name: 'Renê', club: 'Flamengo', year: 2019, fame: 2, lo: 64, hi: 80 },
+  { name: 'Ayrton Lucas', club: 'Flamengo', year: 2023, fame: 2, lo: 66, hi: 82 },
+  { name: 'Guga', club: 'Atlético-MG', year: 2020, fame: 2, lo: 64, hi: 80 },
+  { name: 'Mayke', club: 'Palmeiras', year: 2020, fame: 2, lo: 66, hi: 82 },
+  { name: 'Victor Luís', club: 'Botafogo', year: 2017, fame: 2, lo: 62, hi: 79 },
+  { name: 'Marcinho', club: 'Botafogo', year: 2018, fame: 2, lo: 62, hi: 79 },
+  { name: 'Pará', club: 'Fluminense', year: 2012, fame: 2, lo: 62, hi: 80 },
+  { name: 'Zeca', club: 'Santos', year: 2017, fame: 2, lo: 62, hi: 80 },
+  { name: 'Cortez', club: 'Grêmio', year: 2018, fame: 2, lo: 62, hi: 79 },
+  { name: 'Rodinei', club: 'Flamengo', year: 2019, fame: 2, lo: 62, hi: 80 },
+  { name: 'Isla', club: 'Flamengo', year: 2020, fame: 2, lo: 66, hi: 82 },
 ]
 
 const ZAG: C[] = [
@@ -105,6 +119,17 @@ const ZAG: C[] = [
   { name: 'Robson Bambu', club: 'Vasco', year: 2023, fame: 1, lo: 55, hi: 76 },
   { name: 'Rodrigo Caio', club: 'Flamengo', year: 2019, fame: 3, lo: 78, hi: 86 },
   { name: 'Fábio Luciano', club: 'Corinthians', year: 2000, fame: 2, lo: 64, hi: 82 },
+  { name: 'Gil', club: 'Corinthians', year: 2012, fame: 3, lo: 76, hi: 85 },
+  { name: 'Balbuena', club: 'Corinthians', year: 2017, fame: 2, lo: 70, hi: 83 },
+  { name: 'Léo Ortiz', club: 'Red Bull Bragantino', year: 2021, fame: 2, lo: 70, hi: 84 },
+  { name: 'Fabrício Bruno', club: 'Flamengo', year: 2023, fame: 2, lo: 70, hi: 84 },
+  { name: 'Léo Pereira', club: 'Flamengo', year: 2021, fame: 2, lo: 68, hi: 83 },
+  { name: 'Nino', club: 'Fluminense', year: 2021, fame: 3, lo: 74, hi: 84 },
+  { name: 'Vitão', club: 'Internacional', year: 2022, fame: 2, lo: 68, hi: 83 },
+  { name: 'Manoel', club: 'Cruzeiro', year: 2017, fame: 2, lo: 66, hi: 82 },
+  { name: 'Rhodolfo', club: 'Grêmio', year: 2012, fame: 2, lo: 66, hi: 82 },
+  { name: 'Anderson Martins', club: 'Vasco', year: 2018, fame: 2, lo: 64, hi: 81 },
+  { name: 'Lucas Veríssimo', club: 'Santos', year: 2020, fame: 2, lo: 68, hi: 83 },
 ]
 
 const MEI: C[] = [
@@ -157,6 +182,40 @@ const MEI: C[] = [
   // folclóricos "ruins mas conhecidos" — reais, entram como cartas baixas
   { name: 'Perdigão', club: 'Internacional', year: 2006, fame: 1, lo: 55, hi: 75 },
   { name: 'Walter Minhoca', club: 'Flamengo', year: 2006, fame: 1, lo: 50, hi: 72 },
+  { name: 'Paulinho', club: 'Corinthians', year: 2012, fame: 4, lo: 82, hi: 90 },
+  { name: 'Hernanes', club: 'São Paulo', year: 2009, fame: 3, lo: 78, hi: 87 },
+  { name: 'Thiago Neves', club: 'Fluminense', year: 2008, fame: 3, lo: 76, hi: 86 },
+  { name: 'Nenê', club: 'Vasco', year: 2018, fame: 3, lo: 76, hi: 86 },
+  { name: 'Gerson', club: 'Flamengo', year: 2019, fame: 3, lo: 78, hi: 87 },
+  { name: 'Gustavo Scarpa', club: 'Palmeiras', year: 2021, fame: 3, lo: 76, hi: 85 },
+  { name: 'Raphael Veiga', club: 'Palmeiras', year: 2021, fame: 3, lo: 76, hi: 86 },
+  { name: 'Lucas Lima', club: 'Santos', year: 2015, fame: 3, lo: 76, hi: 85 },
+  { name: 'Giuliano', club: 'Grêmio', year: 2016, fame: 3, lo: 75, hi: 85 },
+  { name: 'Jadson', club: 'Corinthians', year: 2015, fame: 3, lo: 75, hi: 85 },
+  { name: 'Elias', club: 'Corinthians', year: 2010, fame: 3, lo: 74, hi: 84 },
+  { name: 'Fernandinho', club: 'Atlético-PR', year: 2004, fame: 3, lo: 76, hi: 86 },
+  { name: 'Andreas Pereira', club: 'Flamengo', year: 2023, fame: 3, lo: 74, hi: 84 },
+  { name: 'Willian Arão', club: 'Flamengo', year: 2019, fame: 2, lo: 70, hi: 82 },
+  { name: 'Thiago Maia', club: 'Flamengo', year: 2021, fame: 2, lo: 68, hi: 82 },
+  { name: 'Ralf', club: 'Corinthians', year: 2012, fame: 2, lo: 66, hi: 81 },
+  { name: 'Zé Rafael', club: 'Palmeiras', year: 2020, fame: 2, lo: 70, hi: 83 },
+  { name: 'Patrick', club: 'São Paulo', year: 2021, fame: 2, lo: 68, hi: 82 },
+  { name: 'D\'Alessandro', club: 'Internacional', year: 2010, fame: 4, lo: 80, hi: 89 },
+  { name: 'Josué', club: 'São Paulo', year: 2008, fame: 3, lo: 75, hi: 85 },
+  { name: 'Mineiro', club: 'São Paulo', year: 2005, fame: 2, lo: 70, hi: 82 },
+  { name: 'Tinga', club: 'Internacional', year: 2006, fame: 2, lo: 70, hi: 82 },
+  { name: 'Guiñazú', club: 'Internacional', year: 2010, fame: 2, lo: 70, hi: 82 },
+  { name: 'Fábio Rochemback', club: 'Internacional', year: 2008, fame: 2, lo: 70, hi: 83 },
+  { name: 'Diego Souza', club: 'Sport', year: 2018, fame: 3, lo: 74, hi: 85 },
+  { name: 'Alex Teixeira', club: 'Vasco', year: 2010, fame: 2, lo: 70, hi: 84 },
+  { name: 'Lucas Silva', club: 'Cruzeiro', year: 2014, fame: 2, lo: 70, hi: 83 },
+  { name: 'Rodriguinho', club: 'Corinthians', year: 2017, fame: 2, lo: 70, hi: 83 },
+  { name: 'Cléber Santana', club: 'Atlético-MG', year: 2007, fame: 2, lo: 68, hi: 82 },
+  { name: 'Willian', club: 'Corinthians', year: 2006, fame: 3, lo: 76, hi: 86 },
+  { name: 'Aránguiz', club: 'Internacional', year: 2015, fame: 3, lo: 74, hi: 84 },
+  { name: 'Otávio', club: 'Athletico-PR', year: 2016, fame: 2, lo: 70, hi: 83 },
+  { name: 'Camilo', club: 'Botafogo', year: 2015, fame: 2, lo: 68, hi: 82 },
+  { name: 'Douglas', club: 'Grêmio', year: 2016, fame: 2, lo: 70, hi: 83 },
 ]
 
 const ATA: C[] = [
@@ -217,6 +276,11 @@ const ATA: C[] = [
   { name: 'Deivid', club: 'Flamengo', year: 2012, fame: 1, lo: 55, hi: 80 },
   { name: 'Souza Caveirão', club: 'Flamengo', year: 2007, fame: 1, lo: 54, hi: 80 },
   { name: 'Val Baiano', club: 'Flamengo', year: 2010, fame: 1, lo: 52, hi: 76 },
+  { name: 'Bruno Henrique', club: 'Flamengo', year: 2019, fame: 4, lo: 80, hi: 89 },
+  { name: 'Everton Cebolinha', club: 'Grêmio', year: 2019, fame: 3, lo: 78, hi: 87 },
+  { name: 'Dudu', club: 'Palmeiras', year: 2018, fame: 3, lo: 76, hi: 86 },
+  { name: 'Rony', club: 'Palmeiras', year: 2021, fame: 2, lo: 70, hi: 83 },
+  { name: 'Keno', club: 'Atlético-MG', year: 2021, fame: 2, lo: 70, hi: 83 },
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
