@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Card, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
@@ -222,6 +222,12 @@ function Envelope() {
   const pos = SECTORS[state.sectorIdx]
   const rescue = state.phase === 'resq_envelope'
   const [bids, setBids] = useState<Record<string, number>>({})
+  // "enviei mas ainda não veio confirmação do host" — sem isso, se o host
+  // demorar (ou tiver caído), o jogador ficava vendo os lances dele
+  // somem sem nunca lacrar de verdade: um clique em LACRAR sempre limpava
+  // os valores na hora, mesmo quando o envio pro host não tinha efeito.
+  const [pending, setPending] = useState(false)
+  const pendingBidsRef = useRef<{ cardId: string; amount: number }[]>([])
   const total = Object.values(bids).reduce((s, v) => s + v, 0)
   const myOpen = openSlots(you, pos)
   const canBid = myOpen > 0 && you.money > 0
@@ -239,28 +245,45 @@ function Envelope() {
   const remaining = state.phaseDeadline ? Math.max(0, Math.ceil((state.phaseDeadline - now) / 1000)) : 45
 
   function seal() {
-    dispatch({
-      type: 'SUBMIT_ENVELOPE',
-      mgrId: you.id,
-      bids: Object.entries(bids).map(([cardId, amount]) => ({ cardId, amount })),
-    })
-    setBids({})
+    const payload = Object.entries(bids).map(([cardId, amount]) => ({ cardId, amount }))
+    pendingBidsRef.current = payload
+    setPending(true)
+    dispatch({ type: 'SUBMIT_ENVELOPE', mgrId: you.id, bids: payload })
   }
+
+  // confirmação chegou (o host aplicou e devolveu o estado): só agora limpa
+  useEffect(() => {
+    if (iSubmitted) { setBids({}); setPending(false) }
+  }, [iSubmitted])
+
+  // enquanto não confirma, reenvia de tempos em tempos — cobre o host que
+  // ficou um instante sem conexão (app em segundo plano etc.) e reconecta
+  useEffect(() => {
+    if (!online || !pending || iSubmitted) return
+    const iv = setInterval(() => {
+      dispatch({ type: 'SUBMIT_ENVELOPE', mgrId: you.id, bids: pendingBidsRef.current })
+    }, 4000)
+    return () => clearInterval(iv)
+  }, [online, pending, iSubmitted, dispatch, you.id])
 
   // auto-lacra ao zerar o timer
   useEffect(() => {
-    if (remaining <= 0 && canBid && !iSubmitted) seal()
+    if (remaining <= 0 && canBid && !iSubmitted && !pending) seal()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remaining, canBid, iSubmitted])
+  }, [remaining, canBid, iSubmitted, pending])
 
-  // já lacrei (online): tela de espera pelos outros técnicos
-  if (online && iSubmitted) {
+  // já lacrei, ou enviei e tô esperando o host confirmar (online)
+  if (online && (iSubmitted || pending)) {
     return (
       <Shell bar={<AuctionBar />}>
         <div className="pt-10 text-center space-y-3">
-          <div className="text-5xl">🔒</div>
-          <h2 className="font-black text-2xl" style={OSWALD}>ENVELOPE LACRADO</h2>
-          <p className="font-semibold text-black/70">Aguardando os outros técnicos lacrarem… ({remaining}s)</p>
+          <div className="text-5xl">{iSubmitted ? '🔒' : '🔄'}</div>
+          <h2 className="font-black text-2xl" style={OSWALD}>{iSubmitted ? 'ENVELOPE LACRADO' : 'ENVIANDO…'}</h2>
+          <p className="font-semibold text-black/70">
+            {iSubmitted
+              ? `Aguardando os outros técnicos lacrarem… (${remaining}s)`
+              : 'Confirmando com o host… se demorar muito, ele pode estar sem conexão — não se preocupe, seu lance fica guardado e a gente reenvia sozinho.'}
+          </p>
           <Box className="p-3 mt-2 text-left">
             {humanBidders.map(m => (
               <p key={m.id} className="text-sm font-bold flex justify-between text-black">
