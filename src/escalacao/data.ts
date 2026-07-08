@@ -10,8 +10,8 @@ type C = { name: string; club: string; year: number; fame: Fame; lo: number; hi:
 
 const GOL: C[] = [
   { name: 'Gilmar', club: 'Santos', year: 1962, fame: 5, lo: 93, hi: 97 },
-  { name: 'Taffarel', club: 'Seleção', year: 1994, fame: 4, lo: 88, hi: 93 },
-  { name: 'Rogério Ceni', club: 'São Paulo', year: 2005, fame: 4, lo: 87, hi: 93 },
+  { name: 'Taffarel', club: 'Seleção', year: 1994, fame: 5, lo: 88, hi: 93 },
+  { name: 'Rogério Ceni', club: 'São Paulo', year: 2005, fame: 5, lo: 89, hi: 94 },
   { name: 'Marcos', club: 'Palmeiras', year: 1999, fame: 4, lo: 86, hi: 92 },
   { name: 'Dida', club: 'Corinthians', year: 1998, fame: 3, lo: 80, hi: 88 },
   { name: 'Fábio', club: 'Cruzeiro', year: 2013, fame: 3, lo: 77, hi: 85 },
@@ -34,6 +34,8 @@ const GOL: C[] = [
   { name: 'Aranha', club: 'Santos', year: 2011, fame: 2, lo: 60, hi: 80 },
   { name: 'Manga', club: 'Botafogo', year: 1966, fame: 4, lo: 85, hi: 92 },
   { name: 'Castilho', club: 'Fluminense', year: 1960, fame: 4, lo: 84, hi: 91 },
+  { name: 'Fábio Costa', club: 'Santos', year: 2002, fame: 2, lo: 62, hi: 82 },
+  { name: 'Gatito Fernández', club: 'Botafogo', year: 2017, fame: 2, lo: 64, hi: 82 },
 ]
 
 const LAT: C[] = [
@@ -64,12 +66,15 @@ const LAT: C[] = [
   { name: 'Fágner', club: 'Corinthians', year: 2017, fame: 2, lo: 68, hi: 82 },
   { name: 'Egídio', club: 'Cruzeiro', year: 2015, fame: 2, lo: 62, hi: 79 },
   { name: 'Filipe Luís', club: 'Flamengo', year: 2019, fame: 4, lo: 84, hi: 90 },
+  { name: 'Léo Moura', club: 'Flamengo', year: 2009, fame: 3, lo: 74, hi: 84 },
+  { name: 'Rafinha', club: 'Flamengo', year: 2019, fame: 3, lo: 78, hi: 86 },
+  { name: 'Ceará', club: 'Fluminense', year: 2012, fame: 2, lo: 62, hi: 80 },
 ]
 
 const ZAG: C[] = [
   { name: 'Domingos da Guia', club: 'Flamengo', year: 1944, fame: 5, lo: 93, hi: 98 },
   { name: 'Aldair', club: 'Flamengo', year: 1987, fame: 4, lo: 87, hi: 93 },
-  { name: 'Lúcio', club: 'Internacional', year: 2000, fame: 4, lo: 86, hi: 92 },
+  { name: 'Lúcio', club: 'Internacional', year: 2000, fame: 5, lo: 88, hi: 93 },
   { name: 'Thiago Silva', club: 'Fluminense', year: 2008, fame: 4, lo: 87, hi: 93 },
   { name: 'Luís Pereira', club: 'Palmeiras', year: 1972, fame: 4, lo: 86, hi: 92 },
   { name: 'Mauro Ramos', club: 'Santos', year: 1962, fame: 4, lo: 86, hi: 92 },
@@ -85,7 +90,7 @@ const ZAG: C[] = [
   { name: 'Odvan', club: 'Vasco', year: 1997, fame: 2, lo: 58, hi: 79 },
   { name: 'Beto Bacamarte', club: 'Grêmio', year: 1972, fame: 2, lo: 57, hi: 77 },
   // ── ampliação ──
-  { name: 'Hilderaldo Bellini', club: 'Vasco', year: 1958, fame: 4, lo: 85, hi: 91 },
+  { name: 'Hilderaldo Bellini', club: 'Vasco', year: 1958, fame: 5, lo: 87, hi: 92 },
   { name: 'Wilson Piazza', club: 'Cruzeiro', year: 1970, fame: 4, lo: 86, hi: 92 },
   { name: 'Brito', club: 'Vasco', year: 1970, fame: 3, lo: 80, hi: 87 },
   { name: 'Miranda', club: 'São Paulo', year: 2010, fame: 3, lo: 80, hi: 88 },
@@ -98,6 +103,8 @@ const ZAG: C[] = [
   { name: 'Kannemann', club: 'Grêmio', year: 2017, fame: 3, lo: 77, hi: 85 },
   // folclórico "ruim mas conhecido" — real, entra como carta baixa
   { name: 'Robson Bambu', club: 'Vasco', year: 2023, fame: 1, lo: 55, hi: 76 },
+  { name: 'Rodrigo Caio', club: 'Flamengo', year: 2019, fame: 3, lo: 78, hi: 86 },
+  { name: 'Fábio Luciano', club: 'Corinthians', year: 2000, fame: 2, lo: 64, hi: 82 },
 ]
 
 const MEI: C[] = [

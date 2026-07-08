@@ -27,6 +27,17 @@ function hashCode(s: string): number {
   for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0
   return h >>> 0
 }
+// embaralhador JUSTO (Fisher-Yates). O antigo `sort(() => rng()-0.5)` é
+// viciado — deixava as cartas do começo da lista (ex.: Pelé) aparecerem
+// bem mais que as outras. Com isso todas as lendas têm chance igual.
+function shuffle<T>(arr: T[], rng: () => number): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
 
 // ─── helpers de elenco ───────────────────────────────────────────────
 export function slotsOf(m: Manager, pos: Sector): number {
@@ -52,10 +63,19 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   const deck = {} as Record<Sector, Card[]>
   for (const pos of SECTORS) {
     const demand = managers.reduce((s, m) => s + slotsOf(m, pos), 0)
-    const count = Math.max(1, Math.ceil(demand * margin))
-    const catalog = [...CATALOG[pos]].sort(() => rng() - 0.5)
+    const catalog = shuffle(CATALOG[pos], rng)
+    const realFree = catalog.filter(c => !used.has(c.name)).length
+    // margem adaptativa: queremos "sempre dobrado" (demand × margin), mas nunca
+    // pedir mais jogadores REAIS do que existem na posição — senão vira fake.
+    // Então: pede o dobro se couber; se não couber, pega todos os reais que dá
+    // (mantendo pelo menos `demand`, pra todo mundo conseguir fechar as vagas).
+    // Só quando nem `demand` cabe em reais (sala gigante) é que sobra fake.
+    const want = Math.max(1, Math.ceil(demand * margin))
+    const count = Math.max(demand, Math.min(want, realFree))
     const cards: Card[] = []
-    const legendCap = Math.max(1, Math.ceil(managers.length / 2))
+    // ~1 lenda a cada 6 cartas do baralho (garante lenda até no gol de sala
+    // pequena, e várias nas posições cheias / salas grandes)
+    const legendCap = Math.max(1, Math.round(count / 6))
     let legends = 0
     // preenche o baralho INTEIRO com jogadores reais do catálogo — nada de
     // nome inventado no leilão. Só cai pra incógnita se o catálogo real da
@@ -412,7 +432,7 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
   const squad: WonCard[] = []
   for (const pos of SECTORS) {
     const need = FORMATIONS[formation][pos]
-    const shuffled = [...CATALOG[pos]].sort(() => rng() - 0.5).filter(c => !used.has(c.name))
+    const shuffled = shuffle(CATALOG[pos], rng).filter(c => !used.has(c.name))
     const pool = tier === 'strong' ? shuffled.filter(c => c.fame >= 3)
       : tier === 'weak' ? shuffled.filter(c => c.fame <= 2)
       : shuffled.filter(c => c.fame === 2 || c.fame === 3)
