@@ -511,6 +511,7 @@ const INITIAL: EscState = {
   monteDeadline: null,
   sectorCursor: 0, sectorUnsoldAccum: [], roundIdx: 0,
   seasonNo: 1,
+  restartPending: false, restartReady: [],
 }
 
 // ─── ações ───────────────────────────────────────────────────────────
@@ -534,6 +535,10 @@ type Action =
   | { type: 'FINISH_CEREMONY' }
   | { type: 'NEW_GAME' }
   | { type: 'NEW_SEASON' }
+  | { type: 'REPLAY_SEASON' }
+  | { type: 'REQUEST_NEW_TEAMS' }
+  | { type: 'CONFIRM_RESTART'; mgrId: number }
+  | { type: 'CANCEL_RESTART' }
 
 function rngOf(state: EscState): () => number {
   return mulberry(state.seed + state.sectorIdx * 977 + state.round * 131 + state.revealIdx * 7 + state.monteIdx * 13 + state.submitted.length * 101)
@@ -647,6 +652,58 @@ function afterReveal(state: EscState) {
   state.monte.push(...unsold)
   state.currentCards = []
   advanceSectorOrFinish(state, rng)
+}
+
+// revanche com times novos: mesma sala/galera e formação, temporada do zero —
+// baralho e escalação dos bots sorteados de novo. Igual qualquer outra ação
+// online, o resultado já computado vai por SYNC_STATE pros convidados, então
+// não precisa de seed determinístico aqui.
+function redraftSeason(s: EscState): EscState {
+  const humanNames = s.managers.filter(m => m.isHuman).map(m => m.name)
+  const formation = s.managers.find(m => m.isHuman)?.formation ?? '4-3-3'
+  s.seed = Math.floor(Math.random() * 1e9)
+  const rng = mulberry(s.seed)
+  const used = new Set<string>()
+  if (s.onlineMode === 'online') {
+    const { managers, botPlans } = makeManagers(humanNames, formation, LEAGUE_SIZE, rng, 'online')
+    s.managers = managers
+    s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used)
+    dealBotSquads(s.managers, botPlans, rng, used)
+  } else {
+    const { managers, botPlans } = makeManagers(humanNames, formation, s.managers.length, rng, 'solo')
+    s.managers = managers
+    s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.3, used)
+    dealBotSquads(s.managers, botPlans, rng, used)
+  }
+  for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
+  s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0
+  s.monte = []; s.monteOrder = []; s.monteIdx = 0
+  s.news = []; s.round = 0; s.champion = null
+  s.league = []; s.fixtures = []; s.scorers = []; s.lastResults = []
+  s.tactics = {}
+  s.submitted = []; s.pendingEnvelopes = {}
+  s.seasonNo++
+  s.restartPending = false
+  s.restartReady = []
+  s.screen = 'auction'
+  startAuctionPhase(s, false)
+  return s
+}
+
+// quem está online AGORA (presence) e é humano — só eles precisam confirmar.
+// Quando todos os presentes clicaram "estou pronto", refaz o leilão.
+function presentHumanIds(s: EscState): number[] {
+  const humanIds = s.managers.filter(m => m.isHuman).map(m => m.id)
+  // presence pode estar vazio (fallback: considera todos os humanos)
+  return s.presence.length ? humanIds.filter(id => s.presence.includes(id)) : humanIds
+}
+function maybeStartRedraft(s: EscState): EscState {
+  if (!s.restartPending) return s
+  const present = presentHumanIds(s)
+  if (present.length > 0 && present.every(id => s.restartReady.includes(id))) {
+    return redraftSeason(s)
+  }
+  return s
 }
 
 export function reducer(state: EscState, action: Action): EscState {
@@ -816,38 +873,43 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       return s
     }
-    case 'NEW_SEASON': {
-      // revanche: mesma sala/galera e formação, temporada nova do zero —
-      // baralho e escalação dos bots sorteados de novo. Sempre disparado
-      // pelo host (o botão só aparece pra ele online); igual qualquer outra
-      // ação online, o resultado já computado vai por SYNC_STATE pros
-      // convidados, então não precisa de seed determinístico aqui.
-      const humanNames = s.managers.filter(m => m.isHuman).map(m => m.name)
-      const formation = s.managers.find(m => m.isHuman)?.formation ?? '4-3-3'
-      s.seed = Math.floor(Math.random() * 1e9)
-      const rng = mulberry(s.seed)
-      const used = new Set<string>()
-      if (s.onlineMode === 'online') {
-        const { managers, botPlans } = makeManagers(humanNames, formation, LEAGUE_SIZE, rng, 'online')
-        s.managers = managers
-        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used)
-        dealBotSquads(s.managers, botPlans, rng, used)
-      } else {
-        const { managers, botPlans } = makeManagers(humanNames, formation, s.managers.length, rng, 'solo')
-        s.managers = managers
-        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.3, used)
-        dealBotSquads(s.managers, botPlans, rng, used)
-      }
-      for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
-      s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0
-      s.monte = []; s.monteOrder = []; s.monteIdx = 0
-      s.news = []; s.round = 0; s.champion = null
-      s.league = []; s.fixtures = []; s.scorers = []; s.lastResults = []
+    case 'NEW_SEASON':
+      // full re-draft direto (usado no modo solo/CPU, onde não há espera).
+      return redraftSeason(s)
+    case 'REPLAY_SEASON': {
+      // "Nova temporada" (mesmo time): mantém TODOS os elencos como estão e
+      // só recomeça o campeonato — tabela, calendário e artilharia zerados.
+      // Nada de leilão. Disparado pelo host; o resultado já computado vai
+      // pros convidados por SYNC_STATE.
+      s.league = buildLeague(s.managers)
+      s.fixtures = buildFixtures(s.league)
+      s.round = 0
+      s.scorers = []
+      s.lastResults = []
+      s.news = []
+      s.champion = null
       s.tactics = {}
-      s.submitted = []; s.pendingEnvelopes = {}
       s.seasonNo++
-      s.screen = 'auction'
-      startAuctionPhase(s, false)
+      s.restartPending = false
+      s.restartReady = []
+      s.screen = 'season'
+      return s
+    }
+    case 'REQUEST_NEW_TEAMS': {
+      // host abre o "check de prontidão": todo mundo online precisa confirmar
+      // antes de refazer o leilão. O host já entra confirmado.
+      s.restartPending = true
+      s.restartReady = s.isHost ? [s.youIdx] : []
+      return maybeStartRedraft(s)
+    }
+    case 'CONFIRM_RESTART': {
+      if (!s.restartPending) return s
+      if (!s.restartReady.includes(action.mgrId)) s.restartReady = [...s.restartReady, action.mgrId]
+      return maybeStartRedraft(s)
+    }
+    case 'CANCEL_RESTART': {
+      s.restartPending = false
+      s.restartReady = []
       return s
     }
     default:
