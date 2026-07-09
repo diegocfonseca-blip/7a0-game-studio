@@ -55,10 +55,9 @@ export function totalHoles(m: Manager): number {
 
 // ─── montagem do baralho ───────────────────────────────────────────────
 // `managers` aqui é só quem DISPUTA o leilão (humanos + rivais CPU no modo
-// solo — nunca bots de preenchimento). `margin` controla a folga: 1.3 no
-// solo (dá espaço pra repescagem/monte com poucos jogadores reais no
-// catálogo), 1.0 (exato) no online — 2 humanos = exatamente 2 laterais × 2
-// vagas = 4 cartas, 5 humanos = 10, e assim por diante.
+// solo — nunca bots de preenchimento). Solo e online usam a MESMA regra:
+// `margin` 1.0 + `extra` 1 = demanda + 1 carta por posição. Ex.: 4 times
+// (você + 3 CPU, ou 4 online) = 5 goleiros, 9 laterais, etc.
 function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
   // ── passo 1: define o tamanho de cada setor e embaralha o catálogo ──
@@ -725,7 +724,7 @@ function redraftSeason(s: EscState): EscState {
   } else {
     const { managers, botPlans } = makeManagers(humanNames, formation, s.managers.length, rng, 'solo')
     s.managers = managers
-    s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.3, used)
+    s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
     dealBotSquads(s.managers, botPlans, rng, used)
   }
   for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -793,7 +792,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.managers = soloManagers
       s.youIdx = 0
       const soloUsed = new Set<string>()
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.3, soloUsed)
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, soloUsed, 1)
       dealBotSquads(s.managers, soloPlans, rng, soloUsed) // no solo não há bots de preenchimento; no-op
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
