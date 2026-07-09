@@ -613,7 +613,7 @@ const ATA: C[] = [
   { name: 'Yuri Alberto', club: 'Corinthians', year: 2023, fame: 2, lo: 72, hi: 84 },
   { name: 'Alecsandro', club: 'Atlético-MG', year: 2013, fame: 3, lo: 73, hi: 86, folk: true },
   { name: 'Marta', club: 'Santos', year: 2010, fame: 5, lo: 96, hi: 99 },
-  { name: 'Hernane Brocador', club: 'Flamengo', year: 2013, fame: 2, lo: 66, hi: 84, folk: true },
+  { name: 'Hernane Brocador', club: 'Flamengo', year: 2013, fame: 1, lo: 60, hi: 82, folk: true },
   { name: 'Rafael Moura', club: 'Fluminense', year: 2010, fame: 2, lo: 68, hi: 83, folk: true },
   { name: 'Jorge Henrique', club: 'Corinthians', year: 2011, fame: 2, lo: 66, hi: 82, folk: true },
   { name: 'Ribamar', club: 'Botafogo', year: 2016, fame: 1, lo: 50, hi: 76, folk: true },
