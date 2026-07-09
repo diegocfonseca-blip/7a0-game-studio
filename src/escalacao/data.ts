@@ -319,6 +319,14 @@ export const BIOS: Record<string, string> = {
   "Paulo Baier": "Meia de enorme longevidade e um dos maiores cobradores de falta e pênalti do país. Mais de 100 gols na Série A.",
   "Thiago Almada": "Meia argentino craque, campeão da Libertadores pelo Botafogo em 2024 — talento rumo à Europa.",
   "Luiz Henrique": "Ponta explosivo, protagonista do Botafogo campeão de 2024.",
+  "Madson": "O \"Cu de Nitro\". Lateral-direito veloz feito foguete — o apelido já é lenda da várzea à Série A.",
+  "Léo Pelé": "Zagueiro/lateral do apelido pomposo — rodou Bahia, São Paulo e Vasco.",
+  "Paulão": "Zagueirão raçudo e desengonçado que virou meme nacional — folclore puro da zaga.",
+  "André Balada": "O Balada. Centroavante boêmio e de faro — passou por meio Brasil deixando história (e resenha).",
+  "Henrique Dourado": "O Ceifador. Artilheiro do Brasileirão pelo Fluminense — a comemoração de foice virou marca registrada.",
+  "Jael": "O Cruel. Centroavante bruto e decisivo — peça da Libertadores do Grêmio em 2017.",
+  "Bill": "Matador silencioso de Série A e B — goleador raiz que fez fama pelo Nordeste e Sul.",
+  "Sassá": "Explodiu no Botafogo com golaços — carisma e resenha de sobra.",
 }
 
 const GOL: C[] = [
@@ -392,6 +400,7 @@ const LAT: C[] = [
   { name: "Ruy Cabeção", club: "Grêmio", year: 2007, fame: 2, lo: 60, hi: 80, folk: true },
   { name: "Arce", club: "Palmeiras", year: 1999, fame: 4, lo: 85, hi: 91 },
   { name: "Apodi", club: "Fortaleza", year: 2018, fame: 2, lo: 64, hi: 82, folk: true },
+  { name: "Madson", club: "Athletico-PR", year: 2020, fame: 1, lo: 56, hi: 78, folk: true },
 ]
 
 const ZAG: C[] = [
@@ -437,6 +446,8 @@ const ZAG: C[] = [
   { name: "Marquinhos", club: "Corinthians", year: 2012, fame: 3, lo: 76, hi: 83, promessa: true },
   { name: "Éder Militão", club: "São Paulo", year: 2018, fame: 3, lo: 76, hi: 82, promessa: true },
   { name: "Roque Júnior", club: "Palmeiras", year: 1999, fame: 4, lo: 84, hi: 90 },
+  { name: "Léo Pelé", club: "São Paulo", year: 2023, fame: 1, lo: 56, hi: 77 },
+  { name: "Paulão", club: "Vasco", year: 2011, fame: 1, lo: 55, hi: 77, folk: true },
 ]
 
 const MEI: C[] = [
@@ -486,7 +497,7 @@ const MEI: C[] = [
   { name: "Walter Minhoca", club: "Flamengo", year: 2006, fame: 1, lo: 50, hi: 72, folk: true },
   { name: "Paulinho", club: "Corinthians", year: 2012, fame: 4, lo: 82, hi: 90 },
   { name: "Hernanes", club: "São Paulo", year: 2009, fame: 3, lo: 78, hi: 84 },
-  { name: "Thiago Neves", club: "Fluminense", year: 2008, fame: 3, lo: 76, hi: 84 },
+  { name: "Thiago Neves", club: "Fluminense", year: 2008, fame: 4, lo: 83, hi: 90 },
   { name: "Nenê", club: "Vasco", year: 2018, fame: 3, lo: 76, hi: 84 },
   { name: "Gerson", club: "Flamengo", year: 2019, fame: 3, lo: 78, hi: 84 },
   { name: "Gustavo Scarpa", club: "Palmeiras", year: 2021, fame: 3, lo: 76, hi: 84 },
@@ -618,6 +629,11 @@ const ATA: C[] = [
   { name: "Jobson", club: "Botafogo", year: 2009, fame: 1, lo: 55, hi: 78, folk: true },
   { name: "Zé Love", club: "Santos", year: 2010, fame: 1, lo: 52, hi: 78, folk: true },
   { name: "Luiz Henrique", club: "Botafogo", year: 2024, fame: 3, lo: 76, hi: 83, promessa: true },
+  { name: "André Balada", club: "Santos", year: 2010, fame: 1, lo: 58, hi: 78, folk: true },
+  { name: "Henrique Dourado", club: "Fluminense", year: 2017, fame: 1, lo: 58, hi: 78, folk: true },
+  { name: "Jael", club: "Grêmio", year: 2017, fame: 1, lo: 56, hi: 77, folk: true },
+  { name: "Bill", club: "Ceará", year: 2018, fame: 1, lo: 54, hi: 76, folk: true },
+  { name: "Sassá", club: "Botafogo", year: 2016, fame: 1, lo: 56, hi: 77, folk: true },
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
