@@ -173,6 +173,7 @@ export const BIOS: Record<string, string> = {
   'Athirson': 'Lateral-esquerdo habilidoso do Flamengo, bom cruzamento e chegada ao ataque.',
   'Léo': 'O Guerreiro da Vila. Identificação máxima com o Santos, muita intensidade e raça.',
   'Gilberto': 'Lateral-esquerdo veloz e de bom apoio, titular do Flamengo e da Seleção no início dos anos 2000.',
+  'Sorín': 'Lateral-esquerdo argentino de raça e apoio ofensivo. Brilhou no Cruzeiro e virou capitão da Argentina.',
   'Josimar': 'Entrou de surpresa na Copa de 86 e fez dois golaços. Puro talento e improviso.',
   'Marcos Rocha': 'Um dos maiores vencedores recentes. Excelente no apoio, multicampeão por Atlético e Palmeiras.',
   'Fágner': 'Símbolo de regularidade e firmeza. Anos de confiança no Corinthians e na Seleção.',
@@ -377,6 +378,7 @@ const LAT: C[] = [
   { name: 'Athirson', club: 'Flamengo', year: 1999, fame: 2, lo: 61, hi: 81 },
   { name: 'Léo', club: 'Santos', year: 2002, fame: 2, lo: 62, hi: 80 },
   { name: 'Gilberto', club: 'Flamengo', year: 2001, fame: 2, lo: 66, hi: 83 },
+  { name: 'Sorín', club: 'Cruzeiro', year: 2001, fame: 3, lo: 76, hi: 86 },
   // ── ampliação ──
   { name: 'Djalma Santos', club: 'Palmeiras', year: 1962, fame: 5, lo: 93, hi: 98 },
   { name: 'Nelinho', club: 'Cruzeiro', year: 1976, fame: 3, lo: 80, hi: 88 },
