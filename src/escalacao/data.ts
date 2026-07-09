@@ -326,6 +326,8 @@ export const BIOS: Record<string, string> = {
   "Jael": "O Cruel. Centroavante bruto e decisivo — peça da Libertadores do Grêmio em 2017.",
   "Bill": "Matador silencioso de Série A e B — goleador raiz que fez fama pelo Nordeste e Sul.",
   "Sassá": "Explodiu no Botafogo com golaços — carisma e resenha de sobra.",
+  "Sávio": "O Anjo Loiro. Ponta genial do Flamengo dos anos 90 — dribles e assistencias antes de brilhar no Real Madrid.",
+  "Philippe Coutinho": "Joia da base do Vasco que foi cedo pra Europa e virou craque no Liverpool — magia canhota e chutes de fora.",
 }
 
 const GOL: C[] = [
@@ -530,6 +532,7 @@ const MEI: C[] = [
   { name: "Felipe Melo", club: "Palmeiras", year: 2017, fame: 4, lo: 83, hi: 91, folk: true },
   { name: "Paulo Baier", club: "Goiás", year: 2005, fame: 4, lo: 84, hi: 91 },
   { name: "Thiago Almada", club: "Botafogo", year: 2024, fame: 3, lo: 74, hi: 82, promessa: true },
+  { name: "Philippe Coutinho", club: "Vasco", year: 2009, fame: 3, lo: 74, hi: 82, promessa: true },
 ]
 
 const ATA: C[] = [
@@ -632,6 +635,7 @@ const ATA: C[] = [
   { name: "Jael", club: "Grêmio", year: 2017, fame: 1, lo: 56, hi: 77, folk: true },
   { name: "Bill", club: "Ceará", year: 2018, fame: 1, lo: 54, hi: 76, folk: true },
   { name: "Sassá", club: "Botafogo", year: 2016, fame: 1, lo: 56, hi: 77, folk: true },
+  { name: "Sávio", club: "Flamengo", year: 1997, fame: 4, lo: 83, hi: 90 },
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
