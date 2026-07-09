@@ -442,7 +442,7 @@ const MEI: C[] = [
   { name: 'Zinho', club: 'Palmeiras', year: 1994, fame: 3, lo: 78, hi: 86 },
   { name: 'Alex', club: 'Cruzeiro', year: 2003, fame: 3, lo: 79, hi: 88 },
   { name: 'Mauro Silva', club: 'Bragantino', year: 1991, fame: 3, lo: 79, hi: 86 },
-  { name: 'Djalminha', club: 'Palmeiras', year: 1996, fame: 2, lo: 65, hi: 89, folk: true },
+  { name: 'Djalminha', club: 'Palmeiras', year: 1996, fame: 4, lo: 82, hi: 91, folk: true },
   { name: 'Marcelinho Carioca', club: 'Corinthians', year: 1995, fame: 2, lo: 64, hi: 86 },
   { name: 'Edílson', club: 'Corinthians', year: 1998, fame: 2, lo: 62, hi: 85 },
   { name: 'Petkovic', club: 'Fluminense', year: 2002, fame: 2, lo: 62, hi: 84 },
