@@ -1030,6 +1030,21 @@ export function EscProvider({ children }: { children: ReactNode }) {
     channelRef.current?.send({ type: 'broadcast', event: 'state', payload: sanitize(state) })
   }, [state])
 
+  // HEARTBEAT do host: reemite o estado a cada 3s. Sem isto, se UMA mensagem do
+  // host se perde no caminho (mais comum com 3+ pessoas, mais tráfego), o
+  // convidado fica travado pra sempre — ex.: preso no "Enviando…", porque nunca
+  // recebe a confirmação. Com o heartbeat, quem perdeu uma atualização se
+  // ressincroniza em ~3s. (Guest também reenvia o próprio lance de tempos em
+  // tempos, então os dois lados se recuperam.)
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
+    const iv = setInterval(() => {
+      if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
+      channelRef.current?.send({ type: 'broadcast', event: 'state', payload: sanitize(stateRef.current) })
+    }, 3000)
+    return () => clearInterval(iv)
+  }, [state.onlineMode, state.isHost, state.roomId])
+
   // Vigia do Monte: se a vez de um humano estoura o tempo (AFK), força o
   // auto-preenchimento. Roda em TODOS os clientes conectados (não só o host) —
   // se dependesse só do host, o celular dele apagar a tela travava a sala
