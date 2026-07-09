@@ -14,6 +14,8 @@ type C = { name: string; club: string; year: number; fame: Fame; lo: number; hi:
 // ganha). Mapeado por nome — assim dá pra ir preenchendo aos poucos sem mexer
 // no catálogo. Quem não tem bio ainda mostra um texto genérico por categoria.
 export const BIOS: Record<string, string> = {
+  'Ruy Cabeção': 'O “Cabeção”. Lateral rodado e raçudo — o apelido virou folclore por si só.',
+  'Fernando Diniz': 'Meia dos anos 2000 que virou o técnico do jogo bonito e das maiores resenhas do país.',
   'Adílio': 'O camisa 8 da era de ouro do Flamengo — campeão do mundo em 81 ao lado de Zico. Grife histórica carioca.',
   'Igor Thiago': 'Menino ex-Cruzeiro que explodiu na Europa (Brugge, Brentford) — promessa moderna de alto teto.',
   'Suárez': 'O Pistoleiro. Craque uruguaio que fez uma temporada absurda no Grêmio em 2023 — grife de elite mundial.',
@@ -394,6 +396,7 @@ const LAT: C[] = [
   { name: 'Isla', club: 'Flamengo', year: 2020, fame: 2, lo: 66, hi: 82 },
   { name: 'Wesley', club: 'Flamengo', year: 2023, fame: 2, lo: 68, hi: 82 },
   { name: 'Caio Henrique', club: 'Fluminense', year: 2019, fame: 2, lo: 66, hi: 82 },
+  { name: 'Ruy Cabeção', club: 'Grêmio', year: 2007, fame: 2, lo: 60, hi: 80, folk: true },
 ]
 
 const ZAG: C[] = [
@@ -527,6 +530,7 @@ const MEI: C[] = [
   { name: 'Márcio Araújo', club: 'Flamengo', year: 2015, fame: 2, lo: 66, hi: 82, folk: true },
   { name: 'Seedorf', club: 'Botafogo', year: 2013, fame: 4, lo: 88, hi: 94 },
   { name: 'Adílio', club: 'Flamengo', year: 1981, fame: 4, lo: 87, hi: 93 },
+  { name: 'Fernando Diniz', club: 'Fluminense', year: 2001, fame: 2, lo: 64, hi: 82, folk: true },
 ]
 
 const ATA: C[] = [
