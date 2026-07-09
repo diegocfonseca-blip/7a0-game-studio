@@ -319,7 +319,7 @@ export const BIOS: Record<string, string> = {
   "Paulo Baier": "Meia de enorme longevidade e um dos maiores cobradores de falta e pênalti do país. Mais de 100 gols na Série A.",
   "Thiago Almada": "Meia argentino craque, campeão da Libertadores pelo Botafogo em 2024 — talento rumo à Europa.",
   "Luiz Henrique": "Ponta explosivo, protagonista do Botafogo campeão de 2024.",
-  "Madson": "O \"Cu de Nitro\". Lateral-direito veloz feito foguete — o apelido já é lenda da várzea à Série A.",
+  "Madson Cu de Nitro": "Lateral-direito veloz feito foguete — o apelido \"Cu de Nitro\" já é lenda da várzea à Série A.",
   "Léo Pelé": "Zagueiro/lateral do apelido pomposo — rodou Bahia, São Paulo e Vasco.",
   "Paulão": "Zagueirão raçudo e desengonçado que virou meme nacional — folclore puro da zaga.",
   "André Balada": "O Balada. Centroavante boêmio e de faro — passou por meio Brasil deixando história (e resenha).",
@@ -400,7 +400,7 @@ const LAT: C[] = [
   { name: "Ruy Cabeção", club: "Grêmio", year: 2007, fame: 2, lo: 60, hi: 80, folk: true },
   { name: "Arce", club: "Palmeiras", year: 1999, fame: 4, lo: 85, hi: 91 },
   { name: "Apodi", club: "Fortaleza", year: 2018, fame: 2, lo: 64, hi: 82, folk: true },
-  { name: "Madson", club: "Athletico-PR", year: 2020, fame: 1, lo: 56, hi: 78, folk: true },
+  { name: "Madson Cu de Nitro", club: "Athletico-PR", year: 2020, fame: 1, lo: 56, hi: 78, folk: true },
 ]
 
 const ZAG: C[] = [
@@ -446,7 +446,7 @@ const ZAG: C[] = [
   { name: "Marquinhos", club: "Corinthians", year: 2012, fame: 3, lo: 76, hi: 83, promessa: true },
   { name: "Éder Militão", club: "São Paulo", year: 2018, fame: 3, lo: 76, hi: 82, promessa: true },
   { name: "Roque Júnior", club: "Palmeiras", year: 1999, fame: 4, lo: 84, hi: 90 },
-  { name: "Léo Pelé", club: "São Paulo", year: 2023, fame: 1, lo: 56, hi: 77 },
+  { name: "Léo Pelé", club: "São Paulo", year: 2023, fame: 1, lo: 56, hi: 77, folk: true },
   { name: "Paulão", club: "Vasco", year: 2011, fame: 1, lo: 55, hi: 77, folk: true },
 ]
 
