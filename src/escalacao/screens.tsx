@@ -936,9 +936,9 @@ function HallDaFama({ roomId, isHost, seasonNo, champName, scorerName, scorerGoa
 const FAME_TIER: Record<number, { label: string; grad: string; ink: string; tierColor: string; crestBg: string; crestInk: string; holo?: boolean }> = {
   5: { label: '👑 LENDA', grad: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', ink: '#0C0C0C', tierColor: '#7a4d00', crestBg: 'rgba(255,255,255,.42)', crestInk: '#7a4d00', holo: true },
   4: { label: '⭐ CRAQUE', grad: 'linear-gradient(150deg,#F2F4F7,#C9D2DB 55%,#A7B3BF)', ink: '#0C0C0C', tierColor: '#4a5560', crestBg: 'rgba(255,255,255,.55)', crestInk: '#4a5560' },
-  3: { label: '🎯 BOM DE BOLA', grad: 'linear-gradient(150deg,#E8B98A,#CD8B4E 60%,#A9662B)', ink: '#0C0C0C', tierColor: '#5c3410', crestBg: 'rgba(255,255,255,.48)', crestInk: '#5c3410' },
-  2: { label: '🔥 CULT', grad: 'linear-gradient(150deg,#8DE0B8,#2FA56B 60%,#1B7A4D)', ink: '#0a2e1c', tierColor: '#e9fff2', crestBg: 'rgba(255,255,255,.4)', crestInk: '#0a3a23' },
-  1: { label: 'FOLCLORE', grad: 'linear-gradient(150deg,#E7E2D4,#CFC7B2)', ink: '#0C0C0C', tierColor: '#7a725e', crestBg: 'rgba(255,255,255,.5)', crestInk: '#7a725e' },
+  3: { label: '🎯 BOM JOGADOR', grad: 'linear-gradient(150deg,#E8B98A,#CD8B4E 60%,#A9662B)', ink: '#0C0C0C', tierColor: '#5c3410', crestBg: 'rgba(255,255,255,.48)', crestInk: '#5c3410' },
+  2: { label: '🎯 BOM JOGADOR', grad: 'linear-gradient(150deg,#E8B98A,#CD8B4E 60%,#A9662B)', ink: '#0C0C0C', tierColor: '#5c3410', crestBg: 'rgba(255,255,255,.48)', crestInk: '#5c3410' },
+  1: { label: '🪵 FOI PROFISSIONAL', grad: 'linear-gradient(150deg,#E7E2D4,#CFC7B2)', ink: '#0C0C0C', tierColor: '#7a725e', crestBg: 'rgba(255,255,255,.5)', crestInk: '#7a725e' },
 }
 // texto garantido pra QUALQUER carta: se o jogador ainda não tem uma bio
 // específica, mostra uma frase por categoria + posição — assim nenhuma
@@ -949,9 +949,9 @@ function fallbackBio(fame: number, pos: string): string {
   switch (fame) {
     case 5: return `Lenda ${where} — nome eterno do futebol brasileiro.`
     case 4: return `Craque ${where}: brilhou de verdade e marcou época.`
-    case 3: return `Bom de bola ${where}, jogador de confiança e regularidade.`
-    case 2: return `Cult ${where} — a torcida amava, tinha seus dias de brilho.`
-    default: return `Folclore ${where}: puro carisma e resenha do nosso futebol.`
+    case 3: return `Bom jogador ${where}, de confiança e regularidade.`
+    case 2: return `Bom jogador ${where} que tinha seus dias de brilho.`
+    default: return `Foi profissional ${where} — do nosso futebol raiz.`
   }
 }
 function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk = false }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string; folk?: boolean }) {

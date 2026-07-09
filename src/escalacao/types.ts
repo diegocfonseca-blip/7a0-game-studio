@@ -7,7 +7,8 @@ export const SECTOR_LABEL: Record<Sector, string> = {
 }
 
 // fama é interna: guia a CPU e a curadoria do baralho. Nunca é exibida.
-// 5=lenda eterna · 4=craque · 3=bom de bola · 2=quase lenda (clutch) · 1=incógnita
+// nível exibido: 5=lenda · 4=craque · 3 e 2=bom jogador · 1=foi profissional (limitado)
+// (o selo "folclórico" é à parte, no campo folk — não é nível)
 export type Fame = 1 | 2 | 3 | 4 | 5
 
 export interface Card {
