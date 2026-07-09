@@ -4,7 +4,7 @@ import type { Card, FormationKey, Manager, Sector, Tactic, WonCard } from './typ
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
 import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY, MONTE_SECONDS, BATCH_SIZE } from './store'
 import { supabase } from '../lib/supabase'
-import { CATALOG, BIOS } from './data'
+import { CATALOG, BIOS, PROMESSA_SET } from './data'
 
 const CATALOG_TOTAL = Object.values(CATALOG).reduce((s, arr) => s + arr.length, 0)
 
@@ -1253,6 +1253,8 @@ const FAME_TIER: Record<number, { label: string; grad: string; ink: string; tier
   2: { label: '🎯 BOM JOGADOR', grad: 'linear-gradient(150deg,#E8B98A,#CD8B4E 60%,#A9662B)', ink: '#0C0C0C', tierColor: '#5c3410', crestBg: 'rgba(255,255,255,.48)', crestInk: '#5c3410' },
   1: { label: '🪵 FOI PROFISSIONAL', grad: 'linear-gradient(150deg,#E7E2D4,#CFC7B2)', ink: '#0C0C0C', tierColor: '#7a725e', crestBg: 'rgba(255,255,255,.5)', crestInk: '#7a725e' },
 }
+// 5º tier: promessas (foi promessa aqui, virou estrela na Europa) — visual próprio
+const PROMESSA_TIER = { label: '💎 PROMESSA', grad: 'linear-gradient(150deg,#BFA6F0,#7C57D6 55%,#5B39B0)', ink: '#0C0C0C', tierColor: '#3d1f7a', crestBg: 'rgba(255,255,255,.5)', crestInk: '#3d1f7a', holo: false } as const
 // texto garantido pra QUALQUER carta: se o jogador ainda não tem uma bio
 // específica, mostra uma frase por categoria + posição — assim nenhuma
 // carta-lembrança fica sem nada escrito.
@@ -1267,10 +1269,11 @@ function fallbackBio(fame: number, pos: string): string {
     default: return `Foi profissional ${where} — do nosso futebol raiz.`
   }
 }
-function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk = false }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string; folk?: boolean }) {
-  const t = FAME_TIER[fame] ?? FAME_TIER[1]
+function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk = false, promessa }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string; folk?: boolean; promessa?: boolean }) {
+  const isProm = promessa ?? PROMESSA_SET.has(name)
+  const t = isProm ? PROMESSA_TIER : (FAME_TIER[fame] ?? FAME_TIER[1])
   const initial = name.trim()[0]?.toUpperCase() ?? '?'
-  const text = bio ?? BIOS[name] ?? fallbackBio(fame, pos)
+  const text = bio ?? BIOS[name] ?? (isProm ? `Promessa ${({ GOL: 'do gol', LAT: 'da lateral', ZAG: 'da zaga', MEI: 'do meio-campo', ATA: 'do ataque' } as Record<string, string>)[pos] ?? 'do futebol'} — brilhou aqui jovem e virou estrela.` : fallbackBio(fame, pos))
   return (
     <div className="relative overflow-hidden border-[3px] border-black rounded-2xl flex flex-col justify-between"
       style={{ background: t.grad, aspectRatio: '3 / 4.2', boxShadow: `5px 6px 0 0 ${INK}`, padding: big ? 16 : 11 }}>
@@ -1296,7 +1299,7 @@ function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk =
       <div className="relative">
         <p className="font-black leading-none truncate" style={{ ...OSWALD, color: t.ink, fontSize: big ? 26 : 17 }}>{name}</p>
         <p className="font-extrabold" style={{ color: t.ink, opacity: .62, fontSize: big ? 12 : 10 }}>{club} · {year}</p>
-        <p style={{ fontSize: big ? 13 : 11, letterSpacing: 1, marginTop: 3 }}>{'⭐'.repeat(fame)}</p>
+        <p style={{ fontSize: big ? 13 : 11, letterSpacing: 1, marginTop: 3 }}>{isProm ? '💎💎💎' : '⭐'.repeat(fame)}</p>
         {big && text && (
           <p className="font-semibold italic" style={{ color: t.ink, opacity: .78, fontSize: 12, lineHeight: 1.3, marginTop: 8 }}>“{text}”</p>
         )}
@@ -1365,7 +1368,7 @@ function CardCollectPrompt({ you, seasonKey }: { you: Manager; seasonKey: string
         <p className="text-xs font-black uppercase text-black/60 mb-3">🎴 Foi pro seu álbum!</p>
         <motion.div initial={{ rotateY: 90, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.7, type: 'spring', bounce: 0.35 }}
           className="mx-auto" style={{ maxWidth: 220 }}>
-          <CollectibleCard name={claimed.name} club={claimed.club} year={claimed.year} pos={claimed.pos} fame={claimed.fame} bio={claimed.bio} folk={claimed.folk} big />
+          <CollectibleCard name={claimed.name} club={claimed.club} year={claimed.year} pos={claimed.pos} fame={claimed.fame} bio={claimed.bio} folk={claimed.folk} promessa={claimed.promessa} big />
         </motion.div>
         <Btn onClick={() => dispatch({ type: 'GO_ALBUM' })} bg={GREEN} className="w-full text-lg mt-4"><span className="text-white">📖 Ver meu álbum</span></Btn>
       </Box>
@@ -1382,7 +1385,7 @@ function CardCollectPrompt({ you, seasonKey }: { you: Manager; seasonKey: string
       <div className="grid grid-cols-3 gap-2 max-h-80 overflow-y-auto">
         {you.squad.map(c => (
           <button key={c.id} onClick={() => claim(c)} className="text-left">
-            <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} />
+            <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} />
           </button>
         ))}
       </div>
