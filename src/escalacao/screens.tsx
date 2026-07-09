@@ -875,7 +875,9 @@ export function EscCerimonia() {
       <Box bg={m.id === you.id ? GOLD : '#fff'} className="p-4" shadow={6}>
         <p className="font-black text-xl" style={OSWALD}>{m.id === you.id ? `🫵 ${m.teamName}` : m.teamName} <span className="text-sm font-bold text-black/70">({m.formation})</span></p>
         <div className="mt-2 space-y-1.5">
-          {[...m.squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(c => (
+          {[...m.squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(c => {
+            const tb = tierBadge(c)
+            return (
             <div key={c.id} className="flex items-center justify-between border-2 border-black rounded-lg px-3 py-1.5 bg-white">
               <div>
                 <p className="font-bold text-sm">{c.pos} · {c.name} <span className="text-black/70 text-xs">({c.club} {c.year})</span></p>
@@ -885,11 +887,12 @@ export function EscCerimonia() {
               </div>
               <motion.span initial={{ rotateY: 90 }} animate={{ rotateY: 0 }} transition={{ delay: 0.15 }}
                 className="border-2 border-black rounded-lg px-2 py-1 font-black text-sm"
-                style={{ backgroundColor: (c.lo + c.hi) / 2 >= 85 ? GOLD : (c.lo + c.hi) / 2 >= 70 ? '#C9F0D4' : '#f3d1cb', ...OSWALD }}>
+                style={{ backgroundColor: tb.bg, color: tb.ink, ...OSWALD }}>
                 {c.lo}–{c.hi}
               </motion.span>
             </div>
-          ))}
+            )
+          })}
         </div>
       </Box>
       {isLastMgr && bestDeal && worstDeal && (
@@ -1247,6 +1250,14 @@ const FAME_TIER: Record<number, { label: string; grad: string; ink: string; tier
 }
 // 5º tier: promessas (foi promessa aqui, virou estrela na Europa) — visual próprio
 const PROMESSA_TIER = { label: '💎 PROMESSA', grad: 'linear-gradient(150deg,#BFA6F0,#7C57D6 55%,#5B39B0)', ink: '#0C0C0C', tierColor: '#3d1f7a', crestBg: 'rgba(255,255,255,.5)', crestInk: '#3d1f7a', holo: false } as const
+// cor do badge de nível POR TIER (ouro só pra lenda; craque em aço escuro)
+function tierBadge(c: { fame: number; promessa?: boolean }): { bg: string; ink: string } {
+  if (c.promessa) return { bg: '#7C57D6', ink: '#fff' }   // 💎 promessa
+  if (c.fame === 5) return { bg: GOLD, ink: INK }          // 👑 lenda
+  if (c.fame === 4) return { bg: '#5F6B7A', ink: '#fff' }  // ⭐ craque (aço)
+  if (c.fame === 1) return { bg: '#CBBF9E', ink: INK }     // 🍺 foi profissional
+  return { bg: '#2E9E5B', ink: '#fff' }                    // 🎯 bom jogador
+}
 // texto garantido pra QUALQUER carta: se o jogador ainda não tem uma bio
 // específica, mostra uma frase por categoria + posição — assim nenhuma
 // carta-lembrança fica sem nada escrito.
