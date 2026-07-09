@@ -14,6 +14,15 @@ type C = { name: string; club: string; year: number; fame: Fame; lo: number; hi:
 // ganha). Mapeado por nome — assim dá pra ir preenchendo aos poucos sem mexer
 // no catálogo. Quem não tem bio ainda mostra um texto genérico por categoria.
 export const BIOS: Record<string, string> = {
+  'Estêvão': 'A joia do Palmeiras que o mundo inteiro quis — drible e faro de craque, rumo à Europa como fenômeno.',
+  'Tevez': 'O Apache. Craque argentino que carregou o Corinthians ao Brasileirão de 2005 — talento e raça de sobra.',
+  'Seedorf': 'Tetracampeão da Champions que foi fechar a carreira no Botafogo — pura grife e elegância holandesa.',
+  'Depay': 'Estrela holandesa (Barça, United) que desembarcou no Corinthians — nome de peso no mercado.',
+  'Pablo Marí': 'Zagueiro espanhol do Flamengo campeão da Libertadores de 2019 — sólido e vencedor.',
+  'Jô': 'O enigma. Artilheiro do Corinthians campeão de 2015 e alvo eterno de resenha pela entrega oscilante.',
+  'Dimba': 'Artilheiro do primeiro Brasileirão de pontos corridos (2003) pelo Goiás — 31 gols de puro folclore.',
+  'Josiel': 'Artilheiro do Brasileirão de 2007 pelo Paraná — brilhou forte e sumiu depois. Folclore dos pontos corridos.',
+  'Dinei': 'O trombador folclórico do Corinthians — raça, gols de pivô e resenha garantida.',
   'Michael': 'Velocidade e dribles imprevisíveis pelo Flamengo campeão de 2020 — ninguém sabia o que ele ia fazer (às vezes nem ele).',
   'Marta': 'A Rainha. Melhor do mundo 6 vezes — o maior nome do futebol brasileiro, sem distinção.',
   'Márcio Araújo': 'Volante do “ame ou odeie” — rei do desarme e da polêmica no Flamengo. Resenha garantida.',
@@ -413,6 +422,7 @@ const ZAG: C[] = [
   // folclórico "ruim mas conhecido" — real, entra como carta baixa
   { name: 'Robson Bambu', club: 'Vasco', year: 2023, fame: 1, lo: 55, hi: 76, folk: true },
   { name: 'Lucão', club: 'São Paulo', year: 2017, fame: 1, lo: 54, hi: 74 },
+  { name: 'Pablo Marí', club: 'Flamengo', year: 2019, fame: 2, lo: 72, hi: 84 },
   { name: 'Rodrigo Caio', club: 'Flamengo', year: 2019, fame: 3, lo: 78, hi: 86 },
   { name: 'Fábio Luciano', club: 'Corinthians', year: 2000, fame: 2, lo: 64, hi: 82 },
   { name: 'Gil', club: 'Corinthians', year: 2012, fame: 3, lo: 76, hi: 85 },
@@ -512,6 +522,7 @@ const MEI: C[] = [
   { name: 'João Gomes', club: 'Flamengo', year: 2022, fame: 2, lo: 72, hi: 84 },
   { name: 'Amaral', club: 'Corinthians', year: 1998, fame: 2, lo: 64, hi: 82, folk: true },
   { name: 'Márcio Araújo', club: 'Flamengo', year: 2015, fame: 2, lo: 66, hi: 82, folk: true },
+  { name: 'Seedorf', club: 'Botafogo', year: 2013, fame: 3, lo: 78, hi: 88 },
 ]
 
 const ATA: C[] = [
@@ -593,6 +604,13 @@ const ATA: C[] = [
   { name: 'Lincoln', club: 'Flamengo', year: 2019, fame: 1, lo: 40, hi: 72, folk: true },
   { name: 'Negueba', club: 'Flamengo', year: 2012, fame: 1, lo: 50, hi: 76, folk: true },
   { name: 'Michael', club: 'Flamengo', year: 2020, fame: 2, lo: 70, hi: 84 },
+  { name: 'Estêvão', club: 'Palmeiras', year: 2024, fame: 4, lo: 80, hi: 90 },
+  { name: 'Tevez', club: 'Corinthians', year: 2005, fame: 4, lo: 84, hi: 91 },
+  { name: 'Depay', club: 'Corinthians', year: 2024, fame: 3, lo: 78, hi: 88 },
+  { name: 'Jô', club: 'Corinthians', year: 2015, fame: 3, lo: 74, hi: 86, folk: true },
+  { name: 'Dimba', club: 'Goiás', year: 2003, fame: 2, lo: 60, hi: 82, folk: true },
+  { name: 'Josiel', club: 'Paraná', year: 2007, fame: 2, lo: 58, hi: 80, folk: true },
+  { name: 'Dinei', club: 'Corinthians', year: 1999, fame: 2, lo: 58, hi: 80, folk: true },
   { name: 'Aloísio Boi Bandido', club: 'São Paulo', year: 2013, fame: 2, lo: 66, hi: 83, folk: true },
   { name: 'Aloísio Chulapa', club: 'São Paulo', year: 2005, fame: 2, lo: 68, hi: 84, folk: true },
   { name: 'Walter', club: 'Goiás', year: 2012, fame: 1, lo: 55, hi: 84, folk: true },
