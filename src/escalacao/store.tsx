@@ -150,7 +150,10 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     const gems = Math.max(1, Math.ceil(managers.length / 3))
     let gi = 0
     while (cards.length < count) { cards.push(makeIncognita(pos, cards.length, gi < gems, rng)); gi++ }
-    deck[pos] = cards
+    // embaralha a ordem final: as cotas montam o baralho com lenda/craque
+    // primeiro, então sem isto os melhores ficariam sempre no topo da tela e
+    // dava pra "ler" o nível pela posição — furando o leilão às cegas.
+    deck[pos] = shuffle(cards, rng)
   }
   return deck
 }
