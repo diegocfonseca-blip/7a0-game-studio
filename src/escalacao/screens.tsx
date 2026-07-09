@@ -218,8 +218,9 @@ function AuctionBar() {
 
 export function EscAuction() {
   const { state } = useEsc()
-  const isEnvelope = state.phase === 'envelope' || state.phase === 'resq_envelope'
-  return isEnvelope ? <Envelope /> : <Reveal />
+  if (state.phase === 'envelope' || state.phase === 'resq_envelope') return <Envelope />
+  if (state.phase === 'tiebreak') return <Tiebreak />
+  return <Reveal />
 }
 
 function Envelope() {
@@ -398,17 +399,212 @@ function Envelope() {
   )
 }
 
+// ─── LEILÃO: desempate (re-lance cego) ───────────────────────────────
+const TIE_COLORS = [RED, '#2E6FB0', GREEN, '#B25AD0', '#E08A1E', '#0EA5A0']
+
+function Tiebreak() {
+  const { state, dispatch } = useEsc()
+  const you = state.managers[state.youIdx]
+  const tb = state.tiebreaks[state.tiebreakIdx]
+  const online = state.onlineMode === 'online'
+
+  const amInIt = !!tb && tb.managers.includes(you.id)
+  const iSubmitted = !!tb && tb.submitted.includes(you.id)
+  const [amount, setAmount] = useState(tb?.amount ?? 0)
+  const [pending, setPending] = useState(false)
+  const pendingAmtRef = useRef(0)
+
+  // troca de disputa (ou entrada): zera o valor pro piso e limpa o pending
+  useEffect(() => {
+    setAmount(tb?.amount ?? 0)
+    setPending(false)
+  }, [tb?.cardId, tb?.amount])
+
+  // cronômetro
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const iv = setInterval(() => setNow(Date.now()), 250)
+    return () => clearInterval(iv)
+  }, [])
+  const remaining = state.phaseDeadline ? Math.max(0, Math.ceil((state.phaseDeadline - now) / 1000)) : 30
+
+  function send(v: number) {
+    pendingAmtRef.current = v
+    setPending(true)
+    dispatch({ type: 'SUBMIT_TIEBREAK', mgrId: you.id, amount: v })
+  }
+  // confirmação do host chegou
+  useEffect(() => { if (iSubmitted) setPending(false) }, [iSubmitted])
+  // reenvia enquanto não confirma (online)
+  useEffect(() => {
+    if (!online || !pending || iSubmitted) return
+    const iv = setInterval(() => dispatch({ type: 'SUBMIT_TIEBREAK', mgrId: you.id, amount: pendingAmtRef.current }), 4000)
+    return () => clearInterval(iv)
+  }, [online, pending, iSubmitted, dispatch, you.id])
+  // auto-envia ao zerar o timer (cobre o solo e o próprio jogador)
+  useEffect(() => {
+    if (remaining <= 0 && amInIt && !iSubmitted && !pending) send(amount)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remaining, amInIt, iSubmitted, pending])
+
+  if (!tb) return null
+
+  const total = state.tiebreaks.length
+  const maxBid = you.money
+  const canRaise = amount < maxBid
+  const names = tb.managers.map((id, i) => {
+    const m = state.managers.find(x => x.id === id)!
+    return { id, label: m.id === you.id ? '🫵 Você' : (m.teamName || m.name), color: TIE_COLORS[i % TIE_COLORS.length], done: tb.submitted.includes(id) }
+  })
+
+  const header = (
+    <div className="text-center space-y-1 pt-1">
+      <p className="text-xs font-black uppercase" style={{ color: RED }}>
+        ⚔️ Desempate {state.tiebreakIdx + 1} / {total} · empate no maior lance
+      </p>
+      <div className="flex flex-wrap items-center justify-center gap-1.5">
+        {names.map((n, i) => (
+          <span key={n.id} className="flex items-center gap-1">
+            {i > 0 && <span className="text-black/40 text-xs font-black">×</span>}
+            <span className="border-2 border-black rounded-full px-2.5 py-0.5 text-[11px] font-black text-white"
+              style={{ backgroundColor: n.color }}>{n.label}{n.done ? ' ✅' : ''}</span>
+          </span>
+        ))}
+      </div>
+      <p className="text-sm font-semibold text-black/70">
+        Empataram em <b>{tb.amount}</b>. Re-lance <b>às cegas</b> só nesta carta — quem paga mais leva.
+        Empatar de novo cai na 🎡 roleta.
+      </p>
+    </div>
+  )
+
+  // espectador: não está no empate
+  if (!amInIt) {
+    return (
+      <Shell bar={<AuctionBar />}>
+        {header}
+        <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+          <Box bg={GOLD} className="p-5" shadow={6}>
+            <CardFace c={tb.card} big />
+            <p className="mt-4 text-center font-black text-lg" style={OSWALD}>🍿 Você assiste este duelo</p>
+            <p className="text-center text-sm font-bold text-black/60">
+              Já re-lançaram: {tb.submitted.length}/{tb.managers.length}
+            </p>
+          </Box>
+        </motion.div>
+        <Campinho m={you} small />
+      </Shell>
+    )
+  }
+
+  // participante que já enviou
+  if (iSubmitted || pending) {
+    return (
+      <Shell bar={<AuctionBar />}>
+        {header}
+        <div className="pt-6 text-center space-y-3">
+          <div className="text-5xl">{iSubmitted ? '🔒' : '🔄'}</div>
+          <h2 className="font-black text-2xl" style={OSWALD}>{iSubmitted ? 'RE-LANCE ENVIADO' : 'ENVIANDO…'}</h2>
+          <p className="font-semibold text-black/70">
+            {iSubmitted ? `Aguardando os outros do empate… (${remaining}s)` : 'Confirmando com o host…'}
+          </p>
+          <Box className="p-3 text-left max-w-xs mx-auto">
+            {names.map(n => (
+              <p key={n.id} className="text-sm font-bold flex justify-between text-black">
+                <span>{n.label}</span><span>{n.done ? '✅ lançou' : '⏳ pensando'}</span>
+              </p>
+            ))}
+          </Box>
+        </div>
+      </Shell>
+    )
+  }
+
+  // participante decidindo o re-lance
+  const timerColor = remaining <= 8 ? RED : remaining <= 15 ? GOLD : GREEN
+  const timerTextColor = remaining <= 15 ? INK : '#fff'
+  return (
+    <Shell bar={<AuctionBar />}>
+      {header}
+      <div className="flex justify-end">
+        <div className="border-[3px] border-black rounded-xl px-3 py-1.5 text-center min-w-[60px]"
+          style={{ backgroundColor: timerColor, boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <p className="text-[9px] font-black uppercase" style={{ color: timerTextColor }}>Tempo</p>
+          <p className="font-black text-xl leading-none" style={{ ...OSWALD, color: timerTextColor }}>{remaining}s</p>
+        </div>
+      </div>
+      <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+        <Box bg={GOLD} className="p-5" shadow={6}>
+          <CardFace c={tb.card} big />
+        </Box>
+      </motion.div>
+      <Box bg="#fff" className="p-4 space-y-3">
+        <p className="text-center font-black text-black" style={OSWALD}>SEU RE-LANCE</p>
+        <div className="flex items-center justify-center gap-3">
+          <button onClick={() => setAmount(v => Math.max(tb.amount, v - 1))}
+            className="border-2 border-black rounded-lg w-11 h-11 font-black text-xl bg-white text-black">−</button>
+          <span className="w-16 text-center font-black text-3xl text-black" style={OSWALD}>{amount}</span>
+          <button onClick={() => canRaise && setAmount(v => Math.min(maxBid, v + 1))} disabled={!canRaise}
+            className={`border-2 border-black rounded-lg w-11 h-11 font-black text-xl text-black ${canRaise ? '' : 'opacity-40'}`}
+            style={{ backgroundColor: GOLD }}>+</button>
+        </div>
+        <p className="text-center text-xs font-bold text-black/55">
+          Mínimo {tb.amount} · seu caixa 💰 {you.money}
+        </p>
+        <Btn onClick={() => send(amount)} bg={RED} className="w-full">
+          <span className="text-white">{amount > tb.amount ? `COBRIR POR ${amount} 🔨` : `MANTER ${amount} 🔒`}</span>
+        </Btn>
+      </Box>
+      <Campinho m={you} small />
+    </Shell>
+  )
+}
+
 // ─── LEILÃO: revelação ───────────────────────────────────────────────
-function AutoAdvance({ hasBids, canDrive }: { hasBids: boolean; canDrive: boolean; isLast: boolean }) {
+function AutoAdvance({ hasBids, canDrive, extraMs = 0 }: { hasBids: boolean; canDrive: boolean; isLast: boolean; extraMs?: number }) {
   const { state, dispatch } = useEsc()
   useEffect(() => {
     if (!canDrive) return
-    const delay = hasBids ? 2000 : 1000
+    const delay = (hasBids ? 2000 : 1000) + extraMs
     const t = setTimeout(() => dispatch({ type: 'ADVANCE_REVEAL' }), delay)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.revealIdx, state.phase, canDrive, hasBids])
+  }, [state.revealIdx, state.phase, canDrive, hasBids, extraMs])
   return null
+}
+
+// sorteio visual da roleta na revelação: destaca os empatados em sequência,
+// desacelerando, e para no vencedor (que o host já decidiu).
+function TieSorteio({ names, winnerId }: { names: { id: number; label: string; color: string }[]; winnerId: number }) {
+  const winIdx = Math.max(0, names.findIndex(n => n.id === winnerId))
+  const [hi, setHi] = useState(0)
+  useEffect(() => {
+    const total = names.length * 4 + winIdx // volta algumas voltas e para no vencedor
+    let stop = false
+    function tick(step: number) {
+      if (stop) return
+      setHi(step % names.length)
+      if (step >= total) return
+      const t = 70 + step * 14 // desacelera
+      setTimeout(() => tick(step + 1), t)
+    }
+    tick(0)
+    return () => { stop = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [winnerId])
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-1.5 mt-1">
+      {names.map((n, i) => {
+        const on = i === hi
+        return (
+          <span key={n.id} className="border-2 border-black rounded-full px-2.5 py-0.5 text-[11px] font-black text-white transition-transform"
+            style={{ backgroundColor: n.color, opacity: on ? 1 : 0.45, transform: on ? 'scale(1.12)' : 'scale(1)' }}>
+            {n.label}
+          </span>
+        )
+      })}
+    </div>
+  )
 }
 
 function Reveal() {
@@ -420,6 +616,12 @@ function Reveal() {
   const isLast = state.revealIdx >= state.revealQueue.length - 1
   const online = state.onlineMode === 'online'
   const canDrive = !online || state.isHost
+  // essa carta passou por desempate?
+  const tie = state.tiebreaks.find(t => t.card.id === item.card.id && t.winner !== null)
+  const tieNames = tie ? tie.managers.map((id, i) => {
+    const m = state.managers.find(x => x.id === id)!
+    return { id, label: m.id === you.id ? '🫵 Você' : (m.teamName || m.name), color: TIE_COLORS[i % TIE_COLORS.length] }
+  }) : []
 
   return (
     <Shell bar={<AuctionBar />}>
@@ -449,16 +651,27 @@ function Reveal() {
               )
             })}
           </div>
+          {tie && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: item.bids.length * 0.25 + 0.15 }}
+              className="mt-3 border-[3px] border-black rounded-xl p-2.5 text-center" style={{ backgroundColor: '#FFE9B0' }}>
+              <p className="text-[11px] font-black uppercase" style={{ color: RED }}>
+                {tie.viaRoulette ? '🎡 Empatou de novo — foi pra roleta!' : '⚔️ Desempate no re-lance'}
+              </p>
+              {tie.viaRoulette
+                ? <TieSorteio names={tieNames} winnerId={tie.winner!} />
+                : <p className="text-xs font-bold text-black/70 mt-0.5">Cobriram o lance — quem pagou mais levou.</p>}
+            </motion.div>
+          )}
           {winnerMgr && (
-            <motion.p initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: item.bids.length * 0.25 + 0.2 }}
+            <motion.p initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: item.bids.length * 0.25 + (tie ? 1.2 : 0.2) }}
               className="mt-3 text-center font-black text-lg" style={OSWALD}>
               🔨 VENDIDO {winnerMgr.id === you.id ? 'PRA VOCÊ' : `pro ${winnerMgr.teamName}`} por {item.paid}!
             </motion.p>
           )}
         </Box>
       </motion.div>
-      {/* auto-avanço: 1s por carta, 2s se houve lance */}
-      <AutoAdvance hasBids={item.bids.length > 0} canDrive={canDrive} isLast={isLast} />
+      {/* auto-avanço: 1s por carta, 2s se houve lance; +tempo se teve desempate */}
+      <AutoAdvance hasBids={item.bids.length > 0} canDrive={canDrive} isLast={isLast} extraMs={tie ? (tie.viaRoulette ? 3200 : 1500) : 0} />
       <p className="text-center text-xs font-bold text-black/60 py-1">
         {canDrive ? '🎬 Passando automaticamente…' : '🔨 O host está conduzindo a revelação…'}
       </p>
