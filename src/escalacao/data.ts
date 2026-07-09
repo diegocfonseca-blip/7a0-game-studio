@@ -588,7 +588,7 @@ const ATA: C[] = [
   { name: 'Rony', club: 'Palmeiras', year: 2021, fame: 2, lo: 70, hi: 83 },
   { name: 'Keno', club: 'Atlético-MG', year: 2021, fame: 2, lo: 70, hi: 83 },
   { name: 'Vinicius Jr', club: 'Flamengo', year: 2018, fame: 4, lo: 82, hi: 90 },
-  { name: 'Rodrygo', club: 'Santos', year: 2018, fame: 3, lo: 78, hi: 87 },
+  { name: 'Rodrygo', club: 'Santos', year: 2018, fame: 4, lo: 78, hi: 86 },
   { name: 'Gabriel Jesus', club: 'Palmeiras', year: 2016, fame: 3, lo: 78, hi: 87 },
   { name: 'Richarlison', club: 'Fluminense', year: 2016, fame: 3, lo: 76, hi: 86 },
   { name: 'Endrick', club: 'Palmeiras', year: 2023, fame: 3, lo: 74, hi: 86 },
