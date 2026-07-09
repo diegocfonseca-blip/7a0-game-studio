@@ -311,7 +311,9 @@ function Envelope() {
     })
   }
 
-  const cards = [...state.currentCards].sort((a, b) => b.fame - a.fame || a.name.localeCompare(b.name))
+  // ordem embaralhada do baralho (NÃO ordenar por nível — isso vazava quem é
+  // bom pela posição na tela e furava o leilão às cegas)
+  const cards = state.currentCards
   const timerColor = remaining <= 10 ? RED : remaining <= 20 ? GOLD : GREEN
   const timerTextColor = remaining <= 20 ? INK : '#fff'
   const totalBatches = Math.ceil(state.deck[pos].length / BATCH_SIZE)
