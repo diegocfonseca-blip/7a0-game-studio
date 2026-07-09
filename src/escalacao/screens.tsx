@@ -689,10 +689,13 @@ function Reveal() {
   const canDrive = !online || state.isHost
   // essa carta passou por desempate?
   const tie = state.tiebreaks.find(t => t.card.id === item.card.id && t.winner !== null)
-  const tieNames = tie ? tie.managers.map((id, i) => {
+  const tieMax = tie ? Math.max(...tie.managers.map(id => tie.bids?.[id] ?? tie.amount)) : 0
+  const tieRows = tie ? tie.managers.map((id, i) => {
     const m = state.managers.find(x => x.id === id)!
-    return { id, label: m.id === you.id ? '🫵 Você' : (m.teamName || m.name), color: TIE_COLORS[i % TIE_COLORS.length] }
-  }) : []
+    const amt = tie.bids?.[id] ?? tie.amount
+    return { id, label: m.id === you.id ? '🫵 Você' : (m.teamName || m.name), color: TIE_COLORS[i % TIE_COLORS.length], amt, atTop: amt === tieMax }
+  }).sort((a, b) => b.amt - a.amt) : []
+  const rouletteNames = tieRows.filter(r => r.atTop).map(r => ({ id: r.id, label: r.label, color: r.color }))
 
   return (
     <Shell bar={<AuctionBar />}>
@@ -724,13 +727,28 @@ function Reveal() {
           </div>
           {tie && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: item.bids.length * 0.25 + 0.15 }}
-              className="mt-3 border-[3px] border-black rounded-xl p-2.5 text-center" style={{ backgroundColor: '#FFE9B0' }}>
-              <p className="text-[11px] font-black uppercase" style={{ color: RED }}>
-                {tie.viaRoulette ? '🎡 Empatou de novo — foi pra roleta!' : '⚔️ Desempate no re-lance'}
-              </p>
-              {tie.viaRoulette
-                ? <TieSorteio names={tieNames} winnerId={tie.winner!} />
-                : <p className="text-xs font-bold text-black/70 mt-0.5">Cobriram o lance — quem pagou mais levou.</p>}
+              className="mt-3 border-[3px] border-black rounded-xl p-2.5" style={{ backgroundColor: '#FFE9B0' }}>
+              <p className="text-[11px] font-black uppercase text-center" style={{ color: RED }}>⚔️ Desempate · re-lance às cegas</p>
+              <div className="mt-1.5 space-y-1">
+                {tieRows.map(r => {
+                  const isWin = r.id === tie.winner
+                  return (
+                    <div key={r.id} className="flex items-center justify-between border-2 border-black rounded-lg px-2.5 py-1"
+                      style={{ backgroundColor: isWin ? GREEN : '#fff' }}>
+                      <span className="text-xs font-black" style={{ color: isWin ? '#fff' : INK }}>{r.label}</span>
+                      <span className="text-xs font-black" style={{ ...OSWALD, color: isWin ? '#fff' : INK }}>
+                        {r.amt > tie.amount ? `cobriu ${r.amt}` : `manteve ${r.amt}`}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+              {tie.viaRoulette && (
+                <div className="mt-2 text-center">
+                  <p className="text-[11px] font-black uppercase" style={{ color: RED }}>🎡 Empataram em {tieMax} — a roleta decidiu!</p>
+                  <TieSorteio names={rouletteNames} winnerId={tie.winner!} />
+                </div>
+              )}
             </motion.div>
           )}
           {winnerMgr && (
