@@ -59,7 +59,7 @@ export function totalHoles(m: Manager): number {
 // solo (dá espaço pra repescagem/monte com poucos jogadores reais no
 // catálogo), 1.0 (exato) no online — 2 humanos = exatamente 2 laterais × 2
 // vagas = 4 cartas, 5 humanos = 10, e assim por diante.
-function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set()): Record<Sector, Card[]> {
+function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
   // ── passo 1: define o tamanho de cada setor e embaralha o catálogo ──
   const plan = {} as Record<Sector, { count: number; catalog: (typeof CATALOG)[Sector] }>
@@ -73,8 +73,10 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     // Então: pede o dobro se couber; se não couber, pega todos os reais que dá
     // (mantendo pelo menos `demand`, pra todo mundo conseguir fechar as vagas).
     // Só quando nem `demand` cabe em reais (sala gigante) é que sobra fake.
-    const want = Math.max(1, Math.ceil(demand * margin))
-    const count = Math.max(demand, Math.min(want, realFree))
+    // `extra` = cartas a mais por posição além da demanda (online: +1, pra dar
+    // opção/disputa — 2 jogadores viram 3 goleiros, 5 laterais, etc.).
+    const target = Math.max(1, Math.ceil(demand * margin), demand + extra)
+    const count = Math.max(demand, Math.min(target, realFree))
     plan[pos] = { count, catalog }
     totalCount += count
   }
@@ -718,7 +720,7 @@ function redraftSeason(s: EscState): EscState {
   if (s.onlineMode === 'online') {
     const { managers, botPlans } = makeManagers(humanNames, formation, LEAGUE_SIZE, rng, 'online')
     s.managers = managers
-    s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used)
+    s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
     dealBotSquads(s.managers, botPlans, rng, used)
   } else {
     const { managers, botPlans } = makeManagers(humanNames, formation, s.managers.length, rng, 'solo')
@@ -814,11 +816,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // pronto (não brigam no leilão — só os humanos disputam as cartas)
       const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, LEAGUE_SIZE, rng, 'online')
       s.managers = onlineManagers
-      // demanda EXATA (1× as vagas dos humanos): 2 pessoas = 4 laterais no
-      // total, tudo numa tela só; a competição é pela qualidade. O baralho é
-      // montado ANTES dos bots pra ficar 100% com reais.
+      // demanda + 1 carta por posição (online): 2 pessoas = 3 goleiros, 5
+      // laterais, etc. — dá opção/disputa sem inflar. O baralho é montado
+      // ANTES dos bots pra ficar 100% com reais.
       const onlineUsed = new Set<string>()
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed)
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1)
       dealBotSquads(s.managers, onlinePlans, rng, onlineUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
