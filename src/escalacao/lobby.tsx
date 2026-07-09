@@ -139,18 +139,37 @@ export function EscLobby() {
   // uma lista errada aqui faz o jogo montar o time errado como "você".
   async function triggerStart(roomData: RoomInfo) {
     if (!user) return
+    // pega o estado salvo MAIS recente (não confia no payload do evento, que
+    // pode vir defasado) — é o que permite retomar a partida na reconexão.
+    const { data: freshRoom } = await supabase.from('game_rooms').select('game_state').eq('id', roomData.id).maybeSingle()
+    const gs = (freshRoom?.game_state ?? roomData.game_state) as GS | undefined
     const { data: allPlayers } = await supabase.from('room_players').select('*').eq('room_id', roomData.id).order('player_index')
     const sorted = (allPlayers ?? []) as RoomPlayer[]
     const myPl = sorted.find(p => p.user_id === user.id)
     if (!myPl) return
     clearSavedRoom()
+    const amHost = roomData.host_id === user.id
+    // partida já em andamento salva no banco → RESTAURA (evita resetar tudo
+    // quando alguém reconecta ou o host recarrega/cai). Caso contrário, é o
+    // início de verdade: monta o jogo do zero (determinístico pelo código).
+    const inProgress = !!gs && Array.isArray(gs.managers) && gs.managers.length > 0
+      && !!gs.screen && gs.screen !== 'intro' && gs.screen !== 'lobby'
+    if (inProgress) {
+      dispatch({
+        type: 'RESTORE_ONLINE',
+        state: gs as EscState,
+        roomId: roomData.id, roomCode: roomData.code,
+        isHost: amHost, playerIndex: myPl.player_index,
+      })
+      return
+    }
     dispatch({
       type: 'START_ONLINE',
       roomId: roomData.id, roomCode: roomData.code,
-      isHost: roomData.host_id === user.id,
+      isHost: amHost,
       playerIndex: myPl.player_index,
       playerNames: sorted.map(p => p.manager_name),
-      formation: roomData.game_state?.formation ?? '4-3-3',
+      formation: gs?.formation ?? '4-3-3',
     })
   }
 
