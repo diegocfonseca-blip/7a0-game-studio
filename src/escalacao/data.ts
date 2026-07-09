@@ -333,7 +333,7 @@ const GOL: C[] = [
   { name: 'Rogério Ceni', club: 'São Paulo', year: 2005, fame: 5, lo: 89, hi: 94 },
   { name: 'Marcos', club: 'Palmeiras', year: 1999, fame: 4, lo: 86, hi: 92 },
   { name: 'Dida', club: 'Corinthians', year: 2000, fame: 4, lo: 85, hi: 92 },
-  { name: 'Fábio', club: 'Cruzeiro', year: 2013, fame: 3, lo: 77, hi: 85 },
+  { name: 'Fábio', club: 'Cruzeiro', year: 2013, fame: 4, lo: 84, hi: 92 },
   { name: 'Jefferson', club: 'Botafogo', year: 2013, fame: 3, lo: 76, hi: 84 },
   { name: 'Zetti', club: 'São Paulo', year: 1993, fame: 3, lo: 77, hi: 85 },
   { name: 'Carlos Germano', club: 'Vasco', year: 1997, fame: 3, lo: 74, hi: 83 },
