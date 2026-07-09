@@ -126,8 +126,8 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   distribute(Math.max(1, Math.round(totalCount * 0.12)), availLegend, 'legend', 0.4)     // LENDA 12%
   distribute(Math.max(1, Math.round(totalCount * 0.24)), availStar, 'star', 0.6)         // CRAQUE 24%
   distribute(Math.max(1, Math.round(totalCount * 0.13)), availPromessa, 'promessa', 0.5) // PROMESSAS 13%
-  distribute(Math.max(1, Math.round(totalCount * 0.18)), availLow, 'low', 0.6)           // FOI PROFISSIONAL 18%
-  distribute(Math.max(1, Math.round(totalCount * 0.10)), availFolk, 'folk', 0.5)         // + folk 2/3/4
+  distribute(Math.max(1, Math.round(totalCount * 0.21)), availLow, 'low', 0.6)           // FOI PROFISSIONAL 21%
+  distribute(Math.max(1, Math.round(totalCount * 0.13)), availFolk, 'folk', 0.55)        // + folk 2/3/4 (13%)
   // ── passo 3: monta cada setor — cotas garantidas, resto = bom jogador ──
   for (const pos of SECTORS) {
     const { count, catalog } = plan[pos]
