@@ -14,6 +14,8 @@ type C = { name: string; club: string; year: number; fame: Fame; lo: number; hi:
 // ganha). Mapeado por nome — assim dá pra ir preenchendo aos poucos sem mexer
 // no catálogo. Quem não tem bio ainda mostra um texto genérico por categoria.
 export const BIOS: Record<string, string> = {
+  'Dener': 'Gênio do drible dos anos 90 — talento que encantava o país e seria titular da Seleção. Patrimônio eterno, partiu cedo demais.',
+  'Adriano Gol Contra': 'O zagueirão do Madureira que virou lenda do “Inacreditável Futebol Clube” — o rei do gol contra, folclore puro.',
   'Zagallo': 'O Velho Lobo. Ponta bicampeão do mundo (58 e 62) ao lado de Pelé e Garrincha — o maior amuleto do futebol brasileiro.',
   'Hélton': 'Goleiro revelado no Vasco de 2000 e ídolo eterno do Porto — mais de uma década de grife europeia.',
   'Igor Catatau': 'Puro suco da resenha carioca. O nome já arranca risada na mesa — carta de meme por excelência.',
@@ -435,6 +437,7 @@ const ZAG: C[] = [
   { name: 'Robson Bambu', club: 'Vasco', year: 2023, fame: 1, lo: 55, hi: 76, folk: true },
   { name: 'Lucão', club: 'São Paulo', year: 2017, fame: 1, lo: 54, hi: 74 },
   { name: 'Pablo Marí', club: 'Flamengo', year: 2019, fame: 2, lo: 72, hi: 84 },
+  { name: 'Adriano Gol Contra', club: 'Madureira', year: 2005, fame: 1, lo: 50, hi: 74, folk: true },
   { name: 'Rodrigo Caio', club: 'Flamengo', year: 2019, fame: 3, lo: 78, hi: 86 },
   { name: 'Fábio Luciano', club: 'Corinthians', year: 2000, fame: 2, lo: 64, hi: 82 },
   { name: 'Gil', club: 'Corinthians', year: 2012, fame: 3, lo: 76, hi: 85 },
@@ -631,6 +634,7 @@ const ATA: C[] = [
   { name: 'Yago Pikachu', club: 'Fortaleza', year: 2021, fame: 2, lo: 64, hi: 82, folk: true },
   { name: 'Zagallo', club: 'Botafogo', year: 1962, fame: 5, lo: 92, hi: 97 },
   { name: 'Igor Catatau', club: 'Vasco', year: 2020, fame: 1, lo: 52, hi: 75, folk: true },
+  { name: 'Dener', club: 'Vasco', year: 1991, fame: 4, lo: 86, hi: 94 },
   { name: 'Aloísio Boi Bandido', club: 'São Paulo', year: 2013, fame: 2, lo: 66, hi: 83, folk: true },
   { name: 'Aloísio Chulapa', club: 'São Paulo', year: 2005, fame: 2, lo: 68, hi: 84, folk: true },
   { name: 'Walter', club: 'Goiás', year: 2012, fame: 1, lo: 55, hi: 84, folk: true },
