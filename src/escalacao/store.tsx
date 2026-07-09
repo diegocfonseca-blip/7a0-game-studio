@@ -85,26 +85,29 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   // O folclórico é uma VIBE, não um nível: pode ser craque (Edmundo) ou perna-de-pau
   // (Walter Minhoca). Por isso é cota separada do nível. O resto do baralho é
   // preenchido natural (craque/bom/cult), fora lenda e folclórico pra não repetir.
-  const alloc = {} as Record<Sector, { legend: number; folk: number }>
-  SECTORS.forEach(p => { alloc[p] = { legend: 0, folk: 0 } })
+  const alloc = {} as Record<Sector, { legend: number; star: number; low: number; folk: number }>
+  SECTORS.forEach(p => { alloc[p] = { legend: 0, star: 0, low: 0, folk: 0 } })
   const availOf = (pos: Sector, pred: (c: (typeof CATALOG)[Sector][number]) => boolean) =>
     plan[pos].catalog.filter(c => pred(c) && !used.has(c.name)).length
   const availLegend = {} as Record<Sector, number>
+  const availStar = {} as Record<Sector, number>
+  const availLow = {} as Record<Sector, number>
   const availFolk = {} as Record<Sector, number>
   for (const pos of SECTORS) {
     availLegend[pos] = availOf(pos, c => c.fame === 5)
-    availFolk[pos] = availOf(pos, c => !!c.folk)
+    availStar[pos] = availOf(pos, c => c.fame === 4 && !c.folk)   // craque não-folk
+    availLow[pos] = availOf(pos, c => c.fame === 1)                // foi profissional (todos fame 1)
+    availFolk[pos] = availOf(pos, c => !!c.folk && c.fame >= 2 && c.fame <= 4) // folk 2/3/4 (fame1-folk vem na cota 'low')
   }
-  // distribui `goal` cartas de um tipo pros setores mais "merecedores" (maiores,
-  // com menos daquele tipo ainda), respeitando o que existe e a lotação do setor
-  const distribute = (goal: number, availByPos: Record<Sector, number>, key: 'legend' | 'folk', capFrac: number) => {
+  type Key = 'legend' | 'star' | 'low' | 'folk'
+  const distribute = (goal: number, availByPos: Record<Sector, number>, key: Key, capFrac: number) => {
     const cap = {} as Record<Sector, number>
     for (const pos of SECTORS) cap[pos] = Math.min(availByPos[pos], Math.max(1, Math.round(plan[pos].count * capFrac)), plan[pos].count)
     let left = Math.min(goal, SECTORS.reduce((s, p) => s + cap[p], 0))
     while (left > 0) {
       let best: Sector | null = null, bestScore = -1
       for (const pos of SECTORS) {
-        const usedSlots = alloc[pos].legend + alloc[pos].folk
+        const usedSlots = alloc[pos].legend + alloc[pos].star + alloc[pos].low + alloc[pos].folk
         if (alloc[pos][key] >= cap[pos] || usedSlots >= plan[pos].count) continue
         const score = plan[pos].count / (alloc[pos][key] + 1)
         if (score > bestScore) { bestScore = score; best = pos }
@@ -114,23 +117,33 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
       left--
     }
   }
-  distribute(Math.max(1, Math.round(totalCount * 0.07)), availLegend, 'legend', 1 / 3)
-  distribute(Math.max(1, Math.round(totalCount * 0.13)), availFolk, 'folk', 0.5)
-  // ── passo 3: monta cada setor — lenda + folclórico garantidos, resto natural ──
+  // cotas do leilão (metas de %). Craque e Bom jogador agora têm cota também, pra
+  // o "bom jogador" parar de inchar (antes ~69%). Folclórico é selo (cruza níveis):
+  // parte já entra via a cota 'low' (fame1 folk); aqui garantimos os folk 2/3/4.
+  distribute(Math.max(1, Math.round(totalCount * 0.10)), availLegend, 'legend', 1 / 3) // LENDA 10%
+  distribute(Math.max(1, Math.round(totalCount * 0.15)), availStar, 'star', 0.5)       // CRAQUE 15%
+  distribute(Math.max(1, Math.round(totalCount * 0.16)), availLow, 'low', 0.5)         // FOI PROFISSIONAL 16%
+  distribute(Math.max(1, Math.round(totalCount * 0.10)), availFolk, 'folk', 0.5)       // + folk 2/3/4
+  // ── passo 3: monta cada setor — cotas garantidas, resto = bom jogador ──
   for (const pos of SECTORS) {
     const { count, catalog } = plan[pos]
     const cards: Card[] = []
     const take = (c: (typeof CATALOG)[Sector][number]) => { used.add(c.name); cards.push({ ...c, id: `cat-${pos}-${cards.length}`, pos }) }
-    // 1) lendas da cota
+    // 1) LENDA
     let needL = alloc[pos].legend
     for (const c of catalog) { if (needL <= 0) break; if (c.fame !== 5 || used.has(c.name)) continue; take(c); needL-- }
-    // 2) folclóricos da cota (qualquer nível, menos lenda que já foi tratada)
+    // 2) CRAQUE (não-folk)
+    let needS = alloc[pos].star
+    for (const c of catalog) { if (needS <= 0) break; if (c.fame !== 4 || c.folk || used.has(c.name)) continue; take(c); needS-- }
+    // 3) FOI PROFISSIONAL (fame 1 — inclui os folk fame1, que ganham o selo)
+    let needLo = alloc[pos].low
+    for (const c of catalog) { if (needLo <= 0) break; if (c.fame !== 1 || used.has(c.name)) continue; take(c); needLo-- }
+    // 4) FOLCLÓRICO 2/3/4 (o selo entre bom jogador e craque)
     let needF = alloc[pos].folk
-    for (const c of catalog) { if (needF <= 0) break; if (!c.folk || c.fame === 5 || used.has(c.name)) continue; take(c); needF-- }
-    // 3) resto natural — craque/bom/cult "normais" (fora lenda e folclórico, pra
-    //    não estourar as cotas raras)
-    for (const c of catalog) { if (cards.length >= count) break; if (used.has(c.name) || c.fame === 5 || c.folk) continue; take(c) }
-    // 4) se ainda faltar (setor pequeno de catálogo), aceita qualquer real restante
+    for (const c of catalog) { if (needF <= 0) break; if (!c.folk || c.fame < 2 || c.fame > 4 || used.has(c.name)) continue; take(c); needF-- }
+    // 5) resto = BOM JOGADOR natural (fame 2/3 não-folk)
+    for (const c of catalog) { if (cards.length >= count) break; if (used.has(c.name) || c.fame === 5 || c.fame === 4 || c.fame === 1 || c.folk) continue; take(c) }
+    // 6) se ainda faltar (setor pequeno de catálogo), aceita qualquer real restante
     for (const c of catalog) { if (cards.length >= count) break; if (used.has(c.name)) continue; take(c) }
     // 5) só cai pra incógnita se o catálogo real acabar (sala gigante)
     const gems = Math.max(1, Math.ceil(managers.length / 3))
