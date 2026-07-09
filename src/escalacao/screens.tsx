@@ -680,7 +680,7 @@ function TieSorteio({ names, winnerId }: { names: { id: number; label: string; c
 }
 
 function Reveal() {
-  const { state, emote } = useEsc()
+  const { state } = useEsc()
   const item = state.revealQueue[state.revealIdx]
   const you = state.managers[state.youIdx]
   if (!item) return null
@@ -765,15 +765,6 @@ function Reveal() {
       <p className="text-center text-xs font-bold text-black/60 py-1">
         {canDrive ? '🎬 Passando automaticamente…' : '🔨 O host está conduzindo a revelação…'}
       </p>
-      {online && (
-        <div className="flex justify-center gap-2 py-1">
-          {EMOTE_KINDS.map(k => (
-            <button key={k} onClick={() => emote(k, item.card.id)}
-              className="border-2 border-black rounded-xl w-12 h-12 text-2xl bg-white active:translate-x-[3px] active:translate-y-[3px]"
-              style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>{k}</button>
-          ))}
-        </div>
-      )}
       <Campinho m={you} small />
     </Shell>
   )
