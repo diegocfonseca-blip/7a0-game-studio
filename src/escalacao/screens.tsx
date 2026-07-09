@@ -397,8 +397,18 @@ function Envelope() {
               ? 'Sobras do setor, última chance de pagar por elas. Só quem ficou com buraco participa.'
               : 'Lance cego: distribua suas moedas em segredo. Ninguém vê nada até a revelação.'}
             {' '}Suas vagas: <b>{myOpen}</b>.
-            {!rescue && totalBatches > 1 && <> Leva <b>{curBatch}/{totalBatches}</b> — mais vem a seguir.</>}
           </p>
+          {!rescue && totalBatches > 1 && (
+            <div className="mt-1.5 inline-flex items-center gap-1.5 border-[3px] border-black rounded-full px-3 py-1"
+              style={{ backgroundColor: '#2E6FB0', boxShadow: `2px 2px 0 0 ${INK}` }}>
+              <span className="text-sm leading-none">📦</span>
+              <span className="text-[11px] font-black text-white uppercase tracking-wide" style={OSWALD}>
+                {totalBatches - curBatch > 0
+                  ? `Leva ${curBatch} de ${totalBatches} · ainda ${totalBatches - curBatch > 1 ? 'vêm' : 'vem'} mais ${totalBatches - curBatch} leva${totalBatches - curBatch > 1 ? 's' : ''} de ${SECTOR_LABEL[pos].toLowerCase()}`
+                  : `Última leva de ${SECTOR_LABEL[pos].toLowerCase()} · ${curBatch} de ${totalBatches}`}
+              </span>
+            </div>
+          )}
           {!rescue && canBid && bidLimit > 0 && (
             <p className="text-sm font-black mt-1" style={{ color: GREEN }}>
               Dê lance em até <b>{bidLimit}</b> jogador{bidLimit === 1 ? '' : 'es'} diferente{bidLimit === 1 ? '' : 's'} pra tentar fechar {bidLimit === 1 ? 'sua vaga' : 'suas vagas'}.
