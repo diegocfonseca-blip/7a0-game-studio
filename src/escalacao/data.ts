@@ -14,6 +14,9 @@ type C = { name: string; club: string; year: number; fame: Fame; lo: number; hi:
 // ganha). Mapeado por nome — assim dá pra ir preenchendo aos poucos sem mexer
 // no catálogo. Quem não tem bio ainda mostra um texto genérico por categoria.
 export const BIOS: Record<string, string> = {
+  'Zagallo': 'O Velho Lobo. Ponta bicampeão do mundo (58 e 62) ao lado de Pelé e Garrincha — o maior amuleto do futebol brasileiro.',
+  'Hélton': 'Goleiro revelado no Vasco de 2000 e ídolo eterno do Porto — mais de uma década de grife europeia.',
+  'Igor Catatau': 'Puro suco da resenha carioca. O nome já arranca risada na mesa — carta de meme por excelência.',
   'Yago Pikachu': 'Pikachu! Lateral-atacante elétrico, virou artilheiro e ídolo no Fortaleza — apelido e gols de resenha.',
   'James Rodríguez': 'Craque colombiano, Bola de Ouro da Copa de 2014, que passou pelo São Paulo — passe refinado e grife mundial.',
   'Ruy Cabeção': 'O “Cabeção”. Lateral rodado e raçudo — o apelido virou folclore por si só.',
@@ -352,6 +355,7 @@ const GOL: C[] = [
   { name: 'Marcelo Grohe', club: 'Grêmio', year: 2017, fame: 3, lo: 76, hi: 85 },
   { name: 'Diego Cavalieri', club: 'Fluminense', year: 2012, fame: 2, lo: 66, hi: 82 },
   { name: 'Alisson', club: 'Internacional', year: 2015, fame: 4, lo: 84, hi: 91 },
+  { name: 'Hélton', club: 'Vasco', year: 2000, fame: 3, lo: 76, hi: 85 },
   { name: 'Alex Muralha', club: 'Flamengo', year: 2017, fame: 1, lo: 55, hi: 75, folk: true },
   { name: 'Sidão', club: 'São Paulo', year: 2017, fame: 1, lo: 54, hi: 74, folk: true },
 ]
@@ -415,7 +419,7 @@ const ZAG: C[] = [
   { name: 'Mauro Galvão', club: 'Vasco', year: 1997, fame: 3, lo: 76, hi: 85 },
   { name: 'Júnior Baiano', club: 'Palmeiras', year: 1996, fame: 2, lo: 60, hi: 84 },
   { name: 'Chicão', club: 'Corinthians', year: 2009, fame: 2, lo: 61, hi: 82 },
-  { name: 'Gamarra', club: 'Corinthians', year: 1998, fame: 3, lo: 79, hi: 87 },
+  { name: 'Gamarra', club: 'Corinthians', year: 1998, fame: 4, lo: 85, hi: 92 },
   { name: 'Odvan', club: 'Vasco', year: 1997, fame: 1, lo: 58, hi: 79 },
   // ── ampliação ──
   { name: 'Hilderaldo Bellini', club: 'Vasco', year: 1958, fame: 5, lo: 87, hi: 92 },
@@ -479,7 +483,7 @@ const MEI: C[] = [
   { name: 'Clodoaldo', club: 'Santos', year: 1970, fame: 4, lo: 85, hi: 92 },
   { name: 'Juninho Paulista', club: 'São Paulo', year: 2009, fame: 3, lo: 79, hi: 87 },
   { name: 'Zé Roberto', club: 'Palmeiras', year: 2010, fame: 3, lo: 82, hi: 89 },
-  { name: 'Rincón', club: 'Corinthians', year: 1998, fame: 3, lo: 80, hi: 88 },
+  { name: 'Rincón', club: 'Corinthians', year: 1998, fame: 4, lo: 84, hi: 91 },
   { name: 'Arrascaeta', club: 'Flamengo', year: 2022, fame: 4, lo: 84, hi: 91 },
   { name: 'Mascherano', club: 'Corinthians', year: 2005, fame: 3, lo: 80, hi: 88 },
   { name: 'Renato Augusto', club: 'Corinthians', year: 2018, fame: 3, lo: 78, hi: 87 },
@@ -625,6 +629,8 @@ const ATA: C[] = [
   { name: 'Suárez', club: 'Grêmio', year: 2023, fame: 4, lo: 86, hi: 93 },
   { name: 'Igor Thiago', club: 'Cruzeiro', year: 2020, fame: 3, lo: 74, hi: 85 },
   { name: 'Yago Pikachu', club: 'Fortaleza', year: 2021, fame: 2, lo: 64, hi: 82, folk: true },
+  { name: 'Zagallo', club: 'Botafogo', year: 1962, fame: 5, lo: 92, hi: 97 },
+  { name: 'Igor Catatau', club: 'Vasco', year: 2020, fame: 1, lo: 52, hi: 75, folk: true },
   { name: 'Aloísio Boi Bandido', club: 'São Paulo', year: 2013, fame: 2, lo: 66, hi: 83, folk: true },
   { name: 'Aloísio Chulapa', club: 'São Paulo', year: 2005, fame: 2, lo: 68, hi: 84, folk: true },
   { name: 'Walter', club: 'Goiás', year: 2012, fame: 1, lo: 55, hi: 84, folk: true },
