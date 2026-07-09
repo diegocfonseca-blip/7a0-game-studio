@@ -331,6 +331,7 @@ export const BIOS: Record<string, string> = {
   "Vágner Love": "O Imperador do Amor. Centroavante veloz, técnico e artilheiro — brilhou pelo Palmeiras, Flamengo e Corinthians.",
   "França": "Centroavante matador do São Paulo entre 98 e 02 — artilheiro e goleador que era craque de verdade.",
   "Rayan Oi, Boa Noite": "Joia da base do Vasco vendida por 60 milhoes ao Bournemouth — e o hino da torcida (\"Rayan, oi, boa noite\") virou febre nacional.",
+  "Alex Silva Pirulito": "Zagueiro do São Paulo tricampeão brasileiro (2006-08) — folclórico, marcado pelo apelido Pirulito.",
 }
 
 const GOL: C[] = [
@@ -451,6 +452,7 @@ const ZAG: C[] = [
   { name: "Roque Júnior", club: "Palmeiras", year: 1999, fame: 4, lo: 84, hi: 90 },
   { name: "Léo Pelé", club: "São Paulo", year: 2023, fame: 1, lo: 56, hi: 77, folk: true },
   { name: "Paulão", club: "Vasco", year: 2011, fame: 1, lo: 55, hi: 77, folk: true },
+  { name: "Alex Silva Pirulito", club: "São Paulo", year: 2006, fame: 1, lo: 56, hi: 78, folk: true },
 ]
 
 const MEI: C[] = [
