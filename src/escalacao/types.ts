@@ -89,6 +89,7 @@ export interface TieBreak {
   paid: number
   viaRoulette: boolean // true = empatou de novo e caiu na roleta
   via: Acquisition // 'leilao' | 'repescagem' (pra registrar na carta ganha)
+  bids?: Record<number, number> // quanto cada empatado cobriu no re-lance (pra revelação)
 }
 
 export interface LeagueTeam {

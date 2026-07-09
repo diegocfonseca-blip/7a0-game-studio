@@ -289,6 +289,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   m.squad.push({ ...tb.card, paid: max, via: tb.via } as WonCard)
   tb.winner = winner
   tb.paid = max
+  tb.bids = amounts // registra quanto cada um cobriu (transparência na revelação)
   const rc = state.revealQueue.find(q => q.card.id === tb.cardId)
   if (rc) { rc.winner = winner; rc.paid = max }
 }
