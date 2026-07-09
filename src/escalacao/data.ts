@@ -14,6 +14,8 @@ type C = { name: string; club: string; year: number; fame: Fame; lo: number; hi:
 // ganha). Mapeado por nome — assim dá pra ir preenchendo aos poucos sem mexer
 // no catálogo. Quem não tem bio ainda mostra um texto genérico por categoria.
 export const BIOS: Record<string, string> = {
+  'Adílio': 'O camisa 8 da era de ouro do Flamengo — campeão do mundo em 81 ao lado de Zico. Grife histórica carioca.',
+  'Igor Thiago': 'Menino ex-Cruzeiro que explodiu na Europa (Brugge, Brentford) — promessa moderna de alto teto.',
   'Suárez': 'O Pistoleiro. Craque uruguaio que fez uma temporada absurda no Grêmio em 2023 — grife de elite mundial.',
   'Estêvão': 'A joia do Palmeiras que o mundo inteiro quis — drible e faro de craque, rumo à Europa como fenômeno.',
   'Tevez': 'O Apache. Craque argentino que carregou o Corinthians ao Brasileirão de 2005 — talento e raça de sobra.',
@@ -356,7 +358,7 @@ const LAT: C[] = [
   { name: 'Cafu', club: 'São Paulo', year: 1993, fame: 5, lo: 93, hi: 98 },
   { name: 'Roberto Carlos', club: 'Palmeiras', year: 1995, fame: 5, lo: 93, hi: 98 },
   { name: 'Júnior', club: 'Flamengo', year: 1981, fame: 4, lo: 88, hi: 94 },
-  { name: 'Leandro', club: 'Flamengo', year: 1983, fame: 4, lo: 88, hi: 94 },
+  { name: 'Leandro', club: 'Flamengo', year: 1983, fame: 5, lo: 93, hi: 97 },
   { name: 'Branco', club: 'Fluminense', year: 1984, fame: 3, lo: 79, hi: 88 },
   { name: 'Jorginho', club: 'Flamengo', year: 1989, fame: 3, lo: 80, hi: 88 },
   { name: 'Leonardo', club: 'São Paulo', year: 1992, fame: 3, lo: 80, hi: 88 },
@@ -524,6 +526,7 @@ const MEI: C[] = [
   { name: 'Amaral', club: 'Corinthians', year: 1998, fame: 2, lo: 64, hi: 82, folk: true },
   { name: 'Márcio Araújo', club: 'Flamengo', year: 2015, fame: 2, lo: 66, hi: 82, folk: true },
   { name: 'Seedorf', club: 'Botafogo', year: 2013, fame: 4, lo: 88, hi: 94 },
+  { name: 'Adílio', club: 'Flamengo', year: 1981, fame: 4, lo: 87, hi: 93 },
 ]
 
 const ATA: C[] = [
@@ -613,6 +616,7 @@ const ATA: C[] = [
   { name: 'Josiel', club: 'Paraná', year: 2007, fame: 2, lo: 58, hi: 80, folk: true },
   { name: 'Dinei', club: 'Corinthians', year: 1999, fame: 2, lo: 58, hi: 80, folk: true },
   { name: 'Suárez', club: 'Grêmio', year: 2023, fame: 4, lo: 86, hi: 93 },
+  { name: 'Igor Thiago', club: 'Cruzeiro', year: 2020, fame: 3, lo: 74, hi: 85 },
   { name: 'Aloísio Boi Bandido', club: 'São Paulo', year: 2013, fame: 2, lo: 66, hi: 83, folk: true },
   { name: 'Aloísio Chulapa', club: 'São Paulo', year: 2005, fame: 2, lo: 68, hi: 84, folk: true },
   { name: 'Walter', club: 'Goiás', year: 2012, fame: 1, lo: 55, hi: 84, folk: true },
