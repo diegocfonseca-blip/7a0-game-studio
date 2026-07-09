@@ -1131,11 +1131,11 @@ export function EscEnd() {
   const online = state.onlineMode === 'online'
   const canRestart = !online || state.isHost
   const myScorer = topScorers(state, 1)[0]
-  // check de prontidão do "Reiniciar com novos times"
+  // check de prontidão do "Reiniciar com novos times": TODOS os participantes
+  // humanos precisam clicar "estou pronto" (não depende do presence, instável)
   const restartPending = state.restartPending
   const humanIds = state.managers.filter(m => m.isHuman).map(m => m.id)
-  const presentIds = state.presence.length ? humanIds.filter(id => state.presence.includes(id)) : humanIds
-  const readyCount = state.restartReady.filter(id => presentIds.includes(id)).length
+  const readyCount = state.restartReady.filter(id => humanIds.includes(id)).length
   const iAmReady = state.restartReady.includes(state.youIdx)
   return (
     <Shell>
@@ -1164,7 +1164,7 @@ export function EscEnd() {
         ? (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2" style={{ background: '#FEF3C7' }}>
             <p className="text-center font-black text-lg" style={OSWALD}>🔀 REINICIAR COM NOVOS TIMES</p>
-            <p className="text-center text-sm font-bold">Esperando todo mundo confirmar… {readyCount}/{presentIds.length} prontos</p>
+            <p className="text-center text-sm font-bold">Esperando todo mundo confirmar… {readyCount}/{humanIds.length} prontos</p>
             {!iAmReady
               ? <Btn onClick={() => dispatch({ type: 'CONFIRM_RESTART', mgrId: state.youIdx })} bg={GREEN} className="w-full text-lg"><span className="text-white">✅ Estou pronto</span></Btn>
               : <p className="text-center text-sm font-bold text-black/60">Você está pronto. Aguardando os outros…</p>}

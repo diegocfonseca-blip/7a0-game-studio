@@ -742,17 +742,17 @@ function redraftSeason(s: EscState): EscState {
   return s
 }
 
-// quem está online AGORA (presence) e é humano — só eles precisam confirmar.
-// Quando todos os presentes clicaram "estou pronto", refaz o leilão.
-function presentHumanIds(s: EscState): number[] {
-  const humanIds = s.managers.filter(m => m.isHuman).map(m => m.id)
-  // presence pode estar vazio (fallback: considera todos os humanos)
-  return s.presence.length ? humanIds.filter(id => s.presence.includes(id)) : humanIds
+// Refaz o leilão só quando TODOS os participantes humanos clicaram "estou
+// pronto". Não usamos `presence` aqui: ela é instável (às vezes o host enxerga
+// só a si mesmo) e isso liberava o reinício sem o OK dos outros. Se alguém caiu
+// e não confirma, o host tem o botão Cancelar.
+function humanManagerIds(s: EscState): number[] {
+  return s.managers.filter(m => m.isHuman).map(m => m.id)
 }
 function maybeStartRedraft(s: EscState): EscState {
   if (!s.restartPending) return s
-  const present = presentHumanIds(s)
-  if (present.length > 0 && present.every(id => s.restartReady.includes(id))) {
+  const humans = humanManagerIds(s)
+  if (humans.length > 0 && humans.every(id => s.restartReady.includes(id))) {
     return redraftSeason(s)
   }
   return s
