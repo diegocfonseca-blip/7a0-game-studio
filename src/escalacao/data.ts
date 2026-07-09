@@ -108,7 +108,7 @@ export const BIOS: Record<string, string> = {
   "Luís Pereira": "Técnica tão refinada que saía jogando driblando os atacantes. Ídolo no Palmeiras.",
   "Mauro Ramos": "Capitão do bicampeonato de 62. Elegância pura na zaga do Santos de Pelé.",
   "Falcão": "O Rei de Roma. Ditava o ritmo do jogo com uma elegância que redefiniu a posição de volante.",
-  "Gérson": "A Canhotinha de Ouro. Lançamentos de 40 metros que caíam no peito dos atacantes no tri de 70.",
+  "Gérson Canhotinha de Ouro": "A Canhotinha de Ouro. Lançamentos de 40 metros que caíam no peito dos atacantes no tri de 70.",
   "Kaká": "Arranques verticais avassaladores e elegância pura. Último brasileiro a ganhar a Bola de Ouro.",
   "Raí": "O terror do Barcelona no Mundial de 92. Forte, elegante e decisivo nas grandes finais.",
   "Ademir da Guia": "O Divino. O maestro do Palmeiras, dono do ritmo do jogo com uma classe única.",
@@ -319,7 +319,7 @@ export const BIOS: Record<string, string> = {
   "Paulo Baier": "Meia de enorme longevidade e um dos maiores cobradores de falta e pênalti do país. Mais de 100 gols na Série A.",
   "Thiago Almada": "Meia argentino craque, campeão da Libertadores pelo Botafogo em 2024 — talento rumo à Europa.",
   "Luiz Henrique": "Ponta explosivo, protagonista do Botafogo campeão de 2024.",
-  "Madson": "O \"Cu de Nitro\". Lateral-direito veloz feito foguete — o apelido já é lenda da várzea à Série A.",
+  "Madson Cu de Nitro": "Lateral-direito veloz feito foguete — o apelido \"Cu de Nitro\" já é lenda da várzea à Série A.",
   "Léo Pelé": "Zagueiro/lateral do apelido pomposo — rodou Bahia, São Paulo e Vasco.",
   "Paulão": "Zagueirão raçudo e desengonçado que virou meme nacional — folclore puro da zaga.",
   "André Balada": "O Balada. Centroavante boêmio e de faro — passou por meio Brasil deixando história (e resenha).",
@@ -400,7 +400,7 @@ const LAT: C[] = [
   { name: "Ruy Cabeção", club: "Grêmio", year: 2007, fame: 2, lo: 60, hi: 80, folk: true },
   { name: "Arce", club: "Palmeiras", year: 1999, fame: 4, lo: 85, hi: 91 },
   { name: "Apodi", club: "Fortaleza", year: 2018, fame: 2, lo: 64, hi: 82, folk: true },
-  { name: "Madson", club: "Athletico-PR", year: 2020, fame: 1, lo: 56, hi: 78, folk: true },
+  { name: "Madson Cu de Nitro", club: "Athletico-PR", year: 2020, fame: 1, lo: 56, hi: 78, folk: true },
 ]
 
 const ZAG: C[] = [
@@ -446,7 +446,7 @@ const ZAG: C[] = [
   { name: "Marquinhos", club: "Corinthians", year: 2012, fame: 3, lo: 76, hi: 83, promessa: true },
   { name: "Éder Militão", club: "São Paulo", year: 2018, fame: 3, lo: 76, hi: 82, promessa: true },
   { name: "Roque Júnior", club: "Palmeiras", year: 1999, fame: 4, lo: 84, hi: 90 },
-  { name: "Léo Pelé", club: "São Paulo", year: 2023, fame: 1, lo: 56, hi: 77 },
+  { name: "Léo Pelé", club: "São Paulo", year: 2023, fame: 1, lo: 56, hi: 77, folk: true },
   { name: "Paulão", club: "Vasco", year: 2011, fame: 1, lo: 55, hi: 77, folk: true },
 ]
 
@@ -458,7 +458,7 @@ const MEI: C[] = [
   { name: "Ronaldinho Gaúcho", club: "Grêmio", year: 1999, fame: 4, lo: 87, hi: 93 },
   { name: "Ademir da Guia", club: "Palmeiras", year: 1972, fame: 4, lo: 87, hi: 93 },
   { name: "Falcão", club: "Internacional", year: 1979, fame: 5, lo: 92, hi: 96 },
-  { name: "Gérson", club: "Botafogo", year: 1970, fame: 5, lo: 92, hi: 96 },
+  { name: "Gérson Canhotinha de Ouro", club: "Botafogo", year: 1970, fame: 5, lo: 92, hi: 96 },
   { name: "Rivaldo", club: "Palmeiras", year: 1996, fame: 4, lo: 86, hi: 92 },
   { name: "Kaká", club: "São Paulo", year: 2003, fame: 3, lo: 80, hi: 86, promessa: true },
   { name: "Raí", club: "São Paulo", year: 1992, fame: 4, lo: 87, hi: 93 },
