@@ -328,6 +328,9 @@ export const BIOS: Record<string, string> = {
   "Sassá": "Explodiu no Botafogo com golaços — carisma e resenha de sobra.",
   "Sávio": "O Anjo Loiro. Ponta genial do Flamengo dos anos 90 — dribles e assistencias antes de brilhar no Real Madrid.",
   "Philippe Coutinho": "Joia da base do Vasco que foi cedo pra Europa e virou craque no Liverpool — magia canhota e chutes de fora.",
+  "Vágner Love": "O Imperador do Amor. Centroavante veloz, técnico e artilheiro — brilhou pelo Palmeiras, Flamengo e Corinthians.",
+  "França": "Centroavante matador do São Paulo entre 98 e 02 — artilheiro e goleador que era craque de verdade.",
+  "Rayan": "Joia da base do Vasco, atacante-fenomeno vendido cedo pra Europa por uma fortuna — promessa de teto altissimo.",
 }
 
 const GOL: C[] = [
@@ -570,7 +573,7 @@ const ATA: C[] = [
   { name: "Nunes", club: "Flamengo", year: 1981, fame: 3, lo: 76, hi: 84 },
   { name: "Renato Gaúcho", club: "Grêmio", year: 1983, fame: 4, lo: 84, hi: 92, folk: true },
   { name: "Hulk", club: "Atlético-MG", year: 2021, fame: 4, lo: 84, hi: 91 },
-  { name: "Luís Fabiano", club: "São Paulo", year: 2011, fame: 4, lo: 85, hi: 91 },
+  { name: "Luís Fabiano", club: "São Paulo", year: 2008, fame: 4, lo: 86, hi: 92 },
   { name: "Grafite", club: "São Paulo", year: 2008, fame: 3, lo: 78, hi: 84 },
   { name: "Gabigol", club: "Flamengo", year: 2019, fame: 4, lo: 86, hi: 92 },
   { name: "Pedro", club: "Flamengo", year: 2022, fame: 3, lo: 78, hi: 84 },
@@ -636,6 +639,9 @@ const ATA: C[] = [
   { name: "Bill", club: "Ceará", year: 2018, fame: 1, lo: 54, hi: 76, folk: true },
   { name: "Sassá", club: "Botafogo", year: 2016, fame: 1, lo: 56, hi: 77, folk: true },
   { name: "Sávio", club: "Flamengo", year: 1997, fame: 4, lo: 83, hi: 90 },
+  { name: "Vágner Love", club: "Palmeiras", year: 2004, fame: 4, lo: 85, hi: 91 },
+  { name: "França", club: "São Paulo", year: 2000, fame: 4, lo: 84, hi: 90 },
+  { name: "Rayan", club: "Vasco", year: 2025, fame: 3, lo: 70, hi: 79, promessa: true },
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
