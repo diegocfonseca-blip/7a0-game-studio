@@ -357,7 +357,7 @@ const LAT: C[] = [
   { name: 'Nílton Santos', club: 'Botafogo', year: 1958, fame: 5, lo: 95, hi: 99 },
   { name: 'Cafu', club: 'São Paulo', year: 1993, fame: 5, lo: 93, hi: 98 },
   { name: 'Roberto Carlos', club: 'Palmeiras', year: 1995, fame: 5, lo: 93, hi: 98 },
-  { name: 'Júnior', club: 'Flamengo', year: 1981, fame: 4, lo: 88, hi: 94 },
+  { name: 'Júnior', club: 'Flamengo', year: 1981, fame: 5, lo: 93, hi: 97 },
   { name: 'Leandro', club: 'Flamengo', year: 1983, fame: 5, lo: 93, hi: 97 },
   { name: 'Branco', club: 'Fluminense', year: 1984, fame: 3, lo: 79, hi: 88 },
   { name: 'Jorginho', club: 'Flamengo', year: 1989, fame: 3, lo: 80, hi: 88 },
