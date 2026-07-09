@@ -14,6 +14,8 @@ type C = { name: string; club: string; year: number; fame: Fame; lo: number; hi:
 // ganha). Mapeado por nome — assim dá pra ir preenchendo aos poucos sem mexer
 // no catálogo. Quem não tem bio ainda mostra um texto genérico por categoria.
 export const BIOS: Record<string, string> = {
+  'Yago Pikachu': 'Pikachu! Lateral-atacante elétrico, virou artilheiro e ídolo no Fortaleza — apelido e gols de resenha.',
+  'James Rodríguez': 'Craque colombiano, Bola de Ouro da Copa de 2014, que passou pelo São Paulo — passe refinado e grife mundial.',
   'Ruy Cabeção': 'O “Cabeção”. Lateral rodado e raçudo — o apelido virou folclore por si só.',
   'Fernando Diniz': 'Meia dos anos 2000 que virou o técnico do jogo bonito e das maiores resenhas do país.',
   'Adílio': 'O camisa 8 da era de ouro do Flamengo — campeão do mundo em 81 ao lado de Zico. Grife histórica carioca.',
@@ -531,6 +533,7 @@ const MEI: C[] = [
   { name: 'Seedorf', club: 'Botafogo', year: 2013, fame: 4, lo: 88, hi: 94 },
   { name: 'Adílio', club: 'Flamengo', year: 1981, fame: 4, lo: 87, hi: 93 },
   { name: 'Fernando Diniz', club: 'Fluminense', year: 2001, fame: 2, lo: 64, hi: 82, folk: true },
+  { name: 'James Rodríguez', club: 'São Paulo', year: 2023, fame: 3, lo: 76, hi: 88 },
 ]
 
 const ATA: C[] = [
@@ -621,6 +624,7 @@ const ATA: C[] = [
   { name: 'Dinei', club: 'Corinthians', year: 1999, fame: 2, lo: 58, hi: 80, folk: true },
   { name: 'Suárez', club: 'Grêmio', year: 2023, fame: 4, lo: 86, hi: 93 },
   { name: 'Igor Thiago', club: 'Cruzeiro', year: 2020, fame: 3, lo: 74, hi: 85 },
+  { name: 'Yago Pikachu', club: 'Fortaleza', year: 2021, fame: 2, lo: 64, hi: 82, folk: true },
   { name: 'Aloísio Boi Bandido', club: 'São Paulo', year: 2013, fame: 2, lo: 66, hi: 83, folk: true },
   { name: 'Aloísio Chulapa', club: 'São Paulo', year: 2005, fame: 2, lo: 68, hi: 84, folk: true },
   { name: 'Walter', club: 'Goiás', year: 2012, fame: 1, lo: 55, hi: 84, folk: true },
