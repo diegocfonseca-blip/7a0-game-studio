@@ -658,6 +658,7 @@ type Action =
   | { type: 'GO_ALBUM' }
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey }
+  | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[] }
@@ -869,6 +870,22 @@ export function reducer(state: EscState, action: Action): EscState {
       roomId: state.roomId,
       roomCode: state.roomCode,
       onlineMode: state.onlineMode,
+    }
+  }
+  if (action.type === 'RESTORE_ONLINE') {
+    // reconexão/host-caiu: adota o estado salvo no banco em vez de recomeçar
+    // do zero. A identidade ("quem sou eu", host?) é sempre local a este
+    // cliente; efêmeros host-only voltam limpos (já vêm sanitizados).
+    return {
+      ...action.state,
+      onlineMode: 'online',
+      roomId: action.roomId,
+      roomCode: action.roomCode,
+      isHost: action.isHost,
+      youIdx: action.playerIndex,
+      pendingEnvelopes: {},
+      tiebreakPending: {},
+      presence: [],
     }
   }
   if (action.type === 'NEW_GAME') return { ...INITIAL }
@@ -1104,6 +1121,7 @@ const Ctx = createContext<{
   dispatch: (a: Action) => void
   emote: (kind: string, cardId?: string) => void
   emotes: EmoteEvent[]
+  hostStale: boolean // convidado sem notícias do host há muito tempo (host caiu?)
 } | null>(null)
 
 export function EscProvider({ children }: { children: ReactNode }) {
@@ -1116,6 +1134,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
   useEffect(() => { isHostRef.current = state.isHost }, [state.isHost])
   useEffect(() => { onlineRef.current = state.onlineMode }, [state.onlineMode])
   useEffect(() => { stateRef.current = state }, [state])
+
+  // "host caiu?": convidado marca quando recebeu a última atualização do host.
+  // Sem heartbeat por ~10s, mostra aviso (o host reemite estado a cada 3s).
+  const lastHostMsgRef = useRef(Date.now())
+  const [hostStale, setHostStale] = useState(false)
 
   // reações efêmeras: lista viva que some sozinha (~2,6s cada). Fora do reducer.
   const [emotes, setEmotes] = useState<EmoteEvent[]>([])
@@ -1149,7 +1172,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
         channelRef.current?.send({ type: 'broadcast', event: 'state', payload: sanitize(stateRef.current) })
       })
     } else {
-      ch.on('broadcast', { event: 'state' }, ({ payload }: { payload: EscState }) => rawDispatch({ type: 'SYNC_STATE', newState: payload }))
+      ch.on('broadcast', { event: 'state' }, ({ payload }: { payload: EscState }) => {
+        lastHostMsgRef.current = Date.now() // notícia fresca do host
+        rawDispatch({ type: 'SYNC_STATE', newState: payload })
+      })
     }
     // reações chegam pra todos (host e convidados), fora do fluxo de ações
     ch.on('broadcast', { event: 'emote' }, ({ payload }: { payload: EmoteEvent }) => addEmote(payload))
@@ -1224,6 +1250,20 @@ export function EscProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(t)
   }, [state.phaseDeadline, state.phase, state.tiebreakIdx, state.onlineMode, dispatch])
 
+  // convidado vigia o host: sem estado recebido há >10s durante o jogo, acende
+  // o aviso "host caiu" e segue pedindo o estado — se o host voltar, ressincroniza.
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || state.isHost || !state.roomId) { setHostStale(false); return }
+    if (state.screen === 'intro' || state.screen === 'lobby') { setHostStale(false); return }
+    lastHostMsgRef.current = Date.now() // zera ao (re)entrar nessa vigília
+    const iv = setInterval(() => {
+      const stale = Date.now() - lastHostMsgRef.current > 10_000
+      setHostStale(stale)
+      if (stale) channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
+    }, 2500)
+    return () => clearInterval(iv)
+  }, [state.onlineMode, state.isHost, state.roomId, state.screen])
+
   // host persiste no banco a cada 3s
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId || state.screen === 'intro') return
@@ -1234,7 +1274,23 @@ export function EscProvider({ children }: { children: ReactNode }) {
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
   }, [state])
 
-  return <Ctx.Provider value={{ state, dispatch, emote, emotes }}>{children}</Ctx.Provider>
+  const showHostBanner = state.onlineMode === 'online' && !state.isHost && hostStale
+    && state.screen !== 'intro' && state.screen !== 'lobby'
+  return (
+    <Ctx.Provider value={{ state, dispatch, emote, emotes, hostStale }}>
+      {children}
+      {showHostBanner && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 60,
+          background: '#E8503A', color: '#fff', textAlign: 'center',
+          padding: '8px 12px', fontWeight: 800, fontSize: 13,
+          fontFamily: 'Oswald, sans-serif', borderBottom: '3px solid #0C0C0C',
+        }}>
+          ⏳ O host caiu ou está sem conexão — tentando reconectar…
+        </div>
+      )}
+    </Ctx.Provider>
+  )
 }
 
 // mantém o leilão cego: convidados nunca recebem os envelopes pendentes,
