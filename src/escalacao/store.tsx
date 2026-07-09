@@ -2,7 +2,7 @@ import { createContext, useContext, useReducer, useEffect, useRef, useCallback }
 import type { ReactNode } from 'react'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid,
-  ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow,
+  ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { CATALOG, makeIncognita, CPU_MANAGERS, CLASSIC_CLUBS } from './data'
@@ -213,7 +213,10 @@ function pushBid(map: BidMap, cardId: string, bid: Bid) {
 }
 
 // ─── resolução: pote crescente, maior lance leva, anulação por setor cheio ──
-function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leilao' | 'repescagem', rng: () => number): { queue: ResolvedCard[]; unsold: Card[] } {
+// Empate no MAIOR lance elegível (≥2 técnicos) não decide na hora: a carta
+// entra na fila de desempate (ties) com vencedor pendente — quem resolve é o
+// re-lance cego (ver resolveOneTiebreak). Sem empate, decide aqui mesmo.
+function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leilao' | 'repescagem'): { queue: ResolvedCard[]; unsold: Card[]; ties: TieBreak[] } {
   const byPot = [...cards].sort((a, b) => {
     const pa = (bidMap.get(a.id) ?? []).reduce((s, x) => s + x.amount, 0)
     const pb = (bidMap.get(b.id) ?? []).reduce((s, x) => s + x.amount, 0)
@@ -221,35 +224,112 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
   })
   const queue: ResolvedCard[] = []
   const unsold: Card[] = []
+  const ties: TieBreak[] = []
   for (const card of byPot) {
-    const bids = (bidMap.get(card.id) ?? []).sort((a, b) => b.amount - a.amount)
-    if (bids.length === 0) {
+    const sorted = (bidMap.get(card.id) ?? []).slice().sort((a, b) => b.amount - a.amount)
+    if (sorted.length === 0) {
       unsold.push(card)
       queue.push({ card, bids: [], winner: null, paid: 0, voided: [] })
       continue
     }
+    // pula do topo pra baixo os inelegíveis (setor cheio / sem dinheiro): anulados
     const voided: number[] = []
-    let winner: number | null = null
-    let paid = 0
-    const sorted = [...bids].sort((a, b) => {
-      if (b.amount !== a.amount) return b.amount - a.amount
-      const ma = managers.find(x => x.id === a.mgr)!, mb = managers.find(x => x.id === b.mgr)!
-      if (ma.squad.length !== mb.squad.length) return ma.squad.length - mb.squad.length
-      return rng() - 0.5
-    })
-    for (const b of sorted) {
-      const m = managers.find(x => x.id === b.mgr)!
-      if (openSlots(m, card.pos) <= 0) { voided.push(b.mgr); continue }
-      if (m.money < b.amount) { voided.push(b.mgr); continue }
-      winner = b.mgr; paid = b.amount
-      m.money -= b.amount
-      m.squad.push({ ...card, paid: b.amount, via } as WonCard)
+    let i = 0
+    for (; i < sorted.length; i++) {
+      const m = managers.find(x => x.id === sorted[i].mgr)!
+      if (openSlots(m, card.pos) <= 0 || m.money < sorted[i].amount) { voided.push(sorted[i].mgr); continue }
       break
     }
-    if (winner === null) unsold.push(card)
-    queue.push({ card, bids: sorted, winner, paid, voided })
+    if (i >= sorted.length) { // ninguém elegível
+      unsold.push(card)
+      queue.push({ card, bids: sorted, winner: null, paid: 0, voided })
+      continue
+    }
+    const top = sorted[i].amount
+    // entre os elegíveis, quem também está no valor do topo?
+    const tiedTop: number[] = []
+    for (let j = i; j < sorted.length && sorted[j].amount === top; j++) {
+      const m = managers.find(x => x.id === sorted[j].mgr)!
+      if (openSlots(m, card.pos) > 0 && m.money >= top) tiedTop.push(sorted[j].mgr)
+    }
+    if (tiedTop.length >= 2) {
+      // empate no topo → desempate (vencedor decidido depois). Sem dedução aqui.
+      ties.push({ cardId: card.id, card, amount: top, managers: tiedTop, submitted: [], winner: null, paid: 0, viaRoulette: false, via })
+      queue.push({ card, bids: sorted, winner: null, paid: 0, voided })
+      continue
+    }
+    // vencedor único: fecha na hora
+    const wid = tiedTop[0]
+    const m = managers.find(x => x.id === wid)!
+    m.money -= top
+    m.squad.push({ ...card, paid: top, via } as WonCard)
+    queue.push({ card, bids: sorted, winner: wid, paid: top, voided })
   }
-  return { queue, unsold }
+  return { queue, unsold, ties }
+}
+
+// resolve UMA disputa de desempate: junta os re-lances (humanos já enviados +
+// CPUs auto), o maior leva. Empatou de novo no topo → roleta (sorteio) entre
+// eles. Atualiza dinheiro/elenco do vencedor e a carta na fila de revelação.
+function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
+  const amounts: Record<number, number> = {}
+  for (const id of tb.managers) {
+    const m = state.managers.find(x => x.id === id)!
+    let v = m.isHuman ? (state.tiebreakPending[id] ?? tb.amount) : cpuTiebreakBid(m, tb, rng)
+    v = Math.min(m.money, Math.max(tb.amount, Math.round(v))) // trava: ≥ piso e ≤ dinheiro
+    amounts[id] = v
+  }
+  const max = Math.max(...tb.managers.map(id => amounts[id]))
+  const top = tb.managers.filter(id => amounts[id] === max)
+  let winner: number
+  if (top.length === 1) { winner = top[0]; tb.viaRoulette = false }
+  else { winner = top[Math.floor(rng() * top.length)]; tb.viaRoulette = true } // empatou de novo → roleta
+  const m = state.managers.find(x => x.id === winner)!
+  m.money -= max
+  m.squad.push({ ...tb.card, paid: max, via: tb.via } as WonCard)
+  tb.winner = winner
+  tb.paid = max
+  const rc = state.revealQueue.find(q => q.card.id === tb.cardId)
+  if (rc) { rc.winner = winner; rc.paid = max }
+}
+
+// CPU no desempate: cobre um pouco acima do valor empatado conforme o
+// arquétipo (mais agressivo/faminto por craque sobe mais), limitado ao caixa.
+function cpuTiebreakBid(m: Manager, tb: TieBreak, rng: () => number): number {
+  const hunger = tb.card.fame >= 4 ? m.starHunger : 0.3
+  const bump = Math.round((2 + tb.amount * 0.25) * (0.4 + m.aggression + hunger) * (0.6 + rng() * 0.8))
+  return tb.amount + Math.max(1, bump)
+}
+
+// avança pela fila de desempates: para na próxima que precisa de humano (liga o
+// prazo), resolve sozinha as que só têm CPU, e ao fim manda pra revelação.
+function advanceTiebreaks(state: EscState) {
+  while (state.tiebreakIdx < state.tiebreaks.length) {
+    const tb = state.tiebreaks[state.tiebreakIdx]
+    const humans = tb.managers.filter(id => state.managers.find(x => x.id === id)!.isHuman)
+    if (humans.length > 0) { state.phaseDeadline = Date.now() + TIEBREAK_MS; return }
+    resolveOneTiebreak(state, tb, rngOf(state))
+    state.tiebreakIdx++
+    state.tiebreakPending = {}
+  }
+  // acabaram os desempates: segue a cerimônia normal
+  const rescue = state.tiebreaks.length > 0 && state.tiebreaks[0].via === 'repescagem'
+  state.phase = rescue ? 'resq_reveal' : 'reveal'
+  state.revealIdx = 0
+  state.phaseDeadline = null
+}
+
+// chamado quando um humano re-lança: se todos os humanos da disputa atual já
+// enviaram, resolve e avança.
+function maybeResolveTiebreak(state: EscState) {
+  const tb = state.tiebreaks[state.tiebreakIdx]
+  if (!tb || tb.winner !== null) return
+  const humans = tb.managers.filter(id => state.managers.find(x => x.id === id)!.isHuman)
+  if (!humans.every(id => tb.submitted.includes(id))) return
+  resolveOneTiebreak(state, tb, rngOf(state))
+  state.tiebreakIdx++
+  state.tiebreakPending = {}
+  advanceTiebreaks(state)
 }
 
 // ─── temporada ───────────────────────────────────────────────────────
@@ -567,6 +647,7 @@ const INITIAL: EscState = {
   sectorCursor: 0, sectorUnsoldAccum: [], roundIdx: 0,
   seasonNo: 1,
   restartPending: false, restartReady: [],
+  tiebreaks: [], tiebreakIdx: 0, tiebreakPending: {},
 }
 
 // ─── ações ───────────────────────────────────────────────────────────
@@ -582,6 +663,8 @@ type Action =
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[] }
   | { type: 'ADVANCE_REVEAL' }
   | { type: 'FORCE_SEAL' }
+  | { type: 'SUBMIT_TIEBREAK'; mgrId: number; amount: number }
+  | { type: 'FORCE_TIEBREAK' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string }
   | { type: 'MONTE_TIMEOUT' }
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
@@ -600,6 +683,7 @@ function rngOf(state: EscState): () => number {
 }
 
 const ENVELOPE_MS = 45_000
+const TIEBREAK_MS = 30_000
 
 // cartas por leva: sala pequena cabe tudo numa tela só; sala grande (até 20
 // jogadores, 40 laterais) precisa dividir, senão a tela não tem fim.
@@ -644,14 +728,23 @@ function sealAndResolve(state: EscState) {
       if (hb.amount > 0) pushBid(bidMap, hb.cardId, { mgr: mgrId, amount: hb.amount })
     }
   }
-  const { queue, unsold } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao', rng)
+  const { queue, unsold, ties } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao')
   state.revealQueue = queue
   state.revealIdx = 0
-  state.phase = rescue ? 'resq_reveal' : 'reveal'
   state.currentCards = unsold
   state.submitted = []
   state.pendingEnvelopes = {}
-  state.phaseDeadline = null
+  state.tiebreaks = ties
+  state.tiebreakIdx = 0
+  state.tiebreakPending = {}
+  if (ties.length > 0) {
+    // tem empate no topo: entra na fase de desempate antes da revelação
+    state.phase = 'tiebreak'
+    advanceTiebreaks(state) // para no 1º que precisa de humano, ou já vai pra revelação
+  } else {
+    state.phase = rescue ? 'resq_reveal' : 'reveal'
+    state.phaseDeadline = null
+  }
 }
 
 // todo humano com vaga aberta e dinheiro precisa enviar (não filtra por presença:
@@ -737,6 +830,7 @@ function redraftSeason(s: EscState): EscState {
   s.league = []; s.fixtures = []; s.scorers = []; s.lastResults = []
   s.tactics = {}
   s.submitted = []; s.pendingEnvelopes = {}
+  s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
   s.seasonNo++
   s.restartPending = false
   s.restartReady = []
@@ -847,6 +941,33 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.phase !== 'reveal' && s.phase !== 'resq_reveal') return s
       if (s.revealIdx < s.revealQueue.length - 1) s.revealIdx++
       else afterReveal(s)
+      return s
+    }
+    case 'SUBMIT_TIEBREAK': {
+      if (s.phase !== 'tiebreak') return s
+      const tb = s.tiebreaks[s.tiebreakIdx]
+      if (!tb || tb.winner !== null) return s
+      if (!tb.managers.includes(action.mgrId) || tb.submitted.includes(action.mgrId)) return s
+      s.tiebreakPending[action.mgrId] = action.amount
+      tb.submitted = [...tb.submitted, action.mgrId]
+      maybeResolveTiebreak(s)
+      return s
+    }
+    case 'FORCE_TIEBREAK': {
+      if (s.phase !== 'tiebreak') return s
+      // reconfirma o prazo: rejeita disparo atrasado/duplicado
+      if (!s.phaseDeadline || Date.now() < s.phaseDeadline) return s
+      const tb = s.tiebreaks[s.tiebreakIdx]
+      if (!tb) return s
+      // quem não re-lançou mantém o valor empatado (não cobre)
+      for (const id of tb.managers) {
+        const m = s.managers.find(x => x.id === id)
+        if (m?.isHuman && !tb.submitted.includes(id)) {
+          s.tiebreakPending[id] = tb.amount
+          tb.submitted = [...tb.submitted, id]
+        }
+      }
+      maybeResolveTiebreak(s)
       return s
     }
     case 'FORCE_SEAL': {
@@ -1070,6 +1191,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(t)
   }, [state.phaseDeadline, state.phase, state.onlineMode, dispatch])
 
+  // Vigia do desempate: se um dos empatados sumir (AFK), o prazo estoura e
+  // qualquer cliente força a resolução — quem não re-lançou não cobre.
+  useEffect(() => {
+    if (state.onlineMode !== 'online') return
+    if (state.phase !== 'tiebreak' || !state.phaseDeadline) return
+    const t = setTimeout(() => dispatch({ type: 'FORCE_TIEBREAK' }), Math.max(0, state.phaseDeadline - Date.now()) + 800)
+    return () => clearTimeout(t)
+  }, [state.phaseDeadline, state.phase, state.tiebreakIdx, state.onlineMode, dispatch])
+
   // host persiste no banco a cada 3s
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId || state.screen === 'intro') return
@@ -1086,7 +1216,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
 // mantém o leilão cego: convidados nunca recebem os envelopes pendentes,
 // só quem já lacrou (contador) — os valores só aparecem na revelação.
 function sanitize(state: EscState): EscState {
-  return { ...state, pendingEnvelopes: {} }
+  return { ...state, pendingEnvelopes: {}, tiebreakPending: {} }
 }
 
 export function useEsc() {

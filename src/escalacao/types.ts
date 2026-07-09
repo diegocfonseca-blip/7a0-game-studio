@@ -74,7 +74,22 @@ export interface ResolvedCard {
   voided: number[] // managers cujo lance foi anulado (setor já cheio)
 }
 
-export type AuctionPhase = 'envelope' | 'reveal' | 'resq_envelope' | 'resq_reveal'
+export type AuctionPhase = 'envelope' | 'reveal' | 'resq_envelope' | 'resq_reveal' | 'tiebreak'
+
+// desempate: quando ≥2 técnicos empatam no MAIOR lance de uma carta, eles
+// re-lançam às cegas só nela (quem paga mais leva). Empatou de novo → roleta
+// (sorteio) entre quem ficou no topo. Os demais só assistem.
+export interface TieBreak {
+  cardId: string
+  card: Card
+  amount: number // valor empatado — piso do re-lance
+  managers: number[] // ids empatados no topo (elegíveis)
+  submitted: number[] // quem já re-lançou nesta disputa
+  winner: number | null // decidido
+  paid: number
+  viaRoulette: boolean // true = empatou de novo e caiu na roleta
+  via: Acquisition // 'leilao' | 'repescagem' (pra registrar na carta ganha)
+}
 
 export interface LeagueTeam {
   id: number // 0..19 — managers usam o mesmo id; clubes clássicos vêm depois
@@ -167,4 +182,9 @@ export interface EscState {
   // restartReady junta os ids que já confirmaram "estou pronto".
   restartPending: boolean
   restartReady: number[]
+  // desempate de lances (ver TieBreak). tiebreakPending é host-only (não vaza
+  // no broadcast — mantém o re-lance cego, igual pendingEnvelopes).
+  tiebreaks: TieBreak[]
+  tiebreakIdx: number
+  tiebreakPending: Record<number, number> // mgrId -> valor do re-lance
 }
