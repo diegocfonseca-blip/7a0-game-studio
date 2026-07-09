@@ -121,9 +121,9 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   // cotas do leilão (metas de %). Craque e Bom jogador agora têm cota também, pra
   // o "bom jogador" parar de inchar (antes ~69%). Folclórico é selo (cruza níveis):
   // parte já entra via a cota 'low' (fame1 folk); aqui garantimos os folk 2/3/4.
-  distribute(Math.max(1, Math.round(totalCount * 0.10)), availLegend, 'legend', 1 / 3) // LENDA 10%
-  distribute(Math.max(1, Math.round(totalCount * 0.21)), availStar, 'star', 0.55)      // CRAQUE 21%
-  distribute(Math.max(1, Math.round(totalCount * 0.23)), availLow, 'low', 0.6)         // FOI PROFISSIONAL 23%
+  distribute(Math.max(1, Math.round(totalCount * 0.14)), availLegend, 'legend', 0.4)   // LENDA 14%
+  distribute(Math.max(1, Math.round(totalCount * 0.27)), availStar, 'star', 0.6)       // CRAQUE 27%
+  distribute(Math.max(1, Math.round(totalCount * 0.22)), availLow, 'low', 0.6)         // FOI PROFISSIONAL 22%
   distribute(Math.max(1, Math.round(totalCount * 0.10)), availFolk, 'folk', 0.5)       // + folk 2/3/4
   // ── passo 3: monta cada setor — cotas garantidas, resto = bom jogador ──
   for (const pos of SECTORS) {
