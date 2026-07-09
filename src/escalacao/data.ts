@@ -330,7 +330,7 @@ export const BIOS: Record<string, string> = {
   "Philippe Coutinho": "Joia da base do Vasco que foi cedo pra Europa e virou craque no Liverpool — magia canhota e chutes de fora.",
   "Vágner Love": "O Imperador do Amor. Centroavante veloz, técnico e artilheiro — brilhou pelo Palmeiras, Flamengo e Corinthians.",
   "França": "Centroavante matador do São Paulo entre 98 e 02 — artilheiro e goleador que era craque de verdade.",
-  "Rayan": "Joia da base do Vasco, ponta-fenomeno vendido por 60 milhoes de euros ao Bournemouth (Inglaterra) — promessa de teto altissimo.",
+  "Rayan Oi, Boa Noite": "Joia da base do Vasco vendida por 60 milhoes ao Bournemouth — e o hino da torcida (\"Rayan, oi, boa noite\") virou febre nacional.",
 }
 
 const GOL: C[] = [
@@ -641,7 +641,7 @@ const ATA: C[] = [
   { name: "Sávio", club: "Flamengo", year: 1997, fame: 4, lo: 83, hi: 90 },
   { name: "Vágner Love", club: "Palmeiras", year: 2004, fame: 4, lo: 85, hi: 91 },
   { name: "França", club: "São Paulo", year: 2000, fame: 4, lo: 84, hi: 90 },
-  { name: "Rayan", club: "Vasco", year: 2025, fame: 3, lo: 77, hi: 84, promessa: true },
+  { name: "Rayan Oi, Boa Noite", club: "Vasco", year: 2025, fame: 3, lo: 77, hi: 84, promessa: true },
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
