@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react'
+import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
 import type { ReactNode } from 'react'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid,
@@ -1093,8 +1093,18 @@ export function reducer(state: EscState, action: Action): EscState {
   }
 }
 
+// ─── reações efêmeras (zoeira/blefe) — NÃO fazem parte do estado do jogo ──
+// vão por um evento de broadcast à parte ('emote'); não passam pelo reducer
+// nem pelo host, então não têm risco nenhum de afetar o resultado do leilão.
+export type EmoteEvent = { id: string; from: number; kind: string; cardId?: string; ts: number }
+
 // ─── contexto + provider (host-autoritativo, espelha o modo Draft) ───
-const Ctx = createContext<{ state: EscState; dispatch: (a: Action) => void } | null>(null)
+const Ctx = createContext<{
+  state: EscState
+  dispatch: (a: Action) => void
+  emote: (kind: string, cardId?: string) => void
+  emotes: EmoteEvent[]
+} | null>(null)
 
 export function EscProvider({ children }: { children: ReactNode }) {
   const [state, rawDispatch] = useReducer(reducer, INITIAL)
@@ -1106,6 +1116,18 @@ export function EscProvider({ children }: { children: ReactNode }) {
   useEffect(() => { isHostRef.current = state.isHost }, [state.isHost])
   useEffect(() => { onlineRef.current = state.onlineMode }, [state.onlineMode])
   useEffect(() => { stateRef.current = state }, [state])
+
+  // reações efêmeras: lista viva que some sozinha (~2,6s cada). Fora do reducer.
+  const [emotes, setEmotes] = useState<EmoteEvent[]>([])
+  const addEmote = useCallback((e: EmoteEvent) => {
+    setEmotes(prev => prev.some(x => x.id === e.id) ? prev : [...prev.slice(-24), e])
+    setTimeout(() => setEmotes(prev => prev.filter(x => x.id !== e.id)), 2600)
+  }, [])
+  const emote = useCallback((kind: string, cardId?: string) => {
+    const e: EmoteEvent = { id: Math.random().toString(36).slice(2), from: stateRef.current.youIdx, kind, cardId, ts: Date.now() }
+    addEmote(e) // mostra o seu na hora (o canal usa self:false e não devolve o próprio)
+    channelRef.current?.send({ type: 'broadcast', event: 'emote', payload: e })
+  }, [addEmote])
 
   // convidado roteia ações pro host; host aplica local
   const dispatch = useCallback((action: Action) => {
@@ -1129,6 +1151,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
     } else {
       ch.on('broadcast', { event: 'state' }, ({ payload }: { payload: EscState }) => rawDispatch({ type: 'SYNC_STATE', newState: payload }))
     }
+    // reações chegam pra todos (host e convidados), fora do fluxo de ações
+    ch.on('broadcast', { event: 'emote' }, ({ payload }: { payload: EmoteEvent }) => addEmote(payload))
     ch.on('presence', { event: 'sync' }, () => {
       const pState = ch.presenceState()
       const indices = Object.values(pState).flat().map((p: unknown) => (p as { playerIndex: number }).playerIndex)
@@ -1210,7 +1234,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
   }, [state])
 
-  return <Ctx.Provider value={{ state, dispatch }}>{children}</Ctx.Provider>
+  return <Ctx.Provider value={{ state, dispatch, emote, emotes }}>{children}</Ctx.Provider>
 }
 
 // mantém o leilão cego: convidados nunca recebem os envelopes pendentes,

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
 import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY, MONTE_SECONDS, BATCH_SIZE } from './store'
@@ -216,11 +216,69 @@ function AuctionBar() {
   )
 }
 
+// ─── reações efêmeras (zoeira/blefe) — só online ─────────────────────
+const EMOTE_KINDS = ['👀', '💰', '❤️', '💸']
+
+// camada flutuante que mostra as reações de todo mundo subindo e sumindo
+function FloatingEmotes() {
+  const { state, emotes } = useEsc()
+  if (state.onlineMode !== 'online' || emotes.length === 0) return null
+  const you = state.managers[state.youIdx]
+  const cardName = (id?: string) => {
+    if (!id) return null
+    const c = state.currentCards.find(x => x.id === id)
+      ?? state.revealQueue.find(q => q.card.id === id)?.card
+      ?? state.tiebreaks.find(t => t.card.id === id)?.card
+    return c ? c.name : null
+  }
+  return (
+    <div className="fixed inset-x-0 bottom-20 z-50 pointer-events-none flex flex-col-reverse items-center gap-1 px-3">
+      <AnimatePresence>
+        {emotes.slice(-6).map(e => {
+          const m = state.managers[e.from]
+          const who = m ? (m.id === you.id ? 'Você' : (m.teamName || m.name)) : ''
+          const cn = cardName(e.cardId)
+          return (
+            <motion.div key={e.id} initial={{ opacity: 0, y: 24, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -34 }}
+              className="flex items-center gap-1.5 bg-white border-2 border-black rounded-full px-3 py-1"
+              style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
+              <span className="text-lg leading-none">{e.kind}</span>
+              <span className="text-xs font-black text-black truncate max-w-[70vw]" style={OSWALD}>{who}{cn ? ` → ${cn}` : ''}</span>
+            </motion.div>
+          )
+        })}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+// botãozinho de reação numa carta do leilão (blefe: não revela seu lance)
+function CardReact({ cardId }: { cardId: string }) {
+  const { emote } = useEsc()
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="relative">
+      <button onClick={() => setOpen(o => !o)} aria-label="reagir"
+        className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black leading-none">😏</button>
+      {open && (
+        <div className="absolute right-0 top-9 z-30 flex gap-1 bg-white border-2 border-black rounded-lg p-1"
+          style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
+          {EMOTE_KINDS.map(k => (
+            <button key={k} onClick={() => { emote(k, cardId); setOpen(false) }} className="text-xl leading-none px-0.5">{k}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function EscAuction() {
   const { state } = useEsc()
-  if (state.phase === 'envelope' || state.phase === 'resq_envelope') return <Envelope />
-  if (state.phase === 'tiebreak') return <Tiebreak />
-  return <Reveal />
+  let sub
+  if (state.phase === 'envelope' || state.phase === 'resq_envelope') sub = <Envelope />
+  else if (state.phase === 'tiebreak') sub = <Tiebreak />
+  else sub = <Reveal />
+  return <>{sub}<FloatingEmotes /></>
 }
 
 function Envelope() {
@@ -367,17 +425,20 @@ function Envelope() {
           return (
           <Box key={c.id} className="p-3 flex items-center justify-between gap-2">
             <CardFace c={c} />
-            {canBid && (
-              <div className="flex items-center gap-1.5">
-                <button onClick={() => setBid(c.id, (bids[c.id] ?? 0) - 1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</button>
-                <span className="w-9 text-center font-black text-black" style={OSWALD}>{bids[c.id] ?? 0}</span>
-                <button
-                  onClick={() => !plusBlocked && setBid(c.id, (bids[c.id] ?? 0) + 1)}
-                  disabled={plusBlocked}
-                  className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${plusBlocked ? 'opacity-40' : ''}`}
-                  style={{ backgroundColor: GOLD }}>+</button>
-              </div>
-            )}
+            <div className="flex items-center gap-1.5">
+              {canBid && (
+                <>
+                  <button onClick={() => setBid(c.id, (bids[c.id] ?? 0) - 1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</button>
+                  <span className="w-9 text-center font-black text-black" style={OSWALD}>{bids[c.id] ?? 0}</span>
+                  <button
+                    onClick={() => !plusBlocked && setBid(c.id, (bids[c.id] ?? 0) + 1)}
+                    disabled={plusBlocked}
+                    className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${plusBlocked ? 'opacity-40' : ''}`}
+                    style={{ backgroundColor: GOLD }}>+</button>
+                </>
+              )}
+              {online && <CardReact cardId={c.id} />}
+            </div>
           </Box>
           )
         })}
@@ -608,7 +669,7 @@ function TieSorteio({ names, winnerId }: { names: { id: number; label: string; c
 }
 
 function Reveal() {
-  const { state } = useEsc()
+  const { state, emote } = useEsc()
   const item = state.revealQueue[state.revealIdx]
   const you = state.managers[state.youIdx]
   if (!item) return null
@@ -675,6 +736,15 @@ function Reveal() {
       <p className="text-center text-xs font-bold text-black/60 py-1">
         {canDrive ? '🎬 Passando automaticamente…' : '🔨 O host está conduzindo a revelação…'}
       </p>
+      {online && (
+        <div className="flex justify-center gap-2 py-1">
+          {EMOTE_KINDS.map(k => (
+            <button key={k} onClick={() => emote(k, item.card.id)}
+              className="border-2 border-black rounded-xl w-12 h-12 text-2xl bg-white active:translate-x-[3px] active:translate-y-[3px]"
+              style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>{k}</button>
+          ))}
+        </div>
+      )}
       <Campinho m={you} small />
     </Shell>
   )
