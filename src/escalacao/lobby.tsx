@@ -584,7 +584,10 @@ export function EscLobby() {
           </div>
         </div>
       )}
-      <Big onClick={() => dispatch({ type: 'GO_ALBUM' })} color="#fff">📖 Meu Álbum</Big>
+      <div className="flex gap-2">
+        <div className="flex-1"><Big onClick={() => dispatch({ type: 'GO_ALBUM' })} color="#fff">📖 Álbum</Big></div>
+        <div className="flex-1"><Big onClick={() => dispatch({ type: 'GO_RANKING' })} color="#fff">🏆 Ranking</Big></div>
+      </div>
       <AdminButton />
       <button onClick={() => { clearSavedRoom(); supabase.auth.signOut() }} className="text-white/30 text-xs underline w-full text-center">Sair da conta</button>
       <button onClick={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} className="text-white/40 text-sm underline w-full text-center">← Menu inicial</button>

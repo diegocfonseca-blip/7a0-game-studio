@@ -735,6 +735,7 @@ type Action =
   | { type: 'GO_LOBBY_ONLINE' }
   | { type: 'GO_SETUP' }
   | { type: 'GO_ALBUM' }
+  | { type: 'GO_RANKING' }
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey }
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
@@ -977,6 +978,7 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'GO_LOBBY_ONLINE': { s.screen = 'lobby'; return s }
     case 'GO_SETUP': { s.screen = 'setup'; return s }
     case 'GO_ALBUM': { s.screen = 'album'; return s }
+    case 'GO_RANKING': { s.screen = 'ranking'; return s }
     case 'SET_PRESENCE': { s.presence = action.indices; return s }
     case 'KICK_PLAYER': {
       // Host removeu um técnico da partida: a CPU assume o time dele e o jogo
@@ -1296,7 +1298,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if ((action.type === 'NEW_GAME' || action.type === 'GO_LOBBY') && onlineRef.current === 'online' && stateRef.current.roomId) {
       leaveOnlineRoom(stateRef.current.roomId)
     }
-    if (onlineRef.current === 'online' && !isHostRef.current && action.type !== 'GO_LOBBY' && action.type !== 'NEW_GAME' && action.type !== 'GO_ALBUM') {
+    if (onlineRef.current === 'online' && !isHostRef.current && action.type !== 'GO_LOBBY' && action.type !== 'NEW_GAME' && action.type !== 'GO_ALBUM' && action.type !== 'GO_RANKING') {
       channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
     } else {
       rawDispatch(action)
