@@ -189,4 +189,8 @@ export interface EscState {
   tiebreaks: TieBreak[]
   tiebreakIdx: number
   tiebreakPending: Record<number, number> // mgrId -> valor do re-lance
+  // rivalidade de clássicos (só entre humanos): chave "aVb" com a<b (ids de
+  // técnico) -> [vitórias de a, vitórias de b, empates]. Acumula ao longo das
+  // temporadas da mesma sala.
+  rivalries: Record<string, [number, number, number]>
 }

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
-import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY, MONTE_SECONDS, BATCH_SIZE } from './store'
+import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE } from './store'
 import { supabase } from '../lib/supabase'
 import { CATALOG, BIOS, PROMESSA_SET } from './data'
 import { AdminButton } from './admin'
@@ -759,6 +759,9 @@ function Reveal() {
     return { id, label: m.id === you.id ? '🫵 Você' : (m.teamName || m.name), color: TIE_COLORS[i % TIE_COLORS.length], amt, atTop: amt === tieMax }
   }).sort((a, b) => b.amt - a.amt) : []
   const rouletteNames = tieRows.filter(r => r.atTop).map(r => ({ id: r.id, label: r.label, color: r.color }))
+  // "MARTELO!": só quando teve venda de verdade (houve lance vencedor)
+  const sold = winnerMgr !== null && item.bids.length > 0
+  const hammerDelay = item.bids.length * 0.25 + (tie ? 1.2 : 0.2)
 
   return (
     <Shell bar={<AuctionBar />}>
@@ -766,6 +769,8 @@ function Reveal() {
         Revelação {state.revealIdx + 1} / {state.revealQueue.length} · pote crescente
       </p>
       <motion.div key={item.card.id} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+        <motion.div animate={sold ? { x: [0, -11, 11, -8, 8, -4, 4, 0] } : undefined}
+          transition={{ delay: hammerDelay, duration: 0.5 }}>
         <Box bg={item.card.fame >= 5 ? GOLD : '#fff'} className="p-5" shadow={6}>
           <CardFace c={item.card} big />
           <div className="mt-4 space-y-1.5">
@@ -815,12 +820,26 @@ function Reveal() {
             </motion.div>
           )}
           {winnerMgr && (
-            <motion.p initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: item.bids.length * 0.25 + (tie ? 1.2 : 0.2) }}
-              className="mt-3 text-center font-black text-lg" style={OSWALD}>
-              🔨 VENDIDO {winnerMgr.id === you.id ? 'PRA VOCÊ' : `pro ${winnerMgr.teamName}`} por {item.paid}!
-            </motion.p>
+            <motion.div className="mt-3 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: hammerDelay }}>
+              {sold && (
+                <>
+                  <motion.div className="text-5xl leading-none"
+                    initial={{ y: -55, rotate: -75, opacity: 0 }}
+                    animate={{ y: [-55, 6, 0], rotate: [-75, 8, 0], opacity: 1 }}
+                    transition={{ delay: hammerDelay, duration: 0.5, type: 'spring', bounce: 0.55 }}>🔨</motion.div>
+                  <motion.p className="font-black text-3xl -mt-1" style={{ ...OSWALD, color: RED }}
+                    initial={{ scale: 0 }} animate={{ scale: [0, 1.3, 1] }} transition={{ delay: hammerDelay + 0.12, duration: 0.35 }}>
+                    MARTELO!
+                  </motion.p>
+                </>
+              )}
+              <p className="font-black text-lg" style={OSWALD}>
+                🔨 VENDIDO {winnerMgr.id === you.id ? 'PRA VOCÊ' : `pro ${winnerMgr.teamName}`} por {item.paid}!
+              </p>
+            </motion.div>
           )}
         </Box>
+        </motion.div>
       </motion.div>
       {/* auto-avanço: 1s por carta, 2s se houve lance; +tempo se teve desempate */}
       <AutoAdvance hasBids={item.bids.length > 0} canDrive={canDrive} isLast={isLast} extraMs={tie ? (tie.viaRoulette ? 3200 : 1500) : 0} />
@@ -994,7 +1013,32 @@ export function EscSeason() {
   // confronto direto: o adversário também é um humano da sala (não bot nem
   // clube clássico) — só faz sentido provocar quando é gente de verdade
   const isClassico = !!opp && state.managers.some(m => m.id === opp.id && m.isHuman)
+  const rivalry = isClassico && opp ? rivalryOf(state.rivalries, you.id, opp.id) : null
   const myLast = state.lastResults.find(r => r.homeId === you.id || r.awayId === you.id)
+  // clássico recém-jogado: mostra o resultado com peso de rivalidade
+  const lastOppId = myLast ? (myLast.homeId === you.id ? myLast.awayId : myLast.homeId) : undefined
+  const lastWasClassico = lastOppId != null && state.managers.some(m => m.id === lastOppId && m.isHuman)
+  const lastRiv = lastWasClassico ? rivalryOf(state.rivalries, you.id, lastOppId!) : null
+  const lastOppName = lastOppId != null ? state.league.find(t => t.id === lastOppId)?.name : ''
+  const myGoals = myLast ? (myLast.homeId === you.id ? myLast.hg : myLast.ag) : 0
+  const oppGoals = myLast ? (myLast.homeId === you.id ? myLast.ag : myLast.hg) : 0
+
+  // manchete PESSOAL (por quem vê): detecta quando VOCÊ muda de faixa na
+  // tabela. Feito no cliente pra ficar certo pra cada um no online.
+  const prevPosRef = useRef(youPos)
+  const [personalNews, setPersonalNews] = useState<string | null>(null)
+  useEffect(() => {
+    const prev = prevPosRef.current
+    prevPosRef.current = youPos
+    if (state.round === 0 || prev === youPos) return
+    let msg: string | null = null
+    if (youPos === 1) msg = '👑 Você assumiu a PONTA do campeonato!'
+    else if (youPos <= 4 && prev > 4) msg = `📈 Você COLOU no G4 — ${youPos}º lugar!`
+    else if (youPos > 4 && prev <= 4) msg = `📉 Você caiu do G4 (${youPos}º). Corre atrás!`
+    else if (youPos >= 17 && prev < 17) msg = `⚠️ PERIGO! Você caiu pra zona de rebaixamento (${youPos}º).`
+    else if (youPos < 17 && prev >= 17) msg = `😮‍💨 Respirou: saiu do Z4, agora ${youPos}º.`
+    if (msg) setPersonalNews(msg)
+  }, [state.round, youPos])
 
   // autoplay: só quem "puxa" a temporada dispara a próxima rodada (host no
   // online, o próprio cliente no CPU). Os demais só recebem o resultado
@@ -1020,9 +1064,31 @@ export function EscSeason() {
         </Box>
       )}
 
+      {lastWasClassico && lastRiv && (
+        <Box bg={myGoals > oppGoals ? GREEN : myGoals < oppGoals ? RED : '#fff'} className="p-3 text-center" shadow={4}>
+          <p className="font-black text-sm" style={{ ...OSWALD, color: myGoals === oppGoals ? INK : '#fff' }}>
+            ⚔️ CLÁSSICO {myGoals > oppGoals ? 'VENCIDO' : myGoals < oppGoals ? 'PERDIDO' : 'EMPATADO'} contra {lastOppName}
+          </p>
+          <p className="font-black text-xs mt-0.5" style={{ color: myGoals === oppGoals ? 'rgba(0,0,0,.65)' : 'rgba(255,255,255,.9)' }}>
+            Rivalidade: você {lastRiv.w} × {lastRiv.l} {lastOppName}{lastRiv.d ? ` · ${lastRiv.d} empate${lastRiv.d > 1 ? 's' : ''}` : ''}
+          </p>
+        </Box>
+      )}
+
       {fixture && opp && (
         <Box bg={isClassico ? GOLD : '#fff'} className="p-4 space-y-3">
-          {isClassico && <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>🥊 CLÁSSICO — é contra a galera!</p>}
+          {isClassico && (
+            <div>
+              <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>🥊 CLÁSSICO — é contra a galera!</p>
+              {rivalry && (
+                <p className="font-black text-[11px] mt-0.5" style={OSWALD}>
+                  {rivalry.w + rivalry.l + rivalry.d === 0
+                    ? '⚔️ Primeiro duelo de vocês — começa a rivalidade!'
+                    : `⚔️ Retrospecto: você ${rivalry.w} × ${rivalry.l} ${opp.name}${rivalry.d ? ` · ${rivalry.d} empate${rivalry.d > 1 ? 's' : ''}` : ''}`}
+                </p>
+              )}
+            </div>
+          )}
           <p className="font-black text-lg" style={OSWALD}>
             PRÓXIMO: {fixture[0] === you.id ? `${you.teamName} × ${opp.name}` : `${opp.name} × ${you.teamName}`}
             <span className="text-xs text-black/70"> {fixture[0] === you.id ? '(em casa)' : '(fora)'}</span>
@@ -1046,8 +1112,15 @@ export function EscSeason() {
         </Box>
       )}
 
+      {personalNews && (
+        <Box bg="#6C43C0" className="p-2.5 text-center" shadow={4}>
+          <p className="font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>{personalNews}</p>
+        </Box>
+      )}
+
       {state.news.length > 0 && (
         <Box bg="#FFF6DC" className="p-3 space-y-1">
+          <p className="font-black text-xs uppercase tracking-wide mb-1" style={OSWALD}>📣 Giro da rodada</p>
           {state.news.slice(0, 4).map((n, i) => <p key={i} className="text-xs font-bold">{n}</p>)}
         </Box>
       )}
