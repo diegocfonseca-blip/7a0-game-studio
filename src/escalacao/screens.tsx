@@ -47,6 +47,13 @@ function Shell({ children, bar }: { children: React.ReactNode; bar?: React.React
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
   // branco (botões/fundos escuros) já define a cor explicitamente.
+  const { state, dispatch } = useEsc()
+  // "sair do jogo" discreto: só durante uma partida (não na home/álbum). Ao
+  // sair, o dispatch libera a vaga na sala online (não vira fantasma).
+  const inGame = ['setup', 'auction', 'monte', 'cerimonia', 'season', 'end'].includes(state.screen)
+  const leave = () => {
+    if (window.confirm('Sair do jogo? Você vai perder esta partida.')) dispatch({ type: 'GO_LOBBY' })
+  }
   return (
     <div className="min-h-screen pb-16" style={{ backgroundColor: CREAM, color: INK }}>
       {bar && (
@@ -55,6 +62,11 @@ function Shell({ children, bar }: { children: React.ReactNode; bar?: React.React
         </div>
       )}
       <div className="max-w-xl mx-auto px-4 pt-5 space-y-5">{children}</div>
+      {inGame && (
+        <div className="max-w-xl mx-auto px-4 pt-6 pb-4 text-center">
+          <button onClick={leave} className="text-black/30 text-xs font-semibold underline active:opacity-60">sair do jogo</button>
+        </div>
+      )}
     </div>
   )
 }
