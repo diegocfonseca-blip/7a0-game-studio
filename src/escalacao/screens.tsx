@@ -1728,12 +1728,10 @@ export function EscAlbum() {
 
 // ─── RANKING DE TÉCNICOS (só contas) ─────────────────────────────────
 type RankMode = 'geral' | 'online' | 'cpu'
-type RankMetric = 'titulos' | 'artilheiros'
 interface RankRow { user_id: string; name: string; titles: number; scorer_titles: number; goals: number; cards: number }
 
 export function EscRanking() {
   const { dispatch } = useEsc()
-  const [metric, setMetric] = useState<RankMetric>('titulos')
   const [mode, setMode] = useState<RankMode>('geral')
   const [rows, setRows] = useState<RankRow[] | null>(null)
   const [meId, setMeId] = useState<string | null>(null)
@@ -1750,23 +1748,14 @@ export function EscRanking() {
   }, [mode])
 
   const loading = rows === null
-  // artilheiro NÃO depende de título: aqui vale nº de vezes que foi o goleador.
-  // Cada aba lista quem tem ao menos 1 do que ela mede e ordena por isso.
-  const shown = useMemo(() => {
-    const all = rows ?? []
-    if (metric === 'artilheiros') {
-      return all.filter(r => r.scorer_titles > 0)
-        .sort((a, b) => b.scorer_titles - a.scorer_titles || b.titles - a.titles || b.goals - a.goals)
-    }
-    return all.filter(r => r.titles > 0)
-      .sort((a, b) => b.titles - a.titles || b.scorer_titles - a.scorer_titles || b.goals - a.goals)
-  }, [rows, metric])
+  // Lista única: 1º critério títulos, 2º artilharias (desempate por gols).
+  // Entra quem tem ao menos 1 título OU 1 artilharia.
+  const shown = useMemo(() => (rows ?? [])
+    .filter(r => r.titles > 0 || r.scorer_titles > 0)
+    .sort((a, b) => b.titles - a.titles || b.scorer_titles - a.scorer_titles || b.goals - a.goals),
+    [rows])
   const inList = !!meId && shown.some(r => r.user_id === meId)
 
-  const METRICS: { id: RankMetric; label: string }[] = [
-    { id: 'titulos', label: '🏆 Títulos' },
-    { id: 'artilheiros', label: '⚽ Artilheiros' },
-  ]
   const MODES: { id: RankMode; label: string }[] = [
     { id: 'geral', label: 'Geral' },
     { id: 'online', label: '👥 Online' },
@@ -1778,34 +1767,33 @@ export function EscRanking() {
     <Shell>
       <div className="text-center pt-4">
         <h2 className="font-black text-4xl" style={OSWALD}>🏆 RANKING</h2>
-        <p className="font-semibold text-black/60 mt-1">Só técnicos com cadastro. Artilheiro conta as vezes que foi o goleador — mesmo sem ser campeão.</p>
+        <p className="font-semibold text-black/60 mt-1">Só técnicos com cadastro. 1º critério: títulos · 2º: artilharias.</p>
       </div>
 
-      {/* aba: título x artilheiro */}
-      <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
-        {METRICS.map(t => (
-          <button key={t.id} onClick={() => setMetric(t.id)}
-            className="flex-1 py-2.5 font-black text-sm uppercase" style={{ backgroundColor: metric === t.id ? GOLD : '#fff', color: '#000', ...OSWALD }}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-      {/* sub-filtro: geral / online / cpu */}
+      {/* filtro: geral / online / cpu */}
       <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
         {MODES.map(t => (
           <button key={t.id} onClick={() => setMode(t.id)}
-            className="flex-1 py-2 font-black text-xs uppercase" style={{ backgroundColor: mode === t.id ? '#111' : '#fff', color: mode === t.id ? '#fff' : '#000', ...OSWALD }}>
+            className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: mode === t.id ? GOLD : '#fff', color: '#000', ...OSWALD }}>
             {t.label}
           </button>
         ))}
       </div>
+
+      {/* cabeçalho das colunas */}
+      {!loading && shown.length > 0 && (
+        <div className="flex items-center gap-3 px-2.5">
+          <span className="w-9 shrink-0" />
+          <span className="flex-1" />
+          <span className="w-12 text-center font-black text-[11px] text-black/45 shrink-0" style={OSWALD}>🏆 Tít.</span>
+          <span className="w-12 text-center font-black text-[11px] text-black/45 shrink-0" style={OSWALD}>⚽ Art.</span>
+        </div>
+      )}
 
       {loading && <p className="text-center font-bold text-black/60">Carregando…</p>}
       {!loading && shown.length === 0 && (
         <Box bg="#fff" className="p-6 text-center">
-          <p className="font-bold text-black/70">
-            {metric === 'artilheiros' ? 'Nenhum artilheiro por aqui ainda. Termine a temporada como goleador pra entrar! ⚽' : 'Ninguém com título ainda. Seja o primeiro campeão! 🔨'}
-          </p>
+          <p className="font-bold text-black/70">Ninguém no ranking ainda. Seja o primeiro campeão! 🔨</p>
         </Box>
       )}
       <div className="space-y-2">
@@ -1814,17 +1802,14 @@ export function EscRanking() {
             style={{ background: r.user_id === meId ? GOLD : '#fff', boxShadow: `3px 3px 0 ${INK}` }}>
             <span className="font-black text-lg w-9 text-center shrink-0" style={OSWALD}>{medal(i)}</span>
             <span className="font-black text-black text-sm flex-1 min-w-0 truncate" style={OSWALD}>{r.name}{r.user_id === meId ? ' (você)' : ''}</span>
-            <span className="font-black text-lg shrink-0 whitespace-nowrap" style={OSWALD}>
-              {metric === 'artilheiros' ? `⚽ ${r.scorer_titles}` : `🏆 ${r.titles}`}
-            </span>
+            <span className="w-12 text-center font-black text-lg shrink-0" style={OSWALD}>{r.titles}</span>
+            <span className="w-12 text-center font-black text-lg shrink-0" style={OSWALD}>{r.scorer_titles}</span>
           </div>
         ))}
       </div>
       {!loading && !inList && meId && shown.length > 0 && (
         <Box bg="#fff" className="p-3 text-center">
-          <p className="font-bold text-black/70 text-sm">
-            {metric === 'artilheiros' ? 'Você ainda não foi artilheiro' : 'Você ainda não tem título'}{mode !== 'geral' ? ` ${mode === 'online' ? 'no online' : 'no CPU'}` : ''}. Bora mudar isso! 🔨
-          </p>
+          <p className="font-bold text-black/70 text-sm">Você ainda não pontuou{mode !== 'geral' ? ` ${mode === 'online' ? 'no online' : 'no CPU'}` : ''}. Seja campeão ou artilheiro pra entrar! 🔨</p>
         </Box>
       )}
       {!loading && !meId && (
