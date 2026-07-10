@@ -561,6 +561,8 @@ const MEI: C[] = [
 
 const ATA: C[] = [
   { name: "Clodoaldo Matador", club: "Fortaleza", year: 2004, fame: 1, lo: 58, hi: 78, folk: true },
+  { name: "Fio Maravilha", club: "Flamengo", year: 1970, fame: 2, lo: 66, hi: 83, folk: true },
+  { name: "Valdir Bigode", club: "Vasco", year: 1994, fame: 3, lo: 72, hi: 84, folk: true },
   { name: "Pelé", club: "Santos", year: 1962, fame: 5, lo: 97, hi: 99 },
   { name: "Garrincha", club: "Botafogo", year: 1958, fame: 5, lo: 95, hi: 99 },
   { name: "Romário", club: "Vasco", year: 2000, fame: 5, lo: 94, hi: 98 },
