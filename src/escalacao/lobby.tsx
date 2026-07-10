@@ -372,7 +372,7 @@ export function EscLobby() {
   if (phase === 'auth') return wrap(<>
     <div className="text-center">
       <div className="text-6xl mb-2">🔨</div>
-      <h1 className="font-black text-3xl text-white" style={OSWALD}>LEILÃO LEGENDS 38 · ONLINE</h1>
+      <h1 className="font-black text-3xl text-white" style={OSWALD}>LEILÃO LEGENDS · ONLINE</h1>
     </div>
     <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
       {(['login', 'register'] as AuthTab[]).map(tab => (
@@ -410,7 +410,7 @@ export function EscLobby() {
     return wrap(<>
       <div className="text-center space-y-2">
         <div className="text-6xl">🔨</div>
-        <h1 className="font-black text-3xl text-white" style={OSWALD}>LEILÃO LEGENDS 38</h1>
+        <h1 className="font-black text-3xl text-white" style={OSWALD}>LEILÃO LEGENDS</h1>
         {editingName ? (
           <div className="flex gap-2 items-stretch max-w-xs mx-auto">
             <input autoFocus value={nameDraft} onChange={e => setNameDraft(e.target.value)} maxLength={20}
