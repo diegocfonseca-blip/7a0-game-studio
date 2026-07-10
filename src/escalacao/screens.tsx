@@ -148,12 +148,21 @@ export function EscIntro() {
   return (
     <Shell>
       {resumable && (
-        <button onClick={resumable.resume}
-          className="w-full rounded-2xl border-4 border-black px-4 py-3 mb-1 flex items-center justify-between gap-2 active:translate-y-0.5"
-          style={{ background: '#1B7A3D', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
-          <span className="font-black text-sm text-left leading-tight">⏳ Você tem uma partida em andamento<br /><span className="opacity-80 text-xs">Sala {resumable.code} · toque pra voltar</span></span>
-          <span className="font-black text-2xl">→</span>
-        </button>
+        <div className="rounded-2xl border-4 border-black p-3 mb-1 space-y-2.5" style={{ background: '#1B7A3D', boxShadow: `4px 4px 0 0 ${INK}` }}>
+          <p className="font-black text-sm text-white leading-tight" style={OSWALD}>
+            ⏳ Você tem uma partida em andamento<br />
+            <span className="opacity-80 text-xs">Sala {resumable.code}</span>
+          </p>
+          <button onClick={resumable.resume}
+            className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
+            ▶️ Continuar a partida (Sala {resumable.code})
+          </button>
+          <button onClick={resumable.leave}
+            className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5"
+            style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
+            🚪 Sair da sala e começar uma nova
+          </button>
+        </div>
       )}
       <div className="text-center pt-10">
         <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-xs font-black uppercase" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
