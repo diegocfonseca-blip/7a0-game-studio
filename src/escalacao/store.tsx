@@ -1224,7 +1224,6 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const isHostRef = useRef(state.isHost)
   const onlineRef = useRef(state.onlineMode)
   const stateRef = useRef(state)
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => { isHostRef.current = state.isHost }, [state.isHost])
   useEffect(() => { onlineRef.current = state.onlineMode }, [state.onlineMode])
   useEffect(() => { stateRef.current = state }, [state])
@@ -1358,15 +1357,22 @@ export function EscProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId, state.screen])
 
-  // host persiste no banco a cada 3s
+  // host persiste no banco a cada 3s — em INTERVALO FIXO (não debounce). Antes
+  // era um setTimeout que zerava a cada mudança de estado; durante a simulação
+  // rápida da temporada (uma rodada a cada ~1s) o timer nunca disparava e o
+  // estado NUNCA era salvo. Resultado: reconectar não achava a partida e
+  // recomeçava o jogo do zero, quebrando a sala. Com intervalo fixo lendo o
+  // stateRef, sempre há um snapshot recente pra retomar.
   useEffect(() => {
-    if (state.onlineMode !== 'online' || !state.isHost || !state.roomId || state.screen === 'intro') return
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-    saveTimerRef.current = setTimeout(() => {
-      supabase.from('game_rooms').update({ game_state: sanitize(state) }).eq('id', state.roomId)
-    }, 3000)
-    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
-  }, [state])
+    if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
+    const save = () => {
+      const st = stateRef.current
+      if (st.screen === 'intro' || st.screen === 'lobby' || !st.roomId) return
+      supabase.from('game_rooms').update({ game_state: sanitize(st) }).eq('id', st.roomId)
+    }
+    const iv = setInterval(save, 3000)
+    return () => { save(); clearInterval(iv) }
+  }, [state.onlineMode, state.isHost, state.roomId])
 
   // ─── analytics: registra cada partida e mantém o "ao vivo" ───
   // uma partida = entrar no leilão (vale solo e online; cada humano registra a
