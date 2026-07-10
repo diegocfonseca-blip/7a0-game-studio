@@ -291,8 +291,14 @@ export function EscLobby() {
     setRoom(null); setPlayers([]); setPhase('menu')
   }
 
-  const wrap = (children: React.ReactNode) => (
-    <div className="min-h-screen flex flex-col justify-center px-5 py-10" style={{ backgroundColor: INK }}>
+  const wrap = (children: React.ReactNode, onBack?: () => void) => (
+    <div className="min-h-screen flex flex-col justify-center px-5 py-10 relative" style={{ backgroundColor: INK }}>
+      {onBack && (
+        <button onClick={onBack} aria-label="Voltar pra home"
+          className="absolute top-4 left-4 z-10 flex items-center gap-1 text-white/70 font-black text-sm active:opacity-60" style={OSWALD}>
+          <span className="text-xl leading-none">←</span> Home
+        </button>
+      )}
       <div className="max-w-sm mx-auto w-full space-y-5">{children}</div>
     </div>
   )
@@ -419,7 +425,7 @@ export function EscLobby() {
       <AdminButton />
       <button onClick={() => supabase.auth.signOut()} className="text-white/30 text-xs underline w-full text-center">Sair da conta</button>
       <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">← Menu inicial</button>
-    </>)
+    </>, () => dispatch({ type: 'GO_LOBBY' }))
   }
 
   if (phase === 'waiting' && room) {
