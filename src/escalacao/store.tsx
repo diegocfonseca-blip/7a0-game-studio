@@ -721,7 +721,7 @@ const INITIAL: EscState = {
   league: [], fixtures: [], round: 0, tactics: {},
   lastResults: [], news: [], champion: null,
   phaseDeadline: null, scorers: [],
-  monteDeadline: null,
+  monteDeadline: null, cerimoniaDeadline: null,
   sectorCursor: 0, sectorUnsoldAccum: [], roundIdx: 0,
   seasonNo: 1,
   restartPending: false, restartReady: [],
@@ -765,6 +765,13 @@ function rngOf(state: EscState): () => number {
 }
 
 const ENVELOPE_MS = 45_000
+const CEREMONY_MS = 45_000 // tempo pra olhar os times antes do campeonato começar sozinho
+
+// entra na cerimônia da revelação e liga o cronômetro de 45s (auto-começa)
+function enterCerimonia(st: EscState) {
+  st.screen = 'cerimonia'
+  st.cerimoniaDeadline = Date.now() + CEREMONY_MS
+}
 const TIEBREAK_MS = 30_000
 
 // cartas por leva: sala pequena cabe tudo numa tela só; sala grande (até 20
@@ -849,7 +856,7 @@ function advanceSectorOrFinish(state: EscState, rng: () => number) {
     state.monteIdx = 0
     state.screen = 'monte'
     advanceMonte(state, rng)
-    if (state.monteIdx >= state.monteOrder.length) state.screen = 'cerimonia'
+    if (state.monteIdx >= state.monteOrder.length) enterCerimonia(state)
   }
 }
 
@@ -998,7 +1005,7 @@ export function reducer(state: EscState, action: Action): EscState {
       } else if (s.screen === 'monte' && s.monteOrder[s.monteIdx] === action.playerIndex) {
         const rng = rngOf(s)
         advanceMonte(s, rng)
-        if (s.monteIdx >= s.monteOrder.length || s.managers.every(mm => totalHoles(mm) === 0)) s.screen = 'cerimonia'
+        if (s.monteIdx >= s.monteOrder.length || s.managers.every(mm => totalHoles(mm) === 0)) enterCerimonia(s)
       }
       return s
     }
@@ -1117,7 +1124,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.monteIdx++
       advanceMonte(s, rng)
       if (s.monteIdx >= s.monteOrder.length || s.managers.every(m => totalHoles(m) === 0)) {
-        s.screen = 'cerimonia'
+        enterCerimonia(s)
       }
       return s
     }
@@ -1138,12 +1145,13 @@ export function reducer(state: EscState, action: Action): EscState {
       s.monteIdx++
       advanceMonte(s, rng)
       if (s.monteIdx >= s.monteOrder.length || s.managers.every(mm => totalHoles(mm) === 0)) {
-        s.screen = 'cerimonia'
+        enterCerimonia(s)
       }
       return s
     }
     case 'FINISH_CEREMONY': {
       if (s.screen !== 'cerimonia') return s
+      s.cerimoniaDeadline = null
       s.league = buildLeague(s.managers)
       s.fixtures = buildFixtures(s.league)
       s.round = 0
@@ -1380,6 +1388,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const t = setTimeout(() => dispatch({ type: 'MONTE_TIMEOUT' }), Math.max(0, state.monteDeadline - Date.now()) + 300)
     return () => clearTimeout(t)
   }, [state.monteDeadline, state.screen, state.monteIdx, state.onlineMode, state.managers, state.monteOrder, dispatch])
+
+  // Cronômetro da cerimônia: quando os 45s pra olhar os times acabam, começa
+  // o campeonato sozinho. Vale solo e online; no online qualquer cliente pode
+  // disparar (o guest roteia pro host) e o reducer reconfirma a tela.
+  useEffect(() => {
+    if (state.screen !== 'cerimonia' || !state.cerimoniaDeadline) return
+    const t = setTimeout(() => dispatch({ type: 'FINISH_CEREMONY' }), Math.max(0, state.cerimoniaDeadline - Date.now()) + 200)
+    return () => clearTimeout(t)
+  }, [state.screen, state.cerimoniaDeadline, dispatch])
 
   // Vigia do leilão: mesmo princípio — qualquer cliente conectado pode forçar
   // o selamento quando o prazo do envelope estoura, não só o host.
