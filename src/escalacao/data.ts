@@ -364,6 +364,18 @@ const GOL: C[] = [
   { name: "Sidão", club: "São Paulo", year: 2017, fame: 1, lo: 54, hi: 74, folk: true },
   { name: "Diego Alves", club: "Flamengo", year: 2020, fame: 4, lo: 84, hi: 91 },
   { name: "Bruno", club: "Flamengo", year: 2009, fame: 2, lo: 66, hi: 82, folk: true },
+  { name: "Fernando Prass", club: "Palmeiras", year: 2015, fame: 4, lo: 83, hi: 90 },
+  { name: "Heurelho Gomes", club: "Cruzeiro", year: 2003, fame: 4, lo: 82, hi: 90 },
+  { name: "Éverson", club: "Atlético-MG", year: 2021, fame: 3, lo: 78, hi: 85 },
+  { name: "Vanderlei", club: "Santos", year: 2017, fame: 3, lo: 76, hi: 84 },
+  { name: "Muriel", club: "Fluminense", year: 2012, fame: 3, lo: 74, hi: 83 },
+  { name: "Renan", club: "Internacional", year: 2010, fame: 3, lo: 74, hi: 83 },
+  { name: "Doni", club: "Corinthians", year: 2005, fame: 3, lo: 76, hi: 84 },
+  { name: "Waldir Peres", club: "São Paulo", year: 1977, fame: 3, lo: 78, hi: 84 },
+  { name: "Rafael Cabral", club: "Santos", year: 2011, fame: 3, lo: 74, hi: 82, promessa: true },
+  { name: "Marcelo Lomba", club: "Internacional", year: 2019, fame: 2, lo: 64, hi: 82 },
+  { name: "Harlei", club: "Goiás", year: 2005, fame: 2, lo: 62, hi: 82 },
+  { name: "Magrão", club: "Sport", year: 2008, fame: 2, lo: 62, hi: 82 },
 ]
 
 const LAT: C[] = [
