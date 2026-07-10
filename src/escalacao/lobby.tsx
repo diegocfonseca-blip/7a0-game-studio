@@ -87,10 +87,10 @@ export function useResumableRoom() {
     const amHost = rd.host_id === user.id
     const inProgress = !!gs && Array.isArray(gs.managers) && gs.managers.length > 0
       && !!gs.screen && gs.screen !== 'intro' && gs.screen !== 'lobby'
+    // a faixa só aparece pra partida EM ANDAMENTO → aqui sempre restauramos.
+    // Nunca recomeçamos do zero (isso reconstruía o leilão e resetava a sala).
     if (inProgress) {
       dispatch({ type: 'RESTORE_ONLINE', state: gs as EscState, roomId: rd.id, roomCode: rd.code, isHost: amHost, playerIndex: myPl.player_index })
-    } else {
-      dispatch({ type: 'START_ONLINE', roomId: rd.id, roomCode: rd.code, isHost: amHost, playerIndex: myPl.player_index, playerNames: sorted.map(p => p.manager_name), formation: gs?.formation ?? '4-3-3' })
     }
   }, [dispatch])
 
@@ -179,9 +179,20 @@ export function EscLobby() {
     const savedId = loadSavedRoom()
     if (!savedId) return
     ;(async () => {
-      const { data: rd } = await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()
+      let rd = (await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()).data
       if (!rd || rd.game_state?.__game !== GAME_TAG) { clearSavedRoom(); return }
-      if (rd.status === 'started') { await triggerStart(rd); return }
+      if (rd.status === 'started') {
+        // recarregou a página no meio da partida: SÓ restaura (allowFresh=false).
+        // Se o estado ainda não apareceu (host acabou de salvar), tenta de novo
+        // algumas vezes — nunca recomeça o jogo do zero (isso arrastava todos).
+        for (let i = 0; i < 5; i++) {
+          if (await triggerStart(rd, false)) return
+          await new Promise(r => setTimeout(r, 800))
+          const again = (await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()).data
+          if (again) rd = again
+        }
+        return // não deu pra restaurar agora: fica no menu, sem destruir nada
+      }
       if (rd.status === 'waiting') {
         const { data: mySlot } = await supabase.from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
         if (!mySlot) { clearSavedRoom(); return }
@@ -233,8 +244,13 @@ export function EscLobby() {
   // Busca a lista de jogadores DIRETO do banco (não confia em estado local
   // que pode estar vazio/desatualizado, ex.: logo após reconectar) — usar
   // uma lista errada aqui faz o jogo montar o time errado como "você".
-  async function triggerStart(roomData: RoomInfo) {
-    if (!user) return
+  // allowFresh=false (reconexão por recarregar a página): SÓ restaura; nunca
+  // recomeça do zero. Recomeçar como host reconstrói o leilão e, por ser
+  // autoritativo, arrasta todo mundo pro início — o bug relatado. O início de
+  // verdade (waiting→started) vem do evento realtime, com allowFresh=true.
+  // Devolve true se conseguiu entrar (restaurou ou começou).
+  async function triggerStart(roomData: RoomInfo, allowFresh = true): Promise<boolean> {
+    if (!user) return false
     // pega o estado salvo MAIS recente (não confia no payload do evento, que
     // pode vir defasado) — é o que permite retomar a partida na reconexão.
     const { data: freshRoom } = await supabase.from('game_rooms').select('game_state').eq('id', roomData.id).maybeSingle()
@@ -242,7 +258,7 @@ export function EscLobby() {
     const { data: allPlayers } = await supabase.from('room_players').select('*').eq('room_id', roomData.id).order('player_index')
     const sorted = (allPlayers ?? []) as RoomPlayer[]
     const myPl = sorted.find(p => p.user_id === user.id)
-    if (!myPl) return
+    if (!myPl) return false
     // NÃO limpa a sala salva aqui: ela precisa sobreviver ao jogo inteiro pra
     // que atualizar a página (ou o app descartar a aba) reconecte o técnico —
     // inclusive o host. Só limpamos quando alguém sai de propósito (leaveRoom,
@@ -262,8 +278,9 @@ export function EscLobby() {
         roomId: roomData.id, roomCode: roomData.code,
         isHost: amHost, playerIndex: myPl.player_index,
       })
-      return
+      return true
     }
+    if (!allowFresh) return false // reconexão sem estado salvo ainda: não recomeça
     dispatch({
       type: 'START_ONLINE',
       roomId: roomData.id, roomCode: roomData.code,
@@ -272,6 +289,7 @@ export function EscLobby() {
       playerNames: sorted.map(p => p.manager_name),
       formation: gs?.formation ?? '4-3-3',
     })
+    return true
   }
 
   const nameOf = () => user?.user_metadata?.display_name ?? user?.email?.split('@')[0] ?? 'Técnico'

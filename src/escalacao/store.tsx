@@ -1442,8 +1442,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const save = () => {
       const st = stateRef.current
       if (st.screen === 'intro' || st.screen === 'lobby' || !st.roomId) return
-      supabase.from('game_rooms').update({ game_state: sanitize(st) }).eq('id', st.roomId)
+      // sanitize devolve só o EscState — precisamos REPOR o marcador __game
+      // (senão as checagens de "é sala da Escalação?" quebram no reconnect) e
+      // a formação (usada como fallback). IMPORTANTE: .then() aqui não é
+      // enredo — sem ele o supabase-js NÃO dispara a requisição (query é
+      // preguiçosa), e era por isso que o estado nunca era salvo de verdade.
+      const payload = { ...sanitize(st), __game: 'escalacao', formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3' }
+      supabase.from('game_rooms').update({ game_state: payload }).eq('id', st.roomId).then(() => {}, () => {})
     }
+    save() // salva JÁ ao entrar no jogo (fecha a janela dos 3s do 1º save)
     const iv = setInterval(save, 3000)
     return () => { save(); clearInterval(iv) }
   }, [state.onlineMode, state.isHost, state.roomId])
