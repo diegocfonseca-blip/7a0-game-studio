@@ -47,12 +47,19 @@ function Shell({ children, bar }: { children: React.ReactNode; bar?: React.React
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
   // branco (botões/fundos escuros) já define a cor explicitamente.
-  const { state, dispatch } = useEsc()
+  const { state, dispatch, kickPlayer } = useEsc()
+  const [manage, setManage] = useState(false)
   // "sair do jogo" discreto: só durante uma partida (não na home/álbum). Ao
   // sair, o dispatch libera a vaga na sala online (não vira fantasma).
   const inGame = ['setup', 'auction', 'monte', 'cerimonia', 'season', 'end'].includes(state.screen)
   const leave = () => {
     if (window.confirm('Sair do jogo? Você vai perder esta partida.')) dispatch({ type: 'GO_LOBBY' })
+  }
+  // só o host, numa partida online, pode remover técnicos humanos (menos ele).
+  const canManage = inGame && state.onlineMode === 'online' && state.isHost
+  const others = state.managers.filter(m => m.isHuman && m.id !== state.youIdx)
+  const kick = (m: Manager) => {
+    if (window.confirm(`Remover ${m.teamName} da partida? A CPU assume o time e o jogo continua.`)) kickPlayer(m.id)
   }
   return (
     <div className="min-h-screen pb-16" style={{ backgroundColor: CREAM, color: INK }}>
@@ -63,8 +70,26 @@ function Shell({ children, bar }: { children: React.ReactNode; bar?: React.React
       )}
       <div className="max-w-xl mx-auto px-4 pt-5 space-y-5">{children}</div>
       {inGame && (
-        <div className="max-w-xl mx-auto px-4 pt-6 pb-4 text-center">
-          <button onClick={leave} className="text-black/30 text-xs font-semibold underline active:opacity-60">sair do jogo</button>
+        <div className="max-w-xl mx-auto px-4 pt-6 pb-4 text-center space-y-2">
+          <button onClick={leave} className="block mx-auto text-black/30 text-xs font-semibold underline active:opacity-60">sair do jogo</button>
+          {canManage && others.length > 0 && (
+            <button onClick={() => setManage(v => !v)} className="block mx-auto text-black/30 text-xs font-semibold underline active:opacity-60">
+              {manage ? 'fechar' : 'gerenciar técnicos'}
+            </button>
+          )}
+          {canManage && manage && (
+            <div className="max-w-xs mx-auto mt-1 border-2 border-black/15 rounded-xl p-2 space-y-1.5 text-left" style={{ background: '#fff' }}>
+              <p className="text-black/40 text-[10px] font-black uppercase tracking-widest px-1">Remover da partida</p>
+              {others.map(m => (
+                <div key={m.id} className="flex items-center gap-2">
+                  <span className="flex-1 min-w-0 truncate text-xs font-bold text-black/70" style={OSWALD}>{m.teamName}</span>
+                  <button onClick={() => kick(m)}
+                    className="shrink-0 border border-black/20 rounded-lg px-2 py-1 text-[11px] font-black active:opacity-60"
+                    style={{ background: '#F4ECD6', color: '#B23A2A', ...OSWALD }}>remover</button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

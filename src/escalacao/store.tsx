@@ -740,6 +740,7 @@ type Action =
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
+  | { type: 'KICK_PLAYER'; playerIndex: number }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[] }
   | { type: 'ADVANCE_REVEAL' }
   | { type: 'FORCE_SEAL' }
@@ -977,6 +978,28 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'GO_SETUP': { s.screen = 'setup'; return s }
     case 'GO_ALBUM': { s.screen = 'album'; return s }
     case 'SET_PRESENCE': { s.presence = action.indices; return s }
+    case 'KICK_PLAYER': {
+      // Host removeu um técnico da partida: a CPU assume o time dele e o jogo
+      // segue sem travar. O cliente removido é ejetado pelo evento 'kick' à
+      // parte (no provider); aqui só cuidamos de não deixar a fase esperando
+      // por ele — mesma lógica do auto-preenchimento por AFK.
+      const m = s.managers.find(x => x.id === action.playerIndex)
+      if (!m || !m.isHuman) return s
+      m.isHuman = false
+      if (s.phase === 'envelope' || s.phase === 'resq_envelope') {
+        const pos = SECTORS[s.sectorIdx]
+        if (humansToSubmit(s, pos).every(id => s.submitted.includes(id))) sealAndResolve(s)
+      } else if (s.phase === 'tiebreak') {
+        const tb = s.tiebreaks[s.tiebreakIdx]
+        if (tb) tb.submitted = tb.submitted.filter(id => id !== action.playerIndex)
+        maybeResolveTiebreak(s)
+      } else if (s.screen === 'monte' && s.monteOrder[s.monteIdx] === action.playerIndex) {
+        const rng = rngOf(s)
+        advanceMonte(s, rng)
+        if (s.monteIdx >= s.monteOrder.length || s.managers.every(mm => totalHoles(mm) === 0)) s.screen = 'cerimonia'
+      }
+      return s
+    }
     case 'START': {
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
@@ -1211,6 +1234,7 @@ const Ctx = createContext<{
   emote: (kind: string, cardId?: string) => void
   emotes: EmoteEvent[]
   hostStale: boolean // convidado sem notícias do host há muito tempo (host caiu?)
+  kickPlayer: (playerIndex: number) => void // host remove um técnico da partida
 } | null>(null)
 
 // libera a vaga do técnico na sala (apaga a linha de room_players) e limpa a
@@ -1253,6 +1277,17 @@ export function EscProvider({ children }: { children: ReactNode }) {
     channelRef.current?.send({ type: 'broadcast', event: 'emote', payload: e })
   }, [addEmote])
 
+  // host remove um técnico da partida: avisa o cliente dele (evento 'kick', que
+  // o ejeta pra fora), a CPU assume o time (KICK_PLAYER) e libera a vaga no
+  // banco pra ele não reconectar sozinho na mesma partida.
+  const kickPlayer = useCallback((playerIndex: number) => {
+    if (!isHostRef.current || playerIndex === stateRef.current.youIdx) return
+    channelRef.current?.send({ type: 'broadcast', event: 'kick', payload: { playerIndex } })
+    rawDispatch({ type: 'KICK_PLAYER', playerIndex })
+    const rid = stateRef.current.roomId
+    if (rid) { supabase.from('room_players').delete().eq('room_id', rid).eq('player_index', playerIndex).then(() => {}) }
+  }, [])
+
   // convidado roteia ações pro host; host aplica local
   const dispatch = useCallback((action: Action) => {
     // Sair de uma partida online (NOVO PREGÃO / voltar pra home) deve LIBERAR
@@ -1286,6 +1321,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
     }
     // reações chegam pra todos (host e convidados), fora do fluxo de ações
     ch.on('broadcast', { event: 'emote' }, ({ payload }: { payload: EmoteEvent }) => addEmote(payload))
+    // host removeu alguém: se for EU, saio da partida (libera vaga + volta pra home)
+    ch.on('broadcast', { event: 'kick' }, ({ payload }: { payload: { playerIndex: number } }) => {
+      if (payload.playerIndex !== stateRef.current.youIdx) return
+      try { alert('O host removeu você desta partida.') } catch { /* ignora */ }
+      dispatch({ type: 'GO_LOBBY' })
+    })
     ch.on('presence', { event: 'sync' }, () => {
       const pState = ch.presenceState()
       const indices = Object.values(pState).flat().map((p: unknown) => (p as { playerIndex: number }).playerIndex)
@@ -1419,7 +1460,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const showHostBanner = state.onlineMode === 'online' && !state.isHost && hostStale
     && state.screen !== 'intro' && state.screen !== 'lobby'
   return (
-    <Ctx.Provider value={{ state, dispatch, emote, emotes, hostStale }}>
+    <Ctx.Provider value={{ state, dispatch, emote, emotes, hostStale, kickPlayer }}>
       {children}
       {showHostBanner && (
         <div style={{
