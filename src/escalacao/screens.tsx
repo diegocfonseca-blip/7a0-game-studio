@@ -1027,18 +1027,26 @@ export function EscSeason() {
   // tabela. Feito no cliente pra ficar certo pra cada um no online.
   const prevPosRef = useRef(youPos)
   const [personalNews, setPersonalNews] = useState<string | null>(null)
+  const personalTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     const prev = prevPosRef.current
     prevPosRef.current = youPos
     if (state.round === 0 || prev === youPos) return
+    // só MOMENTOS marcantes (cruzou uma faixa). Sem número de posição — ele fica
+    // velho na hora, porque a temporada roda rápido. E some sozinho em 5s pra não
+    // ficar contradizendo a tabela embaixo.
     let msg: string | null = null
-    if (youPos === 1) msg = '👑 Você assumiu a PONTA do campeonato!'
-    else if (youPos <= 4 && prev > 4) msg = `📈 Você COLOU no G4 — ${youPos}º lugar!`
-    else if (youPos > 4 && prev <= 4) msg = `📉 Você caiu do G4 (${youPos}º). Corre atrás!`
-    else if (youPos >= 17 && prev < 17) msg = `⚠️ PERIGO! Você caiu pra zona de rebaixamento (${youPos}º).`
-    else if (youPos < 17 && prev >= 17) msg = `😮‍💨 Respirou: saiu do Z4, agora ${youPos}º.`
-    if (msg) setPersonalNews(msg)
+    if (youPos === 1 && prev !== 1) msg = '👑 Você é o novo LÍDER do campeonato!'
+    else if (youPos <= 4 && prev > 4) msg = '📈 Você ENTROU no G4!'
+    else if (youPos >= 17 && prev < 17) msg = '⚠️ PERIGO! Você caiu pra zona de rebaixamento!'
+    else if (youPos < 17 && prev >= 17) msg = '😮‍💨 Você escapou do Z4!'
+    if (msg) {
+      setPersonalNews(msg)
+      if (personalTimer.current) clearTimeout(personalTimer.current)
+      personalTimer.current = setTimeout(() => setPersonalNews(null), 5000)
+    }
   }, [state.round, youPos])
+  useEffect(() => () => { if (personalTimer.current) clearTimeout(personalTimer.current) }, [])
 
   // autoplay: só quem "puxa" a temporada dispara a próxima rodada (host no
   // online, o próprio cliente no CPU). Os demais só recebem o resultado
