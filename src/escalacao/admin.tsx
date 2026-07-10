@@ -49,6 +49,33 @@ export function AdminPanel() {
   return <AdminOverlay />
 }
 
+// hook: true só quando o usuário logado é o admin
+function useIsAdmin() {
+  const [isAdmin, setIsAdmin] = useState(false)
+  useEffect(() => {
+    let alive = true
+    supabase.auth.getUser().then(({ data }) => { if (alive) setIsAdmin(data?.user?.email === ADMIN_EMAIL) })
+    const { data: sub } = supabase.auth.onAuthStateChange((_, s) => setIsAdmin(s?.user?.email === ADMIN_EMAIL))
+    return () => { alive = false; sub.subscription.unsubscribe() }
+  }, [])
+  return isAdmin
+}
+
+// botão que SÓ aparece pro criador (quando logado com o e-mail admin).
+export function AdminButton() {
+  const isAdmin = useIsAdmin()
+  if (!isAdmin) return null
+  return (
+    <button onClick={() => { window.location.hash = 'admin' }} style={{
+      width: '100%', boxSizing: 'border-box', background: 'transparent', color: GOLD,
+      border: `2px solid ${GOLD}`, borderRadius: 99, padding: '9px 16px',
+      fontWeight: 800, fontSize: 14, cursor: 'pointer', marginTop: 2, ...OSWALD,
+    }}>
+      📊 Painel do Criador
+    </button>
+  )
+}
+
 function AdminOverlay() {
   const [email, setEmail] = useState<string | null | undefined>(undefined) // undefined = carregando
   const [busy, setBusy] = useState(false)

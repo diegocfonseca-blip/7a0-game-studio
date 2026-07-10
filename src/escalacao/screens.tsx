@@ -5,6 +5,7 @@ import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
 import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY, MONTE_SECONDS, BATCH_SIZE } from './store'
 import { supabase } from '../lib/supabase'
 import { CATALOG, BIOS, PROMESSA_SET } from './data'
+import { AdminButton } from './admin'
 
 const CATALOG_TOTAL = Object.values(CATALOG).reduce((s, arr) => s + arr.length, 0)
 
@@ -141,7 +142,12 @@ export function EscIntro() {
         <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg" bg={GREEN}>
           <span className="text-white">👥 JOGAR ONLINE (SALA)</span>
         </Btn>
+        <AdminButton />
       </div>
+      <footer className="text-center pt-2 pb-6">
+        <p className="text-black/40 text-xs font-semibold">criado por @diegocfonseca</p>
+        <a href="mailto:diego.c.fonseca@gmail.com" className="text-black/35 text-xs font-semibold underline">diego.c.fonseca@gmail.com</a>
+      </footer>
     </Shell>
   )
 }

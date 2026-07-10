@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useEsc } from './store'
+import { AdminButton } from './admin'
 import type { EscState, FormationKey } from './types'
 
 // A Escalação usa as mesmas tabelas do Draft (game_rooms/room_players).
@@ -415,6 +416,7 @@ export function EscLobby() {
 
       {roomError && <p className="text-red-400 text-sm font-bold">{roomError}</p>}
       <Big onClick={() => dispatch({ type: 'GO_ALBUM' })} color="#fff">📖 Meu Álbum</Big>
+      <AdminButton />
       <button onClick={() => supabase.auth.signOut()} className="text-white/30 text-xs underline w-full text-center">Sair da conta</button>
       <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">← Menu inicial</button>
     </>)

@@ -34,6 +34,14 @@ export async function logVisit() {
   } catch { /* silencioso */ }
 }
 
+// nome pra exibir: o do time (se já definido) ou o nome da conta logada
+function pickName(displayName: string | undefined, user: { user_metadata?: Record<string, unknown> } | null | undefined): string | null {
+  const fromTeam = (displayName || '').trim()
+  if (fromTeam) return fromTeam.slice(0, 40)
+  const fromAccount = (user?.user_metadata?.display_name as string | undefined || '').trim()
+  return fromAccount ? fromAccount.slice(0, 40) : null
+}
+
 // registra o início de uma partida (não bloqueia o jogo se falhar)
 export async function logPlay(mode: 'cpu' | 'online', displayName?: string) {
   try {
@@ -41,7 +49,7 @@ export async function logPlay(mode: 'cpu' | 'online', displayName?: string) {
     await supabase.from('game_plays').insert({
       mode,
       session_id: sessionId(),
-      display_name: (displayName || '').slice(0, 40) || null,
+      display_name: pickName(displayName, data?.user),
       user_id: data?.user?.id ?? null,
     })
   } catch { /* silencioso — analytics nunca atrapalha o jogo */ }
@@ -56,7 +64,7 @@ export async function heartbeat(mode: 'cpu' | 'online', displayName: string | un
     await supabase.from('live_beats').insert({
       session_id: sessionId(),
       mode,
-      display_name: (displayName || '').slice(0, 40) || null,
+      display_name: pickName(displayName, data?.user),
       user_id: data?.user?.id ?? null,
       screen,
     })
