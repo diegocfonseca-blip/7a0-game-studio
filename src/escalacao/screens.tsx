@@ -1253,18 +1253,19 @@ function HallDaFama({ roomId, isHost, seasonNo, champName, scorerName, scorerGoa
 // ─── carta de colecionador: a raridade (fama) define o visual inteiro ──
 const FAME_TIER: Record<number, { label: string; grad: string; ink: string; tierColor: string; crestBg: string; crestInk: string; holo?: boolean }> = {
   5: { label: '👑 LENDA', grad: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', ink: '#0C0C0C', tierColor: '#7a4d00', crestBg: 'rgba(255,255,255,.42)', crestInk: '#7a4d00', holo: true },
-  4: { label: '⭐ CRAQUE', grad: 'linear-gradient(150deg,#F2F4F7,#C9D2DB 55%,#A7B3BF)', ink: '#0C0C0C', tierColor: '#4a5560', crestBg: 'rgba(255,255,255,.55)', crestInk: '#4a5560' },
+  4: { label: '⭐ CRAQUE', grad: 'linear-gradient(150deg,#F6E3A8,#E0B23C 55%,#C79020)', ink: '#0C0C0C', tierColor: '#6b4e12', crestBg: 'rgba(255,255,255,.5)', crestInk: '#6b4e12' },
   3: { label: '🎯 BOM JOGADOR', grad: 'linear-gradient(150deg,#E8B98A,#CD8B4E 60%,#A9662B)', ink: '#0C0C0C', tierColor: '#5c3410', crestBg: 'rgba(255,255,255,.48)', crestInk: '#5c3410' },
   2: { label: '🎯 BOM JOGADOR', grad: 'linear-gradient(150deg,#E8B98A,#CD8B4E 60%,#A9662B)', ink: '#0C0C0C', tierColor: '#5c3410', crestBg: 'rgba(255,255,255,.48)', crestInk: '#5c3410' },
   1: { label: '🪵 FOI PROFISSIONAL', grad: 'linear-gradient(150deg,#E7E2D4,#CFC7B2)', ink: '#0C0C0C', tierColor: '#7a725e', crestBg: 'rgba(255,255,255,.5)', crestInk: '#7a725e' },
 }
 // 5º tier: promessas (foi promessa aqui, virou estrela na Europa) — visual próprio
 const PROMESSA_TIER = { label: '💎 PROMESSA', grad: 'linear-gradient(150deg,#BFA6F0,#7C57D6 55%,#5B39B0)', ink: '#0C0C0C', tierColor: '#3d1f7a', crestBg: 'rgba(255,255,255,.5)', crestInk: '#3d1f7a', holo: false } as const
-// cor do badge de nível POR TIER (ouro só pra lenda; craque em aço escuro)
+// cor do badge de nível POR TIER (ouro só pra lenda; craque num bronze/dourado
+// escuro — "quase ouro", um degrau abaixo da lenda)
 function tierBadge(c: { fame: number; promessa?: boolean }): { bg: string; ink: string } {
   if (c.promessa) return { bg: '#7C57D6', ink: '#fff' }   // 💎 promessa
-  if (c.fame === 5) return { bg: GOLD, ink: INK }          // 👑 lenda
-  if (c.fame === 4) return { bg: '#5F6B7A', ink: '#fff' }  // ⭐ craque (aço)
+  if (c.fame === 5) return { bg: GOLD, ink: INK }          // 👑 lenda (ouro)
+  if (c.fame === 4) return { bg: '#C9812B', ink: INK }     // ⭐ craque (bronze/quase ouro)
   if (c.fame === 1) return { bg: '#CBBF9E', ink: INK }     // 🍺 foi profissional
   return { bg: '#2E9E5B', ink: '#fff' }                    // 🎯 bom jogador
 }
