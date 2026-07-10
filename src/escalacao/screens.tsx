@@ -1465,10 +1465,15 @@ export function EscAlbum() {
     return byFilter.filter(c => (seen.has(c.name) ? false : (seen.add(c.name), true)))
   }, [cards, filter])
 
-  const nCpu = (cards ?? []).filter(c => c.origin === 'cpu').length
-  const nOnline = (cards ?? []).filter(c => c.origin === 'online').length
+  // conta FIGURINHAS ÚNICAS (por nome) — igual ao que aparece na tela; um Didi
+  // ganho no CPU e outro no online contam 1 em "Todos", mas 1 em cada aba.
+  const uniqBy = (list: AlbumCard[]) => new Set(list.map(c => c.name)).size
+  const all = cards ?? []
+  const nAll = uniqBy(all)
+  const nCpu = uniqBy(all.filter(c => c.origin === 'cpu'))
+  const nOnline = uniqBy(all.filter(c => c.origin === 'online'))
   const TABS: { id: AlbumFilter; label: string }[] = [
-    { id: 'all', label: `Todos (${nCpu + nOnline})` },
+    { id: 'all', label: `Todos (${nAll})` },
     { id: 'cpu', label: `🤖 CPU (${nCpu})` },
     { id: 'online', label: `👥 Online (${nOnline})` },
   ]
