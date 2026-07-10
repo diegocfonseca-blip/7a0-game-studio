@@ -183,9 +183,13 @@ export function EscLobby() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
-  // carrega a lista quando o usuário abre a aba "Salas abertas"
+  // carrega a lista ao abrir "Salas abertas" e ATUALIZA sozinha a cada 5s —
+  // assim uma sala criada agora aparece pra galera sem precisar apertar nada.
   useEffect(() => {
-    if (phase === 'menu' && tab === 'open') fetchOpenRooms()
+    if (phase !== 'menu' || tab !== 'open') return
+    fetchOpenRooms()
+    const iv = setInterval(() => fetchOpenRooms(true), 5000)
+    return () => clearInterval(iv)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, tab])
 
@@ -297,9 +301,10 @@ export function EscLobby() {
     setRoom(rd); setIsHost(true); setPhase('waiting'); setLoading(false)
   }
 
-  // lista pública de salas abertas (waiting) da Escalação
-  async function fetchOpenRooms() {
-    setListLoading(true)
+  // lista pública de salas abertas (waiting) da Escalação. `silent` = atualização
+  // automática (não mostra o "Carregando…" pra não piscar a cada 5s).
+  async function fetchOpenRooms(silent = false) {
+    if (!silent) setListLoading(true)
     // só salas recentes: uma sala "waiting" de horas atrás é sala abandonada
     const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
     const { data: rooms } = await supabase.from('game_rooms')
@@ -520,7 +525,7 @@ export function EscLobby() {
             )
           })}
         </div>
-        <Big onClick={fetchOpenRooms} color="#fff">🔄 Atualizar lista</Big>
+        <Big onClick={() => fetchOpenRooms()} color="#fff">🔄 Atualizar lista</Big>
       </div>}
 
       {tab === 'join' && <div className="space-y-2">
