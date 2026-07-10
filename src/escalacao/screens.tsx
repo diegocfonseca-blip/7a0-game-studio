@@ -154,6 +154,7 @@ export function EscIntro() {
         </Btn>
         <AdminButton />
       </div>
+      <CardAccountNote />
       <footer className="text-center pt-2 pb-6">
         <p className="text-black/40 text-xs font-semibold">criado por @diegocfonseca</p>
         <a href="mailto:diego.c.fonseca@gmail.com" className="text-black/35 text-xs font-semibold underline">diego.c.fonseca@gmail.com</a>
@@ -214,7 +215,48 @@ export function EscSetup() {
       <Btn onClick={() => dispatch({ type: 'START', teamName: name, formation, rivals })} className="w-full text-lg" bg={GREEN}>
         <span className="text-white">ABRIR O PREGÃO 🔨</span>
       </Btn>
+      <CardAccountNote />
     </Shell>
+  )
+}
+
+// Aviso na home/setup: jogar não precisa de conta, mas só quem tem cadastro
+// leva a carta-lembrança pro álbum sendo campeão. Toca → abre já no cadastro.
+export function CardAccountNote() {
+  const { dispatch } = useEsc()
+  const [email, setEmail] = useState<string | null | undefined>(undefined)
+  const [name, setName] = useState('')
+  useEffect(() => {
+    let alive = true
+    supabase.auth.getUser().then(({ data }) => { if (!alive) return; setEmail(data?.user?.email ?? null); setName((data?.user?.user_metadata?.display_name as string) ?? '') })
+    const { data: sub } = supabase.auth.onAuthStateChange((_, s) => { setEmail(s?.user?.email ?? null); setName((s?.user?.user_metadata?.display_name as string) ?? '') })
+    return () => { alive = false; sub.subscription.unsubscribe() }
+  }, [])
+
+  if (email === undefined) return null
+  if (email) {
+    return (
+      <p className="text-center text-xs font-bold text-black/50 px-2">
+        ✅ Logado{name ? ` como ${name}` : ''} — sendo campeão você leva uma carta-lembrança pro álbum 🎴
+      </p>
+    )
+  }
+  const goRegister = () => {
+    try { localStorage.setItem('esc_open_register', '1') } catch { /* ignora */ }
+    dispatch({ type: 'GO_LOBBY_ONLINE' })
+  }
+  return (
+    <button onClick={goRegister} className="w-full rounded-2xl border-[3px] border-black p-3.5 text-left active:translate-y-0.5"
+      style={{ background: '#FFF7DB', boxShadow: `3px 3px 0 0 ${INK}` }}>
+      <p className="font-black text-sm" style={OSWALD}>🎴 Colecione craques — faça seu cadastro</p>
+      <p className="text-xs font-semibold text-black/75 mt-1">
+        <b>Com conta:</b> sendo campeão (no CPU ou online) você ganha um <b>craque colecionável limitado</b> pro seu álbum.
+      </p>
+      <p className="text-xs font-semibold text-black/60 mt-0.5">
+        <b>Sem conta:</b> joga à vontade, mas <b>não ganha carta</b>.
+      </p>
+      <p className="text-xs font-black mt-1.5" style={{ color: GREEN, ...OSWALD }}>👉 Toque aqui pra criar sua conta</p>
+    </button>
   )
 }
 

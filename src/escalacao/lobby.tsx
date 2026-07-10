@@ -114,7 +114,11 @@ export function EscLobby() {
   const { dispatch } = useEsc()
   const [user, setUser] = useState<User | null>(null)
   const [phase, setPhase] = useState<Phase>('auth')
-  const [authTab, setAuthTab] = useState<AuthTab>('login')
+  const [authTab, setAuthTab] = useState<AuthTab>(() => {
+    // veio do aviso "ganhe uma carta" (home/setup)? já abre no Cadastrar
+    try { if (localStorage.getItem('esc_open_register')) { localStorage.removeItem('esc_open_register'); return 'register' } } catch { /* ignora */ }
+    return 'login'
+  })
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -378,6 +382,11 @@ export function EscLobby() {
         </button>
       ))}
     </div>
+    {authTab === 'register' && (
+      <div className="rounded-xl border-[3px] border-black px-3 py-2.5" style={{ background: GOLD }}>
+        <p className="text-xs font-black text-black leading-snug" style={OSWALD}>🎴 Com a conta, ser campeão (no CPU ou online) te dá uma carta-lembrança limitada pro álbum. Sem conta, não ganha carta.</p>
+      </div>
+    )}
     <div className="space-y-3">
       {authTab === 'register' && <Field label="Nome de técnico" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Como te chamam?" />}
       <Field label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" />
