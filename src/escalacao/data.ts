@@ -369,7 +369,7 @@ const GOL: C[] = [
   { name: "Éverson", club: "Atlético-MG", year: 2021, fame: 3, lo: 78, hi: 85 },
   { name: "Vanderlei", club: "Santos", year: 2017, fame: 3, lo: 76, hi: 84 },
   { name: "Muriel", club: "Fluminense", year: 2012, fame: 3, lo: 74, hi: 83 },
-  { name: "Renan", club: "Internacional", year: 2010, fame: 3, lo: 74, hi: 83 },
+  { name: "Sérgio Rochet", club: "Internacional", year: 2025, fame: 3, lo: 77, hi: 84 },
   { name: "Doni", club: "Corinthians", year: 2005, fame: 3, lo: 76, hi: 84 },
   { name: "Rafael Cabral", club: "Santos", year: 2011, fame: 3, lo: 74, hi: 82, promessa: true },
   { name: "Marcelo Lomba", club: "Internacional", year: 2019, fame: 2, lo: 64, hi: 82 },
