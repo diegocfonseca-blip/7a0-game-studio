@@ -1003,6 +1003,17 @@ export function EscCerimonia() {
   const m = state.managers[idx]
   const you = state.managers[state.youIdx]
   const isLastMgr = idx >= state.managers.length - 1
+  const canStart = state.onlineMode !== 'online' || state.isHost
+
+  // cronômetro de 45s (igual leilão): dá tempo de olhar os times e começa
+  // o campeonato sozinho quando zerar (o vigia no provider dispara o FINISH).
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    if (!state.cerimoniaDeadline) return
+    const iv = setInterval(() => setNow(Date.now()), 250)
+    return () => clearInterval(iv)
+  }, [state.cerimoniaDeadline])
+  const secsLeft = state.cerimoniaDeadline ? Math.max(0, Math.ceil((state.cerimoniaDeadline - now) / 1000)) : null
 
   // achados e micos da sala inteira
   const all = state.managers.flatMap(mg => mg.squad.map(c => ({ mg, c, mid: (c.lo + c.hi) / 2 })))
@@ -1016,6 +1027,13 @@ export function EscCerimonia() {
         <h2 className="font-black text-3xl" style={OSWALD}>🎭 CERIMÔNIA DA REVELAÇÃO</h2>
         <p className="text-sm font-semibold text-black/60">As faixas de nível abrem. Agora todo mundo descobre o que comprou.</p>
       </div>
+      {secsLeft !== null && (
+        <div className="rounded-2xl border-[3px] border-black p-3 text-center" style={{ background: secsLeft <= 10 ? '#E8503A' : GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
+          <p className="font-black text-white text-sm leading-tight" style={OSWALD}>⏱️ O campeonato começa em</p>
+          <p className="font-black text-white text-4xl leading-none mt-0.5" style={OSWALD}>{secsLeft}s</p>
+          <p className="font-bold text-white/80 text-[11px] mt-1">Aproveite pra ver os times de todo mundo 👀</p>
+        </div>
+      )}
       <Box bg={m.id === you.id ? GOLD : '#fff'} className="p-4" shadow={6}>
         <p className="font-black text-xl" style={OSWALD}>{m.id === you.id ? `🫵 ${m.teamName}` : m.teamName} <span className="text-sm font-bold text-black/70">({m.formation})</span></p>
         <div className="mt-2 space-y-1.5">
@@ -1045,13 +1063,20 @@ export function EscCerimonia() {
           <p className="font-black text-sm" style={OSWALD}>🐴 MICO DO PREGÃO: {worstDeal.c.name} ({worstDeal.c.lo}–{worstDeal.c.hi}) por {worstDeal.c.paid} — {worstDeal.mg.teamName}</p>
         </Box>
       )}
-      {isLastMgr && state.onlineMode === 'online' && !state.isHost ? (
-        <p className="text-center text-sm font-bold text-black/55 py-2">🔨 Aguardando o host começar o campeonato…</p>
-      ) : (
-        <Btn className="w-full text-lg" bg={isLastMgr ? GREEN : GOLD}
-          onClick={() => { if (isLastMgr) dispatch({ type: 'FINISH_CEREMONY' }); else setIdx(idx + 1) }}>
-          <span style={{ color: isLastMgr ? '#fff' : INK }}>{isLastMgr ? 'COMEÇAR O CAMPEONATO 🏆' : 'PRÓXIMO TIME ➜'}</span>
+      {/* navegação livre pelos times durante os 45s (dá a volta) */}
+      <div className="flex gap-2">
+        <div className="flex-1"><Btn className="w-full" bg="#fff"
+          onClick={() => setIdx((idx - 1 + state.managers.length) % state.managers.length)}>◀ Anterior</Btn></div>
+        <div className="shrink-0 flex items-center px-2 font-black text-sm text-black/50" style={OSWALD}>{idx + 1}/{state.managers.length}</div>
+        <div className="flex-1"><Btn className="w-full" bg={GOLD}
+          onClick={() => setIdx((idx + 1) % state.managers.length)}>Próximo ▶</Btn></div>
+      </div>
+      {canStart ? (
+        <Btn className="w-full text-lg" bg={GREEN} onClick={() => dispatch({ type: 'FINISH_CEREMONY' })}>
+          <span style={{ color: '#fff' }}>COMEÇAR AGORA 🏆</span>
         </Btn>
+      ) : (
+        <p className="text-center text-sm font-bold text-black/55 py-1">🔨 O campeonato começa quando o tempo acabar…</p>
       )}
     </Shell>
   )
