@@ -94,7 +94,17 @@ export function useResumableRoom() {
     }
   }, [dispatch])
 
-  return info ? { code: info.code, resume } : null
+  // sair da sala salva (libera a vaga + esconde a faixa) pra começar uma nova
+  const leave = useCallback(async () => {
+    const rd = roomRef.current, user = userRef.current
+    try {
+      if (rd && user) await supabase.from('room_players').delete().eq('room_id', rd.id).eq('user_id', user.id)
+    } catch { /* silencioso */ }
+    clearSavedRoom()
+    setInfo(null)
+  }, [])
+
+  return info ? { code: info.code, resume, leave } : null
 }
 
 function Field({ label, ...props }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
