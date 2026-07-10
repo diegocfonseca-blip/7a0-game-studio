@@ -138,7 +138,7 @@ export function EscIntro() {
         <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-xs font-black uppercase" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
           D7 STUDIO
         </span>
-        <h1 className="font-black text-5xl mt-4" style={OSWALD}>LEILÃO LEGENDS 38</h1>
+        <h1 className="font-black text-5xl mt-4" style={OSWALD}>LEILÃO LEGENDS</h1>
         <p className="mt-2 font-semibold text-black/60">Leilão às cegas. Níveis ocultos. 38 rodadas pra provar quem entende de bola.</p>
       </div>
       <Box bg="#fff" className="p-5 space-y-3">
@@ -1214,7 +1214,7 @@ async function buildShareCardBlob(opts: {
   ctx.fillStyle = INK
   ctx.textAlign = 'center'
   ctx.font = '900 46px Oswald, sans-serif'
-  ctx.fillText('🔨 LEILÃO LEGENDS 38', 450, 108)
+  ctx.fillText('🔨 LEILÃO LEGENDS', 450, 108)
 
   ctx.font = '160px sans-serif'
   ctx.fillText(opts.youWon ? '🏆' : opts.youPos <= 4 ? '🥈' : opts.youPos >= 17 ? '🪦' : '⚽', 450, 400)
@@ -1246,7 +1246,7 @@ async function shareResult(opts: Parameters<typeof buildShareCardBlob>[0]) {
   const blob = await buildShareCardBlob(opts)
   if (!blob) return
   const file = new File([blob], 'leilao-legends-38.png', { type: 'image/png' })
-  const shareData = { files: [file], title: 'Leilão Legends 38', text: `${opts.youWon ? 'Fui campeão' : `Terminei em ${opts.youPos}º`} no Leilão Legends 38! 🔨` }
+  const shareData = { files: [file], title: 'Leilão Legends', text: `${opts.youWon ? 'Fui campeão' : `Terminei em ${opts.youPos}º`} no Leilão Legends! 🔨` }
   if (navigator.canShare?.(shareData)) {
     try { await navigator.share(shareData); return } catch { /* cancelou ou falhou — cai pro download */ }
   }
