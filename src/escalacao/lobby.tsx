@@ -151,6 +151,7 @@ export function EscLobby() {
   const [players, setPlayers] = useState<RoomPlayer[]>([])
   const [isHost, setIsHost] = useState(false)
   const [roomError, setRoomError] = useState('')
+  const [resumeRoom, setResumeRoom] = useState<RoomInfo | null>(null) // partida em andamento: pergunta voltar/sair
   // salas abertas (lista pública)
   const [tab, setTab] = useState<'create' | 'open' | 'join'>('open')
   const [openRooms, setOpenRooms] = useState<OpenRoom[]>([])
@@ -179,19 +180,15 @@ export function EscLobby() {
     const savedId = loadSavedRoom()
     if (!savedId) return
     ;(async () => {
-      let rd = (await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()).data
+      const rd = (await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()).data
       if (!rd || rd.game_state?.__game !== GAME_TAG) { clearSavedRoom(); return }
       if (rd.status === 'started') {
-        // recarregou a página no meio da partida: SÓ restaura (allowFresh=false).
-        // Se o estado ainda não apareceu (host acabou de salvar), tenta de novo
-        // algumas vezes — nunca recomeça o jogo do zero (isso arrastava todos).
-        for (let i = 0; i < 5; i++) {
-          if (await triggerStart(rd, false)) return
-          await new Promise(r => setTimeout(r, 800))
-          const again = (await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()).data
-          if (again) rd = again
-        }
-        return // não deu pra restaurar agora: fica no menu, sem destruir nada
+        // partida em andamento: NÃO entra direto. Confirma que ainda sou da
+        // sala e mostra a pergunta "voltar pra partida ou sair" no menu.
+        const { data: mySlot } = await supabase.from('room_players').select('user_id').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
+        if (!mySlot) { clearSavedRoom(); return }
+        setResumeRoom(rd)
+        return
       }
       if (rd.status === 'waiting') {
         const { data: mySlot } = await supabase.from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
@@ -290,6 +287,29 @@ export function EscLobby() {
       formation: gs?.formation ?? '4-3-3',
     })
     return true
+  }
+
+  // "Voltar pra partida": só restaura (nunca recomeça). Tenta algumas vezes
+  // caso o estado do host ainda esteja chegando ao banco.
+  async function doResume() {
+    if (!resumeRoom) return
+    setLoading(true); setRoomError('')
+    let rd = resumeRoom
+    for (let i = 0; i < 5; i++) {
+      if (await triggerStart(rd, false)) return
+      await new Promise(r => setTimeout(r, 800))
+      const again = (await supabase.from('game_rooms').select('*').eq('id', rd.id).maybeSingle()).data
+      if (again) rd = again as RoomInfo
+    }
+    setLoading(false)
+    setRoomError('Não consegui retomar a partida agora. Tente de novo em instantes.')
+  }
+  // "Sair da sala": libera a vaga e limpa — aí pode começar/entrar noutra.
+  async function leaveResume() {
+    if (!resumeRoom || !user) return
+    await supabase.from('room_players').delete().eq('room_id', resumeRoom.id).eq('user_id', user.id)
+    clearSavedRoom()
+    setResumeRoom(null)
   }
 
   const nameOf = () => user?.user_metadata?.display_name ?? user?.email?.split('@')[0] ?? 'Técnico'
@@ -508,6 +528,23 @@ export function EscLobby() {
           </button>
         )}
       </div>
+
+      {/* partida em andamento: pergunta se quer voltar ou sair */}
+      {resumeRoom && (
+        <div className="rounded-2xl border-[3px] border-black p-3 space-y-2.5" style={{ background: GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
+          <p className="font-black text-white text-sm leading-tight" style={OSWALD}>⏳ Você tem uma partida em andamento<br /><span className="opacity-80 text-xs">Sala {resumeRoom.code}</span></p>
+          <div className="flex gap-2">
+            <button onClick={doResume} disabled={loading}
+              className="flex-1 rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
+              {loading ? '...' : '▶️ Voltar pra partida'}
+            </button>
+            <button onClick={leaveResume} disabled={loading}
+              className="flex-1 rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
+              🚪 Sair da sala
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* abas */}
       <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
