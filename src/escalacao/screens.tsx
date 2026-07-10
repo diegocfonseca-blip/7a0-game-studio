@@ -6,6 +6,7 @@ import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY, MO
 import { supabase } from '../lib/supabase'
 import { CATALOG, BIOS, PROMESSA_SET } from './data'
 import { AdminButton } from './admin'
+import { useResumableRoom } from './lobby'
 
 const CATALOG_TOTAL = Object.values(CATALOG).reduce((s, arr) => s + arr.length, 0)
 
@@ -122,8 +123,17 @@ function CardFace({ c, big = false }: { c: Card; big?: boolean }) {
 // ─── INTRO ───────────────────────────────────────────────────────────
 export function EscIntro() {
   const { dispatch } = useEsc()
+  const resumable = useResumableRoom()
   return (
     <Shell>
+      {resumable && (
+        <button onClick={resumable.resume}
+          className="w-full rounded-2xl border-4 border-black px-4 py-3 mb-1 flex items-center justify-between gap-2 active:translate-y-0.5"
+          style={{ background: '#1B7A3D', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
+          <span className="font-black text-sm text-left leading-tight">⏳ Você tem uma partida em andamento<br /><span className="opacity-80 text-xs">Sala {resumable.code} · toque pra voltar</span></span>
+          <span className="font-black text-2xl">→</span>
+        </button>
+      )}
       <div className="text-center pt-10">
         <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-xs font-black uppercase" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
           D7 STUDIO

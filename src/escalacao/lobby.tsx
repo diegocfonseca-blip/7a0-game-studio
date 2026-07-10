@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
@@ -34,6 +34,63 @@ const LS_KEY = 'escalacao-room'
 function saveRoom(id: string) { try { localStorage.setItem(LS_KEY, id) } catch { /* ignora */ } }
 function clearSavedRoom() { try { localStorage.removeItem(LS_KEY) } catch { /* ignora */ } }
 function loadSavedRoom(): string | null { try { return localStorage.getItem(LS_KEY) } catch { return null } }
+
+// Detecta, já na HOME, se o técnico tem uma partida online em andamento pra
+// retomar (sala salva no aparelho + estado ainda vivo no banco). Devolve o
+// código da sala e um `resume()` que reconecta na hora — sem precisar entrar
+// pelo "JOGAR ONLINE". Se não houver nada válido, devolve null.
+export function useResumableRoom() {
+  const { dispatch } = useEsc()
+  const [info, setInfo] = useState<{ code: string } | null>(null)
+  const roomRef = useRef<RoomInfo | null>(null)
+  const userRef = useRef<User | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      const savedId = loadSavedRoom()
+      if (!savedId) return
+      const { data: auth } = await supabase.auth.getUser()
+      const user = auth?.user
+      if (!user || !alive) return
+      userRef.current = user
+      const { data: rd } = await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()
+      if (!rd || rd.game_state?.__game !== GAME_TAG) { clearSavedRoom(); return }
+      const gs = rd.game_state as GS | undefined
+      const inProgress = rd.status === 'started' && !!gs && Array.isArray(gs.managers)
+        && gs.managers.length > 0 && !!gs.screen && gs.screen !== 'intro' && gs.screen !== 'lobby'
+      if (!inProgress) return
+      // confirma que ainda sou um dos técnicos da sala
+      const { data: mySlot } = await supabase.from('room_players').select('user_id').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
+      if (!mySlot || !alive) return
+      roomRef.current = rd as RoomInfo
+      setInfo({ code: rd.code })
+    })()
+    return () => { alive = false }
+  }, [])
+
+  const resume = useCallback(async () => {
+    const rd = roomRef.current, user = userRef.current
+    if (!rd || !user) return
+    const { data: freshRoom } = await supabase.from('game_rooms').select('game_state').eq('id', rd.id).maybeSingle()
+    const gs = (freshRoom?.game_state ?? rd.game_state) as GS | undefined
+    const { data: allPlayers } = await supabase.from('room_players').select('*').eq('room_id', rd.id).order('player_index')
+    const sorted = (allPlayers ?? []) as RoomPlayer[]
+    const myPl = sorted.find(p => p.user_id === user.id)
+    if (!myPl) return
+    saveRoom(rd.id)
+    const amHost = rd.host_id === user.id
+    const inProgress = !!gs && Array.isArray(gs.managers) && gs.managers.length > 0
+      && !!gs.screen && gs.screen !== 'intro' && gs.screen !== 'lobby'
+    if (inProgress) {
+      dispatch({ type: 'RESTORE_ONLINE', state: gs as EscState, roomId: rd.id, roomCode: rd.code, isHost: amHost, playerIndex: myPl.player_index })
+    } else {
+      dispatch({ type: 'START_ONLINE', roomId: rd.id, roomCode: rd.code, isHost: amHost, playerIndex: myPl.player_index, playerNames: sorted.map(p => p.manager_name), formation: gs?.formation ?? '4-3-3' })
+    }
+  }, [dispatch])
+
+  return info ? { code: info.code, resume } : null
+}
 
 function Field({ label, ...props }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
