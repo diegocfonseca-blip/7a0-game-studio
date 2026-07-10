@@ -34,38 +34,46 @@ jobs:
         with:
           node-version: 20
 
-      # Build old game
+      # Build 0a7 Legends (agora servido em /0a7/, domínio próprio na raiz)
       - name: Build 0a7 Legends
         working-directory: old-game
         run: |
           npm ci
-          npm run build
+          DEPLOY_BASE=/0a7/ npm run build
           mv dist ../legends-dist
         env:
           VITE_GEMINI_API_KEY: ${{ secrets.LENDASSECRET }}
 
-      # Build new game with /ladrao/ base path
+      # Build O Ladrão de Lendas em /ladrao/
       - name: Build O Ladrão de Lendas
         working-directory: new-game
         run: |
           npm ci
-          DEPLOY_BASE=/7a0-game-studio/ladrao/ npm run build
+          DEPLOY_BASE=/ladrao/ npm run build
 
-      # Build Leilão Legends 38 (só o jogo da escalação) a partir do main
-      - name: Build Leilão Legends 38
+      # Build Leilão Legends 38 na RAIZ (leilaolegends.com abre direto no jogo)
+      - name: Build Leilão Legends 38 (raiz)
         working-directory: old-game
         run: |
-          DEPLOY_BASE=/7a0-game-studio/leilao-legends-38/ VITE_ONLY_GAME=escalacao npm run build
-          mv dist ../leilao-dist
+          DEPLOY_BASE=/ VITE_ONLY_GAME=escalacao npm run build
+          mv dist ../leilao-root-dist
 
-      # Combine: legends at root, ladrão at /ladrao/, leilão legends at /leilao-legends-38/
+      # Build Leilão também em /leilao-legends-38/ (mantém o link antigo funcionando)
+      - name: Build Leilão Legends 38 (compat /leilao-legends-38/)
+        working-directory: old-game
+        run: |
+          DEPLOY_BASE=/leilao-legends-38/ VITE_ONLY_GAME=escalacao npm run build
+          mv dist ../leilao-sub-dist
+
+      # Combine: Leilão na raiz · 0a7 em /0a7/ · ladrão em /ladrao/ · leilão compat em /leilao-legends-38/
       - name: Combine builds
         run: |
-          mkdir -p final-dist/ladrao final-dist/leilao-legends-38
-          cp -r legends-dist/. final-dist/
+          mkdir -p final-dist/0a7 final-dist/ladrao final-dist/leilao-legends-38
+          cp -r leilao-root-dist/. final-dist/
+          cp -r legends-dist/. final-dist/0a7/
           cp -r new-game/dist/. final-dist/ladrao/
-          cp -r leilao-dist/. final-dist/leilao-legends-38/
-          cp -r leilao-dist/. final-dist/leilao-legends-38/
+          cp -r leilao-sub-dist/. final-dist/leilao-legends-38/
+          echo "leilaolegends.com" > final-dist/CNAME
 
       - uses: actions/upload-pages-artifact@v3
         with:
