@@ -381,7 +381,7 @@ const GOL: C[] = [
   { name: "Vladimir", club: "Coritiba", year: 2011, fame: 1, lo: 58, hi: 77 },
   { name: "Raul Plassmann", club: "Cruzeiro", year: 1976, fame: 4, lo: 84, hi: 90 },
   { name: "Léo Jardim", club: "Vasco", year: 2024, fame: 3, lo: 77, hi: 84 },
-  { name: "Hugo Souza", club: "Corinthians", year: 2025, fame: 3, lo: 76, hi: 84 },
+  { name: "Hugo Neneca", club: "Corinthians", year: 2025, fame: 3, lo: 76, hi: 84 },
   { name: "Clemer", club: "Internacional", year: 2004, fame: 3, lo: 74, hi: 83 },
 ]
 
@@ -560,6 +560,7 @@ const MEI: C[] = [
 ]
 
 const ATA: C[] = [
+  { name: "Clodoaldo Matador", club: "Fortaleza", year: 2004, fame: 1, lo: 58, hi: 78, folk: true },
   { name: "Pelé", club: "Santos", year: 1962, fame: 5, lo: 97, hi: 99 },
   { name: "Garrincha", club: "Botafogo", year: 1958, fame: 5, lo: 95, hi: 99 },
   { name: "Romário", club: "Vasco", year: 2000, fame: 5, lo: 94, hi: 98 },
