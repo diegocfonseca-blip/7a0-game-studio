@@ -499,6 +499,81 @@ export function sortedTable(league: LeagueTeam[]): LeagueTeam[] {
     b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf || a.name.localeCompare(b.name))
 }
 
+// ─── rivalidade de clássicos (só entre humanos) ──────────────────────
+export function rivKey(a: number, b: number): string { return a < b ? `${a}v${b}` : `${b}v${a}` }
+// retrospecto de um humano contra um adversário, do ponto de vista de "youId"
+export function rivalryOf(rivalries: Record<string, [number, number, number]>, youId: number, oppId: number): { w: number; l: number; d: number } {
+  const rec = rivalries[rivKey(youId, oppId)]
+  if (!rec) return { w: 0, l: 0, d: 0 }
+  const youLow = youId < oppId
+  return { w: youLow ? rec[0] : rec[1], l: youLow ? rec[1] : rec[0], d: rec[2] }
+}
+function bumpRivalry(s: EscState, aId: number, bId: number, aGoals: number, bGoals: number) {
+  const key = rivKey(aId, bId)
+  const cur: [number, number, number] = s.rivalries[key] ? [...s.rivalries[key]] : [0, 0, 0]
+  const lowId = Math.min(aId, bId)
+  if (aGoals === bGoals) cur[2]++
+  else {
+    const winnerId = aGoals > bGoals ? aId : bId
+    if (winnerId === lowId) cur[0]++; else cur[1]++
+  }
+  s.rivalries[key] = cur
+}
+
+// ─── narração viva da rodada: manchetes NEUTRAS (iguais pra sala toda) ───
+// A parte pessoal ("Você colou no G4") é feita no cliente, por quem vê.
+function narrateRound(s: EscState, results: MatchResult[], prevRank: Map<number, number>,
+  prevGoals: Map<string, number>, roundNum: number): string[] {
+  const nameOf = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
+  const nowSorted = sortedTable(s.league)
+  const heads: string[] = []
+
+  // 1) novo líder?
+  const leader = nowSorted[0]
+  const prevLeaderId = [...prevRank.entries()].find(([, r]) => r === 1)?.[0]
+  if (leader && prevLeaderId != null && prevLeaderId !== leader.id) {
+    heads.push(`👑 ${leader.name} assumiu a liderança do campeonato!`)
+  }
+
+  // 2) artilheiro pegando fogo (cruzou marca de 5 gols nesta rodada)
+  let milestone: { name: string; team: string; g: number } | null = null
+  for (const sc of s.scorers) {
+    const before = prevGoals.get(sc.name + ':' + sc.teamId) ?? 0
+    if (sc.goals >= 5 && Math.floor(sc.goals / 5) > Math.floor(before / 5)) {
+      if (!milestone || sc.goals > milestone.g) milestone = { name: sc.name, team: sc.teamName, g: sc.goals }
+    }
+  }
+  if (milestone) heads.push(`🎯 ${milestone.name} (${milestone.team}) tá pegando fogo: ${milestone.g} gols na temporada!`)
+
+  // 3) zebra da rodada (vencedor bem pior colocado que o perdedor)
+  let zebra: { winId: number; loseId: number; wr: number; lr: number; wg: number; lg: number; gap: number } | null = null
+  for (const r of results) {
+    if (r.hg === r.ag) continue
+    const winId = r.hg > r.ag ? r.homeId : r.awayId
+    const loseId = r.hg > r.ag ? r.awayId : r.homeId
+    const wr = prevRank.get(winId) ?? 20, lr = prevRank.get(loseId) ?? 20
+    const gap = wr - lr
+    if (gap >= 8 && (!zebra || gap > zebra.gap)) {
+      zebra = { winId, loseId, wr, lr, wg: Math.max(r.hg, r.ag), lg: Math.min(r.hg, r.ag), gap }
+    }
+  }
+  if (zebra) heads.push(`😱 ZEBRA! ${nameOf(zebra.winId)} (${zebra.wr}º) derrubou o ${nameOf(zebra.loseId)} (${zebra.lr}º): ${zebra.wg}×${zebra.lg}.`)
+
+  // 4) goleada da rodada (fora a zebra, se sobrar espaço)
+  let big: { r: MatchResult; d: number } | null = null
+  for (const r of results) {
+    const d = Math.abs(r.hg - r.ag)
+    if (d >= 4 && (!big || d > big.d)) big = { r, d }
+  }
+  if (big && (!zebra || (big.r.homeId !== zebra.winId && big.r.homeId !== zebra.loseId))) {
+    const winId = big.r.hg > big.r.ag ? big.r.homeId : big.r.awayId
+    const loseId = big.r.hg > big.r.ag ? big.r.awayId : big.r.homeId
+    heads.push(`💥 ${nameOf(winId)} goleou o ${nameOf(loseId)}: ${Math.max(big.r.hg, big.r.ag)}×${Math.min(big.r.hg, big.r.ag)}.`)
+  }
+
+  return heads.slice(0, 3).map(h => `R${roundNum} · ${h}`)
+}
+
 // ─── monte final: ordem serpente por buracos ─────────────────────────
 function buildMonteOrder(managers: Manager[], rng: () => number): number[] {
   const withHoles = managers.filter(m => totalHoles(m) > 0)
@@ -656,6 +731,7 @@ const INITIAL: EscState = {
   seasonNo: 1,
   restartPending: false, restartReady: [],
   tiebreaks: [], tiebreakIdx: 0, tiebreakPending: {},
+  rivalries: {},
 }
 
 // ─── ações ───────────────────────────────────────────────────────────
@@ -873,6 +949,7 @@ export function reducer(state: EscState, action: Action): EscState {
     // mesmo elenco — exatamente o "pegamos o mesmo jogador" relatado.
     return {
       ...action.newState,
+      rivalries: action.newState.rivalries ?? {}, // saves/broadcasts antigos
       youIdx: state.youIdx,
       isHost: state.isHost,
       roomId: state.roomId,
@@ -886,6 +963,7 @@ export function reducer(state: EscState, action: Action): EscState {
     // cliente; efêmeros host-only voltam limpos (já vêm sanitizados).
     return {
       ...action.state,
+      rivalries: action.state.rivalries ?? {}, // saves antigos sem o campo
       onlineMode: 'online',
       roomId: action.roomId,
       roomCode: action.roomCode,
@@ -1060,11 +1138,19 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'PLAY_ROUND':
     case 'SIM_MANY': {
       const times = action.type === 'PLAY_ROUND' ? 1 : action.count
+      const isHumanId = (id: number) => !!s.managers.find(m => m.id === id && m.isHuman)
       for (let i = 0; i < times && s.round < TOTAL_ROUNDS; i++) {
         const rng = mulberry(s.seed + 5000 + s.round * 37)
+        // fotografa posições e gols ANTES pra narrar as viradas
+        const prevRank = new Map(sortedTable(s.league).map((t, idx) => [t.id, idx + 1]))
+        const prevGoals = new Map(s.scorers.map(sc => [sc.name + ':' + sc.teamId, sc.goals]))
         const results = s.fixtures[s.round].map(([h, a]) => simMatch(s, h, a, rng))
         results.forEach(r => applyResult(s.league, r))
+        // rivalidade: só confrontos entre dois humanos contam
+        results.forEach(r => { if (isHumanId(r.homeId) && isHumanId(r.awayId)) bumpRivalry(s, r.homeId, r.awayId, r.hg, r.ag) })
         s.lastResults = results
+        const heads = narrateRound(s, results, prevRank, prevGoals, s.round + 1)
+        s.news = [...heads, ...s.news]
         s.round++
       }
       s.news = s.news.slice(0, 12)
