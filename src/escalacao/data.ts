@@ -381,6 +381,8 @@ const GOL: C[] = [
   { name: "Vladimir", club: "Coritiba", year: 2011, fame: 1, lo: 58, hi: 77 },
   { name: "Raul Plassmann", club: "Cruzeiro", year: 1976, fame: 4, lo: 84, hi: 90 },
   { name: "Léo Jardim", club: "Vasco", year: 2024, fame: 3, lo: 77, hi: 84 },
+  { name: "Hugo Souza", club: "Corinthians", year: 2025, fame: 3, lo: 76, hi: 84 },
+  { name: "Clemer", club: "Internacional", year: 2004, fame: 3, lo: 74, hi: 83 },
 ]
 
 const LAT: C[] = [
