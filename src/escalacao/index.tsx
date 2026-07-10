@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { EscProvider, useEsc } from './store'
 import { EscIntro, EscSetup, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum } from './screens'
 import { EscLobby } from './lobby'
+import { AdminPanel } from './admin'
 
 function Router() {
   const { state } = useEsc()
@@ -24,6 +25,7 @@ export default function EscalacaoGame() {
   return (
     <EscProvider>
       <Router />
+      <AdminPanel />
     </EscProvider>
   )
 }

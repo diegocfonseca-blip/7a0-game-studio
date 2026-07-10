@@ -7,6 +7,7 @@ import type {
 import { SECTORS, FORMATIONS } from './types'
 import { CATALOG, makeIncognita, CPU_MANAGERS, CLASSIC_CLUBS } from './data'
 import { supabase } from '../lib/supabase'
+import { logPlay, logVisit, heartbeat } from './analytics'
 
 export const START_MONEY = 100
 const LEAGUE_SIZE = 20
@@ -1280,6 +1281,34 @@ export function EscProvider({ children }: { children: ReactNode }) {
     }, 3000)
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
   }, [state])
+
+  // ─── analytics: registra cada partida e mantém o "ao vivo" ───
+  // uma partida = entrar no leilão (vale solo e online; cada humano registra a
+  // sua, então online conta N pessoas). Jogadores anônimos também entram.
+  const prevScreenRef = useRef(state.screen)
+  useEffect(() => {
+    const prev = prevScreenRef.current
+    prevScreenRef.current = state.screen
+    if (state.screen === 'auction' && prev !== 'auction') {
+      const st = stateRef.current
+      logPlay(st.onlineMode, st.managers[st.youIdx]?.teamName)
+    }
+  }, [state.screen])
+
+  // registra 1 visita ao abrir o site (jogando ou não)
+  useEffect(() => { logVisit() }, [])
+
+  // heartbeat "estou no site agora" a cada 30s — em QUALQUER tela (a home
+  // conta como "ao vivo no site"; as telas de jogo contam como "jogando").
+  useEffect(() => {
+    const beat = () => {
+      const st = stateRef.current
+      heartbeat(st.onlineMode, st.managers[st.youIdx]?.teamName, st.screen)
+    }
+    beat()
+    const iv = setInterval(beat, 30_000)
+    return () => clearInterval(iv)
+  }, [state.screen, state.onlineMode])
 
   const showHostBanner = state.onlineMode === 'online' && !state.isHost && hostStale
     && state.screen !== 'intro' && state.screen !== 'lobby'
