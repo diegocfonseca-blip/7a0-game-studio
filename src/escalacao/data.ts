@@ -355,7 +355,7 @@ const GOL: C[] = [
   { name: "Victor", club: "Atlético-MG", year: 2013, fame: 3, lo: 76, hi: 84 },
   { name: "Danrlei", club: "Grêmio", year: 1997, fame: 2, lo: 62, hi: 82 },
   { name: "Aranha", club: "Santos", year: 2011, fame: 2, lo: 60, hi: 80 },
-  { name: "Manga", club: "Botafogo", year: 1966, fame: 4, lo: 85, hi: 92 },
+  { name: "Manga", club: "Botafogo", year: 1966, fame: 4, lo: 85, hi: 92, folk: true },
   { name: "Fábio Costa", club: "Santos", year: 2002, fame: 2, lo: 62, hi: 82 },
   { name: "Gatito Fernández", club: "Botafogo", year: 2017, fame: 2, lo: 64, hi: 82 },
   { name: "Alisson", club: "Internacional", year: 2015, fame: 3, lo: 78, hi: 84, promessa: true },
@@ -379,6 +379,8 @@ const GOL: C[] = [
   { name: "Deola", club: "Palmeiras", year: 2007, fame: 1, lo: 58, hi: 77 },
   { name: "Fernando Henrique", club: "Fluminense", year: 2010, fame: 1, lo: 60, hi: 79 },
   { name: "Vladimir", club: "Coritiba", year: 2011, fame: 1, lo: 58, hi: 77 },
+  { name: "Raul Plassmann", club: "Cruzeiro", year: 1976, fame: 4, lo: 84, hi: 90 },
+  { name: "Léo Jardim", club: "Vasco", year: 2024, fame: 3, lo: 77, hi: 84 },
 ]
 
 const LAT: C[] = [
