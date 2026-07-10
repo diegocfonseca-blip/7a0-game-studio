@@ -360,10 +360,10 @@ const GOL: C[] = [
   { name: "Gatito Fernández", club: "Botafogo", year: 2017, fame: 2, lo: 64, hi: 82 },
   { name: "Alisson", club: "Internacional", year: 2015, fame: 3, lo: 78, hi: 84, promessa: true },
   { name: "Hélton", club: "Vasco", year: 2000, fame: 3, lo: 76, hi: 84 },
-  { name: "Alex Muralha", club: "Flamengo", year: 2017, fame: 1, lo: 55, hi: 75, folk: true },
-  { name: "Sidão", club: "São Paulo", year: 2017, fame: 1, lo: 54, hi: 74, folk: true },
+  { name: "Alex Muralha", club: "Flamengo", year: 2017, fame: 1, lo: 55, hi: 75 },
+  { name: "Sidão", club: "São Paulo", year: 2017, fame: 1, lo: 54, hi: 74 },
   { name: "Diego Alves", club: "Flamengo", year: 2020, fame: 4, lo: 84, hi: 91 },
-  { name: "Bruno", club: "Flamengo", year: 2009, fame: 2, lo: 66, hi: 82, folk: true },
+  { name: "Bruno", club: "Flamengo", year: 2009, fame: 2, lo: 66, hi: 82 },
   { name: "Fernando Prass", club: "Palmeiras", year: 2015, fame: 4, lo: 83, hi: 90 },
   { name: "Heurelho Gomes", club: "Cruzeiro", year: 2003, fame: 4, lo: 82, hi: 90 },
   { name: "Éverson", club: "Atlético-MG", year: 2021, fame: 3, lo: 78, hi: 85 },
@@ -375,6 +375,10 @@ const GOL: C[] = [
   { name: "Marcelo Lomba", club: "Internacional", year: 2019, fame: 2, lo: 64, hi: 82 },
   { name: "Harlei", club: "Goiás", year: 2005, fame: 2, lo: 62, hi: 82 },
   { name: "Magrão", club: "Sport", year: 2008, fame: 2, lo: 62, hi: 82 },
+  { name: "Castilho", club: "Fluminense", year: 1960, fame: 5, lo: 90, hi: 95 },
+  { name: "Deola", club: "Palmeiras", year: 2007, fame: 1, lo: 58, hi: 77 },
+  { name: "Fernando Henrique", club: "Fluminense", year: 2010, fame: 1, lo: 60, hi: 79 },
+  { name: "Vladimir", club: "Coritiba", year: 2011, fame: 1, lo: 58, hi: 77 },
 ]
 
 const LAT: C[] = [
