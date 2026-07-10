@@ -207,6 +207,10 @@ export function EscIntro() {
         <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg" bg={GREEN}>
           <span className="text-white">👥 JOGAR ONLINE (SALA)</span>
         </Btn>
+        <div className="flex gap-3">
+          <div className="flex-1"><Btn onClick={() => dispatch({ type: 'GO_ALBUM' })} className="w-full" bg="#fff">📖 Álbum</Btn></div>
+          <div className="flex-1"><Btn onClick={() => dispatch({ type: 'GO_RANKING' })} className="w-full" bg="#fff">🏆 Ranking</Btn></div>
+        </div>
         <AdminButton />
       </div>
       <CardAccountNote />
@@ -1721,7 +1725,7 @@ export function EscAlbum() {
           <CollectibleCard key={i} name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} />
         ))}
       </div>
-      <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg">← Voltar</Btn>
+      <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">← Voltar</Btn>
     </Shell>
   )
 }
@@ -1817,7 +1821,7 @@ export function EscRanking() {
           <p className="font-bold text-black/70 text-sm">Faça login pra aparecer no ranking e ganhar cartas.</p>
         </Box>
       )}
-      <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg">← Voltar</Btn>
+      <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">← Voltar</Btn>
     </Shell>
   )
 }
