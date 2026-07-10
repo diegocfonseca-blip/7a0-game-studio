@@ -1436,28 +1436,34 @@ function HallDaFama({ roomId, isHost, seasonNo, champName, scorerName, scorerGoa
   roomId: string; isHost: boolean; seasonNo: number; champName: string; scorerName?: string; scorerGoals?: number
 }) {
   const [rows, setRows] = useState<ChampionRow[] | null>(null)
-  const wroteRef = useRef(false)
 
   useEffect(() => {
-    if (!isHost || wroteRef.current) return
-    wroteRef.current = true
+    let alive = true
     ;(async () => {
-      // não duplica se essa temporada já foi registrada (ex.: reabriu a tela)
-      const { data: existing } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', seasonNo).maybeSingle()
-      if (existing) return
-      await supabase.from('game_champions').insert({
-        room_id: roomId, season_no: seasonNo, champion_name: champName,
-        top_scorer_name: scorerName ?? null, top_scorer_goals: scorerGoals ?? null,
-      })
-    })()
-  }, [isHost, roomId, seasonNo, champName, scorerName, scorerGoals])
-
-  useEffect(() => {
-    ;(async () => {
+      // 1) HOST grava (ou corrige) o campeão DESTA temporada ANTES de ler —
+      // antes a leitura corria em paralelo com a escrita e a temporada atual
+      // não aparecia, mostrando só a anterior (parecia campeão errado).
+      if (isHost) {
+        const { data: existing } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', seasonNo).maybeSingle()
+        const payload = { champion_name: champName, top_scorer_name: scorerName ?? null, top_scorer_goals: scorerGoals ?? null }
+        if (existing) await supabase.from('game_champions').update(payload).eq('id', existing.id)
+        else await supabase.from('game_champions').insert({ room_id: roomId, season_no: seasonNo, ...payload })
+      }
+      // 2) lê o histórico completo
       const { data } = await supabase.from('game_champions').select('season_no, champion_name, top_scorer_name, top_scorer_goals').eq('room_id', roomId).order('season_no', { ascending: true })
-      setRows((data ?? []) as ChampionRow[])
+      if (!alive) return
+      const list = (data ?? []) as ChampionRow[]
+      // 3) garante que a temporada ATUAL esteja na lista mesmo que a escrita do
+      // host ainda não tenha propagado (guest lê antes) — usa o campeão local,
+      // que é o mesmo mostrado no topo da tela final.
+      if (!list.some(r => r.season_no === seasonNo)) {
+        list.push({ season_no: seasonNo, champion_name: champName, top_scorer_name: scorerName ?? null, top_scorer_goals: scorerGoals ?? null })
+        list.sort((a, b) => a.season_no - b.season_no)
+      }
+      setRows(list)
     })()
-  }, [roomId, seasonNo])
+    return () => { alive = false }
+  }, [isHost, roomId, seasonNo, champName, scorerName, scorerGoals])
 
   if (!rows || rows.length === 0) return null
   return (
