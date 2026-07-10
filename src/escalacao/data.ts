@@ -371,7 +371,6 @@ const GOL: C[] = [
   { name: "Muriel", club: "Fluminense", year: 2012, fame: 3, lo: 74, hi: 83 },
   { name: "Renan", club: "Internacional", year: 2010, fame: 3, lo: 74, hi: 83 },
   { name: "Doni", club: "Corinthians", year: 2005, fame: 3, lo: 76, hi: 84 },
-  { name: "Waldir Peres", club: "São Paulo", year: 1977, fame: 3, lo: 78, hi: 84 },
   { name: "Rafael Cabral", club: "Santos", year: 2011, fame: 3, lo: 74, hi: 82, promessa: true },
   { name: "Marcelo Lomba", club: "Internacional", year: 2019, fame: 2, lo: 64, hi: 82 },
   { name: "Harlei", club: "Goiás", year: 2005, fame: 2, lo: 62, hi: 82 },
