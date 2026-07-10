@@ -124,6 +124,15 @@ function CardFace({ c, big = false }: { c: Card; big?: boolean }) {
 export function EscIntro() {
   const { dispatch } = useEsc()
   const resumable = useResumableRoom()
+  const [shared, setShared] = useState(false)
+  const shareGame = async () => {
+    const data = { title: 'Leilão Legends', text: 'Bora jogar Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨⚽', url: 'https://leilaolegends.com' }
+    try {
+      if (navigator.share) { await navigator.share(data); return }
+      await navigator.clipboard.writeText('https://leilaolegends.com')
+      setShared(true); setTimeout(() => setShared(false), 2500)
+    } catch { /* usuário cancelou */ }
+  }
   return (
     <Shell>
       {resumable && (
@@ -155,9 +164,17 @@ export function EscIntro() {
         <AdminButton />
       </div>
       <CardAccountNote />
-      <footer className="text-center pt-2 pb-6">
-        <p className="text-black/40 text-xs font-semibold">criado por @diegocfonseca</p>
-        <a href="mailto:diego.c.fonseca@gmail.com" className="text-black/35 text-xs font-semibold underline">diego.c.fonseca@gmail.com</a>
+      <Btn onClick={shareGame} className="w-full" bg="#fff">
+        📤 {shared ? 'Link copiado! Cola no zap 📲' : 'Compartilhar com os amigos'}
+      </Btn>
+      <footer className="text-center pt-3 pb-6 space-y-1.5">
+        <p className="text-black/55 text-xs font-bold">💡 Ideia de jogador novo, sugestão ou achou um bug? Fala comigo:</p>
+        <p className="text-xs font-bold">
+          <a href="https://instagram.com/diegocfonseca" target="_blank" rel="noopener noreferrer" className="text-black/60 underline">📸 @diegocfonseca</a>
+          <span className="text-black/30"> · </span>
+          <a href="mailto:diego.c.fonseca@gmail.com" className="text-black/60 underline">✉️ diego.c.fonseca@gmail.com</a>
+        </p>
+        <p className="text-black/30 text-[11px] font-semibold pt-1">Feito por @diegocfonseca — D7 Studio</p>
       </footer>
     </Shell>
   )
