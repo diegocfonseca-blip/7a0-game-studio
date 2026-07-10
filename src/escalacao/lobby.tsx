@@ -148,7 +148,12 @@ export function EscLobby() {
     const sorted = (allPlayers ?? []) as RoomPlayer[]
     const myPl = sorted.find(p => p.user_id === user.id)
     if (!myPl) return
-    clearSavedRoom()
+    // NÃO limpa a sala salva aqui: ela precisa sobreviver ao jogo inteiro pra
+    // que atualizar a página (ou o app descartar a aba) reconecte o técnico —
+    // inclusive o host. Só limpamos quando alguém sai de propósito (leaveRoom,
+    // "Menu inicial", "Sair da conta"). Antes, limpar aqui fazia o host que
+    // recarregava cair na lista de salas e abandonar a partida.
+    saveRoom(roomData.id)
     const amHost = roomData.host_id === user.id
     // partida já em andamento salva no banco → RESTAURA (evita resetar tudo
     // quando alguém reconecta ou o host recarrega/cai). Caso contrário, é o
@@ -423,9 +428,9 @@ export function EscLobby() {
       {roomError && <p className="text-red-400 text-sm font-bold">{roomError}</p>}
       <Big onClick={() => dispatch({ type: 'GO_ALBUM' })} color="#fff">📖 Meu Álbum</Big>
       <AdminButton />
-      <button onClick={() => supabase.auth.signOut()} className="text-white/30 text-xs underline w-full text-center">Sair da conta</button>
-      <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">← Menu inicial</button>
-    </>, () => dispatch({ type: 'GO_LOBBY' }))
+      <button onClick={() => { clearSavedRoom(); supabase.auth.signOut() }} className="text-white/30 text-xs underline w-full text-center">Sair da conta</button>
+      <button onClick={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} className="text-white/40 text-sm underline w-full text-center">← Menu inicial</button>
+    </>, () => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) })
   }
 
   if (phase === 'waiting' && room) {
