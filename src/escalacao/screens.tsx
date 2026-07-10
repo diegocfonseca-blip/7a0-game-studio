@@ -5,6 +5,7 @@ import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
 import { useEsc, openSlots, totalHoles, sortedTable, topScorers, START_MONEY, MONTE_SECONDS, BATCH_SIZE } from './store'
 import { supabase } from '../lib/supabase'
 import { CATALOG, BIOS, PROMESSA_SET } from './data'
+import { AdminButton } from './admin'
 
 const CATALOG_TOTAL = Object.values(CATALOG).reduce((s, arr) => s + arr.length, 0)
 
@@ -141,7 +142,12 @@ export function EscIntro() {
         <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg" bg={GREEN}>
           <span className="text-white">👥 JOGAR ONLINE (SALA)</span>
         </Btn>
+        <AdminButton />
       </div>
+      <footer className="text-center pt-2 pb-6">
+        <p className="text-black/40 text-xs font-semibold">criado por @diegocfonseca</p>
+        <a href="mailto:diego.c.fonseca@gmail.com" className="text-black/35 text-xs font-semibold underline">diego.c.fonseca@gmail.com</a>
+      </footer>
     </Shell>
   )
 }
@@ -154,7 +160,11 @@ export function EscSetup() {
   const [rivals, setRivals] = useState(5)
   return (
     <Shell>
-      <h2 className="font-black text-3xl pt-6" style={OSWALD}>MONTE SUA SALA</h2>
+      <button onClick={() => dispatch({ type: 'GO_LOBBY' })}
+        className="flex items-center gap-1 text-black/60 font-black text-sm pt-4 -mb-2 active:opacity-60" style={OSWALD}>
+        <span className="text-lg leading-none">←</span> Home
+      </button>
+      <h2 className="font-black text-3xl pt-2" style={OSWALD}>MONTE SUA SALA</h2>
       <Box className="p-4 space-y-4">
         <div>
           <p className="text-xs font-black uppercase mb-1">Nome do seu time</p>
