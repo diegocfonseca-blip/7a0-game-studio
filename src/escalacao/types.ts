@@ -134,6 +134,7 @@ export type Screen =
   | 'season'
   | 'end'
   | 'album'
+  | 'ranking'
 
 export type OnlineMode = 'cpu' | 'online'
 

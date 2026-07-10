@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { EscProvider, useEsc } from './store'
-import { EscIntro, EscSetup, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum } from './screens'
+import { EscIntro, EscSetup, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum, EscRanking } from './screens'
 import { EscLobby } from './lobby'
 import { AdminPanel } from './admin'
 
@@ -17,6 +17,7 @@ function Router() {
     case 'season':    return <EscSeason />
     case 'end':       return <EscEnd />
     case 'album':     return <EscAlbum />
+    case 'ranking':   return <EscRanking />
     default:          return <EscIntro />
   }
 }

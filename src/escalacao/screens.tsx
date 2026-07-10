@@ -1701,6 +1701,119 @@ export function EscAlbum() {
   )
 }
 
+// ─── RANKING DE TÉCNICOS (só contas) ─────────────────────────────────
+type RankMode = 'geral' | 'online' | 'cpu'
+interface RankRow { user_id: string; name: string; titles: number; scorer_titles: number; goals: number; cards: number }
+
+export function EscRanking() {
+  const { dispatch } = useEsc()
+  const [mode, setMode] = useState<RankMode>('geral')
+  const [rows, setRows] = useState<RankRow[] | null>(null)
+  const [meId, setMeId] = useState<string | null>(null)
+
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null)) }, [])
+  useEffect(() => {
+    let alive = true
+    setRows(null)
+    ;(async () => {
+      const { data } = await supabase.rpc('esc_ranking', { p_mode: mode })
+      if (alive) setRows(((data ?? []) as RankRow[]))
+    })()
+    return () => { alive = false }
+  }, [mode])
+
+  const loading = rows === null
+  const list = rows ?? []
+  const inList = !!meId && list.some(r => r.user_id === meId)
+  const TABS: { id: RankMode; label: string }[] = [
+    { id: 'geral', label: 'Geral' },
+    { id: 'online', label: '👥 Online' },
+    { id: 'cpu', label: '🤖 CPU' },
+  ]
+  const medal = (i: number) => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`
+
+  return (
+    <Shell>
+      <div className="text-center pt-4">
+        <h2 className="font-black text-4xl" style={OSWALD}>🏆 RANKING</h2>
+        <p className="font-semibold text-black/60 mt-1">Só técnicos com cadastro. Ordenado por títulos, depois artilharias e gols.</p>
+      </div>
+
+      <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setMode(t.id)}
+            className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: mode === t.id ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <p className="text-center text-[11px] font-bold text-black/40">🏆 títulos · ⚽ artilharias · 🥅 gols · 🃏 cartas</p>
+
+      {loading && <p className="text-center font-bold text-black/60">Carregando…</p>}
+      {!loading && list.length === 0 && (
+        <Box bg="#fff" className="p-6 text-center">
+          <p className="font-bold text-black/70">Ninguém no ranking ainda. Seja o primeiro campeão! 🔨</p>
+        </Box>
+      )}
+      <div className="space-y-2">
+        {list.map((r, i) => (
+          <div key={r.user_id} className="flex items-center gap-3 border-[3px] border-black rounded-xl p-2.5"
+            style={{ background: r.user_id === meId ? GOLD : '#fff', boxShadow: `3px 3px 0 ${INK}` }}>
+            <span className="font-black text-lg w-9 text-center shrink-0" style={OSWALD}>{medal(i)}</span>
+            <span className="font-black text-black text-sm flex-1 min-w-0 truncate" style={OSWALD}>{r.name}{r.user_id === meId ? ' (você)' : ''}</span>
+            <span className="text-[11px] font-bold text-black/70 shrink-0 whitespace-nowrap">🏆{r.titles} ⚽{r.scorer_titles} 🥅{r.goals} 🃏{r.cards}</span>
+          </div>
+        ))}
+      </div>
+      {!loading && !inList && meId && (
+        <Box bg="#fff" className="p-3 text-center">
+          <p className="font-bold text-black/70 text-sm">Você ainda não tem resultado{mode !== 'geral' ? ` ${mode === 'online' ? 'no online' : 'no CPU'}` : ''}. Seja campeão pra entrar no ranking!</p>
+        </Box>
+      )}
+      {!loading && !meId && (
+        <Box bg="#fff" className="p-3 text-center">
+          <p className="font-bold text-black/70 text-sm">Faça login pra aparecer no ranking e ganhar cartas.</p>
+        </Box>
+      )}
+      <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg">← Voltar</Btn>
+    </Shell>
+  )
+}
+
+// Grava (silenciosamente) o meu resultado da temporada no ranking — só se eu
+// tiver conta. Uma linha por técnico por temporada (season_key deduplica). Cada
+// cliente grava o SEU: no online, todos os humanos entram; no CPU, só eu.
+function RankResultWriter() {
+  const { state } = useEsc()
+  const wrote = useRef(false)
+  useEffect(() => {
+    if (wrote.current) return
+    wrote.current = true
+    ;(async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const you = state.managers[state.youIdx]
+        const table = sortedTable(state.league)
+        if (!you || table.length === 0) return
+        const champ = table[0]
+        const myRow = table.find(t => t.id === you.id)
+        const top = topScorers(state, 1)[0]
+        const online = state.onlineMode === 'online'
+        const seasonKey = online ? `${state.roomId}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`
+        const displayName = user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? you.teamName
+        await supabase.from('esc_results').upsert({
+          user_id: user.id, display_name: displayName,
+          mode: online ? 'online' : 'cpu', season_key: seasonKey,
+          champion: champ.id === you.id, top_scorer: top?.teamId === you.id,
+          goals: myRow?.gf ?? 0,
+        }, { onConflict: 'user_id,season_key' })
+      } catch { /* nunca trava o jogo */ }
+    })()
+  }, [])
+  return null
+}
+
 // ─── FIM ─────────────────────────────────────────────────────────────
 export function EscEnd() {
   const { state, dispatch } = useEsc()
@@ -1720,6 +1833,7 @@ export function EscEnd() {
   const iAmReady = state.restartReady.includes(state.youIdx)
   return (
     <Shell>
+      <RankResultWriter />
       <div className="text-center pt-8">
         <p className="text-6xl">{youWon ? '🏆' : youPos <= 4 ? '🥈' : youPos >= 17 ? '🪦' : '📻'}</p>
         <h2 className="font-black text-4xl mt-2" style={OSWALD}>{youWon ? 'CAMPEÃO!' : `${youPos}º LUGAR`}</h2>
