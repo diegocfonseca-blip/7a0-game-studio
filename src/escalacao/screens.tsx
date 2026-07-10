@@ -1334,9 +1334,15 @@ function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk =
 
 // ─── prêmio de campeão: escolhe 1 carta do seu time pro álbum ─────────
 const CARD_PICK_SECONDS = 25
-function CardCollectPrompt({ you, seasonKey }: { you: Manager; seasonKey: string }) {
+// mapa nome → selos (folk/promessa) do catálogo, pra pintar as cartas do álbum
+// certas mesmo quando só guardamos o nome (cartas online antigas).
+const CARD_META = new Map<string, { folk?: boolean; promessa?: boolean }>()
+Object.values(CATALOG).flat().forEach(c => CARD_META.set(c.name, { folk: c.folk, promessa: c.promessa }))
+
+function CardCollectPrompt({ you, seasonKey, origin = 'online' }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online' }) {
   const { dispatch } = useEsc()
-  const [status, setStatus] = useState<'checking' | 'picking' | 'revealed'>('checking')
+  // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
+  const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
   const [claimed, setClaimed] = useState<WonCard | null>(null)
   const [deadline] = useState(() => Date.now() + CARD_PICK_SECONDS * 1000)
   const [now, setNow] = useState(() => Date.now())
@@ -1345,10 +1351,10 @@ function CardCollectPrompt({ you, seasonKey }: { you: Manager; seasonKey: string
   useEffect(() => {
     ;(async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setStatus('picking'); return }
+      if (!user) { setStatus('noauth'); return } // sem cadastro não ganha carta
       const { data } = await supabase.from('user_cards').select('*').eq('user_id', user.id).eq('season_key', seasonKey).maybeSingle()
       if (data) {
-        setClaimed({ id: 'x', name: data.card_name, club: data.card_club, year: data.card_year, pos: data.card_pos, fame: data.card_fame, lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard)
+        setClaimed({ id: 'x', name: data.card_name, club: data.card_club, year: data.card_year, pos: data.card_pos, fame: data.card_fame, ...(CARD_META.get(data.card_name) ?? {}), lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard)
         setStatus('revealed')
       } else {
         setStatus('picking')
@@ -1367,9 +1373,9 @@ function CardCollectPrompt({ you, seasonKey }: { you: Manager; seasonKey: string
     if (claimingRef.current) return
     claimingRef.current = true
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) { setStatus('noauth'); return }
     await supabase.from('user_cards').insert({
-      user_id: user.id, season_key: seasonKey,
+      user_id: user.id, season_key: seasonKey, origin,
       card_name: card.name, card_club: card.club, card_year: card.year, card_pos: card.pos, card_fame: card.fame,
     })
     setClaimed(card)
@@ -1385,6 +1391,16 @@ function CardCollectPrompt({ you, seasonKey }: { you: Manager; seasonKey: string
   }, [remaining, status])
 
   if (status === 'checking') return null
+
+  if (status === 'noauth') {
+    return (
+      <Box bg={GOLD} className="p-5 text-center" shadow={6}>
+        <p className="font-black text-lg" style={OSWALD}>🎴 Você foi campeão!</p>
+        <p className="text-xs font-bold text-black/70 mt-1 mb-3">As cartas-lembrança do álbum são só pra quem tem conta. Faça um cadastro rápido pra guardar seus craques — vale no CPU e no online.</p>
+        <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} bg={GREEN} className="w-full text-lg"><span className="text-white">Criar conta / Entrar →</span></Btn>
+      </Box>
+    )
+  }
 
   if (status === 'revealed' && claimed) {
     return (
@@ -1418,41 +1434,75 @@ function CardCollectPrompt({ you, seasonKey }: { you: Manager; seasonKey: string
 }
 
 // ─── álbum: coleção de cartas ganhas sendo campeão, entre partidas ────
-interface UserCardRow { card_name: string; card_club: string; card_year: number; card_pos: string; card_fame: number; obtained_at: string }
+interface UserCardRow { card_name: string; card_club: string; card_year: number; card_pos: string; card_fame: number; origin: string | null; obtained_at: string }
+interface AlbumCard { name: string; club: string; year: number; pos: Sector; fame: number; folk?: boolean; promessa?: boolean; origin: 'cpu' | 'online'; at: number }
+type AlbumFilter = 'all' | 'cpu' | 'online'
+
 export function EscAlbum() {
   const { dispatch } = useEsc()
-  const [cards, setCards] = useState<UserCardRow[] | null>(null)
+  const [cards, setCards] = useState<AlbumCard[] | null>(null)
+  const [filter, setFilter] = useState<AlbumFilter>('all')
 
   useEffect(() => {
     ;(async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setCards([]); return }
-      const { data } = await supabase.from('user_cards').select('card_name, card_club, card_year, card_pos, card_fame, obtained_at').eq('user_id', user.id).order('obtained_at', { ascending: false })
-      setCards((data ?? []) as UserCardRow[])
+      const { data } = await supabase.from('user_cards').select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at').eq('user_id', user.id).order('obtained_at', { ascending: false })
+      setCards(((data ?? []) as UserCardRow[]).map(c => ({
+        name: c.card_name, club: c.card_club, year: c.card_year, pos: c.card_pos as Sector, fame: c.card_fame,
+        ...(CARD_META.get(c.card_name) ?? {}),
+        origin: (c.origin === 'cpu' ? 'cpu' : 'online') as 'cpu' | 'online', // cartas antigas (origin nulo) contam como online
+        at: new Date(c.obtained_at).getTime(),
+      })))
     })()
   }, [])
 
-  const unique = useMemo(() => {
+  const loading = cards === null
+  const shown = useMemo(() => {
+    const all = cards ?? []
+    const byFilter = filter === 'all' ? all : all.filter(c => c.origin === filter)
     const seen = new Set<string>()
-    return (cards ?? []).filter(c => (seen.has(c.card_name) ? false : (seen.add(c.card_name), true)))
-  }, [cards])
+    return byFilter.filter(c => (seen.has(c.name) ? false : (seen.add(c.name), true)))
+  }, [cards, filter])
+
+  const nCpu = (cards ?? []).filter(c => c.origin === 'cpu').length
+  const nOnline = (cards ?? []).filter(c => c.origin === 'online').length
+  const TABS: { id: AlbumFilter; label: string }[] = [
+    { id: 'all', label: `Todos (${nCpu + nOnline})` },
+    { id: 'cpu', label: `🤖 CPU (${nCpu})` },
+    { id: 'online', label: `👥 Online (${nOnline})` },
+  ]
 
   return (
     <Shell>
       <div className="text-center pt-4">
         <h2 className="font-black text-4xl" style={OSWALD}>📖 MEU ÁLBUM</h2>
-        <p className="font-semibold text-black/60 mt-1">Só quem é campeão no modo online ganha carta — uma por título. Vai colecionando os craques.</p>
-        {cards && <p className="font-black text-lg mt-2" style={OSWALD}>{unique.length}/{CATALOG_TOTAL} craques</p>}
+        <p className="font-semibold text-black/60 mt-1">Campeão ganha uma carta-lembrança por título — no CPU ou no online. Vai colecionando os craques.</p>
+        {!loading && <p className="font-black text-lg mt-2" style={OSWALD}>{shown.length}/{CATALOG_TOTAL} craques{filter !== 'all' ? ` (${filter === 'cpu' ? '🤖 CPU' : '👥 Online'})` : ''}</p>}
       </div>
-      {cards === null && <p className="text-center font-bold text-black/60">Carregando…</p>}
-      {cards && cards.length === 0 && (
+
+      <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setFilter(t.id)}
+            className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: filter === t.id ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {loading && <p className="text-center font-bold text-black/60">Carregando…</p>}
+      {!loading && shown.length === 0 && (
         <Box bg="#fff" className="p-6 text-center">
-          <p className="font-bold text-black/70">Ainda sem cartas. Seja campeão de uma sala online pra ganhar a primeira!</p>
+          <p className="font-bold text-black/70">
+            {filter === 'online' ? 'Ainda sem cartas do online. Seja campeão de uma sala pra ganhar a primeira!'
+              : filter === 'cpu' ? 'Ainda sem cartas do CPU. Seja campeão jogando contra a CPU pra ganhar a primeira!'
+              : 'Ainda sem cartas. Seja campeão (no CPU ou online) pra ganhar a primeira!'}
+          </p>
         </Box>
       )}
       <div className="grid grid-cols-2 gap-3">
-        {cards?.map((c, i) => (
-          <CollectibleCard key={i} name={c.card_name} club={c.card_club} year={c.card_year} pos={c.card_pos} fame={c.card_fame} />
+        {shown.map((c, i) => (
+          <CollectibleCard key={i} name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} />
         ))}
       </div>
       <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg">← Voltar</Btn>
@@ -1487,7 +1537,10 @@ export function EscEnd() {
         </p>
       </div>
       {online && youWon && state.roomId && (
-        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}`} />
+        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}`} origin="online" />
+      )}
+      {!online && youWon && (
+        <CardCollectPrompt you={you} seasonKey={`cpu:${state.seed}:${state.seasonNo}`} origin="cpu" />
       )}
       <TableBox highlight={you.id} />
       <TopScorersBox highlight={you.id} />
