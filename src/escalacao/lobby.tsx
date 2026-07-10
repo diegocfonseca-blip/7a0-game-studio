@@ -219,6 +219,17 @@ export function EscLobby() {
     if (data) setPlayers(data as RoomPlayer[])
   }
 
+  // fui removido pelo host na sala de espera? sumi da lista (mas não sou o host
+  // e a lista já carregou) → volto sozinho pro menu com um aviso.
+  useEffect(() => {
+    if (phase !== 'waiting' || !room || !user || isHost) return
+    if (players.length === 0) return // lista ainda não carregou
+    if (players.some(p => p.user_id === user.id)) return
+    clearSavedRoom()
+    setRoom(null); setPlayers([]); setPhase('menu')
+    setTimeout(() => { try { alert('O host removeu você da sala.') } catch { /* ignora */ } }, 0)
+  }, [players, phase, room, user, isHost])
+
   // Busca a lista de jogadores DIRETO do banco (não confia em estado local
   // que pode estar vazio/desatualizado, ex.: logo após reconectar) — usar
   // uma lista errada aqui faz o jogo montar o time errado como "você".
@@ -393,6 +404,15 @@ export function EscLobby() {
     await supabase.from('room_players').delete().eq('room_id', room.id).eq('user_id', user.id)
     clearSavedRoom()
     setRoom(null); setPlayers([]); setPhase('menu')
+  }
+  // host remove um técnico da sala de espera (antes de abrir o pregão): apaga
+  // a vaga dele. O cliente removido percebe pela realtime que sumiu da lista e
+  // volta sozinho pro menu (efeito abaixo).
+  async function kickFromRoom(p: RoomPlayer) {
+    if (!room || !isHost || p.user_id === user?.id) return
+    if (!window.confirm(`Remover ${p.manager_name} da sala?`)) return
+    await supabase.from('room_players').delete().eq('room_id', room.id).eq('user_id', p.user_id)
+    fetchPlayers(room.id)
   }
 
   const wrap = (children: React.ReactNode, onBack?: () => void) => (
@@ -588,6 +608,11 @@ export function EscLobby() {
               <div className="w-8 h-8 rounded-full border-2 border-black bg-gray-300 flex items-center justify-center text-sm font-black">{p.manager_name[0]?.toUpperCase()}</div>
               <span className="font-black text-black text-sm flex-1">{p.manager_name}</span>
               {p.player_index === 0 && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full">HOST</span>}
+              {isHost && p.user_id !== user?.id && (
+                <button onClick={() => kickFromRoom(p)} aria-label={`Remover ${p.manager_name}`}
+                  className="shrink-0 w-6 h-6 rounded-full border border-black/20 text-black/40 font-black text-xs leading-none active:opacity-60"
+                  style={{ background: '#fff' }}>✕</button>
+              )}
             </div>
           ))}
           {players.length < 2 && <p className="text-black/40 text-xs italic mt-1">Aguardando mais técnicos…</p>}
