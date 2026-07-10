@@ -399,6 +399,40 @@ function rollManagerForm(m: Manager, tactic: Tactic, oppTactic: Tactic, rng: () 
   return { atk, def, inspired }
 }
 
+// força "de base" de um time (sem sorte/tática): usa o nível MÉDIO de cada
+// carta. Serve pra comparar humanos x bots e calibrar a dificuldade do CPU.
+function midPower(m: Manager): { atk: number; def: number } {
+  const rolls = m.squad.map(c => ({ pos: c.pos, lvl: (c.lo + c.hi) / 2 }))
+  const sector = (pos: Sector): number => {
+    const s = rolls.filter(r => r.pos === pos)
+    if (s.length === 0) return 40
+    const avg = s.reduce((x, r) => x + r.lvl, 0) / s.length
+    const min = Math.min(...s.map(r => r.lvl))
+    return avg - (avg - min) * 0.35
+  }
+  const gol = sector('GOL'), lat = sector('LAT'), zag = sector('ZAG'), mei = sector('MEI'), ata = sector('ATA')
+  return { atk: ata * 0.45 + mei * 0.35 + lat * 0.20, def: gol * 0.30 + zag * 0.40 + lat * 0.15 + mei * 0.15 }
+}
+
+// o CPU mais forte fica ~CPU_TOP_MARGIN acima da média dos humanos daquela
+// sala. Só DESLOCA a distribuição dos bots pra baixo quando eles estão acima
+// do alvo (Math.min(0,...)) — nunca deixa mais fácil buffando ninguém. Assim,
+// no online, o líder dá pra bater com bom elenco; no solo (humano forte) fica 0.
+const CPU_TOP_MARGIN = 4
+function computeCpuAdj(managers: Manager[]): { atk: number; def: number } {
+  const humans = managers.filter(m => m.isHuman)
+  const bots = managers.filter(m => !m.isHuman && m.squad.length > 0)
+  if (humans.length === 0 || bots.length === 0) return { atk: 0, def: 0 }
+  const hAtk = humans.reduce((s, m) => s + midPower(m).atk, 0) / humans.length
+  const hDef = humans.reduce((s, m) => s + midPower(m).def, 0) / humans.length
+  const bAtkMax = Math.max(...bots.map(m => midPower(m).atk))
+  const bDefMax = Math.max(...bots.map(m => midPower(m).def))
+  return {
+    atk: Math.min(0, (hAtk + CPU_TOP_MARGIN) - bAtkMax),
+    def: Math.min(0, (hDef + CPU_TOP_MARGIN) - bDefMax),
+  }
+}
+
 function poisson(lambda: number, rng: () => number): number {
   const L = Math.exp(-lambda)
   let k = 0, p = 1
@@ -421,9 +455,13 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   const awayTactic = tacticOf(awayId)
   const form = (id: number, opp: Tactic, own: Tactic): TeamForm => {
     const team = state.league.find(t => t.id === id)!
-    if (!team.isManager) return { atk: team.baseAtk + (rng() * 6 - 3), def: team.baseDef + (rng() * 6 - 3), inspired: null }
+    if (!team.isManager) return { atk: team.baseAtk + state.cpuAtkAdj + (rng() * 6 - 3), def: team.baseDef + state.cpuDefAdj + (rng() * 6 - 3), inspired: null }
     const m = state.managers.find(x => x.id === id)!
-    return rollManagerForm(m, own, opp, rng)
+    const f = rollManagerForm(m, own, opp, rng)
+    // bots (não-humanos) levam o ajuste de dificuldade pra acompanhar o nível
+    // dos humanos da sala. Humanos jogam com a própria força, sem ajuste.
+    if (!m.isHuman) { f.atk += state.cpuAtkAdj; f.def += state.cpuDefAdj }
+    return f
   }
   const fh = form(homeId, awayTactic, homeTactic)
   const fa = form(awayId, homeTactic, awayTactic)
@@ -722,6 +760,7 @@ const INITIAL: EscState = {
   lastResults: [], news: [], champion: null,
   phaseDeadline: null, scorers: [],
   monteDeadline: null, cerimoniaDeadline: null,
+  cpuAtkAdj: 0, cpuDefAdj: 0,
   sectorCursor: 0, sectorUnsoldAccum: [], roundIdx: 0,
   seasonNo: 1,
   restartPending: false, restartReady: [],
@@ -954,6 +993,8 @@ export function reducer(state: EscState, action: Action): EscState {
     return {
       ...action.newState,
       rivalries: action.newState.rivalries ?? {}, // saves/broadcasts antigos
+      cpuAtkAdj: action.newState.cpuAtkAdj ?? 0,
+      cpuDefAdj: action.newState.cpuDefAdj ?? 0,
       youIdx: state.youIdx,
       isHost: state.isHost,
       roomId: state.roomId,
@@ -968,6 +1009,8 @@ export function reducer(state: EscState, action: Action): EscState {
     return {
       ...action.state,
       rivalries: action.state.rivalries ?? {}, // saves antigos sem o campo
+      cpuAtkAdj: action.state.cpuAtkAdj ?? 0,
+      cpuDefAdj: action.state.cpuDefAdj ?? 0,
       onlineMode: 'online',
       roomId: action.roomId,
       roomCode: action.roomCode,
@@ -1152,6 +1195,8 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'FINISH_CEREMONY': {
       if (s.screen !== 'cerimonia') return s
       s.cerimoniaDeadline = null
+      const adj = s.onlineMode === 'online' ? computeCpuAdj(s.managers) : { atk: 0, def: 0 }
+      s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.league = buildLeague(s.managers)
       s.fixtures = buildFixtures(s.league)
       s.round = 0
@@ -1196,6 +1241,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // só recomeça o campeonato — tabela, calendário e artilharia zerados.
       // Nada de leilão. Disparado pelo host; o resultado já computado vai
       // pros convidados por SYNC_STATE.
+      { const adj = s.onlineMode === 'online' ? computeCpuAdj(s.managers) : { atk: 0, def: 0 }; s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def }
       s.league = buildLeague(s.managers)
       s.fixtures = buildFixtures(s.league)
       s.round = 0
