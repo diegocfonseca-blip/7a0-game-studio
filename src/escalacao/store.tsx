@@ -1213,6 +1213,19 @@ const Ctx = createContext<{
   hostStale: boolean // convidado sem notícias do host há muito tempo (host caiu?)
 } | null>(null)
 
+// libera a vaga do técnico na sala (apaga a linha de room_players) e limpa a
+// sala salva no aparelho. Chamado quando ele sai de propósito de uma partida
+// online — evita virar "fantasma" que trava um restart pros que ficaram.
+async function leaveOnlineRoom(roomId: string) {
+  try { localStorage.removeItem('escalacao-room') } catch { /* ignora */ }
+  try {
+    const { data } = await supabase.auth.getUser()
+    if (data?.user && roomId) {
+      await supabase.from('room_players').delete().eq('room_id', roomId).eq('user_id', data.user.id)
+    }
+  } catch { /* silencioso */ }
+}
+
 export function EscProvider({ children }: { children: ReactNode }) {
   const [state, rawDispatch] = useReducer(reducer, INITIAL)
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
@@ -1242,6 +1255,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // convidado roteia ações pro host; host aplica local
   const dispatch = useCallback((action: Action) => {
+    // Sair de uma partida online (NOVO PREGÃO / voltar pra home) deve LIBERAR
+    // sua vaga na sala. Sem isso você fica "fantasma": um restart puxa você como
+    // jogador e a galera que ficou espera você lacrar pra sempre.
+    if ((action.type === 'NEW_GAME' || action.type === 'GO_LOBBY') && onlineRef.current === 'online' && stateRef.current.roomId) {
+      leaveOnlineRoom(stateRef.current.roomId)
+    }
     if (onlineRef.current === 'online' && !isHostRef.current && action.type !== 'GO_LOBBY' && action.type !== 'NEW_GAME' && action.type !== 'GO_ALBUM') {
       channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
     } else {
