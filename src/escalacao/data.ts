@@ -386,6 +386,7 @@ const GOL: C[] = [
 ]
 
 const LAT: C[] = [
+  { name: "Vanderlei Luxemburgo", club: "Flamengo", year: 1975, fame: 1, lo: 55, hi: 74, folk: true },
   { name: "Carlos Alberto Torres", club: "Santos", year: 1970, fame: 5, lo: 95, hi: 99 },
   { name: "Nílton Santos", club: "Botafogo", year: 1958, fame: 5, lo: 95, hi: 99 },
   { name: "Cafu", club: "São Paulo", year: 1993, fame: 4, lo: 86, hi: 92 },
@@ -561,6 +562,7 @@ const MEI: C[] = [
 ]
 
 const ATA: C[] = [
+  { name: "Reinaldo Aleluia", club: "Ceará", year: 2006, fame: 1, lo: 58, hi: 78 },
   { name: "Clodoaldo Matador", club: "Fortaleza", year: 2004, fame: 1, lo: 58, hi: 78, folk: true },
   { name: "Fio Maravilha", club: "Flamengo", year: 1970, fame: 2, lo: 66, hi: 83, folk: true },
   { name: "Valdir Bigode", club: "Vasco", year: 1994, fame: 3, lo: 72, hi: 84, folk: true },
