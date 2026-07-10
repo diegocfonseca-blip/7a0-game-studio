@@ -1747,7 +1747,7 @@ export function EscRanking() {
           </button>
         ))}
       </div>
-      <p className="text-center text-[11px] font-bold text-black/40">🏆 títulos · ⚽ artilharias · 🥅 gols · 🃏 cartas</p>
+      <p className="text-center text-[11px] font-bold text-black/40">🏆 títulos · ⚽ artilharias · 🃏 cartas</p>
 
       {loading && <p className="text-center font-bold text-black/60">Carregando…</p>}
       {!loading && list.length === 0 && (
@@ -1761,7 +1761,7 @@ export function EscRanking() {
             style={{ background: r.user_id === meId ? GOLD : '#fff', boxShadow: `3px 3px 0 ${INK}` }}>
             <span className="font-black text-lg w-9 text-center shrink-0" style={OSWALD}>{medal(i)}</span>
             <span className="font-black text-black text-sm flex-1 min-w-0 truncate" style={OSWALD}>{r.name}{r.user_id === meId ? ' (você)' : ''}</span>
-            <span className="text-[11px] font-bold text-black/70 shrink-0 whitespace-nowrap">🏆{r.titles} ⚽{r.scorer_titles} 🥅{r.goals} 🃏{r.cards}</span>
+            <span className="text-[11px] font-bold text-black/70 shrink-0 whitespace-nowrap">🏆{r.titles} ⚽{r.scorer_titles} 🃏{r.cards}</span>
           </div>
         ))}
       </div>
