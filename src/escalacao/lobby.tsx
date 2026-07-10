@@ -15,7 +15,7 @@ type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'
 
 interface RoomPlayer { user_id: string; manager_name: string; player_index: number }
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -31,6 +31,11 @@ function randCode() { return Math.random().toString(36).slice(2, 8).toUpperCase(
 // "some" — não porque saiu da sala, mas porque tudo que só existia em
 // memória foi perdido. Com isso salvo, reconectamos sozinhos.
 const LS_KEY = 'escalacao-room'
+// hash da senha da sala (SHA-256) — não guardamos a senha em texto puro
+async function hashPw(text: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
 function saveRoom(id: string) { try { localStorage.setItem(LS_KEY, id) } catch { /* ignora */ } }
 function clearSavedRoom() { try { localStorage.removeItem(LS_KEY) } catch { /* ignora */ } }
 function loadSavedRoom(): string | null { try { return localStorage.getItem(LS_KEY) } catch { return null } }
@@ -128,6 +133,10 @@ export function EscLobby() {
   const [joinCode, setJoinCode] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [roomName, setRoomName] = useState('')
+  const [roomLocked, setRoomLocked] = useState(false)  // sala fechada (com senha)
+  const [roomPw, setRoomPw] = useState('')
+  const [pwModal, setPwModal] = useState<RoomInfo | null>(null) // pedindo senha pra entrar
+  const [pwEntry, setPwEntry] = useState('')
   const [room, setRoom] = useState<RoomInfo | null>(null)
   const [players, setPlayers] = useState<RoomPlayer[]>([])
   const [isHost, setIsHost] = useState(false)
@@ -274,8 +283,13 @@ export function EscLobby() {
       if (!data) break; code = randCode()
     }
     const name = (roomName.trim() || `Sala do ${nameOf()}`).slice(0, 24)
+    // sala fechada: exige uma senha
+    if (roomLocked && !roomPw.trim()) { setRoomError('Digite uma senha ou desmarque "sala fechada".'); setLoading(false); return }
+    const locked = roomLocked && !!roomPw.trim()
+    const pwHash = locked ? await hashPw(roomPw.trim()) : undefined
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
-      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: { __game: GAME_TAG, formation, roomName: name } })
+      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: gs })
       .select().single()
     if (re || !rd) { setRoomError('Erro ao criar sala.'); setLoading(false); return }
     await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: 0, manager_name: nameOf(), is_ready: true })
@@ -308,7 +322,7 @@ export function EscLobby() {
   }
 
   // entra numa sala já carregada (por código ou pela lista de salas abertas)
-  async function enterRoom(rd: RoomInfo) {
+  async function enterRoom(rd: RoomInfo, pw?: string) {
     if (!user) return
     if (rd.game_state?.__game !== GAME_TAG) { setRoomError('Essa sala é de outro jogo.'); setLoading(false); return }
     if (rd.status === 'started') {
@@ -322,11 +336,20 @@ export function EscLobby() {
     // já estou nessa sala? volta pro slot que já é meu (evita duplicar)
     const mine = rows.find(p => p.user_id === user.id)
     if (mine) { saveRoom(rd.id); setRoom(rd); setIsHost(rd.host_id === user.id); setPhase('waiting'); setLoading(false); return }
+    // sala FECHADA: quem ainda não está dentro precisa da senha (o host entra direto)
+    const locked = !!rd.game_state?.locked && !!rd.game_state?.pwHash
+    const amHost = rd.host_id === user.id
+    if (locked && !amHost) {
+      if (!pw) { setPwModal(rd); setPwEntry(''); setLoading(false); return } // abre o pedido de senha
+      const h = await hashPw(pw)
+      if (h !== rd.game_state!.pwHash) { setRoomError('Senha incorreta.'); setLoading(false); return }
+    }
     const used = new Set(rows.map(p => p.player_index))
     let idx = 1; while (used.has(idx)) idx++
     if (idx >= rd.max_players) { setRoomError('Sala cheia!'); setLoading(false); return }
     await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: idx, manager_name: nameOf(), is_ready: true })
     saveRoom(rd.id)
+    setPwModal(null)
     setRoom(rd); setIsHost(false); setPhase('waiting'); setLoading(false)
   }
 
@@ -456,6 +479,21 @@ export function EscLobby() {
             ))}
           </div>
         </div>
+        <div>
+          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Privacidade</p>
+          <button onClick={() => setRoomLocked(v => !v)}
+            className="flex items-center gap-2 w-full border-[3px] border-black rounded-xl px-3 py-2.5 font-black text-sm"
+            style={{ backgroundColor: roomLocked ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+            <span className="text-lg leading-none">{roomLocked ? '🔒' : '🔓'}</span>
+            <span className="flex-1 text-left">{roomLocked ? 'FECHADA — só com senha' : 'ABERTA — qualquer um entra'}</span>
+            <span className="text-[10px] opacity-60">toque</span>
+          </button>
+          {roomLocked && (
+            <input type="text" value={roomPw} onChange={e => setRoomPw(e.target.value)} maxLength={20}
+              placeholder="Senha da sala (avise a galera)"
+              className="w-full mt-2 border-[3px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
+          )}
+        </div>
         <Big onClick={createRoom} color={GOLD}>{loading ? 'Criando...' : '🏠 Criar Sala'}</Big>
       </div>}
 
@@ -470,8 +508,8 @@ export function EscLobby() {
             return (
               <div key={r.id} className="flex items-center gap-2 border-[3px] border-black rounded-xl p-3 bg-[#F4ECD6]" style={{ boxShadow: `3px 3px 0 ${INK}` }}>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-black text-sm truncate" style={OSWALD}>{nm}</p>
-                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}/{r.max_players} · {r.code}</p>
+                  <p className="font-black text-black text-sm truncate" style={OSWALD}>{r.game_state?.locked ? '🔒 ' : ''}{nm}</p>
+                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}/{r.max_players} · {r.code}{r.game_state?.locked ? ' · fechada' : ''}</p>
                 </div>
                 <button onClick={() => joinFromList(r)} disabled={loading || full}
                   className="border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
@@ -491,7 +529,26 @@ export function EscLobby() {
         <Big onClick={joinRoom} color="#fff">{loading ? 'Entrando...' : '🔑 Entrar com Código'}</Big>
       </div>}
 
-      {roomError && <p className="text-red-400 text-sm font-bold">{roomError}</p>}
+      {!pwModal && roomError && <p className="text-red-400 text-sm font-bold">{roomError}</p>}
+
+      {pwModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.65)' }}>
+          <div className="w-full max-w-xs border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
+            <p className="font-black text-black text-lg" style={OSWALD}>🔒 Sala fechada</p>
+            <p className="text-black/60 text-xs font-bold mb-2">Digite a senha pra entrar em “{pwModal.game_state?.roomName ?? pwModal.code}”.</p>
+            <input autoFocus type="text" value={pwEntry} onChange={e => setPwEntry(e.target.value)} maxLength={20}
+              placeholder="Senha" onKeyDown={e => e.key === 'Enter' && enterRoom(pwModal, pwEntry)}
+              className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
+            {roomError && <p className="text-red-500 text-xs font-bold mt-1">{roomError}</p>}
+            <div className="flex gap-2 mt-3">
+              <button onClick={() => { setPwModal(null); setRoomError('') }}
+                className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm bg-white text-black" style={OSWALD}>Cancelar</button>
+              <button onClick={() => enterRoom(pwModal, pwEntry)}
+                className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>Entrar</button>
+            </div>
+          </div>
+        </div>
+      )}
       <Big onClick={() => dispatch({ type: 'GO_ALBUM' })} color="#fff">📖 Meu Álbum</Big>
       <AdminButton />
       <button onClick={() => { clearSavedRoom(); supabase.auth.signOut() }} className="text-white/30 text-xs underline w-full text-center">Sair da conta</button>
