@@ -1225,11 +1225,11 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerRivalCount = action.rivals
       s.careerRivals = action.career ? initCareerRivals(action.rivals, action.rivalTeams) : []
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0 // recalculado na cerimônia (quando os elencos existem)
-      // carreira: começa na Série D — você + seus rivais fixos (todos na D no
-      // começo). Partida rápida: pool único de CPUs (sem pirâmide).
-      const { managers: soloManagers, botPlans: soloPlans } = action.career
-        ? makeCareerManagers(action.teamName || 'Meu Time', action.formation, 'D', coDivRivalDefs(s.careerRivals, 'D'), rng)
-        : makeManagers([action.teamName || 'Meu Time'], action.formation, action.rivals, LEAGUE_SIZE, rng)
+      // carreira E partida rápida usam o MESMO elenco da Série D (lista única).
+      // A diferença é só a pirâmide/save da carreira — a rápida é uma temporada
+      // avulsa. Rivais = os escolhidos (carreira) ou os primeiros da D (rápida).
+      const soloRivalDefs = action.career ? coDivRivalDefs(s.careerRivals, 'D') : DIVISION_TEAMS['D'].slice(0, action.rivals)
+      const { managers: soloManagers, botPlans: soloPlans } = makeCareerManagers(action.teamName || 'Meu Time', action.formation, 'D', soloRivalDefs, rng)
       s.managers = soloManagers
       s.youIdx = 0
       const soloUsed = new Set<string>()
