@@ -204,7 +204,6 @@ export function EscIntro() {
         <p className="font-bold text-sm">💎 <b>Vale o auge no Brasil:</b> o nível de cada carta é o que o jogador foi no <i>auge dele num clube brasileiro</i> — não a fama na Europa. Por isso o <b>Kaká</b> do São Paulo (2003) entra como <i>promessa</i> (só virou o melhor do mundo depois, no Milan), enquanto o <b>Bruno Henrique de 2019</b> — craque absoluto do Flamengo — vale mais no nosso leilão. Arrebentou no Brasileirão? Sobe. Brilhou só lá fora? É promessa.</p>
       </Box>
       <div className="space-y-3">
-        <CareerContinueBanner />
         <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-lg">⚡ PARTIDA RÁPIDA (VS CPU)</Btn>
         <Btn onClick={() => dispatch({ type: 'GO_SETUP_CAREER' })} className="w-full text-lg" bg={PURPLE}>
           <span className="text-white">🪜 CARREIRA POR DIVISÕES <span className="text-yellow-300">(new)</span></span>
@@ -319,6 +318,7 @@ export function EscSetup() {
       <Btn onClick={start} className="w-full text-lg" bg={GREEN}>
         <span className="text-white">{career ? 'COMEÇAR CARREIRA 🪜' : 'ABRIR O PREGÃO 🔨'}</span>
       </Btn>
+      {career && <CareerContinueBanner />}
       <CardAccountNote />
     </Shell>
   )
@@ -1991,6 +1991,14 @@ async function loadCareer(): Promise<CareerSave | null> {
   } catch { /* ignora */ }
   return loadCareerLocal()
 }
+// apaga o save da carreira — no aparelho e, se logado, também na conta (nuvem)
+async function deleteCareer() {
+  try { localStorage.removeItem(CAREER_LS) } catch { /* ignora */ }
+  try {
+    const { data } = await supabase.auth.getUser()
+    if (data?.user) await supabase.from('esc_careers').delete().eq('user_id', data.user.id)
+  } catch { /* ignora */ }
+}
 
 // modal rápido de cadastro/login (email + senha) — pra salvar na conta
 function CareerAuthModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
@@ -2036,11 +2044,17 @@ function CareerAuthModal({ onClose, onDone }: { onClose: () => void; onDone: () 
   )
 }
 
-// faixa na home: "Continuar carreira — Série X · Temp N"
+// faixa no setup da carreira: retomar o save (ou excluí-lo no X). Só aparece
+// depois de tocar em "Carreira por Divisões" — não fica mais na home.
 function CareerContinueBanner() {
   const { dispatch } = useEsc()
   const [save, setSave] = useState<CareerSave | null>(null)
   const [decideOpen, setDecideOpen] = useState(false)
+  const onDelete = async () => {
+    if (!window.confirm('Excluir esse save de carreira? Isso não tem volta.')) return
+    await deleteCareer()
+    setSave(null)
+  }
   useEffect(() => {
     let alive = true
     ;(async () => {
@@ -2079,11 +2093,17 @@ function CareerContinueBanner() {
   return (
     <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: PURPLE, boxShadow: `4px 4px 0 ${INK}` }}>
       <p className="font-black text-white text-sm leading-tight" style={OSWALD}>🪜 Carreira em andamento<br /><span className="opacity-85 text-xs">{DIVISION_LABEL[save.division]} · Temporada {save.seasonNo} · {save.titles} título{save.titles === 1 ? '' : 's'}</span></p>
-      <button
-        onClick={() => save.pendingDecision ? setDecideOpen(true) : dispatch({ type: 'RESTORE_CAREER', save })}
-        className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
-        ▶️ Continuar carreira ({save.teamName})
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={() => save.pendingDecision ? setDecideOpen(true) : dispatch({ type: 'RESTORE_CAREER', save })}
+          className="flex-1 rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
+          ▶️ Continuar carreira ({save.teamName})
+        </button>
+        <button onClick={onDelete} aria-label="Excluir save da carreira" title="Excluir save"
+          className="rounded-xl border-2 border-black bg-white text-red-600 font-black text-lg px-3.5 active:translate-y-0.5" style={OSWALD}>
+          ✕
+        </button>
+      </div>
     </div>
   )
 }
