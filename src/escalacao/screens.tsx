@@ -569,7 +569,7 @@ function Envelope() {
               {canBid && (
                 <>
                   <button onClick={() => setBid(c.id, (bids[c.id] ?? 0) - 1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</button>
-                  <span className="w-9 text-center font-black text-black" style={OSWALD}>{bids[c.id] ?? 0}</span>
+                  <span className="w-9 text-center font-black text-black" style={OSWALD}>{state.streamMode ? ((bids[c.id] ?? 0) > 0 ? '🔒' : '–') : (bids[c.id] ?? 0)}</span>
                   <button
                     onClick={() => !plusBlocked && setBid(c.id, (bids[c.id] ?? 0) + 1)}
                     disabled={plusBlocked}
@@ -584,8 +584,13 @@ function Envelope() {
         })}
       </div>
 
+      {state.streamMode && canBid && (
+        <Box bg="#111" className="p-2.5 text-center">
+          <p className="font-black text-white text-xs" style={OSWALD}>🎥 MODO STREAM — os valores ficam ocultos até o martelo. Manda ver no dedo! 🔒</p>
+        </Box>
+      )}
       <Box bg="#fff" className="p-3 flex items-center justify-between">
-        <p className="font-black text-black" style={OSWALD}>ENVELOPE: {total} / {you.money}</p>
+        <p className="font-black text-black" style={OSWALD}>ENVELOPE: {state.streamMode ? '🔒' : total} / {you.money}</p>
         <Btn onClick={seal} bg={RED}>
           <span className="text-white">LACRAR 🔒</span>
         </Btn>
