@@ -792,6 +792,21 @@ function dealBotSquads(managers: Manager[], botPlans: BotPlan[], rng: () => numb
   }
 }
 
+// carreira "continuar com o mesmo time": o save só guarda o SEU elenco. Os
+// rivais do modo solo são `auctionRival` (sem botPlans) e normalmente montam
+// o time NO leilão — mas aqui não há leilão. Sem isto eles entravam SEM
+// elenco, afundavam na tabela e não pontuavam na artilharia (parecia
+// jogo vazio). Regeramos com um leque de níveis, como uma liga de verdade.
+function dealSoloRivalSquads(managers: Manager[], rng: () => number, used: Set<string>) {
+  const bots = managers.filter(m => !m.isHuman)
+  const strongN = Math.max(1, Math.round(bots.length * 0.2))
+  const weakN = Math.max(1, Math.round(bots.length * 0.2))
+  bots.forEach((b, i) => {
+    const tier: Tier = i < strongN ? 'strong' : i >= bots.length - weakN ? 'weak' : 'mid'
+    b.squad = makeBotSquad(b.formation, tier, rng, used)
+  })
+}
+
 // ─── estado inicial ──────────────────────────────────────────────────
 const INITIAL: EscState = {
   screen: 'intro', seed: 1,
@@ -1359,7 +1374,7 @@ export function reducer(state: EscState, action: Action): EscState {
       managers[0].squad = sv.squad
       managers[0].formation = sv.formation
       const used = new Set<string>(sv.squad.map(c => c.name))
-      dealBotSquads(s.managers, botPlans, rng, used)
+      dealSoloRivalSquads(s.managers, rng, used) // rivais ganham elenco (não há leilão aqui)
       const adj = careerAdj(s.managers, sv.division); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
       s.sectorIdx = 0; s.sectorCursor = 0
