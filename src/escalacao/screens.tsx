@@ -1194,6 +1194,15 @@ export function EscSeason() {
   const myGoals = myLast ? (myLast.homeId === you.id ? myLast.hg : myLast.ag) : 0
   const oppGoals = myLast ? (myLast.homeId === you.id ? myLast.ag : myLast.hg) : 0
 
+  // só revela o resultado do clássico DEPOIS que o card do jogo terminou de
+  // animar os 90' — senão a faixa entregava o placar antes da simulação.
+  const [resultRevealed, setResultRevealed] = useState(false)
+  useEffect(() => {
+    setResultRevealed(false)
+    const t = setTimeout(() => setResultRevealed(true), ROUND_MS * 0.85 + 250)
+    return () => clearTimeout(t)
+  }, [state.round])
+
   // manchete PESSOAL (por quem vê): detecta quando VOCÊ muda de faixa na
   // tabela. Feito no cliente pra ficar certo pra cada um no online.
   const prevPosRef = useRef(youPos)
@@ -1246,7 +1255,7 @@ export function EscSeason() {
         </Box>
       )}
 
-      {lastWasClassico && lastRiv && (
+      {lastWasClassico && lastRiv && resultRevealed && (
         <Box bg={myGoals > oppGoals ? GREEN : myGoals < oppGoals ? RED : '#fff'} className="p-3 text-center" shadow={4}>
           <p className="font-black text-sm" style={{ ...OSWALD, color: myGoals === oppGoals ? INK : '#fff' }}>
             ⚔️ CLÁSSICO {myGoals > oppGoals ? 'VENCIDO' : myGoals < oppGoals ? 'PERDIDO' : 'EMPATADO'} contra {lastOppName}
@@ -1307,10 +1316,10 @@ export function EscSeason() {
         </Box>
       )}
 
-      {state.careerDivision && <RivalTracker />}
       <TableBox highlight={you.id} />
       <TopScorersBox highlight={you.id} />
       <Campinho m={you} small />
+      {state.careerDivision && <RivalTracker />}
     </Shell>
   )
 }
