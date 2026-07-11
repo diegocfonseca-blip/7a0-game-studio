@@ -327,7 +327,7 @@ export function EscSetup() {
         {career && (
           <div>
             <p className="text-xs font-black uppercase mb-1">🔥 Escolha seus rivais <span className="text-black/50">({rivalPicks.length}/{rivals})</span></p>
-            <p className="text-[11px] font-semibold text-black/55 mb-1.5">Eles serão seus rivais pra vida toda. Deixe vazio pra pegar os padrões.</p>
+            <p className="text-[11px] font-semibold text-black/55 mb-1.5">Eles serão seus rivais pra vida toda.</p>
             <div className="flex flex-wrap gap-1.5">
               {DIVISION_TEAMS['D'].map(t => {
                 const on = rivalPicks.includes(t.team)
@@ -340,6 +340,9 @@ export function EscSetup() {
                 )
               })}
             </div>
+            <button onClick={() => setRivalPicks([])} className="mt-2 border-2 border-black rounded-lg px-2.5 py-1 font-black text-[11px] bg-white active:translate-y-0.5" style={OSWALD}>
+              🎲 Não escolher — usar rivais padrão
+            </button>
           </div>
         )}
         {career && <p className="text-xs font-semibold text-black/70">🏟️ A liga completa 20 times com os clássicos — você disputa a divisão contra os CPUs do leilão.</p>}
