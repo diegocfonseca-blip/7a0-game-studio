@@ -760,7 +760,7 @@ const INITIAL: EscState = {
   lastResults: [], news: [], champion: null,
   phaseDeadline: null, scorers: [],
   monteDeadline: null, cerimoniaDeadline: null,
-  cpuAtkAdj: 0, cpuDefAdj: 0,
+  cpuAtkAdj: 0, cpuDefAdj: 0, streamMode: false,
   sectorCursor: 0, sectorUnsoldAccum: [], roundIdx: 0,
   seasonNo: 1,
   restartPending: false, restartReady: [],
@@ -776,7 +776,7 @@ type Action =
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number }
-  | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey }
+  | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean }
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
@@ -995,6 +995,7 @@ export function reducer(state: EscState, action: Action): EscState {
       rivalries: action.newState.rivalries ?? {}, // saves/broadcasts antigos
       cpuAtkAdj: action.newState.cpuAtkAdj ?? 0,
       cpuDefAdj: action.newState.cpuDefAdj ?? 0,
+      streamMode: action.newState.streamMode ?? false,
       youIdx: state.youIdx,
       isHost: state.isHost,
       roomId: state.roomId,
@@ -1011,6 +1012,7 @@ export function reducer(state: EscState, action: Action): EscState {
       rivalries: action.state.rivalries ?? {}, // saves antigos sem o campo
       cpuAtkAdj: action.state.cpuAtkAdj ?? 0,
       cpuDefAdj: action.state.cpuDefAdj ?? 0,
+      streamMode: action.state.streamMode ?? false,
       onlineMode: 'online',
       roomId: action.roomId,
       roomCode: action.roomCode,
@@ -1079,6 +1081,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.isHost = action.isHost
       s.youIdx = action.playerIndex
       s.humanCount = action.playerNames.length
+      s.streamMode = !!action.stream
       s.seed = hashCode(action.roomCode)
       const rng = mulberry(s.seed)
       // a tabela sempre tem 20 times: os que faltam viram bots com elenco
@@ -1493,7 +1496,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // a formação (usada como fallback). IMPORTANTE: .then() aqui não é
       // enredo — sem ele o supabase-js NÃO dispara a requisição (query é
       // preguiçosa), e era por isso que o estado nunca era salvo de verdade.
-      const payload = { ...sanitize(st), __game: 'escalacao', formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3' }
+      const payload = { ...sanitize(st), __game: 'escalacao', formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}) }
       supabase.from('game_rooms').update({ game_state: payload }).eq('id', st.roomId).then(() => {}, () => {})
     }
     save() // salva JÁ ao entrar no jogo (fecha a janela dos 3s do 1º save)

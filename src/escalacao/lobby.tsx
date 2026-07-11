@@ -15,7 +15,7 @@ type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'
 
 interface RoomPlayer { user_id: string; manager_name: string; player_index: number }
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -145,6 +145,8 @@ export function EscLobby() {
   const [roomName, setRoomName] = useState('')
   const [roomLocked, setRoomLocked] = useState(false)  // sala fechada (com senha)
   const [roomPw, setRoomPw] = useState('')
+  const [roomStream, setRoomStream] = useState(false)  // modo stream (esconde valores)
+  const [streamModal, setStreamModal] = useState(false) // caixa explicando o modo stream
   const [pwModal, setPwModal] = useState<RoomInfo | null>(null) // pedindo senha pra entrar
   const [pwEntry, setPwEntry] = useState('')
   const [room, setRoom] = useState<RoomInfo | null>(null)
@@ -285,6 +287,7 @@ export function EscLobby() {
       playerIndex: myPl.player_index,
       playerNames: sorted.map(p => p.manager_name),
       formation: gs?.formation ?? '4-3-3',
+      stream: !!gs?.stream,
     })
     return true
   }
@@ -350,7 +353,7 @@ export function EscLobby() {
     if (roomLocked && !roomPw.trim()) { setRoomError('Digite uma senha ou desmarque "sala fechada".'); setLoading(false); return }
     const locked = roomLocked && !!roomPw.trim()
     const pwHash = locked ? await hashPw(roomPw.trim()) : undefined
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -584,6 +587,16 @@ export function EscLobby() {
               className="w-full mt-2 border-[3px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
           )}
         </div>
+        <div>
+          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Modo Stream</p>
+          <button onClick={() => { if (roomStream) setRoomStream(false); else setStreamModal(true) }}
+            className="flex items-center gap-2 w-full border-[3px] border-black rounded-xl px-3 py-2.5 font-black text-sm"
+            style={{ backgroundColor: roomStream ? '#111' : '#fff', color: roomStream ? '#fff' : '#000', ...OSWALD }}>
+            <span className="text-lg leading-none">🎥</span>
+            <span className="flex-1 text-left">{roomStream ? 'LIGADO — valores dos lances ocultos' : 'DESLIGADO — jogo normal'}</span>
+            <span className="text-[10px] opacity-60">toque</span>
+          </button>
+        </div>
         <Big onClick={createRoom} color={GOLD}>{loading ? 'Criando...' : '🏠 Criar Sala'}</Big>
       </div>}
 
@@ -598,8 +611,8 @@ export function EscLobby() {
             return (
               <div key={r.id} className="flex items-center gap-2 border-[3px] border-black rounded-xl p-3 bg-[#F4ECD6]" style={{ boxShadow: `3px 3px 0 ${INK}` }}>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-black text-sm truncate" style={OSWALD}>{r.game_state?.locked ? '🔒 ' : ''}{nm}</p>
-                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}/{r.max_players} · {r.code}{r.game_state?.locked ? ' · fechada' : ''}</p>
+                  <p className="font-black text-black text-sm truncate" style={OSWALD}>{r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}</p>
+                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}/{r.max_players} · {r.code}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}</p>
                 </div>
                 <button onClick={() => joinFromList(r)} disabled={loading || full}
                   className="border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
@@ -620,6 +633,27 @@ export function EscLobby() {
       </div>}
 
       {!pwModal && roomError && <p className="text-red-400 text-sm font-bold">{roomError}</p>}
+
+      {streamModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.7)' }}>
+          <div className="w-full max-w-xs border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
+            <p className="font-black text-black text-lg" style={OSWALD}>🎥 Modo Stream</p>
+            <p className="text-black/70 text-sm font-bold mt-1 leading-snug">
+              É pra quem vai <b>transmitir ao vivo</b> (YouTube/Twitch). Como o leilão é cego, mostrar a tela na live entregaria seus lances.
+            </p>
+            <p className="text-black/70 text-sm font-bold mt-2 leading-snug">
+              Com ele ligado, os <b>valores dos lances ficam escondidos na sua própria tela</b> (você aposta no dedo, sem ver o número) — aí pode mostrar tudo na live sem ninguém roubar. Os valores só aparecem no martelo.
+            </p>
+            <p className="text-black/50 text-xs font-bold mt-2">Se você não vai transmitir, deixe desligado.</p>
+            <div className="flex gap-2 mt-3">
+              <button onClick={() => setStreamModal(false)}
+                className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm bg-white text-black" style={OSWALD}>Cancelar</button>
+              <button onClick={() => { setRoomStream(true); setStreamModal(false) }}
+                className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm" style={{ background: '#111', color: '#fff', ...OSWALD }}>Ligar mesmo assim</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {pwModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.65)' }}>
