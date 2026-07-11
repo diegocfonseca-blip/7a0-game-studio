@@ -1331,12 +1331,11 @@ function MatchCard({ r, roundMs }: { r: { homeId: number; awayId: number; hg: nu
   )
 }
 
-// zona da tabela por posição (sempre 20 times): 1-3 azul (libertadores),
-// 4-10 amarelo (pré-libertadores/sula), 11-16 branco normal (meio de
-// tabela), 17-20 vermelho (rebaixamento) — tudo em tom pastel, só pra dar
-// um significado visual, sem gritar
+// zona da tabela por posição (sempre 20 times): 1-4 azul (G4 — na carreira
+// SOBE de divisão), 5-10 amarelo (pré), 11-16 branco (meio), 17-20 vermelho
+// (Z4 — na carreira CAI) — tom pastel, só pra dar significado visual.
 function zoneColor(rank: number): string | undefined {
-  if (rank <= 3) return '#D6E9FA'
+  if (rank <= 4) return '#D6E9FA'
   if (rank <= 10) return '#FFF3B8'
   if (rank <= 16) return undefined
   return '#F9D8D3'
@@ -1350,8 +1349,8 @@ function TableBox({ highlight }: { highlight: number }) {
       <div className="flex items-center justify-between mb-2">
         <p className="font-black text-sm" style={OSWALD}>TABELA</p>
         <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#D6E9FA' }} />G1</span>
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFF3B8' }} />G4</span>
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#D6E9FA' }} />G4</span>
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFF3B8' }} />Pré</span>
           <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block border border-black/20" style={{ backgroundColor: '#fff' }} />Meio</span>
           <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#F9D8D3' }} />Z4</span>
         </div>

@@ -443,8 +443,8 @@ function careerAdj(managers: Manager[], div: Division): { atk: number; def: numb
 // sobe (top 3), cai (Z4: 17º+) ou fica — limitado por A (topo) e D (base).
 export function nextDivision(div: Division, youPos: number): { div: Division; result: 'up' | 'down' | 'stay' } {
   const i = DIVISIONS.indexOf(div)
-  if (youPos <= 3 && i < DIVISIONS.length - 1) return { div: DIVISIONS[i + 1], result: 'up' }
-  if (youPos >= 17 && i > 0) return { div: DIVISIONS[i - 1], result: 'down' }
+  if (youPos <= 4 && i < DIVISIONS.length - 1) return { div: DIVISIONS[i + 1], result: 'up' }   // G4 sobe
+  if (youPos >= 17 && i > 0) return { div: DIVISIONS[i - 1], result: 'down' }                    // Z4 cai
   return { div, result: 'stay' }
 }
 export const DIVISION_LABEL: Record<Division, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
