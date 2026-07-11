@@ -30,8 +30,11 @@ type Dash = {
 const SCREEN_LABEL: Record<string, string> = {
   intro: 'Na home', lobby: 'Na sala (esperando)',
   setup: 'Montando', auction: 'No leilão', monte: 'No monte',
-  cerimonia: 'Revelação', season: 'Temporada', end: 'Fim', album: 'Álbum',
+  cerimonia: 'Cerimônia', season: 'Temporada', end: 'Fim', album: 'Álbum', ranking: 'Ranking',
 }
+// modo do jogador ao vivo: carreira x partida rápida x online
+const MODE_LABEL: Record<string, string> = { career: 'modo carreira', online: 'partida online', cpu: 'partida rápida' }
+const MODE_ICON: Record<string, string> = { career: '🪜', online: '👥', cpu: '🤖' }
 
 function useHashAdmin() {
   const [on, setOn] = useState(() => typeof window !== 'undefined' && window.location.hash === '#admin')
@@ -191,8 +194,9 @@ function Dashboard({ email }: { email: string }) {
             {d.live_list.map((p, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, opacity: 0.92 }}>
                 <span>
-                  {p.playing ? (p.mode === 'online' ? '👥' : '🤖') : '👀'} <b>{p.name}</b>
+                  {p.playing ? (MODE_ICON[p.mode] || '🤖') : '👀'} <b>{p.name}</b>
                   <span style={{ opacity: 0.6 }}> · {SCREEN_LABEL[p.screen] || p.screen}</span>
+                  {p.playing && <span style={{ opacity: 0.6 }}> · {MODE_LABEL[p.mode] || p.mode}</span>}
                 </span>
                 <span style={{ opacity: 0.5 }}>{p.ago < 60 ? 'agora' : `${Math.floor(p.ago / 60)}min`}</span>
               </div>
