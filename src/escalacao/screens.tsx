@@ -1975,6 +1975,7 @@ async function saveCareer(save: CareerSave): Promise<boolean> {
     const { error } = await supabase.from('esc_careers').upsert({
       user_id: data.user.id, division: save.division, season_no: save.seasonNo,
       team_name: save.teamName, formation: save.formation, squad: save.squad, titles: save.titles,
+      pending_decision: !!save.pendingDecision, result: save.result ?? null, prev_division: save.prevDivision ?? null,
       updated_at: new Date().toISOString(),
     })
     return !error
@@ -1985,7 +1986,7 @@ async function loadCareer(): Promise<CareerSave | null> {
     const { data } = await supabase.auth.getUser()
     if (data?.user) {
       const { data: row } = await supabase.from('esc_careers').select('*').eq('user_id', data.user.id).maybeSingle()
-      if (row) return { division: row.division, seasonNo: row.season_no, teamName: row.team_name, formation: row.formation, squad: row.squad as CareerSave['squad'], titles: row.titles }
+      if (row) return { division: row.division, seasonNo: row.season_no, teamName: row.team_name, formation: row.formation, squad: row.squad as CareerSave['squad'], titles: row.titles, pendingDecision: !!row.pending_decision, result: row.result ?? undefined, prevDivision: row.prev_division ?? undefined }
     }
   } catch { /* ignora */ }
   return loadCareerLocal()
@@ -2039,6 +2040,7 @@ function CareerAuthModal({ onClose, onDone }: { onClose: () => void; onDone: () 
 function CareerContinueBanner() {
   const { dispatch } = useEsc()
   const [save, setSave] = useState<CareerSave | null>(null)
+  const [decideOpen, setDecideOpen] = useState(false)
   useEffect(() => {
     let alive = true
     ;(async () => {
@@ -2053,10 +2055,35 @@ function CareerContinueBanner() {
     return () => { alive = false }
   }, [])
   if (!save) return null
+  // salvou no fim da temporada sem ter decidido? traz a decisão de volta:
+  // manter o mesmo time ou trocar tudo (novo leilão) — não escolhe por você.
+  if (save.pendingDecision && decideOpen) {
+    const banner = save.result === 'up'
+      ? { bg: '#1B7A3D', txt: `🔼 SUBIU PRA ${DIVISION_LABEL[save.division].toUpperCase()}!` }
+      : save.result === 'down'
+        ? { bg: '#E8503A', txt: `🔽 REBAIXADO PRA ${DIVISION_LABEL[save.division].toUpperCase()}` }
+        : { bg: '#2E6FB0', txt: `➡️ CONTINUA NA ${DIVISION_LABEL[save.division].toUpperCase()}` }
+    return (
+      <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: PURPLE, boxShadow: `4px 4px 0 ${INK}` }}>
+        <div className="rounded-xl border-2 border-black px-3 py-2 text-center" style={{ background: banner.bg }}>
+          <p className="font-black text-white text-sm" style={OSWALD}>{banner.txt}</p>
+          <p className="font-bold text-white/85 text-[11px]">Temporada {save.seasonNo} · {save.titles} título{save.titles === 1 ? '' : 's'} · {save.teamName}</p>
+        </div>
+        <p className="text-center text-white font-black text-xs" style={OSWALD}>Como quer seguir?</p>
+        <button onClick={() => dispatch({ type: 'RESTORE_CAREER', save })} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>▶️ Continuar com o mesmo time</button>
+        <button onClick={() => dispatch({ type: 'RESTORE_CAREER', save, redraft: true })} className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: GOLD, color: INK, ...OSWALD }}>🔄 Trocar tudo (novo leilão)</button>
+        <button onClick={() => setDecideOpen(false)} className="w-full text-white/60 text-xs underline">agora não</button>
+      </div>
+    )
+  }
   return (
     <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: PURPLE, boxShadow: `4px 4px 0 ${INK}` }}>
       <p className="font-black text-white text-sm leading-tight" style={OSWALD}>🪜 Carreira em andamento<br /><span className="opacity-85 text-xs">{DIVISION_LABEL[save.division]} · Temporada {save.seasonNo} · {save.titles} título{save.titles === 1 ? '' : 's'}</span></p>
-      <button onClick={() => dispatch({ type: 'RESTORE_CAREER', save })} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>▶️ Continuar carreira ({save.teamName})</button>
+      <button
+        onClick={() => save.pendingDecision ? setDecideOpen(true) : dispatch({ type: 'RESTORE_CAREER', save })}
+        className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
+        ▶️ Continuar carreira ({save.teamName})
+      </button>
     </div>
   )
 }

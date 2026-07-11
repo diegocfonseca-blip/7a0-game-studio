@@ -449,13 +449,34 @@ export function nextDivision(div: Division, youPos: number): { div: Division; re
   return { div, result: 'stay' }
 }
 export const DIVISION_LABEL: Record<Division, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
-// o que é salvo na conta (Supabase) pra retomar a carreira depois
-export interface CareerSave { division: Division; seasonNo: number; teamName: string; formation: FormationKey; squad: WonCard[]; titles: number }
+// o que é salvo na conta (Supabase) pra retomar a carreira depois.
+// `division`/`seasonNo` já são os da PRÓXIMA temporada (subiu/caiu/ficou já
+// resolvido no fim da temporada); `pendingDecision` marca que a pessoa salvou
+// no fim da temporada SEM ter escolhido manter o time ou trocar tudo — então
+// ao continuar a gente traz essa decisão de volta (não escolhe por ela).
+export interface CareerSave {
+  division: Division; seasonNo: number; teamName: string; formation: FormationKey; squad: WonCard[]; titles: number
+  pendingDecision?: boolean
+  result?: 'up' | 'down' | 'stay' // pro banner subiu/caiu/ficou ao continuar
+  prevDivision?: Division         // divisão da temporada que acabou (pro banner)
+}
 export function buildCareerSave(s: EscState): CareerSave | null {
   if (!s.careerDivision) return null
   const you = s.managers[s.youIdx]
   if (!you) return null
-  return { division: s.careerDivision, seasonNo: s.seasonNo, teamName: you.teamName, formation: you.formation, squad: you.squad, titles: s.careerTitles }
+  // resolve o fim da temporada AQUI (título, subida/queda, +1 temporada) pra
+  // que continuar depois retome no ponto certo — antes o save guardava a
+  // divisão/temporada JÁ jogada e o "continuar" repetia ela, perdendo o acesso.
+  const table = sortedTable(s.league)
+  const youPos = table.findIndex(t => t.id === you.id) + 1
+  const wonTitle = table[0]?.id === you.id
+  const nd = nextDivision(s.careerDivision, youPos)
+  return {
+    division: nd.div, seasonNo: s.seasonNo + 1,
+    teamName: you.teamName, formation: you.formation, squad: you.squad,
+    titles: s.careerTitles + (wonTitle ? 1 : 0),
+    pendingDecision: true, result: nd.result, prevDivision: s.careerDivision,
+  }
 }
 
 function poisson(lambda: number, rng: () => number): number {
@@ -804,7 +825,7 @@ type Action =
   | { type: 'GO_RANKING' }
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean }
   | { type: 'CAREER_ADVANCE'; keep: boolean }
-  | { type: 'RESTORE_CAREER'; save: CareerSave }
+  | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean }
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
@@ -1302,12 +1323,14 @@ export function reducer(state: EscState, action: Action): EscState {
       return redraftSeason(s)
     }
     case 'RESTORE_CAREER': {
-      // retoma uma carreira salva na conta: vai direto pro campeonato com o
-      // elenco salvo (pula o leilão), na divisão/temporada guardadas.
+      // retoma uma carreira salva na conta, na divisão/temporada guardadas.
+      // keep (padrão): vai direto pro campeonato com o elenco salvo (pula o
+      // leilão). redraft ("trocar tudo"): abre um novo leilão nesta divisão.
       const sv = action.save
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
       s.roomId = ''; s.roomCode = ''; s.streamMode = false
       s.careerDivision = sv.division; s.careerIntent = false; s.careerTitles = sv.titles
+      s.seasonNo = sv.seasonNo
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
       // carreira é solo (mesmo padrão da rápida): retoma com a qtd padrão de
@@ -1315,18 +1338,33 @@ export function reducer(state: EscState, action: Action): EscState {
       const { managers, botPlans } = makeManagers([sv.teamName], sv.formation, 1 + 5, rng, 'solo')
       s.managers = managers
       s.youIdx = 0
+      s.monte = []; s.monteOrder = []; s.monteIdx = 0; s.tactics = {}
+      s.sectorUnsoldAccum = []; s.currentCards = []
+      s.round = 0; s.scorers = []; s.lastResults = []; s.news = []; s.champion = null
+      if (action.redraft) {
+        // TROCAR TUDO: novo leilão nesta divisão (mantém título/temporada/divisão)
+        const used = new Set<string>()
+        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+        dealBotSquads(s.managers, botPlans, rng, used)
+        for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
+        s.cpuAtkAdj = 0; s.cpuDefAdj = 0 // recalcula na cerimônia
+        s.sectorIdx = 0; s.sectorCursor = 0; s.roundIdx = 0
+        s.submitted = []; s.pendingEnvelopes = {}
+        s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
+        s.screen = 'auction'
+        startAuctionPhase(s, false)
+        return s
+      }
+      // MESMO TIME: carrega o elenco salvo e vai direto pro campeonato
       managers[0].squad = sv.squad
       managers[0].formation = sv.formation
       const used = new Set<string>(sv.squad.map(c => c.name))
       dealBotSquads(s.managers, botPlans, rng, used)
       const adj = careerAdj(s.managers, sv.division); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
-      s.monte = []; s.monteOrder = []; s.monteIdx = 0; s.tactics = {}
-      s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.currentCards = []
+      s.sectorIdx = 0; s.sectorCursor = 0
       s.league = buildLeague(s.managers)
       s.fixtures = buildFixtures(s.league)
-      s.round = 0; s.scorers = []; s.lastResults = []; s.news = []; s.champion = null
-      s.seasonNo = sv.seasonNo
       s.screen = 'season'
       return s
     }
