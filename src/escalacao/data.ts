@@ -706,7 +706,7 @@ export const CPU_MANAGERS = [
   { name: 'Marcão Pelado', team: 'Pelado FR' },
   { name: 'Casa de Vó', team: 'Casa de Vó' },
   { name: 'Neguinho do Apito', team: 'Apito Final' },
-  { name: 'Zé do Caixote', team: 'Caixote EC' },
+  { name: 'Bilu Tetéia', team: 'Tetéia SAF' },
   { name: 'Dedé Bigode', team: 'Bigode FC' },
   { name: 'Adãozinho', team: 'Adão Esporte' },
   { name: 'Cabeção da Vila', team: 'Cabeção FR' },
@@ -737,7 +737,7 @@ export const CPU_MANAGERS = [
   { name: 'Tião Bagre', team: 'Bagre do Rio' },
   { name: 'Nego do Xote', team: 'Xote FC' },
   { name: 'Val do Buraco', team: 'Buraco Quente EC' },
-  { name: 'Bilu Tetéia', team: 'Tetéia SAF' },
+  { name: 'Zé do Caixote', team: 'Caixote EC' },
   { name: 'Zé Chapéu', team: 'Chapéu de Palha FR' },
 ]
 
