@@ -457,6 +457,7 @@ export const DIVISION_LABEL: Record<Division, string> = { A: 'Série A', B: 'Sé
 // ao continuar a gente traz essa decisão de volta (não escolhe por ela).
 export interface CareerSave {
   division: Division; seasonNo: number; teamName: string; formation: FormationKey; squad: WonCard[]; titles: number
+  titlesA?: number                // títulos da Série A (estrelas). opcional p/ saves antigos
   pendingDecision?: boolean
   result?: 'up' | 'down' | 'stay' // pro banner subiu/caiu/ficou ao continuar
   prevDivision?: Division         // divisão da temporada que acabou (pro banner)
@@ -559,6 +560,7 @@ export function buildCareerSave(s: EscState): CareerSave | null {
     division: res.nextDiv, seasonNo: s.seasonNo + 1,
     teamName: you.teamName, formation: you.formation, squad: you.squad,
     titles: s.careerTitles + (res.wonTitle ? 1 : 0),
+    titlesA: s.careerTitlesA + (res.wonTitle && s.careerDivision === 'A' ? 1 : 0),
     pendingDecision: true, result: res.result, prevDivision: s.careerDivision,
     rivals: res.rivals, rivalCount: s.careerRivalCount,
   }
@@ -915,7 +917,7 @@ const INITIAL: EscState = {
   monte: [], monteOrder: [], monteIdx: 0,
   league: [], fixtures: [], round: 0, tactics: {},
   lastResults: [], news: [], champion: null,
-  careerDivision: null, careerIntent: false, careerTitles: 0, careerRivalCount: 5, careerRivals: [],
+  careerDivision: null, careerIntent: false, careerTitles: 0, careerTitlesA: 0, careerRivalCount: 5, careerRivals: [],
   phaseDeadline: null, scorers: [],
   monteDeadline: null, cerimoniaDeadline: null,
   cpuAtkAdj: 0, cpuDefAdj: 0, streamMode: false,
@@ -1222,6 +1224,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerDivision = action.career ? 'D' : null
       s.careerIntent = false
       s.careerTitles = 0
+      s.careerTitlesA = 0
       s.careerRivalCount = action.rivals
       s.careerRivals = action.career ? initCareerRivals(action.rivals, action.rivalTeams) : []
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0 // recalculado na cerimônia (quando os elencos existem)
@@ -1417,6 +1420,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!s.careerDivision) return s
       const res = resolveCareerEnd(s)
       if (res.wonTitle) s.careerTitles++
+      if (res.wonTitle && s.careerDivision === 'A') s.careerTitlesA++ // estrela ⭐
       const you = s.managers[s.youIdx]
       const teamName = you.teamName, formation = you.formation, mySquad = you.squad
       // guarda os elencos dos CPUs por identidade de time (pros rivais que ficam)
@@ -1473,7 +1477,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const sv = action.save
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
       s.roomId = ''; s.roomCode = ''; s.streamMode = false
-      s.careerDivision = sv.division; s.careerIntent = false; s.careerTitles = sv.titles
+      s.careerDivision = sv.division; s.careerIntent = false; s.careerTitles = sv.titles; s.careerTitlesA = sv.titlesA ?? 0
       s.seasonNo = sv.seasonNo
       s.careerRivalCount = sv.rivalCount ?? 5
       // rivais salvos (saves antigos: recria na própria divisão como fallback)
