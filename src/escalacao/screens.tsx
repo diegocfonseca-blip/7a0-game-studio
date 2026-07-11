@@ -1745,6 +1745,24 @@ export function EscRanking() {
   const [mode, setMode] = useState<RankMode>('geral')
   const [rows, setRows] = useState<RankRow[] | null>(null)
   const [meId, setMeId] = useState<string | null>(null)
+  const [viewUser, setViewUser] = useState<{ id: string; name: string } | null>(null)
+  const [viewCards, setViewCards] = useState<AlbumCard[] | null>(null)
+
+  // abre o álbum de QUALQUER técnico (user_cards tem leitura pública)
+  async function openAlbum(userId: string, name: string) {
+    setViewUser({ id: userId, name }); setViewCards(null)
+    const { data } = await supabase.from('user_cards')
+      .select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at')
+      .eq('user_id', userId).order('obtained_at', { ascending: false })
+    const cards = ((data ?? []) as UserCardRow[]).map(c => ({
+      name: c.card_name, club: c.card_club, year: c.card_year, pos: c.card_pos as Sector, fame: c.card_fame,
+      ...(CARD_META.get(c.card_name) ?? {}),
+      origin: (c.origin === 'cpu' ? 'cpu' : 'online') as 'cpu' | 'online',
+      at: new Date(c.obtained_at).getTime(),
+    }))
+    const seen = new Set<string>()
+    setViewCards(cards.filter(c => (seen.has(c.name) ? false : (seen.add(c.name), true))))
+  }
 
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null)) }, [])
   useEffect(() => {
@@ -1790,6 +1808,11 @@ export function EscRanking() {
         ))}
       </div>
 
+      {/* dica: dá pra tocar num técnico e ver o álbum dele */}
+      {!loading && shown.length > 0 && (
+        <p className="text-center text-[12px] font-black text-black/55" style={OSWALD}>👆 Toque num técnico pra ver as cartas dele</p>
+      )}
+
       {/* cabeçalho das colunas */}
       {!loading && shown.length > 0 && (
         <div className="flex items-center gap-3 px-2.5">
@@ -1807,14 +1830,15 @@ export function EscRanking() {
         </Box>
       )}
       <div className="space-y-2">
-        {shown.map((r, i) => (
-          <div key={r.user_id} className="flex items-center gap-3 border-[3px] border-black rounded-xl p-2.5"
+        {shown.slice(0, 10).map((r, i) => (
+          <button key={r.user_id} onClick={() => openAlbum(r.user_id, r.name)}
+            className="w-full flex items-center gap-3 border-[3px] border-black rounded-xl p-2.5 active:translate-y-0.5"
             style={{ background: r.user_id === meId ? GOLD : '#fff', boxShadow: `3px 3px 0 ${INK}` }}>
             <span className="font-black text-lg w-9 text-center shrink-0" style={OSWALD}>{medal(i)}</span>
-            <span className="font-black text-black text-sm flex-1 min-w-0 truncate" style={OSWALD}>{r.name}{r.user_id === meId ? ' (você)' : ''}</span>
+            <span className="font-black text-black text-sm flex-1 min-w-0 truncate text-left" style={OSWALD}>{r.name}{r.user_id === meId ? ' (você)' : ''}</span>
             <span className="w-12 text-center font-black text-lg shrink-0" style={OSWALD}>{r.titles}</span>
             <span className="w-12 text-center font-black text-lg shrink-0" style={OSWALD}>{r.scorer_titles}</span>
-          </div>
+          </button>
         ))}
       </div>
       {!loading && !inList && meId && shown.length > 0 && (
@@ -1828,6 +1852,32 @@ export function EscRanking() {
         </Box>
       )}
       <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">← Voltar</Btn>
+
+      {/* álbum do técnico tocado */}
+      {viewUser && (
+        <div className="fixed inset-0 z-50 flex flex-col p-4" style={{ background: 'rgba(0,0,0,.7)' }} onClick={() => setViewUser(null)}>
+          <div className="max-w-md w-full mx-auto my-auto max-h-[85vh] flex flex-col rounded-2xl border-[3px] border-black overflow-hidden" style={{ background: CREAM }} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b-[3px] border-black" style={{ background: GOLD }}>
+              <div className="min-w-0">
+                <p className="font-black text-black text-lg leading-tight truncate" style={OSWALD}>📖 Álbum de {viewUser.name}</p>
+                {viewCards && <p className="text-black/60 text-xs font-bold">{viewCards.length} carta{viewCards.length === 1 ? '' : 's'}</p>}
+              </div>
+              <button onClick={() => setViewUser(null)} className="shrink-0 w-8 h-8 rounded-full border-2 border-black bg-white font-black text-black active:translate-y-0.5">✕</button>
+            </div>
+            <div className="overflow-y-auto p-4">
+              {!viewCards && <p className="text-center font-bold text-black/60 py-6">Carregando…</p>}
+              {viewCards && viewCards.length === 0 && <p className="text-center font-bold text-black/60 py-6">Esse técnico ainda não ganhou cartas.</p>}
+              {viewCards && viewCards.length > 0 && (
+                <div className="grid grid-cols-2 gap-3">
+                  {viewCards.map((c, i) => (
+                    <CollectibleCard key={i} name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </Shell>
   )
 }
