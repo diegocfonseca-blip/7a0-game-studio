@@ -1584,8 +1584,35 @@ async function leaveOnlineRoom(roomId: string) {
   } catch { /* silencioso */ }
 }
 
+// ─── retomar partida SOLO em andamento (carreira/rápida) ─────────────
+// o estado do jogo vive só na memória; se a aba recarrega (ou o navegador
+// descarta a página em segundo plano), voltava pro zero (home) e perdia a
+// temporada. Salvamos a partida solo em andamento no aparelho e retomamos de
+// onde parou. (O online tem seu próprio resume via sala — aqui é só cpu.)
+const SOLO_RESUME_KEY = 'esc-solo-inprogress-v1'
+const SOLO_GAME_SCREENS = ['auction', 'monte', 'cerimonia', 'season', 'end'] as const
+function isSoloGameScreen(screen: string): boolean {
+  return (SOLO_GAME_SCREENS as readonly string[]).includes(screen)
+}
+function loadSoloInProgress(): EscState | null {
+  try {
+    const raw = localStorage.getItem(SOLO_RESUME_KEY)
+    if (!raw) return null
+    const s = JSON.parse(raw) as EscState
+    if (s && s.onlineMode === 'cpu' && isSoloGameScreen(s.screen) && Array.isArray(s.managers) && s.managers.length > 0) return s
+  } catch { /* estado inválido/versão antiga — começa do zero */ }
+  return null
+}
+
 export function EscProvider({ children }: { children: ReactNode }) {
-  const [state, rawDispatch] = useReducer(reducer, INITIAL)
+  const [state, rawDispatch] = useReducer(reducer, INITIAL, init => loadSoloInProgress() ?? init)
+  // salva a partida solo em andamento (e limpa quando volta pra home)
+  useEffect(() => {
+    try {
+      if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen)) localStorage.setItem(SOLO_RESUME_KEY, JSON.stringify(state))
+      else if (state.screen === 'intro') localStorage.removeItem(SOLO_RESUME_KEY)
+    } catch { /* quota cheia etc. — não trava o jogo */ }
+  }, [state])
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   const isHostRef = useRef(state.isHost)
   const onlineRef = useRef(state.onlineMode)
