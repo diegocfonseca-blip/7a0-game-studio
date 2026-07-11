@@ -718,10 +718,10 @@ export const CPU_MANAGERS = [
   { name: 'Tico do Bar', team: 'Tico do Bar FR' },
   { name: 'Xandão da Bola', team: 'Xandão EC' },
   { name: 'Zequinha Ferro', team: 'Zequinha SAF' },
-  { name: 'Waguinho Pipa', team: 'Pipa FC' },
+  { name: 'Waguinho Pipa', team: 'Fatality FC' },
   { name: 'Gugu Canela', team: 'Canela EC' },
   { name: 'Baixinho da Kombi', team: 'Kombi United' },
-  { name: 'Zé Ruela', team: 'Ruela FC' },
+  { name: 'Zé Ruela', team: 'Carrinho de Mão' },
   { name: 'Toninho Grelha', team: 'Grelha SAF' },
   { name: 'Vavá Peteca', team: 'Peteca FR' },
   { name: 'Nininho', team: 'Nininho EC' },
@@ -735,10 +735,10 @@ export const CPU_MANAGERS = [
   { name: 'Cabelo de Fogo', team: 'Fogaréu EC' },
   { name: 'Zorra Total FC', team: 'Zorra FC' },
   { name: 'Tião Bagre', team: 'Bagre do Rio' },
-  { name: 'Nego do Xote', team: 'Xote FC' },
-  { name: 'Val do Buraco', team: 'Buraco Quente EC' },
+  { name: 'Nego do Xote', team: 'Mano Paulista' },
+  { name: 'Val do Buraco', team: 'Flamengo do Sertão' },
   { name: 'Zé do Caixote', team: 'Caixote EC' },
-  { name: 'Zé Chapéu', team: 'Chapéu de Palha FR' },
+  { name: 'Zé Chapéu', team: 'Brodeiragem' },
 ]
 
 // ─── Clubes clássicos que completam a liga de 20 ─────────────────────
