@@ -747,7 +747,7 @@ export const CPU_MANAGERS = [
 // clubes fictícios "de gente grande" (inventados, não são paródia de reais).
 export type CareerTeam = { name: string; team: string }
 export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
-  D: [
+  C: [
     { name: 'Casa de Vó', team: 'Casa de Vó' },
     { name: 'Zé Colmeia', team: 'Zé Colmeia' },
     { name: 'Waguinho Pipa', team: 'Fatality FC' },
@@ -769,7 +769,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Cabelo de Fogo', team: 'Fogaréu EC' },
     { name: 'Baixinho da Kombi', team: 'Kombi United' },
   ],
-  C: [
+  D: [
     { name: 'Tonhão', team: 'Tonhão FC' },
     { name: 'PC Magrão', team: 'Magrão EC' },
     { name: 'Biriba', team: 'Biriba United' },
