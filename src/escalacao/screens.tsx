@@ -207,7 +207,7 @@ export function EscIntro() {
         <CareerContinueBanner />
         <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-lg">⚡ PARTIDA RÁPIDA (VS CPU)</Btn>
         <Btn onClick={() => dispatch({ type: 'GO_SETUP_CAREER' })} className="w-full text-lg" bg={PURPLE}>
-          <span className="text-white">🪜 CARREIRA POR DIVISÕES</span>
+          <span className="text-white">🪜 CARREIRA POR DIVISÕES <span className="text-yellow-300">(new)</span></span>
         </Btn>
         <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg" bg={GREEN}>
           <span className="text-white">👥 JOGAR ONLINE (SALA)</span>
@@ -272,21 +272,19 @@ export function EscSetup() {
             ))}
           </div>
         </div>
-        {!career && (
-          <div>
-            <p className="text-xs font-black uppercase mb-1">Rivais na sala (CPUs)</p>
-            <div className="grid grid-cols-4 gap-2">
-              {[3, 5, 7, 9].map(n => (
-                <button key={n} onClick={() => setRivals(n)}
-                  className="border-[3px] border-black rounded-xl py-2 font-black text-sm"
-                  style={{ backgroundColor: rivals === n ? PURPLE : '#fff', color: rivals === n ? '#fff' : INK, boxShadow: rivals === n ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
-                  {n}
-                </button>
-              ))}
-            </div>
+        <div>
+          <p className="text-xs font-black uppercase mb-1">Rivais na sala (CPUs)</p>
+          <div className="grid grid-cols-4 gap-2">
+            {[3, 5, 7, 9].map(n => (
+              <button key={n} onClick={() => setRivals(n)}
+                className="border-[3px] border-black rounded-xl py-2 font-black text-sm"
+                style={{ backgroundColor: rivals === n ? PURPLE : '#fff', color: rivals === n ? '#fff' : INK, boxShadow: rivals === n ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                {n}
+              </button>
+            ))}
           </div>
-        )}
-        {career && <p className="text-xs font-semibold text-black/70">🏟️ Na carreira você disputa um Brasileirão de 20 times.</p>}
+        </div>
+        {career && <p className="text-xs font-semibold text-black/70">🏟️ A liga completa 20 times com os clássicos — você disputa a divisão contra os CPUs do leilão.</p>}
         <p className="text-xs font-semibold text-black/70">💰 Todo técnico começa com {START_MONEY} moedas. O que sobrar no fim do leilão <b>evapora</b> — gaste com sabedoria (ou sem).</p>
       </Box>
       <Btn onClick={() => dispatch({ type: 'START', teamName: name, formation, rivals, career })} className="w-full text-lg" bg={GREEN}>

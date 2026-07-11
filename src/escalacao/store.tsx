@@ -436,9 +436,10 @@ function computeCpuAdj(managers: Manager[], margin = CPU_TOP_MARGIN, capOnly = t
 
 // ─── modo carreira: divisões, dificuldade e progressão ───────────────
 const DIVISIONS: Division[] = ['D', 'C', 'B', 'A'] // de baixo pra cima
-// dificuldade por divisão: D/C/B = nível de hoje (justo); A = um degrau acima.
+// dificuldade por divisão: D/C/B = exatamente o nível da partida rápida (sem
+// ajuste nenhum); A = um degrau acima (pode buffar os bots até média+8).
 function careerAdj(managers: Manager[], div: Division): { atk: number; def: number } {
-  return div === 'A' ? computeCpuAdj(managers, 8, false) : computeCpuAdj(managers, CPU_TOP_MARGIN, true)
+  return div === 'A' ? computeCpuAdj(managers, 8, false) : { atk: 0, def: 0 }
 }
 // sobe (top 3), cai (Z4: 17º+) ou fica — limitado por A (topo) e D (base).
 export function nextDivision(div: Division, youPos: number): { div: Division; result: 'up' | 'down' | 'stay' } {
@@ -968,8 +969,8 @@ function redraftSeason(s: EscState): EscState {
   s.seed = Math.floor(Math.random() * 1e9)
   const rng = mulberry(s.seed)
   const used = new Set<string>()
-  if (s.onlineMode === 'online' || s.careerDivision) {
-    // online E carreira usam liga grande (20 times) com bots de preenchimento
+  if (s.onlineMode === 'online') {
+    // online usa liga grande (20 times) com bots de preenchimento
     const { managers, botPlans } = makeManagers(humanNames, formation, LEAGUE_SIZE, rng, 'online')
     s.managers = managers
     s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
@@ -1095,14 +1096,15 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerIntent = false
       s.careerTitles = 0
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0 // recalculado na cerimônia (quando os elencos existem)
-      // na carreira a liga é grande (20 times, estilo Brasileirão); rápida usa os rivais escolhidos
-      const rivals = action.career ? LEAGUE_SIZE : 1 + action.rivals
-      const { managers: soloManagers, botPlans: soloPlans } = makeManagers([action.teamName || 'Meu Time'], action.formation, rivals, rng, action.career ? 'online' : 'solo')
+      // carreira usa o MESMO padrão da partida rápida: escolhe quantos CPUs
+      // (rivais no leilão) — a diferença é só a progressão de divisões + save.
+      const rivals = 1 + action.rivals
+      const { managers: soloManagers, botPlans: soloPlans } = makeManagers([action.teamName || 'Meu Time'], action.formation, rivals, rng, 'solo')
       s.managers = soloManagers
       s.youIdx = 0
       const soloUsed = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, soloUsed, 1)
-      dealBotSquads(s.managers, soloPlans, rng, soloUsed) // carreira: bots de preenchimento ganham elenco pronto
+      dealBotSquads(s.managers, soloPlans, rng, soloUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}
@@ -1308,7 +1310,9 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerDivision = sv.division; s.careerIntent = false; s.careerTitles = sv.titles
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
-      const { managers, botPlans } = makeManagers([sv.teamName], sv.formation, LEAGUE_SIZE, rng, 'online')
+      // carreira é solo (mesmo padrão da rápida): retoma com a qtd padrão de
+      // rivais CPU. A tabela vira 20 times com os clássicos completando a liga.
+      const { managers, botPlans } = makeManagers([sv.teamName], sv.formation, 1 + 5, rng, 'solo')
       s.managers = managers
       s.youIdx = 0
       managers[0].squad = sv.squad
