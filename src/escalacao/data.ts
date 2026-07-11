@@ -721,7 +721,7 @@ export const CPU_MANAGERS = [
   { name: 'Waguinho Pipa', team: 'Fatality FC' },
   { name: 'Gugu Canela', team: 'Canela EC' },
   { name: 'Baixinho da Kombi', team: 'Kombi United' },
-  { name: 'Zé Ruela', team: 'Carrinho de Mão' },
+  { name: 'Zé Ruela', team: 'Paixandu' },
   { name: 'Toninho Grelha', team: 'Grelha SAF' },
   { name: 'Vavá Peteca', team: 'Peteca FR' },
   { name: 'Nininho', team: 'Nininho EC' },
