@@ -1242,6 +1242,7 @@ export function EscSeason() {
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="font-black text-sm" style={OSWALD}>
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
+          {state.careerTitlesA > 0 && <span className="mr-1.5"><CareerStars n={state.careerTitlesA} size={12} /></span>}
           RODADA {Math.min(state.round + 1, 38)}/38
         </span>
         <span className="font-black text-sm" style={OSWALD}>{youPos}º · {table[youPos - 1]?.pts ?? 0} pts</span>
@@ -2055,7 +2056,7 @@ async function saveCareer(save: CareerSave): Promise<boolean> {
     if (!data?.user) return false
     const { error } = await supabase.from('esc_careers').upsert({
       user_id: data.user.id, division: save.division, season_no: save.seasonNo,
-      team_name: save.teamName, formation: save.formation, squad: save.squad, titles: save.titles,
+      team_name: save.teamName, formation: save.formation, squad: save.squad, titles: save.titles, titles_a: save.titlesA ?? 0,
       pending_decision: !!save.pendingDecision, result: save.result ?? null, prev_division: save.prevDivision ?? null,
       rival_teams: save.rivals ?? null, rival_count: save.rivalCount ?? null,
       updated_at: new Date().toISOString(),
@@ -2068,7 +2069,7 @@ async function loadCareer(): Promise<CareerSave | null> {
     const { data } = await supabase.auth.getUser()
     if (data?.user) {
       const { data: row } = await supabase.from('esc_careers').select('*').eq('user_id', data.user.id).maybeSingle()
-      if (row) return { division: row.division, seasonNo: row.season_no, teamName: row.team_name, formation: row.formation, squad: row.squad as CareerSave['squad'], titles: row.titles, pendingDecision: !!row.pending_decision, result: row.result ?? undefined, prevDivision: row.prev_division ?? undefined, rivals: (row.rival_teams as CareerSave['rivals']) ?? undefined, rivalCount: row.rival_count ?? undefined }
+      if (row) return { division: row.division, seasonNo: row.season_no, teamName: row.team_name, formation: row.formation, squad: row.squad as CareerSave['squad'], titles: row.titles, titlesA: row.titles_a ?? 0, pendingDecision: !!row.pending_decision, result: row.result ?? undefined, prevDivision: row.prev_division ?? undefined, rivals: (row.rival_teams as CareerSave['rivals']) ?? undefined, rivalCount: row.rival_count ?? undefined }
     }
   } catch { /* ignora */ }
   return loadCareerLocal()
@@ -2164,6 +2165,7 @@ function CareerContinueBanner() {
         <div className="rounded-xl border-2 border-black px-3 py-2 text-center" style={{ background: banner.bg }}>
           <p className="font-black text-white text-sm" style={OSWALD}>{banner.txt}</p>
           <p className="font-bold text-white/85 text-[11px]">Temporada {save.seasonNo} · {save.titles} título{save.titles === 1 ? '' : 's'} · {save.teamName}</p>
+          {(save.titlesA ?? 0) > 0 && <p className="mt-0.5"><CareerStars n={save.titlesA ?? 0} size={13} /></p>}
         </div>
         <p className="text-center text-white font-black text-xs" style={OSWALD}>Como quer seguir?</p>
         <button onClick={() => dispatch({ type: 'RESTORE_CAREER', save })} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>▶️ Continuar com o mesmo time</button>
@@ -2174,7 +2176,7 @@ function CareerContinueBanner() {
   }
   return (
     <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: PURPLE, boxShadow: `4px 4px 0 ${INK}` }}>
-      <p className="font-black text-white text-sm leading-tight" style={OSWALD}>🪜 Carreira em andamento<br /><span className="opacity-85 text-xs">{DIVISION_LABEL[save.division]} · Temporada {save.seasonNo} · {save.titles} título{save.titles === 1 ? '' : 's'}</span></p>
+      <p className="font-black text-white text-sm leading-tight" style={OSWALD}>🪜 Carreira em andamento<br /><span className="opacity-85 text-xs">{DIVISION_LABEL[save.division]} · Temporada {save.seasonNo} · {save.titles} título{save.titles === 1 ? '' : 's'}</span>{(save.titlesA ?? 0) > 0 && <><br /><CareerStars n={save.titlesA ?? 0} size={13} /></>}</p>
       <div className="flex gap-2">
         <button
           onClick={() => save.pendingDecision ? setDecideOpen(true) : dispatch({ type: 'RESTORE_CAREER', save })}
@@ -2187,6 +2189,20 @@ function CareerContinueBanner() {
         </button>
       </div>
     </div>
+  )
+}
+
+// estrelas de título da SÉRIE A ⭐ — só campeão da elite ganha estrela.
+// 1 = Campeão, 2 Bi, 3 Tri, 4 Tetra, 5 Penta, 6+ Dinastia 👑
+const A_TITLE_LABEL: Record<number, string> = { 1: 'Campeão da Série A', 2: 'Bicampeão', 3: 'Tricampeão', 4: 'Tetracampeão', 5: 'Pentacampeão' }
+function aTitleLabel(n: number): string { return n >= 6 ? '👑 Dinastia' : (A_TITLE_LABEL[n] ?? '') }
+function CareerStars({ n, size = 13 }: { n: number; size?: number }) {
+  if (n <= 0) return null
+  const shown = Math.min(n, 5)
+  return (
+    <span title={aTitleLabel(n)} style={{ fontSize: size, letterSpacing: -1, whiteSpace: 'nowrap' }}>
+      {'⭐'.repeat(shown)}{n > 5 && <span style={{ fontSize: size - 3, fontWeight: 900, letterSpacing: 0 }}> ×{n}</span>}
+    </span>
   )
 }
 
@@ -2215,6 +2231,8 @@ function CareerEndPanel() {
     if (data?.user) doSave()
     else setAuthOpen(true) // não logado → cadastro rápido
   }
+  const wonA = div === 'A' && youPos === 1        // campeão da elite nesta temporada → nova estrela
+  const totalA = state.careerTitlesA + (wonA ? 1 : 0)
   const banner = nd.result === 'up'
     ? { bg: '#1B7A3D', txt: `🔼 SUBIU PRA ${DIVISION_LABEL[nd.div].toUpperCase()}!` }
     : nd.result === 'down'
@@ -2223,9 +2241,16 @@ function CareerEndPanel() {
 
   return (
     <div className="space-y-2.5">
+      {wonA && (
+        <div className="rounded-2xl border-4 border-black p-3 text-center" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 45%,#E8A200 75%,#FFDD70)', boxShadow: `4px 4px 0 ${INK}` }}>
+          <p className="font-black text-black text-2xl leading-none" style={OSWALD}>🏆 CAMPEÃO DA SÉRIE A!</p>
+          <p className="font-black text-black/80 text-sm mt-1" style={OSWALD}>{aTitleLabel(totalA)}</p>
+          <p className="mt-1"><CareerStars n={totalA} size={22} /></p>
+        </div>
+      )}
       <div className="rounded-2xl border-4 border-black p-3 text-center" style={{ background: banner.bg, boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="font-black text-white text-xl" style={OSWALD}>{banner.txt}</p>
-        <p className="font-bold text-white/80 text-xs mt-0.5">{DIVISION_LABEL[div]} · Temporada {state.seasonNo} · {state.careerTitles} título{state.careerTitles === 1 ? '' : 's'} na carreira</p>
+        <p className="font-bold text-white/80 text-xs mt-0.5">{DIVISION_LABEL[div]} · Temporada {state.seasonNo} · {state.careerTitles} título{state.careerTitles === 1 ? '' : 's'} na carreira{totalA > 0 && !wonA ? ` · ${totalA}⭐ Série A` : ''}</p>
       </div>
       <p className="text-center font-black text-sm text-black/60" style={OSWALD}>Como quer seguir?</p>
       <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: true })} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ Continuar com o mesmo time</span></Btn>

@@ -198,7 +198,8 @@ export interface EscState {
   streamMode: boolean // sala de stream: esconde os VALORES dos lances na tela (pra live)
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerIntent: boolean // ao ir pro setup, sinaliza que é carreira (não partida rápida)
-  careerTitles: number // títulos acumulados na carreira atual
+  careerTitles: number // títulos acumulados na carreira atual (qualquer divisão)
+  careerTitlesA: number // títulos da SÉRIE A (viram estrelas ⭐ no escudo)
   careerRivalCount: number // quantos rivais de leilão (3/5/7/9) na carreira
   careerRivals: CareerRival[] // rivais fixos (vida própria na pirâmide)
   scorers: ScorerRow[] // artilharia acumulada da temporada
