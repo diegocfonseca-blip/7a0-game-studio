@@ -5,7 +5,8 @@ import type {
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { CATALOG, makeIncognita, CPU_MANAGERS, CLASSIC_CLUBS } from './data'
+import { CATALOG, makeIncognita, CPU_MANAGERS, CLASSIC_CLUBS, DIVISION_TEAMS } from './data'
+import type { CareerTeam } from './data'
 import { supabase } from '../lib/supabase'
 import { logPlay, logVisit, heartbeat } from './analytics'
 
@@ -459,23 +460,90 @@ export interface CareerSave {
   pendingDecision?: boolean
   result?: 'up' | 'down' | 'stay' // pro banner subiu/caiu/ficou ao continuar
   prevDivision?: Division         // divisão da temporada que acabou (pro banner)
+  rivalTeams?: CareerTeam[]       // grupo de rivais resolvido pra próxima temporada
+  rivalCount?: number             // quantos rivais de leilão (3/5/7/9)
 }
+
+// monta a liga da carreira: você + N rivais (dão lance no leilão) + o resto do
+// elenco NOMEADO da divisão como preenchimento (não dão lance). Os rivais podem
+// vir de outra divisão (subiram/caíram com você) — por isso são passados de fora.
+function makeCareerManagers(teamName: string, formation: FormationKey, div: Division, rivalDefs: CareerTeam[], rng: () => number): { managers: Manager[]; botPlans: BotPlan[] } {
+  const forms: FormationKey[] = ['4-3-3', '4-4-2']
+  const human: Manager = { id: 0, name: teamName, teamName, isHuman: true, auctionRival: true, formation, money: START_MONEY, squad: [], aggression: 0.5, starHunger: 0.5 }
+  const usedTeams = new Set(rivalDefs.map(r => r.team))
+  const fillerNeeded = LEAGUE_SIZE - 1 - rivalDefs.length
+  const fillerDefs = DIVISION_TEAMS[div].filter(t => !usedTeams.has(t.team)).slice(0, fillerNeeded)
+  const cpus: Manager[] = []
+  const botPlans: BotPlan[] = []
+  let id = 1
+  for (const r of rivalDefs) {
+    cpus.push({ id, name: r.name, teamName: r.team, isHuman: false, auctionRival: true, formation: forms[Math.floor(rng() * forms.length)], money: START_MONEY, squad: [], aggression: 0.25 + rng() * 0.7, starHunger: rng() })
+    id++
+  }
+  const strongN = Math.max(1, Math.round(fillerDefs.length * 0.15))
+  const weakN = Math.max(1, Math.round(fillerDefs.length * 0.15))
+  fillerDefs.forEach((f, i) => {
+    const cpuFormation = forms[Math.floor(rng() * forms.length)]
+    const tier: Tier = i < strongN ? 'strong' : i >= fillerDefs.length - weakN ? 'weak' : 'mid'
+    botPlans.push({ id, tier, formation: cpuFormation })
+    cpus.push({ id, name: f.name, teamName: f.team, isHuman: false, auctionRival: false, formation: cpuFormation, money: 0, squad: [], aggression: 0.5, starHunger: 0.5 })
+    id++
+  })
+  return { managers: [human, ...cpus], botPlans }
+}
+
+// dá elenco aos CPUs que ainda estão vazios (usado no "continuar mesmo time",
+// onde não há leilão): rivais novos e preenchimento ganham time; os rivais que
+// vieram junto mantêm o elenco que já tinham.
+function dealRemainingCpuSquads(managers: Manager[], rng: () => number, used: Set<string>) {
+  const empties = managers.filter(m => !m.isHuman && m.squad.length === 0)
+  const strongN = Math.max(1, Math.round(empties.length * 0.2))
+  const weakN = Math.max(1, Math.round(empties.length * 0.2))
+  empties.forEach((b, i) => {
+    const tier: Tier = i < strongN ? 'strong' : i >= empties.length - weakN ? 'weak' : 'mid'
+    b.squad = makeBotSquad(b.formation, tier, rng, used)
+  })
+}
+
+// resolve o fim da temporada da carreira: sua próxima divisão, título, e o
+// NOVO grupo de rivais — quem subiu/caiu na MESMA direção que você continua;
+// quem se separou sai e é substituído por times da divisão de destino.
+interface CareerEnd { nextDiv: Division; result: 'up' | 'down' | 'stay'; wonTitle: boolean; nextRivals: CareerTeam[] }
+function resolveCareerEnd(s: EscState): CareerEnd {
+  const div = s.careerDivision as Division
+  const you = s.managers[s.youIdx]
+  const table = sortedTable(s.league)
+  const youPos = table.findIndex(t => t.id === you.id) + 1
+  const wonTitle = table[0]?.id === you.id
+  const nd = nextDivision(div, youPos)
+  const count = s.careerRivalCount || 5
+  const rivals = s.managers.filter(m => !m.isHuman && m.auctionRival)
+  const carried: CareerTeam[] = []
+  for (const r of rivals) {
+    const rPos = table.findIndex(t => t.id === r.id) + 1
+    if (nextDivision(div, rPos).div === nd.div) carried.push({ name: r.name, team: r.teamName })
+  }
+  // completa o grupo com times da divisão de destino que ainda não são rivais
+  const used = new Set(carried.map(c => c.team))
+  const pool = DIVISION_TEAMS[nd.div].filter(t => !used.has(t.team))
+  let pi = 0
+  while (carried.length < count && pi < pool.length) { carried.push(pool[pi]); pi++ }
+  return { nextDiv: nd.div, result: nd.result, wonTitle, nextRivals: carried.slice(0, count) }
+}
+
 export function buildCareerSave(s: EscState): CareerSave | null {
   if (!s.careerDivision) return null
   const you = s.managers[s.youIdx]
   if (!you) return null
-  // resolve o fim da temporada AQUI (título, subida/queda, +1 temporada) pra
-  // que continuar depois retome no ponto certo — antes o save guardava a
-  // divisão/temporada JÁ jogada e o "continuar" repetia ela, perdendo o acesso.
-  const table = sortedTable(s.league)
-  const youPos = table.findIndex(t => t.id === you.id) + 1
-  const wonTitle = table[0]?.id === you.id
-  const nd = nextDivision(s.careerDivision, youPos)
+  // resolve o fim da temporada AQUI (título, subida/queda, +1 temporada, novos
+  // rivais) pra que continuar depois retome no ponto certo.
+  const res = resolveCareerEnd(s)
   return {
-    division: nd.div, seasonNo: s.seasonNo + 1,
+    division: res.nextDiv, seasonNo: s.seasonNo + 1,
     teamName: you.teamName, formation: you.formation, squad: you.squad,
-    titles: s.careerTitles + (wonTitle ? 1 : 0),
-    pendingDecision: true, result: nd.result, prevDivision: s.careerDivision,
+    titles: s.careerTitles + (res.wonTitle ? 1 : 0),
+    pendingDecision: true, result: res.result, prevDivision: s.careerDivision,
+    rivalTeams: res.nextRivals, rivalCount: s.careerRivalCount,
   }
 }
 
@@ -800,21 +868,6 @@ function dealBotSquads(managers: Manager[], botPlans: BotPlan[], rng: () => numb
   }
 }
 
-// carreira "continuar com o mesmo time": o save só guarda o SEU elenco. Os
-// rivais do modo solo são `auctionRival` (sem botPlans) e normalmente montam
-// o time NO leilão — mas aqui não há leilão. Sem isto eles entravam SEM
-// elenco, afundavam na tabela e não pontuavam na artilharia (parecia
-// jogo vazio). Regeramos com um leque de níveis, como uma liga de verdade.
-function dealSoloRivalSquads(managers: Manager[], rng: () => number, used: Set<string>) {
-  const bots = managers.filter(m => !m.isHuman)
-  const strongN = Math.max(1, Math.round(bots.length * 0.2))
-  const weakN = Math.max(1, Math.round(bots.length * 0.2))
-  bots.forEach((b, i) => {
-    const tier: Tier = i < strongN ? 'strong' : i >= bots.length - weakN ? 'weak' : 'mid'
-    b.squad = makeBotSquad(b.formation, tier, rng, used)
-  })
-}
-
 // ─── estado inicial ──────────────────────────────────────────────────
 const INITIAL: EscState = {
   screen: 'intro', seed: 1,
@@ -827,7 +880,7 @@ const INITIAL: EscState = {
   monte: [], monteOrder: [], monteIdx: 0,
   league: [], fixtures: [], round: 0, tactics: {},
   lastResults: [], news: [], champion: null,
-  careerDivision: null, careerIntent: false, careerTitles: 0,
+  careerDivision: null, careerIntent: false, careerTitles: 0, careerRivalCount: 5,
   phaseDeadline: null, scorers: [],
   monteDeadline: null, cerimoniaDeadline: null,
   cpuAtkAdj: 0, cpuDefAdj: 0, streamMode: false,
@@ -1134,12 +1187,13 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerDivision = action.career ? 'D' : null
       s.careerIntent = false
       s.careerTitles = 0
+      s.careerRivalCount = action.rivals
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0 // recalculado na cerimônia (quando os elencos existem)
-      // carreira usa o MESMO padrão da partida rápida: escolhe quantos CPUs
-      // brigam no leilão; o resto da tabela (até 20) entra como preenchimento
-      // nomeado, pra artilharia mostrar o campeonato inteiro. Diferença da
-      // carreira é só a progressão de divisões + save.
-      const { managers: soloManagers, botPlans: soloPlans } = makeManagers([action.teamName || 'Meu Time'], action.formation, action.rivals, LEAGUE_SIZE, rng)
+      // carreira: começa na Série D com os rivais escolhidos vindos do elenco
+      // DAQUELA divisão. Partida rápida: pool único de CPUs (sem pirâmide).
+      const { managers: soloManagers, botPlans: soloPlans } = action.career
+        ? makeCareerManagers(action.teamName || 'Meu Time', action.formation, 'D', DIVISION_TEAMS['D'].slice(0, action.rivals), rng)
+        : makeManagers([action.teamName || 'Meu Time'], action.formation, action.rivals, LEAGUE_SIZE, rng)
       s.managers = soloManagers
       s.youIdx = 0
       const soloUsed = new Set<string>()
@@ -1319,30 +1373,62 @@ export function reducer(state: EscState, action: Action): EscState {
       // full re-draft direto (usado no modo solo/CPU, onde não há espera).
       return redraftSeason(s)
     case 'CAREER_ADVANCE': {
-      // fim de temporada na carreira: sobe/cai/fica e começa a próxima.
+      // fim de temporada na carreira: sobe/cai/fica e começa a próxima, já na
+      // divisão de destino com o novo elenco de rivais (quem subiu/caiu junto
+      // continua; quem se separou sai e entra time da divisão nova).
       if (!s.careerDivision) return s
+      const res = resolveCareerEnd(s)
+      if (res.wonTitle) s.careerTitles++
       const you = s.managers[s.youIdx]
-      const table = sortedTable(s.league)
-      const youPos = table.findIndex(t => t.id === you.id) + 1
-      if (table[0]?.id === you.id) s.careerTitles++
-      const nd = nextDivision(s.careerDivision, youPos)
-      s.careerDivision = nd.div
+      const teamName = you.teamName, formation = you.formation, mySquad = you.squad
+      // guarda os elencos dos CPUs por identidade de time (pros rivais que ficam)
+      const oldSquads = new Map<string, WonCard[]>()
+      for (const m of s.managers) if (!m.isHuman && m.squad.length > 0) oldSquads.set(m.teamName, m.squad)
+      s.careerDivision = res.nextDiv
+      s.seed = Math.floor(Math.random() * 1e9)
+      const rng = mulberry(s.seed)
+      const { managers, botPlans } = makeCareerManagers(teamName, formation, res.nextDiv, res.nextRivals, rng)
+      s.managers = managers
+      s.youIdx = 0
+      s.monte = []; s.monteOrder = []; s.monteIdx = 0; s.tactics = {}
+      s.sectorUnsoldAccum = []; s.currentCards = []
+      s.round = 0; s.scorers = []; s.lastResults = []; s.news = []; s.champion = null
       if (action.keep) {
-        // MESMO TIME: recomeça o campeonato com os elencos atuais (sem leilão)
-        const adj = careerAdj(s.managers, nd.div); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
+        // MESMO TIME: você mantém o elenco; rivais que vieram junto mantêm o
+        // deles; rivais novos + preenchimento ganham elenco (sem leilão).
+        managers[0].squad = mySquad
+        const used = new Set<string>(mySquad.map(c => c.name))
+        for (const m of managers) {
+          if (m.isHuman) continue
+          const kept = oldSquads.get(m.teamName)
+          if (kept && kept.length > 0) { m.squad = kept; kept.forEach(c => used.add(c.name)) }
+        }
+        dealRemainingCpuSquads(s.managers, rng, used)
+        const adj = careerAdj(s.managers, res.nextDiv); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
+        s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
+        s.sectorIdx = 0; s.sectorCursor = 0
         s.league = buildLeague(s.managers)
         s.fixtures = buildFixtures(s.league)
-        s.round = 0; s.scorers = []; s.lastResults = []; s.news = []; s.champion = null
-        s.tactics = {}
         s.seasonNo++
         s.screen = 'season'
         return s
       }
-      // TROCAR TUDO: novo leilão (cpuAdj recalcula na cerimônia, já ciente da divisão)
-      return redraftSeason(s)
+      // TROCAR TUDO: novo leilão na divisão de destino
+      const used = new Set<string>()
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+      dealBotSquads(s.managers, botPlans, rng, used)
+      for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
+      s.cpuAtkAdj = 0; s.cpuDefAdj = 0
+      s.sectorIdx = 0; s.sectorCursor = 0; s.roundIdx = 0
+      s.submitted = []; s.pendingEnvelopes = {}
+      s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
+      s.seasonNo++
+      s.screen = 'auction'
+      startAuctionPhase(s, false)
+      return s
     }
     case 'RESTORE_CAREER': {
-      // retoma uma carreira salva na conta, na divisão/temporada guardadas.
+      // retoma uma carreira salva, na divisão/temporada/rivais guardados.
       // keep (padrão): vai direto pro campeonato com o elenco salvo (pula o
       // leilão). redraft ("trocar tudo"): abre um novo leilão nesta divisão.
       const sv = action.save
@@ -1350,23 +1436,25 @@ export function reducer(state: EscState, action: Action): EscState {
       s.roomId = ''; s.roomCode = ''; s.streamMode = false
       s.careerDivision = sv.division; s.careerIntent = false; s.careerTitles = sv.titles
       s.seasonNo = sv.seasonNo
+      s.careerRivalCount = sv.rivalCount ?? 5
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
-      // carreira é solo (mesmo padrão da rápida): retoma com a qtd padrão de
-      // rivais de leilão; o resto completa a liga de 20 com preenchimento nomeado.
-      const { managers, botPlans } = makeManagers([sv.teamName], sv.formation, 5, LEAGUE_SIZE, rng)
+      // rivais salvos (saves antigos: os primeiros times da divisão como fallback)
+      const rivalDefs = (sv.rivalTeams && sv.rivalTeams.length > 0)
+        ? sv.rivalTeams
+        : DIVISION_TEAMS[sv.division].slice(0, s.careerRivalCount)
+      const { managers, botPlans } = makeCareerManagers(sv.teamName, sv.formation, sv.division, rivalDefs, rng)
       s.managers = managers
       s.youIdx = 0
       s.monte = []; s.monteOrder = []; s.monteIdx = 0; s.tactics = {}
       s.sectorUnsoldAccum = []; s.currentCards = []
       s.round = 0; s.scorers = []; s.lastResults = []; s.news = []; s.champion = null
       if (action.redraft) {
-        // TROCAR TUDO: novo leilão nesta divisão (mantém título/temporada/divisão)
         const used = new Set<string>()
         s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
         dealBotSquads(s.managers, botPlans, rng, used)
         for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
-        s.cpuAtkAdj = 0; s.cpuDefAdj = 0 // recalcula na cerimônia
+        s.cpuAtkAdj = 0; s.cpuDefAdj = 0
         s.sectorIdx = 0; s.sectorCursor = 0; s.roundIdx = 0
         s.submitted = []; s.pendingEnvelopes = {}
         s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
@@ -1378,7 +1466,7 @@ export function reducer(state: EscState, action: Action): EscState {
       managers[0].squad = sv.squad
       managers[0].formation = sv.formation
       const used = new Set<string>(sv.squad.map(c => c.name))
-      dealSoloRivalSquads(s.managers, rng, used) // rivais ganham elenco (não há leilão aqui)
+      dealRemainingCpuSquads(s.managers, rng, used)
       const adj = careerAdj(s.managers, sv.division); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
       s.sectorIdx = 0; s.sectorCursor = 0

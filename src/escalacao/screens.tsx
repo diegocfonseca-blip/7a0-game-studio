@@ -1976,6 +1976,7 @@ async function saveCareer(save: CareerSave): Promise<boolean> {
       user_id: data.user.id, division: save.division, season_no: save.seasonNo,
       team_name: save.teamName, formation: save.formation, squad: save.squad, titles: save.titles,
       pending_decision: !!save.pendingDecision, result: save.result ?? null, prev_division: save.prevDivision ?? null,
+      rival_teams: save.rivalTeams ?? null, rival_count: save.rivalCount ?? null,
       updated_at: new Date().toISOString(),
     })
     return !error
@@ -1986,7 +1987,7 @@ async function loadCareer(): Promise<CareerSave | null> {
     const { data } = await supabase.auth.getUser()
     if (data?.user) {
       const { data: row } = await supabase.from('esc_careers').select('*').eq('user_id', data.user.id).maybeSingle()
-      if (row) return { division: row.division, seasonNo: row.season_no, teamName: row.team_name, formation: row.formation, squad: row.squad as CareerSave['squad'], titles: row.titles, pendingDecision: !!row.pending_decision, result: row.result ?? undefined, prevDivision: row.prev_division ?? undefined }
+      if (row) return { division: row.division, seasonNo: row.season_no, teamName: row.team_name, formation: row.formation, squad: row.squad as CareerSave['squad'], titles: row.titles, pendingDecision: !!row.pending_decision, result: row.result ?? undefined, prevDivision: row.prev_division ?? undefined, rivalTeams: (row.rival_teams as CareerSave['rivalTeams']) ?? undefined, rivalCount: row.rival_count ?? undefined }
     }
   } catch { /* ignora */ }
   return loadCareerLocal()
