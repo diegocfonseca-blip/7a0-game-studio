@@ -746,37 +746,45 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
 }
 
 // ─── setup de técnicos ───────────────────────────────────────────────
-// mode 'solo': CPUs são rivais de verdade, disputam o leilão junto com você.
-// mode 'online': CPUs são só preenchimento da tabela — elenco pronto,
-// nunca aparecem no leilão, pra ele ficar do tamanho exato da sala humana.
-// Cria os técnicos SEM montar ainda o elenco dos bots (online). Devolve os
-// "planos" dos bots pra quem chamou: assim dá pra montar o baralho do leilão
-// PRIMEIRO (pegando os reais) e só depois escalar os bots com o que sobrar —
-// evita o bot comer todos os laterais reais e o humano ver nome inventado.
+// A tabela SEMPRE tem `leagueSize` times com elenco nomeado. Os CPUs se
+// dividem em dois papéis:
+//   • `auctionCpus` RIVAIS de leilão — dão lance junto com você, montam o time
+//     NO pregão (solo/carreira: os 3/5/7/9 que você escolhe; online: 0).
+//   • o RESTO é PREENCHIMENTO — já entra com elenco pronto (via botPlans),
+//     nunca dá lance, só completa a tabela. Como todos têm jogadores com nome,
+//     a artilharia mostra o campeonato inteiro (igual solo e online).
+// Devolve os "planos" dos bots de preenchimento pra montar o baralho do leilão
+// PRIMEIRO (reservando os reais pros que disputam) e só depois escalar o resto.
 type BotPlan = { id: number; tier: Tier; formation: FormationKey }
-function makeManagers(humanNames: string[], formation: FormationKey, targetTotal: number, rng: () => number, mode: 'solo' | 'online'): { managers: Manager[]; botPlans: BotPlan[] } {
+function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus: number, leagueSize: number, rng: () => number): { managers: Manager[]; botPlans: BotPlan[] } {
   const forms: FormationKey[] = ['4-3-3', '4-4-2']
   const humans: Manager[] = humanNames.map((name, i) => ({
     id: i, name, teamName: name, isHuman: true, auctionRival: true,
     formation, money: START_MONEY, squad: [], aggression: 0.5, starHunger: 0.5,
   }))
-  const cpuCount = Math.max(0, targetTotal - humans.length)
-  const names = CPU_MANAGERS.slice(0, cpuCount)
-  const strongN = Math.max(1, Math.round(cpuCount * 0.15))
-  const weakN = Math.max(1, Math.round(cpuCount * 0.15))
+  const totalCpus = Math.max(0, leagueSize - humans.length)
+  const nAuction = Math.min(Math.max(0, auctionCpus), totalCpus)
+  const nFiller = totalCpus - nAuction
+  const strongN = Math.max(1, Math.round(nFiller * 0.15))
+  const weakN = Math.max(1, Math.round(nFiller * 0.15))
+  const names = CPU_MANAGERS.slice(0, totalCpus)
   const botPlans: BotPlan[] = []
   const cpus: Manager[] = names.map((c, i) => {
     const cpuFormation = forms[Math.floor(rng() * forms.length)]
-    if (mode === 'solo') {
+    const id = humans.length + i
+    if (i < nAuction) {
+      // rival de leilão: monta o time NO pregão (dá lance)
       return {
-        id: humans.length + i, name: c.name, teamName: c.team, isHuman: false, auctionRival: true,
+        id, name: c.name, teamName: c.team, isHuman: false, auctionRival: true,
         formation: cpuFormation, money: START_MONEY, squad: [], aggression: 0.25 + rng() * 0.7, starHunger: rng(),
       }
     }
-    const tier: Tier = i < strongN ? 'strong' : i >= cpuCount - weakN ? 'weak' : 'mid'
-    botPlans.push({ id: humans.length + i, tier, formation: cpuFormation })
+    // preenchimento: elenco pronto, nunca dá lance
+    const fi = i - nAuction
+    const tier: Tier = fi < strongN ? 'strong' : fi >= nFiller - weakN ? 'weak' : 'mid'
+    botPlans.push({ id, tier, formation: cpuFormation })
     return {
-      id: humans.length + i, name: c.name, teamName: c.team, isHuman: false, auctionRival: false,
+      id, name: c.name, teamName: c.team, isHuman: false, auctionRival: false,
       formation: cpuFormation, money: 0, squad: [], aggression: 0.5, starHunger: 0.5,
     }
   })
@@ -1005,18 +1013,13 @@ function redraftSeason(s: EscState): EscState {
   s.seed = Math.floor(Math.random() * 1e9)
   const rng = mulberry(s.seed)
   const used = new Set<string>()
-  if (s.onlineMode === 'online') {
-    // online usa liga grande (20 times) com bots de preenchimento
-    const { managers, botPlans } = makeManagers(humanNames, formation, LEAGUE_SIZE, rng, 'online')
-    s.managers = managers
-    s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
-    dealBotSquads(s.managers, botPlans, rng, used)
-  } else {
-    const { managers, botPlans } = makeManagers(humanNames, formation, s.managers.length, rng, 'solo')
-    s.managers = managers
-    s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
-    dealBotSquads(s.managers, botPlans, rng, used)
-  }
+  // liga de 20 times sempre. online: nenhum CPU no leilão (só humanos). solo/
+  // carreira: mantém a mesma quantidade de rivais de leilão que a sala tinha.
+  const auctionCpus = s.onlineMode === 'online' ? 0 : s.managers.filter(m => !m.isHuman && m.auctionRival).length
+  const { managers, botPlans } = makeManagers(humanNames, formation, auctionCpus, LEAGUE_SIZE, rng)
+  s.managers = managers
+  s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+  dealBotSquads(s.managers, botPlans, rng, used)
   for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
   s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0
   s.monte = []; s.monteOrder = []; s.monteIdx = 0
@@ -1133,9 +1136,10 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerTitles = 0
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0 // recalculado na cerimônia (quando os elencos existem)
       // carreira usa o MESMO padrão da partida rápida: escolhe quantos CPUs
-      // (rivais no leilão) — a diferença é só a progressão de divisões + save.
-      const rivals = 1 + action.rivals
-      const { managers: soloManagers, botPlans: soloPlans } = makeManagers([action.teamName || 'Meu Time'], action.formation, rivals, rng, 'solo')
+      // brigam no leilão; o resto da tabela (até 20) entra como preenchimento
+      // nomeado, pra artilharia mostrar o campeonato inteiro. Diferença da
+      // carreira é só a progressão de divisões + save.
+      const { managers: soloManagers, botPlans: soloPlans } = makeManagers([action.teamName || 'Meu Time'], action.formation, action.rivals, LEAGUE_SIZE, rng)
       s.managers = soloManagers
       s.youIdx = 0
       const soloUsed = new Set<string>()
@@ -1161,7 +1165,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const rng = mulberry(s.seed)
       // a tabela sempre tem 20 times: os que faltam viram bots com elenco
       // pronto (não brigam no leilão — só os humanos disputam as cartas)
-      const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, LEAGUE_SIZE, rng, 'online')
+      const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, 0, LEAGUE_SIZE, rng)
       s.managers = onlineManagers
       // demanda + 1 carta por posição (online): 2 pessoas = 3 goleiros, 5
       // laterais, etc. — dá opção/disputa sem inflar. O baralho é montado
@@ -1349,8 +1353,8 @@ export function reducer(state: EscState, action: Action): EscState {
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
       // carreira é solo (mesmo padrão da rápida): retoma com a qtd padrão de
-      // rivais CPU. A tabela vira 20 times com os clássicos completando a liga.
-      const { managers, botPlans } = makeManagers([sv.teamName], sv.formation, 1 + 5, rng, 'solo')
+      // rivais de leilão; o resto completa a liga de 20 com preenchimento nomeado.
+      const { managers, botPlans } = makeManagers([sv.teamName], sv.formation, 5, LEAGUE_SIZE, rng)
       s.managers = managers
       s.youIdx = 0
       s.monte = []; s.monteOrder = []; s.monteIdx = 0; s.tactics = {}
