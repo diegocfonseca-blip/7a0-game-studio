@@ -1830,7 +1830,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // modo pro "ao vivo": distingue carreira da partida rápida (ambas são
       // cpu por baixo). online continua online; carreira vira 'career'.
       const liveMode = st.onlineMode === 'online' ? 'online' : st.careerDivision ? 'career' : 'cpu'
-      heartbeat(liveMode, st.managers[st.youIdx]?.teamName, st.screen)
+      const career = st.careerDivision ? { season: st.seasonNo, division: st.careerDivision } : undefined
+      heartbeat(liveMode, st.managers[st.youIdx]?.teamName, st.screen, career)
     }
     beat()
     const iv = setInterval(beat, 30_000)

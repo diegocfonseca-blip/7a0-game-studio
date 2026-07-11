@@ -13,19 +13,23 @@ const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
 type DailyRow = { day: string; plays: number; cpu: number; online: number; visits: number }
 type UserRow = { name: string; sid: string; total: number; today: number; last_play: string; registered: boolean }
-type LiveRow = { name: string; mode: string; screen: string; playing: boolean; ago: number }
+type LiveRow = { name: string; mode: string; screen: string; playing: boolean; ago: number; careerSeason?: number | null; careerDivision?: string | null }
+type CareerRow = { name: string; division: string; season: number; titles: number; updated: string }
 type Dash = {
   online_now: number; playing_now: number; live_list: LiveRow[]
+  peak: number; peak_at: string
   today: number; week: number; month: number; total: number
   today_cpu: number; today_online: number
   week_cpu: number; week_online: number
   month_cpu: number; month_online: number
   total_cpu: number; total_online: number
   players_total: number; players_today: number
+  returning_players: number; returning_7d: number
   visits_today: number; visits_week: number; visits_month: number; visits_total: number
   visitors_today: number; visitors_total: number
-  daily: DailyRow[]; users: UserRow[]
+  daily: DailyRow[]; users: UserRow[]; careers: CareerRow[]
 }
+const DIV_LABEL: Record<string, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
 
 const SCREEN_LABEL: Record<string, string> = {
   intro: 'Na home', lobby: 'Na sala (esperando)',
@@ -189,6 +193,9 @@ function Dashboard({ email }: { email: string }) {
             </span>
           )}
         </div>
+        <div style={{ marginTop: 8, fontSize: 13, fontWeight: 700, color: d.online_now >= d.peak && d.online_now > 0 ? '#37D067' : '#F5B301' }}>
+          {d.online_now >= d.peak && d.online_now > 0 ? '🔥 NOVO RECORDE ao vivo!' : `🏆 Recorde ao vivo: ${d.peak}`}
+        </div>
         {d.live_list.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
             {d.live_list.map((p, i) => (
@@ -197,6 +204,9 @@ function Dashboard({ email }: { email: string }) {
                   {p.playing ? (MODE_ICON[p.mode] || '🤖') : '👀'} <b>{p.name}</b>
                   <span style={{ opacity: 0.6 }}> · {SCREEN_LABEL[p.screen] || p.screen}</span>
                   {p.playing && <span style={{ opacity: 0.6 }}> · {MODE_LABEL[p.mode] || p.mode}</span>}
+                  {p.mode === 'career' && p.careerDivision && (
+                    <span style={{ opacity: 0.85, color: '#C9A9FF', fontWeight: 700 }}> · {DIV_LABEL[p.careerDivision] || p.careerDivision} · T{p.careerSeason ?? 1}</span>
+                  )}
                 </span>
                 <span style={{ opacity: 0.5 }}>{p.ago < 60 ? 'agora' : `${Math.floor(p.ago / 60)}min`}</span>
               </div>
@@ -217,6 +227,16 @@ function Dashboard({ email }: { email: string }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10, marginTop: 12 }}>
           <Stat label="Jogadores hoje" value={d.players_today} sub="aparelhos distintos" />
           <Stat label="Jogadores no total" value={d.players_total} sub="aparelhos distintos" />
+        </div>
+      </div>
+
+      {/* RETORNO — quem volta = tá gostando */}
+      <div style={card()}>
+        <p style={{ fontWeight: 700, marginBottom: 4 }}>🔁 Retorno</p>
+        <p style={{ fontSize: 12, opacity: 0.5, marginBottom: 12 }}>Quem volta a jogar em outro dia = tá gostando. É o melhor termômetro.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
+          <Stat label="Voltaram (2+ dias)" value={d.returning_players} sub={`${d.players_total ? Math.round(d.returning_players / d.players_total * 100) : 0}% dos jogadores`} accent={GOLD} />
+          <Stat label="Ativos que voltam (7d)" value={d.returning_7d} sub="jogaram de novo essa semana" />
         </div>
       </div>
 
@@ -263,6 +283,26 @@ function Dashboard({ email }: { email: string }) {
           <span>hoje</span>
         </div>
       </div>
+
+      {/* CARREIRAS — onde cada um está na pirâmide */}
+      {d.careers.length > 0 && (
+        <div style={card()}>
+          <p style={{ fontWeight: 700, marginBottom: 4 }}>🪜 Carreiras (onde cada um está)</p>
+          <p style={{ fontSize: 12, opacity: 0.5, marginBottom: 12 }}>Subindo de divisão = tá curtindo. Preso na Série D / T1 = talvez difícil ou desistiu. 👀</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {d.careers.map((c, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 14, opacity: 0.92 }}>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <b>{c.name}</b>
+                  <span style={{ opacity: 0.85, color: '#C9A9FF', fontWeight: 700 }}> · {DIV_LABEL[c.division] || c.division} · T{c.season}</span>
+                  {c.titles > 0 && <span style={{ color: GOLD }}> · 🏆 {c.titles}</span>}
+                </span>
+                <span style={{ opacity: 0.5, fontSize: 12, whiteSpace: 'nowrap', marginLeft: 8 }}>{ago(c.updated)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* POR JOGADOR */}
       <div style={card()}>
