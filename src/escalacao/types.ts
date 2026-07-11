@@ -188,6 +188,7 @@ export interface EscState {
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerIntent: boolean // ao ir pro setup, sinaliza que é carreira (não partida rápida)
   careerTitles: number // títulos acumulados na carreira atual
+  careerRivalCount: number // quantos rivais de leilão (3/5/7/9) na carreira
   scorers: ScorerRow[] // artilharia acumulada da temporada
   seasonNo: number // conta quantas temporadas essa sala/sessão já jogou (revanche)
   // "Reiniciar com novos times" (re-draft): precisa da galera toda online e
