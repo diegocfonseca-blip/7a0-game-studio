@@ -138,6 +138,9 @@ export type Screen =
 
 export type OnlineMode = 'cpu' | 'online'
 
+// modo carreira (solo): sobe/desce entre divisões e salva o progresso
+export type Division = 'A' | 'B' | 'C' | 'D'
+
 export interface EscState {
   screen: Screen
   seed: number
@@ -182,6 +185,9 @@ export interface EscState {
   cpuAtkAdj: number // ajuste de força dos CPUs (online): escala os bots à média dos humanos
   cpuDefAdj: number
   streamMode: boolean // sala de stream: esconde os VALORES dos lances na tela (pra live)
+  careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
+  careerIntent: boolean // ao ir pro setup, sinaliza que é carreira (não partida rápida)
+  careerTitles: number // títulos acumulados na carreira atual
   scorers: ScorerRow[] // artilharia acumulada da temporada
   seasonNo: number // conta quantas temporadas essa sala/sessão já jogou (revanche)
   // "Reiniciar com novos times" (re-draft): precisa da galera toda online e

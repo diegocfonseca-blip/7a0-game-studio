@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
-import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE } from './store'
+import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE, DIVISION_LABEL, buildCareerSave, nextDivision } from './store'
+import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { CATALOG, BIOS, PROMESSA_SET } from './data'
 import { AdminButton } from './admin'
@@ -203,7 +204,11 @@ export function EscIntro() {
         <p className="font-bold text-sm">💎 <b>Vale o auge no Brasil:</b> o nível de cada carta é o que o jogador foi no <i>auge dele num clube brasileiro</i> — não a fama na Europa. Por isso o <b>Kaká</b> do São Paulo (2003) entra como <i>promessa</i> (só virou o melhor do mundo depois, no Milan), enquanto o <b>Bruno Henrique de 2019</b> — craque absoluto do Flamengo — vale mais no nosso leilão. Arrebentou no Brasileirão? Sobe. Brilhou só lá fora? É promessa.</p>
       </Box>
       <div className="space-y-3">
-        <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-lg">🤖 JOGAR VS CPU</Btn>
+        <CareerContinueBanner />
+        <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-lg">⚡ PARTIDA RÁPIDA (VS CPU)</Btn>
+        <Btn onClick={() => dispatch({ type: 'GO_SETUP_CAREER' })} className="w-full text-lg" bg={PURPLE}>
+          <span className="text-white">🪜 CARREIRA POR DIVISÕES</span>
+        </Btn>
         <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg" bg={GREEN}>
           <span className="text-white">👥 JOGAR ONLINE (SALA)</span>
         </Btn>
@@ -232,7 +237,8 @@ export function EscIntro() {
 
 // ─── SETUP ───────────────────────────────────────────────────────────
 export function EscSetup() {
-  const { dispatch } = useEsc()
+  const { state, dispatch } = useEsc()
+  const career = state.careerIntent
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
@@ -242,7 +248,8 @@ export function EscSetup() {
         className="flex items-center gap-1 text-black/60 font-black text-sm pt-4 -mb-2 active:opacity-60" style={OSWALD}>
         <span className="text-lg leading-none">←</span> Home
       </button>
-      <h2 className="font-black text-3xl pt-2" style={OSWALD}>MONTE SUA SALA</h2>
+      <h2 className="font-black text-3xl pt-2" style={OSWALD}>{career ? '🪜 CARREIRA · SÉRIE D' : 'MONTE SUA SALA'}</h2>
+      {career && <p className="text-sm font-bold text-black/60 -mt-3">Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.</p>}
       <Box className="p-4 space-y-4">
         <div>
           <p className="text-xs font-black uppercase mb-1">Nome do seu time</p>
@@ -265,22 +272,25 @@ export function EscSetup() {
             ))}
           </div>
         </div>
-        <div>
-          <p className="text-xs font-black uppercase mb-1">Rivais na sala (CPUs)</p>
-          <div className="grid grid-cols-4 gap-2">
-            {[3, 5, 7, 9].map(n => (
-              <button key={n} onClick={() => setRivals(n)}
-                className="border-[3px] border-black rounded-xl py-2 font-black text-sm"
-                style={{ backgroundColor: rivals === n ? PURPLE : '#fff', color: rivals === n ? '#fff' : INK, boxShadow: rivals === n ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
-                {n}
-              </button>
-            ))}
+        {!career && (
+          <div>
+            <p className="text-xs font-black uppercase mb-1">Rivais na sala (CPUs)</p>
+            <div className="grid grid-cols-4 gap-2">
+              {[3, 5, 7, 9].map(n => (
+                <button key={n} onClick={() => setRivals(n)}
+                  className="border-[3px] border-black rounded-xl py-2 font-black text-sm"
+                  style={{ backgroundColor: rivals === n ? PURPLE : '#fff', color: rivals === n ? '#fff' : INK, boxShadow: rivals === n ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                  {n}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+        {career && <p className="text-xs font-semibold text-black/70">🏟️ Na carreira você disputa um Brasileirão de 20 times.</p>}
         <p className="text-xs font-semibold text-black/70">💰 Todo técnico começa com {START_MONEY} moedas. O que sobrar no fim do leilão <b>evapora</b> — gaste com sabedoria (ou sem).</p>
       </Box>
-      <Btn onClick={() => dispatch({ type: 'START', teamName: name, formation, rivals })} className="w-full text-lg" bg={GREEN}>
-        <span className="text-white">ABRIR O PREGÃO 🔨</span>
+      <Btn onClick={() => dispatch({ type: 'START', teamName: name, formation, rivals, career })} className="w-full text-lg" bg={GREEN}>
+        <span className="text-white">{career ? 'COMEÇAR CARREIRA 🪜' : 'ABRIR O PREGÃO 🔨'}</span>
       </Btn>
       <CardAccountNote />
     </Shell>
@@ -1156,8 +1166,11 @@ export function EscSeason() {
 
   return (
     <Shell bar={
-      <div className="flex items-center justify-between max-w-xl mx-auto">
-        <span className="font-black text-sm" style={OSWALD}>RODADA {Math.min(state.round + 1, 38)}/38</span>
+      <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
+        <span className="font-black text-sm" style={OSWALD}>
+          {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
+          RODADA {Math.min(state.round + 1, 38)}/38
+        </span>
         <span className="font-black text-sm" style={OSWALD}>{youPos}º · {table[youPos - 1]?.pts ?? 0} pts</span>
       </div>
     }>
@@ -1921,6 +1934,163 @@ function RankResultWriter() {
   return null
 }
 
+// ─── CARREIRA: salvar/carregar + modais ──────────────────────────────
+const CAREER_LS = 'esc-career'
+function saveCareerLocal(save: CareerSave) { try { localStorage.setItem(CAREER_LS, JSON.stringify(save)) } catch { /* ignora */ } }
+function loadCareerLocal(): CareerSave | null { try { const r = localStorage.getItem(CAREER_LS); return r ? JSON.parse(r) as CareerSave : null } catch { return null } }
+
+// salva sempre no aparelho; se logado, também na conta (nuvem, multi-aparelho).
+// devolve true se salvou na conta.
+async function saveCareer(save: CareerSave): Promise<boolean> {
+  saveCareerLocal(save)
+  try {
+    const { data } = await supabase.auth.getUser()
+    if (!data?.user) return false
+    const { error } = await supabase.from('esc_careers').upsert({
+      user_id: data.user.id, division: save.division, season_no: save.seasonNo,
+      team_name: save.teamName, formation: save.formation, squad: save.squad, titles: save.titles,
+      updated_at: new Date().toISOString(),
+    })
+    return !error
+  } catch { return false }
+}
+async function loadCareer(): Promise<CareerSave | null> {
+  try {
+    const { data } = await supabase.auth.getUser()
+    if (data?.user) {
+      const { data: row } = await supabase.from('esc_careers').select('*').eq('user_id', data.user.id).maybeSingle()
+      if (row) return { division: row.division, seasonNo: row.season_no, teamName: row.team_name, formation: row.formation, squad: row.squad as CareerSave['squad'], titles: row.titles }
+    }
+  } catch { /* ignora */ }
+  return loadCareerLocal()
+}
+
+// modal rápido de cadastro/login (email + senha) — pra salvar na conta
+function CareerAuthModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [tab, setTab] = useState<'register' | 'login'>('register')
+  const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [nome, setNome] = useState('')
+  const [err, setErr] = useState(''); const [loading, setLoading] = useState(false)
+  async function go() {
+    setLoading(true); setErr('')
+    if (tab === 'login') {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) { setErr('Email ou senha incorretos.'); setLoading(false); return }
+      onDone()
+    } else {
+      if (!nome.trim()) { setErr('Escolha um nome de técnico.'); setLoading(false); return }
+      const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: nome.trim() } } })
+      if (error) { setErr(error.message); setLoading(false); return }
+      if (data.session) { onDone() } // confirmação desligada: já entrou → salva
+      else { setErr('✉️ Conta criada! Confirme no seu email e depois entre pra salvar na nuvem. (Já guardei no aparelho.)'); setLoading(false) }
+    }
+  }
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.7)' }}>
+      <div className="w-full max-w-xs border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
+        <p className="font-black text-black text-lg" style={OSWALD}>💾 Salvar carreira</p>
+        <p className="text-black/60 text-xs font-bold mb-2">Rapidinho: crie a conta (ou entre) pra guardar sua carreira e jogar em qualquer aparelho.</p>
+        <div className="flex border-[3px] border-black rounded-xl overflow-hidden mb-2">
+          {(['register', 'login'] as const).map(t => (
+            <button key={t} onClick={() => { setTab(t); setErr('') }} className="flex-1 py-2 font-black text-xs uppercase" style={{ background: tab === t ? GOLD : '#fff', color: '#000', ...OSWALD }}>{t === 'register' ? 'Cadastrar' : 'Entrar'}</button>
+          ))}
+        </div>
+        <div className="space-y-2">
+          {tab === 'register' && <input value={nome} onChange={e => setNome(e.target.value)} placeholder="Nome de técnico" className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />}
+          <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="seu@email.com" className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />
+          <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="Senha" onKeyDown={e => e.key === 'Enter' && go()} className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />
+          {err && <p className={`text-xs font-bold ${err.startsWith('✉️') ? 'text-green-700' : 'text-red-500'}`}>{err}</p>}
+        </div>
+        <div className="flex gap-2 mt-3">
+          <button onClick={onClose} className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm bg-white text-black" style={OSWALD}>Cancelar</button>
+          <button onClick={go} disabled={loading} className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>{loading ? '...' : tab === 'register' ? 'Criar e salvar' : 'Entrar e salvar'}</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// faixa na home: "Continuar carreira — Série X · Temp N"
+function CareerContinueBanner() {
+  const { dispatch } = useEsc()
+  const [save, setSave] = useState<CareerSave | null>(null)
+  useEffect(() => { let alive = true; loadCareer().then(s => { if (alive) setSave(s) }); return () => { alive = false } }, [])
+  if (!save) return null
+  return (
+    <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: PURPLE, boxShadow: `4px 4px 0 ${INK}` }}>
+      <p className="font-black text-white text-sm leading-tight" style={OSWALD}>🪜 Carreira em andamento<br /><span className="opacity-85 text-xs">{DIVISION_LABEL[save.division]} · Temporada {save.seasonNo} · {save.titles} título{save.titles === 1 ? '' : 's'}</span></p>
+      <button onClick={() => dispatch({ type: 'RESTORE_CAREER', save })} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>▶️ Continuar carreira ({save.teamName})</button>
+    </div>
+  )
+}
+
+// painel de fim de temporada da carreira (sobe/cai + continuar/trocar/salvar/sair)
+function CareerEndPanel() {
+  const { state, dispatch } = useEsc()
+  const div = state.careerDivision!
+  const you = state.managers[state.youIdx]
+  const table = sortedTable(state.league)
+  const youPos = table.findIndex(t => t.id === you.id) + 1
+  const nd = nextDivision(div, youPos)
+  const [authOpen, setAuthOpen] = useState(false)
+  const [exitAsk, setExitAsk] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  const doSave = async () => {
+    const save = buildCareerSave(state); if (!save) return
+    setBusy(true)
+    const cloud = await saveCareer(save)
+    setBusy(false)
+    setMsg(cloud ? '✅ Carreira salva na sua conta!' : '💾 Salva neste aparelho.')
+  }
+  const onSaveClick = async () => {
+    const { data } = await supabase.auth.getUser()
+    if (data?.user) doSave()
+    else setAuthOpen(true) // não logado → cadastro rápido
+  }
+  const banner = nd.result === 'up'
+    ? { bg: '#1B7A3D', txt: `🔼 SUBIU PRA ${DIVISION_LABEL[nd.div].toUpperCase()}!` }
+    : nd.result === 'down'
+      ? { bg: '#E8503A', txt: `🔽 REBAIXADO PRA ${DIVISION_LABEL[nd.div].toUpperCase()}` }
+      : { bg: '#2E6FB0', txt: `➡️ CONTINUA NA ${DIVISION_LABEL[div].toUpperCase()}` }
+
+  return (
+    <div className="space-y-2.5">
+      <div className="rounded-2xl border-4 border-black p-3 text-center" style={{ background: banner.bg, boxShadow: `4px 4px 0 ${INK}` }}>
+        <p className="font-black text-white text-xl" style={OSWALD}>{banner.txt}</p>
+        <p className="font-bold text-white/80 text-xs mt-0.5">{DIVISION_LABEL[div]} · Temporada {state.seasonNo} · {state.careerTitles} título{state.careerTitles === 1 ? '' : 's'} na carreira</p>
+      </div>
+      <p className="text-center font-black text-sm text-black/60" style={OSWALD}>Como quer seguir?</p>
+      <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: true })} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ Continuar com o mesmo time</span></Btn>
+      <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: false })} className="w-full text-lg">🔄 Trocar tudo (novo leilão)</Btn>
+      <div className="flex gap-2">
+        <div className="flex-1"><Btn onClick={onSaveClick} bg="#fff" className="w-full">{busy ? '...' : '💾 Salvar'}</Btn></div>
+        <div className="flex-1"><Btn onClick={() => setExitAsk(true)} bg="#fff" className="w-full">🚪 Sair</Btn></div>
+      </div>
+      {msg && <p className="text-center text-sm font-black text-green-700" style={OSWALD}>{msg}</p>}
+
+      {authOpen && <CareerAuthModal onClose={() => setAuthOpen(false)} onDone={() => { setAuthOpen(false); doSave() }} />}
+
+      {exitAsk && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.7)' }}>
+          <div className="w-full max-w-xs border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
+            <p className="font-black text-black text-lg" style={OSWALD}>🚪 Sair da carreira</p>
+            <p className="text-black/60 text-sm font-bold mb-3">Quer salvar antes de sair?</p>
+            <div className="space-y-2">
+              <button onClick={async () => { const sv = buildCareerSave(state); if (sv) await saveCareer(sv); setExitAsk(false); dispatch({ type: 'GO_LOBBY' }) }}
+                className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>💾 Salvar e sair</button>
+              <button onClick={() => { setExitAsk(false); dispatch({ type: 'GO_LOBBY' }) }}
+                className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white text-black" style={OSWALD}>🚪 Sair sem salvar</button>
+              <button onClick={() => setExitAsk(false)}
+                className="w-full border-2 border-black/20 rounded-xl py-2 font-black text-xs text-black/60" style={OSWALD}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── FIM ─────────────────────────────────────────────────────────────
 export function EscEnd() {
   const { state, dispatch } = useEsc()
@@ -1965,6 +2135,7 @@ export function EscEnd() {
         pts: table[youPos - 1]?.pts ?? 0, w: table[youPos - 1]?.w ?? 0, d: table[youPos - 1]?.d ?? 0, l: table[youPos - 1]?.l ?? 0,
         scorerName: myScorer?.name, scorerGoals: myScorer?.goals,
       })} bg="#fff" className="w-full text-lg">📤 Compartilhar resultado</Btn>
+      {state.careerDivision ? <CareerEndPanel /> : (<>
       {restartPending
         ? (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2" style={{ background: '#FEF3C7' }}>
@@ -1985,6 +2156,7 @@ export function EscEnd() {
           )
           : <p className="text-center text-sm font-bold text-black/60">Aguardando o host começar a próxima temporada…</p>}
       <Btn onClick={() => dispatch({ type: 'NEW_GAME' })} className="w-full text-lg">NOVO PREGÃO 🔨</Btn>
+      </>)}
     </Shell>
   )
 }
