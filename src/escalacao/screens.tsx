@@ -242,6 +242,32 @@ export function EscSetup() {
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
+  // conta = fonte única do nome do time. Se logado, o nome vem do cadastro
+  // (mesmo do online) e é editável aqui; ao começar, sincroniza de volta pra
+  // conta — então trocar num lugar troca em todos (CPU, carreira, online, stats).
+  const [accountName, setAccountName] = useState<string | null>(null) // null = deslogado
+  useEffect(() => {
+    let alive = true
+    const apply = (u: { user_metadata?: Record<string, unknown> } | null | undefined) => {
+      if (!alive) return
+      if (!u) { setAccountName(null); return }
+      const dn = ((u.user_metadata?.display_name as string) ?? '').trim()
+      setAccountName(dn)
+      if (dn) setName(prev => prev.trim() ? prev : dn) // pré-preenche sem sobrescrever o que a pessoa já digitou
+    }
+    supabase.auth.getUser().then(({ data }) => apply(data?.user))
+    const { data: sub } = supabase.auth.onAuthStateChange((_, s) => apply(s?.user))
+    return () => { alive = false; sub.subscription.unsubscribe() }
+  }, [])
+
+  async function start() {
+    const clean = name.trim()
+    // logado e o nome mudou? sincroniza o cadastro → vale no online e nas stats
+    if (accountName !== null && clean && clean !== accountName) {
+      try { await supabase.auth.updateUser({ data: { display_name: clean } }) } catch { /* não trava o jogo */ }
+    }
+    dispatch({ type: 'START', teamName: clean, formation, rivals, career })
+  }
   return (
     <Shell>
       <button onClick={() => dispatch({ type: 'GO_LOBBY' })}
@@ -259,6 +285,9 @@ export function EscSetup() {
             placeholder="Ex.: Bagres do Asfalto"
             className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-bold bg-white"
           />
+          {accountName !== null && (
+            <p className="text-[11px] font-semibold text-black/55 mt-1">🔗 É o nome da sua conta — vale no CPU, na carreira e no online. Se editar aqui, troca em todos os lugares (e nas estatísticas).</p>
+          )}
         </div>
         <div>
           <p className="text-xs font-black uppercase mb-1">Formação (travada antes do pregão)</p>
@@ -287,7 +316,7 @@ export function EscSetup() {
         {career && <p className="text-xs font-semibold text-black/70">🏟️ A liga completa 20 times com os clássicos — você disputa a divisão contra os CPUs do leilão.</p>}
         <p className="text-xs font-semibold text-black/70">💰 Todo técnico começa com {START_MONEY} moedas. O que sobrar no fim do leilão <b>evapora</b> — gaste com sabedoria (ou sem).</p>
       </Box>
-      <Btn onClick={() => dispatch({ type: 'START', teamName: name, formation, rivals, career })} className="w-full text-lg" bg={GREEN}>
+      <Btn onClick={start} className="w-full text-lg" bg={GREEN}>
         <span className="text-white">{career ? 'COMEÇAR CARREIRA 🪜' : 'ABRIR O PREGÃO 🔨'}</span>
       </Btn>
       <CardAccountNote />
@@ -2010,7 +2039,19 @@ function CareerAuthModal({ onClose, onDone }: { onClose: () => void; onDone: () 
 function CareerContinueBanner() {
   const { dispatch } = useEsc()
   const [save, setSave] = useState<CareerSave | null>(null)
-  useEffect(() => { let alive = true; loadCareer().then(s => { if (alive) setSave(s) }); return () => { alive = false } }, [])
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      const s = await loadCareer()
+      if (!s) return
+      // se logado, o time carrega com o nome ATUAL da conta (fonte única) —
+      // renomear em qualquer lugar reflete aqui também.
+      const { data } = await supabase.auth.getUser()
+      const dn = ((data?.user?.user_metadata?.display_name as string) ?? '').trim()
+      if (alive) setSave(dn ? { ...s, teamName: dn } : s)
+    })()
+    return () => { alive = false }
+  }, [])
   if (!save) return null
   return (
     <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: PURPLE, boxShadow: `4px 4px 0 ${INK}` }}>
