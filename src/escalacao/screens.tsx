@@ -1144,16 +1144,20 @@ export function EscSeason() {
   const youPos = table.findIndex(t => t.id === you.id) + 1
   const fixture = state.round < 38 ? state.fixtures[state.round].find(([h, a]) => h === you.id || a === you.id) : undefined
   const opp = fixture ? state.league.find(t => t.id === (fixture[0] === you.id ? fixture[1] : fixture[0])) : undefined
-  // confronto direto: o adversário também é um humano da sala (não bot nem
-  // clube clássico) — só faz sentido provocar quando é gente de verdade
-  const isClassico = !!opp && state.managers.some(m => m.id === opp.id && m.isHuman)
-  const rivalry = isClassico && opp ? rivalryOf(state.rivalries, you.id, opp.id) : null
+  // confronto direto: clássico quando o adversário é um humano da sala OU um
+  // rival fixo da sua carreira (que está na sua divisão nesta temporada).
+  const careerRivalOf = (teamName?: string) => teamName && state.careerDivision ? state.careerRivals.find(rv => rv.team === teamName) : undefined
+  const toWLD = (rv?: { h2h: [number, number, number] }) => rv ? { w: rv.h2h[0], l: rv.h2h[2], d: rv.h2h[1] } : null
+  const oppCareerRiv = careerRivalOf(opp?.name)
+  const isClassico = (!!opp && state.managers.some(m => m.id === opp.id && m.isHuman)) || !!oppCareerRiv
+  const rivalry = isClassico && opp ? (oppCareerRiv ? toWLD(oppCareerRiv) : rivalryOf(state.rivalries, you.id, opp.id)) : null
   const myLast = state.lastResults.find(r => r.homeId === you.id || r.awayId === you.id)
   // clássico recém-jogado: mostra o resultado com peso de rivalidade
   const lastOppId = myLast ? (myLast.homeId === you.id ? myLast.awayId : myLast.homeId) : undefined
-  const lastWasClassico = lastOppId != null && state.managers.some(m => m.id === lastOppId && m.isHuman)
-  const lastRiv = lastWasClassico ? rivalryOf(state.rivalries, you.id, lastOppId!) : null
   const lastOppName = lastOppId != null ? state.league.find(t => t.id === lastOppId)?.name : ''
+  const lastCareerRiv = careerRivalOf(lastOppName)
+  const lastWasClassico = (lastOppId != null && state.managers.some(m => m.id === lastOppId && m.isHuman)) || !!lastCareerRiv
+  const lastRiv = lastWasClassico ? (lastCareerRiv ? toWLD(lastCareerRiv) : rivalryOf(state.rivalries, you.id, lastOppId!)) : null
   const myGoals = myLast ? (myLast.homeId === you.id ? myLast.hg : myLast.ag) : 0
   const oppGoals = myLast ? (myLast.homeId === you.id ? myLast.ag : myLast.hg) : 0
 
@@ -1224,7 +1228,7 @@ export function EscSeason() {
         <Box bg={isClassico ? GOLD : '#fff'} className="p-4 space-y-3">
           {isClassico && (
             <div>
-              <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>🥊 CLÁSSICO — é contra a galera!</p>
+              <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>{oppCareerRiv ? `🔥 CLÁSSICO — contra ${opp.name}, seu rival de sempre!` : '🥊 CLÁSSICO — é contra a galera!'}</p>
               {rivalry && (
                 <p className="font-black text-[11px] mt-0.5" style={OSWALD}>
                   {rivalry.w + rivalry.l + rivalry.d === 0
@@ -1270,10 +1274,41 @@ export function EscSeason() {
         </Box>
       )}
 
+      {state.careerDivision && <RivalTracker />}
       <TableBox highlight={you.id} />
       <TopScorersBox highlight={you.id} />
       <Campinho m={you} small />
     </Shell>
+  )
+}
+
+// rastreador dos rivais fixos da carreira: onde cada um está na pirâmide e o
+// retrospecto (h2h) vitalício contra você. 🔥 = está na sua divisão (clássico!).
+function RivalTracker() {
+  const { state } = useEsc()
+  if (!state.careerDivision || state.careerRivals.length === 0) return null
+  const myDiv = state.careerDivision
+  return (
+    <Box className="p-3">
+      <p className="font-black text-sm mb-2 text-black" style={OSWALD}>🔥 SEUS RIVAIS · ONDE ESTÃO</p>
+      <div className="space-y-1.5">
+        {state.careerRivals.map(rv => {
+          const here = rv.division === myDiv
+          const games = rv.h2h[0] + rv.h2h[1] + rv.h2h[2]
+          return (
+            <div key={rv.team} className="flex items-center justify-between text-xs font-bold rounded-lg px-2 py-1.5"
+              style={{ backgroundColor: here ? '#FFE0D6' : '#F3EFE2' }}>
+              <span className="truncate max-w-[150px]">{here ? '🔥 ' : ''}{rv.team}</span>
+              <span className="flex items-center gap-2 shrink-0">
+                <span className="px-1.5 py-0.5 rounded bg-black/10">{DIVISION_LABEL[rv.division]}{rv.lastPos ? ` · ${rv.lastPos}º` : ''}</span>
+                <span className="text-black/60">{games === 0 ? 'sem duelos' : `${rv.h2h[0]}V ${rv.h2h[1]}E ${rv.h2h[2]}D`}</span>
+              </span>
+            </div>
+          )
+        })}
+      </div>
+      <p className="text-[10px] font-semibold text-black/50 mt-1.5">🔥 = está na sua divisão (clássico!). Retrospecto: suas Vitórias · Empates · Derrotas.</p>
+    </Box>
   )
 }
 
@@ -1393,11 +1428,12 @@ function TableBox({ highlight }: { highlight: number }) {
             const isMgr = state.managers.some(m => m.id === t.id)
             const rank = i + 1
             const isYou = t.id === highlight
+            const isRival = !!state.careerDivision && state.careerRivals.some(rv => rv.team === t.name)
             return (
               <tr key={t.id} className="border-t border-black/10 font-semibold"
-                style={{ backgroundColor: isYou ? GOLD : zoneColor(rank), fontWeight: isMgr ? 800 : 500 }}>
+                style={{ backgroundColor: isYou ? GOLD : isRival ? '#FFE0D6' : zoneColor(rank), fontWeight: isMgr ? 800 : 500 }}>
                 <td className="pr-1">{rank}</td>
-                <td className="truncate max-w-[130px]">{isMgr ? '👤 ' : ''}{t.name}</td>
+                <td className="truncate max-w-[130px]">{isRival ? '🔥 ' : isMgr ? '👤 ' : ''}{t.name}</td>
                 <td className="text-center font-black">{t.pts}</td>
                 <td className="text-center">{t.w}</td><td className="text-center">{t.d}</td><td className="text-center">{t.l}</td>
                 <td className="text-center">{t.gf - t.ga}</td>
@@ -1976,7 +2012,7 @@ async function saveCareer(save: CareerSave): Promise<boolean> {
       user_id: data.user.id, division: save.division, season_no: save.seasonNo,
       team_name: save.teamName, formation: save.formation, squad: save.squad, titles: save.titles,
       pending_decision: !!save.pendingDecision, result: save.result ?? null, prev_division: save.prevDivision ?? null,
-      rival_teams: save.rivalTeams ?? null, rival_count: save.rivalCount ?? null,
+      rival_teams: save.rivals ?? null, rival_count: save.rivalCount ?? null,
       updated_at: new Date().toISOString(),
     })
     return !error
@@ -1987,7 +2023,7 @@ async function loadCareer(): Promise<CareerSave | null> {
     const { data } = await supabase.auth.getUser()
     if (data?.user) {
       const { data: row } = await supabase.from('esc_careers').select('*').eq('user_id', data.user.id).maybeSingle()
-      if (row) return { division: row.division, seasonNo: row.season_no, teamName: row.team_name, formation: row.formation, squad: row.squad as CareerSave['squad'], titles: row.titles, pendingDecision: !!row.pending_decision, result: row.result ?? undefined, prevDivision: row.prev_division ?? undefined, rivalTeams: (row.rival_teams as CareerSave['rivalTeams']) ?? undefined, rivalCount: row.rival_count ?? undefined }
+      if (row) return { division: row.division, seasonNo: row.season_no, teamName: row.team_name, formation: row.formation, squad: row.squad as CareerSave['squad'], titles: row.titles, pendingDecision: !!row.pending_decision, result: row.result ?? undefined, prevDivision: row.prev_division ?? undefined, rivals: (row.rival_teams as CareerSave['rivals']) ?? undefined, rivalCount: row.rival_count ?? undefined }
     }
   } catch { /* ignora */ }
   return loadCareerLocal()
