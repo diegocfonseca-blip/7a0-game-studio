@@ -58,7 +58,7 @@ export async function logPlay(mode: 'cpu' | 'online', displayName?: string) {
 // pulso "estou no site agora" — a cada ~30s, em qualquer tela. É um insert puro
 // (heartbeat append-only), então funciona pro jogador anônimo. As linhas velhas
 // são podadas no servidor; o "ao vivo" olha só os últimos 90s.
-export async function heartbeat(mode: 'cpu' | 'online', displayName: string | undefined, screen: string) {
+export async function heartbeat(mode: 'cpu' | 'online' | 'career', displayName: string | undefined, screen: string) {
   try {
     const { data } = await supabase.auth.getUser()
     await supabase.from('live_beats').insert({

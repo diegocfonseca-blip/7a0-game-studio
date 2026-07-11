@@ -1669,12 +1669,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const beat = () => {
       const st = stateRef.current
-      heartbeat(st.onlineMode, st.managers[st.youIdx]?.teamName, st.screen)
+      // modo pro "ao vivo": distingue carreira da partida rápida (ambas são
+      // cpu por baixo). online continua online; carreira vira 'career'.
+      const liveMode = st.onlineMode === 'online' ? 'online' : st.careerDivision ? 'career' : 'cpu'
+      heartbeat(liveMode, st.managers[st.youIdx]?.teamName, st.screen)
     }
     beat()
     const iv = setInterval(beat, 30_000)
     return () => clearInterval(iv)
-  }, [state.screen, state.onlineMode])
+  }, [state.screen, state.onlineMode, state.careerDivision])
 
   const showHostBanner = state.onlineMode === 'online' && !state.isHost && hostStale
     && state.screen !== 'intro' && state.screen !== 'lobby'
