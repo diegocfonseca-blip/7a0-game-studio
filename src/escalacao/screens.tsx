@@ -5,7 +5,7 @@ import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
 import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE, DIVISION_LABEL, buildCareerSave, nextDivision } from './store'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
-import { CATALOG, BIOS, PROMESSA_SET } from './data'
+import { CATALOG, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
 import { useResumableRoom } from './lobby'
 
@@ -241,6 +241,14 @@ export function EscSetup() {
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
+  // carreira: quais times da Série D viram seus rivais fixos (vazio = os padrões).
+  // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
+  const [rivalPicks, setRivalPicks] = useState<string[]>([])
+  const toggleRival = (team: string) => setRivalPicks(prev => {
+    if (prev.includes(team)) return prev.filter(t => t !== team)
+    const next = [...prev, team]
+    return next.length > rivals ? next.slice(next.length - rivals) : next
+  })
   // conta = fonte única do nome do time. Se logado, o nome vem do cadastro
   // (mesmo do online) e é editável aqui; ao começar, sincroniza de volta pra
   // conta — então trocar num lugar troca em todos (CPU, carreira, online, stats).
@@ -265,7 +273,11 @@ export function EscSetup() {
     if (accountName !== null && clean && clean !== accountName) {
       try { await supabase.auth.updateUser({ data: { display_name: clean } }) } catch { /* não trava o jogo */ }
     }
-    dispatch({ type: 'START', teamName: clean, formation, rivals, career })
+    // rivais escolhidos + completa com os padrões da Série D se faltar
+    const picks = career
+      ? [...rivalPicks, ...DIVISION_TEAMS['D'].map(t => t.team).filter(t => !rivalPicks.includes(t))].slice(0, rivals)
+      : undefined
+    dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks })
   }
   return (
     <Shell>
@@ -312,6 +324,24 @@ export function EscSetup() {
             ))}
           </div>
         </div>
+        {career && (
+          <div>
+            <p className="text-xs font-black uppercase mb-1">🔥 Escolha seus rivais <span className="text-black/50">({rivalPicks.length}/{rivals})</span></p>
+            <p className="text-[11px] font-semibold text-black/55 mb-1.5">Eles serão seus rivais pra vida toda. Deixe vazio pra pegar os padrões.</p>
+            <div className="flex flex-wrap gap-1.5">
+              {DIVISION_TEAMS['D'].map(t => {
+                const on = rivalPicks.includes(t.team)
+                return (
+                  <button key={t.team} onClick={() => toggleRival(t.team)}
+                    className="border-2 border-black rounded-lg px-2 py-1 font-black text-[11px] active:translate-y-0.5"
+                    style={{ backgroundColor: on ? '#E8503A' : '#fff', color: on ? '#fff' : INK }}>
+                    {on ? '🔥 ' : ''}{t.team}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
         {career && <p className="text-xs font-semibold text-black/70">🏟️ A liga completa 20 times com os clássicos — você disputa a divisão contra os CPUs do leilão.</p>}
         <p className="text-xs font-semibold text-black/70">💰 Todo técnico começa com {START_MONEY} moedas. O que sobrar no fim do leilão <b>evapora</b> — gaste com sabedoria (ou sem).</p>
       </Box>

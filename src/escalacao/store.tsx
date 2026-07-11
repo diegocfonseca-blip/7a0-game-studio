@@ -465,11 +465,17 @@ export interface CareerSave {
 }
 
 // rivais fixos da carreira: começam TODOS na Série D (com você). Depois cada um
-// tem vida própria na pirâmide.
-function initCareerRivals(count: number): CareerRival[] {
-  return DIVISION_TEAMS['D'].slice(0, count).map(t => ({
-    team: t.team, name: t.name, division: 'D' as Division, h2h: [0, 0, 0] as [number, number, number], lastPos: null,
-  }))
+// tem vida própria na pirâmide. `chosen` = times escolhidos pela pessoa (por
+// nome do time); o que faltar completa com os primeiros da Série D.
+function initCareerRivals(count: number, chosen?: string[]): CareerRival[] {
+  const pool = DIVISION_TEAMS['D']
+  const pickNames = (chosen && chosen.length > 0)
+    ? [...chosen, ...pool.map(t => t.team).filter(t => !chosen.includes(t))].slice(0, count)
+    : pool.slice(0, count).map(t => t.team)
+  return pickNames.map(team => {
+    const def = pool.find(t => t.team === team) ?? { name: team, team }
+    return { team: def.team, name: def.name, division: 'D' as Division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }
+  })
 }
 // os rivais que estão AGORA na sua divisão (esses jogam contra você e brigam no leilão)
 function coDivRivalDefs(rivals: CareerRival[], div: Division): CareerTeam[] {
@@ -928,7 +934,7 @@ type Action =
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[] }
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean }
@@ -1217,7 +1223,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerIntent = false
       s.careerTitles = 0
       s.careerRivalCount = action.rivals
-      s.careerRivals = action.career ? initCareerRivals(action.rivals) : []
+      s.careerRivals = action.career ? initCareerRivals(action.rivals, action.rivalTeams) : []
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0 // recalculado na cerimônia (quando os elencos existem)
       // carreira: começa na Série D — você + seus rivais fixos (todos na D no
       // começo). Partida rápida: pool único de CPUs (sem pirâmide).
