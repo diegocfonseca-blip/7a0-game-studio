@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
 import type { ReactNode } from 'react'
 import type {
-  EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division,
+  EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
@@ -460,13 +460,24 @@ export interface CareerSave {
   pendingDecision?: boolean
   result?: 'up' | 'down' | 'stay' // pro banner subiu/caiu/ficou ao continuar
   prevDivision?: Division         // divisão da temporada que acabou (pro banner)
-  rivalTeams?: CareerTeam[]       // grupo de rivais resolvido pra próxima temporada
+  rivals?: CareerRival[]          // rivais fixos (com divisão/retrospecto próprios)
   rivalCount?: number             // quantos rivais de leilão (3/5/7/9)
 }
 
-// monta a liga da carreira: você + N rivais (dão lance no leilão) + o resto do
-// elenco NOMEADO da divisão como preenchimento (não dão lance). Os rivais podem
-// vir de outra divisão (subiram/caíram com você) — por isso são passados de fora.
+// rivais fixos da carreira: começam TODOS na Série D (com você). Depois cada um
+// tem vida própria na pirâmide.
+function initCareerRivals(count: number): CareerRival[] {
+  return DIVISION_TEAMS['D'].slice(0, count).map(t => ({
+    team: t.team, name: t.name, division: 'D' as Division, h2h: [0, 0, 0] as [number, number, number], lastPos: null,
+  }))
+}
+// os rivais que estão AGORA na sua divisão (esses jogam contra você e brigam no leilão)
+function coDivRivalDefs(rivals: CareerRival[], div: Division): CareerTeam[] {
+  return rivals.filter(r => r.division === div).map(r => ({ name: r.name, team: r.team }))
+}
+
+// monta a liga da carreira: você + rivais QUE ESTÃO NA SUA DIVISÃO (dão lance no
+// leilão e jogam contra você) + o resto da divisão como preenchimento nomeado.
 function makeCareerManagers(teamName: string, formation: FormationKey, div: Division, rivalDefs: CareerTeam[], rng: () => number): { managers: Manager[]; botPlans: BotPlan[] } {
   const forms: FormationKey[] = ['4-3-3', '4-4-2']
   const human: Manager = { id: 0, name: teamName, teamName, isHuman: true, auctionRival: true, formation, money: START_MONEY, squad: [], aggression: 0.5, starHunger: 0.5 }
@@ -505,10 +516,11 @@ function dealRemainingCpuSquads(managers: Manager[], rng: () => number, used: Se
   })
 }
 
-// resolve o fim da temporada da carreira: sua próxima divisão, título, e o
-// NOVO grupo de rivais — quem subiu/caiu na MESMA direção que você continua;
-// quem se separou sai e é substituído por times da divisão de destino.
-interface CareerEnd { nextDiv: Division; result: 'up' | 'down' | 'stay'; wonTitle: boolean; nextRivals: CareerTeam[] }
+// resolve o fim da temporada da carreira: SUA próxima divisão + a pirâmide dos
+// rivais avançada. Cada rival tem vida própria: quem estava na sua divisão usa
+// a posição real da tabela; os demais têm a temporada simulada (não renderizada).
+// Todos sobem/caem sozinhos. O retrospecto (h2h) é somado durante os jogos.
+interface CareerEnd { nextDiv: Division; result: 'up' | 'down' | 'stay'; wonTitle: boolean; rivals: CareerRival[] }
 function resolveCareerEnd(s: EscState): CareerEnd {
   const div = s.careerDivision as Division
   const you = s.managers[s.youIdx]
@@ -516,34 +528,33 @@ function resolveCareerEnd(s: EscState): CareerEnd {
   const youPos = table.findIndex(t => t.id === you.id) + 1
   const wonTitle = table[0]?.id === you.id
   const nd = nextDivision(div, youPos)
-  const count = s.careerRivalCount || 5
-  const rivals = s.managers.filter(m => !m.isHuman && m.auctionRival)
-  const carried: CareerTeam[] = []
-  for (const r of rivals) {
-    const rPos = table.findIndex(t => t.id === r.id) + 1
-    if (nextDivision(div, rPos).div === nd.div) carried.push({ name: r.name, team: r.teamName })
-  }
-  // completa o grupo com times da divisão de destino que ainda não são rivais
-  const used = new Set(carried.map(c => c.team))
-  const pool = DIVISION_TEAMS[nd.div].filter(t => !used.has(t.team))
-  let pi = 0
-  while (carried.length < count && pi < pool.length) { carried.push(pool[pi]); pi++ }
-  return { nextDiv: nd.div, result: nd.result, wonTitle, nextRivals: carried.slice(0, count) }
+  const rng = mulberry((s.seed ^ 0x5f3759df) >>> 0) // determinístico (save = advance)
+  const rivals: CareerRival[] = s.careerRivals.map(rv => {
+    let pos: number
+    if (rv.division === div) {
+      const m = s.managers.find(x => !x.isHuman && x.teamName === rv.team)
+      pos = m ? table.findIndex(t => t.id === m.id) + 1 : 1 + Math.floor(rng() * LEAGUE_SIZE)
+    } else {
+      pos = 1 + Math.floor(rng() * LEAGUE_SIZE) // temporada dele simulada
+    }
+    return { ...rv, division: nextDivision(rv.division, pos).div, lastPos: pos }
+  })
+  return { nextDiv: nd.div, result: nd.result, wonTitle, rivals }
 }
 
 export function buildCareerSave(s: EscState): CareerSave | null {
   if (!s.careerDivision) return null
   const you = s.managers[s.youIdx]
   if (!you) return null
-  // resolve o fim da temporada AQUI (título, subida/queda, +1 temporada, novos
-  // rivais) pra que continuar depois retome no ponto certo.
+  // resolve o fim da temporada AQUI (título, subida/queda, +1 temporada, e a
+  // pirâmide dos rivais) pra que continuar depois retome no ponto certo.
   const res = resolveCareerEnd(s)
   return {
     division: res.nextDiv, seasonNo: s.seasonNo + 1,
     teamName: you.teamName, formation: you.formation, squad: you.squad,
     titles: s.careerTitles + (res.wonTitle ? 1 : 0),
     pendingDecision: true, result: res.result, prevDivision: s.careerDivision,
-    rivalTeams: res.nextRivals, rivalCount: s.careerRivalCount,
+    rivals: res.rivals, rivalCount: s.careerRivalCount,
   }
 }
 
@@ -665,6 +676,24 @@ function bumpRivalry(s: EscState, aId: number, bId: number, aGoals: number, bGoa
     if (winnerId === lowId) cur[0]++; else cur[1]++
   }
   s.rivalries[key] = cur
+}
+
+// carreira: soma o retrospecto (h2h) contra um rival fixo quando VOCÊ o enfrenta
+// (só vale quando ele está na sua divisão). h2h = [suas vitórias, empates, dele].
+function bumpCareerH2H(s: EscState, r: MatchResult) {
+  const you = s.managers[s.youIdx]
+  if (!you) return
+  let oppId: number, myGoals: number, oppGoals: number
+  if (r.homeId === you.id) { oppId = r.awayId; myGoals = r.hg; oppGoals = r.ag }
+  else if (r.awayId === you.id) { oppId = r.homeId; myGoals = r.ag; oppGoals = r.hg }
+  else return
+  const opp = s.managers.find(m => m.id === oppId)
+  if (!opp) return
+  const rv = s.careerRivals.find(x => x.team === opp.teamName)
+  if (!rv) return
+  if (myGoals > oppGoals) rv.h2h[0]++
+  else if (myGoals === oppGoals) rv.h2h[1]++
+  else rv.h2h[2]++
 }
 
 // ─── narração viva da rodada: manchetes NEUTRAS (iguais pra sala toda) ───
@@ -880,7 +909,7 @@ const INITIAL: EscState = {
   monte: [], monteOrder: [], monteIdx: 0,
   league: [], fixtures: [], round: 0, tactics: {},
   lastResults: [], news: [], champion: null,
-  careerDivision: null, careerIntent: false, careerTitles: 0, careerRivalCount: 5,
+  careerDivision: null, careerIntent: false, careerTitles: 0, careerRivalCount: 5, careerRivals: [],
   phaseDeadline: null, scorers: [],
   monteDeadline: null, cerimoniaDeadline: null,
   cpuAtkAdj: 0, cpuDefAdj: 0, streamMode: false,
@@ -1188,11 +1217,12 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerIntent = false
       s.careerTitles = 0
       s.careerRivalCount = action.rivals
+      s.careerRivals = action.career ? initCareerRivals(action.rivals) : []
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0 // recalculado na cerimônia (quando os elencos existem)
-      // carreira: começa na Série D com os rivais escolhidos vindos do elenco
-      // DAQUELA divisão. Partida rápida: pool único de CPUs (sem pirâmide).
+      // carreira: começa na Série D — você + seus rivais fixos (todos na D no
+      // começo). Partida rápida: pool único de CPUs (sem pirâmide).
       const { managers: soloManagers, botPlans: soloPlans } = action.career
-        ? makeCareerManagers(action.teamName || 'Meu Time', action.formation, 'D', DIVISION_TEAMS['D'].slice(0, action.rivals), rng)
+        ? makeCareerManagers(action.teamName || 'Meu Time', action.formation, 'D', coDivRivalDefs(s.careerRivals, 'D'), rng)
         : makeManagers([action.teamName || 'Meu Time'], action.formation, action.rivals, LEAGUE_SIZE, rng)
       s.managers = soloManagers
       s.youIdx = 0
@@ -1357,6 +1387,8 @@ export function reducer(state: EscState, action: Action): EscState {
         results.forEach(r => applyResult(s.league, r))
         // rivalidade: só confrontos entre dois humanos contam
         results.forEach(r => { if (isHumanId(r.homeId) && isHumanId(r.awayId)) bumpRivalry(s, r.homeId, r.awayId, r.hg, r.ag) })
+        // carreira: retrospecto contra seus rivais fixos que estão na sua divisão
+        if (s.careerDivision && s.careerRivals.length > 0) results.forEach(r => bumpCareerH2H(s, r))
         s.lastResults = results
         const heads = narrateRound(s, results, prevRank, prevGoals, s.round + 1)
         s.news = [...heads, ...s.news]
@@ -1384,10 +1416,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // guarda os elencos dos CPUs por identidade de time (pros rivais que ficam)
       const oldSquads = new Map<string, WonCard[]>()
       for (const m of s.managers) if (!m.isHuman && m.squad.length > 0) oldSquads.set(m.teamName, m.squad)
+      s.careerRivals = res.rivals // pirâmide dos rivais avançada (vida própria)
       s.careerDivision = res.nextDiv
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
-      const { managers, botPlans } = makeCareerManagers(teamName, formation, res.nextDiv, res.nextRivals, rng)
+      const { managers, botPlans } = makeCareerManagers(teamName, formation, res.nextDiv, coDivRivalDefs(s.careerRivals, res.nextDiv), rng)
       s.managers = managers
       s.youIdx = 0
       s.monte = []; s.monteOrder = []; s.monteIdx = 0; s.tactics = {}
@@ -1437,13 +1470,13 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerDivision = sv.division; s.careerIntent = false; s.careerTitles = sv.titles
       s.seasonNo = sv.seasonNo
       s.careerRivalCount = sv.rivalCount ?? 5
+      // rivais salvos (saves antigos: recria na própria divisão como fallback)
+      s.careerRivals = (sv.rivals && sv.rivals.length > 0)
+        ? sv.rivals
+        : DIVISION_TEAMS[sv.division].slice(0, s.careerRivalCount).map(t => ({ team: t.team, name: t.name, division: sv.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
-      // rivais salvos (saves antigos: os primeiros times da divisão como fallback)
-      const rivalDefs = (sv.rivalTeams && sv.rivalTeams.length > 0)
-        ? sv.rivalTeams
-        : DIVISION_TEAMS[sv.division].slice(0, s.careerRivalCount)
-      const { managers, botPlans } = makeCareerManagers(sv.teamName, sv.formation, sv.division, rivalDefs, rng)
+      const { managers, botPlans } = makeCareerManagers(sv.teamName, sv.formation, sv.division, coDivRivalDefs(s.careerRivals, sv.division), rng)
       s.managers = managers
       s.youIdx = 0
       s.monte = []; s.monteOrder = []; s.monteIdx = 0; s.tactics = {}

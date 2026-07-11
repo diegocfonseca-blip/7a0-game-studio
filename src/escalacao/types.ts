@@ -141,6 +141,17 @@ export type OnlineMode = 'cpu' | 'online'
 // modo carreira (solo): sobe/desce entre divisões e salva o progresso
 export type Division = 'A' | 'B' | 'C' | 'D'
 
+// rival fixo da carreira: escolhido no início, é rival pra vida toda. Tem vida
+// própria na pirâmide (sobe/cai sozinho) — só te enfrenta quando está na sua
+// divisão. h2h = retrospecto vitalício [suas vitórias, empates, vitórias dele].
+export interface CareerRival {
+  team: string
+  name: string
+  division: Division
+  h2h: [number, number, number]
+  lastPos: number | null // posição na última temporada (pro rastreador)
+}
+
 export interface EscState {
   screen: Screen
   seed: number
@@ -189,6 +200,7 @@ export interface EscState {
   careerIntent: boolean // ao ir pro setup, sinaliza que é carreira (não partida rápida)
   careerTitles: number // títulos acumulados na carreira atual
   careerRivalCount: number // quantos rivais de leilão (3/5/7/9) na carreira
+  careerRivals: CareerRival[] // rivais fixos (vida própria na pirâmide)
   scorers: ScorerRow[] // artilharia acumulada da temporada
   seasonNo: number // conta quantas temporadas essa sala/sessão já jogou (revanche)
   // "Reiniciar com novos times" (re-draft): precisa da galera toda online e
