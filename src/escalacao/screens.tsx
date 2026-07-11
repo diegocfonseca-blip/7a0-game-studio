@@ -928,7 +928,7 @@ function Reveal() {
                   className="flex items-center justify-between border-2 border-black rounded-lg px-3 py-1.5"
                   style={{ backgroundColor: isWinner ? GREEN : voided ? '#ddd' : '#fff' }}>
                   <p className="font-bold text-sm" style={{ color: isWinner ? '#fff' : INK }}>
-                    {m.id === you.id ? '🫵 Você' : m.name}{voided ? ' · anulado (setor cheio)' : ''}
+                    {m.id === you.id ? '🫵 Você' : m.teamName}{voided ? ' · anulado (setor cheio)' : ''}
                   </p>
                   <p className="font-black" style={{ ...OSWALD, color: isWinner ? '#fff' : INK }}>{b.amount}</p>
                 </motion.div>
