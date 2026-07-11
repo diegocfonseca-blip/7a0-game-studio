@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
 import type { ReactNode } from 'react'
 import type {
-  EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid,
+  EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
@@ -419,7 +419,10 @@ function midPower(m: Manager): { atk: number; def: number } {
 // do alvo (Math.min(0,...)) — nunca deixa mais fácil buffando ninguém. Assim,
 // no online, o líder dá pra bater com bom elenco; no solo (humano forte) fica 0.
 const CPU_TOP_MARGIN = 4
-function computeCpuAdj(managers: Manager[]): { atk: number; def: number } {
+// `capOnly` (online/carreira normal): só reduz bots fortes demais, nunca buffa.
+// Na carreira Série A queremos um degrau A MAIS (pode buffar), então lá o cap
+// de 0 é removido — a CPU pode ficar acima da sua média (o desafio hardcore).
+function computeCpuAdj(managers: Manager[], margin = CPU_TOP_MARGIN, capOnly = true): { atk: number; def: number } {
   const humans = managers.filter(m => m.isHuman)
   const bots = managers.filter(m => !m.isHuman && m.squad.length > 0)
   if (humans.length === 0 || bots.length === 0) return { atk: 0, def: 0 }
@@ -427,10 +430,31 @@ function computeCpuAdj(managers: Manager[]): { atk: number; def: number } {
   const hDef = humans.reduce((s, m) => s + midPower(m).def, 0) / humans.length
   const bAtkMax = Math.max(...bots.map(m => midPower(m).atk))
   const bDefMax = Math.max(...bots.map(m => midPower(m).def))
-  return {
-    atk: Math.min(0, (hAtk + CPU_TOP_MARGIN) - bAtkMax),
-    def: Math.min(0, (hDef + CPU_TOP_MARGIN) - bDefMax),
-  }
+  const cap = (v: number) => capOnly ? Math.min(0, v) : v
+  return { atk: cap((hAtk + margin) - bAtkMax), def: cap((hDef + margin) - bDefMax) }
+}
+
+// ─── modo carreira: divisões, dificuldade e progressão ───────────────
+const DIVISIONS: Division[] = ['D', 'C', 'B', 'A'] // de baixo pra cima
+// dificuldade por divisão: D/C/B = nível de hoje (justo); A = um degrau acima.
+function careerAdj(managers: Manager[], div: Division): { atk: number; def: number } {
+  return div === 'A' ? computeCpuAdj(managers, 8, false) : computeCpuAdj(managers, CPU_TOP_MARGIN, true)
+}
+// sobe (top 3), cai (Z4: 17º+) ou fica — limitado por A (topo) e D (base).
+export function nextDivision(div: Division, youPos: number): { div: Division; result: 'up' | 'down' | 'stay' } {
+  const i = DIVISIONS.indexOf(div)
+  if (youPos <= 3 && i < DIVISIONS.length - 1) return { div: DIVISIONS[i + 1], result: 'up' }
+  if (youPos >= 17 && i > 0) return { div: DIVISIONS[i - 1], result: 'down' }
+  return { div, result: 'stay' }
+}
+export const DIVISION_LABEL: Record<Division, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
+// o que é salvo na conta (Supabase) pra retomar a carreira depois
+export interface CareerSave { division: Division; seasonNo: number; teamName: string; formation: FormationKey; squad: WonCard[]; titles: number }
+export function buildCareerSave(s: EscState): CareerSave | null {
+  if (!s.careerDivision) return null
+  const you = s.managers[s.youIdx]
+  if (!you) return null
+  return { division: s.careerDivision, seasonNo: s.seasonNo, teamName: you.teamName, formation: you.formation, squad: you.squad, titles: s.careerTitles }
 }
 
 function poisson(lambda: number, rng: () => number): number {
@@ -758,6 +782,7 @@ const INITIAL: EscState = {
   monte: [], monteOrder: [], monteIdx: 0,
   league: [], fixtures: [], round: 0, tactics: {},
   lastResults: [], news: [], champion: null,
+  careerDivision: null, careerIntent: false, careerTitles: 0,
   phaseDeadline: null, scorers: [],
   monteDeadline: null, cerimoniaDeadline: null,
   cpuAtkAdj: 0, cpuDefAdj: 0, streamMode: false,
@@ -773,9 +798,12 @@ type Action =
   | { type: 'GO_LOBBY' }
   | { type: 'GO_LOBBY_ONLINE' }
   | { type: 'GO_SETUP' }
+  | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean }
+  | { type: 'CAREER_ADVANCE'; keep: boolean }
+  | { type: 'RESTORE_CAREER'; save: CareerSave }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean }
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
@@ -940,7 +968,8 @@ function redraftSeason(s: EscState): EscState {
   s.seed = Math.floor(Math.random() * 1e9)
   const rng = mulberry(s.seed)
   const used = new Set<string>()
-  if (s.onlineMode === 'online') {
+  if (s.onlineMode === 'online' || s.careerDivision) {
+    // online E carreira usam liga grande (20 times) com bots de preenchimento
     const { managers, botPlans } = makeManagers(humanNames, formation, LEAGUE_SIZE, rng, 'online')
     s.managers = managers
     s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
@@ -1028,7 +1057,8 @@ export function reducer(state: EscState, action: Action): EscState {
   switch (action.type) {
     case 'GO_LOBBY': { s.screen = 'intro'; s.onlineMode = 'cpu'; return s }
     case 'GO_LOBBY_ONLINE': { s.screen = 'lobby'; return s }
-    case 'GO_SETUP': { s.screen = 'setup'; return s }
+    case 'GO_SETUP': { s.screen = 'setup'; s.careerIntent = false; return s }
+    case 'GO_SETUP_CAREER': { s.screen = 'setup'; s.careerIntent = true; return s }
     case 'GO_ALBUM': { s.screen = 'album'; return s }
     case 'GO_RANKING': { s.screen = 'ranking'; return s }
     case 'SET_PRESENCE': { s.presence = action.indices; return s }
@@ -1060,12 +1090,19 @@ export function reducer(state: EscState, action: Action): EscState {
       s.onlineMode = 'cpu'
       s.isHost = true
       s.humanCount = 1
-      const { managers: soloManagers, botPlans: soloPlans } = makeManagers([action.teamName || 'Meu Time'], action.formation, 1 + action.rivals, rng, 'solo')
+      // carreira: começa na Série D. Partida rápida: sem divisão.
+      s.careerDivision = action.career ? 'D' : null
+      s.careerIntent = false
+      s.careerTitles = 0
+      s.cpuAtkAdj = 0; s.cpuDefAdj = 0 // recalculado na cerimônia (quando os elencos existem)
+      // na carreira a liga é grande (20 times, estilo Brasileirão); rápida usa os rivais escolhidos
+      const rivals = action.career ? LEAGUE_SIZE : 1 + action.rivals
+      const { managers: soloManagers, botPlans: soloPlans } = makeManagers([action.teamName || 'Meu Time'], action.formation, rivals, rng, action.career ? 'online' : 'solo')
       s.managers = soloManagers
       s.youIdx = 0
       const soloUsed = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, soloUsed, 1)
-      dealBotSquads(s.managers, soloPlans, rng, soloUsed) // no solo não há bots de preenchimento; no-op
+      dealBotSquads(s.managers, soloPlans, rng, soloUsed) // carreira: bots de preenchimento ganham elenco pronto
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}
@@ -1198,7 +1235,7 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'FINISH_CEREMONY': {
       if (s.screen !== 'cerimonia') return s
       s.cerimoniaDeadline = null
-      const adj = s.onlineMode === 'online' ? computeCpuAdj(s.managers) : { atk: 0, def: 0 }
+      const adj = s.careerDivision ? careerAdj(s.managers, s.careerDivision) : s.onlineMode === 'online' ? computeCpuAdj(s.managers) : { atk: 0, def: 0 }
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.league = buildLeague(s.managers)
       s.fixtures = buildFixtures(s.league)
@@ -1239,12 +1276,62 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'NEW_SEASON':
       // full re-draft direto (usado no modo solo/CPU, onde não há espera).
       return redraftSeason(s)
+    case 'CAREER_ADVANCE': {
+      // fim de temporada na carreira: sobe/cai/fica e começa a próxima.
+      if (!s.careerDivision) return s
+      const you = s.managers[s.youIdx]
+      const table = sortedTable(s.league)
+      const youPos = table.findIndex(t => t.id === you.id) + 1
+      if (table[0]?.id === you.id) s.careerTitles++
+      const nd = nextDivision(s.careerDivision, youPos)
+      s.careerDivision = nd.div
+      if (action.keep) {
+        // MESMO TIME: recomeça o campeonato com os elencos atuais (sem leilão)
+        const adj = careerAdj(s.managers, nd.div); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
+        s.league = buildLeague(s.managers)
+        s.fixtures = buildFixtures(s.league)
+        s.round = 0; s.scorers = []; s.lastResults = []; s.news = []; s.champion = null
+        s.tactics = {}
+        s.seasonNo++
+        s.screen = 'season'
+        return s
+      }
+      // TROCAR TUDO: novo leilão (cpuAdj recalcula na cerimônia, já ciente da divisão)
+      return redraftSeason(s)
+    }
+    case 'RESTORE_CAREER': {
+      // retoma uma carreira salva na conta: vai direto pro campeonato com o
+      // elenco salvo (pula o leilão), na divisão/temporada guardadas.
+      const sv = action.save
+      s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
+      s.roomId = ''; s.roomCode = ''; s.streamMode = false
+      s.careerDivision = sv.division; s.careerIntent = false; s.careerTitles = sv.titles
+      s.seed = Math.floor(Math.random() * 1e9)
+      const rng = mulberry(s.seed)
+      const { managers, botPlans } = makeManagers([sv.teamName], sv.formation, LEAGUE_SIZE, rng, 'online')
+      s.managers = managers
+      s.youIdx = 0
+      managers[0].squad = sv.squad
+      managers[0].formation = sv.formation
+      const used = new Set<string>(sv.squad.map(c => c.name))
+      dealBotSquads(s.managers, botPlans, rng, used)
+      const adj = careerAdj(s.managers, sv.division); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
+      s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
+      s.monte = []; s.monteOrder = []; s.monteIdx = 0; s.tactics = {}
+      s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.currentCards = []
+      s.league = buildLeague(s.managers)
+      s.fixtures = buildFixtures(s.league)
+      s.round = 0; s.scorers = []; s.lastResults = []; s.news = []; s.champion = null
+      s.seasonNo = sv.seasonNo
+      s.screen = 'season'
+      return s
+    }
     case 'REPLAY_SEASON': {
       // "Nova temporada" (mesmo time): mantém TODOS os elencos como estão e
       // só recomeça o campeonato — tabela, calendário e artilharia zerados.
       // Nada de leilão. Disparado pelo host; o resultado já computado vai
       // pros convidados por SYNC_STATE.
-      { const adj = s.onlineMode === 'online' ? computeCpuAdj(s.managers) : { atk: 0, def: 0 }; s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def }
+      { const adj = s.careerDivision ? careerAdj(s.managers, s.careerDivision) : s.onlineMode === 'online' ? computeCpuAdj(s.managers) : { atk: 0, def: 0 }; s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def }
       s.league = buildLeague(s.managers)
       s.fixtures = buildFixtures(s.league)
       s.round = 0
