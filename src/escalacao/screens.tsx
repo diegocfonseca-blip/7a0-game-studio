@@ -1595,15 +1595,18 @@ function HallDaFama({ roomId, isHost, seasonNo, champName, scorerName, scorerGoa
 }
 
 // ─── carta de colecionador: a raridade (fama) define o visual inteiro ──
-const FAME_TIER: Record<number, { label: string; grad: string; ink: string; tierColor: string; crestBg: string; crestInk: string; holo?: boolean }> = {
-  5: { label: '👑 LENDA', grad: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', ink: '#0C0C0C', tierColor: '#7a4d00', crestBg: 'rgba(255,255,255,.42)', crestInk: '#7a4d00', holo: true },
-  4: { label: '⭐ CRAQUE', grad: 'linear-gradient(150deg,#F6E3A8,#E0B23C 55%,#C79020)', ink: '#0C0C0C', tierColor: '#6b4e12', crestBg: 'rgba(255,255,255,.5)', crestInk: '#6b4e12' },
-  3: { label: '🎯 BOM JOGADOR', grad: 'linear-gradient(150deg,#E8B98A,#CD8B4E 60%,#A9662B)', ink: '#0C0C0C', tierColor: '#5c3410', crestBg: 'rgba(255,255,255,.48)', crestInk: '#5c3410' },
-  2: { label: '🎯 BOM JOGADOR', grad: 'linear-gradient(150deg,#E8B98A,#CD8B4E 60%,#A9662B)', ink: '#0C0C0C', tierColor: '#5c3410', crestBg: 'rgba(255,255,255,.48)', crestInk: '#5c3410' },
-  1: { label: '🪵 FOI PROFISSIONAL', grad: 'linear-gradient(150deg,#E7E2D4,#CFC7B2)', ink: '#0C0C0C', tierColor: '#7a725e', crestBg: 'rgba(255,255,255,.5)', crestInk: '#7a725e' },
+// as cores da CARTA batem com as faixas de nível da Cerimônia (tierBadge):
+// 🟡 lenda=ouro · 🟠 craque=bronze · 🟢 bom jogador=verde · 🫒 foi profissional=bege.
+// brilho (holo): ouro brilha forte, promessa brilha sutil, os demais são estáticos.
+const FAME_TIER: Record<number, { label: string; grad: string; ink: string; tierColor: string; crestBg: string; crestInk: string; holo?: boolean; holoAlpha?: number }> = {
+  5: { label: '👑 LENDA', grad: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', ink: '#0C0C0C', tierColor: '#7a4d00', crestBg: 'rgba(255,255,255,.42)', crestInk: '#7a4d00', holo: true, holoAlpha: .85 },
+  4: { label: '⭐ CRAQUE', grad: 'linear-gradient(150deg,#E8A94F,#C9812B 55%,#9C5D18)', ink: '#0C0C0C', tierColor: '#5a3410', crestBg: 'rgba(255,255,255,.5)', crestInk: '#5a3410' },
+  3: { label: '🎯 BOM JOGADOR', grad: 'linear-gradient(150deg,#41C07A,#2E9E5B 55%,#1E7A45)', ink: '#fff', tierColor: 'rgba(255,255,255,.92)', crestBg: 'rgba(255,255,255,.35)', crestInk: '#14532d' },
+  2: { label: '🎯 BOM JOGADOR', grad: 'linear-gradient(150deg,#41C07A,#2E9E5B 55%,#1E7A45)', ink: '#fff', tierColor: 'rgba(255,255,255,.92)', crestBg: 'rgba(255,255,255,.35)', crestInk: '#14532d' },
+  1: { label: '🪵 FOI PROFISSIONAL', grad: 'linear-gradient(150deg,#DBD1B5,#CBBF9E 60%,#B2A583)', ink: '#0C0C0C', tierColor: '#655c43', crestBg: 'rgba(255,255,255,.5)', crestInk: '#655c43' },
 }
-// 5º tier: promessas (foi promessa aqui, virou estrela na Europa) — visual próprio
-const PROMESSA_TIER = { label: '💎 PROMESSA', grad: 'linear-gradient(150deg,#BFA6F0,#7C57D6 55%,#5B39B0)', ink: '#0C0C0C', tierColor: '#3d1f7a', crestBg: 'rgba(255,255,255,.5)', crestInk: '#3d1f7a', holo: false } as const
+// 5º tier: promessas (foi promessa aqui, virou estrela na Europa) — roxo, brilho sutil
+const PROMESSA_TIER = { label: '💎 PROMESSA', grad: 'linear-gradient(150deg,#BFA6F0,#7C57D6 55%,#5B39B0)', ink: '#fff', tierColor: 'rgba(255,255,255,.9)', crestBg: 'rgba(255,255,255,.5)', crestInk: '#3d1f7a', holo: true, holoAlpha: .4 } as const
 // cor do badge de nível POR TIER (ouro só pra lenda; craque num bronze/dourado
 // escuro — "quase ouro", um degrau abaixo da lenda)
 function tierBadge(c: { fame: number; promessa?: boolean }): { bg: string; ink: string } {
@@ -1637,9 +1640,9 @@ function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk =
       style={{ background: t.grad, aspectRatio: '3 / 4.2', boxShadow: `5px 6px 0 0 ${INK}`, padding: big ? 16 : 11 }}>
       {t.holo && (
         <motion.div className="absolute inset-0 pointer-events-none"
-          style={{ background: 'linear-gradient(115deg, transparent 30%, rgba(255,255,255,.78) 48%, transparent 62%)', backgroundSize: '250% 250%' }}
+          style={{ background: `linear-gradient(115deg, transparent 30%, rgba(255,255,255,${(t as { holoAlpha?: number }).holoAlpha ?? .6}) 48%, transparent 62%)`, backgroundSize: '250% 250%' }}
           animate={{ backgroundPosition: ['180% 180%', '-80% -80%'] }}
-          transition={{ duration: 2.6, repeat: Infinity, ease: 'linear' }} />
+          transition={{ duration: fame === 5 && !isProm ? 2.2 : 3.4, repeat: Infinity, ease: 'linear' }} />
       )}
       <div className="relative flex justify-between items-start gap-1">
         <span className="font-black rounded-lg" style={{ ...OSWALD, background: INK, color: '#fff', border: '2px solid rgba(255,255,255,.25)', fontSize: big ? 13 : 11, padding: '2px 7px' }}>{pos}</span>
