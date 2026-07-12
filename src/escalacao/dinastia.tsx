@@ -14,11 +14,10 @@
 // carreira — reusa só dados e matemática pura do jogo.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Card, EscState, FormationKey, Manager, Sector, WonCard } from './types'
+import type { Card, EscState, FormationKey, Sector, WonCard } from './types'
 import { CATALOG, DIVISION_TEAMS } from './data'
-import { useEsc } from './store'
+import { useEsc, sortedTable } from './store'
 import { useIsAdmin } from './admin'
-import { CardCollectPrompt } from './screens'
 import { supabase } from '../lib/supabase'
 
 // ─── visual (mesmos valores do resto do jogo — neubrutalista) ────────
@@ -172,6 +171,7 @@ interface Save {
   contracts?: Record<string, { until: number; floor: number }> // até que temporada + piso (último preço pago)
   requested?: string[] // jogadores que você pediu pro leilão desta janela
   monte?: PoolCard[] // livres: dispensados que ninguém pagou o mínimo; pegáveis de graça
+  globalScorers?: { name: string; teamName: string; div: Division; goals: number }[] // artilharia geral das 4 divisões
   lastResult?: { pos: number; move: 'up' | 'down' | 'stay'; prevDiv: Division; champion: boolean }
 }
 const CONTRACT = 5 // temporadas de contrato de todo jogador comprado no leilão
@@ -203,77 +203,12 @@ function dealSquads(bucket: PoolCard[], nTeams: number, rng: () => number): Pool
   return squads
 }
 
-// joga a temporada no mundo FIXO: simula as 4 divisões, resolve sobe/desce de
-// TODA a pirâmide, devolve tabela da sua divisão + artilharias + prêmios.
-interface SeasonOut {
-  yourTable: SimTeam[]; yourPos: number; youChampion: boolean
-  divScorers: Scorer[]; globalScorers: Scorer[]; worldGoals: Record<string, number>
-  prize: number; newWorld: WTeam[]; newDivision: Division; move: 'up' | 'down' | 'stay'
-}
 const mkSim = (name: string, squad: PoolCard[], you: boolean, wt: WTeam | null): SimTeam => ({ name, you, wt, squad, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
 // escala o MELHOR XI (reservas ficam no banco e não distorcem a força/artilharia)
 function bestXI(squad: PoolCard[], need: Record<Sector, number> = NEED): PoolCard[] {
   const out: PoolCard[] = []
   for (const p of SECTORS) { const cands = squad.filter(c => c.pos === p).sort((a, b) => mid(b) - mid(a)); for (let i = 0; i < need[p] && i < cands.length; i++) out.push(cands[i]) }
   return out
-}
-function assembleDiv(save: Save, div: Division): SimTeam[] {
-  const teams = save.world.filter(w => w.div === div).map(w => mkSim(w.name, bestXI(w.squad), false, w))
-  if (div === save.division) teams.push(mkSim(save.clubName, bestXI(save.squad as PoolCard[], FORM_NEED[save.formation]), true, null))
-  return teams
-}
-// 1º turno: simula as n-1 primeiras rodadas de cada divisão e guarda o parcial.
-function playFirstHalf(save: Save): PartialSeason {
-  const rng = mulberry((save.seed ^ (save.seasonNo * 0x100 + 1)) >>> 0)
-  const scorers = new Map<string, Scorer>()
-  const standings = {} as Record<Division, TeamStand[]>
-  for (const div of DIVS) {
-    const teams = assembleDiv(save, div)
-    const fx = buildFixtures(teams.length)
-    simFixtures(teams, div, rng, scorers, fx.slice(0, teams.length - 1))
-    standings[div] = teams.map(t => ({ name: t.name, pts: t.pts, w: t.w, d: t.d, l: t.l, gf: t.gf, ga: t.ga }))
-  }
-  return { standings, scorers: [...scorers.values()] }
-}
-// returno: continua da tabela do 1º turno (com o elenco JÁ mexido na janela) e
-// fecha a temporada — tabela final, artilharias, sobe/desce e prêmios.
-function playSecondHalf(save: Save, partial: PartialSeason): SeasonOut {
-  const rng = mulberry((save.seed ^ (save.seasonNo * 0x100 + 2)) >>> 0)
-  const scorers = new Map<string, Scorer>()
-  for (const s of partial.scorers) scorers.set(`${s.teamName}:${s.id}`, { ...s })
-  const tables: Record<Division, SimTeam[]> = { A: [], B: [], C: [], D: [] }
-  let yourTable: SimTeam[] = []
-  for (const div of DIVS) {
-    const teams = assembleDiv(save, div)
-    const byName = new Map(partial.standings[div].map(s => [s.name, s]))
-    for (const t of teams) { const s = byName.get(t.name); if (s) { t.pts = s.pts; t.w = s.w; t.d = s.d; t.l = s.l; t.gf = s.gf; t.ga = s.ga } }
-    const fx = buildFixtures(teams.length)
-    simFixtures(teams, div, rng, scorers, fx.slice(teams.length - 1))
-    const sorted = sortTable(teams, rng)
-    tables[div] = sorted
-    if (div === save.division) yourTable = sorted
-  }
-  const yourPos = yourTable.findIndex(t => t.you) + 1
-  const youChampion = yourTable[0]?.you ?? false
-  // sobe/desce toda a pirâmide (top4 sobe, Z4 cai) usando as tabelas pré-promoção
-  const newDivOf = new Map<WTeam, Division>()
-  for (const w of save.world) newDivOf.set(w, w.div)
-  let newDivision = save.division
-  for (let i = 0; i < DIVS.length - 1; i++) {
-    const L = DIVS[i], U = DIVS[i + 1]
-    for (const t of tables[L].slice(0, 4)) { if (t.wt) newDivOf.set(t.wt, U); else newDivision = U }
-    for (const t of tables[U].slice(16)) { if (t.wt) newDivOf.set(t.wt, L); else newDivision = L }
-  }
-  const newWorld = save.world.map(w => ({ ...w, div: newDivOf.get(w) ?? w.div }))
-  const allScorers = [...scorers.values()].sort((a, b) => b.goals - a.goals)
-  const worldGoals: Record<string, number> = {}
-  for (const s of allScorers) worldGoals[s.id] = Math.max(worldGoals[s.id] ?? 0, s.goals)
-  const base: Record<Division, number> = { D: 20, C: 35, B: 60, A: 110 }
-  const posF = yourPos === 1 ? 1 : yourPos <= 4 ? 0.7 : yourPos <= 12 ? 0.4 : 0.2
-  // prêmio único (uma moeda só): posição + bônus de título, tudo pro Caixa
-  const prize = Math.round(base[save.division] * posF) + (youChampion ? Math.round(base[save.division] * 0.3) : 0)
-  const move: 'up' | 'down' | 'stay' = newDivision === save.division ? 'stay' : DIVS.indexOf(newDivision) > DIVS.indexOf(save.division) ? 'up' : 'down'
-  return { yourTable, yourPos, youChampion, divScorers: allScorers.filter(s => s.div === save.division).slice(0, 12), globalScorers: allScorers.slice(0, 20), worldGoals, prize, newWorld, newDivision, move }
 }
 
 // ─── UI helpers (espelham Box/Btn/CardFace do jogo) ──────────────────
@@ -315,28 +250,99 @@ function buildSaveFromAuction(state: EscState): Save {
   return { seed, clubName: you.teamName, formation: you.formation, division: 'D', seasonNo: 1, coins: you.money, luxury: [], titles: 0, squad: yourSquad, world, stage: 's1FirstHalf', worldGoals: {}, goalsLast: {}, championLast: false, contracts, requested: [], monte: [] }
 }
 
+// FIM da temporada REAL: pega o resultado do motor (posição/campeão/artilharia
+// da sua divisão) + simula as outras 3 divisões (artilharia geral + pirâmide),
+// paga o prêmio no Caixa, resolve sobe/desce e abre a janela pra próxima.
+function processDinastiaEnd(state: EscState, existing: Save | null): Save {
+  const you = state.managers[state.youIdx]
+  const engTable = sortedTable(state.league)
+  const yourPos = engTable.findIndex(t => t.id === you.id) + 1
+  const youChampion = engTable[0]?.id === you.id
+  const base: Save = existing ? { ...existing, squad: you.squad.map(c => ({ ...c })) } : buildSaveFromAuction(state)
+  const div = base.division
+  const rng = mulberry((base.seed ^ (base.seasonNo * 131 + 7)) >>> 0)
+  const scorers = new Map<string, Scorer>()
+  const globalRows: { name: string; teamName: string; div: Division; goals: number }[] = []
+  // artilharia REAL da sua divisão (do motor)
+  for (const sc of state.scorers) globalRows.push({ name: sc.name, teamName: sc.teamName, div, goals: sc.goals })
+  // ordem REAL da sua divisão (nome → time do mundo, ou você = null)
+  const tables: Record<Division, (WTeam | null)[]> = { A: [], B: [], C: [], D: [] }
+  tables[div] = engTable.map(t => t.name === base.clubName ? null : (base.world.find(w => w.div === div && w.name === t.name) ?? null))
+  // outras 3 divisões: sim abstrato (pirâmide + artilharia geral)
+  for (const d of DIVS) {
+    if (d === div) continue
+    const teams = base.world.filter(w => w.div === d).map(w => mkSim(w.name, bestXI(w.squad), false, w))
+    simFixtures(teams, d, rng, scorers, buildFixtures(teams.length))
+    tables[d] = sortTable(teams, rng).map(t => t.wt)
+  }
+  for (const s of scorers.values()) globalRows.push({ name: s.name, teamName: s.teamName, div: s.div, goals: s.goals })
+  const globalScorers = globalRows.sort((a, b) => b.goals - a.goals).slice(0, 25)
+  // valor dinâmico: gols dos SEUS jogadores (por nome, do motor)
+  const goalsLast: Record<string, number> = {}
+  for (const c of base.squad) { const sc = state.scorers.find(s => s.name === c.name && s.teamName === base.clubName); if (sc) goalsLast[c.id] = sc.goals }
+  const worldGoals: Record<string, number> = {}
+  for (const s of scorers.values()) worldGoals[s.id] = Math.max(worldGoals[s.id] ?? 0, s.goals)
+  // sobe/desce toda a pirâmide (sua divisão pela ordem REAL; resto pela sim)
+  const newDivOf = new Map<WTeam, Division>()
+  for (const w of base.world) newDivOf.set(w, w.div)
+  let newDivision = div
+  for (let i = 0; i < 3; i++) {
+    const L = DIVS[i], U = DIVS[i + 1]
+    for (const ref of tables[L].slice(0, 4)) { if (ref) newDivOf.set(ref, U); else newDivision = U }
+    for (const ref of tables[U].slice(16)) { if (ref) newDivOf.set(ref, L); else newDivision = L }
+  }
+  const newWorld = base.world.map(w => ({ ...w, div: newDivOf.get(w) ?? w.div }))
+  const prizeBase = { D: 20, C: 35, B: 60, A: 110 }[div]
+  const posF = yourPos === 1 ? 1 : yourPos <= 4 ? 0.7 : yourPos <= 12 ? 0.4 : 0.2
+  const prize = Math.round(prizeBase * posF) + (youChampion ? Math.round(prizeBase * 0.3) : 0)
+  const move: 'up' | 'down' | 'stay' = newDivision === div ? 'stay' : DIVS.indexOf(newDivision) > DIVS.indexOf(div) ? 'up' : 'down'
+  return {
+    ...base, world: newWorld, division: newDivision, seasonNo: base.seasonNo + 1,
+    stage: 'preWindow', requested: [], monte: base.monte ?? [], globalScorers,
+    coins: base.coins + prize, titles: base.titles + (youChampion ? 1 : 0),
+    worldGoals, goalsLast, championLast: youChampion,
+    lastResult: { pos: yourPos, move, prevDiv: div, champion: youChampion },
+  }
+}
+
 // ─── raiz (overlay) ──────────────────────────────────────────────────
 export function DinastiaGame() {
   const isAdmin = useIsAdmin()
   const { state, dispatch } = useEsc()
   const [open, setOpen] = useState(() => typeof window !== 'undefined' && window.location.hash === '#dinastia')
   useEffect(() => { const f = () => setOpen(window.location.hash === '#dinastia'); window.addEventListener('hashchange', f); return () => window.removeEventListener('hashchange', f) }, [])
-  // HANDOFF: o leilão real terminou (cerimônia → temporada) num jogo Dinastia →
-  // a economia assume: monta o save a partir do elenco montado e reabre o modo.
+  // HANDOFF 1: acabou o LEILÃO (cerimônia → temporada) e ainda não há save →
+  // é a 1ª temporada: constrói o mundo fixo a partir do elenco montado e joga a
+  // temporada REAL contra os times da sua divisão no mundo (não contra os bots
+  // do leilão) — pra a temporada 1 e as seguintes serem contra os MESMOS times.
+  const builtWorld = useRef(false)
+  useEffect(() => {
+    if (state.dinastia && state.screen === 'season' && !loadSave() && !builtWorld.current) {
+      builtWorld.current = true
+      const save = buildSaveFromAuction(state)
+      writeSave(save)
+      const others = save.world.filter(w => w.div === save.division).map(w => ({ name: w.name, squad: w.squad }))
+      dispatch({ type: 'START_DINASTIA_SEASON', teamName: save.clubName, formation: save.formation, division: save.division, seasonNo: 1, squad: save.squad, others })
+    }
+    if (state.screen !== 'season') builtWorld.current = false
+  }, [state.dinastia, state.screen]) // eslint-disable-line react-hooks/exhaustive-deps
+  // HANDOFF 2: a TEMPORADA REAL acabou (tela de fim). Ao abrir a janela de
+  // transferências, a economia processa o resultado do motor (posição, campeão,
+  // artilharia), paga o prêmio, resolve sobe/desce e segue.
   const handled = useRef(false)
   useEffect(() => {
-    if (state.dinastia && state.screen === 'season' && !handled.current) {
+    if (open && state.dinastia && state.screen === 'end' && !handled.current) {
       handled.current = true
-      writeSave(buildSaveFromAuction(state))
-      dispatch({ type: 'GO_LOBBY' }) // reseta o motor (limpa o flag dinastia)
-      window.location.hash = 'dinastia'
+      writeSave(processDinastiaEnd(state, loadSave()))
+      dispatch({ type: 'GO_LOBBY' }) // fecha o motor; a economia assume no overlay
     }
-    if (!state.dinastia) handled.current = false
-  }, [state.dinastia, state.screen]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (state.screen !== 'end') handled.current = false
+  }, [open, state.dinastia, state.screen]) // eslint-disable-line react-hooks/exhaustive-deps
   // se algo dentro do modo navegar pro álbum/ranking (ex.: "ver meu álbum" do
   // prêmio de campeão), fecha o overlay pra mostrar a tela do jogo.
   useEffect(() => { if (open && (state.screen === 'album' || state.screen === 'ranking')) window.location.hash = '' }, [open, state.screen])
   if (!open) return null
+  if (state.dinastia && state.screen === 'end') return <Overlay><div style={{ ...box(), padding: 24, textAlign: 'center' }}><p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>Fechando a temporada…</p></div></Overlay>
   if (!isAdmin) return (
     <Overlay><div style={{ ...box(), padding: 24, textAlign: 'center' }}>
       <p style={{ fontWeight: 900, ...OSWALD, fontSize: 18 }}>🔒 Modo em teste</p>
@@ -363,13 +369,12 @@ function Overlay({ children }: { children: React.ReactNode }) {
   )
 }
 
-type Phase = 'home' | 'firsthalf' | 'result' | 'transfer' | 'sell' | 'store' | 'squad' | 'scorers'
+type Phase = 'home' | 'transfer' | 'sell' | 'store' | 'squad' | 'scorers'
 
 function Dinastia() {
   const { dispatch } = useEsc()
   const [save, setSave] = useState<Save | null>(() => loadSave())
   const [phase, setPhase] = useState<Phase>('home')
-  const [out, setOut] = useState<SeasonOut | null>(null) // resultado do returno
   const persist = (s: Save) => { writeSave(s); setSave(s) }
   const close = () => { window.location.hash = '' }
   const reset = () => { if (confirm('Recomeçar a Dinastia do zero? Perde tudo.')) { localStorage.removeItem(SAVE_KEY); setSave(null) } }
@@ -379,19 +384,18 @@ function Dinastia() {
     dispatch({ type: 'START', teamName: b.name, formation: b.formation, rivals: b.rivals.length, career: true, rivalTeams: b.rivals, dinastia: true, budget: START_COINS })
     window.location.hash = ''
   }
-  const playFirst = () => {
+  // jogar a TEMPORADA REAL contra os times da sua divisão no mundo fixo, no motor
+  // do jogo (campinho, narração, tabela, artilheiros). Libera contratos vencidos.
+  const playSeason = () => {
     if (!save) return
-    // contratos vencidos não renovados são liberados na hora de jogar
     const kept = save.squad.filter(c => { const k = save.contracts?.[c.id]; return !k || k.until >= save.seasonNo })
-    const s2: Save = { ...save, squad: kept, requested: [] }
-    const partial = playFirstHalf(s2)
-    persist({ ...s2, stage: 'midWindow', partial })
-    setPhase('firsthalf')
+    if (kept.length !== save.squad.length) persist({ ...save, squad: kept })
+    const others = save.world.filter(w => w.div === save.division).map(w => ({ name: w.name, squad: w.squad }))
+    dispatch({ type: 'START_DINASTIA_SEASON', teamName: save.clubName, formation: save.formation, division: save.division, seasonNo: save.seasonNo, squad: kept, others })
+    window.location.hash = ''
   }
-  const playReturn = () => { if (!save?.partial) return; setOut(playSecondHalf(save, save.partial)); setPhase('result') }
 
   if (!save) return <Intro onStart={startAuction} onClose={close} />
-
 
   const header = (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, minHeight: 22 }}>
@@ -405,9 +409,7 @@ function Dinastia() {
   return (
     <div>
       {header}
-      {phase === 'home' && <Home save={save} go={setPhase} playFirst={playFirst} playReturn={playReturn} />}
-      {phase === 'firsthalf' && <FirstHalfScreen save={save} onBack={() => setPhase('home')} />}
-      {phase === 'result' && out && <ResultScreen save={save} out={out} persist={persist} onHome={() => { setOut(null); setPhase('home') }} />}
+      {phase === 'home' && <Home save={save} go={setPhase} playSeason={playSeason} />}
       {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
       {phase === 'scorers' && <ScorersScreen save={save} onBack={() => setPhase('home')} />}
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
@@ -505,16 +507,9 @@ function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: stri
 
 const stepBtn: React.CSSProperties = { width: 30, height: 30, borderRadius: 8, border: `2px solid ${INK}`, background: '#fff', fontWeight: 900, fontSize: 18, cursor: 'pointer', lineHeight: 1 }
 
-// ─── HOME ─────────────────────────────────────────────────────────────
-function Home({ save, go, playFirst, playReturn }: { save: Save; go: (p: Phase) => void; playFirst: () => void; playReturn: () => void }) {
+// ─── HOME (entre temporadas = janela de transferências) ──────────────
+function Home({ save, go, playSeason }: { save: Save; go: (p: Phase) => void; playSeason: () => void }) {
   const luxOwned = LUXURY.filter(l => save.luxury.includes(l.id))
-  const canTrade = save.stage === 'preWindow' || save.stage === 'midWindow'
-  // posição parcial (no meio da temporada)
-  let midPos = 0
-  if (save.stage === 'midWindow' && save.partial) {
-    const tbl = save.partial.standings[save.division].slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf)
-    midPos = tbl.findIndex(t => t.name === save.clubName) + 1
-  }
   return (
     <div style={{ display: 'grid', gap: 12 }}>
       <div style={{ ...box(INK), padding: 16, color: '#fff' }}>
@@ -528,155 +523,25 @@ function Home({ save, go, playFirst, playReturn }: { save: Save; go: (p: Phase) 
         <div style={{ fontSize: 11, fontWeight: 800, color: '#7a5c00' }}>🏦 CAIXA — vale pra time E ostentação</div>
         <div style={{ fontSize: 30, fontWeight: 900, ...OSWALD }}>💰 {save.coins}</div>
       </div>
-
-      {/* seção da temporada — muda conforme a etapa */}
-      {canTrade && (
-        <div style={{ ...box('#FFF6DE'), padding: 12 }}>
-          <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>🔓 Janela de transferências aberta {save.stage === 'preWindow' ? '(pré-temporada)' : '(meio da temporada)'}</p>
-          {save.stage === 'midWindow' && midPos > 0 && <p style={{ fontWeight: 800, fontSize: 13, marginTop: 2 }}>Você está em <b>{midPos}º</b> no 1º turno. Reforce ou venda antes do returno.</p>}
-          <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-            <div style={{ flex: 1 }}><Btn onClick={() => go('transfer')} bg="#fff">🔎 Contratar</Btn></div>
-            <div style={{ flex: 1 }}><Btn onClick={() => go('sell')} bg="#fff">🔨 Vender</Btn></div>
-          </div>
+      {save.lastResult && (
+        <div style={{ ...box('#fff'), padding: 12, fontSize: 13, fontWeight: 700, textAlign: 'center' }}>
+          Temporada passada: <b>{save.lastResult.pos}º</b> na {DIV_LABEL[save.lastResult.prevDiv]}{save.lastResult.champion ? ' 🏆 CAMPEÃO!' : ''} · {save.lastResult.move === 'up' ? '⬆️ subiu' : save.lastResult.move === 'down' ? '⬇️ caiu' : '➡️ ficou'}
         </div>
       )}
-      {save.stage === 'midWindow'
-        ? <Btn onClick={playReturn} bg={GREEN} color="#fff">▶️ Fechar janela e jogar o RETURNO (20–38)</Btn>
-        : <Btn onClick={playFirst} bg={GREEN} color="#fff">{save.stage === 'preWindow' ? '▶️ Fechar janela e jogar o 1º TURNO' : `▶️ JOGAR 1º TURNO (Temporada ${save.seasonNo})`}</Btn>}
-
+      <div style={{ ...box('#FFF6DE'), padding: 12 }}>
+        <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>🔓 Janela de transferências aberta</p>
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#666', marginTop: 2 }}>Reforce, venda e organize o elenco. Quando jogar, é a <b>temporada de verdade</b> — campinho, narração, tabela e artilheiros.</p>
+        <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+          <div style={{ flex: 1 }}><Btn onClick={() => go('transfer')} bg="#fff">🔎 Contratar</Btn></div>
+          <div style={{ flex: 1 }}><Btn onClick={() => go('sell')} bg="#fff">🔨 Vender</Btn></div>
+        </div>
+      </div>
+      <Btn onClick={playSeason} bg={GREEN} color="#fff">▶️ JOGAR A TEMPORADA {save.seasonNo}</Btn>
       <div style={{ display: 'flex', gap: 10 }}>
         <div style={{ flex: 1 }}><Btn onClick={() => go('squad')} bg="#fff">👥 Elenco</Btn></div>
         <div style={{ flex: 1 }}><Btn onClick={() => go('scorers')} bg="#fff">🥇 Artilharia</Btn></div>
       </div>
       <Btn onClick={() => go('store')} bg={PURPLE} color="#fff">🏰 Loja da Ostentação</Btn>
-      {save.lastResult && (
-        <div style={{ ...box('#fff'), padding: 12, fontSize: 13, fontWeight: 700 }}>
-          Última: {save.lastResult.pos}º na {DIV_LABEL[save.lastResult.prevDiv]}{save.lastResult.champion ? ' 🏆 CAMPEÃO!' : ''} · {save.lastResult.move === 'up' ? '⬆️ subiu' : save.lastResult.move === 'down' ? '⬇️ caiu' : '➡️ ficou'}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// resumo do 1º turno (parcial), antes da janela do meio
-function FirstHalfScreen({ save, onBack }: { save: Save; onBack: () => void }) {
-  const part = save.partial
-  const table = useMemo(() => {
-    if (!part) return [] as TeamStand[]
-    return part.standings[save.division].slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf)
-  }, [part, save.division])
-  const pos = table.findIndex(t => t.name === save.clubName) + 1
-  return (
-    <div style={{ display: 'grid', gap: 12 }}>
-      <div style={{ ...box(GOLD), padding: 16, textAlign: 'center' }}>
-        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>Fim do 1º turno · {DIV_LABEL[save.division]}</p>
-        <p style={{ fontWeight: 900, fontSize: 28, ...OSWALD, marginTop: 4 }}>{pos}º lugar (parcial)</p>
-        <p style={{ fontWeight: 700, fontSize: 13, marginTop: 4 }}>Janela aberta: reforce ou venda antes do returno.</p>
-      </div>
-      <div style={{ ...box('#fff'), padding: 8, overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, ...OSWALD }}>
-          <thead><tr style={{ fontWeight: 900, textAlign: 'left', color: '#888' }}><th>#</th><th>Time</th><th>P</th><th>V</th><th>SG</th></tr></thead>
-          <tbody>{table.map((t, i) => (
-            <tr key={t.name} style={{ background: t.name === save.clubName ? GOLD : i < 4 ? '#DFF5E1' : i >= 16 ? '#FBE0DA' : 'transparent', fontWeight: t.name === save.clubName ? 900 : 700 }}>
-              <td style={{ padding: '4px 6px' }}>{i + 1}</td><td>{t.name}{t.name === save.clubName ? ' 👑' : ''}</td><td>{t.pts}</td><td>{t.w}</td><td>{t.gf - t.ga}</td>
-            </tr>
-          ))}</tbody>
-        </table>
-      </div>
-      <Btn onClick={onBack} bg={GREEN} color="#fff">🔓 Ir pra janela de transferências</Btn>
-    </div>
-  )
-}
-
-// ─── RESULTADO ────────────────────────────────────────────────────────
-function ResultScreen({ save, out: res, persist, onHome }: { save: Save; out: SeasonOut; persist: (s: Save) => void; onHome: () => void }) {
-  const [applied, setApplied] = useState(false)
-  const [tab, setTab] = useState<'tabela' | 'artil' | 'geral'>('tabela')
-  const mine = new Set(save.squad.map(c => c.id))
-  // manda o resultado da temporada pro ranking (igual aos outros modos)
-  const wrote = useRef(false)
-  useEffect(() => {
-    if (wrote.current) return
-    wrote.current = true
-    ;(async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-        const displayName = (user.user_metadata?.display_name as string) ?? user.email?.split('@')[0] ?? save.clubName
-        const youHadTop = !!res.divScorers[0] && mine.has(res.divScorers[0].id)
-        await supabase.from('esc_results').upsert({
-          user_id: user.id, display_name: displayName, mode: 'cpu',
-          season_key: `dinastia:${save.seed}:${save.seasonNo}`,
-          champion: res.youChampion, top_scorer: youHadTop,
-          goals: res.yourTable.find(t => t.you)?.gf ?? 0,
-        }, { onConflict: 'user_id,season_key' })
-      } catch { /* nunca trava o jogo */ }
-    })()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  // técnico "fake" (só pro prêmio de carta reusar o elenco do Dinastia)
-  const champMgr: Manager = { id: 0, name: save.clubName, teamName: save.clubName, isHuman: true, auctionRival: true, formation: save.formation, money: 0, squad: save.squad, aggression: 0.5, starHunger: 0.5 }
-  const apply = () => {
-    if (applied) return
-    const goalsLast: Record<string, number> = {}
-    for (const [id, g] of Object.entries(res.worldGoals)) if (mine.has(id)) goalsLast[id] = g
-    // o Monte fica preso: só sai quem tiver vaga (você ou um rival com buraco).
-    persist({
-      ...save, world: res.newWorld, division: res.newDivision, seasonNo: save.seasonNo + 1,
-      stage: 'preWindow', partial: undefined, requested: [], monte: save.monte ?? [],
-      coins: save.coins + res.prize,
-      titles: save.titles + (res.youChampion ? 1 : 0), worldGoals: res.worldGoals, goalsLast, championLast: res.youChampion,
-      lastResult: { pos: res.yourPos, move: res.move, prevDiv: save.division, champion: res.youChampion },
-    })
-    setApplied(true); onHome()
-  }
-  return (
-    <div style={{ display: 'grid', gap: 12 }}>
-      <div style={{ ...box(res.youChampion ? GOLD : '#fff'), padding: 16, textAlign: 'center' }}>
-        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>{DIV_LABEL[save.division]} · Temporada {save.seasonNo}</p>
-        <p style={{ fontWeight: 900, fontSize: 30, ...OSWALD, marginTop: 4 }}>{res.youChampion ? '🏆 CAMPEÃO!' : `${res.yourPos}º lugar`}</p>
-        <p style={{ fontWeight: 800, marginTop: 6 }}>💰 +{res.prize} no Caixa{res.youChampion ? ' (com bônus de título)' : ''}</p>
-        <p style={{ fontWeight: 800, marginTop: 2, color: res.move === 'up' ? GREEN : res.move === 'down' ? RED : '#555' }}>
-          {res.move === 'up' ? `⬆️ SUBIU pra ${DIV_LABEL[res.newDivision]}!` : res.move === 'down' ? `⬇️ Caiu pra ${DIV_LABEL[res.newDivision]}` : '➡️ Segue na divisão'}
-        </p>
-      </div>
-      {/* campeão ganha carta-lembrança pro álbum, igual aos outros modos */}
-      {res.youChampion && <CardCollectPrompt you={champMgr} seasonKey={`dinastia:${save.seed}:${save.seasonNo}`} origin="cpu" />}
-      <div style={{ display: 'flex', gap: 6 }}>
-        {([['tabela', '📊 Tabela'], ['artil', '🥇 Sua divisão'], ['geral', '🌎 Geral']] as const).map(([k, l]) => (
-          <button key={k} onClick={() => setTab(k)} style={{ flex: 1, padding: '8px 0', borderRadius: 8, border: `2px solid ${INK}`, fontWeight: 800, fontSize: 12, background: tab === k ? INK : '#fff', color: tab === k ? '#fff' : INK, cursor: 'pointer', ...OSWALD }}>{l}</button>
-        ))}
-      </div>
-      {tab === 'tabela' && <TableView table={res.yourTable} />}
-      {tab === 'artil' && <ScorerList rows={res.divScorers} showDiv={false} mine={mine} />}
-      {tab === 'geral' && <ScorerList rows={res.globalScorers} showDiv mine={mine} />}
-      <Btn onClick={apply} disabled={applied} bg={GREEN} color="#fff">{applied ? '✔️ Salvo!' : '➡️ Continuar (salvar e avançar)'}</Btn>
-    </div>
-  )
-}
-function TableView({ table }: { table: SimTeam[] }) {
-  return (
-    <div style={{ ...box('#fff'), padding: 8, overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, ...OSWALD }}>
-        <thead><tr style={{ fontWeight: 900, textAlign: 'left', color: '#888' }}><th>#</th><th>Time</th><th>P</th><th>V</th><th>SG</th></tr></thead>
-        <tbody>{table.map((t, i) => (
-          <tr key={t.name} style={{ background: t.you ? GOLD : i < 4 ? '#DFF5E1' : i >= 16 ? '#FBE0DA' : 'transparent', fontWeight: t.you ? 900 : 700 }}>
-            <td style={{ padding: '4px 6px' }}>{i + 1}</td><td>{t.name}{t.you ? ' 👑' : t.wt?.rival ? ' ⚔️' : ''}</td><td>{t.pts}</td><td>{t.w}</td><td>{t.gf - t.ga}</td>
-          </tr>
-        ))}</tbody>
-      </table>
-    </div>
-  )
-}
-function ScorerList({ rows, showDiv, mine }: { rows: Scorer[]; showDiv: boolean; mine: Set<string> }) {
-  return (
-    <div style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 4 }}>
-      {rows.length === 0 && <p style={{ fontWeight: 700, color: '#888', textAlign: 'center', padding: 8 }}>Sem gols ainda — jogue uma temporada.</p>}
-      {rows.map((s, i) => (
-        <div key={s.teamName + s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px', borderRadius: 6, background: mine.has(s.id) ? GOLD : 'transparent', fontWeight: mine.has(s.id) ? 900 : 700 }}>
-          <span style={{ fontSize: 13 }}>{i + 1}. {s.name} <span style={{ color: '#999', fontSize: 11 }}>{s.teamName}{showDiv ? ` · ${DIV_LABEL[s.div]}` : ''}</span></span>
-          <span style={{ fontWeight: 900, ...OSWALD }}>⚽ {s.goals}</span>
-        </div>
-      ))}
     </div>
   )
 }
@@ -705,19 +570,26 @@ function SquadScreen({ save, onBack }: { save: Save; onBack: () => void }) {
   )
 }
 
-// ─── ARTILHARIA (última temporada jogada) ────────────────────────────
+// ─── ARTILHARIA GERAL (4 divisões, da última temporada) ──────────────
 function ScorersScreen({ save, onBack }: { save: Save; onBack: () => void }) {
-  const rows = useMemo(() => Object.entries(save.worldGoals).map(([id, g]) => {
-    const c = POOL.find(x => x.id === id); const owner = save.world.find(w => w.squad.some(s => s.id === id)); const you = save.squad.some(s => s.id === id)
-    return { id, name: c?.name ?? '—', teamName: you ? save.clubName : owner?.name ?? '—', div: you ? save.division : owner?.div ?? 'D', goals: g } as Scorer
-  }).sort((a, b) => b.goals - a.goals).slice(0, 25), [save])
-  const mine = new Set(save.squad.map(c => c.id))
+  const rows = save.globalScorers ?? []
+  const myNames = new Set(save.squad.map(c => c.name))
   if (rows.length === 0) return <div style={{ display: 'grid', gap: 10 }}><p style={{ fontWeight: 700, color: '#888' }}>Jogue uma temporada pra ver a artilharia geral.</p><Btn onClick={onBack} bg="#fff">← Voltar</Btn></div>
   return (
     <div style={{ display: 'grid', gap: 10 }}>
       <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🥇 Artilharia geral (4 divisões)</p>
-      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Última temporada. Seus jogadores destacados. É por aqui que um Obina goleador vira alvo caro.</p>
-      <ScorerList rows={rows} showDiv mine={mine} />
+      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Última temporada, todas as divisões. Seus jogadores destacados. É por aqui que um Obina goleador vira alvo caro.</p>
+      <div style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 4 }}>
+        {rows.map((s, i) => {
+          const mine = myNames.has(s.name) && s.teamName === save.clubName
+          return (
+            <div key={s.teamName + s.name + i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px', borderRadius: 6, background: mine ? GOLD : 'transparent', fontWeight: mine ? 900 : 700 }}>
+              <span style={{ fontSize: 13 }}>{i + 1}. {s.name} <span style={{ color: '#999', fontSize: 11 }}>{s.teamName} · {DIV_LABEL[s.div]}</span></span>
+              <span style={{ fontWeight: 900, ...OSWALD }}>⚽ {s.goals}</span>
+            </div>
+          )
+        })}
+      </div>
       <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
     </div>
   )

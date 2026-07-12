@@ -953,6 +953,7 @@ type Action =
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number }
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
+  | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[] }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean }
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
@@ -1536,6 +1537,33 @@ export function reducer(state: EscState, action: Action): EscState {
       const adj = fillerAdj(s.managers, DIVISION_BASE[sv.division]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
       s.sectorIdx = 0; s.sectorCursor = 0
+      s.league = buildLeague(s.managers)
+      s.fixtures = buildFixtures(s.league)
+      s.screen = 'season'
+      return s
+    }
+    case 'START_DINASTIA_SEASON': {
+      // modo Dinastia (2ª temporada em diante): joga a TEMPORADA REAL (campinho,
+      // narração, tabela, artilheiros) contra os times do mundo fixo — sem leilão.
+      // Os elencos vêm prontos do mundo; a economia já rolou na janela.
+      s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
+      s.roomId = ''; s.roomCode = ''; s.streamMode = false
+      s.dinastia = true
+      s.careerDivision = action.division
+      s.seasonNo = action.seasonNo
+      s.seed = Math.floor(Math.random() * 1e9)
+      const human: Manager = { id: 0, name: action.teamName, teamName: action.teamName, isHuman: true, auctionRival: true, formation: action.formation, money: 0, squad: action.squad, aggression: 0.5, starHunger: 0.5 }
+      const forms: FormationKey[] = ['4-3-3', '4-4-2']
+      const others: Manager[] = action.others.map((o, i) => ({ id: i + 1, name: o.name, teamName: o.name, isHuman: false, auctionRival: false, formation: forms[i % 2], money: 0, squad: o.squad.map(c => ({ ...c, paid: 0, via: 'bot' as const })), aggression: 0.5, starHunger: 0.5 }))
+      s.managers = [human, ...others]
+      s.youIdx = 0
+      s.cpuAtkAdj = 0; s.cpuDefAdj = 0 // o mundo fixo já é a dificuldade (pirâmide de força)
+      s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
+      s.monte = []; s.monteOrder = []; s.monteIdx = 0
+      s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.currentCards = []
+      s.round = 0; s.scorers = []; s.lastResults = []; s.news = []; s.champion = null
+      s.tactics = {}
+      s.careerRivals = []; s.careerTitles = 0; s.careerTitlesA = 0
       s.league = buildLeague(s.managers)
       s.fixtures = buildFixtures(s.league)
       s.screen = 'season'
