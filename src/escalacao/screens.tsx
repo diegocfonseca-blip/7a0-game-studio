@@ -2046,7 +2046,7 @@ function RankResultWriter() {
         const myRow = table.find(t => t.id === you.id)
         const top = topScorers(state, 1)[0]
         const online = state.onlineMode === 'online'
-        const seasonKey = online ? `${state.roomId}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`
+        const seasonKey = online ? `${state.roomId}:${state.seasonNo}` : state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`
         const displayName = user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? you.teamName
         await supabase.from('esc_results').upsert({
           user_id: user.id, display_name: displayName,
@@ -2360,7 +2360,7 @@ export function EscEnd() {
         <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}`} origin="online" />
       )}
       {!online && youWon && (
-        <CardCollectPrompt you={you} seasonKey={`cpu:${state.seed}:${state.seasonNo}`} origin="cpu" />
+        <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" />
       )}
       <TableBox highlight={you.id} />
       <TopScorersBox highlight={you.id} />
@@ -2373,7 +2373,9 @@ export function EscEnd() {
         pts: table[youPos - 1]?.pts ?? 0, w: table[youPos - 1]?.w ?? 0, d: table[youPos - 1]?.d ?? 0, l: table[youPos - 1]?.l ?? 0,
         scorerName: myScorer?.name, scorerGoals: myScorer?.goals,
       })} bg="#fff" className="w-full text-lg">📤 Compartilhar resultado</Btn>
-      {state.careerDivision ? <CareerEndPanel /> : (<>
+      {state.dinastia ? (
+        <Btn onClick={() => { window.location.hash = 'dinastia' }} bg={GREEN} className="w-full text-lg"><span className="text-white">🏰 Ir pra janela de transferências →</span></Btn>
+      ) : state.careerDivision ? <CareerEndPanel /> : (<>
       {restartPending
         ? (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2" style={{ background: '#FEF3C7' }}>
