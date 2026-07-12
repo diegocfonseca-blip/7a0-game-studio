@@ -163,7 +163,7 @@ interface Save {
   locked?: Record<string, number> // cardId -> temporada em que libera (dono renovou contrato)
   lastResult?: { pos: number; move: 'up' | 'down' | 'stay'; prevDiv: Division; champion: boolean }
 }
-const SQUAD_MAX = 11 // sem reservas por enquanto — todo time tem 11
+// sem reservas por enquanto — todo time tem 11; ao contratar, o pior da posição sai
 function loadSave(): Save | null { try { const r = localStorage.getItem(SAVE_KEY); return r ? JSON.parse(r) : null } catch { return null } }
 function writeSave(s: Save) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)) } catch { /* cheio */ } }
 const valueOf = (save: Save, c: PoolCard) => dynValue(c, save.worldGoals[c.id] ?? 0, false)
@@ -734,53 +734,66 @@ function Store({ save, persist, onBack }: { save: Save; persist: (s: Save) => vo
   )
 }
 
-// ─── CONTRATAR: leilão de contratação (você × dono × interessados) ───
-function Transfer({ save, persist, onBack }: { save: Save; persist: (s: Save) => void; onBack: () => void }) {
-  const [teamName, setTeamName] = useState<string | null>(null)
-  const [target, setTarget] = useState<{ card: PoolCard; owner: WTeam } | null>(null)
-  const team = save.world.find(w => w.name === teamName) ?? null
-
-  if (target) return <SigningAuction save={save} card={target.card} owner={target.owner} persist={persist} onDone={() => { setTarget(null); setTeamName(null) }} onBack={() => setTarget(null)} />
-
-  const full = save.squad.length >= SQUAD_MAX
-  if (team) {
-    return (
-      <div style={{ display: 'grid', gap: 8 }}>
-        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>{team.name} <span style={{ fontSize: 12, color: '#888' }}>· {DIV_LABEL[team.div]}</span></p>
-        {full
-          ? <div style={{ ...box('#FBE0DA'), padding: 10, fontWeight: 800, fontSize: 13 }}>🔒 Elenco cheio ({SQUAD_MAX}/{SQUAD_MAX}). Venda alguém antes de contratar.</div>
-          : <p style={{ fontSize: 12, color: '#666', fontWeight: 700 }}>Clique num jogador pra pôr em leilão — você, seus rivais e o clube dono disputam. Se o dono segurar, ele renova e trava por 3 temporadas.</p>}
-        {SECTORS.map(p => team.squad.filter(c => c.pos === p).map(c => {
-          const lockUntil = save.locked?.[c.id] ?? 0
-          const locked = lockUntil > save.seasonNo
-          const dis = full || locked
-          return (
-            <button key={c.id} disabled={dis} onClick={() => setTarget({ card: c, owner: team })} style={{ ...box(locked ? '#eee' : '#fff'), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: dis ? 'default' : 'pointer', textAlign: 'left', opacity: dis ? 0.55 : 1 }}>
-              <span style={{ fontWeight: 900, ...OSWALD }}><Pos p={c.pos} /> {c.name}</span>
-              {locked ? <span style={{ fontWeight: 800, color: RED, fontSize: 12 }}>🔒 renovou (temp. {lockUntil})</span> : <span style={{ fontWeight: 800, color: '#888', fontSize: 13 }}>~{valueOf(save, c)} 💰</span>}
-            </button>
-          )
-        }))}
-        <Btn onClick={() => setTeamName(null)} bg="#fff">← Outros clubes</Btn>
-      </div>
-    )
+// ─── LOTES do leilão da janela ───────────────────────────────────────
+// Início da temporada = leilão "normal" (2 por posição). Meio = 1 por posição.
+// Os lotes são jogadores de clubes do mundo (não travados), com uma mistura
+// de bons e baratos pra dar escolha. Cada lote vira um leilão (você × rivais ×
+// dono). Assim a contratação é um EVENTO limitado, não algo à toda hora.
+interface Lot { card: PoolCard; owner: WTeam }
+function auctionLots(save: Save, kind: 'start' | 'mid'): Lot[] {
+  const rng = mulberry((save.seed ^ (save.seasonNo * 977) ^ (kind === 'mid' ? 0x5151 : 0x2727)) >>> 0)
+  const perPos = kind === 'mid' ? 1 : 2
+  const lots: Lot[] = []
+  for (const p of SECTORS) {
+    const cands: Lot[] = []
+    for (const w of save.world) for (const c of w.squad) {
+      if (c.pos !== p) continue
+      if ((save.locked?.[c.id] ?? 0) > save.seasonNo) continue
+      cands.push({ card: c, owner: w })
+    }
+    // pondera por valor + sorte: bons aparecem mais, mas tem variedade
+    const ranked = cands.map(l => ({ l, k: (valueOf(save, l.card) + 2) * (0.4 + rng()) })).sort((a, b) => b.k - a.k)
+    for (let i = 0; i < perPos && i < ranked.length; i++) lots.push(ranked[i].l)
   }
+  return lots
+}
 
-  // lista de clubes (agrupado por divisão)
+// ─── CONTRATAR: leilão da janela (lotes limitados) ───────────────────
+function Transfer({ save, persist, onBack }: { save: Save; persist: (s: Save) => void; onBack: () => void }) {
+  const kind = save.stage === 'midWindow' ? 'mid' : 'start'
+  const lots = useMemo(() => auctionLots(save, kind), [save.seasonNo, kind]) // eslint-disable-line
+  const [target, setTarget] = useState<Lot | null>(null)
+  const [done, setDone] = useState<Set<string>>(new Set())
+
+  if (target) return <SigningAuction save={save} card={target.card} owner={target.owner} persist={persist} onDone={() => { setDone(d => new Set(d).add(target.card.id)); setTarget(null) }} onBack={() => setTarget(null)} />
+
+  // um lote continua válido só se o dono ainda tiver a carta (e não estiver travada)
+  const live = lots.filter(l => !done.has(l.card.id) && save.world.find(w => w.name === l.owner.name)?.squad.some(c => c.id === l.card.id) && (save.locked?.[l.card.id] ?? 0) <= save.seasonNo)
   return (
-    <div style={{ display: 'grid', gap: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🔎 Contratar · 💰 {save.coins}</p>
-      <p style={{ fontSize: 12, color: '#666', fontWeight: 700 }}>Escolha um clube pra fuçar o elenco. Craque de time grande custa caro (e o dono briga). Time fraco entrega barato.</p>
-      {DIVS.slice().reverse().map(div => (
-        <div key={div}>
-          <p style={{ fontWeight: 900, fontSize: 13, color: '#888', margin: '4px 0' }}>{DIV_LABEL[div]}</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-            {save.world.filter(w => w.div === div).map(w => (
-              <button key={w.name} onClick={() => setTeamName(w.name)} style={{ padding: '8px 6px', borderRadius: 8, border: `2px solid ${INK}`, fontWeight: 800, fontSize: 12, background: w.rival ? '#FFE9A8' : '#fff', cursor: 'pointer', textAlign: 'left', ...OSWALD }}>{w.rival ? '⚔️ ' : ''}{w.name}</button>
-            ))}
+    <div style={{ display: 'grid', gap: 8 }}>
+      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🔨 {kind === 'mid' ? 'Leilão do meio (1 por posição)' : 'Leilão de contratações'} · 💰 {save.coins}</p>
+      <p style={{ fontSize: 12, color: '#666', fontWeight: 700 }}>Estes são os jogadores no bloco desta janela. Toque num pra dar seu lance — você, seus rivais e o clube dono disputam. Se o dono segura, renova e trava por 3 temporadas. Ao vencer, seu pior da posição sai pra manter os 11.</p>
+      {SECTORS.map(p => {
+        const rows = live.filter(l => l.card.pos === p)
+        if (rows.length === 0) return null
+        return (
+          <div key={p}>
+            <p style={{ fontWeight: 800, fontSize: 12, color: '#888', margin: '2px 0' }}>{SECTOR_LABEL[p]}</p>
+            <div style={{ display: 'grid', gap: 6 }}>
+              {rows.map(l => (
+                <button key={l.card.id} onClick={() => setTarget(l)} style={{ ...box('#fff'), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', textAlign: 'left' }}>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ fontWeight: 900, ...OSWALD }}><Pos p={l.card.pos} /> {l.card.name}</span>
+                    <span style={{ display: 'block', fontSize: 11, color: '#888', fontWeight: 700 }}>{l.owner.name} · {DIV_LABEL[l.owner.div]}{l.owner.rival ? ' ⚔️' : ''}</span>
+                  </span>
+                  <span style={{ fontWeight: 800, color: '#888', fontSize: 13, whiteSpace: 'nowrap' }}>~{valueOf(save, l.card)} 💰</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
+      {live.length === 0 && <div style={{ ...box('#fff'), padding: 14, textAlign: 'center', fontWeight: 700, color: '#888' }}>Bloco encerrado nesta janela.</div>}
       <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
     </div>
   )
@@ -803,18 +816,22 @@ function SigningAuction({ save, card, owner, persist, onDone, onBack }: { save: 
     }).filter(r => r.bid > 0)
   }, [rng, val]) // eslint-disable-line
   const [bid, setBid] = useState(Math.min(save.coins, Math.max(1, Math.round(val))))
-  const [done, setDone] = useState<{ result: 'you' | 'owner' | 'other'; by: string; price: number } | null>(null)
+  const [done, setDone] = useState<{ result: 'you' | 'owner' | 'other'; by: string; price: number; dropped?: string } | null>(null)
 
   const go = () => {
     const entrants = [{ name: save.clubName, bid, mine: true }, { name: owner.name, bid: ownerBid, mine: false }, ...rivalsIn.map(r => ({ name: r.name, bid: r.bid, mine: false }))]
     entrants.sort((a, b) => b.bid - a.bid || (a.mine ? -1 : 1)) // empate: você leva
     const win = entrants[0]
     if (win.mine) {
-      // você levou: paga, tira do dono (repõe com filler), você vai a 11
-      const newSquad: WonCard[] = [...save.squad, { ...card, paid: bid, via: 'leilao' }]
+      // você levou: paga, tira do dono (repõe com filler). Mantém 11: se lotar a
+      // posição, o seu pior dela sai (dispensado) pra abrir vaga.
+      const withNew: WonCard[] = [...save.squad, { ...card, paid: bid, via: 'leilao' }]
+      const atPos = withNew.filter(c => c.pos === card.pos).sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))
+      const drop = atPos.length > NEED[card.pos] ? atPos[atPos.length - 1] : null
+      const newSquad = drop ? withNew.filter(c => c.id !== drop.id) : withNew
       const newWorld = save.world.map(w => w.name === owner.name ? { ...w, squad: w.squad.filter(c => c.id !== card.id).concat(filler(card.pos, rng)) } : w)
       persist({ ...save, coins: save.coins - bid, squad: newSquad, world: newWorld })
-      setDone({ result: 'you', by: save.clubName, price: bid })
+      setDone({ result: 'you', by: save.clubName, price: bid, dropped: drop?.name })
     } else if (win.name === owner.name) {
       // dono renovou: trava o jogador por 3 temporadas
       persist({ ...save, locked: { ...(save.locked ?? {}), [card.id]: save.seasonNo + 3 } })
@@ -837,7 +854,7 @@ function SigningAuction({ save, card, owner, persist, onDone, onBack }: { save: 
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ ...box(c), padding: 20, textAlign: 'center' }}>
           <p style={{ fontWeight: 900, fontSize: 22, ...OSWALD }}>{done.result === 'you' ? '✅ CONTRATADO!' : done.result === 'owner' ? '🛡️ Renovou contrato!' : '😤 Rival levou!'}</p>
-          <p style={{ fontWeight: 800, marginTop: 6 }}>{done.result === 'you' ? `${card.name} é seu por 💰 ${done.price}` : done.result === 'owner' ? `${owner.name} cobriu (💰 ${done.price}) e renovou com ${card.name}. Travado por 3 temporadas.` : `${done.by} (seu rival) levou ${card.name} por 💰 ${done.price} na sua frente.`}</p>
+          <p style={{ fontWeight: 800, marginTop: 6 }}>{done.result === 'you' ? `${card.name} é seu por 💰 ${done.price}${done.dropped ? ` — ${done.dropped} saiu pra abrir vaga` : ''}` : done.result === 'owner' ? `${owner.name} cobriu (💰 ${done.price}) e renovou com ${card.name}. Travado por 3 temporadas.` : `${done.by} (seu rival) levou ${card.name} por 💰 ${done.price} na sua frente.`}</p>
         </div>
         <Btn onClick={onDone} bg={GREEN} color="#fff">✅ Pronto</Btn>
       </div>
