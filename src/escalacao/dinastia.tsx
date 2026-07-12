@@ -14,15 +14,17 @@
 // carreira — reusa só dados e matemática pura do jogo.
 
 import { useEffect, useMemo, useState } from 'react'
-import type { Card, Sector, WonCard } from './types'
+import type { Card, FormationKey, Sector, WonCard } from './types'
 import { CATALOG, DIVISION_TEAMS } from './data'
 import { useIsAdmin } from './admin'
+import { supabase } from '../lib/supabase'
 
-// ─── visual ──────────────────────────────────────────────────────────
+// ─── visual (mesmos valores do resto do jogo — neubrutalista) ────────
+const CREAM = '#F4ECD6'
 const INK = '#0C0C0C'
-const GOLD = '#F5B301'
+const GOLD = '#FFC400'
 const GREEN = '#1B7A3D'
-const PURPLE = '#5B2A86'
+const PURPLE = '#7C3AED'
 const RED = '#E8503A'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
@@ -30,6 +32,11 @@ type Division = 'A' | 'B' | 'C' | 'D'
 const DIVS: Division[] = ['D', 'C', 'B', 'A']
 const DIV_LABEL: Record<Division, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
 const NEED: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
+// vagas por posição conforme a formação (só o SEU time varia; o mundo é 4-3-3)
+const FORM_NEED: Record<FormationKey, Record<Sector, number>> = {
+  '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
+  '4-4-2': { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 },
+}
 const SECTORS: Sector[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
 const SECTOR_LABEL: Record<Sector, string> = { GOL: 'Goleiros', LAT: 'Laterais', ZAG: 'Zagueiros', MEI: 'Meio-campo', ATA: 'Ataque' }
 const START_COINS = 50
@@ -154,7 +161,7 @@ interface TeamStand { name: string; pts: number; w: number; d: number; l: number
 interface PartialSeason { standings: Record<Division, TeamStand[]>; scorers: Scorer[] }
 const SAVE_KEY = 'esc_dinastia_v2'
 interface Save {
-  seed: number; clubName: string; division: Division; seasonNo: number
+  seed: number; clubName: string; formation: FormationKey; division: Division; seasonNo: number
   coins: number; fortune: number; luxury: string[]; titles: number
   squad: WonCard[]; world: WTeam[]
   stage: Stage; partial?: PartialSeason // meio de temporada guarda o 1º turno
@@ -224,14 +231,14 @@ interface SeasonOut {
 }
 const mkSim = (name: string, squad: PoolCard[], you: boolean, wt: WTeam | null): SimTeam => ({ name, you, wt, squad, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
 // escala o MELHOR XI (reservas ficam no banco e não distorcem a força/artilharia)
-function bestXI(squad: PoolCard[]): PoolCard[] {
+function bestXI(squad: PoolCard[], need: Record<Sector, number> = NEED): PoolCard[] {
   const out: PoolCard[] = []
-  for (const p of SECTORS) { const cands = squad.filter(c => c.pos === p).sort((a, b) => mid(b) - mid(a)); for (let i = 0; i < NEED[p] && i < cands.length; i++) out.push(cands[i]) }
+  for (const p of SECTORS) { const cands = squad.filter(c => c.pos === p).sort((a, b) => mid(b) - mid(a)); for (let i = 0; i < need[p] && i < cands.length; i++) out.push(cands[i]) }
   return out
 }
 function assembleDiv(save: Save, div: Division): SimTeam[] {
   const teams = save.world.filter(w => w.div === div).map(w => mkSim(w.name, bestXI(w.squad), false, w))
-  if (div === save.division) teams.push(mkSim(save.clubName, bestXI(save.squad as PoolCard[]), true, null))
+  if (div === save.division) teams.push(mkSim(save.clubName, bestXI(save.squad as PoolCard[], FORM_NEED[save.formation]), true, null))
   return teams
 }
 // 1º turno: simula as n-1 primeiras rodadas de cada divisão e guarda o parcial.
@@ -288,12 +295,13 @@ function playSecondHalf(save: Save, partial: PartialSeason): SeasonOut {
   return { yourTable, yourPos, youChampion, divScorers: allScorers.filter(s => s.div === save.division).slice(0, 12), globalScorers: allScorers.slice(0, 20), worldGoals, prize, fortuneBonus, newWorld, newDivision, move }
 }
 
-// ─── UI helpers ──────────────────────────────────────────────────────
-const box = (bg = '#fff'): React.CSSProperties => ({ background: bg, border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}` })
+// ─── UI helpers (espelham Box/Btn/CardFace do jogo) ──────────────────
+const box = (bg = '#fff'): React.CSSProperties => ({ background: bg, border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}` })
 function Btn({ children, onClick, bg = GOLD, color = INK, disabled }: { children: React.ReactNode; onClick?: () => void; bg?: string; color?: string; disabled?: boolean }) {
-  return <button onClick={onClick} disabled={disabled} style={{ width: '100%', boxSizing: 'border-box', background: disabled ? '#bbb' : bg, color, border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 14px', fontWeight: 900, fontSize: 16, cursor: disabled ? 'default' : 'pointer', boxShadow: disabled ? 'none' : `3px 3px 0 0 ${INK}`, ...OSWALD }}>{children}</button>
+  return <button onClick={onClick} disabled={disabled} className="active:translate-x-[2px] active:translate-y-[2px]" style={{ width: '100%', boxSizing: 'border-box', background: bg, color, opacity: disabled ? 0.4 : 1, border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 16px', fontWeight: 900, fontSize: 15, textTransform: 'uppercase', letterSpacing: '0.03em', cursor: disabled ? 'default' : 'pointer', boxShadow: disabled ? 'none' : `4px 4px 0 0 ${INK}`, ...OSWALD }}>{children}</button>
 }
-const Pos = ({ p }: { p: Sector }) => <span style={{ fontSize: 10, fontWeight: 900, background: INK, color: '#fff', borderRadius: 5, padding: '1px 5px' }}>{p}</span>
+// chip de posição igual ao CardFace do jogo
+const Pos = ({ p }: { p: Sector }) => <span style={{ fontSize: 10, fontWeight: 900, background: INK, color: '#fff', borderRadius: 99, padding: '1px 7px', border: `2px solid ${INK}` }}>{p}</span>
 
 // ─── raiz (overlay) ──────────────────────────────────────────────────
 export function DinastiaGame() {
@@ -321,14 +329,14 @@ export function DinastiaButton() {
 }
 function Overlay({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#F2ECDC', zIndex: 9000, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
-      <div style={{ maxWidth: 480, margin: '0 auto', padding: '16px 14px 60px' }}>{children}</div>
+    <div style={{ position: 'fixed', inset: 0, background: CREAM, color: INK, zIndex: 9000, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <div className="max-w-xl mx-auto" style={{ padding: '20px 16px 64px' }}>{children}</div>
     </div>
   )
 }
 
 type Phase = 'home' | 'firsthalf' | 'result' | 'transfer' | 'sell' | 'store' | 'squad' | 'scorers'
-type Boot = { name: string; rivals: string[] } | null
+type Boot = { name: string; rivals: string[]; formation: FormationKey } | null
 
 function Dinastia() {
   const [save, setSave] = useState<Save | null>(() => loadSave())
@@ -376,44 +384,91 @@ function Dinastia() {
   )
 }
 
-// ─── INTRO: nome + rivais ────────────────────────────────────────────
-function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: string[] }) => void; onClose: () => void }) {
+// ─── INTRO / SETUP: mesmo padrão do setup da Carreira ────────────────
+function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: string[]; formation: FormationKey }) => void; onClose: () => void }) {
   const [name, setName] = useState('')
+  const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [count, setCount] = useState(5)
   const pool = DIVISION_TEAMS['D'].map(t => t.team)
-  const [picked, setPicked] = useState<string[]>(() => pool.slice(0, 5))
-  const toggle = (t: string) => setPicked(p => p.includes(t) ? p.filter(x => x !== t) : p.length < count ? [...p, t] : p)
-  useEffect(() => { setPicked(p => p.slice(0, count).concat(pool.filter(t => !p.includes(t))).slice(0, count)) }, [count]) // eslint-disable-line
-  const ready = picked.length === count
+  const [picked, setPicked] = useState<string[]>([])
+  const toggle = (t: string) => setPicked(prev => { if (prev.includes(t)) return prev.filter(x => x !== t); const next = [...prev, t]; return next.length > count ? next.slice(next.length - count) : next })
+  // nome vem da CONTA (mesmo do CPU/carreira/online) e é editável; ao começar,
+  // sincroniza de volta — trocar aqui troca em todos os lugares.
+  const [accountName, setAccountName] = useState<string | null>(null)
+  useEffect(() => {
+    let alive = true
+    const apply = (u: { user_metadata?: Record<string, unknown> } | null | undefined) => {
+      if (!alive) return
+      if (!u) { setAccountName(null); return }
+      const dn = ((u.user_metadata?.display_name as string) ?? '').trim()
+      setAccountName(dn); if (dn) setName(prev => prev.trim() ? prev : dn)
+    }
+    supabase.auth.getUser().then(({ data }) => apply(data?.user))
+    const { data: sub } = supabase.auth.onAuthStateChange((_, s) => apply(s?.user))
+    return () => { alive = false; sub.subscription.unsubscribe() }
+  }, [])
+  const start = async () => {
+    const clean = name.trim()
+    if (accountName !== null && clean && clean !== accountName) {
+      try { await supabase.auth.updateUser({ data: { display_name: clean } }) } catch { /* não trava o jogo */ }
+    }
+    const picks = [...picked, ...pool.filter(t => !picked.includes(t))].slice(0, count)
+    onStart({ name: clean || 'Meu Clube', rivals: picks, formation })
+  }
+  const label = { fontWeight: 900, textTransform: 'uppercase' as const, fontSize: 12, marginBottom: 4, ...OSWALD }
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}><button onClick={onClose} style={{ background: 'transparent', border: 'none', fontWeight: 900, cursor: 'pointer', ...OSWALD }}>✕</button></div>
-      <div style={{ textAlign: 'center', paddingTop: 6 }}>
-        <span style={{ display: 'inline-block', background: PURPLE, color: '#fff', border: `2px solid ${INK}`, borderRadius: 99, padding: '4px 12px', fontWeight: 900, fontSize: 12, ...OSWALD }}>MODO TESTE · MUNDO FIXO</span>
-        <h1 style={{ fontWeight: 900, fontSize: 38, marginTop: 10, ...OSWALD }}>DINASTIA</h1>
-        <p style={{ color: '#555', fontWeight: 700, marginTop: 4 }}>50 moedas na Série D. Monte o time no pregão, suba e fique <b>rico</b>.</p>
+    <div className="space-y-5">
+      <button onClick={onClose} className="flex items-center gap-1 text-black/60 font-black text-sm active:opacity-60" style={OSWALD}><span className="text-lg leading-none">←</span> Home</button>
+      <h2 className="font-black text-3xl" style={OSWALD}>🏰 DINASTIA · SÉRIE D</h2>
+      <p className="text-sm font-bold text-black/60 -mt-3">Comece duro com 50 moedas, monte o time no pregão e construa uma dinastia: suba de divisão, contrate craques e fique rico. Mundo fixo — cada jogador vive num clube.</p>
+      <div style={{ ...box(), padding: 16 }} className="space-y-4">
+        <div>
+          <p style={label}>Nome do seu clube</p>
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Bagres do Asfalto" maxLength={22}
+            className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-bold bg-white" />
+          {accountName !== null && <p className="text-[11px] font-semibold text-black/55 mt-1">🔗 É o nome da sua conta — vale no CPU, na carreira e no online. Se editar aqui, troca em todos os lugares (e nas estatísticas).</p>}
+        </div>
+        <div>
+          <p style={label}>Formação (travada antes do pregão)</p>
+          <div className="grid grid-cols-4 gap-2">
+            {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => (
+              <button key={f} onClick={() => setFormation(f)} className="border-[3px] border-black rounded-xl py-2 font-black text-sm"
+                style={{ backgroundColor: formation === f ? GOLD : '#fff', boxShadow: formation === f ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>{f}</button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p style={label}>Rivais no pregão</p>
+          <div className="grid grid-cols-4 gap-2">
+            {[3, 5, 7].map(n => (
+              <button key={n} onClick={() => setCount(n)} className="border-[3px] border-black rounded-xl py-2 font-black text-sm"
+                style={{ backgroundColor: count === n ? PURPLE : '#fff', color: count === n ? '#fff' : INK, boxShadow: count === n ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>{n}</button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p style={label}>🔥 Escolha seus rivais <span className="text-black/50">({picked.length}/{count})</span></p>
+          <p className="text-[11px] font-semibold text-black/55 mb-1.5">Eles serão seus rivais pra vida toda — brigam no pregão, nos seus leilões e na pirâmide.</p>
+          <div className="flex flex-wrap gap-1.5">
+            {pool.map(t => {
+              const on = picked.includes(t)
+              return <button key={t} onClick={() => toggle(t)} className="border-2 border-black rounded-lg px-2 py-1 font-black text-[11px] active:translate-y-0.5" style={{ backgroundColor: on ? RED : '#fff', color: on ? '#fff' : INK }}>{on ? '🔥 ' : ''}{t}</button>
+            })}
+          </div>
+          <button onClick={() => setPicked([])} className="mt-2 border-2 border-black rounded-lg px-2.5 py-1 font-black text-[11px] bg-white active:translate-y-0.5" style={OSWALD}>🎲 Não escolher — usar rivais padrão</button>
+        </div>
+        <p className="text-xs font-semibold text-black/70">🏟️ A liga completa 20 times; o catálogo inteiro é distribuído pelas 4 divisões (mundo fixo).</p>
+        <p className="text-xs font-semibold text-black/70">💰 Você começa com <b>{START_COINS} moedas</b> na Série D. Sem reservas — todo time tem 11.</p>
       </div>
-      <input value={name} onChange={e => setName(e.target.value)} placeholder="Nome do seu clube" maxLength={22}
-        style={{ width: '100%', boxSizing: 'border-box', border: `3px solid ${INK}`, borderRadius: 12, padding: 12, fontWeight: 800, fontSize: 16, margin: '14px 0 12px', ...OSWALD }} />
-      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, marginBottom: 6 }}>Quantos rivais no pregão?</p>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-        {[3, 5, 7].map(n => <button key={n} onClick={() => setCount(n)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `3px solid ${INK}`, fontWeight: 900, background: count === n ? INK : '#fff', color: count === n ? '#fff' : INK, cursor: 'pointer', ...OSWALD }}>{n}</button>)}
-      </div>
-      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, marginBottom: 6 }}>Escolha seus rivais ({picked.length}/{count}) — brigam com você no leilão e na pirâmide:</p>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 14 }}>
-        {pool.map(t => {
-          const on = picked.includes(t)
-          return <button key={t} onClick={() => toggle(t)} style={{ padding: '8px 6px', borderRadius: 8, border: `2px solid ${INK}`, fontWeight: 800, fontSize: 12, background: on ? GOLD : '#fff', color: INK, cursor: 'pointer', textAlign: 'left', ...OSWALD }}>{on ? '✓ ' : ''}{t}</button>
-        })}
-      </div>
-      <Btn onClick={() => onStart({ name: name.trim() || 'Meu Clube', rivals: picked })} bg={GREEN} color="#fff" disabled={!ready}>🔨 IR PRO PREGÃO</Btn>
+      <Btn onClick={start} bg={GREEN} color="#fff">🔨 ABRIR O PREGÃO</Btn>
     </div>
   )
 }
 
 // ─── PREGÃO: leilão cego, você + rivais montam os 11 ─────────────────
 interface Bidder { team: string; you: boolean; budget: number; squad: PoolCard[] }
-function Pregao({ boot, onDone, onCancel }: { boot: { name: string; rivals: string[] }; onDone: (s: Save) => void; onCancel: () => void }) {
+function Pregao({ boot, onDone, onCancel }: { boot: { name: string; rivals: string[]; formation: FormationKey }; onDone: (s: Save) => void; onCancel: () => void }) {
+  const myN = FORM_NEED[boot.formation]
   const seed = useMemo(() => (Math.floor(Math.random() * 1e9) ^ Date.now()) >>> 0, [])
   const rng = useMemo(() => mulberry(seed), [seed])
   const [bidders, setBidders] = useState<Bidder[]>(() => [
@@ -431,7 +486,7 @@ function Pregao({ boot, onDone, onCancel }: { boot: { name: string; rivals: stri
   }, [secIdx]) // eslint-disable-line
   const [myBids, setMyBids] = useState<Record<string, number>>({})
   const you = bidders[0]
-  const myNeed = NEED[sec] - you.squad.filter(c => c.pos === sec).length
+  const myNeed = myN[sec] - you.squad.filter(c => c.pos === sec).length
   const myBidCount = Object.keys(myBids).length
   const mySpent = Object.values(myBids).reduce((a, b) => a + b, 0)
   const setBid = (id: string, amt: number) => setMyBids(m => { const n = { ...m }; if (amt <= 0) delete n[id]; else n[id] = amt; return n })
@@ -460,18 +515,18 @@ function Pregao({ boot, onDone, onCancel }: { boot: { name: string; rivals: stri
       if (awarded.has(bid.card.id)) continue
       const b = next[bid.who]
       const have = b.squad.filter(c => c.pos === sec).length
-      if (have >= NEED[sec] || b.budget < bid.amount) continue
+      const cap = b.you ? myN[sec] : NEED[sec]
+      if (have >= cap || b.budget < bid.amount) continue
       b.squad.push(bid.card); b.budget -= bid.amount; awarded.add(bid.card.id)
       if (b.you) (b.squad[b.squad.length - 1] as WonCard).paid = bid.amount
     }
-    // preenche o que faltou de TODOS com filler (garante 11 ao fim)
+    // preenche o que faltou de TODOS com filler (você na sua formação; rivais 4-3-3)
     if (secIdx === SECTORS.length - 1) {
-      for (const b of next) for (const p of SECTORS) { let have = b.squad.filter(c => c.pos === p).length; while (have < NEED[p]) { b.squad.push(filler(p, rng)); have++ } }
+      for (const b of next) for (const p of SECTORS) { const need = b.you ? myN[p] : NEED[p]; let have = b.squad.filter(c => c.pos === p).length; while (have < need) { b.squad.push(filler(p, rng)); have++ } }
       finish(next)
       return
     } else {
-      // preenche o setor atual pra quem não completou (mantém formação por setor)
-      for (const b of next) { let have = b.squad.filter(c => c.pos === sec).length; while (have < NEED[sec]) { b.squad.push(filler(sec, rng)); have++ } }
+      for (const b of next) { const need = b.you ? myN[sec] : NEED[sec]; let have = b.squad.filter(c => c.pos === sec).length; while (have < need) { b.squad.push(filler(sec, rng)); have++ } }
     }
     setBidders(next); setMyBids({}); setSecIdx(secIdx + 1)
   }
@@ -487,7 +542,7 @@ function Pregao({ boot, onDone, onCancel }: { boot: { name: string; rivals: stri
     const contracts: Record<string, { until: number; floor: number }> = {}
     for (const c of squad) contracts[c.id] = { until: 1 + 2 + Math.floor(rng() * 4), floor: Math.max(1, c.paid) }
     // 1ª temporada: pós-pregão vai direto pro 1º turno (sem janela pré)
-    onDone({ seed, clubName: boot.name, division: 'D', seasonNo: 1, coins: me.budget, fortune: 0, luxury: [], titles: 0, squad, world, stage: 's1FirstHalf', worldGoals: {}, goalsLast: {}, championLast: false, contracts, requested: [] })
+    onDone({ seed, clubName: boot.name, formation: boot.formation, division: 'D', seasonNo: 1, coins: me.budget, fortune: 0, luxury: [], titles: 0, squad, world, stage: 's1FirstHalf', worldGoals: {}, goalsLast: {}, championLast: false, contracts, requested: [] })
   }
 
   return (
@@ -499,7 +554,7 @@ function Pregao({ boot, onDone, onCancel }: { boot: { name: string; rivals: stri
       <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
         {SECTORS.map((p, i) => <div key={p} style={{ flex: 1, textAlign: 'center', padding: '4px 0', borderRadius: 6, fontWeight: 900, fontSize: 11, background: i === secIdx ? INK : i < secIdx ? GREEN : '#ddd', color: i <= secIdx ? '#fff' : '#777', ...OSWALD }}>{p}</div>)}
       </div>
-      <p style={{ fontSize: 12, fontWeight: 700, color: '#666', marginBottom: 8 }}>💡 Nível oculto. Dê seu lance secreto nos que quer — os rivais também dão. Maior lance leva. Você pode mirar até {NEED[sec]} {sec}.</p>
+      <p style={{ fontSize: 12, fontWeight: 700, color: '#666', marginBottom: 8 }}>💡 Nível oculto. Dê seu lance secreto nos que quer — os rivais também dão. Maior lance leva. Você pode mirar até {myN[sec]} {sec}.</p>
       <div style={{ display: 'grid', gap: 7 }}>
         {deck.map(c => {
           const bid = myBids[c.id] ?? 0
@@ -923,7 +978,7 @@ function SigningAuction({ save, card, owner, persist, onDone, onBack }: { save: 
       // posição, o seu pior dela sai (dispensado) pra abrir vaga. Contrato de 5.
       const withNew: WonCard[] = [...save.squad, { ...card, paid: bid, via: 'leilao' }]
       const atPos = withNew.filter(c => c.pos === card.pos).sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))
-      const drop = atPos.length > NEED[card.pos] ? atPos[atPos.length - 1] : null
+      const drop = atPos.length > FORM_NEED[save.formation][card.pos] ? atPos[atPos.length - 1] : null
       const newSquad = drop ? withNew.filter(c => c.id !== drop.id) : withNew
       const newWorld = save.world.map(w => w.name === owner.name ? { ...w, squad: w.squad.filter(c => c.id !== card.id).concat(filler(card.pos, rng)) } : w)
       persist({ ...save, coins: save.coins - bid, squad: newSquad, world: newWorld, contracts: setContract(save, card.id, bid) })
