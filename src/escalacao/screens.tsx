@@ -619,7 +619,7 @@ function Envelope() {
           {!rescue && canBid && state.sectorIdx === 0 && (
             <p className="text-xs font-black mt-1.5 inline-block rounded-lg px-2.5 py-1"
               style={{ background: '#FFF1C9', color: '#7a5b00' }}>
-              💡 Ganha quem dá o <b>MAIOR</b> lance — não dê só 1. Capriche no craque que você quer!
+              💡 Ganha quem dá o <b>maior lance</b>
             </p>
           )}
         </div>
@@ -645,15 +645,21 @@ function Envelope() {
             <CardFace c={c} />
             <div className="flex items-center gap-1.5">
               {canBid && (
-                <>
-                  <button onClick={() => setBid(c.id, (bids[c.id] ?? 0) - 1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</button>
-                  <span className="w-9 text-center font-black text-black" style={OSWALD}>{state.streamMode ? ((bids[c.id] ?? 0) > 0 ? '🔒' : '–') : (bids[c.id] ?? 0)}</span>
-                  <button
-                    onClick={() => !plusBlocked && setBid(c.id, (bids[c.id] ?? 0) + 1)}
-                    disabled={plusBlocked}
-                    className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${plusBlocked ? 'opacity-40' : ''}`}
-                    style={{ backgroundColor: GOLD }}>+</button>
-                </>
+                <div className="flex flex-col items-center">
+                  {/* rótulo sutil só na 1ª tela: mostra que o 0 do meio é o SEU lance */}
+                  {state.sectorIdx === 0 && !state.streamMode && (
+                    <span className="text-[9px] font-black uppercase leading-none mb-0.5 tracking-wide" style={{ color: '#B8860B' }}>seu lance</span>
+                  )}
+                  <div className="flex items-center gap-1.5">
+                    <button onClick={() => setBid(c.id, (bids[c.id] ?? 0) - 1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</button>
+                    <span className="w-9 text-center font-black text-black" style={OSWALD}>{state.streamMode ? ((bids[c.id] ?? 0) > 0 ? '🔒' : '–') : (bids[c.id] ?? 0)}</span>
+                    <button
+                      onClick={() => !plusBlocked && setBid(c.id, (bids[c.id] ?? 0) + 1)}
+                      disabled={plusBlocked}
+                      className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${plusBlocked ? 'opacity-40' : ''}`}
+                      style={{ backgroundColor: GOLD }}>+</button>
+                  </div>
+                </div>
               )}
               {online && <CardReact cardId={c.id} />}
             </div>
