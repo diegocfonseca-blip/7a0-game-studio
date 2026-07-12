@@ -2,7 +2,7 @@
 // Modo econômico à la Brasfoot/Elifoot num MUNDO FIXO: cada jogador vive
 // num clube ano após ano. Comece duro na Série D, monte time no PREGÃO
 // (leilão cego, com os rivais que você escolhe), suba de divisão e
-// ENRIQUEÇA. Duas carteiras: Caixa do Clube e Fortuna Pessoal (ostentação).
+// ENRIQUEÇA. Uma moeda só (Caixa): serve pro time E pra ostentação.
 //
 // Contratar craque de outro clube = LEILÃO DE CONTRATAÇÃO: você clica no
 // jogador e o põe em leilão; o CLUBE DONO entra junto pra segurá-lo e
@@ -164,7 +164,7 @@ interface PartialSeason { standings: Record<Division, TeamStand[]>; scorers: Sco
 const SAVE_KEY = 'esc_dinastia_v2'
 interface Save {
   seed: number; clubName: string; formation: FormationKey; division: Division; seasonNo: number
-  coins: number; fortune: number; luxury: string[]; titles: number
+  coins: number; luxury: string[]; titles: number
   squad: WonCard[]; world: WTeam[]
   stage: Stage; partial?: PartialSeason // meio de temporada guarda o 1º turno
   worldGoals: Record<string, number> // gols da última temporada (mundo todo) p/ valorização
@@ -208,7 +208,7 @@ function dealSquads(bucket: PoolCard[], nTeams: number, rng: () => number): Pool
 interface SeasonOut {
   yourTable: SimTeam[]; yourPos: number; youChampion: boolean
   divScorers: Scorer[]; globalScorers: Scorer[]; worldGoals: Record<string, number>
-  prize: number; fortuneBonus: number; newWorld: WTeam[]; newDivision: Division; move: 'up' | 'down' | 'stay'
+  prize: number; newWorld: WTeam[]; newDivision: Division; move: 'up' | 'down' | 'stay'
 }
 const mkSim = (name: string, squad: PoolCard[], you: boolean, wt: WTeam | null): SimTeam => ({ name, you, wt, squad, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
 // escala o MELHOR XI (reservas ficam no banco e não distorcem a força/artilharia)
@@ -270,10 +270,10 @@ function playSecondHalf(save: Save, partial: PartialSeason): SeasonOut {
   for (const s of allScorers) worldGoals[s.id] = Math.max(worldGoals[s.id] ?? 0, s.goals)
   const base: Record<Division, number> = { D: 20, C: 35, B: 60, A: 110 }
   const posF = yourPos === 1 ? 1 : yourPos <= 4 ? 0.7 : yourPos <= 12 ? 0.4 : 0.2
-  const prize = Math.round(base[save.division] * posF)
-  const fortuneBonus = Math.round(base[save.division] * 0.12) + (youChampion ? Math.round(base[save.division] * 0.3) : 0)
+  // prêmio único (uma moeda só): posição + bônus de título, tudo pro Caixa
+  const prize = Math.round(base[save.division] * posF) + (youChampion ? Math.round(base[save.division] * 0.3) : 0)
   const move: 'up' | 'down' | 'stay' = newDivision === save.division ? 'stay' : DIVS.indexOf(newDivision) > DIVS.indexOf(save.division) ? 'up' : 'down'
-  return { yourTable, yourPos, youChampion, divScorers: allScorers.filter(s => s.div === save.division).slice(0, 12), globalScorers: allScorers.slice(0, 20), worldGoals, prize, fortuneBonus, newWorld, newDivision, move }
+  return { yourTable, yourPos, youChampion, divScorers: allScorers.filter(s => s.div === save.division).slice(0, 12), globalScorers: allScorers.slice(0, 20), worldGoals, prize, newWorld, newDivision, move }
 }
 
 // ─── UI helpers (espelham Box/Btn/CardFace do jogo) ──────────────────
@@ -312,7 +312,7 @@ function buildSaveFromAuction(state: EscState): Save {
   }
   const contracts: Record<string, { until: number; floor: number }> = {}
   for (const c of yourSquad) contracts[c.id] = { until: 1 + CONTRACT, floor: Math.max(1, c.paid) } // todo mundo 5 temporadas (até temp. 6)
-  return { seed, clubName: you.teamName, formation: you.formation, division: 'D', seasonNo: 1, coins: you.money, fortune: 0, luxury: [], titles: 0, squad: yourSquad, world, stage: 's1FirstHalf', worldGoals: {}, goalsLast: {}, championLast: false, contracts, requested: [], monte: [] }
+  return { seed, clubName: you.teamName, formation: you.formation, division: 'D', seasonNo: 1, coins: you.money, luxury: [], titles: 0, squad: yourSquad, world, stage: 's1FirstHalf', worldGoals: {}, goalsLast: {}, championLast: false, contracts, requested: [], monte: [] }
 }
 
 // ─── raiz (overlay) ──────────────────────────────────────────────────
@@ -524,15 +524,9 @@ function Home({ save, go, playFirst, playReturn }: { save: Save; go: (p: Phase) 
         </div>
         <div style={{ fontSize: 13, opacity: 0.85, fontWeight: 700, marginTop: 2 }}>Temporada {save.seasonNo} · {save.titles} 🏆 {luxOwned.map(l => l.emoji).join(' ')}</div>
       </div>
-      <div style={{ display: 'flex', gap: 10 }}>
-        <div style={{ ...box('#fff'), flex: 1, padding: 12, textAlign: 'center' }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: '#888' }}>🏦 CAIXA DO CLUBE</div>
-          <div style={{ fontSize: 24, fontWeight: 900, ...OSWALD }}>💰 {save.coins}</div>
-        </div>
-        <div style={{ ...box(GOLD), flex: 1, padding: 12, textAlign: 'center' }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: '#7a5c00' }}>💎 FORTUNA</div>
-          <div style={{ fontSize: 24, fontWeight: 900, ...OSWALD }}>💰 {save.fortune}</div>
-        </div>
+      <div style={{ ...box(GOLD), padding: 14, textAlign: 'center' }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: '#7a5c00' }}>🏦 CAIXA — vale pra time E ostentação</div>
+        <div style={{ fontSize: 30, fontWeight: 900, ...OSWALD }}>💰 {save.coins}</div>
       </div>
 
       {/* seção da temporada — muda conforme a etapa */}
@@ -629,7 +623,7 @@ function ResultScreen({ save, out: res, persist, onHome }: { save: Save; out: Se
     persist({
       ...save, world: res.newWorld, division: res.newDivision, seasonNo: save.seasonNo + 1,
       stage: 'preWindow', partial: undefined, requested: [], monte: save.monte ?? [],
-      coins: save.coins + res.prize, fortune: save.fortune + res.fortuneBonus,
+      coins: save.coins + res.prize,
       titles: save.titles + (res.youChampion ? 1 : 0), worldGoals: res.worldGoals, goalsLast, championLast: res.youChampion,
       lastResult: { pos: res.yourPos, move: res.move, prevDiv: save.division, champion: res.youChampion },
     })
@@ -640,7 +634,7 @@ function ResultScreen({ save, out: res, persist, onHome }: { save: Save; out: Se
       <div style={{ ...box(res.youChampion ? GOLD : '#fff'), padding: 16, textAlign: 'center' }}>
         <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>{DIV_LABEL[save.division]} · Temporada {save.seasonNo}</p>
         <p style={{ fontWeight: 900, fontSize: 30, ...OSWALD, marginTop: 4 }}>{res.youChampion ? '🏆 CAMPEÃO!' : `${res.yourPos}º lugar`}</p>
-        <p style={{ fontWeight: 800, marginTop: 6 }}>💰 +{res.prize} Caixa · 💎 +{res.fortuneBonus} Fortuna</p>
+        <p style={{ fontWeight: 800, marginTop: 6 }}>💰 +{res.prize} no Caixa{res.youChampion ? ' (com bônus de título)' : ''}</p>
         <p style={{ fontWeight: 800, marginTop: 2, color: res.move === 'up' ? GREEN : res.move === 'down' ? RED : '#555' }}>
           {res.move === 'up' ? `⬆️ SUBIU pra ${DIV_LABEL[res.newDivision]}!` : res.move === 'down' ? `⬇️ Caiu pra ${DIV_LABEL[res.newDivision]}` : '➡️ Segue na divisão'}
         </p>
@@ -731,14 +725,12 @@ function ScorersScreen({ save, onBack }: { save: Save; onBack: () => void }) {
 
 // ─── LOJA DA OSTENTAÇÃO ──────────────────────────────────────────────
 function Store({ save, persist, onBack }: { save: Save; persist: (s: Save) => void; onBack: () => void }) {
-  const buy = (l: Lux) => { if (save.fortune < l.cost || save.luxury.includes(l.id)) return; persist({ ...save, fortune: save.fortune - l.cost, luxury: [...save.luxury, l.id] }) }
-  const withdraw = (amt: number) => { if (save.coins < amt) return; persist({ ...save, coins: save.coins - amt, fortune: save.fortune + amt }) }
+  const buy = (l: Lux) => { if (save.coins < l.cost || save.luxury.includes(l.id)) return; persist({ ...save, coins: save.coins - l.cost, luxury: [...save.luxury, l.id] }) }
   return (
     <div style={{ display: 'grid', gap: 10 }}>
       <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🏰 Loja da Ostentação</p>
-      <div style={{ ...box(GOLD), padding: 10, textAlign: 'center' }}><b style={{ ...OSWALD }}>💎 Fortuna Pessoal: {save.fortune}</b></div>
-      <p style={{ fontSize: 12, color: '#666', fontWeight: 700 }}>Sacar do clube pro bolso (enriquece você, mas enfraquece o Caixa):</p>
-      <div style={{ display: 'flex', gap: 8 }}>{[5, 10, 25].map(a => <div key={a} style={{ flex: 1 }}><Btn onClick={() => withdraw(a)} disabled={save.coins < a} bg="#fff">💸 Sacar {a}</Btn></div>)}</div>
+      <div style={{ ...box(GOLD), padding: 10, textAlign: 'center' }}><b style={{ ...OSWALD }}>🏦 Caixa: 💰 {save.coins}</b></div>
+      <div style={{ ...box('#EAF3FF'), padding: 9 }}><p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ É a <b>mesma moeda</b> do time. Cada luxo que você compra é grana que <b>não vai pra elenco</b> — ostentar é uma escolha ousada. É o troféu de quem começou com 50 moedas e ficou rico. 💅</p></div>
       <div style={{ display: 'grid', gap: 8, marginTop: 4 }}>
         {LUXURY.map(l => {
           const owned = save.luxury.includes(l.id)
@@ -746,7 +738,7 @@ function Store({ save, persist, onBack }: { save: Save; persist: (s: Save) => vo
             <div key={l.id} style={{ ...box(owned ? '#DFF5E1' : '#fff'), padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontWeight: 900, ...OSWALD, fontSize: 15 }}>{l.emoji} {l.name}</span>
               {owned ? <span style={{ fontWeight: 900, color: GREEN }}>✓ seu</span>
-                : <button onClick={() => buy(l)} disabled={save.fortune < l.cost} style={{ background: save.fortune < l.cost ? '#ccc' : PURPLE, color: '#fff', border: `2px solid ${INK}`, borderRadius: 10, padding: '8px 12px', fontWeight: 900, cursor: save.fortune < l.cost ? 'default' : 'pointer', ...OSWALD }}>💎 {l.cost}</button>}
+                : <button onClick={() => buy(l)} disabled={save.coins < l.cost} style={{ background: save.coins < l.cost ? '#ccc' : PURPLE, color: '#fff', border: `2px solid ${INK}`, borderRadius: 10, padding: '8px 12px', fontWeight: 900, cursor: save.coins < l.cost ? 'default' : 'pointer', ...OSWALD }}>💰 {l.cost}</button>}
             </div>
           )
         })}
