@@ -747,12 +747,15 @@ function auctionLots(save: Save, kind: 'start' | 'mid'): Lot[] {
     const c = w?.squad.find(x => x.id === id)
     if (w && c) { lots.push({ card: c, owner: w }); used.add(id) }
   }
-  // auto: perPos por posição, só de quem NÃO está sob contrato (5 temporadas)
+  // auto: perPos por posição, só da SUA divisão e de quem NÃO está sob contrato
   for (const p of SECTORS) {
     const cands: Lot[] = []
-    for (const w of save.world) for (const c of w.squad) {
-      if (c.pos !== p || used.has(c.id) || underContract(save, c.id)) continue
-      cands.push({ card: c, owner: w })
+    for (const w of save.world) {
+      if (w.div !== save.division) continue
+      for (const c of w.squad) {
+        if (c.pos !== p || used.has(c.id) || underContract(save, c.id)) continue
+        cands.push({ card: c, owner: w })
+      }
     }
     const ranked = cands.map(l => ({ l, k: (valueOf(save, l.card) + 2) * (0.4 + rng()) })).sort((a, b) => b.k - a.k)
     for (let i = 0; i < perPos && i < ranked.length; i++) { lots.push(ranked[i].l); used.add(ranked[i].l.card.id) }
@@ -802,18 +805,13 @@ function Transfer({ save, persist, onBack }: { save: Save; persist: (s: Save) =>
     }
     return (
       <div style={{ display: 'grid', gap: 10 }}>
-        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>➕ Pedir jogador ao mercado</p>
-        <p style={{ fontSize: 12, color: '#666', fontWeight: 700 }}>Escolha um clube. Quem você pedir entra no bloco do leilão — cuidado, os rivais brigam por ele também.</p>
-        {DIVS.slice().reverse().map(div => (
-          <div key={div}>
-            <p style={{ fontWeight: 900, fontSize: 13, color: '#888', margin: '4px 0' }}>{DIV_LABEL[div]}</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-              {save.world.filter(w => w.div === div).map(w => (
-                <button key={w.name} onClick={() => setBrowseTeam(w.name)} style={{ padding: '8px 6px', borderRadius: 8, border: `2px solid ${INK}`, fontWeight: 800, fontSize: 12, background: w.rival ? '#FFE9A8' : '#fff', cursor: 'pointer', textAlign: 'left', ...OSWALD }}>{w.rival ? '⚔️ ' : ''}{w.name}</button>
-              ))}
-            </div>
-          </div>
-        ))}
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>➕ Aliciar jogador · {DIV_LABEL[save.division]}</p>
+        <p style={{ fontSize: 12, color: '#666', fontWeight: 700 }}>Você só enxerga os clubes da <b>sua divisão</b> — o resto do mundo fica no mistério (suba pra conhecer). Escolha um clube; quem você aliciar entra no bloco do leilão (os rivais brigam também).</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+          {save.world.filter(w => w.div === save.division).map(w => (
+            <button key={w.name} onClick={() => setBrowseTeam(w.name)} style={{ padding: '8px 6px', borderRadius: 8, border: `2px solid ${INK}`, fontWeight: 800, fontSize: 12, background: w.rival ? '#FFE9A8' : '#fff', cursor: 'pointer', textAlign: 'left', ...OSWALD }}>{w.rival ? '⚔️ ' : ''}{w.name}</button>
+          ))}
+        </div>
         <Btn onClick={() => setView('block')} bg="#fff">← Voltar ao leilão</Btn>
       </div>
     )
