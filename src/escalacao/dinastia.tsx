@@ -140,18 +140,6 @@ function simFixtures(teams: SimTeam[], div: Division, rng: () => number, scorers
 }
 const sortTable = (t: SimTeam[], rng: () => number) => t.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf || rng() - 0.5)
 
-// ─── ostentação ──────────────────────────────────────────────────────
-interface Lux { id: string; emoji: string; name: string; cost: number }
-const LUXURY: Lux[] = [
-  { id: 'rolex', emoji: '⌚', name: 'Relógio Rolex', cost: 12 },
-  { id: 'corrente', emoji: '📿', name: 'Corrente de ouro', cost: 20 },
-  { id: 'carro', emoji: '🏎️', name: 'Ferrari', cost: 45 },
-  { id: 'lancha', emoji: '🛥️', name: 'Lancha', cost: 80 },
-  { id: 'mansao', emoji: '🏰', name: 'Mansão', cost: 140 },
-  { id: 'jatinho', emoji: '🛩️', name: 'Jatinho particular', cost: 300 },
-  { id: 'ilha', emoji: '🏝️', name: 'Ilha particular', cost: 650 },
-]
-
 // ─── mundo fixo ──────────────────────────────────────────────────────
 interface WTeam { name: string; div: Division; squad: PoolCard[]; rival?: boolean }
 // ciclo da temporada: janela pré (só da 2ª temporada) → 1º turno → janela do
@@ -172,9 +160,15 @@ interface Save {
   requested?: string[] // jogadores que você pediu pro leilão desta janela
   monte?: PoolCard[] // livres: dispensados que ninguém pagou o mínimo; pegáveis de graça
   globalScorers?: { name: string; teamName: string; div: Division; goals: number }[] // artilharia geral das 4 divisões
+  crest?: { c1: string; c2: string; symbol: string } // identidade: 2 cores + símbolo (escudo)
   lastResult?: { pos: number; move: 'up' | 'down' | 'stay'; prevDiv: Division; champion: boolean }
 }
 const CONTRACT = 5 // temporadas de contrato de todo jogador comprado no leilão
+const DEFAULT_CREST = { c1: '#1B7A3D', c2: '#FFC400', symbol: '⚽' }
+// paletas de identidade — básicas sempre; "premium" desbloqueia conforme sobe
+const CREST_COLORS = ['#1B7A3D', '#E8503A', '#2563EB', '#0C0C0C', '#7C3AED', '#F5B301', '#0EA5A5', '#B23A2A', '#EC4899', '#64748B', '#FFFFFF', '#166332']
+const CREST_SYMBOLS_BASIC = ['⚽', '🦁', '🐆', '🦅', '🐍', '⭐', '🔥', '⚔️', '🛡️', '👑']
+const CREST_SYMBOLS_PREMIUM: Record<Division, string[]> = { D: [], C: ['🐉', '🦊'], B: ['🦈', '💀', '🐺'], A: ['🏆', '💎', '👽', '🚀'] } // desbloqueia por divisão alcançada
 // sem reservas por enquanto — todo time tem 11; ao contratar, o pior da posição sai
 // piso = último preço pago (vira o mínimo do próximo leilão / da renovação)
 const floorOf = (save: Save, c: PoolCard) => save.contracts?.[c.id]?.floor ?? baseValue(c)
@@ -247,7 +241,7 @@ function buildSaveFromAuction(state: EscState): Save {
   }
   const contracts: Record<string, { until: number; floor: number }> = {}
   for (const c of yourSquad) contracts[c.id] = { until: 1 + CONTRACT, floor: Math.max(1, c.paid) } // todo mundo 5 temporadas (até temp. 6)
-  return { seed, clubName: you.teamName, formation: you.formation, division: 'D', seasonNo: 1, coins: you.money, luxury: [], titles: 0, squad: yourSquad, world, stage: 's1FirstHalf', worldGoals: {}, goalsLast: {}, championLast: false, contracts, requested: [], monte: [] }
+  return { seed, clubName: you.teamName, formation: you.formation, division: 'D', seasonNo: 1, coins: you.money, luxury: [], titles: 0, squad: yourSquad, world, stage: 's1FirstHalf', worldGoals: {}, goalsLast: {}, championLast: false, contracts, requested: [], monte: [], crest: DEFAULT_CREST }
 }
 
 // FIM da temporada REAL: pega o resultado do motor (posição/campeão/artilharia
@@ -263,11 +257,11 @@ function processDinastiaEnd(state: EscState, existing: Save | null): Save {
   const rng = mulberry((base.seed ^ (base.seasonNo * 131 + 7)) >>> 0)
   const scorers = new Map<string, Scorer>()
   const globalRows: { name: string; teamName: string; div: Division; goals: number }[] = []
-  // artilharia REAL da sua divisão (do motor)
-  for (const sc of state.scorers) globalRows.push({ name: sc.name, teamName: sc.teamName, div, goals: sc.goals })
-  // ordem REAL da sua divisão (nome → time do mundo, ou você = null)
+  // artilharia REAL da sua divisão (do motor) — seu time com o nome limpo
+  for (const sc of state.scorers) globalRows.push({ name: sc.name, teamName: sc.teamId === you.id ? base.clubName : sc.teamName, div, goals: sc.goals })
+  // ordem REAL da sua divisão (seu time é o id do humano; resto pelo nome do mundo)
   const tables: Record<Division, (WTeam | null)[]> = { A: [], B: [], C: [], D: [] }
-  tables[div] = engTable.map(t => t.name === base.clubName ? null : (base.world.find(w => w.div === div && w.name === t.name) ?? null))
+  tables[div] = engTable.map(t => t.id === you.id ? null : (base.world.find(w => w.div === div && w.name === t.name) ?? null))
   // outras 3 divisões: sim abstrato (pirâmide + artilharia geral)
   for (const d of DIVS) {
     if (d === div) continue
@@ -279,7 +273,7 @@ function processDinastiaEnd(state: EscState, existing: Save | null): Save {
   const globalScorers = globalRows.sort((a, b) => b.goals - a.goals).slice(0, 25)
   // valor dinâmico: gols dos SEUS jogadores (por nome, do motor)
   const goalsLast: Record<string, number> = {}
-  for (const c of base.squad) { const sc = state.scorers.find(s => s.name === c.name && s.teamName === base.clubName); if (sc) goalsLast[c.id] = sc.goals }
+  for (const c of base.squad) { const sc = state.scorers.find(s => s.name === c.name && s.teamId === you.id); if (sc) goalsLast[c.id] = sc.goals }
   const worldGoals: Record<string, number> = {}
   for (const s of scorers.values()) worldGoals[s.id] = Math.max(worldGoals[s.id] ?? 0, s.goals)
   // sobe/desce toda a pirâmide (sua divisão pela ordem REAL; resto pela sim)
@@ -322,7 +316,8 @@ export function DinastiaGame() {
       const save = buildSaveFromAuction(state)
       writeSave(save)
       const others = save.world.filter(w => w.div === save.division).map(w => ({ name: w.name, squad: w.squad }))
-      dispatch({ type: 'START_DINASTIA_SEASON', teamName: save.clubName, formation: save.formation, division: save.division, seasonNo: 1, squad: save.squad, others })
+      const sym = save.crest?.symbol ?? ''
+      dispatch({ type: 'START_DINASTIA_SEASON', teamName: sym ? `${sym} ${save.clubName}` : save.clubName, formation: save.formation, division: save.division, seasonNo: 1, squad: save.squad, others })
     }
     if (state.screen !== 'season') builtWorld.current = false
   }, [state.dinastia, state.screen]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -391,7 +386,10 @@ function Dinastia() {
     const kept = save.squad.filter(c => { const k = save.contracts?.[c.id]; return !k || k.until >= save.seasonNo })
     if (kept.length !== save.squad.length) persist({ ...save, squad: kept })
     const others = save.world.filter(w => w.div === save.division).map(w => ({ name: w.name, squad: w.squad }))
-    dispatch({ type: 'START_DINASTIA_SEASON', teamName: save.clubName, formation: save.formation, division: save.division, seasonNo: save.seasonNo, squad: kept, others })
+    // decora o nome com o símbolo do escudo → aparece na tabela/tela de fim do jogo
+    const sym = save.crest?.symbol ?? ''
+    const teamName = sym ? `${sym} ${save.clubName}` : save.clubName
+    dispatch({ type: 'START_DINASTIA_SEASON', teamName, formation: save.formation, division: save.division, seasonNo: save.seasonNo, squad: kept, others })
     window.location.hash = ''
   }
 
@@ -508,16 +506,27 @@ function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: stri
 const stepBtn: React.CSSProperties = { width: 30, height: 30, borderRadius: 8, border: `2px solid ${INK}`, background: '#fff', fontWeight: 900, fontSize: 18, cursor: 'pointer', lineHeight: 1 }
 
 // ─── HOME (entre temporadas = janela de transferências) ──────────────
+function Crest({ crest, size = 40 }: { crest?: { c1: string; c2: string; symbol: string }; size?: number }) {
+  const c = crest ?? DEFAULT_CREST
+  return (
+    <div style={{ width: size, height: size * 1.15, borderRadius: `${size * 0.2}px ${size * 0.2}px ${size * 0.45}px ${size * 0.45}px`, border: `2.5px solid ${INK}`, overflow: 'hidden', display: 'flex', flexDirection: 'column', flexShrink: 0, boxShadow: `2px 2px 0 0 ${INK}` }}>
+      <div style={{ flex: 1, background: c.c1, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.5 }}>{c.symbol}</div>
+      <div style={{ height: size * 0.28, background: c.c2 }} />
+    </div>
+  )
+}
 function Home({ save, go, playSeason }: { save: Save; go: (p: Phase) => void; playSeason: () => void }) {
-  const luxOwned = LUXURY.filter(l => save.luxury.includes(l.id))
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <div style={{ ...box(INK), padding: 16, color: '#fff' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <span style={{ fontWeight: 900, fontSize: 22, ...OSWALD }}>{save.clubName}</span>
-          <span style={{ fontWeight: 800, color: GOLD }}>{DIV_LABEL[save.division]}</span>
+      <div style={{ ...box(INK), padding: 16, color: '#fff', display: 'flex', gap: 12, alignItems: 'center' }}>
+        <Crest crest={save.crest} size={46} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+            <span style={{ fontWeight: 900, fontSize: 22, ...OSWALD, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{save.clubName}</span>
+            <span style={{ fontWeight: 800, color: GOLD, whiteSpace: 'nowrap' }}>{DIV_LABEL[save.division]}</span>
+          </div>
+          <div style={{ fontSize: 13, opacity: 0.85, fontWeight: 700, marginTop: 2 }}>Temporada {save.seasonNo} · {save.titles} 🏆</div>
         </div>
-        <div style={{ fontSize: 13, opacity: 0.85, fontWeight: 700, marginTop: 2 }}>Temporada {save.seasonNo} · {save.titles} 🏆 {luxOwned.map(l => l.emoji).join(' ')}</div>
       </div>
       <div style={{ ...box(GOLD), padding: 14, textAlign: 'center' }}>
         <div style={{ fontSize: 11, fontWeight: 800, color: '#7a5c00' }}>🏦 CAIXA — vale pra time E ostentação</div>
@@ -541,7 +550,7 @@ function Home({ save, go, playSeason }: { save: Save; go: (p: Phase) => void; pl
         <div style={{ flex: 1 }}><Btn onClick={() => go('squad')} bg="#fff">👥 Elenco</Btn></div>
         <div style={{ flex: 1 }}><Btn onClick={() => go('scorers')} bg="#fff">🥇 Artilharia</Btn></div>
       </div>
-      <Btn onClick={() => go('store')} bg={PURPLE} color="#fff">🏰 Loja da Ostentação</Btn>
+      <Btn onClick={() => go('store')} bg={PURPLE} color="#fff">🛡️ Escudo & Identidade</Btn>
     </div>
   )
 }
@@ -595,25 +604,39 @@ function ScorersScreen({ save, onBack }: { save: Save; onBack: () => void }) {
   )
 }
 
-// ─── LOJA DA OSTENTAÇÃO ──────────────────────────────────────────────
+// ─── ESCUDO & IDENTIDADE ─────────────────────────────────────────────
 function Store({ save, persist, onBack }: { save: Save; persist: (s: Save) => void; onBack: () => void }) {
-  const buy = (l: Lux) => { if (save.coins < l.cost || save.luxury.includes(l.id)) return; persist({ ...save, coins: save.coins - l.cost, luxury: [...save.luxury, l.id] }) }
+  const crest = save.crest ?? DEFAULT_CREST
+  const setCrest = (c: Partial<typeof crest>) => persist({ ...save, crest: { ...crest, ...c } })
+  // símbolos premium desbloqueiam pela divisão MAIS ALTA que você já alcançou
+  const reached = DIVS.slice(0, DIVS.indexOf(save.division) + 1)
+  const symbols = [...CREST_SYMBOLS_BASIC, ...reached.flatMap(d => CREST_SYMBOLS_PREMIUM[d])]
+  const swatch = (color: string, on: boolean, onClick: () => void) => (
+    <button key={color} onClick={onClick} style={{ width: 34, height: 34, borderRadius: 8, background: color, border: on ? `3px solid ${INK}` : '2px solid rgba(0,0,0,0.25)', boxShadow: on ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer' }} />
+  )
   return (
-    <div style={{ display: 'grid', gap: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🏰 Loja da Ostentação</p>
-      <div style={{ ...box(GOLD), padding: 10, textAlign: 'center' }}><b style={{ ...OSWALD }}>🏦 Caixa: 💰 {save.coins}</b></div>
-      <div style={{ ...box('#EAF3FF'), padding: 9 }}><p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ É a <b>mesma moeda</b> do time. Cada luxo que você compra é grana que <b>não vai pra elenco</b> — ostentar é uma escolha ousada. É o troféu de quem começou com 50 moedas e ficou rico. 💅</p></div>
-      <div style={{ display: 'grid', gap: 8, marginTop: 4 }}>
-        {LUXURY.map(l => {
-          const owned = save.luxury.includes(l.id)
-          return (
-            <div key={l.id} style={{ ...box(owned ? '#DFF5E1' : '#fff'), padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 900, ...OSWALD, fontSize: 15 }}>{l.emoji} {l.name}</span>
-              {owned ? <span style={{ fontWeight: 900, color: GREEN }}>✓ seu</span>
-                : <button onClick={() => buy(l)} disabled={save.coins < l.cost} style={{ background: save.coins < l.cost ? '#ccc' : PURPLE, color: '#fff', border: `2px solid ${INK}`, borderRadius: 10, padding: '8px 12px', fontWeight: 900, cursor: save.coins < l.cost ? 'default' : 'pointer', ...OSWALD }}>💰 {l.cost}</button>}
-            </div>
-          )
-        })}
+    <div style={{ display: 'grid', gap: 12 }}>
+      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🛡️ Escudo & Identidade</p>
+      <div style={{ ...box('#EAF3FF'), padding: 9 }}><p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ A cara do seu clube: 2 cores + um símbolo. Aparece na home e — pelo símbolo — na <b>tabela e na tela de fim</b> do jogo. Símbolos mais maneiros <b>desbloqueiam conforme você sobe de divisão</b>. É de graça — é orgulho.</p></div>
+      <div style={{ ...box(INK), padding: 16, color: '#fff', display: 'flex', gap: 14, alignItems: 'center', justifyContent: 'center' }}>
+        <Crest crest={crest} size={64} />
+        <span style={{ fontWeight: 900, fontSize: 22, ...OSWALD }}>{crest.symbol} {save.clubName}</span>
+      </div>
+      <div>
+        <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', ...OSWALD, marginBottom: 6 }}>Cor principal</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{CREST_COLORS.map(c => swatch(c, crest.c1 === c, () => setCrest({ c1: c })))}</div>
+      </div>
+      <div>
+        <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', ...OSWALD, marginBottom: 6 }}>Cor da faixa</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{CREST_COLORS.map(c => swatch(c, crest.c2 === c, () => setCrest({ c2: c })))}</div>
+      </div>
+      <div>
+        <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', ...OSWALD, marginBottom: 6 }}>Símbolo <span style={{ color: '#999', textTransform: 'none' }}>(mais opções ao subir)</span></p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {symbols.map(s => (
+            <button key={s} onClick={() => setCrest({ symbol: s })} style={{ width: 40, height: 40, borderRadius: 8, fontSize: 22, background: crest.symbol === s ? GOLD : '#fff', border: `2px solid ${INK}`, boxShadow: crest.symbol === s ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer' }}>{s}</button>
+          ))}
+        </div>
       </div>
       <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
     </div>
