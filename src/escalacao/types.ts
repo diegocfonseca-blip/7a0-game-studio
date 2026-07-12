@@ -200,6 +200,8 @@ export interface EscState {
   cpuDefAdj: number
   streamMode: boolean // sala de stream: esconde os VALORES dos lances na tela (pra live)
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
+  dinastia?: boolean // modo Dinastia (teste): usa o leilão real; a economia assume após a cerimônia
+  dinastiaBudget?: number // orçamento (moedas do clube) que o pregão do Dinastia usa
   careerIntent: boolean // ao ir pro setup, sinaliza que é carreira (não partida rápida)
   careerTitles: number // títulos acumulados na carreira atual (qualquer divisão)
   careerTitlesA: number // títulos da SÉRIE A (viram estrelas ⭐ no escudo)
