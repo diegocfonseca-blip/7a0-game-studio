@@ -199,7 +199,7 @@ export function EscIntro() {
       </div>
       <Box bg="#fff" className="p-5 space-y-3">
         <p className="font-bold text-sm">⚒️ <b>O Pregão:</b> 5 rodadas de leilão cego — goleiros, laterais, zagueiros, meio e ataque. Ninguém vê o lance de ninguém até bater o martelo.</p>
-        <p className="font-bold text-sm"><b>🎭 Níveis ocultos:</b> você dá lance no <i>nome</i>, sem ver o nível — ele só abre na Cerimônia da Revelação. E cada carta tem uma <b>faixa</b> que sorteia de novo a cada rodada: o <b>Obina</b> num dia ruim é perna-de-pau… no dia bom joga que nem o <b>Eto'o</b> (a torcida jurava que era 😏). Faixa larga = loteria; craque de faixa curta rende igual todo jogo.</p>
+        <p className="font-bold text-sm"><b>🎭 Níveis ocultos:</b> você dá lance no <i>nome</i>, sem ver o nível — ele só abre na Cerimônia da Revelação. E todo jogador tem <b>dia bom e dia ruim</b>: o nível muda a cada rodada. O <b>Obina</b> num dia ruim é perna-de-pau… no dia bom joga que nem o <b>Eto'o</b> (a torcida jurava que era 😏). Uns são de altos e baixos (dão zebra); os craques mais regulares rendem quase igual todo jogo.</p>
         <p className="font-bold text-sm">🏆 <b>A prova:</b> os mesmos 11 disputam um campeonato de 38 rodadas contra a sala inteira. Sem lesão. Sem desculpa.</p>
         <p className="font-bold text-sm">💎 <b>Vale o auge no Brasil:</b> o nível de cada carta é o que o jogador foi no <i>auge dele num clube brasileiro</i> — não a fama na Europa. Por isso o <b>Kaká</b> do São Paulo (2003) entra como <i>promessa</i> (só virou o melhor do mundo depois, no Milan), enquanto o <b>Bruno Henrique de 2019</b> — craque absoluto do Flamengo — vale mais no nosso leilão. Arrebentou no Brasileirão? Sobe. Brilhou só lá fora? É promessa.</p>
       </Box>
