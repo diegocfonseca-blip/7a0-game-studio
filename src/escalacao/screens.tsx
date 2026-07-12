@@ -2233,6 +2233,19 @@ function CareerEndPanel() {
   const [msg, setMsg] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
+  // auto-salva ao CHEGAR na decisão de fim de temporada (com a decisão pendente).
+  // Assim, se o jogador sair pra home/álbum sem clicar em nada, a carreira NÃO se
+  // perde — ele retoma pelo "Continuar carreira" na home. Corrige o bug de
+  // "campeão → escolher carta → voltou pra home → carreira sumiu".
+  const autoSaved = useRef(false)
+  useEffect(() => {
+    if (autoSaved.current) return
+    autoSaved.current = true
+    const save = buildCareerSave(state)
+    if (save) saveCareer(save)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const doSave = async () => {
     const save = buildCareerSave(state); if (!save) return
     setBusy(true)
