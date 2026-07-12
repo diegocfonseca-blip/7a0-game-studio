@@ -424,7 +424,7 @@ const DIVISIONS: Division[] = ['D', 'C', 'B', 'A'] // de baixo pra cima
 // Rápido = Série D (fillers fracos + rivais do leilão). Online (sem rivais) usa
 // um nível-base próprio, senão o campo fica fraco demais. Números validados em
 // simulação (2500 temporadas/divisão).
-const DIVISION_BASE: Record<Division, number> = { D: 60, C: 68, B: 75, A: 82 }
+const DIVISION_BASE: Record<Division, number> = { D: 64, C: 70, B: 75, A: 82 }
 const ONLINE_BASE = 74
 // desloca os BOTS DE FUNDO (não-rivais) pra bater no nível-base alvo. Devolve um
 // offset escalar (aplicado só aos fillers no simMatch); os rivais ficam com 0.
