@@ -202,6 +202,8 @@ export interface EscState {
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   dinastia?: boolean // modo Dinastia (teste): usa o leilão real; a economia assume após a cerimônia
   dinastiaBudget?: number // orçamento (moedas do clube) que o pregão do Dinastia usa
+  dinastiaPaused?: boolean // Dinastia: temporada pausada na JANELA DO MEIO (metade do calendário)
+  dinastiaMidUsed?: boolean // Dinastia: já abriu a janela do meio nesta temporada (não reabre)
   careerIntent: boolean // ao ir pro setup, sinaliza que é carreira (não partida rápida)
   careerTitles: number // títulos acumulados na carreira atual (qualquer divisão)
   careerTitlesA: number // títulos da SÉRIE A (viram estrelas ⭐ no escudo)
