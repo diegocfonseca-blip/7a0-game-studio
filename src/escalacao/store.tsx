@@ -950,7 +950,7 @@ type Action =
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[] }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number }
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean }
@@ -1199,7 +1199,7 @@ export function reducer(state: EscState, action: Action): EscState {
   if (action.type === 'NEW_GAME') return { ...INITIAL }
   const s: EscState = JSON.parse(JSON.stringify(state))
   switch (action.type) {
-    case 'GO_LOBBY': { s.screen = 'intro'; s.onlineMode = 'cpu'; return s }
+    case 'GO_LOBBY': { s.screen = 'intro'; s.onlineMode = 'cpu'; s.dinastia = false; s.dinastiaBudget = undefined; return s }
     case 'GO_LOBBY_ONLINE': { s.screen = 'lobby'; return s }
     case 'GO_SETUP': { s.screen = 'setup'; s.careerIntent = false; return s }
     case 'GO_SETUP_CAREER': { s.screen = 'setup'; s.careerIntent = true; return s }
@@ -1250,6 +1250,11 @@ export function reducer(state: EscState, action: Action): EscState {
       const { managers: soloManagers, botPlans: soloPlans } = makeCareerManagers(action.teamName || 'Meu Time', action.formation, 'D', soloRivalDefs, [], rng)
       s.managers = soloManagers
       s.youIdx = 0
+      // modo Dinastia: mesmo leilão real da carreira, só que o orçamento é o do
+      // clube (moedas do Dinastia). A economia assume depois da cerimônia.
+      s.dinastia = !!action.dinastia
+      s.dinastiaBudget = action.dinastia ? (action.budget ?? 50) : undefined
+      if (action.dinastia) { const b = action.budget ?? 50; for (const m of s.managers) m.money = b }
       const soloUsed = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, soloUsed, 1)
       dealBotSquads(s.managers, soloPlans, rng, soloUsed)

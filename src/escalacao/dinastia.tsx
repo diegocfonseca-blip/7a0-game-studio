@@ -13,9 +13,10 @@
 // hash #dinastia + trava no login do criador. NÃO toca em online / rápido /
 // carreira — reusa só dados e matemática pura do jogo.
 
-import { useEffect, useMemo, useState } from 'react'
-import type { Card, FormationKey, Sector, WonCard } from './types'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { Card, EscState, FormationKey, Sector, WonCard } from './types'
 import { CATALOG, DIVISION_TEAMS } from './data'
+import { useEsc } from './store'
 import { useIsAdmin } from './admin'
 import { supabase } from '../lib/supabase'
 
@@ -199,28 +200,6 @@ function dealSquads(bucket: PoolCard[], nTeams: number, rng: () => number): Pool
   for (const p of SECTORS) { const list = shuffle(byPos[p], rng); for (let slot = 0; slot < NEED[p]; slot++) for (let t = 0; t < nTeams; t++) squads[t].push(list.shift() ?? filler(p, rng)) }
   return squads
 }
-// monta as 4 divisões (fixo). Você + rivais na sua divisão (elencos do pregão);
-// resto do catálogo distribuído por força (forte→cima).
-function buildWorld(seed: number, division: Division, rivals: { team: string; squad: PoolCard[] }[], yourIds: Set<string>): { world: WTeam[] } {
-  const rng = mulberry((seed ^ 0x1234) >>> 0)
-  const used = new Set<string>(yourIds)
-  for (const r of rivals) for (const c of r.squad) used.add(c.id)
-  const rest = shuffle(POOL.filter(c => !used.has(c.id) && !c.id.startsWith('fil')), rng).sort((a, b) => mid(b) - mid(a))
-  const q = Math.ceil(rest.length / 4)
-  const bucket: Record<Division, PoolCard[]> = { A: rest.slice(0, q), B: rest.slice(q, q * 2), C: rest.slice(q * 2, q * 3), D: rest.slice(q * 3) }
-  const world: WTeam[] = []
-  const rivalTeams = new Set(rivals.map(r => r.team))
-  for (const r of rivals) world.push({ name: r.team, div: division, squad: r.squad, rival: true })
-  for (const div of DIVS) {
-    const names = DIVISION_TEAMS[div].map(t => t.team).filter(n => !rivalTeams.has(n))
-    const count = div === division ? (LEAGUE - 1 - rivals.length) : LEAGUE // sua div: você + rivais + fillers = 20
-    const fillerNames = names.slice(0, count)
-    const dealt = dealSquads(bucket[div], fillerNames.length, rng)
-    fillerNames.forEach((nm, i) => world.push({ name: nm, div, squad: dealt[i] }))
-  }
-  return { world }
-}
-const LEAGUE = 20
 
 // joga a temporada no mundo FIXO: simula as 4 divisões, resolve sobe/desce de
 // TODA a pirâmide, devolve tabela da sua divisão + artilharias + prêmios.
@@ -303,11 +282,55 @@ function Btn({ children, onClick, bg = GOLD, color = INK, disabled }: { children
 // chip de posição igual ao CardFace do jogo
 const Pos = ({ p }: { p: Sector }) => <span style={{ fontSize: 10, fontWeight: 900, background: INK, color: '#fff', borderRadius: 99, padding: '1px 7px', border: `2px solid ${INK}` }}>{p}</span>
 
+// mundo fixo a partir do resultado do LEILÃO REAL: você + os RIVAIS que você
+// escolheu ficam na Série D com os elencos montados no pregão. O resto do
+// catálogo (por nome, tirando o que vocês pegaram) é distribuído por FORÇA nas
+// divisões — A mais forte, D mais fraca — mantendo a pirâmide certa. O que
+// sobrou de moedas no leilão fica no Caixa do clube.
+function buildSaveFromAuction(state: EscState): Save {
+  const seed = state.seed
+  const rng = mulberry((seed ^ 0x1234) >>> 0)
+  const you = state.managers[state.youIdx]
+  const yourSquad: WonCard[] = you.squad.map(c => ({ ...c }))
+  const rivals = state.managers.filter(m => !m.isHuman && m.auctionRival)
+  const rivalTeams = new Set(rivals.map(m => m.teamName))
+  const excl = new Set<string>()
+  for (const c of yourSquad) excl.add(c.name)
+  for (const r of rivals) for (const c of r.squad) excl.add(c.name)
+  const rest = shuffle(POOL.filter(c => !excl.has(c.name)), rng).sort((a, b) => mid(b) - mid(a))
+  const q = Math.ceil(rest.length / 4)
+  const bucket: Record<Division, PoolCard[]> = { A: rest.slice(0, q), B: rest.slice(q, q * 2), C: rest.slice(q * 2, q * 3), D: rest.slice(q * 3) }
+  const world: WTeam[] = rivals.map(r => ({ name: r.teamName, div: 'D' as Division, squad: r.squad.map(c => ({ ...c })) as PoolCard[], rival: true }))
+  for (const div of DIVS) {
+    const names = DIVISION_TEAMS[div].map(t => t.team).filter(n => !rivalTeams.has(n))
+    const count = div === 'D' ? (20 - 1 - rivals.length) : 20
+    const fillerNames = names.slice(0, count)
+    const dealt = dealSquads(bucket[div], fillerNames.length, rng)
+    fillerNames.forEach((nm, i) => world.push({ name: nm, div, squad: dealt[i] }))
+  }
+  const contracts: Record<string, { until: number; floor: number }> = {}
+  for (const c of yourSquad) contracts[c.id] = { until: 1 + 2 + Math.floor(rng() * 4), floor: Math.max(1, c.paid) }
+  return { seed, clubName: you.teamName, formation: you.formation, division: 'D', seasonNo: 1, coins: you.money, fortune: 0, luxury: [], titles: 0, squad: yourSquad, world, stage: 's1FirstHalf', worldGoals: {}, goalsLast: {}, championLast: false, contracts, requested: [] }
+}
+
 // ─── raiz (overlay) ──────────────────────────────────────────────────
 export function DinastiaGame() {
   const isAdmin = useIsAdmin()
+  const { state, dispatch } = useEsc()
   const [open, setOpen] = useState(() => typeof window !== 'undefined' && window.location.hash === '#dinastia')
   useEffect(() => { const f = () => setOpen(window.location.hash === '#dinastia'); window.addEventListener('hashchange', f); return () => window.removeEventListener('hashchange', f) }, [])
+  // HANDOFF: o leilão real terminou (cerimônia → temporada) num jogo Dinastia →
+  // a economia assume: monta o save a partir do elenco montado e reabre o modo.
+  const handled = useRef(false)
+  useEffect(() => {
+    if (state.dinastia && state.screen === 'season' && !handled.current) {
+      handled.current = true
+      writeSave(buildSaveFromAuction(state))
+      dispatch({ type: 'GO_LOBBY' }) // reseta o motor (limpa o flag dinastia)
+      window.location.hash = 'dinastia'
+    }
+    if (!state.dinastia) handled.current = false
+  }, [state.dinastia, state.screen]) // eslint-disable-line react-hooks/exhaustive-deps
   if (!open) return null
   if (!isAdmin) return (
     <Overlay><div style={{ ...box(), padding: 24, textAlign: 'center' }}>
@@ -336,16 +359,21 @@ function Overlay({ children }: { children: React.ReactNode }) {
 }
 
 type Phase = 'home' | 'firsthalf' | 'result' | 'transfer' | 'sell' | 'store' | 'squad' | 'scorers'
-type Boot = { name: string; rivals: string[]; formation: FormationKey } | null
 
 function Dinastia() {
+  const { dispatch } = useEsc()
   const [save, setSave] = useState<Save | null>(() => loadSave())
-  const [boot, setBoot] = useState<Boot>(null) // intro→pregão
   const [phase, setPhase] = useState<Phase>('home')
   const [out, setOut] = useState<SeasonOut | null>(null) // resultado do returno
   const persist = (s: Save) => { writeSave(s); setSave(s) }
   const close = () => { window.location.hash = '' }
-  const reset = () => { if (confirm('Recomeçar a Dinastia do zero? Perde tudo.')) { localStorage.removeItem(SAVE_KEY); setSave(null); setBoot(null) } }
+  const reset = () => { if (confirm('Recomeçar a Dinastia do zero? Perde tudo.')) { localStorage.removeItem(SAVE_KEY); setSave(null) } }
+  // abrir o pregão = disparar o LEILÃO REAL (mesmo motor da carreira) e fechar o
+  // overlay pra ele aparecer. A cerimônia devolve o controle pra economia.
+  const startAuction = (b: { name: string; rivals: string[]; formation: FormationKey }) => {
+    dispatch({ type: 'START', teamName: b.name, formation: b.formation, rivals: b.rivals.length, career: true, rivalTeams: b.rivals, dinastia: true, budget: START_COINS })
+    window.location.hash = ''
+  }
   const playFirst = () => {
     if (!save) return
     // contratos vencidos não renovados são liberados na hora de jogar
@@ -357,10 +385,8 @@ function Dinastia() {
   }
   const playReturn = () => { if (!save?.partial) return; setOut(playSecondHalf(save, save.partial)); setPhase('result') }
 
-  if (!save) {
-    if (!boot) return <Intro onStart={b => setBoot(b)} onClose={close} />
-    return <Pregao boot={boot} onDone={s => { persist(s); setBoot(null); setPhase('home') }} onCancel={() => setBoot(null)} />
-  }
+  if (!save) return <Intro onStart={startAuction} onClose={close} />
+
 
   const header = (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -465,122 +491,6 @@ function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: stri
   )
 }
 
-// ─── PREGÃO: leilão cego, você + rivais montam os 11 ─────────────────
-interface Bidder { team: string; you: boolean; budget: number; squad: PoolCard[] }
-function Pregao({ boot, onDone, onCancel }: { boot: { name: string; rivals: string[]; formation: FormationKey }; onDone: (s: Save) => void; onCancel: () => void }) {
-  const myN = FORM_NEED[boot.formation]
-  const seed = useMemo(() => (Math.floor(Math.random() * 1e9) ^ Date.now()) >>> 0, [])
-  const rng = useMemo(() => mulberry(seed), [seed])
-  const [bidders, setBidders] = useState<Bidder[]>(() => [
-    { team: boot.name, you: true, budget: START_COINS, squad: [] },
-    ...boot.rivals.map(t => ({ team: t, you: false, budget: 42 + Math.floor(rng() * 22), squad: [] })),
-  ])
-  const [secIdx, setSecIdx] = useState(0)
-  const sec = SECTORS[secIdx]
-  const nBidders = bidders.length
-  // deck do setor: cartas fortes o suficiente pra ter briga
-  const deck = useMemo(() => {
-    const list = POOL.filter(c => c.pos === sec).sort((a, b) => mid(b) - mid(a))
-    const want = nBidders * NEED[sec] + Math.max(3, nBidders)
-    return shuffle(list.slice(0, Math.min(list.length, want + 6)), rng).slice(0, want)
-  }, [secIdx]) // eslint-disable-line
-  const [myBids, setMyBids] = useState<Record<string, number>>({})
-  const you = bidders[0]
-  const myNeed = myN[sec] - you.squad.filter(c => c.pos === sec).length
-  const myBidCount = Object.keys(myBids).length
-  const mySpent = Object.values(myBids).reduce((a, b) => a + b, 0)
-  const setBid = (id: string, amt: number) => setMyBids(m => { const n = { ...m }; if (amt <= 0) delete n[id]; else n[id] = amt; return n })
-
-  const hammer = () => {
-    // gera lances dos rivais e resolve o setor
-    type B = { who: number; card: PoolCard; amount: number }
-    const allBids: B[] = []
-    for (const [id, amt] of Object.entries(myBids)) { const card = deck.find(c => c.id === id); if (card) allBids.push({ who: 0, card, amount: amt }) }
-    bidders.forEach((b, wi) => {
-      if (wi === 0) return
-      const need = NEED[sec] - b.squad.filter(c => c.pos === sec).length
-      if (need <= 0) return
-      const perceived = deck.map(c => ({ c, pv: baseValue(c) * (0.8 + rng() * 0.45) })).sort((a, b2) => b2.pv - a.pv)
-      let budget = b.budget
-      for (let k = 0; k < need && k < perceived.length; k++) {
-        const { c, pv } = perceived[k]
-        const amt = Math.max(1, Math.min(budget - (need - 1 - k), Math.round(pv * (0.75 + rng() * 0.5))))
-        if (amt >= 1 && budget - amt >= 0) { allBids.push({ who: wi, card: c, amount: amt }); budget -= amt }
-      }
-    })
-    allBids.sort((a, b) => b.amount - a.amount || rng() - 0.5)
-    const next = bidders.map(b => ({ ...b, squad: b.squad.slice() }))
-    const awarded = new Set<string>()
-    for (const bid of allBids) {
-      if (awarded.has(bid.card.id)) continue
-      const b = next[bid.who]
-      const have = b.squad.filter(c => c.pos === sec).length
-      const cap = b.you ? myN[sec] : NEED[sec]
-      if (have >= cap || b.budget < bid.amount) continue
-      b.squad.push(bid.card); b.budget -= bid.amount; awarded.add(bid.card.id)
-      if (b.you) (b.squad[b.squad.length - 1] as WonCard).paid = bid.amount
-    }
-    // preenche o que faltou de TODOS com filler (você na sua formação; rivais 4-3-3)
-    if (secIdx === SECTORS.length - 1) {
-      for (const b of next) for (const p of SECTORS) { const need = b.you ? myN[p] : NEED[p]; let have = b.squad.filter(c => c.pos === p).length; while (have < need) { b.squad.push(filler(p, rng)); have++ } }
-      finish(next)
-      return
-    } else {
-      for (const b of next) { const need = b.you ? myN[sec] : NEED[sec]; let have = b.squad.filter(c => c.pos === sec).length; while (have < need) { b.squad.push(filler(sec, rng)); have++ } }
-    }
-    setBidders(next); setMyBids({}); setSecIdx(secIdx + 1)
-  }
-
-  const finish = (final: Bidder[]) => {
-    const me = final[0]
-    const rivals = final.slice(1).map(b => ({ team: b.team, squad: b.squad }))
-    const squad: WonCard[] = me.squad.map(c => ({ ...c, paid: (c as WonCard).paid ?? 0, via: (c as WonCard).paid ? 'leilao' : 'bot' }))
-    const yourIds = new Set(squad.map(c => c.id))
-    const { world } = buildWorld(seed, 'D', rivals, yourIds)
-    // contratos iniciais escalonados (2–5 temporadas) pra renovação aparecer aos
-    // poucos, não tudo de uma vez. Piso = o que você pagou no pregão.
-    const contracts: Record<string, { until: number; floor: number }> = {}
-    for (const c of squad) contracts[c.id] = { until: 1 + 2 + Math.floor(rng() * 4), floor: Math.max(1, c.paid) }
-    // 1ª temporada: pós-pregão vai direto pro 1º turno (sem janela pré)
-    onDone({ seed, clubName: boot.name, formation: boot.formation, division: 'D', seasonNo: 1, coins: me.budget, fortune: 0, luxury: [], titles: 0, squad, world, stage: 's1FirstHalf', worldGoals: {}, goalsLast: {}, championLast: false, contracts, requested: [] })
-  }
-
-  return (
-    <div>
-      <div style={{ ...box(GOLD), padding: 12, marginBottom: 10, textAlign: 'center' }}>
-        <p style={{ fontWeight: 900, fontSize: 20, ...OSWALD }}>🔨 PREGÃO — {SECTOR_LABEL[sec]}</p>
-        <p style={{ fontWeight: 800, marginTop: 2 }}>💰 {you.budget - mySpent} livres · faltam {Math.max(0, myNeed)} {sec}</p>
-      </div>
-      <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-        {SECTORS.map((p, i) => <div key={p} style={{ flex: 1, textAlign: 'center', padding: '4px 0', borderRadius: 6, fontWeight: 900, fontSize: 11, background: i === secIdx ? INK : i < secIdx ? GREEN : '#ddd', color: i <= secIdx ? '#fff' : '#777', ...OSWALD }}>{p}</div>)}
-      </div>
-      <p style={{ fontSize: 12, fontWeight: 700, color: '#666', marginBottom: 8 }}>💡 Nível oculto. Dê seu lance secreto nos que quer — os rivais também dão. Maior lance leva. Você pode mirar até {myN[sec]} {sec}.</p>
-      <div style={{ display: 'grid', gap: 7 }}>
-        {deck.map(c => {
-          const bid = myBids[c.id] ?? 0
-          const canAdd = myBidCount < myNeed || bid > 0
-          return (
-            <div key={c.id} style={{ ...box(bid > 0 ? '#DFF5E1' : '#fff'), padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 900, fontSize: 14, ...OSWALD, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</div>
-                <div style={{ fontSize: 11, color: '#888', fontWeight: 700 }}>{c.club} · {c.year}</div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <button onClick={() => setBid(c.id, Math.max(0, bid - 1))} style={stepBtn}>−</button>
-                <span style={{ fontWeight: 900, minWidth: 34, textAlign: 'center', ...OSWALD }}>{bid > 0 ? `💰${bid}` : '—'}</span>
-                <button onClick={() => { if ((canAdd) && mySpent + 1 <= you.budget) setBid(c.id, bid + 1) }} style={stepBtn}>+</button>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      <div style={{ marginTop: 14, display: 'grid', gap: 8 }}>
-        <Btn onClick={hammer} bg={GREEN} color="#fff">🔨 Bater o martelo ({SECTOR_LABEL[sec]})</Btn>
-        <Btn onClick={onCancel} bg="#fff">← Cancelar</Btn>
-      </div>
-    </div>
-  )
-}
 const stepBtn: React.CSSProperties = { width: 30, height: 30, borderRadius: 8, border: `2px solid ${INK}`, background: '#fff', fontWeight: 900, fontSize: 18, cursor: 'pointer', lineHeight: 1 }
 
 // ─── HOME ─────────────────────────────────────────────────────────────
