@@ -170,6 +170,7 @@ interface Save {
   goalsLast: Record<string, number>; championLast: boolean
   contracts?: Record<string, { until: number; floor: number }> // até que temporada + piso (último preço pago)
   requested?: string[] // jogadores que você pediu pro leilão desta janela
+  monte?: PoolCard[] // livres: dispensados que ninguém pagou o mínimo; pegáveis de graça
   lastResult?: { pos: number; move: 'up' | 'down' | 'stay'; prevDiv: Division; champion: boolean }
 }
 const CONTRACT = 5 // temporadas de contrato de todo jogador comprado no leilão
@@ -310,7 +311,7 @@ function buildSaveFromAuction(state: EscState): Save {
   }
   const contracts: Record<string, { until: number; floor: number }> = {}
   for (const c of yourSquad) contracts[c.id] = { until: 1 + CONTRACT, floor: Math.max(1, c.paid) } // todo mundo 5 temporadas (até temp. 6)
-  return { seed, clubName: you.teamName, formation: you.formation, division: 'D', seasonNo: 1, coins: you.money, fortune: 0, luxury: [], titles: 0, squad: yourSquad, world, stage: 's1FirstHalf', worldGoals: {}, goalsLast: {}, championLast: false, contracts, requested: [] }
+  return { seed, clubName: you.teamName, formation: you.formation, division: 'D', seasonNo: 1, coins: you.money, fortune: 0, luxury: [], titles: 0, squad: yourSquad, world, stage: 's1FirstHalf', worldGoals: {}, goalsLast: {}, championLast: false, contracts, requested: [], monte: [] }
 }
 
 // ─── raiz (overlay) ──────────────────────────────────────────────────
@@ -598,9 +599,21 @@ function ResultScreen({ save, out: res, persist, onHome }: { save: Save; out: Se
     if (applied) return
     const goalsLast: Record<string, number> = {}
     for (const [id, g] of Object.entries(res.worldGoals)) if (mine.has(id)) goalsLast[id] = g
+    // rivais/clubes pegam alguns livres do Monte de graça (o monte vai escoando)
+    let monte = save.monte ?? []
+    let world = res.newWorld
+    if (monte.length > 0) {
+      const rng = mulberry((save.seed ^ (save.seasonNo * 7 + 3)) >>> 0)
+      const take = shuffle(monte, rng).slice(0, Math.max(1, Math.floor(monte.length * 0.4)))
+      const taken = new Set(take.map(c => c.id))
+      const addTo = new Map<string, PoolCard[]>()
+      for (const c of take) { const w = world[Math.floor(rng() * world.length)]; const arr = addTo.get(w.name) ?? []; arr.push(c); addTo.set(w.name, arr) }
+      world = world.map(w => { const add = addTo.get(w.name); if (!add) return w; let sq = w.squad; for (const c of add) sq = giveToTeam(sq, c); return { ...w, squad: sq } })
+      monte = monte.filter(c => !taken.has(c.id))
+    }
     persist({
-      ...save, world: res.newWorld, division: res.newDivision, seasonNo: save.seasonNo + 1,
-      stage: 'preWindow', partial: undefined, requested: [],
+      ...save, world, division: res.newDivision, seasonNo: save.seasonNo + 1,
+      stage: 'preWindow', partial: undefined, requested: [], monte,
       coins: save.coins + res.prize, fortune: save.fortune + res.fortuneBonus,
       titles: save.titles + (res.youChampion ? 1 : 0), worldGoals: res.worldGoals, goalsLast, championLast: res.youChampion,
       lastResult: { pos: res.yourPos, move: res.move, prevDiv: save.division, champion: res.youChampion },
@@ -769,6 +782,10 @@ function Transfer({ save, persist, onBack }: { save: Save; persist: (s: Save) =>
 
   if (target) return <SigningAuction save={save} card={target.card} owner={target.owner} persist={persist} onDone={() => { setDone(d => new Set(d).add(target.card.id)); setTarget(null) }} onBack={() => setTarget(null)} />
 
+  // comprou e lotou uma posição → você precisa dispensar alguém (leilão c/ mínimo)
+  const overPos = SECTORS.find(p => save.squad.filter(c => c.pos === p).length > FORM_NEED[save.formation][p])
+  if (overPos) return <DispensaScreen save={save} persist={persist} pos={overPos} />
+
   const requested = save.requested ?? []
   const request = (card: PoolCard) => { if (requested.length >= MAX_REQUESTS || requested.includes(card.id)) return; persist({ ...save, requested: [...requested, card.id] }) }
 
@@ -834,7 +851,7 @@ function Transfer({ save, persist, onBack }: { save: Save; persist: (s: Save) =>
         </div>
       )}
 
-      <p style={{ fontSize: 12, color: '#666', fontWeight: 700 }}>Bloco desta janela. Toque pra dar lance — você × seus rivais × o dono. Lance começa no <b>piso</b> (último preço). Quem compra assina <b>5 temporadas</b>. Ao vencer, seu pior da posição sai (fica 11).</p>
+      <p style={{ fontSize: 12, color: '#666', fontWeight: 700 }}>Bloco desta janela. Toque pra dar lance — você × seus rivais × o dono. Lance começa no <b>piso</b> (último preço). Quem compra assina <b>5 temporadas</b>. Se lotar a posição, você escolhe quem dispensar.</p>
       <Btn onClick={() => setView('browse')} bg="#fff">➕ Pedir jogador ao mercado ({requested.length}/{MAX_REQUESTS})</Btn>
 
       {SECTORS.map(p => {
@@ -861,7 +878,113 @@ function Transfer({ save, persist, onBack }: { save: Save; persist: (s: Save) =>
         )
       })}
       {live.length === 0 && <div style={{ ...box('#fff'), padding: 14, textAlign: 'center', fontWeight: 700, color: '#888' }}>Bloco encerrado nesta janela.</div>}
+
+      <MonteFreeAgents save={save} persist={persist} />
       <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
+    </div>
+  )
+}
+
+// Monte de livres: dispensados que ninguém pagou o mínimo. Pega de graça se tiver
+// vaga na posição. Fica no fim da janela; rivais também podem levar (no avanço).
+function MonteFreeAgents({ save, persist }: { save: Save; persist: (s: Save) => void }) {
+  const monte = save.monte ?? []
+  if (monte.length === 0) return null
+  const holeAt = (p: Sector) => save.squad.filter(c => c.pos === p).length < FORM_NEED[save.formation][p]
+  const grab = (c: PoolCard) => {
+    if (!holeAt(c.pos)) return
+    const wc: WonCard = { ...c, paid: 0, via: 'monte' }
+    persist({ ...save, squad: [...save.squad, wc], monte: monte.filter(x => x.id !== c.id), contracts: setContract(save, c.id, floorOf(save, c)) })
+  }
+  return (
+    <div style={{ ...box('#F0EAD8'), padding: 10, display: 'grid', gap: 6 }}>
+      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>🎁 Monte — livres (de graça)</p>
+      <p style={{ fontSize: 11, color: '#777', fontWeight: 700 }}>Dispensados que ninguém pagou. Pegue de graça se tiver vaga na posição — senão os rivais levam.</p>
+      {monte.map(c => {
+        const can = holeAt(c.pos)
+        return (
+          <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontWeight: 800, fontSize: 13 }}><Pos p={c.pos} /> {c.name}</span>
+            <button onClick={() => grab(c)} disabled={!can} style={{ background: can ? GREEN : '#ccc', color: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '5px 10px', fontWeight: 900, fontSize: 12, cursor: can ? 'pointer' : 'default', ...OSWALD }}>{can ? 'Pegar grátis' : 'sem vaga'}</button>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── DISPENSA: você lotou a posição, escolhe quem sai → leilão c/ mínimo ──
+function DispensaScreen({ save, persist, pos }: { save: Save; persist: (s: Save) => void; pos: Sector }) {
+  const [selId, setSelId] = useState<string | null>(null)
+  const cands = save.squad.filter(c => c.pos === pos)
+  const sel = cands.find(c => c.id === selId) ?? null
+  if (!sel) {
+    return (
+      <div style={{ display: 'grid', gap: 8 }}>
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>➖ Dispensar em {SECTOR_LABEL[pos]}</p>
+        <p style={{ fontSize: 12, color: '#666', fontWeight: 700 }}>Você lotou a posição ({cands.length}/{FORM_NEED[save.formation][pos]}). Escolha quem vai pro leilão. Mínimo = o que ele custou (piso). Se ninguém pagar, cai no Monte de livres.</p>
+        {cands.map(c => (
+          <button key={c.id} onClick={() => setSelId(c.id)} style={{ ...box('#fff'), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', textAlign: 'left' }}>
+            <span style={{ fontWeight: 900, ...OSWALD }}><Pos p={c.pos} /> {c.name}</span>
+            <span style={{ fontWeight: 800, color: '#888', fontSize: 13 }}>mín {floorOf(save, c)} · vale {myValue(save, c)} 💰</span>
+          </button>
+        ))}
+      </div>
+    )
+  }
+  return <DispensaAuction save={save} card={sel} persist={persist} onBack={() => setSelId(null)} />
+}
+
+function DispensaAuction({ save, card, persist, onBack }: { save: Save; card: WonCard; persist: (s: Save) => void; onBack: () => void }) {
+  const minimum = floorOf(save, card)
+  const val = myValue(save, card)
+  const rng = useMemo(() => mulberry((save.seed ^ card.id.length ^ Date.now()) >>> 0), []) // eslint-disable-line
+  const offers = useMemo(() => {
+    const buyers = shuffle(save.world.map(w => w.name), rng)
+    return Array.from({ length: 3 }, (_, i) => {
+      const roll = rng(); let f = 0.4 + rng() * 1.4
+      if (roll > 0.88) f = 1.8 + rng() * 1.2; else if (roll < 0.25) f = 0.2 + rng() * 0.25
+      return { by: buyers[i % buyers.length], amount: Math.max(1, Math.round(val * f)) }
+    })
+  }, [rng, val])
+  const [idx, setIdx] = useState(0)
+  const [done, setDone] = useState<{ sold: boolean; amount: number; by: string; next: Save } | null>(null)
+  const cur = offers[idx]
+  const sell = (amount: number, by: string) => {
+    const world = save.world.map(w => w.name === by ? { ...w, squad: giveToTeam(w.squad, card) } : w)
+    setDone({ sold: true, amount, by, next: { ...save, coins: save.coins + amount, squad: save.squad.filter(c => c.id !== card.id), world } })
+  }
+  const toMonte = () => {
+    setDone({ sold: false, amount: 0, by: '', next: { ...save, squad: save.squad.filter(c => c.id !== card.id), monte: [...(save.monte ?? []), { ...card }] } })
+  }
+  if (done) {
+    return (
+      <div style={{ display: 'grid', gap: 12 }}>
+        <div style={{ ...box(done.sold ? GOLD : '#F0EAD8'), padding: 20, textAlign: 'center' }}>
+          <p style={{ fontWeight: 900, fontSize: 20, ...OSWALD }}>{done.sold ? '💰 Vendido!' : '🎁 Foi pro Monte'}</p>
+          <p style={{ fontWeight: 800, marginTop: 6 }}>{done.sold ? `${card.name} saiu por 💰 ${done.amount} (${done.by})` : `Ninguém pagou o mínimo (${minimum}). ${card.name} virou livre — no Monte, alguém pega de graça.`}</p>
+        </div>
+        <Btn onClick={() => persist(done.next)} bg={GREEN} color="#fff">✅ Pronto</Btn>
+      </div>
+    )
+  }
+  const canAccept = cur.amount >= minimum
+  return (
+    <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ ...box(INK), padding: 14, color: '#fff', textAlign: 'center' }}>
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>➖ Dispensando {card.name}</p>
+        <p style={{ fontWeight: 700, fontSize: 13, opacity: 0.85 }}>Mínimo pra vender: 💰 {minimum} · vale ~{val}</p>
+      </div>
+      <div style={{ ...box('#fff'), padding: 18, textAlign: 'center' }}>
+        <p style={{ fontSize: 13, fontWeight: 800, color: '#888' }}>Oferta {idx + 1} de {offers.length} — {cur.by}</p>
+        <p style={{ fontSize: 40, fontWeight: 900, ...OSWALD, margin: '6px 0', color: canAccept ? INK : RED }}>💰 {cur.amount}</p>
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#999' }}>{canAccept ? 'Cobre o mínimo — dá pra vender.' : `Abaixo do mínimo (${minimum}) — não dá pra aceitar.`}</p>
+      </div>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ flex: 1 }}><Btn onClick={() => sell(cur.amount, cur.by)} bg={GREEN} color="#fff" disabled={!canAccept}>✅ Vender {cur.amount}</Btn></div>
+        <div style={{ flex: 1 }}><Btn onClick={() => { if (idx < offers.length - 1) setIdx(idx + 1); else toMonte() }} bg={RED} color="#fff">{idx < offers.length - 1 ? '🎲 Recusar' : '🎁 Pro Monte'}</Btn></div>
+      </div>
+      <Btn onClick={onBack} bg="#fff">← Dispensar outro</Btn>
     </div>
   )
 }
@@ -891,15 +1014,12 @@ function SigningAuction({ save, card, owner, persist, onDone, onBack }: { save: 
     entrants.sort((a, b) => b.bid - a.bid || (a.mine ? -1 : 1)) // empate: você leva
     const win = entrants[0]
     if (win.mine) {
-      // você levou: paga, tira do dono (repõe com filler). Mantém 11: se lotar a
-      // posição, o seu pior dela sai (dispensado) pra abrir vaga. Contrato de 5.
-      const withNew: WonCard[] = [...save.squad, { ...card, paid: bid, via: 'leilao' }]
-      const atPos = withNew.filter(c => c.pos === card.pos).sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))
-      const drop = atPos.length > FORM_NEED[save.formation][card.pos] ? atPos[atPos.length - 1] : null
-      const newSquad = drop ? withNew.filter(c => c.id !== drop.id) : withNew
+      // você levou: paga, tira do dono (repõe com filler), contrato de 5. Se lotar
+      // a posição, a tela de Dispensa resolve depois (você escolhe quem sai).
+      const newSquad: WonCard[] = [...save.squad, { ...card, paid: bid, via: 'leilao' }]
       const newWorld = save.world.map(w => w.name === owner.name ? { ...w, squad: w.squad.filter(c => c.id !== card.id).concat(filler(card.pos, rng)) } : w)
       persist({ ...save, coins: save.coins - bid, squad: newSquad, world: newWorld, contracts: setContract(save, card.id, bid) })
-      setDone({ result: 'you', by: save.clubName, price: bid, dropped: drop?.name })
+      setDone({ result: 'you', by: save.clubName, price: bid })
     } else if (win.name === owner.name) {
       // dono renovou: contrato de 5 temporadas, piso = o que ele pagou
       persist({ ...save, contracts: setContract(save, card.id, win.bid) })
