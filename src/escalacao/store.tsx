@@ -338,7 +338,9 @@ function maybeResolveTiebreak(state: EscState) {
 
 // ─── temporada ───────────────────────────────────────────────────────
 function buildLeague(managers: Manager[]): LeagueTeam[] {
-  const teams: LeagueTeam[] = managers.map(m => ({
+  // bidders "auction-only" (rivais de outra divisão na carreira) NÃO entram na
+  // tabela — só brigaram no leilão; jogam a própria divisão (vida na pirâmide).
+  const teams: LeagueTeam[] = managers.filter(m => !m.auctionOnly).map(m => ({
     id: m.id, name: m.teamName, isManager: true, baseAtk: 0, baseDef: 0,
     pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0,
   }))
@@ -480,10 +482,16 @@ function initCareerRivals(count: number, chosen?: string[]): CareerRival[] {
 function coDivRivalDefs(rivals: CareerRival[], div: Division): CareerTeam[] {
   return rivals.filter(r => r.division === div).map(r => ({ name: r.name, team: r.team }))
 }
+// rivais que estão em OUTRA divisão: entram só como bidders no seu leilão
+// (não jogam sua liga). É o que mantém a rivalidade viva no pregão mesmo quando
+// eles subiram/caíram pra longe.
+function otherDivRivalDefs(rivals: CareerRival[], div: Division): CareerTeam[] {
+  return rivals.filter(r => r.division !== div).map(r => ({ name: r.name, team: r.team }))
+}
 
 // monta a liga da carreira: você + rivais QUE ESTÃO NA SUA DIVISÃO (dão lance no
 // leilão e jogam contra você) + o resto da divisão como preenchimento nomeado.
-function makeCareerManagers(teamName: string, formation: FormationKey, div: Division, rivalDefs: CareerTeam[], rng: () => number): { managers: Manager[]; botPlans: BotPlan[] } {
+function makeCareerManagers(teamName: string, formation: FormationKey, div: Division, rivalDefs: CareerTeam[], otherRivalDefs: CareerTeam[], rng: () => number): { managers: Manager[]; botPlans: BotPlan[] } {
   const forms: FormationKey[] = ['4-3-3', '4-4-2']
   const human: Manager = { id: 0, name: teamName, teamName, isHuman: true, auctionRival: true, formation, money: START_MONEY, squad: [], aggression: 0.5, starHunger: 0.5 }
   const usedTeams = new Set(rivalDefs.map(r => r.team))
@@ -494,6 +502,12 @@ function makeCareerManagers(teamName: string, formation: FormationKey, div: Divi
   let id = 1
   for (const r of rivalDefs) {
     cpus.push({ id, name: r.name, teamName: r.team, isHuman: false, auctionRival: true, formation: forms[Math.floor(rng() * forms.length)], money: START_MONEY, squad: [], aggression: 0.25 + rng() * 0.7, starHunger: rng() })
+    id++
+  }
+  // rivais de OUTRA divisão: bidders "auction-only" — brigam no pregão mas não
+  // entram na sua liga (buildLeague os ignora; saem dos managers na cerimônia).
+  for (const r of otherRivalDefs) {
+    cpus.push({ id, name: r.name, teamName: r.team, isHuman: false, auctionRival: true, auctionOnly: true, formation: forms[Math.floor(rng() * forms.length)], money: START_MONEY, squad: [], aggression: 0.25 + rng() * 0.7, starHunger: rng() })
     id++
   }
   const strongN = Math.max(1, Math.round(fillerDefs.length * 0.15))
@@ -1232,7 +1246,8 @@ export function reducer(state: EscState, action: Action): EscState {
       // A diferença é só a pirâmide/save da carreira — a rápida é uma temporada
       // avulsa. Rivais = os escolhidos (carreira) ou os primeiros da D (rápida).
       const soloRivalDefs = action.career ? coDivRivalDefs(s.careerRivals, 'D') : DIVISION_TEAMS['D'].slice(0, action.rivals)
-      const { managers: soloManagers, botPlans: soloPlans } = makeCareerManagers(action.teamName || 'Meu Time', action.formation, 'D', soloRivalDefs, rng)
+      // na Série D todos os rivais começam com você — sem "auction-only".
+      const { managers: soloManagers, botPlans: soloPlans } = makeCareerManagers(action.teamName || 'Meu Time', action.formation, 'D', soloRivalDefs, [], rng)
       s.managers = soloManagers
       s.youIdx = 0
       const soloUsed = new Set<string>()
@@ -1370,6 +1385,9 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'FINISH_CEREMONY': {
       if (s.screen !== 'cerimonia') return s
       s.cerimoniaDeadline = null
+      // rivais "auction-only" já cumpriram o papel no leilão — saem antes da
+      // temporada (não jogam a sua liga; seguem a vida própria na pirâmide).
+      s.managers = s.managers.filter(m => !m.auctionOnly)
       const adj = cpuAdjFor(s) // nível-base fixo por divisão nos bots de fundo; rivais sem ajuste
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.league = buildLeague(s.managers)
@@ -1430,7 +1448,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerDivision = res.nextDiv
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
-      const { managers, botPlans } = makeCareerManagers(teamName, formation, res.nextDiv, coDivRivalDefs(s.careerRivals, res.nextDiv), rng)
+      const { managers, botPlans } = makeCareerManagers(teamName, formation, res.nextDiv, coDivRivalDefs(s.careerRivals, res.nextDiv), action.keep ? [] : otherDivRivalDefs(s.careerRivals, res.nextDiv), rng)
       s.managers = managers
       s.youIdx = 0
       s.monte = []; s.monteOrder = []; s.monteIdx = 0; s.tactics = {}
@@ -1486,7 +1504,7 @@ export function reducer(state: EscState, action: Action): EscState {
         : DIVISION_TEAMS[sv.division].slice(0, s.careerRivalCount).map(t => ({ team: t.team, name: t.name, division: sv.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
-      const { managers, botPlans } = makeCareerManagers(sv.teamName, sv.formation, sv.division, coDivRivalDefs(s.careerRivals, sv.division), rng)
+      const { managers, botPlans } = makeCareerManagers(sv.teamName, sv.formation, sv.division, coDivRivalDefs(s.careerRivals, sv.division), action.redraft ? otherDivRivalDefs(s.careerRivals, sv.division) : [], rng)
       s.managers = managers
       s.youIdx = 0
       s.monte = []; s.monteOrder = []; s.monteIdx = 0; s.tactics = {}
