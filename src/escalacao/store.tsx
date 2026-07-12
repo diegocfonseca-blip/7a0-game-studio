@@ -415,36 +415,30 @@ function midPower(m: Manager): { atk: number; def: number } {
   return { atk: ata * 0.45 + mei * 0.35 + lat * 0.20, def: gol * 0.30 + zag * 0.40 + lat * 0.15 + mei * 0.15 }
 }
 
-// o CPU mais forte fica ~CPU_TOP_MARGIN acima da média dos humanos daquela
-// sala. Só DESLOCA a distribuição dos bots pra baixo quando eles estão acima
-// do alvo (Math.min(0,...)) — nunca deixa mais fácil buffando ninguém.
-// É o teto do MODO BASE: partida rápida e online (= Série D da carreira).
-// +2 dá ~30% de título por temporada (campeão ~1 em 3, briga pelo G4 na maioria).
-const CPU_TOP_MARGIN = 2
-// `capOnly` (online/carreira normal): só reduz bots fortes demais, nunca buffa.
-// Na carreira Série A queremos um degrau A MAIS (pode buffar), então lá o cap
-// de 0 é removido — a CPU pode ficar acima da sua média (o desafio hardcore).
-function computeCpuAdj(managers: Manager[], margin = CPU_TOP_MARGIN, capOnly = true): { atk: number; def: number } {
-  const humans = managers.filter(m => m.isHuman)
-  const bots = managers.filter(m => !m.isHuman && m.squad.length > 0)
-  if (humans.length === 0 || bots.length === 0) return { atk: 0, def: 0 }
-  const hAtk = humans.reduce((s, m) => s + midPower(m).atk, 0) / humans.length
-  const hDef = humans.reduce((s, m) => s + midPower(m).def, 0) / humans.length
-  const bAtkMax = Math.max(...bots.map(m => midPower(m).atk))
-  const bDefMax = Math.max(...bots.map(m => midPower(m).def))
-  const cap = (v: number) => capOnly ? Math.min(0, v) : v
-  return { atk: cap((hAtk + margin) - bAtkMax), def: cap((hDef + margin) - bDefMax) }
-}
-
 // ─── modo carreira: divisões, dificuldade e progressão ───────────────
 const DIVISIONS: Division[] = ['D', 'C', 'B', 'A'] // de baixo pra cima
-// rampa suave de dificuldade por divisão: o melhor CPU fica no máximo
-// (sua média + margem) acima de você — teto, nunca buffa (premia bom elenco).
-// D = base (igual rápido/online). Cada degrau sobe 1 nível; a Série A é o topo.
-// Alvo simulado: campeão D ~30% → C ~27% → B ~23% → A ~15% (por temporada).
-const DIV_MARGIN: Record<Division, number> = { D: 2, C: 3, B: 4, A: 5 }
-function careerAdj(managers: Manager[], div: Division): { atk: number; def: number } {
-  return computeCpuAdj(managers, DIV_MARGIN[div], true)
+// DIFICULDADE = NÍVEL-BASE FIXO POR DIVISÃO, morando nos BOTS DE FUNDO.
+// Cada divisão tem um "nível" próprio (D fraca → A elite). Os rivais de leilão
+// NÃO levam ajuste nenhum: jogam a força que montaram no pregão (dividindo o
+// baralho com você). Assim o SEU elenco decide subir/cair, e time bom é premiado.
+// Rápido = Série D (fillers fracos + rivais do leilão). Online (sem rivais) usa
+// um nível-base próprio, senão o campo fica fraco demais. Números validados em
+// simulação (2500 temporadas/divisão).
+const DIVISION_BASE: Record<Division, number> = { D: 60, C: 68, B: 75, A: 82 }
+const ONLINE_BASE = 74
+// desloca os BOTS DE FUNDO (não-rivais) pra bater no nível-base alvo. Devolve um
+// offset escalar (aplicado só aos fillers no simMatch); os rivais ficam com 0.
+function fillerAdj(managers: Manager[], target: number): { atk: number; def: number } {
+  const fillers = managers.filter(m => !m.isHuman && !m.auctionRival && m.squad.length > 0)
+  if (fillers.length === 0) return { atk: 0, def: 0 }
+  const nat = fillers.reduce((s, m) => { const p = midPower(m); return s + (p.atk + p.def) / 2 }, 0) / fillers.length
+  const off = target - nat
+  return { atk: off, def: off }
+}
+// alvo de nível conforme o modo: carreira usa a divisão; rápido = D; online = base própria.
+function cpuAdjFor(s: EscState): { atk: number; def: number } {
+  const target = s.onlineMode === 'online' ? ONLINE_BASE : DIVISION_BASE[s.careerDivision ?? 'D']
+  return fillerAdj(s.managers, target)
 }
 // sobe (top 3), cai (Z4: 17º+) ou fica — limitado por A (topo) e D (base).
 export function nextDivision(div: Division, youPos: number): { div: Division; result: 'up' | 'down' | 'stay' } {
@@ -595,9 +589,9 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     if (!team.isManager) return { atk: team.baseAtk + state.cpuAtkAdj + (rng() * 6 - 3), def: team.baseDef + state.cpuDefAdj + (rng() * 6 - 3), inspired: null }
     const m = state.managers.find(x => x.id === id)!
     const f = rollManagerForm(m, own, opp, rng)
-    // bots (não-humanos) levam o ajuste de dificuldade pra acompanhar o nível
-    // dos humanos da sala. Humanos jogam com a própria força, sem ajuste.
-    if (!m.isHuman) { f.atk += state.cpuAtkAdj; f.def += state.cpuDefAdj }
+    // só os BOTS DE FUNDO (não-rivais) levam o ajuste, pra bater no nível-base da
+    // divisão. Os rivais de leilão e os humanos jogam a própria força, sem ajuste.
+    if (!m.isHuman && !m.auctionRival) { f.atk += state.cpuAtkAdj; f.def += state.cpuDefAdj }
     return f
   }
   const fh = form(homeId, awayTactic, homeTactic)
@@ -1376,7 +1370,7 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'FINISH_CEREMONY': {
       if (s.screen !== 'cerimonia') return s
       s.cerimoniaDeadline = null
-      const adj = s.careerDivision ? careerAdj(s.managers, s.careerDivision) : computeCpuAdj(s.managers) // rápido e online = base (Série D)
+      const adj = cpuAdjFor(s) // nível-base fixo por divisão nos bots de fundo; rivais sem ajuste
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.league = buildLeague(s.managers)
       s.fixtures = buildFixtures(s.league)
@@ -1453,7 +1447,7 @@ export function reducer(state: EscState, action: Action): EscState {
           if (kept && kept.length > 0) { m.squad = kept; kept.forEach(c => used.add(c.name)) }
         }
         dealRemainingCpuSquads(s.managers, rng, used)
-        const adj = careerAdj(s.managers, res.nextDiv); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
+        const adj = fillerAdj(s.managers, DIVISION_BASE[res.nextDiv]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
         s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
         s.sectorIdx = 0; s.sectorCursor = 0
         s.league = buildLeague(s.managers)
@@ -1516,7 +1510,7 @@ export function reducer(state: EscState, action: Action): EscState {
       managers[0].formation = sv.formation
       const used = new Set<string>(sv.squad.map(c => c.name))
       dealRemainingCpuSquads(s.managers, rng, used)
-      const adj = careerAdj(s.managers, sv.division); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
+      const adj = fillerAdj(s.managers, DIVISION_BASE[sv.division]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
       s.sectorIdx = 0; s.sectorCursor = 0
       s.league = buildLeague(s.managers)
@@ -1529,7 +1523,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // só recomeça o campeonato — tabela, calendário e artilharia zerados.
       // Nada de leilão. Disparado pelo host; o resultado já computado vai
       // pros convidados por SYNC_STATE.
-      { const adj = s.careerDivision ? careerAdj(s.managers, s.careerDivision) : computeCpuAdj(s.managers); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def } // rápido e online = base (Série D)
+      { const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def } // nível-base fixo por divisão; rivais sem ajuste
       s.league = buildLeague(s.managers)
       s.fixtures = buildFixtures(s.league)
       s.round = 0
