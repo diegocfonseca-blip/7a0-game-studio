@@ -614,6 +614,14 @@ function Envelope() {
               Dê lance em até <b>{bidLimit}</b> jogador{bidLimit === 1 ? '' : 'es'} diferente{bidLimit === 1 ? '' : 's'} pra tentar fechar {bidLimit === 1 ? 'sua vaga' : 'suas vagas'}.
             </p>
           )}
+          {/* dica só na PRIMEIRA tela do leilão: iniciante costuma dar 1 lance e lacrar
+              achando que basta. Ensina que o MAIOR lance leva — sutil, não repete. */}
+          {!rescue && canBid && state.sectorIdx === 0 && (
+            <p className="text-xs font-black mt-1.5 inline-block rounded-lg px-2.5 py-1"
+              style={{ background: '#FFF1C9', color: '#7a5b00' }}>
+              💡 Ganha quem dá o <b>MAIOR</b> lance — não dê só 1. Capriche no craque que você quer!
+            </p>
+          )}
         </div>
         <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center min-w-[64px]"
           style={{ backgroundColor: timerColor, boxShadow: `3px 3px 0 0 ${INK}` }}>
