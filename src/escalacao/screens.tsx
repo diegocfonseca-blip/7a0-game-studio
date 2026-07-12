@@ -1250,10 +1250,10 @@ export function EscSeason() {
   // online, o próprio cliente no CPU). Os demais só recebem o resultado
   // sincronizado e tocam a animação do próprio jogo localmente.
   useEffect(() => {
-    if (!canAdvance || state.round >= 38) return
+    if (!canAdvance || state.round >= 38 || state.dinastiaPaused) return // Dinastia: para na janela do meio
     const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), ROUND_MS)
     return () => clearTimeout(t)
-  }, [state.round, canAdvance, dispatch])
+  }, [state.round, canAdvance, dispatch, state.dinastiaPaused])
 
   return (
     <Shell bar={

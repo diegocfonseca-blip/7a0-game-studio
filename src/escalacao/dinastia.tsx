@@ -263,7 +263,9 @@ function processDinastiaEnd(state: EscState, existing: Save | null): Save {
   const engTable = sortedTable(state.league)
   const yourPos = engTable.findIndex(t => t.id === you.id) + 1
   const youChampion = engTable[0]?.id === you.id
-  const base: Save = existing ? { ...existing, squad: you.squad.map(c => ({ ...c })) } : buildSaveFromAuction(state)
+  // usa o elenco do SAVE (inclui compras/vendas da janela do meio, que só valem
+  // pra próxima temporada) — não o snapshot do motor, que é o time que jogou.
+  const base: Save = existing ? { ...existing } : buildSaveFromAuction(state)
   const div = base.division
   const rng = mulberry((base.seed ^ (base.seasonNo * 131 + 7)) >>> 0)
   const scorers = new Map<string, Scorer>()
@@ -348,8 +350,17 @@ export function DinastiaGame() {
   // se algo dentro do modo navegar pro álbum/ranking (ex.: "ver meu álbum" do
   // prêmio de campeão), fecha o overlay pra mostrar a tela do jogo.
   useEffect(() => { if (open && (state.screen === 'album' || state.screen === 'ranking')) window.location.hash = '' }, [open, state.screen])
-  if (!open) return null
+  // JANELA DO MEIO: a temporada pausou na metade → abre o overlay por cima do
+  // campinho (mesmo sem hash), com o menu econômico. "Continuar" solta o returno.
+  const midWindow = !!(state.dinastia && state.screen === 'season' && state.dinastiaPaused)
+  if (!open && !midWindow) return null
   if (state.dinastia && state.screen === 'end') return <Overlay><div style={{ ...box(), padding: 24, textAlign: 'center' }}><p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>Fechando a temporada…</p></div></Overlay>
+  if (isAdmin && midWindow) {
+    const meId = state.managers[state.youIdx].id
+    const myName = loadSave()?.clubName
+    const partial = state.scorers.slice().sort((a, b) => b.goals - a.goals).map(sc => ({ name: sc.name, teamName: sc.teamId === meId ? (myName ?? sc.teamName) : sc.teamName, goals: sc.goals, mine: sc.teamId === meId }))
+    return <Overlay><MidWindow onContinue={() => dispatch({ type: 'RESUME_DINASTIA' })} partial={partial} /></Overlay>
+  }
   if (!isAdmin) return (
     <Overlay><div style={{ ...box(), padding: 24, textAlign: 'center' }}>
       <p style={{ fontWeight: 900, ...OSWALD, fontSize: 18 }}>🔒 Modo em teste</p>
@@ -396,7 +407,8 @@ function Dinastia() {
   const playSeason = () => {
     if (!save) return
     const kept = save.squad.filter(c => { const k = save.contracts?.[c.id]; return !k || k.until >= save.seasonNo })
-    if (kept.length !== save.squad.length) persist({ ...save, squad: kept })
+    // zera o log de aliciamento (1 por posição) — a janela do MEIO começa limpa
+    persist({ ...save, squad: kept, requested: [] })
     const others = save.world.filter(w => w.div === save.division).map(w => ({ name: w.name, squad: w.squad }))
     // decora o nome com o símbolo do escudo → aparece na tabela/tela de fim do jogo
     const sym = save.crest?.symbol ?? ''
@@ -431,6 +443,99 @@ function Dinastia() {
         <button onClick={close} className="block mx-auto text-black/35 text-xs font-semibold underline active:opacity-60" style={OSWALD}>sair do jogo</button>
         <button onClick={reset} className="block mx-auto text-black/25 text-[11px] font-semibold underline active:opacity-60" style={OSWALD}>recomeçar dinastia do zero</button>
       </div>
+    </div>
+  )
+}
+
+// ─── JANELA DO MEIO (pausa da temporada) ─────────────────────────────
+// Overlay por cima do campinho na metade do calendário. Mesmo menu econômico
+// (contratar/vender/shopping/elenco), MAS o que contratar só vale ano que vem.
+type PartialRow = { name: string; teamName: string; goals: number; mine: boolean }
+function MidWindow({ onContinue, partial }: { onContinue: () => void; partial: PartialRow[] }) {
+  const [save, setSave] = useState<Save | null>(() => loadSave())
+  const [phase, setPhase] = useState<Phase>('home')
+  const persist = (s: Save) => { writeSave(s); setSave(s) }
+  useEffect(() => { if (!save) onContinue() }, []) // eslint-disable-line
+  if (!save) return null
+  const header = (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, minHeight: 22 }}>
+      {phase !== 'home'
+        ? <button onClick={() => setPhase('home')} className="flex items-center gap-1 text-black/60 font-black text-sm active:opacity-60" style={OSWALD}><span className="text-lg leading-none">←</span> Voltar</button>
+        : <span style={{ width: 60 }} />}
+      <span style={{ fontWeight: 900, ...OSWALD }}>⏸️ JANELA DO MEIO</span>
+      <span style={{ width: 60 }} />
+    </div>
+  )
+  return (
+    <div>
+      {header}
+      {phase === 'home' && <MidHome save={save} go={setPhase} onContinue={onContinue} partial={partial} />}
+      {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
+      {phase === 'scorers' && <MidScorers partial={partial} onBack={() => setPhase('home')} />}
+      {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
+      {phase === 'transfer' && <Transfer save={save} persist={persist} onBack={() => setPhase('home')} midSeason />}
+      {phase === 'sell' && <SellRoom save={save} persist={persist} onBack={() => setPhase('home')} />}
+    </div>
+  )
+}
+function MidHome({ save, go, onContinue, partial }: { save: Save; go: (p: Phase) => void; onContinue: () => void; partial: PartialRow[] }) {
+  const top = partial.slice(0, 3)
+  return (
+    <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ ...box(INK), padding: 16, color: '#fff', display: 'flex', gap: 12, alignItems: 'center' }}>
+        <Crest crest={save.crest} size={46} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ fontWeight: 900, fontSize: 22, ...OSWALD }}>{save.clubName}</span>
+          <div style={{ fontSize: 13, opacity: 0.85, fontWeight: 700, marginTop: 2 }}>{DIV_LABEL[save.division]} · Temporada {save.seasonNo} · metade do calendário</div>
+        </div>
+      </div>
+      <div style={{ ...box(GOLD), padding: 14, textAlign: 'center' }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: '#7a5c00' }}>🏦 CAIXA</div>
+        <div style={{ fontSize: 30, fontWeight: 900, ...OSWALD }}>💰 {save.coins}</div>
+      </div>
+      <div style={{ ...box('#FFF6DE'), padding: 12 }}>
+        <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>⏸️ Pausa da metade da temporada</p>
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#666', marginTop: 2 }}>Aproveite pra <b>vender</b>, mexer no <b>shopping</b> e <b>aliciar</b> (leilão). Atenção: quem você contratar agora <b>só entra no elenco na próxima temporada</b>. Ao continuar, o returno roda até o fim.</p>
+      </div>
+      {top.length > 0 && (
+        <div style={{ ...box('#fff'), padding: 12 }}>
+          <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, marginBottom: 4 }}>🥇 Artilharia parcial (sua divisão)</p>
+          {top.map((s, i) => (
+            <div key={s.name + i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: s.mine ? 900 : 700, color: s.mine ? GREEN : INK }}>
+              <span>{i + 1}. {s.name} <span style={{ color: '#999', fontSize: 11 }}>{s.teamName}</span></span><span>⚽ {s.goals}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ flex: 1 }}><Btn onClick={() => go('transfer')} bg="#fff">🔎 Aliciar</Btn></div>
+        <div style={{ flex: 1 }}><Btn onClick={() => go('sell')} bg="#fff">🔨 Vender</Btn></div>
+      </div>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ flex: 1 }}><Btn onClick={() => go('squad')} bg="#fff">👥 Elenco</Btn></div>
+        <div style={{ flex: 1 }}><Btn onClick={() => go('scorers')} bg="#fff">🥇 Artilharia</Btn></div>
+      </div>
+      <Btn onClick={() => go('store')} bg={PURPLE} color="#fff">🛡️ Shopping · Escudo</Btn>
+      <Btn onClick={onContinue} bg={GREEN} color="#fff">▶️ CONTINUAR — jogar o returno</Btn>
+    </div>
+  )
+}
+function MidScorers({ partial, onBack }: { partial: PartialRow[]; onBack: () => void }) {
+  return (
+    <div style={{ display: 'grid', gap: 10 }}>
+      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🥇 Artilharia parcial</p>
+      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Sua divisão, primeiro turno desta temporada. A artilharia geral (4 divisões) fecha no fim do ano.</p>
+      {partial.length === 0
+        ? <p style={{ fontWeight: 700, color: '#888' }}>Ninguém marcou ainda.</p>
+        : <div style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 4 }}>
+            {partial.slice(0, 25).map((s, i) => (
+              <div key={s.name + i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px', borderRadius: 6, background: s.mine ? GOLD : 'transparent', fontWeight: s.mine ? 900 : 700 }}>
+                <span style={{ fontSize: 13 }}>{i + 1}. {s.name} <span style={{ color: '#999', fontSize: 11 }}>{s.teamName}</span></span>
+                <span style={{ fontWeight: 900, ...OSWALD }}>⚽ {s.goals}</span>
+              </div>
+            ))}
+          </div>}
+      <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
     </div>
   )
 }
@@ -551,8 +656,8 @@ function Home({ save, go, playSeason }: { save: Save; go: (p: Phase) => void; pl
         </div>
       )}
       <div style={{ ...box('#FFF6DE'), padding: 12 }}>
-        <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>🔓 Janela de transferências aberta</p>
-        <p style={{ fontSize: 12, fontWeight: 700, color: '#666', marginTop: 2 }}>Reforce, venda e organize o elenco. Quando jogar, é a <b>temporada de verdade</b> — campinho, narração, tabela e artilheiros.</p>
+        <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>🔓 Janela do INÍCIO aberta</p>
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#666', marginTop: 2 }}>Reforce, venda e organize o elenco — reforços aqui <b>já jogam esta temporada</b>. Depois é a <b>temporada de verdade</b> (campinho, narração, tabela, artilheiros) e ela <b>pausa na metade</b> numa 2ª janela: lá você alicia de novo, mas só pra <b>próxima</b> temporada.</p>
         <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
           <div style={{ flex: 1 }}><Btn onClick={() => go('transfer')} bg="#fff">🔎 Contratar</Btn></div>
           <div style={{ flex: 1 }}><Btn onClick={() => go('sell')} bg="#fff">🔨 Vender</Btn></div>
@@ -668,11 +773,11 @@ function Store({ save, persist, onBack }: { save: Save; persist: (s: Save) => vo
 }
 
 // ─── CONTRATAR: clubes da sua divisão → elenco → LEILÃO por 1 jogador ─
-function Transfer({ save, persist, onBack }: { save: Save; persist: (s: Save) => void; onBack: () => void }) {
+function Transfer({ save, persist, onBack, midSeason }: { save: Save; persist: (s: Save) => void; onBack: () => void; midSeason?: boolean }) {
   const [browseTeam, setBrowseTeam] = useState<string | null>(null)
   const [target, setTarget] = useState<{ card: PoolCard; owner: WTeam } | null>(null)
 
-  if (target) return <SigningAuction save={save} card={target.card} owner={target.owner} persist={persist} onDone={() => { persist({ ...save, requested: [...(save.requested ?? []), target.card.id] }); setTarget(null); setBrowseTeam(null) }} onBack={() => setTarget(null)} />
+  if (target) return <SigningAuction save={save} card={target.card} owner={target.owner} midSeason={midSeason} persist={persist} onDone={() => { persist({ ...save, requested: [...(save.requested ?? []), target.card.id] }); setTarget(null); setBrowseTeam(null) }} onBack={() => setTarget(null)} />
 
   // comprou e lotou uma posição → você precisa dispensar alguém
   const overPos = SECTORS.find(p => save.squad.filter(c => c.pos === p).length > FORM_NEED[save.formation][p])
@@ -725,7 +830,12 @@ function Transfer({ save, persist, onBack }: { save: Save; persist: (s: Save) =>
           ))}
         </div>
       )}
-      <p style={{ fontSize: 12, color: '#666', fontWeight: 700 }}>Toque num clube da sua divisão pra ver o elenco e ir atrás de um jogador (leilão). As outras divisões ficam no mistério — suba pra conhecer.</p>
+      <div style={{ ...box('#EAF3FF'), padding: 9 }}>
+        <p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ <b>Aliciar = pôr o jogador em LEILÃO.</b> Toque num clube da sua divisão, escolha o alvo e brigue no pregão (você × seus rivais × o dono). <b>1 alvo por posição</b> por janela. As outras divisões ficam no mistério — suba pra conhecer.</p>
+        {midSeason
+          ? <p style={{ fontSize: 12, fontWeight: 700, marginTop: 6, color: RED }}>⏸️ Janela do MEIO: quem você contratar agora <b>só entra no elenco na próxima temporada</b>.</p>
+          : <p style={{ fontSize: 12, fontWeight: 700, marginTop: 6, color: GREEN }}>▶️ Janela do INÍCIO: reforços já jogam <b>esta temporada</b>.</p>}
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
         {save.world.filter(w => w.div === save.division).map(w => (
           <button key={w.name} onClick={() => setBrowseTeam(w.name)} style={{ padding: '9px 8px', borderRadius: 8, border: `2px solid ${INK}`, fontWeight: 800, fontSize: 12, background: w.rival ? '#FFE9A8' : '#fff', cursor: 'pointer', textAlign: 'left', ...OSWALD }}>{w.rival ? '⚔️ ' : ''}{w.name}</button>
@@ -842,7 +952,7 @@ function DispensaAuction({ save, card, persist, onBack }: { save: Save; card: Wo
   )
 }
 
-function SigningAuction({ save, card, owner, persist, onDone, onBack }: { save: Save; card: PoolCard; owner: WTeam; persist: (s: Save) => void; onDone: () => void; onBack: () => void }) {
+function SigningAuction({ save, card, owner, persist, onDone, onBack, midSeason }: { save: Save; card: PoolCard; owner: WTeam; persist: (s: Save) => void; onDone: () => void; onBack: () => void; midSeason?: boolean }) {
   const market = valueOf(save, card) // preço de mercado (undefined = novo, nunca teve preço)
   const floor = floorOf(save, card)  // piso = último preço pago (undefined = sem piso)
   const minBid = floor ?? 1          // lance mínimo: piso, ou 1 se ele nunca foi comprado
@@ -909,6 +1019,10 @@ function SigningAuction({ save, card, owner, persist, onDone, onBack }: { save: 
       <div style={{ ...box(INK), padding: 14, color: '#fff', textAlign: 'center' }}>
         <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🔨 Leilão por {card.name}</p>
         <p style={{ fontWeight: 700, fontSize: 13, opacity: 0.85 }}>{owner.name} · {DIV_LABEL[owner.div]} · {market !== undefined ? `vale ~${market}` : 'novo no mercado'} · {floor !== undefined ? `piso ${floor} 💰` : 'sem piso'}</p>
+      </div>
+      <div style={{ ...box('#EAF3FF'), padding: 9 }}>
+        <p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ Leilão às cegas: você, seus rivais e o dono lançam. Maior lance leva; empate, você leva. {floor !== undefined ? <>O <b>piso é o último preço pago</b> por ele — não dá pra lançar abaixo.</> : <>Ele <b>nunca teve preço</b>: o que você pagar vira o valor dele <b>pra sempre</b>.</>}</p>
+        {midSeason && <p style={{ fontSize: 12, fontWeight: 700, marginTop: 6, color: RED }}>⏸️ Contratação da janela do meio — <b>só entra na próxima temporada</b>.</p>}
       </div>
       <div style={{ ...box('#fff'), padding: 16, textAlign: 'center' }}>
         <p style={{ fontSize: 13, fontWeight: 800, color: '#888' }}>Seu lance (dono + seus rivais brigam às cegas):</p>

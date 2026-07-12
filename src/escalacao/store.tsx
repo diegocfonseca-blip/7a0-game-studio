@@ -954,6 +954,7 @@ type Action =
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
+  | { type: 'RESUME_DINASTIA' }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean }
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
@@ -1200,7 +1201,7 @@ export function reducer(state: EscState, action: Action): EscState {
   if (action.type === 'NEW_GAME') return { ...INITIAL }
   const s: EscState = JSON.parse(JSON.stringify(state))
   switch (action.type) {
-    case 'GO_LOBBY': { s.screen = 'intro'; s.onlineMode = 'cpu'; s.dinastia = false; s.dinastiaBudget = undefined; return s }
+    case 'GO_LOBBY': { s.screen = 'intro'; s.onlineMode = 'cpu'; s.dinastia = false; s.dinastiaBudget = undefined; s.dinastiaPaused = false; s.dinastiaMidUsed = false; return s }
     case 'GO_LOBBY_ONLINE': { s.screen = 'lobby'; return s }
     case 'GO_SETUP': { s.screen = 'setup'; s.careerIntent = false; return s }
     case 'GO_SETUP_CAREER': { s.screen = 'setup'; s.careerIntent = true; return s }
@@ -1428,12 +1429,18 @@ export function reducer(state: EscState, action: Action): EscState {
         s.round++
       }
       s.news = s.news.slice(0, 12)
+      // Dinastia: pausa UMA vez na metade do calendário → janela do meio (economia).
+      // O overlay assume, e RESUME_DINASTIA solta o returno.
+      if (s.dinastia && !s.dinastiaMidUsed && s.round >= Math.floor(TOTAL_ROUNDS / 2) && s.round < TOTAL_ROUNDS) {
+        s.dinastiaPaused = true; s.dinastiaMidUsed = true
+      }
       if (s.round >= TOTAL_ROUNDS) {
         s.champion = sortedTable(s.league)[0].id
         s.screen = 'end'
       }
       return s
     }
+    case 'RESUME_DINASTIA': { s.dinastiaPaused = false; return s }
     case 'NEW_SEASON':
       // full re-draft direto (usado no modo solo/CPU, onde não há espera).
       return redraftSeason(s)
@@ -1549,6 +1556,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
       s.roomId = ''; s.roomCode = ''; s.streamMode = false
       s.dinastia = true
+      s.dinastiaPaused = false; s.dinastiaMidUsed = false // janela do meio zerada pra esta temporada
       s.careerDivision = action.division
       s.seasonNo = action.seasonNo
       s.seed = Math.floor(Math.random() * 1e9)
