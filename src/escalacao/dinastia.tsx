@@ -599,21 +599,10 @@ function ResultScreen({ save, out: res, persist, onHome }: { save: Save; out: Se
     if (applied) return
     const goalsLast: Record<string, number> = {}
     for (const [id, g] of Object.entries(res.worldGoals)) if (mine.has(id)) goalsLast[id] = g
-    // rivais/clubes pegam alguns livres do Monte de graça (o monte vai escoando)
-    let monte = save.monte ?? []
-    let world = res.newWorld
-    if (monte.length > 0) {
-      const rng = mulberry((save.seed ^ (save.seasonNo * 7 + 3)) >>> 0)
-      const take = shuffle(monte, rng).slice(0, Math.max(1, Math.floor(monte.length * 0.4)))
-      const taken = new Set(take.map(c => c.id))
-      const addTo = new Map<string, PoolCard[]>()
-      for (const c of take) { const w = world[Math.floor(rng() * world.length)]; const arr = addTo.get(w.name) ?? []; arr.push(c); addTo.set(w.name, arr) }
-      world = world.map(w => { const add = addTo.get(w.name); if (!add) return w; let sq = w.squad; for (const c of add) sq = giveToTeam(sq, c); return { ...w, squad: sq } })
-      monte = monte.filter(c => !taken.has(c.id))
-    }
+    // o Monte fica preso: só sai quem tiver vaga (você ou um rival com buraco).
     persist({
-      ...save, world, division: res.newDivision, seasonNo: save.seasonNo + 1,
-      stage: 'preWindow', partial: undefined, requested: [], monte,
+      ...save, world: res.newWorld, division: res.newDivision, seasonNo: save.seasonNo + 1,
+      stage: 'preWindow', partial: undefined, requested: [], monte: save.monte ?? [],
       coins: save.coins + res.prize, fortune: save.fortune + res.fortuneBonus,
       titles: save.titles + (res.youChampion ? 1 : 0), worldGoals: res.worldGoals, goalsLast, championLast: res.youChampion,
       lastResult: { pos: res.yourPos, move: res.move, prevDiv: save.division, champion: res.youChampion },
