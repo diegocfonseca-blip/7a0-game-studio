@@ -611,7 +611,9 @@ function Envelope() {
           )}
           {!rescue && canBid && bidLimit > 0 && (
             <p className="text-sm font-black mt-1" style={{ color: GREEN }}>
-              Dê lance em até <b>{bidLimit}</b> jogador{bidLimit === 1 ? '' : 'es'} diferente{bidLimit === 1 ? '' : 's'} pra tentar fechar {bidLimit === 1 ? 'sua vaga' : 'suas vagas'}.
+              {bidLimit === 1
+                ? <>Você tem <b>1 vaga</b> aqui — dê seu lance no que quer levar.</>
+                : <>Você tem <b>{bidLimit} vagas</b> — dá pra apostar em até {bidLimit} jogadores diferentes pra tentar fechar todas.</>}
             </p>
           )}
           {/* dica só na PRIMEIRA tela do leilão: iniciante costuma dar 1 lance e lacrar
