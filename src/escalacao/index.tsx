@@ -3,6 +3,7 @@ import { EscProvider, useEsc } from './store'
 import { EscIntro, EscSetup, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum, EscRanking } from './screens'
 import { EscLobby } from './lobby'
 import { AdminPanel } from './admin'
+import { DinastiaGame } from './dinastia'
 
 function Router() {
   const { state } = useEsc()
@@ -27,6 +28,7 @@ export default function EscalacaoGame() {
     <EscProvider>
       <Router />
       <AdminPanel />
+      <DinastiaGame />
     </EscProvider>
   )
 }
