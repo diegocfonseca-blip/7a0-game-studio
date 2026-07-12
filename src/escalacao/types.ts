@@ -53,6 +53,9 @@ export interface Manager {
   // elenco pronto e NUNCA dão lance — mantém o leilão do tamanho exato da
   // demanda real dos humanos, sem diluir com gente que nem está disputando.
   auctionRival: boolean
+  // carreira: rival de OUTRA divisão que entra só pra dar lance no leilão (mantém
+  // vida própria na pirâmide). Bidder no pregão, mas NÃO entra na sua liga.
+  auctionOnly?: boolean
   formation: FormationKey
   money: number
   squad: WonCard[]
