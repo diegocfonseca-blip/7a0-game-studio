@@ -7,6 +7,7 @@ import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { CATALOG, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
+import { DinastiaButton } from './dinastia'
 import { useResumableRoom } from './lobby'
 
 const CATALOG_TOTAL = Object.values(CATALOG).reduce((s, arr) => s + arr.length, 0)
@@ -216,6 +217,7 @@ export function EscIntro() {
           <div className="flex-1"><Btn onClick={() => dispatch({ type: 'GO_RANKING' })} className="w-full" bg="#fff">🏆 Ranking</Btn></div>
         </div>
         <AdminButton />
+        <DinastiaButton />
       </div>
       <CardAccountNote />
       <Btn onClick={shareGame} className="w-full" bg="#fff">

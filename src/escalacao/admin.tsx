@@ -57,7 +57,7 @@ export function AdminPanel() {
 }
 
 // hook: true só quando o usuário logado é o admin
-function useIsAdmin() {
+export function useIsAdmin() {
   const [isAdmin, setIsAdmin] = useState(false)
   useEffect(() => {
     let alive = true
