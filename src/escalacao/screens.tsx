@@ -1704,7 +1704,7 @@ const CARD_PICK_SECONDS = 25
 const CARD_META = new Map<string, { folk?: boolean; promessa?: boolean }>()
 Object.values(CATALOG).flat().forEach(c => CARD_META.set(c.name, { folk: c.folk, promessa: c.promessa }))
 
-function CardCollectPrompt({ you, seasonKey, origin = 'online' }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online' }) {
+export function CardCollectPrompt({ you, seasonKey, origin = 'online' }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online' }) {
   const { dispatch } = useEsc()
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
