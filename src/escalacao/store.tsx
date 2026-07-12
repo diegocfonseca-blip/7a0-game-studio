@@ -5,7 +5,7 @@ import type {
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { CATALOG, makeIncognita, CPU_MANAGERS, CLASSIC_CLUBS, DIVISION_TEAMS } from './data'
+import { CATALOG, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS } from './data'
 import type { CareerTeam } from './data'
 import { supabase } from '../lib/supabase'
 import { logPlay, logVisit, heartbeat } from './analytics'
@@ -419,7 +419,9 @@ function midPower(m: Manager): { atk: number; def: number } {
 // sala. Só DESLOCA a distribuição dos bots pra baixo quando eles estão acima
 // do alvo (Math.min(0,...)) — nunca deixa mais fácil buffando ninguém. Assim,
 // no online, o líder dá pra bater com bom elenco; no solo (humano forte) fica 0.
-const CPU_TOP_MARGIN = 4
+// 0 = o melhor CPU empata com a SUA média (luta justa, dá pra ser campeão com
+// um bom elenco). Era 4 (top do CPU sempre acima), o que deixava o online duro.
+const CPU_TOP_MARGIN = 0
 // `capOnly` (online/carreira normal): só reduz bots fortes demais, nunca buffa.
 // Na carreira Série A queremos um degrau A MAIS (pode buffar), então lá o cap
 // de 0 é removido — a CPU pode ficar acima da sua média (o desafio hardcore).
@@ -872,7 +874,9 @@ function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus
   const nFiller = totalCpus - nAuction
   const strongN = Math.max(1, Math.round(nFiller * 0.15))
   const weakN = Math.max(1, Math.round(nFiller * 0.15))
-  const names = CPU_MANAGERS.slice(0, totalCpus)
+  // times dos CPUs = os mesmos da Série D da carreira (online e revanche usam a
+  // divisão de base, pra não aparecer nome velho tipo "Nininho EC").
+  const names = DIVISION_TEAMS['D'].slice(0, totalCpus)
   const botPlans: BotPlan[] = []
   const cpus: Manager[] = names.map((c, i) => {
     const cpuFormation = forms[Math.floor(rng() * forms.length)]
