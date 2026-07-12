@@ -2235,6 +2235,12 @@ function CareerEndPanel() {
   const [msg, setMsg] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
+  // save da PRÓXIMA temporada (já com os rivais avançados na pirâmide). Determinístico.
+  const pendingSave = useMemo(() => buildCareerSave(state), [])
+  // quantos dos seus rivais estarão na SUA divisão na próxima temporada (só esses
+  // dão lance no leilão). Se 0, um "trocar tudo" seria um leilão só seu, sem disputa.
+  const nextRivalsHere = pendingSave ? (pendingSave.rivals ?? []).filter(r => r.division === pendingSave.division).length : 0
+
   // auto-salva ao CHEGAR na decisão de fim de temporada (com a decisão pendente).
   // Assim, se o jogador sair pra home/álbum sem clicar em nada, a carreira NÃO se
   // perde — ele retoma pelo "Continuar carreira" na home. Corrige o bug de
@@ -2243,8 +2249,7 @@ function CareerEndPanel() {
   useEffect(() => {
     if (autoSaved.current) return
     autoSaved.current = true
-    const save = buildCareerSave(state)
-    if (save) saveCareer(save)
+    if (pendingSave) saveCareer(pendingSave)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -2284,6 +2289,11 @@ function CareerEndPanel() {
       <p className="text-center font-black text-sm text-black/60" style={OSWALD}>Como quer seguir?</p>
       <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: true })} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ Continuar com o mesmo time</span></Btn>
       <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: false })} className="w-full text-lg">🔄 Trocar tudo (novo leilão)</Btn>
+      {nextRivalsHere === 0 && (
+        <p className="text-center text-xs font-bold text-black/55 px-2 -mt-1">
+          ℹ️ Nenhum rival seu está na {DIVISION_LABEL[nd.div]} nesta temporada — um novo leilão seria <b>só você, sem disputa</b>. Continuar com o mesmo time costuma valer mais até um rival voltar pra sua divisão.
+        </p>
+      )}
       <div className="flex gap-2">
         <div className="flex-1"><Btn onClick={onSaveClick} bg="#fff" className="w-full">{busy ? '...' : '💾 Salvar'}</Btn></div>
         <div className="flex-1"><Btn onClick={() => setExitAsk(true)} bg="#fff" className="w-full">🚪 Sair</Btn></div>
