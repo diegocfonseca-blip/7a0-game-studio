@@ -309,7 +309,7 @@ function buildSaveFromAuction(state: EscState): Save {
     fillerNames.forEach((nm, i) => world.push({ name: nm, div, squad: dealt[i] }))
   }
   const contracts: Record<string, { until: number; floor: number }> = {}
-  for (const c of yourSquad) contracts[c.id] = { until: 1 + 2 + Math.floor(rng() * 4), floor: Math.max(1, c.paid) }
+  for (const c of yourSquad) contracts[c.id] = { until: 1 + CONTRACT, floor: Math.max(1, c.paid) } // todo mundo 5 temporadas (até temp. 6)
   return { seed, clubName: you.teamName, formation: you.formation, division: 'D', seasonNo: 1, coins: you.money, fortune: 0, luxury: [], titles: 0, squad: yourSquad, world, stage: 's1FirstHalf', worldGoals: {}, goalsLast: {}, championLast: false, contracts, requested: [] }
 }
 
