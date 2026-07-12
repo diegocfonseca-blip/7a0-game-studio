@@ -389,10 +389,12 @@ function Dinastia() {
 
 
   const header = (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-      <button onClick={close} style={{ background: 'transparent', border: 'none', fontWeight: 900, fontSize: 14, cursor: 'pointer', ...OSWALD }}>← sair</button>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, minHeight: 22 }}>
+      {phase !== 'home'
+        ? <button onClick={() => setPhase('home')} className="flex items-center gap-1 text-black/60 font-black text-sm active:opacity-60" style={OSWALD}><span className="text-lg leading-none">←</span> Voltar</button>
+        : <span style={{ width: 60 }} />}
       <span style={{ fontWeight: 900, ...OSWALD }}>🏰 DINASTIA</span>
-      <button onClick={reset} style={{ background: 'transparent', border: 'none', fontWeight: 700, fontSize: 12, color: RED, cursor: 'pointer', ...OSWALD }}>reset</button>
+      <span style={{ width: 60 }} />
     </div>
   )
   return (
@@ -406,6 +408,11 @@ function Dinastia() {
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'transfer' && <Transfer save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'sell' && <SellRoom save={save} persist={persist} onBack={() => setPhase('home')} />}
+      {/* sair do jogo lá embaixo, igual aos outros modos */}
+      <div className="pt-8 pb-4 text-center space-y-2">
+        <button onClick={close} className="block mx-auto text-black/35 text-xs font-semibold underline active:opacity-60" style={OSWALD}>sair do jogo</button>
+        <button onClick={reset} className="block mx-auto text-black/25 text-[11px] font-semibold underline active:opacity-60" style={OSWALD}>recomeçar dinastia do zero</button>
+      </div>
     </div>
   )
 }
