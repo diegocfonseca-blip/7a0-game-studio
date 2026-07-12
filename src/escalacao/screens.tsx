@@ -2185,7 +2185,11 @@ function CareerContinueBanner() {
         </div>
         <p className="text-center text-white font-black text-xs" style={OSWALD}>Como quer seguir?</p>
         <button onClick={() => dispatch({ type: 'RESTORE_CAREER', save })} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>▶️ Continuar com o mesmo time</button>
-        <button onClick={() => dispatch({ type: 'RESTORE_CAREER', save, redraft: true })} className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: GOLD, color: INK, ...OSWALD }}>🔄 Trocar tudo (novo leilão)</button>
+        {(save.rivals ?? []).filter(r => r.division === save.division).length > 0 ? (
+          <button onClick={() => dispatch({ type: 'RESTORE_CAREER', save, redraft: true })} className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: GOLD, color: INK, ...OSWALD }}>🔄 Trocar tudo (novo leilão)</button>
+        ) : (
+          <p className="text-center text-white/70 text-[11px] font-bold px-1">🔒 Sem rival seu na {DIVISION_LABEL[save.division]} — o leilão não abre (seria só você). Siga com o mesmo time; volta quando um rival chegar na sua divisão.</p>
+        )}
         <button onClick={() => setDecideOpen(false)} className="w-full text-white/60 text-xs underline">agora não</button>
       </div>
     )
@@ -2288,10 +2292,11 @@ function CareerEndPanel() {
       </div>
       <p className="text-center font-black text-sm text-black/60" style={OSWALD}>Como quer seguir?</p>
       <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: true })} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ Continuar com o mesmo time</span></Btn>
-      <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: false })} className="w-full text-lg">🔄 Trocar tudo (novo leilão)</Btn>
-      {nextRivalsHere === 0 && (
-        <p className="text-center text-xs font-bold text-black/55 px-2 -mt-1">
-          ℹ️ Nenhum rival seu está na {DIVISION_LABEL[nd.div]} nesta temporada — um novo leilão seria <b>só você, sem disputa</b>. Continuar com o mesmo time costuma valer mais até um rival voltar pra sua divisão.
+      {nextRivalsHere > 0 ? (
+        <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: false })} className="w-full text-lg">🔄 Trocar tudo (novo leilão)</Btn>
+      ) : (
+        <p className="text-center text-xs font-bold text-black/55 px-2">
+          🔒 Sem rival seu na {DIVISION_LABEL[nd.div]} nesta temporada — o leilão não abre (seria só você). Dá pra <b>seguir com o mesmo time</b>; quando um rival subir ou cair pra sua divisão, o "trocar tudo" volta.
         </p>
       )}
       <div className="flex gap-2">
