@@ -23,6 +23,25 @@ const RED = '#E8503A'
 const PURPLE = '#7C3AED'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' }
 
+// ícone do Instagram (traço, herda a cor do texto — fica sutil onde for usado)
+function InstaIcon({ size = 12 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: '-1.5px', marginRight: 3 }} aria-hidden="true">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  )
+}
+// crédito sutil pro rodapé durante o jogo (mesma cor/discrição do rodapé da home)
+export function CreditLine({ className = '' }: { className?: string }) {
+  return (
+    <p className={`text-center text-black/30 text-[11px] font-semibold ${className}`}>
+      <a href="https://instagram.com/diegocfonseca" target="_blank" rel="noopener noreferrer" className="text-black/30 no-underline"><InstaIcon /> @diegocfonseca — D7 Studio</a>
+    </p>
+  )
+}
+
 function Box({ children, bg = '#fff', className = '', shadow = 4 }: { children: React.ReactNode; bg?: string; className?: string; shadow?: number }) {
   return (
     <div className={`border-[3px] border-black rounded-2xl ${className}`} style={{ backgroundColor: bg, boxShadow: `${shadow}px ${shadow}px 0 0 ${INK}` }}>
@@ -226,7 +245,7 @@ export function EscIntro() {
       <footer className="text-center pt-3 pb-6 space-y-1.5">
         <p className="text-black/55 text-xs font-bold">💡 Ideia de jogador novo, sugestão ou achou um bug? Fala comigo:</p>
         <p className="text-xs font-bold">
-          <a href="https://instagram.com/diegocfonseca" target="_blank" rel="noopener noreferrer" className="text-black/60 underline">📸 @diegocfonseca</a>
+          <a href="https://instagram.com/diegocfonseca" target="_blank" rel="noopener noreferrer" className="text-black/60 underline"><InstaIcon /> @diegocfonseca</a>
           <span className="text-black/30"> · </span>
           <a href="mailto:diego.c.fonseca@gmail.com" className="text-black/60 underline">✉️ diego.c.fonseca@gmail.com</a>
         </p>
@@ -1339,6 +1358,7 @@ export function EscSeason() {
       <TopScorersBox highlight={you.id} />
       <Campinho m={you} small />
       {state.careerDivision && <RivalTracker />}
+      <CreditLine className="pt-4 pb-2" />
     </Shell>
   )
 }
