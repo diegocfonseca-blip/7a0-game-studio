@@ -419,9 +419,9 @@ function midPower(m: Manager): { atk: number; def: number } {
 // sala. Só DESLOCA a distribuição dos bots pra baixo quando eles estão acima
 // do alvo (Math.min(0,...)) — nunca deixa mais fácil buffando ninguém. Assim,
 // no online, o líder dá pra bater com bom elenco; no solo (humano forte) fica 0.
-// 0 = o melhor CPU empata com a SUA média (luta justa, dá pra ser campeão com
-// um bom elenco). Era 4 (top do CPU sempre acima), o que deixava o online duro.
-const CPU_TOP_MARGIN = 0
+// 2 = o melhor CPU fica um degrau (2) acima da SUA média: mantém o desafio (não
+// é passeio), mas sem sufocar. Era 4 (duro demais); 0 deixava fácil demais.
+const CPU_TOP_MARGIN = 2
 // `capOnly` (online/carreira normal): só reduz bots fortes demais, nunca buffa.
 // Na carreira Série A queremos um degrau A MAIS (pode buffar), então lá o cap
 // de 0 é removido — a CPU pode ficar acima da sua média (o desafio hardcore).
