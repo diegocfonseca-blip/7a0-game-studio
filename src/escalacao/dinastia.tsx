@@ -744,7 +744,7 @@ function Store({ save, persist, onBack }: { save: Save; persist: (s: Save) => vo
         <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🛡️ Shopping · Escudo</p>
         <span style={{ fontWeight: 900, ...OSWALD, color: GREEN }}>💰 {save.coins}</span>
       </div>
-      <div style={{ ...box('#EAF3FF'), padding: 9 }}><p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ A cara do seu clube: 2 cores + um símbolo. Aparece na home e — pelo símbolo — na <b>tabela e na tela de fim</b> do jogo. <b>Custa moedas</b> (💰 {CREST_PRICE}); símbolos premium (💰 {CREST_PRICE_PREMIUM}) <b>desbloqueiam conforme você sobe de divisão</b>. Monte no rascunho e compre no fim.</p></div>
+      <div style={{ ...box('#EAF3FF'), padding: 9 }}><p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ A cara do seu clube: 2 cores + um símbolo. Aparece na home e — pelo símbolo — na <b>tabela e na tela de fim</b> do jogo. Paga com a <b>mesma moeda do Caixa</b> (💰, a única do jogo): trocar custa 💰 {CREST_PRICE}; símbolos premium custam 💰 {CREST_PRICE_PREMIUM} e <b>desbloqueiam conforme você sobe de divisão</b>. Monte no rascunho e compre no fim.</p></div>
       <div style={{ ...box(INK), padding: 16, color: '#fff', display: 'flex', gap: 14, alignItems: 'center', justifyContent: 'center' }}>
         <Crest crest={draft} size={64} />
         <span style={{ fontWeight: 900, fontSize: 22, ...OSWALD }}>{draft.symbol} {save.clubName}</span>
@@ -758,11 +758,11 @@ function Store({ save, persist, onBack }: { save: Save; persist: (s: Save) => vo
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{CREST_COLORS.map(c => swatch(c, draft.c2 === c, () => set({ c2: c })))}</div>
       </div>
       <div>
-        <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', ...OSWALD, marginBottom: 6 }}>Símbolo <span style={{ color: '#999', textTransform: 'none' }}>(⭐ premium = mais caro; abre ao subir)</span></p>
+        <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', ...OSWALD, marginBottom: 6 }}>Símbolo <span style={{ color: '#999', textTransform: 'none' }}>(borda roxa = premium, mais caro; abre ao subir)</span></p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {symbols.map(s => {
             const prem = PREMIUM_SET.has(s)
-            return <button key={s} onClick={() => set({ symbol: s })} style={{ position: 'relative', width: 40, height: 40, borderRadius: 8, fontSize: 22, background: draft.symbol === s ? GOLD : '#fff', border: `2px solid ${prem ? PURPLE : INK}`, boxShadow: draft.symbol === s ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer' }}>{s}{prem && <span style={{ position: 'absolute', top: -6, right: -4, fontSize: 10 }}>💎</span>}</button>
+            return <button key={s} onClick={() => set({ symbol: s })} style={{ position: 'relative', width: 40, height: 40, borderRadius: 8, fontSize: 22, background: draft.symbol === s ? GOLD : '#fff', border: `2px solid ${prem ? PURPLE : INK}`, boxShadow: draft.symbol === s ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer' }}>{s}{prem && <span style={{ position: 'absolute', bottom: -8, left: 0, right: 0, fontSize: 8, fontWeight: 900, color: PURPLE, ...OSWALD }}>💰{CREST_PRICE_PREMIUM}</span>}</button>
           })}
         </div>
       </div>
