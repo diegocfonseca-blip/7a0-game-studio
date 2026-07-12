@@ -417,10 +417,9 @@ function midPower(m: Manager): { atk: number; def: number } {
 
 // o CPU mais forte fica ~CPU_TOP_MARGIN acima da média dos humanos daquela
 // sala. Só DESLOCA a distribuição dos bots pra baixo quando eles estão acima
-// do alvo (Math.min(0,...)) — nunca deixa mais fácil buffando ninguém. Assim,
-// no online, o líder dá pra bater com bom elenco; no solo (humano forte) fica 0.
-// 2 = o melhor CPU fica um degrau (2) acima da SUA média: mantém o desafio (não
-// é passeio), mas sem sufocar. Era 4 (duro demais); 0 deixava fácil demais.
+// do alvo (Math.min(0,...)) — nunca deixa mais fácil buffando ninguém.
+// É o teto do MODO BASE: partida rápida e online (= Série D da carreira).
+// +2 dá ~30% de título por temporada (campeão ~1 em 3, briga pelo G4 na maioria).
 const CPU_TOP_MARGIN = 2
 // `capOnly` (online/carreira normal): só reduz bots fortes demais, nunca buffa.
 // Na carreira Série A queremos um degrau A MAIS (pode buffar), então lá o cap
@@ -439,10 +438,13 @@ function computeCpuAdj(managers: Manager[], margin = CPU_TOP_MARGIN, capOnly = t
 
 // ─── modo carreira: divisões, dificuldade e progressão ───────────────
 const DIVISIONS: Division[] = ['D', 'C', 'B', 'A'] // de baixo pra cima
-// dificuldade por divisão: D/C/B = exatamente o nível da partida rápida (sem
-// ajuste nenhum); A = um degrau acima (pode buffar os bots até média+8).
+// rampa suave de dificuldade por divisão: o melhor CPU fica no máximo
+// (sua média + margem) acima de você — teto, nunca buffa (premia bom elenco).
+// D = base (igual rápido/online). Cada degrau sobe 1 nível; a Série A é o topo.
+// Alvo simulado: campeão D ~30% → C ~27% → B ~23% → A ~15% (por temporada).
+const DIV_MARGIN: Record<Division, number> = { D: 2, C: 3, B: 4, A: 5 }
 function careerAdj(managers: Manager[], div: Division): { atk: number; def: number } {
-  return div === 'A' ? computeCpuAdj(managers, 8, false) : { atk: 0, def: 0 }
+  return computeCpuAdj(managers, DIV_MARGIN[div], true)
 }
 // sobe (top 3), cai (Z4: 17º+) ou fica — limitado por A (topo) e D (base).
 export function nextDivision(div: Division, youPos: number): { div: Division; result: 'up' | 'down' | 'stay' } {
@@ -1374,7 +1376,7 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'FINISH_CEREMONY': {
       if (s.screen !== 'cerimonia') return s
       s.cerimoniaDeadline = null
-      const adj = s.careerDivision ? careerAdj(s.managers, s.careerDivision) : s.onlineMode === 'online' ? computeCpuAdj(s.managers) : { atk: 0, def: 0 }
+      const adj = s.careerDivision ? careerAdj(s.managers, s.careerDivision) : computeCpuAdj(s.managers) // rápido e online = base (Série D)
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.league = buildLeague(s.managers)
       s.fixtures = buildFixtures(s.league)
@@ -1527,7 +1529,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // só recomeça o campeonato — tabela, calendário e artilharia zerados.
       // Nada de leilão. Disparado pelo host; o resultado já computado vai
       // pros convidados por SYNC_STATE.
-      { const adj = s.careerDivision ? careerAdj(s.managers, s.careerDivision) : s.onlineMode === 'online' ? computeCpuAdj(s.managers) : { atk: 0, def: 0 }; s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def }
+      { const adj = s.careerDivision ? careerAdj(s.managers, s.careerDivision) : computeCpuAdj(s.managers); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def } // rápido e online = base (Série D)
       s.league = buildLeague(s.managers)
       s.fixtures = buildFixtures(s.league)
       s.round = 0
