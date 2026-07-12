@@ -1640,7 +1640,7 @@ function fallbackBio(fame: number, pos: string): string {
     default: return `Foi profissional ${where} — do nosso futebol raiz.`
   }
 }
-function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk = false, promessa }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string; folk?: boolean; promessa?: boolean }) {
+function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk = false, promessa, showBio = false }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string; folk?: boolean; promessa?: boolean; showBio?: boolean }) {
   const isProm = promessa ?? PROMESSA_SET.has(name)
   const t = isProm ? PROMESSA_TIER : (FAME_TIER[fame] ?? FAME_TIER[1])
   const initial = name.trim()[0]?.toUpperCase() ?? '?'
@@ -1671,8 +1671,8 @@ function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk =
         <p className="font-black leading-none truncate" style={{ ...OSWALD, color: t.ink, fontSize: big ? 26 : 17 }}>{name}</p>
         <p className="font-extrabold" style={{ color: t.ink, opacity: .62, fontSize: big ? 12 : 10 }}>{club} · {year}</p>
         <p style={{ fontSize: big ? 13 : 11, letterSpacing: 1, marginTop: 3 }}>{isProm ? '💎💎💎' : '⭐'.repeat(fame)}</p>
-        {big && text && (
-          <p className="font-semibold italic" style={{ color: t.ink, opacity: .78, fontSize: 12, lineHeight: 1.3, marginTop: 8 }}>“{text}”</p>
+        {(big || showBio) && text && (
+          <p className="font-semibold italic" style={{ color: t.ink, opacity: .78, fontSize: big ? 12 : 9.5, lineHeight: 1.28, marginTop: big ? 8 : 5, display: '-webkit-box', WebkitLineClamp: big ? 5 : 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>“{text}”</p>
         )}
       </div>
     </div>
@@ -1854,7 +1854,7 @@ export function EscAlbum() {
       )}
       <div className="grid grid-cols-2 gap-3">
         {shown.map((c, i) => (
-          <CollectibleCard key={i} name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} />
+          <CollectibleCard key={i} name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} showBio />
         ))}
       </div>
       <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">← Voltar</Btn>
@@ -1996,7 +1996,7 @@ export function EscRanking() {
               {viewCards && viewCards.length > 0 && (
                 <div className="grid grid-cols-2 gap-3">
                   {viewCards.map((c, i) => (
-                    <CollectibleCard key={i} name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} />
+                    <CollectibleCard key={i} name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} showBio />
                   ))}
                 </div>
               )}
