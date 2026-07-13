@@ -509,29 +509,47 @@ export function EscLobby() {
       return nm.toLowerCase().includes(search.trim().toLowerCase())
     })
     return wrap(<>
-      <div className="text-center space-y-2">
-        <div className="text-6xl">🔨</div>
-        <h1 className="font-black text-3xl text-white" style={OSWALD}>LEILÃO LEGENDS</h1>
-        {editingName ? (
-          <div className="flex gap-2 items-stretch max-w-xs mx-auto">
-            <input autoFocus value={nameDraft} onChange={e => setNameDraft(e.target.value)} maxLength={20}
-              placeholder="Seu nome de técnico" onKeyDown={e => e.key === 'Enter' && saveName()}
-              className="flex-1 border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />
-            <button onClick={saveName} disabled={loading || !nameDraft.trim()}
-              className="border-[3px] border-black rounded-lg px-3 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>OK</button>
-            <button onClick={() => setEditingName(false)}
-              className="border-[3px] border-black rounded-lg px-3 font-black text-sm bg-white text-black">✕</button>
+      {/* Banner convidativo em roxo — o online é sobre CHAMAR A GALERA */}
+      <div className="rounded-2xl border-[3px] border-black overflow-hidden" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
+        <div className="px-4 py-4 relative" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)` }}>
+          <div className="absolute top-2 right-3 flex items-center gap-1.5">
+            <span className="inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            <span className="text-white/80 text-[10px] font-black uppercase tracking-widest">Multiplayer</span>
           </div>
-        ) : (
-          <button onClick={() => { setNameDraft(user?.user_metadata?.display_name ?? ''); setEditingName(true) }}
-            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 border-2"
-            style={{ background: hasName ? 'rgba(255,255,255,.08)' : GOLD, borderColor: hasName ? 'rgba(255,255,255,.25)' : '#000' }}>
-            <span className="font-black text-sm" style={{ color: hasName ? '#fff' : '#000' }}>
-              {hasName ? nameOf() : 'Toque pra pôr seu nome'}
-            </span>
-            <span style={{ fontSize: 13 }}>✏️</span>
-          </button>
-        )}
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-2xl">🔨</span>
+            <p className="text-white/70 text-[10px] font-black uppercase tracking-[0.2em]">Leilão Legends</p>
+          </div>
+          <h1 className="font-black text-white text-[26px] leading-[1] mb-1.5" style={OSWALD}>
+            CHAME A GALERA
+          </h1>
+          <p className="text-white/90 text-[13px] leading-snug font-medium">
+            Toda a adrenalina do leilão, agora <b>contra seus amigos</b>. Cria a sala, manda o código no zap e briguem pelas lendas.
+          </p>
+        </div>
+        <div className="px-4 py-2 flex items-center gap-2 justify-between" style={{ background: '#1a1220' }}>
+          <span className="text-white/50 text-[10px] font-black uppercase tracking-widest">Logado como</span>
+          {editingName ? (
+            <div className="flex gap-1.5 items-stretch flex-1 ml-2">
+              <input autoFocus value={nameDraft} onChange={e => setNameDraft(e.target.value)} maxLength={20}
+                placeholder="Seu nome de técnico" onKeyDown={e => e.key === 'Enter' && saveName()}
+                className="flex-1 min-w-0 border-2 border-black rounded-md px-2 py-1 font-black text-black text-xs bg-white" />
+              <button onClick={saveName} disabled={loading || !nameDraft.trim()}
+                className="border-2 border-black rounded-md px-2 font-black text-xs" style={{ background: GREEN, color: '#fff', ...OSWALD }}>OK</button>
+              <button onClick={() => setEditingName(false)}
+                className="border-2 border-black rounded-md px-2 font-black text-xs bg-white text-black">✕</button>
+            </div>
+          ) : (
+            <button onClick={() => { setNameDraft(user?.user_metadata?.display_name ?? ''); setEditingName(true) }}
+              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border-2"
+              style={{ background: hasName ? 'rgba(255,255,255,.1)' : GOLD, borderColor: hasName ? 'rgba(255,255,255,.3)' : '#000' }}>
+              <span className="font-black text-xs" style={{ color: hasName ? '#fff' : '#000' }}>
+                {hasName ? nameOf() : 'Toque pra pôr seu nome'}
+              </span>
+              <span style={{ fontSize: 11 }}>✏️</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* partida em andamento: pergunta se quer voltar ou sair */}
@@ -555,11 +573,12 @@ export function EscLobby() {
       <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
         {TABS.map(t => (
           <button key={t.id} onClick={() => { setTab(t.id); setRoomError('') }}
-            className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: tab === t.id ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+            className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: tab === t.id ? PURPLE : '#fff', color: tab === t.id ? '#fff' : '#000', ...OSWALD }}>
             {t.label}
           </button>
         ))}
       </div>
+
 
       {tab === 'create' && <div className="space-y-3">
         <Field label="Nome da sala" value={roomName} onChange={e => setRoomName(e.target.value)} placeholder={`Sala do ${nameOf()}`} maxLength={24} />
