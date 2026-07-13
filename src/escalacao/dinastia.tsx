@@ -1314,14 +1314,14 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
     const last = sectorIdx >= byPos.length - 1
     const atLast = revealIdx >= secResults.length - 1
     return (
-      <div style={{ display: 'grid', gap: 10 }}>
+      <div style={{ display: 'grid', gap: 10, position: 'relative' }}>
         {header}
         <p style={{ textAlign: 'center', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: 'rgba(0,0,0,0.6)' }}>Revelação {revealIdx + 1} / {secResults.length} · {SECTOR_LABEL[cur.p]}</p>
         <div style={{ ...box(r.lot.card.fame >= 5 ? GOLD : '#fff'), padding: 16 }}>
           <Face c={r.lot.card} big />
           <p style={{ fontSize: 11, fontWeight: 800, color: '#888', marginTop: 4 }}>{kindLabel[r.lot.kind]}{r.lot.floor !== undefined ? ` · piso ${r.lot.floor}` : ' · novo no mercado'}</p>
           <div style={{ display: 'grid', gap: 6, marginTop: 12 }}>
-            {r.bids.length === 0 && <p style={{ fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>Nenhum lance. {r.lot.kind === 'market' ? 'Vai pro Monte Final. 🪣' : 'Fica com o dono.'}</p>}
+            {r.bids.length === 0 && <p style={{ fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>{r.outcome === 'none' && r.lot.kind !== 'market' ? '🙅 Você desistiu — fica com o dono.' : `Nenhum lance. ${r.lot.kind === 'market' ? 'Vai pro Monte Final. 🪣' : 'Fica com o dono.'}`}</p>}
             {r.bids.map((b, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `2px solid ${INK}`, borderRadius: 8, padding: '6px 12px', background: b.winner ? GREEN : '#fff' }}>
                 <span style={{ fontWeight: 800, fontSize: 14, color: b.winner ? '#fff' : INK }}>{b.mine ? '🫵 Você' : b.name}{b.winner && r.outcome === 'owner' ? ' (segurou)' : ''}</span>
@@ -1329,12 +1329,24 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
               </div>
             ))}
           </div>
-          <p style={{ fontWeight: 900, ...OSWALD, marginTop: 12, color: r.outcome === 'you' ? GREEN : INK }}>{label[r.outcome]}{r.dropped ? ` · ${r.dropped} foi pro monte` : ''}</p>
+          <p style={{ fontWeight: 900, ...OSWALD, marginTop: 12, color: r.outcome === 'you' ? GREEN : INK }}>{label[r.outcome]}{r.dropped ? ` · ${r.dropped} sai do elenco` : ''}</p>
         </div>
-        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 800, color: '#999' }}>{atLast ? (last ? 'encerrando o pregão…' : 'indo pra próxima posição…') : 'martelando…'}</p>
+        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 800, color: '#999' }}>{needsChoice ? 'aguardando sua decisão…' : atLast ? (last ? 'encerrando o pregão…' : 'indo pra próxima posição…') : 'martelando…'}</p>
+        {needsChoice && currentR?.droppedCard && (
+          <OverflowChoiceModal
+            incoming={currentR.lot.card}
+            dropped={currentR.droppedCard}
+            paidForIncoming={currentR.price}
+            onDispensar={doDispensar}
+            onDesistir={doDesistir}
+            onOferta={doOferta}
+            rng={rng}
+          />
+        )}
       </div>
     )
   }
+
 
   // fase de LANCE (envelope) da posição atual — cartas com stepper −/+ e LACRAR
   return (
