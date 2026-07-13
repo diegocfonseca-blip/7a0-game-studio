@@ -1274,6 +1274,23 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
     d.monte = (d.monte ?? []).filter(c => c.id !== r.droppedCard!.id)
     resolveChoice()
   }
+  // troca quem sai: devolve o atual dropped ao elenco, tira o novo escolhido e
+  // manda ele pro monte. Atualiza o resultado exibido pra refletir a troca.
+  const doChangeDropped = (newId: string) => {
+    const r = secResults[revealIdx]; if (!r.droppedCard) return
+    if (newId === r.droppedCard.id) return
+    const d = draftRef.current!
+    const chosen = d.squad.find(c => c.id === newId && c.pos === r.droppedCard!.pos)
+    if (!chosen) return
+    // desfaz o descarte anterior
+    const restored: WonCard = { ...r.droppedCard }
+    d.monte = (d.monte ?? []).filter(c => c.id !== restored.id)
+    d.squad = [...d.squad.filter(c => c.id !== chosen.id), restored]
+    d.monte = [...(d.monte ?? []), { ...chosen }]
+    const newRes: LotResult = { ...r, dropped: chosen.name, droppedCard: { ...chosen } }
+    setSecResults(cur => cur.map((x, i) => i === revealIdx ? newRes : x))
+    setAllResults(cur => cur.map((x, i) => i === globalIdx(revealIdx) ? newRes : x))
+  }
 
 
   const label: Record<LotResult['outcome'], string> = { you: '✅ VOCÊ LEVOU', rival: '😤 rival levou', owner: '🛡️ dono segurou', none: '— ninguém deu lance' }
