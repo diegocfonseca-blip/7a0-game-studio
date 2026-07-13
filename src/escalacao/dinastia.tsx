@@ -873,10 +873,11 @@ function Transfer({ save, persist, onBack, midSeason }: { save: Save; persist: (
           const posDone = attemptedPos.has(p)
           const dis = under || posDone
           const v = valueOf(save, c)
+          const fl = floorOf(save, c)
           return (
             <button key={c.id} disabled={dis} onClick={() => { persist({ ...save, requested: [...(save.requested ?? []), c.id] }); setBrowseTeam(null) }} style={{ ...box(dis ? '#eee' : '#fff'), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: dis ? 'default' : 'pointer', textAlign: 'left', opacity: dis ? 0.55 : 1 }}>
               <span style={{ fontWeight: 900, ...OSWALD }}><Pos p={c.pos} /> {c.name}</span>
-              {under ? <span style={{ fontWeight: 800, color: RED, fontSize: 12 }}>🔒 contrato (temp. {contractUntil(save, c.id)})</span> : posDone ? <span style={{ fontWeight: 800, color: '#999', fontSize: 12 }}>já aliciou 1 {c.pos}</span> : <span style={{ fontWeight: 800, color: GREEN, fontSize: 13 }}>+ aliciar {v !== undefined ? `(vale ${v})` : '(novo)'}</span>}
+              {under ? <span style={{ fontWeight: 800, color: RED, fontSize: 12 }}>🔒 contrato (temp. {contractUntil(save, c.id)})</span> : posDone ? <span style={{ fontWeight: 800, color: '#999', fontSize: 12 }}>já aliciou 1 {c.pos}</span> : <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{fl !== undefined ? <>💰 piso {fl}{v !== undefined && v !== fl ? ` · vale ${v}` : ''}</> : <span style={{ color: '#888' }}>novo no mercado</span>}<br /><span style={{ color: GREEN, fontSize: 11 }}>+ aliciar</span></span>}
             </button>
           )
         }))}
@@ -1126,6 +1127,7 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
   const [picks, setPicks] = useState<Record<string, { lotId: string; amount: number }>>({})
   const [left, setLeft] = useState(AUC_SECONDS)
   const [results, setResults] = useState<LotResult[] | null>(null)
+  const [revealIdx, setRevealIdx] = useState(0) // martelo: revela um lote por vez
   const sealedRef = useRef(false)
 
   const spent = Object.values(picks).reduce((s, p) => s + p.amount, 0)
@@ -1156,16 +1158,27 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
   if (results) {
     const label: Record<LotResult['outcome'], string> = { you: '✅ VOCÊ LEVOU', rival: '😤 rival levou', owner: '🛡️ dono segurou', none: '— ninguém' }
     const bg: Record<LotResult['outcome'], string> = { you: GOLD, rival: '#FBE0DA', owner: '#EEE', none: '#F0EAD8' }
+    const shown = results.slice(0, revealIdx)
+    const allDone = revealIdx >= results.length
+    const toMonte = results.filter(r => (r.outcome === 'none' && r.lot.kind === 'market') || r.dropped).length
     return (
       <div style={{ display: 'grid', gap: 10 }}>
-        <p style={{ fontWeight: 900, fontSize: 20, ...OSWALD }}>📣 Revelação do pregão</p>
-        {results.map((r, i) => (
-          <div key={i} style={{ ...box(bg[r.outcome]), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontWeight: 900, ...OSWALD }}><Pos p={r.lot.card.pos} /> {r.lot.card.name}</span>
-            <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{label[r.outcome]}{r.outcome !== 'none' ? ` · 💰 ${r.price}` : ''}{r.outcome === 'rival' ? ` (${r.by})` : ''}{r.dropped ? <><br /><span style={{ color: '#999' }}>{r.dropped} foi pro monte</span></> : ''}</span>
-          </div>
-        ))}
-        <Btn onClick={onDone} bg={GREEN} color="#fff">✅ Pronto</Btn>
+        <p style={{ fontWeight: 900, fontSize: 20, ...OSWALD }}>🔨 Martelo do pregão {allDone ? '' : `(${revealIdx}/${results.length})`}</p>
+        {shown.map((r, i) => {
+          const isLast = i === shown.length - 1 && !allDone
+          return (
+            <div key={i} style={{ ...box(bg[r.outcome]), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: isLast ? `4px solid ${INK}` : `3px solid ${INK}`, transform: isLast ? 'scale(1.02)' : 'none' }}>
+              <span style={{ fontWeight: 900, ...OSWALD }}><Pos p={r.lot.card.pos} /> {r.lot.card.name}</span>
+              <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{label[r.outcome]}{r.outcome !== 'none' ? ` · 💰 ${r.price}` : ''}{r.outcome === 'rival' ? ` (${r.by})` : ''}{r.dropped ? <><br /><span style={{ color: '#999' }}>{r.dropped} foi pro monte</span></> : ''}</span>
+            </div>
+          )
+        })}
+        {!allDone
+          ? <Btn onClick={() => setRevealIdx(i => i + 1)} bg={GOLD}>🔨 MARTELAR próximo</Btn>
+          : <>
+              {toMonte > 0 && <div style={{ ...box('#F0EAD8'), padding: 10 }}><p style={{ fontSize: 12, fontWeight: 700 }}>🎁 {toMonte} jogador{toMonte > 1 ? 'es sobraram' : ' sobrou'} pro <b>Monte</b> — pegue de graça na tela de <b>Contratar</b> (se tiver vaga).</p></div>}
+              <Btn onClick={onDone} bg={GREEN} color="#fff">✅ Pronto</Btn>
+            </>}
       </div>
     )
   }

@@ -693,7 +693,7 @@ const ATA: C[] = [
   { name: "Soteldo", club: "Santos", year: 2019, fame: 3, lo: 72, hi: 84 },
   { name: "Michael Jackson", club: "Fluminense", year: 1999, fame: 1, lo: 52, hi: 76, folk: true, bio: "O nome já é show à parte — puro folclore de arquibancada." },
   { name: "Jean Chera", club: "Santos", year: 2008, fame: 1, lo: 50, hi: 78, folk: true, bio: "A maior promessa da Vila que o país inteiro esperava — virou a lenda do 'e se…'." },
-  { name: "Maxi Biancucchi", club: "Vitória", year: 2010, fame: 2, lo: 66, hi: 82, folk: true, bio: "Primo do Messi que fez fama por conta própria no Nordeste — resenha garantida." },
+  { name: "Maxi Biancucchi", club: "Vitória", year: 2010, fame: 1, lo: 56, hi: 78, folk: true, bio: "Primo do Messi que fez fama por conta própria no Nordeste — resenha garantida." },
   { name: "Paulo Nunes", club: "Grêmio", year: 1996, fame: 3, lo: 70, hi: 84 },
   { name: "Marcelo Moreno", club: "Cruzeiro", year: 2013, fame: 3, lo: 70, hi: 84 },
   { name: "Anelka", club: "Atlético-MG (quase)", year: 2014, fame: 4, lo: 80, hi: 90, folk: true, bio: "O craque francês que QUASE vestiu o manto do Galo em 2014 — o reforço bombástico que só existiu na imaginação (e no sonho) da torcida." },
