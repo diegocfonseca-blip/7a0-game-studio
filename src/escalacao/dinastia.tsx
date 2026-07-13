@@ -725,7 +725,7 @@ function SquadScreen({ save, onBack }: { save: Save; onBack: () => void }) {
           <div style={{ display: 'grid', gap: 6 }}>
             {cards.map(c => (
               <div key={c.id} style={{ ...box('#fff'), padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div><div style={{ fontWeight: 900, ...OSWALD }}>{c.name}</div><div style={{ fontSize: 11, color: '#888', fontWeight: 700 }}>{c.club} · {c.year}{save.goalsLast[c.id] ? ` · ⚽ ${save.goalsLast[c.id]}` : ''} · {contractUntil(save, c.id) >= save.seasonNo ? `📄 até temp. ${contractUntil(save, c.id)}` : '⚠️ vencido'} · piso {floorOf(save, c) ?? Math.max(1, c.paid)}</div></div>
+                <div><div style={{ fontWeight: 900, ...OSWALD }}>{c.name}</div><div style={{ fontSize: 11, color: '#888', fontWeight: 700 }}>{c.club} · {c.year}{save.goalsLast[c.id] ? ` · ⚽ ${save.goalsLast[c.id]}` : ''} · {(() => { const u = contractUntil(save, c.id); if (u < save.seasonNo) return <span style={{ color: RED, fontWeight: 900 }}>⚠️ vencido</span>; if (u === save.seasonNo) return <span style={{ color: RED, fontWeight: 900 }}>🔴 último ano do contrato</span>; return <>📄 até temp. {u}</> })()} · piso {floorOf(save, c) ?? Math.max(1, c.paid)}</div></div>
                 <span style={{ fontWeight: 900, ...OSWALD, color: GREEN }}>💰 {myValue(save, c)}</span>
               </div>
             ))}
