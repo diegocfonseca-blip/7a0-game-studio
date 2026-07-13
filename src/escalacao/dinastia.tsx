@@ -809,61 +809,6 @@ function SquadScreen({ save, onBack }: { save: Save; onBack: () => void }) {
   )
 }
 
-// ─── ARTILHARIA DA SUA DIVISÃO (última temporada) ────────────────────
-function ScorersScreen({ save, onBack }: { save: Save; onBack: () => void }) {
-  const rows = save.lastScorers ?? []
-  if (rows.length === 0) return <div style={{ display: 'grid', gap: 10 }}><p style={{ fontWeight: 700, color: '#888' }}>Jogue uma temporada pra ver a artilharia da sua divisão.</p><Btn onClick={onBack} bg="#fff">← Voltar</Btn></div>
-  return (
-    <div style={{ display: 'grid', gap: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🥇 Artilharia · {DIV_LABEL[save.division]}</p>
-      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Última temporada, a sua divisão. Seus jogadores destacados.</p>
-      <div style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 4 }}>
-        {rows.map((s, i) => {
-          const mine = s.teamName === save.clubName
-          return (
-            <div key={s.teamName + s.name + i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px', borderRadius: 6, background: mine ? GOLD : 'transparent', fontWeight: mine ? 900 : 700 }}>
-              <span style={{ fontSize: 13 }}>{i + 1}. {s.name} <span style={{ color: '#999', fontSize: 11 }}>{s.teamName}</span></span>
-              <span style={{ fontWeight: 900, ...OSWALD }}>⚽ {s.goals}</span>
-            </div>
-          )
-        })}
-      </div>
-      <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
-    </div>
-  )
-}
-
-// ─── CLASSIFICAÇÃO da sua divisão (final da última temporada) ─────────
-function ClassificationScreen({ save, onBack }: { save: Save; onBack: () => void }) {
-  const rows = save.lastTable ?? []
-  if (rows.length === 0) return <div style={{ display: 'grid', gap: 10 }}><p style={{ fontWeight: 700, color: '#888' }}>Jogue uma temporada pra ver a classificação da sua divisão.</p><Btn onClick={onBack} bg="#fff">← Voltar</Btn></div>
-  return (
-    <div style={{ display: 'grid', gap: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>📊 Classificação · {DIV_LABEL[save.division]}</p>
-      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Final da última temporada. 🟢 topo sobe · 🔴 base cai.</p>
-      <div style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 2 }}>
-        <div style={{ display: 'flex', fontSize: 10, fontWeight: 800, color: '#aaa', padding: '0 6px 2px' }}>
-          <span style={{ width: 22 }}>#</span><span style={{ flex: 1 }}>Time</span><span style={{ width: 26, textAlign: 'center' }}>P</span><span style={{ width: 52, textAlign: 'center' }}>V-E-D</span><span style={{ width: 34, textAlign: 'right' }}>SG</span>
-        </div>
-        {rows.map((t, i) => {
-          const mine = t.name === save.clubName
-          const zone = i < 4 ? '#1B7A3D' : i >= 16 ? '#E8503A' : 'transparent'
-          return (
-            <div key={t.name + i} style={{ display: 'flex', alignItems: 'center', padding: '4px 6px', borderRadius: 6, background: mine ? GOLD : 'transparent', fontWeight: mine ? 900 : 700, fontSize: 12 }}>
-              <span style={{ width: 22, display: 'flex', alignItems: 'center', gap: 3 }}><i style={{ width: 5, height: 5, borderRadius: 99, background: zone, display: 'inline-block' }} />{i + 1}</span>
-              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
-              <span style={{ width: 26, textAlign: 'center', fontWeight: 900, ...OSWALD }}>{t.pts}</span>
-              <span style={{ width: 52, textAlign: 'center', color: '#888', fontSize: 11 }}>{t.w}-{t.d}-{t.l}</span>
-              <span style={{ width: 34, textAlign: 'right', color: '#888', fontSize: 11 }}>{t.gf - t.ga > 0 ? '+' : ''}{t.gf - t.ga}</span>
-            </div>
-          )
-        })}
-      </div>
-      <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
-    </div>
-  )
-}
-
 // ─── ESCUDO & IDENTIDADE ─────────────────────────────────────────────
 function Store({ save, persist, onBack }: { save: Save; persist: (s: Save) => void; onBack: () => void }) {
   const saved = save.crest ?? DEFAULT_CREST
