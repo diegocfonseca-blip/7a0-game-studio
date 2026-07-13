@@ -527,6 +527,7 @@ export function EscLobby() {
     <Big onClick={handleAuth}>{loading ? '...' : authTab === 'login' ? 'Entrar →' : 'Criar conta →'}</Big>
     <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">← Voltar</button>
   </>)
+  }
 
   if (phase === 'menu') {
     const TABS: { id: 'create' | 'open' | 'join'; label: string }[] = [
