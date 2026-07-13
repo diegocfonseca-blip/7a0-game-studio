@@ -1157,112 +1157,140 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
 }
 
 const AUC_SECONDS = 45
+const kindLabel: Record<LotKind, string> = { market: '🆕 mercado', aliciar: '🎯 aliciado', sell: '🔻 à venda' }
+// Leilão da janela no MESMO FLUXO do pregão dos outros modos: POR POSIÇÃO —
+// envelope cego (45s) → martelo revelando os lances → próxima posição → monte.
 function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persist: (s: Save) => void; onDone: () => void; midSeason?: boolean }) {
   const rng = useMemo(() => mulberry((save.seed ^ (save.seasonNo * 777) ^ (save.stage === 'midWindow' ? 99 : 1)) >>> 0), []) // eslint-disable-line
   const deck = useMemo(() => buildWindowDeck(save, rng), []) // eslint-disable-line
-  const byPos = SECTORS.map(p => ({ p, lots: deck.filter(l => l.card.pos === p) })).filter(g => g.lots.length > 0)
-  // sua escolha por posição: qual lote comprar + quanto (só market/aliciar são compráveis)
-  const [picks, setPicks] = useState<Record<string, { lotId: string; amount: number }>>({})
+  const byPos = useMemo(() => SECTORS.map(p => ({ p, lots: deck.filter(l => l.card.pos === p) })).filter(g => g.lots.length > 0), [deck])
+  // rascunho persistente do save, acumulado posição a posição
+  const draftRef = useRef<Save | null>(null)
+  if (!draftRef.current) draftRef.current = { ...save, squad: [...save.squad], world: save.world.map(w => ({ ...w, squad: [...w.squad] })), contracts: { ...(save.contracts ?? {}) }, monte: [...(save.monte ?? [])] }
+
+  const [sectorIdx, setSectorIdx] = useState(0)
+  const [phase, setPhase] = useState<'bid' | 'reveal'>('bid')
+  const [pick, setPick] = useState<{ lotId: string; amount: number } | null>(null) // seu lance nesta posição (1 compra/pos)
   const [left, setLeft] = useState(AUC_SECONDS)
-  const [results, setResults] = useState<LotResult[] | null>(null)
-  const [revealIdx, setRevealIdx] = useState(0) // martelo: revela um lote por vez
+  const [secResults, setSecResults] = useState<LotResult[]>([])
+  const [revealIdx, setRevealIdx] = useState(0)
+  const [allResults, setAllResults] = useState<LotResult[]>([])
+  const [finished, setFinished] = useState(false)
   const sealedRef = useRef(false)
 
-  const spent = Object.values(picks).reduce((s, p) => s + p.amount, 0)
-  const overBudget = spent > save.coins
+  if (byPos.length === 0) { return <div style={{ display: 'grid', gap: 10 }}><p style={{ fontWeight: 700 }}>Nada no leilão desta janela.</p><Btn onClick={onDone} bg="#fff">← Voltar</Btn></div> }
+  const cur = byPos[Math.min(sectorIdx, byPos.length - 1)]
+  const coins = draftRef.current.coins
 
-  const seal = () => {
+  const sealSector = () => {
     if (sealedRef.current) return; sealedRef.current = true
-    const draft: Save = { ...save, squad: [...save.squad], world: save.world.map(w => ({ ...w, squad: [...w.squad] })), contracts: { ...(save.contracts ?? {}) }, monte: [...(save.monte ?? [])] }
+    const draft = draftRef.current!
     const out: LotResult[] = []
-    for (const lot of deck) {
-      const pick = picks[lot.card.pos]
+    for (const lot of cur.lots) {
       const myBid = pick && pick.lotId === lot.card.id ? pick.amount : 0
-      const r = applyLot(draft, lot, myBid, rng)
-      out.push(r.result)
+      out.push(applyLot(draft, lot, myBid, rng).result)
     }
-    draft.requested = []; draft.sellList = []; draft.soldPos = []
-    setResults(out)
-    persist(draft)
+    setSecResults(out); setAllResults(a => [...a, ...out]); setRevealIdx(0); setPhase('reveal')
   }
-  // cronômetro de 45s → lacra sozinho
+  const nextSector = () => {
+    if (sectorIdx < byPos.length - 1) {
+      setSectorIdx(i => i + 1); setPhase('bid'); setPick(null); setLeft(AUC_SECONDS); setSecResults([]); setRevealIdx(0); sealedRef.current = false
+    } else {
+      const draft = draftRef.current!; draft.requested = []; draft.sellList = []; draft.soldPos = []
+      persist(draft); setFinished(true)
+    }
+  }
+  // cronômetro de 45s da posição → lacra sozinho
   useEffect(() => {
-    if (results) return
-    if (left <= 0) { seal(); return }
+    if (phase !== 'bid' || finished) return
+    if (left <= 0) { sealSector(); return }
     const t = setTimeout(() => setLeft(l => l - 1), 1000)
     return () => clearTimeout(t)
-  }, [left, results]) // eslint-disable-line
+  }, [left, phase, finished]) // eslint-disable-line
 
-  if (results) {
-    const label: Record<LotResult['outcome'], string> = { you: '✅ VOCÊ LEVOU', rival: '😤 rival levou', owner: '🛡️ dono segurou', none: '— ninguém' }
-    const bg: Record<LotResult['outcome'], string> = { you: GOLD, rival: '#FBE0DA', owner: '#EEE', none: '#F0EAD8' }
-    const shown = results.slice(0, revealIdx)
-    const allDone = revealIdx >= results.length
-    const toMonte = results.filter(r => (r.outcome === 'none' && r.lot.kind === 'market') || r.dropped).length
+  const label: Record<LotResult['outcome'], string> = { you: '✅ VOCÊ LEVOU', rival: '😤 rival levou', owner: '🛡️ dono segurou', none: '— ninguém' }
+  const bg: Record<LotResult['outcome'], string> = { you: GOLD, rival: '#FBE0DA', owner: '#EEE', none: '#F0EAD8' }
+
+  if (finished) {
+    const toMonte = allResults.filter(r => (r.outcome === 'none' && r.lot.kind === 'market') || r.dropped).length
+    const mine = allResults.filter(r => r.outcome === 'you')
     return (
       <div style={{ display: 'grid', gap: 10 }}>
-        <p style={{ fontWeight: 900, fontSize: 20, ...OSWALD }}>🔨 Martelo do pregão {allDone ? '' : `(${revealIdx}/${results.length})`}</p>
-        {shown.map((r, i) => {
-          const isLast = i === shown.length - 1 && !allDone
-          return (
-            <div key={i} style={{ ...box(bg[r.outcome]), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: isLast ? `4px solid ${INK}` : `3px solid ${INK}`, transform: isLast ? 'scale(1.02)' : 'none' }}>
-              <span style={{ fontWeight: 900, ...OSWALD }}><Pos p={r.lot.card.pos} /> {r.lot.card.name}</span>
-              <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{label[r.outcome]}{r.outcome !== 'none' ? ` · 💰 ${r.price}` : ''}{r.outcome === 'rival' ? ` (${r.by})` : ''}{r.dropped ? <><br /><span style={{ color: '#999' }}>{r.dropped} foi pro monte</span></> : ''}</span>
-            </div>
-          )
-        })}
-        {!allDone
-          ? <Btn onClick={() => setRevealIdx(i => i + 1)} bg={GOLD}>🔨 MARTELAR próximo</Btn>
-          : <>
-              {toMonte > 0 && <div style={{ ...box('#F0EAD8'), padding: 10 }}><p style={{ fontSize: 12, fontWeight: 700 }}>🎁 {toMonte} jogador{toMonte > 1 ? 'es sobraram' : ' sobrou'} pro <b>Monte</b> — pegue de graça na tela de <b>Contratar</b> (se tiver vaga).</p></div>}
-              <Btn onClick={onDone} bg={GREEN} color="#fff">✅ Pronto</Btn>
-            </>}
+        <div style={{ ...box(INK), padding: 14, color: '#fff', textAlign: 'center' }}><p style={{ fontWeight: 900, fontSize: 20, ...OSWALD }}>🏁 Fim do pregão</p></div>
+        {mine.length > 0
+          ? mine.map((r, i) => <div key={i} style={{ ...box(GOLD), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', ...OSWALD, fontWeight: 900 }}><span><Pos p={r.lot.card.pos} /> {r.lot.card.name}</span><span>💰 {r.price}</span></div>)
+          : <div style={{ ...box('#fff'), padding: 12, textAlign: 'center', fontWeight: 700, color: '#888' }}>Você não levou ninguém desta vez.</div>}
+        {toMonte > 0 && <div style={{ ...box('#F0EAD8'), padding: 10 }}><p style={{ fontSize: 12, fontWeight: 700 }}>🎁 {toMonte} jogador{toMonte > 1 ? 'es sobraram' : ' sobrou'} pro <b>Monte</b> — pegue de graça na tela de <b>Contratar</b> (se tiver vaga).</p></div>}
+        <Btn onClick={onDone} bg={GREEN} color="#fff">✅ Pronto</Btn>
       </div>
     )
   }
 
-  const kindLabel: Record<LotKind, string> = { market: '🆕 mercado', aliciar: '🎯 aliciado', sell: '🔻 à venda' }
+  // barra de topo comum (posição + cronômetro), estilo do leilão dos outros modos
+  const timerCol = left <= 10 ? RED : left <= 20 ? GOLD : GREEN
+  const bar = (
+    <div style={{ ...box(INK), padding: 12, color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span style={{ fontWeight: 900, fontSize: 16, ...OSWALD }}>🔨 {SECTOR_LABEL[cur.p].toUpperCase()} <span style={{ opacity: 0.6, fontSize: 12 }}>({sectorIdx + 1}/{byPos.length})</span></span>
+      {phase === 'bid' && <span style={{ fontWeight: 900, fontSize: 20, ...OSWALD, background: timerCol, color: left <= 20 ? INK : '#fff', borderRadius: 8, padding: '2px 10px' }}>⏱️ {left}s</span>}
+    </div>
+  )
+
+  if (phase === 'reveal') {
+    const shown = secResults.slice(0, revealIdx)
+    const done = revealIdx >= secResults.length
+    const last = sectorIdx >= byPos.length - 1
+    return (
+      <div style={{ display: 'grid', gap: 10 }}>
+        {bar}
+        <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD }}>📣 Martelo · {SECTOR_LABEL[cur.p]}</p>
+        {shown.map((r, i) => {
+          const isLast = i === shown.length - 1 && !done
+          return (
+            <div key={i} style={{ ...box(bg[r.outcome]), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: isLast ? `4px solid ${INK}` : `3px solid ${INK}`, transform: isLast ? 'scale(1.02)' : 'none' }}>
+              <span style={{ fontWeight: 900, ...OSWALD }}>{r.lot.card.name}</span>
+              <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{label[r.outcome]}{r.outcome !== 'none' ? ` · 💰 ${r.price}` : ''}{r.outcome === 'rival' ? ` (${r.by})` : ''}{r.dropped ? <><br /><span style={{ color: '#999' }}>{r.dropped} foi pro monte</span></> : ''}</span>
+            </div>
+          )
+        })}
+        {!done
+          ? <Btn onClick={() => setRevealIdx(i => i + 1)} bg={GOLD}>🔨 MARTELAR</Btn>
+          : <Btn onClick={nextSector} bg={GREEN} color="#fff">{last ? '🏁 Encerrar pregão' : '➡️ Próxima posição'}</Btn>}
+      </div>
+    )
+  }
+
+  // fase de LANCE (envelope) da posição atual
   return (
     <div style={{ display: 'grid', gap: 10 }}>
-      <div style={{ ...box(INK), padding: 12, color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontWeight: 900, fontSize: 16, ...OSWALD }}>🔨 PREGÃO DA JANELA</span>
-        <span style={{ fontWeight: 900, fontSize: 20, ...OSWALD, color: left <= 10 ? RED : GOLD }}>⏱️ {left}s</span>
-      </div>
-      <div style={{ ...box('#EAF3FF'), padding: 9 }}><p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ Lance <b>às cegas</b>: escolha 1 alvo por posição e o valor. Ao lacrar (ou zerar o tempo), rivais e donos revelam junto — maior lance leva, empate você leva. Piso = último preço pago.{midSeason ? <><br /><span style={{ color: RED }}>⏸️ Janela do meio: o que ganhar só entra na próxima temporada.</span></> : ''}</p></div>
-      <div style={{ ...box(GOLD), padding: '8px 12px', textAlign: 'center', fontWeight: 900, ...OSWALD }}>Caixa: 💰 {save.coins} · comprometido: 💰 {spent}{overBudget ? ' ⚠️ acima do caixa' : ''}</div>
-      {byPos.map(({ p, lots }) => {
-        const pick = picks[p]
+      {bar}
+      <div style={{ ...box('#EAF3FF'), padding: 9 }}><p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ Lance <b>às cegas</b> nesta posição: escolha 1 alvo e o valor. Ao lacrar (ou zerar o tempo) vem o <b>martelo</b> — maior lance leva, empate você leva. Piso = último valor pago.{midSeason ? <><br /><span style={{ color: RED }}>⏸️ Janela do meio: o que ganhar só entra na próxima temporada.</span></> : ''}</p></div>
+      <div style={{ ...box(GOLD), padding: '8px 12px', textAlign: 'center', fontWeight: 900, ...OSWALD }}>Caixa: 💰 {coins}</div>
+      {cur.lots.map(lot => {
+        const minBid = lot.floor ?? 1
+        const on = pick?.lotId === lot.card.id
         return (
-          <div key={p} style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 6 }}>
-            <p style={{ fontWeight: 800, fontSize: 12, color: '#888' }}>{SECTOR_LABEL[p]}</p>
-            {lots.map(lot => {
-              const minBid = lot.floor ?? 1
-              const selectable = lot.kind !== 'sell'
-              const on = pick?.lotId === lot.card.id
-              return (
-                <div key={lot.card.id} style={{ border: `2px solid ${on ? GREEN : INK}`, borderRadius: 10, padding: '7px 10px', background: on ? '#EAF7EE' : '#fff' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 900, ...OSWALD }}>{lot.card.name} <span style={{ fontSize: 10, color: '#999' }}>{kindLabel[lot.kind]}{lot.ownerName && lot.kind !== 'sell' ? ` · ${lot.ownerName}` : ''}</span></span>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: '#888' }}>{lot.floor !== undefined ? `piso ${lot.floor}` : 'sem piso'}</span>
-                  </div>
-                  {lot.kind === 'sell'
-                    ? <p style={{ fontSize: 11, fontWeight: 700, color: '#888', marginTop: 4 }}>Seu jogador no mercado — seus rivais brigam. Você recebe se venderem.</p>
-                    : on
-                      ? <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center', marginTop: 6 }}>
-                          {[-5, -1].map(d => <button key={d} onClick={() => setPicks(s => ({ ...s, [p]: { lotId: lot.card.id, amount: Math.max(minBid, (s[p]?.amount ?? minBid) + d) } }))} style={stepBtn}>{d}</button>)}
-                          <span style={{ fontWeight: 900, fontSize: 22, ...OSWALD, minWidth: 60, textAlign: 'center' }}>💰 {pick.amount}</span>
-                          {[+1, +5].map(d => <button key={d} onClick={() => setPicks(s => ({ ...s, [p]: { lotId: lot.card.id, amount: Math.min(save.coins, (s[p]?.amount ?? minBid) + d) } }))} style={stepBtn}>+{d}</button>)}
-                        </div>
-                      : <button onClick={() => setPicks(s => ({ ...s, [p]: { lotId: lot.card.id, amount: Math.max(minBid, Math.min(save.coins, Math.round(lot.perceived))) } }))} disabled={!selectable} style={{ marginTop: 6, width: '100%', border: `2px solid ${INK}`, borderRadius: 8, padding: '5px 0', fontWeight: 800, fontSize: 12, background: '#fff', cursor: 'pointer', ...OSWALD }}>Dar lance neste</button>}
-                  {on && <button onClick={() => setPicks(s => { const n = { ...s }; delete n[p]; return n })} style={{ marginTop: 4, width: '100%', fontSize: 11, fontWeight: 700, color: '#999', background: 'none', border: 'none', cursor: 'pointer' }}>tirar lance</button>}
-                </div>
-              )
-            })}
+          <div key={lot.card.id} style={{ ...box(on ? '#EAF7EE' : '#fff'), padding: '8px 11px', display: 'grid', gap: 6, border: on ? `3px solid ${GREEN}` : `3px solid ${INK}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 900, ...OSWALD }}>{lot.card.name} <span style={{ fontSize: 10, color: '#999' }}>{kindLabel[lot.kind]}{lot.ownerName && lot.kind !== 'sell' ? ` · ${lot.ownerName}` : ''}</span></span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#888' }}>{lot.floor !== undefined ? `piso ${lot.floor}` : 'sem piso'}</span>
+            </div>
+            {lot.kind === 'sell'
+              ? <p style={{ fontSize: 11, fontWeight: 700, color: '#888' }}>Seu jogador no mercado — seus rivais brigam. Você recebe se venderem.</p>
+              : on
+                ? <>
+                    <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center' }}>
+                      {[-5, -1].map(d => <button key={d} onClick={() => setPick(pk => ({ lotId: lot.card.id, amount: Math.max(minBid, (pk?.amount ?? minBid) + d) }))} style={stepBtn}>{d}</button>)}
+                      <span style={{ fontWeight: 900, fontSize: 22, ...OSWALD, minWidth: 60, textAlign: 'center' }}>💰 {pick.amount}</span>
+                      {[+1, +5].map(d => <button key={d} onClick={() => setPick(pk => ({ lotId: lot.card.id, amount: Math.min(coins, (pk?.amount ?? minBid) + d) }))} style={stepBtn}>+{d}</button>)}
+                    </div>
+                    <button onClick={() => setPick(null)} style={{ fontSize: 11, fontWeight: 700, color: '#999', background: 'none', border: 'none', cursor: 'pointer' }}>tirar lance</button>
+                  </>
+                : <button onClick={() => setPick({ lotId: lot.card.id, amount: Math.max(minBid, Math.min(coins, Math.round(lot.perceived))) })} disabled={minBid > coins} style={{ width: '100%', border: `2px solid ${INK}`, borderRadius: 8, padding: '5px 0', fontWeight: 800, fontSize: 12, background: minBid > coins ? '#eee' : '#fff', cursor: minBid > coins ? 'default' : 'pointer', ...OSWALD }}>{minBid > coins ? 'sem caixa' : 'Dar lance neste'}</button>}
           </div>
         )
       })}
-      <Btn onClick={seal} bg={GREEN} color="#fff" disabled={overBudget}>🔒 Lacrar envelope e revelar</Btn>
-      <Btn onClick={onDone} bg="#fff">← Sair sem lançar</Btn>
+      <Btn onClick={sealSector} bg={GREEN} color="#fff">🔒 Lacrar e martelar</Btn>
+      {sectorIdx === 0 && <Btn onClick={onDone} bg="#fff">← Sair sem lançar</Btn>}
     </div>
   )
 }
