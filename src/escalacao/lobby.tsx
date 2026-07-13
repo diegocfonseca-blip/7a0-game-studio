@@ -33,6 +33,12 @@ function randCode() { return Math.random().toString(36).slice(2, 8).toUpperCase(
 // "some" — não porque saiu da sala, mas porque tudo que só existia em
 // memória foi perdido. Com isso salvo, reconectamos sozinhos.
 const LS_KEY = 'escalacao-room'
+// código de convite guardado quando o amigo abriu a URL ?j=CODE — usado
+// pra entrar automaticamente na sala depois de logar/cadastrar (ou já entrar
+// direto se ele já estava logado). Some depois de consumido.
+const INVITE_KEY = 'esc_invite_code'
+function loadInvite(): string | null { try { return sessionStorage.getItem(INVITE_KEY) } catch { return null } }
+function clearInvite() { try { sessionStorage.removeItem(INVITE_KEY) } catch { /* ignora */ } }
 // hash da senha da sala (SHA-256) — não guardamos a senha em texto puro
 async function hashPw(text: string): Promise<string> {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
