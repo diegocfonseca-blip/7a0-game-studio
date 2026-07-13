@@ -752,8 +752,33 @@ export function EscLobby() {
         {room.game_state?.roomName && <p className="text-white font-black text-xl mb-1" style={OSWALD}>{room.game_state.roomName}</p>}
         <p className="text-white/50 text-[11px] font-black uppercase tracking-widest">Código da Sala</p>
         <p className="font-black text-5xl text-white tracking-[0.2em] mt-1">{room.code}</p>
-        <p className="text-white/30 text-xs mt-1">Aparece nas Salas Abertas ou compartilhe o código</p>
       </div>
+
+      {/* Convite: manda o link direto no zap — o amigo cai na sala automaticamente
+          (se já tem conta) ou no cadastro rápido e depois na sala. */}
+      <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
+        <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>📣 Chame a galera</p>
+        <p className="text-white/80 text-[11px] font-medium leading-snug">
+          Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.
+        </p>
+        <div className="flex gap-2">
+          <button onClick={() => shareInvite(room.code, room.game_state?.roomName)}
+            className="flex-1 border-[2px] border-black rounded-xl py-2.5 font-black text-xs uppercase bg-white text-black active:translate-y-0.5" style={OSWALD}>
+            📤 Compartilhar convite
+          </button>
+          <button onClick={() => copyCode(room.code)}
+            className="border-[2px] border-black rounded-xl px-3 py-2.5 font-black text-xs uppercase bg-[#FFC400] text-black active:translate-y-0.5" style={OSWALD}
+            aria-label="Copiar código">
+            📋
+          </button>
+        </div>
+        {shareOk && (
+          <p className="text-white text-[11px] font-black text-center" style={OSWALD}>
+            ✓ {shareOk === 'code' ? 'Código copiado' : 'Link copiado — cola no zap'}
+          </p>
+        )}
+      </div>
+
       <div className="border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-3">Técnicos ({players.length}/{room.max_players})</p>
         <div className="space-y-2">
