@@ -22,6 +22,8 @@ type OpenRoom = RoomInfo & { count: number }
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
 const GREEN = '#1B7A3D'
+const PURPLE = '#7C3AED'
+const PURPLE_DARK = '#5B21B6'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' }
 function randCode() { return Math.random().toString(36).slice(2, 8).toUpperCase() }
 
