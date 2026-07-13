@@ -436,8 +436,7 @@ function Dinastia() {
       {header}
       {phase === 'home' && <Home save={save} go={setPhase} playSeason={playSeason} />}
       {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
-      {phase === 'scorers' && <ScorersScreen save={save} onBack={() => setPhase('home')} />}
-      {phase === 'table' && <ClassificationScreen save={save} onBack={() => setPhase('home')} />}
+      {(phase === 'scorers' || phase === 'table') && <LeagueScreen mode="past" save={save} onBack={() => setPhase('home')} />}
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'transfer' && <Transfer save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'sell' && <SellRoom save={save} persist={persist} onBack={() => setPhase('home')} />}
