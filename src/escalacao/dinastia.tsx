@@ -177,22 +177,20 @@ const CREST_PRICE_PREMIUM = 25 // símbolo premium (desbloqueado por divisão) c
 // PISO = só o último preço pago (contrato). Quem NUNCA foi comprado não tem piso
 // (undefined): o leilão dele abre sem mínimo, e o preço pago vira o valor eterno.
 const floorOf = (save: Save, c: PoolCard): number | undefined => save.contracts?.[c.id]?.floor
-const goalW = (pos: Sector) => pos === 'ATA' ? 0.8 : pos === 'MEI' ? 0.6 : pos === 'LAT' ? 0.35 : 0.25
 const contractUntil = (save: Save, id: string) => save.contracts?.[id]?.until ?? -1
 const underContract = (save: Save, id: string) => contractUntil(save, id) >= save.seasonNo
 const setContract = (save: Save, id: string, price: number): Record<string, { until: number; floor: number }> =>
   ({ ...(save.contracts ?? {}), [id]: { until: save.seasonNo + CONTRACT, floor: price } })
 function loadSave(): Save | null { try { const r = localStorage.getItem(SAVE_KEY); return r ? JSON.parse(r) : null } catch { return null } }
 function writeSave(s: Save) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)) } catch { /* cheio */ } }
-// valor de mercado = último preço pago + desempenho (gols). undefined = novo no
-// mercado (nunca teve preço). Rivais/dono ainda enxergam a qualidade real (nível).
+// valor = SÓ o último lance que ganhou (o preço pago na última negociação). É o
+// mínimo do próximo leilão e o que o dono paga pra renovar. undefined = nunca
+// foi negociado ("novo no mercado"). Sem inflar por gol nem por nada.
 function valueOf(save: Save, c: PoolCard): number | undefined {
-  const f = floorOf(save, c); if (f === undefined) return undefined
-  return Math.round(f + (save.worldGoals?.[c.id] ?? 0) * goalW(c.pos))
+  return floorOf(save, c)
 }
 function myValue(save: Save, c: WonCard): number {
-  const f = floorOf(save, c) ?? Math.max(1, c.paid)
-  return Math.round(f + (save.goalsLast?.[c.id] ?? 0) * goalW(c.pos) + (save.championLast ? 4 : 0))
+  return floorOf(save, c) ?? Math.max(1, c.paid)
 }
 
 // dá um jogador a um time mantendo 11 (bancando o pior do setor)
@@ -872,12 +870,11 @@ function Transfer({ save, persist, onBack, midSeason }: { save: Save; persist: (
           const under = underContract(save, c.id)
           const posDone = attemptedPos.has(p)
           const dis = under || posDone
-          const v = valueOf(save, c)
           const fl = floorOf(save, c)
           return (
             <button key={c.id} disabled={dis} onClick={() => { persist({ ...save, requested: [...(save.requested ?? []), c.id] }); setBrowseTeam(null) }} style={{ ...box(dis ? '#eee' : '#fff'), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: dis ? 'default' : 'pointer', textAlign: 'left', opacity: dis ? 0.55 : 1 }}>
               <span style={{ fontWeight: 900, ...OSWALD }}><Pos p={c.pos} /> {c.name}</span>
-              {under ? <span style={{ fontWeight: 800, color: RED, fontSize: 12 }}>🔒 contrato (temp. {contractUntil(save, c.id)})</span> : posDone ? <span style={{ fontWeight: 800, color: '#999', fontSize: 12 }}>já aliciou 1 {c.pos}</span> : <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{fl !== undefined ? <>💰 piso {fl}{v !== undefined && v !== fl ? ` · vale ${v}` : ''}</> : <span style={{ color: '#888' }}>novo no mercado</span>}<br /><span style={{ color: GREEN, fontSize: 11 }}>+ aliciar</span></span>}
+              {under ? <span style={{ fontWeight: 800, color: RED, fontSize: 12 }}>🔒 contrato (temp. {contractUntil(save, c.id)})</span> : posDone ? <span style={{ fontWeight: 800, color: '#999', fontSize: 12 }}>já aliciou 1 {c.pos}</span> : <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{fl !== undefined ? <>💰 valor {fl}<br /><span style={{ fontSize: 10, color: '#888' }}>mín. do lance</span></> : <span style={{ color: '#888' }}>novo no mercado</span>}<br /><span style={{ color: GREEN, fontSize: 11 }}>+ aliciar</span></span>}
             </button>
           )
         }))}
