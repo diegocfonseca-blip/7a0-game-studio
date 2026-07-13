@@ -157,8 +157,10 @@ interface Save {
   contracts?: Record<string, { until: number; floor: number }> // até que temporada + piso (último preço pago)
   requested?: string[] // jogadores que você pediu pro leilão desta janela
   monte?: PoolCard[] // livres: dispensados que ninguém pagou o mínimo; pegáveis de graça
-  globalScorers?: { name: string; teamName: string; div: Division; goals: number }[] // artilharia geral das 4 divisões
+  lastTable?: TeamStand[] // classificação FINAL da sua divisão na última temporada
+  lastScorers?: { name: string; teamName: string; goals: number }[] // artilharia da SUA divisão (última temp.)
   crest?: { c1: string; c2: string; symbol: string } // identidade: 2 cores + símbolo (escudo)
+  tactic?: Tac // tática escolhida no elenco (equilíbrio por padrão)
   lastResult?: { pos: number; move: 'up' | 'down' | 'stay'; prevDiv: Division; champion: boolean }
 }
 const CONTRACT = 5 // temporadas de contrato de todo jogador comprado no leilão
@@ -269,21 +271,20 @@ function processDinastiaEnd(state: EscState, existing: Save | null): Save {
   const div = base.division
   const rng = mulberry((base.seed ^ (base.seasonNo * 131 + 7)) >>> 0)
   const scorers = new Map<string, Scorer>()
-  const globalRows: { name: string; teamName: string; div: Division; goals: number }[] = []
-  // artilharia REAL da sua divisão (do motor) — seu time com o nome limpo
-  for (const sc of state.scorers) globalRows.push({ name: sc.name, teamName: sc.teamId === you.id ? base.clubName : sc.teamName, div, goals: sc.goals })
+  // classificação FINAL da sua divisão (do motor) — seu time com o nome limpo
+  const lastTable: TeamStand[] = engTable.map(t => ({ name: t.id === you.id ? base.clubName : t.name, pts: t.pts, w: t.w, d: t.d, l: t.l, gf: t.gf, ga: t.ga }))
+  // artilharia da SUA divisão (do motor) — só ela, sem o geral das 4 divisões
+  const lastScorers = state.scorers.map(sc => ({ name: sc.name, teamName: sc.teamId === you.id ? base.clubName : sc.teamName, goals: sc.goals })).sort((a, b) => b.goals - a.goals).slice(0, 20)
   // ordem REAL da sua divisão (seu time é o id do humano; resto pelo nome do mundo)
   const tables: Record<Division, (WTeam | null)[]> = { A: [], B: [], C: [], D: [] }
   tables[div] = engTable.map(t => t.id === you.id ? null : (base.world.find(w => w.div === div && w.name === t.name) ?? null))
-  // outras 3 divisões: sim abstrato (pirâmide + artilharia geral)
+  // outras 3 divisões: sim abstrato (só pra pirâmide sobe/desce + valorização por gols)
   for (const d of DIVS) {
     if (d === div) continue
     const teams = base.world.filter(w => w.div === d).map(w => mkSim(w.name, bestXI(w.squad), false, w))
     simFixtures(teams, d, rng, scorers, buildFixtures(teams.length))
     tables[d] = sortTable(teams, rng).map(t => t.wt)
   }
-  for (const s of scorers.values()) globalRows.push({ name: s.name, teamName: s.teamName, div: s.div, goals: s.goals })
-  const globalScorers = globalRows.sort((a, b) => b.goals - a.goals).slice(0, 25)
   // valor dinâmico: gols dos SEUS jogadores (por nome, do motor)
   const goalsLast: Record<string, number> = {}
   for (const c of base.squad) { const sc = state.scorers.find(s => s.name === c.name && s.teamId === you.id); if (sc) goalsLast[c.id] = sc.goals }
@@ -305,7 +306,7 @@ function processDinastiaEnd(state: EscState, existing: Save | null): Save {
   const move: 'up' | 'down' | 'stay' = newDivision === div ? 'stay' : DIVS.indexOf(newDivision) > DIVS.indexOf(div) ? 'up' : 'down'
   return {
     ...base, world: newWorld, division: newDivision, seasonNo: base.seasonNo + 1,
-    stage: 'preWindow', requested: [], monte: base.monte ?? [], globalScorers,
+    stage: 'preWindow', requested: [], monte: base.monte ?? [], lastTable, lastScorers,
     coins: base.coins + prize, titles: base.titles + (youChampion ? 1 : 0),
     worldGoals, goalsLast, championLast: youChampion,
     lastResult: { pos: yourPos, move, prevDiv: div, champion: youChampion },
@@ -387,7 +388,7 @@ function Overlay({ children }: { children: React.ReactNode }) {
   )
 }
 
-type Phase = 'home' | 'transfer' | 'sell' | 'store' | 'squad' | 'scorers'
+type Phase = 'home' | 'transfer' | 'sell' | 'store' | 'squad' | 'scorers' | 'table'
 
 function Dinastia() {
   const { dispatch } = useEsc()
@@ -435,6 +436,7 @@ function Dinastia() {
       {phase === 'home' && <Home save={save} go={setPhase} playSeason={playSeason} />}
       {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
       {phase === 'scorers' && <ScorersScreen save={save} onBack={() => setPhase('home')} />}
+      {phase === 'table' && <ClassificationScreen save={save} onBack={() => setPhase('home')} />}
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'transfer' && <Transfer save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'sell' && <SellRoom save={save} persist={persist} onBack={() => setPhase('home')} />}
@@ -666,9 +668,12 @@ function Home({ save, go, playSeason }: { save: Save; go: (p: Phase) => void; pl
       <Btn onClick={playSeason} bg={GREEN} color="#fff">▶️ JOGAR A TEMPORADA {save.seasonNo}</Btn>
       <div style={{ display: 'flex', gap: 10 }}>
         <div style={{ flex: 1 }}><Btn onClick={() => go('squad')} bg="#fff">👥 Elenco</Btn></div>
+        <div style={{ flex: 1 }}><Btn onClick={() => go('store')} bg={PURPLE} color="#fff">🛡️ Escudo</Btn></div>
+      </div>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ flex: 1 }}><Btn onClick={() => go('table')} bg="#fff">📊 Classificação</Btn></div>
         <div style={{ flex: 1 }}><Btn onClick={() => go('scorers')} bg="#fff">🥇 Artilharia</Btn></div>
       </div>
-      <Btn onClick={() => go('store')} bg={PURPLE} color="#fff">🛡️ Escudo & Identidade</Btn>
     </div>
   )
 }
@@ -697,22 +702,52 @@ function SquadScreen({ save, onBack }: { save: Save; onBack: () => void }) {
   )
 }
 
-// ─── ARTILHARIA GERAL (4 divisões, da última temporada) ──────────────
+// ─── ARTILHARIA DA SUA DIVISÃO (última temporada) ────────────────────
 function ScorersScreen({ save, onBack }: { save: Save; onBack: () => void }) {
-  const rows = save.globalScorers ?? []
-  const myNames = new Set(save.squad.map(c => c.name))
-  if (rows.length === 0) return <div style={{ display: 'grid', gap: 10 }}><p style={{ fontWeight: 700, color: '#888' }}>Jogue uma temporada pra ver a artilharia geral.</p><Btn onClick={onBack} bg="#fff">← Voltar</Btn></div>
+  const rows = save.lastScorers ?? []
+  if (rows.length === 0) return <div style={{ display: 'grid', gap: 10 }}><p style={{ fontWeight: 700, color: '#888' }}>Jogue uma temporada pra ver a artilharia da sua divisão.</p><Btn onClick={onBack} bg="#fff">← Voltar</Btn></div>
   return (
     <div style={{ display: 'grid', gap: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🥇 Artilharia geral (4 divisões)</p>
-      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Última temporada, todas as divisões. Seus jogadores destacados. É por aqui que um Obina goleador vira alvo caro.</p>
+      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🥇 Artilharia · {DIV_LABEL[save.division]}</p>
+      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Última temporada, a sua divisão. Seus jogadores destacados.</p>
       <div style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 4 }}>
         {rows.map((s, i) => {
-          const mine = myNames.has(s.name) && s.teamName === save.clubName
+          const mine = s.teamName === save.clubName
           return (
             <div key={s.teamName + s.name + i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px', borderRadius: 6, background: mine ? GOLD : 'transparent', fontWeight: mine ? 900 : 700 }}>
-              <span style={{ fontSize: 13 }}>{i + 1}. {s.name} <span style={{ color: '#999', fontSize: 11 }}>{s.teamName} · {DIV_LABEL[s.div]}</span></span>
+              <span style={{ fontSize: 13 }}>{i + 1}. {s.name} <span style={{ color: '#999', fontSize: 11 }}>{s.teamName}</span></span>
               <span style={{ fontWeight: 900, ...OSWALD }}>⚽ {s.goals}</span>
+            </div>
+          )
+        })}
+      </div>
+      <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
+    </div>
+  )
+}
+
+// ─── CLASSIFICAÇÃO da sua divisão (final da última temporada) ─────────
+function ClassificationScreen({ save, onBack }: { save: Save; onBack: () => void }) {
+  const rows = save.lastTable ?? []
+  if (rows.length === 0) return <div style={{ display: 'grid', gap: 10 }}><p style={{ fontWeight: 700, color: '#888' }}>Jogue uma temporada pra ver a classificação da sua divisão.</p><Btn onClick={onBack} bg="#fff">← Voltar</Btn></div>
+  return (
+    <div style={{ display: 'grid', gap: 10 }}>
+      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>📊 Classificação · {DIV_LABEL[save.division]}</p>
+      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Final da última temporada. 🟢 topo sobe · 🔴 base cai.</p>
+      <div style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 2 }}>
+        <div style={{ display: 'flex', fontSize: 10, fontWeight: 800, color: '#aaa', padding: '0 6px 2px' }}>
+          <span style={{ width: 22 }}>#</span><span style={{ flex: 1 }}>Time</span><span style={{ width: 26, textAlign: 'center' }}>P</span><span style={{ width: 52, textAlign: 'center' }}>V-E-D</span><span style={{ width: 34, textAlign: 'right' }}>SG</span>
+        </div>
+        {rows.map((t, i) => {
+          const mine = t.name === save.clubName
+          const zone = i < 4 ? '#1B7A3D' : i >= 16 ? '#E8503A' : 'transparent'
+          return (
+            <div key={t.name + i} style={{ display: 'flex', alignItems: 'center', padding: '4px 6px', borderRadius: 6, background: mine ? GOLD : 'transparent', fontWeight: mine ? 900 : 700, fontSize: 12 }}>
+              <span style={{ width: 22, display: 'flex', alignItems: 'center', gap: 3 }}><i style={{ width: 5, height: 5, borderRadius: 99, background: zone, display: 'inline-block' }} />{i + 1}</span>
+              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
+              <span style={{ width: 26, textAlign: 'center', fontWeight: 900, ...OSWALD }}>{t.pts}</span>
+              <span style={{ width: 52, textAlign: 'center', color: '#888', fontSize: 11 }}>{t.w}-{t.d}-{t.l}</span>
+              <span style={{ width: 34, textAlign: 'right', color: '#888', fontSize: 11 }}>{t.gf - t.ga > 0 ? '+' : ''}{t.gf - t.ga}</span>
             </div>
           )
         })}
