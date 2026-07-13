@@ -1828,15 +1828,22 @@ interface UserCardRow { card_name: string; card_club: string; card_year: number;
 interface AlbumCard { name: string; club: string; year: number; pos: Sector; fame: number; folk?: boolean; promessa?: boolean; origin: 'cpu' | 'online'; at: number }
 type AlbumFilter = 'all' | 'cpu' | 'online'
 
+// carta de EXEMPLO — aparece só pra quem NÃO tem conta, pra mostrar como é a
+// carta-lembrança e provocar o cadastro. Some assim que a pessoa loga (aí entram
+// só as reais). É de mentirinha, não conta em lugar nenhum.
+const EXAMPLE_CARD = { name: 'Rayan', club: 'Exemplo FC', year: 2025, pos: 'ATA', fame: 3, bio: 'Oi, boa noite! 👋 Sou só um exemplo pra você ver como é a carta. Faça seu cadastro, seja campeão e colecione craques de verdade — no CPU e no online.' }
+
 export function EscAlbum() {
   const { dispatch } = useEsc()
   const [cards, setCards] = useState<AlbumCard[] | null>(null)
+  const [anon, setAnon] = useState(false)
   const [filter, setFilter] = useState<AlbumFilter>('all')
 
   useEffect(() => {
     ;(async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setCards([]); return }
+      if (!user) { setCards([]); setAnon(true); return }
+      setAnon(false)
       const { data } = await supabase.from('user_cards').select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at').eq('user_id', user.id).order('obtained_at', { ascending: false })
       setCards(((data ?? []) as UserCardRow[]).map(c => ({
         name: c.card_name, club: c.card_club, year: c.card_year, pos: c.card_pos as Sector, fame: c.card_fame,
@@ -1886,7 +1893,21 @@ export function EscAlbum() {
       </div>
 
       {loading && <p className="text-center font-bold text-black/60">Carregando…</p>}
-      {!loading && shown.length === 0 && (
+
+      {/* SEM CONTA: mostra 1 carta de exemplo pra provocar o cadastro (some ao logar) */}
+      {!loading && anon && (
+        <div className="space-y-3">
+          <Box bg={GOLD} className="p-3 text-center">
+            <p className="font-black text-sm" style={OSWALD}>👀 Exemplo de carta-lembrança</p>
+            <p className="font-bold text-black/70 text-xs mt-1">Faça seu cadastro pra começar a SUA coleção de verdade. Esta carta some quando você logar.</p>
+          </Box>
+          <div className="grid grid-cols-2 gap-3">
+            <CollectibleCard name={EXAMPLE_CARD.name} club={EXAMPLE_CARD.club} year={EXAMPLE_CARD.year} pos={EXAMPLE_CARD.pos} fame={EXAMPLE_CARD.fame} bio={EXAMPLE_CARD.bio} showBio />
+          </div>
+        </div>
+      )}
+
+      {!loading && !anon && shown.length === 0 && (
         <Box bg="#fff" className="p-6 text-center">
           <p className="font-bold text-black/70">
             {filter === 'online' ? 'Ainda sem cartas do online. Seja campeão de uma sala pra ganhar a primeira!'
@@ -1895,11 +1916,13 @@ export function EscAlbum() {
           </p>
         </Box>
       )}
-      <div className="grid grid-cols-2 gap-3">
-        {shown.map((c, i) => (
-          <CollectibleCard key={i} name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} showBio />
-        ))}
-      </div>
+      {!anon && (
+        <div className="grid grid-cols-2 gap-3">
+          {shown.map((c, i) => (
+            <CollectibleCard key={i} name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} showBio />
+          ))}
+        </div>
+      )}
       <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">← Voltar</Btn>
     </Shell>
   )
