@@ -426,6 +426,8 @@ const LAT: C[] = [
   { name: "Arce", club: "Palmeiras", year: 1999, fame: 4, lo: 85, hi: 91 },
   { name: "Apodi", club: "Fortaleza", year: 2018, fame: 1, lo: 57, hi: 79, folk: true },
   { name: "Madson Cu de Nitro", club: "Athletico-PR", year: 2020, fame: 1, lo: 56, hi: 78, folk: true },
+  { name: "Fábio Santos", club: "Corinthians", year: 2012, fame: 3, lo: 73, hi: 84 },
+  { name: "André Santos", club: "Corinthians", year: 2011, fame: 2, lo: 62, hi: 82, folk: true },
 ]
 
 const ZAG: C[] = [
@@ -473,6 +475,8 @@ const ZAG: C[] = [
   { name: "Léo Pelé", club: "São Paulo", year: 2023, fame: 1, lo: 56, hi: 77, folk: true },
   { name: "Paulão", club: "Vasco", year: 2011, fame: 1, lo: 55, hi: 77, folk: true },
   { name: "Alex Silva Pirulito", club: "São Paulo", year: 2006, fame: 1, lo: 56, hi: 78, folk: true },
+  { name: "Ricardo Rocha", club: "São Paulo", year: 1993, fame: 3, lo: 74, hi: 84 },
+  { name: "Abel Braga", club: "Fluminense", year: 1976, fame: 2, lo: 64, hi: 80, folk: true, bio: "Antes de virar o eterno técnico raçudo de beira de campo, foi zagueiro de respeito — o nome já é resenha por si só." },
 ]
 
 const MEI: C[] = [
@@ -559,6 +563,12 @@ const MEI: C[] = [
   { name: "Paulo Baier", club: "Goiás", year: 2005, fame: 4, lo: 84, hi: 91 },
   { name: "Thiago Almada", club: "Botafogo", year: 2024, fame: 3, lo: 74, hi: 82, promessa: true },
   { name: "Philippe Coutinho", club: "Vasco", year: 2009, fame: 3, lo: 74, hi: 82, promessa: true },
+  { name: "Andrade", club: "Flamengo", year: 1981, fame: 3, lo: 74, hi: 85 },
+  { name: "Carlos Alberto", club: "Porto", year: 2004, fame: 3, lo: 73, hi: 85, bio: "Menino do Mundial de 2000 pelo Corinthians que decidiu a final da Champions de 2004 marcando pelo Porto — talento de sobra." },
+  { name: "Ibson", club: "Flamengo", year: 2006, fame: 2, lo: 64, hi: 80 },
+  { name: "Fábio Baiano", club: "Flamengo", year: 1996, fame: 2, lo: 66, hi: 82 },
+  { name: "Iranildo", club: "Flamengo", year: 1995, fame: 2, lo: 62, hi: 80, folk: true },
+  { name: "Fumagalli", club: "Goiás", year: 2005, fame: 2, lo: 64, hi: 80, folk: true, bio: "Uma vida inteira no Goiás — ídolo eterno e folclore esmeraldino." },
 ]
 
 const ATA: C[] = [
@@ -670,6 +680,23 @@ const ATA: C[] = [
   { name: "Vágner Love", club: "Palmeiras", year: 2004, fame: 4, lo: 85, hi: 91 },
   { name: "França", club: "São Paulo", year: 2000, fame: 4, lo: 84, hi: 90 },
   { name: "Rayan Oi, Boa Noite", club: "Vasco", year: 2025, fame: 3, lo: 77, hi: 84, promessa: true },
+  { name: "Jardel", club: "Grêmio", year: 1996, fame: 4, lo: 81, hi: 90, bio: "Máquina de cabeçada e gol — goleador absurdo no Grêmio e depois no Porto." },
+  { name: "Dagoberto", club: "São Paulo", year: 2008, fame: 3, lo: 72, hi: 84 },
+  { name: "Nilmar", club: "Internacional", year: 2006, fame: 3, lo: 74, hi: 85 },
+  { name: "Borges", club: "Santos", year: 2011, fame: 3, lo: 70, hi: 84 },
+  { name: "Leandro Damião", club: "Internacional", year: 2011, fame: 3, lo: 74, hi: 86 },
+  { name: "Savinho", club: "Atlético-MG", year: 2023, fame: 3, lo: 74, hi: 84, promessa: true, bio: "Ponta driblador do Galo que explodiu e foi brilhar no Manchester City — promessa cumprida." },
+  { name: "Bernard", club: "Atlético-MG", year: 2013, fame: 3, lo: 74, hi: 84 },
+  { name: "Rafael Sóbis", club: "Internacional", year: 2006, fame: 3, lo: 70, hi: 83 },
+  { name: "Luan", club: "Atlético-MG", year: 2013, fame: 3, lo: 74, hi: 85, bio: "Rei da América de 2013 — decisivo na campanha da Libertadores do Galo." },
+  { name: "Romarinho", club: "Corinthians", year: 2012, fame: 2, lo: 66, hi: 82, folk: true, bio: "O gol que calou Stamford Bridge no Mundial — folclore corinthiano eterno." },
+  { name: "Soteldo", club: "Santos", year: 2019, fame: 3, lo: 72, hi: 84 },
+  { name: "Michael Jackson", club: "Fluminense", year: 1999, fame: 1, lo: 52, hi: 76, folk: true, bio: "O nome já é show à parte — puro folclore de arquibancada." },
+  { name: "Jean Chera", club: "Santos", year: 2008, fame: 1, lo: 50, hi: 78, folk: true, bio: "A maior promessa da Vila que o país inteiro esperava — virou a lenda do 'e se…'." },
+  { name: "Maxi Biancucchi", club: "Vitória", year: 2010, fame: 2, lo: 66, hi: 82, folk: true, bio: "Primo do Messi que fez fama por conta própria no Nordeste — resenha garantida." },
+  { name: "Paulo Nunes", club: "Grêmio", year: 1996, fame: 3, lo: 70, hi: 84 },
+  { name: "Marcelo Moreno", club: "Cruzeiro", year: 2013, fame: 3, lo: 70, hi: 84 },
+  { name: "Anelka", club: "Atlético-MG (quase)", year: 2014, fame: 4, lo: 80, hi: 90, folk: true, bio: "O craque francês que QUASE vestiu o manto do Galo em 2014 — o reforço bombástico que só existiu na imaginação (e no sonho) da torcida." },
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
