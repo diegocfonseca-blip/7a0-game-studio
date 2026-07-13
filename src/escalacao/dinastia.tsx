@@ -1067,7 +1067,7 @@ function DispensaAuction({ save, card, persist, onBack }: { save: Save; card: Wo
 type LotKind = 'market' | 'aliciar' | 'sell'
 interface Lot { card: PoolCard; kind: LotKind; ownerName?: string; floor?: number; perceived: number }
 interface BidRow { name: string; amount: number; mine: boolean; winner: boolean }
-interface LotResult { lot: Lot; outcome: 'you' | 'rival' | 'owner' | 'none'; by: string; price: number; dropped?: string; bids: BidRow[] }
+interface LotResult { lot: Lot; outcome: 'you' | 'rival' | 'owner' | 'none'; by: string; price: number; dropped?: string; droppedCard?: WonCard; bids: BidRow[] }
 
 // monta o baralho da janela: 1 do mercado por posição (sorteio uniforme, sem os
 // seus nem dos rivais) + os que você aliciou + os que você pôs à venda.
@@ -1129,17 +1129,18 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
   const removeFromOwner = (name: string) => draft.world.map(w => w.name === name ? { ...w, squad: w.squad.filter(c => c.id !== lot.card.id).concat(filler(lot.card.pos, rng)) } : w)
   const giveToRival = (name: string) => draft.world.map(w => w.name === name ? { ...w, squad: giveToTeam(w.squad, lot.card) } : w)
   // adiciona ao SEU elenco mantendo o teto da formação (o pior do setor vai pro monte)
-  const addToMe = (price: number): string | undefined => {
+  const addToMe = (price: number): { name?: string; card?: WonCard } => {
     let squad: WonCard[] = [...draft.squad, { ...(lot.card as Card), paid: price, via: 'leilao' as const }]
-    let dropped: string | undefined
     const atPos = squad.filter(c => c.pos === lot.card.pos)
     if (atPos.length > FORM_NEED[draft.formation][lot.card.pos]) {
       const worst = atPos.slice().sort((a, b) => mid(a) - mid(b))[0]
-      dropped = worst.name; squad = squad.filter(c => c.id !== worst.id)
+      squad = squad.filter(c => c.id !== worst.id)
       draft.monte = [...(draft.monte ?? []), { ...worst }]
+      draft.squad = squad
+      return { name: worst.name, card: worst }
     }
     draft.squad = squad
-    return dropped
+    return {}
   }
   if (!win) {
     if (lot.kind === 'market') draft.monte = [...(draft.monte ?? []), { ...lot.card }]
@@ -1149,8 +1150,8 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
     draft.contracts = setContract(draft, lot.card.id, win.bid) // novo dono: contrato novo de 5
     draft.coins -= win.bid
     if (lot.ownerName && lot.ownerName !== draft.clubName) draft.world = removeFromOwner(lot.ownerName)
-    const dropped = addToMe(win.bid)
-    return { draft, result: { lot, outcome: 'you', by: draft.clubName, price: win.bid, dropped, bids: bidRows } }
+    const drop = addToMe(win.bid)
+    return { draft, result: { lot, outcome: 'you', by: draft.clubName, price: win.bid, dropped: drop.name, droppedCard: drop.card, bids: bidRows } }
   }
   if (win.who === 'owner') {
     // dono renovou: SOMA +5 ao contrato que já tinha (4 → 9), valor = o lance
@@ -1183,28 +1184,36 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
   const [pick, setPick] = useState<{ lotId: string; amount: number } | null>(null) // seu lance nesta posição (1 compra/pos)
   const [left, setLeft] = useState(AUC_SECONDS)
   const [secResults, setSecResults] = useState<LotResult[]>([])
+  const [secSnapshots, setSecSnapshots] = useState<Save[]>([]) // snapshot do draft ANTES de cada lote — pra "desistir"
   const [revealIdx, setRevealIdx] = useState(0)
   const [allResults, setAllResults] = useState<LotResult[]>([])
+  const [resolved, setResolved] = useState<Record<number, true>>({}) // por globalIdx: escolha do overflow já feita
   const [finished, setFinished] = useState(false)
   const sealedRef = useRef(false)
 
   if (byPos.length === 0) { return <div style={{ display: 'grid', gap: 10 }}><p style={{ fontWeight: 700 }}>Nada no leilão desta janela.</p><Btn onClick={onDone} bg="#fff">← Voltar</Btn></div> }
   const cur = byPos[Math.min(sectorIdx, byPos.length - 1)]
   const coins = draftRef.current.coins
+  const globalIdx = (localIdx: number) => allResults.length - secResults.length + localIdx
+  const currentR = secResults[Math.min(revealIdx, Math.max(0, secResults.length - 1))]
+  const needsChoice = phase === 'reveal' && !!currentR && currentR.outcome === 'you' && !!currentR.droppedCard && !resolved[globalIdx(revealIdx)]
 
   const sealSector = () => {
     if (sealedRef.current) return; sealedRef.current = true
     const draft = draftRef.current!
     const out: LotResult[] = []
+    const snaps: Save[] = []
     for (const lot of cur.lots) {
+      snaps.push(structuredClone(draft))
       const myBid = pick && pick.lotId === lot.card.id ? pick.amount : 0
       out.push(applyLot(draft, lot, myBid, rng).result)
     }
+    setSecSnapshots(snaps)
     setSecResults(out); setAllResults(a => [...a, ...out]); setRevealIdx(0); setPhase('reveal')
   }
   const nextSector = () => {
     if (sectorIdx < byPos.length - 1) {
-      setSectorIdx(i => i + 1); setPhase('bid'); setPick(null); setLeft(AUC_SECONDS); setSecResults([]); setRevealIdx(0); sealedRef.current = false
+      setSectorIdx(i => i + 1); setPhase('bid'); setPick(null); setLeft(AUC_SECONDS); setSecResults([]); setSecSnapshots([]); setRevealIdx(0); sealedRef.current = false
     } else {
       const draft = draftRef.current!; draft.requested = []; draft.sellList = []; draft.soldPos = []; draft.auctionDone = true
       persist(draft); setFinished(true)
@@ -1218,13 +1227,45 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
     return () => clearTimeout(t)
   }, [left, phase, finished]) // eslint-disable-line
   // revelação passa SOZINHA (fluido, igual os outros modos): martela um por um e
-  // vai pra próxima posição automaticamente.
+  // vai pra próxima posição automaticamente. PAUSA quando o técnico precisa
+  // escolher o que fazer com quem sobrou.
   useEffect(() => {
     if (phase !== 'reveal' || finished) return
+    if (needsChoice) return // segura a fita até o técnico decidir
     const atLast = revealIdx >= secResults.length - 1
     const t = setTimeout(() => { if (atLast) nextSector(); else setRevealIdx(i => i + 1) }, atLast ? 1600 : 1200)
     return () => clearTimeout(t)
-  }, [phase, revealIdx, finished, secResults.length]) // eslint-disable-line
+  }, [phase, revealIdx, finished, secResults.length, needsChoice]) // eslint-disable-line
+
+  // ─── ações do modal de escolha ao lotar posição ────────────────────
+  const resolveChoice = () => { setResolved(prev => ({ ...prev, [globalIdx(revealIdx)]: true })) }
+  const doDispensar = () => { resolveChoice() } // default: pior já foi pro monte no applyLot
+  const doDesistir = () => {
+    // reverte tudo: restaura o draft ANTES do lote (dinheiro, elenco, monte, dono)
+    const snap = secSnapshots[revealIdx]
+    if (!snap) { resolveChoice(); return }
+    const restored = structuredClone(snap)
+    // muta draftRef mantendo a referência
+    const d = draftRef.current!
+    d.squad = restored.squad; d.coins = restored.coins; d.monte = restored.monte
+    d.world = restored.world; d.contracts = restored.contracts
+    // atualiza o resultado exibido: virou "desistência"
+    const r = secResults[revealIdx]
+    const newRes: LotResult = { ...r, outcome: 'none', by: '', price: 0, dropped: undefined, droppedCard: undefined, bids: [] }
+    setSecResults(cur => cur.map((x, i) => i === revealIdx ? newRes : x))
+    setAllResults(cur => cur.map((x, i) => i === globalIdx(revealIdx) ? newRes : x))
+    resolveChoice()
+  }
+  const doOferta = (amount: number) => {
+    // vende o dispensado pelo valor da oferta: tira do monte, entra dinheiro
+    const r = secResults[revealIdx]
+    if (!r.droppedCard) { resolveChoice(); return }
+    const d = draftRef.current!
+    d.coins = d.coins + amount
+    d.monte = (d.monte ?? []).filter(c => c.id !== r.droppedCard!.id)
+    resolveChoice()
+  }
+
 
   const label: Record<LotResult['outcome'], string> = { you: '✅ VOCÊ LEVOU', rival: '😤 rival levou', owner: '🛡️ dono segurou', none: '— ninguém deu lance' }
 
@@ -1273,14 +1314,14 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
     const last = sectorIdx >= byPos.length - 1
     const atLast = revealIdx >= secResults.length - 1
     return (
-      <div style={{ display: 'grid', gap: 10 }}>
+      <div style={{ display: 'grid', gap: 10, position: 'relative' }}>
         {header}
         <p style={{ textAlign: 'center', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: 'rgba(0,0,0,0.6)' }}>Revelação {revealIdx + 1} / {secResults.length} · {SECTOR_LABEL[cur.p]}</p>
         <div style={{ ...box(r.lot.card.fame >= 5 ? GOLD : '#fff'), padding: 16 }}>
           <Face c={r.lot.card} big />
           <p style={{ fontSize: 11, fontWeight: 800, color: '#888', marginTop: 4 }}>{kindLabel[r.lot.kind]}{r.lot.floor !== undefined ? ` · piso ${r.lot.floor}` : ' · novo no mercado'}</p>
           <div style={{ display: 'grid', gap: 6, marginTop: 12 }}>
-            {r.bids.length === 0 && <p style={{ fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>Nenhum lance. {r.lot.kind === 'market' ? 'Vai pro Monte Final. 🪣' : 'Fica com o dono.'}</p>}
+            {r.bids.length === 0 && <p style={{ fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>{r.outcome === 'none' && r.lot.kind !== 'market' ? '🙅 Você desistiu — fica com o dono.' : `Nenhum lance. ${r.lot.kind === 'market' ? 'Vai pro Monte Final. 🪣' : 'Fica com o dono.'}`}</p>}
             {r.bids.map((b, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `2px solid ${INK}`, borderRadius: 8, padding: '6px 12px', background: b.winner ? GREEN : '#fff' }}>
                 <span style={{ fontWeight: 800, fontSize: 14, color: b.winner ? '#fff' : INK }}>{b.mine ? '🫵 Você' : b.name}{b.winner && r.outcome === 'owner' ? ' (segurou)' : ''}</span>
@@ -1288,12 +1329,24 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
               </div>
             ))}
           </div>
-          <p style={{ fontWeight: 900, ...OSWALD, marginTop: 12, color: r.outcome === 'you' ? GREEN : INK }}>{label[r.outcome]}{r.dropped ? ` · ${r.dropped} foi pro monte` : ''}</p>
+          <p style={{ fontWeight: 900, ...OSWALD, marginTop: 12, color: r.outcome === 'you' ? GREEN : INK }}>{label[r.outcome]}{r.dropped ? ` · ${r.dropped} sai do elenco` : ''}</p>
         </div>
-        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 800, color: '#999' }}>{atLast ? (last ? 'encerrando o pregão…' : 'indo pra próxima posição…') : 'martelando…'}</p>
+        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 800, color: '#999' }}>{needsChoice ? 'aguardando sua decisão…' : atLast ? (last ? 'encerrando o pregão…' : 'indo pra próxima posição…') : 'martelando…'}</p>
+        {needsChoice && currentR?.droppedCard && (
+          <OverflowChoiceModal
+            incoming={currentR.lot.card}
+            dropped={currentR.droppedCard}
+            paidForIncoming={currentR.price}
+            onDispensar={doDispensar}
+            onDesistir={doDesistir}
+            onOferta={doOferta}
+            rng={rng}
+          />
+        )}
       </div>
     )
   }
+
 
   // fase de LANCE (envelope) da posição atual — cartas com stepper −/+ e LACRAR
   return (
@@ -1363,3 +1416,88 @@ function SellRoom({ save, persist, onBack }: { save: Save; persist: (s: Save) =>
     </div>
   )
 }
+
+// ─── ESCOLHA AO LOTAR POSIÇÃO ──────────────────────────────────────────────
+// Você ganhou um cara e sua posição estourou. Antes de mandar o pior do setor
+// pro monte automaticamente, pergunta o que fazer com ele: dispensar (vai pro
+// monte a valor mínimo), tentar VENDER (renovar +5 no valor mínimo e ouvir 3
+// ofertas dos rivais) ou desistir da compra (cancela o novo contratado).
+function OverflowChoiceModal({ incoming, dropped, paidForIncoming, onDispensar, onDesistir, onOferta, rng }: {
+  incoming: PoolCard; dropped: WonCard; paidForIncoming: number
+  onDispensar: () => void; onDesistir: () => void; onOferta: (amount: number) => void; rng: () => number
+}) {
+  const [step, setStep] = useState<'menu' | 'oferta'>('menu')
+  const [offerIdx, setOfferIdx] = useState(0)
+  const [done, setDone] = useState<{ sold: boolean; amount: number; by: string } | null>(null)
+  const minimum = Math.max(1, dropped.paid + 5) // +5 pra mostrar que renovou o valor mínimo
+  const val = Math.max(minimum, Math.round(mid(dropped)))
+  const offers = useMemo(() => Array.from({ length: 3 }, () => {
+    const roll = rng(); let f = 0.4 + rng() * 1.4
+    if (roll > 0.85) f = 1.6 + rng() * 1.1; else if (roll < 0.25) f = 0.2 + rng() * 0.3
+    const buyers = ['Rival A', 'Rival B', 'Rival C', 'Rival D']
+    return { amount: Math.max(1, Math.round(val * f)), by: buyers[Math.floor(rng() * buyers.length)] }
+  }), []) // eslint-disable-line
+
+  const backdrop: React.CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 10000 }
+  const card: React.CSSProperties = { background: CREAM, border: `3px solid ${INK}`, borderRadius: 16, padding: 16, maxWidth: 380, width: '100%', boxShadow: `6px 6px 0 0 ${INK}`, display: 'grid', gap: 10 }
+
+  if (done) {
+    return (
+      <div style={backdrop}>
+        <div style={card}>
+          <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, textAlign: 'center' }}>{done.sold ? '💰 Vendido!' : '🎁 Foi pro Monte'}</p>
+          <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center' }}>{done.sold ? `${dropped.name} saiu por 💰 ${done.amount} (${done.by}).` : `Ninguém topou. ${dropped.name} caiu no Monte pelo piso ${minimum}.`}</p>
+          <Btn onClick={() => { if (done.sold) onOferta(done.amount); else onDispensar() }} bg={GREEN} color="#fff">✅ Pronto</Btn>
+        </div>
+      </div>
+    )
+  }
+
+  if (step === 'oferta') {
+    const cur = offers[offerIdx]
+    const canAccept = cur.amount >= minimum
+    return (
+      <div style={backdrop}>
+        <div style={card}>
+          <div style={{ ...box(INK), padding: 12, color: '#fff', textAlign: 'center' }}>
+            <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD }}>🔨 Vendendo {dropped.name}</p>
+            <p style={{ fontSize: 12, opacity: 0.85 }}>Mínimo: 💰 {minimum} · vale ~{val}</p>
+          </div>
+          <div style={{ ...box('#fff'), padding: 14, textAlign: 'center' }}>
+            <p style={{ fontSize: 12, fontWeight: 800, color: '#888' }}>Oferta {offerIdx + 1} de {offers.length} — {cur.by}</p>
+            <p style={{ fontSize: 34, fontWeight: 900, ...OSWALD, margin: '4px 0', color: canAccept ? INK : RED }}>💰 {cur.amount}</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#999' }}>{canAccept ? 'Cobre o mínimo — dá pra vender.' : `Abaixo do mínimo (${minimum}).`}</p>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ flex: 1 }}><Btn onClick={() => setDone({ sold: true, amount: cur.amount, by: cur.by })} bg={GREEN} color="#fff" disabled={!canAccept}>✅ Aceitar</Btn></div>
+            <div style={{ flex: 1 }}><Btn onClick={() => { if (offerIdx < offers.length - 1) setOfferIdx(i => i + 1); else setDone({ sold: false, amount: 0, by: '' }) }} bg={RED} color="#fff">{offerIdx < offers.length - 1 ? '🎲 Recusar' : '🎁 Pro Monte'}</Btn></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={backdrop}>
+      <div style={card}>
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, textAlign: 'center' }}>⚠️ Posição lotada</p>
+        <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', color: '#555' }}>
+          Você contratou <b>{incoming.name}</b> por 💰 {paidForIncoming}. Sobra <b>{dropped.name}</b> ({dropped.pos}). O que fazer?
+        </p>
+        <button onClick={onDispensar} style={{ ...box('#fff'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
+          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>➖ Dispensar</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Vai pro Monte pelo valor mínimo (💰 {Math.max(1, dropped.paid)}). Fica lá até alguém pegar.</p>
+        </button>
+        <button onClick={() => setStep('oferta')} style={{ ...box('#FFF6DE'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
+          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>💰 Dar oferta (renovar +5)</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Renova o valor pra 💰 {minimum} e ouve 3 ofertas dos rivais. Se topar, você embolsa.</p>
+        </button>
+        <button onClick={onDesistir} style={{ ...box('#FFE8E4'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
+          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>🚫 Desistir da compra</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Cancela {incoming.name}, devolve as 💰 {paidForIncoming} e mantém {dropped.name}.</p>
+        </button>
+      </div>
+    </div>
+  )
+}
+
