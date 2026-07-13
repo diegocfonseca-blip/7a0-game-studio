@@ -564,7 +564,7 @@ const MEI: C[] = [
   { name: "Thiago Almada", club: "Botafogo", year: 2024, fame: 3, lo: 74, hi: 82, promessa: true },
   { name: "Philippe Coutinho", club: "Vasco", year: 2009, fame: 3, lo: 74, hi: 82, promessa: true },
   { name: "Andrade", club: "Flamengo", year: 1981, fame: 3, lo: 74, hi: 85 },
-  { name: "Carlos Alberto", club: "Fluminense", year: 2002, fame: 3, lo: 73, hi: 85, bio: "Revelação de ouro do Fluminense e campeão do Mundo aos 16 (Corinthians, 2000) — meia de muito talento, que ainda decidiu uma final de Champions." },
+  { name: "Carlos Alberto", club: "Fluminense", year: 2002, fame: 3, lo: 73, hi: 85, promessa: true, bio: "Revelação de ouro do Fluminense e campeão do Mundo aos 16 (Corinthians, 2000) — a promessa que brilhou jovem e ainda decidiu uma final de Champions na Europa." },
   { name: "Ibson", club: "Flamengo", year: 2006, fame: 2, lo: 64, hi: 80 },
   { name: "Fábio Baiano", club: "Flamengo", year: 1996, fame: 2, lo: 66, hi: 82 },
   { name: "Iranildo", club: "Flamengo", year: 1995, fame: 2, lo: 62, hi: 80, folk: true },
