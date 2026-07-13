@@ -1313,6 +1313,7 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
         <span style={{ fontWeight: 900, ...OSWALD }}>ENVELOPE: {pick?.amount ?? 0} / {coins}</span>
         <div style={{ width: 130 }}><Btn onClick={sealSector} bg={RED} color="#fff">LACRAR 🔒</Btn></div>
       </div>
+      <MiniPitch squad={draftRef.current.squad} formation={save.formation} />
       {sectorIdx === 0 && <Btn onClick={onDone} bg="#fff">← Sair sem lançar</Btn>}
     </div>
   )
