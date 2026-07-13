@@ -472,10 +472,9 @@ function MidWindow({ onContinue, partial, partialTable }: { onContinue: () => vo
   return (
     <div>
       {header}
-      {phase === 'home' && <MidHome save={save} go={setPhase} onContinue={onContinue} partial={partial} />}
+      {phase === 'home' && <MidHome save={save} go={setPhase} onContinue={onContinue} partial={partial} partialTable={partialTable} />}
       {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
-      {phase === 'scorers' && <MidScorers partial={partial} onBack={() => setPhase('home')} />}
-      {phase === 'table' && <MidTable table={partialTable} division={save.division} onBack={() => setPhase('home')} />}
+      {(phase === 'scorers' || phase === 'table') && <LeagueScreen mode="live" save={save} liveTable={partialTable} liveScorers={partial} onBack={() => setPhase('home')} />}
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'transfer' && <Transfer save={save} persist={persist} onBack={() => setPhase('home')} midSeason />}
       {phase === 'sell' && <SellRoom save={save} persist={persist} onBack={() => setPhase('home')} />}
