@@ -489,11 +489,21 @@ export function EscLobby() {
     </div>
   )
 
-  if (phase === 'auth') return wrap(<>
+  if (phase === 'auth') {
+    const pendingInvite = loadInvite()
+    return wrap(<>
     <div className="text-center">
       <div className="text-6xl mb-2">🔨</div>
       <h1 className="font-black text-3xl text-white" style={OSWALD}>LEILÃO LEGENDS · ONLINE</h1>
     </div>
+    {pendingInvite && (
+      <div className="rounded-xl border-[3px] border-black px-3 py-2.5" style={{ background: PURPLE, boxShadow: `3px 3px 0 ${INK}` }}>
+        <p className="text-xs font-black text-white leading-snug" style={OSWALD}>
+          🎮 Você foi convidado pra sala <span className="bg-white text-black px-1.5 rounded">{pendingInvite}</span>.<br />
+          <span className="text-white/80">Entre ou crie sua conta — te levo direto pra sala.</span>
+        </p>
+      </div>
+    )}
     <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
       {(['login', 'register'] as AuthTab[]).map(tab => (
         <button key={tab} onClick={() => { setAuthTab(tab); setAuthError('') }}
