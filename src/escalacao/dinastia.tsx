@@ -655,7 +655,6 @@ function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: stri
   )
 }
 
-const stepBtn: React.CSSProperties = { width: 30, height: 30, borderRadius: 8, border: `2px solid ${INK}`, background: '#fff', fontWeight: 900, fontSize: 18, cursor: 'pointer', lineHeight: 1 }
 
 // ─── HOME (entre temporadas = janela de transferências) ──────────────
 function Crest({ crest, size = 40 }: { crest?: { c1: string; c2: string; symbol: string }; size?: number }) {
@@ -1056,7 +1055,8 @@ function DispensaAuction({ save, card, persist, onBack }: { save: Save; card: Wo
 // ─── LEILÃO ÚNICO DA JANELA (formato tradicional: envelope + revelação) ──
 type LotKind = 'market' | 'aliciar' | 'sell'
 interface Lot { card: PoolCard; kind: LotKind; ownerName?: string; floor?: number; perceived: number }
-interface LotResult { lot: Lot; outcome: 'you' | 'rival' | 'owner' | 'none'; by: string; price: number; dropped?: string }
+interface BidRow { name: string; amount: number; mine: boolean; winner: boolean }
+interface LotResult { lot: Lot; outcome: 'you' | 'rival' | 'owner' | 'none'; by: string; price: number; dropped?: string; bids: BidRow[] }
 
 // monta o baralho da janela: 1 do mercado por posição (sorteio uniforme, sem os
 // seus nem dos rivais) + os que você aliciou + os que você pôs à venda.
@@ -1114,6 +1114,7 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
   if (owner > 0) entrants.push({ name: lot.ownerName!, bid: owner, who: 'owner' })
   entrants.sort((a, b) => b.bid - a.bid || (a.who === 'you' ? -1 : 1)) // empate: você leva
   const win = entrants[0]
+  const bidRows: BidRow[] = entrants.map(e => ({ name: e.who === 'you' ? 'Você' : e.name, amount: e.bid, mine: e.who === 'you', winner: e === win }))
   const removeFromOwner = (name: string) => draft.world.map(w => w.name === name ? { ...w, squad: w.squad.filter(c => c.id !== lot.card.id).concat(filler(lot.card.pos, rng)) } : w)
   const giveToRival = (name: string) => draft.world.map(w => w.name === name ? { ...w, squad: giveToTeam(w.squad, lot.card) } : w)
   // adiciona ao SEU elenco mantendo o teto da formação (o pior do setor vai pro monte)
@@ -1129,31 +1130,29 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
     draft.squad = squad
     return dropped
   }
-  const none: LotResult = { lot, outcome: 'none', by: '', price: 0 }
   if (!win) {
-    if (lot.kind === 'market') { draft.monte = [...(draft.monte ?? []), { ...lot.card }]; return { draft, result: none } }
-    return { draft, result: none } // aliciar/sell sem lance: fica com o dono atual
+    if (lot.kind === 'market') draft.monte = [...(draft.monte ?? []), { ...lot.card }]
+    return { draft, result: { lot, outcome: 'none', by: '', price: 0, bids: bidRows } } // aliciar/sell sem lance: fica com o dono
   }
   if (win.who === 'you') {
     draft.contracts = setContract(draft, lot.card.id, win.bid) // novo dono: contrato novo de 5
     draft.coins -= win.bid
     if (lot.ownerName && lot.ownerName !== draft.clubName) draft.world = removeFromOwner(lot.ownerName)
     const dropped = addToMe(win.bid)
-    return { draft, result: { lot, outcome: 'you', by: draft.clubName, price: win.bid, dropped } }
+    return { draft, result: { lot, outcome: 'you', by: draft.clubName, price: win.bid, dropped, bids: bidRows } }
   }
   if (win.who === 'owner') {
     // dono renovou: SOMA +5 ao contrato que já tinha (4 → 9), valor = o lance
     const cur = contractUntil(draft, lot.card.id)
     const base = cur >= draft.seasonNo ? cur : draft.seasonNo
     draft.contracts = { ...(draft.contracts ?? {}), [lot.card.id]: { until: base + CONTRACT, floor: win.bid } }
-    return { draft, result: { lot, outcome: 'owner', by: win.name, price: win.bid } }
+    return { draft, result: { lot, outcome: 'owner', by: win.name, price: win.bid, bids: bidRows } }
   }
   draft.contracts = setContract(draft, lot.card.id, win.bid) // rival = novo dono: contrato novo de 5
-  // rival levou
   if (lot.kind === 'sell') { draft.coins += win.bid; draft.squad = draft.squad.filter(c => c.id !== lot.card.id) }
   else if (lot.ownerName && lot.ownerName !== draft.clubName) draft.world = removeFromOwner(lot.ownerName)
   draft.world = giveToRival(win.name)
-  return { draft, result: { lot, outcome: 'rival', by: win.name, price: win.bid } }
+  return { draft, result: { lot, outcome: 'rival', by: win.name, price: win.bid, bids: bidRows } }
 }
 
 const AUC_SECONDS = 45
@@ -1208,8 +1207,7 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
     return () => clearTimeout(t)
   }, [left, phase, finished]) // eslint-disable-line
 
-  const label: Record<LotResult['outcome'], string> = { you: '✅ VOCÊ LEVOU', rival: '😤 rival levou', owner: '🛡️ dono segurou', none: '— ninguém' }
-  const bg: Record<LotResult['outcome'], string> = { you: GOLD, rival: '#FBE0DA', owner: '#EEE', none: '#F0EAD8' }
+  const label: Record<LotResult['outcome'], string> = { you: '✅ VOCÊ LEVOU', rival: '😤 rival levou', owner: '🛡️ dono segurou', none: '— ninguém deu lance' }
 
   if (finished) {
     const toMonte = allResults.filter(r => (r.outcome === 'none' && r.lot.kind === 'market') || r.dropped).length
@@ -1226,70 +1224,95 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
     )
   }
 
-  // barra de topo comum (posição + cronômetro), estilo do leilão dos outros modos
+  // topo estilo leilão real: título grande da posição + caixinha de Tempo
   const timerCol = left <= 10 ? RED : left <= 20 ? GOLD : GREEN
-  const bar = (
-    <div style={{ ...box(INK), padding: 12, color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <span style={{ fontWeight: 900, fontSize: 16, ...OSWALD }}>🔨 {SECTOR_LABEL[cur.p].toUpperCase()} <span style={{ opacity: 0.6, fontSize: 12 }}>({sectorIdx + 1}/{byPos.length})</span></span>
-      {phase === 'bid' && <span style={{ fontWeight: 900, fontSize: 20, ...OSWALD, background: timerCol, color: left <= 20 ? INK : '#fff', borderRadius: 8, padding: '2px 10px' }}>⏱️ {left}s</span>}
+  const timerTxt = left <= 20 ? INK : '#fff'
+  const header = (
+    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+      <div style={{ flex: 1 }}>
+        <p style={{ fontWeight: 900, fontSize: 28, ...OSWALD, lineHeight: 1 }}>🔨 {SECTOR_LABEL[cur.p].toUpperCase()}</p>
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#666', marginTop: 3 }}>Lance cego: distribua suas moedas em segredo. Posição {sectorIdx + 1} de {byPos.length}.</p>
+      </div>
+      {phase === 'bid' && (
+        <div style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '4px 10px', textAlign: 'center', minWidth: 60, background: timerCol, boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <p style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', color: timerTxt }}>Tempo</p>
+          <p style={{ fontSize: 24, fontWeight: 900, ...OSWALD, lineHeight: 1, color: timerTxt }}>{left}s</p>
+        </div>
+      )}
+    </div>
+  )
+  // "cara de carta" do jogo (chip de posição + nome + clube·ano)
+  const Face = ({ c, big = false }: { c: PoolCard; big?: boolean }) => (
+    <div style={{ textAlign: 'left' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Pos p={c.pos} /><span style={{ fontWeight: 900, fontSize: big ? 24 : 16, ...OSWALD }}>{c.name}</span></div>
+      <p style={{ fontSize: big ? 13 : 11, fontWeight: 700, color: 'rgba(0,0,0,0.55)', marginTop: 2 }}>{c.club} · {c.year}</p>
     </div>
   )
 
   if (phase === 'reveal') {
-    const shown = secResults.slice(0, revealIdx)
-    const done = revealIdx >= secResults.length
+    const r = secResults[Math.min(revealIdx, secResults.length - 1)]
     const last = sectorIdx >= byPos.length - 1
+    const atLast = revealIdx >= secResults.length - 1
     return (
       <div style={{ display: 'grid', gap: 10 }}>
-        {bar}
-        <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD }}>📣 Martelo · {SECTOR_LABEL[cur.p]}</p>
-        {shown.map((r, i) => {
-          const isLast = i === shown.length - 1 && !done
-          return (
-            <div key={i} style={{ ...box(bg[r.outcome]), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: isLast ? `4px solid ${INK}` : `3px solid ${INK}`, transform: isLast ? 'scale(1.02)' : 'none' }}>
-              <span style={{ fontWeight: 900, ...OSWALD }}>{r.lot.card.name}</span>
-              <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{label[r.outcome]}{r.outcome !== 'none' ? ` · 💰 ${r.price}` : ''}{r.outcome === 'rival' ? ` (${r.by})` : ''}{r.dropped ? <><br /><span style={{ color: '#999' }}>{r.dropped} foi pro monte</span></> : ''}</span>
-            </div>
-          )
-        })}
-        {!done
-          ? <Btn onClick={() => setRevealIdx(i => i + 1)} bg={GOLD}>🔨 MARTELAR</Btn>
+        {header}
+        <p style={{ textAlign: 'center', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: 'rgba(0,0,0,0.6)' }}>Revelação {revealIdx + 1} / {secResults.length} · {SECTOR_LABEL[cur.p]}</p>
+        <div style={{ ...box(r.lot.card.fame >= 5 ? GOLD : '#fff'), padding: 16 }}>
+          <Face c={r.lot.card} big />
+          <p style={{ fontSize: 11, fontWeight: 800, color: '#888', marginTop: 4 }}>{kindLabel[r.lot.kind]}{r.lot.floor !== undefined ? ` · piso ${r.lot.floor}` : ' · novo no mercado'}</p>
+          <div style={{ display: 'grid', gap: 6, marginTop: 12 }}>
+            {r.bids.length === 0 && <p style={{ fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>Nenhum lance. {r.lot.kind === 'market' ? 'Vai pro Monte Final. 🪣' : 'Fica com o dono.'}</p>}
+            {r.bids.map((b, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `2px solid ${INK}`, borderRadius: 8, padding: '6px 12px', background: b.winner ? GREEN : '#fff' }}>
+                <span style={{ fontWeight: 800, fontSize: 14, color: b.winner ? '#fff' : INK }}>{b.mine ? '🫵 Você' : b.name}{b.winner && r.outcome === 'owner' ? ' (segurou)' : ''}</span>
+                <span style={{ fontWeight: 900, ...OSWALD, color: b.winner ? '#fff' : INK }}>💰 {b.amount}</span>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontWeight: 900, ...OSWALD, marginTop: 12, color: r.outcome === 'you' ? GREEN : INK }}>{label[r.outcome]}{r.dropped ? ` · ${r.dropped} foi pro monte` : ''}</p>
+        </div>
+        {!atLast
+          ? <Btn onClick={() => setRevealIdx(i => i + 1)} bg={GOLD}>🔨 PRÓXIMO</Btn>
           : <Btn onClick={nextSector} bg={GREEN} color="#fff">{last ? '🏁 Encerrar pregão' : '➡️ Próxima posição'}</Btn>}
       </div>
     )
   }
 
-  // fase de LANCE (envelope) da posição atual
+  // fase de LANCE (envelope) da posição atual — cartas com stepper −/+ e LACRAR
   return (
     <div style={{ display: 'grid', gap: 10 }}>
-      {bar}
-      <div style={{ ...box('#EAF3FF'), padding: 9 }}><p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ Lance <b>às cegas</b> nesta posição: escolha 1 alvo e o valor. Ao lacrar (ou zerar o tempo) vem o <b>martelo</b> — maior lance leva, empate você leva. Piso = último valor pago.{midSeason ? <><br /><span style={{ color: RED }}>⏸️ Janela do meio: o que ganhar só entra na próxima temporada.</span></> : ''}</p></div>
-      <div style={{ ...box(GOLD), padding: '8px 12px', textAlign: 'center', fontWeight: 900, ...OSWALD }}>Caixa: 💰 {coins}</div>
+      {header}
+      {sectorIdx === 0 && <div style={{ ...box('#FFF1C9'), padding: 8 }}><p style={{ fontSize: 12, fontWeight: 800, color: '#7a5b00' }}>💡 Ganha quem dá o <b>maior lance</b>. Piso = último valor pago.{midSeason ? ' ⏸️ Janela do meio: só entra na próxima temporada.' : ''}</p></div>}
       {cur.lots.map(lot => {
         const minBid = lot.floor ?? 1
-        const on = pick?.lotId === lot.card.id
+        const isPick = pick?.lotId === lot.card.id
+        const val = isPick ? pick.amount : 0
+        const inc = () => setPick(pk => pk?.lotId === lot.card.id ? { lotId: lot.card.id, amount: Math.min(coins, pk.amount + 1) } : { lotId: lot.card.id, amount: Math.min(coins, minBid) })
+        const dec = () => setPick(pk => { if (pk?.lotId !== lot.card.id) return pk; const a = pk.amount - 1; return a < minBid ? null : { lotId: lot.card.id, amount: a } })
+        const plusOff = minBid > coins || (isPick && val >= coins)
         return (
-          <div key={lot.card.id} style={{ ...box(on ? '#EAF7EE' : '#fff'), padding: '8px 11px', display: 'grid', gap: 6, border: on ? `3px solid ${GREEN}` : `3px solid ${INK}` }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 900, ...OSWALD }}>{lot.card.name} <span style={{ fontSize: 10, color: '#999' }}>{kindLabel[lot.kind]}{lot.ownerName && lot.kind !== 'sell' ? ` · ${lot.ownerName}` : ''}</span></span>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#888' }}>{lot.floor !== undefined ? `piso ${lot.floor}` : 'sem piso'}</span>
+          <div key={lot.card.id} style={{ ...box(isPick ? '#EAF7EE' : '#fff'), padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, border: isPick ? `3px solid ${GREEN}` : `3px solid ${INK}` }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Face c={lot.card} />
+              <p style={{ fontSize: 10, fontWeight: 800, color: '#999', marginTop: 3 }}>{kindLabel[lot.kind]}{lot.ownerName && lot.kind !== 'sell' ? ` · ${lot.ownerName}` : ''}{lot.floor !== undefined ? ` · piso ${lot.floor}` : ''}</p>
             </div>
             {lot.kind === 'sell'
-              ? <p style={{ fontSize: 11, fontWeight: 700, color: '#888' }}>Seu jogador no mercado — seus rivais brigam. Você recebe se venderem.</p>
-              : on
-                ? <>
-                    <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center' }}>
-                      {[-5, -1].map(d => <button key={d} onClick={() => setPick(pk => ({ lotId: lot.card.id, amount: Math.max(minBid, (pk?.amount ?? minBid) + d) }))} style={stepBtn}>{d}</button>)}
-                      <span style={{ fontWeight: 900, fontSize: 22, ...OSWALD, minWidth: 60, textAlign: 'center' }}>💰 {pick.amount}</span>
-                      {[+1, +5].map(d => <button key={d} onClick={() => setPick(pk => ({ lotId: lot.card.id, amount: Math.min(coins, (pk?.amount ?? minBid) + d) }))} style={stepBtn}>+{d}</button>)}
-                    </div>
-                    <button onClick={() => setPick(null)} style={{ fontSize: 11, fontWeight: 700, color: '#999', background: 'none', border: 'none', cursor: 'pointer' }}>tirar lance</button>
-                  </>
-                : <button onClick={() => setPick({ lotId: lot.card.id, amount: Math.max(minBid, Math.min(coins, Math.round(lot.perceived))) })} disabled={minBid > coins} style={{ width: '100%', border: `2px solid ${INK}`, borderRadius: 8, padding: '5px 0', fontWeight: 800, fontSize: 12, background: minBid > coins ? '#eee' : '#fff', cursor: minBid > coins ? 'default' : 'pointer', ...OSWALD }}>{minBid > coins ? 'sem caixa' : 'Dar lance neste'}</button>}
+              ? <span style={{ fontSize: 10, fontWeight: 700, color: '#888', textAlign: 'right', maxWidth: 100 }}>seu — rivais brigam</span>
+              : <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <span style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', color: '#B8860B' }}>seu lance</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <button onClick={dec} style={{ width: 32, height: 32, borderRadius: 8, border: `2px solid ${INK}`, background: '#fff', fontWeight: 900, fontSize: 18, cursor: 'pointer' }}>−</button>
+                    <span style={{ width: 34, textAlign: 'center', fontWeight: 900, ...OSWALD }}>{val}</span>
+                    <button onClick={() => !plusOff && inc()} disabled={plusOff} style={{ width: 32, height: 32, borderRadius: 8, border: `2px solid ${INK}`, background: GOLD, opacity: plusOff ? 0.4 : 1, fontWeight: 900, fontSize: 18, cursor: plusOff ? 'default' : 'pointer' }}>+</button>
+                  </div>
+                </div>}
           </div>
         )
       })}
-      <Btn onClick={sealSector} bg={GREEN} color="#fff">🔒 Lacrar e martelar</Btn>
+      <div style={{ ...box('#fff'), padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontWeight: 900, ...OSWALD }}>ENVELOPE: {pick?.amount ?? 0} / {coins}</span>
+        <div style={{ width: 130 }}><Btn onClick={sealSector} bg={RED} color="#fff">LACRAR 🔒</Btn></div>
+      </div>
       {sectorIdx === 0 && <Btn onClick={onDone} bg="#fff">← Sair sem lançar</Btn>}
     </div>
   )
