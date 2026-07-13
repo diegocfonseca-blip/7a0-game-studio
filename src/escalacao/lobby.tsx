@@ -335,6 +335,21 @@ export function EscLobby() {
     clearSavedRoom()
     setResumeRoom(null)
   }
+  // Compartilha o link de convite (?j=CODE) — abre o menu nativo do celular
+  // (WhatsApp/Telegram/etc). Fallback: copia pro clipboard.
+  const [shareOk, setShareOk] = useState<'link' | 'code' | null>(null)
+  async function shareInvite(code: string, roomName?: string) {
+    const url = `${window.location.origin}${window.location.pathname}?j=${code}`
+    const text = `🔨 Te desafio no Leilão Legends! Entre na sala ${roomName ? `"${roomName}" ` : ''}(${code}):\n${url}`
+    const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> }
+    if (typeof nav.share === 'function') {
+      try { await nav.share({ title: 'Leilão Legends', text, url }); return } catch { /* usuário cancelou ou não suporta */ }
+    }
+    try { await navigator.clipboard.writeText(url); setShareOk('link'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
+  }
+  async function copyCode(code: string) {
+    try { await navigator.clipboard.writeText(code); setShareOk('code'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
+  }
 
   const nameOf = () => user?.user_metadata?.display_name ?? user?.email?.split('@')[0] ?? 'Técnico'
 
