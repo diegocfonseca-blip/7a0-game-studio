@@ -1416,3 +1416,88 @@ function SellRoom({ save, persist, onBack }: { save: Save; persist: (s: Save) =>
     </div>
   )
 }
+
+// ─── ESCOLHA AO LOTAR POSIÇÃO ──────────────────────────────────────────────
+// Você ganhou um cara e sua posição estourou. Antes de mandar o pior do setor
+// pro monte automaticamente, pergunta o que fazer com ele: dispensar (vai pro
+// monte a valor mínimo), tentar VENDER (renovar +5 no valor mínimo e ouvir 3
+// ofertas dos rivais) ou desistir da compra (cancela o novo contratado).
+function OverflowChoiceModal({ incoming, dropped, paidForIncoming, onDispensar, onDesistir, onOferta, rng }: {
+  incoming: PoolCard; dropped: WonCard; paidForIncoming: number
+  onDispensar: () => void; onDesistir: () => void; onOferta: (amount: number) => void; rng: () => number
+}) {
+  const [step, setStep] = useState<'menu' | 'oferta'>('menu')
+  const [offerIdx, setOfferIdx] = useState(0)
+  const [done, setDone] = useState<{ sold: boolean; amount: number; by: string } | null>(null)
+  const minimum = Math.max(1, dropped.paid + 5) // +5 pra mostrar que renovou o valor mínimo
+  const val = Math.max(minimum, Math.round(mid(dropped)))
+  const offers = useMemo(() => Array.from({ length: 3 }, () => {
+    const roll = rng(); let f = 0.4 + rng() * 1.4
+    if (roll > 0.85) f = 1.6 + rng() * 1.1; else if (roll < 0.25) f = 0.2 + rng() * 0.3
+    const buyers = ['Rival A', 'Rival B', 'Rival C', 'Rival D']
+    return { amount: Math.max(1, Math.round(val * f)), by: buyers[Math.floor(rng() * buyers.length)] }
+  }), []) // eslint-disable-line
+
+  const backdrop: React.CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 10000 }
+  const card: React.CSSProperties = { background: CREAM, border: `3px solid ${INK}`, borderRadius: 16, padding: 16, maxWidth: 380, width: '100%', boxShadow: `6px 6px 0 0 ${INK}`, display: 'grid', gap: 10 }
+
+  if (done) {
+    return (
+      <div style={backdrop}>
+        <div style={card}>
+          <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, textAlign: 'center' }}>{done.sold ? '💰 Vendido!' : '🎁 Foi pro Monte'}</p>
+          <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center' }}>{done.sold ? `${dropped.name} saiu por 💰 ${done.amount} (${done.by}).` : `Ninguém topou. ${dropped.name} caiu no Monte pelo piso ${minimum}.`}</p>
+          <Btn onClick={() => { if (done.sold) onOferta(done.amount); else onDispensar() }} bg={GREEN} color="#fff">✅ Pronto</Btn>
+        </div>
+      </div>
+    )
+  }
+
+  if (step === 'oferta') {
+    const cur = offers[offerIdx]
+    const canAccept = cur.amount >= minimum
+    return (
+      <div style={backdrop}>
+        <div style={card}>
+          <div style={{ ...box(INK), padding: 12, color: '#fff', textAlign: 'center' }}>
+            <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD }}>🔨 Vendendo {dropped.name}</p>
+            <p style={{ fontSize: 12, opacity: 0.85 }}>Mínimo: 💰 {minimum} · vale ~{val}</p>
+          </div>
+          <div style={{ ...box('#fff'), padding: 14, textAlign: 'center' }}>
+            <p style={{ fontSize: 12, fontWeight: 800, color: '#888' }}>Oferta {offerIdx + 1} de {offers.length} — {cur.by}</p>
+            <p style={{ fontSize: 34, fontWeight: 900, ...OSWALD, margin: '4px 0', color: canAccept ? INK : RED }}>💰 {cur.amount}</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#999' }}>{canAccept ? 'Cobre o mínimo — dá pra vender.' : `Abaixo do mínimo (${minimum}).`}</p>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ flex: 1 }}><Btn onClick={() => setDone({ sold: true, amount: cur.amount, by: cur.by })} bg={GREEN} color="#fff" disabled={!canAccept}>✅ Aceitar</Btn></div>
+            <div style={{ flex: 1 }}><Btn onClick={() => { if (offerIdx < offers.length - 1) setOfferIdx(i => i + 1); else setDone({ sold: false, amount: 0, by: '' }) }} bg={RED} color="#fff">{offerIdx < offers.length - 1 ? '🎲 Recusar' : '🎁 Pro Monte'}</Btn></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={backdrop}>
+      <div style={card}>
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, textAlign: 'center' }}>⚠️ Posição lotada</p>
+        <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', color: '#555' }}>
+          Você contratou <b>{incoming.name}</b> por 💰 {paidForIncoming}. Sobra <b>{dropped.name}</b> ({dropped.pos}). O que fazer?
+        </p>
+        <button onClick={onDispensar} style={{ ...box('#fff'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
+          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>➖ Dispensar</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Vai pro Monte pelo valor mínimo (💰 {Math.max(1, dropped.paid)}). Fica lá até alguém pegar.</p>
+        </button>
+        <button onClick={() => setStep('oferta')} style={{ ...box('#FFF6DE'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
+          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>💰 Dar oferta (renovar +5)</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Renova o valor pra 💰 {minimum} e ouve 3 ofertas dos rivais. Se topar, você embolsa.</p>
+        </button>
+        <button onClick={onDesistir} style={{ ...box('#FFE8E4'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
+          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>🚫 Desistir da compra</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Cancela {incoming.name}, devolve as 💰 {paidForIncoming} e mantém {dropped.name}.</p>
+        </button>
+      </div>
+    </div>
+  )
+}
+
