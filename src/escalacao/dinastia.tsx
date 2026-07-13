@@ -359,7 +359,8 @@ export function DinastiaGame() {
     const meId = state.managers[state.youIdx].id
     const myName = loadSave()?.clubName
     const partial = state.scorers.slice().sort((a, b) => b.goals - a.goals).map(sc => ({ name: sc.name, teamName: sc.teamId === meId ? (myName ?? sc.teamName) : sc.teamName, goals: sc.goals, mine: sc.teamId === meId }))
-    return <Overlay><MidWindow onContinue={() => dispatch({ type: 'RESUME_DINASTIA' })} partial={partial} /></Overlay>
+    const partialTable: TeamStand[] = sortedTable(state.league).map(t => ({ name: t.id === meId ? (myName ?? t.name) : t.name, pts: t.pts, w: t.w, d: t.d, l: t.l, gf: t.gf, ga: t.ga }))
+    return <Overlay><MidWindow onContinue={() => dispatch({ type: 'RESUME_DINASTIA' })} partial={partial} partialTable={partialTable} /></Overlay>
   }
   if (!isAdmin) return (
     <Overlay><div style={{ ...box(), padding: 24, textAlign: 'center' }}>
@@ -453,7 +454,7 @@ function Dinastia() {
 // Overlay por cima do campinho na metade do calendário. Mesmo menu econômico
 // (contratar/vender/shopping/elenco), MAS o que contratar só vale ano que vem.
 type PartialRow = { name: string; teamName: string; goals: number; mine: boolean }
-function MidWindow({ onContinue, partial }: { onContinue: () => void; partial: PartialRow[] }) {
+function MidWindow({ onContinue, partial, partialTable }: { onContinue: () => void; partial: PartialRow[]; partialTable: TeamStand[] }) {
   const [save, setSave] = useState<Save | null>(() => loadSave())
   const [phase, setPhase] = useState<Phase>('home')
   const persist = (s: Save) => { writeSave(s); setSave(s) }
@@ -474,6 +475,7 @@ function MidWindow({ onContinue, partial }: { onContinue: () => void; partial: P
       {phase === 'home' && <MidHome save={save} go={setPhase} onContinue={onContinue} partial={partial} />}
       {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
       {phase === 'scorers' && <MidScorers partial={partial} onBack={() => setPhase('home')} />}
+      {phase === 'table' && <MidTable table={partialTable} division={save.division} onBack={() => setPhase('home')} />}
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'transfer' && <Transfer save={save} persist={persist} onBack={() => setPhase('home')} midSeason />}
       {phase === 'sell' && <SellRoom save={save} persist={persist} onBack={() => setPhase('home')} />}
@@ -515,9 +517,10 @@ function MidHome({ save, go, onContinue, partial }: { save: Save; go: (p: Phase)
         <div style={{ flex: 1 }}><Btn onClick={() => go('sell')} bg="#fff">🔨 Vender</Btn></div>
       </div>
       <Btn onClick={() => go('auction')} bg={GOLD}>🔨 INICIAR LEILÃO {(save.requested?.length || save.sellList?.length) ? `(${(save.requested?.length ?? 0) + (save.sellList?.length ?? 0)} + mercado)` : '(mercado)'}</Btn>
-      <div style={{ display: 'flex', gap: 10 }}>
+      <div style={{ display: 'flex', gap: 8 }}>
         <div style={{ flex: 1 }}><Btn onClick={() => go('squad')} bg="#fff">👥 Elenco</Btn></div>
-        <div style={{ flex: 1 }}><Btn onClick={() => go('scorers')} bg="#fff">🥇 Artilharia</Btn></div>
+        <div style={{ flex: 1 }}><Btn onClick={() => go('table')} bg="#fff">📊 Tabela</Btn></div>
+        <div style={{ flex: 1 }}><Btn onClick={() => go('scorers')} bg="#fff">🥇 Artilheiros</Btn></div>
       </div>
       <Btn onClick={() => go('store')} bg={PURPLE} color="#fff">🛡️ Shopping · Escudo</Btn>
       <Btn onClick={onContinue} bg={GREEN} color="#fff">▶️ CONTINUAR — jogar o returno</Btn>
@@ -527,8 +530,8 @@ function MidHome({ save, go, onContinue, partial }: { save: Save; go: (p: Phase)
 function MidScorers({ partial, onBack }: { partial: PartialRow[]; onBack: () => void }) {
   return (
     <div style={{ display: 'grid', gap: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🥇 Artilharia parcial</p>
-      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Sua divisão, primeiro turno desta temporada. A artilharia geral (4 divisões) fecha no fim do ano.</p>
+      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🥇 Artilharia parcial · sua divisão</p>
+      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Primeiro turno desta temporada, na sua divisão.</p>
       {partial.length === 0
         ? <p style={{ fontWeight: 700, color: '#888' }}>Ninguém marcou ainda.</p>
         : <div style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 4 }}>
@@ -539,6 +542,33 @@ function MidScorers({ partial, onBack }: { partial: PartialRow[]; onBack: () => 
               </div>
             ))}
           </div>}
+      <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
+    </div>
+  )
+}
+// classificação PARCIAL (ao vivo) da sua divisão, na janela do meio
+function MidTable({ table, division, onBack }: { table: TeamStand[]; division: Division; onBack: () => void }) {
+  return (
+    <div style={{ display: 'grid', gap: 10 }}>
+      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>📊 Classificação · {DIV_LABEL[division]}</p>
+      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Como está agora, no meio da temporada. 🟢 topo sobe · 🔴 base cai.</p>
+      <div style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 2 }}>
+        <div style={{ display: 'flex', fontSize: 10, fontWeight: 800, color: '#aaa', padding: '0 6px 2px' }}>
+          <span style={{ width: 22 }}>#</span><span style={{ flex: 1 }}>Time</span><span style={{ width: 26, textAlign: 'center' }}>P</span><span style={{ width: 52, textAlign: 'center' }}>V-E-D</span><span style={{ width: 34, textAlign: 'right' }}>SG</span>
+        </div>
+        {table.map((t, i) => {
+          const zone = i < 4 ? '#1B7A3D' : i >= 16 ? '#E8503A' : 'transparent'
+          return (
+            <div key={t.name + i} style={{ display: 'flex', alignItems: 'center', padding: '4px 6px', borderRadius: 6, fontWeight: 700, fontSize: 12 }}>
+              <span style={{ width: 22, display: 'flex', alignItems: 'center', gap: 3 }}><i style={{ width: 5, height: 5, borderRadius: 99, background: zone, display: 'inline-block' }} />{i + 1}</span>
+              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
+              <span style={{ width: 26, textAlign: 'center', fontWeight: 900, ...OSWALD }}>{t.pts}</span>
+              <span style={{ width: 52, textAlign: 'center', color: '#888', fontSize: 11 }}>{t.w}-{t.d}-{t.l}</span>
+              <span style={{ width: 34, textAlign: 'right', color: '#888', fontSize: 11 }}>{t.gf - t.ga > 0 ? '+' : ''}{t.gf - t.ga}</span>
+            </div>
+          )
+        })}
+      </div>
       <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
     </div>
   )
@@ -1059,10 +1089,14 @@ function rivalBids(save: Save, lot: Lot, rng: () => number): { name: string; bid
     return { name: w.name, bid }
   }).filter(r => r.bid >= minBid)
 }
-// defesa do dono (só quando você ALICIA jogador de outro clube — ele banca pra segurar)
+// defesa do dono (só quando você ALICIA jogador de outro clube). Com cara de
+// HUMANO: nem sempre ele banca pra segurar — às vezes deixa ir. Se ninguém dá
+// lance, o jogador volta pro dono com o MESMO contrato de antes.
 function ownerDefend(save: Save, lot: Lot, rng: () => number): number {
   if (lot.kind !== 'aliciar' || !lot.ownerName) return 0
   const owner = save.world.find(w => w.name === lot.ownerName); if (!owner) return 0
+  const wantsToKeep = rng() < (lot.perceived > 14 ? 0.8 : lot.perceived > 8 ? 0.55 : 0.35)
+  if (!wantsToKeep) return 0
   const divW = { D: 0.2, C: 0.5, B: 0.9, A: 1.4 }[owner.div]
   const importance = Math.min(2.4, 0.9 + divW + (lot.perceived > 15 ? 0.6 : 0))
   return Math.max(lot.floor ?? 1, Math.round(lot.perceived * importance * (0.9 + rng() * 0.4)))
@@ -1100,14 +1134,21 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
     if (lot.kind === 'market') { draft.monte = [...(draft.monte ?? []), { ...lot.card }]; return { draft, result: none } }
     return { draft, result: none } // aliciar/sell sem lance: fica com o dono atual
   }
-  draft.contracts = setContract(draft, lot.card.id, win.bid)
   if (win.who === 'you') {
+    draft.contracts = setContract(draft, lot.card.id, win.bid) // novo dono: contrato novo de 5
     draft.coins -= win.bid
     if (lot.ownerName && lot.ownerName !== draft.clubName) draft.world = removeFromOwner(lot.ownerName)
     const dropped = addToMe(win.bid)
     return { draft, result: { lot, outcome: 'you', by: draft.clubName, price: win.bid, dropped } }
   }
-  if (win.who === 'owner') return { draft, result: { lot, outcome: 'owner', by: win.name, price: win.bid } }
+  if (win.who === 'owner') {
+    // dono renovou: SOMA +5 ao contrato que já tinha (4 → 9), valor = o lance
+    const cur = contractUntil(draft, lot.card.id)
+    const base = cur >= draft.seasonNo ? cur : draft.seasonNo
+    draft.contracts = { ...(draft.contracts ?? {}), [lot.card.id]: { until: base + CONTRACT, floor: win.bid } }
+    return { draft, result: { lot, outcome: 'owner', by: win.name, price: win.bid } }
+  }
+  draft.contracts = setContract(draft, lot.card.id, win.bid) // rival = novo dono: contrato novo de 5
   // rival levou
   if (lot.kind === 'sell') { draft.coins += win.bid; draft.squad = draft.squad.filter(c => c.id !== lot.card.id) }
   else if (lot.ownerName && lot.ownerName !== draft.clubName) draft.world = removeFromOwner(lot.ownerName)
