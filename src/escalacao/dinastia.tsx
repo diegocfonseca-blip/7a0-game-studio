@@ -958,28 +958,37 @@ function Transfer({ save, persist, onBack, midSeason }: { save: Save; persist: (
   )
 }
 
-// Monte de livres: dispensados que ninguém pagou o mínimo. Pega de graça se tiver
-// vaga na posição. Fica no fim da janela; rivais também podem levar (no avanço).
+// Monte de livres: dispensados / sobra do mercado. Grátis só quem NUNCA custou
+// mais que 1 moeda; se já teve dono por 15, o próximo paga 15 (o piso do cara).
 function MonteFreeAgents({ save, persist }: { save: Save; persist: (s: Save) => void }) {
   const monte = save.monte ?? []
   if (monte.length === 0) return null
   const holeAt = (p: Sector) => save.squad.filter(c => c.pos === p).length < FORM_NEED[save.formation][p]
+  const priceOf = (c: PoolCard) => Math.max(1, floorOf(save, c) ?? 1)
   const grab = (c: PoolCard) => {
     if (!holeAt(c.pos)) return
-    const wc: WonCard = { ...c, paid: 0, via: 'monte' }
-    // livre: mantém o piso que já tinha (último preço pago); se nunca teve, piso 1
-    persist({ ...save, squad: [...save.squad, wc], monte: monte.filter(x => x.id !== c.id), contracts: setContract(save, c.id, floorOf(save, c) ?? 1) })
+    const price = priceOf(c)
+    const free = price <= 1
+    if (!free && save.coins < price) return
+    const paid = free ? 0 : price
+    const wc: WonCard = { ...c, paid, via: 'monte' }
+    persist({ ...save, coins: save.coins - paid, squad: [...save.squad, wc], monte: monte.filter(x => x.id !== c.id), contracts: setContract(save, c.id, price) })
   }
   return (
     <div style={{ ...box('#F0EAD8'), padding: 10, display: 'grid', gap: 6 }}>
-      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>🎁 Monte — livres (de graça)</p>
-      <p style={{ fontSize: 11, color: '#777', fontWeight: 700 }}>Dispensados que ninguém pagou. Pegue de graça se tiver vaga na posição — senão os rivais levam.</p>
+      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>🎁 Monte — livres</p>
+      <p style={{ fontSize: 11, color: '#777', fontWeight: 700 }}>Sobras do mercado. <b>Grátis</b> só quem nunca custou mais que 1 moeda; se já teve dono, você paga o <b>piso</b> que ele carrega. Precisa de vaga na posição.</p>
       {monte.map(c => {
         const can = holeAt(c.pos)
+        const price = priceOf(c)
+        const free = price <= 1
+        const broke = !free && save.coins < price
+        const disabled = !can || broke
+        const label = !can ? 'sem vaga' : free ? 'Pegar grátis' : broke ? `faltam 💰${price - save.coins}` : `Pagar 💰 ${price}`
         return (
           <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontWeight: 800, fontSize: 13 }}><Pos p={c.pos} /> {c.name}</span>
-            <button onClick={() => grab(c)} disabled={!can} style={{ background: can ? GREEN : '#ccc', color: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '5px 10px', fontWeight: 900, fontSize: 12, cursor: can ? 'pointer' : 'default', ...OSWALD }}>{can ? 'Pegar grátis' : 'sem vaga'}</button>
+            <span style={{ fontWeight: 800, fontSize: 13 }}><Pos p={c.pos} /> {c.name} {!free && <span style={{ fontSize: 10, fontWeight: 700, color: '#888' }}>· piso {price}</span>}</span>
+            <button onClick={() => grab(c)} disabled={disabled} style={{ background: disabled ? '#ccc' : free ? GREEN : GOLD, color: disabled ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '5px 10px', fontWeight: 900, fontSize: 12, cursor: disabled ? 'default' : 'pointer', ...OSWALD }}>{label}</button>
           </div>
         )
       })}
