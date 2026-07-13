@@ -1129,17 +1129,18 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
   const removeFromOwner = (name: string) => draft.world.map(w => w.name === name ? { ...w, squad: w.squad.filter(c => c.id !== lot.card.id).concat(filler(lot.card.pos, rng)) } : w)
   const giveToRival = (name: string) => draft.world.map(w => w.name === name ? { ...w, squad: giveToTeam(w.squad, lot.card) } : w)
   // adiciona ao SEU elenco mantendo o teto da formação (o pior do setor vai pro monte)
-  const addToMe = (price: number): string | undefined => {
+  const addToMe = (price: number): { name?: string; card?: WonCard } => {
     let squad: WonCard[] = [...draft.squad, { ...(lot.card as Card), paid: price, via: 'leilao' as const }]
-    let dropped: string | undefined
     const atPos = squad.filter(c => c.pos === lot.card.pos)
     if (atPos.length > FORM_NEED[draft.formation][lot.card.pos]) {
       const worst = atPos.slice().sort((a, b) => mid(a) - mid(b))[0]
-      dropped = worst.name; squad = squad.filter(c => c.id !== worst.id)
+      squad = squad.filter(c => c.id !== worst.id)
       draft.monte = [...(draft.monte ?? []), { ...worst }]
+      draft.squad = squad
+      return { name: worst.name, card: worst }
     }
     draft.squad = squad
-    return dropped
+    return {}
   }
   if (!win) {
     if (lot.kind === 'market') draft.monte = [...(draft.monte ?? []), { ...lot.card }]
@@ -1149,8 +1150,8 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
     draft.contracts = setContract(draft, lot.card.id, win.bid) // novo dono: contrato novo de 5
     draft.coins -= win.bid
     if (lot.ownerName && lot.ownerName !== draft.clubName) draft.world = removeFromOwner(lot.ownerName)
-    const dropped = addToMe(win.bid)
-    return { draft, result: { lot, outcome: 'you', by: draft.clubName, price: win.bid, dropped, bids: bidRows } }
+    const drop = addToMe(win.bid)
+    return { draft, result: { lot, outcome: 'you', by: draft.clubName, price: win.bid, dropped: drop.name, droppedCard: drop.card, bids: bidRows } }
   }
   if (win.who === 'owner') {
     // dono renovou: SOMA +5 ao contrato que já tinha (4 → 9), valor = o lance
