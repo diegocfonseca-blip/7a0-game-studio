@@ -155,7 +155,8 @@ interface Save {
   worldGoals: Record<string, number> // gols da última temporada (mundo todo) p/ valorização
   goalsLast: Record<string, number>; championLast: boolean
   contracts?: Record<string, { until: number; floor: number }> // até que temporada + piso (último preço pago)
-  requested?: string[] // jogadores que você pediu pro leilão desta janela
+  requested?: string[] // jogadores que você pediu pro leilão desta janela (1 por posição)
+  soldPos?: Sector[] // posições que você já pôs à venda nesta janela (limite 1 por posição)
   monte?: PoolCard[] // livres: dispensados que ninguém pagou o mínimo; pegáveis de graça
   lastTable?: TeamStand[] // classificação FINAL da sua divisão na última temporada
   lastScorers?: { name: string; teamName: string; goals: number }[] // artilharia da SUA divisão (última temp.)
@@ -305,7 +306,7 @@ function processDinastiaEnd(state: EscState, existing: Save | null): Save {
   const move: 'up' | 'down' | 'stay' = newDivision === div ? 'stay' : DIVS.indexOf(newDivision) > DIVS.indexOf(div) ? 'up' : 'down'
   return {
     ...base, world: newWorld, division: newDivision, seasonNo: base.seasonNo + 1,
-    stage: 'preWindow', requested: [], monte: base.monte ?? [], lastTable, lastScorers,
+    stage: 'preWindow', requested: [], soldPos: [], monte: base.monte ?? [], lastTable, lastScorers,
     coins: base.coins + prize, titles: base.titles + (youChampion ? 1 : 0),
     worldGoals, goalsLast, championLast: youChampion,
     lastResult: { pos: yourPos, move, prevDiv: div, champion: youChampion },
@@ -407,8 +408,8 @@ function Dinastia() {
   const playSeason = () => {
     if (!save) return
     const kept = save.squad.filter(c => { const k = save.contracts?.[c.id]; return !k || k.until >= save.seasonNo })
-    // zera o log de aliciamento (1 por posição) — a janela do MEIO começa limpa
-    persist({ ...save, squad: kept, requested: [] })
+    // zera os logs de aliciar/vender (1 por posição) — a janela do MEIO começa limpa
+    persist({ ...save, squad: kept, requested: [], soldPos: [] })
     const others = save.world.filter(w => w.div === save.division).map(w => ({ name: w.name, squad: w.squad }))
     // decora o nome com o símbolo do escudo → aparece na tabela/tela de fim do jogo
     const sym = save.crest?.symbol ?? ''
@@ -1114,16 +1115,20 @@ function SellRoom({ save, persist, onBack }: { save: Save; persist: (s: Save) =>
   const [selId, setSelId] = useState<string | null>(null)
   const sel = save.squad.find(c => c.id === selId) ?? null
   if (!sel) {
+    const soldPos = new Set(save.soldPos ?? [])
     return (
       <div style={{ display: 'grid', gap: 10 }}>
         <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🔨 Vender jogador</p>
-        <p style={{ fontSize: 12, color: '#666', fontWeight: 700 }}>Leilão COM RISCO: as ofertas chegam uma a uma. Pode dar bolada… ou vexame. Escolha quem pôr no mercado:</p>
-        {save.squad.map(c => (
-          <button key={c.id} onClick={() => setSelId(c.id)} style={{ ...box('#fff'), padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', textAlign: 'left' }}>
-            <span style={{ fontWeight: 900, ...OSWALD }}><Pos p={c.pos} /> {c.name}</span>
-            <span style={{ fontWeight: 800, color: '#888', fontSize: 13 }}>vale ~{myValue(save, c)} 💰</span>
-          </button>
-        ))}
+        <p style={{ fontSize: 12, color: '#666', fontWeight: 700 }}>Leilão COM RISCO: as ofertas chegam uma a uma. Pode dar bolada… ou vexame. <b>1 venda por posição</b> por janela. Escolha quem pôr no mercado:</p>
+        {save.squad.map(c => {
+          const blocked = soldPos.has(c.pos)
+          return (
+            <button key={c.id} disabled={blocked} onClick={() => setSelId(c.id)} style={{ ...box(blocked ? '#eee' : '#fff'), padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: blocked ? 'default' : 'pointer', textAlign: 'left', opacity: blocked ? 0.55 : 1 }}>
+              <span style={{ fontWeight: 900, ...OSWALD }}><Pos p={c.pos} /> {c.name}</span>
+              {blocked ? <span style={{ fontWeight: 800, color: '#999', fontSize: 12 }}>já vendeu 1 {c.pos}</span> : <span style={{ fontWeight: 800, color: '#888', fontSize: 13 }}>vale ~{myValue(save, c)} 💰</span>}
+            </button>
+          )
+        })}
         <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
       </div>
     )
@@ -1148,7 +1153,7 @@ function SellAuction({ save, card, persist, onBack, onExit }: { save: Save; card
   const finish = (amount: number, by: string) => {
     setDone({ amount, by })
     const newWorld = save.world.map(w => w.name === by ? { ...w, squad: giveToTeam(w.squad, card) } : w)
-    persist({ ...save, coins: save.coins + amount, squad: save.squad.filter(c => c.id !== card.id), world: newWorld })
+    persist({ ...save, coins: save.coins + amount, squad: save.squad.filter(c => c.id !== card.id), world: newWorld, soldPos: [...(save.soldPos ?? []), card.pos] })
   }
   if (done) {
     const bolada = done.amount >= value * 1.5, vexame = done.amount < value * 0.5
