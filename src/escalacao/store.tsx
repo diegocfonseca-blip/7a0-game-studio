@@ -953,7 +953,7 @@ type Action =
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number }
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
-  | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[]; tactic?: Tactic }
+  | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean }
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
@@ -1570,7 +1570,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.monte = []; s.monteOrder = []; s.monteIdx = 0
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.currentCards = []
       s.round = 0; s.scorers = []; s.lastResults = []; s.news = []; s.champion = null
-      s.tactics = action.tactic ? { 0: action.tactic } : {} // tática escolhida no elenco (humano = id 0)
+      s.tactics = {} // tática o humano escolhe DURANTE a partida (campinho), como nos outros modos
       // rivais do Dinastia → aparecem com 🔥 na tabela e no painel embaixo do campinho (igual carreira)
       s.careerRivals = (action.rivals ?? []).map(r => ({ team: r.team, name: r.name, division: r.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
       s.careerTitles = 0; s.careerTitlesA = 0

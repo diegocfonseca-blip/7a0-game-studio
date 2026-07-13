@@ -37,10 +37,7 @@ const NEED: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
 const FORM_NEED: Record<FormationKey, Record<Sector, number>> = {
   '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
   '4-4-2': { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 },
-  '4-5-1': { GOL: 1, LAT: 2, ZAG: 2, MEI: 5, ATA: 1 },
 }
-const FORMS_ALL: FormationKey[] = ['4-3-3', '4-4-2', '4-5-1']
-const TAC_LABEL: Record<Tac, string> = { retranca: '🛡️ Defensivo', equilibrio: '⚖️ Equilibrado', ataque: '⚔️ Ofensivo' }
 const SECTORS: Sector[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
 const SECTOR_LABEL: Record<Sector, string> = { GOL: 'Goleiros', LAT: 'Laterais', ZAG: 'Zagueiros', MEI: 'Meio-campo', ATA: 'Ataque' }
 const START_COINS = 50
@@ -163,7 +160,6 @@ interface Save {
   lastTable?: TeamStand[] // classificação FINAL da sua divisão na última temporada
   lastScorers?: { name: string; teamName: string; goals: number }[] // artilharia da SUA divisão (última temp.)
   crest?: { c1: string; c2: string; symbol: string } // identidade: 2 cores + símbolo (escudo)
-  tactic?: Tac // tática escolhida no elenco (equilíbrio por padrão)
   lastResult?: { pos: number; move: 'up' | 'down' | 'stay'; prevDiv: Division; champion: boolean }
 }
 const CONTRACT = 5 // temporadas de contrato de todo jogador comprado no leilão
@@ -335,7 +331,7 @@ export function DinastiaGame() {
       const others = save.world.filter(w => w.div === save.division).map(w => ({ name: w.name, squad: w.squad }))
       const sym = save.crest?.symbol ?? ''
       const rivals = save.world.filter(w => w.rival).map(w => ({ team: w.name, name: w.name, division: w.div }))
-      dispatch({ type: 'START_DINASTIA_SEASON', teamName: sym ? `${sym} ${save.clubName}` : save.clubName, formation: save.formation, division: save.division, seasonNo: 1, squad: save.squad, others, rivals, tactic: save.tactic })
+      dispatch({ type: 'START_DINASTIA_SEASON', teamName: sym ? `${sym} ${save.clubName}` : save.clubName, formation: save.formation, division: save.division, seasonNo: 1, squad: save.squad, others, rivals })
     }
     if (state.screen !== 'season') builtWorld.current = false
   }, [state.dinastia, state.screen]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -418,7 +414,7 @@ function Dinastia() {
     const sym = save.crest?.symbol ?? ''
     const teamName = sym ? `${sym} ${save.clubName}` : save.clubName
     const rivals = save.world.filter(w => w.rival).map(w => ({ team: w.name, name: w.name, division: w.div }))
-    dispatch({ type: 'START_DINASTIA_SEASON', teamName, formation: save.formation, division: save.division, seasonNo: save.seasonNo, squad: kept, others, rivals, tactic: save.tactic })
+    dispatch({ type: 'START_DINASTIA_SEASON', teamName, formation: save.formation, division: save.division, seasonNo: save.seasonNo, squad: kept, others, rivals })
     window.location.hash = ''
   }
 
@@ -437,7 +433,7 @@ function Dinastia() {
     <div>
       {header}
       {phase === 'home' && <Home save={save} go={setPhase} playSeason={playSeason} />}
-      {phase === 'squad' && <SquadScreen save={save} persist={persist} onBack={() => setPhase('home')} />}
+      {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
       {phase === 'scorers' && <ScorersScreen save={save} onBack={() => setPhase('home')} />}
       {phase === 'table' && <ClassificationScreen save={save} onBack={() => setPhase('home')} />}
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
@@ -475,7 +471,7 @@ function MidWindow({ onContinue, partial }: { onContinue: () => void; partial: P
     <div>
       {header}
       {phase === 'home' && <MidHome save={save} go={setPhase} onContinue={onContinue} partial={partial} />}
-      {phase === 'squad' && <SquadScreen save={save} persist={persist} onBack={() => setPhase('home')} />}
+      {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
       {phase === 'scorers' && <MidScorers partial={partial} onBack={() => setPhase('home')} />}
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'transfer' && <Transfer save={save} persist={persist} onBack={() => setPhase('home')} midSeason />}
@@ -592,7 +588,7 @@ function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: stri
         <div>
           <p style={label}>Formação (travada antes do pregão)</p>
           <div className="grid grid-cols-4 gap-2">
-            {FORMS_ALL.map(f => (
+            {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => (
               <button key={f} onClick={() => setFormation(f)} className="border-[3px] border-black rounded-xl py-2 font-black text-sm"
                 style={{ backgroundColor: formation === f ? GOLD : '#fff', boxShadow: formation === f ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>{f}</button>
             ))}
@@ -713,40 +709,14 @@ function MiniPitch({ squad, formation }: { squad: WonCard[]; formation: Formatio
 }
 const fill = <T,>(arr: T[], n: number): (T | null)[] => Array.from({ length: n }, (_, i) => arr[i] ?? null)
 
-function SquadScreen({ save, persist, onBack }: { save: Save; persist: (s: Save) => void; onBack: () => void }) {
+function SquadScreen({ save, onBack }: { save: Save; onBack: () => void }) {
   const byPos = SECTORS.map(p => ({ p, cards: save.squad.filter(c => c.pos === p) }))
-  const tactic = save.tactic ?? 'equilibrio'
-  const setForm = (f: FormationKey) => persist({ ...save, formation: f })
-  const setTac = (t: Tac) => persist({ ...save, tactic: t })
-  // avisos de encaixe na formação
-  const fitNotes = SECTORS.map(p => {
-    const have = save.squad.filter(c => c.pos === p).length, need = FORM_NEED[save.formation][p]
-    if (have < need) return `faltam ${need - have} em ${SECTOR_LABEL[p]}`
-    if (have > need) return `sobram ${have - need} em ${SECTOR_LABEL[p]}`
-    return null
-  }).filter(Boolean) as string[]
   return (
     <div style={{ display: 'grid', gap: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>👥 Escalação · {save.squad.length} no elenco</p>
+      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>👥 Elenco · {save.formation} · {save.squad.length} jogadores</p>
       <MiniPitch squad={save.squad} formation={save.formation} />
-      <div>
-        <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', ...OSWALD, marginBottom: 6 }}>Formação</p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-          {FORMS_ALL.map(f => (
-            <button key={f} onClick={() => setForm(f)} style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '10px 0', fontWeight: 900, fontSize: 15, background: save.formation === f ? GOLD : '#fff', boxShadow: save.formation === f ? `3px 3px 0 0 ${INK}` : 'none', cursor: 'pointer', ...OSWALD }}>{f}</button>
-          ))}
-        </div>
-      </div>
-      <div>
-        <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', ...OSWALD, marginBottom: 6 }}>Tática</p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-          {(['retranca', 'equilibrio', 'ataque'] as Tac[]).map(t => (
-            <button key={t} onClick={() => setTac(t)} style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '10px 4px', fontWeight: 900, fontSize: 12, background: tactic === t ? PURPLE : '#fff', color: tactic === t ? '#fff' : INK, boxShadow: tactic === t ? `3px 3px 0 0 ${INK}` : 'none', cursor: 'pointer', ...OSWALD }}>{TAC_LABEL[t]}</button>
-          ))}
-        </div>
-      </div>
       <div style={{ ...box('#EAF3FF'), padding: 9 }}>
-        <p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ A formação e a tática valem na <b>temporada de verdade</b>. Retranca segura o ataque, ofensivo atropela o equilíbrio, equilíbrio fura a retranca.{fitNotes.length > 0 ? <><br /><span style={{ color: RED }}>⚠️ {fitNotes.join(' · ')} — ajuste no leilão (aliciar/vender).</span></> : ''}</p>
+        <p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ A formação <b>{save.formation}</b> foi definida no começo da dinastia e não muda. A <b>tática</b> (defensivo / equilibrado / ofensivo) você escolhe <b>durante a partida</b>, no campinho.</p>
       </div>
       <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, marginTop: 4 }}>Elenco completo</p>
       {byPos.map(({ p, cards }) => cards.length > 0 && (
