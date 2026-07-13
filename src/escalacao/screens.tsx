@@ -1287,7 +1287,11 @@ export function EscSeason() {
           {state.careerTitlesA > 0 && <span className="mr-1.5"><CareerStars n={state.careerTitlesA} size={12} /></span>}
           RODADA {Math.min(state.round + 1, 38)}/38
         </span>
-        <span className="font-black text-sm" style={OSWALD}>{youPos}º · {table[youPos - 1]?.pts ?? 0} pts</span>
+        <span className="font-black text-sm" style={OSWALD}>{(() => {
+          const disp = !resultRevealed && state.lastResults.length > 0 ? sortedTable(leagueBeforeResults(state.league, state.lastResults)) : table
+          const pos = disp.findIndex(t => t.id === you.id) + 1
+          return `${pos}º · ${disp[pos - 1]?.pts ?? 0} pts`
+        })()}</span>
       </div>
     }>
       {myLast ? (
@@ -1359,7 +1363,7 @@ export function EscSeason() {
         </Box>
       )}
 
-      <TableBox highlight={you.id} />
+      <TableBox highlight={you.id} holdResults={!resultRevealed} />
       <TopScorersBox highlight={you.id} />
       <Campinho m={you} small />
       {state.careerDivision && <RivalTracker />}
@@ -1489,9 +1493,25 @@ function zoneColor(rank: number): string | undefined {
   return '#F9D8D3'
 }
 
-function TableBox({ highlight }: { highlight: number }) {
+// desfaz os resultados de UMA rodada na tabela — pra mostrar a classificação
+// como estava ANTES do jogo, enquanto a partida ainda anima (não estraga a graça).
+function leagueBeforeResults<T extends { id: number; pts: number; w: number; d: number; l: number; gf: number; ga: number }>(league: T[], results: { homeId: number; awayId: number; hg: number; ag: number }[]): T[] {
+  const map = new Map(league.map(t => [t.id, { ...t }]))
+  for (const r of results) {
+    const h = map.get(r.homeId), a = map.get(r.awayId)
+    if (!h || !a) continue
+    h.gf -= r.hg; h.ga -= r.ag; a.gf -= r.ag; a.ga -= r.hg
+    if (r.hg > r.ag) { h.pts -= 3; h.w -= 1; a.l -= 1 }
+    else if (r.ag > r.hg) { a.pts -= 3; a.w -= 1; h.l -= 1 }
+    else { h.pts -= 1; a.pts -= 1; h.d -= 1; a.d -= 1 }
+  }
+  return league.map(t => map.get(t.id)!)
+}
+
+function TableBox({ highlight, holdResults }: { highlight: number; holdResults?: boolean }) {
   const { state } = useEsc()
-  const table = sortedTable(state.league)
+  const league = holdResults && state.lastResults.length > 0 ? leagueBeforeResults(state.league, state.lastResults) : state.league
+  const table = sortedTable(league)
   return (
     <Box className="p-3 overflow-x-auto">
       <div className="flex items-center justify-between mb-2">
