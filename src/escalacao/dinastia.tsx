@@ -482,7 +482,7 @@ function MidWindow({ onContinue, partial, partialTable }: { onContinue: () => vo
     </div>
   )
 }
-function MidHome({ save, go, onContinue, partial }: { save: Save; go: (p: Phase) => void; onContinue: () => void; partial: PartialRow[] }) {
+function MidHome({ save, go, onContinue, partial, partialTable: _partialTable }: { save: Save; go: (p: Phase) => void; onContinue: () => void; partial: PartialRow[]; partialTable: TeamStand[] }) {
   const top = partial.slice(0, 3)
   return (
     <div style={{ display: 'grid', gap: 12 }}>
