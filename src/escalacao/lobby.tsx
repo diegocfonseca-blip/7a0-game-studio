@@ -33,6 +33,12 @@ function randCode() { return Math.random().toString(36).slice(2, 8).toUpperCase(
 // "some" — não porque saiu da sala, mas porque tudo que só existia em
 // memória foi perdido. Com isso salvo, reconectamos sozinhos.
 const LS_KEY = 'escalacao-room'
+// código de convite guardado quando o amigo abriu a URL ?j=CODE — usado
+// pra entrar automaticamente na sala depois de logar/cadastrar (ou já entrar
+// direto se ele já estava logado). Some depois de consumido.
+const INVITE_KEY = 'esc_invite_code'
+function loadInvite(): string | null { try { return sessionStorage.getItem(INVITE_KEY) } catch { return null } }
+function clearInvite() { try { sessionStorage.removeItem(INVITE_KEY) } catch { /* ignora */ } }
 // hash da senha da sala (SHA-256) — não guardamos a senha em texto puro
 async function hashPw(text: string): Promise<string> {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
@@ -179,8 +185,21 @@ export function EscLobby() {
 
   // Reconecta sozinho se a página recarregou com uma sala salva (ex.: o
   // navegador descartou a aba ao trocar pro WhatsApp e voltar).
+  // Também consome o código de convite (?j=CODE) e entra na sala automaticamente
+  // — para quem já estava logado (0 clique) e para quem acabou de se cadastrar.
   useEffect(() => {
     if (!user) return
+    const invite = loadInvite()
+    if (invite) {
+      ;(async () => {
+        const { data: rd } = await supabase.from('game_rooms').select('*').eq('code', invite).maybeSingle()
+        if (!rd || rd.game_state?.__game !== GAME_TAG) { clearInvite(); return }
+        clearInvite()
+        setLoading(true)
+        await enterRoom(rd as RoomInfo)
+      })()
+      return
+    }
     const savedId = loadSavedRoom()
     if (!savedId) return
     ;(async () => {
@@ -315,6 +334,21 @@ export function EscLobby() {
     await supabase.from('room_players').delete().eq('room_id', resumeRoom.id).eq('user_id', user.id)
     clearSavedRoom()
     setResumeRoom(null)
+  }
+  // Compartilha o link de convite (?j=CODE) — abre o menu nativo do celular
+  // (WhatsApp/Telegram/etc). Fallback: copia pro clipboard.
+  const [shareOk, setShareOk] = useState<'link' | 'code' | null>(null)
+  async function shareInvite(code: string, roomName?: string) {
+    const url = `${window.location.origin}${window.location.pathname}?j=${code}`
+    const text = `🔨 Te desafio no Leilão Legends! Entre na sala ${roomName ? `"${roomName}" ` : ''}(${code}):\n${url}`
+    const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> }
+    if (typeof nav.share === 'function') {
+      try { await nav.share({ title: 'Leilão Legends', text, url }); return } catch { /* usuário cancelou ou não suporta */ }
+    }
+    try { await navigator.clipboard.writeText(url); setShareOk('link'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
+  }
+  async function copyCode(code: string) {
+    try { await navigator.clipboard.writeText(code); setShareOk('code'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
   }
 
   const nameOf = () => user?.user_metadata?.display_name ?? user?.email?.split('@')[0] ?? 'Técnico'
@@ -470,11 +504,21 @@ export function EscLobby() {
     </div>
   )
 
-  if (phase === 'auth') return wrap(<>
+  if (phase === 'auth') {
+    const pendingInvite = loadInvite()
+    return wrap(<>
     <div className="text-center">
       <div className="text-6xl mb-2">🔨</div>
       <h1 className="font-black text-3xl text-white" style={OSWALD}>LEILÃO LEGENDS · ONLINE</h1>
     </div>
+    {pendingInvite && (
+      <div className="rounded-xl border-[3px] border-black px-3 py-2.5" style={{ background: PURPLE, boxShadow: `3px 3px 0 ${INK}` }}>
+        <p className="text-xs font-black text-white leading-snug" style={OSWALD}>
+          🎮 Você foi convidado pra sala <span className="bg-white text-black px-1.5 rounded">{pendingInvite}</span>.<br />
+          <span className="text-white/80">Entre ou crie sua conta — te levo direto pra sala.</span>
+        </p>
+      </div>
+    )}
     <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
       {(['login', 'register'] as AuthTab[]).map(tab => (
         <button key={tab} onClick={() => { setAuthTab(tab); setAuthError('') }}
@@ -498,6 +542,7 @@ export function EscLobby() {
     <Big onClick={handleAuth}>{loading ? '...' : authTab === 'login' ? 'Entrar →' : 'Criar conta →'}</Big>
     <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">← Voltar</button>
   </>)
+  }
 
   if (phase === 'menu') {
     const TABS: { id: 'create' | 'open' | 'join'; label: string }[] = [
@@ -707,8 +752,33 @@ export function EscLobby() {
         {room.game_state?.roomName && <p className="text-white font-black text-xl mb-1" style={OSWALD}>{room.game_state.roomName}</p>}
         <p className="text-white/50 text-[11px] font-black uppercase tracking-widest">Código da Sala</p>
         <p className="font-black text-5xl text-white tracking-[0.2em] mt-1">{room.code}</p>
-        <p className="text-white/30 text-xs mt-1">Aparece nas Salas Abertas ou compartilhe o código</p>
       </div>
+
+      {/* Convite: manda o link direto no zap — o amigo cai na sala automaticamente
+          (se já tem conta) ou no cadastro rápido e depois na sala. */}
+      <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
+        <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>📣 Chame a galera</p>
+        <p className="text-white/80 text-[11px] font-medium leading-snug">
+          Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.
+        </p>
+        <div className="flex gap-2">
+          <button onClick={() => shareInvite(room.code, room.game_state?.roomName)}
+            className="flex-1 border-[2px] border-black rounded-xl py-2.5 font-black text-xs uppercase bg-white text-black active:translate-y-0.5" style={OSWALD}>
+            📤 Compartilhar convite
+          </button>
+          <button onClick={() => copyCode(room.code)}
+            className="border-[2px] border-black rounded-xl px-3 py-2.5 font-black text-xs uppercase bg-[#FFC400] text-black active:translate-y-0.5" style={OSWALD}
+            aria-label="Copiar código">
+            📋
+          </button>
+        </div>
+        {shareOk && (
+          <p className="text-white text-[11px] font-black text-center" style={OSWALD}>
+            ✓ {shareOk === 'code' ? 'Código copiado' : 'Link copiado — cola no zap'}
+          </p>
+        )}
+      </div>
+
       <div className="border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-3">Técnicos ({players.length}/{room.max_players})</p>
         <div className="space-y-2">

@@ -106,7 +106,22 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
 
 export default function App() {
   const forcedGame = (import.meta.env.VITE_ONLY_GAME as GameKey | undefined) ?? null
-  const [selectedGame, setSelectedGame] = useState<GameKey | null>(forcedGame)
+  // Link de convite (?j=CODE) sempre abre direto o Leilão Legends — o amigo
+  // que clicou no zap não precisa passar pelo seletor de jogos.
+  const inviteCode = (() => {
+    try {
+      const p = new URLSearchParams(window.location.search).get('j')
+      if (p && /^[A-Z0-9]{4,8}$/i.test(p.trim())) {
+        const code = p.trim().toUpperCase()
+        sessionStorage.setItem('esc_invite_code', code)
+        return code
+      }
+    } catch { /* ignora */ }
+    return null
+  })()
+  const [selectedGame, setSelectedGame] = useState<GameKey | null>(
+    forcedGame ?? (inviteCode ? 'escalacao' : null),
+  )
 
   function choose(game: GameKey) {
     setSelectedGame(game)
