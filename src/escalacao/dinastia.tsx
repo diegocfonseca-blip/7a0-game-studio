@@ -522,8 +522,7 @@ function MidHome({ save, go, onContinue, partial }: { save: Save; go: (p: Phase)
         : <Btn onClick={() => go('auction')} bg={GOLD}>🔨 INICIAR LEILÃO {(save.requested?.length || save.sellList?.length) ? `(${(save.requested?.length ?? 0) + (save.sellList?.length ?? 0)} + mercado)` : '(mercado)'}</Btn>}
       <div style={{ display: 'flex', gap: 8 }}>
         <div style={{ flex: 1 }}><Btn onClick={() => go('squad')} bg="#fff">👥 Elenco</Btn></div>
-        <div style={{ flex: 1 }}><Btn onClick={() => go('table')} bg="#fff">📊 Tabela</Btn></div>
-        <div style={{ flex: 1 }}><Btn onClick={() => go('scorers')} bg="#fff">🥇 Artilheiros</Btn></div>
+        <div style={{ flex: 1 }}><Btn onClick={() => go('table')} bg="#fff">📊 Tabela + Artilheiros</Btn></div>
       </div>
       <Btn onClick={() => go('store')} bg={PURPLE} color="#fff">🛡️ Shopping · Escudo</Btn>
       <Btn onClick={onContinue} bg={GREEN} color="#fff">▶️ CONTINUAR — jogar o returno</Btn>
