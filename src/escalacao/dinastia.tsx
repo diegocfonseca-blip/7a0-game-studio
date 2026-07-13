@@ -1363,9 +1363,13 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
             incoming={currentR.lot.card}
             dropped={currentR.droppedCard}
             paidForIncoming={currentR.price}
+            posCands={draftRef.current!.squad.filter(c => c.pos === currentR.droppedCard!.pos)}
+            floorOfDropped={floorOf(draftRef.current!, currentR.droppedCard) ?? Math.max(1, currentR.droppedCard.paid)}
+            rivalsCount={draftRef.current!.world.filter(w => w.rival).length}
             onDispensar={doDispensar}
             onDesistir={doDesistir}
             onOferta={doOferta}
+            onChangeDropped={doChangeDropped}
             rng={rng}
           />
         )}
