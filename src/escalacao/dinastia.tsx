@@ -1296,7 +1296,8 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
   const label: Record<LotResult['outcome'], string> = { you: '✅ VOCÊ LEVOU', rival: '😤 rival levou', owner: '🛡️ dono segurou', none: '— ninguém deu lance' }
 
   if (finished) {
-    const toMonte = allResults.filter(r => (r.outcome === 'none' && r.lot.kind === 'market') || r.dropped).length
+    const unsold = allResults.filter(r => r.outcome === 'none' && r.lot.kind === 'market').length
+    const dispensados = allResults.filter(r => !!r.dropped).length
     const mine = allResults.filter(r => r.outcome === 'you')
     return (
       <div style={{ display: 'grid', gap: 10 }}>
@@ -1304,7 +1305,8 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
         {mine.length > 0
           ? mine.map((r, i) => <div key={i} style={{ ...box(GOLD), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', ...OSWALD, fontWeight: 900 }}><span><Pos p={r.lot.card.pos} /> {r.lot.card.name}</span><span>💰 {r.price}</span></div>)
           : <div style={{ ...box('#fff'), padding: 12, textAlign: 'center', fontWeight: 700, color: '#888' }}>Você não levou ninguém desta vez.</div>}
-        {toMonte > 0 && <div style={{ ...box('#F0EAD8'), padding: 10 }}><p style={{ fontSize: 12, fontWeight: 700 }}>🎁 {toMonte} jogador{toMonte > 1 ? 'es sobraram' : ' sobrou'} pro <b>Monte</b> — pegue de graça na tela de <b>Contratar</b> (se tiver vaga).</p></div>}
+        {unsold > 0 && <div style={{ ...box('#F0EAD8'), padding: 10 }}><p style={{ fontSize: 12, fontWeight: 700 }}>🎁 {unsold} do mercado ninguém quis — vira{unsold > 1 ? 'ram' : ''} <b>livre no Monte</b>. Se nunca custou mais que 1, sai grátis; se já teve dono, você paga o piso dele.</p></div>}
+        {dispensados > 0 && <div style={{ ...box('#EAF3FF'), padding: 10 }}><p style={{ fontSize: 12, fontWeight: 700 }}>➖ {dispensados} dispensado{dispensados > 1 ? 's' : ''} porque a posição encheu — foi{dispensados > 1 ? 'ram' : ''} pro <b>Monte</b> pelo piso que carrega.</p></div>}
         <Btn onClick={onDone} bg={GREEN} color="#fff">✅ Pronto</Btn>
       </div>
     )
