@@ -158,6 +158,7 @@ interface Save {
   requested?: string[] // jogadores que você aliciou pro leilão desta janela (1 por posição)
   sellList?: string[] // seus jogadores que você pôs no leilão desta janela (1 por posição)
   soldPos?: Sector[] // posições que você já pôs à venda nesta janela (limite 1 por posição)
+  auctionDone?: boolean // o leilão desta janela já rolou (só 1 por janela)
   monte?: PoolCard[] // livres: dispensados que ninguém pagou o mínimo; pegáveis de graça
   lastTable?: TeamStand[] // classificação FINAL da sua divisão na última temporada
   lastScorers?: { name: string; teamName: string; goals: number }[] // artilharia da SUA divisão (última temp.)
@@ -305,7 +306,7 @@ function processDinastiaEnd(state: EscState, existing: Save | null): Save {
   const move: 'up' | 'down' | 'stay' = newDivision === div ? 'stay' : DIVS.indexOf(newDivision) > DIVS.indexOf(div) ? 'up' : 'down'
   return {
     ...base, world: newWorld, division: newDivision, seasonNo: base.seasonNo + 1,
-    stage: 'preWindow', requested: [], soldPos: [], monte: base.monte ?? [], lastTable, lastScorers,
+    stage: 'preWindow', requested: [], soldPos: [], auctionDone: false, monte: base.monte ?? [], lastTable, lastScorers,
     coins: base.coins + prize, titles: base.titles + (youChampion ? 1 : 0),
     worldGoals, goalsLast, championLast: youChampion,
     lastResult: { pos: yourPos, move, prevDiv: div, champion: youChampion },
@@ -408,8 +409,8 @@ function Dinastia() {
   const playSeason = () => {
     if (!save) return
     const kept = save.squad.filter(c => { const k = save.contracts?.[c.id]; return !k || k.until >= save.seasonNo })
-    // zera os logs de aliciar/vender (1 por posição) — a janela do MEIO começa limpa
-    persist({ ...save, squad: kept, requested: [], soldPos: [] })
+    // zera os logs de aliciar/vender + libera 1 leilão pra janela do MEIO
+    persist({ ...save, squad: kept, requested: [], soldPos: [], auctionDone: false })
     const others = save.world.filter(w => w.div === save.division).map(w => ({ name: w.name, squad: w.squad }))
     // decora o nome com o símbolo do escudo → aparece na tabela/tela de fim do jogo
     const sym = save.crest?.symbol ?? ''
@@ -516,7 +517,9 @@ function MidHome({ save, go, onContinue, partial }: { save: Save; go: (p: Phase)
         <div style={{ flex: 1 }}><Btn onClick={() => go('transfer')} bg="#fff">🔎 Aliciar</Btn></div>
         <div style={{ flex: 1 }}><Btn onClick={() => go('sell')} bg="#fff">🔨 Vender</Btn></div>
       </div>
-      <Btn onClick={() => go('auction')} bg={GOLD}>🔨 INICIAR LEILÃO {(save.requested?.length || save.sellList?.length) ? `(${(save.requested?.length ?? 0) + (save.sellList?.length ?? 0)} + mercado)` : '(mercado)'}</Btn>
+      {save.auctionDone
+        ? <div style={{ ...box('#eee'), padding: 10, textAlign: 'center', fontWeight: 800, fontSize: 12, color: '#888' }}>🔨 O leilão desta janela já rolou — só 1 por janela.</div>
+        : <Btn onClick={() => go('auction')} bg={GOLD}>🔨 INICIAR LEILÃO {(save.requested?.length || save.sellList?.length) ? `(${(save.requested?.length ?? 0) + (save.sellList?.length ?? 0)} + mercado)` : '(mercado)'}</Btn>}
       <div style={{ display: 'flex', gap: 8 }}>
         <div style={{ flex: 1 }}><Btn onClick={() => go('squad')} bg="#fff">👥 Elenco</Btn></div>
         <div style={{ flex: 1 }}><Btn onClick={() => go('table')} bg="#fff">📊 Tabela</Btn></div>
@@ -695,7 +698,11 @@ function Home({ save, go, playSeason }: { save: Save; go: (p: Phase) => void; pl
           <div style={{ flex: 1 }}><Btn onClick={() => go('transfer')} bg="#fff">🔎 Aliciar</Btn></div>
           <div style={{ flex: 1 }}><Btn onClick={() => go('sell')} bg="#fff">🔨 Vender</Btn></div>
         </div>
-        <div style={{ marginTop: 10 }}><Btn onClick={() => go('auction')} bg={GOLD}>🔨 INICIAR LEILÃO {(save.requested?.length || save.sellList?.length) ? `(${(save.requested?.length ?? 0) + (save.sellList?.length ?? 0)} + mercado)` : '(mercado)'}</Btn></div>
+        <div style={{ marginTop: 10 }}>
+          {save.auctionDone
+            ? <div style={{ ...box('#eee'), padding: 10, textAlign: 'center', fontWeight: 800, fontSize: 12, color: '#888' }}>🔨 O leilão desta janela já rolou — só 1 por janela.</div>
+            : <Btn onClick={() => go('auction')} bg={GOLD}>🔨 INICIAR LEILÃO {(save.requested?.length || save.sellList?.length) ? `(${(save.requested?.length ?? 0) + (save.sellList?.length ?? 0)} + mercado)` : '(mercado)'}</Btn>}
+        </div>
       </div>
       <Btn onClick={playSeason} bg={GREEN} color="#fff">▶️ JOGAR A TEMPORADA {save.seasonNo}</Btn>
       <div style={{ display: 'flex', gap: 10 }}>
@@ -897,13 +904,17 @@ function Transfer({ save, persist, onBack, midSeason }: { save: Save; persist: (
         <div style={{ ...box('#EAF3FF'), padding: 9 }}><p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ Toque num jogador pra <b>abrir o leilão</b> por ele (você × seus rivais × o dono). Só <b>1 contratação por posição</b> por janela. Quem está sob contrato não pode.</p></div>
         {SECTORS.map(p => team.squad.filter(c => c.pos === p).map(c => {
           const under = underContract(save, c.id)
-          const posDone = attemptedPos.has(p)
-          const dis = under || posDone
+          const on = (save.requested ?? []).includes(c.id)
+          const posOther = attemptedPos.has(p) && !on // já aliciou OUTRO nessa posição
+          const dis = under || posOther
           const fl = floorOf(save, c)
+          const toggle = () => on
+            ? persist({ ...save, requested: (save.requested ?? []).filter(id => id !== c.id) })
+            : persist({ ...save, requested: [...(save.requested ?? []), c.id] })
           return (
-            <button key={c.id} disabled={dis} onClick={() => { persist({ ...save, requested: [...(save.requested ?? []), c.id] }); setBrowseTeam(null) }} style={{ ...box(dis ? '#eee' : '#fff'), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: dis ? 'default' : 'pointer', textAlign: 'left', opacity: dis ? 0.55 : 1 }}>
+            <button key={c.id} disabled={dis} onClick={toggle} style={{ ...box(on ? '#EAF7EE' : dis ? '#eee' : '#fff'), padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: dis ? 'default' : 'pointer', textAlign: 'left', opacity: dis ? 0.55 : 1, border: on ? `3px solid ${GREEN}` : `3px solid ${INK}` }}>
               <span style={{ fontWeight: 900, ...OSWALD }}><Pos p={c.pos} /> {c.name}</span>
-              {under ? <span style={{ fontWeight: 800, color: RED, fontSize: 12 }}>🔒 contrato (temp. {contractUntil(save, c.id)})</span> : posDone ? <span style={{ fontWeight: 800, color: '#999', fontSize: 12 }}>já aliciou 1 {c.pos}</span> : <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{fl !== undefined ? <>💰 valor {fl}<br /><span style={{ fontSize: 10, color: '#888' }}>mín. do lance</span></> : <span style={{ color: '#888' }}>novo no mercado</span>}<br /><span style={{ color: GREEN, fontSize: 11 }}>+ aliciar</span></span>}
+              {on ? <span style={{ fontWeight: 800, color: GREEN, fontSize: 12 }}>✔ no leilão · tirar</span> : under ? <span style={{ fontWeight: 800, color: RED, fontSize: 12 }}>🔒 contrato (temp. {contractUntil(save, c.id)})</span> : posOther ? <span style={{ fontWeight: 800, color: '#999', fontSize: 12 }}>já aliciou 1 {c.pos}</span> : <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{fl !== undefined ? <>💰 valor {fl} <span style={{ fontSize: 10, color: '#888' }}>(mín.)</span></> : <span style={{ color: '#888' }}>novo no mercado</span>}<br /><span style={{ color: GREEN, fontSize: 11 }}>+ aliciar</span></span>}
             </button>
           )
         }))}
@@ -1195,7 +1206,7 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
     if (sectorIdx < byPos.length - 1) {
       setSectorIdx(i => i + 1); setPhase('bid'); setPick(null); setLeft(AUC_SECONDS); setSecResults([]); setRevealIdx(0); sealedRef.current = false
     } else {
-      const draft = draftRef.current!; draft.requested = []; draft.sellList = []; draft.soldPos = []
+      const draft = draftRef.current!; draft.requested = []; draft.sellList = []; draft.soldPos = []; draft.auctionDone = true
       persist(draft); setFinished(true)
     }
   }
@@ -1206,6 +1217,14 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
     const t = setTimeout(() => setLeft(l => l - 1), 1000)
     return () => clearTimeout(t)
   }, [left, phase, finished]) // eslint-disable-line
+  // revelação passa SOZINHA (fluido, igual os outros modos): martela um por um e
+  // vai pra próxima posição automaticamente.
+  useEffect(() => {
+    if (phase !== 'reveal' || finished) return
+    const atLast = revealIdx >= secResults.length - 1
+    const t = setTimeout(() => { if (atLast) nextSector(); else setRevealIdx(i => i + 1) }, atLast ? 1600 : 1200)
+    return () => clearTimeout(t)
+  }, [phase, revealIdx, finished, secResults.length]) // eslint-disable-line
 
   const label: Record<LotResult['outcome'], string> = { you: '✅ VOCÊ LEVOU', rival: '😤 rival levou', owner: '🛡️ dono segurou', none: '— ninguém deu lance' }
 
@@ -1271,9 +1290,7 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
           </div>
           <p style={{ fontWeight: 900, ...OSWALD, marginTop: 12, color: r.outcome === 'you' ? GREEN : INK }}>{label[r.outcome]}{r.dropped ? ` · ${r.dropped} foi pro monte` : ''}</p>
         </div>
-        {!atLast
-          ? <Btn onClick={() => setRevealIdx(i => i + 1)} bg={GOLD}>🔨 PRÓXIMO</Btn>
-          : <Btn onClick={nextSector} bg={GREEN} color="#fff">{last ? '🏁 Encerrar pregão' : '➡️ Próxima posição'}</Btn>}
+        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 800, color: '#999' }}>{atLast ? (last ? 'encerrando o pregão…' : 'indo pra próxima posição…') : 'martelando…'}</p>
       </div>
     )
   }
