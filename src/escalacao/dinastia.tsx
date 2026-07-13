@@ -37,7 +37,10 @@ const NEED: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
 const FORM_NEED: Record<FormationKey, Record<Sector, number>> = {
   '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
   '4-4-2': { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 },
+  '4-5-1': { GOL: 1, LAT: 2, ZAG: 2, MEI: 5, ATA: 1 },
 }
+const FORMS_ALL: FormationKey[] = ['4-3-3', '4-4-2', '4-5-1']
+const TAC_LABEL: Record<Tac, string> = { retranca: '🛡️ Defensivo', equilibrio: '⚖️ Equilibrado', ataque: '⚔️ Ofensivo' }
 const SECTORS: Sector[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
 const SECTOR_LABEL: Record<Sector, string> = { GOL: 'Goleiros', LAT: 'Laterais', ZAG: 'Zagueiros', MEI: 'Meio-campo', ATA: 'Ataque' }
 const START_COINS = 50
@@ -332,7 +335,7 @@ export function DinastiaGame() {
       const others = save.world.filter(w => w.div === save.division).map(w => ({ name: w.name, squad: w.squad }))
       const sym = save.crest?.symbol ?? ''
       const rivals = save.world.filter(w => w.rival).map(w => ({ team: w.name, name: w.name, division: w.div }))
-      dispatch({ type: 'START_DINASTIA_SEASON', teamName: sym ? `${sym} ${save.clubName}` : save.clubName, formation: save.formation, division: save.division, seasonNo: 1, squad: save.squad, others, rivals })
+      dispatch({ type: 'START_DINASTIA_SEASON', teamName: sym ? `${sym} ${save.clubName}` : save.clubName, formation: save.formation, division: save.division, seasonNo: 1, squad: save.squad, others, rivals, tactic: save.tactic })
     }
     if (state.screen !== 'season') builtWorld.current = false
   }, [state.dinastia, state.screen]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -415,7 +418,7 @@ function Dinastia() {
     const sym = save.crest?.symbol ?? ''
     const teamName = sym ? `${sym} ${save.clubName}` : save.clubName
     const rivals = save.world.filter(w => w.rival).map(w => ({ team: w.name, name: w.name, division: w.div }))
-    dispatch({ type: 'START_DINASTIA_SEASON', teamName, formation: save.formation, division: save.division, seasonNo: save.seasonNo, squad: kept, others, rivals })
+    dispatch({ type: 'START_DINASTIA_SEASON', teamName, formation: save.formation, division: save.division, seasonNo: save.seasonNo, squad: kept, others, rivals, tactic: save.tactic })
     window.location.hash = ''
   }
 
@@ -434,7 +437,7 @@ function Dinastia() {
     <div>
       {header}
       {phase === 'home' && <Home save={save} go={setPhase} playSeason={playSeason} />}
-      {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
+      {phase === 'squad' && <SquadScreen save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'scorers' && <ScorersScreen save={save} onBack={() => setPhase('home')} />}
       {phase === 'table' && <ClassificationScreen save={save} onBack={() => setPhase('home')} />}
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
@@ -472,7 +475,7 @@ function MidWindow({ onContinue, partial }: { onContinue: () => void; partial: P
     <div>
       {header}
       {phase === 'home' && <MidHome save={save} go={setPhase} onContinue={onContinue} partial={partial} />}
-      {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
+      {phase === 'squad' && <SquadScreen save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'scorers' && <MidScorers partial={partial} onBack={() => setPhase('home')} />}
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'transfer' && <Transfer save={save} persist={persist} onBack={() => setPhase('home')} midSeason />}
@@ -589,7 +592,7 @@ function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: stri
         <div>
           <p style={label}>Formação (travada antes do pregão)</p>
           <div className="grid grid-cols-4 gap-2">
-            {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => (
+            {FORMS_ALL.map(f => (
               <button key={f} onClick={() => setFormation(f)} className="border-[3px] border-black rounded-xl py-2 font-black text-sm"
                 style={{ backgroundColor: formation === f ? GOLD : '#fff', boxShadow: formation === f ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>{f}</button>
             ))}
@@ -678,12 +681,74 @@ function Home({ save, go, playSeason }: { save: Save; go: (p: Phase) => void; pl
   )
 }
 
-// ─── ELENCO ───────────────────────────────────────────────────────────
-function SquadScreen({ save, onBack }: { save: Save; onBack: () => void }) {
+// ─── ELENCO / ESCALAÇÃO ──────────────────────────────────────────────
+// mini-campinho com o XI da formação escolhida (mesmo esquema do jogo)
+function MiniPitch({ squad, formation }: { squad: WonCard[]; formation: FormationKey }) {
+  const xi = bestXI(squad, FORM_NEED[formation]) as WonCard[]
+  const pick = (p: Sector) => xi.filter(c => c.pos === p)
+  const lats = pick('LAT'), zags = pick('ZAG')
+  const def = [lats[0], ...zags, lats[1]].filter(Boolean) as WonCard[]
+  const rows: { key: string; cards: (WonCard | null)[] }[] = [
+    { key: 'ATA', cards: fill(pick('ATA'), FORM_NEED[formation].ATA) },
+    { key: 'MEI', cards: fill(pick('MEI'), FORM_NEED[formation].MEI) },
+    { key: 'DEF', cards: fill(def, FORM_NEED[formation].LAT + FORM_NEED[formation].ZAG) },
+    { key: 'GOL', cards: fill(pick('GOL'), FORM_NEED[formation].GOL) },
+  ]
+  return (
+    <div style={{ border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}` }}>
+      <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8, background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)` }}>
+        {rows.map(row => (
+          <div key={row.key} style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
+            {row.cards.map((c, i) => (
+              <div key={i} style={{ border: `2px solid ${INK}`, borderRadius: 8, textAlign: 'center', padding: '3px 7px', minWidth: 62, background: c ? '#fff' : 'rgba(255,255,255,0.25)' }}>
+                <div style={{ fontSize: 9, fontWeight: 800, color: c ? RED : '#fff' }}>{row.key === 'DEF' ? (c ? c.pos : 'DEF') : row.key}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, lineHeight: 1.05, color: c ? INK : 'rgba(255,255,255,0.95)' }}>{c ? c.name : '⚠️ vazio'}</div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+const fill = <T,>(arr: T[], n: number): (T | null)[] => Array.from({ length: n }, (_, i) => arr[i] ?? null)
+
+function SquadScreen({ save, persist, onBack }: { save: Save; persist: (s: Save) => void; onBack: () => void }) {
   const byPos = SECTORS.map(p => ({ p, cards: save.squad.filter(c => c.pos === p) }))
+  const tactic = save.tactic ?? 'equilibrio'
+  const setForm = (f: FormationKey) => persist({ ...save, formation: f })
+  const setTac = (t: Tac) => persist({ ...save, tactic: t })
+  // avisos de encaixe na formação
+  const fitNotes = SECTORS.map(p => {
+    const have = save.squad.filter(c => c.pos === p).length, need = FORM_NEED[save.formation][p]
+    if (have < need) return `faltam ${need - have} em ${SECTOR_LABEL[p]}`
+    if (have > need) return `sobram ${have - need} em ${SECTOR_LABEL[p]}`
+    return null
+  }).filter(Boolean) as string[]
   return (
     <div style={{ display: 'grid', gap: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>👥 Elenco ({save.squad.length})</p>
+      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>👥 Escalação · {save.squad.length} no elenco</p>
+      <MiniPitch squad={save.squad} formation={save.formation} />
+      <div>
+        <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', ...OSWALD, marginBottom: 6 }}>Formação</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+          {FORMS_ALL.map(f => (
+            <button key={f} onClick={() => setForm(f)} style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '10px 0', fontWeight: 900, fontSize: 15, background: save.formation === f ? GOLD : '#fff', boxShadow: save.formation === f ? `3px 3px 0 0 ${INK}` : 'none', cursor: 'pointer', ...OSWALD }}>{f}</button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', ...OSWALD, marginBottom: 6 }}>Tática</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+          {(['retranca', 'equilibrio', 'ataque'] as Tac[]).map(t => (
+            <button key={t} onClick={() => setTac(t)} style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '10px 4px', fontWeight: 900, fontSize: 12, background: tactic === t ? PURPLE : '#fff', color: tactic === t ? '#fff' : INK, boxShadow: tactic === t ? `3px 3px 0 0 ${INK}` : 'none', cursor: 'pointer', ...OSWALD }}>{TAC_LABEL[t]}</button>
+          ))}
+        </div>
+      </div>
+      <div style={{ ...box('#EAF3FF'), padding: 9 }}>
+        <p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ A formação e a tática valem na <b>temporada de verdade</b>. Retranca segura o ataque, ofensivo atropela o equilíbrio, equilíbrio fura a retranca.{fitNotes.length > 0 ? <><br /><span style={{ color: RED }}>⚠️ {fitNotes.join(' · ')} — ajuste no leilão (aliciar/vender).</span></> : ''}</p>
+      </div>
+      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, marginTop: 4 }}>Elenco completo</p>
       {byPos.map(({ p, cards }) => cards.length > 0 && (
         <div key={p}>
           <p style={{ fontWeight: 800, fontSize: 12, color: '#888', marginBottom: 4 }}>{SECTOR_LABEL[p]}</p>
