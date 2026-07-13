@@ -527,52 +527,90 @@ function MidHome({ save, go, onContinue, partial, partialTable: _partialTable }:
     </div>
   )
 }
-function MidScorers({ partial, onBack }: { partial: PartialRow[]; onBack: () => void }) {
+// ─── TABELA + ARTILHEIROS (mesmo visual do modo simulação) ─────────────────
+// Um único painel com classificação + artilharia, no formato/tema idênticos ao
+// que aparece durante a rodada — para não parecer "outra tela".
+function LeagueScreen({ save, mode, liveTable, liveScorers, onBack }: {
+  save: Save
+  mode: 'past' | 'live'
+  liveTable?: TeamStand[]
+  liveScorers?: PartialRow[]
+  onBack: () => void
+}) {
+  const rows: TeamStand[] = mode === 'live' ? (liveTable ?? []) : (save.lastTable ?? [])
+  const scorers = mode === 'live'
+    ? (liveScorers ?? [])
+    : (save.lastScorers ?? []).map(s => ({ ...s, mine: s.teamName === save.clubName } as PartialRow))
+  const title = mode === 'live' ? '· TEMPO REAL' : `· ${DIV_LABEL[save.division]}`
+  const zoneBg = (i: number) => i < 4 ? '#D6E9FA' : i < 10 ? '#FFF3B8' : i >= 16 ? '#F9D8D3' : undefined
   return (
-    <div style={{ display: 'grid', gap: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🥇 Artilharia parcial · sua divisão</p>
-      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Primeiro turno desta temporada, na sua divisão.</p>
-      {partial.length === 0
-        ? <p style={{ fontWeight: 700, color: '#888' }}>Ninguém marcou ainda.</p>
-        : <div style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 4 }}>
-            {partial.slice(0, 25).map((s, i) => (
-              <div key={s.name + i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px', borderRadius: 6, background: s.mine ? GOLD : 'transparent', fontWeight: s.mine ? 900 : 700 }}>
-                <span style={{ fontSize: 13 }}>{i + 1}. {s.name} <span style={{ color: '#999', fontSize: 11 }}>{s.teamName}</span></span>
-                <span style={{ fontWeight: 900, ...OSWALD }}>⚽ {s.goals}</span>
-              </div>
-            ))}
-          </div>}
-      <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
-    </div>
-  )
-}
-// classificação PARCIAL (ao vivo) da sua divisão, na janela do meio
-function MidTable({ table, division, onBack }: { table: TeamStand[]; division: Division; onBack: () => void }) {
-  return (
-    <div style={{ display: 'grid', gap: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>📊 Classificação · {DIV_LABEL[division]}</p>
-      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Como está agora, no meio da temporada. 🟢 topo sobe · 🔴 base cai.</p>
-      <div style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 2 }}>
-        <div style={{ display: 'flex', fontSize: 10, fontWeight: 800, color: '#aaa', padding: '0 6px 2px' }}>
-          <span style={{ width: 22 }}>#</span><span style={{ flex: 1 }}>Time</span><span style={{ width: 26, textAlign: 'center' }}>P</span><span style={{ width: 52, textAlign: 'center' }}>V-E-D</span><span style={{ width: 34, textAlign: 'right' }}>SG</span>
+    <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ ...box('#fff'), padding: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD }}>TABELA {title}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}><i style={{ width: 8, height: 8, borderRadius: 2, background: '#D6E9FA', display: 'inline-block' }} />G4</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}><i style={{ width: 8, height: 8, borderRadius: 2, background: '#FFF3B8', display: 'inline-block' }} />Pré</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}><i style={{ width: 8, height: 8, borderRadius: 2, background: '#F9D8D3', display: 'inline-block' }} />Z4</span>
+          </div>
         </div>
-        {table.map((t, i) => {
-          const zone = i < 4 ? '#1B7A3D' : i >= 16 ? '#E8503A' : 'transparent'
-          return (
-            <div key={t.name + i} style={{ display: 'flex', alignItems: 'center', padding: '4px 6px', borderRadius: 6, fontWeight: 700, fontSize: 12 }}>
-              <span style={{ width: 22, display: 'flex', alignItems: 'center', gap: 3 }}><i style={{ width: 5, height: 5, borderRadius: 99, background: zone, display: 'inline-block' }} />{i + 1}</span>
-              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
-              <span style={{ width: 26, textAlign: 'center', fontWeight: 900, ...OSWALD }}>{t.pts}</span>
-              <span style={{ width: 52, textAlign: 'center', color: '#888', fontSize: 11 }}>{t.w}-{t.d}-{t.l}</span>
-              <span style={{ width: 34, textAlign: 'right', color: '#888', fontSize: 11 }}>{t.gf - t.ga > 0 ? '+' : ''}{t.gf - t.ga}</span>
-            </div>
-          )
-        })}
+        {rows.length === 0
+          ? <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Jogue uma temporada pra ver a tabela.</p>
+          : (
+            <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ textAlign: 'left', fontWeight: 900, color: 'rgba(0,0,0,0.7)' }}>
+                  <th style={{ paddingRight: 4 }}>#</th><th>Time</th><th style={{ textAlign: 'center' }}>P</th><th style={{ textAlign: 'center' }}>V</th><th style={{ textAlign: 'center' }}>E</th><th style={{ textAlign: 'center' }}>D</th><th style={{ textAlign: 'center' }}>SG</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((t, i) => {
+                  const mine = t.name === save.clubName || t.name === `${save.crest?.symbol ?? ''} ${save.clubName}`.trim()
+                  return (
+                    <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: mine ? 900 : 600, backgroundColor: mine ? GOLD : zoneBg(i) }}>
+                      <td style={{ paddingRight: 4 }}>{i + 1}</td>
+                      <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 130 }}>{mine ? '👤 ' : ''}{t.name}</td>
+                      <td style={{ textAlign: 'center', fontWeight: 900 }}>{t.pts}</td>
+                      <td style={{ textAlign: 'center' }}>{t.w}</td>
+                      <td style={{ textAlign: 'center' }}>{t.d}</td>
+                      <td style={{ textAlign: 'center' }}>{t.l}</td>
+                      <td style={{ textAlign: 'center' }}>{t.gf - t.ga}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
+      </div>
+      <div style={{ ...box('#fff'), padding: 12 }}>
+        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, marginBottom: 8 }}>⚽ ARTILHARIA {title}</p>
+        {scorers.length === 0
+          ? <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Sem gols ainda.</p>
+          : (
+            <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ textAlign: 'left', fontWeight: 900, color: 'rgba(0,0,0,0.6)' }}>
+                  <th style={{ paddingRight: 4 }}>#</th><th>Jogador</th><th>Time</th><th style={{ textAlign: 'center' }}>Gols</th>
+                </tr>
+              </thead>
+              <tbody>
+                {scorers.slice(0, 15).map((s, i) => (
+                  <tr key={s.teamName + s.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: s.mine ? 900 : 600, backgroundColor: s.mine ? GOLD : undefined }}>
+                    <td style={{ paddingRight: 4 }}>{i + 1}</td>
+                    <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 130 }}>{s.name}</td>
+                    <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110, color: 'rgba(0,0,0,0.7)' }}>{s.teamName}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 900 }}>{s.goals}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
       </div>
       <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
     </div>
   )
 }
+
 
 // ─── INTRO / SETUP: mesmo padrão do setup da Carreira ────────────────
 function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: string[]; formation: FormationKey }) => void; onClose: () => void }) {
