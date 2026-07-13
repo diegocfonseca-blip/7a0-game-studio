@@ -709,10 +709,7 @@ function Home({ save, go, playSeason }: { save: Save; go: (p: Phase) => void; pl
         <div style={{ flex: 1 }}><Btn onClick={() => go('squad')} bg="#fff">👥 Elenco</Btn></div>
         <div style={{ flex: 1 }}><Btn onClick={() => go('store')} bg={PURPLE} color="#fff">🛡️ Escudo</Btn></div>
       </div>
-      <div style={{ display: 'flex', gap: 10 }}>
-        <div style={{ flex: 1 }}><Btn onClick={() => go('table')} bg="#fff">📊 Classificação</Btn></div>
-        <div style={{ flex: 1 }}><Btn onClick={() => go('scorers')} bg="#fff">🥇 Artilharia</Btn></div>
-      </div>
+      <Btn onClick={() => go('table')} bg="#fff">📊 Tabela + Artilheiros</Btn>
     </div>
   )
 }
