@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase'
 import { CATALOG, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
 import { DinastiaButton } from './dinastia'
+import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 
 const CATALOG_TOTAL = Object.values(CATALOG).reduce((s, arr) => s + arr.length, 0)
@@ -161,6 +162,10 @@ function Campinho({ m, small = false }: { m: Manager; small?: boolean }) {
             ))}
           </div>
         ))}
+      </div>
+      {/* placa de patrocínio: faixa branca fina num lado do campo (atrás do gol) */}
+      <div style={{ background: '#fff', borderTop: `3px solid ${INK}`, height: small ? 26 : 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <img src={VADICO_LOGO} alt="Vadico Veículos" style={{ height: small ? 16 : 19, width: 'auto', display: 'block' }} />
       </div>
     </div>
   )
