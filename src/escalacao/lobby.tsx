@@ -185,8 +185,21 @@ export function EscLobby() {
 
   // Reconecta sozinho se a página recarregou com uma sala salva (ex.: o
   // navegador descartou a aba ao trocar pro WhatsApp e voltar).
+  // Também consome o código de convite (?j=CODE) e entra na sala automaticamente
+  // — para quem já estava logado (0 clique) e para quem acabou de se cadastrar.
   useEffect(() => {
     if (!user) return
+    const invite = loadInvite()
+    if (invite) {
+      ;(async () => {
+        const { data: rd } = await supabase.from('game_rooms').select('*').eq('code', invite).maybeSingle()
+        if (!rd || rd.game_state?.__game !== GAME_TAG) { clearInvite(); return }
+        clearInvite()
+        setLoading(true)
+        await enterRoom(rd as RoomInfo)
+      })()
+      return
+    }
     const savedId = loadSavedRoom()
     if (!savedId) return
     ;(async () => {
