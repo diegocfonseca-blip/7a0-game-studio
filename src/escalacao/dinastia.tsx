@@ -436,8 +436,7 @@ function Dinastia() {
       {header}
       {phase === 'home' && <Home save={save} go={setPhase} playSeason={playSeason} />}
       {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
-      {phase === 'scorers' && <ScorersScreen save={save} onBack={() => setPhase('home')} />}
-      {phase === 'table' && <ClassificationScreen save={save} onBack={() => setPhase('home')} />}
+      {(phase === 'scorers' || phase === 'table') && <LeagueScreen mode="past" save={save} onBack={() => setPhase('home')} />}
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'transfer' && <Transfer save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'sell' && <SellRoom save={save} persist={persist} onBack={() => setPhase('home')} />}
@@ -473,10 +472,9 @@ function MidWindow({ onContinue, partial, partialTable }: { onContinue: () => vo
   return (
     <div>
       {header}
-      {phase === 'home' && <MidHome save={save} go={setPhase} onContinue={onContinue} partial={partial} />}
+      {phase === 'home' && <MidHome save={save} go={setPhase} onContinue={onContinue} partial={partial} partialTable={partialTable} />}
       {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
-      {phase === 'scorers' && <MidScorers partial={partial} onBack={() => setPhase('home')} />}
-      {phase === 'table' && <MidTable table={partialTable} division={save.division} onBack={() => setPhase('home')} />}
+      {(phase === 'scorers' || phase === 'table') && <LeagueScreen mode="live" save={save} liveTable={partialTable} liveScorers={partial} onBack={() => setPhase('home')} />}
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'transfer' && <Transfer save={save} persist={persist} onBack={() => setPhase('home')} midSeason />}
       {phase === 'sell' && <SellRoom save={save} persist={persist} onBack={() => setPhase('home')} />}
@@ -484,7 +482,7 @@ function MidWindow({ onContinue, partial, partialTable }: { onContinue: () => vo
     </div>
   )
 }
-function MidHome({ save, go, onContinue, partial }: { save: Save; go: (p: Phase) => void; onContinue: () => void; partial: PartialRow[] }) {
+function MidHome({ save, go, onContinue, partial, partialTable: _partialTable }: { save: Save; go: (p: Phase) => void; onContinue: () => void; partial: PartialRow[]; partialTable: TeamStand[] }) {
   const top = partial.slice(0, 3)
   return (
     <div style={{ display: 'grid', gap: 12 }}>
@@ -522,60 +520,97 @@ function MidHome({ save, go, onContinue, partial }: { save: Save; go: (p: Phase)
         : <Btn onClick={() => go('auction')} bg={GOLD}>🔨 INICIAR LEILÃO {(save.requested?.length || save.sellList?.length) ? `(${(save.requested?.length ?? 0) + (save.sellList?.length ?? 0)} + mercado)` : '(mercado)'}</Btn>}
       <div style={{ display: 'flex', gap: 8 }}>
         <div style={{ flex: 1 }}><Btn onClick={() => go('squad')} bg="#fff">👥 Elenco</Btn></div>
-        <div style={{ flex: 1 }}><Btn onClick={() => go('table')} bg="#fff">📊 Tabela</Btn></div>
-        <div style={{ flex: 1 }}><Btn onClick={() => go('scorers')} bg="#fff">🥇 Artilheiros</Btn></div>
+        <div style={{ flex: 1 }}><Btn onClick={() => go('table')} bg="#fff">📊 Tabela + Artilheiros</Btn></div>
       </div>
       <Btn onClick={() => go('store')} bg={PURPLE} color="#fff">🛡️ Shopping · Escudo</Btn>
       <Btn onClick={onContinue} bg={GREEN} color="#fff">▶️ CONTINUAR — jogar o returno</Btn>
     </div>
   )
 }
-function MidScorers({ partial, onBack }: { partial: PartialRow[]; onBack: () => void }) {
+// ─── TABELA + ARTILHEIROS (mesmo visual do modo simulação) ─────────────────
+// Um único painel com classificação + artilharia, no formato/tema idênticos ao
+// que aparece durante a rodada — para não parecer "outra tela".
+function LeagueScreen({ save, mode, liveTable, liveScorers, onBack }: {
+  save: Save
+  mode: 'past' | 'live'
+  liveTable?: TeamStand[]
+  liveScorers?: PartialRow[]
+  onBack: () => void
+}) {
+  const rows: TeamStand[] = mode === 'live' ? (liveTable ?? []) : (save.lastTable ?? [])
+  const scorers = mode === 'live'
+    ? (liveScorers ?? [])
+    : (save.lastScorers ?? []).map(s => ({ ...s, mine: s.teamName === save.clubName } as PartialRow))
+  const title = mode === 'live' ? '· TEMPO REAL' : `· ${DIV_LABEL[save.division]}`
+  const zoneBg = (i: number) => i < 4 ? '#D6E9FA' : i < 10 ? '#FFF3B8' : i >= 16 ? '#F9D8D3' : undefined
   return (
-    <div style={{ display: 'grid', gap: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🥇 Artilharia parcial · sua divisão</p>
-      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Primeiro turno desta temporada, na sua divisão.</p>
-      {partial.length === 0
-        ? <p style={{ fontWeight: 700, color: '#888' }}>Ninguém marcou ainda.</p>
-        : <div style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 4 }}>
-            {partial.slice(0, 25).map((s, i) => (
-              <div key={s.name + i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px', borderRadius: 6, background: s.mine ? GOLD : 'transparent', fontWeight: s.mine ? 900 : 700 }}>
-                <span style={{ fontSize: 13 }}>{i + 1}. {s.name} <span style={{ color: '#999', fontSize: 11 }}>{s.teamName}</span></span>
-                <span style={{ fontWeight: 900, ...OSWALD }}>⚽ {s.goals}</span>
-              </div>
-            ))}
-          </div>}
-      <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
-    </div>
-  )
-}
-// classificação PARCIAL (ao vivo) da sua divisão, na janela do meio
-function MidTable({ table, division, onBack }: { table: TeamStand[]; division: Division; onBack: () => void }) {
-  return (
-    <div style={{ display: 'grid', gap: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>📊 Classificação · {DIV_LABEL[division]}</p>
-      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Como está agora, no meio da temporada. 🟢 topo sobe · 🔴 base cai.</p>
-      <div style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 2 }}>
-        <div style={{ display: 'flex', fontSize: 10, fontWeight: 800, color: '#aaa', padding: '0 6px 2px' }}>
-          <span style={{ width: 22 }}>#</span><span style={{ flex: 1 }}>Time</span><span style={{ width: 26, textAlign: 'center' }}>P</span><span style={{ width: 52, textAlign: 'center' }}>V-E-D</span><span style={{ width: 34, textAlign: 'right' }}>SG</span>
+    <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ ...box('#fff'), padding: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD }}>TABELA {title}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}><i style={{ width: 8, height: 8, borderRadius: 2, background: '#D6E9FA', display: 'inline-block' }} />G4</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}><i style={{ width: 8, height: 8, borderRadius: 2, background: '#FFF3B8', display: 'inline-block' }} />Pré</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}><i style={{ width: 8, height: 8, borderRadius: 2, background: '#F9D8D3', display: 'inline-block' }} />Z4</span>
+          </div>
         </div>
-        {table.map((t, i) => {
-          const zone = i < 4 ? '#1B7A3D' : i >= 16 ? '#E8503A' : 'transparent'
-          return (
-            <div key={t.name + i} style={{ display: 'flex', alignItems: 'center', padding: '4px 6px', borderRadius: 6, fontWeight: 700, fontSize: 12 }}>
-              <span style={{ width: 22, display: 'flex', alignItems: 'center', gap: 3 }}><i style={{ width: 5, height: 5, borderRadius: 99, background: zone, display: 'inline-block' }} />{i + 1}</span>
-              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
-              <span style={{ width: 26, textAlign: 'center', fontWeight: 900, ...OSWALD }}>{t.pts}</span>
-              <span style={{ width: 52, textAlign: 'center', color: '#888', fontSize: 11 }}>{t.w}-{t.d}-{t.l}</span>
-              <span style={{ width: 34, textAlign: 'right', color: '#888', fontSize: 11 }}>{t.gf - t.ga > 0 ? '+' : ''}{t.gf - t.ga}</span>
-            </div>
-          )
-        })}
+        {rows.length === 0
+          ? <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Jogue uma temporada pra ver a tabela.</p>
+          : (
+            <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ textAlign: 'left', fontWeight: 900, color: 'rgba(0,0,0,0.7)' }}>
+                  <th style={{ paddingRight: 4 }}>#</th><th>Time</th><th style={{ textAlign: 'center' }}>P</th><th style={{ textAlign: 'center' }}>V</th><th style={{ textAlign: 'center' }}>E</th><th style={{ textAlign: 'center' }}>D</th><th style={{ textAlign: 'center' }}>SG</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((t, i) => {
+                  const mine = t.name === save.clubName || t.name === `${save.crest?.symbol ?? ''} ${save.clubName}`.trim()
+                  return (
+                    <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: mine ? 900 : 600, backgroundColor: mine ? GOLD : zoneBg(i) }}>
+                      <td style={{ paddingRight: 4 }}>{i + 1}</td>
+                      <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 130 }}>{mine ? '👤 ' : ''}{t.name}</td>
+                      <td style={{ textAlign: 'center', fontWeight: 900 }}>{t.pts}</td>
+                      <td style={{ textAlign: 'center' }}>{t.w}</td>
+                      <td style={{ textAlign: 'center' }}>{t.d}</td>
+                      <td style={{ textAlign: 'center' }}>{t.l}</td>
+                      <td style={{ textAlign: 'center' }}>{t.gf - t.ga}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
+      </div>
+      <div style={{ ...box('#fff'), padding: 12 }}>
+        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, marginBottom: 8 }}>⚽ ARTILHARIA {title}</p>
+        {scorers.length === 0
+          ? <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Sem gols ainda.</p>
+          : (
+            <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ textAlign: 'left', fontWeight: 900, color: 'rgba(0,0,0,0.6)' }}>
+                  <th style={{ paddingRight: 4 }}>#</th><th>Jogador</th><th>Time</th><th style={{ textAlign: 'center' }}>Gols</th>
+                </tr>
+              </thead>
+              <tbody>
+                {scorers.slice(0, 15).map((s, i) => (
+                  <tr key={s.teamName + s.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: s.mine ? 900 : 600, backgroundColor: s.mine ? GOLD : undefined }}>
+                    <td style={{ paddingRight: 4 }}>{i + 1}</td>
+                    <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 130 }}>{s.name}</td>
+                    <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110, color: 'rgba(0,0,0,0.7)' }}>{s.teamName}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 900 }}>{s.goals}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
       </div>
       <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
     </div>
   )
 }
+
 
 // ─── INTRO / SETUP: mesmo padrão do setup da Carreira ────────────────
 function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: string[]; formation: FormationKey }) => void; onClose: () => void }) {
@@ -709,10 +744,7 @@ function Home({ save, go, playSeason }: { save: Save; go: (p: Phase) => void; pl
         <div style={{ flex: 1 }}><Btn onClick={() => go('squad')} bg="#fff">👥 Elenco</Btn></div>
         <div style={{ flex: 1 }}><Btn onClick={() => go('store')} bg={PURPLE} color="#fff">🛡️ Escudo</Btn></div>
       </div>
-      <div style={{ display: 'flex', gap: 10 }}>
-        <div style={{ flex: 1 }}><Btn onClick={() => go('table')} bg="#fff">📊 Classificação</Btn></div>
-        <div style={{ flex: 1 }}><Btn onClick={() => go('scorers')} bg="#fff">🥇 Artilharia</Btn></div>
-      </div>
+      <Btn onClick={() => go('table')} bg="#fff">📊 Tabela + Artilheiros</Btn>
     </div>
   )
 }
@@ -772,61 +804,6 @@ function SquadScreen({ save, onBack }: { save: Save; onBack: () => void }) {
           </div>
         </div>
       ))}
-      <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
-    </div>
-  )
-}
-
-// ─── ARTILHARIA DA SUA DIVISÃO (última temporada) ────────────────────
-function ScorersScreen({ save, onBack }: { save: Save; onBack: () => void }) {
-  const rows = save.lastScorers ?? []
-  if (rows.length === 0) return <div style={{ display: 'grid', gap: 10 }}><p style={{ fontWeight: 700, color: '#888' }}>Jogue uma temporada pra ver a artilharia da sua divisão.</p><Btn onClick={onBack} bg="#fff">← Voltar</Btn></div>
-  return (
-    <div style={{ display: 'grid', gap: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🥇 Artilharia · {DIV_LABEL[save.division]}</p>
-      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Última temporada, a sua divisão. Seus jogadores destacados.</p>
-      <div style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 4 }}>
-        {rows.map((s, i) => {
-          const mine = s.teamName === save.clubName
-          return (
-            <div key={s.teamName + s.name + i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px', borderRadius: 6, background: mine ? GOLD : 'transparent', fontWeight: mine ? 900 : 700 }}>
-              <span style={{ fontSize: 13 }}>{i + 1}. {s.name} <span style={{ color: '#999', fontSize: 11 }}>{s.teamName}</span></span>
-              <span style={{ fontWeight: 900, ...OSWALD }}>⚽ {s.goals}</span>
-            </div>
-          )
-        })}
-      </div>
-      <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
-    </div>
-  )
-}
-
-// ─── CLASSIFICAÇÃO da sua divisão (final da última temporada) ─────────
-function ClassificationScreen({ save, onBack }: { save: Save; onBack: () => void }) {
-  const rows = save.lastTable ?? []
-  if (rows.length === 0) return <div style={{ display: 'grid', gap: 10 }}><p style={{ fontWeight: 700, color: '#888' }}>Jogue uma temporada pra ver a classificação da sua divisão.</p><Btn onClick={onBack} bg="#fff">← Voltar</Btn></div>
-  return (
-    <div style={{ display: 'grid', gap: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>📊 Classificação · {DIV_LABEL[save.division]}</p>
-      <p style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>Final da última temporada. 🟢 topo sobe · 🔴 base cai.</p>
-      <div style={{ ...box('#fff'), padding: 10, display: 'grid', gap: 2 }}>
-        <div style={{ display: 'flex', fontSize: 10, fontWeight: 800, color: '#aaa', padding: '0 6px 2px' }}>
-          <span style={{ width: 22 }}>#</span><span style={{ flex: 1 }}>Time</span><span style={{ width: 26, textAlign: 'center' }}>P</span><span style={{ width: 52, textAlign: 'center' }}>V-E-D</span><span style={{ width: 34, textAlign: 'right' }}>SG</span>
-        </div>
-        {rows.map((t, i) => {
-          const mine = t.name === save.clubName
-          const zone = i < 4 ? '#1B7A3D' : i >= 16 ? '#E8503A' : 'transparent'
-          return (
-            <div key={t.name + i} style={{ display: 'flex', alignItems: 'center', padding: '4px 6px', borderRadius: 6, background: mine ? GOLD : 'transparent', fontWeight: mine ? 900 : 700, fontSize: 12 }}>
-              <span style={{ width: 22, display: 'flex', alignItems: 'center', gap: 3 }}><i style={{ width: 5, height: 5, borderRadius: 99, background: zone, display: 'inline-block' }} />{i + 1}</span>
-              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
-              <span style={{ width: 26, textAlign: 'center', fontWeight: 900, ...OSWALD }}>{t.pts}</span>
-              <span style={{ width: 52, textAlign: 'center', color: '#888', fontSize: 11 }}>{t.w}-{t.d}-{t.l}</span>
-              <span style={{ width: 34, textAlign: 'right', color: '#888', fontSize: 11 }}>{t.gf - t.ga > 0 ? '+' : ''}{t.gf - t.ga}</span>
-            </div>
-          )
-        })}
-      </div>
       <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
     </div>
   )
@@ -958,28 +935,37 @@ function Transfer({ save, persist, onBack, midSeason }: { save: Save; persist: (
   )
 }
 
-// Monte de livres: dispensados que ninguém pagou o mínimo. Pega de graça se tiver
-// vaga na posição. Fica no fim da janela; rivais também podem levar (no avanço).
+// Monte de livres: dispensados / sobra do mercado. Grátis só quem NUNCA custou
+// mais que 1 moeda; se já teve dono por 15, o próximo paga 15 (o piso do cara).
 function MonteFreeAgents({ save, persist }: { save: Save; persist: (s: Save) => void }) {
   const monte = save.monte ?? []
   if (monte.length === 0) return null
   const holeAt = (p: Sector) => save.squad.filter(c => c.pos === p).length < FORM_NEED[save.formation][p]
+  const priceOf = (c: PoolCard) => Math.max(1, floorOf(save, c) ?? 1)
   const grab = (c: PoolCard) => {
     if (!holeAt(c.pos)) return
-    const wc: WonCard = { ...c, paid: 0, via: 'monte' }
-    // livre: mantém o piso que já tinha (último preço pago); se nunca teve, piso 1
-    persist({ ...save, squad: [...save.squad, wc], monte: monte.filter(x => x.id !== c.id), contracts: setContract(save, c.id, floorOf(save, c) ?? 1) })
+    const price = priceOf(c)
+    const free = price <= 1
+    if (!free && save.coins < price) return
+    const paid = free ? 0 : price
+    const wc: WonCard = { ...c, paid, via: 'monte' }
+    persist({ ...save, coins: save.coins - paid, squad: [...save.squad, wc], monte: monte.filter(x => x.id !== c.id), contracts: setContract(save, c.id, price) })
   }
   return (
     <div style={{ ...box('#F0EAD8'), padding: 10, display: 'grid', gap: 6 }}>
-      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>🎁 Monte — livres (de graça)</p>
-      <p style={{ fontSize: 11, color: '#777', fontWeight: 700 }}>Dispensados que ninguém pagou. Pegue de graça se tiver vaga na posição — senão os rivais levam.</p>
+      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>🎁 Monte — livres</p>
+      <p style={{ fontSize: 11, color: '#777', fontWeight: 700 }}>Sobras do mercado. <b>Grátis</b> só quem nunca custou mais que 1 moeda; se já teve dono, você paga o <b>piso</b> que ele carrega. Precisa de vaga na posição.</p>
       {monte.map(c => {
         const can = holeAt(c.pos)
+        const price = priceOf(c)
+        const free = price <= 1
+        const broke = !free && save.coins < price
+        const disabled = !can || broke
+        const label = !can ? 'sem vaga' : free ? 'Pegar grátis' : broke ? `faltam 💰${price - save.coins}` : `Pagar 💰 ${price}`
         return (
           <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontWeight: 800, fontSize: 13 }}><Pos p={c.pos} /> {c.name}</span>
-            <button onClick={() => grab(c)} disabled={!can} style={{ background: can ? GREEN : '#ccc', color: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '5px 10px', fontWeight: 900, fontSize: 12, cursor: can ? 'pointer' : 'default', ...OSWALD }}>{can ? 'Pegar grátis' : 'sem vaga'}</button>
+            <span style={{ fontWeight: 800, fontSize: 13 }}><Pos p={c.pos} /> {c.name} {!free && <span style={{ fontSize: 10, fontWeight: 700, color: '#888' }}>· piso {price}</span>}</span>
+            <button onClick={() => grab(c)} disabled={disabled} style={{ background: disabled ? '#ccc' : free ? GREEN : GOLD, color: disabled ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '5px 10px', fontWeight: 900, fontSize: 12, cursor: disabled ? 'default' : 'pointer', ...OSWALD }}>{label}</button>
           </div>
         )
       })}
@@ -1265,12 +1251,30 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
     d.monte = (d.monte ?? []).filter(c => c.id !== r.droppedCard!.id)
     resolveChoice()
   }
+  // troca quem sai: devolve o atual dropped ao elenco, tira o novo escolhido e
+  // manda ele pro monte. Atualiza o resultado exibido pra refletir a troca.
+  const doChangeDropped = (newId: string) => {
+    const r = secResults[revealIdx]; if (!r.droppedCard) return
+    if (newId === r.droppedCard.id) return
+    const d = draftRef.current!
+    const chosen = d.squad.find(c => c.id === newId && c.pos === r.droppedCard!.pos)
+    if (!chosen) return
+    // desfaz o descarte anterior
+    const restored: WonCard = { ...r.droppedCard }
+    d.monte = (d.monte ?? []).filter(c => c.id !== restored.id)
+    d.squad = [...d.squad.filter(c => c.id !== chosen.id), restored]
+    d.monte = [...(d.monte ?? []), { ...chosen }]
+    const newRes: LotResult = { ...r, dropped: chosen.name, droppedCard: { ...chosen } }
+    setSecResults(cur => cur.map((x, i) => i === revealIdx ? newRes : x))
+    setAllResults(cur => cur.map((x, i) => i === globalIdx(revealIdx) ? newRes : x))
+  }
 
 
   const label: Record<LotResult['outcome'], string> = { you: '✅ VOCÊ LEVOU', rival: '😤 rival levou', owner: '🛡️ dono segurou', none: '— ninguém deu lance' }
 
   if (finished) {
-    const toMonte = allResults.filter(r => (r.outcome === 'none' && r.lot.kind === 'market') || r.dropped).length
+    const unsold = allResults.filter(r => r.outcome === 'none' && r.lot.kind === 'market').length
+    const dispensados = allResults.filter(r => !!r.dropped).length
     const mine = allResults.filter(r => r.outcome === 'you')
     return (
       <div style={{ display: 'grid', gap: 10 }}>
@@ -1278,7 +1282,8 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
         {mine.length > 0
           ? mine.map((r, i) => <div key={i} style={{ ...box(GOLD), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', ...OSWALD, fontWeight: 900 }}><span><Pos p={r.lot.card.pos} /> {r.lot.card.name}</span><span>💰 {r.price}</span></div>)
           : <div style={{ ...box('#fff'), padding: 12, textAlign: 'center', fontWeight: 700, color: '#888' }}>Você não levou ninguém desta vez.</div>}
-        {toMonte > 0 && <div style={{ ...box('#F0EAD8'), padding: 10 }}><p style={{ fontSize: 12, fontWeight: 700 }}>🎁 {toMonte} jogador{toMonte > 1 ? 'es sobraram' : ' sobrou'} pro <b>Monte</b> — pegue de graça na tela de <b>Contratar</b> (se tiver vaga).</p></div>}
+        {unsold > 0 && <div style={{ ...box('#F0EAD8'), padding: 10 }}><p style={{ fontSize: 12, fontWeight: 700 }}>🎁 {unsold} do mercado ninguém quis — vira{unsold > 1 ? 'ram' : ''} <b>livre no Monte</b>. Se nunca custou mais que 1, sai grátis; se já teve dono, você paga o piso dele.</p></div>}
+        {dispensados > 0 && <div style={{ ...box('#EAF3FF'), padding: 10 }}><p style={{ fontSize: 12, fontWeight: 700 }}>➖ {dispensados} dispensado{dispensados > 1 ? 's' : ''} porque a posição encheu — foi{dispensados > 1 ? 'ram' : ''} pro <b>Monte</b> pelo piso que carrega.</p></div>}
         <Btn onClick={onDone} bg={GREEN} color="#fff">✅ Pronto</Btn>
       </div>
     )
@@ -1337,9 +1342,13 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
             incoming={currentR.lot.card}
             dropped={currentR.droppedCard}
             paidForIncoming={currentR.price}
+            posCands={draftRef.current!.squad.filter(c => c.pos === currentR.droppedCard!.pos)}
+            floorOfDropped={floorOf(draftRef.current!, currentR.droppedCard) ?? Math.max(1, currentR.droppedCard.paid)}
+            rivalsCount={draftRef.current!.world.filter(w => w.rival).length}
             onDispensar={doDispensar}
             onDesistir={doDesistir}
             onOferta={doOferta}
+            onChangeDropped={doChangeDropped}
             rng={rng}
           />
         )}
@@ -1419,35 +1428,67 @@ function SellRoom({ save, persist, onBack }: { save: Save; persist: (s: Save) =>
 
 // ─── ESCOLHA AO LOTAR POSIÇÃO ──────────────────────────────────────────────
 // Você ganhou um cara e sua posição estourou. Antes de mandar o pior do setor
-// pro monte automaticamente, pergunta o que fazer com ele: dispensar (vai pro
-// monte a valor mínimo), tentar VENDER (renovar +5 no valor mínimo e ouvir 3
-// ofertas dos rivais) ou desistir da compra (cancela o novo contratado).
-function OverflowChoiceModal({ incoming, dropped, paidForIncoming, onDispensar, onDesistir, onOferta, rng }: {
+// pro monte automaticamente, pergunta o que fazer com ele. Você pode TROCAR
+// quem sai (não precisa ser o pior), tentar VENDER com N ofertas (uma por rival
+// real da sua liga), dispensar de graça ou desistir da compra.
+function OverflowChoiceModal({ incoming, dropped, paidForIncoming, posCands, floorOfDropped, rivalsCount, onDispensar, onDesistir, onOferta, onChangeDropped, rng }: {
   incoming: PoolCard; dropped: WonCard; paidForIncoming: number
-  onDispensar: () => void; onDesistir: () => void; onOferta: (amount: number) => void; rng: () => number
+  posCands: WonCard[]; floorOfDropped: number; rivalsCount: number
+  onDispensar: () => void; onDesistir: () => void; onOferta: (amount: number) => void
+  onChangeDropped: (newId: string) => void
+  rng: () => number
 }) {
-  const [step, setStep] = useState<'menu' | 'oferta'>('menu')
+  const [step, setStep] = useState<'menu' | 'swap' | 'oferta'>('menu')
   const [offerIdx, setOfferIdx] = useState(0)
   const [done, setDone] = useState<{ sold: boolean; amount: number; by: string } | null>(null)
-  const minimum = Math.max(1, dropped.paid + 5) // +5 pra mostrar que renovou o valor mínimo
+  const minimum = Math.max(1, floorOfDropped + 5) // +5 pra renovar o piso ao pôr à venda
   const val = Math.max(minimum, Math.round(mid(dropped)))
-  const offers = useMemo(() => Array.from({ length: 3 }, () => {
+  const n = Math.max(1, rivalsCount)
+  const offers = useMemo(() => Array.from({ length: n }, (_, i) => {
     const roll = rng(); let f = 0.4 + rng() * 1.4
     if (roll > 0.85) f = 1.6 + rng() * 1.1; else if (roll < 0.25) f = 0.2 + rng() * 0.3
-    const buyers = ['Rival A', 'Rival B', 'Rival C', 'Rival D']
-    return { amount: Math.max(1, Math.round(val * f)), by: buyers[Math.floor(rng() * buyers.length)] }
+    return { amount: Math.max(1, Math.round(val * f)), by: `Rival ${i + 1}` }
   }), []) // eslint-disable-line
 
   const backdrop: React.CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 10000 }
-  const card: React.CSSProperties = { background: CREAM, border: `3px solid ${INK}`, borderRadius: 16, padding: 16, maxWidth: 380, width: '100%', boxShadow: `6px 6px 0 0 ${INK}`, display: 'grid', gap: 10 }
+  const card: React.CSSProperties = { background: CREAM, border: `3px solid ${INK}`, borderRadius: 16, padding: 16, maxWidth: 380, width: '100%', boxShadow: `6px 6px 0 0 ${INK}`, display: 'grid', gap: 10, maxHeight: '90vh', overflowY: 'auto' }
+  const posBadge = (
+    <div style={{ ...box(GOLD), padding: '8px 10px', textAlign: 'center' }}>
+      <p style={{ fontSize: 10, fontWeight: 800, color: '#7a5c00', textTransform: 'uppercase' }}>Posição lotada</p>
+      <p style={{ fontWeight: 900, fontSize: 22, ...OSWALD, lineHeight: 1 }}>{SECTOR_LABEL[dropped.pos].toUpperCase()}</p>
+    </div>
+  )
 
   if (done) {
     return (
       <div style={backdrop}>
         <div style={card}>
+          {posBadge}
           <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, textAlign: 'center' }}>{done.sold ? '💰 Vendido!' : '🎁 Foi pro Monte'}</p>
           <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center' }}>{done.sold ? `${dropped.name} saiu por 💰 ${done.amount} (${done.by}).` : `Ninguém topou. ${dropped.name} caiu no Monte pelo piso ${minimum}.`}</p>
           <Btn onClick={() => { if (done.sold) onOferta(done.amount); else onDispensar() }} bg={GREEN} color="#fff">✅ Pronto</Btn>
+        </div>
+      </div>
+    )
+  }
+
+  if (step === 'swap') {
+    return (
+      <div style={backdrop}>
+        <div style={card}>
+          {posBadge}
+          <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, textAlign: 'center' }}>Quem você tira?</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', textAlign: 'center' }}>Todos os {SECTOR_LABEL[dropped.pos]} do seu elenco. Clique em quem vai sair (pro Monte / venda).</p>
+          {posCands.map(c => {
+            const sel = c.id === dropped.id
+            return (
+              <button key={c.id} onClick={() => { onChangeDropped(c.id); setStep('menu') }} style={{ ...box(sel ? '#EAF7EE' : '#fff'), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', textAlign: 'left', border: sel ? `3px solid ${GREEN}` : `3px solid ${INK}` }}>
+                <span style={{ fontWeight: 900, ...OSWALD }}>{c.name}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#888' }}>força ~{Math.round(mid(c))} · piso {Math.max(1, c.paid)}{sel ? ' · atual' : ''}</span>
+              </button>
+            )
+          })}
+          <Btn onClick={() => setStep('menu')} bg="#fff">← Voltar</Btn>
         </div>
       </div>
     )
@@ -1459,6 +1500,7 @@ function OverflowChoiceModal({ incoming, dropped, paidForIncoming, onDispensar, 
     return (
       <div style={backdrop}>
         <div style={card}>
+          {posBadge}
           <div style={{ ...box(INK), padding: 12, color: '#fff', textAlign: 'center' }}>
             <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD }}>🔨 Vendendo {dropped.name}</p>
             <p style={{ fontSize: 12, opacity: 0.85 }}>Mínimo: 💰 {minimum} · vale ~{val}</p>
@@ -1480,17 +1522,22 @@ function OverflowChoiceModal({ incoming, dropped, paidForIncoming, onDispensar, 
   return (
     <div style={backdrop}>
       <div style={card}>
-        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, textAlign: 'center' }}>⚠️ Posição lotada</p>
+        {posBadge}
         <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', color: '#555' }}>
-          Você contratou <b>{incoming.name}</b> por 💰 {paidForIncoming}. Sobra <b>{dropped.name}</b> ({dropped.pos}). O que fazer?
+          Você contratou <b>{incoming.name}</b> ({SECTOR_LABEL[incoming.pos]}) por 💰 {paidForIncoming}. Sobra <b>{dropped.name}</b>. O que fazer?
         </p>
+        {posCands.length > 1 && (
+          <button onClick={() => setStep('swap')} style={{ ...box('#EAF3FF'), padding: '8px 12px', textAlign: 'center', cursor: 'pointer', border: `2px dashed ${INK}`, fontWeight: 800, fontSize: 12 }}>
+            🔁 Trocar quem sai ({posCands.length} {SECTOR_LABEL[dropped.pos]} no elenco)
+          </button>
+        )}
         <button onClick={onDispensar} style={{ ...box('#fff'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
           <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>➖ Dispensar</p>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Vai pro Monte pelo valor mínimo (💰 {Math.max(1, dropped.paid)}). Fica lá até alguém pegar.</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Vai pro Monte pelo piso dele (💰 {Math.max(1, floorOfDropped)}). Fica lá até alguém pagar — grátis só se o piso for 1.</p>
         </button>
         <button onClick={() => setStep('oferta')} style={{ ...box('#FFF6DE'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
           <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>💰 Dar oferta (renovar +5)</p>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Renova o valor pra 💰 {minimum} e ouve 3 ofertas dos rivais. Se topar, você embolsa.</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Renova o piso pra 💰 {minimum} e ouve {n} oferta{n > 1 ? 's' : ''} — uma por rival da sua liga. Se topar, você embolsa.</p>
         </button>
         <button onClick={onDesistir} style={{ ...box('#FFE8E4'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
           <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>🚫 Desistir da compra</p>
