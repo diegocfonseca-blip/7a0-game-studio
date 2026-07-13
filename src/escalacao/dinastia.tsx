@@ -1184,28 +1184,36 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
   const [pick, setPick] = useState<{ lotId: string; amount: number } | null>(null) // seu lance nesta posição (1 compra/pos)
   const [left, setLeft] = useState(AUC_SECONDS)
   const [secResults, setSecResults] = useState<LotResult[]>([])
+  const [secSnapshots, setSecSnapshots] = useState<Save[]>([]) // snapshot do draft ANTES de cada lote — pra "desistir"
   const [revealIdx, setRevealIdx] = useState(0)
   const [allResults, setAllResults] = useState<LotResult[]>([])
+  const [resolved, setResolved] = useState<Record<number, true>>({}) // por globalIdx: escolha do overflow já feita
   const [finished, setFinished] = useState(false)
   const sealedRef = useRef(false)
 
   if (byPos.length === 0) { return <div style={{ display: 'grid', gap: 10 }}><p style={{ fontWeight: 700 }}>Nada no leilão desta janela.</p><Btn onClick={onDone} bg="#fff">← Voltar</Btn></div> }
   const cur = byPos[Math.min(sectorIdx, byPos.length - 1)]
   const coins = draftRef.current.coins
+  const globalIdx = (localIdx: number) => allResults.length - secResults.length + localIdx
+  const currentR = secResults[Math.min(revealIdx, Math.max(0, secResults.length - 1))]
+  const needsChoice = phase === 'reveal' && !!currentR && currentR.outcome === 'you' && !!currentR.droppedCard && !resolved[globalIdx(revealIdx)]
 
   const sealSector = () => {
     if (sealedRef.current) return; sealedRef.current = true
     const draft = draftRef.current!
     const out: LotResult[] = []
+    const snaps: Save[] = []
     for (const lot of cur.lots) {
+      snaps.push(structuredClone(draft))
       const myBid = pick && pick.lotId === lot.card.id ? pick.amount : 0
       out.push(applyLot(draft, lot, myBid, rng).result)
     }
+    setSecSnapshots(snaps)
     setSecResults(out); setAllResults(a => [...a, ...out]); setRevealIdx(0); setPhase('reveal')
   }
   const nextSector = () => {
     if (sectorIdx < byPos.length - 1) {
-      setSectorIdx(i => i + 1); setPhase('bid'); setPick(null); setLeft(AUC_SECONDS); setSecResults([]); setRevealIdx(0); sealedRef.current = false
+      setSectorIdx(i => i + 1); setPhase('bid'); setPick(null); setLeft(AUC_SECONDS); setSecResults([]); setSecSnapshots([]); setRevealIdx(0); sealedRef.current = false
     } else {
       const draft = draftRef.current!; draft.requested = []; draft.sellList = []; draft.soldPos = []; draft.auctionDone = true
       persist(draft); setFinished(true)
@@ -1219,13 +1227,45 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
     return () => clearTimeout(t)
   }, [left, phase, finished]) // eslint-disable-line
   // revelação passa SOZINHA (fluido, igual os outros modos): martela um por um e
-  // vai pra próxima posição automaticamente.
+  // vai pra próxima posição automaticamente. PAUSA quando o técnico precisa
+  // escolher o que fazer com quem sobrou.
   useEffect(() => {
     if (phase !== 'reveal' || finished) return
+    if (needsChoice) return // segura a fita até o técnico decidir
     const atLast = revealIdx >= secResults.length - 1
     const t = setTimeout(() => { if (atLast) nextSector(); else setRevealIdx(i => i + 1) }, atLast ? 1600 : 1200)
     return () => clearTimeout(t)
-  }, [phase, revealIdx, finished, secResults.length]) // eslint-disable-line
+  }, [phase, revealIdx, finished, secResults.length, needsChoice]) // eslint-disable-line
+
+  // ─── ações do modal de escolha ao lotar posição ────────────────────
+  const resolveChoice = () => { setResolved(prev => ({ ...prev, [globalIdx(revealIdx)]: true })) }
+  const doDispensar = () => { resolveChoice() } // default: pior já foi pro monte no applyLot
+  const doDesistir = () => {
+    // reverte tudo: restaura o draft ANTES do lote (dinheiro, elenco, monte, dono)
+    const snap = secSnapshots[revealIdx]
+    if (!snap) { resolveChoice(); return }
+    const restored = structuredClone(snap)
+    // muta draftRef mantendo a referência
+    const d = draftRef.current!
+    d.squad = restored.squad; d.coins = restored.coins; d.monte = restored.monte
+    d.world = restored.world; d.contracts = restored.contracts
+    // atualiza o resultado exibido: virou "desistência"
+    const r = secResults[revealIdx]
+    const newRes: LotResult = { ...r, outcome: 'none', by: '', price: 0, dropped: undefined, droppedCard: undefined, bids: [] }
+    setSecResults(cur => cur.map((x, i) => i === revealIdx ? newRes : x))
+    setAllResults(cur => cur.map((x, i) => i === globalIdx(revealIdx) ? newRes : x))
+    resolveChoice()
+  }
+  const doOferta = (amount: number) => {
+    // vende o dispensado pelo valor da oferta: tira do monte, entra dinheiro
+    const r = secResults[revealIdx]
+    if (!r.droppedCard) { resolveChoice(); return }
+    const d = draftRef.current!
+    d.coins = d.coins + amount
+    d.monte = (d.monte ?? []).filter(c => c.id !== r.droppedCard!.id)
+    resolveChoice()
+  }
+
 
   const label: Record<LotResult['outcome'], string> = { you: '✅ VOCÊ LEVOU', rival: '😤 rival levou', owner: '🛡️ dono segurou', none: '— ninguém deu lance' }
 
