@@ -164,6 +164,16 @@ interface Save {
   lastScorers?: { name: string; teamName: string; goals: number }[] // artilharia da SUA divisão (última temp.)
   crest?: { c1: string; c2: string; symbol: string } // identidade: 2 cores + símbolo (escudo)
   lastResult?: { pos: number; move: 'up' | 'down' | 'stay'; prevDiv: Division; champion: boolean }
+  history?: SeasonRecord[] // registro temporada a temporada — a Sala de Troféus
+}
+// uma linha da história da dinastia (fechada ao fim de cada temporada)
+interface SeasonRecord {
+  season: number
+  div: Division // divisão em que JOGOU a temporada
+  pos: number // colocação final
+  champion: boolean
+  move: 'up' | 'down' | 'stay' // o que aconteceu na pirâmide
+  scorer?: { name: string; goals: number } // seu artilheiro da temporada
 }
 const CONTRACT = 5 // temporadas de contrato de todo jogador comprado no leilão
 const DEFAULT_CREST = { c1: '#1B7A3D', c2: '#FFC400', symbol: '⚽' }
@@ -312,12 +322,17 @@ function processDinastiaEnd(state: EscState, existing: Save | null): Save {
   const posF = yourPos === 1 ? 1 : yourPos <= 4 ? 0.7 : yourPos <= 12 ? 0.4 : 0.2
   const prize = Math.round(prizeBase * posF) + (youChampion ? Math.round(prizeBase * 0.3) : 0)
   const move: 'up' | 'down' | 'stay' = newDivision === div ? 'stay' : DIVS.indexOf(newDivision) > DIVS.indexOf(div) ? 'up' : 'down'
+  // seu artilheiro da temporada (dos gols do motor mapeados no seu elenco)
+  let scorer: { name: string; goals: number } | undefined
+  for (const c of base.squad) { const g = goalsLast[c.id] ?? 0; if (g > 0 && (!scorer || g > scorer.goals)) scorer = { name: c.name, goals: g } }
+  const record: SeasonRecord = { season: base.seasonNo, div, pos: yourPos, champion: youChampion, move, scorer }
   return {
     ...base, world: newWorld, division: newDivision, seasonNo: base.seasonNo + 1,
     stage: 'preWindow', requested: [], soldPos: [], auctionDone: false, monte: base.monte ?? [], lastTable, lastScorers,
     coins: base.coins + prize, titles: base.titles + (youChampion ? 1 : 0),
     worldGoals, goalsLast, championLast: youChampion,
     lastResult: { pos: yourPos, move, prevDiv: div, champion: youChampion },
+    history: [...(base.history ?? []), record],
   }
 }
 
@@ -397,7 +412,7 @@ function Overlay({ children }: { children: React.ReactNode }) {
   )
 }
 
-type Phase = 'home' | 'transfer' | 'sell' | 'store' | 'squad' | 'scorers' | 'table' | 'auction' | 'fillsquad'
+type Phase = 'home' | 'transfer' | 'sell' | 'store' | 'squad' | 'scorers' | 'table' | 'auction' | 'fillsquad' | 'trophies'
 
 function Dinastia() {
   const { dispatch } = useEsc()
@@ -469,6 +484,7 @@ function Dinastia() {
       {phase === 'sell' && <SellRoom save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'auction' && <WindowAuction save={save} persist={persist} onDone={() => setPhase('home')} />}
       {phase === 'fillsquad' && <FillSquadScreen save={save} persist={persist} onReady={() => { setPhase('home'); setTimeout(playSeason, 0) }} onBack={() => setPhase('home')} /> }
+      {phase === 'trophies' && <TrophyRoom save={save} onBack={() => setPhase('home')} />}
       {/* sair do jogo lá embaixo, igual aos outros modos */}
       <div className="pt-8 pb-4 text-center space-y-2">
         <button onClick={close} className="block mx-auto text-black/35 text-xs font-semibold underline active:opacity-60" style={OSWALD}>sair do jogo</button>
@@ -490,6 +506,77 @@ function WorldMovesScreen({ news, onContinue }: { news: string[]; onContinue: ()
         <div key={i} style={{ ...box('#fff'), padding: '9px 12px', fontWeight: 800, fontSize: 13 }}>🔁 {n}</div>
       ))}
       <Btn onClick={onContinue} bg={GREEN} color="#fff">▶️ Começar temporada</Btn>
+    </div>
+  )
+}
+
+// ─── SALA DE TROFÉUS — a história da dinastia, temporada a temporada ────────
+function TrophyRoom({ save, onBack }: { save: Save; onBack: () => void }) {
+  const hist = save.history ?? []
+  const titles = hist.filter(h => h.champion).length
+  const promos = hist.filter(h => h.move === 'up').length
+  const relegs = hist.filter(h => h.move === 'down').length
+  const bestDiv = DIVS[Math.max(DIVS.indexOf(save.division), ...hist.map(h => DIVS.indexOf(h.div)), 0)]
+  const bestCamp = hist.slice().sort((a, b) => (DIVS.indexOf(b.div) - DIVS.indexOf(a.div)) || (a.pos - b.pos))[0]
+  let topScorer: { name: string; goals: number; season: number } | undefined
+  for (const h of hist) if (h.scorer && (!topScorer || h.scorer.goals > topScorer.goals)) topScorer = { ...h.scorer, season: h.season }
+
+  const Stat = ({ label, value, bg = '#fff' }: { label: string; value: React.ReactNode; bg?: string }) => (
+    <div style={{ ...box(bg), padding: '10px 6px', textAlign: 'center' }}>
+      <div style={{ fontSize: 20, fontWeight: 900, ...OSWALD, lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(0,0,0,0.55)', textTransform: 'uppercase', marginTop: 3 }}>{label}</div>
+    </div>
+  )
+
+  return (
+    <div style={{ display: 'grid', gap: 10 }}>
+      <div style={{ ...box(INK), padding: 14, color: '#fff', display: 'flex', gap: 12, alignItems: 'center' }}>
+        <Crest crest={save.crest} size={44} />
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontWeight: 900, fontSize: 20, ...OSWALD }}>🏆 Sala de Troféus</p>
+          <p style={{ fontSize: 12, fontWeight: 700, opacity: 0.85 }}>{save.clubName} · a história da dinastia</p>
+        </div>
+      </div>
+
+      {hist.length === 0 ? (
+        <div style={{ ...box('#fff'), padding: 16, textAlign: 'center', fontWeight: 700, color: '#888' }}>
+          Ainda sem história. Jogue sua primeira temporada e ela aparece aqui. ⚽
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            <Stat label="Temporadas" value={hist.length} />
+            <Stat label="Títulos" value={<span>{titles} 🏆</span>} bg={titles > 0 ? GOLD : '#fff'} />
+            <Stat label="Melhor série" value={DIV_LABEL[bestDiv].replace('Série ', '')} />
+            <Stat label="Acessos" value={<span style={{ color: GREEN }}>⬆️ {promos}</span>} />
+            <Stat label="Quedas" value={<span style={{ color: RED }}>⬇️ {relegs}</span>} />
+            <Stat label="Melhor campanha" value={bestCamp ? `${bestCamp.pos}º` : '—'} />
+          </div>
+
+          {topScorer && (
+            <div style={{ ...box('#EAF7EE'), padding: 12 }}>
+              <p style={{ fontSize: 10, fontWeight: 800, color: '#2a7', textTransform: 'uppercase' }}>⚽ Artilheiro da dinastia</p>
+              <p style={{ fontWeight: 900, ...OSWALD, fontSize: 16 }}>{topScorer.name} — {topScorer.goals} gols <span style={{ fontSize: 12, color: '#888', fontWeight: 700 }}>(temp. {topScorer.season})</span></p>
+            </div>
+          )}
+
+          <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, marginTop: 4 }}>📜 Linha do tempo</p>
+          {hist.slice().reverse().map(h => {
+            const badge = h.champion ? { t: '🏆 CAMPEÃO', c: GOLD, txt: INK } : h.move === 'up' ? { t: '⬆️ Acesso', c: GREEN, txt: '#fff' } : h.move === 'down' ? { t: '⬇️ Caiu', c: RED, txt: '#fff' } : { t: '➡️ Ficou', c: '#eee', txt: '#666' }
+            return (
+              <div key={h.season} style={{ ...box('#fff'), padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ fontSize: 18, fontWeight: 900, ...OSWALD, minWidth: 34, textAlign: 'center' }}>T{h.season}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 800, fontSize: 13 }}>{DIV_LABEL[h.div]} · <b>{h.pos}º</b></div>
+                  {h.scorer && <div style={{ fontSize: 11, fontWeight: 700, color: '#888' }}>⚽ {h.scorer.name} ({h.scorer.goals})</div>}
+                </div>
+                <span style={{ ...box(badge.c), padding: '4px 8px', fontSize: 10, fontWeight: 900, ...OSWALD, whiteSpace: 'nowrap', color: badge.txt }}>{badge.t}</span>
+              </div>
+            )
+          })}
+        </>
+      )}
+      <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
     </div>
   )
 }
@@ -789,6 +876,7 @@ function Home({ save, go, playSeason }: { save: Save; go: (p: Phase) => void; pl
         <div style={{ flex: 1 }}><Btn onClick={() => go('store')} bg={PURPLE} color="#fff">🛡️ Escudo</Btn></div>
       </div>
       <Btn onClick={() => go('table')} bg="#fff">📊 Tabela + Artilheiros</Btn>
+      <Btn onClick={() => go('trophies')} bg="#fff">🏆 Sala de Troféus</Btn>
     </div>
   )
 }
