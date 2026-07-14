@@ -620,9 +620,8 @@ function Envelope() {
           </h2>
           <p className="text-sm font-semibold text-black/70">
             {rescue
-              ? 'Sobras do setor, última chance de pagar por elas. Só quem ficou com buraco participa.'
+              ? <>Sobras do setor, última chance de pagar por elas. Só quem ficou com buraco participa. Suas vagas: <b>{myOpen}</b>.</>
               : 'Lance cego: distribua suas moedas em segredo. Ninguém vê nada até a revelação.'}
-            {' '}Suas vagas: <b>{myOpen}</b>.
           </p>
           {!rescue && totalBatches > 1 && (
             <div className="mt-1.5 inline-flex items-center gap-1.5 border-[3px] border-black rounded-full px-3 py-1"
@@ -634,21 +633,6 @@ function Envelope() {
                   : `Última leva de ${SECTOR_LABEL[pos].toLowerCase()} · ${curBatch} de ${totalBatches}`}
               </span>
             </div>
-          )}
-          {!rescue && canBid && bidLimit > 0 && (
-            <p className="text-sm font-black mt-1" style={{ color: GREEN }}>
-              {bidLimit === 1
-                ? <>Você tem <b>1 vaga</b> aqui — dê seu lance no que quer levar.</>
-                : <>Você tem <b>{bidLimit} vagas</b> — dá pra apostar em até {bidLimit} jogadores diferentes pra tentar fechar todas.</>}
-            </p>
-          )}
-          {/* dica só na PRIMEIRA tela do leilão: iniciante costuma dar 1 lance e lacrar
-              achando que basta. Ensina que o MAIOR lance leva — sutil, não repete. */}
-          {!rescue && canBid && state.sectorIdx === 0 && (
-            <p className="text-xs font-black mt-1.5 inline-block rounded-lg px-2.5 py-1"
-              style={{ background: '#FFF1C9', color: '#7a5b00' }}>
-              💡 Ganha quem dá o <b>maior lance</b>
-            </p>
           )}
         </div>
         <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center min-w-[64px]"
@@ -662,6 +646,24 @@ function Envelope() {
         <Box bg="#FFE9B0" className="p-3">
           <p className="text-sm font-bold text-black">{myOpen === 0 ? 'Setor completo — você só assiste esta rodada.' : 'Sem dinheiro — resta torcer pelo Monte Final.'}</p>
         </Box>
+      )}
+
+      {/* REGRA DE OURO + VAGAS — brilhante e centralizado logo acima dos lances,
+          pra ninguém achar que 1 moeda leva nem que só dá pra apostar em um. */}
+      {!rescue && canBid && bidLimit > 0 && (
+        <div className="space-y-2">
+          <div className="text-center border-[3px] border-black rounded-xl px-3 py-2"
+            style={{ background: `linear-gradient(180deg, #FFE07A 0%, ${GOLD} 100%)`, boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <p className="font-black text-lg leading-tight" style={OSWALD}>🏆 GANHA QUEM DÁ O MAIOR LANCE</p>
+            <p className="text-[11px] font-bold text-black/70 mt-0.5">Não é 1 moeda que leva — é quem <b>paga mais</b>. Empate? Re-lance às cegas.</p>
+          </div>
+          <div className="text-center border-[3px] border-black rounded-xl px-3 py-1.5"
+            style={{ background: '#E7F7EC', boxShadow: `3px 3px 0 0 ${INK}` }}>
+            {bidLimit === 1
+              ? <p className="text-sm font-black" style={{ color: '#146c33' }}>Você tem <b>1 vaga</b> — dê seu lance em quem quer levar.</p>
+              : <p className="text-sm font-black" style={{ color: '#146c33' }}>Você tem <b>{bidLimit} vagas</b> — pode dar lance em até <b>{bidLimit} jogadores DE UMA VEZ</b> nesta rodada, não só em um! 👈</p>}
+          </div>
+        </div>
       )}
 
       <div className="space-y-2">
