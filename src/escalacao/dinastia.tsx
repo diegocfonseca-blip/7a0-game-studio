@@ -70,8 +70,10 @@ const mid = (c: PoolCard) => (c.lo + c.hi) / 2
 let filCounter = 0
 const FIL_NAMES = ['Perna-de-pau', 'Ferro Velho', 'Pé de Anjo', 'Canela Seca', 'Zé Ninguém', 'Trapalhão', 'Bola Murcha', 'Café com Leite', 'Pastelão', 'Meia-Boca']
 function filler(pos: Sector, rng: () => number): PoolCard {
-  const lo = 44 + Math.floor(rng() * 8)
-  return { id: `fil-${filCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 12 + Math.floor(rng() * 6) }
+  // fake da várzea: SEMPRE abaixo dos reais e com faixa ESTREITA (spread < 14),
+  // pra nunca ter "dia inspirado" e não brigar na artilharia com os craques.
+  const lo = 40 + Math.floor(rng() * 6) // 40–45
+  return { id: `fil-${filCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 7 + Math.floor(rng() * 4) }
 }
 
 // ─── valor ──────────────────────────────────────────────────────────────
@@ -462,15 +464,18 @@ function Dinastia() {
     window.location.hash = ''
   }
   const playSeason = () => {
-    if (!save) return
-    const kept = save.squad.filter(c => { const k = save.contracts?.[c.id]; return !k || k.until >= save.seasonNo })
+    // lê do localStorage (fonte fresca): a tela de completar elenco persiste
+    // reservas do Monte/fakes e chama isto logo em seguida — evita estado velho.
+    const src = loadSave() ?? save
+    if (!src) return
+    const kept = src.squad.filter(c => { const k = src.contracts?.[c.id]; return !k || k.until >= src.seasonNo })
     // trava: não deixa jogar com o elenco incompleto (algum setor abaixo do NEED)
-    const holes = SECTORS.some(p => kept.filter(c => c.pos === p).length < FORM_NEED[save.formation][p])
+    const holes = SECTORS.some(p => kept.filter(c => c.pos === p).length < FORM_NEED[src.formation][p])
     // persiste squad enxuto (removendo contratos vencidos) sempre
-    const cleaned: Save = { ...save, squad: kept, requested: [], soldPos: [], auctionDone: false }
+    const cleaned: Save = { ...src, squad: kept, requested: [], soldPos: [], auctionDone: false }
     if (holes) { persist(cleaned); setPhase('fillsquad'); return }
     // o mundo se mexe: rivais e bots pescam do Monte antes da bola rolar
-    const rng = mulberry((save.seed ^ (save.seasonNo * 313 + 17)) >>> 0)
+    const rng = mulberry((src.seed ^ (src.seasonNo * 313 + 17)) >>> 0)
     const { save: raided, news } = worldRaidsMonte(cleaned, rng)
     persist(raided)
     if (news.length) { setWorldMoves({ news, save: raided }); return }
@@ -1151,28 +1156,43 @@ function FillSquadScreen({ save, persist, onReady, onBack }: { save: Save; persi
   const holes = SECTORS.map(p => ({ p, need: FORM_NEED[save.formation][p] - save.squad.filter(c => c.pos === p).length })).filter(h => h.need > 0)
   const total = holes.reduce((s, h) => s + h.need, 0)
   const rng = useMemo(() => mulberry((save.seed ^ 0xF11E ^ save.seasonNo) >>> 0), []) // eslint-disable-line
-  const grabFiller = (pos: Sector) => {
-    const fc = filler(pos, rng)
-    const wc: WonCard = { ...fc, paid: 0, via: 'monte' }
-    persist({ ...save, squad: [...save.squad, wc], contracts: setContract(save, fc.id, 1) })
+  // fake SEMPRE no PIOR nível do elenco: teto ≈ seu jogador mais fraco, chão abaixo.
+  const worstFiller = (pos: Sector): PoolCard => {
+    const mids = save.squad.map(c => (c.lo + c.hi) / 2)
+    const floorMid = mids.length ? Math.min(...mids) : 52
+    const hi = Math.max(40, Math.round(floorMid))
+    const lo = Math.max(30, hi - 12)
+    return { id: `fil-${filCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi }
   }
+  // completa os buracos que sobraram com reservas fakes (último recurso) e joga
+  const playWithFakes = () => {
+    const s: Save = { ...save, squad: [...save.squad], contracts: { ...(save.contracts ?? {}) } }
+    for (const h of holes) for (let i = 0; i < h.need; i++) {
+      const fc = worstFiller(h.p)
+      s.squad.push({ ...fc, paid: 0, via: 'monte' })
+      s.contracts![fc.id] = { until: s.seasonNo + CONTRACT, floor: 1 }
+    }
+    persist(s)
+    onReady()
+  }
+  const monteHasSome = (save.monte ?? []).length > 0
   return (
     <div style={{ display: 'grid', gap: 10 }}>
       <div style={{ ...box(RED), padding: 12, color: '#fff', textAlign: 'center' }}>
         <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>⚠️ ELENCO INCOMPLETO</p>
-        <p style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, marginTop: 3 }}>Faltam {total} jogador{total > 1 ? 'es' : ''} pra escalar. Complete antes de rolar a bola.</p>
+        <p style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, marginTop: 3 }}>Faltam {total} jogador{total > 1 ? 'es' : ''} pra escalar os 11. Você não joga desfalcado.</p>
       </div>
-      {holes.map(h => (
-        <div key={h.p} style={{ ...box('#FFF6DE'), padding: 10 }}>
-          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>{SECTOR_LABEL[h.p]} — falta{h.need > 1 ? 'm' : ''} {h.need}</p>
-          <button onClick={() => grabFiller(h.p)} style={{ marginTop: 6, background: '#eee', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '6px 10px', fontWeight: 900, fontSize: 12, cursor: 'pointer', ...OSWALD }}>➕ Reserva improvisada (grátis · força baixa)</button>
-        </div>
-      ))}
+      <div style={{ ...box('#EAF3FF'), padding: 9 }}>
+        <p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ Tape os buracos pegando livres do <b>Monte</b> abaixo — <b>de graça</b> (nunca custaram mais que 1) ou <b>pagando o piso</b>. {monteHasSome ? '' : 'O Monte está vazio agora. '}Se sobrar buraco (não tem ninguém, falta moeda, ou você prefere assim), o jogo entra com <b>reservas fakes</b> — sempre as <b>piores do seu nível</b>.</p>
+      </div>
+      <div style={{ ...box('#FFF6DE'), padding: 8 }}>
+        {holes.map(h => <p key={h.p} style={{ fontSize: 12, fontWeight: 800, color: '#7a5b00' }}>• {SECTOR_LABEL[h.p]}: falta{h.need > 1 ? 'm' : ''} {h.need}</p>)}
+      </div>
       <MonteFreeAgents save={save} persist={persist} />
       {total === 0
         ? <Btn onClick={onReady} bg={GREEN} color="#fff">▶️ TUDO CERTO — jogar temporada</Btn>
-        : <div style={{ ...box('#eee'), padding: 10, textAlign: 'center', fontWeight: 800, fontSize: 12, color: '#666' }}>Preencha os {total} buraco{total > 1 ? 's' : ''} pra liberar a partida.</div>}
-      <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
+        : <Btn onClick={playWithFakes} bg={GOLD}>▶️ Jogar assim — completo com {total} reserva{total > 1 ? 's' : ''} fake (piores)</Btn>}
+      <Btn onClick={onBack} bg="#fff">← Voltar (contratar / renovar)</Btn>
     </div>
   )
 }
