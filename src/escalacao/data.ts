@@ -479,6 +479,7 @@ const ZAG: C[] = [
   { name: "Ricardo Rocha", club: "São Paulo", year: 1993, fame: 3, lo: 74, hi: 84 },
   { name: "Abel Braga", club: "Fluminense", year: 1976, fame: 2, lo: 64, hi: 80, folk: true, bio: "Antes de virar o eterno técnico raçudo de beira de campo, foi zagueiro de respeito — o nome já é resenha por si só." },
   { name: "Mozer", club: "Flamengo", year: 1986, fame: 4, lo: 83, hi: 90, bio: "Zagueiro elegante e de saída de bola limpa, ídolo do Flamengo pós-81 antes de brilhar em Benfica e Marseille." },
+  { name: "Gottardo", club: "Botafogo", year: 1995, fame: 4, lo: 80, hi: 88, bio: "Zagueiro raçudo, ídolo do Botafogo campeão brasileiro de 1995." },
 ]
 
 const MEI: C[] = [
@@ -566,7 +567,6 @@ const MEI: C[] = [
   { name: "Thiago Almada", club: "Botafogo", year: 2024, fame: 3, lo: 74, hi: 82, promessa: true },
   { name: "Philippe Coutinho", club: "Vasco", year: 2009, fame: 3, lo: 74, hi: 82, promessa: true },
   { name: "Andrade", club: "Flamengo", year: 1981, fame: 5, lo: 88, hi: 93 },
-  { name: "Gottardo", club: "Botafogo", year: 1995, fame: 4, lo: 80, hi: 88 },
   { name: "Carlos Alberto", club: "Fluminense", year: 2002, fame: 3, lo: 73, hi: 85, promessa: true, bio: "Revelação de ouro do Fluminense e campeão do Mundo aos 16 (Corinthians, 2000) — a promessa que brilhou jovem e ainda decidiu uma final de Champions na Europa." },
   { name: "Ibson", club: "Flamengo", year: 2006, fame: 2, lo: 64, hi: 80 },
   { name: "Fábio Baiano", club: "Flamengo", year: 1996, fame: 2, lo: 66, hi: 82 },
@@ -816,7 +816,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Baixinho da Kombi', team: 'Kombi United' },
   ],
   D: [
-    { name: 'Tonhão', team: 'Tonhão FC' },
+    { name: 'Zé Ruela', team: 'Paixandu' },
     { name: 'PC Magrão', team: 'Magrão EC' },
     { name: 'Biriba', team: 'Biriba United' },
     { name: 'Serjão', team: 'Real Madruga' },
@@ -829,7 +829,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Dedé Bigode', team: 'Bigode FC' },
     { name: 'Tião Bagre', team: 'Bagres do Rio' },
     { name: 'Cabeção da Vila', team: 'Cabeção FR' },
-    { name: 'Zé Ruela', team: 'Paixandu' },
+    { name: 'Tonhão', team: 'Tonhão FC' },
     { name: 'Zé do Caixote', team: 'Cazé FC' },
     { name: 'Nininho', team: 'Red Bull Diet' },
     { name: 'Piu do Grêmio', team: 'Piu United' },
