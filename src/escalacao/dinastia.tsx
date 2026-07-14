@@ -1338,18 +1338,16 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
           <p style={{ fontWeight: 900, ...OSWALD, marginTop: 12, color: r.outcome === 'you' ? GREEN : INK }}>{label[r.outcome]}{r.dropped ? ` · ${r.dropped} sai do elenco` : ''}</p>
         </div>
         <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 800, color: '#999' }}>{needsChoice ? 'aguardando sua decisão…' : atLast ? (last ? 'encerrando o pregão…' : 'indo pra próxima posição…') : 'martelando…'}</p>
-        {needsChoice && currentR?.droppedCard && (
+        {needsChoice && currentR && (
           <OverflowChoiceModal
             incoming={currentR.lot.card}
-            dropped={currentR.droppedCard}
             paidForIncoming={currentR.price}
-            posCands={draftRef.current!.squad.filter(c => c.pos === currentR.droppedCard!.pos)}
-            floorOfDropped={floorOf(draftRef.current!, currentR.droppedCard) ?? Math.max(1, currentR.droppedCard.paid)}
-            rivalsCount={draftRef.current!.world.filter(w => w.rival).length}
+            posCands={draftRef.current!.squad.filter(c => c.pos === currentR.lot.card.pos && c.id !== currentR.lot.card.id)}
+            save={draftRef.current!}
+            rivalsCount={Math.max(1, draftRef.current!.world.filter(w => w.rival).length)}
             onDispensar={doDispensar}
+            onSellOne={doSellOne}
             onDesistir={doDesistir}
-            onOferta={doOferta}
-            onChangeDropped={doChangeDropped}
             rng={rng}
           />
         )}
