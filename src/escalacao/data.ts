@@ -478,6 +478,7 @@ const ZAG: C[] = [
   { name: "Alex Silva Pirulito", club: "São Paulo", year: 2006, fame: 1, lo: 56, hi: 78, folk: true },
   { name: "Ricardo Rocha", club: "São Paulo", year: 1993, fame: 3, lo: 74, hi: 84 },
   { name: "Abel Braga", club: "Fluminense", year: 1976, fame: 2, lo: 64, hi: 80, folk: true, bio: "Antes de virar o eterno técnico raçudo de beira de campo, foi zagueiro de respeito — o nome já é resenha por si só." },
+  { name: "Mozer", club: "Flamengo", year: 1986, fame: 4, lo: 83, hi: 90, bio: "Zagueiro elegante e de saída de bola limpa, ídolo do Flamengo pós-81 antes de brilhar em Benfica e Marseille." },
 ]
 
 const MEI: C[] = [
@@ -713,6 +714,7 @@ const ATA: C[] = [
   { name: "Fábio Júnior", club: "Cruzeiro", year: 1999, fame: 2, lo: 66, hi: 80, folk: true, bio: "Veloz e goleador no Cruzeiro, mas eternizado como o rei de perder gol feito na Roma — 'errou que nem Fábio Júnior'." },
   { name: "Carlinhos Bala", club: "Sport", year: 2008, fame: 1, lo: 58, hi: 76, folk: true, bio: "Baixinho elétrico e ídolo da torcida pernambucana — puro folclore com a camisa do Sport." },
   { name: "Euller (Filho do Vento)", club: "Vasco", year: 1998, fame: 3, lo: 74, hi: 85, bio: "O 'Filho do Vento' — velocidade fulminante pela ponta, ídolo do Vasco campeão da Libertadores de 98." },
+  { name: "Coutinho", club: "Santos", year: 1962, fame: 5, lo: 88, hi: 94, bio: "O parceiro mortal do Pelé no Santos — a dupla que decidia tudo. Faro de gol e tabelinha lendária." },
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
