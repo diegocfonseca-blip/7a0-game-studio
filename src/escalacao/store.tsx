@@ -963,7 +963,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean }
+  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean }
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
@@ -1293,6 +1293,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.onlineMode = 'online'
       s.roomId = action.roomId
       s.roomCode = action.roomCode
+      s.roomName = action.roomName
       s.isHost = action.isHost
       s.youIdx = action.playerIndex
       s.humanCount = action.playerNames.length
@@ -1895,7 +1896,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // a formação (usada como fallback). IMPORTANTE: .then() aqui não é
       // enredo — sem ele o supabase-js NÃO dispara a requisição (query é
       // preguiçosa), e era por isso que o estado nunca era salvo de verdade.
-      const payload = { ...sanitize(st), __game: 'escalacao', formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}) }
+      const payload = { ...sanitize(st), __game: 'escalacao', formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}) }
       supabase.from('game_rooms').update({ game_state: payload }).eq('id', st.roomId).then(() => {}, () => {})
     }
     save() // salva JÁ ao entrar no jogo (fecha a janela dos 3s do 1º save)
