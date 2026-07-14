@@ -502,7 +502,6 @@ const MEI: C[] = [
   { name: "Alex", club: "Cruzeiro", year: 2003, fame: 4, lo: 86, hi: 92 },
   { name: "Djalminha", club: "Palmeiras", year: 1996, fame: 4, lo: 82, hi: 91, folk: true },
   { name: "Marcelinho Carioca", club: "Corinthians", year: 1995, fame: 5, lo: 90, hi: 95, folk: true },
-  { name: "Edílson", club: "Corinthians", year: 1998, fame: 2, lo: 62, hi: 84 },
   { name: "Petkovic", club: "Fluminense", year: 2002, fame: 4, lo: 85, hi: 92, folk: true },
   { name: "Dario Conca", club: "Fluminense", year: 2010, fame: 2, lo: 63, hi: 82 },
   { name: "Paulo Henrique Ganso", club: "Santos", year: 2010, fame: 2, lo: 60, hi: 82 },
@@ -716,6 +715,7 @@ const ATA: C[] = [
   { name: "Carlinhos Bala", club: "Sport", year: 2008, fame: 1, lo: 58, hi: 76, folk: true, bio: "Baixinho elétrico e ídolo da torcida pernambucana — puro folclore com a camisa do Sport." },
   { name: "Euller (Filho do Vento)", club: "Vasco", year: 1998, fame: 3, lo: 74, hi: 85, bio: "O 'Filho do Vento' — velocidade fulminante pela ponta, ídolo do Vasco campeão da Libertadores de 98." },
   { name: "Coutinho", club: "Santos", year: 1962, fame: 5, lo: 88, hi: 94, bio: "O parceiro mortal do Pelé no Santos — a dupla que decidia tudo. Faro de gol e tabelinha lendária." },
+  { name: "Edílson", club: "Corinthians", year: 1998, fame: 2, lo: 62, hi: 84 },
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
