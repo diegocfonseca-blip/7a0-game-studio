@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
-import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE, DIVISION_LABEL, buildCareerSave, nextDivision } from './store'
+import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision } from './store'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { CATALOG, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
@@ -437,8 +437,8 @@ function AuctionBar() {
           </span>
         ))}
       </div>
-      <span className="inline-flex items-center gap-1 border-[3px] border-black rounded-full px-3 py-0.5 font-black text-base"
-        style={{ ...OSWALD, background: GOLD, boxShadow: `2px 2px 0 0 ${INK}` }}>💰 {you.money}</span>
+      <span className="inline-flex items-center gap-1 border-[3px] border-black rounded-full px-3.5 py-1 font-black text-lg"
+        style={{ ...OSWALD, background: `linear-gradient(180deg, #FFE07A 0%, ${GOLD} 100%)`, boxShadow: `2px 2px 0 0 ${INK}` }}>💰 {you.money}</span>
     </div>
   )
 }
@@ -602,7 +602,7 @@ function Envelope() {
   const cards = state.currentCards
   const timerColor = remaining <= 10 ? RED : remaining <= 20 ? GOLD : GREEN
   const timerTextColor = remaining <= 20 ? INK : '#fff'
-  const totalBatches = Math.ceil(state.deck[pos].length / BATCH_SIZE)
+  const totalBatches = batchCount(state.deck[pos].length)
   const curBatch = Math.min(totalBatches, Math.ceil(state.sectorCursor / BATCH_SIZE))
   // trava em quantos jogadores DIFERENTES dá pra apostar: no máximo suas
   // vagas abertas nessa posição (dá lance em todas de uma vez). Sem isso,
