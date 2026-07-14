@@ -139,7 +139,7 @@ function simFixtures(teams: SimTeam[], div: Division, rng: () => number, scorers
 const sortTable = (t: SimTeam[], rng: () => number) => t.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf || rng() - 0.5)
 
 // ─── mundo fixo ──────────────────────────────────────────────────────
-interface WTeam { name: string; div: Division; squad: PoolCard[]; rival?: boolean }
+interface WTeam { name: string; div: Division; squad: PoolCard[]; rival?: boolean; coins?: number }
 // ciclo da temporada: janela pré (só da 2ª temporada) → 1º turno → janela do
 // meio → returno → resultado. 's1FirstHalf' = pós-pregão da 1ª temporada (sem
 // janela pré). canTrade só nas janelas 'preWindow' e 'midWindow'.
@@ -244,7 +244,8 @@ function buildSaveFromAuction(state: EscState): Save {
   const rest = shuffle(POOL.filter(c => !excl.has(c.name)), rng).sort((a, b) => mid(b) - mid(a))
   const q = Math.ceil(rest.length / 4)
   const bucket: Record<Division, PoolCard[]> = { A: rest.slice(0, q), B: rest.slice(q, q * 2), C: rest.slice(q * 2, q * 3), D: rest.slice(q * 3) }
-  const world: WTeam[] = rivals.map(r => ({ name: r.teamName, div: 'D' as Division, squad: r.squad.map(c => ({ ...c })) as PoolCard[], rival: true }))
+  // cada rival guarda o que SOBROU do pregão inicial (começou com 50, gastou no time)
+  const world: WTeam[] = rivals.map(r => ({ name: r.teamName, div: 'D' as Division, squad: r.squad.map(c => ({ ...c })) as PoolCard[], rival: true, coins: Math.max(0, Math.round(r.money)) }))
   for (const div of DIVS) {
     const names = DIVISION_TEAMS[div].map(t => t.team).filter(n => !rivalTeams.has(n))
     const count = div === 'D' ? (20 - 1 - rivals.length) : 20
@@ -299,7 +300,14 @@ function processDinastiaEnd(state: EscState, existing: Save | null): Save {
     for (const ref of tables[L].slice(0, 4)) { if (ref) newDivOf.set(ref, U); else newDivision = U }
     for (const ref of tables[U].slice(16)) { if (ref) newDivOf.set(ref, L); else newDivision = L }
   }
-  const newWorld = base.world.map(w => ({ ...w, div: newDivOf.get(w) ?? w.div }))
+  // rivais também FATURAM por temporada (escala com a divisão) — cofre cresce ano a ano
+  const rivalPrize: Record<Division, number> = { D: 12, C: 22, B: 38, A: 70 }
+  const newWorld = base.world.map(w => {
+    const nd = newDivOf.get(w) ?? w.div
+    if (!w.rival) return { ...w, div: nd }
+    const earn = Math.round(rivalPrize[nd] * (0.5 + rng() * 0.6))
+    return { ...w, div: nd, coins: (w.coins ?? 50) + earn }
+  })
   const prizeBase = { D: 20, C: 35, B: 60, A: 110 }[div]
   const posF = yourPos === 1 ? 1 : yourPos <= 4 ? 0.7 : yourPos <= 12 ? 0.4 : 0.2
   const prize = Math.round(prizeBase * posF) + (youChampion ? Math.round(prizeBase * 0.3) : 0)
@@ -1118,7 +1126,7 @@ function buildWindowDeck(save: Save, rng: () => number): Lot[] {
 function rivalBids(save: Save, lot: Lot, rng: () => number): { name: string; bid: number }[] {
   const minBid = lot.floor ?? 1
   return save.world.filter(w => w.rival && w.name !== lot.ownerName).map(w => {
-    const cofre = 25 + save.seasonNo * 4 + ({ D: 0, C: 6, B: 14, A: 24 }[w.div])
+    const cofre = w.coins ?? 50 // dinheiro REAL do rival (começou com 50, muda com prêmio/vendas)
     const wants = lot.perceived > 6 && cofre >= minBid && rng() < (lot.perceived > 14 ? 0.85 : 0.5)
     const bid = wants ? Math.min(cofre, Math.max(minBid, Math.round(lot.perceived * (0.8 + rng() * 0.8)))) : 0
     return { name: w.name, bid }
@@ -1152,6 +1160,9 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
   const bidRows: BidRow[] = entrants.map(e => ({ name: e.who === 'you' ? 'Você' : e.name, amount: e.bid, mine: e.who === 'you', winner: e === win }))
   const removeFromOwner = (name: string) => draft.world.map(w => w.name === name ? { ...w, squad: w.squad.filter(c => c.id !== lot.card.id).concat(filler(lot.card.pos, rng)) } : w)
   const giveToRival = (name: string) => draft.world.map(w => w.name === name ? { ...w, squad: giveToTeam(w.squad, lot.card) } : w)
+  // fluxo de moedas dos rivais: paga quando compra, recebe quando vende
+  const chargeRival = (name: string, amt: number) => { draft.world = draft.world.map(w => w.name === name && w.rival ? { ...w, coins: Math.max(0, (w.coins ?? 50) - amt) } : w) }
+  const creditRival = (name: string, amt: number) => { draft.world = draft.world.map(w => w.name === name && w.rival ? { ...w, coins: (w.coins ?? 50) + amt } : w) }
   // adiciona ao SEU elenco SEM aplicar teto — a decisão do que fazer com o
   // excedente é 100% do técnico, tomada no modal de escolha.
   const addToMe = (price: number): { overflow: boolean } => {
@@ -1166,7 +1177,7 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
   if (win.who === 'you') {
     draft.contracts = setContract(draft, lot.card.id, win.bid) // novo dono: contrato novo de 5
     draft.coins -= win.bid
-    if (lot.ownerName && lot.ownerName !== draft.clubName) draft.world = removeFromOwner(lot.ownerName)
+    if (lot.ownerName && lot.ownerName !== draft.clubName) { draft.world = removeFromOwner(lot.ownerName); creditRival(lot.ownerName, win.bid) }
     const { overflow } = addToMe(win.bid)
     return { draft, result: { lot, outcome: 'you', by: draft.clubName, price: win.bid, bids: bidRows, overflow } }
   }
@@ -1179,8 +1190,9 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
   }
   draft.contracts = setContract(draft, lot.card.id, win.bid) // rival = novo dono: contrato novo de 5
   if (lot.kind === 'sell') { draft.coins += win.bid; draft.squad = draft.squad.filter(c => c.id !== lot.card.id) }
-  else if (lot.ownerName && lot.ownerName !== draft.clubName) draft.world = removeFromOwner(lot.ownerName)
+  else if (lot.ownerName && lot.ownerName !== draft.clubName) { draft.world = removeFromOwner(lot.ownerName); creditRival(lot.ownerName, win.bid) }
   draft.world = giveToRival(win.name)
+  chargeRival(win.name, win.bid) // o rival que levou paga do cofre dele
   return { draft, result: { lot, outcome: 'rival', by: win.name, price: win.bid, bids: bidRows } }
 }
 

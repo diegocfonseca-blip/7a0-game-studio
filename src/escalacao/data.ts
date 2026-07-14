@@ -624,7 +624,7 @@ const ATA: C[] = [
   { name: "Barcos", club: "Palmeiras", year: 2012, fame: 2, lo: 70, hi: 84 },
   { name: "Miguel Borja", club: "Palmeiras", year: 2017, fame: 2, lo: 66, hi: 83 },
   { name: "Diego Tardelli", club: "Atlético-MG", year: 2014, fame: 2, lo: 70, hi: 84 },
-  { name: "Emerson Sheik", club: "Corinthians", year: 2012, fame: 2, lo: 65, hi: 83 },
+  { name: "Emerson Sheik", club: "Corinthians", year: 2012, fame: 3, lo: 75, hi: 86 },
   { name: "Deyverson", club: "Palmeiras", year: 2018, fame: 2, lo: 55, hi: 83, folk: true },
   { name: "Somália", club: "Botafogo", year: 2016, fame: 1, lo: 55, hi: 78, folk: true },
   { name: "Ricardo Oliveira", club: "Santos", year: 2015, fame: 3, lo: 77, hi: 84 },
