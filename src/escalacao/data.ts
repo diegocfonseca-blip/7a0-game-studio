@@ -711,7 +711,7 @@ const ATA: C[] = [
   { name: "Calleri", club: "São Paulo", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Centroavante argentino raçudo, ídolo e artilheiro do São Paulo — briga cada bola." },
   { name: "Wellington Paulista", club: "Fortaleza", year: 2019, fame: 2, lo: 68, hi: 79, folk: true, bio: "Centroavante andarilho que rodou o Brasil inteiro — o eterno 'salvador' de cada temporada." },
   { name: "Fábio Júnior", club: "Cruzeiro", year: 1999, fame: 2, lo: 66, hi: 80, folk: true, bio: "Veloz e goleador no Cruzeiro, mas eternizado como o rei de perder gol feito na Roma — 'errou que nem Fábio Júnior'." },
-  { name: "Carlinhos Bala", club: "Sport", year: 2008, fame: 2, lo: 64, hi: 78, folk: true, bio: "Baixinho elétrico e ídolo da torcida pernambucana — puro folclore com a camisa do Sport." },
+  { name: "Carlinhos Bala", club: "Sport", year: 2008, fame: 1, lo: 58, hi: 76, folk: true, bio: "Baixinho elétrico e ídolo da torcida pernambucana — puro folclore com a camisa do Sport." },
   { name: "Euller (Filho do Vento)", club: "Vasco", year: 1998, fame: 3, lo: 74, hi: 85, bio: "O 'Filho do Vento' — velocidade fulminante pela ponta, ídolo do Vasco campeão da Libertadores de 98." },
 ]
 
