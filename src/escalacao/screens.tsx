@@ -315,6 +315,16 @@ export function EscSetup() {
       </button>
       <h2 className="font-black text-3xl pt-2" style={OSWALD}>{career ? '🪜 CARREIRA · SÉRIE D' : 'MONTE SUA SALA'}</h2>
       {career && <p className="text-sm font-bold text-black/60 -mt-3">Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.</p>}
+      {career && (
+        <Box bg="#FFF6DE" className="p-4 space-y-1.5">
+          <p className="font-black text-sm" style={OSWALD}>⚡ Como funciona a Carreira</p>
+          <p className="text-xs font-bold text-black/75">🪜 <b>Pirâmide de 4 divisões:</b> começa na Série D e sobe até a A — sobe ou desce a cada temporada, conforme sua colocação.</p>
+          <p className="text-xs font-bold text-black/75">🔨 <b>Mesmo leilão do modo rápido:</b> monta o time no pregão e disputa o campeonato de 38 rodadas.</p>
+          <p className="text-xs font-bold text-black/75">🔥 <b>Rivais pra vida toda:</b> têm vida própria na pirâmide e só te enfrentam quando estão na sua divisão.</p>
+          <p className="text-xs font-bold text-black/75">🏆 <b>Títulos acumulam:</b> cada título da Série A vira uma ⭐ no seu escudo.</p>
+          <p className="text-xs font-bold text-black/75">💾 <b>Salva e continua:</b> pare e volte depois, em qualquer aparelho.</p>
+        </Box>
+      )}
       <Box className="p-4 space-y-4">
         <div>
           <p className="text-xs font-black uppercase mb-1">Nome do seu time</p>
