@@ -485,7 +485,7 @@ function Dinastia() {
         ? <button onClick={() => setPhase('home')} className="flex items-center gap-1 text-black/60 font-black text-sm active:opacity-60" style={OSWALD}><span className="text-lg leading-none">←</span> Voltar</button>
         : <span style={{ width: 60 }} />}
       <span style={{ fontWeight: 900, ...OSWALD }}>🏰 MANAGER</span>
-      <span style={{ width: 60 }} />
+      {phase !== 'auction' ? <span style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>💰 {save.coins}</span> : <span style={{ width: 60 }} />}
     </div>
   )
   if (worldMoves) return (
@@ -618,7 +618,7 @@ function MidWindow({ onContinue, partial, partialTable }: { onContinue: () => vo
         ? <button onClick={() => setPhase('home')} className="flex items-center gap-1 text-black/60 font-black text-sm active:opacity-60" style={OSWALD}><span className="text-lg leading-none">←</span> Voltar</button>
         : <span style={{ width: 60 }} />}
       <span style={{ fontWeight: 900, ...OSWALD }}>⏸️ JANELA DO MEIO</span>
-      <span style={{ width: 60 }} />
+      {phase !== 'auction' ? <span style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>💰 {save.coins}</span> : <span style={{ width: 60 }} />}
     </div>
   )
   return (
@@ -1061,7 +1061,7 @@ function Transfer({ save, persist, onBack, midSeason }: { save: Save; persist: (
           return (
             <button key={c.id} disabled={dis} onClick={toggle} style={{ ...box(on ? '#EAF7EE' : dis ? '#eee' : '#fff'), padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: dis ? 'default' : 'pointer', textAlign: 'left', opacity: dis ? 0.55 : 1, border: on ? `3px solid ${GREEN}` : `3px solid ${INK}` }}>
               <span style={{ fontWeight: 900, ...OSWALD }}><Pos p={c.pos} /> {c.name}</span>
-              {on ? <span style={{ fontWeight: 800, color: GREEN, fontSize: 12 }}>✔ no leilão · tirar</span> : under ? <span style={{ fontWeight: 800, color: RED, fontSize: 12 }}>🔒 contrato (temp. {contractUntil(save, c.id)})</span> : posOther ? <span style={{ fontWeight: 800, color: '#999', fontSize: 12 }}>já aliciou 1 {c.pos}</span> : <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{fl !== undefined ? <>💰 valor {fl} <span style={{ fontSize: 10, color: '#888' }}>(mín.)</span></> : <span style={{ color: '#888' }}>novo no mercado</span>}<br /><span style={{ color: GREEN, fontSize: 11 }}>+ aliciar</span></span>}
+              {on ? <span style={{ fontWeight: 800, color: GREEN, fontSize: 12 }}>✔ no leilão · tirar</span> : under ? <span style={{ fontWeight: 800, color: RED, fontSize: 12 }}>🔒 contrato (temp. {contractUntil(save, c.id)})</span> : posOther ? <span style={{ fontWeight: 800, color: '#999', fontSize: 12 }}>já aliciou 1 {c.pos}</span> : <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{fl !== undefined ? <>💰 valor {fl} <span style={{ fontSize: 10, color: '#888' }}>(mín.)</span></> : <>💰 vale ~{baseValue(c)} <span style={{ fontSize: 10, color: '#888' }}>(estim.)</span></>}<br /><span style={{ color: GREEN, fontSize: 11 }}>+ aliciar</span></span>}
             </button>
           )
         }))}
@@ -1588,12 +1588,15 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
         <p style={{ fontWeight: 900, fontSize: 28, ...OSWALD, lineHeight: 1 }}>🔨 {SECTOR_LABEL[cur.p].toUpperCase()}</p>
         <p style={{ fontSize: 12, fontWeight: 700, color: '#666', marginTop: 3 }}>Lance cego: distribua suas moedas em segredo. Posição {sectorIdx + 1} de {byPos.length}.</p>
       </div>
-      {phase === 'bid' && (
-        <div style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '4px 10px', textAlign: 'center', minWidth: 60, background: timerCol, boxShadow: `3px 3px 0 0 ${INK}` }}>
-          <p style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', color: timerTxt }}>Tempo</p>
-          <p style={{ fontSize: 24, fontWeight: 900, ...OSWALD, lineHeight: 1, color: timerTxt }}>{left}s</p>
-        </div>
-      )}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+        <span style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>💰 {coins}</span>
+        {phase === 'bid' && (
+          <div style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '4px 10px', textAlign: 'center', minWidth: 60, background: timerCol, boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <p style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', color: timerTxt }}>Tempo</p>
+            <p style={{ fontSize: 24, fontWeight: 900, ...OSWALD, lineHeight: 1, color: timerTxt }}>{left}s</p>
+          </div>
+        )}
+      </div>
     </div>
   )
   // "cara de carta" do jogo (chip de posição + nome + clube·ano)
