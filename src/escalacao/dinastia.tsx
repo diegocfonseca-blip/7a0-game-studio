@@ -1131,7 +1131,27 @@ function DispensaAuction({ save, card, persist, onBack }: { save: Save; card: Wo
 type LotKind = 'market' | 'aliciar' | 'sell'
 interface Lot { card: PoolCard; kind: LotKind; ownerName?: string; floor?: number; perceived: number }
 interface BidRow { name: string; amount: number; mine: boolean; winner: boolean }
-interface LotResult { lot: Lot; outcome: 'you' | 'rival' | 'owner' | 'none'; by: string; price: number; dropped?: string; droppedCard?: WonCard; bids: BidRow[]; overflow?: boolean }
+interface LotResult { lot: Lot; outcome: 'you' | 'rival' | 'owner' | 'none' | 'bot'; by: string; price: number; dropped?: string; droppedCard?: WonCard; bids: BidRow[]; overflow?: boolean }
+
+// mercado sem lance de ninguém (nem você, nem rivais): um CLUBE BOT que possa
+// melhorar naquela posição pode assinar o jogador ali mesmo — evita que o leilão
+// passe com o cara caindo no Monte pra ninguém. Nem sempre corre atrás; se
+// nenhum bot ganha nível com ele, aí sim vai pro Monte.
+function botSignUnsold(draft: Save, card: PoolCard, rng: () => number): string | null {
+  if (rng() > 0.55) return null
+  let bestName = ''; let bestGain = 1
+  for (const w of draft.world) {
+    if (w.rival) continue
+    const posPlayers = w.squad.filter(c => c.pos === card.pos)
+    if (posPlayers.length === 0) continue
+    const weakest = posPlayers.reduce((m, c) => mid(c) < mid(m) ? c : m)
+    const gain = mid(card) - mid(weakest)
+    if (gain > bestGain) { bestGain = gain; bestName = w.name }
+  }
+  if (!bestName) return null
+  draft.world = draft.world.map(w => w.name === bestName ? { ...w, squad: giveToTeam(w.squad, { ...card }) } : w)
+  return bestName
+}
 
 // monta o baralho da janela: 1 do mercado por posição (sorteio uniforme, sem os
 // seus nem dos rivais) + os que você aliciou + os que você pôs à venda.
@@ -1203,7 +1223,11 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
     return { overflow: atPos.length > FORM_NEED[draft.formation][lot.card.pos] }
   }
   if (!win) {
-    if (lot.kind === 'market') draft.monte = [...(draft.monte ?? []), { ...lot.card }]
+    if (lot.kind === 'market') {
+      const signer = botSignUnsold(draft, lot.card, rng) // um clube bot pode assinar quem sobrou
+      if (signer) return { draft, result: { lot, outcome: 'bot', by: signer, price: 0, bids: bidRows } }
+      draft.monte = [...(draft.monte ?? []), { ...lot.card }]
+    }
     return { draft, result: { lot, outcome: 'none', by: '', price: 0, bids: bidRows } } // aliciar/sell sem lance: fica com o dono
   }
   if (win.who === 'you') {
@@ -1405,11 +1429,12 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
 
 
 
-  const label: Record<LotResult['outcome'], string> = { you: '✅ VOCÊ LEVOU', rival: '😤 rival levou', owner: '🛡️ dono segurou', none: '— ninguém deu lance' }
+  const label: Record<LotResult['outcome'], string> = { you: '✅ VOCÊ LEVOU', rival: '😤 rival levou', owner: '🛡️ dono segurou', none: '— ninguém deu lance', bot: '🌍 clube levou' }
 
   if (finished) {
     const unsold = allResults.filter(r => r.outcome === 'none' && r.lot.kind === 'market').length
     const dispensados = allResults.filter(r => !!r.dropped).length
+    const botSigned = allResults.filter(r => r.outcome === 'bot').length
     const mine = allResults.filter(r => r.outcome === 'you')
     return (
       <div style={{ display: 'grid', gap: 10 }}>
@@ -1419,6 +1444,7 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
           : <div style={{ ...box('#fff'), padding: 12, textAlign: 'center', fontWeight: 700, color: '#888' }}>Você não levou ninguém desta vez.</div>}
         {unsold > 0 && <div style={{ ...box('#F0EAD8'), padding: 10 }}><p style={{ fontSize: 12, fontWeight: 700 }}>🎁 {unsold} do mercado ninguém quis — vira{unsold > 1 ? 'ram' : ''} <b>livre no Monte</b>. Se nunca custou mais que 1, sai grátis; se já teve dono, você paga o piso dele.</p></div>}
         {dispensados > 0 && <div style={{ ...box('#EAF3FF'), padding: 10 }}><p style={{ fontSize: 12, fontWeight: 700 }}>➖ {dispensados} dispensado{dispensados > 1 ? 's' : ''} porque a posição encheu — foi{dispensados > 1 ? 'ram' : ''} pro <b>Monte</b> pelo piso que carrega.</p></div>}
+        {botSigned > 0 && <div style={{ ...box('#EAF7EE'), padding: 10 }}><p style={{ fontSize: 12, fontWeight: 700 }}>🌍 {botSigned} do mercado ninguém disputou — outro{botSigned > 1 ? 's' : ''} clube{botSigned > 1 ? 's' : ''} contratou{botSigned > 1 ? 'ram' : ''} antes de cair no Monte.</p></div>}
         <Btn onClick={onDone} bg={GREEN} color="#fff">✅ Pronto</Btn>
       </div>
     )
@@ -1464,6 +1490,7 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
             {r.bids.length === 0 && <p style={{ fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>{
               r.lot.kind === 'sell'
                 ? (needsSellChoice ? '🤔 Ninguém cobriu o piso — decida abaixo o que fazer com ele.' : r.dropped ? '🎁 Dispensado — livre no Monte.' : '🟢 Ninguém cobriu — fica no seu elenco.')
+                : r.outcome === 'bot' ? `🌍 Ninguém deu lance — ${r.by} contratou.`
                 : r.outcome === 'none' && r.lot.kind !== 'market' ? '🙅 Você desistiu — fica com o dono.' : `Nenhum lance. ${r.lot.kind === 'market' ? 'Vai pro Monte Final. 🪣' : 'Fica com o dono.'}`
             }</p>}
             {r.bids.map((b, i) => (
