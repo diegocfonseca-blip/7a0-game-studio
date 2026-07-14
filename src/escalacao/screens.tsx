@@ -1613,7 +1613,10 @@ function TableBox({ highlight, holdResults }: { highlight: number; holdResults?:
             const isMgr = state.managers.some(m => m.id === t.id)
             const rank = i + 1
             const isYou = t.id === highlight
-            const isRival = !!state.careerDivision && state.careerRivals.some(rv => rv.team === t.name)
+            // rival de carreira (fixo, vida própria na pirâmide) OU, no online,
+            // qualquer outro técnico HUMANO na sala (gente de verdade, não bot)
+            const isOnlineRival = state.onlineMode === 'online' && !isYou && !!state.managers.find(m => m.id === t.id)?.isHuman
+            const isRival = (!!state.careerDivision && state.careerRivals.some(rv => rv.team === t.name)) || isOnlineRival
             return (
               <tr key={t.id} className="border-t border-black/10 font-semibold"
                 style={{ backgroundColor: isYou ? GOLD : isRival ? '#FFE0D6' : zoneColor(rank), fontWeight: isMgr ? 800 : 500 }}>
