@@ -1153,7 +1153,9 @@ const kindLabel: Record<LotKind, string> = { market: '🆕 mercado', aliciar: '�
 function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persist: (s: Save) => void; onDone: () => void; midSeason?: boolean }) {
   const rng = useMemo(() => mulberry((save.seed ^ (save.seasonNo * 777) ^ (save.stage === 'midWindow' ? 99 : 1)) >>> 0), []) // eslint-disable-line
   const deck = useMemo(() => buildWindowDeck(save, rng), []) // eslint-disable-line
-  const byPos = useMemo(() => SECTORS.map(p => ({ p, lots: deck.filter(l => l.card.pos === p) })).filter(g => g.lots.length > 0), [deck])
+  // sell primeiro dentro de cada posição — se você tá vendendo um lateral e
+  // brigando por outro, o seu sai antes e o novo entra sem estourar o teto.
+  const byPos = useMemo(() => SECTORS.map(p => ({ p, lots: deck.filter(l => l.card.pos === p).sort((a, b) => (a.kind === 'sell' ? 0 : 1) - (b.kind === 'sell' ? 0 : 1)) })).filter(g => g.lots.length > 0), [deck])
   // rascunho persistente do save, acumulado posição a posição
   const draftRef = useRef<Save | null>(null)
   if (!draftRef.current) draftRef.current = { ...save, squad: [...save.squad], world: save.world.map(w => ({ ...w, squad: [...w.squad] })), contracts: { ...(save.contracts ?? {}) }, monte: [...(save.monte ?? [])] }
