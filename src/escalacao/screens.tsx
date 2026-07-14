@@ -185,6 +185,56 @@ function CardFace({ c, big = false, surprise = false, highlight = false }: { c: 
   )
 }
 
+// ─── NOVIDADES ───────────────────────────────────────────────────────
+// Mostra SÓ a novidade mais recente, com X pra fechar. Ao fechar, guarda o id
+// no aparelho — só reaparece quando eu trocar o LATEST_NEWS por um id novo.
+const LATEST_NEWS = {
+  id: '2026-07-surpresa',
+  emoji: '🎁',
+  title: 'Jogador Surpresa no leilão!',
+  text: 'Um craque entra com o nome escondido — você arrisca no escuro e o nome só sai no martelo. E chegaram vários jogadores novos (lendas e folclóricos).',
+}
+function NewsBanner() {
+  const [dismissed, setDismissed] = useState(() => {
+    try { return localStorage.getItem('esc_news_seen') === LATEST_NEWS.id } catch { return false }
+  })
+  if (dismissed) return null
+  const close = () => { try { localStorage.setItem('esc_news_seen', LATEST_NEWS.id) } catch { /* ignore */ } setDismissed(true) }
+  return (
+    <div className="relative rounded-2xl border-[3px] border-black p-3 pr-9 mb-1" style={{ background: '#EDE7FF', boxShadow: `4px 4px 0 0 ${INK}` }}>
+      <button onClick={close} aria-label="Fechar novidade"
+        className="absolute top-2 right-2 w-6 h-6 rounded-full border-2 border-black bg-white font-black text-xs leading-none active:translate-y-0.5">✕</button>
+      <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: PURPLE }}>✨ Novidade</p>
+      <p className="font-black text-sm leading-tight" style={OSWALD}>{LATEST_NEWS.emoji} {LATEST_NEWS.title}</p>
+      <p className="text-xs font-bold text-black/70 mt-0.5">{LATEST_NEWS.text}</p>
+    </div>
+  )
+}
+
+// seção detalhada lá embaixo: novidades do jogo + jogadores que entraram
+function NewsSection() {
+  return (
+    <Box bg="#F6F2FF" className="p-4 space-y-3">
+      <p className="font-black text-base" style={OSWALD}>📢 Últimas novidades</p>
+      <div>
+        <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>✨ No jogo</p>
+        <div className="mt-1 space-y-1">
+          <p className="text-xs font-bold text-black/75">🎁 <b>Jogador Surpresa</b> no leilão — um craque entra com o nome escondido, revelado só no martelo.</p>
+          <p className="text-xs font-bold text-black/75">👑 <b>Selo de Lenda</b> na carta da revelação.</p>
+          <p className="text-xs font-bold text-black/75">🏆 <b>Leilão mais claro</b> — quem dá o maior lance leva, e dá pra apostar em várias vagas de uma vez.</p>
+          <p className="text-xs font-bold text-black/75">🏰 <b>Modo Dinastia</b> — em breve!</p>
+        </div>
+      </div>
+      <div>
+        <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>⚽ Novos jogadores</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>Craques &amp; lendas:</b> Coutinho, Gilberto Silva, Mauro Silva, Geovani, Amarildo, Mozer, Assis, Calleri, Magno Alves, Kleberson, Mazinho, Euller (Filho do Vento).</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>Viraram lenda:</b> Raí, Roberto Dinamite, Bebeto, Reinaldo, Marcelinho Carioca.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>Folclore:</b> Wellington Paulista, Fábio Júnior, Carlinhos Bala, Falcão (do Futsal).</p>
+      </div>
+    </Box>
+  )
+}
+
 // ─── INTRO ───────────────────────────────────────────────────────────
 export function EscIntro() {
   const { dispatch } = useEsc()
@@ -224,6 +274,7 @@ export function EscIntro() {
         <h1 className="font-black text-5xl mt-4" style={OSWALD}>LEILÃO LEGENDS</h1>
         <p className="mt-2 font-semibold text-black/60">Leilão às cegas. Níveis ocultos. 38 rodadas pra provar quem entende de bola.</p>
       </div>
+      <NewsBanner />
       <Box bg="#fff" className="p-5 space-y-3">
         <p className="font-bold text-sm">⚒️ <b>O Pregão:</b> 5 rodadas de leilão cego — goleiros, laterais, zagueiros, meio e ataque. Ninguém vê o lance de ninguém até bater o martelo.</p>
         <p className="font-bold text-sm"><b>🎭 Níveis ocultos:</b> você dá lance no <i>nome</i>, sem ver o nível — ele só abre na Cerimônia da Revelação. E todo jogador tem <b>dia bom e dia ruim</b>: o nível muda a cada rodada. O <b>Obina</b> num dia ruim é perna-de-pau… no dia bom joga que nem o <b>Eto'o</b> (a torcida jurava que era 😏). Uns são de altos e baixos (dão zebra); os craques mais regulares rendem quase igual todo jogo.</p>
@@ -249,6 +300,7 @@ export function EscIntro() {
       <Btn onClick={shareGame} className="w-full" bg="#fff">
         📤 {shared ? 'Link copiado! Cola no zap 📲' : 'Compartilhar com os amigos'}
       </Btn>
+      <NewsSection />
       <footer className="text-center pt-3 pb-6 space-y-1.5">
         <p className="text-black/55 text-xs font-bold">💡 Ideia de jogador novo, sugestão ou achou um bug? Fala comigo:</p>
         <p className="text-xs font-bold">
