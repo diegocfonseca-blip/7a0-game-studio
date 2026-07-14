@@ -1228,6 +1228,9 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
   const globalIdx = (localIdx: number) => allResults.length - secResults.length + localIdx
   const currentR = secResults[Math.min(revealIdx, Math.max(0, secResults.length - 1))]
   const needsChoice = phase === 'reveal' && !!currentR && currentR.outcome === 'you' && !!currentR.overflow && !resolved[globalIdx(revealIdx)]
+  // seu jogador foi a leilão pra vender e NINGUÉM cobriu o piso: você decide —
+  // mantém no elenco ou dispensa (vai livre pro Monte pelo piso que carrega).
+  const needsSellChoice = phase === 'reveal' && !!currentR && currentR.lot.kind === 'sell' && currentR.outcome === 'none' && !resolved[globalIdx(revealIdx)]
 
   const sealSector = () => {
     if (sealedRef.current) return; sealedRef.current = true
@@ -1262,11 +1265,11 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
   // escolher o que fazer com quem sobrou.
   useEffect(() => {
     if (phase !== 'reveal' || finished) return
-    if (needsChoice) return // segura a fita até o técnico decidir
+    if (needsChoice || needsSellChoice) return // segura a fita até o técnico decidir
     const atLast = revealIdx >= secResults.length - 1
     const t = setTimeout(() => { if (atLast) nextSector(); else setRevealIdx(i => i + 1) }, atLast ? 1600 : 1200)
     return () => clearTimeout(t)
-  }, [phase, revealIdx, finished, secResults.length, needsChoice]) // eslint-disable-line
+  }, [phase, revealIdx, finished, secResults.length, needsChoice, needsSellChoice]) // eslint-disable-line
 
   // ─── ações do modal de escolha ao lotar posição ────────────────────
   const resolveChoice = () => { setResolved(prev => ({ ...prev, [globalIdx(revealIdx)]: true })) }
@@ -1318,6 +1321,8 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
     setAllResults(cur => cur.map((x, i) => i === globalIdx(revealIdx) ? newRes : x))
     resolveChoice()
   }
+  // seu jogador à venda não teve comprador: mantém no elenco (nada muda).
+  const doKeepSold = () => { resolveChoice() }
 
 
 
@@ -1377,7 +1382,11 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
           <Face c={r.lot.card} big />
           <p style={{ fontSize: 11, fontWeight: 800, color: '#888', marginTop: 4 }}>{kindLabel[r.lot.kind]}{r.lot.floor !== undefined ? ` · piso ${r.lot.floor}` : ' · novo no mercado'}</p>
           <div style={{ display: 'grid', gap: 6, marginTop: 12 }}>
-            {r.bids.length === 0 && <p style={{ fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>{r.outcome === 'none' && r.lot.kind !== 'market' ? '🙅 Você desistiu — fica com o dono.' : `Nenhum lance. ${r.lot.kind === 'market' ? 'Vai pro Monte Final. 🪣' : 'Fica com o dono.'}`}</p>}
+            {r.bids.length === 0 && <p style={{ fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>{
+              r.lot.kind === 'sell'
+                ? (needsSellChoice ? '🤔 Ninguém cobriu o piso — decida abaixo o que fazer com ele.' : r.dropped ? '🎁 Dispensado — livre no Monte.' : '🟢 Ninguém cobriu — fica no seu elenco.')
+                : r.outcome === 'none' && r.lot.kind !== 'market' ? '🙅 Você desistiu — fica com o dono.' : `Nenhum lance. ${r.lot.kind === 'market' ? 'Vai pro Monte Final. 🪣' : 'Fica com o dono.'}`
+            }</p>}
             {r.bids.map((b, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `2px solid ${INK}`, borderRadius: 8, padding: '6px 12px', background: b.winner ? GREEN : '#fff' }}>
                 <span style={{ fontWeight: 800, fontSize: 14, color: b.winner ? '#fff' : INK }}>{b.mine ? '🫵 Você' : b.name}{b.winner && r.outcome === 'owner' ? ' (segurou)' : ''}</span>
@@ -1387,7 +1396,7 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
           </div>
           <p style={{ fontWeight: 900, ...OSWALD, marginTop: 12, color: r.outcome === 'you' ? GREEN : INK }}>{label[r.outcome]}{r.dropped ? ` · ${r.dropped} sai do elenco` : ''}</p>
         </div>
-        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 800, color: '#999' }}>{needsChoice ? 'aguardando sua decisão…' : atLast ? (last ? 'encerrando o pregão…' : 'indo pra próxima posição…') : 'martelando…'}</p>
+        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 800, color: '#999' }}>{(needsChoice || needsSellChoice) ? 'aguardando sua decisão…' : atLast ? (last ? 'encerrando o pregão…' : 'indo pra próxima posição…') : 'martelando…'}</p>
         {needsChoice && currentR && (
           <OverflowChoiceModal
             incoming={currentR.lot.card}
@@ -1399,6 +1408,14 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
             onSellOne={doSellOne}
             onDesistir={doDesistir}
             rng={rng}
+          />
+        )}
+        {needsSellChoice && currentR && (
+          <SellUnsoldModal
+            card={currentR.lot.card}
+            save={draftRef.current!}
+            onKeep={doKeepSold}
+            onDispensar={doDispensar}
           />
         )}
       </div>
@@ -1604,6 +1621,44 @@ function OverflowChoiceModal({ incoming, paidForIncoming, posCands, save, rivals
         <button onClick={() => setStep('pick-dispensar')} style={{ ...box('#fff'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
           <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>➖ Dispensar</p>
           <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Escolhe quem sai e ele cai direto no Monte pelo piso dele. Você não recebe nada.</p>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── SEU JOGADOR À VENDA NÃO ACHOU COMPRADOR ───────────────────────────────
+// Ninguém cobriu o piso do seu jogador listado. Você decide: mantém no elenco
+// (nada muda) ou dispensa — ele cai LIVRE no Monte pelo piso que carrega
+// (grátis se nunca custou mais que 1), disponível pra qualquer um, inclusive você.
+function SellUnsoldModal({ card, save, onKeep, onDispensar }: {
+  card: PoolCard
+  save: Save
+  onKeep: () => void
+  onDispensar: (chosenId: string) => void
+}) {
+  const floor = floorOf(save, card as WonCard) ?? Math.max(1, (card as WonCard).paid)
+  const free = floor <= 1
+  const backdrop: React.CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 10000 }
+  const cardStyle: React.CSSProperties = { background: CREAM, border: `3px solid ${INK}`, borderRadius: 16, padding: 16, maxWidth: 380, width: '100%', boxShadow: `6px 6px 0 0 ${INK}`, display: 'grid', gap: 10, maxHeight: '90vh', overflowY: 'auto' }
+  return (
+    <div style={backdrop}>
+      <div style={cardStyle}>
+        <div style={{ ...box(INK), padding: '8px 10px', textAlign: 'center', color: '#fff' }}>
+          <p style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', opacity: 0.85 }}>🔨 Sem comprador</p>
+          <p style={{ fontWeight: 900, fontSize: 22, ...OSWALD, lineHeight: 1 }}>{card.name}</p>
+          <p style={{ fontSize: 11, fontWeight: 700, opacity: 0.85, marginTop: 2 }}>{SECTOR_LABEL[card.pos]} · piso 💰 {floor}</p>
+        </div>
+        <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', color: '#555' }}>
+          Ninguém cobriu o piso de <b>{card.name}</b>. O que fazer?
+        </p>
+        <button onClick={onKeep} style={{ ...box('#EAF7EE'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
+          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>🟢 Manter no elenco</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Continua no seu time, mesmo contrato. Nada muda.</p>
+        </button>
+        <button onClick={() => onDispensar(card.id)} style={{ ...box('#FFF6DE'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
+          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>🎁 Dispensar → Monte</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Sai do elenco e fica <b>livre no Monte</b> — qualquer um pega, inclusive você depois. {free ? 'Sai de graça.' : `Quem pescar paga o piso 💰 ${floor}.`}</p>
         </button>
       </div>
     </div>
