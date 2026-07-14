@@ -399,15 +399,17 @@ export function EscLobby() {
     setRoom(rd); setIsHost(true); setPhase('waiting'); setLoading(false)
   }
 
-  // lista pública de salas abertas (waiting) da Escalação. `silent` = atualização
-  // automática (não mostra o "Carregando…" pra não piscar a cada 5s).
+  // lista pública de salas: as esperando gente (waiting) E as com jogo já
+  // rolando (started) — pra galera ver que a sala tá viva mesmo depois de
+  // começar o pregão. `silent` = atualização automática (não mostra o
+  // "Carregando…" pra não piscar a cada 5s).
   async function fetchOpenRooms(silent = false) {
     if (!silent) setListLoading(true)
-    // só salas recentes: uma sala "waiting" de horas atrás é sala abandonada
+    // só salas recentes: uma sala de horas atrás é sala abandonada
     const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
     const { data: rooms } = await supabase.from('game_rooms')
       .select('id, code, host_id, max_players, status, game_state')
-      .eq('status', 'waiting')
+      .in('status', ['waiting', 'started'])
       .eq('game_state->>__game', GAME_TAG)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
@@ -419,8 +421,12 @@ export function EscLobby() {
       const { data: pls } = await supabase.from('room_players').select('room_id').in('room_id', ids)
       for (const p of (pls ?? []) as { room_id: string }[]) counts[p.room_id] = (counts[p.room_id] ?? 0) + 1
     }
-    // só salas vivas: sem ninguém dentro (count 0) é sala fantasma abandonada
-    setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 })).filter(r => r.count >= 1))
+    // só salas vivas: sem ninguém dentro (count 0) é sala fantasma abandonada.
+    // esperando gente aparece primeiro (é nelas que dá pra entrar); as com
+    // jogo rolando ficam depois, só como aviso de "sala ocupada".
+    setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
+      .filter(r => r.count >= 1)
+      .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
 
@@ -674,17 +680,27 @@ export function EscLobby() {
           {filtered.map(r => {
             const nm = r.game_state?.roomName ?? r.code
             const full = r.count >= r.max_players
+            const live = r.status === 'started'
             return (
-              <div key={r.id} className="flex items-center gap-2 border-[3px] border-black rounded-xl p-3 bg-[#F4ECD6]" style={{ boxShadow: `3px 3px 0 ${INK}` }}>
+              <div key={r.id} className="flex items-center gap-2 border-[3px] border-black rounded-xl p-3" style={{ background: live ? '#EFE6C8' : '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-black text-sm truncate" style={OSWALD}>{r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}</p>
-                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}/{r.max_players} · {r.code}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}</p>
+                  <p className="font-black text-black text-sm truncate flex items-center gap-1.5" style={OSWALD}>
+                    {live && <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />}
+                    {r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}
+                  </p>
+                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}/{r.max_players} · {r.code}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>
                 </div>
-                <button onClick={() => joinFromList(r)} disabled={loading || full}
-                  className="border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
-                  style={{ backgroundColor: full ? '#ccc' : GREEN, color: full ? '#000' : '#fff', ...OSWALD }}>
-                  {full ? 'Cheia' : 'Entrar'}
-                </button>
+                {live ? (
+                  <span className="border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0" style={{ backgroundColor: '#ccc', color: '#000', ...OSWALD }}>
+                    Em jogo
+                  </span>
+                ) : (
+                  <button onClick={() => joinFromList(r)} disabled={loading || full}
+                    className="border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
+                    style={{ backgroundColor: full ? '#ccc' : GREEN, color: full ? '#000' : '#fff', ...OSWALD }}>
+                    {full ? 'Cheia' : 'Entrar'}
+                  </button>
+                )}
               </div>
             )
           })}
