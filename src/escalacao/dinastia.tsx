@@ -17,7 +17,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Card, EscState, FormationKey, Sector, WonCard } from './types'
 import { CATALOG, DIVISION_TEAMS } from './data'
 import { useEsc, sortedTable } from './store'
-import { useIsAdmin } from './admin'
+import { useCanManager } from './admin'
 import { supabase } from '../lib/supabase'
 
 // ─── visual (mesmos valores do resto do jogo — neubrutalista) ────────
@@ -354,7 +354,7 @@ function processDinastiaEnd(state: EscState, existing: Save | null): Save {
 
 // ─── raiz (overlay) ──────────────────────────────────────────────────
 export function DinastiaGame() {
-  const isAdmin = useIsAdmin()
+  const isAdmin = useCanManager()
   const { state, dispatch } = useEsc()
   const [open, setOpen] = useState(() => typeof window !== 'undefined' && window.location.hash === '#dinastia')
   useEffect(() => { const f = () => setOpen(window.location.hash === '#dinastia'); window.addEventListener('hashchange', f); return () => window.removeEventListener('hashchange', f) }, [])
@@ -405,23 +405,23 @@ export function DinastiaGame() {
   if (!isAdmin) return (
     <Overlay><div style={{ ...box(), padding: 24, textAlign: 'center' }}>
       <p style={{ fontWeight: 900, ...OSWALD, fontSize: 18 }}>🔒 Modo em teste</p>
-      <p style={{ marginTop: 8, color: '#555', fontWeight: 700 }}>Disponível só pro criador por enquanto.</p>
+      <p style={{ marginTop: 8, color: '#555', fontWeight: 700 }}>Disponível só pra convidados por enquanto.</p>
       <div style={{ marginTop: 16 }}><Btn onClick={() => { window.location.hash = '' }} bg="#fff">Voltar</Btn></div>
     </div></Overlay>
   )
   return <Overlay><Dinastia /></Overlay>
 }
 export function DinastiaButton() {
-  const isAdmin = useIsAdmin()
+  const isAdmin = useCanManager()
   // público vê o teaser "(em breve)"; só o admin abre o modo em teste
   if (!isAdmin) return (
     <div style={{ width: '100%', boxSizing: 'border-box', background: '#e7e3d7', color: '#8a8577', border: '2px solid #bdb7a6', borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, textAlign: 'center', marginTop: 2, ...OSWALD, cursor: 'default' }}>
-      🏰 Modo Dinastia <span style={{ opacity: 0.85 }}>(em breve)</span>
+      🏰 Modo Manager <span style={{ opacity: 0.85 }}>(em breve)</span>
     </div>
   )
   return (
     <button onClick={() => { window.location.hash = 'dinastia' }} style={{ width: '100%', boxSizing: 'border-box', background: PURPLE, color: '#fff', border: `2px solid ${INK}`, borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, cursor: 'pointer', marginTop: 2, ...OSWALD }}>
-      🏰 Modo Dinastia <span style={{ color: GOLD }}>(teste — só você)</span>
+      🏰 Modo Manager <span style={{ color: GOLD }}>(teste)</span>
     </button>
   )
 }
@@ -442,7 +442,7 @@ function Dinastia() {
   const [worldMoves, setWorldMoves] = useState<{ news: string[]; save: Save } | null>(null)
   const persist = (s: Save) => { writeSave(s); setSave(s) }
   const close = () => { window.location.hash = '' }
-  const reset = () => { if (confirm('Recomeçar a Dinastia do zero? Perde tudo.')) { localStorage.removeItem(SAVE_KEY); setSave(null) } }
+  const reset = () => { if (confirm('Recomeçar o Manager do zero? Perde tudo.')) { localStorage.removeItem(SAVE_KEY); setSave(null) } }
   // abrir o pregão = disparar o LEILÃO REAL (mesmo motor da carreira) e fechar o
   // overlay pra ele aparecer. A cerimônia devolve o controle pra economia.
   const startAuction = (b: { name: string; rivals: string[]; formation: FormationKey }) => {
@@ -484,7 +484,7 @@ function Dinastia() {
       {phase !== 'home'
         ? <button onClick={() => setPhase('home')} className="flex items-center gap-1 text-black/60 font-black text-sm active:opacity-60" style={OSWALD}><span className="text-lg leading-none">←</span> Voltar</button>
         : <span style={{ width: 60 }} />}
-      <span style={{ fontWeight: 900, ...OSWALD }}>🏰 DINASTIA</span>
+      <span style={{ fontWeight: 900, ...OSWALD }}>🏰 MANAGER</span>
       <span style={{ width: 60 }} />
     </div>
   )
@@ -799,10 +799,10 @@ function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: stri
   return (
     <div className="space-y-5">
       <button onClick={onClose} className="flex items-center gap-1 text-black/60 font-black text-sm active:opacity-60" style={OSWALD}><span className="text-lg leading-none">←</span> Home</button>
-      <h2 className="font-black text-3xl" style={OSWALD}>🏰 DINASTIA · SÉRIE D</h2>
+      <h2 className="font-black text-3xl" style={OSWALD}>🏰 MANAGER · SÉRIE D</h2>
       <p className="text-sm font-bold text-black/60 -mt-3">Monte o time no pregão e construa uma dinastia: um mundo fixo onde cada jogador vive num clube, e você sobe na pirâmide ano após ano.</p>
       <div style={{ ...box('#FFF6DE'), padding: 14 }} className="space-y-1.5">
-        <p className="font-black text-sm" style={OSWALD}>⚡ O que muda na Dinastia</p>
+        <p className="font-black text-sm" style={OSWALD}>⚡ O que muda no Manager</p>
         <p className="text-xs font-bold text-black/75">💰 <b>Economia real:</b> moedas por temporada — prêmios por posição, título, acesso e artilheiro.</p>
         <p className="text-xs font-bold text-black/75">🔄 <b>2 janelas por temporada</b> (início + meio): alicie, venda, renove e dispense jogadores.</p>
         <p className="text-xs font-bold text-black/75">🪜 <b>Pirâmide viva:</b> sobe/desce entre Série D → A. Cair corta o seu caixa.</p>

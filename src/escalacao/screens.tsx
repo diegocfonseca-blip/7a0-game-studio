@@ -222,7 +222,7 @@ function NewsSection() {
           <p className="text-xs font-bold text-black/75">🎁 <b>Jogador Surpresa</b> no leilão — um craque entra com o nome escondido, revelado só no martelo.</p>
           <p className="text-xs font-bold text-black/75">👑 <b>Selo de Lenda</b> na carta da revelação.</p>
           <p className="text-xs font-bold text-black/75">🏆 <b>Leilão mais claro</b> — quem dá o maior lance leva, e dá pra apostar em várias vagas de uma vez.</p>
-          <p className="text-xs font-bold text-black/75">🏰 <b>Modo Dinastia</b> — em breve!</p>
+          <p className="text-xs font-bold text-black/75">🏰 <b>Modo Manager</b> — em breve!</p>
         </div>
       </div>
       <div>
