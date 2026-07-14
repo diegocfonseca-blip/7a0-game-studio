@@ -1426,124 +1426,138 @@ function SellRoom({ save, persist, onBack }: { save: Save; persist: (s: Save) =>
 }
 
 // ─── ESCOLHA AO LOTAR POSIÇÃO ──────────────────────────────────────────────
-// Você ganhou um cara e sua posição estourou. Antes de mandar o pior do setor
-// pro monte automaticamente, pergunta o que fazer com ele. Você pode TROCAR
-// quem sai (não precisa ser o pior), tentar VENDER com N ofertas (uma por rival
-// real da sua liga), dispensar de graça ou desistir da compra.
-function OverflowChoiceModal({ incoming, dropped, paidForIncoming, posCands, floorOfDropped, rivalsCount, onDispensar, onDesistir, onOferta, onChangeDropped, rng }: {
-  incoming: PoolCard; dropped: WonCard; paidForIncoming: number
-  posCands: WonCard[]; floorOfDropped: number; rivalsCount: number
-  onDispensar: () => void; onDesistir: () => void; onOferta: (amount: number) => void
-  onChangeDropped: (newId: string) => void
+// Você ganhou um cara e sua posição estourou. Três ações, com a semântica certa:
+//   🚫 DESISTIR  — cancela sua compra e re-resolve o lote sem seu lance (2º
+//                  colocado leva; sem outro lance → dono mantém / vai pro Monte).
+//   🔻 BOTAR UM SEU NO LEILÃO — escolhe um dos seus da posição, roda mini-leilão
+//                  com N ofertas (N = seus rivais reais). Piso = valor dele.
+//                  Sem lance ≥ piso → cai no Monte carregando o piso.
+//   ➖ DISPENSAR — escolhe um dos seus e ele vai direto pro Monte pelo piso dele.
+function OverflowChoiceModal({ incoming, paidForIncoming, posCands, save, rivalsCount, onDispensar, onSellOne, onDesistir, rng }: {
+  incoming: PoolCard; paidForIncoming: number
+  posCands: WonCard[]
+  save: Save
+  rivalsCount: number
+  onDispensar: (chosenId: string) => void
+  onSellOne: (chosenId: string, amount: number, buyer?: string) => void
+  onDesistir: () => void
   rng: () => number
 }) {
-  const [step, setStep] = useState<'menu' | 'swap' | 'oferta'>('menu')
+  // default de "quem sai": o pior por força
+  const defaultChosen = useMemo(() => posCands.slice().sort((a, b) => mid(a) - mid(b))[0], [posCands])
+  const [chosenId, setChosenId] = useState<string>(defaultChosen?.id ?? '')
+  const chosen = posCands.find(c => c.id === chosenId) ?? defaultChosen
+  const [step, setStep] = useState<'menu' | 'pick-dispensar' | 'pick-sell' | 'oferta' | 'oferta-done'>('menu')
   const [offerIdx, setOfferIdx] = useState(0)
-  const [done, setDone] = useState<{ sold: boolean; amount: number; by: string } | null>(null)
-  const minimum = Math.max(1, floorOfDropped + 5) // +5 pra renovar o piso ao pôr à venda
-  const val = Math.max(minimum, Math.round(mid(dropped)))
+  const [saleDone, setSaleDone] = useState<{ sold: boolean; amount: number; by: string } | null>(null)
+
+  const chosenFloor = chosen ? (floorOf(save, chosen) ?? Math.max(1, chosen.paid)) : 1
+  const chosenVal = chosen ? Math.max(chosenFloor, Math.round(mid(chosen))) : 1
   const n = Math.max(1, rivalsCount)
+  const rivalNames = useMemo(() => shuffle(save.world.filter(w => w.rival).map(w => w.name), rng), []) // eslint-disable-line
   const offers = useMemo(() => Array.from({ length: n }, (_, i) => {
     const roll = rng(); let f = 0.4 + rng() * 1.4
     if (roll > 0.85) f = 1.6 + rng() * 1.1; else if (roll < 0.25) f = 0.2 + rng() * 0.3
-    return { amount: Math.max(1, Math.round(val * f)), by: `Rival ${i + 1}` }
-  }), []) // eslint-disable-line
+    return { amount: Math.max(1, Math.round(chosenVal * f)), by: rivalNames[i % Math.max(1, rivalNames.length)] || `Rival ${i + 1}` }
+  }), [chosenId]) // eslint-disable-line
 
   const backdrop: React.CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 10000 }
-  const card: React.CSSProperties = { background: CREAM, border: `3px solid ${INK}`, borderRadius: 16, padding: 16, maxWidth: 380, width: '100%', boxShadow: `6px 6px 0 0 ${INK}`, display: 'grid', gap: 10, maxHeight: '90vh', overflowY: 'auto' }
+  const cardStyle: React.CSSProperties = { background: CREAM, border: `3px solid ${INK}`, borderRadius: 16, padding: 16, maxWidth: 380, width: '100%', boxShadow: `6px 6px 0 0 ${INK}`, display: 'grid', gap: 10, maxHeight: '90vh', overflowY: 'auto' }
   const posBadge = (
-    <div style={{ ...box(GOLD), padding: '8px 10px', textAlign: 'center' }}>
-      <p style={{ fontSize: 10, fontWeight: 800, color: '#7a5c00', textTransform: 'uppercase' }}>Posição lotada</p>
-      <p style={{ fontWeight: 900, fontSize: 22, ...OSWALD, lineHeight: 1 }}>{SECTOR_LABEL[dropped.pos].toUpperCase()}</p>
+    <div style={{ ...box(RED), padding: '8px 10px', textAlign: 'center', color: '#fff' }}>
+      <p style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', opacity: 0.85 }}>⚠️ Posição lotada</p>
+      <p style={{ fontWeight: 900, fontSize: 22, ...OSWALD, lineHeight: 1 }}>{SECTOR_LABEL[incoming.pos].toUpperCase()}</p>
     </div>
   )
 
-  if (done) {
+  const PickList = ({ label, onPick }: { label: string; onPick: (id: string) => void }) => (
+    <>
+      {posCands.map(c => {
+        const sel = c.id === chosenId
+        const fl = floorOf(save, c) ?? Math.max(1, c.paid)
+        return (
+          <button key={c.id} onClick={() => { setChosenId(c.id); onPick(c.id) }} style={{ ...box(sel ? '#EAF7EE' : '#fff'), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', textAlign: 'left', border: sel ? `3px solid ${GREEN}` : `3px solid ${INK}` }}>
+            <span style={{ fontWeight: 900, ...OSWALD }}>{c.name}</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#888' }}>força ~{Math.round(mid(c))} · piso {fl}{sel ? ' · atual' : ''}</span>
+          </button>
+        )
+      })}
+      <p style={{ fontSize: 11, fontWeight: 700, color: '#888', textAlign: 'center' }}>{label}</p>
+      <Btn onClick={() => setStep('menu')} bg="#fff">← Voltar</Btn>
+    </>
+  )
+
+  if (saleDone) {
     return (
       <div style={backdrop}>
-        <div style={card}>
+        <div style={cardStyle}>
           {posBadge}
-          <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, textAlign: 'center' }}>{done.sold ? '💰 Vendido!' : '🎁 Foi pro Monte'}</p>
-          <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center' }}>{done.sold ? `${dropped.name} saiu por 💰 ${done.amount} (${done.by}).` : `Ninguém topou. ${dropped.name} caiu no Monte pelo piso ${minimum}.`}</p>
-          <Btn onClick={() => { if (done.sold) onOferta(done.amount); else onDispensar() }} bg={GREEN} color="#fff">✅ Pronto</Btn>
+          <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, textAlign: 'center' }}>{saleDone.sold ? '💰 Vendido!' : '🎁 Foi pro Monte'}</p>
+          <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center' }}>{saleDone.sold ? `${chosen?.name} saiu por 💰 ${saleDone.amount} (${saleDone.by}).` : `Ninguém topou o piso. ${chosen?.name} caiu no Monte pelo piso 💰 ${chosenFloor}.`}</p>
+          <Btn onClick={() => chosen && onSellOne(chosen.id, saleDone.amount, saleDone.sold ? saleDone.by : undefined)} bg={GREEN} color="#fff">✅ Pronto</Btn>
         </div>
       </div>
     )
   }
 
-  if (step === 'swap') {
-    return (
-      <div style={backdrop}>
-        <div style={card}>
-          {posBadge}
-          <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, textAlign: 'center' }}>Quem você tira?</p>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', textAlign: 'center' }}>Todos os {SECTOR_LABEL[dropped.pos]} do seu elenco. Clique em quem vai sair (pro Monte / venda).</p>
-          {posCands.map(c => {
-            const sel = c.id === dropped.id
-            return (
-              <button key={c.id} onClick={() => { onChangeDropped(c.id); setStep('menu') }} style={{ ...box(sel ? '#EAF7EE' : '#fff'), padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', textAlign: 'left', border: sel ? `3px solid ${GREEN}` : `3px solid ${INK}` }}>
-                <span style={{ fontWeight: 900, ...OSWALD }}>{c.name}</span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#888' }}>força ~{Math.round(mid(c))} · piso {Math.max(1, c.paid)}{sel ? ' · atual' : ''}</span>
-              </button>
-            )
-          })}
-          <Btn onClick={() => setStep('menu')} bg="#fff">← Voltar</Btn>
-        </div>
-      </div>
-    )
+  if (step === 'pick-dispensar' && chosen) {
+    return (<div style={backdrop}><div style={cardStyle}>{posBadge}
+      <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, textAlign: 'center' }}>➖ Dispensar — quem sai?</p>
+      <PickList label={`Vai direto pro Monte pelo piso dele. Grátis só se o piso for 1.`} onPick={(id) => onDispensar(id)} />
+    </div></div>)
   }
 
-  if (step === 'oferta') {
+  if (step === 'pick-sell' && chosen) {
+    return (<div style={backdrop}><div style={cardStyle}>{posBadge}
+      <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, textAlign: 'center' }}>🔻 Botar no leilão — quem?</p>
+      <PickList label={`Vai a leilão com ${n} rival${n > 1 ? 'is' : ''}. Piso = valor do jogador. Sem lance ≥ piso → cai no Monte pelo piso.`} onPick={() => setStep('oferta')} />
+    </div></div>)
+  }
+
+  if (step === 'oferta' && chosen) {
     const cur = offers[offerIdx]
-    const canAccept = cur.amount >= minimum
+    const canAccept = cur.amount >= chosenFloor
     return (
-      <div style={backdrop}>
-        <div style={card}>
-          {posBadge}
-          <div style={{ ...box(INK), padding: 12, color: '#fff', textAlign: 'center' }}>
-            <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD }}>🔨 Vendendo {dropped.name}</p>
-            <p style={{ fontSize: 12, opacity: 0.85 }}>Mínimo: 💰 {minimum} · vale ~{val}</p>
-          </div>
-          <div style={{ ...box('#fff'), padding: 14, textAlign: 'center' }}>
-            <p style={{ fontSize: 12, fontWeight: 800, color: '#888' }}>Oferta {offerIdx + 1} de {offers.length} — {cur.by}</p>
-            <p style={{ fontSize: 34, fontWeight: 900, ...OSWALD, margin: '4px 0', color: canAccept ? INK : RED }}>💰 {cur.amount}</p>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#999' }}>{canAccept ? 'Cobre o mínimo — dá pra vender.' : `Abaixo do mínimo (${minimum}).`}</p>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <div style={{ flex: 1 }}><Btn onClick={() => setDone({ sold: true, amount: cur.amount, by: cur.by })} bg={GREEN} color="#fff" disabled={!canAccept}>✅ Aceitar</Btn></div>
-            <div style={{ flex: 1 }}><Btn onClick={() => { if (offerIdx < offers.length - 1) setOfferIdx(i => i + 1); else setDone({ sold: false, amount: 0, by: '' }) }} bg={RED} color="#fff">{offerIdx < offers.length - 1 ? '🎲 Recusar' : '🎁 Pro Monte'}</Btn></div>
-          </div>
+      <div style={backdrop}><div style={cardStyle}>{posBadge}
+        <div style={{ ...box(INK), padding: 12, color: '#fff', textAlign: 'center' }}>
+          <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD }}>🔨 Vendendo {chosen.name}</p>
+          <p style={{ fontSize: 12, opacity: 0.85 }}>Piso: 💰 {chosenFloor} · vale ~{chosenVal}</p>
         </div>
-      </div>
+        <div style={{ ...box('#fff'), padding: 14, textAlign: 'center' }}>
+          <p style={{ fontSize: 12, fontWeight: 800, color: '#888' }}>Oferta {offerIdx + 1} de {offers.length} — {cur.by}</p>
+          <p style={{ fontSize: 34, fontWeight: 900, ...OSWALD, margin: '4px 0', color: canAccept ? INK : RED }}>💰 {cur.amount}</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#999' }}>{canAccept ? 'Cobre o piso — dá pra vender.' : `Abaixo do piso (${chosenFloor}).`}</p>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ flex: 1 }}><Btn onClick={() => setSaleDone({ sold: true, amount: cur.amount, by: cur.by })} bg={GREEN} color="#fff" disabled={!canAccept}>✅ Aceitar</Btn></div>
+          <div style={{ flex: 1 }}><Btn onClick={() => { if (offerIdx < offers.length - 1) setOfferIdx(i => i + 1); else setSaleDone({ sold: false, amount: 0, by: '' }) }} bg={RED} color="#fff">{offerIdx < offers.length - 1 ? '🎲 Recusar' : '🎁 Pro Monte'}</Btn></div>
+        </div>
+      </div></div>
     )
   }
 
   return (
     <div style={backdrop}>
-      <div style={card}>
+      <div style={cardStyle}>
         {posBadge}
         <p style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', color: '#555' }}>
-          Você contratou <b>{incoming.name}</b> ({SECTOR_LABEL[incoming.pos]}) por 💰 {paidForIncoming}. Sobra <b>{dropped.name}</b>. O que fazer?
+          Você contratou <b>{incoming.name}</b> ({SECTOR_LABEL[incoming.pos]}) por 💰 {paidForIncoming}, mas o setor estourou. O que fazer?
         </p>
-        {posCands.length > 1 && (
-          <button onClick={() => setStep('swap')} style={{ ...box('#EAF3FF'), padding: '8px 12px', textAlign: 'center', cursor: 'pointer', border: `2px dashed ${INK}`, fontWeight: 800, fontSize: 12 }}>
-            🔁 Trocar quem sai ({posCands.length} {SECTOR_LABEL[dropped.pos]} no elenco)
-          </button>
-        )}
-        <button onClick={onDispensar} style={{ ...box('#fff'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
-          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>➖ Dispensar</p>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Vai pro Monte pelo piso dele (💰 {Math.max(1, floorOfDropped)}). Fica lá até alguém pagar — grátis só se o piso for 1.</p>
-        </button>
-        <button onClick={() => setStep('oferta')} style={{ ...box('#FFF6DE'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
-          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>💰 Dar oferta (renovar +5)</p>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Renova o piso pra 💰 {minimum} e ouve {n} oferta{n > 1 ? 's' : ''} — uma por rival da sua liga. Se topar, você embolsa.</p>
-        </button>
         <button onClick={onDesistir} style={{ ...box('#FFE8E4'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
           <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>🚫 Desistir da compra</p>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Cancela {incoming.name}, devolve as 💰 {paidForIncoming} e mantém {dropped.name}.</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Devolve 💰 {paidForIncoming} e mantém o elenco. O leilão re-resolve sem seu lance: 2º colocado leva; sem outro → dono mantém ou vai pro Monte.</p>
+        </button>
+        <button onClick={() => setStep('pick-sell')} style={{ ...box('#FFF6DE'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
+          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>🔻 Botar um seu no leilão</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Escolhe qual {SECTOR_LABEL[incoming.pos].toLowerCase()} sai e ele vai a leilão — {n} oferta{n > 1 ? 's' : ''} (uma por rival). Piso = valor dele. Sem lance → Monte pelo piso.</p>
+        </button>
+        <button onClick={() => setStep('pick-dispensar')} style={{ ...box('#fff'), padding: 12, textAlign: 'left', cursor: 'pointer', border: `3px solid ${INK}` }}>
+          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>➖ Dispensar</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', marginTop: 3 }}>Escolhe quem sai e ele cai direto no Monte pelo piso dele. Você não recebe nada.</p>
         </button>
       </div>
     </div>
   )
 }
+
 
