@@ -70,8 +70,10 @@ const mid = (c: PoolCard) => (c.lo + c.hi) / 2
 let filCounter = 0
 const FIL_NAMES = ['Perna-de-pau', 'Ferro Velho', 'Pé de Anjo', 'Canela Seca', 'Zé Ninguém', 'Trapalhão', 'Bola Murcha', 'Café com Leite', 'Pastelão', 'Meia-Boca']
 function filler(pos: Sector, rng: () => number): PoolCard {
-  const lo = 44 + Math.floor(rng() * 8)
-  return { id: `fil-${filCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 12 + Math.floor(rng() * 6) }
+  // fake da várzea: SEMPRE abaixo dos reais e com faixa ESTREITA (spread < 14),
+  // pra nunca ter "dia inspirado" e não brigar na artilharia com os craques.
+  const lo = 40 + Math.floor(rng() * 6) // 40–45
+  return { id: `fil-${filCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 7 + Math.floor(rng() * 4) }
 }
 
 // ─── valor ──────────────────────────────────────────────────────────────
