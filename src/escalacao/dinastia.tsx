@@ -411,7 +411,7 @@ export function DinastiaGame() {
     const myName = loadSave()?.clubName
     const partial = state.scorers.slice().sort((a, b) => b.goals - a.goals).map(sc => ({ name: sc.name, teamName: sc.teamId === meId ? (myName ?? sc.teamName) : sc.teamName, goals: sc.goals, mine: sc.teamId === meId }))
     const partialTable: TeamStand[] = sortedTable(state.league).map(t => ({ name: t.id === meId ? (myName ?? t.name) : t.name, pts: t.pts, w: t.w, d: t.d, l: t.l, gf: t.gf, ga: t.ga }))
-    return <Overlay><MidWindow onContinue={() => dispatch({ type: 'RESUME_DINASTIA' })} partial={partial} partialTable={partialTable} /></Overlay>
+    return <Overlay><MidWindow onContinue={() => dispatch({ type: 'RESUME_DINASTIA' })} onExit={() => { if (window.confirm('Salvar e sair agora? Esta temporada em andamento será abandonada — mas seu elenco, moedas e progresso ficam salvos. Você volta na próxima janela.')) dispatch({ type: 'GO_LOBBY' }) }} partial={partial} partialTable={partialTable} /></Overlay>
   }
   if (!isAdmin) return (
     <Overlay><div style={{ ...box(), padding: 24, textAlign: 'center' }}>
@@ -511,7 +511,7 @@ function Dinastia() {
   return (
     <div>
       {header}
-      {phase === 'home' && <Home save={save} go={setPhase} playSeason={playSeason} />}
+      {phase === 'home' && <Home save={save} go={setPhase} playSeason={playSeason} onExit={() => { writeSave(save); close() }} />}
       {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
       {(phase === 'scorers' || phase === 'table') && <LeagueScreen mode="past" save={save} onBack={() => setPhase('home')} />}
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
@@ -620,7 +620,7 @@ function TrophyRoom({ save, onBack }: { save: Save; onBack: () => void }) {
 // Overlay por cima do campinho na metade do calendário. Mesmo menu econômico
 // (contratar/vender/shopping/elenco), MAS o que contratar só vale ano que vem.
 type PartialRow = { name: string; teamName: string; goals: number; mine: boolean }
-function MidWindow({ onContinue, partial, partialTable }: { onContinue: () => void; partial: PartialRow[]; partialTable: TeamStand[] }) {
+function MidWindow({ onContinue, onExit, partial, partialTable }: { onContinue: () => void; onExit: () => void; partial: PartialRow[]; partialTable: TeamStand[] }) {
   const [save, setSave] = useState<Save | null>(() => loadSave())
   const [phase, setPhase] = useState<Phase>('home')
   const persist = (s: Save) => { writeSave(s); setSave(s) }
@@ -638,7 +638,7 @@ function MidWindow({ onContinue, partial, partialTable }: { onContinue: () => vo
   return (
     <div>
       {header}
-      {phase === 'home' && <MidHome save={save} go={setPhase} onContinue={onContinue} partial={partial} partialTable={partialTable} />}
+      {phase === 'home' && <MidHome save={save} go={setPhase} onContinue={onContinue} onExit={onExit} partial={partial} partialTable={partialTable} />}
       {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
       {(phase === 'scorers' || phase === 'table') && <LeagueScreen mode="live" save={save} liveTable={partialTable} liveScorers={partial} onBack={() => setPhase('home')} />}
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
@@ -648,7 +648,7 @@ function MidWindow({ onContinue, partial, partialTable }: { onContinue: () => vo
     </div>
   )
 }
-function MidHome({ save, go, onContinue, partial, partialTable: _partialTable }: { save: Save; go: (p: Phase) => void; onContinue: () => void; partial: PartialRow[]; partialTable: TeamStand[] }) {
+function MidHome({ save, go, onContinue, onExit, partial, partialTable: _partialTable }: { save: Save; go: (p: Phase) => void; onContinue: () => void; onExit: () => void; partial: PartialRow[]; partialTable: TeamStand[] }) {
   const top = partial.slice(0, 3)
   return (
     <div style={{ display: 'grid', gap: 12 }}>
@@ -690,6 +690,7 @@ function MidHome({ save, go, onContinue, partial, partialTable: _partialTable }:
       </div>
       <Btn onClick={() => go('store')} bg={PURPLE} color="#fff">🛡️ Shopping · Escudo</Btn>
       <Btn onClick={onContinue} bg={GREEN} color="#fff">▶️ CONTINUAR — jogar o returno</Btn>
+      <Btn onClick={onExit} bg="#fff">💾 Salvar e sair</Btn>
     </div>
   )
 }
@@ -882,7 +883,7 @@ function Crest({ crest, size = 40 }: { crest?: { c1: string; c2: string; symbol:
     </div>
   )
 }
-function Home({ save, go, playSeason }: { save: Save; go: (p: Phase) => void; playSeason: () => void }) {
+function Home({ save, go, playSeason, onExit }: { save: Save; go: (p: Phase) => void; playSeason: () => void; onExit: () => void }) {
   return (
     <div style={{ display: 'grid', gap: 12 }}>
       <div style={{ ...box(INK), padding: 16, color: '#fff', display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -929,6 +930,7 @@ function Home({ save, go, playSeason }: { save: Save; go: (p: Phase) => void; pl
       </div>
       <Btn onClick={() => go('table')} bg="#fff">📊 Tabela + Artilheiros</Btn>
       <Btn onClick={() => go('trophies')} bg="#fff">🏆 Sala de Troféus</Btn>
+      <Btn onClick={onExit} bg="#fff">💾 Salvar e sair</Btn>
     </div>
   )
 }
@@ -1051,10 +1053,11 @@ function Transfer({ save, persist, onBack, midSeason }: { save: Save; persist: (
   const overPos = SECTORS.find(p => save.squad.filter(c => c.pos === p).length > FORM_NEED[save.formation][p])
   if (overPos) return <DispensaScreen save={save} persist={persist} pos={overPos} />
 
-  // 1 tentativa de contratação por POSIÇÃO por janela (guardado em requested)
+  // aliciar por posição limitado às VAGAS da formação (GOL 1 · LAT/ZAG 2 · MEI/ATA
+  // conforme o esquema) — não mais só 1. Contagem do que já está no leilão.
   const attempted = save.requested ?? []
-  const attemptedPos = new Set<Sector>()
-  for (const id of attempted) { const c = save.world.flatMap(w => w.squad).find(x => x.id === id) ?? save.squad.find(x => x.id === id); if (c) attemptedPos.add(c.pos) }
+  const attemptedByPos: Record<Sector, number> = { GOL: 0, LAT: 0, ZAG: 0, MEI: 0, ATA: 0 }
+  for (const id of attempted) { const c = save.world.flatMap(w => w.squad).find(x => x.id === id) ?? save.squad.find(x => x.id === id); if (c) attemptedByPos[c.pos]++ }
   const team = browseTeam ? save.world.find(w => w.name === browseTeam) ?? null : null
 
   // ── elenco de um clube → toque num jogador pra ir ao LEILÃO ──
@@ -1062,12 +1065,13 @@ function Transfer({ save, persist, onBack, midSeason }: { save: Save; persist: (
     return (
       <div style={{ display: 'grid', gap: 8 }}>
         <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>{team.name} <span style={{ fontSize: 12, color: '#888' }}>· {DIV_LABEL[team.div]}{team.rival ? ' ⚔️' : ''}</span></p>
-        <div style={{ ...box('#EAF3FF'), padding: 9 }}><p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ Toque num jogador pra <b>abrir o leilão</b> por ele (você × seus rivais × o dono). Só <b>1 contratação por posição</b> por janela. Quem está sob contrato não pode.</p></div>
+        <div style={{ ...box('#EAF3FF'), padding: 9 }}><p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ Toque num jogador pra <b>abrir o leilão</b> por ele (você × seus rivais × o dono). Pode aliciar até as <b>vagas da posição</b> no seu time. Quem está sob contrato não pode.</p></div>
         {SECTORS.map(p => team.squad.filter(c => c.pos === p).map(c => {
           const under = underContract(save, c.id)
           const on = (save.requested ?? []).includes(c.id)
-          const posOther = attemptedPos.has(p) && !on // já aliciou OUTRO nessa posição
-          const dis = under || posOther
+          const limit = FORM_NEED[save.formation][p]
+          const posFull = !on && attemptedByPos[p] >= limit // já atingiu as vagas da posição
+          const dis = under || posFull
           const fl = floorOf(save, c)
           const toggle = () => on
             ? persist({ ...save, requested: (save.requested ?? []).filter(id => id !== c.id) })
@@ -1075,7 +1079,7 @@ function Transfer({ save, persist, onBack, midSeason }: { save: Save; persist: (
           return (
             <button key={c.id} disabled={dis} onClick={toggle} style={{ ...box(on ? '#EAF7EE' : dis ? '#eee' : '#fff'), padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: dis ? 'default' : 'pointer', textAlign: 'left', opacity: dis ? 0.55 : 1, border: on ? `3px solid ${GREEN}` : `3px solid ${INK}` }}>
               <span style={{ fontWeight: 900, ...OSWALD, display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}><Pos p={c.pos} /> {c.name} <Lvl c={c} /></span>
-              {on ? <span style={{ fontWeight: 800, color: GREEN, fontSize: 12 }}>✔ no leilão · tirar</span> : under ? <span style={{ fontWeight: 800, color: RED, fontSize: 12 }}>🔒 contrato (temp. {contractUntil(save, c.id)})</span> : posOther ? <span style={{ fontWeight: 800, color: '#999', fontSize: 12 }}>já aliciou 1 {c.pos}</span> : <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{fl !== undefined ? <>💰 piso {fl}</> : <span style={{ color: '#999' }}>livre · abre em 💰 1</span>}<br /><span style={{ color: GREEN, fontSize: 11 }}>+ aliciar</span></span>}
+              {on ? <span style={{ fontWeight: 800, color: GREEN, fontSize: 12 }}>✔ no leilão · tirar</span> : under ? <span style={{ fontWeight: 800, color: RED, fontSize: 12 }}>🔒 contrato (temp. {contractUntil(save, c.id)})</span> : posFull ? <span style={{ fontWeight: 800, color: '#999', fontSize: 12 }}>limite: {limit} {c.pos}</span> : <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{fl !== undefined ? <>💰 piso {fl}</> : <span style={{ color: '#999' }}>livre · abre em 💰 1</span>}<br /><span style={{ color: GREEN, fontSize: 11 }}>+ aliciar</span></span>}
             </button>
           )
         }))}
@@ -1103,7 +1107,7 @@ function Transfer({ save, persist, onBack, midSeason }: { save: Save; persist: (
         </div>
       )}
       <div style={{ ...box('#EAF3FF'), padding: 9 }}>
-        <p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ <b>Aliciar = pôr o jogador em LEILÃO.</b> Toque num clube da sua divisão, escolha o alvo e brigue no pregão (você × seus rivais × o dono). <b>1 alvo por posição</b> por janela. As outras divisões ficam no mistério — suba pra conhecer.</p>
+        <p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ <b>Aliciar = pôr o jogador em LEILÃO.</b> Toque num clube da sua divisão, escolha o alvo e brigue no pregão (você × seus rivais × o dono). Pode aliciar até as <b>vagas de cada posição</b> (GOL 1 · LAT/ZAG 2 · MEI/ATA conforme a formação). As outras divisões ficam no mistério — suba pra conhecer.</p>
         {midSeason
           ? <p style={{ fontSize: 12, fontWeight: 700, marginTop: 6, color: RED }}>⏸️ Janela do MEIO: quem você contratar agora <b>só entra no elenco na próxima temporada</b>.</p>
           : <p style={{ fontSize: 12, fontWeight: 700, marginTop: 6, color: GREEN }}>▶️ Janela do INÍCIO: reforços já jogam <b>esta temporada</b>.</p>}
