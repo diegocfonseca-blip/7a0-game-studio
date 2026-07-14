@@ -1066,7 +1066,7 @@ function Transfer({ save, persist, onBack, midSeason }: { save: Save; persist: (
           return (
             <button key={c.id} disabled={dis} onClick={toggle} style={{ ...box(on ? '#EAF7EE' : dis ? '#eee' : '#fff'), padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: dis ? 'default' : 'pointer', textAlign: 'left', opacity: dis ? 0.55 : 1, border: on ? `3px solid ${GREEN}` : `3px solid ${INK}` }}>
               <span style={{ fontWeight: 900, ...OSWALD }}><Pos p={c.pos} /> {c.name}</span>
-              {on ? <span style={{ fontWeight: 800, color: GREEN, fontSize: 12 }}>✔ no leilão · tirar</span> : under ? <span style={{ fontWeight: 800, color: RED, fontSize: 12 }}>🔒 contrato (temp. {contractUntil(save, c.id)})</span> : posOther ? <span style={{ fontWeight: 800, color: '#999', fontSize: 12 }}>já aliciou 1 {c.pos}</span> : <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{fl !== undefined ? <>💰 valor {fl} <span style={{ fontSize: 10, color: '#888' }}>(mín.)</span></> : <>💰 vale ~{baseValue(c)} <span style={{ fontSize: 10, color: '#888' }}>(estim.)</span></>}<br /><span style={{ color: GREEN, fontSize: 11 }}>+ aliciar</span></span>}
+              {on ? <span style={{ fontWeight: 800, color: GREEN, fontSize: 12 }}>✔ no leilão · tirar</span> : under ? <span style={{ fontWeight: 800, color: RED, fontSize: 12 }}>🔒 contrato (temp. {contractUntil(save, c.id)})</span> : posOther ? <span style={{ fontWeight: 800, color: '#999', fontSize: 12 }}>já aliciou 1 {c.pos}</span> : <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{fl !== undefined ? <>💰 piso {fl}</> : <span style={{ color: '#999' }}>livre · abre em 💰 1</span>}<br /><span style={{ color: GREEN, fontSize: 11 }}>+ aliciar</span></span>}
             </button>
           )
         }))}
@@ -1735,7 +1735,7 @@ function SellRoom({ save, persist, onBack }: { save: Save; persist: (s: Save) =>
     <div style={{ display: 'grid', gap: 10 }}>
       <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🔨 Pôr à venda</p>
       <div style={{ ...box('#EAF3FF'), padding: 9 }}><p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ Marque quem entra no <b>leilão da janela</b> (1 por posição). No pregão, seus rivais brigam por ele — se venderem, você recebe. Se você mesmo cobrir o lance, <b>renova</b>. Depois é só <b>Iniciar Leilão</b> na tela inicial.</p></div>
-      {save.squad.map(c => {
+      {SECTORS.flatMap(p => save.squad.filter(c => c.pos === p)).map(c => {
         const on = listed.has(c.id)
         const blocked = !on && listedPos.has(c.pos)
         return (
