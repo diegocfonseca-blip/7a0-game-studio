@@ -800,7 +800,15 @@ function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: stri
     <div className="space-y-5">
       <button onClick={onClose} className="flex items-center gap-1 text-black/60 font-black text-sm active:opacity-60" style={OSWALD}><span className="text-lg leading-none">←</span> Home</button>
       <h2 className="font-black text-3xl" style={OSWALD}>🏰 DINASTIA · SÉRIE D</h2>
-      <p className="text-sm font-bold text-black/60 -mt-3">Comece duro com 50 moedas, monte o time no pregão e construa uma dinastia: suba de divisão, contrate craques e fique rico. Mundo fixo — cada jogador vive num clube.</p>
+      <p className="text-sm font-bold text-black/60 -mt-3">Monte o time no pregão e construa uma dinastia: um mundo fixo onde cada jogador vive num clube, e você sobe na pirâmide ano após ano.</p>
+      <div style={{ ...box('#FFF6DE'), padding: 14 }} className="space-y-1.5">
+        <p className="font-black text-sm" style={OSWALD}>⚡ O que muda na Dinastia</p>
+        <p className="text-xs font-bold text-black/75">💰 <b>Economia real:</b> moedas por temporada — prêmios por posição, título, acesso e artilheiro.</p>
+        <p className="text-xs font-bold text-black/75">🔄 <b>2 janelas por temporada</b> (início + meio): alicie, venda, renove e dispense jogadores.</p>
+        <p className="text-xs font-bold text-black/75">🪜 <b>Pirâmide viva:</b> sobe/desce entre Série D → A. Cair corta o seu caixa.</p>
+        <p className="text-xs font-bold text-black/75">🌍 <b>Mercado que circula:</b> rivais e clubes brigam pelos livres do Monte.</p>
+        <p className="text-xs font-bold text-black/75">🏆 <b>Sala de Troféus:</b> a história da sua dinastia, temporada a temporada.</p>
+      </div>
       <div style={{ ...box(), padding: 16 }} className="space-y-4">
         <div>
           <p style={label}>Nome do seu clube</p>
@@ -838,7 +846,11 @@ function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: stri
           <button onClick={() => setPicked([])} className="mt-2 border-2 border-black rounded-lg px-2.5 py-1 font-black text-[11px] bg-white active:translate-y-0.5" style={OSWALD}>🎲 Não escolher — usar rivais padrão</button>
         </div>
         <p className="text-xs font-semibold text-black/70">🏟️ A liga completa 20 times; o catálogo inteiro é distribuído pelas 4 divisões (mundo fixo).</p>
-        <p className="text-xs font-semibold text-black/70">💰 Você começa com <b>{START_COINS} moedas</b> na Série D. Sem reservas — todo time tem 11.</p>
+        <div className="text-center border-[3px] border-black rounded-xl px-3 py-2"
+          style={{ background: `linear-gradient(180deg, #FFE07A 0%, ${GOLD} 100%)`, boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <p className="font-black text-lg leading-tight" style={OSWALD}>💰 VOCÊ COMEÇA COM {START_COINS} MOEDAS</p>
+          <p className="text-[11px] font-bold text-black/70">na Série D · sem reservas, todo time tem 11</p>
+        </div>
       </div>
       <Btn onClick={start} bg={GREEN} color="#fff">🔨 ABRIR O PREGÃO</Btn>
     </div>

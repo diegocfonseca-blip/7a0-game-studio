@@ -996,6 +996,15 @@ const TIEBREAK_MS = 30_000
 // jogadores, 40 laterais) precisa dividir, senão a tela não tem fim.
 export const BATCH_SIZE = 12
 
+// nº de levas de um setor evitando uma leva final com 1 jogador só: quando
+// sobraria exatamente 1, ele entra na leva anterior (12 vira 13). Fonte única
+// usada pelo pregão (store) e pelo indicador de levas (tela).
+export function batchCount(total: number): number {
+  if (total <= 0) return 0
+  const n = Math.ceil(total / BATCH_SIZE)
+  return n > 1 && total % BATCH_SIZE === 1 ? n - 1 : n
+}
+
 function startAuctionPhase(state: EscState, rescue: boolean) {
   const pos = SECTORS[state.sectorIdx]
   state.phase = rescue ? 'resq_envelope' : 'envelope'
@@ -1004,7 +1013,8 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
     // cartas do setor. Você dá lance em todas as suas vagas de uma vez.
     const full = state.deck[pos]
     const start = state.sectorCursor
-    const end = Math.min(full.length, start + BATCH_SIZE)
+    let end = Math.min(full.length, start + BATCH_SIZE)
+    if (full.length - end === 1) end = full.length // absorve o jogador solitário na leva
     state.currentCards = full.slice(start, end)
     state.sectorCursor = end
   }
