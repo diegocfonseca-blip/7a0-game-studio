@@ -171,12 +171,14 @@ function Campinho({ m, small = false }: { m: Manager; small?: boolean }) {
   )
 }
 
-function CardFace({ c, big = false }: { c: Card; big?: boolean }) {
+function CardFace({ c, big = false, surprise = false, highlight = false }: { c: Card; big?: boolean; surprise?: boolean; highlight?: boolean }) {
   return (
     <div className="text-left">
       <div className="flex items-center gap-2">
         <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black" style={{ backgroundColor: INK, color: '#fff' }}>{c.pos}</span>
-        <p className={`font-black ${big ? 'text-2xl' : 'text-base'}`} style={OSWALD}>{c.name}</p>
+        {surprise
+          ? <span className={`font-black ${big ? 'text-2xl' : 'text-base'} inline-flex items-center gap-1.5`} style={{ ...OSWALD, color: PURPLE }}>🎁 <span aria-hidden style={{ filter: 'blur(7px)', userSelect: 'none' }}>{c.name}</span></span>
+          : <p className={`font-black ${big ? 'text-2xl' : 'text-base'}`} style={{ ...OSWALD, color: highlight ? PURPLE : INK }}>{c.name}{highlight ? ' 🎁' : ''}</p>}
       </div>
       <p className={`${big ? 'text-sm' : 'text-xs'} font-semibold text-black/60 mt-0.5`}>{c.club} · {c.year}</p>
     </div>
@@ -663,6 +665,13 @@ function Envelope() {
               ? <p className="text-sm font-black" style={{ color: '#146c33' }}>Você tem <b>1 vaga</b> — dê seu lance em quem quer levar.</p>
               : <p className="text-sm font-black" style={{ color: '#146c33' }}>Você tem <b>{bidLimit} vagas</b> — pode dar lance em até <b>{bidLimit} jogadores DE UMA VEZ</b> nesta rodada, não só em um! 👈</p>}
           </div>
+          {cards.some(c => c.id === state.surpriseId) && (
+            <div className="text-center border-[3px] border-black rounded-xl px-3 py-1.5 text-white"
+              style={{ background: PURPLE, boxShadow: `3px 3px 0 0 ${INK}` }}>
+              <p className="text-sm font-black" style={OSWALD}>🎁 JOGADOR SURPRESA nesta rodada!</p>
+              <p className="text-[11px] font-bold" style={{ opacity: 0.9 }}>O nome está escondido — você só vê posição, clube e ano. Arrisca no escuro; o nome sai no martelo.</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -672,7 +681,7 @@ function Envelope() {
           const plusBlocked = total >= you.money || (!chosen && chosenCount >= bidLimit)
           return (
           <Box key={c.id} className="p-3 flex items-center justify-between gap-2">
-            <CardFace c={c} />
+            <CardFace c={c} surprise={c.id === state.surpriseId} />
             <div className="flex items-center gap-1.5">
               {canBid && (
                 <div className="flex flex-col items-center">
@@ -957,8 +966,14 @@ function Reveal() {
       <motion.div key={item.card.id} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
         <motion.div animate={sold ? { x: [0, -11, 11, -8, 8, -4, 4, 0] } : undefined}
           transition={{ delay: hammerDelay, duration: 0.5 }}>
-        <Box bg={item.card.fame >= 5 ? GOLD : '#fff'} className="p-5" shadow={6}>
-          <CardFace c={item.card} big />
+        <Box bg={item.card.fame >= 5 ? GOLD : '#fff'} className="p-5 relative" shadow={6}>
+          {item.card.fame >= 5 && (
+            <span className="absolute top-2 right-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black bg-white" style={OSWALD}>👑 LENDA</span>
+          )}
+          {item.card.id === state.surpriseId && (
+            <span className="absolute top-2 left-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black text-white" style={{ ...OSWALD, background: PURPLE }}>🎁 SURPRESA</span>
+          )}
+          <CardFace c={item.card} big highlight={item.card.id === state.surpriseId} />
           <div className="mt-4 space-y-1.5">
             {item.bids.length === 0 && (
               <p className="font-bold text-black/70">Nenhum lance. Vai pro Monte Final. 🪣</p>
