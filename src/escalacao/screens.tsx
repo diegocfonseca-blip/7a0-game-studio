@@ -1632,9 +1632,11 @@ function TableBox({ highlight, holdResults }: { highlight: number; holdResults?:
 }
 
 // ─── card de resultado pra compartilhar ────────────────────────────────
+type ShareCard = { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }
 async function buildShareCardBlob(opts: {
   teamName: string; youPos: number; youWon: boolean; champName: string
   pts: number; w: number; d: number; l: number; scorerName?: string; scorerGoals?: number
+  card?: ShareCard // carta-lembrança do campeão (só quando você venceu e escolheu)
 }): Promise<Blob | null> {
   const canvas = document.createElement('canvas')
   canvas.width = 900; canvas.height = 1200
@@ -1654,21 +1656,45 @@ async function buildShareCardBlob(opts: {
   ctx.font = '900 46px Oswald, sans-serif'
   ctx.fillText('🔨 LEILÃO LEGENDS', 450, 108)
 
-  ctx.font = '160px sans-serif'
-  ctx.fillText(opts.youWon ? '🏆' : opts.youPos <= 4 ? '🥈' : opts.youPos >= 17 ? '🪦' : '⚽', 450, 400)
+  const hasCard = !!opts.card
+  ctx.font = hasCard ? '110px sans-serif' : '160px sans-serif'
+  ctx.fillText(opts.youWon ? '🏆' : opts.youPos <= 4 ? '🥈' : opts.youPos >= 17 ? '🪦' : '⚽', 450, hasCard ? 296 : 400)
 
-  ctx.font = '900 78px Oswald, sans-serif'
-  ctx.fillText(opts.youWon ? 'CAMPEÃO!' : `${opts.youPos}º LUGAR`, 450, 500)
+  ctx.font = '900 72px Oswald, sans-serif'
+  ctx.fillText(opts.youWon ? 'CAMPEÃO!' : `${opts.youPos}º LUGAR`, 450, hasCard ? 366 : 500)
 
-  ctx.font = '700 44px Oswald, sans-serif'
-  ctx.fillText(opts.teamName, 450, 565)
+  ctx.font = '700 42px Oswald, sans-serif'
+  ctx.fillText(opts.teamName, 450, hasCard ? 424 : 565)
+
+  let statsY = 680
+  if (opts.card) {
+    // ── painel da carta-lembrança do campeão ──
+    const c = opts.card
+    const cw = 360, chh = 300, cx = 450 - cw / 2, top = 470
+    ctx.fillStyle = c.fame >= 5 ? GOLD : '#fff'
+    ctx.beginPath(); ctx.roundRect(cx, top, cw, chh, 22); ctx.fill()
+    ctx.lineWidth = 8; ctx.strokeStyle = INK; ctx.stroke()
+    ctx.fillStyle = INK; ctx.beginPath(); ctx.roundRect(cx + 22, top + 22, 92, 44, 22); ctx.fill()
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.font = '900 24px Oswald, sans-serif'
+    ctx.fillText(c.pos, cx + 22 + 46, top + 52)
+    ctx.fillStyle = INK
+    let nameFont = 46; ctx.font = `900 ${nameFont}px Oswald, sans-serif`
+    while (ctx.measureText(c.name).width > cw - 48 && nameFont > 24) { nameFont -= 2; ctx.font = `900 ${nameFont}px Oswald, sans-serif` }
+    ctx.fillText(c.name, 450, top + 132)
+    ctx.font = '600 26px Inter, sans-serif'; ctx.fillStyle = 'rgba(0,0,0,0.6)'
+    ctx.fillText(`${c.club} · ${c.year}`, 450, top + 174)
+    const tier = c.fame >= 5 ? '👑 LENDA' : c.fame === 4 ? '⭐ CRAQUE' : c.promessa ? '💎 PROMESSA' : c.folk ? '🃏 FOLCLÓRICO' : '⚽ BOM JOGADOR'
+    ctx.font = '900 30px Oswald, sans-serif'; ctx.fillStyle = INK
+    ctx.fillText(tier, 450, top + 244)
+    statsY = top + chh + 66
+  }
 
   ctx.textAlign = 'left'
   ctx.font = '600 32px Inter, sans-serif'
-  let y = 680
+  let y = statsY
   ctx.fillText(`Pontos: ${opts.pts} (${opts.w}V ${opts.d}E ${opts.l}D)`, 90, y)
-  y += 55
-  if (opts.scorerName) { ctx.fillText(`Artilheiro: ${opts.scorerName} — ${opts.scorerGoals} gols`, 90, y); y += 55 }
+  y += 50
+  if (opts.scorerName) { ctx.fillText(`Artilheiro: ${opts.scorerName} — ${opts.scorerGoals} gols`, 90, y); y += 50 }
   if (!opts.youWon) ctx.fillText(`Campeão da temporada: ${opts.champName}`, 90, y)
 
   ctx.textAlign = 'center'
@@ -1693,6 +1719,41 @@ async function shareResult(opts: Parameters<typeof buildShareCardBlob>[0]) {
   a.href = url; a.download = 'leilao-legends-38.png'
   a.click()
   URL.revokeObjectURL(url)
+}
+
+// texto + links por plataforma. WhatsApp/Twitter aceitam só texto+link (a IMAGEM
+// vai pelo compartilhar nativo ou baixada). Instagram não tem "intent" web:
+// baixa a imagem e o usuário posta no story/feed.
+type ShareOpts = Parameters<typeof buildShareCardBlob>[0]
+function shareTextFor(o: ShareOpts) {
+  return o.youWon
+    ? `🏆 Fui CAMPEÃO com o ${o.teamName} no Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨`
+    : `Terminei em ${o.youPos}º com o ${o.teamName} no Leilão Legends 🔨 Bora jogar?`
+}
+async function downloadShareImage(o: ShareOpts) {
+  const blob = await buildShareCardBlob(o); if (!blob) return
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a'); a.href = url; a.download = 'leilao-legends.png'; a.click()
+  URL.revokeObjectURL(url)
+}
+function ShareResultPanel({ opts }: { opts: ShareOpts }) {
+  const [savedIG, setSavedIG] = useState(false)
+  const text = shareTextFor(opts)
+  const wa = () => window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + GAME_URL)}`, '_blank', 'noopener')
+  const tw = () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(GAME_URL)}`, '_blank', 'noopener')
+  const ig = async () => { await downloadShareImage(opts); setSavedIG(true) }
+  return (
+    <Box bg="#fff" className="p-3 space-y-2">
+      <p className="font-black text-sm" style={OSWALD}>📤 Compartilhar {opts.youWon ? 'a conquista' : 'o resultado'}{opts.card ? ' + carta' : ''}</p>
+      <Btn onClick={() => shareResult(opts)} bg={GOLD} className="w-full">📤 Compartilhar imagem</Btn>
+      <div className="grid grid-cols-3 gap-2">
+        <Btn onClick={wa} bg="#25D366" className="w-full"><span className="text-white">📱 WhatsApp</span></Btn>
+        <Btn onClick={tw} bg="#111" className="w-full"><span className="text-white">𝕏 Twitter</span></Btn>
+        <Btn onClick={ig} bg="#E1306C" className="w-full"><span className="text-white">📸 Instagram</span></Btn>
+      </div>
+      {savedIG && <p className="text-[11px] font-bold text-black/60 text-center">📸 Imagem salva! Abra o Instagram e poste no seu story.</p>}
+    </Box>
+  )
 }
 
 // ─── Hall da Fama da sala (só online): histórico entre revanches ──────
@@ -1828,7 +1889,7 @@ const CARD_PICK_SECONDS = 25
 const CARD_META = new Map<string, { folk?: boolean; promessa?: boolean }>()
 Object.values(CATALOG).flat().forEach(c => CARD_META.set(c.name, { folk: c.folk, promessa: c.promessa }))
 
-export function CardCollectPrompt({ you, seasonKey, origin = 'online' }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online' }) {
+export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void }) {
   const { dispatch } = useEsc()
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
@@ -1843,7 +1904,8 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online' }: { you: 
       if (!user) { setStatus('noauth'); return } // sem cadastro não ganha carta
       const { data } = await supabase.from('user_cards').select('*').eq('user_id', user.id).eq('season_key', seasonKey).maybeSingle()
       if (data) {
-        setClaimed({ id: 'x', name: data.card_name, club: data.card_club, year: data.card_year, pos: data.card_pos, fame: data.card_fame, ...(CARD_META.get(data.card_name) ?? {}), lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard)
+        const cc = { id: 'x', name: data.card_name, club: data.card_club, year: data.card_year, pos: data.card_pos, fame: data.card_fame, ...(CARD_META.get(data.card_name) ?? {}), lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard
+        setClaimed(cc); onClaimed?.(cc)
         setStatus('revealed')
       } else {
         setStatus('picking')
@@ -1867,7 +1929,7 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online' }: { you: 
       user_id: user.id, season_key: seasonKey, origin,
       card_name: card.name, card_club: card.club, card_year: card.year, card_pos: card.pos, card_fame: card.fame,
     })
-    setClaimed(card)
+    setClaimed(card); onClaimed?.(card)
     setStatus('revealed')
   }
 
@@ -2487,6 +2549,15 @@ export function EscEnd() {
   const online = state.onlineMode === 'online'
   const canRestart = !online || state.isHost
   const myScorer = topScorers(state, 1)[0]
+  // carta-lembrança que o campeão escolheu (entra na imagem de compartilhar)
+  const [myCard, setMyCard] = useState<WonCard | null>(null)
+  const featured = youWon ? (myCard ?? [...you.squad].sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))[0]) : undefined
+  const shareOpts: ShareOpts = {
+    teamName: you.teamName, youPos, youWon, champName: champ.name,
+    pts: table[youPos - 1]?.pts ?? 0, w: table[youPos - 1]?.w ?? 0, d: table[youPos - 1]?.d ?? 0, l: table[youPos - 1]?.l ?? 0,
+    scorerName: myScorer?.name, scorerGoals: myScorer?.goals,
+    card: featured ? { name: featured.name, club: featured.club, year: featured.year, pos: featured.pos, fame: featured.fame, folk: featured.folk, promessa: featured.promessa } : undefined,
+  }
   // check de prontidão do "Reiniciar com novos times": TODOS os participantes
   // humanos precisam clicar "estou pronto" (não depende do presence, instável)
   const restartPending = state.restartPending
@@ -2504,10 +2575,10 @@ export function EscEnd() {
         </p>
       </div>
       {online && youWon && state.roomId && (
-        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}`} origin="online" />
+        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}`} origin="online" onClaimed={setMyCard} />
       )}
       {!online && youWon && (
-        <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" />
+        <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" onClaimed={setMyCard} />
       )}
       <TableBox highlight={you.id} />
       <TopScorersBox highlight={you.id} />
@@ -2515,11 +2586,7 @@ export function EscEnd() {
         <HallDaFama roomId={state.roomId} isHost={state.isHost} seasonNo={state.seasonNo} champName={champ.name}
           scorerName={myScorer?.name} scorerGoals={myScorer?.goals} />
       )}
-      <Btn onClick={() => shareResult({
-        teamName: you.teamName, youPos, youWon, champName: champ.name,
-        pts: table[youPos - 1]?.pts ?? 0, w: table[youPos - 1]?.w ?? 0, d: table[youPos - 1]?.d ?? 0, l: table[youPos - 1]?.l ?? 0,
-        scorerName: myScorer?.name, scorerGoals: myScorer?.goals,
-      })} bg="#fff" className="w-full text-lg">📤 Compartilhar resultado</Btn>
+      <ShareResultPanel opts={shareOpts} />
       {state.dinastia ? (
         <Btn onClick={() => { window.location.hash = 'dinastia' }} bg={GREEN} className="w-full text-lg"><span className="text-white">🏰 Ir pra janela de transferências →</span></Btn>
       ) : state.careerDivision ? <CareerEndPanel /> : (<>
