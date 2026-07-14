@@ -383,6 +383,7 @@ const GOL: C[] = [
   { name: "Léo Jardim", club: "Vasco", year: 2024, fame: 3, lo: 77, hi: 84 },
   { name: "Hugo Neneca", club: "Corinthians", year: 2025, fame: 3, lo: 76, hi: 84 },
   { name: "Clemer", club: "Internacional", year: 2004, fame: 3, lo: 74, hi: 83 },
+  { name: "Denis", club: "São Paulo", year: 2016, fame: 1, lo: 56, hi: 77 },
 ]
 
 const LAT: C[] = [
