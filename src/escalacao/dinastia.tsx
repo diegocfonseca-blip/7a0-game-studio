@@ -1053,7 +1053,7 @@ function DispensaAuction({ save, card, persist, onBack }: { save: Save; card: Wo
 type LotKind = 'market' | 'aliciar' | 'sell'
 interface Lot { card: PoolCard; kind: LotKind; ownerName?: string; floor?: number; perceived: number }
 interface BidRow { name: string; amount: number; mine: boolean; winner: boolean }
-interface LotResult { lot: Lot; outcome: 'you' | 'rival' | 'owner' | 'none'; by: string; price: number; dropped?: string; droppedCard?: WonCard; bids: BidRow[] }
+interface LotResult { lot: Lot; outcome: 'you' | 'rival' | 'owner' | 'none'; by: string; price: number; dropped?: string; droppedCard?: WonCard; bids: BidRow[]; overflow?: boolean }
 
 // monta o baralho da janela: 1 do mercado por posição (sorteio uniforme, sem os
 // seus nem dos rivais) + os que você aliciou + os que você pôs à venda.
