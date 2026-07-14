@@ -2597,13 +2597,10 @@ export function EscEnd() {
         <Btn onClick={() => { window.location.hash = 'dinastia' }} bg={GREEN} className="w-full text-lg"><span className="text-white">🏰 Ir pra janela de transferências →</span></Btn>
       ) : state.careerDivision ? <CareerEndPanel /> : online ? (<>
         {canRestart ? (
-          <>
-            <Btn onClick={() => dispatch({ type: 'REPLAY_SEASON' })} bg={GREEN} className="w-full text-lg"><span className="text-white">🔁 Nova temporada (mesmo time)</span></Btn>
-            <Btn onClick={async () => {
-              if (state.roomId) await supabase.from('game_rooms').update({ status: 'waiting' }).eq('id', state.roomId)
-              dispatch({ type: 'REMATCH' })
-            }} bg={GOLD} className="w-full text-lg">🚪 Jogar de novo (voltar pra sala)</Btn>
-          </>
+          <Btn onClick={async () => {
+            if (state.roomId) await supabase.from('game_rooms').update({ status: 'waiting' }).eq('id', state.roomId)
+            dispatch({ type: 'REMATCH' })
+          }} bg={GOLD} className="w-full text-lg">🔁 Jogar de novo (voltar pra sala)</Btn>
         ) : (
           <p className="text-center text-sm font-bold text-black/60">🔁 Aguardando o host decidir se joga de novo… Se não quiser continuar, toque em "Sair da sala" abaixo.</p>
         )}
