@@ -1177,7 +1177,7 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
   const coins = draftRef.current.coins
   const globalIdx = (localIdx: number) => allResults.length - secResults.length + localIdx
   const currentR = secResults[Math.min(revealIdx, Math.max(0, secResults.length - 1))]
-  const needsChoice = phase === 'reveal' && !!currentR && currentR.outcome === 'you' && !!currentR.droppedCard && !resolved[globalIdx(revealIdx)]
+  const needsChoice = phase === 'reveal' && !!currentR && currentR.outcome === 'you' && !!currentR.overflow && !resolved[globalIdx(revealIdx)]
 
   const sealSector = () => {
     if (sealedRef.current) return; sealedRef.current = true
