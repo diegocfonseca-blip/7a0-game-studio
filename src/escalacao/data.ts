@@ -578,6 +578,8 @@ const MEI: C[] = [
   { name: "Geovani", club: "Vasco", year: 1989, fame: 4, lo: 80, hi: 88, bio: "Meia canhoto de muito talento, craque do Vasco campeão brasileiro de 1989." },
   { name: "Kleberson", club: "Atlético-PR", year: 2002, fame: 3, lo: 74, hi: 83, bio: "O 'motorzinho' do penta 2002 — volante incansável revelado no Atlético-PR." },
   { name: "Mazinho", club: "Palmeiras", year: 1993, fame: 3, lo: 74, hi: 84, bio: "Volante versátil do tetra 94, peça do Palmeiras da era Parmalat." },
+  { name: "Assis", club: "Fluminense", year: 1993, fame: 4, lo: 82, hi: 89, bio: "Meia de muito talento e visão, parceiro histórico do Renato Gaúcho — pura magia no meio-campo." },
+  { name: "Falcão (do Futsal)", club: "São Paulo", year: 2005, fame: 1, lo: 56, hi: 80, folk: true, bio: "O maior craque da história do futsal — magia absurda na quadra, mas no campo pelo São Paulo quase não deu as caras. Folclore garantido." },
 ]
 
 const ATA: C[] = [
