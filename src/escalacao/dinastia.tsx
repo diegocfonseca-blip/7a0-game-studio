@@ -444,6 +444,7 @@ function Dinastia() {
       {phase === 'transfer' && <Transfer save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'sell' && <SellRoom save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'auction' && <WindowAuction save={save} persist={persist} onDone={() => setPhase('home')} />}
+      {phase === 'fillsquad' && <FillSquadScreen save={save} persist={persist} onReady={() => { setPhase('home'); setTimeout(playSeason, 0) }} onBack={() => setPhase('home')} /> }
       {/* sair do jogo lá embaixo, igual aos outros modos */}
       <div className="pt-8 pb-4 text-center space-y-2">
         <button onClick={close} className="block mx-auto text-black/35 text-xs font-semibold underline active:opacity-60" style={OSWALD}>sair do jogo</button>
