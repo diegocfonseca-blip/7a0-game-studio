@@ -1220,49 +1220,55 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
 
   // ─── ações do modal de escolha ao lotar posição ────────────────────
   const resolveChoice = () => { setResolved(prev => ({ ...prev, [globalIdx(revealIdx)]: true })) }
-  const doDispensar = () => { resolveChoice() } // default: pior já foi pro monte no applyLot
+  // dispensa: escolhe QUAL dos seus sai pro Monte carregando o piso dele.
+  const doDispensar = (chosenId: string) => {
+    const d = draftRef.current!
+    const chosen = d.squad.find(c => c.id === chosenId); if (!chosen) return
+    const kept = floorOf(d, chosen) ?? Math.max(1, chosen.paid)
+    d.squad = d.squad.filter(c => c.id !== chosen.id)
+    d.monte = [...(d.monte ?? []), { ...chosen }]
+    // libera o contrato (some do elenco) mas preserva o piso pra hora de pescar do Monte
+    d.contracts = { ...(d.contracts ?? {}), [chosen.id]: { until: -1, floor: kept } }
+    const newRes: LotResult = { ...secResults[revealIdx], dropped: chosen.name, droppedCard: { ...chosen } }
+    setSecResults(cur => cur.map((x, i) => i === revealIdx ? newRes : x))
+    setAllResults(cur => cur.map((x, i) => i === globalIdx(revealIdx) ? newRes : x))
+    resolveChoice()
+  }
+  // vende um dos seus: se aceitou (amount > 0), embolsa; senão vira livre no Monte com piso.
+  const doSellOne = (chosenId: string, amount: number, buyer?: string) => {
+    const d = draftRef.current!
+    const chosen = d.squad.find(c => c.id === chosenId); if (!chosen) return
+    d.squad = d.squad.filter(c => c.id !== chosen.id)
+    if (amount > 0) {
+      d.coins += amount
+      d.contracts = { ...(d.contracts ?? {}), [chosen.id]: { until: -1, floor: amount } }
+      if (buyer) d.world = d.world.map(w => w.name === buyer ? { ...w, squad: giveToTeam(w.squad, chosen) } : w)
+    } else {
+      const kept = floorOf(d, chosen) ?? Math.max(1, chosen.paid)
+      d.monte = [...(d.monte ?? []), { ...chosen }]
+      d.contracts = { ...(d.contracts ?? {}), [chosen.id]: { until: -1, floor: kept } }
+    }
+    const newRes: LotResult = { ...secResults[revealIdx], dropped: chosen.name, droppedCard: { ...chosen } }
+    setSecResults(cur => cur.map((x, i) => i === revealIdx ? newRes : x))
+    setAllResults(cur => cur.map((x, i) => i === globalIdx(revealIdx) ? newRes : x))
+    resolveChoice()
+  }
+  // desiste da compra: restaura o snapshot pré-lote E RE-RESOLVE o leilão sem
+  // seu lance — 2º colocado leva; se ninguém → dono/monte conforme a regra normal.
   const doDesistir = () => {
-    // reverte tudo: restaura o draft ANTES do lote (dinheiro, elenco, monte, dono)
     const snap = secSnapshots[revealIdx]
     if (!snap) { resolveChoice(); return }
     const restored = structuredClone(snap)
-    // muta draftRef mantendo a referência
     const d = draftRef.current!
     d.squad = restored.squad; d.coins = restored.coins; d.monte = restored.monte
     d.world = restored.world; d.contracts = restored.contracts
-    // atualiza o resultado exibido: virou "desistência"
-    const r = secResults[revealIdx]
-    const newRes: LotResult = { ...r, outcome: 'none', by: '', price: 0, dropped: undefined, droppedCard: undefined, bids: [] }
+    const re = applyLot(d, secResults[revealIdx].lot, 0, rng)
+    const newRes = re.result
     setSecResults(cur => cur.map((x, i) => i === revealIdx ? newRes : x))
     setAllResults(cur => cur.map((x, i) => i === globalIdx(revealIdx) ? newRes : x))
     resolveChoice()
   }
-  const doOferta = (amount: number) => {
-    // vende o dispensado pelo valor da oferta: tira do monte, entra dinheiro
-    const r = secResults[revealIdx]
-    if (!r.droppedCard) { resolveChoice(); return }
-    const d = draftRef.current!
-    d.coins = d.coins + amount
-    d.monte = (d.monte ?? []).filter(c => c.id !== r.droppedCard!.id)
-    resolveChoice()
-  }
-  // troca quem sai: devolve o atual dropped ao elenco, tira o novo escolhido e
-  // manda ele pro monte. Atualiza o resultado exibido pra refletir a troca.
-  const doChangeDropped = (newId: string) => {
-    const r = secResults[revealIdx]; if (!r.droppedCard) return
-    if (newId === r.droppedCard.id) return
-    const d = draftRef.current!
-    const chosen = d.squad.find(c => c.id === newId && c.pos === r.droppedCard!.pos)
-    if (!chosen) return
-    // desfaz o descarte anterior
-    const restored: WonCard = { ...r.droppedCard }
-    d.monte = (d.monte ?? []).filter(c => c.id !== restored.id)
-    d.squad = [...d.squad.filter(c => c.id !== chosen.id), restored]
-    d.monte = [...(d.monte ?? []), { ...chosen }]
-    const newRes: LotResult = { ...r, dropped: chosen.name, droppedCard: { ...chosen } }
-    setSecResults(cur => cur.map((x, i) => i === revealIdx ? newRes : x))
-    setAllResults(cur => cur.map((x, i) => i === globalIdx(revealIdx) ? newRes : x))
-  }
+
 
 
   const label: Record<LotResult['outcome'], string> = { you: '✅ VOCÊ LEVOU', rival: '😤 rival levou', owner: '🛡️ dono segurou', none: '— ninguém deu lance' }
