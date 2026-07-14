@@ -409,10 +409,13 @@ function Dinastia() {
   const playSeason = () => {
     if (!save) return
     const kept = save.squad.filter(c => { const k = save.contracts?.[c.id]; return !k || k.until >= save.seasonNo })
-    // zera os logs de aliciar/vender + libera 1 leilão pra janela do MEIO
-    persist({ ...save, squad: kept, requested: [], soldPos: [], auctionDone: false })
+    // trava: não deixa jogar com o elenco incompleto (algum setor abaixo do NEED)
+    const holes = SECTORS.some(p => kept.filter(c => c.pos === p).length < FORM_NEED[save.formation][p])
+    // persiste squad enxuto (removendo contratos vencidos) sempre
+    const cleaned: Save = { ...save, squad: kept, requested: [], soldPos: [], auctionDone: false }
+    if (holes) { persist(cleaned); setPhase('fillsquad'); return }
+    persist(cleaned)
     const others = save.world.filter(w => w.div === save.division).map(w => ({ name: w.name, squad: w.squad }))
-    // decora o nome com o símbolo do escudo → aparece na tabela/tela de fim do jogo
     const sym = save.crest?.symbol ?? ''
     const teamName = sym ? `${sym} ${save.clubName}` : save.clubName
     const rivals = save.world.filter(w => w.rival).map(w => ({ team: w.name, name: w.name, division: w.div }))
