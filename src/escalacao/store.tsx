@@ -161,6 +161,14 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   return deck
 }
 
+// escolhe UM jogador surpresa no leilão inteiro: o nome dele fica escondido no
+// lance (só posição/clube/ano aparecem) e é revelado no martelo. Um por leilão.
+function pickSurprise(deck: Record<Sector, Card[]>, rng: () => number): string | undefined {
+  const all: string[] = []
+  for (const p of SECTORS) for (const c of deck[p]) all.push(c.id)
+  return all.length ? all[Math.floor(rng() * all.length)] : undefined
+}
+
 // managers que efetivamente brigam no leilão (exclui bots de preenchimento)
 function auctioningManagers(managers: Manager[]): Manager[] {
   return managers.filter(m => m.isHuman || m.auctionRival)
@@ -1135,6 +1143,7 @@ function redraftSeason(s: EscState): EscState {
   const { managers, botPlans } = makeManagers(humanNames, formation, auctionCpus, LEAGUE_SIZE, rng)
   s.managers = managers
   s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+  s.surpriseId = pickSurprise(s.deck, rng)
   dealBotSquads(s.managers, botPlans, rng, used)
   for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
   s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0
@@ -1269,6 +1278,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (action.dinastia) { const b = action.budget ?? 50; for (const m of s.managers) m.money = b }
       const soloUsed = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, soloUsed, 1)
+      s.surpriseId = pickSurprise(s.deck, rng)
       dealBotSquads(s.managers, soloPlans, rng, soloUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
@@ -1297,6 +1307,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // ANTES dos bots pra ficar 100% com reais.
       const onlineUsed = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1)
+      s.surpriseId = pickSurprise(s.deck, rng)
       dealBotSquads(s.managers, onlinePlans, rng, onlineUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
@@ -1500,6 +1511,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // TROCAR TUDO: novo leilão na divisão de destino
       const used = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+      s.surpriseId = pickSurprise(s.deck, rng)
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0
@@ -1536,6 +1548,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (action.redraft) {
         const used = new Set<string>()
         s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+        s.surpriseId = pickSurprise(s.deck, rng)
         dealBotSquads(s.managers, botPlans, rng, used)
         for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
         s.cpuAtkAdj = 0; s.cpuDefAdj = 0

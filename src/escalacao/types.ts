@@ -173,6 +173,7 @@ export interface EscState {
   // leilão
   sectorIdx: number // 0..4 dentro de SECTORS
   deck: Record<Sector, Card[]>
+  surpriseId?: string // 1 jogador surpresa por leilão: nome escondido no lance, revelado no martelo
   phase: AuctionPhase
   currentCards: Card[] // cartas em disputa nesta fase
   revealQueue: ResolvedCard[] // ordenado por pote crescente
