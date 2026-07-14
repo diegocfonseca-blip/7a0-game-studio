@@ -403,6 +403,7 @@ function Dinastia() {
   const { dispatch } = useEsc()
   const [save, setSave] = useState<Save | null>(() => loadSave())
   const [phase, setPhase] = useState<Phase>('home')
+  const [worldMoves, setWorldMoves] = useState<{ news: string[]; save: Save } | null>(null)
   const persist = (s: Save) => { writeSave(s); setSave(s) }
   const close = () => { window.location.hash = '' }
   const reset = () => { if (confirm('Recomeçar a Dinastia do zero? Perde tudo.')) { localStorage.removeItem(SAVE_KEY); setSave(null) } }
@@ -414,6 +415,16 @@ function Dinastia() {
   }
   // jogar a TEMPORADA REAL contra os times da sua divisão no mundo fixo, no motor
   // do jogo (campinho, narração, tabela, artilheiros). Libera contratos vencidos.
+  // dispara a temporada REAL no motor usando o estado FINAL do save (já com o
+  // mundo mexido pelo Monte, se rolou).
+  const beginSeason = (s: Save) => {
+    const others = s.world.filter(w => w.div === s.division).map(w => ({ name: w.name, squad: w.squad }))
+    const sym = s.crest?.symbol ?? ''
+    const teamName = sym ? `${sym} ${s.clubName}` : s.clubName
+    const rivals = s.world.filter(w => w.rival).map(w => ({ team: w.name, name: w.name, division: w.div }))
+    dispatch({ type: 'START_DINASTIA_SEASON', teamName, formation: s.formation, division: s.division, seasonNo: s.seasonNo, squad: s.squad, others, rivals })
+    window.location.hash = ''
+  }
   const playSeason = () => {
     if (!save) return
     const kept = save.squad.filter(c => { const k = save.contracts?.[c.id]; return !k || k.until >= save.seasonNo })
@@ -422,13 +433,12 @@ function Dinastia() {
     // persiste squad enxuto (removendo contratos vencidos) sempre
     const cleaned: Save = { ...save, squad: kept, requested: [], soldPos: [], auctionDone: false }
     if (holes) { persist(cleaned); setPhase('fillsquad'); return }
-    persist(cleaned)
-    const others = save.world.filter(w => w.div === save.division).map(w => ({ name: w.name, squad: w.squad }))
-    const sym = save.crest?.symbol ?? ''
-    const teamName = sym ? `${sym} ${save.clubName}` : save.clubName
-    const rivals = save.world.filter(w => w.rival).map(w => ({ team: w.name, name: w.name, division: w.div }))
-    dispatch({ type: 'START_DINASTIA_SEASON', teamName, formation: save.formation, division: save.division, seasonNo: save.seasonNo, squad: kept, others, rivals })
-    window.location.hash = ''
+    // o mundo se mexe: rivais e bots pescam do Monte antes da bola rolar
+    const rng = mulberry((save.seed ^ (save.seasonNo * 313 + 17)) >>> 0)
+    const { save: raided, news } = worldRaidsMonte(cleaned, rng)
+    persist(raided)
+    if (news.length) { setWorldMoves({ news, save: raided }); return }
+    beginSeason(raided)
   }
 
   if (!save) return <Intro onStart={startAuction} onClose={close} />
@@ -440,6 +450,12 @@ function Dinastia() {
         : <span style={{ width: 60 }} />}
       <span style={{ fontWeight: 900, ...OSWALD }}>🏰 DINASTIA</span>
       <span style={{ width: 60 }} />
+    </div>
+  )
+  if (worldMoves) return (
+    <div>
+      {header}
+      <WorldMovesScreen news={worldMoves.news} onContinue={() => { const s = worldMoves.save; setWorldMoves(null); beginSeason(s) }} />
     </div>
   )
   return (
@@ -458,6 +474,22 @@ function Dinastia() {
         <button onClick={close} className="block mx-auto text-black/35 text-xs font-semibold underline active:opacity-60" style={OSWALD}>sair do jogo</button>
         <button onClick={reset} className="block mx-auto text-black/25 text-[11px] font-semibold underline active:opacity-60" style={OSWALD}>recomeçar dinastia do zero</button>
       </div>
+    </div>
+  )
+}
+
+// ─── O MERCADO SE MEXEU (rivais/bots pescaram do Monte antes da temporada) ──
+function WorldMovesScreen({ news, onContinue }: { news: string[]; onContinue: () => void }) {
+  return (
+    <div style={{ display: 'grid', gap: 10 }}>
+      <div style={{ ...box(INK), padding: 14, color: '#fff', textAlign: 'center' }}>
+        <p style={{ fontWeight: 900, fontSize: 20, ...OSWALD }}>🌍 O mercado se mexeu</p>
+        <p style={{ fontSize: 12, fontWeight: 700, opacity: 0.85, marginTop: 3 }}>Enquanto você fechava o elenco, os clubes pescaram do Monte:</p>
+      </div>
+      {news.map((n, i) => (
+        <div key={i} style={{ ...box('#fff'), padding: '9px 12px', fontWeight: 800, fontSize: 13 }}>🔁 {n}</div>
+      ))}
+      <Btn onClick={onContinue} bg={GREEN} color="#fff">▶️ Começar temporada</Btn>
     </div>
   )
 }
@@ -1194,6 +1226,53 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
   draft.world = giveToRival(win.name)
   chargeRival(win.name, win.bid) // o rival que levou paga do cofre dele
   return { draft, result: { lot, outcome: 'rival', by: win.name, price: win.bid, bids: bidRows } }
+}
+
+// O MUNDO SE MEXE: entre a janela e a temporada, os clubes pescam do Monte.
+// Rivais escolhidos PAGAM o piso (têm cofre) e só pescam quando MELHORA o time
+// deles. Os demais clubes (bots) repõem os fillers com nomes reais BARATOS (piso
+// ≤ 3) de graça — assim o craque que caiu no Monte pode reaparecer num clube e o
+// mercado circula, em vez de o mundo desbotar só com fillers genéricos.
+function worldRaidsMonte(save: Save, rng: () => number): { save: Save; news: string[] } {
+  const monte = [...(save.monte ?? [])]
+  if (monte.length === 0) return { save, news: [] }
+  const news: string[] = []
+  const world = save.world.map(w => ({ ...w, squad: [...w.squad] }))
+  const order = shuffle(world.map((_, i) => i), rng)
+  for (const wi of order) {
+    if (monte.length === 0) break
+    const w = world[wi]
+    const isRival = !!w.rival
+    // melhor carta do Monte que MELHORA alguma posição (troca pelo pior de lá)
+    let bestMi = -1, bestGain = 0, bestReplace = ''
+    for (let mi = 0; mi < monte.length; mi++) {
+      const mc = monte[mi]
+      const price = Math.max(1, floorOf(save, mc) ?? 1)
+      if (!isRival && price > 3) continue // bots só pescam o barato — não roubam seus caros
+      const posPlayers = w.squad.filter(c => c.pos === mc.pos)
+      if (posPlayers.length === 0) continue
+      const weakest = posPlayers.slice().sort((a, b) => mid(a) - mid(b))[0]
+      const gain = mid(mc) - mid(weakest)
+      if (gain <= 1) continue
+      if (gain > bestGain) { bestGain = gain; bestMi = mi; bestReplace = weakest.id }
+    }
+    if (bestMi < 0) continue
+    const card = monte[bestMi]
+    const price = Math.max(1, floorOf(save, card) ?? 1)
+    const free = price <= 1
+    if (isRival) {
+      const cofre = w.coins ?? 50
+      if (!free && cofre < price) continue
+      if (rng() < 0.45) continue // nem sempre agem
+      w.coins = cofre - (free ? 0 : price)
+    } else {
+      if (rng() < 0.6) continue // bots pescam com parcimônia
+    }
+    w.squad = w.squad.filter(c => c.id !== bestReplace).concat({ ...card })
+    monte.splice(bestMi, 1)
+    news.push(`${w.name} contratou ${card.name}${isRival && !free ? ` · 💰 ${price}` : ''}`)
+  }
+  return { save: { ...save, world, monte }, news }
 }
 
 const AUC_SECONDS = 45
