@@ -250,14 +250,11 @@ function Btn({ children, onClick, bg = GOLD, color = INK, disabled }: { children
 }
 // chip de posição igual ao CardFace do jogo
 const Pos = ({ p }: { p: Sector }) => <span style={{ fontSize: 10, fontWeight: 900, background: INK, color: '#fff', borderRadius: 99, padding: '1px 7px', border: `2px solid ${INK}` }}>{p}</span>
-// selo de NÍVEL (categoria) do jogador — igual à linguagem do jogo
-const Lvl = ({ c }: { c: { fame: number; promessa?: boolean; folk?: boolean } }) => {
-  const t = c.fame >= 5 ? { l: 'LENDA', e: '👑', bg: GOLD, fg: INK }
-    : c.promessa ? { l: 'PROMESSA', e: '💎', bg: '#CFE8FF', fg: INK }
-    : c.fame === 4 ? { l: 'CRAQUE', e: '⭐', bg: '#FFE79A', fg: INK }
-    : c.fame >= 2 ? { l: 'BOM', e: '', bg: '#E4E4E4', fg: '#444' }
-    : { l: 'FRACO', e: '', bg: '#ECECEC', fg: '#888' }
-  return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: t.bg, color: t.fg, border: `2px solid ${INK}`, borderRadius: 99, padding: '1px 7px', fontSize: 9, fontWeight: 900, whiteSpace: 'nowrap', ...OSWALD }}>{t.e ? t.e + ' ' : ''}{t.l}{c.folk ? ' 🃏' : ''}</span>
+// selo de NÍVEL do jogador — a FAIXA (lo–hi), não a categoria. Cor pela média.
+const Lvl = ({ c }: { c: { lo: number; hi: number } }) => {
+  const m = (c.lo + c.hi) / 2
+  const bg = m >= 86 ? GOLD : m >= 80 ? '#CFF3D8' : m >= 72 ? '#D6ECFF' : m >= 62 ? '#E9E9E9' : '#EEEEEE'
+  return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: bg, color: INK, border: `2px solid ${INK}`, borderRadius: 99, padding: '1px 7px', fontSize: 10, fontWeight: 900, whiteSpace: 'nowrap', ...OSWALD }}>📊 {c.lo}–{c.hi}</span>
 }
 
 // mundo fixo a partir do resultado do LEILÃO REAL: você + os RIVAIS que você
@@ -404,11 +401,16 @@ export function DinastiaGame() {
   // artilharia), paga o prêmio, resolve sobe/desce e segue.
   const handled = useRef(false)
   useEffect(() => {
-    if (open && state.dinastia && state.screen === 'end' && !handled.current) {
+    if (!state.dinastia) return
+    // PROCESSA a temporada assim que o fim aparece — salva o resultado SEMPRE, não
+    // importa se o campeão vai pra janela de transferências OU aperta "ver álbum"
+    // (antes, ir pro álbum saía sem salvar a temporada).
+    if (state.screen === 'end' && !handled.current) {
       handled.current = true
       writeSave(processDinastiaEnd(state, loadSave()))
-      dispatch({ type: 'GO_LOBBY' }) // fecha o motor; a economia assume no overlay
     }
+    // abriu a janela (#dinastia) no fim → fecha o motor pra economia assumir no overlay
+    if (open && state.screen === 'end' && handled.current) dispatch({ type: 'GO_LOBBY' })
     if (state.screen !== 'end') handled.current = false
   }, [open, state.dinastia, state.screen]) // eslint-disable-line react-hooks/exhaustive-deps
   // se algo dentro do modo navegar pro álbum/ranking (ex.: "ver meu álbum" do
