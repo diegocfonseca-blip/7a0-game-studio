@@ -162,6 +162,7 @@ export interface EscState {
   onlineMode: OnlineMode
   roomId: string
   roomCode: string
+  roomName?: string // nome que o host deu à sala (ex.: "Sala do Pava") — só pra exibir; some se não foi definido
   isHost: boolean
   humanCount: number
   submitted: number[]          // ids de técnicos que lacraram o envelope nesta fase

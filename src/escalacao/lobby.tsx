@@ -304,6 +304,7 @@ export function EscLobby() {
     dispatch({
       type: 'START_ONLINE',
       roomId: roomData.id, roomCode: roomData.code,
+      roomName: gs?.roomName,
       isHost: amHost,
       playerIndex: myPl.player_index,
       playerNames: sorted.map(p => p.manager_name),
