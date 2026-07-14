@@ -1456,7 +1456,10 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
   const coins = draftRef.current.coins
   const globalIdx = (localIdx: number) => allResults.length - secResults.length + localIdx
   const currentR = secResults[Math.min(revealIdx, Math.max(0, secResults.length - 1))]
-  const needsChoice = phase === 'reveal' && !!currentR && currentR.outcome === 'you' && !!currentR.overflow && !resolved[globalIdx(revealIdx)]
+  // a posição AINDA está lotada AGORA? (recheca em tempo real: se você dispensou/
+  // vendeu um seu antes nesta mesma posição, o slot abriu e não há mais estouro)
+  const overflowNow = (r: LotResult) => { const d = draftRef.current!; return d.squad.filter(c => c.pos === r.lot.card.pos).length > FORM_NEED[d.formation][r.lot.card.pos] }
+  const needsChoice = phase === 'reveal' && !!currentR && currentR.outcome === 'you' && !!currentR.overflow && overflowNow(currentR) && !resolved[globalIdx(revealIdx)]
   // seu jogador foi a leilão pra vender e NINGUÉM cobriu o piso: você decide —
   // mantém no elenco ou dispensa (vai livre pro Monte pelo piso que carrega).
   const needsSellChoice = phase === 'reveal' && !!currentR && currentR.lot.kind === 'sell' && currentR.outcome === 'none' && !resolved[globalIdx(revealIdx)]
