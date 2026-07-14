@@ -977,6 +977,40 @@ function MonteFreeAgents({ save, persist }: { save: Save; persist: (s: Save) => 
   )
 }
 
+// ─── COMPLETAR ELENCO ─────────────────────────────────────────────────
+// Antes da partida, se o elenco tá com buraco em algum setor, você é obrigado
+// a preencher: pega do Monte (pagando o piso, ou grátis) ou contrata uma
+// RESERVA IMPROVISADA de graça (força bem baixa) só pra completar os 11.
+function FillSquadScreen({ save, persist, onReady, onBack }: { save: Save; persist: (s: Save) => void; onReady: () => void; onBack: () => void }) {
+  const holes = SECTORS.map(p => ({ p, need: FORM_NEED[save.formation][p] - save.squad.filter(c => c.pos === p).length })).filter(h => h.need > 0)
+  const total = holes.reduce((s, h) => s + h.need, 0)
+  const rng = useMemo(() => mulberry((save.seed ^ 0xF11E ^ save.seasonNo) >>> 0), []) // eslint-disable-line
+  const grabFiller = (pos: Sector) => {
+    const fc = filler(pos, rng)
+    const wc: WonCard = { ...fc, paid: 0, via: 'monte' }
+    persist({ ...save, squad: [...save.squad, wc], contracts: setContract(save, fc.id, 1) })
+  }
+  return (
+    <div style={{ display: 'grid', gap: 10 }}>
+      <div style={{ ...box(RED), padding: 12, color: '#fff', textAlign: 'center' }}>
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>⚠️ ELENCO INCOMPLETO</p>
+        <p style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, marginTop: 3 }}>Faltam {total} jogador{total > 1 ? 'es' : ''} pra escalar. Complete antes de rolar a bola.</p>
+      </div>
+      {holes.map(h => (
+        <div key={h.p} style={{ ...box('#FFF6DE'), padding: 10 }}>
+          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>{SECTOR_LABEL[h.p]} — falta{h.need > 1 ? 'm' : ''} {h.need}</p>
+          <button onClick={() => grabFiller(h.p)} style={{ marginTop: 6, background: '#eee', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '6px 10px', fontWeight: 900, fontSize: 12, cursor: 'pointer', ...OSWALD }}>➕ Reserva improvisada (grátis · força baixa)</button>
+        </div>
+      ))}
+      <MonteFreeAgents save={save} persist={persist} />
+      {total === 0
+        ? <Btn onClick={onReady} bg={GREEN} color="#fff">▶️ TUDO CERTO — jogar temporada</Btn>
+        : <div style={{ ...box('#eee'), padding: 10, textAlign: 'center', fontWeight: 800, fontSize: 12, color: '#666' }}>Preencha os {total} buraco{total > 1 ? 's' : ''} pra liberar a partida.</div>}
+      <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
+    </div>
+  )
+}
+
 // ─── DISPENSA: você lotou a posição, escolhe quem sai → leilão c/ mínimo ──
 function DispensaScreen({ save, persist, pos }: { save: Save; persist: (s: Save) => void; pos: Sector }) {
   const [selId, setSelId] = useState<string | null>(null)
