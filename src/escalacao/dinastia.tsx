@@ -237,6 +237,15 @@ function Btn({ children, onClick, bg = GOLD, color = INK, disabled }: { children
 }
 // chip de posição igual ao CardFace do jogo
 const Pos = ({ p }: { p: Sector }) => <span style={{ fontSize: 10, fontWeight: 900, background: INK, color: '#fff', borderRadius: 99, padding: '1px 7px', border: `2px solid ${INK}` }}>{p}</span>
+// selo de NÍVEL (categoria) do jogador — igual à linguagem do jogo
+const Lvl = ({ c }: { c: { fame: number; promessa?: boolean; folk?: boolean } }) => {
+  const t = c.fame >= 5 ? { l: 'LENDA', e: '👑', bg: GOLD, fg: INK }
+    : c.promessa ? { l: 'PROMESSA', e: '💎', bg: '#CFE8FF', fg: INK }
+    : c.fame === 4 ? { l: 'CRAQUE', e: '⭐', bg: '#FFE79A', fg: INK }
+    : c.fame >= 2 ? { l: 'BOM', e: '', bg: '#E4E4E4', fg: '#444' }
+    : { l: 'FRACO', e: '', bg: '#ECECEC', fg: '#888' }
+  return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: t.bg, color: t.fg, border: `2px solid ${INK}`, borderRadius: 99, padding: '1px 7px', fontSize: 9, fontWeight: 900, whiteSpace: 'nowrap', ...OSWALD }}>{t.e ? t.e + ' ' : ''}{t.l}{c.folk ? ' 🃏' : ''}</span>
+}
 
 // mundo fixo a partir do resultado do LEILÃO REAL: você + os RIVAIS que você
 // escolheu ficam na Série D com os elencos montados no pregão. O resto do
@@ -972,7 +981,7 @@ function SquadScreen({ save, onBack }: { save: Save; onBack: () => void }) {
           <div style={{ display: 'grid', gap: 6 }}>
             {cards.map(c => (
               <div key={c.id} style={{ ...box('#fff'), padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div><div style={{ fontWeight: 900, ...OSWALD }}>{c.name}</div><div style={{ fontSize: 11, color: '#888', fontWeight: 700 }}>{c.club} · {c.year}{save.goalsLast[c.id] ? ` · ⚽ ${save.goalsLast[c.id]}` : ''} · {(() => { const u = contractUntil(save, c.id); if (u < save.seasonNo) return <span style={{ color: RED, fontWeight: 900 }}>⚠️ vencido</span>; if (u === save.seasonNo) return <span style={{ color: RED, fontWeight: 900 }}>🔴 último ano do contrato</span>; return <>📄 até temp. {u}</> })()} · piso {floorOf(save, c) ?? Math.max(1, c.paid)}</div></div>
+                <div><div style={{ fontWeight: 900, ...OSWALD, display: 'flex', alignItems: 'center', gap: 6 }}>{c.name} <Lvl c={c} /></div><div style={{ fontSize: 11, color: '#888', fontWeight: 700 }}>{c.club} · {c.year}{save.goalsLast[c.id] ? ` · ⚽ ${save.goalsLast[c.id]}` : ''} · {(() => { const u = contractUntil(save, c.id); if (u < save.seasonNo) return <span style={{ color: RED, fontWeight: 900 }}>⚠️ vencido</span>; if (u === save.seasonNo) return <span style={{ color: RED, fontWeight: 900 }}>🔴 último ano do contrato</span>; return <>📄 até temp. {u}</> })()} · piso {floorOf(save, c) ?? Math.max(1, c.paid)}</div></div>
                 <span style={{ fontWeight: 900, ...OSWALD, color: GREEN }}>💰 {myValue(save, c)}</span>
               </div>
             ))}
@@ -1065,7 +1074,7 @@ function Transfer({ save, persist, onBack, midSeason }: { save: Save; persist: (
             : persist({ ...save, requested: [...(save.requested ?? []), c.id] })
           return (
             <button key={c.id} disabled={dis} onClick={toggle} style={{ ...box(on ? '#EAF7EE' : dis ? '#eee' : '#fff'), padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: dis ? 'default' : 'pointer', textAlign: 'left', opacity: dis ? 0.55 : 1, border: on ? `3px solid ${GREEN}` : `3px solid ${INK}` }}>
-              <span style={{ fontWeight: 900, ...OSWALD }}><Pos p={c.pos} /> {c.name}</span>
+              <span style={{ fontWeight: 900, ...OSWALD, display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}><Pos p={c.pos} /> {c.name} <Lvl c={c} /></span>
               {on ? <span style={{ fontWeight: 800, color: GREEN, fontSize: 12 }}>✔ no leilão · tirar</span> : under ? <span style={{ fontWeight: 800, color: RED, fontSize: 12 }}>🔒 contrato (temp. {contractUntil(save, c.id)})</span> : posOther ? <span style={{ fontWeight: 800, color: '#999', fontSize: 12 }}>já aliciou 1 {c.pos}</span> : <span style={{ fontWeight: 800, fontSize: 12, textAlign: 'right' }}>{fl !== undefined ? <>💰 piso {fl}</> : <span style={{ color: '#999' }}>livre · abre em 💰 1</span>}<br /><span style={{ color: GREEN, fontSize: 11 }}>+ aliciar</span></span>}
             </button>
           )
@@ -1740,7 +1749,7 @@ function SellRoom({ save, persist, onBack }: { save: Save; persist: (s: Save) =>
         const blocked = !on && listedPos.has(c.pos)
         return (
           <button key={c.id} disabled={blocked} onClick={() => toggle(c)} style={{ ...box(on ? '#EAF7EE' : blocked ? '#eee' : '#fff'), padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: blocked ? 'default' : 'pointer', textAlign: 'left', opacity: blocked ? 0.55 : 1, border: on ? `3px solid ${GREEN}` : `3px solid ${INK}` }}>
-            <span style={{ fontWeight: 900, ...OSWALD }}><Pos p={c.pos} /> {c.name}</span>
+            <span style={{ fontWeight: 900, ...OSWALD, display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}><Pos p={c.pos} /> {c.name} <Lvl c={c} /></span>
             {on ? <span style={{ fontWeight: 800, color: GREEN, fontSize: 12 }}>✔ no leilão · tirar</span> : blocked ? <span style={{ fontWeight: 800, color: '#999', fontSize: 12 }}>já tem 1 {c.pos}</span> : <span style={{ fontWeight: 800, color: '#888', fontSize: 13 }}>vale ~{myValue(save, c)} 💰</span>}
           </button>
         )
