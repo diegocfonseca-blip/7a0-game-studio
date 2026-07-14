@@ -1883,7 +1883,7 @@ function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk =
 }
 
 // ─── prêmio de campeão: escolhe 1 carta do seu time pro álbum ─────────
-const CARD_PICK_SECONDS = 25
+const CARD_PICK_SECONDS = 45
 // mapa nome → selos (folk/promessa) do catálogo, pra pintar as cartas do álbum
 // certas mesmo quando só guardamos o nome (cartas online antigas).
 const CARD_META = new Map<string, { folk?: boolean; promessa?: boolean }>()
