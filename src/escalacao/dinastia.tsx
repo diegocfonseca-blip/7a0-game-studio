@@ -163,7 +163,7 @@ interface Save {
   lastTable?: TeamStand[] // classificação FINAL da sua divisão na última temporada
   lastScorers?: { name: string; teamName: string; goals: number }[] // artilharia da SUA divisão (última temp.)
   crest?: { c1: string; c2: string; symbol: string } // identidade: 2 cores + símbolo (escudo)
-  lastResult?: { pos: number; move: 'up' | 'down' | 'stay'; prevDiv: Division; champion: boolean }
+  lastResult?: { pos: number; move: 'up' | 'down' | 'stay'; prevDiv: Division; champion: boolean; earned?: number; cut?: number; scorer?: boolean }
   history?: SeasonRecord[] // registro temporada a temporada — a Sala de Troféus
 }
 // uma linha da história da dinastia (fechada ao fim de cada temporada)
@@ -268,6 +268,12 @@ function buildSaveFromAuction(state: EscState): Save {
   return { seed, clubName: you.teamName, formation: you.formation, division: 'D', seasonNo: 1, coins: you.money, luxury: [], titles: 0, squad: yourSquad, world, stage: 's1FirstHalf', worldGoals: {}, goalsLast: {}, championLast: false, contracts, requested: [], monte: [], crest: DEFAULT_CREST }
 }
 
+// prêmios e penalidades por divisão — cada série com seu valor próprio
+const TITLE_BONUS: Record<Division, number> = { D: 8, C: 15, B: 28, A: 60 }  // 👑 campeão (A é o ápice)
+const PROMO_BONUS: Record<Division, number> = { D: 8, C: 15, B: 25, A: 0 }   // ⬆️ ao SUBIR desta divisão
+const RELEG_CUT: Record<Division, number> = { D: 0, C: 12, B: 22, A: 40 }    // 🔻 corte no caixa ao CAIR desta divisão
+const SCORER_BONUS: Record<Division, number> = { D: 3, C: 6, B: 10, A: 18 }  // ⚽ seu jogador artilheiro da divisão
+
 // FIM da temporada REAL: pega o resultado do motor (posição/campeão/artilharia
 // da sua divisão) + simula as outras 3 divisões (artilharia geral + pirâmide),
 // paga o prêmio no Caixa, resolve sobe/desce e abre a janela pra próxima.
@@ -318,10 +324,20 @@ function processDinastiaEnd(state: EscState, existing: Save | null): Save {
     const earn = Math.round(rivalPrize[nd] * (0.5 + rng() * 0.6))
     return { ...w, div: nd, coins: (w.coins ?? 50) + earn }
   })
+  const move: 'up' | 'down' | 'stay' = newDivision === div ? 'stay' : DIVS.indexOf(newDivision) > DIVS.indexOf(div) ? 'up' : 'down'
+  // ── prêmios e penalidades: prêmio de posição + título + acesso + artilheiro,
+  //    menos o corte por queda (cada divisão com seu valor; ver tabelas acima) ──
   const prizeBase = { D: 20, C: 35, B: 60, A: 110 }[div]
   const posF = yourPos === 1 ? 1 : yourPos <= 4 ? 0.7 : yourPos <= 12 ? 0.4 : 0.2
-  const prize = Math.round(prizeBase * posF) + (youChampion ? Math.round(prizeBase * 0.3) : 0)
-  const move: 'up' | 'down' | 'stay' = newDivision === div ? 'stay' : DIVS.indexOf(newDivision) > DIVS.indexOf(div) ? 'up' : 'down'
+  const posPrize = Math.round(prizeBase * posF)
+  const titleBonus = youChampion ? TITLE_BONUS[div] : 0
+  const promoBonus = move === 'up' ? PROMO_BONUS[div] : 0
+  const divTop = lastScorers[0]
+  const gotScorer = !!divTop && divTop.teamName === base.clubName && divTop.goals > 0
+  const scorerBonus = gotScorer ? SCORER_BONUS[div] : 0
+  const relegCut = move === 'down' ? RELEG_CUT[div] : 0
+  const earned = posPrize + titleBonus + promoBonus + scorerBonus
+  const newCoins = Math.max(0, base.coins + earned - relegCut) // corte nunca deixa negativo
   // seu artilheiro da temporada (dos gols do motor mapeados no seu elenco)
   let scorer: { name: string; goals: number } | undefined
   for (const c of base.squad) { const g = goalsLast[c.id] ?? 0; if (g > 0 && (!scorer || g > scorer.goals)) scorer = { name: c.name, goals: g } }
@@ -329,9 +345,9 @@ function processDinastiaEnd(state: EscState, existing: Save | null): Save {
   return {
     ...base, world: newWorld, division: newDivision, seasonNo: base.seasonNo + 1,
     stage: 'preWindow', requested: [], soldPos: [], auctionDone: false, monte: base.monte ?? [], lastTable, lastScorers,
-    coins: base.coins + prize, titles: base.titles + (youChampion ? 1 : 0),
+    coins: newCoins, titles: base.titles + (youChampion ? 1 : 0),
     worldGoals, goalsLast, championLast: youChampion,
-    lastResult: { pos: yourPos, move, prevDiv: div, champion: youChampion },
+    lastResult: { pos: yourPos, move, prevDiv: div, champion: youChampion, earned, cut: relegCut, scorer: gotScorer },
     history: [...(base.history ?? []), record],
   }
 }
@@ -855,6 +871,11 @@ function Home({ save, go, playSeason }: { save: Save; go: (p: Phase) => void; pl
       {save.lastResult && (
         <div style={{ ...box('#fff'), padding: 12, fontSize: 13, fontWeight: 700, textAlign: 'center' }}>
           Temporada passada: <b>{save.lastResult.pos}º</b> na {DIV_LABEL[save.lastResult.prevDiv]}{save.lastResult.champion ? ' 🏆 CAMPEÃO!' : ''} · {save.lastResult.move === 'up' ? '⬆️ subiu' : save.lastResult.move === 'down' ? '⬇️ caiu' : '➡️ ficou'}
+          {typeof save.lastResult.earned === 'number' && (
+            <div style={{ marginTop: 5, fontSize: 12, fontWeight: 800 }}>
+              <span style={{ color: GREEN }}>💰 +{save.lastResult.earned}</span>{save.lastResult.scorer ? ' · ⚽ artilheiro' : ''}{save.lastResult.cut ? <span style={{ color: RED }}> · queda −{save.lastResult.cut}</span> : ''}
+            </div>
+          )}
         </div>
       )}
       <div style={{ ...box('#FFF6DE'), padding: 12 }}>
