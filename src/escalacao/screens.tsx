@@ -437,7 +437,8 @@ function AuctionBar() {
           </span>
         ))}
       </div>
-      <span className="font-black text-sm" style={OSWALD}>💰 {you.money}</span>
+      <span className="inline-flex items-center gap-1 border-[3px] border-black rounded-full px-3 py-0.5 font-black text-base"
+        style={{ ...OSWALD, background: GOLD, boxShadow: `2px 2px 0 0 ${INK}` }}>💰 {you.money}</span>
     </div>
   )
 }
