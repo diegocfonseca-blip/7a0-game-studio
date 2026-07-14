@@ -7,6 +7,9 @@ import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
 const ADMIN_EMAIL = 'diego.c.fonseca@gmail.com'
+// contas liberadas pra testar o MODO MANAGER (além do criador) — não dá acesso
+// ao painel do criador (#admin), só ao modo em teste.
+const MANAGER_TESTERS = [ADMIN_EMAIL, 'leafarcruz06@gmail.com'].map(e => e.toLowerCase())
 const INK = '#0C0C0C'
 const GOLD = '#F5B301'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
@@ -66,6 +69,19 @@ export function useIsAdmin() {
     return () => { alive = false; sub.subscription.unsubscribe() }
   }, [])
   return isAdmin
+}
+
+// hook: true quando o usuário logado pode acessar o MODO MANAGER (criador + testers)
+export function useCanManager() {
+  const [ok, setOk] = useState(false)
+  useEffect(() => {
+    let alive = true
+    const check = (email?: string | null) => MANAGER_TESTERS.includes((email ?? '').toLowerCase())
+    supabase.auth.getUser().then(({ data }) => { if (alive) setOk(check(data?.user?.email)) })
+    const { data: sub } = supabase.auth.onAuthStateChange((_, s) => setOk(check(s?.user?.email)))
+    return () => { alive = false; sub.subscription.unsubscribe() }
+  }, [])
+  return ok
 }
 
 // botão que SÓ aparece pro criador (quando logado com o e-mail admin).
