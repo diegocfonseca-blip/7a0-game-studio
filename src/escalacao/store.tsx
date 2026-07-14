@@ -985,6 +985,7 @@ type Action =
   | { type: 'REQUEST_NEW_TEAMS' }
   | { type: 'CONFIRM_RESTART'; mgrId: number }
   | { type: 'CANCEL_RESTART' }
+  | { type: 'REMATCH' }
 
 function rngOf(state: EscState): () => number {
   return mulberry(state.seed + state.sectorIdx * 977 + state.round * 131 + state.revealIdx * 7 + state.monteIdx * 13 + state.submitted.length * 101)
@@ -1637,6 +1638,14 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'CANCEL_RESTART': {
       s.restartPending = false
       s.restartReady = []
+      return s
+    }
+    case 'REMATCH': {
+      // "Jogar de novo" (online, host): volta todo mundo pra sala de espera
+      // (o game_rooms.status já foi virado pra 'waiting' antes deste dispatch
+      // — ver botão em EscEnd). De lá, o host chama "Abrir o Pregão" de novo,
+      // que já monta uma partida 100% nova (START_ONLINE).
+      s.screen = 'lobby'
       return s
     }
     default:
