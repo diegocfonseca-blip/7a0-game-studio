@@ -1114,19 +1114,12 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
   const bidRows: BidRow[] = entrants.map(e => ({ name: e.who === 'you' ? 'Você' : e.name, amount: e.bid, mine: e.who === 'you', winner: e === win }))
   const removeFromOwner = (name: string) => draft.world.map(w => w.name === name ? { ...w, squad: w.squad.filter(c => c.id !== lot.card.id).concat(filler(lot.card.pos, rng)) } : w)
   const giveToRival = (name: string) => draft.world.map(w => w.name === name ? { ...w, squad: giveToTeam(w.squad, lot.card) } : w)
-  // adiciona ao SEU elenco mantendo o teto da formação (o pior do setor vai pro monte)
-  const addToMe = (price: number): { name?: string; card?: WonCard } => {
-    let squad: WonCard[] = [...draft.squad, { ...(lot.card as Card), paid: price, via: 'leilao' as const }]
-    const atPos = squad.filter(c => c.pos === lot.card.pos)
-    if (atPos.length > FORM_NEED[draft.formation][lot.card.pos]) {
-      const worst = atPos.slice().sort((a, b) => mid(a) - mid(b))[0]
-      squad = squad.filter(c => c.id !== worst.id)
-      draft.monte = [...(draft.monte ?? []), { ...worst }]
-      draft.squad = squad
-      return { name: worst.name, card: worst }
-    }
-    draft.squad = squad
-    return {}
+  // adiciona ao SEU elenco SEM aplicar teto — a decisão do que fazer com o
+  // excedente é 100% do técnico, tomada no modal de escolha.
+  const addToMe = (price: number): { overflow: boolean } => {
+    draft.squad = [...draft.squad, { ...(lot.card as Card), paid: price, via: 'leilao' as const }]
+    const atPos = draft.squad.filter(c => c.pos === lot.card.pos)
+    return { overflow: atPos.length > FORM_NEED[draft.formation][lot.card.pos] }
   }
   if (!win) {
     if (lot.kind === 'market') draft.monte = [...(draft.monte ?? []), { ...lot.card }]
@@ -1136,8 +1129,8 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
     draft.contracts = setContract(draft, lot.card.id, win.bid) // novo dono: contrato novo de 5
     draft.coins -= win.bid
     if (lot.ownerName && lot.ownerName !== draft.clubName) draft.world = removeFromOwner(lot.ownerName)
-    const drop = addToMe(win.bid)
-    return { draft, result: { lot, outcome: 'you', by: draft.clubName, price: win.bid, dropped: drop.name, droppedCard: drop.card, bids: bidRows } }
+    const { overflow } = addToMe(win.bid)
+    return { draft, result: { lot, outcome: 'you', by: draft.clubName, price: win.bid, bids: bidRows, overflow } }
   }
   if (win.who === 'owner') {
     // dono renovou: SOMA +5 ao contrato que já tinha (4 → 9), valor = o lance
