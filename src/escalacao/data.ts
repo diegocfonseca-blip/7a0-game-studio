@@ -572,6 +572,11 @@ const MEI: C[] = [
   { name: "Fábio Baiano", club: "Flamengo", year: 1996, fame: 2, lo: 66, hi: 82 },
   { name: "Iranildo", club: "Flamengo", year: 1995, fame: 2, lo: 62, hi: 80, folk: true },
   { name: "Fumagalli", club: "Goiás", year: 2005, fame: 2, lo: 64, hi: 80, folk: true, bio: "Uma vida inteira no Goiás — ídolo eterno e folclore esmeraldino." },
+  { name: "Gilberto Silva", club: "Atlético-MG", year: 2002, fame: 4, lo: 80, hi: 88, bio: "Volante de marcação e saída limpa, penta em 2002 e invencível no Arsenal — brilhou primeiro no Galo." },
+  { name: "Mauro Silva", club: "Bragantino", year: 1990, fame: 4, lo: 79, hi: 87, bio: "Cabeça de área do tetra 94 e ídolo do Deportivo — despontou no Bragantino do Paulistão de 90." },
+  { name: "Geovani", club: "Vasco", year: 1989, fame: 4, lo: 80, hi: 88, bio: "Meia canhoto de muito talento, craque do Vasco campeão brasileiro de 1989." },
+  { name: "Kleberson", club: "Atlético-PR", year: 2002, fame: 3, lo: 74, hi: 83, bio: "O 'motorzinho' do penta 2002 — volante incansável revelado no Atlético-PR." },
+  { name: "Mazinho", club: "Palmeiras", year: 1993, fame: 3, lo: 74, hi: 84, bio: "Volante versátil do tetra 94, peça do Palmeiras da era Parmalat." },
 ]
 
 const ATA: C[] = [
@@ -696,11 +701,17 @@ const ATA: C[] = [
   { name: "Soteldo", club: "Santos", year: 2019, fame: 3, lo: 72, hi: 84 },
   { name: "Michael Jackson", club: "Fluminense", year: 1999, fame: 1, lo: 52, hi: 76, folk: true, bio: "O nome já é show à parte — puro folclore de arquibancada." },
   { name: "Jean Chera", club: "Santos", year: 2008, fame: 1, lo: 50, hi: 78, folk: true, bio: "A maior promessa da Vila que o país inteiro esperava — virou a lenda do 'e se…'." },
-  { name: "Maxi Biancucchi", club: "Vitória", year: 2010, fame: 1, lo: 56, hi: 78, folk: true, bio: "Primo do Messi que fez fama por conta própria no Nordeste — resenha garantida." },
+  { name: "M. Biancucchi (primo do Messi)", club: "Vitória", year: 2010, fame: 1, lo: 56, hi: 78, folk: true, bio: "Primo do Messi que fez fama por conta própria no Nordeste — resenha garantida." },
   { name: "Paulo Nunes", club: "Grêmio", year: 1996, fame: 3, lo: 70, hi: 84 },
   { name: "Marcelo Moreno", club: "Cruzeiro", year: 2013, fame: 3, lo: 70, hi: 84 },
   { name: "Anelka", club: "Atlético-MG (quase)", year: 2014, fame: 4, lo: 80, hi: 90, folk: true, bio: "O craque francês que QUASE vestiu o manto do Galo em 2014 — o reforço bombástico que só existiu na imaginação (e no sonho) da torcida." },
   { name: "Igor Jesus", club: "Botafogo", year: 2024, fame: 3, lo: 74, hi: 84, bio: "Centroavante que explodiu no Botafogo campeão da Libertadores em 2024 e ganhou a Seleção — força e faro de gol." },
+  { name: "Amarildo", club: "Botafogo", year: 1962, fame: 4, lo: 82, hi: 89, bio: "O 'Possesso' que entrou no lugar de Pelé e decidiu a Copa de 62 — ídolo do Botafogo." },
+  { name: "Magno Alves", club: "Fluminense", year: 2002, fame: 3, lo: 74, hi: 84, bio: "O 'Magrão' — faro de gol e longevidade absurda, artilheiro do Brasileirão de 2002 pelo Tricolor." },
+  { name: "Calleri", club: "São Paulo", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Centroavante argentino raçudo, ídolo e artilheiro do São Paulo — briga cada bola." },
+  { name: "Wellington Paulista", club: "Fortaleza", year: 2019, fame: 2, lo: 68, hi: 79, folk: true, bio: "Centroavante andarilho que rodou o Brasil inteiro — o eterno 'salvador' de cada temporada." },
+  { name: "Fábio Júnior", club: "Cruzeiro", year: 1999, fame: 2, lo: 66, hi: 80, folk: true, bio: "Veloz e goleador no Cruzeiro, mas eternizado como o rei de perder gol feito na Roma — 'errou que nem Fábio Júnior'." },
+  { name: "Carlinhos Bala", club: "Sport", year: 2008, fame: 2, lo: 64, hi: 78, folk: true, bio: "Baixinho elétrico e ídolo da torcida pernambucana — puro folclore com a camisa do Sport." },
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
