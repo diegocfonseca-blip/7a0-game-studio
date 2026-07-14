@@ -1886,8 +1886,11 @@ function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk =
 const CARD_PICK_SECONDS = 45
 // mapa nome → selos (folk/promessa) do catálogo, pra pintar as cartas do álbum
 // certas mesmo quando só guardamos o nome (cartas online antigas).
-const CARD_META = new Map<string, { folk?: boolean; promessa?: boolean }>()
-Object.values(CATALOG).flat().forEach(c => CARD_META.set(c.name, { folk: c.folk, promessa: c.promessa }))
+// meta ATUAL do catálogo por nome. Espalhado por último nas cartas do álbum,
+// sobrescreve o que foi salvo na coleta — assim nível/clube/ano acompanham as
+// atualizações do catálogo (ex.: Lúcio deixou de ser lenda; Diego é do Santos).
+const CARD_META = new Map<string, { fame: number; club: string; year: number; folk?: boolean; promessa?: boolean }>()
+Object.values(CATALOG).flat().forEach(c => CARD_META.set(c.name, { fame: c.fame, club: c.club, year: c.year, folk: c.folk, promessa: c.promessa }))
 
 export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void }) {
   const { dispatch } = useEsc()
