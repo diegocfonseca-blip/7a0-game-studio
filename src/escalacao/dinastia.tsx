@@ -270,7 +270,7 @@ function buildSaveFromAuction(state: EscState): Save {
 
 // prêmios e penalidades por divisão — cada série com seu valor próprio
 const TITLE_BONUS: Record<Division, number> = { D: 8, C: 15, B: 28, A: 60 }  // 👑 campeão (A é o ápice)
-const PROMO_BONUS: Record<Division, number> = { D: 8, C: 15, B: 25, A: 0 }   // ⬆️ ao SUBIR desta divisão
+const PROMO_BONUS: Record<Division, number> = { D: 8, C: 15, B: 40, A: 0 }   // ⬆️ ao SUBIR desta divisão (B→A é a chegada à elite: gordo)
 const RELEG_CUT: Record<Division, number> = { D: 0, C: 12, B: 22, A: 40 }    // 🔻 corte no caixa ao CAIR desta divisão
 const SCORER_BONUS: Record<Division, number> = { D: 3, C: 6, B: 10, A: 18 }  // ⚽ seu jogador artilheiro da divisão
 
@@ -413,7 +413,12 @@ export function DinastiaGame() {
 }
 export function DinastiaButton() {
   const isAdmin = useIsAdmin()
-  if (!isAdmin) return null
+  // público vê o teaser "(em breve)"; só o admin abre o modo em teste
+  if (!isAdmin) return (
+    <div style={{ width: '100%', boxSizing: 'border-box', background: '#e7e3d7', color: '#8a8577', border: '2px solid #bdb7a6', borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, textAlign: 'center', marginTop: 2, ...OSWALD, cursor: 'default' }}>
+      🏰 Modo Dinastia <span style={{ opacity: 0.85 }}>(em breve)</span>
+    </div>
+  )
   return (
     <button onClick={() => { window.location.hash = 'dinastia' }} style={{ width: '100%', boxSizing: 'border-box', background: PURPLE, color: '#fff', border: `2px solid ${INK}`, borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, cursor: 'pointer', marginTop: 2, ...OSWALD }}>
       🏰 Modo Dinastia <span style={{ color: GOLD }}>(teste — só você)</span>
