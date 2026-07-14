@@ -194,7 +194,20 @@ const contractUntil = (save: Save, id: string) => save.contracts?.[id]?.until ??
 const underContract = (save: Save, id: string) => contractUntil(save, id) >= save.seasonNo
 const setContract = (save: Save, id: string, price: number): Record<string, { until: number; floor: number }> =>
   ({ ...(save.contracts ?? {}), [id]: { until: save.seasonNo + CONTRACT, floor: price } })
-function loadSave(): Save | null { try { const r = localStorage.getItem(SAVE_KEY); return r ? JSON.parse(r) : null } catch { return null } }
+// mundo fixo = jogador único. Remove duplicatas de id (saneia saves com o bug
+// antigo do "dois Kakás"): seu elenco primeiro, depois cada clube (a cópia
+// duplicada vira filler pra manter 11), depois o Monte. Idempotente.
+function dedupSave(s: Save): Save {
+  const seen = new Set<string>()
+  const rng = mulberry((s.seed ^ 0xDED0FF) >>> 0)
+  const drop = <T extends PoolCard>(cards: T[]): T[] => cards.filter(c => seen.has(c.id) ? false : (seen.add(c.id), true))
+  const pad = (cards: PoolCard[]): PoolCard[] => cards.map(c => seen.has(c.id) ? filler(c.pos, rng) : (seen.add(c.id), c))
+  const squad = drop(s.squad)
+  const world = s.world.map(w => ({ ...w, squad: pad(w.squad) }))
+  const monte = drop(s.monte ?? [])
+  return { ...s, squad, world, monte }
+}
+function loadSave(): Save | null { try { const r = localStorage.getItem(SAVE_KEY); return r ? dedupSave(JSON.parse(r)) : null } catch { return null } }
 function writeSave(s: Save) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)) } catch { /* cheio */ } }
 // valor = SÓ o último lance que ganhou (o preço pago na última negociação). É o
 // mínimo do próximo leilão e o que o dono paga pra renovar. undefined = nunca
@@ -1382,12 +1395,15 @@ function applyLot(draft: Save, lot: Lot, myBid: number, rng: () => number): { dr
     return { overflow: atPos.length > FORM_NEED[draft.formation][lot.card.pos] }
   }
   if (!win) {
-    if (lot.kind === 'market') {
+    // SÓ jogador LIVRE (sem dono no mundo) vai pro Monte / pode ser assinado por bot.
+    // Se o card do mercado é de um clube (não-rival) e ninguém cobre, ele FICA com o
+    // dono — senão duplicaria (ficava no dono E no monte/bot). Bug do "dois Kakás".
+    if (lot.kind === 'market' && !lot.ownerName) {
       const signer = botSignUnsold(draft, lot.card, rng) // um clube bot pode assinar quem sobrou
       if (signer) return { draft, result: { lot, outcome: 'bot', by: signer, price: 0, bids: bidRows } }
       draft.monte = [...(draft.monte ?? []), { ...lot.card }]
     }
-    return { draft, result: { lot, outcome: 'none', by: '', price: 0, bids: bidRows } } // aliciar/sell sem lance: fica com o dono
+    return { draft, result: { lot, outcome: 'none', by: '', price: 0, bids: bidRows } } // aliciar/sell/mercado-com-dono sem lance: fica com o dono
   }
   if (win.who === 'you') {
     draft.contracts = setContract(draft, lot.card.id, win.bid) // novo dono: contrato novo de 5
@@ -1594,7 +1610,7 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
   const label: Record<LotResult['outcome'], string> = { you: '✅ VOCÊ LEVOU', rival: '😤 rival levou', owner: '🛡️ dono segurou', none: '— ninguém deu lance', bot: '🌍 clube levou' }
 
   if (finished) {
-    const unsold = allResults.filter(r => r.outcome === 'none' && r.lot.kind === 'market').length
+    const unsold = allResults.filter(r => r.outcome === 'none' && r.lot.kind === 'market' && !r.lot.ownerName).length
     const dispensados = allResults.filter(r => !!r.dropped).length
     const botSigned = allResults.filter(r => r.outcome === 'bot').length
     const mine = allResults.filter(r => r.outcome === 'you')
@@ -1656,7 +1672,7 @@ function WindowAuction({ save, persist, onDone, midSeason }: { save: Save; persi
               r.lot.kind === 'sell'
                 ? (needsSellChoice ? '🤔 Ninguém cobriu o piso — decida abaixo o que fazer com ele.' : r.dropped ? '🎁 Dispensado — livre no Monte.' : '🟢 Ninguém cobriu — fica no seu elenco.')
                 : r.outcome === 'bot' ? `🌍 Ninguém deu lance — ${r.by} contratou.`
-                : r.outcome === 'none' && r.lot.kind !== 'market' ? '🙅 Você desistiu — fica com o dono.' : `Nenhum lance. ${r.lot.kind === 'market' ? 'Vai pro Monte Final. 🪣' : 'Fica com o dono.'}`
+                : r.outcome === 'none' && r.lot.kind !== 'market' ? '🙅 Você desistiu — fica com o dono.' : `Nenhum lance. ${r.lot.kind === 'market' && !r.lot.ownerName ? 'Vai pro Monte Final. 🪣' : 'Fica com o dono.'}`
             }</p>}
             {r.bids.map((b, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `2px solid ${INK}`, borderRadius: 8, padding: '6px 12px', background: b.winner ? GREEN : '#fff' }}>
