@@ -34,23 +34,36 @@ const DIV_LABEL: Record<Div, string> = { A: '🏆 Série A', B: '🥈 Série B',
 const DIV_BASE: Record<Div, number> = { A: 80, B: 71, C: 63, D: 55 }
 const DIV_TAG: Record<Div, { l: string; bg: string }> = { A: { l: 'A', bg: '#B8892B' }, B: { l: 'B', bg: '#3E8E4E' }, C: { l: 'C', bg: '#9A7B33' }, D: { l: 'D', bg: '#7A7460' } }
 
-interface Team { name: string; str: number; you?: boolean; w: number; d: number; l: number; gf: number; ga: number; pts: number }
-interface Match { h: string; a: string; gh: number; ga: number; you?: boolean }
-interface Scorer { name: string; team: string; div: Div; goals: number; you?: boolean }
+interface Team { name: string; str: number; you?: boolean; hum?: boolean; w: number; d: number; l: number; gf: number; ga: number; pts: number }
+interface Match { h: string; a: string; gh: number; ga: number; you?: boolean; hum?: boolean }
+interface Scorer { name: string; team: string; div: Div; goals: number; you?: boolean; hum?: boolean }
 interface Career { seed: number; deck: DeckChoice; world: Record<Div, Team[]>; fix: Record<Div, number[][][]>; round: number; last: Record<Div, Match[]> | null }
+
+// amigos humanos (simulação): você na Série D + outros espalhados pela pirâmide
+const FRIEND_NAMES = ['vfranca', 'Serginho zava', 'Don Julio', 'Pavanelli', 'Bruno FC', 'Marcelo', 'Zé da Bola']
 
 function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
 function poisson(lambda: number, rng: () => number) { const L = Math.exp(-lambda); let k = 0, p = 1; do { k++; p *= rng() } while (p > L); return k - 1 }
 
 function blankStats() { return { w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 } }
-function buildWorld(myTeam: string, seed: number): Record<Div, Team[]> {
+// monta as 4 divisões e coloca os humanos: você (Meu Time) na Série D e os
+// `friends` amigos espalhados pelas divisões (A/B/C/D em rodízio).
+function buildWorld(seed: number, friends: number): Record<Div, Team[]> {
   const rng = mulberry(seed)
   const world = {} as Record<Div, Team[]>
   for (const d of DIVS) {
     const pool = DIVISION_TEAMS[d].slice(0, 20)
-    const teams: Team[] = pool.map(t => ({ name: t.team, str: DIV_BASE[d] + Math.round((rng() - 0.5) * 14), ...blankStats() }))
-    if (d === 'D') teams[teams.length - 1] = { name: myTeam || 'Meu Time', str: DIV_BASE.D + 2, you: true, ...blankStats() }
-    world[d] = teams
+    world[d] = pool.map(t => ({ name: t.team, str: DIV_BASE[d] + Math.round((rng() - 0.5) * 14), ...blankStats() }))
+  }
+  // você sempre começa na Série D (último slot)
+  world.D[19] = { name: 'Meu Time', str: DIV_BASE.D + 2, you: true, hum: true, ...blankStats() }
+  // amigos espalhados: A, B, C, D, A... (usa slot 0,1,2... de cada divisão)
+  const slotUsed: Record<Div, number> = { A: 0, B: 0, C: 0, D: 0 }
+  for (let i = 0; i < friends; i++) {
+    const d = DIVS[i % 4]
+    const slot = slotUsed[d]++
+    if (d === 'D' && slot >= 19) continue // não pisa no seu slot
+    world[d][slot] = { name: FRIEND_NAMES[i % FRIEND_NAMES.length], str: DIV_BASE[d] + Math.round((rng() - 0.3) * 12), hum: true, ...blankStats() }
   }
   return world
 }
@@ -91,7 +104,7 @@ function playRound(c: Career): { world: Record<Div, Team[]>; last: Record<Div, M
       const ga = poisson(Math.max(0.15, 1.15 - diff), rng)
       H.gf += gh; H.ga += ga; A.gf += ga; A.ga += gh
       if (gh > ga) { H.w++; H.pts += 3; A.l++ } else if (gh < ga) { A.w++; A.pts += 3; H.l++ } else { H.d++; A.d++; H.pts++; A.pts++ }
-      ms.push({ h: H.name, a: A.name, gh, ga, you: H.you || A.you })
+      ms.push({ h: H.name, a: A.name, gh, ga, you: H.you || A.you, hum: H.hum || A.hum })
     }
     world[d] = teams
     res[d] = ms
@@ -112,8 +125,8 @@ function pickScorers(world: Record<Div, Team[]>, deck: DeckChoice, seed: number)
     const s1 = sh[pi++ % sh.length], s2 = sh[pi++ % sh.length]
     const g1 = Math.round(t.gf * (0.26 + rng() * 0.12))
     const g2 = Math.round(t.gf * (0.15 + rng() * 0.08))
-    if (g1 > 0) rows.push({ name: s1, team: t.name, div: d, goals: g1, you: t.you })
-    if (g2 > 0) rows.push({ name: s2, team: t.name, div: d, goals: g2, you: t.you })
+    if (g1 > 0) rows.push({ name: s1, team: t.name, div: d, goals: g1, you: t.you, hum: t.hum })
+    if (g2 > 0) rows.push({ name: s2, team: t.name, div: d, goals: g2, you: t.you, hum: t.hum })
   }
   rows.sort((a, b) => b.goals - a.goals)
   return rows.slice(0, 20)
@@ -156,10 +169,10 @@ function RoundView({ c, onNext, onTable }: { c: Career; onNext: () => void; onTa
         <div key={d} style={{ ...box('#fff'), padding: 9, marginBottom: 10 }}>
           <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, marginBottom: 5 }}>{DIV_LABEL[d]}</p>
           {c.last![d].map((m, i) => (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5, padding: '2.5px 2px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: m.you ? '#FFE79A' : undefined, borderRadius: m.you ? 5 : 0 }}>
-              <span style={{ textAlign: 'right', fontWeight: m.you ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.h}</span>
-              <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: m.you ? INK : '#eee', color: m.you ? '#fff' : INK, borderRadius: 5, padding: '0 7px' }}>{m.gh}×{m.ga}</span>
-              <span style={{ textAlign: 'left', fontWeight: m.you ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#5a5647' }}>{m.a}</span>
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5, padding: '2.5px 2px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: m.you ? GOLD : m.hum ? '#FFE79A' : undefined, borderRadius: (m.you || m.hum) ? 5 : 0 }}>
+              <span style={{ textAlign: 'right', fontWeight: (m.you || m.hum) ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.h}</span>
+              <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: (m.you || m.hum) ? INK : '#eee', color: (m.you || m.hum) ? '#fff' : INK, borderRadius: 5, padding: '0 7px' }}>{m.gh}×{m.ga}</span>
+              <span style={{ textAlign: 'left', fontWeight: (m.you || m.hum) ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#5a5647' }}>{m.a}</span>
             </div>
           ))}
         </div>
@@ -194,9 +207,9 @@ function Standings({ c, onBack }: { c: Career; onBack: () => void }) {
               <thead><tr style={{ textAlign: 'left', color: '#8a8368', fontWeight: 800, fontSize: 10 }}><th>#</th><th>Time</th><th style={{ textAlign: 'center' }}>P</th><th style={{ textAlign: 'center' }}>V</th><th style={{ textAlign: 'center' }}>SG</th></tr></thead>
               <tbody>
                 {sorted.map((t, i) => (
-                  <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: t.you ? GOLD : zone(i, sorted.length), fontWeight: t.you ? 900 : 600 }}>
+                  <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: t.you ? GOLD : t.hum ? '#FFE79A' : zone(i, sorted.length), fontWeight: (t.you || t.hum) ? 900 : 600 }}>
                     <td style={{ padding: '2px 3px' }}>{i + 1}</td>
-                    <td style={{ padding: '2px 3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }}>{t.you ? '👤 ' : ''}{t.name}</td>
+                    <td style={{ padding: '2px 3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }}>{(t.you || t.hum) ? '👤 ' : ''}{t.name}</td>
                     <td style={{ textAlign: 'center', fontWeight: 900 }}>{t.pts}</td>
                     <td style={{ textAlign: 'center' }}>{t.w}</td>
                     <td style={{ textAlign: 'center' }}>{t.gf - t.ga}</td>
@@ -211,11 +224,11 @@ function Standings({ c, onBack }: { c: Career; onBack: () => void }) {
         <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, marginBottom: 2 }}>⚽ Artilharia geral</p>
         <p style={{ fontSize: 10, fontWeight: 600, color: '#8a8368', marginBottom: 7 }}>Goleadores de todas as divisões · o selo mostra a série</p>
         {scorers.length === 0 ? <p style={{ fontSize: 11, color: '#888', fontWeight: 700 }}>Sem gols ainda — jogue algumas rodadas.</p> : scorers.map((s, i) => (
-          <div key={s.name + s.team + i} style={{ display: 'grid', gridTemplateColumns: '20px 1fr auto', alignItems: 'center', gap: 7, padding: '3px 2px', borderTop: i ? '1px solid rgba(0,0,0,0.08)' : 'none', background: s.you ? GOLD : undefined, borderRadius: s.you ? 5 : 0 }}>
+          <div key={s.name + s.team + i} style={{ display: 'grid', gridTemplateColumns: '20px 1fr auto', alignItems: 'center', gap: 7, padding: '3px 2px', borderTop: i ? '1px solid rgba(0,0,0,0.08)' : 'none', background: s.you ? GOLD : s.hum ? '#FFE79A' : undefined, borderRadius: (s.you || s.hum) ? 5 : 0 }}>
             <span style={{ fontWeight: 900, ...OSWALD, textAlign: 'center' }}>{i + 1}</span>
             <span style={{ minWidth: 0 }}>
               <span style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD }}><span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}</span>
-              <span style={{ fontSize: 10, color: '#7a7460', fontWeight: 600, display: 'block' }}>{s.you ? '👤 ' : ''}{s.team}</span>
+              <span style={{ fontSize: 10, color: '#7a7460', fontWeight: 600, display: 'block' }}>{(s.you || s.hum) ? '👤 ' : ''}{s.team}</span>
             </span>
             <span style={{ fontWeight: 900, ...OSWALD, color: GREEN }}>{s.goals} <span style={{ fontSize: 10, color: '#8a8368' }}>⚽</span></span>
           </div>
@@ -235,6 +248,7 @@ export function CareerOnlineGame() {
     return () => window.removeEventListener('hashchange', f)
   }, [])
   const [deck, setDeck] = useState<DeckChoice>('br')
+  const [friends, setFriends] = useState(3) // amigos humanos (além de você) na simulação
   const [career, setCareer] = useState<Career | null>(null)
   const [view, setView] = useState<'menu' | 'round' | 'table'>('menu')
 
@@ -243,7 +257,7 @@ export function CareerOnlineGame() {
 
   const start = () => {
     const seed = Math.floor(Math.random() * 1e9)
-    setCareer({ seed, deck, world: buildWorld('Meu Time', seed), fix: buildFix(), round: 0, last: null })
+    setCareer({ seed, deck, world: buildWorld(seed, friends), fix: buildFix(), round: 0, last: null })
     setView('round')
   }
   const next = () => setCareer(c => {
@@ -282,9 +296,18 @@ export function CareerOnlineGame() {
         </div>
       </div>
 
+      <div style={{ ...box('#EAF3FF'), padding: 12, marginBottom: 12 }}>
+        <p style={{ fontSize: 12, fontWeight: 700 }}>👥 Amigos na sala <span style={{ color: '#888' }}>(simulação — você + estes espalhados pelas divisões)</span>:</p>
+        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          {[1, 3, 5, 7].map(n => (
+            <button key={n} onClick={() => setFriends(n)} style={{ flex: 1, border: `3px solid ${INK}`, borderRadius: 10, padding: '8px 0', fontWeight: 900, fontSize: 14, background: friends === n ? GOLD : '#fff', boxShadow: friends === n ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer', ...OSWALD }}>{n}</button>
+          ))}
+        </div>
+      </div>
+
       <div style={{ ...box('#FFF6DE'), padding: 12, marginBottom: 12 }}>
-        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>🧪 Protótipo do motor (Fase 5)</p>
-        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#666', marginTop: 3 }}>Jogue rodada a rodada e veja os jogos das 4 divisões, a tabela e a artilharia evoluindo. É local por enquanto — a sincronia online (todos juntos numa sala) e o fim de temporada com carta vêm na próxima fase.</p>
+        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>🧪 Protótipo do motor (Fase 6)</p>
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#666', marginTop: 3 }}>Você (Série D) + os amigos espalhados pela pirâmide, todos destacados nas rodadas, tabelas e artilharia. É local por enquanto — a sincronia online de verdade (cada um no seu aparelho, host manda) e o fim de temporada com carta vêm na próxima fase.</p>
       </div>
 
       <button onClick={start} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>▶️ Começar temporada (rodada a rodada)</button>
