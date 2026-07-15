@@ -926,7 +926,7 @@ const MEI_EU: C[] = [
   { name: "Marouane Fellaini", club: "Man United", year: 2016, fame: 1, lo: 66, hi: 82, folk: true },
   { name: "Vampeta", club: "PSG", year: 2000, fame: 1, lo: 58, hi: 78, folk: true },
   { name: "Ganso", club: "Sevilla", year: 2016, fame: 1, lo: 62, hi: 80, folk: true },
-  { name: "Lucas Paquetá", club: "Milan", year: 2019, fame: 1, lo: 66, hi: 82, folk: true },
+  { name: "Lucas Paquetá", club: "West Ham", year: 2023, fame: 3, lo: 80, hi: 87 },
   { name: "Gerson", club: "Roma", year: 2016, fame: 1, lo: 60, hi: 80, folk: true },
   { name: "Lucas Silva", club: "Real Madrid", year: 2015, fame: 1, lo: 58, hi: 78, folk: true },
   { name: "Mauro Silva", club: "Deportivo La Coruña", year: 1996, fame: 4, lo: 83, hi: 89 },
