@@ -16,7 +16,7 @@ const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
 type DailyRow = { day: string; plays: number; cpu: number; online: number; visits: number }
 type UserRow = { name: string; sid: string; total: number; today: number; last_play: string; registered: boolean }
-type LiveRow = { name: string; mode: string; screen: string; playing: boolean; ago: number; careerSeason?: number | null; careerDivision?: string | null }
+type LiveRow = { name: string; mode: string; screen: string; playing: boolean; ago: number; careerSeason?: number | null; careerDivision?: string | null; deckLeague?: string | null }
 type CareerRow = { name: string; division: string; season: number; titles: number; updated: string }
 type Dash = {
   online_now: number; playing_now: number; live_list: LiveRow[]
@@ -222,6 +222,9 @@ function Dashboard({ email }: { email: string }) {
                   {p.playing && <span style={{ opacity: 0.6 }}> · {MODE_LABEL[p.mode] || p.mode}</span>}
                   {p.mode === 'career' && p.careerDivision && (
                     <span style={{ opacity: 0.85, color: '#C9A9FF', fontWeight: 700 }}> · {DIV_LABEL[p.careerDivision] || p.careerDivision} · T{p.careerSeason ?? 1}</span>
+                  )}
+                  {p.playing && p.mode !== 'online' && p.deckLeague && (
+                    <span style={{ opacity: 0.9, color: p.deckLeague === 'eu' ? '#7FD1FF' : '#FFD24D', fontWeight: 800 }}> · {p.deckLeague === 'eu' ? 'EU' : 'BR'}</span>
                   )}
                 </span>
                 <span style={{ opacity: 0.5 }}>{p.ago < 60 ? 'agora' : `${Math.floor(p.ago / 60)}min`}</span>

@@ -1948,7 +1948,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // cpu por baixo). online continua online; carreira vira 'career'.
       const liveMode = st.onlineMode === 'online' ? 'online' : st.careerDivision ? 'career' : 'cpu'
       const career = st.careerDivision ? { season: st.seasonNo, division: st.careerDivision } : undefined
-      heartbeat(liveMode, st.managers[st.youIdx]?.teamName, st.screen, career)
+      // online é sempre baralho brasileiro; solo (rápida/carreira) manda o escolhido
+      const deck = liveMode === 'online' ? undefined : st.deckLeague
+      heartbeat(liveMode, st.managers[st.youIdx]?.teamName, st.screen, career, deck)
     }
     beat()
     const iv = setInterval(beat, 30_000)
