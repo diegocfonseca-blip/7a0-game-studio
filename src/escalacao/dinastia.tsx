@@ -165,8 +165,32 @@ interface Save {
   lastTable?: TeamStand[] // classificação FINAL da sua divisão na última temporada
   lastScorers?: { name: string; teamName: string; goals: number }[] // artilharia da SUA divisão (última temp.)
   crest?: { c1: string; c2: string; symbol: string } // identidade: 2 cores + símbolo (escudo)
-  lastResult?: { pos: number; move: 'up' | 'down' | 'stay'; prevDiv: Division; champion: boolean; earned?: number; cut?: number; scorer?: boolean }
+  lastResult?: { pos: number; move: 'up' | 'down' | 'stay'; prevDiv: Division; champion: boolean; earned?: number; cut?: number; scorer?: boolean; stadium?: boolean }
   history?: SeasonRecord[] // registro temporada a temporada — a Sala de Troféus
+  stadium?: Stadium
+}
+// estádio: nome livre (some = usa o padrão) + moedas investidas em cada setor.
+// setor completo (invested >= custo) soma renda fixa por temporada, pra sempre.
+type StadiumSector = 'geral' | 'cadeiras' | 'camarote' | 'visitante'
+interface Stadium { name?: string; invested: Record<StadiumSector, number> }
+const STADIUM_DEFAULT_NAME = 'Arena Legends'
+const STADIUM_INVEST_STEP = 20 // moedas por clique em "investir" (capado pelo que falta e pelo caixa)
+const STADIUM_SECTORS: { key: StadiumSector; label: string; cost: number; income: number }[] = [
+  { key: 'geral', label: 'Geral', cost: 40, income: 3 },
+  { key: 'cadeiras', label: 'Cadeiras', cost: 60, income: 4 },
+  { key: 'camarote', label: 'Camarote', cost: 90, income: 6 },
+  { key: 'visitante', label: 'Setor Visitante', cost: 130, income: 8 },
+]
+function stadiumInvested(save: Save): Record<StadiumSector, number> {
+  return save.stadium?.invested ?? { geral: 0, cadeiras: 0, camarote: 0, visitante: 0 }
+}
+function stadiumName(save: Save): string {
+  return save.stadium?.name?.trim() || STADIUM_DEFAULT_NAME
+}
+// renda extra por temporada: soma dos setores 100% construídos, pra sempre
+function stadiumIncome(save: Save): number {
+  const inv = stadiumInvested(save)
+  return STADIUM_SECTORS.reduce((sum, s) => sum + (inv[s.key] >= s.cost ? s.income : 0), 0)
 }
 // uma linha da história da dinastia (fechada ao fim de cada temporada)
 interface SeasonRecord {
@@ -357,7 +381,8 @@ function processDinastiaEnd(state: EscState, existing: Save | null): Save {
   const gotScorer = !!divTop && divTop.teamName === base.clubName && divTop.goals > 0
   const scorerBonus = gotScorer ? SCORER_BONUS[div] : 0
   const relegCut = move === 'down' ? RELEG_CUT[div] : 0
-  const earned = posPrize + titleBonus + promoBonus + scorerBonus
+  const stadiumBonus = stadiumIncome(base) // setores completos do estádio rendem todo ano
+  const earned = posPrize + titleBonus + promoBonus + scorerBonus + stadiumBonus
   const newCoins = Math.max(0, base.coins + earned - relegCut) // corte nunca deixa negativo
   // seu artilheiro da temporada (dos gols do motor mapeados no seu elenco)
   let scorer: { name: string; goals: number } | undefined
@@ -368,7 +393,7 @@ function processDinastiaEnd(state: EscState, existing: Save | null): Save {
     stage: 'preWindow', requested: [], soldPos: [], auctionDone: false, monte: base.monte ?? [], lastTable, lastScorers,
     coins: newCoins, titles: base.titles + (youChampion ? 1 : 0),
     worldGoals, goalsLast, championLast: youChampion,
-    lastResult: { pos: yourPos, move, prevDiv: div, champion: youChampion, earned, cut: relegCut, scorer: gotScorer },
+    lastResult: { pos: yourPos, move, prevDiv: div, champion: youChampion, earned, cut: relegCut, scorer: gotScorer, stadium: stadiumBonus > 0 },
     history: [...(base.history ?? []), record],
   }
 }
@@ -459,7 +484,7 @@ function Overlay({ children }: { children: React.ReactNode }) {
   )
 }
 
-type Phase = 'home' | 'transfer' | 'sell' | 'store' | 'squad' | 'scorers' | 'table' | 'auction' | 'fillsquad' | 'trophies'
+type Phase = 'home' | 'transfer' | 'sell' | 'store' | 'stadium' | 'squad' | 'scorers' | 'table' | 'auction' | 'fillsquad' | 'trophies'
 
 function Dinastia() {
   const { dispatch } = useEsc()
@@ -530,6 +555,7 @@ function Dinastia() {
       {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
       {(phase === 'scorers' || phase === 'table') && <LeagueScreen mode="past" save={save} onBack={() => setPhase('home')} />}
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
+      {phase === 'stadium' && <StadiumScreen save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'transfer' && <Transfer save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'sell' && <SellRoom save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'auction' && <WindowAuction save={save} persist={persist} onDone={() => setPhase('home')} />}
@@ -657,6 +683,7 @@ function MidWindow({ onContinue, onExit, partial, partialTable }: { onContinue: 
       {phase === 'squad' && <SquadScreen save={save} onBack={() => setPhase('home')} />}
       {(phase === 'scorers' || phase === 'table') && <LeagueScreen mode="live" save={save} liveTable={partialTable} liveScorers={partial} onBack={() => setPhase('home')} />}
       {phase === 'store' && <Store save={save} persist={persist} onBack={() => setPhase('home')} />}
+      {phase === 'stadium' && <StadiumScreen save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'transfer' && <Transfer save={save} persist={persist} onBack={() => setPhase('home')} midSeason />}
       {phase === 'sell' && <SellRoom save={save} persist={persist} onBack={() => setPhase('home')} />}
       {phase === 'auction' && <WindowAuction save={save} persist={persist} onDone={() => setPhase('home')} midSeason />}
@@ -704,6 +731,7 @@ function MidHome({ save, go, onContinue, onExit, partial, partialTable: _partial
         <div style={{ flex: 1 }}><Btn onClick={() => go('table')} bg="#fff">📊 Tabela + Artilheiros</Btn></div>
       </div>
       <Btn onClick={() => go('store')} bg={PURPLE} color="#fff">🛡️ Shopping · Escudo</Btn>
+      <Btn onClick={() => go('stadium')} bg="#fff">🏟️ {stadiumName(save)}{stadiumIncome(save) > 0 ? ` · +${stadiumIncome(save)}/temp` : ''}</Btn>
       <Btn onClick={onContinue} bg={GREEN} color="#fff">▶️ CONTINUAR — jogar o returno</Btn>
       <Btn onClick={onExit} bg="#fff">💾 Salvar e sair</Btn>
     </div>
@@ -920,7 +948,7 @@ function Home({ save, go, playSeason, onExit }: { save: Save; go: (p: Phase) => 
           Temporada passada: <b>{save.lastResult.pos}º</b> na {DIV_LABEL[save.lastResult.prevDiv]}{save.lastResult.champion ? ' 🏆 CAMPEÃO!' : ''} · {save.lastResult.move === 'up' ? '⬆️ subiu' : save.lastResult.move === 'down' ? '⬇️ caiu' : '➡️ ficou'}
           {typeof save.lastResult.earned === 'number' && (
             <div style={{ marginTop: 5, fontSize: 12, fontWeight: 800 }}>
-              <span style={{ color: GREEN }}>💰 +{save.lastResult.earned}</span>{save.lastResult.scorer ? ' · ⚽ artilheiro' : ''}{save.lastResult.cut ? <span style={{ color: RED }}> · queda −{save.lastResult.cut}</span> : ''}
+              <span style={{ color: GREEN }}>💰 +{save.lastResult.earned}</span>{save.lastResult.scorer ? ' · ⚽ artilheiro' : ''}{save.lastResult.stadium ? ' · 🏟️ estádio' : ''}{save.lastResult.cut ? <span style={{ color: RED }}> · queda −{save.lastResult.cut}</span> : ''}
             </div>
           )}
         </div>
@@ -943,6 +971,7 @@ function Home({ save, go, playSeason, onExit }: { save: Save; go: (p: Phase) => 
         <div style={{ flex: 1 }}><Btn onClick={() => go('squad')} bg="#fff">👥 Elenco</Btn></div>
         <div style={{ flex: 1 }}><Btn onClick={() => go('store')} bg={PURPLE} color="#fff">🛡️ Escudo</Btn></div>
       </div>
+      <Btn onClick={() => go('stadium')} bg="#fff">🏟️ {stadiumName(save)}{stadiumIncome(save) > 0 ? ` · +${stadiumIncome(save)}/temp` : ''}</Btn>
       <Btn onClick={() => go('table')} bg="#fff">📊 Tabela + Artilheiros</Btn>
       <Btn onClick={() => go('trophies')} bg="#fff">🏆 Sala de Troféus</Btn>
       <Btn onClick={onExit} bg="#fff">💾 Salvar e sair</Btn>
@@ -1055,6 +1084,117 @@ function Store({ save, persist, onBack }: { save: Save; persist: (s: Save) => vo
         </div>
       </div>
       <Btn onClick={apply} bg={GREEN} color="#fff" disabled={!canBuy}>{!changed ? '🛡️ Identidade atual' : save.coins < cost ? `💸 Faltam moedas (💰 ${cost})` : `🛒 Comprar identidade — 💰 ${cost}`}</Btn>
+      <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
+    </div>
+  )
+}
+
+// ─── ESTÁDIO — 4 setores (planta baixa), cada um completo rende moeda fixa
+// por temporada pra sempre. Nome é livre; some = usa "Arena Legends".
+function StadiumSVG({ invested }: { invested: Record<StadiumSector, number> }) {
+  const pct = (key: StadiumSector) => {
+    const s = STADIUM_SECTORS.find(x => x.key === key)!
+    return Math.min(1, (invested[key] ?? 0) / s.cost)
+  }
+  const geral = pct('geral'), cadeiras = pct('cadeiras'), camarote = pct('camarote'), visitante = pct('visitante')
+  const fillOf = (p: number) => p >= 1 ? GOLD : p > 0 ? '#FFE79A' : '#0C0C0C14'
+  const dashOf = (p: number) => p >= 1 ? undefined : '4 3'
+  return (
+    <svg viewBox="0 0 300 230" style={{ width: '100%', height: 'auto', display: 'block' }}>
+      <path d="M 60 8 L 240 8 L 228 40 L 72 40 Z" fill={fillOf(geral)} stroke={INK} strokeWidth={2.5} strokeDasharray={dashOf(geral)} />
+      <text x={150} y={20} textAnchor="middle" style={{ fontSize: 7.5, fontWeight: 700, fill: INK, ...OSWALD }}>GERAL</text>
+      <text x={150} y={32} textAnchor="middle" style={{ fontSize: 9, fontWeight: 700, fill: INK, ...OSWALD }}>{Math.round(geral * 100)}%</text>
+
+      <path d="M 72 190 L 228 190 L 240 222 L 60 222 Z" fill={fillOf(cadeiras)} stroke={INK} strokeWidth={2.5} strokeDasharray={dashOf(cadeiras)} />
+      <text x={150} y={202} textAnchor="middle" style={{ fontSize: 7.5, fontWeight: 700, fill: INK, ...OSWALD }}>CADEIRAS</text>
+      <text x={150} y={214} textAnchor="middle" style={{ fontSize: 9, fontWeight: 700, fill: INK, ...OSWALD }}>{Math.round(cadeiras * 100)}%</text>
+
+      <path d="M 242 44 L 292 60 L 292 170 L 242 186 Z" fill={fillOf(camarote)} stroke={INK} strokeWidth={2.5} strokeDasharray={dashOf(camarote)} />
+      <text x={267} y={110} textAnchor="middle" transform="rotate(90 267 110)" style={{ fontSize: 7.5, fontWeight: 700, fill: INK, ...OSWALD }}>CAMAROTE</text>
+      <text x={267} y={122} textAnchor="middle" transform="rotate(90 267 122)" style={{ fontSize: 9, fontWeight: 700, fill: INK, ...OSWALD }}>{Math.round(camarote * 100)}%</text>
+
+      <path d="M 8 60 L 58 44 L 58 186 L 8 170 Z" fill={fillOf(visitante)} stroke={INK} strokeWidth={2.5} strokeDasharray={dashOf(visitante)} />
+      <text x={33} y={110} textAnchor="middle" transform="rotate(-90 33 110)" style={{ fontSize: 7.5, fontWeight: 700, fill: INK, ...OSWALD }}>VISITANTE</text>
+      <text x={33} y={122} textAnchor="middle" transform="rotate(-90 33 122)" style={{ fontSize: 9, fontWeight: 700, fill: INK, ...OSWALD }}>{Math.round(visitante * 100)}%</text>
+
+      <rect x={72} y={44} width={156} height={142} rx={4} fill={GREEN} stroke={INK} strokeWidth={2.5} />
+      <rect x={72} y={44} width={19.5} height={142} fill="#166332" />
+      <rect x={111} y={44} width={19.5} height={142} fill="#166332" />
+      <rect x={150} y={44} width={19.5} height={142} fill="#166332" />
+      <rect x={189} y={44} width={19.5} height={142} fill="#166332" />
+      <line x1={72} y1={115} x2={228} y2={115} stroke={CREAM} strokeWidth={1.6} opacity={0.85} />
+      <circle cx={150} cy={115} r={16} fill="none" stroke={CREAM} strokeWidth={1.6} opacity={0.85} />
+      <circle cx={150} cy={115} r={1.6} fill={CREAM} opacity={0.85} />
+      <rect x={72} y={88} width={14} height={54} fill="none" stroke={CREAM} strokeWidth={1.6} opacity={0.85} />
+      <rect x={214} y={88} width={14} height={54} fill="none" stroke={CREAM} strokeWidth={1.6} opacity={0.85} />
+
+      {geral >= 1 && <><circle cx={66} cy={14} r={3} fill="#FFF6D8" stroke={INK} strokeWidth={1.5} /><circle cx={234} cy={14} r={3} fill="#FFF6D8" stroke={INK} strokeWidth={1.5} /></>}
+      {cadeiras >= 1 && <><circle cx={66} cy={216} r={3} fill="#FFF6D8" stroke={INK} strokeWidth={1.5} /><circle cx={234} cy={216} r={3} fill="#FFF6D8" stroke={INK} strokeWidth={1.5} /></>}
+    </svg>
+  )
+}
+function StadiumScreen({ save, persist, onBack }: { save: Save; persist: (s: Save) => void; onBack: () => void }) {
+  const invested = stadiumInvested(save)
+  const [nameDraft, setNameDraft] = useState(save.stadium?.name ?? '')
+  const income = stadiumIncome(save)
+  const doneCount = STADIUM_SECTORS.filter(s => invested[s.key] >= s.cost).length
+  const saveName = () => persist({ ...save, stadium: { invested, name: nameDraft.trim() || undefined } })
+  const invest = (key: StadiumSector, cost: number) => {
+    const cur = invested[key] ?? 0
+    const amount = Math.max(0, Math.min(STADIUM_INVEST_STEP, cost - cur, save.coins))
+    if (amount <= 0) return
+    persist({ ...save, coins: save.coins - amount, stadium: { name: save.stadium?.name, invested: { ...invested, [key]: cur + amount } } })
+  }
+  return (
+    <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>🏟️ Estádio</p>
+        <span style={{ fontWeight: 900, ...OSWALD, color: GREEN }}>💰 {save.coins}</span>
+      </div>
+      <div style={{ ...box('#EAF3FF'), padding: 9 }}>
+        <p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ Invista pra construir as 4 arquibancadas. Cada setor <b>completo</b> passa a render uma moeda extra <b>toda temporada, pra sempre</b> — some com o que já ganha por posição/título.</p>
+      </div>
+      <div style={{ ...box('#fff'), padding: 12 }}>
+        <StadiumSVG invested={invested} />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <span style={{ fontWeight: 800, fontSize: 12, color: '#888' }}>{doneCount}/4 setores prontos</span>
+      </div>
+      <div>
+        <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', ...OSWALD, marginBottom: 6 }}>Nome do estádio</p>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input value={nameDraft} onChange={e => setNameDraft(e.target.value)} maxLength={28} placeholder={STADIUM_DEFAULT_NAME}
+            style={{ flex: 1, minWidth: 0, border: `3px solid ${INK}`, borderRadius: 10, padding: '8px 10px', fontWeight: 900, fontSize: 14, ...OSWALD }} />
+          <Btn onClick={saveName} bg={GREEN} color="#fff">Salvar</Btn>
+        </div>
+      </div>
+      <div style={{ ...box(GOLD), padding: 14, textAlign: 'center' }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: '#7a5c00' }}>RENDA EXTRA POR TEMPORADA</div>
+        <div style={{ fontSize: 28, fontWeight: 900, ...OSWALD, color: income > 0 ? GREEN : INK }}>+{income} 💰</div>
+      </div>
+      {STADIUM_SECTORS.map(s => {
+        const cur = invested[s.key] ?? 0
+        const done = cur >= s.cost
+        const pctNum = Math.min(100, Math.round(cur / s.cost * 100))
+        return (
+          <div key={s.key} style={{ ...box('#fff'), padding: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 900, ...OSWALD }}>{done ? '✅' : '🚧'} {s.label}</span>
+              <span style={{ fontWeight: 800, fontSize: 12, color: done ? GREEN : '#888' }}>{done ? `renda +${s.income}/temp` : `${pctNum}%`}</span>
+            </div>
+            <div style={{ height: 8, borderRadius: 5, background: '#eee', marginTop: 8, overflow: 'hidden', border: `1px solid ${INK}22` }}>
+              <div style={{ height: '100%', width: `${pctNum}%`, background: done ? GREEN : GOLD }} />
+            </div>
+            {!done && (
+              <div style={{ marginTop: 8 }}>
+                <Btn onClick={() => invest(s.key, s.cost)} bg={GREEN} color="#fff" disabled={save.coins <= 0}>
+                  Investir 💰{Math.min(STADIUM_INVEST_STEP, s.cost - cur)} <span style={{ opacity: 0.8, fontWeight: 700 }}>({cur}/{s.cost})</span>
+                </Btn>
+              </div>
+            )}
+          </div>
+        )
+      })}
       <Btn onClick={onBack} bg="#fff">← Voltar</Btn>
     </div>
   )
