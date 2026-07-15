@@ -9,10 +9,10 @@ import { supabase } from '../lib/supabase'
 const ADMIN_EMAIL = 'diego.c.fonseca@gmail.com'
 // contas liberadas pra testar o MODO MANAGER (além do criador) — não dá acesso
 // ao painel do criador (#admin), só ao modo em teste.
-const MANAGER_TESTERS = [ADMIN_EMAIL, 'leafarcruz06@gmail.com'].map(e => e.toLowerCase())
+const MANAGER_TESTERS = [ADMIN_EMAIL, 'leafarcruz06@gmail.com', 'diego.c.fonsec@gmail.com'].map(e => e.toLowerCase())
 // contas liberadas pra testar a CARREIRA ONLINE (4 divisões) — em construção,
 // travada pro público. Inclui as duas variações do e-mail do amigo por garantia.
-const CAREER_ONLINE_TESTERS = [ADMIN_EMAIL, 'leafarcruz06@gmail.com', 'leafar06@gmail.com'].map(e => e.toLowerCase())
+const CAREER_ONLINE_TESTERS = [ADMIN_EMAIL, 'leafarcruz06@gmail.com', 'leafar06@gmail.com', 'diego.c.fonsec@gmail.com'].map(e => e.toLowerCase())
 const INK = '#0C0C0C'
 const GOLD = '#F5B301'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
