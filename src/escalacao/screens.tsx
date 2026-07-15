@@ -189,10 +189,10 @@ function CardFace({ c, big = false, surprise = false, highlight = false }: { c: 
 // Mostra SÓ a novidade mais recente, com X pra fechar. Ao fechar, guarda o id
 // no aparelho — só reaparece quando eu trocar o LATEST_NEWS por um id novo.
 const LATEST_NEWS = {
-  id: '2026-07-surpresa',
-  emoji: '🎁',
-  title: 'Jogador Surpresa no leilão!',
-  text: 'Um craque entra com o nome escondido — você arrisca no escuro e o nome só sai no martelo. E chegaram vários jogadores novos (lendas e folclóricos).',
+  id: '2026-07-baralho-europa',
+  emoji: '🌍',
+  title: 'Novo baralho: Auges da Liga Europa!',
+  text: 'Na partida rápida e na carreira, escolha jogar com os Auges do Brasileirão OU os Auges da Liga Europa — de Maradona e Zidane a Mbappé e Vini Jr, +300 craques europeus (com direito aos flops também 🃏).',
 }
 function NewsBanner() {
   const [dismissed, setDismissed] = useState(() => {
@@ -219,17 +219,20 @@ function NewsSection() {
       <div>
         <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>✨ No jogo</p>
         <div className="mt-1 space-y-1">
-          <p className="text-xs font-bold text-black/75">🎁 <b>Jogador Surpresa</b> no leilão — um craque entra com o nome escondido, revelado só no martelo.</p>
-          <p className="text-xs font-bold text-black/75">👑 <b>Selo de Lenda</b> na carta da revelação.</p>
+          <p className="text-xs font-bold text-black/75">🌍 <b>Dois baralhos</b> — escolha Auges do Brasileirão ou da Liga Europa na partida rápida e na carreira.</p>
+          <p className="text-xs font-bold text-black/75">🏟️ <b>Estádio no Modo Manager</b> — construa as arquibancadas e ganhe renda extra todo ano.</p>
+          <p className="text-xs font-bold text-black/75">🔴 <b>Salas ao vivo</b> — a lista de salas abertas mostra também as partidas já rolando.</p>
+          <p className="text-xs font-bold text-black/75">🔁 <b>Jogar de novo no online</b> — o host traz todo mundo de volta pra sala sem recomeçar do zero.</p>
+          <p className="text-xs font-bold text-black/75">🎁 <b>Jogador Surpresa</b> no leilão — nome escondido, revelado só no martelo.</p>
           <p className="text-xs font-bold text-black/75">🏆 <b>Leilão mais claro</b> — quem dá o maior lance leva, e dá pra apostar em várias vagas de uma vez.</p>
-          <p className="text-xs font-bold text-black/75">🏰 <b>Modo Manager</b> — em breve!</p>
         </div>
       </div>
       <div>
-        <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>⚽ Novos jogadores</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>Craques &amp; lendas:</b> Coutinho, Gilberto Silva, Mauro Silva, Geovani, Amarildo, Mozer, Assis, Calleri, Magno Alves, Kleberson, Mazinho, Euller (Filho do Vento).</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>Viraram lenda:</b> Raí, Roberto Dinamite, Bebeto, Reinaldo, Marcelinho Carioca.</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>Folclore:</b> Wellington Paulista, Fábio Júnior, Carlinhos Bala, Falcão (do Futsal).</p>
+        <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>🌍 Baralho da Liga Europa</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>Lendas:</b> Maradona, Di Stéfano, Cruyff, Zidane, Messi, Cristiano, Mbappé, van Basten, George Best, Puskás, Eusébio, Yashin.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>Craques:</b> Vini Jr, Bebeto, Henry, Totti, Del Piero, Cantona, Zola, Pirlo, Kaká, Ronaldinho (Barça), Rui Costa, Hagi.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>Promessas 💎:</b> Yamal, Bellingham, Musiala, Wirtz, João Félix, Pato, Endrick.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>Flops &amp; folclore 🃏:</b> Gabigol, Kléberson, Ali Dia, Bebé, Kerlon, Vampeta, Pedro, Denílson Show, Fellaini.</p>
       </div>
     </Box>
   )
