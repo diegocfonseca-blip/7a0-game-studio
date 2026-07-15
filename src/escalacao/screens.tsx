@@ -220,7 +220,6 @@ function NewsSection() {
         <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>✨ No jogo</p>
         <div className="mt-1 space-y-1">
           <p className="text-xs font-bold text-black/75">🌍 <b>Dois baralhos</b> — escolha Auges do Brasileirão ou da Liga Europa na partida rápida e na carreira.</p>
-          <p className="text-xs font-bold text-black/75">🏟️ <b>Estádio no Modo Manager</b> — construa as arquibancadas e ganhe renda extra todo ano.</p>
           <p className="text-xs font-bold text-black/75">🔴 <b>Salas ao vivo</b> — a lista de salas abertas mostra também as partidas já rolando.</p>
           <p className="text-xs font-bold text-black/75">🔁 <b>Jogar de novo no online</b> — o host traz todo mundo de volta pra sala sem recomeçar do zero.</p>
           <p className="text-xs font-bold text-black/75">🎁 <b>Jogador Surpresa</b> no leilão — nome escondido, revelado só no martelo.</p>
