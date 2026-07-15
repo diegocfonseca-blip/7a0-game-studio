@@ -929,6 +929,7 @@ const MEI_EU: C[] = [
   { name: "Lucas Paquetá", club: "Milan", year: 2019, fame: 1, lo: 66, hi: 82, folk: true },
   { name: "Gerson", club: "Roma", year: 2016, fame: 1, lo: 60, hi: 80, folk: true },
   { name: "Lucas Silva", club: "Real Madrid", year: 2015, fame: 1, lo: 58, hi: 78, folk: true },
+  { name: "Mauro Silva", club: "Deportivo La Coruña", year: 1996, fame: 4, lo: 83, hi: 89 },
 ]
 const ATA_EU: C[] = [
   { name: "Lionel Messi", club: "Barcelona", year: 2012, fame: 5, lo: 92, hi: 96 },
@@ -1057,6 +1058,7 @@ const ATA_EU: C[] = [
   { name: "Malcom", club: "Barcelona", year: 2018, fame: 1, lo: 62, hi: 80, folk: true },
   { name: "Alexis Sánchez", club: "Man United", year: 2018, fame: 1, lo: 66, hi: 82, folk: true },
   { name: "Andy Carroll", club: "Liverpool", year: 2011, fame: 1, lo: 60, hi: 80, folk: true },
+  { name: "Bebeto", club: "Deportivo La Coruña", year: 1993, fame: 4, lo: 85, hi: 91 },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
 
