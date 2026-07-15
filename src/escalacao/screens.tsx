@@ -5,7 +5,7 @@ import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
 import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision } from './store'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
-import { CATALOG, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
+import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
 import { DinastiaButton } from './dinastia'
 import { VADICO_LOGO } from './vadico'
@@ -321,6 +321,7 @@ export function EscSetup() {
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
+  const [league, setLeague] = useState<'br' | 'eu'>('br') // baralho: 🇧🇷 Brasileirão ou 🌍 Liga Europa
   // carreira: quais times da Série D viram seus rivais fixos (vazio = os padrões).
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
@@ -357,7 +358,7 @@ export function EscSetup() {
     const picks = career
       ? [...rivalPicks, ...DIVISION_TEAMS['D'].map(t => t.team).filter(t => !rivalPicks.includes(t))].slice(0, rivals)
       : undefined
-    dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks })
+    dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league })
   }
   return (
     <Shell>
@@ -378,6 +379,19 @@ export function EscSetup() {
         </Box>
       )}
       <Box className="p-4 space-y-4">
+        <div>
+          <p className="text-xs font-black uppercase mb-1">Baralho de craques</p>
+          <div className="grid grid-cols-2 gap-2">
+            {([['br', '🇧🇷 Brasileirão'], ['eu', '🌍 Liga Europa']] as const).map(([id, label]) => (
+              <button key={id} onClick={() => setLeague(id)}
+                className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
+                style={{ backgroundColor: league === id ? GOLD : '#fff', boxShadow: league === id ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] font-semibold text-black/55 mt-1">{league === 'br' ? 'Auges do futebol brasileiro — de Pelé a Estêvão.' : 'Auges nos clubes europeus — de Yashin a Mbappé.'}</p>
+        </div>
         <div>
           <p className="text-xs font-black uppercase mb-1">Nome do seu time</p>
           <input
@@ -1893,6 +1907,9 @@ const CARD_PICK_SECONDS = 45
 // sobrescreve o que foi salvo na coleta — assim nível/clube/ano acompanham as
 // atualizações do catálogo (ex.: Lúcio deixou de ser lenda; Diego é do Santos).
 const CARD_META = new Map<string, { fame: number; club: string; year: number; folk?: boolean; promessa?: boolean }>()
+// europeus primeiro; o brasileiro entra por último e VENCE em nomes iguais
+// (ex.: Kaká/Cafu existem nos dois — a coleta comum é no baralho brasileiro).
+Object.values(CATALOG_EU).flat().forEach(c => CARD_META.set(c.name, { fame: c.fame, club: c.club, year: c.year, folk: c.folk, promessa: c.promessa }))
 Object.values(CATALOG).flat().forEach(c => CARD_META.set(c.name, { fame: c.fame, club: c.club, year: c.year, folk: c.folk, promessa: c.promessa }))
 
 export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void }) {

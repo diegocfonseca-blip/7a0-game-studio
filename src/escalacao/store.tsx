@@ -5,7 +5,14 @@ import type {
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { CATALOG, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS } from './data'
+import { CATALOG, CATALOG_EU, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS } from './data'
+
+// baralho ativo da partida atual (só solo troca): 🇧🇷 Brasileirão ou 🌍 Liga
+// Europa. buildDeck e makeBotSquad leem daqui. É setado no início de cada
+// partida (START / RESTORE_CAREER / CAREER_ADVANCE) e forçado pra BR no
+// online e no Manager, que sempre usam o baralho brasileiro.
+let ACTIVE_CATALOG = CATALOG
+function setActiveCatalog(league: 'br' | 'eu' | undefined) { ACTIVE_CATALOG = league === 'eu' ? CATALOG_EU : CATALOG }
 import type { CareerTeam } from './data'
 import { supabase } from '../lib/supabase'
 import { logPlay, logVisit, heartbeat } from './analytics'
@@ -67,7 +74,7 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   let totalCount = 0
   for (const pos of SECTORS) {
     const demand = managers.reduce((s, m) => s + slotsOf(m, pos), 0)
-    const catalog = shuffle(CATALOG[pos], rng)
+    const catalog = shuffle(ACTIVE_CATALOG[pos], rng)
     const realFree = catalog.filter(c => !used.has(c.name)).length
     // margem adaptativa: queremos "sempre dobrado" (demand × margin), mas nunca
     // pedir mais jogadores REAIS do que existem na posição — senão vira fake.
@@ -471,6 +478,7 @@ export interface CareerSave {
   prevDivision?: Division         // divisão da temporada que acabou (pro banner)
   rivals?: CareerRival[]          // rivais fixos (com divisão/retrospecto próprios)
   rivalCount?: number             // quantos rivais de leilão (3/5/7/9)
+  deckLeague?: 'br' | 'eu'        // baralho da carreira (opcional p/ saves antigos = br)
 }
 
 // rivais fixos da carreira: começam TODOS na Série D (com você). Depois cada um
@@ -582,7 +590,7 @@ export function buildCareerSave(s: EscState): CareerSave | null {
     titles: s.careerTitles + (res.wonTitle ? 1 : 0),
     titlesA: s.careerTitlesA + (res.wonTitle && s.careerDivision === 'A' ? 1 : 0),
     pendingDecision: true, result: res.result, prevDivision: s.careerDivision,
-    rivals: res.rivals, rivalCount: s.careerRivalCount,
+    rivals: res.rivals, rivalCount: s.careerRivalCount, deckLeague: s.deckLeague,
   }
 }
 
@@ -854,7 +862,7 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
   const squad: WonCard[] = []
   for (const pos of SECTORS) {
     const need = FORMATIONS[formation][pos]
-    const shuffled = shuffle(CATALOG[pos], rng).filter(c => !used.has(c.name))
+    const shuffled = shuffle(ACTIVE_CATALOG[pos], rng).filter(c => !used.has(c.name))
     const pool = tier === 'strong' ? shuffled.filter(c => c.fame >= 3)
       : tier === 'weak' ? shuffled.filter(c => c.fame <= 2)
       : shuffled.filter(c => c.fame === 2 || c.fame === 3)
@@ -939,7 +947,7 @@ const INITIAL: EscState = {
   monte: [], monteOrder: [], monteIdx: 0,
   league: [], fixtures: [], round: 0, tactics: {},
   lastResults: [], news: [], champion: null,
-  careerDivision: null, careerIntent: false, careerTitles: 0, careerTitlesA: 0, careerRivalCount: 5, careerRivals: [],
+  deckLeague: 'br', careerDivision: null, careerIntent: false, careerTitles: 0, careerTitlesA: 0, careerRivalCount: 5, careerRivals: [],
   phaseDeadline: null, scorers: [],
   monteDeadline: null, cerimoniaDeadline: null,
   cpuAtkAdj: 0, cpuDefAdj: 0, streamMode: false,
@@ -958,7 +966,7 @@ type Action =
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' }
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
@@ -1256,6 +1264,10 @@ export function reducer(state: EscState, action: Action): EscState {
       s.onlineMode = 'cpu'
       s.isHost = true
       s.humanCount = 1
+      // baralho escolhido (só solo): Brasileirão ou Liga Europa. Manager (que
+      // também dispara START) sempre usa BR — não manda league.
+      s.deckLeague = action.dinastia ? 'br' : (action.league ?? 'br')
+      setActiveCatalog(s.deckLeague)
       // carreira: começa na Série D. Partida rápida: sem divisão.
       s.careerDivision = action.career ? 'D' : null
       s.careerIntent = false
@@ -1291,6 +1303,7 @@ export function reducer(state: EscState, action: Action): EscState {
     }
     case 'START_ONLINE': {
       s.onlineMode = 'online'
+      s.deckLeague = 'br'; setActiveCatalog('br') // online sempre no baralho brasileiro
       s.roomId = action.roomId
       s.roomCode = action.roomCode
       s.roomName = action.roomName
@@ -1472,6 +1485,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // divisão de destino com o novo elenco de rivais (quem subiu/caiu junto
       // continua; quem se separou sai e entra time da divisão nova).
       if (!s.careerDivision) return s
+      setActiveCatalog(s.deckLeague) // mantém o baralho da carreira (reload zera o ponteiro do módulo)
       const res = resolveCareerEnd(s)
       if (res.wonTitle) s.careerTitles++
       if (res.wonTitle && s.careerDivision === 'A') s.careerTitlesA++ // estrela ⭐
@@ -1532,6 +1546,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const sv = action.save
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
       s.roomId = ''; s.roomCode = ''; s.streamMode = false
+      s.deckLeague = sv.deckLeague ?? 'br'; setActiveCatalog(s.deckLeague) // baralho da carreira salva
       s.careerDivision = sv.division; s.careerIntent = false; s.careerTitles = sv.titles; s.careerTitlesA = sv.titlesA ?? 0
       s.seasonNo = sv.seasonNo
       s.careerRivalCount = sv.rivalCount ?? 5
