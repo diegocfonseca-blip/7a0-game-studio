@@ -23,7 +23,7 @@ const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
 export type DeckChoice = 'br' | 'eu' | 'both'
 const DECKS: { id: DeckChoice; label: string; desc: string }[] = [
-  { id: 'br', label: '🇧🇷 Brasileirão', desc: 'Auges do futebol brasileiro — de Pelé a Estêvão.' },
+  { id: 'br', label: '🇧🇷 Brasileirão', desc: 'Auges do futebol brasileiro — de Pelé a Obina.' },
   { id: 'eu', label: '🌍 Liga Europa', desc: 'Auges nos clubes europeus — de Yashin a Mbappé.' },
   { id: 'both', label: '🌎 Os dois juntos', desc: 'Brasileirão + Europa (~700 craques). Nessa opção quase não sobra fake.' },
 ]
@@ -278,7 +278,7 @@ export function CareerOnlineGame() {
 
       <div style={{ ...box(INK), padding: 16, color: '#fff', marginBottom: 12 }}>
         <p style={{ fontWeight: 900, fontSize: 22, ...OSWALD, margin: 0 }}>4 divisões, a galera junta</p>
-        <p style={{ fontSize: 13, opacity: 0.85, fontWeight: 600, marginTop: 4 }}>Os amigos ficam espalhados pela pirâmide (Série A à D). Todos jogam a mesma rodada e sobem/caem juntos.</p>
+        <p style={{ fontSize: 13, opacity: 0.85, fontWeight: 600, marginTop: 4 }}>Os amigos ficam espalhados pela pirâmide (Série A à D). Cada técnico disputa a SUA divisão e sobe ou cai por conta própria — o que junta vocês é o mesmo mundo e a mesma rodada.</p>
       </div>
 
       <div style={{ ...box('#EAF3FF'), padding: 12, marginBottom: 12 }}>
