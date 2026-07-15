@@ -924,6 +924,7 @@ const MEI_EU: C[] = [
   { name: "Eric Djemba-Djemba", club: "Man United", year: 2004, fame: 1, lo: 54, hi: 74, folk: true },
   { name: "Fred (volante)", club: "Man United", year: 2019, fame: 1, lo: 62, hi: 80, folk: true },
   { name: "Marouane Fellaini", club: "Man United", year: 2016, fame: 1, lo: 66, hi: 82, folk: true },
+  { name: "Vampeta", club: "PSG", year: 2000, fame: 1, lo: 58, hi: 78, folk: true },
 ]
 const ATA_EU: C[] = [
   { name: "Lionel Messi", club: "Barcelona", year: 2012, fame: 5, lo: 92, hi: 96 },
@@ -985,7 +986,7 @@ const ATA_EU: C[] = [
   { name: "Lamine Yamal", club: "Barcelona", year: 2024, fame: 4, lo: 80, hi: 90, promessa: true },
   { name: "Endrick", club: "Real Madrid", year: 2024, fame: 3, lo: 74, hi: 88, promessa: true },
   { name: "Marcus Rashford", club: "Man United", year: 2016, fame: 3, lo: 76, hi: 86, promessa: true },
-  { name: "Denílson (Betis)", club: "Real Betis", year: 1998, fame: 3, lo: 70, hi: 86, promessa: true, folk: true },
+  { name: "Denílson Show", club: "Real Betis", year: 1998, fame: 3, lo: 74, hi: 85, folk: true },
   { name: "Bojan Krkić", club: "Barcelona", year: 2008, fame: 3, lo: 72, hi: 85, promessa: true },
   { name: "Freddy Adu", club: "Benfica", year: 2007, fame: 2, lo: 58, hi: 80, promessa: true, folk: true },
   { name: "Robin van Persie", club: "Man United", year: 2013, fame: 4, lo: 86, hi: 92 },
@@ -1042,8 +1043,10 @@ const ATA_EU: C[] = [
   { name: "Bebé", club: "Man United", year: 2010, fame: 1, lo: 52, hi: 76, folk: true },
   { name: "Ali Dia", club: "Southampton", year: 1996, fame: 1, lo: 46, hi: 72, folk: true },
   { name: "Kerlon", club: "Chievo", year: 2008, fame: 1, lo: 58, hi: 80, folk: true },
+  { name: "Michael Olise", club: "Bayern", year: 2024, fame: 4, lo: 82, hi: 89 },
   { name: "Stéphane Guivarc'h", club: "Newcastle", year: 1998, fame: 1, lo: 60, hi: 80, folk: true },
   { name: "Andriy Voronin", club: "Liverpool", year: 2008, fame: 1, lo: 58, hi: 78, folk: true },
+  { name: "Pedro", club: "Fiorentina", year: 2020, fame: 1, lo: 60, hi: 80, folk: true },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
 
