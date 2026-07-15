@@ -10,6 +10,9 @@ const ADMIN_EMAIL = 'diego.c.fonseca@gmail.com'
 // contas liberadas pra testar o MODO MANAGER (além do criador) — não dá acesso
 // ao painel do criador (#admin), só ao modo em teste.
 const MANAGER_TESTERS = [ADMIN_EMAIL, 'leafarcruz06@gmail.com'].map(e => e.toLowerCase())
+// contas liberadas pra testar a CARREIRA ONLINE (4 divisões) — em construção,
+// travada pro público. Inclui as duas variações do e-mail do amigo por garantia.
+const CAREER_ONLINE_TESTERS = [ADMIN_EMAIL, 'leafarcruz06@gmail.com', 'leafar06@gmail.com'].map(e => e.toLowerCase())
 const INK = '#0C0C0C'
 const GOLD = '#F5B301'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
@@ -77,6 +80,19 @@ export function useCanManager() {
   useEffect(() => {
     let alive = true
     const check = (email?: string | null) => MANAGER_TESTERS.includes((email ?? '').toLowerCase())
+    supabase.auth.getUser().then(({ data }) => { if (alive) setOk(check(data?.user?.email)) })
+    const { data: sub } = supabase.auth.onAuthStateChange((_, s) => setOk(check(s?.user?.email)))
+    return () => { alive = false; sub.subscription.unsubscribe() }
+  }, [])
+  return ok
+}
+
+// mesma ideia do useCanManager, mas pra CARREIRA ONLINE (4 divisões) em teste.
+export function useCanCareerOnline() {
+  const [ok, setOk] = useState(false)
+  useEffect(() => {
+    let alive = true
+    const check = (email?: string | null) => CAREER_ONLINE_TESTERS.includes((email ?? '').toLowerCase())
     supabase.auth.getUser().then(({ data }) => { if (alive) setOk(check(data?.user?.email)) })
     const { data: sub } = supabase.auth.onAuthStateChange((_, s) => setOk(check(s?.user?.email)))
     return () => { alive = false; sub.subscription.unsubscribe() }

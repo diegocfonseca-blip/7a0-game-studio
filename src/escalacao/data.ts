@@ -1295,6 +1295,20 @@ const ATA_EU: C[] = [
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
 
+// ─── BARALHO COMBINADO: os dois juntos (só carreira online, por enquanto) ──
+// Junta brasileiro + europeu. Nomes iguais entre os dois baralhos são de clubes
+// diferentes (Kaká do Milan e Kaká do SP, Vini Jr do Flamengo e do Real) — e
+// isso É desejado: viram cartas distintas. Como cada baralho já não tem repetido
+// interno, não existe carta 100% idêntica (dois Obinas). Com ~700 reais no total,
+// quase não sobra fake pra completar os times.
+export const CATALOG_BOTH: Record<Sector, C[]> = {
+  GOL: [...CATALOG.GOL, ...CATALOG_EU.GOL],
+  LAT: [...CATALOG.LAT, ...CATALOG_EU.LAT],
+  ZAG: [...CATALOG.ZAG, ...CATALOG_EU.ZAG],
+  MEI: [...CATALOG.MEI, ...CATALOG_EU.MEI],
+  ATA: [...CATALOG.ATA, ...CATALOG_EU.ATA],
+}
+
 // nomes marcados como PROMESSA (5º tier) — usado no álbum quando o flag não vem no dado
 export const PROMESSA_SET = new Set([...Object.values(CATALOG).flat(), ...Object.values(CATALOG_EU).flat()].filter(c => c.promessa).map(c => c.name))
 
