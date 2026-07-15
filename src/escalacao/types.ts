@@ -201,6 +201,7 @@ export interface EscState {
   cpuAtkAdj: number // ajuste de força dos CPUs (online): escala os bots à média dos humanos
   cpuDefAdj: number
   streamMode: boolean // sala de stream: esconde os VALORES dos lances na tela (pra live)
+  deckLeague: 'br' | 'eu' // baralho escolhido: 🇧🇷 Auges do Brasileirão ou 🌍 Auges da Liga Europa (só solo)
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   dinastia?: boolean // modo Dinastia (teste): usa o leilão real; a economia assume após a cerimônia
   dinastiaBudget?: number // orçamento (moedas do clube) que o pregão do Dinastia usa
