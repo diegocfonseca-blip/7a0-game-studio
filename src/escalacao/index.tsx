@@ -4,6 +4,7 @@ import { EscIntro, EscSetup, EscAuction, EscMonte, EscCerimonia, EscSeason, EscE
 import { EscLobby } from './lobby'
 import { AdminPanel } from './admin'
 import { DinastiaGame } from './dinastia'
+import { CareerOnlineGame } from './careeronline'
 
 function Router() {
   const { state } = useEsc()
@@ -29,6 +30,7 @@ export default function EscalacaoGame() {
       <Router />
       <AdminPanel />
       <DinastiaGame />
+      <CareerOnlineGame />
     </EscProvider>
   )
 }

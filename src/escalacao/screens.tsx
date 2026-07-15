@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase'
 import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
 import { DinastiaButton } from './dinastia'
+import { CareerOnlineButton } from './careeronline'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 
@@ -297,6 +298,7 @@ export function EscIntro() {
         </div>
         <AdminButton />
         <DinastiaButton />
+        <CareerOnlineButton />
       </div>
       <CardAccountNote />
       <Btn onClick={shareGame} className="w-full" bg="#fff">
