@@ -16,7 +16,7 @@ type AuthTab = 'login' | 'register'
 
 interface RoomPlayer { user_id: string; manager_name: string; player_index: number }
 type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean }
-interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS }
+interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
 const INK = '#0C0C0C'
@@ -409,7 +409,7 @@ export function EscLobby() {
     // só salas recentes: uma sala de horas atrás é sala abandonada
     const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
     const { data: rooms } = await supabase.from('game_rooms')
-      .select('id, code, host_id, max_players, status, game_state')
+      .select('id, code, host_id, max_players, status, game_state, updated_at')
       .in('status', ['waiting', 'started'])
       .eq('game_state->>__game', GAME_TAG)
       .gte('created_at', since)
@@ -422,11 +422,17 @@ export function EscLobby() {
       const { data: pls } = await supabase.from('room_players').select('room_id').in('room_id', ids)
       for (const p of (pls ?? []) as { room_id: string }[]) counts[p.room_id] = (counts[p.room_id] ?? 0) + 1
     }
+    // "jogo rolando" só conta se alguém salvou recentemente: o host grava um
+    // heartbeat a cada 3s enquanto a partida tá aberta numa aba de verdade.
+    // Sem isso, uma sala cujo host sumiu (fechou a aba, caiu) ficava marcada
+    // como "started" pra sempre — às vezes dias — e aparecia como ao vivo.
+    const ROOM_HEARTBEAT_MS = 30_000
+    const isFresh = (r: RoomInfo) => !!r.updated_at && Date.now() - new Date(r.updated_at).getTime() < ROOM_HEARTBEAT_MS
     // só salas vivas: sem ninguém dentro (count 0) é sala fantasma abandonada.
     // esperando gente aparece primeiro (é nelas que dá pra entrar); as com
-    // jogo rolando ficam depois, só como aviso de "sala ocupada".
+    // jogo rolando de verdade (heartbeat fresco) ficam depois, só como aviso.
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
-      .filter(r => r.count >= 1)
+      .filter(r => r.count >= 1 && (r.status !== 'started' || isFresh(r)))
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
