@@ -10,7 +10,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useCanCareerOnline } from './admin'
-import { DIVISION_TEAMS } from './data'
+import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_BOTH } from './data'
 
 const CREAM = '#F4ECD6'
 const INK = '#0C0C0C'
@@ -73,6 +73,30 @@ function simSeason(world: Record<Div, Team[]>, seed: number): Record<Div, Team[]
   return out
 }
 
+// artilharia geral: atribui os gols de cada time a craques do baralho escolhido
+// (BR mostra brasileiros, EU europeus, both os dois). Cada time ganha 2
+// goleadores; leva uma fatia dos gols do time — o resto é "dividido no elenco".
+interface Scorer { name: string; team: string; div: Div; goals: number; you?: boolean }
+function pickScorers(world: Record<Div, Team[]>, deck: DeckChoice, seed: number): Scorer[] {
+  const cat = deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : CATALOG
+  const pool = [...cat.ATA, ...cat.MEI].map(c => c.name)
+  const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
+  const sh = pool.slice()
+  for (let i = sh.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1));[sh[i], sh[j]] = [sh[j], sh[i]] }
+  let pi = 0
+  const rows: Scorer[] = []
+  for (const d of DIVS) for (const t of world[d]) {
+    const s1 = sh[pi++ % sh.length], s2 = sh[pi++ % sh.length]
+    const g1 = Math.round(t.gf * (0.26 + rng() * 0.12))
+    const g2 = Math.round(t.gf * (0.15 + rng() * 0.08))
+    if (g1 > 0) rows.push({ name: s1, team: t.name, div: d, goals: g1, you: t.you })
+    if (g2 > 0) rows.push({ name: s2, team: t.name, div: d, goals: g2, you: t.you })
+  }
+  rows.sort((a, b) => b.goals - a.goals)
+  return rows.slice(0, 20)
+}
+const DIV_TAG: Record<Div, { l: string; bg: string }> = { A: { l: 'A', bg: '#B8892B' }, B: { l: 'B', bg: '#3E8E4E' }, C: { l: 'C', bg: '#9A7B33' }, D: { l: 'D', bg: '#7A7460' } }
+
 // botão da home: público vê o teaser "(em breve)"; só tester abre
 export function CareerOnlineButton() {
   const can = useCanCareerOnline()
@@ -97,8 +121,8 @@ function Overlay({ children }: { children: React.ReactNode }) {
 }
 const box = (bg = '#fff'): React.CSSProperties => ({ background: bg, border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}` })
 
-// classificação das 4 divisões (empilhadas, sem abas)
-function Standings({ world, onBack }: { world: Record<Div, Team[]>; onBack: () => void }) {
+// classificação das 4 divisões (empilhadas, sem abas) + artilharia geral
+function Standings({ world, scorers, onBack }: { world: Record<Div, Team[]>; scorers: Scorer[]; onBack: () => void }) {
   const zone = (i: number, n: number) => i < 4 ? '#D6E9FA' : i >= n - 4 ? '#F9D8D3' : undefined
   return (
     <div>
@@ -127,6 +151,25 @@ function Standings({ world, onBack }: { world: Record<Div, Team[]>; onBack: () =
           </table>
         </div>
       ))}
+
+      <div style={{ ...box('#fff'), padding: 10, marginBottom: 12 }}>
+        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, marginBottom: 2 }}>⚽ Artilharia geral</p>
+        <p style={{ fontSize: 10, fontWeight: 600, color: '#8a8368', marginBottom: 7 }}>Goleadores de todas as divisões · o selo mostra a série</p>
+        {scorers.map((s, i) => (
+          <div key={s.name + s.team + i} style={{ display: 'grid', gridTemplateColumns: '20px 1fr auto', alignItems: 'center', gap: 7, padding: '3px 2px', borderTop: i ? '1px solid rgba(0,0,0,0.08)' : 'none', background: s.you ? GOLD : undefined, borderRadius: s.you ? 5 : 0 }}>
+            <span style={{ fontWeight: 900, ...OSWALD, textAlign: 'center' }}>{i + 1}</span>
+            <span style={{ minWidth: 0 }}>
+              <span style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD }}>
+                <span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>
+                {s.name}
+              </span>
+              <span style={{ fontSize: 10, color: '#7a7460', fontWeight: 600, display: 'block' }}>{s.you ? '👤 ' : ''}{s.team}</span>
+            </span>
+            <span style={{ fontWeight: 900, ...OSWALD, color: GREEN }}>{s.goals} <span style={{ fontSize: 10, color: '#8a8368' }}>⚽</span></span>
+          </div>
+        ))}
+      </div>
+
       <button onClick={onBack} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 15, background: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>← Voltar</button>
     </div>
   )
@@ -144,14 +187,17 @@ export function CareerOnlineGame() {
   const [deck, setDeck] = useState<DeckChoice>('br')
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9))
   const [showTable, setShowTable] = useState(false)
-  // gera o mundo e simula uma temporada (memo pelo seed — "nova simulação" troca o seed)
-  const simulated = useMemo(() => simSeason(buildWorld('Meu Time', seed), seed), [seed])
+  // gera o mundo, simula a temporada e a artilharia (memo pelo seed+baralho)
+  const sim = useMemo(() => {
+    const world = simSeason(buildWorld('Meu Time', seed), seed)
+    return { world, scorers: pickScorers(world, deck, seed) }
+  }, [seed, deck])
 
   if (!open || !can) return null
   const close = () => { window.location.hash = '' }
 
   if (showTable) {
-    return <Overlay><Standings world={simulated} onBack={() => setShowTable(false)} /></Overlay>
+    return <Overlay><Standings world={sim.world} scorers={sim.scorers} onBack={() => setShowTable(false)} /></Overlay>
   }
 
   return (
