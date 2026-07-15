@@ -393,6 +393,7 @@ export function EscSetup() {
             ))}
           </div>
           <p className="text-[11px] font-semibold text-black/55 mt-1">{league === 'br' ? 'Auges do futebol brasileiro — de Pelé a Estêvão.' : 'Auges nos clubes europeus — de Yashin a Mbappé.'}</p>
+          {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>🃏 Quer resenha? Só aqui tem até o Walter Minhoca.</p>}
         </div>
         <div>
           <p className="text-xs font-black uppercase mb-1">Nome do seu time</p>
