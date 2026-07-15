@@ -426,7 +426,10 @@ export function EscLobby() {
     // heartbeat a cada 3s enquanto a partida tá aberta numa aba de verdade.
     // Sem isso, uma sala cujo host sumiu (fechou a aba, caiu) ficava marcada
     // como "started" pra sempre — às vezes dias — e aparecia como ao vivo.
-    const ROOM_HEARTBEAT_MS = 30_000
+    // folga generosa: navegador em segundo plano (ex.: host foi mandar o
+    // convite por fora) pode atrasar o salvamento por um tempo — não é sinal
+    // de sala abandonada de verdade.
+    const ROOM_HEARTBEAT_MS = 60_000
     const isFresh = (r: RoomInfo) => !!r.updated_at && Date.now() - new Date(r.updated_at).getTime() < ROOM_HEARTBEAT_MS
     // só salas vivas: sem ninguém dentro (count 0) é sala fantasma abandonada.
     // esperando gente aparece primeiro (é nelas que dá pra entrar); as com
