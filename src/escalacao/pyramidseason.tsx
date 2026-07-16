@@ -542,8 +542,6 @@ export function PyramidSeasonScreen() {
           )
         )}
 
-        <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>👤 Você · 🎨 cada jogador com sua cor · 🔵 Acesso (G4) · 🔴 Queda (Z4)</p>
-
         {/* toggle: os jogos (placares) ↔ as tabelas + artilharia */}
         <div style={{ display: 'flex', border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
           {([['jogos', '🗓️ Jogos'], ['tabelas', '📊 Tabelas'], ['elenco', '👥 Elenco']] as [typeof tab, string][]).map(([t, label]) => (
@@ -552,10 +550,9 @@ export function PyramidSeasonScreen() {
         </div>
 
         {tab === 'elenco' ? (
-          <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} />
-        ) : tab === 'jogos' && hasMatches ? (
           <>
-            {/* tática do SEU time — POR JOGO. Vale do PRÓXIMO jogo em diante. */}
+            {/* tática do SEU time — POR JOGO, vale do PRÓXIMO jogo em diante. Agora
+                fica AQUI no topo do elenco (era na aba Jogos). */}
             {!done && (
               <>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 6 }}>
@@ -569,6 +566,10 @@ export function PyramidSeasonScreen() {
                 <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>Vale do próximo jogo em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</p>
               </>
             )}
+            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} />
+          </>
+        ) : tab === 'jogos' && hasMatches ? (
+          <>
             {myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished={done} col={myCol} roundKey={round} />}
             {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
           </>
