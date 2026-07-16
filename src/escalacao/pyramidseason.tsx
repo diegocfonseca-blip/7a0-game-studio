@@ -288,7 +288,9 @@ export function myStanding(tables: Record<Div, SimTeam[]>): { div: Div; pos: num
   return null
 }
 const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
-const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // MESMO ritmo dos outros modos (~4,7s/rodada, temporada ~3 min)
+// ritmo da carreira online: +1s por jogo em relação aos outros modos, pra dar
+// tempo de decidir tática/Time A-B durante a partida (~5,7s/rodada). Só aqui.
+const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) + 1000
 
 // CADA usuário (você e amigos) tem UMA cor fixa e ÚNICA: `solid` (nome/chip) +
 // `light` (fundo da faixa/linha). Nada de preto — o preto já é dos botões. A cor
