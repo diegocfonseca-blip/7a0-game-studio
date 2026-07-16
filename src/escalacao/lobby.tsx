@@ -94,9 +94,11 @@ export function useResumableRoom() {
           .sort((a, b) => (b.updated_at ?? '').localeCompare(a.updated_at ?? ''))[0] ?? null
       }
       if (!rd || !alive) return
-      // confirma que ainda sou um dos técnicos da sala
+      // confirma que ainda sou um dos técnicos da sala. O HOST é dono do save
+      // (host_id) e pode voltar mesmo sem vaga (ex.: apertou "sair da sala").
+      const amHostHere = rd.host_id === user.id
       const { data: mySlot } = await supabase.from('room_players').select('user_id').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
-      if (!mySlot || !alive) return
+      if ((!mySlot && !amHostHere) || !alive) return
       saveRoom(rd.id) // reancora o ponteiro local pra próxima vez
       roomRef.current = rd
       setInfo({ code: rd.code })
@@ -111,10 +113,16 @@ export function useResumableRoom() {
     const gs = (freshRoom?.game_state ?? rd.game_state) as GS | undefined
     const { data: allPlayers } = await supabase.from('room_players').select('*').eq('room_id', rd.id).order('player_index')
     const sorted = (allPlayers ?? []) as RoomPlayer[]
-    const myPl = sorted.find(p => p.user_id === user.id)
+    const amHost = rd.host_id === user.id
+    let myPl = sorted.find(p => p.user_id === user.id)
+    if (!myPl && amHost) {
+      // host tinha saído (vaga removida) — recria a vaga 0 pra voltar ao próprio save
+      const nm = ((gs?.managers ?? []) as { isHuman?: boolean; name?: string }[]).find(m => m.isHuman)?.name ?? 'Host'
+      await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: 0, manager_name: nm, is_ready: true }).then(() => {}, () => {})
+      myPl = { room_id: rd.id, user_id: user.id, player_index: 0, manager_name: nm, is_ready: true } as RoomPlayer
+    }
     if (!myPl) return
     saveRoom(rd.id)
-    const amHost = rd.host_id === user.id
     const inProgress = !!gs && Array.isArray(gs.managers) && gs.managers.length > 0
       && !!gs.screen && gs.screen !== 'intro' && gs.screen !== 'lobby'
     // a faixa só aparece pra partida EM ANDAMENTO → aqui sempre restauramos.
@@ -124,11 +132,14 @@ export function useResumableRoom() {
     }
   }, [dispatch])
 
-  // sair da sala salva (libera a vaga + esconde a faixa) pra começar uma nova
+  // sair da sala salva: esconde a faixa. Em CARREIRA a vaga NÃO é removida (o
+  // save é seu e persiste — "sair da sala" ≠ "remover sala"). Só no rápido libera.
   const leave = useCallback(async () => {
     const rd = roomRef.current, user = userRef.current
+    const gs = rd?.game_state as GS | undefined
+    const isCareer = gs?.mode === 'carreira' || (gs as { careerOnline?: boolean } | undefined)?.careerOnline
     try {
-      if (rd && user) await supabase.from('room_players').delete().eq('room_id', rd.id).eq('user_id', user.id)
+      if (rd && user && !isCareer) await supabase.from('room_players').delete().eq('room_id', rd.id).eq('user_id', user.id)
     } catch { /* silencioso */ }
     clearSavedRoom()
     setInfo(null)
@@ -368,7 +379,10 @@ export function EscLobby() {
   // "Sair da sala": libera a vaga e limpa — aí pode começar/entrar noutra.
   async function leaveResume() {
     if (!resumeRoom || !user) return
-    await supabase.from('room_players').delete().eq('room_id', resumeRoom.id).eq('user_id', user.id)
+    const gs = resumeRoom.game_state as GS | undefined
+    const isCareer = gs?.mode === 'carreira' || (gs as { careerOnline?: boolean } | undefined)?.careerOnline
+    // carreira: NÃO remove a vaga (o save persiste); só some a faixa. Rápido libera.
+    if (!isCareer) await supabase.from('room_players').delete().eq('room_id', resumeRoom.id).eq('user_id', user.id)
     clearSavedRoom()
     setResumeRoom(null)
   }
