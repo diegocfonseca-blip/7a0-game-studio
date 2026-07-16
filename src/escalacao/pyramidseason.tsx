@@ -651,7 +651,9 @@ export function ReserveListScreen() {
   const colors = useMemo(() => playerColors(humanIds, youId, state.seed), [humanIds.join(','), youId, state.seed])
   const col = colors[youId] ?? PLAYER_PALETTE[0]
   const need = FORMATIONS[mgr?.formation ?? '4-3-3']
+  const marketUnlocked = state.seasonNo >= 3 // vender/negociar só libera na 3ª temporada
   const canList = (c: WonCard) => {
+    if (!marketUnlocked) return false
     const listedInPos = [...listed].filter(id => mgr.squad.find(x => x.id === id)?.pos === c.pos).length
     const filledPos = mgr.squad.filter(x => x.pos === c.pos).length
     return filledPos - listedInPos - 1 >= need[c.pos]
@@ -669,7 +671,25 @@ export function ReserveListScreen() {
           <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>📋 LISTAR PRA LEILÃO · TEMP. {state.seasonNo}</span>
           <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: remaining <= 10 ? '#e8503a' : '#fff', color: remaining <= 10 ? '#fff' : INK, borderRadius: 8, padding: '2px 9px' }}>{remaining}s</span>
         </div>
-        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 12px' }}>Toque nos jogadores que você quer <b>pôr no leilão</b>. Você pode disputá-los de volta. Nunca dá pra ficar com menos de 11 (o XI completo).</p>
+        {/* aviso de desbloqueio da temporada */}
+        {state.seasonNo === 2 && (
+          <div style={{ ...box('#EAF3FF'), padding: 11, marginBottom: 10 }}>
+            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px', color: '#2563EB' }}>🔓 Desbloqueado: Reservas!</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>Agora você compra reservas pra encher o banco. A <b>venda/negociação de jogadores libera na 3ª temporada</b>.</p>
+          </div>
+        )}
+        {state.seasonNo === 3 && (
+          <div style={{ ...box('#EAF3FF'), padding: 11, marginBottom: 10 }}>
+            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px', color: GREEN }}>🔓 Desbloqueado: Mercado!</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>Agora você pode <b>listar jogadores pra leilão</b> (e disputá-los de volta).</p>
+          </div>
+        )}
+        {marketUnlocked
+          ? <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 12px' }}>Toque nos jogadores que você quer <b>pôr no leilão</b>. Você pode disputá-los de volta. Nunca dá pra ficar com menos de 11 (o XI completo).</p>
+          : <div style={{ ...box('#FDECEA'), padding: 11, marginBottom: 12 }}>
+              <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '0 0 2px', color: '#c0392b' }}>🔒 Vender ainda não liberou</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>Nesta temporada você só <b>compra</b> reservas (a venda libera na 3ª). E, de todo jeito, pra vender você precisa de <b>reservas no banco</b> — nunca dá pra ficar com menos de 11. Como você tem 11, não teria quem listar mesmo. É só aguardar o host começar o leilão. 👇</p>
+            </div>}
         <div style={{ ...box(col.light), padding: 12, marginBottom: 12 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: col.solid }}>👥 {mgr.teamName}</p>
@@ -688,7 +708,7 @@ export function ReserveListScreen() {
                     <button key={c.id} onClick={() => allowed && dispatch({ type: 'TOGGLE_RESERVE_LIST', mgrId: youId, cardId: c.id })} disabled={!allowed}
                       style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '5px 8px', borderRadius: 6, marginBottom: 3, border: `2px solid ${isListed ? GOLD : 'transparent'}`, background: isListed ? '#FFF6D6' : '#fff', opacity: allowed ? 1 : 0.5, cursor: allowed ? 'pointer' : 'default', ...OSWALD }}>
                       <span style={{ fontWeight: 800, fontSize: 12.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name} <span style={{ fontWeight: 900, color: '#5a5647', fontSize: 11 }}>💰{c.paid ?? 0}</span></span>
-                      <span style={{ fontWeight: 900, fontSize: 10.5, color: isListed ? '#b8860b' : allowed ? GREEN : 'rgba(0,0,0,0.35)' }}>{isListed ? '✓ listado — tirar' : allowed ? '+ listar' : 'bloqueado (XI)'}</span>
+                      <span style={{ fontWeight: 900, fontSize: 10.5, color: isListed ? '#b8860b' : allowed ? GREEN : 'rgba(0,0,0,0.35)' }}>{isListed ? '✓ listado — tirar' : !marketUnlocked ? '🔒' : allowed ? '+ listar' : 'último da posição'}</span>
                     </button>
                   )
                 })}
