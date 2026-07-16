@@ -449,7 +449,7 @@ export function EscLobby() {
     // sala fechada: exige uma senha
     if (roomLocked && !roomPw.trim()) { setRoomError('Digite uma senha ou desmarque "sala fechada".'); setLoading(false); return }
     const locked = roomLocked && !!roomPw.trim()
-    const pwHash = locked ? await hashPw(roomPw.trim()) : undefined
+    const pwHash = locked ? hashPw(roomPw.trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
     const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck } : {}) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
@@ -588,7 +588,7 @@ export function EscLobby() {
       if (!pwT) { setPwModal(rd); setPwEntry(''); setLoading(false); return } // abre o pedido de senha
       setLoading(true); setRoomError('') // feedback: o clique registrou
       let h = ''
-      try { h = await hashPw(pwT) } // trim igual à criação (senão o hash não bate)
+      try { h = hashPw(pwT.toLowerCase()) } // trim + minúsculas igual à criação
       catch { setRoomError('Não consegui checar a senha neste navegador. Atualize a página ou tente outro.'); setLoading(false); return }
       if (h !== rd.game_state!.pwHash) { setRoomError('❌ Senha incorreta (repara maiúsculas/minúsculas).'); setLoading(false); return }
     }
