@@ -1974,10 +1974,13 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
     claimingRef.current = true
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setStatus('noauth'); return }
-    await supabase.from('user_cards').insert({
-      user_id: user.id, season_key: seasonKey, origin,
+    // season_key ENCURTADO (a coluna tem limite): se ainda vier longo, corta.
+    const key = seasonKey.length > 48 ? seasonKey.slice(0, 48) : seasonKey
+    const { error } = await supabase.from('user_cards').insert({
+      user_id: user.id, season_key: key, origin,
       card_name: card.name, card_club: card.club, card_year: card.year, card_pos: card.pos, card_fame: card.fame,
     })
+    if (error) console.warn('user_cards insert falhou:', error.message) // não silencioso
     setClaimed(card); onClaimed?.(card)
     setStatus('revealed')
   }
