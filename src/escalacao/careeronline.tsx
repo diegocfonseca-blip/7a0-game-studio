@@ -228,19 +228,24 @@ function myOutcome(world: Record<Div, Team[]>): { div: Div; pos: number; champ: 
   }
   return null
 }
-// cartas oferecidas ao campeão: craques de destaque (fama alta) do baralho da
-// sala, embaralhados de forma estável pelo código — todos os campeões da mesma
-// sala veem o mesmo leque.
-function championCards(deck: DeckChoice, seed: number): CardOpt[] {
+function hashStr(s: string): number { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) } return h >>> 0 }
+// ELENCO do time do campeão: cartas por posição tiradas do baralho, estável
+// por time — é entre esses jogadores que o campeão escolhe (igual ao modo
+// offline, onde você escolhe uma carta do seu próprio time). Traz de lendas
+// douradas a bons jogadores, conforme o sorteio do elenco.
+function teamSquad(deck: DeckChoice, seed: number, teamName: string): CardOpt[] {
   const cat = deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : CATALOG
-  const all: CardOpt[] = Object.keys(cat).flatMap(pos => (cat as Record<string, { name: string; club: string; year: number; fame: number; folk?: boolean; promessa?: boolean }[]>)[pos].map(c => ({ name: c.name, club: c.club, year: c.year, pos, fame: c.fame, folk: c.folk, promessa: c.promessa })))
-  const pool = all.filter(c => c.fame >= 4)
-  const rng = mulberry((seed ^ 0xC0FFEE) >>> 0)
-  const sh = pool.slice()
-  for (let i = sh.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1));[sh[i], sh[j]] = [sh[j], sh[i]] }
-  // dedupe por nome (baralho "both" tem repetidos) e pega 9
+  const rng = mulberry((seed ^ hashStr(teamName)) >>> 0)
+  const toOpt = (c: { name: string; club: string; year: number; fame: number; folk?: boolean; promessa?: boolean }, pos: string): CardOpt => ({ name: c.name, club: c.club, year: c.year, pos, fame: c.fame, folk: c.folk, promessa: c.promessa })
+  const drawN = (arr: { name: string; club: string; year: number; fame: number; folk?: boolean; promessa?: boolean }[], pos: string, n: number): CardOpt[] => {
+    const sh = arr.slice()
+    for (let i = sh.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1));[sh[i], sh[j]] = [sh[j], sh[i]] }
+    return sh.slice(0, n).map(c => toOpt(c, pos))
+  }
+  // elenco espalhado pelas posições (11 titulares + reservas ~ 15)
+  const squad = [...drawN(cat.GOL, 'GOL', 2), ...drawN(cat.ZAG, 'ZAG', 3), ...drawN(cat.LAT, 'LAT', 3), ...drawN(cat.MEI, 'MEI', 4), ...drawN(cat.ATA, 'ATA', 3)]
   const seen = new Set<string>(); const out: CardOpt[] = []
-  for (const c of sh) { if (seen.has(c.name)) continue; seen.add(c.name); out.push(c); if (out.length >= 9) break }
+  for (const c of squad) { if (seen.has(c.name)) continue; seen.add(c.name); out.push(c) }
   return out
 }
 
@@ -404,13 +409,13 @@ function Standings({ c, onBack, onExit }: { c: Career; onBack: () => void; onExi
 }
 
 // ── carta-lembrança do campeão (visual padrão, grava no álbum) ──
-function ChampionCard({ deck, seed, seasonKey }: { deck: DeckChoice; seed: number; seasonKey: string }) {
+function ChampionCard({ deck, seed, team, seasonKey }: { deck: DeckChoice; seed: number; team: string; seasonKey: string }) {
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
   const [claimed, setClaimed] = useState<CardOpt | null>(null)
   const [deadline] = useState(() => Date.now() + CARD_PICK_SECONDS * 1000)
   const [now, setNow] = useState(() => Date.now())
   const claimingRef = useRef(false)
-  const opts = useRef<CardOpt[]>(championCards(deck, seed)).current
+  const opts = useRef<CardOpt[]>(teamSquad(deck, seed, team)).current
 
   useEffect(() => {
     ;(async () => {
@@ -461,7 +466,7 @@ function ChampionCard({ deck, seed, seasonKey }: { deck: DeckChoice; seed: numbe
         <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0 }}>🎴 Escolha sua carta!</p>
         <span style={{ border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', fontWeight: 900, fontSize: 12, background: '#fff' }}>{remaining}s</span>
       </div>
-      <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.7)', marginBottom: 10 }}>Campeão leva um craque do baralho pro álbum. Se o tempo acabar, o jogo escolhe uma pra você.</p>
+      <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.7)', marginBottom: 10 }}>Campeão leva uma carta do <b>seu time</b> pro álbum. Se o tempo acabar, o jogo escolhe uma pra você.</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
         {opts.map(c => (
           <button key={c.name} onClick={() => claim(c)} style={{ textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
@@ -493,7 +498,7 @@ function SeasonEnd({ c, roomId, canControl, onNextSeason, onEnd, onTable }: { c:
         </div>
       )}
 
-      {champ && roomId && <ChampionCard deck={c.deck} seed={c.seed} seasonKey={`careeronline:${roomId}:${c.season}`} />}
+      {champ && roomId && <ChampionCard deck={c.deck} seed={c.seed} team={out!.team} seasonKey={`careeronline:${roomId}:${c.season}`} />}
 
       <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, textAlign: 'center' }}>
         <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD, margin: 0 }}>📊 Classificação final</p>
