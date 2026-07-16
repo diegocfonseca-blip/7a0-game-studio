@@ -87,6 +87,40 @@ function buildFix(): Record<Div, number[][][]> {
   return f
 }
 
+// ── lançamento a partir de uma SALA online (multiplayer) ──
+// A sala manda o código (vira semente determinística: TODOS os aparelhos
+// montam o MESMO mundo e a mesma temporada) + os nomes reais dos técnicos e
+// qual deles sou eu. Cada aparelho só destaca a si próprio (you) — isso não
+// muda a simulação, que é idêntica em todos.
+export interface CareerLaunch { roomCode: string; deck: DeckChoice; players: string[]; myIndex: number }
+let pendingLaunch: CareerLaunch | null = null
+export function launchCareerOnline(cfg: CareerLaunch) {
+  pendingLaunch = cfg
+  if (window.location.hash !== '#carreiraonline') window.location.hash = 'carreiraonline'
+  else window.dispatchEvent(new HashChangeEvent('hashchange'))
+}
+// semente estável a partir do código da sala (FNV-1a) — mesmo código, mesmo mundo
+function codeSeed(code: string): number { let h = 2166136261; for (let i = 0; i < code.length; i++) { h ^= code.charCodeAt(i); h = Math.imul(h, 16777619) } return h >>> 0 }
+
+// mundo com os técnicos REAIS espalhados pela pirâmide (A,B,C,D em rodízio).
+// `myIdx` = minha posição na lista → só eu fico marcado como `you`.
+function buildWorldMulti(seed: number, players: string[], myIdx: number): Record<Div, Team[]> {
+  const rng = mulberry(seed)
+  const world = {} as Record<Div, Team[]>
+  for (const d of DIVS) {
+    const pool = DIVISION_TEAMS[d].slice(0, 20)
+    world[d] = pool.map(t => ({ name: t.team, str: DIV_BASE[d] + Math.round((rng() - 0.5) * 14), ...blankStats() }))
+  }
+  const slotUsed: Record<Div, number> = { A: 0, B: 0, C: 0, D: 0 }
+  players.forEach((name, i) => {
+    const d = DIVS[i % 4]
+    const slot = slotUsed[d]++
+    if (slot > 19) return
+    world[d][slot] = { name, str: DIV_BASE[d] + Math.round((rng() - 0.3) * 12), you: i === myIdx, hum: true, ...blankStats() }
+  })
+  return world
+}
+
 // joga UMA rodada em todas as divisões — PURO: clona as tabelas e devolve o
 // novo mundo + os placares (não muta o estado anterior, seguro no StrictMode).
 function playRound(c: Career): { world: Record<Div, Team[]>; last: Record<Div, Match[]> } {
@@ -259,6 +293,18 @@ export function CareerOnlineGame() {
   const [career, setCareer] = useState<Career | null>(null)
   const [view, setView] = useState<'menu' | 'round' | 'table'>('menu')
   const [paused, setPaused] = useState(false)
+  const [fromRoom, setFromRoom] = useState(false) // veio de uma sala online (não do menu solo)
+
+  // veio de uma SALA online (host apertou começar)? monta o mundo com os
+  // técnicos reais, semeado pelo código da sala — todos veem a mesma temporada.
+  useEffect(() => {
+    if (!open || !can || career || !pendingLaunch) return
+    const L = pendingLaunch; pendingLaunch = null
+    const seed = codeSeed(L.roomCode)
+    setDeck(L.deck); setFromRoom(true)
+    setCareer({ seed, deck: L.deck, world: buildWorldMulti(seed, L.players, L.myIndex), fix: buildFix(), round: 0, last: null })
+    setPaused(false); setView('round')
+  }, [open, can, career])
 
   // rodadas rolam sozinhas (igual a simulação do offline): ~1,3s por rodada
   // enquanto está na tela da rodada, não pausado e ainda não acabou.
@@ -273,7 +319,11 @@ export function CareerOnlineGame() {
   }, [open, can, career, view, paused])
 
   if (!open || !can) return null
-  const close = () => { window.location.hash = '' }
+  const close = () => {
+    // veio de sala: limpa a temporada pra um próximo "começar" montar do zero
+    if (fromRoom) { setCareer(null); setFromRoom(false); setView('menu') }
+    window.location.hash = ''
+  }
 
   const start = () => {
     const seed = Math.floor(Math.random() * 1e9)
@@ -327,8 +377,8 @@ export function CareerOnlineGame() {
       </div>
 
       <div style={{ ...box('#FFF6DE'), padding: 12, marginBottom: 12 }}>
-        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>🧪 Protótipo do motor (Fase 6)</p>
-        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#666', marginTop: 3 }}>Você (Série D) + os amigos espalhados pela pirâmide, todos destacados nas rodadas, tabelas e artilharia. É local por enquanto — a sincronia online de verdade (cada um no seu aparelho, host manda) e o fim de temporada com carta vêm na próxima fase.</p>
+        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>🧪 Prévia do motor (solo)</p>
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#666', marginTop: 3 }}>Aqui é a prévia local. Pra jogar com a galera de verdade, crie uma sala em <b>Jogar Online → Criar sala → Carreira</b>: o mundo é semeado pelo código da sala, então todos veem a mesma temporada com os técnicos reais espalhados pela pirâmide.</p>
       </div>
 
       <button onClick={start} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>▶️ Começar temporada (rodada a rodada)</button>
