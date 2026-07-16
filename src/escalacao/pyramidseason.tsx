@@ -125,6 +125,25 @@ export function computePromotions(tables: Record<Div, SimTeam[]>): Record<string
   return pl
 }
 
+// moedas da temporada por técnico: base +100 · campeão da divisão +40 · acesso
+// (subiu) +20 · queda (caiu) −20. Valores modestos de propósito — nada surreal,
+// pra ninguém ficar rico rápido nem o mercado travar.
+const DIV_RANK: Record<Div, number> = { A: 3, B: 2, C: 1, D: 0 }
+export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, number> {
+  const newPl = computePromotions(tables)
+  const out: Record<number, number> = {}
+  for (const d of DIVS) tables[d].forEach((t, i) => {
+    if (!t.human || t.teamId < 0) return
+    let delta = 100
+    if (i === 0) delta += 40 // campeão
+    const nd = newPl[teamKey(t)] as Div | undefined
+    if (nd && DIV_RANK[nd] > DIV_RANK[d]) delta += 20 // subiu
+    else if (nd && DIV_RANK[nd] < DIV_RANK[d]) delta -= 20 // caiu
+    out[t.teamId] = delta
+  })
+  return out
+}
+
 export interface Goal { name: string; min: number; home: boolean }
 export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: number; aId: number; you: boolean; hum: boolean; goals: Goal[] }
 
@@ -408,16 +427,20 @@ function PlayerRow({ c, titular, col }: { c: WonCard; titular: boolean; col: FCo
     </div>
   )
 }
-function SquadTab({ mgr, col }: { mgr: Manager; col: FCol }) {
+function SquadTab({ mgr, col, coins }: { mgr: Manager; col: FCol; coins: number }) {
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
   // o elenco herda a COR do jogador (a mesma sorteada pra ele no jogo todo)
   return (
     <div style={{ ...box(col.light), padding: 12, marginBottom: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: col.solid, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👥 {mgr.teamName}</p>
         <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: col.solid, color: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}>{mgr.squad.length}/22 · 💰 {total}</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: 'rgba(255,255,255,0.6)', border: `2px solid ${col.solid}`, borderRadius: 8, padding: '4px 8px' }}>
+        <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>🪙 Caixa: {coins}</span>
+        <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>· moedas pra reforços (mercado em breve)</span>
       </div>
       {hasReserves && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 5 }}>
@@ -501,11 +524,11 @@ export function PyramidSeasonScreen() {
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
               <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>👑 Você é o host — próxima temporada</p>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas (por nome exato) já entram. Escolha: seguir com o mesmo elenco, ou refazer o leilão (orçamento parelho pra todos).</p>
-              <button onClick={() => dispatch({ type: 'NEXT_SEASON_ONLINE', placements: computePromotions(tables) })}
+              <button onClick={() => dispatch({ type: 'NEXT_SEASON_ONLINE', placements: computePromotions(tables), rewards: seasonRewards(tables) })}
                 style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>
                 ▶️ Mesmo time
               </button>
-              <button onClick={() => dispatch({ type: 'REAUCTION_ONLINE', placements: computePromotions(tables) })}
+              <button onClick={() => dispatch({ type: 'REAUCTION_ONLINE', placements: computePromotions(tables), rewards: seasonRewards(tables) })}
                 style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
                 🔨 Novo leilão
               </button>
@@ -527,7 +550,7 @@ export function PyramidSeasonScreen() {
         </div>
 
         {tab === 'elenco' ? (
-          <SquadTab mgr={state.managers[state.youIdx]} col={myCol} />
+          <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} />
         ) : tab === 'jogos' && hasMatches ? (
           <>
             {/* tática do SEU time — POR JOGO. Vale do PRÓXIMO jogo em diante. */}
