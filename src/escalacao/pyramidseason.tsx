@@ -329,17 +329,18 @@ function DivChips({ humans, colors }: { humans: { name: string; teamId: number; 
 
 // ── SEU JOGO em destaque: card grande com o minuto correndo + os gols (nome do
 // artilheiro), igual à simulação do modo off-line. ──
-function MyMatchCard({ m, youName, finished, col }: { m: SimMatch; youName: string; finished?: boolean; col: FCol }) {
+function MyMatchCard({ m, youName, finished, col, roundKey }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; roundKey: number }) {
   const [min, setMin] = useState(finished ? 93 : 0)
   useEffect(() => {
-    // temporada encerrada: mostra o resultado FINAL na hora (sem "bola rolando")
+    // o relógio só zera/anima quando MUDA A RODADA (roundKey). Trocar a tática na
+    // mesma rodada não reinicia o jogo que está na tela — ele não re-simula.
     if (finished) { setMin(93); return }
     setMin(0)
     const step = Math.max(30, (ROUND_MS * 0.82) / 93)
     let cur = 0
     const iv = setInterval(() => { cur++; setMin(cur); if (cur >= 93) clearInterval(iv) }, step)
     return () => clearInterval(iv)
-  }, [m, finished])
+  }, [roundKey, finished])
   const shown = m.goals.filter(g => g.min <= min)
   const hg = shown.filter(g => g.home).length, ag = shown.filter(g => !g.home).length
   const done = min >= 93
@@ -409,7 +410,7 @@ export function PyramidSeasonScreen() {
   const me = myStanding(tables)
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
-  const myTactic = tacAt(careerTactics, youId, Math.max(0, round - 1)) // tática do JOGO atual
+  const myTactic = tacAt(careerTactics, youId, round) // tática que vale do PRÓXIMO jogo em diante
   const humanKey = state.managers.filter(m => m.isHuman).map(m => m.id).join(',')
   const colors = useMemo(() => playerColors(humanKey ? humanKey.split(',').map(Number) : [], youId, state.seed), [humanKey, youId, state.seed])
   const myCol = colors[youId] ?? PLAYER_PALETTE[0]
@@ -480,7 +481,7 @@ export function PyramidSeasonScreen() {
 
         {tab === 'jogos' && hasMatches ? (
           <>
-            {/* tática do SEU time nesta temporada (afeta os seus jogos) */}
+            {/* tática do SEU time — POR JOGO. Vale do PRÓXIMO jogo em diante. */}
             {!done && (
               <>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 6 }}>
@@ -491,10 +492,10 @@ export function PyramidSeasonScreen() {
                     </button>
                   ))}
                 </div>
-                <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.</p>
+                <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>Vale do próximo jogo em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</p>
               </>
             )}
-            {myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished={done} col={myCol} />}
+            {myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished={done} col={myCol} roundKey={round} />}
             {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
           </>
         ) : (
