@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS } from './data'
 import type { Card, Manager, Sector, WonCard } from './types'
-import { SECTORS } from './types'
+import { SECTORS, FORMATIONS } from './types'
 import { useEsc } from './store'
 import { CardCollectPrompt, SEASON_TOTAL_MS } from './screens'
 
@@ -396,6 +396,44 @@ function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matche
   )
 }
 
+// ── ELENCO: seu time por posição, com o VALOR (piso) de cada jogador. Os
+// melhores de cada posição (pela formação) aparecem como titulares (⭐ XI), o
+// resto como reserva (RES). Base pro Time A/B e pro mercado que vêm a seguir. ──
+const POS_LABEL: Record<Sector, string> = { GOL: 'Goleiros', LAT: 'Laterais', ZAG: 'Zagueiros', MEI: 'Meias', ATA: 'Atacantes' }
+function SquadTab({ mgr, col }: { mgr: Manager; col: FCol }) {
+  const need = FORMATIONS[mgr.formation]
+  const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
+  return (
+    <div style={{ ...box('#fff'), padding: 12, marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👥 {mgr.teamName}</p>
+        <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: col.light, color: col.solid, border: `2px solid ${col.solid}`, borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}>{mgr.squad.length}/22 · 💰 {total}</span>
+      </div>
+      {SECTORS.map(pos => {
+        const players = mgr.squad.filter(c => c.pos === pos).sort((a, b) => mid(b) - mid(a))
+        const n = need[pos]
+        return (
+          <div key={pos} style={{ marginBottom: 9 }}>
+            <p style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, color: 'rgba(0,0,0,0.55)', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: 0.3 }}>{POS_LABEL[pos]} <span style={{ opacity: 0.6 }}>({players.length})</span></p>
+            {players.map((c, i) => {
+              const titular = i < n
+              return (
+                <div key={c.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '4px 6px', borderRadius: 6, background: titular ? '#F4ECD6' : 'transparent', borderTop: i ? '1px solid rgba(0,0,0,0.06)' : 'none' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+                    <span style={{ fontSize: 8.5, fontWeight: 900, ...OSWALD, color: titular ? GREEN : 'rgba(0,0,0,0.3)', width: 30, flexShrink: 0 }}>{titular ? '⭐ XI' : 'RES'}</span>
+                    <span style={{ fontWeight: titular ? 800 : 600, fontSize: 12.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</span>
+                  </span>
+                  <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, whiteSpace: 'nowrap', color: '#5a5647', flexShrink: 0 }}>💰 {c.paid ?? 0}</span>
+                </div>
+              )
+            })}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // ── TELA da temporada simulada da carreira online (toma o lugar da temporada
 // ao vivo). O host conduz o ritmo (PLAY_ROUND avança a rodada, já sincronizado);
 // os clientes seguem a rodada do estado. Tudo determinístico → mesma tabela. ──
@@ -403,7 +441,7 @@ export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const round = state.round
   const done = round >= 38
-  const [tab, setTab] = useState<'jogos' | 'tabelas'>('jogos')
+  const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco'>('jogos')
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo])
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const { tables, scorers, matches } = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics), [world, state.seed, round, careerTactics])
@@ -474,12 +512,14 @@ export function PyramidSeasonScreen() {
 
         {/* toggle: os jogos (placares) ↔ as tabelas + artilharia */}
         <div style={{ display: 'flex', border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
-          {([['jogos', '🗓️ Jogos'], ['tabelas', '📊 Tabelas']] as [typeof tab, string][]).map(([t, label]) => (
-            <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '9px 0', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: tab === t ? INK : '#fff', color: tab === t ? '#fff' : INK, border: 'none', cursor: 'pointer', ...OSWALD }}>{label}</button>
+          {([['jogos', '🗓️ Jogos'], ['tabelas', '📊 Tabelas'], ['elenco', '👥 Elenco']] as [typeof tab, string][]).map(([t, label]) => (
+            <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '9px 0', fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', background: tab === t ? INK : '#fff', color: tab === t ? '#fff' : INK, border: 'none', cursor: 'pointer', ...OSWALD }}>{label}</button>
           ))}
         </div>
 
-        {tab === 'jogos' && hasMatches ? (
+        {tab === 'elenco' ? (
+          <SquadTab mgr={state.managers[state.youIdx]} col={myCol} />
+        ) : tab === 'jogos' && hasMatches ? (
           <>
             {/* tática do SEU time — POR JOGO. Vale do PRÓXIMO jogo em diante. */}
             {!done && (
