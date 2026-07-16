@@ -973,6 +973,7 @@ type Action =
   | { type: 'RESUME_DINASTIA' }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; deck?: 'br' | 'eu' | 'both'; career?: boolean }
   | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string> } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time)
+  | { type: 'REAUCTION_ONLINE'; placements: Record<string, string> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
@@ -1508,6 +1509,30 @@ export function reducer(state: EscState, action: Action): EscState {
       s.seasonNo++
       s.round = 0
       s.champion = null
+      return s
+    }
+    case 'REAUCTION_ONLINE': {
+      // carreira online (novo leilão): aplica a nova colocação e REFAZ o leilão
+      // — mesmos técnicos (ids/times preservados), elencos zerados, orçamento
+      // parelho pra todos. A divisão só importa na hora de jogar a temporada.
+      if (!s.careerOnline) return s
+      s.seasonNo++
+      s.careerPlacements = action.placements
+      s.round = 0; s.champion = null
+      const humanNames = s.managers.filter(m => m.isHuman).map(m => m.name)
+      const formation = s.managers.find(m => m.isHuman)?.formation ?? '4-3-3'
+      const rng = mulberry((s.seed ^ (s.seasonNo * 2246822519)) >>> 0)
+      const { managers, botPlans } = makeManagers(humanNames, formation, 0, LEAGUE_SIZE, rng)
+      s.managers = managers
+      const used = new Set<string>()
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+      s.surpriseId = pickSurprise(s.deck, rng)
+      dealBotSquads(s.managers, botPlans, rng, used)
+      for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
+      s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []
+      s.tactics = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
+      s.screen = 'auction'
+      startAuctionPhase(s, false)
       return s
     }
     case 'RESUME_DINASTIA': { s.dinastiaPaused = false; return s }
