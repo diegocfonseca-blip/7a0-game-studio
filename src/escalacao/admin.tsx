@@ -240,7 +240,7 @@ function Dashboard({ email }: { email: string }) {
                     <span style={{ opacity: 0.85, color: '#C9A9FF', fontWeight: 700 }}> · {DIV_LABEL[p.careerDivision] || p.careerDivision} · T{p.careerSeason ?? 1}</span>
                   )}
                   {p.playing && p.mode !== 'online' && p.deckLeague && (
-                    <span style={{ opacity: 0.9, color: p.deckLeague === 'eu' ? '#7FD1FF' : '#FFD24D', fontWeight: 800 }}> · {p.deckLeague === 'eu' ? 'EU' : 'BR'}</span>
+                    <span style={{ opacity: 0.9, color: p.deckLeague === 'eu' ? '#7FD1FF' : p.deckLeague === 'both' ? '#C9A9FF' : '#FFD24D', fontWeight: 800 }}> · {p.deckLeague === 'eu' ? 'EU' : p.deckLeague === 'both' ? 'B/E' : 'BR'}</span>
                   )}
                 </span>
                 <span style={{ opacity: 0.5 }}>{p.ago < 60 ? 'agora' : `${Math.floor(p.ago / 60)}min`}</span>
