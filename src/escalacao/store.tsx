@@ -856,7 +856,10 @@ function halveListed(cards: Card[]): Card[] {
   return cards.map(c => { const p = (c as { paid?: number }).paid; return p && p > 0 ? { ...c, paid: Math.floor(p / 2) } : c })
 }
 function buildMonteOrder(managers: Manager[], rng: () => number): number[] {
-  const withHoles = managers.filter(m => totalHoles(m) > 0)
+  // bots fiadores NÃO entram no monte (senão, com elenco fundo, teriam buracos
+  // demais e pegariam as sobras antes dos humanos). Eles só levam o que ganham
+  // no pregão pago.
+  const withHoles = managers.filter(m => totalHoles(m) > 0 && !m.backstop)
   if (withHoles.length === 0) return []
   const base = [...withHoles].sort((a, b) => totalHoles(b) - totalHoles(a) || rng() - 0.5).map(m => m.id)
   const maxHoles = Math.max(...withHoles.map(m => totalHoles(m)))
@@ -1079,7 +1082,34 @@ const RESERVE_LIST_MS = 45_000 // tela "Listar pra leilão" (venda) antes do lei
 const CEREMONY_MS = 45_000 // tempo pra olhar os times antes do campeonato começar sozinho
 
 // entra na cerimônia da revelação e liga o cronômetro de 45s (auto-começa)
+// BOT FIADOR: depois que os HUMANOS já escolheram no monte, o que sobrou (ninguém
+// pegou) é varrido pelos bots fiadores — de graça ou com valor de mercado. É a
+// reposição que mantém o jogo girando e tira a malandragem de "não dou lance e
+// pego de graça no monte". Respeita a vaga por posição; registra o valor no livro.
+function sweepMonteToBackstops(st: EscState) {
+  if (!st.careerOnline) return
+  const bots = st.managers.filter(m => m.backstop)
+  if (bots.length === 0) return
+  let bi = 0
+  for (let guard = 0; st.monte.length > 0 && guard < 1000; guard++) {
+    let placed = false
+    for (let k = 0; k < bots.length; k++) {
+      const bot = bots[(bi + k) % bots.length]
+      const idx = st.monte.findIndex(c => openSlots(bot, c.pos) > 0)
+      if (idx < 0) continue
+      const card = st.monte.splice(idx, 1)[0]
+      const paid = (card as { paid?: number }).paid ?? 0
+      bot.squad.push({ ...card, paid, via: 'monte' })
+      if (paid > 0) recordPrice(st, card.name, paid)
+      bi = (bi + k + 1) % bots.length
+      placed = true
+      break
+    }
+    if (!placed) break // nenhum bot tem vaga pra nada que sobrou
+  }
+}
 function enterCerimonia(st: EscState) {
+  sweepMonteToBackstops(st)
   st.screen = 'cerimonia'
   st.cerimoniaDeadline = Date.now() + CEREMONY_MS
 }
@@ -1194,8 +1224,9 @@ function afterReveal(state: EscState) {
       startAuctionPhase(state, false) // ainda tem leva pra vir nesse setor
       return
     }
-    // fechou todas as levas do setor: repescagem ÚNICA com tudo que sobrou
-    const anyHole = state.managers.some(m => openSlots(m, pos) > 0)
+    // fechou todas as levas do setor: repescagem ÚNICA com tudo que sobrou (só
+    // dispara se um HUMANO ainda tem buraco — bot fiador não força repescagem)
+    const anyHole = state.managers.some(m => !m.backstop && openSlots(m, pos) > 0)
     if (state.sectorUnsoldAccum.length > 0 && anyHole) {
       state.currentCards = state.sectorUnsoldAccum
       state.sectorUnsoldAccum = []
@@ -1423,7 +1454,19 @@ export function reducer(state: EscState, action: Action): EscState {
       s.tactics = {}; s.careerTactics = {}
       // carreira: cada técnico COMEÇA com 100 moedas (uma vez). Depois só ganha por
       // desempenho (título por série, acesso) e perde na queda — sem base recorrente.
-      if (s.careerOnline) { const cc: Record<number, number> = {}; for (const m of s.managers) if (m.isHuman) { cc[m.id] = 100; m.money = 100 } s.careerCoins = cc }
+      if (s.careerOnline) {
+        // BOT FIADOR: 1 a cada dupla de humanos (2-3 → 1, 4-5 → 2…). É time real da
+        // pirâmide (já ganha elenco em dealBotSquads); só entra pra dar lance quando
+        // uma posição fica sem disputa. deepSquad = pode ganhar carta pro banco.
+        const humanCount = s.managers.filter(m => m.isHuman).length
+        const nBots = Math.floor(humanCount / 2)
+        const botPool = s.managers.filter(m => !m.isHuman)
+        for (let i = 0; i < nBots && i < botPool.length; i++) { botPool[i].backstop = true; botPool[i].deepSquad = true }
+        // cada humano E cada bot fiador começa com 100 de caixa (uma vez).
+        const cc: Record<number, number> = {}
+        for (const m of s.managers) if (m.isHuman || m.backstop) { cc[m.id] = 100; m.money = 100 }
+        s.careerCoins = cc
+      }
       s.seasonNo = 1
       s.screen = 'auction'
       startAuctionPhase(s, false)
@@ -1540,12 +1583,12 @@ export function reducer(state: EscState, action: Action): EscState {
         // caixa vira o que sobrou do orçamento — o próximo leilão parte desse saldo
         // (mais bônus de título/acesso, menos queda), nunca zera pra 100 de novo.
         const cc = { ...(s.careerCoins ?? {}) }
-        for (const m of s.managers) if (m.isHuman) cc[m.id] = Math.max(0, Math.round(m.money))
+        for (const m of s.managers) if (m.isHuman || m.backstop) cc[m.id] = Math.max(0, Math.round(m.money))
         s.careerCoins = cc
       }
       if (s.reserveAuction) {
-        // fim do leilão de RESERVAS: tira a marca de elenco fundo (o leilão do time
-        // volta a mirar 11 por padrão).
+        // fim do leilão de RESERVAS: tira a marca de elenco fundo dos HUMANOS (o
+        // leilão do time volta a mirar 11). Os bots fiadores mantêm o elenco fundo.
         for (const m of s.managers) if (m.isHuman) m.deepSquad = false
         s.reserveAuction = false
       }
@@ -1729,13 +1772,14 @@ export function reducer(state: EscState, action: Action): EscState {
       const used = new Set<string>()
       for (const m of s.managers) for (const c of m.squad) used.add(c.name)
       if (s.seasonNo >= 3) {
-        // MERCADO (3ª temporada+): 1 carta NOVA por posição (fixo, não importa
-        // quantos jogadores online) + os jogadores que cada técnico listou.
+        // MERCADO (3ª temporada+): floor(humanos/2) cartas NOVAS por posição
+        // (2-3 amigos → 1, 4-5 → 2, 6-7 → 3…) + os jogadores que cada técnico listou.
         const bt = nextBuildTok()
+        const nNew = Math.max(1, Math.floor(s.managers.filter(m => m.isHuman).length / 2))
         const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
         for (const pos of SECTORS) {
-          const pick = shuffle(ACTIVE_CATALOG[pos], rng).find(c => !used.has(c.name))
-          if (pick) { const fl = s.marketValues?.[pick.name] ?? 0; deck[pos].push({ ...pick, id: `mkt-${pos}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) } // piso do livro de preços
+          const picks = shuffle(ACTIVE_CATALOG[pos], rng).filter(c => !used.has(c.name)).slice(0, nNew)
+          picks.forEach((pick, i) => { used.add(pick.name); const fl = s.marketValues?.[pick.name] ?? 0; deck[pos].push({ ...pick, id: `mkt-${pos}-${i}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }) // piso do livro de preços
         }
         s.deck = deck
       } else {
@@ -1744,8 +1788,9 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       for (const c of listedCards) s.deck[c.pos].push(c)
       // 3) elenco fundo (mira 22) + orçamento = caixa. DEPOIS do baralho, senão a
-      // demanda dobraria e o leilão viria com cartas demais.
-      for (const m of s.managers) if (m.isHuman) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
+      // demanda dobraria e o leilão viria com cartas demais. Vale pros humanos e
+      // pros bots fiadores (que reabastecem a caixa e podem disputar reservas).
+      for (const m of s.managers) if (m.isHuman || m.backstop) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
       s.surpriseId = pickSurprise(s.deck, rng)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []
