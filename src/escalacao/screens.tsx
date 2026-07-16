@@ -9,6 +9,7 @@ import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton } from './careeronline'
+import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 
@@ -1337,6 +1338,7 @@ export function EscSeason() {
   // só revela o resultado do clássico DEPOIS que o card do jogo terminou de
   // animar os 90' — senão a faixa entregava o placar antes da simulação.
   const [resultRevealed, setResultRevealed] = useState(false)
+  const [showPyramid, setShowPyramid] = useState(false)
   useEffect(() => {
     setResultRevealed(false)
     const t = setTimeout(() => setResultRevealed(true), ROUND_MS * 0.85 + 250)
@@ -1462,11 +1464,22 @@ export function EscSeason() {
         </Box>
       )}
 
+      {state.careerOnline && (
+        <button onClick={() => setShowPyramid(true)}
+          className="w-full border-[3px] border-black rounded-xl py-3 font-black text-sm uppercase"
+          style={{ backgroundColor: '#7C3AED', color: '#fff', boxShadow: `4px 4px 0 ${INK}`, ...OSWALD }}>
+          🪜 Ver as 4 divisões
+        </button>
+      )}
       <TableBox highlight={you.id} holdResults={!resultRevealed} />
       <TopScorersBox highlight={you.id} />
       <Campinho m={you} small />
       {state.careerDivision && <RivalTracker />}
       <CreditLine className="pt-4 pb-2" />
+      {showPyramid && state.careerOnline && (
+        <PyramidOverlay league={state.league} scorers={state.scorers} managers={state.managers} youId={you.id}
+          seed={state.seed} round={state.round} deckLeague={state.deckLeague} onClose={() => setShowPyramid(false)} />
+      )}
     </Shell>
   )
 }
