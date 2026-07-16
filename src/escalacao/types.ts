@@ -138,6 +138,7 @@ export type Screen =
   | 'auction'
   | 'monte'
   | 'cerimonia'
+  | 'reserveList'
   | 'season'
   | 'end'
   | 'album'
@@ -202,6 +203,7 @@ export interface EscState {
   locked?: boolean // sala fechada (com senha) — guardado no estado pra sobreviver ao autosave
   pwHash?: string // hash da senha da sala (SHA-256) — idem
   reserveAuction?: boolean // carreira online: o leilão em curso é o de RESERVAS (mantém elenco, mira 22, orçamento = caixa). No fim, sincroniza a caixa e tira o elenco fundo.
+  reserveListed?: Record<number, string[]> // carreira online: cartas que cada técnico LISTOU pro leilão (mgrId → ids), escolhidas na tela de venda (45s)
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)
   champion: number | null

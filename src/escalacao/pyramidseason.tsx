@@ -577,7 +577,7 @@ export function PyramidSeasonScreen() {
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
               <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>👑 Você é o host — próxima temporada</p>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas (por nome exato) já entram. Abra o <b>leilão de reservas</b> (todos com a sua caixa, compram pra encher o banco até 22), ou siga com o mesmo elenco.</p>
-              <button onClick={() => dispatch({ type: 'RESERVE_AUCTION_ONLINE', placements: computePromotions(tables), rewards: seasonRewards(tables), champions: seasonChampions(tables) })}
+              <button onClick={() => dispatch({ type: 'OPEN_RESERVE_LIST', placements: computePromotions(tables), rewards: seasonRewards(tables), champions: seasonChampions(tables) })}
                 style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>
                 🔨 Leilão de reservas
               </button>
@@ -631,6 +631,81 @@ export function PyramidSeasonScreen() {
         )}
 
         <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
+      </div>
+    </div>
+  )
+}
+
+// ── TELA DE VENDA ("Listar pra leilão", 45s): antes da compra, cada um escolhe
+// quem manda pro leilão. Nunca deixa a posição abaixo do XI (formação). Quem só
+// tem 11 não lista nada — só aguarda. O host começa o leilão (ou vai sozinho no 0). ──
+export function ReserveListScreen() {
+  const { state, dispatch } = useEsc()
+  const mgr = state.managers[state.youIdx]
+  const youId = mgr?.id ?? 0
+  const listed = useMemo(() => new Set(state.reserveListed?.[youId] ?? []), [state.reserveListed, youId])
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => { const iv = setInterval(() => setNow(Date.now()), 250); return () => clearInterval(iv) }, [])
+  const remaining = Math.max(0, Math.ceil(((state.phaseDeadline ?? 0) - now) / 1000))
+  const humanIds = state.managers.filter(m => m.isHuman).map(m => m.id)
+  const colors = useMemo(() => playerColors(humanIds, youId, state.seed), [humanIds.join(','), youId, state.seed])
+  const col = colors[youId] ?? PLAYER_PALETTE[0]
+  const need = FORMATIONS[mgr?.formation ?? '4-3-3']
+  const canList = (c: WonCard) => {
+    const listedInPos = [...listed].filter(id => mgr.squad.find(x => x.id === id)?.pos === c.pos).length
+    const filledPos = mgr.squad.filter(x => x.pos === c.pos).length
+    return filledPos - listedInPos - 1 >= need[c.pos]
+  }
+  // host conduz: quando zera o tempo, abre o leilão (compra) sozinho
+  useEffect(() => {
+    if (state.isHost && remaining <= 0) dispatch({ type: 'RESERVE_AUCTION_ONLINE' })
+  }, [remaining, state.isHost, dispatch])
+  if (!mgr) return null
+  const nListed = state.reserveListed?.[youId]?.length ?? 0
+  return (
+    <div style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
+      <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
+        <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>📋 LISTAR PRA LEILÃO · TEMP. {state.seasonNo}</span>
+          <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: remaining <= 10 ? '#e8503a' : '#fff', color: remaining <= 10 ? '#fff' : INK, borderRadius: 8, padding: '2px 9px' }}>{remaining}s</span>
+        </div>
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 12px' }}>Toque nos jogadores que você quer <b>pôr no leilão</b>. Você pode disputá-los de volta. Nunca dá pra ficar com menos de 11 (o XI completo).</p>
+        <div style={{ ...box(col.light), padding: 12, marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: col.solid }}>👥 {mgr.teamName}</p>
+            <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: col.solid, color: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px' }}>{nListed} no leilão · 🪙 {state.careerCoins?.[youId] ?? 0}</span>
+          </div>
+          {SECTORS.map(pos => {
+            const players = mgr.squad.filter(c => c.pos === pos).sort((a, b) => mid(b) - mid(a))
+            if (!players.length) return null
+            return (
+              <div key={pos} style={{ marginBottom: 8 }}>
+                <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: col.solid, opacity: 0.85, margin: '0 0 3px', textTransform: 'uppercase' }}>{POS_LABEL[pos]}</p>
+                {players.map(c => {
+                  const isListed = listed.has(c.id)
+                  const allowed = isListed || canList(c)
+                  return (
+                    <button key={c.id} onClick={() => allowed && dispatch({ type: 'TOGGLE_RESERVE_LIST', mgrId: youId, cardId: c.id })} disabled={!allowed}
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '5px 8px', borderRadius: 6, marginBottom: 3, border: `2px solid ${isListed ? GOLD : 'transparent'}`, background: isListed ? '#FFF6D6' : '#fff', opacity: allowed ? 1 : 0.5, cursor: allowed ? 'pointer' : 'default', ...OSWALD }}>
+                      <span style={{ fontWeight: 800, fontSize: 12.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name} <span style={{ fontWeight: 900, color: '#5a5647', fontSize: 11 }}>💰{c.paid ?? 0}</span></span>
+                      <span style={{ fontWeight: 900, fontSize: 10.5, color: isListed ? '#b8860b' : allowed ? GREEN : 'rgba(0,0,0,0.35)' }}>{isListed ? '✓ listado — tirar' : allowed ? '+ listar' : 'bloqueado (XI)'}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            )
+          })}
+        </div>
+        {state.isHost ? (
+          <button onClick={() => dispatch({ type: 'RESERVE_AUCTION_ONLINE' })}
+            style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
+            ▶️ Começar o leilão ({remaining}s)
+          </button>
+        ) : (
+          <div style={{ ...box('#EAF3FF'), padding: 11, textAlign: 'center' }}>
+            <p style={{ fontWeight: 800, fontSize: 12, color: '#3a5a8a', margin: 0 }}>⏱️ Liste quem quiser. O host começa o leilão em {remaining}s.</p>
+          </div>
+        )}
       </div>
     </div>
   )
