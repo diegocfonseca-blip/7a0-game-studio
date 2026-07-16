@@ -125,20 +125,21 @@ export function computePromotions(tables: Record<Div, SimTeam[]>): Record<string
   return pl
 }
 
-// moedas da temporada por técnico: base +100 · campeão da divisão +40 · acesso
-// (subiu) +20 · queda (caiu) −20. Valores modestos de propósito — nada surreal,
-// pra ninguém ficar rico rápido nem o mercado travar.
+// moedas da temporada por técnico — SEM base recorrente (o técnico já começou
+// com 100). Só desempenho: título da divisão (diferente por série: A vale mais
+// que B, que C, que D), acesso (subiu) ganha, queda (caiu) perde. Modesto.
 const DIV_RANK: Record<Div, number> = { A: 3, B: 2, C: 1, D: 0 }
+const TITLE_BONUS: Record<Div, number> = { A: 50, B: 35, C: 25, D: 15 }
 export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, number> {
   const newPl = computePromotions(tables)
   const out: Record<number, number> = {}
   for (const d of DIVS) tables[d].forEach((t, i) => {
     if (!t.human || t.teamId < 0) return
-    let delta = 100
-    if (i === 0) delta += 40 // campeão
+    let delta = 0
+    if (i === 0) delta += TITLE_BONUS[d] // campeão da divisão (diferente por série)
     const nd = newPl[teamKey(t)] as Div | undefined
-    if (nd && DIV_RANK[nd] > DIV_RANK[d]) delta += 20 // subiu
-    else if (nd && DIV_RANK[nd] < DIV_RANK[d]) delta -= 20 // caiu
+    if (nd && DIV_RANK[nd] > DIV_RANK[d]) delta += 20 // acesso (subiu)
+    else if (nd && DIV_RANK[nd] < DIV_RANK[d]) delta -= 20 // queda (caiu)
     out[t.teamId] = delta
   })
   return out
