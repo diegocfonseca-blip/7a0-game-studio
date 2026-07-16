@@ -11,7 +11,7 @@ import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS } from './data'
 import type { Card, Manager, Sector, WonCard } from './types'
 import { SECTORS } from './types'
 import { useEsc } from './store'
-import { CardCollectPrompt } from './screens'
+import { CardCollectPrompt, SEASON_TOTAL_MS } from './screens'
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -233,7 +233,7 @@ export function myStanding(tables: Record<Div, SimTeam[]>): { div: Div; pos: num
   return null
 }
 const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
-const ROUND_MS = 1400
+const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // MESMO ritmo dos outros modos (~4,7s/rodada, temporada ~3 min)
 
 // ── TELA da temporada simulada da carreira online (toma o lugar da temporada
 // ao vivo). O host conduz o ritmo (PLAY_ROUND avança a rodada, já sincronizado);
