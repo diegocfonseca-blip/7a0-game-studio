@@ -1456,9 +1456,10 @@ export function reducer(state: EscState, action: Action): EscState {
     }
     case 'SET_TACTIC': {
       if (s.careerOnline) {
-        // carreira online: tática é POR JOGO. Grava na rodada ATUAL (a que está
-        // rolando = round-1) e vale dali em diante, sem mexer nos jogos passados.
-        const r = Math.max(0, s.round - 1)
+        // carreira online: tática é POR JOGO e vale do PRÓXIMO jogo em diante. O
+        // jogo que está rolando (índice round-1) e os já passados NÃO re-simulam:
+        // grava no próximo (índice round), então o placar na tela nunca muda.
+        const r = Math.min(37, s.round)
         const bt = { ...(s.careerTactics ?? {}) }
         bt[action.mgrId] = { ...(bt[action.mgrId] ?? {}), [r]: action.tactic }
         s.careerTactics = bt
