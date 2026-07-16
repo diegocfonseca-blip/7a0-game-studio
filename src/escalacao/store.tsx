@@ -262,18 +262,22 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
   const unsold: Card[] = []
   const ties: TieBreak[] = []
   for (const card of byPot) {
+    // PISO: jogador listado no mercado (carreira online) vale no mínimo o que foi
+    // pago por ele (card.paid). Carta nova do baralho não tem piso (paid = 0).
+    const floor = (card as { paid?: number }).paid ?? 0
     const sorted = (bidMap.get(card.id) ?? []).slice().sort((a, b) => b.amount - a.amount)
     if (sorted.length === 0) {
       unsold.push(card)
       queue.push({ card, bids: [], winner: null, paid: 0, voided: [] })
       continue
     }
-    // pula do topo pra baixo os inelegíveis (setor cheio / sem dinheiro): anulados
+    // pula do topo pra baixo os inelegíveis (setor cheio / sem dinheiro / abaixo
+    // do piso): anulados
     const voided: number[] = []
     let i = 0
     for (; i < sorted.length; i++) {
       const m = managers.find(x => x.id === sorted[i].mgr)!
-      if (openSlots(m, card.pos) <= 0 || m.money < sorted[i].amount) { voided.push(sorted[i].mgr); continue }
+      if (openSlots(m, card.pos) <= 0 || m.money < sorted[i].amount || sorted[i].amount < floor) { voided.push(sorted[i].mgr); continue }
       break
     }
     if (i >= sorted.length) { // ninguém elegível
