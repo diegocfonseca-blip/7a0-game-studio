@@ -69,11 +69,6 @@ export function totalHoles(m: Manager): number {
 // (você + 3 CPU, ou 4 online) = 5 goleiros, 9 laterais, etc.
 function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
-  // baralho COMBINADO (os dois juntos): pool gigante (~700), então NÃO forçamos
-  // as cotas por categoria (que existem pra garantir variedade num baralho único
-  // e limitado). Aqui o baralho sai NATURAL — a proporção reflete o catálogo de
-  // verdade (muito mais craque/bom jogador), sem a % de "foi profissional" etc.
-  const freePool = ACTIVE_CATALOG === CATALOG_BOTH
   // ── passo 1: define o tamanho de cada setor e embaralha o catálogo ──
   const plan = {} as Record<Sector, { count: number; catalog: (typeof CATALOG)[Sector] }>
   let totalCount = 0
@@ -136,36 +131,30 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   // cosmético: o jogador folk entra normal pelo nível dele (craque/bom/etc.).
   // A antiga fatia de ~13% do folk foi redistribuída (a maior parte pra "foi
   // profissional"). O resto do baralho é bom jogador natural.
-  // combinado: sem cotas (baralho natural). Único: cotas por % pra garantir variedade.
-  if (!freePool) {
-    distribute(Math.max(1, Math.round(totalCount * 0.15)), availLegend, 'legend', 0.45)    // LENDA 15%
-    distribute(Math.max(1, Math.round(totalCount * 0.26)), availStar, 'star', 0.62)        // CRAQUE 26%
-    distribute(Math.max(1, Math.round(totalCount * 0.17)), availPromessa, 'promessa', 0.55) // PROMESSAS 17%
-    distribute(Math.max(1, Math.round(totalCount * 0.29)), availLow, 'low', 0.65)          // FOI PROFISSIONAL 29%
-  }
+  distribute(Math.max(1, Math.round(totalCount * 0.15)), availLegend, 'legend', 0.45)    // LENDA 15%
+  distribute(Math.max(1, Math.round(totalCount * 0.26)), availStar, 'star', 0.62)        // CRAQUE 26%
+  distribute(Math.max(1, Math.round(totalCount * 0.17)), availPromessa, 'promessa', 0.55) // PROMESSAS 17%
+  distribute(Math.max(1, Math.round(totalCount * 0.29)), availLow, 'low', 0.65)          // FOI PROFISSIONAL 29%
   // ── passo 3: monta cada setor — cotas garantidas, resto = bom jogador ──
   for (const pos of SECTORS) {
     const { count, catalog } = plan[pos]
     const cards: Card[] = []
     const take = (c: (typeof CATALOG)[Sector][number]) => { used.add(c.name); cards.push({ ...c, id: `cat-${pos}-${cards.length}`, pos }) }
-    if (!freePool) {
-      // 1) LENDA
-      let needL = alloc[pos].legend
-      for (const c of catalog) { if (needL <= 0) break; if (c.fame !== 5 || used.has(c.name)) continue; take(c); needL-- }
-      // 2) CRAQUE (fame 4 — folk entra normal, é só selo)
-      let needS = alloc[pos].star
-      for (const c of catalog) { if (needS <= 0) break; if (c.fame !== 4 || c.promessa || used.has(c.name)) continue; take(c); needS-- }
-      // 3) PROMESSAS (5º tier)
-      let needP = alloc[pos].promessa
-      for (const c of catalog) { if (needP <= 0) break; if (!c.promessa || used.has(c.name)) continue; take(c); needP-- }
-      // 4) FOI PROFISSIONAL (fame 1)
-      let needLo = alloc[pos].low
-      for (const c of catalog) { if (needLo <= 0) break; if (c.fame !== 1 || used.has(c.name)) continue; take(c); needLo-- }
-      // 5) resto = BOM JOGADOR natural (fame 2/3, não-promessa — folk entra aqui normal)
-      for (const c of catalog) { if (cards.length >= count) break; if (used.has(c.name) || c.fame === 5 || c.fame === 4 || c.fame === 1 || c.promessa) continue; take(c) }
-    }
-    // 6) preenchimento natural: aceita qualquer real restante na ordem embaralhada.
-    // No baralho COMBINADO é o único passo — o baralho sai 100% natural, sem cota.
+    // 1) LENDA
+    let needL = alloc[pos].legend
+    for (const c of catalog) { if (needL <= 0) break; if (c.fame !== 5 || used.has(c.name)) continue; take(c); needL-- }
+    // 2) CRAQUE (fame 4 — folk entra normal, é só selo)
+    let needS = alloc[pos].star
+    for (const c of catalog) { if (needS <= 0) break; if (c.fame !== 4 || c.promessa || used.has(c.name)) continue; take(c); needS-- }
+    // 3) PROMESSAS (5º tier)
+    let needP = alloc[pos].promessa
+    for (const c of catalog) { if (needP <= 0) break; if (!c.promessa || used.has(c.name)) continue; take(c); needP-- }
+    // 4) FOI PROFISSIONAL (fame 1)
+    let needLo = alloc[pos].low
+    for (const c of catalog) { if (needLo <= 0) break; if (c.fame !== 1 || used.has(c.name)) continue; take(c); needLo-- }
+    // 5) resto = BOM JOGADOR natural (fame 2/3, não-promessa — folk entra aqui normal)
+    for (const c of catalog) { if (cards.length >= count) break; if (used.has(c.name) || c.fame === 5 || c.fame === 4 || c.fame === 1 || c.promessa) continue; take(c) }
+    // 6) se ainda faltar (setor pequeno de catálogo), aceita qualquer real restante
     for (const c of catalog) { if (cards.length >= count) break; if (used.has(c.name)) continue; take(c) }
     // 5) só cai pra incógnita se o catálogo real acabar (sala gigante)
     const gems = Math.max(1, Math.ceil(managers.length / 3))
