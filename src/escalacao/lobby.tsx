@@ -577,15 +577,19 @@ export function EscLobby() {
     if (locked && !amHost) {
       const pwT = (pw ?? '').trim()
       if (!pwT) { setPwModal(rd); setPwEntry(''); setLoading(false); return } // abre o pedido de senha
-      const h = await hashPw(pwT) // trim igual à criação (senão o hash não bate)
-      if (h !== rd.game_state!.pwHash) { setRoomError('Senha incorreta.'); setLoading(false); return }
+      setLoading(true); setRoomError('') // feedback: o clique registrou
+      let h = ''
+      try { h = await hashPw(pwT) } // trim igual à criação (senão o hash não bate)
+      catch { setRoomError('Não consegui checar a senha neste navegador. Atualize a página ou tente outro.'); setLoading(false); return }
+      if (h !== rd.game_state!.pwHash) { setRoomError('❌ Senha incorreta (repara maiúsculas/minúsculas).'); setLoading(false); return }
     }
     const used = new Set(rows.map(p => p.player_index))
     let idx = 1; while (used.has(idx)) idx++
     if (idx >= rd.max_players) { setRoomError('Sala cheia!'); setLoading(false); return }
-    await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: idx, manager_name: nameOf(), is_ready: true })
+    const { error: insErr } = await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: idx, manager_name: nameOf(), is_ready: true })
+    if (insErr) { setRoomError('Não consegui entrar: ' + insErr.message); setLoading(false); return }
     saveRoom(rd.id)
-    setPwModal(null)
+    setPwModal(null); setRoomError('')
     setRoom(rd); setIsHost(false); setPhase('waiting'); setLoading(false)
   }
 
@@ -969,8 +973,8 @@ export function EscLobby() {
             <div className="flex gap-2 mt-3">
               <button onClick={() => { setPwModal(null); setRoomError('') }}
                 className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm bg-white text-black" style={OSWALD}>Cancelar</button>
-              <button onClick={() => enterRoom(pwModal, pwEntry)}
-                className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>Entrar</button>
+              <button onClick={() => enterRoom(pwModal, pwEntry)} disabled={loading}
+                className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm" style={{ background: loading ? '#8aa892' : GREEN, color: '#fff', ...OSWALD }}>{loading ? 'Entrando…' : 'Entrar'}</button>
             </div>
           </div>
         </div>
