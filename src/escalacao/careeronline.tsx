@@ -156,13 +156,13 @@ function Overlay({ children }: { children: React.ReactNode }) {
 const box = (bg = '#fff'): React.CSSProperties => ({ background: bg, border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}` })
 
 // ── rodada ao vivo: os jogos das 4 divisões da rodada atual ──
-function RoundView({ c, onNext, onTable }: { c: Career; onNext: () => void; onTable: () => void }) {
+function RoundView({ c, onNext, onTable, onExit, paused, onTogglePause }: { c: Career; onNext: () => void; onTable: () => void; onExit: () => void; paused: boolean; onTogglePause: () => void }) {
   const done = c.round >= 38
   return (
     <div>
       <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>🗓️ {done ? 'Temporada encerrada' : `Rodada ${c.round}/38`}</span>
-        {!done && c.last && <span style={{ fontSize: 10.5, fontWeight: 700, color: GOLD }}>✅ jogos simulados</span>}
+        {!done && (paused ? <span style={{ fontSize: 10.5, fontWeight: 700, color: '#bbb' }}>⏸️ pausado</span> : <span style={{ fontSize: 10.5, fontWeight: 700, color: '#ff5b4d', display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: 999, background: '#ff5b4d', display: 'inline-block' }} /> AO VIVO</span>)}
       </div>
 
       {c.last ? DIVS.map(d => (
@@ -178,18 +178,24 @@ function RoundView({ c, onNext, onTable }: { c: Career; onNext: () => void; onTa
         </div>
       )) : (
         <div style={{ ...box('#FFF6DE'), padding: 14, textAlign: 'center', marginBottom: 12 }}>
-          <p style={{ fontWeight: 800, fontSize: 13, color: '#666', margin: 0 }}>Aperte "jogar rodada" pra rolar a 1ª rodada nas 4 divisões.</p>
+          <p style={{ fontWeight: 800, fontSize: 13, color: '#666', margin: 0 }}>As rodadas vão rolando sozinhas nas 4 divisões — pause quando quiser.</p>
         </div>
       )}
 
-      {!done && <button onClick={onNext} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>▶️ Jogar {c.round === 0 ? '1ª rodada' : 'próxima rodada'}</button>}
-      <button onClick={onTable} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 11, fontWeight: 900, fontSize: 14, background: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>📊 Tabela + artilharia</button>
+      {done
+        ? <div style={{ ...box(GOLD), padding: 13, textAlign: 'center', marginBottom: 9 }}><p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0 }}>🏁 Temporada encerrada! Veja a classificação final.</p></div>
+        : <>
+            <button onClick={onTogglePause} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: paused ? GREEN : '#fff', color: paused ? '#fff' : INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>{paused ? '▶️ Retomar (automático)' : '⏸️ Pausar'}</button>
+            {paused && <button onClick={onNext} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 11, fontWeight: 900, fontSize: 14, background: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>⏭️ Próxima rodada (manual)</button>}
+          </>}
+      <button onClick={onTable} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 11, fontWeight: 900, fontSize: 14, background: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 12 }}>📊 Tabela + artilharia</button>
+      <button onClick={onExit} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '0 auto', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
     </div>
   )
 }
 
 // ── classificação das 4 divisões + artilharia geral ──
-function Standings({ c, onBack }: { c: Career; onBack: () => void }) {
+function Standings({ c, onBack, onExit }: { c: Career; onBack: () => void; onExit: () => void }) {
   const zone = (i: number, n: number) => i < 4 ? '#D6E9FA' : i >= n - 4 ? '#F9D8D3' : undefined
   const scorers = pickScorers(c.world, c.deck, c.seed)
   return (
@@ -234,7 +240,8 @@ function Standings({ c, onBack }: { c: Career; onBack: () => void }) {
           </div>
         ))}
       </div>
-      <button onClick={onBack} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 15, background: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>← Voltar pra rodada</button>
+      <button onClick={onBack} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 15, background: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 12 }}>← Voltar pra rodada</button>
+      <button onClick={onExit} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '0 auto', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
     </div>
   )
 }
@@ -251,6 +258,19 @@ export function CareerOnlineGame() {
   const [friends, setFriends] = useState(3) // amigos humanos (além de você) na simulação
   const [career, setCareer] = useState<Career | null>(null)
   const [view, setView] = useState<'menu' | 'round' | 'table'>('menu')
+  const [paused, setPaused] = useState(false)
+
+  // rodadas rolam sozinhas (igual a simulação do offline): ~1,3s por rodada
+  // enquanto está na tela da rodada, não pausado e ainda não acabou.
+  useEffect(() => {
+    if (!(open && can && career && view === 'round' && !paused && career.round < 38)) return
+    const t = setTimeout(() => setCareer(c => {
+      if (!c || c.round >= 38) return c
+      const r = playRound(c)
+      return { ...c, world: r.world, round: c.round + 1, last: r.last }
+    }), 1300)
+    return () => clearTimeout(t)
+  }, [open, can, career, view, paused])
 
   if (!open || !can) return null
   const close = () => { window.location.hash = '' }
@@ -258,6 +278,7 @@ export function CareerOnlineGame() {
   const start = () => {
     const seed = Math.floor(Math.random() * 1e9)
     setCareer({ seed, deck, world: buildWorld(seed, friends), fix: buildFix(), round: 0, last: null })
+    setPaused(false)
     setView('round')
   }
   const next = () => setCareer(c => {
@@ -266,8 +287,8 @@ export function CareerOnlineGame() {
     return { ...c, world: r.world, round: c.round + 1, last: r.last }
   })
 
-  if (career && view === 'round') return <Overlay><RoundView c={career} onNext={next} onTable={() => setView('table')} /></Overlay>
-  if (career && view === 'table') return <Overlay><Standings c={career} onBack={() => setView('round')} /></Overlay>
+  if (career && view === 'round') return <Overlay><RoundView c={career} onNext={next} onTable={() => setView('table')} onExit={close} paused={paused} onTogglePause={() => setPaused(p => !p)} /></Overlay>
+  if (career && view === 'table') return <Overlay><Standings c={career} onBack={() => setView('round')} onExit={close} /></Overlay>
 
   return (
     <Overlay>
