@@ -167,6 +167,7 @@ export function EscLobby() {
   const [roomError, setRoomError] = useState('')
   const [resumeRoom, setResumeRoom] = useState<RoomInfo | null>(null) // partida em andamento: pergunta voltar/sair
   const [myCareers, setMyCareers] = useState<OpenRoom[]>([]) // saves de carreira online do host (só do criador)
+  const [resumingCareer, setResumingCareer] = useState<OpenRoom | null>(null) // painel "continuar carreira" com as 3 opções do amigo faltando
   // salas abertas (lista pública)
   const [tab, setTab] = useState<'create' | 'open' | 'join'>('open')
   const [openRooms, setOpenRooms] = useState<OpenRoom[]>([])
@@ -466,13 +467,32 @@ export function EscLobby() {
     const rooms = ((data ?? []) as RoomInfo[]).filter(r => r.game_state?.__game === GAME_TAG && (r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline))
     setMyCareers(rooms.map(r => ({ ...r, count: 0 })))
   }
-  // continuar um save: reentra na sala (o host já está no room_players) e retoma
-  async function resumeCareer(rd: OpenRoom) {
-    if (!user) return
+  // abrir um save: mostra o painel de retomada (técnicos + 3 opções do amigo faltando)
+  function resumeCareer(rd: OpenRoom) {
+    setRoomError(''); setResumingCareer(rd)
+  }
+  // continuar de verdade: reentra na sala (o host já está no room_players) e retoma.
+  // quem não voltou joga como CPU (a temporada é simulada) e pode voltar depois.
+  async function doContinueCareer() {
+    const rd = resumingCareer
+    if (!user || !rd) return
     setLoading(true); setRoomError('')
     saveRoom(rd.id)
     const ok = await triggerStart(rd)
-    if (!ok) { setLoading(false); setRoomError('Não consegui abrir a carreira agora. Tente de novo.') }
+    if (!ok) { setLoading(false); setRoomError('Não consegui abrir a carreira agora. Tente de novo.'); return }
+    setResumingCareer(null)
+  }
+  // EXCLUIR de vez: o time do amigo vira CPU comum (não pode mais reassumir).
+  async function excludeFromCareer(rd: OpenRoom, teamName: string) {
+    if (!user) return
+    if (!window.confirm(`Excluir ${teamName} de vez? O time vira CPU e o amigo não poderá reassumir.`)) return
+    const gs = rd.game_state as GS
+    const mgrs = (gs.managers ?? []).map(m => m.teamName === teamName ? { ...m, isHuman: false } : m)
+    await supabase.from('game_rooms').update({ game_state: { ...gs, managers: mgrs } }).eq('id', rd.id)
+    await supabase.from('room_players').delete().eq('room_id', rd.id).eq('manager_name', teamName)
+    const next = { ...rd, game_state: { ...gs, managers: mgrs } }
+    setResumingCareer(next)
+    setMyCareers(cs => cs.map(c => c.id === rd.id ? next : c))
   }
 
   // entra numa sala já carregada (por código ou pela lista de salas abertas)
@@ -817,6 +837,41 @@ export function EscLobby() {
       </div>}
 
       {!pwModal && roomError && <p className="text-red-400 text-sm font-bold">{roomError}</p>}
+
+      {resumingCareer && (() => {
+        const gs = resumingCareer.game_state as GS & { seasonNo?: number }
+        const humans = (gs.managers ?? []).filter(m => m.isHuman)
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-5" style={{ background: 'rgba(0,0,0,.7)' }}>
+            <div className="w-full max-w-sm border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6] max-h-[85vh] overflow-y-auto" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
+              <p className="font-black text-black text-lg" style={OSWALD}>🪜 Continuar carreira</p>
+              <p className="text-black/60 text-xs font-bold mb-1">{gs.roomName ?? resumingCareer.code} · Temporada {gs.seasonNo ?? 1}</p>
+              <p className="text-black/70 text-[12px] font-bold mb-2 leading-snug">Chame a galera de volta pelo código. Quem entrar reassume o time; <b>quem faltar joga como CPU</b> e pode voltar depois (nas paradas entre temporadas).</p>
+              <div className="flex gap-2 mb-3">
+                <button onClick={() => shareInvite(resumingCareer.code, gs.roomName)} className="flex-1 border-2 border-black rounded-xl py-2 font-black text-xs uppercase bg-white text-black" style={OSWALD}>📤 Chamar (código {resumingCareer.code})</button>
+              </div>
+              <p className="text-black/50 text-[10px] font-black uppercase tracking-widest mb-1">Técnicos da carreira</p>
+              <div className="space-y-1.5 mb-3">
+                {humans.map((m, i) => (
+                  <div key={m.id ?? i} className="flex items-center gap-2 border-2 border-black rounded-lg px-2.5 py-1.5 bg-white">
+                    <div className="w-6 h-6 rounded-full border-2 border-black bg-gray-300 flex items-center justify-center text-[11px] font-black">{m.teamName?.[0]?.toUpperCase()}</div>
+                    <span className="font-black text-black text-xs flex-1 truncate">{m.teamName}</span>
+                    <button onClick={() => excludeFromCareer(resumingCareer, m.teamName)} aria-label={`Excluir ${m.teamName}`}
+                      className="shrink-0 text-[10px] font-black uppercase text-red-500 border border-red-300 rounded px-1.5 py-0.5 active:opacity-60" style={OSWALD}>Excluir</button>
+                  </div>
+                ))}
+                {humans.length === 0 && <p className="text-black/40 text-xs italic">Sem técnicos humanos salvos.</p>}
+              </div>
+              {roomError && <p className="text-red-500 text-xs font-bold mb-2">{roomError}</p>}
+              <button onClick={doContinueCareer} disabled={loading}
+                className="w-full border-[3px] border-black rounded-xl py-3 font-black text-sm uppercase mb-2" style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>
+                {loading ? 'Abrindo…' : '▶️ Continuar (quem faltar = CPU)'}
+              </button>
+              <button onClick={() => { setResumingCareer(null); setRoomError('') }} className="w-full text-black/50 text-xs font-bold underline" style={OSWALD}>⏳ Aguardar mais um pouco (voltar)</button>
+            </div>
+          </div>
+        )
+      })()}
 
       {streamModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.7)' }}>
