@@ -166,6 +166,7 @@ export function EscLobby() {
   const [isHost, setIsHost] = useState(false)
   const [roomError, setRoomError] = useState('')
   const [resumeRoom, setResumeRoom] = useState<RoomInfo | null>(null) // partida em andamento: pergunta voltar/sair
+  const [myCareers, setMyCareers] = useState<OpenRoom[]>([]) // saves de carreira online do host (só do criador)
   // salas abertas (lista pública)
   const [tab, setTab] = useState<'create' | 'open' | 'join'>('open')
   const [openRooms, setOpenRooms] = useState<OpenRoom[]>([])
@@ -227,6 +228,13 @@ export function EscLobby() {
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
+
+  // saves de carreira online do host: carrega ao abrir o menu
+  useEffect(() => {
+    if (phase !== 'menu' || !user) return
+    fetchMyCareers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, user])
 
   // carrega a lista ao abrir "Salas abertas" e ATUALIZA sozinha a cada 5s —
   // assim uma sala criada agora aparece pra galera sem precisar apertar nada.
@@ -447,6 +455,26 @@ export function EscLobby() {
     setListLoading(false)
   }
 
+  // saves de CARREIRA ONLINE do host: salas que EU criei, no modo carreira, com
+  // jogo em andamento. É a lista "Minhas carreiras" (continuar de onde parou).
+  async function fetchMyCareers() {
+    if (!user) return
+    const { data } = await supabase.from('game_rooms')
+      .select('id, code, host_id, max_players, status, game_state, updated_at')
+      .eq('host_id', user.id).eq('status', 'started')
+      .order('updated_at', { ascending: false }).limit(20)
+    const rooms = ((data ?? []) as RoomInfo[]).filter(r => r.game_state?.__game === GAME_TAG && (r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline))
+    setMyCareers(rooms.map(r => ({ ...r, count: 0 })))
+  }
+  // continuar um save: reentra na sala (o host já está no room_players) e retoma
+  async function resumeCareer(rd: OpenRoom) {
+    if (!user) return
+    setLoading(true); setRoomError('')
+    saveRoom(rd.id)
+    const ok = await triggerStart(rd)
+    if (!ok) { setLoading(false); setRoomError('Não consegui abrir a carreira agora. Tente de novo.') }
+  }
+
   // entra numa sala já carregada (por código ou pela lista de salas abertas)
   async function enterRoom(rd: RoomInfo, pw?: string) {
     if (!user) return
@@ -634,6 +662,30 @@ export function EscLobby() {
               🚪 Sair da sala
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Minhas carreiras (saves do host) — só aparece pra quem tem carreira em andamento */}
+      {canCareer && myCareers.length > 0 && (
+        <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#EDE3FF', boxShadow: `4px 4px 0 ${INK}` }}>
+          <p className="font-black text-sm" style={{ ...OSWALD, color: '#4C1D95' }}>🪜 Minhas carreiras</p>
+          {myCareers.map(r => {
+            const gs = r.game_state as GS & { seasonNo?: number; careerOnline?: boolean }
+            const nm = gs?.roomName ?? r.code
+            return (
+              <div key={r.id} className="flex items-center gap-2 border-2 border-black rounded-xl px-3 py-2 bg-white">
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-black text-sm truncate" style={OSWALD}>{nm}</p>
+                  <p className="text-black/60 text-[11px] font-bold">Temporada {gs?.seasonNo ?? 1} · sala {r.code}</p>
+                </div>
+                <button onClick={() => resumeCareer(r)} disabled={loading}
+                  className="border-2 border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
+                  style={{ background: GREEN, color: '#fff', ...OSWALD }}>
+                  ▶️ Continuar
+                </button>
+              </div>
+            )
+          })}
         </div>
       )}
 

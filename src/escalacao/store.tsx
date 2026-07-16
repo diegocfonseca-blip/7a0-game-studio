@@ -1970,7 +1970,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // a formação (usada como fallback). IMPORTANTE: .then() aqui não é
       // enredo — sem ele o supabase-js NÃO dispara a requisição (query é
       // preguiçosa), e era por isso que o estado nunca era salvo de verdade.
-      const payload = { ...sanitize(st), __game: 'escalacao', formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}) }
+      const payload = { ...sanitize(st), __game: 'escalacao', formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
       // updated_at aqui é o "batimento cardíaco" da sala: é como a lista de
       // Salas Abertas distingue jogo REALMENTE rolando de sala abandonada (o
       // host fechou a aba e ninguém mais salva nada). Sem escrever isso a
