@@ -449,18 +449,28 @@ function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matche
 // melhores de cada posição (pela formação) são os titulares (fundo creme); as
 // reservas aparecem AO LADO, na mesma linha de posição. Sem estrela/badge. ──
 const POS_LABEL: Record<Sector, string> = { GOL: 'Goleiros', LAT: 'Laterais', ZAG: 'Zagueiros', MEI: 'Meias', ATA: 'Atacantes' }
-function PlayerRow({ c, titular, col, onSwap }: { c: WonCard; titular: boolean; col: FCol; onSwap?: () => void }) {
+type ListCfg = { listed: boolean; listable: boolean; onList: () => void }
+function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boolean; col: FCol; onSwap?: () => void; list?: ListCfg }) {
+  const listed = !!list?.listed
+  const dim = !!list && !list.listable && !listed // modo listagem: sem poder listar (último da posição / bloqueado)
+  const onClick = onSwap ?? (list && (list.listable || listed) ? list.onList : undefined)
   return (
-    <div onClick={onSwap} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: titular ? '#fff' : 'rgba(255,255,255,0.5)', borderLeft: `3px solid ${titular ? col.solid : 'transparent'}`, marginBottom: 3, cursor: onSwap ? 'pointer' : 'default' }}>
-      <span style={{ fontWeight: titular ? 800 : 600, fontSize: 12, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: titular ? INK : '#6a6658' }}>{c.name}{onSwap && <span style={{ fontWeight: 900, marginLeft: 4, color: titular ? '#c0392b' : GREEN }}>{titular ? '▼' : '▲'}</span>}</span>
+    <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: listed ? '#FFF6D6' : titular ? '#fff' : 'rgba(255,255,255,0.5)', borderLeft: `3px solid ${listed ? GOLD : titular ? col.solid : 'transparent'}`, marginBottom: 3, opacity: dim ? 0.45 : 1, cursor: onClick ? 'pointer' : 'default' }}>
+      <span style={{ fontWeight: titular ? 800 : 600, fontSize: 12, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: listed ? '#8a6d0b' : titular ? INK : '#6a6658' }}>
+        {c.name}
+        {onSwap && <span style={{ fontWeight: 900, marginLeft: 4, color: titular ? '#c0392b' : GREEN }}>{titular ? '▼' : '▲'}</span>}
+        {list && <span style={{ fontWeight: 900, marginLeft: 4, fontSize: 10, color: listed ? '#b8860b' : dim ? 'rgba(0,0,0,0.35)' : GREEN }}>{listed ? '✓ tirar' : dim ? '🔒' : '+ listar'}</span>}
+      </span>
       <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, whiteSpace: 'nowrap', color: '#5a5647', flexShrink: 0 }}>💰 {c.paid ?? 0}</span>
     </div>
   )
 }
-function SquadTab({ mgr, col, coins, xiIds, onSwap }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; onSwap?: (id: string) => void }) {
+function SquadTab({ mgr, col, coins, xiIds, onSwap, list }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void } }) {
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
+  const caption = onSwap ? '· toque ▲ subir / ▼ sentar (vale o próximo jogo)' : list ? '· toque pra pôr no leilão / tirar' : '· moedas pra reforços'
+  const listOf = (c: WonCard): ListCfg | undefined => list ? { listed: list.listed.has(c.id), listable: list.canList(c), onList: () => list.onList(c.id) } : undefined
   // o elenco herda a COR do jogador (a mesma sorteada pra ele no jogo todo)
   return (
     <div style={{ ...box(col.light), padding: 12, marginBottom: 12 }}>
@@ -470,7 +480,7 @@ function SquadTab({ mgr, col, coins, xiIds, onSwap }: { mgr: Manager; col: FCol;
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: 'rgba(255,255,255,0.6)', border: `2px solid ${col.solid}`, borderRadius: 8, padding: '4px 8px' }}>
         <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>🪙 Caixa: {coins}</span>
-        <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{onSwap ? '· toque ▲ subir / ▼ sentar (vale o próximo jogo)' : '· moedas pra reforços'}</span>
+        <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>
       </div>
       {hasReserves && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 5 }}>
@@ -486,8 +496,8 @@ function SquadTab({ mgr, col, coins, xiIds, onSwap }: { mgr: Manager; col: FCol;
           <div key={pos} style={{ marginBottom: 8 }}>
             <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: col.solid, opacity: 0.85, margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: 0.3 }}>{POS_LABEL[pos]}</p>
             <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>{titulars.map(c => <PlayerRow key={c.id} c={c} titular col={col} onSwap={onSwap ? () => onSwap(c.id) : undefined} />)}</div>
-              {reserves.length > 0 && <div style={{ flex: 1, minWidth: 0 }}>{reserves.map(c => <PlayerRow key={c.id} c={c} titular={false} col={col} onSwap={onSwap ? () => onSwap(c.id) : undefined} />)}</div>}
+              <div style={{ flex: 1, minWidth: 0 }}>{titulars.map(c => <PlayerRow key={c.id} c={c} titular col={col} onSwap={onSwap ? () => onSwap(c.id) : undefined} list={listOf(c)} />)}</div>
+              {reserves.length > 0 && <div style={{ flex: 1, minWidth: 0 }}>{reserves.map(c => <PlayerRow key={c.id} c={c} titular={false} col={col} onSwap={onSwap ? () => onSwap(c.id) : undefined} list={listOf(c)} />)}</div>}
             </div>
           </div>
         )
@@ -724,32 +734,14 @@ export function ReserveListScreen() {
               <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '0 0 2px', color: '#c0392b' }}>🔒 Vender ainda não liberou</p>
               <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>Nesta temporada você só <b>compra</b> reservas (a venda libera na 3ª). E, de todo jeito, pra vender você precisa de <b>reservas no banco</b> — nunca dá pra ficar com menos de 11. Como você tem 11, não teria quem listar mesmo. É só aguardar o host começar o leilão. 👇</p>
             </div>}
-        <div style={{ ...box(col.light), padding: 12, marginBottom: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: col.solid }}>👥 {mgr.teamName}</p>
-            <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: col.solid, color: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px' }}>{nListed} no leilão · 🪙 {state.careerCoins?.[youId] ?? 0}</span>
+        {marketUnlocked && (
+          <div style={{ textAlign: 'center', marginBottom: 8 }}>
+            <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: nListed ? GOLD : 'rgba(0,0,0,0.06)', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 10px' }}>📋 {nListed} no leilão</span>
           </div>
-          {SECTORS.map(pos => {
-            const players = mgr.squad.filter(c => c.pos === pos).sort((a, b) => mid(b) - mid(a))
-            if (!players.length) return null
-            return (
-              <div key={pos} style={{ marginBottom: 8 }}>
-                <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: col.solid, opacity: 0.85, margin: '0 0 3px', textTransform: 'uppercase' }}>{POS_LABEL[pos]}</p>
-                {players.map(c => {
-                  const isListed = listed.has(c.id)
-                  const allowed = isListed || canList(c)
-                  return (
-                    <button key={c.id} onClick={() => allowed && dispatch({ type: 'TOGGLE_RESERVE_LIST', mgrId: youId, cardId: c.id })} disabled={!allowed}
-                      style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '5px 8px', borderRadius: 6, marginBottom: 3, border: `2px solid ${isListed ? GOLD : 'transparent'}`, background: isListed ? '#FFF6D6' : '#fff', opacity: allowed ? 1 : 0.5, cursor: allowed ? 'pointer' : 'default', ...OSWALD }}>
-                      <span style={{ fontWeight: 800, fontSize: 12.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name} <span style={{ fontWeight: 900, color: '#5a5647', fontSize: 11 }}>💰{c.paid ?? 0}</span></span>
-                      <span style={{ fontWeight: 900, fontSize: 10.5, color: isListed ? '#b8860b' : allowed ? GREEN : 'rgba(0,0,0,0.35)' }}>{isListed ? '✓ listado — tirar' : !marketUnlocked ? '🔒' : allowed ? '+ listar' : 'último da posição'}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            )
-          })}
-        </div>
+        )}
+        {/* mesmo layout da aba Elenco (Titulares/Reservas), mas em modo listagem */}
+        <SquadTab mgr={mgr} col={col} coins={state.careerCoins?.[youId] ?? 0}
+          list={{ listed, canList, onList: (id) => dispatch({ type: 'TOGGLE_RESERVE_LIST', mgrId: youId, cardId: id }) }} />
         {state.isHost ? (
           <button onClick={() => dispatch({ type: 'RESERVE_AUCTION_ONLINE' })}
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
