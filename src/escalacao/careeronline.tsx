@@ -39,10 +39,26 @@ const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série
 const DIV_BASE: Record<Div, number> = { A: 80, B: 71, C: 63, D: 55 }
 const DIV_TAG: Record<Div, { l: string; bg: string }> = { A: { l: 'A', bg: '#B8892B' }, B: { l: 'B', bg: '#3E8E4E' }, C: { l: 'C', bg: '#9A7B33' }, D: { l: 'D', bg: '#7A7460' } }
 
-interface Team { name: string; str: number; you?: boolean; hum?: boolean; w: number; d: number; l: number; gf: number; ga: number; pts: number }
+interface Team { name: string; str: number; you?: boolean; hum?: boolean; hidx?: number; w: number; d: number; l: number; gf: number; ga: number; pts: number }
 interface Match { h: string; a: string; gh: number; ga: number; you?: boolean; hum?: boolean }
 interface Scorer { name: string; team: string; div: Div; goals: number; you?: boolean; hum?: boolean }
-interface Career { seed: number; deck: DeckChoice; world: Record<Div, Team[]>; fix: Record<Div, number[][][]>; round: number; last: Record<Div, Match[]> | null }
+interface Career { seed: number; deck: DeckChoice; world: Record<Div, Team[]>; fix: Record<Div, number[][][]>; round: number; last: Record<Div, Match[]> | null; season: number }
+
+// mundo de início de temporada compactado pra sincronizar na sala (o `you` é
+// derivado no aparelho por hidx — cada um se destaca sem alterar a simulação)
+type PackTeam = { n: string; s: number; h?: 1; hi?: number }
+function packWorld(w: Record<Div, Team[]>): Record<Div, PackTeam[]> {
+  const out = {} as Record<Div, PackTeam[]>
+  for (const d of DIVS) out[d] = w[d].map(t => ({ n: t.name, s: t.str, ...(t.hum ? { h: 1 as const } : {}), ...(t.hidx != null ? { hi: t.hidx } : {}) }))
+  return out
+}
+function unpackWorld(pk: Record<Div, PackTeam[]>, myIdx: number): Record<Div, Team[]> {
+  const out = {} as Record<Div, Team[]>
+  for (const d of DIVS) out[d] = (pk[d] ?? []).map(t => ({ name: t.n, str: t.s, hum: !!t.h, hidx: t.hi, you: t.hi != null && t.hi === myIdx, ...blankStats() }))
+  return out
+}
+// (re)marca quem sou eu no mundo já montado (por hidx)
+function markYou(w: Record<Div, Team[]>, myIdx: number) { for (const d of DIVS) for (const t of w[d]) t.you = t.hidx != null && t.hidx === myIdx }
 
 // amigos humanos (simulação): você na Série D + outros espalhados pela pirâmide
 const FRIEND_NAMES = ['vfranca', 'Serginho zava', 'Don Julio', 'Pavanelli', 'Bruno FC', 'Marcelo', 'Zé da Bola']
@@ -61,7 +77,7 @@ function buildWorld(seed: number, friends: number): Record<Div, Team[]> {
     world[d] = pool.map(t => ({ name: t.team, str: DIV_BASE[d] + Math.round((rng() - 0.5) * 14), ...blankStats() }))
   }
   // você sempre começa na Série D (último slot)
-  world.D[19] = { name: 'Meu Time', str: DIV_BASE.D + 2, you: true, hum: true, ...blankStats() }
+  world.D[19] = { name: 'Meu Time', str: DIV_BASE.D + 2, you: true, hum: true, hidx: 0, ...blankStats() }
   // amigos espalhados: A, B, C, D, A... (usa slot 0,1,2... de cada divisão)
   const slotUsed: Record<Div, number> = { A: 0, B: 0, C: 0, D: 0 }
   for (let i = 0; i < friends; i++) {
@@ -121,21 +137,40 @@ function buildWorldMulti(seed: number, players: string[], myIdx: number): Record
     const d = DIVS[i % 4]
     const slot = slotUsed[d]++
     if (slot > 19) return
-    world[d][slot] = { name, str: DIV_BASE[d] + Math.round((rng() - 0.3) * 12), you: i === myIdx, hum: true, ...blankStats() }
+    world[d][slot] = { name, str: DIV_BASE[d] + Math.round((rng() - 0.3) * 12), you: i === myIdx, hum: true, hidx: i, ...blankStats() }
   })
   return world
 }
 
-// reconstrói a temporada até uma rodada alvo (replay determinístico do zero).
-// Usado pelos clientes pra "pular" pro número de rodada que o host mandou.
-function careerAtRound(seed: number, deck: DeckChoice, players: string[], myIdx: number, fix: Record<Div, number[][][]>, round: number): Career {
-  let world = buildWorldMulti(seed, players, myIdx)
+// reconstrói a temporada a partir de um mundo de início (já com o `you`
+// marcado) até uma rodada alvo — replay determinístico das rodadas.
+function careerFrom(startWorld: Record<Div, Team[]>, seed: number, deck: DeckChoice, fix: Record<Div, number[][][]>, round: number, season: number): Career {
+  let world = startWorld
   let last: Record<Div, Match[]> | null = null
   for (let r = 0; r < round; r++) {
-    const res = playRound({ seed, deck, world, fix, round: r, last })
+    const res = playRound({ seed, deck, world, fix, round: r, last, season })
     world = res.world; last = res.last
   }
-  return { seed, deck, world, fix, round, last }
+  return { seed, deck, world, fix, round, last, season }
+}
+
+// nova temporada: aplica acessos e quedas (top4 sobe, últimos 4 caem por
+// divisão) e zera as estatísticas, preservando nome/força/humano/hidx.
+function nextSeasonWorld(final: Record<Div, Team[]>): Record<Div, Team[]> {
+  const order = {} as Record<Div, Team[]>
+  for (const d of DIVS) order[d] = sortDiv(final[d])
+  const up = (d: Div) => order[d].slice(0, 4)          // acessos (top 4)
+  const down = (d: Div) => order[d].slice(-4)          // rebaixados (últimos 4)
+  const mid = (d: Div, a: number, b: number) => order[d].slice(a, b)
+  const arranged: Record<Div, Team[]> = {
+    A: [...mid('A', 0, 16), ...up('B')],
+    B: [...mid('B', 4, 16), ...down('A'), ...up('C')],
+    C: [...mid('C', 4, 16), ...down('B'), ...up('D')],
+    D: [...mid('D', 4, 20), ...down('C')],
+  }
+  const out = {} as Record<Div, Team[]>
+  for (const d of DIVS) out[d] = arranged[d].map(t => ({ name: t.name, str: t.str, hum: t.hum, hidx: t.hidx, ...blankStats() }))
+  return out
 }
 
 // joga UMA rodada em todas as divisões — PURO: clona as tabelas e devolve o
@@ -410,29 +445,26 @@ function ChampionCard({ deck, seed, seasonKey }: { deck: DeckChoice; seed: numbe
 }
 
 // ── FIM DE TEMPORADA: celebração do campeão + classificação + carta + volta ──
-function SeasonEnd({ c, roomId, onExit }: { c: Career; roomId: string | null; onExit: () => void }) {
+function SeasonEnd({ c, roomId, canControl, onNextSeason, onEnd, onTable }: { c: Career; roomId: string | null; canControl: boolean; onNextSeason: () => void; onEnd: () => void; onTable: () => void }) {
   const out = myOutcome(c.world)
   const champ = !!out?.champ
+  const btn = (bg: string, fg: string): React.CSSProperties => ({ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: bg, color: fg, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 })
   return (
     <div>
       {champ ? (
         <div style={{ ...box(GOLD), padding: 18, textAlign: 'center', marginBottom: 12 }}>
           <p style={{ fontSize: 40, margin: 0, lineHeight: 1 }}>🏆</p>
           <p style={{ fontWeight: 900, fontSize: 22, ...OSWALD, margin: '6px 0 0' }}>CAMPEÃO DA {DIV_NAME[out!.div].toUpperCase()}!</p>
-          <p style={{ fontSize: 12.5, fontWeight: 700, color: 'rgba(0,0,0,0.7)', marginTop: 4 }}>Parabéns, {out!.team}! Você levantou a taça.</p>
+          <p style={{ fontSize: 12.5, fontWeight: 700, color: 'rgba(0,0,0,0.7)', marginTop: 4 }}>Parabéns, {out!.team}! Você levantou a taça{c.season > 0 ? ` na temporada ${c.season + 1}` : ''}.</p>
         </div>
       ) : (
         <div style={{ ...box(INK), padding: 16, color: '#fff', textAlign: 'center', marginBottom: 12 }}>
-          <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>🏁 Fim de temporada</p>
+          <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>🏁 Fim da temporada {c.season + 1}</p>
           {out && <p style={{ fontSize: 12.5, opacity: 0.85, marginTop: 4 }}>{out.team} terminou em <b>{out.pos}º</b> da {DIV_NAME[out.div]}.</p>}
         </div>
       )}
 
-      {champ && roomId && <ChampionCard deck={c.deck} seed={c.seed} seasonKey={`careeronline:${roomId}`} />}
-
-      <div style={{ ...box('#EAF3FF'), padding: 12, textAlign: 'center', marginBottom: 12 }}>
-        <p style={{ fontWeight: 800, fontSize: 12, color: '#3a5a8a', margin: 0 }}>⏱️ Quando o host decidir, todos voltam pra sala online — pra seguir com o mesmo time, refazer o leilão ou encerrar.</p>
-      </div>
+      {champ && roomId && <ChampionCard deck={c.deck} seed={c.seed} seasonKey={`careeronline:${roomId}:${c.season}`} />}
 
       <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, textAlign: 'center' }}>
         <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD, margin: 0 }}>📊 Classificação final</p>
@@ -440,7 +472,20 @@ function SeasonEnd({ c, roomId, onExit }: { c: Career; roomId: string | null; on
       </div>
       <DivTables c={c} />
       <ScorersBox c={c} />
-      <button onClick={onExit} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 15, background: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 12 }}>🚪 Voltar pra sala</button>
+
+      {canControl ? (
+        <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
+          <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>👑 Você é o host — e agora?</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Siga com o mesmo mundo (acessos e quedas aplicados) ou encerre e volte pra sala pra refazer o leilão / trocar a galera.</p>
+          <button onClick={onNextSeason} style={btn(GREEN, '#fff')}>▶️ Nova temporada (mesmo mundo)</button>
+          <button onClick={onEnd} style={{ ...btn(RED, '#fff'), marginBottom: 0 }}>🚪 Encerrar — voltar pra sala</button>
+        </div>
+      ) : (
+        <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12, textAlign: 'center' }}>
+          <p style={{ fontWeight: 800, fontSize: 12, color: '#3a5a8a', margin: 0 }}>⏱️ Aguardando o host decidir — nova temporada ou voltar pra sala.</p>
+        </div>
+      )}
+      <button onClick={onTable} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '0 auto', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>ver tabela detalhada</button>
     </div>
   )
 }
@@ -461,14 +506,18 @@ export function CareerOnlineGame() {
   const [fromRoom, setFromRoom] = useState(false) // veio de uma sala online (não do menu solo)
   const launchRef = useRef<CareerLaunch | null>(null) // config da sala (roomId, host, técnicos)
   const baseRef = useRef<Record<string, unknown> | null>(null) // game_state da sala (host preserva ao sincronizar)
+  const startPackedRef = useRef<Record<Div, PackTeam[]> | null>(null) // mundo de início da temporada (host publica)
 
-  // host publica a rodada atual na sala — todos os clientes seguem. Preserva o
-  // resto do game_state (nome, senha, deck) e bate o heartbeat (updated_at).
-  const syncRound = (round: number, pausedFlag: boolean) => {
+  const myIdx = () => launchRef.current?.myIndex ?? 0
+
+  // host publica o estado da temporada (temporada, semente, rodada, mundo de
+  // início) — todos os clientes seguem. Preserva o resto do game_state e bate o
+  // heartbeat (updated_at).
+  const publish = (season: number, seed: number, round: number, pausedFlag: boolean) => {
     const L = launchRef.current
-    if (!L || !L.isHost) return
+    if (!L || !L.isHost || !startPackedRef.current) return
     supabase.from('game_rooms').update({
-      game_state: { ...(baseRef.current ?? {}), career: { round, paused: pausedFlag, ts: Date.now() } },
+      game_state: { ...(baseRef.current ?? {}), career: { season, seed, round, paused: pausedFlag, world: startPackedRef.current, ts: Date.now() } },
       updated_at: new Date().toISOString(),
     }).eq('id', L.roomId)
   }
@@ -480,27 +529,32 @@ export function CareerOnlineGame() {
     const L = pendingLaunch; pendingLaunch = null
     launchRef.current = L
     const seed = codeSeed(L.roomCode)
+    const world = buildWorldMulti(seed, L.players, L.myIndex)
     setDeck(L.deck); setFromRoom(true)
-    setCareer({ seed, deck: L.deck, world: buildWorldMulti(seed, L.players, L.myIndex), fix: buildFix(), round: 0, last: null })
+    setCareer({ seed, deck: L.deck, world, fix: buildFix(), round: 0, last: null, season: 0 })
     setPaused(false); setView('round')
     if (L.isHost) {
       // base já vem da sala (síncrono) pra não sobrescrever nome/senha/deck ao
-      // sincronizar; marca a rodada 0 como início oficial.
+      // sincronizar; publica a temporada 0 como início oficial.
       baseRef.current = { ...(L.base ?? {}) }; delete (baseRef.current as { career?: unknown }).career
-      syncRound(0, false)
+      startPackedRef.current = packWorld(world)
+      publish(0, seed, 0, false)
     }
   }, [open, can, career])
 
-  // CLIENTE (não-host) numa sala: segue a rodada que o host publica no banco.
+  // CLIENTE (não-host) numa sala: segue o estado que o host publica no banco.
   useEffect(() => {
     const L = launchRef.current
     if (!fromRoom || !L || L.isHost || !open || !can) return
-    const fix = buildFix(); const seed = codeSeed(L.roomCode)
+    const fix = buildFix()
     const apply = (gs: unknown) => {
-      const cr = (gs as { career?: { round?: number; paused?: boolean } } | null)?.career
-      if (!cr || typeof cr.round !== 'number') return
+      const cr = (gs as { career?: { season?: number; seed?: number; round?: number; paused?: boolean; world?: Record<Div, PackTeam[]>; ended?: boolean } } | null)?.career
+      if (!cr) return
+      if (cr.ended) { setCareer(null); setFromRoom(false); launchRef.current = null; window.location.hash = ''; return }
+      if (typeof cr.round !== 'number' || typeof cr.seed !== 'number' || !cr.world) return
       setPaused(!!cr.paused)
-      setCareer(prev => (prev && prev.round === cr.round) ? prev : careerAtRound(seed, L.deck, L.players, L.myIndex, fix, cr.round!))
+      const startWorld = unpackWorld(cr.world, L.myIndex)
+      setCareer(careerFrom(startWorld, cr.seed, L.deck, fix, cr.round, cr.season ?? 0))
     }
     supabase.from('game_rooms').select('game_state').eq('id', L.roomId).maybeSingle().then(({ data }) => apply(data?.game_state))
     const ch = supabase.channel('careerroom:' + L.roomId)
@@ -520,7 +574,7 @@ export function CareerOnlineGame() {
       const r = playRound(career)
       const nc = { ...career, world: r.world, round: career.round + 1, last: r.last }
       setCareer(nc)
-      if (fromRoom && L?.isHost) syncRound(nc.round, false)
+      if (fromRoom && L?.isHost) publish(nc.season, nc.seed, nc.round, false)
     }, 1300)
     return () => clearTimeout(t)
   }, [open, can, career, view, paused, fromRoom])
@@ -529,13 +583,13 @@ export function CareerOnlineGame() {
   const canControl = !fromRoom || !!launchRef.current?.isHost
   const close = () => {
     // veio de sala: limpa a temporada pra um próximo "começar" montar do zero
-    if (fromRoom) { setCareer(null); setFromRoom(false); setView('menu'); launchRef.current = null; baseRef.current = null }
+    if (fromRoom) { setCareer(null); setFromRoom(false); setView('menu'); launchRef.current = null; baseRef.current = null; startPackedRef.current = null }
     window.location.hash = ''
   }
 
   const start = () => {
     const seed = Math.floor(Math.random() * 1e9)
-    setCareer({ seed, deck, world: buildWorld(seed, friends), fix: buildFix(), round: 0, last: null })
+    setCareer({ seed, deck, world: buildWorld(seed, friends), fix: buildFix(), round: 0, last: null, season: 0 })
     setPaused(false)
     setView('round')
   }
@@ -544,17 +598,38 @@ export function CareerOnlineGame() {
     const r = playRound(career)
     const nc = { ...career, world: r.world, round: career.round + 1, last: r.last }
     setCareer(nc)
-    if (fromRoom && launchRef.current?.isHost) syncRound(nc.round, paused)
+    if (fromRoom && launchRef.current?.isHost) publish(nc.season, nc.seed, nc.round, paused)
   }
   const togglePause = () => {
-    if (!canControl) return
+    if (!canControl || !career) return
     const np = !paused
     setPaused(np)
-    if (fromRoom && launchRef.current?.isHost && career) syncRound(career.round, np)
+    if (fromRoom && launchRef.current?.isHost) publish(career.season, career.seed, career.round, np)
+  }
+  // host (ou solo): nova temporada com acessos e quedas aplicados
+  const nextSeason = () => {
+    if (!canControl || !career) return
+    const nw = nextSeasonWorld(career.world)
+    markYou(nw, myIdx())
+    const seed = Math.floor(Math.random() * 1e9)
+    const nc: Career = { seed, deck: career.deck, world: nw, fix: buildFix(), round: 0, last: null, season: career.season + 1 }
+    setCareer(nc); setPaused(false); setView('round')
+    if (fromRoom && launchRef.current?.isHost) { startPackedRef.current = packWorld(nw); publish(nc.season, seed, 0, false) }
+  }
+  // host: encerra a carreira e devolve todo mundo pra sala de espera
+  const endCareer = async () => {
+    const L = launchRef.current
+    if (L?.isHost) {
+      await supabase.from('game_rooms').update({
+        game_state: { ...(baseRef.current ?? {}), career: { ended: true, ts: Date.now() } },
+        status: 'waiting', updated_at: new Date().toISOString(),
+      }).eq('id', L.roomId)
+    }
+    close()
   }
 
   // temporada acabou: celebração do campeão + classificação final + carta
-  if (career && career.round >= 38 && view !== 'table') return <Overlay><SeasonEnd c={career} roomId={launchRef.current?.roomId ?? null} onExit={close} /></Overlay>
+  if (career && career.round >= 38 && view !== 'table') return <Overlay><SeasonEnd c={career} roomId={launchRef.current?.roomId ?? null} canControl={canControl} onNextSeason={nextSeason} onEnd={endCareer} onTable={() => setView('table')} /></Overlay>
   if (career && view === 'round') return <Overlay><RoundView c={career} onNext={next} onTable={() => setView('table')} onExit={close} paused={paused} onTogglePause={togglePause} canControl={canControl} /></Overlay>
   if (career && view === 'table') return <Overlay><Standings c={career} onBack={() => setView('round')} onExit={close} /></Overlay>
 
