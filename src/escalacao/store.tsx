@@ -1703,14 +1703,30 @@ export function reducer(state: EscState, action: Action): EscState {
         m.squad = keep
         for (const c of out) listedCards.push({ ...c }) // paid = piso (mercado, próx. parte)
       }
-      // 2) elenco fundo + orçamento = caixa
-      for (const m of s.managers) if (m.isHuman) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
-      // 3) baralho pra demanda do banco + injeta os listados
+      // 2) baralho ANTES de marcar elenco fundo — assim a demanda usa a formação
+      // NORMAL (não dobrada) e a quantidade por posição fica IGUAL ao leilão online
+      // comum (2 usuários disputam 3 goleiros, etc.).
       const rng = mulberry((s.seed ^ (s.seasonNo * 811073)) >>> 0)
       const used = new Set<string>()
       for (const m of s.managers) for (const c of m.squad) used.add(c.name)
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+      if (s.seasonNo >= 3) {
+        // MERCADO (3ª temporada+): 1 carta NOVA por posição (fixo, não importa
+        // quantos jogadores online) + os jogadores que cada técnico listou.
+        const bt = nextBuildTok()
+        const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
+        for (const pos of SECTORS) {
+          const pick = shuffle(ACTIVE_CATALOG[pos], rng).find(c => !used.has(c.name))
+          if (pick) deck[pos].push({ ...pick, id: `mkt-${pos}-${bt}`, pos })
+        }
+        s.deck = deck
+      } else {
+        // RESERVAS (2ª temporada): baralho na quantidade NORMAL por amigo online.
+        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+      }
       for (const c of listedCards) s.deck[c.pos].push(c)
+      // 3) elenco fundo (mira 22) + orçamento = caixa. DEPOIS do baralho, senão a
+      // demanda dobraria e o leilão viria com cartas demais.
+      for (const m of s.managers) if (m.isHuman) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
       s.surpriseId = pickSurprise(s.deck, rng)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []

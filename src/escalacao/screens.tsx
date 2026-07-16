@@ -191,9 +191,12 @@ function YourPitch({ small = false }: { small?: boolean }) {
   const { state } = useEsc()
   const you = state.managers[state.youIdx]
   if (state.reserveAuction) {
+    // "Reservas" só na 2ª temporada (quando se monta o banco); da 3ª em diante é
+    // o mercado, então o campinho de baixo é só o "Banco".
+    const benchTitle = state.seasonNo === 2 ? '🔁 Reservas (banco)' : '🔁 Banco'
     return (
       <div className="space-y-2">
-        <Campinho m={you} small={small} bench title="🔁 Reservas (banco)" />
+        <Campinho m={you} small={small} bench title={benchTitle} />
         <Campinho m={you} small={small} title="⭐ Titulares" />
       </div>
     )
