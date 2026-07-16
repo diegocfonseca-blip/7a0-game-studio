@@ -13,7 +13,9 @@ import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 
-const CATALOG_TOTAL = Object.values(CATALOG).reduce((s, arr) => s + arr.length, 0)
+// universo colecionável = os DOIS baralhos (BR + Europa), por nomes únicos
+// (Kaká, Cafu etc. aparecem nos dois — conta uma vez só).
+const CATALOG_TOTAL = new Set([...Object.values(CATALOG).flat(), ...Object.values(CATALOG_EU).flat()].map(c => c.name)).size
 
 const GAME_URL = 'https://diegocfonseca-blip.github.io/7a0-game-studio/leilao-legends-38/'
 
