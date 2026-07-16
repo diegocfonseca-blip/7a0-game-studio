@@ -1007,6 +1007,7 @@ type Action =
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string }
   | { type: 'MONTE_TIMEOUT' }
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
+  | { type: 'SET_LINEUP'; mgrId: number; ids: string[] } // carreira online: define os 11 titulares (escalação), vale do PRÓXIMO jogo
   | { type: 'PLAY_ROUND' }
   | { type: 'SIM_MANY'; count: number }
   | { type: 'FINISH_CEREMONY' }
@@ -1503,6 +1504,17 @@ export function reducer(state: EscState, action: Action): EscState {
         return s
       }
       s.tactics[action.mgrId] = action.tactic
+      return s
+    }
+    case 'SET_LINEUP': {
+      // escalação POR JOGO (carreira online): grava os 11 titulares na rodada
+      // ATUAL (round = próximo jogo), como a tática. Libera a partir da 2ª
+      // temporada (quando há reservas). Sem re-simular o que já passou.
+      if (!s.careerOnline || s.seasonNo < 2) return s
+      const r = Math.min(37, s.round)
+      const bl = { ...(s.careerLineup ?? {}) }
+      bl[action.mgrId] = { ...(bl[action.mgrId] ?? {}), [r]: action.ids }
+      s.careerLineup = bl
       return s
     }
     case 'PLAY_ROUND':
