@@ -1381,7 +1381,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.tactics = {}; s.careerTactics = {}
       // carreira: cada técnico COMEÇA com 100 moedas (uma vez). Depois só ganha por
       // desempenho (título por série, acesso) e perde na queda — sem base recorrente.
-      if (s.careerOnline) { const cc: Record<number, number> = {}; for (const m of s.managers) if (m.isHuman) cc[m.id] = 100; s.careerCoins = cc }
+      if (s.careerOnline) { const cc: Record<number, number> = {}; for (const m of s.managers) if (m.isHuman) { cc[m.id] = 100; m.money = 100 } s.careerCoins = cc }
       s.seasonNo = 1
       s.screen = 'auction'
       startAuctionPhase(s, false)
@@ -1492,12 +1492,19 @@ export function reducer(state: EscState, action: Action): EscState {
       s.fixtures = buildFixtures(s.league)
       s.round = 0
       s.scorers = []
-      if (s.reserveAuction) {
-        // fim do leilão de RESERVAS: a caixa vira o que sobrou do orçamento; tira
-        // a marca de elenco fundo (o leilão do time volta a mirar 11 por padrão).
+      if (s.careerOnline) {
+        // carreira online: a caixa é UMA carteira só que carrega o TROCO entre os
+        // leilões. No fim de QUALQUER leilão (o inicial da T1 ou o de reservas), a
+        // caixa vira o que sobrou do orçamento — o próximo leilão parte desse saldo
+        // (mais bônus de título/acesso, menos queda), nunca zera pra 100 de novo.
         const cc = { ...(s.careerCoins ?? {}) }
-        for (const m of s.managers) if (m.isHuman) { cc[m.id] = Math.max(0, Math.round(m.money)); m.deepSquad = false }
+        for (const m of s.managers) if (m.isHuman) cc[m.id] = Math.max(0, Math.round(m.money))
         s.careerCoins = cc
+      }
+      if (s.reserveAuction) {
+        // fim do leilão de RESERVAS: tira a marca de elenco fundo (o leilão do time
+        // volta a mirar 11 por padrão).
+        for (const m of s.managers) if (m.isHuman) m.deepSquad = false
         s.reserveAuction = false
       }
       s.screen = 'season'
