@@ -1168,6 +1168,21 @@ function sealAndResolve(state: EscState) {
       if (hb.amount > 0) pushBid(bidMap, hb.cardId, { mgr: mgrId, amount: hb.amount })
     }
   }
+  // BOT FIADOR (carreira online): se EXATAMENTE 1 humano ofertou nesta posição, o
+  // bot entra dando lance com a CAIXA dele pra disputar — pode calhar no mesmo
+  // jogador do amigo ou em outro (o medo). Com 0 humanos, a carta vai pro monte e
+  // o bot varre depois (grátis); com 2+, o bot fica de fora (já tem disputa).
+  if (state.careerOnline) {
+    const humanBidders = Object.values(state.pendingEnvelopes).filter(env => env.some(b => b.amount > 0)).length
+    if (humanBidders === 1) {
+      for (const m of state.managers) {
+        if (!m.backstop) continue
+        for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue)) {
+          pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: b.amount })
+        }
+      }
+    }
+  }
   const { queue, unsold, ties } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao')
   for (const q of queue) if (q.winner !== null && q.paid > 0) recordPrice(state, q.card.name, q.paid) // livro de preços
   state.revealQueue = queue
