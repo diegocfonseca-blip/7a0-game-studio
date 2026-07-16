@@ -126,20 +126,24 @@ export function computePromotions(tables: Record<Div, SimTeam[]>): Record<string
 }
 
 // moedas da temporada por técnico — SEM base recorrente (o técnico já começou
-// com 100). Só desempenho: título da divisão (diferente por série: A vale mais
-// que B, que C, que D), acesso (subiu) ganha, queda (caiu) perde. Modesto.
+// com 100). Só desempenho, com valores DIFERENTES por série:
+//   campeão: A 24 · B 20 · C 15 · D 10
+//   acesso (subiu, pela série de onde saiu): A 20 · B 15 · C 10 · D 5
+//   queda (caiu, pela série de onde caiu): A 20 · B 15 · C 10 · D 5
 const DIV_RANK: Record<Div, number> = { A: 3, B: 2, C: 1, D: 0 }
-const TITLE_BONUS: Record<Div, number> = { A: 50, B: 35, C: 25, D: 15 }
+const CAMPEAO: Record<Div, number> = { A: 24, B: 20, C: 15, D: 10 }
+const ACESSO: Record<Div, number> = { A: 20, B: 15, C: 10, D: 5 }
+const QUEDA: Record<Div, number> = { A: 20, B: 15, C: 10, D: 5 }
 export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, number> {
   const newPl = computePromotions(tables)
   const out: Record<number, number> = {}
   for (const d of DIVS) tables[d].forEach((t, i) => {
     if (!t.human || t.teamId < 0) return
     let delta = 0
-    if (i === 0) delta += TITLE_BONUS[d] // campeão da divisão (diferente por série)
+    if (i === 0) delta += CAMPEAO[d] // campeão da divisão
     const nd = newPl[teamKey(t)] as Div | undefined
-    if (nd && DIV_RANK[nd] > DIV_RANK[d]) delta += 20 // acesso (subiu)
-    else if (nd && DIV_RANK[nd] < DIV_RANK[d]) delta -= 20 // queda (caiu)
+    if (nd && DIV_RANK[nd] > DIV_RANK[d]) delta += ACESSO[d] // acesso (subiu da série d)
+    else if (nd && DIV_RANK[nd] < DIV_RANK[d]) delta -= QUEDA[d] // queda (caiu da série d)
     out[t.teamId] = delta
   })
   return out
