@@ -124,13 +124,17 @@ function Shell({ children, bar }: { children: React.ReactNode; bar?: React.React
 
 // ─── campinho ────────────────────────────────────────────────────────
 // linhas top→bottom: ATA · MEI · defesa (LAT-esq · ZAG · ZAG · LAT-dir) · GOL
-function Campinho({ m, small = false }: { m: Manager; small?: boolean }) {
+function Campinho({ m, small = false, bench = false, title }: { m: Manager; small?: boolean; bench?: boolean; title?: string }) {
   const rows: { key: string; slots: { pos: Sector; card: WonCard | null }[] }[] = useMemo(() => {
     const filled = (p: Sector) => m.squad.filter(c => c.pos === p)
     const buildRow = (p: Sector): { pos: Sector; card: WonCard | null }[] => {
       const have = filled(p)
       const slots = FORMATIONS[m.formation][p]
-      return Array.from({ length: slots }, (_, i) => ({ pos: p, card: have[i] ?? null }))
+      // titular: os primeiros `slots` por posição. reserva (banco): os `slots`
+      // seguintes — o leilão de reservas mira 22 (2× a formação), então cada
+      // posição ganha um espelho no campinho de baixo.
+      const start = bench ? slots : 0
+      return Array.from({ length: slots }, (_, i) => ({ pos: p, card: have[start + i] ?? null }))
     }
     const lats = buildRow('LAT') // [esquerda, direita] quando existirem
     const zags = buildRow('ZAG')
@@ -144,10 +148,15 @@ function Campinho({ m, small = false }: { m: Manager; small?: boolean }) {
       { key: 'DEF', slots: defense },
       { key: 'GOL', slots: buildRow('GOL') },
     ]
-  }, [m.squad, m.formation])
+  }, [m.squad, m.formation, bench])
 
   return (
     <div className="border-[3px] border-black rounded-2xl overflow-hidden" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
+      {title && (
+        <div style={{ background: INK, color: '#fff', borderBottom: `3px solid ${INK}`, height: small ? 22 : 26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span className="font-black uppercase tracking-wide" style={{ ...OSWALD, fontSize: small ? 10 : 12 }}>{title}</span>
+        </div>
+      )}
       <div className="px-3 py-2 flex flex-col gap-2" style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)` }}>
         {rows.map(row => (
           <div key={row.key} className="flex justify-center gap-2">
@@ -811,7 +820,16 @@ function Envelope() {
         <p className="text-center text-xs font-bold text-black/60">Faltam lacrar: {waitingFor.map(m => m.teamName).join(', ')}</p>
       )}
 
-      <Campinho m={you} />
+      {state.reserveAuction ? (
+        <>
+          {/* leilão de reservas: o banco (o que está sendo montado agora) fica na
+              FRENTE, e o time titular logo abaixo — os dois campinhos empilhados. */}
+          <Campinho m={you} bench title="🔁 Reservas (banco)" />
+          <Campinho m={you} title="⭐ Titulares" />
+        </>
+      ) : (
+        <Campinho m={you} />
+      )}
       <RivalsStrip />
     </Shell>
   )
@@ -1157,7 +1175,7 @@ function RivalsStrip() {
         {rivals.map(m => (
           <Box key={m.id} className="p-2.5" shadow={3}>
             <p className="font-black text-sm truncate" style={OSWALD}>{m.teamName}</p>
-            <p className="text-[11px] font-semibold text-black/55">{m.formation} · 💰 {m.money} · {11 - totalHoles(m)}/11</p>
+            <p className="text-[11px] font-semibold text-black/55">{m.formation} · 💰 {m.money} · {m.squad.length}/{m.squad.length + totalHoles(m)}</p>
             <p className="text-[10px] font-medium text-black/70" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
               {[...m.squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(c => c.name).join(', ') || 'ainda sem contratações'}
             </p>
