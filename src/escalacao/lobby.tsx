@@ -513,12 +513,16 @@ export function EscLobby() {
     const sel = 'id, code, host_id, max_players, status, game_state, updated_at'
     const { data: mine } = await supabase.from('room_players').select('room_id').eq('user_id', user.id)
     const memberIds = [...new Set(((mine ?? []) as { room_id: string }[]).map(r => r.room_id))]
-    const [hostedRes, memberRes] = await Promise.all([
+    // inclui também a sala salva NO APARELHO (por id) — é assim que o banner do
+    // topo acha a sala do HOST mesmo quando ele não tem vaga em room_players.
+    const savedId = loadSavedRoom()
+    const [hostedRes, memberRes, savedRes] = await Promise.all([
       supabase.from('game_rooms').select(sel).eq('host_id', user.id).eq('status', 'started').limit(30),
       memberIds.length ? supabase.from('game_rooms').select(sel).in('id', memberIds).eq('status', 'started').limit(30) : Promise.resolve({ data: [] as RoomInfo[] }),
+      savedId ? supabase.from('game_rooms').select(sel).eq('id', savedId).eq('status', 'started').limit(1) : Promise.resolve({ data: [] as RoomInfo[] }),
     ])
     const seen = new Set<string>(); const rooms: RoomInfo[] = []
-    for (const r of [...((hostedRes.data ?? []) as RoomInfo[]), ...((memberRes.data ?? []) as RoomInfo[])]) {
+    for (const r of [...((hostedRes.data ?? []) as RoomInfo[]), ...((memberRes.data ?? []) as RoomInfo[]), ...((savedRes.data ?? []) as RoomInfo[])]) {
       if (seen.has(r.id) || !isCareer(r)) continue
       seen.add(r.id); rooms.push(r)
     }
