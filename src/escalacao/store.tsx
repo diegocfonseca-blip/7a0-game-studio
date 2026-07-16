@@ -1101,23 +1101,38 @@ const CEREMONY_MS = 45_000 // tempo pra olhar os times antes do campeonato come�
 function sweepMonteToBackstops(st: EscState) {
   if (!st.careerOnline) return
   const bots = st.managers.filter(m => m.backstop)
-  if (bots.length === 0) return
   let bi = 0
-  for (let guard = 0; st.monte.length > 0 && guard < 1000; guard++) {
+  const takeInto = (bot: Manager, card: Card) => {
+    const paid = (card as { paid?: number }).paid ?? 0
+    creditSeller(st, card, paid, bot.id) // o vendedor recebe (também na varredura do bot)
+    bot.squad.push({ ...card, paid, via: 'monte' })
+    if (paid > 0) recordPrice(st, card.name, paid)
+  }
+  // fase 1: os bots fiadores pegam o que cabe na vaga deles
+  if (bots.length > 0) for (let guard = 0; st.monte.length > 0 && guard < 1000; guard++) {
     let placed = false
     for (let k = 0; k < bots.length; k++) {
       const bot = bots[(bi + k) % bots.length]
       const idx = st.monte.findIndex(c => openSlots(bot, c.pos) > 0)
       if (idx < 0) continue
-      const card = st.monte.splice(idx, 1)[0]
-      const paid = (card as { paid?: number }).paid ?? 0
-      bot.squad.push({ ...card, paid, via: 'monte' })
-      if (paid > 0) recordPrice(st, card.name, paid)
+      takeInto(bot, st.monte.splice(idx, 1)[0])
       bi = (bi + k + 1) % bots.length
       placed = true
       break
     }
     if (!placed) break // nenhum bot tem vaga pra nada que sobrou
+  }
+  // fase 2: COMPRADOR DE ÚLTIMA HORA — todo jogador LISTADO que ninguém quis
+  // (nem no leilão, nem no monte, nem na varredura) é OBRIGATORIAMENTE comprado
+  // por um bot pelo valor atual, pra o vendedor recuperar essa grana (ele já
+  // perdeu vendo o valor cair). Carta nova sem dono (sem seller) some, como antes.
+  const anyBots = st.managers.filter(m => !m.isHuman)
+  const leftover = st.monte
+  st.monte = []
+  let ai = 0
+  for (const card of leftover) {
+    if ((card as { seller?: number }).seller == null || anyBots.length === 0) continue
+    takeInto(anyBots[ai++ % anyBots.length], card)
   }
 }
 function enterCerimonia(st: EscState) {
