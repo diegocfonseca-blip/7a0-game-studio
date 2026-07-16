@@ -139,7 +139,7 @@ export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, nu
   const newPl = computePromotions(tables)
   const out: Record<number, number> = {}
   for (const d of DIVS) tables[d].forEach((t, i) => {
-    if ((!t.human && !t.backstop) || t.teamId < 0) return // humanos E bots fiadores têm patrimônio real
+    if (!t.human || t.teamId < 0) return // só humanos têm careerCoins; os bots ficam no clubCash
     let delta = 0
     if (i === 0) delta += CAMPEAO[d] // campeão da divisão
     if (i < 4) delta += ZONA[d] // top 4: acesso nas de baixo, "manter entre os 4" na A
@@ -159,7 +159,7 @@ export function clubRewards(tables: Record<Div, SimTeam[]>): Record<string, numb
   const newPl = computePromotions(tables)
   const out: Record<string, number> = {}
   for (const d of DIVS) tables[d].forEach((t, i) => {
-    if (t.human || t.backstop) return // esses já têm caixa em careerCoins
+    if (t.human) return // humano tem caixa em careerCoins; todo bot fica no clubCash
     let delta = 0
     if (i === 0) delta += CAMPEAO[d]
     if (i < 4) delta += ZONA[d]
@@ -625,9 +625,8 @@ const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0 }
 function RankingTab({ tables, honors, coins, clubCash, colors, youId }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number }) {
   const rows = DIVS.flatMap(d => tables[d]).map(t => {
     const key = teamKey(t)
-    // humanos/fiadores têm caixa em careerCoins (por id); os outros times (CPU +
-    // reservas de fundo) têm em clubCash (por teamKey).
-    const money = (t.teamId >= 0 && coins[t.teamId] != null) ? coins[t.teamId] : Math.round(clubCash[key] ?? 0)
+    // humano tem caixa em careerCoins (por id); todo bot tem em clubCash (teamKey).
+    const money = t.human ? (coins[t.teamId] ?? 0) : Math.round(clubCash[key] ?? 0)
     return { t, key, h: honors[key] ?? EMPTY_HONORS, money }
   })
   rows.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
