@@ -357,6 +357,7 @@ export function EscLobby() {
       stream: !!gs?.stream,
       deck: gs?.mode === 'carreira' ? (gs.deck ?? 'br') : 'br',
       career: gs?.mode === 'carreira',
+      locked: gs?.locked, pwHash: gs?.pwHash, // preserva a senha da sala pelo autosave
     })
     return true
   }
@@ -574,8 +575,9 @@ export function EscLobby() {
     const locked = !!rd.game_state?.locked && !!rd.game_state?.pwHash
     const amHost = rd.host_id === user.id
     if (locked && !amHost) {
-      if (!pw) { setPwModal(rd); setPwEntry(''); setLoading(false); return } // abre o pedido de senha
-      const h = await hashPw(pw)
+      const pwT = (pw ?? '').trim()
+      if (!pwT) { setPwModal(rd); setPwEntry(''); setLoading(false); return } // abre o pedido de senha
+      const h = await hashPw(pwT) // trim igual à criação (senão o hash não bate)
       if (h !== rd.game_state!.pwHash) { setRoomError('Senha incorreta.'); setLoading(false); return }
     }
     const used = new Set(rows.map(p => p.player_index))

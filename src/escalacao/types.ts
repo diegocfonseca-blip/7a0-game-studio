@@ -195,6 +195,8 @@ export interface EscState {
   careerTactics?: Record<number, Record<number, Tactic>> // carreira online: tática POR JOGO (mgrId → rodada 0-based → tática); vale daquela rodada em diante até trocar
   careerCoins?: Record<number, number> // carreira online: caixa de moedas por técnico (mgrId → moedas), pra reforços; +100/temporada + bônus de título/acesso, -queda
   careerHonors?: Record<string, { A: number; B: number; C: number; D: number }> // carreira online: títulos por divisão de CADA time (chave = m<id> humano / nome do CPU), acumulados por temporada; base do Ranking
+  locked?: boolean // sala fechada (com senha) — guardado no estado pra sobreviver ao autosave
+  pwHash?: string // hash da senha da sala (SHA-256) — idem
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)
   champion: number | null
