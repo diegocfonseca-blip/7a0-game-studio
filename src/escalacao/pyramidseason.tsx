@@ -656,22 +656,24 @@ export function PyramidSeasonScreen() {
     <div style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
         <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>🪜 TEMP. {state.seasonNo} · {done ? 'encerrada' : round === 0 ? 'começando…' : `rodada ${round}/38`}</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span title="Sua caixa de moedas (pra o leilão/mercado)" style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: GOLD, color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 9px', whiteSpace: 'nowrap' }}>💰 {state.careerCoins?.[youId] ?? 0}</span>
-            {!done && <span style={{ fontSize: 10.5, fontWeight: 700, color: '#ff5b4d', display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: 999, background: '#ff5b4d', display: 'inline-block' }} /> AO VIVO</span>}
+          <span style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>🪜 TEMP. {state.seasonNo} · {done ? 'encerrada' : round === 0 ? 'começando…' : `rod. ${round}/38`}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+            {!done && me && <span style={{ fontWeight: 800, fontSize: 11.5, ...OSWALD, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{me.pos === 1 ? '🥇' : '🏅'} {me.pos}º · {DIV_NAME[me.div]}</span>}
+            <span title="Sua caixa de moedas (pra o leilão/mercado)" style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: GOLD, color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 9px', whiteSpace: 'nowrap', flexShrink: 0 }}>💰 {state.careerCoins?.[youId] ?? 0}</span>
           </div>
         </div>
 
-        {me && (
-          <div style={{ ...box(me.champ && done ? GOLD : '#fff'), padding: 12, marginBottom: 12, textAlign: 'center' }}>
-            {done
-              ? (me.champ
-                ? <p style={{ fontWeight: 900, fontSize: 17, ...OSWALD, margin: 0 }}>🏆 CAMPEÃO DA {DIV_NAME[me.div].toUpperCase()}!</p>
-                : <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0 }}>🏁 {me.team} — {me.pos}º na {DIV_NAME[me.div]}</p>)
-              : <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0 }}>👤 {me.team} · {me.pos}º na {DIV_NAME[me.div]}</p>}
+        {/* FIM da temporada: banner de campeão/colocação. AO VIVO: placar FIXO da
+            sua partida — fica no topo em TODAS as abas, então dá pra trocar de aba
+            e continuar vendo o resultado ao vivo. */}
+        {done && me && (
+          <div style={{ ...box(me.champ ? GOLD : '#fff'), padding: 12, marginBottom: 12, textAlign: 'center' }}>
+            {me.champ
+              ? <p style={{ fontWeight: 900, fontSize: 17, ...OSWALD, margin: 0 }}>🏆 CAMPEÃO DA {DIV_NAME[me.div].toUpperCase()}!</p>
+              : <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0 }}>🏁 {me.team} — {me.pos}º na {DIV_NAME[me.div]}</p>}
           </div>
         )}
+        {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} roundKey={round} />}
 
         {done && me?.champ && state.roomId && (
           <div style={{ marginBottom: 12 }}>
@@ -731,7 +733,22 @@ export function PyramidSeasonScreen() {
           </>
         ) : tab === 'jogos' && hasMatches ? (
           <>
-            {myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished={done} col={myCol} roundKey={round} />}
+            {done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished col={myCol} roundKey={round} />}
+            {(() => { // frase de rivalidade: o vizinho na tabela (quem cola / quem você persegue)
+              if (!me) return null
+              const t = tables[me.div] ?? []
+              const i = t.findIndex(x => x.you); if (i < 0) return null
+              const rival = i > 0 ? t[i - 1] : t[i + 1]; if (!rival) return null
+              const gap = Math.abs(t[i].pts - rival.pts)
+              const pts = gap === 1 ? 'ponto' : 'pontos'
+              const rc = colors[rival.teamId]?.solid ?? INK
+              const R = <span style={{ color: rc, fontWeight: 900 }}>{rival.name}</span>
+              const msg = i === 0 ? <>🔥 Você é o <b>LÍDER</b>! {R} cola {gap} {pts} atrás — não vacila.</>
+                : i > 0 && gap <= 2 ? <>😤 {R} tá só {gap} {pts} na sua frente. Vai deixar?</>
+                : i > 0 ? <>👀 De olho no {R}: {gap} {pts} à sua frente.</>
+                : <>💪 Você segura {R} {gap} {pts} atrás. Aguenta firme!</>
+              return <div style={{ ...box('#FFF3E0'), padding: '9px 11px', marginBottom: 10 }}><p style={{ fontSize: 12, fontWeight: 800, ...OSWALD, margin: 0 }}>{msg}</p></div>
+            })()}
             {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
           </>
         ) : (
