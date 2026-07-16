@@ -465,11 +465,63 @@ function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boo
     </div>
   )
 }
-function SquadTab({ mgr, col, coins, xiIds, onSwap, list }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void } }) {
+// ELENCO com CAMPINHO: os titulares (XI escolhido) aparecem num campinho; as
+// reservas numa lista embaixo. Pra trocar: toca num jogador (fica MARCADO) e os
+// da MESMA posição do outro lado ACENDEM — toca em qual quer trocar. Vale pros
+// dois sentidos (titular↔reserva). Aplica no próximo jogo, como a tática.
+function ElencoField({ mgr, col, xiIds, selId, onTap }: { mgr: Manager; col: FCol; xiIds: Set<string>; selId: string | null; onTap?: (id: string) => void }) {
+  const sel = selId ? mgr.squad.find(c => c.id === selId) ?? null : null
+  const isTarget = (c: WonCard) => !!sel && sel.id !== c.id && sel.pos === c.pos && (xiIds.has(sel.id) !== xiIds.has(c.id))
+  const stateOf = (c: WonCard) => (c.id === selId ? 'sel' : isTarget(c) ? 'target' : sel ? 'dim' : 'idle')
+  const borderOf = (st: string) => (st === 'sel' ? GOLD : st === 'target' ? GREEN : INK)
+  const xiOf = (pos: Sector) => mgr.squad.filter(c => c.pos === pos && xiIds.has(c.id)).sort((a, b) => mid(b) - mid(a))
+  const lats = xiOf('LAT')
+  const defense = [...(lats[0] ? [lats[0]] : []), ...xiOf('ZAG'), ...(lats[1] ? [lats[1]] : [])]
+  const rows: { key: string; cards: WonCard[] }[] = [
+    { key: 'ATA', cards: xiOf('ATA') },
+    { key: 'MEI', cards: xiOf('MEI') },
+    { key: 'DEF', cards: defense },
+    { key: 'GOL', cards: xiOf('GOL') },
+  ]
+  const reserves = mgr.squad.filter(c => !xiIds.has(c.id)).sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos) || mid(b) - mid(a))
+  const hint = sel ? `Trocar ${sel.name} por qual ${POS_LABEL[sel.pos].toLowerCase()}? (toque o aceso)` : 'Toque um jogador pra trocar de posição no time.'
+  return (
+    <div>
+      {onTap && <p style={{ fontSize: 10.5, fontWeight: 700, color: sel ? GREEN : '#5a5647', margin: '0 0 6px' }}>{hint}</p>}
+      <div style={{ border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
+        <div style={{ padding: '8px 5px', display: 'flex', flexDirection: 'column', gap: 5, background: `repeating-linear-gradient(180deg, ${GREEN} 0 30px, #166332 30px 60px)` }}>
+          {rows.map(r => (
+            <div key={r.key} style={{ display: 'flex', justifyContent: 'center', gap: 5, flexWrap: 'wrap' }}>
+              {r.cards.map(c => { const st = stateOf(c); return (
+                <button key={c.id} onClick={() => onTap?.(c.id)} disabled={!onTap} style={{ border: `2px solid ${borderOf(st)}`, borderRadius: 8, background: st === 'sel' ? '#FFF6D6' : '#fff', padding: '3px 6px', minWidth: 58, maxWidth: 96, textAlign: 'center', cursor: onTap ? 'pointer' : 'default', opacity: st === 'dim' ? 0.5 : 1, boxShadow: st === 'target' ? `0 0 0 2px ${GREEN}` : 'none', ...OSWALD }}>
+                  <span style={{ display: 'block', fontSize: 8, fontWeight: 900, color: col.solid }}>{c.pos}</span>
+                  <span style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: INK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</span>
+                </button>
+              ) })}
+            </div>
+          ))}
+        </div>
+      </div>
+      <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: 'rgba(0,0,0,0.5)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: 0.3 }}>Reservas ({reserves.length})</p>
+      {reserves.length === 0
+        ? <p style={{ fontSize: 11, fontWeight: 700, color: '#6a6658', margin: 0 }}>Sem reservas no banco.</p>
+        : reserves.map(c => { const st = stateOf(c); return (
+          <div key={c.id} onClick={() => onTap?.(c.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '5px 8px', borderRadius: 6, background: st === 'sel' ? '#FFF6D6' : 'rgba(255,255,255,0.55)', border: `2px solid ${st === 'idle' ? 'transparent' : borderOf(st)}`, marginBottom: 3, opacity: st === 'dim' ? 0.5 : 1, cursor: onTap ? 'pointer' : 'default' }}>
+            <span style={{ fontWeight: 700, fontSize: 12, ...OSWALD, color: '#4a4740', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span style={{ fontWeight: 900, fontSize: 9, color: col.solid, marginRight: 5 }}>{c.pos}</span>{c.name}
+            </span>
+            <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: '#5a5647', flexShrink: 0 }}>💰 {c.paid ?? 0}</span>
+          </div>
+        ) })}
+    </div>
+  )
+}
+function SquadTab({ mgr, col, coins, xiIds, onSwap, list, selId = null }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null }) {
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
-  const caption = onSwap ? '· toque ▲ subir / ▼ sentar (vale o próximo jogo)' : list ? '· toque pra pôr no leilão / tirar' : '· moedas pra reforços'
+  const elenco = !!xiIds && !list // aba Elenco: campinho + reservas (troca por seleção)
+  const caption = elenco ? (onSwap ? '· toque pra trocar titular ↔ reserva (vale o próximo jogo)' : '· seu time titular') : list ? '· toque pra pôr no leilão / tirar' : '· moedas pra reforços'
   const listOf = (c: WonCard): ListCfg | undefined => list ? { listed: list.listed.has(c.id), listable: list.canList(c), onList: () => list.onList(c.id) } : undefined
   // o elenco herda a COR do jogador (a mesma sorteada pra ele no jogo todo)
   return (
@@ -482,6 +534,9 @@ function SquadTab({ mgr, col, coins, xiIds, onSwap, list }: { mgr: Manager; col:
         <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>🪙 Caixa: {coins}</span>
         <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>
       </div>
+      {elenco ? (
+        <ElencoField mgr={mgr} col={col} xiIds={xiIds!} selId={selId} onTap={onSwap} />
+      ) : (<>
       {hasReserves && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 5 }}>
           <p style={{ flex: 1, fontWeight: 900, fontSize: 9.5, ...OSWALD, color: col.solid, margin: 0, textTransform: 'uppercase', letterSpacing: 0.3 }}>Titulares</p>
@@ -502,6 +557,7 @@ function SquadTab({ mgr, col, coins, xiIds, onSwap, list }: { mgr: Manager; col:
           </div>
         )
       })}
+      </>)}
     </div>
   )
 }
@@ -569,17 +625,20 @@ export function PyramidSeasonScreen() {
   const myXI = useMemo(() => (mgrMe ? lineupAt(careerLineup, youId, round, mgrMe.squad) : []), [careerLineup, youId, round, mgrMe])
   const myXIids = useMemo(() => new Set(myXI.map(c => c.id)), [myXI])
   const canSub = state.seasonNo >= 2 && !done // substituição libera na 2ª temporada
-  const doSwap = (cardId: string) => {
+  const [selId, setSelId] = useState<string | null>(null)
+  // troca por SELEÇÃO: 1º toque marca o jogador; 2º toque num da MESMA posição do
+  // outro lado (titular↔reserva) troca os dois. Toque em outro qualquer só remarca.
+  const onTapPlayer = (cardId: string) => {
     if (!mgrMe) return
     const card = mgrMe.squad.find(c => c.id === cardId); if (!card) return
-    const ids = myXI.map(c => c.id)
-    if (myXIids.has(cardId)) { // sentar titular → sobe o melhor reserva da posição
-      const res = mgrMe.squad.filter(c => c.pos === card.pos && !myXIids.has(c.id)).sort((a, b) => mid(b) - mid(a))
-      if (res.length) dispatch({ type: 'SET_LINEUP', mgrId: youId, ids: ids.filter(id => id !== cardId).concat(res[0].id) })
-    } else { // subir reserva → senta o pior titular da posição
-      const st = mgrMe.squad.filter(c => c.pos === card.pos && myXIids.has(c.id)).sort((a, b) => mid(a) - mid(b))
-      if (st.length) dispatch({ type: 'SET_LINEUP', mgrId: youId, ids: ids.filter(id => id !== st[0].id).concat(cardId) })
-    }
+    if (selId === null || selId === cardId) { setSelId(selId === cardId ? null : cardId); return }
+    const sel = mgrMe.squad.find(c => c.id === selId)
+    const valid = sel && sel.pos === card.pos && (myXIids.has(sel.id) !== myXIids.has(card.id))
+    if (!valid) { setSelId(cardId); return } // remarca
+    const titularId = myXIids.has(sel.id) ? sel.id : card.id
+    const reserveId = myXIids.has(sel.id) ? card.id : sel.id
+    dispatch({ type: 'SET_LINEUP', mgrId: youId, ids: myXI.map(c => c.id).filter(id => id !== titularId).concat(reserveId) })
+    setSelId(null)
   }
   const myDiv = me?.div ?? null
   const ord = orderedDivs(myDiv)
@@ -665,7 +724,7 @@ export function PyramidSeasonScreen() {
                 <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>Vale do próximo jogo em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</p>
               </>
             )}
-            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} onSwap={canSub ? doSwap : undefined} />
+            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} onSwap={canSub ? onTapPlayer : undefined} selId={selId} />
           </>
         ) : tab === 'jogos' && hasMatches ? (
           <>
