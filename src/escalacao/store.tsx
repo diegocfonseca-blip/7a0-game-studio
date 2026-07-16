@@ -1216,16 +1216,17 @@ function sealAndResolve(state: EscState) {
       if (hb.amount > 0) pushBid(bidMap, hb.cardId, { mgr: mgrId, amount: hb.amount })
     }
   }
-  // BOT FIADOR (carreira online): se a posição está SEM disputa de verdade — 0 ou
-  // 1 humano ofertando — o bot entra dando lance com a CAIXA dele e PAGA (economia
-  // real, nada de graça). Pode calhar no mesmo jogador do amigo ou em outro (o
-  // medo). Com 2+ humanos brigando, o bot fica de fora. O que ninguém arrematar
-  // ainda cai no monte, e o bot varre o resto depois.
+  // BOT (carreira online): se a posição está SEM disputa de verdade — 0 ou 1 humano
+  // ofertando — entram os bots QUE PERDERAM jogador NESTA posição (marketSellers),
+  // pra rebuscar o que perderam. Pagam com a caixa deles. Com 2+ humanos brigando,
+  // ficam de fora. O que ninguém arrematar cai no monte e é varrido depois.
   if (state.careerOnline) {
     const humanBidders = Object.values(state.pendingEnvelopes).filter(env => env.some(b => b.amount > 0)).length
-    if (humanBidders <= 1) {
+    const pos = SECTORS[state.sectorIdx]
+    const bidderIds = new Set(state.marketSellers?.[pos] ?? [])
+    if (humanBidders <= 1 && bidderIds.size > 0) {
       for (const m of state.managers) {
-        if (!m.backstop) continue
+        if (!bidderIds.has(m.id)) continue
         // MONEY-SMART: o bot reserva grana pra CADA vaga que ainda precisa preencher.
         // Nunca estoura num jogador só (ex.: 80 de caixa, 8 vagas → ~10 por vaga,
         // teto ~16 num jogador que quer). Com poucas vagas, pode pagar mais.
@@ -1662,6 +1663,7 @@ export function reducer(state: EscState, action: Action): EscState {
         // desmarca os bots que entraram neste leilão (serão sorteados de novo no
         // próximo). O caixa dos bots (clubCash) muda só por prêmios de temporada.
         for (const m of s.managers) { if (m.isHuman) m.deepSquad = false; if (m.backstop) { m.backstop = false; m.deepSquad = false } }
+        s.marketSellers = {} as Record<Sector, number[]>
         s.reserveAuction = false
       }
       s.screen = 'season'
@@ -1833,17 +1835,10 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!s.careerOnline) return s
       setActiveCatalog(s.deckLeague)
       s.marketLog = [] // zera o resumo dos bots pra este leilão
-      // 0) SORTEIA quais bots entram no leilão desta temporada: floor(humanos/2)
-      // times de bot escolhidos ao acaso (adversário diferente a cada temporada).
-      // Limpa os do leilão anterior e marca os novos.
-      {
-        const humanCount = s.managers.filter(m => m.isHuman).length
-        const nBots = Math.floor(humanCount / 2)
-        for (const m of s.managers) if (!m.isHuman) { m.backstop = false; m.deepSquad = false }
-        const arng = mulberry((s.seed ^ (s.seasonNo * 2654435761)) >>> 0)
-        const pool = shuffle(s.managers.filter(m => !m.isHuman), arng)
-        for (let i = 0; i < nBots && i < pool.length; i++) { pool[i].backstop = true; pool[i].deepSquad = true }
-      }
+      // 0) limpa as marcas do leilão anterior. marketSellers[pos] = ids dos bots que
+      // perderam jogador NAQUELA posição — são eles que podem dar lance nela.
+      for (const m of s.managers) if (!m.isHuman) { m.backstop = false; m.deepSquad = false }
+      const marketSellers = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, number[]>
       // 1) consome a lista: tira os listados dos elencos
       const listedMap = s.reserveListed ?? {}
       const listedCards: Card[] = []
@@ -1882,6 +1877,8 @@ export function reducer(state: EscState, action: Action): EscState {
             const pick = realInPos[Math.floor(rng() * realInPos.length)] // na sorte: bom ou ruim
             bot.squad = bot.squad.filter(c => c.id !== pick.id)
             deck[pos].push({ ...pick, seller: bot.id }) // mantém o valor (piso); o bot recebe quando vender
+            // o bot que PERDEU o jogador nesta posição é quem pode dar lance nela
+            marketSellers[pos].push(bot.id); bot.backstop = true; bot.deepSquad = true
             added++
           }
           // 2) completa com carta nova do catálogo se os bots não tinham reserva
@@ -1890,9 +1887,15 @@ export function reducer(state: EscState, action: Action): EscState {
         }
         s.deck = deck
       } else {
-        // RESERVAS (2ª temporada): baralho na quantidade NORMAL por amigo online.
+        // RESERVAS (2ª temporada): baralho normal. Aqui não há venda de bot, então
+        // sorteia floor(humanos/2) bots pra disputar (em todas as posições).
         s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues)
+        const nBots = Math.floor(s.managers.filter(m => m.isHuman).length / 2)
+        const chosen = shuffle(s.managers.filter(m => !m.isHuman), rng).slice(0, nBots)
+        for (const bot of chosen) { bot.backstop = true; bot.deepSquad = true }
+        for (const pos of SECTORS) marketSellers[pos] = chosen.map(b => b.id)
       }
+      s.marketSellers = marketSellers
       for (const c of listedCards) s.deck[c.pos].push(c)
       // 3) elenco fundo (mira 22) + orçamento. DEPOIS do baralho, senão a demanda
       // dobraria. Humano gasta do careerCoins; bot sorteado gasta do clubCash dele.
