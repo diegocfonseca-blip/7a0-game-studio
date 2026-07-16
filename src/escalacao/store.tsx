@@ -1168,13 +1168,14 @@ function sealAndResolve(state: EscState) {
       if (hb.amount > 0) pushBid(bidMap, hb.cardId, { mgr: mgrId, amount: hb.amount })
     }
   }
-  // BOT FIADOR (carreira online): se EXATAMENTE 1 humano ofertou nesta posição, o
-  // bot entra dando lance com a CAIXA dele pra disputar — pode calhar no mesmo
-  // jogador do amigo ou em outro (o medo). Com 0 humanos, a carta vai pro monte e
-  // o bot varre depois (grátis); com 2+, o bot fica de fora (já tem disputa).
+  // BOT FIADOR (carreira online): se a posição está SEM disputa de verdade — 0 ou
+  // 1 humano ofertando — o bot entra dando lance com a CAIXA dele e PAGA (economia
+  // real, nada de graça). Pode calhar no mesmo jogador do amigo ou em outro (o
+  // medo). Com 2+ humanos brigando, o bot fica de fora. O que ninguém arrematar
+  // ainda cai no monte, e o bot varre o resto depois.
   if (state.careerOnline) {
     const humanBidders = Object.values(state.pendingEnvelopes).filter(env => env.some(b => b.amount > 0)).length
-    if (humanBidders === 1) {
+    if (humanBidders <= 1) {
       for (const m of state.managers) {
         if (!m.backstop) continue
         for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue)) {
