@@ -85,8 +85,31 @@ export function totalHoles(m: Manager): number {
 // solo — nunca bots de preenchimento). Solo e online usam a MESMA regra:
 // `margin` 1.0 + `extra` 1 = demanda + 1 carta por posição. Ex.: 4 times
 // (você + 3 CPU, ou 4 online) = 5 goleiros, 9 laterais, etc.
+// token único por CHAMADA de buildDeck: sem isso, o id `cat-<pos>-<i>` se repete
+// a cada leilão (o de reservas gera cat-MEI-3 de novo, colidindo com a carta que
+// o técnico já tinha do 1º leilão). O contador garante ids disjuntos entre builds
+// na mesma sessão; o Date.now cobre reload (o módulo zera o contador).
+let __deckBuildSeq = 0
+function nextBuildTok(): string { return `${Date.now().toString(36)}${(__deckBuildSeq++).toString(36)}` }
+
+// cura ids DUPLICADOS entre os elencos (herança do bug antigo: cartas do 1º
+// leilão e do de reservas compartilhavam `cat-<pos>-<i>`). Re-chaveia a 2ª
+// ocorrência em diante. Idempotente: sem duplicata, não mexe em nada. Retorna
+// true se corrigiu algo (pra invalidar escalações manuais que apontavam pro id
+// duplicado — caem no XI automático, que é o certo).
+function healSquadIds(managers: Manager[]): boolean {
+  const seen = new Set<string>()
+  let changed = false
+  for (const m of managers) for (const c of m.squad) {
+    if (seen.has(c.id)) { c.id = `${c.id}~${(__deckBuildSeq++).toString(36)}`; changed = true }
+    seen.add(c.id)
+  }
+  return changed
+}
+
 function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
+  const bt = nextBuildTok()
   // ── passo 1: define o tamanho de cada setor e embaralha o catálogo ──
   const plan = {} as Record<Sector, { count: number; catalog: (typeof CATALOG)[Sector] }>
   let totalCount = 0
@@ -157,7 +180,7 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   for (const pos of SECTORS) {
     const { count, catalog } = plan[pos]
     const cards: Card[] = []
-    const take = (c: (typeof CATALOG)[Sector][number]) => { used.add(c.name); cards.push({ ...c, id: `cat-${pos}-${cards.length}`, pos }) }
+    const take = (c: (typeof CATALOG)[Sector][number]) => { used.add(c.name); cards.push({ ...c, id: `cat-${pos}-${cards.length}-${bt}`, pos }) }
     // 1) LENDA
     let needL = alloc[pos].legend
     for (const c of catalog) { if (needL <= 0) break; if (c.fame !== 5 || used.has(c.name)) continue; take(c); needL-- }
@@ -177,7 +200,7 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     // 5) só cai pra incógnita se o catálogo real acabar (sala gigante)
     const gems = Math.max(1, Math.ceil(managers.length / 3))
     let gi = 0
-    while (cards.length < count) { cards.push(makeIncognita(pos, cards.length, gi < gems, rng)); gi++ }
+    while (cards.length < count) { cards.push(makeIncognita(pos, cards.length, gi < gems, rng, bt)); gi++ }
     // embaralha a ordem final: as cotas montam o baralho com lenda/craque
     // primeiro, então sem isto os melhores ficariam sempre no topo da tela e
     // dava pra "ler" o nível pela posição — furando o leilão às cegas.
@@ -1541,6 +1564,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // 4 divisões vem dos elencos reais + semente + rodada). Aqui só avançamos a
       // rodada (o host conduz, e isso já sincroniza) — nada de simular a liga viva.
       if (s.careerOnline) {
+        // cura ids duplicados de elencos antigos (bug do leilão de reservas) — uma
+        // vez só; depois vira no-op. Se corrigiu, zera escalações manuais que
+        // apontavam pro id duplicado (voltam ao XI automático, correto).
+        if (healSquadIds(s.managers)) s.careerLineup = {}
         const times = action.type === 'PLAY_ROUND' ? 1 : action.count
         s.round = Math.min(TOTAL_ROUNDS, s.round + times)
         // o fim de temporada é tratado na própria tela da pirâmide (não vai pro
