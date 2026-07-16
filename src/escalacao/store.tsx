@@ -5,14 +5,14 @@ import type {
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { CATALOG, CATALOG_EU, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS } from './data'
 
 // baralho ativo da partida atual (só solo troca): 🇧🇷 Brasileirão ou 🌍 Liga
 // Europa. buildDeck e makeBotSquad leem daqui. É setado no início de cada
 // partida (START / RESTORE_CAREER / CAREER_ADVANCE) e forçado pra BR no
 // online e no Manager, que sempre usam o baralho brasileiro.
 let ACTIVE_CATALOG = CATALOG
-function setActiveCatalog(league: 'br' | 'eu' | undefined) { ACTIVE_CATALOG = league === 'eu' ? CATALOG_EU : CATALOG }
+function setActiveCatalog(league: 'br' | 'eu' | 'both' | undefined) { ACTIVE_CATALOG = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : CATALOG }
 import type { CareerTeam } from './data'
 import { supabase } from '../lib/supabase'
 import { logPlay, logVisit, heartbeat } from './analytics'
@@ -478,7 +478,7 @@ export interface CareerSave {
   prevDivision?: Division         // divisão da temporada que acabou (pro banner)
   rivals?: CareerRival[]          // rivais fixos (com divisão/retrospecto próprios)
   rivalCount?: number             // quantos rivais de leilão (3/5/7/9)
-  deckLeague?: 'br' | 'eu'        // baralho da carreira (opcional p/ saves antigos = br)
+  deckLeague?: 'br' | 'eu' | 'both'  // baralho da carreira (opcional p/ saves antigos = br)
 }
 
 // rivais fixos da carreira: começam TODOS na Série D (com você). Depois cada um
@@ -971,7 +971,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean }
+  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; deck?: 'br' | 'eu' | 'both'; career?: boolean }
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
@@ -1303,7 +1303,10 @@ export function reducer(state: EscState, action: Action): EscState {
     }
     case 'START_ONLINE': {
       s.onlineMode = 'online'
-      s.deckLeague = 'br'; setActiveCatalog('br') // online sempre no baralho brasileiro
+      // baralho da sala: Rápido sempre BR; Carreira online pode ser BR, Europa
+      // ou os dois juntos (escolha do host). O leilão e a temporada são o motor
+      // real de sempre — só muda o catálogo de craques.
+      s.deckLeague = action.deck ?? 'br'; setActiveCatalog(s.deckLeague)
       s.roomId = action.roomId
       s.roomCode = action.roomCode
       s.roomName = action.roomName

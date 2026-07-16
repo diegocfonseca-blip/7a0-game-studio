@@ -4,7 +4,7 @@ import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useEsc } from './store'
 import { AdminButton, useCanCareerOnline } from './admin'
-import { launchCareerOnline, type DeckChoice } from './careeronline'
+import type { DeckChoice } from './careeronline'
 import type { EscState, FormationKey } from './types'
 
 // A Escalação usa as mesmas tabelas do Draft (game_rooms/room_players).
@@ -283,24 +283,6 @@ export function EscLobby() {
     const sorted = (allPlayers ?? []) as RoomPlayer[]
     const myPl = sorted.find(p => p.user_id === user.id)
     if (!myPl) return false
-    // MODO CARREIRA (4 divisões): não abre o pregão. Lança a Carreira Online
-    // semeada pelo código da sala (todos veem a mesma temporada) com os técnicos
-    // reais. A sala de espera fica por baixo — sair da carreira volta pra ela.
-    if (gs?.mode === 'carreira') {
-      saveRoom(roomData.id)
-      if (window.location.hash !== '#carreiraonline') {
-        launchCareerOnline({
-          roomId: roomData.id,
-          roomCode: roomData.code,
-          deck: gs.deck ?? 'br',
-          players: sorted.map(p => p.manager_name),
-          myIndex: sorted.findIndex(p => p.user_id === user.id),
-          isHost: roomData.host_id === user.id,
-          base: (gs ?? {}) as unknown as Record<string, unknown>,
-        })
-      }
-      return true
-    }
     // NÃO limpa a sala salva aqui: ela precisa sobreviver ao jogo inteiro pra
     // que atualizar a página (ou o app descartar a aba) reconecte o técnico —
     // inclusive o host. Só limpamos quando alguém sai de propósito (leaveRoom,
@@ -332,6 +314,8 @@ export function EscLobby() {
       playerNames: sorted.map(p => p.manager_name),
       formation: gs?.formation ?? '4-3-3',
       stream: !!gs?.stream,
+      deck: gs?.mode === 'carreira' ? (gs.deck ?? 'br') : 'br',
+      career: gs?.mode === 'carreira',
     })
     return true
   }
