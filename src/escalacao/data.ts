@@ -1319,7 +1319,7 @@ export function makeIncognita(pos: Sector, idx: number, gem: boolean, rng: () =>
   const name = `${INC_FIRST[Math.floor(rng() * INC_FIRST.length)]} ${INC_NICK[Math.floor(rng() * INC_NICK.length)]}`
   const club = INC_CLUBS[Math.floor(rng() * INC_CLUBS.length)]
   const year = 1968 + Math.floor(rng() * 40)
-  return { id: `inc-${pos}-${idx}${salt ? `-${salt}` : ''}`, name, club, year, pos, fame: 1, lo, hi }
+  return { id: `inc-${pos}-${idx}${salt ? `-${salt}` : ''}`, name, club, year, pos, fame: 1, lo, hi, fake: true }
 }
 
 // ─── Nomes de técnicos CPU e times ───────────────────────────────────
