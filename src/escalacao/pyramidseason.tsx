@@ -299,15 +299,17 @@ function DivChips({ humans, colors }: { humans: { name: string; teamId: number; 
 
 // ── SEU JOGO em destaque: card grande com o minuto correndo + os gols (nome do
 // artilheiro), igual à simulação do modo off-line. ──
-function MyMatchCard({ m, youName }: { m: SimMatch; youName: string }) {
-  const [min, setMin] = useState(0)
+function MyMatchCard({ m, youName, finished }: { m: SimMatch; youName: string; finished?: boolean }) {
+  const [min, setMin] = useState(finished ? 93 : 0)
   useEffect(() => {
+    // temporada encerrada: mostra o resultado FINAL na hora (sem "bola rolando")
+    if (finished) { setMin(93); return }
     setMin(0)
     const step = Math.max(30, (ROUND_MS * 0.82) / 93)
     let cur = 0
     const iv = setInterval(() => { cur++; setMin(cur); if (cur >= 93) clearInterval(iv) }, step)
     return () => clearInterval(iv)
-  }, [m])
+  }, [m, finished])
   const shown = m.goals.filter(g => g.min <= min)
   const hg = shown.filter(g => g.home).length, ag = shown.filter(g => !g.home).length
   const done = min >= 93
@@ -462,7 +464,7 @@ export function PyramidSeasonScreen() {
                 <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.</p>
               </>
             )}
-            {myMatch && me && <MyMatchCard m={myMatch} youName={me.team} />}
+            {myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished={done} />}
             {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
           </>
         ) : (
