@@ -72,7 +72,7 @@ function roundRobin(n: number): [number, number][][] {
 }
 
 export interface SimTeam { name: string; you: boolean; human: boolean; backstop?: boolean; teamId: number; squad: PoolCard[]; xi: PoolCard[]; pts: number; w: number; d: number; l: number; gf: number; ga: number }
-export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean }
+export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean; cardId?: string }
 
 function pickCatalog(deck: 'br' | 'eu' | 'both') { return deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : CATALOG }
 
@@ -223,7 +223,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       let r = rng() * total, pick = pool[0].c
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
       const key = `${t.name}:${pick.id}`, row = scorers.get(key)
-      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human })
+      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, cardId: pick.id })
       const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 6) : 1 + Math.floor(rng() * 90)
       evs.push({ name: pick.name, min })
     }
@@ -257,7 +257,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; matches: Record<Div, SimMatch[]> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number> } {
   const scorers = new Map<string, SeasonScorer>()
   const tables = {} as Record<Div, SimTeam[]>
   const matches = {} as Record<Div, SimMatch[]>
@@ -268,7 +268,10 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
-  return { tables, scorers: [...scorers.values()].sort((a, b) => b.goals - a.goals).slice(0, 20), matches }
+  // gols por carta (todos os jogadores) — pra mostrar gols no Elenco
+  const goalsByCard: Record<string, number> = {}
+  for (const s of scorers.values()) if (s.cardId) goalsByCard[s.cardId] = s.goals
+  return { tables, scorers: [...scorers.values()].sort((a, b) => b.goals - a.goals).slice(0, 20), matches, goalsByCard }
 }
 
 // ── VISÃO das 4 divisões (mesmo visual das outras tabelas do jogo) ──
@@ -572,7 +575,8 @@ function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boo
 // reservas numa lista embaixo. Pra trocar: toca num jogador (fica MARCADO) e os
 // da MESMA posição do outro lado ACENDEM — toca em qual quer trocar. Vale pros
 // dois sentidos (titular↔reserva). Aplica no próximo jogo, como a tática.
-function ElencoField({ mgr, col, xiIds, xi, selId, onTap }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; selId: string | null; onTap?: (id: string) => void }) {
+function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; selId: string | null; onTap?: (id: string) => void }) {
+  const goalsOf = (c: WonCard) => goals?.[c.id] ?? 0
   const sel = selId ? mgr.squad.find(c => c.id === selId) ?? null : null
   const isTarget = (c: WonCard) => !!sel && sel.id !== c.id && sel.pos === c.pos && (xiIds.has(sel.id) !== xiIds.has(c.id))
   const stateOf = (c: WonCard) => (c.id === selId ? 'sel' : isTarget(c) ? 'target' : sel ? 'dim' : 'idle')
@@ -601,6 +605,7 @@ function ElencoField({ mgr, col, xiIds, xi, selId, onTap }: { mgr: Manager; col:
                 <button key={c.id} onClick={() => onTap?.(c.id)} disabled={!onTap} style={{ border: `2px solid ${borderOf(st)}`, borderRadius: 8, background: st === 'sel' ? '#FFF6D6' : '#fff', padding: '3px 6px', minWidth: 58, maxWidth: 96, textAlign: 'center', cursor: onTap ? 'pointer' : 'default', opacity: st === 'dim' ? 0.5 : 1, boxShadow: st === 'target' ? `0 0 0 2px ${GREEN}` : 'none', ...OSWALD }}>
                   <span style={{ display: 'block', fontSize: 8, fontWeight: 900, color: col.solid }}>{c.pos}</span>
                   <span style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: INK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</span>
+                  {goalsOf(c) > 0 && <span style={{ display: 'block', fontSize: 8.5, fontWeight: 900, color: GREEN }}>⚽ {goalsOf(c)}</span>}
                 </button>
               ) })}
             </div>
@@ -615,13 +620,16 @@ function ElencoField({ mgr, col, xiIds, xi, selId, onTap }: { mgr: Manager; col:
             <span style={{ fontWeight: 700, fontSize: 12, ...OSWALD, color: '#4a4740', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               <span style={{ fontWeight: 900, fontSize: 9, color: col.solid, marginRight: 5 }}>{c.pos}</span>{c.name}
             </span>
-            <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: '#5a5647', flexShrink: 0 }}>💰 {c.paid ?? 0}</span>
+            <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+              {goalsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: GREEN }}>⚽ {goalsOf(c)}</span>}
+              <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: '#5a5647' }}>💰 {c.paid ?? 0}</span>
+            </span>
           </div>
         ) })}
     </div>
   )
 }
-function SquadTab({ mgr, col, coins, xiIds, xi, onSwap, list, selId = null }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null }) {
+function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = null }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null }) {
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
@@ -640,7 +648,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, onSwap, list, selId = null }: { 
         <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>
       </div>
       {elenco ? (
-        <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} selId={selId} onTap={onSwap} />
+        <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} selId={selId} onTap={onSwap} />
       ) : (<>
       {hasReserves && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 5 }}>
@@ -721,7 +729,7 @@ export function PyramidSeasonScreen() {
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo])
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const careerLineup = (state.careerLineup ?? {}) as RoundLineups
-  const { tables, scorers, matches } = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics, careerLineup), [world, state.seed, round, careerTactics, careerLineup])
+  const { tables, scorers, matches, goalsByCard } = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics, careerLineup), [world, state.seed, round, careerTactics, careerLineup])
   const me = myStanding(tables)
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
@@ -944,10 +952,11 @@ export function PyramidSeasonScreen() {
                 fica AQUI no topo do elenco (era na aba Jogos). */}
             {!done && (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 6 }}>
+                {/* botões de tática MENORES que as abas do menu (pra não confundir) */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5, marginBottom: 6 }}>
                   {([['retranca', '🧱 Retranca'], ['equilibrio', '⚖️ Equilíbrio'], ['ataque', '🔥 Ataque']] as [Tac, string][]).map(([t, label]) => (
                     <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: youId, tactic: t })}
-                      style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '9px 0', fontWeight: 900, fontSize: 12, ...OSWALD, background: myTactic === t ? GOLD : '#fff', color: INK, boxShadow: myTactic === t ? `3px 3px 0 0 ${INK}` : 'none', cursor: 'pointer' }}>
+                      style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '5px 0', fontWeight: 800, fontSize: 10.5, ...OSWALD, background: myTactic === t ? GOLD : '#fff', color: INK, boxShadow: myTactic === t ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer' }}>
                       {label}
                     </button>
                   ))}
@@ -955,7 +964,7 @@ export function PyramidSeasonScreen() {
                 <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}><b>Tática e substituições</b> valem do <b>próximo jogo</b> em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</p>
               </>
             )}
-            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} onSwap={canSub ? onTapPlayer : undefined} selId={selId} />
+            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} />
           </>
         ) : tab === 'jogos' && hasMatches ? (
           <>
