@@ -1151,8 +1151,8 @@ function RivalsStrip() {
           <Box key={m.id} className="p-2.5" shadow={3}>
             <p className="font-black text-sm truncate" style={OSWALD}>{m.teamName}</p>
             <p className="text-[11px] font-semibold text-black/55">{m.formation} · 💰 {m.money} · {11 - totalHoles(m)}/11</p>
-            <p className="text-[10px] font-medium text-black/70 truncate">
-              {m.squad.slice(-3).map(c => c.name).join(', ') || 'ainda sem contratações'}
+            <p className="text-[10px] font-medium text-black/70" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              {[...m.squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(c => c.name).join(', ') || 'ainda sem contratações'}
             </p>
           </Box>
         ))}
