@@ -69,7 +69,7 @@ function roundRobin(n: number): [number, number][][] {
 }
 
 export interface SimTeam { name: string; you: boolean; human: boolean; teamId: number; squad: PoolCard[]; xi: PoolCard[]; pts: number; w: number; d: number; l: number; gf: number; ga: number }
-export interface SeasonScorer { name: string; teamName: string; div: Div; goals: number; you: boolean; human: boolean }
+export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean }
 
 function pickCatalog(deck: 'br' | 'eu' | 'both') { return deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : CATALOG }
 
@@ -143,7 +143,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       let r = rng() * total, pick = pool[0].c
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
       const key = `${t.name}:${pick.id}`, row = scorers.get(key)
-      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, div, goals: 1, you: t.you, human: t.human })
+      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human })
       const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 6) : 1 + Math.floor(rng() * 90)
       evs.push({ name: pick.name, min })
     }
@@ -204,12 +204,11 @@ function DivTable({ div, teams, colors, mine }: { div: Div; teams: SimTeam[]; co
         <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>P</th><th style={{ ...th, textAlign: 'center' }}>V</th><th style={{ ...th, textAlign: 'center' }}>E</th><th style={{ ...th, textAlign: 'center' }}>D</th><th style={{ ...th, textAlign: 'center' }}>SG</th></tr></thead>
         <tbody>
           {teams.map((t, i) => {
-            const other = t.human && !t.you
             const fc = colors[t.teamId]
-            const bg = t.you ? GOLD : other ? (fc?.light ?? '#FFE0D6') : zone(i + 1)
-            const nameColor = t.you ? INK : other ? (fc?.solid ?? INK) : INK
+            const bg = t.human ? (fc?.light ?? '#eee') : zone(i + 1)
+            const nameColor = t.human ? (fc?.solid ?? INK) : INK
             return (
-              <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', background: bg, fontWeight: (t.you || other) ? 800 : 500 }}>
+              <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', background: bg, fontWeight: t.human ? 800 : 500 }}>
                 <td style={{ paddingRight: 4 }}>{i + 1}</td>
                 <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: nameColor }}>{t.you ? '👤 ' : ''}{t.name}</td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{t.pts}</td>
@@ -234,14 +233,16 @@ export function PyramidTables({ tables, scorers, order, colors, myDiv }: { table
           <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
             <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Jogador</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>Gols</th></tr></thead>
             <tbody>
-              {scorers.map((s, i) => (
-                <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, background: s.you ? GOLD : s.human ? '#FFE0D6' : undefined }}>
+              {scorers.map((s, i) => {
+                const fc = s.human ? cols[s.teamId] : undefined
+                return (
+                <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, background: fc?.light }}>
                   <td style={{ paddingRight: 4 }}>{i + 1}</td>
                   <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}><span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}</td>
-                  <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: 'rgba(0,0,0,0.7)' }}>{s.you ? '👤 ' : s.human ? '🔥 ' : ''}{s.teamName}</td>
+                  <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : s.human ? '🔥 ' : ''}{s.teamName}</td>
                   <td style={{ textAlign: 'center', fontWeight: 900 }}>{s.goals}</td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         )}
@@ -261,37 +262,57 @@ export function myStanding(tables: Record<Div, SimTeam[]>): { div: Div; pos: num
 const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
 const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // MESMO ritmo dos outros modos (~4,7s/rodada, temporada ~3 min)
 
-// cada amigo tem UMA cor fixa: `solid` (nome/chip) + `light` (fundo). Você é
-// sempre dourado. O sorteio é pela SEMENTE da sala → mesma cor em todos os
-// aparelhos, o jogo inteiro.
+// CADA usuário (você e amigos) tem UMA cor fixa e ÚNICA: `solid` (nome/chip) +
+// `light` (fundo da faixa/linha). Nada de preto — o preto já é dos botões. A cor
+// é sorteada pela SEMENTE da sala → a MESMA cor pra cada jogador em todos os
+// aparelhos, o jogo inteiro, e persegue ele quando o time sobe/desce (chave = id
+// do técnico, que não muda entre temporadas).
 export interface FCol { solid: string; light: string }
-const FRIEND_PALETTE: FCol[] = [
-  { solid: '#2563EB', light: '#DBEAFE' }, { solid: '#16A34A', light: '#DCFCE7' },
-  { solid: '#9333EA', light: '#F3E8FF' }, { solid: '#EA580C', light: '#FFEDD5' },
-  { solid: '#0891B2', light: '#CFFAFE' }, { solid: '#DB2777', light: '#FCE7F3' },
-  { solid: '#CA8A04', light: '#FEF9C3' }, { solid: '#4F46E5', light: '#E0E7FF' },
+const PLAYER_PALETTE: FCol[] = [
+  { solid: '#8B5E34', light: '#EAD8C4' }, // marrom
+  { solid: '#DB2777', light: '#FBD0E4' }, // rosa
+  { solid: '#2563EB', light: '#D4E1FC' }, // azul
+  { solid: '#16A34A', light: '#CBEFD7' }, // verde
+  { solid: '#7C3AED', light: '#E4D6FB' }, // roxo
+  { solid: '#EA580C', light: '#FBDBC5' }, // laranja
+  { solid: '#0D9488', light: '#C6EDE8' }, // teal
+  { solid: '#DC2626', light: '#F7CFCF' }, // vermelho
+  { solid: '#C026D3', light: '#F2CDF6' }, // magenta
+  { solid: '#0284C7', light: '#C7E5F5' }, // ciano
+  { solid: '#65A30D', light: '#DCEFBE' }, // lima
+  { solid: '#4F46E5', light: '#D9D7F7' }, // índigo
+  { solid: '#E11D48', light: '#F9CFDA' }, // rosa-forte
+  { solid: '#0F766E', light: '#C4E7E2' }, // teal-escuro
+  { solid: '#B45309', light: '#F1DEBF' }, // âmbar
+  { solid: '#9333EA', light: '#E8D6F9' }, // violeta
+  { solid: '#059669', light: '#C4EFDC' }, // esmeralda
+  { solid: '#BE123C', light: '#F5CBD4' }, // carmim
+  { solid: '#1D4ED8', light: '#CFDCF9' }, // azul-real
+  { solid: '#A16207', light: '#EFE0BD' }, // ocre
 ]
-export function friendColors(humanIds: number[], youId: number, seed: number): Record<number, FCol> {
-  const pal = FRIEND_PALETTE.slice()
+// atribui uma cor pra CADA humano (incluindo você). Ordena por id pra ser estável
+// e sorteia a paleta pela semente → todos veem a mesma cor pra cada um.
+export function playerColors(humanIds: number[], _youId: number, seed: number): Record<number, FCol> {
+  const pal = PLAYER_PALETTE.slice()
   const rng = mulberry((seed ^ 0xBADA55) >>> 0)
   for (let i = pal.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1));[pal[i], pal[j]] = [pal[j], pal[i]] }
   const map: Record<number, FCol> = {}
-  let i = 0
-  for (const id of humanIds) { if (id === youId) continue; map[id] = pal[i % pal.length]; i++ }
+  const ids = humanIds.slice().sort((a, b) => a - b)
+  ids.forEach((id, i) => { map[id] = pal[i % pal.length] })
   return map
 }
 // ordem das divisões: a SUA primeiro, depois a pirâmide de cima pra baixo
 function orderedDivs(myDiv: Div | null): Div[] { return myDiv ? [myDiv, ...DIVS.filter(d => d !== myDiv)] : DIVS }
-const matchBg = (m: { you: boolean; hId: number; aId: number }, colors: Record<number, FCol>) => m.you ? GOLD : (colors[m.hId]?.light ?? colors[m.aId]?.light ?? undefined)
+const matchBg = (m: { hId: number; aId: number }, colors: Record<number, FCol>) => colors[m.hId]?.light ?? colors[m.aId]?.light ?? undefined
 
 // chips com os times dos AMIGOS (e você) que estão numa divisão — pra bater o
-// olho quem está em qual série.
+// olho quem está em qual série. Cada um com a SUA cor (inclusive você).
 function DivChips({ humans, colors }: { humans: { name: string; teamId: number; you: boolean }[]; colors: Record<number, FCol> }) {
   if (humans.length === 0) return null
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
       {humans.map((h, i) => (
-        <span key={i} style={{ fontSize: 9.5, fontWeight: 900, ...OSWALD, color: '#fff', background: h.you ? INK : (colors[h.teamId]?.solid ?? '#888'), borderRadius: 6, padding: '1px 7px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.you ? '👤 ' : ''}{h.name}</span>
+        <span key={i} style={{ fontSize: 9.5, fontWeight: 900, ...OSWALD, color: '#fff', background: colors[h.teamId]?.solid ?? '#888', borderRadius: 6, padding: '1px 7px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.you ? '👤 ' : ''}{h.name}</span>
       ))}
     </div>
   )
@@ -299,7 +320,7 @@ function DivChips({ humans, colors }: { humans: { name: string; teamId: number; 
 
 // ── SEU JOGO em destaque: card grande com o minuto correndo + os gols (nome do
 // artilheiro), igual à simulação do modo off-line. ──
-function MyMatchCard({ m, youName, finished }: { m: SimMatch; youName: string; finished?: boolean }) {
+function MyMatchCard({ m, youName, finished, col }: { m: SimMatch; youName: string; finished?: boolean; col: FCol }) {
   const [min, setMin] = useState(finished ? 93 : 0)
   useEffect(() => {
     // temporada encerrada: mostra o resultado FINAL na hora (sem "bola rolando")
@@ -317,15 +338,15 @@ function MyMatchCard({ m, youName, finished }: { m: SimMatch; youName: string; f
   const iAmHome = m.h === youName
   const last = shown.length ? shown[shown.length - 1] : null
   return (
-    <div style={{ ...box(GOLD), padding: '9px 11px', marginBottom: 10 }}>
+    <div style={{ ...box(col.light), padding: '9px 11px', marginBottom: 10 }}>
       {/* minuto EM CIMA do placar (90' + acréscimos) */}
       <div style={{ textAlign: 'center', marginBottom: 4 }}>
         <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: done ? GREEN : '#e8503a' }}>{done ? '⏱️ FIM' : `⏱️ ${minLabel}`}</span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
-        <span style={{ textAlign: 'right', fontWeight: 900, fontSize: 12.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: iAmHome ? INK : '#5a5647' }}>{iAmHome ? '👤 ' : ''}{m.h}</span>
+        <span style={{ textAlign: 'right', fontWeight: 900, fontSize: 12.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: iAmHome ? col.solid : '#5a5647' }}>{iAmHome ? '👤 ' : ''}{m.h}</span>
         <span style={{ fontWeight: 900, fontSize: 17, ...OSWALD, background: INK, color: '#fff', borderRadius: 6, padding: '1px 10px' }}>{hg}×{ag}</span>
-        <span style={{ textAlign: 'left', fontWeight: 900, fontSize: 12.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: !iAmHome ? INK : '#5a5647' }}>{!iAmHome ? '👤 ' : ''}{m.a}</span>
+        <span style={{ textAlign: 'left', fontWeight: 900, fontSize: 12.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: !iAmHome ? col.solid : '#5a5647' }}>{!iAmHome ? '👤 ' : ''}{m.a}</span>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
         <span style={{ fontSize: 9.5, fontWeight: 800, ...OSWALD, color: 'rgba(0,0,0,0.55)' }}>🎯 sua partida</span>
@@ -339,7 +360,7 @@ function MyMatchCard({ m, youName, finished }: { m: SimMatch; youName: string; f
 
 // ── os JOGOS de uma divisão (placar + quem fez os gols), cores por amigo ──
 function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matches: SimMatch[]; colors: Record<number, FCol>; humans: { name: string; teamId: number; you: boolean }[]; hideId?: number }) {
-  const nameCol = (id: number, you: boolean) => you ? INK : (colors[id]?.solid ?? '#5a5647')
+  const nameCol = (id: number) => colors[id]?.solid ?? '#5a5647'
   return (
     <div style={{ ...box('#fff'), padding: 9, marginBottom: 8 }}>
       <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>{DIV_LABEL[div]}</p>
@@ -349,14 +370,12 @@ function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matche
           if (hideId != null && (m.hId === hideId || m.aId === hideId)) return null
           const bg = matchBg(m, colors)
           const last = m.goals.length ? m.goals[m.goals.length - 1] : null
-          const hYou = m.you && m.hId >= 0 && humans.some(x => x.you && x.teamId === m.hId)
-          const aYou = m.you && m.aId >= 0 && humans.some(x => x.you && x.teamId === m.aId)
           return (
             <div key={i} style={{ padding: '3px 4px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: bg, borderRadius: bg ? 5 : 0 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5 }}>
-                <span style={{ textAlign: 'right', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: nameCol(m.hId, hYou) }}>{m.h}</span>
+                <span style={{ textAlign: 'right', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: nameCol(m.hId) }}>{m.h}</span>
                 <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: bg ? INK : '#eee', color: bg ? '#fff' : INK, borderRadius: 5, padding: '0 7px' }}>{m.hg}×{m.ag}</span>
-                <span style={{ textAlign: 'left', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: nameCol(m.aId, aYou) }}>{m.a}</span>
+                <span style={{ textAlign: 'left', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: nameCol(m.aId) }}>{m.a}</span>
               </div>
               {last && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '1px 0 0', textAlign: 'center' }}>⚽ {last.name} <span style={{ opacity: 0.7 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></p>}
             </div>
@@ -382,7 +401,8 @@ export function PyramidSeasonScreen() {
   const youId = state.managers[state.youIdx]?.id ?? 0
   const myTactic = (state.tactics[youId] ?? 'equilibrio') as Tac
   const humanKey = state.managers.filter(m => m.isHuman).map(m => m.id).join(',')
-  const colors = useMemo(() => friendColors(humanKey ? humanKey.split(',').map(Number) : [], youId, state.seed), [humanKey, youId, state.seed])
+  const colors = useMemo(() => playerColors(humanKey ? humanKey.split(',').map(Number) : [], youId, state.seed), [humanKey, youId, state.seed])
+  const myCol = colors[youId] ?? PLAYER_PALETTE[0]
   const myDiv = me?.div ?? null
   const ord = orderedDivs(myDiv)
   const myMatch = myDiv ? matches[myDiv]?.find(x => x.you) : undefined
@@ -439,7 +459,7 @@ export function PyramidSeasonScreen() {
           )
         )}
 
-        <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>🟡 Você · 🔥 Amigos · 🔵 Acesso (G4) · 🔴 Queda (Z4)</p>
+        <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>👤 Você · 🎨 cada jogador com sua cor · 🔵 Acesso (G4) · 🔴 Queda (Z4)</p>
 
         {/* toggle: os jogos (placares) ↔ as tabelas + artilharia */}
         <div style={{ display: 'flex', border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
@@ -464,7 +484,7 @@ export function PyramidSeasonScreen() {
                 <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.</p>
               </>
             )}
-            {myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished={done} />}
+            {myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished={done} col={myCol} />}
             {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
           </>
         ) : (
