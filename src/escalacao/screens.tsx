@@ -2010,7 +2010,7 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
           className="mx-auto" style={{ maxWidth: 220 }}>
           <CollectibleCard name={claimed.name} club={claimed.club} year={claimed.year} pos={claimed.pos} fame={claimed.fame} bio={claimed.bio} folk={claimed.folk} promessa={claimed.promessa} big />
         </motion.div>
-        <Btn onClick={() => dispatch({ type: 'GO_ALBUM' })} bg={GREEN} className="w-full text-lg mt-4"><span className="text-white">📖 Ver meu álbum</span></Btn>
+        <p className="text-[11px] font-bold text-black/50 mt-3">📖 Veja o álbum completo no menu inicial.</p>
       </Box>
     )
   }
