@@ -1304,7 +1304,7 @@ export function EscCerimonia() {
 
 // ─── TEMPORADA (autoplay: 38 rodadas em ~3 min, relógio correndo) ─────
 const TACTIC_LABEL: Record<Tactic, string> = { retranca: '🧱 Retranca', equilibrio: '⚖️ Equilíbrio', ataque: '🔥 Ataque' }
-const SEASON_TOTAL_MS = 180_000
+export const SEASON_TOTAL_MS = 180_000
 const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // ~4,7s por rodada
 const TICK_MINUTES = 93 // 90' + acréscimos exibidos no ticker
 

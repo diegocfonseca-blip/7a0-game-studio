@@ -450,8 +450,11 @@ export function EscLobby() {
     // só salas vivas: sem ninguém dentro (count 0) é sala fantasma abandonada.
     // esperando gente aparece primeiro (é nelas que dá pra entrar); as com
     // jogo rolando de verdade (heartbeat fresco) ficam depois, só como aviso.
+    // carreira online é EM TESTE (só os e-mails liberados): não aparece na lista
+    // pública — entra por convite/código ou por "Minhas carreiras" (host).
+    const isCareer = (r: RoomInfo) => r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
-      .filter(r => r.count >= 1 && (r.status !== 'started' || isFresh(r)))
+      .filter(r => r.count >= 1 && (r.status !== 'started' || isFresh(r)) && !isCareer(r))
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
@@ -499,6 +502,10 @@ export function EscLobby() {
   async function enterRoom(rd: RoomInfo, pw?: string) {
     if (!user) return
     if (rd.game_state?.__game !== GAME_TAG) { setRoomError('Essa sala é de outro jogo.'); setLoading(false); return }
+    // carreira online em teste: só os e-mails liberados entram
+    if ((rd.game_state?.mode === 'carreira' || (rd.game_state as GS & { careerOnline?: boolean })?.careerOnline) && !canCareer) {
+      setRoomError('Esse modo (Carreira Online) ainda está em teste fechado.'); setLoading(false); return
+    }
     if (rd.status === 'started') {
       const { data: mySlot } = await supabase.from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
       if (!mySlot) { setRoomError('Você não está nessa sala.'); setLoading(false); return }
