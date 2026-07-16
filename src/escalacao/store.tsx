@@ -947,7 +947,7 @@ const INITIAL: EscState = {
   monte: [], monteOrder: [], monteIdx: 0,
   league: [], fixtures: [], round: 0, tactics: {},
   lastResults: [], news: [], champion: null,
-  deckLeague: 'br', careerDivision: null, careerOnline: false, careerIntent: false, careerTitles: 0, careerTitlesA: 0, careerRivalCount: 5, careerRivals: [],
+  deckLeague: 'br', careerDivision: null, careerOnline: false, careerPlacements: null, careerIntent: false, careerTitles: 0, careerTitlesA: 0, careerRivalCount: 5, careerRivals: [],
   phaseDeadline: null, scorers: [],
   monteDeadline: null, cerimoniaDeadline: null,
   cpuAtkAdj: 0, cpuDefAdj: 0, streamMode: false,
@@ -972,6 +972,7 @@ type Action =
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; deck?: 'br' | 'eu' | 'both'; career?: boolean }
+  | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string> } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time)
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
@@ -1308,6 +1309,14 @@ export function reducer(state: EscState, action: Action): EscState {
       // real de sempre — só muda o catálogo de craques.
       s.deckLeague = action.deck ?? 'br'; setActiveCatalog(s.deckLeague)
       s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido
+      if (action.career) {
+        // colocação da temporada 1: todos os técnicos na Série D; A/B/C com os
+        // times de CPU fixos. Compacto (só a divisão) — os elencos são derivados.
+        const pl: Record<string, string> = {}
+        for (const m of s.managers) pl[`m${m.id}`] = 'D'
+        for (const d of ['A', 'B', 'C'] as const) for (const t of DIVISION_TEAMS[d].slice(0, 20)) pl[t.team] = d
+        s.careerPlacements = pl
+      }
       s.roomId = action.roomId
       s.roomCode = action.roomCode
       s.roomName = action.roomName
@@ -1488,6 +1497,17 @@ export function reducer(state: EscState, action: Action): EscState {
         s.champion = sortedTable(s.league)[0].id
         s.screen = 'end'
       }
+      return s
+    }
+    case 'NEXT_SEASON_ONLINE': {
+      // carreira online (mesmo time): nova colocação (acessos/quedas já aplicados
+      // pelo host, determinístico) + zera a rodada e sobe a temporada. Os elencos
+      // seguem os mesmos (novo leilão é um fluxo à parte).
+      if (!s.careerOnline) return s
+      s.careerPlacements = action.placements
+      s.seasonNo++
+      s.round = 0
+      s.champion = null
       return s
     }
     case 'RESUME_DINASTIA': { s.dinastiaPaused = false; return s }
