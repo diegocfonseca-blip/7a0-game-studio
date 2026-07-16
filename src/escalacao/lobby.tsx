@@ -3,7 +3,8 @@ import { motion } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useEsc } from './store'
-import { AdminButton } from './admin'
+import { AdminButton, useCanCareerOnline } from './admin'
+import { launchCareerOnline, type DeckChoice } from './careeronline'
 import type { EscState, FormationKey } from './types'
 
 // A Escalação usa as mesmas tabelas do Draft (game_rooms/room_players).
@@ -15,7 +16,7 @@ type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'
 
 interface RoomPlayer { user_id: string; manager_name: string; player_index: number }
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; mode?: 'rapido' | 'carreira'; deck?: DeckChoice }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -148,6 +149,9 @@ export function EscLobby() {
   const [authError, setAuthError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const canCareer = useCanCareerOnline()
+  const [roomMode, setRoomMode] = useState<'rapido' | 'carreira'>('rapido')
+  const [careerDeck, setCareerDeck] = useState<DeckChoice>('br')
   const [joinCode, setJoinCode] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [roomName, setRoomName] = useState('')
@@ -279,6 +283,21 @@ export function EscLobby() {
     const sorted = (allPlayers ?? []) as RoomPlayer[]
     const myPl = sorted.find(p => p.user_id === user.id)
     if (!myPl) return false
+    // MODO CARREIRA (4 divisões): não abre o pregão. Lança a Carreira Online
+    // semeada pelo código da sala (todos veem a mesma temporada) com os técnicos
+    // reais. A sala de espera fica por baixo — sair da carreira volta pra ela.
+    if (gs?.mode === 'carreira') {
+      saveRoom(roomData.id)
+      if (window.location.hash !== '#carreiraonline') {
+        launchCareerOnline({
+          roomCode: roomData.code,
+          deck: gs.deck ?? 'br',
+          players: sorted.map(p => p.manager_name),
+          myIndex: sorted.findIndex(p => p.user_id === user.id),
+        })
+      }
+      return true
+    }
     // NÃO limpa a sala salva aqui: ela precisa sobreviver ao jogo inteiro pra
     // que atualizar a página (ou o app descartar a aba) reconecte o técnico —
     // inclusive o host. Só limpamos quando alguém sai de propósito (leaveRoom,
@@ -390,7 +409,8 @@ export function EscLobby() {
     if (roomLocked && !roomPw.trim()) { setRoomError('Digite uma senha ou desmarque "sala fechada".'); setLoading(false); return }
     const locked = roomLocked && !!roomPw.trim()
     const pwHash = locked ? await hashPw(roomPw.trim()) : undefined
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}) }
+    const carreira = canCareer && roomMode === 'carreira'
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck } : {}) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -642,8 +662,39 @@ export function EscLobby() {
 
 
       {tab === 'create' && <div className="space-y-3">
+        {canCareer && (
+          <div>
+            <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Modo de jogo <span style={{ color: GOLD }}>(teste)</span></p>
+            <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
+              {([['rapido', '⚡ Modo Rápido'], ['carreira', '🌐 Carreira']] as [typeof roomMode, string][]).map(([m, label]) => (
+                <button key={m} onClick={() => setRoomMode(m)}
+                  className="flex-1 py-2.5 font-black text-sm uppercase" style={{ backgroundColor: roomMode === m ? PURPLE : '#fff', color: roomMode === m ? '#fff' : '#000', ...OSWALD }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
+              {roomMode === 'carreira'
+                ? '🏆 4 divisões — cada técnico disputa a sua e sobe/cai por conta própria. Mesmo mundo, mesma temporada pra todos.'
+                : '🔨 O leilão de sempre — o online que já conhecemos.'}
+            </p>
+          </div>
+        )}
         <Field label="Nome da sala" value={roomName} onChange={e => setRoomName(e.target.value)} placeholder={`Sala do ${nameOf()}`} maxLength={24} />
-        <div>
+        {canCareer && roomMode === 'carreira' && (
+          <div>
+            <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Baralho de craques (host escolhe)</p>
+            <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
+              {([['br', '🇧🇷 BR'], ['eu', '🌍 Europa'], ['both', '🌎 Os dois']] as [DeckChoice, string][]).map(([dk, label]) => (
+                <button key={dk} onClick={() => setCareerDeck(dk)}
+                  className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: careerDeck === dk ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {!(canCareer && roomMode === 'carreira') && <div>
           <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Formação da sala (vale pra todo mundo)</p>
           <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
             {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => (
@@ -653,7 +704,7 @@ export function EscLobby() {
               </button>
             ))}
           </div>
-        </div>
+        </div>}
         <div>
           <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Privacidade</p>
           <button onClick={() => setRoomLocked(v => !v)}
@@ -669,7 +720,7 @@ export function EscLobby() {
               className="w-full mt-2 border-[3px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
           )}
         </div>
-        <div>
+        {!(canCareer && roomMode === 'carreira') && <div>
           <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Modo Stream</p>
           <button onClick={() => { if (roomStream) setRoomStream(false); else setStreamModal(true) }}
             className="flex items-center gap-2 w-full border-[3px] border-black rounded-xl px-3 py-2.5 font-black text-sm"
@@ -678,8 +729,10 @@ export function EscLobby() {
             <span className="flex-1 text-left">{roomStream ? 'LIGADO — valores dos lances ocultos' : 'DESLIGADO — jogo normal'}</span>
             <span className="text-[10px] opacity-60">toque</span>
           </button>
-        </div>
-        <Big onClick={createRoom} color={GOLD}>{loading ? 'Criando...' : '🏠 Criar Sala'}</Big>
+        </div>}
+        <Big onClick={createRoom} color={canCareer && roomMode === 'carreira' ? PURPLE : GOLD}>
+          <span style={{ color: canCareer && roomMode === 'carreira' ? '#fff' : '#000' }}>{loading ? 'Criando...' : canCareer && roomMode === 'carreira' ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
+        </Big>
       </div>}
 
       {tab === 'open' && <div className="space-y-3">
@@ -823,9 +876,14 @@ export function EscLobby() {
           {players.length < 2 && <p className="text-black/40 text-xs italic mt-1">Aguardando mais técnicos…</p>}
         </div>
       </div>
-      {isHost
-        ? <Big onClick={startOnline} disabled={!ready} color={ready ? GREEN : '#ccc'}><span style={{ color: ready ? '#fff' : '#000' }}>{ready ? '🔨 Abrir o Pregão!' : `Aguardando… (${players.length}/2 mín)`}</span></Big>
-        : <p className="text-white/60 text-sm font-bold text-center py-3">Aguardando o host abrir o pregão…</p>}
+      {(() => {
+        const carreira = room.game_state?.mode === 'carreira'
+        const startLabel = carreira ? '🌐 Começar Carreira!' : '🔨 Abrir o Pregão!'
+        const waitMsg = carreira ? 'Aguardando o host começar a carreira…' : 'Aguardando o host abrir o pregão…'
+        return isHost
+          ? <Big onClick={startOnline} disabled={!ready} color={ready ? GREEN : '#ccc'}><span style={{ color: ready ? '#fff' : '#000' }}>{ready ? startLabel : `Aguardando… (${players.length}/2 mín)`}</span></Big>
+          : <p className="text-white/60 text-sm font-bold text-center py-3">{waitMsg}</p>
+      })()}
       <button onClick={leaveRoom} className="text-white/30 text-xs underline w-full text-center">← Sair da sala</button>
     </>)
   }
