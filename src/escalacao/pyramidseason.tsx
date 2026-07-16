@@ -33,7 +33,9 @@ function sectorPow(rolls: number[]): number { if (rolls.length === 0) return 40;
 function shuffle<T>(arr: T[], rng: () => number): T[] { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1));[a[i], a[j]] = [a[j], a[i]] } return a }
 let filCounter = 0
 const FIL_NAMES = ['Perna-de-pau', 'Ferro Velho', 'Pé de Anjo', 'Canela Seca', 'Zé Ninguém', 'Trapalhão', 'Bola Murcha', 'Meia-Boca']
-function filler(pos: Sector, rng: () => number): PoolCard { const lo = 40 + Math.floor(rng() * 6); return { id: `fil-${filCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 7 + Math.floor(rng() * 4) } }
+// fillers de várzea: nível bem baixo (abaixo de semi-pro) — perna-de-pau mesmo,
+// pra não brigarem na artilharia com os craques de verdade.
+function filler(pos: Sector, rng: () => number): PoolCard { const lo = 30 + Math.floor(rng() * 6); return { id: `fil-${filCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 6 + Math.floor(rng() * 4) } }
 type Tac = 'retranca' | 'equilibrio' | 'ataque'
 const TACS: Tac[] = ['retranca', 'equilibrio', 'ataque']
 function rollForm(squad: PoolCard[], tac: Tac, _opp: Tac, rng: () => number) {
@@ -208,10 +210,14 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // credita os gols na artilharia da temporada e devolve os eventos (nome + minuto)
+  // peso de artilharia por NÍVEL: um filler (nível ~40) quase não marca; um craque
+  // (nível ~85) leva a maioria. Antes era só por posição — por isso Bola Murcha e
+  // Trapalhão viravam artilheiros. n²: acentua a diferença entre perna-de-pau e craque.
+  const goalW = (c: PoolCard) => { const n = Math.max(0, (mid(c) - 40) / 42); return 0.12 + n * n * 1.8 }
   const scoreGoals = (t: SimTeam, xi: PoolCard[], goals: number): { name: string; min: number }[] => {
     const evs: { name: string; min: number }[] = []
     for (let g = 0; g < goals; g++) {
-      const pool = xi.map(c => ({ c, w: c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05 }))
+      const pool = xi.map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05) * goalW(c) }))
       const total = pool.reduce((s, p) => s + p.w, 0)
       let r = rng() * total, pick = pool[0].c
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
@@ -232,7 +238,11 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     const hxi = H.human ? lineupAt(lineups, H.teamId, r, H.squad) : H.xi
     const axi = A.human ? lineupAt(lineups, A.teamId, r, A.squad) : A.xi
     const fh = rollForm(hxi, th, ta, rng), fa = rollForm(axi, ta, th, rng)
-    const lh = Math.max(0.08, 1.35 + (fh.atk - fa.def) * 0.055 + 0.25), la = Math.max(0.08, 1.35 + (fa.atk - fh.def) * 0.055)
+    // qualidade ABSOLUTA do ataque escala os gols: time fraco (cheio de filler)
+    // marca menos no geral — não só a diferença atk-def conta. Assim as divisões
+    // de baixo (várzea) não inflam a artilharia com nomes de brincadeira.
+    const qual = (atk: number) => Math.max(0.5, Math.min(1.2, atk / 66))
+    const lh = Math.max(0.08, (1.35 + (fh.atk - fa.def) * 0.055 + 0.25) * qual(fh.atk)), la = Math.max(0.08, (1.35 + (fa.atk - fh.def) * 0.055) * qual(fa.atk))
     const hg = poisson(lh, rng), ag = poisson(la, rng)
     const hev = scoreGoals(H, hxi, hg), aev = scoreGoals(A, axi, ag)
     H.gf += hg; H.ga += ag; A.gf += ag; A.ga += hg
