@@ -1319,6 +1319,13 @@ export function EscCerimonia() {
           <p className="font-black text-sm" style={OSWALD}>🐴 MICO DO PREGÃO: {worstDeal.c.name} ({worstDeal.c.lo}–{worstDeal.c.hi}) por {worstDeal.c.paid} — {worstDeal.mg.teamName}</p>
         </Box>
       )}
+      {state.careerOnline && (state.marketLog?.length ?? 0) > 0 && (
+        <Box bg="#EEF7FF" className="p-4 space-y-1">
+          <p className="font-black text-sm" style={OSWALD}>🤖 MERCADO DOS BOTS</p>
+          {state.marketLog!.slice(0, 14).map((l, i) => <p key={i} className="text-xs font-bold text-black/75">{l}</p>)}
+          {state.marketLog!.length > 14 && <p className="text-[10px] font-semibold text-black/50">…e mais {state.marketLog!.length - 14}</p>}
+        </Box>
+      )}
       {/* navegação livre pelos times durante os 45s (dá a volta) */}
       <div className="flex gap-2">
         <div className="flex-1"><Btn className="w-full" bg="#fff"

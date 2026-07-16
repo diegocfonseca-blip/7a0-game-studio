@@ -1029,7 +1029,7 @@ const INITIAL: EscState = {
   phase: 'envelope', currentCards: [], revealQueue: [], revealIdx: 0,
   stock: { GOL: 0, LAT: 0, ZAG: 0, MEI: 0, ATA: 0 },
   monte: [], monteOrder: [], monteIdx: 0,
-  league: [], fixtures: [], round: 0, tactics: {}, careerTactics: {}, careerCoins: {}, careerHonors: {}, marketValues: {},
+  league: [], fixtures: [], round: 0, tactics: {}, careerTactics: {}, careerCoins: {}, careerHonors: {}, marketValues: {}, marketLog: [],
   lastResults: [], news: [], champion: null,
   deckLeague: 'br', careerDivision: null, careerOnline: false, careerPlacements: null, careerIntent: false, careerTitles: 0, careerTitlesA: 0, careerRivalCount: 5, careerRivals: [],
   phaseDeadline: null, scorers: [],
@@ -1104,9 +1104,15 @@ function sweepMonteToBackstops(st: EscState) {
   let bi = 0
   const takeInto = (bot: Manager, card: Card) => {
     const paid = (card as { paid?: number }).paid ?? 0
+    const listed = (card as { seller?: number }).seller != null
     creditSeller(st, card, paid, bot.id) // o vendedor recebe (também na varredura do bot)
     bot.squad.push({ ...card, paid, via: 'monte' })
     if (paid > 0) recordPrice(st, card.name, paid)
+    // resumo dos bots (visibilidade na cerimônia)
+    const msg = listed
+      ? `🤖 ${bot.teamName} ficou com ${card.name} (listado) por ${paid} 🪙`
+      : `🤖 ${bot.teamName} pegou ${card.name} no monte (grátis)`
+    ;(st.marketLog = st.marketLog ?? []).push(msg)
   }
   // fase 1: os bots fiadores pegam o que cabe na vaga deles
   if (bots.length > 0) for (let guard = 0; st.monte.length > 0 && guard < 1000; guard++) {
@@ -1220,6 +1226,8 @@ function sealAndResolve(state: EscState) {
   for (const q of queue) if (q.winner !== null && q.paid > 0) {
     recordPrice(state, q.card.name, q.paid) // livro de preços
     creditSeller(state, q.card, q.paid, q.winner) // o vendedor recebe a grana da venda
+    const w = state.managers.find(m => m.id === q.winner) // resumo dos bots (visibilidade)
+    if (w?.backstop) (state.marketLog = state.marketLog ?? []).push(`🤖 ${w.teamName} arrematou ${q.card.name} por ${q.paid} 🪙`)
   }
   state.revealQueue = queue
   state.revealIdx = 0
@@ -1479,6 +1487,7 @@ export function reducer(state: EscState, action: Action): EscState {
         s.careerPlacements = pl
         s.careerHonors = {} // títulos começam do zero
         s.marketValues = {} // livro de preços começa vazio (leilão inicial sem piso)
+        s.marketLog = []
       }
       s.roomId = action.roomId
       s.roomCode = action.roomCode
@@ -1805,6 +1814,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // CAIXA. No fim (FINISH_CEREMONY), a caixa vira o que sobrou e tira o fundo.
       if (!s.careerOnline) return s
       setActiveCatalog(s.deckLeague)
+      s.marketLog = [] // zera o resumo dos bots pra este leilão
       // 0) GARANTE os bots fiadores (cura salas criadas ANTES do recurso, que não
       // têm nenhum bot marcado): floor(humanos/2) bots viram fiadores, com caixa.
       {
