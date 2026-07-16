@@ -963,7 +963,7 @@ export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
 // PROFISSIONAL, `promessa` = 💎, `folk` = 🃏. Craques mundiais no auge no
 // clube europeu. Os dois baralhos NUNCA se misturam numa mesma partida.
 const GOL_EU: C[] = [
-  { name: "Massimo Taibi", club: "Manchester United", year: 1999, fame: 1, lo: 46, hi: 68, folk: true, bio: "O goleiro que deixou a bola passar por baixo do corpo no Old Trafford — 4 jogos e adeus. Flop lendário." },
+  { name: "Massimo Taibi (o frango do United)", club: "Manchester United", year: 1999, fame: 1, lo: 46, hi: 68, folk: true, bio: "O goleiro que deixou a bola passar por baixo do corpo no Old Trafford — 4 jogos e adeus. Flop lendário." },
   { name: "Lev Yashin", club: "Dínamo de Moscou", year: 1963, fame: 5, lo: 90, hi: 95 },
   { name: "Gianluigi Buffon", club: "Juventus", year: 2006, fame: 5, lo: 89, hi: 94 },
   { name: "Iker Casillas", club: "Real Madrid", year: 2010, fame: 5, lo: 88, hi: 93 },
@@ -1015,8 +1015,8 @@ const LAT_EU: C[] = [
   { name: "Fábio Grosso", club: "Inter", year: 2007, fame: 1, lo: 66, hi: 80, folk: true },
 ]
 const ZAG_EU: C[] = [
-  { name: "Dante", club: "Bayern", year: 2014, fame: 1, lo: 54, hi: 74, folk: true, bio: "O eterno lembrete do 7 a 1 — a arquibancada nunca deixou passar. Folclore puro." },
-  { name: "Winston Bogarde", club: "Chelsea", year: 2002, fame: 1, lo: 50, hi: 72, folk: true, bio: "Passou 4 anos no Chelsea faturando fortunas e mal entrou em campo — ficou só pelo salário. Lenda do banco." },
+  { name: "Dante (o do 7 a 1)", club: "Bayern", year: 2014, fame: 1, lo: 54, hi: 74, folk: true, bio: "O eterno lembrete do 7 a 1 — a arquibancada nunca deixou passar. Folclore puro." },
+  { name: "Winston Bogarde (a lenda do banco)", club: "Chelsea", year: 2002, fame: 1, lo: 50, hi: 72, folk: true, bio: "Passou 4 anos no Chelsea faturando fortunas e mal entrou em campo — ficou só pelo salário. Lenda do banco." },
   { name: "Franz Beckenbauer", club: "Bayern", year: 1974, fame: 5, lo: 89, hi: 94 },
   { name: "Franco Baresi", club: "Milan", year: 1989, fame: 5, lo: 89, hi: 94 },
   { name: "Fabio Cannavaro", club: "Real Madrid", year: 2006, fame: 5, lo: 88, hi: 93 },
@@ -1055,7 +1055,7 @@ const ZAG_EU: C[] = [
   { name: "Titus Bramble", club: "Newcastle", year: 2005, fame: 1, lo: 58, hi: 78, folk: true },
 ]
 const MEI_EU: C[] = [
-  { name: "Eric Djemba-Djemba", club: "Manchester United", year: 2004, fame: 1, lo: 50, hi: 72, folk: true, bio: "Tão bom que botaram o nome duas vezes — mas no United virou sinônimo de contratação errada." },
+  { name: "Djemba-Djemba (nome em dobro)", club: "Manchester United", year: 2004, fame: 1, lo: 50, hi: 72, folk: true, bio: "Tão bom que botaram o nome duas vezes — mas no United virou sinônimo de contratação errada." },
   { name: "Zinedine Zidane", club: "Real Madrid", year: 2002, fame: 5, lo: 90, hi: 95 },
   { name: "Ronaldinho Gaúcho", club: "Barcelona", year: 2005, fame: 5, lo: 91, hi: 96 },
   { name: "Michel Platini", club: "Juventus", year: 1984, fame: 5, lo: 89, hi: 94 },
@@ -1170,8 +1170,8 @@ const MEI_EU: C[] = [
   { name: "Mauro Silva", club: "Deportivo La Coruña", year: 1996, fame: 4, lo: 83, hi: 89 },
 ]
 const ATA_EU: C[] = [
-  { name: "Ali Dia", club: "Southampton", year: 1996, fame: 1, lo: 42, hi: 64, folk: true, bio: "Entrou no Southampton fingindo ser primo do George Weah. Jogou 53 minutos, foi substituído e sumiu — a maior trapaça do futebol." },
-  { name: "Bebê", club: "Manchester United", year: 2010, fame: 1, lo: 50, hi: 72, folk: true, bio: "Comprado pelo United por uma fortuna sem o Ferguson nunca ter visto jogar ao vivo — flop histórico." },
+  { name: "Ali Dia (o falso primo do Weah)", club: "Southampton", year: 1996, fame: 1, lo: 42, hi: 64, folk: true, bio: "Entrou no Southampton fingindo ser primo do George Weah. Jogou 53 minutos, foi substituído e sumiu — a maior trapaça do futebol." },
+  { name: "Bebê (comprado às cegas)", club: "Manchester United", year: 2010, fame: 1, lo: 50, hi: 72, folk: true, bio: "Comprado pelo United por uma fortuna sem o Ferguson nunca ter visto jogar ao vivo — flop histórico." },
   { name: "Lionel Messi", club: "Barcelona", year: 2012, fame: 5, lo: 92, hi: 96 },
   { name: "Cristiano Ronaldo", club: "Real Madrid", year: 2014, fame: 5, lo: 91, hi: 95 },
   { name: "Ronaldo Fenômeno", club: "Inter", year: 1998, fame: 5, lo: 91, hi: 96 },
