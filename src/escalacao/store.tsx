@@ -1805,6 +1805,24 @@ export function reducer(state: EscState, action: Action): EscState {
       // CAIXA. No fim (FINISH_CEREMONY), a caixa vira o que sobrou e tira o fundo.
       if (!s.careerOnline) return s
       setActiveCatalog(s.deckLeague)
+      // 0) GARANTE os bots fiadores (cura salas criadas ANTES do recurso, que não
+      // têm nenhum bot marcado): floor(humanos/2) bots viram fiadores, com caixa.
+      {
+        const humanCount = s.managers.filter(m => m.isHuman).length
+        const nBots = Math.floor(humanCount / 2)
+        const have = s.managers.filter(m => m.backstop).length
+        if (have < nBots) {
+          const cc = { ...(s.careerCoins ?? {}) }
+          let added = have
+          for (const bot of s.managers.filter(m => !m.isHuman && !m.backstop)) {
+            if (added >= nBots) break
+            bot.backstop = true; bot.deepSquad = true
+            if (cc[bot.id] == null) cc[bot.id] = 100
+            added++
+          }
+          s.careerCoins = cc
+        }
+      }
       // 1) consome a lista: tira os listados dos elencos
       const listedMap = s.reserveListed ?? {}
       const listedCards: Card[] = []
