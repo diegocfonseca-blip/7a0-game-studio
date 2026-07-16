@@ -114,6 +114,15 @@ function recordPrice(state: EscState, name: string, price: number) {
   if (!state.careerOnline || price <= 0) return
   state.marketValues = { ...(state.marketValues ?? {}), [name]: price }
 }
+// paga o VENDEDOR da carta (quem listou/soltou no mercado) quando ela é vendida —
+// no leilão ou no monte. A grana entra na caixa (money) dele, pra reinvestir na
+// hora. Não paga a si mesmo (se recomprou o próprio jogador).
+function creditSeller(state: EscState, card: Card, amount: number, buyerId?: number) {
+  const sellerId = (card as { seller?: number }).seller
+  if (sellerId == null || amount <= 0 || sellerId === buyerId) return
+  const seller = state.managers.find(m => m.id === sellerId)
+  if (seller) seller.money += amount
+}
 // manda cartas pro monte JÁ pela metade e registra esse valor no livro (é o preço
 // que o jogador vale dali em diante — se ninguém pega, o "bot fica" com ele por
 // esse valor, e é com ele que a carta volta um dia ao mercado).
@@ -367,6 +376,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   m.money -= max
   m.squad.push({ ...tb.card, paid: max, via: tb.via } as WonCard)
   recordPrice(state, tb.card.name, max) // livro de preços
+  creditSeller(state, tb.card, max, winner) // o vendedor recebe a grana da venda
   tb.winner = winner
   tb.paid = max
   tb.bids = amounts // registra quanto cada um cobriu (transparência na revelação)
@@ -908,7 +918,9 @@ function takeFromMonte(state: EscState, cardId: string) {
   const m = state.managers.find(x => x.id === mgrId)!
   state.monte.splice(idx, 1)
   // preserva o valor (jogador listado já veio pela metade); carta nova = 0
-  m.squad.push({ ...card, paid: (card as { paid?: number }).paid ?? 0, via: 'monte' })
+  const paid = (card as { paid?: number }).paid ?? 0
+  creditSeller(state, card, paid, mgrId) // vendedor recebe o valor (caído) mesmo indo pelo monte
+  m.squad.push({ ...card, paid, via: 'monte' })
 }
 
 // avança o ponteiro do monte, deixando CPUs escolherem sozinhas.
@@ -1190,7 +1202,10 @@ function sealAndResolve(state: EscState) {
     }
   }
   const { queue, unsold, ties } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao')
-  for (const q of queue) if (q.winner !== null && q.paid > 0) recordPrice(state, q.card.name, q.paid) // livro de preços
+  for (const q of queue) if (q.winner !== null && q.paid > 0) {
+    recordPrice(state, q.card.name, q.paid) // livro de preços
+    creditSeller(state, q.card, q.paid, q.winner) // o vendedor recebe a grana da venda
+  }
   state.revealQueue = queue
   state.revealIdx = 0
   state.currentCards = unsold
@@ -1784,7 +1799,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const keep: WonCard[] = [], out: WonCard[] = []
         for (const c of m.squad) (ids.has(c.id) ? out : keep).push(c)
         m.squad = keep
-        for (const c of out) listedCards.push({ ...c }) // paid = piso (mercado, próx. parte)
+        for (const c of out) listedCards.push({ ...c, seller: m.id }) // paid = piso; seller recebe a grana quando vender
       }
       // 2) baralho ANTES de marcar elenco fundo — assim a demanda usa a formação
       // NORMAL (não dobrada) e a quantidade por posição fica IGUAL ao leilão online
@@ -1812,7 +1827,7 @@ export function reducer(state: EscState, action: Action): EscState {
             if (realInPos.length <= FORMATIONS[bot.formation][pos]) continue // sem reserva REAL sobrando
             const pick = realInPos[Math.floor(rng() * realInPos.length)] // na sorte: bom ou ruim
             bot.squad = bot.squad.filter(c => c.id !== pick.id)
-            deck[pos].push({ ...pick }) // mantém o valor (piso) da carta
+            deck[pos].push({ ...pick, seller: bot.id }) // mantém o valor (piso); o bot recebe quando vender
             added++
           }
           // 2) completa com carta nova do catálogo se os bots não tinham reserva
