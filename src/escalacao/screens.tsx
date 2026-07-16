@@ -194,7 +194,7 @@ const LATEST_NEWS = {
   id: '2026-07-baralho-os-dois',
   emoji: '🌎',
   title: 'Novo baralho: os dois juntos!',
-  text: 'Na partida rápida e na carreira, agora dá pra jogar com Brasileirão + Liga Europa no MESMO leilão — ~700 craques, quase sem fake. Puro craque no martelo (mas ainda tem uns folclóricos ruins de doer 🃏).',
+  text: 'Na partida rápida e na carreira, agora dá pra jogar com Brasileirão + Liga Europa no MESMO leilão — ~700 nomes, de Pelé e Obina a Maradona e Mbappé, com folclore dos dois lados 🃏.',
 }
 function NewsBanner() {
   const [dismissed, setDismissed] = useState(() => {
@@ -400,7 +400,7 @@ export function EscSetup() {
             style={{ backgroundColor: league === 'both' ? GOLD : '#fff', boxShadow: league === 'both' ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
             🌎 Os dois juntos
           </button>
-          <p className="text-[11px] font-semibold text-black/55 mt-1">{league === 'br' ? 'Auges do futebol brasileiro — de Pelé a Obina.' : league === 'eu' ? 'Auges nos clubes europeus — de Yashin a Mbappé.' : 'Brasileirão + Europa (~700 craques). Quase não sobra fake — leilão de puro craque.'}</p>
+          <p className="text-[11px] font-semibold text-black/55 mt-1">{league === 'br' ? 'Auges do futebol brasileiro — de Pelé a Obina.' : league === 'eu' ? 'Auges nos clubes europeus — de Yashin a Mbappé.' : 'Brasileirão + Europa juntos (~700 nomes) — craques e folclóricos dos dois lados no mesmo martelo.'}</p>
           {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>🃏 Quer resenha? Só aqui tem até o Walter Minhoca.</p>}
         </div>
         <div>

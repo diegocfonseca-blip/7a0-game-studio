@@ -29,7 +29,7 @@ export type DeckChoice = 'br' | 'eu' | 'both'
 const DECKS: { id: DeckChoice; label: string; desc: string }[] = [
   { id: 'br', label: '🇧🇷 Brasileirão', desc: 'Auges do futebol brasileiro — de Pelé a Obina.' },
   { id: 'eu', label: '🌍 Liga Europa', desc: 'Auges nos clubes europeus — de Yashin a Mbappé.' },
-  { id: 'both', label: '🌎 Os dois juntos', desc: 'Brasileirão + Europa (~700 craques). Nessa opção quase não sobra fake.' },
+  { id: 'both', label: '🌎 Os dois juntos', desc: 'Brasileirão + Europa juntos (~700 nomes) — craques e folclóricos dos dois lados no mesmo martelo.' },
 ]
 
 type Div = 'A' | 'B' | 'C' | 'D'
