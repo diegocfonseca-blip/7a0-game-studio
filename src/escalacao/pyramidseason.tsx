@@ -337,8 +337,8 @@ export function myStanding(tables: Record<Div, SimTeam[]>): { div: Div; pos: num
 }
 const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
 // ritmo da carreira online: +1s por jogo em relação aos outros modos, pra dar
-// tempo de decidir tática/Time A-B durante a partida (~6,7s/rodada). Só aqui.
-const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) + 3000
+// tempo de decidir tática/Time A-B durante a partida (~7,7s/rodada). Só aqui.
+const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) + 4000
 
 // CADA usuário (você e amigos) tem UMA cor fixa e ÚNICA: `solid` (nome/chip) +
 // `light` (fundo da faixa/linha). Nada de preto — o preto já é dos botões. A cor
@@ -556,12 +556,14 @@ function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boo
 // reservas numa lista embaixo. Pra trocar: toca num jogador (fica MARCADO) e os
 // da MESMA posição do outro lado ACENDEM — toca em qual quer trocar. Vale pros
 // dois sentidos (titular↔reserva). Aplica no próximo jogo, como a tática.
-function ElencoField({ mgr, col, xiIds, selId, onTap }: { mgr: Manager; col: FCol; xiIds: Set<string>; selId: string | null; onTap?: (id: string) => void }) {
+function ElencoField({ mgr, col, xiIds, xi, selId, onTap }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; selId: string | null; onTap?: (id: string) => void }) {
   const sel = selId ? mgr.squad.find(c => c.id === selId) ?? null : null
   const isTarget = (c: WonCard) => !!sel && sel.id !== c.id && sel.pos === c.pos && (xiIds.has(sel.id) !== xiIds.has(c.id))
   const stateOf = (c: WonCard) => (c.id === selId ? 'sel' : isTarget(c) ? 'target' : sel ? 'dim' : 'idle')
   const borderOf = (st: string) => (st === 'sel' ? GOLD : st === 'target' ? GREEN : INK)
-  const xiOf = (pos: Sector) => mgr.squad.filter(c => c.pos === pos && xiIds.has(c.id)).sort((a, b) => mid(b) - mid(a))
+  // o campinho segue a ORDEM da escalação (vaga fixa) — quando entra um reserva,
+  // ele fica no mesmo lugar do que saiu. Fallback: ordena por rating.
+  const xiOf = (pos: Sector) => xi ? xi.filter(c => c.pos === pos) : mgr.squad.filter(c => c.pos === pos && xiIds.has(c.id)).sort((a, b) => mid(b) - mid(a))
   const lats = xiOf('LAT')
   const defense = [...(lats[0] ? [lats[0]] : []), ...xiOf('ZAG'), ...(lats[1] ? [lats[1]] : [])]
   const rows: { key: string; cards: WonCard[] }[] = [
@@ -603,7 +605,7 @@ function ElencoField({ mgr, col, xiIds, selId, onTap }: { mgr: Manager; col: FCo
     </div>
   )
 }
-function SquadTab({ mgr, col, coins, xiIds, onSwap, list, selId = null }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null }) {
+function SquadTab({ mgr, col, coins, xiIds, xi, onSwap, list, selId = null }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null }) {
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
@@ -622,7 +624,7 @@ function SquadTab({ mgr, col, coins, xiIds, onSwap, list, selId = null }: { mgr:
         <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>
       </div>
       {elenco ? (
-        <ElencoField mgr={mgr} col={col} xiIds={xiIds!} selId={selId} onTap={onSwap} />
+        <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} selId={selId} onTap={onSwap} />
       ) : (<>
       {hasReserves && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 5 }}>
@@ -726,7 +728,12 @@ export function PyramidSeasonScreen() {
     if (!valid) { setSelId(cardId); return } // remarca
     const titularId = myXIids.has(sel.id) ? sel.id : card.id
     const reserveId = myXIids.has(sel.id) ? card.id : sel.id
-    dispatch({ type: 'SET_LINEUP', mgrId: youId, ids: myXI.map(c => c.id).filter(id => id !== titularId).concat(reserveId) })
+    // o reserva entra EXATAMENTE na vaga do titular que saiu (mesmo índice do
+    // array) — assim ele fica no mesmo lugar no campinho, sem embaralhar a linha.
+    const ids = myXI.map(c => c.id)
+    const idx = ids.indexOf(titularId)
+    if (idx >= 0) ids[idx] = reserveId; else ids.push(reserveId)
+    dispatch({ type: 'SET_LINEUP', mgrId: youId, ids })
     setSelId(null)
   }
   const myDiv = me?.div ?? null
@@ -826,7 +833,7 @@ export function PyramidSeasonScreen() {
                 <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}><b>Tática e substituições</b> valem do <b>próximo jogo</b> em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</p>
               </>
             )}
-            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} onSwap={canSub ? onTapPlayer : undefined} selId={selId} />
+            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} onSwap={canSub ? onTapPlayer : undefined} selId={selId} />
           </>
         ) : tab === 'jogos' && hasMatches ? (
           <>
@@ -852,6 +859,19 @@ export function PyramidSeasonScreen() {
                 flavors.push(leagueTop?.name === mineTop.name
                   ? { c: GREEN, ic: '👑', tag: 'ARTILHEIRO', node: <><b>{mineTop.name}</b> é o artilheiro da {DIV_NAME[me.div]} — {mineTop.goals} gols!</> }
                   : { c: GREEN, ic: '⚽', tag: 'EM ALTA', node: <><b>{mineTop.name}</b> tá voando: {mineTop.goals} gols pelo seu time!</> })
+              }
+              // 2b) REFORÇOS: como vão suas contratações (leilão de reservas/mercado).
+              //     Elogia quem já fez gol; cobra o reforço MAIS CARO que ainda não
+              //     desencantou (só depois de algumas rodadas, pra ser justo).
+              const signings = (mgrMe?.squad ?? []).filter(c => (c as WonCard).reforco && !c.fake)
+              if (signings.length) {
+                const goalsOf = (name: string) => scorers.find(s => s.teamId === youId && s.name === name)?.goals ?? 0
+                const best = signings.map(c => ({ c, g: goalsOf(c.name) })).sort((a, b) => b.g - a.g)[0]
+                if (best && best.g >= 2) flavors.push({ c: GREEN, ic: '💸', tag: 'REFORÇO', node: <>Contratação <b>{best.c.name}</b> já fez {best.g} gols — dinheiro bem gasto!</> })
+                else if (round >= 10) {
+                  const flop = signings.filter(c => goalsOf(c.name) === 0).sort((a, b) => ((b as WonCard).paid ?? 0) - ((a as WonCard).paid ?? 0))[0]
+                  if (flop) flavors.push({ c: GOLD, ic: '👀', tag: 'REFORÇO', node: <>Contratação <b>{flop.name}</b> custou 💰{(flop as WonCard).paid} e ainda não desencantou…</> })
+                }
               }
               // 3) ZUAÇÃO de divisão: amigo numa série mais baixa (ou mais alta)
               const friends = state.managers.filter(m => m.isHuman && m.id !== youId)

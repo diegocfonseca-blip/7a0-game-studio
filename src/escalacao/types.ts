@@ -32,6 +32,7 @@ export type Acquisition = 'leilao' | 'repescagem' | 'monte' | 'bot'
 export interface WonCard extends Card {
   paid: number
   via: Acquisition
+  reforco?: boolean // carreira online: comprado no leilão de reservas/mercado (não é do elenco original) — usado pras frases de "como vão as contratações"
 }
 
 // só duas formações — GOL/LAT/ZAG são sempre 1/2/2 nas duas (nunca variam),

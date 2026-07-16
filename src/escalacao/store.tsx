@@ -315,7 +315,7 @@ function pushBid(map: BidMap, cardId: string, bid: Bid) {
 // Empate no MAIOR lance elegível (≥2 técnicos) não decide na hora: a carta
 // entra na fila de desempate (ties) com vencedor pendente — quem resolve é o
 // re-lance cego (ver resolveOneTiebreak). Sem empate, decide aqui mesmo.
-function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leilao' | 'repescagem'): { queue: ResolvedCard[]; unsold: Card[]; ties: TieBreak[] } {
+function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leilao' | 'repescagem', reforco = false): { queue: ResolvedCard[]; unsold: Card[]; ties: TieBreak[] } {
   const byPot = [...cards].sort((a, b) => {
     const pa = (bidMap.get(a.id) ?? []).reduce((s, x) => s + x.amount, 0)
     const pb = (bidMap.get(b.id) ?? []).reduce((s, x) => s + x.amount, 0)
@@ -365,7 +365,7 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     const wid = tiedTop[0]
     const m = managers.find(x => x.id === wid)!
     m.money -= top
-    m.squad.push({ ...card, paid: top, via } as WonCard)
+    m.squad.push({ ...card, paid: top, via, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
     queue.push({ card, bids: sorted, winner: wid, paid: top, voided })
   }
   return { queue, unsold, ties }
@@ -389,7 +389,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   else { winner = top[Math.floor(rng() * top.length)]; tb.viaRoulette = true } // empatou de novo → roleta
   const m = state.managers.find(x => x.id === winner)!
   m.money -= max
-  m.squad.push({ ...tb.card, paid: max, via: tb.via } as WonCard)
+  m.squad.push({ ...tb.card, paid: max, via: tb.via, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
   recordPrice(state, tb.card.name, max) // livro de preços
   creditSeller(state, tb.card, max, winner) // o vendedor recebe a grana da venda
   tb.winner = winner
@@ -1238,7 +1238,7 @@ function sealAndResolve(state: EscState) {
       }
     }
   }
-  const { queue, unsold, ties } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao')
+  const { queue, unsold, ties } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao', !!state.reserveAuction)
   for (const q of queue) if (q.winner !== null && q.paid > 0) {
     recordPrice(state, q.card.name, q.paid) // livro de preços
     creditSeller(state, q.card, q.paid, q.winner) // o vendedor recebe a grana da venda
