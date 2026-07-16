@@ -326,7 +326,7 @@ export function EscSetup() {
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
-  const [league, setLeague] = useState<'br' | 'eu'>('br') // baralho: 🇧🇷 Brasileirão ou 🌍 Liga Europa
+  const [league, setLeague] = useState<'br' | 'eu' | 'both'>('br') // baralho: 🇧🇷 Brasileirão, 🌍 Liga Europa ou 🌎 os dois juntos
   // carreira: quais times da Série D viram seus rivais fixos (vazio = os padrões).
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
@@ -395,7 +395,12 @@ export function EscSetup() {
               </button>
             ))}
           </div>
-          <p className="text-[11px] font-semibold text-black/55 mt-1">{league === 'br' ? 'Auges do futebol brasileiro — de Pelé a Obina.' : 'Auges nos clubes europeus — de Yashin a Mbappé.'}</p>
+          <button onClick={() => setLeague('both')}
+            className="w-full mt-2 border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
+            style={{ backgroundColor: league === 'both' ? GOLD : '#fff', boxShadow: league === 'both' ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+            🌎 Os dois juntos
+          </button>
+          <p className="text-[11px] font-semibold text-black/55 mt-1">{league === 'br' ? 'Auges do futebol brasileiro — de Pelé a Obina.' : league === 'eu' ? 'Auges nos clubes europeus — de Yashin a Mbappé.' : 'Brasileirão + Europa (~700 craques). Quase não sobra fake — leilão de puro craque.'}</p>
           {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>🃏 Quer resenha? Só aqui tem até o Walter Minhoca.</p>}
         </div>
         <div>
