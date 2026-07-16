@@ -819,6 +819,8 @@ export function PyramidSeasonScreen() {
           const nMesmo = humans.filter(m => votes[m.id] === 'mesmo').length
           const nVoted = nLeilao + nMesmo
           const allVoted = nVoted === humans.length
+          const pendentes = humans.filter(m => !votes[m.id])
+          const pendNomes = pendentes.map(m => m.id === youId ? 'você' : m.name).join(', ')
           const start = () => { (nLeilao > nMesmo ? openLeilao : nMesmo > nLeilao ? openMesmo : (votes[youId] === 'leilao' ? openLeilao : openMesmo))() }
           const voteBtn = (v: 'leilao' | 'mesmo', label: string, bg: string, fg: string) => (
             <button onClick={() => dispatch({ type: 'CAST_SEASON_VOTE', mgrId: youId, vote: v })}
@@ -834,22 +836,33 @@ export function PyramidSeasonScreen() {
                 {voteBtn('leilao', `🔨 ${leilaoLabel}`, GOLD, INK)}
                 {voteBtn('mesmo', '▶️ Mesmo time', GREEN, '#fff')}
               </div>
+              <style>{'@keyframes coReady{0%,100%{transform:translateY(0);box-shadow:4px 4px 0 0 ' + INK + '}50%{transform:translateY(-2px);box-shadow:4px 6px 0 0 ' + INK + '}}'}</style>
+              {/* chips: quem votou já está PRONTO (✓); quem falta pisca com ⏳ */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 10 }}>
                 {humans.map(m => { const v = votes[m.id]; return (
-                  <span key={m.id} style={{ fontSize: 10, fontWeight: 800, ...OSWALD, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px', background: v ? (v === 'leilao' ? GOLD : GREEN) : '#fff', color: v === 'mesmo' ? '#fff' : INK, opacity: v ? 1 : 0.5 }}>
-                    {v ? (v === 'leilao' ? '🔨' : '▶️') : '⏳'} {m.id === youId ? 'Você' : m.name}
+                  <span key={m.id} style={{ fontSize: 10, fontWeight: 800, ...OSWALD, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px', background: v ? (v === 'leilao' ? GOLD : GREEN) : '#fff', color: v === 'mesmo' ? '#fff' : INK, opacity: v ? 1 : 0.55 }}>
+                    {v ? `${v === 'leilao' ? '🔨' : '▶️'} ${m.id === youId ? 'Você' : m.name} ✓` : `⏳ ${m.id === youId ? 'Você' : m.name}`}
                   </span>
                 )})}
               </div>
               {state.isHost ? (
-                <button disabled={!allVoted} onClick={start}
-                  style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, ...OSWALD, background: allVoted ? INK : '#cfcabb', color: '#fff', boxShadow: allVoted ? `4px 4px 0 0 ${INK}` : 'none', cursor: allVoted ? 'pointer' : 'not-allowed' }}>
-                  {allVoted ? '▶️ Começar próxima temporada' : `Aguardando votos… (${nVoted}/${humans.length})`}
-                </button>
+                <>
+                  {allVoted
+                    ? <p style={{ fontSize: 11.5, fontWeight: 800, color: GREEN, margin: '0 0 7px', textAlign: 'center' }}>🔔 Todos votaram e estão prontos! Bora começar 👇</p>
+                    : <p style={{ fontSize: 11, fontWeight: 700, color: '#8a6a2a', margin: '0 0 7px', textAlign: 'center' }}>⏳ Falta votar: <b>{pendNomes}</b></p>}
+                  <button disabled={!allVoted} onClick={start}
+                    style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, ...OSWALD, background: allVoted ? GREEN : '#cfcabb', color: '#fff', boxShadow: allVoted ? `4px 4px 0 0 ${INK}` : 'none', cursor: allVoted ? 'pointer' : 'not-allowed', animation: allVoted ? 'coReady 1.1s ease-in-out infinite' : undefined }}>
+                    {allVoted ? '▶️ Começar próxima temporada' : `Aguardando votos… (${nVoted}/${humans.length})`}
+                  </button>
+                </>
               ) : (
-                <p style={{ fontSize: 11.5, fontWeight: 800, color: '#3a5a8a', margin: '2px 0 0', textAlign: 'center' }}>
-                  {myVote ? (allVoted ? '⏱️ Todos votaram — aguardando o host iniciar…' : '✅ Voto registrado — aguardando os outros…') : '👆 Dê seu voto acima'}
-                </p>
+                <div style={{ textAlign: 'center' }}>
+                  {!myVote
+                    ? <p style={{ fontSize: 12, fontWeight: 900, ...OSWALD, color: '#b23b2e', margin: '2px 0 0' }}>👆 Toque no seu voto — assim o host sabe que você tá pronto!</p>
+                    : allVoted
+                      ? <p style={{ fontSize: 11.5, fontWeight: 800, color: GREEN, margin: '2px 0 0' }}>✅ Todos prontos! Cutuca o host pra apertar <b>Começar</b> 👊</p>
+                      : <p style={{ fontSize: 11.5, fontWeight: 800, color: '#3a5a8a', margin: '2px 0 0' }}>✅ Pronto! Voto computado. Falta: <b>{pendNomes}</b>. O host começa logo depois.</p>}
+                </div>
               )}
             </div>
           )
