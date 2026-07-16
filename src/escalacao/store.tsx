@@ -1531,16 +1531,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // carreira: cada técnico COMEÇA com 100 moedas (uma vez). Depois só ganha por
       // desempenho (título por série, acesso) e perde na queda — sem base recorrente.
       if (s.careerOnline) {
-        // BOT FIADOR: 1 a cada dupla de humanos (2-3 → 1, 4-5 → 2…). É time real da
-        // pirâmide (já ganha elenco em dealBotSquads); só entra pra dar lance quando
-        // uma posição fica sem disputa. deepSquad = pode ganhar carta pro banco.
-        const humanCount = s.managers.filter(m => m.isHuman).length
-        const nBots = Math.floor(humanCount / 2)
-        const botPool = s.managers.filter(m => !m.isHuman)
-        for (let i = 0; i < nBots && i < botPool.length; i++) { botPool[i].backstop = true; botPool[i].deepSquad = true }
-        // cada humano E cada bot fiador começa com 100 de caixa (uma vez).
+        // cada HUMANO começa com 100 de caixa (uma vez). Os bots que entram no
+        // leilão são SORTEADOS a cada temporada (RESERVE_AUCTION_ONLINE) e usam o
+        // caixa deles (clubCash) — no T1 inicial ninguém de bot dá lance.
         const cc: Record<number, number> = {}
-        for (const m of s.managers) if (m.isHuman || m.backstop) { cc[m.id] = 100; m.money = 100 }
+        for (const m of s.managers) if (m.isHuman) { cc[m.id] = 100; m.money = 100 }
         s.careerCoins = cc
       }
       s.seasonNo = 1
@@ -1659,13 +1654,14 @@ export function reducer(state: EscState, action: Action): EscState {
         // caixa vira o que sobrou do orçamento — o próximo leilão parte desse saldo
         // (mais bônus de título/acesso, menos queda), nunca zera pra 100 de novo.
         const cc = { ...(s.careerCoins ?? {}) }
-        for (const m of s.managers) if (m.isHuman || m.backstop) cc[m.id] = Math.max(0, Math.round(m.money))
+        for (const m of s.managers) if (m.isHuman) cc[m.id] = Math.max(0, Math.round(m.money))
         s.careerCoins = cc
       }
       if (s.reserveAuction) {
-        // fim do leilão de RESERVAS: tira a marca de elenco fundo dos HUMANOS (o
-        // leilão do time volta a mirar 11). Os bots fiadores mantêm o elenco fundo.
-        for (const m of s.managers) if (m.isHuman) m.deepSquad = false
+        // fim do leilão: tira o elenco fundo dos humanos (volta a mirar 11) e
+        // desmarca os bots que entraram neste leilão (serão sorteados de novo no
+        // próximo). O caixa dos bots (clubCash) muda só por prêmios de temporada.
+        for (const m of s.managers) { if (m.isHuman) m.deepSquad = false; if (m.backstop) { m.backstop = false; m.deepSquad = false } }
         s.reserveAuction = false
       }
       s.screen = 'season'
@@ -1837,23 +1833,16 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!s.careerOnline) return s
       setActiveCatalog(s.deckLeague)
       s.marketLog = [] // zera o resumo dos bots pra este leilão
-      // 0) GARANTE os bots fiadores (cura salas criadas ANTES do recurso, que não
-      // têm nenhum bot marcado): floor(humanos/2) bots viram fiadores, com caixa.
+      // 0) SORTEIA quais bots entram no leilão desta temporada: floor(humanos/2)
+      // times de bot escolhidos ao acaso (adversário diferente a cada temporada).
+      // Limpa os do leilão anterior e marca os novos.
       {
         const humanCount = s.managers.filter(m => m.isHuman).length
         const nBots = Math.floor(humanCount / 2)
-        const have = s.managers.filter(m => m.backstop).length
-        if (have < nBots) {
-          const cc = { ...(s.careerCoins ?? {}) }
-          let added = have
-          for (const bot of s.managers.filter(m => !m.isHuman && !m.backstop)) {
-            if (added >= nBots) break
-            bot.backstop = true; bot.deepSquad = true
-            if (cc[bot.id] == null) cc[bot.id] = 100
-            added++
-          }
-          s.careerCoins = cc
-        }
+        for (const m of s.managers) if (!m.isHuman) { m.backstop = false; m.deepSquad = false }
+        const arng = mulberry((s.seed ^ (s.seasonNo * 2654435761)) >>> 0)
+        const pool = shuffle(s.managers.filter(m => !m.isHuman), arng)
+        for (let i = 0; i < nBots && i < pool.length; i++) { pool[i].backstop = true; pool[i].deepSquad = true }
       }
       // 1) consome a lista: tira os listados dos elencos
       const listedMap = s.reserveListed ?? {}
@@ -1905,10 +1894,13 @@ export function reducer(state: EscState, action: Action): EscState {
         s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues)
       }
       for (const c of listedCards) s.deck[c.pos].push(c)
-      // 3) elenco fundo (mira 22) + orçamento = caixa. DEPOIS do baralho, senão a
-      // demanda dobraria e o leilão viria com cartas demais. Vale pros humanos e
-      // pros bots fiadores (que reabastecem a caixa e podem disputar reservas).
-      for (const m of s.managers) if (m.isHuman || m.backstop) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
+      // 3) elenco fundo (mira 22) + orçamento. DEPOIS do baralho, senão a demanda
+      // dobraria. Humano gasta do careerCoins; bot sorteado gasta do clubCash dele.
+      const cash = s.clubCash ?? {}
+      for (const m of s.managers) {
+        if (m.isHuman) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
+        else if (m.backstop) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 }
+      }
       s.surpriseId = pickSurprise(s.deck, rng)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []
