@@ -12,7 +12,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useCanCareerOnline } from './admin'
+import { CollectibleCard } from './screens'
 import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_BOTH } from './data'
+
+const CARD_PICK_SECONDS = 45
 
 const CREAM = '#F4ECD6'
 const INK = '#0C0C0C'
@@ -32,6 +35,7 @@ const DECKS: { id: DeckChoice; label: string; desc: string }[] = [
 type Div = 'A' | 'B' | 'C' | 'D'
 const DIVS: Div[] = ['A', 'B', 'C', 'D']
 const DIV_LABEL: Record<Div, string> = { A: '🏆 Série A', B: '🥈 Série B', C: '🥉 Série C', D: 'Série D' }
+const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
 const DIV_BASE: Record<Div, number> = { A: 80, B: 71, C: 63, D: 55 }
 const DIV_TAG: Record<Div, { l: string; bg: string }> = { A: { l: 'A', bg: '#B8892B' }, B: { l: 'B', bg: '#3E8E4E' }, C: { l: 'C', bg: '#9A7B33' }, D: { l: 'D', bg: '#7A7460' } }
 
@@ -179,6 +183,32 @@ function pickScorers(world: Record<Div, Team[]>, deck: DeckChoice, seed: number)
   return rows.slice(0, 20)
 }
 
+interface CardOpt { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }
+// onde EU terminei: divisão, posição, se fui campeão, e o nome do meu time
+function myOutcome(world: Record<Div, Team[]>): { div: Div; pos: number; champ: boolean; team: string } | null {
+  for (const d of DIVS) {
+    const sorted = sortDiv(world[d])
+    const i = sorted.findIndex(t => t.you)
+    if (i >= 0) return { div: d, pos: i + 1, champ: i === 0, team: sorted[i].name }
+  }
+  return null
+}
+// cartas oferecidas ao campeão: craques de destaque (fama alta) do baralho da
+// sala, embaralhados de forma estável pelo código — todos os campeões da mesma
+// sala veem o mesmo leque.
+function championCards(deck: DeckChoice, seed: number): CardOpt[] {
+  const cat = deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : CATALOG
+  const all: CardOpt[] = Object.keys(cat).flatMap(pos => (cat as Record<string, { name: string; club: string; year: number; fame: number; folk?: boolean; promessa?: boolean }[]>)[pos].map(c => ({ name: c.name, club: c.club, year: c.year, pos, fame: c.fame, folk: c.folk, promessa: c.promessa })))
+  const pool = all.filter(c => c.fame >= 4)
+  const rng = mulberry((seed ^ 0xC0FFEE) >>> 0)
+  const sh = pool.slice()
+  for (let i = sh.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1));[sh[i], sh[j]] = [sh[j], sh[i]] }
+  // dedupe por nome (baralho "both" tem repetidos) e pega 9
+  const seen = new Set<string>(); const out: CardOpt[] = []
+  for (const c of sh) { if (seen.has(c.name)) continue; seen.add(c.name); out.push(c); if (out.length >= 9) break }
+  return out
+}
+
 export function CareerOnlineButton() {
   const can = useCanCareerOnline()
   if (!can) return (
@@ -241,16 +271,11 @@ function RoundView({ c, onNext, onTable, onExit, paused, onTogglePause, canContr
   )
 }
 
-// ── classificação das 4 divisões + artilharia geral ──
-function Standings({ c, onBack, onExit }: { c: Career; onBack: () => void; onExit: () => void }) {
+// ── as 4 tabelas de divisão (reusado na classificação e no fim de temporada) ──
+function DivTables({ c }: { c: Career }) {
   const zone = (i: number, n: number) => i < 4 ? '#D6E9FA' : i >= n - 4 ? '#F9D8D3' : undefined
-  const scorers = pickScorers(c.world, c.deck, c.seed)
   return (
-    <div>
-      <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, textAlign: 'center' }}>
-        <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD, margin: 0 }}>📊 Classificação · rodada {c.round}/38</p>
-        <p style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>🔵 Acesso (G4) · 🔴 Rebaixamento (Z4) · 🟡 Você</p>
-      </div>
+    <>
       {DIVS.map(d => {
         const sorted = sortDiv(c.world[d])
         return (
@@ -273,22 +298,149 @@ function Standings({ c, onBack, onExit }: { c: Career; onBack: () => void; onExi
           </div>
         )
       })}
-      <div style={{ ...box('#fff'), padding: 10, marginBottom: 12 }}>
-        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, marginBottom: 2 }}>⚽ Artilharia geral</p>
-        <p style={{ fontSize: 10, fontWeight: 600, color: '#8a8368', marginBottom: 7 }}>Goleadores de todas as divisões · o selo mostra a série</p>
-        {scorers.length === 0 ? <p style={{ fontSize: 11, color: '#888', fontWeight: 700 }}>Sem gols ainda — jogue algumas rodadas.</p> : scorers.map((s, i) => (
-          <div key={s.name + s.team + i} style={{ display: 'grid', gridTemplateColumns: '20px 1fr auto', alignItems: 'center', gap: 7, padding: '3px 2px', borderTop: i ? '1px solid rgba(0,0,0,0.08)' : 'none', background: s.you ? GOLD : s.hum ? '#FFE79A' : undefined, borderRadius: (s.you || s.hum) ? 5 : 0 }}>
-            <span style={{ fontWeight: 900, ...OSWALD, textAlign: 'center' }}>{i + 1}</span>
-            <span style={{ minWidth: 0 }}>
-              <span style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD }}><span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}</span>
-              <span style={{ fontSize: 10, color: '#7a7460', fontWeight: 600, display: 'block' }}>{(s.you || s.hum) ? '👤 ' : ''}{s.team}</span>
-            </span>
-            <span style={{ fontWeight: 900, ...OSWALD, color: GREEN }}>{s.goals} <span style={{ fontSize: 10, color: '#8a8368' }}>⚽</span></span>
-          </div>
-        ))}
+    </>
+  )
+}
+
+// ── artilharia geral (reusado) ──
+function ScorersBox({ c }: { c: Career }) {
+  const scorers = pickScorers(c.world, c.deck, c.seed)
+  return (
+    <div style={{ ...box('#fff'), padding: 10, marginBottom: 12 }}>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, marginBottom: 2 }}>⚽ Artilharia geral</p>
+      <p style={{ fontSize: 10, fontWeight: 600, color: '#8a8368', marginBottom: 7 }}>Goleadores de todas as divisões · o selo mostra a série</p>
+      {scorers.length === 0 ? <p style={{ fontSize: 11, color: '#888', fontWeight: 700 }}>Sem gols ainda — jogue algumas rodadas.</p> : scorers.map((s, i) => (
+        <div key={s.name + s.team + i} style={{ display: 'grid', gridTemplateColumns: '20px 1fr auto', alignItems: 'center', gap: 7, padding: '3px 2px', borderTop: i ? '1px solid rgba(0,0,0,0.08)' : 'none', background: s.you ? GOLD : s.hum ? '#FFE79A' : undefined, borderRadius: (s.you || s.hum) ? 5 : 0 }}>
+          <span style={{ fontWeight: 900, ...OSWALD, textAlign: 'center' }}>{i + 1}</span>
+          <span style={{ minWidth: 0 }}>
+            <span style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD }}><span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}</span>
+            <span style={{ fontSize: 10, color: '#7a7460', fontWeight: 600, display: 'block' }}>{(s.you || s.hum) ? '👤 ' : ''}{s.team}</span>
+          </span>
+          <span style={{ fontWeight: 900, ...OSWALD, color: GREEN }}>{s.goals} <span style={{ fontSize: 10, color: '#8a8368' }}>⚽</span></span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── classificação das 4 divisões + artilharia geral ──
+function Standings({ c, onBack, onExit }: { c: Career; onBack: () => void; onExit: () => void }) {
+  return (
+    <div>
+      <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, textAlign: 'center' }}>
+        <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD, margin: 0 }}>📊 Classificação · rodada {c.round}/38</p>
+        <p style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>🔵 Acesso (G4) · 🔴 Rebaixamento (Z4) · 🟡 Você</p>
       </div>
+      <DivTables c={c} />
+      <ScorersBox c={c} />
       <button onClick={onBack} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 15, background: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 12 }}>← Voltar pra rodada</button>
       <button onClick={onExit} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '0 auto', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
+    </div>
+  )
+}
+
+// ── carta-lembrança do campeão (visual padrão, grava no álbum) ──
+function ChampionCard({ deck, seed, seasonKey }: { deck: DeckChoice; seed: number; seasonKey: string }) {
+  const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
+  const [claimed, setClaimed] = useState<CardOpt | null>(null)
+  const [deadline] = useState(() => Date.now() + CARD_PICK_SECONDS * 1000)
+  const [now, setNow] = useState(() => Date.now())
+  const claimingRef = useRef(false)
+  const opts = useRef<CardOpt[]>(championCards(deck, seed)).current
+
+  useEffect(() => {
+    ;(async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setStatus('noauth'); return }
+      const { data } = await supabase.from('user_cards').select('*').eq('user_id', user.id).eq('season_key', seasonKey).maybeSingle()
+      if (data) { setClaimed({ name: data.card_name, club: data.card_club, year: data.card_year, pos: data.card_pos, fame: data.card_fame }); setStatus('revealed') }
+      else setStatus('picking')
+    })()
+  }, [seasonKey])
+
+  useEffect(() => { if (status !== 'picking') return; const iv = setInterval(() => setNow(Date.now()), 250); return () => clearInterval(iv) }, [status])
+  const remaining = Math.max(0, Math.ceil((deadline - now) / 1000))
+
+  async function claim(card: CardOpt) {
+    if (claimingRef.current) return
+    claimingRef.current = true
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setStatus('noauth'); return }
+    await supabase.from('user_cards').insert({ user_id: user.id, season_key: seasonKey, origin: 'online', card_name: card.name, card_club: card.club, card_year: card.year, card_pos: card.pos, card_fame: card.fame })
+    setClaimed(card); setStatus('revealed')
+  }
+  useEffect(() => {
+    if (status !== 'picking' || remaining > 0) return
+    const pick = opts[Math.floor(Math.random() * opts.length)]
+    if (pick) claim(pick)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remaining, status])
+
+  if (status === 'checking') return null
+  if (status === 'noauth') return (
+    <div style={{ ...box(GOLD), padding: 16, textAlign: 'center', marginBottom: 12 }}>
+      <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0 }}>🎴 Você foi campeão!</p>
+      <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(0,0,0,0.7)', marginTop: 4 }}>As cartas-lembrança são só pra quem tem conta. No online você já está logado — se caiu aqui sem conta, faça login pra guardar seus craques.</p>
+    </div>
+  )
+  if (status === 'revealed' && claimed) return (
+    <div style={{ ...box(CREAM), padding: 16, textAlign: 'center', marginBottom: 12 }}>
+      <p style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: 'rgba(0,0,0,0.6)', marginBottom: 10 }}>🎴 Foi pro seu álbum!</p>
+      <div style={{ maxWidth: 200, margin: '0 auto' }}>
+        <CollectibleCard name={claimed.name} club={claimed.club} year={claimed.year} pos={claimed.pos} fame={claimed.fame} folk={claimed.folk} promessa={claimed.promessa} big />
+      </div>
+    </div>
+  )
+  return (
+    <div style={{ ...box(GOLD), padding: 14, marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0 }}>🎴 Escolha sua carta!</p>
+        <span style={{ border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', fontWeight: 900, fontSize: 12, background: '#fff' }}>{remaining}s</span>
+      </div>
+      <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.7)', marginBottom: 10 }}>Campeão leva um craque do baralho pro álbum. Se o tempo acabar, o jogo escolhe uma pra você.</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+        {opts.map(c => (
+          <button key={c.name} onClick={() => claim(c)} style={{ textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+            <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} />
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── FIM DE TEMPORADA: celebração do campeão + classificação + carta + volta ──
+function SeasonEnd({ c, roomId, onExit }: { c: Career; roomId: string | null; onExit: () => void }) {
+  const out = myOutcome(c.world)
+  const champ = !!out?.champ
+  return (
+    <div>
+      {champ ? (
+        <div style={{ ...box(GOLD), padding: 18, textAlign: 'center', marginBottom: 12 }}>
+          <p style={{ fontSize: 40, margin: 0, lineHeight: 1 }}>🏆</p>
+          <p style={{ fontWeight: 900, fontSize: 22, ...OSWALD, margin: '6px 0 0' }}>CAMPEÃO DA {DIV_NAME[out!.div].toUpperCase()}!</p>
+          <p style={{ fontSize: 12.5, fontWeight: 700, color: 'rgba(0,0,0,0.7)', marginTop: 4 }}>Parabéns, {out!.team}! Você levantou a taça.</p>
+        </div>
+      ) : (
+        <div style={{ ...box(INK), padding: 16, color: '#fff', textAlign: 'center', marginBottom: 12 }}>
+          <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>🏁 Fim de temporada</p>
+          {out && <p style={{ fontSize: 12.5, opacity: 0.85, marginTop: 4 }}>{out.team} terminou em <b>{out.pos}º</b> da {DIV_NAME[out.div]}.</p>}
+        </div>
+      )}
+
+      {champ && roomId && <ChampionCard deck={c.deck} seed={c.seed} seasonKey={`careeronline:${roomId}`} />}
+
+      <div style={{ ...box('#EAF3FF'), padding: 12, textAlign: 'center', marginBottom: 12 }}>
+        <p style={{ fontWeight: 800, fontSize: 12, color: '#3a5a8a', margin: 0 }}>⏱️ Quando o host decidir, todos voltam pra sala online — pra seguir com o mesmo time, refazer o leilão ou encerrar.</p>
+      </div>
+
+      <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, textAlign: 'center' }}>
+        <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD, margin: 0 }}>📊 Classificação final</p>
+        <p style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>🔵 Acesso (G4) · 🔴 Rebaixamento (Z4) · 🟡 Você</p>
+      </div>
+      <DivTables c={c} />
+      <ScorersBox c={c} />
+      <button onClick={onExit} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 15, background: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 12 }}>🚪 Voltar pra sala</button>
     </div>
   )
 }
@@ -401,6 +553,8 @@ export function CareerOnlineGame() {
     if (fromRoom && launchRef.current?.isHost && career) syncRound(career.round, np)
   }
 
+  // temporada acabou: celebração do campeão + classificação final + carta
+  if (career && career.round >= 38 && view !== 'table') return <Overlay><SeasonEnd c={career} roomId={launchRef.current?.roomId ?? null} onExit={close} /></Overlay>
   if (career && view === 'round') return <Overlay><RoundView c={career} onNext={next} onTable={() => setView('table')} onExit={close} paused={paused} onTogglePause={togglePause} canControl={canControl} /></Overlay>
   if (career && view === 'table') return <Overlay><Standings c={career} onBack={() => setView('round')} onExit={close} /></Overlay>
 
