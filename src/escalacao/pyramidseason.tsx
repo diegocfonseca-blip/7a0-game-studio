@@ -794,28 +794,79 @@ export function PyramidSeasonScreen() {
             <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode}:${state.seasonNo}`} origin="online" />
           </div>
         )}
-        {done && (
-          state.isHost ? (
+        {done && (() => {
+          const humans = state.managers.filter(m => m.isHuman)
+          const votes = state.seasonVotes ?? {}
+          const myVote = votes[youId]
+          const leilaoLabel = state.seasonNo === 1 ? 'Leilão de reservas' : 'Leilão de transferências'
+          const args = () => ({ placements: computePromotions(tables), rewards: seasonRewards(tables), clubRewards: clubRewards(tables), champions: seasonChampions(tables) })
+          const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
+          const openMesmo = () => dispatch({ type: 'NEXT_SEASON_ONLINE', ...args() })
+          // JOGO SOLO (host sozinho): sem votação, começa direto como antes.
+          if (humans.length <= 1) return (
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
               <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>👑 Você é o host — próxima temporada</p>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas (por nome exato) já entram. {state.seasonNo === 1
                 ? <>Abra o <b>leilão de reservas</b> (todos com a sua caixa, compram pra encher o banco até 22), ou siga com o mesmo elenco.</>
-                : <>Abra o <b>mercado</b> (1 carta nova por posição + os jogadores que cada técnico listar), ou siga com o mesmo elenco.</>}</p>
-              <button onClick={() => dispatch({ type: 'OPEN_RESERVE_LIST', placements: computePromotions(tables), rewards: seasonRewards(tables), clubRewards: clubRewards(tables), champions: seasonChampions(tables) })}
-                style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>
-                {state.seasonNo === 1 ? '🔨 Leilão de reservas' : '🛒 Mercado'}
-              </button>
-              <button onClick={() => dispatch({ type: 'NEXT_SEASON_ONLINE', placements: computePromotions(tables), rewards: seasonRewards(tables), clubRewards: clubRewards(tables), champions: seasonChampions(tables) })}
-                style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
-                ▶️ Mesmo time (sem leilão)
-              </button>
-            </div>
-          ) : (
-            <div style={{ ...box('#EAF3FF'), padding: 11, textAlign: 'center', marginBottom: 12 }}>
-              <p style={{ fontWeight: 800, fontSize: 12, color: '#3a5a8a', margin: 0 }}>⏱️ Aguardando o host começar a próxima temporada…</p>
+                : <>Abra o <b>leilão de transferências</b> (1 carta nova por posição + os jogadores que cada técnico listar), ou siga com o mesmo elenco.</>}</p>
+              <button onClick={openLeilao} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>🔨 {leilaoLabel}</button>
+              <button onClick={openMesmo} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>▶️ Mesmo time (sem leilão)</button>
             </div>
           )
-        )}
+          // ONLINE com amigos: VOTAÇÃO. O host só inicia quando todos votam;
+          // maioria vence, empate → o voto do host decide.
+          const nLeilao = humans.filter(m => votes[m.id] === 'leilao').length
+          const nMesmo = humans.filter(m => votes[m.id] === 'mesmo').length
+          const nVoted = nLeilao + nMesmo
+          const allVoted = nVoted === humans.length
+          const pendentes = humans.filter(m => !votes[m.id])
+          const pendNomes = pendentes.map(m => m.id === youId ? 'você' : m.name).join(', ')
+          const start = () => { (nLeilao > nMesmo ? openLeilao : nMesmo > nLeilao ? openMesmo : (votes[youId] === 'leilao' ? openLeilao : openMesmo))() }
+          const voteBtn = (v: 'leilao' | 'mesmo', label: string, bg: string, fg: string) => (
+            <button onClick={() => dispatch({ type: 'CAST_SEASON_VOTE', mgrId: youId, vote: v })}
+              style={{ flex: 1, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 6px', fontWeight: 900, fontSize: 13, ...OSWALD, cursor: 'pointer', position: 'relative', background: myVote === v ? bg : '#fff', color: myVote === v ? fg : INK, boxShadow: myVote === v ? `3px 3px 0 0 ${INK}` : 'none' }}>
+              {myVote === v && <span style={{ position: 'absolute', top: 3, right: 6, fontSize: 11 }}>✓</span>}{label}
+            </button>
+          )
+          return (
+            <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
+              <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>🗳️ Votação — próxima temporada</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas já entram. Todos votam: abrir o <b>{leilaoLabel.toLowerCase()}</b> {state.seasonNo === 1 ? '(encher o banco até 22)' : '(1 carta nova por posição + os listados)'} ou seguir com o <b>mesmo time</b>. Empate → o host decide.</p>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                {voteBtn('leilao', `🔨 ${leilaoLabel}`, GOLD, INK)}
+                {voteBtn('mesmo', '▶️ Mesmo time', GREEN, '#fff')}
+              </div>
+              <style>{'@keyframes coReady{0%,100%{transform:translateY(0);box-shadow:4px 4px 0 0 ' + INK + '}50%{transform:translateY(-2px);box-shadow:4px 6px 0 0 ' + INK + '}}'}</style>
+              {/* chips: quem votou já está PRONTO (✓); quem falta pisca com ⏳ */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 10 }}>
+                {humans.map(m => { const v = votes[m.id]; return (
+                  <span key={m.id} style={{ fontSize: 10, fontWeight: 800, ...OSWALD, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px', background: v ? (v === 'leilao' ? GOLD : GREEN) : '#fff', color: v === 'mesmo' ? '#fff' : INK, opacity: v ? 1 : 0.55 }}>
+                    {v ? `${v === 'leilao' ? '🔨' : '▶️'} ${m.id === youId ? 'Você' : m.name} ✓` : `⏳ ${m.id === youId ? 'Você' : m.name}`}
+                  </span>
+                )})}
+              </div>
+              {state.isHost ? (
+                <>
+                  {allVoted
+                    ? <p style={{ fontSize: 11.5, fontWeight: 800, color: GREEN, margin: '0 0 7px', textAlign: 'center' }}>🔔 Todos votaram e estão prontos! Bora começar 👇</p>
+                    : <p style={{ fontSize: 11, fontWeight: 700, color: '#8a6a2a', margin: '0 0 7px', textAlign: 'center' }}>⏳ Falta votar: <b>{pendNomes}</b></p>}
+                  <button disabled={!allVoted} onClick={start}
+                    style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, ...OSWALD, background: allVoted ? GREEN : '#cfcabb', color: '#fff', boxShadow: allVoted ? `4px 4px 0 0 ${INK}` : 'none', cursor: allVoted ? 'pointer' : 'not-allowed', animation: allVoted ? 'coReady 1.1s ease-in-out infinite' : undefined }}>
+                    {allVoted ? '▶️ Começar próxima temporada' : `Aguardando votos… (${nVoted}/${humans.length})`}
+                  </button>
+                </>
+              ) : (
+                <div style={{ textAlign: 'center' }}>
+                  {!myVote
+                    ? <p style={{ fontSize: 12, fontWeight: 900, ...OSWALD, color: '#b23b2e', margin: '2px 0 0' }}>👆 Toque no seu voto — assim o host sabe que você tá pronto!</p>
+                    : allVoted
+                      ? <p style={{ fontSize: 11.5, fontWeight: 800, color: GREEN, margin: '2px 0 0' }}>✅ Todos prontos! Cutuca o host pra apertar <b>Começar</b> 👊</p>
+                      : <p style={{ fontSize: 11.5, fontWeight: 800, color: '#3a5a8a', margin: '2px 0 0' }}>✅ Pronto! Voto computado. Falta: <b>{pendNomes}</b>. O host começa logo depois.</p>}
+                </div>
+              )}
+            </div>
+          )
+        })()}
 
         {/* abas em pílulas — a ativa fica na SUA cor */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
@@ -964,7 +1015,7 @@ export function ReserveListScreen() {
         )}
         {state.seasonNo === 3 && (
           <div style={{ ...box('#EAF3FF'), padding: 11, marginBottom: 10 }}>
-            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px', color: GREEN }}>🔓 Desbloqueado: Mercado!</p>
+            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px', color: GREEN }}>🔓 Desbloqueado: Leilão de transferências!</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>Agora você pode <b>listar jogadores pra leilão</b> (e disputá-los de volta).</p>
           </div>
         )}
