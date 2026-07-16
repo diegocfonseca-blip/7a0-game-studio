@@ -378,7 +378,30 @@ function DivChips({ humans, colors }: { humans: { name: string; teamId: number; 
 
 // ── SEU JOGO em destaque: card grande com o minuto correndo + os gols (nome do
 // artilheiro), igual à simulação do modo off-line. ──
-function MyMatchCard({ m, youName, finished, col, roundKey }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; roundKey: number }) {
+// TICKER de frases: mostra UMA linha por vez, trocando sozinha a cada ~4,5s.
+// Cada item tem cor de faixa (por tipo) + ícone + texto.
+type Flavor = { c: string; ic: string; node: React.ReactNode }
+function RivalryTicker({ items }: { items: Flavor[] }) {
+  const [i, setI] = useState(0)
+  useEffect(() => {
+    if (items.length <= 1) return
+    const iv = setInterval(() => setI(x => x + 1), 4500)
+    return () => clearInterval(iv)
+  }, [items.length])
+  if (!items.length) return null
+  const idx = i % items.length
+  const it = items[idx]
+  return (
+    <div style={{ display: 'flex', border: `2.5px solid ${INK}`, borderRadius: 12, overflow: 'hidden', background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, marginBottom: 10, minHeight: 46 }}>
+      <style>{'@keyframes coFade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}'}</style>
+      <div style={{ width: 8, background: it.c, flexShrink: 0 }} />
+      <div style={{ width: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>{it.ic}</div>
+      <div key={idx} style={{ padding: '8px 11px 8px 2px', fontSize: 12.5, fontWeight: 700, lineHeight: 1.25, display: 'flex', alignItems: 'center', animation: 'coFade .45s ease' }}>{it.node}</div>
+      {items.length > 1 && <div style={{ display: 'flex', gap: 3, alignItems: 'center', padding: '0 8px', flexShrink: 0 }}>{items.map((_, k) => <span key={k} style={{ width: 5, height: 5, borderRadius: 999, background: k === idx ? INK : 'rgba(0,0,0,0.2)' }} />)}</div>}
+    </div>
+  )
+}
+function MyMatchCard({ m, youName, finished, col, colors, roundKey }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number }) {
   const [min, setMin] = useState(finished ? 93 : 0)
   useEffect(() => {
     // o relógio só zera/anima quando MUDA A RODADA (roundKey). Trocar a tática na
@@ -396,20 +419,33 @@ function MyMatchCard({ m, youName, finished, col, roundKey }: { m: SimMatch; you
   const minLabel = min >= 93 ? 'FIM' : min > 90 ? `90+${min - 90}'` : `${min}'`
   const iAmHome = m.h === youName
   const last = shown.length ? shown[shown.length - 1] : null
+  const oppId = iAmHome ? m.aId : m.hId
+  const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
+  const homeCol = iAmHome ? col.solid : oppCol, awayCol = iAmHome ? oppCol : col.solid
+  const ini = (n: string) => n.trim()[0]?.toUpperCase() ?? '?'
+  const Team = ({ name, color, you }: { name: string; color: string; you: boolean }) => (
+    <div style={{ padding: '24px 8px 11px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, textAlign: 'center', background: `linear-gradient(180deg, ${color}22, transparent)`, minWidth: 0 }}>
+      <div style={{ width: 32, height: 32, borderRadius: 9, border: `2px solid ${INK}`, background: color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 14, ...OSWALD }}>{ini(name)}</div>
+      <div style={{ fontSize: 12, fontWeight: 900, ...OSWALD, color: you ? color : '#3a3630', lineHeight: 1.05, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{name}</div>
+      <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: '#9a8f78' }}>{you ? 'você' : 'rival'}</div>
+    </div>
+  )
   return (
-    <div style={{ ...box(col.light), padding: '9px 11px', marginBottom: 10 }}>
-      {/* minuto EM CIMA do placar (90' + acréscimos) */}
-      <div style={{ textAlign: 'center', marginBottom: 4 }}>
-        <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: done ? GREEN : '#e8503a' }}>{done ? '⏱️ FIM' : `⏱️ ${minLabel}`}</span>
+    <div style={{ ...box('#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
+      <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}'}</style>
+      <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', background: INK, color: '#fff', fontSize: 11, fontWeight: 900, ...OSWALD, padding: '3px 11px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 6, zIndex: 2, whiteSpace: 'nowrap' }}>
+        <span style={{ width: 7, height: 7, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite' }} /> {done ? 'FIM' : minLabel}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
-        <span style={{ textAlign: 'right', fontWeight: 900, fontSize: 12.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: iAmHome ? col.solid : '#5a5647' }}>{iAmHome ? '👤 ' : ''}{m.h}</span>
-        <span style={{ fontWeight: 900, fontSize: 17, ...OSWALD, background: INK, color: '#fff', borderRadius: 6, padding: '1px 10px' }}>{hg}×{ag}</span>
-        <span style={{ textAlign: 'left', fontWeight: 900, fontSize: 12.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: !iAmHome ? col.solid : '#5a5647' }}>{!iAmHome ? '👤 ' : ''}{m.a}</span>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch' }}>
+        <Team name={m.h} color={homeCol} you={iAmHome} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: INK, color: '#fff', ...OSWALD, fontWeight: 900, fontSize: 28 }}>
+          <span style={{ padding: '0 10px' }}>{hg}</span><span style={{ opacity: 0.4, fontSize: 18 }}>×</span><span style={{ padding: '0 10px' }}>{ag}</span>
+        </div>
+        <Team name={m.a} color={awayCol} you={!iAmHome} />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-        <span style={{ fontSize: 9.5, fontWeight: 800, ...OSWALD, color: 'rgba(0,0,0,0.55)' }}>🎯 sua partida</span>
-        <span style={{ fontSize: 10.5, fontWeight: 800, ...OSWALD, color: 'rgba(0,0,0,0.75)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '62%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 12px', borderTop: '2px solid #eee', background: '#efe4c8' }}>
+        <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.4, textTransform: 'uppercase', color: col.solid }}>🎯 sua partida</span>
+        <span style={{ fontSize: 10.5, fontWeight: 700, ...OSWALD, color: 'rgba(0,0,0,0.7)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>
           {last ? <>⚽ {last.name} <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></> : (done ? 'sem gols' : 'bola rolando…')}
         </span>
       </div>
@@ -655,12 +691,18 @@ export function PyramidSeasonScreen() {
   return (
     <div style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
-        <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>🪜 TEMP. {state.seasonNo} · {done ? 'encerrada' : round === 0 ? 'começando…' : `rod. ${round}/38`}</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-            {!done && me && <span style={{ fontWeight: 800, fontSize: 11.5, ...OSWALD, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{me.pos === 1 ? '🥇' : '🏅'} {me.pos}º · {DIV_NAME[me.div]}</span>}
-            <span title="Sua caixa de moedas (pra o leilão/mercado)" style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: GOLD, color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 9px', whiteSpace: 'nowrap', flexShrink: 0 }}>💰 {state.careerCoins?.[youId] ?? 0}</span>
+        <div style={{ ...box(INK), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 12 }}>
+          <div style={{ padding: '12px 14px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD }}>Temporada {state.seasonNo}{me ? ` · ${DIV_NAME[me.div]}` : ''}</div>
+              <div style={{ ...OSWALD, fontWeight: 800, fontSize: 18, marginTop: 2, lineHeight: 1 }}>{done ? 'Encerrada' : round === 0 ? 'Começando…' : <>Rodada <b style={{ fontSize: 21 }}>{round}</b><span style={{ fontSize: 12, opacity: 0.5, fontWeight: 700 }}> / 38</span></>}</div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
+              {!done && me && <span style={{ fontWeight: 800, fontSize: 12, ...OSWALD, border: '2px solid rgba(255,255,255,0.25)', borderRadius: 999, padding: '3px 9px', whiteSpace: 'nowrap' }}>{me.pos === 1 ? '🥇' : '🏅'} {me.pos}º</span>}
+              <span title="Sua caixa de moedas (pra o leilão/mercado)" style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: GOLD, color: INK, border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap' }}>💰 {state.careerCoins?.[youId] ?? 0}</span>
+            </div>
           </div>
+          {!done && <div style={{ position: 'absolute', left: 0, bottom: 0, height: 5, width: '100%', background: 'rgba(255,255,255,0.12)' }}><div style={{ height: '100%', width: `${Math.min(100, Math.round(round / 38 * 100))}%`, background: `linear-gradient(90deg, ${GOLD}, #ffde5c)` }} /></div>}
         </div>
 
         {/* FIM da temporada: banner de campeão/colocação. AO VIVO: placar FIXO da
@@ -673,7 +715,7 @@ export function PyramidSeasonScreen() {
               : <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0 }}>🏁 {me.team} — {me.pos}º na {DIV_NAME[me.div]}</p>}
           </div>
         )}
-        {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} roundKey={round} />}
+        {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} />}
 
         {done && me?.champ && state.roomId && (
           <div style={{ marginBottom: 12 }}>
@@ -703,10 +745,10 @@ export function PyramidSeasonScreen() {
           )
         )}
 
-        {/* toggle: os jogos (placares) ↔ as tabelas + artilharia */}
-        <div style={{ display: 'flex', border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
-          {([['jogos', '🗓️ Jogos'], ['tabelas', '📊 Tabelas'], ['elenco', '👥 Elenco'], ['ranking', '🏆 Rank']] as [typeof tab, string][]).map(([t, label]) => (
-            <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '9px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: tab === t ? INK : '#fff', color: tab === t ? '#fff' : INK, border: 'none', cursor: 'pointer', ...OSWALD }}>{label}</button>
+        {/* abas em pílulas — a ativa fica na SUA cor */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+          {([['jogos', '🗓️', 'Jogos'], ['tabelas', '📊', 'Tabelas'], ['elenco', '👥', 'Elenco'], ['ranking', '🏆', 'Rank']] as [typeof tab, string, string][]).map(([t, ic, label]) => (
+            <button key={t} onClick={() => setTab(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: tab === t ? myCol.solid : '#fff', color: tab === t ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
           ))}
         </div>
 
@@ -733,10 +775,11 @@ export function PyramidSeasonScreen() {
           </>
         ) : tab === 'jogos' && hasMatches ? (
           <>
-            {done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished col={myCol} roundKey={round} />}
-            {(() => { // FRASES COM EMOÇÃO: clássico, artilheiro, zuação de divisão, queda, liderança
+            {done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished col={myCol} colors={colors} roundKey={round} />}
+            {(() => { // FRASES COM EMOÇÃO (uma linha rotativa): clássico, artilheiro, zuação, queda, liderança
               if (!me) return null
-              const flavors: React.ReactNode[] = []
+              const RED = '#E8503A', PURPLE = '#6C43C0'
+              const flavors: Flavor[] = []
               const nm = (id: number, name: string) => <span style={{ color: colors[id]?.solid ?? INK, fontWeight: 900 }}>{name}</span>
               const table = tables[me.div] ?? []
               const myIdx = table.findIndex(x => x.you)
@@ -745,15 +788,15 @@ export function PyramidSeasonScreen() {
               if (myMatch) {
                 const oppName = myMatch.h === me.team ? myMatch.a : myMatch.h
                 const opp = table.find(x => x.name === oppName)
-                if (opp?.human) flavors.push(<>🔥 <b>CLÁSSICO!</b> Você x {nm(opp.teamId, oppName)} nesta rodada — não pode perder!</>)
+                if (opp?.human) flavors.push({ c: RED, ic: '⚔️', node: <><b>CLÁSSICO!</b> Você x {nm(opp.teamId, oppName)} nesta rodada — não pode perder!</> })
               }
               // 2) ARTILHEIRO do seu time (arrebentando)
               const mineTop = scorers.filter(s => s.teamId === youId).sort((a, b) => b.goals - a.goals)[0]
               if (mineTop && mineTop.goals >= 3) {
                 const leagueTop = scorers.filter(s => s.div === me.div).sort((a, b) => b.goals - a.goals)[0]
                 flavors.push(leagueTop?.name === mineTop.name
-                  ? <>👑 <b>{mineTop.name}</b> é o ARTILHEIRO da {DIV_NAME[me.div]} — {mineTop.goals} gols!</>
-                  : <>⚽ <b>{mineTop.name}</b> tá voando: {mineTop.goals} gols pelo seu time!</>)
+                  ? { c: GREEN, ic: '👑', node: <><b>{mineTop.name}</b> é o ARTILHEIRO da {DIV_NAME[me.div]} — {mineTop.goals} gols!</> }
+                  : { c: GREEN, ic: '⚽', node: <><b>{mineTop.name}</b> tá voando: {mineTop.goals} gols pelo seu time!</> })
               }
               // 3) ZUAÇÃO de divisão: amigo numa série mais baixa (ou mais alta)
               const friends = state.managers.filter(m => m.isHuman && m.id !== youId)
@@ -761,26 +804,24 @@ export function PyramidSeasonScreen() {
                 .filter((x): x is { name: string; div: Div; id: number; pos: number } => !!x)
               const below = friends.filter(f => DIVS.indexOf(f.div) > myRank).sort((a, b) => DIVS.indexOf(b.div) - DIVS.indexOf(a.div))[0]
               const above = friends.filter(f => DIVS.indexOf(f.div) < myRank).sort((a, b) => DIVS.indexOf(a.div) - DIVS.indexOf(b.div))[0]
-              if (below) flavors.push(<>😎 Você na <b>{DIV_NAME[me.div]}</b> e o {nm(below.id, below.name)} lá na {DIV_NAME[below.div]} 👇</>)
-              else if (above) flavors.push(<>👀 O {nm(above.id, above.name)} tá na <b>{DIV_NAME[above.div]}</b> — bora subir e alcançar!</>)
+              if (below) flavors.push({ c: PURPLE, ic: '😎', node: <>Você na <b>{DIV_NAME[me.div]}</b> e o {nm(below.id, below.name)} lá na {DIV_NAME[below.div]} 👇</> })
+              else if (above) flavors.push({ c: PURPLE, ic: '👀', node: <>O {nm(above.id, above.name)} tá na <b>{DIV_NAME[above.div]}</b> — bora subir e alcançar!</> })
               // 3b) ZUAÇÃO: amigo afundando na zona de queda (últimos 4) da divisão dele
               const falling = friends.find(f => f.pos >= 17 && f.div !== 'D')
-              if (falling) flavors.push(<>📉 O {nm(falling.id, falling.name)} tá afundando na zona de queda da {DIV_NAME[falling.div]}… 👋</>)
+              if (falling) flavors.push({ c: PURPLE, ic: '📉', node: <>O {nm(falling.id, falling.name)} tá afundando na zona de queda da {DIV_NAME[falling.div]}… 👋</> })
               // 4) QUEDA: você na zona de rebaixamento (últimos 4)
-              if (myIdx >= 16 && me.div !== 'D') flavors.push(<>🚨 <b>Perigo!</b> Você tá na zona de queda da {DIV_NAME[me.div]} — reage!</>)
+              if (myIdx >= 16 && me.div !== 'D') flavors.push({ c: RED, ic: '🚨', node: <><b>Perigo!</b> Você tá na zona de queda da {DIV_NAME[me.div]} — reage!</> })
               // 5) VIZINHO na tabela (liderança / perseguição) — sempre tem
               if (myIdx >= 0) {
                 const rival = myIdx > 0 ? table[myIdx - 1] : table[myIdx + 1]
                 if (rival) {
                   const gap = Math.abs(table[myIdx].pts - rival.pts); const pts = gap === 1 ? 'ponto' : 'pontos'
-                  flavors.push(myIdx === 0 ? <>🥇 Você é o <b>LÍDER</b>! {nm(rival.teamId, rival.name)} cola {gap} {pts} atrás.</>
-                    : myIdx > 0 && gap <= 2 ? <>😤 {nm(rival.teamId, rival.name)} tá só {gap} {pts} na sua frente. Vai deixar?</>
-                    : <>💪 Você segura {nm(rival.teamId, rival.name)} {gap} {pts} atrás!</>)
+                  flavors.push(myIdx === 0 ? { c: GOLD, ic: '🔥', node: <>Você é o <b>LÍDER</b>! {nm(rival.teamId, rival.name)} cola {gap} {pts} atrás.</> }
+                    : myIdx > 0 && gap <= 2 ? { c: GOLD, ic: '😤', node: <>{nm(rival.teamId, rival.name)} tá só {gap} {pts} na sua frente. Vai deixar?</> }
+                    : { c: GOLD, ic: '💪', node: <>Você segura {nm(rival.teamId, rival.name)} {gap} {pts} atrás!</> })
                 }
               }
-              return flavors.slice(0, 3).map((f, i) => (
-                <div key={i} style={{ ...box('#FFF3E0'), padding: '8px 11px', marginBottom: 8 }}><p style={{ fontSize: 12, fontWeight: 800, ...OSWALD, margin: 0 }}>{f}</p></div>
-              ))
+              return <RivalryTicker items={flavors} />
             })()}
             {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
           </>
