@@ -1336,7 +1336,6 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const m of s.managers) pl[`m${m.id}`] = 'D'
         for (const d of ['A', 'B', 'C'] as const) for (const t of DIVISION_TEAMS[d].slice(0, 20)) pl[t.team] = d
         s.careerPlacements = pl
-        s.careerCoins = {} // caixa começa zerada; as moedas entram a partir do fim da 1ª temporada
         s.careerHonors = {} // títulos começam do zero
       }
       s.roomId = action.roomId
@@ -1362,6 +1361,9 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}; s.careerTactics = {}
+      // carreira: cada técnico COMEÇA com 100 moedas (uma vez). Depois só ganha por
+      // desempenho (título por série, acesso) e perde na queda — sem base recorrente.
+      if (s.careerOnline) { const cc: Record<number, number> = {}; for (const m of s.managers) if (m.isHuman) cc[m.id] = 100; s.careerCoins = cc }
       s.seasonNo = 1
       s.screen = 'auction'
       startAuctionPhase(s, false)
