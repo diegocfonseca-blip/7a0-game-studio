@@ -1178,8 +1178,13 @@ function sealAndResolve(state: EscState) {
     if (humanBidders <= 1) {
       for (const m of state.managers) {
         if (!m.backstop) continue
+        // MONEY-SMART: o bot reserva grana pra CADA vaga que ainda precisa preencher.
+        // Nunca estoura num jogador só (ex.: 80 de caixa, 8 vagas → ~10 por vaga,
+        // teto ~16 num jogador que quer). Com poucas vagas, pode pagar mais.
+        const perSlot = Math.max(1, Math.floor(m.money / Math.max(1, totalHoles(m))))
+        const capPerCard = Math.max(1, Math.round(perSlot * 1.6))
         for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue)) {
-          pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: b.amount })
+          pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: Math.min(b.amount, capPerCard) })
         }
       }
     }
