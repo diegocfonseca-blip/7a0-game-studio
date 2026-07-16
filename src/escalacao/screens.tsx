@@ -1979,6 +1979,7 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
   const [claimed, setClaimed] = useState<WonCard | null>(null)
+  const [owned, setOwned] = useState<Set<string>>(new Set()) // cartas que o usuário JÁ tem no álbum (por nome)
   const [deadline] = useState(() => Date.now() + CARD_PICK_SECONDS * 1000)
   const [now, setNow] = useState(() => Date.now())
   const claimingRef = useRef(false)
@@ -1987,6 +1988,9 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
     ;(async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setStatus('noauth'); return } // sem cadastro não ganha carta
+      // o que o usuário já tem no álbum — pra não oferecer repetida
+      const { data: ownedRows } = await supabase.from('user_cards').select('card_name').eq('user_id', user.id)
+      setOwned(new Set((ownedRows ?? []).map((r: { card_name: string }) => r.card_name)))
       const { data } = await supabase.from('user_cards').select('*').eq('user_id', user.id).eq('season_key', seasonKey).maybeSingle()
       if (data) {
         const cc = { id: 'x', name: data.card_name, club: data.card_club, year: data.card_year, pos: data.card_pos, fame: data.card_fame, ...(CARD_META.get(data.card_name) ?? {}), lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard
@@ -2023,8 +2027,11 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
 
   useEffect(() => {
     if (status !== 'picking' || remaining > 0) return
-    // tempo esgotou: o jogo escolhe uma carta aleatória do seu time por você
-    const pick = you.squad[Math.floor(Math.random() * you.squad.length)]
+    // tempo esgotou: o jogo escolhe por você — de preferência uma que você AINDA
+    // NÃO tem no álbum (pra não repetir); só repete se já tiver todas do time.
+    const pool = you.squad.filter(c => !owned.has(c.name))
+    const from = pool.length ? pool : you.squad
+    const pick = from[Math.floor(Math.random() * from.length)]
     if (pick) claim(pick)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining, status])
@@ -2060,14 +2067,27 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
         <p className="font-black text-lg" style={OSWALD}>🎴 Escolha sua carta-lembrança!</p>
         <span className="border-2 border-black rounded-lg px-2 py-1 text-xs font-black bg-white">{remaining}s</span>
       </div>
-      <p className="text-xs font-bold text-black/70 mb-3">Campeão leva um craque do próprio time pro álbum. Se o tempo acabar, o jogo escolhe uma pra você.</p>
-      <div className="grid grid-cols-3 gap-2 max-h-80 overflow-y-auto">
-        {you.squad.map(c => (
-          <button key={c.id} onClick={() => claim(c)} className="text-left">
-            <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} />
-          </button>
-        ))}
-      </div>
+      <p className="text-xs font-bold text-black/70 mb-3">Campeão leva um craque do próprio time pro álbum. As que você <b>já tem</b> ficam bloqueadas — pegue uma <b>nova ✨</b> pra completar a coleção. Se o tempo acabar, o jogo escolhe uma nova pra você.</p>
+      {(() => {
+        const allOwned = you.squad.every(c => owned.has(c.name)) // já tem todas do time → libera geral
+        return (
+          <div className="grid grid-cols-3 gap-2 max-h-80 overflow-y-auto">
+            {you.squad.map(c => {
+              const have = owned.has(c.name) && !allOwned
+              return (
+                <button key={c.id} onClick={() => !have && claim(c)} disabled={have} className="text-left relative" style={{ cursor: have ? 'default' : 'pointer' }}>
+                  <div style={{ opacity: have ? 0.4 : 1, filter: have ? 'grayscale(0.7)' : 'none' }}>
+                    <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} />
+                  </div>
+                  {have
+                    ? <span className="absolute top-1 right-1 border-2 border-black rounded-md px-1.5 py-0.5 text-[9px] font-black bg-white" style={OSWALD}>✓ já tenho</span>
+                    : !owned.has(c.name) && <span className="absolute top-1 right-1 border-2 border-black rounded-md px-1.5 py-0.5 text-[9px] font-black" style={{ background: GREEN, color: '#fff', ...OSWALD }}>✨ nova</span>}
+                </button>
+              )
+            })}
+          </div>
+        )
+      })()}
     </Box>
   )
 }
