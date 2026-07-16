@@ -191,22 +191,26 @@ function ZoneLegend() {
   const chip = (bg: string, label: string, border = false) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><i style={{ width: 10, height: 10, borderRadius: 3, display: 'inline-block', background: bg, border: border ? '1px solid rgba(0,0,0,0.2)' : 'none' }} />{label}</span>
   return <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>{chip('#D6E9FA', 'G4')}{chip('#fff', 'Meio', true)}{chip('#F9D8D3', 'Z4')}</div>
 }
-function DivTable({ div, teams, colors, mine }: { div: Div; teams: SimTeam[]; colors: Record<number, string>; mine?: boolean }) {
+function DivTable({ div, teams, colors, mine }: { div: Div; teams: SimTeam[]; colors: Record<number, FCol>; mine?: boolean }) {
+  const humans = teams.filter(t => t.human).map(t => ({ name: t.name, teamId: t.teamId, you: t.you }))
   return (
     <div style={{ ...box(mine ? '#FFFBEB' : '#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
         <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>{DIV_LABEL[div]}{mine ? ' · você' : ''}</p><ZoneLegend />
       </div>
-      <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+      <DivChips humans={humans} colors={colors} />
+      <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse', marginTop: 6 }}>
         <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>P</th><th style={{ ...th, textAlign: 'center' }}>V</th><th style={{ ...th, textAlign: 'center' }}>E</th><th style={{ ...th, textAlign: 'center' }}>D</th><th style={{ ...th, textAlign: 'center' }}>SG</th></tr></thead>
         <tbody>
           {teams.map((t, i) => {
             const other = t.human && !t.you
-            const bg = t.you ? GOLD : other ? (colors[t.teamId] ?? '#FFE0D6') : zone(i + 1)
+            const fc = colors[t.teamId]
+            const bg = t.you ? GOLD : other ? (fc?.light ?? '#FFE0D6') : zone(i + 1)
+            const nameColor = t.you ? INK : other ? (fc?.solid ?? INK) : INK
             return (
               <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', background: bg, fontWeight: (t.you || other) ? 800 : 500 }}>
                 <td style={{ paddingRight: 4 }}>{i + 1}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>{t.you ? '👤 ' : other ? '🔥 ' : ''}{t.name}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: nameColor }}>{t.you ? '👤 ' : ''}{t.name}</td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{t.pts}</td>
                 <td style={{ textAlign: 'center' }}>{t.w}</td><td style={{ textAlign: 'center' }}>{t.d}</td><td style={{ textAlign: 'center' }}>{t.l}</td>
                 <td style={{ textAlign: 'center' }}>{t.gf - t.ga}</td>
@@ -218,7 +222,7 @@ function DivTable({ div, teams, colors, mine }: { div: Div; teams: SimTeam[]; co
     </div>
   )
 }
-export function PyramidTables({ tables, scorers, order, colors, myDiv }: { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; order?: Div[]; colors?: Record<number, string>; myDiv?: Div | null }) {
+export function PyramidTables({ tables, scorers, order, colors, myDiv }: { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; order?: Div[]; colors?: Record<number, FCol>; myDiv?: Div | null }) {
   const cols = colors ?? {}
   return (
     <>
@@ -256,17 +260,41 @@ export function myStanding(tables: Record<Div, SimTeam[]>): { div: Div; pos: num
 const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
 const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // MESMO ritmo dos outros modos (~4,7s/rodada, temporada ~3 min)
 
-// cor de fundo própria pra cada amigo online (você é sempre dourado)
-const FRIEND_COLORS = ['#D6E9FA', '#DDF5D6', '#F3E0FF', '#FFF3B8', '#D6F5F0', '#FFE0EC', '#FFE4C7', '#E6E0FF']
-function friendColorMap(humanIds: number[], youId: number): Record<number, string> {
-  const map: Record<number, string> = {}
+// cada amigo tem UMA cor fixa: `solid` (nome/chip) + `light` (fundo). Você é
+// sempre dourado. O sorteio é pela SEMENTE da sala → mesma cor em todos os
+// aparelhos, o jogo inteiro.
+export interface FCol { solid: string; light: string }
+const FRIEND_PALETTE: FCol[] = [
+  { solid: '#2563EB', light: '#DBEAFE' }, { solid: '#16A34A', light: '#DCFCE7' },
+  { solid: '#9333EA', light: '#F3E8FF' }, { solid: '#EA580C', light: '#FFEDD5' },
+  { solid: '#0891B2', light: '#CFFAFE' }, { solid: '#DB2777', light: '#FCE7F3' },
+  { solid: '#CA8A04', light: '#FEF9C3' }, { solid: '#4F46E5', light: '#E0E7FF' },
+]
+export function friendColors(humanIds: number[], youId: number, seed: number): Record<number, FCol> {
+  const pal = FRIEND_PALETTE.slice()
+  const rng = mulberry((seed ^ 0xBADA55) >>> 0)
+  for (let i = pal.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1));[pal[i], pal[j]] = [pal[j], pal[i]] }
+  const map: Record<number, FCol> = {}
   let i = 0
-  for (const id of humanIds) { if (id === youId) continue; map[id] = FRIEND_COLORS[i % FRIEND_COLORS.length]; i++ }
+  for (const id of humanIds) { if (id === youId) continue; map[id] = pal[i % pal.length]; i++ }
   return map
 }
 // ordem das divisões: a SUA primeiro, depois a pirâmide de cima pra baixo
 function orderedDivs(myDiv: Div | null): Div[] { return myDiv ? [myDiv, ...DIVS.filter(d => d !== myDiv)] : DIVS }
-const bgOf = (m: { you: boolean; hId: number; aId: number }, colors: Record<number, string>) => m.you ? GOLD : (colors[m.hId] ?? colors[m.aId] ?? undefined)
+const matchBg = (m: { you: boolean; hId: number; aId: number }, colors: Record<number, FCol>) => m.you ? GOLD : (colors[m.hId]?.light ?? colors[m.aId]?.light ?? undefined)
+
+// chips com os times dos AMIGOS (e você) que estão numa divisão — pra bater o
+// olho quem está em qual série.
+function DivChips({ humans, colors }: { humans: { name: string; teamId: number; you: boolean }[]; colors: Record<number, FCol> }) {
+  if (humans.length === 0) return null
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
+      {humans.map((h, i) => (
+        <span key={i} style={{ fontSize: 9.5, fontWeight: 900, ...OSWALD, color: '#fff', background: h.you ? INK : (colors[h.teamId]?.solid ?? '#888'), borderRadius: 6, padding: '1px 7px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.you ? '👤 ' : ''}{h.name}</span>
+      ))}
+    </div>
+  )
+}
 
 // ── SEU JOGO em destaque: card grande com o minuto correndo + os gols (nome do
 // artilheiro), igual à simulação do modo off-line. ──
@@ -284,50 +312,51 @@ function MyMatchCard({ m, youName }: { m: SimMatch; youName: string }) {
   const done = min >= 93
   const minLabel = min >= 93 ? 'FIM' : min > 90 ? `90+${min - 90}'` : `${min}'`
   const iAmHome = m.h === youName
+  const last = shown.length ? shown[shown.length - 1] : null
   return (
-    <div style={{ ...box(GOLD), padding: 14, marginBottom: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD }}>🎯 SUA PARTIDA</span>
-        <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: done ? INK : '#fff', color: done ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '1px 8px' }}>{done ? 'FIM' : `⏱️ ${minLabel}`}</span>
+    <div style={{ ...box(GOLD), padding: '9px 11px', marginBottom: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
+        <span style={{ textAlign: 'right', fontWeight: 900, fontSize: 12.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: iAmHome ? INK : '#5a5647' }}>{iAmHome ? '👤 ' : ''}{m.h}</span>
+        <span style={{ fontWeight: 900, fontSize: 16, ...OSWALD, background: INK, color: '#fff', borderRadius: 6, padding: '1px 9px' }}>{hg}×{ag}</span>
+        <span style={{ textAlign: 'left', fontWeight: 900, fontSize: 12.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: !iAmHome ? INK : '#5a5647' }}>{!iAmHome ? '👤 ' : ''}{m.a}</span>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 8 }}>
-        <span style={{ textAlign: 'right', fontWeight: 900, fontSize: 14, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: iAmHome ? INK : '#5a5647' }}>{iAmHome ? '👤 ' : ''}{m.h}</span>
-        <span style={{ fontWeight: 900, fontSize: 22, ...OSWALD, background: INK, color: '#fff', borderRadius: 8, padding: '2px 12px' }}>{hg}×{ag}</span>
-        <span style={{ textAlign: 'left', fontWeight: 900, fontSize: 14, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: !iAmHome ? INK : '#5a5647' }}>{!iAmHome ? '👤 ' : ''}{m.a}</span>
-      </div>
-      <div style={{ marginTop: 8, minHeight: 18 }}>
-        {shown.length === 0
-          ? <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.5)', textAlign: 'center', margin: 0 }}>{done ? '0 a 0 — sem gols.' : 'Bola rolando…'}</p>
-          : shown.slice().reverse().map((g, i) => (
-            <p key={i} style={{ fontSize: 11.5, fontWeight: i === 0 ? 900 : 700, color: i === 0 ? INK : 'rgba(0,0,0,0.6)', margin: '1px 0', textAlign: g.home ? 'left' : 'right', ...OSWALD }}>
-              {g.home ? '' : ''}⚽ {g.name} <span style={{ opacity: 0.7 }}>{g.min > 90 ? `90+${g.min - 90}'` : `${g.min}'`}</span>{i === 0 && !done ? ' ⚡' : ''}
-            </p>
-          ))}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+        <span style={{ fontSize: 9.5, fontWeight: 800, ...OSWALD, color: 'rgba(0,0,0,0.55)' }}>🎯 sua partida</span>
+        <span style={{ fontSize: 10.5, fontWeight: 800, ...OSWALD, color: 'rgba(0,0,0,0.75)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '62%' }}>
+          {last ? <>⚽ {last.name} <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></> : (done ? '0×0' : 'bola rolando…')}
+        </span>
+        <span style={{ fontSize: 9.5, fontWeight: 900, ...OSWALD, color: done ? GREEN : '#ff5b4d' }}>{done ? 'FIM' : `⏱️${minLabel}`}</span>
       </div>
     </div>
   )
 }
 
 // ── os JOGOS de uma divisão (placar + quem fez os gols), cores por amigo ──
-function DivMatches({ div, matches, colors, hideId }: { div: Div; matches: SimMatch[]; colors: Record<number, string>; hideId?: number }) {
+function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matches: SimMatch[]; colors: Record<number, FCol>; humans: { name: string; teamId: number; you: boolean }[]; hideId?: number }) {
+  const nameCol = (id: number, you: boolean) => you ? INK : (colors[id]?.solid ?? '#5a5647')
   return (
     <div style={{ ...box('#fff'), padding: 9, marginBottom: 8 }}>
-      <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, marginBottom: 5 }}>{DIV_LABEL[div]}</p>
-      {matches.map((m, i) => {
-        if (hideId != null && (m.hId === hideId || m.aId === hideId)) return null
-        const bg = bgOf(m, colors)
-        const last = m.goals.length ? m.goals[m.goals.length - 1] : null
-        return (
-          <div key={i} style={{ padding: '3px 2px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: bg, borderRadius: bg ? 5 : 0 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5 }}>
-              <span style={{ textAlign: 'right', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.h}</span>
-              <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: bg ? INK : '#eee', color: bg ? '#fff' : INK, borderRadius: 5, padding: '0 7px' }}>{m.hg}×{m.ag}</span>
-              <span style={{ textAlign: 'left', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#5a5647' }}>{m.a}</span>
+      <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>{DIV_LABEL[div]}</p>
+      <DivChips humans={humans} colors={colors} />
+      <div style={{ marginTop: 6 }}>
+        {matches.map((m, i) => {
+          if (hideId != null && (m.hId === hideId || m.aId === hideId)) return null
+          const bg = matchBg(m, colors)
+          const last = m.goals.length ? m.goals[m.goals.length - 1] : null
+          const hYou = m.you && m.hId >= 0 && humans.some(x => x.you && x.teamId === m.hId)
+          const aYou = m.you && m.aId >= 0 && humans.some(x => x.you && x.teamId === m.aId)
+          return (
+            <div key={i} style={{ padding: '3px 4px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: bg, borderRadius: bg ? 5 : 0 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5 }}>
+                <span style={{ textAlign: 'right', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: nameCol(m.hId, hYou) }}>{m.h}</span>
+                <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: bg ? INK : '#eee', color: bg ? '#fff' : INK, borderRadius: 5, padding: '0 7px' }}>{m.hg}×{m.ag}</span>
+                <span style={{ textAlign: 'left', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: nameCol(m.aId, aYou) }}>{m.a}</span>
+              </div>
+              {last && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '1px 0 0', textAlign: 'center' }}>⚽ {last.name} <span style={{ opacity: 0.7 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></p>}
             </div>
-            {last && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '1px 0 0', textAlign: 'center' }}>⚽ {last.name} <span style={{ opacity: 0.7 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></p>}
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -346,10 +375,11 @@ export function PyramidSeasonScreen() {
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
   const humanKey = state.managers.filter(m => m.isHuman).map(m => m.id).join(',')
-  const colors = useMemo(() => friendColorMap(humanKey ? humanKey.split(',').map(Number) : [], youId), [humanKey, youId])
+  const colors = useMemo(() => friendColors(humanKey ? humanKey.split(',').map(Number) : [], youId, state.seed), [humanKey, youId, state.seed])
   const myDiv = me?.div ?? null
   const ord = orderedDivs(myDiv)
   const myMatch = myDiv ? matches[myDiv]?.find(x => x.you) : undefined
+  const humansOf = (d: Div) => tables[d].filter(t => t.human).map(t => ({ name: t.name, teamId: t.teamId, you: t.you }))
 
   // host conduz: avança a rodada a cada ~1,4s (isso sincroniza pra todos)
   useEffect(() => {
@@ -417,7 +447,7 @@ export function PyramidSeasonScreen() {
               <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>🗓️ Rodada {Math.min(round, 38)} · os jogos</p>
             </div>
             {myMatch && me && <MyMatchCard m={myMatch} youName={me.team} />}
-            {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} hideId={d === myDiv ? youId : undefined} />)}
+            {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
           </>
         ) : (
           <PyramidTables tables={tables} scorers={scorers} order={ord} colors={colors} myDiv={myDiv} />
