@@ -191,10 +191,10 @@ function CardFace({ c, big = false, surprise = false, highlight = false }: { c: 
 // Mostra SÓ a novidade mais recente, com X pra fechar. Ao fechar, guarda o id
 // no aparelho — só reaparece quando eu trocar o LATEST_NEWS por um id novo.
 const LATEST_NEWS = {
-  id: '2026-07-baralho-europa',
-  emoji: '🌍',
-  title: 'Novo baralho: Auges da Liga Europa!',
-  text: 'Na partida rápida e na carreira, escolha jogar com os Auges do Brasileirão OU os Auges da Liga Europa — de Maradona e Zidane a Mbappé e Vini Jr, +300 craques europeus (com direito aos flops também 🃏).',
+  id: '2026-07-baralho-os-dois',
+  emoji: '🌎',
+  title: 'Novo baralho: os dois juntos!',
+  text: 'Na partida rápida e na carreira, agora dá pra jogar com Brasileirão + Liga Europa no MESMO leilão — ~700 craques, quase sem fake. Puro craque no martelo (mas ainda tem uns folclóricos ruins de doer 🃏).',
 }
 function NewsBanner() {
   const [dismissed, setDismissed] = useState(() => {
