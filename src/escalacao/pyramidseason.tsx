@@ -127,11 +127,11 @@ export function computePromotions(tables: Record<Div, SimTeam[]>): Record<string
 
 // moedas da temporada por técnico — SEM base recorrente (o técnico já começou
 // com 100). Só desempenho, com valores DIFERENTES por série:
-//   campeão: A 24 · B 20 · C 15 · D 10
+//   campeão: A 25 · B 20 · C 15 · D 10
 //   acesso (subiu, pela série de onde saiu): A 20 · B 15 · C 10 · D 5
 //   queda (caiu, pela série de onde caiu): A 20 · B 15 · C 10 · D 5
 const DIV_RANK: Record<Div, number> = { A: 3, B: 2, C: 1, D: 0 }
-const CAMPEAO: Record<Div, number> = { A: 24, B: 20, C: 15, D: 10 }
+const CAMPEAO: Record<Div, number> = { A: 25, B: 20, C: 15, D: 10 }
 const ACESSO: Record<Div, number> = { A: 20, B: 15, C: 10, D: 5 }
 const QUEDA: Record<Div, number> = { A: 20, B: 15, C: 10, D: 5 }
 export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, number> {
