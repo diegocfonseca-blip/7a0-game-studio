@@ -459,20 +459,38 @@ export function EscLobby() {
     setListLoading(false)
   }
 
-  // saves de CARREIRA ONLINE do host: salas que EU criei, no modo carreira, com
-  // jogo em andamento. É a lista "Minhas carreiras" (continuar de onde parou).
+  // saves de CARREIRA ONLINE: salas em andamento onde EU participo — como host
+  // (crio/continuo) OU como membro (volto quando o host retomar). A vaga do save
+  // persiste mesmo depois de sair, então o amigo também vê e volta.
   async function fetchMyCareers() {
     if (!user) return
-    const { data } = await supabase.from('game_rooms')
-      .select('id, code, host_id, max_players, status, game_state, updated_at')
-      .eq('host_id', user.id).eq('status', 'started')
-      .order('updated_at', { ascending: false }).limit(20)
-    const rooms = ((data ?? []) as RoomInfo[]).filter(r => r.game_state?.__game === GAME_TAG && (r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline))
+    const isCareer = (r: RoomInfo) => r.game_state?.__game === GAME_TAG && (r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline)
+    const sel = 'id, code, host_id, max_players, status, game_state, updated_at'
+    const { data: mine } = await supabase.from('room_players').select('room_id').eq('user_id', user.id)
+    const memberIds = [...new Set(((mine ?? []) as { room_id: string }[]).map(r => r.room_id))]
+    const [hostedRes, memberRes] = await Promise.all([
+      supabase.from('game_rooms').select(sel).eq('host_id', user.id).eq('status', 'started').limit(30),
+      memberIds.length ? supabase.from('game_rooms').select(sel).in('id', memberIds).eq('status', 'started').limit(30) : Promise.resolve({ data: [] as RoomInfo[] }),
+    ])
+    const seen = new Set<string>(); const rooms: RoomInfo[] = []
+    for (const r of [...((hostedRes.data ?? []) as RoomInfo[]), ...((memberRes.data ?? []) as RoomInfo[])]) {
+      if (seen.has(r.id) || !isCareer(r)) continue
+      seen.add(r.id); rooms.push(r)
+    }
+    rooms.sort((a, b) => (b.updated_at ?? '').localeCompare(a.updated_at ?? ''))
     setMyCareers(rooms.map(r => ({ ...r, count: 0 })))
   }
-  // abrir um save: mostra o painel de retomada (técnicos + 3 opções do amigo faltando)
+  // abrir um save: HOST vê o painel de retomada (3 opções); PARTICIPANTE volta
+  // direto pra sala (só o host inicia/conduz — ele espera o host retomar).
   function resumeCareer(rd: OpenRoom) {
-    setRoomError(''); setResumingCareer(rd)
+    setRoomError('')
+    if (rd.host_id === user?.id) { setResumingCareer(rd); return }
+    ;(async () => {
+      setLoading(true)
+      saveRoom(rd.id)
+      const ok = await triggerStart(rd)
+      if (!ok) { setLoading(false); setRoomError('A carreira ainda não foi retomada pelo host. Peça pra ele continuar o save.') }
+    })()
   }
   // continuar de verdade: reentra na sala (o host já está no room_players) e retoma.
   // quem não voltou joga como CPU (a temporada é simulada) e pode voltar depois.
@@ -699,16 +717,17 @@ export function EscLobby() {
           {myCareers.map(r => {
             const gs = r.game_state as GS & { seasonNo?: number; careerOnline?: boolean }
             const nm = gs?.roomName ?? r.code
+            const iAmHost = r.host_id === user?.id
             return (
               <div key={r.id} className="flex items-center gap-2 border-2 border-black rounded-xl px-3 py-2 bg-white">
                 <div className="flex-1 min-w-0">
                   <p className="font-black text-black text-sm truncate" style={OSWALD}>{nm}</p>
-                  <p className="text-black/60 text-[11px] font-bold">Temporada {gs?.seasonNo ?? 1} · sala {r.code}</p>
+                  <p className="text-black/60 text-[11px] font-bold">Temporada {gs?.seasonNo ?? 1} · sala {r.code}{iAmHost ? '' : ' · você é convidado'}</p>
                 </div>
                 <button onClick={() => resumeCareer(r)} disabled={loading}
                   className="border-2 border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
-                  style={{ background: GREEN, color: '#fff', ...OSWALD }}>
-                  ▶️ Continuar
+                  style={{ background: iAmHost ? GREEN : PURPLE, color: '#fff', ...OSWALD }}>
+                  {iAmHost ? '▶️ Continuar' : '↩️ Voltar'}
                 </button>
               </div>
             )
