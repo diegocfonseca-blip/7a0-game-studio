@@ -528,10 +528,10 @@ function SquadTab({ mgr, col, coins, xiIds, onSwap, list, selId = null }: { mgr:
     <div style={{ ...box(col.light), padding: 12, marginBottom: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: col.solid, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👥 {mgr.teamName}</p>
-        <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: col.solid, color: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}>{mgr.squad.length}/22 · 💰 {total}</span>
+        <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: col.solid, color: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}>{mgr.squad.length}/22{elenco ? '' : ` · 💰 ${total}`}</span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: 'rgba(255,255,255,0.6)', border: `2px solid ${col.solid}`, borderRadius: 8, padding: '4px 8px' }}>
-        <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>🪙 Caixa: {coins}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: 'rgba(255,255,255,0.6)', border: `2px solid ${col.solid}`, borderRadius: 8, padding: '4px 8px', flexWrap: 'wrap' }}>
+        <span title="Soma do valor de mercado dos 22 jogadores (não é a sua caixa de moedas)" style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>{elenco ? `🏷️ Elenco vale ${total} 💵` : `🪙 Caixa: ${coins}`}</span>
         <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>
       </div>
       {elenco ? (
@@ -655,9 +655,12 @@ export function PyramidSeasonScreen() {
   return (
     <div style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
-        <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
           <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>🪜 TEMP. {state.seasonNo} · {done ? 'encerrada' : round === 0 ? 'começando…' : `rodada ${round}/38`}</span>
-          {!done && <span style={{ fontSize: 10.5, fontWeight: 700, color: '#ff5b4d', display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: 999, background: '#ff5b4d', display: 'inline-block' }} /> AO VIVO</span>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span title="Sua caixa de moedas (pra o leilão/mercado)" style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: GOLD, color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 9px', whiteSpace: 'nowrap' }}>💰 {state.careerCoins?.[youId] ?? 0}</span>
+            {!done && <span style={{ fontSize: 10.5, fontWeight: 700, color: '#ff5b4d', display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: 999, background: '#ff5b4d', display: 'inline-block' }} /> AO VIVO</span>}
+          </div>
         </div>
 
         {me && (
@@ -721,7 +724,7 @@ export function PyramidSeasonScreen() {
                     </button>
                   ))}
                 </div>
-                <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>Vale do próximo jogo em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</p>
+                <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}><b>Tática e substituições</b> valem do <b>próximo jogo</b> em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</p>
               </>
             )}
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} onSwap={canSub ? onTapPlayer : undefined} selId={selId} />
