@@ -1190,6 +1190,7 @@ function maybeStartRedraft(s: EscState): EscState {
 
 export function reducer(state: EscState, action: Action): EscState {
   if (action.type === 'SYNC_STATE') {
+    setActiveCatalog(action.newState.deckLeague) // o ponteiro do baralho segue o estado do host (reload zera pra BR)
     // O host manda o estado do JOGO (managers, deck, leilão, temporada...),
     // mas identidade é local a cada cliente: "quem sou eu" (youIdx), "sou
     // host?", sala. Sem isso, um convidado que recebe o broadcast do host
@@ -1209,6 +1210,7 @@ export function reducer(state: EscState, action: Action): EscState {
     }
   }
   if (action.type === 'RESTORE_ONLINE') {
+    setActiveCatalog(action.state.deckLeague) // reancora o baralho da sala (reload zera o ponteiro pra BR)
     // reconexão/host-caiu: adota o estado salvo no banco em vez de recomeçar
     // do zero. A identidade ("quem sou eu", host?) é sempre local a este
     // cliente; efêmeros host-only voltam limpos (já vêm sanitizados).
@@ -1527,6 +1529,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // — mesmos técnicos (ids/times preservados), elencos zerados, orçamento
       // parelho pra todos. A divisão só importa na hora de jogar a temporada.
       if (!s.careerOnline) return s
+      setActiveCatalog(s.deckLeague) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
       s.seasonNo++
       s.careerPlacements = action.placements
       s.round = 0; s.champion = null
