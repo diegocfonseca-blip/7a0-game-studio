@@ -143,6 +143,12 @@ export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, nu
   })
   return out
 }
+// campeão de cada divisão nesta temporada (chave do time → divisão) — pro ranking
+export function seasonChampions(tables: Record<Div, SimTeam[]>): Record<string, Div> {
+  const out: Record<string, Div> = {}
+  for (const d of DIVS) if (tables[d][0]) out[teamKey(tables[d][0])] = d
+  return out
+}
 
 export interface Goal { name: string; min: number; home: boolean }
 export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: number; aId: number; you: boolean; hum: boolean; goals: Goal[] }
@@ -468,6 +474,45 @@ function SquadTab({ mgr, col, coins }: { mgr: Manager; col: FCol; coins: number 
   )
 }
 
+// ── RANKING GERAL: TODOS os times do jogo (amigos + CPUs), ordenados por
+// TÍTULOS (Série A → B → C → D) e depois DINHEIRO, com desempate em cascata. ──
+type Honors = { A: number; B: number; C: number; D: number }
+const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0 }
+function RankingTab({ tables, honors, coins, colors, youId }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; coins: Record<number, number>; colors: Record<number, FCol>; youId: number }) {
+  const rows = DIVS.flatMap(d => tables[d]).map(t => {
+    const key = teamKey(t)
+    return { t, key, h: honors[key] ?? EMPTY_HONORS, money: t.teamId >= 0 ? (coins[t.teamId] ?? 0) : 0 }
+  })
+  rows.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
+  return (
+    <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>🏆 RANKING GERAL</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Títulos (Série A › B › C › D) e depois dinheiro — todos os times.</p>
+      <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+        <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>Títulos</th><th style={{ ...th, textAlign: 'right' }}>💰</th></tr></thead>
+        <tbody>
+          {rows.map((r, i) => {
+            const you = r.t.teamId === youId && r.t.teamId >= 0
+            const fc = r.t.human ? colors[r.t.teamId] : undefined
+            return (
+              <tr key={r.key} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: fc?.light, fontWeight: r.t.human ? 800 : 500 }}>
+                <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>{i + 1}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: fc?.solid ?? INK }}>{you ? '👤 ' : r.t.human ? '🔥 ' : ''}{r.t.name}</td>
+                <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+                  {(r.h.A + r.h.B + r.h.C + r.h.D) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : (['A', 'B', 'C', 'D'] as Div[]).map(d => r.h[d] > 0 ? (
+                    <span key={d} style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG[d].l}{r.h[d]}</span>
+                  ) : null)}
+                </td>
+                <td style={{ textAlign: 'right', fontWeight: 900, whiteSpace: 'nowrap', color: '#5a5647' }}>{r.money}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // ── TELA da temporada simulada da carreira online (toma o lugar da temporada
 // ao vivo). O host conduz o ritmo (PLAY_ROUND avança a rodada, já sincronizado);
 // os clientes seguem a rodada do estado. Tudo determinístico → mesma tabela. ──
@@ -475,7 +520,7 @@ export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const round = state.round
   const done = round >= 38
-  const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco'>('jogos')
+  const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking'>('jogos')
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo])
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const { tables, scorers, matches } = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics), [world, state.seed, round, careerTactics])
@@ -526,11 +571,11 @@ export function PyramidSeasonScreen() {
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
               <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>👑 Você é o host — próxima temporada</p>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas (por nome exato) já entram. Escolha: seguir com o mesmo elenco, ou refazer o leilão (orçamento parelho pra todos).</p>
-              <button onClick={() => dispatch({ type: 'NEXT_SEASON_ONLINE', placements: computePromotions(tables), rewards: seasonRewards(tables) })}
+              <button onClick={() => dispatch({ type: 'NEXT_SEASON_ONLINE', placements: computePromotions(tables), rewards: seasonRewards(tables), champions: seasonChampions(tables) })}
                 style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>
                 ▶️ Mesmo time
               </button>
-              <button onClick={() => dispatch({ type: 'REAUCTION_ONLINE', placements: computePromotions(tables), rewards: seasonRewards(tables) })}
+              <button onClick={() => dispatch({ type: 'REAUCTION_ONLINE', placements: computePromotions(tables), rewards: seasonRewards(tables), champions: seasonChampions(tables) })}
                 style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
                 🔨 Novo leilão
               </button>
@@ -544,12 +589,14 @@ export function PyramidSeasonScreen() {
 
         {/* toggle: os jogos (placares) ↔ as tabelas + artilharia */}
         <div style={{ display: 'flex', border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
-          {([['jogos', '🗓️ Jogos'], ['tabelas', '📊 Tabelas'], ['elenco', '👥 Elenco']] as [typeof tab, string][]).map(([t, label]) => (
-            <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '9px 0', fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', background: tab === t ? INK : '#fff', color: tab === t ? '#fff' : INK, border: 'none', cursor: 'pointer', ...OSWALD }}>{label}</button>
+          {([['jogos', '🗓️ Jogos'], ['tabelas', '📊 Tabelas'], ['elenco', '👥 Elenco'], ['ranking', '🏆 Rank']] as [typeof tab, string][]).map(([t, label]) => (
+            <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '9px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: tab === t ? INK : '#fff', color: tab === t ? '#fff' : INK, border: 'none', cursor: 'pointer', ...OSWALD }}>{label}</button>
           ))}
         </div>
 
-        {tab === 'elenco' ? (
+        {tab === 'ranking' ? (
+          <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} coins={state.careerCoins ?? {}} colors={colors} youId={youId} />
+        ) : tab === 'elenco' ? (
           <>
             {/* tática do SEU time — POR JOGO, vale do PRÓXIMO jogo em diante. Agora
                 fica AQUI no topo do elenco (era na aba Jogos). */}
