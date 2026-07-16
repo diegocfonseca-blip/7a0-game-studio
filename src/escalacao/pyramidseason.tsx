@@ -444,8 +444,8 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey }: { m: SimMa
   const homeCol = iAmHome ? col.solid : oppCol, awayCol = iAmHome ? oppCol : col.solid
   const ini = (n: string) => n.trim()[0]?.toUpperCase() ?? '?'
   const Team = ({ name, color, you }: { name: string; color: string; you: boolean }) => (
-    <div style={{ padding: '24px 8px 11px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, textAlign: 'center', background: `linear-gradient(180deg, ${color}22, transparent)`, minWidth: 0 }}>
-      <div style={{ width: 32, height: 32, borderRadius: 9, border: `2px solid ${INK}`, background: color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 14, ...OSWALD }}>{ini(name)}</div>
+    <div style={{ padding: '22px 8px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textAlign: 'center', background: `linear-gradient(180deg, ${color}22, transparent)`, minWidth: 0 }}>
+      <div style={{ width: 28, height: 28, borderRadius: 8, border: `2px solid ${INK}`, background: color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 13, ...OSWALD }}>{ini(name)}</div>
       <div style={{ fontSize: 12, fontWeight: 900, ...OSWALD, color: you ? color : '#3a3630', lineHeight: 1.05, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{name}</div>
       <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: '#9a8f78' }}>{you ? 'você' : 'rival'}</div>
     </div>
@@ -458,8 +458,8 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey }: { m: SimMa
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch' }}>
         <Team name={m.h} color={homeCol} you={iAmHome} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: INK, color: '#fff', ...OSWALD, fontWeight: 900, fontSize: 28 }}>
-          <span style={{ padding: '0 10px' }}>{hg}</span><span style={{ opacity: 0.4, fontSize: 18 }}>×</span><span style={{ padding: '0 10px' }}>{ag}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: INK, color: '#fff', ...OSWALD, fontWeight: 900, fontSize: 26 }}>
+          <span style={{ padding: '0 10px' }}>{hg}</span><span style={{ opacity: 0.4, fontSize: 17 }}>×</span><span style={{ padding: '0 10px' }}>{ag}</span>
         </div>
         <Team name={m.a} color={awayCol} you={!iAmHome} />
       </div>
