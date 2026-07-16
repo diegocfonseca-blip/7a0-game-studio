@@ -192,6 +192,7 @@ export interface EscState {
   fixtures: [number, number][][] // 38 rodadas de pares [home, away]
   round: number // 0-based; 38 = fim
   tactics: Record<number, Tactic> // tática por técnico (cada humano define a sua)
+  careerTactics?: Record<number, Record<number, Tactic>> // carreira online: tática POR JOGO (mgrId → rodada 0-based → tática); vale daquela rodada em diante até trocar
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)
   champion: number | null

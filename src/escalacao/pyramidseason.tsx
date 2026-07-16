@@ -131,7 +131,16 @@ export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: n
 // joga UMA divisão até a rodada `round` (determinístico), acumulando artilharia.
 // `lastMatches` recebe os jogos da ÚLTIMA rodada jogada (placar + quem fez os
 // gols e em que minuto) pra exibir com a simulação.
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: Record<number, Tac>, lastMatches?: SimMatch[]) {
+// tática de um humano é POR JOGO: `tactics[teamId]` é um mapa rodada→tática; numa
+// rodada r vale a última tática escolhida numa rodada <= r (senão equilíbrio).
+export type RoundTactics = Record<number, Record<number, Tac>>
+function tacAt(tactics: RoundTactics, teamId: number, r: number): Tac {
+  const byRound = tactics[teamId]; if (!byRound) return 'equilibrio'
+  let best: Tac = 'equilibrio', bestK = -1
+  for (const k in byRound) { const kn = +k; if (kn <= r && kn > bestK) { bestK = kn; best = byRound[kn] } }
+  return best
+}
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lastMatches?: SimMatch[]) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // credita os gols na artilharia da temporada e devolve os eventos (nome + minuto)
@@ -153,8 +162,8 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
   for (let r = 0; r < nr; r++) for (const [hi, ai] of fix[r]) {
     const H = teams[hi], A = teams[ai]
     // humano usa a tática que ELE escolheu (sincronizada); CPU sorteia
-    const th: Tac = H.human ? (tactics[H.teamId] ?? 'equilibrio') : TACS[Math.floor(rng() * 3)]
-    const ta: Tac = A.human ? (tactics[A.teamId] ?? 'equilibrio') : TACS[Math.floor(rng() * 3)]
+    const th: Tac = H.human ? tacAt(tactics, H.teamId, r) : TACS[Math.floor(rng() * 3)]
+    const ta: Tac = A.human ? tacAt(tactics, A.teamId, r) : TACS[Math.floor(rng() * 3)]
     const fh = rollForm(H.xi, th, ta, rng), fa = rollForm(A.xi, ta, th, rng)
     const lh = Math.max(0.08, 1.35 + (fh.atk - fa.def) * 0.055 + 0.25), la = Math.max(0.08, 1.35 + (fa.atk - fh.def) * 0.055)
     const hg = poisson(lh, rng), ag = poisson(la, rng)
@@ -170,7 +179,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: Record<number, Tac> = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; matches: Record<Div, SimMatch[]> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; matches: Record<Div, SimMatch[]> } {
   const scorers = new Map<string, SeasonScorer>()
   const tables = {} as Record<Div, SimTeam[]>
   const matches = {} as Record<Div, SimMatch[]>
@@ -395,11 +404,12 @@ export function PyramidSeasonScreen() {
   const done = round >= 38
   const [tab, setTab] = useState<'jogos' | 'tabelas'>('jogos')
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo])
-  const { tables, scorers, matches } = useMemo(() => simulatePyramid(world, state.seed, round, state.tactics as Record<number, Tac>), [world, state.seed, round, state.tactics])
+  const careerTactics = (state.careerTactics ?? {}) as RoundTactics
+  const { tables, scorers, matches } = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics), [world, state.seed, round, careerTactics])
   const me = myStanding(tables)
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
-  const myTactic = (state.tactics[youId] ?? 'equilibrio') as Tac
+  const myTactic = tacAt(careerTactics, youId, Math.max(0, round - 1)) // tática do JOGO atual
   const humanKey = state.managers.filter(m => m.isHuman).map(m => m.id).join(',')
   const colors = useMemo(() => playerColors(humanKey ? humanKey.split(',').map(Number) : [], youId, state.seed), [humanKey, youId, state.seed])
   const myCol = colors[youId] ?? PLAYER_PALETTE[0]
