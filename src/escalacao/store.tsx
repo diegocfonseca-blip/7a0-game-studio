@@ -1795,18 +1795,19 @@ export function reducer(state: EscState, action: Action): EscState {
         // depois recompra (lance/monte). Só cai pro catálogo se faltar reserva.
         const bt = nextBuildTok()
         const nNew = Math.max(1, Math.floor(s.managers.filter(m => m.isHuman).length / 2))
-        const midOf = (c: Card) => (c.lo + c.hi) / 2
         const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
         for (const pos of SECTORS) {
           let added = 0
-          // 1) tira jogadores reais dos bots (o que sobra além do XI) — o mercado é deles
+          // 1) o mercado é dos BOTS: cada um solta um jogador REAL do banco NA SORTE
+          // (pode ser bom ou ruim — às vezes até um craque). Nunca fake (incógnito
+          // não entra no mercado) e nunca deixa a posição com menos reais que o XI.
           for (const bot of shuffle(s.managers.filter(m => !m.isHuman), rng)) {
             if (added >= nNew) break
-            const inPos = bot.squad.filter(c => c.pos === pos)
-            if (inPos.length <= FORMATIONS[bot.formation][pos]) continue // não vende abaixo do XI
-            const weakest = inPos.reduce((a, b) => (midOf(a) <= midOf(b) ? a : b))
-            bot.squad = bot.squad.filter(c => c.id !== weakest.id)
-            deck[pos].push({ ...weakest }) // mantém o valor (piso) da carta
+            const realInPos = bot.squad.filter(c => c.pos === pos && !c.fake)
+            if (realInPos.length <= FORMATIONS[bot.formation][pos]) continue // sem reserva REAL sobrando
+            const pick = realInPos[Math.floor(rng() * realInPos.length)] // na sorte: bom ou ruim
+            bot.squad = bot.squad.filter(c => c.id !== pick.id)
+            deck[pos].push({ ...pick }) // mantém o valor (piso) da carta
             added++
           }
           // 2) completa com carta nova do catálogo se os bots não tinham reserva

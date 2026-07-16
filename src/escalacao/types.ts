@@ -23,6 +23,7 @@ export interface Card {
   bio?: string // texto de referência (aparece na carta-lembrança do álbum)
   folk?: boolean // "folclórico": vibe irreverente/engraçada, independe do nível
   promessa?: boolean // 5º tier: foi só promessa aqui e virou estrela na Europa (nível abaixo de craque)
+  fake?: boolean // jogador INCÓGNITO (nome gerado, não é do catálogo real) — usado só pra completar elenco quando o baralho real acaba; nunca entra no mercado de venda dos bots
 }
 
 export type Acquisition = 'leilao' | 'repescagem' | 'monte' | 'bot'
