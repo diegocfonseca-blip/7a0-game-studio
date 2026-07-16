@@ -13,6 +13,12 @@ import { CATALOG, CATALOG_EU, CATALOG_BOTH, makeIncognita, CLASSIC_CLUBS, DIVISI
 // online e no Manager, que sempre usam o baralho brasileiro.
 let ACTIVE_CATALOG = CATALOG
 function setActiveCatalog(league: 'br' | 'eu' | 'both' | undefined) { ACTIVE_CATALOG = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : CATALOG }
+// soma as moedas da temporada (base+título/acesso/queda) na caixa de cada técnico
+function applyRewards(coins: Record<number, number> | undefined, rewards?: Record<number, number>): Record<number, number> {
+  const out = { ...(coins ?? {}) }
+  for (const id in (rewards ?? {})) out[+id] = (out[+id] ?? 0) + (rewards as Record<number, number>)[+id]
+  return out
+}
 import type { CareerTeam } from './data'
 import { supabase } from '../lib/supabase'
 import { logPlay, logVisit, heartbeat } from './analytics'
@@ -945,7 +951,7 @@ const INITIAL: EscState = {
   phase: 'envelope', currentCards: [], revealQueue: [], revealIdx: 0,
   stock: { GOL: 0, LAT: 0, ZAG: 0, MEI: 0, ATA: 0 },
   monte: [], monteOrder: [], monteIdx: 0,
-  league: [], fixtures: [], round: 0, tactics: {}, careerTactics: {},
+  league: [], fixtures: [], round: 0, tactics: {}, careerTactics: {}, careerCoins: {},
   lastResults: [], news: [], champion: null,
   deckLeague: 'br', careerDivision: null, careerOnline: false, careerPlacements: null, careerIntent: false, careerTitles: 0, careerTitlesA: 0, careerRivalCount: 5, careerRivals: [],
   phaseDeadline: null, scorers: [],
@@ -972,8 +978,8 @@ type Action =
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; deck?: 'br' | 'eu' | 'both'; career?: boolean }
-  | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string> } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time)
-  | { type: 'REAUCTION_ONLINE'; placements: Record<string, string> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
+  | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number> } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). rewards = moedas por técnico (base+título/acesso/queda)
+  | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
@@ -1319,6 +1325,7 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const m of s.managers) pl[`m${m.id}`] = 'D'
         for (const d of ['A', 'B', 'C'] as const) for (const t of DIVISION_TEAMS[d].slice(0, 20)) pl[t.team] = d
         s.careerPlacements = pl
+        s.careerCoins = {} // caixa começa zerada; as moedas entram a partir do fim da 1ª temporada
       }
       s.roomId = action.roomId
       s.roomCode = action.roomCode
@@ -1517,6 +1524,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // pelo host, determinístico) + zera a rodada e sobe a temporada. Os elencos
       // seguem os mesmos (novo leilão é um fluxo à parte).
       if (!s.careerOnline) return s
+      s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada (base+título/acesso/queda)
       s.careerPlacements = action.placements
       s.seasonNo++
       s.round = 0
@@ -1530,6 +1538,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // parelho pra todos. A divisão só importa na hora de jogar a temporada.
       if (!s.careerOnline) return s
       setActiveCatalog(s.deckLeague) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
+      s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada
       s.seasonNo++
       s.careerPlacements = action.placements
       s.round = 0; s.champion = null
