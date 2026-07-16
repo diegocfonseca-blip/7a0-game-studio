@@ -73,15 +73,10 @@ export interface SeasonScorer { name: string; teamName: string; div: Div; goals:
 
 function pickCatalog(deck: 'br' | 'eu' | 'both') { return deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : CATALOG }
 
-// monta as 4 divisões a partir do resultado do leilão: D = os 20 técnicos
-// (humanos + fillers do pregão, com elenco real); A/B/C = resto do baralho por força.
-export function buildPyramid(managers: Manager[], youId: number, seed: number, deck: 'br' | 'eu' | 'both'): Record<Div, SimTeam[]> {
+// elencos determinísticos dos 60 times de CPU (A/B/C), por NOME — estável entre
+// temporadas: quando um time sobe/desce, leva o mesmo elenco (chave = nome).
+function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both'): Map<string, PoolCard[]> {
   const rng = mulberry((seed ^ 0x9E3779B1) >>> 0)
-  const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number): SimTeam => ({ name, you, human, teamId, squad, xi: bestXI(squad), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
-  const world = {} as Record<Div, SimTeam[]>
-  // Série D: os técnicos reais (ordena humanos primeiro só pra ficar bonito)
-  world.D = managers.slice(0, 20).map(m => mk(m.teamName, (m.squad as WonCard[]).map(c => ({ ...c })), m.isHuman, m.id === youId, m.id))
-  // resto do baralho pra A/B/C, por força (A mais forte)
   const used = new Set<string>()
   for (const m of managers) for (const c of m.squad) used.add(c.name)
   const cat = pickCatalog(deck)
@@ -89,12 +84,45 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
   const rest = shuffle(pool.filter(c => !used.has(c.name)), rng).sort((a, b) => mid(b) - mid(a))
   const q = Math.ceil(rest.length / 3)
   const bucket: Record<'A' | 'B' | 'C', PoolCard[]> = { A: rest.slice(0, q), B: rest.slice(q, q * 2), C: rest.slice(q * 2) }
+  const map = new Map<string, PoolCard[]>()
   for (const d of ['A', 'B', 'C'] as const) {
     const names = DIVISION_TEAMS[d].map(t => t.team).slice(0, 20)
     const dealt = dealSquads(bucket[d], 20, rng)
-    world[d] = names.map((nm, i) => mk(nm, dealt[i], false, false, -1))
+    names.forEach((nm, i) => map.set(nm, dealt[i]))
   }
+  return map
+}
+// divisão de origem de um time de CPU (temporada 1) — usada como fallback
+const cpuOrigDiv = (name: string): Div => DIVISION_TEAMS.A.some(t => t.team === name) ? 'A' : DIVISION_TEAMS.B.some(t => t.team === name) ? 'B' : 'C'
+// chave estável de um time: técnico = m<id>; CPU = nome
+export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? `m${t.teamId}` : t.name
+
+// monta as 4 divisões pela COLOCAÇÃO guardada (placements): D começa com os
+// técnicos reais; a cada temporada os times sobem/descem por nome exato.
+export function buildPyramid(managers: Manager[], youId: number, seed: number, deck: 'br' | 'eu' | 'both', placements?: Record<string, string> | null): Record<Div, SimTeam[]> {
+  const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number): SimTeam => ({ name, you, human, teamId, squad, xi: bestXI(squad), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
+  const world: Record<Div, SimTeam[]> = { A: [], B: [], C: [], D: [] }
+  const divOf = (key: string, fallback: Div): Div => { const d = placements?.[key]; return (d === 'A' || d === 'B' || d === 'C' || d === 'D') ? d : fallback }
+  for (const m of managers.slice(0, 20)) {
+    const t = mk(m.teamName, (m.squad as WonCard[]).map(c => ({ ...c })), m.isHuman, m.id === youId, m.id)
+    world[divOf(`m${m.id}`, 'D')].push(t)
+  }
+  const cpu = buildCpuSquads(managers, seed, deck)
+  for (const [name, squad] of cpu) world[divOf(name, cpuOrigDiv(name))].push(mk(name, squad, false, false, -1))
   return world
+}
+
+// acessos/quedas por NOME EXATO: top 4 sobe, últimos 4 caem, entre divisões
+// vizinhas. Devolve a nova colocação (chave do time → divisão).
+export function computePromotions(tables: Record<Div, SimTeam[]>): Record<string, string> {
+  const pl: Record<string, string> = {}
+  for (const d of DIVS) for (const t of tables[d]) pl[teamKey(t)] = d
+  for (let i = 0; i < 3; i++) {
+    const U = DIVS[i], L = DIVS[i + 1] // U = de cima, L = de baixo
+    for (const t of tables[U].slice(-4)) pl[teamKey(t)] = L // caem
+    for (const t of tables[L].slice(0, 4)) pl[teamKey(t)] = U // sobem
+  }
+  return pl
 }
 
 // joga UMA divisão até a rodada `round` (determinístico), acumulando artilharia
@@ -214,7 +242,7 @@ export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const round = state.round
   const done = round >= 38
-  const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague), [state.seed, state.managers.length, state.deckLeague])
+  const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo])
   const { tables, scorers } = useMemo(() => simulatePyramid(world, state.seed, round), [world, state.seed, round])
   const me = myStanding(tables)
 
@@ -229,7 +257,7 @@ export function PyramidSeasonScreen() {
     <div style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
         <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>🪜 CARREIRA · {done ? 'temporada encerrada' : `rodada ${Math.min(round + 1, 38)}/38`}</span>
+          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>🪜 TEMP. {state.seasonNo} · {done ? 'encerrada' : `rodada ${Math.min(round + 1, 38)}/38`}</span>
           {!done && <span style={{ fontSize: 10.5, fontWeight: 700, color: '#ff5b4d', display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: 999, background: '#ff5b4d', display: 'inline-block' }} /> AO VIVO</span>}
         </div>
 
@@ -249,9 +277,20 @@ export function PyramidSeasonScreen() {
           </div>
         )}
         {done && (
-          <div style={{ ...box('#EAF3FF'), padding: 11, textAlign: 'center', marginBottom: 12 }}>
-            <p style={{ fontWeight: 800, fontSize: 12, color: '#3a5a8a', margin: 0 }}>⏱️ Fim da temporada. Os acessos/quedas e a próxima temporada (host decide) chegam no próximo passo.</p>
-          </div>
+          state.isHost ? (
+            <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
+              <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>👑 Você é o host</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Aplicar acessos e quedas (por nome exato) e seguir com o mesmo time na próxima temporada.</p>
+              <button onClick={() => dispatch({ type: 'NEXT_SEASON_ONLINE', placements: computePromotions(tables) })}
+                style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
+                ▶️ Próxima temporada (mesmo time)
+              </button>
+            </div>
+          ) : (
+            <div style={{ ...box('#EAF3FF'), padding: 11, textAlign: 'center', marginBottom: 12 }}>
+              <p style={{ fontWeight: 800, fontSize: 12, color: '#3a5a8a', margin: 0 }}>⏱️ Aguardando o host começar a próxima temporada…</p>
+            </div>
+          )
         )}
 
         <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 12 }}>🟡 Você · 🔥 Amigos · 🔵 Acesso (G4) · 🔴 Queda (Z4)</p>
