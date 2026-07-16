@@ -1450,6 +1450,16 @@ export function reducer(state: EscState, action: Action): EscState {
     }
     case 'PLAY_ROUND':
     case 'SIM_MANY': {
+      // CARREIRA ONLINE: a temporada é SIMULADA e determinística (a pirâmide das
+      // 4 divisões vem dos elencos reais + semente + rodada). Aqui só avançamos a
+      // rodada (o host conduz, e isso já sincroniza) — nada de simular a liga viva.
+      if (s.careerOnline) {
+        const times = action.type === 'PLAY_ROUND' ? 1 : action.count
+        s.round = Math.min(TOTAL_ROUNDS, s.round + times)
+        // o fim de temporada é tratado na própria tela da pirâmide (não vai pro
+        // EscEnd, que usa a liga viva). A rodada capada em 38 encerra a sim.
+        return s
+      }
       const times = action.type === 'PLAY_ROUND' ? 1 : action.count
       const isHumanId = (id: number) => !!s.managers.find(m => m.id === id && m.isHuman)
       for (let i = 0; i < times && s.round < TOTAL_ROUNDS; i++) {
