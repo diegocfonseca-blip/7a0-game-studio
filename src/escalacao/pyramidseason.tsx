@@ -12,6 +12,7 @@ import type { Card, Manager, Sector, WonCard } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { useEsc } from './store'
 import { CardCollectPrompt } from './screens'
+import { supabase } from '../lib/supabase'
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -725,6 +726,33 @@ export function PyramidSeasonScreen() {
   const mgrMe = state.managers[state.youIdx]
   const myXI = useMemo(() => (mgrMe ? lineupAt(careerLineup, youId, round, mgrMe.squad) : []), [careerLineup, youId, round, mgrMe])
   const myXIids = useMemo(() => new Set(myXI.map(c => c.id)), [myXI])
+
+  // RANKING da carreira online: cada cliente grava o SEU resultado do fim da
+  // temporada (título da sua divisão + artilharia geral) no esc_results — a
+  // pirâmide não usa state.league, então o RankResultWriter do modo rápido não
+  // pegava isso (por isso título/artilharia da carreira online não contavam).
+  const rankWriteRef = useRef('')
+  useEffect(() => {
+    if (!done || !me || !state.careerOnline || !state.roomId) return
+    const key = `co:${state.roomId}:${state.seasonNo}`
+    if (rankWriteRef.current === key) return
+    rankWriteRef.current = key
+    ;(async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return // só técnico com cadastro entra no ranking
+        const myTeam = tables[me.div]?.find(t => t.teamId === youId)
+        const topScorer = scorers[0] // artilheiro geral da pirâmide (todas as divisões)
+        const displayName = user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? me.team
+        await supabase.from('esc_results').upsert({
+          user_id: user.id, display_name: displayName,
+          mode: 'online', season_key: key.slice(0, 48),
+          champion: me.champ, top_scorer: topScorer?.teamId === youId,
+          goals: myTeam?.gf ?? 0,
+        }, { onConflict: 'user_id,season_key' })
+      } catch { /* nunca trava o jogo */ }
+    })()
+  }, [done, state.careerOnline, state.roomId, state.seasonNo]) // eslint-disable-line react-hooks/exhaustive-deps
   const canSub = state.seasonNo >= 2 && !done // substituição libera na 2ª temporada
   const [selId, setSelId] = useState<string | null>(null)
   // troca por SELEÇÃO: 1º toque marca o jogador; 2º toque num da MESMA posição do
