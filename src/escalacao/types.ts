@@ -59,6 +59,10 @@ export interface Manager {
   formation: FormationKey
   money: number
   squad: WonCard[]
+  // carreira online, leilão de RESERVAS: elenco fundo — o time passa a mirar 22
+  // (XI + banco = 2× a formação por posição). Fora do leilão de reservas fica
+  // undefined, então o leilão normal (T1/solo/dinastia/rápido) segue mirando 11.
+  deepSquad?: boolean
   // arquétipo da CPU
   aggression: number // 0..1 — quanto gasta cedo
   starHunger: number // 0..1 — quanto concentra em figurões

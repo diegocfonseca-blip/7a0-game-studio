@@ -67,7 +67,8 @@ function shuffle<T>(arr: T[], rng: () => number): T[] {
 
 // ─── helpers de elenco ───────────────────────────────────────────────
 export function slotsOf(m: Manager, pos: Sector): number {
-  return FORMATIONS[m.formation][pos]
+  // elenco fundo (leilão de reservas): mira 22 = 2× a formação por posição.
+  return FORMATIONS[m.formation][pos] * (m.deepSquad ? 2 : 1)
 }
 export function filled(m: Manager, pos: Sector): number {
   return m.squad.filter(c => c.pos === pos).length
