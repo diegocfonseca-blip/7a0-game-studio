@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS } from './data'
 import type { Card, Manager, Sector, WonCard } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { useEsc } from './store'
+import { useEsc, reservePrice } from './store'
 import { CardCollectPrompt, SEASON_TOTAL_MS } from './screens'
 
 const INK = '#0C0C0C'
@@ -423,6 +423,69 @@ function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matche
   )
 }
 
+// ── LEILÃO DE RESERVAS (T2): cartas do baralho que ninguém tem, DIVIDIDAS entre
+// os humanos (cada um vê as suas, sem repetir craque). Determinístico pela
+// semente + temporada → igual em todos os aparelhos. ──
+function reservePool(managers: Manager[], seed: number, seasonNo: number, deck: 'br' | 'eu' | 'both'): Record<number, Card[]> {
+  const owned = new Set<string>()
+  for (const m of managers) for (const c of m.squad) owned.add(c.name)
+  const cat = pickCatalog(deck)
+  const all = (Object.keys(cat) as Sector[]).flatMap(pos => cat[pos].map((c, i) => ({ ...c, pos, id: `res-${seasonNo}-${pos}-${i}` })))
+  const rng = mulberry((seed ^ (seasonNo * 7919)) >>> 0)
+  const avail = shuffle(all.filter(c => !owned.has(c.name)), rng)
+  const humans = managers.filter(m => m.isHuman).map(m => m.id)
+  const out: Record<number, Card[]> = {}
+  humans.forEach(id => { out[id] = [] })
+  if (humans.length === 0) return out
+  avail.forEach((c, i) => { out[humans[i % humans.length]].push(c) })
+  return out
+}
+// loja de reservas: só as MELHORES por posição (pra não virar uma lista gigante)
+function ReserveShop({ mgr, coins, pool, dispatch }: { mgr: Manager; coins: number; pool: Card[]; dispatch: ReturnType<typeof useEsc>['dispatch'] }) {
+  const [open, setOpen] = useState(false)
+  const full = mgr.squad.length >= 22
+  const owned = new Set(mgr.squad.map(c => c.name))
+  const avail = pool.filter(c => !owned.has(c.name))
+  return (
+    <div style={{ ...box('#fff'), padding: 10, marginBottom: 12 }}>
+      <button onClick={() => setOpen(o => !o)} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+        <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD }}>🛒 Contratar reservas</span>
+        <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: '#5a5647' }}>🪙 {coins} · {mgr.squad.length}/22 {open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        full ? <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', margin: '8px 0 0' }}>Elenco cheio (22). Pra trocar, o mercado (dispensar) vem a seguir.</p>
+        : coins === 0 ? <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', margin: '8px 0 0' }}>Sem moedas ainda — você ganha no fim de cada temporada (+100 e bônus).</p>
+        : (
+          <div style={{ marginTop: 8 }}>
+            {SECTORS.map(pos => {
+              const cards = avail.filter(c => c.pos === pos).sort((a, b) => mid(b) - mid(a)).slice(0, 3)
+              if (!cards.length) return null
+              return (
+                <div key={pos} style={{ marginBottom: 8 }}>
+                  <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: 'rgba(0,0,0,0.5)', margin: '0 0 3px', textTransform: 'uppercase' }}>{POS_LABEL[pos]}</p>
+                  {cards.map(c => {
+                    const price = reservePrice(c)
+                    const can = coins >= price
+                    return (
+                      <div key={c.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '3px 4px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                        <span style={{ fontWeight: 700, fontSize: 12, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</span>
+                        <button onClick={() => dispatch({ type: 'BUY_RESERVE', mgrId: mgr.id, card: c })} disabled={!can}
+                          style={{ flexShrink: 0, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 9px', fontWeight: 900, fontSize: 11, ...OSWALD, background: can ? GREEN : '#ddd', color: can ? '#fff' : '#999', cursor: can ? 'pointer' : 'default' }}>
+                          🪙 {price}
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </div>
+        )
+      )}
+    </div>
+  )
+}
+
 // ── ELENCO: seu time por posição, com o VALOR (piso) de cada jogador. Os
 // melhores de cada posição (pela formação) são os titulares (fundo creme); as
 // reservas aparecem AO LADO, na mesma linha de posição. Sem estrela/badge. ──
@@ -448,7 +511,7 @@ function SquadTab({ mgr, col, coins }: { mgr: Manager; col: FCol; coins: number 
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: 'rgba(255,255,255,0.6)', border: `2px solid ${col.solid}`, borderRadius: 8, padding: '4px 8px' }}>
         <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>🪙 Caixa: {coins}</span>
-        <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>· moedas pra reforços (mercado em breve)</span>
+        <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>· moedas pra contratar reservas 🛒</span>
       </div>
       {hasReserves && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 5 }}>
@@ -531,6 +594,7 @@ export function PyramidSeasonScreen() {
   const humanKey = state.managers.filter(m => m.isHuman).map(m => m.id).join(',')
   const colors = useMemo(() => playerColors(humanKey ? humanKey.split(',').map(Number) : [], youId, state.seed), [humanKey, youId, state.seed])
   const myCol = colors[youId] ?? PLAYER_PALETTE[0]
+  const myPool = useMemo(() => reservePool(state.managers, state.seed, state.seasonNo, state.deckLeague)[youId] ?? [], [state.managers, state.seed, state.seasonNo, state.deckLeague, youId])
   const myDiv = me?.div ?? null
   const ord = orderedDivs(myDiv)
   const myMatch = myDiv ? matches[myDiv]?.find(x => x.you) : undefined
@@ -613,6 +677,7 @@ export function PyramidSeasonScreen() {
                 <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>Vale do próximo jogo em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</p>
               </>
             )}
+            <ReserveShop mgr={state.managers[state.youIdx]} coins={state.careerCoins?.[youId] ?? 0} pool={myPool} dispatch={dispatch} />
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} />
           </>
         ) : tab === 'jogos' && hasMatches ? (

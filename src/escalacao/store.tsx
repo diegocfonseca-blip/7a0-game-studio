@@ -19,6 +19,9 @@ function applyRewards(coins: Record<number, number> | undefined, rewards?: Recor
   for (const id in (rewards ?? {})) out[+id] = (out[+id] ?? 0) + (rewards as Record<number, number>)[+id]
   return out
 }
+// preço de uma carta no leilão de reservas: ligado à força (auge lo/hi). Craque
+// custa mais, perna-de-pau custa pouco. Sem número quebrado (arredonda).
+export function reservePrice(c: { lo: number; hi: number }): number { return Math.max(1, Math.round(((c.lo + c.hi) / 2 - 35) / 2)) }
 type Honors = { A: number; B: number; C: number; D: number }
 // credita +1 título na divisão que cada time foi campeão nesta temporada
 function applyHonors(honors: Record<string, Honors> | undefined, champions?: Record<string, 'A' | 'B' | 'C' | 'D'>): Record<string, Honors> {
@@ -991,6 +994,7 @@ type Action =
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; deck?: 'br' | 'eu' | 'both'; career?: boolean }
   | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). rewards = moedas por técnico; champions = campeão de cada divisão (pro ranking)
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
+  | { type: 'BUY_RESERVE'; mgrId: number; card: Card } // carreira online: compra uma reserva no leilão, gastando moedas (teto 22)
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
@@ -1487,6 +1491,20 @@ export function reducer(state: EscState, action: Action): EscState {
         return s
       }
       s.tactics[action.mgrId] = action.tactic
+      return s
+    }
+    case 'BUY_RESERVE': {
+      // carreira online: contrata uma reserva gastando moedas. Teto de 22, sem
+      // duplicar jogador, e só se tiver moeda. O elenco cresce (reservas ao lado).
+      if (!s.careerOnline) return s
+      const mgr = s.managers.find(m => m.id === action.mgrId)
+      if (!mgr || mgr.squad.length >= 22) return s
+      if (mgr.squad.some(c => c.name === action.card.name)) return s
+      const price = reservePrice(action.card)
+      const coins = s.careerCoins?.[action.mgrId] ?? 0
+      if (coins < price) return s
+      mgr.squad.push({ ...action.card, paid: price, via: 'leilao' })
+      s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: coins - price }
       return s
     }
     case 'PLAY_ROUND':
