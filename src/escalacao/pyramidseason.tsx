@@ -11,6 +11,7 @@ import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS } from './data'
 import type { Card, Manager, Sector, WonCard } from './types'
 import { SECTORS } from './types'
 import { useEsc } from './store'
+import { CardCollectPrompt } from './screens'
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -242,9 +243,14 @@ export function PyramidSeasonScreen() {
           </div>
         )}
 
+        {done && me?.champ && state.roomId && (
+          <div style={{ marginBottom: 12 }}>
+            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`careeronline:${state.roomId}:${state.seasonNo}`} origin="online" />
+          </div>
+        )}
         {done && (
           <div style={{ ...box('#EAF3FF'), padding: 11, textAlign: 'center', marginBottom: 12 }}>
-            <p style={{ fontWeight: 800, fontSize: 12, color: '#3a5a8a', margin: 0 }}>⏱️ Fim da temporada. A carta do campeão, os acessos/quedas e a próxima temporada (host decide) chegam já já.</p>
+            <p style={{ fontWeight: 800, fontSize: 12, color: '#3a5a8a', margin: 0 }}>⏱️ Fim da temporada. Os acessos/quedas e a próxima temporada (host decide) chegam no próximo passo.</p>
           </div>
         )}
 
