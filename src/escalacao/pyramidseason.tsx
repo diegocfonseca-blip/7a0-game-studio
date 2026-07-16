@@ -569,7 +569,7 @@ export function PyramidSeasonScreen() {
 
         {done && me?.champ && state.roomId && (
           <div style={{ marginBottom: 12 }}>
-            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`careeronline:${state.roomId}:${state.seasonNo}`} origin="online" />
+            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode}:${state.seasonNo}`} origin="online" />
           </div>
         )}
         {done && (
