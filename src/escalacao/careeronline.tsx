@@ -281,7 +281,7 @@ function RoundView({ c, onNext, onTable, onExit, paused, onTogglePause, canContr
         <div key={d} style={{ ...box('#fff'), padding: 9, marginBottom: 10 }}>
           <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, marginBottom: 5 }}>{DIV_LABEL[d]}</p>
           {c.last![d].map((m, i) => (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5, padding: '2.5px 2px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: m.you ? GOLD : m.hum ? '#FFE79A' : undefined, borderRadius: (m.you || m.hum) ? 5 : 0 }}>
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5, padding: '2.5px 2px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: m.you ? GOLD : m.hum ? '#FFE0D6' : undefined, borderRadius: (m.you || m.hum) ? 5 : 0 }}>
               <span style={{ textAlign: 'right', fontWeight: (m.you || m.hum) ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.h}</span>
               <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: (m.you || m.hum) ? INK : '#eee', color: (m.you || m.hum) ? '#fff' : INK, borderRadius: 5, padding: '0 7px' }}>{m.gh}×{m.ga}</span>
               <span style={{ textAlign: 'left', fontWeight: (m.you || m.hum) ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#5a5647' }}>{m.a}</span>
@@ -306,28 +306,52 @@ function RoundView({ c, onNext, onTable, onExit, paused, onTogglePause, canContr
   )
 }
 
-// ── as 4 tabelas de divisão (reusado na classificação e no fim de temporada) ──
+// legenda de zonas no padrão do modo offline (chips coloridos)
+function ZoneLegend() {
+  const chip = (bg: string, label: string, border = false) => (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+      <i style={{ width: 10, height: 10, borderRadius: 3, display: 'inline-block', background: bg, border: border ? '1px solid rgba(0,0,0,0.2)' : 'none' }} />{label}
+    </span>
+  )
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>
+      {chip('#D6E9FA', 'G4')}{chip('#fff', 'Meio', true)}{chip('#F9D8D3', 'Z4')}
+    </div>
+  )
+}
+
+// ── as 4 tabelas de divisão — mesmo visual da TABELA do modo offline ──
 function DivTables({ c }: { c: Career }) {
-  const zone = (i: number, n: number) => i < 4 ? '#D6E9FA' : i >= n - 4 ? '#F9D8D3' : undefined
+  const zone = (rank: number, n: number) => rank <= 4 ? '#D6E9FA' : rank > n - 4 ? '#F9D8D3' : undefined
+  const th: React.CSSProperties = { color: 'rgba(0,0,0,0.7)', fontWeight: 900, fontSize: 10.5 }
   return (
     <>
       {DIVS.map(d => {
         const sorted = sortDiv(c.world[d])
         return (
-          <div key={d} style={{ ...box('#fff'), padding: 10, marginBottom: 12 }}>
-            <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, marginBottom: 6 }}>{DIV_LABEL[d]}</p>
+          <div key={d} style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>{DIV_LABEL[d]}</p>
+              <ZoneLegend />
+            </div>
             <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
-              <thead><tr style={{ textAlign: 'left', color: '#8a8368', fontWeight: 800, fontSize: 10 }}><th>#</th><th>Time</th><th style={{ textAlign: 'center' }}>P</th><th style={{ textAlign: 'center' }}>V</th><th style={{ textAlign: 'center' }}>SG</th></tr></thead>
+              <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>P</th><th style={{ ...th, textAlign: 'center' }}>V</th><th style={{ ...th, textAlign: 'center' }}>E</th><th style={{ ...th, textAlign: 'center' }}>D</th><th style={{ ...th, textAlign: 'center' }}>SG</th></tr></thead>
               <tbody>
-                {sorted.map((t, i) => (
-                  <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: t.you ? GOLD : t.hum ? '#FFE79A' : zone(i, sorted.length), fontWeight: (t.you || t.hum) ? 900 : 600 }}>
-                    <td style={{ padding: '2px 3px' }}>{i + 1}</td>
-                    <td style={{ padding: '2px 3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }}>{(t.you || t.hum) ? '👤 ' : ''}{t.name}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 900 }}>{t.pts}</td>
-                    <td style={{ textAlign: 'center' }}>{t.w}</td>
-                    <td style={{ textAlign: 'center' }}>{t.gf - t.ga}</td>
-                  </tr>
-                ))}
+                {sorted.map((t, i) => {
+                  const rank = i + 1
+                  const other = t.hum && !t.you
+                  return (
+                    <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', background: t.you ? GOLD : other ? '#FFE0D6' : zone(rank, sorted.length), fontWeight: (t.you || t.hum) ? 800 : 500 }}>
+                      <td style={{ paddingRight: 4 }}>{rank}</td>
+                      <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>{t.you ? '👤 ' : other ? '🔥 ' : ''}{t.name}</td>
+                      <td style={{ textAlign: 'center', fontWeight: 900 }}>{t.pts}</td>
+                      <td style={{ textAlign: 'center' }}>{t.w}</td>
+                      <td style={{ textAlign: 'center' }}>{t.d}</td>
+                      <td style={{ textAlign: 'center' }}>{t.l}</td>
+                      <td style={{ textAlign: 'center' }}>{t.gf - t.ga}</td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -337,23 +361,28 @@ function DivTables({ c }: { c: Career }) {
   )
 }
 
-// ── artilharia geral (reusado) ──
+// ── artilharia geral — mesmo visual da ARTILHARIA do modo offline ──
 function ScorersBox({ c }: { c: Career }) {
   const scorers = pickScorers(c.world, c.deck, c.seed)
+  const th: React.CSSProperties = { color: 'rgba(0,0,0,0.6)', fontWeight: 900, fontSize: 10.5 }
   return (
-    <div style={{ ...box('#fff'), padding: 10, marginBottom: 12 }}>
-      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, marginBottom: 2 }}>⚽ Artilharia geral</p>
-      <p style={{ fontSize: 10, fontWeight: 600, color: '#8a8368', marginBottom: 7 }}>Goleadores de todas as divisões · o selo mostra a série</p>
-      {scorers.length === 0 ? <p style={{ fontSize: 11, color: '#888', fontWeight: 700 }}>Sem gols ainda — jogue algumas rodadas.</p> : scorers.map((s, i) => (
-        <div key={s.name + s.team + i} style={{ display: 'grid', gridTemplateColumns: '20px 1fr auto', alignItems: 'center', gap: 7, padding: '3px 2px', borderTop: i ? '1px solid rgba(0,0,0,0.08)' : 'none', background: s.you ? GOLD : s.hum ? '#FFE79A' : undefined, borderRadius: (s.you || s.hum) ? 5 : 0 }}>
-          <span style={{ fontWeight: 900, ...OSWALD, textAlign: 'center' }}>{i + 1}</span>
-          <span style={{ minWidth: 0 }}>
-            <span style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD }}><span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}</span>
-            <span style={{ fontSize: 10, color: '#7a7460', fontWeight: 600, display: 'block' }}>{(s.you || s.hum) ? '👤 ' : ''}{s.team}</span>
-          </span>
-          <span style={{ fontWeight: 900, ...OSWALD, color: GREEN }}>{s.goals} <span style={{ fontSize: 10, color: '#8a8368' }}>⚽</span></span>
-        </div>
-      ))}
+    <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, marginBottom: 8 }}>⚽ ARTILHARIA · TEMPO REAL</p>
+      {scorers.length === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>Sem gols ainda. Bola rolando…</p> : (
+        <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+          <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Jogador</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>Gols</th></tr></thead>
+          <tbody>
+            {scorers.map((s, i) => (
+              <tr key={s.name + s.team + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, background: s.you ? GOLD : s.hum ? '#FFE0D6' : undefined }}>
+                <td style={{ paddingRight: 4 }}>{i + 1}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}><span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: 'rgba(0,0,0,0.7)' }}>{s.you ? '👤 ' : s.hum ? '🔥 ' : ''}{s.team}</td>
+                <td style={{ textAlign: 'center', fontWeight: 900 }}>{s.goals}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   )
 }
@@ -364,7 +393,7 @@ function Standings({ c, onBack, onExit }: { c: Career; onBack: () => void; onExi
     <div>
       <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, textAlign: 'center' }}>
         <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD, margin: 0 }}>📊 Classificação · rodada {c.round}/38</p>
-        <p style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>🔵 Acesso (G4) · 🔴 Rebaixamento (Z4) · 🟡 Você</p>
+        <p style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>🟡 Você · 🔥 Rivais · 🔵 Acesso (G4) · 🔴 Queda (Z4)</p>
       </div>
       <DivTables c={c} />
       <ScorersBox c={c} />
@@ -468,7 +497,7 @@ function SeasonEnd({ c, roomId, canControl, onNextSeason, onEnd, onTable }: { c:
 
       <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, textAlign: 'center' }}>
         <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD, margin: 0 }}>📊 Classificação final</p>
-        <p style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>🔵 Acesso (G4) · 🔴 Rebaixamento (Z4) · 🟡 Você</p>
+        <p style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>🟡 Você · 🔥 Rivais · 🔵 Acesso (G4) · 🔴 Queda (Z4)</p>
       </div>
       <DivTables c={c} />
       <ScorersBox c={c} />
