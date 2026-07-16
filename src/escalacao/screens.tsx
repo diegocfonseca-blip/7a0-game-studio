@@ -184,6 +184,23 @@ function Campinho({ m, small = false, bench = false, title }: { m: Manager; smal
   )
 }
 
+// campinho(s) do SEU time no fluxo do leilão. No leilão de RESERVAS mostra dois
+// campinhos empilhados: o banco (o que está sendo montado agora) na frente e os
+// titulares logo abaixo. Fora do leilão de reservas, só o time único.
+function YourPitch({ small = false }: { small?: boolean }) {
+  const { state } = useEsc()
+  const you = state.managers[state.youIdx]
+  if (state.reserveAuction) {
+    return (
+      <div className="space-y-2">
+        <Campinho m={you} small={small} bench title="🔁 Reservas (banco)" />
+        <Campinho m={you} small={small} title="⭐ Titulares" />
+      </div>
+    )
+  }
+  return <Campinho m={you} small={small} />
+}
+
 function CardFace({ c, big = false, surprise = false, highlight = false }: { c: Card; big?: boolean; surprise?: boolean; highlight?: boolean }) {
   return (
     <div className="text-left">
@@ -820,16 +837,7 @@ function Envelope() {
         <p className="text-center text-xs font-bold text-black/60">Faltam lacrar: {waitingFor.map(m => m.teamName).join(', ')}</p>
       )}
 
-      {state.reserveAuction ? (
-        <>
-          {/* leilão de reservas: o banco (o que está sendo montado agora) fica na
-              FRENTE, e o time titular logo abaixo — os dois campinhos empilhados. */}
-          <Campinho m={you} bench title="🔁 Reservas (banco)" />
-          <Campinho m={you} title="⭐ Titulares" />
-        </>
-      ) : (
-        <Campinho m={you} />
-      )}
+      <YourPitch />
       <RivalsStrip />
     </Shell>
   )
@@ -928,7 +936,7 @@ function Tiebreak() {
             </p>
           </Box>
         </motion.div>
-        <Campinho m={you} small />
+        <YourPitch small />
       </Shell>
     )
   }
@@ -991,7 +999,7 @@ function Tiebreak() {
           <span className="text-white">{amount > tb.amount ? `COBRIR POR ${amount} 🔨` : `MANTER ${amount} 🔒`}</span>
         </Btn>
       </Box>
-      <Campinho m={you} small />
+      <YourPitch small />
     </Shell>
   )
 }
@@ -1154,7 +1162,7 @@ function Reveal() {
       <p className="text-center text-xs font-bold text-black/60 py-1">
         {canDrive ? '🎬 Passando automaticamente…' : '🔨 O host está conduzindo a revelação…'}
       </p>
-      <Campinho m={you} small />
+      <YourPitch small />
     </Shell>
   )
 }
@@ -1236,7 +1244,7 @@ export function EscMonte() {
           </p>
         </Box>
       )}
-      <Campinho m={you} />
+      <YourPitch />
     </Shell>
   )
 }
@@ -1498,7 +1506,7 @@ export function EscSeason() {
       )}
       <TableBox highlight={you.id} holdResults={!resultRevealed} />
       <TopScorersBox highlight={you.id} />
-      <Campinho m={you} small />
+      <YourPitch small />
       {state.careerDivision && <RivalTracker />}
       <CreditLine className="pt-4 pb-2" />
       {showPyramid && state.careerOnline && (
