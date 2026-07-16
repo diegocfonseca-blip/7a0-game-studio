@@ -131,7 +131,7 @@ export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: n
 // joga UMA divisão até a rodada `round` (determinístico), acumulando artilharia.
 // `lastMatches` recebe os jogos da ÚLTIMA rodada jogada (placar + quem fez os
 // gols e em que minuto) pra exibir com a simulação.
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, lastMatches?: SimMatch[]) {
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: Record<number, Tac>, lastMatches?: SimMatch[]) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // credita os gols na artilharia da temporada e devolve os eventos (nome + minuto)
@@ -152,8 +152,9 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
   const nr = Math.min(round, 38)
   for (let r = 0; r < nr; r++) for (const [hi, ai] of fix[r]) {
     const H = teams[hi], A = teams[ai]
-    const th: Tac = H.you || H.human ? 'equilibrio' : TACS[Math.floor(rng() * 3)]
-    const ta: Tac = A.you || A.human ? 'equilibrio' : TACS[Math.floor(rng() * 3)]
+    // humano usa a tática que ELE escolheu (sincronizada); CPU sorteia
+    const th: Tac = H.human ? (tactics[H.teamId] ?? 'equilibrio') : TACS[Math.floor(rng() * 3)]
+    const ta: Tac = A.human ? (tactics[A.teamId] ?? 'equilibrio') : TACS[Math.floor(rng() * 3)]
     const fh = rollForm(H.xi, th, ta, rng), fa = rollForm(A.xi, ta, th, rng)
     const lh = Math.max(0.08, 1.35 + (fh.atk - fa.def) * 0.055 + 0.25), la = Math.max(0.08, 1.35 + (fa.atk - fh.def) * 0.055)
     const hg = poisson(lh, rng), ag = poisson(la, rng)
@@ -169,14 +170,14 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; matches: Record<Div, SimMatch[]> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: Record<number, Tac> = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; matches: Record<Div, SimMatch[]> } {
   const scorers = new Map<string, SeasonScorer>()
   const tables = {} as Record<Div, SimTeam[]>
   const matches = {} as Record<Div, SimMatch[]>
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, lm)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lm)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
@@ -315,17 +316,20 @@ function MyMatchCard({ m, youName }: { m: SimMatch; youName: string }) {
   const last = shown.length ? shown[shown.length - 1] : null
   return (
     <div style={{ ...box(GOLD), padding: '9px 11px', marginBottom: 10 }}>
+      {/* minuto EM CIMA do placar (90' + acréscimos) */}
+      <div style={{ textAlign: 'center', marginBottom: 4 }}>
+        <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: done ? GREEN : '#e8503a' }}>{done ? '⏱️ FIM' : `⏱️ ${minLabel}`}</span>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
         <span style={{ textAlign: 'right', fontWeight: 900, fontSize: 12.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: iAmHome ? INK : '#5a5647' }}>{iAmHome ? '👤 ' : ''}{m.h}</span>
-        <span style={{ fontWeight: 900, fontSize: 16, ...OSWALD, background: INK, color: '#fff', borderRadius: 6, padding: '1px 9px' }}>{hg}×{ag}</span>
+        <span style={{ fontWeight: 900, fontSize: 17, ...OSWALD, background: INK, color: '#fff', borderRadius: 6, padding: '1px 10px' }}>{hg}×{ag}</span>
         <span style={{ textAlign: 'left', fontWeight: 900, fontSize: 12.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: !iAmHome ? INK : '#5a5647' }}>{!iAmHome ? '👤 ' : ''}{m.a}</span>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
         <span style={{ fontSize: 9.5, fontWeight: 800, ...OSWALD, color: 'rgba(0,0,0,0.55)' }}>🎯 sua partida</span>
         <span style={{ fontSize: 10.5, fontWeight: 800, ...OSWALD, color: 'rgba(0,0,0,0.75)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '62%' }}>
-          {last ? <>⚽ {last.name} <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></> : (done ? '0×0' : 'bola rolando…')}
+          {last ? <>⚽ {last.name} <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></> : (done ? 'sem gols' : 'bola rolando…')}
         </span>
-        <span style={{ fontSize: 9.5, fontWeight: 900, ...OSWALD, color: done ? GREEN : '#ff5b4d' }}>{done ? 'FIM' : `⏱️${minLabel}`}</span>
       </div>
     </div>
   )
@@ -370,10 +374,11 @@ export function PyramidSeasonScreen() {
   const done = round >= 38
   const [tab, setTab] = useState<'jogos' | 'tabelas'>('jogos')
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo])
-  const { tables, scorers, matches } = useMemo(() => simulatePyramid(world, state.seed, round), [world, state.seed, round])
+  const { tables, scorers, matches } = useMemo(() => simulatePyramid(world, state.seed, round, state.tactics as Record<number, Tac>), [world, state.seed, round, state.tactics])
   const me = myStanding(tables)
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
+  const myTactic = (state.tactics[youId] ?? 'equilibrio') as Tac
   const humanKey = state.managers.filter(m => m.isHuman).map(m => m.id).join(',')
   const colors = useMemo(() => friendColors(humanKey ? humanKey.split(',').map(Number) : [], youId, state.seed), [humanKey, youId, state.seed])
   const myDiv = me?.div ?? null
@@ -443,9 +448,20 @@ export function PyramidSeasonScreen() {
 
         {tab === 'jogos' && hasMatches ? (
           <>
-            <div style={{ ...box(INK), padding: 9, color: '#fff', marginBottom: 10, textAlign: 'center' }}>
-              <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>🗓️ Rodada {Math.min(round, 38)} · os jogos</p>
-            </div>
+            {/* tática do SEU time nesta temporada (afeta os seus jogos) */}
+            {!done && (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 6 }}>
+                  {([['retranca', '🧱 Retranca'], ['equilibrio', '⚖️ Equilíbrio'], ['ataque', '🔥 Ataque']] as [Tac, string][]).map(([t, label]) => (
+                    <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: youId, tactic: t })}
+                      style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '9px 0', fontWeight: 900, fontSize: 12, ...OSWALD, background: myTactic === t ? GOLD : '#fff', color: INK, boxShadow: myTactic === t ? `3px 3px 0 0 ${INK}` : 'none', cursor: 'pointer' }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.</p>
+              </>
+            )}
             {myMatch && me && <MyMatchCard m={myMatch} youName={me.team} />}
             {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
           </>
