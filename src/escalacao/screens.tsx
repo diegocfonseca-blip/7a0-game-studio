@@ -1974,6 +1974,17 @@ const CARD_META = new Map<string, { fame: number; club: string; year: number; fo
 Object.values(CATALOG_EU).flat().forEach(c => CARD_META.set(c.name, { fame: c.fame, club: c.club, year: c.year, folk: c.folk, promessa: c.promessa }))
 Object.values(CATALOG).flat().forEach(c => CARD_META.set(c.name, { fame: c.fame, club: c.club, year: c.year, folk: c.folk, promessa: c.promessa }))
 
+// pool de TODAS as cartas reais (BR + Europa) — usado como "curinga" quando o
+// campeão já tem todos os 11 do próprio time no álbum (aí ganha uma NOVA daqui).
+const ALL_POOL: WonCard[] = (() => {
+  const seen = new Set<string>(); const out: WonCard[] = []
+  for (const cat of [CATALOG, CATALOG_EU]) for (const pos of SECTORS) for (const c of cat[pos]) {
+    if (seen.has(c.name)) continue; seen.add(c.name)
+    out.push({ id: `wild-${out.length}`, name: c.name, club: c.club, year: c.year, pos, fame: c.fame as Card['fame'], folk: c.folk, promessa: c.promessa, lo: 0, hi: 0, paid: 0, via: 'leilao' })
+  }
+  return out
+})()
+
 export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void }) {
   const { dispatch } = useEsc()
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
@@ -2009,6 +2020,16 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
   }, [status])
   const remaining = Math.max(0, Math.ceil((deadline - now) / 1000))
 
+  // se o campeão já tem TODOS os 11 do time no álbum, oferece CURINGAS: cartas
+  // novas aleatórias do catálogo (que ele ainda não tem) — nunca fica sem nova.
+  const allOwned = useMemo(() => you.squad.length > 0 && you.squad.every(c => owned.has(c.name)), [you.squad, owned])
+  const wildcards = useMemo(() => {
+    const un = ALL_POOL.filter(c => !owned.has(c.name))
+    for (let i = un.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[un[i], un[j]] = [un[j], un[i]] }
+    return un.slice(0, 9)
+  }, [owned])
+  const choices = allOwned ? wildcards : you.squad
+
   async function claim(card: WonCard) {
     if (claimingRef.current) return
     claimingRef.current = true
@@ -2027,10 +2048,10 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
 
   useEffect(() => {
     if (status !== 'picking' || remaining > 0) return
-    // tempo esgotou: o jogo escolhe por você — de preferência uma que você AINDA
-    // NÃO tem no álbum (pra não repetir); só repete se já tiver todas do time.
-    const pool = you.squad.filter(c => !owned.has(c.name))
-    const from = pool.length ? pool : you.squad
+    // tempo esgotou: o jogo escolhe por você uma que você AINDA NÃO tem (do time
+    // ou, se já tiver todas, uma curinga nova). Só repete se não houver nova.
+    const pool = choices.filter(c => !owned.has(c.name))
+    const from = pool.length ? pool : choices
     const pick = from[Math.floor(Math.random() * from.length)]
     if (pick) claim(pick)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2067,27 +2088,24 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
         <p className="font-black text-lg" style={OSWALD}>🎴 Escolha sua carta-lembrança!</p>
         <span className="border-2 border-black rounded-lg px-2 py-1 text-xs font-black bg-white">{remaining}s</span>
       </div>
-      <p className="text-xs font-bold text-black/70 mb-3">Campeão leva um craque do próprio time pro álbum. As que você <b>já tem</b> ficam bloqueadas — pegue uma <b>nova ✨</b> pra completar a coleção. Se o tempo acabar, o jogo escolhe uma nova pra você.</p>
-      {(() => {
-        const allOwned = you.squad.every(c => owned.has(c.name)) // já tem todas do time → libera geral
-        return (
-          <div className="grid grid-cols-3 gap-2 max-h-80 overflow-y-auto">
-            {you.squad.map(c => {
-              const have = owned.has(c.name) && !allOwned
-              return (
-                <button key={c.id} onClick={() => !have && claim(c)} disabled={have} className="text-left relative" style={{ cursor: have ? 'default' : 'pointer' }}>
-                  <div style={{ opacity: have ? 0.4 : 1, filter: have ? 'grayscale(0.7)' : 'none' }}>
-                    <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} />
-                  </div>
-                  {have
-                    ? <span className="absolute top-1 right-1 border-2 border-black rounded-md px-1.5 py-0.5 text-[9px] font-black bg-white" style={OSWALD}>✓ já tenho</span>
-                    : !owned.has(c.name) && <span className="absolute top-1 right-1 border-2 border-black rounded-md px-1.5 py-0.5 text-[9px] font-black" style={{ background: GREEN, color: '#fff', ...OSWALD }}>✨ nova</span>}
-                </button>
-              )
-            })}
-          </div>
-        )
-      })()}
+      <p className="text-xs font-bold text-black/70 mb-3">{allOwned
+        ? <>Você já tem <b>todos os 11 do seu time</b>! 🎉 Então o campeão leva uma <b>carta nova ✨</b> pra coleção — escolha uma. Se o tempo acabar, o jogo escolhe pra você.</>
+        : <>Campeão leva um craque do próprio time pro álbum. As que você <b>já tem</b> ficam bloqueadas — pegue uma <b>nova ✨</b> pra completar a coleção. Se o tempo acabar, o jogo escolhe uma nova pra você.</>}</p>
+      <div className="grid grid-cols-3 gap-2 max-h-80 overflow-y-auto">
+        {choices.map(c => {
+          const have = owned.has(c.name) && !allOwned
+          return (
+            <button key={c.id} onClick={() => !have && claim(c)} disabled={have} className="text-left relative" style={{ cursor: have ? 'default' : 'pointer' }}>
+              <div style={{ opacity: have ? 0.4 : 1, filter: have ? 'grayscale(0.7)' : 'none' }}>
+                <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} />
+              </div>
+              {have
+                ? <span className="absolute top-1 right-1 border-2 border-black rounded-md px-1.5 py-0.5 text-[9px] font-black bg-white" style={OSWALD}>✓ já tenho</span>
+                : <span className="absolute top-1 right-1 border-2 border-black rounded-md px-1.5 py-0.5 text-[9px] font-black" style={{ background: GREEN, color: '#fff', ...OSWALD }}>✨ nova</span>}
+            </button>
+          )
+        })}
+      </div>
     </Box>
   )
 }
