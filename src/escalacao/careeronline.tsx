@@ -9,7 +9,8 @@
 //   vivo" (jogos das 4 divisões) e a tabela/artilharia atualizando ao longo da
 //   temporada. Ainda LOCAL; a sincronia online multiplayer é a próxima fase.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { supabase } from '../lib/supabase'
 import { useCanCareerOnline } from './admin'
 import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_BOTH } from './data'
 
@@ -92,7 +93,7 @@ function buildFix(): Record<Div, number[][][]> {
 // montam o MESMO mundo e a mesma temporada) + os nomes reais dos técnicos e
 // qual deles sou eu. Cada aparelho só destaca a si próprio (you) — isso não
 // muda a simulação, que é idêntica em todos.
-export interface CareerLaunch { roomCode: string; deck: DeckChoice; players: string[]; myIndex: number }
+export interface CareerLaunch { roomId: string; roomCode: string; deck: DeckChoice; players: string[]; myIndex: number; isHost: boolean; base: Record<string, unknown> }
 let pendingLaunch: CareerLaunch | null = null
 export function launchCareerOnline(cfg: CareerLaunch) {
   pendingLaunch = cfg
@@ -119,6 +120,18 @@ function buildWorldMulti(seed: number, players: string[], myIdx: number): Record
     world[d][slot] = { name, str: DIV_BASE[d] + Math.round((rng() - 0.3) * 12), you: i === myIdx, hum: true, ...blankStats() }
   })
   return world
+}
+
+// reconstrói a temporada até uma rodada alvo (replay determinístico do zero).
+// Usado pelos clientes pra "pular" pro número de rodada que o host mandou.
+function careerAtRound(seed: number, deck: DeckChoice, players: string[], myIdx: number, fix: Record<Div, number[][][]>, round: number): Career {
+  let world = buildWorldMulti(seed, players, myIdx)
+  let last: Record<Div, Match[]> | null = null
+  for (let r = 0; r < round; r++) {
+    const res = playRound({ seed, deck, world, fix, round: r, last })
+    world = res.world; last = res.last
+  }
+  return { seed, deck, world, fix, round, last }
 }
 
 // joga UMA rodada em todas as divisões — PURO: clona as tabelas e devolve o
@@ -190,7 +203,7 @@ function Overlay({ children }: { children: React.ReactNode }) {
 const box = (bg = '#fff'): React.CSSProperties => ({ background: bg, border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}` })
 
 // ── rodada ao vivo: os jogos das 4 divisões da rodada atual ──
-function RoundView({ c, onNext, onTable, onExit, paused, onTogglePause }: { c: Career; onNext: () => void; onTable: () => void; onExit: () => void; paused: boolean; onTogglePause: () => void }) {
+function RoundView({ c, onNext, onTable, onExit, paused, onTogglePause, canControl = true }: { c: Career; onNext: () => void; onTable: () => void; onExit: () => void; paused: boolean; onTogglePause: () => void; canControl?: boolean }) {
   const done = c.round >= 38
   return (
     <div>
@@ -218,10 +231,10 @@ function RoundView({ c, onNext, onTable, onExit, paused, onTogglePause }: { c: C
 
       {done
         ? <div style={{ ...box(GOLD), padding: 13, textAlign: 'center', marginBottom: 9 }}><p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0 }}>🏁 Temporada encerrada! Veja a classificação final.</p></div>
-        : <>
+        : canControl ? <>
             <button onClick={onTogglePause} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: paused ? GREEN : '#fff', color: paused ? '#fff' : INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>{paused ? '▶️ Retomar (automático)' : '⏸️ Pausar'}</button>
             {paused && <button onClick={onNext} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 11, fontWeight: 900, fontSize: 14, background: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>⏭️ Próxima rodada (manual)</button>}
-          </>}
+          </> : <div style={{ ...box('#EAF3FF'), padding: 11, textAlign: 'center', marginBottom: 9 }}><p style={{ fontWeight: 800, fontSize: 12.5, color: '#3a5a8a', margin: 0 }}>⏱️ O host controla o ritmo das rodadas.</p></div>}
       <button onClick={onTable} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 11, fontWeight: 900, fontSize: 14, background: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 12 }}>📊 Tabela + artilharia</button>
       <button onClick={onExit} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '0 auto', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
     </div>
@@ -294,34 +307,77 @@ export function CareerOnlineGame() {
   const [view, setView] = useState<'menu' | 'round' | 'table'>('menu')
   const [paused, setPaused] = useState(false)
   const [fromRoom, setFromRoom] = useState(false) // veio de uma sala online (não do menu solo)
+  const launchRef = useRef<CareerLaunch | null>(null) // config da sala (roomId, host, técnicos)
+  const baseRef = useRef<Record<string, unknown> | null>(null) // game_state da sala (host preserva ao sincronizar)
+
+  // host publica a rodada atual na sala — todos os clientes seguem. Preserva o
+  // resto do game_state (nome, senha, deck) e bate o heartbeat (updated_at).
+  const syncRound = (round: number, pausedFlag: boolean) => {
+    const L = launchRef.current
+    if (!L || !L.isHost) return
+    supabase.from('game_rooms').update({
+      game_state: { ...(baseRef.current ?? {}), career: { round, paused: pausedFlag, ts: Date.now() } },
+      updated_at: new Date().toISOString(),
+    }).eq('id', L.roomId)
+  }
 
   // veio de uma SALA online (host apertou começar)? monta o mundo com os
   // técnicos reais, semeado pelo código da sala — todos veem a mesma temporada.
   useEffect(() => {
     if (!open || !can || career || !pendingLaunch) return
     const L = pendingLaunch; pendingLaunch = null
+    launchRef.current = L
     const seed = codeSeed(L.roomCode)
     setDeck(L.deck); setFromRoom(true)
     setCareer({ seed, deck: L.deck, world: buildWorldMulti(seed, L.players, L.myIndex), fix: buildFix(), round: 0, last: null })
     setPaused(false); setView('round')
+    if (L.isHost) {
+      // base já vem da sala (síncrono) pra não sobrescrever nome/senha/deck ao
+      // sincronizar; marca a rodada 0 como início oficial.
+      baseRef.current = { ...(L.base ?? {}) }; delete (baseRef.current as { career?: unknown }).career
+      syncRound(0, false)
+    }
   }, [open, can, career])
 
-  // rodadas rolam sozinhas (igual a simulação do offline): ~1,3s por rodada
-  // enquanto está na tela da rodada, não pausado e ainda não acabou.
+  // CLIENTE (não-host) numa sala: segue a rodada que o host publica no banco.
   useEffect(() => {
-    if (!(open && can && career && view === 'round' && !paused && career.round < 38)) return
-    const t = setTimeout(() => setCareer(c => {
-      if (!c || c.round >= 38) return c
-      const r = playRound(c)
-      return { ...c, world: r.world, round: c.round + 1, last: r.last }
-    }), 1300)
+    const L = launchRef.current
+    if (!fromRoom || !L || L.isHost || !open || !can) return
+    const fix = buildFix(); const seed = codeSeed(L.roomCode)
+    const apply = (gs: unknown) => {
+      const cr = (gs as { career?: { round?: number; paused?: boolean } } | null)?.career
+      if (!cr || typeof cr.round !== 'number') return
+      setPaused(!!cr.paused)
+      setCareer(prev => (prev && prev.round === cr.round) ? prev : careerAtRound(seed, L.deck, L.players, L.myIndex, fix, cr.round!))
+    }
+    supabase.from('game_rooms').select('game_state').eq('id', L.roomId).maybeSingle().then(({ data }) => apply(data?.game_state))
+    const ch = supabase.channel('careerroom:' + L.roomId)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: 'id=eq.' + L.roomId }, ({ new: r }: { new: { game_state?: unknown } }) => apply(r.game_state))
+      .subscribe()
+    return () => { ch.unsubscribe() }
+  }, [fromRoom, open, can])
+
+  // rodadas rolam sozinhas (~1,3s). SÓ o condutor avança: solo, ou o host numa
+  // sala. O cliente não avança sozinho — segue o banco (efeito acima).
+  useEffect(() => {
+    const L = launchRef.current
+    const iAmDriver = !fromRoom || !!L?.isHost
+    if (!(open && can && career && view === 'round' && !paused && career.round < 38 && iAmDriver)) return
+    const t = setTimeout(() => {
+      if (!career || career.round >= 38) return
+      const r = playRound(career)
+      const nc = { ...career, world: r.world, round: career.round + 1, last: r.last }
+      setCareer(nc)
+      if (fromRoom && L?.isHost) syncRound(nc.round, false)
+    }, 1300)
     return () => clearTimeout(t)
-  }, [open, can, career, view, paused])
+  }, [open, can, career, view, paused, fromRoom])
 
   if (!open || !can) return null
+  const canControl = !fromRoom || !!launchRef.current?.isHost
   const close = () => {
     // veio de sala: limpa a temporada pra um próximo "começar" montar do zero
-    if (fromRoom) { setCareer(null); setFromRoom(false); setView('menu') }
+    if (fromRoom) { setCareer(null); setFromRoom(false); setView('menu'); launchRef.current = null; baseRef.current = null }
     window.location.hash = ''
   }
 
@@ -331,13 +387,21 @@ export function CareerOnlineGame() {
     setPaused(false)
     setView('round')
   }
-  const next = () => setCareer(c => {
-    if (!c || c.round >= 38) return c
-    const r = playRound(c)
-    return { ...c, world: r.world, round: c.round + 1, last: r.last }
-  })
+  const next = () => {
+    if (!canControl || !career || career.round >= 38) return
+    const r = playRound(career)
+    const nc = { ...career, world: r.world, round: career.round + 1, last: r.last }
+    setCareer(nc)
+    if (fromRoom && launchRef.current?.isHost) syncRound(nc.round, paused)
+  }
+  const togglePause = () => {
+    if (!canControl) return
+    const np = !paused
+    setPaused(np)
+    if (fromRoom && launchRef.current?.isHost && career) syncRound(career.round, np)
+  }
 
-  if (career && view === 'round') return <Overlay><RoundView c={career} onNext={next} onTable={() => setView('table')} onExit={close} paused={paused} onTogglePause={() => setPaused(p => !p)} /></Overlay>
+  if (career && view === 'round') return <Overlay><RoundView c={career} onNext={next} onTable={() => setView('table')} onExit={close} paused={paused} onTogglePause={togglePause} canControl={canControl} /></Overlay>
   if (career && view === 'table') return <Overlay><Standings c={career} onBack={() => setView('round')} onExit={close} /></Overlay>
 
   return (

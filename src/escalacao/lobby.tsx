@@ -290,10 +290,13 @@ export function EscLobby() {
       saveRoom(roomData.id)
       if (window.location.hash !== '#carreiraonline') {
         launchCareerOnline({
+          roomId: roomData.id,
           roomCode: roomData.code,
           deck: gs.deck ?? 'br',
           players: sorted.map(p => p.manager_name),
           myIndex: sorted.findIndex(p => p.user_id === user.id),
+          isHost: roomData.host_id === user.id,
+          base: (gs ?? {}) as unknown as Record<string, unknown>,
         })
       }
       return true
