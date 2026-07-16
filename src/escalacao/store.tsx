@@ -947,7 +947,7 @@ const INITIAL: EscState = {
   monte: [], monteOrder: [], monteIdx: 0,
   league: [], fixtures: [], round: 0, tactics: {},
   lastResults: [], news: [], champion: null,
-  deckLeague: 'br', careerDivision: null, careerIntent: false, careerTitles: 0, careerTitlesA: 0, careerRivalCount: 5, careerRivals: [],
+  deckLeague: 'br', careerDivision: null, careerOnline: false, careerIntent: false, careerTitles: 0, careerTitlesA: 0, careerRivalCount: 5, careerRivals: [],
   phaseDeadline: null, scorers: [],
   monteDeadline: null, cerimoniaDeadline: null,
   cpuAtkAdj: 0, cpuDefAdj: 0, streamMode: false,
@@ -1307,6 +1307,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // ou os dois juntos (escolha do host). O leilão e a temporada são o motor
       // real de sempre — só muda o catálogo de craques.
       s.deckLeague = action.deck ?? 'br'; setActiveCatalog(s.deckLeague)
+      s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido
       s.roomId = action.roomId
       s.roomCode = action.roomCode
       s.roomName = action.roomName

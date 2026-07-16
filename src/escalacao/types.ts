@@ -203,6 +203,7 @@ export interface EscState {
   streamMode: boolean // sala de stream: esconde os VALORES dos lances na tela (pra live)
   deckLeague: 'br' | 'eu' | 'both' // baralho escolhido: 🇧🇷 Brasileirão, 🌍 Liga Europa ou 🌎 os dois juntos (both = só na carreira online)
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
+  careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
   dinastia?: boolean // modo Dinastia (teste): usa o leilão real; a economia assume após a cerimônia
   dinastiaBudget?: number // orçamento (moedas do clube) que o pregão do Dinastia usa
   dinastiaPaused?: boolean // Dinastia: temporada pausada na JANELA DO MEIO (metade do calendário)
