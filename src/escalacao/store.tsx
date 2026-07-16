@@ -19,6 +19,21 @@ function applyRewards(coins: Record<number, number> | undefined, rewards?: Recor
   for (const id in (rewards ?? {})) out[+id] = (out[+id] ?? 0) + (rewards as Record<number, number>)[+id]
   return out
 }
+// caixa dos OUTROS times (por teamKey string), nunca negativo — soma título/acesso, tira queda
+function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Record<string, number>): Record<string, number> {
+  const out = { ...(cash ?? {}) }
+  for (const k in (rewards ?? {})) out[k] = Math.max(0, (out[k] ?? 0) + (rewards as Record<string, number>)[k])
+  return out
+}
+// caixa-base por divisão dos times não-humanos (clubes de cima mais ricos)
+const DIV_BASE_CASH: Record<string, number> = { A: 220, B: 170, C: 130, D: 100 }
+// monta o clubCash a partir da colocação (teamKey → divisão): todo time ganha a
+// base da divisão dele. Só cria quem ainda não tem (não zera quem já acumulou).
+function seedClubCash(cash: Record<string, number>, placements: Record<string, string> | null | undefined): Record<string, number> {
+  const out = { ...cash }
+  for (const [k, d] of Object.entries(placements ?? {})) if (out[k] == null) out[k] = DIV_BASE_CASH[d] ?? 100
+  return out
+}
 type Honors = { A: number; B: number; C: number; D: number }
 // credita +1 título na divisão que cada time foi campeão nesta temporada
 function applyHonors(honors: Record<string, Honors> | undefined, champions?: Record<string, 'A' | 'B' | 'C' | 'D'>): Record<string, Honors> {
@@ -1029,7 +1044,7 @@ const INITIAL: EscState = {
   phase: 'envelope', currentCards: [], revealQueue: [], revealIdx: 0,
   stock: { GOL: 0, LAT: 0, ZAG: 0, MEI: 0, ATA: 0 },
   monte: [], monteOrder: [], monteIdx: 0,
-  league: [], fixtures: [], round: 0, tactics: {}, careerTactics: {}, careerCoins: {}, careerHonors: {}, marketValues: {}, marketLog: [],
+  league: [], fixtures: [], round: 0, tactics: {}, careerTactics: {}, careerCoins: {}, clubCash: {}, careerHonors: {}, marketValues: {}, marketLog: [],
   lastResults: [], news: [], champion: null,
   deckLeague: 'br', careerDivision: null, careerOnline: false, careerPlacements: null, careerIntent: false, careerTitles: 0, careerTitlesA: 0, careerRivalCount: 5, careerRivals: [],
   phaseDeadline: null, scorers: [],
@@ -1056,9 +1071,9 @@ type Action =
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; deck?: 'br' | 'eu' | 'both'; career?: boolean; locked?: boolean; pwHash?: string }
-  | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). rewards = moedas por técnico; champions = campeão de cada divisão (pro ranking)
-  | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
-  | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
+  | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). rewards = moedas por técnico; champions = campeão de cada divisão (pro ranking)
+  | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
+  | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
   | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
@@ -1488,6 +1503,7 @@ export function reducer(state: EscState, action: Action): EscState {
         s.careerHonors = {} // títulos começam do zero
         s.marketValues = {} // livro de preços começa vazio (leilão inicial sem piso)
         s.marketLog = []
+        s.clubCash = seedClubCash({}, pl) // todo time da pirâmide começa com caixa (base por divisão)
       }
       s.roomId = action.roomId
       s.roomCode = action.roomCode
@@ -1690,6 +1706,9 @@ export function reducer(state: EscState, action: Action): EscState {
         // vez só; depois vira no-op. Se corrigiu, zera escalações manuais que
         // apontavam pro id duplicado (voltam ao XI automático, correto).
         if (healSquadIds(s.managers)) s.careerLineup = {}
+        // cura salas antigas: garante caixa (base por divisão) pra TODO time da
+        // pirâmide, pra os bots não aparecerem zerados no ranking. Idempotente.
+        if (!s.clubCash || Object.keys(s.clubCash).length === 0) s.clubCash = seedClubCash({}, s.careerPlacements)
         const times = action.type === 'PLAY_ROUND' ? 1 : action.count
         s.round = Math.min(TOTAL_ROUNDS, s.round + times)
         // o fim de temporada é tratado na própria tela da pirâmide (não vai pro
@@ -1732,6 +1751,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // seguem os mesmos (novo leilão é um fluxo à parte).
       if (!s.careerOnline) return s
       s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada (base+título/acesso/queda)
+      s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada (pro ranking)
       s.careerPlacements = action.placements
       s.seasonNo++
@@ -1747,6 +1767,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!s.careerOnline) return s
       setActiveCatalog(s.deckLeague) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
       s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada
+      s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada
       s.seasonNo++
       s.careerPlacements = action.placements
@@ -1773,6 +1794,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // depois (RESERVE_AUCTION_ONLINE), quando o host começa o leilão.
       if (!s.careerOnline) return s
       s.careerCoins = applyRewards(s.careerCoins, action.rewards)
+      s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       s.careerHonors = applyHonors(s.careerHonors, action.champions)
       s.seasonNo++
       s.careerPlacements = action.placements

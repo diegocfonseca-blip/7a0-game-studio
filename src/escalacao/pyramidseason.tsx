@@ -149,6 +149,26 @@ export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, nu
   })
   return out
 }
+// caixa-base por divisão (times não-humanos começam com isso — clubes de cima
+// mais ricos). Também usado pra "curar" salas antigas sem caixa dos bots.
+export const DIV_BASE_CASH: Record<Div, number> = { A: 220, B: 170, C: 130, D: 100 }
+// prêmios da temporada pros OUTROS times (CPUs + reservas de fundo, tudo que não
+// é humano nem bot fiador) — mesmo cálculo do seasonRewards, mas por teamKey (o
+// CPU não tem id numérico). Alimenta o caixa deles pra aparecer real no ranking.
+export function clubRewards(tables: Record<Div, SimTeam[]>): Record<string, number> {
+  const newPl = computePromotions(tables)
+  const out: Record<string, number> = {}
+  for (const d of DIVS) tables[d].forEach((t, i) => {
+    if (t.human || t.backstop) return // esses já têm caixa em careerCoins
+    let delta = 0
+    if (i === 0) delta += CAMPEAO[d]
+    if (i < 4) delta += ZONA[d]
+    const nd = newPl[teamKey(t)] as Div | undefined
+    if (nd && DIV_RANK[nd] < DIV_RANK[d]) delta -= QUEDA[d]
+    out[teamKey(t)] = delta
+  })
+  return out
+}
 // campeão de cada divisão nesta temporada (chave do time → divisão) — pro ranking
 export function seasonChampions(tables: Record<Div, SimTeam[]>): Record<string, Div> {
   const out: Record<string, Div> = {}
@@ -602,10 +622,13 @@ function SquadTab({ mgr, col, coins, xiIds, onSwap, list, selId = null }: { mgr:
 // TÍTULOS (Série A → B → C → D) e depois DINHEIRO, com desempate em cascata. ──
 type Honors = { A: number; B: number; C: number; D: number }
 const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0 }
-function RankingTab({ tables, honors, coins, colors, youId }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; coins: Record<number, number>; colors: Record<number, FCol>; youId: number }) {
+function RankingTab({ tables, honors, coins, clubCash, colors, youId }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number }) {
   const rows = DIVS.flatMap(d => tables[d]).map(t => {
     const key = teamKey(t)
-    return { t, key, h: honors[key] ?? EMPTY_HONORS, money: t.teamId >= 0 ? (coins[t.teamId] ?? 0) : 0 }
+    // humanos/fiadores têm caixa em careerCoins (por id); os outros times (CPU +
+    // reservas de fundo) têm em clubCash (por teamKey).
+    const money = (t.teamId >= 0 && coins[t.teamId] != null) ? coins[t.teamId] : Math.round(clubCash[key] ?? 0)
+    return { t, key, h: honors[key] ?? EMPTY_HONORS, money }
   })
   rows.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
   return (
@@ -729,11 +752,11 @@ export function PyramidSeasonScreen() {
               <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas (por nome exato) já entram. {state.seasonNo === 1
                 ? <>Abra o <b>leilão de reservas</b> (todos com a sua caixa, compram pra encher o banco até 22), ou siga com o mesmo elenco.</>
                 : <>Abra o <b>mercado</b> (1 carta nova por posição + os jogadores que cada técnico listar), ou siga com o mesmo elenco.</>}</p>
-              <button onClick={() => dispatch({ type: 'OPEN_RESERVE_LIST', placements: computePromotions(tables), rewards: seasonRewards(tables), champions: seasonChampions(tables) })}
+              <button onClick={() => dispatch({ type: 'OPEN_RESERVE_LIST', placements: computePromotions(tables), rewards: seasonRewards(tables), clubRewards: clubRewards(tables), champions: seasonChampions(tables) })}
                 style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>
                 {state.seasonNo === 1 ? '🔨 Leilão de reservas' : '🛒 Mercado'}
               </button>
-              <button onClick={() => dispatch({ type: 'NEXT_SEASON_ONLINE', placements: computePromotions(tables), rewards: seasonRewards(tables), champions: seasonChampions(tables) })}
+              <button onClick={() => dispatch({ type: 'NEXT_SEASON_ONLINE', placements: computePromotions(tables), rewards: seasonRewards(tables), clubRewards: clubRewards(tables), champions: seasonChampions(tables) })}
                 style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
                 ▶️ Mesmo time (sem leilão)
               </button>
@@ -753,7 +776,7 @@ export function PyramidSeasonScreen() {
         </div>
 
         {tab === 'ranking' ? (
-          <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} coins={state.careerCoins ?? {}} colors={colors} youId={youId} />
+          <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} />
         ) : tab === 'elenco' ? (
           <>
             {/* tática do SEU time — POR JOGO, vale do PRÓXIMO jogo em diante. Agora
