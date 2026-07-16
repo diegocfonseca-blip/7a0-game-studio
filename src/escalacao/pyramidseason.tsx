@@ -309,32 +309,37 @@ function DivTable({ div, teams, colors, mine }: { div: Div; teams: SimTeam[]; co
     </div>
   )
 }
-export function PyramidTables({ tables, scorers, order, colors, myDiv }: { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; order?: Div[]; colors?: Record<number, FCol>; myDiv?: Div | null }) {
+export function PyramidTables({ tables, order, colors, myDiv }: { tables: Record<Div, SimTeam[]>; order?: Div[]; colors?: Record<number, FCol>; myDiv?: Div | null }) {
+  const cols = colors ?? {}
+  // a artilharia saiu daqui (foi pra aba Rank) — a aba Tabelas fica só com as 4 tabelas.
+  return <>{(order ?? DIVS).map(d => <DivTable key={d} div={d} teams={tables[d]} colors={cols} mine={d === myDiv} />)}</>
+}
+// caixa de artilharia reutilizável (temporada e todos os tempos) — top N já pronto.
+function ArtilhariaBox({ scorers, colors, title, sub, foot }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string }) {
   const cols = colors ?? {}
   return (
-    <>
-      {(order ?? DIVS).map(d => <DivTable key={d} div={d} teams={tables[d]} colors={cols} mine={d === myDiv} />)}
-      <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
-        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, marginBottom: 8 }}>⚽ ARTILHARIA · TODAS AS DIVISÕES</p>
-        {scorers.length === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>Sem gols ainda. Bola rolando…</p> : (
-          <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
-            <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Jogador</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>Gols</th></tr></thead>
-            <tbody>
-              {scorers.map((s, i) => {
-                const fc = s.human ? cols[s.teamId] : undefined
-                return (
-                <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, background: fc?.light }}>
-                  <td style={{ paddingRight: 4 }}>{i + 1}</td>
-                  <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}><span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}</td>
-                  <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : s.human ? '🔥 ' : ''}{s.teamName}</td>
-                  <td style={{ textAlign: 'center', fontWeight: 900 }}>{s.goals}</td>
-                </tr>
-              )})}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </>
+    <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{title}</p>
+      {sub && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{sub}</p>}
+      {scorers.length === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>Sem gols ainda. Bola rolando…</p> : (
+        <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+          <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Jogador</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>Gols</th></tr></thead>
+          <tbody>
+            {scorers.map((s, i) => {
+              const fc = s.human ? cols[s.teamId] : undefined
+              return (
+              <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, background: fc?.light }}>
+                <td style={{ paddingRight: 4 }}>{i + 1}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}><span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : s.human ? '🔥 ' : ''}{s.teamName}</td>
+                <td style={{ textAlign: 'center', fontWeight: 900 }}>{s.goals}</td>
+              </tr>
+            )})}
+          </tbody>
+        </table>
+      )}
+      {foot && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.4)', margin: '8px 0 0', textAlign: 'center' }}>{foot}</p>}
+    </div>
   )
 }
 
@@ -674,14 +679,15 @@ function RankingTab({ tables, honors, coins, clubCash, colors, youId }: { tables
     return { t, key, h: honors[key] ?? EMPTY_HONORS, money }
   })
   rows.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
+  const top = rows.slice(0, 20)
   return (
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>🏆 RANKING GERAL</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Títulos (Série A › B › C › D) e depois dinheiro — todos os times.</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Títulos (Série A › B › C › D) e depois dinheiro — top 20.</p>
       <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
         <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>Títulos</th><th style={{ ...th, textAlign: 'right' }}>💰</th></tr></thead>
         <tbody>
-          {rows.map((r, i) => {
+          {top.map((r, i) => {
             const you = r.t.teamId === youId && r.t.teamId >= 0
             const fc = r.t.human ? colors[r.t.teamId] : undefined
             return (
@@ -711,6 +717,7 @@ export function PyramidSeasonScreen() {
   const round = state.round
   const done = round >= 38
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking'>('jogos')
+  const [rankSub, setRankSub] = useState<'clubes' | 'arti'>('clubes')
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo])
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const careerLineup = (state.careerLineup ?? {}) as RoundLineups
@@ -726,6 +733,17 @@ export function PyramidSeasonScreen() {
   const mgrMe = state.managers[state.youIdx]
   const myXI = useMemo(() => (mgrMe ? lineupAt(careerLineup, youId, round, mgrMe.squad) : []), [careerLineup, youId, round, mgrMe])
   const myXIids = useMemo(() => new Set(myXI.map(c => c.id)), [myXI])
+
+  // artilheiros de TODOS OS TEMPOS (acumulado entre temporadas) — top 20
+  const allTimeScorers = useMemo(() => Object.values((state.careerScorersAll ?? {}) as Record<string, SeasonScorer>).sort((a, b) => b.goals - a.goals).slice(0, 20), [state.careerScorersAll])
+  // ao FIM da temporada, soma os artilheiros dela no acumulado (uma vez por
+  // temporada; o reducer é idempotente por statsSeason). Cada cliente pode
+  // disparar — guests roteiam pro host, que grava e sincroniza.
+  useEffect(() => {
+    if (!done || !state.careerOnline) return
+    if ((state.statsSeason ?? 0) >= state.seasonNo) return
+    dispatch({ type: 'RECORD_SEASON_STATS', scorers })
+  }, [done, state.careerOnline, state.seasonNo, state.statsSeason]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // RANKING da carreira online: cada cliente grava o SEU resultado do fim da
   // temporada (título da sua divisão + artilharia geral) no esc_results — a
@@ -904,7 +922,22 @@ export function PyramidSeasonScreen() {
         </div>
 
         {tab === 'ranking' ? (
-          <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} />
+          <>
+            {/* sub-abas do Rank: Clubes | Artilheiros (temporada + todos os tempos) */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              {([['clubes', '🥇', 'Clubes'], ['arti', '⚽', 'Artilheiros']] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
+                <button key={s} onClick={() => setRankSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', background: rankSub === s ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
+              ))}
+            </div>
+            {rankSub === 'clubes' ? (
+              <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} />
+            ) : (
+              <>
+                <ArtilhariaBox scorers={scorers} colors={colors} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual (todas as divisões) — top 20." />
+                <ArtilhariaBox scorers={allTimeScorers} colors={colors} title="🏆 ARTILHARIA · TODOS OS TEMPOS" sub="Gols somados de todas as temporadas da sala — top 20." foot={allTimeScorers.length === 0 ? 'Começa a contar a partir de agora.' : undefined} />
+              </>
+            )}
+          </>
         ) : tab === 'elenco' ? (
           <>
             {/* tática do SEU time — POR JOGO, vale do PRÓXIMO jogo em diante. Agora
@@ -990,7 +1023,7 @@ export function PyramidSeasonScreen() {
             {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
           </>
         ) : (
-          <PyramidTables tables={tables} scorers={scorers} order={ord} colors={colors} myDiv={myDiv} />
+          <PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} />
         )}
 
         <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
