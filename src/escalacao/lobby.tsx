@@ -62,22 +62,43 @@ export function useResumableRoom() {
   useEffect(() => {
     let alive = true
     ;(async () => {
-      const savedId = loadSavedRoom()
-      if (!savedId) return
       const { data: auth } = await supabase.auth.getUser()
       const user = auth?.user
       if (!user || !alive) return
       userRef.current = user
-      const { data: rd } = await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()
-      if (!rd || rd.game_state?.__game !== GAME_TAG) { clearSavedRoom(); return }
-      const gs = rd.game_state as GS | undefined
-      const inProgress = rd.status === 'started' && !!gs && Array.isArray(gs.managers)
-        && gs.managers.length > 0 && !!gs.screen && gs.screen !== 'intro' && gs.screen !== 'lobby'
-      if (!inProgress) return
+      const isLive = (rd: RoomInfo | null | undefined): rd is RoomInfo => {
+        const gs = rd?.game_state as GS | undefined
+        return !!rd && rd.game_state?.__game === GAME_TAG && rd.status === 'started'
+          && !!gs && Array.isArray(gs.managers) && gs.managers.length > 0
+          && !!gs.screen && gs.screen !== 'intro' && gs.screen !== 'lobby'
+      }
+      let rd: RoomInfo | null = null
+      // 1) ponteiro local (rápido, sem consultar o resto do banco)
+      const savedId = loadSavedRoom()
+      if (savedId) {
+        const { data } = await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()
+        if (data && data.game_state?.__game !== GAME_TAG) clearSavedRoom()
+        else if (isLive(data as RoomInfo)) rd = data as RoomInfo
+      }
+      // 2) sem ponteiro local (ex.: limpou o cache) → procura no banco uma sala
+      //    'started' onde EU sou host OU membro. Assim o host não perde o "voltar".
+      if (!rd) {
+        const { data: mine } = await supabase.from('room_players').select('room_id').eq('user_id', user.id)
+        const memberIds = [...new Set(((mine ?? []) as { room_id: string }[]).map(r => r.room_id))]
+        const [hostedRes, memberRes] = await Promise.all([
+          supabase.from('game_rooms').select('*').eq('host_id', user.id).eq('status', 'started').order('updated_at', { ascending: false }).limit(10),
+          memberIds.length ? supabase.from('game_rooms').select('*').in('id', memberIds).eq('status', 'started').order('updated_at', { ascending: false }).limit(10) : Promise.resolve({ data: [] as RoomInfo[] }),
+        ])
+        rd = [...((hostedRes.data ?? []) as RoomInfo[]), ...((memberRes.data ?? []) as RoomInfo[])]
+          .filter(isLive)
+          .sort((a, b) => (b.updated_at ?? '').localeCompare(a.updated_at ?? ''))[0] ?? null
+      }
+      if (!rd || !alive) return
       // confirma que ainda sou um dos técnicos da sala
       const { data: mySlot } = await supabase.from('room_players').select('user_id').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
       if (!mySlot || !alive) return
-      roomRef.current = rd as RoomInfo
+      saveRoom(rd.id) // reancora o ponteiro local pra próxima vez
+      roomRef.current = rd
       setInfo({ code: rd.code })
     })()
     return () => { alive = false }
