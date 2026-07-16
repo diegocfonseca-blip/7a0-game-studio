@@ -989,7 +989,6 @@ const GOL_EU: C[] = [
   { name: "André Onana", club: "Inter", year: 2023, fame: 3, lo: 80, hi: 87 },
   { name: "Jerzy Dudek", club: "Liverpool", year: 2005, fame: 1, lo: 66, hi: 82, folk: true },
   { name: "Heurelho Gomes", club: "Tottenham", year: 2011, fame: 1, lo: 60, hi: 80, folk: true },
-  { name: "Massimo Taibi", club: "Man United", year: 1999, fame: 1, lo: 52, hi: 74, folk: true },
   { name: "Loris Karius", club: "Liverpool", year: 2018, fame: 1, lo: 55, hi: 78, folk: true },
 ]
 const LAT_EU: C[] = [
@@ -1051,7 +1050,6 @@ const ZAG_EU: C[] = [
   { name: "Marco Materazzi", club: "Inter", year: 2006, fame: 1, lo: 72, hi: 83, folk: true },
   { name: "Fernando Hierro", club: "Real Madrid", year: 1998, fame: 4, lo: 84, hi: 90 },
   { name: "Phil Jones", club: "Man United", year: 2014, fame: 1, lo: 58, hi: 78, folk: true },
-  { name: "Winston Bogarde", club: "Chelsea", year: 2002, fame: 1, lo: 50, hi: 72, folk: true },
   { name: "Titus Bramble", club: "Newcastle", year: 2005, fame: 1, lo: 58, hi: 78, folk: true },
 ]
 const MEI_EU: C[] = [
@@ -1159,7 +1157,6 @@ const MEI_EU: C[] = [
   { name: "Tomas Brolin", club: "Parma", year: 1992, fame: 3, lo: 76, hi: 84, folk: true },
   { name: "Karel Poborský", club: "Man United", year: 1996, fame: 2, lo: 74, hi: 84, folk: true },
   { name: "Kléberson", club: "Man United", year: 2004, fame: 1, lo: 60, hi: 80, folk: true },
-  { name: "Eric Djemba-Djemba", club: "Man United", year: 2004, fame: 1, lo: 54, hi: 74, folk: true },
   { name: "Fred (volante)", club: "Man United", year: 2019, fame: 1, lo: 62, hi: 80, folk: true },
   { name: "Marouane Fellaini", club: "Man United", year: 2016, fame: 1, lo: 66, hi: 82, folk: true },
   { name: "Vampeta", club: "PSG", year: 2000, fame: 1, lo: 58, hi: 78, folk: true },
@@ -1286,7 +1283,6 @@ const ATA_EU: C[] = [
   { name: "Afonso Alves", club: "Middlesbrough", year: 2008, fame: 1, lo: 60, hi: 80, folk: true },
   { name: "El Hadji Diouf", club: "Liverpool", year: 2003, fame: 1, lo: 62, hi: 80, folk: true },
   { name: "Bebé", club: "Man United", year: 2010, fame: 1, lo: 52, hi: 76, folk: true },
-  { name: "Ali Dia", club: "Southampton", year: 1996, fame: 1, lo: 46, hi: 72, folk: true },
   { name: "Kerlon", club: "Chievo", year: 2008, fame: 1, lo: 58, hi: 80, folk: true },
   { name: "Michael Olise", club: "Bayern", year: 2024, fame: 4, lo: 82, hi: 89 },
   { name: "Stéphane Guivarc'h", club: "Newcastle", year: 1998, fame: 1, lo: 60, hi: 80, folk: true },
