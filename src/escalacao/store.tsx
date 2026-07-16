@@ -1746,8 +1746,11 @@ const Ctx = createContext<{
 // libera a vaga do técnico na sala (apaga a linha de room_players) e limpa a
 // sala salva no aparelho. Chamado quando ele sai de propósito de uma partida
 // online — evita virar "fantasma" que trava um restart pros que ficaram.
-async function leaveOnlineRoom(roomId: string) {
+async function leaveOnlineRoom(roomId: string, keepSlot = false) {
   try { localStorage.removeItem('escalacao-room') } catch { /* ignora */ }
+  // carreira online (save): a vaga é a MEMBRESIA do save — não some ao sair, pra
+  // o técnico continuar podendo voltar depois. Só o "excluir" tira de vez.
+  if (keepSlot) return
   try {
     const { data } = await supabase.auth.getUser()
     if (data?.user && roomId) {
@@ -1827,7 +1830,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // sua vaga na sala. Sem isso você fica "fantasma": um restart puxa você como
     // jogador e a galera que ficou espera você lacrar pra sempre.
     if ((action.type === 'NEW_GAME' || action.type === 'GO_LOBBY') && onlineRef.current === 'online' && stateRef.current.roomId) {
-      leaveOnlineRoom(stateRef.current.roomId)
+      leaveOnlineRoom(stateRef.current.roomId, !!stateRef.current.careerOnline)
     }
     if (onlineRef.current === 'online' && !isHostRef.current && action.type !== 'GO_LOBBY' && action.type !== 'NEW_GAME' && action.type !== 'GO_ALBUM' && action.type !== 'GO_RANKING') {
       channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
