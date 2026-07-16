@@ -205,6 +205,7 @@ export interface EscState {
   reserveAuction?: boolean // carreira online: o leilão em curso é o de RESERVAS (mantém elenco, mira 22, orçamento = caixa). No fim, sincroniza a caixa e tira o elenco fundo.
   reserveListed?: Record<number, string[]> // carreira online: cartas que cada técnico LISTOU pro leilão (mgrId → ids), escolhidas na tela de venda (45s)
   careerLineup?: Record<number, Record<number, string[]>> // carreira online: escalação (XI) POR JOGO (mgrId → rodada → ids dos 11 titulares); vale da rodada em diante, como a tática
+  marketValues?: Record<string, number> // carreira online: LIVRO DE PREÇOS global (nome do jogador → último preço). Toda venda/lance vencedor e ida ao monte atualiza; todo baralho novo consulta pra carimbar o piso. Assim o valor de cada jogador é memória do jogo inteiro (ex.: Kaká vendido 30 → monte 15 → volta valendo 15).
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)
   champion: number | null

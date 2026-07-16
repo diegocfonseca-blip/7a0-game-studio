@@ -107,7 +107,23 @@ function healSquadIds(managers: Manager[]): boolean {
   return changed
 }
 
-function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0): Record<Sector, Card[]> {
+// LIVRO DE PREÇOS (carreira online): registra o último preço de um jogador pelo
+// NOME. É a memória de valor do jogo inteiro — piso do jogador em qualquer leilão
+// futuro. Só grava preço > 0 (leilão de graça não cria piso).
+function recordPrice(state: EscState, name: string, price: number) {
+  if (!state.careerOnline || price <= 0) return
+  state.marketValues = { ...(state.marketValues ?? {}), [name]: price }
+}
+// manda cartas pro monte JÁ pela metade e registra esse valor no livro (é o preço
+// que o jogador vale dali em diante — se ninguém pega, o "bot fica" com ele por
+// esse valor, e é com ele que a carta volta um dia ao mercado).
+function montePush(state: EscState, cards: Card[]) {
+  const halved = halveListed(cards)
+  for (const c of halved) { const p = (c as { paid?: number }).paid ?? 0; if (p > 0) recordPrice(state, c.name, p) }
+  state.monte.push(...halved)
+}
+
+function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0, values?: Record<string, number>): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
   const bt = nextBuildTok()
   // ── passo 1: define o tamanho de cada setor e embaralha o catálogo ──
@@ -180,7 +196,7 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   for (const pos of SECTORS) {
     const { count, catalog } = plan[pos]
     const cards: Card[] = []
-    const take = (c: (typeof CATALOG)[Sector][number]) => { used.add(c.name); cards.push({ ...c, id: `cat-${pos}-${cards.length}-${bt}`, pos }) }
+    const take = (c: (typeof CATALOG)[Sector][number]) => { used.add(c.name); const fl = values?.[c.name] ?? 0; cards.push({ ...c, id: `cat-${pos}-${cards.length}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
     // 1) LENDA
     let needL = alloc[pos].legend
     for (const c of catalog) { if (needL <= 0) break; if (c.fame !== 5 || used.has(c.name)) continue; take(c); needL-- }
@@ -350,6 +366,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   const m = state.managers.find(x => x.id === winner)!
   m.money -= max
   m.squad.push({ ...tb.card, paid: max, via: tb.via } as WonCard)
+  recordPrice(state, tb.card.name, max) // livro de preços
   tb.winner = winner
   tb.paid = max
   tb.bids = amounts // registra quanto cada um cobriu (transparência na revelação)
@@ -997,7 +1014,7 @@ const INITIAL: EscState = {
   phase: 'envelope', currentCards: [], revealQueue: [], revealIdx: 0,
   stock: { GOL: 0, LAT: 0, ZAG: 0, MEI: 0, ATA: 0 },
   monte: [], monteOrder: [], monteIdx: 0,
-  league: [], fixtures: [], round: 0, tactics: {}, careerTactics: {}, careerCoins: {}, careerHonors: {},
+  league: [], fixtures: [], round: 0, tactics: {}, careerTactics: {}, careerCoins: {}, careerHonors: {}, marketValues: {},
   lastResults: [], news: [], champion: null,
   deckLeague: 'br', careerDivision: null, careerOnline: false, careerPlacements: null, careerIntent: false, careerTitles: 0, careerTitlesA: 0, careerRivalCount: 5, careerRivals: [],
   phaseDeadline: null, scorers: [],
@@ -1122,6 +1139,7 @@ function sealAndResolve(state: EscState) {
     }
   }
   const { queue, unsold, ties } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao')
+  for (const q of queue) if (q.winner !== null && q.paid > 0) recordPrice(state, q.card.name, q.paid) // livro de preços
   state.revealQueue = queue
   state.revealIdx = 0
   state.currentCards = unsold
@@ -1184,13 +1202,13 @@ function afterReveal(state: EscState) {
       startAuctionPhase(state, true)
       return
     }
-    state.monte.push(...halveListed(state.sectorUnsoldAccum))
+    montePush(state, state.sectorUnsoldAccum)
     state.sectorUnsoldAccum = []
     advanceSectorOrFinish(state, rng)
     return
   }
   // terminou a repescagem
-  state.monte.push(...halveListed(unsold))
+  montePush(state, unsold)
   state.currentCards = []
   advanceSectorOrFinish(state, rng)
 }
@@ -1378,6 +1396,7 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const d of ['A', 'B', 'C'] as const) for (const t of DIVISION_TEAMS[d].slice(0, 20)) pl[t.team] = d
         s.careerPlacements = pl
         s.careerHonors = {} // títulos começam do zero
+        s.marketValues = {} // livro de preços começa vazio (leilão inicial sem piso)
       }
       s.roomId = action.roomId
       s.roomCode = action.roomCode
@@ -1396,7 +1415,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // laterais, etc. — dá opção/disputa sem inflar. O baralho é montado
       // ANTES dos bots pra ficar 100% com reais.
       const onlineUsed = new Set<string>()
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1)
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1, s.marketValues)
       s.surpriseId = pickSurprise(s.deck, rng)
       dealBotSquads(s.managers, onlinePlans, rng, onlineUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -1635,7 +1654,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const { managers, botPlans } = makeManagers(humanNames, formation, 0, LEAGUE_SIZE, rng)
       s.managers = managers
       const used = new Set<string>()
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues)
       s.surpriseId = pickSurprise(s.deck, rng)
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -1716,12 +1735,12 @@ export function reducer(state: EscState, action: Action): EscState {
         const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
         for (const pos of SECTORS) {
           const pick = shuffle(ACTIVE_CATALOG[pos], rng).find(c => !used.has(c.name))
-          if (pick) deck[pos].push({ ...pick, id: `mkt-${pos}-${bt}`, pos })
+          if (pick) { const fl = s.marketValues?.[pick.name] ?? 0; deck[pos].push({ ...pick, id: `mkt-${pos}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) } // piso do livro de preços
         }
         s.deck = deck
       } else {
         // RESERVAS (2ª temporada): baralho na quantidade NORMAL por amigo online.
-        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues)
       }
       for (const c of listedCards) s.deck[c.pos].push(c)
       // 3) elenco fundo (mira 22) + orçamento = caixa. DEPOIS do baralho, senão a
