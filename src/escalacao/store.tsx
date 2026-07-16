@@ -945,7 +945,7 @@ const INITIAL: EscState = {
   phase: 'envelope', currentCards: [], revealQueue: [], revealIdx: 0,
   stock: { GOL: 0, LAT: 0, ZAG: 0, MEI: 0, ATA: 0 },
   monte: [], monteOrder: [], monteIdx: 0,
-  league: [], fixtures: [], round: 0, tactics: {},
+  league: [], fixtures: [], round: 0, tactics: {}, careerTactics: {},
   lastResults: [], news: [], champion: null,
   deckLeague: 'br', careerDivision: null, careerOnline: false, careerPlacements: null, careerIntent: false, careerTitles: 0, careerTitlesA: 0, careerRivalCount: 5, careerRivals: [],
   phaseDeadline: null, scorers: [],
@@ -1340,7 +1340,7 @@ export function reducer(state: EscState, action: Action): EscState {
       dealBotSquads(s.managers, onlinePlans, rng, onlineUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
-      s.tactics = {}
+      s.tactics = {}; s.careerTactics = {}
       s.seasonNo = 1
       s.screen = 'auction'
       startAuctionPhase(s, false)
@@ -1455,6 +1455,15 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'SET_TACTIC': {
+      if (s.careerOnline) {
+        // carreira online: tática é POR JOGO. Grava na rodada ATUAL (a que está
+        // rolando = round-1) e vale dali em diante, sem mexer nos jogos passados.
+        const r = Math.max(0, s.round - 1)
+        const bt = { ...(s.careerTactics ?? {}) }
+        bt[action.mgrId] = { ...(bt[action.mgrId] ?? {}), [r]: action.tactic }
+        s.careerTactics = bt
+        return s
+      }
       s.tactics[action.mgrId] = action.tactic
       return s
     }
@@ -1509,6 +1518,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.seasonNo++
       s.round = 0
       s.champion = null
+      s.careerTactics = {} // nova temporada: táticas por jogo zeram
       return s
     }
     case 'REAUCTION_ONLINE': {
@@ -1530,7 +1540,7 @@ export function reducer(state: EscState, action: Action): EscState {
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []
-      s.tactics = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
+      s.tactics = {}; s.careerTactics = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s
