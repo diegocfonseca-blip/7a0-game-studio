@@ -400,7 +400,7 @@ function DivChips({ humans, colors }: { humans: { name: string; teamId: number; 
 // artilheiro), igual à simulação do modo off-line. ──
 // TICKER de frases: mostra UMA linha por vez, trocando sozinha a cada ~4,5s.
 // Cada item tem cor de faixa (por tipo) + ícone + texto.
-type Flavor = { c: string; ic: string; node: React.ReactNode }
+type Flavor = { c: string; ic: string; tag: string; node: React.ReactNode }
 function RivalryTicker({ items }: { items: Flavor[] }) {
   const [i, setI] = useState(0)
   useEffect(() => {
@@ -412,12 +412,17 @@ function RivalryTicker({ items }: { items: Flavor[] }) {
   const idx = i % items.length
   const it = items[idx]
   return (
-    <div style={{ display: 'flex', border: `2.5px solid ${INK}`, borderRadius: 12, overflow: 'hidden', background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, marginBottom: 10, minHeight: 46 }}>
-      <style>{'@keyframes coFade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}'}</style>
-      <div style={{ width: 8, background: it.c, flexShrink: 0 }} />
-      <div style={{ width: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>{it.ic}</div>
-      <div key={idx} style={{ padding: '8px 11px 8px 2px', fontSize: 12.5, fontWeight: 700, lineHeight: 1.25, display: 'flex', alignItems: 'center', animation: 'coFade .45s ease' }}>{it.node}</div>
-      {items.length > 1 && <div style={{ display: 'flex', gap: 3, alignItems: 'center', padding: '0 8px', flexShrink: 0 }}>{items.map((_, k) => <span key={k} style={{ width: 5, height: 5, borderRadius: 999, background: k === idx ? INK : 'rgba(0,0,0,0.2)' }} />)}</div>}
+    // ticker estilo "lower-third" de TV: trilho colorido por tipo + etiqueta de
+    // categoria (preta) + a frase que troca sozinha + pontinhos de progresso.
+    <div style={{ display: 'flex', alignItems: 'stretch', border: `2.5px solid ${INK}`, borderRadius: 12, overflow: 'hidden', background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, marginBottom: 10, minHeight: 46 }}>
+      <style>{'@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}'}</style>
+      <div style={{ width: 7, background: it.c, flexShrink: 0 }} />
+      <div key={'tag' + idx} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0 11px', background: INK, color: '#fff', flexShrink: 0, animation: 'coFade .45s ease' }}>
+        <span style={{ fontSize: 15 }}>{it.ic}</span>
+        <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, letterSpacing: 0.4 }}>{it.tag}</span>
+      </div>
+      <div key={idx} style={{ flex: 1, minWidth: 0, padding: '8px 11px', fontSize: 12.5, fontWeight: 700, lineHeight: 1.25, display: 'flex', alignItems: 'center', animation: 'coFade .45s ease' }}>{it.node}</div>
+      {items.length > 1 && <div style={{ display: 'flex', gap: 3, alignItems: 'center', padding: '0 9px', flexShrink: 0 }}>{items.map((_, k) => <span key={k} style={{ width: 5, height: 5, borderRadius: 999, background: k === idx ? INK : 'rgba(0,0,0,0.2)' }} />)}</div>}
     </div>
   )
 }
@@ -458,15 +463,15 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey }: { m: SimMa
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch' }}>
         <Team name={m.h} color={homeCol} you={iAmHome} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: INK, color: '#fff', ...OSWALD, fontWeight: 900, fontSize: 26 }}>
-          <span style={{ padding: '0 10px' }}>{hg}</span><span style={{ opacity: 0.4, fontSize: 17 }}>×</span><span style={{ padding: '0 10px' }}>{ag}</span>
+        {/* placar central limpo (sem tarja preta) — número grande no creme */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '22px 6px 8px', minWidth: 88, ...OSWALD, fontWeight: 900, fontSize: 34, color: INK, lineHeight: 1 }}>
+          <span style={{ padding: '0 8px' }}>{hg}</span><span style={{ color: '#b8b0a0', fontSize: 16 }}>×</span><span style={{ padding: '0 8px' }}>{ag}</span>
         </div>
         <Team name={m.a} color={awayCol} you={!iAmHome} />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 12px', borderTop: '2px solid #eee', background: '#efe4c8' }}>
-        <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.4, textTransform: 'uppercase', color: col.solid }}>🎯 sua partida</span>
-        <span style={{ fontSize: 10.5, fontWeight: 700, ...OSWALD, color: 'rgba(0,0,0,0.7)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>
-          {last ? <>⚽ {last.name} <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></> : (done ? 'sem gols' : 'bola rolando…')}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '7px 12px', borderTop: '2px solid #e6dcbf', background: '#efe4c8' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, ...OSWALD, color: 'rgba(0,0,0,0.72)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%' }}>
+          {last ? <>⚽ {last.name} <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></> : (done ? 'sem gols' : '🟢 bola rolando…')}
         </span>
       </div>
     </div>
@@ -713,7 +718,7 @@ export function PyramidSeasonScreen() {
   return (
     <div style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
-        <div style={{ ...box(INK), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 12 }}>
+        <div style={{ ...box(INK), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 8 }}>
           <div style={{ padding: '12px 14px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD }}>Temporada {state.seasonNo}{me ? ` · ${DIV_NAME[me.div]}` : ''}</div>
@@ -724,7 +729,9 @@ export function PyramidSeasonScreen() {
               <span title="Sua caixa de moedas (pra o leilão/mercado)" style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: GOLD, color: INK, border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap' }}>💰 {state.careerCoins?.[youId] ?? 0}</span>
             </div>
           </div>
-          {!done && <div style={{ position: 'absolute', left: 0, bottom: 0, height: 5, width: '100%', background: 'rgba(255,255,255,0.12)' }}><div style={{ height: '100%', width: `${Math.min(100, Math.round(round / 38 * 100))}%`, background: `linear-gradient(90deg, ${GOLD}, #ffde5c)` }} /></div>}
+          {/* progresso da temporada: trilho ESCURO visível de ponta a ponta (não
+              é mais um risquinho solto — lê como barra que está começando) */}
+          {!done && <div style={{ position: 'absolute', left: 0, bottom: 0, height: 6, width: '100%', background: '#2b2721' }}><div style={{ height: '100%', minWidth: 3, width: `${Math.min(100, Math.round(round / 38 * 100))}%`, background: `linear-gradient(90deg, ${GOLD}, #ffde5c)` }} /></div>}
         </div>
 
         {/* FIM da temporada: banner de campeão/colocação. AO VIVO: placar FIXO da
@@ -810,15 +817,15 @@ export function PyramidSeasonScreen() {
               if (myMatch) {
                 const oppName = myMatch.h === me.team ? myMatch.a : myMatch.h
                 const opp = table.find(x => x.name === oppName)
-                if (opp?.human) flavors.push({ c: RED, ic: '⚔️', node: <><b>CLÁSSICO!</b> Você x {nm(opp.teamId, oppName)} nesta rodada — não pode perder!</> })
+                if (opp?.human) flavors.push({ c: RED, ic: '⚔️', tag: 'CLÁSSICO', node: <>Você x {nm(opp.teamId, oppName)} nesta rodada — não pode perder!</> })
               }
               // 2) ARTILHEIRO do seu time (arrebentando)
               const mineTop = scorers.filter(s => s.teamId === youId).sort((a, b) => b.goals - a.goals)[0]
               if (mineTop && mineTop.goals >= 3) {
                 const leagueTop = scorers.filter(s => s.div === me.div).sort((a, b) => b.goals - a.goals)[0]
                 flavors.push(leagueTop?.name === mineTop.name
-                  ? { c: GREEN, ic: '👑', node: <><b>{mineTop.name}</b> é o ARTILHEIRO da {DIV_NAME[me.div]} — {mineTop.goals} gols!</> }
-                  : { c: GREEN, ic: '⚽', node: <><b>{mineTop.name}</b> tá voando: {mineTop.goals} gols pelo seu time!</> })
+                  ? { c: GREEN, ic: '👑', tag: 'ARTILHEIRO', node: <><b>{mineTop.name}</b> é o artilheiro da {DIV_NAME[me.div]} — {mineTop.goals} gols!</> }
+                  : { c: GREEN, ic: '⚽', tag: 'EM ALTA', node: <><b>{mineTop.name}</b> tá voando: {mineTop.goals} gols pelo seu time!</> })
               }
               // 3) ZUAÇÃO de divisão: amigo numa série mais baixa (ou mais alta)
               const friends = state.managers.filter(m => m.isHuman && m.id !== youId)
@@ -826,21 +833,21 @@ export function PyramidSeasonScreen() {
                 .filter((x): x is { name: string; div: Div; id: number; pos: number } => !!x)
               const below = friends.filter(f => DIVS.indexOf(f.div) > myRank).sort((a, b) => DIVS.indexOf(b.div) - DIVS.indexOf(a.div))[0]
               const above = friends.filter(f => DIVS.indexOf(f.div) < myRank).sort((a, b) => DIVS.indexOf(a.div) - DIVS.indexOf(b.div))[0]
-              if (below) flavors.push({ c: PURPLE, ic: '😎', node: <>Você na <b>{DIV_NAME[me.div]}</b> e o {nm(below.id, below.name)} lá na {DIV_NAME[below.div]} 👇</> })
-              else if (above) flavors.push({ c: PURPLE, ic: '👀', node: <>O {nm(above.id, above.name)} tá na <b>{DIV_NAME[above.div]}</b> — bora subir e alcançar!</> })
+              if (below) flavors.push({ c: PURPLE, ic: '😎', tag: 'ZUAÇÃO', node: <>Você na <b>{DIV_NAME[me.div]}</b> e o {nm(below.id, below.name)} lá na {DIV_NAME[below.div]} 👇</> })
+              else if (above) flavors.push({ c: PURPLE, ic: '👀', tag: 'ZUAÇÃO', node: <>O {nm(above.id, above.name)} tá na <b>{DIV_NAME[above.div]}</b> — bora subir e alcançar!</> })
               // 3b) ZUAÇÃO: amigo afundando na zona de queda (últimos 4) da divisão dele
               const falling = friends.find(f => f.pos >= 17 && f.div !== 'D')
-              if (falling) flavors.push({ c: PURPLE, ic: '📉', node: <>O {nm(falling.id, falling.name)} tá afundando na zona de queda da {DIV_NAME[falling.div]}… 👋</> })
+              if (falling) flavors.push({ c: PURPLE, ic: '📉', tag: 'ZUAÇÃO', node: <>O {nm(falling.id, falling.name)} tá afundando na zona de queda da {DIV_NAME[falling.div]}… 👋</> })
               // 4) QUEDA: você na zona de rebaixamento (últimos 4)
-              if (myIdx >= 16 && me.div !== 'D') flavors.push({ c: RED, ic: '🚨', node: <><b>Perigo!</b> Você tá na zona de queda da {DIV_NAME[me.div]} — reage!</> })
+              if (myIdx >= 16 && me.div !== 'D') flavors.push({ c: RED, ic: '🚨', tag: 'PERIGO', node: <>Você tá na zona de queda da {DIV_NAME[me.div]} — reage!</> })
               // 5) VIZINHO na tabela (liderança / perseguição) — sempre tem
               if (myIdx >= 0) {
                 const rival = myIdx > 0 ? table[myIdx - 1] : table[myIdx + 1]
                 if (rival) {
                   const gap = Math.abs(table[myIdx].pts - rival.pts); const pts = gap === 1 ? 'ponto' : 'pontos'
-                  flavors.push(myIdx === 0 ? { c: GOLD, ic: '🔥', node: <>Você é o <b>LÍDER</b>! {nm(rival.teamId, rival.name)} cola {gap} {pts} atrás.</> }
-                    : myIdx > 0 && gap <= 2 ? { c: GOLD, ic: '😤', node: <>{nm(rival.teamId, rival.name)} tá só {gap} {pts} na sua frente. Vai deixar?</> }
-                    : { c: GOLD, ic: '💪', node: <>Você segura {nm(rival.teamId, rival.name)} {gap} {pts} atrás!</> })
+                  flavors.push(myIdx === 0 ? { c: GOLD, ic: '🔥', tag: 'LÍDER', node: <>Você é o líder! {nm(rival.teamId, rival.name)} cola {gap} {pts} atrás.</> }
+                    : myIdx > 0 && gap <= 2 ? { c: GOLD, ic: '😤', tag: 'NA COLA', node: <>{nm(rival.teamId, rival.name)} tá só {gap} {pts} na sua frente. Vai deixar?</> }
+                    : { c: GOLD, ic: '💪', tag: 'TABELA', node: <>Você segura {nm(rival.teamId, rival.name)} {gap} {pts} atrás!</> })
                 }
               }
               return <RivalryTicker items={flavors} />
