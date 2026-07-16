@@ -576,14 +576,14 @@ export function PyramidSeasonScreen() {
           state.isHost ? (
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
               <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>👑 Você é o host — próxima temporada</p>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas (por nome exato) já entram. Escolha: seguir com o mesmo elenco, ou refazer o leilão (orçamento parelho pra todos).</p>
-              <button onClick={() => dispatch({ type: 'NEXT_SEASON_ONLINE', placements: computePromotions(tables), rewards: seasonRewards(tables), champions: seasonChampions(tables) })}
-                style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>
-                ▶️ Mesmo time
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas (por nome exato) já entram. Abra o <b>leilão de reservas</b> (todos com a sua caixa, compram pra encher o banco até 22), ou siga com o mesmo elenco.</p>
+              <button onClick={() => dispatch({ type: 'RESERVE_AUCTION_ONLINE', placements: computePromotions(tables), rewards: seasonRewards(tables), champions: seasonChampions(tables) })}
+                style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>
+                🔨 Leilão de reservas
               </button>
-              <button onClick={() => dispatch({ type: 'REAUCTION_ONLINE', placements: computePromotions(tables), rewards: seasonRewards(tables), champions: seasonChampions(tables) })}
-                style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
-                🔨 Novo leilão
+              <button onClick={() => dispatch({ type: 'NEXT_SEASON_ONLINE', placements: computePromotions(tables), rewards: seasonRewards(tables), champions: seasonChampions(tables) })}
+                style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
+                ▶️ Mesmo time (sem leilão)
               </button>
             </div>
           ) : (

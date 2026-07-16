@@ -201,6 +201,7 @@ export interface EscState {
   careerHonors?: Record<string, { A: number; B: number; C: number; D: number }> // carreira online: títulos por divisão de CADA time (chave = m<id> humano / nome do CPU), acumulados por temporada; base do Ranking
   locked?: boolean // sala fechada (com senha) — guardado no estado pra sobreviver ao autosave
   pwHash?: string // hash da senha da sala (SHA-256) — idem
+  reserveAuction?: boolean // carreira online: o leilão em curso é o de RESERVAS (mantém elenco, mira 22, orçamento = caixa). No fim, sincroniza a caixa e tira o elenco fundo.
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)
   champion: number | null

@@ -992,6 +992,7 @@ type Action =
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; deck?: 'br' | 'eu' | 'both'; career?: boolean; locked?: boolean; pwHash?: string }
   | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). rewards = moedas por técnico; champions = campeão de cada divisão (pro ranking)
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
+  | { type: 'RESERVE_AUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: começa a próxima temporada com o LEILÃO DE RESERVAS (mantém elenco, mira 22, orçamento = caixa)
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
@@ -1476,6 +1477,14 @@ export function reducer(state: EscState, action: Action): EscState {
       s.fixtures = buildFixtures(s.league)
       s.round = 0
       s.scorers = []
+      if (s.reserveAuction) {
+        // fim do leilão de RESERVAS: a caixa vira o que sobrou do orçamento; tira
+        // a marca de elenco fundo (o leilão do time volta a mirar 11 por padrão).
+        const cc = { ...(s.careerCoins ?? {}) }
+        for (const m of s.managers) if (m.isHuman) { cc[m.id] = Math.max(0, Math.round(m.money)); m.deepSquad = false }
+        s.careerCoins = cc
+        s.reserveAuction = false
+      }
       s.screen = 'season'
       return s
     }
@@ -1572,6 +1581,33 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []
       s.tactics = {}; s.careerTactics = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
+      s.screen = 'auction'
+      startAuctionPhase(s, false)
+      return s
+    }
+    case 'RESERVE_AUCTION_ONLINE': {
+      // carreira online: começa a próxima temporada com o LEILÃO DE RESERVAS.
+      // Diferente do "novo leilão": MANTÉM os elencos, marca "elenco fundo" (mira
+      // 22 = XI + banco) e o orçamento de cada um é a SUA CAIXA (moedas). O baralho
+      // é montado só pra demanda do banco (as vagas que faltam pra 22), quantidade
+      // cheia. No fim (FINISH_CEREMONY), a caixa vira o que sobrou e tira o fundo.
+      if (!s.careerOnline) return s
+      setActiveCatalog(s.deckLeague)
+      s.careerCoins = applyRewards(s.careerCoins, action.rewards)
+      s.careerHonors = applyHonors(s.careerHonors, action.champions)
+      s.seasonNo++
+      s.careerPlacements = action.placements
+      s.round = 0; s.champion = null
+      for (const m of s.managers) if (m.isHuman) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
+      const rng = mulberry((s.seed ^ (s.seasonNo * 811073)) >>> 0)
+      const used = new Set<string>()
+      for (const m of s.managers) for (const c of m.squad) used.add(c.name) // não reoferece quem já é de alguém
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+      s.surpriseId = pickSurprise(s.deck, rng)
+      for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
+      s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []
+      s.careerTactics = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
+      s.reserveAuction = true
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s
