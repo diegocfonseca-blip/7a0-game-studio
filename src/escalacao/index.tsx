@@ -5,6 +5,7 @@ import { EscLobby } from './lobby'
 import { AdminPanel } from './admin'
 import { DinastiaGame } from './dinastia'
 import { CareerOnlineGame } from './careeronline'
+import { PyramidSeasonScreen } from './pyramidseason'
 
 function Router() {
   const { state } = useEsc()
@@ -16,7 +17,7 @@ function Router() {
     case 'auction':   return <EscAuction />
     case 'monte':     return <EscMonte />
     case 'cerimonia': return <EscCerimonia />
-    case 'season':    return <EscSeason />
+    case 'season':    return state.careerOnline ? <PyramidSeasonScreen /> : <EscSeason />
     case 'end':       return <EscEnd />
     case 'album':     return <EscAlbum />
     case 'ranking':   return <EscRanking />
