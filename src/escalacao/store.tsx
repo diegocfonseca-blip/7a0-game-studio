@@ -1606,8 +1606,9 @@ export function reducer(state: EscState, action: Action): EscState {
     }
     case 'TOGGLE_RESERVE_LIST': {
       // lista/tira uma carta da lista de leilão. NUNCA deixa a posição abaixo do XI
-      // (formação) — se listar deixaria incompleto, ignora.
-      if (!s.careerOnline) return s
+      // (formação) — se listar deixaria incompleto, ignora. E a VENDA/negociação
+      // só está desbloqueada a partir da 3ª temporada (na 2ª só dá pra comprar).
+      if (!s.careerOnline || s.seasonNo < 3) return s
       const mgr = s.managers.find(m => m.id === action.mgrId)
       if (!mgr) return s
       const listed = { ...(s.reserveListed ?? {}) }
