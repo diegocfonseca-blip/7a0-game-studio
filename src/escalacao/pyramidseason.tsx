@@ -68,7 +68,7 @@ function roundRobin(n: number): [number, number][][] {
   return [...rounds, ...rounds.map(r => r.map(([h, a]) => [a, h] as [number, number]))]
 }
 
-export interface SimTeam { name: string; you: boolean; human: boolean; teamId: number; squad: PoolCard[]; xi: PoolCard[]; pts: number; w: number; d: number; l: number; gf: number; ga: number }
+export interface SimTeam { name: string; you: boolean; human: boolean; backstop?: boolean; teamId: number; squad: PoolCard[]; xi: PoolCard[]; pts: number; w: number; d: number; l: number; gf: number; ga: number }
 export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean }
 
 function pickCatalog(deck: 'br' | 'eu' | 'both') { return deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : CATALOG }
@@ -100,11 +100,11 @@ export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? 
 // monta as 4 divisões pela COLOCAÇÃO guardada (placements): D começa com os
 // técnicos reais; a cada temporada os times sobem/descem por nome exato.
 export function buildPyramid(managers: Manager[], youId: number, seed: number, deck: 'br' | 'eu' | 'both', placements?: Record<string, string> | null): Record<Div, SimTeam[]> {
-  const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number): SimTeam => ({ name, you, human, teamId, squad, xi: bestXI(squad), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
+  const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number, backstop = false): SimTeam => ({ name, you, human, backstop, teamId, squad, xi: bestXI(squad), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
   const world: Record<Div, SimTeam[]> = { A: [], B: [], C: [], D: [] }
   const divOf = (key: string, fallback: Div): Div => { const d = placements?.[key]; return (d === 'A' || d === 'B' || d === 'C' || d === 'D') ? d : fallback }
   for (const m of managers.slice(0, 20)) {
-    const t = mk(m.teamName, (m.squad as WonCard[]).map(c => ({ ...c })), m.isHuman, m.id === youId, m.id)
+    const t = mk(m.teamName, (m.squad as WonCard[]).map(c => ({ ...c })), m.isHuman, m.id === youId, m.id, !!m.backstop)
     world[divOf(`m${m.id}`, 'D')].push(t)
   }
   const cpu = buildCpuSquads(managers, seed, deck)
@@ -139,7 +139,7 @@ export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, nu
   const newPl = computePromotions(tables)
   const out: Record<number, number> = {}
   for (const d of DIVS) tables[d].forEach((t, i) => {
-    if (!t.human || t.teamId < 0) return
+    if ((!t.human && !t.backstop) || t.teamId < 0) return // humanos E bots fiadores têm patrimônio real
     let delta = 0
     if (i === 0) delta += CAMPEAO[d] // campeão da divisão
     if (i < 4) delta += ZONA[d] // top 4: acesso nas de baixo, "manter entre os 4" na A

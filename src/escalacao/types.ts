@@ -59,6 +59,11 @@ export interface Manager {
   formation: FormationKey
   money: number
   squad: WonCard[]
+  // carreira online: BOT FIADOR do leilão — rival de CPU que só entra pra dar lance
+  // quando uma posição fica sem disputa (0 ou 1 humano ofertando), pra não deixar
+  // ninguém pegar de graça / campar o monte. É time real (caixa própria, joga a
+  // liga, sobe/desce de divisão). Quantidade = floor(humanos/2).
+  backstop?: boolean
   // carreira online, leilão de RESERVAS: elenco fundo — o time passa a mirar 22
   // (XI + banco = 2× a formação por posição). Fora do leilão de reservas fica
   // undefined, então o leilão normal (T1/solo/dinastia/rápido) segue mirando 11.
