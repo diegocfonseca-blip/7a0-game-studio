@@ -920,7 +920,7 @@ function refreshMonteDeadline(state: EscState) {
   const cur = state.monteOrder[state.monteIdx]
   const m = state.managers.find(x => x.id === cur)
   state.monteDeadline =
-    state.onlineMode === 'online' && state.screen === 'monte' && m?.isHuman && totalHoles(m) > 0
+    state.onlineMode === 'online' && state.screen === 'monte' && m?.isHuman && totalHoles(m) > 0 && state.monte.length > 0
       ? Date.now() + MONTE_MS
       : null
 }
@@ -942,6 +942,9 @@ function takeFromMonte(state: EscState, cardId: string) {
 // Para em técnico humano (aguarda a escolha dele).
 function advanceMonte(state: EscState, rng: () => number) {
   while (state.monteIdx < state.monteOrder.length) {
+    // Monte vazio: não tem NADA pra pegar — encerra (pula pro fim, o chamador
+    // manda pra cerimônia). Antes travava mostrando um Monte vazio com contagem.
+    if (state.monte.length === 0) { state.monteIdx = state.monteOrder.length; break }
     const mgrId = state.monteOrder[state.monteIdx]
     const m = state.managers.find(x => x.id === mgrId)!
     if (totalHoles(m) === 0) { state.monteIdx++; continue }
