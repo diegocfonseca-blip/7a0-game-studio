@@ -809,6 +809,12 @@ function narrateRound(s: EscState, results: MatchResult[], prevRank: Map<number,
 }
 
 // ─── monte final: ordem serpente por buracos ─────────────────────────
+// jogador LISTADO (carreira online) que encalhou no leilão vai pro monte valendo
+// METADE do valor (arredonda pra baixo; 1 → 0). Carta nova do baralho não tem
+// valor, então não muda. É o que faz o Kaká (piso 30) cair pra 15 no monte.
+function halveListed(cards: Card[]): Card[] {
+  return cards.map(c => { const p = (c as { paid?: number }).paid; return p && p > 0 ? { ...c, paid: Math.floor(p / 2) } : c })
+}
 function buildMonteOrder(managers: Manager[], rng: () => number): number[] {
   const withHoles = managers.filter(m => totalHoles(m) > 0)
   if (withHoles.length === 0) return []
@@ -858,7 +864,8 @@ function takeFromMonte(state: EscState, cardId: string) {
   const mgrId = state.monteOrder[state.monteIdx]
   const m = state.managers.find(x => x.id === mgrId)!
   state.monte.splice(idx, 1)
-  m.squad.push({ ...card, paid: 0, via: 'monte' })
+  // preserva o valor (jogador listado já veio pela metade); carta nova = 0
+  m.squad.push({ ...card, paid: (card as { paid?: number }).paid ?? 0, via: 'monte' })
 }
 
 // avança o ponteiro do monte, deixando CPUs escolherem sozinhas.
@@ -1154,13 +1161,13 @@ function afterReveal(state: EscState) {
       startAuctionPhase(state, true)
       return
     }
-    state.monte.push(...state.sectorUnsoldAccum)
+    state.monte.push(...halveListed(state.sectorUnsoldAccum))
     state.sectorUnsoldAccum = []
     advanceSectorOrFinish(state, rng)
     return
   }
   // terminou a repescagem
-  state.monte.push(...unsold)
+  state.monte.push(...halveListed(unsold))
   state.currentCards = []
   advanceSectorOrFinish(state, rng)
 }
