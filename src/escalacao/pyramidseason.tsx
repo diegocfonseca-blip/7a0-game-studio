@@ -397,36 +397,44 @@ function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matche
 }
 
 // ── ELENCO: seu time por posição, com o VALOR (piso) de cada jogador. Os
-// melhores de cada posição (pela formação) aparecem como titulares (⭐ XI), o
-// resto como reserva (RES). Base pro Time A/B e pro mercado que vêm a seguir. ──
+// melhores de cada posição (pela formação) são os titulares (fundo creme); as
+// reservas aparecem AO LADO, na mesma linha de posição. Sem estrela/badge. ──
 const POS_LABEL: Record<Sector, string> = { GOL: 'Goleiros', LAT: 'Laterais', ZAG: 'Zagueiros', MEI: 'Meias', ATA: 'Atacantes' }
+function PlayerRow({ c, titular }: { c: WonCard; titular: boolean }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: titular ? '#F4ECD6' : '#F1F0EB', marginBottom: 3 }}>
+      <span style={{ fontWeight: titular ? 800 : 600, fontSize: 12, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: titular ? INK : '#6a6658' }}>{c.name}</span>
+      <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, whiteSpace: 'nowrap', color: '#5a5647', flexShrink: 0 }}>💰 {c.paid ?? 0}</span>
+    </div>
+  )
+}
 function SquadTab({ mgr, col }: { mgr: Manager; col: FCol }) {
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
+  const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
   return (
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
         <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👥 {mgr.teamName}</p>
         <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: col.light, color: col.solid, border: `2px solid ${col.solid}`, borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}>{mgr.squad.length}/22 · 💰 {total}</span>
       </div>
+      {hasReserves && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 5 }}>
+          <p style={{ flex: 1, fontWeight: 900, fontSize: 9.5, ...OSWALD, color: GREEN, margin: 0, textTransform: 'uppercase', letterSpacing: 0.3 }}>Titulares</p>
+          <p style={{ flex: 1, fontWeight: 900, fontSize: 9.5, ...OSWALD, color: 'rgba(0,0,0,0.4)', margin: 0, textTransform: 'uppercase', letterSpacing: 0.3 }}>Reservas</p>
+        </div>
+      )}
       {SECTORS.map(pos => {
         const players = mgr.squad.filter(c => c.pos === pos).sort((a, b) => mid(b) - mid(a))
-        const n = need[pos]
+        const titulars = players.slice(0, need[pos])
+        const reserves = players.slice(need[pos])
         return (
-          <div key={pos} style={{ marginBottom: 9 }}>
-            <p style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, color: 'rgba(0,0,0,0.55)', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: 0.3 }}>{POS_LABEL[pos]} <span style={{ opacity: 0.6 }}>({players.length})</span></p>
-            {players.map((c, i) => {
-              const titular = i < n
-              return (
-                <div key={c.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '4px 6px', borderRadius: 6, background: titular ? '#F4ECD6' : 'transparent', borderTop: i ? '1px solid rgba(0,0,0,0.06)' : 'none' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
-                    <span style={{ fontSize: 8.5, fontWeight: 900, ...OSWALD, color: titular ? GREEN : 'rgba(0,0,0,0.3)', width: 30, flexShrink: 0 }}>{titular ? '⭐ XI' : 'RES'}</span>
-                    <span style={{ fontWeight: titular ? 800 : 600, fontSize: 12.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</span>
-                  </span>
-                  <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, whiteSpace: 'nowrap', color: '#5a5647', flexShrink: 0 }}>💰 {c.paid ?? 0}</span>
-                </div>
-              )
-            })}
+          <div key={pos} style={{ marginBottom: 8 }}>
+            <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: 'rgba(0,0,0,0.5)', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: 0.3 }}>{POS_LABEL[pos]}</p>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>{titulars.map(c => <PlayerRow key={c.id} c={c} titular />)}</div>
+              {reserves.length > 0 && <div style={{ flex: 1, minWidth: 0 }}>{reserves.map(c => <PlayerRow key={c.id} c={c} titular={false} />)}</div>}
+            </div>
           </div>
         )
       })}
