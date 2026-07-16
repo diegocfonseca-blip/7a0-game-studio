@@ -24,6 +24,7 @@ export interface Card {
   folk?: boolean // "folclórico": vibe irreverente/engraçada, independe do nível
   promessa?: boolean // 5º tier: foi só promessa aqui e virou estrela na Europa (nível abaixo de craque)
   fake?: boolean // jogador INCÓGNITO (nome gerado, não é do catálogo real) — usado só pra completar elenco quando o baralho real acaba; nunca entra no mercado de venda dos bots
+  seller?: number // carreira online: id do técnico/bot que LISTOU esta carta pro mercado — quando ela é vendida (leilão ou monte), ele recebe a grana na caixa
 }
 
 export type Acquisition = 'leilao' | 'repescagem' | 'monte' | 'bot'
