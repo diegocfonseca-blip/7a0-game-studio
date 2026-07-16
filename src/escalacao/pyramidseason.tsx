@@ -6,7 +6,7 @@
 // resultado. A Série D tem os humanos com os times montados no pregão; A/B/C são
 // preenchidas pelo resto do baralho, distribuído por força (A a mais forte).
 
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS } from './data'
 import type { Card, Manager, Sector, WonCard } from './types'
 import { SECTORS } from './types'
@@ -125,8 +125,11 @@ export function computePromotions(tables: Record<Div, SimTeam[]>): Record<string
   return pl
 }
 
-// joga UMA divisão até a rodada `round` (determinístico), acumulando artilharia
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>) {
+export interface SimMatch { h: string; a: string; hg: number; ag: number; you: boolean; hum: boolean }
+
+// joga UMA divisão até a rodada `round` (determinístico), acumulando artilharia.
+// `lastMatches` recebe os jogos da ÚLTIMA rodada jogada (com placar) pra exibir.
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, lastMatches?: SimMatch[]) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   const credit = (t: SimTeam, goals: number) => {
@@ -139,7 +142,8 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, div, goals: 1, you: t.you, human: t.human })
     }
   }
-  for (let r = 0; r < Math.min(round, 38); r++) for (const [hi, ai] of fix[r]) {
+  const nr = Math.min(round, 38)
+  for (let r = 0; r < nr; r++) for (const [hi, ai] of fix[r]) {
     const H = teams[hi], A = teams[ai]
     const th: Tac = H.you || H.human ? 'equilibrio' : TACS[Math.floor(rng() * 3)]
     const ta: Tac = A.you || A.human ? 'equilibrio' : TACS[Math.floor(rng() * 3)]
@@ -148,20 +152,24 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     const hg = poisson(lh, rng), ag = poisson(la, rng)
     H.gf += hg; H.ga += ag; A.gf += ag; A.ga += hg; credit(H, hg); credit(A, ag)
     if (hg > ag) { H.pts += 3; H.w++; A.l++ } else if (ag > hg) { A.pts += 3; A.w++; H.l++ } else { H.pts++; A.pts++; H.d++; A.d++ }
+    if (lastMatches && r === nr - 1) lastMatches.push({ h: H.name, a: A.name, hg, ag, you: !!(H.you || A.you), hum: !!(H.human || A.human) })
   }
 }
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[] } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; matches: Record<Div, SimMatch[]> } {
   const scorers = new Map<string, SeasonScorer>()
   const tables = {} as Record<Div, SimTeam[]>
+  const matches = {} as Record<Div, SimMatch[]>
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers)
+    const lm: SimMatch[] = []
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, lm)
     tables[d] = sortDiv(teams)
+    matches[d] = lm
   }
-  return { tables, scorers: [...scorers.values()].sort((a, b) => b.goals - a.goals).slice(0, 20) }
+  return { tables, scorers: [...scorers.values()].sort((a, b) => b.goals - a.goals).slice(0, 20), matches }
 }
 
 // ── VISÃO das 4 divisões (mesmo visual das outras tabelas do jogo) ──
@@ -235,6 +243,30 @@ export function myStanding(tables: Record<Div, SimTeam[]>): { div: Div; pos: num
 const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
 const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // MESMO ritmo dos outros modos (~4,7s/rodada, temporada ~3 min)
 
+// ── os JOGOS da rodada (com placar) nas 4 divisões — igual à simulação dos
+// outros modos: você em dourado, amigos com 🔥. ──
+function RoundMatches({ matches, round }: { matches: Record<Div, SimMatch[]>; round: number }) {
+  return (
+    <>
+      <div style={{ ...box(INK), padding: 10, color: '#fff', marginBottom: 10, textAlign: 'center' }}>
+        <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0 }}>🗓️ Rodada {round} · os jogos</p>
+      </div>
+      {DIVS.map(d => (
+        <div key={d} style={{ ...box('#fff'), padding: 9, marginBottom: 8 }}>
+          <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, marginBottom: 5 }}>{DIV_LABEL[d]}</p>
+          {matches[d].map((m, i) => (
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5, padding: '2.5px 2px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: m.you ? GOLD : m.hum ? '#FFE0D6' : undefined, borderRadius: (m.you || m.hum) ? 5 : 0 }}>
+              <span style={{ textAlign: 'right', fontWeight: (m.you || m.hum) ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.h}</span>
+              <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: (m.you || m.hum) ? INK : '#eee', color: (m.you || m.hum) ? '#fff' : INK, borderRadius: 5, padding: '0 7px' }}>{m.hg}×{m.ag}</span>
+              <span style={{ textAlign: 'left', fontWeight: (m.you || m.hum) ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#5a5647' }}>{m.a}</span>
+            </div>
+          ))}
+        </div>
+      ))}
+    </>
+  )
+}
+
 // ── TELA da temporada simulada da carreira online (toma o lugar da temporada
 // ao vivo). O host conduz o ritmo (PLAY_ROUND avança a rodada, já sincronizado);
 // os clientes seguem a rodada do estado. Tudo determinístico → mesma tabela. ──
@@ -242,9 +274,11 @@ export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const round = state.round
   const done = round >= 38
+  const [tab, setTab] = useState<'jogos' | 'tabelas'>('jogos')
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo])
-  const { tables, scorers } = useMemo(() => simulatePyramid(world, state.seed, round), [world, state.seed, round])
+  const { tables, scorers, matches } = useMemo(() => simulatePyramid(world, state.seed, round), [world, state.seed, round])
   const me = myStanding(tables)
+  const hasMatches = round >= 1 && matches.D.length > 0
 
   // host conduz: avança a rodada a cada ~1,4s (isso sincroniza pra todos)
   useEffect(() => {
@@ -257,7 +291,7 @@ export function PyramidSeasonScreen() {
     <div style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
         <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>🪜 TEMP. {state.seasonNo} · {done ? 'encerrada' : `rodada ${Math.min(round + 1, 38)}/38`}</span>
+          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>🪜 TEMP. {state.seasonNo} · {done ? 'encerrada' : round === 0 ? 'começando…' : `rodada ${round}/38`}</span>
           {!done && <span style={{ fontSize: 10.5, fontWeight: 700, color: '#ff5b4d', display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: 999, background: '#ff5b4d', display: 'inline-block' }} /> AO VIVO</span>}
         </div>
 
@@ -297,11 +331,18 @@ export function PyramidSeasonScreen() {
           )
         )}
 
-        <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 12 }}>🟡 Você · 🔥 Amigos · 🔵 Acesso (G4) · 🔴 Queda (Z4)</p>
+        <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>🟡 Você · 🔥 Amigos · 🔵 Acesso (G4) · 🔴 Queda (Z4)</p>
 
-        <PyramidTables tables={tables} scorers={scorers} />
+        {/* toggle: os jogos (placares) ↔ as tabelas + artilharia */}
+        <div style={{ display: 'flex', border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
+          {([['jogos', '🗓️ Jogos'], ['tabelas', '📊 Tabelas']] as [typeof tab, string][]).map(([t, label]) => (
+            <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '9px 0', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: tab === t ? INK : '#fff', color: tab === t ? '#fff' : INK, border: 'none', cursor: 'pointer', ...OSWALD }}>{label}</button>
+          ))}
+        </div>
 
-        <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '0 auto', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
+        {tab === 'jogos' && hasMatches ? <RoundMatches matches={matches} round={round} /> : <PyramidTables tables={tables} scorers={scorers} />}
+
+        <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
       </div>
     </div>
   )
