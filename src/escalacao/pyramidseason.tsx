@@ -125,14 +125,18 @@ export function computePromotions(tables: Record<Div, SimTeam[]>): Record<string
   return pl
 }
 
-export interface SimMatch { h: string; a: string; hg: number; ag: number; you: boolean; hum: boolean }
+export interface Goal { name: string; min: number; home: boolean }
+export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: number; aId: number; you: boolean; hum: boolean; goals: Goal[] }
 
 // joga UMA divisão até a rodada `round` (determinístico), acumulando artilharia.
-// `lastMatches` recebe os jogos da ÚLTIMA rodada jogada (com placar) pra exibir.
+// `lastMatches` recebe os jogos da ÚLTIMA rodada jogada (placar + quem fez os
+// gols e em que minuto) pra exibir com a simulação.
 function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, lastMatches?: SimMatch[]) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
-  const credit = (t: SimTeam, goals: number) => {
+  // credita os gols na artilharia da temporada e devolve os eventos (nome + minuto)
+  const scoreGoals = (t: SimTeam, goals: number): { name: string; min: number }[] => {
+    const evs: { name: string; min: number }[] = []
     for (let g = 0; g < goals; g++) {
       const pool = t.xi.map(c => ({ c, w: c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05 }))
       const total = pool.reduce((s, p) => s + p.w, 0)
@@ -140,7 +144,10 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
       const key = `${t.name}:${pick.id}`, row = scorers.get(key)
       if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, div, goals: 1, you: t.you, human: t.human })
+      const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 6) : 1 + Math.floor(rng() * 90)
+      evs.push({ name: pick.name, min })
     }
+    return evs
   }
   const nr = Math.min(round, 38)
   for (let r = 0; r < nr; r++) for (const [hi, ai] of fix[r]) {
@@ -150,9 +157,13 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     const fh = rollForm(H.xi, th, ta, rng), fa = rollForm(A.xi, ta, th, rng)
     const lh = Math.max(0.08, 1.35 + (fh.atk - fa.def) * 0.055 + 0.25), la = Math.max(0.08, 1.35 + (fa.atk - fh.def) * 0.055)
     const hg = poisson(lh, rng), ag = poisson(la, rng)
-    H.gf += hg; H.ga += ag; A.gf += ag; A.ga += hg; credit(H, hg); credit(A, ag)
+    const hev = scoreGoals(H, hg), aev = scoreGoals(A, ag)
+    H.gf += hg; H.ga += ag; A.gf += ag; A.ga += hg
     if (hg > ag) { H.pts += 3; H.w++; A.l++ } else if (ag > hg) { A.pts += 3; A.w++; H.l++ } else { H.pts++; A.pts++; H.d++; A.d++ }
-    if (lastMatches && r === nr - 1) lastMatches.push({ h: H.name, a: A.name, hg, ag, you: !!(H.you || A.you), hum: !!(H.human || A.human) })
+    if (lastMatches && r === nr - 1) {
+      const goals: Goal[] = [...hev.map(e => ({ ...e, home: true })), ...aev.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
+      lastMatches.push({ h: H.name, a: A.name, hg, ag, hId: H.teamId, aId: A.teamId, you: !!(H.you || A.you), hum: !!(H.human || A.human), goals })
+    }
   }
 }
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
@@ -180,19 +191,20 @@ function ZoneLegend() {
   const chip = (bg: string, label: string, border = false) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><i style={{ width: 10, height: 10, borderRadius: 3, display: 'inline-block', background: bg, border: border ? '1px solid rgba(0,0,0,0.2)' : 'none' }} />{label}</span>
   return <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>{chip('#D6E9FA', 'G4')}{chip('#fff', 'Meio', true)}{chip('#F9D8D3', 'Z4')}</div>
 }
-function DivTable({ div, teams }: { div: Div; teams: SimTeam[] }) {
+function DivTable({ div, teams, colors, mine }: { div: Div; teams: SimTeam[]; colors: Record<number, string>; mine?: boolean }) {
   return (
-    <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
+    <div style={{ ...box(mine ? '#FFFBEB' : '#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>{DIV_LABEL[div]}</p><ZoneLegend />
+        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>{DIV_LABEL[div]}{mine ? ' · você' : ''}</p><ZoneLegend />
       </div>
       <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
         <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>P</th><th style={{ ...th, textAlign: 'center' }}>V</th><th style={{ ...th, textAlign: 'center' }}>E</th><th style={{ ...th, textAlign: 'center' }}>D</th><th style={{ ...th, textAlign: 'center' }}>SG</th></tr></thead>
         <tbody>
           {teams.map((t, i) => {
             const other = t.human && !t.you
+            const bg = t.you ? GOLD : other ? (colors[t.teamId] ?? '#FFE0D6') : zone(i + 1)
             return (
-              <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', background: t.you ? GOLD : other ? '#FFE0D6' : zone(i + 1), fontWeight: (t.you || other) ? 800 : 500 }}>
+              <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', background: bg, fontWeight: (t.you || other) ? 800 : 500 }}>
                 <td style={{ paddingRight: 4 }}>{i + 1}</td>
                 <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>{t.you ? '👤 ' : other ? '🔥 ' : ''}{t.name}</td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{t.pts}</td>
@@ -206,10 +218,11 @@ function DivTable({ div, teams }: { div: Div; teams: SimTeam[] }) {
     </div>
   )
 }
-export function PyramidTables({ tables, scorers }: { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[] }) {
+export function PyramidTables({ tables, scorers, order, colors, myDiv }: { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; order?: Div[]; colors?: Record<number, string>; myDiv?: Div | null }) {
+  const cols = colors ?? {}
   return (
     <>
-      {DIVS.map(d => <DivTable key={d} div={d} teams={tables[d]} />)}
+      {(order ?? DIVS).map(d => <DivTable key={d} div={d} teams={tables[d]} colors={cols} mine={d === myDiv} />)}
       <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
         <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, marginBottom: 8 }}>⚽ ARTILHARIA · TODAS AS DIVISÕES</p>
         {scorers.length === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>Sem gols ainda. Bola rolando…</p> : (
@@ -243,27 +256,79 @@ export function myStanding(tables: Record<Div, SimTeam[]>): { div: Div; pos: num
 const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
 const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // MESMO ritmo dos outros modos (~4,7s/rodada, temporada ~3 min)
 
-// ── os JOGOS da rodada (com placar) nas 4 divisões — igual à simulação dos
-// outros modos: você em dourado, amigos com 🔥. ──
-function RoundMatches({ matches, round }: { matches: Record<Div, SimMatch[]>; round: number }) {
+// cor de fundo própria pra cada amigo online (você é sempre dourado)
+const FRIEND_COLORS = ['#D6E9FA', '#DDF5D6', '#F3E0FF', '#FFF3B8', '#D6F5F0', '#FFE0EC', '#FFE4C7', '#E6E0FF']
+function friendColorMap(humanIds: number[], youId: number): Record<number, string> {
+  const map: Record<number, string> = {}
+  let i = 0
+  for (const id of humanIds) { if (id === youId) continue; map[id] = FRIEND_COLORS[i % FRIEND_COLORS.length]; i++ }
+  return map
+}
+// ordem das divisões: a SUA primeiro, depois a pirâmide de cima pra baixo
+function orderedDivs(myDiv: Div | null): Div[] { return myDiv ? [myDiv, ...DIVS.filter(d => d !== myDiv)] : DIVS }
+const bgOf = (m: { you: boolean; hId: number; aId: number }, colors: Record<number, string>) => m.you ? GOLD : (colors[m.hId] ?? colors[m.aId] ?? undefined)
+
+// ── SEU JOGO em destaque: card grande com o minuto correndo + os gols (nome do
+// artilheiro), igual à simulação do modo off-line. ──
+function MyMatchCard({ m, youName }: { m: SimMatch; youName: string }) {
+  const [min, setMin] = useState(0)
+  useEffect(() => {
+    setMin(0)
+    const step = Math.max(30, (ROUND_MS * 0.82) / 93)
+    let cur = 0
+    const iv = setInterval(() => { cur++; setMin(cur); if (cur >= 93) clearInterval(iv) }, step)
+    return () => clearInterval(iv)
+  }, [m])
+  const shown = m.goals.filter(g => g.min <= min)
+  const hg = shown.filter(g => g.home).length, ag = shown.filter(g => !g.home).length
+  const done = min >= 93
+  const minLabel = min >= 93 ? 'FIM' : min > 90 ? `90+${min - 90}'` : `${min}'`
+  const iAmHome = m.h === youName
   return (
-    <>
-      <div style={{ ...box(INK), padding: 10, color: '#fff', marginBottom: 10, textAlign: 'center' }}>
-        <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0 }}>🗓️ Rodada {round} · os jogos</p>
+    <div style={{ ...box(GOLD), padding: 14, marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD }}>🎯 SUA PARTIDA</span>
+        <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: done ? INK : '#fff', color: done ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '1px 8px' }}>{done ? 'FIM' : `⏱️ ${minLabel}`}</span>
       </div>
-      {DIVS.map(d => (
-        <div key={d} style={{ ...box('#fff'), padding: 9, marginBottom: 8 }}>
-          <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, marginBottom: 5 }}>{DIV_LABEL[d]}</p>
-          {matches[d].map((m, i) => (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5, padding: '2.5px 2px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: m.you ? GOLD : m.hum ? '#FFE0D6' : undefined, borderRadius: (m.you || m.hum) ? 5 : 0 }}>
-              <span style={{ textAlign: 'right', fontWeight: (m.you || m.hum) ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.h}</span>
-              <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: (m.you || m.hum) ? INK : '#eee', color: (m.you || m.hum) ? '#fff' : INK, borderRadius: 5, padding: '0 7px' }}>{m.hg}×{m.ag}</span>
-              <span style={{ textAlign: 'left', fontWeight: (m.you || m.hum) ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#5a5647' }}>{m.a}</span>
-            </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 8 }}>
+        <span style={{ textAlign: 'right', fontWeight: 900, fontSize: 14, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: iAmHome ? INK : '#5a5647' }}>{iAmHome ? '👤 ' : ''}{m.h}</span>
+        <span style={{ fontWeight: 900, fontSize: 22, ...OSWALD, background: INK, color: '#fff', borderRadius: 8, padding: '2px 12px' }}>{hg}×{ag}</span>
+        <span style={{ textAlign: 'left', fontWeight: 900, fontSize: 14, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: !iAmHome ? INK : '#5a5647' }}>{!iAmHome ? '👤 ' : ''}{m.a}</span>
+      </div>
+      <div style={{ marginTop: 8, minHeight: 18 }}>
+        {shown.length === 0
+          ? <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.5)', textAlign: 'center', margin: 0 }}>{done ? '0 a 0 — sem gols.' : 'Bola rolando…'}</p>
+          : shown.slice().reverse().map((g, i) => (
+            <p key={i} style={{ fontSize: 11.5, fontWeight: i === 0 ? 900 : 700, color: i === 0 ? INK : 'rgba(0,0,0,0.6)', margin: '1px 0', textAlign: g.home ? 'left' : 'right', ...OSWALD }}>
+              {g.home ? '' : ''}⚽ {g.name} <span style={{ opacity: 0.7 }}>{g.min > 90 ? `90+${g.min - 90}'` : `${g.min}'`}</span>{i === 0 && !done ? ' ⚡' : ''}
+            </p>
           ))}
-        </div>
-      ))}
-    </>
+      </div>
+    </div>
+  )
+}
+
+// ── os JOGOS de uma divisão (placar + quem fez os gols), cores por amigo ──
+function DivMatches({ div, matches, colors, hideId }: { div: Div; matches: SimMatch[]; colors: Record<number, string>; hideId?: number }) {
+  return (
+    <div style={{ ...box('#fff'), padding: 9, marginBottom: 8 }}>
+      <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, marginBottom: 5 }}>{DIV_LABEL[div]}</p>
+      {matches.map((m, i) => {
+        if (hideId != null && (m.hId === hideId || m.aId === hideId)) return null
+        const bg = bgOf(m, colors)
+        const last = m.goals.length ? m.goals[m.goals.length - 1] : null
+        return (
+          <div key={i} style={{ padding: '3px 2px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: bg, borderRadius: bg ? 5 : 0 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5 }}>
+              <span style={{ textAlign: 'right', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.h}</span>
+              <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: bg ? INK : '#eee', color: bg ? '#fff' : INK, borderRadius: 5, padding: '0 7px' }}>{m.hg}×{m.ag}</span>
+              <span style={{ textAlign: 'left', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#5a5647' }}>{m.a}</span>
+            </div>
+            {last && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '1px 0 0', textAlign: 'center' }}>⚽ {last.name} <span style={{ opacity: 0.7 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></p>}
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
@@ -279,6 +344,12 @@ export function PyramidSeasonScreen() {
   const { tables, scorers, matches } = useMemo(() => simulatePyramid(world, state.seed, round), [world, state.seed, round])
   const me = myStanding(tables)
   const hasMatches = round >= 1 && matches.D.length > 0
+  const youId = state.managers[state.youIdx]?.id ?? 0
+  const humanKey = state.managers.filter(m => m.isHuman).map(m => m.id).join(',')
+  const colors = useMemo(() => friendColorMap(humanKey ? humanKey.split(',').map(Number) : [], youId), [humanKey, youId])
+  const myDiv = me?.div ?? null
+  const ord = orderedDivs(myDiv)
+  const myMatch = myDiv ? matches[myDiv]?.find(x => x.you) : undefined
 
   // host conduz: avança a rodada a cada ~1,4s (isso sincroniza pra todos)
   useEffect(() => {
@@ -340,7 +411,17 @@ export function PyramidSeasonScreen() {
           ))}
         </div>
 
-        {tab === 'jogos' && hasMatches ? <RoundMatches matches={matches} round={round} /> : <PyramidTables tables={tables} scorers={scorers} />}
+        {tab === 'jogos' && hasMatches ? (
+          <>
+            <div style={{ ...box(INK), padding: 9, color: '#fff', marginBottom: 10, textAlign: 'center' }}>
+              <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>🗓️ Rodada {Math.min(round, 38)} · os jogos</p>
+            </div>
+            {myMatch && me && <MyMatchCard m={myMatch} youName={me.team} />}
+            {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} hideId={d === myDiv ? youId : undefined} />)}
+          </>
+        ) : (
+          <PyramidTables tables={tables} scorers={scorers} order={ord} colors={colors} myDiv={myDiv} />
+        )}
 
         <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
       </div>
