@@ -1321,7 +1321,7 @@ export function EscCerimonia() {
       )}
       {state.careerOnline && (state.marketLog?.length ?? 0) > 0 && (
         <Box bg="#EEF7FF" className="p-4 space-y-1">
-          <p className="font-black text-sm" style={OSWALD}>🤖 MERCADO DOS BOTS</p>
+          <p className="font-black text-sm" style={OSWALD}>🤖 BOTS NO LEILÃO</p>
           {state.marketLog!.slice(0, 14).map((l, i) => <p key={i} className="text-xs font-bold text-black/75">{l}</p>)}
           {state.marketLog!.length > 14 && <p className="text-[10px] font-semibold text-black/50">…e mais {state.marketLog!.length - 14}</p>}
         </Box>

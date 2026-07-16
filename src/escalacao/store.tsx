@@ -1075,6 +1075,7 @@ type Action =
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
+  | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
   | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
@@ -1743,11 +1744,19 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       return s
     }
+    case 'CAST_SEASON_VOTE': {
+      // fim de temporada: cada humano vota entre leilão de transferências e seguir
+      // com o mesmo time. Guarda o voto (guest rota pro host, host aplica e sincroniza).
+      if (!s.careerOnline) return s
+      s.seasonVotes = { ...(s.seasonVotes ?? {}), [action.mgrId]: action.vote }
+      return s
+    }
     case 'NEXT_SEASON_ONLINE': {
       // carreira online (mesmo time): nova colocação (acessos/quedas já aplicados
       // pelo host, determinístico) + zera a rodada e sobe a temporada. Os elencos
       // seguem os mesmos (novo leilão é um fluxo à parte).
       if (!s.careerOnline) return s
+      s.seasonVotes = {} // temporada nova: zera a votação
       s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada (base+título/acesso/queda)
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada (pro ranking)
@@ -1763,6 +1772,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // — mesmos técnicos (ids/times preservados), elencos zerados, orçamento
       // parelho pra todos. A divisão só importa na hora de jogar a temporada.
       if (!s.careerOnline) return s
+      s.seasonVotes = {} // temporada nova: zera a votação
       setActiveCatalog(s.deckLeague) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
       s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
@@ -1791,6 +1801,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // títulos) e abre a tela de VENDA — "Listar pra leilão" (45s). A compra vem
       // depois (RESERVE_AUCTION_ONLINE), quando o host começa o leilão.
       if (!s.careerOnline) return s
+      s.seasonVotes = {} // temporada nova: zera a votação
       s.careerCoins = applyRewards(s.careerCoins, action.rewards)
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       s.careerHonors = applyHonors(s.careerHonors, action.champions)
