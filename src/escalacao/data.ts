@@ -1312,14 +1312,14 @@ const INC_FIRST = ['Valdir', 'Josimar', 'Cleiton', 'Ednaldo', 'Wanderson', 'Gon�
 const INC_NICK = ['da Ilha', 'Perna Torta', 'Bola Sete', 'do Sertão', 'Trovoada', 'Canela Fina', 'Pé de Ferro', 'Maestro', 'Furacão', 'da Baixada', 'Gaúcho', 'Paraíba', 'Matuto', 'Serrano', 'do Brejo', 'Cigano', 'Foguete', 'Peixe Frito', 'da Várzea', 'Bicudo']
 const INC_CLUBS = ['Operário', 'Treze', 'Caldense', 'Ypiranga', 'Ferroviário', 'Uberlândia', 'Anapolina', 'Itabaiana', 'River-PI', 'Sergipe', 'Central-PE', 'Mixto', 'Rio Branco', 'Olaria', 'Bangu', 'Portuguesa', 'Inter de Limeira', 'União São João', 'Tuna Luso', 'XV de Piracicaba']
 
-export function makeIncognita(pos: Sector, idx: number, gem: boolean, rng: () => number): Card {
+export function makeIncognita(pos: Sector, idx: number, gem: boolean, rng: () => number, salt = ''): Card {
   const lo = gem ? 72 + Math.floor(rng() * 6) : 46 + Math.floor(rng() * 12)
   const width = 12 + Math.floor(rng() * 7)
   const hi = Math.min(93, lo + width)
   const name = `${INC_FIRST[Math.floor(rng() * INC_FIRST.length)]} ${INC_NICK[Math.floor(rng() * INC_NICK.length)]}`
   const club = INC_CLUBS[Math.floor(rng() * INC_CLUBS.length)]
   const year = 1968 + Math.floor(rng() * 40)
-  return { id: `inc-${pos}-${idx}`, name, club, year, pos, fame: 1, lo, hi }
+  return { id: `inc-${pos}-${idx}${salt ? `-${salt}` : ''}`, name, club, year, pos, fame: 1, lo, hi }
 }
 
 // ─── Nomes de técnicos CPU e times ───────────────────────────────────
