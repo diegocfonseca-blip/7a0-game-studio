@@ -992,7 +992,9 @@ type Action =
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; deck?: 'br' | 'eu' | 'both'; career?: boolean; locked?: boolean; pwHash?: string }
   | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). rewards = moedas por técnico; champions = campeão de cada divisão (pro ranking)
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
-  | { type: 'RESERVE_AUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: começa a próxima temporada com o LEILÃO DE RESERVAS (mantém elenco, mira 22, orçamento = caixa)
+  | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
+  | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
+  | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
@@ -1021,6 +1023,7 @@ function rngOf(state: EscState): () => number {
 }
 
 const ENVELOPE_MS = 45_000
+const RESERVE_LIST_MS = 45_000 // tela "Listar pra leilão" (venda) antes do leilão de reservas
 const CEREMONY_MS = 45_000 // tempo pra olhar os times antes do campeonato começar sozinho
 
 // entra na cerimônia da revelação e liga o cronômetro de 45s (auto-começa)
@@ -1585,28 +1588,76 @@ export function reducer(state: EscState, action: Action): EscState {
       startAuctionPhase(s, false)
       return s
     }
-    case 'RESERVE_AUCTION_ONLINE': {
-      // carreira online: começa a próxima temporada com o LEILÃO DE RESERVAS.
-      // Diferente do "novo leilão": MANTÉM os elencos, marca "elenco fundo" (mira
-      // 22 = XI + banco) e o orçamento de cada um é a SUA CAIXA (moedas). O baralho
-      // é montado só pra demanda do banco (as vagas que faltam pra 22), quantidade
-      // cheia. No fim (FINISH_CEREMONY), a caixa vira o que sobrou e tira o fundo.
+    case 'OPEN_RESERVE_LIST': {
+      // carreira online: já ENTRA na temporada nova (aplica acessos/quedas, moedas,
+      // títulos) e abre a tela de VENDA — "Listar pra leilão" (45s). A compra vem
+      // depois (RESERVE_AUCTION_ONLINE), quando o host começa o leilão.
       if (!s.careerOnline) return s
-      setActiveCatalog(s.deckLeague)
       s.careerCoins = applyRewards(s.careerCoins, action.rewards)
       s.careerHonors = applyHonors(s.careerHonors, action.champions)
       s.seasonNo++
       s.careerPlacements = action.placements
       s.round = 0; s.champion = null
+      s.careerTactics = {}
+      s.reserveListed = {}
+      s.screen = 'reserveList'
+      s.phaseDeadline = Date.now() + RESERVE_LIST_MS
+      return s
+    }
+    case 'TOGGLE_RESERVE_LIST': {
+      // lista/tira uma carta da lista de leilão. NUNCA deixa a posição abaixo do XI
+      // (formação) — se listar deixaria incompleto, ignora.
+      if (!s.careerOnline) return s
+      const mgr = s.managers.find(m => m.id === action.mgrId)
+      if (!mgr) return s
+      const listed = { ...(s.reserveListed ?? {}) }
+      const arr = [...(listed[action.mgrId] ?? [])]
+      const i = arr.indexOf(action.cardId)
+      if (i >= 0) arr.splice(i, 1)
+      else {
+        const card = mgr.squad.find(c => c.id === action.cardId)
+        if (!card) return s
+        const pos = card.pos
+        const listedInPos = arr.filter(id => mgr.squad.find(c => c.id === id)?.pos === pos).length
+        const filledPos = mgr.squad.filter(c => c.pos === pos).length
+        if (filledPos - listedInPos - 1 < FORMATIONS[mgr.formation][pos]) return s // deixaria a posição incompleta
+        arr.push(action.cardId)
+      }
+      listed[action.mgrId] = arr
+      s.reserveListed = listed
+      return s
+    }
+    case 'RESERVE_AUCTION_ONLINE': {
+      // fecha a VENDA e abre a COMPRA (leilão de reservas). MANTÉM os elencos,
+      // consome a lista (tira os listados dos times e joga no baralho — o dono
+      // pode dar lance de volta), marca "elenco fundo" (mira 22) e o orçamento é a
+      // CAIXA. No fim (FINISH_CEREMONY), a caixa vira o que sobrou e tira o fundo.
+      if (!s.careerOnline) return s
+      setActiveCatalog(s.deckLeague)
+      // 1) consome a lista: tira os listados dos elencos
+      const listedMap = s.reserveListed ?? {}
+      const listedCards: Card[] = []
+      for (const m of s.managers) {
+        const ids = new Set(listedMap[m.id] ?? [])
+        if (ids.size === 0) continue
+        const keep: WonCard[] = [], out: WonCard[] = []
+        for (const c of m.squad) (ids.has(c.id) ? out : keep).push(c)
+        m.squad = keep
+        for (const c of out) listedCards.push({ ...c }) // paid = piso (mercado, próx. parte)
+      }
+      // 2) elenco fundo + orçamento = caixa
       for (const m of s.managers) if (m.isHuman) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
+      // 3) baralho pra demanda do banco + injeta os listados
       const rng = mulberry((s.seed ^ (s.seasonNo * 811073)) >>> 0)
       const used = new Set<string>()
-      for (const m of s.managers) for (const c of m.squad) used.add(c.name) // não reoferece quem já é de alguém
+      for (const m of s.managers) for (const c of m.squad) used.add(c.name)
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+      for (const c of listedCards) s.deck[c.pos].push(c)
       s.surpriseId = pickSurprise(s.deck, rng)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []
       s.careerTactics = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
+      s.reserveListed = {}
       s.reserveAuction = true
       s.screen = 'auction'
       startAuctionPhase(s, false)
