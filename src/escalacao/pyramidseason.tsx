@@ -734,20 +734,53 @@ export function PyramidSeasonScreen() {
         ) : tab === 'jogos' && hasMatches ? (
           <>
             {done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished col={myCol} roundKey={round} />}
-            {(() => { // frase de rivalidade: o vizinho na tabela (quem cola / quem você persegue)
+            {(() => { // FRASES COM EMOÇÃO: clássico, artilheiro, zuação de divisão, queda, liderança
               if (!me) return null
-              const t = tables[me.div] ?? []
-              const i = t.findIndex(x => x.you); if (i < 0) return null
-              const rival = i > 0 ? t[i - 1] : t[i + 1]; if (!rival) return null
-              const gap = Math.abs(t[i].pts - rival.pts)
-              const pts = gap === 1 ? 'ponto' : 'pontos'
-              const rc = colors[rival.teamId]?.solid ?? INK
-              const R = <span style={{ color: rc, fontWeight: 900 }}>{rival.name}</span>
-              const msg = i === 0 ? <>🔥 Você é o <b>LÍDER</b>! {R} cola {gap} {pts} atrás — não vacila.</>
-                : i > 0 && gap <= 2 ? <>😤 {R} tá só {gap} {pts} na sua frente. Vai deixar?</>
-                : i > 0 ? <>👀 De olho no {R}: {gap} {pts} à sua frente.</>
-                : <>💪 Você segura {R} {gap} {pts} atrás. Aguenta firme!</>
-              return <div style={{ ...box('#FFF3E0'), padding: '9px 11px', marginBottom: 10 }}><p style={{ fontSize: 12, fontWeight: 800, ...OSWALD, margin: 0 }}>{msg}</p></div>
+              const flavors: React.ReactNode[] = []
+              const nm = (id: number, name: string) => <span style={{ color: colors[id]?.solid ?? INK, fontWeight: 900 }}>{name}</span>
+              const table = tables[me.div] ?? []
+              const myIdx = table.findIndex(x => x.you)
+              const myRank = DIVS.indexOf(me.div) // 0=A (topo) … 3=D
+              // 1) CLÁSSICO: sua partida é contra outro humano
+              if (myMatch) {
+                const oppName = myMatch.h === me.team ? myMatch.a : myMatch.h
+                const opp = table.find(x => x.name === oppName)
+                if (opp?.human) flavors.push(<>🔥 <b>CLÁSSICO!</b> Você x {nm(opp.teamId, oppName)} nesta rodada — não pode perder!</>)
+              }
+              // 2) ARTILHEIRO do seu time (arrebentando)
+              const mineTop = scorers.filter(s => s.teamId === youId).sort((a, b) => b.goals - a.goals)[0]
+              if (mineTop && mineTop.goals >= 3) {
+                const leagueTop = scorers.filter(s => s.div === me.div).sort((a, b) => b.goals - a.goals)[0]
+                flavors.push(leagueTop?.name === mineTop.name
+                  ? <>👑 <b>{mineTop.name}</b> é o ARTILHEIRO da {DIV_NAME[me.div]} — {mineTop.goals} gols!</>
+                  : <>⚽ <b>{mineTop.name}</b> tá voando: {mineTop.goals} gols pelo seu time!</>)
+              }
+              // 3) ZUAÇÃO de divisão: amigo numa série mais baixa (ou mais alta)
+              const friends = state.managers.filter(m => m.isHuman && m.id !== youId)
+                .map(m => { for (const d of DIVS) { const idx = tables[d].findIndex(x => x.teamId === m.id); if (idx >= 0) return { name: tables[d][idx].name, div: d, id: m.id, pos: idx + 1 } } return null })
+                .filter((x): x is { name: string; div: Div; id: number; pos: number } => !!x)
+              const below = friends.filter(f => DIVS.indexOf(f.div) > myRank).sort((a, b) => DIVS.indexOf(b.div) - DIVS.indexOf(a.div))[0]
+              const above = friends.filter(f => DIVS.indexOf(f.div) < myRank).sort((a, b) => DIVS.indexOf(a.div) - DIVS.indexOf(b.div))[0]
+              if (below) flavors.push(<>😎 Você na <b>{DIV_NAME[me.div]}</b> e o {nm(below.id, below.name)} lá na {DIV_NAME[below.div]} 👇</>)
+              else if (above) flavors.push(<>👀 O {nm(above.id, above.name)} tá na <b>{DIV_NAME[above.div]}</b> — bora subir e alcançar!</>)
+              // 3b) ZUAÇÃO: amigo afundando na zona de queda (últimos 4) da divisão dele
+              const falling = friends.find(f => f.pos >= 17 && f.div !== 'D')
+              if (falling) flavors.push(<>📉 O {nm(falling.id, falling.name)} tá afundando na zona de queda da {DIV_NAME[falling.div]}… 👋</>)
+              // 4) QUEDA: você na zona de rebaixamento (últimos 4)
+              if (myIdx >= 16 && me.div !== 'D') flavors.push(<>🚨 <b>Perigo!</b> Você tá na zona de queda da {DIV_NAME[me.div]} — reage!</>)
+              // 5) VIZINHO na tabela (liderança / perseguição) — sempre tem
+              if (myIdx >= 0) {
+                const rival = myIdx > 0 ? table[myIdx - 1] : table[myIdx + 1]
+                if (rival) {
+                  const gap = Math.abs(table[myIdx].pts - rival.pts); const pts = gap === 1 ? 'ponto' : 'pontos'
+                  flavors.push(myIdx === 0 ? <>🥇 Você é o <b>LÍDER</b>! {nm(rival.teamId, rival.name)} cola {gap} {pts} atrás.</>
+                    : myIdx > 0 && gap <= 2 ? <>😤 {nm(rival.teamId, rival.name)} tá só {gap} {pts} na sua frente. Vai deixar?</>
+                    : <>💪 Você segura {nm(rival.teamId, rival.name)} {gap} {pts} atrás!</>)
+                }
+              }
+              return flavors.slice(0, 3).map((f, i) => (
+                <div key={i} style={{ ...box('#FFF3E0'), padding: '8px 11px', marginBottom: 8 }}><p style={{ fontSize: 12, fontWeight: 800, ...OSWALD, margin: 0 }}>{f}</p></div>
+              ))
             })()}
             {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
           </>
