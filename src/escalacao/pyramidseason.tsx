@@ -11,7 +11,7 @@ import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS } from './data'
 import type { Card, Manager, Sector, WonCard } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { useEsc } from './store'
-import { CardCollectPrompt, SEASON_TOTAL_MS } from './screens'
+import { CardCollectPrompt } from './screens'
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -337,8 +337,8 @@ export function myStanding(tables: Record<Div, SimTeam[]>): { div: Div; pos: num
 }
 const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
 // ritmo da carreira online: +1s por jogo em relação aos outros modos, pra dar
-// tempo de decidir tática/Time A-B durante a partida (~7,7s/rodada). Só aqui.
-const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) + 4000
+// tempo de decidir tática/Time A-B durante a partida: 8s por rodada (fixo). Só aqui.
+const ROUND_MS = 8000
 
 // CADA usuário (você e amigos) tem UMA cor fixa e ÚNICA: `solid` (nome/chip) +
 // `light` (fundo da faixa/linha). Nada de preto — o preto já é dos botões. A cor
