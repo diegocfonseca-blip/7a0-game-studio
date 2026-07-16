@@ -204,6 +204,7 @@ export interface EscState {
   pwHash?: string // hash da senha da sala (SHA-256) — idem
   reserveAuction?: boolean // carreira online: o leilão em curso é o de RESERVAS (mantém elenco, mira 22, orçamento = caixa). No fim, sincroniza a caixa e tira o elenco fundo.
   reserveListed?: Record<number, string[]> // carreira online: cartas que cada técnico LISTOU pro leilão (mgrId → ids), escolhidas na tela de venda (45s)
+  careerLineup?: Record<number, Record<number, string[]>> // carreira online: escalação (XI) POR JOGO (mgrId → rodada → ids dos 11 titulares); vale da rodada em diante, como a tática
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)
   champion: number | null

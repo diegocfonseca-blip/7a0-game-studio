@@ -171,14 +171,27 @@ function tacAt(tactics: RoundTactics, teamId: number, r: number): Tac {
   for (const k in byRound) { const kn = +k; if (kn <= r && kn > bestK) { bestK = kn; best = byRound[kn] } }
   return best
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lastMatches?: SimMatch[]) {
+// escalação (XI) de um humano é POR JOGO, igual à tática: `lineups[teamId]` é um
+// mapa rodada→ids; na rodada r vale a última escolha numa rodada <= r. Se não há
+// escolha (ou a escalação não tem 11 válidos), cai pro bestXI automático.
+export type RoundLineups = Record<number, Record<number, string[]>>
+function lineupAt(lineups: RoundLineups, teamId: number, r: number, squad: PoolCard[]): PoolCard[] {
+  const byRound = lineups[teamId]
+  let bestK = -1, ids: string[] | null = null
+  if (byRound) for (const k in byRound) { const kn = +k; if (kn <= r && kn > bestK) { bestK = kn; ids = byRound[kn] } }
+  if (!ids) return bestXI(squad)
+  const map = new Map(squad.map(c => [c.id, c]))
+  const xi = ids.map(id => map.get(id)).filter((c): c is PoolCard => !!c)
+  return xi.length === 11 ? xi : bestXI(squad)
+}
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[]) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // credita os gols na artilharia da temporada e devolve os eventos (nome + minuto)
-  const scoreGoals = (t: SimTeam, goals: number): { name: string; min: number }[] => {
+  const scoreGoals = (t: SimTeam, xi: PoolCard[], goals: number): { name: string; min: number }[] => {
     const evs: { name: string; min: number }[] = []
     for (let g = 0; g < goals; g++) {
-      const pool = t.xi.map(c => ({ c, w: c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05 }))
+      const pool = xi.map(c => ({ c, w: c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05 }))
       const total = pool.reduce((s, p) => s + p.w, 0)
       let r = rng() * total, pick = pool[0].c
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
@@ -195,10 +208,13 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     // humano usa a tática que ELE escolheu (sincronizada); CPU sorteia
     const th: Tac = H.human ? tacAt(tactics, H.teamId, r) : TACS[Math.floor(rng() * 3)]
     const ta: Tac = A.human ? tacAt(tactics, A.teamId, r) : TACS[Math.floor(rng() * 3)]
-    const fh = rollForm(H.xi, th, ta, rng), fa = rollForm(A.xi, ta, th, rng)
+    // XI daquele jogo: humano usa a escalação que ELE montou (por rodada); CPU o fixo
+    const hxi = H.human ? lineupAt(lineups, H.teamId, r, H.squad) : H.xi
+    const axi = A.human ? lineupAt(lineups, A.teamId, r, A.squad) : A.xi
+    const fh = rollForm(hxi, th, ta, rng), fa = rollForm(axi, ta, th, rng)
     const lh = Math.max(0.08, 1.35 + (fh.atk - fa.def) * 0.055 + 0.25), la = Math.max(0.08, 1.35 + (fa.atk - fh.def) * 0.055)
     const hg = poisson(lh, rng), ag = poisson(la, rng)
-    const hev = scoreGoals(H, hg), aev = scoreGoals(A, ag)
+    const hev = scoreGoals(H, hxi, hg), aev = scoreGoals(A, axi, ag)
     H.gf += hg; H.ga += ag; A.gf += ag; A.ga += hg
     if (hg > ag) { H.pts += 3; H.w++; A.l++ } else if (ag > hg) { A.pts += 3; A.w++; H.l++ } else { H.pts++; A.pts++; H.d++; A.d++ }
     if (lastMatches && r === nr - 1) {
@@ -210,14 +226,14 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; matches: Record<Div, SimMatch[]> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; matches: Record<Div, SimMatch[]> } {
   const scorers = new Map<string, SeasonScorer>()
   const tables = {} as Record<Div, SimTeam[]>
   const matches = {} as Record<Div, SimMatch[]>
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lm)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
@@ -433,15 +449,15 @@ function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matche
 // melhores de cada posição (pela formação) são os titulares (fundo creme); as
 // reservas aparecem AO LADO, na mesma linha de posição. Sem estrela/badge. ──
 const POS_LABEL: Record<Sector, string> = { GOL: 'Goleiros', LAT: 'Laterais', ZAG: 'Zagueiros', MEI: 'Meias', ATA: 'Atacantes' }
-function PlayerRow({ c, titular, col }: { c: WonCard; titular: boolean; col: FCol }) {
+function PlayerRow({ c, titular, col, onSwap }: { c: WonCard; titular: boolean; col: FCol; onSwap?: () => void }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: titular ? '#fff' : 'rgba(255,255,255,0.5)', borderLeft: `3px solid ${titular ? col.solid : 'transparent'}`, marginBottom: 3 }}>
-      <span style={{ fontWeight: titular ? 800 : 600, fontSize: 12, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: titular ? INK : '#6a6658' }}>{c.name}</span>
+    <div onClick={onSwap} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: titular ? '#fff' : 'rgba(255,255,255,0.5)', borderLeft: `3px solid ${titular ? col.solid : 'transparent'}`, marginBottom: 3, cursor: onSwap ? 'pointer' : 'default' }}>
+      <span style={{ fontWeight: titular ? 800 : 600, fontSize: 12, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: titular ? INK : '#6a6658' }}>{c.name}{onSwap && <span style={{ fontWeight: 900, marginLeft: 4, color: titular ? '#c0392b' : GREEN }}>{titular ? '▼' : '▲'}</span>}</span>
       <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, whiteSpace: 'nowrap', color: '#5a5647', flexShrink: 0 }}>💰 {c.paid ?? 0}</span>
     </div>
   )
 }
-function SquadTab({ mgr, col, coins }: { mgr: Manager; col: FCol; coins: number }) {
+function SquadTab({ mgr, col, coins, xiIds, onSwap }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; onSwap?: (id: string) => void }) {
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
@@ -454,7 +470,7 @@ function SquadTab({ mgr, col, coins }: { mgr: Manager; col: FCol; coins: number 
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: 'rgba(255,255,255,0.6)', border: `2px solid ${col.solid}`, borderRadius: 8, padding: '4px 8px' }}>
         <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>🪙 Caixa: {coins}</span>
-        <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>· moedas pra reforços (mercado em breve)</span>
+        <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{onSwap ? '· toque ▲ subir / ▼ sentar (vale o próximo jogo)' : '· moedas pra reforços'}</span>
       </div>
       {hasReserves && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 5 }}>
@@ -464,14 +480,14 @@ function SquadTab({ mgr, col, coins }: { mgr: Manager; col: FCol; coins: number 
       )}
       {SECTORS.map(pos => {
         const players = mgr.squad.filter(c => c.pos === pos).sort((a, b) => mid(b) - mid(a))
-        const titulars = players.slice(0, need[pos])
-        const reserves = players.slice(need[pos])
+        const titulars = xiIds ? players.filter(c => xiIds.has(c.id)) : players.slice(0, need[pos])
+        const reserves = xiIds ? players.filter(c => !xiIds.has(c.id)) : players.slice(need[pos])
         return (
           <div key={pos} style={{ marginBottom: 8 }}>
             <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: col.solid, opacity: 0.85, margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: 0.3 }}>{POS_LABEL[pos]}</p>
             <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>{titulars.map(c => <PlayerRow key={c.id} c={c} titular col={col} />)}</div>
-              {reserves.length > 0 && <div style={{ flex: 1, minWidth: 0 }}>{reserves.map(c => <PlayerRow key={c.id} c={c} titular={false} col={col} />)}</div>}
+              <div style={{ flex: 1, minWidth: 0 }}>{titulars.map(c => <PlayerRow key={c.id} c={c} titular col={col} onSwap={onSwap ? () => onSwap(c.id) : undefined} />)}</div>
+              {reserves.length > 0 && <div style={{ flex: 1, minWidth: 0 }}>{reserves.map(c => <PlayerRow key={c.id} c={c} titular={false} col={col} onSwap={onSwap ? () => onSwap(c.id) : undefined} />)}</div>}
             </div>
           </div>
         )
@@ -529,7 +545,8 @@ export function PyramidSeasonScreen() {
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking'>('jogos')
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo])
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
-  const { tables, scorers, matches } = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics), [world, state.seed, round, careerTactics])
+  const careerLineup = (state.careerLineup ?? {}) as RoundLineups
+  const { tables, scorers, matches } = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics, careerLineup), [world, state.seed, round, careerTactics, careerLineup])
   const me = myStanding(tables)
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
@@ -537,6 +554,23 @@ export function PyramidSeasonScreen() {
   const humanKey = state.managers.filter(m => m.isHuman).map(m => m.id).join(',')
   const colors = useMemo(() => playerColors(humanKey ? humanKey.split(',').map(Number) : [], youId, state.seed), [humanKey, youId, state.seed])
   const myCol = colors[youId] ?? PLAYER_PALETTE[0]
+  // escalação (XI) do SEU time pro próximo jogo — pra aba Elenco (substituição)
+  const mgrMe = state.managers[state.youIdx]
+  const myXI = useMemo(() => (mgrMe ? lineupAt(careerLineup, youId, round, mgrMe.squad) : []), [careerLineup, youId, round, mgrMe])
+  const myXIids = useMemo(() => new Set(myXI.map(c => c.id)), [myXI])
+  const canSub = state.seasonNo >= 2 && !done // substituição libera na 2ª temporada
+  const doSwap = (cardId: string) => {
+    if (!mgrMe) return
+    const card = mgrMe.squad.find(c => c.id === cardId); if (!card) return
+    const ids = myXI.map(c => c.id)
+    if (myXIids.has(cardId)) { // sentar titular → sobe o melhor reserva da posição
+      const res = mgrMe.squad.filter(c => c.pos === card.pos && !myXIids.has(c.id)).sort((a, b) => mid(b) - mid(a))
+      if (res.length) dispatch({ type: 'SET_LINEUP', mgrId: youId, ids: ids.filter(id => id !== cardId).concat(res[0].id) })
+    } else { // subir reserva → senta o pior titular da posição
+      const st = mgrMe.squad.filter(c => c.pos === card.pos && myXIids.has(c.id)).sort((a, b) => mid(a) - mid(b))
+      if (st.length) dispatch({ type: 'SET_LINEUP', mgrId: youId, ids: ids.filter(id => id !== st[0].id).concat(cardId) })
+    }
+  }
   const myDiv = me?.div ?? null
   const ord = orderedDivs(myDiv)
   const myMatch = myDiv ? matches[myDiv]?.find(x => x.you) : undefined
@@ -619,7 +653,7 @@ export function PyramidSeasonScreen() {
                 <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>Vale do próximo jogo em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</p>
               </>
             )}
-            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} />
+            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} onSwap={canSub ? doSwap : undefined} />
           </>
         ) : tab === 'jogos' && hasMatches ? (
           <>
