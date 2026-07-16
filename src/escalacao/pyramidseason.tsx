@@ -421,7 +421,11 @@ function RivalryTicker({ items }: { items: Flavor[] }) {
         <span style={{ fontSize: 15 }}>{it.ic}</span>
         <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, letterSpacing: 0.4 }}>{it.tag}</span>
       </div>
-      <div key={idx} style={{ flex: 1, minWidth: 0, padding: '8px 11px', fontSize: 12.5, fontWeight: 700, lineHeight: 1.25, display: 'flex', alignItems: 'center', animation: 'coFade .45s ease' }}>{it.node}</div>
+      <div key={idx} style={{ flex: 1, minWidth: 0, padding: '8px 11px', display: 'flex', alignItems: 'center', animation: 'coFade .45s ease' }}>
+        {/* o texto num único <span> pra o nome colorido fluir INLINE (senão o flex
+            separa em itens e come os espaços — "seguraNeymarzetti13") */}
+        <span style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.25 }}>{it.node}</span>
+      </div>
       {items.length > 1 && <div style={{ display: 'flex', gap: 3, alignItems: 'center', padding: '0 9px', flexShrink: 0 }}>{items.map((_, k) => <span key={k} style={{ width: 5, height: 5, borderRadius: 999, background: k === idx ? INK : 'rgba(0,0,0,0.2)' }} />)}</div>}
     </div>
   )
