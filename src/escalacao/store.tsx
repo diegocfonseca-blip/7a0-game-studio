@@ -1079,6 +1079,7 @@ type Action =
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
   | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
+  | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
   | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
@@ -1508,6 +1509,7 @@ export function reducer(state: EscState, action: Action): EscState {
         s.careerHonors = {} // títulos começam do zero
         s.marketValues = {} // livro de preços começa vazio (leilão inicial sem piso)
         s.marketLog = []
+        s.careerScorersAll = {}; s.statsSeason = 0 // artilharia de todos os tempos começa do zero
         s.clubCash = seedClubCash({}, pl) // todo time da pirâmide começa com caixa (base por divisão)
       }
       s.roomId = action.roomId
@@ -1752,6 +1754,20 @@ export function reducer(state: EscState, action: Action): EscState {
       // com o mesmo time. Guarda o voto (guest rota pro host, host aplica e sincroniza).
       if (!s.careerOnline) return s
       s.seasonVotes = { ...(s.seasonVotes ?? {}), [action.mgrId]: action.vote }
+      return s
+    }
+    case 'RECORD_SEASON_STATS': {
+      // fim de temporada: soma os gols dos artilheiros no acumulado de TODOS OS
+      // TEMPOS (por nome). Idempotente: só grava uma vez por temporada.
+      if (!s.careerOnline) return s
+      if ((s.statsSeason ?? 0) >= s.seasonNo) return s
+      const all = { ...(s.careerScorersAll ?? {}) }
+      for (const sc of action.scorers) {
+        const prev = all[sc.name]
+        all[sc.name] = { ...sc, goals: (prev?.goals ?? 0) + sc.goals } // teamName/div = os da última temporada (display)
+      }
+      s.careerScorersAll = all
+      s.statsSeason = s.seasonNo
       return s
     }
     case 'NEXT_SEASON_ONLINE': {

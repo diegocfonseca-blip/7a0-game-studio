@@ -218,6 +218,8 @@ export interface EscState {
   marketLog?: string[] // carreira online: resumo do que os BOTS fizeram no leilão/monte (arrematou X, pegou Y de graça, comprou o listado Z por W) — mostrado na cerimônia pra dar visibilidade. Zera a cada leilão.
   marketSellers?: Record<Sector, number[]> // carreira online: por posição, os ids dos BOTS que perderam um jogador pro mercado neste leilão — são justamente eles que podem dar lance NAQUELA posição (rebuscar o que perderam), quando 0 ou 1 humano oferta.
   seasonVotes?: Record<number, 'leilao' | 'mesmo'> // carreira online: no fim da temporada cada humano vota entre abrir o leilão de transferências ou seguir com o mesmo time. O host só inicia quando todos votam; empate → o voto do host decide. Zera ao iniciar a próxima temporada.
+  careerScorersAll?: Record<string, { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D'; goals: number; you: boolean; human: boolean }> // carreira online: artilharia de TODOS OS TEMPOS (gols somados de cada jogador entre as temporadas), por nome. Alimenta a aba Rank › Artilheiros.
+  statsSeason?: number // carreira online: última temporada cujos artilheiros já foram somados no acumulado (evita contar 2x)
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)
   champion: number | null
