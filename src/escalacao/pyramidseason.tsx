@@ -23,6 +23,12 @@ export type Div = 'A' | 'B' | 'C' | 'D'
 export const DIVS: Div[] = ['A', 'B', 'C', 'D']
 const DIV_LABEL: Record<Div, string> = { A: '🏆 Série A', B: '🥈 Série B', C: '🥉 Série C', D: 'Série D' }
 const DIV_TAG: Record<Div, { l: string; bg: string }> = { A: { l: 'A', bg: '#B8892B' }, B: { l: 'B', bg: '#3E8E4E' }, C: { l: 'C', bg: '#9A7B33' }, D: { l: 'D', bg: '#7A7460' } }
+// força-base por divisão dos times de CPU NATIVOS (não humano, não rival). O
+// catálogo real é finito (373 pra 80 times), então os nativos são meio incógnitos
+// e fracos; você e os rivais têm elenco forte do leilão. Sem isso, quem sobe
+// atropela a divisão (líder 100+ pts). Este boost faz A/B/C serem DISPUTADAS; a D
+// fica baixa (lá você joga contra os fillers mesmo). Tunável.
+const CPU_DIV_BOOST: Record<Div, number> = { A: 20, B: 17, C: 14, D: 4 }
 
 // ── motor de simulação por elenco (espelha o da Dinastia) ──
 const NEED: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
@@ -250,6 +256,11 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     const hxi = H.human ? lineupAt(lineups, H.teamId, r, H.squad) : H.xi
     const axi = A.human ? lineupAt(lineups, A.teamId, r, A.squad) : A.xi
     const fh = rollForm(hxi, th, ta, rng), fa = rollForm(axi, ta, th, rng)
+    // times de CPU NATIVOS ganham a força-base da divisão (pra as séries serem
+    // disputadas de verdade). Humano e rivais escolhidos NÃO ganham (jogam com o
+    // elenco real que montaram).
+    const bh = (!H.human && !H.rival) ? CPU_DIV_BOOST[div] : 0, ba = (!A.human && !A.rival) ? CPU_DIV_BOOST[div] : 0
+    fh.atk += bh; fh.def += bh; fa.atk += ba; fa.def += ba
     // qualidade ABSOLUTA do ataque escala os gols: time fraco (cheio de filler)
     // marca menos no geral — não só a diferença atk-def conta. Assim as divisões
     // de baixo (várzea) não inflam a artilharia com nomes de brincadeira.
