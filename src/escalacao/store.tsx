@@ -1133,8 +1133,8 @@ function sweepMonteToBackstops(st: EscState) {
     if (paid > 0) recordPrice(st, card.name, paid)
     // resumo dos bots (visibilidade na cerimônia)
     const msg = listed
-      ? `🤖 ${bot.teamName} ficou com ${card.name} (listado) por ${paid} 🪙`
-      : `🤖 ${bot.teamName} pegou ${card.name} no monte (grátis)`
+      ? `⚽ ${bot.teamName} ficou com ${card.name} (listado) por ${paid} 🪙`
+      : `⚽ ${bot.teamName} pegou ${card.name} no monte (grátis)`
     ;(st.marketLog = st.marketLog ?? []).push(msg)
   }
   // fase 1: os bots fiadores pegam o que cabe na vaga deles
@@ -1251,7 +1251,7 @@ function sealAndResolve(state: EscState) {
     recordPrice(state, q.card.name, q.paid) // livro de preços
     creditSeller(state, q.card, q.paid, q.winner) // o vendedor recebe a grana da venda
     const w = state.managers.find(m => m.id === q.winner) // resumo dos bots (visibilidade)
-    if (w?.backstop) (state.marketLog = state.marketLog ?? []).push(`🤖 ${w.teamName} arrematou ${q.card.name} por ${q.paid} 🪙`)
+    if (w?.backstop) (state.marketLog = state.marketLog ?? []).push(`⚽ ${w.teamName} arrematou ${q.card.name} por ${q.paid} 🪙`)
   }
   state.revealQueue = queue
   state.revealIdx = 0
