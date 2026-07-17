@@ -1397,11 +1397,11 @@ export function EscMonte() {
     <Shell bar={<AuctionBar />}>
       <h2 className="font-black text-3xl pt-1" style={OSWALD}>🪣 MONTE FINAL</h2>
       <p className="text-sm font-semibold text-black/70">
-        As sobras do pregão, de graça. Quem tem mais buracos escolhe primeiro, em serpente. Seus buracos: <b>{totalHoles(you)}</b>.
+        As sobras do pregão. Quem tem mais buracos escolhe primeiro, em serpente. Seus buracos: <b>{totalHoles(you)}</b>.
       </p>
       {state.careerOnline && state.monte.some(c => ((c as { paid?: number }).paid ?? 0) > 0) && (
         <p className="text-xs font-semibold text-black/60">
-          🔒 O <b>vale X</b> é o piso do jogador — quem foi listado e não vendeu caiu pra <b>metade</b> ao vir pro monte. Pegar é <b>de graça</b>: o número é só o quanto ele passa a valer daqui pra frente (não é lance nem custo).
+          🆓 Sobra <b>sem valor</b> você pega de <b>graça</b>. Jogador <b>com piso</b> (💰) é <b>compra sem leilão</b>: você paga aquele valor fixo, sem dar lance — e sai da sua caixa.
         </p>
       )}
       {online && (
@@ -1417,13 +1417,23 @@ export function EscMonte() {
             </p>
           </Box>
           {valid.map(c => {
-            const val = (c as { paid?: number }).paid ?? 0 // valor de piso (carreira): caiu pela metade ao vir pro monte
+            const val = (c as { paid?: number }).paid ?? 0 // piso: carta com valor é compra sem leilão
+            const own = (c as { seller?: number }).seller === you.id // sua carta listada: de graça
+            const paidCard = state.careerOnline && val > 0 && !own
+            const afford = !paidCard || you.money >= val
             return (
             <Box key={c.id} className="p-3 flex items-center justify-between">
               <CardFace c={c} />
               <div className="flex items-center gap-2 shrink-0">
-                {val > 0 && <span className="text-[10px] font-black uppercase leading-tight text-right" style={{ color: '#B8860B' }}>🔒 vale {val}</span>}
-                <Btn onClick={() => dispatch({ type: 'MONTE_PICK', mgrId: you.id, cardId: c.id })} bg={GREEN}><span className="text-white">PEGAR</span></Btn>
+                {paidCard && (
+                  <span className="text-right leading-tight" style={{ color: afford ? '#B8860B' : RED }}>
+                    <span className="text-sm font-black" style={OSWALD}>💰 {val}</span>
+                    <br /><span className="text-[8px] font-bold uppercase" style={{ color: afford ? 'rgba(0,0,0,0.5)' : RED }}>pague sem leilão</span>
+                  </span>
+                )}
+                <Btn onClick={() => afford && dispatch({ type: 'MONTE_PICK', mgrId: you.id, cardId: c.id })} bg={paidCard ? GOLD : GREEN} disabled={!afford}>
+                  <span style={{ color: paidCard ? INK : '#fff' }}>{paidCard ? (afford ? `PAGAR ${val}` : 'SEM CAIXA') : 'PEGAR'}</span>
+                </Btn>
               </div>
             </Box>
             )
