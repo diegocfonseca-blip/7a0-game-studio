@@ -614,6 +614,7 @@ const GOL: C[] = [
 ]
 
 const LAT: C[] = [
+  { name: "Guilherme Arana", club: "Atlético-MG", year: 2021, fame: 3, lo: 76, hi: 84 },
   { name: "Vanderlei Luxemburgo", club: "Flamengo", year: 1975, fame: 1, lo: 55, hi: 74, folk: true },
   { name: "Carlos Alberto Torres", club: "Santos", year: 1970, fame: 5, lo: 95, hi: 99 },
   { name: "Nílton Santos", club: "Botafogo", year: 1958, fame: 5, lo: 95, hi: 99 },
@@ -659,6 +660,7 @@ const LAT: C[] = [
 ]
 
 const ZAG: C[] = [
+  { name: "Junior Alonso", club: "Atlético-MG", year: 2021, fame: 3, lo: 76, hi: 84 },
   { name: "Domingos da Guia", club: "Flamengo", year: 1944, fame: 5, lo: 93, hi: 98 },
   { name: "Aldair", club: "Flamengo", year: 1987, fame: 3, lo: 78, hi: 84, promessa: true },
   { name: "Lúcio", club: "Internacional", year: 2000, fame: 4, lo: 84, hi: 90 },
@@ -711,6 +713,8 @@ const ZAG: C[] = [
 ]
 
 const MEI: C[] = [
+  { name: "Danilo", club: "Corinthians", year: 2012, fame: 4, lo: 85, hi: 91 },
+  { name: "Ralf", club: "Corinthians", year: 2012, fame: 3, lo: 76, hi: 84 },
   { name: "Renato Abreu", club: "Flamengo", year: 2009, fame: 4, lo: 82, hi: 89 },
   { name: "Zico", club: "Flamengo", year: 1981, fame: 5, lo: 95, hi: 99 },
   { name: "Didi", club: "Botafogo", year: 1958, fame: 5, lo: 94, hi: 98 },
@@ -809,6 +813,8 @@ const MEI: C[] = [
 ]
 
 const ATA: C[] = [
+  { name: "Lucas Moura", club: "São Paulo", year: 2012, fame: 4, lo: 85, hi: 91 },
+  { name: "Taison", club: "Internacional", year: 2009, fame: 3, lo: 78, hi: 84, promessa: true },
   { name: "Reinaldo Aleluia", club: "Ceará", year: 2006, fame: 1, lo: 58, hi: 78 },
   { name: "Clodoaldo Matador", club: "Fortaleza", year: 2004, fame: 1, lo: 58, hi: 78, folk: true },
   { name: "Fio Maravilha", club: "Flamengo", year: 1970, fame: 2, lo: 66, hi: 83, folk: true },
@@ -925,7 +931,7 @@ const ATA: C[] = [
   { name: "Savinho", club: "Atlético-MG", year: 2023, fame: 3, lo: 74, hi: 84, promessa: true, bio: "Ponta driblador do Galo que explodiu e foi brilhar no Manchester City — promessa cumprida." },
   { name: "Bernard", club: "Atlético-MG", year: 2013, fame: 3, lo: 74, hi: 84 },
   { name: "Rafael Sóbis", club: "Internacional", year: 2006, fame: 3, lo: 70, hi: 83 },
-  { name: "Luan", club: "Atlético-MG", year: 2013, fame: 3, lo: 74, hi: 85, bio: "Rei da América de 2013 — decisivo na campanha da Libertadores do Galo." },
+  { name: "Luan", club: "Grêmio", year: 2017, fame: 4, lo: 85, hi: 91, bio: "Craque do tri da Libertadores do Grêmio em 2017 — meia-atacante decisivo, eleito o melhor da América." },
   { name: "Romarinho (filho do Romário)", club: "América-RJ", year: 2013, fame: 1, lo: 48, hi: 72, folk: true, bio: "Filho do Baixinho — carregou um sobrenome gigante, mas a carreira foi de perna curta. Folclore puro." },
   { name: "Soteldo", club: "Santos", year: 2019, fame: 3, lo: 72, hi: 84 },
   { name: "Michael Jackson", club: "Palmeiras", year: 2011, fame: 1, lo: 52, hi: 76, folk: true, bio: "O nome já é show à parte — atacante profissional no Palmeiras, puro folclore de arquibancada." },
@@ -1047,6 +1053,9 @@ const ZAG_EU: C[] = [
   { name: "Titus Bramble", club: "Newcastle", year: 2005, fame: 1, lo: 58, hi: 78, folk: true },
 ]
 const MEI_EU: C[] = [
+  { name: "Arturo Vidal", club: "Juventus", year: 2015, fame: 4, lo: 85, hi: 91 },
+  { name: "Bruno Fernandes", club: "Manchester United", year: 2021, fame: 4, lo: 85, hi: 91 },
+  { name: "Ilkay Gündogan", club: "Manchester City", year: 2023, fame: 4, lo: 85, hi: 91 },
   { name: "Djemba-Djemba (nome em dobro)", club: "Manchester United", year: 2004, fame: 1, lo: 50, hi: 72, folk: true, bio: "Tão bom que botaram o nome duas vezes — mas no United virou sinônimo de contratação errada." },
   { name: "Zinedine Zidane", club: "Real Madrid", year: 2002, fame: 5, lo: 90, hi: 95 },
   { name: "Ronaldinho Gaúcho", club: "Barcelona", year: 2005, fame: 5, lo: 91, hi: 96 },
@@ -1157,6 +1166,9 @@ const MEI_EU: C[] = [
   { name: "Mauro Silva", club: "Deportivo La Coruña", year: 1996, fame: 4, lo: 83, hi: 89 },
 ]
 const ATA_EU: C[] = [
+  { name: "Gareth Bale", club: "Real Madrid", year: 2016, fame: 4, lo: 86, hi: 92 },
+  { name: "Eden Hazard", club: "Chelsea", year: 2015, fame: 4, lo: 86, hi: 92 },
+  { name: "Son Heung-min", club: "Tottenham", year: 2020, fame: 4, lo: 85, hi: 91 },
   { name: "Ali Dia (o falso primo do Weah)", club: "Southampton", year: 1996, fame: 1, lo: 42, hi: 64, folk: true, bio: "Entrou no Southampton fingindo ser primo do George Weah. Jogou 53 minutos, foi substituído e sumiu — a maior trapaça do futebol." },
   { name: "Bebê (comprado às cegas)", club: "Manchester United", year: 2010, fame: 1, lo: 50, hi: 72, folk: true, bio: "Comprado pelo United por uma fortuna sem o Ferguson nunca ter visto jogar ao vivo — flop histórico." },
   { name: "Lionel Messi", club: "Barcelona", year: 2012, fame: 5, lo: 92, hi: 96 },
