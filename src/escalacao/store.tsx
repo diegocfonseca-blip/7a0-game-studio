@@ -2155,7 +2155,7 @@ export function reducer(state: EscState, action: Action): EscState {
             const fl = s.marketValues?.[pick.card.name] ?? (pick.card as WonCard).paid ?? 0 // piso do jogador (economia igual pra todos)
             deck[pos].push({ ...pick.card, seller: owner.id, ...(fl > 0 ? { paid: fl } : {}) })
             marketSellers[pos].push(owner.id)
-            if (pick.ownerBot) { pick.ownerBot.backstop = true; pick.ownerBot.deepSquad = true } // bot da liga: caixa via clubCash (fiador)
+            if (pick.ownerBot) pick.ownerBot.backstop = true // bot da liga: caixa via clubCash; fica em 11 (só repõe o que perdeu)
           } else {
             const fam = shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(c.name) && c.fame >= 4), rng)[0]
               ?? shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(c.name)), rng)[0]
@@ -2173,7 +2173,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const nBots = Math.max(1, Math.floor(nMain / 2))
         const chosen = shuffle(s.managers.filter(isMktBot), rng).slice(0, nBots)
         for (const bot of chosen) {
-          bot.backstop = true; bot.deepSquad = true
+          bot.backstop = true // bot fica em 11 (sem elenco fundo) — só repõe o que perder
           // solta as reservas REAIS do bot (o que passa do XI) pro baralho
           for (const pos of SECTORS) {
             const realInPos = bot.squad.filter(c => c.pos === pos && !c.fake)
@@ -2191,7 +2191,7 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const m of s.managers) {
         if (m.isHuman) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
         else if (m.rival) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // rival = "humano": enche banco, gasta clubCash
-        else if (m.backstop) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 }
+        else if (m.backstop) { m.money = cash['m' + m.id] ?? 100 } // bot fica em 11 (sem reserva por enquanto); só a caixa pra repor o que perdeu
       }
       s.surpriseId = pickSurprise(s.deck, rng)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
