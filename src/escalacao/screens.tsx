@@ -2436,39 +2436,60 @@ export function EscAlbum() {
 type RankMode = 'geral' | 'online' | 'cpu'
 interface RankRow { user_id: string; name: string; titles: number; scorer_titles: number; goals: number; cards: number }
 
-// ACERTO AUTOMÁTICO cartas↔ranking: por muito tempo alguns modos gravavam a
-// carta no álbum (user_cards) sem gravar o título no ranking (esc_results) —
-// ex.: a carreira online antiga. Isso deixava o total de cartas maior que os
-// títulos. Aqui, ao abrir o ranking, o próprio navegador do técnico (já logado)
-// garante que CADA carta dele tenha o título correspondente. Roda como o
-// usuário, então passa no RLS sem eu precisar de acesso ao banco. Idempotente.
+// ACERTO AUTOMÁTICO cartas↔ranking. Regra do Diego: cada usuário tem que ter a
+// MESMA quantidade de cartas (álbum) e de títulos (ranking). A carta é a verdade
+// e nunca se mexe nela; o título é o lado flexível — pode faltar ou sobrar.
+//
+// Por que desencontra:
+//  • FALTA título: modos antigos (ex.: carreira online antiga) davam a carta mas
+//    não gravavam o título no ranking.
+//  • SOBRA título: o álbum conta AUGES ÚNICOS (nome|clube|ano) — foi campeão 2x
+//    e ganhou a carta repetida de um craque que já tinha, o álbum não duplica,
+//    mas os 2 títulos contam. Aí sobra título.
+//
+// Aqui, ao abrir o ranking, o navegador do próprio técnico (logado) iguala as
+// contagens POR MODO: cartas online ↔ títulos online, cartas CPU ↔ títulos CPU.
+// Falta → cria título; sobra → rebaixa (champion=false, sem apagar a linha nem a
+// artilharia). Roda como o usuário (passa no RLS), sem eu tocar no banco, e é
+// idempotente: depois de igualar, rodar de novo não muda nada.
 async function reconcileCardsToTitles() {
   try {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const [{ data: cards }, { data: results }] = await Promise.all([
-      supabase.from('user_cards').select('season_key, origin').eq('user_id', user.id),
-      supabase.from('esc_results').select('season_key, display_name').eq('user_id', user.id).eq('champion', true),
+      supabase.from('user_cards').select('card_name, card_club, card_year, origin').eq('user_id', user.id),
+      supabase.from('esc_results').select('season_key, mode, champion, top_scorer, display_name').eq('user_id', user.id),
     ])
-    if (!cards || cards.length === 0) return
-    const have = new Set((results ?? []).map(r => r.season_key))
-    const displayName = (results ?? []).find(r => r.display_name)?.display_name
+    if (!cards) return
+    const rows = (results ?? []) as { season_key: string; mode: string; champion: boolean; top_scorer: boolean; display_name: string | null }[]
+    const displayName = rows.find(r => r.display_name)?.display_name
       ?? user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? 'Técnico'
-    const seen = new Set<string>()
-    const missing: Record<string, unknown>[] = []
-    for (const c of cards as { season_key: string; origin: string }[]) {
-      const key = (c.season_key ?? '').slice(0, 48)
-      if (!key || seen.has(key)) continue
-      seen.add(key)
-      // pirâmide ONLINE (co:<sala>) já grava o título com outra chave (roomId) —
-      // pular pra não contar 2x. Offline é co:solo, esse a gente reconcilia.
-      if (key.startsWith('co:') && !key.startsWith('co:solo')) continue
-      if (have.has(key)) continue
-      // o modo preserva a origem: carta online → conta no Online+Geral; carta de
-      // CPU/offline → conta no CPU+Geral (o "geral" soma os dois).
-      missing.push({ user_id: user.id, display_name: displayName, mode: c.origin === 'online' ? 'online' : 'cpu', season_key: key, champion: true, top_scorer: false, goals: 0 })
+    // cartas ÚNICAS por auge, por modo — exatamente como o álbum conta.
+    const cardKey = (c: { card_name: string; card_club: string; card_year: number }) => `${c.card_name}|${c.card_club}|${c.card_year}`
+    const want: Record<'cpu' | 'online', Set<string>> = { cpu: new Set(), online: new Set() }
+    for (const c of cards as { card_name: string; card_club: string; card_year: number; origin: string }[]) {
+      want[c.origin === 'online' ? 'online' : 'cpu'].add(cardKey(c))
     }
-    if (missing.length) await supabase.from('esc_results').upsert(missing, { onConflict: 'user_id,season_key' })
+    for (const mode of ['cpu', 'online'] as const) {
+      const target = want[mode].size
+      const champ = rows.filter(r => r.mode === mode && r.champion)
+      if (champ.length === target) continue
+      if (champ.length < target) {
+        // FALTA: cria títulos sintéticos estáveis (fix:) até bater com as cartas.
+        const add: Record<string, unknown>[] = []
+        for (let i = champ.length; i < target; i++) {
+          add.push({ user_id: user.id, display_name: displayName, mode, season_key: `fix:${mode}:${i}`, champion: true, top_scorer: false, goals: 0 })
+        }
+        await supabase.from('esc_results').upsert(add, { onConflict: 'user_id,season_key' })
+      } else {
+        // SOBRA: rebaixa champion=false. Ordem de preferência pra rebaixar: 1º os
+        // sintéticos (fix:), 2º os que são SÓ título, e por último os que também
+        // são artilharia (pra preservar o máximo de conquista real).
+        const prio = (r: { season_key: string; top_scorer: boolean }) => r.season_key?.startsWith('fix:') ? 0 : r.top_scorer ? 2 : 1
+        const demote = [...champ].sort((a, b) => prio(a) - prio(b)).slice(0, champ.length - target).map(r => r.season_key)
+        await supabase.from('esc_results').update({ champion: false }).eq('user_id', user.id).in('season_key', demote)
+      }
+    }
   } catch { /* nunca trava a tela */ }
 }
 
