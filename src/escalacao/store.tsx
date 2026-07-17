@@ -81,6 +81,24 @@ function shuffle<T>(arr: T[], rng: () => number): T[] {
   }
   return a
 }
+// filler de várzea (perna-de-pau): tampa vaga quando não há jogador real. Nível
+// baixo. Usado pra manter os times de fundo em 11 quando perdem e não repõem.
+const FIL_NAMES = ['Perna-de-pau', 'Ferro Velho', 'Pé de Anjo', 'Canela Seca', 'Zé Ninguém', 'Trapalhão', 'Bola Murcha', 'Meia-Boca']
+let fillCounter = 0
+function fillerCard(pos: Sector, rng: () => number): WonCard {
+  const lo = 30 + Math.floor(rng() * 6)
+  return { id: `fil-s-${fillCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 6 + Math.floor(rng() * 4), paid: 0, via: 'bot' }
+}
+// completa um elenco de time de fundo até o mínimo da formação (11) com filler,
+// por posição — a rede de segurança pra nunca ficar com menos de 11.
+function fillToEleven(squad: WonCard[], formation: FormationKey, rng: () => number): WonCard[] {
+  const out = [...squad]
+  for (const pos of SECTORS) {
+    let have = out.filter(c => c.pos === pos).length
+    while (have < FORMATIONS[formation][pos]) { out.push(fillerCard(pos, rng)); have++ }
+  }
+  return out
+}
 
 // ─── helpers de elenco ───────────────────────────────────────────────
 export function slotsOf(m: Manager, pos: Sector): number {
@@ -1168,6 +1186,7 @@ type Action =
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
   | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
   | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
+  | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos 60 times de fundo (1x)
   | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
@@ -1795,9 +1814,23 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'FINISH_CEREMONY': {
       if (s.screen !== 'cerimonia') return s
       s.cerimoniaDeadline = null
-      // rivais "auction-only" já cumpriram o papel no leilão — saem antes da
-      // temporada (não jogam a sua liga; seguem a vida própria na pirâmide).
-      s.managers = s.managers.filter(m => !m.auctionOnly)
+      // MERCADO DOS 80: fecha a ficha dos times de fundo que entraram como
+      // participantes TEMPORÁRIOS — completa em 11 com filler (se não repôs) e guarda
+      // caixa + elenco. A troca "cola" pra próxima temporada. Depois eles saem.
+      if (s.careerOnline && s.managers.some(m => m.marketCpu)) {
+        const frng = rngOf(s)
+        const sq = { ...(s.cpuSquads ?? {}) }
+        const cash = { ...(s.clubCash ?? {}) }
+        for (const m of s.managers) if (m.marketCpu && m.marketTeam) {
+          sq[m.marketTeam] = fillToEleven(m.squad, m.formation, frng)
+          cash[m.marketTeam] = Math.max(0, Math.round(m.money))
+        }
+        s.cpuSquads = sq
+        s.clubCash = cash
+      }
+      // rivais "auction-only" e times de fundo temporários já cumpriram o papel no
+      // leilão — saem antes da temporada (voltam a ser time de fundo na simulação).
+      s.managers = s.managers.filter(m => !m.auctionOnly && !m.marketCpu)
       const adj = cpuAdjFor(s) // nível-base fixo por divisão nos bots de fundo; rivais sem ajuste
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.league = buildLeague(s.managers)
@@ -1924,6 +1957,13 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       s.careerScorersAll = all
       s.statsSeason = s.seasonNo
+      return s
+    }
+    case 'SEED_CPU_SQUADS': {
+      // materializa a ficha dos 60 times de fundo (1x). Idempotente: se já existe,
+      // não sobrescreve (o mercado já pode ter mexido).
+      if (!s.careerOnline || s.cpuSquads) return s
+      s.cpuSquads = action.squads
       return s
     }
     case 'NEXT_SEASON_ONLINE': {
@@ -2076,34 +2116,55 @@ export function reducer(state: EscState, action: Action): EscState {
       const used = new Set<string>()
       for (const m of s.managers) for (const c of m.squad) used.add(c.name)
       if (s.seasonNo >= 3) {
-        // MERCADO (3ª temporada+): UM FAMOSO por posição, vindo dos BOTS (não-rivais).
-        // Sorteia um bot que tenha craque/lenda (fame ≥ 4) na posição — prefere quem
-        // tem o famoso SOBRANDO no banco; se ninguém tem sobra, puxa mesmo titular (o
-        // bot fica com buraco e vai à luta pra repor). Assim toda posição tem um nome
-        // de verdade (1 GOL, 1 LAT, 1 ZAG, 1 MEI, 1 ATA) sem inflar o mercado — os
-        // rivais/amigos já listam os deles à parte. O bot que perdeu o jogador entra
-        // no leilão daquela posição junto com todo mundo (ver sealAndResolve).
+        // MERCADO DOS 80 (3ª temporada+): UM FAMOSO (fame ≥ 4) por posição, sorteado
+        // entre TODOS os times — os bots da sua liga E os 60 de fundo (via ficha
+        // cpuSquads). O dono fica com buraco e vai à luta: se for time de fundo, ele é
+        // materializado como PARTICIPANTE TEMPORÁRIO (marketCpu) que briga no leilão da
+        // posição e no monte, com preferência no próprio (igual amigo/rival). No fim,
+        // FINISH_CEREMONY atualiza a ficha dele (completa em 11 com filler se não
+        // repôs) e o remove. Determinístico por seed.
         const bt = nextBuildTok()
         const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
+        const cpuSq = s.cpuSquads ?? {}
+        // todo jogador de fundo já tem dono: exclui do catálogo fresco (evita duplicata)
+        for (const name in cpuSq) for (const c of cpuSq[name]) used.add(c.name)
+        const tempById = new Map<string, Manager>()
+        let tmpId = -1000
+        const materialize = (name: string): Manager => {
+          let m = tempById.get(name)
+          if (!m) {
+            const div = (s.careerPlacements?.[name] as 'A' | 'B' | 'C' | 'D') ?? 'C'
+            // 4-3-3: é a formação em que as fichas de fundo são montadas (1/2/2/3/3),
+            // então o "completar em 11" bate exato — nada de sobrar jogador.
+            m = { id: tmpId--, name, teamName: name, isHuman: false, auctionRival: false, marketCpu: true, marketTeam: name,
+              formation: '4-3-3', money: s.clubCash?.[name] ?? DIV_BASE_CASH[div] ?? 100,
+              squad: (cpuSq[name] ?? []).map(c => ({ ...c, paid: (c as WonCard).paid ?? 0, via: (c as WonCard).via ?? 'bot' })) as WonCard[],
+              aggression: 0.25 + rng() * 0.6, starHunger: rng() }
+            tempById.set(name, m)
+          }
+          return m
+        }
         for (const pos of SECTORS) {
-          // sorteio SEM regra: junta TODOS os famosos (fame ≥ 4) que estão em algum
-          // bot não-rival nesta posição e pega UM ao acaso (pode ser titular ou
-          // reserva de qualquer bot — o Pelé de um, o Chay de outro, tanto faz). O
-          // bot dono fica com o buraco e entra no leilão da posição pra repor/recomprar.
-          const cands: { bot: Manager; card: Card }[] = []
-          for (const bot of s.managers.filter(isMktBot)) for (const c of bot.squad) if (c.pos === pos && !c.fake && c.fame >= 4) cands.push({ bot, card: c })
+          // junta TODOS os famosos da posição (bots da liga + 60 de fundo) e pega UM ao acaso
+          const cands: { card: Card; ownerBot?: Manager; ownerName?: string }[] = []
+          for (const bot of s.managers.filter(isMktBot)) for (const c of bot.squad) if (c.pos === pos && !c.fake && c.fame >= 4) cands.push({ card: c, ownerBot: bot })
+          for (const name in cpuSq) for (const c of cpuSq[name]) if (c.pos === pos && !c.fake && c.fame >= 4) cands.push({ card: c, ownerName: name })
           if (cands.length) {
-            const { bot, card } = cands[Math.floor(rng() * cands.length)]
-            bot.squad = bot.squad.filter(c => c.id !== card.id)
-            deck[pos].push({ ...card, seller: bot.id }) // mantém o piso; o bot recebe se vender
-            marketSellers[pos].push(bot.id); bot.backstop = true; bot.deepSquad = true
+            const pick = cands[Math.floor(rng() * cands.length)]
+            const owner = pick.ownerBot ?? materialize(pick.ownerName!)
+            owner.squad = owner.squad.filter(c => c.id !== pick.card.id) // tira do dono → buraco
+            const fl = s.marketValues?.[pick.card.name] ?? (pick.card as WonCard).paid ?? 0 // piso do jogador (economia igual pra todos)
+            deck[pos].push({ ...pick.card, seller: owner.id, ...(fl > 0 ? { paid: fl } : {}) })
+            marketSellers[pos].push(owner.id)
+            if (pick.ownerBot) pick.ownerBot.backstop = true // bot da liga: caixa via clubCash; fica em 11 (só repõe o que perdeu)
           } else {
-            // nenhum bot tem famoso nessa posição → famoso NOVO do catálogo (não fica vazia)
             const fam = shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(c.name) && c.fame >= 4), rng)[0]
               ?? shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(c.name)), rng)[0]
             if (fam) { used.add(fam.name); const fl = s.marketValues?.[fam.name] ?? 0; deck[pos].push({ ...fam, id: `mkt-${pos}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
           }
         }
+        // os times de fundo sorteados entram na sala pra brigar (leilão + monte)
+        for (const m of tempById.values()) s.managers.push(m)
         s.deck = deck
       } else {
         // RESERVAS (2ª temporada): baralho SÓ COM REAIS (noFake) — reserva é opcional,
@@ -2113,7 +2174,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const nBots = Math.max(1, Math.floor(nMain / 2))
         const chosen = shuffle(s.managers.filter(isMktBot), rng).slice(0, nBots)
         for (const bot of chosen) {
-          bot.backstop = true; bot.deepSquad = true
+          bot.backstop = true // bot fica em 11 (sem elenco fundo) — só repõe o que perder
           // solta as reservas REAIS do bot (o que passa do XI) pro baralho
           for (const pos of SECTORS) {
             const realInPos = bot.squad.filter(c => c.pos === pos && !c.fake)
@@ -2131,7 +2192,7 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const m of s.managers) {
         if (m.isHuman) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
         else if (m.rival) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // rival = "humano": enche banco, gasta clubCash
-        else if (m.backstop) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 }
+        else if (m.backstop) { m.money = cash['m' + m.id] ?? 100 } // bot fica em 11 (sem reserva por enquanto); só a caixa pra repor o que perdeu
       }
       s.surpriseId = pickSurprise(s.deck, rng)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length

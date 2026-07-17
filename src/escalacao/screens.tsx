@@ -1464,9 +1464,12 @@ export function EscMonte() {
 export function EscCerimonia() {
   const { state, dispatch } = useEsc()
   const [idx, setIdx] = useState(0)
-  const m = state.managers[idx]
+  // esconde os participantes TEMPORÁRIOS do mercado (times de fundo) — eles só
+  // brigaram no leilão, não entram na sua liga nem na revelação.
+  const mgrs = state.managers.filter(m => !m.marketCpu)
+  const m = mgrs[Math.min(idx, mgrs.length - 1)]
   const you = state.managers[state.youIdx]
-  const isLastMgr = idx >= state.managers.length - 1
+  const isLastMgr = idx >= mgrs.length - 1
   const canStart = state.onlineMode !== 'online' || state.isHost
 
   // cronômetro de 45s (igual leilão): dá tempo de olhar os times e começa
@@ -1480,7 +1483,7 @@ export function EscCerimonia() {
   const secsLeft = state.cerimoniaDeadline ? Math.max(0, Math.ceil((state.cerimoniaDeadline - now) / 1000)) : null
 
   // achados e micos da sala inteira
-  const all = state.managers.flatMap(mg => mg.squad.map(c => ({ mg, c, mid: (c.lo + c.hi) / 2 })))
+  const all = mgrs.flatMap(mg => mg.squad.map(c => ({ mg, c, mid: (c.lo + c.hi) / 2 })))
   const paid = all.filter(x => x.c.paid > 0)
   const bestDeal = paid.length ? [...paid].sort((a, b) => (b.mid / b.c.paid) - (a.mid / a.c.paid))[0] : null
   const worstDeal = paid.length ? [...paid].sort((a, b) => (b.c.paid - b.mid) - (a.c.paid - a.mid))[0] : null
@@ -1538,10 +1541,10 @@ export function EscCerimonia() {
       {/* navegação livre pelos times durante os 45s (dá a volta) */}
       <div className="flex gap-2">
         <div className="flex-1"><Btn className="w-full" bg="#fff"
-          onClick={() => setIdx((idx - 1 + state.managers.length) % state.managers.length)}>◀ Anterior</Btn></div>
-        <div className="shrink-0 flex items-center px-2 font-black text-sm text-black/50" style={OSWALD}>{idx + 1}/{state.managers.length}</div>
+          onClick={() => setIdx((idx - 1 + mgrs.length) % mgrs.length)}>◀ Anterior</Btn></div>
+        <div className="shrink-0 flex items-center px-2 font-black text-sm text-black/50" style={OSWALD}>{idx + 1}/{mgrs.length}</div>
         <div className="flex-1"><Btn className="w-full" bg={GOLD}
-          onClick={() => setIdx((idx + 1) % state.managers.length)}>Próximo ▶</Btn></div>
+          onClick={() => setIdx((idx + 1) % mgrs.length)}>Próximo ▶</Btn></div>
       </div>
       {canStart ? (
         <Btn className="w-full text-lg" bg={GREEN} onClick={() => dispatch({ type: 'FINISH_CEREMONY' })}>

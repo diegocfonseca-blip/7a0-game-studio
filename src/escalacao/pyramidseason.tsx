@@ -107,7 +107,7 @@ export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? 
 
 // monta as 4 divisões pela COLOCAÇÃO guardada (placements): D começa com os
 // técnicos reais; a cada temporada os times sobem/descem por nome exato.
-export function buildPyramid(managers: Manager[], youId: number, seed: number, deck: 'br' | 'eu' | 'both', placements?: Record<string, string> | null): Record<Div, SimTeam[]> {
+export function buildPyramid(managers: Manager[], youId: number, seed: number, deck: 'br' | 'eu' | 'both', placements?: Record<string, string> | null, cpuSquads?: Record<string, Card[]>): Record<Div, SimTeam[]> {
   const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number, backstop = false, rival = false): SimTeam => ({ name, you, human, rival, backstop, teamId, squad, xi: bestXI(squad), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
   const world: Record<Div, SimTeam[]> = { A: [], B: [], C: [], D: [] }
   const divOf = (key: string, fallback: Div): Div => { const d = placements?.[key]; return (d === 'A' || d === 'B' || d === 'C' || d === 'D') ? d : fallback }
@@ -116,8 +116,17 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
     world[divOf(`m${m.id}`, 'D')].push(t)
   }
   const cpu = buildCpuSquads(managers, seed, deck)
-  for (const [name, squad] of cpu) world[divOf(name, cpuOrigDiv(name))].push(mk(name, squad, false, false, -1))
+  // usa a FICHA salva do time de fundo se existir (memória de mercado); senão, a
+  // receita determinística (base). Assim vender/comprar cola entre temporadas.
+  for (const [name, base] of cpu) world[divOf(name, cpuOrigDiv(name))].push(mk(name, (cpuSquads?.[name] ?? base) as PoolCard[], false, false, -1))
   return world
+}
+// semeia a ficha dos 60 times de fundo a partir da receita (base determinística)
+// — materializa 1x os elencos que antes eram só calculados na hora.
+export function seedCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both'): Record<string, Card[]> {
+  const out: Record<string, Card[]> = {}
+  for (const [name, squad] of buildCpuSquads(managers, seed, deck)) out[name] = squad
+  return out
 }
 
 // acessos/quedas por NOME EXATO: top 4 sobe, últimos 4 caem, entre divisões
@@ -771,7 +780,7 @@ export function PyramidSeasonScreen() {
   const done = round >= 38
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti'>('clubes')
-  const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo])
+  const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads])
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const careerLineup = (state.careerLineup ?? {}) as RoundLineups
   const live = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics, careerLineup), [world, state.seed, round, careerTactics, careerLineup])
@@ -810,6 +819,14 @@ export function PyramidSeasonScreen() {
     if ((state.statsSeason ?? 0) >= state.seasonNo) return
     dispatch({ type: 'RECORD_SEASON_STATS', scorers })
   }, [done, state.careerOnline, state.seasonNo, state.statsSeason]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // MATERIALIZA a ficha dos 60 times de fundo (1x): antes eram recalculados na
+  // hora; agora ganham elenco guardado, pra negociarem de verdade no mercado.
+  // Idempotente (só semeia se ainda não existe).
+  useEffect(() => {
+    if (!state.careerOnline || state.cpuSquads) return
+    dispatch({ type: 'SEED_CPU_SQUADS', squads: seedCpuSquads(state.managers, state.seed, state.deckLeague) })
+  }, [state.careerOnline, state.cpuSquads, state.seed, state.deckLeague]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // RANKING da carreira online: cada cliente grava o SEU resultado do fim da
   // temporada (título da sua divisão + artilharia geral) no esc_results — a
