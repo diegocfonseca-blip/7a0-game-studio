@@ -1096,7 +1096,16 @@ export function PyramidSeasonScreen() {
           <PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} />
         )}
 
-        <button onClick={() => dispatch({ type: state.onlineMode === 'online' ? 'GO_LOBBY_ONLINE' : 'GO_LOBBY' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
+        {state.onlineMode === 'online' ? (
+          <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
+        ) : (
+          <button
+            onClick={() => { try { localStorage.setItem('esc-solo-career', JSON.stringify(state)) } catch { /* cota cheia — ignora */ } dispatch({ type: 'GO_LOBBY' }) }}
+            style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
+            🚪 Sair e salvar carreira
+            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>Fica guardada nos seus saves — é só voltar e continuar de onde parou.</span>
+          </button>
+        )}
       </div>
     </div>
   )
