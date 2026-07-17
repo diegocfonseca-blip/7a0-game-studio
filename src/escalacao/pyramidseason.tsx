@@ -26,9 +26,10 @@ const DIV_TAG: Record<Div, { l: string; bg: string }> = { A: { l: 'A', bg: '#B88
 // força-base por divisão dos times de CPU NATIVOS (não humano, não rival). O
 // catálogo real é finito (373 pra 80 times), então os nativos são meio incógnitos
 // e fracos; você e os rivais têm elenco forte do leilão. Sem isso, quem sobe
-// atropela a divisão (líder 100+ pts). Este boost faz A/B/C serem DISPUTADAS; a D
-// fica baixa (lá você joga contra os fillers mesmo). Tunável.
-const CPU_DIV_BOOST: Record<Div, number> = { A: 20, B: 17, C: 14, D: 4 }
+// atropela a divisão (líder 100+ pts). Como o "bucket" das séries de baixo é mais
+// fraco, elas ganham MAIS boost (pra chegar na PARIDADE com quem sobe) — assim
+// TODAS as séries ficam disputadas. A D fica baixa (você contra os fillers). Tunável.
+const CPU_DIV_BOOST: Record<Div, number> = { A: 16, B: 20, C: 24, D: 6 }
 
 // ── motor de simulação por elenco (espelha o da Dinastia) ──
 const NEED: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
