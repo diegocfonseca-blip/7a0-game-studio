@@ -958,7 +958,8 @@ function monteAutoPick(m: Manager, monte: Card[], rng: () => number, careerOnlin
   return ranked[0].c
 }
 
-// pior sobra válida — usada quando um humano deixa o tempo do Monte estourar (AFK)
+// pior sobra válida — usada só nos modos CLÁSSICOS quando um humano deixa o tempo
+// do Monte estourar (AFK): lá o Monte é pra FECHAR o XI, então preenche na marra.
 function monteWorstPick(m: Manager, monte: Card[], rng: () => number, careerOnline = false): Card | null {
   const valid = monte.filter(c => openSlots(m, c.pos) > 0 && monteAfford(m, c, careerOnline))
   if (valid.length === 0) return null
@@ -1750,7 +1751,9 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'MONTE_TIMEOUT': {
-      // estourou o tempo da vez de um humano (AFK): pega a PIOR sobra e -5 moedas
+      // estourou o tempo da vez de um humano (AFK). CARREIRA: NÃO pega ninguém e
+      // NÃO cobra multa — o time já tem no mínimo 11, só pula a vez. CLÁSSICO: lá
+      // o Monte é pra fechar o XI, então pega a pior sobra e -5 (segurança).
       if (s.screen !== 'monte') return s
       // reconfirma o prazo: rejeita disparo atrasado/duplicado de outra vez já passada
       if (!s.monteDeadline || Date.now() < s.monteDeadline) return s
@@ -1758,10 +1761,9 @@ export function reducer(state: EscState, action: Action): EscState {
       const m = s.managers.find(x => x.id === mgrId)
       if (!m || !m.isHuman) return s
       const rng = rngOf(s)
-      const pick = monteWorstPick(m, s.monte, rng, !!s.careerOnline)
-      if (pick) {
-        takeFromMonte(s, pick.id)
-        m.money = Math.max(0, m.money - MONTE_AFK_PENALTY)
+      if (!s.careerOnline) {
+        const pick = monteWorstPick(m, s.monte, rng, false)
+        if (pick) { takeFromMonte(s, pick.id); m.money = Math.max(0, m.money - MONTE_AFK_PENALTY) }
       }
       s.monteIdx++
       advanceMonte(s, rng)

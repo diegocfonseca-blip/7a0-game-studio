@@ -1406,7 +1406,9 @@ export function EscMonte() {
       )}
       {online && (
         <p className="text-xs font-semibold text-black/60">
-          ⏱️ {remaining ?? MONTE_SECONDS}s por vez. Estourou o tempo (foi ao banheiro?), o jogo escolhe a pior sobra pra você e cobra 5 moedas de multa.
+          ⏱️ {remaining ?? MONTE_SECONDS}s por vez. {state.careerOnline
+            ? <>Se estourar o tempo, você <b>não pega ninguém</b> e passa a vez — sem multa (seu time já tem os 11).</>
+            : <>Estourou o tempo (foi ao banheiro?), o jogo escolhe a pior sobra pra você e cobra 5 moedas de multa.</>}
         </p>
       )}
       {isYourTurn ? (
