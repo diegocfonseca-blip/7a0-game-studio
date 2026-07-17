@@ -920,7 +920,7 @@ function refreshMonteDeadline(state: EscState) {
   const cur = state.monteOrder[state.monteIdx]
   const m = state.managers.find(x => x.id === cur)
   state.monteDeadline =
-    state.onlineMode === 'online' && state.screen === 'monte' && m?.isHuman && totalHoles(m) > 0 && state.monte.length > 0
+    state.onlineMode === 'online' && state.screen === 'monte' && !!m && m.isHuman && state.monte.some(c => openSlots(m, c.pos) > 0)
       ? Date.now() + MONTE_MS
       : null
 }
@@ -947,7 +947,10 @@ function advanceMonte(state: EscState, rng: () => number) {
     if (state.monte.length === 0) { state.monteIdx = state.monteOrder.length; break }
     const mgrId = state.monteOrder[state.monteIdx]
     const m = state.managers.find(x => x.id === mgrId)!
-    if (totalHoles(m) === 0) { state.monteIdx++; continue }
+    // pula quem NÃO tem pesca válida: sem buraco OU o Monte não tem carta pras
+    // posições que faltam pra ele. Antes travava um humano com buraco mas sem
+    // carta que servisse, com o cronômetro rodando à toa.
+    if (!state.monte.some(c => openSlots(m, c.pos) > 0)) { state.monteIdx++; continue }
     if (m.isHuman) { refreshMonteDeadline(state); return }
     const pick = monteAutoPick(m, state.monte, rng)
     if (pick) takeFromMonte(state, pick.id)
