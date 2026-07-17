@@ -477,6 +477,28 @@ function ChampionCard({ deck, seed, team, seasonKey }: { deck: DeckChoice; seed:
 function SeasonEnd({ c, roomId, canControl, onNextSeason, onEnd, onTable }: { c: Career; roomId: string | null; canControl: boolean; onNextSeason: () => void; onEnd: () => void; onTable: () => void }) {
   const out = myOutcome(c.world)
   const champ = !!out?.champ
+  // RANKING: um título aqui (carreira online antiga) também conta no ranking.
+  // Antes este modo só gravava a CARTA no álbum e nunca escrevia em esc_results —
+  // por isso o total de cartas passava dos títulos do ranking. A season_key é a
+  // MESMA da carta (`careeronline:sala:temporada`), então cada título = uma carta.
+  const wroteRank = useRef(false)
+  useEffect(() => {
+    if (!champ || !roomId || wroteRank.current) return
+    wroteRank.current = true
+    ;(async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const me = sortDiv(c.world[out!.div]).find(t => t.you)
+        const displayName = user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? out!.team
+        await supabase.from('esc_results').upsert({
+          user_id: user.id, display_name: displayName,
+          mode: 'online', season_key: `careeronline:${roomId}:${c.season}`.slice(0, 48),
+          champion: true, top_scorer: false, goals: me?.gf ?? 0,
+        }, { onConflict: 'user_id,season_key' })
+      } catch { /* nunca trava o jogo */ }
+    })()
+  }, [champ, roomId]) // eslint-disable-line react-hooks/exhaustive-deps
   const btn = (bg: string, fg: string): React.CSSProperties => ({ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: bg, color: fg, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 })
   return (
     <div>
