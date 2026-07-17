@@ -2130,13 +2130,14 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const name in cpuSq) for (const c of cpuSq[name]) used.add(c.name)
         const tempById = new Map<string, Manager>()
         let tmpId = -1000
-        const forms: FormationKey[] = ['4-3-3', '4-4-2']
         const materialize = (name: string): Manager => {
           let m = tempById.get(name)
           if (!m) {
             const div = (s.careerPlacements?.[name] as 'A' | 'B' | 'C' | 'D') ?? 'C'
+            // 4-3-3: é a formação em que as fichas de fundo são montadas (1/2/2/3/3),
+            // então o "completar em 11" bate exato — nada de sobrar jogador.
             m = { id: tmpId--, name, teamName: name, isHuman: false, auctionRival: false, marketCpu: true, marketTeam: name,
-              formation: forms[Math.floor(rng() * forms.length)], money: s.clubCash?.[name] ?? DIV_BASE_CASH[div] ?? 100,
+              formation: '4-3-3', money: s.clubCash?.[name] ?? DIV_BASE_CASH[div] ?? 100,
               squad: (cpuSq[name] ?? []).map(c => ({ ...c, paid: (c as WonCard).paid ?? 0, via: (c as WonCard).via ?? 'bot' })) as WonCard[],
               aggression: 0.25 + rng() * 0.6, starHunger: rng() }
             tempById.set(name, m)
