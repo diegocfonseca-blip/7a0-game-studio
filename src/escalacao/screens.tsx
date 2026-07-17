@@ -256,10 +256,10 @@ function CardFace({ c, big = false, surprise = false, highlight = false }: { c: 
 // Mostra SÓ a novidade mais recente, com X pra fechar. Ao fechar, guarda o id
 // no aparelho — só reaparece quando eu trocar o LATEST_NEWS por um id novo.
 const LATEST_NEWS = {
-  id: '2026-07-baralho-os-dois',
-  emoji: '🌎',
-  title: 'Novo baralho: os dois juntos!',
-  text: 'Na partida rápida e na carreira, agora dá pra jogar com Brasileirão + Liga Europa no MESMO leilão — ~700 nomes, de Pelé e Obina a Maradona e Mbappé, com folclore dos dois lados 🃏.',
+  id: '2026-07-copa-legends',
+  emoji: '🏆',
+  title: 'Copa Legends — no Modo Carreira!',
+  text: 'No fim de cada temporada, os 4 melhores de cada divisão (16 times) caem num mata-mata de sorteio aleatório, estilo Copa do Brasil — e um time da Série D pode derrubar um da Série A. É só no Modo Carreira. 🔨⚽',
 }
 function NewsBanner() {
   const [dismissed, setDismissed] = useState(() => {
@@ -286,6 +286,9 @@ function NewsSection() {
       <div>
         <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>✨ No jogo</p>
         <div className="mt-1 space-y-1">
+          <p className="text-xs font-bold text-black/75">🏆 <b>Copa Legends</b> — no <b>Modo Carreira</b>, no fim de cada temporada os 16 melhores das 4 divisões se enfrentam num mata-mata sorteado. Série D pode eliminar Série A!</p>
+          <p className="text-xs font-bold text-black/75">🪜 <b>Modo Carreira liberado</b> — pirâmide de 4 divisões (Série D → A), com leilão de reservas, transferências e substituições.</p>
+          <p className="text-xs font-bold text-black/75">🎴 <b>Álbum + placar novo</b> — cartas dos craques colecionáveis e o placar ao vivo com selo de GOOOL também no jogo rápido.</p>
           <p className="text-xs font-bold text-black/75">🌍 <b>Dois baralhos</b> — escolha Auges do Brasileirão ou da Liga Europa na partida rápida e na carreira.</p>
           <p className="text-xs font-bold text-black/75">🔴 <b>Salas ao vivo</b> — a lista de salas abertas mostra também as partidas já rolando.</p>
           <p className="text-xs font-bold text-black/75">🔁 <b>Jogar de novo no online</b> — o host traz todo mundo de volta pra sala sem recomeçar do zero.</p>
@@ -299,6 +302,12 @@ function NewsSection() {
         <p className="text-xs font-bold text-black/75 mt-1"><b>Craques:</b> Bebeto, Totti, Del Piero, Cantona, Zola, Rui Costa, Hagi, Drogba, Harry Kane, Van Dijk, Sergio Ramos.</p>
         <p className="text-xs font-bold text-black/75 mt-1"><b>Promessas 💎:</b> Yamal, Bellingham, Musiala, Wirtz, João Félix, Pato, Endrick.</p>
         <p className="text-xs font-bold text-black/75 mt-1"><b>Flops &amp; folclore 🃏:</b> Gabigol, Kléberson, Ali Dia, Bebé, Kerlon, Vampeta, Pedro, Denílson Show, Fellaini.</p>
+      </div>
+      <div>
+        <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>🆕 Recém-chegados</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>🇧🇷 BR:</b> Lucas Moura, Danilo, Ralf, Taison, Guilherme Arana, Junior Alonso, Luan.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>🌍 Europa:</b> Gareth Bale, Eden Hazard, Son, Arturo Vidal, Bruno Fernandes, Gündogan.</p>
+        <p className="text-[11px] font-bold text-black/50 mt-1">O baralho só cresce — sempre entrando craque novo. 🔨</p>
       </div>
     </Box>
   )
