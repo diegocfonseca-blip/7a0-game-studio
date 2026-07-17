@@ -147,7 +147,7 @@ function montePush(state: EscState, cards: Card[]) {
   state.monte.push(...halved)
 }
 
-function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0, values?: Record<string, number>): Record<Sector, Card[]> {
+function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0, values?: Record<string, number>, noFake = false): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
   const bt = nextBuildTok()
   // ── passo 1: define o tamanho de cada setor e embaralha o catálogo ──
@@ -237,10 +237,12 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     for (const c of catalog) { if (cards.length >= count) break; if (used.has(c.name) || c.fame === 5 || c.fame === 4 || c.fame === 1 || c.promessa) continue; take(c) }
     // 6) se ainda faltar (setor pequeno de catálogo), aceita qualquer real restante
     for (const c of catalog) { if (cards.length >= count) break; if (used.has(c.name)) continue; take(c) }
-    // 5) só cai pra incógnita se o catálogo real acabar (sala gigante)
+    // 5) só cai pra incógnita se o catálogo real acabar (sala gigante). No leilão
+    // de RESERVAS (noFake) NÃO completa com incógnito: reserva é opcional, então o
+    // baralho fica só com os reais que existem (menos cartas, mas sem "fake").
     const gems = Math.max(1, Math.ceil(managers.length / 3))
     let gi = 0
-    while (cards.length < count) { cards.push(makeIncognita(pos, cards.length, gi < gems, rng, bt)); gi++ }
+    while (!noFake && cards.length < count) { cards.push(makeIncognita(pos, cards.length, gi < gems, rng, bt)); gi++ }
     // embaralha a ordem final: as cotas montam o baralho com lenda/craque
     // primeiro, então sem isto os melhores ficariam sempre no topo da tela e
     // dava pra "ler" o nível pela posição — furando o leilão às cegas.
@@ -1233,7 +1235,14 @@ function sealAndResolve(state: EscState) {
   // pra rebuscar o que perderam. Pagam com a caixa deles. Com 2+ humanos brigando,
   // ficam de fora. O que ninguém arrematar cai no monte e é varrido depois.
   if (state.careerOnline) {
-    const humanBidders = Object.values(state.pendingEnvelopes).filter(env => env.some(b => b.amount > 0)).length
+    // "principais" = humanos (você/amigos) + rivais escolhidos (offline). A regra
+    // 0/1 conta quantos DELES ofertaram NESTA posição — se 0 ou 1, entram os bots
+    // do mercado. (Os rivais bidam via CPU, então conta pelo bidMap, não só pelos
+    // envelopes dos humanos.)
+    const mainIds = new Set(state.managers.filter(m => m.isHuman || m.rival).map(m => m.id))
+    const mainBidders = new Set<number>()
+    for (const c of state.currentCards) for (const b of (bidMap.get(c.id) ?? [])) if (b.amount > 0 && mainIds.has(b.mgr)) mainBidders.add(b.mgr)
+    const humanBidders = mainBidders.size
     const pos = SECTORS[state.sectorIdx]
     const bidderIds = new Set(state.marketSellers?.[pos] ?? [])
     if (humanBidders <= 1 && bidderIds.size > 0) {
@@ -1732,11 +1741,6 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const m of s.managers) { if (m.isHuman) m.deepSquad = false; if (m.backstop) { m.backstop = false; m.deepSquad = false } }
         s.marketSellers = {} as Record<Sector, number[]>
         s.reserveAuction = false
-      } else if (s.careerOnline) {
-        // fim do leilão INICIAL (T1) da carreira: os rivais nomeados (offline solo)
-        // param de dar lance. Daqui pra frente os leilões de reserva/transferência
-        // usam só os bots sorteados — igual ao online.
-        for (const m of s.managers) if (!m.isHuman) m.auctionRival = false
       }
       s.screen = 'season'
       return s
@@ -1935,6 +1939,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // perderam jogador NAQUELA posição — são eles que podem dar lance nela.
       for (const m of s.managers) if (!m.isHuman) { m.backstop = false; m.deepSquad = false }
       const marketSellers = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, number[]>
+      // MAPEAMENTO: você + amigos online OU você + rivais escolhidos (offline) = os
+      // "humanos" que sempre disputam. Os OUTROS times (não-escolhidos) = os bots do
+      // mercado, que perdem jogador real pro leilão e recompram pela regra 0/1.
+      const isMktBot = (m: Manager) => !m.isHuman && !m.rival
+      const nMain = s.managers.filter(m => m.isHuman || m.rival).length
       // 1) consome a lista: tira os listados dos elencos
       const listedMap = s.reserveListed ?? {}
       const listedCards: Card[] = []
@@ -1959,14 +1968,14 @@ export function reducer(state: EscState, action: Action): EscState {
         // sobra do XI (a reserva mais fraca). Assim a liga inteira negocia e o bot
         // depois recompra (lance/monte). Só cai pro catálogo se faltar reserva.
         const bt = nextBuildTok()
-        const nNew = Math.max(1, Math.floor(s.managers.filter(m => m.isHuman).length / 2))
+        const nNew = Math.max(1, Math.floor(nMain / 2))
         const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
         for (const pos of SECTORS) {
           let added = 0
-          // 1) o mercado é dos BOTS: cada um solta um jogador REAL do banco NA SORTE
-          // (pode ser bom ou ruim — às vezes até um craque). Nunca fake (incógnito
-          // não entra no mercado) e nunca deixa a posição com menos reais que o XI.
-          for (const bot of shuffle(s.managers.filter(m => !m.isHuman), rng)) {
+          // 1) o mercado é dos BOTS NÃO-ESCOLHIDOS: cada um solta um jogador REAL do
+          // banco NA SORTE (bom ou ruim). Nunca fake (incógnito não entra no mercado)
+          // e nunca deixa a posição com menos reais que o XI.
+          for (const bot of shuffle(s.managers.filter(isMktBot), rng)) {
             if (added >= nNew) break
             const realInPos = bot.squad.filter(c => c.pos === pos && !c.fake)
             if (realInPos.length <= FORMATIONS[bot.formation][pos]) continue // sem reserva REAL sobrando
@@ -1983,13 +1992,21 @@ export function reducer(state: EscState, action: Action): EscState {
         }
         s.deck = deck
       } else {
-        // RESERVAS (2ª temporada): baralho normal. Aqui não há venda de bot, então
-        // sorteia floor(humanos/2) bots pra disputar (em todas as posições).
-        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues)
-        // pelo menos 1 bot disputa (solo/1 humano tinha 0 — comprava tudo de graça)
-        const nBots = Math.max(1, Math.floor(s.managers.filter(m => m.isHuman).length / 2))
-        const chosen = shuffle(s.managers.filter(m => !m.isHuman), rng).slice(0, nBots)
-        for (const bot of chosen) { bot.backstop = true; bot.deepSquad = true }
+        // RESERVAS (2ª temporada): baralho SÓ COM REAIS (noFake) — reserva é opcional,
+        // então nada de incógnito enchendo o leilão. Os bots do mercado (não-escolhidos)
+        // também soltam suas reservas REAIS pro baralho, e são eles que disputam (0/1).
+        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, true)
+        const nBots = Math.max(1, Math.floor(nMain / 2))
+        const chosen = shuffle(s.managers.filter(isMktBot), rng).slice(0, nBots)
+        for (const bot of chosen) {
+          bot.backstop = true; bot.deepSquad = true
+          // solta as reservas REAIS do bot (o que passa do XI) pro baralho
+          for (const pos of SECTORS) {
+            const realInPos = bot.squad.filter(c => c.pos === pos && !c.fake)
+            const spare = realInPos.slice(FORMATIONS[bot.formation][pos])
+            for (const c of spare) { bot.squad = bot.squad.filter(x => x.id !== c.id); s.deck[pos].push({ ...c, seller: bot.id }) }
+          }
+        }
         for (const pos of SECTORS) marketSellers[pos] = chosen.map(b => b.id)
       }
       s.marketSellers = marketSellers
@@ -1999,6 +2016,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const cash = s.clubCash ?? {}
       for (const m of s.managers) {
         if (m.isHuman) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
+        else if (m.rival) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // rival = "humano": enche banco, gasta clubCash
         else if (m.backstop) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 }
       }
       s.surpriseId = pickSurprise(s.deck, rng)
