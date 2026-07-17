@@ -192,7 +192,7 @@ export function EscLobby() {
 
   const canCareer = useCanCareerOnline()
   const [roomMode, setRoomMode] = useState<'rapido' | 'carreira'>('rapido')
-  const [careerDeck, setCareerDeck] = useState<DeckChoice>('br')
+  const careerDeck: DeckChoice = 'both' // carreira: sempre BR + Europa juntos (preenche os 80 times das 4 divisões)
   const [joinCode, setJoinCode] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [roomName, setRoomName] = useState('')
@@ -821,16 +821,9 @@ export function EscLobby() {
         )}
         <Field label="Nome da sala" value={roomName} onChange={e => setRoomName(e.target.value)} placeholder={`Sala do ${nameOf()}`} maxLength={24} />
         {canCareer && roomMode === 'carreira' && (
-          <div>
-            <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Baralho de craques (host escolhe)</p>
-            <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
-              {([['br', '🇧🇷 BR'], ['eu', '🌍 Europa'], ['both', '🌎 Os dois']] as [DeckChoice, string][]).map(([dk, label]) => (
-                <button key={dk} onClick={() => setCareerDeck(dk)}
-                  className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: careerDeck === dk ? GOLD : '#fff', color: '#000', ...OSWALD }}>
-                  {label}
-                </button>
-              ))}
-            </div>
+          <div className="border-[3px] border-black rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <p className="text-white font-black text-[13px]" style={OSWALD}>🌎 Baralho fixo: Brasileirão + Europa juntos</p>
+            <p className="text-white/55 text-[11px] font-bold mt-1 leading-snug">Na Carreira é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Sem baralho só BR nem só Europa.</p>
           </div>
         )}
         {!(canCareer && roomMode === 'carreira') && <div>

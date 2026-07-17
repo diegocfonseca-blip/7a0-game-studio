@@ -432,7 +432,7 @@ export function EscSetup() {
       : undefined
     // carreira offline: testadores rodam a NOVA pirâmide (em teste, escondida do
     // público); o resto segue na carreira por divisões antiga.
-    if (career && canPyramid) dispatch({ type: 'START_CAREER_SOLO', teamName: clean, formation, rivals, rivalTeams: picks, league })
+    if (career && canPyramid) dispatch({ type: 'START_CAREER_SOLO', teamName: clean, formation, rivals, rivalTeams: picks, league: 'both' }) // carreira: sempre BR + Europa juntos
     else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league })
   }
   return (
@@ -455,6 +455,12 @@ export function EscSetup() {
         </Box>
       )}
       <Box className="p-4 space-y-4">
+        {career && canPyramid ? (
+          <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
+            <p className="font-black text-sm" style={OSWALD}>🌎 Baralho fixo: Brasileirão + Europa juntos</p>
+            <p className="text-[11px] font-bold text-black/65 mt-1">Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</p>
+          </div>
+        ) : (
         <div>
           <p className="text-xs font-black uppercase mb-1">Baralho de craques</p>
           <div className="grid grid-cols-2 gap-2">
@@ -474,6 +480,7 @@ export function EscSetup() {
           <p className="text-[11px] font-semibold text-black/55 mt-1">{league === 'br' ? 'Auges do futebol brasileiro — de Pelé a Obina.' : league === 'eu' ? 'Auges nos clubes europeus — de Yashin a Mbappé.' : 'Brasileirão + Europa juntos (~700 nomes) — craques e folclóricos dos dois lados no mesmo martelo.'}</p>
           {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>🃏 Quer resenha? Só aqui tem até o Walter Minhoca.</p>}
         </div>
+        )}
         <div>
           <p className="text-xs font-black uppercase mb-1">Nome do seu time</p>
           <input
