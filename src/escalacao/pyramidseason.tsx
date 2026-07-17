@@ -834,8 +834,11 @@ export function PyramidSeasonScreen() {
   // pegava isso (por isso título/artilharia da carreira online não contavam).
   const rankWriteRef = useRef('')
   useEffect(() => {
-    if (!done || !me || !state.careerOnline || !state.roomId) return
-    const key = `co:${state.roomId}:${state.seasonNo}`
+    if (!done || !me || !state.careerOnline) return
+    // chave da temporada: online usa o id da sala; offline (solo) usa a semente da
+    // carreira (única por save), pra cada temporada contar sem colidir entre carreiras.
+    const room = state.roomId || `solo${state.seed}`
+    const key = `co:${room}:${state.seasonNo}`
     if (rankWriteRef.current === key) return
     rankWriteRef.current = key
     ;(async () => {
@@ -847,13 +850,13 @@ export function PyramidSeasonScreen() {
         const displayName = user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? me.team
         await supabase.from('esc_results').upsert({
           user_id: user.id, display_name: displayName,
-          mode: 'online', season_key: key.slice(0, 48),
+          mode: state.roomId ? 'online' : 'cpu', season_key: key.slice(0, 48),
           champion: me.champ, top_scorer: topScorer?.teamId === youId,
           goals: myTeam?.gf ?? 0,
         }, { onConflict: 'user_id,season_key' })
       } catch { /* nunca trava o jogo */ }
     })()
-  }, [done, state.careerOnline, state.roomId, state.seasonNo]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [done, state.careerOnline, state.roomId, state.seasonNo, state.seed]) // eslint-disable-line react-hooks/exhaustive-deps
   const canSub = state.seasonNo >= 2 && !done // substituição libera na 2ª temporada
   const [selId, setSelId] = useState<string | null>(null)
   // troca por SELEÇÃO: 1º toque marca o jogador; 2º toque num da MESMA posição do
@@ -918,9 +921,9 @@ export function PyramidSeasonScreen() {
         )}
         {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} />}
 
-        {done && me?.champ && state.roomId && (
+        {done && me?.champ && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
-            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode}:${state.seasonNo}`} origin="online" />
+            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`} origin={state.roomId ? 'online' : 'cpu'} />
           </div>
         )}
         {done && (() => {
