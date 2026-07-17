@@ -75,6 +75,12 @@ export interface Manager {
   // É CPU (usa clubCash), mas aparece COLORIDO e marcado como rival no display,
   // igual à carreira antiga. Não afeta economia — só o visual.
   rival?: boolean
+  // pirâmide, mercado dos 80: time de FUNDO (dos 60) materializado como participante
+  // TEMPORÁRIO só neste leilão, porque um jogador dele foi sorteado pro mercado. Ele
+  // briga na posição da perda (leilão + monte, com preferência no próprio) e no fim
+  // a ficha dele (cpuSquads) é atualizada e ele SAI da lista. Fica sempre em 11.
+  marketCpu?: boolean
+  marketTeam?: string // nome do time de fundo que este participante temporário representa (chave da ficha/clubCash)
   // arquétipo da CPU
   aggression: number // 0..1 — quanto gasta cedo
   starHunger: number // 0..1 — quanto concentra em figurões
