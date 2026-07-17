@@ -389,20 +389,22 @@ export function EscIntro() {
           </button>
         </div>
       )}
-      <div className="text-center pt-10">
-        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-xs font-black uppercase" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
-          D7 STUDIO
+      <div className="text-center pt-8">
+        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
+          ⚽ Leilão às cegas de lendas
         </span>
-        <h1 className="font-black text-5xl mt-4" style={OSWALD}>LEILÃO LEGENDS</h1>
-        <p className="mt-2 font-semibold text-black/60">Leilão às cegas. Níveis ocultos. 38 rodadas pra provar quem entende de bola.</p>
+        <h1 className="font-black text-5xl mt-4 leading-none" style={OSWALD}>LEILÃO LEGENDS</h1>
+        <p className="mt-3 font-semibold text-black/60 max-w-sm mx-auto">Dê lance no <b>nome</b>, sem ver o nível. Monte o time no pregão, ganhe o campeonato e colecione os craques no seu álbum.</p>
       </div>
+      {/* vitrine: a coleção é a estrela — cartas reais do álbum (nível/cor/bio do catálogo) */}
+      <div className="grid grid-cols-2 gap-3">
+        <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="Pelé" club="Santos" year={1962} pos="ATA" fame={5} showBio /></div>
+        <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Gabigol" club="Flamengo" year={2019} pos="ATA" fame={4} showBio /></div>
+        <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Rayan Oi, Boa Noite" club="Vasco" year={2025} pos="ATA" fame={3} promessa showBio /></div>
+        <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="Obina" club="Flamengo" year={2005} pos="ATA" fame={2} folk showBio /></div>
+      </div>
+      <p className="text-center text-[11px] font-black uppercase tracking-wide text-black/45" style={OSWALD}>👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — colecione todos</p>
       <NewsBanner />
-      <Box bg="#fff" className="p-5 space-y-3">
-        <p className="font-bold text-sm">⚒️ <b>O Pregão:</b> 5 rodadas de leilão cego — goleiros, laterais, zagueiros, meio e ataque. Ninguém vê o lance de ninguém até bater o martelo.</p>
-        <p className="font-bold text-sm"><b>🎭 Níveis ocultos:</b> você dá lance no <i>nome</i>, sem ver o nível — ele só abre na Cerimônia da Revelação. E todo jogador tem <b>dia bom e dia ruim</b>: o nível muda a cada rodada. O <b>Obina</b> num dia ruim é perna-de-pau… no dia bom joga que nem o <b>Eto'o</b> (a torcida jurava que era 😏). Uns são de altos e baixos (dão zebra); os craques mais regulares rendem quase igual todo jogo.</p>
-        <p className="font-bold text-sm">🏆 <b>A prova:</b> os mesmos 11 disputam um campeonato de 38 rodadas contra a sala inteira. Sem lesão. Sem desculpa.</p>
-        <p className="font-bold text-sm">💎 <b>Vale o auge no Brasil:</b> o nível de cada carta é o que o jogador foi no <i>auge dele num clube brasileiro</i> — não a fama na Europa. Por isso o <b>Kaká</b> do São Paulo (2003) entra como <i>promessa</i> (só virou o melhor do mundo depois, no Milan), enquanto o <b>Bruno Henrique de 2019</b> — craque absoluto do Flamengo — vale mais no nosso leilão. Arrebentou no Brasileirão? Sobe. Brilhou só lá fora? É promessa.</p>
-      </Box>
       <div className="space-y-3">
         <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-lg">⚡ PARTIDA RÁPIDA (VS CPU)</Btn>
         {/* carreira nova em destaque: brilho pulsante na própria cor (roxo) + tag (new) */}
@@ -424,6 +426,19 @@ export function EscIntro() {
         <DinastiaButton />
         <CareerOnlineButton />
       </div>
+      {/* como funciona — 3 cartões enxutos (empilha no celular, 3 colunas no desktop) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        {([['🔨', 'O Pregão', '5 rodadas de leilão cego: goleiro, lateral, zaga, meio e ataque. Ninguém vê o lance de ninguém.'],
+           ['🎭', 'Níveis ocultos', 'Você aposta no nome. O nível só abre na Cerimônia — e todo craque tem dia bom e dia ruim.'],
+           ['🪜', 'Pirâmide', 'Comece na Série D e suba até a A. Cada título vira uma carta no seu álbum.']] as [string, string, string][]).map(([ic, t, d]) => (
+          <div key={t} className="border-[3px] border-black rounded-xl bg-white p-3" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
+            <div className="text-xl">{ic}</div>
+            <p className="font-black text-[13px] uppercase mt-1.5" style={OSWALD}>{t}</p>
+            <p className="text-[11px] font-semibold text-black/60 mt-0.5 leading-snug">{d}</p>
+          </div>
+        ))}
+      </div>
+      <p className="text-center text-[11px] font-bold text-black/50 px-2">💎 O nível de cada carta é o <b>auge no Brasil</b>: arrebentou no Brasileirão, sobe; brilhou só na Europa, é promessa.</p>
       <CardAccountNote />
       <Btn onClick={shareGame} className="w-full" bg="#fff">
         📤 {shared ? 'Link copiado! Cola no zap 📲' : 'Compartilhar com os amigos'}
