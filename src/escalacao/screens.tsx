@@ -2447,15 +2447,23 @@ interface RankRow { user_id: string; name: string; titles: number; scorer_titles
 //    e ganhou a carta repetida de um craque que já tinha, o álbum não duplica,
 //    mas os 2 títulos contam. Aí sobra título.
 //
-// Aqui, ao abrir o ranking, o navegador do próprio técnico (logado) iguala as
-// contagens POR MODO: cartas online ↔ títulos online, cartas CPU ↔ títulos CPU.
-// Falta → cria título; sobra → rebaixa (champion=false, sem apagar a linha nem a
-// artilharia). Roda como o usuário (passa no RLS), sem eu tocar no banco, e é
-// idempotente: depois de igualar, rodar de novo não muda nada.
+// IMPORTANTE: isto é uma LIMPEZA ÚNICA (one-shot), não um igualador permanente.
+// Daqui pra frente o jogo já nasce certo — carta repetida é bloqueada na hora de
+// escolher e todo campeão gera carta + título — então título e carta batem
+// sozinhos. Por isso este acerto roda UMA VEZ por técnico (guardado num flag) só
+// pra regularizar o acumulado antigo (contas que desencontraram por modos legados
+// ou cartas repetidas de antes) e PARA. Nunca mais fica somando/tirando título.
+//
+// Ao rodar (uma vez), o navegador do próprio técnico (logado) iguala as contagens
+// POR MODO: cartas online ↔ títulos online, cartas CPU ↔ títulos CPU. Falta →
+// cria título; sobra → rebaixa (champion=false, sem apagar a linha nem a
+// artilharia). Roda como o usuário (passa no RLS), sem eu tocar no banco.
 async function reconcileCardsToTitles() {
   try {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+    const flag = `esc-cards-titles-fix-v1:${user.id}`
+    if (localStorage.getItem(flag)) return // já regularizou este técnico — não repete
     const [{ data: cards }, { data: results }] = await Promise.all([
       supabase.from('user_cards').select('card_name, card_club, card_year, origin').eq('user_id', user.id),
       supabase.from('esc_results').select('season_key, mode, champion, top_scorer, display_name').eq('user_id', user.id),
@@ -2490,6 +2498,7 @@ async function reconcileCardsToTitles() {
         await supabase.from('esc_results').update({ champion: false }).eq('user_id', user.id).in('season_key', demote)
       }
     }
+    localStorage.setItem(flag, '1') // regularizado — não roda de novo pra este técnico
   } catch { /* nunca trava a tela */ }
 }
 
