@@ -1953,6 +1953,24 @@ export function reducer(state: EscState, action: Action): EscState {
       // mercado, que perdem jogador real pro leilão e recompram pela regra 0/1.
       const isMktBot = (m: Manager) => !m.isHuman && !m.rival
       const nMain = s.managers.filter(m => m.isHuman || m.rival).length
+      // #4 — CPU RIVAIS listam sozinhos (a partir da 3ª temporada, quando a venda
+      // abre): cada rival bota à venda a reserva mais FRACA de uma posição em que
+      // sobra (mais que o XI) — pra levantar grana e reforçar, igual a um humano.
+      if (s.seasonNo >= 3) {
+        const rate = (c: WonCard) => (c.lo + c.hi) / 2
+        const rl = { ...(s.reserveListed ?? {}) }
+        for (const m of s.managers.filter(x => x.rival)) {
+          let worst: WonCard | null = null
+          for (const pos of SECTORS) {
+            const real = m.squad.filter(c => c.pos === pos && !c.fake)
+            if (real.length <= FORMATIONS[m.formation][pos]) continue // sem reserva sobrando
+            const w = real.slice().sort((a, b) => rate(a) - rate(b))[0]
+            if (w && (!worst || rate(w) < rate(worst))) worst = w
+          }
+          if (worst && !(rl[m.id] ?? []).includes(worst.id)) rl[m.id] = [...(rl[m.id] ?? []), worst.id]
+        }
+        s.reserveListed = rl
+      }
       // 1) consome a lista: tira os listados dos elencos
       const listedMap = s.reserveListed ?? {}
       const listedCards: Card[] = []
