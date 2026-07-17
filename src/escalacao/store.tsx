@@ -96,6 +96,32 @@ export function openSlots(m: Manager, pos: Sector): number {
 export function totalHoles(m: Manager): number {
   return SECTORS.reduce((s, pos) => s + openSlots(m, pos), 0)
 }
+// melhor XI por NÍVEL (ids) — usado só pra FIXAR o time no começo da temporada.
+function bestXIids(squad: WonCard[], formation: FormationKey): string[] {
+  const out: string[] = []
+  for (const pos of SECTORS) {
+    const cands = squad.filter(c => c.pos === pos).sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))
+    for (let i = 0; i < FORMATIONS[formation][pos] && i < cands.length; i++) out.push(cands[i].id)
+  }
+  return out
+}
+// FIXA o XI dos HUMANOS pro começo da temporada: quem já era titular continua, e o
+// REFORÇO NOVO vai pro BANCO — só o usuário promove (manual). CPU/rivais seguem no
+// bestXI automático (tudo bem). Vale offline e online. Chamado ANTES do leilão
+// mexer no elenco (na virada de temporada), pra capturar o time atual.
+function pinHumanLineups(s: EscState) {
+  if (!s.careerOnline) return
+  const cl = { ...(s.careerLineup ?? {}) }
+  for (const m of s.managers) {
+    if (!m.isHuman) continue
+    const byRound = cl[m.id]
+    let ids: string[] | null = null
+    if (byRound) { let bestK = -1; for (const k in byRound) { const kn = +k; if (kn > bestK) { bestK = kn; ids = byRound[k] } } }
+    const valid = !!ids && ids.length === 11 && ids.every(id => m.squad.some(c => c.id === id))
+    cl[m.id] = { 0: valid ? ids! : bestXIids(m.squad, m.formation) }
+  }
+  s.careerLineup = cl
+}
 
 // ─── montagem do baralho ───────────────────────────────────────────────
 // `managers` aqui é só quem DISPUTA o leilão (humanos + rivais CPU no modo
@@ -1854,6 +1880,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // pelo host, determinístico) + zera a rodada e sobe a temporada. Os elencos
       // seguem os mesmos (novo leilão é um fluxo à parte).
       if (!s.careerOnline) return s
+      pinHumanLineups(s) // mantém o SEU XI (mesmo time) — nada de auto-mudar titular
       s.seasonVotes = {} // temporada nova: zera a votação
       s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada (base+título/acesso/queda)
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
@@ -1899,6 +1926,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // títulos) e abre a tela de VENDA — "Listar pra leilão" (45s). A compra vem
       // depois (RESERVE_AUCTION_ONLINE), quando o host começa o leilão.
       if (!s.careerOnline) return s
+      pinHumanLineups(s) // fixa o SEU XI ANTES do leilão — reforço novo vai pro banco
       s.seasonVotes = {} // temporada nova: zera a votação
       s.careerCoins = applyRewards(s.careerCoins, action.rewards)
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)

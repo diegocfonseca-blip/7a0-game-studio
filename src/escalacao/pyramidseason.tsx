@@ -205,6 +205,17 @@ function lineupAt(lineups: RoundLineups, teamId: number, r: number, squad: PoolC
   if (!ids) return bestXI(squad)
   const map = new Map(squad.map(c => [c.id, c]))
   const xi = ids.map(id => map.get(id)).filter((c): c is PoolCard => !!c)
+  if (xi.length === 11) return xi
+  // PARCIAL: se um titular saiu (vendido), mantém os que ficaram e completa SÓ
+  // aquela vaga com o melhor do banco na posição — não remonta o time inteiro
+  // (evita o auto-mudar titular que o usuário não pediu).
+  const used = new Set(xi.map(c => c.id))
+  for (const p of SECTORS) {
+    let need = NEED[p] - xi.filter(c => c.pos === p).length
+    if (need <= 0) continue
+    const bench = squad.filter(c => c.pos === p && !used.has(c.id)).sort((a, b) => mid(b) - mid(a))
+    for (const c of bench) { if (need <= 0) break; xi.push(c); used.add(c.id); need-- }
+  }
   return xi.length === 11 ? xi : bestXI(squad)
 }
 function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[]) {
