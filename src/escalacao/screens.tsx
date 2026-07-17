@@ -840,6 +840,11 @@ function Envelope() {
         </div>
       )}
 
+      {!state.streamMode && canBid && cards.some(c => ((c as { paid?: number }).paid ?? 0) > 0) && (
+        <div className="text-center border-[3px] border-black rounded-xl px-3 py-1.5" style={{ background: '#FFF3D6', boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <p className="text-[11px] font-bold text-black/75">🔒 O número esmaecido é o <b>piso</b> do jogador — <b>não é lance</b>. Só vira lance quando você aperta <b>+</b> (aí fica preto). Abaixo do piso fica vermelho e é anulado.</p>
+        </div>
+      )}
       <div className="space-y-2">
         {cards.map(c => {
           const bid = bids[c.id] ?? 0
@@ -1274,6 +1279,11 @@ export function EscMonte() {
       <p className="text-sm font-semibold text-black/70">
         As sobras do pregão, de graça. Quem tem mais buracos escolhe primeiro, em serpente. Seus buracos: <b>{totalHoles(you)}</b>.
       </p>
+      {state.careerOnline && state.monte.some(c => ((c as { paid?: number }).paid ?? 0) > 0) && (
+        <p className="text-xs font-semibold text-black/60">
+          🔒 O <b>vale X</b> é o piso do jogador — quem foi listado e não vendeu caiu pra <b>metade</b> ao vir pro monte. Pegar é <b>de graça</b>: o número é só o quanto ele passa a valer daqui pra frente (não é lance nem custo).
+        </p>
+      )}
       {online && (
         <p className="text-xs font-semibold text-black/60">
           ⏱️ {remaining ?? MONTE_SECONDS}s por vez. Estourou o tempo (foi ao banheiro?), o jogo escolhe a pior sobra pra você e cobra 5 moedas de multa.
@@ -1286,12 +1296,18 @@ export function EscMonte() {
               SUA VEZ — escolha uma carta{remaining !== null ? ` · ${remaining}s` : ''}
             </p>
           </Box>
-          {valid.map(c => (
+          {valid.map(c => {
+            const val = (c as { paid?: number }).paid ?? 0 // valor de piso (carreira): caiu pela metade ao vir pro monte
+            return (
             <Box key={c.id} className="p-3 flex items-center justify-between">
               <CardFace c={c} />
-              <Btn onClick={() => dispatch({ type: 'MONTE_PICK', mgrId: you.id, cardId: c.id })} bg={GREEN}><span className="text-white">PEGAR</span></Btn>
+              <div className="flex items-center gap-2 shrink-0">
+                {val > 0 && <span className="text-[10px] font-black uppercase leading-tight text-right" style={{ color: '#B8860B' }}>🔒 vale {val}</span>}
+                <Btn onClick={() => dispatch({ type: 'MONTE_PICK', mgrId: you.id, cardId: c.id })} bg={GREEN}><span className="text-white">PEGAR</span></Btn>
+              </div>
             </Box>
-          ))}
+            )
+          })}
         </div>
       ) : (
         <Box className="p-4">
