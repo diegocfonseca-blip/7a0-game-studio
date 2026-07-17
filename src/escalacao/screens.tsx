@@ -6,7 +6,7 @@ import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, STAR
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
-import { AdminButton, useCanCareerOnline } from './admin'
+import { AdminButton } from './admin'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
@@ -347,7 +347,6 @@ export function EscIntro() {
   const { dispatch } = useEsc()
   const resumable = useResumableRoom()
   const solo = useResumableSolo()
-  const canPyramid = useCanCareerOnline() // testador: a Carreira abre a NOVA pirâmide offline (em teste)
   const [shared, setShared] = useState(false)
   const shareGame = async () => {
     const data = { title: 'Leilão Legends', text: 'Bora jogar Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨⚽', url: 'https://leilaolegends.com' }
@@ -407,9 +406,7 @@ export function EscIntro() {
       <div className="space-y-3">
         <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-lg">⚡ PARTIDA RÁPIDA (VS CPU)</Btn>
         <Btn onClick={() => dispatch({ type: 'GO_SETUP_CAREER' })} className="w-full text-lg" bg={PURPLE}>
-          <span className="text-white">{canPyramid
-            ? <>🪜 CARREIRA · PIRÂMIDE <span className="text-yellow-300">🧪 teste (offline)</span></>
-            : <>🪜 CARREIRA POR DIVISÕES <span className="text-yellow-300">(new)</span></>}</span>
+          <span className="text-white">🪜 CARREIRA POR DIVISÕES <span className="text-yellow-300">(offline)</span></span>
         </Btn>
         <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg" bg={GREEN}>
           <span className="text-white">👥 JOGAR ONLINE (SALA)</span>
@@ -444,7 +441,6 @@ export function EscIntro() {
 export function EscSetup() {
   const { state, dispatch } = useEsc()
   const career = state.careerIntent
-  const canPyramid = useCanCareerOnline() // testadores: carreira offline roda na NOVA pirâmide (em teste)
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
@@ -485,9 +481,9 @@ export function EscSetup() {
     const picks = career
       ? [...rivalPicks, ...DIVISION_TEAMS['D'].map(t => t.team).filter(t => !rivalPicks.includes(t))].slice(0, rivals)
       : undefined
-    // carreira offline: testadores rodam a NOVA pirâmide (em teste, escondida do
-    // público); o resto segue na carreira por divisões antiga.
-    if (career && canPyramid) dispatch({ type: 'START_CAREER_SOLO', teamName: clean, formation, rivals, rivalTeams: picks, league: 'both' }) // carreira: sempre BR + Europa juntos
+    // carreira offline = pirâmide de 4 divisões (baralho sempre BR + Europa juntos).
+    // O modo rápido (career=false) segue no START normal com o baralho escolhido.
+    if (career) dispatch({ type: 'START_CAREER_SOLO', teamName: clean, formation, rivals, rivalTeams: picks, league: 'both' })
     else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league })
   }
   return (
@@ -497,7 +493,6 @@ export function EscSetup() {
         <span className="text-lg leading-none">←</span> Home
       </button>
       <h2 className="font-black text-3xl pt-2" style={OSWALD}>{career ? '🪜 CARREIRA · SÉRIE D' : 'MONTE SUA SALA'}</h2>
-      {career && canPyramid && <span className="inline-block border-2 border-black rounded-full px-2.5 py-0.5 text-[11px] font-black uppercase mt-1" style={{ background: '#6C43C0', color: '#fff', ...OSWALD }}>🧪 Pirâmide offline (teste) — só testadores</span>}
       {career && <p className="text-sm font-bold text-black/60 -mt-1">Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.</p>}
       {career && (
         <Box bg="#FFF6DE" className="p-4 space-y-1.5">
@@ -510,7 +505,7 @@ export function EscSetup() {
         </Box>
       )}
       <Box className="p-4 space-y-4">
-        {career && canPyramid ? (
+        {career ? (
           <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
             <p className="font-black text-sm" style={OSWALD}>🌎 Baralho fixo: Brasileirão + Europa juntos</p>
             <p className="text-[11px] font-bold text-black/65 mt-1">Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</p>
@@ -599,7 +594,10 @@ export function EscSetup() {
       <Btn onClick={start} className="w-full text-lg" bg={GREEN}>
         <span className="text-white">{career ? 'COMEÇAR CARREIRA 🪜' : 'ABRIR O PREGÃO 🔨'}</span>
       </Btn>
-      {career && (canPyramid ? <SoloContinueBanner /> : <CareerContinueBanner />)}
+      {/* pirâmide nova (todo save novo) + carreira antiga (só pra quem já tinha um
+          save em andamento poder terminar). Cada banner some sozinho se não houver
+          save — então quem começa do zero vê só a pirâmide. */}
+      {career && <><SoloContinueBanner /><CareerContinueBanner /></>}
       <CardAccountNote />
     </Shell>
   )
