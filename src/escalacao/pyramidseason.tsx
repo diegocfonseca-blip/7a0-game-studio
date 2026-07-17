@@ -505,27 +505,29 @@ function RivalryTicker({ items }: { items: Flavor[] }) {
     </div>
   )
 }
-function MyMatchCard({ m, youName, finished, col, colors, roundKey }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number }) {
+// ── PLACAR AO VIVO (reutilizável): relógio animado, selo GOOOL, flash e bump.
+// Usado na carreira (pirâmide) E no jogo rápido (offline/online) — mesmo visual.
+export interface ScoreGoal { name: string; min: number; home: boolean }
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico }:
+  { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean }) {
   const [min, setMin] = useState(finished ? 93 : 0)
   useEffect(() => {
     // o relógio só zera/anima quando MUDA A RODADA (roundKey). Trocar a tática na
     // mesma rodada não reinicia o jogo que está na tela — ele não re-simula.
     if (finished) { setMin(93); return }
     setMin(0)
-    const step = Math.max(30, (ROUND_MS * 0.82) / 93)
+    const step = Math.max(30, (roundMs * 0.82) / 93)
     let cur = 0
     const iv = setInterval(() => { cur++; setMin(cur); if (cur >= 93) clearInterval(iv) }, step)
     return () => clearInterval(iv)
-  }, [roundKey, finished])
-  const shown = m.goals.filter(g => g.min <= min)
+  }, [roundKey, finished, roundMs])
+  const shown = goals.filter(g => g.min <= min)
   const hg = shown.filter(g => g.home).length, ag = shown.filter(g => !g.home).length
   const done = min >= 93
   const minLabel = min >= 93 ? 'FIM' : min > 90 ? `90+${min - 90}'` : `${min}'`
-  const iAmHome = m.h === youName
-  const last = shown.length ? shown[shown.length - 1] : null
-  const oppId = iAmHome ? m.aId : m.hId
-  const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
-  const homeCol = iAmHome ? col.solid : oppCol, awayCol = iAmHome ? oppCol : col.solid
+  const iAmHome = youIsHome
+  const last = shown.length ? [...shown].sort((a, b) => a.min - b.min)[shown.length - 1] : null
+  const homeCol = homeColor, awayCol = awayColor
   const ini = (n: string) => n.trim()[0]?.toUpperCase() ?? '?'
 
   // ── SAIU GOL! detecta quando hg/ag sobem (só ao vivo) e dispara o selo GOOOL,
@@ -544,6 +546,7 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey }: { m: SimMa
       return () => clearTimeout(t)
     }
   }, [hg, ag, roundKey, finished])
+  void iAmHome
 
   const Team = ({ name, color, you, flash }: { name: string; color: string; you: boolean; flash?: boolean }) => (
     <div style={{ position: 'relative', overflow: 'hidden', padding: '22px 8px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textAlign: 'center', background: `linear-gradient(180deg, ${color}22, transparent)`, minWidth: 0 }}>
@@ -554,21 +557,22 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey }: { m: SimMa
     </div>
   )
   return (
-    <div style={{ ...box('#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
+    <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coStamp{0%{transform:translateX(-50%) scale(0) rotate(-14deg);opacity:0}45%{transform:translateX(-50%) scale(1.18) rotate(-7deg);opacity:1}70%{transform:translateX(-50%) scale(.94) rotate(-7deg)}100%{transform:translateX(-50%) scale(1) rotate(-7deg);opacity:1}}'}</style>
+      {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>🥊 CLÁSSICO</div>}
       {/* selo GOOOL! — surge sobre o lado de quem marcou */}
       {goal && <div style={{ position: 'absolute', top: 4, left: goal === 'h' ? '25%' : '75%', transform: 'translateX(-50%) rotate(-7deg)', zIndex: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '3px 12px', ...OSWALD, fontWeight: 900, fontSize: 17, letterSpacing: 0.5, boxShadow: `2px 2px 0 0 ${INK}`, animation: 'coStamp .5s cubic-bezier(.2,1.4,.5,1) both', whiteSpace: 'nowrap' }}>⚽ GOOOL!</div>}
       <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', background: INK, color: '#fff', fontSize: 11, fontWeight: 900, ...OSWALD, padding: '3px 11px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 6, zIndex: 2, whiteSpace: 'nowrap' }}>
         <span style={{ width: 7, height: 7, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite' }} /> {done ? 'FIM' : minLabel}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch' }}>
-        <Team name={m.h} color={homeCol} you={iAmHome} flash={goal === 'h'} />
+        <Team name={homeName} color={homeCol} you={youIsHome} flash={goal === 'h'} />
         {/* placar central limpo (sem tarja preta) — número grande no creme; cada
             número dá um "bump" quando MUDA (key = valor → remonta e reanima) */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '22px 6px 8px', minWidth: 88, ...OSWALD, fontWeight: 900, fontSize: 34, color: INK, lineHeight: 1 }}>
           <span key={'h' + hg} style={{ padding: '0 8px', display: 'inline-block', animation: 'coBump .55s ease' }}>{hg}</span><span style={{ color: '#b8b0a0', fontSize: 16 }}>×</span><span key={'a' + ag} style={{ padding: '0 8px', display: 'inline-block', animation: 'coBump .55s ease' }}>{ag}</span>
         </div>
-        <Team name={m.a} color={awayCol} you={!iAmHome} flash={goal === 'a'} />
+        <Team name={awayName} color={awayCol} you={!youIsHome} flash={goal === 'a'} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '7px 12px', borderTop: '2px solid #e6dcbf', background: '#efe4c8' }}>
         <span style={{ fontSize: 11, fontWeight: 700, ...OSWALD, color: 'rgba(0,0,0,0.72)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%' }}>
@@ -577,6 +581,15 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey }: { m: SimMa
       </div>
     </div>
   )
+}
+
+// wrapper da CARREIRA: resolve cores por técnico e passa pro placar compartilhado.
+function MyMatchCard({ m, youName, finished, col, colors, roundKey }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number }) {
+  const iAmHome = m.h === youName
+  const oppId = iAmHome ? m.aId : m.hId
+  const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
+  return <LiveScoreCard homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
+    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={ROUND_MS} finished={finished} />
 }
 
 // ── os JOGOS de uma divisão (placar + quem fez os gols), cores por amigo ──

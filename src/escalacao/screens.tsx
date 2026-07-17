@@ -12,7 +12,7 @@ import { CareerOnlineButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
-import { playerColors } from './pyramidseason'
+import { playerColors, LiveScoreCard } from './pyramidseason'
 
 // universo colecionável = os DOIS baralhos (BR + Europa), por nomes únicos
 // (Kaká, Cafu etc. aparecem nos dois — conta uma vez só).
@@ -1567,7 +1567,6 @@ export function EscCerimonia() {
 const TACTIC_LABEL: Record<Tactic, string> = { retranca: '🧱 Retranca', equilibrio: '⚖️ Equilíbrio', ataque: '🔥 Ataque' }
 export const SEASON_TOTAL_MS = 180_000
 const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // ~4,7s por rodada
-const TICK_MINUTES = 93 // 90' + acréscimos exibidos no ticker
 
 export function EscSeason() {
   const { state, dispatch } = useEsc()
@@ -1656,9 +1655,20 @@ export function EscSeason() {
         })()}</span>
       </div>
     }>
-      {myLast ? (
-        <MatchCard key={state.round} r={myLast} roundMs={ROUND_MS} />
-      ) : (
+      {myLast ? (() => {
+        // mesmo placar da carreira (LiveScoreCard): relógio, GOOOL, flash e bump.
+        const homeIsYou = myLast.homeId === you.id
+        const oppId = homeIsYou ? myLast.awayId : myLast.homeId
+        const oppIsHuman = state.managers.some(m => m.id === oppId && m.isHuman)
+        const youColor = '#7C3AED', oppColor = oppIsHuman ? '#E8503A' : '#3A7CA5'
+        const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
+        const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/); return mm ? mm[1] : text.replace(/^⚽\s*/, '').replace(/\.$/, '') }
+        const goals = myLast.highlights.map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === myLast.homeId }))
+        return <LiveScoreCard key={state.round}
+          homeName={nameOf(myLast.homeId)} awayName={nameOf(myLast.awayId)}
+          homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
+          youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={ROUND_MS} classico={oppIsHuman} />
+      })() : (
         <Box bg="#fff" className="p-6" shadow={6}>
           <p className="text-center font-black" style={OSWALD}>🏁 Aguardando o pontapé inicial…</p>
         </Box>
@@ -1813,48 +1823,6 @@ function TopScorersBox({ highlight }: { highlight: number }) {
 
 // placar progressivo: o minuto sobe sozinho de 1 até 90+acréscimos, revelando
 // os gols conforme o relógio passa por eles — nunca mostra o resultado pronto.
-function MatchCard({ r, roundMs }: { r: { homeId: number; awayId: number; hg: number; ag: number; highlights: { min: number; text: string; teamId: number }[] }; roundMs: number }) {
-  const { state } = useEsc()
-  const h = state.league.find(t => t.id === r.homeId)!, a = state.league.find(t => t.id === r.awayId)!
-  const [minute, setMinute] = useState(0)
-
-  useEffect(() => {
-    const stepMs = Math.max(30, (roundMs * 0.85) / TICK_MINUTES)
-    let cur = 0
-    const iv = setInterval(() => {
-      cur++
-      setMinute(cur)
-      if (cur >= TICK_MINUTES) clearInterval(iv)
-    }, stepMs)
-    return () => clearInterval(iv)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const visible = [...r.highlights].filter(hl => hl.min <= minute).sort((x, y) => x.min - y.min)
-  const hg = visible.filter(hl => hl.teamId === r.homeId).length
-  const ag = visible.filter(hl => hl.teamId === r.awayId).length
-  const done = minute >= TICK_MINUTES
-  const minuteLabel = minute > 90 ? `90+${minute - 90}'` : `${minute}'`
-  const you = state.managers[state.youIdx]
-  const oppId = r.homeId === you.id ? r.awayId : r.homeId
-  const isClassico = state.managers.some(m => m.id === oppId && m.isHuman)
-
-  return (
-    <Box bg={isClassico ? GOLD : '#fff'} className="p-4" shadow={6}>
-      {isClassico && <p className="text-center font-black text-[11px] uppercase" style={OSWALD}>🥊 CLÁSSICO</p>}
-      <p className="text-center text-[11px] font-black uppercase" style={{ color: done ? GREEN : RED }}>
-        {done ? '✅ FIM DE JOGO' : `⏱️ ${minuteLabel}`}
-      </p>
-      <p className="text-center font-black text-2xl" style={OSWALD}>{h.name} {hg} × {ag} {a.name}</p>
-      <div className="mt-2 space-y-0.5 min-h-[20px]">
-        {visible.map((hl, i) => (
-          <p key={i} className="text-xs font-semibold text-black/60">{hl.min > 90 ? `90+${hl.min - 90}` : hl.min}' {hl.text}</p>
-        ))}
-        {done && visible.length === 0 && <p className="text-xs text-center font-semibold text-black/70">Jogo truncado, sem gols pra contar.</p>}
-      </div>
-    </Box>
-  )
-}
 
 // zona da tabela por posição (sempre 20 times): 1-4 azul (G4 — na carreira
 // SOBE de divisão), 5-10 amarelo (pré), 11-16 branco (meio), 17-20 vermelho
