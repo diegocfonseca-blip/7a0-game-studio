@@ -643,6 +643,41 @@ export function CardAccountNote() {
 }
 
 // ─── LEILÃO: envelope ────────────────────────────────────────────────
+// contador de moedas que REAGE quando o caixa muda: pulsa (verde ao entrar grana
+// de uma venda, vermelho ao gastar) e solta um "+X / −X" flutuando. Só anima na
+// mudança — no primeiro render fica quieto.
+function CoinCounter({ value }: { value: number }) {
+  const prev = useRef(value)
+  const [delta, setDelta] = useState<{ n: number; key: number } | null>(null)
+  const [pulse, setPulse] = useState(false)
+  useEffect(() => {
+    if (value === prev.current) return
+    const d = value - prev.current
+    prev.current = value
+    setDelta({ n: d, key: Date.now() })
+    setPulse(true)
+    const t1 = setTimeout(() => setPulse(false), 650)
+    const t2 = setTimeout(() => setDelta(null), 1000)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [value])
+  const up = (delta?.n ?? 0) > 0
+  return (
+    <span className="relative inline-flex items-center">
+      <motion.span className="font-black text-lg" style={OSWALD}
+        animate={pulse ? { scale: [1, 1.4, 1] } : { scale: 1 }} transition={{ duration: 0.65 }}>
+        💰 <motion.span animate={pulse ? { color: [INK, up ? GREEN : RED, INK] } : { color: INK }} transition={{ duration: 0.65 }} style={{ display: 'inline' }}>{value}</motion.span>
+      </motion.span>
+      {delta && delta.n !== 0 && (
+        <motion.span key={delta.key} initial={{ opacity: 0, y: 2, scale: 0.7 }} animate={{ opacity: 1, y: -20, scale: 1 }}
+          transition={{ duration: 0.9, ease: 'easeOut' }}
+          className="absolute right-0 -top-2 font-black text-sm pointer-events-none whitespace-nowrap"
+          style={{ ...OSWALD, color: up ? GREEN : RED, textShadow: '0 1px 0 rgba(255,255,255,0.8)' }}>
+          {up ? `+${delta.n}` : delta.n} 🪙
+        </motion.span>
+      )}
+    </span>
+  )
+}
 function AuctionBar() {
   const { state } = useEsc()
   const you = state.managers[state.youIdx]
@@ -656,7 +691,7 @@ function AuctionBar() {
           </span>
         ))}
       </div>
-      <span className="font-black text-lg" style={OSWALD}>💰 {you.money}</span>
+      <CoinCounter value={you.money} />
     </div>
   )
 }
