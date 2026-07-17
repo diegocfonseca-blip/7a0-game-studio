@@ -23,13 +23,11 @@ export type Div = 'A' | 'B' | 'C' | 'D'
 export const DIVS: Div[] = ['A', 'B', 'C', 'D']
 const DIV_LABEL: Record<Div, string> = { A: '🏆 Série A', B: '🥈 Série B', C: '🥉 Série C', D: 'Série D' }
 const DIV_TAG: Record<Div, { l: string; bg: string }> = { A: { l: 'A', bg: '#B8892B' }, B: { l: 'B', bg: '#3E8E4E' }, C: { l: 'C', bg: '#9A7B33' }, D: { l: 'D', bg: '#7A7460' } }
-// força-base por divisão dos times de CPU NATIVOS (não humano, não rival). O
-// catálogo real é finito (373 pra 80 times), então os nativos são meio incógnitos
-// e fracos; você e os rivais têm elenco forte do leilão. Sem isso, quem sobe
-// atropela a divisão (líder 100+ pts). Como o "bucket" das séries de baixo é mais
-// fraco, elas ganham MAIS boost (pra chegar na PARIDADE com quem sobe) — assim
-// TODAS as séries ficam disputadas. A D fica baixa (você contra os fillers). Tunável.
-const CPU_DIV_BOOST: Record<Div, number> = { A: 16, B: 20, C: 24, D: 6 }
+// força-base por divisão dos times de CPU NATIVOS (não humano, não rival). Só um
+// EMPURRÃO leve (não paridade!) pra os nativos das séries de baixo não serem
+// atropelados de goleada — o NÍVEL/lenda continua mandando (time forte lidera). A
+// zebra/variação fica por conta do "dia" (MATCH_LUCK). Tunável.
+const CPU_DIV_BOOST: Record<Div, number> = { A: 6, B: 9, C: 12, D: 2 }
 
 // ── motor de simulação por elenco (espelha o da Dinastia) ──
 const NEED: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
@@ -262,6 +260,11 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     // elenco real que montaram).
     const bh = (!H.human && !H.rival) ? CPU_DIV_BOOST[div] : 0, ba = (!A.human && !A.rival) ? CPU_DIV_BOOST[div] : 0
     fh.atk += bh; fh.def += bh; fa.atk += ba; fa.def += ba
+    // SORTE: cada time tem um "dia" (bom/ruim) por jogo — o forte às vezes tropeça,
+    // o fraco às vezes surpreende. NÍVEL segue mandando (na média o melhor ganha),
+    // mas evita goleada de campeonato (líder com 104 pts) e dá zebra de vez em quando.
+    const lkH = 0.85 + rng() * 0.30, lkA = 0.85 + rng() * 0.30
+    fh.atk *= lkH; fh.def *= lkH; fa.atk *= lkA; fa.def *= lkA
     // qualidade ABSOLUTA do ataque escala os gols: time fraco (cheio de filler)
     // marca menos no geral — não só a diferença atk-def conta. Assim as divisões
     // de baixo (várzea) não inflam a artilharia com nomes de brincadeira.
