@@ -662,10 +662,16 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap }: { mgr: Manage
     { key: 'GOL', cards: xiOf('GOL') },
   ]
   const reserves = mgr.squad.filter(c => !xiIds.has(c.id)).sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos) || mid(b) - mid(a))
-  const hint = sel ? `Trocar ${sel.name} por qual ${POS_LABEL[sel.pos].toLowerCase()}? (toque o aceso)` : 'Toque um jogador pra trocar de posição no time.'
   return (
     <div>
-      {onTap && <p style={{ fontSize: 10.5, fontWeight: 700, color: sel ? GREEN : '#5a5647', margin: '0 0 6px' }}>{hint}</p>}
+      {onTap && (
+        <div style={{ border: `3px solid ${sel ? GREEN : INK}`, background: sel ? '#E9F9EF' : '#FFF6D6', borderRadius: 11, padding: '9px 12px', margin: '0 0 10px', boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <p style={{ fontSize: 13.5, fontWeight: 900, ...OSWALD, color: sel ? GREEN : INK, margin: 0, lineHeight: 1.2 }}>
+            {sel ? <>🔁 Trocar <b>{sel.name}</b> por qual {POS_LABEL[sel.pos].toLowerCase()}? Toque um aceso 👇</> : <>🔁 Dá pra SUBSTITUIR! Toque num jogador e depois num reserva pra trocar.</>}
+          </p>
+          {!sel && <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', margin: '3px 0 0' }}>O reserva entra na vaga do titular — vale do próximo jogo em diante.</p>}
+        </div>
+      )}
       <div style={{ border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
         <div style={{ padding: '8px 5px', display: 'flex', flexDirection: 'column', gap: 5, background: `repeating-linear-gradient(180deg, ${GREEN} 0 30px, #166332 30px 60px)` }}>
           {rows.map(r => (
@@ -681,7 +687,10 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap }: { mgr: Manage
           ))}
         </div>
       </div>
-      <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: 'rgba(0,0,0,0.5)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: 0.3 }}>Reservas ({reserves.length})</p>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, flexWrap: 'wrap', margin: '2px 0 6px' }}>
+        <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, color: INK, margin: 0, textTransform: 'uppercase', letterSpacing: 0.3 }}>🔁 Reservas ({reserves.length})</p>
+        {onTap && <span style={{ fontSize: 11, fontWeight: 800, color: GREEN, ...OSWALD }}>· toque pra subir ao time titular</span>}
+      </div>
       {reserves.length === 0
         ? <p style={{ fontSize: 11, fontWeight: 700, color: '#6a6658', margin: 0 }}>Sem reservas no banco.</p>
         : reserves.map(c => { const st = stateOf(c); return (
@@ -692,6 +701,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap }: { mgr: Manage
             <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
               {goalsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: GREEN }}>⚽ {goalsOf(c)}</span>}
               <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: '#5a5647' }}>💰 {c.paid ?? 0}</span>
+              {onTap && <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#fff', background: GREEN, border: `1.5px solid ${INK}`, borderRadius: 6, padding: '1px 6px', whiteSpace: 'nowrap' }}>⇅ trocar</span>}
             </span>
           </div>
         ) })}
