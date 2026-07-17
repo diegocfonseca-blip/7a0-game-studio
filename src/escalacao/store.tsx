@@ -952,16 +952,19 @@ function monteAfford(m: Manager, c: Card, careerOnline: boolean): boolean {
   if ((c as { seller?: number }).seller === m.id) return true // sua própria carta listada: de graça
   return m.money >= p
 }
-// PRIORIDADE (carreira): a carta que um técnico (humano/rival) listou e caiu no
-// monte fica RESERVADA pra ELE enquanto ele ainda tiver buraco — os outros só
-// conseguem pegar (pela metade) DEPOIS que o dono encher o time. Carta de bot do
-// mercado não tem reserva.
+// PREFERÊNCIA (carreira): quem listou um jogador tem a PRIMEIRA CHANCE de pegá-lo
+// de volta no monte. Não é reserva — a carta fica travada pros outros só até o
+// dono TER A VEZ dele (primeira aparição na ordem do monte). Depois que ele teve a
+// chance (pegou outra, deixou passar ou estourou o tempo), abre pros outros pela
+// metade. Carta de bot do mercado não tem preferência.
 export function monteLocked(state: EscState, m: Manager, c: Card): boolean {
   if (!state.careerOnline) return false
   const sellerId = (c as { seller?: number }).seller
   if (sellerId == null || sellerId === m.id) return false
   const seller = state.managers.find(x => x.id === sellerId)
-  return !!seller && !seller.backstop && totalHoles(seller) > 0
+  if (!seller || seller.backstop || totalHoles(seller) === 0) return false
+  const ownerHadTurn = state.monteOrder.slice(0, state.monteIdx).includes(sellerId)
+  return !ownerHadTurn // trava só ENQUANTO o dono ainda não teve a vez dele
 }
 // pode o técnico m pegar a carta c AGORA? vaga na posição + consegue pagar + não
 // está reservada pro dono.
