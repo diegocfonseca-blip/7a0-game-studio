@@ -329,6 +329,102 @@ export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { 
   return { rewards, clubRewards, values }
 }
 
+// ── COPA LEGENDS: mata-mata dos 16 (top-4 de cada divisão), sorteio aleatório,
+// ida e volta, final única, pênaltis no empate. Determinística (semente +
+// temporada + classificação), então bate igual offline e em todos os clientes
+// online. Reaproveita a MESMA simulação de jogo da liga (rollForm/poisson). ──
+export interface CopaTie { a: SimTeam; b: SimTeam; aDiv: Div; bDiv: Div; aggA: number; aggB: number; pens?: [number, number]; win: 'a' | 'b' }
+export interface CopaRound { name: string; ties: CopaTie[] }
+export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; scorers: SeasonScorer[]; topScorer?: SeasonScorer }
+const COPA_CHAMP_COINS = 25 // igual ao campeão da Série A
+const COPA_SCORER_BONUS = 16 // igual à artilharia da Série A (caixa do time + piso)
+// prestígio por divisão na Copa: A favorita, D azarão (soma no ataque e defesa).
+const COPA_DIV_STRENGTH: Record<Div, number> = { A: 10, B: 6, C: 3, D: 0 }
+
+export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, seasonNo: number): CopaResult {
+  const rng = mulberry((seed ^ (seasonNo * 0x9E3779B1) ^ 0xC0FA5EED) >>> 0)
+  let field: { t: SimTeam; div: Div }[] = []
+  for (const d of DIVS) for (const t of (tables[d] ?? []).slice(0, 4)) field.push({ t, div: d })
+  if (field.length < 2) return { rounds: [], champion: null, championDiv: null, scorers: [] }
+  field = shuffle(field, rng)
+  const scorers = new Map<string, SeasonScorer>()
+  const goalW = (c: PoolCard) => { const n = Math.max(0, (mid(c) - 40) / 42); return 0.12 + n * n * 1.8 }
+  const credit = (e: { t: SimTeam; div: Div }, xi: PoolCard[], goals: number) => {
+    for (let g = 0; g < goals; g++) {
+      const pool = xi.map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05) * goalW(c) }))
+      const total = pool.reduce((s, p) => s + p.w, 0); let r = rng() * total, pick = pool[0]?.c
+      for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
+      if (!pick) continue
+      const key = `${e.t.name}:${pick.id}`, row = scorers.get(key)
+      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, goals: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: pick.id })
+    }
+  }
+  const leg = (H: { t: SimTeam; div: Div }, A: { t: SimTeam; div: Div }, homeAdv: boolean): [number, number] => {
+    const th = TACS[Math.floor(rng() * 3)], ta = TACS[Math.floor(rng() * 3)]
+    const fh = rollForm(H.t.xi, th, ta, rng), fa = rollForm(A.t.xi, ta, th, rng)
+    // na Copa (cruzando divisões) a força vem do ELENCO + um gradiente de prestígio
+    // por divisão (A mais forte, D o azarão) — NÃO o boost da liga (que é
+    // compensação de filler dentro da série e até favorece a C). Assim a Série A é
+    // favorita e o time de baixo é o Davi: dá zebra na sorte, mas não é moeda.
+    const bh = COPA_DIV_STRENGTH[H.div], ba = COPA_DIV_STRENGTH[A.div]
+    fh.atk += bh; fh.def += bh; fa.atk += ba; fa.def += ba
+    const lkH = 0.85 + rng() * 0.30, lkA = 0.85 + rng() * 0.30
+    fh.atk *= lkH; fh.def *= lkH; fa.atk *= lkA; fa.def *= lkA
+    const qual = (atk: number) => Math.max(0.5, Math.min(1.2, atk / 66))
+    const lh = Math.max(0.08, (1.35 + (fh.atk - fa.def) * 0.055 + (homeAdv ? 0.25 : 0)) * qual(fh.atk))
+    const la = Math.max(0.08, (1.35 + (fa.atk - fh.def) * 0.055) * qual(fa.atk))
+    const hg = poisson(lh, rng), ag = poisson(la, rng)
+    credit(H, H.t.xi, hg); credit(A, A.t.xi, ag)
+    return [hg, ag]
+  }
+  const playTie = (a: { t: SimTeam; div: Div }, b: { t: SimTeam; div: Div }, single: boolean): CopaTie => {
+    let aggA = 0, aggB = 0
+    const [h1, a1] = leg(a, b, true); aggA += h1; aggB += a1
+    if (!single) { const [h2, a2] = leg(b, a, true); aggB += h2; aggA += a2 }
+    let pens: [number, number] | undefined, win: 'a' | 'b'
+    if (aggA === aggB) { let x = 3 + Math.floor(rng() * 3), y = 3 + Math.floor(rng() * 3); if (x === y) (rng() < 0.5 ? x++ : y++); pens = [x, y]; win = x > y ? 'a' : 'b' }
+    else win = aggA > aggB ? 'a' : 'b'
+    return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA, aggB, pens, win }
+  }
+  const roundNames = ['Oitavas', 'Quartas', 'Semifinal', 'Final']
+  const rounds: CopaRound[] = []
+  let cur = field
+  let ri = Math.max(0, roundNames.length - Math.ceil(Math.log2(cur.length)))
+  while (cur.length > 1) {
+    const single = cur.length === 2 // final = jogo único
+    const ties: CopaTie[] = [], next: { t: SimTeam; div: Div }[] = []
+    for (let i = 0; i + 1 < cur.length; i += 2) {
+      const tie = playTie(cur[i], cur[i + 1], single)
+      ties.push(tie); next.push(tie.win === 'a' ? cur[i] : cur[i + 1])
+    }
+    rounds.push({ name: roundNames[ri] ?? `Fase ${ri + 1}`, ties }); cur = next; ri++
+  }
+  const champ = cur[0] ?? null
+  const list = [...scorers.values()].sort((a, b) => b.goals - a.goals)
+  return { rounds, champion: champ?.t ?? null, championDiv: champ?.div ?? null, scorers: list.slice(0, 20), topScorer: list[0] }
+}
+
+// prêmios da Copa: campeão leva moedas (igual Série A) + o artilheiro rende ao
+// time e sobe o piso do jogador. Mesmo formato do seasonRewards/scorerRewards
+// pra fundir nos args da virada de temporada.
+export function copaRewards(copa: CopaResult): { rewards: Record<number, number>; clubRewards: Record<string, number>; values: Record<string, number>; championKey: string | null } {
+  const rewards: Record<number, number> = {}, clubRewards: Record<string, number> = {}, values: Record<string, number> = {}
+  let championKey: string | null = null
+  const ch = copa.champion
+  if (ch) {
+    championKey = teamKey(ch)
+    if (ch.human && ch.teamId >= 0) rewards[ch.teamId] = (rewards[ch.teamId] ?? 0) + COPA_CHAMP_COINS
+    else clubRewards[championKey] = (clubRewards[championKey] ?? 0) + COPA_CHAMP_COINS
+  }
+  const ts = copa.topScorer
+  if (ts) {
+    values[ts.name] = (values[ts.name] ?? 0) + COPA_SCORER_BONUS
+    if (ts.human) rewards[ts.teamId] = (rewards[ts.teamId] ?? 0) + COPA_SCORER_BONUS
+    else { const k = ts.teamId >= 0 ? `m${ts.teamId}` : ts.teamName; clubRewards[k] = (clubRewards[k] ?? 0) + COPA_SCORER_BONUS }
+  }
+  return { rewards, clubRewards, values, championKey }
+}
+
 // ── VISÃO das 4 divisões (mesmo visual das outras tabelas do jogo) ──
 const box = (bg = '#fff'): React.CSSProperties => ({ background: bg, border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}` })
 const zone = (rank: number) => rank <= 4 ? '#D6E9FA' : rank >= 17 ? '#F9D8D3' : undefined
@@ -839,6 +935,74 @@ function PrizesBox() {
   )
 }
 
+// chaveamento da Copa na aba Tabelas (fim de temporada). Toggle pra ver a
+// classificação final das divisões. Confronto seu em destaque, tag de divisão
+// em cada time e aviso de zebra quando um time de baixo elimina um de cima.
+const CDTAG: Record<Div, { bg: string; c: string }> = { A: { bg: '#FFC400', c: '#0C0C0C' }, B: { bg: '#C3CCD8', c: '#0C0C0C' }, C: { bg: '#CD7F4A', c: '#fff' }, D: { bg: '#EDE6D0', c: '#0C0C0C' } }
+const DIV_RANKN: Record<Div, number> = { A: 3, B: 2, C: 1, D: 0 }
+function CopaBracket({ copa, colors, youId, tables, ord, myDiv }: { copa: CopaResult; colors: Record<number, FCol>; youId: number; tables: Record<Div, SimTeam[]>; ord: Div[]; myDiv: Div | null }) {
+  const [view, setView] = useState<'copa' | 'tabelas'>('copa')
+  const champ = copa.champion
+  const rounds = [...copa.rounds].reverse() // Final primeiro
+  const nameOf = (t: SimTeam) => t.you ? `${t.name} (você)` : t.name
+  const dt = (d: Div) => <span style={{ fontWeight: 900, fontSize: 8.5, border: `1.5px solid ${INK}`, borderRadius: 5, padding: '0 4px', background: CDTAG[d].bg, color: CDTAG[d].c, flexShrink: 0 }}>{d}</span>
+  const Tie = ({ tie }: { tie: CopaTie }) => {
+    const you = tie.a.you || tie.b.you
+    const aWin = tie.win === 'a'
+    const winDiv = aWin ? tie.aDiv : tie.bDiv, loseDiv = aWin ? tie.bDiv : tie.aDiv
+    const zebra = DIV_RANKN[winDiv] < DIV_RANKN[loseDiv]
+    const side = (t: SimTeam, d: Div, win: boolean, away: boolean) => (
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: away ? 'flex-end' : 'flex-start' }}>
+        {!away && dt(d)}
+        <span style={{ fontWeight: 700, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: win ? INK : '#9a9384', textDecoration: win ? 'none' : 'line-through' }}>{nameOf(t)}</span>
+        {away && dt(d)}
+      </span>
+    )
+    return (
+      <div style={{ ...box(you ? '#FFF6D6' : '#fff'), border: `2.5px solid ${you ? '#B23B2E' : INK}`, boxShadow: `3px 3px 0 0 ${INK}`, padding: '7px 9px', marginBottom: 7 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
+          {side(tie.a, tie.aDiv, aWin, false)}
+          <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: INK, color: '#fff', borderRadius: 7, padding: '2px 8px', whiteSpace: 'nowrap' }}>{tie.aggA} × {tie.aggB}</span>
+          {side(tie.b, tie.bDiv, !aWin, true)}
+        </div>
+        {tie.pens && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', margin: '3px 0 0' }}>🎯 pênaltis {tie.pens[0]}×{tie.pens[1]}</p>}
+        {zebra && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#E8503A', textAlign: 'center', margin: '2px 0 0' }}>💥 zebra — Série {winDiv} eliminou Série {loseDiv}</p>}
+      </div>
+    )
+  }
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+        {([['copa', '🏆 Copa'], ['tabelas', '📊 Classificação']] as [typeof view, string][]).map(([v, l]) => (
+          <button key={v} onClick={() => setView(v)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', background: view === v ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{l}</button>
+        ))}
+      </div>
+      {view === 'tabelas' ? (<><PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} /><PrizesBox /></>) : (
+        <>
+          <div style={{ ...box('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)'), padding: '11px 12px', marginBottom: 10, textAlign: 'center' }}>
+            <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>🏆 COPA LEGENDS</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.62)', margin: '2px 0 0' }}>Mata-mata dos 16 · top-4 de cada divisão · sorteio aleatório</p>
+          </div>
+          {champ && (
+            <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, textAlign: 'center' }}>
+              <p style={{ fontSize: 30, lineHeight: 1, margin: 0 }}>🏆</p>
+              <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD, margin: '2px 0 0', color: champ.you ? (colors[youId]?.solid ?? INK) : INK }}>{nameOf(champ)}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: GREEN, marginTop: 1 }}>CAMPEÃO DA COPA{copa.championDiv && copa.championDiv !== 'A' ? ` — e da Série ${copa.championDiv}! 🐣🔥` : '!'}</p>
+            </div>
+          )}
+          {rounds.map(r => (
+            <div key={r.name} style={{ marginBottom: 10 }}>
+              <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.5)', margin: '0 0 5px' }}>{r.name === 'Final' ? '🏁 Final' : r.name}</p>
+              {r.ties.map((t, i) => <Tie key={i} tie={t} />)}
+            </div>
+          ))}
+          {copa.topScorer && <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginTop: 4 }}>⚽ Artilheiro da Copa: <b>{copa.topScorer.name}</b> ({copa.topScorer.goals}) — veja na aba Rank.</p>}
+        </>
+      )}
+    </div>
+  )
+}
+
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const round = state.round
@@ -869,6 +1033,10 @@ export function PyramidSeasonScreen() {
   const humanKey = state.managers.filter(m => m.isHuman || m.rival).map(m => m.id).join(',')
   const colors = useMemo(() => playerColors(humanKey ? humanKey.split(',').map(Number) : [], youId, state.seed), [humanKey, youId, state.seed])
   const myCol = colors[youId] ?? PLAYER_PALETTE[0]
+  // COPA LEGENDS: no fim da temporada, o mata-mata dos 16 (determinístico da
+  // classificação final + semente + temporada). Alimenta a aba Tabelas (chave),
+  // a aba Rank (artilharia da Copa) e os prêmios da virada.
+  const copa = useMemo(() => done ? computeCopa(tables, state.seed, state.seasonNo) : null, [done, tables, state.seed, state.seasonNo])
   // escalação (XI) do SEU time pro próximo jogo — pra aba Elenco (substituição)
   const mgrMe = state.managers[state.youIdx]
   const myXI = useMemo(() => (mgrMe ? lineupAt(careerLineup, youId, round, mgrMe.squad) : []), [careerLineup, youId, round, mgrMe])
@@ -987,6 +1155,15 @@ export function PyramidSeasonScreen() {
               : <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0 }}>🏁 {me.team} — {me.pos}º na {DIV_NAME[me.div]}</p>}
           </div>
         )}
+        {done && copa?.champion && (
+          <button onClick={() => setTab('tabelas')} style={{ width: '100%', ...box('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)'), padding: '10px 12px', marginBottom: 12, textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 26 }}>🏆</span>
+            <span style={{ minWidth: 0 }}>
+              <span style={{ display: 'block', fontWeight: 900, fontSize: 13.5, ...OSWALD }}>Copa Legends: {copa.champion.you ? 'VOCÊ é o campeão! 🔥' : `${copa.champion.name} campeão`}</span>
+              <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>👉 toque pra ver o chaveamento na aba Tabelas</span>
+            </span>
+          </button>
+        )}
         {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} />}
 
         {done && me?.champ && state.careerOnline && (
@@ -1001,8 +1178,9 @@ export function PyramidSeasonScreen() {
           const leilaoLabel = state.seasonNo === 1 ? 'Leilão de reservas' : 'Leilão de transferências'
           // prêmio do artilheiro de cada divisão: soma no caixa do time + sobe o piso
           const sb = scorerRewards(divTop)
+          const cr = copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, scorers: [] }) // campeão da Copa +25 · artilheiro +16 (caixa+piso)
           const mrg = (a: Record<string | number, number>, b: Record<string | number, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
-          const args = () => ({ placements: computePromotions(tables), rewards: mrg(seasonRewards(tables), sb.rewards), clubRewards: mrg(clubRewards(tables), sb.clubRewards), champions: seasonChampions(tables), scorerValues: sb.values })
+          const args = () => ({ placements: computePromotions(tables), rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values) })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           const openMesmo = () => dispatch({ type: 'NEXT_SEASON_ONLINE', ...args() })
           // JOGO SOLO (host sozinho): sem votação, começa direto como antes.
@@ -1090,7 +1268,11 @@ export function PyramidSeasonScreen() {
               <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} />
             ) : (
               <>
-                <ArtilhariaBox scorers={scorers} colors={colors} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual (todas as divisões) — top 20." foot="🏅 O artilheiro de cada divisão rende ao clube e vira piso do jogador: Série D +4 · C +8 · B +12 · A +16." />
+                {/* durante a Copa (fim de temporada), a artilharia da COPA entra no
+                    lugar da artilharia das divisões; o "todos os tempos" fica embaixo. */}
+                {done && copa && copa.scorers.length > 0
+                  ? <ArtilhariaBox scorers={copa.scorers} colors={colors} title="🏆 ARTILHARIA · COPA LEGENDS" sub="Gols do mata-mata da Copa — top 20." foot="🏅 O artilheiro da Copa rende +16 ao clube e sobe +16 no piso do jogador." />
+                  : <ArtilhariaBox scorers={scorers} colors={colors} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual (todas as divisões) — top 20." foot="🏅 O artilheiro de cada divisão rende ao clube e vira piso do jogador: Série D +4 · C +8 · B +12 · A +16." />}
                 <ArtilhariaBox scorers={allTimeScorers} colors={colors} title="🏆 ARTILHARIA · TODOS OS TEMPOS" sub="Gols somados de todas as temporadas da sala — top 20." foot={allTimeScorers.length === 0 ? 'Começa a contar a partir de agora.' : undefined} />
               </>
             )}
@@ -1180,6 +1362,8 @@ export function PyramidSeasonScreen() {
             })()}
             {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
           </>
+        ) : done && copa && copa.rounds.length > 0 ? (
+          <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} />
         ) : (
           <>
             <PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} />
