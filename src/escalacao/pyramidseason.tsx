@@ -777,6 +777,45 @@ function RankingTab({ tables, honors, coins, clubCash, colors, youId }: { tables
 // ── TELA da temporada simulada da carreira online (toma o lugar da temporada
 // ao vivo). O host conduz o ritmo (PLAY_ROUND avança a rodada, já sincronizado);
 // os clientes seguem a rodada do estado. Tudo determinístico → mesma tabela. ──
+// rodapé informativo da aba Tabelas: prêmios da temporada (moedas) por divisão —
+// campeão, top-4 (acesso), queda e artilheiro. Valores vindos das constantes reais.
+function PrizesBox() {
+  const th: React.CSSProperties = { fontSize: 9.5, fontWeight: 900, textTransform: 'uppercase', color: 'rgba(0,0,0,0.55)', padding: '3px 4px', ...OSWALD }
+  const td: React.CSSProperties = { fontSize: 12.5, fontWeight: 900, textAlign: 'center', padding: '4px 4px', ...OSWALD }
+  return (
+    <div style={{ ...box('#FFF6DE'), padding: 12, marginTop: 12 }}>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 6px' }}>🏆 Prêmios da temporada <span style={{ fontWeight: 700, fontSize: 10.5, color: 'rgba(0,0,0,0.55)' }}>(em 🪙 moedas)</span></p>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead><tr>
+            <th style={{ ...th, textAlign: 'left' }}>Série</th>
+            <th style={th}>🏆 Campeão</th>
+            <th style={th}>🔼 Top-4</th>
+            <th style={th}>🔽 Queda</th>
+            <th style={th}>⚽ Artilheiro</th>
+          </tr></thead>
+          <tbody>
+            {DIVS.map(d => (
+              <tr key={d} style={{ borderTop: '1px solid rgba(0,0,0,0.12)' }}>
+                <td style={{ ...td, textAlign: 'left' }}>{DIV_NAME[d]}</td>
+                <td style={{ ...td, color: '#1B7A3D' }}>+{CAMPEAO[d]}</td>
+                <td style={{ ...td, color: '#1B7A3D' }}>+{ZONA[d]}</td>
+                <td style={{ ...td, color: d === 'D' ? 'rgba(0,0,0,0.35)' : '#E8503A' }}>{d === 'D' ? '—' : `−${QUEDA[d]}`}</td>
+                <td style={{ ...td, color: '#8a6d1f' }}>+{DIV_SCORER_BONUS[d]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <ul style={{ margin: '8px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,0.7)', lineHeight: 1.5 }}>
+        <li><b>Top-4</b>: nas séries de baixo é <b>acesso</b> (sobe de divisão); na A é "manter entre os 4". Campeão da A leva os dois: <b>25 + 20 = 45</b>.</li>
+        <li><b>Queda</b>: perde moedas ao cair. <b>Da Série D ninguém cai</b> (é a última).</li>
+        <li><b>⚽ Artilheiro</b> de cada divisão: o valor vai pro <b>caixa do clube</b> e ainda sobe o <b>mesmo tanto no piso (valor)</b> do jogador pro próximo leilão.</li>
+      </ul>
+    </div>
+  )
+}
+
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const round = state.round
@@ -1116,7 +1155,10 @@ export function PyramidSeasonScreen() {
             {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
           </>
         ) : (
-          <PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} />
+          <>
+            <PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} />
+            <PrizesBox />
+          </>
         )}
 
         {state.onlineMode === 'online' ? (
