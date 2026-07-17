@@ -25,8 +25,10 @@ function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Re
   for (const k in (rewards ?? {})) out[k] = Math.max(0, (out[k] ?? 0) + (rewards as Record<string, number>)[k])
   return out
 }
-// caixa-base por divisão dos times não-humanos (clubes de cima mais ricos)
-const DIV_BASE_CASH: Record<string, number> = { A: 220, B: 170, C: 130, D: 100 }
+// caixa-base dos times não-humanos: TODOS começam com 100 (igual aos humanos). A
+// riqueza vem depois, das VENDAS no mercado e dos prêmios de título/acesso — não
+// de uma base fixa por divisão. Assim o caixa é uma história real de transações.
+const DIV_BASE_CASH: Record<string, number> = { A: 100, B: 100, C: 100, D: 100 }
 // monta o clubCash a partir da colocação (teamKey → divisão): todo time ganha a
 // base da divisão dele. Só cria quem ainda não tem (não zera quem já acumulou).
 function seedClubCash(cash: Record<string, number>, placements: Record<string, string> | null | undefined): Record<string, number> {
@@ -1733,6 +1735,13 @@ export function reducer(state: EscState, action: Action): EscState {
         const cc = { ...(s.careerCoins ?? {}) }
         for (const m of s.managers) if (m.isHuman) cc[m.id] = Math.max(0, Math.round(m.money))
         s.careerCoins = cc
+        // PERSISTE as transações dos bots no caixa (clubCash): quem VENDEU pro
+        // mercado ganhou grana, quem COMPROU gastou. Assim o caixa vira história
+        // real de mercado — não só prêmios. Vale pros que participaram do leilão
+        // (rivais escolhidos + bots sorteados), que tiveram money vindo do clubCash.
+        const cash = { ...(s.clubCash ?? {}) }
+        for (const m of s.managers) if (!m.isHuman && (m.rival || m.backstop)) cash['m' + m.id] = Math.max(0, Math.round(m.money))
+        s.clubCash = cash
       }
       if (s.reserveAuction) {
         // fim do leilão: tira o elenco fundo dos humanos (volta a mirar 11) e

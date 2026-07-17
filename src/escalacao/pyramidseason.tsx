@@ -152,9 +152,9 @@ export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, nu
   })
   return out
 }
-// caixa-base por divisão (times não-humanos começam com isso — clubes de cima
-// mais ricos). Também usado pra "curar" salas antigas sem caixa dos bots.
-export const DIV_BASE_CASH: Record<Div, number> = { A: 220, B: 170, C: 130, D: 100 }
+// caixa-base dos times não-humanos: TODOS começam com 100 (a riqueza vem das
+// vendas no mercado e dos prêmios). Também usado pra "curar" salas sem caixa.
+export const DIV_BASE_CASH: Record<Div, number> = { A: 100, B: 100, C: 100, D: 100 }
 // prêmios da temporada pros OUTROS times (CPUs + reservas de fundo, tudo que não
 // é humano nem bot fiador) — mesmo cálculo do seasonRewards, mas por teamKey (o
 // CPU não tem id numérico). Alimenta o caixa deles pra aparecer real no ranking.
