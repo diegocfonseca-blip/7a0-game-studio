@@ -166,6 +166,23 @@ function creditSeller(state: EscState, card: Card, amount: number, buyerId?: num
   const seller = state.managers.find(m => m.id === sellerId)
   if (seller) seller.money += amount
 }
+// ARTILHEIRO DA TEMPORADA: o goleador de cada divisão faz o valor de piso do
+// jogador subir (D+4, C+8, B+12, A+16) — o mesmo número que o time ganhou de
+// prêmio. Sobe o livro de preços (piso em qualquer leilão futuro) E o "paid"
+// (piso de venda) de toda carta com esse nome em qualquer elenco.
+function applyScorerValues(state: EscState, values?: Record<string, number>) {
+  if (!values) return
+  const mv = { ...(state.marketValues ?? {}) }
+  for (const name in values) {
+    const b = values[name]
+    if (!b) continue
+    mv[name] = (mv[name] ?? 0) + b
+    for (const m of state.managers) for (const c of m.squad) {
+      if (c.name === name) { const w = c as { paid?: number }; w.paid = (w.paid ?? 0) + b }
+    }
+  }
+  state.marketValues = mv
+}
 // manda cartas pro monte JÁ pela metade e registra esse valor no livro (é o preço
 // que o jogador vale dali em diante — se ninguém pega, o "bot fica" com ele por
 // esse valor, e é com ele que a carta volta um dia ao mercado).
@@ -1111,9 +1128,9 @@ type Action =
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; deck?: 'br' | 'eu' | 'both'; career?: boolean; locked?: boolean; pwHash?: string }
-  | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). rewards = moedas por técnico; champions = campeão de cada divisão (pro ranking)
-  | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
-  | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'> } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
+  | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number> } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). scorerValues = bonus de piso dos artilheiros
+  | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
+  | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number> } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
   | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
   | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
@@ -1886,6 +1903,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada (pro ranking)
       s.careerPlacements = action.placements
+      applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid)
       s.seasonNo++
       s.round = 0
       s.champion = null
@@ -1902,6 +1920,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada
+      applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso no livro (o novo leilão já sai com o valor atualizado)
       s.seasonNo++
       s.careerPlacements = action.placements
       s.round = 0; s.champion = null
@@ -1931,6 +1950,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerCoins = applyRewards(s.careerCoins, action.rewards)
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       s.careerHonors = applyHonors(s.careerHonors, action.champions)
+      applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid) antes da venda/leilão de reservas
       s.seasonNo++
       s.careerPlacements = action.placements
       s.round = 0; s.champion = null
