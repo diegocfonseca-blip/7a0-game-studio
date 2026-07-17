@@ -26,11 +26,6 @@ const RED = '#E8503A'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
 export type DeckChoice = 'br' | 'eu' | 'both'
-const DECKS: { id: DeckChoice; label: string; desc: string }[] = [
-  { id: 'br', label: '🇧🇷 Brasileirão', desc: 'Auges do futebol brasileiro — de Pelé a Obina.' },
-  { id: 'eu', label: '🌍 Liga Europa', desc: 'Auges nos clubes europeus — de Yashin a Mbappé.' },
-  { id: 'both', label: '🌎 Os dois juntos', desc: 'Brasileirão + Europa juntos (~700 nomes) — craques e folclóricos dos dois lados no mesmo martelo.' },
-]
 
 type Div = 'A' | 'B' | 'C' | 'D'
 const DIVS: Div[] = ['A', 'B', 'C', 'D']
@@ -532,7 +527,7 @@ export function CareerOnlineGame() {
     window.addEventListener('hashchange', f)
     return () => window.removeEventListener('hashchange', f)
   }, [])
-  const [deck, setDeck] = useState<DeckChoice>('br')
+  const [deck, setDeck] = useState<DeckChoice>('both') // carreira: sempre BR + Europa juntos
   const [friends, setFriends] = useState(3) // amigos humanos (além de você) na simulação
   const [career, setCareer] = useState<Career | null>(null)
   const [view, setView] = useState<'menu' | 'round' | 'table'>('menu')
@@ -680,18 +675,8 @@ export function CareerOnlineGame() {
       </div>
 
       <div style={{ ...box('#EAF3FF'), padding: 12, marginBottom: 12 }}>
-        <p style={{ fontSize: 12, fontWeight: 700 }}>🎴 Baralho de craques — <b>o host escolhe pra sala toda</b>:</p>
-        <div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
-          {DECKS.map(d => {
-            const on = deck === d.id
-            return (
-              <button key={d.id} onClick={() => setDeck(d.id)} style={{ textAlign: 'left', border: `3px solid ${INK}`, borderRadius: 12, padding: '9px 11px', background: on ? GOLD : '#fff', boxShadow: on ? `3px 3px 0 0 ${INK}` : 'none', cursor: 'pointer' }}>
-                <div style={{ fontWeight: 900, fontSize: 14, ...OSWALD }}>{d.label}</div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: '#5a5647', marginTop: 2 }}>{d.desc}</div>
-              </button>
-            )
-          })}
-        </div>
+        <p style={{ fontSize: 13, fontWeight: 900, ...OSWALD }}>🌎 Baralho fixo: Brasileirão + Europa juntos</p>
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', marginTop: 3 }}>Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Sem baralho só BR nem só Europa.</p>
       </div>
 
       <div style={{ ...box('#EAF3FF'), padding: 12, marginBottom: 12 }}>

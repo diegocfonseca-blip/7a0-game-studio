@@ -1002,7 +1002,7 @@ export function PyramidSeasonScreen() {
               <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} />
             ) : (
               <>
-                <ArtilhariaBox scorers={scorers} colors={colors} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual (todas as divisões) — top 20." />
+                <ArtilhariaBox scorers={scorers} colors={colors} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual (todas as divisões) — top 20." foot="🏅 O artilheiro de cada divisão rende ao clube e vira piso do jogador: Série D +4 · C +8 · B +12 · A +16." />
                 <ArtilhariaBox scorers={allTimeScorers} colors={colors} title="🏆 ARTILHARIA · TODOS OS TEMPOS" sub="Gols somados de todas as temporadas da sala — top 20." foot={allTimeScorers.length === 0 ? 'Começa a contar a partir de agora.' : undefined} />
               </>
             )}
