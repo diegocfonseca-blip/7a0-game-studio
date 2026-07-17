@@ -25,10 +25,10 @@ function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Re
   for (const k in (rewards ?? {})) out[k] = Math.max(0, (out[k] ?? 0) + (rewards as Record<string, number>)[k])
   return out
 }
-// caixa-base dos times não-humanos: TODOS começam com 100 (igual aos humanos). A
-// riqueza vem depois, das VENDAS no mercado e dos prêmios de título/acesso — não
-// de uma base fixa por divisão. Assim o caixa é uma história real de transações.
-const DIV_BASE_CASH: Record<string, number> = { A: 100, B: 100, C: 100, D: 100 }
+// caixa-base por divisão (clubes de cima mais ricos) + os LUCROS das vendas do
+// mercado (persistidos no fim de cada leilão) + prêmios de título/acesso. Assim o
+// caixa é a base da divisão MAIS a história real de transações.
+const DIV_BASE_CASH: Record<string, number> = { A: 250, B: 200, C: 150, D: 100 }
 // monta o clubCash a partir da colocação (teamKey → divisão): todo time ganha a
 // base da divisão dele. Só cria quem ainda não tem (não zera quem já acumulou).
 function seedClubCash(cash: Record<string, number>, placements: Record<string, string> | null | undefined): Record<string, number> {
