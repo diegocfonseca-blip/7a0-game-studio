@@ -464,12 +464,9 @@ export function DinastiaGame() {
 }
 export function DinastiaButton() {
   const isAdmin = useCanManager()
-  // público vê o teaser "(em breve)"; só o admin abre o modo em teste
-  if (!isAdmin) return (
-    <div style={{ width: '100%', boxSizing: 'border-box', background: '#e7e3d7', color: '#8a8577', border: '2px solid #bdb7a6', borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, textAlign: 'center', marginTop: 2, ...OSWALD, cursor: 'default' }}>
-      🏰 Modo Manager <span style={{ opacity: 0.85 }}>(em breve)</span>
-    </div>
-  )
+  // teaser público "(em breve)" REMOVIDO por enquanto (Diego: "remova o modo
+  // manager em breve, depois avançamos"). Só o admin mantém o acesso de teste.
+  if (!isAdmin) return null
   return (
     <button onClick={() => { window.location.hash = 'dinastia' }} style={{ width: '100%', boxSizing: 'border-box', background: PURPLE, color: '#fff', border: `2px solid ${INK}`, borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, cursor: 'pointer', marginTop: 2, ...OSWALD }}>
       🏰 Modo Manager <span style={{ color: GOLD }}>(teste)</span>
