@@ -1275,22 +1275,14 @@ function sealAndResolve(state: EscState) {
       if (hb.amount > 0) pushBid(bidMap, hb.cardId, { mgr: mgrId, amount: hb.amount })
     }
   }
-  // BOT (carreira online): se a posição está SEM disputa de verdade — 0 ou 1 humano
-  // ofertando — entram os bots QUE PERDERAM jogador NESTA posição (marketSellers),
-  // pra rebuscar o que perderam. Pagam com a caixa deles. Com 2+ humanos brigando,
-  // ficam de fora. O que ninguém arrematar cai no monte e é varrido depois.
+  // BOT (carreira online): os bots QUE PERDERAM jogador NESTA posição pro leilão
+  // (marketSellers[pos]) entram disputando JUNTO com todo mundo — sem mais a regra
+  // do 0/1. Cada um decide sozinho (via cpuEnvelope) se compra e por quanto;
+  // participam SÓ da posição do jogador que perderam. Pagam com a caixa deles.
   if (state.careerOnline) {
-    // "principais" = humanos (você/amigos) + rivais escolhidos (offline). A regra
-    // 0/1 conta quantos DELES ofertaram NESTA posição — se 0 ou 1, entram os bots
-    // do mercado. (Os rivais bidam via CPU, então conta pelo bidMap, não só pelos
-    // envelopes dos humanos.)
-    const mainIds = new Set(state.managers.filter(m => m.isHuman || m.rival).map(m => m.id))
-    const mainBidders = new Set<number>()
-    for (const c of state.currentCards) for (const b of (bidMap.get(c.id) ?? [])) if (b.amount > 0 && mainIds.has(b.mgr)) mainBidders.add(b.mgr)
-    const humanBidders = mainBidders.size
     const pos = SECTORS[state.sectorIdx]
     const bidderIds = new Set(state.marketSellers?.[pos] ?? [])
-    if (humanBidders <= 1 && bidderIds.size > 0) {
+    if (bidderIds.size > 0) {
       for (const m of state.managers) {
         if (!bidderIds.has(m.id)) continue
         // MONEY-SMART: o bot reserva grana pra CADA vaga que ainda precisa preencher.
@@ -1310,6 +1302,9 @@ function sealAndResolve(state: EscState) {
     creditSeller(state, q.card, q.paid, q.winner) // o vendedor recebe a grana da venda
     const w = state.managers.find(m => m.id === q.winner) // resumo dos bots (visibilidade)
     if (w?.backstop) (state.marketLog = state.marketLog ?? []).push(`⚽ ${w.teamName} arrematou ${q.card.name} por ${q.paid} 🪙`)
+    // bot arrematou famoso e tá com o banco cheio? tira um FAKE (incógnito) pra dar
+    // lugar ao famoso — não deixa o elenco do bot inchar de carta de brincadeira.
+    if (w && !w.isHuman && w.squad.length > 20) { const fi = w.squad.findIndex(c => c.fake); if (fi >= 0) w.squad.splice(fi, 1) }
   }
   state.revealQueue = queue
   state.revealIdx = 0
@@ -2042,33 +2037,32 @@ export function reducer(state: EscState, action: Action): EscState {
       const used = new Set<string>()
       for (const m of s.managers) for (const c of m.squad) used.add(c.name)
       if (s.seasonNo >= 3) {
-        // MERCADO (3ª temporada+): floor(humanos/2) cartas por posição (2-3 amigos
-        // → 1, 4-5 → 2, 6-7 → 3…) + os jogadores que cada técnico listou. As cartas
-        // do mercado são JOGADORES DOS BOTS (aleatórios): cada bot põe à venda o que
-        // sobra do XI (a reserva mais fraca). Assim a liga inteira negocia e o bot
-        // depois recompra (lance/monte). Só cai pro catálogo se faltar reserva.
+        // MERCADO (3ª temporada+): UM FAMOSO por posição, vindo dos BOTS (não-rivais).
+        // Sorteia um bot que tenha craque/lenda (fame ≥ 4) na posição — prefere quem
+        // tem o famoso SOBRANDO no banco; se ninguém tem sobra, puxa mesmo titular (o
+        // bot fica com buraco e vai à luta pra repor). Assim toda posição tem um nome
+        // de verdade (1 GOL, 1 LAT, 1 ZAG, 1 MEI, 1 ATA) sem inflar o mercado — os
+        // rivais/amigos já listam os deles à parte. O bot que perdeu o jogador entra
+        // no leilão daquela posição junto com todo mundo (ver sealAndResolve).
         const bt = nextBuildTok()
-        const nNew = Math.max(1, Math.floor(nMain / 2))
         const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
         for (const pos of SECTORS) {
-          let added = 0
-          // 1) o mercado é dos BOTS NÃO-ESCOLHIDOS: cada um solta um jogador REAL do
-          // banco NA SORTE (bom ou ruim). Nunca fake (incógnito não entra no mercado)
-          // e nunca deixa a posição com menos reais que o XI.
-          for (const bot of shuffle(s.managers.filter(isMktBot), rng)) {
-            if (added >= nNew) break
-            const realInPos = bot.squad.filter(c => c.pos === pos && !c.fake)
-            if (realInPos.length <= FORMATIONS[bot.formation][pos]) continue // sem reserva REAL sobrando
-            const pick = realInPos[Math.floor(rng() * realInPos.length)] // na sorte: bom ou ruim
+          const famousOf = (b: Manager) => b.squad.filter(c => c.pos === pos && !c.fake && c.fame >= 4)
+          const pool = shuffle(s.managers.filter(isMktBot), rng)
+          // 1º: bot com famoso SOBRANDO (reserva); 2º: qualquer bot com famoso (mesmo titular)
+          const bot = pool.find(b => famousOf(b).length > FORMATIONS[b.formation][pos]) ?? pool.find(b => famousOf(b).length > 0)
+          if (bot) {
+            const fams = famousOf(bot)
+            const pick = fams[Math.floor(rng() * fams.length)] // um famoso qualquer do bot
             bot.squad = bot.squad.filter(c => c.id !== pick.id)
-            deck[pos].push({ ...pick, seller: bot.id }) // mantém o valor (piso); o bot recebe quando vender
-            // o bot que PERDEU o jogador nesta posição é quem pode dar lance nela
+            deck[pos].push({ ...pick, seller: bot.id }) // mantém o piso; o bot recebe se vender
             marketSellers[pos].push(bot.id); bot.backstop = true; bot.deepSquad = true
-            added++
+          } else {
+            // nenhum bot tem famoso nessa posição → famoso NOVO do catálogo (não fica vazia)
+            const fam = shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(c.name) && c.fame >= 4), rng)[0]
+              ?? shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(c.name)), rng)[0]
+            if (fam) { used.add(fam.name); const fl = s.marketValues?.[fam.name] ?? 0; deck[pos].push({ ...fam, id: `mkt-${pos}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
           }
-          // 2) completa com carta nova do catálogo se os bots não tinham reserva
-          const extra = shuffle(ACTIVE_CATALOG[pos], rng).filter(c => !used.has(c.name)).slice(0, Math.max(0, nNew - added))
-          extra.forEach((pick, i) => { used.add(pick.name); const fl = s.marketValues?.[pick.name] ?? 0; deck[pos].push({ ...pick, id: `mkt-${pos}-${i}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) })
         }
         s.deck = deck
       } else {
