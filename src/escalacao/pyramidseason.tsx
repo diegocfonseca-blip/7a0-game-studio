@@ -283,7 +283,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const tables = {} as Record<Div, SimTeam[]>
   const matches = {} as Record<Div, SimMatch[]>
@@ -297,7 +297,24 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
   // gols por carta (todos os jogadores) — pra mostrar gols no Elenco
   const goalsByCard: Record<string, number> = {}
   for (const s of scorers.values()) if (s.cardId) goalsByCard[s.cardId] = s.goals
-  return { tables, scorers: [...scorers.values()].sort((a, b) => b.goals - a.goals).slice(0, 20), matches, goalsByCard }
+  // ARTILHEIRO de cada divisão (o #1 em gols) — pra premiar time + subir piso
+  const divTop = {} as Record<Div, SeasonScorer | undefined>
+  for (const s of scorers.values()) if (s.goals > 0 && (!divTop[s.div] || s.goals > divTop[s.div]!.goals)) divTop[s.div] = s
+  return { tables, scorers: [...scorers.values()].sort((a, b) => b.goals - a.goals).slice(0, 20), matches, goalsByCard, divTop }
+}
+// prêmio do artilheiro por divisão: dinheiro pro TIME + o mesmo tanto no PISO do
+// jogador. D 4 · C 8 · B 12 · A 16. Vale offline/online, rival/bot/humano.
+const DIV_SCORER_BONUS: Record<Div, number> = { A: 16, B: 12, C: 8, D: 4 }
+export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { rewards: Record<number, number>; clubRewards: Record<string, number>; values: Record<string, number> } {
+  const rewards: Record<number, number> = {}, clubRewards: Record<string, number> = {}, values: Record<string, number> = {}
+  for (const d of DIVS) {
+    const s = divTop[d]; if (!s) continue
+    const b = DIV_SCORER_BONUS[d]
+    values[s.name] = (values[s.name] ?? 0) + b // sobe o piso do jogador
+    if (s.human) rewards[s.teamId] = (rewards[s.teamId] ?? 0) + b // caixa do humano
+    else { const key = s.teamId >= 0 ? `m${s.teamId}` : s.teamName; clubRewards[key] = (clubRewards[key] ?? 0) + b } // caixa do bot/rival
+  }
+  return { rewards, clubRewards, values }
 }
 
 // ── VISÃO das 4 divisões (mesmo visual das outras tabelas do jogo) ──
@@ -758,7 +775,7 @@ export function PyramidSeasonScreen() {
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const careerLineup = (state.careerLineup ?? {}) as RoundLineups
   const live = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics, careerLineup), [world, state.seed, round, careerTactics, careerLineup])
-  const { scorers, matches, goalsByCard } = live
+  const { scorers, matches, goalsByCard, divTop } = live
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
   // está animando na sua tela — os pontos só entram quando o relógio dela acaba.
   // `revealed` = rodada cuja pontuação já pode aparecer (a atual só depois da anim).
@@ -894,7 +911,10 @@ export function PyramidSeasonScreen() {
           const votes = state.seasonVotes ?? {}
           const myVote = votes[youId]
           const leilaoLabel = state.seasonNo === 1 ? 'Leilão de reservas' : 'Leilão de transferências'
-          const args = () => ({ placements: computePromotions(tables), rewards: seasonRewards(tables), clubRewards: clubRewards(tables), champions: seasonChampions(tables) })
+          // prêmio do artilheiro de cada divisão: soma no caixa do time + sobe o piso
+          const sb = scorerRewards(divTop)
+          const mrg = (a: Record<string | number, number>, b: Record<string | number, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
+          const args = () => ({ placements: computePromotions(tables), rewards: mrg(seasonRewards(tables), sb.rewards), clubRewards: mrg(clubRewards(tables), sb.clubRewards), champions: seasonChampions(tables), scorerValues: sb.values })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           const openMesmo = () => dispatch({ type: 'NEXT_SEASON_ONLINE', ...args() })
           // JOGO SOLO (host sozinho): sem votação, começa direto como antes.
