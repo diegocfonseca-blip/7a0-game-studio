@@ -943,16 +943,24 @@ function buildMonteOrder(managers: Manager[], rng: () => number): number[] {
   return order
 }
 
-function monteAutoPick(m: Manager, monte: Card[], rng: () => number): Card | null {
-  const valid = monte.filter(c => openSlots(m, c.pos) > 0)
+// carreira: carta COM piso (paid) no monte é "compra sem leilão" — só dá pra
+// pegar se tem caixa pra pagar o valor. Sobra sem piso (0) é sempre de graça.
+function monteAfford(m: Manager, c: Card, careerOnline: boolean): boolean {
+  const p = (c as { paid?: number }).paid ?? 0
+  if (!careerOnline || p <= 0) return true
+  if ((c as { seller?: number }).seller === m.id) return true // sua própria carta listada: de graça
+  return m.money >= p
+}
+function monteAutoPick(m: Manager, monte: Card[], rng: () => number, careerOnline = false): Card | null {
+  const valid = monte.filter(c => openSlots(m, c.pos) > 0 && monteAfford(m, c, careerOnline))
   if (valid.length === 0) return null
   const ranked = valid.map(c => ({ c, v: perceived(c, rng) })).sort((a, b) => b.v - a.v)
   return ranked[0].c
 }
 
 // pior sobra válida — usada quando um humano deixa o tempo do Monte estourar (AFK)
-function monteWorstPick(m: Manager, monte: Card[], rng: () => number): Card | null {
-  const valid = monte.filter(c => openSlots(m, c.pos) > 0)
+function monteWorstPick(m: Manager, monte: Card[], rng: () => number, careerOnline = false): Card | null {
+  const valid = monte.filter(c => openSlots(m, c.pos) > 0 && monteAfford(m, c, careerOnline))
   if (valid.length === 0) return null
   const ranked = valid.map(c => ({ c, v: perceived(c, rng) })).sort((a, b) => a.v - b.v)
   return ranked[0].c
@@ -981,7 +989,12 @@ function takeFromMonte(state: EscState, cardId: string) {
   state.monte.splice(idx, 1)
   // preserva o valor (jogador listado já veio pela metade); carta nova = 0
   const paid = (card as { paid?: number }).paid ?? 0
-  creditSeller(state, card, paid, mgrId) // vendedor recebe o valor (caído) mesmo indo pelo monte
+  // carreira: jogador COM piso é COMPRA SEM LEILÃO — paga o valor (deduz da caixa).
+  // Sobra sem piso (0) é de graça, e a SUA própria carta listada também (não paga a
+  // si mesmo). O vendedor (outro) recebe como sempre.
+  const isOwn = (card as { seller?: number }).seller === mgrId
+  if (state.careerOnline && paid > 0 && !isOwn) m.money = Math.max(0, m.money - paid)
+  creditSeller(state, card, paid, mgrId) // vendedor recebe o valor mesmo indo pelo monte
   m.squad.push({ ...card, paid, via: 'monte' })
 }
 
@@ -997,9 +1010,9 @@ function advanceMonte(state: EscState, rng: () => number) {
     // pula quem NÃO tem pesca válida: sem buraco OU o Monte não tem carta pras
     // posições que faltam pra ele. Antes travava um humano com buraco mas sem
     // carta que servisse, com o cronômetro rodando à toa.
-    if (!state.monte.some(c => openSlots(m, c.pos) > 0)) { state.monteIdx++; continue }
+    if (!state.monte.some(c => openSlots(m, c.pos) > 0 && monteAfford(m, c, !!state.careerOnline))) { state.monteIdx++; continue }
     if (m.isHuman) { refreshMonteDeadline(state); return }
-    const pick = monteAutoPick(m, state.monte, rng)
+    const pick = monteAutoPick(m, state.monte, rng, !!state.careerOnline)
     if (pick) takeFromMonte(state, pick.id)
     state.monteIdx++
   }
@@ -1723,6 +1736,10 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'MONTE_PICK': {
       if (s.screen !== 'monte') return s
       if (s.monteOrder[s.monteIdx] !== action.mgrId) return s
+      // carreira: carta com piso é compra sem leilão — bloqueia se não tem caixa
+      const picker = s.managers.find(m => m.id === action.mgrId)
+      const pickCard = s.monte.find(c => c.id === action.cardId)
+      if (picker && pickCard && !monteAfford(picker, pickCard, !!s.careerOnline)) return s
       const rng = rngOf(s)
       takeFromMonte(s, action.cardId)
       s.monteIdx++
@@ -1741,7 +1758,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const m = s.managers.find(x => x.id === mgrId)
       if (!m || !m.isHuman) return s
       const rng = rngOf(s)
-      const pick = monteWorstPick(m, s.monte, rng)
+      const pick = monteWorstPick(m, s.monte, rng, !!s.careerOnline)
       if (pick) {
         takeFromMonte(s, pick.id)
         m.money = Math.max(0, m.money - MONTE_AFK_PENALTY)
