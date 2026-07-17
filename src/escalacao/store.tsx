@@ -2047,15 +2047,16 @@ export function reducer(state: EscState, action: Action): EscState {
         const bt = nextBuildTok()
         const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
         for (const pos of SECTORS) {
-          const famousOf = (b: Manager) => b.squad.filter(c => c.pos === pos && !c.fake && c.fame >= 4)
-          const pool = shuffle(s.managers.filter(isMktBot), rng)
-          // 1º: bot com famoso SOBRANDO (reserva); 2º: qualquer bot com famoso (mesmo titular)
-          const bot = pool.find(b => famousOf(b).length > FORMATIONS[b.formation][pos]) ?? pool.find(b => famousOf(b).length > 0)
-          if (bot) {
-            const fams = famousOf(bot)
-            const pick = fams[Math.floor(rng() * fams.length)] // um famoso qualquer do bot
-            bot.squad = bot.squad.filter(c => c.id !== pick.id)
-            deck[pos].push({ ...pick, seller: bot.id }) // mantém o piso; o bot recebe se vender
+          // sorteio SEM regra: junta TODOS os famosos (fame ≥ 4) que estão em algum
+          // bot não-rival nesta posição e pega UM ao acaso (pode ser titular ou
+          // reserva de qualquer bot — o Pelé de um, o Chay de outro, tanto faz). O
+          // bot dono fica com o buraco e entra no leilão da posição pra repor/recomprar.
+          const cands: { bot: Manager; card: Card }[] = []
+          for (const bot of s.managers.filter(isMktBot)) for (const c of bot.squad) if (c.pos === pos && !c.fake && c.fame >= 4) cands.push({ bot, card: c })
+          if (cands.length) {
+            const { bot, card } = cands[Math.floor(rng() * cands.length)]
+            bot.squad = bot.squad.filter(c => c.id !== card.id)
+            deck[pos].push({ ...card, seller: bot.id }) // mantém o piso; o bot recebe se vender
             marketSellers[pos].push(bot.id); bot.backstop = true; bot.deepSquad = true
           } else {
             // nenhum bot tem famoso nessa posição → famoso NOVO do catálogo (não fica vazia)
