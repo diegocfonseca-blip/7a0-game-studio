@@ -292,6 +292,7 @@ export function EscIntro() {
   const { dispatch } = useEsc()
   const resumable = useResumableRoom()
   const solo = useResumableSolo()
+  const canPyramid = useCanCareerOnline() // testador: a Carreira abre a NOVA pirâmide offline (em teste)
   const [shared, setShared] = useState(false)
   const shareGame = async () => {
     const data = { title: 'Leilão Legends', text: 'Bora jogar Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨⚽', url: 'https://leilaolegends.com' }
@@ -351,7 +352,9 @@ export function EscIntro() {
       <div className="space-y-3">
         <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-lg">⚡ PARTIDA RÁPIDA (VS CPU)</Btn>
         <Btn onClick={() => dispatch({ type: 'GO_SETUP_CAREER' })} className="w-full text-lg" bg={PURPLE}>
-          <span className="text-white">🪜 CARREIRA POR DIVISÕES <span className="text-yellow-300">(new)</span></span>
+          <span className="text-white">{canPyramid
+            ? <>🪜 CARREIRA · PIRÂMIDE <span className="text-yellow-300">🧪 teste (offline)</span></>
+            : <>🪜 CARREIRA POR DIVISÕES <span className="text-yellow-300">(new)</span></>}</span>
         </Btn>
         <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg" bg={GREEN}>
           <span className="text-white">👥 JOGAR ONLINE (SALA)</span>
@@ -439,7 +442,8 @@ export function EscSetup() {
         <span className="text-lg leading-none">←</span> Home
       </button>
       <h2 className="font-black text-3xl pt-2" style={OSWALD}>{career ? '🪜 CARREIRA · SÉRIE D' : 'MONTE SUA SALA'}</h2>
-      {career && <p className="text-sm font-bold text-black/60 -mt-3">Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.</p>}
+      {career && canPyramid && <span className="inline-block border-2 border-black rounded-full px-2.5 py-0.5 text-[11px] font-black uppercase mt-1" style={{ background: '#6C43C0', color: '#fff', ...OSWALD }}>🧪 Pirâmide offline (teste) — só testadores</span>}
+      {career && <p className="text-sm font-bold text-black/60 -mt-1">Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.</p>}
       {career && (
         <Box bg="#FFF6DE" className="p-4 space-y-1.5">
           <p className="font-black text-sm" style={OSWALD}>⚡ Como funciona a Carreira</p>
