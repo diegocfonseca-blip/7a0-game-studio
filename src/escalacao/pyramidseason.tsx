@@ -335,8 +335,9 @@ export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { 
 // online. Reaproveita a MESMA simulação de jogo da liga (rollForm/poisson). ──
 export interface CopaTie { a: SimTeam; b: SimTeam; aDiv: Div; bDiv: Div; aggA: number; aggB: number; pens?: [number, number]; win: 'a' | 'b' }
 export interface CopaRound { name: string; ties: CopaTie[] }
-export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; scorers: SeasonScorer[]; topScorer?: SeasonScorer }
+export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; vice: SimTeam | null; viceDiv: Div | null; scorers: SeasonScorer[]; topScorer?: SeasonScorer }
 const COPA_CHAMP_COINS = 25 // igual ao campeão da Série A
+const COPA_VICE_COINS = 15 // vice-campeão (10 a menos que o campeão)
 const COPA_SCORER_BONUS = 16 // igual à artilharia da Série A (caixa do time + piso)
 // prestígio por divisão na Copa: A favorita, D azarão (soma no ataque e defesa).
 const COPA_DIV_STRENGTH: Record<Div, number> = { A: 10, B: 6, C: 3, D: 0 }
@@ -345,7 +346,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
   const rng = mulberry((seed ^ (seasonNo * 0x9E3779B1) ^ 0xC0FA5EED) >>> 0)
   let field: { t: SimTeam; div: Div }[] = []
   for (const d of DIVS) for (const t of (tables[d] ?? []).slice(0, 4)) field.push({ t, div: d })
-  if (field.length < 2) return { rounds: [], champion: null, championDiv: null, scorers: [] }
+  if (field.length < 2) return { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }
   field = shuffle(field, rng)
   const scorers = new Map<string, SeasonScorer>()
   const goalW = (c: PoolCard) => { const n = Math.max(0, (mid(c) - 40) / 42); return 0.12 + n * n * 1.8 }
@@ -400,8 +401,13 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     rounds.push({ name: roundNames[ri] ?? `Fase ${ri + 1}`, ties }); cur = next; ri++
   }
   const champ = cur[0] ?? null
+  // vice = quem perdeu a final (última fase, jogo único)
+  const fin = rounds[rounds.length - 1]
+  const ft = fin && fin.ties.length === 1 ? fin.ties[0] : null
+  const vice = ft ? (ft.win === 'a' ? ft.b : ft.a) : null
+  const viceDiv = ft ? (ft.win === 'a' ? ft.bDiv : ft.aDiv) : null
   const list = [...scorers.values()].sort((a, b) => b.goals - a.goals)
-  return { rounds, champion: champ?.t ?? null, championDiv: champ?.div ?? null, scorers: list.slice(0, 20), topScorer: list[0] }
+  return { rounds, champion: champ?.t ?? null, championDiv: champ?.div ?? null, vice, viceDiv, scorers: list.slice(0, 20), topScorer: list[0] }
 }
 
 // prêmios da Copa: campeão leva moedas (igual Série A) + o artilheiro rende ao
@@ -415,6 +421,12 @@ export function copaRewards(copa: CopaResult): { rewards: Record<number, number>
     championKey = teamKey(ch)
     if (ch.human && ch.teamId >= 0) rewards[ch.teamId] = (rewards[ch.teamId] ?? 0) + COPA_CHAMP_COINS
     else clubRewards[championKey] = (clubRewards[championKey] ?? 0) + COPA_CHAMP_COINS
+  }
+  const vc = copa.vice
+  if (vc) {
+    const vk = teamKey(vc)
+    if (vc.human && vc.teamId >= 0) rewards[vc.teamId] = (rewards[vc.teamId] ?? 0) + COPA_VICE_COINS
+    else clubRewards[vk] = (clubRewards[vk] ?? 0) + COPA_VICE_COINS
   }
   const ts = copa.topScorer
   if (ts) {
@@ -987,7 +999,8 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv }: { copa: CopaRe
             <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, textAlign: 'center' }}>
               <p style={{ fontSize: 30, lineHeight: 1, margin: 0 }}>🏆</p>
               <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD, margin: '2px 0 0', color: champ.you ? (colors[youId]?.solid ?? INK) : INK }}>{nameOf(champ)}</p>
-              <p style={{ fontSize: 11, fontWeight: 700, color: GREEN, marginTop: 1 }}>CAMPEÃO DA COPA{copa.championDiv && copa.championDiv !== 'A' ? ` — e da Série ${copa.championDiv}! 🐣🔥` : '!'}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: GREEN, marginTop: 1 }}>CAMPEÃO DA COPA{copa.championDiv && copa.championDiv !== 'A' ? ` — e da Série ${copa.championDiv}! 🐣🔥` : '!'} <span style={{ color: '#8a6d1f' }}>+25 🪙</span></p>
+              {copa.vice && <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>🥈 Vice: {nameOf(copa.vice)} <span style={{ color: '#8a6d1f' }}>+15 🪙</span></p>}
             </div>
           )}
           {rounds.map(r => (
@@ -1178,7 +1191,7 @@ export function PyramidSeasonScreen() {
           const leilaoLabel = state.seasonNo === 1 ? 'Leilão de reservas' : 'Leilão de transferências'
           // prêmio do artilheiro de cada divisão: soma no caixa do time + sobe o piso
           const sb = scorerRewards(divTop)
-          const cr = copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, scorers: [] }) // campeão da Copa +25 · artilheiro +16 (caixa+piso)
+          const cr = copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }) // campeão +25 · vice +15 · artilheiro +16 (caixa+piso)
           const mrg = (a: Record<string | number, number>, b: Record<string | number, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
           const args = () => ({ placements: computePromotions(tables), rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values) })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
