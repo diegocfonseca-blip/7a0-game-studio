@@ -701,7 +701,6 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap }: { mgr: Manage
             <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
               {goalsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: GREEN }}>⚽ {goalsOf(c)}</span>}
               <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: '#5a5647' }}>💰 {c.paid ?? 0}</span>
-              {onTap && <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#fff', background: GREEN, border: `1.5px solid ${INK}`, borderRadius: 6, padding: '1px 6px', whiteSpace: 'nowrap' }}>⇅ trocar</span>}
             </span>
           </div>
         ) })}
@@ -713,7 +712,8 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
   const elenco = !!xiIds && !list // aba Elenco: campinho + reservas (troca por seleção)
-  const caption = elenco ? (onSwap ? '· toque pra trocar titular ↔ reserva (vale o próximo jogo)' : '· seu time titular') : list ? '· toque pra pôr no leilão / tirar' : '· moedas pra reforços'
+  // na aba Elenco a explicação fica no banner grande abaixo — aqui não repete.
+  const caption = elenco ? '' : list ? '· toque pra pôr no leilão / tirar' : '· moedas pra reforços'
   const listOf = (c: WonCard): ListCfg | undefined => list ? { listed: list.listed.has(c.id), listable: list.canList(c), onList: () => list.onList(c.id) } : undefined
   // o elenco herda a COR do jogador (a mesma sorteada pra ele no jogo todo)
   return (
@@ -724,7 +724,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: 'rgba(255,255,255,0.6)', border: `2px solid ${col.solid}`, borderRadius: 8, padding: '4px 8px', flexWrap: 'wrap' }}>
         <span title="Soma do valor de mercado dos 22 jogadores (não é a sua caixa de moedas)" style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>{elenco ? `🏷️ Elenco vale ${total} 💵` : `🪙 Caixa: ${coins}`}</span>
-        <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>
+        {caption && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>}
       </div>
       {elenco ? (
         <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} selId={selId} onTap={onSwap} />
