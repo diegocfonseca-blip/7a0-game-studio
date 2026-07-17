@@ -85,11 +85,14 @@ function pickCatalog(deck: 'br' | 'eu' | 'both') { return deck === 'eu' ? CATALO
 // temporadas: quando um time sobe/desce, leva o mesmo elenco (chave = nome).
 function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both'): Map<string, PoolCard[]> {
   const rng = mulberry((seed ^ 0x9E3779B1) >>> 0)
+  // dedup por AUGE (nome+clube+ano): auges diferentes do mesmo nome (Vini Flamengo
+  // x Real) são jogadores distintos — cabem os dois, mais cartas pra encher os times.
+  const idOf = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
   const used = new Set<string>()
-  for (const m of managers) for (const c of m.squad) used.add(c.name)
+  for (const m of managers) for (const c of m.squad) used.add(idOf(c))
   const cat = pickCatalog(deck)
   const pool: PoolCard[] = (Object.keys(cat) as Sector[]).flatMap(pos => cat[pos].map((c, i) => ({ ...c, pos, id: `${pos}-${i}` })))
-  const rest = shuffle(pool.filter(c => !used.has(c.name)), rng).sort((a, b) => mid(b) - mid(a))
+  const rest = shuffle(pool.filter(c => !used.has(idOf(c))), rng).sort((a, b) => mid(b) - mid(a))
   const q = Math.ceil(rest.length / 3)
   const bucket: Record<'A' | 'B' | 'C', PoolCard[]> = { A: rest.slice(0, q), B: rest.slice(q, q * 2), C: rest.slice(q * 2) }
   const map = new Map<string, PoolCard[]>()

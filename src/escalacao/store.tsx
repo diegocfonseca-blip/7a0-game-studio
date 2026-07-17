@@ -73,6 +73,10 @@ function hashCode(s: string): number {
 // embaralhador JUSTO (Fisher-Yates). O antigo `sort(() => rng()-0.5)` é
 // viciado — deixava as cartas do começo da lista (ex.: Pelé) aparecerem
 // bem mais que as outras. Com isso todas as lendas têm chance igual.
+// IDENTIDADE de um jogador = AUGE (nome+clube+ano). Vini Jr Flamengo e Vini Jr
+// Real Madrid são jogadores DIFERENTES (níveis bem distintos) — podem aparecer os
+// dois na mesma carreira. Só o auge idêntico é que é "o mesmo jogador".
+const ident = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
 function shuffle<T>(arr: T[], rng: () => number): T[] {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
@@ -219,7 +223,7 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   for (const pos of SECTORS) {
     const demand = managers.reduce((s, m) => s + slotsOf(m, pos), 0)
     const catalog = shuffle(ACTIVE_CATALOG[pos], rng)
-    const realFree = catalog.filter(c => !used.has(c.name)).length
+    const realFree = catalog.filter(c => !used.has(ident(c))).length
     // margem adaptativa: queremos "sempre dobrado" (demand × margin), mas nunca
     // pedir mais jogadores REAIS do que existem na posição — senão vira fake.
     // Então: pede o dobro se couber; se não couber, pega todos os reais que dá
@@ -242,7 +246,7 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   const alloc = {} as Record<Sector, { legend: number; star: number; promessa: number; low: number }>
   SECTORS.forEach(p => { alloc[p] = { legend: 0, star: 0, promessa: 0, low: 0 } })
   const availOf = (pos: Sector, pred: (c: (typeof CATALOG)[Sector][number]) => boolean) =>
-    plan[pos].catalog.filter(c => pred(c) && !used.has(c.name)).length
+    plan[pos].catalog.filter(c => pred(c) && !used.has(ident(c))).length
   const availLegend = {} as Record<Sector, number>
   const availStar = {} as Record<Sector, number>
   const availPromessa = {} as Record<Sector, number>
@@ -283,23 +287,23 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   for (const pos of SECTORS) {
     const { count, catalog } = plan[pos]
     const cards: Card[] = []
-    const take = (c: (typeof CATALOG)[Sector][number]) => { used.add(c.name); const fl = values?.[c.name] ?? 0; cards.push({ ...c, id: `cat-${pos}-${cards.length}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
+    const take = (c: (typeof CATALOG)[Sector][number]) => { used.add(ident(c)); const fl = values?.[c.name] ?? 0; cards.push({ ...c, id: `cat-${pos}-${cards.length}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
     // 1) LENDA
     let needL = alloc[pos].legend
-    for (const c of catalog) { if (needL <= 0) break; if (c.fame !== 5 || used.has(c.name)) continue; take(c); needL-- }
+    for (const c of catalog) { if (needL <= 0) break; if (c.fame !== 5 || used.has(ident(c))) continue; take(c); needL-- }
     // 2) CRAQUE (fame 4 — folk entra normal, é só selo)
     let needS = alloc[pos].star
-    for (const c of catalog) { if (needS <= 0) break; if (c.fame !== 4 || c.promessa || used.has(c.name)) continue; take(c); needS-- }
+    for (const c of catalog) { if (needS <= 0) break; if (c.fame !== 4 || c.promessa || used.has(ident(c))) continue; take(c); needS-- }
     // 3) PROMESSAS (5º tier)
     let needP = alloc[pos].promessa
-    for (const c of catalog) { if (needP <= 0) break; if (!c.promessa || used.has(c.name)) continue; take(c); needP-- }
+    for (const c of catalog) { if (needP <= 0) break; if (!c.promessa || used.has(ident(c))) continue; take(c); needP-- }
     // 4) FOI PROFISSIONAL (fame 1)
     let needLo = alloc[pos].low
-    for (const c of catalog) { if (needLo <= 0) break; if (c.fame !== 1 || used.has(c.name)) continue; take(c); needLo-- }
+    for (const c of catalog) { if (needLo <= 0) break; if (c.fame !== 1 || used.has(ident(c))) continue; take(c); needLo-- }
     // 5) resto = BOM JOGADOR natural (fame 2/3, não-promessa — folk entra aqui normal)
-    for (const c of catalog) { if (cards.length >= count) break; if (used.has(c.name) || c.fame === 5 || c.fame === 4 || c.fame === 1 || c.promessa) continue; take(c) }
+    for (const c of catalog) { if (cards.length >= count) break; if (used.has(ident(c)) || c.fame === 5 || c.fame === 4 || c.fame === 1 || c.promessa) continue; take(c) }
     // 6) se ainda faltar (setor pequeno de catálogo), aceita qualquer real restante
-    for (const c of catalog) { if (cards.length >= count) break; if (used.has(c.name)) continue; take(c) }
+    for (const c of catalog) { if (cards.length >= count) break; if (used.has(ident(c))) continue; take(c) }
     // 5) só cai pra incógnita se o catálogo real acabar (sala gigante). No leilão
     // de RESERVAS (noFake) NÃO completa com incógnito: reserva é opcional, então o
     // baralho fica só com os reais que existem (menos cartas, mas sem "fake").
@@ -1066,12 +1070,12 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
   const squad: WonCard[] = []
   for (const pos of SECTORS) {
     const need = FORMATIONS[formation][pos]
-    const shuffled = shuffle(ACTIVE_CATALOG[pos], rng).filter(c => !used.has(c.name))
+    const shuffled = shuffle(ACTIVE_CATALOG[pos], rng).filter(c => !used.has(ident(c)))
     const pool = tier === 'strong' ? shuffled.filter(c => c.fame >= 3)
       : tier === 'weak' ? shuffled.filter(c => c.fame <= 2)
       : shuffled.filter(c => c.fame === 2 || c.fame === 3)
     const picks = pool.slice(0, need)
-    for (const c of picks) used.add(c.name)
+    for (const c of picks) used.add(ident(c))
     let gi = 0
     while (picks.length < need) {
       picks.push(makeIncognita(pos, squad.length + picks.length, tier === 'strong' && gi < 1, rng))
@@ -2114,7 +2118,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // comum (2 usuários disputam 3 goleiros, etc.).
       const rng = mulberry((s.seed ^ (s.seasonNo * 811073)) >>> 0)
       const used = new Set<string>()
-      for (const m of s.managers) for (const c of m.squad) used.add(c.name)
+      for (const m of s.managers) for (const c of m.squad) used.add(ident(c))
       if (s.seasonNo >= 3) {
         // MERCADO DOS 80 (3ª temporada+): UM FAMOSO (fame ≥ 4) por posição, sorteado
         // entre TODOS os times — os bots da sua liga E os 60 de fundo (via ficha
@@ -2127,7 +2131,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
         const cpuSq = s.cpuSquads ?? {}
         // todo jogador de fundo já tem dono: exclui do catálogo fresco (evita duplicata)
-        for (const name in cpuSq) for (const c of cpuSq[name]) used.add(c.name)
+        for (const name in cpuSq) for (const c of cpuSq[name]) used.add(ident(c))
         const tempById = new Map<string, Manager>()
         let tmpId = -1000
         const materialize = (name: string): Manager => {
@@ -2158,9 +2162,9 @@ export function reducer(state: EscState, action: Action): EscState {
             marketSellers[pos].push(owner.id)
             if (pick.ownerBot) pick.ownerBot.backstop = true // bot da liga: caixa via clubCash; fica em 11 (só repõe o que perdeu)
           } else {
-            const fam = shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(c.name) && c.fame >= 4), rng)[0]
-              ?? shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(c.name)), rng)[0]
-            if (fam) { used.add(fam.name); const fl = s.marketValues?.[fam.name] ?? 0; deck[pos].push({ ...fam, id: `mkt-${pos}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
+            const fam = shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && c.fame >= 4), rng)[0]
+              ?? shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c))), rng)[0]
+            if (fam) { used.add(ident(fam)); const fl = s.marketValues?.[fam.name] ?? 0; deck[pos].push({ ...fam, id: `mkt-${pos}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
           }
         }
         // os times de fundo sorteados entram na sala pra brigar (leilão + monte)
@@ -2240,7 +2244,7 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const m of managers) {
           if (m.isHuman) continue
           const kept = oldSquads.get(m.teamName)
-          if (kept && kept.length > 0) { m.squad = kept; kept.forEach(c => used.add(c.name)) }
+          if (kept && kept.length > 0) { m.squad = kept; kept.forEach(c => used.add(ident(c))) }
         }
         dealRemainingCpuSquads(s.managers, rng, used)
         const adj = fillerAdj(s.managers, DIVISION_BASE[res.nextDiv]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
