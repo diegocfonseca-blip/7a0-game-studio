@@ -729,7 +729,19 @@ export function PyramidSeasonScreen() {
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo])
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const careerLineup = (state.careerLineup ?? {}) as RoundLineups
-  const { tables, scorers, matches, goalsByCard } = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics, careerLineup), [world, state.seed, round, careerTactics, careerLineup])
+  const live = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics, careerLineup), [world, state.seed, round, careerTactics, careerLineup])
+  const { scorers, matches, goalsByCard } = live
+  // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
+  // está animando na sua tela — os pontos só entram quando o relógio dela acaba.
+  // `revealed` = rodada cuja pontuação já pode aparecer (a atual só depois da anim).
+  const [revealed, setRevealed] = useState(round)
+  useEffect(() => {
+    if (done || round <= 0) { setRevealed(round); return }
+    setRevealed(round - 1) // segura a rodada atual enquanto a partida anima
+    const t = setTimeout(() => setRevealed(round), Math.round(ROUND_MS * 0.86))
+    return () => clearTimeout(t)
+  }, [round, done])
+  const tables = useMemo(() => revealed >= round ? live.tables : simulatePyramid(world, state.seed, revealed, careerTactics, careerLineup).tables, [live, revealed, round, world, state.seed, careerTactics, careerLineup])
   const me = myStanding(tables)
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
