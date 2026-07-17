@@ -12,6 +12,7 @@ import { CareerOnlineButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
+import { playerColors } from './pyramidseason'
 
 // universo colecionável = os DOIS baralhos (BR + Europa), por nomes únicos
 // (Kaká, Cafu etc. aparecem nos dois — conta uma vez só).
@@ -66,6 +67,36 @@ function Btn({ children, onClick, bg = GOLD, disabled = false, className = '' }:
     >
       {children}
     </motion.button>
+  )
+}
+
+// botão do stepper de lance: toque = 1; segurar = repete e ACELERA (pra subir/
+// baixar rápido). O primeiro disparo sai no toque (igual clique), então tocar
+// e soltar rápido conta 1 só — não atrapalha quem só dá toquinhos.
+function HoldButton({ onStep, disabled = false, className = '', style, children }: { onStep: () => void; disabled?: boolean; className?: string; style?: React.CSSProperties; children: React.ReactNode }) {
+  const stepRef = useRef(onStep); stepRef.current = onStep
+  const t = useRef<number | undefined>(undefined)
+  const stop = () => { if (t.current) { clearTimeout(t.current); t.current = undefined } }
+  useEffect(() => stop, [])
+  const begin = (e: React.PointerEvent) => {
+    e.preventDefault()
+    if (disabled) return
+    stepRef.current() // toque imediato
+    let delay = 320 // espera antes de começar a repetir (senão um toque vira vários)
+    const run = () => { stepRef.current(); delay = Math.max(38, delay - 26); t.current = window.setTimeout(run, delay) }
+    t.current = window.setTimeout(run, delay)
+  }
+  return (
+    <button
+      onPointerDown={begin}
+      onPointerUp={stop}
+      onPointerLeave={stop}
+      onPointerCancel={stop}
+      disabled={disabled}
+      className={className}
+      style={{ touchAction: 'manipulation', userSelect: 'none', ...style }}>
+      {children}
+    </button>
   )
 }
 
@@ -755,17 +786,37 @@ function Envelope() {
     )
   }
 
-  function setBid(id: string, v: number) {
+  // sobe/desce o lance com todas as travas (orçamento, nº de jogadores, piso).
+  // "+" partindo do 0 pula pro piso; usado tanto no toque quanto no segurar.
+  function bump(c: Card, dir: 1 | -1) {
+    const floor = (c as { paid?: number }).paid ?? 0
     setBids(prev => {
-      const next = { ...prev, [id]: Math.max(0, v) }
-      if (next[id] === 0) delete next[id]
-      return next
+      const cur = prev[c.id] ?? 0
+      if (dir < 0) {
+        const v = Math.max(0, cur - 1)
+        const next = { ...prev }
+        if (v === 0) delete next[c.id]; else next[c.id] = v
+        return next
+      }
+      const others = Object.entries(prev).reduce((s, [k, v]) => (k === c.id ? s : s + v), 0)
+      const room = you.money - others // teto que ESTA carta pode receber
+      if (cur >= room) return prev // sem moeda sobrando
+      if (cur === 0 && Object.keys(prev).length >= bidLimit) return prev // já escolheu o máximo de jogadores
+      const target = cur === 0 && floor > 0 ? floor : cur + 1
+      const v = Math.min(target, room)
+      if (cur === 0 && floor > 0 && v < floor) return prev // piso não cabe no orçamento → lance abaixo do piso é inválido
+      return { ...prev, [c.id]: v }
     })
   }
 
   // ordem embaralhada do baralho (NÃO ordenar por nível — isso vazava quem é
   // bom pela posição na tela e furava o leilão às cegas)
   const cards = state.currentCards
+  // cores dos técnicos (iguais às da tabela da temporada) — pra marcar de quem
+  // é o jogador listado no leilão. Só na carreira online (onde há listagem).
+  const seasonColors = state.careerOnline
+    ? playerColors(state.managers.filter(m => m.isHuman || m.rival).map(m => m.id), you.id, state.seed)
+    : {}
   const timerColor = remaining <= 10 ? RED : remaining <= 20 ? GOLD : GREEN
   const timerTextColor = remaining <= 20 ? INK : '#fff'
   const totalBatches = batchCount(state.deck[pos].length)
@@ -855,9 +906,22 @@ function Envelope() {
           const plusBlocked = total + (nextVal - bid) > you.money || (!chosen && chosenCount >= bidLimit)
           const belowFloor = chosen && floor > 0 && bid < floor // lance abaixo do piso → será anulado
           const numColor = !chosen ? 'rgba(0,0,0,0.35)' : belowFloor ? RED : INK
+          // de quem é esse jogador listado (carreira): marca sutil na cor do técnico
+          const sellerId = (c as { seller?: number }).seller
+          const sellerM = sellerId != null ? state.managers.find(m => m.id === sellerId) : undefined
+          const sCol = sellerM ? seasonColors[sellerM.id] : undefined
+          const isMine = sellerM?.id === you.id
           return (
           <Box key={c.id} className="p-3 flex items-center justify-between gap-2">
-            <CardFace c={c} surprise={c.id === state.surpriseId} />
+            <div className="min-w-0">
+              {sellerM && (
+                <span className="inline-flex items-center gap-1 rounded-full border-2 border-black px-1.5 py-0.5 text-[9px] font-black uppercase leading-none mb-1"
+                  style={{ background: sCol?.solid ?? '#6b7280', color: '#fff', ...OSWALD }}>
+                  {isMine ? '🫵 seu jogador' : `${sellerM.rival ? '⚔️' : sellerM.isHuman ? '🔥' : '🔁'} ${sellerM.teamName}`}
+                </span>
+              )}
+              <CardFace c={c} surprise={c.id === state.surpriseId} />
+            </div>
             <div className="flex items-center gap-1.5">
               {canBid && (
                 <div className="flex flex-col items-center">
@@ -866,13 +930,13 @@ function Envelope() {
                     ? <span className="text-[9px] font-black uppercase leading-none mb-0.5 tracking-wide" style={{ color: belowFloor ? RED : '#B8860B' }}>mín 🔒 {floor}</span>
                     : state.sectorIdx === 0 && <span className="text-[9px] font-black uppercase leading-none mb-0.5 tracking-wide" style={{ color: '#B8860B' }}>seu lance</span>)}
                   <div className="flex items-center gap-1.5">
-                    <button onClick={() => setBid(c.id, bid - 1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</button>
+                    <HoldButton onStep={() => bump(c, -1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</HoldButton>
                     <span className="w-9 text-center font-black" style={{ ...OSWALD, color: numColor }}>{state.streamMode ? (chosen ? '🔒' : '–') : (chosen ? bid : floor > 0 ? floor : 0)}</span>
-                    <button
-                      onClick={() => !plusBlocked && setBid(c.id, nextVal)}
+                    <HoldButton
+                      onStep={() => bump(c, 1)}
                       disabled={plusBlocked}
                       className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${plusBlocked ? 'opacity-40' : ''}`}
-                      style={{ backgroundColor: GOLD }}>+</button>
+                      style={{ backgroundColor: GOLD }}>+</HoldButton>
                   </div>
                 </div>
               )}
