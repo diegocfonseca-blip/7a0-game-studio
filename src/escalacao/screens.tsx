@@ -16,7 +16,10 @@ import { playerColors } from './pyramidseason'
 
 // universo colecionável = os DOIS baralhos (BR + Europa), por nomes únicos
 // (Kaká, Cafu etc. aparecem nos dois — conta uma vez só).
-const CATALOG_TOTAL = new Set([...Object.values(CATALOG).flat(), ...Object.values(CATALOG_EU).flat()].map(c => c.name)).size
+// total colecionável = cada AUGE é uma carta (nome+clube+ano). Mesmo nome em
+// clubes/anos diferentes (Vini Jr Flamengo x Real Madrid, Kaká SP x Milan) são
+// cartas DISTINTAS — contam separado. Só o idêntico (nome+clube+ano) que não vale.
+const CATALOG_TOTAL = new Set([...Object.values(CATALOG).flat(), ...Object.values(CATALOG_EU).flat()].map(c => `${c.name}|${c.club}|${c.year}`)).size
 
 const GAME_URL = 'https://diegocfonseca-blip.github.io/7a0-game-studio/leilao-legends-38/'
 
@@ -2354,16 +2357,18 @@ export function EscAlbum() {
   }, [])
 
   const loading = cards === null
+  // chave da figurinha = o AUGE (nome+clube+ano). Vini Jr Flamengo e Vini Jr Real
+  // Madrid são cartas DIFERENTES no álbum; só o auge idêntico conta como repetida.
+  const cardKey = (c: AlbumCard) => `${c.name}|${c.club}|${c.year}`
   const shown = useMemo(() => {
     const all = cards ?? []
     const byFilter = filter === 'all' ? all : all.filter(c => c.origin === filter)
     const seen = new Set<string>()
-    return byFilter.filter(c => (seen.has(c.name) ? false : (seen.add(c.name), true)))
+    return byFilter.filter(c => { const k = cardKey(c); return seen.has(k) ? false : (seen.add(k), true) })
   }, [cards, filter])
 
-  // conta FIGURINHAS ÚNICAS (por nome) — igual ao que aparece na tela; um Didi
-  // ganho no CPU e outro no online contam 1 em "Todos", mas 1 em cada aba.
-  const uniqBy = (list: AlbumCard[]) => new Set(list.map(c => c.name)).size
+  // conta FIGURINHAS ÚNICAS (por AUGE) — igual ao que aparece na tela.
+  const uniqBy = (list: AlbumCard[]) => new Set(list.map(cardKey)).size
   const all = cards ?? []
   const nAll = uniqBy(all)
   const nCpu = uniqBy(all.filter(c => c.origin === 'cpu'))
