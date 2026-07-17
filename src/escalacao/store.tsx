@@ -1519,6 +1519,9 @@ export function reducer(state: EscState, action: Action): EscState {
       const rest = DIVISION_TEAMS['D'].filter(t => !chosen.some(c => c.team === t.team))
       const nameOrder = [...chosen, ...rest]
       const { managers, botPlans } = makeManagers([action.teamName || 'Meu Time'], action.formation, rivalCount, LEAGUE_SIZE, rng, nameOrder)
+      // marca os rivais escolhidos (os auction-rivals, ids 1..rivalCount) como
+      // RIVAIS coloridos no display — são CPU, mas aparecem como rivais de verdade.
+      for (let i = 0; i < rivalCount; i++) { const m = managers[1 + i]; if (m && !m.isHuman) m.rival = true }
       s.managers = managers
       // colocação inicial: você e os rivais na Série D; A/B/C com os times fixos.
       const pl: Record<string, string> = {}
