@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { Card, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
+import type { Card, EscState, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
 import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision } from './store'
 import type { CareerSave } from './store'
@@ -271,9 +271,27 @@ function NewsSection() {
 }
 
 // ─── INTRO ───────────────────────────────────────────────────────────
+// carreira offline salva no localStorage — pra oferecer "continuar" na intro
+function useResumableSolo() {
+  const { dispatch } = useEsc()
+  const [saved, setSaved] = useState<EscState | null>(null)
+  useEffect(() => {
+    try { const r = localStorage.getItem('esc-solo-career'); if (r) setSaved(JSON.parse(r) as EscState) } catch { setSaved(null) }
+  }, [])
+  if (!saved || !saved.careerOnline || !saved.managers?.length) return null
+  const you = saved.managers[saved.youIdx ?? 0]
+  return {
+    seasonNo: saved.seasonNo ?? 1,
+    teamName: you?.teamName ?? 'Meu time',
+    resume: () => dispatch({ type: 'RESUME_CAREER_SOLO', saved }),
+    discard: () => { try { localStorage.removeItem('esc-solo-career') } catch { /* ignora */ } setSaved(null) },
+  }
+}
+
 export function EscIntro() {
   const { dispatch } = useEsc()
   const resumable = useResumableRoom()
+  const solo = useResumableSolo()
   const [shared, setShared] = useState(false)
   const shareGame = async () => {
     const data = { title: 'Leilão Legends', text: 'Bora jogar Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨⚽', url: 'https://leilaolegends.com' }
@@ -299,6 +317,20 @@ export function EscIntro() {
             className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5"
             style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
             🚪 Sair da sala e começar uma nova
+          </button>
+        </div>
+      )}
+      {solo && (
+        <div className="rounded-2xl border-4 border-black p-3 mb-1 space-y-2.5" style={{ background: '#6C43C0', boxShadow: `4px 4px 0 0 ${INK}` }}>
+          <p className="font-black text-sm text-white leading-tight" style={OSWALD}>
+            🪜 Carreira offline em andamento<br />
+            <span className="opacity-80 text-xs">{solo.teamName} · Temporada {solo.seasonNo}</span>
+          </p>
+          <button onClick={solo.resume} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
+            ▶️ Continuar carreira ({solo.teamName})
+          </button>
+          <button onClick={solo.discard} className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
+            🗑️ Descartar e começar do zero
           </button>
         </div>
       )}
