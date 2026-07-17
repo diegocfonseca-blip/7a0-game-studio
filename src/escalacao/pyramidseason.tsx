@@ -1021,7 +1021,7 @@ export function PyramidSeasonScreen() {
   const round = state.round
   const done = round >= 38
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking'>('jogos')
-  const [rankSub, setRankSub] = useState<'clubes' | 'arti'>('clubes')
+  const [rankSub, setRankSub] = useState<'clubes' | 'arti'>('arti')
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads])
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const careerLineup = (state.careerLineup ?? {}) as RoundLineups
@@ -1273,7 +1273,7 @@ export function PyramidSeasonScreen() {
           <>
             {/* sub-abas do Rank: Clubes | Artilheiros (temporada + todos os tempos) */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              {([['clubes', '🥇', 'Clubes'], ['arti', '⚽', 'Artilheiros']] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
+              {([['arti', '⚽', 'Artilheiros'], ['clubes', '🥇', 'Clubes']] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
                 <button key={s} onClick={() => setRankSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', background: rankSub === s ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>
