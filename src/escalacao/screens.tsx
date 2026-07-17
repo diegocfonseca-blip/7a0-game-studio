@@ -405,9 +405,14 @@ export function EscIntro() {
       </Box>
       <div className="space-y-3">
         <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-lg">⚡ PARTIDA RÁPIDA (VS CPU)</Btn>
-        <Btn onClick={() => dispatch({ type: 'GO_SETUP_CAREER' })} className="w-full text-lg" bg={PURPLE}>
-          <span className="text-white">🪜 CARREIRA POR DIVISÕES <span className="text-yellow-300">(offline)</span></span>
-        </Btn>
+        {/* carreira nova em destaque: brilho pulsante na própria cor (roxo) + tag (new) */}
+        <motion.div className="rounded-xl"
+          animate={{ boxShadow: ['0 0 0 0 rgba(124,58,237,0)', '0 0 16px 4px rgba(124,58,237,0.7)', '0 0 0 0 rgba(124,58,237,0)'] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}>
+          <Btn onClick={() => dispatch({ type: 'GO_SETUP_CAREER' })} className="w-full text-lg" bg={PURPLE}>
+            <span className="text-white">🪜 CARREIRA POR DIVISÕES <span className="text-yellow-300">(new)</span></span>
+          </Btn>
+        </motion.div>
         <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg" bg={GREEN}>
           <span className="text-white">👥 JOGAR ONLINE (SALA)</span>
         </Btn>
