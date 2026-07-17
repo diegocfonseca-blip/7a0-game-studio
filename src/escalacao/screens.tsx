@@ -2436,6 +2436,42 @@ export function EscAlbum() {
 type RankMode = 'geral' | 'online' | 'cpu'
 interface RankRow { user_id: string; name: string; titles: number; scorer_titles: number; goals: number; cards: number }
 
+// ACERTO AUTOMÁTICO cartas↔ranking: por muito tempo alguns modos gravavam a
+// carta no álbum (user_cards) sem gravar o título no ranking (esc_results) —
+// ex.: a carreira online antiga. Isso deixava o total de cartas maior que os
+// títulos. Aqui, ao abrir o ranking, o próprio navegador do técnico (já logado)
+// garante que CADA carta dele tenha o título correspondente. Roda como o
+// usuário, então passa no RLS sem eu precisar de acesso ao banco. Idempotente.
+async function reconcileCardsToTitles() {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const [{ data: cards }, { data: results }] = await Promise.all([
+      supabase.from('user_cards').select('season_key, origin').eq('user_id', user.id),
+      supabase.from('esc_results').select('season_key, display_name').eq('user_id', user.id).eq('champion', true),
+    ])
+    if (!cards || cards.length === 0) return
+    const have = new Set((results ?? []).map(r => r.season_key))
+    const displayName = (results ?? []).find(r => r.display_name)?.display_name
+      ?? user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? 'Técnico'
+    const seen = new Set<string>()
+    const missing: Record<string, unknown>[] = []
+    for (const c of cards as { season_key: string; origin: string }[]) {
+      const key = (c.season_key ?? '').slice(0, 48)
+      if (!key || seen.has(key)) continue
+      seen.add(key)
+      // pirâmide ONLINE (co:<sala>) já grava o título com outra chave (roomId) —
+      // pular pra não contar 2x. Offline é co:solo, esse a gente reconcilia.
+      if (key.startsWith('co:') && !key.startsWith('co:solo')) continue
+      if (have.has(key)) continue
+      // o modo preserva a origem: carta online → conta no Online+Geral; carta de
+      // CPU/offline → conta no CPU+Geral (o "geral" soma os dois).
+      missing.push({ user_id: user.id, display_name: displayName, mode: c.origin === 'online' ? 'online' : 'cpu', season_key: key, champion: true, top_scorer: false, goals: 0 })
+    }
+    if (missing.length) await supabase.from('esc_results').upsert(missing, { onConflict: 'user_id,season_key' })
+  } catch { /* nunca trava a tela */ }
+}
+
 export function EscRanking() {
   const { dispatch } = useEsc()
   const [mode, setMode] = useState<RankMode>('geral')
@@ -2465,6 +2501,7 @@ export function EscRanking() {
     let alive = true
     setRows(null)
     ;(async () => {
+      await reconcileCardsToTitles() // acerta cartas↔títulos antes de somar
       const { data } = await supabase.rpc('esc_ranking', { p_mode: mode })
       if (alive) setRows(((data ?? []) as RankRow[]))
     })()
