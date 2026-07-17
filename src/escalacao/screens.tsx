@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, EscState, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
-import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision } from './store'
+import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked } from './store'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
@@ -1380,7 +1380,8 @@ export function EscMonte() {
   const { state, dispatch } = useEsc()
   const you = state.managers[state.youIdx]
   const isYourTurn = state.monteOrder[state.monteIdx] === you.id && totalHoles(you) > 0
-  const valid = state.monte.filter(c => openSlots(you, c.pos) > 0)
+  // esconde o que está reservado pro dono (prioridade); afford fica no botão
+  const valid = state.monte.filter(c => openSlots(you, c.pos) > 0 && !monteLocked(state, you, c))
   const online = state.onlineMode === 'online'
   const curMgr = state.managers.find(m => m.id === state.monteOrder[state.monteIdx])
 
@@ -1401,7 +1402,7 @@ export function EscMonte() {
       </p>
       {state.careerOnline && state.monte.some(c => ((c as { paid?: number }).paid ?? 0) > 0) && (
         <p className="text-xs font-semibold text-black/60">
-          🆓 Sobra <b>sem valor</b> você pega de <b>graça</b>. Jogador <b>com piso</b> (💰) é <b>compra sem leilão</b>: você paga aquele valor fixo, sem dar lance — e sai da sua caixa.
+          🆓 Sobra <b>sem valor</b> é de <b>graça</b>. Jogador <b>com piso</b> (💰) é <b>compra sem leilão</b> — paga o valor fixo. Os jogadores que <b>você listou</b> têm <b>prioridade</b>: você recupera de graça (já valendo a metade), e os outros só levam depois que você encher — pagando metade.
         </p>
       )}
       {online && (
@@ -1427,6 +1428,12 @@ export function EscMonte() {
             <Box key={c.id} className="p-3 flex items-center justify-between">
               <CardFace c={c} />
               <div className="flex items-center gap-2 shrink-0">
+                {own && val > 0 && (
+                  <span className="text-right leading-tight" style={{ color: GREEN }}>
+                    <span className="text-sm font-black" style={OSWALD}>🫵 seu</span>
+                    <br /><span className="text-[8px] font-bold uppercase" style={{ color: 'rgba(0,0,0,0.5)' }}>recupere grátis · vale {val}</span>
+                  </span>
+                )}
                 {paidCard && (
                   <span className="text-right leading-tight" style={{ color: afford ? '#B8860B' : RED }}>
                     <span className="text-sm font-black" style={OSWALD}>💰 {val}</span>

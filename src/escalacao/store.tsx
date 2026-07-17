@@ -944,15 +944,32 @@ function buildMonteOrder(managers: Manager[], rng: () => number): number[] {
 }
 
 // carreira: carta COM piso (paid) no monte é "compra sem leilão" — só dá pra
-// pegar se tem caixa pra pagar o valor. Sobra sem piso (0) é sempre de graça.
+// pegar se tem caixa pra pagar. Sobra sem piso (0) é de graça, e a SUA própria
+// carta listada também (não paga a si mesmo).
 function monteAfford(m: Manager, c: Card, careerOnline: boolean): boolean {
   const p = (c as { paid?: number }).paid ?? 0
   if (!careerOnline || p <= 0) return true
   if ((c as { seller?: number }).seller === m.id) return true // sua própria carta listada: de graça
   return m.money >= p
 }
-function monteAutoPick(m: Manager, monte: Card[], rng: () => number, careerOnline = false): Card | null {
-  const valid = monte.filter(c => openSlots(m, c.pos) > 0 && monteAfford(m, c, careerOnline))
+// PRIORIDADE (carreira): a carta que um técnico (humano/rival) listou e caiu no
+// monte fica RESERVADA pra ELE enquanto ele ainda tiver buraco — os outros só
+// conseguem pegar (pela metade) DEPOIS que o dono encher o time. Carta de bot do
+// mercado não tem reserva.
+export function monteLocked(state: EscState, m: Manager, c: Card): boolean {
+  if (!state.careerOnline) return false
+  const sellerId = (c as { seller?: number }).seller
+  if (sellerId == null || sellerId === m.id) return false
+  const seller = state.managers.find(x => x.id === sellerId)
+  return !!seller && !seller.backstop && totalHoles(seller) > 0
+}
+// pode o técnico m pegar a carta c AGORA? vaga na posição + consegue pagar + não
+// está reservada pro dono.
+export function montePickable(state: EscState, m: Manager, c: Card): boolean {
+  return openSlots(m, c.pos) > 0 && monteAfford(m, c, !!state.careerOnline) && !monteLocked(state, m, c)
+}
+function monteAutoPick(state: EscState, m: Manager, monte: Card[], rng: () => number): Card | null {
+  const valid = monte.filter(c => montePickable(state, m, c))
   if (valid.length === 0) return null
   const ranked = valid.map(c => ({ c, v: perceived(c, rng) })).sort((a, b) => b.v - a.v)
   return ranked[0].c
@@ -960,8 +977,8 @@ function monteAutoPick(m: Manager, monte: Card[], rng: () => number, careerOnlin
 
 // pior sobra válida — usada só nos modos CLÁSSICOS quando um humano deixa o tempo
 // do Monte estourar (AFK): lá o Monte é pra FECHAR o XI, então preenche na marra.
-function monteWorstPick(m: Manager, monte: Card[], rng: () => number, careerOnline = false): Card | null {
-  const valid = monte.filter(c => openSlots(m, c.pos) > 0 && monteAfford(m, c, careerOnline))
+function monteWorstPick(state: EscState, m: Manager, monte: Card[], rng: () => number): Card | null {
+  const valid = monte.filter(c => montePickable(state, m, c))
   if (valid.length === 0) return null
   const ranked = valid.map(c => ({ c, v: perceived(c, rng) })).sort((a, b) => a.v - b.v)
   return ranked[0].c
@@ -1011,9 +1028,9 @@ function advanceMonte(state: EscState, rng: () => number) {
     // pula quem NÃO tem pesca válida: sem buraco OU o Monte não tem carta pras
     // posições que faltam pra ele. Antes travava um humano com buraco mas sem
     // carta que servisse, com o cronômetro rodando à toa.
-    if (!state.monte.some(c => openSlots(m, c.pos) > 0 && monteAfford(m, c, !!state.careerOnline))) { state.monteIdx++; continue }
+    if (!state.monte.some(c => montePickable(state, m, c))) { state.monteIdx++; continue }
     if (m.isHuman) { refreshMonteDeadline(state); return }
-    const pick = monteAutoPick(m, state.monte, rng, !!state.careerOnline)
+    const pick = monteAutoPick(state, m, state.monte, rng)
     if (pick) takeFromMonte(state, pick.id)
     state.monteIdx++
   }
@@ -1740,7 +1757,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // carreira: carta com piso é compra sem leilão — bloqueia se não tem caixa
       const picker = s.managers.find(m => m.id === action.mgrId)
       const pickCard = s.monte.find(c => c.id === action.cardId)
-      if (picker && pickCard && !monteAfford(picker, pickCard, !!s.careerOnline)) return s
+      if (picker && pickCard && !montePickable(s, picker, pickCard)) return s
       const rng = rngOf(s)
       takeFromMonte(s, action.cardId)
       s.monteIdx++
@@ -1762,7 +1779,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!m || !m.isHuman) return s
       const rng = rngOf(s)
       if (!s.careerOnline) {
-        const pick = monteWorstPick(m, s.monte, rng, false)
+        const pick = monteWorstPick(s, m, s.monte, rng)
         if (pick) { takeFromMonte(s, pick.id); m.money = Math.max(0, m.money - MONTE_AFK_PENALTY) }
       }
       s.monteIdx++
