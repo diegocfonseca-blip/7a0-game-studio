@@ -6,7 +6,7 @@ import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, STAR
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
-import { AdminButton } from './admin'
+import { AdminButton, useCanCareerOnline } from './admin'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
@@ -354,6 +354,7 @@ export function EscIntro() {
 export function EscSetup() {
   const { state, dispatch } = useEsc()
   const career = state.careerIntent
+  const canPyramid = useCanCareerOnline() // testadores: carreira offline roda na NOVA pirâmide (em teste)
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
@@ -394,7 +395,10 @@ export function EscSetup() {
     const picks = career
       ? [...rivalPicks, ...DIVISION_TEAMS['D'].map(t => t.team).filter(t => !rivalPicks.includes(t))].slice(0, rivals)
       : undefined
-    dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league })
+    // carreira offline: testadores rodam a NOVA pirâmide (em teste, escondida do
+    // público); o resto segue na carreira por divisões antiga.
+    if (career && canPyramid) dispatch({ type: 'START_CAREER_SOLO', teamName: clean, formation, rivals, rivalTeams: picks, league })
+    else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league })
   }
   return (
     <Shell>

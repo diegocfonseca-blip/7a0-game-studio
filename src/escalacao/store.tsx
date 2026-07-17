@@ -994,7 +994,7 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
 // Devolve os "planos" dos bots de preenchimento pra montar o baralho do leilão
 // PRIMEIRO (reservando os reais pros que disputam) e só depois escalar o resto.
 type BotPlan = { id: number; tier: Tier; formation: FormationKey }
-function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus: number, leagueSize: number, rng: () => number): { managers: Manager[]; botPlans: BotPlan[] } {
+function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus: number, leagueSize: number, rng: () => number, cpuNameOrder?: { team: string; name: string }[]): { managers: Manager[]; botPlans: BotPlan[] } {
   const forms: FormationKey[] = ['4-3-3', '4-4-2']
   const humans: Manager[] = humanNames.map((name, i) => ({
     id: i, name, teamName: name, isHuman: true, auctionRival: true,
@@ -1007,7 +1007,9 @@ function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus
   const weakN = Math.max(1, Math.round(nFiller * 0.15))
   // times dos CPUs = os mesmos da Série D da carreira (online e revanche usam a
   // divisão de base, pra não aparecer nome velho tipo "Nininho EC").
-  const names = DIVISION_TEAMS['D'].slice(0, totalCpus)
+  // ordem dos nomes de CPU: padrão = Série D; solo pode passar os rivais escolhidos
+  // PRIMEIRO (viram os auction-rivals nomeados), depois o resto da D (sem repetir).
+  const names = (cpuNameOrder ?? DIVISION_TEAMS['D']).slice(0, totalCpus)
   const botPlans: BotPlan[] = []
   const cpus: Manager[] = names.map((c, i) => {
     const cpuFormation = forms[Math.floor(rng() * forms.length)]
@@ -1072,6 +1074,7 @@ type Action =
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' }
+  | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
@@ -1489,6 +1492,51 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}
+      s.seasonNo = 1
+      s.screen = 'auction'
+      startAuctionPhase(s, false)
+      return s
+    }
+    case 'START_CAREER_SOLO': {
+      // CARREIRA OFFLINE na pirâmide: mesmas regras do online (4 divisões, leilão
+      // de reservas/transferências, economia, votação-solo), mas sozinho contra a
+      // CPU. Os rivais escolhidos entram na Série D como CPUs que DÃO LANCE.
+      s.onlineMode = 'cpu'
+      s.isHost = true
+      s.careerOnline = true
+      s.roomId = ''; s.roomCode = ''; s.roomName = undefined
+      s.locked = undefined; s.pwHash = undefined; s.streamMode = false
+      s.deckLeague = action.league ?? 'br'; setActiveCatalog(s.deckLeague)
+      s.seed = Math.floor(Math.random() * 1e9)
+      const rng = mulberry(s.seed)
+      s.humanCount = 1
+      s.youIdx = 0
+      const rivalCount = Math.max(0, Math.min(action.rivals, LEAGUE_SIZE - 1))
+      // ordem dos nomes: rivais escolhidos primeiro (viram os auction-rivals), depois
+      // o resto da Série D sem repetir.
+      const chosen = (action.rivalTeams ?? []).map(tn => DIVISION_TEAMS['D'].find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
+      const rest = DIVISION_TEAMS['D'].filter(t => !chosen.some(c => c.team === t.team))
+      const nameOrder = [...chosen, ...rest]
+      const { managers, botPlans } = makeManagers([action.teamName || 'Meu Time'], action.formation, rivalCount, LEAGUE_SIZE, rng, nameOrder)
+      s.managers = managers
+      // colocação inicial: você e os rivais na Série D; A/B/C com os times fixos.
+      const pl: Record<string, string> = {}
+      for (const m of s.managers) pl[`m${m.id}`] = 'D'
+      for (const d of ['A', 'B', 'C'] as const) for (const t of DIVISION_TEAMS[d].slice(0, 20)) pl[t.team] = d
+      s.careerPlacements = pl
+      s.careerHonors = {}; s.marketValues = {}; s.marketLog = []
+      s.careerScorersAll = {}; s.statsSeason = 0
+      s.clubCash = seedClubCash({}, pl)
+      const used = new Set<string>()
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues)
+      s.surpriseId = pickSurprise(s.deck, rng)
+      dealBotSquads(s.managers, botPlans, rng, used)
+      for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
+      s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      s.tactics = {}; s.careerTactics = {}; s.careerLineup = {}; s.seasonVotes = {}
+      const cc: Record<number, number> = {}
+      for (const m of s.managers) if (m.isHuman) { cc[m.id] = 100; m.money = 100 }
+      s.careerCoins = cc
       s.seasonNo = 1
       s.screen = 'auction'
       startAuctionPhase(s, false)
