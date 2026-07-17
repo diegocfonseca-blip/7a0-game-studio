@@ -2691,10 +2691,16 @@ export function EscProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const beat = () => {
       const st = stateRef.current
-      // modo pro "ao vivo": distingue carreira da partida rápida (ambas são
-      // cpu por baixo). online continua online; carreira vira 'career'.
-      const liveMode = st.onlineMode === 'online' ? 'online' : st.careerDivision ? 'career' : 'cpu'
-      const career = st.careerDivision ? { season: st.seasonNo, division: st.careerDivision } : undefined
+      // modo pro "ao vivo": distingue carreira da partida rápida (ambas são cpu
+      // por baixo). A carreira NOVA (pirâmide) usa careerOnline + a colocação do
+      // técnico (careerPlacements); a ANTIGA usa careerDivision. Ambas viram
+      // 'career' no painel, com divisão e temporada — senão a pirâmide aparecia
+      // como "partida rápida" e sumia da aba "Carreiras (onde cada um está)".
+      const youId = st.managers[st.youIdx]?.id ?? st.youIdx
+      const pyramid = st.careerOnline && st.onlineMode !== 'online'
+      const division: string | null = st.careerDivision ?? (pyramid ? (st.careerPlacements?.['m' + youId] ?? 'D') : null)
+      const liveMode = st.onlineMode === 'online' ? 'online' : division ? 'career' : 'cpu'
+      const career = division ? { season: st.seasonNo, division } : undefined
       // online é sempre baralho brasileiro; solo (rápida/carreira) manda o escolhido
       const deck = liveMode === 'online' ? undefined : st.deckLeague
       heartbeat(liveMode, st.managers[st.youIdx]?.teamName, st.screen, career, deck)
@@ -2702,7 +2708,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     beat()
     const iv = setInterval(beat, 30_000)
     return () => clearInterval(iv)
-  }, [state.screen, state.onlineMode, state.careerDivision])
+  }, [state.screen, state.onlineMode, state.careerDivision, state.careerOnline, state.seasonNo, state.careerPlacements])
 
   const showHostBanner = state.onlineMode === 'online' && !state.isHost && hostStale
     && state.screen !== 'intro' && state.screen !== 'lobby'
