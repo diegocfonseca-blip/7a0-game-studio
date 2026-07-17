@@ -1168,6 +1168,7 @@ type Action =
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
   | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
   | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
+  | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos 60 times de fundo (1x)
   | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
@@ -1924,6 +1925,13 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       s.careerScorersAll = all
       s.statsSeason = s.seasonNo
+      return s
+    }
+    case 'SEED_CPU_SQUADS': {
+      // materializa a ficha dos 60 times de fundo (1x). Idempotente: se já existe,
+      // não sobrescreve (o mercado já pode ter mexido).
+      if (!s.careerOnline || s.cpuSquads) return s
+      s.cpuSquads = action.squads
       return s
     }
     case 'NEXT_SEASON_ONLINE': {
