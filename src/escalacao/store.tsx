@@ -313,7 +313,9 @@ function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => nu
   budget = Math.min(budget, m.money)
 
   const ranked = cards.map(c => ({ c, v: perceived(c, rng) })).sort((a, b) => b.v - a.v)
-  const targets = ranked.slice(0, Math.min(cards.length, need + (rng() < 0.6 ? 1 : 0)))
+  // bida SÓ nas vagas que tem (need) — não espalha lance além disso, senão ganha
+  // uma e as outras viram "anulado (setor cheio)". Fim daquele monte de anulados.
+  const targets = ranked.slice(0, need)
   const result: (Bid & { cardId: string })[] = []
   let left = budget
   targets.forEach((t, i) => {
@@ -321,15 +323,13 @@ function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => nu
     const share = m.starHunger > 0.5 ? (i === 0 ? 0.7 : 0.3 / Math.max(1, targets.length - 1)) : 1 / targets.length
     let amt = Math.max(1, Math.round(budget * share * (0.75 + rng() * 0.5)))
     amt = Math.min(amt, left)
+    // PISO (valor fixo do jogador): lance abaixo do piso é anulado, então pra
+    // TENTAR levar, paga pelo menos o piso. Se não tem grana pro piso, nem oferta.
+    const floor = (t.c as { paid?: number }).paid ?? 0
+    if (floor > 0) { if (left < floor) return; amt = Math.max(amt, floor) }
+    amt = Math.min(amt, left)
     if (amt > 0) { result.push({ mgr: m.id, amount: amt, cardId: t.c.id }); left -= amt }
   })
-  if (!rescue && left >= 1 && rng() < 0.45) {
-    const cheap = ranked.slice(need + 1)
-    if (cheap.length > 0) {
-      const pick = cheap[Math.floor(rng() * cheap.length)]
-      result.push({ mgr: m.id, amount: 1, cardId: pick.c.id })
-    }
-  }
   return result
 }
 
