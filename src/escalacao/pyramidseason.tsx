@@ -28,14 +28,6 @@ const DIV_TAG: Record<Div, { l: string; bg: string }> = { A: { l: 'A', bg: '#B88
 // atropelados de goleada — o NÍVEL/lenda continua mandando (time forte lidera). A
 // zebra/variação fica por conta do "dia" (MATCH_LUCK). Tunável.
 const CPU_DIV_BOOST: Record<Div, number> = { A: 6, B: 9, C: 12, D: 2 }
-// "PUXÃO PRO PISO": além do empurrão-base, os times de CPU MAIS FRACOS de uma
-// divisão sobem MAIS — quanto mais abaixo do nível-base da série o elenco está,
-// maior o empurrão. O TOPO (já acima do piso) não muda, então nível/lenda segue
-// mandando; só o FUNDO encosta no pelotão. Resolve o buraco da Série C (cujos
-// nativos são o terço mais fraco do catálogo, então quem cai da B / sobe da D
-// virava 4 gigantes contra o resto). Tunável.
-const DIV_FLOOR: Record<Div, number> = { A: 86, B: 82, C: 76, D: 66 }
-const FLOOR_PULL = 1.3
 
 // ── motor de simulação por elenco (espelha o da Dinastia) ──
 const NEED: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
@@ -263,16 +255,10 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     const hxi = H.human ? lineupAt(lineups, H.teamId, r, H.squad) : H.xi
     const axi = A.human ? lineupAt(lineups, A.teamId, r, A.squad) : A.xi
     const fh = rollForm(hxi, th, ta, rng), fa = rollForm(axi, ta, th, rng)
-    // times de CPU ganham a força-base da divisão + o PUXÃO PRO PISO (mais forte
-    // quanto mais fraco o elenco). Humano e rivais escolhidos NÃO ganham (jogam
-    // com o elenco real que montaram). Assim o fundo da série encosta e o topo
-    // segue valendo pelo nível.
-    const boostOf = (t: SimTeam, xi: PoolCard[]) => {
-      if (t.human || t.rival) return 0
-      const r = xi.length ? xi.reduce((s, c) => s + mid(c), 0) / xi.length : 40
-      return CPU_DIV_BOOST[div] + Math.max(0, DIV_FLOOR[div] - r) * FLOOR_PULL
-    }
-    const bh = boostOf(H, hxi), ba = boostOf(A, axi)
+    // times de CPU NATIVOS ganham a força-base da divisão (pra as séries serem
+    // disputadas de verdade). Humano e rivais escolhidos NÃO ganham (jogam com o
+    // elenco real que montaram).
+    const bh = (!H.human && !H.rival) ? CPU_DIV_BOOST[div] : 0, ba = (!A.human && !A.rival) ? CPU_DIV_BOOST[div] : 0
     fh.atk += bh; fh.def += bh; fa.atk += ba; fa.def += ba
     // SORTE: cada time tem um "dia" (bom/ruim) por jogo — o forte às vezes tropeça,
     // o fraco às vezes surpreende. NÍVEL segue mandando (na média o melhor ganha),
