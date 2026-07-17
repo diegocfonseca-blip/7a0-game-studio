@@ -1954,20 +1954,25 @@ export function reducer(state: EscState, action: Action): EscState {
       const isMktBot = (m: Manager) => !m.isHuman && !m.rival
       const nMain = s.managers.filter(m => m.isHuman || m.rival).length
       // #4 — CPU RIVAIS listam sozinhos (a partir da 3ª temporada, quando a venda
-      // abre): cada rival bota à venda a reserva mais FRACA de uma posição em que
-      // sobra (mais que o XI) — pra levantar grana e reforçar, igual a um humano.
+      // abre), pra levantar grana e reforçar. NÃO são idênticos: cada um sorteia
+      // quantos quer listar nesta temporada (uns 0, uns 1, uns 2-3), sempre as
+      // reservas mais FRACAS que sobram (mais que o XI). Determinístico por seed.
       if (s.seasonNo >= 3) {
         const rate = (c: WonCard) => (c.lo + c.hi) / 2
         const rl = { ...(s.reserveListed ?? {}) }
         for (const m of s.managers.filter(x => x.rival)) {
-          let worst: WonCard | null = null
+          const rrng = mulberry((s.seed ^ (s.seasonNo * 7919) ^ (m.id * 104729)) >>> 0)
+          const choices = [0, 0, 1, 1, 1, 2, 2, 3] // uns não listam, a maioria 1, alguns 2-3
+          const nList = choices[Math.floor(rrng() * choices.length)]
+          if (nList === 0) continue
+          const spares: WonCard[] = []
           for (const pos of SECTORS) {
-            const real = m.squad.filter(c => c.pos === pos && !c.fake)
-            if (real.length <= FORMATIONS[m.formation][pos]) continue // sem reserva sobrando
-            const w = real.slice().sort((a, b) => rate(a) - rate(b))[0]
-            if (w && (!worst || rate(w) < rate(worst))) worst = w
+            const real = m.squad.filter(c => c.pos === pos && !c.fake).sort((a, b) => rate(a) - rate(b))
+            spares.push(...real.slice(0, Math.max(0, real.length - FORMATIONS[m.formation][pos]))) // as que passam do XI (mais fracas)
           }
-          if (worst && !(rl[m.id] ?? []).includes(worst.id)) rl[m.id] = [...(rl[m.id] ?? []), worst.id]
+          spares.sort((a, b) => rate(a) - rate(b))
+          const toList = spares.slice(0, Math.min(nList, spares.length))
+          if (toList.length) rl[m.id] = [...(rl[m.id] ?? []), ...toList.map(c => c.id)]
         }
         s.reserveListed = rl
       }
