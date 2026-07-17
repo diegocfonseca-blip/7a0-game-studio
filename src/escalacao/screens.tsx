@@ -426,11 +426,12 @@ export function EscIntro() {
         <DinastiaButton />
         <CareerOnlineButton />
       </div>
-      {/* como funciona — 3 cartões enxutos (empilha no celular, 3 colunas no desktop) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+      {/* como funciona — 4 cartões enxutos em grade 2×2 */}
+      <div className="grid grid-cols-2 gap-2.5">
         {([['🔨', 'O Pregão', '5 rodadas de leilão cego: goleiro, lateral, zaga, meio e ataque. Ninguém vê o lance de ninguém.'],
            ['🎭', 'Níveis ocultos', 'Você aposta no nome. O nível só abre na Cerimônia — e todo craque tem dia bom e dia ruim.'],
-           ['🪜', 'Pirâmide', 'Comece na Série D e suba até a A. Cada título vira uma carta no seu álbum.']] as [string, string, string][]).map(([ic, t, d]) => (
+           ['🪜', 'Pirâmide', 'Comece na Série D e suba até a A. Cada título vira uma carta no seu álbum.'],
+           ['💎', 'Vale o auge', 'O nível é o auge do craque, conforme o baralho: no 🇧🇷 conta o auge no Brasil; no 🌍 Europa, o auge lá fora. Estrela só na Europa entra como promessa no BR.']] as [string, string, string][]).map(([ic, t, d]) => (
           <div key={t} className="border-[3px] border-black rounded-xl bg-white p-3" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
             <div className="text-xl">{ic}</div>
             <p className="font-black text-[13px] uppercase mt-1.5" style={OSWALD}>{t}</p>
@@ -438,7 +439,6 @@ export function EscIntro() {
           </div>
         ))}
       </div>
-      <p className="text-center text-[11px] font-bold text-black/50 px-2">💎 O nível de cada carta é o <b>auge no Brasil</b>: arrebentou no Brasileirão, sobe; brilhou só na Europa, é promessa.</p>
       <CardAccountNote />
       <Btn onClick={shareGame} className="w-full" bg="#fff">
         📤 {shared ? 'Link copiado! Cola no zap 📲' : 'Compartilhar com os amigos'}
