@@ -842,23 +842,29 @@ function Envelope() {
 
       <div className="space-y-2">
         {cards.map(c => {
-          const chosen = (bids[c.id] ?? 0) > 0
-          const plusBlocked = total >= you.money || (!chosen && chosenCount >= bidLimit)
+          const bid = bids[c.id] ?? 0
+          const floor = (c as { paid?: number }).paid ?? 0 // piso (carreira): mínimo aceito neste leilão
+          const chosen = bid > 0
+          // "+" partindo do 0 pula direto pro piso (1º lance válido); daí em diante +1.
+          const nextVal = bid === 0 && floor > 0 ? floor : bid + 1
+          const plusBlocked = total + (nextVal - bid) > you.money || (!chosen && chosenCount >= bidLimit)
+          const belowFloor = chosen && floor > 0 && bid < floor // lance abaixo do piso → será anulado
+          const numColor = !chosen ? 'rgba(0,0,0,0.35)' : belowFloor ? RED : INK
           return (
           <Box key={c.id} className="p-3 flex items-center justify-between gap-2">
             <CardFace c={c} surprise={c.id === state.surpriseId} />
             <div className="flex items-center gap-1.5">
               {canBid && (
                 <div className="flex flex-col items-center">
-                  {/* rótulo sutil só na 1ª tela: mostra que o 0 do meio é o SEU lance */}
-                  {state.sectorIdx === 0 && !state.streamMode && (
-                    <span className="text-[9px] font-black uppercase leading-none mb-0.5 tracking-wide" style={{ color: '#B8860B' }}>seu lance</span>
-                  )}
+                  {/* rótulo: carta com piso mostra o mínimo (🔒); senão, na 1ª tela, "seu lance" */}
+                  {!state.streamMode && (floor > 0
+                    ? <span className="text-[9px] font-black uppercase leading-none mb-0.5 tracking-wide" style={{ color: belowFloor ? RED : '#B8860B' }}>mín 🔒 {floor}</span>
+                    : state.sectorIdx === 0 && <span className="text-[9px] font-black uppercase leading-none mb-0.5 tracking-wide" style={{ color: '#B8860B' }}>seu lance</span>)}
                   <div className="flex items-center gap-1.5">
-                    <button onClick={() => setBid(c.id, (bids[c.id] ?? 0) - 1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</button>
-                    <span className="w-9 text-center font-black text-black" style={OSWALD}>{state.streamMode ? ((bids[c.id] ?? 0) > 0 ? '🔒' : '–') : (bids[c.id] ?? 0)}</span>
+                    <button onClick={() => setBid(c.id, bid - 1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</button>
+                    <span className="w-9 text-center font-black" style={{ ...OSWALD, color: numColor }}>{state.streamMode ? (chosen ? '🔒' : '–') : (chosen ? bid : floor > 0 ? floor : 0)}</span>
                     <button
-                      onClick={() => !plusBlocked && setBid(c.id, (bids[c.id] ?? 0) + 1)}
+                      onClick={() => !plusBlocked && setBid(c.id, nextVal)}
                       disabled={plusBlocked}
                       className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${plusBlocked ? 'opacity-40' : ''}`}
                       style={{ backgroundColor: GOLD }}>+</button>
