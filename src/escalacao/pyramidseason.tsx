@@ -922,7 +922,10 @@ export function PyramidSeasonScreen() {
       } catch { /* nunca trava o jogo */ }
     })()
   }, [done, state.careerOnline, state.roomId, state.seasonNo, state.seed]) // eslint-disable-line react-hooks/exhaustive-deps
-  const canSub = state.seasonNo >= 2 && !done // substituição libera na 2ª temporada
+  // substituição libera na 2ª temporada — INCLUSIVE no fim de temporada, pra você
+  // já montar o time da próxima (a troca no fim não muda o campeonato que acabou;
+  // o SET_LINEUP grava além da rodada 38 e só carrega pra próxima temporada).
+  const canSub = state.seasonNo >= 2
   const [selId, setSelId] = useState<string | null>(null)
   // troca por SELEÇÃO: 1º toque marca o jogador; 2º toque num da MESMA posição do
   // outro lado (titular↔reserva) troca os dois. Toque em outro qualquer só remarca.

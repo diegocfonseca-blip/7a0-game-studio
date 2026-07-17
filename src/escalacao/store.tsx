@@ -1887,7 +1887,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // ATUAL (round = próximo jogo), como a tática. Libera a partir da 2ª
       // temporada (quando há reservas). Sem re-simular o que já passou.
       if (!s.careerOnline || s.seasonNo < 2) return s
-      const r = Math.min(37, s.round)
+      // durante a temporada grava na rodada atual (próximo jogo). NO FIM (done,
+      // round = 38) grava ALÉM das 38 já jogadas — assim NÃO re-simula o
+      // campeonato que acabou, mas o pinHumanLineups pega essa última escalação e
+      // carrega pra próxima temporada (você começa com o time já montado).
+      const r = s.round
       const bl = { ...(s.careerLineup ?? {}) }
       bl[action.mgrId] = { ...(bl[action.mgrId] ?? {}), [r]: action.ids }
       s.careerLineup = bl
