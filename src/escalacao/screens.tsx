@@ -319,6 +319,27 @@ function useResumableSolo() {
   }
 }
 
+// banner de "continuar carreira offline" (pirâmide) — aparece na home E logo
+// abaixo do botão de começar, no setup, quando existe um jogo salvo.
+function SoloContinueBanner() {
+  const solo = useResumableSolo()
+  if (!solo) return null
+  return (
+    <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: '#6C43C0', boxShadow: `4px 4px 0 0 ${INK}` }}>
+      <p className="font-black text-sm text-white leading-tight" style={OSWALD}>
+        🪜 Carreira offline salva<br />
+        <span className="opacity-80 text-xs">{solo.teamName} · Temporada {solo.seasonNo}</span>
+      </p>
+      <button onClick={solo.resume} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
+        ▶️ Continuar carreira ({solo.teamName})
+      </button>
+      <button onClick={solo.discard} className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
+        🗑️ Descartar e começar do zero
+      </button>
+    </div>
+  )
+}
+
 export function EscIntro() {
   const { dispatch } = useEsc()
   const resumable = useResumableRoom()
@@ -575,7 +596,7 @@ export function EscSetup() {
       <Btn onClick={start} className="w-full text-lg" bg={GREEN}>
         <span className="text-white">{career ? 'COMEÇAR CARREIRA 🪜' : 'ABRIR O PREGÃO 🔨'}</span>
       </Btn>
-      {career && <CareerContinueBanner />}
+      {career && (canPyramid ? <SoloContinueBanner /> : <CareerContinueBanner />)}
       <CardAccountNote />
     </Shell>
   )
