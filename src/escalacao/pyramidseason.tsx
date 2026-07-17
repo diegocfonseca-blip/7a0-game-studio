@@ -1047,7 +1047,7 @@ export function PyramidSeasonScreen() {
           <PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} />
         )}
 
-        <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
+        <button onClick={() => dispatch({ type: state.onlineMode === 'online' ? 'GO_LOBBY_ONLINE' : 'GO_LOBBY' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
       </div>
     </div>
   )

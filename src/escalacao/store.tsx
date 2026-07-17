@@ -1075,6 +1075,7 @@ type Action =
   | { type: 'GO_RANKING' }
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' }
   | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
+  | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
@@ -1542,6 +1543,12 @@ export function reducer(state: EscState, action: Action): EscState {
       startAuctionPhase(s, false)
       return s
     }
+    case 'RESUME_CAREER_SOLO': {
+      // retoma a carreira offline salva: restaura o jogo inteiro e reancora o
+      // baralho. Identidade sempre local (você é o host, sem sala).
+      setActiveCatalog(action.saved.deckLeague)
+      return { ...action.saved, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true }
+    }
     case 'START_ONLINE': {
       s.onlineMode = 'online'
       // baralho da sala: Rápido sempre BR; Carreira online pode ser BR, Europa
@@ -1722,6 +1729,11 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const m of s.managers) { if (m.isHuman) m.deepSquad = false; if (m.backstop) { m.backstop = false; m.deepSquad = false } }
         s.marketSellers = {} as Record<Sector, number[]>
         s.reserveAuction = false
+      } else if (s.careerOnline) {
+        // fim do leilão INICIAL (T1) da carreira: os rivais nomeados (offline solo)
+        // param de dar lance. Daqui pra frente os leilões de reserva/transferência
+        // usam só os bots sorteados — igual ao online.
+        for (const m of s.managers) if (!m.isHuman) m.auctionRival = false
       }
       s.screen = 'season'
       return s
@@ -1971,7 +1983,8 @@ export function reducer(state: EscState, action: Action): EscState {
         // RESERVAS (2ª temporada): baralho normal. Aqui não há venda de bot, então
         // sorteia floor(humanos/2) bots pra disputar (em todas as posições).
         s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues)
-        const nBots = Math.floor(s.managers.filter(m => m.isHuman).length / 2)
+        // pelo menos 1 bot disputa (solo/1 humano tinha 0 — comprava tudo de graça)
+        const nBots = Math.max(1, Math.floor(s.managers.filter(m => m.isHuman).length / 2))
         const chosen = shuffle(s.managers.filter(m => !m.isHuman), rng).slice(0, nBots)
         for (const bot of chosen) { bot.backstop = true; bot.deepSquad = true }
         for (const pos of SECTORS) marketSellers[pos] = chosen.map(b => b.id)
@@ -2359,6 +2372,18 @@ export function EscProvider({ children }: { children: ReactNode }) {
     }, 3000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId])
+
+  // AUTOSAVE da carreira OFFLINE (solo): sem sala, o jogo inteiro vai pro
+  // localStorage a cada transição importante — dá pra fechar e voltar depois.
+  const soloSigRef = useRef('')
+  useEffect(() => {
+    if (state.onlineMode === 'online' || !state.careerOnline) return
+    if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup') return
+    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}`
+    if (sig === soloSigRef.current) return
+    soloSigRef.current = sig
+    try { localStorage.setItem('esc-solo-career', JSON.stringify(state)) } catch { /* cota cheia — ignora */ }
+  }, [state])
 
   // Vigia do Monte: se a vez de um humano estoura o tempo (AFK), força o
   // auto-preenchimento. Roda em TODOS os clientes conectados (não só o host) —
