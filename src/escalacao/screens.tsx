@@ -728,7 +728,7 @@ function AuctionBar() {
 }
 
 // ─── reações efêmeras (zoeira/blefe) — só online ─────────────────────
-const EMOTE_KINDS = ['👀', '💰', '❤️', '💸']
+const EMOTE_KINDS = ['👀', '🤣', '❤️', '💸']
 
 // camada flutuante que mostra as reações de todo mundo subindo e sumindo
 function FloatingEmotes() {
