@@ -754,7 +754,8 @@ function FloatingEmotes() {
               className="flex items-center gap-1.5 bg-white border-2 border-black rounded-full px-3 py-1"
               style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
               <span className="text-lg leading-none">{e.kind}</span>
-              <span className="text-xs font-black text-black truncate max-w-[70vw]" style={OSWALD}>{who}{cn ? ` → ${cn}` : ''}</span>
+              {/* alfinetada (frase) → nome de quem manda NA FRENTE; reação simples → "quem → carta" */}
+              <span className="text-xs font-black text-black truncate max-w-[70vw]" style={OSWALD}>{e.text ? <><span style={{ color: '#6C43C0' }}>{who}:</span> {e.text}</> : <>{who}{cn ? ` → ${cn}` : ''}</>}</span>
             </motion.div>
           )
         })}
@@ -793,7 +794,7 @@ export function EscAuction() {
 }
 
 function Envelope() {
-  const { state, dispatch } = useEsc()
+  const { state, dispatch, emote } = useEsc()
   const you = state.managers[state.youIdx]
   const pos = SECTORS[state.sectorIdx]
   const rescue = state.phase === 'resq_envelope'
@@ -868,6 +869,32 @@ function Envelope() {
               </p>
             ))}
           </Box>
+          {/* ZOEIRA: já lacrou? apressa quem tá "pensando" — aparece pra todos no
+              mesmo balão das reações, com o SEU nome na frente. */}
+          {iSubmitted && waitingFor.filter(m => m.id !== you.id).length > 0 && (() => {
+            const slow = waitingFor.filter(m => m.id !== you.id)
+            const target = () => (slow[Math.floor(Math.random() * slow.length)]?.teamName) ?? 'a galera'
+            const jabs: { ic: string; label: string; mk: (n: string) => string }[] = [
+              { ic: '🐢', label: 'Anda!', mk: n => `Anda, ${n}!` },
+              { ic: '😴', label: 'Dormiu?', mk: n => `${n} dormiu?` },
+              { ic: '🔒', label: 'Lacra logo!', mk: n => `Lacra logo, ${n}!` },
+              { ic: '🤔', label: 'Blefando?', mk: n => `${n} tá blefando?` },
+              { ic: '💸', label: 'Paga caro!', mk: n => `Paga caro de novo, ${n}!` },
+            ]
+            return (
+              <div className="mt-3">
+                <p className="text-[11px] font-black text-black/45 mb-1.5" style={OSWALD}>😈 CUTUCA QUEM TÁ PENSANDO</p>
+                <div className="flex flex-wrap gap-1.5 justify-center">
+                  {jabs.map(j => (
+                    <button key={j.ic} onClick={() => emote(j.ic, undefined, j.mk(target()))}
+                      className="border-2 border-black rounded-full px-2.5 py-1 text-xs font-black bg-white text-black active:translate-y-0.5" style={{ ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}` }}>
+                      {j.ic} {j.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
         </div>
       </Shell>
     )

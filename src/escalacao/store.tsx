@@ -2412,13 +2412,13 @@ export function reducer(state: EscState, action: Action): EscState {
 // ─── reações efêmeras (zoeira/blefe) — NÃO fazem parte do estado do jogo ──
 // vão por um evento de broadcast à parte ('emote'); não passam pelo reducer
 // nem pelo host, então não têm risco nenhum de afetar o resultado do leilão.
-export type EmoteEvent = { id: string; from: number; kind: string; cardId?: string; ts: number }
+export type EmoteEvent = { id: string; from: number; kind: string; cardId?: string; ts: number; text?: string }
 
 // ─── contexto + provider (host-autoritativo, espelha o modo Draft) ───
 const Ctx = createContext<{
   state: EscState
   dispatch: (a: Action) => void
-  emote: (kind: string, cardId?: string) => void
+  emote: (kind: string, cardId?: string, text?: string) => void
   emotes: EmoteEvent[]
   hostStale: boolean // convidado sem notícias do host há muito tempo (host caiu?)
   kickPlayer: (playerIndex: number) => void // host remove um técnico da partida
@@ -2488,8 +2488,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
     setEmotes(prev => prev.some(x => x.id === e.id) ? prev : [...prev.slice(-24), e])
     setTimeout(() => setEmotes(prev => prev.filter(x => x.id !== e.id)), 2600)
   }, [])
-  const emote = useCallback((kind: string, cardId?: string) => {
-    const e: EmoteEvent = { id: Math.random().toString(36).slice(2), from: stateRef.current.youIdx, kind, cardId, ts: Date.now() }
+  const emote = useCallback((kind: string, cardId?: string, text?: string) => {
+    const e: EmoteEvent = { id: Math.random().toString(36).slice(2), from: stateRef.current.youIdx, kind, cardId, text, ts: Date.now() }
     addEmote(e) // mostra o seu na hora (o canal usa self:false e não devolve o próprio)
     channelRef.current?.send({ type: 'broadcast', event: 'emote', payload: e })
   }, [addEmote])
