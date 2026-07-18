@@ -57,6 +57,13 @@ function hashPw(text: string): string {
 function saveRoom(id: string) { try { localStorage.setItem(LS_KEY, id) } catch { /* ignora */ } }
 function clearSavedRoom() { try { localStorage.removeItem(LS_KEY) } catch { /* ignora */ } }
 function loadSavedRoom(): string | null { try { return localStorage.getItem(LS_KEY) } catch { return null } }
+// salas que o técnico dispensou no "Sair da sala e começar uma nova": a faixa da
+// home NÃO volta a aparecer pra elas (mesmo que ele ainda seja host/membro no
+// banco — o save continua em "Minhas carreiras" pra retomar depois se quiser).
+const DISMISS_KEY = 'esc-dismissed-rooms'
+function loadDismissed(): string[] { try { return JSON.parse(localStorage.getItem(DISMISS_KEY) || '[]') } catch { return [] } }
+function dismissRoom(id: string) { try { const a = loadDismissed(); if (!a.includes(id)) localStorage.setItem(DISMISS_KEY, JSON.stringify([...a, id].slice(-40))) } catch { /* ignora */ } }
+function isRoomDismissed(id: string): boolean { return loadDismissed().includes(id) }
 
 // Quando o backend (Supabase) está fora do ar — instabilidade da plataforma
 // ou manutenção — o supabase-js devolve/estoura "Failed to fetch". Em vez de
@@ -116,6 +123,7 @@ export function useResumableRoom() {
           .sort((a, b) => (b.updated_at ?? '').localeCompare(a.updated_at ?? ''))[0] ?? null
       }
       if (!rd || !alive) return
+      if (isRoomDismissed(rd.id)) return // dispensada no "sair e começar uma nova" — não reaparece
       // confirma que ainda sou um dos técnicos da sala. O HOST é dono do save
       // (host_id) e pode voltar mesmo sem vaga (ex.: apertou "sair da sala").
       const amHostHere = rd.host_id === user.id
@@ -150,7 +158,9 @@ export function useResumableRoom() {
     // a faixa só aparece pra partida EM ANDAMENTO → aqui sempre restauramos.
     // Nunca recomeçamos do zero (isso reconstruía o leilão e resetava a sala).
     if (inProgress) {
-      dispatch({ type: 'RESTORE_ONLINE', state: gs as EscState, roomId: rd.id, roomCode: rd.code, isHost: amHost, playerIndex: myPl.player_index })
+      // nunca restaura numa tela lateral (álbum/ranking) — cai sempre no jogo.
+      const safeGs = (gs.screen === 'album' || gs.screen === 'ranking') ? { ...gs, screen: 'season' } : gs
+      dispatch({ type: 'RESTORE_ONLINE', state: safeGs as EscState, roomId: rd.id, roomCode: rd.code, isHost: amHost, playerIndex: myPl.player_index })
     }
   }, [dispatch])
 
@@ -163,6 +173,7 @@ export function useResumableRoom() {
     try {
       if (rd && user && !isCareer) await supabase.from('room_players').delete().eq('room_id', rd.id).eq('user_id', user.id)
     } catch { /* silencioso */ }
+    if (rd) dismissRoom(rd.id) // não deixa a faixa voltar (o save persiste em Minhas carreiras)
     clearSavedRoom()
     setInfo(null)
   }, [])
