@@ -1493,9 +1493,19 @@ export function PyramidSeasonScreen() {
                 const rival = myIdx > 0 ? table[myIdx - 1] : table[myIdx + 1]
                 if (rival) {
                   const gap = Math.abs(table[myIdx].pts - rival.pts); const pts = gap === 1 ? 'ponto' : 'pontos'
-                  flavors.push(myIdx === 0 ? { c: GOLD, ic: '🔥', tag: 'LÍDER', node: <>Você é o líder! {nm(rival.teamId, rival.name)} cola {gap} {pts} atrás.</> }
-                    : myIdx > 0 && gap <= 2 ? { c: GOLD, ic: '😤', tag: 'NA COLA', node: <>{nm(rival.teamId, rival.name)} tá só {gap} {pts} na sua frente. Vai deixar?</> }
-                    : { c: GOLD, ic: '💪', tag: 'TABELA', node: <>Você segura {nm(rival.teamId, rival.name)} {gap} {pts} atrás!</> })
+                  const tied = gap === 0 // mesmo nº de pontos — quem está acima leva no saldo
+                  flavors.push(
+                    myIdx === 0
+                      // LÍDER: o rival (table[1]) está logo ABAIXO de você
+                      ? (tied
+                          ? { c: GOLD, ic: '🔥', tag: 'LÍDER', node: <>Você lidera no saldo! {nm(rival.teamId, rival.name)} empatou em pontos — não vacila.</> }
+                          : { c: GOLD, ic: '🔥', tag: 'LÍDER', node: <>Você é o líder! {nm(rival.teamId, rival.name)} cola {gap} {pts} atrás.</> })
+                      // você NÃO é líder: o rival (table[myIdx-1]) está logo ACIMA, na sua frente
+                      : tied
+                        ? { c: GOLD, ic: '😤', tag: 'NA COLA', node: <>Você e {nm(rival.teamId, rival.name)} empatados em pontos — o saldo decide!</> }
+                        : gap <= 2
+                          ? { c: GOLD, ic: '😤', tag: 'NA COLA', node: <>{nm(rival.teamId, rival.name)} tá só {gap} {pts} na sua frente. Vai deixar?</> }
+                          : { c: GOLD, ic: '💪', tag: 'TABELA', node: <>{nm(rival.teamId, rival.name)} tá {gap} {pts} na sua frente — corre atrás!</> })
                 }
               }
               return <RivalryTicker items={flavors} />
