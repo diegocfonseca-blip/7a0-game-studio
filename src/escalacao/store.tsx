@@ -1723,6 +1723,8 @@ export function reducer(state: EscState, action: Action): EscState {
         s.careerCoins = cc
       }
       s.seasonNo = 1
+      s.seasonVotes = {} // novo leilão: zera a votação de fim de jogo (senão volta marcada)
+      s.restartPending = false; s.restartReady = [] // e a prontidão do restart
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s
