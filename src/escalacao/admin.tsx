@@ -19,7 +19,7 @@ const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
 type DailyRow = { day: string; plays: number; cpu: number; online: number; visits: number }
 type UserRow = { name: string; sid: string; total: number; today: number; last_play: string; registered: boolean }
-type LiveRow = { name: string; mode: string; screen: string; playing: boolean; ago: number; careerSeason?: number | null; careerDivision?: string | null; deckLeague?: string | null }
+type LiveRow = { name: string; mode: string; screen: string; playing: boolean; ago: number; careerSeason?: number | null; careerDivision?: string | null; deckLeague?: string | null; registered?: boolean }
 type CareerRow = { name: string; division: string; season: number; titles: number; updated: string }
 type Dash = {
   online_now: number; playing_now: number; live_list: LiveRow[]
@@ -246,6 +246,7 @@ function Dashboard({ email }: { email: string }) {
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, opacity: 0.92 }}>
                 <span>
                   {p.playing ? (MODE_ICON[p.mode] || '🤖') : '👀'} <b>{p.name}</b>
+                  {p.registered === true ? <span title="tem conta"> 🔑</span> : p.registered === false ? <span title="anônimo (sem conta)" style={{ opacity: 0.7 }}> 👤</span> : null}
                   <span style={{ opacity: 0.6 }}> · {SCREEN_LABEL[p.screen] || p.screen}</span>
                   {p.playing && <span style={{ opacity: 0.6 }}> · {MODE_LABEL[p.mode] || p.mode}</span>}
                   {p.mode === 'career' && p.careerDivision && (
