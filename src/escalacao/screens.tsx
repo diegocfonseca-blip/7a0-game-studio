@@ -461,7 +461,7 @@ export function EscIntro() {
           </Btn>
         </motion.div>
         <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg" bg={GREEN}>
-          <span className="text-white">👥 JOGAR ONLINE (SALA)</span>
+          <span className="text-white">👥 JOGAR ONLINE (O FAVORITO DO CRIADOR)</span>
         </Btn>
         <div className="flex gap-3">
           <div className="flex-1"><Btn onClick={() => dispatch({ type: 'GO_ALBUM' })} className="w-full" bg="#fff">📖 Álbum</Btn></div>
