@@ -3063,6 +3063,13 @@ function OnlineEndVote() {
   const nVoted = nMesmo + nLeilao
   const pend = guests.filter(m => !votes[m.id])
   const vote = (v: 'mesmo' | 'leilao') => dispatch({ type: 'CAST_SEASON_VOTE', mgrId: youId, vote: v })
+  // aviso do host: só confirma se AINDA tem gente sem decidir; se todos prontos,
+  // começa direto (sem confirm chato). Quem não tá pronto entra junto de qualquer jeito.
+  const confirmIfPending = (): boolean => {
+    if (pend.length === 0) return true
+    const names = pend.map(m => m.teamName).join(', ')
+    return window.confirm(`⏳ ${names} ${pend.length === 1 ? 'ainda não ficou pronto' : 'ainda não ficaram prontos'}. Começar mesmo assim? Quem não tá pronto entra junto no jogo.`)
+  }
   const startMesmo = () => dispatch({ type: 'REPLAY_SEASON' })
   // "Novo leilão": a MESMA galera segue na sala, com um leilão do zero (jogadores
   // novos) — SEM voltar pra sala de espera. O host monta e transmite; os
@@ -3116,8 +3123,8 @@ function OnlineEndVote() {
               <p className="text-center text-[11px] font-black text-black/55" style={OSWALD}>{nVoted}/{guests.length} prontos · ▶️ {nMesmo} · 🔨 {nLeilao}</p>
             </div>
           )}
-          <Btn onClick={startMesmo} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ Começar (mesmo time)</span></Btn>
-          <Btn onClick={startLeilao} bg={GOLD} className="w-full text-lg">🔨 Abrir novo leilão</Btn>
+          <Btn onClick={() => { if (confirmIfPending()) startMesmo() }} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ Começar (mesmo time)</span></Btn>
+          <Btn onClick={() => { if (confirmIfPending()) startLeilao() }} bg={GOLD} className="w-full text-lg">🔨 Abrir novo leilão</Btn>
           {pend.length > 0 && (
             <div className="pt-1">
               <p className="text-center text-[10px] font-bold text-black/45 mb-1">Quem ainda não decidiu (você não precisa esperar):</p>
