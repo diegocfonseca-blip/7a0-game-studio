@@ -27,6 +27,14 @@ const PURPLE = '#7C3AED'
 const PURPLE_DARK = '#5B21B6'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' }
 function randCode() { return Math.random().toString(36).slice(2, 8).toUpperCase() }
+// cor por usuário (estável pelo nome) — diferencia as mensagens de cada um.
+// tons escuros o suficiente pra ler no balão branco.
+const CHAT_COLORS = ['#7C3AED', '#E8503A', '#1B7A3D', '#2E6FB0', '#C77800', '#B23B8E', '#0E8A8A', '#B8860B']
+function chatColor(name: string): string {
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
+  return CHAT_COLORS[h % CHAT_COLORS.length]
+}
 
 // Guarda a sala no aparelho: no celular, trocar de app (ex.: abrir o
 // WhatsApp pra mandar o código) pode fazer o navegador descartar a aba da
@@ -1168,7 +1176,7 @@ export function EscLobby() {
           {lobbyChat.map(e => (
             <motion.div key={e.id} initial={{ opacity: 0, y: 14, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0 }}
               style={{ background: '#fff', border: '2px solid #0C0C0C', borderRadius: 999, padding: '6px 14px', boxShadow: '2px 2px 0 #0C0C0C', maxWidth: '92%', fontSize: 13, fontWeight: 700, ...OSWALD }}>
-              <span style={{ color: PURPLE, fontWeight: 900 }}>{e.name}:</span> {e.text}
+              <span style={{ color: chatColor(e.name), fontWeight: 900 }}>{e.name}:</span> {e.text}
             </motion.div>
           ))}
         </div>

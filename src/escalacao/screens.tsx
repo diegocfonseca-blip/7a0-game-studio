@@ -757,6 +757,13 @@ function AuctionBar() {
 const EMOTE_KINDS = ['👀', '🤣', '❤️', '💸']
 
 // camada flutuante que mostra as reações de todo mundo subindo e sumindo
+// cor por usuário (estável pelo nome) — diferencia as mensagens de cada um no balão.
+const CHAT_COLORS = ['#7C3AED', '#E8503A', '#1B7A3D', '#2E6FB0', '#C77800', '#B23B8E', '#0E8A8A', '#B8860B']
+function chatColor(name: string): string {
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
+  return CHAT_COLORS[h % CHAT_COLORS.length]
+}
 function FloatingEmotes() {
   const { state, emotes } = useEsc()
   if (state.onlineMode !== 'online' || emotes.length === 0) return null
@@ -781,7 +788,7 @@ function FloatingEmotes() {
               style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
               <span className="text-lg leading-none">{e.kind}</span>
               {/* alfinetada (frase) → nome de quem manda NA FRENTE; reação simples → "quem → carta" */}
-              <span className="text-xs font-black text-black truncate max-w-[70vw]" style={OSWALD}>{e.text ? <><span style={{ color: '#6C43C0' }}>{who}:</span> {e.text}</> : <>{who}{cn ? ` → ${cn}` : ''}</>}</span>
+              <span className="text-xs font-black text-black truncate max-w-[70vw]" style={OSWALD}>{e.text ? <><span style={{ color: chatColor(m?.teamName || m?.name || who) }}>{who}:</span> {e.text}</> : <>{who}{cn ? ` → ${cn}` : ''}</>}</span>
             </motion.div>
           )
         })}
