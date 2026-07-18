@@ -2242,6 +2242,21 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       s.marketSellers = marketSellers
       for (const c of listedCards) s.deck[c.pos].push(c)
+      // SOBRAS DO BARALHO: jogadores reais que não couberam em time nenhum (posição
+      // com mais reais que vagas — hoje o ataque sobra ~31) entram no leilão, UMA
+      // carta por posição por temporada, até acabarem. Assim nenhum craque de fora
+      // fica esquecido — vale pra QUALQUER posição que estiver sobrando.
+      {
+        const bt2 = nextBuildTok()
+        const placed = new Set<string>()
+        for (const m of s.managers) for (const c of m.squad) placed.add(ident(c))
+        for (const name in (s.cpuSquads ?? {})) for (const c of s.cpuSquads![name]) placed.add(ident(c))
+        for (const pos of SECTORS) for (const c of s.deck[pos]) placed.add(ident(c))
+        for (const pos of SECTORS) {
+          const spare = shuffle(ACTIVE_CATALOG[pos].filter(c => !placed.has(ident(c))), rng)[0]
+          if (spare) { const fl = s.marketValues?.[spare.name] ?? 0; s.deck[pos].push({ ...spare, id: `left-${pos}-${bt2}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
+        }
+      }
       // 3) elenco fundo (mira 22) + orçamento. DEPOIS do baralho, senão a demanda
       // dobraria. Humano gasta do careerCoins; bot sorteado gasta do clubCash dele.
       const cash = s.clubCash ?? {}
