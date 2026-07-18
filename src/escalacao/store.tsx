@@ -682,7 +682,8 @@ function makeCareerManagers(teamName: string, formation: FormationKey, div: Divi
     cpus.push({ id, name: r.name, teamName: r.team, isHuman: false, auctionRival: true, auctionOnly: true, formation: forms[Math.floor(rng() * forms.length)], money: START_MONEY, squad: [], aggression: 0.25 + rng() * 0.7, starHunger: rng() })
     id++
   }
-  const strongN = Math.max(1, Math.round(fillerDefs.length * 0.15))
+  // preenchimento: 10% fortes · 75% médios · 15% fracos (igual online rápido)
+  const strongN = Math.max(1, Math.round(fillerDefs.length * 0.10))
   const weakN = Math.max(1, Math.round(fillerDefs.length * 0.15))
   fillerDefs.forEach((f, i) => {
     const cpuFormation = forms[Math.floor(rng() * forms.length)]
@@ -699,8 +700,9 @@ function makeCareerManagers(teamName: string, formation: FormationKey, div: Divi
 // vieram junto mantêm o elenco que já tinham.
 function dealRemainingCpuSquads(managers: Manager[], rng: () => number, used: Set<string>) {
   const empties = managers.filter(m => !m.isHuman && m.squad.length === 0)
-  const strongN = Math.max(1, Math.round(empties.length * 0.2))
-  const weakN = Math.max(1, Math.round(empties.length * 0.2))
+  // 10% fortes · 75% médios · 15% fracos (igual online rápido)
+  const strongN = Math.max(1, Math.round(empties.length * 0.10))
+  const weakN = Math.max(1, Math.round(empties.length * 0.15))
   empties.forEach((b, i) => {
     const tier: Tier = i < strongN ? 'strong' : i >= empties.length - weakN ? 'weak' : 'mid'
     b.squad = makeBotSquad(b.formation, tier, rng, used)
