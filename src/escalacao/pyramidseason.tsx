@@ -535,7 +535,7 @@ const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série
 // ritmo da carreira online: +1s por jogo em relação aos outros modos, pra dar
 // tempo de decidir tática/Time A-B durante a partida: 8s por rodada (fixo). Só aqui.
 const ROUND_MS = 8000
-const COPA_ROUND_MS = 9500 // tempo de cada FASE da Copa (oitavas, quartas...) — um pouco mais que a liga, pra dar tempo de ver os poucos jogos
+const COPA_LEG_MS = 8000 // cada JOGO da Copa rola ~8s (como uma partida da liga: 90'+acréscimos). Fase de ida-e-volta = 2×; final (jogo único) = 1×.
 
 // CADA usuário (você e amigos) tem UMA cor fixa e ÚNICA: `solid` (nome/chip) +
 // `light` (fundo da faixa/linha). Nada de preto — o preto já é dos botões. A cor
@@ -1043,45 +1043,6 @@ function CopaLiveMatch({ tie, pos, big, youColor }: { tie: CopaTie; pos: number;
   )
 }
 
-// FASE da Copa TOCANDO AO VIVO: um relógio único toca a IDA e depois a VOLTA, e
-// TODOS os jogos da fase sobem o placar ao mesmo tempo. Seu jogo em destaque.
-function CopaLive({ copa, round, youColor }: { copa: CopaResult; round: number; youColor: string }) {
-  const r = copa.rounds[round]
-  const isFinal = r?.name === 'Final'
-  const nLegs = isFinal ? 1 : 2
-  const total = nLegs * 90
-  const [pos, setPos] = useState(0)
-  useEffect(() => {
-    setPos(0)
-    const t0 = Date.now()
-    const iv = setInterval(() => {
-      const p = (Date.now() - t0) / (COPA_ROUND_MS * 0.88) // chega ao fim um pouco antes de trocar de fase
-      setPos(Math.min(total, p * total))
-      if (p >= 1) clearInterval(iv)
-    }, 100)
-    return () => clearInterval(iv)
-  }, [round, total])
-  if (!r) return null
-  const myTie = r.ties.find(t => t.a.you || t.b.you)
-  const others = r.ties.filter(t => t !== myTie)
-  const faseNm = isFinal ? 'FINAL' : r.name.toUpperCase()
-  const legIdx = Math.min(nLegs - 1, Math.floor(pos / 90))
-  const legMin = Math.min(90, Math.round(pos - legIdx * 90))
-  const done = pos >= total
-  const clock = done ? 'FIM' : isFinal ? `${legMin}'` : `${legIdx === 0 ? 'IDA' : 'VOLTA'} ${legMin}'`
-  return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{ ...box('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)'), padding: '7px 12px', marginBottom: 9, textAlign: 'center' }}>
-        <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0, letterSpacing: 0.5 }}>🏆 COPA · {faseNm}</p>
-        <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '1px 0 0' }}>🔴 ao vivo · fase {round + 1} de {copa.rounds.length} · {clock}</p>
-      </div>
-      {myTie && <CopaLiveMatch tie={myTie} pos={pos} big youColor={youColor} />}
-      {others.length > 0 && myTie && <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '2px 0 4px' }}>Outros jogos da fase</p>}
-      {others.map((t, i) => <CopaLiveMatch key={i} tie={t} pos={pos} />)}
-    </div>
-  )
-}
-
 function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal }: { copa: CopaResult; colors: Record<number, FCol>; youId: number; tables: Record<Div, SimTeam[]>; ord: Div[]; myDiv: Div | null; reveal: number }) {
   const champ = copa.champion
   const finished = reveal >= copa.rounds.length
@@ -1157,18 +1118,32 @@ export function PyramidSeasonScreen() {
   // a Copa TOCA fase por fase (oitavas → quartas → semi → final), como a liga.
   // copaRound = fase ao vivo agora (0=oitavas). Zera a cada temporada nova.
   const [copaRound, setCopaRound] = useState(0)
-  useEffect(() => { setCopaRound(0) }, [state.seasonNo])
+  const [copaPos, setCopaPos] = useState(0) // relógio da fase (0..nLegs*90) no nível da TELA (o placar fica em cima das abas)
+  useEffect(() => { setCopaRound(0); setCopaPos(0) }, [state.seasonNo])
   const nCopaRounds = copa?.rounds.length ?? 0
   const copaPlaying = done && !!copa && nCopaRounds > 0 && copaRound < nCopaRounds
   const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
   // fase da Copa tocando agora (pra mostrar DISCRETO no cabeçalho, no lugar da divisão)
   const copaFase = copaPlaying && copa ? copa.rounds[copaRound] : null
   const copaFaseName = copaFase ? (copaFase.name === 'Final' ? 'Final' : copaFase.name) : ''
+  const copaNLegs = copaFase ? (copaFase.name === 'Final' ? 1 : 2) : 1
+  const copaFaseTotal = copaNLegs * 90
+  const myCopaTie = copaFase?.ties.find(t => t.a.you || t.b.you) ?? null
+  const otherCopaTies = copaFase ? copaFase.ties.filter(t => t !== myCopaTie) : []
+  const copaLegIdx = Math.min(copaNLegs - 1, Math.floor(copaPos / 90))
+  const copaLegMin = Math.min(90, Math.round(copaPos - copaLegIdx * 90))
+  const copaClock = copaPos >= copaFaseTotal ? 'FIM' : copaNLegs === 1 ? `${copaLegMin}'` : `${copaLegIdx === 0 ? 'IDA' : 'VOLTA'} ${copaLegMin}'`
+  // cada JOGO rola ~COPA_LEG_MS (como uma partida da liga): toca a IDA inteira e
+  // depois a VOLTA, todos os jogos juntos. Avança de fase quando termina + folga.
   useEffect(() => {
     if (!copaPlaying) return
-    const t = setTimeout(() => setCopaRound(r => r + 1), COPA_ROUND_MS)
-    return () => clearTimeout(t)
-  }, [copaPlaying, copaRound])
+    setCopaPos(0)
+    const dur = copaNLegs * COPA_LEG_MS
+    const t0 = Date.now()
+    const iv = setInterval(() => setCopaPos(Math.min(copaFaseTotal, ((Date.now() - t0) / dur) * copaFaseTotal)), 90)
+    const adv = setTimeout(() => setCopaRound(r => r + 1), dur + 2200)
+    return () => { clearInterval(iv); clearTimeout(adv) }
+  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal])
   // quando a Copa COMEÇA (temporada da liga encerrou), joga todo mundo pra aba
   // Jogos — é lá que a Copa toca ao vivo, em cima dos jogos. (Uma vez por temporada.)
   useEffect(() => { if (copaPlaying) setTab('jogos') }, [copaPlaying])
@@ -1268,7 +1243,7 @@ export function PyramidSeasonScreen() {
           <div style={{ padding: '12px 14px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD }}>{copaPlaying ? `Temporada ${state.seasonNo} · 🏆 Copa Legends` : <>Temporada {state.seasonNo}{me ? ` · ${DIV_NAME[me.div]}` : ''}</>}</div>
-              <div style={{ ...OSWALD, fontWeight: 800, fontSize: 18, marginTop: 2, lineHeight: 1 }}>{copaPlaying ? <>{copaFaseName} <span style={{ fontSize: 11, fontWeight: 800, color: '#ff5a4d' }}>🔴 ao vivo</span></> : done ? 'Encerrada' : round === 0 ? 'Começando…' : <>Rodada <b style={{ fontSize: 21 }}>{round}</b><span style={{ fontSize: 12, opacity: 0.5, fontWeight: 700 }}> / 38</span></>}</div>
+              <div style={{ ...OSWALD, fontWeight: 800, fontSize: 18, marginTop: 2, lineHeight: 1 }}>{copaPlaying ? <>{copaFaseName} <span style={{ fontSize: 11, fontWeight: 800, color: '#ff5a4d' }}>🔴 {copaClock}</span></> : done ? 'Encerrada' : round === 0 ? 'Começando…' : <>Rodada <b style={{ fontSize: 21 }}>{round}</b><span style={{ fontSize: 12, opacity: 0.5, fontWeight: 700 }}> / 38</span></>}</div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
               {!done && me && <span style={{ fontWeight: 800, fontSize: 12, ...OSWALD, border: '2px solid rgba(255,255,255,0.25)', borderRadius: 999, padding: '3px 9px', whiteSpace: 'nowrap' }}>{me.pos === 1 ? '🥇' : '🏅'} {me.pos}º</span>}
@@ -1302,6 +1277,9 @@ export function PyramidSeasonScreen() {
           </button>
         )}
         {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} />}
+        {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
+            das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
+        {copaPlaying && myCopaTie && <div style={{ marginBottom: 12 }}><CopaLiveMatch tie={myCopaTie} pos={copaPos} big youColor={myCol.solid} /></div>}
 
         {copaFinished && me?.champ && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
@@ -1435,10 +1413,14 @@ export function PyramidSeasonScreen() {
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} />
           </>
         ) : tab === 'jogos' && hasMatches ? (
-          copaPlaying && copa ? (
-            /* Durante a COPA, a aba Jogos mostra SÓ a Copa — sem o jogo de liga
-               já terminado e a tabela competindo pela atenção (a confusão do print). */
-            <CopaLive copa={copa} round={copaRound} youColor={myCol.solid} />
+          copaPlaying && copaFase ? (
+            /* Durante a COPA: SEU jogo já está no placar em cima das abas. Aqui na
+               aba Jogos ficam os OUTROS jogos da fase, rolando junto (mesmo relógio),
+               como os jogos das outras divisões apareciam na liga. */
+            <>
+              <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.5)', margin: '2px 0 7px' }}>🏆 Copa · {copaFaseName} · {copaNLegs === 1 ? 'jogo único' : 'ida e volta'} · {copaClock}</p>
+              {otherCopaTies.map((t, i) => <CopaLiveMatch key={i} tie={t} pos={copaPos} />)}
+            </>
           ) : (
           <>
             {done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished col={myCol} colors={colors} roundKey={round} />}
