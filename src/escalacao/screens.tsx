@@ -5,6 +5,7 @@ import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
 import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked } from './store'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
+import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
 import { DinastiaButton } from './dinastia'
@@ -2247,11 +2248,12 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
     if (!user) { setStatus('noauth'); return }
     // season_key ENCURTADO (a coluna tem limite): se ainda vier longo, corta.
     const key = seasonKey.length > 48 ? seasonKey.slice(0, 48) : seasonKey
-    const { error } = await supabase.from('user_cards').insert({
+    // gravação RESILIENTE: se o backend estiver fora, guarda no aparelho e
+    // re-tenta ao reabrir o jogo — ninguém perde a carta numa instabilidade.
+    await resilientWrite({ table: 'user_cards', row: {
       user_id: user.id, season_key: key, origin,
       card_name: card.name, card_club: card.club, card_year: card.year, card_pos: card.pos, card_fame: card.fame,
-    })
-    if (error) console.warn('user_cards insert falhou:', error.message) // não silencioso
+    } })
     setClaimed(card); onClaimed?.(card)
     setStatus('revealed')
   }
@@ -2690,12 +2692,12 @@ function RankResultWriter() {
         const online = state.onlineMode === 'online'
         const seasonKey = online ? `${state.roomId}:${state.seasonNo}` : state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`
         const displayName = user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? you.teamName
-        await supabase.from('esc_results').upsert({
+        await resilientWrite({ table: 'esc_results', onConflict: 'user_id,season_key', row: {
           user_id: user.id, display_name: displayName,
           mode: online ? 'online' : 'cpu', season_key: seasonKey,
           champion: champ.id === you.id, top_scorer: top?.teamId === you.id,
           goals: myRow?.gf ?? 0,
-        }, { onConflict: 'user_id,season_key' })
+        } })
       } catch { /* nunca trava o jogo */ }
     })()
   }, [])
