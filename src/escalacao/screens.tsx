@@ -52,17 +52,21 @@ export function CreditLine({ className = '' }: { className?: string }) {
   )
 }
 // rodapé completo (contato) — aparece SUTIL no final de TODAS as telas do jogo.
+// Fundo bege PRÓPRIO pra ficar legível em qualquer tela (senão o texto escuro
+// some no fundo preto do app fora da área das telas).
 export function GameFooter() {
   return (
-    <footer className="max-w-xl mx-auto text-center px-4 pt-4 pb-7 space-y-1.5">
-      <p className="text-black/45 text-xs font-bold">💡 Ideia de jogador novo, sugestão ou achou um bug? Fala comigo:</p>
-      <p className="text-xs font-bold">
-        <a href="https://instagram.com/diegocfonseca" target="_blank" rel="noopener noreferrer" className="text-black/55 underline"><InstaIcon /> @diegocfonseca</a>
-        <span className="text-black/25"> · </span>
-        <a href="mailto:diego.c.fonseca@gmail.com" className="text-black/55 underline">✉️ diego.c.fonseca@gmail.com</a>
-      </p>
-      <p className="text-black/25 text-[11px] font-semibold pt-1">Feito por @diegocfonseca — D7 Studio</p>
-    </footer>
+    <div style={{ background: '#F4ECD6', borderTop: '2px solid rgba(0,0,0,0.06)' }}>
+      <footer className="max-w-xl mx-auto text-center px-4 pt-4 pb-8 space-y-1.5">
+        <p className="text-black/55 text-xs font-bold">💡 Ideia de jogador novo, sugestão ou achou um bug? Fala comigo:</p>
+        <p className="text-xs font-bold">
+          <a href="https://instagram.com/diegocfonseca" target="_blank" rel="noopener noreferrer" className="text-black/65 underline"><InstaIcon /> @diegocfonseca</a>
+          <span className="text-black/30"> · </span>
+          <a href="mailto:diego.c.fonseca@gmail.com" className="text-black/65 underline">✉️ diego.c.fonseca@gmail.com</a>
+        </p>
+        <p className="text-black/35 text-[11px] font-semibold pt-1">Feito por @diegocfonseca — D7 Studio</p>
+      </footer>
+    </div>
   )
 }
 
