@@ -766,7 +766,7 @@ function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boo
 // reservas numa lista embaixo. Pra trocar: toca num jogador (fica MARCADO) e os
 // da MESMA posição do outro lado ACENDEM — toca em qual quer trocar. Vale pros
 // dois sentidos (titular↔reserva). Aplica no próximo jogo, como a tática.
-function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; selId: string | null; onTap?: (id: string) => void }) {
+function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number }) {
   const goalsOf = (c: WonCard) => goals?.[c.id] ?? 0
   const sel = selId ? mgr.squad.find(c => c.id === selId) ?? null : null
   const isTarget = (c: WonCard) => !!sel && sel.id !== c.id && sel.pos === c.pos && (xiIds.has(sel.id) !== xiIds.has(c.id))
@@ -814,7 +814,9 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap }: { mgr: Manage
         {onTap && <span style={{ fontSize: 11, fontWeight: 800, color: GREEN, ...OSWALD }}>· toque pra subir ao time titular</span>}
       </div>
       {reserves.length === 0
-        ? <p style={{ fontSize: 11, fontWeight: 700, color: '#6a6658', margin: 0 }}>Sem reservas no banco.</p>
+        ? (seasonNo === 1
+            ? <p style={{ fontSize: 11, fontWeight: 700, color: '#6a6658', margin: 0, lineHeight: 1.4 }}>🔒 Na Temporada 1 você joga com os 11. <b style={{ color: GREEN }}>No próximo leilão</b> (no fim desta temporada) você enche o banco de reservas — até 22! 🔨</p>
+            : <p style={{ fontSize: 11, fontWeight: 700, color: '#6a6658', margin: 0 }}>Sem reservas no banco.</p>)
         : reserves.map(c => { const st = stateOf(c); return (
           <div key={c.id} onClick={() => onTap?.(c.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '5px 8px', borderRadius: 6, background: st === 'sel' ? '#FFF6D6' : 'rgba(255,255,255,0.55)', border: `2px solid ${st === 'idle' ? 'transparent' : borderOf(st)}`, marginBottom: 3, opacity: st === 'dim' ? 0.5 : 1, cursor: onTap ? 'pointer' : 'default' }}>
             <span style={{ fontWeight: 700, fontSize: 12, ...OSWALD, color: '#4a4740', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -829,7 +831,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap }: { mgr: Manage
     </div>
   )
 }
-function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = null }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null }) {
+function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = null, seasonNo }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number }) {
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
@@ -849,7 +851,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
         {caption && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>}
       </div>
       {elenco ? (
-        <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} selId={selId} onTap={onSwap} />
+        <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} selId={selId} onTap={onSwap} seasonNo={seasonNo} />
       ) : (<>
       {hasReserves && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 5 }}>
@@ -1430,7 +1432,7 @@ export function PyramidSeasonScreen() {
                 <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}><b>Tática e substituições</b> valem do <b>próximo jogo</b> em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</p>
               </>
             )}
-            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} />
+            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} />
           </>
         ) : tab === 'jogos' && hasMatches ? (
           copaPlaying && copa ? (
