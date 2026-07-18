@@ -217,6 +217,7 @@ export function EscLobby() {
   const canCareer = useCanCareerOnline()
   const [roomMode, setRoomMode] = useState<'rapido' | 'carreira'>('rapido')
   const careerDeck: DeckChoice = 'both' // carreira: sempre BR + Europa juntos (preenche os 80 times das 4 divisões)
+  const [rapidoDeck, setRapidoDeck] = useState<DeckChoice>('br') // rápido online: host escolhe o baralho (BR / Europa / os dois)
   const [joinCode, setJoinCode] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [roomName, setRoomName] = useState('')
@@ -388,7 +389,7 @@ export function EscLobby() {
       playerNames: sorted.map(p => p.manager_name),
       formation: gs?.formation ?? '4-3-3',
       stream: !!gs?.stream,
-      deck: gs?.mode === 'carreira' ? (gs.deck ?? 'br') : 'br',
+      deck: gs?.deck ?? 'br', // carreira = 'both'; rápido = escolha do host (br/eu/both)
       career: gs?.mode === 'carreira',
       locked: gs?.locked, pwHash: gs?.pwHash, // preserva a senha da sala pelo autosave
     })
@@ -490,7 +491,7 @@ export function EscLobby() {
     const locked = roomLocked && !!roomPw.trim()
     const pwHash = locked ? hashPw(roomPw.trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck } : {}) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck } : { deck: rapidoDeck }) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -867,6 +868,20 @@ export function EscLobby() {
             <p className="text-white/55 text-[11px] font-bold mt-1 leading-snug">Na Carreira é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Sem baralho só BR nem só Europa.</p>
           </div>
         )}
+        {!(canCareer && roomMode === 'carreira') && <div>
+          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Baralho de craques</p>
+          <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
+            {([['br', '🇧🇷 Brasil'], ['eu', '🌍 Europa'], ['both', '🌎 Os dois']] as [DeckChoice, string][]).map(([d, label]) => (
+              <button key={d} onClick={() => setRapidoDeck(d)}
+                className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: rapidoDeck === d ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
+            {rapidoDeck === 'br' ? '🇧🇷 Só auges do Brasileirão.' : rapidoDeck === 'eu' ? '🌍 Lendas e craques da Europa.' : '🌎 Brasil + Europa juntos — o baralhão.'}
+          </p>
+        </div>}
         {!(canCareer && roomMode === 'carreira') && <div>
           <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Formação da sala (vale pra todo mundo)</p>
           <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
