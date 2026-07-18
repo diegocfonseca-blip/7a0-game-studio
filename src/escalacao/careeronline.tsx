@@ -429,9 +429,12 @@ function ChampionCard({ deck, seed, team, seasonKey }: { deck: DeckChoice; seed:
   async function claim(card: CardOpt) {
     if (claimingRef.current) return
     claimingRef.current = true
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setStatus('noauth'); return }
-    await supabase.from('user_cards').insert({ user_id: user.id, season_key: seasonKey, origin: 'online', card_name: card.name, card_club: card.club, card_year: card.year, card_pos: card.pos, card_fame: card.fame })
+    let user
+    try { user = (await supabase.auth.getUser()).data.user } catch { user = null }
+    if (!user) { setStatus('noauth'); claimingRef.current = false; return }
+    // gravação RESILIENTE: se o backend cair, guarda no aparelho e re-tenta ao
+    // reabrir — a carta do campeão da carreira online não se perde numa queda.
+    await resilientWrite({ table: 'user_cards', row: { user_id: user.id, season_key: seasonKey, origin: 'online', card_name: card.name, card_club: card.club, card_year: card.year, card_pos: card.pos, card_fame: card.fame } })
     setClaimed(card); setStatus('revealed')
   }
   useEffect(() => {
