@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, EscState, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
-import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked } from './store'
+import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, loadPyramidCloud, deletePyramidCloud } from './store'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
@@ -359,7 +359,20 @@ function useResumableSolo() {
   const { dispatch } = useEsc()
   const [saved, setSaved] = useState<EscState | null>(null)
   useEffect(() => {
-    try { const r = localStorage.getItem('esc-solo-career'); if (r) setSaved(JSON.parse(r) as EscState) } catch { setSaved(null) }
+    let alive = true
+    let localAt = 0
+    try { const r = localStorage.getItem('esc-solo-career'); if (r) setSaved(JSON.parse(r) as EscState); localAt = +(localStorage.getItem('esc-solo-career-at') || 0) } catch { setSaved(null) }
+    // logado: se a NUVEM tiver um save mais recente que o local (ex.: outro
+    // aparelho), usa o da nuvem — a carreira segue a conta.
+    ;(async () => {
+      try {
+        const cloud = await loadPyramidCloud()
+        if (!alive || !cloud) return
+        const c = cloud.save
+        if (c && c.careerOnline && Array.isArray(c.managers) && c.managers.length && cloud.at > localAt) setSaved(c)
+      } catch { /* ignora */ }
+    })()
+    return () => { alive = false }
   }, [])
   if (!saved || !saved.careerOnline || !saved.managers?.length) return null
   const you = saved.managers[saved.youIdx ?? 0]
@@ -367,7 +380,7 @@ function useResumableSolo() {
     seasonNo: saved.seasonNo ?? 1,
     teamName: you?.teamName ?? 'Meu time',
     resume: () => dispatch({ type: 'RESUME_CAREER_SOLO', saved }),
-    discard: () => { try { localStorage.removeItem('esc-solo-career') } catch { /* ignora */ } setSaved(null) },
+    discard: () => { try { localStorage.removeItem('esc-solo-career'); localStorage.removeItem('esc-solo-career-at') } catch { /* ignora */ } deletePyramidCloud(); setSaved(null) },
   }
 }
 
