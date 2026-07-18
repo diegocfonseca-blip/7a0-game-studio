@@ -904,8 +904,8 @@ function Envelope() {
               { ic: '🐢', label: 'Anda!', mk: n => `Anda, ${n}!` },
               { ic: '😴', label: 'Dormiu?', mk: n => `${n} dormiu?` },
               { ic: '🔒', label: 'Lacra logo!', mk: n => `Lacra logo, ${n}!` },
-              { ic: '🤔', label: 'Blefando?', mk: n => `${n} tá blefando?` },
-              { ic: '💸', label: 'Paga caro!', mk: n => `Paga caro de novo, ${n}!` },
+              { ic: '🧮', label: 'Conta moeda?', mk: n => `${n} tá contando moeda no dedo?` },
+              { ic: '💸', label: 'Chora depois!', mk: n => `${n} vai gastar tudo e chorar depois` },
             ]
             return (
               <div className="mt-3">

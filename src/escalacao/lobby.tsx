@@ -1130,11 +1130,11 @@ export function EscLobby() {
               { ic: '😏', tx: 'Calma que já vai começar…' },
               { ic: '📣', tx: 'Chamando mais gente, segura!' },
               { ic: '😈', tx: 'Preparados pra perder?' },
-              { ic: '🔨', tx: 'Vai ser um pregão insano!' },
+              { ic: '🍿', tx: 'Senta que o show vai começar!' },
             ]
           : [
               { ic: '🐢', tx: `Anda, ${hostName}, ${abrir}` },
-              { ic: '🔨', tx: 'Bora, tô com fome de leilão!' },
+              { ic: '🔨', tx: `Solta o martelo, ${hostName}!` },
               { ic: '😴', tx: `Dormiu, ${hostName}?` },
               { ic: '🔥', tx: 'Tô pronto pra ganhar de todo mundo!' },
             ]
