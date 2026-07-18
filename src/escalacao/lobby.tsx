@@ -242,6 +242,20 @@ export function EscLobby() {
   // edição rápida do nome de técnico (na home)
   const [editingName, setEditingName] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
+  // zoeira na sala de espera: bolhas efêmeras (nome de quem manda na frente),
+  // trafegadas por broadcast no MESMO canal realtime da sala (esclobby).
+  const [lobbyChat, setLobbyChat] = useState<{ id: string; name: string; text: string }[]>([])
+  const lobbyChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const addLobbyChat = useCallback((e: { id: string; name: string; text: string }) => {
+    setLobbyChat(prev => prev.some(x => x.id === e.id) ? prev : [...prev.slice(-11), e])
+    setTimeout(() => setLobbyChat(prev => prev.filter(x => x.id !== e.id)), 4200)
+  }, [])
+  const sendLobbyChat = (text: string) => {
+    const myName = players.find(p => p.user_id === user?.id)?.manager_name ?? 'Você'
+    const e = { id: Math.random().toString(36).slice(2), name: myName, text }
+    addLobbyChat(e) // mostra o meu na hora (o canal não devolve o próprio broadcast)
+    lobbyChanRef.current?.send({ type: 'broadcast', event: 'emote', payload: e })
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -320,8 +334,10 @@ export function EscLobby() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'room_players', filter: `room_id=eq.${room.id}` }, () => fetchPlayers(room.id))
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: `id=eq.${room.id}` },
         ({ new: r }: { new: RoomInfo }) => { if (r.status === 'started') triggerStart(r) })
+      .on('broadcast', { event: 'emote' }, ({ payload }: { payload: { id: string; name: string; text: string } }) => addLobbyChat(payload))
       .subscribe()
-    return () => { ch.unsubscribe() }
+    lobbyChanRef.current = ch
+    return () => { ch.unsubscribe(); lobbyChanRef.current = null }
   }, [room?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function fetchPlayers(roomId: string) {
@@ -1102,6 +1118,40 @@ export function EscLobby() {
           {players.length < 2 && <p className="text-black/40 text-xs italic mt-1">Aguardando mais técnicos…</p>}
         </div>
       </div>
+
+      {/* Zoeira da sala de espera: convidado COBRA o host (que demora), host
+          PROVOCA a galera. As bolhas aparecem pra todos, com o nome na frente. */}
+      {(() => {
+        const carreira = room.game_state?.mode === 'carreira'
+        const hostName = players.find(p => p.player_index === 0)?.manager_name ?? 'host'
+        const abrir = carreira ? 'começa logo a carreira!' : 'abre o pregão!'
+        const jabs = isHost
+          ? [
+              { ic: '😏', tx: 'Calma que já vai começar…' },
+              { ic: '📣', tx: 'Chamando mais gente, segura!' },
+              { ic: '😈', tx: 'Preparados pra perder?' },
+              { ic: '🔨', tx: 'Vai ser um pregão insano!' },
+            ]
+          : [
+              { ic: '🐢', tx: `Anda, ${hostName}, ${abrir}` },
+              { ic: '🔨', tx: 'Bora, tô com fome de leilão!' },
+              { ic: '😴', tx: `Dormiu, ${hostName}?` },
+              { ic: '🔥', tx: 'Tô pronto pra ganhar de todo mundo!' },
+            ]
+        return (
+          <div className="rounded-2xl border-[3px] border-black p-3 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+            <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-2">😜 Enquanto espera… zoa a galera</p>
+            <div className="grid grid-cols-2 gap-2">
+              {jabs.map((j, i) => (
+                <button key={i} onClick={() => sendLobbyChat(`${j.ic} ${j.tx}`)}
+                  className="border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] text-left bg-white text-black active:translate-y-0.5" style={OSWALD}>
+                  {j.ic} {j.tx}
+                </button>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
       {(() => {
         const carreira = room.game_state?.mode === 'carreira'
         const startLabel = carreira ? '🌐 Começar Carreira!' : '🔨 Abrir o Pregão!'
@@ -1111,6 +1161,18 @@ export function EscLobby() {
           : <p className="text-white/60 text-sm font-bold text-center py-3">{waitMsg}</p>
       })()}
       <button onClick={leaveRoom} className="text-white/30 text-xs underline w-full text-center">← Sair da sala</button>
+
+      {/* bolhas de zoeira: flutuam no rodapé, somem sozinhas, aparecem pra todos */}
+      {lobbyChat.length > 0 && (
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 24, zIndex: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '0 16px', pointerEvents: 'none' }}>
+          {lobbyChat.map(e => (
+            <motion.div key={e.id} initial={{ opacity: 0, y: 14, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0 }}
+              style={{ background: '#fff', border: '2px solid #0C0C0C', borderRadius: 999, padding: '6px 14px', boxShadow: '2px 2px 0 #0C0C0C', maxWidth: '92%', fontSize: 13, fontWeight: 700, ...OSWALD }}>
+              <span style={{ color: PURPLE, fontWeight: 900 }}>{e.name}:</span> {e.text}
+            </motion.div>
+          ))}
+        </div>
+      )}
     </>)
   }
   return null
