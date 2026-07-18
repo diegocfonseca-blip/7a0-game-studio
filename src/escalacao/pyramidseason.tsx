@@ -1043,6 +1043,34 @@ function CopaLiveMatch({ tie, pos, big, youColor }: { tie: CopaTie; pos: number;
   )
 }
 
+// painel "Campeões da temporada": campeão + artilheiro (com o time do artilheiro)
+// da Copa e de cada série A/B/C/D. Reutilizado na aba Tabelas e na tela de fim.
+function ChampionsPanel({ copa, tables, scorers, seasonNo }: { copa: CopaResult; tables: Record<Div, SimTeam[]>; scorers?: SeasonScorer[]; seasonNo?: number }) {
+  const champ = copa.champion
+  const divs: Div[] = ['A', 'B', 'C', 'D']
+  const topOf = (d: Div) => (scorers ?? []).filter(s => s.div === d).sort((a, b) => b.goals - a.goals)[0]
+  const line = (icon: string, title: string, champName: string | undefined, champYou: boolean, top: { name: string; teamName: string; goals: number } | undefined) => (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'start', padding: '6px 0', borderTop: `1px solid ${INK}14` }}>
+      <span style={{ minWidth: 0 }}>
+        <span style={{ display: 'block', fontSize: 9, fontWeight: 800, ...OSWALD, color: 'rgba(0,0,0,.45)', textTransform: 'uppercase' }}>{icon} {title}</span>
+        <span style={{ display: 'block', fontSize: 12, fontWeight: 900, ...OSWALD, color: champYou ? GREEN : INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🏆 {champName ?? '—'}</span>
+      </span>
+      <span style={{ minWidth: 0 }}>
+        <span style={{ display: 'block', fontSize: 9, fontWeight: 800, ...OSWALD, color: 'rgba(0,0,0,.45)', textTransform: 'uppercase' }}>⚽ Artilheiro</span>
+        {top
+          ? <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#4a4740', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><b>{top.name}</b> ({top.goals}) · <span style={{ color: 'rgba(0,0,0,.5)' }}>{top.teamName}</span></span>
+          : <span style={{ fontSize: 11.5, color: 'rgba(0,0,0,.4)' }}>—</span>}
+      </span>
+    </div>
+  )
+  return (
+    <div style={{ ...box('linear-gradient(150deg,#FFF3CF,#FFE79A)'), padding: '10px 12px 12px', marginBottom: 12 }}>
+      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.4, margin: '0 0 4px', textAlign: 'center' }}>🥇 Campeões da temporada{seasonNo ? ` ${seasonNo}` : ''}</p>
+      {champ && line('🏆', 'Copa Legends', copaName(champ), !!champ.you, copa.topScorer ?? undefined)}
+      {divs.map(d => line('🥇', DIV_NAME[d], tables[d]?.[0]?.name, !!tables[d]?.[0]?.you, topOf(d)))}
+    </div>
+  )
+}
 function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers, seasonNo }: { copa: CopaResult; colors: Record<number, FCol>; youId: number; tables: Record<Div, SimTeam[]>; ord: Div[]; myDiv: Div | null; reveal: number; scorers?: SeasonScorer[]; seasonNo?: number }) {
   const champ = copa.champion
   const finished = reveal >= copa.rounds.length
@@ -1064,33 +1092,8 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers,
           {copa.vice && <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>🥈 Vice: {copaName(copa.vice)} <span style={{ color: '#8a6d1f' }}>+15 🪙</span></p>}
         </div>
       )}
-      {/* CAMPEÕES DA TEMPORADA: campeão + artilheiro (com o time do artilheiro,
-          que pode ser outro) — da Copa e da Liga (cada série A/B/C/D). */}
-      {finished && (() => {
-        const div: Div[] = ['A', 'B', 'C', 'D']
-        const topOf = (d: Div) => (scorers ?? []).filter(s => s.div === d).sort((a, b) => b.goals - a.goals)[0]
-        const line = (icon: string, title: string, champName: string | undefined, champYou: boolean, top: { name: string; teamName: string; goals: number } | undefined) => (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'start', padding: '6px 0', borderTop: `1px solid ${INK}14` }}>
-            <span style={{ minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 9, fontWeight: 800, ...OSWALD, color: 'rgba(0,0,0,.45)', textTransform: 'uppercase' }}>{icon} {title}</span>
-              <span style={{ display: 'block', fontSize: 12, fontWeight: 900, ...OSWALD, color: champYou ? GREEN : INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🏆 {champName ?? '—'}</span>
-            </span>
-            <span style={{ minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 9, fontWeight: 800, ...OSWALD, color: 'rgba(0,0,0,.45)', textTransform: 'uppercase' }}>⚽ Artilheiro</span>
-              {top
-                ? <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#4a4740', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><b>{top.name}</b> ({top.goals}) · <span style={{ color: 'rgba(0,0,0,.5)' }}>{top.teamName}</span></span>
-                : <span style={{ fontSize: 11.5, color: 'rgba(0,0,0,.4)' }}>—</span>}
-            </span>
-          </div>
-        )
-        return (
-          <div style={{ ...box('#fff'), padding: '8px 12px 10px', marginBottom: 12 }}>
-            <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.4, margin: '0 0 2px', textAlign: 'center' }}>🥇 Campeões da temporada{seasonNo ? ` ${seasonNo}` : ''}</p>
-            {champ && line('🏆', 'Copa Legends', copaName(champ), !!champ.you, copa.topScorer ?? undefined)}
-            {div.map(d => line('🥇', DIV_NAME[d], tables[d]?.[0]?.name, !!tables[d]?.[0]?.you, topOf(d)))}
-          </div>
-        )
-      })()}
+      {/* CAMPEÕES DA TEMPORADA: campeão + artilheiro (com o time do artilheiro). */}
+      {finished && <ChampionsPanel copa={copa} tables={tables} scorers={scorers} seasonNo={seasonNo} />}
       {shown.length === 0 && <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', textAlign: 'center' }}>A Copa está começando… 🔴</p>}
       {rounds.map(r => (
         <div key={r.name} style={{ marginBottom: 10 }}>
@@ -1292,15 +1295,14 @@ export function PyramidSeasonScreen() {
             {copaPlaying && <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '5px 0 0' }}>Fim da temporada da liga. Agora começa a <b>Copa Legends</b> — outro campeonato 👇</p>}
           </div>
         )}
-        {/* A Copa ao vivo agora toca DENTRO da aba Jogos (em cima dos jogos). */}
+        {/* A Copa ao vivo agora toca DENTRO da aba Jogos (em cima dos jogos). No
+            FIM, o painel de campeões da temporada (Copa + séries + artilheiros)
+            aparece expandido aqui; os botões de leilão/mesmo time ficam logo abaixo. */}
         {copaFinished && copa?.champion && (
-          <button onClick={() => setTab('tabelas')} style={{ width: '100%', ...box('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)'), padding: '10px 12px', marginBottom: 12, textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 26 }}>🏆</span>
-            <span style={{ minWidth: 0 }}>
-              <span style={{ display: 'block', fontWeight: 900, fontSize: 13.5, ...OSWALD }}>Copa Legends: {copa.champion.you ? 'VOCÊ é o campeão! 🔥' : `${copa.champion.name} campeão`}</span>
-              <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>👉 toque pra ver o chaveamento na aba Tabelas</span>
-            </span>
-          </button>
+          <>
+            <ChampionsPanel copa={copa} tables={tables} scorers={scorers} seasonNo={state.seasonNo} />
+            <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>👉 ver o chaveamento da Copa na aba Tabelas</button>
+          </>
         )}
         {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} />}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
