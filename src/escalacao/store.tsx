@@ -2546,6 +2546,16 @@ export function EscProvider({ children }: { children: ReactNode }) {
         try { await supabase.from('game_rooms').delete().eq('id', rid) } catch { /* ignora */ }
       }
     }
+    // trava local: saí de propósito → não deixa o banner "voltar pra sala"
+    // reaparecer neste aparelho, mesmo se a passagem de host falhar por rede.
+    // (carreira online mantém o banner — a pessoa pode voltar pro save depois.)
+    if (onlineRef.current === 'online' && rid && !st.careerOnline) {
+      try {
+        const K = 'esc-dismissed-rooms'
+        const arr = JSON.parse(localStorage.getItem(K) || '[]') as string[]
+        if (!arr.includes(rid)) localStorage.setItem(K, JSON.stringify([...arr, rid].slice(-40)))
+      } catch { /* ignora */ }
+    }
     dispatch({ type: 'GO_LOBBY' }) // libera minha vaga (leaveOnlineRoom) + volta pro menu
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
