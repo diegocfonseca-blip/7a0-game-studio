@@ -2522,6 +2522,32 @@ function loadSoloInProgress(): EscState | null {
   return null
 }
 
+// ─── carreira pirâmide OFFLINE na NUVEM (segue a conta em qualquer aparelho) ──
+// além do save local (esc-solo-career), quem está logado espelha o save inteiro
+// na tabela esc_pyramid_saves. Ao continuar, pega o MAIS RECENTE (local x nuvem).
+let lastPyrCloud = 0
+export async function savePyramidCloud(state: EscState, force = false) {
+  try {
+    if (!force && Date.now() - lastPyrCloud < 6000) return // throttle: no máx. 1 escrita/6s
+    const { data } = await supabase.auth.getUser()
+    if (!data?.user) return
+    lastPyrCloud = Date.now()
+    await supabase.from('esc_pyramid_saves').upsert({ user_id: data.user.id, save: state, updated_at: new Date().toISOString() })
+  } catch { /* best effort — o local sempre garante */ }
+}
+export async function loadPyramidCloud(): Promise<{ save: EscState; at: number } | null> {
+  try {
+    const { data } = await supabase.auth.getUser()
+    if (!data?.user) return null
+    const { data: row } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', data.user.id).maybeSingle()
+    if (row?.save) return { save: row.save as EscState, at: new Date(row.updated_at as string).getTime() }
+  } catch { /* ignora */ }
+  return null
+}
+export async function deletePyramidCloud() {
+  try { const { data } = await supabase.auth.getUser(); if (data?.user) await supabase.from('esc_pyramid_saves').delete().eq('user_id', data.user.id) } catch { /* ignora */ }
+}
+
 export function EscProvider({ children }: { children: ReactNode }) {
   const [state, rawDispatch] = useReducer(reducer, INITIAL, init => loadSoloInProgress() ?? init)
   // salva a partida solo em andamento (e limpa quando volta pra home)
@@ -2714,7 +2740,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}`
     if (sig === soloSigRef.current) return
     soloSigRef.current = sig
-    try { localStorage.setItem('esc-solo-career', JSON.stringify(state)) } catch { /* cota cheia — ignora */ }
+    try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
+    savePyramidCloud(state) // logado: espelha na nuvem (throttled) pra seguir a conta
   }, [state])
 
   // Vigia do Monte: se a vez de um humano estoura o tempo (AFK), força o
