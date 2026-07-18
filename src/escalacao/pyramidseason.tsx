@@ -997,26 +997,24 @@ function CopaLive({ copa, round, youColor }: { copa: CopaResult; round: number; 
   const myTie = r.ties.find(t => t.a.you || t.b.you)
   const oppColor = '#3A7CA5'
   const others = r.ties.filter(t => t !== myTie)
-  return (
+  // ESTOU jogando esta fase: aparece o PLACAR ao vivo (igual à liga) no topo,
+  // e os outros jogos ficam discretos embaixo.
+  if (myTie) return (
     <div style={{ marginBottom: 12 }}>
-      <div style={{ ...box('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)'), padding: '9px 12px', marginBottom: 9, textAlign: 'center' }}>
-        <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0 }}>🏆 COPA · {(r.name === 'Final' ? 'FINAL' : r.name).toUpperCase()}</p>
-        <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.62)', margin: '1px 0 0' }}>🔴 ao vivo · fase {round + 1}/{copa.rounds.length}</p>
-      </div>
-      {myTie ? (
-        <>
-          <LiveScoreCard key={'copa' + round} homeName={myTie.a.name} awayName={myTie.b.name}
-            homeColor={myTie.a.you ? youColor : oppColor} awayColor={myTie.a.you ? oppColor : youColor}
-            youIsHome={myTie.a.you} goals={myTie.goals} roundKey={round} roundMs={COPA_ROUND_MS} />
-          {myTie.pens && <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', textAlign: 'center', margin: '-4px 0 6px' }}>decidido nos pênaltis {myTie.pens[0]}×{myTie.pens[1]}</p>}
-        </>
-      ) : (
-        <div style={{ ...box('#fff'), padding: 12, marginBottom: 9, textAlign: 'center' }}>
-          <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0, color: '#8a6d1f' }}>Você já caiu na Copa 😕 — mas o torneio continua 👀</p>
-        </div>
-      )}
+      <LiveScoreCard key={'copa' + round} homeName={myTie.a.name} awayName={myTie.b.name}
+        homeColor={myTie.a.you ? youColor : oppColor} awayColor={myTie.a.you ? oppColor : youColor}
+        youIsHome={myTie.a.you} goals={myTie.goals} roundKey={round} roundMs={COPA_ROUND_MS} />
+      {myTie.pens && <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', textAlign: 'center', margin: '-4px 0 6px' }}>decidido nos pênaltis {myTie.pens[0]}×{myTie.pens[1]}</p>}
       {others.length > 0 && <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '2px 0 4px' }}>Outros jogos da fase</p>}
       {others.map((t, i) => <CopaTieRow key={i} tie={t} />)}
+    </div>
+  )
+  // NÃO estou nesta fase: sem placar tomando a tela. Só os jogos rolando,
+  // discretos — o destaque da fase já está lá em cima no cabeçalho.
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.45)', margin: '2px 0 5px' }}>🏆 Copa · {(r.name === 'Final' ? 'Final' : r.name)} — jogos rolando 🔴</p>
+      {r.ties.map((t, i) => <CopaTieRow key={i} tie={t} />)}
     </div>
   )
 }
@@ -1103,6 +1101,9 @@ export function PyramidSeasonScreen() {
   const nCopaRounds = copa?.rounds.length ?? 0
   const copaPlaying = done && !!copa && nCopaRounds > 0 && copaRound < nCopaRounds
   const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
+  // fase da Copa tocando agora (pra mostrar DISCRETO no cabeçalho, no lugar da divisão)
+  const copaFase = copaPlaying && copa ? copa.rounds[copaRound] : null
+  const copaFaseName = copaFase ? (copaFase.name === 'Final' ? 'Final' : copaFase.name) : ''
   useEffect(() => {
     if (!copaPlaying) return
     const t = setTimeout(() => setCopaRound(r => r + 1), COPA_ROUND_MS)
@@ -1203,8 +1204,8 @@ export function PyramidSeasonScreen() {
         <div style={{ ...box(INK), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 8 }}>
           <div style={{ padding: '12px 14px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD }}>Temporada {state.seasonNo}{me ? ` · ${DIV_NAME[me.div]}` : ''}</div>
-              <div style={{ ...OSWALD, fontWeight: 800, fontSize: 18, marginTop: 2, lineHeight: 1 }}>{done ? 'Encerrada' : round === 0 ? 'Começando…' : <>Rodada <b style={{ fontSize: 21 }}>{round}</b><span style={{ fontSize: 12, opacity: 0.5, fontWeight: 700 }}> / 38</span></>}</div>
+              <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD }}>{copaPlaying ? `Temporada ${state.seasonNo} · 🏆 Copa Legends` : <>Temporada {state.seasonNo}{me ? ` · ${DIV_NAME[me.div]}` : ''}</>}</div>
+              <div style={{ ...OSWALD, fontWeight: 800, fontSize: 18, marginTop: 2, lineHeight: 1 }}>{copaPlaying ? <>{copaFaseName} <span style={{ fontSize: 11, fontWeight: 800, color: '#ff5a4d' }}>🔴 ao vivo</span></> : done ? 'Encerrada' : round === 0 ? 'Começando…' : <>Rodada <b style={{ fontSize: 21 }}>{round}</b><span style={{ fontSize: 12, opacity: 0.5, fontWeight: 700 }}> / 38</span></>}</div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
               {!done && me && <span style={{ fontWeight: 800, fontSize: 12, ...OSWALD, border: '2px solid rgba(255,255,255,0.25)', borderRadius: 999, padding: '3px 9px', whiteSpace: 'nowrap' }}>{me.pos === 1 ? '🥇' : '🏅'} {me.pos}º</span>}
@@ -1224,6 +1225,7 @@ export function PyramidSeasonScreen() {
             {me.champ
               ? <p style={{ fontWeight: 900, fontSize: 17, ...OSWALD, margin: 0 }}>🏆 CAMPEÃO DA {DIV_NAME[me.div].toUpperCase()}!</p>
               : <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0 }}>🏁 {me.team} — {me.pos}º na {DIV_NAME[me.div]}</p>}
+            {copaPlaying && <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '5px 0 0' }}>Fim da temporada da liga. Agora começa a <b>Copa Legends</b> — outro campeonato 👇</p>}
           </div>
         )}
         {/* COPA tocando ao vivo (oitavas → quartas → semi → final), fase por fase */}
