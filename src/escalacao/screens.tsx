@@ -2080,20 +2080,28 @@ async function downloadShareImage(o: ShareOpts) {
 }
 function ShareResultPanel({ opts }: { opts: ShareOpts }) {
   const [savedIG, setSavedIG] = useState(false)
+  const [open, setOpen] = useState(false) // recolhido por padrão — não roubar a atenção da votação
   const text = shareTextFor(opts)
   const wa = () => window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + GAME_URL)}`, '_blank', 'noopener')
   const tw = () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(GAME_URL)}`, '_blank', 'noopener')
   const ig = async () => { await downloadShareImage(opts); setSavedIG(true) }
   return (
     <Box bg="#fff" className="p-3 space-y-2">
-      <p className="font-black text-sm" style={OSWALD}>📤 Compartilhar {opts.youWon ? 'a conquista' : 'o resultado'}{opts.card ? ' + carta' : ''}</p>
-      <Btn onClick={() => shareResult(opts)} bg={GOLD} className="w-full">📤 Compartilhar imagem</Btn>
-      <div className="grid grid-cols-3 gap-2">
-        <Btn onClick={wa} bg="#25D366" className="w-full"><span className="text-white">📱 WhatsApp</span></Btn>
-        <Btn onClick={tw} bg="#111" className="w-full"><span className="text-white">𝕏 Twitter</span></Btn>
-        <Btn onClick={ig} bg="#E1306C" className="w-full"><span className="text-white">📸 Instagram</span></Btn>
-      </div>
-      {savedIG && <p className="text-[11px] font-bold text-black/60 text-center">📸 Imagem salva! Abra o Instagram e poste no seu story.</p>}
+      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between active:opacity-70">
+        <span className="font-black text-sm" style={OSWALD}>📤 Compartilhar {opts.youWon ? 'a conquista' : 'o resultado'}{opts.card ? ' + carta' : ''}</span>
+        <span className="text-black/40 text-[11px] font-black" style={OSWALD}>{open ? 'fechar ▲' : 'abrir ▼'}</span>
+      </button>
+      {open && (
+        <>
+          <Btn onClick={() => shareResult(opts)} bg={GOLD} className="w-full">📤 Compartilhar imagem</Btn>
+          <div className="grid grid-cols-3 gap-2">
+            <Btn onClick={wa} bg="#25D366" className="w-full"><span className="text-white">📱 WhatsApp</span></Btn>
+            <Btn onClick={tw} bg="#111" className="w-full"><span className="text-white">𝕏 Twitter</span></Btn>
+            <Btn onClick={ig} bg="#E1306C" className="w-full"><span className="text-white">📸 Instagram</span></Btn>
+          </div>
+          {savedIG && <p className="text-[11px] font-bold text-black/60 text-center">📸 Imagem salva! Abra o Instagram e poste no seu story.</p>}
+        </>
+      )}
     </Box>
   )
 }
@@ -3093,18 +3101,19 @@ function OnlineEndVote() {
       {isHost ? (
         <>
           <p className="text-center text-xs font-bold text-black/60">Seguir com o <b>mesmo time</b> ou abrir um <b>novo leilão</b>? Você (host) decide 👇</p>
-          {/* o que a galera quer (só os convidados) */}
+          {/* prontidão da galera (só os convidados): nome grande + PRONTO claro */}
           {guests.length > 0 && (
-            <>
-              <div className="flex flex-wrap gap-1.5 justify-center">
-                {guests.map(m => { const v = votes[m.id]; return (
-                  <span key={m.id} className="text-[10px] font-black border-2 border-black rounded-full px-2 py-0.5" style={{ background: v ? (v === 'mesmo' ? GREEN : GOLD) : '#fff', color: v === 'mesmo' ? '#fff' : '#000', opacity: v ? 1 : 0.5, ...OSWALD }}>
-                    {v ? `${v === 'mesmo' ? '▶️' : '🔨'} ${m.teamName} ✓` : `⏳ ${m.teamName}`}
+            <div className="space-y-1.5">
+              {guests.map(m => { const v = votes[m.id]; return (
+                <div key={m.id} className="flex items-center justify-between rounded-xl border-2 border-black px-3 py-2" style={{ background: v ? '#DCFCE7' : '#FFF7DE' }}>
+                  <span className="font-black text-sm text-black" style={OSWALD}>{v ? '✅' : '⏳'} {m.teamName}</span>
+                  <span className="text-[11px] font-black" style={{ ...OSWALD, color: v ? '#166534' : '#92600A' }}>
+                    {v ? `PRONTO · quer ${v === 'mesmo' ? '▶️ mesmo time' : '🔨 novo leilão'}` : 'ainda não votou…'}
                   </span>
-                )})}
-              </div>
-              <p className="text-center text-[11px] font-bold text-black/55">A galera quer → ▶️ mesmo: {nMesmo} · 🔨 leilão: {nLeilao} ({nVoted}/{guests.length})</p>
-            </>
+                </div>
+              )})}
+              <p className="text-center text-[11px] font-black text-black/55" style={OSWALD}>{nVoted}/{guests.length} prontos · ▶️ {nMesmo} · 🔨 {nLeilao}</p>
+            </div>
           )}
           <Btn onClick={startMesmo} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ Começar (mesmo time)</span></Btn>
           <Btn onClick={startLeilao} bg={GOLD} className="w-full text-lg">🔨 Abrir novo leilão</Btn>
@@ -3127,7 +3136,14 @@ function OnlineEndVote() {
             {voteBtn('mesmo', '▶️ Mesmo time', GREEN, '#fff')}
             {voteBtn('leilao', '🔨 Novo leilão', GOLD, '#000')}
           </div>
-          <p className="text-center text-sm font-bold" style={{ color: myVote ? '#1B7A3D' : '#b23b2e' }}>{myVote ? '✅ Voto enviado! O host tá vendo e começa já já.' : '👆 Toque no seu voto — assim o host sabe que você tá aqui!'}</p>
+          {myVote ? (
+            <div className="rounded-xl border-[3px] border-black px-3 py-2.5 text-center" style={{ background: '#DCFCE7', boxShadow: `3px 3px 0 ${INK}` }}>
+              <p className="font-black text-sm" style={{ ...OSWALD, color: '#166534' }}>✅ VOCÊ ESTÁ PRONTO!</p>
+              <p className="text-[11px] font-bold text-black/60">Votou em {myVote === 'mesmo' ? '▶️ mesmo time' : '🔨 novo leilão'} · esperando o host começar (dá pra trocar)</p>
+            </div>
+          ) : (
+            <p className="text-center text-sm font-black" style={{ color: '#b23b2e', ...OSWALD }}>👆 Toque no seu voto pra ficar PRONTO!</p>
+          )}
         </>
       )}
       {/* saídas — uma linha só, discreta, pra todos */}
@@ -3186,12 +3202,12 @@ export function EscEnd() {
         <HallDaFama roomId={state.roomId} isHost={state.isHost} seasonNo={state.seasonNo} champName={champ.name}
           scorerName={myScorer?.name} scorerGoals={myScorer?.goals} />
       )}
+      {/* No online, a votação "E agora?" vem ANTES do compartilhar (é a ação principal) */}
+      {online && <OnlineEndVote />}
       <ShareResultPanel opts={shareOpts} />
       {state.dinastia ? (
         <Btn onClick={() => { window.location.hash = 'dinastia' }} bg={GREEN} className="w-full text-lg"><span className="text-white">🏰 Ir pra janela de transferências →</span></Btn>
-      ) : state.careerDivision ? <CareerEndPanel /> : online ? (
-        <OnlineEndVote />
-      ) : (<>
+      ) : state.careerDivision ? <CareerEndPanel /> : online ? null : (<>
       {restartPending
         ? (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2" style={{ background: '#FEF3C7' }}>
