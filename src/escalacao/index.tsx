@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { flushPendingWrites } from './pending'
 import { EscProvider, useEsc } from './store'
@@ -34,21 +34,24 @@ function Router() {
 // assim que o servidor volta (re-checa a cada 30s).
 function MaintenanceBanner() {
   const [down, setDown] = useState(false)
+  const failsRef = useRef(0) // só mostra após FALHAS SEGUIDAS — evita alarme falso por blip de rede no celular
   useEffect(() => {
     let alive = true
-    const netErr = (m: string) => /failed to fetch|networkerror|network request failed|load failed|fetch|502|503|504|timeout|unavailable|service unavailable/i.test(m)
+    const netErr = (m: string) => /failed to fetch|networkerror|network request failed|load failed|502|503|504|timeout|service unavailable/i.test(m)
     const check = async () => {
+      let ok = false
       try {
         const { error } = await supabase.from('user_cards').select('user_id').limit(1) // leitura pública, bem leve
-        const bad = !!error && netErr(error.message)
-        if (alive) setDown(bad)
-        if (!bad) flushPendingWrites() // backend OK: re-tenta cartas/títulos que ficaram pendentes
+        ok = !error || !netErr(error.message) // sucesso, OU erro que NÃO é de rede → servidor no ar
       } catch (e) {
-        if (alive) setDown(netErr(e instanceof Error ? e.message : String(e)))
+        ok = !netErr(e instanceof Error ? e.message : String(e))
       }
+      if (!alive) return
+      if (ok) { failsRef.current = 0; setDown(false); flushPendingWrites() } // no ar: some na hora + re-tenta pendências
+      else { failsRef.current += 1; if (failsRef.current >= 2) setDown(true) } // 2 falhas seguidas = fora de verdade
     }
     check()
-    const iv = setInterval(check, 30_000)
+    const iv = setInterval(check, 20_000)
     return () => { alive = false; clearInterval(iv) }
   }, [])
   if (!down) return null
