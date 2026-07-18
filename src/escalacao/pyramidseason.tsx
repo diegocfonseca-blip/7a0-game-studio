@@ -1570,6 +1570,10 @@ export function ReserveListScreen() {
   const colors = useMemo(() => playerColors(humanIds, youId, state.seed), [humanIds.join(','), youId, state.seed])
   const col = colors[youId] ?? PLAYER_PALETTE[0]
   const need = FORMATIONS[mgr?.formation ?? '4-3-3']
+  // titulares/reservas = a SUA escalação REAL (com as trocas da temporada), não o
+  // melhor-11 automático — o elenco tem que refletir o time em tempo real.
+  const myXI = useMemo(() => lineupAt(state.careerLineup ?? {}, youId, state.round, mgr?.squad ?? []), [state.careerLineup, youId, state.round, mgr])
+  const myXIids = useMemo(() => new Set(myXI.map(c => c.id)), [myXI])
   const marketUnlocked = state.seasonNo >= 3 // vender/negociar só libera na 3ª temporada
   const canList = (c: WonCard) => {
     if (!marketUnlocked) return false
@@ -1615,7 +1619,7 @@ export function ReserveListScreen() {
           </div>
         )}
         {/* mesmo layout da aba Elenco (Titulares/Reservas), mas em modo listagem */}
-        <SquadTab mgr={mgr} col={col} coins={state.careerCoins?.[youId] ?? 0}
+        <SquadTab mgr={mgr} col={col} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]}
           list={{ listed, canList, onList: (id) => dispatch({ type: 'TOGGLE_RESERVE_LIST', mgrId: youId, cardId: id }) }} />
         {marketUnlocked && (
           <div style={{ ...box('#FFF3CF'), padding: '11px 13px', margin: '10px 0' }}>
