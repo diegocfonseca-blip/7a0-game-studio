@@ -1718,8 +1718,11 @@ export function reducer(state: EscState, action: Action): EscState {
       s.seed = hashCode(action.roomCode + (action.rematch ? '#' + action.rematch : ''))
       const rng = mulberry(s.seed)
       // a tabela sempre tem 20 times: os que faltam viram bots com elenco
-      // pronto (não brigam no leilão — só os humanos disputam as cartas)
-      const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, 0, LEAGUE_SIZE, rng)
+      // pronto (não brigam no leilão — só os humanos disputam as cartas).
+      // RÁPIDO: sorteia nomes das 4 séries (não só a D), pra ter variedade de times.
+      // Carreira online mantém a estrutura das divisões (nomes da Série D).
+      const namePool = action.career ? undefined : shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C, ...DIVISION_TEAMS.D], rng)
+      const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, 0, LEAGUE_SIZE, rng, namePool)
       s.managers = onlineManagers
       // rápido (e T1 de carreira) começam SEM piso. O livro de preços
       // (marketValues) é memória da carreira ENTRE temporadas — não pode vazar do
