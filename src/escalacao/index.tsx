@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, Component, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { flushPendingWrites } from './pending'
 import { EscProvider, useEsc } from './store'
@@ -86,16 +86,44 @@ function AnnouncementToast() {
   )
 }
 
+// Rede de segurança: se qualquer tela crashar (ex.: um save antigo com formato
+// incompatível ao continuar a carreira), em vez de tela branca sem saída mostra
+// um aviso com botão de voltar ao início (NÃO apaga o save) e a mensagem do erro
+// na tela — assim dá pra tirar print e a gente corrige a causa exata.
+class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | null }> {
+  state: { err: Error | null } = { err: null }
+  static getDerivedStateFromError(err: Error) { return { err } }
+  componentDidCatch(err: Error) { try { console.error('Leilão Legends crash:', err) } catch { /* ignora */ } }
+  render() {
+    if (this.state.err) {
+      return (
+        <div style={{ minHeight: '100vh', background: '#F4ECD6', color: '#0C0C0C', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center', fontFamily: 'Oswald, sans-serif' }}>
+          <div style={{ fontSize: 52 }}>😵</div>
+          <p style={{ fontWeight: 900, fontSize: 22, margin: '8px 0 4px' }}>Ops, algo deu errado</p>
+          <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.6)', maxWidth: 340 }}>Volta ao início e tenta de novo. Seu progresso salvo <b>não foi apagado</b>.</p>
+          <button onClick={() => { try { window.location.hash = '' } catch { /* ignora */ } window.location.reload() }}
+            style={{ marginTop: 16, background: '#1B7A3D', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '12px 22px', fontWeight: 900, fontSize: 16, fontFamily: 'Oswald, sans-serif', boxShadow: '4px 4px 0 #0C0C0C', cursor: 'pointer' }}>🏠 Voltar ao início</button>
+          <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,.45)', marginTop: 18, maxWidth: 340, wordBreak: 'break-word' }}>Erro: {String(this.state.err?.message || this.state.err)}</p>
+          <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,.45)', marginTop: 2 }}>Manda um print disso pro <b>@diegocfonseca</b> 🙏</p>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
 export default function EscalacaoGame() {
   return (
-    <EscProvider>
-      <MaintenanceBanner />
-      <AnnouncementToast />
-      <Router />
-      <GameFooter />{/* rodapé de contato, sutil, no final de todas as telas */}
-      <AdminPanel />
-      <DinastiaGame />
-      <CareerOnlineGame />
-    </EscProvider>
+    <ErrorBoundary>
+      <EscProvider>
+        <MaintenanceBanner />
+        <AnnouncementToast />
+        <Router />
+        <GameFooter />{/* rodapé de contato, sutil, no final de todas as telas */}
+        <AdminPanel />
+        <DinastiaGame />
+        <CareerOnlineGame />
+      </EscProvider>
+    </ErrorBoundary>
   )
 }
