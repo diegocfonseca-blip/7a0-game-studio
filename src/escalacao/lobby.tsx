@@ -389,25 +389,35 @@ export function EscLobby() {
   async function doResume() {
     if (!resumeRoom) return
     setLoading(true); setRoomError('')
-    let rd = resumeRoom
-    for (let i = 0; i < 5; i++) {
-      if (await triggerStart(rd, false)) return
-      await new Promise(r => setTimeout(r, 800))
-      const again = (await supabase.from('game_rooms').select('*').eq('id', rd.id).maybeSingle()).data
-      if (again) rd = again as RoomInfo
+    try {
+      let rd = resumeRoom
+      for (let i = 0; i < 5; i++) {
+        if (await triggerStart(rd, false)) return // navegou pra partida — ok
+        await new Promise(r => setTimeout(r, 800))
+        const again = (await supabase.from('game_rooms').select('*').eq('id', rd.id).maybeSingle()).data
+        if (again) rd = again as RoomInfo
+      }
+      setRoomError('Não consegui retomar a partida agora. Tente de novo em instantes.')
+    } catch {
+      // erro de rede (backend fora): não trava o loading — libera pra poder sair
+      setRoomError('Servidor instável agora. Tente de novo, ou toque em "Sair da sala".')
+    } finally {
+      setLoading(false) // NUNCA deixa o loading preso (senão o botão Sair fica desabilitado)
     }
-    setLoading(false)
-    setRoomError('Não consegui retomar a partida agora. Tente de novo em instantes.')
   }
   // "Sair da sala": libera a vaga e limpa — aí pode começar/entrar noutra.
   async function leaveResume() {
-    if (!resumeRoom || !user) return
-    const gs = resumeRoom.game_state as GS | undefined
+    // sempre libera localmente, mesmo se algo falhar — o técnico nunca fica preso.
+    const gs = resumeRoom?.game_state as GS | undefined
     const isCareer = gs?.mode === 'carreira' || (gs as { careerOnline?: boolean } | undefined)?.careerOnline
-    // carreira: NÃO remove a vaga (o save persiste); só some a faixa. Rápido libera.
-    if (!isCareer) await supabase.from('room_players').delete().eq('room_id', resumeRoom.id).eq('user_id', user.id)
+    try {
+      // carreira: NÃO remove a vaga (o save persiste em "Minhas carreiras"); só
+      // some a faixa. Rápido libera a vaga.
+      if (resumeRoom && user && !isCareer) await supabase.from('room_players').delete().eq('room_id', resumeRoom.id).eq('user_id', user.id)
+    } catch { /* mesmo se o backend falhar, libera localmente */ }
     clearSavedRoom()
     setResumeRoom(null)
+    setLoading(false) // destrava qualquer loading preso (ex.: um "voltar" que falhou)
   }
   // Compartilha o link de convite (?j=CODE) — abre o menu nativo do celular
   // (WhatsApp/Telegram/etc). Fallback: copia pro clipboard.
@@ -776,7 +786,7 @@ export function EscLobby() {
               className="flex-1 rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
               {loading ? '...' : '▶️ Voltar pra partida'}
             </button>
-            <button onClick={leaveResume} disabled={loading}
+            <button onClick={leaveResume}
               className="flex-1 rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
               🚪 Sair da sala
             </button>
