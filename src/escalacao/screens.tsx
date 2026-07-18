@@ -134,6 +134,12 @@ function Shell({ children, bar }: { children: React.ReactNode; bar?: React.React
   const leave = () => {
     if (window.confirm('Sair do jogo? Você vai perder esta partida.')) dispatch({ type: 'GO_LOBBY' })
   }
+  // online: dois caminhos. Voltar pro menu MANTÉM a vaga (dá pra voltar pela
+  // faixa "Voltar pra partida"). Sair da sala remove a vaga de vez.
+  const backToMenu = () => dispatch({ type: 'GO_LOBBY_ONLINE' })
+  const leaveRoom = () => {
+    if (window.confirm('Sair da sala? Você será removido desta partida (não dá pra voltar).')) dispatch({ type: 'GO_LOBBY' })
+  }
   // só o host, numa partida online, pode remover técnicos humanos (menos ele).
   const canManage = inGame && state.onlineMode === 'online' && state.isHost
   const others = state.managers.filter(m => m.isHuman && m.id !== state.youIdx)
@@ -150,7 +156,14 @@ function Shell({ children, bar }: { children: React.ReactNode; bar?: React.React
       <div className="max-w-xl mx-auto px-4 pt-5 space-y-5">{children}</div>
       {inGame && (
         <div className="max-w-xl mx-auto px-4 pt-6 pb-4 text-center space-y-2">
-          <button onClick={leave} className="block mx-auto text-black/30 text-xs font-semibold underline active:opacity-60">sair do jogo</button>
+          {state.onlineMode === 'online' ? (
+            <div className="flex items-center justify-center gap-5">
+              <button onClick={backToMenu} className="text-black/35 text-xs font-semibold underline active:opacity-60" title="Sai pro menu mas continua na sala — dá pra voltar">🏠 voltar pro menu</button>
+              <button onClick={leaveRoom} className="text-black/35 text-xs font-semibold underline active:opacity-60" title="Sai da sala de vez (removido)">🚪 sair da sala</button>
+            </div>
+          ) : (
+            <button onClick={leave} className="block mx-auto text-black/30 text-xs font-semibold underline active:opacity-60">sair do jogo</button>
+          )}
           {canManage && others.length > 0 && (
             <button onClick={() => setManage(v => !v)} className="block mx-auto text-black/30 text-xs font-semibold underline active:opacity-60">
               {manage ? 'fechar' : 'gerenciar técnicos'}
