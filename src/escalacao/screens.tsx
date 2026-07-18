@@ -126,7 +126,7 @@ function Shell({ children, bar }: { children: React.ReactNode; bar?: React.React
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
   // branco (botões/fundos escuros) já define a cor explicitamente.
-  const { state, dispatch, kickPlayer } = useEsc()
+  const { state, dispatch, kickPlayer, leaveRoom: leaveRoomHard } = useEsc()
   const [manage, setManage] = useState(false)
   // "sair do jogo" discreto: só durante uma partida (não na home/álbum). Ao
   // sair, o dispatch libera a vaga na sala online (não vira fantasma).
@@ -138,7 +138,10 @@ function Shell({ children, bar }: { children: React.ReactNode; bar?: React.React
   // faixa "Voltar pra partida"). Sair da sala remove a vaga de vez.
   const backToMenu = () => dispatch({ type: 'GO_LOBBY_ONLINE' })
   const leaveRoom = () => {
-    if (window.confirm('Sair da sala? Você será removido desta partida (não dá pra voltar).')) dispatch({ type: 'GO_LOBBY' })
+    const msg = state.isHost
+      ? 'Sair da sala? Você será removido e o comando (host) passa pra outra pessoa da sala. Se você estiver sozinho, a sala é apagada.'
+      : 'Sair da sala? Você será removido desta partida (não dá pra voltar).'
+    if (window.confirm(msg)) leaveRoomHard()
   }
   // só o host, numa partida online, pode remover técnicos humanos (menos ele).
   const canManage = inGame && state.onlineMode === 'online' && state.isHost
