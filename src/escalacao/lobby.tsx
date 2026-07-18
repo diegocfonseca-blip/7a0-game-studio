@@ -932,12 +932,15 @@ export function EscLobby() {
             const nm = r.game_state?.roomName ?? r.code
             const full = r.count >= r.max_players
             const live = r.status === 'started'
+            // baralho escolhido na criação: BR · EU · B/E (os dois). Sala antiga sem deck = BR.
+            const deckLbl = r.game_state?.deck === 'eu' ? 'EU' : r.game_state?.deck === 'both' ? 'B/E' : 'BR'
             return (
               <div key={r.id} className="flex items-center gap-2 border-[3px] border-black rounded-xl p-3" style={{ background: live ? '#EFE6C8' : '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-black text-sm truncate flex items-center gap-1.5" style={OSWALD}>
+                  <p className="font-black text-black text-sm flex items-center gap-1.5" style={OSWALD}>
                     {live && <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />}
-                    {r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}
+                    <span className="truncate">{r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}</span>
+                    <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title="Baralho da sala">{deckLbl}</span>
                   </p>
                   <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}/{r.max_players} · {r.code}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>
                 </div>
