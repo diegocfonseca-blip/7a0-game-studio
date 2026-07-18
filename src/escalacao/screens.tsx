@@ -2246,13 +2246,14 @@ const ALL_POOL: WonCard[] = (() => {
 })()
 
 export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void }) {
-  const { dispatch } = useEsc()
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
   const [claimed, setClaimed] = useState<WonCard | null>(null)
   const [owned, setOwned] = useState<Set<string>>(new Set()) // cartas que o usuário JÁ tem no álbum (por nome)
-  const [deadline] = useState(() => Date.now() + CARD_PICK_SECONDS * 1000)
+  const [deadline, setDeadline] = useState(() => Date.now() + CARD_PICK_SECONDS * 1000)
   const [now, setNow] = useState(() => Date.now())
+  const [authOpen, setAuthOpen] = useState(false) // cadastro rápido INLINE, sem sair da tela de campeão
+  const [reload, setReload] = useState(0)          // re-checa o login após criar conta → cai no pega-carta real
   const claimingRef = useRef(false)
 
   useEffect(() => {
@@ -2271,7 +2272,7 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
         setStatus('picking')
       }
     })()
-  }, [seasonKey])
+  }, [seasonKey, reload])
 
   useEffect(() => {
     if (status !== 'picking') return
@@ -2329,7 +2330,12 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
           className="mx-auto mb-3" style={{ maxWidth: 200 }}>
           <CollectibleCard name="Rayan Oi, Boa Noite" club="Vasco" year={2025} pos="ATA" fame={3} promessa big />
         </motion.div>
-        <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} bg={GREEN} className="w-full text-lg"><span className="text-white">Criar conta grátis e guardar →</span></Btn>
+        <p className="text-[11px] font-bold text-black/55 mb-3">☝️ Essa é só um exemplo. Ao criar a conta você escolhe um craque <b>do seu próprio time campeão</b> pra guardar.</p>
+        <Btn onClick={() => setAuthOpen(true)} bg={GREEN} className="w-full text-lg"><span className="text-white">Criar conta grátis e escolher →</span></Btn>
+        {authOpen && <CareerAuthModal onClose={() => setAuthOpen(false)} onDone={() => {
+          // logou sem sair da tela: reseta o cronômetro e re-checa → cai no pega-carta REAL do time campeão
+          setAuthOpen(false); setDeadline(Date.now() + CARD_PICK_SECONDS * 1000); setStatus('checking'); setReload(r => r + 1)
+        }} />}
       </Box>
     )
   }
