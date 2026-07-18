@@ -211,6 +211,13 @@ function Dashboard({ email }: { email: string }) {
 
   const maxDay = Math.max(1, ...d.daily.map(x => Math.max(x.plays, x.visits)))
 
+  // títulos por técnico (só quem tem CONTA aparece em d.careers — carreira anônima
+  // não grava). Cruzamos com a lista "ao vivo" pelo nome pra mostrar o 🏆 na linha
+  // de quem está jogando carreira agora. Se o nome do time diferir do nome da conta,
+  // o troféu pode não casar — é o melhor cruzamento possível sem tocar no banco.
+  const titlesByName = new Map<string, number>()
+  for (const c of d.careers) if (c.titles > 0) titlesByName.set(c.name.trim().toLowerCase(), c.titles)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* AO VIVO NO SITE */}
@@ -243,6 +250,9 @@ function Dashboard({ email }: { email: string }) {
                   {p.playing && <span style={{ opacity: 0.6 }}> · {MODE_LABEL[p.mode] || p.mode}</span>}
                   {p.mode === 'career' && p.careerDivision && (
                     <span style={{ opacity: 0.85, color: '#C9A9FF', fontWeight: 700 }}> · {DIV_LABEL[p.careerDivision] || p.careerDivision} · T{p.careerSeason ?? 1}</span>
+                  )}
+                  {p.mode === 'career' && (titlesByName.get(p.name.trim().toLowerCase()) ?? 0) > 0 && (
+                    <span style={{ color: GOLD, fontWeight: 800 }}> · 🏆 {titlesByName.get(p.name.trim().toLowerCase())}</span>
                   )}
                   {p.playing && p.mode !== 'online' && p.deckLeague && (
                     <span style={{ opacity: 0.9, color: p.deckLeague === 'eu' ? '#7FD1FF' : p.deckLeague === 'both' ? '#C9A9FF' : '#FFD24D', fontWeight: 800 }}> · {p.deckLeague === 'eu' ? 'EU' : p.deckLeague === 'both' ? 'B/E' : 'BR'}</span>
@@ -323,26 +333,6 @@ function Dashboard({ email }: { email: string }) {
           <span>hoje</span>
         </div>
       </div>
-
-      {/* CARREIRAS — onde cada um está na pirâmide */}
-      {d.careers.length > 0 && (
-        <div style={card()}>
-          <p style={{ fontWeight: 700, marginBottom: 4 }}>🪜 Carreiras (onde cada um está)</p>
-          <p style={{ fontSize: 12, opacity: 0.5, marginBottom: 12 }}>Subindo de divisão = tá curtindo. Preso na Série D / T1 = talvez difícil ou desistiu. 👀</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {d.careers.map((c, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 14, opacity: 0.92 }}>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  <b>{c.name}</b>
-                  <span style={{ opacity: 0.85, color: '#C9A9FF', fontWeight: 700 }}> · {DIV_LABEL[c.division] || c.division} · T{c.season}</span>
-                  {c.titles > 0 && <span style={{ color: GOLD }}> · 🏆 {c.titles}</span>}
-                </span>
-                <span style={{ opacity: 0.5, fontSize: 12, whiteSpace: 'nowrap', marginLeft: 8 }}>{ago(c.updated)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* POR JOGADOR */}
       <div style={card()}>

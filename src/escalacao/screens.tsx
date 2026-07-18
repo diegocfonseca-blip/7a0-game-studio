@@ -2933,6 +2933,15 @@ function CareerEndPanel() {
   const [exitAsk, setExitAsk] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  // logado? (null = ainda checando). Só mostra o convite pra criar conta pra quem
+  // não tem conta ainda — quem já é logado não precisa ver.
+  const [loggedIn, setLoggedIn] = useState<boolean | null>(null)
+  useEffect(() => {
+    let alive = true
+    supabase.auth.getUser().then(({ data }) => { if (alive) setLoggedIn(!!data?.user) })
+    const { data: sub } = supabase.auth.onAuthStateChange((_, s) => setLoggedIn(!!s?.user))
+    return () => { alive = false; sub.subscription.unsubscribe() }
+  }, [])
 
   // save da PRÓXIMA temporada (já com os rivais avançados na pirâmide). Determinístico.
   const pendingSave = useMemo(() => buildCareerSave(state), [])
@@ -2993,6 +3002,15 @@ function CareerEndPanel() {
         <p className="text-center text-xs font-bold text-black/55 px-2">
           🔒 Sem rival seu na {DIVISION_LABEL[nd.div]} nesta temporada — o leilão não abre (seria só você). Dá pra <b>seguir com o mesmo time</b>; quando um rival subir ou cair pra sua divisão, o "trocar tudo" volta.
         </p>
+      )}
+      {loggedIn === false && (
+        <button onClick={() => setAuthOpen(true)} className="w-full text-left rounded-2xl border-[3px] border-black p-3" style={{ background: 'linear-gradient(150deg,#FFF3CF,#FFE79A)', boxShadow: `3px 3px 0 ${INK}` }}>
+          <p className="font-black text-black text-sm" style={OSWALD}>🔑 Cria uma conta rapidinho — só e-mail e senha</p>
+          <p className="text-black/70 text-xs font-bold mt-0.5 leading-snug">
+            Leva 10 segundos. Assim sua <b>carreira fica salva</b> em qualquer aparelho, você entra no <b>ranking</b> com seus títulos 🏆 e suas <b>cartas do álbum</b> ficam guardadas na conta. 🃏
+          </p>
+          <p className="font-black text-black text-xs mt-1.5 underline" style={OSWALD}>Criar conta grátis →</p>
+        </button>
       )}
       <div className="flex gap-2">
         <div className="flex-1"><Btn onClick={onSaveClick} bg="#fff" className="w-full">{busy ? '...' : '💾 Salvar'}</Btn></div>
