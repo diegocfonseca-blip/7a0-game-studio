@@ -1106,7 +1106,8 @@ function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus
   const totalCpus = Math.max(0, leagueSize - humans.length)
   const nAuction = Math.min(Math.max(0, auctionCpus), totalCpus)
   const nFiller = totalCpus - nAuction
-  const strongN = Math.max(1, Math.round(nFiller * 0.15))
+  // distribuição de força dos bots de preenchimento: 10% fortes · 75% médios · 15% fracos
+  const strongN = Math.max(1, Math.round(nFiller * 0.10))
   const weakN = Math.max(1, Math.round(nFiller * 0.15))
   // times dos CPUs = os mesmos da Série D da carreira (online e revanche usam a
   // divisão de base, pra não aparecer nome velho tipo "Nininho EC").
