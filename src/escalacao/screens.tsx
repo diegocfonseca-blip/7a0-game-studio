@@ -47,7 +47,7 @@ function InstaIcon({ size = 12 }: { size?: number }) {
 export function CreditLine({ className = '' }: { className?: string }) {
   return (
     <p className={`text-center text-black/30 text-[11px] font-semibold ${className}`}>
-      <a href="https://instagram.com/diegocfonseca" target="_blank" rel="noopener noreferrer" className="text-black/30 no-underline"><InstaIcon /> @diegocfonseca — D7 Studio</a>
+      <a href="https://instagram.com/diegocfonseca" target="_blank" rel="noopener noreferrer" className="text-black/30 no-underline"><InstaIcon /> @diegocfonseca</a>
     </p>
   )
 }
@@ -64,7 +64,7 @@ export function GameFooter() {
           <span className="text-black/30"> · </span>
           <a href="mailto:diego.c.fonseca@gmail.com" className="text-black/65 underline">✉️ diego.c.fonseca@gmail.com</a>
         </p>
-        <p className="text-black/35 text-[11px] font-semibold pt-1">Feito por @diegocfonseca — D7 Studio</p>
+        <p className="text-black/35 text-[11px] font-semibold pt-1">Feito por @diegocfonseca</p>
         <p className="text-black/20 text-[10px] font-semibold">v{__BUILD_ID__}</p>
       </footer>
     </div>
@@ -2053,7 +2053,7 @@ async function buildShareCardBlob(opts: {
 
   ctx.textAlign = 'center'
   ctx.font = '700 30px Oswald, sans-serif'
-  ctx.fillText('D7 STUDIO', 450, 1125)
+  ctx.fillText('LEILÃO LEGENDS', 450, 1125)
   ctx.font = '400 22px Inter, sans-serif'
   ctx.fillText(GAME_URL.replace('https://', ''), 450, 1156)
 

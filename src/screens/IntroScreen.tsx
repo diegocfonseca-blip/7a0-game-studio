@@ -101,9 +101,6 @@ export default function IntroScreen() {
           transition={{ duration: 1.4, ease: 'easeOut' }}
           className="mb-10"
         >
-          <div className="text-xs tracking-[0.5em] mb-4 opacity-50" style={{ color: '#D4A840', fontFamily: 'Oswald' }}>
-            D7 STUDIO
-          </div>
           <div className="relative inline-block">
             <h1
               className="text-7xl md:text-9xl font-black leading-none"
