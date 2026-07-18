@@ -28,7 +28,7 @@ function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Re
 // caixa-base por divisão (clubes de cima mais ricos) + os LUCROS das vendas do
 // mercado (persistidos no fim de cada leilão) + prêmios de título/acesso. Assim o
 // caixa é a base da divisão MAIS a história real de transações.
-const DIV_BASE_CASH: Record<string, number> = { A: 250, B: 200, C: 150, D: 100 }
+const DIV_BASE_CASH: Record<string, number> = { A: 230, B: 190, C: 150, D: 100 }
 // monta o clubCash a partir da colocação (teamKey → divisão): todo time ganha a
 // base da divisão dele. Só cria quem ainda não tem (não zera quem já acumulou).
 function seedClubCash(cash: Record<string, number>, placements: Record<string, string> | null | undefined): Record<string, number> {
