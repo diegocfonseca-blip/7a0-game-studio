@@ -334,7 +334,7 @@ export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { 
 // ida e volta, final única, pênaltis no empate. Determinística (semente +
 // temporada + classificação), então bate igual offline e em todos os clientes
 // online. Reaproveita a MESMA simulação de jogo da liga (rollForm/poisson). ──
-export interface CopaTie { a: SimTeam; b: SimTeam; aDiv: Div; bDiv: Div; aggA: number; aggB: number; pens?: [number, number]; win: 'a' | 'b'; goals: Goal[] }
+export interface CopaTie { a: SimTeam; b: SimTeam; aDiv: Div; bDiv: Div; aggA: number; aggB: number; pens?: [number, number]; win: 'a' | 'b'; goals: Goal[]; legs: [number, number][] }
 export interface CopaRound { name: string; ties: CopaTie[] }
 export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; vice: SimTeam | null; viceDiv: Div | null; scorers: SeasonScorer[]; topScorer?: SeasonScorer }
 const COPA_CHAMP_COINS = 25 // igual ao campeão da Série A
@@ -384,17 +384,20 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
   const playTie = (a: { t: SimTeam; div: Div }, b: { t: SimTeam; div: Div }, single: boolean): CopaTie => {
     let aggA = 0, aggB = 0
     const goals: Goal[] = []
+    const legs: [number, number][] = [] // placar de cada jogo (ida, volta) — [gols A, gols B]
     const l1 = leg(a, b, true); aggA += l1.hg; aggB += l1.ag // ida: a joga em casa
     l1.hEvs.forEach(e => goals.push({ ...e, home: true })); l1.aEvs.forEach(e => goals.push({ ...e, home: false }))
+    legs.push([l1.hg, l1.ag])
     if (!single) {
       const l2 = leg(b, a, true); aggB += l2.hg; aggA += l2.ag // volta: b em casa
       l2.hEvs.forEach(e => goals.push({ ...e, home: false })); l2.aEvs.forEach(e => goals.push({ ...e, home: true }))
+      legs.push([l2.ag, l2.hg]) // volta pela ótica de A: A marcou l2.ag (fora), B marcou l2.hg (casa)
     }
     goals.sort((x, y) => x.min - y.min)
     let pens: [number, number] | undefined, win: 'a' | 'b'
     if (aggA === aggB) { let x = 3 + Math.floor(rng() * 3), y = 3 + Math.floor(rng() * 3); if (x === y) (rng() < 0.5 ? x++ : y++); pens = [x, y]; win = x > y ? 'a' : 'b' }
     else win = aggA > aggB ? 'a' : 'b'
-    return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA, aggB, pens, win, goals }
+    return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA, aggB, pens, win, goals, legs }
   }
   const roundNames = ['Oitavas', 'Quartas', 'Semifinal', 'Final']
   const rounds: CopaRound[] = []
@@ -531,7 +534,7 @@ const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série
 // ritmo da carreira online: +1s por jogo em relação aos outros modos, pra dar
 // tempo de decidir tática/Time A-B durante a partida: 8s por rodada (fixo). Só aqui.
 const ROUND_MS = 8000
-const COPA_ROUND_MS = 8000 // tempo de cada FASE da Copa (oitavas, quartas...) tocando ao vivo
+const COPA_ROUND_MS = 9500 // tempo de cada FASE da Copa (oitavas, quartas...) — um pouco mais que a liga, pra dar tempo de ver os poucos jogos
 
 // CADA usuário (você e amigos) tem UMA cor fixa e ÚNICA: `solid` (nome/chip) +
 // `light` (fundo da faixa/linha). Nada de preto — o preto já é dos botões. A cor
@@ -984,7 +987,10 @@ function CopaTieRow({ tie }: { tie: CopaTie }) {
         <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: INK, color: '#fff', borderRadius: 7, padding: '2px 8px', whiteSpace: 'nowrap' }}>{tie.aggA} × {tie.aggB}</span>
         {side(tie.b, tie.bDiv, !aWin, true)}
       </div>
-      {tie.pens && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', margin: '3px 0 0' }}>🎯 pênaltis {tie.pens[0]}×{tie.pens[1]}</p>}
+      {tie.legs.length === 2
+        ? <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '3px 0 0' }}>ida {tie.legs[0][0]}×{tie.legs[0][1]} · volta {tie.legs[1][0]}×{tie.legs[1][1]}</p>
+        : <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '3px 0 0' }}>jogo único</p>}
+      {tie.pens && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', margin: '2px 0 0' }}>🎯 pênaltis {tie.pens[0]}×{tie.pens[1]}</p>}
       {zebra && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#E8503A', textAlign: 'center', margin: '2px 0 0' }}>💥 zebra — Série {winDiv} eliminou Série {loseDiv}</p>}
     </div>
   )
@@ -998,10 +1004,19 @@ function CopaLive({ copa, round, youColor }: { copa: CopaResult; round: number; 
   const myTie = r.ties.find(t => t.a.you || t.b.you)
   const oppColor = '#3A7CA5'
   const others = r.ties.filter(t => t !== myTie)
-  // ESTOU jogando esta fase: aparece o PLACAR ao vivo (igual à liga) no topo,
-  // e os outros jogos ficam discretos embaixo.
+  const faseNm = r.name === 'Final' ? 'FINAL' : r.name.toUpperCase()
+  // cabeçalho da FASE (sempre no mesmo lugar) — deixa claro em qual fase está e
+  // a progressão (fase 1 de 4 → 2 de 4 …), pra transição oitavas→quartas ler bem.
+  const header = (
+    <div style={{ ...box('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)'), padding: '7px 12px', marginBottom: 9, textAlign: 'center' }}>
+      <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0, letterSpacing: 0.5 }}>🏆 COPA · {faseNm}</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '1px 0 0' }}>🔴 ao vivo · fase {round + 1} de {copa.rounds.length} · {faseNm === 'FINAL' ? 'jogo único' : 'ida e volta'}</p>
+    </div>
+  )
+  // ESTOU jogando esta fase: placar ao vivo no topo; os outros jogos embaixo.
   if (myTie) return (
     <div style={{ marginBottom: 12 }}>
+      {header}
       <LiveScoreCard key={'copa' + round} homeName={myTie.a.name} awayName={myTie.b.name}
         homeColor={myTie.a.you ? youColor : oppColor} awayColor={myTie.a.you ? oppColor : youColor}
         youIsHome={myTie.a.you} goals={myTie.goals} roundKey={round} roundMs={COPA_ROUND_MS} />
@@ -1010,11 +1025,11 @@ function CopaLive({ copa, round, youColor }: { copa: CopaResult; round: number; 
       {others.map((t, i) => <CopaTieRow key={i} tie={t} />)}
     </div>
   )
-  // NÃO estou nesta fase: sem placar tomando a tela. Só os jogos rolando,
-  // discretos — o destaque da fase já está lá em cima no cabeçalho.
+  // NÃO estou nesta fase (você escolheu): sem placar grande — só o cabeçalho e
+  // a lista dos jogos da fase.
   return (
     <div style={{ marginBottom: 12 }}>
-      <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.45)', margin: '2px 0 5px' }}>🏆 Copa · {(r.name === 'Final' ? 'Final' : r.name)} — jogos rolando 🔴</p>
+      {header}
       {r.ties.map((t, i) => <CopaTieRow key={i} tie={t} />)}
     </div>
   )
@@ -1373,9 +1388,12 @@ export function PyramidSeasonScreen() {
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} />
           </>
         ) : tab === 'jogos' && hasMatches ? (
+          copaPlaying && copa ? (
+            /* Durante a COPA, a aba Jogos mostra SÓ a Copa — sem o jogo de liga
+               já terminado e a tabela competindo pela atenção (a confusão do print). */
+            <CopaLive copa={copa} round={copaRound} youColor={myCol.solid} />
+          ) : (
           <>
-            {/* COPA ao vivo EM CIMA dos jogos (oitavas → quartas → semi → final) */}
-            {copaPlaying && copa && <CopaLive copa={copa} round={copaRound} youColor={myCol.solid} />}
             {done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished col={myCol} colors={colors} roundKey={round} />}
             {(() => { // FRASES COM EMOÇÃO (uma linha rotativa): clássico, artilheiro, zuação, queda, liderança
               if (!me) return null
@@ -1439,6 +1457,7 @@ export function PyramidSeasonScreen() {
             })()}
             {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
           </>
+          )
         ) : done && copa && copa.rounds.length > 0 ? (
           <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaFinished ? nCopaRounds : copaRound} />
         ) : (
