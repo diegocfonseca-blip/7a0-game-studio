@@ -3018,9 +3018,25 @@ function OnlineEndVote() {
   const pend = humans.filter(m => !votes[m.id] && m.id !== youId)
   const vote = (v: 'mesmo' | 'leilao') => dispatch({ type: 'CAST_SEASON_VOTE', mgrId: youId, vote: v })
   const startMesmo = () => dispatch({ type: 'REPLAY_SEASON' })
+  // "Novo leilão": a MESMA galera segue na sala, com um leilão do zero (jogadores
+  // novos) — SEM voltar pra sala de espera. O host monta e transmite; os
+  // convidados seguem via SYNC_STATE. Fallback seguro: qualquer erro → fluxo
+  // antigo (REMATCH volta pra sala), pra NUNCA travar o jogo dos jogadores.
   const startLeilao = async () => {
-    if (state.roomId) { try { await supabase.from('game_rooms').update({ status: 'waiting' }).eq('id', state.roomId) } catch { /* segue mesmo assim */ } }
-    dispatch({ type: 'REMATCH' })
+    if (!state.roomId) { dispatch({ type: 'REMATCH' }); return }
+    try {
+      const { data: pls } = await supabase.from('room_players').select('manager_name, player_index').eq('room_id', state.roomId).order('player_index')
+      const playerNames = ((pls ?? []) as { manager_name: string }[]).map(p => p.manager_name)
+      if (playerNames.length === 0) { dispatch({ type: 'REMATCH' }); return }
+      await supabase.from('game_rooms').update({ status: 'started' }).eq('id', state.roomId)
+      dispatch({
+        type: 'START_ONLINE',
+        roomId: state.roomId, roomCode: state.roomCode, roomName: state.roomName,
+        isHost: state.isHost, playerIndex: state.youIdx,
+        playerNames, formation: state.managers[state.youIdx]?.formation ?? '4-3-3',
+        deck: state.deckLeague, rematch: Date.now(),
+      })
+    } catch { dispatch({ type: 'REMATCH' }) }
   }
   const voteBtn = (v: 'mesmo' | 'leilao', label: string, bg: string, fg: string) => (
     <button onClick={() => vote(v)} className="flex-1 rounded-xl border-[3px] border-black py-3 font-black text-sm relative active:translate-y-0.5"
