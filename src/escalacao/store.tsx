@@ -1702,6 +1702,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // pronto (não brigam no leilão — só os humanos disputam as cartas)
       const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, 0, LEAGUE_SIZE, rng)
       s.managers = onlineManagers
+      // rápido (e T1 de carreira) começam SEM piso. O livro de preços
+      // (marketValues) é memória da carreira ENTRE temporadas — não pode vazar do
+      // jogo anterior nem do "novo leilão" do rápido, senão aparece "valor mínimo".
+      s.marketValues = {}; s.marketLog = []
       // demanda + 1 carta por posição (online): 2 pessoas = 3 goleiros, 5
       // laterais, etc. — dá opção/disputa sem inflar. O baralho é montado
       // ANTES dos bots pra ficar 100% com reais.
