@@ -144,11 +144,15 @@ function Shell({ children, bar, hideExit = false }: { children: React.ReactNode;
       : 'Sair da sala? Você será removido desta partida (não dá pra voltar).'
     if (window.confirm(msg)) leaveRoomHard()
   }
-  // só o host, numa partida online, pode remover técnicos humanos (menos ele).
+  // só o host, numa partida online, gerencia os técnicos. Lista os HUMANOS (menos
+  // ele) e também os RIVAIS CPU (ex-amigos que saíram — auctionRival sem ser humano).
   const canManage = inGame && state.onlineMode === 'online' && state.isHost
-  const others = state.managers.filter(m => m.isHuman && m.id !== state.youIdx)
+  const others = state.managers.filter(m => m.id !== state.youIdx && (m.isHuman || m.auctionRival))
   const kick = (m: Manager) => {
-    if (window.confirm(`Remover ${m.teamName} da partida? A CPU assume o time e o jogo continua.`)) kickPlayer(m.id)
+    const msg = m.isHuman
+      ? `Remover ${m.teamName}? Vira um RIVAL CPU: continua no leilão dando lance com o time e o dinheiro dele.`
+      : `Excluir o rival CPU ${m.teamName}? Ele para de dar lance no leilão (fica só na tabela).`
+    if (window.confirm(msg)) kickPlayer(m.id)
   }
   return (
     <div className="min-h-screen pb-16" style={{ backgroundColor: CREAM, color: INK }}>
@@ -178,10 +182,10 @@ function Shell({ children, bar, hideExit = false }: { children: React.ReactNode;
               <p className="text-black/40 text-[10px] font-black uppercase tracking-widest px-1">Remover da partida</p>
               {others.map(m => (
                 <div key={m.id} className="flex items-center gap-2">
-                  <span className="flex-1 min-w-0 truncate text-xs font-bold text-black/70" style={OSWALD}>{m.teamName}</span>
+                  <span className="flex-1 min-w-0 truncate text-xs font-bold text-black/70" style={OSWALD}>{m.isHuman ? '' : '🤖 '}{m.teamName}</span>
                   <button onClick={() => kick(m)}
                     className="shrink-0 border border-black/20 rounded-lg px-2 py-1 text-[11px] font-black active:opacity-60"
-                    style={{ background: '#F4ECD6', color: '#B23A2A', ...OSWALD }}>remover</button>
+                    style={{ background: '#F4ECD6', color: '#B23A2A', ...OSWALD }}>{m.isHuman ? 'remover' : 'excluir'}</button>
                 </div>
               ))}
             </div>
