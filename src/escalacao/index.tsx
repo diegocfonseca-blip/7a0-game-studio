@@ -60,7 +60,7 @@ function MaintenanceBanner() {
 // some sozinho. Mostra UMA vez por aparelho (flag) pra não incomodar ninguém.
 // Pra soltar um aviso novo no futuro, é só trocar o ID.
 function AnnouncementToast() {
-  const ID = 'online-back-2026-07-v2'
+  const ID = 'online-back-2026-07-v3'
   const [show, setShow] = useState(false)
   useEffect(() => {
     try { if (localStorage.getItem('esc-annc-' + ID)) return } catch { /* ignora */ }
@@ -71,11 +71,11 @@ function AnnouncementToast() {
   }, [])
   if (!show) return null
   return (
-    <div style={{ position: 'fixed', top: 8, left: 8, right: 8, zIndex: 99998, margin: '0 auto', maxWidth: 520, background: '#16a34a', color: '#fff', border: '3px solid #14361f', borderRadius: 14, padding: '10px 34px 10px 14px', textAlign: 'center', fontWeight: 800, fontSize: 12.5, lineHeight: 1.35, boxShadow: '0 6px 18px rgba(0,0,0,.3)', animation: 'esc-annc-in .3s ease-out' }}>
+    <div style={{ position: 'fixed', top: 8, left: 8, right: 8, zIndex: 99998, margin: '0 auto', maxWidth: 440, background: '#16a34a', color: '#fff', border: '2px solid #14361f', borderRadius: 12, padding: '7px 28px 7px 11px', textAlign: 'center', fontWeight: 700, fontSize: 11, lineHeight: 1.3, boxShadow: '0 4px 12px rgba(0,0,0,.28)', animation: 'esc-annc-in .3s ease-out' }}>
       <style>{'@keyframes esc-annc-in{from{transform:translateY(-16px);opacity:0}to{transform:translateY(0);opacity:1}}'}</style>
-      ⚽ Entrou tanta gente junto que o servidor quase pediu arrego 🤣 mas VOLTOU! O <b>Modo Online</b> tá no ar 🔥 Chama a resenha, encare os amigos e prove que aqui é na estratégia 💪🔨
+      ⚽ Entrou tanta gente que o servidor quase pediu arrego 🤣 mas VOLTOU! O <b>Modo Online</b> tá no ar 🔥 Chama a resenha, encare os amigos e prove que aqui é na estratégia 💪🔨
       <button onClick={() => setShow(false)} aria-label="Fechar"
-        style={{ position: 'absolute', top: 4, right: 6, background: 'transparent', border: 'none', color: '#fff', fontSize: 20, fontWeight: 900, lineHeight: 1, cursor: 'pointer', padding: '2px 6px' }}>×</button>
+        style={{ position: 'absolute', top: 3, right: 5, background: 'transparent', border: 'none', color: '#fff', fontSize: 17, fontWeight: 900, lineHeight: 1, cursor: 'pointer', padding: '2px 5px' }}>×</button>
     </div>
   )
 }
