@@ -713,6 +713,9 @@ const ZAG: C[] = [
 ]
 
 const MEI: C[] = [
+  { name: "Richard Ríos", club: "Palmeiras", year: 2024, fame: 3, lo: 76, hi: 84 },
+  { name: "Jhon Arias", club: "Fluminense", year: 2023, fame: 3, lo: 77, hi: 85 },
+  { name: "Miguelito", club: "Santos", year: 2025, fame: 3, lo: 68, hi: 80, promessa: true },
   { name: "Danilo", club: "Corinthians", year: 2012, fame: 4, lo: 85, hi: 91 },
   { name: "Ralf", club: "Corinthians", year: 2012, fame: 3, lo: 76, hi: 84 },
   { name: "Renato Abreu", club: "Flamengo", year: 2009, fame: 4, lo: 82, hi: 89 },
@@ -895,7 +898,7 @@ const ATA: C[] = [
   { name: "Lincoln", club: "Flamengo", year: 2019, fame: 1, lo: 40, hi: 72, folk: true },
   { name: "Negueba", club: "Flamengo", year: 2012, fame: 1, lo: 50, hi: 76, folk: true },
   { name: "Michael", club: "Flamengo", year: 2020, fame: 2, lo: 70, hi: 84 },
-  { name: "Estêvão", club: "Palmeiras", year: 2024, fame: 3, lo: 72, hi: 80, promessa: true },
+  { name: "Estêvão", club: "Palmeiras", year: 2024, fame: 4, lo: 78, hi: 87, promessa: true },
   { name: "Tevez", club: "Corinthians", year: 2005, fame: 4, lo: 87, hi: 93 },
   { name: "Depay", club: "Corinthians", year: 2024, fame: 3, lo: 74, hi: 82 },
   { name: "Jô", club: "Corinthians", year: 2015, fame: 3, lo: 74, hi: 84, folk: true },
@@ -1053,6 +1056,9 @@ const ZAG_EU: C[] = [
   { name: "Titus Bramble", club: "Newcastle", year: 2005, fame: 1, lo: 58, hi: 78, folk: true },
 ]
 const MEI_EU: C[] = [
+  { name: "Xavi Simons", club: "RB Leipzig", year: 2024, fame: 4, lo: 78, hi: 86, promessa: true },
+  { name: "Warren Zaïre-Emery", club: "PSG", year: 2025, fame: 3, lo: 72, hi: 83, promessa: true },
+  { name: "Alexis Mac Allister", club: "Liverpool", year: 2024, fame: 4, lo: 82, hi: 89 },
   { name: "Arturo Vidal", club: "Juventus", year: 2015, fame: 4, lo: 85, hi: 91 },
   { name: "Bruno Fernandes", club: "Manchester United", year: 2021, fame: 4, lo: 85, hi: 91 },
   { name: "Ilkay Gündogan", club: "Manchester City", year: 2023, fame: 4, lo: 85, hi: 91 },
@@ -1166,6 +1172,8 @@ const MEI_EU: C[] = [
   { name: "Mauro Silva", club: "Deportivo La Coruña", year: 1996, fame: 4, lo: 83, hi: 89 },
 ]
 const ATA_EU: C[] = [
+  { name: "Viktor Gyökeres", club: "Sporting CP", year: 2024, fame: 4, lo: 84, hi: 90 },
+  { name: "Nico Williams", club: "Athletic Bilbao", year: 2024, fame: 4, lo: 82, hi: 89 },
   { name: "Gareth Bale", club: "Real Madrid", year: 2016, fame: 4, lo: 86, hi: 92 },
   { name: "Eden Hazard", club: "Chelsea", year: 2015, fame: 4, lo: 86, hi: 92 },
   { name: "Son Heung-min", club: "Tottenham", year: 2020, fame: 4, lo: 85, hi: 91 },
