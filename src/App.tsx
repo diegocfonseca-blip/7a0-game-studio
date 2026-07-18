@@ -34,10 +34,6 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-5 gap-7" style={{ backgroundColor: '#F4ECD6' }}>
       <div className="text-center">
-        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-xs font-black uppercase tracking-wide"
-              style={{ backgroundColor: '#FFC400', boxShadow: '3px 3px 0 0 #0C0C0C' }}>
-          D7 STUDIO
-        </span>
         <h1 className="font-black text-4xl text-black mt-4" style={{ fontFamily: 'Oswald, sans-serif' }}>ESCOLHA SEU JOGO</h1>
       </div>
 
