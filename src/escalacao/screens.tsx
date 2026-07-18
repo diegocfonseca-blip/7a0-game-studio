@@ -3063,13 +3063,9 @@ function OnlineEndVote() {
   const nVoted = nMesmo + nLeilao
   const pend = guests.filter(m => !votes[m.id])
   const vote = (v: 'mesmo' | 'leilao') => dispatch({ type: 'CAST_SEASON_VOTE', mgrId: youId, vote: v })
-  // aviso do host: só confirma se AINDA tem gente sem decidir; se todos prontos,
-  // começa direto (sem confirm chato). Quem não tá pronto entra junto de qualquer jeito.
-  const confirmIfPending = (): boolean => {
-    if (pend.length === 0) return true
-    const names = pend.map(m => m.teamName).join(', ')
-    return window.confirm(`⏳ ${names} ${pend.length === 1 ? 'ainda não ficou pronto' : 'ainda não ficaram prontos'}. Começar mesmo assim? Quem não tá pronto entra junto no jogo.`)
-  }
+  // aviso do host quando ainda tem gente sem decidir: um mini-modal com 3 saídas
+  // (esperar · começar com eles · excluir e começar). Se todos prontos, começa direto.
+  const [askStart, setAskStart] = useState<'mesmo' | 'leilao' | null>(null)
   const startMesmo = () => dispatch({ type: 'REPLAY_SEASON' })
   // "Novo leilão": a MESMA galera segue na sala, com um leilão do zero (jogadores
   // novos) — SEM voltar pra sala de espera. O host monta e transmite; os
@@ -3123,8 +3119,8 @@ function OnlineEndVote() {
               <p className="text-center text-[11px] font-black text-black/55" style={OSWALD}>{nVoted}/{guests.length} prontos · ▶️ {nMesmo} · 🔨 {nLeilao}</p>
             </div>
           )}
-          <Btn onClick={() => { if (confirmIfPending()) startMesmo() }} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ Começar (mesmo time)</span></Btn>
-          <Btn onClick={() => { if (confirmIfPending()) startLeilao() }} bg={GOLD} className="w-full text-lg">🔨 Abrir novo leilão</Btn>
+          <Btn onClick={() => pend.length === 0 ? startMesmo() : setAskStart('mesmo')} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ Começar (mesmo time)</span></Btn>
+          <Btn onClick={() => pend.length === 0 ? startLeilao() : setAskStart('leilao')} bg={GOLD} className="w-full text-lg">🔨 Abrir novo leilão</Btn>
           {pend.length > 0 && (
             <div className="pt-1">
               <p className="text-center text-[10px] font-bold text-black/45 mb-1">Quem ainda não decidiu (você não precisa esperar):</p>
@@ -3159,6 +3155,26 @@ function OnlineEndVote() {
         <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/45 text-xs font-bold underline active:opacity-60" title="Sai pro menu mas continua na sala — dá pra voltar">🏠 Voltar pro menu</button>
         <button onClick={exitLeave} className="text-black/45 text-xs font-bold underline active:opacity-60" title="Sai da sala de vez">🚪 Sair da sala</button>
       </div>
+
+      {/* modal do host: alguém ainda não decidiu — esperar, começar com eles, ou excluir */}
+      {askStart && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.7)' }}>
+          <div className="w-full max-w-xs border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
+            <p className="font-black text-black text-lg" style={OSWALD}>⏳ Nem todo mundo tá pronto</p>
+            <p className="text-black/65 text-sm font-bold mb-3">
+              {pend.length === 1 ? 'Ainda falta decidir: ' : 'Ainda faltam decidir: '}<b>{pend.map(m => m.teamName).join(', ')}</b>. O que você quer fazer?
+            </p>
+            <div className="space-y-2">
+              <button onClick={() => { const k = askStart; setAskStart(null); k === 'mesmo' ? startMesmo() : startLeilao() }}
+                className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>▶️ Começar assim {pend.length === 1 ? '(ele entra junto)' : '(eles entram juntos)'}</button>
+              <button onClick={async () => { const k = askStart; setAskStart(null); pend.forEach(m => kickPlayer(m.id)); await new Promise(r => setTimeout(r, 500)); k === 'mesmo' ? startMesmo() : startLeilao() }}
+                className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white" style={{ color: '#B23B2E', ...OSWALD }}>✂️ Excluir {pend.length === 1 ? 'ele' : 'eles'} e começar</button>
+              <button onClick={() => setAskStart(null)}
+                className="w-full border-2 border-black/20 rounded-xl py-2 font-black text-xs text-black/60" style={OSWALD}>⏳ Esperar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
