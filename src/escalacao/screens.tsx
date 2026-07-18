@@ -122,7 +122,7 @@ function HoldButton({ onStep, disabled = false, className = '', style, children 
   )
 }
 
-function Shell({ children, bar }: { children: React.ReactNode; bar?: React.ReactNode }) {
+function Shell({ children, bar, hideExit = false }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean }) {
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
   // branco (botões/fundos escuros) já define a cor explicitamente.
@@ -157,7 +157,7 @@ function Shell({ children, bar }: { children: React.ReactNode; bar?: React.React
         </div>
       )}
       <div className="max-w-xl mx-auto px-4 pt-5 space-y-5">{children}</div>
-      {inGame && (
+      {inGame && !hideExit && (
         <div className="max-w-xl mx-auto px-4 pt-6 pb-4 text-center space-y-2">
           {state.onlineMode === 'online' ? (
             <div className="flex items-center justify-center gap-5">
@@ -3041,16 +3041,18 @@ function CareerEndPanel() {
 // HOST decide e começa quando quiser (nunca trava esperando ninguém). O host
 // pode remover quem não decide e voltar pro menu das salas.
 function OnlineEndVote() {
-  const { state, dispatch, kickPlayer } = useEsc()
+  const { state, dispatch, kickPlayer, leaveRoom } = useEsc()
   const youId = state.youIdx
   const isHost = state.isHost
   const votes = state.seasonVotes ?? {}
   const myVote = votes[youId]
   const humans = state.managers.filter(m => m.isHuman)
-  const nMesmo = humans.filter(m => votes[m.id] === 'mesmo').length
-  const nLeilao = humans.filter(m => votes[m.id] === 'leilao').length
+  // o host é o DECISOR (não vota) — placar e chips contam só os convidados
+  const guests = humans.filter(m => m.id !== youId)
+  const nMesmo = guests.filter(m => votes[m.id] === 'mesmo').length
+  const nLeilao = guests.filter(m => votes[m.id] === 'leilao').length
   const nVoted = nMesmo + nLeilao
-  const pend = humans.filter(m => !votes[m.id] && m.id !== youId)
+  const pend = guests.filter(m => !votes[m.id])
   const vote = (v: 'mesmo' | 'leilao') => dispatch({ type: 'CAST_SEASON_VOTE', mgrId: youId, vote: v })
   const startMesmo = () => dispatch({ type: 'REPLAY_SEASON' })
   // "Novo leilão": a MESMA galera segue na sala, com um leilão do zero (jogadores
@@ -3079,25 +3081,31 @@ function OnlineEndVote() {
       {myVote === v && <span className="absolute top-1 right-2 text-xs">✓</span>}{label}
     </button>
   )
+  const exitLeave = () => {
+    const msg = isHost
+      ? 'Sair da sala? O comando (host) passa pra outra pessoa. Se estiver sozinho, a sala é apagada.'
+      : 'Sair da sala? Você será removido desta partida.'
+    if (window.confirm(msg)) leaveRoom()
+  }
   return (
     <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: '#EAF3FF', boxShadow: `4px 4px 0 ${INK}` }}>
-      <p className="font-black text-lg text-center" style={OSWALD}>🗳️ E agora? Vote!</p>
-      <p className="text-center text-xs font-bold text-black/60">Seguir com o <b>mesmo time</b> ou abrir um <b>novo leilão</b>? {isHost ? 'Você (host) decide e começa 👇' : 'O host começa quando decidir.'}</p>
-      <div className="flex gap-2">
-        {voteBtn('mesmo', '▶️ Mesmo time', GREEN, '#fff')}
-        {voteBtn('leilao', '🔨 Novo leilão', GOLD, '#000')}
-      </div>
-      {/* chips: quem já votou (presença ao vivo) */}
-      <div className="flex flex-wrap gap-1.5 justify-center">
-        {humans.map(m => { const v = votes[m.id]; return (
-          <span key={m.id} className="text-[10px] font-black border-2 border-black rounded-full px-2 py-0.5" style={{ background: v ? (v === 'mesmo' ? GREEN : GOLD) : '#fff', color: v === 'mesmo' ? '#fff' : '#000', opacity: v ? 1 : 0.5, ...OSWALD }}>
-            {v ? `${v === 'mesmo' ? '▶️' : '🔨'} ${m.id === youId ? 'Você' : m.teamName} ✓` : `⏳ ${m.id === youId ? 'Você' : m.teamName}`}
-          </span>
-        )})}
-      </div>
+      <p className="font-black text-lg text-center" style={OSWALD}>🗳️ E agora?</p>
       {isHost ? (
         <>
-          <p className="text-center text-[11px] font-bold text-black/55">▶️ mesmo: {nMesmo} · 🔨 leilão: {nLeilao} — {nVoted}/{humans.length} votaram</p>
+          <p className="text-center text-xs font-bold text-black/60">Seguir com o <b>mesmo time</b> ou abrir um <b>novo leilão</b>? Você (host) decide 👇</p>
+          {/* o que a galera quer (só os convidados) */}
+          {guests.length > 0 && (
+            <>
+              <div className="flex flex-wrap gap-1.5 justify-center">
+                {guests.map(m => { const v = votes[m.id]; return (
+                  <span key={m.id} className="text-[10px] font-black border-2 border-black rounded-full px-2 py-0.5" style={{ background: v ? (v === 'mesmo' ? GREEN : GOLD) : '#fff', color: v === 'mesmo' ? '#fff' : '#000', opacity: v ? 1 : 0.5, ...OSWALD }}>
+                    {v ? `${v === 'mesmo' ? '▶️' : '🔨'} ${m.teamName} ✓` : `⏳ ${m.teamName}`}
+                  </span>
+                )})}
+              </div>
+              <p className="text-center text-[11px] font-bold text-black/55">A galera quer → ▶️ mesmo: {nMesmo} · 🔨 leilão: {nLeilao} ({nVoted}/{guests.length})</p>
+            </>
+          )}
           <Btn onClick={startMesmo} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ Começar (mesmo time)</span></Btn>
           <Btn onClick={startLeilao} bg={GOLD} className="w-full text-lg">🔨 Abrir novo leilão</Btn>
           {pend.length > 0 && (
@@ -3111,11 +3119,22 @@ function OnlineEndVote() {
               </div>
             </div>
           )}
-          <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full">🏠 Voltar pro menu das salas</Btn>
         </>
       ) : (
-        <p className="text-center text-sm font-bold" style={{ color: myVote ? '#1B7A3D' : '#b23b2e' }}>{myVote ? '✅ Voto enviado! O host tá vendo e começa já já.' : '👆 Toque no seu voto — assim o host sabe que você tá aqui!'}</p>
+        <>
+          <p className="text-center text-xs font-bold text-black/60">Vote no que você quer — o host começa quando decidir.</p>
+          <div className="flex gap-2">
+            {voteBtn('mesmo', '▶️ Mesmo time', GREEN, '#fff')}
+            {voteBtn('leilao', '🔨 Novo leilão', GOLD, '#000')}
+          </div>
+          <p className="text-center text-sm font-bold" style={{ color: myVote ? '#1B7A3D' : '#b23b2e' }}>{myVote ? '✅ Voto enviado! O host tá vendo e começa já já.' : '👆 Toque no seu voto — assim o host sabe que você tá aqui!'}</p>
+        </>
       )}
+      {/* saídas — uma linha só, discreta, pra todos */}
+      <div className="flex items-center justify-center gap-6 pt-2 mt-1 border-t-2 border-black/10">
+        <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/45 text-xs font-bold underline active:opacity-60" title="Sai pro menu mas continua na sala — dá pra voltar">🏠 Voltar pro menu</button>
+        <button onClick={exitLeave} className="text-black/45 text-xs font-bold underline active:opacity-60" title="Sai da sala de vez">🚪 Sair da sala</button>
+      </div>
     </div>
   )
 }
@@ -3146,7 +3165,7 @@ export function EscEnd() {
   const readyCount = state.restartReady.filter(id => humanIds.includes(id)).length
   const iAmReady = state.restartReady.includes(state.youIdx)
   return (
-    <Shell>
+    <Shell hideExit={online}>
       <RankResultWriter />
       <div className="text-center pt-8">
         <p className="text-6xl">{youWon ? '🏆' : youPos <= 4 ? '🥈' : youPos >= 17 ? '🪦' : '📻'}</p>
@@ -3170,10 +3189,9 @@ export function EscEnd() {
       <ShareResultPanel opts={shareOpts} />
       {state.dinastia ? (
         <Btn onClick={() => { window.location.hash = 'dinastia' }} bg={GREEN} className="w-full text-lg"><span className="text-white">🏰 Ir pra janela de transferências →</span></Btn>
-      ) : state.careerDivision ? <CareerEndPanel /> : online ? (<>
+      ) : state.careerDivision ? <CareerEndPanel /> : online ? (
         <OnlineEndVote />
-        <Btn onClick={() => dispatch({ type: 'NEW_GAME' })} className="w-full text-lg">🚪 Sair da sala</Btn>
-      </>) : (<>
+      ) : (<>
       {restartPending
         ? (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2" style={{ background: '#FEF3C7' }}>
