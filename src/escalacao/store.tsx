@@ -1656,7 +1656,9 @@ export function reducer(state: EscState, action: Action): EscState {
       // retoma a carreira offline salva: restaura o jogo inteiro e reancora o
       // baralho. Identidade sempre local (você é o host, sem sala).
       setActiveCatalog(action.saved.deckLeague)
-      return { ...action.saved, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true }
+      // nunca retoma numa tela lateral (álbum/ranking) — cai sempre no jogo.
+      const scr = (action.saved.screen === 'album' || action.saved.screen === 'ranking') ? 'season' : action.saved.screen
+      return { ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true }
     }
     case 'START_ONLINE': {
       s.onlineMode = 'online'
@@ -2582,7 +2584,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const soloSigRef = useRef('')
   useEffect(() => {
     if (state.onlineMode === 'online' || !state.careerOnline) return
-    if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup') return
+    // não salva quando está numa tela LATERAL (álbum/ranking): senão o
+    // "Continuar carreira" restaurava no álbum em vez do jogo.
+    if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
     const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}`
     if (sig === soloSigRef.current) return
     soloSigRef.current = sig
