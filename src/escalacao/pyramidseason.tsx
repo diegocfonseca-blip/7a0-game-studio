@@ -1025,17 +1025,23 @@ function CopaLiveMatch({ tie, pos, big, youColor }: { tie: CopaTie; pos: number;
     const mine = isA ? tie.a.you : tie.b.you
     return { fontWeight: big ? 800 : 700, fontSize: fs, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: done && !win ? '#9a9384' : (mine && youColor ? youColor : INK), textDecoration: done && !win ? 'line-through' : 'none' }
   }
+  // no jogo de VOLTA (ao vivo), o mandante é o B — e mandante joga na ESQUERDA,
+  // igual na vida real. Então inverte os lados (e o placar) só nesse leg.
+  const swap = !done && legIdx === 1
+  const L = { name: copaName(swap ? tie.b : tie.a), div: swap ? tie.bDiv : tie.aDiv, isA: !swap, score: swap ? showB : showA }
+  const R = { name: copaName(swap ? tie.a : tie.b), div: swap ? tie.aDiv : tie.bDiv, isA: swap, score: swap ? showA : showB }
   return (
     <div style={{ ...box(you ? '#FFF6D6' : '#fff'), border: `${big ? 3 : 2}px solid ${you ? '#B23B2E' : INK}`, boxShadow: `${big ? 4 : 2}px ${big ? 4 : 2}px 0 0 ${INK}`, padding: big ? '9px 12px' : '6px 9px', marginBottom: big ? 9 : 6 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>{copaDt(tie.aDiv)}<span style={nameStyle(true)}>{copaName(tie.a)}</span></span>
-        <span style={{ fontWeight: 900, fontSize: big ? 18 : 13, ...OSWALD, background: INK, color: '#fff', borderRadius: 7, padding: big ? '3px 11px' : '2px 8px', whiteSpace: 'nowrap' }}>{showA} × {showB}</span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: 'flex-end' }}><span style={nameStyle(false)}>{copaName(tie.b)}</span>{copaDt(tie.bDiv)}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>{copaDt(L.div)}<span style={nameStyle(L.isA)}>{L.name}</span></span>
+        <span style={{ fontWeight: 900, fontSize: big ? 18 : 13, ...OSWALD, background: INK, color: '#fff', borderRadius: 7, padding: big ? '3px 11px' : '2px 8px', whiteSpace: 'nowrap' }}>{L.score} × {R.score}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: 'flex-end' }}><span style={nameStyle(R.isA)}>{R.name}</span>{copaDt(R.div)}</span>
       </div>
       {!done
         ? <p style={{ fontSize: big ? 10 : 9, fontWeight: 800, color: '#E8503A', textAlign: 'center', margin: '3px 0 0', ...OSWALD }}>🔴 {phaseLbl ? phaseLbl + ' · ' : ''}{legMin}'{lastG ? ` · ⚽ ${lastG.name}` : ''}</p>
         : <>
-            {nLegs === 2 && <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '3px 0 0' }}>ida {tie.legs[0][0]}×{tie.legs[0][1]} · volta {tie.legs[1][0]}×{tie.legs[1][1]}</p>}
+            {/* volta invertida: mostra o mandante (B) primeiro, igual aos lados ao vivo */}
+            {nLegs === 2 && <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '3px 0 0' }}>ida {tie.legs[0][0]}×{tie.legs[0][1]} · volta {tie.legs[1][1]}×{tie.legs[1][0]}</p>}
             {tie.pens && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', margin: '2px 0 0' }}>🎯 pênaltis {tie.pens[0]}×{tie.pens[1]}</p>}
             <p style={{ fontSize: 9.5, fontWeight: 800, color: GREEN, textAlign: 'center', margin: '2px 0 0', ...OSWALD }}>✅ {winName} avança</p>
           </>}
