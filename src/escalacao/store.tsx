@@ -1569,9 +1569,17 @@ export function reducer(state: EscState, action: Action): EscState {
       // parte (no provider); aqui só cuidamos de não deixar a fase esperando
       // por ele — mesma lógica do auto-preenchimento por AFK.
       const m = s.managers.find(x => x.id === action.playerIndex)
-      if (!m || !m.isHuman) return s
+      if (!m) return s
+      if (!m.isHuman) {
+        // já é RIVAL CPU (ex-humano que saiu): o host está EXCLUINDO — para de dar
+        // lance e vira só preenchimento na tabela.
+        m.auctionRival = false
+        return s
+      }
+      // humano saiu/foi removido → vira RIVAL CPU: continua no leilão dando lance
+      // com o time e o dinheiro dele (mantém auctionRival). Só deixa de ser humano,
+      // então ninguém espera ele lacrar e ele não entra na votação do fim.
       m.isHuman = false
-      m.auctionRival = false // vira BOT de preenchimento: fica com o que tinha e NÃO dá mais lance
       if (s.phase === 'envelope' || s.phase === 'resq_envelope') {
         const pos = SECTORS[s.sectorIdx]
         if (humansToSubmit(s, pos).every(id => s.submitted.includes(id))) sealAndResolve(s)
@@ -2574,8 +2582,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
       }
     }
     // convidado saindo NO MEIO do jogo (leilão/monte/temporada): avisa o host pra
-    // virar o time dele em BOT na hora — ninguém fica esperando ele lacrar. O time
-    // fica com o que já tinha e não dá mais lance (KICK_PLAYER: isHuman/auctionRival false).
+    // virar o time dele em RIVAL CPU na hora — ninguém fica esperando ele lacrar. O
+    // rival continua dando lance com o time e o dinheiro dele (KICK_PLAYER só tira o
+    // isHuman); o host pode excluir esse rival depois no "gerenciar técnicos".
     const inGame = ['auction', 'monte', 'cerimonia', 'season'].includes(st.screen)
     if (onlineRef.current === 'online' && !isHostRef.current && rid && inGame) {
       channelRef.current?.send({ type: 'broadcast', event: 'action', payload: { type: 'KICK_PLAYER', playerIndex: st.youIdx } })
