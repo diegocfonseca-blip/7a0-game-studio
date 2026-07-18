@@ -685,9 +685,14 @@ function makeCareerManagers(teamName: string, formation: FormationKey, div: Divi
   // preenchimento: 10% fortes · 75% médios · 15% fracos (igual online rápido)
   const strongN = Math.max(1, Math.round(fillerDefs.length * 0.10))
   const weakN = Math.max(1, Math.round(fillerDefs.length * 0.15))
+  // sorteia QUAIS times são fortes/fracos (não a ordem fixa) — senão são sempre os mesmos
+  const fillerTiers = shuffle(
+    Array.from({ length: fillerDefs.length }, (_, i): Tier => i < strongN ? 'strong' : i >= fillerDefs.length - weakN ? 'weak' : 'mid'),
+    rng,
+  )
   fillerDefs.forEach((f, i) => {
     const cpuFormation = forms[Math.floor(rng() * forms.length)]
-    const tier: Tier = i < strongN ? 'strong' : i >= fillerDefs.length - weakN ? 'weak' : 'mid'
+    const tier: Tier = fillerTiers[i]
     botPlans.push({ id, tier, formation: cpuFormation })
     cpus.push({ id, name: f.name, teamName: f.team, isHuman: false, auctionRival: false, formation: cpuFormation, money: 0, squad: [], aggression: 0.5, starHunger: 0.5 })
     id++
@@ -703,9 +708,13 @@ function dealRemainingCpuSquads(managers: Manager[], rng: () => number, used: Se
   // 10% fortes · 75% médios · 15% fracos (igual online rápido)
   const strongN = Math.max(1, Math.round(empties.length * 0.10))
   const weakN = Math.max(1, Math.round(empties.length * 0.15))
+  // sorteia QUAIS times são fortes/fracos (não a ordem fixa) — senão são sempre os mesmos
+  const tiers = shuffle(
+    Array.from({ length: empties.length }, (_, i): Tier => i < strongN ? 'strong' : i >= empties.length - weakN ? 'weak' : 'mid'),
+    rng,
+  )
   empties.forEach((b, i) => {
-    const tier: Tier = i < strongN ? 'strong' : i >= empties.length - weakN ? 'weak' : 'mid'
-    b.squad = makeBotSquad(b.formation, tier, rng, used)
+    b.squad = makeBotSquad(b.formation, tiers[i], rng, used)
   })
 }
 
@@ -1116,6 +1125,13 @@ function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus
   // ordem dos nomes de CPU: padrão = Série D; solo pode passar os rivais escolhidos
   // PRIMEIRO (viram os auction-rivals nomeados), depois o resto da D (sem repetir).
   const names = (cpuNameOrder ?? DIVISION_TEAMS['D']).slice(0, totalCpus)
+  // QUAIS times são fortes/fracos é SORTEADO (não a ordem fixa da lista) — senão
+  // são sempre os mesmos nomes brigando (ex.: Paixandu Magrão, Biriba United). A
+  // quantidade de cada nível não muda; só varia quem calha de ser forte/fraco.
+  const fillerTiers = shuffle(
+    Array.from({ length: nFiller }, (_, i): Tier => i < strongN ? 'strong' : i >= nFiller - weakN ? 'weak' : 'mid'),
+    rng,
+  )
   const botPlans: BotPlan[] = []
   const cpus: Manager[] = names.map((c, i) => {
     const cpuFormation = forms[Math.floor(rng() * forms.length)]
@@ -1129,7 +1145,7 @@ function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus
     }
     // preenchimento: elenco pronto, nunca dá lance
     const fi = i - nAuction
-    const tier: Tier = fi < strongN ? 'strong' : fi >= nFiller - weakN ? 'weak' : 'mid'
+    const tier: Tier = fillerTiers[fi]
     botPlans.push({ id, tier, formation: cpuFormation })
     return {
       id, name: c.name, teamName: c.team, isHuman: false, auctionRival: false,
