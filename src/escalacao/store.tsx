@@ -1195,6 +1195,7 @@ type Action =
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
+  | { type: 'BECOME_HOST' }
   | { type: 'KICK_PLAYER'; playerIndex: number }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[] }
   | { type: 'ADVANCE_REVEAL' }
@@ -1539,6 +1540,10 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'GO_ALBUM': { s.screen = 'album'; return s }
     case 'GO_RANKING': { s.screen = 'ranking'; return s }
     case 'SET_PRESENCE': { s.presence = action.indices; return s }
+    // o host anterior saiu de vez e me passou a batuta: viro autoritativo. O
+    // canal realtime re-inscreve como host (reage a s.isHost) e passo a emitir
+    // e persistir o estado da sala.
+    case 'BECOME_HOST': { s.isHost = true; return s }
     case 'KICK_PLAYER': {
       // Host removeu um técnico da partida: a CPU assume o time dele e o jogo
       // segue sem travar. O cliente removido é ejetado pelo evento 'kick' à
@@ -2425,6 +2430,8 @@ const Ctx = createContext<{
   emotes: EmoteEvent[]
   hostStale: boolean // convidado sem notícias do host há muito tempo (host caiu?)
   kickPlayer: (playerIndex: number) => void // host remove um técnico da partida
+  leaveRoom: () => void // "sair da sala" de vez: se for host, passa o host pra outro (ou apaga a sala se estava sozinho) e sai
+  becameHost: boolean // acabei de virar host (o anterior saiu) — mostra o aviso grande
 } | null>(null)
 
 // libera a vaga do técnico na sala (apaga a linha de room_players) e limpa a
@@ -2508,6 +2515,39 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (rid) { supabase.from('room_players').delete().eq('room_id', rid).eq('player_index', playerIndex).then(() => {}) }
   }, [])
 
+  // "acabei de virar host": aviso grande e passageiro (o anterior saiu da sala)
+  const [becameHost, setBecameHost] = useState(false)
+
+  // "sair da sala" DE VEZ. Se eu for o host de uma partida rápida:
+  //  · com gente ainda na sala → sorteia um dos presentes pra virar host novo
+  //    (avisa por broadcast 'host_change' e passa a posse no banco), e eu saio;
+  //  · sozinho → apago a sala (game_rooms + room_players) e volto pro menu.
+  // Convidado (ou carreira online) só libera a própria vaga via GO_LOBBY.
+  const leaveRoom = useCallback(async () => {
+    const st = stateRef.current
+    const rid = st.roomId
+    if (onlineRef.current === 'online' && isHostRef.current && rid && !st.careerOnline) {
+      const others = (st.presence || []).filter(i => i !== st.youIdx)
+      if (others.length > 0) {
+        const newHostIndex = others[Math.floor(Math.random() * others.length)]
+        // avisa TODO MUNDO agora, com o canal ainda vivo (antes do GO_LOBBY derrubar)
+        channelRef.current?.send({ type: 'broadcast', event: 'host_change', payload: { newHostIndex } })
+        // passa a posse no banco (host_id) pra reconexão funcionar — best effort
+        try {
+          const { data: rows } = await supabase.from('room_players').select('user_id, player_index').eq('room_id', rid)
+          const nh = (rows ?? []).find((r: { player_index: number; user_id: string }) => r.player_index === newHostIndex)
+          if (nh?.user_id) await supabase.from('game_rooms').update({ host_id: nh.user_id }).eq('id', rid)
+        } catch { /* silencioso */ }
+      } else {
+        // host sozinho: exclui a sala de vez
+        try { await supabase.from('room_players').delete().eq('room_id', rid) } catch { /* ignora */ }
+        try { await supabase.from('game_rooms').delete().eq('id', rid) } catch { /* ignora */ }
+      }
+    }
+    dispatch({ type: 'GO_LOBBY' }) // libera minha vaga (leaveOnlineRoom) + volta pro menu
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // convidado roteia ações pro host; host aplica local
   const dispatch = useCallback((action: Action) => {
     // Sair de uma partida online (NOVO PREGÃO / voltar pra home) deve LIBERAR
@@ -2546,6 +2586,14 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (payload.playerIndex !== stateRef.current.youIdx) return
       try { alert('O host removeu você desta partida.') } catch { /* ignora */ }
       dispatch({ type: 'GO_LOBBY' })
+    })
+    // o host saiu da sala e me escolheu como novo host: viro autoritativo e mostro
+    // o aviso grande. (chega pra todos; só age quem foi escolhido e ainda não é host)
+    ch.on('broadcast', { event: 'host_change' }, ({ payload }: { payload: { newHostIndex: number } }) => {
+      if (payload.newHostIndex !== stateRef.current.youIdx || isHostRef.current) return
+      rawDispatch({ type: 'BECOME_HOST' })
+      setBecameHost(true)
+      setTimeout(() => setBecameHost(false), 6000)
     })
     ch.on('presence', { event: 'sync' }, () => {
       const pState = ch.presenceState()
@@ -2726,8 +2774,24 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const showHostBanner = state.onlineMode === 'online' && !state.isHost && hostStale
     && state.screen !== 'intro' && state.screen !== 'lobby'
   return (
-    <Ctx.Provider value={{ state, dispatch, emote, emotes, hostStale, kickPlayer }}>
+    <Ctx.Provider value={{ state, dispatch, emote, emotes, hostStale, kickPlayer, leaveRoom, becameHost }}>
       {children}
+      {becameHost && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,.55)', padding: 24, fontFamily: 'Oswald, sans-serif',
+        }}>
+          <div style={{
+            background: 'linear-gradient(150deg,#FFE79A,#FFC400 45%,#E8A200 75%,#FFDD70)',
+            border: '4px solid #0C0C0C', borderRadius: 22, boxShadow: '6px 7px 0 #0C0C0C',
+            padding: '26px 22px', textAlign: 'center', maxWidth: 340,
+          }}>
+            <div style={{ fontSize: 52, lineHeight: 1 }}>🎖️</div>
+            <p style={{ fontWeight: 900, fontSize: 26, color: '#0C0C0C', margin: '10px 0 4px', letterSpacing: .5 }}>VOCÊ VIROU O HOST!</p>
+            <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.72)' }}>O host anterior saiu da sala e passou o comando pra você. Agora é você quem toca a partida. 🎮</p>
+          </div>
+        </div>
+      )}
       {showHostBanner && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 60,
