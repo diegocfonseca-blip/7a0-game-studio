@@ -1020,42 +1020,39 @@ function CopaLive({ copa, round, youColor }: { copa: CopaResult; round: number; 
 }
 
 function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal }: { copa: CopaResult; colors: Record<number, FCol>; youId: number; tables: Record<Div, SimTeam[]>; ord: Div[]; myDiv: Div | null; reveal: number }) {
-  const [view, setView] = useState<'copa' | 'tabelas'>('copa')
   const champ = copa.champion
   const finished = reveal >= copa.rounds.length
   const shown = copa.rounds.slice(0, reveal) // fases já decididas
   const rounds = [...shown].reverse() // Final primeiro
+  // A Copa aparece EM CIMA; logo abaixo, a classificação das divisões (a sua
+  // em destaque). Sem toggle — as duas ficam empilhadas na mesma aba.
   return (
     <div>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-        {([['copa', '🏆 Copa'], ['tabelas', '📊 Classificação']] as [typeof view, string][]).map(([v, l]) => (
-          <button key={v} onClick={() => setView(v)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', background: view === v ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{l}</button>
-        ))}
+      <div style={{ ...box('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)'), padding: '11px 12px', marginBottom: 10, textAlign: 'center' }}>
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>🏆 COPA LEGENDS</p>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.62)', margin: '2px 0 0' }}>Mata-mata dos 16 · top-4 de cada divisão · sorteio aleatório</p>
       </div>
-      {view === 'tabelas' ? (<><PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} /><PrizesBox /></>) : (
-        <>
-          <div style={{ ...box('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)'), padding: '11px 12px', marginBottom: 10, textAlign: 'center' }}>
-            <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>🏆 COPA LEGENDS</p>
-            <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.62)', margin: '2px 0 0' }}>Mata-mata dos 16 · top-4 de cada divisão · sorteio aleatório</p>
-          </div>
-          {finished && champ && (
-            <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, textAlign: 'center' }}>
-              <p style={{ fontSize: 30, lineHeight: 1, margin: 0 }}>🏆</p>
-              <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD, margin: '2px 0 0', color: champ.you ? (colors[youId]?.solid ?? INK) : INK }}>{copaName(champ)}</p>
-              <p style={{ fontSize: 11, fontWeight: 700, color: GREEN, marginTop: 1 }}>CAMPEÃO DA COPA{copa.championDiv && copa.championDiv !== 'A' ? ` — e da Série ${copa.championDiv}! 🐣🔥` : '!'} <span style={{ color: '#8a6d1f' }}>+25 🪙</span></p>
-              {copa.vice && <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>🥈 Vice: {copaName(copa.vice)} <span style={{ color: '#8a6d1f' }}>+15 🪙</span></p>}
-            </div>
-          )}
-          {shown.length === 0 && <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', textAlign: 'center' }}>A Copa está começando… 🔴</p>}
-          {rounds.map(r => (
-            <div key={r.name} style={{ marginBottom: 10 }}>
-              <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.5)', margin: '0 0 5px' }}>{r.name === 'Final' ? '🏁 Final' : r.name}</p>
-              {r.ties.map((t, i) => <CopaTieRow key={i} tie={t} />)}
-            </div>
-          ))}
-          {finished && copa.topScorer && <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginTop: 4 }}>⚽ Artilheiro da Copa: <b>{copa.topScorer.name}</b> ({copa.topScorer.goals}) — veja na aba Rank.</p>}
-        </>
+      {finished && champ && (
+        <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, textAlign: 'center' }}>
+          <p style={{ fontSize: 30, lineHeight: 1, margin: 0 }}>🏆</p>
+          <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD, margin: '2px 0 0', color: champ.you ? (colors[youId]?.solid ?? INK) : INK }}>{copaName(champ)}</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: GREEN, marginTop: 1 }}>CAMPEÃO DA COPA{copa.championDiv && copa.championDiv !== 'A' ? ` — e da Série ${copa.championDiv}! 🐣🔥` : '!'} <span style={{ color: '#8a6d1f' }}>+25 🪙</span></p>
+          {copa.vice && <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>🥈 Vice: {copaName(copa.vice)} <span style={{ color: '#8a6d1f' }}>+15 🪙</span></p>}
+        </div>
       )}
+      {shown.length === 0 && <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', textAlign: 'center' }}>A Copa está começando… 🔴</p>}
+      {rounds.map(r => (
+        <div key={r.name} style={{ marginBottom: 10 }}>
+          <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.5)', margin: '0 0 5px' }}>{r.name === 'Final' ? '🏁 Final' : r.name}</p>
+          {r.ties.map((t, i) => <CopaTieRow key={i} tie={t} />)}
+        </div>
+      ))}
+      {finished && copa.topScorer && <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginTop: 4 }}>⚽ Artilheiro da Copa: <b>{copa.topScorer.name}</b> ({copa.topScorer.goals}) — veja na aba Rank.</p>}
+      {/* CLASSIFICAÇÃO das divisões logo abaixo da Copa — a sua em destaque */}
+      <div style={{ borderTop: `2px dashed ${INK}22`, margin: '14px 0 10px' }} />
+      <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.5)', margin: '0 0 8px' }}>📊 Classificação das divisões{myDiv ? ' · a sua primeiro' : ''}</p>
+      <PyramidTables tables={tables} order={myDiv ? [myDiv, ...ord.filter(d => d !== myDiv)] : ord} colors={colors} myDiv={myDiv} />
+      <PrizesBox />
     </div>
   )
 }
