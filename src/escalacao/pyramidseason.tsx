@@ -1116,6 +1116,43 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers,
   )
 }
 
+// caixa do header com animação: quando o valor muda, sobe/desce um "+N" verde
+// (ganhou: título, prêmio, artilharia, venda) ou "-N" vermelho (gastou no leilão).
+// Como o header tem overflow:hidden, o número flutua PRA BAIXO (não corta em cima).
+let coinKfInjected = false
+function ensureCoinKeyframes() {
+  if (coinKfInjected || typeof document === 'undefined') return
+  coinKfInjected = true
+  const s = document.createElement('style')
+  s.textContent = '@keyframes coinPop{0%{opacity:0;transform:translate(-50%,-4px) scale(.7)}18%{opacity:1;transform:translate(-50%,3px) scale(1.15)}100%{opacity:0;transform:translate(-50%,20px) scale(1)}}@keyframes coinBump{0%,100%{transform:scale(1)}30%{transform:scale(1.18)}}'
+  document.head.appendChild(s)
+}
+function CoinsBadge({ coins }: { coins: number }) {
+  const prev = useRef(coins)
+  const [pops, setPops] = useState<{ id: number; delta: number }[]>([])
+  const [bump, setBump] = useState(0)
+  useEffect(() => {
+    const d = coins - prev.current
+    prev.current = coins
+    if (d !== 0 && Number.isFinite(d)) {
+      ensureCoinKeyframes()
+      const id = Date.now() + Math.random()
+      setPops(p => [...p.slice(-3), { id, delta: d }]); setBump(b => b + 1)
+      const t = setTimeout(() => setPops(p => p.filter(x => x.id !== id)), 1200)
+      return () => clearTimeout(t)
+    }
+  }, [coins])
+  return (
+    <span style={{ position: 'relative', display: 'inline-flex' }}>
+      <span key={bump} title="Sua caixa de moedas (pra o leilão/mercado)" style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: GOLD, color: INK, border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap', animation: bump ? 'coinBump .45s ease-out' : undefined }}>💰 {coins}</span>
+      {pops.map(p => (
+        <span key={p.id} style={{ position: 'absolute', left: '50%', top: '100%', fontWeight: 900, fontSize: 13.5, ...OSWALD, color: p.delta > 0 ? '#2ECC71' : '#FF5A4D', whiteSpace: 'nowrap', pointerEvents: 'none', textShadow: '0 1px 2px rgba(0,0,0,.55)', animation: 'coinPop 1.2s ease-out forwards' }}>
+          {p.delta > 0 ? `+${p.delta}` : p.delta} 🪙
+        </span>
+      ))}
+    </span>
+  )
+}
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const round = state.round
@@ -1282,7 +1319,7 @@ export function PyramidSeasonScreen() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
               {!done && me && <span style={{ fontWeight: 800, fontSize: 12, ...OSWALD, border: '2px solid rgba(255,255,255,0.25)', borderRadius: 999, padding: '3px 9px', whiteSpace: 'nowrap' }}>{me.pos === 1 ? '🥇' : '🏅'} {me.pos}º</span>}
-              <span title="Sua caixa de moedas (pra o leilão/mercado)" style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: GOLD, color: INK, border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap' }}>💰 {state.careerCoins?.[youId] ?? 0}</span>
+              <CoinsBadge coins={state.careerCoins?.[youId] ?? 0} />
             </div>
           </div>
           {/* progresso da temporada: trilho ESCURO visível de ponta a ponta (não
