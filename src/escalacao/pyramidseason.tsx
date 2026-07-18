@@ -334,7 +334,7 @@ export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { 
 // ida e volta, final única, pênaltis no empate. Determinística (semente +
 // temporada + classificação), então bate igual offline e em todos os clientes
 // online. Reaproveita a MESMA simulação de jogo da liga (rollForm/poisson). ──
-export interface CopaTie { a: SimTeam; b: SimTeam; aDiv: Div; bDiv: Div; aggA: number; aggB: number; pens?: [number, number]; win: 'a' | 'b'; goals: Goal[]; legs: [number, number][] }
+export interface CopaTie { a: SimTeam; b: SimTeam; aDiv: Div; bDiv: Div; aggA: number; aggB: number; pens?: [number, number]; win: 'a' | 'b'; goals: Goal[]; legs: [number, number][]; legGoals: Goal[][] }
 export interface CopaRound { name: string; ties: CopaTie[] }
 export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; vice: SimTeam | null; viceDiv: Div | null; scorers: SeasonScorer[]; topScorer?: SeasonScorer }
 const COPA_CHAMP_COINS = 25 // igual ao campeão da Série A
@@ -385,19 +385,20 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     let aggA = 0, aggB = 0
     const goals: Goal[] = []
     const legs: [number, number][] = [] // placar de cada jogo (ida, volta) — [gols A, gols B]
+    const legGoals: Goal[][] = [] // gols de cada jogo separados (home = A marcou), pra animar ida e depois volta
     const l1 = leg(a, b, true); aggA += l1.hg; aggB += l1.ag // ida: a joga em casa
-    l1.hEvs.forEach(e => goals.push({ ...e, home: true })); l1.aEvs.forEach(e => goals.push({ ...e, home: false }))
-    legs.push([l1.hg, l1.ag])
+    const g1: Goal[] = [...l1.hEvs.map(e => ({ ...e, home: true })), ...l1.aEvs.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
+    g1.forEach(e => goals.push(e)); legs.push([l1.hg, l1.ag]); legGoals.push(g1)
     if (!single) {
       const l2 = leg(b, a, true); aggB += l2.hg; aggA += l2.ag // volta: b em casa
-      l2.hEvs.forEach(e => goals.push({ ...e, home: false })); l2.aEvs.forEach(e => goals.push({ ...e, home: true }))
-      legs.push([l2.ag, l2.hg]) // volta pela ótica de A: A marcou l2.ag (fora), B marcou l2.hg (casa)
+      const g2: Goal[] = [...l2.aEvs.map(e => ({ ...e, home: true })), ...l2.hEvs.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
+      g2.forEach(e => goals.push(e)); legs.push([l2.ag, l2.hg]); legGoals.push(g2)
     }
     goals.sort((x, y) => x.min - y.min)
     let pens: [number, number] | undefined, win: 'a' | 'b'
     if (aggA === aggB) { let x = 3 + Math.floor(rng() * 3), y = 3 + Math.floor(rng() * 3); if (x === y) (rng() < 0.5 ? x++ : y++); pens = [x, y]; win = x > y ? 'a' : 'b' }
     else win = aggA > aggB ? 'a' : 'b'
-    return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA, aggB, pens, win, goals, legs }
+    return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA, aggB, pens, win, goals, legs, legGoals }
   }
   const roundNames = ['Oitavas', 'Quartas', 'Semifinal', 'Final']
   const rounds: CopaRound[] = []
@@ -996,41 +997,85 @@ function CopaTieRow({ tie }: { tie: CopaTie }) {
   )
 }
 
-// FASE da Copa TOCANDO AO VIVO: seu confronto anima no placar (mesma vibe da
-// liga); os outros jogos da fase aparecem resolvidos. Some quando a fase acaba.
+// Um jogo da fase TOCANDO AO VIVO na posição `pos` do relógio da fase
+// (0..nLegs*90). Mostra o placar do jogo ATUAL subindo minuto a minuto; no fim,
+// o agregado, ida/volta e quem avançou. `big` = é o SEU jogo (destaque).
+function CopaLiveMatch({ tie, pos, big, youColor }: { tie: CopaTie; pos: number; big?: boolean; youColor?: string }) {
+  const legG = tie.legGoals.length ? tie.legGoals : [tie.goals]
+  const nLegs = legG.length
+  const total = nLegs * 90
+  const done = pos >= total
+  const legIdx = Math.min(nLegs - 1, Math.floor(pos / 90))
+  const legMin = Math.min(90, Math.round(pos - legIdx * 90))
+  const g = legG[legIdx] ?? []
+  const curA = g.filter(x => x.home && x.min <= legMin).length
+  const curB = g.filter(x => !x.home && x.min <= legMin).length
+  const showA = done ? tie.aggA : curA
+  const showB = done ? tie.aggB : curB
+  const you = tie.a.you || tie.b.you
+  const aWin = tie.win === 'a'
+  const lastG = [...g].filter(x => x.min <= legMin).sort((x, y) => x.min - y.min).pop()
+  const phaseLbl = nLegs === 1 ? '' : legIdx === 0 ? 'IDA' : 'VOLTA'
+  const winName = aWin ? copaName(tie.a) : copaName(tie.b)
+  const fs = big ? 13.5 : 11.5
+  const nameStyle = (isA: boolean): React.CSSProperties => {
+    const win = isA ? aWin : !aWin
+    const mine = isA ? tie.a.you : tie.b.you
+    return { fontWeight: big ? 800 : 700, fontSize: fs, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: done && !win ? '#9a9384' : (mine && youColor ? youColor : INK), textDecoration: done && !win ? 'line-through' : 'none' }
+  }
+  return (
+    <div style={{ ...box(you ? '#FFF6D6' : '#fff'), border: `${big ? 3 : 2}px solid ${you ? '#B23B2E' : INK}`, boxShadow: `${big ? 4 : 2}px ${big ? 4 : 2}px 0 0 ${INK}`, padding: big ? '9px 12px' : '6px 9px', marginBottom: big ? 9 : 6 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>{copaDt(tie.aDiv)}<span style={nameStyle(true)}>{copaName(tie.a)}</span></span>
+        <span style={{ fontWeight: 900, fontSize: big ? 18 : 13, ...OSWALD, background: INK, color: '#fff', borderRadius: 7, padding: big ? '3px 11px' : '2px 8px', whiteSpace: 'nowrap' }}>{showA} × {showB}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: 'flex-end' }}><span style={nameStyle(false)}>{copaName(tie.b)}</span>{copaDt(tie.bDiv)}</span>
+      </div>
+      {!done
+        ? <p style={{ fontSize: big ? 10 : 9, fontWeight: 800, color: '#E8503A', textAlign: 'center', margin: '3px 0 0', ...OSWALD }}>🔴 {phaseLbl ? phaseLbl + ' · ' : ''}{legMin}'{lastG ? ` · ⚽ ${lastG.name}` : ''}</p>
+        : <>
+            {nLegs === 2 && <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '3px 0 0' }}>ida {tie.legs[0][0]}×{tie.legs[0][1]} · volta {tie.legs[1][0]}×{tie.legs[1][1]}</p>}
+            {tie.pens && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', margin: '2px 0 0' }}>🎯 pênaltis {tie.pens[0]}×{tie.pens[1]}</p>}
+            <p style={{ fontSize: 9.5, fontWeight: 800, color: GREEN, textAlign: 'center', margin: '2px 0 0', ...OSWALD }}>✅ {winName} avança</p>
+          </>}
+    </div>
+  )
+}
+
+// FASE da Copa TOCANDO AO VIVO: um relógio único toca a IDA e depois a VOLTA, e
+// TODOS os jogos da fase sobem o placar ao mesmo tempo. Seu jogo em destaque.
 function CopaLive({ copa, round, youColor }: { copa: CopaResult; round: number; youColor: string }) {
   const r = copa.rounds[round]
+  const isFinal = r?.name === 'Final'
+  const nLegs = isFinal ? 1 : 2
+  const total = nLegs * 90
+  const [pos, setPos] = useState(0)
+  useEffect(() => {
+    setPos(0)
+    const t0 = Date.now()
+    const iv = setInterval(() => {
+      const p = (Date.now() - t0) / (COPA_ROUND_MS * 0.88) // chega ao fim um pouco antes de trocar de fase
+      setPos(Math.min(total, p * total))
+      if (p >= 1) clearInterval(iv)
+    }, 100)
+    return () => clearInterval(iv)
+  }, [round, total])
   if (!r) return null
   const myTie = r.ties.find(t => t.a.you || t.b.you)
-  const oppColor = '#3A7CA5'
   const others = r.ties.filter(t => t !== myTie)
-  const faseNm = r.name === 'Final' ? 'FINAL' : r.name.toUpperCase()
-  // cabeçalho da FASE (sempre no mesmo lugar) — deixa claro em qual fase está e
-  // a progressão (fase 1 de 4 → 2 de 4 …), pra transição oitavas→quartas ler bem.
-  const header = (
-    <div style={{ ...box('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)'), padding: '7px 12px', marginBottom: 9, textAlign: 'center' }}>
-      <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0, letterSpacing: 0.5 }}>🏆 COPA · {faseNm}</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '1px 0 0' }}>🔴 ao vivo · fase {round + 1} de {copa.rounds.length} · {faseNm === 'FINAL' ? 'jogo único' : 'ida e volta'}</p>
-    </div>
-  )
-  // ESTOU jogando esta fase: placar ao vivo no topo; os outros jogos embaixo.
-  if (myTie) return (
-    <div style={{ marginBottom: 12 }}>
-      {header}
-      <LiveScoreCard key={'copa' + round} homeName={myTie.a.name} awayName={myTie.b.name}
-        homeColor={myTie.a.you ? youColor : oppColor} awayColor={myTie.a.you ? oppColor : youColor}
-        youIsHome={myTie.a.you} goals={myTie.goals} roundKey={round} roundMs={COPA_ROUND_MS} />
-      {myTie.pens && <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', textAlign: 'center', margin: '-4px 0 6px' }}>decidido nos pênaltis {myTie.pens[0]}×{myTie.pens[1]}</p>}
-      {others.length > 0 && <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '2px 0 4px' }}>Outros jogos da fase</p>}
-      {others.map((t, i) => <CopaTieRow key={i} tie={t} />)}
-    </div>
-  )
-  // NÃO estou nesta fase (você escolheu): sem placar grande — só o cabeçalho e
-  // a lista dos jogos da fase.
+  const faseNm = isFinal ? 'FINAL' : r.name.toUpperCase()
+  const legIdx = Math.min(nLegs - 1, Math.floor(pos / 90))
+  const legMin = Math.min(90, Math.round(pos - legIdx * 90))
+  const done = pos >= total
+  const clock = done ? 'FIM' : isFinal ? `${legMin}'` : `${legIdx === 0 ? 'IDA' : 'VOLTA'} ${legMin}'`
   return (
     <div style={{ marginBottom: 12 }}>
-      {header}
-      {r.ties.map((t, i) => <CopaTieRow key={i} tie={t} />)}
+      <div style={{ ...box('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)'), padding: '7px 12px', marginBottom: 9, textAlign: 'center' }}>
+        <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0, letterSpacing: 0.5 }}>🏆 COPA · {faseNm}</p>
+        <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '1px 0 0' }}>🔴 ao vivo · fase {round + 1} de {copa.rounds.length} · {clock}</p>
+      </div>
+      {myTie && <CopaLiveMatch tie={myTie} pos={pos} big youColor={youColor} />}
+      {others.length > 0 && myTie && <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '2px 0 4px' }}>Outros jogos da fase</p>}
+      {others.map((t, i) => <CopaLiveMatch key={i} tie={t} pos={pos} />)}
     </div>
   )
 }
