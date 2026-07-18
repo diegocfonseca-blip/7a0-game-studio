@@ -2974,6 +2974,74 @@ function CareerEndPanel() {
 }
 
 // ─── FIM ─────────────────────────────────────────────────────────────
+// Fim de jogo ONLINE rápido: votação (mesmo time × novo leilão) com presença
+// visível. Todo mundo vota (mostra pro host quem tá online e o que quer); o
+// HOST decide e começa quando quiser (nunca trava esperando ninguém). O host
+// pode remover quem não decide e voltar pro menu das salas.
+function OnlineEndVote() {
+  const { state, dispatch, kickPlayer } = useEsc()
+  const youId = state.youIdx
+  const isHost = state.isHost
+  const votes = state.seasonVotes ?? {}
+  const myVote = votes[youId]
+  const humans = state.managers.filter(m => m.isHuman)
+  const nMesmo = humans.filter(m => votes[m.id] === 'mesmo').length
+  const nLeilao = humans.filter(m => votes[m.id] === 'leilao').length
+  const nVoted = nMesmo + nLeilao
+  const pend = humans.filter(m => !votes[m.id] && m.id !== youId)
+  const vote = (v: 'mesmo' | 'leilao') => dispatch({ type: 'CAST_SEASON_VOTE', mgrId: youId, vote: v })
+  const startMesmo = () => dispatch({ type: 'REPLAY_SEASON' })
+  const startLeilao = async () => {
+    if (state.roomId) { try { await supabase.from('game_rooms').update({ status: 'waiting' }).eq('id', state.roomId) } catch { /* segue mesmo assim */ } }
+    dispatch({ type: 'REMATCH' })
+  }
+  const voteBtn = (v: 'mesmo' | 'leilao', label: string, bg: string, fg: string) => (
+    <button onClick={() => vote(v)} className="flex-1 rounded-xl border-[3px] border-black py-3 font-black text-sm relative active:translate-y-0.5"
+      style={{ background: myVote === v ? bg : '#fff', color: myVote === v ? fg : '#000', boxShadow: myVote === v ? `3px 3px 0 ${INK}` : 'none', ...OSWALD }}>
+      {myVote === v && <span className="absolute top-1 right-2 text-xs">✓</span>}{label}
+    </button>
+  )
+  return (
+    <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: '#EAF3FF', boxShadow: `4px 4px 0 ${INK}` }}>
+      <p className="font-black text-lg text-center" style={OSWALD}>🗳️ E agora? Vote!</p>
+      <p className="text-center text-xs font-bold text-black/60">Seguir com o <b>mesmo time</b> ou abrir um <b>novo leilão</b>? {isHost ? 'Você (host) decide e começa 👇' : 'O host começa quando decidir.'}</p>
+      <div className="flex gap-2">
+        {voteBtn('mesmo', '▶️ Mesmo time', GREEN, '#fff')}
+        {voteBtn('leilao', '🔨 Novo leilão', GOLD, '#000')}
+      </div>
+      {/* chips: quem já votou (presença ao vivo) */}
+      <div className="flex flex-wrap gap-1.5 justify-center">
+        {humans.map(m => { const v = votes[m.id]; return (
+          <span key={m.id} className="text-[10px] font-black border-2 border-black rounded-full px-2 py-0.5" style={{ background: v ? (v === 'mesmo' ? GREEN : GOLD) : '#fff', color: v === 'mesmo' ? '#fff' : '#000', opacity: v ? 1 : 0.5, ...OSWALD }}>
+            {v ? `${v === 'mesmo' ? '▶️' : '🔨'} ${m.id === youId ? 'Você' : m.teamName} ✓` : `⏳ ${m.id === youId ? 'Você' : m.teamName}`}
+          </span>
+        )})}
+      </div>
+      {isHost ? (
+        <>
+          <p className="text-center text-[11px] font-bold text-black/55">▶️ mesmo: {nMesmo} · 🔨 leilão: {nLeilao} — {nVoted}/{humans.length} votaram</p>
+          <Btn onClick={startMesmo} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ Começar (mesmo time)</span></Btn>
+          <Btn onClick={startLeilao} bg={GOLD} className="w-full text-lg">🔨 Abrir novo leilão</Btn>
+          {pend.length > 0 && (
+            <div className="pt-1">
+              <p className="text-center text-[10px] font-bold text-black/45 mb-1">Quem ainda não decidiu (você não precisa esperar):</p>
+              <div className="flex flex-wrap gap-1.5 justify-center">
+                {pend.map(m => (
+                  <button key={m.id} onClick={() => { if (window.confirm(`Remover ${m.teamName} da partida?`)) kickPlayer(m.id) }}
+                    className="text-[10px] font-black border-2 border-black rounded-full px-2 py-0.5" style={{ background: '#fff', color: '#B23B2E', ...OSWALD }}>✂️ Remover {m.teamName}</button>
+                ))}
+              </div>
+            </div>
+          )}
+          <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full">🏠 Voltar pro menu das salas</Btn>
+        </>
+      ) : (
+        <p className="text-center text-sm font-bold" style={{ color: myVote ? '#1B7A3D' : '#b23b2e' }}>{myVote ? '✅ Voto enviado! O host tá vendo e começa já já.' : '👆 Toque no seu voto — assim o host sabe que você tá aqui!'}</p>
+      )}
+    </div>
+  )
+}
+
 export function EscEnd() {
   const { state, dispatch } = useEsc()
   const you = state.managers[state.youIdx]
@@ -3025,14 +3093,7 @@ export function EscEnd() {
       {state.dinastia ? (
         <Btn onClick={() => { window.location.hash = 'dinastia' }} bg={GREEN} className="w-full text-lg"><span className="text-white">🏰 Ir pra janela de transferências →</span></Btn>
       ) : state.careerDivision ? <CareerEndPanel /> : online ? (<>
-        {canRestart ? (
-          <Btn onClick={async () => {
-            if (state.roomId) await supabase.from('game_rooms').update({ status: 'waiting' }).eq('id', state.roomId)
-            dispatch({ type: 'REMATCH' })
-          }} bg={GOLD} className="w-full text-lg">🔁 Jogar de novo (voltar pra sala)</Btn>
-        ) : (
-          <p className="text-center text-sm font-bold text-black/60">🔁 Aguardando o host decidir se joga de novo… Se não quiser continuar, toque em "Sair da sala" abaixo.</p>
-        )}
+        <OnlineEndVote />
         <Btn onClick={() => dispatch({ type: 'NEW_GAME' })} className="w-full text-lg">🚪 Sair da sala</Btn>
       </>) : (<>
       {restartPending

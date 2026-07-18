@@ -1949,9 +1949,10 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'CAST_SEASON_VOTE': {
-      // fim de temporada: cada humano vota entre leilão de transferências e seguir
-      // com o mesmo time. Guarda o voto (guest rota pro host, host aplica e sincroniza).
-      if (!s.careerOnline) return s
+      // fim de temporada/jogo: cada humano vota entre leilão e seguir com o mesmo
+      // time. Guarda o voto (guest rota pro host, host aplica e sincroniza).
+      // Vale no carreira online E no online rápido (fim de jogo).
+      if (s.onlineMode !== 'online' && !s.careerOnline) return s
       s.seasonVotes = { ...(s.seasonVotes ?? {}), [action.mgrId]: action.vote }
       return s
     }
@@ -2374,6 +2375,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.seasonNo++
       s.restartPending = false
       s.restartReady = []
+      s.seasonVotes = {} // zera a votação de fim de jogo
       s.screen = 'season'
       return s
     }
