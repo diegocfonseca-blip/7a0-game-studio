@@ -1617,6 +1617,15 @@ export function ReserveListScreen() {
         {/* mesmo layout da aba Elenco (Titulares/Reservas), mas em modo listagem */}
         <SquadTab mgr={mgr} col={col} coins={state.careerCoins?.[youId] ?? 0}
           list={{ listed, canList, onList: (id) => dispatch({ type: 'TOGGLE_RESERVE_LIST', mgrId: youId, cardId: id }) }} />
+        {marketUnlocked && (
+          <div style={{ ...box('#FFF3CF'), padding: '11px 13px', margin: '10px 0' }}>
+            <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 4px', color: INK }}>💡 O que acontece ao listar</p>
+            <p style={{ fontSize: 12.5, fontWeight: 700, color: '#4a4740', margin: 0, lineHeight: 1.4 }}>
+              Quem você lista vai a leilão: se alguém der lance, <b>você ganha as moedas</b> (pode render até mais). Se <b>ninguém comprar</b>, ele vai pro <b>monte valendo METADE</b>.
+            </p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '5px 0 0' }}>Obs.: quem vale 1 vira 0 no monte.</p>
+          </div>
+        )}
         {state.isHost ? (
           <button onClick={() => dispatch({ type: 'RESERVE_AUCTION_ONLINE' })}
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
