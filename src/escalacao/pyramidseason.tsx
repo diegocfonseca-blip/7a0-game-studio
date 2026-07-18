@@ -13,6 +13,7 @@ import { SECTORS, FORMATIONS } from './types'
 import { useEsc } from './store'
 import { CardCollectPrompt } from './screens'
 import { supabase } from '../lib/supabase'
+import { resilientWrite } from './pending'
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -1153,12 +1154,12 @@ export function PyramidSeasonScreen() {
         const myTeam = tables[me.div]?.find(t => t.teamId === youId)
         const topScorer = scorers[0] // artilheiro geral da pirâmide (todas as divisões)
         const displayName = user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? me.team
-        await supabase.from('esc_results').upsert({
+        await resilientWrite({ table: 'esc_results', onConflict: 'user_id,season_key', row: {
           user_id: user.id, display_name: displayName,
           mode: state.roomId ? 'online' : 'cpu', season_key: key.slice(0, 48),
           champion: me.champ, top_scorer: topScorer?.teamId === youId,
           goals: myTeam?.gf ?? 0,
-        }, { onConflict: 'user_id,season_key' })
+        } })
       } catch { /* nunca trava o jogo */ }
     })()
   }, [done, state.careerOnline, state.roomId, state.seasonNo, state.seed]) // eslint-disable-line react-hooks/exhaustive-deps

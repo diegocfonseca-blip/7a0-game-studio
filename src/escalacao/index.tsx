@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { flushPendingWrites } from './pending'
 import { EscProvider, useEsc } from './store'
 import { EscIntro, EscSetup, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum, EscRanking } from './screens'
 import { EscLobby } from './lobby'
@@ -39,7 +40,9 @@ function MaintenanceBanner() {
     const check = async () => {
       try {
         const { error } = await supabase.from('user_cards').select('user_id').limit(1) // leitura pública, bem leve
-        if (alive) setDown(!!error && netErr(error.message))
+        const bad = !!error && netErr(error.message)
+        if (alive) setDown(bad)
+        if (!bad) flushPendingWrites() // backend OK: re-tenta cartas/títulos que ficaram pendentes
       } catch (e) {
         if (alive) setDown(netErr(e instanceof Error ? e.message : String(e)))
       }
