@@ -30,7 +30,7 @@ A infraestrutura (banco de dados e autenticação) é operada pela **Supabase**,
 O jogo pode atrair menores de 18 anos. Se você for menor, use o jogo com o conhecimento e a supervisão dos responsáveis. Não direcionamos publicidade de apostas a menores.
 
 ## 6. Seus direitos (LGPD)
-Você pode, a qualquer momento, pedir: **acesso** aos seus dados, **correção**, **exclusão** da conta e dos dados, e **informações** sobre o tratamento. Para exercer, escreva para **[preencha: seu e-mail de contato]**.
+Você pode, a qualquer momento, pedir: **acesso** aos seus dados, **correção**, **exclusão** da conta e dos dados, e **informações** sobre o tratamento. Para exercer, escreva para **diego.c.fonseca@gmail.com**.
 
 ## 7. Retenção
 Guardamos seus dados enquanto sua conta existir. Ao pedir a exclusão, removemos os dados associados à sua conta, salvo o que a lei exigir manter.
@@ -42,4 +42,4 @@ Usamos armazenamento local (`localStorage`) para salvar progresso e sessão. Nã
 Podemos atualizar esta política. A data no topo indica a última versão.
 
 ## 10. Contato
-Dúvidas ou pedidos sobre seus dados: **[preencha: seu e-mail de contato]**.
+Dúvidas ou pedidos sobre seus dados: **diego.c.fonseca@gmail.com**.

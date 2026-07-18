@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { flushPendingWrites } from './pending'
 import { EscProvider, useEsc } from './store'
-import { EscIntro, EscSetup, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum, EscRanking } from './screens'
+import { EscIntro, EscSetup, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum, EscRanking, GameFooter } from './screens'
 import { EscLobby } from './lobby'
 import { AdminPanel } from './admin'
 import { DinastiaGame } from './dinastia'
@@ -92,6 +92,7 @@ export default function EscalacaoGame() {
       <MaintenanceBanner />
       <AnnouncementToast />
       <Router />
+      <GameFooter />{/* rodapé de contato, sutil, no final de todas as telas */}
       <AdminPanel />
       <DinastiaGame />
       <CareerOnlineGame />

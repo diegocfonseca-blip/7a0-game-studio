@@ -35,4 +35,4 @@ Podemos atualizar o jogo e estes Termos. A data no topo indica a última versão
 Estes Termos são regidos pelas leis do **Brasil**.
 
 ## 10. Contato
-Dúvidas: **[preencha: seu e-mail de contato]**.
+Dúvidas: **diego.c.fonseca@gmail.com**.
