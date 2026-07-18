@@ -190,9 +190,14 @@ function Dashboard({ email }: { email: string }) {
   const [updatedAt, setUpdatedAt] = useState<number>(0)
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.rpc('esc_admin_dashboard', { p_days: 30, p_users: 200 })
-    if (error) { setErr(error.message); return }
-    setErr(''); setD(data as Dash); setUpdatedAt(Date.now())
+    try {
+      const { data, error } = await supabase.rpc('esc_admin_dashboard', { p_days: 30, p_users: 200 })
+      if (error) { setErr(error.message); return }
+      setErr(''); setD(data as Dash); setUpdatedAt(Date.now())
+    } catch {
+      // backend fora (instabilidade Supabase): mostra aviso em vez de travar em "Carregando…"
+      setErr('Servidor fora do ar (instabilidade). Re-tentando sozinho a cada 12s…')
+    }
   }, [])
 
   useEffect(() => {

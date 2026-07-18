@@ -2334,20 +2334,26 @@ export function EscAlbum() {
   const { dispatch } = useEsc()
   const [cards, setCards] = useState<AlbumCard[] | null>(null)
   const [anon, setAnon] = useState(false)
+  const [down, setDown] = useState(false) // backend fora do ar — evita travar em "Carregando…"
   const [filter, setFilter] = useState<AlbumFilter>('all')
 
   useEffect(() => {
     ;(async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setCards([]); setAnon(true); return }
-      setAnon(false)
-      const { data } = await supabase.from('user_cards').select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at').eq('user_id', user.id).order('obtained_at', { ascending: false })
-      setCards(((data ?? []) as UserCardRow[]).map(c => ({
-        name: c.card_name, club: c.card_club, year: c.card_year, pos: c.card_pos as Sector, fame: c.card_fame,
-        ...(CARD_META.get(c.card_name) ?? {}),
-        origin: (c.origin === 'cpu' ? 'cpu' : 'online') as 'cpu' | 'online', // cartas antigas (origin nulo) contam como online
-        at: new Date(c.obtained_at).getTime(),
-      })))
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { setCards([]); setAnon(true); return }
+        setAnon(false)
+        const { data } = await supabase.from('user_cards').select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at').eq('user_id', user.id).order('obtained_at', { ascending: false })
+        setCards(((data ?? []) as UserCardRow[]).map(c => ({
+          name: c.card_name, club: c.card_club, year: c.card_year, pos: c.card_pos as Sector, fame: c.card_fame,
+          ...(CARD_META.get(c.card_name) ?? {}),
+          origin: (c.origin === 'cpu' ? 'cpu' : 'online') as 'cpu' | 'online', // cartas antigas (origin nulo) contam como online
+          at: new Date(c.obtained_at).getTime(),
+        })))
+      } catch {
+        // backend fora (instabilidade Supabase): não deixa preso em "Carregando…"
+        setDown(true); setCards([])
+      }
     })()
   }, [])
 
@@ -2392,6 +2398,12 @@ export function EscAlbum() {
       </div>
 
       {loading && <p className="text-center font-bold text-black/60">Carregando…</p>}
+      {down && (
+        <div className="rounded-xl border-2 border-amber-400/70 bg-amber-400/10 px-4 py-3 text-center">
+          <p className="font-black text-sm" style={OSWALD}>🔧 Servidor fora do ar por uns minutos</p>
+          <p className="font-bold text-black/60 text-xs mt-1">Seu álbum está a salvo — é só instabilidade. Volta daqui a pouquinho 💛</p>
+        </div>
+      )}
 
       {/* SEM CONTA: mostra 1 carta de exemplo pra provocar o cadastro (some ao logar) */}
       {!loading && anon && (
@@ -2501,6 +2513,7 @@ export function EscRanking() {
   const { dispatch } = useEsc()
   const [mode, setMode] = useState<RankMode>('geral')
   const [rows, setRows] = useState<RankRow[] | null>(null)
+  const [down, setDown] = useState(false) // backend fora do ar — evita travar em "Carregando…"
   const [meId, setMeId] = useState<string | null>(null)
   const [viewUser, setViewUser] = useState<{ id: string; name: string } | null>(null)
   const [viewCards, setViewCards] = useState<AlbumCard[] | null>(null)
@@ -2508,27 +2521,36 @@ export function EscRanking() {
   // abre o álbum de QUALQUER técnico (user_cards tem leitura pública)
   async function openAlbum(userId: string, name: string) {
     setViewUser({ id: userId, name }); setViewCards(null)
-    const { data } = await supabase.from('user_cards')
-      .select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at')
-      .eq('user_id', userId).order('obtained_at', { ascending: false })
-    const cards = ((data ?? []) as UserCardRow[]).map(c => ({
-      name: c.card_name, club: c.card_club, year: c.card_year, pos: c.card_pos as Sector, fame: c.card_fame,
-      ...(CARD_META.get(c.card_name) ?? {}),
-      origin: (c.origin === 'cpu' ? 'cpu' : 'online') as 'cpu' | 'online',
-      at: new Date(c.obtained_at).getTime(),
-    }))
-    const seen = new Set<string>()
-    setViewCards(cards.filter(c => (seen.has(c.name) ? false : (seen.add(c.name), true))))
+    try {
+      const { data } = await supabase.from('user_cards')
+        .select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at')
+        .eq('user_id', userId).order('obtained_at', { ascending: false })
+      const cards = ((data ?? []) as UserCardRow[]).map(c => ({
+        name: c.card_name, club: c.card_club, year: c.card_year, pos: c.card_pos as Sector, fame: c.card_fame,
+        ...(CARD_META.get(c.card_name) ?? {}),
+        origin: (c.origin === 'cpu' ? 'cpu' : 'online') as 'cpu' | 'online',
+        at: new Date(c.obtained_at).getTime(),
+      }))
+      const seen = new Set<string>()
+      setViewCards(cards.filter(c => (seen.has(c.name) ? false : (seen.add(c.name), true))))
+    } catch {
+      setViewCards([]) // backend fora: não trava em "Carregando…"
+    }
   }
 
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null)) }, [])
   useEffect(() => {
     let alive = true
-    setRows(null)
+    setRows(null); setDown(false)
     ;(async () => {
-      await reconcileCardsToTitles() // acerta cartas↔títulos antes de somar
-      const { data } = await supabase.rpc('esc_ranking', { p_mode: mode })
-      if (alive) setRows(((data ?? []) as RankRow[]))
+      try {
+        await reconcileCardsToTitles() // acerta cartas↔títulos antes de somar
+        const { data } = await supabase.rpc('esc_ranking', { p_mode: mode })
+        if (alive) setRows(((data ?? []) as RankRow[]))
+      } catch {
+        // backend fora: não deixa preso em "Carregando…"
+        if (alive) { setDown(true); setRows([]) }
+      }
     })()
     return () => { alive = false }
   }, [mode])
@@ -2582,7 +2604,13 @@ export function EscRanking() {
       )}
 
       {loading && <p className="text-center font-bold text-black/60">Carregando…</p>}
-      {!loading && shown.length === 0 && (
+      {down && (
+        <Box bg="#fff" className="p-5 text-center">
+          <p className="font-black text-sm" style={OSWALD}>🔧 Servidor fora do ar por uns minutos</p>
+          <p className="font-bold text-black/60 text-xs mt-1">O ranking já volta — é só instabilidade. Tenta de novo daqui a pouco 💛</p>
+        </Box>
+      )}
+      {!loading && !down && shown.length === 0 && (
         <Box bg="#fff" className="p-6 text-center">
           <p className="font-bold text-black/70">Ninguém no ranking ainda. Seja o primeiro campeão! 🔨</p>
         </Box>
