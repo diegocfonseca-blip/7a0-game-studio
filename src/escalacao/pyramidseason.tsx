@@ -1106,6 +1106,9 @@ export function PyramidSeasonScreen() {
     const t = setTimeout(() => setCopaRound(r => r + 1), COPA_ROUND_MS)
     return () => clearTimeout(t)
   }, [copaPlaying, copaRound])
+  // quando a Copa COMEÇA (temporada da liga encerrou), joga todo mundo pra aba
+  // Jogos — é lá que a Copa toca ao vivo, em cima dos jogos. (Uma vez por temporada.)
+  useEffect(() => { if (copaPlaying) setTab('jogos') }, [copaPlaying])
   // escalação (XI) do SEU time pro próximo jogo — pra aba Elenco (substituição)
   const mgrMe = state.managers[state.youIdx]
   const myXI = useMemo(() => (mgrMe ? lineupAt(careerLineup, youId, round, mgrMe.squad) : []), [careerLineup, youId, round, mgrMe])
@@ -1225,8 +1228,7 @@ export function PyramidSeasonScreen() {
             {copaPlaying && <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '5px 0 0' }}>Fim da temporada da liga. Agora começa a <b>Copa Legends</b> — outro campeonato 👇</p>}
           </div>
         )}
-        {/* COPA tocando ao vivo (oitavas → quartas → semi → final), fase por fase */}
-        {copaPlaying && copa && <CopaLive copa={copa} round={copaRound} youColor={myCol.solid} />}
+        {/* A Copa ao vivo agora toca DENTRO da aba Jogos (em cima dos jogos). */}
         {copaFinished && copa?.champion && (
           <button onClick={() => setTab('tabelas')} style={{ width: '100%', ...box('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)'), padding: '10px 12px', marginBottom: 12, textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 26 }}>🏆</span>
@@ -1371,6 +1373,8 @@ export function PyramidSeasonScreen() {
           </>
         ) : tab === 'jogos' && hasMatches ? (
           <>
+            {/* COPA ao vivo EM CIMA dos jogos (oitavas → quartas → semi → final) */}
+            {copaPlaying && copa && <CopaLive copa={copa} round={copaRound} youColor={myCol.solid} />}
             {done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished col={myCol} colors={colors} roundKey={round} />}
             {(() => { // FRASES COM EMOÇÃO (uma linha rotativa): clássico, artilheiro, zuação, queda, liderança
               if (!me) return null
