@@ -58,6 +58,19 @@ function saveRoom(id: string) { try { localStorage.setItem(LS_KEY, id) } catch {
 function clearSavedRoom() { try { localStorage.removeItem(LS_KEY) } catch { /* ignora */ } }
 function loadSavedRoom(): string | null { try { return localStorage.getItem(LS_KEY) } catch { return null } }
 
+// Quando o backend (Supabase) está fora do ar — instabilidade da plataforma
+// ou manutenção — o supabase-js devolve/estoura "Failed to fetch". Em vez de
+// mostrar esse erro cru pro jogador, mostramos um aviso amigável.
+function isBackendDown(msg: string): boolean {
+  return /failed to fetch|networkerror|network request failed|load failed|fetch|502|503|504|timeout|unavailable/i.test(msg)
+}
+function friendlyAuthErr(msg: string): string {
+  if (isBackendDown(msg)) return '🔧 Estamos atualizando novidades no jogo! O servidor volta já já — dá uma passadinha daqui a pouquinho. 💛'
+  if (msg === 'Invalid login credentials') return 'Email ou senha incorretos.'
+  if (/email not confirmed/i.test(msg)) return 'Confirme seu email antes de entrar (olha a caixa de entrada ✉️).'
+  return msg
+}
+
 // Detecta, já na HOME, se o técnico tem uma partida online em andamento pra
 // retomar (sala salva no aparelho + estado ainda vivo no banco). Devolve o
 // código da sala e um `resume()` que reconecta na hora — sem precisar entrar
@@ -426,13 +439,18 @@ export function EscLobby() {
 
   async function handleAuth() {
     setLoading(true); setAuthError('')
-    if (authTab === 'login') {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) setAuthError(error.message === 'Invalid login credentials' ? 'Email ou senha incorretos.' : error.message)
-    } else {
-      if (!displayName.trim()) { setAuthError('Escolha um nome de técnico.'); setLoading(false); return }
-      const { error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: displayName.trim() } } })
-      setAuthError(error ? error.message : '✉️ Verifique seu email pra confirmar o cadastro.')
+    try {
+      if (authTab === 'login') {
+        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        if (error) setAuthError(friendlyAuthErr(error.message))
+      } else {
+        if (!displayName.trim()) { setAuthError('Escolha um nome de técnico.'); setLoading(false); return }
+        const { error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: displayName.trim() } } })
+        setAuthError(error ? friendlyAuthErr(error.message) : '✉️ Verifique seu email pra confirmar o cadastro.')
+      }
+    } catch (e) {
+      // erro de rede que estourou como exceção (backend fora) — trata igual
+      setAuthError(friendlyAuthErr(e instanceof Error ? e.message : String(e)))
     }
     setLoading(false)
   }
@@ -687,7 +705,9 @@ export function EscLobby() {
       <Field label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" />
       <Field label="Senha" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
         onKeyDown={e => e.key === 'Enter' && handleAuth()} />
-      {authError && <p className={`text-sm font-bold ${authError.startsWith('✉️') ? 'text-green-400' : 'text-red-400'}`}>{authError}</p>}
+      {authError && (authError.startsWith('🔧')
+        ? <div className="rounded-xl border-2 border-amber-400/60 bg-amber-400/10 px-3 py-2 text-sm font-bold text-amber-200">{authError}</div>
+        : <p className={`text-sm font-bold ${authError.startsWith('✉️') ? 'text-green-400' : 'text-red-400'}`}>{authError}</p>)}
     </div>
     <Big onClick={handleAuth}>{loading ? '...' : authTab === 'login' ? 'Entrar →' : 'Criar conta →'}</Big>
     <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">← Voltar</button>
