@@ -65,6 +65,7 @@ export function GameFooter() {
           <a href="mailto:diego.c.fonseca@gmail.com" className="text-black/65 underline">✉️ diego.c.fonseca@gmail.com</a>
         </p>
         <p className="text-black/35 text-[11px] font-semibold pt-1">Feito por @diegocfonseca — D7 Studio</p>
+        <p className="text-black/20 text-[10px] font-semibold">v{__BUILD_ID__}</p>
       </footer>
     </div>
   )
