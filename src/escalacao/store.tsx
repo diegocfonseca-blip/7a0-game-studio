@@ -1571,6 +1571,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const m = s.managers.find(x => x.id === action.playerIndex)
       if (!m || !m.isHuman) return s
       m.isHuman = false
+      m.auctionRival = false // vira BOT de preenchimento: fica com o que tinha e NÃO dá mais lance
       if (s.phase === 'envelope' || s.phase === 'resq_envelope') {
         const pos = SECTORS[s.sectorIdx]
         if (humansToSubmit(s, pos).every(id => s.submitted.includes(id))) sealAndResolve(s)
@@ -2571,6 +2572,14 @@ export function EscProvider({ children }: { children: ReactNode }) {
         try { await supabase.from('room_players').delete().eq('room_id', rid) } catch { /* ignora */ }
         try { await supabase.from('game_rooms').delete().eq('id', rid) } catch { /* ignora */ }
       }
+    }
+    // convidado saindo NO MEIO do jogo (leilão/monte/temporada): avisa o host pra
+    // virar o time dele em BOT na hora — ninguém fica esperando ele lacrar. O time
+    // fica com o que já tinha e não dá mais lance (KICK_PLAYER: isHuman/auctionRival false).
+    const inGame = ['auction', 'monte', 'cerimonia', 'season'].includes(st.screen)
+    if (onlineRef.current === 'online' && !isHostRef.current && rid && inGame) {
+      channelRef.current?.send({ type: 'broadcast', event: 'action', payload: { type: 'KICK_PLAYER', playerIndex: st.youIdx } })
+      await new Promise(r => setTimeout(r, 150)) // deixa o aviso sair antes do canal cair
     }
     // trava local: saí de propósito → não deixa o banner "voltar pra sala"
     // reaparecer neste aparelho, mesmo se a passagem de host falhar por rede.
