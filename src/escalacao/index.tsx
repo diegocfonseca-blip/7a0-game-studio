@@ -56,10 +56,34 @@ function MaintenanceBanner() {
   )
 }
 
+// Aviso RÁPIDO (toast): aparece uns segundos quando o jogador abre o jogo e
+// some sozinho. Mostra UMA vez por aparelho (flag) pra não incomodar ninguém.
+// Pra soltar um aviso novo no futuro, é só trocar o ID.
+function AnnouncementToast() {
+  const ID = 'online-back-2026-07'
+  const [show, setShow] = useState(false)
+  useEffect(() => {
+    try { if (localStorage.getItem('esc-annc-' + ID)) return } catch { /* ignora */ }
+    setShow(true)
+    try { localStorage.setItem('esc-annc-' + ID, '1') } catch { /* ignora */ }
+    const t = setTimeout(() => setShow(false), 7000) // some sozinho em ~7s
+    return () => clearTimeout(t)
+  }, [])
+  if (!show) return null
+  return (
+    <div onClick={() => setShow(false)}
+      style={{ position: 'fixed', top: 8, left: 8, right: 8, zIndex: 99998, margin: '0 auto', maxWidth: 520, background: '#16a34a', color: '#fff', border: '3px solid #14361f', borderRadius: 14, padding: '10px 14px', textAlign: 'center', fontWeight: 800, fontSize: 12.5, lineHeight: 1.35, boxShadow: '0 6px 18px rgba(0,0,0,.3)', cursor: 'pointer', animation: 'esc-annc-in .3s ease-out' }}>
+      <style>{'@keyframes esc-annc-in{from{transform:translateY(-16px);opacity:0}to{transform:translateY(0);opacity:1}}'}</style>
+      🟢 Deu bug de tanta gente entrando junto 🤣 — mas o Online já tá no ar! Chama a galera e encare os amigos. Aqui é na estratégia 💪🔨
+    </div>
+  )
+}
+
 export default function EscalacaoGame() {
   return (
     <EscProvider>
       <MaintenanceBanner />
+      <AnnouncementToast />
       <Router />
       <AdminPanel />
       <DinastiaGame />
