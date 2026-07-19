@@ -1669,7 +1669,7 @@ export function ReserveListScreen() {
             <p style={{ fontSize: 12.5, fontWeight: 700, color: '#4a4740', margin: 0, lineHeight: 1.4 }}>
               Quem você lista vai a leilão: se alguém der lance, <b>você ganha as moedas</b> (pode render até mais). Se <b>ninguém comprar</b>, ele vai pro <b>monte valendo METADE</b>.
             </p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '5px 0 0' }}>Obs.: quem vale 1 vira 0 no monte.</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '5px 0 0' }}>Obs.: a metade arredonda pra baixo — então só quem vale <b>1</b> (metade = 0,5) cai pra <b>0</b>.</p>
           </div>
         )}
         {state.isHost ? (
