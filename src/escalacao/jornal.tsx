@@ -130,7 +130,9 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo }: {
   divTop: Record<Div, SeasonScorer | undefined>
   seasonNo: number
 }) {
-  const [open, setOpen] = useState(false)
+  // abre EXPANDIDO por padrão (a manchete é a estrela do fim de temporada);
+  // o "Fechar" recolhe pro botãozinho se a pessoa quiser limpar a tela.
+  const [open, setOpen] = useState(true)
   const [copied, setCopied] = useState(false)
   const mine = tables[me.div]?.find(t => t.you)
   const hl = seasonHeadline(me.div, me.pos, me.team)
