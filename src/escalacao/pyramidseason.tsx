@@ -925,6 +925,9 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { m
             ? <p style={{ fontSize: 11, fontWeight: 700, color: '#6a6658', margin: 0, lineHeight: 1.4 }}>🔒 Na Temporada 1 você joga com os 11. <b style={{ color: GREEN }}>No próximo leilão</b> (no fim desta temporada) você enche o banco de reservas — até 22! 🔨</p>
             : <p style={{ fontSize: 11, fontWeight: 700, color: '#6a6658', margin: 0 }}>Sem reservas no banco.</p>)
         : reserves.map(c => rowOf(c, false))}
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,0.45)', margin: '8px 0 0', lineHeight: 1.4 }}>
+        💡 O nível de cada carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda.
+      </p>
     </div>
   )
 }
