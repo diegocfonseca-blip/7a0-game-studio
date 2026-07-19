@@ -2863,7 +2863,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
       const pyramid = st.careerOnline && st.onlineMode !== 'online'
       const division: string | null = st.careerDivision ?? (pyramid ? (st.careerPlacements?.['m' + youId] ?? 'D') : null)
       const liveMode = st.onlineMode === 'online' ? 'online' : division ? 'career' : 'cpu'
-      const career = division ? { season: st.seasonNo, division } : undefined
+      // caixa + títulos da carreira (pro painel ao vivo): pirâmide usa
+      // careerCoins/careerHonors (títulos de QUALQUER série); antiga usa cash/careerTitles.
+      const hon = st.careerHonors?.['m' + youId]
+      const titles = division ? (pyramid ? (hon ? hon.A + hon.B + hon.C + hon.D : 0) : st.careerTitles) : undefined
+      const coins = division ? Math.round(pyramid ? (st.careerCoins?.[youId] ?? 0) : (st.managers[st.youIdx]?.money ?? 0)) : undefined
+      const career = division ? { season: st.seasonNo, division, coins, titles } : undefined
       // online é sempre baralho brasileiro; solo (rápida/carreira) manda o escolhido
       const deck = liveMode === 'online' ? undefined : st.deckLeague
       heartbeat(liveMode, st.managers[st.youIdx]?.teamName, st.screen, career, deck)
