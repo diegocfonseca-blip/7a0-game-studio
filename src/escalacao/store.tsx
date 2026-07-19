@@ -340,6 +340,13 @@ function perceived(card: Card, rng: () => number): number {
 
 const SECTOR_WEIGHT: Record<Sector, number> = { GOL: 0.12, LAT: 0.15, ZAG: 0.19, MEI: 0.25, ATA: 0.29 }
 
+// quanto um jogador VALE pro bot, pelo nível percebido: perna-de-pau vale
+// centavos, craque vale esticar. É o TETO do lance — bot rico não despeja mais
+// 150 num mediano só porque tem caixa (curva calibrada pra economia de 100-230).
+function fairPrice(v: number): number {
+  return Math.max(1, Math.round(Math.pow(Math.max(0, v - 40) / 10, 1.55) * 3.2))
+}
+
 function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean): (Bid & { cardId: string })[] {
   const pos = SECTORS[sectorIdx]
   const need = openSlots(m, pos)
@@ -352,23 +359,31 @@ function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => nu
   budget = Math.min(budget, m.money)
 
   const ranked = cards.map(c => ({ c, v: perceived(c, rng) })).sort((a, b) => b.v - a.v)
-  // bida SÓ nas vagas que tem (need) — não espalha lance além disso, senão ganha
-  // uma e as outras viram "anulado (setor cheio)". Fim daquele monte de anulados.
-  const targets = ranked.slice(0, need)
+  // bida SÓ nas vagas que tem (need). Percorre o ranking e PULA quem não vale/não
+  // cabe (antes, um piso caro "gastava" a vaga de alvo e o bot nem ofertava no resto).
   const result: (Bid & { cardId: string })[] = []
   let left = budget
-  targets.forEach((t, i) => {
-    if (left <= 0) return
-    const share = m.starHunger > 0.5 ? (i === 0 ? 0.7 : 0.3 / Math.max(1, targets.length - 1)) : 1 / targets.length
+  let wallet = m.money // pode ESTICAR além da fatia do setor pra pechincha de craque
+  for (const t of ranked) {
+    if (result.length >= need || wallet <= 0) break
+    const i = result.length
+    const share = m.starHunger > 0.5 ? (i === 0 ? 0.7 : 0.3 / Math.max(1, need - 1)) : 1 / need
     let amt = Math.max(1, Math.round(budget * share * (0.75 + rng() * 0.5)))
-    amt = Math.min(amt, left)
-    // PISO (valor fixo do jogador): lance abaixo do piso é anulado, então pra
-    // TENTAR levar, paga pelo menos o piso. Se não tem grana pro piso, nem oferta.
+    amt = Math.min(amt, Math.max(1, left))
+    // TETO DE VALOR: o lance nunca passa muito do que o jogador vale pro bot
+    const cap = Math.max(2, Math.round(fairPrice(t.v) * (0.85 + m.aggression * 0.5 + rng() * 0.3)))
+    amt = Math.min(amt, cap)
+    // PISO (valor fixo): compara com o BOLSO INTEIRO, não com a fatia do setor —
+    // craque com piso justo é pechincha e o bot estica pra cobrir. Se o jogador
+    // não vale o piso (listado caro demais), pula e tenta o próximo do ranking.
     const floor = (t.c as { paid?: number }).paid ?? 0
-    if (floor > 0) { if (left < floor) return; amt = Math.max(amt, floor) }
-    amt = Math.min(amt, left)
-    if (amt > 0) { result.push({ mgr: m.id, amount: amt, cardId: t.c.id }); left -= amt }
-  })
+    if (floor > 0) {
+      if (wallet < floor || cap + 3 < floor) continue
+      amt = Math.max(amt, floor)
+    }
+    amt = Math.min(amt, wallet)
+    if (amt > 0) { result.push({ mgr: m.id, amount: amt, cardId: t.c.id }); left -= amt; wallet -= amt }
+  }
   return result
 }
 
