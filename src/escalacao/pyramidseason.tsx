@@ -247,10 +247,10 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
   const goalW = (c: PoolCard) => { const n = Math.max(0, (mid(c) - 40) / 42); return 0.12 + n * n * 1.8 }
   const scoreGoals = (t: SimTeam, xi: PoolCard[], goals: number): { name: string; min: number }[] => {
     const evs: { name: string; min: number }[] = []
-    // "DIA" do jogador (por partida): 0,5×–2× no peso do gol — o folclórico
+    // "DIA" do jogador (por partida): 0,4×–2,6× no peso do gol — o folclórico
     // iluminado rouba a cena hoje; na média da temporada o nível manda.
     const day = new Map<string, number>()
-    for (const c of xi) day.set(c.id, 0.5 + rng() * 1.5)
+    for (const c of xi) day.set(c.id, 0.4 + rng() * 2.2)
     for (let g = 0; g < goals; g++) {
       const pool = xi.map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05) * goalW(c) * (day.get(c.id) ?? 1) }))
       const total = pool.reduce((s, p) => s + p.w, 0)
@@ -361,7 +361,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     const evs: { name: string; min: number }[] = []
     // "dia" do jogador também na Copa (por jogo)
     const day = new Map<string, number>()
-    for (const c of xi) day.set(c.id, 0.5 + rng() * 1.5)
+    for (const c of xi) day.set(c.id, 0.4 + rng() * 2.2)
     for (let g = 0; g < goals; g++) {
       const pool = xi.map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05) * goalW(c) * (day.get(c.id) ?? 1) }))
       const total = pool.reduce((s, p) => s + p.w, 0); let r = rng() * total, pick = pool[0]?.c

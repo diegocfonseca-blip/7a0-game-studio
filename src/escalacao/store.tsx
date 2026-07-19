@@ -816,10 +816,10 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   // atribui os gols a um jogador real e credita na artilharia da temporada
   const creditGoals = (id: number, goals: number, prefix: string) => {
     const m = state.managers.find(x => x.id === id)
-    // "DIA" do jogador (por PARTIDA): sorte de 0,5× a 2× no peso do gol — o Obina
+    // "DIA" do jogador (por PARTIDA): sorte de 0,4× a 2,6× no peso do gol — o Obina
     // iluminado pode roubar a cena do craque HOJE; na média o nível manda.
     const day = new Map<string, number>()
-    if (m) for (const c of m.squad) day.set(c.id, 0.5 + rng() * 1.5)
+    if (m) for (const c of m.squad) day.set(c.id, 0.4 + rng() * 2.2)
     for (let g = 0; g < goals; g++) {
       // ~8% de chance de cair nos acréscimos (90+1 a 90+6)
       const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 6) : 1 + Math.floor(rng() * 90)
