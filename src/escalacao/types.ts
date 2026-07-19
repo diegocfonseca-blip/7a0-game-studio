@@ -246,6 +246,8 @@ export interface EscState {
   copaDoneSeason?: number // pirâmide: nº da temporada cuja Copa Legends JÁ foi assistida até o fim — ao retomar o save, não re-anima a Copa do zero (mostra direto os campeões/decisão).
   stadiums?: Record<number, { inv: Record<string, number>; ext: string[] }> // 🏟️ estádio da carreira por técnico (mgrId): moedas investidas por setor + melhorias prontas. Rende no fim de cada temporada.
   careerCopaHonors?: Record<string, number> // 🏆 títulos da COPA LEGENDS por time (teamKey → nº de Copas) — o campeão agora fica registrado, não só embolsa as moedas
+  marketRecent?: string[] // mercado da carreira: nomes sorteados nos últimos leilões — evita repetir os MESMOS famosos toda temporada
+  everListed?: Record<string, number> // carreira: quantas vezes cada jogador (ident) já foi LISTADO — encalhou e relistou, o piso cai 30% por tentativa (o mercado reage)
   cpuSquads?: Record<string, Card[]> // pirâmide: a "ficha" (elenco guardado) dos 60 times de fundo, por NOME. Antes eram recalculados na hora (receita fixa); agora têm MEMÓRIA — 11 fixos que só o mercado mexe (troca), pra negociarem de verdade. Reserva de bot só quando houver mais cartas. Semeado 1x pela receita determinística.
   dinastia?: boolean // modo Dinastia (teste): usa o leilão real; a economia assume após a cerimônia
   dinastiaBudget?: number // orçamento (moedas do clube) que o pregão do Dinastia usa
