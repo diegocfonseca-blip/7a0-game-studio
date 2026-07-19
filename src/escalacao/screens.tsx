@@ -2371,14 +2371,15 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed }: {
   if (status === 'noauth') {
     return (
       <Box bg={GOLD} className="p-5 text-center" shadow={6}>
-        <p className="font-black text-lg" style={OSWALD}>🎴 Você foi campeão!</p>
-        <p className="text-xs font-bold text-black/70 mt-1 mb-3">Campeão leva uma <b>carta-lembrança</b> pro álbum — tipo essa aqui 👇. Mas só quem tem conta guarda. Faça um <b>cadastro rápido</b> (só e-mail e senha) pra colecionar craques de verdade — vale no CPU e no online.</p>
+        <p className="font-black text-2xl" style={OSWALD}>🎁 Você foi campeão!</p>
+        <p className="text-sm font-bold text-black/75 mt-1 mb-3">Todo campeão abre um <b>PACOTE SURPRESA</b> e leva uma carta colecionável pro álbum — tipo essa 👇</p>
         <motion.div initial={{ rotateY: 90, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.7, type: 'spring', bounce: 0.35 }}
-          className="mx-auto mb-3" style={{ maxWidth: 200 }}>
-          <CollectibleCard name="Rayan Oi, Boa Noite" club="Vasco" year={2025} pos="ATA" fame={3} promessa big />
+          className="mx-auto mb-3" style={{ maxWidth: 220 }}>
+          <CollectibleCard name="Pelé" club="Santos" year={1962} pos="ATA" fame={5} big />
         </motion.div>
-        <p className="text-[11px] font-bold text-black/55 mb-3">☝️ Essa é só um exemplo. Ao criar a conta você abre um <b>pacote surpresa</b> com uma carta de verdade — sorteada entre todas as cartas do jogo.</p>
-        <Btn onClick={() => setAuthOpen(true)} bg={GREEN} className="w-full text-lg"><span className="text-white">Criar conta grátis e escolher →</span></Btn>
+        <p className="text-xs font-bold text-black/65 mb-3">☝️ Exemplo. A sua é <b>sorteada entre TODAS as cartas do jogo</b> — pode vir uma lenda dourada dessas! Mas <b>só quem tem conta guarda a carta</b>.</p>
+        <Btn onClick={() => setAuthOpen(true)} bg={GREEN} className="w-full text-lg"><span className="text-white">Criar conta grátis e abrir o pacote 🎁</span></Btn>
+        <p className="text-[11px] font-bold text-black/55 mt-2">Cadastro rápido: só e-mail e senha. Vale no CPU e no online.</p>
         {authOpen && <CareerAuthModal onClose={() => setAuthOpen(false)} onDone={() => {
           // logou sem sair da tela: reseta o cronômetro e re-checa → cai no pega-carta REAL do time campeão
           setAuthOpen(false); setDeadline(Date.now() + CARD_PICK_SECONDS * 1000); setStatus('checking'); setReload(r => r + 1)
