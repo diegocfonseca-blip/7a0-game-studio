@@ -966,13 +966,13 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
 // TÍTULOS (Série A → B → C → D) e depois DINHEIRO, com desempate em cascata. ──
 type Honors = { A: number; B: number; C: number; D: number }
 const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0 }
-function RankingTab({ tables, honors, coins, clubCash, colors, youId }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number }) {
+function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number }) {
   const rows = DIVS.flatMap(d => tables[d]).map(t => {
     const key = teamKey(t)
     const oldKey = OLD_NAME[key] // save antigo pode ter caixa/títulos no nome VELHO do time renomeado
     // humano tem caixa em careerCoins (por id); todo bot tem em clubCash (teamKey).
     const money = t.human ? (coins[t.teamId] ?? 0) : Math.round(clubCash[key] ?? (oldKey ? clubCash[oldKey] : undefined) ?? 0)
-    return { t, key, h: honors[key] ?? (oldKey ? honors[oldKey] : undefined) ?? EMPTY_HONORS, money }
+    return { t, key, h: honors[key] ?? (oldKey ? honors[oldKey] : undefined) ?? EMPTY_HONORS, copas: copaHonors[key] ?? (oldKey ? copaHonors[oldKey] : undefined) ?? 0, money }
   })
   rows.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
   const top = rows.slice(0, 20)
@@ -992,9 +992,12 @@ function RankingTab({ tables, honors, coins, clubCash, colors, youId }: { tables
                 <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>{i + 1}</td>
                 <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: fc?.solid ?? INK }}>{you ? '👤 ' : r.t.rival ? '⚔️ ' : r.t.human ? '🔥 ' : ''}{r.t.name}</td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
-                  {(r.h.A + r.h.B + r.h.C + r.h.D) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : (['A', 'B', 'C', 'D'] as Div[]).map(d => r.h[d] > 0 ? (
-                    <span key={d} style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG[d].l}{r.h[d]}</span>
-                  ) : null)}
+                  {(r.h.A + r.h.B + r.h.C + r.h.D + r.copas) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
+                    {r.copas > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: INK, background: GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆Copa{r.copas > 1 ? r.copas : ''}</span>}
+                    {(['A', 'B', 'C', 'D'] as Div[]).map(d => r.h[d] > 0 ? (
+                      <span key={d} style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG[d].l}{r.h[d]}</span>
+                    ) : null)}
+                  </>}
                 </td>
                 <td style={{ textAlign: 'right', fontWeight: 900, whiteSpace: 'nowrap', color: '#5a5647' }}>{r.money}</td>
               </tr>
@@ -1322,7 +1325,7 @@ export function PyramidSeasonScreen() {
   useEffect(() => {
     if (!done || !state.careerOnline) return
     if ((state.statsSeason ?? 0) >= state.seasonNo) return
-    dispatch({ type: 'RECORD_SEASON_STATS', scorers })
+    dispatch({ type: 'RECORD_SEASON_STATS', scorers: scorersAll.slice(0, 60) })
   }, [done, state.careerOnline, state.seasonNo, state.statsSeason]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // MATERIALIZA a ficha dos 60 times de fundo (1x): antes eram recalculados na
@@ -1459,7 +1462,7 @@ export function PyramidSeasonScreen() {
           const sb = scorerRewards(divTop)
           const cr = copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }) // campeão +25 · vice +15 · artilheiro +16 (caixa+piso)
           const mrg = (a: Record<string | number, number>, b: Record<string | number, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
-          const args = () => ({ placements: computePromotions(tables), rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values) })
+          const args = () => ({ placements: computePromotions(tables), rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           const openMesmo = () => dispatch({ type: 'NEXT_SEASON_ONLINE', ...args() })
           // JOGO SOLO (host sozinho): sem votação, começa direto como antes.
@@ -1549,7 +1552,7 @@ export function PyramidSeasonScreen() {
               ))}
             </div>
             {rankSub === 'clubes' ? (
-              <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} />
+              <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} />
             ) : (
               <>
                 {/* durante a Copa (fim de temporada), a artilharia da COPA entra no
