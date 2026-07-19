@@ -19,7 +19,10 @@ const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
 type DailyRow = { day: string; plays: number; cpu: number; online: number; visits: number }
 type UserRow = { name: string; sid: string; total: number; today: number; last_play: string; registered: boolean }
-type LiveRow = { name: string; mode: string; screen: string; playing: boolean; ago: number; careerSeason?: number | null; careerDivision?: string | null; deckLeague?: string | null; registered?: boolean; careerCoins?: number | null; careerTitles?: number | null }
+type LiveRow = { name: string; mode: string; screen: string; playing: boolean; ago: number; careerSeason?: number | null; careerDivision?: string | null; deckLeague?: string | null; registered?: boolean; careerCoins?: number | null; careerTitles?: number | null; uid?: string | null }
+// elenco da carreira de um usuário CADASTRADO (lido do save na nuvem, só admin)
+type SquadCard = { name: string; pos: string; lo?: number; hi?: number; paid?: number; fame?: number; fake?: boolean; reforco?: boolean }
+type SquadView = { team: string; season?: number; division?: string | null; coins?: string | null; formation?: string; updated?: string; squad: SquadCard[] }
 type CareerRow = { name: string; division: string; season: number; titles: number; updated: string }
 type Dash = {
   online_now: number; playing_now: number; live_list: LiveRow[]
@@ -188,6 +191,16 @@ function Dashboard({ email }: { email: string }) {
   const [d, setD] = useState<Dash | null>(null)
   const [err, setErr] = useState('')
   const [updatedAt, setUpdatedAt] = useState<number>(0)
+  // 👀 espiar o ELENCO da carreira de quem tem conta (save na nuvem, só admin)
+  const [squad, setSquad] = useState<{ name: string; loading: boolean; data?: SquadView | null } | null>(null)
+  const openSquad = async (p: LiveRow) => {
+    if (!p.uid) return
+    setSquad({ name: p.name, loading: true })
+    try {
+      const { data, error } = await supabase.rpc('esc_admin_career_squad', { p_user: p.uid })
+      setSquad({ name: p.name, loading: false, data: error ? null : (data as SquadView | null) })
+    } catch { setSquad({ name: p.name, loading: false, data: null }) }
+  }
 
   const load = useCallback(async () => {
     try {
@@ -220,6 +233,37 @@ function Dashboard({ email }: { email: string }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* 👀 modal do ELENCO (carreira de usuário cadastrado, lido da nuvem) */}
+      {squad && (
+        <div onClick={() => setSquad(null)} style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#161616', border: `2px solid ${GOLD}`, borderRadius: 14, padding: 16, width: '100%', maxWidth: 440, maxHeight: '82vh', overflowY: 'auto', color: '#eee' }}>
+            {squad.loading ? <p style={{ opacity: .7 }}>Buscando o elenco de <b>{squad.name}</b>…</p>
+            : !squad.data ? <p style={{ opacity: .7 }}>Sem save na nuvem pra <b>{squad.name}</b> (a carreira pode ser de antes do login, ou o SQL ainda não foi rodado).</p>
+            : (() => {
+              const v = squad.data
+              const ORD = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
+              const list = [...(v.squad ?? [])].sort((a, b) => (ORD.indexOf(a.pos) - ORD.indexOf(b.pos)) || (((b.lo ?? 0) + (b.hi ?? 0)) - ((a.lo ?? 0) + (a.hi ?? 0))))
+              return (
+                <>
+                  <p style={{ fontWeight: 800, fontSize: 17, margin: '0 0 2px', ...OSWALD }}>🪜 {v.team || squad.name}</p>
+                  <p style={{ fontSize: 12, opacity: .7, margin: '0 0 10px' }}>
+                    {v.division ? `${DIV_LABEL[v.division] ?? v.division} · ` : ''}T{v.season ?? '?'}{v.coins != null ? ` · 💰 ${v.coins}` : ''}{v.formation ? ` · ${v.formation}` : ''} · {list.length} jogadores
+                  </p>
+                  {list.map((c, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 13, padding: '4px 0', borderTop: '1px solid rgba(255,255,255,.08)', opacity: c.fake ? .45 : 1 }}>
+                      <span style={{ flex: 'none', width: 34, fontWeight: 800, fontSize: 10.5, color: GOLD }}>{c.pos}</span>
+                      <span style={{ fontWeight: 700, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}{c.reforco ? ' 🆕' : ''}{c.fake ? ' (zé)' : ''}</span>
+                      <span style={{ marginLeft: 'auto', flex: 'none', fontSize: 11.5, opacity: .75 }}>nv {c.lo ?? '?'}–{c.hi ?? '?'}</span>
+                      {(c.paid ?? 0) > 0 && <span style={{ flex: 'none', fontSize: 11.5, color: '#7FE3A0', fontWeight: 700 }}>💰{c.paid}</span>}
+                    </div>
+                  ))}
+                  <button onClick={() => setSquad(null)} style={{ marginTop: 12, width: '100%', background: GOLD, color: INK, border: 'none', borderRadius: 9, padding: 10, fontWeight: 800, fontSize: 13, cursor: 'pointer', ...OSWALD }}>Fechar</button>
+                </>
+              )
+            })()}
+          </div>
+        </div>
+      )}
       {/* AO VIVO NO SITE */}
       <div style={{ ...card(), borderColor: d.online_now > 0 ? '#2E9E5B' : '#333' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -245,7 +289,10 @@ function Dashboard({ email }: { email: string }) {
             {d.live_list.map((p, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, opacity: 0.92 }}>
                 <span>
-                  {p.playing ? (MODE_ICON[p.mode] || '🤖') : '👀'} <b>{p.name}</b>
+                  {p.playing ? (MODE_ICON[p.mode] || '🤖') : '👀'}{' '}
+                  {p.mode === 'career' && p.registered && p.uid
+                    ? <b onClick={() => openSquad(p)} title="ver elenco (só admin)" style={{ cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(245,179,1,.6)' }}>{p.name}</b>
+                    : <b>{p.name}</b>}
                   {p.registered === true ? <span title="tem conta"> 🔑</span> : p.registered === false ? <span title="anônimo (sem conta)" style={{ opacity: 0.7 }}> 👤</span> : null}
                   <span style={{ opacity: 0.6 }}> · {SCREEN_LABEL[p.screen] || p.screen}</span>
                   {p.playing && <span style={{ opacity: 0.6 }}> · {MODE_LABEL[p.mode] || p.mode}</span>}
