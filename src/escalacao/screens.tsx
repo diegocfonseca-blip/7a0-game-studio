@@ -1008,6 +1008,13 @@ function Envelope() {
               ? <>Sobras do setor, última chance de pagar por elas. Só quem ficou com buraco participa. Suas vagas: <b>{myOpen}</b>.</>
               : 'Lance cego: distribua suas moedas em segredo. Ninguém vê nada até a revelação.'}
           </p>
+          {/* dica de leitura das cartas — só no PRIMEIRO setor pra não poluir:
+              muita gente vê "Vini Jr · Flamengo" e acha que é o craque de hoje */}
+          {!rescue && state.sectorIdx === 0 && (
+            <p className="text-[11px] font-bold text-black/55 mt-1 leading-snug">
+              💡 O nível da carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda. Repara no clube e no ano antes do lance!
+            </p>
+          )}
           {!rescue && totalBatches > 1 && (
             <div className="mt-1.5 inline-flex items-center gap-1.5 border-[3px] border-black rounded-full px-3 py-1"
               style={{ backgroundColor: '#2E6FB0', boxShadow: `2px 2px 0 0 ${INK}` }}>
