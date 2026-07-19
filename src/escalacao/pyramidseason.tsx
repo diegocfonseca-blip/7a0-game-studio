@@ -872,15 +872,19 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { m
   // linha compartilhada titular/reserva: no campinho o nome já mal cabe, então o
   // clube · ano (que diferencia o Kaká do SP do Kaká do Milan) vive AQUI nas
   // listas — e a troca funciona igual: toca num, acende os da mesma posição.
+  // linha COMPACTA (meia largura): nome em cima, clube · ano embaixo — assim as
+  // duas listas cabem lado a lado no celular sem cortar nada importante.
   const rowOf = (c: WonCard, titular: boolean) => { const st = stateOf(c); return (
-    <div key={c.id} onClick={() => onTap?.(c.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '5px 8px', borderRadius: 6, background: st === 'sel' ? '#FFF6D6' : titular ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.55)', border: `2px solid ${st === 'idle' ? 'transparent' : borderOf(st)}`, marginBottom: 3, opacity: st === 'dim' ? 0.5 : 1, cursor: onTap ? 'pointer' : 'default' }}>
-      <span style={{ fontWeight: titular ? 800 : 700, fontSize: 12, ...OSWALD, color: titular ? INK : '#4a4740', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
-        <span style={{ fontWeight: 900, fontSize: 9, color: col.solid, marginRight: 5 }}>{c.pos}</span>{c.name}
-        <span style={{ fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,0.45)', marginLeft: 5 }}>{c.club} · {c.year}</span>
+    <div key={c.id} onClick={() => onTap?.(c.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, padding: '4px 6px', borderRadius: 6, background: st === 'sel' ? '#FFF6D6' : titular ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.55)', border: `2px solid ${st === 'idle' ? 'transparent' : borderOf(st)}`, marginBottom: 3, opacity: st === 'dim' ? 0.5 : 1, cursor: onTap ? 'pointer' : 'default' }}>
+      <span style={{ minWidth: 0 }}>
+        <span style={{ display: 'block', fontWeight: titular ? 800 : 700, fontSize: 11.5, ...OSWALD, color: titular ? INK : '#4a4740', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <span style={{ fontWeight: 900, fontSize: 8.5, color: col.solid, marginRight: 4 }}>{c.pos}</span>{c.name}
+        </span>
+        <span style={{ display: 'block', fontWeight: 700, fontSize: 9, color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.club} · {c.year}</span>
       </span>
-      <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-        {goalsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: GREEN }}>⚽ {goalsOf(c)}</span>}
-        <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: '#5a5647' }}>💰 {c.paid ?? 0}</span>
+      <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0, lineHeight: 1.2 }}>
+        {goalsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: GREEN }}>⚽ {goalsOf(c)}</span>}
+        <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#5a5647' }}>💰 {c.paid ?? 0}</span>
       </span>
     </div>
   ) }
@@ -909,22 +913,24 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { m
           ))}
         </div>
       </div>
-      {/* TITULARES em lista: no campinho não cabe o clube · ano, então a lista
-          mostra — e também troca (toca no titular aqui OU no campinho, tanto faz) */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, flexWrap: 'wrap', margin: '2px 0 6px' }}>
-        <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, color: INK, margin: 0, textTransform: 'uppercase', letterSpacing: 0.3 }}>⭐ Titulares ({titulares.length})</p>
-        {onTap && <span style={{ fontSize: 11, fontWeight: 800, color: GREEN, ...OSWALD }}>· toque pra trocar por um reserva</span>}
+      {/* TITULARES e RESERVAS lado a lado: no campinho não cabe o clube · ano,
+          então as listas mostram — e a troca funciona nos dois lugares (toca num
+          jogador de qualquer lista OU do campinho e completa no outro). */}
+      {onTap && <p style={{ fontSize: 10.5, fontWeight: 800, color: GREEN, ...OSWALD, margin: '2px 0 6px' }}>· toque num jogador e depois no outro pra trocar — vale campinho e listas</p>}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, alignItems: 'start' }}>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, color: INK, margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: 0.3 }}>⭐ Titulares ({titulares.length})</p>
+          {titulares.map(c => rowOf(c, true))}
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, color: INK, margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: 0.3 }}>🔁 Reservas ({reserves.length})</p>
+          {reserves.length === 0
+            ? (seasonNo === 1
+                ? <p style={{ fontSize: 10.5, fontWeight: 700, color: '#6a6658', margin: 0, lineHeight: 1.4 }}>🔒 Na Temporada 1 você joga com os 11. <b style={{ color: GREEN }}>No próximo leilão</b> (no fim desta temporada) você enche o banco — até 22! 🔨</p>
+                : <p style={{ fontSize: 10.5, fontWeight: 700, color: '#6a6658', margin: 0 }}>Sem reservas no banco.</p>)
+            : reserves.map(c => rowOf(c, false))}
+        </div>
       </div>
-      <div style={{ marginBottom: 10 }}>{titulares.map(c => rowOf(c, true))}</div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, flexWrap: 'wrap', margin: '2px 0 6px' }}>
-        <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, color: INK, margin: 0, textTransform: 'uppercase', letterSpacing: 0.3 }}>🔁 Reservas ({reserves.length})</p>
-        {onTap && <span style={{ fontSize: 11, fontWeight: 800, color: GREEN, ...OSWALD }}>· toque pra subir ao time titular</span>}
-      </div>
-      {reserves.length === 0
-        ? (seasonNo === 1
-            ? <p style={{ fontSize: 11, fontWeight: 700, color: '#6a6658', margin: 0, lineHeight: 1.4 }}>🔒 Na Temporada 1 você joga com os 11. <b style={{ color: GREEN }}>No próximo leilão</b> (no fim desta temporada) você enche o banco de reservas — até 22! 🔨</p>
-            : <p style={{ fontSize: 11, fontWeight: 700, color: '#6a6658', margin: 0 }}>Sem reservas no banco.</p>)
-        : reserves.map(c => rowOf(c, false))}
       <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,0.45)', margin: '8px 0 0', lineHeight: 1.4 }}>
         💡 O nível de cada carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda.
       </p>
