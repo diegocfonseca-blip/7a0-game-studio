@@ -296,7 +296,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const tables = {} as Record<Div, SimTeam[]>
   const matches = {} as Record<Div, SimMatch[]>
@@ -313,7 +313,8 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
   // ARTILHEIRO de cada divisão (o #1 em gols) — pra premiar time + subir piso
   const divTop = {} as Record<Div, SeasonScorer | undefined>
   for (const s of scorers.values()) if (s.goals > 0 && (!divTop[s.div] || s.goals > divTop[s.div]!.goals)) divTop[s.div] = s
-  return { tables, scorers: [...scorers.values()].sort((a, b) => b.goals - a.goals).slice(0, 20), matches, goalsByCard, divTop }
+  const sorted = [...scorers.values()].sort((a, b) => b.goals - a.goals)
+  return { tables, scorers: sorted.slice(0, 20), scorersAll: sorted, matches, goalsByCard, divTop }
 }
 // prêmio do artilheiro por divisão: dinheiro pro TIME + o mesmo tanto no PISO do
 // jogador. D 4 · C 8 · B 12 · A 16. Vale offline/online, rival/bot/humano.
@@ -1206,7 +1207,7 @@ export function PyramidSeasonScreen() {
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const careerLineup = (state.careerLineup ?? {}) as RoundLineups
   const live = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics, careerLineup), [world, state.seed, round, careerTactics, careerLineup])
-  const { scorers, matches, goalsByCard, divTop } = live
+  const { scorers, scorersAll, matches, goalsByCard, divTop } = live
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
   // está animando na sua tela — os pontos só entram quando o relógio dela acaba.
   // `revealed` = rodada cuja pontuação já pode aparecer (a atual só depois da anim).
@@ -1505,7 +1506,7 @@ export function PyramidSeasonScreen() {
                     lugar da artilharia das divisões; o "todos os tempos" fica embaixo. */}
                 {done && copa && copa.scorers.length > 0
                   ? <ArtilhariaBox scorers={copa.scorers} colors={colors} title="🏆 ARTILHARIA · COPA LEGENDS" sub="Gols do mata-mata da Copa — top 20." foot="🏅 O artilheiro da Copa rende +16 ao clube e sobe +16 no piso do jogador." />
-                  : <ArtilhariaByDiv scorers={scorers} colors={colors} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual — top 5 de cada série." foot="🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Série D +4 · C +8 · B +12 · A +16." />}
+                  : <ArtilhariaByDiv scorers={scorersAll} colors={colors} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual — top 5 de cada série." foot="🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Série D +4 · C +8 · B +12 · A +16." />}
                 <ArtilhariaBox scorers={allTimeScorers} colors={colors} title="🏆 ARTILHARIA · TODOS OS TEMPOS" sub="Gols somados de todas as temporadas da sala — top 20." foot={allTimeScorers.length === 0 ? 'Começa a contar a partir de agora.' : undefined} />
               </>
             )}
