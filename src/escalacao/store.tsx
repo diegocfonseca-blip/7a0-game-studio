@@ -356,7 +356,11 @@ function fairPrice(v: number): number {
 
 function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean): (Bid & { cardId: string })[] {
   const pos = SECTORS[sectorIdx]
-  const need = openSlots(m, pos)
+  // FAKE NÃO SEGURA VAGA (só CPU): incógnito no elenco conta como vaga aberta —
+  // o bot briga por jogador REAL e, se estourar o teto, o fake é dispensado no
+  // fim (FINISH_CEREMONY). Humano decide sozinho, então segue só com openSlots.
+  const fakeSlots = m.isHuman ? 0 : m.squad.filter(c => c.pos === pos && c.fake).length
+  const need = Math.min(slotsOf(m, pos), openSlots(m, pos) + fakeSlots)
   if (need === 0 || m.money <= 0) return []
   const remaining = SECTORS.slice(sectorIdx).reduce((s, p) => s + SECTOR_WEIGHT[p], 0)
   const shape = 0.65 + m.aggression * 0.8
@@ -373,6 +377,9 @@ function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => nu
   let wallet = m.money // pode ESTICAR além da fatia do setor pra pechincha de craque
   for (const t of ranked) {
     if (result.length >= need || wallet <= 0) break
+    // quem LISTOU o jogador por livre vontade (rival) não o recompra — vendeu
+    // porque quis. Recomprar o próprio é só do bot do MERCADO (perda sorteada).
+    if ((t.c as Card).seller === m.id && !m.marketCpu && !m.backstop) continue
     const i = result.length
     const share = m.starHunger > 0.5 ? (i === 0 ? 0.7 : 0.3 / Math.max(1, need - 1)) : 1 / need
     let amt = Math.max(1, Math.round(budget * share * (0.75 + rng() * 0.5)))
@@ -1385,16 +1392,14 @@ function sealAndResolve(state: EscState) {
       if (hb.amount > 0) pushBid(bidMap, hb.cardId, { mgr: mgrId, amount: hb.amount })
     }
   }
-  // BOT (carreira online): os bots QUE PERDERAM jogador NESTA posição pro leilão
-  // (marketSellers[pos]) entram disputando JUNTO com todo mundo — sem mais a regra
-  // do 0/1. Cada um decide sozinho (via cpuEnvelope) se compra e por quanto;
-  // participam SÓ da posição do jogador que perderam. Pagam com a caixa deles.
+  // BOT (carreira online): os bots do MERCADO (que perderam jogador sorteado ou
+  // entraram como fiadores) agora disputam o leilão INTEIRO — repõem a perda E
+  // podem pegar reservas em qualquer posição, como um técnico de verdade. Cada
+  // um decide sozinho (cpuEnvelope) se compra e por quanto; pagam com a caixa.
   if (state.careerOnline) {
-    const pos = SECTORS[state.sectorIdx]
-    const bidderIds = new Set(state.marketSellers?.[pos] ?? [])
-    if (bidderIds.size > 0) {
+    {
       for (const m of state.managers) {
-        if (!bidderIds.has(m.id)) continue
+        if (m.isHuman || !(m.backstop || m.marketCpu)) continue
         // MONEY-SMART: o bot reserva grana pra CADA vaga que ainda precisa preencher.
         // Nunca estoura num jogador só (ex.: 80 de caixa, 8 vagas → ~10 por vaga,
         // teto ~16 num jogador que quer). Com poucas vagas, pode pagar mais.
@@ -1925,6 +1930,18 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'FINISH_CEREMONY': {
       if (s.screen !== 'cerimonia') return s
       s.cerimoniaDeadline = null
+      // FAKE DÁ LUGAR: bot que contratou jogador REAL e estourou o teto da posição
+      // dispensa o incógnito mais fraco (nunca um real) até caber no elenco.
+      if (s.careerOnline) for (const m of s.managers) {
+        if (m.isHuman) continue
+        for (const pos of SECTORS) {
+          while (filled(m, pos) > slotsOf(m, pos) && m.squad.some(c => c.pos === pos && c.fake)) {
+            const fakes = m.squad.filter(c => c.pos === pos && c.fake).sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi))
+            const worst = fakes[0]
+            m.squad = m.squad.filter(c => c.id !== worst.id)
+          }
+        }
+      }
       // MERCADO DOS 80: fecha a ficha dos times de fundo que entraram como
       // participantes TEMPORÁRIOS — completa em 11 com filler (se não repôs) e guarda
       // caixa + elenco. A troca "cola" pra próxima temporada. Depois eles saem.
@@ -2258,7 +2275,7 @@ export function reducer(state: EscState, action: Action): EscState {
             const div = (s.careerPlacements?.[name] as 'A' | 'B' | 'C' | 'D') ?? 'C'
             // 4-3-3: é a formação em que as fichas de fundo são montadas (1/2/2/3/3),
             // então o "completar em 11" bate exato — nada de sobrar jogador.
-            m = { id: tmpId--, name, teamName: name, isHuman: false, auctionRival: false, marketCpu: true, marketTeam: name,
+            m = { id: tmpId--, name, teamName: name, isHuman: false, auctionRival: false, marketCpu: true, marketTeam: name, deepSquad: true,
               formation: '4-3-3', money: s.clubCash?.[name] ?? DIV_BASE_CASH[div] ?? 100,
               squad: (cpuSq[name] ?? []).map(c => ({ ...c, paid: (c as WonCard).paid ?? 0, via: (c as WonCard).via ?? 'bot' })) as WonCard[],
               aggression: 0.25 + rng() * 0.6, starHunger: rng() }
@@ -2329,7 +2346,7 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const m of s.managers) {
         if (m.isHuman) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
         else if (m.rival) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // rival = "humano": enche banco, gasta clubCash
-        else if (m.backstop) { m.money = cash['m' + m.id] ?? 100 } // bot fica em 11 (sem reserva por enquanto); só a caixa pra repor o que perdeu
+        else if (m.backstop) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // LIBERADO: além de repor, pode pegar reserva (mira 22 como todo mundo)
       }
       s.surpriseId = pickSurprise(s.deck, rng)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
