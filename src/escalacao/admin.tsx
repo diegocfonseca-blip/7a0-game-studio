@@ -19,7 +19,7 @@ const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
 type DailyRow = { day: string; plays: number; cpu: number; online: number; visits: number }
 type UserRow = { name: string; sid: string; total: number; today: number; last_play: string; registered: boolean }
-type LiveRow = { name: string; mode: string; screen: string; playing: boolean; ago: number; careerSeason?: number | null; careerDivision?: string | null; deckLeague?: string | null; registered?: boolean }
+type LiveRow = { name: string; mode: string; screen: string; playing: boolean; ago: number; careerSeason?: number | null; careerDivision?: string | null; deckLeague?: string | null; registered?: boolean; careerCoins?: number | null; careerTitles?: number | null }
 type CareerRow = { name: string; division: string; season: number; titles: number; updated: string }
 type Dash = {
   online_now: number; playing_now: number; live_list: LiveRow[]
@@ -252,9 +252,17 @@ function Dashboard({ email }: { email: string }) {
                   {p.mode === 'career' && p.careerDivision && (
                     <span style={{ opacity: 0.85, color: '#C9A9FF', fontWeight: 700 }}> · {DIV_LABEL[p.careerDivision] || p.careerDivision} · T{p.careerSeason ?? 1}</span>
                   )}
-                  {p.mode === 'career' && (titlesByName.get(p.name.trim().toLowerCase()) ?? 0) > 0 && (
-                    <span style={{ color: GOLD, fontWeight: 800 }}> · 🏆 {titlesByName.get(p.name.trim().toLowerCase())}</span>
+                  {/* 💰 caixa atual + 🏆 títulos (qualquer série) — vêm do próprio
+                      batimento, então funciona pra anônimo e pra pirâmide também.
+                      Sem o dado novo (app antigo), cai no fallback por nome. */}
+                  {p.mode === 'career' && typeof p.careerCoins === 'number' && (
+                    <span style={{ color: '#7FE3A0', fontWeight: 800 }}> · 💰 {p.careerCoins}</span>
                   )}
+                  {p.mode === 'career' && ((p.careerTitles ?? -1) > 0
+                    ? <span style={{ color: GOLD, fontWeight: 800 }}> · 🏆 {p.careerTitles}</span>
+                    : p.careerTitles == null && (titlesByName.get(p.name.trim().toLowerCase()) ?? 0) > 0
+                      ? <span style={{ color: GOLD, fontWeight: 800 }}> · 🏆 {titlesByName.get(p.name.trim().toLowerCase())}</span>
+                      : null)}
                   {p.playing && p.mode !== 'online' && p.deckLeague && (
                     <span style={{ opacity: 0.9, color: p.deckLeague === 'eu' ? '#7FD1FF' : p.deckLeague === 'both' ? '#C9A9FF' : '#FFD24D', fontWeight: 800 }}> · {p.deckLeague === 'eu' ? 'EU' : p.deckLeague === 'both' ? 'B/E' : 'BR'}</span>
                   )}
