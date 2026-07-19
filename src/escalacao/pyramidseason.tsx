@@ -868,6 +868,22 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { m
     { key: 'GOL', cards: xiOf('GOL') },
   ]
   const reserves = mgr.squad.filter(c => !xiIds.has(c.id)).sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos) || mid(b) - mid(a))
+  const titulares = SECTORS.flatMap(pos => xiOf(pos)) // mesma ordem da lista de reservas (GOL→ATA)
+  // linha compartilhada titular/reserva: no campinho o nome já mal cabe, então o
+  // clube · ano (que diferencia o Kaká do SP do Kaká do Milan) vive AQUI nas
+  // listas — e a troca funciona igual: toca num, acende os da mesma posição.
+  const rowOf = (c: WonCard, titular: boolean) => { const st = stateOf(c); return (
+    <div key={c.id} onClick={() => onTap?.(c.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '5px 8px', borderRadius: 6, background: st === 'sel' ? '#FFF6D6' : titular ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.55)', border: `2px solid ${st === 'idle' ? 'transparent' : borderOf(st)}`, marginBottom: 3, opacity: st === 'dim' ? 0.5 : 1, cursor: onTap ? 'pointer' : 'default' }}>
+      <span style={{ fontWeight: titular ? 800 : 700, fontSize: 12, ...OSWALD, color: titular ? INK : '#4a4740', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
+        <span style={{ fontWeight: 900, fontSize: 9, color: col.solid, marginRight: 5 }}>{c.pos}</span>{c.name}
+        <span style={{ fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,0.45)', marginLeft: 5 }}>{c.club} · {c.year}</span>
+      </span>
+      <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+        {goalsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: GREEN }}>⚽ {goalsOf(c)}</span>}
+        <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: '#5a5647' }}>💰 {c.paid ?? 0}</span>
+      </span>
+    </div>
+  ) }
   return (
     <div>
       {onTap && (
@@ -893,6 +909,13 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { m
           ))}
         </div>
       </div>
+      {/* TITULARES em lista: no campinho não cabe o clube · ano, então a lista
+          mostra — e também troca (toca no titular aqui OU no campinho, tanto faz) */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, flexWrap: 'wrap', margin: '2px 0 6px' }}>
+        <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, color: INK, margin: 0, textTransform: 'uppercase', letterSpacing: 0.3 }}>⭐ Titulares ({titulares.length})</p>
+        {onTap && <span style={{ fontSize: 11, fontWeight: 800, color: GREEN, ...OSWALD }}>· toque pra trocar por um reserva</span>}
+      </div>
+      <div style={{ marginBottom: 10 }}>{titulares.map(c => rowOf(c, true))}</div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, flexWrap: 'wrap', margin: '2px 0 6px' }}>
         <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, color: INK, margin: 0, textTransform: 'uppercase', letterSpacing: 0.3 }}>🔁 Reservas ({reserves.length})</p>
         {onTap && <span style={{ fontSize: 11, fontWeight: 800, color: GREEN, ...OSWALD }}>· toque pra subir ao time titular</span>}
@@ -901,17 +924,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { m
         ? (seasonNo === 1
             ? <p style={{ fontSize: 11, fontWeight: 700, color: '#6a6658', margin: 0, lineHeight: 1.4 }}>🔒 Na Temporada 1 você joga com os 11. <b style={{ color: GREEN }}>No próximo leilão</b> (no fim desta temporada) você enche o banco de reservas — até 22! 🔨</p>
             : <p style={{ fontSize: 11, fontWeight: 700, color: '#6a6658', margin: 0 }}>Sem reservas no banco.</p>)
-        : reserves.map(c => { const st = stateOf(c); return (
-          <div key={c.id} onClick={() => onTap?.(c.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '5px 8px', borderRadius: 6, background: st === 'sel' ? '#FFF6D6' : 'rgba(255,255,255,0.55)', border: `2px solid ${st === 'idle' ? 'transparent' : borderOf(st)}`, marginBottom: 3, opacity: st === 'dim' ? 0.5 : 1, cursor: onTap ? 'pointer' : 'default' }}>
-            <span style={{ fontWeight: 700, fontSize: 12, ...OSWALD, color: '#4a4740', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              <span style={{ fontWeight: 900, fontSize: 9, color: col.solid, marginRight: 5 }}>{c.pos}</span>{c.name}
-            </span>
-            <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-              {goalsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: GREEN }}>⚽ {goalsOf(c)}</span>}
-              <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: '#5a5647' }}>💰 {c.paid ?? 0}</span>
-            </span>
-          </div>
-        ) })}
+        : reserves.map(c => rowOf(c, false))}
     </div>
   )
 }
