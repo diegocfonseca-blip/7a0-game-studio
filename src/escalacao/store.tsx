@@ -816,6 +816,10 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   // atribui os gols a um jogador real e credita na artilharia da temporada
   const creditGoals = (id: number, goals: number, prefix: string) => {
     const m = state.managers.find(x => x.id === id)
+    // "DIA" do jogador (por PARTIDA): sorte de 0,5× a 2× no peso do gol — o Obina
+    // iluminado pode roubar a cena do craque HOJE; na média o nível manda.
+    const day = new Map<string, number>()
+    if (m) for (const c of m.squad) day.set(c.id, 0.5 + rng() * 1.5)
     for (let g = 0; g < goals; g++) {
       // ~8% de chance de cair nos acréscimos (90+1 a 90+6)
       const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 6) : 1 + Math.floor(rng() * 90)
@@ -828,7 +832,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
           // de várzea brigava na artilharia com o Pelé.
           const posW = c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05
           const n = Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42)
-          pool.push({ name: c.name, w: posW * (0.12 + n * n * 1.8) })
+          pool.push({ name: c.name, w: posW * (0.12 + n * n * 1.8) * (day.get(c.id) ?? 1) })
         }
         const total = pool.reduce((s, p) => s + p.w, 0)
         let r = rng() * total
