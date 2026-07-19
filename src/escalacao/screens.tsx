@@ -47,7 +47,7 @@ function InstaIcon({ size = 12 }: { size?: number }) {
 export function CreditLine({ className = '' }: { className?: string }) {
   return (
     <p className={`text-center text-black/30 text-[11px] font-semibold ${className}`}>
-      <a href="https://instagram.com/diegocfonseca" target="_blank" rel="noopener noreferrer" className="text-black/30 no-underline"><InstaIcon /> @diegocfonseca</a>
+      <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer" className="text-black/30 no-underline"><InstaIcon /> @leilaolegendscom</a>
     </p>
   )
 }
@@ -60,11 +60,11 @@ export function GameFooter() {
       <footer className="max-w-xl mx-auto text-center px-4 pt-4 pb-8 space-y-1.5">
         <p className="text-black/55 text-xs font-bold">💡 Ideia de jogador novo, sugestão ou achou um bug? Fala comigo:</p>
         <p className="text-xs font-bold">
-          <a href="https://instagram.com/diegocfonseca" target="_blank" rel="noopener noreferrer" className="text-black/65 underline"><InstaIcon /> @diegocfonseca</a>
+          <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer" className="text-black/65 underline"><InstaIcon /> @leilaolegendscom</a>
           <span className="text-black/30"> · </span>
           <a href="mailto:diego.c.fonseca@gmail.com" className="text-black/65 underline">✉️ diego.c.fonseca@gmail.com</a>
         </p>
-        <p className="text-black/35 text-[11px] font-semibold pt-1">Feito por @diegocfonseca</p>
+        <p className="text-black/35 text-[11px] font-semibold pt-1">Feito por @leilaolegendscom</p>
         <p className="text-black/20 text-[10px] font-semibold">v{__BUILD_ID__}</p>
       </footer>
     </div>
