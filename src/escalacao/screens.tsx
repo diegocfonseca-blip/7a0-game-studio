@@ -46,9 +46,10 @@ function InstaIcon({ size = 12 }: { size?: number }) {
 // crédito sutil pro rodapé durante o jogo (mesma cor/discrição do rodapé da home)
 export function CreditLine({ className = '' }: { className?: string }) {
   return (
-    <p className={`text-center text-black/30 text-[11px] font-semibold ${className}`}>
-      <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer" className="text-black/30 no-underline"><InstaIcon /> @leilaolegendscom</a>
-    </p>
+    <div className={`text-center text-black/30 text-[11px] font-semibold ${className}`}>
+      <p><a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer" className="text-black/30 no-underline"><InstaIcon /> @leilaolegendscom</a></p>
+      <p><a href="https://instagram.com/diegocfonseca" target="_blank" rel="noopener noreferrer" className="text-black/30 no-underline"><InstaIcon /> @diegocfonseca</a></p>
+    </div>
   )
 }
 // rodapé completo (contato) — aparece SUTIL no final de TODAS as telas do jogo.
