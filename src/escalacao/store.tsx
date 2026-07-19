@@ -2223,23 +2223,14 @@ export function reducer(state: EscState, action: Action): EscState {
       // 1) consome a lista: tira os listados dos elencos
       const listedMap = s.reserveListed ?? {}
       const listedCards: Card[] = []
-      // ENCALHOU E RELISTOU? O mercado reage: cada tentativa anterior corta 30% do
-      // piso (0.7^n). É o que faz o resto de elenco parado finalmente sair — barato.
-      const everL = { ...(s.everListed ?? {}) }
       for (const m of s.managers) {
         const ids = new Set(listedMap[m.id] ?? [])
         if (ids.size === 0) continue
         const keep: WonCard[] = [], out: WonCard[] = []
         for (const c of m.squad) (ids.has(c.id) ? out : keep).push(c)
         m.squad = keep
-        for (const c of out) {
-          const times = everL[ident(c)] ?? 0
-          everL[ident(c)] = times + 1
-          const piso = times > 0 ? Math.floor((c.paid ?? 0) * Math.pow(0.7, times)) : (c.paid ?? 0)
-          listedCards.push({ ...c, paid: piso, seller: m.id } as Card) // piso (já desvalorizado se relistado); seller recebe a grana quando vender
-        }
+        for (const c of out) listedCards.push({ ...c, seller: m.id }) // paid = piso; seller recebe a grana quando vender
       }
-      s.everListed = everL
       // 2) baralho ANTES de marcar elenco fundo — assim a demanda usa a formação
       // NORMAL (não dobrada) e a quantidade por posição fica IGUAL ao leilão online
       // comum (2 usuários disputam 3 goleiros, etc.).
@@ -2275,23 +2266,13 @@ export function reducer(state: EscState, action: Action): EscState {
           }
           return m
         }
-        // memória do mercado: quem foi sorteado nas últimas temporadas NÃO repete
-        // (enquanto houver alternativa) — acabou o "sempre os mesmos no leilão".
-        const recentNames = new Set(s.marketRecent ?? [])
-        const offered: string[] = []
         for (const pos of SECTORS) {
-          // junta os candidatos da posição (bots da liga + 60 de fundo): famosos e BONS
+          // junta TODOS os famosos da posição (bots da liga + 60 de fundo) e pega UM ao acaso
           const cands: { card: Card; ownerBot?: Manager; ownerName?: string }[] = []
-          const goods: { card: Card; ownerBot?: Manager; ownerName?: string }[] = []
-          for (const bot of s.managers.filter(isMktBot)) for (const c of bot.squad) if (c.pos === pos && !c.fake) (c.fame >= 4 ? cands : c.fame === 3 ? goods : []).push({ card: c, ownerBot: bot })
-          for (const name in cpuSq) for (const c of cpuSq[name]) if (c.pos === pos && !c.fake) (c.fame >= 4 ? cands : c.fame === 3 ? goods : []).push({ card: c, ownerName: name })
-          // ~30% das vezes o mercado revela um BOM jogador em vez de famoso — variedade
-          let pool = rng() < 0.3 ? (goods.length ? goods : cands) : (cands.length ? cands : goods)
-          const fresh = pool.filter(x => !recentNames.has(x.card.name))
-          if (fresh.length) pool = fresh
-          if (pool.length) {
-            const pick = pool[Math.floor(rng() * pool.length)]
-            offered.push(pick.card.name)
+          for (const bot of s.managers.filter(isMktBot)) for (const c of bot.squad) if (c.pos === pos && !c.fake && c.fame >= 4) cands.push({ card: c, ownerBot: bot })
+          for (const name in cpuSq) for (const c of cpuSq[name]) if (c.pos === pos && !c.fake && c.fame >= 4) cands.push({ card: c, ownerName: name })
+          if (cands.length) {
+            const pick = cands[Math.floor(rng() * cands.length)]
             const owner = pick.ownerBot ?? materialize(pick.ownerName!)
             owner.squad = owner.squad.filter(c => c.id !== pick.card.id) // tira do dono → buraco
             const fl = s.marketValues?.[pick.card.name] ?? (pick.card as WonCard).paid ?? 0 // piso do jogador (economia igual pra todos)
@@ -2299,14 +2280,13 @@ export function reducer(state: EscState, action: Action): EscState {
             marketSellers[pos].push(owner.id)
             if (pick.ownerBot) pick.ownerBot.backstop = true // bot da liga: caixa via clubCash; fica em 11 (só repõe o que perdeu)
           } else {
-            const fam = shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && !recentNames.has(c.name) && c.fame >= 4), rng)[0]
+            const fam = shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && c.fame >= 4), rng)[0]
               ?? shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c))), rng)[0]
-            if (fam) { used.add(ident(fam)); offered.push(fam.name); const fl = s.marketValues?.[fam.name] ?? 0; deck[pos].push({ ...fam, id: `mkt-${pos}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
+            if (fam) { used.add(ident(fam)); const fl = s.marketValues?.[fam.name] ?? 0; deck[pos].push({ ...fam, id: `mkt-${pos}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
           }
         }
         // os times de fundo sorteados entram na sala pra brigar (leilão + monte)
         for (const m of tempById.values()) s.managers.push(m)
-        s.marketRecent = [...offered, ...(s.marketRecent ?? [])].slice(0, 15) // memória de ~3 mercados
         s.deck = deck
       } else {
         // RESERVAS (2ª temporada): baralho SÓ COM REAIS (noFake) — reserva é opcional,
