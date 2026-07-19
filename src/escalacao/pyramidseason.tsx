@@ -1557,31 +1557,48 @@ export function PyramidSeasonScreen() {
               const table = tables[me.div] ?? []
               const myIdx = table.findIndex(x => x.you)
               const myRank = DIVS.indexOf(me.div) // 0=A (topo) … 3=D
+              // VARIA a redação pela rodada — mesma situação, frases diferentes,
+              // pra ninguém ler a mesma linha 38 rodadas seguidas.
+              const vary = <T,>(...opts: T[]): T => opts[round % opts.length]
               // 1) CLÁSSICO: sua partida é contra outro humano
               if (myMatch) {
                 const oppName = myMatch.h === me.team ? myMatch.a : myMatch.h
                 const opp = table.find(x => x.name === oppName)
                 if (opp?.human) flavors.push({ c: RED, ic: '⚔️', tag: 'CLÁSSICO', node: <>Você x {nm(opp.teamId, oppName)} nesta rodada — não pode perder!</> })
               }
-              // 2) ARTILHEIRO do seu time (arrebentando)
-              const mineTop = scorers.filter(s => s.teamId === youId).sort((a, b) => b.goals - a.goals)[0]
+              // 2) ARTILHEIRO do seu time (arrebentando) — usa a lista COMPLETA
+              //    (scorersAll), não o top-20 geral, senão os gols "somem" do corte.
+              const mineTop = scorersAll.filter(s => s.teamId === youId).sort((a, b) => b.goals - a.goals)[0]
               if (mineTop && mineTop.goals >= 3) {
-                const leagueTop = scorers.filter(s => s.div === me.div).sort((a, b) => b.goals - a.goals)[0]
+                const leagueTop = scorersAll.filter(s => s.div === me.div).sort((a, b) => b.goals - a.goals)[0]
                 flavors.push(leagueTop?.name === mineTop.name
-                  ? { c: GREEN, ic: '👑', tag: 'ARTILHEIRO', node: <><b>{mineTop.name}</b> é o artilheiro da {DIV_NAME[me.div]} — {mineTop.goals} gols!</> }
-                  : { c: GREEN, ic: '⚽', tag: 'EM ALTA', node: <><b>{mineTop.name}</b> tá voando: {mineTop.goals} gols pelo seu time!</> })
+                  ? { c: GREEN, ic: '👑', tag: 'ARTILHEIRO', node: vary(
+                      <><b>{mineTop.name}</b> é o artilheiro da {DIV_NAME[me.div]} — {mineTop.goals} gols!</>,
+                      <>Ninguém segura: <b>{mineTop.name}</b> lidera a artilharia da {DIV_NAME[me.div]} com {mineTop.goals}!</>,
+                      <>{mineTop.goals} gols do <b>{mineTop.name}</b> — a artilharia da {DIV_NAME[me.div]} tem dono!</>) }
+                  : { c: GREEN, ic: '⚽', tag: 'EM ALTA', node: vary(
+                      <><b>{mineTop.name}</b> tá voando: {mineTop.goals} gols pelo seu time!</>,
+                      <>Fase iluminada do <b>{mineTop.name}</b> — já são {mineTop.goals} na temporada!</>,
+                      <>Pode confiar: <b>{mineTop.name}</b> soma {mineTop.goals} gols e segue faminto!</>) })
               }
               // 2b) REFORÇOS: como vão suas contratações (leilão de reservas/mercado).
-              //     Elogia quem já fez gol; cobra o reforço MAIS CARO que ainda não
-              //     desencantou (só depois de algumas rodadas, pra ser justo).
+              //     Gols EXATOS por carta (goalsByCard) — nada de cobrar quem tá
+              //     marcando. Elogia quem rende; a cobrança só pra MEI/ATA sem gol
+              //     (zagueiro não é obrigado a marcar), só de vez em quando.
               const signings = (mgrMe?.squad ?? []).filter(c => (c as WonCard).reforco && !c.fake)
               if (signings.length) {
-                const goalsOf = (name: string) => scorers.find(s => s.teamId === youId && s.name === name)?.goals ?? 0
-                const best = signings.map(c => ({ c, g: goalsOf(c.name) })).sort((a, b) => b.g - a.g)[0]
-                if (best && best.g >= 2) flavors.push({ c: GREEN, ic: '💸', tag: 'REFORÇO', node: <>Contratação <b>{best.c.name}</b> já fez {best.g} gols — dinheiro bem gasto!</> })
-                else if (round >= 10) {
-                  const flop = signings.filter(c => goalsOf(c.name) === 0).sort((a, b) => ((b as WonCard).paid ?? 0) - ((a as WonCard).paid ?? 0))[0]
-                  if (flop) flavors.push({ c: GOLD, ic: '👀', tag: 'REFORÇO', node: <>Contratação <b>{flop.name}</b> custou 💰{(flop as WonCard).paid} e ainda não desencantou…</> })
+                const goalsOf = (c: PoolCard) => goalsByCard[c.id] ?? 0
+                const best = signings.map(c => ({ c, g: goalsOf(c) })).sort((a, b) => b.g - a.g)[0]
+                if (best && best.g >= 2) flavors.push({ c: GREEN, ic: '💸', tag: 'REFORÇO', node: vary(
+                  <>Contratação <b>{best.c.name}</b> já fez {best.g} gols — dinheiro bem gasto!</>,
+                  <><b>{best.c.name}</b> caiu como uma luva: {best.g} gols desde que chegou!</>,
+                  <>O reforço <b>{best.c.name}</b> tá pagando o investimento — {best.g} gols!</>) })
+                else if (round >= 10 && round % 3 === 0) {
+                  const flop = signings.filter(c => goalsOf(c) === 0 && (c.pos === 'ATA' || c.pos === 'MEI')).sort((a, b) => ((b as WonCard).paid ?? 0) - ((a as WonCard).paid ?? 0))[0]
+                  if (flop) flavors.push({ c: GOLD, ic: '👀', tag: 'REFORÇO', node: vary(
+                    <>Contratação <b>{flop.name}</b> custou 💰{(flop as WonCard).paid} e ainda não desencantou…</>,
+                    <>A torcida cobra: <b>{flop.name}</b> (💰{(flop as WonCard).paid}) segue sem marcar…</>,
+                    <>Cadê o <b>{flop.name}</b>? 💰{(flop as WonCard).paid} investidos e o gol não sai…</>) })
                 }
               }
               // 3) ZUAÇÃO de divisão: amigo numa série mais baixa (ou mais alta)
@@ -1596,7 +1613,10 @@ export function PyramidSeasonScreen() {
               const falling = friends.find(f => f.pos >= 17 && f.div !== 'D')
               if (falling) flavors.push({ c: PURPLE, ic: '📉', tag: 'ZUAÇÃO', node: <>O {nm(falling.id, falling.name)} tá afundando na zona de queda da {DIV_NAME[falling.div]}… 👋</> })
               // 4) QUEDA: você na zona de rebaixamento (últimos 4)
-              if (myIdx >= 16 && me.div !== 'D') flavors.push({ c: RED, ic: '🚨', tag: 'PERIGO', node: <>Você tá na zona de queda da {DIV_NAME[me.div]} — reage!</> })
+              if (myIdx >= 16 && me.div !== 'D') flavors.push({ c: RED, ic: '🚨', tag: 'PERIGO', node: vary(
+                <>Você tá na zona de queda da {DIV_NAME[me.div]} — reage!</>,
+                <>Alerta vermelho: Z4 da {DIV_NAME[me.div]}. Bora sair dessa!</>,
+                <>A corda apertou na {DIV_NAME[me.div]} — cada ponto agora vale ouro!</>) })
               // 5) VIZINHO na tabela (liderança / perseguição) — sempre tem
               if (myIdx >= 0) {
                 const rival = myIdx > 0 ? table[myIdx - 1] : table[myIdx + 1]
@@ -1607,14 +1627,27 @@ export function PyramidSeasonScreen() {
                     myIdx === 0
                       // LÍDER: o rival (table[1]) está logo ABAIXO de você
                       ? (tied
-                          ? { c: GOLD, ic: '🔥', tag: 'LÍDER', node: <>Você lidera no saldo! {nm(rival.teamId, rival.name)} empatou em pontos — não vacila.</> }
-                          : { c: GOLD, ic: '🔥', tag: 'LÍDER', node: <>Você é o líder! {nm(rival.teamId, rival.name)} cola {gap} {pts} atrás.</> })
+                          ? { c: GOLD, ic: '🔥', tag: 'LÍDER', node: vary(
+                              <>Você lidera no saldo! {nm(rival.teamId, rival.name)} empatou em pontos — não vacila.</>,
+                              <>Liderança por um fio: {nm(rival.teamId, rival.name)} igualou os pontos, o saldo te segura!</>) }
+                          : { c: GOLD, ic: '🔥', tag: 'LÍDER', node: vary(
+                              <>Você é o líder! {nm(rival.teamId, rival.name)} cola {gap} {pts} atrás.</>,
+                              <>Ponteiro! Mas {nm(rival.teamId, rival.name)} vem a {gap} {pts} — segura a coroa.</>,
+                              <>Topo da tabela é seu — {nm(rival.teamId, rival.name)} sonha a {gap} {pts}.</>) })
                       // você NÃO é líder: o rival (table[myIdx-1]) está logo ACIMA, na sua frente
                       : tied
-                        ? { c: GOLD, ic: '😤', tag: 'NA COLA', node: <>Você e {nm(rival.teamId, rival.name)} empatados em pontos — o saldo decide!</> }
+                        ? { c: GOLD, ic: '😤', tag: 'NA COLA', node: vary(
+                            <>Você e {nm(rival.teamId, rival.name)} empatados em pontos — o saldo decide!</>,
+                            <>Mesmos pontos que {nm(rival.teamId, rival.name)} — agora é no detalhe!</>) }
                         : gap <= 2
-                          ? { c: GOLD, ic: '😤', tag: 'NA COLA', node: <>{nm(rival.teamId, rival.name)} tá só {gap} {pts} na sua frente. Vai deixar?</> }
-                          : { c: GOLD, ic: '💪', tag: 'TABELA', node: <>{nm(rival.teamId, rival.name)} tá {gap} {pts} na sua frente — corre atrás!</> })
+                          ? { c: GOLD, ic: '😤', tag: 'NA COLA', node: vary(
+                              <>{nm(rival.teamId, rival.name)} tá só {gap} {pts} na sua frente. Vai deixar?</>,
+                              <>Falta pouco: {gap} {pts} pra passar o {nm(rival.teamId, rival.name)}!</>,
+                              <>O {nm(rival.teamId, rival.name)} já sente o teu bafo — {gap} {pts} de diferença.</>) }
+                          : { c: GOLD, ic: '💪', tag: 'TABELA', node: vary(
+                              <>{nm(rival.teamId, rival.name)} tá {gap} {pts} na sua frente — corre atrás!</>,
+                              <>Meta da rodada: encostar no {nm(rival.teamId, rival.name)} ({gap} {pts}).</>,
+                              <>Distância pro {nm(rival.teamId, rival.name)}: {gap} {pts}. Nada que uma boa sequência não resolva.</>) })
                 }
               }
               return <RivalryTicker items={flavors} />
