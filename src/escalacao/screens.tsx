@@ -456,6 +456,8 @@ export function EscIntro() {
           ⚽ Leilão às cegas de lendas
         </span>
         <h1 className="font-black text-5xl mt-4 leading-none" style={OSWALD}>LEILÃO LEGENDS</h1>
+        {/* sublinhado dourado da marca oficial (mesmo da logo do Instagram/og) */}
+        <div className="mx-auto mt-2" style={{ width: 150, height: 10, borderRadius: 5, background: GOLD, border: `2px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}` }} />
         <p className="mt-3 font-semibold text-black/60 max-w-sm mx-auto">Dê lance no <b>nome</b>, sem ver o nível. Monte o time no pregão, ganhe o campeonato e colecione os craques no seu álbum.</p>
       </div>
       {/* vitrine: a coleção é a estrela — cartas reais do álbum (nível/cor/bio do catálogo) */}
