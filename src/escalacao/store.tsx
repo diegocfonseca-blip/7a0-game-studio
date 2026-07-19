@@ -125,6 +125,18 @@ export function openSlots(m: Manager, pos: Sector): number {
 export function totalHoles(m: Manager): number {
   return SECTORS.reduce((s, pos) => s + openSlots(m, pos), 0)
 }
+// (carreira) pra CPU, um zé (fake) NÃO segura vaga: conta como buraco. É o que
+// deixa o rival "completo" com zé brigar por reforço no monte — o zé cai fora
+// depois (cerimônia) quando o reforço real chega.
+function cpuFakes(m: Manager, pos: Sector): number {
+  return m.isHuman ? 0 : m.squad.filter(c => c.pos === pos && c.fake).length
+}
+function careerOpenSlots(m: Manager, pos: Sector): number {
+  return Math.min(slotsOf(m, pos), openSlots(m, pos) + cpuFakes(m, pos))
+}
+function careerHoles(m: Manager): number {
+  return SECTORS.reduce((s, pos) => s + careerOpenSlots(m, pos), 0)
+}
 // melhor XI por NÍVEL (ids) — usado só pra FIXAR o time no começo da temporada.
 function bestXIids(squad: WonCard[], formation: FormationKey): string[] {
   const out: string[] = []
@@ -997,14 +1009,15 @@ function narrateRound(s: EscState, results: MatchResult[], prevRank: Map<number,
 function halveListed(cards: Card[]): Card[] {
   return cards.map(c => { const p = (c as { paid?: number }).paid; return p && p > 0 ? { ...c, paid: Math.floor(p / 2) } : c })
 }
-function buildMonteOrder(managers: Manager[], rng: () => number): number[] {
-  // bots fiadores NÃO entram no monte (senão, com elenco fundo, teriam buracos
-  // demais e pegariam as sobras antes dos humanos). Eles só levam o que ganham
-  // no pregão pago.
-  const withHoles = managers.filter(m => totalHoles(m) > 0 && !m.backstop)
+function buildMonteOrder(managers: Manager[], rng: () => number, careerOnline: boolean): number[] {
+  // bots fiadores e times de fundo do mercado NÃO entram no monte (com elenco
+  // fundo de 22 vagas teriam buracos demais e pegariam as sobras antes dos
+  // humanos). Eles só levam o que ganham no pregão pago.
+  const holes = (m: Manager) => careerOnline ? careerHoles(m) : totalHoles(m)
+  const withHoles = managers.filter(m => holes(m) > 0 && !m.backstop && !m.marketCpu)
   if (withHoles.length === 0) return []
-  const base = [...withHoles].sort((a, b) => totalHoles(b) - totalHoles(a) || rng() - 0.5).map(m => m.id)
-  const maxHoles = Math.max(...withHoles.map(m => totalHoles(m)))
+  const base = [...withHoles].sort((a, b) => holes(b) - holes(a) || rng() - 0.5).map(m => m.id)
+  const maxHoles = Math.max(...withHoles.map(holes))
   const order: number[] = []
   for (let pass = 0; pass < maxHoles; pass++) {
     const seq = pass % 2 === 0 ? base : [...base].reverse()
@@ -1032,18 +1045,24 @@ export function monteLocked(state: EscState, m: Manager, c: Card): boolean {
   const sellerId = (c as { seller?: number }).seller
   if (sellerId == null || sellerId === m.id) return false
   const seller = state.managers.find(x => x.id === sellerId)
-  if (!seller || seller.backstop || totalHoles(seller) === 0) return false
+  if (!seller || seller.backstop || seller.marketCpu || careerHoles(seller) === 0) return false
   const ownerHadTurn = state.monteOrder.slice(0, state.monteIdx).includes(sellerId)
   return !ownerHadTurn // trava só ENQUANTO o dono ainda não teve a vez dele
 }
 // pode o técnico m pegar a carta c AGORA? vaga na posição + consegue pagar + não
 // está reservada pro dono.
 export function montePickable(state: EscState, m: Manager, c: Card): boolean {
-  return openSlots(m, c.pos) > 0 && monteAfford(m, c, !!state.careerOnline) && !monteLocked(state, m, c)
+  const open = state.careerOnline ? careerOpenSlots(m, c.pos) : openSlots(m, c.pos)
+  return open > 0 && monteAfford(m, c, !!state.careerOnline) && !monteLocked(state, m, c)
 }
 function monteAutoPick(state: EscState, m: Manager, monte: Card[], rng: () => number): Card | null {
   const valid = monte.filter(c => montePickable(state, m, c))
   if (valid.length === 0) return null
+  // preferência de verdade: se o PRÓPRIO listado do rival encalhou no monte e
+  // ainda cabe no elenco, ele pega de volta (de graça) antes de olhar o resto —
+  // exatamente como o humano faria na vez dele.
+  const own = valid.find(c => (c as { seller?: number }).seller === m.id)
+  if (own) return own
   const ranked = valid.map(c => ({ c, v: perceived(c, rng) })).sort((a, b) => b.v - a.v)
   return ranked[0].c
 }
@@ -1455,7 +1474,7 @@ function advanceSectorOrFinish(state: EscState, rng: () => number) {
     state.sectorUnsoldAccum = []
     startAuctionPhase(state, false)
   } else {
-    state.monteOrder = buildMonteOrder(state.managers, rng)
+    state.monteOrder = buildMonteOrder(state.managers, rng, !!state.careerOnline)
     state.monteIdx = 0
     state.screen = 'monte'
     advanceMonte(state, rng)
