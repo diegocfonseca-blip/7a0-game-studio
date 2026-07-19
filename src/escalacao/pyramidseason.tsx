@@ -12,6 +12,7 @@ import type { Card, Manager, Sector, WonCard } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { useEsc, savePyramidCloud } from './store'
 import { CardCollectPrompt } from './screens'
+import { SeasonJornal } from './jornal'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 
@@ -1389,6 +1390,11 @@ export function PyramidSeasonScreen() {
         {/* A Copa ao vivo agora toca DENTRO da aba Jogos (em cima dos jogos). No
             FIM, o painel de campeões da temporada (Copa + séries + artilheiros)
             aparece expandido aqui; os botões de leilão/mesmo time ficam logo abaixo. */}
+        {/* 📰 O MARTELO: jornal da temporada — manchete única pra cada uma das
+            80 posições da pirâmide + os donos da temporada. Colapsado por padrão. */}
+        {copaFinished && me && (
+          <SeasonJornal me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo} />
+        )}
         {copaFinished && copa?.champion && (
           <>
             <ChampionsPanel copa={copa} tables={tables} scorers={scorers} seasonNo={state.seasonNo} />
