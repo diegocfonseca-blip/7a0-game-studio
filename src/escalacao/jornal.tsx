@@ -8,6 +8,7 @@ import type { SimTeam, CopaResult, SeasonScorer, Div } from './pyramidseason'
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
+const GOLD_HEX = '#F5B301'
 const J_DIVS: Div[] = ['A', 'B', 'C', 'D']
 const J_DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
 const J_DIV_COLOR: Record<Div, string> = { A: '#B8892B', B: '#3E8E4E', C: '#9A7B33', D: '#7A7460' }
@@ -138,13 +139,155 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo }: {
   const hl = seasonHeadline(me.div, me.pos, me.team)
   const stamp = stampOf(me.div, me.pos)
 
+  // desenha a CAPA do jornal em imagem (canvas) — é ela que vai no compartilhar,
+  // não texto. Mesma cara da capa na tela: cabeçalho, manchete, foto carimbada,
+  // números e os donos da temporada.
+  async function buildJornalBlob(): Promise<Blob | null> {
+    const W = 1080, H = 1560
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H
+    const x = cv.getContext('2d'); if (!x) return null
+    try { await document.fonts.load('900 60px Oswald') } catch { /* segue */ }
+    const SER = "Georgia, 'Times New Roman', serif", OSW = 'Oswald, sans-serif'
+    const wrap = (t: string, font: string, maxW: number): string[] => {
+      x.font = font
+      const out: string[] = []; let line = ''
+      for (const w of t.split(' ')) {
+        const test = line ? line + ' ' + w : w
+        if (x.measureText(test).width > maxW && line) { out.push(line); line = w } else line = test
+      }
+      if (line) out.push(line)
+      return out
+    }
+    // papel
+    x.fillStyle = '#F7F1DD'; x.fillRect(0, 0, W, H)
+    x.strokeStyle = INK; x.lineWidth = 6; x.strokeRect(12, 12, W - 24, H - 24)
+    const L = 52, R = W - 52
+    let y = 108
+    // masthead
+    x.textAlign = 'left'; x.font = `900 64px ${SER}`
+    x.fillStyle = INK; x.fillText('O ', L, y)
+    x.fillStyle = '#B23A2A'; x.fillText('MARTELO', L + x.measureText('O ').width, y)
+    x.textAlign = 'right'; x.fillStyle = '#3a3527'; x.font = `800 20px ${OSW}`
+    x.fillText(`EDIÇÃO Nº ${seasonNo} · TEMPORADA ${seasonNo}`, R, y - 30)
+    x.fillText(`${J_DIV_NAME[me.div].toUpperCase()} · PREÇO: 1 MOEDA`, R, y - 4)
+    y += 20
+    x.lineWidth = 3; x.beginPath(); x.moveTo(L, y); x.lineTo(R, y); x.stroke()
+    x.beginPath(); x.moveTo(L, y + 7); x.lineTo(R, y + 7); x.stroke()
+    y += 40
+    x.textAlign = 'left'; x.font = `900 21px ${OSW}`; x.fillStyle = '#3a3527'
+    x.fillText('⚽ O DIÁRIO DO LEILÃO LEGENDS', L, y)
+    x.textAlign = 'right'; x.fillText('FIM DE TEMPORADA', R, y)
+    y += 14
+    x.lineWidth = 1.5; x.beginPath(); x.moveTo(L, y); x.lineTo(R, y); x.stroke()
+    // manchete
+    y += 62
+    x.textAlign = 'left'; x.fillStyle = INK
+    const hFont = `900 58px ${SER}`
+    for (const ln of wrap(hl.h, hFont, R - L)) { x.font = hFont; x.fillText(ln, L, y); y += 62 }
+    y += 4
+    x.fillStyle = '#3a3527'
+    const sFont = `italic 700 27px ${SER}`
+    for (const ln of wrap(hl.s, sFont, R - L)) { x.font = sFont; x.fillText(ln, L, y); y += 34 }
+    y += 18
+    // foto (esq) + números (dir)
+    const boxH = 330, colW = (R - L - 24) / 2
+    const g = x.createLinearGradient(L, y, L, y + boxH)
+    g.addColorStop(0, '#2ea457'); g.addColorStop(1, '#123f22')
+    x.fillStyle = g; x.fillRect(L, y, colW, boxH)
+    x.lineWidth = 4; x.strokeStyle = INK; x.strokeRect(L, y, colW, boxH)
+    const cx = L + colW / 2
+    x.beginPath(); x.arc(cx, y + 128, 62, 0, Math.PI * 2); x.fillStyle = '#F7F1DD'; x.fill(); x.lineWidth = 5; x.stroke()
+    x.textAlign = 'center'; x.fillStyle = INK; x.font = `900 56px ${OSW}`
+    x.fillText(me.team.trim()[0]?.toUpperCase() ?? '?', cx, y + 148)
+    x.fillStyle = '#fff'; x.font = `900 30px ${OSW}`
+    let tn = me.team; while (x.measureText(tn).width > colW - 30 && tn.length > 3) tn = tn.slice(0, -1)
+    x.fillText(tn, cx, y + 236)
+    x.fillStyle = 'rgba(0,0,0,.68)'; x.fillRect(L, y + boxH - 40, colW, 40)
+    x.fillStyle = '#fff'; x.font = `italic 700 19px ${SER}`
+    x.fillText(`${me.pos}º da ${J_DIV_NAME[me.div]} na temporada ${seasonNo}.`, cx, y + boxH - 13)
+    if (stamp) { // carimbo torto
+      x.save(); x.translate(L + colW - 88, y + 56); x.rotate(0.3)
+      x.fillStyle = 'rgba(247,241,221,.75)'; x.fillRect(-92, -26, 184, 52)
+      x.strokeStyle = stamp.color; x.lineWidth = 5; x.strokeRect(-92, -26, 184, 52)
+      x.fillStyle = stamp.color; x.font = `900 27px ${OSW}`; x.fillText(stamp.txt, 0, 9); x.restore()
+    }
+    // números
+    const nx = L + colW + 24
+    x.fillStyle = '#fff'; x.fillRect(nx, y, colW, boxH)
+    x.lineWidth = 4; x.strokeStyle = INK; x.strokeRect(nx, y, colW, boxH)
+    x.fillStyle = INK; x.fillRect(nx, y, colW, 44)
+    x.fillStyle = '#fff'; x.font = `900 21px ${OSW}`; x.textAlign = 'left'
+    x.fillText('OS NÚMEROS DO TIME', nx + 16, y + 30)
+    const rows: [string, string][] = [['Posição', `${me.pos}º`]]
+    if (mine) rows.push(['Pontos', String(mine.pts)], ['V · E · D', `${mine.w}·${mine.d}·${mine.l}`], ['Gols (pró/contra)', `${mine.gf}/${mine.ga}`], ['Saldo', `${mine.gf - mine.ga >= 0 ? '+' : ''}${mine.gf - mine.ga}`])
+    let ry = y + 84
+    for (const [k, v] of rows) {
+      x.fillStyle = '#1c1a12'; x.font = `700 24px ${OSW}`; x.textAlign = 'left'; x.fillText(k, nx + 16, ry)
+      x.font = `900 24px ${OSW}`; x.textAlign = 'right'; x.fillText(v, nx + colW - 16, ry)
+      x.strokeStyle = 'rgba(0,0,0,.12)'; x.lineWidth = 1; x.beginPath(); x.moveTo(nx + 12, ry + 14); x.lineTo(nx + colW - 12, ry + 14); x.stroke()
+      ry += 50
+    }
+    y += boxH + 26
+    // os donos da temporada
+    const donos: { tag: string; col: string; champ: string; isYou: boolean; art?: string }[] = []
+    for (const d of J_DIVS) {
+      const c = tables[d]?.[0]; const a = divTop[d]
+      if (c) donos.push({ tag: d, col: J_DIV_COLOR[d], champ: c.name, isYou: !!c.you, art: a ? `⚽ ${a.name} (${a.teamName}) · ${a.goals} gols` : undefined })
+    }
+    if (copa?.champion) donos.push({ tag: '🏆', col: '#F5B301', champ: copa.champion.name, isYou: !!copa.champion.you, art: copa.topScorer ? `⚽ ${copa.topScorer.name} (${copa.topScorer.teamName}) · ${copa.topScorer.goals} gols` : undefined })
+    const dh = 46 + donos.length * 74
+    x.fillStyle = '#fff'; x.fillRect(L, y, R - L, dh)
+    x.lineWidth = 4; x.strokeStyle = INK; x.strokeRect(L, y, R - L, dh)
+    x.fillStyle = INK; x.fillRect(L, y, R - L, 44)
+    x.fillStyle = GOLD_HEX; x.font = `900 22px ${OSW}`; x.textAlign = 'left'
+    x.fillText('🏆 OS DONOS DA TEMPORADA', L + 16, y + 30)
+    let dy = y + 44
+    for (const dn of donos) {
+      if (dn.isYou) { x.fillStyle = '#fdf6dd'; x.fillRect(L + 4, dy, R - L - 8, 74) }
+      x.fillStyle = dn.col; x.fillRect(L + 4, dy, 8, 74)
+      x.fillRect(L + 26, dy + 18, 38, 38)
+      x.strokeStyle = INK; x.lineWidth = 3; x.strokeRect(L + 26, dy + 18, 38, 38)
+      x.fillStyle = dn.tag === '🏆' ? INK : '#fff'; x.font = `900 22px ${OSW}`; x.textAlign = 'center'
+      x.fillText(dn.tag === '🏆' ? '🏆' : dn.tag, L + 45, dy + 45)
+      x.textAlign = 'left'; x.fillStyle = INK; x.font = `900 26px ${OSW}`
+      const champW = x.measureText(dn.champ).width
+      x.fillText(dn.champ, L + 84, dy + 32)
+      x.font = `800 15px ${OSW}`; x.fillStyle = dn.isYou ? '#b98600' : '#8a8266'
+      x.fillText(dn.isYou ? 'CAMPEÃO ⭐ VOCÊ' : (dn.tag === '🏆' ? 'CAMPEÃO DA COPA' : 'CAMPEÃO'), L + 84 + champW + 12, dy + 30)
+      if (dn.art) { x.font = `700 20px ${OSW}`; x.fillStyle = '#3a3527'; x.fillText(dn.art, L + 84, dy + 60) }
+      x.strokeStyle = 'rgba(0,0,0,.12)'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(L + 4, dy + 74); x.lineTo(R - 4, dy + 74); x.stroke()
+      dy += 74
+    }
+    y += dh + 40
+    // rodapé
+    x.fillStyle = '#1B7A3D'; x.fillRect(W / 2 - 300, y, 600, 76)
+    x.strokeStyle = INK; x.lineWidth = 5; x.strokeRect(W / 2 - 300, y, 600, 76)
+    x.fillStyle = '#fff'; x.font = `900 34px ${OSW}`; x.textAlign = 'center'
+    x.fillText('🔨 leilaolegends.com', W / 2, y + 50)
+    return new Promise(res => cv.toBlob(b => res(b), 'image/png'))
+  }
+
   async function share() {
-    const txt = `📰 O MARTELO — Temporada ${seasonNo}\n\n"${hl.h}"\n${hl.s}\n\n${me.team}: ${me.pos}º na ${J_DIV_NAME[me.div]}\n\n⚽ Joga você também: leilaolegends.com`
+    const txt = `📰 "${hl.h}" — ${me.team}, ${me.pos}º na ${J_DIV_NAME[me.div]} (T${seasonNo}). Joga você também: leilaolegends.com`
     try {
-      if (navigator.share) { await navigator.share({ text: txt }); return }
-      throw new Error('no-share')
+      const blob = await buildJornalBlob()
+      if (blob) {
+        const file = new File([blob], 'o-martelo.png', { type: 'image/png' })
+        const sd = { files: [file], title: 'O MARTELO', text: txt }
+        if (navigator.canShare?.(sd)) { try { await navigator.share(sd) } catch { /* cancelou */ } return }
+        // sem share de arquivo (ex.: desktop): baixa a imagem
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a'); a.href = url; a.download = 'o-martelo.png'; a.click()
+        URL.revokeObjectURL(url)
+        return
+      }
+      throw new Error('no-canvas')
     } catch {
-      try { await navigator.clipboard.writeText(txt); setCopied(true); setTimeout(() => setCopied(false), 2500) } catch { /* ignora */ }
+      // último recurso: texto
+      try {
+        if (navigator.share) { await navigator.share({ text: txt }); return }
+        await navigator.clipboard.writeText(txt); setCopied(true); setTimeout(() => setCopied(false), 2500)
+      } catch { /* ignora */ }
     }
   }
 
