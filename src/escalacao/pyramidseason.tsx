@@ -1032,13 +1032,14 @@ function CopaLiveMatch({ tie, pos, big, youColor }: { tie: CopaTie; pos: number;
   const R = { name: copaName(swap ? tie.a : tie.b), div: swap ? tie.aDiv : tie.bDiv, isA: swap, score: swap ? showA : showB }
   return (
     <div style={{ ...box(you ? '#FFF6D6' : '#fff'), border: `${big ? 3 : 2}px solid ${you ? '#B23B2E' : INK}`, boxShadow: `${big ? 4 : 2}px ${big ? 4 : 2}px 0 0 ${INK}`, padding: big ? '9px 12px' : '6px 9px', marginBottom: big ? 9 : 6 }}>
+      {!done && <p style={{ fontSize: big ? 10 : 9, fontWeight: 800, color: '#E8503A', textAlign: 'center', margin: '0 0 4px', ...OSWALD }}>🔴 {phaseLbl ? phaseLbl + ' · ' : ''}{legMin}'</p>}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>{copaDt(L.div)}<span style={nameStyle(L.isA)}>{L.name}</span></span>
         <span style={{ fontWeight: 900, fontSize: big ? 18 : 13, ...OSWALD, background: INK, color: '#fff', borderRadius: 7, padding: big ? '3px 11px' : '2px 8px', whiteSpace: 'nowrap' }}>{L.score} × {R.score}</span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: 'flex-end' }}><span style={nameStyle(R.isA)}>{R.name}</span>{copaDt(R.div)}</span>
       </div>
       {!done
-        ? <p style={{ fontSize: big ? 10 : 9, fontWeight: 800, color: '#E8503A', textAlign: 'center', margin: '3px 0 0', ...OSWALD }}>🔴 {phaseLbl ? phaseLbl + ' · ' : ''}{legMin}'{lastG ? ` · ⚽ ${lastG.name}` : ''}</p>
+        ? (lastG ? <p style={{ fontSize: big ? 10 : 9, fontWeight: 700, color: '#5a5647', textAlign: 'center', margin: '3px 0 0', ...OSWALD }}>⚽ {lastG.name}</p> : null)
         : <>
             {/* volta invertida: mostra o mandante (B) primeiro, igual aos lados ao vivo */}
             {nLegs === 2 && <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '3px 0 0' }}>ida {tie.legs[0][0]}×{tie.legs[0][1]} · volta {tie.legs[1][1]}×{tie.legs[1][0]}</p>}
@@ -1209,9 +1210,6 @@ export function PyramidSeasonScreen() {
   const copaFaseTotal = copaNLegs * 90
   const myCopaTie = copaFase?.ties.find(t => t.a.you || t.b.you) ?? null
   const otherCopaTies = copaFase ? copaFase.ties.filter(t => t !== myCopaTie) : []
-  const copaLegIdx = Math.min(copaNLegs - 1, Math.floor(copaPos / 90))
-  const copaLegMin = Math.min(90, Math.round(copaPos - copaLegIdx * 90))
-  const copaClock = copaPos >= copaFaseTotal ? 'FIM' : copaNLegs === 1 ? `${copaLegMin}'` : `${copaLegIdx === 0 ? 'IDA' : 'VOLTA'} ${copaLegMin}'`
   // cada JOGO rola ~COPA_LEG_MS (como uma partida da liga): toca a IDA inteira e
   // depois a VOLTA, todos os jogos juntos. Avança de fase quando termina + folga.
   useEffect(() => {
@@ -1322,7 +1320,7 @@ export function PyramidSeasonScreen() {
           <div style={{ padding: '12px 14px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD }}>{copaPlaying ? `Temporada ${state.seasonNo} · 🏆 Copa Legends` : <>Temporada {state.seasonNo}{me ? ` · ${DIV_NAME[me.div]}` : ''}</>}</div>
-              <div style={{ ...OSWALD, fontWeight: 800, fontSize: 18, marginTop: 2, lineHeight: 1 }}>{copaPlaying ? <>{copaFaseName} <span style={{ fontSize: 11, fontWeight: 800, color: '#ff5a4d' }}>🔴 {copaClock}</span></> : done ? 'Encerrada' : round === 0 ? 'Começando…' : <>Rodada <b style={{ fontSize: 21 }}>{round}</b><span style={{ fontSize: 12, opacity: 0.5, fontWeight: 700 }}> / 38</span></>}</div>
+              <div style={{ ...OSWALD, fontWeight: 800, fontSize: 18, marginTop: 2, lineHeight: 1 }}>{copaPlaying ? copaFaseName : done ? 'Encerrada' : round === 0 ? 'Começando…' : <>Rodada <b style={{ fontSize: 21 }}>{round}</b><span style={{ fontSize: 12, opacity: 0.5, fontWeight: 700 }}> / 38</span></>}</div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
               {!done && me && <span style={{ fontWeight: 800, fontSize: 12, ...OSWALD, border: '2px solid rgba(255,255,255,0.25)', borderRadius: 999, padding: '3px 9px', whiteSpace: 'nowrap' }}>{me.pos === 1 ? '🥇' : '🏅'} {me.pos}º</span>}
