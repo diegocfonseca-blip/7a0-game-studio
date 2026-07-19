@@ -523,6 +523,48 @@ function ArtilhariaBox({ scorers, colors, title, sub, foot }: { scorers: SeasonS
   )
 }
 
+// Artilharia da TEMPORADA separada por SÉRIE (A › B › C › D), top 5 de cada —
+// em vez de uma lista única misturando todas as divisões. Deixa claro quem é o
+// goleador de cada série (é ele que vira artilheiro/piso da divisão).
+function ArtilhariaByDiv({ scorers, colors, title, sub, foot }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string }) {
+  const cols = colors ?? {}
+  const total = scorers.length
+  return (
+    <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{title}</p>
+      {sub && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{sub}</p>}
+      {total === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>Sem gols ainda. Bola rolando…</p> : DIVS.map(d => {
+        const top = scorers.filter(s => s.div === d).slice(0, 5) // já vêm ordenados por gols
+        return (
+          <div key={d} style={{ marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, margin: '2px 0 4px' }}>
+              <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 5, padding: '1px 6px' }}>{DIV_TAG[d].l}</span>
+              <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD }}>{DIV_NAME[d]}</span>
+            </div>
+            {top.length === 0 ? <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,0.45)', fontWeight: 700, margin: '0 0 2px 4px' }}>Sem gols nesta série ainda.</p> : (
+              <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+                <tbody>
+                  {top.map((s, i) => {
+                    const fc = (s.human || s.rival) ? cols[s.teamId] : undefined
+                    return (
+                    <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', fontWeight: 600, background: fc?.light }}>
+                      <td style={{ paddingRight: 4, width: 16, color: 'rgba(0,0,0,0.5)', fontWeight: 800 }}>{i + 1}</td>
+                      <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>{i === 0 ? '👑 ' : ''}{s.name}</td>
+                      <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : s.rival ? '⚔️ ' : s.human ? '🔥 ' : ''}{s.teamName}</td>
+                      <td style={{ textAlign: 'center', fontWeight: 900, width: 30 }}>{s.goals}</td>
+                    </tr>
+                  )})}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )
+      })}
+      {foot && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.4)', margin: '4px 0 0', textAlign: 'center' }}>{foot}</p>}
+    </div>
+  )
+}
+
 // onde EU terminei/estou: divisão, posição, campeão
 export function myStanding(tables: Record<Div, SimTeam[]>): { div: Div; pos: number; champ: boolean; team: string } | null {
   for (const d of DIVS) {
@@ -1463,7 +1505,7 @@ export function PyramidSeasonScreen() {
                     lugar da artilharia das divisões; o "todos os tempos" fica embaixo. */}
                 {done && copa && copa.scorers.length > 0
                   ? <ArtilhariaBox scorers={copa.scorers} colors={colors} title="🏆 ARTILHARIA · COPA LEGENDS" sub="Gols do mata-mata da Copa — top 20." foot="🏅 O artilheiro da Copa rende +16 ao clube e sobe +16 no piso do jogador." />
-                  : <ArtilhariaBox scorers={scorers} colors={colors} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual (todas as divisões) — top 20." foot="🏅 O artilheiro de cada divisão rende ao clube e vira piso do jogador: Série D +4 · C +8 · B +12 · A +16." />}
+                  : <ArtilhariaByDiv scorers={scorers} colors={colors} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual — top 5 de cada série." foot="🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Série D +4 · C +8 · B +12 · A +16." />}
                 <ArtilhariaBox scorers={allTimeScorers} colors={colors} title="🏆 ARTILHARIA · TODOS OS TEMPOS" sub="Gols somados de todas as temporadas da sala — top 20." foot={allTimeScorers.length === 0 ? 'Começa a contar a partir de agora.' : undefined} />
               </>
             )}

@@ -279,7 +279,7 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   // cosmético: o jogador folk entra normal pelo nível dele (craque/bom/etc.).
   // A antiga fatia de ~13% do folk foi redistribuída (a maior parte pra "foi
   // profissional"). O resto do baralho é bom jogador natural.
-  distribute(Math.max(1, Math.round(totalCount * 0.15)), availLegend, 'legend', 0.45)    // LENDA 15%
+  distribute(Math.max(1, Math.round(totalCount * 0.16)), availLegend, 'legend', 0.45)    // LENDA 16%
   distribute(Math.max(1, Math.round(totalCount * 0.26)), availStar, 'star', 0.62)        // CRAQUE 26%
   distribute(Math.max(1, Math.round(totalCount * 0.17)), availPromessa, 'promessa', 0.55) // PROMESSAS 17%
   distribute(Math.max(1, Math.round(totalCount * 0.29)), availLow, 'low', 0.65)          // FOI PROFISSIONAL 29%
