@@ -2281,7 +2281,7 @@ const ALL_POOL: WonCard[] = (() => {
   return out
 })()
 
-export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void }) {
+export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void }) {
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
   const [claimed, setClaimed] = useState<WonCard | null>(null)
@@ -2317,15 +2317,21 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
   }, [status])
   const remaining = Math.max(0, Math.ceil((deadline - now) / 1000))
 
-  // se o campeão já tem TODOS os 11 do time no álbum, oferece CURINGAS: cartas
-  // novas aleatórias do catálogo (que ele ainda não tem) — nunca fica sem nova.
-  const allOwned = useMemo(() => you.squad.length > 0 && you.squad.every(c => owned.has(c.name)), [you.squad, owned])
-  const wildcards = useMemo(() => {
+  // 🎁 PACOTE SURPRESA: a carta agora é SORTEADA entre TODAS as cartas do jogo
+  // (baralho BR + Europa), sempre uma que o campeão ainda NÃO tem (só repetiria
+  // se já tivesse o catálogo inteiro). Trocamos o "escolher" pela emoção de abrir.
+  const packPool = useMemo(() => {
     const un = ALL_POOL.filter(c => !owned.has(c.name))
-    for (let i = un.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[un[i], un[j]] = [un[j], un[i]] }
-    return un.slice(0, 9)
+    return un.length ? un : ALL_POOL
   }, [owned])
-  const choices = allOwned ? wildcards : you.squad
+  const [opening, setOpening] = useState(false)
+  const openPack = () => {
+    if (opening || claimingRef.current) return
+    const pick = packPool[Math.floor(Math.random() * packPool.length)]
+    if (!pick) return
+    setOpening(true)
+    setTimeout(() => claim(pick), 950) // pacote balança/estoura antes de revelar
+  }
 
   async function claim(card: WonCard) {
     if (claimingRef.current) return
@@ -2346,12 +2352,7 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
 
   useEffect(() => {
     if (status !== 'picking' || remaining > 0) return
-    // tempo esgotou: o jogo escolhe por você uma que você AINDA NÃO tem (do time
-    // ou, se já tiver todas, uma curinga nova). Só repete se não houver nova.
-    const pool = choices.filter(c => !owned.has(c.name))
-    const from = pool.length ? pool : choices
-    const pick = from[Math.floor(Math.random() * from.length)]
-    if (pick) claim(pick)
+    openPack() // tempo esgotou: o pacote abre sozinho (ninguém fica sem carta)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining, status])
 
@@ -2366,7 +2367,7 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
           className="mx-auto mb-3" style={{ maxWidth: 200 }}>
           <CollectibleCard name="Rayan Oi, Boa Noite" club="Vasco" year={2025} pos="ATA" fame={3} promessa big />
         </motion.div>
-        <p className="text-[11px] font-bold text-black/55 mb-3">☝️ Essa é só um exemplo. Ao criar a conta você escolhe um craque <b>do seu próprio time campeão</b> pra guardar.</p>
+        <p className="text-[11px] font-bold text-black/55 mb-3">☝️ Essa é só um exemplo. Ao criar a conta você abre um <b>pacote surpresa</b> com uma carta de verdade — sorteada entre todas as cartas do jogo.</p>
         <Btn onClick={() => setAuthOpen(true)} bg={GREEN} className="w-full text-lg"><span className="text-white">Criar conta grátis e escolher →</span></Btn>
         {authOpen && <CareerAuthModal onClose={() => setAuthOpen(false)} onDone={() => {
           // logou sem sair da tela: reseta o cronômetro e re-checa → cai no pega-carta REAL do time campeão
@@ -2379,7 +2380,7 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
   if (status === 'revealed' && claimed) {
     return (
       <Box bg={CREAM} className="p-5 text-center" shadow={6}>
-        <p className="text-xs font-black uppercase text-black/60 mb-3">🎴 Foi pro seu álbum!</p>
+        <p className="text-xs font-black uppercase text-black/60 mb-3">🎁 Saiu do pacote — foi pro seu álbum!</p>
         <motion.div initial={{ rotateY: 90, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.7, type: 'spring', bounce: 0.35 }}
           className="mx-auto" style={{ maxWidth: 220 }}>
           <CollectibleCard name={claimed.name} club={claimed.club} year={claimed.year} pos={claimed.pos} fame={claimed.fame} bio={claimed.bio} folk={claimed.folk} promessa={claimed.promessa} big />
@@ -2389,30 +2390,38 @@ export function CardCollectPrompt({ you, seasonKey, origin = 'online', onClaimed
     )
   }
 
+  // 🎁 o PACOTE LACRADO: flutua brilhando; ao tocar balança, o lacre estoura,
+  // um clarão toma a tela e a carta é revelada (o componente real do álbum).
   return (
-    <Box bg={GOLD} className="p-4" shadow={6}>
-      <div className="flex items-center justify-between mb-2">
-        <p className="font-black text-lg" style={OSWALD}>🎴 Escolha sua carta-lembrança!</p>
+    <Box bg={GOLD} className="p-4 text-center" shadow={6}>
+      <style>{'@keyframes escPackSheen{0%{background-position:0% 0%}100%{background-position:100% 100%}}'}</style>
+      <div className="flex items-center justify-between mb-1">
+        <p className="font-black text-lg" style={OSWALD}>🎁 Pacote do campeão!</p>
         <span className="border-2 border-black rounded-lg px-2 py-1 text-xs font-black bg-white">{remaining}s</span>
       </div>
-      <p className="text-xs font-bold text-black/70 mb-3">{allOwned
-        ? <>Você já tem <b>todos os 11 do seu time</b>! 🎉 Então o campeão leva uma <b>carta nova ✨</b> pra coleção — escolha uma. Se o tempo acabar, o jogo escolhe pra você.</>
-        : <>Campeão leva um craque do próprio time pro álbum. As que você <b>já tem</b> ficam bloqueadas — pegue uma <b>nova ✨</b> pra completar a coleção. Se o tempo acabar, o jogo escolhe uma nova pra você.</>}</p>
-      <div className="grid grid-cols-3 gap-2 max-h-80 overflow-y-auto">
-        {choices.map(c => {
-          const have = owned.has(c.name) && !allOwned
-          return (
-            <button key={c.id} onClick={() => !have && claim(c)} disabled={have} className="text-left relative" style={{ cursor: have ? 'default' : 'pointer' }}>
-              <div style={{ opacity: have ? 0.4 : 1, filter: have ? 'grayscale(0.7)' : 'none' }}>
-                <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} />
-              </div>
-              {have
-                ? <span className="absolute top-1 right-1 border-2 border-black rounded-md px-1.5 py-0.5 text-[9px] font-black bg-white" style={OSWALD}>✓ já tenho</span>
-                : <span className="absolute top-1 right-1 border-2 border-black rounded-md px-1.5 py-0.5 text-[9px] font-black" style={{ background: GREEN, color: '#fff', ...OSWALD }}>✨ nova</span>}
-            </button>
-          )
-        })}
-      </div>
+      <p className="text-xs font-bold text-black/70 mb-3">Campeão leva uma carta <b>surpresa</b> pro álbum — sorteada entre <b>todas as cartas do jogo</b> (sempre uma que você ainda não tem). Toque no pacote pra abrir; se o tempo acabar, ele abre sozinho.</p>
+      <motion.button onClick={openPack} disabled={opening}
+        className="relative mx-auto block" style={{ width: 168, height: 230, background: 'transparent', border: 'none', padding: 0, cursor: opening ? 'default' : 'pointer' }}
+        animate={opening
+          ? { rotate: [0, -8, 8, -7, 7, -5, 5, 0], scale: [1, 1.04, 1.08, 1.12], transition: { duration: 0.75 } }
+          : { y: [0, -9, 0], rotate: [-1.5, 1.5, -1.5], transition: { duration: 2.6, repeat: Infinity, ease: 'easeInOut' } }}>
+        <div style={{ position: 'absolute', inset: 0, border: `4px solid ${INK}`, borderRadius: 16, overflow: 'hidden',
+          background: 'linear-gradient(150deg, #125e2f 0%, #2ea457 35%, #FFC400 50%, #2ea457 65%, #125e2f 100%)',
+          backgroundSize: '220% 220%', animation: 'escPackSheen 2.8s linear infinite',
+          boxShadow: `0 12px 26px rgba(0,0,0,.35), inset 0 0 24px rgba(255,255,255,.18)` }} />
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, color: '#fff' }}>
+          <span style={{ fontSize: 46, filter: 'drop-shadow(2px 3px 0 rgba(0,0,0,.4))' }}>🔨</span>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 16, lineHeight: 1, textShadow: '2px 2px 0 rgba(0,0,0,.45)' }}>LEILÃO<br />LEGENDS</span>
+          <span style={{ ...OSWALD, fontWeight: 800, fontSize: 9, letterSpacing: 2.5, color: GOLD, textShadow: '1px 1px 0 rgba(0,0,0,.5)' }}>PACOTE DO CAMPEÃO</span>
+        </div>
+        <motion.span animate={opening ? { y: -34, rotate: 22, opacity: 0 } : {}} transition={{ duration: 0.35, delay: 0.3 }}
+          style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: GOLD, border: `3px solid ${INK}`, borderRadius: 999, padding: '3px 13px', fontSize: 10.5, fontWeight: 900, letterSpacing: 1, ...OSWALD }}>LACRADO</motion.span>
+      </motion.button>
+      {!opening && <p className="text-[11px] font-black text-black/60 mt-3" style={OSWALD}>👆 TOCA PRA ABRIR</p>}
+      {opening && (
+        <motion.div className="fixed inset-0 pointer-events-none" style={{ background: '#fff', zIndex: 9999 }}
+          initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} transition={{ duration: 0.5, delay: 0.6 }} />
+      )}
     </Box>
   )
 }
