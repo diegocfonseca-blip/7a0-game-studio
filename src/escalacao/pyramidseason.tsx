@@ -108,6 +108,17 @@ function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | '
 }
 // divisão de origem de um time de CPU (temporada 1) — usada como fallback
 const cpuOrigDiv = (name: string): Div => DIVISION_TEAMS.A.some(t => t.team === name) ? 'A' : DIVISION_TEAMS.B.some(t => t.team === name) ? 'B' : 'C'
+// times RENOMEADOS (saves antigos guardam o nome VELHO em placements/cpuSquads/
+// clubCash): novo → velho. Sem essa ponte, o time renomeado que tinha subido/
+// caído de divisão "voltava" pra origem, a série ficava com 19/21 times e a
+// simulação CRASHAVA ("reading 'human'") pra quem tinha save antigo.
+const OLD_NAME: Record<string, string> = {
+  'Napolitano': 'Canela EC', 'Ponte Branca': 'Grelha SAF', 'CRBebê': 'Peteca FR',
+  'Semervilha': 'Posto 7 FC', 'Real Bets': 'Feira Nova FR', 'Goiaba FC': 'Onça Parda EC',
+  'Leve-cuscuz': 'Foguete FC', 'Torta de Rã': 'Fogaréu EC', 'Astronáutico': 'Sinhô Futebol',
+  'Inter Estadual': 'Bigode FC', 'Cuiabagre': 'Bagres do Rio', 'Santos Dumont': 'Tonhão FC',
+  'Pardemeias': 'Tico do Bar FR', 'Livre-pool': 'Xandão EC',
+}
 // chave estável de um time: técnico = m<id>; CPU = nome
 export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? `m${t.teamId}` : t.name
 
@@ -124,7 +135,27 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
   const cpu = buildCpuSquads(managers, seed, deck)
   // usa a FICHA salva do time de fundo se existir (memória de mercado); senão, a
   // receita determinística (base). Assim vender/comprar cola entre temporadas.
-  for (const [name, base] of cpu) world[divOf(name, cpuOrigDiv(name))].push(mk(name, (cpuSquads?.[name] ?? base) as PoolCard[], false, false, -1))
+  // Times RENOMEADOS: se o save antigo guardou colocação/ficha no nome VELHO,
+  // lê por ele — o time mantém a divisão que conquistou e o elenco que tinha.
+  for (const [name, base] of cpu) {
+    const old = OLD_NAME[name]
+    const plKey = placements?.[name] != null ? name : (old && placements?.[old] != null ? old : name)
+    const squad = cpuSquads?.[name] ?? (old ? cpuSquads?.[old] : undefined) ?? base
+    world[divOf(plKey, cpuOrigDiv(name))].push(mk(name, squad as PoolCard[], false, false, -1))
+  }
+  // REDE DE SEGURANÇA: cada série precisa de EXATAMENTE 20 times. Save fora do
+  // padrão (qualquer causa) desequilibrava (19/21) e derrubava a simulação
+  // inteira. Sobras saem do fim da série cheia (nunca humano) e completam a
+  // série vazia — determinístico, então online continua sincronizado.
+  const over: SimTeam[] = []
+  for (const d of DIVS) {
+    while (world[d].length > 20) {
+      let i = world[d].length - 1
+      while (i > 0 && world[d][i].human) i--
+      over.push(world[d].splice(i, 1)[0])
+    }
+  }
+  for (const d of DIVS) while (world[d].length < 20 && over.length) world[d].push(over.pop()!)
   return world
 }
 // semeia a ficha dos 60 times de fundo a partir da receita (base determinística)
@@ -267,6 +298,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
   const nr = Math.min(round, 38)
   for (let r = 0; r < nr; r++) for (const [hi, ai] of fix[r]) {
     const H = teams[hi], A = teams[ai]
+    if (!H || !A) continue // série fora do padrão (save antigo) — nunca derruba o jogo
     // humano usa a tática que ELE escolheu (sincronizada); CPU sorteia
     const th: Tac = H.human ? tacAt(tactics, H.teamId, r) : TACS[Math.floor(rng() * 3)]
     const ta: Tac = A.human ? tacAt(tactics, A.teamId, r) : TACS[Math.floor(rng() * 3)]
@@ -937,9 +969,10 @@ const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0 }
 function RankingTab({ tables, honors, coins, clubCash, colors, youId }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number }) {
   const rows = DIVS.flatMap(d => tables[d]).map(t => {
     const key = teamKey(t)
+    const oldKey = OLD_NAME[key] // save antigo pode ter caixa/títulos no nome VELHO do time renomeado
     // humano tem caixa em careerCoins (por id); todo bot tem em clubCash (teamKey).
-    const money = t.human ? (coins[t.teamId] ?? 0) : Math.round(clubCash[key] ?? 0)
-    return { t, key, h: honors[key] ?? EMPTY_HONORS, money }
+    const money = t.human ? (coins[t.teamId] ?? 0) : Math.round(clubCash[key] ?? (oldKey ? clubCash[oldKey] : undefined) ?? 0)
+    return { t, key, h: honors[key] ?? (oldKey ? honors[oldKey] : undefined) ?? EMPTY_HONORS, money }
   })
   rows.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
   const top = rows.slice(0, 20)
