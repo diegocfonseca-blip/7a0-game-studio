@@ -66,20 +66,20 @@ function MaintenanceBanner() {
 // some sozinho. Mostra UMA vez por aparelho (flag) pra não incomodar ninguém.
 // Pra soltar um aviso novo no futuro, é só trocar o ID.
 function AnnouncementToast() {
-  const ID = 'online-back-2026-07-v3'
+  const ID = 'estadio-2026-07-v1'
   const [show, setShow] = useState(false)
   useEffect(() => {
     try { if (localStorage.getItem('esc-annc-' + ID)) return } catch { /* ignora */ }
     setShow(true)
     try { localStorage.setItem('esc-annc-' + ID, '1') } catch { /* ignora */ }
-    const t = setTimeout(() => setShow(false), 5000) // some sozinho em ~5s
+    const t = setTimeout(() => setShow(false), 8000) // aviso de feature: um pouco mais de tempo
     return () => clearTimeout(t)
   }, [])
   if (!show) return null
   return (
     <div style={{ position: 'fixed', top: 8, left: 8, right: 8, zIndex: 99998, margin: '0 auto', maxWidth: 440, background: '#16a34a', color: '#fff', border: '2px solid #14361f', borderRadius: 12, padding: '7px 28px 7px 11px', textAlign: 'center', fontWeight: 700, fontSize: 11, lineHeight: 1.3, boxShadow: '0 4px 12px rgba(0,0,0,.28)', animation: 'esc-annc-in .3s ease-out' }}>
       <style>{'@keyframes esc-annc-in{from{transform:translateY(-16px);opacity:0}to{transform:translateY(0);opacity:1}}'}</style>
-      ⚽ Entrou tanta gente que o servidor quase pediu arrego 🤣 mas VOLTOU! O <b>Modo Online</b> tá no ar 🔥 Chama a resenha, encare os amigos e prove que aqui é na estratégia 💪🔨
+      🏟️ NOVIDADE no <b>Modo Carreira</b>: chegou o <b>ESTÁDIO</b>! Construa arquibancada por arquibancada, acenda os refletores e veja a bilheteria render toda temporada 💰 Procura a aba 🏟️ na tua carreira!
       <button onClick={() => setShow(false)} aria-label="Fechar"
         style={{ position: 'absolute', top: 3, right: 5, background: 'transparent', border: 'none', color: '#fff', fontSize: 17, fontWeight: 900, lineHeight: 1, cursor: 'pointer', padding: '2px 5px' }}>×</button>
     </div>
