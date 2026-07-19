@@ -61,10 +61,13 @@ export function GameFooter() {
         <p className="text-black/55 text-xs font-bold">💡 Ideia de jogador novo, sugestão ou achou um bug? Fala comigo:</p>
         <p className="text-xs font-bold">
           <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer" className="text-black/65 underline"><InstaIcon /> @leilaolegendscom</a>
+        </p>
+        <p className="text-xs font-bold">
+          <a href="https://instagram.com/diegocfonseca" target="_blank" rel="noopener noreferrer" className="text-black/65 underline"><InstaIcon /> @diegocfonseca</a>
           <span className="text-black/30"> · </span>
           <a href="mailto:diego.c.fonseca@gmail.com" className="text-black/65 underline">✉️ diego.c.fonseca@gmail.com</a>
         </p>
-        <p className="text-black/35 text-[11px] font-semibold pt-1">Feito por @leilaolegendscom</p>
+        <p className="text-black/35 text-[11px] font-semibold pt-1">Feito por @diegocfonseca</p>
         <p className="text-black/20 text-[10px] font-semibold">v{__BUILD_ID__}</p>
       </footer>
     </div>
