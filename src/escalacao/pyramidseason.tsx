@@ -1189,12 +1189,19 @@ export function PyramidSeasonScreen() {
   const copa = useMemo(() => done ? computeCopa(tables, state.seed, state.seasonNo) : null, [done, tables, state.seed, state.seasonNo])
   // a Copa TOCA fase por fase (oitavas → quartas → semi → final), como a liga.
   // copaRound = fase ao vivo agora (0=oitavas). Zera a cada temporada nova.
-  const [copaRound, setCopaRound] = useState(0)
+  // se o save já assistiu a Copa desta temporada, começa JÁ finalizada (999 >= nº de
+  // fases) — não re-anima do zero ao retomar; mostra direto os campeões/decisão.
+  const [copaRound, setCopaRound] = useState(() => state.copaDoneSeason === state.seasonNo ? 999 : 0)
   const [copaPos, setCopaPos] = useState(0) // relógio da fase (0..nLegs*90) no nível da TELA (o placar fica em cima das abas)
-  useEffect(() => { setCopaRound(0); setCopaPos(0) }, [state.seasonNo])
+  useEffect(() => { setCopaRound(state.copaDoneSeason === state.seasonNo ? 999 : 0); setCopaPos(0) }, [state.seasonNo, state.copaDoneSeason])
   const nCopaRounds = copa?.rounds.length ?? 0
   const copaPlaying = done && !!copa && nCopaRounds > 0 && copaRound < nCopaRounds
   const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
+  // ao TERMINAR de animar a Copa, marca no save (pra não re-animar ao retomar)
+  useEffect(() => {
+    if (copaFinished && state.careerOnline && state.copaDoneSeason !== state.seasonNo) dispatch({ type: 'MARK_COPA_DONE' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [copaFinished])
   // fase da Copa tocando agora (pra mostrar DISCRETO no cabeçalho, no lugar da divisão)
   const copaFase = copaPlaying && copa ? copa.rounds[copaRound] : null
   const copaFaseName = copaFase ? (copaFase.name === 'Final' ? 'Final' : copaFase.name) : ''
@@ -1489,7 +1496,7 @@ export function PyramidSeasonScreen() {
                aba Jogos ficam os OUTROS jogos da fase, rolando junto (mesmo relógio),
                como os jogos das outras divisões apareciam na liga. */
             <>
-              <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.5)', margin: '2px 0 7px' }}>🏆 Copa · {copaFaseName} · {copaNLegs === 1 ? 'jogo único' : 'ida e volta'} · {copaClock}</p>
+              <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.5)', margin: '2px 0 7px' }}>🏆 Copa · {copaFaseName} · {copaNLegs === 1 ? 'jogo único' : 'ida e volta'}</p>
               {otherCopaTies.map((t, i) => <CopaLiveMatch key={i} tie={t} pos={copaPos} />)}
             </>
           ) : (

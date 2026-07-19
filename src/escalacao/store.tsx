@@ -1214,6 +1214,7 @@ type Action =
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
+  | { type: 'MARK_COPA_DONE' }
   | { type: 'BECOME_HOST' }
   | { type: 'KICK_PLAYER'; playerIndex: number }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[] }
@@ -1559,6 +1560,9 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'GO_ALBUM': { s.screen = 'album'; return s }
     case 'GO_RANKING': { s.screen = 'ranking'; return s }
     case 'SET_PRESENCE': { s.presence = action.indices; return s }
+    // pirâmide: a Copa da temporada atual terminou de animar → marca, pra o save
+    // não re-animar a Copa do zero ao retomar (mostra direto os campeões/decisão).
+    case 'MARK_COPA_DONE': { s.copaDoneSeason = s.seasonNo; return s }
     // o host anterior saiu de vez e me passou a batuta: viro autoritativo. O
     // canal realtime re-inscreve como host (reage a s.isHost) e passo a emitir
     // e persistir o estado da sala.
@@ -2737,7 +2741,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // não salva quando está numa tela LATERAL (álbum/ranking): senão o
     // "Continuar carreira" restaurava no álbum em vez do jogo.
     if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
-    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}`
+    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}`
     if (sig === soloSigRef.current) return
     soloSigRef.current = sig
     try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }

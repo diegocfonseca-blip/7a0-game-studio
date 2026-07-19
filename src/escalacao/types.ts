@@ -243,6 +243,7 @@ export interface EscState {
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
   careerPlacements?: Record<string, string> | null // pirâmide: chave do time → divisão ('A'..'D'). Compacto (só a colocação). Atualiza a cada temporada.
+  copaDoneSeason?: number // pirâmide: nº da temporada cuja Copa Legends JÁ foi assistida até o fim — ao retomar o save, não re-anima a Copa do zero (mostra direto os campeões/decisão).
   cpuSquads?: Record<string, Card[]> // pirâmide: a "ficha" (elenco guardado) dos 60 times de fundo, por NOME. Antes eram recalculados na hora (receita fixa); agora têm MEMÓRIA — 11 fixos que só o mercado mexe (troca), pra negociarem de verdade. Reserva de bot só quando houver mais cartas. Semeado 1x pela receita determinística.
   dinastia?: boolean // modo Dinastia (teste): usa o leilão real; a economia assume após a cerimônia
   dinastiaBudget?: number // orçamento (moedas do clube) que o pregão do Dinastia usa
