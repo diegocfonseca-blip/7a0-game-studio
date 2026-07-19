@@ -1390,16 +1390,14 @@ export function PyramidSeasonScreen() {
         {/* A Copa ao vivo agora toca DENTRO da aba Jogos (em cima dos jogos). No
             FIM, o painel de campeões da temporada (Copa + séries + artilheiros)
             aparece expandido aqui; os botões de leilão/mesmo time ficam logo abaixo. */}
-        {/* 📰 O MARTELO: jornal da temporada — manchete única pra cada uma das
-            80 posições da pirâmide + os donos da temporada. Colapsado por padrão. */}
+        {/* 📰 O MARTELO: jornal da temporada JÁ ABERTO — manchete única pra cada
+            uma das 80 posições + os donos da temporada (campeões e artilheiros).
+            O painel antigo de campeões saiu: o jornal cobre tudo aquilo. */}
         {copaFinished && me && (
           <SeasonJornal me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo} />
         )}
         {copaFinished && copa?.champion && (
-          <>
-            <ChampionsPanel copa={copa} tables={tables} scorers={scorers} seasonNo={state.seasonNo} />
-            <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>👉 ver o chaveamento da Copa na aba Tabelas</button>
-          </>
+          <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>👉 ver o chaveamento da Copa na aba Tabelas</button>
         )}
         {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} />}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
