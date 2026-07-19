@@ -13,6 +13,7 @@ import { SECTORS, FORMATIONS } from './types'
 import { useEsc, savePyramidCloud } from './store'
 import { CardCollectPrompt } from './screens'
 import { SeasonJornal } from './jornal'
+import { StadiumTab } from './estadio'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 
@@ -1209,7 +1210,7 @@ export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const round = state.round
   const done = round >= 38
-  const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking'>('jogos')
+  const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti'>('arti')
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads])
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
@@ -1494,14 +1495,19 @@ export function PyramidSeasonScreen() {
           )
         })()}
 
-        {/* abas em pílulas — a ativa fica na SUA cor */}
+        {/* abas em pílulas — a ativa fica na SUA cor. 🏟️ Estádio: só na carreira
+            SOLO por enquanto (online precisa sincronizar as compras — etapa 2). */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-          {([['jogos', '🗓️', 'Jogos'], ['tabelas', '📊', 'Tabelas'], ['elenco', '👥', 'Elenco'], ['ranking', '🏆', 'Rank']] as [typeof tab, string, string][]).map(([t, ic, label]) => (
+          {(([['jogos', '🗓️', 'Jogos'], ['tabelas', '📊', 'Tabelas'], ['elenco', '👥', 'Elenco'], ['ranking', '🏆', 'Rank']] as [typeof tab, string, string][]).concat(state.onlineMode !== 'online' ? [['estadio', '🏟️', 'Estádio'] as [typeof tab, string, string]] : [])).map(([t, ic, label]) => (
             <button key={t} onClick={() => setTab(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: tab === t ? myCol.solid : '#fff', color: tab === t ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
           ))}
         </div>
 
-        {tab === 'ranking' ? (
+        {tab === 'estadio' ? (
+          <StadiumTab st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0}
+            onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
+            onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })} />
+        ) : tab === 'ranking' ? (
           <>
             {/* sub-abas do Rank: Clubes | Artilheiros (temporada + todos os tempos) */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>

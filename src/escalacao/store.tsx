@@ -47,7 +47,14 @@ function applyHonors(honors: Record<string, Honors> | undefined, champions?: Rec
   }
   return out
 }
+// 🏟️ bilheteria: soma a renda do estádio de cada técnico no caixa (fim de temporada)
+function applyStadiumIncome(coins: Record<number, number> | undefined, stads?: EscState['stadiums']): Record<number, number> {
+  const out = { ...(coins ?? {}) }
+  for (const id in (stads ?? {})) { const inc = stadiumIncome(stads![+id]); if (inc > 0) out[+id] = (out[+id] ?? 0) + inc }
+  return out
+}
 import type { CareerTeam } from './data'
+import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { logPlay, logVisit, heartbeat } from './analytics'
 
@@ -1238,6 +1245,8 @@ type Action =
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
   | { type: 'MARK_COPA_DONE' }
+  | { type: 'STADIUM_INVEST'; mgrId: number; sector: string } // 🏟️ carreira: investe +20 no setor
+  | { type: 'STADIUM_BUILD'; mgrId: number; ext: string } // 🏟️ carreira: compra melhoria destravada
   | { type: 'BECOME_HOST' }
   | { type: 'KICK_PLAYER'; playerIndex: number }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[] }
@@ -1586,6 +1595,30 @@ export function reducer(state: EscState, action: Action): EscState {
     // pirâmide: a Copa da temporada atual terminou de animar → marca, pra o save
     // não re-animar a Copa do zero ao retomar (mostra direto os campeões/decisão).
     case 'MARK_COPA_DONE': { s.copaDoneSeason = s.seasonNo; return s }
+    // 🏟️ ESTÁDIO da carreira: investe aos poucos num setor (custa do caixa de moedas)
+    case 'STADIUM_INVEST': {
+      if (!s.careerOnline) return s
+      const sec = STADIUM_SECTORS.find(x => x.k === action.sector); if (!sec) return s
+      const st = s.stadiums?.[action.mgrId] ?? emptyStadium()
+      const invested = st.inv[action.sector] ?? 0
+      const wallet = s.careerCoins?.[action.mgrId] ?? 0
+      const pay = Math.min(STADIUM_STEP, sec.cost - invested, wallet)
+      if (pay <= 0) return s
+      s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { inv: { ...st.inv, [action.sector]: invested + pay }, ext: st.ext } }
+      s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: wallet - pay }
+      return s
+    }
+    // 🏟️ compra uma melhoria DESTRAVADA (árvore de requisitos em estadiodata)
+    case 'STADIUM_BUILD': {
+      if (!s.careerOnline) return s
+      const ext = STADIUM_EXTRAS.find(x => x.k === action.ext); if (!ext) return s
+      const st = s.stadiums?.[action.mgrId] ?? emptyStadium()
+      const wallet = s.careerCoins?.[action.mgrId] ?? 0
+      if (st.ext.includes(action.ext) || !extraUnlocked(st, action.ext) || wallet < ext.cost) return s
+      s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { inv: st.inv, ext: [...st.ext, action.ext] } }
+      s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: wallet - ext.cost }
+      return s
+    }
     // o host anterior saiu de vez e me passou a batuta: viro autoritativo. O
     // canal realtime re-inscreve como host (reage a s.isHost) e passo a emitir
     // e persistir o estado da sala.
@@ -2057,6 +2090,7 @@ export function reducer(state: EscState, action: Action): EscState {
       pinHumanLineups(s) // mantém o SEU XI (mesmo time) — nada de auto-mudar titular
       s.seasonVotes = {} // temporada nova: zera a votação
       s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada (base+título/acesso/queda)
+      s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada (pro ranking)
       s.careerPlacements = action.placements
@@ -2075,6 +2109,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.seasonVotes = {} // temporada nova: zera a votação
       setActiveCatalog(s.deckLeague) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
       s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada
+      s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso no livro (o novo leilão já sai com o valor atualizado)
@@ -2105,6 +2140,7 @@ export function reducer(state: EscState, action: Action): EscState {
       pinHumanLineups(s) // fixa o SEU XI ANTES do leilão — reforço novo vai pro banco
       s.seasonVotes = {} // temporada nova: zera a votação
       s.careerCoins = applyRewards(s.careerCoins, action.rewards)
+      s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       s.careerHonors = applyHonors(s.careerHonors, action.champions)
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid) antes da venda/leilão de reservas
@@ -2764,7 +2800,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // não salva quando está numa tela LATERAL (álbum/ranking): senão o
     // "Continuar carreira" restaurava no álbum em vez do jogo.
     if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
-    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}`
+    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}|${JSON.stringify(state.stadiums ?? {})}`
     if (sig === soloSigRef.current) return
     soloSigRef.current = sig
     try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
