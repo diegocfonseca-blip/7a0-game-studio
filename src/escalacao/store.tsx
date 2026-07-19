@@ -823,8 +823,12 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       if (m && m.squad.length > 0) {
         const pool: { name: string; w: number }[] = []
         for (const c of m.squad) {
-          const w = c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05
-          pool.push({ name: c.name, w })
+          // posição × NÍVEL² (igual à carreira): craque leva a maioria dos gols,
+          // perna-de-pau quase nunca marca — antes era só por posição e o filler
+          // de várzea brigava na artilharia com o Pelé.
+          const posW = c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05
+          const n = Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42)
+          pool.push({ name: c.name, w: posW * (0.12 + n * n * 1.8) })
         }
         const total = pool.reduce((s, p) => s + p.w, 0)
         let r = rng() * total
