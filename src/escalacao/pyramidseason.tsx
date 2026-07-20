@@ -991,9 +991,17 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
   // na aba Elenco a explicação fica no banner grande abaixo — aqui não repete.
   const caption = elenco ? '' : list ? '· toque pra pôr no leilão / tirar' : '· moedas pra reforços'
   const listOf = (c: WonCard): ListCfg | undefined => list ? { listed: list.listed.has(c.id), listable: list.canList(c), onList: () => list.onList(c.id) } : undefined
-  // o elenco herda a COR do jogador (a mesma sorteada pra ele no jogo todo)
+  // o elenco herda a COR do jogador (a mesma sorteada pra ele no jogo todo).
+  // Quem tem tier de apoio ganha o degradê DA CARTA da categoria + varredura
+  // de brilho (holo), igual à carta — só na aba Elenco, que é o "manto" dele.
+  const perk = myApoioPerk()
+  const shine = elenco && perk && perk.holo > 0
   return (
-    <div style={{ ...box(elenco ? col.solid : col.light), padding: 12, marginBottom: 12 }}>
+    <div style={{ ...box(elenco ? col.solid : col.light), ...(shine ? { background: perk.grad, position: 'relative', overflow: 'hidden' } : {}), padding: 12, marginBottom: 12 }}>
+      {shine && <>
+        <style>{'@keyframes apoioSheen{0%{transform:translateX(-160%) skewX(-18deg)}100%{transform:translateX(560%) skewX(-18deg)}}'}</style>
+        <div style={{ position: 'absolute', top: -60, bottom: -60, left: 0, width: '30%', background: `linear-gradient(105deg,transparent,rgba(255,255,255,${(perk.holo * 0.55).toFixed(2)}),transparent)`, transform: 'skewX(-18deg)', animation: 'apoioSheen 3.6s ease-in-out infinite', pointerEvents: 'none', zIndex: 1 }} />
+      </>}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: elenco ? '#fff' : col.solid, textShadow: elenco ? '1px 1px 0 rgba(0,0,0,.35)' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👥 {mgr.teamName}{elenco ? apoioSelo() : ''}</p>
         <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: elenco ? '#fff' : col.solid, color: elenco ? INK : '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}>{mgr.squad.length}/22{elenco ? '' : ` · 💰 ${total}`}</span>
