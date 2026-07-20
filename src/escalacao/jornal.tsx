@@ -406,7 +406,7 @@ function cut(x: CanvasRenderingContext2D, t: string, maxW: number): string {
 }
 export async function buildElencoBlob(o: ElencoShareOpts): Promise<Blob | null> {
   const W = 1080
-  const HEAD = 252, FPAD = 22, FH = 660, LHEAD = 56, ROWH = 46, ROWG = 8
+  const HEAD = 252, FPAD = 0, FH = 660, LHEAD = 56, ROWH = 46, ROWG = 8
   const nRows = Math.max(o.titulares.length, o.reservas.length, 1)
   const LISTS = LHEAD + nRows * (ROWH + ROWG) + 18
   const FOOT = 116
@@ -438,9 +438,8 @@ export async function buildElencoBlob(o: ElencoShareOpts): Promise<Blob | null> 
   }
   x.fillStyle = INK; x.fillRect(0, HEAD - 6, W, 6)
 
-  // ── CAMPO padrão (moldura na cor do time)
-  x.fillStyle = o.color; x.fillRect(0, HEAD, W, FPAD + FH)
-  const fx0 = FPAD, fy0 = HEAD + FPAD, fw = W - FPAD * 2
+  // ── CAMPO padrão de ponta a ponta (uma cor só: o fundo é a cor do time)
+  const fx0 = 0, fy0 = HEAD, fw = W
   for (let i = 0; i < 10; i++) { x.fillStyle = i % 2 ? '#166332' : '#1B7A3D'; x.fillRect(fx0, fy0 + i * (FH / 10), fw, FH / 10) }
   const rowY = [0.14, 0.38, 0.63, 0.87]
   o.fieldRows.forEach((cards, ri) => {
@@ -465,6 +464,7 @@ export async function buildElencoBlob(o: ElencoShareOpts): Promise<Blob | null> 
   // ── LISTAS sobre a cor do time
   const ly0 = HEAD + FPAD + FH
   x.fillStyle = o.color; x.fillRect(0, ly0, W, LISTS)
+  x.fillStyle = INK; x.fillRect(0, ly0, W, 6)
   const colW = (W - 44 * 2 - 26) / 2
   const drawList = (title: string, rows: ElencoPlayerRow[], lx: number) => {
     x.textAlign = 'left'; x.fillStyle = '#fff'; x.font = `900 30px ${OSW}`
