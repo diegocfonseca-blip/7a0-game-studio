@@ -62,6 +62,12 @@ export function apoioName(name: string): string {
   return `${name} ${p.selo}`
 }
 
+// tira emoji/pictogramas dos nomes digitados (cadastro, sala, time): os selos
+// 💎⭐👑 são EXCLUSIVOS de quem apoia — ninguém "se promove" digitando emoji.
+export function stripEmoji(s: string): string {
+  return s.replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\u200D\uFE0F\uFE0E\u20E3]/gu, '')
+}
+
 // ── BRILHO ────────────────────────────────────────────────────────────────
 // keyframes globais injetados UMA vez — qualquer tela usa sem <style> local.
 const APOIO_CSS = '@keyframes apoioSheen{0%{transform:translateX(-160%) skewX(-18deg)}100%{transform:translateX(560%) skewX(-18deg)}}'

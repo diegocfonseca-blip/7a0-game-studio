@@ -17,6 +17,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Card, EscState, FormationKey, Sector, WonCard } from './types'
 import { CATALOG, DIVISION_TEAMS } from './data'
 import { useEsc, sortedTable } from './store'
+import { stripEmoji } from './apoio'
 import { useCanManager } from './admin'
 import { supabase } from '../lib/supabase'
 
@@ -843,7 +844,7 @@ function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: stri
     return () => { alive = false; sub.subscription.unsubscribe() }
   }, [])
   const start = async () => {
-    const clean = name.trim()
+    const clean = stripEmoji(name).trim()
     if (accountName !== null && clean && clean !== accountName) {
       try { await supabase.auth.updateUser({ data: { display_name: clean } }) } catch { /* não trava o jogo */ }
     }
@@ -867,7 +868,7 @@ function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: stri
       <div style={{ ...box(), padding: 16 }} className="space-y-4">
         <div>
           <p style={label}>Nome do seu clube</p>
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="Ex.: Bagres do Asfalto" maxLength={22}
+          <input value={name} onChange={e => setName(stripEmoji(e.target.value))} placeholder="Ex.: Bagres do Asfalto" maxLength={22}
             className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-bold bg-white" />
           {accountName !== null && <p className="text-[11px] font-semibold text-black/55 mt-1">🔗 É o nome da sua conta — vale no CPU, na carreira e no online. Se editar aqui, troca em todos os lugares (e nas estatísticas).</p>}
         </div>
@@ -1160,7 +1161,7 @@ function StadiumScreen({ save, persist, onBack }: { save: Save; persist: (s: Sav
       <div>
         <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', ...OSWALD, marginBottom: 6 }}>Nome do estádio</p>
         <div style={{ display: 'flex', gap: 8 }}>
-          <input value={nameDraft} onChange={e => setNameDraft(e.target.value)} maxLength={28} placeholder={STADIUM_DEFAULT_NAME}
+          <input value={nameDraft} onChange={e => setNameDraft(stripEmoji(e.target.value))} maxLength={28} placeholder={STADIUM_DEFAULT_NAME}
             style={{ flex: 1, minWidth: 0, border: `3px solid ${INK}`, borderRadius: 10, padding: '8px 10px', fontWeight: 900, fontSize: 14, ...OSWALD }} />
           <Btn onClick={saveName} bg={GREEN} color="#fff">Salvar</Btn>
         </div>

@@ -17,7 +17,7 @@ import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg } from './estadio'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
-import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS } from './apoio'
+import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji } from './apoio'
 import type { ApoioPerk } from './apoio'
 
 const INK = '#0C0C0C'
@@ -1463,7 +1463,7 @@ export function PyramidSeasonScreen() {
         if (!user) return // só técnico com cadastro entra no ranking
         const myTeam = tables[me.div]?.find(t => t.teamId === youId)
         const topScorer = scorers[0] // artilheiro geral da pirâmide (todas as divisões)
-        const displayName = user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? me.team
+        const displayName = stripEmoji(user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? me.team)
         await resilientWrite({ table: 'esc_results', onConflict: 'user_id,season_key', row: {
           user_id: user.id, display_name: displayName,
           mode: state.roomId ? 'online' : 'cpu', season_key: key.slice(0, 48),
