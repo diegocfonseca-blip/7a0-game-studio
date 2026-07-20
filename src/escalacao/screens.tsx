@@ -54,10 +54,62 @@ export function CreditLine({ className = '' }: { className?: string }) {
 // rodapé completo (contato) — aparece SUTIL no final de TODAS as telas do jogo.
 // Fundo bege PRÓPRIO pra ficar legível em qualquer tela (senão o texto escuro
 // some no fundo preto do app fora da área das telas).
+// ─── APOIE O PROJETO (Pix) ────────────────────────────────────────────
+// O jogo é gratuito e a gente quer que continue assim. Botão discreto que abre
+// um modal com a chave Pix e "copiar". Pra trocar a chave, é só editar PIX_KEY.
+const PIX_KEY = 'diego.c.fonseca@gmail.com'
+export function ApoieButton({ big = false }: { big?: boolean }) {
+  const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(PIX_KEY); setCopied(true); setTimeout(() => setCopied(false), 2500) }
+    catch { window.prompt('Copia a chave Pix:', PIX_KEY) }
+  }
+  return (
+    <>
+      {big ? (
+        <button onClick={() => setOpen(true)}
+          className="w-full rounded-xl border-[3px] border-black font-black text-base py-3 active:translate-y-0.5"
+          style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
+          💛 APOIE O PROJETO — E ELE SEGUE GRÁTIS
+        </button>
+      ) : (
+        <button onClick={() => setOpen(true)} className="text-xs font-black underline" style={{ color: 'rgba(0,0,0,0.6)' }}>
+          💛 Apoie o projeto (Pix)
+        </button>
+      )}
+      {open && (
+        <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 99997, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={e => e.stopPropagation()} className="border-[3px] border-black rounded-2xl p-5 text-center w-full"
+            style={{ background: '#F4ECD6', maxWidth: 380, boxShadow: `6px 6px 0 0 ${INK}` }}>
+            <p className="font-black text-2xl" style={OSWALD}>💛 Valeu por apoiar!</p>
+            <p className="text-[13px] font-bold text-black/70 mt-2 leading-snug">
+              O Leilão Legends é <b>gratuito</b>, sem anúncio chato, feito por <b>um torcedor só</b> nas horas vagas.
+              Se o jogo te diverte, qualquer valor no Pix ajuda a pagar o servidor e a manter tudo de graça pra geral. 🔨
+            </p>
+            <div className="border-[3px] border-black rounded-xl bg-white px-3 py-2.5 mt-4">
+              <p className="text-[10px] font-black uppercase text-black/50">Chave Pix (e-mail)</p>
+              <p className="text-[13px] font-black break-all" style={OSWALD}>{PIX_KEY}</p>
+            </div>
+            <button onClick={copy}
+              className="w-full mt-3 rounded-xl border-[3px] border-black font-black text-base py-3 active:translate-y-0.5"
+              style={{ background: copied ? GREEN : GOLD, color: copied ? '#fff' : INK, boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
+              {copied ? '✅ CHAVE COPIADA — VALEU DEMAIS!' : '📋 COPIAR CHAVE PIX'}
+            </button>
+            <p className="text-[11px] font-bold text-black/45 mt-3">Cola no app do teu banco e pronto. Qualquer valor vira mais jogo. 💛</p>
+            <button onClick={() => setOpen(false)} className="text-xs font-black underline text-black/50 mt-3">fechar</button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 export function GameFooter() {
   return (
     <div style={{ background: '#F4ECD6', borderTop: '2px solid rgba(0,0,0,0.06)' }}>
       <footer className="max-w-xl mx-auto text-center px-4 pt-4 pb-8 space-y-1.5">
+        <div className="pb-1"><ApoieButton /></div>
         <p className="text-black/55 text-xs font-bold">💡 Ideia de jogador novo, sugestão ou achou um bug? Fala comigo:</p>
         <p className="text-xs font-bold">
           <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer" className="text-black/65 underline"><InstaIcon /> @leilaolegendscom</a>
@@ -505,6 +557,7 @@ export function EscIntro() {
         ))}
       </div>
       <CardAccountNote />
+      <ApoieButton big />
       <Btn onClick={shareGame} className="w-full" bg="#fff">
         📤 {shared ? 'Link copiado! Cola no zap 📲' : 'Compartilhar com os amigos'}
       </Btn>
