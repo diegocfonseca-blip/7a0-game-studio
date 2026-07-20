@@ -380,3 +380,135 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo }: {
     </div>
   )
 }
+
+// ─── 📤 COMPARTILHAR ELENCO: a arte 1080px aprovada no mockup ────────────────
+// A tela do jogo não muda — isto gera a IMAGEM (header na cor do time + campinho
+// padrão + listas com gols/valor + rodapé dourado) e abre o compartilhar nativo.
+export type ElencoPlayerRow = { pos: string; name: string; goals: number; paid: number }
+export type ElencoShareOpts = {
+  teamName: string; divName: string; tablePos: number; seasonNo: number; formation: string
+  titles: number; squadValue: number; coins: number; color: string
+  fieldRows: { pos: string; name: string; goals: number }[][] // ATA/MEI/DEF/GOL
+  titulares: ElencoPlayerRow[]; reservas: ElencoPlayerRow[]
+}
+function rr(x: CanvasRenderingContext2D, px: number, py: number, w: number, h: number, r: number) {
+  x.beginPath()
+  x.moveTo(px + r, py); x.lineTo(px + w - r, py); x.arcTo(px + w, py, px + w, py + r, r)
+  x.lineTo(px + w, py + h - r); x.arcTo(px + w, py + h, px + w - r, py + h, r)
+  x.lineTo(px + r, py + h); x.arcTo(px, py + h, px, py + h - r, r)
+  x.lineTo(px, py + r); x.arcTo(px, py, px + r, py, r); x.closePath()
+}
+function cut(x: CanvasRenderingContext2D, t: string, maxW: number): string {
+  if (x.measureText(t).width <= maxW) return t
+  let s = t
+  while (s.length > 2 && x.measureText(s + '…').width > maxW) s = s.slice(0, -1)
+  return s + '…'
+}
+export async function buildElencoBlob(o: ElencoShareOpts): Promise<Blob | null> {
+  const W = 1080
+  const HEAD = 252, FPAD = 22, FH = 660, LHEAD = 56, ROWH = 46, ROWG = 8
+  const nRows = Math.max(o.titulares.length, o.reservas.length, 1)
+  const LISTS = LHEAD + nRows * (ROWH + ROWG) + 18
+  const FOOT = 116
+  const H = HEAD + FPAD + FH + LISTS + FOOT
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H
+  const x = cv.getContext('2d'); if (!x) return null
+  try { await document.fonts.load('900 60px Oswald') } catch { /* segue */ }
+  const OSW = 'Oswald, sans-serif', ARI = 'Arial, sans-serif'
+
+  // ── HEADER na cor do time
+  x.fillStyle = o.color; x.fillRect(0, 0, W, HEAD)
+  x.textAlign = 'left'
+  x.fillStyle = GOLD_HEX; x.font = `800 26px ${OSW}`
+  x.fillText('🔨 LEILÃO LEGENDS · MEU ELENCO', 44, 56)
+  x.fillStyle = '#fff'; x.font = `900 62px ${OSW}`
+  x.fillText(cut(x, o.teamName, W - 88), 44, 126)
+  x.fillStyle = 'rgba(255,255,255,0.85)'; x.font = `800 27px ${ARI}`
+  x.fillText(`${o.divName} · ${o.tablePos}º lugar · Temporada ${o.seasonNo} · ${o.formation}`, 44, 168)
+  // chips
+  const chips = [`🏆 ${o.titles} título${o.titles === 1 ? '' : 's'}`, `🏷️ Elenco vale ${o.squadValue} 💵`, `🪙 Caixa: ${o.coins}`]
+  let cx = 44
+  x.font = `800 25px ${OSW}`
+  for (const c of chips) {
+    const w = x.measureText(c).width + 34
+    x.fillStyle = 'rgba(0,0,0,0.30)'; rr(x, cx, 190, w, 44, 12); x.fill()
+    x.strokeStyle = 'rgba(245,179,1,0.75)'; x.lineWidth = 2.5; rr(x, cx, 190, w, 44, 12); x.stroke()
+    x.fillStyle = GOLD_HEX; x.fillText(c, cx + 17, 221)
+    cx += w + 14
+  }
+  x.fillStyle = INK; x.fillRect(0, HEAD - 6, W, 6)
+
+  // ── CAMPO padrão (moldura na cor do time)
+  x.fillStyle = o.color; x.fillRect(0, HEAD, W, FPAD + FH)
+  const fx0 = FPAD, fy0 = HEAD + FPAD, fw = W - FPAD * 2
+  for (let i = 0; i < 10; i++) { x.fillStyle = i % 2 ? '#166332' : '#1B7A3D'; x.fillRect(fx0, fy0 + i * (FH / 10), fw, FH / 10) }
+  const rowY = [0.14, 0.38, 0.63, 0.87]
+  o.fieldRows.forEach((cards, ri) => {
+    if (!cards.length) return
+    const cw = Math.min(300, (fw - 40) / cards.length - 18), ch = 104
+    const total = cards.length * cw + (cards.length - 1) * 18
+    let px = fx0 + (fw - total) / 2
+    const py = fy0 + FH * rowY[ri] - ch / 2
+    for (const c of cards) {
+      x.fillStyle = ri === 3 ? '#FFF6D6' : '#fff'; rr(x, px, py, cw, ch, 18); x.fill()
+      x.strokeStyle = INK; x.lineWidth = 5; rr(x, px, py, cw, ch, 18); x.stroke()
+      x.textAlign = 'center'
+      x.fillStyle = o.color; x.font = `800 20px ${OSW}`
+      x.fillText(c.pos, px + cw / 2, py + 28)
+      x.fillStyle = INK; x.font = `800 28px ${OSW}`
+      x.fillText(cut(x, c.name, cw - 22), px + cw / 2, py + 60)
+      if (c.goals > 0) { x.fillStyle = '#166332'; x.font = `800 22px ${OSW}`; x.fillText(`⚽ ${c.goals}`, px + cw / 2, py + 90) }
+      px += cw + 18
+    }
+  })
+
+  // ── LISTAS sobre a cor do time
+  const ly0 = HEAD + FPAD + FH
+  x.fillStyle = o.color; x.fillRect(0, ly0, W, LISTS)
+  const colW = (W - 44 * 2 - 26) / 2
+  const drawList = (title: string, rows: ElencoPlayerRow[], lx: number) => {
+    x.textAlign = 'left'; x.fillStyle = '#fff'; x.font = `900 30px ${OSW}`
+    x.fillText(title, lx, ly0 + 40)
+    rows.forEach((r0, i) => {
+      const ry = ly0 + LHEAD + i * (ROWH + ROWG)
+      x.fillStyle = '#fff'; rr(x, lx, ry, colW, ROWH, 10); x.fill()
+      x.fillStyle = o.color; x.font = `800 16px ${OSW}`
+      x.fillText(r0.pos, lx + 12, ry + 30)
+      x.fillStyle = INK; x.font = `800 24px ${OSW}`
+      x.fillText(cut(x, r0.name, colW - 200), lx + 58, ry + 32)
+      x.textAlign = 'right'
+      if (r0.goals > 0) { x.fillStyle = '#166332'; x.font = `800 20px ${OSW}`; x.fillText(`⚽ ${r0.goals}`, lx + colW - 92, ry + 31) }
+      x.fillStyle = 'rgba(0,0,0,0.55)'; x.font = `800 20px ${OSW}`
+      x.fillText(`💰 ${r0.paid}`, lx + colW - 12, ry + 31)
+      x.textAlign = 'left'
+    })
+  }
+  drawList('⭐ TITULARES', o.titulares, 44)
+  drawList('🔁 RESERVAS', o.reservas, 44 + colW + 26)
+
+  // ── RODAPÉ dourado
+  const fy = H - FOOT
+  x.fillStyle = GOLD_HEX; x.fillRect(0, fy, W, FOOT)
+  x.fillStyle = INK; x.fillRect(0, fy, W, 6)
+  x.textAlign = 'center'
+  x.fillStyle = INK; x.font = `900 34px ${OSW}`
+  x.fillText('mostra teu elenco e marca a gente! 📲 @leilaolegendscom', W / 2, fy + 56)
+  x.fillStyle = 'rgba(0,0,0,0.6)'; x.font = `800 23px ${ARI}`
+  x.fillText('monta o teu de graça em leilaolegends.com 🔨', W / 2, fy + 92)
+
+  return new Promise(res => cv.toBlob(b => res(b), 'image/png'))
+}
+export async function shareElenco(o: ElencoShareOpts) {
+  const blob = await buildElencoBlob(o)
+  const txt = `Meu elenco no Leilão Legends: ${o.teamName} (${o.divName}) 🔨 Monta o teu: https://leilaolegends.com`
+  if (blob) {
+    const file = new File([blob], 'meu-elenco.png', { type: 'image/png' })
+    const sd = { files: [file], title: 'Meu elenco — Leilão Legends', text: txt }
+    if (navigator.canShare?.(sd)) { try { await navigator.share(sd) } catch { /* cancelou */ } return }
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url; a.download = 'meu-elenco.png'; a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 4000)
+    return
+  }
+  try { if (navigator.share) await navigator.share({ text: txt }) } catch { /* cancelou */ }
+}

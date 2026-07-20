@@ -12,7 +12,8 @@ import type { Card, Manager, Sector, WonCard } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { useEsc, savePyramidCloud } from './store'
 import { CardCollectPrompt } from './screens'
-import { SeasonJornal } from './jornal'
+import { SeasonJornal, shareElenco } from './jornal'
+import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab } from './estadio'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
@@ -937,6 +938,47 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { m
     </div>
   )
 }
+// 📤 Compartilhar elenco: gera a arte aprovada (header na cor do time + campinho
+// + listas com gols/valor + rodapé) e abre o compartilhar nativo do celular.
+function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonNo, coins, titles }: {
+  mgr: Manager; col: FCol; xi: WonCard[]; xiIds: Set<string>; goals: Record<string, number>
+  divName: string; tablePos: number; seasonNo: number; coins: number; titles: number
+}) {
+  const [busy, setBusy] = useState(false)
+  const go = async () => {
+    if (busy) return
+    setBusy(true)
+    try {
+      const g = (c: WonCard) => goals[c.id] ?? 0
+      const of = (pos: Sector) => xi.filter(c => c.pos === pos)
+      const lats = of('LAT')
+      const def = [...(lats[0] ? [lats[0]] : []), ...of('ZAG'), ...(lats[1] ? [lats[1]] : [])]
+      const fieldRows = [of('ATA'), of('MEI'), def, of('GOL')].map(cards =>
+        cards.map(c => ({ pos: c.pos, name: c.name, goals: g(c) })))
+      const toRow = (c: WonCard): ElencoPlayerRow => ({ pos: c.pos, name: c.name, goals: g(c), paid: c.paid ?? 0 })
+      const titulares = SECTORS.flatMap(pos => of(pos)).map(toRow)
+      const reservas = mgr.squad.filter(c => !xiIds.has(c.id))
+        .sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(toRow)
+      await shareElenco({
+        teamName: mgr.teamName, divName, tablePos, seasonNo, formation: mgr.formation,
+        titles, squadValue: mgr.squad.reduce((s2, c) => s2 + (c.paid ?? 0), 0), coins,
+        color: col.solid, fieldRows, titulares, reservas,
+      })
+    } finally { setBusy(false) }
+  }
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <button onClick={go} disabled={busy}
+        style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 8px', fontWeight: 900, fontSize: 15, ...OSWALD, background: 'linear-gradient(180deg,#FFE07A,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', color: INK }}>
+        {busy ? '🎨 Gerando a arte…' : '📤 COMPARTILHAR MEU ELENCO'}
+      </button>
+      <p style={{ fontFamily: 'Arial, sans-serif', fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,0.5)', textAlign: 'center', marginTop: 5 }}>
+        gera a imagem do teu time — mostra teu elenco e marca a gente! 📲 @leilaolegendscom
+      </p>
+    </div>
+  )
+}
+
 function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = null, seasonNo }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number }) {
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
@@ -1606,6 +1648,12 @@ export function PyramidSeasonScreen() {
               </>
             )}
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} />
+            {me && (
+              <ShareElencoBtn mgr={state.managers[state.youIdx]} col={myCol} xi={myXI as WonCard[]} xiIds={myXIids}
+                goals={goalsByCard} divName={DIV_NAME[me.div]} tablePos={me.pos} seasonNo={state.seasonNo}
+                coins={state.careerCoins?.[youId] ?? 0}
+                titles={(() => { const h = state.careerHonors?.['m' + youId]; return h ? h.A + h.B + h.C + h.D : 0 })()} />
+            )}
           </>
         ) : tab === 'jogos' && hasMatches ? (
           copaPlaying && copaFase ? (
