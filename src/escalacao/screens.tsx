@@ -55,11 +55,11 @@ export function CreditLine({ className = '' }: { className?: string }) {
 // Fundo bege PRÓPRIO pra ficar legível em qualquer tela (senão o texto escuro
 // some no fundo preto do app fora da área das telas).
 // ─── APOIE O PROJETO (Pix) ────────────────────────────────────────────
-// O jogo é gratuito e a gente quer que continue assim. Botão discreto que abre
-// um modal com a chave Pix e "copiar". Pra trocar a chave, é só editar PIX_KEY.
+// Fluxo aprovado: escolha (só apoiar / batizar clube) → sonho → batismo.
+// NENHUM valor de apoio aparece pra ninguém. Chave em PIX_KEY; DM no Instagram.
 const PIX_KEY = 'diego.c.fonseca@gmail.com'
-export function ApoieButton({ big = false }: { big?: boolean }) {
-  const [open, setOpen] = useState(false)
+const APOIO_IG = 'https://ig.me/m/leilaolegendscom'
+function PixBox({ label = 'copiar' }: { label?: string }) {
   const [copied, setCopied] = useState(false)
   const copy = async () => {
     try { await navigator.clipboard.writeText(PIX_KEY); setCopied(true); setTimeout(() => setCopied(false), 2500) }
@@ -67,39 +67,126 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
   }
   return (
     <>
+      <div className="border-[3px] border-black rounded-xl bg-white px-3 py-2.5">
+        <p className="text-[10px] font-black uppercase text-black/50">Chave Pix (e-mail)</p>
+        <p className="text-[13px] font-black break-all" style={OSWALD}>{PIX_KEY}</p>
+      </div>
+      <button onClick={copy}
+        className="w-full mt-2.5 rounded-xl border-[3px] border-black font-black text-base py-3 active:translate-y-0.5"
+        style={{ background: copied ? GREEN : GOLD, color: copied ? '#fff' : INK, boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
+        {copied ? '✅ CHAVE COPIADA — VALEU DEMAIS!' : `📋 ${label.toUpperCase()}`}
+      </button>
+    </>
+  )
+}
+export function ApoieButton({ big = false }: { big?: boolean }) {
+  const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'dream' | 'batismo'>('off')
+  const [clube, setClube] = useState('')
+  const close = () => { setScreen('off') }
+  const igMsg = async () => {
+    // deixa a mensagem prontinha no clipboard e abre a DM do Instagram
+    const msg = `Opa! Acabei de apoiar o Leilão Legends 💛 Quero batizar meu clube: "${clube.trim() || '(nome do clube)'}" — comprovante em anexo!`
+    try { await navigator.clipboard.writeText(msg) } catch { /* segue o baile */ }
+    window.open(APOIO_IG, '_blank', 'noopener')
+  }
+  const Modal = ({ children }: { children: React.ReactNode }) => (
+    <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 99997, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14, overflowY: 'auto' }}>
+      <div onClick={e => e.stopPropagation()} className="border-[3px] border-black rounded-2xl p-5 w-full my-auto"
+        style={{ background: '#F4ECD6', maxWidth: 390, boxShadow: `6px 6px 0 0 ${INK}`, maxHeight: '94vh', overflowY: 'auto' }}>
+        {children}
+        <p className="text-center mt-3"><button onClick={close} className="text-xs font-black underline text-black/50">fechar</button></p>
+      </div>
+    </div>
+  )
+  return (
+    <>
       {big ? (
-        <button onClick={() => setOpen(true)}
+        <button onClick={() => setScreen('choice')}
           className="w-full rounded-xl border-[3px] border-black font-black text-base py-3 active:translate-y-0.5"
           style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
           💛 APOIE O PROJETO — E ELE SEGUE GRÁTIS
         </button>
       ) : (
-        <button onClick={() => setOpen(true)} className="text-xs font-black underline" style={{ color: 'rgba(0,0,0,0.6)' }}>
+        <button onClick={() => setScreen('choice')} className="text-xs font-black underline" style={{ color: 'rgba(0,0,0,0.6)' }}>
           💛 Apoie o projeto (Pix)
         </button>
       )}
-      {open && (
-        <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 99997, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={e => e.stopPropagation()} className="border-[3px] border-black rounded-2xl p-5 text-center w-full"
-            style={{ background: '#F4ECD6', maxWidth: 380, boxShadow: `6px 6px 0 0 ${INK}` }}>
-            <p className="font-black text-2xl" style={OSWALD}>💛 Valeu por apoiar!</p>
-            <p className="text-[13px] font-bold text-black/70 mt-2 leading-snug">
-              O Leilão Legends é <b>gratuito</b>, sem anúncio chato, feito por <b>um torcedor só</b> nas horas vagas.
-              Se o jogo te diverte, qualquer valor no Pix ajuda a pagar o servidor e a manter tudo de graça pra geral. 🔨
-            </p>
-            <div className="border-[3px] border-black rounded-xl bg-white px-3 py-2.5 mt-4">
-              <p className="text-[10px] font-black uppercase text-black/50">Chave Pix (e-mail)</p>
-              <p className="text-[13px] font-black break-all" style={OSWALD}>{PIX_KEY}</p>
+
+      {screen === 'choice' && (
+        <Modal>
+          <p className="font-black text-2xl text-center" style={OSWALD}>💛 APOIAR O LEILÃO LEGENDS</p>
+          <p className="text-xs font-bold text-black/60 text-center mt-1.5 leading-snug">O jogo é grátis, sem anúncio, feito por um torcedor só.<br />Escolhe como quer apoiar:</p>
+          <button onClick={() => setScreen('pix')} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3.5 active:translate-y-0.5"
+            style={{ background: GREEN, boxShadow: `4px 4px 0 0 ${INK}` }}>
+            <p className="font-black text-white text-base" style={OSWALD}>💛 Só apoiar a resenha</p>
+            <p className="text-[11px] font-bold text-white/80 mt-1 leading-snug">Qualquer valor no Pix. Sem burocracia, sem cadastro — só gratidão eterna e o jogo continuando grátis pra geral.</p>
+          </button>
+          <button onClick={() => setScreen('dream')} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3 active:translate-y-0.5"
+            style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}` }}>
+            <p className="font-black text-base" style={OSWALD}>🏟️ Apoiar E batizar um clube do jogo</p>
+            <p className="text-[11px] font-bold text-black/65 mt-1 leading-snug">Escolhe o nome do SEU time e ele entra no campeonato que <b>todo mundo</b> joga — na tabela, no jornal, na Copa. Seu clube, vivo, pra sempre*.</p>
+          </button>
+          <p className="text-[10px] font-bold text-black/45 text-center mt-2.5">*ou até alguém fazer uma proposta maior pelo clube… aí é cobrir ou chorar 😄</p>
+        </Modal>
+      )}
+
+      {screen === 'pix' && (
+        <Modal>
+          <p className="font-black text-2xl text-center" style={OSWALD}>💛 Valeu por apoiar!</p>
+          <p className="text-[13px] font-bold text-black/70 mt-2 leading-snug text-center">
+            Qualquer valor ajuda a pagar o servidor e a manter tudo de graça pra geral. 🔨
+          </p>
+          <div className="mt-3.5"><PixBox label="copiar chave Pix" /></div>
+          <p className="text-[11px] font-bold text-black/45 mt-3 text-center">Cola no app do teu banco e pronto. Qualquer valor vira mais jogo. 💛</p>
+        </Modal>
+      )}
+
+      {screen === 'dream' && (
+        <Modal>
+          <p className="font-black text-xl text-center leading-tight" style={OSWALD}>🏟️ SEU TIME. NO JOGO.<br />PRA TODO MUNDO.</p>
+          <div className="border-[3px] border-black rounded-xl overflow-hidden mt-3.5 bg-white" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
+            <p className="text-[9.5px] font-black uppercase tracking-wider text-center py-1" style={{ background: INK, color: GOLD }}>📊 é assim que os outros vão ver — Série A · rodada 31</p>
+            {[['1', 'Real Madruga', '61', false], ['2', '⭐ Atlético do Jefão', '60', true], ['3', 'Vadico Veículos', '57', false], ['4', 'Robertão United', '55', false]].map(([p, n, pts, me]) => (
+              <div key={p as string} className="flex justify-between px-3 py-1.5 text-[12px] border-t border-black/10"
+                style={{ background: me ? '#FFE9B0' : '#fff', fontWeight: me ? 900 : 700 }}>
+                <span><span className="text-black/40 mr-2">{p}</span>{n}</span><span>{pts}</span>
+              </div>
+            ))}
+            <div className="px-3 py-2.5 border-t-2 border-black" style={{ background: '#f6f1e6' }}>
+              <p className="font-black text-[13px] leading-tight" style={OSWALD}>📰 "ATLÉTICO DO JEFÃO ELIMINA GIGANTE E VAI À SEMI DA COPA"</p>
+              <p className="text-[10px] font-semibold italic text-black/55 mt-0.5" style={{ fontFamily: 'Georgia, serif' }}>— O Martelo, jornal da temporada, na tela de milhares de jogadores</p>
             </div>
-            <button onClick={copy}
-              className="w-full mt-3 rounded-xl border-[3px] border-black font-black text-base py-3 active:translate-y-0.5"
-              style={{ background: copied ? GREEN : GOLD, color: copied ? '#fff' : INK, boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
-              {copied ? '✅ CHAVE COPIADA — VALEU DEMAIS!' : '📋 COPIAR CHAVE PIX'}
-            </button>
-            <p className="text-[11px] font-bold text-black/45 mt-3">Cola no app do teu banco e pronto. Qualquer valor vira mais jogo. 💛</p>
-            <button onClick={() => setOpen(false)} className="text-xs font-black underline text-black/50 mt-3">fechar</button>
           </div>
-        </div>
+          <p className="text-[11.5px] font-bold text-black/70 mt-3 leading-snug">Seu clube <b>joga de verdade</b>: sobe, cai, briga por título, aparece na artilharia e sai no jornal — na carreira de <b>cada pessoa que joga</b>. Não é homenagem parada: é um clube VIVO com o seu nome na história dele.</p>
+          <button onClick={() => setScreen('batismo')} className="w-full mt-3.5 rounded-xl border-[3px] border-black font-black text-base py-3 active:translate-y-0.5"
+            style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
+            ⚽ QUERO BATIZAR MEU CLUBE
+          </button>
+        </Modal>
+      )}
+
+      {screen === 'batismo' && (
+        <Modal>
+          <p className="font-black text-2xl text-center" style={OSWALD}>⚽ BATIZA TEU CLUBE</p>
+          <p className="text-xs font-bold text-black/60 text-center mt-1">3 coisinhas e teu time entra em campo:</p>
+          <p className="font-black text-[13px] mt-3" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>1</span>Escolhe o nome do clube</p>
+          <input value={clube} onChange={e => setClube(e.target.value)} maxLength={26} placeholder="Ex.: Atlético do Jefão"
+            className="w-full border-[3px] border-black rounded-xl px-3 py-2.5 mt-2 font-black text-base bg-white" style={OSWALD} />
+          <p className="text-[10px] font-bold text-black/45 mt-1.5">✅ nome de resenha, zoeira leve, homenagem · ❌ ofensa, política, marca de empresa</p>
+          <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>2</span>Faz o Pix (a partir de R$ 5)</p>
+          <div className="mt-2"><PixBox label="copiar chave Pix" /></div>
+          <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>3</span>Manda comprovante + nome</p>
+          <button onClick={igMsg} className="w-full mt-2 rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
+            style={{ background: '#E1306C', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
+            📸 CHAMAR NO @leilaolegendscom
+          </button>
+          <p className="text-[10px] font-bold text-black/45 mt-1.5 text-center">(a mensagem já vai copiada — é só colar na DM e anexar o comprovante)</p>
+          <p className="text-[11px] font-bold text-black/55 mt-3 leading-snug text-center">A gente responde em até 24h confirmando o clube — e na próxima atualização ele já tá jogando pra todo mundo. ⚽</p>
+          <div className="border-[3px] border-black rounded-xl px-3 py-2.5 mt-3 text-center" style={{ background: INK }}>
+            <p className="font-black text-[12px] tracking-wide" style={{ color: GOLD, ...OSWALD }}>🤫 DISCRIÇÃO TOTAL</p>
+            <p className="text-[10.5px] font-bold mt-1 leading-snug" style={{ color: 'rgba(255,255,255,0.75)' }}>Nenhum valor aparece pra ninguém, nunca. Quanto cada um apoiou fica só entre você e a gente. No jogo, só existe o nome do clube.</p>
+          </div>
+        </Modal>
       )}
     </>
   )
