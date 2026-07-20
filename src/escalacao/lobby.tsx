@@ -4,6 +4,7 @@ import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useEsc } from './store'
 import { AdminButton, useCanCareerOnline } from './admin'
+import { apoioSelo } from './apoio'
 import type { DeckChoice } from './careeronline'
 import type { EscState, FormationKey } from './types'
 
@@ -495,7 +496,9 @@ export function EscLobby() {
     try { await navigator.clipboard.writeText(code); setShareOk('code'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
   }
 
-  const nameOf = () => user?.user_metadata?.display_name ?? user?.email?.split('@')[0] ?? 'Técnico'
+  // selo de apoio (👑/⭐/💎) entra colado no nome — aparece pra TODO MUNDO na
+  // sala e dentro do jogo, porque o manager_name é o que os outros veem.
+  const nameOf = () => (user?.user_metadata?.display_name ?? user?.email?.split('@')[0] ?? 'Técnico') + apoioSelo()
 
   // salva o nome de técnico (display_name) — usado no chip de edição rápida
   async function saveName() {
