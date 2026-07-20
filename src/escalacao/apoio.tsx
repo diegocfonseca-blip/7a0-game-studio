@@ -40,8 +40,21 @@ const FOUNDERS: Record<string, ApoioTier> = {
 // e-mail da conta logada, cacheado — os pontos que usam (playerColors, nomes)
 // são síncronos, então mantemos o valor atualizado via auth listener.
 let myEmail: string | null = null
-supabase.auth.getUser().then(({ data }) => { myEmail = data?.user?.email?.toLowerCase() ?? null }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { myEmail = s?.user?.email?.toLowerCase() ?? null })
+supabase.auth.getUser().then(({ data }) => { myEmail = data?.user?.email?.toLowerCase() ?? null; fixOldEmojiName(data?.user) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { myEmail = s?.user?.email?.toLowerCase() ?? null; fixOldEmojiName(s?.user) })
+
+// cadastro ANTIGO com emoji no nome: corrige no banco uma vez, no login.
+// (nome que era só emoji vira o prefixo do e-mail.)
+let fixedName = false
+function fixOldEmojiName(u: { email?: string; user_metadata?: Record<string, unknown> } | null | undefined) {
+  if (!u || fixedName) return
+  const dn = u.user_metadata?.display_name as string | undefined
+  if (!dn) return
+  const clean = stripEmoji(dn).trim() || u.email?.split('@')[0] || 'Técnico'
+  if (clean === dn) return
+  fixedName = true
+  supabase.auth.updateUser({ data: { display_name: clean } }).then(() => {}, () => {})
+}
 
 export function myApoioPerk(): ApoioPerk | null {
   if (!myEmail) return null
