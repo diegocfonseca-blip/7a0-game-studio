@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, EscState, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
@@ -89,14 +90,18 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
     try { await navigator.clipboard.writeText(msg) } catch { /* segue o baile */ }
     window.open(APOIO_IG, '_blank', 'noopener')
   }
-  const Modal = ({ children }: { children: React.ReactNode }) => (
+  // portal no body: escapa de qualquer transform de ancestral (fixed de verdade)
+  // e a COR PRETA explícita anula o color creme global do body (#f0e6c8) que
+  // deixava os textos sem cor própria "apagados" no fundo creme.
+  const Modal = ({ children }: { children: React.ReactNode }) => createPortal(
     <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 99997, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14, overflowY: 'auto' }}>
       <div onClick={e => e.stopPropagation()} className="border-[3px] border-black rounded-2xl p-5 w-full my-auto"
-        style={{ background: '#F4ECD6', maxWidth: 390, boxShadow: `6px 6px 0 0 ${INK}`, maxHeight: '94vh', overflowY: 'auto' }}>
+        style={{ background: '#F4ECD6', color: INK, maxWidth: 390, boxShadow: `6px 6px 0 0 ${INK}`, maxHeight: '94vh', overflowY: 'auto' }}>
         {children}
         <p className="text-center mt-3"><button onClick={close} className="text-xs font-black underline text-black/50">fechar</button></p>
       </div>
-    </div>
+    </div>,
+    document.body
   )
   return (
     <>
