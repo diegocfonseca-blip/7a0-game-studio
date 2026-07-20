@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
+import { stripEmoji } from './apoio'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
@@ -264,7 +265,7 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
           <p className="font-black text-2xl text-center" style={OSWALD}>⚽ BATIZA TEU CLUBE</p>
           <p className="text-xs font-bold text-black/60 text-center mt-1">3 coisinhas e teu time entra em campo:</p>
           <p className="font-black text-[13px] mt-3" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>1</span>Escolhe o nome do clube</p>
-          <input value={clube} onChange={e => setClube(e.target.value)} maxLength={26} placeholder="Ex.: Atlético do Jefão"
+          <input value={clube} onChange={e => setClube(stripEmoji(e.target.value))} maxLength={26} placeholder="Ex.: Atlético do Jefão"
             className="w-full border-[3px] border-black rounded-xl px-3 py-2.5 mt-2 font-black text-base bg-white" style={OSWALD} />
           <p className="text-[10px] font-bold text-black/45 mt-1.5">✅ nome de resenha, zoeira leve, homenagem · ❌ ofensa, política, marca de empresa</p>
           <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>2</span>Faz o Pix (a partir de R$ 60)</p>
@@ -783,7 +784,7 @@ export function EscSetup() {
   }, [])
 
   async function start() {
-    const clean = name.trim()
+    const clean = stripEmoji(name).trim()
     // logado e o nome mudou? sincroniza o cadastro → vale no online e nas stats
     if (accountName !== null && clean && clean !== accountName) {
       try { await supabase.auth.updateUser({ data: { display_name: clean } }) } catch { /* não trava o jogo */ }
@@ -846,7 +847,7 @@ export function EscSetup() {
           <p className="text-xs font-black uppercase mb-1">Nome do seu time</p>
           <input
             value={name}
-            onChange={e => setName(e.target.value)}
+            onChange={e => setName(stripEmoji(e.target.value))}
             placeholder="Ex.: Bagres do Asfalto"
             className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-bold bg-white"
           />
@@ -3129,7 +3130,7 @@ function RankResultWriter() {
         const top = topScorers(state, 1)[0]
         const online = state.onlineMode === 'online'
         const seasonKey = online ? `${state.roomId}:${state.seasonNo}` : state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`
-        const displayName = user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? you.teamName
+        const displayName = stripEmoji(user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? you.teamName)
         await resilientWrite({ table: 'esc_results', onConflict: 'user_id,season_key', row: {
           user_id: user.id, display_name: displayName,
           mode: online ? 'online' : 'cpu', season_key: seasonKey,
@@ -3196,7 +3197,7 @@ function CareerAuthModal({ onClose, onDone }: { onClose: () => void; onDone: () 
       onDone()
     } else {
       if (!nome.trim()) { setErr('Escolha um nome de técnico.'); setLoading(false); return }
-      const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: nome.trim() } } })
+      const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: stripEmoji(nome).trim() } } })
       if (error) { setErr(error.message); setLoading(false); return }
       if (data.session) { onDone() } // confirmação desligada: já entrou → salva
       else { setErr('✉️ Conta criada! Confirme no seu email e depois entre pra salvar na nuvem. (Já guardei no aparelho.)'); setLoading(false) }
@@ -3213,7 +3214,7 @@ function CareerAuthModal({ onClose, onDone }: { onClose: () => void; onDone: () 
           ))}
         </div>
         <div className="space-y-2">
-          {tab === 'register' && <input value={nome} onChange={e => setNome(e.target.value)} placeholder="Nome de técnico" className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />}
+          {tab === 'register' && <input value={nome} onChange={e => setNome(stripEmoji(e.target.value))} placeholder="Nome de técnico" className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />}
           <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="seu@email.com" className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />
           <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="Senha" onKeyDown={e => e.key === 'Enter' && go()} className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />
           {err && <p className={`text-xs font-bold ${err.startsWith('✉️') ? 'text-green-700' : 'text-red-500'}`}>{err}</p>}

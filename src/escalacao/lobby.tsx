@@ -4,7 +4,7 @@ import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useEsc } from './store'
 import { AdminButton, useCanCareerOnline } from './admin'
-import { apoioSelo } from './apoio'
+import { apoioSelo, stripEmoji } from './apoio'
 import type { DeckChoice } from './careeronline'
 import type { EscState, FormationKey } from './types'
 
@@ -498,11 +498,11 @@ export function EscLobby() {
 
   // selo de apoio (👑/⭐/💎) entra colado no nome — aparece pra TODO MUNDO na
   // sala e dentro do jogo, porque o manager_name é o que os outros veem.
-  const nameOf = () => (user?.user_metadata?.display_name ?? user?.email?.split('@')[0] ?? 'Técnico') + apoioSelo()
+  const nameOf = () => stripEmoji(user?.user_metadata?.display_name ?? user?.email?.split('@')[0] ?? 'Técnico').trim() + apoioSelo()
 
   // salva o nome de técnico (display_name) — usado no chip de edição rápida
   async function saveName() {
-    const nm = nameDraft.trim()
+    const nm = stripEmoji(nameDraft).trim()
     if (!nm) return
     setLoading(true)
     const { data, error } = await supabase.auth.updateUser({ data: { display_name: nm } })
@@ -518,7 +518,7 @@ export function EscLobby() {
         if (error) setAuthError(friendlyAuthErr(error.message))
       } else {
         if (!displayName.trim()) { setAuthError('Escolha um nome de técnico.'); setLoading(false); return }
-        const { error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: displayName.trim() } } })
+        const { error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: stripEmoji(displayName).trim() } } })
         setAuthError(error ? friendlyAuthErr(error.message) : '✉️ Verifique seu email pra confirmar o cadastro.')
       }
     } catch (e) {
@@ -788,7 +788,7 @@ export function EscLobby() {
       </div>
     )}
     <div className="space-y-3">
-      {authTab === 'register' && <Field label="Nome de técnico" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Como te chamam?" />}
+      {authTab === 'register' && <Field label="Nome de técnico" value={displayName} onChange={e => setDisplayName(stripEmoji(e.target.value))} placeholder="Como te chamam?" />}
       <Field label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" />
       <Field label="Senha" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
         onKeyDown={e => e.key === 'Enter' && handleAuth()} />
@@ -833,7 +833,7 @@ export function EscLobby() {
           <span className="text-white/50 text-[10px] font-black uppercase tracking-widest">Logado como</span>
           {editingName ? (
             <div className="flex gap-1.5 items-stretch flex-1 ml-2">
-              <input autoFocus value={nameDraft} onChange={e => setNameDraft(e.target.value)} maxLength={20}
+              <input autoFocus value={nameDraft} onChange={e => setNameDraft(stripEmoji(e.target.value))} maxLength={20}
                 placeholder="Seu nome de técnico" onKeyDown={e => e.key === 'Enter' && saveName()}
                 className="flex-1 min-w-0 border-2 border-black rounded-md px-2 py-1 font-black text-black text-xs bg-white" />
               <button onClick={saveName} disabled={loading || !nameDraft.trim()}
@@ -926,7 +926,7 @@ export function EscLobby() {
             </p>
           </div>
         )}
-        <Field label="Nome da sala" value={roomName} onChange={e => setRoomName(e.target.value)} placeholder={`Sala do ${nameOf()}`} maxLength={24} />
+        <Field label="Nome da sala" value={roomName} onChange={e => setRoomName(stripEmoji(e.target.value))} placeholder={`Sala do ${nameOf()}`} maxLength={24} />
         {canCareer && roomMode === 'carreira' && (
           <div className="border-[3px] border-black rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.06)' }}>
             <p className="text-white font-black text-[13px]" style={OSWALD}>🌎 Baralho fixo: Brasileirão + Europa juntos</p>
