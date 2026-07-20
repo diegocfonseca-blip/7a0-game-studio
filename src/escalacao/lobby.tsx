@@ -5,7 +5,6 @@ import { supabase } from '../lib/supabase'
 import { useEsc } from './store'
 import { AdminButton, useCanCareerOnline } from './admin'
 import { apoioSelo, stripEmoji } from './apoio'
-import { somEmote } from './sons'
 import type { DeckChoice } from './careeronline'
 import type { EscState, FormationKey } from './types'
 
@@ -257,11 +256,7 @@ export function EscLobby() {
   const [lobbyChat, setLobbyChat] = useState<{ id: string; name: string; text: string }[]>([])
   const lobbyChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   const addLobbyChat = useCallback((e: { id: string; name: string; text: string }) => {
-    setLobbyChat(prev => {
-      if (prev.some(x => x.id === e.id)) return prev
-      somEmote(e.text.split(' ')[0]) // o texto começa com o emoji da zoeira
-      return [...prev.slice(-11), e]
-    })
+    setLobbyChat(prev => prev.some(x => x.id === e.id) ? prev : [...prev.slice(-11), e])
     setTimeout(() => setLobbyChat(prev => prev.filter(x => x.id !== e.id)), 4200)
   }, [])
   const sendLobbyChat = (text: string) => {
