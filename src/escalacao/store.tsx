@@ -56,6 +56,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads?: E
 import type { CareerTeam } from './data'
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium } from './estadiodata'
 import { supabase } from '../lib/supabase'
+import { somEmote } from './sons'
 import { logPlay, logVisit, heartbeat } from './analytics'
 
 export const START_MONEY = 100
@@ -2675,7 +2676,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // reações efêmeras: lista viva que some sozinha (~2,6s cada). Fora do reducer.
   const [emotes, setEmotes] = useState<EmoteEvent[]>([])
   const addEmote = useCallback((e: EmoteEvent) => {
-    setEmotes(prev => prev.some(x => x.id === e.id) ? prev : [...prev.slice(-24), e])
+    setEmotes(prev => {
+      if (prev.some(x => x.id === e.id)) return prev
+      somEmote(e.kind) // sonzinho junto da bolha — pra quem manda E pra quem recebe
+      return [...prev.slice(-24), e]
+    })
     setTimeout(() => setEmotes(prev => prev.filter(x => x.id !== e.id)), 2600)
   }, [])
   const emote = useCallback((kind: string, cardId?: string, text?: string) => {
