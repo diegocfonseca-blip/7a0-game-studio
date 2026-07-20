@@ -94,3 +94,15 @@ export function apoioText(perk: ApoioPerk): React.CSSProperties {
   return { background: perk.grad, backgroundSize: '200% auto', WebkitBackgroundClip: 'text',
     backgroundClip: 'text', color: 'transparent', animation: 'apoioTextShine 3s linear infinite' }
 }
+
+// marca d'água das PRÉVIAS (o gostinho do dourado nas abas): deixa claro que
+// é modelo de teste — a cor de verdade vem pelo APOIE.
+export function ApoioPreviewMark() {
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'space-around', overflow: 'hidden' }}>
+      {[0, 1, 2].map(i => (
+        <p key={i} style={{ transform: 'rotate(-16deg)', textAlign: 'center', fontWeight: 900, fontSize: 20, color: 'rgba(0,0,0,.22)', letterSpacing: 2, whiteSpace: 'nowrap', margin: 0, fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase' }}>✨ prévia · modelo de teste ✨</p>
+      ))}
+    </div>
+  )
+}
