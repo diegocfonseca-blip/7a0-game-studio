@@ -341,7 +341,19 @@ export function EscLobby() {
     const ch = supabase.channel(`esclobby:${room.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'room_players', filter: `room_id=eq.${room.id}` }, () => fetchPlayers(room.id))
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: `id=eq.${room.id}` },
-        ({ new: r }: { new: RoomInfo }) => { if (r.status === 'started') triggerStart(r) })
+        ({ new: r }: { new: RoomInfo }) => {
+          if (r.status === 'started') { triggerStart(r); return }
+          // HOST MIGROU (o dono saiu e a coroa passou pro mais antigo): atualiza
+          // o crachá na lista e, se a coroa caiu em MIM, viro host de verdade —
+          // o botão COMEÇAR aparece e um aviso explica o que houve.
+          setRoom(prev => prev && prev.id === r.id ? { ...prev, host_id: r.host_id } : prev)
+          if (user && r.host_id === user.id) {
+            setIsHost(prev => {
+              if (!prev) setTimeout(() => { try { alert('👑 O host saiu da sala — agora VOCÊ é o host! Pode abrir o pregão quando quiser.') } catch { /* ignora */ } }, 0)
+              return true
+            })
+          }
+        })
       .on('broadcast', { event: 'emote' }, ({ payload }: { payload: { id: string; name: string; text: string } }) => addLobbyChat(payload))
       .subscribe()
     lobbyChanRef.current = ch
@@ -710,6 +722,15 @@ export function EscLobby() {
   async function leaveRoom() {
     if (!room || !user) return
     await supabase.from('room_players').delete().eq('room_id', room.id).eq('user_id', user.id)
+    // HOST saiu da sala de espera: passa a coroa pro técnico mais antigo (menor
+    // índice) em vez de deixar a sala órfã no "aguardando o host...". Se ficou
+    // vazia, apaga a sala de vez pra não virar fantasma na lista.
+    if (room.host_id === user.id) {
+      const { data: rest } = await supabase.from('room_players').select('user_id, player_index').eq('room_id', room.id).order('player_index')
+      const next = ((rest ?? []) as { user_id: string }[])[0]
+      if (next) await supabase.from('game_rooms').update({ host_id: next.user_id }).eq('id', room.id).then(() => {}, () => {})
+      else await supabase.from('game_rooms').delete().eq('id', room.id).then(() => {}, () => {})
+    }
     clearSavedRoom()
     setRoom(null); setPlayers([]); setPhase('menu')
   }
@@ -1132,7 +1153,7 @@ export function EscLobby() {
             <div key={p.user_id} className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full border-2 border-black bg-gray-300 flex items-center justify-center text-sm font-black">{p.manager_name[0]?.toUpperCase()}</div>
               <span className="font-black text-black text-sm flex-1">{p.manager_name}</span>
-              {p.player_index === 0 && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full">HOST</span>}
+              {p.user_id === room.host_id && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full">HOST</span>}
               {isHost && p.user_id !== user?.id && (
                 <button onClick={() => kickFromRoom(p)} aria-label={`Remover ${p.manager_name}`}
                   className="shrink-0 w-6 h-6 rounded-full border border-black/20 text-black/40 font-black text-xs leading-none active:opacity-60"
