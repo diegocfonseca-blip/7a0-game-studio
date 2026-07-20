@@ -2480,12 +2480,17 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed }: {
     return un.length ? un : ALL_POOL
   }, [owned])
   const [opening, setOpening] = useState(false)
+  // ABERTURA COM SUSPENSE, em tela cheia: o pacote toma a tela e treme cada vez
+  // mais forte (2,4s de tensão), CLARÃO, e a carta entra GRANDE girando.
+  const [fx, setFx] = useState<'off' | 'shake' | 'flash' | 'show'>('off')
   const openPack = () => {
     if (opening || claimingRef.current) return
     const pick = packPool[Math.floor(Math.random() * packPool.length)]
     if (!pick) return
     setOpening(true)
-    setTimeout(() => claim(pick), 950) // pacote balança/estoura antes de revelar
+    setFx('shake')
+    setTimeout(() => setFx('flash'), 2400)
+    setTimeout(() => { claim(pick); setFx('show') }, 2750)
   }
 
   async function claim(card: WonCard) {
@@ -2510,6 +2515,61 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed }: {
     openPack() // tempo esgotou: o pacote abre sozinho (ninguém fica sem carta)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining, status])
+
+  // ── overlay de REVELAÇÃO em tela cheia: tensão → clarão → carta gigante ──
+  const revealOverlay = fx !== 'off' ? createPortal(
+    <div style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(8,5,10,0.94)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18, overflow: 'hidden' }}>
+      <style>{'@keyframes escPackSheen{0%{background-position:0% 0%}100%{background-position:100% 100%}}'}</style>
+      {fx === 'shake' && (
+        <div className="text-center">
+          <motion.div className="relative mx-auto" style={{ width: 225, height: 308 }}
+            animate={{
+              rotate: [0, -2, 2, -3, 3, -5, 5, -7, 7, -10, 10, -13, 13, -8, 0],
+              x: [0, -2, 2, -3, 3, -5, 5, -7, 7, -9, 9, -11, 11, -5, 0],
+              scale: [1, 1, 1.02, 1.03, 1.05, 1.07, 1.1, 1.13],
+            }}
+            transition={{ duration: 2.35, ease: 'easeIn' }}>
+            <div style={{ position: 'absolute', inset: 0, border: `5px solid ${INK}`, borderRadius: 20, overflow: 'hidden',
+              background: 'linear-gradient(150deg, #125e2f 0%, #2ea457 35%, #FFC400 50%, #2ea457 65%, #125e2f 100%)',
+              backgroundSize: '220% 220%', animation: 'escPackSheen 1.1s linear infinite',
+              boxShadow: '0 0 60px rgba(255,196,0,.45), inset 0 0 30px rgba(255,255,255,.2)' }} />
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 7, color: '#fff' }}>
+              <span style={{ fontSize: 60, filter: 'drop-shadow(2px 3px 0 rgba(0,0,0,.4))' }}>🔨</span>
+              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 21, lineHeight: 1, textShadow: '2px 2px 0 rgba(0,0,0,.45)', textAlign: 'center' }}>LEILÃO<br />LEGENDS</span>
+              <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, letterSpacing: 3, color: GOLD, textShadow: '1px 1px 0 rgba(0,0,0,.5)' }}>PACOTE DO CAMPEÃO</span>
+            </div>
+          </motion.div>
+          <motion.p className="font-black text-white mt-5 text-lg" style={OSWALD}
+            initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0.4, 1] }} transition={{ duration: 2.2 }}>
+            🥁 segura o coração…
+          </motion.p>
+        </div>
+      )}
+      {fx === 'flash' && (
+        <motion.div style={{ position: 'absolute', inset: 0, background: '#fff' }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.28 }} />
+      )}
+      {fx === 'show' && claimed && (
+        <div className="text-center w-full" style={{ maxWidth: 340 }}>
+          <motion.div initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 0.5 }}
+            style={{ position: 'absolute', inset: 0, background: '#fff', pointerEvents: 'none' }} />
+          <motion.div initial={{ rotateY: 100, scale: 0.55, opacity: 0 }} animate={{ rotateY: 0, scale: 1, opacity: 1 }}
+            transition={{ duration: 0.9, type: 'spring', bounce: 0.38 }} className="mx-auto" style={{ maxWidth: 320 }}>
+            <CollectibleCard name={claimed.name} club={claimed.club} year={claimed.year} pos={claimed.pos} fame={claimed.fame} bio={claimed.bio} folk={claimed.folk} promessa={claimed.promessa} big />
+          </motion.div>
+          <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}
+            className="font-black text-white text-xl mt-4" style={OSWALD}>🎉 FOI PRO SEU ÁLBUM!</motion.p>
+          <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1 }}
+            onClick={() => setFx('off')}
+            className="mt-4 rounded-xl border-[3px] border-black font-black text-base py-3 px-6 active:translate-y-0.5"
+            style={{ background: GOLD, boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
+            📖 GUARDAR NO ÁLBUM
+          </motion.button>
+        </div>
+      )}
+    </div>,
+    document.body
+  ) : null
 
   if (status === 'checking') return null
 
@@ -2536,6 +2596,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed }: {
   if (status === 'revealed' && claimed) {
     return (
       <Box bg={CREAM} className="p-5 text-center" shadow={6}>
+        {revealOverlay}
         <p className="text-xs font-black uppercase text-black/60 mb-3">🎁 Saiu do pacote — foi pro seu álbum!</p>
         <motion.div initial={{ rotateY: 90, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.7, type: 'spring', bounce: 0.35 }}
           className="mx-auto" style={{ maxWidth: 220 }}>
@@ -2574,10 +2635,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed }: {
           style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: GOLD, border: `3px solid ${INK}`, borderRadius: 999, padding: '3px 13px', fontSize: 10.5, fontWeight: 900, letterSpacing: 1, ...OSWALD }}>LACRADO</motion.span>
       </motion.button>
       {!opening && <p className="text-[11px] font-black text-black/60 mt-3" style={OSWALD}>👆 TOCA PRA ABRIR</p>}
-      {opening && (
-        <motion.div className="fixed inset-0 pointer-events-none" style={{ background: '#fff', zIndex: 9999 }}
-          initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} transition={{ duration: 0.5, delay: 0.6 }} />
-      )}
+      {revealOverlay}
     </Box>
   )
 }
