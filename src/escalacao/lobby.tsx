@@ -395,6 +395,18 @@ export function EscLobby() {
     const inProgress = !!gs && Array.isArray(gs.managers) && gs.managers.length > 0
       && !!gs.screen && gs.screen !== 'intro' && gs.screen !== 'lobby'
     if (inProgress) {
+      // TRAVA anti-"vestir bot": só assume a partida se ela tem um técnico
+      // HUMANO com o SEU número. Sem isso, quem entrava na sala no exato
+      // segundo do início ganhava um índice que não existia no jogo e virava
+      // um bot de preenchimento (time completo, 💰 0) — bug do Red Bull Diet.
+      const mineMgr = (gs as EscState).managers.find(m => m.id === myPl.player_index)
+      if (!mineMgr || !mineMgr.isHuman) {
+        await supabase.from('room_players').delete().eq('room_id', roomData.id).eq('user_id', user.id).then(() => {}, () => {})
+        clearSavedRoom()
+        setRoom(null); setPlayers([]); setPhase('menu')
+        setRoomError('⏱️ Essa partida começou sem você (entrou bem na hora do início). Espera o host chamar no "Jogar de novo" ou entra em outra sala.')
+        return true // já navegou (pro menu, com aviso) — não fica re-tentando
+      }
       dispatch({
         type: 'RESTORE_ONLINE',
         state: gs as EscState,
@@ -663,6 +675,11 @@ export function EscLobby() {
     const used = new Set(rows.map(p => p.player_index))
     let idx = 1; while (used.has(idx)) idx++
     if (idx >= rd.max_players) { setRoomError('Sala cheia!'); setLoading(false); return }
+    // re-checa o status FRESCO logo antes de entrar: a lista/o código podem
+    // estar defasados e o host pode ter COMEÇADO neste meio-tempo — entrar
+    // agora criaria um jogador sem time na partida (o bug do "virei bot").
+    const { data: freshSt } = await supabase.from('game_rooms').select('status').eq('id', rd.id).maybeSingle()
+    if (freshSt?.status !== 'waiting') { setRoomError('⏱️ Essa sala começou agorinha — não deu tempo de entrar. Espera o "Jogar de novo" ou escolhe outra.'); setLoading(false); return }
     const { error: insErr } = await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: idx, manager_name: nameOf(), is_ready: true })
     if (insErr) { setRoomError('Não consegui entrar: ' + insErr.message); setLoading(false); return }
     saveRoom(rd.id)
