@@ -5,6 +5,7 @@
 import { STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, sectorPct, hasExtra, extraUnlocked, stadiumIncome, stadiumSeats, stadiumLevel } from './estadiodata'
 import type { StadiumSave } from './estadiodata'
 import { myApoioPerk } from './apoio'
+import type { ApoioPerk } from './apoio'
 
 const INK = '#0C0C0C'
 const GOLD = '#F5B301'
@@ -22,12 +23,13 @@ const STANDS: Record<string, { pts: number[][]; axis: 'x' | 'y'; from: number; t
 }
 const P = (a: number[][]) => a.map(p => p.join(',')).join(' ')
 
-function StadiumSvg({ st }: { st: StadiumSave | undefined }) {
+export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; perkOverride?: ApoioPerk }) {
   const night = hasExtra(st, 'refl')
   const grama = hasExtra(st, 'grama')
   // tier de apoio: as arquibancadas vestem a COR do time (setor pronto E em
   // construção), com varredura de brilho quando a categoria tem holo.
-  const perk = myApoioPerk()
+  // perkOverride força um tier (usado na PRÉVIA "veja o seu dourado").
+  const perk = perkOverride ?? myApoioPerk()
   const [f0, f1] = perk ? perk.svgFull : ['#ffd85a', '#e09e00']
   const [v0, v1] = perk ? perk.svgPart : ['#2fa85c', '#15612f']
   const parts: string[] = []

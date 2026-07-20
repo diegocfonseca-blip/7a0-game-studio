@@ -11,13 +11,14 @@ import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS } from './data'
 import type { Card, Manager, Sector, WonCard } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { useEsc, savePyramidCloud } from './store'
-import { CardCollectPrompt } from './screens'
+import { CardCollectPrompt, ApoieButton } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
-import { StadiumTab } from './estadio'
+import { StadiumTab, StadiumSvg } from './estadio'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
-import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen } from './apoio'
+import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS } from './apoio'
+import type { ApoioPerk } from './apoio'
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -991,7 +992,33 @@ function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonN
   )
 }
 
-function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = null, seasonNo }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number }) {
+// ── PRÉVIA DOURADA: acordeão fechado no fim das abas Elenco e Estádio — o
+// "gostinho" do tier Lenda com o PRÓPRIO time da pessoa, marcado como modelo
+// de teste, com o botão do APOIE logo abaixo. Quem já é ouro não vê.
+function GoldTeaser({ label, children }: { label: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false)
+  if (myApoioPerk()?.tier === 'ouro') return null
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <button onClick={() => setOpen(o => !o)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12.5, ...OSWALD, background: 'linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer', position: 'relative', overflow: 'hidden', textAlign: 'center' }}>
+        <ApoioSheen holo={0.75} dur={2.6} />
+        <span style={{ position: 'relative' }}>{open ? '▾' : '✨'} {label}</span>
+      </button>
+      {open && (
+        <div style={{ marginTop: 8 }}>
+          <div style={{ position: 'relative' }}>
+            {children}
+            <ApoioPreviewMark />
+          </div>
+          <p style={{ fontSize: 10.5, fontWeight: 800, textAlign: 'center', color: '#5a5647', margin: '6px 0 8px' }}>☝️ prévia de teste — assim fica o SEU no tier Lenda 👑 (ouro ou qualquer cor com brilho)</p>
+          <ApoieButton big />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = null, seasonNo, perkOverride }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk }) {
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
@@ -1002,13 +1029,13 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
   // o elenco herda a COR do jogador (a mesma sorteada pra ele no jogo todo).
   // Quem tem tier de apoio ganha o degradê DA CARTA da categoria + varredura
   // de brilho (holo), igual à carta — só na aba Elenco, que é o "manto" dele.
-  const perk = myApoioPerk()
+  const perk = perkOverride ?? myApoioPerk()
   const shine = elenco && perk && perk.holo > 0
   return (
     <div style={{ ...box(elenco ? col.solid : col.light), ...(shine ? { background: perk.grad, position: 'relative', overflow: 'hidden' } : {}), padding: 12, marginBottom: 12 }}>
       {shine && <ApoioSheen holo={perk.holo} />}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: elenco ? '#fff' : col.solid, textShadow: elenco ? '1px 1px 0 rgba(0,0,0,.35)' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👥 {mgr.teamName}{elenco ? apoioSelo() : ''}</p>
+        <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: elenco ? '#fff' : col.solid, textShadow: elenco ? '1px 1px 0 rgba(0,0,0,.35)' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👥 {mgr.teamName}{elenco && perk?.selo ? ` ${perk.selo}` : elenco ? apoioSelo() : ''}</p>
         <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: elenco ? '#fff' : col.solid, color: elenco ? INK : '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}>{mgr.squad.length}/22{elenco ? '' : ` · 💰 ${total}`}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: elenco ? '#fff' : 'rgba(255,255,255,0.6)', border: `2px solid ${elenco ? INK : col.solid}`, borderRadius: 8, padding: '4px 8px', flexWrap: 'wrap' }}>
@@ -1622,9 +1649,16 @@ export function PyramidSeasonScreen() {
         </div>
 
         {tab === 'estadio' ? (
-          <StadiumTab st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0}
-            onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
-            onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })} />
+          <>
+            <StadiumTab st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0}
+              onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
+              onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })} />
+            <GoldTeaser label="Ver o estádio DOURADO completo (prévia)">
+              <div style={{ ...box('#FBF6E9'), padding: 12, position: 'relative' }}>
+                <StadiumSvg st={{ inv: { geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'grama', 'cober'] }} perkOverride={APOIO_PERKS.ouro} />
+              </div>
+            </GoldTeaser>
+          </>
         ) : tab === 'ranking' ? (
           <>
             {/* sub-abas do Rank: Clubes | Artilheiros (temporada + todos os tempos) */}
@@ -1671,6 +1705,12 @@ export function PyramidSeasonScreen() {
                 coins={state.careerCoins?.[youId] ?? 0}
                 titles={(() => { const h = state.careerHonors?.['m' + youId]; return h ? h.A + h.B + h.C + h.D : 0 })()} />
             )}
+            <GoldTeaser label="Ver MEU elenco DOURADO (prévia)">
+              <div style={{ maxHeight: 400, overflow: 'hidden', borderRadius: 16, position: 'relative' }}>
+                <SquadTab mgr={state.managers[state.youIdx]} col={{ solid: '#C9A227', light: '#F6E9C0' }} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} seasonNo={state.seasonNo} perkOverride={APOIO_PERKS.ouro} />
+                <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 64, background: 'linear-gradient(180deg,transparent,#F4ECD6)', pointerEvents: 'none', zIndex: 2 }} />
+              </div>
+            </GoldTeaser>
           </>
         ) : tab === 'jogos' && hasMatches ? (
           copaPlaying && copaFase ? (
