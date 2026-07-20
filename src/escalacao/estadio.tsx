@@ -4,6 +4,7 @@
 // Melhorias destravam em árvore. Renda cai sozinha no fim de cada temporada.
 import { STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, sectorPct, hasExtra, extraUnlocked, stadiumIncome, stadiumSeats, stadiumLevel } from './estadiodata'
 import type { StadiumSave } from './estadiodata'
+import { myApoioPerk } from './apoio'
 
 const INK = '#0C0C0C'
 const GOLD = '#F5B301'
@@ -24,14 +25,27 @@ const P = (a: number[][]) => a.map(p => p.join(',')).join(' ')
 function StadiumSvg({ st }: { st: StadiumSave | undefined }) {
   const night = hasExtra(st, 'refl')
   const grama = hasExtra(st, 'grama')
+  // tier de apoio: as arquibancadas vestem a COR do time (setor pronto E em
+  // construção), com varredura de brilho quando a categoria tem holo.
+  const perk = myApoioPerk()
+  const [f0, f1] = perk ? perk.svgFull : ['#ffd85a', '#e09e00']
+  const [v0, v1] = perk ? perk.svgPart : ['#2fa85c', '#15612f']
   const parts: string[] = []
   parts.push('<defs>')
   for (const k in STANDS) parts.push(`<clipPath id="stc${k}"><polygon points="${P(STANDS[k].pts)}"/></clipPath>`)
   parts.push(`<linearGradient id="stgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${grama ? '#3bbf6e' : '#37a862'}"/><stop offset="1" stop-color="${grama ? '#177a3e' : '#1e7a44'}"/></linearGradient>`)
-  parts.push('<linearGradient id="stau" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd85a"/><stop offset="1" stop-color="#e09e00"/></linearGradient>')
-  parts.push('<linearGradient id="stvd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fa85c"/><stop offset="1" stop-color="#15612f"/></linearGradient>')
+  parts.push(`<linearGradient id="stau" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${f0}"/><stop offset="1" stop-color="${f1}"/></linearGradient>`)
+  parts.push(`<linearGradient id="stvd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${v0}"/><stop offset="1" stop-color="${v1}"/></linearGradient>`)
   parts.push('<pattern id="stcrowd" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.4" fill="#0C0C0C" opacity=".25"/><circle cx="6" cy="6" r="1.4" fill="#fff" opacity=".55"/></pattern>')
   parts.push('<radialGradient id="stbeam" cx="50%" cy="0%" r="100%"><stop offset="0" stop-color="#FFE9A3" stop-opacity=".5"/><stop offset="1" stop-color="#FFE9A3" stop-opacity="0"/></radialGradient>')
+  if (perk && perk.holo > 0) {
+    // faixa de luz que atravessa o estádio de leve, em loop (SMIL — sem CSS)
+    parts.push(`<linearGradient id="stsh" gradientUnits="userSpaceOnUse" x1="-140" y1="0" x2="-40" y2="60">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity="${(perk.holo * 0.55).toFixed(2)}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+      <animate attributeName="x1" values="-140;400" dur="3.6s" repeatCount="indefinite"/>
+      <animate attributeName="x2" values="-40;500" dur="3.6s" repeatCount="indefinite"/>
+    </linearGradient>`)
+  }
   parts.push('</defs>')
   parts.push(`<rect width="360" height="312" rx="10" fill="${night ? '#2b3a4e' : '#dfeee3'}"/>`)
   parts.push('<ellipse cx="180" cy="298" rx="160" ry="10" fill="#000" opacity=".16"/>')
@@ -56,6 +70,7 @@ function StadiumSvg({ st }: { st: StadiumSave | undefined }) {
       else { const x0 = s2.from + (s2.to - s2.from) * f; r = `x="${Math.min(s2.from, x0)}" y="0" width="${Math.abs(s2.from - x0)}" height="312"` }
       parts.push(`<rect ${r} fill="${full ? 'url(#stau)' : 'url(#stvd)'}" clip-path="url(#stc${k})"/>`)
       parts.push(`<rect ${r} fill="url(#stcrowd)" clip-path="url(#stc${k})"/>`)
+      if (perk && perk.holo > 0) parts.push(`<rect ${r} fill="url(#stsh)" clip-path="url(#stc${k})"/>`)
     }
     parts.push(`<polygon points="${P(s2.pts)}" fill="none" stroke="${INK}" stroke-width="2.6" stroke-linejoin="round"${p === 0 ? ' stroke-dasharray="5 4"' : ''}/>`)
     if (hasExtra(st, 'cober') && full) {
@@ -102,6 +117,10 @@ export function StadiumTab({ st, coins, onInvest, onBuild }: {
   const lvl = stadiumLevel(st)
   const seats = stadiumSeats(st)
   const income = stadiumIncome(st)
+  // acentos da aba (badge de nível, bilheteria, barras) na cor do tier de apoio
+  const perk = myApoioPerk()
+  const ACC = perk?.solid ?? GREEN
+  const ACCB = perk ? INK : '#14351f'
   const totalPieces = STADIUM_SECTORS.length + STADIUM_EXTRAS.length
   const prontoPct = Math.round((STADIUM_SECTORS.reduce((a, s) => a + sectorPct(st, s.k) / 100, 0) + STADIUM_EXTRAS.filter(e => hasExtra(st, e.k)).length) / totalPieces * 100)
   return (
@@ -109,14 +128,14 @@ export function StadiumTab({ st, coins, onInvest, onBuild }: {
       <div style={{ ...box('#FBF6E9'), padding: 12, marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
           <span style={{ fontWeight: 900, fontSize: 15, textTransform: 'uppercase', ...OSW }}>{lvl.name}</span>
-          <span style={{ background: GREEN, color: '#fff', border: '2px solid #14351f', borderRadius: 999, padding: '2px 10px', fontSize: 10.5, fontWeight: 900, textTransform: 'uppercase', ...OSW }}>nível {lvl.n}</span>
+          <span style={{ background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 999, padding: '2px 10px', fontSize: 10.5, fontWeight: 900, textTransform: 'uppercase', ...OSW }}>nível {lvl.n}</span>
         </div>
         <StadiumSvg st={st} />
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 8 }}>
           <div><b style={{ fontSize: 23, fontWeight: 900 }}>{seats.now.toLocaleString('pt-BR')}</b> <span style={{ fontSize: 11.5, color: 'rgba(0,0,0,.55)', fontWeight: 800 }}>/ {seats.max.toLocaleString('pt-BR')} lugares</span></div>
           <span style={{ background: GOLD, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '4px 11px', fontSize: 12, fontWeight: 900, ...OSW }}>{prontoPct}% pronto</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, background: GREEN, color: '#fff', border: '2px solid #14351f', borderRadius: 10, padding: '7px 11px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 10, padding: '7px 11px' }}>
           <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: .8, textTransform: 'uppercase', opacity: .92, ...OSW }}>💰 Bilheteria por temporada</span>
           <b style={{ fontSize: 17 }}>+{income}</b>
         </div>
@@ -134,9 +153,9 @@ export function StadiumTab({ st, coins, onInvest, onBuild }: {
                 <span style={{ fontSize: 11.5, fontWeight: 900, color: '#14512b' }}>{p}%</span>
               </div>
               <div style={{ height: 9, background: '#e6dcc2', border: `1.5px solid ${INK}`, borderRadius: 6, overflow: 'hidden', margin: '5px 0 4px' }}>
-                <div style={{ height: '100%', width: `${p}%`, background: full ? GOLD : GREEN, transition: 'width .35s ease' }} />
+                <div style={{ height: '100%', width: `${p}%`, background: full ? GOLD : ACC, transition: 'width .35s ease' }} />
               </div>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>custo total {s.cost} 💰 · rende <b style={{ color: GREEN }}>+{s.inc}/temp</b> · {s.seats.toLocaleString('pt-BR')} lugares</div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>custo total {s.cost} 💰 · rende <b style={{ color: ACC }}>+{s.inc}/temp</b> · {s.seats.toLocaleString('pt-BR')} lugares</div>
             </div>
             <button onClick={() => !full && !poor && onInvest(s.k)} disabled={full || poor}
               style={{ flex: 'none', minWidth: 88, border: 'none', borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 12.5, cursor: full || poor ? 'default' : 'pointer', lineHeight: 1.15, ...OSW, background: full ? GOLD : poor ? '#d9cfb4' : INK, color: full ? INK : poor ? '#7d7358' : '#fff' }}>
@@ -154,8 +173,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild }: {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{e.n}</div>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', marginTop: 2 }}>
-                {done ? <b style={{ color: GREEN }}>rendendo +{e.inc}/temp</b>
-                  : unlocked ? <>custa {e.cost} 💰 · rende <b style={{ color: GREEN }}>+{e.inc}/temp</b></>
+                {done ? <b style={{ color: ACC }}>rendendo +{e.inc}/temp</b>
+                  : unlocked ? <>custa {e.cost} 💰 · rende <b style={{ color: ACC }}>+{e.inc}/temp</b></>
                   : <>🔒 destrava com: <b style={{ color: '#9a4b00' }}>{e.reqTxt}</b></>}
               </div>
             </div>
