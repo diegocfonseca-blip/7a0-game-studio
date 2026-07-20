@@ -1032,6 +1032,7 @@ const LAT_EU: C[] = [
   { name: "Theo Hernández", club: "Milan", year: 2022, fame: 4, lo: 82, hi: 89, bio: "Trator da esquerda do Milan campeão de 2022 — arrancadas de 70 metros que viraram marca registrada." },
   { name: "Achraf Hakimi", club: "PSG", year: 2023, fame: 4, lo: 82, hi: 89, bio: "Foguete marroquino da direita — velocidade absurda e chegada de atacante, herói do Marrocos na Copa." },
   { name: "Andrew Robertson", club: "Liverpool", year: 2019, fame: 4, lo: 82, hi: 89, bio: "Incansável da esquerda do Liverpool campeão da Champions e da Premier — cruzamento na cabeça o jogo inteiro." }
+  { name: "César Azpilicueta", club: "Chelsea", year: 2017, fame: 4, lo: 79, hi: 87, bio: "O capitão-faz-tudo do Chelsea — lateral dos dois lados e zagueiro, intocável no título inglês de 2017 e campeão da Champions." },
 ]
 const ZAG_EU: C[] = [
   { name: "Dante (o do 7 a 1)", club: "Bayern", year: 2014, fame: 1, lo: 54, hi: 74, folk: true, bio: "O eterno lembrete do 7 a 1 — a arquibancada nunca deixou passar. Folclore puro." },
