@@ -17,6 +17,7 @@ import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab } from './estadio'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
+import { myApoioPerk, apoioSelo } from './apoio'
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -652,13 +653,17 @@ const PLAYER_PALETTE: FCol[] = [
 ]
 // atribui uma cor pra CADA humano (incluindo você). Ordena por id pra ser estável
 // e sorteia a paleta pela semente → todos veem a mesma cor pra cada um.
-export function playerColors(humanIds: number[], _youId: number, seed: number): Record<number, FCol> {
+export function playerColors(humanIds: number[], youId: number, seed: number): Record<number, FCol> {
   const pal = PLAYER_PALETTE.slice()
   const rng = mulberry((seed ^ 0xBADA55) >>> 0)
   for (let i = pal.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1));[pal[i], pal[j]] = [pal[j], pal[i]] }
   const map: Record<number, FCol> = {}
   const ids = humanIds.slice().sort((a, b) => a - b)
   ids.forEach((id, i) => { map[id] = pal[i % pal.length] })
+  // quem tem tier de apoio (ou conta fundadora) joga com a cor escolhida por
+  // cima da sorteada — no seu aparelho. Quando migrar pro Supabase, todos veem.
+  const perk = myApoioPerk()
+  if (perk && map[youId]) map[youId] = { solid: perk.solid, light: perk.light }
   return map
 }
 // ordem das divisões: a SUA primeiro, depois a pirâmide de cima pra baixo
@@ -959,7 +964,7 @@ function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonN
       const reservas = mgr.squad.filter(c => !xiIds.has(c.id))
         .sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(toRow)
       await shareElenco({
-        teamName: mgr.teamName, divName, tablePos, seasonNo, formation: mgr.formation,
+        teamName: mgr.teamName + apoioSelo(), divName, tablePos, seasonNo, formation: mgr.formation,
         titles, squadValue: mgr.squad.reduce((s2, c) => s2 + (c.paid ?? 0), 0), coins,
         color: col.solid, fieldRows, titulares, reservas,
       })
@@ -990,7 +995,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
   return (
     <div style={{ ...box(elenco ? col.solid : col.light), padding: 12, marginBottom: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: elenco ? '#fff' : col.solid, textShadow: elenco ? '1px 1px 0 rgba(0,0,0,.35)' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👥 {mgr.teamName}</p>
+        <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: elenco ? '#fff' : col.solid, textShadow: elenco ? '1px 1px 0 rgba(0,0,0,.35)' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👥 {mgr.teamName}{elenco ? apoioSelo() : ''}</p>
         <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: elenco ? '#fff' : col.solid, color: elenco ? INK : '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}>{mgr.squad.length}/22{elenco ? '' : ` · 💰 ${total}`}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: elenco ? '#fff' : 'rgba(255,255,255,0.6)', border: `2px solid ${elenco ? INK : col.solid}`, borderRadius: 8, padding: '4px 8px', flexWrap: 'wrap' }}>
