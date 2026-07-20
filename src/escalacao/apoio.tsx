@@ -35,6 +35,7 @@ export const APOIO_PERKS: Record<ApoioTier, ApoioPerk> = {
 // entra com tudo do tier máximo — menos o batismo de clube, que é só dos apoiadores.
 const FOUNDERS: Record<string, ApoioTier> = {
   'diego.c.fonseca@gmail.com': 'ouro',
+  'willian.chagass@outlook.com': 'ouro',
 }
 
 // e-mail da conta logada, cacheado — os pontos que usam (playerColors, nomes)
