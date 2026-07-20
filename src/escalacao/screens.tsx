@@ -147,6 +147,15 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
             className="w-full border-[3px] border-black rounded-xl p-2.5 mt-3 active:translate-y-0.5 bg-white">
             <p className="font-black text-[13px]" style={OSWALD}>🆓 Sem grana? Seguir no Instagram já ajuda DEMAIS 📲</p>
           </button>
+          <div className="border-t-[3px] border-black/15 mt-4 pt-3">
+            <p className="font-black text-[13px]" style={OSWALD}>Quem faz isso aqui 🔴⚫</p>
+            <p className="text-[11px] font-bold text-black/60 mt-1 leading-snug">
+              Sou o Diego, flamenguista, vendo carro com meu pai durante o dia e faço esse jogo de madrugada.
+              Tenho um filho com uma condição rara — são cerca de 500 casos no mundo. Esse jogo é por ele:
+              cada apoio ajuda a dar uma vida melhor pra ele e mantém o Leilão Legends <b>100% grátis, com tudo
+              liberado, pra sempre</b>. Obrigado por estar aqui. 💛
+            </p>
+          </div>
         </Modal>
       )}
 
