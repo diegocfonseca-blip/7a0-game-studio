@@ -17,7 +17,7 @@ import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab } from './estadio'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
-import { myApoioPerk, apoioSelo } from './apoio'
+import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen } from './apoio'
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -515,13 +515,14 @@ function DivTable({ div, teams, colors, mine }: { div: Div; teams: SimTeam[]; co
         <tbody>
           {teams.map((t, i) => {
             const fc = colors[t.teamId]
+            const youPerk = t.you ? myApoioPerk() : null
             const colored = t.human || t.rival
             const bg = colored ? (fc?.light ?? '#eee') : zone(i + 1)
             const nameColor = colored ? (fc?.solid ?? INK) : INK
             return (
               <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', background: bg, fontWeight: colored ? 800 : 500 }}>
                 <td style={{ paddingRight: 4 }}>{i + 1}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: nameColor }}>{t.you ? '👤 ' : t.rival ? '⚔️ ' : ''}{t.name}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: nameColor }}>{t.you ? '👤 ' : t.rival ? '⚔️ ' : ''}{t.you && youPerk ? <span style={apoioText(youPerk)}>{apoioName(t.name)}</span> : t.name}</td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{t.pts}</td>
                 <td style={{ textAlign: 'center' }}>{t.w}</td><td style={{ textAlign: 'center' }}>{t.d}</td><td style={{ textAlign: 'center' }}>{t.l}</td>
                 <td style={{ textAlign: 'center' }}>{t.gf - t.ga}</td>
@@ -555,7 +556,7 @@ function ArtilhariaBox({ scorers, colors, title, sub, foot }: { scorers: SeasonS
               <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, background: fc?.light }}>
                 <td style={{ paddingRight: 4 }}>{i + 1}</td>
                 <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}><span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : s.rival ? '⚔️ ' : s.human ? '🔥 ' : ''}{s.teamName}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : s.rival ? '⚔️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{s.goals}</td>
               </tr>
             )})}
@@ -594,7 +595,7 @@ function ArtilhariaByDiv({ scorers, colors, title, sub, foot }: { scorers: Seaso
                     <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', fontWeight: 600, background: fc?.light }}>
                       <td style={{ paddingRight: 4, width: 16, color: 'rgba(0,0,0,0.5)', fontWeight: 800 }}>{i + 1}</td>
                       <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>{i === 0 ? '👑 ' : ''}{s.name}</td>
-                      <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : s.rival ? '⚔️ ' : s.human ? '🔥 ' : ''}{s.teamName}</td>
+                      <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : s.rival ? '⚔️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
                       <td style={{ textAlign: 'center', fontWeight: 900, width: 30 }}>{s.goals}</td>
                     </tr>
                   )})}
@@ -676,9 +677,12 @@ function DivChips({ humans, colors }: { humans: { name: string; teamId: number; 
   if (humans.length === 0) return null
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
-      {humans.map((h, i) => (
-        <span key={i} style={{ fontSize: 9.5, fontWeight: 900, ...OSWALD, color: '#fff', background: colors[h.teamId]?.solid ?? '#888', borderRadius: 6, padding: '1px 7px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.you ? '👤 ' : h.rival ? '⚔️ ' : ''}{h.name}</span>
-      ))}
+      {humans.map((h, i) => {
+        const perk = h.you ? myApoioPerk() : null
+        return (
+          <span key={i} style={{ fontSize: 9.5, fontWeight: 900, ...OSWALD, color: '#fff', background: perk ? perk.grad : colors[h.teamId]?.solid ?? '#888', borderRadius: 6, padding: '1px 7px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', ...(perk ? { position: 'relative' } : {}) }}>{h.you ? '👤 ' : h.rival ? '⚔️ ' : ''}{h.you ? apoioName(h.name) : h.name}{perk && <ApoioSheen holo={perk.holo} dur={3} />}</span>
+        )
+      })}
     </div>
   )
 }
@@ -760,14 +764,18 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   }, [hg, ag, roundKey, finished])
   void iAmHome
 
-  const Team = ({ name, color, you, flash }: { name: string; color: string; you: boolean; flash?: boolean }) => (
+  const Team = ({ name, color, you, flash }: { name: string; color: string; you: boolean; flash?: boolean }) => {
+    const perk = you ? myApoioPerk() : null
+    return (
     <div style={{ position: 'relative', overflow: 'hidden', padding: '22px 8px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textAlign: 'center', background: `linear-gradient(180deg, ${color}22, transparent)`, minWidth: 0 }}>
       {flash && <div style={{ position: 'absolute', inset: 0, background: color, animation: 'coGoalFlash 1.6s ease', pointerEvents: 'none' }} />}
-      <div style={{ position: 'relative', width: 28, height: 28, borderRadius: 8, border: `2px solid ${INK}`, background: color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 13, ...OSWALD, animation: flash ? 'coBump .6s ease' : undefined }}>{ini(name)}</div>
-      <div style={{ position: 'relative', fontSize: 12, fontWeight: 900, ...OSWALD, color: you ? color : '#3a3630', lineHeight: 1.05, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{name}</div>
+      {perk && <ApoioSheen holo={perk.holo} dur={4.2} />}
+      <div style={{ position: 'relative', width: 28, height: 28, borderRadius: 8, border: `2px solid ${INK}`, background: perk ? perk.grad : color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 13, ...OSWALD, animation: flash ? 'coBump .6s ease' : undefined }}>{ini(name)}</div>
+      <div style={{ position: 'relative', fontSize: 12, fontWeight: 900, ...OSWALD, color: you ? color : '#3a3630', lineHeight: 1.05, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%', ...(perk ? apoioText(perk) : {}) }}>{perk ? apoioName(name) : name}</div>
       <div style={{ position: 'relative', fontSize: 9, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: '#9a8f78' }}>{you ? 'você' : 'rival'}</div>
     </div>
-  )
+    )
+  }
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coStamp{0%{transform:translateX(-50%) scale(0) rotate(-14deg);opacity:0}45%{transform:translateX(-50%) scale(1.18) rotate(-7deg);opacity:1}70%{transform:translateX(-50%) scale(.94) rotate(-7deg)}100%{transform:translateX(-50%) scale(1) rotate(-7deg);opacity:1}}'}</style>
@@ -998,10 +1006,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
   const shine = elenco && perk && perk.holo > 0
   return (
     <div style={{ ...box(elenco ? col.solid : col.light), ...(shine ? { background: perk.grad, position: 'relative', overflow: 'hidden' } : {}), padding: 12, marginBottom: 12 }}>
-      {shine && <>
-        <style>{'@keyframes apoioSheen{0%{transform:translateX(-160%) skewX(-18deg)}100%{transform:translateX(560%) skewX(-18deg)}}'}</style>
-        <div style={{ position: 'absolute', top: -60, bottom: -60, left: 0, width: '30%', background: `linear-gradient(105deg,transparent,rgba(255,255,255,${(perk.holo * 0.55).toFixed(2)}),transparent)`, transform: 'skewX(-18deg)', animation: 'apoioSheen 3.6s ease-in-out infinite', pointerEvents: 'none', zIndex: 1 }} />
-      </>}
+      {shine && <ApoioSheen holo={perk.holo} />}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: elenco ? '#fff' : col.solid, textShadow: elenco ? '1px 1px 0 rgba(0,0,0,.35)' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👥 {mgr.teamName}{elenco ? apoioSelo() : ''}</p>
         <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: elenco ? '#fff' : col.solid, color: elenco ? INK : '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}>{mgr.squad.length}/22{elenco ? '' : ` · 💰 ${total}`}</span>
@@ -1066,7 +1071,7 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
             return (
               <tr key={r.key} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: fc?.light, fontWeight: colored ? 800 : 500 }}>
                 <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>{i + 1}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: fc?.solid ?? INK }}>{you ? '👤 ' : r.t.rival ? '⚔️ ' : r.t.human ? '🔥 ' : ''}{r.t.name}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: fc?.solid ?? INK }}>{you ? '👤 ' : r.t.rival ? '⚔️ ' : r.t.human ? '🔥 ' : ''}{(() => { const pk = you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(r.t.name)}</span> : r.t.name })()}</td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                   {(r.h.A + r.h.B + r.h.C + r.h.D + r.copas) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
                     {r.copas > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: INK, background: GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆Copa{r.copas > 1 ? r.copas : ''}</span>}
@@ -1143,7 +1148,7 @@ function CopaTieRow({ tie }: { tie: CopaTie }) {
   const side = (t: SimTeam, d: Div, win: boolean, away: boolean) => (
     <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: away ? 'flex-end' : 'flex-start' }}>
       {!away && copaDt(d)}
-      <span style={{ fontWeight: 700, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: win ? INK : '#9a9384', textDecoration: win ? 'none' : 'line-through' }}>{copaName(t)}</span>
+      <span style={{ fontWeight: 700, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: win ? INK : '#9a9384', textDecoration: win ? 'none' : 'line-through', ...(t.you && win ? (() => { const pk = myApoioPerk(); return pk ? apoioText(pk) : {} })() : {}) }}>{copaName(t)}</span>
       {away && copaDt(d)}
     </span>
   )

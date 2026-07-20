@@ -54,3 +54,43 @@ export function apoioSelo(): string {
   const p = myApoioPerk()
   return p && p.selo ? ` ${p.selo}` : ''
 }
+
+// nome com o selo garantido (sem duplicar — saves antigos já podem ter o emoji)
+export function apoioName(name: string): string {
+  const p = myApoioPerk()
+  if (!p || !p.selo || name.includes(p.selo)) return name
+  return `${name} ${p.selo}`
+}
+
+// ── BRILHO ────────────────────────────────────────────────────────────────
+// keyframes globais injetados UMA vez — qualquer tela usa sem <style> local.
+const APOIO_CSS = '@keyframes apoioSheen{0%{transform:translateX(-160%) skewX(-18deg)}100%{transform:translateX(560%) skewX(-18deg)}}'
+  + '@keyframes apoioTextShine{0%{background-position:0% center}100%{background-position:200% center}}'
+if (typeof document !== 'undefined' && !document.getElementById('apoio-css')) {
+  const el = document.createElement('style')
+  el.id = 'apoio-css'
+  el.textContent = APOIO_CSS
+  document.head.appendChild(el)
+}
+
+// faixa de luz que varre o elemento (o pai precisa de position:relative +
+// overflow:hidden — ou use apoioBox() no style do pai).
+export function ApoioSheen({ holo, dur = 3.6 }: { holo: number; dur?: number }) {
+  if (holo <= 0) return null
+  return <div style={{ position: 'absolute', top: '-60%', bottom: '-60%', left: 0, width: '30%',
+    background: `linear-gradient(105deg,transparent,rgba(255,255,255,${(holo * 0.55).toFixed(2)}),transparent)`,
+    animation: `apoioSheen ${dur}s ease-in-out infinite`, pointerEvents: 'none', zIndex: 1 }} />
+}
+
+// style pro PAI que vai receber o degradê + a varredura (junta com o resto)
+export function apoioBox(perk: ApoioPerk): React.CSSProperties {
+  return { background: perk.grad, position: 'relative', overflow: 'hidden' }
+}
+
+// texto com o degradê da categoria passando por dentro das letras (nome
+// dourado brilhando nas tabelas, placar, etc). Sem holo, só a cor sólida.
+export function apoioText(perk: ApoioPerk): React.CSSProperties {
+  if (perk.holo <= 0) return { color: perk.solid }
+  return { background: perk.grad, backgroundSize: '200% auto', WebkitBackgroundClip: 'text',
+    backgroundClip: 'text', color: 'transparent', animation: 'apoioTextShine 3s linear infinite' }
+}

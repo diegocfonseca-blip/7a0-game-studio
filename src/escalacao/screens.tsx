@@ -133,9 +133,10 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
             <p className="text-[11px] font-bold text-white/80 mt-1 leading-snug">Qualquer valor no Pix. Sem burocracia — só gratidão eterna.</p>
           </button>
           <button onClick={() => setScreen('cores')} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3 active:translate-y-0.5"
-            style={{ background: 'linear-gradient(150deg,#C9A9FF,#8B5CF6 40%,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}` }}>
-            <p className="font-black text-white text-base" style={{ ...OSWALD, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>🎨 Apoiar E escolher a COR do time</p>
-            <p className="text-[11px] font-bold text-white/85 mt-1 leading-snug" style={{ textShadow: '1px 1px 0 rgba(0,0,0,.25)' }}>Do verde ao OURO com brilho — no elenco, no estádio, nas tabelas e no seu nome em todos os modos.</p>
+            style={{ background: 'linear-gradient(150deg,#C9A9FF,#8B5CF6 40%,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.5) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />
+            <p className="font-black text-white text-base relative" style={{ ...OSWALD, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>🎨 Apoiar E escolher a COR do time</p>
+            <p className="text-[11px] font-bold text-white/85 mt-1 leading-snug relative" style={{ textShadow: '1px 1px 0 rgba(0,0,0,.25)' }}>Do verde ao OURO com brilho — no elenco, no estádio, nas tabelas e no seu nome em todos os modos.</p>
           </button>
           <button onClick={() => setScreen('dream')} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3 active:translate-y-0.5"
             style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}` }}>
@@ -180,11 +181,12 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
             return (
               <div key={t.key} className="mt-2.5">
                 <button onClick={() => setCorSel(open ? null : t.key)} className="w-full text-left border-[3px] border-black rounded-xl px-3 py-2.5 active:translate-y-0.5 flex items-center justify-between gap-2"
-                  style={{ background: grad, boxShadow: `3px 3px 0 0 ${INK}` }}>
-                  <span className="font-black text-[13.5px]" style={{ ...OSWALD, color: t.ink, textShadow: t.ink === '#fff' ? '1px 1px 0 rgba(0,0,0,.35)' : 'none' }}>
+                  style={{ background: grad, boxShadow: `3px 3px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
+                  {t.holo > 0 && <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: `linear-gradient(115deg,transparent 30%,rgba(255,255,255,${t.holo}) 48%,transparent 62%)`, backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />}
+                  <span className="font-black text-[13.5px] relative" style={{ ...OSWALD, color: t.ink, textShadow: t.ink === '#fff' ? '1px 1px 0 rgba(0,0,0,.35)' : 'none' }}>
                     {t.selo && <span style={{ fontSize: t.key === 'ouro' ? 15 : 11, marginRight: 4 }}>{t.selo}</span>}{t.nome}
                   </span>
-                  <span className="font-black text-[11px] flex-shrink-0" style={{ ...OSWALD, color: t.ink, opacity: 0.85 }}>{t.preco}</span>
+                  <span className="font-black text-[11px] flex-shrink-0 relative" style={{ ...OSWALD, color: t.ink, opacity: 0.85 }}>{t.preco}</span>
                 </button>
                 {open && (
                   <div className="border-[3px] border-black rounded-xl mt-1.5 overflow-hidden" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
