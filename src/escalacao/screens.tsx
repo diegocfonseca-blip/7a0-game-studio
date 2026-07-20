@@ -3444,7 +3444,14 @@ function OnlineEndVote() {
     try {
       const { data: pls } = await supabase.from('room_players').select('manager_name, player_index').eq('room_id', state.roomId).order('player_index')
       const playerNames = ((pls ?? []) as { manager_name: string }[]).map(p => p.manager_name)
-      if (playerNames.length === 0) { dispatch({ type: 'REMATCH' }); return }
+      // sobrou só o host na sala (ex.: excluiu o único convidado)? Leilão novo
+      // precisa de 2+ — volta pra sala de espera pra chamar gente, sem travar.
+      if (playerNames.length < 2) {
+        try { await supabase.from('game_rooms').update({ status: 'waiting' }).eq('id', state.roomId) } catch { /* segue */ }
+        try { alert('Você ficou sozinho na sala — o novo leilão precisa de pelo menos 2 pessoas. Te levei pra sala de espera: chama a galera por lá! 📣') } catch { /* ignora */ }
+        dispatch({ type: 'REMATCH' })
+        return
+      }
       await supabase.from('game_rooms').update({ status: 'started' }).eq('id', state.roomId)
       dispatch({
         type: 'START_ONLINE',
