@@ -611,6 +611,7 @@ const GOL: C[] = [
   { name: "Hugo Neneca", club: "Corinthians", year: 2025, fame: 3, lo: 76, hi: 84 },
   { name: "Clemer", club: "Internacional", year: 2004, fame: 3, lo: 74, hi: 83 },
   { name: "Denis", club: "São Paulo", year: 2016, fame: 1, lo: 56, hi: 77 },
+  { name: "Everson", club: "Atlético-MG", year: 2021, fame: 3, lo: 72, hi: 84, bio: "Paredão e pegador de pênaltis do Galo campeão de tudo em 2021 — segurança que virou ídolo." }
 ]
 
 const LAT: C[] = [
@@ -659,6 +660,7 @@ const LAT: C[] = [
   { name: "Madson Cu de Nitro", club: "Athletico-PR", year: 2020, fame: 1, lo: 56, hi: 78, folk: true },
   { name: "Fábio Santos", club: "Corinthians", year: 2012, fame: 3, lo: 73, hi: 84 },
   { name: "André Santos", club: "Corinthians", year: 2011, fame: 2, lo: 62, hi: 82, folk: true },
+  { name: "Fagner", club: "Corinthians", year: 2017, fame: 3, lo: 70, hi: 83, bio: "Lateral raçudo do Corinthians campeão de 2017 — dono da direita e presença de Seleção." }
 ]
 
 const ZAG: C[] = [
@@ -712,6 +714,10 @@ const ZAG: C[] = [
   { name: "Abel Braga", club: "Fluminense", year: 1976, fame: 2, lo: 64, hi: 80, folk: true, bio: "Antes de virar o eterno técnico raçudo de beira de campo, foi zagueiro de respeito — o nome já é resenha por si só." },
   { name: "Mozer", club: "Flamengo", year: 1986, fame: 4, lo: 83, hi: 90, bio: "Zagueiro elegante e de saída de bola limpa, ídolo do Flamengo pós-81 antes de brilhar em Benfica e Marseille." },
   { name: "Gottardo", club: "Botafogo", year: 1995, fame: 4, lo: 80, hi: 88, bio: "Zagueiro raçudo, ídolo do Botafogo campeão brasileiro de 1995." },
+  { name: "Gum", club: "Fluminense", year: 2012, fame: 2, lo: 62, hi: 82, bio: "Zagueiro-ídolo do Flu bicampeão brasileiro (2010 e 2012) — raça, cabeçada e amor à camisa." },
+  { name: "Fabão", club: "São Paulo", year: 2005, fame: 2, lo: 62, hi: 82, bio: "Capitão-zagueiro do São Paulo campeão da Libertadores e do Mundial de 2005 — liderança de vestiário." },
+  { name: "Bordon", club: "São Paulo", year: 1997, fame: 3, lo: 70, hi: 83, bio: "Zagueiro técnico revelado no Morumbi que virou ídolo de década no Stuttgart — categoria rara." },
+  { name: "Neto (Chape)", club: "Chapecoense", year: 2016, fame: 1, lo: 52, hi: 76, bio: "Zagueiro e símbolo da Chapecoense — sobreviveu à tragédia de 2016 e lutou pra vestir o manto de novo. Respeito eterno." }
 ]
 
 const MEI: C[] = [
@@ -759,7 +765,7 @@ const MEI: C[] = [
   { name: "Montillo", club: "Cruzeiro", year: 2012, fame: 2, lo: 70, hi: 84 },
   { name: "Valdivia", club: "Palmeiras", year: 2013, fame: 2, lo: 60, hi: 84, folk: true },
   { name: "Vampeta", club: "Corinthians", year: 1999, fame: 2, lo: 62, hi: 82, folk: true },
-  { name: "Marcelinho Paraíba", club: "Corinthians", year: 2002, fame: 2, lo: 62, hi: 83 },
+  { name: "Marcelinho Paraíba", club: "Corinthians", year: 2002, fame: 3, lo: 70, hi: 84 },
   { name: "Neto", club: "Corinthians", year: 1990, fame: 4, lo: 84, hi: 91 },
   { name: "Denílson", club: "São Paulo", year: 1996, fame: 3, lo: 74, hi: 84 },
   { name: "Biro-Biro", club: "Corinthians", year: 1983, fame: 3, lo: 76, hi: 84, folk: true },
@@ -960,6 +966,7 @@ const ATA: C[] = [
   { name: "Edílson", club: "Corinthians", year: 1998, fame: 2, lo: 62, hi: 84 },
   { name: "Fernandão", club: "Internacional", year: 2006, fame: 4, lo: 85, hi: 91, bio: "Capitão e ídolo eterno do Inter campeão da Libertadores e do Mundo em 2006 — artilheiro decisivo e líder nato." },
   { name: "Pepe", club: "Santos", year: 1962, fame: 5, lo: 89, hi: 95, bio: "O 'Canhão' do Santos de Pelé — chute violento de perna esquerda e um dos maiores artilheiros da história do clube." },
+  { name: "Flaco López", club: "Palmeiras", year: 2025, fame: 3, lo: 74, hi: 85, bio: "O Flaco — centroavante argentino que virou artilheiro e xodó do Palmeiras, gol de todo jeito." }
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
@@ -997,6 +1004,7 @@ const GOL_EU: C[] = [
   { name: "Jerzy Dudek", club: "Liverpool", year: 2005, fame: 1, lo: 66, hi: 82, folk: true },
   { name: "Heurelho Gomes", club: "Tottenham", year: 2011, fame: 1, lo: 60, hi: 80, folk: true },
   { name: "Loris Karius", club: "Liverpool", year: 2018, fame: 1, lo: 55, hi: 78, folk: true },
+  { name: "Keylor Navas", club: "Real Madrid", year: 2016, fame: 4, lo: 80, hi: 88, bio: "Tricampeão seguido da Champions no gol do Real — reflexo felino e frieza nas decisões." }
 ]
 const LAT_EU: C[] = [
   { name: "Paolo Maldini", club: "Milan", year: 1994, fame: 5, lo: 89, hi: 94 },
@@ -1019,6 +1027,11 @@ const LAT_EU: C[] = [
   { name: "Alphonso Davies", club: "Bayern", year: 2021, fame: 4, lo: 80, hi: 88 },
   { name: "Juliano Belletti", club: "Barcelona", year: 2006, fame: 3, lo: 76, hi: 84, folk: true },
   { name: "Fábio Grosso", club: "Inter", year: 2007, fame: 1, lo: 66, hi: 80, folk: true },
+  { name: "Éric Abidal", club: "Barcelona", year: 2011, fame: 4, lo: 80, hi: 88, bio: "Lateral do Barça de Guardiola que venceu um câncer e voltou pra levantar a Champions de capitão — futebol e vida gigantes." },
+  { name: "Gianluca Zambrotta", club: "Juventus", year: 2006, fame: 4, lo: 80, hi: 88, bio: "Lateral das duas pontas, campeão do mundo com a Itália em 2006 — técnica e pulmão de elite." },
+  { name: "Theo Hernández", club: "Milan", year: 2022, fame: 4, lo: 82, hi: 89, bio: "Trator da esquerda do Milan campeão de 2022 — arrancadas de 70 metros que viraram marca registrada." },
+  { name: "Achraf Hakimi", club: "PSG", year: 2023, fame: 4, lo: 82, hi: 89, bio: "Foguete marroquino da direita — velocidade absurda e chegada de atacante, herói do Marrocos na Copa." },
+  { name: "Andrew Robertson", club: "Liverpool", year: 2019, fame: 4, lo: 82, hi: 89, bio: "Incansável da esquerda do Liverpool campeão da Champions e da Premier — cruzamento na cabeça o jogo inteiro." }
 ]
 const ZAG_EU: C[] = [
   { name: "Dante (o do 7 a 1)", club: "Bayern", year: 2014, fame: 1, lo: 54, hi: 74, folk: true, bio: "O eterno lembrete do 7 a 1 — a arquibancada nunca deixou passar. Folclore puro." },
@@ -1058,6 +1071,10 @@ const ZAG_EU: C[] = [
   { name: "Fernando Hierro", club: "Real Madrid", year: 1998, fame: 4, lo: 84, hi: 90 },
   { name: "Phil Jones", club: "Man United", year: 2014, fame: 1, lo: 58, hi: 78, folk: true },
   { name: "Titus Bramble", club: "Newcastle", year: 2005, fame: 1, lo: 58, hi: 78, folk: true },
+  { name: "Ricardo Carvalho", club: "Chelsea", year: 2005, fame: 4, lo: 82, hi: 89, bio: "Zagueiro cerebral do Chelsea de Mourinho — leitura de jogo cirúrgica, parceria clássica com Terry." },
+  { name: "Kalidou Koulibaly", club: "Napoli", year: 2018, fame: 4, lo: 82, hi: 89, bio: "A muralha senegalesa do Napoli — força, velocidade e saída de bola de meia." },
+  { name: "Rúben Dias", club: "Manchester City", year: 2021, fame: 4, lo: 82, hi: 89, bio: "Chegou e virou o chefe da defesa do City campeão — liderança lusitana de general." },
+  { name: "Raphaël Varane", club: "Real Madrid", year: 2016, fame: 4, lo: 80, hi: 88, bio: "Elegância francesa no miolo do Real tetracampeão da Champions — campeão de tudo antes dos 30." }
 ]
 const MEI_EU: C[] = [
   { name: "Xavi Simons", club: "RB Leipzig", year: 2024, fame: 3, lo: 78, hi: 86 },
