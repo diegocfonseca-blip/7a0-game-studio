@@ -3487,18 +3487,13 @@ function OnlineEndVote() {
               <p className="text-center text-[11px] font-black text-black/55" style={OSWALD}>{nVoted}/{guests.length} prontos · ▶️ {nMesmo} · 🔨 {nLeilao}</p>
             </div>
           )}
-          <Btn onClick={() => pend.length === 0 ? startMesmo() : setAskStart('mesmo')} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ Começar (mesmo time)</span></Btn>
-          <Btn onClick={() => pend.length === 0 ? startLeilao() : setAskStart('leilao')} bg={GOLD} className="w-full text-lg">🔨 Abrir novo leilão</Btn>
           {pend.length > 0 && (
-            <div className="pt-1">
-              <p className="text-center text-[10px] font-bold text-black/45 mb-1">Quem ainda não decidiu (você não precisa esperar):</p>
-              <div className="flex flex-wrap gap-1.5 justify-center">
-                {pend.map(m => (
-                  <button key={m.id} onClick={() => { if (window.confirm(`Remover ${m.teamName} da partida?`)) kickPlayer(m.id) }}
-                    className="text-[10px] font-black border-2 border-black rounded-full px-2 py-0.5" style={{ background: '#fff', color: '#B23B2E', ...OSWALD }}>✂️ Remover {m.teamName}</button>
-                ))}
-              </div>
-            </div>
+            <p className="text-center text-[11.5px] font-black" style={{ color: '#92600A', ...OSWALD }}>⏳ Aguardando {pend.map(m => m.teamName).join(', ')} votar{pend.length > 1 ? 'em' : ''}…</p>
+          )}
+          <Btn onClick={() => pend.length === 0 ? startMesmo() : setAskStart('mesmo')} bg={pend.length === 0 ? GREEN : '#cfc6ae'} className="w-full text-lg"><span className={pend.length === 0 ? 'text-white' : 'text-black/50'}>{pend.length === 0 ? '▶️' : '🔒'} Começar (mesmo time)</span></Btn>
+          <Btn onClick={() => pend.length === 0 ? startLeilao() : setAskStart('leilao')} bg={pend.length === 0 ? GOLD : '#cfc6ae'} className="w-full text-lg"><span className={pend.length === 0 ? '' : 'text-black/50'}>{pend.length === 0 ? '🔨' : '🔒'} Abrir novo leilão</span></Btn>
+          {pend.length > 0 && (
+            <p className="text-center text-[10px] font-bold text-black/45">O começo destrava quando todo mundo votar — ou toque num botão pra decidir o que fazer.</p>
           )}
         </>
       ) : (
@@ -3528,17 +3523,21 @@ function OnlineEndVote() {
       {askStart && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.7)' }}>
           <div className="w-full max-w-xs border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
-            <p className="font-black text-black text-lg" style={OSWALD}>⏳ Nem todo mundo tá pronto</p>
+            <p className="font-black text-black text-lg" style={OSWALD}>🔒 Nem todo mundo votou ainda</p>
             <p className="text-black/65 text-sm font-bold mb-3">
-              {pend.length === 1 ? 'Ainda falta decidir: ' : 'Ainda faltam decidir: '}<b>{pend.map(m => m.teamName).join(', ')}</b>. O que você quer fazer?
+              {pend.length === 1 ? 'Ainda falta votar: ' : 'Ainda faltam votar: '}<b>{pend.map(m => m.teamName).join(', ')}</b>. O começo fica travado até todo mundo votar. O que você quer fazer?
             </p>
             <div className="space-y-2">
-              <button onClick={() => { const k = askStart; setAskStart(null); k === 'mesmo' ? startMesmo() : startLeilao() }}
-                className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>▶️ Começar assim {pend.length === 1 ? '(ele entra junto)' : '(eles entram juntos)'}</button>
-              <button onClick={async () => { const k = askStart; setAskStart(null); pend.forEach(m => kickPlayer(m.id)); await new Promise(r => setTimeout(r, 500)); k === 'mesmo' ? startMesmo() : startLeilao() }}
-                className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white" style={{ color: '#B23B2E', ...OSWALD }}>✂️ Excluir {pend.length === 1 ? 'ele' : 'eles'} e começar</button>
               <button onClick={() => setAskStart(null)}
-                className="w-full border-2 border-black/20 rounded-xl py-2 font-black text-xs text-black/60" style={OSWALD}>⏳ Esperar</button>
+                className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>⏳ Aguardar mais um pouco</button>
+              {pend.map(m => (
+                <button key={m.id} onClick={async () => { const k = askStart; setAskStart(null); if (!window.confirm(`Remover ${m.teamName} da partida?`)) return; kickPlayer(m.id); if (pend.length === 1) { await new Promise(r => setTimeout(r, 500)); k === 'mesmo' ? startMesmo() : startLeilao() } }}
+                  className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white" style={{ color: '#B23B2E', ...OSWALD }}>✂️ Excluir {m.teamName}{pend.length === 1 ? ' e começar' : ''}</button>
+              ))}
+              {pend.length > 1 && (
+                <button onClick={async () => { const k = askStart; setAskStart(null); if (!window.confirm(`Remover ${pend.map(m => m.teamName).join(', ')} da partida?`)) return; pend.forEach(m => kickPlayer(m.id)); await new Promise(r => setTimeout(r, 500)); k === 'mesmo' ? startMesmo() : startLeilao() }}
+                  className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white" style={{ color: '#B23B2E', ...OSWALD }}>✂️ Excluir TODOS que faltam e começar</button>
+              )}
             </div>
           </div>
         </div>
