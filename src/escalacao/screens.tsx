@@ -2412,6 +2412,93 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
   )
 }
 
+// 📤 compartilhar a CARTA como imagem: replica o visual do CollectibleCard em
+// canvas (gradiente do tier, brilho, selo, bio) + rodapé da marca.
+async function shareCardImage(c: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean; bio?: string }) {
+  const W = 900, CH = 1260, FOOT = 96, H = CH + FOOT
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H
+  const x = cv.getContext('2d'); if (!x) return
+  try { await document.fonts.load('900 60px Oswald') } catch { /* segue */ }
+  const OSW = 'Oswald, sans-serif'
+  const isProm = c.promessa ?? PROMESSA_SET.has(c.name)
+  const grads: Record<string, [string, string, string]> = {
+    prom: ['#C9A9FF', '#8B5CF6', '#5B2FB0'], f5: ['#FFE79A', '#FFC400', '#E8A200'],
+    f4: ['#F4F7FB', '#CBD4DE', '#9BA7B5'], f3: ['#41C07A', '#2E9E5B', '#1E7A45'],
+    f1: ['#DBD1B5', '#CBBF9E', '#B2A583'],
+  }
+  const key = isProm ? 'prom' : c.fame >= 5 ? 'f5' : c.fame === 4 ? 'f4' : c.fame >= 2 ? 'f3' : 'f1'
+  const [g1, g2, g3] = grads[key]
+  const dark = key === 'prom' || key === 'f3'
+  const inkC = dark ? '#ffffff' : '#0C0C0C'
+  const tierLabel = isProm ? '💎 PROMESSA' : c.fame >= 5 ? '👑 LENDA' : c.fame === 4 ? '⭐ CRAQUE' : c.fame >= 2 ? '🎯 BOM JOGADOR' : '🪵 FOI PROFISSIONAL'
+  // fundo creme + carta
+  x.fillStyle = '#F4ECD6'; x.fillRect(0, 0, W, H)
+  const M = 46, cw = W - M * 2, ch = CH - M * 2
+  const gr = x.createLinearGradient(M, M, M + cw, M + ch)
+  gr.addColorStop(0, g1); gr.addColorStop(0.5, g2); gr.addColorStop(1, g3)
+  const rrp = (px: number, py: number, w: number, h: number, r: number) => {
+    x.beginPath(); x.moveTo(px + r, py); x.arcTo(px + w, py, px + w, py + h, r); x.arcTo(px + w, py + h, px, py + h, r); x.arcTo(px, py + h, px, py, r); x.arcTo(px, py, px + w, py, r); x.closePath()
+  }
+  rrp(M, M, cw, ch, 44); x.fillStyle = gr; x.fill()
+  x.lineWidth = 10; x.strokeStyle = '#0C0C0C'; rrp(M, M, cw, ch, 44); x.stroke()
+  // brilho diagonal (holo)
+  if (key === 'f5' || key === 'f4' || key === 'prom') {
+    x.save(); rrp(M, M, cw, ch, 44); x.clip()
+    const hg = x.createLinearGradient(M, M + ch, M + cw, M)
+    hg.addColorStop(0.35, 'rgba(255,255,255,0)'); hg.addColorStop(0.5, `rgba(255,255,255,${key === 'f5' ? 0.55 : 0.35})`); hg.addColorStop(0.65, 'rgba(255,255,255,0)')
+    x.fillStyle = hg; x.fillRect(M, M, cw, ch); x.restore()
+  }
+  // pos chip + tier
+  x.fillStyle = '#0C0C0C'; rrp(M + 34, M + 34, 108, 62, 16); x.fill()
+  x.fillStyle = '#fff'; x.font = `900 38px ${OSW}`; x.textAlign = 'center'; x.fillText(c.pos, M + 88, M + 78)
+  x.textAlign = 'right'; x.font = `900 34px ${OSW}`; x.fillStyle = dark ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.62)'
+  x.fillText(tierLabel, M + cw - 36, M + 76)
+  if (c.folk) {
+    x.font = `900 27px ${OSW}`
+    const fw = x.measureText('🃏 FOLCLÓRICO').width + 40
+    x.fillStyle = 'rgba(0,0,0,0.30)'; rrp(M + cw - 36 - fw, M + 96, fw, 46, 23); x.fill()
+    x.fillStyle = '#fff'; x.fillText('🃏 FOLCLÓRICO', M + cw - 56, M + 129)
+  }
+  // brasão (inicial)
+  x.textAlign = 'center'
+  x.beginPath(); x.arc(W / 2, M + ch * 0.40, 130, 0, Math.PI * 2)
+  x.fillStyle = dark ? 'rgba(255,255,255,0.42)' : 'rgba(255,255,255,0.5)'; x.fill()
+  x.lineWidth = 8; x.strokeStyle = 'rgba(0,0,0,0.28)'; x.stroke()
+  x.fillStyle = dark ? '#2b1a4d' : 'rgba(0,0,0,0.55)'; x.font = `900 118px ${OSW}`
+  x.fillText((c.name.trim()[0] || '?').toUpperCase(), W / 2, M + ch * 0.40 + 42)
+  // nome / clube / estrelas / bio
+  let fs = 64; x.font = `900 ${fs}px ${OSW}`
+  while (x.measureText(c.name).width > cw - 80 && fs > 30) { fs -= 3; x.font = `900 ${fs}px ${OSW}` }
+  x.fillStyle = inkC; x.fillText(c.name, W / 2, M + ch * 0.66)
+  x.font = `800 32px Arial`; x.fillStyle = dark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.62)'
+  x.fillText(`${c.club} · ${c.year}`, W / 2, M + ch * 0.66 + 48)
+  x.font = `700 36px Arial`
+  x.fillText(isProm ? '💎💎💎' : '⭐'.repeat(Math.max(1, c.fame)), W / 2, M + ch * 0.66 + 104)
+  if (c.bio) {
+    x.font = `italic 700 28px Georgia`; x.fillStyle = dark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.72)'
+    const words = ('“' + c.bio + '”').split(' '); const lines: string[] = []; let ln = ''
+    for (const w2 of words) { const t = ln ? ln + ' ' + w2 : w2; if (x.measureText(t).width > cw - 130 && ln) { lines.push(ln); ln = w2 } else ln = t }
+    if (ln) lines.push(ln)
+    lines.slice(0, 4).forEach((l, i) => x.fillText(l, W / 2, M + ch * 0.66 + 168 + i * 38))
+  }
+  // rodapé da marca
+  x.fillStyle = '#0C0C0C'; x.fillRect(0, CH, W, FOOT)
+  x.fillStyle = '#F5B301'; x.font = `900 30px ${OSW}`
+  x.fillText('🎁 tirei no Pacote do Campeão · leilaolegends.com 🔨', W / 2, CH + 60)
+  const blob: Blob | null = await new Promise(res => cv.toBlob(b => res(b), 'image/png'))
+  const txt = `Tirei ${c.name} (${c.club} · ${c.year}) no pacote do campeão do Leilão Legends! 🎁 Joga tu também: https://leilaolegends.com`
+  if (blob) {
+    const file = new File([blob], 'minha-carta.png', { type: 'image/png' })
+    const sd = { files: [file], title: 'Minha carta — Leilão Legends', text: txt }
+    if (navigator.canShare?.(sd)) { try { await navigator.share(sd) } catch { /* cancelou */ } return }
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url; a.download = 'minha-carta.png'; a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 4000)
+    return
+  }
+  try { if (navigator.share) await navigator.share({ text: txt }) } catch { /* cancelou */ }
+}
+
 // ─── prêmio de campeão: escolhe 1 carta do seu time pro álbum ─────────
 const CARD_PICK_SECONDS = 45
 // mapa nome → selos (folk/promessa) do catálogo, pra pintar as cartas do álbum
@@ -2541,7 +2628,8 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed }: {
           className="mx-auto" style={{ maxWidth: 285 }}>
           <CollectibleCard name={claimed.name} club={claimed.club} year={claimed.year} pos={claimed.pos} fame={claimed.fame} bio={claimed.bio} folk={claimed.folk} promessa={claimed.promessa} big />
         </motion.div>
-        <p className="text-[11px] font-bold text-black/50 mt-3">📖 Veja o álbum completo no menu inicial.</p>
+        <button onClick={() => shareCardImage(claimed)} className="text-xs font-black underline text-black/55 mt-3">📤 compartilhar carta</button>
+        <p className="text-[11px] font-bold text-black/50 mt-2">📖 Veja o álbum completo no menu inicial.</p>
       </Box>
     )
   }
