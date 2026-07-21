@@ -112,6 +112,36 @@ function fillToEleven(squad: WonCard[], formation: FormationKey, rng: () => numb
   return out
 }
 
+// CARREIRA: um jogador REAL (auge = nome|clube|ano) só pode existir em UM lugar —
+// nem repetido no mesmo time, nem em times diferentes. O Kaká do Milan é um só; o
+// Kaká do Milan e o Kaká do São Paulo são AUGES diferentes (os dois cabem). Ao
+// longo das temporadas o mercado move craques entre os 60 times de fundo e os da
+// sala, e uma conta errada podia deixar o mesmo auge gravado em dois lugares — daí
+// "o mesmo jogador aparece 2x no leilão / em times diferentes". Aqui varremos TODOS
+// os elencos (managers + fichas de fundo), mantendo a 1ª ocorrência (humano > rival
+// > bot > ficha) e trocando a repetição por um filler da MESMA posição, pra nenhum
+// time encolher. Fillers de várzea e incógnitos (fake) são genéricos e podem repetir.
+// Roda em ponto FRIO (abertura do leilão de transferências): limpa o save atual e
+// impede a duplicata de entrar no baralho ou aparecer em campo na próxima temporada.
+function dedupeCareerRealPlayers(s: EscState) {
+  if (!s.careerOnline) return
+  const rng = mulberry((s.seed ^ 0x51514545) >>> 0)
+  const seen = new Set<string>()
+  const isReal = (c: WonCard) => !c.fake && c.club !== 'Várzea'
+  const scrub = (squad: WonCard[]) => {
+    for (let i = 0; i < squad.length; i++) {
+      const c = squad[i]
+      if (!isReal(c)) continue
+      const id = ident(c)
+      if (seen.has(id)) squad[i] = fillerCard(c.pos, rng) // repetição vira filler da mesma posição
+      else seen.add(id)
+    }
+  }
+  const rank = (m: Manager) => m.isHuman ? 0 : m.rival ? 1 : 2
+  for (const m of [...s.managers].sort((a, b) => rank(a) - rank(b))) scrub(m.squad as WonCard[])
+  if (s.cpuSquads) for (const name of Object.keys(s.cpuSquads)) scrub(s.cpuSquads[name] as WonCard[])
+}
+
 // ─── helpers de elenco ───────────────────────────────────────────────
 export function slotsOf(m: Manager, pos: Sector): number {
   // elenco fundo (leilão de reservas): mira 22 = 2× a formação por posição.
@@ -2494,6 +2524,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // CAIXA. No fim (FINISH_CEREMONY), a caixa vira o que sobrou e tira o fundo.
       if (!s.careerOnline) return s
       setActiveCatalog(s.deckLeague)
+      dedupeCareerRealPlayers(s) // 🔒 zera jogadores reais repetidos ANTES de montar o baralho (o mesmo auge num time só)
       s.marketLog = [] // zera o resumo dos bots pra este leilão
       // 0) limpa as marcas do leilão anterior. marketSellers[pos] = ids dos bots que
       // perderam jogador NAQUELA posição — são eles que podem dar lance nela.
