@@ -121,6 +121,7 @@ const OLD_NAME: Record<string, string> = {
   'Leve-cuscuz': 'Foguete FC', 'Torta de Rã': 'Fogaréu EC', 'Astronáutico': 'Sinhô Futebol',
   'Inter Estadual': 'Bigode FC', 'Cuiabagre': 'Bagres do Rio', 'Santos Dumont': 'Tonhão FC',
   'Pardemeias': 'Tico do Bar FR', 'Livre-pool': 'Xandão EC',
+  'White Thigs do GuGu': 'Astronáutico',
 }
 // chave estável de um time: técnico = m<id>; CPU = nome
 export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? `m${t.teamId}` : t.name
