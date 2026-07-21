@@ -692,16 +692,28 @@ export function EscLobby() {
       catch { setRoomError('Não consegui checar a senha neste navegador. Atualize a página ou tente outro.'); setLoading(false); return }
       if (h !== rd.game_state!.pwHash) { setRoomError('❌ Senha incorreta (repara maiúsculas/minúsculas).'); setLoading(false); return }
     }
-    const used = new Set(rows.map(p => p.player_index))
-    let idx = 1; while (used.has(idx)) idx++
-    if (idx >= rd.max_players) { setRoomError('Sala cheia!'); setLoading(false); return }
     // re-checa o status FRESCO logo antes de entrar: a lista/o código podem
     // estar defasados e o host pode ter COMEÇADO neste meio-tempo — entrar
     // agora criaria um jogador sem time na partida (o bug do "virei bot").
     const { data: freshSt } = await supabase.from('game_rooms').select('status').eq('id', rd.id).maybeSingle()
     if (freshSt?.status !== 'waiting') { setRoomError('⏱️ Essa sala começou agorinha — não deu tempo de entrar. Espera o "Jogar de novo" ou escolhe outra.'); setLoading(false); return }
-    const { error: insErr } = await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: idx, manager_name: nameOf(), is_ready: true })
-    if (insErr) { setRoomError('Não consegui entrar: ' + insErr.message); setLoading(false); return }
+    // pega uma vaga com RETRY: se dois entram no mesmo segundo e disputam o
+    // mesmo slot, a trava única do banco derruba o segundo — que relê as vagas
+    // e tenta a próxima, até 3 vezes, sem o usuário ver erro nenhum.
+    let insOk = false, lastErr = ''
+    for (let tent = 0; tent < 3 && !insOk; tent++) {
+      const { data: cur } = tent === 0 ? { data: rows } : await supabase.from('room_players').select('user_id, player_index').eq('room_id', rd.id)
+      const curRows = (cur ?? []) as { user_id: string; player_index: number }[]
+      if (curRows.some(p => p.user_id === user.id)) { insOk = true; break } // já entrei noutra aba
+      const used = new Set(curRows.map(p => p.player_index))
+      let idx = 1; while (used.has(idx)) idx++
+      if (idx >= rd.max_players) { setRoomError('Sala cheia!'); setLoading(false); return }
+      const { error: insErr } = await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: idx, manager_name: nameOf(), is_ready: true })
+      if (!insErr) { insOk = true; break }
+      lastErr = insErr.message
+      if (!/duplicate|unique|23505/i.test(insErr.message)) break // erro real (não é corrida): desiste
+    }
+    if (!insOk) { setRoomError('Não consegui entrar: ' + lastErr); setLoading(false); return }
     saveRoom(rd.id)
     setPwModal(null); setRoomError('')
     setRoom(rd); setIsHost(false); setPhase('waiting'); setLoading(false)
