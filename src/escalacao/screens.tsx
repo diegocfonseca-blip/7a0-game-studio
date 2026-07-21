@@ -9,7 +9,7 @@ import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
-import { stripEmoji, myApoioPerk, APOIO_PERKS } from './apoio'
+import { stripEmoji, myApoioPerk, APOIO_PERKS, logApoio } from './apoio'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
@@ -61,9 +61,10 @@ export function CreditLine({ className = '' }: { className?: string }) {
 // NENHUM valor de apoio aparece pra ninguém. Chave em PIX_KEY; DM no Instagram.
 const PIX_KEY = 'diego.c.fonseca@gmail.com'
 const APOIO_IG = 'https://ig.me/m/leilaolegendscom'
-function PixBox({ label = 'copiar' }: { label?: string }) {
+function PixBox({ label = 'copiar', ctx }: { label?: string; ctx?: string }) {
   const [copied, setCopied] = useState(false)
   const copy = async () => {
+    if (ctx) logApoio(`💰 copiou o Pix · ${ctx}`)
     try { await navigator.clipboard.writeText(PIX_KEY); setCopied(true); setTimeout(() => setCopied(false), 2500) }
     catch { window.prompt('Copia a chave Pix:', PIX_KEY) }
   }
@@ -128,18 +129,18 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
         <Modal>
           <p className="font-black text-2xl text-center" style={OSWALD}>💛 APOIAR O LEILÃO LEGENDS</p>
           <p className="text-[11.5px] font-bold text-black/65 text-center mt-1.5 leading-snug">Aqui é tudo de coração: o jogo continua <b>100% grátis pra sempre</b>, nada é removido de ninguém e nenhum apoio dá vantagem em campo — quem apoia leva só brilho, cor e história. Dentro das quatro linhas, o jogo é igual pra todos. 🔨</p>
-          <button onClick={() => setScreen('pix')} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3.5 active:translate-y-0.5"
+          <button onClick={() => { logApoio('👀 abriu: só apoiar'); setScreen('pix') }} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3.5 active:translate-y-0.5"
             style={{ background: GREEN, boxShadow: `4px 4px 0 0 ${INK}` }}>
             <p className="font-black text-white text-base" style={OSWALD}>💛 Só apoiar a resenha</p>
             <p className="text-[11px] font-bold text-white/80 mt-1 leading-snug">Qualquer valor no Pix. Sem burocracia — só gratidão eterna.</p>
           </button>
-          <button onClick={() => setScreen('cores')} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3 active:translate-y-0.5"
+          <button onClick={() => { logApoio('👀 abriu: escolher a cor'); setScreen('cores') }} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3 active:translate-y-0.5"
             style={{ background: 'linear-gradient(150deg,#C9A9FF,#8B5CF6 40%,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.5) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />
             <p className="font-black text-white text-base relative" style={{ ...OSWALD, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>🎨 Apoiar E escolher a COR do time</p>
             <p className="text-[11px] font-bold text-white/85 mt-1 leading-snug relative" style={{ textShadow: '1px 1px 0 rgba(0,0,0,.25)' }}>Do verde ao OURO com brilho — no elenco, no estádio, nas tabelas e no seu nome em todos os modos.</p>
           </button>
-          <button onClick={() => setScreen('dream')} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3 active:translate-y-0.5"
+          <button onClick={() => { logApoio('👀 abriu: batizar clube'); setScreen('dream') }} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3 active:translate-y-0.5"
             style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}` }}>
             <p className="font-black text-base" style={OSWALD}>🏟️ Apoiar E batizar um clube do jogo</p>
             <p className="text-[11px] font-bold text-black/65 mt-1 leading-snug">Escolhe o nome do SEU time e ele entra no campeonato que <b>todo mundo</b> joga. Seu clube, vivo, pra sempre*. <b>E já vem com TUDO do tier Lenda 👑</b> — ouro (ou qualquer cor) com brilho.</p>
@@ -167,7 +168,7 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
           <p className="text-[13px] font-bold text-black/70 mt-2 leading-snug text-center">
             Qualquer valor ajuda a pagar o servidor e a manter tudo de graça pra geral. 🔨
           </p>
-          <div className="mt-3.5"><PixBox label="copiar chave Pix" /></div>
+          <div className="mt-3.5"><PixBox label="copiar chave Pix" ctx="só apoiar" /></div>
           <p className="text-[11px] font-bold text-black/45 mt-3 text-center">Cola no app do teu banco e pronto. Qualquer valor vira mais jogo. 💛</p>
         </Modal>
       )}
@@ -213,8 +214,8 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
                     </div>
                     {t.key !== 'bege' && (
                       <div className="p-2.5" style={{ background: '#fff' }}>
-                        <div className="mb-2"><PixBox label={`copiar Pix (${t.preco})`} /></div>
-                        <button onClick={() => igMsg(`Opa! Apoiei o Leilão Legends 💛 Quero a cor ${t.nome.toUpperCase()} — comprovante em anexo!`)}
+                        <div className="mb-2"><PixBox label={`copiar Pix (${t.preco})`} ctx={`cor ${t.key}`} /></div>
+                        <button onClick={() => { logApoio(`🎨 QUER A COR: ${t.key.toUpperCase()} (${t.preco})`); igMsg(`Opa! Apoiei o Leilão Legends 💛 Quero a cor ${t.nome.toUpperCase()} — comprovante em anexo!`) }}
                           className="w-full rounded-xl border-[3px] border-black font-black text-[13px] py-2.5 active:translate-y-0.5"
                           style={{ background: '#E1306C', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
                           📸 MANDAR COMPROVANTE NO @leilaolegendscom
@@ -269,9 +270,9 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
             className="w-full border-[3px] border-black rounded-xl px-3 py-2.5 mt-2 font-black text-base bg-white" style={OSWALD} />
           <p className="text-[10px] font-bold text-black/45 mt-1.5">✅ nome de resenha, zoeira leve, homenagem · ❌ ofensa, política, marca de empresa</p>
           <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>2</span>Faz o Pix (a partir de R$ 60)</p>
-          <div className="mt-2"><PixBox label="copiar chave Pix" /></div>
+          <div className="mt-2"><PixBox label="copiar chave Pix" ctx="batismo do clube" /></div>
           <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>3</span>Manda comprovante + nome</p>
-          <button onClick={() => igMsg(`Opa! Acabei de apoiar o Leilão Legends 💛 Quero batizar meu clube: "${clube.trim() || '(nome do clube)'}" — comprovante em anexo!`)} className="w-full mt-2 rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
+          <button onClick={() => { logApoio(`🏟️ QUER BATISMO: "${clube.trim() || '(sem nome)'}"`); igMsg(`Opa! Acabei de apoiar o Leilão Legends 💛 Quero batizar meu clube: "${clube.trim() || '(nome do clube)'}" — comprovante em anexo!`) }} className="w-full mt-2 rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
             style={{ background: '#E1306C', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
             📸 CHAMAR NO @leilaolegendscom
           </button>

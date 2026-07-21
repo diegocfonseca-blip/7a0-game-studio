@@ -202,8 +202,12 @@ function Dashboard({ email }: { email: string }) {
     } catch { setSquad({ name: p.name, loading: false, data: null }) }
   }
 
+  // 🎨 intenções de apoio (modal APOIE): quem tocou em quê — pra cruzar com o Pix
+  const [intents, setIntents] = useState<{ id: number; created_at: string; email: string | null; nick: string | null; choice: string }[]>([])
   const load = useCallback(async () => {
     try {
+      supabase.from('apoio_intents').select('*').order('id', { ascending: false }).limit(40)
+        .then(({ data: it }) => { if (it) setIntents(it as typeof intents) }, () => {})
       const { data, error } = await supabase.rpc('esc_admin_dashboard', { p_days: 30, p_users: 200 })
       if (error) { setErr(error.message); return }
       setErr(''); setD(data as Dash); setUpdatedAt(Date.now())
@@ -320,6 +324,27 @@ function Dashboard({ email }: { email: string }) {
           </div>
         )}
       </div>
+
+      {/* 🎨 INTENÇÕES DE APOIO: toques no modal APOIE — cruza com o Pix que chegou */}
+      {intents.length > 0 && (
+        <div style={{ ...card(), borderColor: '#8B5CF6' }}>
+          <p style={{ fontWeight: 700, marginBottom: 4 }}>🎨 Intenções de apoio <span style={{ opacity: .5, fontWeight: 400, fontSize: 12 }}>(toques no APOIE · só você vê)</span></p>
+          <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+            {intents.map(it => {
+              const dt = new Date(it.created_at)
+              const when = `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`
+              const who = it.nick || it.email || 'anônimo'
+              return (
+                <div key={it.id} style={{ display: 'flex', gap: 8, alignItems: 'baseline', padding: '3px 0', borderBottom: '1px solid rgba(255,255,255,.06)', fontSize: 12.5 }}>
+                  <span style={{ opacity: .45, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>{when}</span>
+                  <span style={{ fontWeight: 700, flexShrink: 0, maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{who}</span>
+                  <span style={{ opacity: .85 }}>{it.choice}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* PARTIDAS por período (com corte CPU × online) */}
       <div style={card()}>
