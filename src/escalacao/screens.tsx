@@ -2113,14 +2113,16 @@ export function EscSeason() {
   const [copaFirstLeft, setCopaFirstLeft] = useState(CARD_PICK_SECONDS)
   const copaFirstFiredRef = useRef(false)
   useEffect(() => {
-    if (!canAdvance || !firstLegPending || manual) return
+    if (!firstLegPending || manual) return
     copaFirstFiredRef.current = false
     setCopaFirstLeft(CARD_PICK_SECONDS)
     const t0 = Date.now()
     const iv = setInterval(() => {
       const left = Math.max(0, CARD_PICK_SECONDS - Math.floor((Date.now() - t0) / 1000))
       setCopaFirstLeft(left)
-      if (left <= 0 && !copaFirstFiredRef.current) { copaFirstFiredRef.current = true; dispatch({ type: 'PLAY_COPA_LEG' }) }
+      // o cronômetro aparece pra todo mundo (visual), mas só quem conduz (host no
+      // online, ou o próprio cliente no solo) DISPARA a partida — evita corrida.
+      if (left <= 0 && !copaFirstFiredRef.current && canAdvance) { copaFirstFiredRef.current = true; dispatch({ type: 'PLAY_COPA_LEG' }) }
     }, 250)
     return () => clearInterval(iv)
   }, [firstLegPending, canAdvance, manual, dispatch])
@@ -2166,6 +2168,9 @@ export function EscSeason() {
         const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
         const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
         const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/); return mm ? mm[1] : text.replace(/^⚽\s*/, '').replace(/\.$/, '') }
+        // 🔥 marca os AMIGOS (humanos da sala, no online) — pra saber quem é rival de
+        // verdade e quem é CPU. "(você)" pra você; 🔥 pros outros humanos.
+        const nameTag = (id: number) => id === you.id ? ' (você)' : state.managers.some(m => m.id === id && m.isHuman) ? ' 🔥' : ''
         // minutos "sintéticos" pros gols dos jogos de CPU (que não guardam highlights):
         // espalha `count` gols entre 6' e 88', determinístico (mesma semente = mesma
         // ordem) — só pro placar subir bonitinho, sem inventar resultado.
@@ -2200,12 +2205,12 @@ export function EscSeason() {
           return (
             <Box key={`${tie.aId}-${tie.bId}`} bg={mine ? '#FFF6D6' : '#fff'} className="p-3" shadow={4}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
-                <span className="font-black text-sm truncate" style={{ ...OSWALD, color: settled && !aWin ? 'rgba(0,0,0,.4)' : INK, textDecoration: settled && !aWin ? 'line-through' : 'none' }}>{tie.aName}{tie.aId === you.id ? ' (você)' : ''}</span>
+                <span className="font-black text-sm truncate" style={{ ...OSWALD, color: settled && !aWin ? 'rgba(0,0,0,.4)' : INK, textDecoration: settled && !aWin ? 'line-through' : 'none' }}>{tie.aName}{nameTag(tie.aId)}</span>
                 <span className="font-black text-sm px-2 py-0.5 rounded inline-flex items-center gap-1.5" style={{ ...OSWALD, background: INK, color: '#fff' }}>
                   {live && <span className="text-[9px] font-black" style={{ color: '#F87168' }}>●{minLabel}</span>}
                   {showA} × {showB}
                 </span>
-                <span className="font-black text-sm truncate text-right" style={{ ...OSWALD, color: settled && aWin ? 'rgba(0,0,0,.4)' : INK, textDecoration: settled && aWin ? 'line-through' : 'none' }}>{tie.bName}{tie.bId === you.id ? ' (você)' : ''}</span>
+                <span className="font-black text-sm truncate text-right" style={{ ...OSWALD, color: settled && aWin ? 'rgba(0,0,0,.4)' : INK, textDecoration: settled && aWin ? 'line-through' : 'none' }}>{tie.bName}{nameTag(tie.bId)}</span>
               </div>
               {settled && nLegs > 0 && (
                 <p className="text-[10px] font-bold text-black/45 text-center mt-1">
@@ -3849,6 +3854,8 @@ export function EscEnd() {
   // perderia a carta da liga. Essa folga evita a corrida.
   const COPA_GATE_S = CARD_PICK_SECONDS + 12
   const copaPending = !!state.quickCopa && state.quickCopa.phase !== 'done'
+  // online: só o HOST puxa a Copa (e sincroniza pra sala). Solo: o próprio cliente.
+  const canDriveCopa = !online || state.isHost
   const [copaLeft, setCopaLeft] = useState(COPA_GATE_S)
   const copaFiredRef = useRef(false)
   useEffect(() => {
@@ -3859,10 +3866,11 @@ export function EscEnd() {
     const iv = setInterval(() => {
       const left = Math.max(0, COPA_GATE_S - Math.floor((Date.now() - t0) / 1000))
       setCopaLeft(left)
-      if (left <= 0 && !copaFiredRef.current) { copaFiredRef.current = true; dispatch({ type: 'START_COPA' }) }
+      // cronômetro aparece pra todos (visual); só o host/solo DISPARA (evita corrida no online)
+      if (left <= 0 && !copaFiredRef.current && canDriveCopa) { copaFiredRef.current = true; dispatch({ type: 'START_COPA' }) }
     }, 250)
     return () => clearInterval(iv)
-  }, [copaPending, manual, dispatch])
+  }, [copaPending, manual, dispatch, canDriveCopa])
   // carta-lembrança que o campeão escolheu (entra na imagem de compartilhar)
   const [myCard, setMyCard] = useState<WonCard | null>(null)
   const featured = youWon ? (myCard ?? [...you.squad].sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))[0]) : undefined
@@ -3922,17 +3930,25 @@ export function EscEnd() {
             Os 8 melhores da liga entram numa Copa à parte — ida e volta, semifinal e final única. O 1º pega o 8º, o 2º pega o 7º, o 3º pega o 6º, o 4º pega o 5º. Quem for campeão da Copa ganha <b>outra carta</b> pro álbum!
           </p>
           <div className="space-y-1.5">
-            {state.quickCopa.ties.map(t => (
-              <div key={`${t.aId}-${t.bId}`} className="flex items-center justify-between gap-2 bg-white/80 rounded-lg px-3 py-1.5 border-2 border-black">
-                <span className="font-black text-xs truncate flex-1" style={OSWALD}>{t.aName}{t.aId === you.id ? ' (você)' : ''}</span>
-                <span className="font-black text-[10px] text-black/50 shrink-0">×</span>
-                <span className="font-black text-xs truncate flex-1 text-right" style={OSWALD}>{t.bName}{t.bId === you.id ? ' (você)' : ''}</span>
-              </div>
-            ))}
+            {state.quickCopa.ties.map(t => {
+              const tag = (id: number) => id === you.id ? ' (você)' : state.managers.some(m => m.id === id && m.isHuman) ? ' 🔥' : ''
+              return (
+                <div key={`${t.aId}-${t.bId}`} className="flex items-center justify-between gap-2 bg-white/80 rounded-lg px-3 py-1.5 border-2 border-black">
+                  <span className="font-black text-xs truncate flex-1" style={OSWALD}>{t.aName}{tag(t.aId)}</span>
+                  <span className="font-black text-[10px] text-black/50 shrink-0">×</span>
+                  <span className="font-black text-xs truncate flex-1 text-right" style={OSWALD}>{t.bName}{tag(t.bId)}</span>
+                </div>
+              )
+            })}
           </div>
-          <Btn onClick={() => dispatch({ type: 'START_COPA' })} bg={INK} className="w-full text-lg">
-            <span className="text-white">{manual ? '▶️ Iniciar Copa dos 8' : `▶️ A Copa começa em ${copaLeft}s (toque pra já)`}</span>
-          </Btn>
+          {online && <p className="text-[11px] font-bold text-center text-black/60">🔥 = amigo da sala · sem foguinho = time da CPU</p>}
+          {canDriveCopa ? (
+            <Btn onClick={() => dispatch({ type: 'START_COPA' })} bg={INK} className="w-full text-lg">
+              <span className="text-white">{manual ? '▶️ Iniciar Copa dos 8' : `▶️ A Copa começa em ${copaLeft}s (toque pra já)`}</span>
+            </Btn>
+          ) : (
+            <div className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black" style={{ background: '#fff', ...OSWALD }}>⏳ A Copa começa em {copaLeft}s — o host puxa</div>
+          )}
         </Box>
       )}
       {copaPending && placementHeader('pt-2')}
