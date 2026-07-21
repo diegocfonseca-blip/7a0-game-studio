@@ -737,6 +737,18 @@ export function EscLobby() {
 
   async function startOnline() {
     if (!room || !isHost || players.length < 2) return
+    // COMPACTA as vagas ANTES de começar: se alguém saiu e voltou, a numeração
+    // pode ter buraco (0,1,3,4). O jogo monta os times pela POSIÇÃO na lista,
+    // então vaga com buraco fazia jogador procurar um time que não existe e ser
+    // devolvido pra tela inicial (bug do "grupo de 4 que não consegue jogar").
+    // Renumerar pra 0..n-1 alinha vaga ↔ time pra todo mundo, sempre.
+    const { data: pls } = await supabase.from('room_players').select('user_id, player_index').eq('room_id', room.id).order('player_index')
+    const rows = (pls ?? []) as { user_id: string; player_index: number }[]
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i].player_index !== i) {
+        await supabase.from('room_players').update({ player_index: i }).eq('room_id', room.id).eq('user_id', rows[i].user_id).then(() => {}, () => {})
+      }
+    }
     await supabase.from('game_rooms').update({ status: 'started' }).eq('id', room.id)
   }
   async function leaveRoom() {
