@@ -1957,7 +1957,7 @@ export function EscSeason() {
   // ritmo manual: só nos modos solo (rápido offline, carreira, dinastia)
   const [manualPref, toggleSim] = useSimMode()
   const manual = manualPref && !online
-  const roundMs = manual ? ROUND_MS + 5000 : ROUND_MS
+  const roundMs = manual ? ROUND_MS + 10000 : ROUND_MS
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
   const youPos = table.findIndex(t => t.id === you.id) + 1
