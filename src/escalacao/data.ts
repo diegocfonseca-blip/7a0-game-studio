@@ -653,7 +653,7 @@ const LAT: C[] = [
   { name: "Isla", club: "Flamengo", year: 2020, fame: 2, lo: 66, hi: 82 },
   { name: "Wesley", club: "Flamengo", year: 2023, fame: 2, lo: 68, hi: 82 },
   { name: "Ruy Cabeção", club: "Grêmio", year: 2007, fame: 1, lo: 56, hi: 78, folk: true },
-  { name: "Reinaldo (lateral)", club: "São Paulo", year: 2020, fame: 3, lo: 72, hi: 84, bio: "Lateral-esquerdo de chegada e cobrador oficial do Morumbi — pênalti, falta e gol de lateral como poucos." },
+  { name: "Reinaldo", club: "São Paulo", year: 2020, fame: 3, lo: 72, hi: 84, bio: "Lateral-esquerdo de chegada e cobrador oficial do Morumbi — pênalti, falta e gol de lateral como poucos." },
   { name: "Alan Ruschel", club: "Chapecoense", year: 2017, fame: 1, lo: 52, hi: 76, bio: "Símbolo de superação da Chape — voltou aos gramados depois da tragédia de 2016 e emocionou o futebol inteiro." },
   { name: "Arce", club: "Palmeiras", year: 1999, fame: 4, lo: 85, hi: 91 },
   { name: "Apodi", club: "Fortaleza", year: 2018, fame: 1, lo: 57, hi: 79, folk: true },
