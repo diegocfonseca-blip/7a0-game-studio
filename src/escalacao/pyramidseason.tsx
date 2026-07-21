@@ -503,13 +503,28 @@ function ZoneLegend() {
   const chip = (bg: string, label: string, border = false) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><i style={{ width: 10, height: 10, borderRadius: 3, display: 'inline-block', background: bg, border: border ? '1px solid rgba(0,0,0,0.2)' : 'none' }} />{label}</span>
   return <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>{chip('#D6E9FA', 'G4')}{chip('#fff', 'Meio', true)}{chip('#F9D8D3', 'Z4')}</div>
 }
-function DivTable({ div, teams, colors, mine }: { div: Div; teams: SimTeam[]; colors: Record<number, FCol>; mine?: boolean }) {
+const UP_OF: Partial<Record<Div, Div>> = { B: 'A', C: 'B', D: 'C' }
+const DOWN_OF: Partial<Record<Div, Div>> = { A: 'B', B: 'C', C: 'D' }
+function DivTable({ div, teams, colors, mine, final }: { div: Div; teams: SimTeam[]; colors: Record<number, FCol>; mine?: boolean; final?: boolean }) {
   const humans = teams.filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival }))
+  // temporada FECHADA: setinhas animadas de acesso (▲ verde) e queda (▼ vermelha)
+  // pra TODOS os times, e um banner quando é VOCÊ que sobe/cai/é campeão.
+  const youPos = final && mine ? teams.findIndex(t => t.you) + 1 : 0
+  const banner = !final || !mine || youPos === 0 ? null
+    : div === 'A' && youPos === 1 ? { bg: GOLD, fg: INK, txt: '🏆 CAMPEÃO DA SÉRIE A! O topo é seu.' }
+    : youPos <= 4 && UP_OF[div] ? { bg: '#1B7A3D', fg: '#fff', txt: `🚀 ACESSO! Você sobe pra Série ${UP_OF[div]}!` }
+    : youPos <= 4 && div === 'A' ? { bg: '#1B7A3D', fg: '#fff', txt: '🛡️ Fechou no G4 da Série A — elite mantida!' }
+    : youPos >= teams.length - 3 && DOWN_OF[div] ? { bg: '#B23B2E', fg: '#fff', txt: `📉 Queda pra Série ${DOWN_OF[div]}… ano que vem tem volta.` }
+    : null
   return (
     <div style={{ ...box(mine ? '#FFFBEB' : '#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
         <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>{DIV_LABEL[div]}{mine ? ' · você' : ''}</p><ZoneLegend />
       </div>
+      {final && <style>{'@keyframes divUp{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}@keyframes divDown{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}'}</style>}
+      {banner && (
+        <div style={{ background: banner.bg, color: banner.fg, border: `2.5px solid ${INK}`, borderRadius: 10, boxShadow: `2px 2px 0 0 ${INK}`, padding: '7px 10px', margin: '2px 0 8px', fontWeight: 900, fontSize: 13, textAlign: 'center', ...OSWALD }}>{banner.txt}</div>
+      )}
       <DivChips humans={humans} colors={colors} />
       <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse', marginTop: 6 }}>
         <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>P</th><th style={{ ...th, textAlign: 'center' }}>V</th><th style={{ ...th, textAlign: 'center' }}>E</th><th style={{ ...th, textAlign: 'center' }}>D</th><th style={{ ...th, textAlign: 'center' }}>SG</th></tr></thead>
@@ -522,7 +537,7 @@ function DivTable({ div, teams, colors, mine }: { div: Div; teams: SimTeam[]; co
             const nameColor = colored ? (fc?.solid ?? INK) : INK
             return (
               <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', background: bg, fontWeight: colored ? 800 : 500 }}>
-                <td style={{ paddingRight: 4 }}>{i + 1}</td>
+                <td style={{ paddingRight: 4, whiteSpace: 'nowrap' }}>{i + 1}{final && i < 4 && UP_OF[div] && <span style={{ display: 'inline-block', color: '#1B7A3D', fontWeight: 900, marginLeft: 2, animation: 'divUp 1.4s ease-in-out infinite' }}>▲</span>}{final && i === 0 && div === 'A' && <span style={{ marginLeft: 2 }}>🏆</span>}{final && i >= teams.length - 4 && DOWN_OF[div] && <span style={{ display: 'inline-block', color: '#B23B2E', fontWeight: 900, marginLeft: 2, animation: 'divDown 1.4s ease-in-out infinite' }}>▼</span>}</td>
                 <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: nameColor }}>{t.you ? '👤 ' : t.rival ? '⚔️ ' : ''}{t.you && youPerk ? <span style={apoioText(youPerk)}>{apoioName(t.name)}</span> : t.name}</td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{t.pts}</td>
                 <td style={{ textAlign: 'center' }}>{t.w}</td><td style={{ textAlign: 'center' }}>{t.d}</td><td style={{ textAlign: 'center' }}>{t.l}</td>
@@ -535,10 +550,10 @@ function DivTable({ div, teams, colors, mine }: { div: Div; teams: SimTeam[]; co
     </div>
   )
 }
-export function PyramidTables({ tables, order, colors, myDiv }: { tables: Record<Div, SimTeam[]>; order?: Div[]; colors?: Record<number, FCol>; myDiv?: Div | null }) {
+export function PyramidTables({ tables, order, colors, myDiv, final }: { tables: Record<Div, SimTeam[]>; order?: Div[]; colors?: Record<number, FCol>; myDiv?: Div | null; final?: boolean }) {
   const cols = colors ?? {}
   // a artilharia saiu daqui (foi pra aba Rank) — a aba Tabelas fica só com as 4 tabelas.
-  return <>{(order ?? DIVS).map(d => <DivTable key={d} div={d} teams={tables[d]} colors={cols} mine={d === myDiv} />)}</>
+  return <>{(order ?? DIVS).map(d => <DivTable key={d} div={d} teams={tables[d]} colors={cols} mine={d === myDiv} final={final} />)}</>
 }
 // caixa de artilharia reutilizável (temporada e todos os tempos) — top N já pronto.
 function ArtilhariaBox({ scorers, colors, title, sub, foot }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string }) {
@@ -741,6 +756,31 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const shown = goals.filter(g => g.min <= min)
   const hg = shown.filter(g => g.home).length, ag = shown.filter(g => !g.home).length
   const done = min >= 93
+  // ── QUASE-GOL: lances sem placar (trave, defesaça, amarelo) sorteados por
+  // semente determinística (nomes+rodada) → todo mundo online vê o MESMO lance
+  // no MESMO minuto. Aparecem na faixinha de baixo por ~4 minutos de relógio.
+  const nearEvents = useMemo(() => {
+    let h = 0
+    const key = `${homeName}|${awayName}|${roundKey}`
+    for (let i = 0; i < key.length; i++) h = (Math.imul(h, 31) + key.charCodeAt(i)) | 0
+    const rng = mulberry((h ^ 0x5EED) >>> 0)
+    const gm = new Set(goals.map(g => g.min))
+    const evs: { min: number; txt: string }[] = []
+    const n = 2 + Math.floor(rng() * 3) // 2 a 4 lances por jogo
+    for (let i = 0; i < n; i++) {
+      let m = 4 + Math.floor(rng() * 84), tries = 0
+      while (tries++ < 10 && (gm.has(m) || gm.has(m + 1) || gm.has(m - 1) || evs.some(e => Math.abs(e.min - m) < 6))) m = 4 + Math.floor(rng() * 84)
+      const atk = rng() < 0.5 ? homeName : awayName
+      const t = rng()
+      const txt = t < 0.4 ? `🥅 UUUH! ${atk} acerta a trave!`
+        : t < 0.75 ? `🧤 DEFESAÇA! ${atk} quase marca!`
+        : `🟨 Amarelo no jogo duro do ${atk}`
+      evs.push({ min: m, txt })
+    }
+    return evs.sort((a, b) => a.min - b.min)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roundKey, homeName, awayName])
+  const liveEvent = !done && !finished ? nearEvents.find(e => min >= e.min && min <= e.min + 4) : undefined
   const minLabel = min >= 93 ? 'FIM' : min > 90 ? `90+${min - 90}'` : `${min}'`
   const iAmHome = youIsHome
   const last = shown.length ? [...shown].sort((a, b) => a.min - b.min)[shown.length - 1] : null
@@ -751,6 +791,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   //    o flash no lado de quem marcou e o "bump" no número. ──
   const prev = useRef({ h: hg, a: ag, key: roundKey })
   const [goal, setGoal] = useState<'h' | 'a' | null>(null)
+  const [lateGoal, setLateGoal] = useState(false) // gol depois dos 85' → selo especial
   useEffect(() => {
     const p = prev.current
     if (p.key !== roundKey) { p.key = roundKey; p.h = hg; p.a = ag; return } // trocou a rodada: rebaseia sem animar
@@ -759,9 +800,11 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     p.h = hg; p.a = ag
     if (side && !finished) {
       setGoal(side)
+      setLateGoal(min >= 86)
       const t = setTimeout(() => setGoal(null), 1700)
       return () => clearTimeout(t)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hg, ag, roundKey, finished])
   void iAmHome
 
@@ -782,7 +825,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coStamp{0%{transform:translateX(-50%) scale(0) rotate(-14deg);opacity:0}45%{transform:translateX(-50%) scale(1.18) rotate(-7deg);opacity:1}70%{transform:translateX(-50%) scale(.94) rotate(-7deg)}100%{transform:translateX(-50%) scale(1) rotate(-7deg);opacity:1}}'}</style>
       {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>🥊 CLÁSSICO</div>}
       {/* selo GOOOL! — surge sobre o lado de quem marcou */}
-      {goal && <div style={{ position: 'absolute', top: 4, left: goal === 'h' ? '25%' : '75%', transform: 'translateX(-50%) rotate(-7deg)', zIndex: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '3px 12px', ...OSWALD, fontWeight: 900, fontSize: 17, letterSpacing: 0.5, boxShadow: `2px 2px 0 0 ${INK}`, animation: 'coStamp .5s cubic-bezier(.2,1.4,.5,1) both', whiteSpace: 'nowrap' }}>⚽ GOOOL!</div>}
+      {goal && <div style={{ position: 'absolute', top: 4, left: goal === 'h' ? '25%' : '75%', transform: 'translateX(-50%) rotate(-7deg)', zIndex: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '3px 12px', ...OSWALD, fontWeight: 900, fontSize: 17, letterSpacing: 0.5, boxShadow: `2px 2px 0 0 ${INK}`, animation: 'coStamp .5s cubic-bezier(.2,1.4,.5,1) both', whiteSpace: 'nowrap', ...(lateGoal ? { background: '#FF5B4D', color: '#fff' } : {}) }}>{lateGoal ? '🔥 GOL NO FIM!' : '⚽ GOOOL!'}</div>}
       <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', background: INK, color: '#fff', fontSize: 11, fontWeight: 900, ...OSWALD, padding: '3px 11px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 6, zIndex: 2, whiteSpace: 'nowrap' }}>
         <span style={{ width: 7, height: 7, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite' }} /> {done ? 'FIM' : minLabel}
       </div>
@@ -796,8 +839,9 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
         <Team name={awayName} color={awayCol} you={!youIsHome} flash={goal === 'a'} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '7px 12px', borderTop: '2px solid #e6dcbf', background: '#efe4c8' }}>
-        <span style={{ fontSize: 11, fontWeight: 700, ...OSWALD, color: 'rgba(0,0,0,0.72)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%' }}>
-          {last ? <>⚽ {last.name} <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></> : (done ? 'sem gols' : '🟢 bola rolando…')}
+        <span key={liveEvent ? 'ev' + liveEvent.min : 'g'} style={{ fontSize: 11, fontWeight: liveEvent ? 900 : 700, ...OSWALD, color: liveEvent ? '#B23B2E' : 'rgba(0,0,0,0.72)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%', animation: liveEvent ? 'coFade .4s ease' : undefined }}>
+          {liveEvent ? liveEvent.txt
+            : last ? <>⚽ {last.name} <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></> : (done ? 'sem gols' : '🟢 bola rolando…')}
         </span>
       </div>
     </div>
@@ -1166,6 +1210,42 @@ const CDTAG: Record<Div, { bg: string; c: string }> = { A: { bg: '#FFC400', c: '
 const DIV_RANKN: Record<Div, number> = { A: 3, B: 2, C: 1, D: 0 }
 const copaName = (t: SimTeam) => t.you ? `${t.name} (você)` : t.name
 const copaDt = (d: Div) => <span style={{ fontWeight: 900, fontSize: 8.5, border: `1.5px solid ${INK}`, borderRadius: 5, padding: '0 4px', background: CDTAG[d].bg, color: CDTAG[d].c, flexShrink: 0 }}>{d}</span>
+// ── DISPUTA DE PÊNALTIS animada: as cobranças aparecem uma a uma, alternando
+// os times (verde = gol, vermelho = perdeu), e o total fecha no fim. A ordem
+// das cobranças é sorteada de forma determinística a partir do próprio placar.
+function PensShootout({ pens, aName, bName }: { pens: [number, number]; aName: string; bName: string }) {
+  const slots = Math.max(5, pens[0], pens[1])
+  const rng = mulberry(((pens[0] * 31 + pens[1] * 7 + slots * 131) ^ 0xA1B2) >>> 0)
+  const mk = (made: number) => {
+    const idxs = Array.from({ length: slots }, (_, i) => i)
+    for (let i = idxs.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [idxs[i], idxs[j]] = [idxs[j], idxs[i]] }
+    const arr = Array(slots).fill(false)
+    idxs.slice(0, made).forEach(i => { arr[i] = true })
+    return arr as boolean[]
+  }
+  const A = mk(pens[0]), B = mk(pens[1])
+  const step = 0.42, totalDelay = slots * 2 * step + 0.2
+  const row = (name: string, arr: boolean[], off: number) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 3.5, justifyContent: 'center' }}>
+      <span style={{ fontSize: 9, fontWeight: 900, ...OSWALD, maxWidth: 74, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right', flexShrink: 0 }}>{name}</span>
+      {arr.map((ok, i) => (
+        <span key={i} style={{ width: 13, height: 13, borderRadius: 999, border: `1.5px solid ${INK}`, background: ok ? '#37D067' : '#F87168', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 7.5, fontWeight: 900, lineHeight: 1, opacity: 0, animation: `pensPop .3s cubic-bezier(.2,1.5,.5,1) ${(i * 2 + off) * step}s forwards`, flexShrink: 0 }}>{ok ? '' : '✕'}</span>
+      ))}
+    </div>
+  )
+  return (
+    <div style={{ margin: '4px 0 0' }}>
+      <style>{'@keyframes pensPop{0%{opacity:0;transform:scale(0)}70%{opacity:1;transform:scale(1.35)}100%{opacity:1;transform:scale(1)}}'}</style>
+      <p style={{ fontSize: 9, fontWeight: 900, ...OSWALD, textAlign: 'center', color: '#B23B2E', margin: '0 0 3px', letterSpacing: 0.5 }}>🎯 DISPUTA DE PÊNALTIS</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {row(aName, A, 0)}
+        {row(bName, B, 1)}
+      </div>
+      <p style={{ fontSize: 9.5, fontWeight: 900, ...OSWALD, textAlign: 'center', color: INK, margin: '3px 0 0', opacity: 0, animation: `pensPop .35s ease ${totalDelay}s forwards` }}>{pens[0]} × {pens[1]} {pens[0] > pens[1] ? 'pro ' + aName : 'pro ' + bName}</p>
+    </div>
+  )
+}
+
 // linha de um confronto JÁ DECIDIDO (agregado, pênaltis, zebra) — reusada no
 // chaveamento e na lista "outros jogos da fase" ao vivo.
 function CopaTieRow({ tie }: { tie: CopaTie }) {
@@ -1189,7 +1269,7 @@ function CopaTieRow({ tie }: { tie: CopaTie }) {
       {tie.legs.length === 2
         ? <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '3px 0 0' }}>ida {tie.legs[0][0]}×{tie.legs[0][1]} · volta {tie.legs[1][0]}×{tie.legs[1][1]}</p>
         : <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '3px 0 0' }}>jogo único</p>}
-      {tie.pens && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', margin: '2px 0 0' }}>🎯 pênaltis {tie.pens[0]}×{tie.pens[1]}</p>}
+      {tie.pens && <PensShootout pens={tie.pens} aName={tie.a.name} bName={tie.b.name} />}
       {zebra && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#E8503A', textAlign: 'center', margin: '2px 0 0' }}>💥 zebra — Série {winDiv} eliminou Série {loseDiv}</p>}
     </div>
   )
@@ -1239,7 +1319,7 @@ function CopaLiveMatch({ tie, pos, big, youColor }: { tie: CopaTie; pos: number;
         : <>
             {/* volta invertida: mostra o mandante (B) primeiro, igual aos lados ao vivo */}
             {nLegs === 2 && <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '3px 0 0' }}>ida {tie.legs[0][0]}×{tie.legs[0][1]} · volta {tie.legs[1][1]}×{tie.legs[1][0]}</p>}
-            {tie.pens && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', margin: '2px 0 0' }}>🎯 pênaltis {tie.pens[0]}×{tie.pens[1]}</p>}
+            {tie.pens && <PensShootout pens={tie.pens} aName={tie.a.name} bName={tie.b.name} />}
             <p style={{ fontSize: 9.5, fontWeight: 800, color: GREEN, textAlign: 'center', margin: '2px 0 0', ...OSWALD }}>✅ {winName} avança</p>
           </>}
     </div>
@@ -1307,7 +1387,7 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers,
       {/* CLASSIFICAÇÃO das divisões logo abaixo da Copa — a sua em destaque */}
       <div style={{ borderTop: `2px dashed ${INK}22`, margin: '14px 0 10px' }} />
       <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.5)', margin: '0 0 8px' }}>📊 Classificação das divisões{myDiv ? ' · a sua primeiro' : ''}</p>
-      <PyramidTables tables={tables} order={myDiv ? [myDiv, ...ord.filter(d => d !== myDiv)] : ord} colors={colors} myDiv={myDiv} />
+      <PyramidTables tables={tables} order={myDiv ? [myDiv, ...ord.filter(d => d !== myDiv)] : ord} colors={colors} myDiv={myDiv} final />
       <PrizesBox />
     </div>
   )
@@ -1834,7 +1914,7 @@ export function PyramidSeasonScreen() {
           <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaFinished ? nCopaRounds : copaRound} scorers={scorers} seasonNo={state.seasonNo} />
         ) : (
           <>
-            <PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} />
+            <PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} final={done} />
             <PrizesBox />
           </>
         )}
