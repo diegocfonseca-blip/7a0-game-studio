@@ -232,7 +232,9 @@ export function EscLobby() {
   const [roomMode, setRoomMode] = useState<'rapido' | 'carreira'>('rapido')
   const careerDeck: DeckChoice = 'both' // carreira: sempre BR + Europa juntos (preenche os 80 times das 4 divisões)
   const [rapidoDeck, setRapidoDeck] = useState<DeckChoice>('br') // rápido online: host escolhe o baralho (BR / Europa / os dois)
-  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa'>('liga_copa') // 🏆 rápido online: liga só, ou liga + Copa dos 8 no fim (padrão)
+  // 🏆 Copa dos 8 no online: escolha ESCONDIDA por enquanto (Diego quer ajustar
+  // antes de expor pra sala) — toda sala online sai fixa em 'liga' (só liga).
+  const rapidoCopaMode: 'liga' | 'liga_copa' = 'liga'
   const [joinCode, setJoinCode] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [roomName, setRoomName] = useState('')
@@ -976,20 +978,6 @@ export function EscLobby() {
           </div>
           <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
             {rapidoDeck === 'br' ? '🇧🇷 Só auges do Brasileirão.' : rapidoDeck === 'eu' ? '🌍 Lendas e craques da Europa.' : '🌎 Brasil + Europa juntos — o baralhão.'}
-          </p>
-        </div>}
-        {!(canCareer && roomMode === 'carreira') && <div>
-          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Depois da liga</p>
-          <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
-            {([['liga_copa', '🏆 Liga + Copa'], ['liga', '📊 Só Liga']] as ['liga_copa' | 'liga', string][]).map(([m, label]) => (
-              <button key={m} onClick={() => setRapidoCopaMode(m)}
-                className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: rapidoCopaMode === m ? GOLD : '#fff', color: '#000', ...OSWALD }}>
-                {label}
-              </button>
-            ))}
-          </div>
-          <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-            {rapidoCopaMode === 'liga_copa' ? '🏆 Quando a liga acaba, os 8 primeiros disputam a Copa (ida e volta, final única) antes da votação.' : '📊 Termina a liga e já vai pra votação — jogo mais curto.'}
           </p>
         </div>}
         {!(canCareer && roomMode === 'carreira') && <div>
