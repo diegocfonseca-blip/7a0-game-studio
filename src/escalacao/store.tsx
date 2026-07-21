@@ -1802,6 +1802,7 @@ export function reducer(state: EscState, action: Action): EscState {
       return migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true })
     }
     case 'START_ONLINE': {
+      s.simV = 2 // fórmula nova só vale a partir desta temporada
       s.onlineMode = 'online'
       // baralho da sala: Rápido sempre BR; Carreira online pode ser BR, Europa
       // ou os dois juntos (escolha do host). O leilão e a temporada são o motor
@@ -2160,6 +2161,7 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'NEXT_SEASON_ONLINE': {
+      s.simV = 2 // fórmula nova só vale a partir desta temporada
       // carreira online (mesmo time): nova colocação (acessos/quedas já aplicados
       // pelo host, determinístico) + zera a rodada e sobe a temporada. Os elencos
       // seguem os mesmos (novo leilão é um fluxo à parte).
@@ -2180,6 +2182,7 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'REAUCTION_ONLINE': {
+      s.simV = 2 // fórmula nova só vale a partir desta temporada
       // carreira online (novo leilão): aplica a nova colocação e REFAZ o leilão
       // — mesmos técnicos (ids/times preservados), elencos zerados, orçamento
       // parelho pra todos. A divisão só importa na hora de jogar a temporada.
@@ -2258,6 +2261,7 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'RESERVE_AUCTION_ONLINE': {
+      s.simV = 2 // fórmula nova só vale a partir desta temporada
       // fecha a VENDA e abre a COMPRA (leilão de reservas). MANTÉM os elencos,
       // consome a lista (tira os listados dos times e joga no baralho — o dono
       // pode dar lance de volta), marca "elenco fundo" (mira 22) e o orçamento é a

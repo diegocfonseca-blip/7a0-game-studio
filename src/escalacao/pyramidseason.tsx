@@ -261,7 +261,7 @@ function lineupAt(lineups: RoundLineups, teamId: number, r: number, squad: PoolC
   }
   return xi.length === 11 ? xi : bestXI(squad)
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[]) {
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // credita os gols na artilharia da temporada e devolve os eventos (nome + minuto)
@@ -311,7 +311,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     // qualidade ABSOLUTA do ataque escala os gols: time fraco (cheio de filler)
     // marca menos no geral — não só a diferença atk-def conta. Assim as divisões
     // de baixo (várzea) não inflam a artilharia com nomes de brincadeira.
-    const qual = (atk: number) => Math.max(0.5, Math.min(1.2, atk / 66))
+    const qual = (atk: number) => Math.max(0.5, Math.min(capElite, atk / 66))
     const lh = Math.max(0.08, (1.35 + (fh.atk - fa.def) * 0.055 + 0.25) * qual(fh.atk)), la = Math.max(0.08, (1.35 + (fa.atk - fh.def) * 0.055) * qual(fa.atk))
     const hg = poisson(lh, rng), ag = poisson(la, rng)
     const hev = scoreGoals(H, hxi, hg), aev = scoreGoals(A, axi, ag)
@@ -326,14 +326,14 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const tables = {} as Record<Div, SimTeam[]>
   const matches = {} as Record<Div, SimMatch[]>
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
@@ -374,7 +374,7 @@ const COPA_SCORER_BONUS = 16 // igual à artilharia da Série A (caixa do time +
 // prestígio por divisão na Copa: A favorita, D azarão (soma no ataque e defesa).
 const COPA_DIV_STRENGTH: Record<Div, number> = { A: 10, B: 6, C: 3, D: 0 }
 
-export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, seasonNo: number): CopaResult {
+export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2): CopaResult {
   const rng = mulberry((seed ^ (seasonNo * 0x9E3779B1) ^ 0xC0FA5EED) >>> 0)
   let field: { t: SimTeam; div: Div }[] = []
   for (const d of DIVS) for (const t of (tables[d] ?? []).slice(0, 4)) field.push({ t, div: d })
@@ -409,7 +409,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     fh.atk += bh; fh.def += bh; fa.atk += ba; fa.def += ba
     const lkH = 0.85 + rng() * 0.30, lkA = 0.85 + rng() * 0.30
     fh.atk *= lkH; fh.def *= lkH; fa.atk *= lkA; fa.def *= lkA
-    const qual = (atk: number) => Math.max(0.5, Math.min(1.2, atk / 66))
+    const qual = (atk: number) => Math.max(0.5, Math.min(capElite, atk / 66))
     const lh = Math.max(0.08, (1.35 + (fh.atk - fa.def) * 0.055 + (homeAdv ? 0.25 : 0)) * qual(fh.atk))
     const la = Math.max(0.08, (1.35 + (fa.atk - fh.def) * 0.055) * qual(fa.atk))
     const hg = poisson(lh, rng), ag = poisson(la, rng)
@@ -1460,7 +1460,8 @@ export function PyramidSeasonScreen() {
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads])
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const careerLineup = (state.careerLineup ?? {}) as RoundLineups
-  const live = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics, careerLineup), [world, state.seed, round, careerTactics, careerLineup])
+  const capElite = (state.simV ?? 1) >= 2 ? 1.28 : 1.2 // temporada velha termina na fórmula velha
+  const live = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics, careerLineup, capElite), [world, state.seed, round, careerTactics, careerLineup, capElite])
   const { scorers, scorersAll, matches, goalsByCard, divTop } = live
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
   // está animando na sua tela — os pontos só entram quando o relógio dela acaba.
@@ -1472,7 +1473,7 @@ export function PyramidSeasonScreen() {
     const t = setTimeout(() => setRevealed(round), Math.round(ROUND_MS * 0.86))
     return () => clearTimeout(t)
   }, [round, done])
-  const tables = useMemo(() => revealed >= round ? live.tables : simulatePyramid(world, state.seed, revealed, careerTactics, careerLineup).tables, [live, revealed, round, world, state.seed, careerTactics, careerLineup])
+  const tables = useMemo(() => revealed >= round ? live.tables : simulatePyramid(world, state.seed, revealed, careerTactics, careerLineup, capElite).tables, [live, revealed, round, world, state.seed, careerTactics, careerLineup, capElite])
   const me = myStanding(tables)
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
@@ -1484,7 +1485,7 @@ export function PyramidSeasonScreen() {
   // COPA LEGENDS: no fim da temporada, o mata-mata dos 16 (determinístico da
   // classificação final + semente + temporada). Alimenta a aba Tabelas (chave),
   // a aba Rank (artilharia da Copa) e os prêmios da virada.
-  const copa = useMemo(() => done ? computeCopa(tables, state.seed, state.seasonNo) : null, [done, tables, state.seed, state.seasonNo])
+  const copa = useMemo(() => done ? computeCopa(tables, state.seed, state.seasonNo, capElite) : null, [done, tables, state.seed, state.seasonNo, capElite])
   // a Copa TOCA fase por fase (oitavas → quartas → semi → final), como a liga.
   // copaRound = fase ao vivo agora (0=oitavas). Zera a cada temporada nova.
   // se o save já assistiu a Copa desta temporada, começa JÁ finalizada (999 >= nº de
