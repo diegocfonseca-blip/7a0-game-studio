@@ -1476,11 +1476,11 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
   D: [
     { name: 'Zé Ruela', team: 'Paixandu' },
     { name: 'PC Magrão', team: 'Magrão EC' },
-    { name: 'Biriba', team: 'Biriba United' },
+    { name: 'GuGu', team: 'White Thigs do GuGu' }, // ⚽ clube BATIZADO por apoiador (1º da história!)
     { name: 'Serjão', team: 'Real Madruga' },
     { name: 'Painitto', team: 'Painitto FC' },
     { name: 'Robertão', team: 'Robertão United' },
-    { name: 'GuGu', team: 'White Thigs do GuGu' }, // ⚽ clube BATIZADO por apoiador (1º da história!)
+    { name: 'Biriba', team: 'Biriba United' },
     { name: 'Duda Fortuna', team: 'Fortuna SAF' },
     { name: 'Marcão Pelado', team: 'Pelado FR' },
     { name: 'Neguinho do Apito', team: 'FC Galáticos' },
