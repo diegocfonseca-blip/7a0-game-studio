@@ -1756,7 +1756,7 @@ export function EscMonte() {
       </p>
       {state.careerOnline && state.monte.some(c => ((c as { paid?: number }).paid ?? 0) > 0) && (
         <p className="text-xs font-semibold text-black/60">
-          🆓 Sobra <b>sem valor</b> é de <b>graça</b>. Jogador <b>com piso</b> (💰) é <b>compra sem leilão</b> — paga o valor fixo. Nos jogadores que <b>você listou</b> você tem <b>preferência</b>: a primeira chance de recuperar de graça (já valendo a metade). Se deixar passar, aí os outros levam — pagando metade.
+          🆓 Sobra <b>sem valor</b> é de <b>graça</b>. Jogador <b>com piso</b> (💰) é <b>compra sem leilão</b> — paga o valor fixo. Nos jogadores que <b>você listou</b> você tem <b>preferência</b>: a primeira chance de recuperar de graça (já valendo a metade). Se deixar passar, aí os outros levam — pagando metade. E <b>ninguém é obrigado</b>: dá pra passar a vez.
         </p>
       )}
       {online && (
@@ -1801,6 +1801,16 @@ export function EscMonte() {
             </Box>
             )
           })}
+          {state.careerOnline && (
+            <>
+              <button onClick={() => dispatch({ type: 'MONTE_PASS', mgrId: you.id })}
+                className="w-full rounded-xl border-[3px] border-black bg-white font-black text-sm py-3 active:translate-y-0.5"
+                style={{ color: '#B23B2E', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
+                🙅 PASSAR A VEZ — não quero nenhuma sobra
+              </button>
+              <p className="text-[10px] font-bold text-black/45 text-center">Seu time já tem os 11 — sobra é opcional, ninguém é obrigado a pagar.</p>
+            </>
+          )}
         </div>
       ) : (
         <Box className="p-4">

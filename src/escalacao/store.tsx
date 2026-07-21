@@ -1305,6 +1305,7 @@ type Action =
   | { type: 'FORCE_TIEBREAK' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string }
   | { type: 'MONTE_TIMEOUT' }
+  | { type: 'MONTE_PASS'; mgrId: number } // carreira: recusa as sobras e passa a vez (o time já tem os 11)
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[] } // carreira online: define os 11 titulares (escalação), vale do PRÓXIMO jogo
   | { type: 'PLAY_ROUND' }
@@ -1945,6 +1946,21 @@ export function reducer(state: EscState, action: Action): EscState {
       s.monteIdx++
       advanceMonte(s, rng)
       if (s.monteIdx >= s.monteOrder.length || s.managers.every(m => totalHoles(m) === 0)) {
+        enterCerimonia(s)
+      }
+      return s
+    }
+    case 'MONTE_PASS': {
+      // CARREIRA: ninguém é obrigado a levar sobra (muito menos a PAGAR piso) —
+      // o time já tem os 11. Fora da carreira não existe passar: o Monte fecha o XI.
+      if (s.screen !== 'monte' || !s.careerOnline) return s
+      if (s.monteOrder[s.monteIdx] !== action.mgrId) return s
+      const m = s.managers.find(x => x.id === action.mgrId)
+      if (!m || !m.isHuman) return s
+      const rng = rngOf(s)
+      s.monteIdx++
+      advanceMonte(s, rng)
+      if (s.monteIdx >= s.monteOrder.length || s.managers.every(mm => totalHoles(mm) === 0)) {
         enterCerimonia(s)
       }
       return s
