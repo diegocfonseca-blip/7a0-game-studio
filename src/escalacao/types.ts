@@ -143,6 +143,25 @@ export interface MatchResult {
   highlights: MatchHighlight[] // só preenchido no jogo do humano
 }
 
+// 🏆 COPA DOS 8 — modo rápido (online e offline). Top-8 da liga, seedado
+// 1×8 · 2×7 · 3×6 · 4×5 (ida e volta); semis e final seguem do cruzamento
+// clássico do chaveamento; final é jogo único. Mesmo motor de partida do
+// campeonato (simMatch), só que fora do calendário de pontos corridos.
+export interface QuickCopaTie {
+  aId: number; bId: number; aName: string; bName: string
+  legs: [number, number][] // placares [gols de A, gols de B] de cada perna já jogada
+  pens?: [number, number]  // disputa de pênaltis, se empatou no agregado
+  winner: number | null    // id de quem passou (null = ainda rolando)
+  lastHighlights?: MatchHighlight[] // gols do ÚLTIMO leg jogado — pro placar ao vivo
+}
+export interface QuickCopaState {
+  phase: 'quartas' | 'semis' | 'final' | 'done'
+  ties: QuickCopaTie[]  // confrontos da fase ATUAL
+  legIdx: 0 | 1          // perna sendo jogada agora (final usa só a 0 — jogo único)
+  bracket: { phase: 'quartas' | 'semis' | 'final'; ties: QuickCopaTie[] }[] // fases já fechadas
+  champion?: { id: number; name: string; you: boolean } | null
+}
+
 export interface ScorerRow {
   name: string
   teamId: number
@@ -234,6 +253,11 @@ export interface EscState {
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)
   champion: number | null
+  // 🏆 COPA DOS 8 (modo rápido — online e offline): escolhida na criação da
+  // sala/jogo. 'liga_copa' (padrão) roda a Copa logo que a liga termina, antes
+  // da votação; 'liga' pula direto pro fim, como sempre foi.
+  copaMode?: 'liga' | 'liga_copa'
+  quickCopa?: QuickCopaState | null
   phaseDeadline: number | null // timestamp (ms) do fim do envelope
   monteDeadline: number | null // timestamp (ms) do fim da vez atual no Monte (online)
   cerimoniaDeadline: number | null // timestamp (ms) do fim da cerimônia (auto-começa o campeonato)

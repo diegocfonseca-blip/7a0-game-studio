@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
+  QuickCopaState, QuickCopaTie,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, newestTeamName } from './data'
@@ -969,6 +970,31 @@ export function topScorers(state: EscState, limit = 10): ScorerRow[] {
   return [...state.scorers].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, limit)
 }
 
+// ── 🏆 COPA DOS 8 (modo rápido) ──────────────────────────────────────────
+// seed: top 8 da tabela final, pareado 1×8 · 2×7 · 3×6 · 4×5 — na ordem
+// [1v8, 4v5, 2v7, 3v6] pra que os vencedores ADJACENTES (0-1 e 2-3) se
+// cruzem nas semis, igual chaveamento de copa de verdade.
+function seedQuickCopa(league: LeagueTeam[]): QuickCopaState {
+  const top8 = sortedTable(league).slice(0, 8)
+  const mk = (a: LeagueTeam, b: LeagueTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
+  const ties = [mk(top8[0], top8[7]), mk(top8[3], top8[4]), mk(top8[1], top8[6]), mk(top8[2], top8[5])]
+  return { phase: 'quartas', ties, legIdx: 0, bracket: [] }
+}
+// resolve uma tie depois do(s) leg(s) jogado(s): soma o agregado; empate vira
+// pênaltis (mesma fórmula da Copa da carreira — 3 a 5 cobranças, sem empatar 2x).
+function resolveQuickCopaTie(tie: QuickCopaTie, rng: () => number) {
+  const aggA = tie.legs.reduce((s2, l) => s2 + l[0], 0)
+  const aggB = tie.legs.reduce((s2, l) => s2 + l[1], 0)
+  if (aggA === aggB) {
+    let x = 3 + Math.floor(rng() * 3), y = 3 + Math.floor(rng() * 3)
+    if (x === y) (rng() < 0.5 ? x++ : y++)
+    tie.pens = [x, y]
+    tie.winner = x > y ? tie.aId : tie.bId
+  } else {
+    tie.winner = aggA > aggB ? tie.aId : tie.bId
+  }
+}
+
 function applyResult(league: LeagueTeam[], r: MatchResult) {
   const h = league.find(t => t.id === r.homeId)!, a = league.find(t => t.id === r.awayId)!
   h.gf += r.hg; h.ga += r.ag; a.gf += r.ag; a.ga += r.hg
@@ -1324,14 +1350,14 @@ type Action =
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both'; copaMode?: 'liga' | 'liga_copa' }
   | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; deck?: 'br' | 'eu' | 'both'; career?: boolean; locked?: boolean; pwHash?: string; rematch?: number }
+  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; deck?: 'br' | 'eu' | 'both'; career?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' }
   | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). scorerValues = bonus de piso dos artilheiros
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
@@ -1363,6 +1389,7 @@ type Action =
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[] } // carreira online: define os 11 titulares (escalação), vale do PRÓXIMO jogo
   | { type: 'PLAY_ROUND' }
   | { type: 'SIM_MANY'; count: number }
+  | { type: 'PLAY_COPA_LEG' } // 🏆 Copa dos 8 (rápido): joga a perna atual de todas as ties da fase
   | { type: 'FINISH_CEREMONY' }
   | { type: 'NEW_GAME' }
   | { type: 'NEW_SEASON' }
@@ -1778,6 +1805,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerIntent = false
       s.careerTitles = 0
       s.careerTitlesA = 0
+      s.copaMode = action.copaMode ?? 'liga_copa' // 🏆 padrão: liga + copa dos 8 (rápido)
       s.careerRivalCount = action.rivals
       s.careerRivals = action.career ? initCareerRivals(action.rivals, action.rivalTeams) : []
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0 // recalculado na cerimônia (quando os elencos existem)
@@ -1871,6 +1899,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.deckLeague = action.deck ?? 'br'; setActiveCatalog(s.deckLeague)
       s.locked = action.locked; s.pwHash = action.pwHash // guarda a senha no estado (sobrevive ao autosave)
       s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido
+      s.copaMode = action.copaMode ?? 'liga_copa' // 🏆 padrão: liga + copa dos 8 (rápido online)
       if (action.career) {
         // colocação da temporada 1: todos os técnicos na Série D; A/B/C com os
         // times de CPU fixos. Compacto (só a divisão) — os elencos são derivados.
@@ -2252,7 +2281,62 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       if (s.round >= TOTAL_ROUNDS) {
         s.champion = sortedTable(s.league)[0].id
+        // 🏆 Copa dos 8: liga termina, mas só vai pro fim de verdade depois da
+        // Copa (se a sala escolheu 'liga_copa'). Idempotente — seed uma vez só.
+        if (s.copaMode === 'liga_copa' && !s.quickCopa) {
+          s.quickCopa = seedQuickCopa(s.league)
+        } else if (s.copaMode !== 'liga_copa') {
+          s.screen = 'end'
+        }
+      }
+      return s
+    }
+    case 'PLAY_COPA_LEG': {
+      const qc = s.quickCopa
+      if (!qc || qc.phase === 'done') return s
+      const rng = mulberry(s.seed + 90000 + s.seasonNo * 733 + qc.ties.length * 31 + qc.bracket.length * 97 + qc.legIdx * 13)
+      const isFinal = qc.phase === 'final'
+      for (const tie of qc.ties) {
+        if (tie.winner !== null) continue
+        // ida: A em casa; volta: B em casa (mandante troca). Final: jogo único, A em casa.
+        const homeId = qc.legIdx === 0 ? tie.aId : tie.bId
+        const awayId = qc.legIdx === 0 ? tie.bId : tie.aId
+        const r = simMatch(s, homeId, awayId, rng)
+        const leg: [number, number] = qc.legIdx === 0 ? [r.hg, r.ag] : [r.ag, r.hg] // sempre [gols de A, gols de B]
+        tie.legs.push(leg)
+        tie.lastHighlights = r.highlights
+        if (isFinal || qc.legIdx === 1) resolveQuickCopaTie(tie, rng)
+      }
+      const allDone = qc.ties.every(t => t.winner !== null)
+      if (!allDone) {
+        // final é jogo único — nunca tem 2ª perna
+        if (!isFinal) qc.legIdx = qc.legIdx === 0 ? 1 : 0
+        return s
+      }
+      // fase inteira resolvida: fecha no chaveamento e avança (ou consagra o campeão)
+      qc.bracket = [...qc.bracket, { phase: qc.phase, ties: qc.ties }]
+      if (isFinal) {
+        const champ = qc.ties[0]
+        const champId = champ.winner!
+        const champName = champId === champ.aId ? champ.aName : champ.bName
+        const you = s.managers.find(m => m.id === champId && m.isHuman)
+        qc.champion = { id: champId, name: champName, you: !!you }
+        qc.phase = 'done'
+        qc.ties = []
         s.screen = 'end'
+      } else {
+        const winnerName = (t: QuickCopaTie) => t.winner === t.aId ? t.aName : t.bName
+        const nextTies: QuickCopaTie[] = qc.phase === 'quartas'
+          ? [
+              { aId: qc.ties[0].winner!, bId: qc.ties[1].winner!, aName: winnerName(qc.ties[0]), bName: winnerName(qc.ties[1]), legs: [], winner: null },
+              { aId: qc.ties[2].winner!, bId: qc.ties[3].winner!, aName: winnerName(qc.ties[2]), bName: winnerName(qc.ties[3]), legs: [], winner: null },
+            ]
+          : [
+              { aId: qc.ties[0].winner!, bId: qc.ties[1].winner!, aName: winnerName(qc.ties[0]), bName: winnerName(qc.ties[1]), legs: [], winner: null },
+            ]
+        qc.phase = qc.phase === 'quartas' ? 'semis' : 'final'
+        qc.ties = nextTies
+        qc.legIdx = 0
       }
       return s
     }
