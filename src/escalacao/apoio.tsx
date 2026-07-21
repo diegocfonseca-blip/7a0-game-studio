@@ -36,6 +36,7 @@ export const APOIO_PERKS: Record<ApoioTier, ApoioPerk> = {
 const FOUNDERS: Record<string, ApoioTier> = {
   'diego.c.fonseca@gmail.com': 'ouro',
   'willian.chagass@outlook.com': 'ouro',
+  'gabrielcunico1909@gmail.com': 'ouro',
 }
 
 // e-mail da conta logada, cacheado — os pontos que usam (playerColors, nomes)
