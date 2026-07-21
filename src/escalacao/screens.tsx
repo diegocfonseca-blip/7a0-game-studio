@@ -2300,7 +2300,7 @@ export function EscSeason() {
           onNext={() => dispatch({ type: 'PLAY_ROUND' })}
           nextLabel={state.round === 0 && !myLast ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
       )}
-      {!online && manual && copaLive && (
+      {!online && copaLive && (
         <SimControls manual={manual} onToggle={toggleSim} canNext
           onNext={() => dispatch({ type: 'PLAY_COPA_LEG' })}
           nextLabel="⚽ Próximo jogo da Copa" />
