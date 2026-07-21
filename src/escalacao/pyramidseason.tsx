@@ -1217,34 +1217,65 @@ const copaDt = (d: Div) => <span style={{ fontWeight: 900, fontSize: 8.5, border
 // os times (verde = gol, vermelho = perdeu), e o total fecha no fim. A ordem
 // das cobranças é sorteada de forma determinística a partir do próprio placar.
 function PensShootout({ pens, aName, bName }: { pens: [number, number]; aName: string; bName: string }) {
-  const slots = Math.max(5, pens[0], pens[1])
-  const rng = mulberry(((pens[0] * 31 + pens[1] * 7 + slots * 131) ^ 0xA1B2) >>> 0)
-  const mk = (made: number) => {
-    const idxs = Array.from({ length: slots }, (_, i) => i)
-    for (let i = idxs.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [idxs[i], idxs[j]] = [idxs[j], idxs[i]] }
-    const arr = Array(slots).fill(false)
-    idxs.slice(0, made).forEach(i => { arr[i] = true })
-    return arr as boolean[]
+  // REGRA REAL: 5 cobranças alternadas; PARA na hora que decide (quem não
+  // alcança mais nem batendo todas, acabou — as bolinhas restantes ficam
+  // vazias). 6×5 = foi perfeito até o fim e decidiu na morte súbita.
+  type Kick = { side: 0 | 1; ok: boolean }
+  const rng = mulberry(((pens[0] * 31 + pens[1] * 7) ^ 0xA1B2) >>> 0)
+  const win = pens[0] > pens[1] ? 0 : 1
+  const seq: Kick[] = []
+  const taken: [number, number] = [0, 0]
+  const score: [number, number] = [0, 0]
+  if (Math.max(pens[0], pens[1]) > 5) {
+    // morte súbita (só existe como 6×5): 5 rodadas perfeitas + a 6ª que decide
+    for (let r = 0; r < 5; r++) { seq.push({ side: 0, ok: true }, { side: 1, ok: true }) }
+    seq.push({ side: win as 0 | 1, ok: true }, { side: (1 - win) as 0 | 1, ok: false })
+    score[0] = pens[0]; score[1] = pens[1]; taken[0] = 6; taken[1] = 6
+  } else {
+    // espalha os gols de cada time nas 5 cobranças (ordem sorteada, mas SEMPRE
+    // a mesma pra este placar) e anda cobrança a cobrança até decidir.
+    const mk = (made: number) => {
+      const idxs = [0, 1, 2, 3, 4]
+      for (let i = 4; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [idxs[i], idxs[j]] = [idxs[j], idxs[i]] }
+      const arr = [false, false, false, false, false]
+      idxs.slice(0, made).forEach(i => { arr[i] = true })
+      return arr
+    }
+    const plan: [boolean[], boolean[]] = [mk(pens[0]), mk(pens[1])]
+    outer: for (let r = 0; r < 5; r++) {
+      for (const side of [0, 1] as const) {
+        const ok = plan[side][r]
+        seq.push({ side, ok }); taken[side]++; if (ok) score[side]++
+        const rest = (t: 0 | 1) => 5 - taken[t]
+        if (score[0] + rest(0) < score[1] || score[1] + rest(1) < score[0]) break outer
+      }
+    }
   }
-  const A = mk(pens[0]), B = mk(pens[1])
-  const step = 0.85, lead = 0.7, totalDelay = lead + slots * 2 * step + 0.25
-  const row = (name: string, arr: boolean[], off: number) => (
+  const nSlots = Math.max(pens[0], pens[1]) > 5 ? 6 : 5
+  const step = 0.85, lead = 0.7
+  // resultado de cada time na ORDEM das cobranças dele + índice global (delay)
+  const rows: { ok: boolean; at: number }[][] = [[], []]
+  seq.forEach((k, gi) => rows[k.side].push({ ok: k.ok, at: gi }))
+  const totalDelay = lead + seq.length * step + 0.25
+  const row = (name: string, r: { ok: boolean; at: number }[]) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 3.5, justifyContent: 'center' }}>
       <span style={{ fontSize: 9, fontWeight: 900, ...OSWALD, maxWidth: 74, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right', flexShrink: 0 }}>{name}</span>
-      {arr.map((ok, i) => (
-        <span key={i} style={{ width: 13, height: 13, borderRadius: 999, border: `1.5px solid ${INK}`, background: ok ? '#37D067' : '#F87168', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 7.5, fontWeight: 900, lineHeight: 1, opacity: 0, animation: `pensPop .45s cubic-bezier(.2,1.5,.5,1) ${(lead + (i * 2 + off) * step).toFixed(2)}s forwards`, flexShrink: 0 }}>{ok ? '' : '✕'}</span>
-      ))}
+      {Array.from({ length: nSlots }, (_, i) => {
+        const k = r[i]
+        if (!k) return <span key={i} style={{ width: 13, height: 13, borderRadius: 999, border: '1.5px dashed rgba(0,0,0,.3)', background: 'rgba(0,0,0,.05)', flexShrink: 0 }} />
+        return <span key={i} style={{ width: 13, height: 13, borderRadius: 999, border: `1.5px solid ${INK}`, background: k.ok ? '#37D067' : '#F87168', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 7.5, fontWeight: 900, lineHeight: 1, opacity: 0, animation: `pensPop .45s cubic-bezier(.2,1.5,.5,1) ${(lead + k.at * step).toFixed(2)}s forwards`, flexShrink: 0 }}>{k.ok ? '' : '✕'}</span>
+      })}
     </div>
   )
   return (
     <div style={{ margin: '4px 0 0' }}>
       <style>{'@keyframes pensPop{0%{opacity:0;transform:scale(0)}70%{opacity:1;transform:scale(1.35)}100%{opacity:1;transform:scale(1)}}'}</style>
-      <p style={{ fontSize: 9, fontWeight: 900, ...OSWALD, textAlign: 'center', color: '#B23B2E', margin: '0 0 3px', letterSpacing: 0.5 }}>🎯 DISPUTA DE PÊNALTIS</p>
+      <p style={{ fontSize: 9, fontWeight: 900, ...OSWALD, textAlign: 'center', color: '#B23B2E', margin: '0 0 3px', letterSpacing: 0.5 }}>🎯 DISPUTA DE PÊNALTIS{nSlots === 6 ? ' · MORTE SÚBITA' : ''}</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {row(aName, A, 0)}
-        {row(bName, B, 1)}
+        {row(aName, rows[0])}
+        {row(bName, rows[1])}
       </div>
-      <p style={{ fontSize: 9.5, fontWeight: 900, ...OSWALD, textAlign: 'center', color: INK, margin: '3px 0 0', opacity: 0, animation: `pensPop .35s ease ${totalDelay}s forwards` }}>{pens[0]} × {pens[1]} {pens[0] > pens[1] ? 'pro ' + aName : 'pro ' + bName}</p>
+      <p style={{ fontSize: 9.5, fontWeight: 900, ...OSWALD, textAlign: 'center', color: INK, margin: '3px 0 0', opacity: 0, animation: `pensPop .35s ease ${totalDelay.toFixed(2)}s forwards` }}>{score[0]} × {score[1]} {win === 0 ? 'pro ' + aName : 'pro ' + bName}</p>
     </div>
   )
 }
