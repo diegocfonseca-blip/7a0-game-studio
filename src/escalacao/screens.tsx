@@ -2374,8 +2374,8 @@ export function EscSeason() {
         </button>
       )}
       {copaLive && <CopaScorersBox highlight={you.id} />}
-      <TableBox highlight={you.id} holdResults={!resultRevealed} />
-      <TopScorersBox highlight={you.id} />
+      <TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" />
+      <TopScorersBox highlight={you.id} title="⚽ ARTILHARIA DA LIGA LEGENDS" />
       <YourPitch small />
       {state.careerDivision && <RivalTracker />}
       <CreditLine className="pt-4 pb-2" />
