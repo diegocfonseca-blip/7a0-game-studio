@@ -9,7 +9,7 @@ import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
-import { stripEmoji } from './apoio'
+import { stripEmoji, myApoioPerk, APOIO_PERKS } from './apoio'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
@@ -2075,7 +2075,7 @@ export function EscSeason() {
         const homeIsYou = myLast.homeId === you.id
         const oppId = homeIsYou ? myLast.awayId : myLast.homeId
         const oppIsHuman = state.managers.some(m => m.id === oppId && m.isHuman)
-        const youColor = '#7C3AED', oppColor = oppIsHuman ? '#E8503A' : '#3A7CA5'
+        const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid, oppColor = oppIsHuman ? '#E8503A' : '#3A7CA5'
         const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
         const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/); return mm ? mm[1] : text.replace(/^⚽\s*/, '').replace(/\.$/, '') }
         const goals = myLast.highlights.map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === myLast.homeId }))

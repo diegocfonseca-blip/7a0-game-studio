@@ -629,45 +629,18 @@ const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série
 const ROUND_MS = 8000
 const COPA_LEG_MS = 8000 // cada JOGO da Copa rola ~8s (como uma partida da liga: 90'+acréscimos). Fase de ida-e-volta = 2×; final (jogo único) = 1×.
 
-// CADA usuário (você e amigos) tem UMA cor fixa e ÚNICA: `solid` (nome/chip) +
-// `light` (fundo da faixa/linha). Nada de preto — o preto já é dos botões. A cor
-// é sorteada pela SEMENTE da sala → a MESMA cor pra cada jogador em todos os
-// aparelhos, o jogo inteiro, e persegue ele quando o time sobe/desce (chave = id
-// do técnico, que não muda entre temporadas).
+// COR DO TIME: todo mundo começa na cor BEGE do "Foi Profissional" — a cor
+// de todo mundo. Cor diferente (verde/roxo/prata/OURO com brilho) é benefício
+// de quem APOIA o projeto (escada do modal APOIE). A paleta sorteada antiga
+// foi aposentada quando a escada de cores virou o padrão.
 export interface FCol { solid: string; light: string }
-const PLAYER_PALETTE: FCol[] = [
-  { solid: '#8B5E34', light: '#EAD8C4' }, // marrom
-  { solid: '#DB2777', light: '#FBD0E4' }, // rosa
-  { solid: '#2563EB', light: '#D4E1FC' }, // azul
-  { solid: '#16A34A', light: '#CBEFD7' }, // verde
-  { solid: '#7C3AED', light: '#E4D6FB' }, // roxo
-  { solid: '#EA580C', light: '#FBDBC5' }, // laranja
-  { solid: '#0D9488', light: '#C6EDE8' }, // teal
-  { solid: '#DC2626', light: '#F7CFCF' }, // vermelho
-  { solid: '#C026D3', light: '#F2CDF6' }, // magenta
-  { solid: '#0284C7', light: '#C7E5F5' }, // ciano
-  { solid: '#65A30D', light: '#DCEFBE' }, // lima
-  { solid: '#4F46E5', light: '#D9D7F7' }, // índigo
-  { solid: '#E11D48', light: '#F9CFDA' }, // rosa-forte
-  { solid: '#0F766E', light: '#C4E7E2' }, // teal-escuro
-  { solid: '#B45309', light: '#F1DEBF' }, // âmbar
-  { solid: '#9333EA', light: '#E8D6F9' }, // violeta
-  { solid: '#059669', light: '#C4EFDC' }, // esmeralda
-  { solid: '#BE123C', light: '#F5CBD4' }, // carmim
-  { solid: '#1D4ED8', light: '#CFDCF9' }, // azul-real
-  { solid: '#A16207', light: '#EFE0BD' }, // ocre
-]
-// atribui uma cor pra CADA humano (incluindo você). Ordena por id pra ser estável
-// e sorteia a paleta pela semente → todos veem a mesma cor pra cada um.
 export function playerColors(humanIds: number[], youId: number, seed: number): Record<number, FCol> {
-  const pal = PLAYER_PALETTE.slice()
-  const rng = mulberry((seed ^ 0xBADA55) >>> 0)
-  for (let i = pal.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1));[pal[i], pal[j]] = [pal[j], pal[i]] }
+  void seed // a semente era da paleta sorteada; fica na assinatura pra não mexer nos chamadores
+  const bege = APOIO_PERKS.bege
   const map: Record<number, FCol> = {}
-  const ids = humanIds.slice().sort((a, b) => a - b)
-  ids.forEach((id, i) => { map[id] = pal[i % pal.length] })
-  // quem tem tier de apoio (ou conta fundadora) joga com a cor escolhida por
-  // cima da sorteada — no seu aparelho. Quando migrar pro Supabase, todos veem.
+  for (const id of humanIds) map[id] = { solid: bege.solid, light: bege.light }
+  // quem tem tier de apoio joga com a cor DELE por cima do bege — no próprio
+  // aparelho (o selo no nome os outros já veem; a cor cruzada vem com o Supabase).
   const perk = myApoioPerk()
   if (perk && map[youId]) map[youId] = { solid: perk.solid, light: perk.light }
   return map
@@ -1481,7 +1454,7 @@ export function PyramidSeasonScreen() {
   // coloridos = humanos (você/amigos) + rivais escolhidos (carreira offline)
   const humanKey = state.managers.filter(m => m.isHuman || m.rival).map(m => m.id).join(',')
   const colors = useMemo(() => playerColors(humanKey ? humanKey.split(',').map(Number) : [], youId, state.seed), [humanKey, youId, state.seed])
-  const myCol = colors[youId] ?? PLAYER_PALETTE[0]
+  const myCol = colors[youId] ?? { solid: APOIO_PERKS.bege.solid, light: APOIO_PERKS.bege.light }
   // COPA LEGENDS: no fim da temporada, o mata-mata dos 16 (determinístico da
   // classificação final + semente + temporada). Alimenta a aba Tabelas (chave),
   // a aba Rank (artilharia da Copa) e os prêmios da virada.
@@ -1987,7 +1960,7 @@ export function ReserveListScreen() {
   const remaining = Math.max(0, Math.ceil(((state.phaseDeadline ?? 0) - now) / 1000))
   const humanIds = state.managers.filter(m => m.isHuman).map(m => m.id)
   const colors = useMemo(() => playerColors(humanIds, youId, state.seed), [humanIds.join(','), youId, state.seed])
-  const col = colors[youId] ?? PLAYER_PALETTE[0]
+  const col = colors[youId] ?? { solid: APOIO_PERKS.bege.solid, light: APOIO_PERKS.bege.light }
   const need = FORMATIONS[mgr?.formation ?? '4-3-3']
   // titulares/reservas = a SUA escalação REAL (com as trocas da temporada), não o
   // melhor-11 automático — o elenco tem que refletir o time em tempo real.

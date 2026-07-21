@@ -5,7 +5,7 @@ import { useState } from 'react'
 // Melhorias destravam em árvore. Renda cai sozinha no fim de cada temporada.
 import { STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, sectorPct, hasExtra, extraUnlocked, stadiumIncome, stadiumSeats, stadiumLevel } from './estadiodata'
 import type { StadiumSave } from './estadiodata'
-import { myApoioPerk, loggedEmail } from './apoio'
+import { myApoioPerk, loggedEmail, APOIO_PERKS } from './apoio'
 import type { ApoioPerk } from './apoio'
 
 const INK = '#0C0C0C'
@@ -31,8 +31,9 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
   // construção), com varredura de brilho quando a categoria tem holo.
   // perkOverride força um tier (usado na PRÉVIA "veja o seu dourado").
   const perk = perkOverride ?? myApoioPerk()
-  const [f0, f1] = perk ? perk.svgFull : ['#ffd85a', '#e09e00']
-  const [v0, v1] = perk ? perk.svgPart : ['#2fa85c', '#15612f']
+  // sem tier: arquibancadas na cor BEGE de todo mundo (o ouro virou artigo do APOIE)
+  const [f0, f1] = perk ? perk.svgFull : APOIO_PERKS.bege.svgFull
+  const [v0, v1] = perk ? perk.svgPart : APOIO_PERKS.bege.svgPart
   const parts: string[] = []
   parts.push('<defs>')
   for (const k in STANDS) parts.push(`<clipPath id="stc${k}"><polygon points="${P(STANDS[k].pts)}"/></clipPath>`)
