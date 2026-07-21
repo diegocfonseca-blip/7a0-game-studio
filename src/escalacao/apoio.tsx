@@ -70,6 +70,22 @@ function fixOldEmojiName(u: { email?: string; user_metadata?: Record<string, unk
   supabase.auth.updateUser({ data: { display_name: clean } }).then(() => {}, () => {})
 }
 
+// 🎨 INTENÇÃO DE APOIO: anota no banco cada passo relevante do modal APOIE
+// (abriu opção, copiou Pix, tocou no botão da DM com a escolha). Só pro admin
+// cruzar Pix ↔ escolha — nunca aparece pra ninguém, nunca trava o jogo.
+export function logApoio(choice: string) {
+  ;(async () => {
+    try {
+      const { data } = await supabase.auth.getUser()
+      await supabase.from('apoio_intents').insert({
+        email: data?.user?.email?.toLowerCase() ?? null,
+        nick: (data?.user?.user_metadata?.display_name as string | undefined) ?? null,
+        choice: choice.slice(0, 120),
+      })
+    } catch { /* silencioso */ }
+  })()
+}
+
 // e-mail da conta logada (pra gates de teste de features) — null se deslogado
 export function loggedEmail(): string | null { return myEmail }
 
