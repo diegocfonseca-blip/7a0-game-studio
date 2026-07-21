@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, EscState, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
-import { useEsc, openSlots, totalHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, loadPyramidCloud, deletePyramidCloud } from './store'
+import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, loadPyramidCloud, deletePyramidCloud } from './store'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
@@ -1823,7 +1823,7 @@ export function EscMonte() {
             </Box>
             )
           })}
-          {state.careerOnline && (
+          {state.careerOnline && (xiHoles(you) === 0 ? (
             <>
               <button onClick={() => dispatch({ type: 'MONTE_PASS', mgrId: you.id })}
                 className="w-full rounded-xl border-[3px] border-black bg-white font-black text-sm py-3 active:translate-y-0.5"
@@ -1832,7 +1832,11 @@ export function EscMonte() {
               </button>
               <p className="text-[10px] font-bold text-black/45 text-center">Seu time já tem os 11 — sobra é opcional, ninguém é obrigado a pagar.</p>
             </>
-          )}
+          ) : (
+            <p className="text-[11px] font-black text-center rounded-xl border-2 border-black py-2 px-3" style={{ background: '#FFE9B0', ...OSWALD }}>
+              ⚠️ Você tem BURACO no time titular — aqui não dá pra passar: pega alguém pra fechar os 11!
+            </p>
+          ))}
         </div>
       ) : (
         <Box className="p-4">
