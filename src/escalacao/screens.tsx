@@ -2417,7 +2417,7 @@ function RivalTracker() {
   )
 }
 
-function TopScorersBox({ highlight }: { highlight: number }) {
+function TopScorersBox({ highlight, title = '⚽ ARTILHARIA · TEMPO REAL' }: { highlight: number; title?: string }) {
   const { state } = useEsc()
   const rows = topScorers(state, 10)
   if (rows.length === 0) {
@@ -2430,7 +2430,7 @@ function TopScorersBox({ highlight }: { highlight: number }) {
   }
   return (
     <Box className="p-3">
-      <p className="font-black text-sm mb-2 text-black" style={OSWALD}>⚽ ARTILHARIA · TEMPO REAL</p>
+      <p className="font-black text-sm mb-2 text-black" style={OSWALD}>{title}</p>
       <table className="w-full text-xs">
         <thead>
           <tr className="text-left text-black/60 font-black">
@@ -2513,14 +2513,14 @@ function leagueBeforeResults<T extends { id: number; pts: number; w: number; d: 
   return league.map(t => map.get(t.id)!)
 }
 
-function TableBox({ highlight, holdResults }: { highlight: number; holdResults?: boolean }) {
+function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: number; holdResults?: boolean; title?: string }) {
   const { state } = useEsc()
   const league = holdResults && state.lastResults.length > 0 ? leagueBeforeResults(state.league, state.lastResults) : state.league
   const table = sortedTable(league)
   return (
     <Box className="p-3 overflow-x-auto">
       <div className="flex items-center justify-between mb-2">
-        <p className="font-black text-sm" style={OSWALD}>TABELA</p>
+        <p className="font-black text-sm" style={OSWALD}>{title}</p>
         <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">
           <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#D6E9FA' }} />G4</span>
           <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFF3B8' }} />Pré</span>
@@ -3934,22 +3934,67 @@ export function EscEnd() {
       </p>
     </div>
   )
-  return (
-    <Shell hideExit={online}>
-      <RankResultWriter />
-      {!copaPending && placementHeader('pt-8')}
+  // 🏆 Copa jogada e ENCERRADA nesta temporada — muda a cara do fim: em vez do
+  // radião "6º lugar", um placar com os DOIS torneios (Liga + Copa), e a ordem
+  // vira Liga → artilheiro da Liga → Copa → artilheiro da Copa.
+  const copaDone = state.quickCopa?.phase === 'done'
+  // até onde VOCÊ foi na Copa (pro resuminho do topo)
+  const myCopaRun = (() => {
+    const qc = state.quickCopa
+    if (!qc) return ''
+    if (qc.champion?.you) return '🏆 Campeão!'
+    let last: 'quartas' | 'semis' | 'final' | null = null, lost = false
+    for (const b of qc.bracket) { const t = b.ties.find(x => x.aId === you.id || x.bId === you.id); if (t) { last = b.phase; lost = t.winner != null && t.winner !== you.id } }
+    if (!last) return 'Fora do top 8'
+    if (last === 'final') return lost ? '🥈 Vice' : '🏆 Campeão!'
+    return last === 'semis' ? 'Caiu na semi' : 'Caiu nas quartas'
+  })()
+  const copaChampName = state.quickCopa?.champion ? (state.quickCopa.champion.you ? 'VOCÊ!' : state.quickCopa.champion.name) : ''
+  // placar-resumo do topo (Liga + Copa), no lugar do radião de colocação
+  const comboHeader = (
+    <div className="pt-6">
+      <p className="text-center text-xs font-black uppercase tracking-widest text-black/45 mb-1" style={OSWALD}>🏁 Fim da temporada</p>
+      <Box bg={INK} className="p-4 text-center" shadow={6}>
+        <p className="font-black text-2xl truncate" style={{ ...OSWALD, color: '#fff' }}>{you.teamName}</p>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <div className="rounded-xl border-2 py-2" style={{ borderColor: 'rgba(255,255,255,.18)', background: 'rgba(255,255,255,.06)' }}>
+            <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>Liga Legends</p>
+            <p className="font-black text-lg" style={{ ...OSWALD, color: '#fff' }}>{youWon ? '🏆 Campeão' : `${youPos}º lugar`}</p>
+          </div>
+          <div className="rounded-xl border-2 py-2" style={{ borderColor: 'rgba(255,255,255,.18)', background: 'rgba(255,255,255,.06)' }}>
+            <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>Copa dos 8</p>
+            <p className="font-black text-base" style={{ ...OSWALD, color: '#fff' }}>{myCopaRun}</p>
+          </div>
+        </div>
+      </Box>
+    </div>
+  )
+  // blocos da LIGA (tabela + artilheiro) e da COPA (campeão + artilheiro), pra
+  // montar a ordem do fim conforme teve Copa ou não.
+  const ligaChampionCard = (
+    <>
       {online && youWon && state.roomId && (
         <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}`} origin="online" onClaimed={setMyCard} />
       )}
       {!online && youWon && (
         <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" onClaimed={setMyCard} />
       )}
-      {/* 🏆 Copa dos 8: quem é campeão da Copa ganha carta À PARTE do título da
-          liga (pode ganhar as duas na mesma temporada) — seasonKey própria com
-          sufixo ":copa" pra não colidir com a carta da liga. */}
-      {state.quickCopa?.phase === 'done' && state.quickCopa.champion && (
+    </>
+  )
+  const ligaBlocks = (
+    <>
+      <TableBox highlight={you.id} title="🏆 LIGA LEGENDS" />
+      <TopScorersBox highlight={you.id} title="⚽ ARTILHARIA DA LIGA LEGENDS" />
+    </>
+  )
+  // 🏆 Copa dos 8: quem é campeão da Copa ganha carta À PARTE do título da liga
+  // (pode ganhar as duas na mesma temporada) — seasonKey com sufixo ":copa".
+  const copaBlocks = (
+    <>
+      {state.quickCopa?.champion && (
         <Box bg="#FFF6D6" className="p-3 text-center" shadow={4}>
-          <p className="font-black text-sm" style={OSWALD}>🏆 Campeão da Copa dos 8: {state.quickCopa.champion.you ? 'VOCÊ!' : state.quickCopa.champion.name}</p>
+          <p className="text-[11px] font-black uppercase tracking-widest" style={{ ...OSWALD, color: '#9a6d00' }}>🏆 Copa dos 8</p>
+          <p className="font-black text-base" style={OSWALD}>Campeão: {copaChampName}</p>
         </Box>
       )}
       {state.quickCopa?.champion?.you && (
@@ -3959,6 +4004,25 @@ export function EscEnd() {
           <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`} origin="cpu" onClaimed={setMyCard} />
         ) : null
       )}
+      <CopaScorersBox highlight={you.id} />
+    </>
+  )
+  return (
+    <Shell hideExit={online}>
+      <RankResultWriter />
+      {/* FIM COM COPA JÁ JOGADA: placar Liga+Copa no topo, e ordem
+          Liga → artilheiro da Liga → Copa → artilheiro da Copa. */}
+      {copaDone ? (
+        <>
+          {comboHeader}
+          {ligaChampionCard}
+          {ligaBlocks}
+          {copaBlocks}
+        </>
+      ) : (
+      <>
+      {!copaPending && placementHeader('pt-8')}
+      {ligaChampionCard}
       {copaPending && state.quickCopa && (
         <Box bg={GOLD} className="p-4 space-y-2" shadow={6}>
           <p className="font-black text-lg text-center" style={OSWALD}>🏆 COPA DOS 8 · fica ligado!</p>
@@ -3988,9 +4052,9 @@ export function EscEnd() {
         </Box>
       )}
       {copaPending && placementHeader('pt-2')}
-      <CopaScorersBox highlight={you.id} />
-      <TableBox highlight={you.id} />
-      <TopScorersBox highlight={you.id} />
+      {ligaBlocks}
+      </>
+      )}
       {online && state.roomId && (
         <HallDaFama roomId={state.roomId} isHost={state.isHost} seasonNo={state.seasonNo} champName={champ.name}
           scorerName={myScorer?.name} scorerGoals={myScorer?.goals} />
