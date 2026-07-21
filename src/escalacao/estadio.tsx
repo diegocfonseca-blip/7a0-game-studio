@@ -202,7 +202,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
           <div style={{ ...box('#FFF6DE'), borderRadius: 14, padding: '11px 12px', marginTop: 14 }}>
             <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>🏢 GRUPO EMPRESARIAL</p>
             <p style={{ fontWeight: 900, fontSize: 13, margin: '5px 0 2px', ...OSW }}>⚽ {filial.team}{filialInfo ? <span style={{ fontWeight: 700, fontSize: 10.5, color: 'rgba(0,0,0,.55)' }}> · Série {filialInfo.div} · {filialInfo.pos}º</span> : null}</p>
-            <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0 }}>Seu clube desde a T{filial.since} · comissão de 30% da campanha (título/acesso rende; queda desconta)</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0 }}>Seu clube desde a T{filial.since} · comissão de 50% da campanha (título/acesso rende; queda desconta)</p>
             <p style={{ fontSize: 11.5, fontWeight: 900, color: (filial.earned ?? 0) >= 0 ? GREEN : '#B23B2E', margin: '4px 0 0', ...OSW }}>💼 Comissões acumuladas: {(filial.earned ?? 0) >= 0 ? '+' : ''}{filial.earned ?? 0} 🪙</p>
           </div>
         )
@@ -211,7 +211,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
             <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>🏢 GRUPO EMPRESARIAL <span style={{ fontSize: 9, background: INK, color: GOLD, borderRadius: 5, padding: '1px 6px', verticalAlign: 'middle' }}>TESTE</span></p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '3px 0 6px' }}>
               {allDone
-                ? <>Compre um clube da Série D e vire DONO: 30% dos prêmios de campanha dele caem no seu caixa (e queda desconta). Ele segue vivendo por conta própria — sem leilão contra você.</>
+                ? <>Compre um clube da Série D e vire DONO: 50% dos prêmios de campanha dele caem no seu caixa (e queda desconta). Ele segue vivendo por conta própria — sem leilão contra você.</>
                 : <>🔒 destrava com: <b style={{ color: '#9a4b00' }}>Estádio 100% completo</b> (setores + melhorias) · custa 2.000 💰</>}
             </p>
             {allDone && !buying && (
