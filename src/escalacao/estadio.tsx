@@ -200,46 +200,46 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
         const canBuy = allDone && coins >= 2000
         const regras = (
           <ul style={{ margin: '7px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', lineHeight: 1.55 }}>
-            <li>💰 Custa <b>2.000</b> · compra única · o clube é seu <b>pra sempre nesta carreira</b> (não vende, não troca)</li>
-            <li>🏆 <b>50% dos prêmios de campanha</b> da filial (título e acesso) caem no seu caixa na virada da temporada</li>
+            <li>💰 A SAF custa <b>2.000</b> · compra única · os direitos são seus <b>pra sempre nesta carreira</b> (não vende, não troca)</li>
+            <li>🏆 Direito a <b>50% dos lucros de campanha</b> (título e acesso) — caem no seu caixa na virada da temporada</li>
             <li>📉 <b>Queda dói</b>: 50% da multa de rebaixamento sai do SEU caixa</li>
             <li>🙅 <b>Nada</b> dos lucros de compra/venda do clube no mercado — só campanha</li>
-            <li>⚖️ A filial <b>nunca disputa seu leilão</b>: vida própria, sobe e desce por mérito</li>
+            <li>⚖️ O clube da SAF <b>nunca disputa seu leilão</b>: vida própria, sobe e desce por mérito</li>
             <li>📈 Ela sobe de série? Sua comissão cresce junto (prêmio de série alta paga mais)</li>
             <li>📋 Empréstimo de jogador entre os clubes: <b>próxima atualização</b></li>
           </ul>
         )
         if (filial) return (
           <div style={{ ...box('#FFF6DE'), borderRadius: 14, padding: '11px 12px', marginTop: 14 }}>
-            <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>🏢 GRUPO EMPRESARIAL</p>
+            <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>💼 SUA SAF</p>
             <p style={{ fontWeight: 900, fontSize: 13, margin: '5px 0 2px', ...OSW }}>⚽ {filial.team}{filialInfo ? <span style={{ fontWeight: 700, fontSize: 10.5, color: 'rgba(0,0,0,.55)' }}> · Série {filialInfo.div} · {filialInfo.pos}º</span> : null}</p>
-            <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0 }}>Seu clube desde a T{filial.since} · comissão de 50% da campanha (título/acesso rende; queda desconta)</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0 }}>Dono da SAF desde a T{filial.since} · direito a 50% dos lucros de campanha (título/acesso rende; queda desconta)</p>
             <p style={{ fontSize: 11.5, fontWeight: 900, color: (filial.earned ?? 0) >= 0 ? GREEN : '#B23B2E', margin: '4px 0 0', ...OSW }}>💼 Comissões acumuladas: {(filial.earned ?? 0) >= 0 ? '+' : ''}{filial.earned ?? 0} 🪙</p>
             {regras}
           </div>
         )
         return (
           <div style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '11px 12px', marginTop: 14, opacity: allDone ? 1 : .6, borderStyle: allDone ? 'solid' : 'dashed', boxShadow: allDone ? `4px 4px 0 0 ${INK}` : 'none' }}>
-            <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>🏢 GRUPO EMPRESARIAL <span style={{ fontSize: 9, background: INK, color: GOLD, borderRadius: 5, padding: '1px 6px', verticalAlign: 'middle' }}>TESTE</span></p>
+            <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>💼 COMPRAR UMA SAF <span style={{ fontSize: 9, background: INK, color: GOLD, borderRadius: 5, padding: '1px 6px', verticalAlign: 'middle' }}>TESTE</span></p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '3px 0 6px' }}>
               {allDone
-                ? <>Compre um clube da Série D e vire DONO: 50% dos prêmios de campanha dele caem no seu caixa (e queda desconta). Ele segue vivendo por conta própria — sem leilão contra você.</>
-                : <>🔒 destrava com: <b style={{ color: '#9a4b00' }}>Estádio 100% completo</b> (setores + melhorias) · custa 2.000 💰</>}
+                ? <>Compre a <b>SAF de um clube da Série D</b> e vire dono: você adquire o direito a <b>50% dos lucros de campanha</b> dele (e assume metade do prejuízo na queda). O clube segue jogando por conta própria — sem leilão contra você. Empréstimos de jogadores entre os clubes: em breve.</>
+                : <>🔒 destrava com: <b style={{ color: '#9a4b00' }}>Estádio 100% completo</b> (setores + melhorias) · a SAF custa 2.000 💰</>}
             </p>
             {allDone && regras}
             {allDone && <div style={{ height: 7 }} />}
             {allDone && !buying && (
               <button onClick={() => canBuy && setBuying(true)} disabled={!canBuy}
                 style={{ width: '100%', border: 'none', borderRadius: 10, padding: '10px 0', fontWeight: 900, fontSize: 13.5, ...OSW, background: canBuy ? INK : '#d9cfb4', color: canBuy ? '#fff' : '#7d7358', cursor: canBuy ? 'pointer' : 'default' }}>
-                {canBuy ? '🏢 Comprar um clube · −2.000 💰' : `Junte 2.000 💰 (tem ${coins})`}
+                {canBuy ? '💼 Comprar a SAF de um clube · −2.000 💰' : `Junte 2.000 💰 (tem ${coins})`}
               </button>
             )}
             {allDone && buying && (
               <div>
-                <p style={{ fontSize: 11, fontWeight: 900, margin: '2px 0 6px', ...OSW }}>Escolha o clube (Série D):</p>
+                <p style={{ fontSize: 11, fontWeight: 900, margin: '2px 0 6px', ...OSW }}>Escolha o clube (Série D atual):</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                   {(filialOptions ?? []).map(t => (
-                    <button key={t} onClick={() => { if (window.confirm(`Comprar o ${t} por 2.000 💰? Ele vira SEU clube-filial pra sempre nesta carreira.`)) { onBuyFilial(t); setBuying(false) } }}
+                    <button key={t} onClick={() => { if (window.confirm(`Comprar a SAF do ${t} por 2.000 💰? Você vira dono dos direitos dele pra sempre nesta carreira.`)) { onBuyFilial(t); setBuying(false) } }}
                       style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 4px', fontWeight: 900, fontSize: 11, ...OSW, background: '#fff', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t}</button>
                   ))}
                 </div>
