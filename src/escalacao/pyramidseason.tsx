@@ -748,13 +748,21 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // ── RITUAIS DO JOGO: apito inicial e apito final (frases fixas de narração —
   // lances aleatórios no meio soavam robóticos e foram removidos). O texto fica
   // uns segundos REAIS na faixinha de baixo e some.
-  const [ritual, setRitual] = useState<'start' | 'end' | null>(null)
+  const [ritual, setRitual] = useState<'start' | 'half' | 'end' | null>(null)
   useEffect(() => {
     if (finished) { setRitual(null); return }
     setRitual('start')
     const t = setTimeout(() => setRitual(prev => prev === 'start' ? null : prev), 2800)
     return () => clearTimeout(t)
   }, [roundKey, finished])
+  // intervalo: na virada do relógio pro 2º tempo, o árbitro autoriza de novo
+  useEffect(() => {
+    if (finished || done || min !== 47) return
+    setRitual('half')
+    const t = setTimeout(() => setRitual(prev => prev === 'half' ? null : prev), 2800)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [min, finished, done])
   useEffect(() => {
     if (!done || finished) return
     setRitual('end')
@@ -763,7 +771,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done, finished])
   const endPhrase = ['📢 Apito final — termina o jogo!', '📢 Apitou o árbitro: acabou!', '📢 Fim de jogo — pode tirar o uniforme!'][Math.abs(roundKey) % 3]
-  const ritualTxt = ritual === 'start' ? '🟢 O árbitro autoriza — começa o jogo!' : ritual === 'end' ? endPhrase : null
+  const ritualTxt = ritual === 'start' ? '🟢 Aaaaaauutoriza o árbitro — começa o primeiro tempo!' : ritual === 'half' ? '🟢 Aaaaaauutoriza o árbitro — rola o segundo tempo!' : ritual === 'end' ? endPhrase : null
   const minLabel = min >= 93 ? 'FIM' : min > 90 ? `90+${min - 90}'` : `${min}'`
   const iAmHome = youIsHome
   const last = shown.length ? [...shown].sort((a, b) => a.min - b.min)[shown.length - 1] : null
