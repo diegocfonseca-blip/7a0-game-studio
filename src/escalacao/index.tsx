@@ -66,20 +66,24 @@ function MaintenanceBanner() {
 // some sozinho. Mostra UMA vez por aparelho (flag) pra não incomodar ninguém.
 // Pra soltar um aviso novo no futuro, é só trocar o ID.
 function AnnouncementToast() {
-  const ID = 'estadio-2026-07-v1'
+  const ID = 'obra-2026-07-22'
+  // só HOJE (22/07): depois da validade, ninguém mais vê
+  const EXPIRA = Date.parse('2026-07-23T03:00:00-03:00')
   const [show, setShow] = useState(false)
   useEffect(() => {
+    if (Date.now() > EXPIRA) return
     try { if (localStorage.getItem('esc-annc-' + ID)) return } catch { /* ignora */ }
     setShow(true)
     try { localStorage.setItem('esc-annc-' + ID, '1') } catch { /* ignora */ }
-    const t = setTimeout(() => setShow(false), 8000) // aviso de feature: um pouco mais de tempo
+    const t = setTimeout(() => setShow(false), 9000)
     return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   if (!show) return null
   return (
     <div style={{ position: 'fixed', top: 8, left: 8, right: 8, zIndex: 99998, margin: '0 auto', maxWidth: 440, background: '#16a34a', color: '#fff', border: '2px solid #14361f', borderRadius: 12, padding: '7px 28px 7px 11px', textAlign: 'center', fontWeight: 700, fontSize: 11, lineHeight: 1.3, boxShadow: '0 4px 12px rgba(0,0,0,.28)', animation: 'esc-annc-in .3s ease-out' }}>
       <style>{'@keyframes esc-annc-in{from{transform:translateY(-16px);opacity:0}to{transform:translateY(0);opacity:1}}'}</style>
-      🏟️ NOVIDADE no <b>Modo Carreira</b>: chegou o <b>ESTÁDIO</b>! Construa arquibancada por arquibancada, acenda os refletores e veja a bilheteria render toda temporada 💰 Procura a aba 🏟️ na tua carreira!
+      🚧 Novidade entrando <b>toda hora</b> e muita gente chegando! Viu um erro? Chama no <b>@leilaolegendscom</b> 📲 Ideias novas são sempre bem-vindas! 💛
       <button onClick={() => setShow(false)} aria-label="Fechar"
         style={{ position: 'absolute', top: 3, right: 5, background: 'transparent', border: 'none', color: '#fff', fontSize: 17, fontWeight: 900, lineHeight: 1, cursor: 'pointer', padding: '2px 5px' }}>×</button>
     </div>
