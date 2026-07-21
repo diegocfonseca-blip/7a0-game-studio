@@ -1030,6 +1030,17 @@ function CoinCounter({ value }: { value: number }) {
     </span>
   )
 }
+// SEM SPOILER nas moedas: mesma lógica do campinho (YourPitch) — o setor fecha
+// e desconta o dinheiro por dentro na hora, mas o saldo na tela só deve cair
+// no exato momento que o martelo bate na carta (revealIdx chega nela). Até lá,
+// soma de volta o que já foi pago pelas cartas AINDA escondidas na fila.
+function pendingSpend(state: EscState, you: Manager): number {
+  const revealing = state.screen === 'auction' && (state.phase === 'reveal' || state.phase === 'resq_reveal' || state.phase === 'tiebreak')
+  if (!revealing) return 0
+  const pendingIds = new Set((state.revealQueue ?? []).slice(state.phase === 'tiebreak' ? 0 : state.revealIdx + 1).map(it => it.card.id))
+  if (!pendingIds.size) return 0
+  return you.squad.reduce((sum, c) => pendingIds.has(c.id) ? sum + (c.paid ?? 0) : sum, 0)
+}
 function AuctionBar() {
   const { state } = useEsc()
   const you = state.managers[state.youIdx]
@@ -1043,7 +1054,7 @@ function AuctionBar() {
           </span>
         ))}
       </div>
-      <CoinCounter value={you.money} />
+      <CoinCounter value={you.money + pendingSpend(state, you)} />
     </div>
   )
 }
