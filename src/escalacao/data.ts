@@ -1452,7 +1452,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Serjão', team: 'Real Madruga' },
     { name: 'Painitto', team: 'Painitto FC' },
     { name: 'Robertão', team: 'Robertão United' },
-    { name: 'Sinhozinho', team: 'Astronáutico' },
+    { name: 'GuGu', team: 'White Thigs do GuGu' }, // ⚽ clube BATIZADO por apoiador (1º da história!)
     { name: 'Duda Fortuna', team: 'Fortuna SAF' },
     { name: 'Marcão Pelado', team: 'Pelado FR' },
     { name: 'Neguinho do Apito', team: 'FC Galáticos' },
