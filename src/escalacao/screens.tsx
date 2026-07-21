@@ -1916,11 +1916,38 @@ const TACTIC_LABEL: Record<Tactic, string> = { retranca: '🧱 Retranca', equili
 export const SEASON_TOTAL_MS = 180_000
 const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // ~4,7s por rodada
 
+// ── RITMO da simulação (só modos SOLO): auto (padrão) ou manual — no manual
+// a temporada PARA depois de cada rodada e você avança no botão. A escolha
+// fica salva no aparelho e pode trocar a qualquer momento.
+export function useSimMode(): [boolean, () => void] {
+  const [manual, setManual] = useState(() => { try { return localStorage.getItem('esc-sim-manual') === '1' } catch { return false } })
+  const toggle = () => setManual(m => { const v = !m; try { localStorage.setItem('esc-sim-manual', v ? '1' : '0') } catch { /* ignora */ } return v })
+  return [manual, toggle]
+}
+export function SimControls({ manual, onToggle, onNext, canNext, nextLabel = '▶️ Próxima rodada' }: { manual: boolean; onToggle: () => void; onNext: () => void; canNext: boolean; nextLabel?: string }) {
+  return (
+    <div style={{ display: 'flex', gap: 8, alignItems: 'stretch', marginBottom: 10 }}>
+      {manual && (
+        <button onClick={onNext} disabled={!canNext} style={{ flex: 1, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', background: canNext ? GREEN : '#cfc6ae', color: canNext ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 0 ${INK}`, cursor: canNext ? 'pointer' : 'default' }}>
+          {nextLabel}
+        </button>
+      )}
+      <button onClick={onToggle} style={{ flex: manual ? 'none' : 1, border: `2.5px solid ${INK}`, borderRadius: 12, padding: manual ? '8px 12px' : '9px 10px', fontWeight: 900, fontSize: manual ? 11 : 12, fontFamily: 'Oswald, sans-serif', background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
+        {manual ? '🔁 voltar pro AUTO' : '⏸️ MANUAL: pausar entre as rodadas'}
+      </button>
+    </div>
+  )
+}
+
 export function EscSeason() {
   const { state, dispatch } = useEsc()
   const you = state.managers[state.youIdx]
   const online = state.onlineMode === 'online'
   const canAdvance = !online || state.isHost
+  // ritmo manual: só nos modos solo (rápido offline, carreira, dinastia)
+  const [manualPref, toggleSim] = useSimMode()
+  const manual = manualPref && !online
+  const roundMs = manual ? ROUND_MS + 5000 : ROUND_MS
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
   const youPos = table.findIndex(t => t.id === you.id) + 1
@@ -1949,7 +1976,7 @@ export function EscSeason() {
   const [showPyramid, setShowPyramid] = useState(false)
   useEffect(() => {
     setResultRevealed(false)
-    const t = setTimeout(() => setResultRevealed(true), ROUND_MS * 0.85 + 250)
+    const t = setTimeout(() => setResultRevealed(true), roundMs * 0.85 + 250)
     return () => clearTimeout(t)
   }, [state.round])
 
@@ -1982,10 +2009,10 @@ export function EscSeason() {
   // online, o próprio cliente no CPU). Os demais só recebem o resultado
   // sincronizado e tocam a animação do próprio jogo localmente.
   useEffect(() => {
-    if (!canAdvance || state.round >= 38 || state.dinastiaPaused) return // Dinastia: para na janela do meio
-    const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), ROUND_MS)
+    if (!canAdvance || state.round >= 38 || state.dinastiaPaused || manual) return // Dinastia: para na janela do meio; manual: avança no botão
+    const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), roundMs)
     return () => clearTimeout(t)
-  }, [state.round, canAdvance, dispatch, state.dinastiaPaused])
+  }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs])
 
   return (
     <Shell bar={
@@ -2015,13 +2042,18 @@ export function EscSeason() {
         return <LiveScoreCard key={state.round}
           homeName={nameOf(myLast.homeId)} awayName={nameOf(myLast.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
-          youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={ROUND_MS} classico={oppIsHuman} />
+          youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={roundMs} classico={oppIsHuman} />
       })() : (
         <Box bg="#fff" className="p-6" shadow={6}>
           <p className="text-center font-black" style={OSWALD}>🏁 Aguardando o pontapé inicial…</p>
         </Box>
       )}
 
+      {!online && !state.dinastiaPaused && state.round < 38 && (
+        <SimControls manual={manual} onToggle={toggleSim} canNext
+          onNext={() => dispatch({ type: 'PLAY_ROUND' })}
+          nextLabel={state.round === 0 && !myLast ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
+      )}
       {lastWasClassico && lastRiv && resultRevealed && (
         <Box bg={myGoals > oppGoals ? GREEN : myGoals < oppGoals ? RED : '#fff'} className="p-3 text-center" shadow={4}>
           <p className="font-black text-sm" style={{ ...OSWALD, color: myGoals === oppGoals ? INK : '#fff' }}>
