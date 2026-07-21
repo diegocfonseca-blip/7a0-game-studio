@@ -495,7 +495,9 @@ function Dinastia() {
   // abrir o pregão = disparar o LEILÃO REAL (mesmo motor da carreira) e fechar o
   // overlay pra ele aparecer. A cerimônia devolve o controle pra economia.
   const startAuction = (b: { name: string; rivals: string[]; formation: FormationKey }) => {
-    dispatch({ type: 'START', teamName: b.name, formation: b.formation, rivals: b.rivals.length, career: true, rivalTeams: b.rivals, dinastia: true, budget: START_COINS })
+    // Dinastia tem fluxo de fim de temporada próprio (janela de transferências) —
+    // sem Copa dos 8 por aqui (copaMode default é 'liga_copa'; fixamos 'liga').
+    dispatch({ type: 'START', teamName: b.name, formation: b.formation, rivals: b.rivals.length, career: true, rivalTeams: b.rivals, dinastia: true, budget: START_COINS, copaMode: 'liga' })
     window.location.hash = ''
   }
   // jogar a TEMPORADA REAL contra os times da sua divisão no mundo fixo, no motor

@@ -1390,6 +1390,7 @@ type Action =
   | { type: 'PLAY_ROUND' }
   | { type: 'SIM_MANY'; count: number }
   | { type: 'PLAY_COPA_LEG' } // 🏆 Copa dos 8 (rápido): joga a perna atual de todas as ties da fase
+  | { type: 'START_COPA' } // 🏆 Copa dos 8: sai da tela de fim de liga e entra na Copa (botão ou tempo de leitura)
   | { type: 'FINISH_CEREMONY' }
   | { type: 'NEW_GAME' }
   | { type: 'NEW_SEASON' }
@@ -1650,6 +1651,7 @@ function redraftSeason(s: EscState): EscState {
   s.news = []; s.round = 0; s.champion = null
   s.league = []; s.fixtures = []; s.scorers = []; s.lastResults = []
   s.tactics = {}
+  s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — senão a próxima liga nunca semeia de novo
   s.submitted = []; s.pendingEnvelopes = {}
   s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
   s.seasonNo++
@@ -1873,6 +1875,7 @@ export function reducer(state: EscState, action: Action): EscState {
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — jogo novo não herda a Copa de uma sessão anterior
       s.tactics = {}; s.careerTactics = {}; s.careerLineup = {}; s.seasonVotes = {}
       const cc: Record<number, number> = {}
       for (const m of s.managers) if (m.isHuman) { cc[m.id] = 100; m.money = 100 }
@@ -1947,6 +1950,7 @@ export function reducer(state: EscState, action: Action): EscState {
       dealBotSquads(s.managers, onlinePlans, rng, onlineUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — jogo novo não herda a Copa de uma sessão anterior
       s.tactics = {}; s.careerTactics = {}
       // carreira: cada técnico COMEÇA com 100 moedas (uma vez). Depois só ganha por
       // desempenho (título por série, acesso) e perde na queda — sem base recorrente.
@@ -2281,14 +2285,21 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       if (s.round >= TOTAL_ROUNDS) {
         s.champion = sortedTable(s.league)[0].id
-        // 🏆 Copa dos 8: liga termina, mas só vai pro fim de verdade depois da
-        // Copa (se a sala escolheu 'liga_copa'). Idempotente — seed uma vez só.
+        // 🏆 Copa dos 8: sempre passa pela tela de fim de liga primeiro (carta do
+        // campeão, tabela) — mesmo quando tem Copa. A Copa só começa quando o
+        // jogador manda (botão) ou o tempo de leitura passa (START_COPA), pra
+        // não misturar "campeão da liga" com "início da Copa" na mesma tela.
         if (s.copaMode === 'liga_copa' && !s.quickCopa) {
           s.quickCopa = seedQuickCopa(s.league)
-        } else if (s.copaMode !== 'liga_copa') {
-          s.screen = 'end'
         }
+        s.screen = 'end'
       }
+      return s
+    }
+    case 'START_COPA': {
+      // sai do fim de liga e volta pra tela da temporada — que, com quickCopa
+      // já semeado e round=38, passa a tocar a Copa (ver EscSeason).
+      if (s.quickCopa && s.quickCopa.phase !== 'done') s.screen = 'season'
       return s
     }
     case 'PLAY_COPA_LEG': {
@@ -2799,6 +2810,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.news = []
       s.champion = null
       s.tactics = {}
+      s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — senão a próxima liga nunca semeia de novo
       s.seasonNo++
       s.restartPending = false
       s.restartReady = []
