@@ -114,17 +114,26 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
 
 // 🏢 GRUPO EMPRESARIAL — EM TESTE: só estas contas veem (depois abre pra todos)
 const FILIAL_TESTERS = ['diego.c.fonseca@gmail.com', 'lnantes49@gmail.com', 'ln6739633@gmail.com']
-export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions, filialInfo, onBuyFilial }: {
+const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
+export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions, filialInfo, onBuyFilial, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, onLoanFrom }: {
   st: StadiumSave | undefined
   coins: number
   onInvest: (sector: string) => void
   onBuild: (ext: string) => void
-  filial?: { team: string; since: number; earned?: number } | null
+  filial?: { team: string; since: number; earned?: number; loanOut?: { id: string; name: string; pos: string }; loanIn?: { id: string; name: string; pos: string } } | null
   filialOptions?: string[]
   filialInfo?: { div: string; pos: number } | null
   onBuyFilial?: (team: string) => void
+  mySquad?: { id: string; name: string; pos: string; emprestado?: string }[]
+  filialSquad?: { id: string; name: string; pos: string; emprestado?: string }[]
+  loanableOutIds?: Set<string>
+  loanableInIds?: Set<string>
+  onLoanTo?: (cardId: string) => void
+  onLoanFrom?: (cardId: string) => void
 }) {
   const [buying, setBuying] = useState(false)
+  const [pickOut, setPickOut] = useState(false)
+  const [pickIn, setPickIn] = useState(false)
   const lvl = stadiumLevel(st)
   const seats = stadiumSeats(st)
   const income = stadiumIncome(st)
@@ -207,18 +216,77 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
             <li>🙅 <b>Nada</b> dos lucros de compra/venda do clube no mercado — só campanha</li>
             <li>⚖️ O clube da SAF <b>nunca disputa seu leilão</b>: vida própria, sobe e desce por mérito</li>
             <li>📈 Ela sobe de série? Sua comissão cresce junto (prêmio de série alta paga mais)</li>
-            <li>📋 Empréstimo de jogador entre os clubes: <b>próxima atualização</b></li>
+            <li>📋 Empréstimo de jogador entre os clubes: escolha na hora, <b>sempre volta</b> na virada de temporada</li>
           </ul>
         )
-        if (filial) return (
+        if (filial) {
+          return (
           <div style={{ ...box('#FFF6DE'), borderRadius: 14, padding: '11px 12px', marginTop: 14 }}>
             <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>💼 SUA SAF</p>
             <p style={{ fontWeight: 900, fontSize: 13, margin: '5px 0 2px', ...OSW }}>⚽ {filial.team}{filialInfo ? <span style={{ fontWeight: 700, fontSize: 10.5, color: 'rgba(0,0,0,.55)' }}> · Série {filialInfo.div} · {filialInfo.pos}º</span> : null}</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0 }}>Dono da SAF desde a T{filial.since} · direito a 50% dos lucros de campanha (título/acesso rende; queda desconta)</p>
             <p style={{ fontSize: 11.5, fontWeight: 900, color: (filial.earned ?? 0) >= 0 ? GREEN : '#B23B2E', margin: '4px 0 0', ...OSW }}>💼 Comissões acumuladas: {(filial.earned ?? 0) >= 0 ? '+' : ''}{filial.earned ?? 0} 🪙</p>
+
+            {/* 🔄 JANELA DE EMPRÉSTIMO — propriedade nunca muda, sempre volta na virada */}
+            <div style={{ marginTop: 10, borderTop: '2px dashed rgba(0,0,0,.15)', paddingTop: 9 }}>
+              <p style={{ fontWeight: 900, fontSize: 12, margin: '0 0 6px', ...OSW }}>🔄 Janela de empréstimo</p>
+
+              {/* empresta PRA SAF */}
+              {filial.loanOut ? (
+                <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', marginBottom: 6, fontSize: 11, fontWeight: 800 }}>
+                  📤 <b>{filial.loanOut.name}</b> ({filial.loanOut.pos}) jogando na SAF · volta pra você na próxima temporada
+                </div>
+              ) : onLoanTo && (mySquad?.length ?? 0) > 0 ? (
+                <div style={{ marginBottom: 6 }}>
+                  <button onClick={() => setPickOut(o => !o)} style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 10px', fontWeight: 900, fontSize: 11, ...OSW, background: '#fff', width: '100%', textAlign: 'left', cursor: 'pointer' }}>
+                    📤 {pickOut ? '▾' : '▸'} Emprestar um jogador seu pra SAF
+                  </button>
+                  {pickOut && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 5, maxHeight: 160, overflowY: 'auto' }}>
+                      {(mySquad ?? []).filter(c => loanableOutIds?.has(c.id)).map(c => (
+                        <button key={c.id} onClick={() => { onLoanTo(c.id); setPickOut(false) }}
+                          style={{ display: 'flex', justifyContent: 'space-between', border: '1.5px solid rgba(0,0,0,.25)', borderRadius: 7, padding: '5px 8px', fontSize: 10.5, fontWeight: 700, background: '#fff', cursor: 'pointer' }}>
+                          <span>{c.name}</span><span style={{ opacity: .5 }}>{LOAN_POS[c.pos] ?? c.pos}</span>
+                        </button>
+                      ))}
+                      {(mySquad ?? []).filter(c => loanableOutIds?.has(c.id)).length === 0 && (
+                        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '2px 0' }}>Nenhum jogador sobra sem abrir buraco no seu titular agora.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : null}
+
+              {/* pega emprestado DA SAF */}
+              {filial.loanIn ? (
+                <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', fontSize: 11, fontWeight: 800 }}>
+                  📥 <b>{filial.loanIn.name}</b> ({filial.loanIn.pos}) jogando com você · volta pra SAF na próxima temporada
+                </div>
+              ) : onLoanFrom && (filialSquad?.length ?? 0) > 0 ? (
+                <div>
+                  <button onClick={() => setPickIn(o => !o)} style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 10px', fontWeight: 900, fontSize: 11, ...OSW, background: '#fff', width: '100%', textAlign: 'left', cursor: 'pointer' }}>
+                    📥 {pickIn ? '▾' : '▸'} Pegar um jogador emprestado da SAF
+                  </button>
+                  {pickIn && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 5, maxHeight: 160, overflowY: 'auto' }}>
+                      {(filialSquad ?? []).filter(c => loanableInIds?.has(c.id)).map(c => (
+                        <button key={c.id} onClick={() => { onLoanFrom(c.id); setPickIn(false) }}
+                          style={{ display: 'flex', justifyContent: 'space-between', border: '1.5px solid rgba(0,0,0,.25)', borderRadius: 7, padding: '5px 8px', fontSize: 10.5, fontWeight: 700, background: '#fff', cursor: 'pointer' }}>
+                          <span>{c.name}</span><span style={{ opacity: .5 }}>{LOAN_POS[c.pos] ?? c.pos}</span>
+                        </button>
+                      ))}
+                      {(filialSquad ?? []).filter(c => loanableInIds?.has(c.id)).length === 0 && (
+                        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '2px 0' }}>A SAF não tem ninguém sobrando pra emprestar agora.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </div>
             {regras}
           </div>
-        )
+          )
+        }
         return (
           <div style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '11px 12px', marginTop: 14, opacity: allDone ? 1 : .6, borderStyle: allDone ? 'solid' : 'dashed', boxShadow: allDone ? `4px 4px 0 0 ${INK}` : 'none' }}>
             <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>💼 COMPRAR UMA SAF <span style={{ fontSize: 9, background: INK, color: GOLD, borderRadius: 5, padding: '1px 6px', verticalAlign: 'middle' }}>TESTE</span></p>

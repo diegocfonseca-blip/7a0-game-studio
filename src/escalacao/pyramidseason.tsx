@@ -1745,7 +1745,21 @@ export function PyramidSeasonScreen() {
                 for (const d of DIVS) { const i = tables[d].findIndex(t => t.name === fn); if (i >= 0) return { div: d, pos: i + 1 } }
                 return null
               })()}
-              onBuyFilial={team => dispatch({ type: 'BUY_FILIAL', team })} />
+              onBuyFilial={team => dispatch({ type: 'BUY_FILIAL', team })}
+              mySquad={state.managers[state.youIdx]?.squad}
+              filialSquad={state.careerFilial ? (state.cpuSquads?.[state.careerFilial.team] as WonCard[] | undefined) : undefined}
+              loanableOutIds={(() => {
+                const sq = state.managers[state.youIdx]?.squad ?? []
+                const fm = FORMATIONS[state.managers[state.youIdx]?.formation ?? '4-3-3']
+                return new Set(sq.filter(c => !c.emprestado && sq.filter(x => x.pos === c.pos && !x.fake).length - 1 >= fm[c.pos]).map(c => c.id))
+              })()}
+              loanableInIds={(() => {
+                const safSq = (state.careerFilial ? (state.cpuSquads?.[state.careerFilial.team] as WonCard[] | undefined) : undefined) ?? []
+                const fm = FORMATIONS['4-3-3']
+                return new Set(safSq.filter(c => !c.emprestado && safSq.filter(x => x.pos === c.pos && !x.fake).length - 1 >= fm[c.pos]).map(c => c.id))
+              })()}
+              onLoanTo={cardId => dispatch({ type: 'LOAN_TO_FILIAL', cardId })}
+              onLoanFrom={cardId => dispatch({ type: 'LOAN_FROM_FILIAL', cardId })} />
             <GoldTeaser label="Ver o estádio DOURADO completo (prévia)">
               <div style={{ ...box('#FBF6E9'), padding: 12, position: 'relative' }}>
                 <StadiumSvg st={{ inv: { geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'grama', 'cober'] }} perkOverride={APOIO_PERKS.ouro} />
@@ -1968,7 +1982,7 @@ export function ReserveListScreen() {
   const myXIids = useMemo(() => new Set(myXI.map(c => c.id)), [myXI])
   const marketUnlocked = state.seasonNo >= 3 // vender/negociar só libera na 3ª temporada
   const canList = (c: WonCard) => {
-    if (!marketUnlocked) return false
+    if (!marketUnlocked || c.emprestado) return false // 🏢 jogador de empréstimo nunca é vendido — não é seu
     const listedInPos = [...listed].filter(id => mgr.squad.find(x => x.id === id)?.pos === c.pos).length
     const filledPos = mgr.squad.filter(x => x.pos === c.pos).length
     return filledPos - listedInPos - 1 >= need[c.pos]

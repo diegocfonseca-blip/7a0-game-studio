@@ -735,6 +735,31 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
   s.careerFilial = { ...f, earned: (f.earned ?? 0) + cut }
 }
 
+// devolve os DOIS empréstimos ativos (se houver) na virada de temporada — a
+// janela reabre do zero pra próxima: renovar o mesmo, escolher outro ou nenhum.
+function revertFilialLoans(s: EscState) {
+  const f = s.careerFilial
+  if (!f || (!f.loanOut && !f.loanIn)) return
+  const you = s.managers.find(m => m.isHuman)
+  if (!you) return
+  const cpuSq = { ...(s.cpuSquads ?? {}) }
+  const safSquad = [...(cpuSq[f.team] ?? [])]
+  if (f.loanOut) {
+    // estava jogando na SAF: tira de lá (por id) e devolve pro seu elenco
+    const i = safSquad.findIndex(c => c.id === f.loanOut!.id)
+    if (i >= 0) safSquad.splice(i, 1)
+    you.squad = [...you.squad, { ...f.loanOut, emprestado: undefined } as WonCard]
+  }
+  if (f.loanIn) {
+    // estava jogando com você: tira do seu elenco e devolve pra SAF
+    you.squad = you.squad.filter(c => c.id !== f.loanIn!.id)
+    safSquad.push({ ...f.loanIn, emprestado: undefined } as WonCard)
+  }
+  cpuSq[f.team] = safSquad
+  s.cpuSquads = cpuSq
+  s.careerFilial = { ...f, loanOut: undefined, loanIn: undefined }
+}
+
 function migrateTeamNames(st: EscState): EscState {
   const mapKeys = <V,>(rec: Record<string, V> | null | undefined): typeof rec => {
     if (!rec) return rec
@@ -1331,6 +1356,8 @@ type Action =
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string }
   | { type: 'MONTE_TIMEOUT' }
   | { type: 'BUY_FILIAL'; team: string } // 🏢 compra o clube-filial (carreira offline, teste)
+  | { type: 'LOAN_TO_FILIAL'; cardId: string } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda, volta na virada)
+  | { type: 'LOAN_FROM_FILIAL'; cardId: string } // 🏢 pega um jogador emprestado DA SAF (idem)
   | { type: 'MONTE_PASS'; mgrId: number } // carreira: recusa as sobras e passa a vez (o time já tem os 11)
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[] } // carreira online: define os 11 titulares (escalação), vale do PRÓXIMO jogo
@@ -2001,6 +2028,47 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerFilial = { team: action.team, since: s.seasonNo, earned: 0 }
       return s
     }
+    case 'LOAN_TO_FILIAL': {
+      // empresta um jogador SEU pra SAF: some do seu time, joga lá — mas
+      // continua SEU (não é venda). Só 1 empréstimo de saída por vez.
+      if (!s.careerOnline || s.onlineMode === 'online' || !s.careerFilial || s.careerFilial.loanOut) return s
+      const you = s.managers[s.youIdx]
+      if (!you?.isHuman) return s
+      const card = you.squad.find(c => c.id === action.cardId)
+      if (!card || card.emprestado) return s
+      // não pode abrir buraco no SEU titular emprestando
+      const need = FORMATIONS[you.formation]
+      const filled = you.squad.filter(c => c.pos === card.pos && !c.fake).length
+      if (filled - 1 < need[card.pos]) return s
+      you.squad = you.squad.filter(c => c.id !== action.cardId)
+      const loaned = { ...card, emprestado: 'dono' } as WonCard
+      const cpuSq = { ...(s.cpuSquads ?? {}) }
+      cpuSq[s.careerFilial.team] = [...(cpuSq[s.careerFilial.team] ?? []), loaned]
+      s.cpuSquads = cpuSq
+      s.careerFilial = { ...s.careerFilial, loanOut: loaned }
+      return s
+    }
+    case 'LOAN_FROM_FILIAL': {
+      // pega um jogador emprestado DA SAF: joga com você, mas continua sendo
+      // dela — volta sozinho na virada. Só 1 empréstimo de entrada por vez.
+      if (!s.careerOnline || s.onlineMode === 'online' || !s.careerFilial || s.careerFilial.loanIn) return s
+      const you = s.managers[s.youIdx]
+      if (!you?.isHuman) return s
+      const safSquad = (s.cpuSquads?.[s.careerFilial.team] ?? []) as WonCard[]
+      const card = safSquad.find(c => c.id === action.cardId)
+      if (!card || card.emprestado) return s
+      // não pode desfalcar a SAF abaixo do time titular dela (elenco de fundo é 4-3-3)
+      const need = FORMATIONS['4-3-3']
+      const filled = safSquad.filter(c => c.pos === card.pos && !c.fake).length
+      if (filled - 1 < need[card.pos]) return s
+      const cpuSq = { ...(s.cpuSquads ?? {}) }
+      cpuSq[s.careerFilial.team] = safSquad.filter(c => c.id !== action.cardId)
+      s.cpuSquads = cpuSq
+      const loaned = { ...card, emprestado: 'saf' } as WonCard
+      you.squad = [...you.squad, loaned]
+      s.careerFilial = { ...s.careerFilial, loanIn: loaned }
+      return s
+    }
     case 'MONTE_PASS': {
       // CARREIRA: ninguém é obrigado a levar sobra (muito menos a PAGAR piso) —
       // o time já tem os 11. Fora da carreira não existe passar: o Monte fecha o XI.
@@ -2229,6 +2297,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
+      revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada (pro ranking)
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
       s.careerPlacements = action.placements
@@ -2251,6 +2320,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
+      revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso no livro (o novo leilão já sai com o valor atualizado)
@@ -2284,6 +2354,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
+      revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
       s.careerHonors = applyHonors(s.careerHonors, action.champions)
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid) antes da venda/leilão de reservas
@@ -2414,7 +2485,8 @@ export function reducer(state: EscState, action: Action): EscState {
           // junta TODOS os famosos da posição (bots da liga + 60 de fundo) e pega UM ao acaso
           const cands: { card: Card; ownerBot?: Manager; ownerName?: string }[] = []
           for (const bot of s.managers.filter(isMktBot)) for (const c of bot.squad) if (c.pos === pos && !c.fake && c.fame >= 4) cands.push({ card: c, ownerBot: bot })
-          for (const name in cpuSq) for (const c of cpuSq[name]) if (c.pos === pos && !c.fake && c.fame >= 4) cands.push({ card: c, ownerName: name })
+          // 🏢 jogador de EMPRÉSTIMO na SAF nunca entra no sorteio — não é dela, é do dono
+          for (const name in cpuSq) for (const c of cpuSq[name]) if (c.pos === pos && !c.fake && c.fame >= 4 && !(c as WonCard).emprestado) cands.push({ card: c, ownerName: name })
           if (cands.length) {
             const pick = cands[Math.floor(rng() * cands.length)]
             const owner = pick.ownerBot ?? materialize(pick.ownerName!)
