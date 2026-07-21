@@ -1599,7 +1599,7 @@ export function PyramidSeasonScreen() {
   // dá pra pausar entre rodadas (manual) e o jogo roda +5s mais calmo.
   const [manualPref, toggleSim] = useSimMode()
   const manual = manualPref && state.onlineMode !== 'online'
-  const roundMs = manual ? ROUND_MS + 5000 : ROUND_MS
+  const roundMs = manual ? ROUND_MS + 10000 : ROUND_MS
   useEffect(() => {
     if (!state.isHost || done || manual) return
     const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), roundMs)
