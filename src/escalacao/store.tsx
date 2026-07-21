@@ -735,43 +735,6 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
   s.careerFilial = { ...f, earned: (f.earned ?? 0) + cut }
 }
 
-// CURA de elenco: se um HUMANO da carreira ficou com buraco no time titular
-// (ex.: listou jogador, ninguém comprou e a carta se perdeu no Monte), entra
-// um prata-da-casa (incógnito fraco, de graça) pra cada vaga — nunca joga com 10.
-function healXIHoles(st: EscState): EscState {
-  if (!st.careerOnline || !Array.isArray(st.managers)) return st
-  const rng = mulberry(((st.seed ?? 1) ^ 0x4EA1) >>> 0)
-  // jogadores JÁ existentes no mundo deste save (elencos + fichas de fundo):
-  // a contratação de emergência tem que ser um REAL que esteja livre — a regra
-  // do jogador único vale até na ambulância.
-  const usados = new Set<string>()
-  for (const mm of st.managers) for (const c of mm.squad) usados.add(ident(c))
-  const cpuSq = st.cpuSquads ?? {}
-  for (const k in cpuSq) for (const c of cpuSq[k]) usados.add(ident(c))
-  for (const m of st.managers) {
-    if (!m.isHuman) continue
-    const need = FORMATIONS[m.formation]
-    for (const pos of SECTORS) {
-      let falta = need[pos] - m.squad.filter(c => c.pos === pos && !c.fake).length
-      let i = 0
-      while (falta-- > 0) {
-        // mercado livre: o "foi profissional" mais fraco que estiver disponível
-        const pool = ACTIVE_CATALOG[pos].filter(c => c.fame === 1 && !usados.has(ident(c)))
-          .sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi))
-        const pick = pool[0]
-        if (pick) {
-          usados.add(ident(pick))
-          m.squad = [...m.squad, { ...pick, id: `heal-${pos}-${st.seasonNo}-${i++}`, pos, paid: 0, via: 'monte' } as WonCard]
-        } else {
-          const c = makeIncognita(pos, 90 + i++, false, rng, `heal${st.seasonNo}`)
-          m.squad = [...m.squad, { ...c, paid: 0, via: 'monte' } as WonCard]
-        }
-      }
-    }
-  }
-  return st
-}
-
 function migrateTeamNames(st: EscState): EscState {
   const mapKeys = <V,>(rec: Record<string, V> | null | undefined): typeof rec => {
     if (!rec) return rec
@@ -1677,7 +1640,7 @@ export function reducer(state: EscState, action: Action): EscState {
     // reconexão/host-caiu: adota o estado salvo no banco em vez de recomeçar
     // do zero. A identidade ("quem sou eu", host?) é sempre local a este
     // cliente; efêmeros host-only voltam limpos (já vêm sanitizados).
-    return healXIHoles(migrateTeamNames({
+    return migrateTeamNames({
       ...action.state,
       rivalries: action.state.rivalries ?? {}, // saves antigos sem o campo
       cpuAtkAdj: action.state.cpuAtkAdj ?? 0,
@@ -1691,7 +1654,7 @@ export function reducer(state: EscState, action: Action): EscState {
       pendingEnvelopes: {},
       tiebreakPending: {},
       presence: [],
-    }))
+    })
   }
   if (action.type === 'NEW_GAME') return { ...INITIAL }
   const s: EscState = JSON.parse(JSON.stringify(state))
@@ -1862,7 +1825,7 @@ export function reducer(state: EscState, action: Action): EscState {
       setActiveCatalog(action.saved.deckLeague)
       // nunca retoma numa tela lateral (álbum/ranking) — cai sempre no jogo.
       const scr = (action.saved.screen === 'album' || action.saved.screen === 'ranking') ? 'season' : action.saved.screen
-      return healXIHoles(migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true }))
+      return migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true })
     }
     case 'START_ONLINE': {
       s.simV = 2 // fórmula nova só vale a partir desta temporada
@@ -2037,7 +2000,13 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.monteOrder[s.monteIdx] !== action.mgrId) return s
       const m = s.managers.find(x => x.id === action.mgrId)
       if (!m || !m.isHuman) return s
-      if (xiHoles(m) > 0) return s // buraco no TITULAR: não pode passar — pega alguém
+      if (xiHoles(m) > 0) {
+        // buraco no TITULAR: só deixa passar se NÃO houver nenhuma carta que ele
+        // consiga pegar (todas pagas e sem caixa) — aí o buraco espera o próximo
+        // leilão (a demanda conta o buraco e traz cartas da posição), sem travar.
+        const alcancavel = s.monte.some(c => montePickable(s, m, c))
+        if (alcancavel) return s
+      }
       const rng = rngOf(s)
       s.monteIdx++
       advanceMonte(s, rng)
@@ -2131,7 +2100,6 @@ export function reducer(state: EscState, action: Action): EscState {
         s.reserveAuction = false
       }
       s.screen = 'season'
-      healXIHoles(s) // rede final: humano NUNCA começa temporada com buraco no XI (silencioso)
       return s
     }
     case 'SET_TACTIC': {
@@ -2261,7 +2229,6 @@ export function reducer(state: EscState, action: Action): EscState {
       s.round = 0
       s.champion = null
       s.careerTactics = {} // nova temporada: táticas por jogo zeram
-      healXIHoles(s) // rede final: ninguém vira a temporada com buraco no XI (silencioso)
       return s
     }
     case 'REAUCTION_ONLINE': {
