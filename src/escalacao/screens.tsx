@@ -2129,6 +2129,19 @@ export function EscSeason() {
     const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), COPA_LEG_MS)
     return () => clearTimeout(t)
   }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending])
+  // relógio compartilhado dos placares dos jogos da fase (lista de baixo): sobe
+  // 0→93 no mesmo tempo do card grande (COPA_LEG_MS) e reinicia a cada nova perna
+  // — assim TODOS os jogos progridem juntos, minuto a minuto, em vez de já mostrar
+  // o resultado pronto. Reinicia por copaTieKey (muda quando entra uma perna nova).
+  const [copaMin, setCopaMin] = useState(93)
+  useEffect(() => {
+    if (!copaLive || firstLegPending) { setCopaMin(93); return }
+    setCopaMin(0)
+    const step = Math.max(30, (COPA_LEG_MS * 0.82) / 93)
+    let cur = 0
+    const iv = setInterval(() => { cur++; setCopaMin(cur); if (cur >= 93) clearInterval(iv) }, step)
+    return () => clearInterval(iv)
+  }, [copaTieKey, copaLive, firstLegPending])
 
   return (
     <Shell bar={
@@ -2150,29 +2163,56 @@ export function EscSeason() {
         const phaseLabel = qc.phase === 'quartas' ? 'Quartas de Final' : qc.phase === 'semis' ? 'Semifinal' : 'Final'
         const legLabel = qc.phase === 'final' ? 'Jogo único' : qc.legIdx === 0 ? 'Jogo de ida' : 'Jogo de volta'
         const myTie = qc.ties.find(t => t.aId === you.id || t.bId === you.id)
-        const otherTies = qc.ties.filter(t => t !== myTie)
         const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
         const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
         const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/); return mm ? mm[1] : text.replace(/^⚽\s*/, '').replace(/\.$/, '') }
+        // minutos "sintéticos" pros gols dos jogos de CPU (que não guardam highlights):
+        // espalha `count` gols entre 6' e 88', determinístico (mesma semente = mesma
+        // ordem) — só pro placar subir bonitinho, sem inventar resultado.
+        const synthMins = (count: number, seed: number): number[] => {
+          const mins: number[] = []
+          for (let i = 0; i < count; i++) mins.push(6 + ((Math.abs(seed) * 17 + i * 53 + 29) % 82))
+          return mins.sort((a, b) => a - b)
+        }
         const tieRow = (tie: QuickCopaTie) => {
-          const decided = tie.winner != null
-          const aWin = tie.winner === tie.aId
-          const aggA = tie.legs.reduce((s2, l) => s2 + l[0], 0)
-          const aggB = tie.legs.reduce((s2, l) => s2 + l[1], 0)
           const mine = tie.aId === you.id || tie.bId === you.id
+          const nLegs = tie.legs.length
+          const fullAggA = tie.legs.reduce((s2, l) => s2 + l[0], 0)
+          const fullAggB = tie.legs.reduce((s2, l) => s2 + l[1], 0)
+          const clockDone = copaMin >= 93
+          // placar AO VIVO: pernas já fechadas + a perna atual progredindo no relógio.
+          let showA = fullAggA, showB = fullAggB
+          if (!clockDone && nLegs > 0) {
+            const doneA = tie.legs.slice(0, nLegs - 1).reduce((s2, l) => s2 + l[0], 0)
+            const doneB = tie.legs.slice(0, nLegs - 1).reduce((s2, l) => s2 + l[1], 0)
+            const [curA, curB] = tie.legs[nLegs - 1]
+            // meu jogo tem highlights reais (fica igual ao card grande); CPU usa sintético
+            const useHl = (tie.lastHighlights?.length ?? 0) > 0
+            const minsA = useHl ? tie.lastHighlights!.filter(h => h.teamId === tie.aId).map(h => h.min).sort((a, b) => a - b) : synthMins(curA, tie.aId * 31 + tie.bId + nLegs)
+            const minsB = useHl ? tie.lastHighlights!.filter(h => h.teamId === tie.bId).map(h => h.min).sort((a, b) => a - b) : synthMins(curB, tie.aId * 31 + tie.bId + nLegs + 7)
+            showA = doneA + minsA.filter(m => m <= copaMin).length
+            showB = doneB + minsB.filter(m => m <= copaMin).length
+          }
+          const settled = clockDone && tie.winner != null // só risca/mostra pênaltis depois que o relógio fecha
+          const aWin = tie.winner === tie.aId
+          const minLabel = copaMin >= 93 ? '' : copaMin > 90 ? `90+${copaMin - 90}'` : `${copaMin}'`
+          const live = !clockDone && nLegs > 0
           return (
             <Box key={`${tie.aId}-${tie.bId}`} bg={mine ? '#FFF6D6' : '#fff'} className="p-3" shadow={4}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
-                <span className="font-black text-sm truncate" style={{ ...OSWALD, color: decided && !aWin ? 'rgba(0,0,0,.4)' : INK, textDecoration: decided && !aWin ? 'line-through' : 'none' }}>{tie.aName}{tie.aId === you.id ? ' (você)' : ''}</span>
-                <span className="font-black text-sm px-2 py-0.5 rounded" style={{ ...OSWALD, background: INK, color: '#fff' }}>{aggA} × {aggB}</span>
-                <span className="font-black text-sm truncate text-right" style={{ ...OSWALD, color: decided && aWin ? 'rgba(0,0,0,.4)' : INK, textDecoration: decided && aWin ? 'line-through' : 'none' }}>{tie.bName}{tie.bId === you.id ? ' (você)' : ''}</span>
+                <span className="font-black text-sm truncate" style={{ ...OSWALD, color: settled && !aWin ? 'rgba(0,0,0,.4)' : INK, textDecoration: settled && !aWin ? 'line-through' : 'none' }}>{tie.aName}{tie.aId === you.id ? ' (você)' : ''}</span>
+                <span className="font-black text-sm px-2 py-0.5 rounded inline-flex items-center gap-1.5" style={{ ...OSWALD, background: INK, color: '#fff' }}>
+                  {live && <span className="text-[9px] font-black" style={{ color: '#F87168' }}>●{minLabel}</span>}
+                  {showA} × {showB}
+                </span>
+                <span className="font-black text-sm truncate text-right" style={{ ...OSWALD, color: settled && aWin ? 'rgba(0,0,0,.4)' : INK, textDecoration: settled && aWin ? 'line-through' : 'none' }}>{tie.bName}{tie.bId === you.id ? ' (você)' : ''}</span>
               </div>
-              {tie.legs.length > 0 && (
+              {settled && nLegs > 0 && (
                 <p className="text-[10px] font-bold text-black/45 text-center mt-1">
-                  {tie.legs.length === 1 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]}` : `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}`}
+                  {nLegs === 1 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]}` : `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}`}
                 </p>
               )}
-              {tie.pens && <PensShootout pens={tie.pens} aName={tie.aName} bName={tie.bName} />}
+              {settled && tie.pens && <PensShootout pens={tie.pens} aName={tie.aName} bName={tie.bName} />}
             </Box>
           )
         }
@@ -2220,10 +2260,10 @@ export function EscSeason() {
                 <p className="text-center font-black text-sm" style={OSWALD}>Acompanhe a Copa dos 8 chegando ao fim…</p>
               </Box>
             )}
-            {otherTies.length > 0 && (
+            {qc.ties.length > 0 && (
               <div>
-                <p className="text-xs font-black uppercase text-black/50 mt-1 mb-1">Outros jogos da fase</p>
-                <div className="space-y-2">{otherTies.map(t => tieRow(t))}</div>
+                <p className="text-xs font-black uppercase text-black/50 mt-1 mb-1">Todos os jogos da fase</p>
+                <div className="space-y-2">{qc.ties.map(t => tieRow(t))}</div>
               </div>
             )}
           </>
