@@ -123,6 +123,15 @@ const OLD_NAME: Record<string, string> = {
   'Pardemeias': 'Tico do Bar FR', 'Livre-pool': 'Xandão EC',
   'White Thigs do GuGu': 'Astronáutico',
 }
+// corrente completa de nomes antigos de um time (renomeado mais de uma vez):
+// 'White Thigs do GuGu' → ['Astronáutico', 'Sinhô Futebol'] — saves de QUALQUER
+// geração acham o histórico (divisão, elenco, caixa, títulos).
+const oldChain = (name: string): string[] => {
+  const out: string[] = []
+  let n: string | undefined = OLD_NAME[name]
+  while (n && !out.includes(n)) { out.push(n); n = OLD_NAME[n] }
+  return out
+}
 // chave estável de um time: técnico = m<id>; CPU = nome
 export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? `m${t.teamId}` : t.name
 
@@ -142,9 +151,9 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
   // Times RENOMEADOS: se o save antigo guardou colocação/ficha no nome VELHO,
   // lê por ele — o time mantém a divisão que conquistou e o elenco que tinha.
   for (const [name, base] of cpu) {
-    const old = OLD_NAME[name]
-    const plKey = placements?.[name] != null ? name : (old && placements?.[old] != null ? old : name)
-    const squad = cpuSquads?.[name] ?? (old ? cpuSquads?.[old] : undefined) ?? base
+    const olds = oldChain(name)
+    const plKey = placements?.[name] != null ? name : (olds.find(o => placements?.[o] != null) ?? name)
+    const squad = cpuSquads?.[name] ?? olds.map(o => cpuSquads?.[o]).find(Boolean) ?? base
     world[divOf(plKey, cpuOrigDiv(name))].push(mk(name, squad as PoolCard[], false, false, -1))
   }
   // REDE DE SEGURANÇA: cada série precisa de EXATAMENTE 20 times. Save fora do
@@ -1134,10 +1143,10 @@ const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0 }
 function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number }) {
   const rows = DIVS.flatMap(d => tables[d]).map(t => {
     const key = teamKey(t)
-    const oldKey = OLD_NAME[key] // save antigo pode ter caixa/títulos no nome VELHO do time renomeado
-    // humano tem caixa em careerCoins (por id); todo bot tem em clubCash (teamKey).
-    const money = t.human ? (coins[t.teamId] ?? 0) : Math.round(clubCash[key] ?? (oldKey ? clubCash[oldKey] : undefined) ?? 0)
-    return { t, key, h: honors[key] ?? (oldKey ? honors[oldKey] : undefined) ?? EMPTY_HONORS, copas: copaHonors[key] ?? (oldKey ? copaHonors[oldKey] : undefined) ?? 0, money }
+    const olds = oldChain(key) // save antigo pode ter caixa/títulos em QUALQUER nome velho da corrente
+    const pick = <V,>(rec: Record<string, V>): V | undefined => rec[key] ?? olds.map(o => rec[o]).find(v => v !== undefined)
+    const money = t.human ? (coins[t.teamId] ?? 0) : Math.round(pick(clubCash) ?? 0)
+    return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, money }
   })
   rows.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
   const top = rows.slice(0, 20)
