@@ -741,6 +741,13 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
 function healXIHoles(st: EscState): EscState {
   if (!st.careerOnline || !Array.isArray(st.managers)) return st
   const rng = mulberry(((st.seed ?? 1) ^ 0x4EA1) >>> 0)
+  // jogadores JÁ existentes no mundo deste save (elencos + fichas de fundo):
+  // a contratação de emergência tem que ser um REAL que esteja livre — a regra
+  // do jogador único vale até na ambulância.
+  const usados = new Set<string>()
+  for (const mm of st.managers) for (const c of mm.squad) usados.add(ident(c))
+  const cpuSq = st.cpuSquads ?? {}
+  for (const k in cpuSq) for (const c of cpuSq[k]) usados.add(ident(c))
   for (const m of st.managers) {
     if (!m.isHuman) continue
     const need = FORMATIONS[m.formation]
@@ -748,8 +755,17 @@ function healXIHoles(st: EscState): EscState {
       let falta = need[pos] - m.squad.filter(c => c.pos === pos && !c.fake).length
       let i = 0
       while (falta-- > 0) {
-        const c = makeIncognita(pos, 90 + i++, false, rng, `heal${st.seasonNo}`)
-        m.squad = [...m.squad, { ...c, paid: 0, via: 'monte' } as WonCard]
+        // mercado livre: o "foi profissional" mais fraco que estiver disponível
+        const pool = ACTIVE_CATALOG[pos].filter(c => c.fame === 1 && !usados.has(ident(c)))
+          .sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi))
+        const pick = pool[0]
+        if (pick) {
+          usados.add(ident(pick))
+          m.squad = [...m.squad, { ...pick, id: `heal-${pos}-${st.seasonNo}-${i++}`, pos, paid: 0, via: 'monte' } as WonCard]
+        } else {
+          const c = makeIncognita(pos, 90 + i++, false, rng, `heal${st.seasonNo}`)
+          m.squad = [...m.squad, { ...c, paid: 0, via: 'monte' } as WonCard]
+        }
       }
     }
   }
