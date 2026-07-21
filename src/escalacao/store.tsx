@@ -54,7 +54,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads?: E
   return out
 }
 import type { CareerTeam } from './data'
-import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium } from './estadiodata'
+import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium, sectorPct, hasExtra } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { logPlay, logVisit, heartbeat } from './analytics'
 
@@ -710,6 +710,25 @@ function otherDivRivalDefs(rivals: CareerRival[], div: Division): CareerTeam[] {
 // um time renomeado (ex.: Sinhô Futebol → White Thigs do GuGu) ficava com o
 // nome da época pra sempre. Aqui, ao restaurar, todo nome velho vira o atual
 // carregando junto colocação, elenco, caixa e títulos. Nome de HUMANO não muda.
+
+// ── 🏢 GRUPO EMPRESARIAL (teste): comissão do DONO sobre a campanha da filial —
+// 30% dos prêmios de título/acesso (e 30% do prejuízo na queda). NÃO inclui
+// lucros de compra/venda do bot no mercado — só campanha. O acumulado fica em
+// careerFilial.earned pro painel.
+function applyFilialCommission(s: EscState, clubRewards: Record<string, number>) {
+  const f = s.careerFilial
+  if (!f) return
+  const mgr = s.managers.find(m => !m.isHuman && m.teamName === f.team)
+  const key = mgr ? `m${mgr.id}` : f.team
+  const delta = clubRewards[key] ?? 0
+  const cut = Math.round(delta * 0.3)
+  if (!cut) return
+  const you = s.managers.find(m => m.isHuman)
+  if (!you) return
+  s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: Math.max(0, (s.careerCoins?.[you.id] ?? 0) + cut) }
+  s.careerFilial = { ...f, earned: (f.earned ?? 0) + cut }
+}
+
 function migrateTeamNames(st: EscState): EscState {
   const mapKeys = <V,>(rec: Record<string, V> | null | undefined): typeof rec => {
     if (!rec) return rec
@@ -1305,6 +1324,7 @@ type Action =
   | { type: 'FORCE_TIEBREAK' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string }
   | { type: 'MONTE_TIMEOUT' }
+  | { type: 'BUY_FILIAL'; team: string } // 🏢 compra o clube-filial (carreira offline, teste)
   | { type: 'MONTE_PASS'; mgrId: number } // carreira: recusa as sobras e passa a vez (o time já tem os 11)
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[] } // carreira online: define os 11 titulares (escalação), vale do PRÓXIMO jogo
@@ -1951,6 +1971,22 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       return s
     }
+    case 'BUY_FILIAL': {
+      // 🏢 compra do clube-filial: só carreira OFFLINE, estádio 100% completo,
+      // 2.000 de caixa, um por carreira, nunca um rival (nem o próprio time).
+      if (!s.careerOnline || s.onlineMode === 'online' || s.careerFilial) return s
+      const you = s.managers[s.youIdx]
+      if (!you?.isHuman) return s
+      const coins = s.careerCoins?.[you.id] ?? 0
+      if (coins < 2000) return s
+      const st = s.stadiums?.[you.id]
+      const ready = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && STADIUM_EXTRAS.every(e => hasExtra(st, e.k))
+      if (!ready) return s
+      if (s.careerRivals.some(r => r.team === action.team) || you.teamName === action.team) return s
+      s.careerCoins = { ...s.careerCoins, [you.id]: coins - 2000 }
+      s.careerFilial = { team: action.team, since: s.seasonNo, earned: 0 }
+      return s
+    }
     case 'MONTE_PASS': {
       // CARREIRA: ninguém é obrigado a levar sobra (muito menos a PAGAR piso) —
       // o time já tem os 11. Fora da carreira não existe passar: o Monte fecha o XI.
@@ -2171,6 +2207,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada (base+título/acesso/queda)
       s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
+      applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 30% da campanha da filial pro dono (teste)
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada (pro ranking)
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
       s.careerPlacements = action.placements
@@ -2192,6 +2229,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada
       s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
+      applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 30% da campanha da filial pro dono (teste)
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso no livro (o novo leilão já sai com o valor atualizado)
@@ -2224,6 +2262,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerCoins = applyRewards(s.careerCoins, action.rewards)
       s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
+      applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 30% da campanha da filial pro dono (teste)
       s.careerHonors = applyHonors(s.careerHonors, action.champions)
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid) antes da venda/leilão de reservas

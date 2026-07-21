@@ -1763,7 +1763,16 @@ export function PyramidSeasonScreen() {
           <>
             <StadiumTab st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
-              onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })} />
+              onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
+              filial={state.careerFilial}
+              filialOptions={DIVISION_TEAMS.D.map(t => t.team).filter(t => t !== state.managers[state.youIdx]?.teamName && !state.careerRivals.some(r => r.team === t))}
+              filialInfo={(() => {
+                const fn = state.careerFilial?.team
+                if (!fn) return null
+                for (const d of DIVS) { const i = tables[d].findIndex(t => t.name === fn); if (i >= 0) return { div: d, pos: i + 1 } }
+                return null
+              })()}
+              onBuyFilial={team => dispatch({ type: 'BUY_FILIAL', team })} />
             <GoldTeaser label="Ver o estádio DOURADO completo (prévia)">
               <div style={{ ...box('#FBF6E9'), padding: 12, position: 'relative' }}>
                 <StadiumSvg st={{ inv: { geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'grama', 'cober'] }} perkOverride={APOIO_PERKS.ouro} />

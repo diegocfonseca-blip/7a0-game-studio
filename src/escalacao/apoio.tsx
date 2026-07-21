@@ -58,6 +58,9 @@ function fixOldEmojiName(u: { email?: string; user_metadata?: Record<string, unk
   supabase.auth.updateUser({ data: { display_name: clean } }).then(() => {}, () => {})
 }
 
+// e-mail da conta logada (pra gates de teste de features) — null se deslogado
+export function loggedEmail(): string | null { return myEmail }
+
 export function myApoioPerk(): ApoioPerk | null {
   if (!myEmail) return null
   const tier = FOUNDERS[myEmail]
