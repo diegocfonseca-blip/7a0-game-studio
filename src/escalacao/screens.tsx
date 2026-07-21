@@ -1238,8 +1238,24 @@ function Envelope() {
   const bidLimit = myOpen
   const chosenCount = Object.keys(bids).length
 
+  // primeira vez da vida no leilão: explica que lance é em MOEDAS (quem dá mais
+  // leva). A flag grava já no primeiro render — aparece só na primeira partida.
+  const [showLanceTip, setShowLanceTip] = useState(() => {
+    try {
+      if (localStorage.getItem('esc-tip-lance-v1')) return false
+      localStorage.setItem('esc-tip-lance-v1', '1')
+      return true
+    } catch { return false }
+  })
   return (
     <Shell bar={<AuctionBar />}>
+      {showLanceTip && !rescue && (
+        <div className="relative border-[3px] border-black rounded-xl p-3 pr-8" style={{ background: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <p className="text-[12.5px] font-black leading-snug" style={OSWALD}>💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 100 pra montar o time inteiro.</p>
+          <button onClick={() => setShowLanceTip(false)} aria-label="Fechar"
+            className="absolute top-1 right-2 text-lg font-black" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
+        </div>
+      )}
       <div className="pt-1 flex items-start justify-between gap-3">
         <div className="flex-1">
           <h2 className="font-black text-3xl" style={OSWALD}>
