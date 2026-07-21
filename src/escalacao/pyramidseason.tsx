@@ -769,7 +769,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     const n = 2 + Math.floor(rng() * 3) // 2 a 4 lances por jogo
     for (let i = 0; i < n; i++) {
       let m = 4 + Math.floor(rng() * 84), tries = 0
-      while (tries++ < 10 && (gm.has(m) || gm.has(m + 1) || gm.has(m - 1) || evs.some(e => Math.abs(e.min - m) < 6))) m = 4 + Math.floor(rng() * 84)
+      while (tries++ < 10 && (gm.has(m) || gm.has(m + 1) || gm.has(m - 1) || evs.some(e => Math.abs(e.min - m) < 14))) m = 4 + Math.floor(rng() * 84)
       const atk = rng() < 0.5 ? homeName : awayName
       const t = rng()
       const txt = t < 0.4 ? `🥅 UUUH! ${atk} acerta a trave!`
@@ -780,7 +780,19 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     return evs.sort((a, b) => a.min - b.min)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roundKey, homeName, awayName])
-  const liveEvent = !done && !finished ? nearEvents.find(e => min >= e.min && min <= e.min + 4) : undefined
+  // o lance fica ~3,2 segundos REAIS na tela (o relógio do jogo é rápido demais
+  // pra medir em minutos) e some sozinho; rodada nova limpa na hora.
+  const [liveEvent, setLiveEvent] = useState<{ min: number; txt: string } | null>(null)
+  useEffect(() => { setLiveEvent(null) }, [roundKey])
+  useEffect(() => {
+    if (done || finished) return
+    const ev = nearEvents.find(e => e.min === min)
+    if (!ev) return
+    setLiveEvent(ev)
+    const t = setTimeout(() => setLiveEvent(prev => prev === ev ? null : prev), 3200)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [min, done, finished])
   const minLabel = min >= 93 ? 'FIM' : min > 90 ? `90+${min - 90}'` : `${min}'`
   const iAmHome = youIsHome
   const last = shown.length ? [...shown].sort((a, b) => a.min - b.min)[shown.length - 1] : null
@@ -1224,12 +1236,12 @@ function PensShootout({ pens, aName, bName }: { pens: [number, number]; aName: s
     return arr as boolean[]
   }
   const A = mk(pens[0]), B = mk(pens[1])
-  const step = 0.42, totalDelay = slots * 2 * step + 0.2
+  const step = 0.85, lead = 0.7, totalDelay = lead + slots * 2 * step + 0.25
   const row = (name: string, arr: boolean[], off: number) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 3.5, justifyContent: 'center' }}>
       <span style={{ fontSize: 9, fontWeight: 900, ...OSWALD, maxWidth: 74, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right', flexShrink: 0 }}>{name}</span>
       {arr.map((ok, i) => (
-        <span key={i} style={{ width: 13, height: 13, borderRadius: 999, border: `1.5px solid ${INK}`, background: ok ? '#37D067' : '#F87168', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 7.5, fontWeight: 900, lineHeight: 1, opacity: 0, animation: `pensPop .3s cubic-bezier(.2,1.5,.5,1) ${(i * 2 + off) * step}s forwards`, flexShrink: 0 }}>{ok ? '' : '✕'}</span>
+        <span key={i} style={{ width: 13, height: 13, borderRadius: 999, border: `1.5px solid ${INK}`, background: ok ? '#37D067' : '#F87168', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 7.5, fontWeight: 900, lineHeight: 1, opacity: 0, animation: `pensPop .45s cubic-bezier(.2,1.5,.5,1) ${(lead + (i * 2 + off) * step).toFixed(2)}s forwards`, flexShrink: 0 }}>{ok ? '' : '✕'}</span>
       ))}
     </div>
   )
