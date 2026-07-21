@@ -11,7 +11,7 @@ import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, oldChain } from './d
 import type { Card, Manager, Sector, WonCard } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { useEsc, savePyramidCloud } from './store'
-import { CardCollectPrompt, ApoieButton } from './screens'
+import { CardCollectPrompt, ApoieButton, useSimMode, SimControls } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg } from './estadio'
@@ -831,12 +831,12 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
 }
 
 // wrapper da CARREIRA: resolve cores por técnico e passa pro placar compartilhado.
-function MyMatchCard({ m, youName, finished, col, colors, roundKey }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number }) {
+function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = ROUND_MS }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number }) {
   const iAmHome = m.h === youName
   const oppId = iAmHome ? m.aId : m.hId
   const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
   return <LiveScoreCard homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
-    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={ROUND_MS} finished={finished} />
+    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} />
 }
 
 // ── os JOGOS de uma divisão (placar + quem fez os gols), cores por amigo ──
@@ -1595,12 +1595,16 @@ export function PyramidSeasonScreen() {
   const myMatch = myDiv ? matches[myDiv]?.find(x => x.you) : undefined
   const humansOf = (d: Div) => tables[d].filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival }))
 
-  // host conduz: avança a rodada a cada ~1,4s (isso sincroniza pra todos)
+  // host conduz: avança a rodada (isso sincroniza pra todos). Nos modos SOLO
+  // dá pra pausar entre rodadas (manual) e o jogo roda +5s mais calmo.
+  const [manualPref, toggleSim] = useSimMode()
+  const manual = manualPref && state.onlineMode !== 'online'
+  const roundMs = manual ? ROUND_MS + 5000 : ROUND_MS
   useEffect(() => {
-    if (!state.isHost || done) return
-    const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), ROUND_MS)
+    if (!state.isHost || done || manual) return
+    const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), roundMs)
     return () => clearTimeout(t)
-  }, [round, state.isHost, done, dispatch])
+  }, [round, state.isHost, done, dispatch, manual, roundMs])
 
   return (
     <div style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
@@ -1645,7 +1649,12 @@ export function PyramidSeasonScreen() {
         {copaFinished && copa?.champion && (
           <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>👉 ver o chaveamento da Copa na aba Tabelas</button>
         )}
-        {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} />}
+        {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} />}
+        {state.onlineMode !== 'online' && state.isHost && !done && !copaPlaying && (
+          <SimControls manual={manual} onToggle={toggleSim} canNext
+            onNext={() => dispatch({ type: 'PLAY_ROUND' })}
+            nextLabel={round === 0 ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
+        )}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
         {copaPlaying && myCopaTie && <div style={{ marginBottom: 12 }}><CopaLiveMatch tie={myCopaTie} pos={copaPos} big youColor={myCol.solid} /></div>}
