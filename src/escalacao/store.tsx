@@ -1440,6 +1440,14 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   state.submitted = []
   state.pendingEnvelopes = {}
   state.phaseDeadline = Date.now() + ENVELOPE_MS
+  // SOLO (carreira offline/rápido/dinastia): rodada em que NENHUM humano pode
+  // dar lance (posição cheia ou sem dinheiro — só CPUs disputando) lacra NA
+  // HORA. Sem isto, ninguém enviava envelope, o setor nunca era lacrado e o
+  // jogo congelava com o jogador de espectador ("esperando a contratação").
+  // No online não muda nada: lá o vigia de prazo já cuida disso.
+  if (state.onlineMode !== 'online' && humansToSubmit(state, SECTORS[state.sectorIdx]).length === 0) {
+    sealAndResolve(state)
+  }
 }
 
 // resolve o setor a partir dos envelopes coletados (humanos) + CPUs
