@@ -766,43 +766,25 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const shown = goals.filter(g => g.min <= min)
   const hg = shown.filter(g => g.home).length, ag = shown.filter(g => !g.home).length
   const done = min >= 93
-  // ── QUASE-GOL: lances sem placar (trave, defesaça, amarelo) sorteados por
-  // semente determinística (nomes+rodada) → todo mundo online vê o MESMO lance
-  // no MESMO minuto. Aparecem na faixinha de baixo por ~4 minutos de relógio.
-  const nearEvents = useMemo(() => {
-    let h = 0
-    const key = `${homeName}|${awayName}|${roundKey}`
-    for (let i = 0; i < key.length; i++) h = (Math.imul(h, 31) + key.charCodeAt(i)) | 0
-    const rng = mulberry((h ^ 0x5EED) >>> 0)
-    const gm = new Set(goals.map(g => g.min))
-    const evs: { min: number; txt: string }[] = []
-    const n = 2 + Math.floor(rng() * 3) // 2 a 4 lances por jogo
-    for (let i = 0; i < n; i++) {
-      let m = 4 + Math.floor(rng() * 84), tries = 0
-      while (tries++ < 10 && (gm.has(m) || gm.has(m + 1) || gm.has(m - 1) || evs.some(e => Math.abs(e.min - m) < 14))) m = 4 + Math.floor(rng() * 84)
-      const atk = rng() < 0.5 ? homeName : awayName
-      const t = rng()
-      const txt = t < 0.4 ? `🥅 UUUH! ${atk} acerta a trave!`
-        : t < 0.75 ? `🧤 DEFESAÇA! ${atk} quase marca!`
-        : `🟨 Amarelo no jogo duro do ${atk}`
-      evs.push({ min: m, txt })
-    }
-    return evs.sort((a, b) => a.min - b.min)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roundKey, homeName, awayName])
-  // o lance fica ~3,2 segundos REAIS na tela (o relógio do jogo é rápido demais
-  // pra medir em minutos) e some sozinho; rodada nova limpa na hora.
-  const [liveEvent, setLiveEvent] = useState<{ min: number; txt: string } | null>(null)
-  useEffect(() => { setLiveEvent(null) }, [roundKey])
+  // ── RITUAIS DO JOGO: apito inicial e apito final (frases fixas de narração —
+  // lances aleatórios no meio soavam robóticos e foram removidos). O texto fica
+  // uns segundos REAIS na faixinha de baixo e some.
+  const [ritual, setRitual] = useState<'start' | 'end' | null>(null)
   useEffect(() => {
-    if (done || finished) return
-    const ev = nearEvents.find(e => e.min === min)
-    if (!ev) return
-    setLiveEvent(ev)
-    const t = setTimeout(() => setLiveEvent(prev => prev === ev ? null : prev), 3200)
+    if (finished) { setRitual(null); return }
+    setRitual('start')
+    const t = setTimeout(() => setRitual(prev => prev === 'start' ? null : prev), 2800)
+    return () => clearTimeout(t)
+  }, [roundKey, finished])
+  useEffect(() => {
+    if (!done || finished) return
+    setRitual('end')
+    const t = setTimeout(() => setRitual(prev => prev === 'end' ? null : prev), 4000)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [min, done, finished])
+  }, [done, finished])
+  const endPhrase = ['📢 Apito final — termina o jogo!', '📢 Apitou o árbitro: acabou!', '📢 Fim de jogo — pode tirar o uniforme!'][Math.abs(roundKey) % 3]
+  const ritualTxt = ritual === 'start' ? '🟢 O árbitro autoriza — começa o jogo!' : ritual === 'end' ? endPhrase : null
   const minLabel = min >= 93 ? 'FIM' : min > 90 ? `90+${min - 90}'` : `${min}'`
   const iAmHome = youIsHome
   const last = shown.length ? [...shown].sort((a, b) => a.min - b.min)[shown.length - 1] : null
@@ -861,9 +843,8 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
         <Team name={awayName} color={awayCol} you={!youIsHome} flash={goal === 'a'} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '7px 12px', borderTop: '2px solid #e6dcbf', background: '#efe4c8' }}>
-        <span key={liveEvent ? 'ev' + liveEvent.min : 'g'} style={{ fontSize: 11, fontWeight: liveEvent ? 900 : 700, ...OSWALD, color: liveEvent ? '#B23B2E' : 'rgba(0,0,0,0.72)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%', animation: liveEvent ? 'coFade .4s ease' : undefined }}>
-          {liveEvent ? liveEvent.txt
-            : last ? <>⚽ {last.name} <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></> : (done ? 'sem gols' : '🟢 bola rolando…')}
+        <span key={ritualTxt ?? 'g'} style={{ fontSize: 11, fontWeight: ritualTxt ? 900 : 700, ...OSWALD, color: ritualTxt ? INK : 'rgba(0,0,0,0.72)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%', animation: ritualTxt ? 'coFade .4s ease' : undefined }}>
+          {ritualTxt ?? (last ? <>⚽ {last.name} <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></> : (done ? 'sem gols' : '🟢 bola rolando…'))}
         </span>
       </div>
     </div>
