@@ -554,10 +554,10 @@ function CardFace({ c, big = false, surprise = false, highlight = false }: { c: 
 // Mostra SÓ a novidade mais recente, com X pra fechar. Ao fechar, guarda o id
 // no aparelho — só reaparece quando eu trocar o LATEST_NEWS por um id novo.
 const LATEST_NEWS = {
-  id: '2026-07-estadio',
-  emoji: '🏟️',
-  title: 'Chegou o ESTÁDIO — no Modo Carreira!',
-  text: 'Construa seu estádio arquibancada por arquibancada: torcida enchendo, refletores, telão, loja e cobertura. Cada melhoria destrava a próxima e TUDO rende bilheteria no fim de cada temporada 💰 Procura a aba 🏟️ na tua carreira!',
+  id: '2026-07-saf',
+  emoji: '💼',
+  title: 'Chegou a SAF — vire dono de um clube!',
+  text: 'Compre a SAF de um clube da Série D e fature 50% das premiações de título e acesso dele, empreste seus craques e acompanhe ele subindo a pirâmide. Destrava no 🏟️ Estádio (100%) por 2.000 🪙, no Modo Carreira. Já vale pra todo mundo!',
 }
 function NewsBanner() {
   const [dismissed, setDismissed] = useState(() => {
@@ -584,6 +584,7 @@ function NewsSection() {
       <div>
         <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>✨ No jogo</p>
         <div className="mt-1 space-y-1">
+          <p className="text-xs font-bold text-black/75">💼 <b>SAF</b> — no <b>Modo Carreira</b>: compre a SAF de um clube da Série D, leve <b>50% dos lucros de título e acesso</b> dele, empreste jogadores entre os clubes e veja ele subir na pirâmide. Destrava com o Estádio 100%.</p>
           <p className="text-xs font-bold text-black/75">🏟️ <b>Estádio</b> — no <b>Modo Carreira</b>: construa arquibancadas, refletores, telão e cobertura. O desenho cresce a cada compra e a bilheteria rende toda temporada!</p>
           <p className="text-xs font-bold text-black/75">🏆 <b>Copa Legends</b> — no <b>Modo Carreira</b>, no fim de cada temporada os 16 melhores das 4 divisões se enfrentam num mata-mata sorteado. Série D pode eliminar Série A!</p>
           <p className="text-xs font-bold text-black/75">🪜 <b>Modo Carreira liberado</b> — pirâmide de 4 divisões (Série D → A), com leilão de reservas, transferências e substituições.</p>
