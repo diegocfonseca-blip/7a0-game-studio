@@ -1812,9 +1812,11 @@ export function reducer(state: EscState, action: Action): EscState {
       const rng = mulberry(s.seed)
       // a tabela sempre tem 20 times: os que faltam viram bots com elenco
       // pronto (não brigam no leilão — só os humanos disputam as cartas).
-      // RÁPIDO: sorteia nomes das 4 séries (não só a D), pra ter variedade de times.
-      // Carreira online mantém a estrutura das divisões (nomes da Série D).
-      const namePool = action.career ? undefined : shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C, ...DIVISION_TEAMS.D], rng)
+      // RÁPIDO: os times da SÉRIE D são o elenco fixo do jogo (é neles que moram
+      // os clubes batizados pelos apoiadores — têm que aparecer sempre). A ordem
+      // embaralha a cada sala, e só se faltar nome (não falta: são 20) completa
+      // com as outras séries. Carreira online mantém a estrutura das divisões.
+      const namePool = action.career ? undefined : [...shuffle([...DIVISION_TEAMS.D], rng), ...shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C], rng)]
       const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, 0, LEAGUE_SIZE, rng, namePool)
       s.managers = onlineManagers
       // rápido (e T1 de carreira) começam SEM piso. O livro de preços
