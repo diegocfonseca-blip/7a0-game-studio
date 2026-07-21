@@ -112,8 +112,8 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
   return <svg viewBox="0 0 360 312" style={{ width: '100%', height: 'auto', display: 'block' }} dangerouslySetInnerHTML={{ __html: parts.join('') }} />
 }
 
-// 🏢 GRUPO EMPRESARIAL — EM TESTE: só estas contas veem (depois abre pra todos)
-const FILIAL_TESTERS = ['diego.c.fonseca@gmail.com', 'lnantes49@gmail.com', 'ln6739633@gmail.com']
+// 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
+// primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
 export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions, filialInfo, onBuyFilial, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, onLoanFrom }: {
   st: StadiumSave | undefined
@@ -205,7 +205,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
           </div>
         )
       })}
-      {onBuyFilial && FILIAL_TESTERS.includes(loggedEmail() ?? '') && (() => {
+      {onBuyFilial && !!loggedEmail() && (() => {
         const allDone = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && STADIUM_EXTRAS.every(e => hasExtra(st, e.k))
         const canBuy = allDone && coins >= 2000
         const regras = (
@@ -289,7 +289,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
         }
         return (
           <div style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '11px 12px', marginTop: 14, opacity: allDone ? 1 : .6, borderStyle: allDone ? 'solid' : 'dashed', boxShadow: allDone ? `4px 4px 0 0 ${INK}` : 'none' }}>
-            <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>💼 COMPRAR UMA SAF <span style={{ fontSize: 9, background: INK, color: GOLD, borderRadius: 5, padding: '1px 6px', verticalAlign: 'middle' }}>TESTE</span></p>
+            <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>💼 COMPRAR UMA SAF</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '3px 0 6px' }}>
               {allDone
                 ? <>Compre a <b>SAF de um clube da Série D</b> e vire dono: você adquire o direito a <b>50% dos lucros de campanha</b> dele (e assume metade do prejuízo na queda). O clube segue jogando por conta própria — sem leilão contra você. Empréstimos de jogadores entre os clubes: em breve.</>
