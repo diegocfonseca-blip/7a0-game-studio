@@ -508,11 +508,19 @@ function YourPitch({ small = false }: { small?: boolean }) {
   // travar também em screen==='auction', o último jogador da última revelação
   // ficava escondido pra sempre (Vazio no campinho, mesmo marcando gol na
   // simulação — ele existe no elenco, só não aparecia no desenho).
-  const revealing = state.screen === 'auction' && (state.phase === 'reveal' || state.phase === 'resq_reveal')
+  // TIEBREAK também esconde: o setor inteiro é resolvido por dentro assim que
+  // fecha (inclusive as cartas SEM empate), mas a revelação "oficial" só começa
+  // depois que TODOS os empates da rodada acabarem. Sem cobrir a espera do
+  // empate, quem ganhou uma carta sem disputa via ela aparecer no campinho na
+  // hora — vazando o resultado enquanto os outros ainda decidem o empate deles.
+  const revealing = state.screen === 'auction' && (state.phase === 'reveal' || state.phase === 'resq_reveal' || state.phase === 'tiebreak')
   // revealIdx aponta a carta NA TELA agora (martelo já bateu nela) — ela some
   // do "escondido" na hora, pra aparecer no campinho enquanto essa revelação
-  // ainda está exibida, antes do avanço automático pra próxima carta.
-  const pendingIds = revealing ? new Set((state.revealQueue ?? []).slice(state.revealIdx + 1).map(it => it.card.id)) : new Set<string>()
+  // ainda está exibida, antes do avanço automático pra próxima carta. Durante
+  // o desempate (revelação ainda não começou), esconde a fila inteira.
+  const pendingIds = revealing
+    ? new Set((state.revealQueue ?? []).slice(state.phase === 'tiebreak' ? 0 : state.revealIdx + 1).map(it => it.card.id))
+    : new Set<string>()
   const shown = pendingIds.size ? { ...you, squad: you.squad.filter(c => !pendingIds.has(c.id)) } : you
   if (state.reserveAuction) {
     // "Reservas" só na 2ª temporada (quando se monta o banco); da 3ª em diante é
