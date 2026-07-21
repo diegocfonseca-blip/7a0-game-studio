@@ -712,7 +712,7 @@ function otherDivRivalDefs(rivals: CareerRival[], div: Division): CareerTeam[] {
 // carregando junto colocação, elenco, caixa e títulos. Nome de HUMANO não muda.
 
 // ── 🏢 GRUPO EMPRESARIAL (teste): comissão do DONO sobre a campanha da filial —
-// 30% dos prêmios de título/acesso (e 30% do prejuízo na queda). NÃO inclui
+// 50% dos prêmios de título/acesso (e 50% do prejuízo na queda). NÃO inclui
 // lucros de compra/venda do bot no mercado — só campanha. O acumulado fica em
 // careerFilial.earned pro painel.
 function applyFilialCommission(s: EscState, clubRewards: Record<string, number>) {
@@ -721,7 +721,7 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
   const mgr = s.managers.find(m => !m.isHuman && m.teamName === f.team)
   const key = mgr ? `m${mgr.id}` : f.team
   const delta = clubRewards[key] ?? 0
-  const cut = Math.round(delta * 0.3)
+  const cut = Math.round(delta * 0.5)
   if (!cut) return
   const you = s.managers.find(m => m.isHuman)
   if (!you) return
@@ -2207,7 +2207,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada (base+título/acesso/queda)
       s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
-      applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 30% da campanha da filial pro dono (teste)
+      applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada (pro ranking)
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
       s.careerPlacements = action.placements
@@ -2229,7 +2229,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada
       s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
-      applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 30% da campanha da filial pro dono (teste)
+      applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso no livro (o novo leilão já sai com o valor atualizado)
@@ -2262,7 +2262,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerCoins = applyRewards(s.careerCoins, action.rewards)
       s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
-      applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 30% da campanha da filial pro dono (teste)
+      applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       s.careerHonors = applyHonors(s.careerHonors, action.champions)
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid) antes da venda/leilão de reservas
