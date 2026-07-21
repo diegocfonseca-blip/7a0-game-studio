@@ -198,12 +198,24 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
       {onBuyFilial && FILIAL_TESTERS.includes(loggedEmail() ?? '') && (() => {
         const allDone = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && STADIUM_EXTRAS.every(e => hasExtra(st, e.k))
         const canBuy = allDone && coins >= 2000
+        const regras = (
+          <ul style={{ margin: '7px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', lineHeight: 1.55 }}>
+            <li>💰 Custa <b>2.000</b> · compra única · o clube é seu <b>pra sempre nesta carreira</b> (não vende, não troca)</li>
+            <li>🏆 <b>50% dos prêmios de campanha</b> da filial (título e acesso) caem no seu caixa na virada da temporada</li>
+            <li>📉 <b>Queda dói</b>: 50% da multa de rebaixamento sai do SEU caixa</li>
+            <li>🙅 <b>Nada</b> dos lucros de compra/venda do clube no mercado — só campanha</li>
+            <li>⚖️ A filial <b>nunca disputa seu leilão</b>: vida própria, sobe e desce por mérito</li>
+            <li>📈 Ela sobe de série? Sua comissão cresce junto (prêmio de série alta paga mais)</li>
+            <li>📋 Empréstimo de jogador entre os clubes: <b>próxima atualização</b></li>
+          </ul>
+        )
         if (filial) return (
           <div style={{ ...box('#FFF6DE'), borderRadius: 14, padding: '11px 12px', marginTop: 14 }}>
             <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>🏢 GRUPO EMPRESARIAL</p>
             <p style={{ fontWeight: 900, fontSize: 13, margin: '5px 0 2px', ...OSW }}>⚽ {filial.team}{filialInfo ? <span style={{ fontWeight: 700, fontSize: 10.5, color: 'rgba(0,0,0,.55)' }}> · Série {filialInfo.div} · {filialInfo.pos}º</span> : null}</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0 }}>Seu clube desde a T{filial.since} · comissão de 50% da campanha (título/acesso rende; queda desconta)</p>
             <p style={{ fontSize: 11.5, fontWeight: 900, color: (filial.earned ?? 0) >= 0 ? GREEN : '#B23B2E', margin: '4px 0 0', ...OSW }}>💼 Comissões acumuladas: {(filial.earned ?? 0) >= 0 ? '+' : ''}{filial.earned ?? 0} 🪙</p>
+            {regras}
           </div>
         )
         return (
@@ -214,6 +226,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
                 ? <>Compre um clube da Série D e vire DONO: 50% dos prêmios de campanha dele caem no seu caixa (e queda desconta). Ele segue vivendo por conta própria — sem leilão contra você.</>
                 : <>🔒 destrava com: <b style={{ color: '#9a4b00' }}>Estádio 100% completo</b> (setores + melhorias) · custa 2.000 💰</>}
             </p>
+            {allDone && regras}
+            {allDone && <div style={{ height: 7 }} />}
             {allDone && !buying && (
               <button onClick={() => canBuy && setBuying(true)} disabled={!canBuy}
                 style={{ width: '100%', border: 'none', borderRadius: 10, padding: '10px 0', fontWeight: 900, fontSize: 13.5, ...OSW, background: canBuy ? INK : '#d9cfb4', color: canBuy ? '#fff' : '#7d7358', cursor: canBuy ? 'pointer' : 'default' }}>
