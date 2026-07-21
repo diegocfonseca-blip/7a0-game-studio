@@ -86,6 +86,43 @@ function AnnouncementToast() {
   )
 }
 
+// ── SAIR DO NAVEGADOR EMBUTIDO (Instagram/TikTok/Facebook) ────────────────
+// O link da bio abre no "mini-navegador" do app, que tem armazenamento
+// separado: login não cola, save fica preso lá. Detecta pelo user-agent e
+// mostra um aviso: Android tenta abrir o Chrome direto (intent://); iPhone
+// ganha o passo a passo (lá não dá pra forçar). Dispensável no ✕ (por sessão).
+function OpenInBrowserBanner() {
+  const [dismissed, setDismissed] = useState(() => { try { return sessionStorage.getItem('esc-inapp-dismiss') === '1' } catch { return false } })
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
+  const inApp = /Instagram|FBAN|FBAV|FB_IAB|TikTok|musical_ly|Snapchat|Line\//i.test(ua)
+  const android = /Android/i.test(ua)
+  if (!inApp || dismissed) return null
+  const escape = () => {
+    if (android) {
+      // abre o site no navegador padrão; se falhar, o fallback recarrega aqui mesmo
+      window.location.href = 'intent://leilaolegends.com/#Intent;scheme=https;S.browser_fallback_url=https%3A%2F%2Fleilaolegends.com;end'
+    }
+  }
+  return (
+    <div style={{ position: 'fixed', bottom: 10, left: 8, right: 8, zIndex: 99998, margin: '0 auto', maxWidth: 440, background: '#0C0C0C', color: '#fff', border: '2px solid #F5B301', borderRadius: 14, padding: '10px 30px 10px 12px', fontWeight: 700, fontSize: 11.5, lineHeight: 1.4, boxShadow: '0 6px 16px rgba(0,0,0,.4)' }}>
+      {android ? (
+        <>
+          🚀 <b>Jogando dentro do Instagram?</b> Abre no navegador de verdade — teu login e teu save ficam seguros lá.
+          <button onClick={escape} style={{ display: 'block', width: '100%', marginTop: 7, background: '#F5B301', color: '#0C0C0C', border: 'none', borderRadius: 9, padding: '9px 0', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', cursor: 'pointer' }}>
+            ABRIR NO NAVEGADOR 🌐
+          </button>
+        </>
+      ) : (
+        <>
+          🚀 <b>Jogando dentro do app?</b> Toca nos <b>três pontinhos (⋯)</b> aí no canto e escolhe <b>“Abrir no navegador externo”</b> — teu login e teu save ficam seguros lá.
+        </>
+      )}
+      <button onClick={() => { setDismissed(true); try { sessionStorage.setItem('esc-inapp-dismiss', '1') } catch { /* ignora */ } }} aria-label="Fechar"
+        style={{ position: 'absolute', top: 4, right: 6, background: 'transparent', border: 'none', color: '#fff', fontSize: 17, fontWeight: 900, lineHeight: 1, cursor: 'pointer', padding: '2px 5px' }}>×</button>
+    </div>
+  )
+}
+
 // Rede de segurança: se qualquer tela crashar (ex.: um save antigo com formato
 // incompatível ao continuar a carreira), em vez de tela branca sem saída mostra
 // um aviso com botão de voltar ao início (NÃO apaga o save) e a mensagem do erro
@@ -118,6 +155,7 @@ export default function EscalacaoGame() {
       <EscProvider>
         <MaintenanceBanner />
         <AnnouncementToast />
+        <OpenInBrowserBanner />
         <Router />
         <GameFooter />{/* rodapé de contato, sutil, no final de todas as telas */}
         <AdminPanel />
