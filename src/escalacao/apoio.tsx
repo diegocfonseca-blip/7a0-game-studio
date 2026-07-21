@@ -42,8 +42,20 @@ const FOUNDERS: Record<string, ApoioTier> = {
 // e-mail da conta logada, cacheado — os pontos que usam (playerColors, nomes)
 // são síncronos, então mantemos o valor atualizado via auth listener.
 let myEmail: string | null = null
-supabase.auth.getUser().then(({ data }) => { myEmail = data?.user?.email?.toLowerCase() ?? null; fixOldEmojiName(data?.user) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { myEmail = s?.user?.email?.toLowerCase() ?? null; fixOldEmojiName(s?.user) })
+// tier vindo da TABELA user_colors do Supabase (gerida pelo Diego no painel):
+// e-mail → tier. É a fonte oficial; a lista FOUNDERS no código vira reserva.
+let dbTier: ApoioTier | null = null
+async function fetchDbTier(email: string | null) {
+  dbTier = null
+  if (!email) return
+  try {
+    const { data } = await supabase.from('user_colors').select('tier').eq('email', email).maybeSingle()
+    const t = (data?.tier ?? '') as ApoioTier
+    if (t && t in APOIO_PERKS) dbTier = t
+  } catch { /* tabela ainda não existe / rede — segue com FOUNDERS */ }
+}
+supabase.auth.getUser().then(({ data }) => { myEmail = data?.user?.email?.toLowerCase() ?? null; fetchDbTier(myEmail); fixOldEmojiName(data?.user) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { const em = s?.user?.email?.toLowerCase() ?? null; if (em !== myEmail) { myEmail = em; fetchDbTier(em) } fixOldEmojiName(s?.user) })
 
 // cadastro ANTIGO com emoji no nome: corrige no banco uma vez, no login.
 // (nome que era só emoji vira o prefixo do e-mail.)
@@ -63,7 +75,7 @@ export function loggedEmail(): string | null { return myEmail }
 
 export function myApoioPerk(): ApoioPerk | null {
   if (!myEmail) return null
-  const tier = FOUNDERS[myEmail]
+  const tier = dbTier ?? FOUNDERS[myEmail]
   return tier ? APOIO_PERKS[tier] : null
 }
 
