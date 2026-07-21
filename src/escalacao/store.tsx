@@ -125,6 +125,12 @@ export function openSlots(m: Manager, pos: Sector): number {
 export function totalHoles(m: Manager): number {
   return SECTORS.reduce((s, pos) => s + openSlots(m, pos), 0)
 }
+// buracos no TIME TITULAR (XI): vagas da formação sem jogador REAL na posição.
+// Diferente de totalHoles (que conta até o elenco cheio de 22).
+export function xiHoles(m: Manager): number {
+  const need = FORMATIONS[m.formation]
+  return SECTORS.reduce((s, pos) => s + Math.max(0, need[pos] - m.squad.filter(c => c.pos === pos && !c.fake).length), 0)
+}
 // (carreira) pra CPU, um zé (fake) NÃO segura vaga: conta como buraco. É o que
 // deixa o rival "completo" com zé brigar por reforço no monte — o zé cai fora
 // depois (cerimônia) quando o reforço real chega.
@@ -727,6 +733,27 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
   if (!you) return
   s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: Math.max(0, (s.careerCoins?.[you.id] ?? 0) + cut) }
   s.careerFilial = { ...f, earned: (f.earned ?? 0) + cut }
+}
+
+// CURA de elenco: se um HUMANO da carreira ficou com buraco no time titular
+// (ex.: listou jogador, ninguém comprou e a carta se perdeu no Monte), entra
+// um prata-da-casa (incógnito fraco, de graça) pra cada vaga — nunca joga com 10.
+function healXIHoles(st: EscState): EscState {
+  if (!st.careerOnline || !Array.isArray(st.managers)) return st
+  const rng = mulberry(((st.seed ?? 1) ^ 0x4EA1) >>> 0)
+  for (const m of st.managers) {
+    if (!m.isHuman) continue
+    const need = FORMATIONS[m.formation]
+    for (const pos of SECTORS) {
+      let falta = need[pos] - m.squad.filter(c => c.pos === pos && !c.fake).length
+      let i = 0
+      while (falta-- > 0) {
+        const c = makeIncognita(pos, 90 + i++, false, rng, `heal${st.seasonNo}`)
+        m.squad = [...m.squad, { ...c, paid: 0, via: 'monte' } as WonCard]
+      }
+    }
+  }
+  return st
 }
 
 function migrateTeamNames(st: EscState): EscState {
@@ -1634,7 +1661,7 @@ export function reducer(state: EscState, action: Action): EscState {
     // reconexão/host-caiu: adota o estado salvo no banco em vez de recomeçar
     // do zero. A identidade ("quem sou eu", host?) é sempre local a este
     // cliente; efêmeros host-only voltam limpos (já vêm sanitizados).
-    return migrateTeamNames({
+    return healXIHoles(migrateTeamNames({
       ...action.state,
       rivalries: action.state.rivalries ?? {}, // saves antigos sem o campo
       cpuAtkAdj: action.state.cpuAtkAdj ?? 0,
@@ -1648,7 +1675,7 @@ export function reducer(state: EscState, action: Action): EscState {
       pendingEnvelopes: {},
       tiebreakPending: {},
       presence: [],
-    })
+    }))
   }
   if (action.type === 'NEW_GAME') return { ...INITIAL }
   const s: EscState = JSON.parse(JSON.stringify(state))
@@ -1819,7 +1846,7 @@ export function reducer(state: EscState, action: Action): EscState {
       setActiveCatalog(action.saved.deckLeague)
       // nunca retoma numa tela lateral (álbum/ranking) — cai sempre no jogo.
       const scr = (action.saved.screen === 'album' || action.saved.screen === 'ranking') ? 'season' : action.saved.screen
-      return migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true })
+      return healXIHoles(migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true }))
     }
     case 'START_ONLINE': {
       s.simV = 2 // fórmula nova só vale a partir desta temporada
@@ -1994,6 +2021,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.monteOrder[s.monteIdx] !== action.mgrId) return s
       const m = s.managers.find(x => x.id === action.mgrId)
       if (!m || !m.isHuman) return s
+      if (xiHoles(m) > 0) return s // buraco no TITULAR: não pode passar — pega alguém
       const rng = rngOf(s)
       s.monteIdx++
       advanceMonte(s, rng)
