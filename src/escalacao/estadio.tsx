@@ -1,10 +1,11 @@
+import { useState } from 'react'
 // ─── 🏟️ ESTÁDIO — aba da carreira (o estádio que CRESCE na tela) ─────────
 // Cada compra APARECE no desenho: torcida enchendo os setores, refletores
 // acendendo (anoitece!), telão ligando, loja, estacionamento, cobertura.
 // Melhorias destravam em árvore. Renda cai sozinha no fim de cada temporada.
 import { STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, sectorPct, hasExtra, extraUnlocked, stadiumIncome, stadiumSeats, stadiumLevel } from './estadiodata'
 import type { StadiumSave } from './estadiodata'
-import { myApoioPerk } from './apoio'
+import { myApoioPerk, loggedEmail } from './apoio'
 import type { ApoioPerk } from './apoio'
 
 const INK = '#0C0C0C'
@@ -110,12 +111,19 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
   return <svg viewBox="0 0 360 312" style={{ width: '100%', height: 'auto', display: 'block' }} dangerouslySetInnerHTML={{ __html: parts.join('') }} />
 }
 
-export function StadiumTab({ st, coins, onInvest, onBuild }: {
+// 🏢 GRUPO EMPRESARIAL — EM TESTE: só estas contas veem (depois abre pra todos)
+const FILIAL_TESTERS = ['diego.c.fonseca@gmail.com', 'lnantes49@gmail.com']
+export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions, filialInfo, onBuyFilial }: {
   st: StadiumSave | undefined
   coins: number
   onInvest: (sector: string) => void
   onBuild: (ext: string) => void
+  filial?: { team: string; since: number; earned?: number } | null
+  filialOptions?: string[]
+  filialInfo?: { div: string; pos: number } | null
+  onBuyFilial?: (team: string) => void
 }) {
+  const [buying, setBuying] = useState(false)
   const lvl = stadiumLevel(st)
   const seats = stadiumSeats(st)
   const income = stadiumIncome(st)
@@ -187,6 +195,46 @@ export function StadiumTab({ st, coins, onInvest, onBuild }: {
           </div>
         )
       })}
+      {onBuyFilial && FILIAL_TESTERS.includes(loggedEmail() ?? '') && (() => {
+        const allDone = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && STADIUM_EXTRAS.every(e => hasExtra(st, e.k))
+        const canBuy = allDone && coins >= 2000
+        if (filial) return (
+          <div style={{ ...box('#FFF6DE'), borderRadius: 14, padding: '11px 12px', marginTop: 14 }}>
+            <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>🏢 GRUPO EMPRESARIAL</p>
+            <p style={{ fontWeight: 900, fontSize: 13, margin: '5px 0 2px', ...OSW }}>⚽ {filial.team}{filialInfo ? <span style={{ fontWeight: 700, fontSize: 10.5, color: 'rgba(0,0,0,.55)' }}> · Série {filialInfo.div} · {filialInfo.pos}º</span> : null}</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0 }}>Seu clube desde a T{filial.since} · comissão de 30% da campanha (título/acesso rende; queda desconta)</p>
+            <p style={{ fontSize: 11.5, fontWeight: 900, color: (filial.earned ?? 0) >= 0 ? GREEN : '#B23B2E', margin: '4px 0 0', ...OSW }}>💼 Comissões acumuladas: {(filial.earned ?? 0) >= 0 ? '+' : ''}{filial.earned ?? 0} 🪙</p>
+          </div>
+        )
+        return (
+          <div style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '11px 12px', marginTop: 14, opacity: allDone ? 1 : .6, borderStyle: allDone ? 'solid' : 'dashed', boxShadow: allDone ? `4px 4px 0 0 ${INK}` : 'none' }}>
+            <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>🏢 GRUPO EMPRESARIAL <span style={{ fontSize: 9, background: INK, color: GOLD, borderRadius: 5, padding: '1px 6px', verticalAlign: 'middle' }}>TESTE</span></p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '3px 0 6px' }}>
+              {allDone
+                ? <>Compre um clube da Série D e vire DONO: 30% dos prêmios de campanha dele caem no seu caixa (e queda desconta). Ele segue vivendo por conta própria — sem leilão contra você.</>
+                : <>🔒 destrava com: <b style={{ color: '#9a4b00' }}>Estádio 100% completo</b> (setores + melhorias) · custa 2.000 💰</>}
+            </p>
+            {allDone && !buying && (
+              <button onClick={() => canBuy && setBuying(true)} disabled={!canBuy}
+                style={{ width: '100%', border: 'none', borderRadius: 10, padding: '10px 0', fontWeight: 900, fontSize: 13.5, ...OSW, background: canBuy ? INK : '#d9cfb4', color: canBuy ? '#fff' : '#7d7358', cursor: canBuy ? 'pointer' : 'default' }}>
+                {canBuy ? '🏢 Comprar um clube · −2.000 💰' : `Junte 2.000 💰 (tem ${coins})`}
+              </button>
+            )}
+            {allDone && buying && (
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 900, margin: '2px 0 6px', ...OSW }}>Escolha o clube (Série D):</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                  {(filialOptions ?? []).map(t => (
+                    <button key={t} onClick={() => { if (window.confirm(`Comprar o ${t} por 2.000 💰? Ele vira SEU clube-filial pra sempre nesta carreira.`)) { onBuyFilial(t); setBuying(false) } }}
+                      style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 4px', fontWeight: 900, fontSize: 11, ...OSW, background: '#fff', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t}</button>
+                  ))}
+                </div>
+                <button onClick={() => setBuying(false)} style={{ width: '100%', marginTop: 7, background: 'transparent', border: 'none', fontWeight: 800, fontSize: 11, color: 'rgba(0,0,0,.5)', textDecoration: 'underline', cursor: 'pointer' }}>cancelar</button>
+              </div>
+            )}
+          </div>
+        )
+      })()}
       <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '10px 2px 4px' }}>🏟️ O desenho lá em cima é o teu progresso — cada compra aparece nele.</p>
     </>
   )
