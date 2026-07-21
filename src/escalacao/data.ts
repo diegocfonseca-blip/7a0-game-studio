@@ -1422,6 +1422,34 @@ export const CPU_MANAGERS = [
 // divisões conforme sobem/caem. D e C usam nossos folclóricos; B e A usam
 // clubes fictícios "de gente grande" (inventados, não são paródia de reais).
 export type CareerTeam = { name: string; team: string }
+
+// ─── Times RENOMEADOS (novo → velho) ─────────────────────────────────────
+// Saves antigos guardam o nome da época (managers, colocações, caixa, títulos).
+// Estas pontes deixam qualquer geração de save achar o time no nome atual.
+export const OLD_NAME: Record<string, string> = {
+  'Napolitano': 'Canela EC', 'Ponte Branca': 'Grelha SAF', 'CRBebê': 'Peteca FR',
+  'Semervilha': 'Posto 7 FC', 'Real Bets': 'Feira Nova FR', 'Goiaba FC': 'Onça Parda EC',
+  'Leve-cuscuz': 'Foguete FC', 'Torta de Rã': 'Fogaréu EC', 'Astronáutico': 'Sinhô Futebol',
+  'Inter Estadual': 'Bigode FC', 'Cuiabagre': 'Bagres do Rio', 'Santos Dumont': 'Tonhão FC',
+  'Pardemeias': 'Tico do Bar FR', 'Livre-pool': 'Xandão EC',
+  'White Thigs do GuGu': 'Astronáutico',
+}
+// corrente de nomes antigos: 'White Thigs do GuGu' → ['Astronáutico', 'Sinhô Futebol']
+export const oldChain = (name: string): string[] => {
+  const out: string[] = []
+  let n: string | undefined = OLD_NAME[name]
+  while (n && !out.includes(n)) { out.push(n); n = OLD_NAME[n] }
+  return out
+}
+// caminho inverso: dado um nome VELHO, devolve o nome ATUAL do time
+const NEW_OF: Record<string, string> = {}
+for (const k in OLD_NAME) NEW_OF[OLD_NAME[k]] = k
+export const newestTeamName = (name: string): string => {
+  let n = name, hops = 0
+  while (NEW_OF[n] && hops++ < 8) n = NEW_OF[n]
+  return n
+}
+
 export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
   C: [
     { name: 'Casa de Vó', team: 'Casa de Vó' },
