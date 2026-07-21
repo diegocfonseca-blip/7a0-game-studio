@@ -2314,6 +2314,9 @@ export function reducer(state: EscState, action: Action): EscState {
       const rng = mulberry((s.seed ^ (s.seasonNo * 811073)) >>> 0)
       const used = new Set<string>()
       for (const m of s.managers) for (const c of m.squad) used.add(ident(c))
+      // os LISTADOS também: eles voltam pro baralho com vendedor — sem isto o
+      // catálogo fresco podia sortear uma CÓPIA idêntica (dois Roberto Carlos!)
+      for (const c of listedCards) used.add(ident(c))
       if (s.seasonNo >= 3) {
         // MERCADO DOS 80 (3ª temporada+): UM FAMOSO (fame ≥ 4) por posição, sorteado
         // entre TODOS os times — os bots da sua liga E os 60 de fundo (via ficha
@@ -2450,7 +2453,7 @@ export function reducer(state: EscState, action: Action): EscState {
         // MESMO TIME: você mantém o elenco; rivais que vieram junto mantêm o
         // deles; rivais novos + preenchimento ganham elenco (sem leilão).
         managers[0].squad = mySquad
-        const used = new Set<string>(mySquad.map(c => c.name))
+        const used = new Set<string>(mySquad.map(c => ident(c)))
         for (const m of managers) {
           if (m.isHuman) continue
           const kept = oldSquads.get(m.teamName)
@@ -2522,7 +2525,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // MESMO TIME: carrega o elenco salvo e vai direto pro campeonato
       managers[0].squad = sv.squad
       managers[0].formation = sv.formation
-      const used = new Set<string>(sv.squad.map(c => c.name))
+      const used = new Set<string>(sv.squad.map(c => ident(c)))
       dealRemainingCpuSquads(s.managers, rng, used)
       const adj = fillerAdj(s.managers, DIVISION_BASE[sv.division]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
