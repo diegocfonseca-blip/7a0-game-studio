@@ -499,18 +499,24 @@ function Campinho({ m, small = false, bench = false, title }: { m: Manager; smal
 function YourPitch({ small = false }: { small?: boolean }) {
   const { state } = useEsc()
   const you = state.managers[state.youIdx]
+  // SEM SPOILER: durante a revelação, os vencedores já estão decididos por
+  // dentro — mas o campinho só mostra a carta DEPOIS que o martelo dela bateu
+  // na tela. As que ainda vão ser reveladas ficam escondidas.
+  const revealing = state.phase === 'reveal' || state.phase === 'resq_reveal'
+  const pendingIds = revealing ? new Set((state.revealQueue ?? []).slice(state.revealIdx).map(it => it.card.id)) : new Set<string>()
+  const shown = pendingIds.size ? { ...you, squad: you.squad.filter(c => !pendingIds.has(c.id)) } : you
   if (state.reserveAuction) {
     // "Reservas" só na 2ª temporada (quando se monta o banco); da 3ª em diante é
     // o mercado, então o campinho de baixo é só o "Banco".
     const benchTitle = state.seasonNo === 2 ? '🔁 Reservas (banco)' : '🔁 Banco'
     return (
       <div className="space-y-2">
-        <Campinho m={you} small={small} bench title={benchTitle} />
-        <Campinho m={you} small={small} title="⭐ Titulares" />
+        <Campinho m={shown} small={small} bench title={benchTitle} />
+        <Campinho m={shown} small={small} title="⭐ Titulares" />
       </div>
     )
   }
-  return <Campinho m={you} small={small} />
+  return <Campinho m={shown} small={small} />
 }
 
 function CardFace({ c, big = false, surprise = false, highlight = false }: { c: Card; big?: boolean; surprise?: boolean; highlight?: boolean }) {
