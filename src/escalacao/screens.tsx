@@ -3969,6 +3969,23 @@ export function EscEnd() {
       </Box>
     </div>
   )
+  // versão SÓ LIGA do topo (sem Copa): mesmo visual bonito do painel, mas com um
+  // quadro só + a frase da colocação. Substitui o antigo radião no rápido comum.
+  const ligaOnlyHeader = (
+    <div className="pt-6">
+      <p className="text-center text-xs font-black uppercase tracking-widest text-black/45 mb-1" style={OSWALD}>🏁 Fim da temporada</p>
+      <Box bg={INK} className="p-4 text-center" shadow={6}>
+        <p className="font-black text-2xl truncate" style={{ ...OSWALD, color: '#fff' }}>{you.teamName}</p>
+        <div className="mt-2 rounded-xl border-2 py-2.5 px-2" style={{ borderColor: 'rgba(255,255,255,.18)', background: 'rgba(255,255,255,.06)' }}>
+          <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>Liga Legends</p>
+          <p className="font-black text-xl" style={{ ...OSWALD, color: '#fff' }}>{youWon ? '🏆 Campeão' : `${youPos}º lugar`}</p>
+          <p className="text-[11px] font-semibold mt-0.5" style={{ color: 'rgba(255,255,255,.62)' }}>
+            {youWon ? 'O pregão foi seu, o campeonato foi seu. Resenha eterna.' : `Campeão: ${champ.name}. ${youPos >= 17 ? 'Rebaixado — o leilão cobra caro.' : 'Ano que vem tem pregão de novo.'}`}
+          </p>
+        </div>
+      </Box>
+    </div>
+  )
   // blocos da LIGA (tabela + artilheiro) e da COPA (campeão + artilheiro), pra
   // montar a ordem do fim conforme teve Copa ou não.
   const ligaChampionCard = (
@@ -4021,7 +4038,7 @@ export function EscEnd() {
         </>
       ) : (
       <>
-      {!copaPending && placementHeader('pt-8')}
+      {!copaPending && (state.careerDivision ? placementHeader('pt-8') : ligaOnlyHeader)}
       {ligaChampionCard}
       {copaPending && state.quickCopa && (
         <Box bg={GOLD} className="p-4 space-y-2" shadow={6}>
