@@ -509,7 +509,10 @@ function YourPitch({ small = false }: { small?: boolean }) {
   // ficava escondido pra sempre (Vazio no campinho, mesmo marcando gol na
   // simulação — ele existe no elenco, só não aparecia no desenho).
   const revealing = state.screen === 'auction' && (state.phase === 'reveal' || state.phase === 'resq_reveal')
-  const pendingIds = revealing ? new Set((state.revealQueue ?? []).slice(state.revealIdx).map(it => it.card.id)) : new Set<string>()
+  // revealIdx aponta a carta NA TELA agora (martelo já bateu nela) — ela some
+  // do "escondido" na hora, pra aparecer no campinho enquanto essa revelação
+  // ainda está exibida, antes do avanço automático pra próxima carta.
+  const pendingIds = revealing ? new Set((state.revealQueue ?? []).slice(state.revealIdx + 1).map(it => it.card.id)) : new Set<string>()
   const shown = pendingIds.size ? { ...you, squad: you.squad.filter(c => !pendingIds.has(c.id)) } : you
   if (state.reserveAuction) {
     // "Reservas" só na 2ª temporada (quando se monta o banco); da 3ª em diante é
