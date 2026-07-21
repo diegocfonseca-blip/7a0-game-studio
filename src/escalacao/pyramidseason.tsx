@@ -7,7 +7,7 @@
 // preenchidas pelo resto do baralho, distribuído por força (A a mais forte).
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, oldChain } from './data'
 import type { Card, Manager, Sector, WonCard } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { useEsc, savePyramidCloud } from './store'
@@ -111,27 +111,6 @@ function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | '
 }
 // divisão de origem de um time de CPU (temporada 1) — usada como fallback
 const cpuOrigDiv = (name: string): Div => DIVISION_TEAMS.A.some(t => t.team === name) ? 'A' : DIVISION_TEAMS.B.some(t => t.team === name) ? 'B' : 'C'
-// times RENOMEADOS (saves antigos guardam o nome VELHO em placements/cpuSquads/
-// clubCash): novo → velho. Sem essa ponte, o time renomeado que tinha subido/
-// caído de divisão "voltava" pra origem, a série ficava com 19/21 times e a
-// simulação CRASHAVA ("reading 'human'") pra quem tinha save antigo.
-const OLD_NAME: Record<string, string> = {
-  'Napolitano': 'Canela EC', 'Ponte Branca': 'Grelha SAF', 'CRBebê': 'Peteca FR',
-  'Semervilha': 'Posto 7 FC', 'Real Bets': 'Feira Nova FR', 'Goiaba FC': 'Onça Parda EC',
-  'Leve-cuscuz': 'Foguete FC', 'Torta de Rã': 'Fogaréu EC', 'Astronáutico': 'Sinhô Futebol',
-  'Inter Estadual': 'Bigode FC', 'Cuiabagre': 'Bagres do Rio', 'Santos Dumont': 'Tonhão FC',
-  'Pardemeias': 'Tico do Bar FR', 'Livre-pool': 'Xandão EC',
-  'White Thigs do GuGu': 'Astronáutico',
-}
-// corrente completa de nomes antigos de um time (renomeado mais de uma vez):
-// 'White Thigs do GuGu' → ['Astronáutico', 'Sinhô Futebol'] — saves de QUALQUER
-// geração acham o histórico (divisão, elenco, caixa, títulos).
-const oldChain = (name: string): string[] => {
-  const out: string[] = []
-  let n: string | undefined = OLD_NAME[name]
-  while (n && !out.includes(n)) { out.push(n); n = OLD_NAME[n] }
-  return out
-}
 // chave estável de um time: técnico = m<id>; CPU = nome
 export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? `m${t.teamId}` : t.name
 

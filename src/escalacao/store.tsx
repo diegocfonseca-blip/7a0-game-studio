@@ -5,7 +5,7 @@ import type {
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, newestTeamName } from './data'
 
 // baralho ativo da partida atual (só solo troca): 🇧🇷 Brasileirão ou 🌍 Liga
 // Europa. buildDeck e makeBotSquad leem daqui. É setado no início de cada
@@ -704,6 +704,29 @@ function otherDivRivalDefs(rivals: CareerRival[], div: Division): CareerTeam[] {
 
 // monta a liga da carreira: você + rivais QUE ESTÃO NA SUA DIVISÃO (dão lance no
 // leilão e jogam contra você) + o resto da divisão como preenchimento nomeado.
+
+// ─── MIGRAÇÃO de nomes de times renomeados, na CARGA do save ─────────────
+// A carreira da pirâmide cria os 20 técnicos UMA vez e eles vivem no save —
+// um time renomeado (ex.: Sinhô Futebol → White Thigs do GuGu) ficava com o
+// nome da época pra sempre. Aqui, ao restaurar, todo nome velho vira o atual
+// carregando junto colocação, elenco, caixa e títulos. Nome de HUMANO não muda.
+function migrateTeamNames(st: EscState): EscState {
+  const mapKeys = <V,>(rec: Record<string, V> | null | undefined): typeof rec => {
+    if (!rec) return rec
+    const out: Record<string, V> = {}
+    for (const k in rec) { const nk = newestTeamName(k); if (!(nk in out) || nk === k) out[nk] = rec[k] }
+    return out
+  }
+  if (Array.isArray(st.managers)) st.managers = st.managers.map(m => m.isHuman ? m : { ...m, teamName: newestTeamName(m.teamName) })
+  if (st.careerRivals) st.careerRivals = st.careerRivals.map(r => ({ ...r, team: newestTeamName(r.team) }))
+  st.careerPlacements = mapKeys(st.careerPlacements) ?? st.careerPlacements
+  st.cpuSquads = mapKeys(st.cpuSquads) ?? st.cpuSquads
+  st.clubCash = mapKeys(st.clubCash) ?? st.clubCash
+  st.careerHonors = mapKeys(st.careerHonors) ?? st.careerHonors
+  st.careerCopaHonors = mapKeys(st.careerCopaHonors) ?? st.careerCopaHonors
+  return st
+}
+
 function makeCareerManagers(teamName: string, formation: FormationKey, div: Division, rivalDefs: CareerTeam[], otherRivalDefs: CareerTeam[], rng: () => number): { managers: Manager[]; botPlans: BotPlan[] } {
   const forms: FormationKey[] = ['4-3-3', '4-4-2']
   const human: Manager = { id: 0, name: teamName, teamName, isHuman: true, auctionRival: true, formation, money: START_MONEY, squad: [], aggression: 0.5, starHunger: 0.5 }
@@ -1590,7 +1613,7 @@ export function reducer(state: EscState, action: Action): EscState {
     // reconexão/host-caiu: adota o estado salvo no banco em vez de recomeçar
     // do zero. A identidade ("quem sou eu", host?) é sempre local a este
     // cliente; efêmeros host-only voltam limpos (já vêm sanitizados).
-    return {
+    return migrateTeamNames({
       ...action.state,
       rivalries: action.state.rivalries ?? {}, // saves antigos sem o campo
       cpuAtkAdj: action.state.cpuAtkAdj ?? 0,
@@ -1604,7 +1627,7 @@ export function reducer(state: EscState, action: Action): EscState {
       pendingEnvelopes: {},
       tiebreakPending: {},
       presence: [],
-    }
+    })
   }
   if (action.type === 'NEW_GAME') return { ...INITIAL }
   const s: EscState = JSON.parse(JSON.stringify(state))
@@ -1775,7 +1798,7 @@ export function reducer(state: EscState, action: Action): EscState {
       setActiveCatalog(action.saved.deckLeague)
       // nunca retoma numa tela lateral (álbum/ranking) — cai sempre no jogo.
       const scr = (action.saved.screen === 'album' || action.saved.screen === 'ranking') ? 'season' : action.saved.screen
-      return { ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true }
+      return migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true })
     }
     case 'START_ONLINE': {
       s.onlineMode = 'online'
@@ -2459,6 +2482,7 @@ export function reducer(state: EscState, action: Action): EscState {
         : DIVISION_TEAMS[sv.division].slice(0, s.careerRivalCount).map(t => ({ team: t.team, name: t.name, division: sv.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
+      s.careerRivals = s.careerRivals.map(r => ({ ...r, team: newestTeamName(r.team) }))
       const { managers, botPlans } = makeCareerManagers(sv.teamName, sv.formation, sv.division, coDivRivalDefs(s.careerRivals, sv.division), action.redraft ? otherDivRivalDefs(s.careerRivals, sv.division) : [], rng)
       s.managers = managers
       s.youIdx = 0
