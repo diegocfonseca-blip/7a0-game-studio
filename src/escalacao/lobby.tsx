@@ -4,7 +4,8 @@ import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useEsc } from './store'
 import { AdminButton, useCanCareerOnline } from './admin'
-import { apoioSelo, stripEmoji } from './apoio'
+import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen } from './apoio'
+import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import type { EscState, FormationKey } from './types'
 
@@ -17,6 +18,10 @@ type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'
 
 interface RoomPlayer { user_id: string; manager_name: string; player_index: number }
+// tier de apoio de um jogador da sala, lido pelo SELO que viaja no nome dele
+// (👑 ouro · ⭐ prata · 💎 roxo) — assim TODOS veem a bolinha brilhando, não só o dono
+const perkFromName = (n: string): ApoioPerk | null =>
+  n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : null
 type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; mode?: 'rapido' | 'carreira'; deck?: DeckChoice }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
@@ -1154,7 +1159,13 @@ export function EscLobby() {
         <div className="space-y-2">
           {players.map(p => (
             <div key={p.user_id} className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full border-2 border-black bg-gray-300 flex items-center justify-center text-sm font-black">{p.manager_name[0]?.toUpperCase()}</div>
+              {(() => { const pk = perkFromName(p.manager_name); return (
+                <div className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center text-sm font-black"
+                  style={pk ? { background: pk.grad, position: 'relative', overflow: 'hidden', color: '#0C0C0C' } : { background: '#d1d5db' }}>
+                  <span style={{ position: 'relative', zIndex: 2 }}>{stripEmoji(p.manager_name).trim()[0]?.toUpperCase()}</span>
+                  {pk && <ApoioSheen holo={pk.holo} dur={2.6} />}
+                </div>
+              ) })()}
               <span className="font-black text-black text-sm flex-1">{p.manager_name}</span>
               {p.user_id === room.host_id && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full">HOST</span>}
               {isHost && p.user_id !== user?.id && (
