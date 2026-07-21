@@ -112,7 +112,7 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
 }
 
 // 🏢 GRUPO EMPRESARIAL — EM TESTE: só estas contas veem (depois abre pra todos)
-const FILIAL_TESTERS = ['diego.c.fonseca@gmail.com', 'lnantes49@gmail.com']
+const FILIAL_TESTERS = ['diego.c.fonseca@gmail.com', 'lnantes49@gmail.com', 'ln6739633@gmail.com']
 export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions, filialInfo, onBuyFilial }: {
   st: StadiumSave | undefined
   coins: number
