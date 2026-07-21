@@ -2131,6 +2131,7 @@ export function reducer(state: EscState, action: Action): EscState {
         s.reserveAuction = false
       }
       s.screen = 'season'
+      healXIHoles(s) // rede final: humano NUNCA começa temporada com buraco no XI (silencioso)
       return s
     }
     case 'SET_TACTIC': {
@@ -2260,6 +2261,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.round = 0
       s.champion = null
       s.careerTactics = {} // nova temporada: táticas por jogo zeram
+      healXIHoles(s) // rede final: ninguém vira a temporada com buraco no XI (silencioso)
       return s
     }
     case 'REAUCTION_ONLINE': {
