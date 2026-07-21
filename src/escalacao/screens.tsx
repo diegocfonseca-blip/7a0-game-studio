@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { Card, EscState, FormationKey, Manager, Sector, Tactic, WonCard } from './types'
+import type { Card, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
 import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, START_MONEY, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, loadPyramidCloud, deletePyramidCloud } from './store'
 import type { CareerSave } from './store'
@@ -15,7 +15,7 @@ import { CareerOnlineButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
-import { playerColors, LiveScoreCard } from './pyramidseason'
+import { playerColors, LiveScoreCard, PensShootout, COPA_LEG_MS } from './pyramidseason'
 
 // universo colecionável = os DOIS baralhos (BR + Europa), por nomes únicos
 // (Kaká, Cafu etc. aparecem nos dois — conta uma vez só).
@@ -780,6 +780,7 @@ export function EscSetup() {
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
   const [league, setLeague] = useState<'br' | 'eu' | 'both'>('br') // baralho: 🇧🇷 Brasileirão, 🌍 Liga Europa ou 🌎 os dois juntos
+  const [copaMode, setCopaMode] = useState<'liga' | 'liga_copa'>('liga_copa') // rápido offline: liga só ou liga + copa dos 8
   // carreira: quais times da Série D viram seus rivais fixos (vazio = os padrões).
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
@@ -819,7 +820,7 @@ export function EscSetup() {
     // carreira offline = pirâmide de 4 divisões (baralho sempre BR + Europa juntos).
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.
     if (career) dispatch({ type: 'START_CAREER_SOLO', teamName: clean, formation, rivals, rivalTeams: picks, league: 'both' })
-    else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league })
+    else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league, copaMode })
   }
   return (
     <Shell>
@@ -865,6 +866,21 @@ export function EscSetup() {
           <p className="text-[11px] font-semibold text-black/55 mt-1">{league === 'br' ? 'Auges do futebol brasileiro — de Pelé a Obina.' : league === 'eu' ? 'Auges nos clubes europeus — de Yashin a Mbappé.' : 'Brasileirão + Europa juntos (~700 nomes) — craques e folclóricos dos dois lados no mesmo martelo.'}</p>
           {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>🃏 Quer resenha? Só aqui tem até o Walter Minhoca.</p>}
         </div>
+        )}
+        {!career && (
+          <div>
+            <p className="text-xs font-black uppercase mb-1">Depois da liga</p>
+            <div className="grid grid-cols-2 gap-2">
+              {([['liga_copa', '🏆 Liga + Copa'], ['liga', '📊 Só Liga']] as ['liga_copa' | 'liga', string][]).map(([m, label]) => (
+                <button key={m} onClick={() => setCopaMode(m)}
+                  className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
+                  style={{ backgroundColor: copaMode === m ? GOLD : '#fff', boxShadow: copaMode === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] font-semibold text-black/55 mt-1">{copaMode === 'liga_copa' ? '🏆 Quando a liga acaba, os 8 primeiros disputam a Copa (ida e volta, final única) antes do fim de jogo.' : '📊 Termina a liga e já mostra o resultado — jogo mais curto.'}</p>
+          </div>
         )}
         <div>
           <p className="text-xs font-black uppercase mb-1">Nome do seu time</p>
@@ -2071,6 +2087,18 @@ export function EscSeason() {
     return () => clearTimeout(t)
   }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs])
 
+  // 🏆 Copa dos 8: a liga acabou (round 38) e a sala escolheu Liga + Copa —
+  // toca fase a fase (quartas → semis → final), mesmo ritmo/motor da Copa da
+  // carreira (COPA_LEG_MS). `s.screen` só vira 'end' quando a final termina.
+  const qc = state.quickCopa
+  const copaLive = state.round >= 38 && !!qc && qc.phase !== 'done'
+  const copaTieKey = qc ? `${qc.phase}:${qc.legIdx}:${qc.ties.map(t => t.legs.length).join(',')}` : ''
+  useEffect(() => {
+    if (!canAdvance || !copaLive || manual) return
+    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), COPA_LEG_MS)
+    return () => clearTimeout(t)
+  }, [copaTieKey, copaLive, canAdvance, manual, dispatch])
+
   return (
     <Shell bar={
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
@@ -2078,7 +2106,7 @@ export function EscSeason() {
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
           {state.careerOnline && !state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 CARREIRA · SÉRIE D</span>}
           {state.careerTitlesA > 0 && <span className="mr-1.5"><CareerStars n={state.careerTitlesA} size={12} /></span>}
-          RODADA {Math.min(state.round + 1, 38)}/38
+          {copaLive && qc ? `🏆 COPA · ${qc.phase === 'quartas' ? 'QUARTAS' : qc.phase === 'semis' ? 'SEMI' : 'FINAL'}` : `RODADA ${Math.min(state.round + 1, 38)}/38`}
         </span>
         <span className="font-black text-sm" style={OSWALD}>{(() => {
           const disp = !resultRevealed && state.lastResults.length > 0 ? sortedTable(leagueBeforeResults(state.league, state.lastResults)) : table
@@ -2087,7 +2115,78 @@ export function EscSeason() {
         })()}</span>
       </div>
     }>
-      {myLast ? (() => {
+      {copaLive && qc ? (() => {
+        const phaseLabel = qc.phase === 'quartas' ? 'Quartas de Final' : qc.phase === 'semis' ? 'Semifinal' : 'Final'
+        const legLabel = qc.phase === 'final' ? 'Jogo único' : qc.legIdx === 0 ? 'Jogo de ida' : 'Jogo de volta'
+        const myTie = qc.ties.find(t => t.aId === you.id || t.bId === you.id)
+        const otherTies = qc.ties.filter(t => t !== myTie)
+        const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
+        const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
+        const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/); return mm ? mm[1] : text.replace(/^⚽\s*/, '').replace(/\.$/, '') }
+        const tieRow = (tie: QuickCopaTie) => {
+          const decided = tie.winner != null
+          const aWin = tie.winner === tie.aId
+          const aggA = tie.legs.reduce((s2, l) => s2 + l[0], 0)
+          const aggB = tie.legs.reduce((s2, l) => s2 + l[1], 0)
+          const mine = tie.aId === you.id || tie.bId === you.id
+          return (
+            <Box key={`${tie.aId}-${tie.bId}`} bg={mine ? '#FFF6D6' : '#fff'} className="p-3" shadow={4}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
+                <span className="font-black text-sm truncate" style={{ ...OSWALD, color: decided && !aWin ? 'rgba(0,0,0,.4)' : INK, textDecoration: decided && !aWin ? 'line-through' : 'none' }}>{tie.aName}{tie.aId === you.id ? ' (você)' : ''}</span>
+                <span className="font-black text-sm px-2 py-0.5 rounded" style={{ ...OSWALD, background: INK, color: '#fff' }}>{aggA} × {aggB}</span>
+                <span className="font-black text-sm truncate text-right" style={{ ...OSWALD, color: decided && aWin ? 'rgba(0,0,0,.4)' : INK, textDecoration: decided && aWin ? 'line-through' : 'none' }}>{tie.bName}{tie.bId === you.id ? ' (você)' : ''}</span>
+              </div>
+              {tie.legs.length > 0 && (
+                <p className="text-[10px] font-bold text-black/45 text-center mt-1">
+                  {tie.legs.length === 1 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]}` : `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}`}
+                </p>
+              )}
+              {tie.pens && <PensShootout pens={tie.pens} aName={tie.aName} bName={tie.bName} />}
+            </Box>
+          )
+        }
+        return (
+          <>
+            <Box bg={INK} className="p-3 text-center" shadow={4}>
+              <p className="font-black text-sm" style={{ ...OSWALD, color: GOLD }}>🏆 COPA DOS 8 · {phaseLabel.toUpperCase()}</p>
+              <p className="font-black text-[11px]" style={{ color: 'rgba(255,255,255,.75)' }}>{legLabel}</p>
+            </Box>
+            {myTie ? (
+              myTie.winner != null ? tieRow(myTie) : myTie.legs.length > 0 ? (() => {
+                const lastLegIdx = myTie.legs.length - 1
+                const legHomeId = lastLegIdx === 0 ? myTie.aId : myTie.bId
+                const legAwayId = lastLegIdx === 0 ? myTie.bId : myTie.aId
+                const homeIsYou = legHomeId === you.id
+                const oppId = homeIsYou ? legAwayId : legHomeId
+                const oppIsHuman = state.managers.some(m => m.id === oppId && m.isHuman)
+                const oppColor = oppIsHuman ? '#E8503A' : '#3A7CA5'
+                const hl = myTie.lastHighlights ?? []
+                const goals = hl.map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === legHomeId }))
+                return <LiveScoreCard key={`copa-${qc.phase}-${myTie.legs.length}`}
+                  homeName={nameOf(legHomeId)} awayName={nameOf(legAwayId)}
+                  homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
+                  youIsHome={homeIsYou} goals={goals}
+                  roundKey={myTie.legs.length + (qc.phase === 'quartas' ? 0 : qc.phase === 'semis' ? 10 : 20)}
+                  roundMs={COPA_LEG_MS} classico={oppIsHuman} />
+              })() : (
+                <Box bg="#fff" className="p-6" shadow={6}>
+                  <p className="text-center font-black" style={OSWALD}>🏁 Aguardando o pontapé inicial da Copa…</p>
+                </Box>
+              )
+            ) : (
+              <Box bg="#fff" className="p-4" shadow={6}>
+                <p className="text-center font-black text-sm" style={OSWALD}>Acompanhe a Copa dos 8 chegando ao fim…</p>
+              </Box>
+            )}
+            {otherTies.length > 0 && (
+              <div>
+                <p className="text-xs font-black uppercase text-black/50 mt-1 mb-1">Outros jogos da fase</p>
+                <div className="space-y-2">{otherTies.map(t => tieRow(t))}</div>
+              </div>
+            )}
+          </>
+        )
+      })() : myLast ? (() => {
         // mesmo placar da carreira (LiveScoreCard): relógio, GOOOL, flash e bump.
         const homeIsYou = myLast.homeId === you.id
         const oppId = homeIsYou ? myLast.awayId : myLast.homeId
@@ -2111,7 +2210,12 @@ export function EscSeason() {
           onNext={() => dispatch({ type: 'PLAY_ROUND' })}
           nextLabel={state.round === 0 && !myLast ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
       )}
-      {lastWasClassico && lastRiv && resultRevealed && (
+      {!online && manual && copaLive && (
+        <SimControls manual={manual} onToggle={toggleSim} canNext
+          onNext={() => dispatch({ type: 'PLAY_COPA_LEG' })}
+          nextLabel="⚽ Próximo jogo da Copa" />
+      )}
+      {!copaLive && lastWasClassico && lastRiv && resultRevealed && (
         <Box bg={myGoals > oppGoals ? GREEN : myGoals < oppGoals ? RED : '#fff'} className="p-3 text-center" shadow={4}>
           <p className="font-black text-sm" style={{ ...OSWALD, color: myGoals === oppGoals ? INK : '#fff' }}>
             ⚔️ CLÁSSICO {myGoals > oppGoals ? 'VENCIDO' : myGoals < oppGoals ? 'PERDIDO' : 'EMPATADO'} contra {lastOppName}
@@ -3547,7 +3651,7 @@ function OnlineEndVote() {
         roomId: state.roomId, roomCode: state.roomCode, roomName: state.roomName,
         isHost: state.isHost, playerIndex: state.youIdx,
         playerNames, formation: state.managers[state.youIdx]?.formation ?? '4-3-3',
-        deck: state.deckLeague, rematch: Date.now(),
+        deck: state.deckLeague, rematch: Date.now(), copaMode: state.copaMode, // mantém a escolha da sala
       })
     } catch { dispatch({ type: 'REMATCH' }) }
   }
@@ -3682,6 +3786,21 @@ export function EscEnd() {
       )}
       {!online && youWon && (
         <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" onClaimed={setMyCard} />
+      )}
+      {/* 🏆 Copa dos 8: quem é campeão da Copa ganha carta À PARTE do título da
+          liga (pode ganhar as duas na mesma temporada) — seasonKey própria com
+          sufixo ":copa" pra não colidir com a carta da liga. */}
+      {state.quickCopa?.phase === 'done' && state.quickCopa.champion && (
+        <Box bg="#FFF6D6" className="p-3 text-center" shadow={4}>
+          <p className="font-black text-sm" style={OSWALD}>🏆 Campeão da Copa dos 8: {state.quickCopa.champion.you ? 'VOCÊ!' : state.quickCopa.champion.name}</p>
+        </Box>
+      )}
+      {state.quickCopa?.champion?.you && (
+        online && state.roomId ? (
+          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}:copa`} origin="online" onClaimed={setMyCard} />
+        ) : !online ? (
+          <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`} origin="cpu" onClaimed={setMyCard} />
+        ) : null
       )}
       <TableBox highlight={you.id} />
       <TopScorersBox highlight={you.id} />

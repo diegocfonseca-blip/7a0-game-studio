@@ -627,7 +627,7 @@ const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série
 // ritmo da carreira online: +1s por jogo em relação aos outros modos, pra dar
 // tempo de decidir tática/Time A-B durante a partida: 8s por rodada (fixo). Só aqui.
 const ROUND_MS = 8000
-const COPA_LEG_MS = 8000 // cada JOGO da Copa rola ~8s (como uma partida da liga: 90'+acréscimos). Fase de ida-e-volta = 2×; final (jogo único) = 1×.
+export const COPA_LEG_MS = 8000 // cada JOGO da Copa rola ~8s (como uma partida da liga: 90'+acréscimos). Fase de ida-e-volta = 2×; final (jogo único) = 1×.
 
 // COR DO TIME: todo mundo começa na cor BEGE do "Foi Profissional" — a cor
 // de todo mundo. Cor diferente (verde/roxo/prata/OURO com brilho) é benefício
@@ -1178,7 +1178,7 @@ const copaDt = (d: Div) => <span style={{ fontWeight: 900, fontSize: 8.5, border
 // ── DISPUTA DE PÊNALTIS animada: as cobranças aparecem uma a uma, alternando
 // os times (verde = gol, vermelho = perdeu), e o total fecha no fim. A ordem
 // das cobranças é sorteada de forma determinística a partir do próprio placar.
-function PensShootout({ pens, aName, bName }: { pens: [number, number]; aName: string; bName: string }) {
+export function PensShootout({ pens, aName, bName }: { pens: [number, number]; aName: string; bName: string }) {
   // REGRA REAL: 5 cobranças alternadas; PARA na hora que decide (quem não
   // alcança mais nem batendo todas, acabou — as bolinhas restantes ficam
   // vazias). 6×5 = foi perfeito até o fim e decidiu na morte súbita.
@@ -1646,6 +1646,14 @@ export function PyramidSeasonScreen() {
         {copaFinished && me?.champ && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
             <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`} origin={state.roomId ? 'online' : 'cpu'} />
+          </div>
+        )}
+        {/* 🏆 Campeão da COPA LEGENDS (mata-mata dos 16) ganha carta À PARTE do
+            título de divisão — pode ser um time diferente, ou o mesmo ganhando as
+            duas. seasonKey própria (sufixo ":copa") pra não colidir com a de cima. */}
+        {copaFinished && copa?.champion?.you && state.careerOnline && (
+          <div style={{ marginBottom: 12 }}>
+            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:copa`} origin={state.roomId ? 'online' : 'cpu'} />
           </div>
         )}
         {copaFinished && (() => {
