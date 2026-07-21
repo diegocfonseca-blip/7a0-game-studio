@@ -3971,8 +3971,8 @@ export function EscEnd() {
   )
   // versão SÓ LIGA do topo (sem Copa): mesmo visual bonito do painel, mas com um
   // quadro só + a frase da colocação. Substitui o antigo radião no rápido comum.
-  const ligaOnlyHeader = (
-    <div className="pt-6">
+  const ligaOnlyHeader = (padTop = 'pt-6') => (
+    <div className={padTop}>
       <p className="text-center text-xs font-black uppercase tracking-widest text-black/45 mb-1" style={OSWALD}>🏁 Fim da temporada</p>
       <Box bg={INK} className="p-4 text-center" shadow={6}>
         <p className="font-black text-2xl truncate" style={{ ...OSWALD, color: '#fff' }}>{you.teamName}</p>
@@ -4038,7 +4038,7 @@ export function EscEnd() {
         </>
       ) : (
       <>
-      {!copaPending && (state.careerDivision ? placementHeader('pt-8') : ligaOnlyHeader)}
+      {!copaPending && (state.careerDivision ? placementHeader('pt-8') : ligaOnlyHeader())}
       {ligaChampionCard}
       {copaPending && state.quickCopa && (
         <Box bg={GOLD} className="p-4 space-y-2" shadow={6}>
@@ -4068,7 +4068,7 @@ export function EscEnd() {
           )}
         </Box>
       )}
-      {copaPending && placementHeader('pt-2')}
+      {copaPending && ligaOnlyHeader('pt-2')}
       {ligaBlocks}
       </>
       )}
