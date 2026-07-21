@@ -1095,6 +1095,18 @@ function Envelope() {
   const pos = SECTORS[state.sectorIdx]
   const rescue = state.phase === 'resq_envelope'
   const [bids, setBids] = useState<Record<string, number>>({})
+  // PRIMEIRA partida da vida: dica dourada que alterna por setor (moedas ↔ auge).
+  // HOOKS AQUI NO TOPO, antes de qualquer return condicional — colocar depois
+  // derrubava o online com React #300 quando o envelope era lacrado.
+  const [firstGame] = useState(() => {
+    try {
+      if (localStorage.getItem('esc-tip-lance-v1')) return false
+      localStorage.setItem('esc-tip-lance-v1', '1')
+      return true
+    } catch { return false }
+  })
+  const [tipClosed, setTipClosed] = useState(false)
+  useEffect(() => { setTipClosed(false) }, [state.sectorIdx])
   // "enviei mas ainda não veio confirmação do host" — sem isso, se o host
   // demorar (ou tiver caído), o jogador ficava vendo os lances dele
   // somem sem nunca lacrar de verdade: um clique em LACRAR sempre limpava
@@ -1239,18 +1251,6 @@ function Envelope() {
   const bidLimit = myOpen
   const chosenCount = Object.keys(bids).length
 
-  // PRIMEIRA partida da vida: dica dourada que ALTERNA por setor — moedas
-  // (quem dá mais leva) num setor, auge do Kaká no outro. O × fecha só a do
-  // setor atual; no próximo setor volta com o outro texto. Depois, nunca mais.
-  const [firstGame] = useState(() => {
-    try {
-      if (localStorage.getItem('esc-tip-lance-v1')) return false
-      localStorage.setItem('esc-tip-lance-v1', '1')
-      return true
-    } catch { return false }
-  })
-  const [tipClosed, setTipClosed] = useState(false)
-  useEffect(() => { setTipClosed(false) }, [state.sectorIdx])
   const showLanceTip = firstGame && !tipClosed
   const tipTxt = state.sectorIdx % 2 === 0
     ? <>💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 100 pra montar o time inteiro.</>
