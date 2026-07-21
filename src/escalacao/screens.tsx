@@ -3878,16 +3878,22 @@ export function EscEnd() {
   const humanIds = state.managers.filter(m => m.isHuman).map(m => m.id)
   const readyCount = state.restartReady.filter(id => humanIds.includes(id)).length
   const iAmReady = state.restartReady.includes(state.youIdx)
+  // cabeçalho da SUA colocação na liga (troféu/rádio + Nº lugar + frase). Quando
+  // tem Copa pendente, ele desce pra perto da TABELA — a Copa é que fica no topo
+  // (é a próxima ação). Sem Copa, fica no topo como sempre.
+  const placementHeader = (padTop: string) => (
+    <div className={`text-center ${padTop}`}>
+      <p className="text-6xl">{youWon ? '🏆' : youPos <= 4 ? '🥈' : youPos >= 17 ? '🪦' : '📻'}</p>
+      <h2 className="font-black text-4xl mt-2" style={OSWALD}>{youWon ? 'CAMPEÃO!' : `${youPos}º LUGAR`}</h2>
+      <p className="font-semibold text-black/60 mt-1">
+        {youWon ? 'O pregão foi seu, o campeonato foi seu. Resenha eterna.' : `Campeão: ${champ.name}. ${youPos >= 17 ? 'Rebaixado. O leilão cobra caro.' : 'Ano que vem tem pregão de novo.'}`}
+      </p>
+    </div>
+  )
   return (
     <Shell hideExit={online}>
       <RankResultWriter />
-      <div className="text-center pt-8">
-        <p className="text-6xl">{youWon ? '🏆' : youPos <= 4 ? '🥈' : youPos >= 17 ? '🪦' : '📻'}</p>
-        <h2 className="font-black text-4xl mt-2" style={OSWALD}>{youWon ? 'CAMPEÃO!' : `${youPos}º LUGAR`}</h2>
-        <p className="font-semibold text-black/60 mt-1">
-          {youWon ? 'O pregão foi seu, o campeonato foi seu. Resenha eterna.' : `Campeão: ${champ.name}. ${youPos >= 17 ? 'Rebaixado. O leilão cobra caro.' : 'Ano que vem tem pregão de novo.'}`}
-        </p>
-      </div>
+      {!copaPending && placementHeader('pt-8')}
       {online && youWon && state.roomId && (
         <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}`} origin="online" onClaimed={setMyCard} />
       )}
@@ -3929,6 +3935,7 @@ export function EscEnd() {
           </Btn>
         </Box>
       )}
+      {copaPending && placementHeader('pt-2')}
       <TableBox highlight={you.id} />
       <TopScorersBox highlight={you.id} />
       {online && state.roomId && (
