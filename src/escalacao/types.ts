@@ -160,6 +160,7 @@ export interface QuickCopaState {
   legIdx: 0 | 1          // perna sendo jogada agora (final usa só a 0 — jogo único)
   bracket: { phase: 'quartas' | 'semis' | 'final'; ties: QuickCopaTie[] }[] // fases já fechadas
   champion?: { id: number; name: string; you: boolean } | null
+  scorers?: ScorerRow[] // 🏆 artilharia SÓ da Copa (não mistura com a da liga)
 }
 
 export interface ScorerRow {
