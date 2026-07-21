@@ -2093,11 +2093,30 @@ export function EscSeason() {
   const qc = state.quickCopa
   const copaLive = state.round >= 38 && !!qc && qc.phase !== 'done'
   const copaTieKey = qc ? `${qc.phase}:${qc.legIdx}:${qc.ties.map(t => t.legs.length).join(',')}` : ''
+  // primeira partida da Copa (quartas, ainda ninguém jogou nada): dá um tempo
+  // de LEITURA maior (45s, mesmo tanto da escolha da carta) pra explicar o
+  // formato antes de começar a rolar bola — as demais trocas de fase seguem
+  // no ritmo normal (COPA_LEG_MS), sem essa pausa extra.
+  const firstLegPending = copaLive && qc!.phase === 'quartas' && qc!.legIdx === 0 && qc!.ties.every(t => t.legs.length === 0)
+  const [copaFirstLeft, setCopaFirstLeft] = useState(CARD_PICK_SECONDS)
+  const copaFirstFiredRef = useRef(false)
   useEffect(() => {
-    if (!canAdvance || !copaLive || manual) return
+    if (!canAdvance || !firstLegPending || manual) return
+    copaFirstFiredRef.current = false
+    setCopaFirstLeft(CARD_PICK_SECONDS)
+    const t0 = Date.now()
+    const iv = setInterval(() => {
+      const left = Math.max(0, CARD_PICK_SECONDS - Math.floor((Date.now() - t0) / 1000))
+      setCopaFirstLeft(left)
+      if (left <= 0 && !copaFirstFiredRef.current) { copaFirstFiredRef.current = true; dispatch({ type: 'PLAY_COPA_LEG' }) }
+    }, 250)
+    return () => clearInterval(iv)
+  }, [firstLegPending, canAdvance, manual, dispatch])
+  useEffect(() => {
+    if (!canAdvance || !copaLive || manual || firstLegPending) return
     const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), COPA_LEG_MS)
     return () => clearTimeout(t)
-  }, [copaTieKey, copaLive, canAdvance, manual, dispatch])
+  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending])
 
   return (
     <Shell bar={
@@ -2151,6 +2170,17 @@ export function EscSeason() {
               <p className="font-black text-sm" style={{ ...OSWALD, color: GOLD }}>🏆 COPA DOS 8 · {phaseLabel.toUpperCase()}</p>
               <p className="font-black text-[11px]" style={{ color: 'rgba(255,255,255,.75)' }}>{legLabel}</p>
             </Box>
+            {firstLegPending && (
+              <Box bg={GOLD} className="p-4 space-y-2" shadow={6}>
+                <p className="font-black text-base text-center" style={OSWALD}>🏆 Chegou a Copa dos 8!</p>
+                <p className="text-sm font-bold text-center text-black/75">
+                  Os 8 melhores da liga se enfrentam ida e volta: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passar cai na semifinal — e a final é jogo único. O campeão da Copa ganha <b>outra carta</b> pro álbum, além da carta da liga!
+                </p>
+                {!manual && (
+                  <p className="text-center font-black text-sm" style={OSWALD}>⚽ A primeira partida começa em {copaFirstLeft}s</p>
+                )}
+              </Box>
+            )}
             {myTie ? (
               myTie.winner != null ? tieRow(myTie) : myTie.legs.length > 0 ? (() => {
                 const lastLegIdx = myTie.legs.length - 1
@@ -3748,6 +3778,7 @@ function OnlineEndVote() {
 
 export function EscEnd() {
   const { state, dispatch } = useEsc()
+  const [manualPref] = useSimMode()
   const you = state.managers[state.youIdx]
   const table = sortedTable(state.league)
   const champ = table[0]
@@ -3755,7 +3786,31 @@ export function EscEnd() {
   const youWon = champ.id === you.id
   const online = state.onlineMode === 'online'
   const canRestart = !online || state.isHost
+  const manual = manualPref && !online
   const myScorer = topScorers(state, 1)[0]
+  // 🏆 Copa dos 8: liga acabou com Copa marcada e ainda não começou nenhuma
+  // partida dela — mostra o chaveamento explicando + botão (ou cronômetro no
+  // modo automático) antes de entrar na Copa. O cronômetro é MAIOR que o da
+  // carta (CARD_PICK_SECONDS) de propósito — a carta só grava no banco quando
+  // o próprio cronômetro dela zera; se este daqui fosse igual ou menor,
+  // poderia trocar de tela ANTES da carta terminar de gravar e o campeão
+  // perderia a carta da liga. Essa folga evita a corrida.
+  const COPA_GATE_S = CARD_PICK_SECONDS + 12
+  const copaPending = !!state.quickCopa && state.quickCopa.phase !== 'done'
+  const [copaLeft, setCopaLeft] = useState(COPA_GATE_S)
+  const copaFiredRef = useRef(false)
+  useEffect(() => {
+    if (!copaPending || manual) return
+    copaFiredRef.current = false
+    setCopaLeft(COPA_GATE_S)
+    const t0 = Date.now()
+    const iv = setInterval(() => {
+      const left = Math.max(0, COPA_GATE_S - Math.floor((Date.now() - t0) / 1000))
+      setCopaLeft(left)
+      if (left <= 0 && !copaFiredRef.current) { copaFiredRef.current = true; dispatch({ type: 'START_COPA' }) }
+    }, 250)
+    return () => clearInterval(iv)
+  }, [copaPending, manual, dispatch])
   // carta-lembrança que o campeão escolheu (entra na imagem de compartilhar)
   const [myCard, setMyCard] = useState<WonCard | null>(null)
   const featured = youWon ? (myCard ?? [...you.squad].sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))[0]) : undefined
@@ -3801,6 +3856,26 @@ export function EscEnd() {
         ) : !online ? (
           <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`} origin="cpu" onClaimed={setMyCard} />
         ) : null
+      )}
+      {copaPending && state.quickCopa && (
+        <Box bg={GOLD} className="p-4 space-y-2" shadow={6}>
+          <p className="font-black text-lg text-center" style={OSWALD}>🏆 COPA DOS 8 · fica ligado!</p>
+          <p className="text-sm font-bold text-center text-black/75">
+            Os 8 melhores da liga entram numa Copa à parte — ida e volta, semifinal e final única. O 1º pega o 8º, o 2º pega o 7º, o 3º pega o 6º, o 4º pega o 5º. Quem for campeão da Copa ganha <b>outra carta</b> pro álbum!
+          </p>
+          <div className="space-y-1.5">
+            {state.quickCopa.ties.map(t => (
+              <div key={`${t.aId}-${t.bId}`} className="flex items-center justify-between gap-2 bg-white/80 rounded-lg px-3 py-1.5 border-2 border-black">
+                <span className="font-black text-xs truncate flex-1" style={OSWALD}>{t.aName}{t.aId === you.id ? ' (você)' : ''}</span>
+                <span className="font-black text-[10px] text-black/50 shrink-0">×</span>
+                <span className="font-black text-xs truncate flex-1 text-right" style={OSWALD}>{t.bName}{t.bId === you.id ? ' (você)' : ''}</span>
+              </div>
+            ))}
+          </div>
+          <Btn onClick={() => dispatch({ type: 'START_COPA' })} bg={INK} className="w-full text-lg">
+            <span className="text-white">{manual ? '▶️ Iniciar Copa dos 8' : `▶️ A Copa começa em ${copaLeft}s (toque pra já)`}</span>
+          </Btn>
+        </Box>
       )}
       <TableBox highlight={you.id} />
       <TopScorersBox highlight={you.id} />
