@@ -2000,9 +2000,9 @@ export function EscCerimonia() {
 const TACTIC_LABEL: Record<Tactic, string> = { retranca: '🧱 Retranca', equilibrio: '⚖️ Equilíbrio', ataque: '🔥 Ataque' }
 export const SEASON_TOTAL_MS = 180_000
 const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // ~4,7s por rodada
-// 🏆 Copa dos 8 (rápido): cada JOGO roda +5s mais devagar que a Copa da carreira,
+// 🏆 Copa dos 8 (rápido): cada JOGO roda +6s mais devagar que a Copa da carreira,
 // pra dar pra acompanhar o placar subindo (Diego achou muito rápido). Só o rápido.
-const QUICK_COPA_LEG_MS = COPA_LEG_MS + 5000
+const QUICK_COPA_LEG_MS = COPA_LEG_MS + 6000
 
 // ── RITMO da simulação (só modos SOLO): auto (padrão) ou manual — no manual
 // a temporada PARA depois de cada rodada e você avança no botão. A escolha
@@ -2129,11 +2129,15 @@ export function EscSeason() {
     }, 250)
     return () => clearInterval(iv)
   }, [firstLegPending, canAdvance, manual, dispatch])
+  // fase acabou de VIRAR (chaveamento novo, nenhuma perna jogada ainda): dá um
+  // respiro CURTO só pra ver quem avançou, e então bate bola. Uma perna normal
+  // (ida/volta) espera o tempo cheio do jogo pra animar o placar todo.
+  const copaJustAdvanced = copaLive && !firstLegPending && !!qc && qc.ties.every(t => t.legs.length === 0)
   useEffect(() => {
     if (!canAdvance || !copaLive || manual || firstLegPending) return
-    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), QUICK_COPA_LEG_MS)
+    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? 3200 : QUICK_COPA_LEG_MS)
     return () => clearTimeout(t)
-  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending])
+  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending, copaJustAdvanced])
   // relógio compartilhado dos placares dos jogos da fase (lista de baixo): sobe
   // 0→93 no mesmo tempo do card grande (COPA_LEG_MS) e reinicia a cada nova perna
   // — assim TODOS os jogos progridem juntos, minuto a minuto, em vez de já mostrar
@@ -2242,7 +2246,10 @@ export function EscSeason() {
               </Box>
             )}
             {myTie ? (
-              myTie.winner != null ? tieRow(myTie) : myTie.legs.length > 0 ? (() => {
+              myTie.legs.length > 0 ? (() => {
+                // SEMPRE anima a última perna jogada (ida OU volta) — antes, quando
+                // a volta decidia a vaga, o card já pulava pro agregado e a volta
+                // não aparecia. Agora ida e volta rolam as duas, cada uma no seu tempo.
                 const lastLegIdx = myTie.legs.length - 1
                 const legHomeId = lastLegIdx === 0 ? myTie.aId : myTie.bId
                 const legAwayId = lastLegIdx === 0 ? myTie.bId : myTie.aId
@@ -2252,12 +2259,19 @@ export function EscSeason() {
                 const oppColor = oppIsHuman ? '#E8503A' : '#3A7CA5'
                 const hl = myTie.lastHighlights ?? []
                 const goals = hl.map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === legHomeId }))
-                return <LiveScoreCard key={`copa-${qc.phase}-${myTie.legs.length}`}
-                  homeName={nameOf(legHomeId)} awayName={nameOf(legAwayId)}
-                  homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
-                  youIsHome={homeIsYou} goals={goals}
-                  roundKey={myTie.legs.length + (qc.phase === 'quartas' ? 0 : qc.phase === 'semis' ? 10 : 20)}
-                  roundMs={QUICK_COPA_LEG_MS} classico={oppIsHuman} />
+                return (
+                  <>
+                    <LiveScoreCard key={`copa-${qc.phase}-${myTie.legs.length}`}
+                      homeName={nameOf(legHomeId)} awayName={nameOf(legAwayId)}
+                      homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
+                      youIsHome={homeIsYou} goals={goals}
+                      roundKey={myTie.legs.length + (qc.phase === 'quartas' ? 0 : qc.phase === 'semis' ? 10 : 20)}
+                      roundMs={QUICK_COPA_LEG_MS} classico={oppIsHuman} />
+                    {myTie.legs.length === 2 && (
+                      <p className="text-center text-[11px] font-black text-black/55 -mt-1">↩️ Ida: {nameOf(myTie.aId)} {myTie.legs[0][0]} × {myTie.legs[0][1]} {nameOf(myTie.bId)}</p>
+                    )}
+                  </>
+                )
               })() : (
                 <Box bg="#fff" className="p-6" shadow={6}>
                   <p className="text-center font-black" style={OSWALD}>🏁 Aguardando o pontapé inicial da Copa…</p>

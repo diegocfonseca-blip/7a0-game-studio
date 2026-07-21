@@ -2320,8 +2320,45 @@ export function reducer(state: EscState, action: Action): EscState {
       const qc = s.quickCopa
       if (!qc || qc.phase === 'done') return s
       if (!qc.scorers) qc.scorers = [] // saves antigos sem o campo
-      const rng = mulberry(s.seed + 90000 + s.seasonNo * 733 + qc.ties.length * 31 + qc.bracket.length * 97 + qc.legIdx * 13)
       const isFinal = qc.phase === 'final'
+      const legsNeeded = isFinal ? 1 : 2 // ida+volta (fases) ou jogo único (final)
+      const legsPlayed = qc.ties[0]?.legs.length ?? 0
+      // ── AVANÇO de fase: passo À PARTE de jogar a perna. Só roda DEPOIS que a
+      // última perna já teve tempo de animar na tela (o dispatch anterior tocou a
+      // perna; este só fecha o chaveamento e monta a próxima fase). Sem isso, a
+      // volta era jogada e a fase virava no MESMO passo — a volta nunca aparecia.
+      if (legsPlayed >= legsNeeded) {
+        qc.bracket = [...qc.bracket, { phase: qc.phase, ties: qc.ties }]
+        if (isFinal) {
+          const champ = qc.ties[0]
+          const champId = champ.winner!
+          const champName = champId === champ.aId ? champ.aName : champ.bName
+          const you = s.managers.find(m => m.id === champId && m.isHuman)
+          qc.champion = { id: champId, name: champName, you: !!you }
+          qc.phase = 'done'
+          qc.ties = []
+          s.screen = 'end'
+        } else {
+          const winnerName = (t: QuickCopaTie) => t.winner === t.aId ? t.aName : t.bName
+          const nextTies: QuickCopaTie[] = qc.phase === 'quartas'
+            ? [
+                { aId: qc.ties[0].winner!, bId: qc.ties[1].winner!, aName: winnerName(qc.ties[0]), bName: winnerName(qc.ties[1]), legs: [], winner: null },
+                { aId: qc.ties[2].winner!, bId: qc.ties[3].winner!, aName: winnerName(qc.ties[2]), bName: winnerName(qc.ties[3]), legs: [], winner: null },
+              ]
+            : [
+                { aId: qc.ties[0].winner!, bId: qc.ties[1].winner!, aName: winnerName(qc.ties[0]), bName: winnerName(qc.ties[1]), legs: [], winner: null },
+              ]
+          qc.phase = qc.phase === 'quartas' ? 'semis' : 'final'
+          qc.ties = nextTies
+          qc.legIdx = 0
+        }
+        return s
+      }
+      // ── JOGA a próxima perna. legIdx = a perna que está sendo jogada/MOSTRADA
+      // agora (0 = ida, 1 = volta) — o rótulo na tela lê daqui, então fica certo.
+      qc.legIdx = legsPlayed as 0 | 1
+      const isLastLeg = legsPlayed + 1 >= legsNeeded // volta (fases) ou o jogo único (final)
+      const rng = mulberry(s.seed + 90000 + s.seasonNo * 733 + qc.ties.length * 31 + qc.bracket.length * 97 + qc.legIdx * 13)
       for (const tie of qc.ties) {
         if (tie.winner !== null) continue
         // ida: A em casa; volta: B em casa (mandante troca). Final: jogo único, A em casa.
@@ -2332,38 +2369,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const leg: [number, number] = qc.legIdx === 0 ? [r.hg, r.ag] : [r.ag, r.hg] // sempre [gols de A, gols de B]
         tie.legs.push(leg)
         tie.lastHighlights = r.highlights
-        if (isFinal || qc.legIdx === 1) resolveQuickCopaTie(tie, rng)
-      }
-      const allDone = qc.ties.every(t => t.winner !== null)
-      if (!allDone) {
-        // final é jogo único — nunca tem 2ª perna
-        if (!isFinal) qc.legIdx = qc.legIdx === 0 ? 1 : 0
-        return s
-      }
-      // fase inteira resolvida: fecha no chaveamento e avança (ou consagra o campeão)
-      qc.bracket = [...qc.bracket, { phase: qc.phase, ties: qc.ties }]
-      if (isFinal) {
-        const champ = qc.ties[0]
-        const champId = champ.winner!
-        const champName = champId === champ.aId ? champ.aName : champ.bName
-        const you = s.managers.find(m => m.id === champId && m.isHuman)
-        qc.champion = { id: champId, name: champName, you: !!you }
-        qc.phase = 'done'
-        qc.ties = []
-        s.screen = 'end'
-      } else {
-        const winnerName = (t: QuickCopaTie) => t.winner === t.aId ? t.aName : t.bName
-        const nextTies: QuickCopaTie[] = qc.phase === 'quartas'
-          ? [
-              { aId: qc.ties[0].winner!, bId: qc.ties[1].winner!, aName: winnerName(qc.ties[0]), bName: winnerName(qc.ties[1]), legs: [], winner: null },
-              { aId: qc.ties[2].winner!, bId: qc.ties[3].winner!, aName: winnerName(qc.ties[2]), bName: winnerName(qc.ties[3]), legs: [], winner: null },
-            ]
-          : [
-              { aId: qc.ties[0].winner!, bId: qc.ties[1].winner!, aName: winnerName(qc.ties[0]), bName: winnerName(qc.ties[1]), legs: [], winner: null },
-            ]
-        qc.phase = qc.phase === 'quartas' ? 'semis' : 'final'
-        qc.ties = nextTies
-        qc.legIdx = 0
+        if (isLastLeg) resolveQuickCopaTie(tie, rng) // só resolve no fim (agregado/pênaltis)
       }
       return s
     }
