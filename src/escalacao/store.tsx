@@ -112,34 +112,18 @@ function fillToEleven(squad: WonCard[], formation: FormationKey, rng: () => numb
   return out
 }
 
-// CARREIRA: um jogador REAL (auge = nome|clube|ano) só pode existir em UM lugar —
-// nem repetido no mesmo time, nem em times diferentes. O Kaká do Milan é um só; o
-// Kaká do Milan e o Kaká do São Paulo são AUGES diferentes (os dois cabem). Ao
-// longo das temporadas o mercado move craques entre os 60 times de fundo e os da
-// sala, e uma conta errada podia deixar o mesmo auge gravado em dois lugares — daí
-// "o mesmo jogador aparece 2x no leilão / em times diferentes". Aqui varremos TODOS
-// os elencos (managers + fichas de fundo), mantendo a 1ª ocorrência (humano > rival
-// > bot > ficha) e trocando a repetição por um filler da MESMA posição, pra nenhum
-// time encolher. Fillers de várzea e incógnitos (fake) são genéricos e podem repetir.
-// Roda em ponto FRIO (abertura do leilão de transferências): limpa o save atual e
-// impede a duplicata de entrar no baralho ou aparecer em campo na próxima temporada.
-function dedupeCareerRealPlayers(s: EscState) {
-  if (!s.careerOnline) return
-  const rng = mulberry((s.seed ^ 0x51514545) >>> 0)
+// CARREIRA: junta os auges (nome|clube|ano) de TODOS os jogadores REAIS que já
+// existem no mundo — elencos da sala + fichas dos 60 times de fundo. Serve pra
+// SEMENTE de exclusão do baralho: o leilão nunca INVENTA uma carta nova de quem já
+// existe em campo (o mesmo Kaká do Milan não é criado do nada em outro time). NÃO
+// mexe em quem já está repetido num save antigo — só impede criar NOVA duplicata.
+// Auges diferentes do mesmo nome (Kaká Milan x Kaká SP) são jogadores distintos.
+function ownedRealIdents(s: EscState): Set<string> {
   const seen = new Set<string>()
   const isReal = (c: WonCard) => !c.fake && c.club !== 'Várzea'
-  const scrub = (squad: WonCard[]) => {
-    for (let i = 0; i < squad.length; i++) {
-      const c = squad[i]
-      if (!isReal(c)) continue
-      const id = ident(c)
-      if (seen.has(id)) squad[i] = fillerCard(c.pos, rng) // repetição vira filler da mesma posição
-      else seen.add(id)
-    }
-  }
-  const rank = (m: Manager) => m.isHuman ? 0 : m.rival ? 1 : 2
-  for (const m of [...s.managers].sort((a, b) => rank(a) - rank(b))) scrub(m.squad as WonCard[])
-  if (s.cpuSquads) for (const name of Object.keys(s.cpuSquads)) scrub(s.cpuSquads[name] as WonCard[])
+  for (const m of s.managers) for (const c of m.squad as WonCard[]) if (isReal(c)) seen.add(ident(c))
+  if (s.cpuSquads) for (const name of Object.keys(s.cpuSquads)) for (const c of s.cpuSquads[name] as WonCard[]) if (isReal(c)) seen.add(ident(c))
+  return seen
 }
 
 // ─── helpers de elenco ───────────────────────────────────────────────
@@ -2524,7 +2508,6 @@ export function reducer(state: EscState, action: Action): EscState {
       // CAIXA. No fim (FINISH_CEREMONY), a caixa vira o que sobrou e tira o fundo.
       if (!s.careerOnline) return s
       setActiveCatalog(s.deckLeague)
-      dedupeCareerRealPlayers(s) // 🔒 zera jogadores reais repetidos ANTES de montar o baralho (o mesmo auge num time só)
       s.marketLog = [] // zera o resumo dos bots pra este leilão
       // 0) limpa as marcas do leilão anterior. marketSellers[pos] = ids dos bots que
       // perderam jogador NAQUELA posição — são eles que podem dar lance nela.
@@ -2578,6 +2561,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // os LISTADOS também: eles voltam pro baralho com vendedor — sem isto o
       // catálogo fresco podia sortear uma CÓPIA idêntica (dois Roberto Carlos!)
       for (const c of listedCards) used.add(ident(c))
+      // 🔒 E TODO jogador REAL que já existe no mundo (elencos da sala + fichas dos 60
+      // times de fundo): assim o baralho NUNCA inventa uma cópia nova de quem já está
+      // em campo. Vale pra reserva (T2) e mercado (T3+). Não mexe em quem já está
+      // repetido num save antigo — só impede CRIAR nova duplicata daqui pra frente.
+      for (const id of ownedRealIdents(s)) used.add(id)
       if (s.seasonNo >= 3) {
         // MERCADO DOS 80 (3ª temporada+): UM FAMOSO (fame ≥ 4) por posição, sorteado
         // entre TODOS os times — os bots da sua liga E os 60 de fundo (via ficha
