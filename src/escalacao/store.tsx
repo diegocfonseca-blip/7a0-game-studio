@@ -899,7 +899,7 @@ function poisson(lambda: number, rng: () => number): number {
 
 const CPU_TACTICS: Tactic[] = ['retranca', 'equilibrio', 'ataque']
 
-function simMatch(state: EscState, homeId: number, awayId: number, rng: () => number): MatchResult {
+function simMatch(state: EscState, homeId: number, awayId: number, rng: () => number, scorersList: ScorerRow[] = state.scorers): MatchResult {
   const isHuman = (id: number) => state.managers.some(m => m.id === id && m.isHuman)
   const involveHuman = isHuman(homeId) || isHuman(awayId)
   const tacticOf = (id: number): Tactic => {
@@ -954,10 +954,10 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         if (!scorerName) scorerName = pool[0].name
       }
       if (scorerName) {
-        // credita no ranking
-        const row = state.scorers.find(s => s.name === scorerName && s.teamId === id)
+        // credita no ranking (liga = state.scorers; Copa = qc.scorers, passado à parte)
+        const row = scorersList.find(s => s.name === scorerName && s.teamId === id)
         if (row) row.goals++
-        else state.scorers.push({ name: scorerName, teamId: id, teamName: prefix, goals: 1 })
+        else scorersList.push({ name: scorerName, teamId: id, teamName: prefix, goals: 1 })
         if (involveHuman) highlights.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id })
       } else if (involveHuman) {
         highlights.push({ min, text: `⚽ Gol de ${prefix}.`, teamId: id })
@@ -992,7 +992,7 @@ function seedQuickCopa(league: LeagueTeam[]): QuickCopaState {
   const top8 = sortedTable(league).slice(0, 8)
   const mk = (a: LeagueTeam, b: LeagueTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
   const ties = [mk(top8[0], top8[7]), mk(top8[3], top8[4]), mk(top8[1], top8[6]), mk(top8[2], top8[5])]
-  return { phase: 'quartas', ties, legIdx: 0, bracket: [] }
+  return { phase: 'quartas', ties, legIdx: 0, bracket: [], scorers: [] }
 }
 // resolve uma tie depois do(s) leg(s) jogado(s): soma o agregado; empate vira
 // pênaltis (mesma fórmula da Copa da carreira — 3 a 5 cobranças, sem empatar 2x).
@@ -2319,6 +2319,7 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'PLAY_COPA_LEG': {
       const qc = s.quickCopa
       if (!qc || qc.phase === 'done') return s
+      if (!qc.scorers) qc.scorers = [] // saves antigos sem o campo
       const rng = mulberry(s.seed + 90000 + s.seasonNo * 733 + qc.ties.length * 31 + qc.bracket.length * 97 + qc.legIdx * 13)
       const isFinal = qc.phase === 'final'
       for (const tie of qc.ties) {
@@ -2326,7 +2327,8 @@ export function reducer(state: EscState, action: Action): EscState {
         // ida: A em casa; volta: B em casa (mandante troca). Final: jogo único, A em casa.
         const homeId = qc.legIdx === 0 ? tie.aId : tie.bId
         const awayId = qc.legIdx === 0 ? tie.bId : tie.aId
-        const r = simMatch(s, homeId, awayId, rng)
+        // 🏆 gols da Copa contam numa artilharia À PARTE (qc.scorers) — não mexe na da liga
+        const r = simMatch(s, homeId, awayId, rng, qc.scorers)
         const leg: [number, number] = qc.legIdx === 0 ? [r.hg, r.ag] : [r.ag, r.hg] // sempre [gols de A, gols de B]
         tie.legs.push(leg)
         tie.lastHighlights = r.highlights

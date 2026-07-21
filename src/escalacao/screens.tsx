@@ -2000,6 +2000,9 @@ export function EscCerimonia() {
 const TACTIC_LABEL: Record<Tactic, string> = { retranca: '🧱 Retranca', equilibrio: '⚖️ Equilíbrio', ataque: '🔥 Ataque' }
 export const SEASON_TOTAL_MS = 180_000
 const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // ~4,7s por rodada
+// 🏆 Copa dos 8 (rápido): cada JOGO roda +3s mais devagar que a Copa da carreira,
+// pra dar pra acompanhar o placar subindo (Diego achou muito rápido). Só o rápido.
+const QUICK_COPA_LEG_MS = COPA_LEG_MS + 3000
 
 // ── RITMO da simulação (só modos SOLO): auto (padrão) ou manual — no manual
 // a temporada PARA depois de cada rodada e você avança no botão. A escolha
@@ -2128,7 +2131,7 @@ export function EscSeason() {
   }, [firstLegPending, canAdvance, manual, dispatch])
   useEffect(() => {
     if (!canAdvance || !copaLive || manual || firstLegPending) return
-    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), COPA_LEG_MS)
+    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), QUICK_COPA_LEG_MS)
     return () => clearTimeout(t)
   }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending])
   // relógio compartilhado dos placares dos jogos da fase (lista de baixo): sobe
@@ -2139,7 +2142,7 @@ export function EscSeason() {
   useEffect(() => {
     if (!copaLive || firstLegPending) { setCopaMin(93); return }
     setCopaMin(0)
-    const step = Math.max(30, (COPA_LEG_MS * 0.82) / 93)
+    const step = Math.max(30, (QUICK_COPA_LEG_MS * 0.82) / 93)
     let cur = 0
     const iv = setInterval(() => { cur++; setCopaMin(cur); if (cur >= 93) clearInterval(iv) }, step)
     return () => clearInterval(iv)
@@ -2254,7 +2257,7 @@ export function EscSeason() {
                   homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
                   youIsHome={homeIsYou} goals={goals}
                   roundKey={myTie.legs.length + (qc.phase === 'quartas' ? 0 : qc.phase === 'semis' ? 10 : 20)}
-                  roundMs={COPA_LEG_MS} classico={oppIsHuman} />
+                  roundMs={QUICK_COPA_LEG_MS} classico={oppIsHuman} />
               })() : (
                 <Box bg="#fff" className="p-6" shadow={6}>
                   <p className="text-center font-black" style={OSWALD}>🏁 Aguardando o pontapé inicial da Copa…</p>
@@ -2370,6 +2373,7 @@ export function EscSeason() {
           🪜 Ver as 4 divisões
         </button>
       )}
+      {copaLive && <CopaScorersBox highlight={you.id} />}
       <TableBox highlight={you.id} holdResults={!resultRevealed} />
       <TopScorersBox highlight={you.id} />
       <YourPitch small />
@@ -2427,6 +2431,38 @@ function TopScorersBox({ highlight }: { highlight: number }) {
   return (
     <Box className="p-3">
       <p className="font-black text-sm mb-2 text-black" style={OSWALD}>⚽ ARTILHARIA · TEMPO REAL</p>
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="text-left text-black/60 font-black">
+            <th className="pr-1">#</th><th>Jogador</th><th>Time</th><th className="text-center">Gols</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={`${r.teamId}-${r.name}`} className="border-t border-black/10 font-semibold text-black"
+              style={{ backgroundColor: r.teamId === highlight ? GOLD : undefined }}>
+              <td className="pr-1">{i + 1}</td>
+              <td className="truncate max-w-[130px]">{r.name}</td>
+              <td className="truncate max-w-[110px] text-black/70">{r.teamName}</td>
+              <td className="text-center font-black">{r.goals}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Box>
+  )
+}
+
+// 🏆 ARTILHARIA DA COPA — ranking À PARTE (só gols da Copa dos 8), aparece em
+// cima da tabela da liga quando a Copa está rolando ou acabou. Não mistura com a
+// artilharia da liga (que congela no fim das 38 rodadas).
+function CopaScorersBox({ highlight }: { highlight: number }) {
+  const { state } = useEsc()
+  const rows = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, 10)
+  if (rows.length === 0) return null
+  return (
+    <Box bg="#FFFBEF" className="p-3">
+      <p className="font-black text-sm mb-2" style={{ ...OSWALD, color: '#9a6d00' }}>🏆 ARTILHARIA DA COPA</p>
       <table className="w-full text-xs">
         <thead>
           <tr className="text-left text-black/60 font-black">
@@ -3952,6 +3988,7 @@ export function EscEnd() {
         </Box>
       )}
       {copaPending && placementHeader('pt-2')}
+      <CopaScorersBox highlight={you.id} />
       <TableBox highlight={you.id} />
       <TopScorersBox highlight={you.id} />
       {online && state.roomId && (
