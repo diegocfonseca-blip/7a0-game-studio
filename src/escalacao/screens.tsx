@@ -2708,9 +2708,10 @@ function ShareResultPanel({ opts }: { opts: ShareOpts }) {
 }
 
 // ─── Hall da Fama da sala (só online): histórico entre revanches ──────
-interface ChampionRow { season_no: number; champion_name: string; top_scorer_name: string | null; top_scorer_goals: number | null }
-function HallDaFama({ roomId, isHost, seasonNo, champName, scorerName, scorerGoals }: {
+interface ChampionRow { season_no: number; champion_name: string; top_scorer_name: string | null; top_scorer_goals: number | null; copa_champion_name?: string | null; copa_top_scorer_name?: string | null; copa_top_scorer_goals?: number | null }
+function HallDaFama({ roomId, isHost, seasonNo, champName, scorerName, scorerGoals, copaChampName, copaScorerName, copaScorerGoals }: {
   roomId: string; isHost: boolean; seasonNo: number; champName: string; scorerName?: string; scorerGoals?: number
+  copaChampName?: string; copaScorerName?: string; copaScorerGoals?: number
 }) {
   const [rows, setRows] = useState<ChampionRow[] | null>(null)
 
@@ -2722,35 +2723,43 @@ function HallDaFama({ roomId, isHost, seasonNo, champName, scorerName, scorerGoa
       // não aparecia, mostrando só a anterior (parecia campeão errado).
       if (isHost) {
         const { data: existing } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', seasonNo).maybeSingle()
-        const payload = { champion_name: champName, top_scorer_name: scorerName ?? null, top_scorer_goals: scorerGoals ?? null }
+        const payload = { champion_name: champName, top_scorer_name: scorerName ?? null, top_scorer_goals: scorerGoals ?? null, copa_champion_name: copaChampName ?? null, copa_top_scorer_name: copaScorerName ?? null, copa_top_scorer_goals: copaScorerGoals ?? null }
         if (existing) await supabase.from('game_champions').update(payload).eq('id', existing.id)
         else await supabase.from('game_champions').insert({ room_id: roomId, season_no: seasonNo, ...payload })
       }
       // 2) lê o histórico completo
-      const { data } = await supabase.from('game_champions').select('season_no, champion_name, top_scorer_name, top_scorer_goals').eq('room_id', roomId).order('season_no', { ascending: true })
+      const { data } = await supabase.from('game_champions').select('season_no, champion_name, top_scorer_name, top_scorer_goals, copa_champion_name, copa_top_scorer_name, copa_top_scorer_goals').eq('room_id', roomId).order('season_no', { ascending: true })
       if (!alive) return
       const list = (data ?? []) as ChampionRow[]
       // 3) garante que a temporada ATUAL esteja na lista mesmo que a escrita do
       // host ainda não tenha propagado (guest lê antes) — usa o campeão local,
       // que é o mesmo mostrado no topo da tela final.
       if (!list.some(r => r.season_no === seasonNo)) {
-        list.push({ season_no: seasonNo, champion_name: champName, top_scorer_name: scorerName ?? null, top_scorer_goals: scorerGoals ?? null })
+        list.push({ season_no: seasonNo, champion_name: champName, top_scorer_name: scorerName ?? null, top_scorer_goals: scorerGoals ?? null, copa_champion_name: copaChampName ?? null, copa_top_scorer_name: copaScorerName ?? null, copa_top_scorer_goals: copaScorerGoals ?? null })
         list.sort((a, b) => a.season_no - b.season_no)
       }
       setRows(list)
     })()
     return () => { alive = false }
-  }, [isHost, roomId, seasonNo, champName, scorerName, scorerGoals])
+  }, [isHost, roomId, seasonNo, champName, scorerName, scorerGoals, copaChampName, copaScorerName, copaScorerGoals])
 
   if (!rows || rows.length === 0) return null
   return (
     <Box className="p-3">
       <p className="font-black text-sm mb-2" style={OSWALD}>🏆 HALL DA FAMA DA SALA</p>
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         {rows.map(r => (
-          <div key={r.season_no} className="flex items-center justify-between border-t border-black/10 pt-1.5 first:border-t-0 first:pt-0">
-            <p className="text-sm font-bold text-black">Temporada {r.season_no}: <b>{r.champion_name}</b></p>
-            {r.top_scorer_name && <p className="text-[11px] font-semibold text-black/60">⚽ {r.top_scorer_name} ({r.top_scorer_goals})</p>}
+          <div key={r.season_no} className="border-t border-black/10 pt-1.5 first:border-t-0 first:pt-0">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-bold text-black">Temporada {r.season_no}: <b>🏆 {r.champion_name}</b></p>
+              {r.top_scorer_name && <p className="text-[11px] font-semibold text-black/60">⚽ {r.top_scorer_name} ({r.top_scorer_goals})</p>}
+            </div>
+            {r.copa_champion_name && (
+              <div className="flex items-center justify-between gap-2 mt-0.5">
+                <p className="text-[12px] font-bold" style={{ color: '#9a6d00' }}>🏆 Copa: <b>{r.copa_champion_name}</b></p>
+                {r.copa_top_scorer_name && <p className="text-[11px] font-semibold text-black/50">⚽ {r.copa_top_scorer_name} ({r.copa_top_scorer_goals})</p>}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -4086,10 +4095,17 @@ export function EscEnd() {
       {ligaBlocks}
       </>
       )}
-      {online && state.roomId && (
-        <HallDaFama roomId={state.roomId} isHost={state.isHost} seasonNo={state.seasonNo} champName={champ.name}
-          scorerName={myScorer?.name} scorerGoals={myScorer?.goals} />
-      )}
+      {/* Hall da Fama: só quando a temporada está DECIDIDA (liga-só, ou depois da
+          Copa) — durante a espera da Copa (copaPending) ainda falta o campeão dela. */}
+      {online && state.roomId && !copaPending && (() => {
+        const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
+        return (
+          <HallDaFama roomId={state.roomId} isHost={state.isHost} seasonNo={state.seasonNo} champName={champ.name}
+            scorerName={myScorer?.name} scorerGoals={myScorer?.goals}
+            copaChampName={copaDone ? (state.quickCopa?.champion?.name ?? undefined) : undefined}
+            copaScorerName={copaDone ? copaSc?.name : undefined} copaScorerGoals={copaDone ? copaSc?.goals : undefined} />
+        )
+      })()}
       {/* No online, a votação "E agora?" vem ANTES do compartilhar (é a ação principal) */}
       {online && <OnlineEndVote />}
       <ShareResultPanel opts={shareOpts} />
