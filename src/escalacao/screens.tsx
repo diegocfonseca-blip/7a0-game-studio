@@ -1238,21 +1238,28 @@ function Envelope() {
   const bidLimit = myOpen
   const chosenCount = Object.keys(bids).length
 
-  // primeira vez da vida no leilão: explica que lance é em MOEDAS (quem dá mais
-  // leva). A flag grava já no primeiro render — aparece só na primeira partida.
-  const [showLanceTip, setShowLanceTip] = useState(() => {
+  // PRIMEIRA partida da vida: dica dourada que ALTERNA por setor — moedas
+  // (quem dá mais leva) num setor, auge do Kaká no outro. O × fecha só a do
+  // setor atual; no próximo setor volta com o outro texto. Depois, nunca mais.
+  const [firstGame] = useState(() => {
     try {
       if (localStorage.getItem('esc-tip-lance-v1')) return false
       localStorage.setItem('esc-tip-lance-v1', '1')
       return true
     } catch { return false }
   })
+  const [tipClosed, setTipClosed] = useState(false)
+  useEffect(() => { setTipClosed(false) }, [state.sectorIdx])
+  const showLanceTip = firstGame && !tipClosed
+  const tipTxt = state.sectorIdx % 2 === 0
+    ? <>💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 100 pra montar o time inteiro.</>
+    : <>💡 O nível da carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda. Repara no clube e no ano!</>
   return (
     <Shell bar={<AuctionBar />}>
       {showLanceTip && !rescue && (
         <div className="relative border-[3px] border-black rounded-xl p-3 pr-8" style={{ background: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
-          <p className="text-[12.5px] font-black leading-snug" style={OSWALD}>💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 100 pra montar o time inteiro.</p>
-          <button onClick={() => setShowLanceTip(false)} aria-label="Fechar"
+          <p className="text-[12.5px] font-black leading-snug" style={OSWALD}>{tipTxt}</p>
+          <button onClick={() => setTipClosed(true)} aria-label="Fechar"
             className="absolute top-1 right-2 text-lg font-black" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
         </div>
       )}
@@ -1266,13 +1273,6 @@ function Envelope() {
               ? <>Sobras do setor, última chance de pagar por elas. Só quem ficou com buraco participa. Suas vagas: <b>{myOpen}</b>.</>
               : 'Lance cego: distribua suas moedas em segredo. Ninguém vê nada até a revelação.'}
           </p>
-          {/* dica de leitura das cartas — só no PRIMEIRO setor pra não poluir:
-              muita gente vê "Vini Jr · Flamengo" e acha que é o craque de hoje */}
-          {!rescue && state.sectorIdx === 0 && (
-            <p className="text-[11px] font-bold text-black/55 mt-1 leading-snug">
-              💡 O nível da carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda. Repara no clube e no ano antes do lance!
-            </p>
-          )}
           {!rescue && totalBatches > 1 && (
             <div className="mt-1.5 inline-flex items-center gap-1.5 border-[3px] border-black rounded-full px-3 py-1"
               style={{ backgroundColor: '#2E6FB0', boxShadow: `2px 2px 0 0 ${INK}` }}>
