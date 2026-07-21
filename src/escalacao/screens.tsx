@@ -503,7 +503,12 @@ function YourPitch({ small = false }: { small?: boolean }) {
   // SEM SPOILER: durante a revelação, os vencedores já estão decididos por
   // dentro — mas o campinho só mostra a carta DEPOIS que o martelo dela bateu
   // na tela. As que ainda vão ser reveladas ficam escondidas.
-  const revealing = state.phase === 'reveal' || state.phase === 'resq_reveal'
+  // `state.phase` é uma flag global do leilão que NUNCA é resetada ao sair pro
+  // monte/cerimônia/temporada — fica travada em 'reveal' pro resto do jogo. Sem
+  // travar também em screen==='auction', o último jogador da última revelação
+  // ficava escondido pra sempre (Vazio no campinho, mesmo marcando gol na
+  // simulação — ele existe no elenco, só não aparecia no desenho).
+  const revealing = state.screen === 'auction' && (state.phase === 'reveal' || state.phase === 'resq_reveal')
   const pendingIds = revealing ? new Set((state.revealQueue ?? []).slice(state.revealIdx).map(it => it.card.id)) : new Set<string>()
   const shown = pendingIds.size ? { ...you, squad: you.squad.filter(c => !pendingIds.has(c.id)) } : you
   if (state.reserveAuction) {
