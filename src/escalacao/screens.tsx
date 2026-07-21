@@ -1823,7 +1823,11 @@ export function EscMonte() {
             </Box>
             )
           })}
-          {state.careerOnline && (xiHoles(you) === 0 ? (
+          {state.careerOnline && (xiHoles(you) === 0 || valid.filter(c => {
+            const val = (c as { paid?: number }).paid ?? 0
+            const own = (c as { seller?: number }).seller === you.id
+            return !(state.careerOnline && val > 0 && !own) || you.money >= val
+          }).length === 0 ? (
             <>
               <button onClick={() => dispatch({ type: 'MONTE_PASS', mgrId: you.id })}
                 className="w-full rounded-xl border-[3px] border-black bg-white font-black text-sm py-3 active:translate-y-0.5"
