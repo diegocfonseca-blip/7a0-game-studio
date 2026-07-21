@@ -2000,9 +2000,9 @@ export function EscCerimonia() {
 const TACTIC_LABEL: Record<Tactic, string> = { retranca: '🧱 Retranca', equilibrio: '⚖️ Equilíbrio', ataque: '🔥 Ataque' }
 export const SEASON_TOTAL_MS = 180_000
 const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // ~4,7s por rodada
-// 🏆 Copa dos 8 (rápido): cada JOGO roda +3s mais devagar que a Copa da carreira,
+// 🏆 Copa dos 8 (rápido): cada JOGO roda +5s mais devagar que a Copa da carreira,
 // pra dar pra acompanhar o placar subindo (Diego achou muito rápido). Só o rápido.
-const QUICK_COPA_LEG_MS = COPA_LEG_MS + 3000
+const QUICK_COPA_LEG_MS = COPA_LEG_MS + 5000
 
 // ── RITMO da simulação (só modos SOLO): auto (padrão) ou manual — no manual
 // a temporada PARA depois de cada rodada e você avança no botão. A escolha
