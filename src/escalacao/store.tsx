@@ -1475,7 +1475,9 @@ function sweepMonteToBackstops(st: EscState) {
 function enterCerimonia(st: EscState) {
   sweepMonteToBackstops(st)
   st.screen = 'cerimonia'
-  st.cerimoniaDeadline = Date.now() + CEREMONY_MS
+  // 🎥 modo stream: SEM cronômetro — o host dá o comando pra começar (controla o
+  // ritmo da revelação ao vivo, mostra time por time). Sem stream: 45s e começa sozinho.
+  st.cerimoniaDeadline = st.streamMode ? null : Date.now() + CEREMONY_MS
 }
 const TIEBREAK_MS = 30_000
 

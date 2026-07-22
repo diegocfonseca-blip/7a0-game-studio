@@ -2056,10 +2056,10 @@ export function EscCerimonia() {
       </div>
       {canStart ? (
         <Btn className="w-full text-lg" bg={GREEN} onClick={() => dispatch({ type: 'FINISH_CEREMONY' })}>
-          <span style={{ color: '#fff' }}>COMEÇAR AGORA 🏆</span>
+          <span style={{ color: '#fff' }}>{state.streamMode ? '🎬 COMEÇAR O CAMPEONATO 🏆' : 'COMEÇAR AGORA 🏆'}</span>
         </Btn>
       ) : (
-        <p className="text-center text-sm font-bold text-black/55 py-1">🔨 O campeonato começa quando o tempo acabar…</p>
+        <p className="text-center text-sm font-bold text-black/55 py-1">🔨 O campeonato começa quando {state.streamMode ? 'o host começar' : 'o tempo acabar'}…</p>
       )}
     </Shell>
   )
