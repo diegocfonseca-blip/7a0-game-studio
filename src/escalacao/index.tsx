@@ -165,6 +165,13 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | nu
 function VersionWatcher() {
   const { state } = useEsc()
   const [stale, setStale] = useState(false)
+  // 🔕 o BANNER visível aparece UMA VEZ SÓ por pessoa (marcador persistente).
+  // Depois disso nunca mais incomoda — a atualização segue acontecendo sozinha
+  // e silenciosa na tela inicial (o auto-reload abaixo), sem banner nenhum.
+  const [bannerSeen] = useState(() => { try { return localStorage.getItem('esc-upd-banner-seen') === '1' } catch { return false } })
+  useEffect(() => {
+    if (stale && !bannerSeen) { try { localStorage.setItem('esc-upd-banner-seen', '1') } catch { /* ignora */ } }
+  }, [stale, bannerSeen])
   useEffect(() => {
     const cur = Array.from(document.scripts).map(s => s.getAttribute('src') || '').find(s => /assets\/index-[\w-]+\.js/.test(s)) || ''
     if (!cur) return
@@ -196,7 +203,7 @@ function VersionWatcher() {
     }, 2000)
     return () => clearTimeout(t)
   }, [stale, state.screen])
-  if (!stale) return null
+  if (!stale || bannerSeen) return null
   return (
     <button onClick={() => window.location.reload()}
       style={{ position: 'fixed', top: 8, left: 8, right: 8, zIndex: 99999, margin: '0 auto', maxWidth: 440, background: '#1B7A3D', color: '#fff', border: '2px solid #0C0C0C', borderRadius: 12, padding: '10px 12px', textAlign: 'center', fontWeight: 800, fontSize: 12.5, lineHeight: 1.3, boxShadow: '0 4px 14px rgba(0,0,0,.35)', cursor: 'pointer', fontFamily: 'Oswald, sans-serif' }}>
