@@ -1546,29 +1546,25 @@ function Envelope() {
         const floor = (c as { paid?: number }).paid ?? 0
         const others = Object.entries(bids).reduce((s, [k, v]) => (k === c.id ? s : s + v), 0)
         const room = you.money - others // teto que cabe pra ESTA carta
-        const curBid = bids[c.id] ?? 0
         const cName = c.id === state.surpriseId ? '🎁 Jogador Surpresa' : c.name // não vaza a surpresa
-        const presets = [5, 10, 15, 20, 25, 30, 40, 50].filter(v => v <= room && v >= Math.max(1, floor))
         const apply = (v: number) => { setBidTo(c, v); setPickerCard(null) }
         const typed = parseInt(typeVal || '0', 10)
+        const min = Math.max(1, floor)
+        const valid = typed >= min && typed <= room
         return (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.6)' }} onClick={() => setPickerCard(null)}>
             <div className="w-full max-w-sm border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }} onClick={e => e.stopPropagation()}>
-              <p className="font-black text-lg" style={OSWALD}>🎯 Lance rápido</p>
-              <p className="text-xs font-bold text-black/60 mb-1">{cName}{floor > 0 ? ` · mín 🔒 ${floor}` : ''} · cabe até {room} 🪙</p>
-              {presets.length > 0 ? (
-                <div className="grid grid-cols-4 gap-2 mt-2">
-                  {presets.map(v => (
-                    <button key={v} onClick={() => apply(v)} className="border-[3px] border-black rounded-xl py-2.5 font-black" style={{ background: curBid === v ? GOLD : '#fff', ...OSWALD }}>{v}</button>
-                  ))}
-                </div>
-              ) : <p className="text-xs font-bold text-black/55 mt-2">Seu caixa não alcança os valores redondos pra este jogador — dá pra digitar abaixo.</p>}
-              <div className="flex items-center gap-2 mt-3">
-                <input value={typeVal} onChange={e => setTypeVal(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))} inputMode="numeric" placeholder="digitar um valor…"
-                  className="flex-1 border-[3px] border-black rounded-xl px-3 py-2 font-black bg-white" />
-                <button onClick={() => { if (typed > 0) apply(typed) }} disabled={typed <= 0}
-                  className="border-[3px] border-black rounded-xl px-4 py-2 font-black" style={{ background: typed > 0 ? GREEN : '#cfc6ae', color: '#fff', ...OSWALD }}>OK</button>
+              <p className="font-black text-lg" style={OSWALD}>✍️ Digitar lance</p>
+              <p className="text-xs font-bold text-black/60 mb-2">{cName}{floor > 0 ? ` · mín 🔒 ${floor}` : ''} · cabe até {room} 🪙</p>
+              <div className="flex items-center gap-2">
+                <input autoFocus value={typeVal} onChange={e => setTypeVal(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))} inputMode="numeric" placeholder="digite o valor…"
+                  onKeyDown={e => { if (e.key === 'Enter' && valid) apply(typed) }}
+                  className="flex-1 border-[3px] border-black rounded-xl px-3 py-3 font-black text-xl bg-white" />
+                <button onClick={() => { if (valid) apply(typed) }} disabled={!valid}
+                  className="border-[3px] border-black rounded-xl px-5 py-3 font-black text-lg" style={{ background: valid ? GREEN : '#cfc6ae', color: '#fff', ...OSWALD }}>OK</button>
               </div>
+              {typeVal !== '' && typed > room && <p className="text-[11px] font-black text-red-600 mt-1.5">💰 Passou do que cabe — máximo {room}.</p>}
+              {typeVal !== '' && floor > 0 && typed > 0 && typed < floor && <p className="text-[11px] font-black text-red-600 mt-1.5">🔒 O mínimo desse jogador é {floor}.</p>}
               <div className="flex items-center justify-between mt-3">
                 <button onClick={() => apply(0)} className="text-xs font-black text-black/55 underline active:opacity-60">🗑️ tirar o lance</button>
                 <button onClick={() => setPickerCard(null)} className="text-xs font-black text-black/55 underline active:opacity-60">fechar</button>
