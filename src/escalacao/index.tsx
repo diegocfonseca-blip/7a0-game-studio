@@ -160,11 +160,20 @@ export default function EscalacaoGame() {
         <MaintenanceBanner />
         <AnnouncementToast />
         <OpenInBrowserBanner />
-        <Router />
-        <GameFooter />{/* rodapé de contato, sutil, no final de todas as telas */}
-        <AdminPanel />
-        <DinastiaGame />
-        <CareerOnlineGame />
+        {/* FUNDO CREME DO JOGO: o site-estúdio tem fundo quase-preto (#06060f). O
+            Leilão Legends é todo em telas cremes. Se alguma tela renderizar vazia
+            por um instante (troca de fase, estado incompleto sincronizado, save
+            interrompido), o que aparecia era o PRETO do estúdio — e virava um
+            "tela preta travada" no print de quem jogava. Com este creme atrás de
+            TUDO, o pior caso é uma tela creme com o rodapé (dá pra sair por ali),
+            nunca mais um preto assustador. */}
+        <div style={{ minHeight: '100vh', background: '#F4ECD6' }}>
+          <Router />
+          <GameFooter />{/* rodapé de contato, sutil, no final de todas as telas */}
+          <AdminPanel />
+          <DinastiaGame />
+          <CareerOnlineGame />
+        </div>
       </EscProvider>
     </ErrorBoundary>
   )

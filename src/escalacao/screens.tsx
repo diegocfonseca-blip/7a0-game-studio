@@ -290,6 +290,18 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
 }
 
 export function GameFooter() {
+  const { state, dispatch } = useEsc()
+  // 🛟 SAÍDA DE EMERGÊNCIA: o rodapé é a ÚNICA coisa que continua na tela mesmo se
+  // uma tela renderizar vazia (troca de fase, estado incompleto, save travado). Um
+  // link discreto aqui garante que NINGUÉM fica preso num "tela em branco" — volta
+  // pro início e limpa o save da partida em andamento (pra o refresh não recarregar
+  // o mesmo estado ruim). Só aparece fora do início (lá já é o próprio início).
+  const canEscape = state.screen !== 'intro'
+  const goHome = () => {
+    if (!window.confirm('Voltar pra tela inicial? Se você travou numa tela em branco, isso resolve. Uma partida em andamento (nesta tela) será encerrada.')) return
+    try { localStorage.removeItem('esc-solo-inprogress-v1') } catch { /* ignora */ }
+    dispatch({ type: 'GO_LOBBY' }) // volta pro início (e libera a vaga se estiver online)
+  }
   return (
     <div style={{ background: '#F4ECD6', borderTop: '2px solid rgba(0,0,0,0.06)' }}>
       <footer className="max-w-xl mx-auto text-center px-4 pt-4 pb-8 space-y-1.5">
@@ -300,6 +312,11 @@ export function GameFooter() {
           <span className="text-black/30"> · </span>
           <a href="mailto:diego.c.fonseca@gmail.com" className="text-black/65 underline">✉️ diego.c.fonseca@gmail.com</a>
         </p>
+        {canEscape && (
+          <p className="text-[11px] font-bold pt-0.5">
+            <button onClick={goHome} className="text-black/45 underline active:opacity-60">🛟 Travou na tela? Voltar ao início</button>
+          </p>
+        )}
         <p className="text-black/35 text-[11px] font-semibold pt-1">Feito por @diegocfonseca</p>
         <p className="text-black/20 text-[10px] font-semibold">v{__BUILD_ID__}</p>
       </footer>
