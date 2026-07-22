@@ -2434,7 +2434,12 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const tie of qc.ties) {
         const leg = tie.legs[tie.legs.length - 1]
         if (!leg) continue
-        copaHeads.push(`⚽ Copa ${phaseWord}${legWord}: ${tie.aName} ${leg[0]} × ${leg[1]} ${tie.bName}`)
+        // na VOLTA o mandante inverte (B joga em casa): mostra o mandante primeiro
+        // no placar, pra manchete refletir a troca de lado (ida A×B, volta B×A).
+        const swap = qc.legIdx === 1 // volta
+        const mand = swap ? tie.bName : tie.aName, vis = swap ? tie.aName : tie.bName
+        const mandG = swap ? leg[1] : leg[0], visG = swap ? leg[0] : leg[1]
+        copaHeads.push(`⚽ Copa ${phaseWord}${legWord}: ${mand} ${mandG} × ${visG} ${vis}`)
         if (tie.winner !== null) {
           const w = tie.winner === tie.aId ? tie.aName : tie.bName
           const l = tie.winner === tie.aId ? tie.bName : tie.aName
