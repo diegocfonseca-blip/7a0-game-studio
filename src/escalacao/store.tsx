@@ -1386,6 +1386,7 @@ type Action =
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
   | { type: 'MARK_COPA_DONE' }
+  | { type: 'SET_STREAM_CHAMP_CARD'; slot: 'liga' | 'copa'; card: WonCard } // 🎥 stream: guarda a carta do campeão pra sala inteira ver/abrir
   | { type: 'STADIUM_INVEST'; mgrId: number; sector: string } // 🏟️ carreira: investe +20 no setor
   | { type: 'STADIUM_BUILD'; mgrId: number; ext: string } // 🏟️ carreira: compra melhoria destravada
   | { type: 'BECOME_HOST' }
@@ -1670,6 +1671,7 @@ function redraftSeason(s: EscState): EscState {
   s.league = []; s.fixtures = []; s.scorers = []; s.lastResults = []
   s.tactics = {}
   s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — senão a próxima liga nunca semeia de novo
+  s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
   s.submitted = []; s.pendingEnvelopes = {}
   s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
   s.seasonNo++
@@ -1751,6 +1753,15 @@ export function reducer(state: EscState, action: Action): EscState {
     // pirâmide: a Copa da temporada atual terminou de animar → marca, pra o save
     // não re-animar a Copa do zero ao retomar (mostra direto os campeões/decisão).
     case 'MARK_COPA_DONE': { s.copaDoneSeason = s.seasonNo; return s }
+    // 🎥 STREAM: o campeão abriu o pacote (ou o host abriu no lugar de quem saiu).
+    // A carta fica no estado e o host retransmite pra sala TODA ver a mesma carta.
+    // Não sobrescreve se já tiver uma daquele slot (evita corrida host×campeão).
+    case 'SET_STREAM_CHAMP_CARD': {
+      const cur = s.streamChampCard ?? {}
+      if (cur[action.slot]) return state // já revelada — mantém a primeira
+      s.streamChampCard = { ...cur, [action.slot]: action.card }
+      return s
+    }
     // 🏟️ ESTÁDIO da carreira: investe aos poucos num setor (custa do caixa de moedas)
     case 'STADIUM_INVEST': {
       if (!s.careerOnline) return s
@@ -1894,6 +1905,7 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — jogo novo não herda a Copa de uma sessão anterior
+      s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
       s.tactics = {}; s.careerTactics = {}; s.careerLineup = {}; s.seasonVotes = {}
       const cc: Record<number, number> = {}
       for (const m of s.managers) if (m.isHuman) { cc[m.id] = 100; m.money = 100 }
@@ -1969,6 +1981,7 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — jogo novo não herda a Copa de uma sessão anterior
+      s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
       s.tactics = {}; s.careerTactics = {}
       // carreira: cada técnico COMEÇA com 100 moedas (uma vez). Depois só ganha por
       // desempenho (título por série, acesso) e perde na queda — sem base recorrente.
@@ -2863,6 +2876,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.champion = null
       s.tactics = {}
       s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — senão a próxima liga nunca semeia de novo
+  s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
       s.seasonNo++
       s.restartPending = false
       s.restartReady = []
