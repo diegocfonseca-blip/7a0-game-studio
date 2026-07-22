@@ -2170,7 +2170,7 @@ export function EscSeason() {
     }>
       {copaLive && qc ? (() => {
         const phaseLabel = qc.phase === 'quartas' ? 'Quartas de Final' : qc.phase === 'semis' ? 'Semifinal' : 'Final'
-        const legLabel = qc.phase === 'final' ? 'Jogo único' : qc.legIdx === 0 ? 'Jogo de ida' : 'Jogo de volta'
+        const legLabel = qc.phase === 'final' ? 'Jogo único · campo neutro' : qc.legIdx === 0 ? 'Jogo de ida' : 'Jogo de volta'
         const myTie = qc.ties.find(t => t.aId === you.id || t.bId === you.id)
         const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
         const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'

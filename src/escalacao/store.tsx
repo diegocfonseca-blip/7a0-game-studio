@@ -899,7 +899,7 @@ function poisson(lambda: number, rng: () => number): number {
 
 const CPU_TACTICS: Tactic[] = ['retranca', 'equilibrio', 'ataque']
 
-function simMatch(state: EscState, homeId: number, awayId: number, rng: () => number, scorersList: ScorerRow[] = state.scorers): MatchResult {
+function simMatch(state: EscState, homeId: number, awayId: number, rng: () => number, scorersList: ScorerRow[] = state.scorers, neutral = false): MatchResult {
   const isHuman = (id: number) => state.managers.some(m => m.id === id && m.isHuman)
   const involveHuman = isHuman(homeId) || isHuman(awayId)
   const tacticOf = (id: number): Tactic => {
@@ -922,7 +922,9 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   }
   const fh = form(homeId, awayTactic, homeTactic)
   const fa = form(awayId, homeTactic, awayTactic)
-  const lh = Math.max(0.08, 1.35 + (fh.atk - fa.def) * 0.055 + 0.25)
+  // +0.25 = vantagem de jogar EM CASA. Campo NEUTRO (ex.: final da Copa, jogo único)
+  // zera essa vantagem — aí os dois têm exatamente a mesma chance.
+  const lh = Math.max(0.08, 1.35 + (fh.atk - fa.def) * 0.055 + (neutral ? 0 : 0.25))
   const la = Math.max(0.08, 1.35 + (fa.atk - fh.def) * 0.055)
   const hg = poisson(lh, rng), ag = poisson(la, rng)
 
@@ -2364,8 +2366,10 @@ export function reducer(state: EscState, action: Action): EscState {
         // ida: A em casa; volta: B em casa (mandante troca). Final: jogo único, A em casa.
         const homeId = qc.legIdx === 0 ? tie.aId : tie.bId
         const awayId = qc.legIdx === 0 ? tie.bId : tie.aId
-        // 🏆 gols da Copa contam numa artilharia À PARTE (qc.scorers) — não mexe na da liga
-        const r = simMatch(s, homeId, awayId, rng, qc.scorers)
+        // 🏆 gols da Copa contam numa artilharia À PARTE (qc.scorers) — não mexe na da liga.
+        // Final = jogo ÚNICO em campo NEUTRO (isFinal): sem vantagem de casa, mesma chance
+        // pros dois. Ida/volta mantêm a casa (que se alterna, então também é justo).
+        const r = simMatch(s, homeId, awayId, rng, qc.scorers, isFinal)
         const leg: [number, number] = qc.legIdx === 0 ? [r.hg, r.ag] : [r.ag, r.hg] // sempre [gols de A, gols de B]
         tie.legs.push(leg)
         tie.lastHighlights = r.highlights
