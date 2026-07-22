@@ -1564,29 +1564,18 @@ function Envelope() {
                     : state.sectorIdx === 0 && <span className="text-[9px] font-black uppercase leading-none mb-0.5 tracking-wide" style={{ color: '#B8860B' }}>seu lance</span>)}
                   <div className="flex items-center gap-1.5">
                     <HoldButton onStep={() => bump(c, -1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</HoldButton>
-                    {/* caixinha pra DIGITAR o lance na mão, ali do lado do −/+.
-                        Sem OK: o valor já vale; o "lacre" é que confirma tudo.
-                        Teclado é sempre normal (type=text + inputMode numérico); no
-                        stream o valor some da tela via CSS (-webkit-text-security),
-                        que mascara na hora — sem o "flash" do último dígito que o
-                        campo de senha do Android mostra e vazaria na câmera.
-                        No stream TODAS as caixas ficam iguais (🔒), com ou sem lance:
-                        assim a câmera não denuncia EM QUEM você já apostou. */}
+                    {/* caixa do lance: toca e abre um modalzinho CENTRALIZADO pra
+                        escolher/digitar o valor. No stream a caixa mostra sempre 🔒
+                        (todas iguais) e o modal não mostra o nome do jogador — assim
+                        a câmera não denuncia EM QUEM nem QUANTO você apostou. */}
                     {(() => {
-                      const editing = pickerCard?.id === c.id
                       const masked = state.streamMode && !peek
-                      const val = editing ? typeVal : (masked ? '' : (chosen ? String(bid) : ''))
                       return (
-                        <input
-                          inputMode="numeric"
-                          type="text"
-                          value={val}
-                          placeholder={masked ? '🔒' : (floor > 0 ? String(floor) : '0')}
-                          onFocus={e => { setPickerCard(c); setTypeVal(chosen ? String(bid) : ''); e.currentTarget.select() }}
-                          onChange={e => { const d = e.target.value.replace(/[^0-9]/g, '').slice(0, 4); setTypeVal(d); setBidTo(c, d === '' ? 0 : parseInt(d, 10)) }}
-                          onBlur={() => setPickerCard(null)}
-                          className="w-14 h-8 text-center font-black border-2 border-black rounded-lg bg-white text-base"
-                          style={{ ...OSWALD, color: numColor, ...(masked ? { WebkitTextSecurity: 'disc' } : {}) } as CSSProperties} />
+                        <button onClick={() => { setTypeVal(''); setPickerCard(c) }}
+                          className="w-14 h-8 text-base text-center font-black border-2 border-black rounded-lg bg-white active:opacity-60"
+                          style={{ ...OSWALD, color: numColor }}>
+                          {masked ? '🔒' : (chosen ? bid : floor > 0 ? floor : 0)}
+                        </button>
                       )
                     })()}
                     <HoldButton
@@ -1625,6 +1614,66 @@ function Envelope() {
 
       <YourPitch />
       <RivalsStrip />
+
+      {/* 🎯 modalzinho pra escolher/digitar o lance. Fica CENTRALIZADO (neutro),
+          então tocar nele não denuncia na câmera qual jogador você mirou. No
+          stream: sem nome do jogador, valor mascarado e atalhos escondidos até
+          o 👁️ — só você vê. Fora do stream: nome, mín/teto e atalhos à vontera. */}
+      {pickerCard && (() => {
+        const c = pickerCard
+        const floor = (c as { paid?: number }).paid ?? 0
+        const others = Object.entries(bids).reduce((s, [k, v]) => (k === c.id ? s : s + v), 0)
+        const room = you.money - others // teto que cabe pra ESTA carta
+        const cName = c.id === state.surpriseId ? '🎁 Jogador Surpresa' : c.name
+        const masked = state.streamMode && !peek
+        const typed = parseInt(typeVal || '0', 10)
+        const min = Math.max(1, floor)
+        const valid = typed >= min && typed <= room
+        const apply = (v: number) => { setBidTo(c, v); setPickerCard(null) }
+        const presets = [5, 10, 15, 20, 25, 30].filter(v => v >= min && v <= room)
+        return (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.6)' }} onClick={() => setPickerCard(null)}>
+            <div className="w-full max-w-[280px] border-[3px] border-black rounded-2xl p-3.5 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }} onClick={e => e.stopPropagation()}>
+              <p className="font-black text-base" style={OSWALD}>{masked ? '🔒 Seu lance secreto' : `✍️ ${cName}`}</p>
+              {masked
+                ? <p className="text-[11px] font-bold text-black/60 mb-2">Só você vê o valor — a câmera não. Toque 👁️ pra conferir.</p>
+                : <p className="text-[11px] font-bold text-black/60 mb-2">{floor > 0 ? `mín ${floor} · ` : ''}cabe até {room} 🪙</p>}
+              {/* atalhos redondos: só aparecem quando dá pra ver (senão vazariam o valor na live) */}
+              {!masked && presets.length > 0 && (
+                <div className="grid grid-cols-3 gap-1.5 mb-2">
+                  {presets.map(v => (
+                    <button key={v} onClick={() => setTypeVal(String(v))}
+                      className="border-2 border-black rounded-lg py-1.5 font-black text-sm bg-white active:translate-y-0.5"
+                      style={{ ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}` }}>{v}</button>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <input autoFocus inputMode="numeric" type="text" value={typeVal}
+                  onChange={e => setTypeVal(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
+                  onKeyDown={e => { if (e.key === 'Enter' && valid) apply(typed) }}
+                  placeholder={masked ? '••••' : 'digite…'}
+                  className="flex-1 border-[3px] border-black rounded-xl px-3 py-2.5 font-black text-lg bg-white"
+                  style={masked ? ({ WebkitTextSecurity: 'disc' } as CSSProperties) : undefined} />
+                <button onClick={() => { if (valid) apply(typed) }} disabled={!valid}
+                  className="border-[3px] border-black rounded-xl px-4 py-2.5 font-black text-base" style={{ background: valid ? GREEN : '#cfc6ae', color: '#fff', ...OSWALD }}>OK</button>
+              </div>
+              {!masked && typeVal !== '' && typed > room && <p className="text-[11px] font-black text-red-600 mt-1.5">💰 Passou do que cabe — máximo {room}.</p>}
+              {!masked && typeVal !== '' && floor > 0 && typed > 0 && typed < floor && <p className="text-[11px] font-black text-red-600 mt-1.5">🔒 Abaixo do mínimo — mín {floor}.</p>}
+              {masked && typeVal !== '' && !valid && <p className="text-[11px] font-black text-red-600 mt-1.5">🔒 Esse valor não vale (fora do limite).</p>}
+              {state.streamMode && (
+                <button onClick={() => setPeek(p => !p)} className="w-full mt-2 border-2 border-black rounded-lg py-1.5 font-black text-xs" style={{ background: peek ? GOLD : INK, color: peek ? '#000' : '#fff', ...OSWALD }}>
+                  {peek ? '🙈 Esconder (voltar pra câmera)' : '👁️ Mostrar só pra mim'}
+                </button>
+              )}
+              <div className="flex items-center justify-between mt-2.5">
+                <button onClick={() => apply(0)} className="text-xs font-black text-black/55 underline active:opacity-60">🗑️ tirar</button>
+                <button onClick={() => setPickerCard(null)} className="text-xs font-black text-black/55 underline active:opacity-60">fechar</button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </Shell>
   )
 }
