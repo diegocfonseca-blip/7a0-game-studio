@@ -1424,6 +1424,11 @@ function rngOf(state: EscState): () => number {
 const ENVELOPE_MS = 45_000
 const RESERVE_LIST_MS = 45_000 // tela "Listar pra leilão" (venda) antes do leilão de reservas
 const CEREMONY_MS = 45_000 // tempo pra olhar os times antes do campeonato começar sozinho
+// 🛡️ intervalo MÍNIMO entre rodadas da liga viva. O ritmo normal é ~4,7s (auto) ou
+// no clique (manual) — MUITO acima disso. Serve só de trava: se chegarem disparos
+// repetidos de PLAY_ROUND quase juntos (corrida de host com vários jogadores), a
+// liga não "corre" 38 rodadas em segundos — os disparos cedo demais são ignorados.
+const MIN_ROUND_GAP_MS = 2500
 
 // entra na cerimônia da revelação e liga o cronômetro de 45s (auto-começa)
 // BOT FIADOR: depois que os HUMANOS já escolheram no monte, o que sobrou (ninguém
@@ -2298,6 +2303,15 @@ export function reducer(state: EscState, action: Action): EscState {
         // o fim de temporada é tratado na própria tela da pirâmide (não vai pro
         // EscEnd, que usa a liga viva). A rodada capada em 38 encerra a sim.
         return s
+      }
+      // 🛡️ TRAVA ANTI-BLITZ: a liga viva NUNCA avança mais rápido que MIN_ROUND_GAP.
+      // Sem isto, disparos repetidos de PLAY_ROUND chegando quase juntos no host
+      // (corrida com vários jogadores) faziam a liga "correr" 38 rodadas em
+      // segundos. Disparo cedo demais é ignorado; o timer normal (~4,7s) segue e
+      // conduz o ritmo. Não afeta quem joga normal (auto ~4,7s / manual no clique).
+      if (action.type === 'PLAY_ROUND') {
+        if (Date.now() - (s.lastRoundAt ?? 0) < MIN_ROUND_GAP_MS) return state // ignora (mantém o estado atual)
+        s.lastRoundAt = Date.now()
       }
       const times = action.type === 'PLAY_ROUND' ? 1 : action.count
       const isHumanId = (id: number) => !!s.managers.find(m => m.id === id && m.isHuman)
