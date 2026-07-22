@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, Component, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { flushPendingWrites } from './pending'
 import { EscProvider, useEsc } from './store'
-import { EscIntro, EscSetup, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum, EscRanking, GameFooter } from './screens'
+import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum, EscRanking, GameFooter } from './screens'
 import { EscLobby } from './lobby'
 import { AdminPanel } from './admin'
 import { DinastiaGame } from './dinastia'
@@ -16,6 +16,7 @@ function Router() {
     case 'intro':     return <EscIntro />
     case 'lobby':     return <EscLobby />
     case 'setup':     return <EscSetup />
+    case 'streamIntro': return <EscStreamIntro />
     case 'auction':   return <EscAuction />
     case 'monte':     return <EscMonte />
     case 'cerimonia': return <EscCerimonia />

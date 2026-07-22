@@ -174,6 +174,7 @@ export type Screen =
   | 'intro'
   | 'lobby'
   | 'setup'
+  | 'streamIntro'
   | 'auction'
   | 'monte'
   | 'cerimonia'

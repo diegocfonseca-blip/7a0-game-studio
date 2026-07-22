@@ -1412,6 +1412,7 @@ type Action =
   | { type: 'NEW_GAME' }
   | { type: 'NEW_SEASON' }
   | { type: 'REPLAY_SEASON' }
+  | { type: 'START_STREAM_AUCTION' } // 🎥 stream: host começa o leilão a partir da tela explicativa
   | { type: 'REQUEST_NEW_TEAMS' }
   | { type: 'CONFIRM_RESTART'; mgrId: number }
   | { type: 'CANCEL_RESTART' }
@@ -2011,6 +2012,16 @@ export function reducer(state: EscState, action: Action): EscState {
       s.seasonNo = 1
       s.seasonVotes = {} // novo leilão: zera a votação de fim de jogo (senão volta marcada)
       s.restartPending = false; s.restartReady = [] // e a prontidão do restart
+      // 🎥 STREAM: antes do pregão, uma tela explicativa (moedas, o auge, quem tá
+      // jogando) — o STREAMER decide quando começar o leilão (START_STREAM_AUCTION).
+      // No online normal/manual cai direto no leilão, como sempre.
+      if (s.streamMode) { s.screen = 'streamIntro'; return s }
+      s.screen = 'auction'
+      startAuctionPhase(s, false)
+      return s
+    }
+    case 'START_STREAM_AUCTION': {
+      // 🎥 host do stream tocou "Começar o leilão" na tela explicativa
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s
