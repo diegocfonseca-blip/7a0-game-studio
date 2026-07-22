@@ -1077,6 +1077,9 @@ function FloatingEmotes() {
   const you = state.managers[state.youIdx]
   const cardName = (id?: string) => {
     if (!id) return null
+    // 🎁 carta surpresa: o nome fica escondido até o martelo — a reação NÃO pode
+    // vazar (antes mostrava "Você → Cafu" e entregava o jogador oculto).
+    if (id === state.surpriseId) return '🎁 Surpresa'
     const c = state.currentCards.find(x => x.id === id)
       ?? state.revealQueue.find(q => q.card.id === id)?.card
       ?? state.tiebreaks.find(t => t.card.id === id)?.card
