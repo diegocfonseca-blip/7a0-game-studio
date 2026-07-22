@@ -2137,11 +2137,27 @@ export function EscSeason() {
   // respiro CURTO só pra ver quem avançou, e então bate bola. Uma perna normal
   // (ida/volta) espera o tempo cheio do jogo pra animar o placar todo.
   const copaJustAdvanced = copaLive && !firstLegPending && !!qc && qc.ties.every(t => t.legs.length === 0)
+  // ⚠️ se a perna que acabou de rolar foi a ÚLTIMA da fase (ida+volta feitas, ou a
+  // final) E algum confronto empatou → PÊNALTIS. A disputa anima uns ~12s DEPOIS do
+  // relógio zerar, então precisa esperar mais antes de avançar/coroar — senão corta
+  // no meio (a final acabava "com 3 chutes"). Vale pra QUALQUER jogo, auto ou manual.
+  const phaseFullyPlayed = !!qc && (qc.ties[0]?.legs.length ?? 0) >= (qc.phase === 'final' ? 1 : 2)
+  const anyPens = !!qc?.ties.some(t => t.pens)
+  const copaAnimMs = QUICK_COPA_LEG_MS + (phaseFullyPlayed && anyPens ? 13000 : 0)
   useEffect(() => {
     if (!canAdvance || !copaLive || manual || firstLegPending) return
-    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? 3200 : QUICK_COPA_LEG_MS)
+    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? 3200 : copaAnimMs)
     return () => clearTimeout(t)
-  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending, copaJustAdvanced])
+  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending, copaJustAdvanced, copaAnimMs])
+  // trava o "Próximo jogo da Copa" (manual) enquanto a perna — INCLUINDO a disputa
+  // de pênaltis — ainda está animando, pra não cortar clicando cedo.
+  const [copaAdvReady, setCopaAdvReady] = useState(true)
+  useEffect(() => {
+    if (!copaLive || firstLegPending || copaJustAdvanced) { setCopaAdvReady(true); return }
+    setCopaAdvReady(false)
+    const t = setTimeout(() => setCopaAdvReady(true), copaAnimMs)
+    return () => clearTimeout(t)
+  }, [copaTieKey, copaLive, firstLegPending, copaJustAdvanced, copaAnimMs])
   // relógio compartilhado dos placares dos jogos da fase (lista de baixo): sobe
   // 0→93 no mesmo tempo do card grande (COPA_LEG_MS) e reinicia a cada nova perna
   // — assim TODOS os jogos progridem juntos, minuto a minuto, em vez de já mostrar
@@ -2319,9 +2335,9 @@ export function EscSeason() {
           nextLabel={state.round === 0 && !myLast ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
       )}
       {!online && copaLive && (
-        <SimControls manual={manual} onToggle={toggleSim} canNext
+        <SimControls manual={manual} onToggle={toggleSim} canNext={copaAdvReady}
           onNext={() => dispatch({ type: 'PLAY_COPA_LEG' })}
-          nextLabel="⚽ Próximo jogo da Copa" />
+          nextLabel={copaAdvReady ? '⚽ Próximo jogo da Copa' : '⏳ Deixa o jogo/pênaltis acabar…'} />
       )}
       {!copaLive && lastWasClassico && lastRiv && resultRevealed && (
         <Box bg={myGoals > oppGoals ? GREEN : myGoals < oppGoals ? RED : '#fff'} className="p-3 text-center" shadow={4}>
