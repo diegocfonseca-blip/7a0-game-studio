@@ -1557,6 +1557,31 @@ export function PyramidSeasonScreen() {
       } catch { /* nunca trava o jogo */ }
     })()
   }, [done, state.careerOnline, state.roomId, state.seasonNo, state.seed]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 🏆 COPA LEGENDS: campeão do mata-mata das 4 divisões TAMBÉM leva um título no
+  // ranking (agora que a Copa também dá carta). Linha à parte (season_key com
+  // sufixo ":copa"), igual a Copa dos 8 do rápido — dá pra somar título de liga +
+  // Copa na mesma temporada. Grava quando a Copa termina de animar e você venceu.
+  const copaRankRef = useRef('')
+  useEffect(() => {
+    if (!copaFinished || !copa?.champion?.you || !state.careerOnline) return
+    const room = state.roomId || `solo${state.seed}`
+    const key = `co:${room}:${state.seasonNo}:copa`
+    if (copaRankRef.current === key) return
+    copaRankRef.current = key
+    ;(async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return // só técnico com cadastro entra no ranking
+        const displayName = stripEmoji(user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? me?.team ?? 'Técnico')
+        await resilientWrite({ table: 'esc_results', onConflict: 'user_id,season_key', row: {
+          user_id: user.id, display_name: displayName,
+          mode: state.roomId ? 'online' : 'cpu', season_key: key.slice(0, 48),
+          champion: true, top_scorer: false, goals: 0,
+        } })
+      } catch { /* nunca trava o jogo */ }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [copaFinished, copa?.champion?.you, state.careerOnline, state.roomId, state.seasonNo, state.seed])
   // substituição libera na 2ª temporada — INCLUSIVE no fim de temporada, pra você
   // já montar o time da próxima (a troca no fim não muda o campeonato que acabou;
   // o SET_LINEUP grava além da rodada 38 e só carrega pra próxima temporada).
