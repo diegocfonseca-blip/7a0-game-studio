@@ -259,7 +259,6 @@ export interface EscState {
   // da votação; 'liga' pula direto pro fim, como sempre foi.
   copaMode?: 'liga' | 'liga_copa'
   quickCopa?: QuickCopaState | null
-  lastRoundAt?: number // 🛡️ timestamp da última rodada da liga viva (trava anti-blitz)
   phaseDeadline: number | null // timestamp (ms) do fim do envelope
   monteDeadline: number | null // timestamp (ms) do fim da vez atual no Monte (online)
   cerimoniaDeadline: number | null // timestamp (ms) do fim da cerimônia (auto-começa o campeonato)
