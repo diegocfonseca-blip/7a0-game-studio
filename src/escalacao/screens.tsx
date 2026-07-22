@@ -1142,6 +1142,9 @@ function Envelope() {
   const pos = SECTORS[state.sectorIdx]
   const rescue = state.phase === 'resq_envelope'
   const [bids, setBids] = useState<Record<string, number>>({})
+  const [pickerCard, setPickerCard] = useState<Card | null>(null) // 🎯 escolher valor redondo
+  const [typeVal, setTypeVal] = useState('') // "digitar" um valor na mão
+  const [peek, setPeek] = useState(false) // 👁️ ver os PRÓPRIOS lances no modo stream (local, não vaza)
   // PRIMEIRA partida da vida: dica dourada que alterna por setor (moedas ↔ auge).
   // HOOKS AQUI NO TOPO, antes de qualquer return condicional — colocar depois
   // derrubava o online com React #300 quando o envelope era lacrado.
@@ -1274,6 +1277,22 @@ function Envelope() {
       const target = cur === 0 && floor > 0 ? floor : cur + 1
       const v = Math.min(target, room)
       if (cur === 0 && floor > 0 && v < floor) return prev // piso não cabe no orçamento → lance abaixo do piso é inválido
+      return { ...prev, [c.id]: v }
+    })
+  }
+  // 🎯 define o lance num valor DIRETO (atalho de números redondos / digitado),
+  // com as mesmas travas do +/-: nunca acima do que cabe, nunca abaixo do piso.
+  function setBidTo(c: Card, value: number) {
+    const floor = (c as { paid?: number }).paid ?? 0
+    setBids(prev => {
+      const cur = prev[c.id] ?? 0
+      const others = Object.entries(prev).reduce((s, [k, v]) => (k === c.id ? s : s + v), 0)
+      const room = you.money - others // teto que ESTA carta pode receber
+      if (value <= 0) { const next = { ...prev }; delete next[c.id]; return next } // 0 = tira o lance
+      if (cur === 0 && Object.keys(prev).length >= bidLimit) return prev // já escolheu o máximo de jogadores
+      let v = Math.max(value, floor) // nunca abaixo do piso (sobe pro piso)
+      v = Math.min(v, room)          // nunca acima do que cabe no caixa
+      if (v < floor || v <= 0) return prev // piso não cabe no orçamento → inválido
       return { ...prev, [c.id]: v }
     })
   }
@@ -1411,7 +1430,11 @@ function Envelope() {
                     : state.sectorIdx === 0 && <span className="text-[9px] font-black uppercase leading-none mb-0.5 tracking-wide" style={{ color: '#B8860B' }}>seu lance</span>)}
                   <div className="flex items-center gap-1.5">
                     <HoldButton onStep={() => bump(c, -1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</HoldButton>
-                    <span className="w-9 text-center font-black" style={{ ...OSWALD, color: numColor }}>{state.streamMode ? (chosen ? '🔒' : '–') : (chosen ? bid : floor > 0 ? floor : 0)}</span>
+                    {/* toca no número → escolher valor redondo/digitar. No stream, só
+                        mostra o número se você ligou "ver meus lances" (peek). */}
+                    <button onClick={() => { setTypeVal(''); setPickerCard(c) }} className="w-9 text-center font-black active:opacity-60" style={{ ...OSWALD, color: numColor }}>
+                      {state.streamMode && !peek ? (chosen ? '🔒' : '–') : (chosen ? bid : floor > 0 ? floor : 0)}
+                    </button>
                     <HoldButton
                       onStep={() => bump(c, 1)}
                       disabled={plusBlocked}
@@ -1428,12 +1451,16 @@ function Envelope() {
       </div>
 
       {state.streamMode && canBid && (
-        <Box bg="#111" className="p-2.5 text-center">
+        <Box bg="#111" className="p-2.5 text-center space-y-2">
           <p className="font-black text-white text-xs" style={OSWALD}>🎥 MODO STREAM — os valores ficam ocultos até o martelo. Manda ver no dedo! 🔒</p>
+          {/* pra quem NÃO está filmando: dá pra ver os próprios lances (só no seu aparelho) */}
+          <button onClick={() => setPeek(p => !p)} className="w-full border-2 border-white/40 rounded-lg py-1.5 font-black text-xs" style={{ background: peek ? GOLD : 'transparent', color: peek ? '#000' : '#fff', ...OSWALD }}>
+            {peek ? '🙈 Esconder meus lances de novo' : '👁️ Ver só os MEUS lances (não aparece pra sala)'}
+          </button>
         </Box>
       )}
       <Box bg="#fff" className="p-3 flex items-center justify-between">
-        <p className="font-black text-black" style={OSWALD}>ENVELOPE: {state.streamMode ? '🔒' : total} / {you.money}</p>
+        <p className="font-black text-black" style={OSWALD}>ENVELOPE: {state.streamMode && !peek ? '🔒' : total} / {you.money}</p>
         <Btn onClick={seal} bg={RED}>
           <span className="text-white">LACRAR 🔒</span>
         </Btn>
@@ -1444,6 +1471,45 @@ function Envelope() {
 
       <YourPitch />
       <RivalsStrip />
+
+      {/* 🎯 escolher valor: toca no número e pega um redondo (ou digita) — no dedo,
+          sem ficar apertando o + mil vezes. Ótimo no stream (acerta sem contar). */}
+      {pickerCard && (() => {
+        const c = pickerCard
+        const floor = (c as { paid?: number }).paid ?? 0
+        const others = Object.entries(bids).reduce((s, [k, v]) => (k === c.id ? s : s + v), 0)
+        const room = you.money - others // teto que cabe pra ESTA carta
+        const curBid = bids[c.id] ?? 0
+        const cName = c.id === state.surpriseId ? '🎁 Jogador Surpresa' : c.name // não vaza a surpresa
+        const presets = [5, 10, 15, 20, 25, 30, 40, 50].filter(v => v <= room && v >= Math.max(1, floor))
+        const apply = (v: number) => { setBidTo(c, v); setPickerCard(null) }
+        const typed = parseInt(typeVal || '0', 10)
+        return (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.6)' }} onClick={() => setPickerCard(null)}>
+            <div className="w-full max-w-sm border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }} onClick={e => e.stopPropagation()}>
+              <p className="font-black text-lg" style={OSWALD}>🎯 Lance rápido</p>
+              <p className="text-xs font-bold text-black/60 mb-1">{cName}{floor > 0 ? ` · mín 🔒 ${floor}` : ''} · cabe até {room} 🪙</p>
+              {presets.length > 0 ? (
+                <div className="grid grid-cols-4 gap-2 mt-2">
+                  {presets.map(v => (
+                    <button key={v} onClick={() => apply(v)} className="border-[3px] border-black rounded-xl py-2.5 font-black" style={{ background: curBid === v ? GOLD : '#fff', ...OSWALD }}>{v}</button>
+                  ))}
+                </div>
+              ) : <p className="text-xs font-bold text-black/55 mt-2">Seu caixa não alcança os valores redondos pra este jogador — dá pra digitar abaixo.</p>}
+              <div className="flex items-center gap-2 mt-3">
+                <input value={typeVal} onChange={e => setTypeVal(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))} inputMode="numeric" placeholder="digitar um valor…"
+                  className="flex-1 border-[3px] border-black rounded-xl px-3 py-2 font-black bg-white" />
+                <button onClick={() => { if (typed > 0) apply(typed) }} disabled={typed <= 0}
+                  className="border-[3px] border-black rounded-xl px-4 py-2 font-black" style={{ background: typed > 0 ? GREEN : '#cfc6ae', color: '#fff', ...OSWALD }}>OK</button>
+              </div>
+              <div className="flex items-center justify-between mt-3">
+                <button onClick={() => apply(0)} className="text-xs font-black text-black/55 underline active:opacity-60">🗑️ tirar o lance</button>
+                <button onClick={() => setPickerCard(null)} className="text-xs font-black text-black/55 underline active:opacity-60">fechar</button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </Shell>
   )
 }
