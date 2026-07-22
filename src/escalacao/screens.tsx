@@ -3058,7 +3058,7 @@ const ALL_POOL: WonCard[] = (() => {
   return out
 })()
 
-export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onStatus }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void }) {
+export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onStatus, noTimer }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; noTimer?: boolean }) {
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
   // avisa quem renderiza (EscEnd) o status da carta — pra travar a votação online
@@ -3131,7 +3131,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
   }
 
   useEffect(() => {
-    if (status !== 'picking' || remaining > 0) return
+    if (noTimer || status !== 'picking' || remaining > 0) return // 🎥 stream: sem tempo — o host/campeão abre quando quiser
     openPack() // tempo esgotou: o pacote abre sozinho (ninguém fica sem carta)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining, status])
@@ -3179,9 +3179,9 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
       <style>{'@keyframes escPackSheen{0%{background-position:0% 0%}100%{background-position:100% 100%}}'}</style>
       <div className="flex items-center justify-between mb-1">
         <p className="font-black text-lg" style={OSWALD}>🎁 Pacote do campeão!</p>
-        <span className="border-2 border-black rounded-lg px-2 py-1 text-xs font-black bg-white">{remaining}s</span>
+        {!noTimer && <span className="border-2 border-black rounded-lg px-2 py-1 text-xs font-black bg-white">{remaining}s</span>}
       </div>
-      <p className="text-xs font-bold text-black/70 mb-3">Campeão leva uma carta <b>surpresa</b> pro álbum — sorteada entre <b>todas as cartas do jogo</b> (sempre uma que você ainda não tem). Toque no pacote pra abrir; se o tempo acabar, ele abre sozinho.</p>
+      <p className="text-xs font-bold text-black/70 mb-3">Campeão leva uma carta <b>surpresa</b> pro álbum — sorteada entre <b>todas as cartas do jogo</b> (sempre uma que você ainda não tem). Toque no pacote pra abrir{noTimer ? '.' : '; se o tempo acabar, ele abre sozinho.'}</p>
       <motion.button onClick={openPack} disabled={opening}
         className="relative mx-auto block" style={{ width: 168, height: 230, background: 'transparent', border: 'none', padding: 0, cursor: opening ? 'default' : 'pointer' }}
         animate={opening
@@ -3200,6 +3200,66 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
           style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: GOLD, border: `3px solid ${INK}`, borderRadius: 999, padding: '3px 13px', fontSize: 10.5, fontWeight: 900, letterSpacing: 1, ...OSWALD }}>LACRADO</motion.span>
       </motion.button>
       {!opening && <p className="text-[11px] font-black text-black/60 mt-3" style={OSWALD}>👆 TOCA PRA ABRIR</p>}
+      {opening && (
+        <motion.div className="fixed inset-0 pointer-events-none" style={{ background: '#fff', zIndex: 9999 }}
+          initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} transition={{ duration: 0.5, delay: 0.6 }} />
+      )}
+    </Box>
+  )
+}
+
+// 🎥 STREAM · pacote do campeão pra QUEM NÃO É o campeão (a sala assistindo).
+// Mostra o MESMO pacote e revela a MESMA carta que o campeão tirou (vem do
+// estado, sincronizada pra todos). Qualquer um pode tocar pra abrir, mas é só
+// pra ver: não grava nada no álbum. Se a carta ainda não chegou (campeão não
+// abriu), o lacre fica "esperando" e revela sozinho quando ela cair no estado.
+function StreamSpectatorCard({ champName, card }: { champName: string; card?: WonCard | null }) {
+  const [opened, setOpened] = useState(false)
+  const [opening, setOpening] = useState(false)
+  const reveal = opened && !!card
+  const openPack = () => {
+    if (opening || opened) return
+    setOpening(true)
+    setTimeout(() => { setOpening(false); setOpened(true) }, 950)
+  }
+
+  if (reveal && card) {
+    return (
+      <Box bg={CREAM} className="p-5 text-center" shadow={6}>
+        <p className="text-xs font-black uppercase text-black/60 mb-0.5">🎁 Carta do campeão · {champName}</p>
+        <p className="text-[11px] font-bold text-black/45 mb-3">👀 Você está assistindo — essa carta é do campeão (não vai pro seu álbum).</p>
+        <motion.div initial={{ rotateY: 90, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.7, type: 'spring', bounce: 0.35 }}
+          className="mx-auto" style={{ maxWidth: 285 }}>
+          <CollectibleCard name={card.name} club={card.club} year={card.year} pos={card.pos} fame={card.fame} bio={card.bio} folk={card.folk} promessa={card.promessa} big />
+        </motion.div>
+      </Box>
+    )
+  }
+
+  return (
+    <Box bg={GOLD} className="p-4 text-center" shadow={6}>
+      <style>{'@keyframes escPackSheen{0%{background-position:0% 0%}100%{background-position:100% 100%}}'}</style>
+      <p className="font-black text-lg mb-1" style={OSWALD}>🎁 Pacote do campeão · {champName}</p>
+      <p className="text-xs font-bold text-black/70 mb-3">A carta que o campeão tirou aparece aqui pra <b>todo mundo ver</b>. Toque no pacote pra abrir — é só pra assistir, não vai pro seu álbum.</p>
+      <motion.button onClick={openPack} disabled={opening}
+        className="relative mx-auto block" style={{ width: 168, height: 230, background: 'transparent', border: 'none', padding: 0, cursor: opening || opened ? 'default' : 'pointer' }}
+        animate={opening
+          ? { rotate: [0, -8, 8, -7, 7, -5, 5, 0], scale: [1, 1.04, 1.08, 1.12], transition: { duration: 0.75 } }
+          : { y: [0, -9, 0], rotate: [-1.5, 1.5, -1.5], transition: { duration: 2.6, repeat: Infinity, ease: 'easeInOut' } }}>
+        <div style={{ position: 'absolute', inset: 0, border: `4px solid ${INK}`, borderRadius: 16, overflow: 'hidden',
+          background: 'linear-gradient(150deg, #125e2f 0%, #2ea457 35%, #FFC400 50%, #2ea457 65%, #125e2f 100%)',
+          backgroundSize: '220% 220%', animation: 'escPackSheen 2.8s linear infinite',
+          boxShadow: `0 12px 26px rgba(0,0,0,.35), inset 0 0 24px rgba(255,255,255,.18)` }} />
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, color: '#fff' }}>
+          <span style={{ fontSize: 46, filter: 'drop-shadow(2px 3px 0 rgba(0,0,0,.4))' }}>🔨</span>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 16, lineHeight: 1, textShadow: '2px 2px 0 rgba(0,0,0,.45)' }}>LEILÃO<br />LEGENDS</span>
+          <span style={{ ...OSWALD, fontWeight: 800, fontSize: 9, letterSpacing: 2.5, color: GOLD, textShadow: '1px 1px 0 rgba(0,0,0,.5)' }}>PACOTE DO CAMPEÃO</span>
+        </div>
+        <motion.span animate={opening ? { y: -34, rotate: 22, opacity: 0 } : {}} transition={{ duration: 0.35, delay: 0.3 }}
+          style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: GOLD, border: `3px solid ${INK}`, borderRadius: 999, padding: '3px 13px', fontSize: 10.5, fontWeight: 900, letterSpacing: 1, ...OSWALD }}>LACRADO</motion.span>
+      </motion.button>
+      {!opening && !opened && <p className="text-[11px] font-black text-black/60 mt-3" style={OSWALD}>👆 TOCA PRA ABRIR</p>}
+      {opened && !card && <p className="text-[11px] font-black text-black/60 mt-3" style={OSWALD}>⏳ Esperando o campeão abrir o pacote…</p>}
       {opening && (
         <motion.div className="fixed inset-0 pointer-events-none" style={{ background: '#fff', zIndex: 9999 }}
           initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} transition={{ duration: 0.5, delay: 0.6 }} />
@@ -4109,6 +4169,37 @@ export function EscEnd() {
     return last === 'semis' ? 'Caiu na semi' : 'Caiu nas quartas'
   })()
   const copaChampName = state.quickCopa?.champion ? (state.quickCopa.champion.you ? 'VOCÊ!' : state.quickCopa.champion.name) : ''
+  // 🎥 STREAM · carta do campeão compartilhada com a sala. Só faz sentido quando o
+  // campeão é HUMANO (CPU não tira carta). A carta revelada vem do estado, sincronizada.
+  const ligaChampHuman = !!state.managers.find(m => m.id === champ.id)?.isHuman
+  const copaChampId = state.quickCopa?.champion?.id ?? undefined
+  const copaChampHuman = copaChampId != null && !!state.managers.find(m => m.id === copaChampId)?.isHuman
+  const streamLigaCard = state.streamChampCard?.liga ?? null
+  const streamCopaCard = state.streamChampCard?.copa ?? null
+  // quando o campeão abre o pacote, além de gravar no álbum dele, joga a carta no
+  // estado → o host retransmite e a sala TODA vê a mesma carta (só no stream).
+  const bcastCard = (slot: 'liga' | 'copa') => (c: WonCard) => { setMyCard(c); if (streamRoom) dispatch({ type: 'SET_STREAM_CHAMP_CARD', slot, card: c }) }
+  // 🎥 STREAM · se o CAMPEÃO saiu da sala e não abriu o pacote, o HOST abre no lugar
+  // dele (sorteio) — a sala não fica travada esperando uma carta que não vem. Espera
+  // uma folga (presence é instável) e não age se a carta já existe ou se o campeão voltou.
+  useEffect(() => {
+    if (!streamHost) return
+    const timers: ReturnType<typeof setTimeout>[] = []
+    const arm = (slot: 'liga' | 'copa', champId: number | undefined, human: boolean, filled: boolean) => {
+      if (champId == null || !human || filled) return
+      const idx = state.managers.findIndex(m => m.id === champId)
+      if (idx < 0 || idx === state.youIdx) return          // o campeão sou EU (host) → eu abro, sem auto
+      if ((state.presence ?? []).includes(idx)) return     // campeão presente → ele mesmo abre
+      timers.push(setTimeout(() => {
+        const pick = ALL_POOL[Math.floor(Math.random() * ALL_POOL.length)]
+        if (pick) dispatch({ type: 'SET_STREAM_CHAMP_CARD', slot, card: pick })
+      }, 14000))
+    }
+    arm('liga', champ.id, ligaChampHuman, !!streamLigaCard)
+    if (copaDone) arm('copa', copaChampId, copaChampHuman, !!streamCopaCard)
+    return () => timers.forEach(clearTimeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [streamHost, state.presence, state.streamChampCard, champ.id, ligaChampHuman, copaChampId, copaChampHuman, copaDone, state.youIdx])
   // placar-resumo do topo (Liga + Copa), no lugar do radião de colocação
   const comboHeader = (
     <div className="pt-6">
@@ -4150,7 +4241,11 @@ export function EscEnd() {
   const ligaChampionCard = (
     <>
       {online && youWon && state.roomId && (
-        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}`} origin="online" onClaimed={setMyCard} onStatus={setLigaCardStatus} />
+        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}`} origin="online" onClaimed={bcastCard('liga')} onStatus={setLigaCardStatus} noTimer={streamRoom} />
+      )}
+      {/* 🎥 STREAM: a sala (quem NÃO é campeão) assiste o pacote do campeão da liga */}
+      {streamRoom && !youWon && ligaChampHuman && (
+        <StreamSpectatorCard champName={champ.name} card={streamLigaCard} />
       )}
       {!online && youWon && (
         <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" onClaimed={setMyCard} />
@@ -4175,10 +4270,14 @@ export function EscEnd() {
       )}
       {state.quickCopa?.champion?.you && (
         online && state.roomId ? (
-          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}:copa`} origin="online" onClaimed={setMyCard} onStatus={setCopaCardStatus} />
+          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}:copa`} origin="online" onClaimed={bcastCard('copa')} onStatus={setCopaCardStatus} noTimer={streamRoom} />
         ) : !online ? (
           <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`} origin="cpu" onClaimed={setMyCard} />
         ) : null
+      )}
+      {/* 🎥 STREAM: a sala (quem NÃO é campeão da Copa) assiste o pacote do campeão */}
+      {streamRoom && copaChampHuman && !state.quickCopa?.champion?.you && (
+        <StreamSpectatorCard champName={copaChampName} card={streamCopaCard} />
       )}
       <CopaScorersBox highlight={you.id} />
     </>

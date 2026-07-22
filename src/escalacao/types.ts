@@ -265,6 +265,10 @@ export interface EscState {
   cpuAtkAdj: number // ajuste de força dos CPUs (online): escala os bots à média dos humanos
   cpuDefAdj: number
   streamMode: boolean // sala de stream: esconde os VALORES dos lances na tela (pra live)
+  // 🎥 modo stream: a carta que o campeão tirou (liga/copa) fica AQUI e vai pra
+  // sala inteira via broadcast — todo mundo vê e pode abrir o pacote do campeão.
+  // Quem não é campeão só assiste (não grava no álbum). null/vazio = ainda não abriu.
+  streamChampCard?: { liga?: WonCard | null; copa?: WonCard | null } | null
   deckLeague: 'br' | 'eu' | 'both' // baralho escolhido: 🇧🇷 Brasileirão, 🌍 Liga Europa ou 🌎 os dois juntos (both = só na carreira online)
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
