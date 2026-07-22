@@ -2953,9 +2953,12 @@ const ALL_POOL: WonCard[] = (() => {
   return out
 })()
 
-export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void }) {
+export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onStatus }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void }) {
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
+  // avisa quem renderiza (EscEnd) o status da carta — pra travar a votação online
+  // enquanto o campeão ainda não abriu o pacote (Jeito 1: ninguém perde carta).
+  useEffect(() => { onStatus?.(status) }, [status]) // eslint-disable-line react-hooks/exhaustive-deps
   const [claimed, setClaimed] = useState<WonCard | null>(null)
   const [owned, setOwned] = useState<Set<string>>(new Set()) // cartas que o usuário JÁ tem no álbum (por nome)
   const [deadline, setDeadline] = useState(() => Date.now() + CARD_PICK_SECONDS * 1000)
@@ -3756,7 +3759,7 @@ function CareerEndPanel() {
 // visível. Todo mundo vota (mostra pro host quem tá online e o que quer); o
 // HOST decide e começa quando quiser (nunca trava esperando ninguém). O host
 // pode remover quem não decide e voltar pro menu das salas.
-function OnlineEndVote() {
+function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   const { state, dispatch, kickPlayer, leaveRoom } = useEsc()
   const youId = state.youIdx
   const isHost = state.isHost
@@ -3770,6 +3773,11 @@ function OnlineEndVote() {
   const nVoted = nMesmo + nLeilao
   const pend = guests.filter(m => !votes[m.id])
   const vote = (v: 'mesmo' | 'leilao') => dispatch({ type: 'CAST_SEASON_VOTE', mgrId: youId, vote: v })
+  // tem um campeão HUMANO (liga ou copa) que NÃO sou eu? (ex.: o host ganhou) — pode
+  // estar pegando a carta dele; serve pra explicar pro resto por que ainda não começou.
+  const leagueChampId = sortedTable(state.league)[0]?.id
+  const copaChampId = state.quickCopa?.champion?.id
+  const otherHumanChamp = [leagueChampId, copaChampId].some(id => id != null && id !== youId && state.managers.some(m => m.id === id && m.isHuman))
   // aviso do host quando ainda tem gente sem decidir: um mini-modal com 3 saídas
   // (esperar · começar com eles · excluir e começar). Se todos prontos, começa direto.
   const [askStart, setAskStart] = useState<'mesmo' | 'leilao' | null>(null)
@@ -3816,7 +3824,14 @@ function OnlineEndVote() {
   return (
     <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: '#EAF3FF', boxShadow: `4px 4px 0 ${INK}` }}>
       <p className="font-black text-lg text-center" style={OSWALD}>🗳️ E agora?</p>
-      {isHost ? (
+      {awaitingCard ? (
+        // 🎁 Jeito 1: você foi campeão e ainda não abriu a carta — trava o voto/começar
+        // até pegar, pra NUNCA trocar de tela e perder a carta.
+        <div className="rounded-xl border-[3px] border-black px-3 py-3 text-center" style={{ background: '#FFF7DE', boxShadow: `3px 3px 0 ${INK}` }}>
+          <p className="font-black text-sm" style={{ ...OSWALD, color: '#92600A' }}>🎁 Pega tua carta de campeão primeiro!</p>
+          <p className="text-[11px] font-bold text-black/65 mt-0.5">Toque no pacote lá em cima pra abrir. Depois disso libera {isHost ? 'o começar a próxima' : 'o seu voto'} — assim ninguém perde carta.</p>
+        </div>
+      ) : isHost ? (
         <>
           <p className="text-center text-xs font-bold text-black/60">Seguir com o <b>mesmo time</b> ou abrir um <b>novo leilão</b>? Você (host) decide 👇</p>
           {/* prontidão da galera (só os convidados): nome grande + PRONTO claro */}
@@ -3857,6 +3872,8 @@ function OnlineEndVote() {
           ) : (
             <p className="text-center text-sm font-black" style={{ color: '#b23b2e', ...OSWALD }}>👆 Toque no seu voto pra ficar PRONTO!</p>
           )}
+          {/* explica a espera quando um campeão (às vezes o próprio host) tá pegando a carta */}
+          {otherHumanChamp && <p className="text-[11px] font-bold text-center mt-1" style={{ color: '#92600A' }}>🏆 Um campeão está pegando a carta dele — o host começa logo depois. Segura aí!</p>}
         </>
       )}
       {/* saídas — uma linha só, discreta, pra todos */}
@@ -3932,6 +3949,14 @@ export function EscEnd() {
   }, [copaPending, manual, dispatch, canDriveCopa])
   // carta-lembrança que o campeão escolheu (entra na imagem de compartilhar)
   const [myCard, setMyCard] = useState<WonCard | null>(null)
+  // Jeito 1: no online, o campeão precisa ABRIR a carta antes de poder votar/começar
+  // — assim ninguém perde carta por trocar de tela antes de pegar. 'picking' = ainda
+  // não abriu; qualquer outro status (revelado, sem conta) não trava.
+  const [ligaCardStatus, setLigaCardStatus] = useState('')
+  const [copaCardStatus, setCopaCardStatus] = useState('')
+  // 'checking' entra junto pra fechar a brecha de votar no instante da conferência.
+  const stillGetting = (s: string) => s === 'checking' || s === 'picking'
+  const awaitingCard = online && (stillGetting(ligaCardStatus) || stillGetting(copaCardStatus))
   const featured = youWon ? (myCard ?? [...you.squad].sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))[0]) : undefined
   const shareOpts: ShareOpts = {
     teamName: you.teamName, youPos, youWon, champName: champ.name,
@@ -4014,7 +4039,7 @@ export function EscEnd() {
   const ligaChampionCard = (
     <>
       {online && youWon && state.roomId && (
-        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}`} origin="online" onClaimed={setMyCard} />
+        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}`} origin="online" onClaimed={setMyCard} onStatus={setLigaCardStatus} />
       )}
       {!online && youWon && (
         <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" onClaimed={setMyCard} />
@@ -4039,7 +4064,7 @@ export function EscEnd() {
       )}
       {state.quickCopa?.champion?.you && (
         online && state.roomId ? (
-          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}:copa`} origin="online" onClaimed={setMyCard} />
+          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}:copa`} origin="online" onClaimed={setMyCard} onStatus={setCopaCardStatus} />
         ) : !online ? (
           <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`} origin="cpu" onClaimed={setMyCard} />
         ) : null
@@ -4106,12 +4131,14 @@ export function EscEnd() {
             copaScorerName={copaDone ? copaSc?.name : undefined} copaScorerGoals={copaDone ? copaSc?.goals : undefined} />
         )
       })()}
-      {/* No online, a votação "E agora?" vem ANTES do compartilhar (é a ação principal) */}
-      {online && <OnlineEndVote />}
+      {/* No online, a votação "E agora?" vem ANTES do compartilhar (é a ação principal).
+          Durante a ESPERA da Copa (copaPending) ela some — senão daria pra começar a
+          próxima temporada e PULAR a Copa. Volta quando a Copa acaba. */}
+      {online && !copaPending && <OnlineEndVote awaitingCard={awaitingCard} />}
       <ShareResultPanel opts={shareOpts} />
       {state.dinastia ? (
         <Btn onClick={() => { window.location.hash = 'dinastia' }} bg={GREEN} className="w-full text-lg"><span className="text-white">🏰 Ir pra janela de transferências →</span></Btn>
-      ) : state.careerDivision ? <CareerEndPanel /> : online ? null : (<>
+      ) : state.careerDivision ? <CareerEndPanel /> : (online || copaPending) ? null : (<>
       {restartPending
         ? (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2" style={{ background: '#FEF3C7' }}>
