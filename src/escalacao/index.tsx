@@ -153,6 +153,57 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | nu
   }
 }
 
+// 🔄 VIGIA DE VERSÃO (atualização automática): o jogo é um site que fica aberto/
+// cacheado no navegador — quem já está com a página aberta continua na versão
+// ANTIGA até recarregar, e a galera não entende de "versão" nem recarrega. Este
+// vigia compara o arquivo JS que ESالتA página carregou (o hash no nome muda a cada
+// deploy) com o do index.html no servidor. Se mudou: mostra um banner (toque =
+// atualiza) e, se a pessoa estiver na TELA INICIAL (segura), atualiza sozinho —
+// sem interromper jogo em andamento. Guarda a hora do último auto-reload pra
+// nunca entrar em loop (no máx. 1 auto-reload a cada 5 min).
+function VersionWatcher() {
+  const { state } = useEsc()
+  const [stale, setStale] = useState(false)
+  useEffect(() => {
+    const cur = Array.from(document.scripts).map(s => s.getAttribute('src') || '').find(s => /assets\/index-[\w-]+\.js/.test(s)) || ''
+    if (!cur) return
+    let alive = true
+    const check = async () => {
+      try {
+        const base = import.meta.env.BASE_URL || '/'
+        const html = await fetch(`${base}index.html?v=${Date.now()}`, { cache: 'no-store' }).then(r => r.ok ? r.text() : '')
+        const m = html.match(/assets\/index-[\w-]+\.js/)
+        if (alive && m && !cur.includes(m[0])) setStale(true)
+      } catch { /* offline/erro de rede — ignora, tenta de novo depois */ }
+    }
+    const t0 = setTimeout(check, 8000) // 1ª checagem uns segundos após abrir
+    const iv = setInterval(check, 90_000) // e a cada 90s
+    const onVis = () => { if (document.visibilityState === 'visible') check() } // e quando volta pro app
+    document.addEventListener('visibilitychange', onVis)
+    window.addEventListener('focus', onVis)
+    return () => { alive = false; clearTimeout(t0); clearInterval(iv); document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', onVis) }
+  }, [])
+  // auto-atualiza SÓ na tela inicial (não interrompe jogo) e no máx. 1x/5min (anti-loop)
+  useEffect(() => {
+    if (!stale || state.screen !== 'intro') return
+    let last = 0
+    try { last = +(sessionStorage.getItem('esc-auto-upd-at') || 0) } catch { /* ignora */ }
+    if (Date.now() - last < 300_000) return // já atualizou há pouco — mostra só o banner
+    const t = setTimeout(() => {
+      try { sessionStorage.setItem('esc-auto-upd-at', String(Date.now())) } catch { /* ignora */ }
+      window.location.reload()
+    }, 2000)
+    return () => clearTimeout(t)
+  }, [stale, state.screen])
+  if (!stale) return null
+  return (
+    <button onClick={() => window.location.reload()}
+      style={{ position: 'fixed', top: 8, left: 8, right: 8, zIndex: 99999, margin: '0 auto', maxWidth: 440, background: '#1B7A3D', color: '#fff', border: '2px solid #0C0C0C', borderRadius: 12, padding: '10px 12px', textAlign: 'center', fontWeight: 800, fontSize: 12.5, lineHeight: 1.3, boxShadow: '0 4px 14px rgba(0,0,0,.35)', cursor: 'pointer', fontFamily: 'Oswald, sans-serif' }}>
+      ✨ Saiu novidade nova no jogo! Toque aqui pra atualizar 🔄
+    </button>
+  )
+}
+
 export default function EscalacaoGame() {
   return (
     <ErrorBoundary>
@@ -160,6 +211,7 @@ export default function EscalacaoGame() {
         <MaintenanceBanner />
         <AnnouncementToast />
         <OpenInBrowserBanner />
+        <VersionWatcher />
         {/* FUNDO CREME DO JOGO: o site-estúdio tem fundo quase-preto (#06060f). O
             Leilão Legends é todo em telas cremes. Se alguma tela renderizar vazia
             por um instante (troca de fase, estado incompleto sincronizado, save
