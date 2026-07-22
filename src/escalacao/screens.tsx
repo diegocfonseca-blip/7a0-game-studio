@@ -887,8 +887,8 @@ export function EscSetup() {
       : undefined
     // carreira offline = pirâmide de 4 divisões (baralho sempre BR + Europa juntos).
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.
-    if (career) dispatch({ type: 'START_CAREER_SOLO', teamName: clean, formation, rivals, rivalTeams: picks, league: 'both' })
-    else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league, copaMode })
+    if (career) dispatch({ type: 'START_CAREER_SOLO', teamName: clean, formation, rivals, rivalTeams: picks, league: 'both', intro: true })
+    else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league, copaMode, intro: true })
   }
   return (
     <Shell>
@@ -1011,7 +1011,7 @@ export function EscSetup() {
         <p className="text-xs font-semibold text-black/70">💰 Todo técnico começa com {START_MONEY} moedas. O que sobrar no fim do leilão <b>evapora</b> — gaste com sabedoria (ou sem).</p>
       </Box>
       <Btn onClick={start} className="w-full text-lg" bg={GREEN}>
-        <span className="text-white">{career ? 'COMEÇAR CARREIRA 🪜' : 'ABRIR O PREGÃO 🔨'}</span>
+        <span className="text-white">{career ? 'AVANÇAR 🪜' : 'AVANÇAR 🔨'}</span>
       </Btn>
       {/* pirâmide nova (todo save novo) + carreira antiga (só pra quem já tinha um
           save em andamento poder terminar). Cada banner some sozinho se não houver
@@ -1078,7 +1078,7 @@ export function EscStreamIntro() {
   return (
     <Shell>
       <div className="text-center pt-4">
-        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>🎥 Modo Stream</span>
+        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>{state.streamMode ? '🎥 Modo Stream' : '🔨 Como funciona'}</span>
         <h2 className="font-black text-3xl mt-3 leading-none" style={OSWALD}>BEM-VINDO<br />AO PREGÃO! 🔨</h2>
         <p className="text-sm font-semibold text-black/60 mt-2">Antes de começar, entenda o leilão às cegas — pra quem tá chegando agora.</p>
       </div>
@@ -1127,6 +1127,7 @@ export function EscStreamIntro() {
         </div>
       </Box>
 
+      {online && (
       <Box bg={INK} className="p-4" shadow={6}>
         <p className="font-black text-lg" style={{ ...OSWALD, color: '#fff' }}>👥 Quem tá no pregão ({humans.length})</p>
         <div className="mt-2 space-y-1.5">
@@ -1143,6 +1144,7 @@ export function EscStreamIntro() {
           })}
         </div>
       </Box>
+      )}
 
       {isHost ? (
         <Btn onClick={() => dispatch({ type: 'START_STREAM_AUCTION' })} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ COMEÇAR O LEILÃO 🔨</span></Btn>
