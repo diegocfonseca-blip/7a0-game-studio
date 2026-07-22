@@ -2006,6 +2006,8 @@ const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // ~4,7s por rodada
 // 🏆 Copa dos 8 (rápido): cada JOGO roda +6s mais devagar que a Copa da carreira,
 // pra dar pra acompanhar o placar subindo (Diego achou muito rápido). Só o rápido.
 const QUICK_COPA_LEG_MS = COPA_LEG_MS + 6000
+// tempo de LEITURA da telinha "Chegou a Copa" antes da 1ª partida (modo automático)
+const COPA_INTRO_SECONDS = 30
 
 // ── RITMO da simulação (só modos SOLO): auto (padrão) ou manual — no manual
 // a temporada PARA depois de cada rodada e você avança no botão. A escolha
@@ -2112,19 +2114,18 @@ export function EscSeason() {
   const copaLive = state.round >= 38 && !!qc && qc.phase !== 'done'
   const copaTieKey = qc ? `${qc.phase}:${qc.legIdx}:${qc.ties.map(t => t.legs.length).join(',')}` : ''
   // primeira partida da Copa (quartas, ainda ninguém jogou nada): dá um tempo
-  // de LEITURA maior (45s, mesmo tanto da escolha da carta) pra explicar o
-  // formato antes de começar a rolar bola — as demais trocas de fase seguem
-  // no ritmo normal (COPA_LEG_MS), sem essa pausa extra.
+  // de LEITURA (30s) pra explicar o formato antes de começar a rolar bola — as
+  // demais trocas de fase seguem no ritmo normal, sem essa pausa extra.
   const firstLegPending = copaLive && qc!.phase === 'quartas' && qc!.legIdx === 0 && qc!.ties.every(t => t.legs.length === 0)
-  const [copaFirstLeft, setCopaFirstLeft] = useState(CARD_PICK_SECONDS)
+  const [copaFirstLeft, setCopaFirstLeft] = useState(COPA_INTRO_SECONDS)
   const copaFirstFiredRef = useRef(false)
   useEffect(() => {
     if (!firstLegPending || manual) return
     copaFirstFiredRef.current = false
-    setCopaFirstLeft(CARD_PICK_SECONDS)
+    setCopaFirstLeft(COPA_INTRO_SECONDS)
     const t0 = Date.now()
     const iv = setInterval(() => {
-      const left = Math.max(0, CARD_PICK_SECONDS - Math.floor((Date.now() - t0) / 1000))
+      const left = Math.max(0, COPA_INTRO_SECONDS - Math.floor((Date.now() - t0) / 1000))
       setCopaFirstLeft(left)
       // o cronômetro aparece pra todo mundo (visual), mas só quem conduz (host no
       // online, ou o próprio cliente no solo) DISPARA a partida — evita corrida.
