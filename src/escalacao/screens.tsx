@@ -2083,6 +2083,14 @@ export function useSimMode(): [boolean, () => void] {
   const toggle = () => setManual(m => { const v = !m; try { localStorage.setItem('esc-sim-manual', v ? '1' : '0') } catch { /* ignora */ } return v })
   return [manual, toggle]
 }
+// 🎥 RITMO no modo STREAM (host online): igual ao solo, mas COMEÇA no MANUAL — o
+// streamer controla a passagem das rodadas/jogos na live. Preferência com chave
+// própria (não mistura com a do modo normal); default = manual.
+export function useStreamSimMode(): [boolean, () => void] {
+  const [manual, setManual] = useState(() => { try { return localStorage.getItem('esc-stream-auto') !== '1' } catch { return true } })
+  const toggle = () => setManual(m => { const v = !m; try { localStorage.setItem('esc-stream-auto', v ? '0' : '1') } catch { /* ignora */ } return v })
+  return [manual, toggle]
+}
 export function SimControls({ manual, onToggle, onNext, canNext, nextLabel = '▶️ Próxima rodada' }: { manual: boolean; onToggle: () => void; onNext: () => void; canNext: boolean; nextLabel?: string }) {
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'stretch', marginBottom: 10 }}>
@@ -2103,10 +2111,16 @@ export function EscSeason() {
   const you = state.managers[state.youIdx]
   const online = state.onlineMode === 'online'
   const canAdvance = !online || state.isHost
-  // ritmo manual: só nos modos solo (rápido offline, carreira, dinastia)
+  // ritmo manual: nos modos solo (rápido offline, carreira, dinastia) E no modo
+  // STREAM (host online) — aí o streamer controla o passo, começando no manual.
+  const streamHost = online && state.streamMode && state.isHost
   const [manualPref, toggleSim] = useSimMode()
-  const manual = manualPref && !online
-  const roundMs = manual ? ROUND_MS + 10000 : ROUND_MS
+  const [streamManual, toggleStream] = useStreamSimMode()
+  const manual = streamHost ? streamManual : (manualPref && !online)
+  const toggleManual = streamHost ? toggleStream : toggleSim
+  // +10s de folga só no solo manual; no stream online mantém o tempo normal pra
+  // não dessincronizar a animação com os convidados.
+  const roundMs = (manual && !online) ? ROUND_MS + 10000 : ROUND_MS
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
   const youPos = table.findIndex(t => t.id === you.id) + 1
@@ -2395,13 +2409,13 @@ export function EscSeason() {
         </Box>
       )}
 
-      {!online && !state.dinastiaPaused && state.round < 38 && (
-        <SimControls manual={manual} onToggle={toggleSim} canNext
+      {(!online || streamHost) && !state.dinastiaPaused && state.round < 38 && (
+        <SimControls manual={manual} onToggle={toggleManual} canNext
           onNext={() => dispatch({ type: 'PLAY_ROUND' })}
           nextLabel={state.round === 0 && !myLast ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
       )}
-      {!online && copaLive && (
-        <SimControls manual={manual} onToggle={toggleSim} canNext={copaAdvReady}
+      {(!online || streamHost) && copaLive && (
+        <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
           onNext={() => dispatch({ type: 'PLAY_COPA_LEG' })}
           nextLabel={copaAdvReady ? '⚽ Próximo jogo da Copa' : '⏳ Deixa o jogo/pênaltis acabar…'} />
       )}
@@ -3998,6 +4012,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
 export function EscEnd() {
   const { state, dispatch } = useEsc()
   const [manualPref] = useSimMode()
+  const [streamManual] = useStreamSimMode()
   const you = state.managers[state.youIdx]
   const table = sortedTable(state.league)
   const champ = table[0]
@@ -4005,7 +4020,9 @@ export function EscEnd() {
   const youWon = champ.id === you.id
   const online = state.onlineMode === 'online'
   const canRestart = !online || state.isHost
-  const manual = manualPref && !online
+  // no stream (host), a Copa também espera o host (manual) — sem cronômetro automático
+  const streamHost = online && state.streamMode && state.isHost
+  const manual = streamHost ? streamManual : (manualPref && !online)
   const myScorer = topScorers(state, 1)[0]
   // 🏆 Copa dos 8: liga acabou com Copa marcada e ainda não começou nenhuma
   // partida dela — mostra o chaveamento explicando + botão (ou cronômetro no
