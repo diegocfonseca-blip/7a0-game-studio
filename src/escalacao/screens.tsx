@@ -1571,7 +1571,7 @@ function Envelope() {
                     {(() => {
                       const masked = state.streamMode && !peek
                       return (
-                        <button onClick={() => { setTypeVal(''); setPickerCard(c) }}
+                        <button onClick={() => { setTypeVal(chosen ? String(bid) : ''); setPickerCard(c) }}
                           className="w-14 h-8 text-base text-center font-black border-2 border-black rounded-lg bg-white active:opacity-60"
                           style={{ ...OSWALD, color: numColor }}>
                           {masked ? '🔒' : (chosen ? bid : floor > 0 ? floor : 0)}
@@ -1630,7 +1630,16 @@ function Envelope() {
         const min = Math.max(1, floor)
         const valid = typed >= min && typed <= room
         const apply = (v: number) => { setBidTo(c, v); setPickerCard(null) }
-        const presets = [5, 10, 15, 20, 25, 30].filter(v => v >= min && v <= room)
+        // atalhos RELATIVOS (+5/+10): não vazam o total na câmera, então podem
+        // ficar à mostra até no stream. Somam ao valor atual, com as travas de
+        // piso e teto; o +/- da linha continua ajustando de 1 em 1.
+        const addN = (n: number) => {
+          const base = parseInt(typeVal || '0', 10)
+          const nv = Math.min(base === 0 ? Math.max(n, min) : base + n, room)
+          if (nv < min) return
+          setTypeVal(String(nv)); setBidTo(c, nv)
+        }
+        const atCap = (parseInt(typeVal || '0', 10) || min) >= room
         return (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.6)' }} onClick={() => setPickerCard(null)}>
             <div className="w-full max-w-[280px] border-[3px] border-black rounded-2xl p-3.5 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }} onClick={e => e.stopPropagation()}>
@@ -1638,13 +1647,13 @@ function Envelope() {
               {masked
                 ? <p className="text-[11px] font-bold text-black/60 mb-2">Só você vê o valor — a câmera não. Toque 👁️ pra conferir.</p>
                 : <p className="text-[11px] font-bold text-black/60 mb-2">{floor > 0 ? `mín ${floor} · ` : ''}cabe até {room} 🪙</p>}
-              {/* atalhos redondos: só aparecem quando dá pra ver (senão vazariam o valor na live) */}
-              {!masked && presets.length > 0 && (
-                <div className="grid grid-cols-3 gap-1.5 mb-2">
-                  {presets.map(v => (
-                    <button key={v} onClick={() => setTypeVal(String(v))}
-                      className="border-2 border-black rounded-lg py-1.5 font-black text-sm bg-white active:translate-y-0.5"
-                      style={{ ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}` }}>{v}</button>
+              {/* atalhos +5 / +10: relativos, seguros até no stream (não revelam o total) */}
+              {room >= min && (
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  {[5, 10].map(n => (
+                    <button key={n} onClick={() => addN(n)} disabled={atCap}
+                      className={`border-2 border-black rounded-lg py-2.5 font-black text-lg bg-white active:translate-y-0.5 ${atCap ? 'opacity-40' : ''}`}
+                      style={{ ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}` }}>+{n}</button>
                   ))}
                 </div>
               )}
