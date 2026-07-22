@@ -2322,9 +2322,12 @@ export function EscSeason() {
   const [streamManual, toggleStream] = useStreamSimMode()
   const manual = streamHost ? streamManual : (manualPref && !online)
   const toggleManual = streamHost ? toggleStream : toggleSim
-  // +10s de folga só no solo manual; online (host controlando) mantém o tempo
-  // normal pra não dessincronizar a animação com os convidados.
-  const roundMs = (manual && !online) ? ROUND_MS + 10000 : ROUND_MS
+  // +10s de folga só no solo manual; na SALA MANUAL online +2s pra dar pra
+  // acompanhar melhor a partida (todos na sala pegam o mesmo +2s, então não
+  // dessincroniza); sala normal/auto mantém o tempo padrão.
+  const roundMs = (manual && !online) ? ROUND_MS + 10000
+    : (online && state.manualRoom) ? ROUND_MS + 2000
+    : ROUND_MS
   const streamRoom = online && (state.streamMode || !!state.manualRoom) // sala com ritmo do host: Copa/etapas sem cronômetro pra ninguém
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
