@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
@@ -1566,7 +1566,10 @@ function Envelope() {
                     <HoldButton onStep={() => bump(c, -1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</HoldButton>
                     {/* caixinha pra DIGITAR o lance na mão, ali do lado do −/+.
                         Sem OK: o valor já vale; o "lacre" é que confirma tudo.
-                        No stream o valor fica mascarado (•• / 🔒) até o peek. */}
+                        Teclado é sempre normal (type=text + inputMode numérico); no
+                        stream o valor some da tela via CSS (-webkit-text-security),
+                        que mascara na hora — sem o "flash" do último dígito que o
+                        campo de senha do Android mostra e vazaria na câmera. */}
                     {(() => {
                       const editing = pickerCard?.id === c.id
                       const masked = state.streamMode && !peek
@@ -1574,14 +1577,14 @@ function Envelope() {
                       return (
                         <input
                           inputMode="numeric"
-                          type={masked ? 'password' : 'text'}
+                          type="text"
                           value={val}
                           placeholder={masked ? '🔒' : (floor > 0 ? String(floor) : '0')}
                           onFocus={e => { setPickerCard(c); setTypeVal(chosen ? String(bid) : ''); e.currentTarget.select() }}
                           onChange={e => { const d = e.target.value.replace(/[^0-9]/g, '').slice(0, 4); setTypeVal(d); setBidTo(c, d === '' ? 0 : parseInt(d, 10)) }}
                           onBlur={() => setPickerCard(null)}
-                          className="w-14 h-8 text-center font-black border-2 border-black rounded-lg bg-white"
-                          style={{ ...OSWALD, color: numColor }} />
+                          className="w-14 h-8 text-center font-black border-2 border-black rounded-lg bg-white text-base"
+                          style={{ ...OSWALD, color: numColor, ...(masked ? { WebkitTextSecurity: 'disc' } : {}) } as CSSProperties} />
                       )
                     })()}
                     <HoldButton
