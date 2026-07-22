@@ -1578,10 +1578,13 @@ function Envelope() {
                         </button>
                       )
                     })()}
+                    {/* no stream o + NUNCA apaga (senão a câmera veria em quem você
+                        apostou — o apagado denuncia). A trava segue por dentro no
+                        bump(): tocar num + inválido simplesmente não faz nada. */}
                     <HoldButton
                       onStep={() => bump(c, 1)}
-                      disabled={plusBlocked}
-                      className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${plusBlocked ? 'opacity-40' : ''}`}
+                      disabled={state.streamMode ? false : plusBlocked}
+                      className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${!state.streamMode && plusBlocked ? 'opacity-40' : ''}`}
                       style={{ backgroundColor: GOLD }}>+</HoldButton>
                   </div>
                 </div>
@@ -1651,8 +1654,8 @@ function Envelope() {
               {room >= min && (
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   {[5, 10].map(n => (
-                    <button key={n} onClick={() => addN(n)} disabled={atCap}
-                      className={`border-2 border-black rounded-lg py-2.5 font-black text-lg bg-white active:translate-y-0.5 ${atCap ? 'opacity-40' : ''}`}
+                    <button key={n} onClick={() => addN(n)} disabled={masked ? false : atCap}
+                      className={`border-2 border-black rounded-lg py-2.5 font-black text-lg bg-white ${!masked && atCap ? 'opacity-40' : ''}`}
                       style={{ ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}` }}>+{n}</button>
                   ))}
                 </div>
@@ -1662,7 +1665,7 @@ function Envelope() {
                   onChange={e => setTypeVal(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
                   onKeyDown={e => { if (e.key === 'Enter' && valid) apply(typed) }}
                   placeholder={masked ? '••••' : 'digite…'}
-                  className="flex-1 border-[3px] border-black rounded-xl px-3 py-2.5 font-black text-lg bg-white"
+                  className="flex-1 min-w-0 border-[3px] border-black rounded-xl px-3 py-2.5 font-black text-lg bg-white"
                   style={masked ? ({ WebkitTextSecurity: 'disc' } as CSSProperties) : undefined} />
                 <button onClick={() => { if (valid) apply(typed) }} disabled={!valid}
                   className="border-[3px] border-black rounded-xl px-4 py-2.5 font-black text-base" style={{ background: valid ? GREEN : '#cfc6ae', color: '#fff', ...OSWALD }}>OK</button>
