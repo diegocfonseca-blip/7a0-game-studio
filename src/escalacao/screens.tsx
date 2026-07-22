@@ -3666,6 +3666,8 @@ export function EscRanking() {
 function RankResultWriter() {
   const { state } = useEsc()
   const wrote = useRef(false)
+  // base do season_key deste jogo (online / dinastia / cpu) — reusada pela liga e pela Copa
+  const baseKey = () => state.onlineMode === 'online' ? `${state.roomId}:${state.seasonNo}` : state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`
   useEffect(() => {
     if (wrote.current) return
     wrote.current = true
@@ -3680,7 +3682,7 @@ function RankResultWriter() {
         const myRow = table.find(t => t.id === you.id)
         const top = topScorers(state, 1)[0]
         const online = state.onlineMode === 'online'
-        const seasonKey = online ? `${state.roomId}:${state.seasonNo}` : state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`
+        const seasonKey = baseKey()
         const displayName = stripEmoji(user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? you.teamName)
         await resilientWrite({ table: 'esc_results', onConflict: 'user_id,season_key', row: {
           user_id: user.id, display_name: displayName,
@@ -3690,7 +3692,33 @@ function RankResultWriter() {
         } })
       } catch { /* nunca trava o jogo */ }
     })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  // 🏆 COPA DOS 8: quem for campeão da Copa TAMBÉM leva um título no ranking
+  // (agora que a Copa dá carta). Linha à parte (season_key com sufixo ":copa"),
+  // então dá pra ganhar liga + Copa na mesma temporada = 2 títulos. Dispara
+  // quando a Copa é decidida (pode ser depois da liga, já na tela de fim).
+  const wroteCopa = useRef(false)
+  useEffect(() => {
+    if (wroteCopa.current || !state.quickCopa?.champion?.you) return
+    wroteCopa.current = true
+    ;(async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const you = state.managers[state.youIdx]
+        if (!you) return
+        const online = state.onlineMode === 'online'
+        const displayName = stripEmoji(user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? you.teamName)
+        await resilientWrite({ table: 'esc_results', onConflict: 'user_id,season_key', row: {
+          user_id: user.id, display_name: displayName,
+          mode: online ? 'online' : 'cpu', season_key: `${baseKey()}:copa`,
+          champion: true, top_scorer: false, goals: 0,
+        } })
+      } catch { /* nunca trava o jogo */ }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.quickCopa?.champion?.you])
   return null
 }
 
