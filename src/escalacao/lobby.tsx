@@ -1003,9 +1003,14 @@ export function EscLobby() {
               🎮 Manual <span className="text-[10px] opacity-60">(com amigos)</span>
             </button>
           </div>
-          <p className="text-white/40 text-[10.5px] font-bold mt-1 leading-snug">
-            {roomManual ? 'O host ganha o botão manual/auto no jogo pra decidir quando avançar cada etapa.' : 'Anda sozinho, na velocidade normal do online.'}
-          </p>
+          {roomManual ? (
+            <div className="mt-1.5 rounded-lg border-2 border-black px-2.5 py-1.5" style={{ background: GOLD }}>
+              <p className="text-[11px] font-black text-black leading-snug" style={OSWALD}>👥 INDICADO PRA JOGAR SÓ COM AMIGOS</p>
+              <p className="text-[10.5px] font-bold text-black/70 leading-snug mt-0.5">O host aperta pra avançar cada partida (respeitando o tempo do jogo) — todo mundo acompanha a tela dele.</p>
+            </div>
+          ) : (
+            <p className="text-white/40 text-[10.5px] font-bold mt-1 leading-snug">Anda sozinho, na velocidade normal do online.</p>
+          )}
         </div>}
         {!(canCareer && roomMode === 'carreira') && <div>
           <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Depois da liga</p>
