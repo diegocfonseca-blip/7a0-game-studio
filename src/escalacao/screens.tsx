@@ -599,8 +599,8 @@ function NewsSection() {
       <div>
         <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>🌍 Baralho da Liga Europa</p>
         <p className="text-xs font-bold text-black/75 mt-1"><b>Lendas:</b> Maradona, Zidane, Messi, Cristiano, Mbappé, Vini Jr, Ronaldinho Gaúcho, Kaká, Henry, Pirlo, Cruyff, van Basten, Puskás, George Best, Yashin.</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>Craques:</b> Bebeto, Totti, Del Piero, Cantona, Zola, Rui Costa, Hagi, Drogba, Harry Kane, Van Dijk, Sergio Ramos.</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>Promessas 💎:</b> Yamal, Bellingham, Musiala, Wirtz, João Félix, Pato, Endrick.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>Craques:</b> Yamal, Bellingham, Bebeto, Totti, Del Piero, Cantona, Zola, Rui Costa, Hagi, Drogba, Harry Kane, Van Dijk, Sergio Ramos.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>Promessas 💎:</b> Musiala, Wirtz, João Félix, Pato, Endrick.</p>
         <p className="text-xs font-bold text-black/75 mt-1"><b>Flops &amp; folclore 🃏:</b> Gabigol, Kléberson, Ali Dia, Bebé, Kerlon, Vampeta, Pedro, Denílson Show, Fellaini.</p>
       </div>
       <div>
