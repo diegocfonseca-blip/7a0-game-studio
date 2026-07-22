@@ -2100,10 +2100,10 @@ export function EscCerimonia() {
       </div>
       {canStart ? (
         <Btn className="w-full text-lg" bg={GREEN} onClick={() => dispatch({ type: 'FINISH_CEREMONY' })}>
-          <span style={{ color: '#fff' }}>{state.streamMode ? '🎬 COMEÇAR O CAMPEONATO 🏆' : 'COMEÇAR AGORA 🏆'}</span>
+          <span style={{ color: '#fff' }}>{(state.streamMode || state.manualRoom) ? '▶️ COMEÇAR O CAMPEONATO 🏆' : 'COMEÇAR AGORA 🏆'}</span>
         </Btn>
       ) : (
-        <p className="text-center text-sm font-bold text-black/55 py-1">🔨 O campeonato começa quando {state.streamMode ? 'o host começar' : 'o tempo acabar'}…</p>
+        <p className="text-center text-sm font-bold text-black/55 py-1">🔨 O campeonato começa quando {(state.streamMode || state.manualRoom) ? 'o host começar' : 'o tempo acabar'}…</p>
       )}
     </Shell>
   )
@@ -2155,17 +2155,18 @@ export function EscSeason() {
   const you = state.managers[state.youIdx]
   const online = state.onlineMode === 'online'
   const canAdvance = !online || state.isHost
-  // ritmo manual: nos modos solo (rápido offline, carreira, dinastia) E no modo
-  // STREAM (host online) — aí o streamer controla o passo, começando no manual.
-  const streamHost = online && state.streamMode && state.isHost
+  // ritmo manual: nos modos solo (rápido offline, carreira, dinastia) E quando o
+  // HOST controla o passo online — sala em STREAM ou sala criada no modo MANUAL.
+  // Nos dois o host ganha o botão manual/auto (começa no manual).
+  const streamHost = online && state.isHost && (state.streamMode || !!state.manualRoom)
   const [manualPref, toggleSim] = useSimMode()
   const [streamManual, toggleStream] = useStreamSimMode()
   const manual = streamHost ? streamManual : (manualPref && !online)
   const toggleManual = streamHost ? toggleStream : toggleSim
-  // +10s de folga só no solo manual; no stream online mantém o tempo normal pra
-  // não dessincronizar a animação com os convidados.
+  // +10s de folga só no solo manual; online (host controlando) mantém o tempo
+  // normal pra não dessincronizar a animação com os convidados.
   const roundMs = (manual && !online) ? ROUND_MS + 10000 : ROUND_MS
-  const streamRoom = online && state.streamMode // sala em stream: Copa sem cronômetro pra ninguém
+  const streamRoom = online && (state.streamMode || !!state.manualRoom) // sala com ritmo do host: Copa/etapas sem cronômetro pra ninguém
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
   const youPos = table.findIndex(t => t.id === you.id) + 1
@@ -4157,9 +4158,11 @@ export function EscEnd() {
   const youWon = champ.id === you.id
   const online = state.onlineMode === 'online'
   const canRestart = !online || state.isHost
-  // no stream (host), a Copa também espera o host (manual) — sem cronômetro automático
+  // streamHost = SÓ stream (usado na carta compartilhada do campeão). hostPaced =
+  // host controla o ritmo (stream OU sala manual) — é quem decide começar a Copa.
   const streamHost = online && state.streamMode && state.isHost
-  const manual = streamHost ? streamManual : (manualPref && !online)
+  const hostPaced = online && state.isHost && (state.streamMode || !!state.manualRoom)
+  const manual = hostPaced ? streamManual : (manualPref && !online)
   const myScorer = topScorers(state, 1)[0]
   // 🏆 Copa dos 8: liga acabou com Copa marcada e ainda não começou nenhuma
   // partida dela — mostra o chaveamento explicando + botão (ou cronômetro no
@@ -4172,13 +4175,15 @@ export function EscEnd() {
   const copaPending = !!state.quickCopa && state.quickCopa.phase !== 'done'
   // online: só o HOST puxa a Copa (e sincroniza pra sala). Solo: o próprio cliente.
   const canDriveCopa = !online || state.isHost
-  // 🎥 sala em STREAM: SEM cronômetro pra ninguém — o host decide quando começa a
-  // Copa (pra todo mundo). Vale pra host E convidados (some o "começa em Xs").
+  // 🎥 streamRoom = SÓ stream (carta compartilhada do campeão). pacedRoom = sala com
+  // ritmo do host (stream OU manual): SEM cronômetro pra ninguém — o host decide
+  // quando começa a Copa (pra todo mundo). Vale pra host E convidados.
   const streamRoom = online && state.streamMode
+  const pacedRoom = online && (state.streamMode || !!state.manualRoom)
   const [copaLeft, setCopaLeft] = useState(COPA_GATE_S)
   const copaFiredRef = useRef(false)
   useEffect(() => {
-    if (!copaPending || manual || streamRoom) return
+    if (!copaPending || manual || pacedRoom) return
     copaFiredRef.current = false
     setCopaLeft(COPA_GATE_S)
     const t0 = Date.now()
@@ -4189,7 +4194,7 @@ export function EscEnd() {
       if (left <= 0 && !copaFiredRef.current && canDriveCopa) { copaFiredRef.current = true; dispatch({ type: 'START_COPA' }) }
     }, 250)
     return () => clearInterval(iv)
-  }, [copaPending, manual, dispatch, canDriveCopa, streamRoom])
+  }, [copaPending, manual, dispatch, canDriveCopa, pacedRoom])
   // carta-lembrança que o campeão escolheu (entra na imagem de compartilhar)
   const [myCard, setMyCard] = useState<WonCard | null>(null)
   // Jeito 1: no online, o campeão precisa ABRIR a carta antes de poder votar/começar
@@ -4391,10 +4396,10 @@ export function EscEnd() {
           {online && <p className="text-[11px] font-bold text-center text-black/60">🔥 = amigo da sala · sem foguinho = time da CPU</p>}
           {canDriveCopa ? (
             <Btn onClick={() => dispatch({ type: 'START_COPA' })} bg={INK} className="w-full text-lg">
-              <span className="text-white">{(manual || streamRoom) ? '▶️ Iniciar Copa dos 8' : `▶️ A Copa começa em ${copaLeft}s (toque pra já)`}</span>
+              <span className="text-white">{(manual || pacedRoom) ? '▶️ Iniciar Copa dos 8' : `▶️ A Copa começa em ${copaLeft}s (toque pra já)`}</span>
             </Btn>
           ) : (
-            <div className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black" style={{ background: '#fff', ...OSWALD }}>⏳ {streamRoom ? 'A Copa começa quando o host quiser' : `A Copa começa em ${copaLeft}s — o host puxa`}</div>
+            <div className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black" style={{ background: '#fff', ...OSWALD }}>⏳ {pacedRoom ? 'A Copa começa quando o host quiser' : `A Copa começa em ${copaLeft}s — o host puxa`}</div>
           )}
         </Box>
       )}

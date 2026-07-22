@@ -265,6 +265,10 @@ export interface EscState {
   cpuAtkAdj: number // ajuste de força dos CPUs (online): escala os bots à média dos humanos
   cpuDefAdj: number
   streamMode: boolean // sala de stream: esconde os VALORES dos lances na tela (pra live)
+  // 🎮 sala em MODO MANUAL: o host ganha o botão manual/auto DENTRO do jogo (igual
+  // stream), pra decidir avançar cada rodada/etapa ou deixar no automático. NÃO
+  // esconde valores (isso é só do stream). Escolhido na criação; 'auto' (padrão) = online normal.
+  manualRoom?: boolean
   // 🎥 modo stream: a carta que o campeão tirou (liga/copa) fica AQUI e vai pra
   // sala inteira via broadcast — todo mundo vê e pode abrir o pacote do campeão.
   // Quem não é campeão só assiste (não grava no álbum). null/vazio = ainda não abriu.
