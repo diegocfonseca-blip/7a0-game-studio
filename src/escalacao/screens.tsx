@@ -163,7 +163,7 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
           💛 APOIE O PROJETO — E ELE SEGUE GRÁTIS
         </button>
       ) : (
-        <button onClick={() => setScreen('choice')} className="text-xs font-black underline" style={{ color: 'rgba(0,0,0,0.6)' }}>
+        <button onClick={() => setScreen('choice')} className="text-xs font-black underline" style={{ color: '#B8860B' }}>
           💛 Apoie o projeto (Pix)
         </button>
       )}
