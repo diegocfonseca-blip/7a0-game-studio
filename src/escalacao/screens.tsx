@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
 import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, loadPyramidCloud, deletePyramidCloud } from './store'
+import { playCoin, playSeal, playTick, playHammer, playChime, playWhistle, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
@@ -1348,6 +1349,7 @@ function Envelope() {
   const remaining = state.phaseDeadline ? Math.max(0, Math.ceil((state.phaseDeadline - now) / 1000)) : 45
 
   function seal() {
+    playSeal() // 🔒 som do carimbo ao lacrar
     const payload = Object.entries(bids).map(([cardId, amount]) => ({ cardId, amount }))
     pendingBidsRef.current = payload
     setPending(true)
@@ -1358,6 +1360,8 @@ function Envelope() {
   useEffect(() => {
     if (iSubmitted) { setBids({}); setPending(false) }
   }, [iSubmitted])
+  // ⏱️ tique-taque nos últimos 5s (só enquanto ainda não lacrou)
+  useEffect(() => { if (remaining >= 1 && remaining <= 5 && !iSubmitted) playTick() }, [remaining, iSubmitted])
 
   // enquanto não confirma, reenvia de tempos em tempos — cobre o host que
   // ficou um instante sem conexão (app em segundo plano etc.) e reconecta
@@ -1430,6 +1434,7 @@ function Envelope() {
   // "+" partindo do 0 pula pro piso; usado tanto no toque quanto no segurar.
   function bump(c: Card, dir: 1 | -1) {
     const floor = (c as { paid?: number }).paid ?? 0
+    if (dir > 0) playCoin() // 🪙 som ao subir o lance
     setBids(prev => {
       const cur = prev[c.id] ?? 0
       if (dir < 0) {
@@ -1452,6 +1457,7 @@ function Envelope() {
   // com as mesmas travas do +/-: nunca acima do que cabe, nunca abaixo do piso.
   function setBidTo(c: Card, value: number) {
     const floor = (c as { paid?: number }).paid ?? 0
+    if (value > 0) playCoin() // 🪙 som ao definir o lance (+5/+10, OK)
     setBids(prev => {
       const cur = prev[c.id] ?? 0
       const others = Object.entries(prev).reduce((s, [k, v]) => (k === c.id ? s : s + v), 0)
@@ -1957,6 +1963,20 @@ function Reveal() {
     const t = setTimeout(() => dispatch({ type: 'ADVANCE_REVEAL' }), 80)
     return () => clearTimeout(t)
   }, [item, canDrive, dispatch])
+  // 🔨 martelada quando a carta é vendida + ✨ chime dourado se for LENDA,
+  // sincronizados com o momento que o martelo bate na tela (hammerDelay).
+  useEffect(() => {
+    const it = state.revealQueue[state.revealIdx]
+    if (!it) return
+    const tieHit = state.tiebreaks.find(t => t.card.id === it.card.id && t.winner !== null)
+    const delayMs = (it.bids.length * 0.25 + (tieHit ? 1.2 : 0.2)) * 1000
+    const sold = it.winner !== null && it.bids.length > 0
+    const timers: ReturnType<typeof setTimeout>[] = []
+    if (sold) timers.push(setTimeout(() => playHammer(), delayMs))
+    if (it.card.fame >= 5) timers.push(setTimeout(() => playChime(), delayMs + (sold ? 260 : 0)))
+    return () => timers.forEach(clearTimeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.revealIdx])
   if (!item) return (
     <Shell bar={<AuctionBar />}>
       <div className="text-center pt-12 space-y-2">
@@ -2394,6 +2414,10 @@ export function EscSeason() {
     const t = setTimeout(() => setResultRevealed(true), roundMs * 0.85 + 250)
     return () => clearTimeout(t)
   }, [state.round])
+  // 🏟️ torcida ao fundo enquanto a temporada roda (para ao sair da tela)
+  useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
+  // 📣 apito no início de cada jogo (kickoff) — só quando há partida rolando
+  useEffect(() => { if (state.round > 0 && state.round <= 38) playWhistle() }, [state.round])
 
   // manchete PESSOAL (por quem vê): detecta quando VOCÊ muda de faixa na
   // tabela. Feito no cliente pra ficar certo pra cada um no online.
