@@ -2121,6 +2121,7 @@ export function EscSeason() {
   // +10s de folga só no solo manual; no stream online mantém o tempo normal pra
   // não dessincronizar a animação com os convidados.
   const roundMs = (manual && !online) ? ROUND_MS + 10000 : ROUND_MS
+  const streamRoom = online && state.streamMode // sala em stream: Copa sem cronômetro pra ninguém
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
   const youPos = table.findIndex(t => t.id === you.id) + 1
@@ -2200,7 +2201,8 @@ export function EscSeason() {
   const [copaFirstLeft, setCopaFirstLeft] = useState(COPA_INTRO_SECONDS)
   const copaFirstFiredRef = useRef(false)
   useEffect(() => {
-    if (!firstLegPending || manual) return
+    // stream: sem cronômetro pra ninguém — o host começa no botão.
+    if (!firstLegPending || manual || streamRoom) return
     copaFirstFiredRef.current = false
     setCopaFirstLeft(COPA_INTRO_SECONDS)
     const t0 = Date.now()
@@ -2212,7 +2214,7 @@ export function EscSeason() {
       if (left <= 0 && !copaFirstFiredRef.current && canAdvance) { copaFirstFiredRef.current = true; dispatch({ type: 'PLAY_COPA_LEG' }) }
     }, 250)
     return () => clearInterval(iv)
-  }, [firstLegPending, canAdvance, manual, dispatch])
+  }, [firstLegPending, canAdvance, manual, dispatch, streamRoom])
   // fase acabou de VIRAR (chaveamento novo, nenhuma perna jogada ainda): dá um
   // respiro CURTO só pra ver quem avançou, e então bate bola. Uma perna normal
   // (ida/volta) espera o tempo cheio do jogo pra animar o placar todo.
@@ -2340,8 +2342,11 @@ export function EscSeason() {
                 <p className="text-sm font-bold text-center text-black/75">
                   Os 8 melhores da liga se enfrentam ida e volta: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passar cai na semifinal — e a final é jogo único. O campeão da Copa ganha <b>outra carta</b> pro álbum, além da carta da liga!
                 </p>
-                {!manual && (
+                {!manual && !streamRoom && (
                   <p className="text-center font-black text-sm" style={OSWALD}>⚽ A primeira partida começa em {copaFirstLeft}s</p>
+                )}
+                {streamRoom && !canAdvance && (
+                  <p className="text-center font-black text-sm" style={OSWALD}>⏳ O host começa a Copa quando quiser…</p>
                 )}
               </Box>
             )}
@@ -2417,7 +2422,7 @@ export function EscSeason() {
       {(!online || streamHost) && copaLive && (
         <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
           onNext={() => dispatch({ type: 'PLAY_COPA_LEG' })}
-          nextLabel={copaAdvReady ? '⚽ Próximo jogo da Copa' : '⏳ Deixa o jogo/pênaltis acabar…'} />
+          nextLabel={!copaAdvReady ? '⏳ Deixa o jogo/pênaltis acabar…' : firstLegPending ? '🏆 Iniciar a Copa dos 8' : copaJustAdvanced ? '▶️ Começar a próxima fase' : '⚽ Próximo jogo da Copa'} />
       )}
       {!copaLive && lastWasClassico && lastRiv && resultRevealed && (
         <Box bg={myGoals > oppGoals ? GREEN : myGoals < oppGoals ? RED : '#fff'} className="p-3 text-center" shadow={4}>
@@ -4035,10 +4040,13 @@ export function EscEnd() {
   const copaPending = !!state.quickCopa && state.quickCopa.phase !== 'done'
   // online: só o HOST puxa a Copa (e sincroniza pra sala). Solo: o próprio cliente.
   const canDriveCopa = !online || state.isHost
+  // 🎥 sala em STREAM: SEM cronômetro pra ninguém — o host decide quando começa a
+  // Copa (pra todo mundo). Vale pra host E convidados (some o "começa em Xs").
+  const streamRoom = online && state.streamMode
   const [copaLeft, setCopaLeft] = useState(COPA_GATE_S)
   const copaFiredRef = useRef(false)
   useEffect(() => {
-    if (!copaPending || manual) return
+    if (!copaPending || manual || streamRoom) return
     copaFiredRef.current = false
     setCopaLeft(COPA_GATE_S)
     const t0 = Date.now()
@@ -4049,7 +4057,7 @@ export function EscEnd() {
       if (left <= 0 && !copaFiredRef.current && canDriveCopa) { copaFiredRef.current = true; dispatch({ type: 'START_COPA' }) }
     }, 250)
     return () => clearInterval(iv)
-  }, [copaPending, manual, dispatch, canDriveCopa])
+  }, [copaPending, manual, dispatch, canDriveCopa, streamRoom])
   // carta-lembrança que o campeão escolheu (entra na imagem de compartilhar)
   const [myCard, setMyCard] = useState<WonCard | null>(null)
   // Jeito 1: no online, o campeão precisa ABRIR a carta antes de poder votar/começar
@@ -4212,10 +4220,10 @@ export function EscEnd() {
           {online && <p className="text-[11px] font-bold text-center text-black/60">🔥 = amigo da sala · sem foguinho = time da CPU</p>}
           {canDriveCopa ? (
             <Btn onClick={() => dispatch({ type: 'START_COPA' })} bg={INK} className="w-full text-lg">
-              <span className="text-white">{manual ? '▶️ Iniciar Copa dos 8' : `▶️ A Copa começa em ${copaLeft}s (toque pra já)`}</span>
+              <span className="text-white">{(manual || streamRoom) ? '▶️ Iniciar Copa dos 8' : `▶️ A Copa começa em ${copaLeft}s (toque pra já)`}</span>
             </Btn>
           ) : (
-            <div className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black" style={{ background: '#fff', ...OSWALD }}>⏳ A Copa começa em {copaLeft}s — o host puxa</div>
+            <div className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black" style={{ background: '#fff', ...OSWALD }}>⏳ {streamRoom ? 'A Copa começa quando o host quiser' : `A Copa começa em ${copaLeft}s — o host puxa`}</div>
           )}
         </Box>
       )}
