@@ -2309,6 +2309,8 @@ export function reducer(state: EscState, action: Action): EscState {
         // não misturar "campeão da liga" com "início da Copa" na mesma tela.
         if (s.copaMode === 'liga_copa' && !s.quickCopa) {
           s.quickCopa = seedQuickCopa(s.league)
+          // 📣 zera o giro da liga: durante a Copa o giro fala DA COPA, não das rodadas
+          s.news = ['🏆 A liga acabou — chegou a COPA DOS 8! Os 8 melhores brigam pelo título.']
         }
         s.screen = 'end'
       }
@@ -2339,6 +2341,7 @@ export function reducer(state: EscState, action: Action): EscState {
           const champName = champId === champ.aId ? champ.aName : champ.bName
           const you = s.managers.find(m => m.id === champId && m.isHuman)
           qc.champion = { id: champId, name: champName, you: !!you }
+          s.news = [`👑 ${champName} É CAMPEÃO DA COPA DOS 8!`, ...s.news].slice(0, 12)
           qc.phase = 'done'
           qc.ties = []
           s.screen = 'end'
@@ -2377,6 +2380,22 @@ export function reducer(state: EscState, action: Action): EscState {
         tie.lastHighlights = r.highlights
         if (isLastLeg) resolveQuickCopaTie(tie, rng) // só resolve no fim (agregado/pênaltis)
       }
+      // 📣 GIRO DA COPA: manchetes do que acabou de rolar (placar, quem passou,
+      // pênaltis) — o giro fala DA COPA agora, não das rodadas da liga.
+      const phaseWord = isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : 'QUARTAS'
+      const legWord = isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
+      const copaHeads: string[] = []
+      for (const tie of qc.ties) {
+        const leg = tie.legs[tie.legs.length - 1]
+        if (!leg) continue
+        copaHeads.push(`⚽ Copa ${phaseWord}${legWord}: ${tie.aName} ${leg[0]} × ${leg[1]} ${tie.bName}`)
+        if (tie.winner !== null) {
+          const w = tie.winner === tie.aId ? tie.aName : tie.bName
+          const l = tie.winner === tie.aId ? tie.bName : tie.aName
+          copaHeads.push(tie.pens ? `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!` : `🏆 ${w} avançou na Copa — adeus, ${l}!`)
+        }
+      }
+      s.news = [...copaHeads, ...s.news].slice(0, 12)
       return s
     }
     case 'CAST_SEASON_VOTE': {
