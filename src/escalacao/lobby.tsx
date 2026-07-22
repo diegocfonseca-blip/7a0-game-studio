@@ -383,6 +383,16 @@ export function EscLobby() {
     setTimeout(() => { try { alert('O host removeu você da sala.') } catch { /* ignora */ } }, 0)
   }, [players, phase, room, user, isHost])
 
+  // 🛟 REDE DE SEGURANÇA CONTRA TELA PRETA: se a fase for "waiting" mas a sala
+  // sumiu (host encerrou, sala apagada, restauração falhou), o app renderizava
+  // NULL — só o rodapé num fundo escuro, travado (o bug relatado). Agora volta
+  // sozinho pro menu depois de alguns segundos.
+  useEffect(() => {
+    if (phase !== 'waiting' || room) return
+    const t = setTimeout(() => { clearSavedRoom(); setPhase('menu') }, 3500)
+    return () => clearTimeout(t)
+  }, [phase, room])
+
   // Busca a lista de jogadores DIRETO do banco (não confia em estado local
   // que pode estar vazio/desatualizado, ex.: logo após reconectar) — usar
   // uma lista errada aqui faz o jogo montar o time errado como "você".
@@ -1275,5 +1285,15 @@ export function EscLobby() {
       )}
     </>)
   }
-  return null
+  // 🛟 fallback (nunca mais tela preta): "waiting" sem sala, ou qualquer estado
+  // inesperado. Mostra saída em vez de renderizar vazio.
+  return wrap(<>
+    <div className="text-center space-y-3">
+      <div className="text-5xl">⏳</div>
+      <p className="font-black text-lg text-white" style={OSWALD}>Carregando a sala…</p>
+      <p className="text-white/60 text-sm font-bold">Se demorar, a sala pode ter sido encerrada pelo host.</p>
+      <button onClick={() => { clearSavedRoom(); setPhase('menu') }} className="w-full rounded-xl border-[3px] border-black py-3 font-black" style={{ background: GOLD, color: '#000', ...OSWALD }}>🏠 Voltar pras salas</button>
+      <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full">Sair pro início</button>
+    </div>
+  </>)
 }
