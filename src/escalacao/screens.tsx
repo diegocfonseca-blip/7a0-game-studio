@@ -1151,6 +1151,14 @@ export function EscStreamIntro() {
       ) : (
         <div className="w-full border-[3px] border-black rounded-xl py-3 text-center font-black" style={{ background: '#fff', ...OSWALD }}>⏳ O host vai começar o leilão…</div>
       )}
+      {/* ← voltar: só no offline (rápido/carreira), volta pro setup certo pra
+          reconfigurar. No online, sair é pelo próprio fluxo da sala. */}
+      {!online && (
+        <button onClick={() => dispatch({ type: state.careerOnline ? 'GO_SETUP_CAREER' : 'GO_SETUP' })}
+          className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black bg-white active:translate-y-0.5" style={{ ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}` }}>
+          ← Voltar
+        </button>
+      )}
     </Shell>
   )
 }
