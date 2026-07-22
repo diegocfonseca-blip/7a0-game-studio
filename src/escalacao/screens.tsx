@@ -1093,7 +1093,7 @@ export function EscStreamIntro() {
         <p className="text-xs font-bold text-black/65 mt-1 mb-3 leading-snug">O mesmo jogador vale <b>diferente</b> conforme o <b>clube e o ano</b>. Você aposta no nome — o nível só abre na revelação!</p>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <CollectibleCard name="Kaká" club="Milan" year={2007} pos="MEI" fame={5} />
+            <CollectibleCard name="Kaká" club="Milan" year={2007} pos="MEI" fame={5} promessa={false} />
             <p className="text-center text-[11px] font-black mt-1.5 leading-tight" style={OSWALD}>👑 auge na Europa<br />= LENDA</p>
           </div>
           <div>
@@ -1618,20 +1618,29 @@ function Envelope() {
         const typed = parseInt(typeVal || '0', 10)
         const min = Math.max(1, floor)
         const valid = typed >= min && typed <= room
+        // 🎥 STREAM: o VALOR digitado (e os limites) ficam ESCONDIDOS pra não vazar
+        // o lance na live. Só aparece se o host tocar em "mostrar" (peek).
+        const hide = state.streamMode && !peek
         return (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.6)' }} onClick={() => setPickerCard(null)}>
             <div className="w-full max-w-sm border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }} onClick={e => e.stopPropagation()}>
               <p className="font-black text-lg" style={OSWALD}>✍️ Digitar lance</p>
-              <p className="text-xs font-bold text-black/60 mb-2">{cName}{floor > 0 ? ` · mín 🔒 ${floor}` : ''} · cabe até {room} 🪙</p>
+              <p className="text-xs font-bold text-black/60 mb-2">{cName}{floor > 0 ? ` · mín ${hide ? '🔒' : floor}` : ''} · cabe até {hide ? '🔒' : room} 🪙</p>
               <div className="flex items-center gap-2">
-                <input autoFocus value={typeVal} onChange={e => setTypeVal(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))} inputMode="numeric" placeholder="digite o valor…"
+                <input autoFocus type={hide ? 'password' : 'text'} value={typeVal} onChange={e => setTypeVal(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))} inputMode="numeric" placeholder={hide ? '••••' : 'digite o valor…'}
                   onKeyDown={e => { if (e.key === 'Enter' && valid) apply(typed) }}
                   className="flex-1 border-[3px] border-black rounded-xl px-3 py-3 font-black text-xl bg-white" />
                 <button onClick={() => { if (valid) apply(typed) }} disabled={!valid}
                   className="border-[3px] border-black rounded-xl px-5 py-3 font-black text-lg" style={{ background: valid ? GREEN : '#cfc6ae', color: '#fff', ...OSWALD }}>OK</button>
               </div>
-              {typeVal !== '' && typed > room && <p className="text-[11px] font-black text-red-600 mt-1.5">💰 Passou do que cabe — máximo {room}.</p>}
-              {typeVal !== '' && floor > 0 && typed > 0 && typed < floor && <p className="text-[11px] font-black text-red-600 mt-1.5">🔒 O mínimo desse jogador é {floor}.</p>}
+              {typeVal !== '' && typed > room && <p className="text-[11px] font-black text-red-600 mt-1.5">💰 Passou do que cabe{hide ? '.' : ` — máximo ${room}.`}</p>}
+              {typeVal !== '' && floor > 0 && typed > 0 && typed < floor && <p className="text-[11px] font-black text-red-600 mt-1.5">🔒 Abaixo do mínimo{hide ? '.' : ` — mín ${floor}.`}</p>}
+              {/* 🎥 stream: botão (fundo escuro) pra MOSTRAR/esconder o que você digitou */}
+              {state.streamMode && (
+                <button onClick={() => setPeek(p => !p)} className="w-full mt-2.5 border-2 border-black rounded-lg py-2 font-black text-xs" style={{ background: peek ? GOLD : INK, color: peek ? '#000' : '#fff', ...OSWALD }}>
+                  {peek ? '🙈 Esconder o lance (pra live)' : '👁️ Mostrar o que digitei'}
+                </button>
+              )}
               <div className="flex items-center justify-between mt-3">
                 <button onClick={() => apply(0)} className="text-xs font-black text-black/55 underline active:opacity-60">🗑️ tirar o lance</button>
                 <button onClick={() => setPickerCard(null)} className="text-xs font-black text-black/55 underline active:opacity-60">fechar</button>
