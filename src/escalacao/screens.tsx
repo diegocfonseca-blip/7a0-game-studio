@@ -1579,7 +1579,17 @@ function Tiebreak() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining, amInIt, iSubmitted, pending])
 
-  if (!tb) return null
+  // 🛟 sem desempate ativo (estado incompleto/sincronizando): mostra uma tela de
+  // espera em vez de renderizar em branco. O host ressincroniza pelo heartbeat.
+  if (!tb) return (
+    <Shell bar={<AuctionBar />}>
+      <div className="text-center pt-12 space-y-2">
+        <p className="text-4xl">⚔️</p>
+        <p className="font-black text-lg" style={OSWALD}>Preparando o desempate…</p>
+        <p className="text-sm font-bold text-black/60">{online ? 'Sincronizando com o host…' : 'Só um instante.'}</p>
+      </div>
+    </Shell>
+  )
 
   const total = state.tiebreaks.length
   const maxBid = you.money
@@ -1740,14 +1750,31 @@ function TieSorteio({ names, winnerId }: { names: { id: number; label: string; c
 }
 
 function Reveal() {
-  const { state } = useEsc()
+  const { state, dispatch } = useEsc()
   const item = state.revealQueue[state.revealIdx]
   const you = state.managers[state.youIdx]
-  if (!item) return null
-  const winnerMgr = item.winner !== null ? state.managers.find(m => m.id === item.winner) : null
-  const isLast = state.revealIdx >= state.revealQueue.length - 1
   const online = state.onlineMode === 'online'
   const canDrive = !online || state.isHost
+  // 🛟 AUTO-CURA: se a revelação ficou SEM carta (leva vazia ou índice fora de
+  // faixa — ex.: um save antigo gravado nesse instante), em vez de tela em branco,
+  // quem conduz (solo/host) empurra pro próximo passo; convidado espera o sync do
+  // host. Junto com a guarda na causa-raiz, ninguém trava mais numa revelação vazia.
+  useEffect(() => {
+    if (item || !canDrive) return
+    const t = setTimeout(() => dispatch({ type: 'ADVANCE_REVEAL' }), 80)
+    return () => clearTimeout(t)
+  }, [item, canDrive, dispatch])
+  if (!item) return (
+    <Shell bar={<AuctionBar />}>
+      <div className="text-center pt-12 space-y-2">
+        <p className="text-4xl">⚽</p>
+        <p className="font-black text-lg" style={OSWALD}>Preparando o pregão…</p>
+        <p className="text-sm font-bold text-black/60">{online ? 'Sincronizando com o host…' : 'Só um instante.'}</p>
+      </div>
+    </Shell>
+  )
+  const winnerMgr = item.winner !== null ? state.managers.find(m => m.id === item.winner) : null
+  const isLast = state.revealIdx >= state.revealQueue.length - 1
   // essa carta passou por desempate?
   const tie = state.tiebreaks.find(t => t.card.id === item.card.id && t.winner !== null)
   const tieMax = tie ? Math.max(...tie.managers.map(id => tie.bids?.[id] ?? tie.amount)) : 0
