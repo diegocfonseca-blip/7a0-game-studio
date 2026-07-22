@@ -1587,6 +1587,12 @@ function sealAndResolve(state: EscState) {
   } else {
     state.phase = rescue ? 'resq_reveal' : 'reveal'
     state.phaseDeadline = null
+    // CAUSA-RAIZ da "tela preta": se a leva veio VAZIA (currentCards vazio →
+    // revelação sem nenhuma carta), a tela de Revelação não tinha o que mostrar e
+    // renderizava em branco (o fundo escuro do estúdio aparecia). Aqui a gente
+    // NUNCA entra numa revelação vazia: segue direto pro próximo passo (próxima
+    // leva / repescagem / monte). afterReveal usa o phase que acabamos de setar.
+    if (state.revealQueue.length === 0) afterReveal(state)
   }
 }
 
