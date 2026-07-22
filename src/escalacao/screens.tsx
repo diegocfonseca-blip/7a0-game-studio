@@ -1088,6 +1088,30 @@ export function EscStreamIntro() {
         <p className="text-sm font-bold text-black/75 mt-1 leading-snug">Cada técnico começa com <b>100 moedas</b>. Você dá um <b>lance secreto</b> (ninguém vê) em cada jogador. Na revelação: <b>quem deu o MAIOR lance leva o craque</b> e paga o que ofertou. Empate? Re-lance às cegas! ⚔️</p>
       </Box>
 
+      {/* 👇 mock da linha do jogador: mostra ONDE se põe as moedas (com 7, não 1!)
+          e aponta o clube/ano — muita gente aposta só 1 por não entender. */}
+      <Box bg="#fff" className="p-3.5" shadow={6}>
+        <p className="font-black text-base mb-2" style={OSWALD}>👇 É AQUI que você bota as moedas</p>
+        <div className="border-[3px] border-black rounded-xl p-3 flex items-center justify-between gap-2" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px' }}>GOL</span>
+              <span className="font-black text-sm truncate" style={OSWALD}>Alex Muralha</span>
+            </div>
+            <p className="text-xs font-bold mt-0.5" style={{ color: '#B25AD0' }}>⬅️ Flamengo · 2017 <span className="text-black/45">(clube e ano)</span></p>
+          </div>
+          <div className="flex flex-col items-center flex-shrink-0">
+            <span className="text-[9px] font-black uppercase tracking-wide mb-0.5" style={{ color: '#B8860B' }}>seu lance</span>
+            <div className="flex items-center gap-1.5">
+              <span className="border-2 border-black rounded-lg w-8 h-8 flex items-center justify-center font-black bg-white">−</span>
+              <span className="w-12 h-8 flex items-center justify-center font-black border-[3px] rounded-lg bg-white text-lg" style={{ ...OSWALD, borderColor: GREEN, boxShadow: `0 0 0 3px rgba(46,158,91,.25)` }}>7</span>
+              <span className="border-2 border-black rounded-lg w-8 h-8 flex items-center justify-center font-black" style={{ background: GOLD }}>+</span>
+            </div>
+          </div>
+        </div>
+        <p className="text-xs font-bold text-black/70 mt-2 leading-snug">👆 Toque na caixinha e <b>digite quantas moedas</b> quer dar — <b>quanto mais moedas, mais chance de levar o craque!</b> Bota <b>7, 15, 30…</b> não só <b>1</b> 😉</p>
+      </Box>
+
       <Box bg="#EDE7FF" className="p-4" shadow={6}>
         <p className="font-black text-lg" style={OSWALD}>🎭 O nível é o AUGE do craque</p>
         <p className="text-xs font-bold text-black/65 mt-1 mb-3 leading-snug">O mesmo jogador vale <b>diferente</b> conforme o <b>clube e o ano</b>. Você aposta no nome — o nível só abre na revelação!</p>
