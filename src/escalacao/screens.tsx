@@ -1569,11 +1569,13 @@ function Envelope() {
                         Teclado é sempre normal (type=text + inputMode numérico); no
                         stream o valor some da tela via CSS (-webkit-text-security),
                         que mascara na hora — sem o "flash" do último dígito que o
-                        campo de senha do Android mostra e vazaria na câmera. */}
+                        campo de senha do Android mostra e vazaria na câmera.
+                        No stream TODAS as caixas ficam iguais (🔒), com ou sem lance:
+                        assim a câmera não denuncia EM QUEM você já apostou. */}
                     {(() => {
                       const editing = pickerCard?.id === c.id
                       const masked = state.streamMode && !peek
-                      const val = editing ? typeVal : (masked ? (chosen ? '00' : '') : (chosen ? String(bid) : ''))
+                      const val = editing ? typeVal : (masked ? '' : (chosen ? String(bid) : ''))
                       return (
                         <input
                           inputMode="numeric"
