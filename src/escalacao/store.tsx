@@ -1366,8 +1366,8 @@ type Action =
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both'; copaMode?: 'liga' | 'liga_copa' }
-  | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both'; copaMode?: 'liga' | 'liga_copa'; intro?: boolean }
+  | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both'; intro?: boolean } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
@@ -1876,6 +1876,10 @@ export function reducer(state: EscState, action: Action): EscState {
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}
       s.seasonNo = 1
+      // 🔨 tela de regras antes do pregão (rápido): explica moedas/auge; o jogador
+      // toca "Começar o leilão" (START_STREAM_AUCTION) quando quiser. Sem intro
+      // (dinastia/manager) cai direto no leilão, como sempre.
+      if (action.intro) { s.screen = 'streamIntro'; return s }
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s
@@ -1926,6 +1930,9 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const m of s.managers) if (m.isHuman) { cc[m.id] = 100; m.money = 100 }
       s.careerCoins = cc
       s.seasonNo = 1
+      // 🔨 tela de regras antes do 1º pregão da carreira (mantém o modal de rivais
+      // no setup; isto é só a página nova ao avançar).
+      if (action.intro) { s.screen = 'streamIntro'; return s }
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s
