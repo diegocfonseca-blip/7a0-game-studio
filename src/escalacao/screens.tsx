@@ -985,7 +985,7 @@ export function EscSetup() {
               </button>
             ))}
           </div>
-          <p className="text-[11px] font-semibold text-black/60 mt-1.5 leading-snug">👥 Você escolhe <b>quantos rivais (CPUs)</b> vão <b>disputar o leilão</b> com você. <b>Mais rivais = mais técnicos brigando</b> pelos mesmos craques: o pregão fica mais concorrido e mais difícil de levar quem você quer. Menos rivais, mais fácil.</p>
+          <p className="text-[11px] font-semibold text-black/60 mt-1.5 leading-snug"><b>Mais rivais:</b> mais técnicos brigando no leilão e maior variedade de jogadores. <b>Menos rivais:</b> menos técnicos brigando e jogo mais rápido.</p>
         </div>
         {career && (
           <div>
