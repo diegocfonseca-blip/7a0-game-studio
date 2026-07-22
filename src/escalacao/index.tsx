@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, Component, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { flushPendingWrites } from './pending'
 import { EscProvider, useEsc } from './store'
+import { setSoundAllowed, isSoundAllowed, isMuted, toggleMuted, onSoundChange, playCoin } from './sound'
 import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum, EscRanking, GameFooter } from './screens'
 import { EscLobby } from './lobby'
 import { AdminPanel } from './admin'
@@ -212,6 +213,30 @@ function VersionWatcher() {
   )
 }
 
+// 🔊 SOM (por enquanto SÓ pro login do Diego): checa o e-mail logado e libera
+// o som só pra ele. Renderiza o botão de mute (🔊/🔇) fixo no canto — some pra
+// qualquer outro usuário. O clique no botão também "acorda" o áudio (1º gesto).
+const SOUND_EMAIL = 'diego.c.fonseca@gmail.com'
+function SoundGate() {
+  const [, force] = useState(0)
+  useEffect(() => onSoundChange(() => force(n => n + 1)), [])
+  useEffect(() => {
+    let alive = true
+    const apply = (u: { email?: string | null } | null | undefined) => { if (alive) setSoundAllowed(((u?.email ?? '').toLowerCase() === SOUND_EMAIL)) }
+    supabase.auth.getUser().then(({ data }) => apply(data?.user)).catch(() => { /* ignora */ })
+    const { data: sub } = supabase.auth.onAuthStateChange((_, s) => apply(s?.user))
+    return () => { alive = false; sub.subscription.unsubscribe() }
+  }, [])
+  if (!isSoundAllowed()) return null
+  const on = !isMuted()
+  return (
+    <button onClick={() => { toggleMuted(); if (!isMuted()) playCoin() }} aria-label={on ? 'Desligar som' : 'Ligar som'}
+      style={{ position: 'fixed', bottom: 10, right: 10, zIndex: 99998, width: 44, height: 44, borderRadius: 999, border: '3px solid #0C0C0C', background: on ? '#F5B301' : '#fff', boxShadow: '0 3px 10px rgba(0,0,0,.3)', fontSize: 19, cursor: 'pointer', lineHeight: 1 }}>
+      {on ? '🔊' : '🔇'}
+    </button>
+  )
+}
+
 export default function EscalacaoGame() {
   return (
     <ErrorBoundary>
@@ -220,6 +245,7 @@ export default function EscalacaoGame() {
         <AnnouncementToast />
         <OpenInBrowserBanner />
         <VersionWatcher />
+        <SoundGate />
         {/* FUNDO CREME DO JOGO: o site-estúdio tem fundo quase-preto (#06060f). O
             Leilão Legends é todo em telas cremes. Se alguma tela renderizar vazia
             por um instante (troca de fase, estado incompleto sincronizado, save
