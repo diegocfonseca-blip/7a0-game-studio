@@ -2714,6 +2714,38 @@ export function reducer(state: EscState, action: Action): EscState {
           if (spare) { const fl = s.marketValues?.[spare.name] ?? 0; s.deck[pos].push({ ...spare, id: `left-${pos}-${bt2}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
         }
       }
+      // 🛟 GARANTIA "SEMPRE PELO MENOS 1 POR POSIÇÃO": se depois de TUDO (mercado /
+      // reservas dos bots + listados + sobras) alguma posição ficou SEM NENHUMA carta
+      // (ex.: na 2ª temporada, todos os laterais do catálogo já têm dono), um BOT
+      // solta um jogador daquela posição pro leilão — pra nunca aparecer "laterais
+      // sem lateral". O bot vira vendedor/backstop e pode dar lance de volta (e nas
+      // outras posições). Rivais NÃO são obrigados (listar é opcional deles); a
+      // garantia sai sempre de um BOT do mercado.
+      {
+        const rate = (c: WonCard) => (c.lo + c.hi) / 2
+        const placedG = new Set<string>()
+        for (const m of s.managers) for (const c of m.squad) placedG.add(ident(c))
+        for (const name in (s.cpuSquads ?? {})) for (const c of s.cpuSquads![name]) placedG.add(ident(c))
+        for (const pos of SECTORS) {
+          if (s.deck[pos].length > 0) continue
+          let done = false
+          for (const bot of shuffle(s.managers.filter(m => !m.isHuman && !m.rival), rng)) {
+            const spare = (bot.squad as WonCard[]).filter(c => c.pos === pos && !c.fake).sort((a, b) => rate(a) - rate(b))[0]
+            if (!spare) continue
+            bot.squad = bot.squad.filter(c => c.id !== spare.id)
+            bot.backstop = true // agora repõe o que soltou E pode brigar em todas as posições
+            const fl = s.marketValues?.[spare.name] ?? spare.paid ?? 0
+            s.deck[pos].push({ ...spare, seller: bot.id, ...(fl > 0 ? { paid: fl } : {}) })
+            if (!marketSellers[pos].includes(bot.id)) marketSellers[pos].push(bot.id)
+            done = true; break
+          }
+          // último recurso (raríssimo: nenhum bot tem a posição) — pega do catálogo
+          if (!done) {
+            const any = shuffle(ACTIVE_CATALOG[pos].filter(c => !placedG.has(ident(c))), rng)[0]
+            if (any) { placedG.add(ident(any)); s.deck[pos].push({ ...any, id: `grt-${pos}-${nextBuildTok()}`, pos } as Card) }
+          }
+        }
+      }
       // 3) elenco fundo (mira 22) + orçamento. DEPOIS do baralho, senão a demanda
       // dobraria. Humano gasta do careerCoins; bot sorteado gasta do clubCash dele.
       const cash = s.clubCash ?? {}
