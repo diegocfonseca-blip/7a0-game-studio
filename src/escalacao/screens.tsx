@@ -249,8 +249,15 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
                       <div className="relative bg-white rounded-md px-2 py-1 text-[9px] font-black flex justify-between" style={{ color: INK }}>
                         <span>LAT Paolo Maldini</span><span className="text-black/50">💰 6</span>
                       </div>
-                      <div className="relative mt-1.5 border-2 border-black rounded-md overflow-hidden" style={{ height: 16, background: `linear-gradient(180deg,${t.g[0]},${t.g[2]})` }}>
-                        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 3px 3px, rgba(0,0,0,.25) 1.3px, transparent 1.5px), radial-gradient(circle at 8px 8px, rgba(255,255,255,.55) 1.3px, transparent 1.5px)', backgroundSize: '10px 10px' }} />
+                      {/* 🔵 e é ASSIM que o TEU NOME aparece — no elenco, nas tabelas e no online:
+                          a bolinha na cor da categoria + o selo (só nas altas). */}
+                      <div className="relative bg-white rounded-md px-2 py-1.5 mt-1.5 flex items-center gap-2" style={{ color: INK }}>
+                        <span style={{ width: 14, height: 14, borderRadius: 999, background: t.g[1], border: '2px solid #000', flexShrink: 0, boxShadow: t.holo > 0 ? `0 0 6px 1px ${t.g[1]}` : 'none' }} />
+                        <span className="text-[11px] font-black flex items-center gap-1 flex-1 min-w-0" style={OSWALD}><span className="truncate">Seu Nome</span>{t.selo && <span style={{ fontSize: 12 }}>{t.selo}</span>}</span>
+                        <span className="text-[7.5px] font-bold text-black/40 text-right leading-tight flex-shrink-0">no elenco, tabelas<br />e no online</span>
+                      </div>
+                      <div className="relative mt-1.5 border-2 border-black rounded-md overflow-hidden" style={{ height: 30, background: `linear-gradient(180deg,${t.g[0]},${t.g[2]})` }}>
+                        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 4px 4px, rgba(0,0,0,.25) 1.6px, transparent 1.9px), radial-gradient(circle at 10px 10px, rgba(255,255,255,.55) 1.6px, transparent 1.9px)', backgroundSize: '13px 13px' }} />
                       </div>
                       <p className="relative text-[8px] font-bold text-center mt-0.5" style={{ color: t.ink, opacity: 0.8 }}>☝️ até a arquibancada do seu estádio fica assim</p>
                     </div>
