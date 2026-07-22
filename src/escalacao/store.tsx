@@ -2873,6 +2873,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // Nada de leilão. Disparado pelo host; o resultado já computado vai
       // pros convidados por SYNC_STATE.
       { const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def } // nível-base fixo por divisão; rivais sem ajuste
+      // 🎲 SEMENTE NOVA: sem isto, "Nova temporada (mesmo time)" repetia a MESMA
+      // semente → a liga inteira dava EXATAMENTE o mesmo resultado toda vez (dava
+      // pra prever/farmar título). Cada recomeço agora é uma temporada diferente.
+      // (host dispara e sincroniza por SYNC_STATE, então online também fica ok.)
+      s.seed = Math.floor(Math.random() * 1e9)
       s.league = buildLeague(s.managers)
       s.fixtures = buildFixtures(s.league)
       s.round = 0

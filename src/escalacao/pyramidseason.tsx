@@ -1437,7 +1437,7 @@ export function PyramidSeasonScreen() {
   const careerLineup = (state.careerLineup ?? {}) as RoundLineups
   const capElite = (state.simV ?? 1) >= 2 ? 1.28 : 1.2 // temporada velha termina na fórmula velha
   const live = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics, careerLineup, capElite), [world, state.seed, round, careerTactics, careerLineup, capElite])
-  const { scorers, scorersAll, matches, goalsByCard, divTop } = live
+  const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
   // está animando na sua tela — os pontos só entram quando o relógio dela acaba.
   // `revealed` = rodada cuja pontuação já pode aparecer (a atual só depois da anim).
@@ -1448,7 +1448,14 @@ export function PyramidSeasonScreen() {
     const t = setTimeout(() => setRevealed(round), Math.round(ROUND_MS * 0.86))
     return () => clearTimeout(t)
   }, [round, done])
-  const tables = useMemo(() => revealed >= round ? live.tables : simulatePyramid(world, state.seed, revealed, careerTactics, careerLineup, capElite).tables, [live, revealed, round, world, state.seed, careerTactics, careerLineup, capElite])
+  // 🙈 ANTI-SPOILER: a artilharia, os gols por jogador (ex.: "Romário 3") e os
+  // líderes de artilharia saem da rodada JÁ REVELADA — não da atual. Sem isto,
+  // os gols da partida apareciam ANTES dela animar (a tabela já segurava, mas a
+  // artilharia entregava). Quando a rodada termina de animar (revealed = round),
+  // tudo passa a vir da simulação completa (live), sem recomputar à toa.
+  const shown = useMemo(() => revealed >= round ? live : simulatePyramid(world, state.seed, revealed, careerTactics, careerLineup, capElite), [live, revealed, round, world, state.seed, careerTactics, careerLineup, capElite])
+  const { scorers, scorersAll, goalsByCard, divTop } = shown
+  const tables = shown.tables
   const me = myStanding(tables)
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
