@@ -990,6 +990,23 @@ export function EscLobby() {
             {rapidoDeck === 'br' ? '🇧🇷 Só auges do Brasileirão.' : rapidoDeck === 'eu' ? '🌍 Lendas e craques da Europa.' : '🌎 Brasil + Europa juntos — o baralhão.'}
           </p>
         </div>}
+        {/* 🎮 RITMO DA PARTIDA: Auto (padrão, online normal) ou Manual (host aperta
+            pra avançar cada rodada/etapa — igual o stream, ideal pra jogar com os
+            amigos sem ninguém ficar pra trás). No stream o controle já vem junto. */}
+        {!(canCareer && roomMode === 'carreira') && !roomStream && <div>
+          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Ritmo da partida</p>
+          <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
+            <button onClick={() => setRoomManual(false)} className="flex-1 py-2.5 font-black text-sm" style={{ backgroundColor: !roomManual ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+              ⚡ Auto <span className="text-[10px] opacity-60">(padrão)</span>
+            </button>
+            <button onClick={() => setRoomManual(true)} className="flex-1 py-2.5 font-black text-sm border-l-[3px] border-black" style={{ backgroundColor: roomManual ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+              🎮 Manual <span className="text-[10px] opacity-60">(com amigos)</span>
+            </button>
+          </div>
+          <p className="text-white/40 text-[10.5px] font-bold mt-1 leading-snug">
+            {roomManual ? 'O host ganha o botão manual/auto no jogo pra decidir quando avançar cada etapa.' : 'Anda sozinho, na velocidade normal do online.'}
+          </p>
+        </div>}
         {!(canCareer && roomMode === 'carreira') && <div>
           <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Depois da liga</p>
           <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
@@ -1039,23 +1056,6 @@ export function EscLobby() {
             <span className="flex-1 text-left">{roomStream ? 'LIGADO — valores dos lances ocultos' : 'DESLIGADO — jogo normal'}</span>
             <span className="text-[10px] opacity-60">toque</span>
           </button>
-        </div>}
-        {/* 🎮 RITMO DA PARTIDA: Auto (padrão, online normal) ou Manual (host aperta
-            pra avançar cada rodada/etapa — igual o stream, ideal pra jogar com os
-            amigos sem ninguém ficar pra trás). No stream o controle já vem junto. */}
-        {!(canCareer && roomMode === 'carreira') && !roomStream && <div>
-          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Ritmo da partida</p>
-          <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
-            <button onClick={() => setRoomManual(false)} className="flex-1 py-2.5 font-black text-sm" style={{ backgroundColor: !roomManual ? GOLD : '#fff', color: '#000', ...OSWALD }}>
-              ⚡ Auto <span className="text-[10px] opacity-60">(padrão)</span>
-            </button>
-            <button onClick={() => setRoomManual(true)} className="flex-1 py-2.5 font-black text-sm border-l-[3px] border-black" style={{ backgroundColor: roomManual ? GOLD : '#fff', color: '#000', ...OSWALD }}>
-              🎮 Manual <span className="text-[10px] opacity-60">(com amigos)</span>
-            </button>
-          </div>
-          <p className="text-white/40 text-[10.5px] font-bold mt-1 leading-snug">
-            {roomManual ? 'O host ganha o botão manual/auto no jogo pra decidir quando avançar cada etapa.' : 'Anda sozinho, na velocidade normal do online.'}
-          </p>
         </div>}
         <Big onClick={createRoom} color={canCareer && roomMode === 'carreira' ? PURPLE : GOLD}>
           <span style={{ color: canCareer && roomMode === 'carreira' ? '#fff' : '#000' }}>{loading ? 'Criando...' : canCareer && roomMode === 'carreira' ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
