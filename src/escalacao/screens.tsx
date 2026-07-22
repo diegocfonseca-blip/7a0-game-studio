@@ -1062,6 +1062,73 @@ export function CardAccountNote() {
   )
 }
 
+// ─── STREAM: tela explicativa antes do pregão (só no modo stream) ────
+// O leilão do stream NÃO começa direto: primeiro esta tela explica pra quem
+// está assistindo como funciona (moedas = lance, maior lance leva, o auge com
+// o exemplo do Kaká) e mostra quem está jogando. O STREAMER (host) toca
+// "Começar o leilão" quando quiser. Convidados só esperam o host.
+export function EscStreamIntro() {
+  const { state, dispatch } = useEsc()
+  const online = state.onlineMode === 'online'
+  const isHost = !online || state.isHost
+  const you = state.managers[state.youIdx]
+  const humans = state.managers.filter(m => m.isHuman)
+  // cor do apoiador pelo selo no nome (igual ao lobby): 👑 ouro · ⭐ prata · 💎 roxo
+  const perkColor = (name: string) => name.includes('👑') ? APOIO_PERKS.ouro : name.includes('⭐') ? APOIO_PERKS.prata : name.includes('💎') ? APOIO_PERKS.roxo : null
+  return (
+    <Shell>
+      <div className="text-center pt-4">
+        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>🎥 Modo Stream</span>
+        <h2 className="font-black text-3xl mt-3 leading-none" style={OSWALD}>BEM-VINDO<br />AO PREGÃO! 🔨</h2>
+        <p className="text-sm font-semibold text-black/60 mt-2">Antes de começar, entenda o leilão às cegas — pra quem tá chegando agora.</p>
+      </div>
+
+      <Box bg={GOLD} className="p-4" shadow={6}>
+        <p className="font-black text-lg" style={OSWALD}>🪙 Moedas = seu lance</p>
+        <p className="text-sm font-bold text-black/75 mt-1 leading-snug">Cada técnico começa com <b>100 moedas</b>. Você dá um <b>lance secreto</b> (ninguém vê) em cada jogador. Na revelação: <b>quem deu o MAIOR lance leva o craque</b> e paga o que ofertou. Empate? Re-lance às cegas! ⚔️</p>
+      </Box>
+
+      <Box bg="#EDE7FF" className="p-4" shadow={6}>
+        <p className="font-black text-lg" style={OSWALD}>🎭 O nível é o AUGE do craque</p>
+        <p className="text-xs font-bold text-black/65 mt-1 mb-3 leading-snug">O mesmo jogador vale <b>diferente</b> conforme o <b>clube e o ano</b>. Você aposta no nome — o nível só abre na revelação!</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <CollectibleCard name="Kaká" club="Milan" year={2007} pos="MEI" fame={5} />
+            <p className="text-center text-[11px] font-black mt-1.5 leading-tight" style={OSWALD}>👑 auge na Europa<br />= LENDA</p>
+          </div>
+          <div>
+            <CollectibleCard name="Kaká" club="São Paulo" year={2003} pos="MEI" fame={3} promessa />
+            <p className="text-center text-[11px] font-black mt-1.5 leading-tight" style={OSWALD}>💎 jovem no Brasil<br />= PROMESSA</p>
+          </div>
+        </div>
+      </Box>
+
+      <Box bg={INK} className="p-4" shadow={6}>
+        <p className="font-black text-lg" style={{ ...OSWALD, color: '#fff' }}>👥 Quem tá no pregão ({humans.length})</p>
+        <div className="mt-2 space-y-1.5">
+          {humans.map(m => {
+            const nm = m.teamName || m.name
+            const pk = perkColor(nm)
+            return (
+              <div key={m.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border-2 border-black" style={{ background: pk ? pk.light : '#fff' }}>
+                <span style={{ width: 13, height: 13, borderRadius: 999, background: pk ? pk.solid : '#B2A583', border: '2px solid #000', flexShrink: 0, boxShadow: pk && pk.holo > 0 ? `0 0 5px ${pk.solid}` : 'none' }} />
+                <span className="font-black text-sm truncate flex-1" style={{ ...OSWALD, color: INK }}>{nm}</span>
+                {you && m.id === you.id && <span className="text-[10px] font-black text-black/45 flex-shrink-0">(você)</span>}
+              </div>
+            )
+          })}
+        </div>
+      </Box>
+
+      {isHost ? (
+        <Btn onClick={() => dispatch({ type: 'START_STREAM_AUCTION' })} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ COMEÇAR O LEILÃO 🔨</span></Btn>
+      ) : (
+        <div className="w-full border-[3px] border-black rounded-xl py-3 text-center font-black" style={{ background: '#fff', ...OSWALD }}>⏳ O host vai começar o leilão…</div>
+      )}
+    </Shell>
+  )
+}
+
 // ─── LEILÃO: envelope ────────────────────────────────────────────────
 // contador de moedas que REAGE quando o caixa muda: pulsa (verde ao entrar grana
 // de uma venda, vermelho ao gastar) e solta um "+X / −X" flutuando. Só anima na
