@@ -1539,6 +1539,10 @@ function Envelope() {
           const plusBlocked = total + (nextVal - bid) > you.money || (!chosen && chosenCount >= bidLimit)
           const belowFloor = chosen && floor > 0 && bid < floor // lance abaixo do piso → será anulado
           const numColor = !chosen ? 'rgba(0,0,0,0.35)' : belowFloor ? RED : INK
+          // 🎥 stream escondido: enquanto NÃO apertar "Ver meus lances", TUDO na
+          // linha fica idêntico (mesmo cadeado, + sempre aceso) pra câmera não
+          // denunciar em quem/quanto. Com o peek, volta a ser um jogo normal.
+          const masked = state.streamMode && !peek
           // de quem é esse jogador listado (carreira): marca sutil na cor do técnico
           const sellerId = (c as { seller?: number }).seller
           const sellerM = sellerId != null ? state.managers.find(m => m.id === sellerId) : undefined
@@ -1558,8 +1562,9 @@ function Envelope() {
             <div className="flex items-center gap-1.5">
               {canBid && (
                 <div className="flex flex-col items-center">
-                  {/* rótulo: carta com piso mostra o mínimo (🔒); senão, na 1ª tela, "seu lance" */}
-                  {!state.streamMode && (floor > 0
+                  {/* rótulo: carta com piso mostra o mínimo (🔒); senão, na 1ª tela, "seu lance".
+                      Escondido no stream até o peek (aí volta como jogo normal). */}
+                  {!masked && (floor > 0
                     ? <span className="text-[9px] font-black uppercase leading-none mb-0.5 tracking-wide" style={{ color: belowFloor ? RED : '#B8860B' }}>mín 🔒 {floor}</span>
                     : state.sectorIdx === 0 && <span className="text-[9px] font-black uppercase leading-none mb-0.5 tracking-wide" style={{ color: '#B8860B' }}>seu lance</span>)}
                   <div className="flex items-center gap-1.5">
@@ -1568,23 +1573,18 @@ function Envelope() {
                         escolher/digitar o valor. No stream a caixa mostra sempre 🔒
                         (todas iguais) e o modal não mostra o nome do jogador — assim
                         a câmera não denuncia EM QUEM nem QUANTO você apostou. */}
-                    {(() => {
-                      const masked = state.streamMode && !peek
-                      return (
-                        <button onClick={() => { setTypeVal(chosen ? String(bid) : ''); setPickerCard(c) }}
-                          className="w-14 h-8 text-base text-center font-black border-2 border-black rounded-lg bg-white active:opacity-60"
-                          style={{ ...OSWALD, color: numColor }}>
-                          {masked ? '🔒' : (chosen ? bid : floor > 0 ? floor : 0)}
-                        </button>
-                      )
-                    })()}
-                    {/* no stream o + NUNCA apaga (senão a câmera veria em quem você
-                        apostou — o apagado denuncia). A trava segue por dentro no
-                        bump(): tocar num + inválido simplesmente não faz nada. */}
+                    <button onClick={() => { setTypeVal(chosen ? String(bid) : ''); setPickerCard(c) }}
+                      className="w-14 h-8 text-base text-center font-black border-2 border-black rounded-lg bg-white active:opacity-60"
+                      style={{ ...OSWALD, color: masked ? INK : numColor }}>
+                      {masked ? '🔒' : (chosen ? bid : floor > 0 ? floor : 0)}
+                    </button>
+                    {/* escondido no stream o + NUNCA apaga (senão a câmera veria em
+                        quem você apostou — o apagado denuncia). A trava segue por
+                        dentro no bump(). Com o peek, volta o estado normal. */}
                     <HoldButton
                       onStep={() => bump(c, 1)}
-                      disabled={state.streamMode ? false : plusBlocked}
-                      className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${!state.streamMode && plusBlocked ? 'opacity-40' : ''}`}
+                      disabled={masked ? false : plusBlocked}
+                      className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${!masked && plusBlocked ? 'opacity-40' : ''}`}
                       style={{ backgroundColor: GOLD }}>+</HoldButton>
                   </div>
                 </div>
