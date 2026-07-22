@@ -22,7 +22,7 @@ interface RoomPlayer { user_id: string; manager_name: string; player_index: numb
 // (👑 ouro · ⭐ prata · 💎 roxo) — assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : null
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; mode?: 'rapido' | 'carreira'; deck?: DeckChoice }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira'; deck?: DeckChoice }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -240,6 +240,7 @@ export function EscLobby() {
   const [roomPw, setRoomPw] = useState('')
   const [roomStream, setRoomStream] = useState(false)  // modo stream (esconde valores)
   const [streamModal, setStreamModal] = useState(false) // caixa explicando o modo stream
+  const [roomManual, setRoomManual] = useState(false)  // 🎮 modo manual: host controla o ritmo (auto = padrão)
   const [pwModal, setPwModal] = useState<RoomInfo | null>(null) // pedindo senha pra entrar
   const [pwEntry, setPwEntry] = useState('')
   const [room, setRoom] = useState<RoomInfo | null>(null)
@@ -454,6 +455,7 @@ export function EscLobby() {
       playerNames: sorted.map(p => p.manager_name),
       formation: gs?.formation ?? '4-3-3',
       stream: !!gs?.stream,
+      manual: !!gs?.manual, // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)
       deck: gs?.deck ?? 'br', // carreira = 'both'; rápido = escolha do host (br/eu/both)
       career: gs?.mode === 'carreira',
       locked: gs?.locked, pwHash: gs?.pwHash, // preserva a senha da sala pelo autosave
@@ -559,7 +561,7 @@ export function EscLobby() {
     const locked = roomLocked && !!roomPw.trim()
     const pwHash = locked ? hashPw(roomPw.trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck } : { deck: rapidoDeck, copaMode: rapidoCopaMode }) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomManual ? { manual: true } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck } : { deck: rapidoDeck, copaMode: rapidoCopaMode }) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -1037,6 +1039,23 @@ export function EscLobby() {
             <span className="flex-1 text-left">{roomStream ? 'LIGADO — valores dos lances ocultos' : 'DESLIGADO — jogo normal'}</span>
             <span className="text-[10px] opacity-60">toque</span>
           </button>
+        </div>}
+        {/* 🎮 RITMO DA PARTIDA: Auto (padrão, online normal) ou Manual (host aperta
+            pra avançar cada rodada/etapa — igual o stream, ideal pra jogar com os
+            amigos sem ninguém ficar pra trás). No stream o controle já vem junto. */}
+        {!(canCareer && roomMode === 'carreira') && !roomStream && <div>
+          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Ritmo da partida</p>
+          <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
+            <button onClick={() => setRoomManual(false)} className="flex-1 py-2.5 font-black text-sm" style={{ backgroundColor: !roomManual ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+              ⚡ Auto <span className="text-[10px] opacity-60">(padrão)</span>
+            </button>
+            <button onClick={() => setRoomManual(true)} className="flex-1 py-2.5 font-black text-sm border-l-[3px] border-black" style={{ backgroundColor: roomManual ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+              🎮 Manual <span className="text-[10px] opacity-60">(com amigos)</span>
+            </button>
+          </div>
+          <p className="text-white/40 text-[10.5px] font-bold mt-1 leading-snug">
+            {roomManual ? 'O host ganha o botão manual/auto no jogo pra decidir quando avançar cada etapa.' : 'Anda sozinho, na velocidade normal do online.'}
+          </p>
         </div>}
         <Big onClick={createRoom} color={canCareer && roomMode === 'carreira' ? PURPLE : GOLD}>
           <span style={{ color: canCareer && roomMode === 'carreira' ? '#fff' : '#000' }}>{loading ? 'Criando...' : canCareer && roomMode === 'carreira' ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>

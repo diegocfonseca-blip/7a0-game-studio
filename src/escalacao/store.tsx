@@ -1350,7 +1350,7 @@ const INITIAL: EscState = {
   deckLeague: 'br', careerDivision: null, careerOnline: false, careerPlacements: null, careerIntent: false, careerTitles: 0, careerTitlesA: 0, careerRivalCount: 5, careerRivals: [],
   phaseDeadline: null, scorers: [],
   monteDeadline: null, cerimoniaDeadline: null,
-  cpuAtkAdj: 0, cpuDefAdj: 0, streamMode: false,
+  cpuAtkAdj: 0, cpuDefAdj: 0, streamMode: false, manualRoom: false,
   sectorCursor: 0, sectorUnsoldAccum: [], roundIdx: 0,
   seasonNo: 1,
   restartPending: false, restartReady: [],
@@ -1373,7 +1373,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; deck?: 'br' | 'eu' | 'both'; career?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' }
+  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; deck?: 'br' | 'eu' | 'both'; career?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' }
   | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). scorerValues = bonus de piso dos artilheiros
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
@@ -1478,7 +1478,7 @@ function enterCerimonia(st: EscState) {
   st.screen = 'cerimonia'
   // 🎥 modo stream: SEM cronômetro — o host dá o comando pra começar (controla o
   // ritmo da revelação ao vivo, mostra time por time). Sem stream: 45s e começa sozinho.
-  st.cerimoniaDeadline = st.streamMode ? null : Date.now() + CEREMONY_MS
+  st.cerimoniaDeadline = (st.streamMode || st.manualRoom) ? null : Date.now() + CEREMONY_MS // stream/manual: host dá o start (sem cronômetro)
 }
 const TIEBREAK_MS = 30_000
 
@@ -1718,6 +1718,7 @@ export function reducer(state: EscState, action: Action): EscState {
       cpuAtkAdj: action.newState.cpuAtkAdj ?? 0,
       cpuDefAdj: action.newState.cpuDefAdj ?? 0,
       streamMode: action.newState.streamMode ?? false,
+      manualRoom: action.newState.manualRoom ?? false,
       youIdx: state.youIdx,
       isHost: state.isHost,
       roomId: state.roomId,
@@ -1736,6 +1737,7 @@ export function reducer(state: EscState, action: Action): EscState {
       cpuAtkAdj: action.state.cpuAtkAdj ?? 0,
       cpuDefAdj: action.state.cpuDefAdj ?? 0,
       streamMode: action.state.streamMode ?? false,
+      manualRoom: action.state.manualRoom ?? false,
       onlineMode: 'online',
       roomId: action.roomId,
       roomCode: action.roomCode,
@@ -1879,7 +1881,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.isHost = true
       s.careerOnline = true
       s.roomId = ''; s.roomCode = ''; s.roomName = undefined
-      s.locked = undefined; s.pwHash = undefined; s.streamMode = false
+      s.locked = undefined; s.pwHash = undefined; s.streamMode = false; s.manualRoom = false
       s.deckLeague = action.league ?? 'br'; setActiveCatalog(s.deckLeague)
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
@@ -1959,6 +1961,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.youIdx = action.playerIndex
       s.humanCount = action.playerNames.length
       s.streamMode = !!action.stream
+      s.manualRoom = !!action.manual // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)
       // seed do leilão: código da sala. No "novo leilão" (rematch) recebe um
       // salt → sorteia jogadores NOVOS. Como só o HOST monta e transmite (o
       // convidado copia via SYNC_STATE), o salt não precisa ser determinístico.
@@ -2792,7 +2795,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // leilão). redraft ("trocar tudo"): abre um novo leilão nesta divisão.
       const sv = action.save
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
-      s.roomId = ''; s.roomCode = ''; s.streamMode = false
+      s.roomId = ''; s.roomCode = ''; s.streamMode = false; s.manualRoom = false
       s.deckLeague = sv.deckLeague ?? 'br'; setActiveCatalog(s.deckLeague) // baralho da carreira salva
       s.careerDivision = sv.division; s.careerIntent = false; s.careerTitles = sv.titles; s.careerTitlesA = sv.titlesA ?? 0
       s.seasonNo = sv.seasonNo
@@ -2842,7 +2845,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // narração, tabela, artilheiros) contra os times do mundo fixo — sem leilão.
       // Os elencos vêm prontos do mundo; a economia já rolou na janela.
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
-      s.roomId = ''; s.roomCode = ''; s.streamMode = false
+      s.roomId = ''; s.roomCode = ''; s.streamMode = false; s.manualRoom = false
       s.dinastia = true
       s.dinastiaPaused = false; s.dinastiaMidUsed = false // janela do meio zerada pra esta temporada
       s.careerDivision = action.division
@@ -3273,7 +3276,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // a formação (usada como fallback). IMPORTANTE: .then() aqui não é
       // enredo — sem ele o supabase-js NÃO dispara a requisição (query é
       // preguiçosa), e era por isso que o estado nunca era salvo de verdade.
-      const payload = { ...sanitize(st), __game: 'escalacao', formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
+      const payload = { ...sanitize(st), __game: 'escalacao', formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.manualRoom ? { manual: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
       // updated_at aqui é o "batimento cardíaco" da sala: é como a lista de
       // Salas Abertas distingue jogo REALMENTE rolando de sala abandonada (o
       // host fechou a aba e ninguém mais salva nada). Sem escrever isso a
