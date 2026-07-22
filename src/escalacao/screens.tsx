@@ -1564,11 +1564,26 @@ function Envelope() {
                     : state.sectorIdx === 0 && <span className="text-[9px] font-black uppercase leading-none mb-0.5 tracking-wide" style={{ color: '#B8860B' }}>seu lance</span>)}
                   <div className="flex items-center gap-1.5">
                     <HoldButton onStep={() => bump(c, -1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</HoldButton>
-                    {/* toca no número → escolher valor redondo/digitar. No stream, só
-                        mostra o número se você ligou "ver meus lances" (peek). */}
-                    <button onClick={() => { setTypeVal(''); setPickerCard(c) }} className="w-9 text-center font-black active:opacity-60" style={{ ...OSWALD, color: numColor }}>
-                      {state.streamMode && !peek ? (chosen ? '🔒' : '–') : (chosen ? bid : floor > 0 ? floor : 0)}
-                    </button>
+                    {/* caixinha pra DIGITAR o lance na mão, ali do lado do −/+.
+                        Sem OK: o valor já vale; o "lacre" é que confirma tudo.
+                        No stream o valor fica mascarado (•• / 🔒) até o peek. */}
+                    {(() => {
+                      const editing = pickerCard?.id === c.id
+                      const masked = state.streamMode && !peek
+                      const val = editing ? typeVal : (masked ? (chosen ? '00' : '') : (chosen ? String(bid) : ''))
+                      return (
+                        <input
+                          inputMode="numeric"
+                          type={masked ? 'password' : 'text'}
+                          value={val}
+                          placeholder={masked ? '🔒' : (floor > 0 ? String(floor) : '0')}
+                          onFocus={e => { setPickerCard(c); setTypeVal(chosen ? String(bid) : ''); e.currentTarget.select() }}
+                          onChange={e => { const d = e.target.value.replace(/[^0-9]/g, '').slice(0, 4); setTypeVal(d); setBidTo(c, d === '' ? 0 : parseInt(d, 10)) }}
+                          onBlur={() => setPickerCard(null)}
+                          className="w-14 h-8 text-center font-black border-2 border-black rounded-lg bg-white"
+                          style={{ ...OSWALD, color: numColor }} />
+                      )
+                    })()}
                     <HoldButton
                       onStep={() => bump(c, 1)}
                       disabled={plusBlocked}
@@ -1605,50 +1620,6 @@ function Envelope() {
 
       <YourPitch />
       <RivalsStrip />
-
-      {/* 🎯 escolher valor: toca no número e pega um redondo (ou digita) — no dedo,
-          sem ficar apertando o + mil vezes. Ótimo no stream (acerta sem contar). */}
-      {pickerCard && (() => {
-        const c = pickerCard
-        const floor = (c as { paid?: number }).paid ?? 0
-        const others = Object.entries(bids).reduce((s, [k, v]) => (k === c.id ? s : s + v), 0)
-        const room = you.money - others // teto que cabe pra ESTA carta
-        const cName = c.id === state.surpriseId ? '🎁 Jogador Surpresa' : c.name // não vaza a surpresa
-        const apply = (v: number) => { setBidTo(c, v); setPickerCard(null) }
-        const typed = parseInt(typeVal || '0', 10)
-        const min = Math.max(1, floor)
-        const valid = typed >= min && typed <= room
-        // 🎥 STREAM: o VALOR digitado (e os limites) ficam ESCONDIDOS pra não vazar
-        // o lance na live. Só aparece se o host tocar em "mostrar" (peek).
-        const hide = state.streamMode && !peek
-        return (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.6)' }} onClick={() => setPickerCard(null)}>
-            <div className="w-full max-w-sm border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }} onClick={e => e.stopPropagation()}>
-              <p className="font-black text-lg" style={OSWALD}>✍️ Digitar lance</p>
-              <p className="text-xs font-bold text-black/60 mb-2">{cName}{floor > 0 ? ` · mín ${hide ? '🔒' : floor}` : ''} · cabe até {hide ? '🔒' : room} 🪙</p>
-              <div className="flex items-center gap-2">
-                <input autoFocus type={hide ? 'password' : 'text'} value={typeVal} onChange={e => setTypeVal(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))} inputMode="numeric" placeholder={hide ? '••••' : 'digite o valor…'}
-                  onKeyDown={e => { if (e.key === 'Enter' && valid) apply(typed) }}
-                  className="flex-1 border-[3px] border-black rounded-xl px-3 py-3 font-black text-xl bg-white" />
-                <button onClick={() => { if (valid) apply(typed) }} disabled={!valid}
-                  className="border-[3px] border-black rounded-xl px-5 py-3 font-black text-lg" style={{ background: valid ? GREEN : '#cfc6ae', color: '#fff', ...OSWALD }}>OK</button>
-              </div>
-              {typeVal !== '' && typed > room && <p className="text-[11px] font-black text-red-600 mt-1.5">💰 Passou do que cabe{hide ? '.' : ` — máximo ${room}.`}</p>}
-              {typeVal !== '' && floor > 0 && typed > 0 && typed < floor && <p className="text-[11px] font-black text-red-600 mt-1.5">🔒 Abaixo do mínimo{hide ? '.' : ` — mín ${floor}.`}</p>}
-              {/* 🎥 stream: botão (fundo escuro) pra MOSTRAR/esconder o que você digitou */}
-              {state.streamMode && (
-                <button onClick={() => setPeek(p => !p)} className="w-full mt-2.5 border-2 border-black rounded-lg py-2 font-black text-xs" style={{ background: peek ? GOLD : INK, color: peek ? '#000' : '#fff', ...OSWALD }}>
-                  {peek ? '🙈 Esconder o lance (pra live)' : '👁️ Mostrar o que digitei'}
-                </button>
-              )}
-              <div className="flex items-center justify-between mt-3">
-                <button onClick={() => apply(0)} className="text-xs font-black text-black/55 underline active:opacity-60">🗑️ tirar o lance</button>
-                <button onClick={() => setPickerCard(null)} className="text-xs font-black text-black/55 underline active:opacity-60">fechar</button>
-              </div>
-            </div>
-          </div>
-        )
-      })()}
     </Shell>
   )
 }
