@@ -1514,6 +1514,12 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   state.submitted = []
   state.pendingEnvelopes = {}
   state.phaseDeadline = Date.now() + ENVELOPE_MS
+  // 🛟 LEVA/SETOR VAZIO: não tem NENHUMA carta pra leiloar (ex.: leilão de reservas
+  // onde TODOS os laterais do catálogo já têm dono). Sem isto, aparecia um envelope
+  // VAZIO ("laterais sem lateral nenhum") e, ao lacrar, dava a tela de erro. Agora
+  // resolve na hora e segue pro próximo setor. (sealAndResolve com fila vazia cai
+  // na guarda de "revelação vazia" e chama afterReveal, que avança.)
+  if (state.currentCards.length === 0) { sealAndResolve(state); return }
   // SOLO (carreira offline/rápido/dinastia): rodada em que NENHUM humano pode
   // dar lance (posição cheia ou sem dinheiro — só CPUs disputando) lacra NA
   // HORA. Sem isto, ninguém enviava envelope, o setor nunca era lacrado e o
