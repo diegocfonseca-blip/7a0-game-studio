@@ -2001,7 +2001,19 @@ export function ReserveListScreen() {
   useEffect(() => {
     if (state.isHost && remaining <= 0) dispatch({ type: 'RESERVE_AUCTION_ONLINE' })
   }, [remaining, state.isHost, dispatch])
-  if (!mgr) return null
+  // 🛟 estado incompleto (sem "meu time" por um instante — troca de fase / sync):
+  // mostra uma tela de espera em vez de renderizar EM BRANCO (mesma proteção do
+  // leilão). O host já avança sozinho pro leilão quando o tempo zera (efeito
+  // acima), então ninguém fica preso aqui.
+  if (!mgr) return (
+    <div style={{ minHeight: '100vh', background: '#F4ECD6', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ textAlign: 'center' }}>
+        <p style={{ fontSize: 40 }}>📋</p>
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>Preparando o leilão de reservas…</p>
+        <p style={{ fontWeight: 700, fontSize: 13, color: '#5a5647', marginTop: 4 }}>Só um instante.</p>
+      </div>
+    </div>
+  )
   const nListed = state.reserveListed?.[youId]?.length ?? 0
   return (
     <div style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
