@@ -2502,9 +2502,13 @@ export function EscSeason() {
       )}
 
       {(!online || streamHost) && !state.dinastiaPaused && state.round < 38 && (
-        <SimControls manual={manual} onToggle={toggleManual} canNext
+        // 🎮 MANUAL: "Próxima rodada" só LIBERA depois que a partida terminou de
+        // simular (respeita o tempo da rodada). Sem isto, dava pra clicar sem parar
+        // e "pular" as 38 rodadas na hora. No começo (round 0) libera pra dar o
+        // pontapé; da rodada 1 em diante espera a animação (resultRevealed).
+        <SimControls manual={manual} onToggle={toggleManual} canNext={state.round === 0 || resultRevealed}
           onNext={() => dispatch({ type: 'PLAY_ROUND' })}
-          nextLabel={state.round === 0 && !myLast ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
+          nextLabel={!(state.round === 0 || resultRevealed) ? '⏳ Deixa a rodada acabar…' : state.round === 0 && !myLast ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
       )}
       {(!online || streamHost) && copaLive && (
         <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
