@@ -1455,7 +1455,7 @@ function Envelope() {
           <p className="font-black text-white text-xs" style={OSWALD}>🎥 MODO STREAM — os valores ficam ocultos até o martelo. Manda ver no dedo! 🔒</p>
           {/* pra quem NÃO está filmando: dá pra ver os próprios lances (só no seu aparelho) */}
           <button onClick={() => setPeek(p => !p)} className="w-full border-2 border-white/40 rounded-lg py-1.5 font-black text-xs" style={{ background: peek ? GOLD : 'transparent', color: peek ? '#000' : '#fff', ...OSWALD }}>
-            {peek ? '🙈 Esconder meus lances de novo' : '👁️ Ver só os MEUS lances (não aparece pra sala)'}
+            {peek ? '🙈 Esconder meus lances' : '👁️ Ver meus lances'}
           </button>
         </Box>
       )}
