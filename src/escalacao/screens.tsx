@@ -60,24 +60,66 @@ export function CreditLine({ className = '' }: { className?: string }) {
 // Fluxo aprovado: escolha (só apoiar / batizar clube) → sonho → batismo.
 // NENHUM valor de apoio aparece pra ninguém. Chave em PIX_KEY; DM no Instagram.
 const PIX_KEY = 'diego.c.fonseca@gmail.com'
+const PIX_NOME = 'DIEGO FONSECA'   // recebedor (obrigatório no BR Code, ≤25, sem acento)
+const PIX_CIDADE = 'RIO DE JANEIRO' // cidade do recebedor (obrigatório, ≤15, sem acento)
 const APOIO_IG = 'https://ig.me/m/leilaolegendscom'
-function PixBox({ label = 'copiar', ctx }: { label?: string; ctx?: string }) {
-  const [copied, setCopied] = useState(false)
-  const copy = async () => {
-    if (ctx) logApoio(`💰 copiou o Pix · ${ctx}`)
-    try { await navigator.clipboard.writeText(PIX_KEY); setCopied(true); setTimeout(() => setCopied(false), 2500) }
+
+// CRC16-CCITT (poly 0x1021, init 0xFFFF) — exigido no fim do código Pix.
+function pixCrc16(str: string): string {
+  let crc = 0xFFFF
+  for (let i = 0; i < str.length; i++) {
+    crc ^= str.charCodeAt(i) << 8
+    for (let j = 0; j < 8; j++) crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0')
+}
+// 🟢 PIX "COPIA E COLA" (BR Code / EMV, padrão do Banco Central). Estático, com
+// valor opcional já preenchido. A pessoa cola no banco em "Pix Copia e Cola" e só
+// confirma — sem digitar chave nem valor. Muito menos atrito que copiar o e-mail.
+function pixCode(amount?: number): string {
+  const f = (id: string, val: string) => id + String(val.length).padStart(2, '0') + val
+  const mai = f('00', 'br.gov.bcb.pix') + f('01', PIX_KEY)
+  const body =
+    f('00', '01') +                                   // formato
+    f('26', mai) +                                    // conta Pix (chave)
+    f('52', '0000') +                                 // categoria
+    f('53', '986') +                                  // moeda: BRL
+    (amount && amount > 0 ? f('54', amount.toFixed(2)) : '') + // valor (opcional)
+    f('58', 'BR') +                                   // país
+    f('59', PIX_NOME) +                               // nome do recebedor
+    f('60', PIX_CIDADE) +                             // cidade
+    f('62', f('05', '***'))                           // txid vazio
+  const semCrc = body + '6304'
+  return semCrc + pixCrc16(semCrc)
+}
+
+function PixBox({ label = 'copiar', ctx, amount }: { label?: string; ctx?: string; amount?: number }) {
+  const [copied, setCopied] = useState<'code' | 'key' | null>(null)
+  const copyCode = async () => {
+    if (ctx) logApoio(`💰 copiou o Pix${amount ? ` R$${amount}` : ''} · ${ctx}`)
+    const code = pixCode(amount)
+    try { await navigator.clipboard.writeText(code); setCopied('code'); setTimeout(() => setCopied(null), 2500) }
+    catch { window.prompt('Copia o código Pix (cola no banco em "Pix Copia e Cola"):', code) }
+  }
+  const copyKey = async () => {
+    try { await navigator.clipboard.writeText(PIX_KEY); setCopied('key'); setTimeout(() => setCopied(null), 2500) }
     catch { window.prompt('Copia a chave Pix:', PIX_KEY) }
   }
+  void label
   return (
     <>
-      <div className="border-[3px] border-black rounded-xl bg-white px-3 py-2.5">
-        <p className="text-[10px] font-black uppercase text-black/50">Chave Pix (e-mail)</p>
-        <p className="text-[13px] font-black break-all" style={OSWALD}>{PIX_KEY}</p>
-      </div>
-      <button onClick={copy}
-        className="w-full mt-2.5 rounded-xl border-[3px] border-black font-black text-base py-3 active:translate-y-0.5"
-        style={{ background: copied ? GREEN : GOLD, color: copied ? '#fff' : INK, boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
-        {copied ? '✅ CHAVE COPIADA — VALEU DEMAIS!' : `📋 ${label.toUpperCase()}`}
+      {/* JEITO FÁCIL: copia e cola — o valor já vai junto */}
+      <button onClick={copyCode}
+        className="w-full rounded-xl border-[3px] border-black font-black text-base py-3 active:translate-y-0.5"
+        style={{ background: copied === 'code' ? GREEN : GOLD, color: copied === 'code' ? '#fff' : INK, boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
+        {copied === 'code' ? '✅ CÓDIGO COPIADO — VALEU DEMAIS! 💛' : `📋 COPIAR PIX${amount ? ` · R$ ${amount}` : ''}`}
+      </button>
+      <p className="text-[10.5px] font-bold text-black/55 mt-1.5 leading-snug text-center">
+        No banco: <b>Pix › Pix Copia e Cola › colar</b>. {amount ? 'O valor já vai preenchido — é só confirmar. 💛' : 'Aí você escolhe o valor. 💛'}
+      </p>
+      {/* alternativa: a chave e-mail, pra quem preferir */}
+      <button onClick={copyKey} className="w-full text-[11px] font-black underline text-black/45 mt-1.5 active:opacity-60">
+        {copied === 'key' ? '✅ chave copiada!' : 'ou copiar só a chave (e-mail)'}
       </button>
     </>
   )
@@ -85,11 +127,11 @@ function PixBox({ label = 'copiar', ctx }: { label?: string; ctx?: string }) {
 // escada de cores (produto visual): cada tier espelha a categoria das cartas.
 // bege e verde SEM selo (ninguém carrega etiqueta de "menor" — selo começa no 💎).
 const COR_TIERS = [
-  { key: 'bege',  nome: 'Foi Profissional', selo: '', preco: 'a cor de todo mundo · grátis', g: ['#DBD1B5', '#CBBF9E', '#B2A583'], ink: '#0C0C0C', holo: 0 },
-  { key: 'verde', nome: 'Bom Jogador', selo: '', preco: 'R$ 10', g: ['#41C07A', '#2E9E5B', '#1E7A45'], ink: '#fff', holo: 0 },
-  { key: 'roxo',  nome: 'Promessa', selo: '💎', preco: 'R$ 20', g: ['#C9A9FF', '#8B5CF6', '#5B2FB0'], ink: '#fff', holo: 0.3 },
-  { key: 'prata', nome: 'Craque', selo: '⭐', preco: 'R$ 35', g: ['#F4F7FB', '#CBD4DE', '#9BA7B5'], ink: '#0C0C0C', holo: 0.5 },
-  { key: 'ouro',  nome: 'Lenda — ouro OU qualquer cor com brilho', selo: '👑', preco: 'R$ 50', g: ['#FFE79A', '#FFC400', '#E8A200'], ink: '#0C0C0C', holo: 0.75 },
+  { key: 'bege',  nome: 'Foi Profissional', selo: '', preco: 'a cor de todo mundo · grátis', valor: 0, g: ['#DBD1B5', '#CBBF9E', '#B2A583'], ink: '#0C0C0C', holo: 0 },
+  { key: 'verde', nome: 'Bom Jogador', selo: '', preco: 'R$ 10', valor: 10, g: ['#41C07A', '#2E9E5B', '#1E7A45'], ink: '#fff', holo: 0 },
+  { key: 'roxo',  nome: 'Promessa', selo: '💎', preco: 'R$ 20', valor: 20, g: ['#C9A9FF', '#8B5CF6', '#5B2FB0'], ink: '#fff', holo: 0.3 },
+  { key: 'prata', nome: 'Craque', selo: '⭐', preco: 'R$ 35', valor: 35, g: ['#F4F7FB', '#CBD4DE', '#9BA7B5'], ink: '#0C0C0C', holo: 0.5 },
+  { key: 'ouro',  nome: 'Lenda — ouro OU qualquer cor com brilho', selo: '👑', preco: 'R$ 50', valor: 50, g: ['#FFE79A', '#FFC400', '#E8A200'], ink: '#0C0C0C', holo: 0.75 },
 ] as const
 export function ApoieButton({ big = false }: { big?: boolean }) {
   const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'dream' | 'batismo' | 'cores'>('off')
@@ -214,7 +256,7 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
                     </div>
                     {t.key !== 'bege' && (
                       <div className="p-2.5" style={{ background: '#fff' }}>
-                        <div className="mb-2"><PixBox label={`copiar Pix (${t.preco})`} ctx={`cor ${t.key}`} /></div>
+                        <div className="mb-2"><PixBox label={`copiar Pix (${t.preco})`} ctx={`cor ${t.key}`} amount={t.valor} /></div>
                         <button onClick={() => { logApoio(`🎨 QUER A COR: ${t.key.toUpperCase()} (${t.preco})`); igMsg(`Opa! Apoiei o Leilão Legends 💛 Quero a cor ${t.nome.toUpperCase()} — comprovante em anexo!`) }}
                           className="w-full rounded-xl border-[3px] border-black font-black text-[13px] py-2.5 active:translate-y-0.5"
                           style={{ background: '#E1306C', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
@@ -270,7 +312,7 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
             className="w-full border-[3px] border-black rounded-xl px-3 py-2.5 mt-2 font-black text-base bg-white" style={OSWALD} />
           <p className="text-[10px] font-bold text-black/45 mt-1.5">✅ nome de resenha, zoeira leve, homenagem · ❌ ofensa, política, marca de empresa</p>
           <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>2</span>Faz o Pix (a partir de R$ 60)</p>
-          <div className="mt-2"><PixBox label="copiar chave Pix" ctx="batismo do clube" /></div>
+          <div className="mt-2"><PixBox label="copiar chave Pix" ctx="batismo do clube" amount={60} /></div>
           <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>3</span>Manda comprovante + nome</p>
           <button onClick={() => { logApoio(`🏟️ QUER BATISMO: "${clube.trim() || '(sem nome)'}"`); igMsg(`Opa! Acabei de apoiar o Leilão Legends 💛 Quero batizar meu clube: "${clube.trim() || '(nome do clube)'}" — comprovante em anexo!`) }} className="w-full mt-2 rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
             style={{ background: '#E1306C', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
