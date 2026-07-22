@@ -1267,7 +1267,7 @@ export function EscLobby() {
         <div style={{ position: 'fixed', left: 0, right: 0, bottom: 24, zIndex: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '0 16px', pointerEvents: 'none' }}>
           {lobbyChat.map(e => (
             <motion.div key={e.id} initial={{ opacity: 0, y: 14, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0 }}
-              style={{ background: '#fff', border: '2px solid #0C0C0C', borderRadius: 999, padding: '6px 14px', boxShadow: '2px 2px 0 #0C0C0C', maxWidth: '92%', fontSize: 13, fontWeight: 700, ...OSWALD }}>
+              style={{ background: '#fff', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 999, padding: '6px 14px', boxShadow: '2px 2px 0 #0C0C0C', maxWidth: '92%', fontSize: 13, fontWeight: 700, ...OSWALD }}>
               <span style={{ color: chatColor(e.name), fontWeight: 900 }}>{e.name}:</span> {e.text}
             </motion.div>
           ))}
