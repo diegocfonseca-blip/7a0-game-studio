@@ -2480,7 +2480,7 @@ export function EscSeason() {
 
       {state.news.length > 0 && (
         <Box bg="#FFF6DC" className="p-3 space-y-1">
-          <p className="font-black text-xs uppercase tracking-wide mb-1" style={OSWALD}>📣 Giro da rodada</p>
+          <p className="font-black text-xs uppercase tracking-wide mb-1" style={OSWALD}>{copaLive ? '🏆 Giro da Copa' : '📣 Giro da rodada'}</p>
           {state.news.slice(0, 4).map((n, i) => <p key={i} className="text-xs font-bold">{n}</p>)}
         </Box>
       )}
