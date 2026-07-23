@@ -666,7 +666,8 @@ const GOL: C[] = [
   { name: "Hugo Neneca", club: "Corinthians", year: 2025, fame: 3, lo: 76, hi: 84 },
   { name: "Clemer", club: "Internacional", year: 2004, fame: 3, lo: 74, hi: 83 },
   { name: "Denis", club: "São Paulo", year: 2016, fame: 1, lo: 56, hi: 77 },
-  { name: "Everson", club: "Atlético-MG", year: 2021, fame: 3, lo: 72, hi: 84, bio: "Paredão e pegador de pênaltis do Galo campeão de tudo em 2021 — segurança que virou ídolo." }
+  { name: "Everson", club: "Atlético-MG", year: 2021, fame: 3, lo: 72, hi: 84, bio: "Paredão e pegador de pênaltis do Galo campeão de tudo em 2021 — segurança que virou ídolo." },
+  { name: "Danilo (Chape)", club: "Chapecoense", year: 2016, fame: 3, lo: 72, hi: 84, bio: "Goleiro-herói da Chapecoense na campanha mágica da Sul-Americana de 2016 — pegou o pênalti que levou o time à final. Homenagem eterna." }
 ]
 
 const LAT: C[] = [
@@ -785,7 +786,9 @@ const ZAG: C[] = [
   { name: "Bordon", club: "São Paulo", year: 1997, fame: 3, lo: 70, hi: 83, bio: "Zagueiro técnico revelado no Morumbi que virou ídolo de década no Stuttgart — categoria rara." },
   { name: "Neto (Chape)", club: "Chapecoense", year: 2016, fame: 1, lo: 52, hi: 76, bio: "Zagueiro e símbolo da Chapecoense — sobreviveu à tragédia de 2016 e lutou pra vestir o manto de novo. Respeito eterno." },
   { name: "Digão (irmão do Kaká)", club: "Fluminense", year: 2008, fame: 1, lo: 50, hi: 74, folk: true, bio: "Carregou o sobrenome mais famoso do futebol brasileiro — do Milan ao Flu, o irmão do Kaká é folclore puro." },
-  { name: "Werley", club: "Grêmio", year: 2013, fame: 1, lo: 56, hi: 78, bio: "O convocado-surpresa do Felipão que fez o Brasil inteiro perguntar 'quem?' — bom zagueiro, história melhor ainda." }
+  { name: "Werley", club: "Grêmio", year: 2013, fame: 1, lo: 56, hi: 78, bio: "O convocado-surpresa do Felipão que fez o Brasil inteiro perguntar 'quem?' — bom zagueiro, história melhor ainda." },
+  { name: "Edu Dracena", club: "Santos", year: 2011, fame: 3, lo: 76, hi: 84, bio: "Zagueiro seguro e capitão — leitura de jogo e saída limpa no Santos de Neymar, depois de erguer o tri do Cruzeiro em 2003." },
+  { name: "Durval", club: "Santos", year: 2013, fame: 1, lo: 56, hi: 78, bio: "Zagueiro veterano e capitão raçudo do Santos — cabeçada firme e liderança de vestiário por vários anos na Vila." }
 ]
 
 const MEI: C[] = [
@@ -1056,7 +1059,10 @@ const ATA: C[] = [
   { name: "Edílson", club: "Corinthians", year: 1998, fame: 2, lo: 62, hi: 84 },
   { name: "Fernandão", club: "Internacional", year: 2006, fame: 4, lo: 85, hi: 91, bio: "Capitão e ídolo eterno do Inter campeão da Libertadores e do Mundo em 2006 — artilheiro decisivo e líder nato." },
   { name: "Pepe", club: "Santos", year: 1962, fame: 5, lo: 89, hi: 95, bio: "O 'Canhão' do Santos de Pelé — chute violento de perna esquerda e um dos maiores artilheiros da história do clube." },
-  { name: "Flaco López", club: "Palmeiras", year: 2025, fame: 3, lo: 74, hi: 85, bio: "O Flaco — centroavante argentino que virou artilheiro e xodó do Palmeiras, gol de todo jeito." }
+  { name: "Flaco López", club: "Palmeiras", year: 2025, fame: 3, lo: 74, hi: 85, bio: "O Flaco — centroavante argentino que virou artilheiro e xodó do Palmeiras, gol de todo jeito." },
+  { name: "Vegetti", club: "Vasco", year: 2023, fame: 3, lo: 72, hi: 84, bio: "O 'Pirata' — centroavante argentino artilheiro e xodó do Vasco, faro de gol na área e comemoração que virou marca." },
+  { name: "Alex Mineiro", club: "Athletico-PR", year: 2005, fame: 3, lo: 72, hi: 84, bio: "Artilheiro decisivo do Athletico vice da Libertadores de 2005 — também brilhou em Palmeiras e Grêmio e vestiu a Seleção." },
+  { name: "Víctor Aristizábal", club: "Santos", year: 2001, fame: 3, lo: 74, hi: 85, bio: "Goleador colombiano ídolo do Santos — faro de gol matador que marcou época na Vila Belmiro." }
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
