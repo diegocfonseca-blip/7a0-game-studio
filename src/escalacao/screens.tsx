@@ -673,7 +673,7 @@ function NewsSection() {
       </div>
       <div>
         <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>🆕 Recém-chegados</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>🇧🇷 BR:</b> Lucas Moura, Danilo, Ralf, Taison, Guilherme Arana, Junior Alonso, Luan.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>🇧🇷 BR:</b> <b>Figueroa 👑</b>, Bolívar, Índio e Alexandre Pato 💎 (reforço colorado do Inter!), Lucas Moura, Danilo, Ralf, Taison, Guilherme Arana, Junior Alonso, Luan.</p>
         <p className="text-xs font-bold text-black/75 mt-1"><b>🌍 Europa:</b> Gareth Bale, Eden Hazard, Son, Arturo Vidal, Bruno Fernandes, Gündogan.</p>
         <p className="text-[11px] font-bold text-black/50 mt-1">O baralho só cresce — sempre entrando craque novo. 🔨</p>
       </div>
