@@ -3542,6 +3542,36 @@ interface UserCardRow { card_name: string; card_club: string; card_year: number;
 interface AlbumCard { name: string; club: string; year: number; pos: Sector; fame: number; folk?: boolean; promessa?: boolean; origin: 'cpu' | 'online'; at: number }
 type AlbumFilter = 'all' | 'cpu' | 'online'
 
+// 🗂️ organização do álbum: raridade (melhores primeiro), posição, clube ou
+// ordem de coleção (recentes). Reutilizado no próprio álbum e no de outro técnico.
+type AlbumSort = 'tier' | 'pos' | 'club' | 'recent'
+const ALBUM_POS_ORD: Record<string, number> = { GOL: 0, LAT: 1, ZAG: 2, MEI: 3, ATA: 4 }
+function sortAlbum(list: AlbumCard[], mode: AlbumSort): AlbumCard[] {
+  const arr = [...list]
+  if (mode === 'recent') return arr.sort((a, b) => (b.at ?? 0) - (a.at ?? 0))
+  if (mode === 'pos') return arr.sort((a, b) => (ALBUM_POS_ORD[a.pos] ?? 9) - (ALBUM_POS_ORD[b.pos] ?? 9) || b.fame - a.fame || a.name.localeCompare(b.name))
+  if (mode === 'club') return arr.sort((a, b) => a.club.localeCompare(b.club) || b.fame - a.fame || a.name.localeCompare(b.name))
+  return arr.sort((a, b) => b.fame - a.fame || a.name.localeCompare(b.name)) // raridade (padrão): lenda → craque → … → foi profissional
+}
+const ALBUM_SORT_TABS: { id: AlbumSort; label: string }[] = [
+  { id: 'tier', label: '🏆 Raridade' },
+  { id: 'pos', label: '⚽ Posição' },
+  { id: 'club', label: '🔥 Clube' },
+  { id: 'recent', label: '🕐 Recentes' },
+]
+function AlbumSortBar({ value, onChange }: { value: AlbumSort; onChange: (s: AlbumSort) => void }) {
+  return (
+    <div className="flex border-2 border-black rounded-lg overflow-hidden">
+      {ALBUM_SORT_TABS.map(t => (
+        <button key={t.id} onClick={() => onChange(t.id)}
+          className="flex-1 py-1.5 font-black text-[10px] uppercase leading-tight" style={{ backgroundColor: value === t.id ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+          {t.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 // carta de EXEMPLO — aparece só pra quem NÃO tem conta, pra mostrar como é a
 // carta-lembrança e provocar o cadastro. Some assim que a pessoa loga (aí entram
 // só as reais). É de mentirinha, não conta em lugar nenhum.
@@ -3553,6 +3583,7 @@ export function EscAlbum() {
   const [anon, setAnon] = useState(false)
   const [down, setDown] = useState(false) // backend fora do ar — evita travar em "Carregando…"
   const [filter, setFilter] = useState<AlbumFilter>('all')
+  const [sort, setSort] = useState<AlbumSort>('tier') // 🗂️ padrão: melhores primeiro
 
   useEffect(() => {
     ;(async () => {
@@ -3582,8 +3613,9 @@ export function EscAlbum() {
     const all = cards ?? []
     const byFilter = filter === 'all' ? all : all.filter(c => c.origin === filter)
     const seen = new Set<string>()
-    return byFilter.filter(c => { const k = cardKey(c); return seen.has(k) ? false : (seen.add(k), true) })
-  }, [cards, filter])
+    const dedup = byFilter.filter(c => { const k = cardKey(c); return seen.has(k) ? false : (seen.add(k), true) })
+    return sortAlbum(dedup, sort)
+  }, [cards, filter, sort])
 
   // conta FIGURINHAS ÚNICAS (por AUGE) — igual ao que aparece na tela.
   const uniqBy = (list: AlbumCard[]) => new Set(list.map(cardKey)).size
@@ -3613,6 +3645,12 @@ export function EscAlbum() {
           </button>
         ))}
       </div>
+      {!loading && !anon && shown.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-[10px] font-black uppercase text-black/45 tracking-wide" style={OSWALD}>🗂️ Organizar por</p>
+          <AlbumSortBar value={sort} onChange={setSort} />
+        </div>
+      )}
 
       {loading && <p className="text-center font-bold text-black/60">Carregando…</p>}
       {down && (
@@ -3734,6 +3772,7 @@ export function EscRanking() {
   const [meId, setMeId] = useState<string | null>(null)
   const [viewUser, setViewUser] = useState<{ id: string; name: string } | null>(null)
   const [viewCards, setViewCards] = useState<AlbumCard[] | null>(null)
+  const [viewSort, setViewSort] = useState<AlbumSort>('tier')
 
   // abre o álbum de QUALQUER técnico (user_cards tem leitura pública)
   async function openAlbum(userId: string, name: string) {
@@ -3867,12 +3906,15 @@ export function EscRanking() {
               </div>
               <button onClick={() => setViewUser(null)} className="shrink-0 w-8 h-8 rounded-full border-2 border-black bg-white font-black text-black active:translate-y-0.5">✕</button>
             </div>
+            {viewCards && viewCards.length > 1 && (
+              <div className="px-4 pt-3"><AlbumSortBar value={viewSort} onChange={setViewSort} /></div>
+            )}
             <div className="overflow-y-auto p-4">
               {!viewCards && <p className="text-center font-bold text-black/60 py-6">Carregando…</p>}
               {viewCards && viewCards.length === 0 && <p className="text-center font-bold text-black/60 py-6">Esse técnico ainda não ganhou cartas.</p>}
               {viewCards && viewCards.length > 0 && (
                 <div className="grid grid-cols-2 gap-3">
-                  {viewCards.map((c, i) => (
+                  {sortAlbum(viewCards, viewSort).map((c, i) => (
                     <CollectibleCard key={i} name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} showBio />
                   ))}
                 </div>
