@@ -273,6 +273,11 @@ export interface EscState {
   // 💬 chat da sala: o HOST decide ligar/desligar. Padrão = ligado (undefined/false).
   // true = o host desligou o chat pra sala toda. Sincroniza via estado.
   chatOff?: boolean
+  // ⏩ velocidade da simulação (só quando o passo é do host/você — modo manual/stream
+  // ou solo). Multiplicador do ritmo: 1 = normal (padrão), <1 = mais devagar (0.5=2×
+  // devagar, 0.25=4×), >1 = mais rápido (2=2×, 4=4×). Sincroniza via estado pra os
+  // relógios das partidas baterem igual pra todo mundo na sala.
+  simSpeed?: number
   // 🎥 modo stream: a carta que o campeão tirou (liga/copa) fica AQUI e vai pra
   // sala inteira via broadcast — todo mundo vê e pode abrir o pacote do campeão.
   // Quem não é campeão só assiste (não grava no álbum). null/vazio = ainda não abriu.

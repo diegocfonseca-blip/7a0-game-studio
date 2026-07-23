@@ -11,7 +11,7 @@ import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, oldChain } from './d
 import type { Card, Manager, Sector, WonCard } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { useEsc, savePyramidCloud } from './store'
-import { CardCollectPrompt, ApoieButton, useSimMode, SimControls } from './screens'
+import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg } from './estadio'
@@ -1498,12 +1498,13 @@ export function PyramidSeasonScreen() {
   useEffect(() => {
     if (!copaPlaying) return
     setCopaPos(0)
-    const dur = copaNLegs * COPA_LEG_MS
+    const sf = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1 // ⏩ marcha escolhida
+    const dur = Math.round((copaNLegs * COPA_LEG_MS) / sf)
     const t0 = Date.now()
     const iv = setInterval(() => setCopaPos(Math.min(copaFaseTotal, ((Date.now() - t0) / dur) * copaFaseTotal)), 90)
     const adv = setTimeout(() => setCopaRound(r => r + 1), dur + 2200)
     return () => { clearInterval(iv); clearTimeout(adv) }
-  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal])
+  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed])
   // quando a Copa COMEÇA (temporada da liga encerrou), joga todo mundo pra aba
   // Jogos — é lá que a Copa toca ao vivo, em cima dos jogos. (Uma vez por temporada.)
   useEffect(() => { if (copaPlaying) setTab('jogos') }, [copaPlaying])
@@ -1618,7 +1619,9 @@ export function PyramidSeasonScreen() {
   // dá pra pausar entre rodadas (manual) e o jogo roda +5s mais calmo.
   const [manualPref, toggleSim] = useSimMode()
   const manual = manualPref && state.onlineMode !== 'online'
-  const roundMs = manual ? ROUND_MS + 10000 : ROUND_MS
+  // ⏩ velocidade da simulação (marcha do jogador): divide o tempo da rodada. 1 = normal.
+  const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
+  const roundMs = Math.round((manual ? ROUND_MS + 10000 : ROUND_MS) / speedFactor)
   useEffect(() => {
     if (!state.isHost || done || manual) return
     const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), roundMs)
@@ -1670,9 +1673,12 @@ export function PyramidSeasonScreen() {
         )}
         {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} />}
         {state.onlineMode !== 'online' && state.isHost && !done && !copaPlaying && (
-          <SimControls manual={manual} onToggle={toggleSim} canNext
-            onNext={() => dispatch({ type: 'PLAY_ROUND' })}
-            nextLabel={round === 0 ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
+          <>
+            {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
+            <SimControls manual={manual} onToggle={toggleSim} canNext
+              onNext={() => dispatch({ type: 'PLAY_ROUND' })}
+              nextLabel={round === 0 ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
+          </>
         )}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
