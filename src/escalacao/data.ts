@@ -16,6 +16,7 @@ type C = { name: string; club: string; year: number; fame: Fame; lo: number; hi:
 // ganha). Mapeado por nome — assim dá pra ir preenchendo aos poucos sem mexer
 // no catálogo. Quem não tem bio ainda mostra um texto genérico por categoria.
 export const BIOS: Record<string, string> = {
+  "Alexandre Pato": "Menino-prodígio: explodiu no Inter adolescente, campeão do Mundial de 2006 aos 17, e virou joia no Milan antes das lesões cobrarem o preço.",
   "Dener": "Gênio do drible dos anos 90 — talento que encantava o país e seria titular da Seleção. Patrimônio eterno, partiu cedo demais.",
   "Adriano Gol Contra": "O zagueirão do Madureira que virou lenda do “Inacreditável Futebol Clube” — o rei do gol contra, folclore puro.",
   "Zagallo": "O Velho Lobo. Ponta bicampeão do mundo (58 e 62) ao lado de Pelé e Garrincha — o maior amuleto do futebol brasileiro.",
@@ -832,6 +833,7 @@ const MEI: C[] = [
 const ATA: C[] = [
   { name: "Lucas Moura", club: "São Paulo", year: 2012, fame: 4, lo: 85, hi: 91 },
   { name: "Taison", club: "Internacional", year: 2009, fame: 3, lo: 78, hi: 84, promessa: true },
+  { name: "Alexandre Pato", club: "Internacional", year: 2007, fame: 3, lo: 78, hi: 86, promessa: true },
   { name: "Reinaldo Aleluia", club: "Ceará", year: 2006, fame: 1, lo: 58, hi: 78 },
   { name: "Clodoaldo Matador", club: "Fortaleza", year: 2004, fame: 1, lo: 58, hi: 78, folk: true },
   { name: "Fio Maravilha", club: "Flamengo", year: 1970, fame: 2, lo: 66, hi: 83, folk: true },
