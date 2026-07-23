@@ -208,9 +208,18 @@ function Dashboard({ email }: { email: string }) {
     try {
       supabase.from('apoio_intents').select('*').order('id', { ascending: false }).limit(40)
         .then(({ data: it }) => { if (it) setIntents(it as typeof intents) }, () => {})
-      const { data, error } = await supabase.rpc('esc_admin_dashboard', { p_days: 30, p_users: 200 })
-      if (error) { setErr(error.message); return }
-      setErr(''); setD(data as Dash); setUpdatedAt(Date.now())
+      // 🛟 se a janela cheia (30d/200) estourar o tempo do banco ("statement
+      // timeout"), tenta de novo com janelas menores em vez de mostrar erro —
+      // o painel carrega com o que der. (Correção definitiva é um índice no banco.)
+      const scopes = [{ d: 30, u: 200 }, { d: 14, u: 120 }, { d: 7, u: 80 }]
+      let lastErr = ''
+      for (const s of scopes) {
+        const { data, error } = await supabase.rpc('esc_admin_dashboard', { p_days: s.d, p_users: s.u })
+        if (!error) { setErr(''); setD(data as Dash); setUpdatedAt(Date.now()); return }
+        lastErr = error.message
+        if (!/timeout|canceling statement/i.test(error.message)) break // erro que não é lentidão: reduzir não adianta
+      }
+      setErr(lastErr || 'erro ao carregar')
     } catch {
       // backend fora (instabilidade Supabase): mostra aviso em vez de travar em "Carregando…"
       setErr('Servidor fora do ar (instabilidade). Re-tentando sozinho a cada 12s…')
