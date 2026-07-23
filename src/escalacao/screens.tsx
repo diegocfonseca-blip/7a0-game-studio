@@ -687,7 +687,7 @@ function NewsSection() {
       <div>
         <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>🆕 Recém-chegados</p>
         <p className="text-xs font-bold text-black/75 mt-1"><b>🇧🇷 BR:</b> Enner Valencia, Alan Patrick, Bernabei (reforços do Inter), Kaio Jorge, Neilton 💎, GarrinSha 🃏 (o haitiano do Bangu!), Paulinho (atacante do Galo), Reinier 🃏, Matheus Pereira, <b>Ademir de Menezes 👑</b>, Nelinho, Éder, Dirceu, César Sampaio, Luizão, Waldir Peres, Josimar, <b>Figueroa 👑</b>, Bolívar, Índio, Alexandre Pato 💎.</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>🌍 Europa:</b> Matip, Keisuke Honda, Salomon Kalou, Matheus Cunha, Carvajal, Cucurella, Míchel Salgado, Ivanović, Sneijder, Ricardo Quaresma 🃏, Nani, Thomas Müller, Reus, Foden, Ter Stegen, Djorkaeff, Petit, Deschamps, Maguire, Raphinha, Gabriel Magalhães, Martinelli, Bremer.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>🌍 Europa:</b> Payet, Abel Ferreira 🃏, Matip, Keisuke Honda, Salomon Kalou, Matheus Cunha, Carvajal, Cucurella, Míchel Salgado, Ivanović, Sneijder, Ricardo Quaresma 🃏, Nani, Thomas Müller, Reus, Foden, Ter Stegen, Djorkaeff, Petit, Deschamps, Maguire, Raphinha, Gabriel Magalhães, Martinelli, Bremer.</p>
         <p className="text-[11px] font-bold text-black/50 mt-1">O baralho só cresce — sempre entrando craque novo. 🔨</p>
       </div>
     </Box>
