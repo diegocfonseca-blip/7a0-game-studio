@@ -937,8 +937,10 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     const day = new Map<string, number>()
     if (m) for (const c of m.squad) day.set(c.id, 0.4 + rng() * 2.2)
     for (let g = 0; g < goals; g++) {
-      // ~8% de chance de cair nos acréscimos (90+1 a 90+6)
-      const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 6) : 1 + Math.floor(rng() * 90)
+      // ~8% de chance de cair nos acréscimos (90+1 a 90+3) — NÃO passa de 93,
+      // que é onde o relógio do card para (senão o gol some da tela e o placar
+      // exibido diverge da tabela: vitória vira empate etc.).
+      const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 90)
       let scorerName: string | null = null
       if (m && m.squad.length > 0) {
         const pool: { name: string; w: number }[] = []
