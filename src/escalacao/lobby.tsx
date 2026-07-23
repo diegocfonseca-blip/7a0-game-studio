@@ -241,6 +241,7 @@ export function EscLobby() {
   const [roomStream, setRoomStream] = useState(false)  // modo stream (esconde valores)
   const [streamModal, setStreamModal] = useState(false) // caixa explicando o modo stream
   const [roomManual, setRoomManual] = useState(false)  // 🎮 modo manual: host controla o ritmo (auto = padrão)
+  const [roomChat, setRoomChat] = useState(true)  // 💬 chat da sala: o host decide na criação (padrão = ligado)
   const [pwModal, setPwModal] = useState<RoomInfo | null>(null) // pedindo senha pra entrar
   const [pwEntry, setPwEntry] = useState('')
   const [room, setRoom] = useState<RoomInfo | null>(null)
@@ -456,6 +457,7 @@ export function EscLobby() {
       formation: gs?.formation ?? '4-3-3',
       stream: !!gs?.stream,
       manual: !!gs?.manual, // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)
+      chatOff: !!gs?.chatOff, // 💬 chat ligado/desligado (escolha do host na criação)
       deck: gs?.deck ?? 'br', // carreira = 'both'; rápido = escolha do host (br/eu/both)
       career: gs?.mode === 'carreira',
       locked: gs?.locked, pwHash: gs?.pwHash, // preserva a senha da sala pelo autosave
@@ -561,7 +563,7 @@ export function EscLobby() {
     const locked = roomLocked && !!roomPw.trim()
     const pwHash = locked ? hashPw(roomPw.trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomManual ? { manual: true } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck } : { deck: rapidoDeck, copaMode: rapidoCopaMode }) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomManual ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(carreira ? { mode: 'carreira', deck: careerDeck } : { deck: rapidoDeck, copaMode: rapidoCopaMode }) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -1062,6 +1064,16 @@ export function EscLobby() {
             <span className="text-[10px] opacity-60">toque</span>
           </button>
         </div>}
+        <div>
+          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">💬 Chat da sala</p>
+          <button onClick={() => setRoomChat(v => !v)}
+            className="flex items-center gap-2 w-full border-[3px] border-black rounded-xl px-3 py-2.5 font-black text-sm"
+            style={{ backgroundColor: roomChat ? GREEN : '#fff', color: roomChat ? '#fff' : '#000', ...OSWALD }}>
+            <span className="text-lg leading-none">{roomChat ? '💬' : '🔕'}</span>
+            <span className="flex-1 text-left">{roomChat ? 'LIGADO — a galera pode zoar na sala' : 'DESLIGADO — sem chat'}</span>
+            <span className="text-[10px] opacity-60">toque</span>
+          </button>
+        </div>
         <Big onClick={createRoom} color={canCareer && roomMode === 'carreira' ? PURPLE : GOLD}>
           <span style={{ color: canCareer && roomMode === 'carreira' ? '#fff' : '#000' }}>{loading ? 'Criando...' : canCareer && roomMode === 'carreira' ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
         </Big>
