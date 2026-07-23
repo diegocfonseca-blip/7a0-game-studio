@@ -297,7 +297,7 @@ export const BIOS: Record<string, string> = {
   "Beto Cachaça": "Talento no meio-campo, mas eternizado por curtir a noite carioca tanto quanto a bola.",
   "Perdigão": "Figuraça de físico improvável, mas cheio de carisma — campeão da Libertadores pelo Inter em 2006.",
   "Walter Minhoca": "Creditado como o pior camisa 10 da história do Flamengo — puro folclore de 2006.",
-  "Hernanes": "O Profeta. Ambidestro que batia falta com as duas pernas e desequilibrava de fora da área.",
+  "Hernanes (Profeta)": "O Profeta. Ambidestro que batia falta com as duas pernas e desequilibrava de fora da área.",
   "Thiago Neves": "Autor de um hat-trick na final da Libertadores de 2008. Meia técnico e decisivo.",
   "Nenê": "O vovô garoto. Cobranças de falta magistrais e liderança no Vasco e no Fluminense.",
   "Gerson": "O Coringa. Volante moderno de muita técnica e chegada, campeão pelo Flamengo.",
@@ -788,7 +788,8 @@ const ZAG: C[] = [
   { name: "Digão (irmão do Kaká)", club: "Fluminense", year: 2008, fame: 1, lo: 50, hi: 74, folk: true, bio: "Carregou o sobrenome mais famoso do futebol brasileiro — do Milan ao Flu, o irmão do Kaká é folclore puro." },
   { name: "Werley", club: "Grêmio", year: 2013, fame: 1, lo: 56, hi: 78, bio: "O convocado-surpresa do Felipão que fez o Brasil inteiro perguntar 'quem?' — bom zagueiro, história melhor ainda." },
   { name: "Edu Dracena", club: "Santos", year: 2011, fame: 3, lo: 76, hi: 84, bio: "Zagueiro seguro e capitão — leitura de jogo e saída limpa no Santos de Neymar, depois de erguer o tri do Cruzeiro em 2003." },
-  { name: "Durval", club: "Santos", year: 2013, fame: 1, lo: 56, hi: 78, bio: "Zagueiro veterano e capitão raçudo do Santos — cabeçada firme e liderança de vestiário por vários anos na Vila." }
+  { name: "Durval", club: "Santos", year: 2013, fame: 1, lo: 56, hi: 78, bio: "Zagueiro veterano e capitão raçudo do Santos — cabeçada firme e liderança de vestiário por vários anos na Vila." },
+  { name: "Arboleda", club: "São Paulo", year: 2022, fame: 3, lo: 74, hi: 84, bio: "Zagueirão equatoriano do São Paulo — imponente no jogo aéreo e ídolo da fiel, soma raça e saída de bola." }
 ]
 
 const MEI: C[] = [
@@ -850,7 +851,7 @@ const MEI: C[] = [
   { name: "Perdigão", club: "Internacional", year: 2006, fame: 1, lo: 55, hi: 75, folk: true },
   { name: "Walter Minhoca", club: "Flamengo", year: 2006, fame: 1, lo: 50, hi: 72, folk: true },
   { name: "Paulinho", club: "Corinthians", year: 2012, fame: 4, lo: 82, hi: 90 },
-  { name: "Hernanes", club: "São Paulo", year: 2009, fame: 3, lo: 78, hi: 84 },
+  { name: "Hernanes (Profeta)", club: "São Paulo", year: 2009, fame: 3, lo: 78, hi: 84 },
   { name: "Thiago Neves", club: "Fluminense", year: 2008, fame: 4, lo: 83, hi: 90 },
   { name: "Nenê", club: "Vasco", year: 2018, fame: 3, lo: 76, hi: 84 },
   { name: "Gerson", club: "Flamengo", year: 2019, fame: 3, lo: 78, hi: 84 },
@@ -1062,7 +1063,9 @@ const ATA: C[] = [
   { name: "Flaco López", club: "Palmeiras", year: 2025, fame: 3, lo: 74, hi: 85, bio: "O Flaco — centroavante argentino que virou artilheiro e xodó do Palmeiras, gol de todo jeito." },
   { name: "Vegetti", club: "Vasco", year: 2023, fame: 3, lo: 72, hi: 84, bio: "O 'Pirata' — centroavante argentino artilheiro e xodó do Vasco, faro de gol na área e comemoração que virou marca." },
   { name: "Alex Mineiro", club: "Athletico-PR", year: 2005, fame: 3, lo: 72, hi: 84, bio: "Artilheiro decisivo do Athletico vice da Libertadores de 2005 — também brilhou em Palmeiras e Grêmio e vestiu a Seleção." },
-  { name: "Víctor Aristizábal", club: "Santos", year: 2001, fame: 3, lo: 74, hi: 85, bio: "Goleador colombiano ídolo do Santos — faro de gol matador que marcou época na Vila Belmiro." }
+  { name: "Víctor Aristizábal", club: "Santos", year: 2001, fame: 3, lo: 74, hi: 85, bio: "Goleador colombiano ídolo do Santos — faro de gol matador que marcou época na Vila Belmiro." },
+  { name: "Roger Guedes", club: "Corinthians", year: 2022, fame: 3, lo: 74, hi: 84, bio: "Atacante de finalização caprichada e faltas venenosas, ídolo e artilheiro do Corinthians — voltou da China pra brilhar em Itaquera." },
+  { name: "Thiago Galhardo", club: "Internacional", year: 2020, fame: 3, lo: 74, hi: 84, bio: "Meia-atacante de faro raro — vice-artilheiro do Brasileirão de 2020 pelo Inter, gol de todo tipo numa temporada mágica." }
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
@@ -1310,6 +1313,7 @@ const MEI_EU: C[] = [
   { name: "Gerson", club: "Marseille", year: 2022, fame: 3, lo: 78, hi: 85 },
   { name: "Lucas Silva", club: "Real Madrid", year: 2015, fame: 1, lo: 58, hi: 78, folk: true },
   { name: "Mauro Silva", club: "Deportivo La Coruña", year: 1996, fame: 4, lo: 83, hi: 89 },
+  { name: "Ljungberg", club: "Arsenal", year: 2004, fame: 3, lo: 78, hi: 85, bio: "O sueco ruivo dos Invencíveis do Arsenal — chegada surpresa pela direita e faro de gol nos momentos decisivos." }
 ]
 const ATA_EU: C[] = [
   { name: "Ricardo Quaresma", club: "Porto", year: 2007, fame: 3, lo: 74, hi: 84, folk: true },
