@@ -17,6 +17,9 @@ type C = { name: string; club: string; year: number; fame: Fame; lo: number; hi:
 // no catálogo. Quem não tem bio ainda mostra um texto genérico por categoria.
 export const BIOS: Record<string, string> = {
   "Alexandre Pato": "Menino-prodígio: explodiu no Inter adolescente, campeão do Mundial de 2006 aos 17, e virou joia no Milan antes das lesões cobrarem o preço.",
+  "Figueroa": "Chileno de alma colorada — tricampeão brasileiro pelo Inter (75/76) e eleito o melhor zagueiro do mundo três vezes. Elegância e leitura de jogo de outro planeta.",
+  "Bolívar": "Capitão e xerife do Inter bicampeão da Libertadores (2006 e 2010) e do Mundial de 2006. Liderança e raça que a torcida colorada nunca esquece.",
+  "Índio": "Zagueirão de confiança, dupla eterna com Bolívar nas glórias do Inter — Libertadores, Mundial e um carinho especial do Beira-Rio.",
   "Dener": "Gênio do drible dos anos 90 — talento que encantava o país e seria titular da Seleção. Patrimônio eterno, partiu cedo demais.",
   "Adriano Gol Contra": "O zagueirão do Madureira que virou lenda do “Inacreditável Futebol Clube” — o rei do gol contra, folclore puro.",
   "Zagallo": "O Velho Lobo. Ponta bicampeão do mundo (58 e 62) ao lado de Pelé e Garrincha — o maior amuleto do futebol brasileiro.",
@@ -671,6 +674,9 @@ const ZAG: C[] = [
   { name: "Domingos da Guia", club: "Flamengo", year: 1944, fame: 5, lo: 93, hi: 98 },
   { name: "Aldair", club: "Flamengo", year: 1987, fame: 3, lo: 78, hi: 84, promessa: true },
   { name: "Lúcio", club: "Internacional", year: 2000, fame: 4, lo: 84, hi: 90 },
+  { name: "Figueroa", club: "Internacional", year: 1976, fame: 5, lo: 91, hi: 96 },
+  { name: "Bolívar", club: "Internacional", year: 2006, fame: 3, lo: 76, hi: 84 },
+  { name: "Índio", club: "Internacional", year: 2010, fame: 2, lo: 70, hi: 82 },
   { name: "Thiago Silva", club: "Fluminense", year: 2008, fame: 4, lo: 84, hi: 90 },
   { name: "Luís Pereira", club: "Palmeiras", year: 1972, fame: 5, lo: 87, hi: 92 },
   { name: "Oscar", club: "São Paulo", year: 1980, fame: 3, lo: 80, hi: 84 },
