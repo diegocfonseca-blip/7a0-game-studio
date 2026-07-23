@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { flushPendingWrites } from './pending'
 import { EscProvider, useEsc } from './store'
 import { setSoundAllowed, isSoundAllowed, isMuted, toggleMuted, onSoundChange, playCoin } from './sound'
-import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum, EscRanking, GameFooter } from './screens'
+import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
 import { EscLobby } from './lobby'
 import { AdminPanel } from './admin'
 import { DinastiaGame } from './dinastia'
@@ -246,6 +246,7 @@ export default function EscalacaoGame() {
         <OpenInBrowserBanner />
         <VersionWatcher />
         <SoundGate />
+        <ChatWidget />{/* 💬 chat/zoeira da sala — só aparece em partida online */}
         {/* FUNDO CREME DO JOGO: o site-estúdio tem fundo quase-preto (#06060f). O
             Leilão Legends é todo em telas cremes. Se alguma tela renderizar vazia
             por um instante (troca de fase, estado incompleto sincronizado, save

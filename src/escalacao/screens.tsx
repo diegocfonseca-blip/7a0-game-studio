@@ -352,6 +352,90 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
   )
 }
 
+// ─── 💬 CHAT / ZOEIRA DA SALA (só online) ────────────────────────────────
+// FAB no canto + gaveta que abre/fecha. Mensagens efêmeras (broadcast, fora do
+// reducer — não afeta o jogo). Badge de não-lidas POR usuário (some ao abrir,
+// sem aumentar o botão). Host liga/desliga o chat pra sala toda (padrão: on).
+const CHAT_DOTS = [RED, '#2E6FB0', GREEN, PURPLE, GOLD, '#E0731E', '#0EA5A0']
+const CHAT_CANNED = ['🐢 Anda!', '💸 Chora depois', '🔒 Lacra logo', '🤡 Carteou', '😴 Dormiu?']
+export function ChatWidget() {
+  const { state, chat, chatUnread, sendChat, chatOpen, setChatOpen, dispatch } = useEsc()
+  const [text, setText] = useState('')
+  const listRef = useRef<HTMLDivElement>(null)
+  const online = state.onlineMode === 'online'
+  const inRoom = online && !!state.roomId
+  const isHost = !!state.isHost
+  const chatOff = !!state.chatOff
+  useEffect(() => { if (chatOpen && listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight }, [chat, chatOpen])
+  if (!inRoom) return null
+  if (chatOff && !isHost) return null // host desligou → convidados não veem nada
+  const dot = (from: number) => CHAT_DOTS[((from % CHAT_DOTS.length) + CHAT_DOTS.length) % CHAT_DOTS.length]
+  const send = (t: string) => { sendChat(t); setText('') }
+  return (
+    <>
+      {!chatOpen && (
+        <button onClick={() => setChatOpen(true)} aria-label="Abrir chat da sala"
+          style={{ position: 'fixed', left: 12, bottom: 12, zIndex: 99990, width: 46, height: 46, borderRadius: 999, background: chatOff ? '#fff' : GOLD, border: '3px solid #000', display: 'grid', placeItems: 'center', fontSize: 20, boxShadow: '3px 3px 0 0 #000', cursor: 'pointer' }}>
+          {chatOff ? '🔕' : '💬'}
+          {chatUnread > 0 && !chatOff && (
+            <span style={{ position: 'absolute', top: -5, right: -4, background: RED, color: '#fff', border: '2px solid #000', borderRadius: 999, ...OSWALD, fontWeight: 900, fontSize: 10, minWidth: 17, height: 17, display: 'grid', placeItems: 'center', padding: '0 3px', lineHeight: 1 }}>{chatUnread}</span>
+          )}
+        </button>
+      )}
+      {chatOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99991, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+          <div onClick={() => setChatOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.28)' }} />
+          <div style={{ position: 'relative', background: '#FBF6E7', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '64vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -6px 0 0 rgba(0,0,0,.12)' }}>
+            <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px' }}>
+              <span style={{ ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: 14 }}>💬 Zoeira da sala</span>
+              <button onClick={() => setChatOpen(false)} aria-label="Fechar" style={{ width: 24, height: 24, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
+            </div>
+            {isHost && (
+              <button onClick={() => dispatch({ type: 'SET_CHAT', off: !chatOff })}
+                style={{ ...OSWALD, fontWeight: 800, fontSize: 12, padding: '7px 12px', background: chatOff ? '#f0ece0' : '#E7F7EC', borderBottom: '2px solid #000', textAlign: 'left', cursor: 'pointer', width: '100%' }}>
+                👑 Host: chat <b style={{ color: chatOff ? RED : GREEN }}>{chatOff ? 'DESLIGADO' : 'LIGADO'}</b> — toque pra {chatOff ? 'LIGAR' : 'DESLIGAR'}
+              </button>
+            )}
+            {chatOff ? (
+              <p style={{ padding: 20, textAlign: 'center', fontWeight: 700, color: '#6b5f3f' }}>🔕 O chat está desligado pra esta sala.{isHost ? ' Ligue no botão acima.' : ''}</p>
+            ) : (
+              <>
+                <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: 10, display: 'flex', flexDirection: 'column', gap: 7, minHeight: 90 }}>
+                  {chat.length === 0
+                    ? <p style={{ textAlign: 'center', color: '#8a7d59', fontWeight: 700, fontSize: 12, marginTop: 10 }}>Manda a primeira zoeira 😎</p>
+                    : chat.map(m => {
+                      const mine = m.from === state.youIdx
+                      return (
+                        <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
+                          <span style={{ width: 11, height: 11, borderRadius: 999, border: '1.5px solid #000', background: dot(m.from), marginTop: 4, flexShrink: 0 }} />
+                          <div style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%' }}>
+                            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1 }}>{mine ? 'Você' : m.name}</span>
+                            <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word' }}>{m.text}</span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                </div>
+                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', padding: '0 10px 7px' }}>
+                  {CHAT_CANNED.map(c => (
+                    <button key={c} onClick={() => send(c)} style={{ ...OSWALD, fontWeight: 800, fontSize: 10.5, background: '#fff', border: '2px solid #000', borderRadius: 999, padding: '3px 9px', boxShadow: '2px 2px 0 0 #000', cursor: 'pointer' }}>{c}</button>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 6, padding: 9, borderTop: '2px solid #000', background: CREAM }}>
+                  <input value={text} onChange={e => setText(e.target.value)} maxLength={160}
+                    onKeyDown={e => { if (e.key === 'Enter') send(text) }} placeholder="manda a real…"
+                    style={{ flex: 1, minWidth: 0, background: '#fff', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', fontSize: 13, fontWeight: 600 }} />
+                  <button onClick={() => send(text)} disabled={!text.trim()} style={{ ...OSWALD, fontWeight: 900, fontSize: 13, background: text.trim() ? GREEN : '#cfc6ae', color: '#fff', border: '2px solid #000', borderRadius: 9, padding: '0 14px', boxShadow: '2px 2px 0 0 #000', cursor: text.trim() ? 'pointer' : 'default', flexShrink: 0 }}>Enviar</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 export function GameFooter() {
   const { state, dispatch } = useEsc()
   // 🛟 SAÍDA DE EMERGÊNCIA: o rodapé é a ÚNICA coisa que continua na tela mesmo se
