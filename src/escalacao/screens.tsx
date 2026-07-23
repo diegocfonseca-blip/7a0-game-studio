@@ -2639,6 +2639,11 @@ export function EscSeason() {
   // — assim TODOS os jogos progridem juntos, minuto a minuto, em vez de já mostrar
   // o resultado pronto. Reinicia por copaTieKey (muda quando entra uma perna nova).
   const [copaMin, setCopaMin] = useState(93)
+  // 🚫 ANTI-SPOILER: quando entra uma perna/fase nova (copaTieKey muda), o relógio
+  // ainda está no 93' da anterior por 1 frame — o que piscaria o placar FINAL (com o
+  // vencedor riscado) do jogo novo antes do apito. Zera JÁ na renderização.
+  const copaKeyRef = useRef(copaTieKey)
+  if (copaKeyRef.current !== copaTieKey) { copaKeyRef.current = copaTieKey; setCopaMin(copaLive && !firstLegPending ? 0 : 93) }
   useEffect(() => {
     if (!copaLive || firstLegPending) { setCopaMin(93); return }
     setCopaMin(0)

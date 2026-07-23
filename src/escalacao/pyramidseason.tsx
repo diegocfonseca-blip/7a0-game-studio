@@ -705,6 +705,11 @@ export interface ScoreGoal { name: string; min: number; home: boolean }
 export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico }:
   { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean }) {
   const [min, setMin] = useState(finished ? 93 : 0)
+  // 🚫 ANTI-SPOILER: quando entra uma rodada nova (roundKey muda) o relógio ainda
+  // está no 93' da rodada anterior por 1 frame — o que mostraria TODOS os gols (o
+  // placar FINAL) do jogo novo antes do apito. Zera JÁ na renderização, sem flash.
+  const rkRef = useRef(roundKey)
+  if (rkRef.current !== roundKey) { rkRef.current = roundKey; setMin(finished ? 93 : 0) }
   useEffect(() => {
     // o relógio só zera/anima quando MUDA A RODADA (roundKey). Trocar a tática na
     // mesma rodada não reinicia o jogo que está na tela — ele não re-simula.
@@ -1477,6 +1482,11 @@ export function PyramidSeasonScreen() {
   // fases) — não re-anima do zero ao retomar; mostra direto os campeões/decisão.
   const [copaRound, setCopaRound] = useState(() => state.copaDoneSeason === state.seasonNo ? 999 : 0)
   const [copaPos, setCopaPos] = useState(0) // relógio da fase (0..nLegs*90) no nível da TELA (o placar fica em cima das abas)
+  // 🚫 ANTI-SPOILER: ao VIRAR de fase da Copa (copaRound muda), o relógio ainda está
+  // no fim da fase anterior por 1 frame — o que piscaria o placar/vencedor da fase
+  // NOVA antes do apito. Zera JÁ na renderização (o efeito abaixo religa a animação).
+  const copaRoundRef = useRef(copaRound)
+  if (copaRoundRef.current !== copaRound) { copaRoundRef.current = copaRound; setCopaPos(0) }
   useEffect(() => { setCopaRound(state.copaDoneSeason === state.seasonNo ? 999 : 0); setCopaPos(0) }, [state.seasonNo, state.copaDoneSeason])
   const nCopaRounds = copa?.rounds.length ?? 0
   const copaPlaying = done && !!copa && nCopaRounds > 0 && copaRound < nCopaRounds
