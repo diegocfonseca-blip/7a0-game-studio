@@ -51,6 +51,9 @@ export const BIOS: Record<string, string> = {
   "Kaio Jorge": "Centroavante que renasceu no Cruzeiro — faro de gol, jogo de costas e a volta por cima após as lesões na Juventus. De promessa do Santos a artilheiro de volta à Seleção.",
   "Neilton": "Ponta veloz e cheio de dribles — a promessa apelidada de 'novo Robinho' que foi campeão brasileiro jovem pelo Cruzeiro.",
   "Matheus Cunha": "Atacante brasileiro de força, técnica e faro de gol — explodiu no Wolves e virou titular da Seleção. Joga por dentro ou aberto pelos lados.",
+  "Matip": "Zagueiro camaronês elegante — forte na saída de bola e no jogo aéreo, campeão da Champions e da Premier League pelo Liverpool.",
+  "Keisuke Honda": "Camisa 10 japonês de personalidade — chute forte, faltas venenosas e liderança em três Copas do Mundo. Ídolo do CSKA e do Milan.",
+  "Salomon Kalou": "Atacante marfinense veloz e oportunista — anos de Chelsea com Premier League, Copas da Inglaterra e a Champions de 2012.",
   "Bolívar": "Capitão e xerife do Inter bicampeão da Libertadores (2006 e 2010) e do Mundial de 2006. Liderança e raça que a torcida colorada nunca esquece.",
   "Índio": "Zagueirão de confiança, dupla eterna com Bolívar nas glórias do Inter — Libertadores, Mundial e um carinho especial do Beira-Rio.",
   "Dener": "Gênio do drible dos anos 90 — talento que encantava o país e seria titular da Seleção. Patrimônio eterno, partiu cedo demais.",
@@ -1104,6 +1107,7 @@ const LAT_EU: C[] = [
 ]
 const ZAG_EU: C[] = [
   { name: "Maguire", club: "Man United", year: 2019, fame: 2, lo: 66, hi: 82 },
+  { name: "Matip", club: "Liverpool", year: 2019, fame: 3, lo: 78, hi: 85 },
   { name: "Gabriel Magalhães", club: "Arsenal", year: 2024, fame: 3, lo: 80, hi: 87 },
   { name: "Bremer", club: "Juventus", year: 2023, fame: 3, lo: 80, hi: 87 },
   { name: "Dante (o do 7 a 1)", club: "Bayern", year: 2014, fame: 1, lo: 54, hi: 74, folk: true, bio: "O eterno lembrete do 7 a 1 — a arquibancada nunca deixou passar. Folclore puro." },
@@ -1151,6 +1155,7 @@ const ZAG_EU: C[] = [
 ]
 const MEI_EU: C[] = [
   { name: "Sneijder", club: "Inter", year: 2010, fame: 4, lo: 84, hi: 90 },
+  { name: "Keisuke Honda", club: "Milan", year: 2014, fame: 3, lo: 76, hi: 84 },
   { name: "Foden", club: "Man City", year: 2023, fame: 4, lo: 83, hi: 90 },
   { name: "Djorkaeff", club: "Inter", year: 1998, fame: 3, lo: 80, hi: 87 },
   { name: "Petit", club: "Arsenal", year: 1998, fame: 3, lo: 78, hi: 85 },
@@ -1276,6 +1281,7 @@ const ATA_EU: C[] = [
   { name: "Thomas Müller", club: "Bayern", year: 2014, fame: 4, lo: 83, hi: 90 },
   { name: "Reus", club: "Dortmund", year: 2013, fame: 4, lo: 82, hi: 89 },
   { name: "Matheus Cunha", club: "Wolves", year: 2024, fame: 3, lo: 78, hi: 86 },
+  { name: "Salomon Kalou", club: "Chelsea", year: 2010, fame: 3, lo: 76, hi: 84 },
   { name: "Raphinha", club: "Barcelona", year: 2025, fame: 4, lo: 84, hi: 91 },
   { name: "Martinelli", club: "Arsenal", year: 2023, fame: 3, lo: 78, hi: 86 },
   { name: "Viktor Gyökeres", club: "Sporting CP", year: 2024, fame: 4, lo: 84, hi: 90 },
