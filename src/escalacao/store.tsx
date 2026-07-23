@@ -20,6 +20,29 @@ function applyRewards(coins: Record<number, number> | undefined, rewards?: Recor
   for (const id in (rewards ?? {})) out[+id] = (out[+id] ?? 0) + (rewards as Record<number, number>)[+id]
   return out
 }
+// 💸 SALÁRIO de um jogador = piso (paid) ÷ 10, arredondado. Incógnita (fake/Várzea)
+// não tem salário. É o MESMO número mostrado no elenco (💰 paid), pra bater certinho.
+export function salaryOfCard(c: WonCard): number {
+  if (c.fake || c.club === 'Várzea') return 0
+  return Math.round((c.paid ?? 0) / 10)
+}
+export function squadPayroll(squad: WonCard[]): number {
+  let f = 0; for (const c of squad) f += salaryOfCard(c); return f
+}
+// 💸 FOLHA no VIRA-TEMPORADA: cada técnico HUMANO paga a folha do elenco que JOGOU
+// a temporada. Roda ANTES do leilão/venda — então quem for contratado agora só entra
+// na folha no ano que vem (nunca cobra salário de quem você acabou de contratar).
+// Nunca deixa a caixa negativa (trava no 0). Só humanos pagam da careerCoins.
+function chargeSalaries(s: EscState) {
+  if (!s.careerOnline) return
+  const cc = { ...(s.careerCoins ?? {}) }
+  for (const m of s.managers) {
+    if (!m.isHuman) continue
+    const folha = squadPayroll(m.squad as WonCard[])
+    if (folha > 0) cc[m.id] = Math.max(0, (cc[m.id] ?? 0) - folha)
+  }
+  s.careerCoins = cc
+}
 // caixa dos OUTROS times (por teamKey string), nunca negativo — soma título/acesso, tira queda
 function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Record<string, number>): Record<string, number> {
   const out = { ...(cash ?? {}) }
@@ -2541,6 +2564,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.seasonVotes = {} // temporada nova: zera a votação
       s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada (base+título/acesso/queda)
       s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
+      chargeSalaries(s) // 💸 folha do elenco que JOGOU (antes de contratar reforço — não cobra quem chega agora)
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
@@ -2564,6 +2588,7 @@ export function reducer(state: EscState, action: Action): EscState {
       setActiveCatalog(s.deckLeague) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
       s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada
       s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
+      chargeSalaries(s) // 💸 folha do elenco que JOGOU — ANTES de zerar/refazer o leilão (não cobra reforço novo)
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
@@ -2598,6 +2623,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.seasonVotes = {} // temporada nova: zera a votação
       s.careerCoins = applyRewards(s.careerCoins, action.rewards)
       s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
+      chargeSalaries(s) // 💸 folha do elenco que JOGOU — ANTES da venda/leilão de reservas (não cobra reforço novo)
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
