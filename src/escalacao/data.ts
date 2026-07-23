@@ -45,6 +45,7 @@ export const BIOS: Record<string, string> = {
   "Abel Ferreira": "Lateral apagado em Portugal que virou GIGANTE como TÉCNICO — bicampeão da Libertadores pelo Palmeiras. Na carta, joga só de brincadeira. 🃏",
   "Payet": "Meia-artista francês do Olympique de Marseille — faltas mágicas, passes de fantasia e herói da Euro 2016 jogando em casa.",
   "Souza": "Volante marcador do São Paulo na virada do milênio — pegada firme e saída de bola simples, alicerce do meio-campo.",
+  "Giovanni": "Meia habilidoso revelado no Santos — dribles, visão de jogo e gols que o levaram ao Barcelona. Craque dos anos 90.",
   "Rodrigo Souto": "Meia-volante rodado do Vasco nos anos 2000 — marcação, chegada ao ataque e muita entrega no meio.",
   "Luciano": "Atacante-camisa 10 do São Paulo — faro de gol, dribles curtos e liderança. Um dos xodós recentes do Morumbi.",
   "Caio Ribeiro": "Promessa de ouro dos anos 90 — talento e faro de gol que encantaram no São Paulo e nas seleções de base. Hoje, craque de microfone.",
@@ -788,6 +789,7 @@ const ZAG: C[] = [
 const MEI: C[] = [
   { name: "Alan Patrick", club: "Internacional", year: 2024, fame: 3, lo: 76, hi: 84 },
   { name: "Souza", club: "São Paulo", year: 2000, fame: 2, lo: 66, hi: 80 },
+  { name: "Giovanni", club: "Santos", year: 1995, fame: 3, lo: 76, hi: 84 },
   { name: "Rodrigo Souto", club: "Vasco", year: 2005, fame: 2, lo: 64, hi: 78 },
   { name: "Matheus Pereira", club: "Cruzeiro", year: 2024, fame: 3, lo: 74, hi: 83 },
   { name: "César Sampaio", club: "Palmeiras", year: 1994, fame: 3, lo: 74, hi: 83 },
