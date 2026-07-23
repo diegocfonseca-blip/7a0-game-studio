@@ -48,6 +48,7 @@ export const BIOS: Record<string, string> = {
   "Alan Patrick": "Camisa 10 do Internacional — criação, chute de fora e cobranças ensaiadas. Cérebro e líder do time colorado.",
   "Bernabei": "Lateral-esquerdo argentino do Internacional — velocidade e apoio pela ponta, bom pé pra cruzar e pra chutar.",
   "Matheus Pereira": "Meia habilidoso e criativo — dribles curtos, passes de visão e talento pra encantar a torcida.",
+  "Kaio Jorge": "Centroavante que renasceu no Cruzeiro — faro de gol, jogo de costas e a volta por cima após as lesões na Juventus. De promessa do Santos a artilheiro de volta à Seleção.",
   "Bolívar": "Capitão e xerife do Inter bicampeão da Libertadores (2006 e 2010) e do Mundial de 2006. Liderança e raça que a torcida colorada nunca esquece.",
   "Índio": "Zagueirão de confiança, dupla eterna com Bolívar nas glórias do Inter — Libertadores, Mundial e um carinho especial do Beira-Rio.",
   "Dener": "Gênio do drible dos anos 90 — talento que encantava o país e seria titular da Seleção. Patrimônio eterno, partiu cedo demais.",
@@ -876,6 +877,7 @@ const MEI: C[] = [
 
 const ATA: C[] = [
   { name: "Enner Valencia", club: "Internacional", year: 2024, fame: 3, lo: 74, hi: 84 },
+  { name: "Kaio Jorge", club: "Cruzeiro", year: 2024, fame: 3, lo: 74, hi: 84 },
   { name: "Ademir de Menezes", club: "Vasco", year: 1950, fame: 5, lo: 88, hi: 95 },
   { name: "Éder", club: "Atlético-MG", year: 1982, fame: 4, lo: 82, hi: 89 },
   { name: "Luizão", club: "Corinthians", year: 2000, fame: 3, lo: 76, hi: 85 },
