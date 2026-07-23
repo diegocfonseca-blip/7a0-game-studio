@@ -886,6 +886,8 @@ const ATA: C[] = [
   { name: "Kaio Jorge", club: "Cruzeiro", year: 2024, fame: 3, lo: 74, hi: 84 },
   { name: "Neilton", club: "Cruzeiro", year: 2013, fame: 3, lo: 72, hi: 82, promessa: true },
   { name: "GarrinSha", club: "Bangu", year: 2026, fame: 2, lo: 62, hi: 80, folk: true },
+  { name: "Paulinho", club: "Atlético-MG", year: 2022, fame: 3, lo: 78, hi: 86, bio: "Centroavante artilheiro que explodiu no Atlético-MG — força, velocidade e faro de gol que renderam a Seleção e a ida pra Europa. (Não confundir com o volante Paulinho do Corinthians!)" },
+  { name: "Reinier", club: "Flamengo", year: 2019, fame: 1, lo: 55, hi: 78, folk: true, bio: "A joia do Flamengo vendida por uma fortuna ao Real Madrid aos 18 — mas a carreira virou uma turnê de empréstimos que nunca engrenou. O que prometia…" },
   { name: "Ademir de Menezes", club: "Vasco", year: 1950, fame: 5, lo: 88, hi: 95 },
   { name: "Éder", club: "Atlético-MG", year: 1982, fame: 4, lo: 82, hi: 89 },
   { name: "Luizão", club: "Corinthians", year: 2000, fame: 3, lo: 76, hi: 85 },
