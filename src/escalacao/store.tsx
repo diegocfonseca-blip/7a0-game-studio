@@ -1020,6 +1020,18 @@ export function topScorers(state: EscState, limit = 10): ScorerRow[] {
 // seed: top 8 da tabela final, pareado 1×8 · 2×7 · 3×6 · 4×5 — na ordem
 // [1v8, 4v5, 2v7, 3v6] pra que os vencedores ADJACENTES (0-1 e 2-3) se
 // cruzem nas semis, igual chaveamento de copa de verdade.
+// 🏁 encerra a temporada (rápido): coroa o campeão da liga, semeia a Copa dos 8 se
+// for o modo liga+copa, e vai pra tela de fim. Separado do PLAY_ROUND pra a ÚLTIMA
+// partida poder ANIMAR na tela antes — a tela dispara FINISH_SEASON quando acaba.
+function finishSeason(s: EscState) {
+  s.champion = sortedTable(s.league)[0].id
+  if (s.copaMode === 'liga_copa' && !s.quickCopa) {
+    s.quickCopa = seedQuickCopa(s.league)
+    // 📣 zera o giro da liga: durante a Copa o giro fala DA COPA, não das rodadas
+    s.news = ['🏆 A liga acabou — chegou a COPA DOS 8! Os 8 melhores brigam pelo título.']
+  }
+  s.screen = 'end'
+}
 function seedQuickCopa(league: LeagueTeam[]): QuickCopaState {
   const top8 = sortedTable(league).slice(0, 8)
   const mk = (a: LeagueTeam, b: LeagueTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
@@ -1438,6 +1450,7 @@ type Action =
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[] } // carreira online: define os 11 titulares (escalação), vale do PRÓXIMO jogo
   | { type: 'PLAY_ROUND' }
   | { type: 'SIM_MANY'; count: number }
+  | { type: 'FINISH_SEASON' } // 🏁 rápido: encerra a liga DEPOIS da última partida animar
   | { type: 'PLAY_COPA_LEG' } // 🏆 Copa dos 8 (rápido): joga a perna atual de todas as ties da fase
   | { type: 'START_COPA' } // 🏆 Copa dos 8: sai da tela de fim de liga e entra na Copa (botão ou tempo de leitura)
   | { type: 'FINISH_CEREMONY' }
@@ -2386,19 +2399,18 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.dinastia && !s.dinastiaMidUsed && s.round >= Math.floor(TOTAL_ROUNDS / 2) && s.round < TOTAL_ROUNDS) {
         s.dinastiaPaused = true; s.dinastiaMidUsed = true
       }
-      if (s.round >= TOTAL_ROUNDS) {
-        s.champion = sortedTable(s.league)[0].id
-        // 🏆 Copa dos 8: sempre passa pela tela de fim de liga primeiro (carta do
-        // campeão, tabela) — mesmo quando tem Copa. A Copa só começa quando o
-        // jogador manda (botão) ou o tempo de leitura passa (START_COPA), pra
-        // não misturar "campeão da liga" com "início da Copa" na mesma tela.
-        if (s.copaMode === 'liga_copa' && !s.quickCopa) {
-          s.quickCopa = seedQuickCopa(s.league)
-          // 📣 zera o giro da liga: durante a Copa o giro fala DA COPA, não das rodadas
-          s.news = ['🏆 A liga acabou — chegou a COPA DOS 8! Os 8 melhores brigam pelo título.']
-        }
-        s.screen = 'end'
+      if (s.round >= TOTAL_ROUNDS && action.type === 'SIM_MANY') {
+        // pulo em MASSA (sem assistir): encerra na hora. Rodada a rodada (PLAY_ROUND)
+        // NÃO encerra aqui — deixa a última partida ANIMAR; a tela chama FINISH_SEASON.
+        finishSeason(s)
       }
+      return s
+    }
+    case 'FINISH_SEASON': {
+      // 🏁 chamado pela tela quando a ANIMAÇÃO da última rodada acaba: coroa o campeão
+      // e vai pro fim (ou semeia a Copa). Idempotente (champion/screen já setados).
+      if (s.careerOnline || s.round < TOTAL_ROUNDS || s.screen === 'end') return s
+      finishSeason(s)
       return s
     }
     case 'START_COPA': {

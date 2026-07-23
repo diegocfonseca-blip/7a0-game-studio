@@ -2583,6 +2583,14 @@ export function EscSeason() {
     const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), roundMs)
     return () => clearTimeout(t)
   }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs])
+  // 🏁 ÚLTIMA RODADA: quando a 38ª é jogada, o jogo fica na tela ANIMANDO (a tela não
+  // pula pro 'end' sozinha). Quando a animação acaba, aí sim vai pro campeão/Copa —
+  // antes o PLAY_ROUND pulava direto e a última partida não aparecia rolando.
+  useEffect(() => {
+    if (!canAdvance || state.round < 38 || state.screen !== 'season' || state.champion != null || state.quickCopa) return
+    const t = setTimeout(() => dispatch({ type: 'FINISH_SEASON' }), roundMs)
+    return () => clearTimeout(t)
+  }, [canAdvance, state.round, state.screen, state.champion, state.quickCopa, roundMs, dispatch])
 
   // 🏆 Copa dos 8: a liga acabou (round 38) e a sala escolheu Liga + Copa —
   // toca fase a fase (quartas → semis → final), mesmo ritmo/motor da Copa da
