@@ -29,6 +29,14 @@ export const BIOS: Record<string, string> = {
   "Raphinha": "Ponta veloz e decisivo do Barcelona — dribles, gols e assistências que o levaram a artilheiro e protagonista da Champions.",
   "Gabriel Magalhães": "Zagueiro dominante do Arsenal — imponente no jogo aéreo dos dois lados e um dos melhores centrais da Premier League.",
   "Bremer": "Zagueirão forte e rápido, muralha da Juventus — cabeceio, marcação sob pressão e saída de bola de nível europeu.",
+  "Thomas Müller": "O 'Raumdeuter' do Bayern — mestre em achar espaços, campeão do mundo em 2014 e uma máquina de gols e assistências pela Alemanha.",
+  "Reus": "Craque canhoto e fiel ao Dortmund — dribles, gols e categoria. Talento gigante perseguido pelo azar das lesões nas grandes decisões.",
+  "Djorkaeff": "Meia-artista francês campeão do mundo em 98 — voleios, faltas e classe pura pelo Inter e pela seleção.",
+  "Petit": "Volante elegante de cabelo ao vento — fez o 3º gol da França na final de 98 e mandou no meio-campo do Arsenal.",
+  "Deschamps": "O capitão vencedor — bi da Champions, campeão do mundo em 98 como jogador e em 2018 como técnico. Discreto e decisivo.",
+  "Foden": "Cria do Manchester City e joia inglesa — canhota refinada, dribles curtos e eleito o melhor da Premier League em 2024.",
+  "Ter Stegen": "Goleiro alemão do Barcelona — reflexos felinos e jogo de pés de linha, referência moderna embaixo das traves.",
+  "Maguire": "Zagueirão inglês que já valeu uma fortuna e vestiu a braçadeira do United — herói e alvo de memes na mesma temporada, mas cabeçudo dos dois lados do campo.",
   "Bolívar": "Capitão e xerife do Inter bicampeão da Libertadores (2006 e 2010) e do Mundial de 2006. Liderança e raça que a torcida colorada nunca esquece.",
   "Índio": "Zagueirão de confiança, dupla eterna com Bolívar nas glórias do Inter — Libertadores, Mundial e um carinho especial do Beira-Rio.",
   "Dener": "Gênio do drible dos anos 90 — talento que encantava o país e seria titular da Seleção. Patrimônio eterno, partiu cedo demais.",
@@ -1008,6 +1016,7 @@ export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
 // PROFISSIONAL, `promessa` = 💎, `folk` = 🃏. Craques mundiais no auge no
 // clube europeu. Os dois baralhos NUNCA se misturam numa mesma partida.
 const GOL_EU: C[] = [
+  { name: "Ter Stegen", club: "Barcelona", year: 2019, fame: 4, lo: 84, hi: 90 },
   { name: "Massimo Taibi (o frango do United)", club: "Manchester United", year: 1999, fame: 1, lo: 46, hi: 68, folk: true, bio: "O goleiro que deixou a bola passar por baixo do corpo no Old Trafford — 4 jogos e adeus. Flop lendário." },
   { name: "Lev Yashin", club: "Dínamo de Moscou", year: 1963, fame: 5, lo: 90, hi: 95 },
   { name: "Gianluigi Buffon", club: "Juventus", year: 2006, fame: 5, lo: 89, hi: 94 },
@@ -1070,6 +1079,7 @@ const LAT_EU: C[] = [
   { name: "Pablo Armero", club: "Napoli", year: 2013, fame: 1, lo: 54, hi: 77, bio: "O colombiano da dancinha — memes, sorriso e um futebol que oscilava entre Seleção e resenha." }
 ]
 const ZAG_EU: C[] = [
+  { name: "Maguire", club: "Man United", year: 2019, fame: 2, lo: 66, hi: 82 },
   { name: "Gabriel Magalhães", club: "Arsenal", year: 2024, fame: 3, lo: 80, hi: 87 },
   { name: "Bremer", club: "Juventus", year: 2023, fame: 3, lo: 80, hi: 87 },
   { name: "Dante (o do 7 a 1)", club: "Bayern", year: 2014, fame: 1, lo: 54, hi: 74, folk: true, bio: "O eterno lembrete do 7 a 1 — a arquibancada nunca deixou passar. Folclore puro." },
@@ -1116,6 +1126,10 @@ const ZAG_EU: C[] = [
   { name: "Sébastien Squillaci", club: "Arsenal", year: 2010, fame: 1, lo: 52, hi: 75, bio: "O francês que a torcida do Arsenal tenta esquecer — flop de grife, presença garantida em lista de piores contratações." }
 ]
 const MEI_EU: C[] = [
+  { name: "Foden", club: "Man City", year: 2023, fame: 4, lo: 83, hi: 90 },
+  { name: "Djorkaeff", club: "Inter", year: 1998, fame: 3, lo: 80, hi: 87 },
+  { name: "Petit", club: "Arsenal", year: 1998, fame: 3, lo: 78, hi: 85 },
+  { name: "Deschamps", club: "Juventus", year: 1998, fame: 3, lo: 76, hi: 84 },
   { name: "Xavi Simons", club: "RB Leipzig", year: 2024, fame: 3, lo: 78, hi: 86 },
   { name: "Warren Zaïre-Emery", club: "PSG", year: 2025, fame: 3, lo: 72, hi: 83, promessa: true },
   { name: "Alexis Mac Allister", club: "Liverpool", year: 2024, fame: 4, lo: 82, hi: 89 },
@@ -1232,6 +1246,8 @@ const MEI_EU: C[] = [
   { name: "Mauro Silva", club: "Deportivo La Coruña", year: 1996, fame: 4, lo: 83, hi: 89 },
 ]
 const ATA_EU: C[] = [
+  { name: "Thomas Müller", club: "Bayern", year: 2014, fame: 4, lo: 83, hi: 90 },
+  { name: "Reus", club: "Dortmund", year: 2013, fame: 4, lo: 82, hi: 89 },
   { name: "Raphinha", club: "Barcelona", year: 2025, fame: 4, lo: 84, hi: 91 },
   { name: "Martinelli", club: "Arsenal", year: 2023, fame: 3, lo: 78, hi: 86 },
   { name: "Viktor Gyökeres", club: "Sporting CP", year: 2024, fame: 4, lo: 84, hi: 90 },
