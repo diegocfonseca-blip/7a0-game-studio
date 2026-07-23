@@ -2506,18 +2506,13 @@ export function EscSeason() {
     rawToggle()
     if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
   }
-  // +10s de folga só no solo manual; na SALA MANUAL online +2s pra dar pra
-  // acompanhar melhor a partida (todos na sala pegam o mesmo +2s, então não
-  // dessincroniza); sala normal/auto mantém o tempo padrão.
   // ⏩ velocidade escolhida (sincroniza via estado): divide o tempo da rodada —
   // 4× rápido = ¼ do tempo; 2× devagar = o dobro. Default 1 (normal). Todo mundo
   // na sala lê o mesmo state.simSpeed, então os relógios continuam batendo juntos.
+  // O Normal do manual é IGUAL ao do auto (ROUND_MS) — quem quiser mais devagar usa
+  // a marcha 🐢. (Antes o manual tinha uma folga fixa que o deixava mais lento.)
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
-  const roundMs = Math.round((
-    (manual && !online) ? ROUND_MS + 10000
-    : (online && state.manualRoom) ? ROUND_MS + 2000
-    : ROUND_MS
-  ) / speedFactor)
+  const roundMs = Math.round(ROUND_MS / speedFactor)
   const streamRoom = online && (state.streamMode || !!state.manualRoom) // sala com ritmo do host: Copa/etapas sem cronômetro pra ninguém
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)

@@ -1644,8 +1644,9 @@ export function PyramidSeasonScreen() {
     if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
   }
   // ⏩ velocidade da simulação (marcha do jogador): divide o tempo da rodada. 1 = normal.
+  // O Normal do manual é IGUAL ao do auto (ROUND_MS); quem quiser mais calmo usa o 🐢.
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
-  const roundMs = Math.round((manual ? ROUND_MS + 10000 : ROUND_MS) / speedFactor)
+  const roundMs = Math.round(ROUND_MS / speedFactor)
   useEffect(() => {
     if (!state.isHost || done || manual) return
     const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), roundMs)
