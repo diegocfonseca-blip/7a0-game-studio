@@ -39,6 +39,15 @@ export const BIOS: Record<string, string> = {
   "Maguire": "Zagueirão inglês que já valeu uma fortuna e vestiu a braçadeira do United — herói e alvo de memes na mesma temporada, mas cabeçudo dos dois lados do campo.",
   "Ricardo Quaresma": "O rei da TRIVELA — chutes e passes com a parte de fora do pé que desafiavam a física. Mais firula de craque do que títulos: folclore puro do futebol português.",
   "Nani": "Ponta explosivo do Manchester United — dribles, força e petardos de fora. Parceiro do CR7 no United e campeão da Euro 2016 com Portugal.",
+  "Carvajal": "Lateral-direito do Real Madrid — subidas incansáveis e faro de gol em decisão. Multicampeão da Champions e campeão da Euro.",
+  "Cucurella": "Lateral-esquerdo espanhol de cabeleira marcante — motorzinho pela ponta, campeão da Euro 2024 e da Champions pelo Chelsea.",
+  "Míchel Salgado": "Lateral-direito raçudo dos Galácticos do Real Madrid — marcação dura e mais de uma década de títulos na Espanha.",
+  "Ivanović": "Lateral e zagueiro sérvio possante do Chelsea — forte na marcação, mortal no jogo aéreo e decisivo em finais europeias.",
+  "Sneijder": "Meia holandês genial — cérebro da Inter da tríplice coroa de 2010 e quase campeão do mundo. Passe e bomba de fora de sobra.",
+  "Enner Valencia": "Artilheiro equatoriano de força e oportunismo — goleador da seleção e do Internacional, sempre bem posicionado na área.",
+  "Alan Patrick": "Camisa 10 do Internacional — criação, chute de fora e cobranças ensaiadas. Cérebro e líder do time colorado.",
+  "Bernabei": "Lateral-esquerdo argentino do Internacional — velocidade e apoio pela ponta, bom pé pra cruzar e pra chutar.",
+  "Matheus Pereira": "Meia habilidoso e criativo — dribles curtos, passes de visão e talento pra encantar a torcida.",
   "Bolívar": "Capitão e xerife do Inter bicampeão da Libertadores (2006 e 2010) e do Mundial de 2006. Liderança e raça que a torcida colorada nunca esquece.",
   "Índio": "Zagueirão de confiança, dupla eterna com Bolívar nas glórias do Inter — Libertadores, Mundial e um carinho especial do Beira-Rio.",
   "Dener": "Gênio do drible dos anos 90 — talento que encantava o país e seria titular da Seleção. Patrimônio eterno, partiu cedo demais.",
@@ -641,6 +650,7 @@ const GOL: C[] = [
 ]
 
 const LAT: C[] = [
+  { name: "Bernabei", club: "Internacional", year: 2025, fame: 2, lo: 66, hi: 80 },
   { name: "Nelinho", club: "Cruzeiro", year: 1978, fame: 4, lo: 80, hi: 88 },
   { name: "Josimar", club: "Botafogo", year: 1986, fame: 3, lo: 74, hi: 84 },
   { name: "Guilherme Arana", club: "Atlético-MG", year: 2021, fame: 3, lo: 76, hi: 84 },
@@ -756,6 +766,8 @@ const ZAG: C[] = [
 ]
 
 const MEI: C[] = [
+  { name: "Alan Patrick", club: "Internacional", year: 2024, fame: 3, lo: 76, hi: 84 },
+  { name: "Matheus Pereira", club: "Cruzeiro", year: 2024, fame: 3, lo: 74, hi: 83 },
   { name: "Dirceu", club: "Botafogo", year: 1978, fame: 3, lo: 78, hi: 86 },
   { name: "César Sampaio", club: "Palmeiras", year: 1994, fame: 3, lo: 74, hi: 83 },
   { name: "Richard Ríos", club: "Palmeiras", year: 2024, fame: 3, lo: 76, hi: 84 },
@@ -863,6 +875,7 @@ const MEI: C[] = [
 ]
 
 const ATA: C[] = [
+  { name: "Enner Valencia", club: "Internacional", year: 2024, fame: 3, lo: 74, hi: 84 },
   { name: "Ademir de Menezes", club: "Vasco", year: 1950, fame: 5, lo: 88, hi: 95 },
   { name: "Éder", club: "Atlético-MG", year: 1982, fame: 4, lo: 82, hi: 89 },
   { name: "Luizão", club: "Corinthians", year: 2000, fame: 3, lo: 76, hi: 85 },
@@ -1050,6 +1063,10 @@ const GOL_EU: C[] = [
   { name: "Kepa", club: "Chelsea", year: 2019, fame: 1, lo: 56, hi: 78, folk: true, bio: "O goleiro mais caro da HISTÓRIA — eternizado por se recusar a ser substituído na final da Copa da Liga. Cinema." }
 ]
 const LAT_EU: C[] = [
+  { name: "Carvajal", club: "Real Madrid", year: 2022, fame: 4, lo: 82, hi: 89 },
+  { name: "Cucurella", club: "Chelsea", year: 2024, fame: 3, lo: 76, hi: 84 },
+  { name: "Míchel Salgado", club: "Real Madrid", year: 2003, fame: 3, lo: 76, hi: 84 },
+  { name: "Ivanović", club: "Chelsea", year: 2012, fame: 3, lo: 78, hi: 85 },
   { name: "Danilo", club: "Juventus", year: 2023, fame: 3, lo: 78, hi: 85, bio: "Lateral e zagueiro versátil, capitão da Juventus e da Seleção — leitura de jogo e liderança. Craque na Europa após surgir no Santos. (Não confundir com o volante Danilo do Corinthians!)" },
   { name: "Paolo Maldini", club: "Milan", year: 1994, fame: 5, lo: 89, hi: 94 },
   { name: "Roberto Carlos", club: "Real Madrid", year: 2002, fame: 5, lo: 88, hi: 93 },
@@ -1128,6 +1145,7 @@ const ZAG_EU: C[] = [
   { name: "Sébastien Squillaci", club: "Arsenal", year: 2010, fame: 1, lo: 52, hi: 75, bio: "O francês que a torcida do Arsenal tenta esquecer — flop de grife, presença garantida em lista de piores contratações." }
 ]
 const MEI_EU: C[] = [
+  { name: "Sneijder", club: "Inter", year: 2010, fame: 4, lo: 84, hi: 90 },
   { name: "Foden", club: "Man City", year: 2023, fame: 4, lo: 83, hi: 90 },
   { name: "Djorkaeff", club: "Inter", year: 1998, fame: 3, lo: 80, hi: 87 },
   { name: "Petit", club: "Arsenal", year: 1998, fame: 3, lo: 78, hi: 85 },
