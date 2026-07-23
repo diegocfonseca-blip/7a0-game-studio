@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, oldChain } from './data'
 import type { Card, Manager, Sector, WonCard } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { useEsc, savePyramidCloud } from './store'
+import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll } from './store'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
@@ -901,17 +901,23 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { m
   // listas — e a troca funciona igual: toca num, acende os da mesma posição.
   // linha COMPACTA (meia largura): nome em cima, clube · ano embaixo — assim as
   // duas listas cabem lado a lado no celular sem cortar nada importante.
+  // altura FIXA (48px) → as duas listas (Titulares | Reservas) batem linha a linha,
+  // não importa o tamanho do nome do clube. Na direita: 💰 piso e 💸 salário (piso÷10,
+  // em vermelho = custo) lado a lado; o gol fica em cima, como já era.
   const rowOf = (c: WonCard, titular: boolean) => { const st = stateOf(c); return (
-    <div key={c.id} onClick={() => onTap?.(c.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, padding: '4px 6px', borderRadius: 6, background: st === 'sel' ? '#FFF6D6' : titular ? '#fff' : 'rgba(255,255,255,0.88)', border: `2px solid ${st === 'idle' ? 'transparent' : borderOf(st)}`, marginBottom: 3, opacity: st === 'dim' ? 0.5 : 1, cursor: onTap ? 'pointer' : 'default' }}>
+    <div key={c.id} onClick={() => onTap?.(c.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, height: 48, padding: '0 6px', borderRadius: 6, background: st === 'sel' ? '#FFF6D6' : titular ? '#fff' : 'rgba(255,255,255,0.88)', border: `2px solid ${st === 'idle' ? 'transparent' : borderOf(st)}`, marginBottom: 3, opacity: st === 'dim' ? 0.5 : 1, cursor: onTap ? 'pointer' : 'default' }}>
       <span style={{ minWidth: 0 }}>
         <span style={{ display: 'block', fontWeight: titular ? 800 : 700, fontSize: 11.5, ...OSWALD, color: titular ? INK : '#4a4740', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           <span style={{ fontWeight: 900, fontSize: 8.5, color: col.solid, marginRight: 4 }}>{c.pos}</span>{c.name}
         </span>
         <span style={{ display: 'block', fontWeight: 700, fontSize: 9, color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.club} · {c.year}</span>
       </span>
-      <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0, lineHeight: 1.2 }}>
+      <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0, lineHeight: 1.25, gap: 1 }}>
         {goalsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: GREEN }}>⚽ {goalsOf(c)}</span>}
-        <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#5a5647' }}>💰 {c.paid ?? 0}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#5a5647' }}>💰 {c.paid ?? 0}</span>
+          <span title="Salário por ano (piso ÷ 10)" style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, color: '#C2452F', background: 'rgba(194,69,47,.10)', border: '1px solid rgba(194,69,47,.30)', borderRadius: 5, padding: '0 3px' }}>💸 {salaryOfCard(c)}</span>
+        </span>
       </span>
     </div>
   ) }
@@ -940,6 +946,21 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { m
           ))}
         </div>
       </div>
+      {/* 💸 FOLHA total do time — soma dos salários (piso ÷ 10). Cobrada no fim da
+          temporada. Fica aqui em cima das listas pra você ver o custo de relance. */}
+      {(() => { const folha = squadPayroll(mgr.squad as WonCard[]); return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'linear-gradient(150deg,#2A241A,#17130A)', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 11px', margin: '0 0 10px', boxShadow: `2px 2px 0 0 ${INK}` }}>
+          <span style={{ fontSize: 17 }}>💸</span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: 'block', fontWeight: 900, fontSize: 11.5, ...OSWALD, color: '#fff', letterSpacing: 0.3 }}>FOLHA DO TIME</span>
+            <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.55)' }}>cobrada no fim da temporada · piso ÷ 10 por jogador</span>
+          </span>
+          <span style={{ textAlign: 'right', flexShrink: 0 }}>
+            <span style={{ display: 'block', fontWeight: 900, fontSize: 17, ...OSWALD, color: '#E7503A', lineHeight: 1 }}>{folha}</span>
+            <span style={{ display: 'block', fontSize: 8, fontWeight: 800, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', letterSpacing: 0.5 }}>🪙 / ano</span>
+          </span>
+        </div>
+      ) })()}
       {/* TITULARES e RESERVAS lado a lado: no campinho não cabe o clube · ano,
           então as listas mostram — e a troca funciona nos dois lugares (toca num
           jogador de qualquer lista OU do campinho e completa no outro). */}
