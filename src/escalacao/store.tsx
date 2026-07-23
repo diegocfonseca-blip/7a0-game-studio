@@ -1388,6 +1388,7 @@ type Action =
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
   | { type: 'MARK_COPA_DONE' }
+  | { type: 'SET_CHAT'; off: boolean } // 💬 host liga/desliga o chat da sala
   | { type: 'SET_STREAM_CHAMP_CARD'; slot: 'liga' | 'copa'; card: WonCard } // 🎥 stream: guarda a carta do campeão pra sala inteira ver/abrir
   | { type: 'STADIUM_INVEST'; mgrId: number; sector: string } // 🏟️ carreira: investe +20 no setor
   | { type: 'STADIUM_BUILD'; mgrId: number; ext: string } // 🏟️ carreira: compra melhoria destravada
@@ -1770,6 +1771,7 @@ export function reducer(state: EscState, action: Action): EscState {
     // pirâmide: a Copa da temporada atual terminou de animar → marca, pra o save
     // não re-animar a Copa do zero ao retomar (mostra direto os campeões/decisão).
     case 'MARK_COPA_DONE': { s.copaDoneSeason = s.seasonNo; return s }
+    case 'SET_CHAT': { s.chatOff = action.off; return s } // 💬 host ligou/desligou o chat
     // 🎥 STREAM: o campeão abriu o pacote (ou o host abriu no lugar de quem saiu).
     // A carta fica no estado e o host retransmite pra sala TODA ver a mesma carta.
     // Não sobrescreve se já tiver uma daquele slot (evita corrida host×campeão).
@@ -2995,6 +2997,9 @@ export function reducer(state: EscState, action: Action): EscState {
 // vão por um evento de broadcast à parte ('emote'); não passam pelo reducer
 // nem pelo host, então não têm risco nenhum de afetar o resultado do leilão.
 export type EmoteEvent = { id: string; from: number; kind: string; cardId?: string; ts: number; text?: string }
+// 💬 mensagem de chat da sala — efêmera (broadcast, fora do reducer, igual aos emotes).
+// Não passa pelo host nem afeta o jogo. Cada cliente conta as suas "não lidas".
+export type ChatMsg = { id: string; from: number; name: string; text: string; ts: number }
 
 // ─── contexto + provider (host-autoritativo, espelha o modo Draft) ───
 const Ctx = createContext<{
@@ -3002,6 +3007,11 @@ const Ctx = createContext<{
   dispatch: (a: Action) => void
   emote: (kind: string, cardId?: string, text?: string) => void
   emotes: EmoteEvent[]
+  chat: ChatMsg[]              // 💬 mensagens da sala (efêmeras)
+  chatUnread: number           // 💬 quantas ESTE usuário ainda não viu
+  sendChat: (text: string) => void
+  chatOpen: boolean            // 💬 gaveta aberta?
+  setChatOpen: (open: boolean) => void
   hostStale: boolean // convidado sem notícias do host há muito tempo (host caiu?)
   kickPlayer: (playerIndex: number) => void // host remove um técnico da partida
   leaveRoom: () => void // "sair da sala" de vez: se for host, passa o host pra outro (ou apaga a sala se estava sozinho) e sai
@@ -3104,6 +3114,29 @@ export function EscProvider({ children }: { children: ReactNode }) {
     channelRef.current?.send({ type: 'broadcast', event: 'emote', payload: e })
   }, [addEmote])
 
+  // 💬 CHAT: mesma via dos emotes (broadcast, fora do reducer). Cada cliente
+  // guarda as mensagens localmente e conta as SUAS não-lidas (some ao abrir).
+  const [chat, setChat] = useState<ChatMsg[]>([])
+  const [chatUnread, setChatUnread] = useState(0)
+  const [chatOpen, setChatOpenRaw] = useState(false)
+  const chatOpenRef = useRef(false)
+  const addChat = useCallback((m: ChatMsg, mine: boolean) => {
+    setChat(prev => prev.some(x => x.id === m.id) ? prev : [...prev.slice(-60), m])
+    if (!mine && !chatOpenRef.current) setChatUnread(u => Math.min(99, u + 1)) // não vi ainda → +1 (só as dos outros)
+  }, [])
+  const sendChat = useCallback((text: string) => {
+    const t = text.trim().slice(0, 160)
+    if (!t) return
+    const me = stateRef.current.managers[stateRef.current.youIdx]
+    const m: ChatMsg = { id: Math.random().toString(36).slice(2), from: stateRef.current.youIdx, name: (me?.teamName || me?.name || 'Você'), text: t, ts: Date.now() }
+    addChat(m, true) // aparece pra mim na hora (canal usa self:false)
+    channelRef.current?.send({ type: 'broadcast', event: 'chat', payload: m })
+  }, [addChat])
+  const setChatOpen = useCallback((open: boolean) => {
+    chatOpenRef.current = open; setChatOpenRaw(open)
+    if (open) setChatUnread(0) // abriu → zera as minhas não-lidas
+  }, [])
+
   // host remove um técnico da partida: avisa o cliente dele (evento 'kick', que
   // o ejeta pra fora), a CPU assume o time (KICK_PLAYER) e libera a vaga no
   // banco pra ele não reconectar sozinho na mesma partida.
@@ -3200,6 +3233,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     }
     // reações chegam pra todos (host e convidados), fora do fluxo de ações
     ch.on('broadcast', { event: 'emote' }, ({ payload }: { payload: EmoteEvent }) => addEmote(payload))
+    ch.on('broadcast', { event: 'chat' }, ({ payload }: { payload: ChatMsg }) => addChat(payload, false))
     // host removeu alguém: se for EU, saio da partida (libera vaga + volta pra home)
     ch.on('broadcast', { event: 'kick' }, ({ payload }: { payload: { playerIndex: number } }) => {
       if (payload.playerIndex !== stateRef.current.youIdx) return
@@ -3399,7 +3433,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const showHostBanner = state.onlineMode === 'online' && !state.isHost && hostStale
     && state.screen !== 'intro' && state.screen !== 'lobby'
   return (
-    <Ctx.Provider value={{ state, dispatch, emote, emotes, hostStale, kickPlayer, leaveRoom, becameHost }}>
+    <Ctx.Provider value={{ state, dispatch, emote, emotes, chat, chatUnread, sendChat, chatOpen, setChatOpen, hostStale, kickPlayer, leaveRoom, becameHost }}>
       {children}
       {becameHost && (
         <div style={{

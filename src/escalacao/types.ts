@@ -270,6 +270,9 @@ export interface EscState {
   // stream), pra decidir avançar cada rodada/etapa ou deixar no automático. NÃO
   // esconde valores (isso é só do stream). Escolhido na criação; 'auto' (padrão) = online normal.
   manualRoom?: boolean
+  // 💬 chat da sala: o HOST decide ligar/desligar. Padrão = ligado (undefined/false).
+  // true = o host desligou o chat pra sala toda. Sincroniza via estado.
+  chatOff?: boolean
   // 🎥 modo stream: a carta que o campeão tirou (liga/copa) fica AQUI e vai pra
   // sala inteira via broadcast — todo mundo vê e pode abrir o pacote do campeão.
   // Quem não é campeão só assiste (não grava no álbum). null/vazio = ainda não abriu.
