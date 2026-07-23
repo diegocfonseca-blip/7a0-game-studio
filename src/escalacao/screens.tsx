@@ -765,7 +765,7 @@ function NewsSection() {
       <div>
         <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>🆕 Recém-chegados</p>
         <p className="text-xs font-bold text-black/75 mt-1"><b>🇧🇷 BR:</b> Enner Valencia, Alan Patrick, Bernabei (reforços do Inter), Kaio Jorge, Neilton 💎, GarrinSha 🃏, Paulinho (atacante), Reinier 🃏, <b>Evaristo de Macedo 👑</b>, Donizete Pantera, Oséas, Luciano, Caio Ribeiro 💎, Galeano, Cláudio Pitbull, Souza, Giovanni, Rodrigo Souto, Richarlyson, Domingos, Rogério (pedala Robinho) 🃏, Matheus Pereira, <b>Ademir de Menezes 👑</b>, Nelinho, César Sampaio, Luizão, Waldir Peres, Josimar, <b>Figueroa 👑</b>, Bolívar, Índio, Alexandre Pato 💎, Vegetti, Edu Dracena, Alex Mineiro, Durval, Danilo (Chape), Víctor Aristizábal, Roger Guedes, Thiago Galhardo, Arboleda, Hernanes (Profeta).</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>🌍 Europa:</b> Payet, Abel Ferreira 🃏, Matip, Keisuke Honda, Salomon Kalou, Matheus Cunha, Carvajal, Cucurella, Míchel Salgado, Ivanović, Sneijder, Ricardo Quaresma 🃏, Nani, Thomas Müller, Reus, Foden, Ter Stegen, Djorkaeff, Petit, Deschamps, Maguire, Raphinha, Gabriel Magalhães, Martinelli, Bremer, Ljungberg.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>🌍 Europa:</b> Payet, Abel Ferreira 🃏, Matip, Keisuke Honda, Salomon Kalou, Matheus Cunha, Carvajal, Cucurella, Míchel Salgado, Ivanović, Sneijder, Ricardo Quaresma 🃏, Nani, Thomas Müller, Reus, Foden, Ter Stegen, Djorkaeff, Petit, Deschamps, Maguire, Raphinha, Gabriel Magalhães, Martinelli, Bremer, Ljungberg, Alfie Haaland (pai do Erling) 🃏.</p>
         <p className="text-[11px] font-bold text-black/50 mt-1">O baralho só cresce — sempre entrando craque novo. 🔨</p>
       </div>
     </Box>

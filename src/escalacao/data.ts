@@ -1313,7 +1313,8 @@ const MEI_EU: C[] = [
   { name: "Gerson", club: "Marseille", year: 2022, fame: 3, lo: 78, hi: 85 },
   { name: "Lucas Silva", club: "Real Madrid", year: 2015, fame: 1, lo: 58, hi: 78, folk: true },
   { name: "Mauro Silva", club: "Deportivo La Coruña", year: 1996, fame: 4, lo: 83, hi: 89 },
-  { name: "Ljungberg", club: "Arsenal", year: 2004, fame: 3, lo: 78, hi: 85, bio: "O sueco ruivo dos Invencíveis do Arsenal — chegada surpresa pela direita e faro de gol nos momentos decisivos." }
+  { name: "Ljungberg", club: "Arsenal", year: 2004, fame: 3, lo: 78, hi: 85, bio: "O sueco ruivo dos Invencíveis do Arsenal — chegada surpresa pela direita e faro de gol nos momentos decisivos." },
+  { name: "Alfie Haaland (pai do Erling)", club: "Man City", year: 2001, fame: 1, lo: 56, hi: 78, folk: true, bio: "Volante/zagueiro norueguês raçudo de Leeds e Manchester City — e, claro, o pai do fenômeno Erling. Eternizado na rivalidade com Roy Keane." }
 ]
 const ATA_EU: C[] = [
   { name: "Ricardo Quaresma", club: "Porto", year: 2007, fame: 3, lo: 74, hi: 84, folk: true },
