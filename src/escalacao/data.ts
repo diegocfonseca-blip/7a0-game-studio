@@ -44,6 +44,8 @@ export const BIOS: Record<string, string> = {
   "Míchel Salgado": "Lateral-direito raçudo dos Galácticos do Real Madrid — marcação dura e mais de uma década de títulos na Espanha.",
   "Ivanović": "Lateral e zagueiro sérvio possante do Chelsea — forte na marcação, mortal no jogo aéreo e decisivo em finais europeias.",
   "Sneijder": "Meia holandês genial — cérebro da Inter da tríplice coroa de 2010 e quase campeão do mundo. Passe e bomba de fora de sobra.",
+  "Abel Ferreira": "Lateral apagado em Portugal que virou GIGANTE como TÉCNICO — bicampeão da Libertadores pelo Palmeiras. Na carta, joga só de brincadeira. 🃏",
+  "Payet": "Meia-artista francês do Olympique de Marseille — faltas mágicas, passes de fantasia e herói da Euro 2016 jogando em casa.",
   "Enner Valencia": "Artilheiro equatoriano de força e oportunismo — goleador da seleção e do Internacional, sempre bem posicionado na área.",
   "Alan Patrick": "Camisa 10 do Internacional — criação, chute de fora e cobranças ensaiadas. Cérebro e líder do time colorado.",
   "Bernabei": "Lateral-esquerdo argentino do Internacional — velocidade e apoio pela ponta, bom pé pra cruzar e pra chutar.",
@@ -1080,6 +1082,7 @@ const LAT_EU: C[] = [
   { name: "Míchel Salgado", club: "Real Madrid", year: 2003, fame: 3, lo: 76, hi: 84 },
   { name: "Ivanović", club: "Chelsea", year: 2012, fame: 3, lo: 78, hi: 85 },
   { name: "Danilo", club: "Juventus", year: 2023, fame: 3, lo: 78, hi: 85, bio: "Lateral e zagueiro versátil, capitão da Juventus e da Seleção — leitura de jogo e liderança. Craque na Europa após surgir no Santos. (Não confundir com o volante Danilo do Corinthians!)" },
+  { name: "Abel Ferreira", club: "Sporting", year: 2007, fame: 1, lo: 55, hi: 76, folk: true },
   { name: "Paolo Maldini", club: "Milan", year: 1994, fame: 5, lo: 89, hi: 94 },
   { name: "Roberto Carlos", club: "Real Madrid", year: 2002, fame: 5, lo: 88, hi: 93 },
   { name: "Cafu", club: "Milan", year: 2004, fame: 5, lo: 87, hi: 92 },
@@ -1159,6 +1162,7 @@ const ZAG_EU: C[] = [
 ]
 const MEI_EU: C[] = [
   { name: "Sneijder", club: "Inter", year: 2010, fame: 4, lo: 84, hi: 90 },
+  { name: "Payet", club: "Marseille", year: 2017, fame: 3, lo: 80, hi: 87 },
   { name: "Keisuke Honda", club: "Milan", year: 2014, fame: 3, lo: 76, hi: 84 },
   { name: "Foden", club: "Man City", year: 2023, fame: 4, lo: 83, hi: 90 },
   { name: "Djorkaeff", club: "Inter", year: 1998, fame: 3, lo: 80, hi: 87 },
