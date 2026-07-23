@@ -2556,6 +2556,10 @@ export function EscSeason() {
   const [personalNews, setPersonalNews] = useState<string | null>(null)
   const personalTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
+    // 🙈 ANTI-SPOILER: só dispara DEPOIS que o jogo terminou de animar (resultRevealed).
+    // A tabela/posição muda na hora que a rodada é calculada — se avisasse aí, o
+    // "você é o novo líder" entregava o resultado antes da partida rolar na tela.
+    if (!resultRevealed) return
     const prev = prevPosRef.current
     prevPosRef.current = youPos
     if (state.round === 0 || prev === youPos) return
@@ -2572,7 +2576,7 @@ export function EscSeason() {
       if (personalTimer.current) clearTimeout(personalTimer.current)
       personalTimer.current = setTimeout(() => setPersonalNews(null), 5000)
     }
-  }, [state.round, youPos])
+  }, [resultRevealed, youPos, state.round])
   useEffect(() => () => { if (personalTimer.current) clearTimeout(personalTimer.current) }, [])
 
   // autoplay: só quem "puxa" a temporada dispara a próxima rodada (host no
