@@ -46,6 +46,13 @@ export const BIOS: Record<string, string> = {
   "Sneijder": "Meia holandês genial — cérebro da Inter da tríplice coroa de 2010 e quase campeão do mundo. Passe e bomba de fora de sobra.",
   "Abel Ferreira": "Lateral apagado em Portugal que virou GIGANTE como TÉCNICO — bicampeão da Libertadores pelo Palmeiras. Na carta, joga só de brincadeira. 🃏",
   "Payet": "Meia-artista francês do Olympique de Marseille — faltas mágicas, passes de fantasia e herói da Euro 2016 jogando em casa.",
+  "Souza": "Volante marcador do São Paulo na virada do milênio — pegada firme e saída de bola simples, alicerce do meio-campo.",
+  "Rodrigo Souto": "Meia-volante rodado do Vasco nos anos 2000 — marcação, chegada ao ataque e muita entrega no meio.",
+  "Luciano": "Atacante-camisa 10 do São Paulo — faro de gol, dribles curtos e liderança. Um dos xodós recentes do Morumbi.",
+  "Caio Ribeiro": "Promessa de ouro dos anos 90 — talento e faro de gol que encantaram no São Paulo e nas seleções de base. Hoje, craque de microfone.",
+  "Oséas": "Centroavante artilheiro dos anos 90 — oportunista de área, goleador por Cruzeiro e Palmeiras.",
+  "Donizete Pantera": "A Pantera — centroavante veloz e matador, artilheiro do Vasco campeão brasileiro de 1997.",
+  "Galeano": "Ponta paraguaio habilidoso do Palmeiras na virada do milênio — velocidade, drible e gol pela ponta.",
   "Enner Valencia": "Artilheiro equatoriano de força e oportunismo — goleador da seleção e do Internacional, sempre bem posicionado na área.",
   "Alan Patrick": "Camisa 10 do Internacional — criação, chute de fora e cobranças ensaiadas. Cérebro e líder do time colorado.",
   "Bernabei": "Lateral-esquerdo argentino do Internacional — velocidade e apoio pela ponta, bom pé pra cruzar e pra chutar.",
@@ -776,6 +783,8 @@ const ZAG: C[] = [
 
 const MEI: C[] = [
   { name: "Alan Patrick", club: "Internacional", year: 2024, fame: 3, lo: 76, hi: 84 },
+  { name: "Souza", club: "São Paulo", year: 2000, fame: 2, lo: 66, hi: 80 },
+  { name: "Rodrigo Souto", club: "Vasco", year: 2005, fame: 2, lo: 64, hi: 78 },
   { name: "Matheus Pereira", club: "Cruzeiro", year: 2024, fame: 3, lo: 74, hi: 83 },
   { name: "Dirceu", club: "Botafogo", year: 1978, fame: 3, lo: 78, hi: 86 },
   { name: "César Sampaio", club: "Palmeiras", year: 1994, fame: 3, lo: 74, hi: 83 },
@@ -885,6 +894,11 @@ const MEI: C[] = [
 
 const ATA: C[] = [
   { name: "Enner Valencia", club: "Internacional", year: 2024, fame: 3, lo: 74, hi: 84 },
+  { name: "Luciano", club: "São Paulo", year: 2023, fame: 3, lo: 74, hi: 83 },
+  { name: "Caio Ribeiro", club: "São Paulo", year: 1997, fame: 2, lo: 68, hi: 82, promessa: true },
+  { name: "Oséas", club: "Cruzeiro", year: 1996, fame: 2, lo: 66, hi: 80 },
+  { name: "Donizete Pantera", club: "Vasco", year: 1997, fame: 3, lo: 74, hi: 84 },
+  { name: "Galeano", club: "Palmeiras", year: 2000, fame: 2, lo: 66, hi: 80 },
   { name: "Kaio Jorge", club: "Cruzeiro", year: 2024, fame: 3, lo: 74, hi: 84 },
   { name: "Neilton", club: "Cruzeiro", year: 2013, fame: 3, lo: 72, hi: 82, promessa: true },
   { name: "GarrinSha", club: "Bangu", year: 2026, fame: 2, lo: 62, hi: 80, folk: true },
