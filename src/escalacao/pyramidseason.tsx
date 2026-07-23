@@ -178,7 +178,7 @@ export function computePromotions(tables: Record<Div, SimTeam[]>): Record<string
 //     "manter entre os 4" (não tem pra onde subir). Campeão da A = 25 + 20 = 45.
 //   queda (caiu, pela série de onde caiu): A 20 · B 15 · C 10 · D 5
 const DIV_RANK: Record<Div, number> = { A: 3, B: 2, C: 1, D: 0 }
-const CAMPEAO: Record<Div, number> = { A: 25, B: 20, C: 15, D: 10 }
+const CAMPEAO: Record<Div, number> = { A: 45, B: 35, C: 25, D: 15 }
 const ZONA: Record<Div, number> = { A: 20, B: 15, C: 10, D: 5 }
 const QUEDA: Record<Div, number> = { A: 20, B: 15, C: 10, D: 5 }
 export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, number> {
