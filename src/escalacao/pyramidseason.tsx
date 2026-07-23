@@ -1445,7 +1445,21 @@ function CoinsBadge({ coins }: { coins: number }) {
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const round = state.round
-  const done = round >= 38
+  const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
+  // 🏁 ÚLTIMA RODADA: `seasonOver` = a 38ª foi jogada; mas o fim (campeão/tabela final)
+  // só entra DEPOIS que a partida animou na tela. Sem isto, ao chegar na 38ª o card do
+  // jogo sumia na hora e pulava pro resultado — a última rodada não aparecia rolando.
+  const seasonOver = round >= 38
+  // init = já estava encerrada ao ABRIR a tela (save retomado): mostra o fim direto,
+  // sem re-animar. Só anima quando a 38ª é jogada COM a tela aberta (endShown vira
+  // false→true depois do tempo do jogo).
+  const [endShown, setEndShown] = useState(() => round >= 38)
+  useEffect(() => {
+    if (!seasonOver) { setEndShown(false); return }
+    const t = setTimeout(() => setEndShown(true), Math.round((ROUND_MS / speedFactor) * 0.95))
+    return () => clearTimeout(t)
+  }, [seasonOver, speedFactor])
+  const done = seasonOver && endShown
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti'>('arti')
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads])
@@ -1645,13 +1659,14 @@ export function PyramidSeasonScreen() {
   }
   // ⏩ velocidade da simulação (marcha do jogador): divide o tempo da rodada. 1 = normal.
   // O Normal do manual é IGUAL ao do auto (ROUND_MS); quem quiser mais calmo usa o 🐢.
-  const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
   const roundMs = Math.round(ROUND_MS / speedFactor)
   useEffect(() => {
-    if (!state.isHost || done || manual) return
+    // para de avançar quando a 38ª foi jogada (seasonOver), mesmo antes do fim
+    // "revelar" (endShown) — senão dispararia PLAY_ROUND à toa durante a última anim.
+    if (!state.isHost || seasonOver || manual) return
     const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), roundMs)
     return () => clearTimeout(t)
-  }, [round, state.isHost, done, dispatch, manual, roundMs])
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs])
   // 🚫 no MANUAL, "Próxima rodada" só libera DEPOIS que o jogo termina de animar —
   // igual ao stream/rápido. Sem isto dava pra clicar sem parar e pular os jogos.
   const [roundReady, setRoundReady] = useState(false)
@@ -1705,7 +1720,7 @@ export function PyramidSeasonScreen() {
           <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>👉 ver o chaveamento da Copa na aba Tabelas</button>
         )}
         {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} />}
-        {state.onlineMode !== 'online' && state.isHost && !done && !copaPlaying && (
+        {state.onlineMode !== 'online' && state.isHost && !seasonOver && !copaPlaying && (
           <>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={round === 0 || roundReady}
