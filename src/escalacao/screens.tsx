@@ -357,7 +357,6 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
 // reducer — não afeta o jogo). Badge de não-lidas POR usuário (some ao abrir,
 // sem aumentar o botão). Host liga/desliga o chat pra sala toda (padrão: on).
 const CHAT_DOTS = [RED, '#2E6FB0', GREEN, PURPLE, GOLD, '#E0731E', '#0EA5A0']
-const CHAT_CANNED = ['🐢 Anda!', '💸 Chora depois', '🔒 Lacra logo', '🤡 Carteou', '😴 Dormiu?']
 export function ChatWidget() {
   const { state, chat, chatUnread, sendChat, chatOpen, setChatOpen, dispatch } = useEsc()
   const [text, setText] = useState('')
@@ -415,11 +414,6 @@ export function ChatWidget() {
                         </div>
                       )
                     })}
-                </div>
-                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', padding: '0 10px 7px' }}>
-                  {CHAT_CANNED.map(c => (
-                    <button key={c} onClick={() => send(c)} style={{ ...OSWALD, fontWeight: 800, fontSize: 10.5, background: '#fff', border: '2px solid #000', borderRadius: 999, padding: '3px 9px', boxShadow: '2px 2px 0 0 #000', cursor: 'pointer' }}>{c}</button>
-                  ))}
                 </div>
                 <div style={{ display: 'flex', gap: 6, padding: 9, borderTop: '2px solid #000', background: CREAM }}>
                   <input value={text} onChange={e => setText(e.target.value)} maxLength={160}
