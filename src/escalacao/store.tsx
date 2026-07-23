@@ -34,7 +34,9 @@ export function squadPayroll(squad: WonCard[]): number {
 // na folha no ano que vem (nunca cobra salário de quem você acabou de contratar).
 // Nunca deixa a caixa negativa (trava no 0). Só humanos pagam da careerCoins.
 function chargeSalaries(s: EscState) {
-  if (!s.careerOnline) return
+  // 🔓 só a partir da 4ª temporada (fôlego: T1 monta o time, T2 reservas, T3 vender).
+  // Roda ANTES do seasonNo++, então s.seasonNo aqui = a temporada que ACABOU de rolar.
+  if (!s.careerOnline || (s.seasonNo ?? 1) < 4) return
   const cc = { ...(s.careerCoins ?? {}) }
   for (const m of s.managers) {
     if (!m.isHuman) continue

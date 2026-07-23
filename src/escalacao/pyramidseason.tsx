@@ -879,6 +879,7 @@ function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boo
 // dois sentidos (titular↔reserva). Aplica no próximo jogo, como a tática.
 function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number }) {
   const goalsOf = (c: WonCard) => goals?.[c.id] ?? 0
+  const salaryOn = (seasonNo ?? 1) >= 4 // 🔓 salário/folha só aparecem a partir da 4ª temporada
   const sel = selId ? mgr.squad.find(c => c.id === selId) ?? null : null
   const isTarget = (c: WonCard) => !!sel && sel.id !== c.id && sel.pos === c.pos && (xiIds.has(sel.id) !== xiIds.has(c.id))
   const stateOf = (c: WonCard) => (c.id === selId ? 'sel' : isTarget(c) ? 'target' : sel ? 'dim' : 'idle')
@@ -916,7 +917,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { m
         {goalsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: GREEN }}>⚽ {goalsOf(c)}</span>}
         <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
           <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#5a5647' }}>💰 {c.paid ?? 0}</span>
-          <span title="Salário por ano (piso ÷ 10)" style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, color: '#C2452F', background: 'rgba(194,69,47,.10)', border: '1px solid rgba(194,69,47,.30)', borderRadius: 5, padding: '0 3px' }}>💸 {salaryOfCard(c)}</span>
+          {salaryOn && <span title="Salário por ano (piso ÷ 10)" style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, color: '#C2452F', background: 'rgba(194,69,47,.10)', border: '1px solid rgba(194,69,47,.30)', borderRadius: 5, padding: '0 3px' }}>💸 {salaryOfCard(c)}</span>}
         </span>
       </span>
     </div>
@@ -948,7 +949,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { m
       </div>
       {/* 💸 FOLHA total do time — soma dos salários (piso ÷ 10). Cobrada no fim da
           temporada. Fica aqui em cima das listas pra você ver o custo de relance. */}
-      {(() => { const folha = squadPayroll(mgr.squad as WonCard[]); return (
+      {salaryOn && (() => { const folha = squadPayroll(mgr.squad as WonCard[]); return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'linear-gradient(150deg,#2A241A,#17130A)', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 11px', margin: '0 0 10px', boxShadow: `2px 2px 0 0 ${INK}` }}>
           <span style={{ fontSize: 17 }}>💸</span>
           <span style={{ flex: 1, minWidth: 0 }}>
