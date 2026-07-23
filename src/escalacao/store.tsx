@@ -1920,6 +1920,10 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerPlacements = pl
       s.careerHonors = {}; s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.statsSeason = 0
+      // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
+      // vazando de uma carreira anterior (bug reportado: o estádio vinha completo).
+      s.stadiums = {}; s.careerFilial = undefined
+      s.careerTitles = 0; s.careerTitlesA = 0; s.careerDivision = 'D'
       s.clubCash = seedClubCash({}, pl)
       const used = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues)
