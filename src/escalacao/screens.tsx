@@ -979,7 +979,23 @@ export function EscSetup() {
       : undefined
     // carreira offline = pirâmide de 4 divisões (baralho sempre BR + Europa juntos).
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.
-    if (career) dispatch({ type: 'START_CAREER_SOLO', teamName: clean, formation, rivals, rivalTeams: picks, league: 'both', intro: true })
+    if (career) {
+      // 🛟 PROTEÇÃO: começar carreira nova SUBSTITUI a que existe. Se já tem uma,
+      // guarda uma cópia de segurança (1 nível de desfazer, no aparelho) e CONFIRMA
+      // antes — pra ninguém apagar sem querer um save maior/melhor.
+      try {
+        const existing = localStorage.getItem('esc-solo-career')
+        if (existing) {
+          let tn = '', sn = 1
+          try { const j = JSON.parse(existing) as EscState; tn = j.managers?.[j.youIdx ?? 0]?.name ?? ''; sn = j.seasonNo ?? 1 } catch { /* ignora */ }
+          const ok = window.confirm(`⚠️ Você já tem uma carreira em andamento${tn ? ` — ${tn}` : ''} (Temporada ${sn}).\n\nComeçar uma NOVA vai SUBSTITUIR ela. Vou guardar uma cópia de segurança neste aparelho, mas confirme:\n\nComeçar carreira nova?`)
+          if (!ok) return
+          localStorage.setItem('esc-solo-career-backup', existing)
+          localStorage.setItem('esc-solo-career-backup-at', localStorage.getItem('esc-solo-career-at') ?? String(Date.now()))
+        }
+      } catch { /* não trava o jogo */ }
+      dispatch({ type: 'START_CAREER_SOLO', teamName: clean, formation, rivals, rivalTeams: picks, league: 'both', intro: true })
+    }
     else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league, copaMode, intro: true })
   }
   return (
