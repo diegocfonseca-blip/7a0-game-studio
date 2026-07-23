@@ -2453,6 +2453,37 @@ export function SimControls({ manual, onToggle, onNext, canNext, nextLabel = '�
     </div>
   )
 }
+// ⏩ VELOCIDADE da simulação: 5 marchas — normal no meio, 2×/4× mais devagar (🐢)
+// pra saborear o jogo, 2×/4× mais rápido (⚡) pra adiantar. Só aparece quando o
+// PASSO é seu (manual/stream ou solo). Multiplicador vai pro estado (sincroniza),
+// então o relógio da partida bate igual pra sala inteira.
+export const SPEED_OPTS: { v: number; label: string }[] = [
+  { v: 0.25, label: '🐢 4×' },
+  { v: 0.5, label: '🐢 2×' },
+  { v: 1, label: 'Normal' },
+  { v: 2, label: '⚡ 2×' },
+  { v: 4, label: '⚡ 4×' },
+]
+export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: number) => void }) {
+  const cur = speed > 0 ? speed : 1
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <p style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.5)', margin: '0 0 5px 2px' }}>⏩ Velocidade da partida</p>
+      <div style={{ display: 'flex', gap: 5 }}>
+        {SPEED_OPTS.map(o => {
+          const on = cur === o.v
+          const bg = !on ? '#fff' : o.v === 1 ? GOLD : o.v < 1 ? '#5C8FD6' : GREEN
+          const fg = !on ? INK : o.v === 1 ? INK : '#fff'
+          return (
+            <button key={o.v} onClick={() => onSet(o.v)} style={{ flex: 1, minWidth: 0, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 2px', fontWeight: 900, fontSize: 12, fontFamily: 'Oswald, sans-serif', background: bg, color: fg, boxShadow: on ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer', lineHeight: 1.05, whiteSpace: 'nowrap' }}>
+              {o.label}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 export function EscSeason() {
   const { state, dispatch } = useEsc()
@@ -2470,9 +2501,15 @@ export function EscSeason() {
   // +10s de folga só no solo manual; na SALA MANUAL online +2s pra dar pra
   // acompanhar melhor a partida (todos na sala pegam o mesmo +2s, então não
   // dessincroniza); sala normal/auto mantém o tempo padrão.
-  const roundMs = (manual && !online) ? ROUND_MS + 10000
+  // ⏩ velocidade escolhida (sincroniza via estado): divide o tempo da rodada —
+  // 4× rápido = ¼ do tempo; 2× devagar = o dobro. Default 1 (normal). Todo mundo
+  // na sala lê o mesmo state.simSpeed, então os relógios continuam batendo juntos.
+  const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
+  const roundMs = Math.round((
+    (manual && !online) ? ROUND_MS + 10000
     : (online && state.manualRoom) ? ROUND_MS + 2000
     : ROUND_MS
+  ) / speedFactor)
   const streamRoom = online && (state.streamMode || !!state.manualRoom) // sala com ritmo do host: Copa/etapas sem cronômetro pra ninguém
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
@@ -2581,12 +2618,13 @@ export function EscSeason() {
   // no meio (a final acabava "com 3 chutes"). Vale pra QUALQUER jogo, auto ou manual.
   const phaseFullyPlayed = !!qc && (qc.ties[0]?.legs.length ?? 0) >= (qc.phase === 'final' ? 1 : 2)
   const anyPens = !!qc?.ties.some(t => t.pens)
-  const copaAnimMs = QUICK_COPA_LEG_MS + (phaseFullyPlayed && anyPens ? 13000 : 0)
+  // ⏩ a Copa segue a MESMA marcha de velocidade da liga (state.simSpeed, sincronizado)
+  const copaAnimMs = Math.round((QUICK_COPA_LEG_MS + (phaseFullyPlayed && anyPens ? 13000 : 0)) / speedFactor)
   useEffect(() => {
     if (!canAdvance || !copaLive || manual || firstLegPending) return
-    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? 3200 : copaAnimMs)
+    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? Math.round(3200 / speedFactor) : copaAnimMs)
     return () => clearTimeout(t)
-  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending, copaJustAdvanced, copaAnimMs])
+  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending, copaJustAdvanced, copaAnimMs, speedFactor])
   // trava o "Próximo jogo da Copa" (manual) enquanto a perna — INCLUINDO a disputa
   // de pênaltis — ainda está animando, pra não cortar clicando cedo.
   const [copaAdvReady, setCopaAdvReady] = useState(true)
@@ -2604,11 +2642,11 @@ export function EscSeason() {
   useEffect(() => {
     if (!copaLive || firstLegPending) { setCopaMin(93); return }
     setCopaMin(0)
-    const step = Math.max(30, (QUICK_COPA_LEG_MS * 0.82) / 93)
+    const step = Math.max(30, ((QUICK_COPA_LEG_MS / speedFactor) * 0.82) / 93)
     let cur = 0
     const iv = setInterval(() => { cur++; setCopaMin(cur); if (cur >= 93) clearInterval(iv) }, step)
     return () => clearInterval(iv)
-  }, [copaTieKey, copaLive, firstLegPending])
+  }, [copaTieKey, copaLive, firstLegPending, speedFactor])
 
   return (
     <Shell bar={
@@ -2770,6 +2808,11 @@ export function EscSeason() {
         </Box>
       )}
 
+      {manual && !state.dinastiaPaused && (
+        // ⏩ marcha da velocidade: só no manual (o passo é seu). No online manual/stream
+        // só o HOST vê e escolhe — o valor vai pro estado e sincroniza pra sala toda.
+        <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />
+      )}
       {(!online || streamHost) && !state.dinastiaPaused && state.round < 38 && (
         // 🎮 MANUAL: "Próxima rodada" só LIBERA depois que a partida terminou de
         // simular (respeita o tempo da rodada). Sem isto, dava pra clicar sem parar

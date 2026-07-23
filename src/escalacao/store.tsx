@@ -1417,6 +1417,7 @@ type Action =
   | { type: 'SET_PRESENCE'; indices: number[] }
   | { type: 'MARK_COPA_DONE' }
   | { type: 'SET_CHAT'; off: boolean } // 💬 host liga/desliga o chat da sala
+  | { type: 'SET_SIM_SPEED'; speed: number } // ⏩ velocidade da simulação (host/solo)
   | { type: 'SET_STREAM_CHAMP_CARD'; slot: 'liga' | 'copa'; card: WonCard } // 🎥 stream: guarda a carta do campeão pra sala inteira ver/abrir
   | { type: 'STADIUM_INVEST'; mgrId: number; sector: string } // 🏟️ carreira: investe +20 no setor
   | { type: 'STADIUM_BUILD'; mgrId: number; ext: string } // 🏟️ carreira: compra melhoria destravada
@@ -1800,6 +1801,7 @@ export function reducer(state: EscState, action: Action): EscState {
     // não re-animar a Copa do zero ao retomar (mostra direto os campeões/decisão).
     case 'MARK_COPA_DONE': { s.copaDoneSeason = s.seasonNo; return s }
     case 'SET_CHAT': { s.chatOff = action.off; return s } // 💬 host ligou/desligou o chat
+    case 'SET_SIM_SPEED': { s.simSpeed = action.speed > 0 ? action.speed : 1; return s } // ⏩ ritmo da simulação
     // 🎥 STREAM: o campeão abriu o pacote (ou o host abriu no lugar de quem saiu).
     // A carta fica no estado e o host retransmite pra sala TODA ver a mesma carta.
     // Não sobrescreve se já tiver uma daquele slot (evita corrida host×campeão).
