@@ -138,6 +138,11 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
   const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'dream' | 'batismo' | 'cores'>('off')
   const [clube, setClube] = useState('')
   const [corSel, setCorSel] = useState<string | null>(null)
+  const [meuNome, setMeuNome] = useState('') // nome da conta, pra simular na cor com o nome REAL da pessoa
+  useEffect(() => {
+    if (screen !== 'cores' || meuNome) return
+    supabase.auth.getUser().then(({ data }) => { const dn = ((data?.user?.user_metadata?.display_name as string) ?? '').trim(); if (dn) setMeuNome(dn) }).catch(() => { /* deslogado: usa "Seu Nome" */ })
+  }, [screen, meuNome])
   const close = () => { setScreen('off'); setCorSel(null) }
   const igMsg = async (msg: string) => {
     try { await navigator.clipboard.writeText(msg) } catch { /* segue o baile */ }
@@ -219,7 +224,12 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
       {screen === 'cores' && (
         <Modal>
           <p className="font-black text-xl text-center leading-tight" style={OSWALD}>🎨 A COR DO SEU TIME</p>
-          <p className="text-[11px] font-bold text-black/60 text-center mt-1 leading-snug">Toque numa cor pra ver como fica. Ela pinta TUDO: elenco, estádio, tabelas e seu nome em todos os modos — com selo e brilho nas categorias altas.</p>
+          <p className="text-[11px] font-bold text-black/60 text-center mt-1 leading-snug">Pinta TUDO: elenco, estádio, tabelas e o seu nome em todos os modos — com selo e brilho nas categorias altas.</p>
+          {/* CTA bem claro: toca numa cor e SIMULA com o nome real da pessoa */}
+          <div className="border-[3px] border-black rounded-xl px-3 py-2 mt-2 text-center" style={{ background: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <p className="font-black text-[12.5px] leading-tight" style={OSWALD}>👇 TOQUE NUMA COR ABAIXO</p>
+            <p className="text-[10.5px] font-bold text-black/70 leading-snug">pra <b>simular na hora</b> como {meuNome ? <>o nome <b>"{meuNome}"</b></> : <>o <b>seu nome</b></>} fica no jogo</p>
+          </div>
           {COR_TIERS.map(t => {
             const open = corSel === t.key
             const grad = `linear-gradient(150deg,${t.g[0]},${t.g[1]} 55%,${t.g[2]})`
@@ -231,7 +241,10 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
                   <span className="font-black text-[13.5px] relative" style={{ ...OSWALD, color: t.ink, textShadow: t.ink === '#fff' ? '1px 1px 0 rgba(0,0,0,.35)' : 'none' }}>
                     {t.selo && <span style={{ fontSize: t.key === 'ouro' ? 15 : 11, marginRight: 4 }}>{t.selo}</span>}{t.nome}
                   </span>
-                  <span className="font-black text-[11px] flex-shrink-0 relative" style={{ ...OSWALD, color: t.ink, opacity: 0.85 }}>{t.preco}</span>
+                  <span className="flex items-center gap-1.5 flex-shrink-0 relative">
+                    <span className="font-black text-[11px]" style={{ ...OSWALD, color: t.ink, opacity: 0.85 }}>{t.preco}</span>
+                    <span className="text-[11px] font-black rounded-md px-1.5 py-0.5" style={{ background: 'rgba(255,255,255,.9)', color: INK, border: '1.5px solid #000' }}>{open ? '👁️' : '👆'}</span>
+                  </span>
                 </button>
                 {open && (
                   <div className="border-[3px] border-black rounded-xl mt-1.5 overflow-hidden" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
@@ -254,7 +267,7 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
                           a bolinha na cor da categoria + o selo (só nas altas). */}
                       <div className="relative bg-white rounded-md px-2 py-1.5 mt-1.5 flex items-center gap-2" style={{ color: INK }}>
                         <span style={{ width: 14, height: 14, borderRadius: 999, background: t.g[1], border: '2px solid #000', flexShrink: 0, boxShadow: t.holo > 0 ? `0 0 6px 1px ${t.g[1]}` : 'none' }} />
-                        <span className="text-[11px] font-black flex items-center gap-1 flex-1 min-w-0" style={OSWALD}><span className="truncate">Seu Nome</span>{t.selo && <span style={{ fontSize: 12 }}>{t.selo}</span>}</span>
+                        <span className="text-[11px] font-black flex items-center gap-1 flex-1 min-w-0" style={OSWALD}><span className="truncate">{meuNome || 'Seu Nome'}</span>{t.selo && <span style={{ fontSize: 12 }}>{t.selo}</span>}</span>
                         <span className="text-[7.5px] font-bold text-black/40 text-right leading-tight flex-shrink-0">no elenco, tabelas<br />e no online</span>
                       </div>
                       <div className="relative mt-1.5 border-2 border-black rounded-md overflow-hidden" style={{ height: 30, background: `linear-gradient(180deg,${t.g[0]},${t.g[2]})` }}>
