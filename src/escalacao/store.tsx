@@ -125,6 +125,34 @@ function ownedRealIdents(s: EscState): Set<string> {
   if (s.cpuSquads) for (const name of Object.keys(s.cpuSquads)) for (const c of s.cpuSquads[name] as WonCard[]) if (isReal(c)) seen.add(ident(c))
   return seen
 }
+// 🔒 UNICIDADE das fichas de fundo: nenhum jogador REAL pode estar em dois lugares.
+// Tira das fichas dos 60 times de fundo (cpuSquads) qualquer jogador que um técnico
+// (humano/rival/bot da sala) JÁ tem no elenco, e remove cópias repetidas ENTRE as
+// próprias fichas de fundo (a 1ª mantém). Assim, se uma ficha de fundo foi semeada
+// com o elenco de alguém desatualizado (o amigo ainda não tinha "recebido" o Messi
+// que arrematou quando a ficha foi montada), a duplicata some — e o Mercado nunca
+// solta a cópia do Messi no leilão enquanto o dono ainda o tem. Incógnitos (fake /
+// Várzea) não têm identidade real, então ficam. NÃO cria nem repõe nada: só remove.
+function healCpuSquads(s: EscState) {
+  if (!s.cpuSquads) return
+  const isReal = (c: WonCard) => !c.fake && c.club !== 'Várzea'
+  const owned = new Set<string>()
+  for (const m of s.managers) for (const c of m.squad as WonCard[]) if (isReal(c)) owned.add(ident(c))
+  const out: Record<string, Card[]> = {}
+  let changed = false
+  for (const name of Object.keys(s.cpuSquads)) {
+    const kept: Card[] = []
+    for (const c of s.cpuSquads[name] as WonCard[]) {
+      if (!isReal(c)) { kept.push(c); continue }
+      const id = ident(c)
+      if (owned.has(id)) { changed = true; continue } // já é de outro time → tira a cópia daqui
+      owned.add(id) // a 1ª ficha de fundo a ter esse jogador fica com ele; as próximas perdem a cópia
+      kept.push(c)
+    }
+    out[name] = kept
+  }
+  if (changed) s.cpuSquads = out
+}
 
 // ─── helpers de elenco ───────────────────────────────────────────────
 export function slotsOf(m: Manager, pos: Sector): number {
@@ -2485,6 +2513,8 @@ export function reducer(state: EscState, action: Action): EscState {
       // não sobrescreve (o mercado já pode ter mexido).
       if (!s.careerOnline || s.cpuSquads) return s
       s.cpuSquads = action.squads
+      healCpuSquads(s) // 🔒 a ficha veio pré-calculada pelo cliente — se ela pegou o elenco de
+      // alguém desatualizado (arremate ainda não aplicado), tira o jogador que já tem dono
       return s
     }
     case 'NEXT_SEASON_ONLINE': {
@@ -2601,6 +2631,8 @@ export function reducer(state: EscState, action: Action): EscState {
       // CAIXA. No fim (FINISH_CEREMONY), a caixa vira o que sobrou e tira o fundo.
       if (!s.careerOnline) return s
       setActiveCatalog(s.deckLeague)
+      healCpuSquads(s) // 🔒 conserta save antigo: se uma ficha de fundo ficou com um jogador que
+      // um técnico já tem, tira daqui ANTES do Mercado — senão o Mercado soltava a cópia no leilão
       s.marketLog = [] // zera o resumo dos bots pra este leilão
       // 0) limpa as marcas do leilão anterior. marketSellers[pos] = ids dos bots que
       // perderam jogador NAQUELA posição — são eles que podem dar lance nela.
