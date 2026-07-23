@@ -37,6 +37,8 @@ export const BIOS: Record<string, string> = {
   "Foden": "Cria do Manchester City e joia inglesa — canhota refinada, dribles curtos e eleito o melhor da Premier League em 2024.",
   "Ter Stegen": "Goleiro alemão do Barcelona — reflexos felinos e jogo de pés de linha, referência moderna embaixo das traves.",
   "Maguire": "Zagueirão inglês que já valeu uma fortuna e vestiu a braçadeira do United — herói e alvo de memes na mesma temporada, mas cabeçudo dos dois lados do campo.",
+  "Ricardo Quaresma": "O rei da TRIVELA — chutes e passes com a parte de fora do pé que desafiavam a física. Mais firula de craque do que títulos: folclore puro do futebol português.",
+  "Nani": "Ponta explosivo do Manchester United — dribles, força e petardos de fora. Parceiro do CR7 no United e campeão da Euro 2016 com Portugal.",
   "Bolívar": "Capitão e xerife do Inter bicampeão da Libertadores (2006 e 2010) e do Mundial de 2006. Liderança e raça que a torcida colorada nunca esquece.",
   "Índio": "Zagueirão de confiança, dupla eterna com Bolívar nas glórias do Inter — Libertadores, Mundial e um carinho especial do Beira-Rio.",
   "Dener": "Gênio do drible dos anos 90 — talento que encantava o país e seria titular da Seleção. Patrimônio eterno, partiu cedo demais.",
@@ -1246,6 +1248,8 @@ const MEI_EU: C[] = [
   { name: "Mauro Silva", club: "Deportivo La Coruña", year: 1996, fame: 4, lo: 83, hi: 89 },
 ]
 const ATA_EU: C[] = [
+  { name: "Ricardo Quaresma", club: "Porto", year: 2007, fame: 3, lo: 74, hi: 84, folk: true },
+  { name: "Nani", club: "Man United", year: 2011, fame: 3, lo: 78, hi: 85 },
   { name: "Thomas Müller", club: "Bayern", year: 2014, fame: 4, lo: 83, hi: 90 },
   { name: "Reus", club: "Dortmund", year: 2013, fame: 4, lo: 82, hi: 89 },
   { name: "Raphinha", club: "Barcelona", year: 2025, fame: 4, lo: 84, hi: 91 },

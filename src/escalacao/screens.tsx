@@ -674,7 +674,7 @@ function NewsSection() {
       <div>
         <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>🆕 Recém-chegados</p>
         <p className="text-xs font-bold text-black/75 mt-1"><b>🇧🇷 BR:</b> <b>Ademir de Menezes 👑</b>, Nelinho, Éder, Dirceu, César Sampaio, Luizão, Waldir Peres, Josimar, <b>Figueroa 👑</b>, Bolívar, Índio, Alexandre Pato 💎 (Inter), Lucas Moura, Taison.</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>🌍 Europa:</b> Thomas Müller, Reus, Foden, Ter Stegen, Djorkaeff, Petit, Deschamps, Maguire, Raphinha, Gabriel Magalhães, Martinelli, Bremer, Danilo (lateral), Gareth Bale, Eden Hazard.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>🌍 Europa:</b> Ricardo Quaresma 🃏, Nani, Thomas Müller, Reus, Foden, Ter Stegen, Djorkaeff, Petit, Deschamps, Maguire, Raphinha, Gabriel Magalhães, Martinelli, Bremer, Danilo (lateral).</p>
         <p className="text-[11px] font-bold text-black/50 mt-1">O baralho só cresce — sempre entrando craque novo. 🔨</p>
       </div>
     </Box>
