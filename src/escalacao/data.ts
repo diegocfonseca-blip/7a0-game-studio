@@ -54,6 +54,8 @@ export const BIOS: Record<string, string> = {
   "Donizete Pantera": "A Pantera — centroavante veloz e matador, artilheiro do Vasco campeão brasileiro de 1997.",
   "Galeano": "Ponta paraguaio habilidoso do Palmeiras na virada do milênio — velocidade, drible e gol pela ponta.",
   "Cláudio Pitbull": "Centroavante matador e xodó do Coritiba — faro de gol, raça de pitbull na área e artilharias que marcaram época.",
+  "Domingos": "Zagueiro titular do Santos bicampeão paulista (2006 e 2007) — firme na marcação, viveu ali o melhor momento da carreira.",
+  "Rogério (pedala Robinho)": "Lateral-direito campeão da Libertadores de 99 pelo Palmeiras — carreira bem melhor do que lembram, apesar de ter entrado pra história como vítima das pedaladas do Robinho. 😅",
   "Enner Valencia": "Artilheiro equatoriano de força e oportunismo — goleador da seleção e do Internacional, sempre bem posicionado na área.",
   "Alan Patrick": "Camisa 10 do Internacional — criação, chute de fora e cobranças ensaiadas. Cérebro e líder do time colorado.",
   "Bernabei": "Lateral-esquerdo argentino do Internacional — velocidade e apoio pela ponta, bom pé pra cruzar e pra chutar.",
@@ -668,6 +670,7 @@ const GOL: C[] = [
 
 const LAT: C[] = [
   { name: "Bernabei", club: "Internacional", year: 2025, fame: 2, lo: 66, hi: 80 },
+  { name: "Rogério (pedala Robinho)", club: "Palmeiras", year: 1999, fame: 2, lo: 66, hi: 80, folk: true },
   { name: "Nelinho", club: "Cruzeiro", year: 1978, fame: 4, lo: 80, hi: 88 },
   { name: "Josimar", club: "Botafogo", year: 1986, fame: 3, lo: 74, hi: 84 },
   { name: "Guilherme Arana", club: "Atlético-MG", year: 2021, fame: 3, lo: 76, hi: 84 },
@@ -722,6 +725,7 @@ const LAT: C[] = [
 
 const ZAG: C[] = [
   { name: "Junior Alonso", club: "Atlético-MG", year: 2021, fame: 3, lo: 76, hi: 84 },
+  { name: "Domingos", club: "Santos", year: 2007, fame: 1, lo: 55, hi: 78 },
   { name: "Domingos da Guia", club: "Flamengo", year: 1944, fame: 5, lo: 93, hi: 98 },
   { name: "Aldair", club: "Flamengo", year: 1987, fame: 3, lo: 78, hi: 84, promessa: true },
   { name: "Lúcio", club: "Internacional", year: 2000, fame: 4, lo: 84, hi: 90 },
