@@ -18,6 +18,17 @@ type C = { name: string; club: string; year: number; fame: Fame; lo: number; hi:
 export const BIOS: Record<string, string> = {
   "Alexandre Pato": "Menino-prodígio: explodiu no Inter adolescente, campeão do Mundial de 2006 aos 17, e virou joia no Milan antes das lesões cobrarem o preço.",
   "Figueroa": "Chileno de alma colorada — tricampeão brasileiro pelo Inter (75/76) e eleito o melhor zagueiro do mundo três vezes. Elegância e leitura de jogo de outro planeta.",
+  "Ademir de Menezes": "O 'Queixada' do Expresso da Vitória — artilheiro da Copa de 1950 e um dos maiores centroavantes da história do Vasco e do Brasil.",
+  "Éder": "O canhão da esquerda do Brasil de 82 — chute violentíssimo, folha seca e aquele domínio no peito antes do voleio. Craque do Atlético-MG.",
+  "Luizão": "Centroavante possante do Corinthians campeão do Mundial de 2000 e da Seleção de 2002 — força, impulsão e faro de gol.",
+  "Dirceu": "Meia-canhota craque do Brasil de 78 — passes longos, chutes de fora e cobranças de falta que enfeitaram a Copa da Argentina.",
+  "César Sampaio": "Volante de primeira classe do Palmeiras dos anos 90 e da Seleção — marcou de cabeça o primeiro gol da Copa de 98.",
+  "Waldir Peres": "Goleiro titular do Brasil na Copa de 82 e ídolo eterno do São Paulo — reflexos e mais de uma década defendendo o Tricolor.",
+  "Nelinho": "Lateral-direito do Cruzeiro campeão da Libertadores de 76 — mestre das cobranças de efeito e de um gol de trivela inesquecível na Copa de 78.",
+  "Josimar": "Lateral-direito revelado no Botafogo — explodiu na Copa de 86 com dois petardos de fora da área que pararam o mundo.",
+  "Raphinha": "Ponta veloz e decisivo do Barcelona — dribles, gols e assistências que o levaram a artilheiro e protagonista da Champions.",
+  "Gabriel Magalhães": "Zagueiro dominante do Arsenal — imponente no jogo aéreo dos dois lados e um dos melhores centrais da Premier League.",
+  "Bremer": "Zagueirão forte e rápido, muralha da Juventus — cabeceio, marcação sob pressão e saída de bola de nível europeu.",
   "Bolívar": "Capitão e xerife do Inter bicampeão da Libertadores (2006 e 2010) e do Mundial de 2006. Liderança e raça que a torcida colorada nunca esquece.",
   "Índio": "Zagueirão de confiança, dupla eterna com Bolívar nas glórias do Inter — Libertadores, Mundial e um carinho especial do Beira-Rio.",
   "Dener": "Gênio do drible dos anos 90 — talento que encantava o país e seria titular da Seleção. Patrimônio eterno, partiu cedo demais.",
@@ -566,6 +577,7 @@ export const BIOS: Record<string, string> = {
 }
 
 const GOL: C[] = [
+  { name: "Waldir Peres", club: "São Paulo", year: 1982, fame: 2, lo: 68, hi: 82 },
   { name: "Gilmar", club: "Santos", year: 1962, fame: 5, lo: 93, hi: 97 },
   { name: "Taffarel", club: "Internacional", year: 1989, fame: 5, lo: 88, hi: 93 },
   { name: "Rogério Ceni", club: "São Paulo", year: 2005, fame: 5, lo: 89, hi: 94 },
@@ -619,6 +631,8 @@ const GOL: C[] = [
 ]
 
 const LAT: C[] = [
+  { name: "Nelinho", club: "Cruzeiro", year: 1978, fame: 4, lo: 80, hi: 88 },
+  { name: "Josimar", club: "Botafogo", year: 1986, fame: 3, lo: 74, hi: 84 },
   { name: "Guilherme Arana", club: "Atlético-MG", year: 2021, fame: 3, lo: 76, hi: 84 },
   { name: "Vanderlei Luxemburgo", club: "Flamengo", year: 1975, fame: 1, lo: 55, hi: 74, folk: true },
   { name: "Carlos Alberto Torres", club: "Santos", year: 1970, fame: 5, lo: 95, hi: 99 },
@@ -732,6 +746,8 @@ const ZAG: C[] = [
 ]
 
 const MEI: C[] = [
+  { name: "Dirceu", club: "Botafogo", year: 1978, fame: 3, lo: 78, hi: 86 },
+  { name: "César Sampaio", club: "Palmeiras", year: 1994, fame: 3, lo: 74, hi: 83 },
   { name: "Richard Ríos", club: "Palmeiras", year: 2024, fame: 3, lo: 76, hi: 84 },
   { name: "Jhon Arias", club: "Fluminense", year: 2023, fame: 3, lo: 77, hi: 85 },
   { name: "Miguelito", club: "Santos", year: 2025, fame: 3, lo: 68, hi: 80, promessa: true },
@@ -837,6 +853,9 @@ const MEI: C[] = [
 ]
 
 const ATA: C[] = [
+  { name: "Ademir de Menezes", club: "Vasco", year: 1950, fame: 5, lo: 88, hi: 95 },
+  { name: "Éder", club: "Atlético-MG", year: 1982, fame: 4, lo: 82, hi: 89 },
+  { name: "Luizão", club: "Corinthians", year: 2000, fame: 3, lo: 76, hi: 85 },
   { name: "Lucas Moura", club: "São Paulo", year: 2012, fame: 4, lo: 85, hi: 91 },
   { name: "Taison", club: "Internacional", year: 2009, fame: 3, lo: 78, hi: 84, promessa: true },
   { name: "Alexandre Pato", club: "Internacional", year: 2007, fame: 3, lo: 78, hi: 86, promessa: true },
@@ -1020,6 +1039,7 @@ const GOL_EU: C[] = [
   { name: "Kepa", club: "Chelsea", year: 2019, fame: 1, lo: 56, hi: 78, folk: true, bio: "O goleiro mais caro da HISTÓRIA — eternizado por se recusar a ser substituído na final da Copa da Liga. Cinema." }
 ]
 const LAT_EU: C[] = [
+  { name: "Danilo", club: "Juventus", year: 2023, fame: 3, lo: 78, hi: 85, bio: "Lateral e zagueiro versátil, capitão da Juventus e da Seleção — leitura de jogo e liderança. Craque na Europa após surgir no Santos. (Não confundir com o volante Danilo do Corinthians!)" },
   { name: "Paolo Maldini", club: "Milan", year: 1994, fame: 5, lo: 89, hi: 94 },
   { name: "Roberto Carlos", club: "Real Madrid", year: 2002, fame: 5, lo: 88, hi: 93 },
   { name: "Cafu", club: "Milan", year: 2004, fame: 5, lo: 87, hi: 92 },
@@ -1050,6 +1070,8 @@ const LAT_EU: C[] = [
   { name: "Pablo Armero", club: "Napoli", year: 2013, fame: 1, lo: 54, hi: 77, bio: "O colombiano da dancinha — memes, sorriso e um futebol que oscilava entre Seleção e resenha." }
 ]
 const ZAG_EU: C[] = [
+  { name: "Gabriel Magalhães", club: "Arsenal", year: 2024, fame: 3, lo: 80, hi: 87 },
+  { name: "Bremer", club: "Juventus", year: 2023, fame: 3, lo: 80, hi: 87 },
   { name: "Dante (o do 7 a 1)", club: "Bayern", year: 2014, fame: 1, lo: 54, hi: 74, folk: true, bio: "O eterno lembrete do 7 a 1 — a arquibancada nunca deixou passar. Folclore puro." },
   { name: "Winston Bogarde (a lenda do banco)", club: "Chelsea", year: 2002, fame: 1, lo: 50, hi: 72, folk: true, bio: "Passou 4 anos no Chelsea faturando fortunas e mal entrou em campo — ficou só pelo salário. Lenda do banco." },
   { name: "Franz Beckenbauer", club: "Bayern", year: 1974, fame: 5, lo: 89, hi: 94 },
@@ -1210,6 +1232,8 @@ const MEI_EU: C[] = [
   { name: "Mauro Silva", club: "Deportivo La Coruña", year: 1996, fame: 4, lo: 83, hi: 89 },
 ]
 const ATA_EU: C[] = [
+  { name: "Raphinha", club: "Barcelona", year: 2025, fame: 4, lo: 84, hi: 91 },
+  { name: "Martinelli", club: "Arsenal", year: 2023, fame: 3, lo: 78, hi: 86 },
   { name: "Viktor Gyökeres", club: "Sporting CP", year: 2024, fame: 4, lo: 84, hi: 90 },
   { name: "Nico Williams", club: "Athletic Bilbao", year: 2024, fame: 4, lo: 82, hi: 89 },
   { name: "Gareth Bale", club: "Real Madrid", year: 2016, fame: 4, lo: 86, hi: 92 },
