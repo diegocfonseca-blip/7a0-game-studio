@@ -282,7 +282,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
       const key = `${t.name}:${pick.id}`, row = scorers.get(key)
       if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, cardId: pick.id })
-      const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 6) : 1 + Math.floor(rng() * 90)
+      const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 90) // acréscimos SÓ até 90+3 (o relógio do card vai até 93)
       evs.push({ name: pick.name, min })
     }
     return evs
@@ -715,9 +715,12 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     const iv = setInterval(() => { cur++; setMin(cur); if (cur >= 93) clearInterval(iv) }, step)
     return () => clearInterval(iv)
   }, [roundKey, finished, roundMs])
-  const shown = goals.filter(g => g.min <= min)
-  const hg = shown.filter(g => g.home).length, ag = shown.filter(g => !g.home).length
   const done = min >= 93
+  // 🛟 no FIM mostra TODOS os gols — o placar do card TEM que bater com o da
+  // tabela (antes, gol nos acréscimos além do relógio sumia da tela e o
+  // resultado exibido divergia da pontuação: vitória virava empate etc.).
+  const shown = done ? goals : goals.filter(g => g.min <= min)
+  const hg = shown.filter(g => g.home).length, ag = shown.filter(g => !g.home).length
   // ── RITUAIS DO JOGO: apito inicial e apito final (frases fixas de narração —
   // lances aleatórios no meio soavam robóticos e foram removidos). O texto fica
   // uns segundos REAIS na faixinha de baixo e some.
