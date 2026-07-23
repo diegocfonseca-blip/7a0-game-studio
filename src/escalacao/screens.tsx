@@ -2497,7 +2497,15 @@ export function EscSeason() {
   const [manualPref, toggleSim] = useSimMode()
   const [streamManual, toggleStream] = useStreamSimMode()
   const manual = streamHost ? streamManual : (manualPref && !online)
-  const toggleManual = streamHost ? toggleStream : toggleSim
+  // ⏩ AUTO é SEMPRE o ritmo padrão: ao voltar pro auto, zera a velocidade (Normal).
+  // Assim a marcha escolhida vale só dentro do manual, e o manual sempre COMEÇA no
+  // Normal (o do meio) — igual ao auto. (Sincroniza via estado, então bate pra sala.)
+  const rawToggle = streamHost ? toggleStream : toggleSim
+  const toggleManual = () => {
+    const goingManual = !manual
+    rawToggle()
+    if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
+  }
   // +10s de folga só no solo manual; na SALA MANUAL online +2s pra dar pra
   // acompanhar melhor a partida (todos na sala pegam o mesmo +2s, então não
   // dessincroniza); sala normal/auto mantém o tempo padrão.
@@ -2647,9 +2655,15 @@ export function EscSeason() {
   useEffect(() => {
     if (!copaLive || firstLegPending) { setCopaMin(93); return }
     setCopaMin(0)
-    const step = Math.max(30, ((QUICK_COPA_LEG_MS / speedFactor) * 0.82) / 93)
-    let cur = 0
-    const iv = setInterval(() => { cur++; setCopaMin(cur); if (cur >= 93) clearInterval(iv) }, step)
+    // relógio por TEMPO (igual ao card grande): cada velocidade é de fato diferente
+    // e termina exato no fim do jogo. Piso de 400ms pra nunca ficar instantâneo.
+    const dur = Math.max(400, (QUICK_COPA_LEG_MS / speedFactor) * 0.82)
+    const t0 = Date.now()
+    const iv = setInterval(() => {
+      const m = Math.min(93, Math.round(((Date.now() - t0) / dur) * 93))
+      setCopaMin(m)
+      if (m >= 93) clearInterval(iv)
+    }, 40)
     return () => clearInterval(iv)
   }, [copaTieKey, copaLive, firstLegPending, speedFactor])
 

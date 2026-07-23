@@ -715,9 +715,17 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     // mesma rodada não reinicia o jogo que está na tela — ele não re-simula.
     if (finished) { setMin(93); return }
     setMin(0)
-    const step = Math.max(30, (roundMs * 0.82) / 93)
-    let cur = 0
-    const iv = setInterval(() => { cur++; setMin(cur); if (cur >= 93) clearInterval(iv) }, step)
+    // relógio por TEMPO (não por passo fixo): sobe 0→93' ao longo de `dur`. Assim
+    // cada velocidade é REALMENTE diferente — o passo fixo batia num piso (30ms) e
+    // 2× e 4× ficavam iguais. E termina EXATO no fim do jogo (nada de liberar o
+    // "próxima" antes do apito). Piso de 400ms pra nunca ficar instantâneo.
+    const dur = Math.max(400, roundMs * 0.82)
+    const t0 = Date.now()
+    const iv = setInterval(() => {
+      const m = Math.min(93, Math.round(((Date.now() - t0) / dur) * 93))
+      setMin(m)
+      if (m >= 93) clearInterval(iv)
+    }, 40)
     return () => clearInterval(iv)
   }, [roundKey, finished, roundMs])
   const done = min >= 93
@@ -1629,6 +1637,12 @@ export function PyramidSeasonScreen() {
   // dá pra pausar entre rodadas (manual) e o jogo roda +5s mais calmo.
   const [manualPref, toggleSim] = useSimMode()
   const manual = manualPref && state.onlineMode !== 'online'
+  // ⏩ AUTO é sempre o ritmo padrão: ao voltar pro auto, zera a velocidade (Normal).
+  const toggleManualCareer = () => {
+    const goingManual = !manual
+    toggleSim()
+    if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
+  }
   // ⏩ velocidade da simulação (marcha do jogador): divide o tempo da rodada. 1 = normal.
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
   const roundMs = Math.round((manual ? ROUND_MS + 10000 : ROUND_MS) / speedFactor)
@@ -1637,6 +1651,14 @@ export function PyramidSeasonScreen() {
     const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), roundMs)
     return () => clearTimeout(t)
   }, [round, state.isHost, done, dispatch, manual, roundMs])
+  // 🚫 no MANUAL, "Próxima rodada" só libera DEPOIS que o jogo termina de animar —
+  // igual ao stream/rápido. Sem isto dava pra clicar sem parar e pular os jogos.
+  const [roundReady, setRoundReady] = useState(false)
+  useEffect(() => {
+    setRoundReady(false)
+    const t = setTimeout(() => setRoundReady(true), roundMs * 0.85 + 250)
+    return () => clearTimeout(t)
+  }, [round, roundMs])
 
   return (
     <div style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
@@ -1685,9 +1707,9 @@ export function PyramidSeasonScreen() {
         {state.onlineMode !== 'online' && state.isHost && !done && !copaPlaying && (
           <>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-            <SimControls manual={manual} onToggle={toggleSim} canNext
+            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={round === 0 || roundReady}
               onNext={() => dispatch({ type: 'PLAY_ROUND' })}
-              nextLabel={round === 0 ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
+              nextLabel={!(round === 0 || roundReady) ? '⏳ Deixa a rodada acabar…' : round === 0 ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
           </>
         )}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
