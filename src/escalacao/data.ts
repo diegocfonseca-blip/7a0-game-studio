@@ -56,6 +56,7 @@ export const BIOS: Record<string, string> = {
   "Domingos": "Zagueiro titular do Santos bicampeão paulista (2006 e 2007) — firme na marcação, viveu ali o melhor momento da carreira.",
   "Evaristo de Macedo": "Um dos maiores atacantes da história do Flamengo — artilheiro e multicampeão nos anos 50, que ainda brilhou no Barcelona e no Real Madrid. Lenda dentro e fora de campo.",
   "Rogério (pedala Robinho)": "Lateral-direito campeão da Libertadores de 99 pelo Palmeiras — carreira bem melhor do que lembram, apesar de ter entrado pra história como vítima das pedaladas do Robinho. 😅",
+  "Richarlyson": "Lateral-esquerdo e volante versátil do São Paulo tricampeão brasileiro (2006, 2007 e 2008) — marcação, apoio pela ponta e muita regularidade.",
   "Enner Valencia": "Artilheiro equatoriano de força e oportunismo — goleador da seleção e do Internacional, sempre bem posicionado na área.",
   "Alan Patrick": "Camisa 10 do Internacional — criação, chute de fora e cobranças ensaiadas. Cérebro e líder do time colorado.",
   "Bernabei": "Lateral-esquerdo argentino do Internacional — velocidade e apoio pela ponta, bom pé pra cruzar e pra chutar.",
@@ -671,6 +672,7 @@ const GOL: C[] = [
 const LAT: C[] = [
   { name: "Bernabei", club: "Internacional", year: 2025, fame: 2, lo: 66, hi: 80 },
   { name: "Rogério (pedala Robinho)", club: "Palmeiras", year: 1999, fame: 2, lo: 66, hi: 80, folk: true },
+  { name: "Richarlyson", club: "São Paulo", year: 2007, fame: 3, lo: 74, hi: 82 },
   { name: "Nelinho", club: "Cruzeiro", year: 1978, fame: 4, lo: 80, hi: 88 },
   { name: "Josimar", club: "Botafogo", year: 1986, fame: 3, lo: 74, hi: 84 },
   { name: "Guilherme Arana", club: "Atlético-MG", year: 2021, fame: 3, lo: 76, hi: 84 },
