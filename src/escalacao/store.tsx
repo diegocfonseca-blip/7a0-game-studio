@@ -1485,6 +1485,7 @@ const INITIAL: EscState = {
 type Action =
   | { type: 'GO_LOBBY' }
   | { type: 'GO_LOBBY_ONLINE' }
+  | { type: 'KICKED_OUT' }
   | { type: 'GO_SETUP' }
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
@@ -1887,6 +1888,10 @@ export function reducer(state: EscState, action: Action): EscState {
     })
   }
   if (action.type === 'NEW_GAME') return { ...INITIAL }
+  // Fui REMOVIDO pela host no meio da partida: saio de vez. Zera tudo e cai no
+  // MENU ONLINE (não no meio do jogo). A vaga no banco a host já apagou; o canal
+  // é derrubado pelo próprio reset (onlineMode volta a 'cpu', sem roomId).
+  if (action.type === 'KICKED_OUT') return { ...INITIAL, screen: 'lobby' }
   const s: EscState = JSON.parse(JSON.stringify(state))
   switch (action.type) {
     case 'GO_LOBBY': { s.screen = 'intro'; s.onlineMode = 'cpu'; s.dinastia = false; s.dinastiaBudget = undefined; s.dinastiaPaused = false; s.dinastiaMidUsed = false; return s }
@@ -1951,10 +1956,15 @@ export function reducer(state: EscState, action: Action): EscState {
         m.auctionRival = false
         return s
       }
-      // humano saiu/foi removido → vira RIVAL CPU: continua no leilão dando lance
-      // com o time e o dinheiro dele (mantém auctionRival). Só deixa de ser humano,
-      // então ninguém espera ele lacrar e ele não entra na votação do fim.
+      // humano saiu/foi removido → deixa de ser humano (ninguém espera ele lacrar).
+      // O que sobra do time depende de quanta gente resta na partida:
+      //  · sobrou só a host (eram 2 no total) → vira RIVAL CPU dando lance com o
+      //    time e o dinheiro dele, pra host não ficar sem adversário no leilão;
+      //  · ainda há 2+ humanos → EXCLUI de verdade: para de dar lance, só preenche
+      //    a tabela (não fica um "bot fantasma" no meio de uma partida com gente).
       m.isHuman = false
+      const humansLeft = s.managers.filter(x => x.isHuman).length
+      m.auctionRival = humansLeft <= 1
       if (s.phase === 'envelope' || s.phase === 'resq_envelope') {
         const pos = SECTORS[s.sectorIdx]
         if (humansToSubmit(s, pos).every(id => s.submitted.includes(id))) sealAndResolve(s)
@@ -3523,11 +3533,25 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // reações chegam pra todos (host e convidados), fora do fluxo de ações
     ch.on('broadcast', { event: 'emote' }, ({ payload }: { payload: EmoteEvent }) => addEmote(payload))
     ch.on('broadcast', { event: 'chat' }, ({ payload }: { payload: ChatMsg }) => addChat(payload, false))
-    // host removeu alguém: se for EU, saio da partida (libera vaga + volta pra home)
+    // host removeu alguém: se for EU, saio da partida DE VEZ e caio no menu online.
     ch.on('broadcast', { event: 'kick' }, ({ payload }: { payload: { playerIndex: number } }) => {
       if (payload.playerIndex !== stateRef.current.youIdx) return
+      // trava esta sala: nunca reaparece o "voltar pra sala" neste aparelho.
+      const rid = stateRef.current.roomId
+      if (rid) {
+        try {
+          const K = 'esc-dismissed-rooms'
+          const arr = JSON.parse(localStorage.getItem(K) || '[]') as string[]
+          if (!arr.includes(rid)) localStorage.setItem(K, JSON.stringify([...arr, rid].slice(-40)))
+        } catch { /* ignora */ }
+      }
+      // PARA de ouvir a host AGORA, antes do alert() bloquear a thread — senão os
+      // estados que chegam durante o aviso ficam na fila e, ao dar OK, puxam a
+      // pessoa de volta pro jogo (o bug: "dei ok mas continuo vendo a partida").
+      try { channelRef.current?.unsubscribe() } catch { /* ignora */ }
+      channelRef.current = null
       try { alert('O host removeu você desta partida.') } catch { /* ignora */ }
-      dispatch({ type: 'GO_LOBBY' })
+      rawDispatch({ type: 'KICKED_OUT' }) // zera e volta pro menu online, sem reconectar
     })
     // o host saiu da sala e me escolheu como novo host: viro autoritativo e mostro
     // o aviso grande. (chega pra todos; só age quem foi escolhido e ainda não é host)
