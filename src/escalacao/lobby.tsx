@@ -18,6 +18,8 @@ type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'
 
 interface RoomPlayer { user_id: string; manager_name: string; player_index: number }
+// 💬 mensagem do chat da sala de espera (uid = quem mandou, pra saber o "meu")
+interface LobbyMsg { id: string; uid: string; name: string; text: string }
 // tier de apoio de um jogador da sala, lido pelo SELO que viaja no nome dele
 // (👑 ouro · ⭐ prata · 💎 roxo) — assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
@@ -31,6 +33,8 @@ const GOLD = '#FFC400'
 const GREEN = '#1B7A3D'
 const PURPLE = '#7C3AED'
 const PURPLE_DARK = '#5B21B6'
+const RED = '#E8503A'
+const CREAM = '#F4ECD6'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' }
 function randCode() { return Math.random().toString(36).slice(2, 8).toUpperCase() }
 // cor por usuário (estável pelo nome) — diferencia as mensagens de cada um.
@@ -40,6 +44,63 @@ function chatColor(name: string): string {
   let h = 0
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
   return CHAT_COLORS[h % CHAT_COLORS.length]
+}
+
+// 💬 Gaveta de chat da sala de espera — MESMO desenho do chat do leilão
+// (ChatWidget): botão flutuante no canto + gaveta que sobe de baixo com a lista
+// de mensagens (que ficam), a caixa de digitar e o crachá de não-lidas.
+function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: {
+  open: boolean; setOpen: (o: boolean) => void; unread: number
+  msgs: LobbyMsg[]; myUid?: string; listRef: React.RefObject<HTMLDivElement | null>; onSend: (t: string) => void
+}) {
+  const [text, setText] = useState('')
+  const send = (t: string) => { onSend(t); setText('') }
+  return (
+    <>
+      {!open && (
+        <button onClick={() => setOpen(true)} aria-label="Abrir chat da sala"
+          style={{ position: 'fixed', left: 12, bottom: 12, zIndex: 99990, width: 46, height: 46, borderRadius: 999, background: GOLD, border: '3px solid #000', display: 'grid', placeItems: 'center', fontSize: 20, boxShadow: '3px 3px 0 0 #000', cursor: 'pointer' }}>
+          💬
+          {unread > 0 && (
+            <span style={{ position: 'absolute', top: -5, right: -4, background: RED, color: '#fff', border: '2px solid #000', borderRadius: 999, ...OSWALD, fontWeight: 900, fontSize: 10, minWidth: 17, height: 17, display: 'grid', placeItems: 'center', padding: '0 3px', lineHeight: 1 }}>{unread}</span>
+          )}
+        </button>
+      )}
+      {open && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99991, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+          <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.28)' }} />
+          <div style={{ position: 'relative', color: INK, background: '#FBF6E7', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '64vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -6px 0 0 rgba(0,0,0,.12)' }}>
+            <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px' }}>
+              <span style={{ ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: 14 }}>💬 Zoeira da sala</span>
+              <button onClick={() => setOpen(false)} aria-label="Fechar" style={{ width: 24, height: 24, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
+            </div>
+            <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: 10, display: 'flex', flexDirection: 'column', gap: 7, minHeight: 90 }}>
+              {msgs.length === 0
+                ? <p style={{ textAlign: 'center', color: '#8a7d59', fontWeight: 700, fontSize: 12, marginTop: 10 }}>Manda a primeira zoeira 😎</p>
+                : msgs.map(m => {
+                  const mine = !!myUid && m.uid === myUid
+                  return (
+                    <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
+                      <span style={{ width: 11, height: 11, borderRadius: 999, border: '1.5px solid #000', background: chatColor(m.name), marginTop: 4, flexShrink: 0 }} />
+                      <div style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%' }}>
+                        <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1, color: chatColor(m.name) }}>{mine ? 'Você' : m.name}</span>
+                        <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word' }}>{m.text}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+            </div>
+            <div style={{ display: 'flex', gap: 6, padding: 9, borderTop: '2px solid #000', background: CREAM }}>
+              <input value={text} onChange={e => setText(e.target.value)} maxLength={160}
+                onKeyDown={e => { if (e.key === 'Enter') send(text) }} placeholder="manda a real…"
+                style={{ flex: 1, minWidth: 0, color: INK, background: '#fff', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', fontSize: 13, fontWeight: 600 }} />
+              <button onClick={() => send(text)} disabled={!text.trim()} style={{ ...OSWALD, fontWeight: 900, fontSize: 13, background: text.trim() ? GREEN : '#cfc6ae', color: '#fff', border: '2px solid #000', borderRadius: 9, padding: '0 14px', boxShadow: '2px 2px 0 0 #000', cursor: text.trim() ? 'pointer' : 'default', flexShrink: 0 }}>Enviar</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
 }
 
 // Guarda a sala no aparelho: no celular, trocar de app (ex.: abrir o
@@ -259,18 +320,32 @@ export function EscLobby() {
   // edição rápida do nome de técnico (na home)
   const [editingName, setEditingName] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
-  // zoeira na sala de espera: bolhas efêmeras (nome de quem manda na frente),
-  // trafegadas por broadcast no MESMO canal realtime da sala (esclobby).
-  const [lobbyChat, setLobbyChat] = useState<{ id: string; name: string; text: string }[]>([])
+  // 💬 CHAT DA SALA DE ESPERA: igual ao chat do leilão — mensagens que FICAM
+  // (lista rolável, não somem), caixa pra digitar e as frases prontas. Trafegado
+  // por broadcast no MESMO canal realtime da sala (esclobby). Badge de não-lidas
+  // por usuário (zera ao abrir a gaveta).
+  const [lobbyChat, setLobbyChat] = useState<LobbyMsg[]>([])
+  const [lobbyChatOpen, setLobbyChatOpen] = useState(false)
+  const [lobbyUnread, setLobbyUnread] = useState(0)
+  const lobbyOpenRef = useRef(false)
+  const lobbyListRef = useRef<HTMLDivElement>(null)
   const lobbyChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
-  const addLobbyChat = useCallback((e: { id: string; name: string; text: string }) => {
-    setLobbyChat(prev => prev.some(x => x.id === e.id) ? prev : [...prev.slice(-11), e])
-    setTimeout(() => setLobbyChat(prev => prev.filter(x => x.id !== e.id)), 4200)
+  const addLobbyChat = useCallback((e: LobbyMsg, mine: boolean) => {
+    setLobbyChat(prev => prev.some(x => x.id === e.id) ? prev : [...prev.slice(-60), e])
+    if (!mine && !lobbyOpenRef.current) setLobbyUnread(u => Math.min(99, u + 1))
   }, [])
+  const openLobbyChat = (open: boolean) => {
+    lobbyOpenRef.current = open; setLobbyChatOpen(open)
+    if (open) setLobbyUnread(0)
+  }
   const sendLobbyChat = (text: string) => {
+    const t = text.trim().slice(0, 160)
+    if (!t) return
     const myName = players.find(p => p.user_id === user?.id)?.manager_name ?? 'Você'
-    const e = { id: Math.random().toString(36).slice(2), name: myName, text }
-    addLobbyChat(e) // mostra o meu na hora (o canal não devolve o próprio broadcast)
+    const e: LobbyMsg = { id: Math.random().toString(36).slice(2), uid: user?.id ?? 'me', name: myName, text: t }
+    addLobbyChat(e, true) // mostra o meu na hora (o canal não devolve o próprio broadcast)
+    // manda em 'chat' (persistente) e 'emote' (clientes antigos ainda enxergam).
+    lobbyChanRef.current?.send({ type: 'broadcast', event: 'chat', payload: e })
     lobbyChanRef.current?.send({ type: 'broadcast', event: 'emote', payload: e })
   }
 
@@ -346,6 +421,7 @@ export function EscLobby() {
 
   useEffect(() => {
     if (!room) return
+    setLobbyChat([]); setLobbyUnread(0) // sala nova → chat limpo
     fetchPlayers(room.id)
     const ch = supabase.channel(`esclobby:${room.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'room_players', filter: `room_id=eq.${room.id}` }, () => fetchPlayers(room.id))
@@ -363,11 +439,17 @@ export function EscLobby() {
             })
           }
         })
-      .on('broadcast', { event: 'emote' }, ({ payload }: { payload: { id: string; name: string; text: string } }) => addLobbyChat(payload))
+      .on('broadcast', { event: 'chat' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))
+      .on('broadcast', { event: 'emote' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))
       .subscribe()
     lobbyChanRef.current = ch
     return () => { ch.unsubscribe(); lobbyChanRef.current = null }
   }, [room?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // rola pro fim quando chega mensagem nova (com a gaveta aberta)
+  useEffect(() => {
+    if (lobbyChatOpen && lobbyListRef.current) lobbyListRef.current.scrollTop = lobbyListRef.current.scrollHeight
+  }, [lobbyChat, lobbyChatOpen])
 
   async function fetchPlayers(roomId: string) {
     const { data } = await supabase.from('room_players').select('*').eq('room_id', roomId).order('player_index')
@@ -1212,6 +1294,7 @@ export function EscLobby() {
 
   if (phase === 'waiting' && room) {
     const ready = players.length >= 2
+    const chatOff = !!room.game_state?.chatOff // host desligou o chat na criação
     return wrap(<>
       <div className="text-center">
         {room.game_state?.roomName && <p className="text-white font-black text-xl mb-1" style={OSWALD}>{room.game_state.roomName}</p>}
@@ -1269,9 +1352,10 @@ export function EscLobby() {
         </div>
       </div>
 
-      {/* Zoeira da sala de espera: convidado COBRA o host (que demora), host
-          PROVOCA a galera. As bolhas aparecem pra todos, com o nome na frente. */}
-      {(() => {
+      {/* Zoeira da sala de espera: frases prontas que caem no CHAT da sala (o
+          mesmo do leilão — as mensagens ficam, não somem). Tocar numa frase já
+          abre a gaveta do chat pra você ver ela cair. */}
+      {!chatOff && (() => {
         const carreira = room.game_state?.mode === 'carreira'
         const hostName = players.find(p => p.player_index === 0)?.manager_name ?? 'host'
         const abrir = carreira ? 'começa logo a carreira!' : 'abre o pregão!'
@@ -1293,12 +1377,16 @@ export function EscLobby() {
             <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-2">😜 Enquanto espera… zoa a galera</p>
             <div className="grid grid-cols-2 gap-2">
               {jabs.map((j, i) => (
-                <button key={i} onClick={() => sendLobbyChat(`${j.ic} ${j.tx}`)}
+                <button key={i} onClick={() => { sendLobbyChat(`${j.ic} ${j.tx}`); openLobbyChat(true) }}
                   className="border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] text-left bg-white text-black active:translate-y-0.5" style={OSWALD}>
                   {j.ic} {j.tx}
                 </button>
               ))}
             </div>
+            <button onClick={() => openLobbyChat(true)}
+              className="mt-2 w-full border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] bg-white text-black active:translate-y-0.5 flex items-center justify-center gap-1.5" style={OSWALD}>
+              💬 Abrir chat da sala {lobbyChat.length > 0 && <span className="opacity-60">({lobbyChat.length})</span>}
+            </button>
           </div>
         )
       })()}
@@ -1312,17 +1400,12 @@ export function EscLobby() {
       })()}
       <button onClick={leaveRoom} className="text-white/30 text-xs underline w-full text-center">← Sair da sala</button>
 
-      {/* bolhas de zoeira: flutuam no rodapé, somem sozinhas, aparecem pra todos */}
-      {lobbyChat.length > 0 && (
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 24, zIndex: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '0 16px', pointerEvents: 'none' }}>
-          {lobbyChat.map(e => (
-            <motion.div key={e.id} initial={{ opacity: 0, y: 14, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0 }}
-              style={{ background: '#fff', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 999, padding: '6px 14px', boxShadow: '2px 2px 0 #0C0C0C', maxWidth: '92%', fontSize: 13, fontWeight: 700, ...OSWALD }}>
-              <span style={{ color: chatColor(e.name), fontWeight: 900 }}>{e.name}:</span> {e.text}
-            </motion.div>
-          ))}
-        </div>
-      )}
+      {/* 💬 CHAT DA SALA DE ESPERA — igual ao do leilão: botãozinho flutuante que
+          abre uma gaveta com as mensagens (que FICAM), a caixa de digitar e o
+          crachá de não-lidas. Só aparece se o host deixou o chat ligado. */}
+      {!chatOff && <LobbyChatDock
+        open={lobbyChatOpen} setOpen={openLobbyChat} unread={lobbyUnread}
+        msgs={lobbyChat} myUid={user?.id} listRef={lobbyListRef} onSend={sendLobbyChat} />}
     </>)
   }
   // 🛟 fallback (nunca mais tela preta): "waiting" sem sala, ou qualquer estado
