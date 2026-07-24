@@ -3,8 +3,9 @@ import { useState } from 'react'
 // Cada compra APARECE no desenho: torcida enchendo os setores, refletores
 // acendendo (anoitece!), telão ligando, loja, estacionamento, cobertura.
 // Melhorias destravam em árvore. Renda cai sozinha no fim de cada temporada.
-import { STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, STADIUM_BASE, sectorPct, hasExtra, extraUnlocked, stadiumIncome, stadiumBuiltIncome, stadiumSeats, stadiumLevel } from './estadiodata'
-import type { StadiumSave } from './estadiodata'
+import { STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, STADIUM_BASE, sectorPct, hasExtra, extraUnlocked, stadiumIncome, stadiumBuiltIncome, stadiumSeats, stadiumLevel, SPONSOR_PAY, sponsorsForDiv, sponsorsLocked, currentSponsor } from './estadiodata'
+import type { StadiumSave, Sponsor } from './estadiodata'
+import { VADICO_LOGO } from './vadico'
 import { myApoioPerk, loggedEmail, APOIO_PERKS } from './apoio'
 import type { ApoioPerk } from './apoio'
 
@@ -23,6 +24,49 @@ const STANDS: Record<string, { pts: number[][]; axis: 'x' | 'y'; from: number; t
   visitante: { pts: [[97, 74], [97, 238], [64, 206], [64, 104]],     axis: 'x', from: 97,  to: 64,  lx: 80,  ly: 158, rot: -90 },
 }
 const P = (a: number[][]) => a.map(p => p.join(',')).join(' ')
+
+// ─── 👕 PATROCÍNIO — cartão de escolher a marca (aba Clube › Estádio) ───────
+export function SponsorCard({ div, chosen, onChoose }: { div: string; chosen?: string; onChoose: (id: string) => void }) {
+  const pay = SPONSOR_PAY[div] ?? 0
+  const opts = sponsorsForDiv(div)
+  const locked = sponsorsLocked(div)
+  const cur = currentSponsor(div, chosen)
+  const brand = (s: Sponsor, selectable: boolean, on: boolean, tag?: string) => (
+    <button key={s.id} onClick={selectable ? () => onChoose(s.id) : undefined} disabled={!selectable}
+      style={{ position: 'relative', flex: '1 1 0', minWidth: 0, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 12, boxShadow: `2px 2px 0 0 ${INK}`, padding: '10px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, cursor: selectable ? 'pointer' : 'default', opacity: selectable ? 1 : .5, outline: on ? `3px solid ${GOLD}` : 'none', outlineOffset: 2 }}>
+      {tag && <span style={{ position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)', ...OSW, fontWeight: 900, fontSize: 8.5, textTransform: 'uppercase', padding: '2px 7px', borderRadius: 999, border: `2px solid ${INK}`, whiteSpace: 'nowrap', background: on ? GOLD : '#6b6357', color: on ? INK : '#fff' }}>{tag}</span>}
+      <div style={{ height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {s.logo
+          ? <img alt={s.name} src={VADICO_LOGO} style={{ maxHeight: 30, maxWidth: 96, objectFit: 'contain' }} />
+          : <span style={{ ...OSW, fontWeight: 900, fontSize: 12, color: '#fff', background: s.color, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 8px', whiteSpace: 'nowrap' }}>{s.emoji} {s.name.split(' ')[0]}</span>}
+      </div>
+      <span style={{ ...OSW, fontWeight: 900, fontSize: 11, color: INK, lineHeight: 1.05, textAlign: 'center' }}>{s.name}</span>
+    </button>
+  )
+  return (
+    <div style={{ ...box('#fff'), padding: 12, marginTop: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
+        <span style={{ ...OSW, fontWeight: 900, fontSize: 14 }}>👕 Patrocínio</span>
+        <span style={{ ...OSW, fontWeight: 900, fontSize: 13, color: GREEN }}>{pay > 0 ? `+${pay} / temporada` : '—'}</span>
+      </div>
+      {pay === 0 || opts.length === 0 ? (
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0, lineHeight: 1.4 }}>Nenhuma marca quer a <b>Série D</b> ainda… <b>suba pra atrair patrocínio!</b> 🔨</p>
+      ) : (
+        <>
+          <p style={{ ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 2px 6px' }}>Escolha a marca da camisa</p>
+          <div style={{ display: 'flex', gap: 7 }}>{opts.map(s => brand(s, true, cur?.id === s.id, cur?.id === s.id ? '✓ escolhido' : undefined))}</div>
+          {locked.length > 0 && (
+            <>
+              <p style={{ ...OSW, fontWeight: 900, fontSize: 9.5, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.4)', margin: '11px 2px 6px' }}>Marcões — destravam subindo 👑</p>
+              <div style={{ display: 'flex', gap: 7 }}>{locked.map(s => brand(s, false, false, `🔒 Série ${s.div}`))}</div>
+            </>
+          )}
+        </>
+      )}
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '9px 2px 0', lineHeight: 1.35 }}>Rende por divisão: D <b>0</b> · C <b>+10</b> · B <b>+20</b> · A <b>+35</b>. Cai no caixa no fim da temporada, junto com a bilheteria. A escolha é só de <b>identidade</b> — todas da mesma divisão pagam igual.</p>
+    </div>
+  )
+}
 
 export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; perkOverride?: ApoioPerk }) {
   const night = hasExtra(st, 'refl')

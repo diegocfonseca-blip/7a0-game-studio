@@ -71,9 +71,18 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
   const b2 = s.careerCoins[y] ?? 0
   chargeSalaries(s)
   const b3 = s.careerCoins[y] ?? 0
+  // 👕 PATROCÍNIO (só carreira SOLO): renda por divisão da temporada que rolou.
+  // Série D não atrai marca (0). O caixa segue por divisão, não pela marca.
+  if (s.onlineMode !== 'online') {
+    const div = s.careerPlacements?.[`m${y}`]
+    const spay = div ? (SPONSOR_PAY[div] ?? 0) : 0
+    if (spay > 0) s.careerCoins = { ...s.careerCoins, [y]: (s.careerCoins[y] ?? 0) + spay }
+  }
+  const b4 = s.careerCoins[y] ?? 0
   logFin(s, 'reward', '🏆 Prêmios da temporada', b1 - b0)
   logFin(s, 'gate', '🎟️ Bilheteria', b2 - b1)
   logFin(s, 'salary', '💸 Folha salarial', b3 - b2)
+  logFin(s, 'sponsor', '👕 Patrocínio', b4 - b3)
 }
 // caixa dos OUTROS times (por teamKey string), nunca negativo — soma título/acesso, tira queda
 function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Record<string, number>): Record<string, number> {
@@ -117,7 +126,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
   return out
 }
 import type { CareerTeam } from './data'
-import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium, sectorPct, hasExtra } from './estadiodata'
+import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium, sectorPct, hasExtra, SPONSOR_PAY } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { logPlay, logVisit, heartbeat } from './analytics'
 
@@ -1514,6 +1523,7 @@ type Action =
   | { type: 'FORCE_TIEBREAK' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string }
   | { type: 'MONTE_TIMEOUT' }
+  | { type: 'SET_SPONSOR'; id: string } // 👕 escolhe a marca do patrocínio (carreira solo)
   | { type: 'BUY_FILIAL'; team: string } // 🏢 compra o clube-filial (carreira offline, teste)
   | { type: 'LOAN_TO_FILIAL'; cardId: string } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda, volta na virada)
   | { type: 'LOAN_FROM_FILIAL'; cardId: string } // 🏢 pega um jogador emprestado DA SAF (idem)
@@ -2047,6 +2057,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerHonors = {}; s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.statsSeason = 0
       s.careerLedger = [] // 🧾 livro-caixa novo: extrato/transferências começam vazios
+      s.careerSponsor = undefined // 👕 patrocínio começa sem marca escolhida
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
       // vazando de uma carreira anterior (bug reportado: o estádio vinha completo).
       s.stadiums = {}; s.careerFilial = undefined
@@ -2248,6 +2259,12 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.monteIdx >= s.monteOrder.length || s.managers.every(m => totalHoles(m) === 0)) {
         enterCerimonia(s)
       }
+      return s
+    }
+    case 'SET_SPONSOR': {
+      // 👕 escolhe a marca do patrocínio (cosmético — o valor é por divisão)
+      if (!s.careerOnline || s.onlineMode === 'online') return s
+      s.careerSponsor = action.id
       return s
     }
     case 'BUY_FILIAL': {
