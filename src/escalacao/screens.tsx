@@ -2756,11 +2756,16 @@ export function EscSeason() {
     // só MOMENTOS marcantes (cruzou uma faixa). Sem número de posição — ele fica
     // velho na hora, porque a temporada roda rápido. E some sozinho em 5s pra não
     // ficar contradizendo a tabela embaixo.
+    // 🏆 faixas PROPORCIONAIS ao tamanho da liga: o G4/Z4 do Brasileirão é 4 de 20
+    // (20%). Numa liga de 20 dá 4 (igual sempre); numa de 8 dá ~2; numa de 4/5 dá 1.
+    // Nada de "G4" num campeonato de 4 times.
+    const zTop = zoneN(table.length)      // faixa de cima (G4 proporcional)
+    const zBot = zoneBot(table.length)    // 1ª posição da zona de baixo (Z4 proporcional)
     let msg: string | null = null
     if (youPosShown === 1 && prev !== 1) msg = '👑 Você é o novo LÍDER do campeonato!'
-    else if (youPosShown <= 4 && prev > 4) msg = '📈 Você ENTROU no G4!'
-    else if (youPosShown >= 17 && prev < 17) msg = '⚠️ PERIGO! Você caiu pra zona de rebaixamento!'
-    else if (youPosShown < 17 && prev >= 17) msg = '😮‍💨 Você escapou do Z4!'
+    else if (youPosShown <= zTop && prev > zTop) msg = `📈 Você ENTROU no G${zTop}!`
+    else if (youPosShown >= zBot && prev < zBot) msg = `⚠️ PERIGO! Você caiu pra zona de rebaixamento (Z${zTop})!`
+    else if (youPosShown < zBot && prev >= zBot) msg = `😮‍💨 Você escapou do Z${zTop}!`
     if (msg) {
       setPersonalNews(msg)
       if (personalTimer.current) clearTimeout(personalTimer.current)
@@ -3093,6 +3098,21 @@ export function EscSeason() {
         </Box>
       )}
 
+      {/* 🛋️ FOLGA: liga com nº ímpar de times — nesta rodada você não tem jogo. Só
+          aparece na Liga Fechada ímpar (numa tabela par todo mundo joga toda rodada). */}
+      {!fixture && !copaLive && state.round < totalRounds && state.fixtures.length > 0 && (
+        <Box className="p-4 text-center">
+          <p className="font-black text-lg" style={OSWALD}>🛋️ VOCÊ FOLGA nesta rodada</p>
+          <p className="text-xs font-bold text-black/60 mt-1 leading-snug">Liga com número ímpar de times — a cada rodada um time descansa. Você volta a campo na próxima! 💪</p>
+          <div className="space-y-1 mt-3">
+            <div className="h-2 rounded-full border-2 border-black overflow-hidden bg-white">
+              <div className="h-full transition-all" style={{ width: `${(state.round / totalRounds) * 100}%`, backgroundColor: GREEN }} />
+            </div>
+            <p className="text-center text-xs font-bold text-black/60">⏱️ A rodada corre — os outros se enfrentam.</p>
+          </div>
+        </Box>
+      )}
+
       {personalNews && (
         <Box bg="#6C43C0" className="p-2.5 text-center" shadow={4}>
           <p className="font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>{personalNews}</p>
@@ -3240,13 +3260,19 @@ function CopaScorersBox({ highlight }: { highlight: number }) {
 // placar progressivo: o minuto sobe sozinho de 1 até 90+acréscimos, revelando
 // os gols conforme o relógio passa por eles — nunca mostra o resultado pronto.
 
-// zona da tabela por posição (sempre 20 times): 1-4 azul (G4 — na carreira
-// SOBE de divisão), 5-10 amarelo (pré), 11-16 branco (meio), 17-20 vermelho
-// (Z4 — na carreira CAI) — tom pastel, só pra dar significado visual.
-function zoneColor(rank: number): string | undefined {
-  if (rank <= 4) return '#D6E9FA'
-  if (rank <= 10) return '#FFF3B8'
-  if (rank <= 16) return undefined
+// zona da tabela por posição, PROPORCIONAL ao tamanho da liga (o G4/Z4 do
+// Brasileirão é 4 de 20 = 20%). Numa tabela de 20 dá exatamente o de sempre
+// (1-4 azul G4, 5-10 amarelo pré, 11-16 branco meio, 17-20 vermelho Z4); numa
+// liga fechada menor, as faixas encolhem na mesma proporção.
+function zoneN(n: number): number { return Math.max(1, Math.round(n / 5)) }
+function zoneBot(n: number): number { return n - zoneN(n) + 1 } // 1ª posição da zona de baixo (Z4 proporcional)
+function zoneColor(rank: number, n = 20): string | undefined {
+  const top = zoneN(n)                          // G4 (20% de cima)
+  const pre = top + Math.max(1, Math.round(n * 0.3)) // faixa "pré" (~30%)
+  const bot = n - top                           // início do Z4 (20% de baixo)
+  if (rank <= top) return '#D6E9FA'
+  if (rank <= pre) return '#FFF3B8'
+  if (rank <= bot) return undefined
   return '#F9D8D3'
 }
 
@@ -3274,10 +3300,10 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
       <div className="flex items-center justify-between mb-2">
         <p className="font-black text-sm" style={OSWALD}>{title}</p>
         <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#D6E9FA' }} />G4</span>
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#D6E9FA' }} />G{zoneN(table.length)}</span>
           <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFF3B8' }} />Pré</span>
           <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block border border-black/20" style={{ backgroundColor: '#fff' }} />Meio</span>
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#F9D8D3' }} />Z4</span>
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#F9D8D3' }} />Z{zoneN(table.length)}</span>
         </div>
       </div>
       <table className="w-full text-xs">
@@ -3297,7 +3323,7 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
             const isRival = (!!state.careerDivision && state.careerRivals.some(rv => rv.team === t.name)) || isOnlineRival
             return (
               <tr key={t.id} className="border-t border-black/10 font-semibold"
-                style={{ backgroundColor: isYou ? GOLD : isRival ? '#FFE0D6' : zoneColor(rank), fontWeight: isMgr ? 800 : 500 }}>
+                style={{ backgroundColor: isYou ? GOLD : isRival ? '#FFE0D6' : zoneColor(rank, table.length), fontWeight: isMgr ? 800 : 500 }}>
                 <td className="pr-1">{rank}</td>
                 <td className="truncate max-w-[130px]">{isRival ? '🔥 ' : isMgr ? '👤 ' : ''}{t.name}</td>
                 <td className="text-center font-black">{t.pts}</td>
@@ -3317,6 +3343,7 @@ type ShareCard = { name: string; club: string; year: number; pos: string; fame: 
 async function buildShareCardBlob(opts: {
   teamName: string; youPos: number; youWon: boolean; champName: string
   pts: number; w: number; d: number; l: number; scorerName?: string; scorerGoals?: number
+  nTeams?: number // tamanho da liga (pra faixa 🥈/🪦 proporcional; ausente = 20)
   card?: ShareCard // carta-lembrança do campeão (só quando você venceu e escolheu)
 }): Promise<Blob | null> {
   const canvas = document.createElement('canvas')
@@ -3339,7 +3366,7 @@ async function buildShareCardBlob(opts: {
 
   const hasCard = !!opts.card
   ctx.font = hasCard ? '110px sans-serif' : '160px sans-serif'
-  ctx.fillText(opts.youWon ? '🏆' : opts.youPos <= 4 ? '🥈' : opts.youPos >= 17 ? '🪦' : '⚽', 450, hasCard ? 296 : 400)
+  ctx.fillText(opts.youWon ? '🏆' : opts.youPos <= zoneN(opts.nTeams ?? 20) ? '🥈' : opts.youPos >= zoneBot(opts.nTeams ?? 20) ? '🪦' : '⚽', 450, hasCard ? 296 : 400)
 
   ctx.font = '900 72px Oswald, sans-serif'
   ctx.fillText(opts.youWon ? 'CAMPEÃO!' : `${opts.youPos}º LUGAR`, 450, hasCard ? 366 : 500)
@@ -4837,7 +4864,7 @@ export function EscEnd() {
   const awaitingCard = online && (stillGetting(ligaCardStatus) || stillGetting(copaCardStatus))
   const featured = youWon ? (myCard ?? [...you.squad].sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))[0]) : undefined
   const shareOpts: ShareOpts = {
-    teamName: you.teamName, youPos, youWon, champName: champ.name,
+    teamName: you.teamName, youPos, youWon, champName: champ.name, nTeams: table.length,
     pts: table[youPos - 1]?.pts ?? 0, w: table[youPos - 1]?.w ?? 0, d: table[youPos - 1]?.d ?? 0, l: table[youPos - 1]?.l ?? 0,
     scorerName: myScorer?.name, scorerGoals: myScorer?.goals,
     card: featured ? { name: featured.name, club: featured.club, year: featured.year, pos: featured.pos, fame: featured.fame, folk: featured.folk, promessa: featured.promessa } : undefined,
@@ -4853,10 +4880,10 @@ export function EscEnd() {
   // (é a próxima ação). Sem Copa, fica no topo como sempre.
   const placementHeader = (padTop: string) => (
     <div className={`text-center ${padTop}`}>
-      <p className="text-6xl">{youWon ? '🏆' : youPos <= 4 ? '🥈' : youPos >= 17 ? '🪦' : '📻'}</p>
+      <p className="text-6xl">{youWon ? '🏆' : youPos <= zoneN(table.length) ? '🥈' : youPos >= zoneBot(table.length) ? '🪦' : '📻'}</p>
       <h2 className="font-black text-4xl mt-2" style={OSWALD}>{youWon ? 'CAMPEÃO!' : `${youPos}º LUGAR`}</h2>
       <p className="font-semibold text-black/60 mt-1">
-        {youWon ? 'O pregão foi seu, o campeonato foi seu. Resenha eterna.' : `Campeão: ${champ.name}. ${youPos >= 17 ? 'Rebaixado. O leilão cobra caro.' : 'Ano que vem tem pregão de novo.'}`}
+        {youWon ? 'O pregão foi seu, o campeonato foi seu. Resenha eterna.' : `Campeão: ${champ.name}. ${youPos >= zoneBot(table.length) ? 'Rebaixado. O leilão cobra caro.' : 'Ano que vem tem pregão de novo.'}`}
       </p>
     </div>
   )
@@ -4937,7 +4964,7 @@ export function EscEnd() {
           <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>Liga Legends</p>
           <p className="font-black text-xl" style={{ ...OSWALD, color: '#fff' }}>{youWon ? '🏆 Campeão' : `${youPos}º lugar`}</p>
           <p className="text-[11px] font-semibold mt-0.5" style={{ color: 'rgba(255,255,255,.62)' }}>
-            {youWon ? 'O pregão foi seu, o campeonato foi seu. Resenha eterna.' : `Campeão: ${champ.name}. ${youPos >= 17 ? 'Rebaixado — o leilão cobra caro.' : 'Ano que vem tem pregão de novo.'}`}
+            {youWon ? 'O pregão foi seu, o campeonato foi seu. Resenha eterna.' : `Campeão: ${champ.name}. ${youPos >= zoneBot(table.length) ? 'Rebaixado — o leilão cobra caro.' : 'Ano que vem tem pregão de novo.'}`}
           </p>
         </div>
       </Box>
