@@ -4,7 +4,7 @@ import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useEsc } from './store'
 import { AdminButton, useCanCareerOnline } from './admin'
-import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen } from './apoio'
+import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk } from './apoio'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import type { EscState, FormationKey } from './types'
@@ -24,7 +24,7 @@ interface LobbyMsg { id: string; uid: string; name: string; text: string }
 // (👑 ouro · ⭐ prata · 💎 roxo) — assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : null
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira'; deck?: DeckChoice }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira'; deck?: DeckChoice; ligaFechada?: boolean }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -352,6 +352,8 @@ export function EscLobby() {
   const careerDeck: DeckChoice = 'both' // carreira: sempre BR + Europa juntos (preenche os 80 times das 4 divisões)
   const [rapidoDeck, setRapidoDeck] = useState<DeckChoice>('br') // rápido online: host escolhe o baralho (BR / Europa / os dois)
   const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa'>('liga_copa') // 🏆 rápido online: liga só, ou liga + Copa dos 8 no fim (padrão)
+  const [ligaFechada, setLigaFechada] = useState(false) // 🏆 liga só com a galera (sem bots) — só quem tem Lenda cria
+  const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
   const [joinCode, setJoinCode] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [roomName, setRoomName] = useState('')
@@ -623,6 +625,7 @@ export function EscLobby() {
       auctionSecs: gs?.auctionSecs, // ⏱️ tempo do leilão (undefined=45s · N=N seg · 0=host avança)
       deck: gs?.deck ?? 'br', // carreira = 'both'; rápido = escolha do host (br/eu/both)
       career: gs?.mode === 'carreira',
+      ligaFechada: !!(gs as GS & { ligaFechada?: boolean })?.ligaFechada, // 🏆 liga só com a galera, sem bots
       locked: gs?.locked, pwHash: gs?.pwHash, // preserva a senha da sala pelo autosave
       copaMode: gs?.copaMode, // 🏆 rápido: liga só ou liga + Copa dos 8 (escolha do host na criação)
     })
@@ -726,7 +729,7 @@ export function EscLobby() {
     const locked = roomLocked && !!roomPw.trim()
     const pwHash = locked ? hashPw(roomPw.trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomManual ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck } : { deck: rapidoDeck, copaMode: rapidoCopaMode }) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomManual ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck } : { deck: rapidoDeck, copaMode: rapidoCopaMode, ...(canLiga && ligaFechada ? { ligaFechada: true } : {}) }) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -1169,6 +1172,24 @@ export function EscLobby() {
           {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
           {!isCareer && (
             <Section num={2} title="A partida" icon="⚽">
+              <SegField label="Tabela">
+                {canLiga ? (
+                  <>
+                    <Seg options={[[false, '🌍 Aberta'], [true, '🏆 Liga Fechada']] as [boolean, string][]} value={ligaFechada} onSet={v => setLigaFechada(v)} />
+                    <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{ligaFechada ? '🏆 Só a galera na tabela — nenhum bot. A liga tem o tamanho de vocês (ida e volta). Copa destrava com 8+ jogadores.' : '🌍 Tabela de 20 times — os que faltam entram como CPU, como sempre.'}</p>
+                  </>
+                ) : (
+                  // Liga Fechada é benefício do Lenda 👑 — pra quem não tem, aparece
+                  // apagada como convite (sempre fica na tabela Aberta).
+                  <>
+                    <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden">
+                      <button className="flex-1 font-black" style={{ padding: '9px 2px', fontSize: 12.5, background: GOLD, color: '#000', ...OSWALD }}>🌍 Aberta</button>
+                      <button disabled className="flex-1 font-black border-l-[2.5px] border-black" style={{ padding: '9px 2px', fontSize: 11, background: '#fff', color: '#000', opacity: 0.4, cursor: 'default', ...OSWALD }}>🏆 Liga Fechada · 👑 Lenda</button>
+                    </div>
+                    <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">🏆 <b>Liga Fechada</b> (liga só com amigos, sem bot) vem no <b>Lenda 👑</b> — desbloqueie no Apoie.</p>
+                  </>
+                )}
+              </SegField>
               <SegField label="Depois da liga">
                 <Seg options={[['liga_copa', '🏆 Liga + Copa'], ['liga', '📊 Só liga']] as ['liga_copa' | 'liga', string][]} value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} />
               </SegField>
@@ -1240,6 +1261,7 @@ export function EscLobby() {
             const isCareerRoom = r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
             const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto
             const copaLbl = r.game_state?.copaMode === 'liga' ? '📊 só liga' : '🏆 liga+copa' // padrão = liga+copa
+            const ligaFechadaRoom = !!(r.game_state as GS & { ligaFechada?: boolean })?.ligaFechada // 🏆 liga só com a galera
             return (
               <div key={r.id} className="flex items-center gap-2 border-[3px] border-black rounded-xl p-3" style={{ background: live ? '#EFE6C8' : '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
                 <div className="flex-1 min-w-0">
@@ -1248,7 +1270,7 @@ export function EscLobby() {
                     <span className="truncate">{r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}</span>
                     <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title="Baralho da sala">{deckLbl}</span>
                   </p>
-                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}/{r.max_players} · {r.code}{!isCareerRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>
+                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}/{r.max_players} · {r.code}{ligaFechadaRoom ? ' · 🏆 liga fechada' : ''}{!isCareerRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>
                 </div>
                 {live ? (
                   <span className="border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0" style={{ backgroundColor: '#ccc', color: '#000', ...OSWALD }}>

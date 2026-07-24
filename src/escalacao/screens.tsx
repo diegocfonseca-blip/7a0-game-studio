@@ -2699,7 +2699,10 @@ export function EscSeason() {
   const streamRoom = online && (state.streamMode || !!state.manualRoom) // sala com ritmo do host: Copa/etapas sem cronômetro pra ninguém
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
-  const fixture = state.round < 38 ? state.fixtures[state.round].find(([h, a]) => h === you.id || a === you.id) : undefined
+  // 🏆 total de rodadas real: 20 times = 38 (como sempre); Liga Fechada = calendário
+  // do tamanho da galera. Fallback 38 enquanto as fixtures não existem.
+  const totalRounds = state.fixtures.length || 38
+  const fixture = state.round < totalRounds ? state.fixtures[state.round].find(([h, a]) => h === you.id || a === you.id) : undefined
   const opp = fixture ? state.league.find(t => t.id === (fixture[0] === you.id ? fixture[1] : fixture[0])) : undefined
   // confronto direto: clássico quando o adversário é um humano da sala OU um
   // rival fixo da sua carreira (que está na sua divisão nesta temporada).
@@ -2730,7 +2733,7 @@ export function EscSeason() {
   // 🏟️ torcida ao fundo enquanto a temporada roda (para ao sair da tela)
   useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
   // 📣 apito no início de cada jogo (kickoff) — só quando há partida rolando
-  useEffect(() => { if (state.round > 0 && state.round <= 38) playWhistle() }, [state.round])
+  useEffect(() => { if (state.round > 0 && state.round <= totalRounds) playWhistle() }, [state.round])
 
   // manchete PESSOAL (por quem vê): detecta quando VOCÊ muda de faixa na
   // tabela. Feito no cliente pra ficar certo pra cada um no online.
@@ -2770,7 +2773,7 @@ export function EscSeason() {
   // online, o próprio cliente no CPU). Os demais só recebem o resultado
   // sincronizado e tocam a animação do próprio jogo localmente.
   useEffect(() => {
-    if (!canAdvance || state.round >= 38 || state.dinastiaPaused || manual) return // Dinastia: para na janela do meio; manual: avança no botão
+    if (!canAdvance || state.round >= totalRounds || state.dinastiaPaused || manual) return // Dinastia: para na janela do meio; manual: avança no botão
     const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), roundMs)
     return () => clearTimeout(t)
   }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs])
@@ -2778,7 +2781,7 @@ export function EscSeason() {
   // pula pro 'end' sozinha). Quando a animação acaba, aí sim vai pro campeão/Copa —
   // antes o PLAY_ROUND pulava direto e a última partida não aparecia rolando.
   useEffect(() => {
-    if (!canAdvance || state.round < 38 || state.screen !== 'season' || state.champion != null || state.quickCopa) return
+    if (!canAdvance || state.round < totalRounds || state.screen !== 'season' || state.champion != null || state.quickCopa) return
     const t = setTimeout(() => dispatch({ type: 'FINISH_SEASON' }), roundMs)
     return () => clearTimeout(t)
   }, [canAdvance, state.round, state.screen, state.champion, state.quickCopa, roundMs, dispatch])
@@ -2787,7 +2790,7 @@ export function EscSeason() {
   // toca fase a fase (quartas → semis → final), mesmo ritmo/motor da Copa da
   // carreira (COPA_LEG_MS). `s.screen` só vira 'end' quando a final termina.
   const qc = state.quickCopa
-  const copaLive = state.round >= 38 && !!qc && qc.phase !== 'done'
+  const copaLive = state.round >= totalRounds && !!qc && qc.phase !== 'done'
   const copaTieKey = qc ? `${qc.phase}:${qc.legIdx}:${qc.ties.map(t => t.legs.length).join(',')}` : ''
   // primeira partida da Copa (quartas, ainda ninguém jogou nada): dá um tempo
   // de LEITURA (30s) pra explicar o formato antes de começar a rolar bola — as
@@ -2868,7 +2871,7 @@ export function EscSeason() {
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
           {state.careerOnline && !state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 CARREIRA · SÉRIE D</span>}
           {state.careerTitlesA > 0 && <span className="mr-1.5"><CareerStars n={state.careerTitlesA} size={12} /></span>}
-          {copaLive && qc ? `🏆 COPA · ${qc.phase === 'quartas' ? 'QUARTAS' : qc.phase === 'semis' ? 'SEMI' : 'FINAL'}` : `RODADA ${Math.min(state.round + 1, 38)}/38`}
+          {copaLive && qc ? `🏆 COPA · ${qc.phase === 'quartas' ? 'QUARTAS' : qc.phase === 'semis' ? 'SEMI' : 'FINAL'}` : `RODADA ${Math.min(state.round + 1, totalRounds)}/${totalRounds}`}
         </span>
         <span className="font-black text-sm" style={OSWALD}>{(() => {
           const disp = !resultRevealed && state.lastResults.length > 0 ? sortedTable(leagueBeforeResults(state.league, state.lastResults)) : table
@@ -3026,7 +3029,7 @@ export function EscSeason() {
         // só o HOST vê e escolhe — o valor vai pro estado e sincroniza pra sala toda.
         <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />
       )}
-      {(!online || streamHost) && !state.dinastiaPaused && state.round < 38 && (
+      {(!online || streamHost) && !state.dinastiaPaused && state.round < totalRounds && (
         // 🎮 MANUAL: "Próxima rodada" só LIBERA depois que a partida terminou de
         // simular (respeita o tempo da rodada). Sem isto, dava pra clicar sem parar
         // e "pular" as 38 rodadas na hora. No começo (round 0) libera pra dar o
@@ -3082,7 +3085,7 @@ export function EscSeason() {
           </div>
           <div className="space-y-1">
             <div className="h-2 rounded-full border-2 border-black overflow-hidden bg-white">
-              <div className="h-full transition-all" style={{ width: `${(state.round / 38) * 100}%`, backgroundColor: GREEN }} />
+              <div className="h-full transition-all" style={{ width: `${(state.round / totalRounds) * 100}%`, backgroundColor: GREEN }} />
             </div>
             <p className="text-center text-xs font-bold text-black/60">⏱️ Temporada rolando sozinha — sente e assista.</p>
           </div>
