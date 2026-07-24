@@ -713,10 +713,10 @@ function CardFace({ c, big = false, surprise = false, highlight = false }: { c: 
 // Mostra SÓ a novidade mais recente, com X pra fechar. Ao fechar, guarda o id
 // no aparelho — só reaparece quando eu trocar o LATEST_NEWS por um id novo.
 const LATEST_NEWS = {
-  id: '2026-07-copa8',
-  emoji: '🏆',
-  title: 'Chegou a Copa dos 8 — no rápido, offline e online!',
-  text: 'Quando a liga de 38 rodadas acaba, os 8 primeiros disputam uma COPA: mata-mata de ida e volta, com final única. O campeão da Copa leva uma carta nova pro álbum E um título no ranking! É só deixar em "Liga + Copa" ao começar (offline ou online). 🔨',
+  id: '2026-07-financas',
+  emoji: '💰',
+  title: 'Finanças do clube: Extrato e Transferências!',
+  text: 'No Modo Carreira, a aba Estádio virou 💰 Clube. Agora tem um EXTRATO de tudo que entra e sai (prêmios, bilheteria, salários, compras e vendas) e uma aba de TRANSFERÊNCIAS com o lucro/prejuízo de cada venda. Descubra se lucrou naquele craque! E no online: chat de verdade na sala de espera e o host escolhe o tempo do leilão. 🔨',
 }
 function NewsBanner() {
   const [dismissed, setDismissed] = useState(() => {
@@ -743,6 +743,10 @@ function NewsSection() {
       <div>
         <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>✨ No jogo</p>
         <div className="mt-1 space-y-1">
+          <p className="text-xs font-bold text-black/75">💰 <b>Finanças do clube</b> — no <b>Modo Carreira</b>: a aba Estádio virou <b>💰 Clube</b>. Tem um <b>Extrato</b> de tudo que entra e sai (prêmios, bilheteria, salários, compras e vendas) e uma aba de <b>Transferências</b> com o <b>lucro/prejuízo</b> de cada venda e a valorização de quem está no elenco.</p>
+          <p className="text-xs font-bold text-black/75">💬 <b>Chat de verdade na sala de espera</b> — no <b>online</b>: as mensagens agora <b>ficam</b> (não somem mais) e seguem você se recarregar a página. As frases prontas de "zoar a galera" continuam.</p>
+          <p className="text-xs font-bold text-black/75">⏱️ <b>Tempo do leilão</b> — no <b>online</b>: o host escolhe quantos <b>segundos</b> dura cada envelope do pregão (20 a 90s), ou deixa <b>sem tempo</b> e <b>avança cada negociação no botão</b> — todo mundo segue sincronizado.</p>
+          <p className="text-xs font-bold text-black/75">🎮 <b>Controles de ritmo na Copa</b> — no <b>Modo Carreira</b> em modo manual: velocidade, <b>pular</b> e avançar cada fase agora valem também na <b>Copa Legends</b>.</p>
           <p className="text-xs font-bold text-black/75">🏆 <b>Copa dos 8</b> — no <b>jogo rápido</b> (offline e online): quando a liga acaba, os <b>8 primeiros</b> disputam um mata-mata de <b>ida e volta</b> (final única). O campeão da Copa leva uma <b>carta nova</b> pro álbum e um <b>título no ranking</b>! Escolha "Liga + Copa" ao começar.</p>
           <p className="text-xs font-bold text-black/75">💼 <b>SAF</b> — no <b>Modo Carreira</b>: compre a SAF de um clube da Série D, leve <b>50% dos lucros de título e acesso</b> dele, empreste jogadores entre os clubes e veja ele subir na pirâmide. Destrava com o Estádio 100%.</p>
           <p className="text-xs font-bold text-black/75">🏟️ <b>Estádio</b> — no <b>Modo Carreira</b>: construa arquibancadas, refletores, telão e cobertura. O desenho cresce a cada compra e a bilheteria rende toda temporada!</p>
