@@ -3022,12 +3022,21 @@ export function EscSeason() {
         </Box>
       )}
 
-      {state.news.length > 0 && (
-        <Box bg="#FFF6DC" className="p-3 space-y-1">
-          <p className="font-black text-xs uppercase tracking-wide mb-1" style={OSWALD}>{copaLive ? '🏆 Giro da Copa' : '📣 Giro da rodada'}</p>
-          {state.news.slice(0, 4).map((n, i) => <p key={i} className="text-xs font-bold">{n}</p>)}
-        </Box>
-      )}
+      {(() => {
+        // 🚫 ANTI-SPOILER: enquanto a perna da Copa ainda ANIMA (relógio < 93'), as
+        // manchetes que revelam PLACAR / quem passou / campeão entregam o resultado
+        // antes do apito. Some SÓ essas linhas de Copa; o resto do giro segue. Quando
+        // o relógio fecha (copaMin >= 93), o giro aparece completo.
+        const isCopaReveal = (n: string) => /^⚽ Copa /.test(n) || /passou nos PÊNALTIS/.test(n) || /avançou na Copa/.test(n) || /CAMPEÃO DA COPA/.test(n)
+        const shownNews = copaLive && copaMin < 93 ? state.news.filter(n => !isCopaReveal(n)) : state.news
+        if (shownNews.length === 0) return null
+        return (
+          <Box bg="#FFF6DC" className="p-3 space-y-1">
+            <p className="font-black text-xs uppercase tracking-wide mb-1" style={OSWALD}>{copaLive ? '🏆 Giro da Copa' : '📣 Giro da rodada'}</p>
+            {shownNews.slice(0, 4).map((n, i) => <p key={i} className="text-xs font-bold">{n}</p>)}
+          </Box>
+        )
+      })()}
 
       {state.careerOnline && (
         <button onClick={() => setShowPyramid(true)}
@@ -3036,7 +3045,10 @@ export function EscSeason() {
           🪜 Ver as 4 divisões
         </button>
       )}
-      {copaLive && <CopaScorersBox highlight={you.id} />}
+      {/* 🚫 ANTI-SPOILER: a artilharia da Copa soma os gols da perna JÁ no sim; se
+          aparecer durante a animação (relógio < 93'), entrega quem marcou antes do
+          gol animar. Só mostra depois do apito. */}
+      {copaLive && copaMin >= 93 && <CopaScorersBox highlight={you.id} />}
       <TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" />
       <TopScorersBox highlight={you.id} title="⚽ ARTILHARIA DA LIGA LEGENDS" />
       <YourPitch small />
