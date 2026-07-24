@@ -1131,16 +1131,23 @@ export function EscLobby() {
         <div className="space-y-3">
           {/* ① O BÁSICO — modo, nome, baralho, formação */}
           <Section num={1} title="O básico" icon="📋">
-            {canCareer && (
-              <div>
-                <SegField label="Modo de jogo (teste)">
+            <div>
+              <SegField label={canCareer ? 'Modo de jogo (teste)' : 'Modo de jogo'}>
+                {canCareer ? (
                   <Seg options={[['rapido', '⚡ Rápido'], ['carreira', '🌐 Carreira']] as [typeof roomMode, string][]} value={roomMode} onSet={v => setRoomMode(v)} />
-                </SegField>
-                <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-                  {isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
-                </p>
-              </div>
-            )}
+                ) : (
+                  // Carreira ainda em teste fechado: aparece pra TODOS como "em breve",
+                  // apagada e sem clique (só desperta o interesse). Sempre fica no Rápido.
+                  <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden">
+                    <button className="flex-1 font-black" style={{ padding: '9px 2px', fontSize: 12.5, background: GOLD, color: '#000', ...OSWALD }}>⚡ Rápido</button>
+                    <button disabled className="flex-1 font-black border-l-[2.5px] border-black" style={{ padding: '9px 2px', fontSize: 11, background: '#fff', color: '#000', opacity: 0.4, cursor: 'default', ...OSWALD }}>🌐 Carreira · em breve</button>
+                  </div>
+                )}
+              </SegField>
+              <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
+                {!canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
+              </p>
+            </div>
             <Field label="Nome da sala" value={roomName} onChange={e => setRoomName(stripEmoji(e.target.value))} placeholder={`Sala do ${nameOf()}`} maxLength={24} />
             {isCareer ? (
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
