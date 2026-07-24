@@ -529,13 +529,18 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
   squad: WonCard[]; marketValues: Record<string, number>
 }) {
   const [sub, setSub] = useState<'extrato' | 'transf'>('extrato')
-  // saldo da temporada atual (soma tudo que entrou/saiu neste ano)
-  const thisSeason = ledger.filter(e => e.season === seasonNo)
-  const entrou = thisSeason.filter(e => e.amount > 0).reduce((a, e) => a + e.amount, 0)
-  const saiu = thisSeason.filter(e => e.amount < 0).reduce((a, e) => a - e.amount, 0)
   // extrato: do mais novo pro mais antigo, agrupado por temporada
   const rev = [...ledger].reverse()
   const seasons = [...new Set(rev.map(e => e.season))]
+  // 💰 RESUMO = temporada da movimentação MAIS RECENTE (a que encabeça o extrato).
+  // Bilheteria/folha/prêmios de uma temporada só são lançados na VIRADA do ano (já
+  // com o número da temporada que fechou), e aí o seasonNo já pulou pra próxima —
+  // então filtrar pelo seasonNo atual dava 0/0/0 mesmo tendo dados logo abaixo.
+  // Usar a temporada do topo do extrato mantém o resumo sempre casado com a lista.
+  const summarySeason = seasons[0] ?? seasonNo
+  const thisSeason = ledger.filter(e => e.season === summarySeason)
+  const entrou = thisSeason.filter(e => e.amount > 0).reduce((a, e) => a + e.amount, 0)
+  const saiu = thisSeason.filter(e => e.amount < 0).reduce((a, e) => a - e.amount, 0)
   // transferências
   const vendidos = rev.filter(e => e.kind === 'sell')
   const noElenco = squad.filter(c => !c.fake && c.club !== 'Várzea' && !c.emprestado && (c.buyPrice != null || c.paid != null))
@@ -549,7 +554,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
             <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>Caixa atual</div>
             <div style={{ ...OSWALD, fontSize: 27, fontWeight: 900, lineHeight: 1, marginTop: 2 }}>🪙 {caixa}</div>
           </div>
-          <div style={{ textAlign: 'right', fontSize: 10, color: 'rgba(255,255,255,.7)', fontWeight: 700 }}>Temporada {seasonNo}</div>
+          <div style={{ textAlign: 'right', fontSize: 10, color: 'rgba(255,255,255,.7)', fontWeight: 700 }}>Temporada {summarySeason}</div>
         </div>
         <div style={{ display: 'flex', gap: 7, marginTop: 10 }}>
           {([['Entrou', entrou, '#8ff0a8'], ['Saiu', saiu, '#ffb3a6'], ['Saldo', entrou - saiu, GOLD]] as [string, number, string][]).map(([t, v, c], i) => (
