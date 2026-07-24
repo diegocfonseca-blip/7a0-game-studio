@@ -1418,11 +1418,11 @@ export function EscLobby() {
         <div className="space-y-2">
           {players.map(p => (
             <div key={p.user_id} className="flex items-center gap-3">
-              {(() => { const pk = perkFromName(p.manager_name); return (
+              {(() => { const pk = perkFromName(p.manager_name) ?? APOIO_PERKS.bege; return (
                 <div className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center text-sm font-black"
-                  style={pk ? { background: pk.grad, position: 'relative', overflow: 'hidden', color: '#0C0C0C' } : { background: '#d1d5db' }}>
+                  style={{ background: pk.grad, position: 'relative', overflow: 'hidden', color: '#0C0C0C' }}>
                   <span style={{ position: 'relative', zIndex: 2 }}>{stripEmoji(p.manager_name).trim()[0]?.toUpperCase()}</span>
-                  {pk && <ApoioSheen holo={pk.holo} dur={2.6} />}
+                  {pk.holo > 0 && <ApoioSheen holo={pk.holo} dur={2.6} />}
                 </div>
               ) })()}
               <span className="font-black text-black text-sm flex-1">{p.manager_name}</span>
