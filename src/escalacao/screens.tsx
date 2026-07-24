@@ -2247,11 +2247,11 @@ function Reveal() {
     const tieHit = state.tiebreaks.find(t => t.card.id === it.card.id && t.winner !== null)
     const delayMs = (it.bids.length * 0.25 + (tieHit ? 1.2 : 0.2)) * 1000
     const sold = it.winner !== null && it.bids.length > 0
+    const iWon = sold && it.winner === you?.id // 🔨 martelo/chime tocam só pra QUEM levou a carta (cada um ouve o seu)
     const timers: ReturnType<typeof setTimeout>[] = []
-    if (sold) timers.push(setTimeout(() => playHammer(), delayMs))
-    // ✨ chime dourado da LENDA: só toca pra QUEM LEVOU a carta (o usuário em
-    // questão), não pra sala toda nem quando quem arrematou foi bot/outro.
-    if (it.card.fame >= 5 && it.winner === you?.id) timers.push(setTimeout(() => playChime(), delayMs + (sold ? 260 : 0)))
+    if (iWon) timers.push(setTimeout(() => playHammer(), delayMs))
+    // ✨ chime dourado da LENDA: só pra quem levou a carta (não pra sala toda nem em win de bot/outro).
+    if (it.card.fame >= 5 && iWon) timers.push(setTimeout(() => playChime(), delayMs + 260))
     return () => timers.forEach(clearTimeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.revealIdx])
@@ -4379,8 +4379,12 @@ function RankResultWriter() {
   // então dá pra ganhar liga + Copa na mesma temporada = 2 títulos. Dispara
   // quando a Copa é decidida (pode ser depois da liga, já na tela de fim).
   const wroteCopa = useRef(false)
+  // 🏆 quem sou EU é local a cada cliente (youIdx). O `champion.you` do estado é
+  // GLOBAL (marca "o campeão é humano") — no online dá true pra todos quando
+  // qualquer humano leva a Copa. O certo é comparar o id do campeão com o MEU time.
+  const iWonCopa = state.quickCopa?.champion?.id != null && state.quickCopa.champion.id === state.managers[state.youIdx]?.id
   useEffect(() => {
-    if (wroteCopa.current || !state.quickCopa?.champion?.you) return
+    if (wroteCopa.current || !iWonCopa) return
     wroteCopa.current = true
     ;(async () => {
       try {
@@ -4398,7 +4402,7 @@ function RankResultWriter() {
       } catch { /* nunca trava o jogo */ }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.quickCopa?.champion?.you])
+  }, [iWonCopa])
   return null
 }
 
@@ -4917,19 +4921,22 @@ export function EscEnd() {
   const myCopaRun = (() => {
     const qc = state.quickCopa
     if (!qc) return ''
-    if (qc.champion?.you) return '🏆 Campeão!'
+    if (qc.champion?.id === you.id) return '🏆 Campeão!'
     let last: 'quartas' | 'semis' | 'final' | null = null, lost = false
     for (const b of qc.bracket) { const t = b.ties.find(x => x.aId === you.id || x.bId === you.id); if (t) { last = b.phase; lost = t.winner != null && t.winner !== you.id } }
     if (!last) return 'Fora do top 8'
     if (last === 'final') return lost ? '🥈 Vice' : '🏆 Campeão!'
     return last === 'semis' ? 'Caiu na semi' : 'Caiu nas quartas'
   })()
-  const copaChampName = state.quickCopa?.champion ? (state.quickCopa.champion.you ? 'VOCÊ!' : state.quickCopa.champion.name) : ''
+  // 👀 "VOCÊ!" é por quem VÊ (compara o id do campeão com o MEU time), não pelo
+  // flag global champion.you (que no online marcava todo humano como "você").
+  const copaChampName = state.quickCopa?.champion ? (state.quickCopa.champion.id === you.id ? 'VOCÊ!' : state.quickCopa.champion.name) : ''
   // 🎥 STREAM · carta do campeão compartilhada com a sala. Só faz sentido quando o
   // campeão é HUMANO (CPU não tira carta). A carta revelada vem do estado, sincronizada.
   const ligaChampHuman = !!state.managers.find(m => m.id === champ.id)?.isHuman
   const copaChampId = state.quickCopa?.champion?.id ?? undefined
   const copaChampHuman = copaChampId != null && !!state.managers.find(m => m.id === copaChampId)?.isHuman
+  const copaChampIsYou = copaChampId != null && copaChampId === you.id // 👀 por quem VÊ (não o flag global .you)
   const streamLigaCard = state.streamChampCard?.liga ?? null
   const streamCopaCard = state.streamChampCard?.copa ?? null
   // quando o campeão abre o pacote, além de gravar no álbum dele, joga a carta no
@@ -5024,7 +5031,7 @@ export function EscEnd() {
           <p className="font-black text-base" style={OSWALD}>Campeão: {copaChampName}</p>
         </Box>
       )}
-      {state.quickCopa?.champion?.you && (
+      {copaChampIsYou && (
         online && state.roomId ? (
           <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}:copa`} origin="online" onClaimed={bcastCard('copa')} onStatus={setCopaCardStatus} noTimer={streamRoom} />
         ) : !online ? (
@@ -5032,7 +5039,7 @@ export function EscEnd() {
         ) : null
       )}
       {/* 🎥 STREAM: a sala (quem NÃO é campeão da Copa) assiste o pacote do campeão */}
-      {streamRoom && copaChampHuman && !state.quickCopa?.champion?.you && (
+      {streamRoom && copaChampHuman && !copaChampIsYou && (
         <StreamSpectatorCard champName={copaChampName} card={streamCopaCard} />
       )}
       <CopaScorersBox highlight={you.id} />
