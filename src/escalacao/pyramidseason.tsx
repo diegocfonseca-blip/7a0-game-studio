@@ -14,7 +14,7 @@ import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll } from './store'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
-import { StadiumTab, StadiumSvg } from './estadio'
+import { StadiumTab, StadiumSvg, SponsorCard } from './estadio'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji } from './apoio'
@@ -2039,6 +2039,8 @@ export function PyramidSeasonScreen() {
                 <StadiumSvg st={{ inv: { geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'grama', 'cober'] }} perkOverride={APOIO_PERKS.ouro} />
               </div>
             </GoldTeaser>
+            {/* 👕 Patrocínio: escolhe a marca (por divisão); rende no vira-temporada */}
+            {me && <SponsorCard div={me.div} chosen={state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id })} />}
           </>
             )}
           </>
