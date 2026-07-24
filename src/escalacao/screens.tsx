@@ -4743,8 +4743,8 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
     if (window.confirm(msg)) leaveRoom()
   }
   return (
-    <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: '#EAF3FF', boxShadow: `4px 4px 0 ${INK}` }}>
-      <p className="font-black text-lg text-center" style={OSWALD}>🗳️ E agora?</p>
+    <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: 'linear-gradient(160deg,#C9A9FF,#8B5CF6 52%,#5B2FB0)', boxShadow: `4px 4px 0 ${INK}` }}>
+      <p className="font-black text-lg text-center" style={{ ...OSWALD, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>🗳️ E agora?</p>
       {awaitingCard ? (
         // 🎁 Jeito 1: você foi campeão e ainda não abriu a carta — trava o voto/começar
         // até pegar, pra NUNCA trocar de tela e perder a carta.
@@ -4754,7 +4754,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         </div>
       ) : isHost ? (
         <>
-          <p className="text-center text-xs font-bold text-black/60">Seguir com o <b>mesmo time</b> ou abrir um <b>novo leilão</b>? Você (host) decide 👇</p>
+          <p className="text-center text-xs font-bold text-white/85">Seguir com o <b>mesmo time</b> ou abrir um <b>novo leilão</b>? Você (host) decide 👇</p>
           {/* prontidão da galera (só os convidados): nome grande + PRONTO claro */}
           {guests.length > 0 && (
             <div className="space-y-1.5">
@@ -4766,21 +4766,21 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
                   </span>
                 </div>
               )})}
-              <p className="text-center text-[11px] font-black text-black/55" style={OSWALD}>{nVoted}/{guests.length} prontos · ▶️ {nMesmo} · 🔨 {nLeilao}</p>
+              <p className="text-center text-[11px] font-black text-white/75" style={OSWALD}>{nVoted}/{guests.length} prontos · ▶️ {nMesmo} · 🔨 {nLeilao}</p>
             </div>
           )}
           {pend.length > 0 && (
-            <p className="text-center text-[11.5px] font-black" style={{ color: '#92600A', ...OSWALD }}>⏳ Aguardando {pend.map(m => m.teamName).join(', ')} votar{pend.length > 1 ? 'em' : ''}…</p>
+            <p className="text-center text-[11.5px] font-black" style={{ color: '#FFE08A', ...OSWALD }}>⏳ Aguardando {pend.map(m => m.teamName).join(', ')} votar{pend.length > 1 ? 'em' : ''}…</p>
           )}
           <Btn onClick={() => pend.length === 0 ? startMesmo() : setAskStart('mesmo')} bg={pend.length === 0 ? GREEN : '#cfc6ae'} className="w-full text-lg"><span className={pend.length === 0 ? 'text-white' : 'text-black/50'}>{pend.length === 0 ? '▶️' : '🔒'} Começar (mesmo time)</span></Btn>
           <Btn onClick={() => pend.length === 0 ? startLeilao() : setAskStart('leilao')} bg={pend.length === 0 ? GOLD : '#cfc6ae'} className="w-full text-lg"><span className={pend.length === 0 ? '' : 'text-black/50'}>{pend.length === 0 ? '🔨' : '🔒'} Abrir novo leilão</span></Btn>
           {pend.length > 0 && (
-            <p className="text-center text-[10px] font-bold text-black/45">O começo destrava quando todo mundo votar — ou toque num botão pra decidir o que fazer.</p>
+            <p className="text-center text-[10px] font-bold text-white/70">O começo destrava quando todo mundo votar — ou toque num botão pra decidir o que fazer.</p>
           )}
         </>
       ) : (
         <>
-          <p className="text-center text-xs font-bold text-black/60">Vote no que você quer — o host começa quando decidir.</p>
+          <p className="text-center text-xs font-bold text-white/85">Vote no que você quer — o host começa quando decidir.</p>
           <div className="flex gap-2">
             {voteBtn('mesmo', '▶️ Mesmo time', GREEN, '#fff')}
             {voteBtn('leilao', '🔨 Novo leilão', GOLD, '#000')}
@@ -4791,16 +4791,16 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
               <p className="text-[11px] font-bold text-black/60">Votou em {myVote === 'mesmo' ? '▶️ mesmo time' : '🔨 novo leilão'} · esperando o host começar (dá pra trocar)</p>
             </div>
           ) : (
-            <p className="text-center text-sm font-black" style={{ color: '#b23b2e', ...OSWALD }}>👆 Toque no seu voto pra ficar PRONTO!</p>
+            <p className="text-center text-sm font-black" style={{ color: '#FFDD70', ...OSWALD, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>👆 Toque no seu voto pra ficar PRONTO!</p>
           )}
           {/* explica a espera quando um campeão (às vezes o próprio host) tá pegando a carta */}
-          {otherHumanChamp && <p className="text-[11px] font-bold text-center mt-1" style={{ color: '#92600A' }}>🏆 Um campeão está pegando a carta dele — o host começa logo depois. Segura aí!</p>}
+          {otherHumanChamp && <p className="text-[11px] font-bold text-center mt-1" style={{ color: '#FFE08A' }}>🏆 Um campeão está pegando a carta dele — o host começa logo depois. Segura aí!</p>}
         </>
       )}
       {/* saídas — uma linha só, discreta, pra todos */}
-      <div className="flex items-center justify-center gap-6 pt-2 mt-1 border-t-2 border-black/10">
-        <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/45 text-xs font-bold underline active:opacity-60" title="Sai pro menu mas continua na sala — dá pra voltar">🏠 Voltar pro menu</button>
-        <button onClick={exitLeave} className="text-black/45 text-xs font-bold underline active:opacity-60" title="Sai da sala de vez">🚪 Sair da sala</button>
+      <div className="flex items-center justify-center gap-6 pt-2 mt-1 border-t-2 border-white/20">
+        <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-white/70 text-xs font-bold underline active:opacity-60" title="Sai pro menu mas continua na sala — dá pra voltar">🏠 Voltar pro menu</button>
+        <button onClick={exitLeave} className="text-white/70 text-xs font-bold underline active:opacity-60" title="Sai da sala de vez">🚪 Sair da sala</button>
       </div>
 
       {/* modal do host: alguém ainda não decidiu — esperar, começar com eles, ou excluir */}
