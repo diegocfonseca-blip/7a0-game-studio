@@ -37,7 +37,7 @@ export const emptyStadium = (): StadiumSave => ({ inv: {}, ext: [] })
 // Renda por temporada que CRESCE com a divisão (Série D não atrai marca).
 // A escolha entre as marcas da sua divisão é só de IDENTIDADE — todas pagam o
 // mesmo valor da divisão. Marcas maiores só destravam ao subir.
-export const SPONSOR_PAY: Record<string, number> = { D: 0, C: 10, B: 20, A: 35 }
+export const SPONSOR_PAY: Record<string, number> = { D: 0, C: 5, B: 10, A: 20 }
 export interface Sponsor { id: string; name: string; emoji: string; color: string; div: 'C' | 'B' | 'A'; logo?: boolean }
 export const SPONSORS: Sponsor[] = [
   { id: 'paredao',     name: 'Paredão Materiais',     emoji: '🔧', color: '#C1571F', div: 'C' },
