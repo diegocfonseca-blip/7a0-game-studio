@@ -274,6 +274,64 @@ function Big({ children, onClick, color = GOLD, disabled = false }: { children: 
   )
 }
 
+// ── criar sala reformulado: bloco com cabeçalho numerado ──
+function Section({ num, title, icon, children }: { num: number; title: string; icon: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border-2 p-3" style={{ background: '#1c1a16', borderColor: 'rgba(255,255,255,.14)' }}>
+      <div className="flex items-center gap-2 mb-2.5">
+        <span className="grid place-items-center rounded-md font-black" style={{ width: 20, height: 20, background: GOLD, color: '#000', fontSize: 12, ...OSWALD }}>{num}</span>
+        <span className="font-black text-sm uppercase tracking-wide" style={OSWALD}>{title}</span>
+        <span className="ml-auto text-[15px] opacity-60">{icon}</span>
+      </div>
+      <div className="space-y-2.5">{children}</div>
+    </div>
+  )
+}
+// rótulo + controle (mesmo estilo do Field)
+function SegField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">{label}</p>
+      {children}
+    </div>
+  )
+}
+// controle segmentado genérico (selecionado = dourado)
+function Seg<T extends string | number | boolean>({ options, value, onSet, small, dim }: { options: [T, string][]; value: T; onSet: (v: T) => void; small?: boolean; dim?: boolean }) {
+  return (
+    <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden" style={dim ? { opacity: 0.45 } : undefined}>
+      {options.map(([v, label], i) => (
+        <button key={String(v)} onClick={() => onSet(v)}
+          className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
+          style={{ padding: small ? '8px 2px' : '9px 2px', fontSize: small ? 11 : 12.5, background: value === v ? GOLD : '#fff', color: '#000', whiteSpace: 'nowrap', ...OSWALD }}>
+          {label}
+        </button>
+      ))}
+    </div>
+  )
+}
+// chavinha (switch) liga/desliga
+function Sw({ on }: { on: boolean }) {
+  return (
+    <span className="relative flex-none rounded-full" style={{ width: 44, height: 25, border: '2.5px solid #000', background: on ? GREEN : '#d9d2be', transition: '.15s' }}>
+      <span className="absolute rounded-full" style={{ top: 1.5, left: on ? 20 : 2, width: 17, height: 17, background: on ? '#fff' : '#000', transition: '.15s' }} />
+    </span>
+  )
+}
+// linha com ícone + título + subtítulo + chavinha
+function ToggleRow({ icon, title, sub, on, onClick }: { icon: string; title: string; sub: string; on: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="flex items-center gap-2.5 w-full border-[2.5px] border-black rounded-xl px-3 py-2.5 text-left" style={{ background: '#fff', color: '#000' }}>
+      <span className="text-lg leading-none">{icon}</span>
+      <span className="flex-1 min-w-0">
+        <b className="block font-black leading-tight" style={{ fontSize: 13.5, ...OSWALD }}>{title}</b>
+        <small className="font-bold" style={{ fontSize: 10.5, color: 'rgba(0,0,0,.5)' }}>{sub}</small>
+      </span>
+      <Sw on={on} />
+    </button>
+  )
+}
+
 export function EscLobby() {
   const { dispatch } = useEsc()
   const [user, setUser] = useState<User | null>(null)
@@ -1067,161 +1125,98 @@ export function EscLobby() {
       </div>
 
 
-      {tab === 'create' && <div className="space-y-3">
-        {canCareer && (
-          <div>
-            <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Modo de jogo <span style={{ color: GOLD }}>(teste)</span></p>
-            <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
-              {([['rapido', '⚡ Modo Rápido'], ['carreira', '🌐 Carreira']] as [typeof roomMode, string][]).map(([m, label]) => (
-                <button key={m} onClick={() => setRoomMode(m)}
-                  className="flex-1 py-2.5 font-black text-sm uppercase" style={{ backgroundColor: roomMode === m ? PURPLE : '#fff', color: roomMode === m ? '#fff' : '#000', ...OSWALD }}>
-                  {label}
-                </button>
-              ))}
-            </div>
-            <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-              {roomMode === 'carreira'
-                ? '🏆 4 divisões — cada técnico disputa a sua e sobe/cai por conta própria. Mesmo mundo, mesma temporada pra todos.'
-                : '🔨 O leilão de sempre — o online que já conhecemos.'}
-            </p>
-          </div>
-        )}
-        <Field label="Nome da sala" value={roomName} onChange={e => setRoomName(stripEmoji(e.target.value))} placeholder={`Sala do ${nameOf()}`} maxLength={24} />
-        {canCareer && roomMode === 'carreira' && (
-          <div className="border-[3px] border-black rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.06)' }}>
-            <p className="text-white font-black text-[13px]" style={OSWALD}>🌎 Baralho fixo: Brasileirão + Europa juntos</p>
-            <p className="text-white/55 text-[11px] font-bold mt-1 leading-snug">Na Carreira é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Sem baralho só BR nem só Europa.</p>
-          </div>
-        )}
-        {!(canCareer && roomMode === 'carreira') && <div>
-          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Baralho de craques</p>
-          <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
-            {([['br', '🇧🇷 Brasil'], ['eu', '🌍 Europa'], ['both', '🌎 Os dois']] as [DeckChoice, string][]).map(([d, label]) => (
-              <button key={d} onClick={() => setRapidoDeck(d)}
-                className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: rapidoDeck === d ? GOLD : '#fff', color: '#000', ...OSWALD }}>
-                {label}
-              </button>
-            ))}
-          </div>
-          <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-            {rapidoDeck === 'br' ? '🇧🇷 Só auges do Brasileirão.' : rapidoDeck === 'eu' ? '🌍 Lendas e craques da Europa.' : '🌎 Brasil + Europa juntos — o baralhão.'}
-          </p>
-        </div>}
-        {/* 🎮 RITMO DA PARTIDA: Auto (padrão, online normal) ou Manual (host aperta
-            pra avançar cada rodada/etapa — igual o stream, ideal pra jogar com os
-            amigos sem ninguém ficar pra trás). No stream o controle já vem junto. */}
-        {!(canCareer && roomMode === 'carreira') && !roomStream && <div>
-          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Ritmo da partida</p>
-          <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
-            <button onClick={() => setRoomManual(false)} className="flex-1 py-2.5 font-black text-sm" style={{ backgroundColor: !roomManual ? GOLD : '#fff', color: '#000', ...OSWALD }}>
-              ⚡ Auto <span className="text-[10px] opacity-60">(padrão)</span>
-            </button>
-            <button onClick={() => setRoomManual(true)} className="flex-1 py-2.5 font-black text-sm border-l-[3px] border-black" style={{ backgroundColor: roomManual ? GOLD : '#fff', color: '#000', ...OSWALD }}>
-              🎮 Manual <span className="text-[10px] opacity-60">(com amigos)</span>
-            </button>
-          </div>
-          {roomManual ? (
-            <div className="mt-1.5 rounded-lg border-2 border-black px-2.5 py-1.5" style={{ background: GOLD }}>
-              <p className="text-[11px] font-black text-black leading-snug" style={OSWALD}>👥 INDICADO PRA JOGAR SÓ COM AMIGOS</p>
-              <p className="text-[10.5px] font-bold text-black/70 leading-snug mt-0.5">O host aperta pra avançar cada partida (respeitando o tempo do jogo) — todo mundo acompanha a tela dele.</p>
-            </div>
-          ) : (
-            <p className="text-white/40 text-[10.5px] font-bold mt-1 leading-snug">Anda sozinho, na velocidade normal do online.</p>
-          )}
-        </div>}
-        {!(canCareer && roomMode === 'carreira') && <div>
-          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Depois da liga</p>
-          <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
-            {([['liga_copa', '🏆 Liga + Copa'], ['liga', '📊 Só Liga']] as ['liga_copa' | 'liga', string][]).map(([m, label]) => (
-              <button key={m} onClick={() => setRapidoCopaMode(m)}
-                className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: rapidoCopaMode === m ? GOLD : '#fff', color: '#000', ...OSWALD }}>
-                {label}
-              </button>
-            ))}
-          </div>
-          <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-            {rapidoCopaMode === 'liga_copa' ? '🏆 Quando a liga acaba, os 8 primeiros disputam a Copa (ida e volta, final única) antes da votação.' : '📊 Termina a liga e já vai pra votação — jogo mais curto.'}
-          </p>
-        </div>}
-        {!(canCareer && roomMode === 'carreira') && <div>
-          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Formação da sala (vale pra todo mundo)</p>
-          <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
-            {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => (
-              <button key={f} onClick={() => setFormation(f)}
-                className="flex-1 py-2.5 font-black text-sm uppercase" style={{ backgroundColor: formation === f ? GOLD : '#fff', color: '#000' }}>
-                {f}
-              </button>
-            ))}
-          </div>
-        </div>}
-        <div>
-          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Privacidade</p>
-          <button onClick={() => setRoomLocked(v => !v)}
-            className="flex items-center gap-2 w-full border-[3px] border-black rounded-xl px-3 py-2.5 font-black text-sm"
-            style={{ backgroundColor: roomLocked ? GOLD : '#fff', color: '#000', ...OSWALD }}>
-            <span className="text-lg leading-none">{roomLocked ? '🔒' : '🔓'}</span>
-            <span className="flex-1 text-left">{roomLocked ? 'FECHADA — só com senha' : 'ABERTA — qualquer um entra'}</span>
-            <span className="text-[10px] opacity-60">toque</span>
-          </button>
-          {roomLocked && (
-            <input type="text" value={roomPw} onChange={e => setRoomPw(e.target.value)} maxLength={20}
-              placeholder="Senha da sala (avise a galera)"
-              className="w-full mt-2 border-[3px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
-          )}
-        </div>
-        {!(canCareer && roomMode === 'carreira') && <div>
-          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Modo Stream</p>
-          <button onClick={() => { if (roomStream) setRoomStream(false); else setStreamModal(true) }}
-            className="flex items-center gap-2 w-full border-[3px] border-black rounded-xl px-3 py-2.5 font-black text-sm"
-            style={{ backgroundColor: roomStream ? '#111' : '#fff', color: roomStream ? '#fff' : '#000', ...OSWALD }}>
-            <span className="text-lg leading-none">🎥</span>
-            <span className="flex-1 text-left">{roomStream ? 'LIGADO — valores dos lances ocultos' : 'DESLIGADO — jogo normal'}</span>
-            <span className="text-[10px] opacity-60">toque</span>
-          </button>
-          {/* ⏱️ TEMPO DO LEILÃO — só aparece com o Modo Stream LIGADO (é o streamer
-              que decide o ritmo do pregão): padrão 45s, outro tempo, ou SEM tempo
-              (o host fecha cada envelope no botão e todo mundo avança junto). */}
-          {roomStream && (
-            <div className="mt-2 rounded-xl border-[3px] border-black p-2.5" style={{ background: 'rgba(255,255,255,.07)' }}>
-              <p className="text-white/60 text-[11px] font-black uppercase tracking-widest mb-1">⏱️ Tempo do leilão (pregão)</p>
-              <div className="flex border-[3px] border-black rounded-xl overflow-hidden" style={{ opacity: auctionSecs === 0 ? 0.45 : 1 }}>
-                {[20, 30, 45, 60, 90].map((sec, i) => (
-                  <button key={sec} onClick={() => setAuctionSecs(sec)}
-                    className={`flex-1 py-2.5 font-black text-sm ${i > 0 ? 'border-l-[3px] border-black' : ''}`}
-                    style={{ backgroundColor: auctionSecs === sec ? GOLD : '#fff', color: '#000', ...OSWALD }}>
-                    {sec}s
-                  </button>
-                ))}
+      {tab === 'create' && (() => {
+        const isCareer = canCareer && roomMode === 'carreira'
+        return (
+        <div className="space-y-3">
+          {/* ① O BÁSICO — modo, nome, baralho, formação */}
+          <Section num={1} title="O básico" icon="📋">
+            {canCareer && (
+              <div>
+                <SegField label="Modo de jogo (teste)">
+                  <Seg options={[['rapido', '⚡ Rápido'], ['carreira', '🌐 Carreira']] as [typeof roomMode, string][]} value={roomMode} onSet={v => setRoomMode(v)} />
+                </SegField>
+                <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
+                  {isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
+                </p>
               </div>
-              <button onClick={() => setAuctionSecs(s => (s === 0 ? 45 : 0))}
-                className="flex items-center gap-2 w-full border-[3px] border-black rounded-xl px-3 py-2.5 font-black text-sm mt-2"
-                style={{ backgroundColor: auctionSecs === 0 ? '#2E6FB0' : '#fff', color: auctionSecs === 0 ? '#fff' : '#000', ...OSWALD }}>
-                <span className="text-lg leading-none">🎮</span>
-                <span className="flex-1 text-left">{auctionSecs === 0 ? 'SEM TEMPO — você fecha cada envelope' : 'Sem tempo — o host avança no comando'}</span>
-                <span className="text-[10px] opacity-60">toque</span>
-              </button>
-              <p className="text-white/45 text-[10px] font-bold mt-1 leading-snug">
-                {auctionSecs === 0
-                  ? 'Sem cronômetro: você fecha cada envelope no botão e todo mundo avança junto com você.'
-                  : `Cada envelope do pregão dura ${auctionSecs}s${auctionSecs === 45 ? ' (padrão)' : ''}. Vale pra todo mundo na sala.`}
-              </p>
-            </div>
+            )}
+            <Field label="Nome da sala" value={roomName} onChange={e => setRoomName(stripEmoji(e.target.value))} placeholder={`Sala do ${nameOf()}`} maxLength={24} />
+            {isCareer ? (
+              <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <p className="text-white font-black text-[12.5px]" style={OSWALD}>🌎 Baralho fixo: Brasil + Europa</p>
+                <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">A Carreira usa os dois juntos (~700 nomes) pra preencher os 80 times das 4 divisões.</p>
+              </div>
+            ) : (
+              <SegField label="Baralho de craques">
+                <Seg options={[['br', '🇧🇷 Brasil'], ['eu', '🌍 Europa'], ['both', '🌎 Os dois']] as [DeckChoice, string][]} value={rapidoDeck} onSet={v => setRapidoDeck(v)} />
+              </SegField>
+            )}
+            {!isCareer && (
+              <SegField label="Formação (vale pra todos)">
+                <Seg options={[['4-3-3', '4-3-3'], ['4-4-2', '4-4-2']] as [FormationKey, string][]} value={formation} onSet={v => setFormation(v)} />
+              </SegField>
+            )}
+          </Section>
+
+          {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
+          {!isCareer && (
+            <Section num={2} title="A partida" icon="⚽">
+              <SegField label="Depois da liga">
+                <Seg options={[['liga_copa', '🏆 Liga + Copa'], ['liga', '📊 Só liga']] as ['liga_copa' | 'liga', string][]} value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} />
+              </SegField>
+              {!roomStream && (
+                <SegField label="Ritmo">
+                  <Seg options={[[false, '⚡ Auto'], [true, '🎮 Manual']] as [boolean, string][]} value={roomManual} onSet={v => setRoomManual(v)} />
+                  <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{roomManual ? '🎮 O host aperta pra avançar cada partida — ideal pra jogar com amigos.' : '⚡ Anda sozinho, na velocidade normal do online.'}</p>
+                </SegField>
+              )}
+            </Section>
           )}
-        </div>}
-        <div>
-          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">💬 Chat da sala</p>
-          <button onClick={() => setRoomChat(v => !v)}
-            className="flex items-center gap-2 w-full border-[3px] border-black rounded-xl px-3 py-2.5 font-black text-sm"
-            style={{ backgroundColor: roomChat ? GREEN : '#fff', color: roomChat ? '#fff' : '#000', ...OSWALD }}>
-            <span className="text-lg leading-none">{roomChat ? '💬' : '🔕'}</span>
-            <span className="flex-1 text-left">{roomChat ? 'LIGADO — a galera pode zoar na sala' : 'DESLIGADO — sem chat'}</span>
-            <span className="text-[10px] opacity-60">toque</span>
-          </button>
+
+          {/* ③ A SALA — privacidade, chat, stream (+ tempo do leilão) */}
+          <Section num={3} title="A sala" icon="🔧">
+            <div>
+              <ToggleRow icon={roomLocked ? '🔒' : '🔓'} title={roomLocked ? 'Sala fechada' : 'Sala aberta'} sub={roomLocked ? 'Só entra com senha' : 'Qualquer um entra'} on={roomLocked} onClick={() => setRoomLocked(v => !v)} />
+              {roomLocked && (
+                <input type="text" value={roomPw} onChange={e => setRoomPw(e.target.value)} maxLength={20}
+                  placeholder="Senha da sala (avise a galera)"
+                  className="w-full mt-2 border-[2.5px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
+              )}
+            </div>
+            <ToggleRow icon={roomChat ? '💬' : '🔕'} title="Chat da sala" sub={roomChat ? 'A galera pode zoar na sala' : 'Sem chat'} on={roomChat} onClick={() => setRoomChat(v => !v)} />
+            {!isCareer && (
+              <div>
+                <ToggleRow icon="🎥" title="Modo Stream" sub={roomStream ? 'Valores dos lances ocultos' : 'Esconde os valores (pra live)'} on={roomStream} onClick={() => { if (roomStream) setRoomStream(false); else setStreamModal(true) }} />
+                {/* ⏱️ TEMPO DO LEILÃO — sub-opção do streamer (só com o Stream ligado) */}
+                {roomStream && (
+                  <div className="mt-2 rounded-xl border-[2.5px] border-black p-2.5" style={{ background: 'rgba(46,111,176,.16)' }}>
+                    <p className="text-white/60 text-[10px] font-black uppercase mb-1.5" style={{ letterSpacing: '.12em' }}>⏱️ Tempo do leilão (pregão)</p>
+                    <Seg small dim={auctionSecs === 0}
+                      options={[[20, '20s'], [30, '30s'], [45, '45s'], [60, '60s'], [90, '90s']] as [number, string][]}
+                      value={auctionSecs === 0 ? -1 : auctionSecs} onSet={v => setAuctionSecs(v)} />
+                    <button onClick={() => setAuctionSecs(s => (s === 0 ? 45 : 0))}
+                      className="flex items-center gap-2.5 w-full border-[2.5px] border-black rounded-xl px-3 py-2.5 mt-2 text-left"
+                      style={{ background: auctionSecs === 0 ? '#2E6FB0' : '#fff', color: auctionSecs === 0 ? '#fff' : '#000' }}>
+                      <span className="text-lg leading-none">🎮</span>
+                      <span className="flex-1 min-w-0">
+                        <b className="block font-black leading-tight" style={{ fontSize: 13, ...OSWALD }}>{auctionSecs === 0 ? 'Sem tempo — você avança' : 'Sem tempo (host avança)'}</b>
+                        <small className="font-bold" style={{ fontSize: 10, color: auctionSecs === 0 ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.5)' }}>Você fecha cada envelope no botão</small>
+                      </span>
+                      <Sw on={auctionSecs === 0} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </Section>
+
+          <Big onClick={createRoom} color={isCareer ? PURPLE : GOLD}>
+            <span style={{ color: isCareer ? '#fff' : '#000' }}>{loading ? 'Criando...' : isCareer ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
+          </Big>
         </div>
-        <Big onClick={createRoom} color={canCareer && roomMode === 'carreira' ? PURPLE : GOLD}>
-          <span style={{ color: canCareer && roomMode === 'carreira' ? '#fff' : '#000' }}>{loading ? 'Criando...' : canCareer && roomMode === 'carreira' ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
-        </Big>
-      </div>}
+        )
+      })()}
 
       {tab === 'open' && <div className="space-y-3">
         <Field label="Buscar sala" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar sala…" />
