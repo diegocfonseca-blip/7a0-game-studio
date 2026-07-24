@@ -23,7 +23,10 @@ function applyRewards(coins: Record<number, number> | undefined, rewards?: Recor
 // 💸 SALÁRIO de um jogador = piso (paid) ÷ 10, arredondado. Incógnita (fake/Várzea)
 // não tem salário. É o MESMO número mostrado no elenco (💰 paid), pra bater certinho.
 export function salaryOfCard(c: WonCard): number {
-  if (c.fake || c.club === 'Várzea') return 0
+  // 🏢 EMPRÉSTIMO da SAF (nos dois sentidos) NÃO paga salário: o que você pegou
+  // emprestado não é seu, e o que você emprestou já saiu do seu elenco. Incógnita
+  // (fake/Várzea) também não tem salário.
+  if (c.fake || c.club === 'Várzea' || c.emprestado) return 0
   return Math.round((c.paid ?? 0) / 10)
 }
 export function squadPayroll(squad: WonCard[]): number {
