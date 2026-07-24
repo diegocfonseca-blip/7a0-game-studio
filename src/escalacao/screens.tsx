@@ -133,8 +133,9 @@ const COR_TIERS = [
   { key: 'roxo',  nome: 'Promessa', selo: '💎', preco: 'R$ 9,90', valor: 9.9, g: ['#C9A9FF', '#8B5CF6', '#5B2FB0'], ink: '#fff', holo: 0.3 },
   { key: 'ouro',  nome: 'Lenda — ouro OU qualquer cor com brilho', selo: '👑', preco: 'R$ 39,90', valor: 39.9, g: ['#FFE79A', '#FFC400', '#E8A200'], ink: '#0C0C0C', holo: 0.75 },
 ] as const
-export function ApoieButton({ big = false }: { big?: boolean }) {
+export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { big?: boolean; startScreen?: 'choice' | 'manual'; trigger?: (open: () => void) => React.ReactNode }) {
   const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'dream' | 'batismo' | 'cores' | 'manual'>('off')
+  const openApoio = () => { if (startScreen === 'manual') logApoio('👀 abriu: modo manual (trava)'); setScreen(startScreen) }
   const [clube, setClube] = useState('')
   const [corSel, setCorSel] = useState<string | null>(null)
   const [meuNome, setMeuNome] = useState('') // nome da conta, pra simular na cor com o nome REAL da pessoa
@@ -160,14 +161,14 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
   )
   return (
     <>
-      {big ? (
-        <button onClick={() => setScreen('choice')}
+      {trigger ? trigger(openApoio) : big ? (
+        <button onClick={openApoio}
           className="w-full rounded-xl border-[3px] border-black font-black text-base py-3 active:translate-y-0.5"
           style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
           💛 APOIE O PROJETO — E ELE SEGUE GRÁTIS
         </button>
       ) : (
-        <button onClick={() => setScreen('choice')} className="text-xs font-black rounded-full px-3 py-1 border-2 border-black" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, ...OSWALD }}>
+        <button onClick={openApoio} className="text-xs font-black rounded-full px-3 py-1 border-2 border-black" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, ...OSWALD }}>
           💛 Apoie o projeto (Pix)
         </button>
       )}

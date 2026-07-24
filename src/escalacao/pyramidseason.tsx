@@ -17,13 +17,30 @@ import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, SponsorCard } from './estadio'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
-import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji } from './apoio'
+import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual } from './apoio'
 import type { ApoioPerk } from './apoio'
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
 const GREEN = '#1B7A3D'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
+
+// 🔒 no lugar dos controles de manual, quando a carreira NOVA ainda não tem o
+// Modo Manual: um convite que abre o Apoie direto na explicação do manual. A
+// temporada segue rodando no AUTO normalmente — nada trava o jogo.
+function ManualLockButton() {
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <ApoieButton startScreen="manual" trigger={open => (
+        <button onClick={open} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, ...OSWALD }}>
+          <span>🎮 Modo Manual</span>
+          <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>Apoie 🔒</span>
+        </button>
+      )} />
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '4px 2px 0', ...OSWALD }}>Controle o ritmo da temporada — pause, acelere, pule. Toque pra desbloquear.</p>
+    </div>
+  )
+}
 
 export type Div = 'A' | 'B' | 'C' | 'D'
 export const DIVS: Div[] = ['A', 'B', 'C', 'D']
@@ -1652,7 +1669,12 @@ export function PyramidSeasonScreen() {
   // ⏸️ passo é seu (SOLO + manual): usado tanto na liga quanto na Copa. Declarado
   // aqui em cima porque o efeito da Copa (logo abaixo) precisa saber se é manual.
   const [manualPref, toggleSim] = useSimMode()
-  const manual = manualPref && state.onlineMode !== 'online'
+  // 🎮 MODO MANUAL (carreira solo): liberado se (a) a carreira é ANTIGA — sem
+  // careerEra, começou antes da cobrança → grandfather, nunca mexe em save antigo;
+  // ou (b) a pessoa tem o Modo Manual/Lenda. Online segue de graça (outra tela).
+  const hasManual = useHasManual()
+  const manualAllowed = state.onlineMode === 'online' || !state.careerEra || hasManual
+  const manual = manualPref && state.onlineMode !== 'online' && manualAllowed
   // 🚫 ANTI-SPOILER: ao VIRAR de fase da Copa (copaRound muda), o relógio ainda está
   // no fim da fase anterior por 1 frame — o que piscaria o placar/vencedor da fase
   // NOVA antes do apito. Zera JÁ na renderização (o efeito abaixo religa a animação).
@@ -1805,6 +1827,9 @@ export function PyramidSeasonScreen() {
   // ⏩ AUTO é sempre o ritmo padrão: ao voltar pro auto, zera a velocidade (Normal).
   const toggleManualCareer = () => {
     const goingManual = !manual
+    // 🔒 carreira NOVA sem o Modo Manual: não liga o manual — o botão vira convite
+    // pro Apoie (tratado no render, este toggle nem é chamado quando travado).
+    if (goingManual && !manualAllowed) return
     toggleSim()
     if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
   }
@@ -1872,6 +1897,7 @@ export function PyramidSeasonScreen() {
         )}
         {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} />}
         {state.onlineMode !== 'online' && state.isHost && !seasonOver && !copaPlaying && (
+          manualAllowed ? (
           <>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={round === 0 || roundReady}
@@ -1879,6 +1905,7 @@ export function PyramidSeasonScreen() {
               onSkip={() => dispatch({ type: 'PLAY_ROUND' })}
               nextLabel={!(round === 0 || roundReady) ? '⏳ Deixa a rodada acabar…' : round === 0 ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
           </>
+          ) : <ManualLockButton />
         )}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
@@ -1887,6 +1914,7 @@ export function PyramidSeasonScreen() {
             velocidade + Próxima fase / Pular / Modo auto. No AUTO a Copa segue
             sozinha (só aparece o botão de ativar o manual). */}
         {copaPlaying && state.onlineMode !== 'online' && state.isHost && (
+          manualAllowed ? (
           <>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={copaReady}
@@ -1894,6 +1922,7 @@ export function PyramidSeasonScreen() {
               onSkip={() => setCopaRound(r => r + 1)}
               nextLabel={!copaReady ? '⏳ Deixa o jogo acabar…' : copaRound + 1 >= nCopaRounds ? '🏆 Ver o campeão' : '▶️ Próxima fase'} />
           </>
+          ) : <ManualLockButton />
         )}
 
         {copaFinished && me?.champ && state.careerOnline && (

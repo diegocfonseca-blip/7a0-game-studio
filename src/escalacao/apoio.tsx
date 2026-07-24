@@ -3,6 +3,7 @@
 // em todo o jogo + o selo (emoji pequeno) ao lado do nome.
 // Por enquanto a lista vive aqui no código (contas fundadoras); depois migra
 // pra tabela user_colors no Supabase, aí outros jogadores também enxergam.
+import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 export type ApoioTier = 'bege' | 'verde' | 'roxo' | 'prata' | 'ouro'
@@ -93,6 +94,34 @@ export function myApoioPerk(): ApoioPerk | null {
   if (!myEmail) return null
   const tier = dbTier ?? FOUNDERS[myEmail]
   return tier ? APOIO_PERKS[tier] : null
+}
+
+// 🎮 ACESSO AO MODO MANUAL (na carreira): liberado pra quem tem o tier Lenda
+// (ouro) — que inclui o manual — OU pra quem tem o selo `manual` na tabela
+// user_colors (comprou só o Modo Manual, R$ 19,90). A coluna `manual` é
+// consultada à PARTE (query própria) pra que, se ela ainda não existir no banco,
+// a leitura das CORES não quebre. Enquanto o Diego não roda o SQL nem libera
+// ninguém, só o Lenda destrava — e nada afeta save antigo (isso é o grandfather,
+// tratado na carreira, não aqui).
+export function useHasManual(): boolean {
+  const [manualCol, setManualCol] = useState(false)
+  const [, bump] = useState(0) // re-render em troca de conta pra reler myApoioPerk()
+  useEffect(() => {
+    let alive = true
+    const check = async (email?: string | null) => {
+      bump(n => n + 1)
+      const em = (email ?? '').toLowerCase()
+      if (!em) { if (alive) setManualCol(false); return }
+      try {
+        const { data } = await supabase.from('user_colors').select('manual').eq('email', em).maybeSingle()
+        if (alive) setManualCol((data as { manual?: boolean } | null)?.manual === true)
+      } catch { if (alive) setManualCol(false) } // coluna ainda não existe / rede: cai no Lenda
+    }
+    supabase.auth.getUser().then(({ data }) => check(data?.user?.email), () => {})
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => check(s?.user?.email))
+    return () => { alive = false; sub.subscription.unsubscribe() }
+  }, [])
+  return manualCol || myApoioPerk()?.tier === 'ouro'
 }
 
 // selo pronto pra colar no fim do nome (' 👑' ou '')
