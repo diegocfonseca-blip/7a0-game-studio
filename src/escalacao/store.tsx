@@ -67,7 +67,7 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
   const b0 = s.careerCoins?.[y] ?? 0
   s.careerCoins = applyRewards(s.careerCoins, rewards)
   const b1 = s.careerCoins[y] ?? 0
-  s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums)
+  s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums, s.managers)
   const b2 = s.careerCoins[y] ?? 0
   chargeSalaries(s)
   const b3 = s.careerCoins[y] ?? 0
@@ -103,10 +103,17 @@ function applyHonors(honors: Record<string, Honors> | undefined, champions?: Rec
   }
   return out
 }
-// 🏟️ bilheteria: soma a renda do estádio de cada técnico no caixa (fim de temporada)
-function applyStadiumIncome(coins: Record<number, number> | undefined, stads?: EscState['stadiums']): Record<number, number> {
+// 🏟️ bilheteria: soma a renda do estádio de cada técnico HUMANO no caixa (fim de
+// temporada). Inclui a BILHETERIA-BASE (stadiumIncome vale mesmo sem estádio), então
+// dá pra render pra quem nunca abriu a tela do estádio também. Bots não têm estádio
+// (usam clubCash), então só os humanos ganham aqui.
+function applyStadiumIncome(coins: Record<number, number> | undefined, stads: EscState['stadiums'], managers: Manager[]): Record<number, number> {
   const out = { ...(coins ?? {}) }
-  for (const id in (stads ?? {})) { const inc = stadiumIncome(stads![+id]); if (inc > 0) out[+id] = (out[+id] ?? 0) + inc }
+  for (const m of managers) {
+    if (!m.isHuman) continue
+    const inc = stadiumIncome(stads?.[m.id]) // base + construído
+    if (inc > 0) out[m.id] = (out[m.id] ?? 0) + inc
+  }
   return out
 }
 import type { CareerTeam } from './data'

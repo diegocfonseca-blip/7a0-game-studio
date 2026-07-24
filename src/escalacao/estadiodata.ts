@@ -7,6 +7,11 @@
 export interface StadiumSave { inv: Record<string, number>; ext: string[] }
 
 export const STADIUM_STEP = 20 // moedas por clique de "investir" num setor
+// 🎟️ BILHETERIA-BASE: todo clube tem um estádio que já vende ingresso — mesmo
+// sem investir nada, rende isto por temporada (desde a 1ª). O que você constrói
+// (setores + melhorias) SOMA em cima. Dá oxigênio pro meio de tabela sem inventar
+// uma "renda solta": a grana vem do estádio, claro na tela. Máximo = 20 + 56 = 76.
+export const STADIUM_BASE = 20
 
 export interface StadiumSector { k: string; n: string; cost: number; inc: number; seats: number }
 export const STADIUM_SECTORS: StadiumSector[] = [
@@ -52,13 +57,19 @@ export function extraUnlocked(st: StadiumSave | undefined, k: string): boolean {
     default: return false
   }
 }
-// renda por TEMPORADA: setores proporcionais ao construído + melhorias fixas
+// renda por TEMPORADA: BILHETERIA-BASE + setores proporcionais ao construído +
+// melhorias fixas. A base vale mesmo com o estádio zerado (st indefinido).
 export function stadiumIncome(st: StadiumSave | undefined): number {
-  if (!st) return 0
-  let r = 0
-  for (const s of STADIUM_SECTORS) r += Math.floor(s.inc * sectorPct(st, s.k) / 100)
-  for (const e of STADIUM_EXTRAS) if (hasExtra(st, e.k)) r += e.inc
+  let r = STADIUM_BASE
+  if (st) {
+    for (const s of STADIUM_SECTORS) r += Math.floor(s.inc * sectorPct(st, s.k) / 100)
+    for (const e of STADIUM_EXTRAS) if (hasExtra(st, e.k)) r += e.inc
+  }
   return r
+}
+// só a parte CONSTRUÍDA (sem a base) — pra mostrar a conta separada na tela.
+export function stadiumBuiltIncome(st: StadiumSave | undefined): number {
+  return stadiumIncome(st) - STADIUM_BASE
 }
 export function stadiumSeats(st: StadiumSave | undefined): { now: number; max: number } {
   let now = 0, max = 0
