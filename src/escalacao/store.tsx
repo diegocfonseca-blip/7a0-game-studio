@@ -680,26 +680,34 @@ function maybeResolveTiebreak(state: EscState) {
 }
 
 // ─── temporada ───────────────────────────────────────────────────────
-function buildLeague(managers: Manager[]): LeagueTeam[] {
+function buildLeague(managers: Manager[], fillBots = true): LeagueTeam[] {
   // bidders "auction-only" (rivais de outra divisão na carreira) NÃO entram na
   // tabela — só brigaram no leilão; jogam a própria divisão (vida na pirâmide).
   const teams: LeagueTeam[] = managers.filter(m => !m.auctionOnly).map(m => ({
     id: m.id, name: m.teamName, isManager: true, baseAtk: 0, baseDef: 0,
     pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0,
   }))
-  const fill = LEAGUE_SIZE - teams.length
-  for (let i = 0; i < fill; i++) {
-    const c = CLASSIC_CLUBS[i % CLASSIC_CLUBS.length]
-    teams.push({
-      id: 100 + i, name: c.name, isManager: false, baseAtk: c.atk, baseDef: c.def,
-      pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0,
-    })
+  // 🏆 LIGA FECHADA: tabela só com os humanos (sem completar com clubes CPU).
+  // Nos demais modos, completa até 20 como sempre.
+  if (fillBots) {
+    const fill = LEAGUE_SIZE - teams.length
+    for (let i = 0; i < fill; i++) {
+      const c = CLASSIC_CLUBS[i % CLASSIC_CLUBS.length]
+      teams.push({
+        id: 100 + i, name: c.name, isManager: false, baseAtk: c.atk, baseDef: c.def,
+        pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0,
+      })
+    }
   }
   return teams
 }
 
+// método do círculo (returno duplo). Times PAR: igual sempre. Times ÍMPAR: entra
+// um "fantasma" (id -1) e quem calha de pegar ele FOLGA naquela rodada — padrão de
+// liga de verdade. Com número par nada muda (nenhum -1 é criado).
 function buildFixtures(teams: LeagueTeam[]): [number, number][][] {
   const ids = teams.map(t => t.id)
+  if (ids.length % 2 === 1) ids.push(-1) // fantasma da folga
   const n = ids.length
   const rounds: [number, number][][] = []
   const rot = ids.slice(1)
@@ -708,7 +716,10 @@ function buildFixtures(teams: LeagueTeam[]): [number, number][][] {
     const left = [ids[0], ...rot.slice(0, n / 2 - 1)]
     const right = rot.slice(n / 2 - 1).reverse()
     for (let i = 0; i < n / 2; i++) {
-      round.push(r % 2 === 0 ? [left[i], right[i]] : [right[i], left[i]])
+      const h = r % 2 === 0 ? left[i] : right[i]
+      const a = r % 2 === 0 ? right[i] : left[i]
+      if (h === -1 || a === -1) continue // quem pega o fantasma folga nesta rodada
+      round.push([h, a])
     }
     rounds.push(round)
     rot.unshift(rot.pop()!)
@@ -1501,7 +1512,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both'; career?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' }
+  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both'; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' }
   | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). scorerValues = bonus de piso dos artilheiros
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
@@ -2115,7 +2126,10 @@ export function reducer(state: EscState, action: Action): EscState {
       s.deckLeague = action.deck ?? 'br'; setActiveCatalog(s.deckLeague)
       s.locked = action.locked; s.pwHash = action.pwHash // guarda a senha no estado (sobrevive ao autosave)
       s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido
-      s.copaMode = action.copaMode ?? 'liga_copa' // 🏆 padrão: liga + copa dos 8 (rápido online)
+      s.ligaFechada = !!action.ligaFechada // 🏆 liga só com humanos (sem bots na tabela)
+      // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
+      // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
+      s.copaMode = (action.ligaFechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
       if (action.career) {
         // colocação da temporada 1: todos os técnicos na Série D; A/B/C com os
         // times de CPU fixos. Compacto (só a divisão) — os elencos são derivados.
@@ -2151,7 +2165,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // embaralha a cada sala, e só se faltar nome (não falta: são 20) completa
       // com as outras séries. Carreira online mantém a estrutura das divisões.
       const namePool = action.career ? undefined : [...shuffle([...DIVISION_TEAMS.D], rng), ...shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C], rng)]
-      const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, 0, LEAGUE_SIZE, rng, namePool)
+      // 🏆 LIGA FECHADA: a tabela é só a galera (leagueSize = nº de humanos) → sem
+      // bots. Nos outros modos, completa até 20 como sempre.
+      const onlineLeagueSize = action.ligaFechada ? action.playerNames.length : LEAGUE_SIZE
+      const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, 0, onlineLeagueSize, rng, namePool)
       s.managers = onlineManagers
       // rápido (e T1 de carreira) começam SEM piso. O livro de preços
       // (marketValues) é memória da carreira ENTRE temporadas — não pode vazar do
@@ -2417,7 +2434,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.managers = s.managers.filter(m => !m.auctionOnly && !m.marketCpu)
       const adj = cpuAdjFor(s) // nível-base fixo por divisão nos bots de fundo; rivais sem ajuste
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
-      s.league = buildLeague(s.managers)
+      s.league = buildLeague(s.managers, !s.ligaFechada)
       s.fixtures = buildFixtures(s.league)
       s.round = 0
       s.scorers = []
@@ -2497,8 +2514,12 @@ export function reducer(state: EscState, action: Action): EscState {
         return s
       }
       const times = action.type === 'PLAY_ROUND' ? 1 : action.count
+      // 🏆 total de rodadas = tamanho REAL do calendário (20 times = 38, como
+      // sempre; Liga Fechada = 2×(nº de times − 1), ou menos com folga). Fallback
+      // pro clássico 38 só se as fixtures ainda não existirem.
+      const roundsTotal = s.fixtures.length || TOTAL_ROUNDS
       const isHumanId = (id: number) => !!s.managers.find(m => m.id === id && m.isHuman)
-      for (let i = 0; i < times && s.round < TOTAL_ROUNDS; i++) {
+      for (let i = 0; i < times && s.round < roundsTotal; i++) {
         const rng = mulberry(s.seed + 5000 + s.round * 37)
         // fotografa posições e gols ANTES pra narrar as viradas
         const prevRank = new Map(sortedTable(s.league).map((t, idx) => [t.id, idx + 1]))
@@ -2517,10 +2538,10 @@ export function reducer(state: EscState, action: Action): EscState {
       s.news = s.news.slice(0, 12)
       // Dinastia: pausa UMA vez na metade do calendário → janela do meio (economia).
       // O overlay assume, e RESUME_DINASTIA solta o returno.
-      if (s.dinastia && !s.dinastiaMidUsed && s.round >= Math.floor(TOTAL_ROUNDS / 2) && s.round < TOTAL_ROUNDS) {
+      if (s.dinastia && !s.dinastiaMidUsed && s.round >= Math.floor(roundsTotal / 2) && s.round < roundsTotal) {
         s.dinastiaPaused = true; s.dinastiaMidUsed = true
       }
-      if (s.round >= TOTAL_ROUNDS && action.type === 'SIM_MANY') {
+      if (s.round >= roundsTotal && action.type === 'SIM_MANY') {
         // pulo em MASSA (sem assistir): encerra na hora. Rodada a rodada (PLAY_ROUND)
         // NÃO encerra aqui — deixa a última partida ANIMAR; a tela chama FINISH_SEASON.
         finishSeason(s)
@@ -2530,7 +2551,7 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'FINISH_SEASON': {
       // 🏁 chamado pela tela quando a ANIMAÇÃO da última rodada acaba: coroa o campeão
       // e vai pro fim (ou semeia a Copa). Idempotente (champion/screen já setados).
-      if (s.careerOnline || s.round < TOTAL_ROUNDS || s.screen === 'end') return s
+      if (s.careerOnline || s.round < (s.fixtures.length || TOTAL_ROUNDS) || s.screen === 'end') return s
       finishSeason(s)
       return s
     }
@@ -3002,7 +3023,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const adj = fillerAdj(s.managers, DIVISION_BASE[res.nextDiv]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
         s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
         s.sectorIdx = 0; s.sectorCursor = 0
-        s.league = buildLeague(s.managers)
+        s.league = buildLeague(s.managers, !s.ligaFechada)
         s.fixtures = buildFixtures(s.league)
         s.seasonNo++
         s.screen = 'season'
@@ -3069,7 +3090,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const adj = fillerAdj(s.managers, DIVISION_BASE[sv.division]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
       s.sectorIdx = 0; s.sectorCursor = 0
-      s.league = buildLeague(s.managers)
+      s.league = buildLeague(s.managers, !s.ligaFechada)
       s.fixtures = buildFixtures(s.league)
       s.screen = 'season'
       return s
@@ -3099,7 +3120,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // rivais do Dinastia → aparecem com 🔥 na tabela e no painel embaixo do campinho (igual carreira)
       s.careerRivals = (action.rivals ?? []).map(r => ({ team: r.team, name: r.name, division: r.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
       s.careerTitles = 0; s.careerTitlesA = 0
-      s.league = buildLeague(s.managers)
+      s.league = buildLeague(s.managers, !s.ligaFechada)
       s.fixtures = buildFixtures(s.league)
       s.screen = 'season'
       return s
@@ -3115,7 +3136,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // pra prever/farmar título). Cada recomeço agora é uma temporada diferente.
       // (host dispara e sincroniza por SYNC_STATE, então online também fica ok.)
       s.seed = Math.floor(Math.random() * 1e9)
-      s.league = buildLeague(s.managers)
+      s.league = buildLeague(s.managers, !s.ligaFechada)
       s.fixtures = buildFixtures(s.league)
       s.round = 0
       s.scorers = []

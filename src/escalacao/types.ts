@@ -276,6 +276,7 @@ export interface EscState {
   // sala/jogo. 'liga_copa' (padrão) roda a Copa logo que a liga termina, antes
   // da votação; 'liga' pula direto pro fim, como sempre foi.
   copaMode?: 'liga' | 'liga_copa'
+  ligaFechada?: boolean // 🏆 LIGA FECHADA: sala online só com os humanos, SEM bots na tabela. A liga tem o tamanho da galera (returno duplo); ímpar folga. Copa só destrava com 8+.
   quickCopa?: QuickCopaState | null
   phaseDeadline: number | null // timestamp (ms) do fim do envelope
   monteDeadline: number | null // timestamp (ms) do fim da vez atual no Monte (online)
