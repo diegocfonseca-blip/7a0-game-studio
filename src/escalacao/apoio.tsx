@@ -96,9 +96,9 @@ export function myApoioPerk(): ApoioPerk | null {
   return tier ? APOIO_PERKS[tier] : null
 }
 
-// 🎮 ACESSO AO MODO MANUAL (na carreira): liberado pra quem tem o tier Lenda
-// (ouro) — que inclui o manual — OU pra quem tem o selo `manual` na tabela
-// user_colors (comprou só o Modo Manual, R$ 19,90). A coluna `manual` é
+// 🎮 ACESSO AO MODO MANUAL (na carreira): liberado pra quem tem o tier Craque
+// (prata, R$ 19,90 — o Modo Manual mora nele) ou Lenda (ouro), OU pra quem tem
+// o selo `manual` avulso na tabela user_colors. A coluna `manual` é
 // consultada à PARTE (query própria) pra que, se ela ainda não existir no banco,
 // a leitura das CORES não quebre. Enquanto o Diego não roda o SQL nem libera
 // ninguém, só o Lenda destrava — e nada afeta save antigo (isso é o grandfather,
@@ -121,7 +121,10 @@ export function useHasManual(): boolean {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => check(s?.user?.email))
     return () => { alive = false; sub.subscription.unsubscribe() }
   }, [])
-  return manualCol || myApoioPerk()?.tier === 'ouro'
+  // 🎮 o Modo Manual vem no Craque (prata) e no Lenda (ouro); ou pelo selo `manual`
+  // avulso. Promessa (roxo) é só cor.
+  const tier = myApoioPerk()?.tier
+  return manualCol || tier === 'prata' || tier === 'ouro'
 }
 
 // selo pronto pra colar no fim do nome (' 👑' ou '')
