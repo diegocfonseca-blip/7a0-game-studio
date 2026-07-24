@@ -172,15 +172,16 @@ export function computePromotions(tables: Record<Div, SimTeam[]>): Record<string
 }
 
 // moedas da temporada por técnico — SEM base recorrente (o técnico já começou
-// com 100). Só desempenho, com valores DIFERENTES por série:
-//   campeão: A 25 · B 20 · C 15 · D 10
-//   top 4 (zona): A 20 · B 15 · C 10 · D 5 — nas de baixo é acesso (sobe); na A é
-//     "manter entre os 4" (não tem pra onde subir). Campeão da A = 25 + 20 = 45.
-//   queda (caiu, pela série de onde caiu): A 20 · B 15 · C 10 · D 5
+// com 100). Só desempenho, com valores DIFERENTES por série (reforçados por causa
+// do salário — o campeão/artilheiro precisa bancar a folha):
+//   campeão: A 50 · B 40 · C 30 · D 20
+//   top 4 (zona/acesso): A 30 · B 25 · C 20 · D 0 — nas de baixo é acesso (sobe);
+//     na A é "manter entre os 4". Sair da D é de graça (0). Campeão da A = 50 + 30 = 80.
+//   queda (caiu, pela série de onde caiu): mesmo valor da zona — A 30 · B 25 · C 20
 const DIV_RANK: Record<Div, number> = { A: 3, B: 2, C: 1, D: 0 }
-const CAMPEAO: Record<Div, number> = { A: 45, B: 35, C: 25, D: 15 }
-const ZONA: Record<Div, number> = { A: 20, B: 15, C: 10, D: 5 }
-const QUEDA: Record<Div, number> = { A: 20, B: 15, C: 10, D: 5 }
+const CAMPEAO: Record<Div, number> = { A: 50, B: 40, C: 30, D: 20 }
+const ZONA: Record<Div, number> = { A: 30, B: 25, C: 20, D: 0 }
+const QUEDA: Record<Div, number> = { A: 30, B: 25, C: 20, D: 0 }
 export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, number> {
   const newPl = computePromotions(tables)
   const out: Record<number, number> = {}
@@ -346,16 +347,19 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
   const sorted = [...scorers.values()].sort((a, b) => b.goals - a.goals)
   return { tables, scorers: sorted.slice(0, 20), scorersAll: sorted, matches, goalsByCard, divTop }
 }
-// prêmio do artilheiro por divisão: dinheiro pro TIME + o mesmo tanto no PISO do
-// jogador. D 4 · C 8 · B 12 · A 16. Vale offline/online, rival/bot/humano.
-const DIV_SCORER_BONUS: Record<Div, number> = { A: 16, B: 12, C: 8, D: 4 }
+// prêmio do artilheiro: CAIXA do time por divisão (A 30 · B 20 · C 15 · D 10) +
+// PISO do jogador sobe SEMPRE +10 (fixo, qualquer divisão e Copa). O piso é fixo
+// baixo de propósito por causa do salário (salário = piso ÷ 10): se subisse muito,
+// a folha do artilheiro explodia. Vale offline/online, rival/bot/humano.
+const DIV_SCORER_BONUS: Record<Div, number> = { A: 30, B: 20, C: 15, D: 10 } // caixa do TIME
+const SCORER_PISO_BONUS = 10 // 🔒 piso do artilheiro: +10 fixo (qualquer divisão / Copa)
 export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { rewards: Record<number, number>; clubRewards: Record<string, number>; values: Record<string, number> } {
   const rewards: Record<number, number> = {}, clubRewards: Record<string, number> = {}, values: Record<string, number> = {}
   for (const d of DIVS) {
     const s = divTop[d]; if (!s) continue
     const b = DIV_SCORER_BONUS[d]
-    values[s.name] = (values[s.name] ?? 0) + b // sobe o piso do jogador
-    if (s.human) rewards[s.teamId] = (rewards[s.teamId] ?? 0) + b // caixa do humano
+    values[s.name] = (values[s.name] ?? 0) + SCORER_PISO_BONUS // piso do jogador: +10 fixo
+    if (s.human) rewards[s.teamId] = (rewards[s.teamId] ?? 0) + b // caixa do humano (por divisão)
     else { const key = s.teamId >= 0 ? `m${s.teamId}` : s.teamName; clubRewards[key] = (clubRewards[key] ?? 0) + b } // caixa do bot/rival
   }
   return { rewards, clubRewards, values }
@@ -368,9 +372,9 @@ export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { 
 export interface CopaTie { a: SimTeam; b: SimTeam; aDiv: Div; bDiv: Div; aggA: number; aggB: number; pens?: [number, number]; win: 'a' | 'b'; goals: Goal[]; legs: [number, number][]; legGoals: Goal[][] }
 export interface CopaRound { name: string; ties: CopaTie[] }
 export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; vice: SimTeam | null; viceDiv: Div | null; scorers: SeasonScorer[]; topScorer?: SeasonScorer }
-const COPA_CHAMP_COINS = 25 // igual ao campeão da Série A
+const COPA_CHAMP_COINS = 25 // caixa do campeão da Copa
 const COPA_VICE_COINS = 15 // vice-campeão (10 a menos que o campeão)
-const COPA_SCORER_BONUS = 16 // igual à artilharia da Série A (caixa do time + piso)
+const COPA_SCORER_BONUS = 16 // caixa do time pelo artilheiro da Copa (o PISO dele sobe +10 fixo, ver copaRewards)
 // prestígio por divisão na Copa: A favorita, D azarão (soma no ataque e defesa).
 const COPA_DIV_STRENGTH: Record<Div, number> = { A: 10, B: 6, C: 3, D: 0 }
 
@@ -477,8 +481,8 @@ export function copaRewards(copa: CopaResult): { rewards: Record<number, number>
   }
   const ts = copa.topScorer
   if (ts) {
-    values[ts.name] = (values[ts.name] ?? 0) + COPA_SCORER_BONUS
-    if (ts.human) rewards[ts.teamId] = (rewards[ts.teamId] ?? 0) + COPA_SCORER_BONUS
+    values[ts.name] = (values[ts.name] ?? 0) + SCORER_PISO_BONUS // piso do artilheiro da Copa: +10 fixo (igual à liga)
+    if (ts.human) rewards[ts.teamId] = (rewards[ts.teamId] ?? 0) + COPA_SCORER_BONUS // caixa do time (Copa) — inalterado
     else { const k = ts.teamId >= 0 ? `m${ts.teamId}` : ts.teamName; clubRewards[k] = (clubRewards[k] ?? 0) + COPA_SCORER_BONUS }
   }
   return { rewards, clubRewards, values, championKey }
@@ -1178,7 +1182,7 @@ function PrizesBox() {
               <tr key={d} style={{ borderTop: '1px solid rgba(0,0,0,0.12)' }}>
                 <td style={{ ...td, textAlign: 'left' }}>{DIV_NAME[d]}</td>
                 <td style={{ ...td, color: '#1B7A3D' }}>+{CAMPEAO[d]}</td>
-                <td style={{ ...td, color: '#1B7A3D' }}>+{ZONA[d]}</td>
+                <td style={{ ...td, color: ZONA[d] > 0 ? '#1B7A3D' : 'rgba(0,0,0,0.35)' }}>{ZONA[d] > 0 ? `+${ZONA[d]}` : '—'}</td>
                 <td style={{ ...td, color: d === 'D' ? 'rgba(0,0,0,0.35)' : '#E8503A' }}>{d === 'D' ? '—' : `−${QUEDA[d]}`}</td>
                 <td style={{ ...td, color: '#8a6d1f' }}>+{DIV_SCORER_BONUS[d]}</td>
               </tr>
@@ -1187,9 +1191,9 @@ function PrizesBox() {
         </table>
       </div>
       <ul style={{ margin: '8px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,0.7)', lineHeight: 1.5 }}>
-        <li><b>Top-4</b>: nas séries de baixo é <b>acesso</b> (sobe de divisão); na A é "manter entre os 4". Campeão da A leva os dois: <b>25 + 20 = 45</b>.</li>
-        <li><b>Queda</b>: perde moedas ao cair. <b>Da Série D ninguém cai</b> (é a última).</li>
-        <li><b>⚽ Artilheiro</b> de cada divisão: o valor vai pro <b>caixa do clube</b> e ainda sobe o <b>mesmo tanto no piso (valor)</b> do jogador pro próximo leilão.</li>
+        <li><b>Top-4</b>: nas séries de baixo é <b>acesso</b> (sobe de divisão); na A é "manter entre os 4". Campeão da A leva os dois: <b>50 + 30 = 80</b>. <b>Sair da Série D é de graça</b> (sem bônus de acesso).</li>
+        <li><b>Queda</b>: perde moedas ao cair (mesmo valor do acesso). <b>Da Série D ninguém cai</b> (é a última).</li>
+        <li><b>⚽ Artilheiro</b> de cada divisão (e da Copa): o valor vai pro <b>caixa do clube</b>; e o <b>piso (valor)</b> do jogador sobe <b>+10 fixo</b> pro próximo leilão.</li>
       </ul>
     </div>
   )
