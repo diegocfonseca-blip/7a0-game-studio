@@ -2008,6 +2008,8 @@ export function PyramidSeasonScreen() {
                 squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
             ) : (
           <>
+            {/* 👕 Patrocínio: escolhe a marca (por divisão); rende no vira-temporada */}
+            {me && <SponsorCard div={me.div} chosen={state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id })} />}
             <StadiumTab st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
@@ -2039,8 +2041,6 @@ export function PyramidSeasonScreen() {
                 <StadiumSvg st={{ inv: { geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'grama', 'cober'] }} perkOverride={APOIO_PERKS.ouro} />
               </div>
             </GoldTeaser>
-            {/* 👕 Patrocínio: escolhe a marca (por divisão); rende no vira-temporada */}
-            {me && <SponsorCard div={me.div} chosen={state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id })} />}
           </>
             )}
           </>
