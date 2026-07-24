@@ -130,9 +130,7 @@ function PixBox({ label = 'copiar', ctx, amount }: { label?: string; ctx?: strin
 // bege e verde SEM selo (ninguém carrega etiqueta de "menor" — selo começa no 💎).
 const COR_TIERS = [
   { key: 'bege',  nome: 'Foi Profissional', selo: '', preco: 'a cor de todo mundo · grátis', valor: 0, g: ['#DBD1B5', '#CBBF9E', '#B2A583'], ink: '#0C0C0C', holo: 0 },
-  { key: 'verde', nome: 'Bom Jogador', selo: '', preco: 'R$ 9,90', valor: 9.9, g: ['#41C07A', '#2E9E5B', '#1E7A45'], ink: '#fff', holo: 0 },
   { key: 'roxo',  nome: 'Promessa', selo: '💎', preco: 'R$ 9,90', valor: 9.9, g: ['#C9A9FF', '#8B5CF6', '#5B2FB0'], ink: '#fff', holo: 0.3 },
-  { key: 'prata', nome: 'Craque', selo: '⭐', preco: 'R$ 9,90', valor: 9.9, g: ['#F4F7FB', '#CBD4DE', '#9BA7B5'], ink: '#0C0C0C', holo: 0.5 },
   { key: 'ouro',  nome: 'Lenda — ouro OU qualquer cor com brilho', selo: '👑', preco: 'R$ 39,90', valor: 39.9, g: ['#FFE79A', '#FFC400', '#E8A200'], ink: '#0C0C0C', holo: 0.75 },
 ] as const
 export function ApoieButton({ big = false }: { big?: boolean }) {
@@ -187,7 +185,7 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
             style={{ background: 'linear-gradient(150deg,#C9A9FF,#8B5CF6 40%,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.5) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />
             <p className="font-black text-white text-base relative" style={{ ...OSWALD, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>🎨 Apoiar E escolher a COR do time</p>
-            <p className="text-[11px] font-bold text-white/85 mt-1 leading-snug relative" style={{ textShadow: '1px 1px 0 rgba(0,0,0,.25)' }}>Do verde ao OURO com brilho — no elenco, no estádio, nas tabelas e no seu nome em todos os modos.</p>
+            <p className="text-[11px] font-bold text-white/85 mt-1 leading-snug relative" style={{ textShadow: '1px 1px 0 rgba(0,0,0,.25)' }}>Do 💎 Promessa ao 👑 OURO com brilho — no elenco, no estádio, nas tabelas e no seu nome em todos os modos.</p>
           </button>
           <button onClick={() => { logApoio('👀 abriu: modo manual'); setScreen('manual') }} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3 active:translate-y-0.5"
             style={{ background: '#1B7A3D', boxShadow: `4px 4px 0 0 ${INK}` }}>
@@ -390,8 +388,8 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
           <p className="text-[11.5px] font-bold text-black/70 mt-3 leading-snug">Seu clube <b>joga de verdade</b>: sobe, cai, briga por título, aparece na artilharia e sai no jornal — na carreira de <b>cada pessoa que joga</b>. Não é homenagem parada: é um clube VIVO com o seu nome na história dele.</p>
           <div className="border-[3px] border-black rounded-xl px-3 py-2.5 mt-3" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)', boxShadow: `3px 3px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.75) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />
-            <p className="font-black text-[12.5px] relative" style={OSWALD}>👑 E JÁ INCLUI o tier Lenda inteiro</p>
-            <p className="text-[10.5px] font-bold text-black/70 mt-0.5 leading-snug relative">Cor ouro (ou qualquer cor com brilho), selo 👑 e nome brilhando em todo o jogo — <b>seu pra sempre</b>, mesmo que um dia alguém cubra a proposta pelo nome do clube.</p>
+            <p className="font-black text-[12.5px] relative" style={OSWALD}>👑 E JÁ INCLUI TUDO do Lenda</p>
+            <p className="text-[10.5px] font-bold text-black/70 mt-0.5 leading-snug relative">Cor ouro (ou qualquer cor com brilho), selo 👑, o <b>🎮 Modo Manual</b> e — em breve — <b>Carreira Online</b> e <b>Liga Fechada</b>. Tudo <b>seu pra sempre</b>, mais o <b>nome do clube</b> no jogo (esse, só até alguém cobrir a proposta).</p>
           </div>
           <button onClick={() => setScreen('batismo')} className="w-full mt-3.5 rounded-xl border-[3px] border-black font-black text-base py-3 active:translate-y-0.5"
             style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
@@ -417,7 +415,7 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
           </button>
           <p className="text-[10px] font-bold text-black/45 mt-1.5 text-center">(a mensagem já vai copiada — é só colar na DM e anexar o comprovante)</p>
           <p className="text-[11px] font-bold text-black/55 mt-3 leading-snug text-center">A gente responde em até 24h confirmando o clube — e na próxima atualização ele já tá jogando pra todo mundo. ⚽</p>
-          <p className="text-[10.5px] font-bold text-black/60 mt-2 leading-snug text-center">👑 <b>Bônus:</b> batizar já inclui o tier Lenda inteiro (cor com brilho + selo), e esse é <b>seu pra sempre</b>. Se alguém cobrir a proposta pelo nome, você perde só o nome — aí é cobrir ou chorar. 😄</p>
+          <p className="text-[10.5px] font-bold text-black/60 mt-2 leading-snug text-center">👑 <b>Bônus:</b> batizar já inclui <b>tudo do Lenda</b> (cor com brilho + selo + Modo Manual + os modos em breve), e isso é <b>seu pra sempre</b>. Se alguém cobrir a proposta pelo nome, você perde só o nome — aí é cobrir ou chorar. 😄</p>
           <div className="border-[3px] border-black rounded-xl px-3 py-2.5 mt-3 text-center" style={{ background: INK }}>
             <p className="font-black text-[12px] tracking-wide" style={{ color: GOLD, ...OSWALD }}>🤫 DISCRIÇÃO TOTAL</p>
             <p className="text-[10.5px] font-bold mt-1 leading-snug" style={{ color: 'rgba(255,255,255,0.75)' }}>Nenhum valor aparece pra ninguém, nunca. Quanto cada um apoiou fica só entre você e a gente. No jogo, só existe o nome do clube.</p>
