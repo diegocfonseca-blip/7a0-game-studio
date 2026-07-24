@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
-import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, loadPyramidCloud, deletePyramidCloud } from './store'
+import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, loadPyramidCloud, deletePyramidCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, MAX_CAREER_SLOTS } from './store'
+import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playChime, playWhistle, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
@@ -824,10 +825,72 @@ function SoloContinueBanner() {
   )
 }
 
+// "jogou há X" curtinho a partir de um timestamp
+function agoLabel(at: number): string {
+  const s = Math.max(0, Date.now() - at) / 1000
+  if (s < 3600) return `há ${Math.max(1, Math.round(s / 60))} min`
+  if (s < 86400) return `há ${Math.round(s / 3600)} h`
+  const d = Math.round(s / 86400)
+  return d < 7 ? `há ${d} dia${d > 1 ? 's' : ''}` : `há ${Math.round(d / 7)} sem`
+}
+const DIV_COLOR: Record<string, string> = { A: '#E7A21F', B: '#8C97A3', C: '#C77B3C', D: '#1E7A3D' }
+// 🪜 MINHAS CARREIRAS — lista de todos os saves (ativa + arquivo). Começar uma nova
+// nunca apaga as outras; "Continuar" na home aponta pro último jogado. Excluir é na mão.
+function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () => void }) {
+  const { dispatch } = useEsc()
+  const [list, setList] = useState<{ slot: CareerSlot; active: boolean }[]>(() => listAllCareers())
+  const open = (slot: CareerSlot, active: boolean) => {
+    const save = active ? slot.save : (activateCareerSlot(slot.save.seed) ?? slot.save)
+    dispatch({ type: 'RESUME_CAREER_SOLO', saved: save })
+  }
+  const del = (slot: CareerSlot) => {
+    if (!window.confirm(`Apagar esta carreira (Temporada ${slot.save.seasonNo ?? 1})? Não dá pra desfazer.`)) return
+    deleteCareerSlot(slot.save.seed); setList(listAllCareers())
+  }
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '18px 12px' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <p style={{ flex: 1, fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>🪜 Minhas Carreiras</p>
+          <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.5)', border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{list.length} / {MAX_CAREER_SLOTS}</span>
+          <button onClick={onClose} aria-label="Fechar" style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+        </div>
+        {list.length === 0 && <p style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#5a5647', padding: '10px 0 14px' }}>Nenhuma carreira ainda. Comece uma! 👇</p>}
+        {list.map(({ slot, active }, i) => {
+          const you = slot.save.managers?.[slot.save.youIdx ?? 0]
+          const div = (slot.save.careerPlacements?.['m' + (you?.id ?? 0)] as string) ?? slot.save.careerDivision ?? 'D'
+          const caixa = slot.save.careerCoins?.[you?.id ?? 0] ?? 0
+          const tn = you?.teamName ?? you?.name ?? 'Meu time'
+          return (
+            <div key={String(slot.save.seed ?? i)} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: `2.5px solid ${INK}`, borderLeft: `7px solid ${DIV_COLOR[div] ?? '#8B8168'}`, borderRadius: 12, padding: '10px 11px', marginBottom: 9, marginTop: active ? 10 : 0, boxShadow: `3px 3px 0 0 ${INK}` }}>
+              {active && <span style={{ position: 'absolute', top: -9, left: 12, background: GOLD, color: INK, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', padding: '2px 7px', borderRadius: 6, border: `2px solid ${INK}`, ...OSWALD }}>▶ última jogada</span>}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontWeight: 900, fontSize: 15.5, ...OSWALD, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 9.5, fontWeight: 900, color: '#fff', background: DIV_COLOR[div] ?? '#8B8168', padding: '2px 7px', borderRadius: 6, ...OSWALD }}>SÉRIE {div}</span>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: '#4a4740', ...OSWALD }}>Temporada {slot.save.seasonNo ?? 1}</span>
+                </div>
+                <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#8B8168', marginTop: 3 }}>💰 caixa {caixa} · jogou {agoLabel(slot.at)}</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
+                <button onClick={() => open(slot, active)} style={{ background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 11px', fontWeight: 900, fontSize: 12.5, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>▶️ Continuar</button>
+                <button onClick={() => del(slot)} aria-label="Apagar" style={{ background: 'transparent', border: 'none', fontSize: 14, cursor: 'pointer', opacity: 0.7 }}>🗑️</button>
+              </div>
+            </div>
+          )
+        })}
+        <button onClick={onNew} disabled={list.length >= MAX_CAREER_SLOTS} style={{ width: '100%', background: list.length >= MAX_CAREER_SLOTS ? '#d8cfb5' : '#fff', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, cursor: list.length >= MAX_CAREER_SLOTS ? 'default' : 'pointer', color: INK }}>➕ Começar nova carreira{list.length >= MAX_CAREER_SLOTS ? ' (limite atingido)' : ''}</button>
+        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 2px 0' }}>Começar uma nova NÃO apaga as outras. Trocar de save também não — só o 🗑️ apaga.</p>
+      </div>
+    </div>
+  )
+}
+
 export function EscIntro() {
   const { dispatch } = useEsc()
   const resumable = useResumableRoom()
   const solo = useResumableSolo()
+  const [showCarreiras, setShowCarreiras] = useState(false)
   const [shared, setShared] = useState(false)
   const shareGame = async () => {
     const data = { title: 'Leilão Legends', text: 'Bora jogar Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨⚽', url: 'https://leilaolegends.com' }
@@ -865,11 +928,12 @@ export function EscIntro() {
           <button onClick={solo.resume} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
             ▶️ Continuar carreira ({solo.teamName})
           </button>
-          <button onClick={solo.discard} className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
-            🗑️ Descartar e começar do zero
+          <button onClick={() => setShowCarreiras(true)} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
+            🪜 Minhas carreiras · trocar de save
           </button>
         </div>
       )}
+      {showCarreiras && <MinhasCarreiras onClose={() => setShowCarreiras(false)} onNew={() => { setShowCarreiras(false); dispatch({ type: 'GO_SETUP_CAREER' }) }} />}
       <div className="text-center pt-8">
         <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
           ⚽ Leilão às cegas de lendas
@@ -894,7 +958,7 @@ export function EscIntro() {
         <motion.div className="rounded-xl"
           animate={{ boxShadow: ['0 0 0 0 rgba(124,58,237,0)', '0 0 16px 4px rgba(124,58,237,0.7)', '0 0 0 0 rgba(124,58,237,0)'] }}
           transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}>
-          <Btn onClick={() => dispatch({ type: 'GO_SETUP_CAREER' })} className="w-full text-lg" bg={PURPLE}>
+          <Btn onClick={() => { if (listAllCareers().length > 0) setShowCarreiras(true); else dispatch({ type: 'GO_SETUP_CAREER' }) }} className="w-full text-lg" bg={PURPLE}>
             <span className="text-white">🪜 CARREIRA POR DIVISÕES <span className="text-yellow-300">(new)</span></span>
           </Btn>
         </motion.div>
@@ -980,20 +1044,9 @@ export function EscSetup() {
     // carreira offline = pirâmide de 4 divisões (baralho sempre BR + Europa juntos).
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.
     if (career) {
-      // 🛟 PROTEÇÃO: começar carreira nova SUBSTITUI a que existe. Se já tem uma,
-      // guarda uma cópia de segurança (1 nível de desfazer, no aparelho) e CONFIRMA
-      // antes — pra ninguém apagar sem querer um save maior/melhor.
-      try {
-        const existing = localStorage.getItem('esc-solo-career')
-        if (existing) {
-          let tn = '', sn = 1
-          try { const j = JSON.parse(existing) as EscState; tn = j.managers?.[j.youIdx ?? 0]?.name ?? ''; sn = j.seasonNo ?? 1 } catch { /* ignora */ }
-          const ok = window.confirm(`⚠️ Você já tem uma carreira em andamento${tn ? ` — ${tn}` : ''} (Temporada ${sn}).\n\nComeçar uma NOVA vai SUBSTITUIR ela. Vou guardar uma cópia de segurança neste aparelho, mas confirme:\n\nComeçar carreira nova?`)
-          if (!ok) return
-          localStorage.setItem('esc-solo-career-backup', existing)
-          localStorage.setItem('esc-solo-career-backup-at', localStorage.getItem('esc-solo-career-at') ?? String(Date.now()))
-        }
-      } catch { /* não trava o jogo */ }
+      // 🪜 VÁRIOS SAVES: guarda a carreira ATUAL no arquivo (não apaga!) antes de
+      // começar a nova. A nova vira a ativa; a antiga fica em "Minhas Carreiras".
+      stashActiveBeforeNew()
       dispatch({ type: 'START_CAREER_SOLO', teamName: clean, formation, rivals, rivalTeams: picks, league: 'both', intro: true })
     }
     else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league, copaMode, intro: true })

@@ -3134,6 +3134,77 @@ function loadSoloInProgress(): EscState | null {
 }
 
 // ─── carreira pirâmide OFFLINE na NUVEM (segue a conta em qualquer aparelho) ──
+// ─── 🪜 VÁRIOS SAVES DE CARREIRA (slots) ────────────────────────────────
+// A carreira ATIVA vive em `esc-solo-career` (hot path INTOCADO — autosave e
+// "continuar" seguem iguais). As OUTRAS ficam num ARQUIVO à parte
+// (`esc-career-archive`), pra começar uma nova NUNCA apagar as anteriores. Como o
+// hot path não muda, quem está jogando não corre risco nenhum. Cada carreira é
+// única pela `seed`. Limite de slots pra não encher o armazenamento.
+export type CareerSlot = { save: EscState; at: number }
+const CAREER_ARCHIVE_KEY = 'esc-career-archive'
+export const MAX_CAREER_SLOTS = 6
+const isCareerSave = (s: unknown): s is EscState => !!s && typeof s === 'object' && !!(s as EscState).careerOnline && Array.isArray((s as EscState).managers) && (s as EscState).managers.length > 0
+export function readCareerArchive(): CareerSlot[] {
+  try { const r = localStorage.getItem(CAREER_ARCHIVE_KEY); if (r) { const arr = JSON.parse(r); if (Array.isArray(arr)) return arr.filter((x: CareerSlot) => isCareerSave(x?.save)) } } catch { /* ignora */ }
+  return []
+}
+function writeCareerArchive(slots: CareerSlot[]) {
+  try { localStorage.setItem(CAREER_ARCHIVE_KEY, JSON.stringify(slots.slice(0, MAX_CAREER_SLOTS))) } catch { /* cota cheia — ignora */ }
+}
+export function readActiveCareer(): CareerSlot | null {
+  try { const r = localStorage.getItem('esc-solo-career'); if (r) { const save = JSON.parse(r); if (isCareerSave(save)) return { save, at: +(localStorage.getItem('esc-solo-career-at') || Date.now()) } } } catch { /* ignora */ }
+  return null
+}
+// guarda a carreira ATIVA no arquivo (dedup por seed). Não apaga a ativa.
+function archiveActiveCareer() {
+  const act = readActiveCareer(); if (!act) return
+  const rest = readCareerArchive().filter(s => s.save.seed !== act.save.seed)
+  writeCareerArchive([{ save: act.save, at: act.at }, ...rest])
+}
+// TODAS as carreiras pra listar (ativa primeiro, depois o arquivo), por recência.
+export function listAllCareers(): { slot: CareerSlot; active: boolean }[] {
+  const act = readActiveCareer()
+  const arch = readCareerArchive().filter(s => !act || s.save.seed !== act.save.seed)
+  const out: { slot: CareerSlot; active: boolean }[] = []
+  if (act) out.push({ slot: act, active: true })
+  for (const s of arch) out.push({ slot: s, active: false })
+  return out.sort((a, b) => b.slot.at - a.slot.at)
+}
+// vai começar uma carreira NOVA: arquiva a atual (não perde) antes do START zerar.
+export function stashActiveBeforeNew() { archiveActiveCareer() }
+// troca a carreira ATIVA por uma do arquivo (a atual vai pro arquivo). Devolve o save.
+export function activateCareerSlot(seed: number): EscState | null {
+  archiveActiveCareer()
+  const slots = readCareerArchive()
+  const idx = slots.findIndex(s => s.save.seed === seed)
+  if (idx < 0) return null
+  const chosen = slots[idx]
+  writeCareerArchive(slots.filter((_, i) => i !== idx))
+  try { localStorage.setItem('esc-solo-career', JSON.stringify(chosen.save)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* ignora */ }
+  savePyramidCloud(chosen.save, true) // a nuvem segue a ativa
+  return chosen.save
+}
+// apaga uma carreira (do arquivo OU a ativa). Não mexe nas outras. Se apagar a
+// ATIVA, promove a mais recente do arquivo pra ativa (pra o "Continuar" não sumir
+// da home enquanto ainda houver carreiras).
+export function deleteCareerSlot(seed: number) {
+  const act = readActiveCareer()
+  if (act && act.save.seed === seed) {
+    const arch = readCareerArchive()
+    if (arch.length) {
+      const next = [...arch].sort((a, b) => b.at - a.at)[0]
+      writeCareerArchive(arch.filter(s => s.save.seed !== next.save.seed))
+      try { localStorage.setItem('esc-solo-career', JSON.stringify(next.save)); localStorage.setItem('esc-solo-career-at', String(next.at)) } catch { /* ignora */ }
+      savePyramidCloud(next.save, true)
+    } else {
+      try { localStorage.removeItem('esc-solo-career'); localStorage.removeItem('esc-solo-career-at') } catch { /* ignora */ }
+      deletePyramidCloud()
+    }
+    return
+  }
+  writeCareerArchive(readCareerArchive().filter(s => s.save.seed !== seed))
+}
+
 // além do save local (esc-solo-career), quem está logado espelha o save inteiro
 // na tabela esc_pyramid_saves. Ao continuar, pega o MAIS RECENTE (local x nuvem).
 let lastPyrCloud = 0
