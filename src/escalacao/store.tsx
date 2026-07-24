@@ -131,6 +131,10 @@ import { supabase } from '../lib/supabase'
 import { logPlay, logVisit, heartbeat } from './analytics'
 
 export const START_MONEY = 100
+// 🎮 "geração" da carreira solo: carreiras iniciadas a partir da cobrança do
+// Modo Manual recebem este selo. Save SEM o selo = carreira antiga → manual
+// liberado pra sempre (nunca cobramos de quem já estava jogando).
+export const MANUAL_ERA = 1
 const LEAGUE_SIZE = 20
 const TOTAL_ROUNDS = 38
 
@@ -2041,6 +2045,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.onlineMode = 'cpu'
       s.isHost = true
       s.careerOnline = true
+      s.careerEra = MANUAL_ERA // 🎮 carreira NOVA: o Modo Manual pede apoio. Saves ANTIGOS não têm esse campo → seguem com o manual liberado (grandfather).
       s.roomId = ''; s.roomCode = ''; s.roomName = undefined
       s.locked = undefined; s.pwHash = undefined; s.streamMode = false; s.manualRoom = false
       s.deckLeague = action.league ?? 'br'; setActiveCatalog(s.deckLeague)
