@@ -1736,6 +1736,7 @@ export function PyramidSeasonScreen() {
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={round === 0 || roundReady}
               onNext={() => dispatch({ type: 'PLAY_ROUND' })}
+              onSkip={() => dispatch({ type: 'PLAY_ROUND' })}
               nextLabel={!(round === 0 || roundReady) ? '⏳ Deixa a rodada acabar…' : round === 0 ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
           </>
         )}

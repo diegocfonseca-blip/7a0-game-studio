@@ -2505,7 +2505,25 @@ export function useStreamSimMode(): [boolean, () => void] {
   const toggle = () => setManual(m => { const v = !m; try { localStorage.setItem('esc-stream-auto', v ? '0' : '1') } catch { /* ignora */ } return v })
   return [manual, toggle]
 }
-export function SimControls({ manual, onToggle, onNext, canNext, nextLabel = '▶️ Próxima rodada' }: { manual: boolean; onToggle: () => void; onNext: () => void; canNext: boolean; nextLabel?: string }) {
+export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLabel = '▶️ Próxima rodada' }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string }) {
+  // 🎮 MANUAL com PULAR: "Próxima rodada" GRANDE à esquerda (espera a partida
+  // acabar, como sempre); à direita, "⏭️ Pular" em cima (vai direto pro resultado,
+  // sem esperar) e "🔁 Modo auto" embaixo. Fino e sutil. Só aparece no manual.
+  if (manual && onSkip) {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: '1.12fr 1fr', gridTemplateRows: 'auto auto', gap: 7, marginBottom: 10 }}>
+        <button onClick={onNext} disabled={!canNext} style={{ gridRow: '1 / 3', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: `2.5px solid ${INK}`, borderRadius: 11, padding: 10, fontWeight: 900, fontSize: 15.5, lineHeight: 1.1, fontFamily: 'Oswald, sans-serif', background: canNext ? GREEN : '#cfc6ae', color: canNext ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `2px 2px 0 0 ${INK}`, cursor: canNext ? 'pointer' : 'default' }}>
+          {nextLabel}
+        </button>
+        <button onClick={onSkip} style={{ gridColumn: 2, gridRow: 1, border: `1.5px solid ${INK}`, borderRadius: 10, padding: 8, fontWeight: 800, fontSize: 12.5, fontFamily: 'Oswald, sans-serif', background: '#2F6BAE', color: '#fff', boxShadow: `1.5px 1.5px 0 0 ${INK}`, cursor: 'pointer' }}>
+          ⏭️ Pular
+        </button>
+        <button onClick={onToggle} style={{ gridColumn: 2, gridRow: 2, border: `1.5px solid ${INK}`, borderRadius: 10, padding: 8, fontWeight: 800, fontSize: 11.5, fontFamily: 'Oswald, sans-serif', background: '#fff', color: '#5a5647', boxShadow: `1.5px 1.5px 0 0 ${INK}`, cursor: 'pointer' }}>
+          🔁 Modo auto
+        </button>
+      </div>
+    )
+  }
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'stretch', marginBottom: 10 }}>
       {manual && (
@@ -2912,11 +2930,13 @@ export function EscSeason() {
         // pontapé; da rodada 1 em diante espera a animação (resultRevealed).
         <SimControls manual={manual} onToggle={toggleManual} canNext={state.round === 0 || resultRevealed}
           onNext={() => dispatch({ type: 'PLAY_ROUND' })}
+          onSkip={() => dispatch({ type: 'PLAY_ROUND' })}
           nextLabel={!(state.round === 0 || resultRevealed) ? '⏳ Deixa a rodada acabar…' : state.round === 0 && !myLast ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
       )}
       {(!online || streamHost) && copaLive && (
         <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
           onNext={() => dispatch({ type: 'PLAY_COPA_LEG' })}
+          onSkip={() => dispatch({ type: 'PLAY_COPA_LEG' })}
           nextLabel={!copaAdvReady ? '⏳ Deixa o jogo/pênaltis acabar…' : firstLegPending ? '🏆 Iniciar a Copa dos 8' : copaJustAdvanced ? '▶️ Começar a próxima fase' : '⚽ Próximo jogo da Copa'} />
       )}
       {!copaLive && lastWasClassico && lastRiv && resultRevealed && (
