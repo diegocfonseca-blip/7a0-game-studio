@@ -421,7 +421,14 @@ export function EscLobby() {
 
   useEffect(() => {
     if (!room) return
-    setLobbyChat([]); setLobbyUnread(0) // sala nova → chat limpo
+    // 💾 hidrata o histórico salvo NESTE aparelho: o broadcast é só ao vivo, então
+    // sem isso trocar de app / recarregar zerava o chat. Guardamos por sala.
+    try {
+      const raw = localStorage.getItem(`esc-lobbychat-${room.id}`)
+      const arr = raw ? JSON.parse(raw) as LobbyMsg[] : []
+      setLobbyChat(Array.isArray(arr) ? arr : [])
+    } catch { setLobbyChat([]) }
+    setLobbyUnread(0)
     fetchPlayers(room.id)
     const ch = supabase.channel(`esclobby:${room.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'room_players', filter: `room_id=eq.${room.id}` }, () => fetchPlayers(room.id))
@@ -450,6 +457,12 @@ export function EscLobby() {
   useEffect(() => {
     if (lobbyChatOpen && lobbyListRef.current) lobbyListRef.current.scrollTop = lobbyListRef.current.scrollHeight
   }, [lobbyChat, lobbyChatOpen])
+
+  // 💾 salva o histórico do chat da sala NESTE aparelho (sobrevive a recarregar)
+  useEffect(() => {
+    if (!room || lobbyChat.length === 0) return // não sobrescreve o salvo com o vazio inicial
+    try { localStorage.setItem(`esc-lobbychat-${room.id}`, JSON.stringify(lobbyChat.slice(-60))) } catch { /* ignora */ }
+  }, [lobbyChat, room])
 
   async function fetchPlayers(roomId: string) {
     const { data } = await supabase.from('room_players').select('*').eq('room_id', roomId).order('player_index')
