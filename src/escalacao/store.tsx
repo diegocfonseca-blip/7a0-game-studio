@@ -1480,7 +1480,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; deck?: 'br' | 'eu' | 'both'; career?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' }
+  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both'; career?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' }
   | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). scorerValues = bonus de piso dos artilheiros
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
@@ -1624,7 +1624,10 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   state.revealIdx = 0
   state.submitted = []
   state.pendingEnvelopes = {}
-  state.phaseDeadline = Date.now() + ENVELOPE_MS
+  // ⏱️ tempo do leilão escolhido pelo host: 0 = SEM cronômetro (o host avança no
+  // botão), N = N segundos, undefined = padrão (45s). Só o online usa 0; no solo
+  // auctionSecs é sempre undefined → 45s como sempre.
+  state.phaseDeadline = state.auctionSecs === 0 ? null : Date.now() + ((state.auctionSecs && state.auctionSecs > 0 ? state.auctionSecs * 1000 : ENVELOPE_MS))
   // 🛟 LEVA/SETOR VAZIO: não tem NENHUMA carta pra leiloar (ex.: leilão de reservas
   // onde TODOS os laterais do catálogo já têm dono). Sem isto, aparecia um envelope
   // VAZIO ("laterais sem lateral nenhum") e, ao lacrar, dava a tela de erro. Agora
@@ -2101,6 +2104,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.humanCount = action.playerNames.length
       s.streamMode = !!action.stream
       s.manualRoom = !!action.manual // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)
+      s.auctionSecs = action.auctionSecs // ⏱️ tempo do leilão: undefined=45s · N=N segundos · 0=host avança no botão
       s.chatOff = !!action.chatOff // 💬 chat da sala ligado/desligado (escolha do host na criação)
       // seed do leilão: código da sala. No "novo leilão" (rematch) recebe um
       // salt → sorteia jogadores NOVOS. Como só o HOST monta e transmite (o
@@ -2167,7 +2171,10 @@ export function reducer(state: EscState, action: Action): EscState {
       const pos = SECTORS[s.sectorIdx]
       const need = humansToSubmit(s, pos)
       const allIn = need.every(id => s.submitted.includes(id))
-      if (allIn) sealAndResolve(s)
+      // ⏱️ host-manual (auctionSecs=0): NÃO fecha sozinho nem quando todos lacram —
+      // o host controla cada avanço no botão (FORCE_SEAL). Com cronômetro, fecha
+      // na hora que todos lacram, como sempre.
+      if (allIn && s.auctionSecs !== 0) sealAndResolve(s)
       return s
     }
     case 'ADVANCE_REVEAL': {
@@ -2205,9 +2212,10 @@ export function reducer(state: EscState, action: Action): EscState {
     }
     case 'FORCE_SEAL': {
       if (s.phase !== 'envelope' && s.phase !== 'resq_envelope') return s
-      // reconfirma o prazo no momento de aplicar: rejeita disparo atrasado/duplicado
-      // de um cliente que ficou pra trás (ex.: outro setor já começou)
-      if (!s.phaseDeadline || Date.now() < s.phaseDeadline) return s
+      // COM cronômetro: só sela quando o prazo estourou (rejeita disparo atrasado/
+      // duplicado de um cliente que ficou pra trás). SEM cronômetro (host-manual,
+      // auctionSecs=0 → phaseDeadline null): é o BOTÃO do host que sela — sempre vale.
+      if (s.phaseDeadline && Date.now() < s.phaseDeadline) return s
       const pos = SECTORS[s.sectorIdx]
       const need = humansToSubmit(s, pos)
       for (const id of need) {

@@ -1496,6 +1496,10 @@ function Envelope() {
   const iSubmitted = state.submitted.includes(you.id)
   const humanBidders = state.managers.filter(m => m.isHuman && openSlots(m, pos) > 0 && m.money > 0)
   const waitingFor = humanBidders.filter(m => !state.submitted.includes(m.id))
+  // ⏱️ leilão SEM cronômetro (host-manual, auctionSecs=0): não tem contagem; o host
+  // fecha cada envelope no botão e todo mundo segue sincronizado.
+  const noTimer = state.auctionSecs === 0
+  const amHost = !!state.isHost
 
   // ─── cronômetro de 45s ───────────────────────────────────────────
   const [now, setNow] = useState(() => Date.now())
@@ -1545,7 +1549,7 @@ function Envelope() {
           <h2 className="font-black text-2xl" style={OSWALD}>{iSubmitted ? 'ENVELOPE LACRADO' : 'ENVIANDO…'}</h2>
           <p className="font-semibold text-black/70">
             {iSubmitted
-              ? `Aguardando os outros técnicos lacrarem… (${remaining}s)`
+              ? `Aguardando os outros técnicos lacrarem…${noTimer ? ' o host fecha o pregão quando quiser.' : ` (${remaining}s)`}`
               : 'Confirmando com o host… se demorar muito, ele pode estar sem conexão — não se preocupe, seu lance fica guardado e a gente reenvia sozinho.'}
           </p>
           <Box className="p-3 mt-2 text-left">
@@ -1683,11 +1687,19 @@ function Envelope() {
             </div>
           )}
         </div>
-        <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center min-w-[64px]"
-          style={{ backgroundColor: timerColor, boxShadow: `3px 3px 0 0 ${INK}` }}>
-          <p className="text-[9px] font-black uppercase" style={{ color: timerTextColor }}>Tempo</p>
-          <p className="font-black text-2xl leading-none" style={{ ...OSWALD, color: timerTextColor }}>{remaining}s</p>
-        </div>
+        {noTimer ? (
+          <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center min-w-[64px]"
+            style={{ backgroundColor: '#2E6FB0', boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <p className="text-[9px] font-black uppercase text-white">Ritmo</p>
+            <p className="font-black text-lg leading-none text-white" style={OSWALD}>🎮 host</p>
+          </div>
+        ) : (
+          <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center min-w-[64px]"
+            style={{ backgroundColor: timerColor, boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <p className="text-[9px] font-black uppercase" style={{ color: timerTextColor }}>Tempo</p>
+            <p className="font-black text-2xl leading-none" style={{ ...OSWALD, color: timerTextColor }}>{remaining}s</p>
+          </div>
+        )}
       </div>
 
       {!canBid && (
@@ -1810,6 +1822,15 @@ function Envelope() {
       </Box>
       {online && waitingFor.length > 0 && (
         <p className="text-center text-xs font-bold text-black/60">Faltam lacrar: {waitingFor.map(m => m.teamName).join(', ')}</p>
+      )}
+      {/* ⏱️ leilão SEM cronômetro: só o HOST fecha o envelope e faz todo mundo
+          avançar. Lacra o lance do host (se ainda não) e sela os que faltam. */}
+      {online && noTimer && amHost && (
+        <button onClick={() => { if (!iSubmitted && canBid) seal(); dispatch({ type: 'FORCE_SEAL' }) }}
+          className="w-full border-[3px] border-black rounded-xl py-3 font-black active:translate-y-0.5"
+          style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
+          ▶️ Fechar o envelope e avançar{waitingFor.length > 0 ? ` · ${waitingFor.length} sem lacrar` : ''}
+        </button>
       )}
 
       <YourPitch />

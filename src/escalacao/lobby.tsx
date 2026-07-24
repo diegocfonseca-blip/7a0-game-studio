@@ -303,6 +303,7 @@ export function EscLobby() {
   const [streamModal, setStreamModal] = useState(false) // caixa explicando o modo stream
   const [roomManual, setRoomManual] = useState(false)  // 🎮 modo manual: host controla o ritmo (auto = padrão)
   const [roomChat, setRoomChat] = useState(true)  // 💬 chat da sala: o host decide na criação (padrão = ligado)
+  const [auctionSecs, setAuctionSecs] = useState(45) // ⏱️ tempo do leilão: 45 (padrão), outro nº, ou 0 = host avança no botão
   const [pwModal, setPwModal] = useState<RoomInfo | null>(null) // pedindo senha pra entrar
   const [pwEntry, setPwEntry] = useState('')
   const [room, setRoom] = useState<RoomInfo | null>(null)
@@ -561,6 +562,7 @@ export function EscLobby() {
       stream: !!gs?.stream,
       manual: !!gs?.manual, // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)
       chatOff: !!gs?.chatOff, // 💬 chat ligado/desligado (escolha do host na criação)
+      auctionSecs: gs?.auctionSecs, // ⏱️ tempo do leilão (undefined=45s · N=N seg · 0=host avança)
       deck: gs?.deck ?? 'br', // carreira = 'both'; rápido = escolha do host (br/eu/both)
       career: gs?.mode === 'carreira',
       locked: gs?.locked, pwHash: gs?.pwHash, // preserva a senha da sala pelo autosave
@@ -666,7 +668,7 @@ export function EscLobby() {
     const locked = roomLocked && !!roomPw.trim()
     const pwHash = locked ? hashPw(roomPw.trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomManual ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(carreira ? { mode: 'carreira', deck: careerDeck } : { deck: rapidoDeck, copaMode: rapidoCopaMode }) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomManual ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck } : { deck: rapidoDeck, copaMode: rapidoCopaMode }) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -1127,6 +1129,33 @@ export function EscLobby() {
             <p className="text-white/40 text-[10.5px] font-bold mt-1 leading-snug">Anda sozinho, na velocidade normal do online.</p>
           )}
         </div>}
+        {/* ⏱️ TEMPO DO LEILÃO (pregão): só o host decide. Padrão 45s, outro tempo,
+            ou SEM tempo (o host fecha cada envelope no botão e todo mundo avança
+            junto). É à parte do "ritmo da partida" (aquilo é o jogo; isto é o leilão). */}
+        <div>
+          <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">⏱️ Tempo do leilão (pregão)</p>
+          <div className="flex border-[3px] border-black rounded-xl overflow-hidden" style={{ opacity: auctionSecs === 0 ? 0.45 : 1 }}>
+            {[20, 30, 45, 60, 90].map((sec, i) => (
+              <button key={sec} onClick={() => setAuctionSecs(sec)}
+                className={`flex-1 py-2.5 font-black text-sm ${i > 0 ? 'border-l-[3px] border-black' : ''}`}
+                style={{ backgroundColor: auctionSecs === sec ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+                {sec}s
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setAuctionSecs(s => (s === 0 ? 45 : 0))}
+            className="flex items-center gap-2 w-full border-[3px] border-black rounded-xl px-3 py-2.5 font-black text-sm mt-2"
+            style={{ backgroundColor: auctionSecs === 0 ? '#2E6FB0' : '#fff', color: auctionSecs === 0 ? '#fff' : '#000', ...OSWALD }}>
+            <span className="text-lg leading-none">🎮</span>
+            <span className="flex-1 text-left">{auctionSecs === 0 ? 'SEM TEMPO — você fecha cada envelope' : 'Sem tempo — o host avança no comando'}</span>
+            <span className="text-[10px] opacity-60">toque</span>
+          </button>
+          <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
+            {auctionSecs === 0
+              ? 'Sem cronômetro: você fecha cada envelope no botão e todo mundo avança junto com você.'
+              : `Cada envelope do pregão dura ${auctionSecs}s${auctionSecs === 45 ? ' (padrão)' : ''}. Vale pra todo mundo na sala.`}
+          </p>
+        </div>
         {!(canCareer && roomMode === 'carreira') && <div>
           <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">Depois da liga</p>
           <div className="flex border-[3px] border-black rounded-xl overflow-hidden">

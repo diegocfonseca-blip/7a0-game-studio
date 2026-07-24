@@ -288,6 +288,10 @@ export interface EscState {
   // 💬 chat da sala: o HOST decide ligar/desligar. Padrão = ligado (undefined/false).
   // true = o host desligou o chat pra sala toda. Sincroniza via estado.
   chatOff?: boolean
+  // ⏱️ TEMPO DO LEILÃO (pregão) por envelope, escolhido pelo host na criação da sala.
+  // undefined = padrão (45s). N>0 = N segundos. 0 = SEM cronômetro: o host avança
+  // cada envelope no botão e todo mundo segue sincronizado (só online).
+  auctionSecs?: number
   // ⏩ velocidade da simulação (só quando o passo é do host/você — modo manual/stream
   // ou solo). Multiplicador do ritmo: 1 = normal (padrão), <1 = mais devagar (0.5=2×
   // devagar, 0.25=4×), >1 = mais rápido (2=2×, 4=4×). Sincroniza via estado pra os
