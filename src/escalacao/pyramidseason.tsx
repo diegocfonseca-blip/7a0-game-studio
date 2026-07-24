@@ -1648,6 +1648,11 @@ export function PyramidSeasonScreen() {
   // fases) — não re-anima do zero ao retomar; mostra direto os campeões/decisão.
   const [copaRound, setCopaRound] = useState(() => state.copaDoneSeason === state.seasonNo ? 999 : 0)
   const [copaPos, setCopaPos] = useState(0) // relógio da fase (0..nLegs*90) no nível da TELA (o placar fica em cima das abas)
+  const [copaReady, setCopaReady] = useState(false) // 🎮 no manual, libera a "Próxima fase" quando a fase acaba de animar
+  // ⏸️ passo é seu (SOLO + manual): usado tanto na liga quanto na Copa. Declarado
+  // aqui em cima porque o efeito da Copa (logo abaixo) precisa saber se é manual.
+  const [manualPref, toggleSim] = useSimMode()
+  const manual = manualPref && state.onlineMode !== 'online'
   // 🚫 ANTI-SPOILER: ao VIRAR de fase da Copa (copaRound muda), o relógio ainda está
   // no fim da fase anterior por 1 frame — o que piscaria o placar/vencedor da fase
   // NOVA antes do apito. Zera JÁ na renderização (o efeito abaixo religa a animação).
@@ -1673,14 +1678,17 @@ export function PyramidSeasonScreen() {
   // depois a VOLTA, todos os jogos juntos. Avança de fase quando termina + folga.
   useEffect(() => {
     if (!copaPlaying) return
-    setCopaPos(0)
+    setCopaPos(0); setCopaReady(false)
     const sf = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1 // ⏩ marcha escolhida
     const dur = Math.round((copaNLegs * COPA_LEG_MS) / sf)
     const t0 = Date.now()
     const iv = setInterval(() => setCopaPos(Math.min(copaFaseTotal, ((Date.now() - t0) / dur) * copaFaseTotal)), 90)
-    const adv = setTimeout(() => setCopaRound(r => r + 1), dur + 2200)
-    return () => { clearInterval(iv); clearTimeout(adv) }
-  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed])
+    // 🎮 MANUAL: NÃO avança sozinho — libera a "Próxima fase" quando a fase termina de
+    // animar e espera o toque. AUTO: avança sozinho depois da folga, como sempre.
+    const rdy = setTimeout(() => setCopaReady(true), Math.round(dur * 0.9) + 250)
+    const adv = manual ? null : setTimeout(() => setCopaRound(r => r + 1), dur + 2200)
+    return () => { clearInterval(iv); clearTimeout(rdy); if (adv) clearTimeout(adv) }
+  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual])
   // quando a Copa COMEÇA (temporada da liga encerrou), joga todo mundo pra aba
   // Jogos — é lá que a Copa toca ao vivo, em cima dos jogos. (Uma vez por temporada.)
   useEffect(() => { if (copaPlaying) setTab('jogos') }, [copaPlaying])
@@ -1793,8 +1801,7 @@ export function PyramidSeasonScreen() {
 
   // host conduz: avança a rodada (isso sincroniza pra todos). Nos modos SOLO
   // dá pra pausar entre rodadas (manual) e o jogo roda +5s mais calmo.
-  const [manualPref, toggleSim] = useSimMode()
-  const manual = manualPref && state.onlineMode !== 'online'
+  // (manualPref/manual são declarados lá em cima — a Copa também precisa deles.)
   // ⏩ AUTO é sempre o ritmo padrão: ao voltar pro auto, zera a velocidade (Normal).
   const toggleManualCareer = () => {
     const goingManual = !manual
@@ -1876,6 +1883,18 @@ export function PyramidSeasonScreen() {
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
         {copaPlaying && myCopaTie && <div style={{ marginBottom: 12 }}><CopaLiveMatch tie={myCopaTie} pos={copaPos} big youColor={myCol.solid} /></div>}
+        {/* 🎮 mesmos controles da liga valem na COPA quando o manual está ligado:
+            velocidade + Próxima fase / Pular / Modo auto. No AUTO a Copa segue
+            sozinha (só aparece o botão de ativar o manual). */}
+        {copaPlaying && state.onlineMode !== 'online' && state.isHost && (
+          <>
+            {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
+            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={copaReady}
+              onNext={() => setCopaRound(r => r + 1)}
+              onSkip={() => setCopaRound(r => r + 1)}
+              nextLabel={!copaReady ? '⏳ Deixa o jogo acabar…' : copaRound + 1 >= nCopaRounds ? '🏆 Ver o campeão' : '▶️ Próxima fase'} />
+          </>
+        )}
 
         {copaFinished && me?.champ && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
