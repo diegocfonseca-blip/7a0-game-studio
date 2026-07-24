@@ -50,7 +50,16 @@ export function SponsorCard({ div, chosen, onChoose }: { div: string; chosen?: s
         <span style={{ ...OSW, fontWeight: 900, fontSize: 13, color: GREEN }}>{pay > 0 ? `+${pay} / temporada` : '—'}</span>
       </div>
       {pay === 0 || opts.length === 0 ? (
-        <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0, lineHeight: 1.4 }}>Nenhuma marca quer a <b>Série D</b> ainda… <b>suba pra atrair patrocínio!</b> 🔨</p>
+        <div style={{ background: '#FBF4DE', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: '13px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, textAlign: 'center' }}>
+          <span style={{ fontSize: 24 }}>👕</span>
+          <p style={{ ...OSW, fontWeight: 900, fontSize: 13, color: INK, margin: 0, lineHeight: 1.25 }}>A Série D ainda não tem patrocínio</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0, lineHeight: 1.4 }}>Nenhuma marca aparece pra bancar a camisa aqui embaixo. <b>Suba de divisão</b> pra começar a faturar:</p>
+          <div style={{ display: 'flex', gap: 6, marginTop: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {[['C', 5], ['B', 10], ['A', 20]].map(([d, v]) => (
+              <span key={d as string} style={{ ...OSW, fontWeight: 900, fontSize: 10.5, background: '#fff', border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 9px', color: INK }}>Série {d} <span style={{ color: GREEN }}>+{v}</span></span>
+            ))}
+          </div>
+        </div>
       ) : (
         <>
           <p style={{ ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 2px 6px' }}>Escolha a marca da camisa</p>
@@ -63,7 +72,7 @@ export function SponsorCard({ div, chosen, onChoose }: { div: string; chosen?: s
           )}
         </>
       )}
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '9px 2px 0', lineHeight: 1.35 }}>Rende por divisão: D <b>0</b> · C <b>+10</b> · B <b>+20</b> · A <b>+35</b>. Cai no caixa no fim da temporada, junto com a bilheteria. A escolha é só de <b>identidade</b> — todas da mesma divisão pagam igual.</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '9px 2px 0', lineHeight: 1.35 }}>Rende por divisão: D <b>0</b> · C <b>+5</b> · B <b>+10</b> · A <b>+20</b>. Cai no caixa no fim da temporada, junto com a bilheteria. A escolha é só de <b>identidade</b> — todas da mesma divisão pagam igual.</p>
     </div>
   )
 }
