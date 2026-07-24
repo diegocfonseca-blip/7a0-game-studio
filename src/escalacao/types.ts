@@ -34,6 +34,20 @@ export interface WonCard extends Card {
   via: Acquisition
   reforco?: boolean // carreira online: comprado no leilão de reservas/mercado (não é do elenco original) — usado pras frases de "como vão as contratações"
   emprestado?: 'saf' | 'dono' // 🏢 SAF: jogador de EMPRÉSTIMO (propriedade não mudou) — 'saf' = veio da SAF pro dono; 'dono' = veio do dono pra SAF. Nunca pode ser vendido/listado; volta sozinho na virada de temporada.
+  buyPrice?: number // 💰 quanto se PAGOU de fato ao comprar (imutável). Diferente de `paid`, que é o piso e pode subir com bônus de artilheiro. Usado no Extrato/Transferências pra mostrar o valor pago e a valorização sem distorção.
+}
+
+// 🧾 livro-caixa da carreira SOLO: cada entrada/saída de dinheiro vira um
+// lançamento (só pra exibição — NUNCA volta a mexer no caixa de verdade).
+export interface LedgerEntry {
+  id: string
+  season: number // temporada do lançamento
+  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' // prêmios · bilheteria · folha · compra · venda
+  label: string
+  amount: number // sinal: + entrada, − saída
+  player?: string // compra/venda: nome do jogador
+  pos?: Sector // compra/venda: posição
+  buyPrice?: number // venda: quanto tinha sido pago (pra calcular o lucro)
 }
 
 // só duas formações — GOL/LAT/ZAG são sempre 1/2/2 nas duas (nunca variam),
@@ -248,6 +262,7 @@ export interface EscState {
   careerLineup?: Record<number, Record<number, string[]>> // carreira online: escalação (XI) POR JOGO (mgrId → rodada → ids dos 11 titulares); vale da rodada em diante, como a tática
   marketValues?: Record<string, number> // carreira online: LIVRO DE PREÇOS global (nome do jogador → último preço). Toda venda/lance vencedor e ida ao monte atualiza; todo baralho novo consulta pra carimbar o piso. Assim o valor de cada jogador é memória do jogo inteiro (ex.: Kaká vendido 30 → monte 15 → volta valendo 15).
   marketLog?: string[] // carreira online: resumo do que os BOTS fizeram no leilão/monte (arrematou X, pegou Y de graça, comprou o listado Z por W) — mostrado na cerimônia pra dar visibilidade. Zera a cada leilão.
+  careerLedger?: LedgerEntry[] // 🧾 carreira SOLO: livro-caixa (extrato + transferências) — só exibição, nunca realimenta o caixa. Cresce ao longo da carreira; limitado às últimas ~250 entradas.
   marketSellers?: Record<Sector, number[]> // carreira online: por posição, os ids dos BOTS que perderam um jogador pro mercado neste leilão — são justamente eles que podem dar lance NAQUELA posição (rebuscar o que perderam), quando 0 ou 1 humano oferta.
   seasonVotes?: Record<number, 'leilao' | 'mesmo'> // carreira online: no fim da temporada cada humano vota entre abrir o leilão de transferências ou seguir com o mesmo time. O host só inicia quando todos votam; empate → o voto do host decide. Zera ao iniciar a próxima temporada.
   careerScorersAll?: Record<string, { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D'; goals: number; you: boolean; human: boolean }> // carreira online: artilharia de TODOS OS TEMPOS (gols somados de cada jogador entre as temporadas), por nome. Alimenta a aba Rank › Artilheiros.
