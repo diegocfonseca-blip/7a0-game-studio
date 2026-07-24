@@ -2249,7 +2249,9 @@ function Reveal() {
     const sold = it.winner !== null && it.bids.length > 0
     const timers: ReturnType<typeof setTimeout>[] = []
     if (sold) timers.push(setTimeout(() => playHammer(), delayMs))
-    if (it.card.fame >= 5) timers.push(setTimeout(() => playChime(), delayMs + (sold ? 260 : 0)))
+    // ✨ chime dourado da LENDA: só toca pra QUEM LEVOU a carta (o usuário em
+    // questão), não pra sala toda nem quando quem arrematou foi bot/outro.
+    if (it.card.fame >= 5 && it.winner === you?.id) timers.push(setTimeout(() => playChime(), delayMs + (sold ? 260 : 0)))
     return () => timers.forEach(clearTimeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.revealIdx])
