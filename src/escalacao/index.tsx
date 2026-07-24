@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, Component, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { flushPendingWrites } from './pending'
 import { EscProvider, useEsc } from './store'
-import { setSoundAllowed, isSoundAllowed, isMuted, toggleMuted, onSoundChange, playCoin } from './sound'
+import { setSoundAllowed, isMuted, toggleMuted, onSoundChange, playCoin } from './sound'
 import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
 import { EscLobby } from './lobby'
 import { AdminPanel } from './admin'
@@ -213,21 +213,13 @@ function VersionWatcher() {
   )
 }
 
-// 🔊 SOM (por enquanto SÓ pro login do Diego): checa o e-mail logado e libera
-// o som só pra ele. Renderiza o botão de mute (🔊/🔇) fixo no canto — some pra
-// qualquer outro usuário. O clique no botão também "acorda" o áudio (1º gesto).
-const SOUND_EMAIL = 'diego.c.fonseca@gmail.com'
+// 🔊 SOM: liberado pra TODO MUNDO. Começa MUDO (opt-in) — ninguém leva susto de
+// áudio; a pessoa liga no botão 🔊/🔇 fixo no canto, que também "acorda" o
+// áudio no 1º toque (gesto exigido pelo navegador).
 function SoundGate() {
   const [, force] = useState(0)
   useEffect(() => onSoundChange(() => force(n => n + 1)), [])
-  useEffect(() => {
-    let alive = true
-    const apply = (u: { email?: string | null } | null | undefined) => { if (alive) setSoundAllowed(((u?.email ?? '').toLowerCase() === SOUND_EMAIL)) }
-    supabase.auth.getUser().then(({ data }) => apply(data?.user)).catch(() => { /* ignora */ })
-    const { data: sub } = supabase.auth.onAuthStateChange((_, s) => apply(s?.user))
-    return () => { alive = false; sub.subscription.unsubscribe() }
-  }, [])
-  if (!isSoundAllowed()) return null
+  useEffect(() => { setSoundAllowed(true) }, [])
   const on = !isMuted()
   return (
     <button onClick={() => { toggleMuted(); if (!isMuted()) playCoin() }} aria-label={on ? 'Desligar som' : 'Ligar som'}
