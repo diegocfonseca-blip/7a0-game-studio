@@ -131,6 +131,7 @@ function PixBox({ label = 'copiar', ctx, amount }: { label?: string; ctx?: strin
 const COR_TIERS = [
   { key: 'bege',  nome: 'Foi Profissional', selo: '', preco: 'a cor de todo mundo · grátis', valor: 0, g: ['#DBD1B5', '#CBBF9E', '#B2A583'], ink: '#0C0C0C', holo: 0 },
   { key: 'roxo',  nome: 'Promessa', selo: '💎', preco: 'R$ 9,90', valor: 9.9, g: ['#C9A9FF', '#8B5CF6', '#5B2FB0'], ink: '#fff', holo: 0.3 },
+  { key: 'prata', nome: 'Craque', selo: '⭐', preco: 'R$ 19,90', valor: 19.9, g: ['#F4F7FB', '#CBD4DE', '#9BA7B5'], ink: '#0C0C0C', holo: 0.5 },
   { key: 'ouro',  nome: 'Lenda — ouro OU qualquer cor com brilho', selo: '👑', preco: 'R$ 39,90', valor: 39.9, g: ['#FFE79A', '#FFC400', '#E8A200'], ink: '#0C0C0C', holo: 0.75 },
 ] as const
 export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { big?: boolean; startScreen?: 'choice' | 'manual'; trigger?: (open: () => void) => React.ReactNode }) {
@@ -186,12 +187,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             style={{ background: 'linear-gradient(150deg,#C9A9FF,#8B5CF6 40%,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.5) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />
             <p className="font-black text-white text-base relative" style={{ ...OSWALD, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>🎨 Apoiar E escolher a COR do time</p>
-            <p className="text-[11px] font-bold text-white/85 mt-1 leading-snug relative" style={{ textShadow: '1px 1px 0 rgba(0,0,0,.25)' }}>Do 💎 Promessa ao 👑 OURO com brilho — no elenco, no estádio, nas tabelas e no seu nome em todos os modos.</p>
-          </button>
-          <button onClick={() => { logApoio('👀 abriu: modo manual'); setScreen('manual') }} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3 active:translate-y-0.5"
-            style={{ background: '#1B7A3D', boxShadow: `4px 4px 0 0 ${INK}` }}>
-            <p className="font-black text-white text-base" style={OSWALD}>🎮 Apoiar E ter o Modo Manual</p>
-            <p className="text-[11px] font-bold text-white/85 mt-1 leading-snug">Comande a temporada no <b>seu tempo</b> na Carreira: pause, acelere, pule. <b>R$ 19,90</b> — toque pra ver como funciona.</p>
+            <p className="text-[11px] font-bold text-white/85 mt-1 leading-snug relative" style={{ textShadow: '1px 1px 0 rgba(0,0,0,.25)' }}>Do 💎 Promessa ao 👑 OURO com brilho — no elenco, no estádio, nas tabelas e no seu nome. E o 🎮 <b>Modo Manual</b> vem no ⭐ Craque.</p>
           </button>
           <button onClick={() => { logApoio('👀 abriu: batizar clube'); setScreen('dream') }} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3 active:translate-y-0.5"
             style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}` }}>
@@ -346,8 +342,29 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
                     </div>
                     {t.key !== 'bege' && (
                       <div className="p-2.5" style={{ background: '#fff' }}>
+                        {/* 🎮 CRAQUE = a cor ⭐ E o Modo Manual: tocar em Craque explica o manual */}
+                        {t.key === 'prata' && (
+                          <div className="border-[3px] border-black rounded-xl overflow-hidden mb-2.5" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
+                            <p className="text-[10px] font-black uppercase tracking-wide text-center py-1.5" style={{ background: '#1B7A3D', color: '#fff', ...OSWALD }}>🎮 O Craque vem com o MODO MANUAL</p>
+                            <div style={{ background: '#F4ECD6', padding: 9 }}>
+                              <p className="text-[10.5px] font-bold text-black/70 leading-snug mb-2">Na <b>Carreira</b>, comande a temporada no <b>seu tempo</b>: pause entre as rodadas, acelere (⚡) ou vá devagar (🐢) e pule o que quiser.</p>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 3 }}>
+                                {[['🐢', '4×'], ['🐢', '2×'], ['', 'Normal'], ['⚡', '2×'], ['⚡', '4×']].map(([ic, lb], i) => (
+                                  <div key={i} className="border-2 border-black rounded-md text-center py-1" style={{ background: i === 2 ? GOLD : '#fff' }}>
+                                    <span className="text-[9.5px] font-black" style={OSWALD}>{ic}{ic ? ' ' : ''}{lb}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, marginTop: 5 }}>
+                                <div className="border-2 border-black rounded-md text-center py-1.5" style={{ background: '#2F6BAE' }}><span className="text-[10px] font-black text-white" style={OSWALD}>⏭️ Pular</span></div>
+                                <div className="border-2 border-black rounded-md text-center py-1.5" style={{ background: '#1B7A3D' }}><span className="text-[10px] font-black text-white" style={OSWALD}>▶️ Próxima rodada</span></div>
+                              </div>
+                              <p className="text-[9.5px] font-bold text-black/60 leading-snug mt-2">🪜 Vale na <b>Carreira</b>. No <b>online</b> o ritmo é do host e continua <b>de graça</b>. Quem <b>já tem carreira em andamento não perde</b> o manual.</p>
+                            </div>
+                          </div>
+                        )}
                         <div className="mb-2"><PixBox label={`copiar Pix (${t.preco})`} ctx={`cor ${t.key}`} amount={t.valor} /></div>
-                        <button onClick={() => { logApoio(`🎨 QUER A COR: ${t.key.toUpperCase()} (${t.preco})`); igMsg(`Opa! Apoiei o Leilão Legends 💛 Quero a cor ${t.nome.toUpperCase()} — comprovante em anexo!`) }}
+                        <button onClick={() => { logApoio(`🎨 QUER A COR: ${t.key.toUpperCase()} (${t.preco})`); igMsg(`Opa! Apoiei o Leilão Legends 💛 Quero ${t.key === 'prata' ? 'o CRAQUE ⭐ (cor + Modo Manual)' : `a cor ${t.nome.toUpperCase()}`} — comprovante em anexo!`) }}
                           className="w-full rounded-xl border-[3px] border-black font-black text-[13px] py-2.5 active:translate-y-0.5"
                           style={{ background: '#E1306C', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
                           📸 MANDAR COMPROVANTE NO @leilaolegendscom
