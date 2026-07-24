@@ -3369,6 +3369,23 @@ export function EscProvider({ children }: { children: ReactNode }) {
     chatOpenRef.current = open; setChatOpenRaw(open)
     if (open) setChatUnread(0) // abriu → zera as minhas não-lidas
   }, [])
+  // 💾 HISTÓRICO DO CHAT SOBREVIVE a recarregar a página / trocar de app: o
+  // broadcast é só AO VIVO — sem guardar, quando o celular descarta a aba (você
+  // vai no zap e volta) o jogo volta pelo banco mas o chat vinha VAZIO. Agora
+  // guardamos as mensagens por sala NESTE aparelho e recarregamos ao voltar.
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.roomId) return
+    try {
+      const raw = localStorage.getItem(`esc-chat-${state.roomId}`)
+      if (raw) { const arr = JSON.parse(raw) as ChatMsg[]; if (Array.isArray(arr) && arr.length) setChat(prev => prev.length ? prev : arr) }
+    } catch { /* ignora */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.roomId, state.onlineMode])
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.roomId || chat.length === 0) return // não sobrescreve o salvo com o vazio inicial
+    try { localStorage.setItem(`esc-chat-${state.roomId}`, JSON.stringify(chat.slice(-60))) } catch { /* ignora */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chat, state.roomId, state.onlineMode])
 
   // host remove um técnico da partida: avisa o cliente dele (evento 'kick', que
   // o ejeta pra fora), a CPU assume o time (KICK_PLAYER) e libera a vaga no
