@@ -1955,6 +1955,13 @@ export function reducer(state: EscState, action: Action): EscState {
       s.onlineMode = 'cpu'
       s.isHost = true
       s.humanCount = 1
+      // 🧹 RÁPIDO/DINASTIA/CLÁSSICO NÃO é carreira-pirâmide: zera o careerOnline
+      // (e o livro-caixa). O reducer clona o estado ANTERIOR, então sem isto uma
+      // partida rápida iniciada logo depois de uma CARREIRA herdava careerOnline=true
+      // — e aí a partida rápida jogava com a economia da carreira E era salva como
+      // "Continuar carreira" (bug relatado: rápido virando carreira).
+      s.careerOnline = false
+      s.careerLedger = []
       // baralho escolhido (só solo): Brasileirão ou Liga Europa. Manager (que
       // também dispara START) sempre usa BR — não manda league.
       s.deckLeague = action.dinastia ? 'br' : (action.league ?? 'br')
