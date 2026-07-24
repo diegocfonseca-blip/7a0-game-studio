@@ -391,6 +391,7 @@ export function EscLobby() {
   const [lobbyChat, setLobbyChat] = useState<LobbyMsg[]>([])
   const [lobbyChatOpen, setLobbyChatOpen] = useState(false)
   const [lobbyUnread, setLobbyUnread] = useState(0)
+  const [hostLeft, setHostLeft] = useState(false) // 👑 host saiu da sala de espera → banner e volta pro menu
   const lobbyOpenRef = useRef(false)
   const lobbyListRef = useRef<HTMLDivElement>(null)
   const lobbyChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
@@ -511,17 +512,12 @@ export function EscLobby() {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: `id=eq.${room.id}` },
         ({ new: r }: { new: RoomInfo }) => {
           if (r.status === 'started') { triggerStart(r); return }
-          // HOST MIGROU (o dono saiu e a coroa passou pro mais antigo): atualiza
-          // o crachá na lista e, se a coroa caiu em MIM, viro host de verdade —
-          // o botão COMEÇAR aparece e um aviso explica o que houve.
           setRoom(prev => prev && prev.id === r.id ? { ...prev, host_id: r.host_id } : prev)
-          if (user && r.host_id === user.id) {
-            setIsHost(prev => {
-              if (!prev) setTimeout(() => { try { alert('👑 O host saiu da sala — agora VOCÊ é o host! Pode abrir o pregão quando quiser.') } catch { /* ignora */ } }, 0)
-              return true
-            })
-          }
         })
+      // 👑 host saiu → a sala é encerrada: banner + volta pro menu (broadcast é o
+      // aviso na hora; a exclusão da sala é a rede de segurança).
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'game_rooms', filter: `id=eq.${room.id}` }, () => setHostLeft(true))
+      .on('broadcast', { event: 'host_left' }, () => setHostLeft(true))
       .on('broadcast', { event: 'chat' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))
       .on('broadcast', { event: 'emote' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))
       .on('broadcast', { event: 'float' }, ({ payload }: { payload: LobbyFloat }) => addLobbyFloat(payload))
@@ -961,15 +957,14 @@ export function EscLobby() {
   }
   async function leaveRoom() {
     if (!room || !user) return
-    await supabase.from('room_players').delete().eq('room_id', room.id).eq('user_id', user.id)
-    // HOST saiu da sala de espera: passa a coroa pro técnico mais antigo (menor
-    // índice) em vez de deixar a sala órfã no "aguardando o host...". Se ficou
-    // vazia, apaga a sala de vez pra não virar fantasma na lista.
+    // HOST saiu da sala de espera: NÃO passa a coroa — a sala não faz sentido sem o
+    // dono (só ele abre o pregão). Avisa a galera (banner) e encerra a sala.
     if (room.host_id === user.id) {
-      const { data: rest } = await supabase.from('room_players').select('user_id, player_index').eq('room_id', room.id).order('player_index')
-      const next = ((rest ?? []) as { user_id: string }[])[0]
-      if (next) await supabase.from('game_rooms').update({ host_id: next.user_id }).eq('id', room.id).then(() => {}, () => {})
-      else await supabase.from('game_rooms').delete().eq('id', room.id).then(() => {}, () => {})
+      lobbyChanRef.current?.send({ type: 'broadcast', event: 'host_left', payload: {} })
+      await supabase.from('room_players').delete().eq('room_id', room.id).then(() => {}, () => {})
+      await supabase.from('game_rooms').delete().eq('id', room.id).then(() => {}, () => {})
+    } else {
+      await supabase.from('room_players').delete().eq('room_id', room.id).eq('user_id', user.id)
     }
     clearSavedRoom()
     setRoom(null); setPlayers([]); setPhase('menu')
@@ -1520,6 +1515,21 @@ export function EscLobby() {
               <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><span style={{ color: chatColor(f.name) }}>{f.name}:</span> {f.text}</span>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* 👑 BANNER: o host saiu → a sala acabou. Aperta OK e volta pro menu das salas. */}
+      {hostLeft && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100001, background: 'rgba(0,0,0,.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+          <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}`, maxWidth: 380, width: '100%', padding: 20, textAlign: 'center' }}>
+            <div style={{ fontSize: 42, lineHeight: 1 }}>👑🚪</div>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 20, color: INK, marginTop: 8 }}>O host saiu da sala</p>
+            <p style={{ fontWeight: 700, fontSize: 13, color: 'rgba(0,0,0,.65)', marginTop: 6, lineHeight: 1.4 }}>A sala foi encerrada — sem o host ninguém abre o pregão. Você volta pro menu das salas.</p>
+            <button onClick={() => { setHostLeft(false); clearSavedRoom(); setRoom(null); setPlayers([]); setTab('open'); setPhase('menu') }}
+              style={{ ...OSWALD, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '11px 0', width: '100%', marginTop: 16, cursor: 'pointer' }}>
+              OK, voltar pras salas
+            </button>
+          </div>
         </div>
       )}
     </>)
