@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
-  QuickCopaState, QuickCopaTie,
+  QuickCopaState, QuickCopaTie, LedgerEntry,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, newestTeamName } from './data'
@@ -47,6 +47,33 @@ function chargeSalaries(s: EscState) {
     if (folha > 0) cc[m.id] = Math.max(0, (cc[m.id] ?? 0) - folha)
   }
   s.careerCoins = cc
+}
+// 🧾 LIVRO-CAIXA (carreira SOLO): registra um lançamento no extrato. É SÓ pra
+// exibição — NUNCA realimenta o caixa de verdade. Ignora o online (lá não tem a
+// aba Finanças) e valor 0. Guarda as últimas ~250 entradas.
+function logFin(s: EscState, kind: LedgerEntry['kind'], label: string, amount: number, extra?: Partial<LedgerEntry>) {
+  if (s.onlineMode === 'online') return
+  if (!amount) return
+  const e: LedgerEntry = { id: Math.random().toString(36).slice(2), season: s.seasonNo ?? 1, kind, label, amount, ...extra }
+  const arr = (s.careerLedger = s.careerLedger ?? [])
+  arr.push(e)
+  if (arr.length > 250) s.careerLedger = arr.slice(-250)
+}
+// 💰 VIRA-TEMPORADA: aplica prêmios + bilheteria + folha na caixa do técnico e
+// REGISTRA cada um no extrato pela VARIAÇÃO REAL da caixa do humano. Mantém a
+// mesma ordem/efeito de antes (prêmios → bilheteria → folha) — só soma o registro.
+function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
+  const y = s.managers[s.youIdx]?.id ?? s.youIdx
+  const b0 = s.careerCoins?.[y] ?? 0
+  s.careerCoins = applyRewards(s.careerCoins, rewards)
+  const b1 = s.careerCoins[y] ?? 0
+  s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums)
+  const b2 = s.careerCoins[y] ?? 0
+  chargeSalaries(s)
+  const b3 = s.careerCoins[y] ?? 0
+  logFin(s, 'reward', '🏆 Prêmios da temporada', b1 - b0)
+  logFin(s, 'gate', '🎟️ Bilheteria', b2 - b1)
+  logFin(s, 'salary', '💸 Folha salarial', b3 - b2)
 }
 // caixa dos OUTROS times (por teamKey string), nunca negativo — soma título/acesso, tira queda
 function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Record<string, number>): Record<string, number> {
@@ -283,6 +310,12 @@ function creditSeller(state: EscState, card: Card, amount: number, buyerId?: num
   if (sellerId == null || amount <= 0 || sellerId === buyerId) return
   const seller = state.managers.find(m => m.id === sellerId)
   if (seller) seller.money += amount
+  // 🧾 se quem VENDEU foi o humano (carreira solo), registra a venda + o que
+  // tinha pago, pra a aba Transferências mostrar o lucro/prejuízo real.
+  if (seller?.isHuman) {
+    const boughtFor = (card as WonCard).buyPrice ?? (card as { paid?: number }).paid ?? 0
+    logFin(state, 'sell', `💰 ${card.name}`, amount, { player: card.name, pos: card.pos, buyPrice: boughtFor })
+  }
 }
 // ARTILHEIRO DA TEMPORADA: o goleador de cada divisão faz o valor de piso do
 // jogador subir (D+4, C+8, B+12, A+16) — o mesmo número que o time ganhou de
@@ -552,7 +585,7 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     const wid = tiedTop[0]
     const m = managers.find(x => x.id === wid)!
     m.money -= top
-    m.squad.push({ ...card, paid: top, via, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
+    m.squad.push({ ...card, paid: top, buyPrice: top, via, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
     queue.push({ card, bids: sorted, winner: wid, paid: top, voided })
   }
   return { queue, unsold, ties }
@@ -576,7 +609,8 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   else { winner = top[Math.floor(rng() * top.length)]; tb.viaRoulette = true } // empatou de novo → roleta
   const m = state.managers.find(x => x.id === winner)!
   m.money -= max
-  m.squad.push({ ...tb.card, paid: max, via: tb.via, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
+  m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
+  if (m.isHuman) logFin(state, 'buy', `🛒 ${tb.card.name}`, -max, { player: tb.card.name, pos: tb.card.pos }) // 🧾 compra no desempate
   recordPrice(state, tb.card.name, max) // livro de preços
   creditSeller(state, tb.card, max, winner) // o vendedor recebe a grana da venda
   tb.winner = winner
@@ -1288,9 +1322,12 @@ function takeFromMonte(state: EscState, cardId: string) {
   // Sobra sem piso (0) é de graça, e a SUA própria carta listada também (não paga a
   // si mesmo). O vendedor (outro) recebe como sempre.
   const isOwn = (card as { seller?: number }).seller === mgrId
-  if (state.careerOnline && paid > 0 && !isOwn) m.money = Math.max(0, m.money - paid)
+  if (state.careerOnline && paid > 0 && !isOwn) {
+    m.money = Math.max(0, m.money - paid)
+    if (m.isHuman) logFin(state, 'buy', `🛒 ${card.name}`, -paid, { player: card.name, pos: card.pos }) // 🧾 compra no monte
+  }
   creditSeller(state, card, paid, mgrId) // vendedor recebe o valor mesmo indo pelo monte
-  m.squad.push({ ...card, paid, via: 'monte' })
+  m.squad.push({ ...card, paid, buyPrice: paid, via: 'monte' })
 }
 
 // avança o ponteiro do monte, deixando CPUs escolherem sozinhas.
@@ -1647,6 +1684,7 @@ function sealAndResolve(state: EscState) {
     recordPrice(state, q.card.name, q.paid) // livro de preços
     creditSeller(state, q.card, q.paid, q.winner) // o vendedor recebe a grana da venda
     const w = state.managers.find(m => m.id === q.winner) // resumo dos bots (visibilidade)
+    if (w?.isHuman) logFin(state, 'buy', `🛒 ${q.card.name}`, -q.paid, { player: q.card.name, pos: q.card.pos }) // 🧾 compra no leilão
     if (w?.backstop) (state.marketLog = state.marketLog ?? []).push(`⚽ ${w.teamName} arrematou ${q.card.name} por ${q.paid} 🪙`)
     // bot arrematou famoso e tá com o banco cheio? tira um FAKE (incógnito) pra dar
     // lugar ao famoso — não deixa o elenco do bot inchar de carta de brincadeira.
@@ -1991,6 +2029,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerPlacements = pl
       s.careerHonors = {}; s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.statsSeason = 0
+      s.careerLedger = [] // 🧾 livro-caixa novo: extrato/transferências começam vazios
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
       // vazando de uma carreira anterior (bug reportado: o estádio vinha completo).
       s.stadiums = {}; s.careerFilial = undefined
@@ -2567,9 +2606,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!s.careerOnline) return s
       pinHumanLineups(s) // mantém o SEU XI (mesmo time) — nada de auto-mudar titular
       s.seasonVotes = {} // temporada nova: zera a votação
-      s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada (base+título/acesso/queda)
-      s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
-      chargeSalaries(s) // 💸 folha do elenco que JOGOU (antes de contratar reforço — não cobra quem chega agora)
+      applySeasonMoney(s, action.rewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha (e registra no extrato) — antes de contratar reforço
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
@@ -2591,9 +2628,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!s.careerOnline) return s
       s.seasonVotes = {} // temporada nova: zera a votação
       setActiveCatalog(s.deckLeague) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
-      s.careerCoins = applyRewards(s.careerCoins, action.rewards) // moedas da temporada
-      s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
-      chargeSalaries(s) // 💸 folha do elenco que JOGOU — ANTES de zerar/refazer o leilão (não cobra reforço novo)
+      applySeasonMoney(s, action.rewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha (e registra no extrato) — ANTES de zerar/refazer o leilão
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
@@ -2626,9 +2661,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!s.careerOnline) return s
       pinHumanLineups(s) // fixa o SEU XI ANTES do leilão — reforço novo vai pro banco
       s.seasonVotes = {} // temporada nova: zera a votação
-      s.careerCoins = applyRewards(s.careerCoins, action.rewards)
-      s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums) // 🏟️ bilheteria do estádio
-      chargeSalaries(s) // 💸 folha do elenco que JOGOU — ANTES da venda/leilão de reservas (não cobra reforço novo)
+      applySeasonMoney(s, action.rewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha (e registra no extrato) — ANTES da venda/leilão de reservas
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada

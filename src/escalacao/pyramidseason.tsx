@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, oldChain } from './data'
-import type { Card, Manager, Sector, WonCard } from './types'
+import type { Card, Manager, Sector, WonCard, LedgerEntry } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll } from './store'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls } from './screens'
@@ -490,6 +490,134 @@ export function copaRewards(copa: CopaResult): { rewards: Record<number, number>
 
 // ── VISÃO das 4 divisões (mesmo visual das outras tabelas do jogo) ──
 const box = (bg = '#fff'): React.CSSProperties => ({ background: bg, border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}` })
+
+// ── 💰 FINANÇAS (aba Clube › Finanças): Extrato (tudo que entra/sai) +
+//    Transferências (compras/vendas com lucro). Lê o livro-caixa (careerLedger),
+//    que é só um registro — nunca mexe no dinheiro de verdade. ──
+const FIN_RED = '#C2452F'
+function FinLine({ label, sub, amount }: { label: string; sub?: string; amount: number }) {
+  const pos = amount >= 0
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: '#fff', border: `2px solid ${INK}`, borderRadius: 11, boxShadow: `2px 2px 0 0 ${INK}`, padding: '8px 10px' }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: INK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
+        {sub && <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069' }}>{sub}</div>}
+      </div>
+      <div style={{ ...OSWALD, fontWeight: 900, fontSize: 14.5, color: pos ? GREEN : FIN_RED, whiteSpace: 'nowrap' }}>{pos ? '+' : '−'}{Math.abs(amount)} 🪙</div>
+    </div>
+  )
+}
+function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
+  ledger: LedgerEntry[]; caixa: number; seasonNo: number
+  squad: WonCard[]; marketValues: Record<string, number>
+}) {
+  const [sub, setSub] = useState<'extrato' | 'transf'>('extrato')
+  // saldo da temporada atual (soma tudo que entrou/saiu neste ano)
+  const thisSeason = ledger.filter(e => e.season === seasonNo)
+  const entrou = thisSeason.filter(e => e.amount > 0).reduce((a, e) => a + e.amount, 0)
+  const saiu = thisSeason.filter(e => e.amount < 0).reduce((a, e) => a - e.amount, 0)
+  // extrato: do mais novo pro mais antigo, agrupado por temporada
+  const rev = [...ledger].reverse()
+  const seasons = [...new Set(rev.map(e => e.season))]
+  // transferências
+  const vendidos = rev.filter(e => e.kind === 'sell')
+  const noElenco = squad.filter(c => !c.fake && c.club !== 'Várzea' && !c.emprestado && (c.buyPrice != null || c.paid != null))
+  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? '🏆 Prêmios da temporada' : k === 'gate' ? '🎟️ Bilheteria' : k === 'salary' ? '💸 Folha salarial' : ''
+  return (
+    <>
+      {/* RESUMO fixo: caixa atual + saldo da temporada */}
+      <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '12px 14px', marginBottom: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <div>
+            <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>Caixa atual</div>
+            <div style={{ ...OSWALD, fontSize: 27, fontWeight: 900, lineHeight: 1, marginTop: 2 }}>🪙 {caixa}</div>
+          </div>
+          <div style={{ textAlign: 'right', fontSize: 10, color: 'rgba(255,255,255,.7)', fontWeight: 700 }}>Temporada {seasonNo}</div>
+        </div>
+        <div style={{ display: 'flex', gap: 7, marginTop: 10 }}>
+          {([['Entrou', entrou, '#8ff0a8'], ['Saiu', saiu, '#ffb3a6'], ['Saldo', entrou - saiu, GOLD]] as [string, number, string][]).map(([t, v, c], i) => (
+            <div key={t} style={{ flex: 1, background: 'rgba(0,0,0,.22)', borderRadius: 9, padding: '6px 8px' }}>
+              <div style={{ fontSize: 8.5, letterSpacing: .5, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800 }}>{t}</div>
+              <div style={{ ...OSWALD, fontSize: 15, fontWeight: 900, color: c }}>{i === 2 && v >= 0 ? '+' : i === 1 ? '−' : i === 0 ? '+' : v < 0 ? '−' : '+'}{Math.abs(v)}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* sub-abas: 🧾 Extrato | 🔁 Transferências */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+        {([['extrato', '🧾', 'Extrato'], ['transf', '🔁', 'Transferências']] as [typeof sub, string, string][]).map(([s, ic, label]) => (
+          <button key={s} onClick={() => setSub(s)} style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 2px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', background: sub === s ? INK : '#fff', color: sub === s ? '#fff' : INK, boxShadow: sub === s ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, ...OSWALD }}><span style={{ fontSize: 13 }}>{ic}</span>{label}</button>
+        ))}
+      </div>
+
+      {sub === 'extrato' ? (
+        ledger.length === 0
+          ? <div style={{ ...box('#FBF6E9'), padding: 20, textAlign: 'center', fontWeight: 700, color: '#8a7d59' }}>Ainda não há lançamentos. Prêmios, bilheteria, salários, compras e vendas aparecem aqui conforme a carreira anda.</div>
+          : <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {seasons.map(sn => (
+                <div key={sn} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: '#9a8f78', margin: '2px 2px 0' }}>Temporada {sn}</div>
+                  {rev.filter(e => e.season === sn).map(e => (
+                    <FinLine key={e.id} label={e.label || lbl(e.kind)} amount={e.amount} />
+                  ))}
+                </div>
+              ))}
+            </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {/* NO ELENCO: comprados, ainda no time — pago vs valor atual */}
+          <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: '#9a8f78', margin: '2px 2px 0' }}>No elenco ({noElenco.length})</div>
+          {noElenco.length === 0
+            ? <div style={{ ...box('#FBF6E9'), padding: 14, textAlign: 'center', fontWeight: 700, color: '#8a7d59', fontSize: 12.5 }}>Nenhum jogador comprado ainda.</div>
+            : noElenco.map(c => {
+                const pago = c.buyPrice ?? c.paid ?? 0
+                const atual = marketValues[c.name] ?? c.paid ?? pago
+                const dif = atual - pago
+                return (
+                  <div key={c.id} style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 11, boxShadow: `2px 2px 0 0 ${INK}`, padding: '8px 10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: INK }}>{c.name}</div>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: '#8a8069', textTransform: 'uppercase' }}>{POS_LABEL[c.pos]}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <div style={{ textAlign: 'center' }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>Pago</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{pago}</div></div>
+                        <div style={{ textAlign: 'center' }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>Hoje</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{atual}</div></div>
+                        <div style={{ textAlign: 'center', minWidth: 44 }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>{dif >= 0 ? 'Valoriz.' : 'Caiu'}</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14, color: dif >= 0 ? GREEN : FIN_RED }}>{dif >= 0 ? '+' : '−'}{Math.abs(dif)}</div></div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+          {/* VENDIDOS: com o lucro/prejuízo real */}
+          <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: '#9a8f78', margin: '8px 2px 0' }}>Vendidos ({vendidos.length})</div>
+          {vendidos.length === 0
+            ? <div style={{ ...box('#FBF6E9'), padding: 14, textAlign: 'center', fontWeight: 700, color: '#8a7d59', fontSize: 12.5 }}>Você ainda não vendeu ninguém.</div>
+            : vendidos.map(e => {
+                const bought = e.buyPrice ?? 0
+                const lucro = e.amount - bought
+                return (
+                  <div key={e.id} style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 11, boxShadow: `2px 2px 0 0 ${INK}`, padding: '8px 10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: INK }}>{e.player ?? e.label}</div>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: '#8a8069', textTransform: 'uppercase' }}>{e.pos ? POS_LABEL[e.pos] : 'Vendido'} · T{e.season}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <div style={{ textAlign: 'center' }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>Pagou</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{bought}</div></div>
+                        <div style={{ textAlign: 'center' }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>Vendeu</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{e.amount}</div></div>
+                        <div style={{ textAlign: 'center', minWidth: 44 }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>{lucro >= 0 ? 'Lucro' : 'Prejuízo'}</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14, color: lucro >= 0 ? GREEN : FIN_RED }}>{lucro >= 0 ? '+' : '−'}{Math.abs(lucro)}</div></div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+        </div>
+      )}
+    </>
+  )
+}
 const zone = (rank: number) => rank <= 4 ? '#D6E9FA' : rank >= 17 ? '#F9D8D3' : undefined
 const th: React.CSSProperties = { color: 'rgba(0,0,0,0.7)', fontWeight: 900, fontSize: 10.5 }
 function ZoneLegend() {
@@ -1477,6 +1605,7 @@ export function PyramidSeasonScreen() {
   const done = seasonOver && endShown
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti'>('arti')
+  const [clubeSub, setClubeSub] = useState<'estadio' | 'financas'>('estadio') // 🏟️/💰 sub-abas da aba Clube
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads])
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const careerLineup = (state.careerLineup ?? {}) as RoundLineups
@@ -1842,12 +1971,23 @@ export function PyramidSeasonScreen() {
         {/* abas em pílulas — a ativa fica na SUA cor. 🏟️ Estádio: só na carreira
             SOLO por enquanto (online precisa sincronizar as compras — etapa 2). */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-          {(([['jogos', '🗓️', 'Jogos'], ['tabelas', '📊', 'Tabelas'], ['elenco', '👥', 'Elenco'], ['ranking', '🏆', 'Rank']] as [typeof tab, string, string][]).concat(state.onlineMode !== 'online' ? [['estadio', '🏟️', 'Estádio'] as [typeof tab, string, string]] : [])).map(([t, ic, label]) => (
+          {(([['jogos', '🗓️', 'Jogos'], ['tabelas', '📊', 'Tabelas'], ['elenco', '👥', 'Elenco'], ['ranking', '🏆', 'Rank']] as [typeof tab, string, string][]).concat(state.onlineMode !== 'online' ? [['estadio', '💰', 'Clube'] as [typeof tab, string, string]] : [])).map(([t, ic, label]) => (
             <button key={t} onClick={() => setTab(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: tab === t ? myCol.solid : '#fff', color: tab === t ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
           ))}
         </div>
 
         {tab === 'estadio' ? (
+          <>
+            {/* sub-abas do Clube: 🏟️ Estádio (tudo que já existia) | 💰 Finanças */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              {([['estadio', '🏟️', 'Estádio'], ['financas', '💰', 'Finanças']] as [typeof clubeSub, string, string][]).map(([s, ic, label]) => (
+                <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
+              ))}
+            </div>
+            {clubeSub === 'financas' ? (
+              <FinancasTab ledger={state.careerLedger ?? []} caixa={state.careerCoins?.[youId] ?? 0} seasonNo={state.seasonNo ?? 1}
+                squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
+            ) : (
           <>
             <StadiumTab st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
@@ -1880,6 +2020,8 @@ export function PyramidSeasonScreen() {
                 <StadiumSvg st={{ inv: { geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'grama', 'cober'] }} perkOverride={APOIO_PERKS.ouro} />
               </div>
             </GoldTeaser>
+          </>
+            )}
           </>
         ) : tab === 'ranking' ? (
           <>
