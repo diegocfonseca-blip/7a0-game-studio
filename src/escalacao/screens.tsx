@@ -195,6 +195,12 @@ export function ApoieButton({ big = false }: { big?: boolean }) {
             <p className="text-[11px] font-bold text-black/65 mt-1 leading-snug">Escolhe o nome do SEU time e ele entra no campeonato que <b>todo mundo</b> joga. Seu clube, vivo, pra sempre*. <b>E já vem com TUDO do tier Lenda 👑</b> — ouro (ou qualquer cor) com brilho.</p>
           </button>
           <p className="text-[10px] font-bold text-black/45 text-center mt-2">*ou até alguém fazer uma proposta maior pelo clube… aí é cobrir ou chorar 😄</p>
+          {/* 🔒 EM BREVE pra quem apoia — modos premium (SÓ teaser: ainda não entram no jogo) */}
+          <div className="border-[3px] border-black rounded-xl px-3 py-2.5 mt-3" style={{ background: 'linear-gradient(150deg,#EFE7FF,#E3D6FF)', boxShadow: `4px 4px 0 0 ${INK}` }}>
+            <p className="font-black text-[11px] uppercase tracking-wide" style={{ ...OSWALD, color: '#5B21B6' }}>🔒 Em breve · pra quem apoia</p>
+            <p className="text-[11px] font-bold text-black/75 mt-1.5 leading-snug">🌐 <b>Carreira Online</b> — leve seu técnico numa carreira de verdade, temporada após temporada, contra outros humanos.</p>
+            <p className="text-[11px] font-bold text-black/75 mt-1.5 leading-snug">🏆 <b>Liga Fechada</b> — monte uma liga <b>só com amigos, sem nenhum bot</b>: só vocês disputando o título. Com <b>8+ pessoas</b> destrava também a Copa.</p>
+          </div>
           <button onClick={() => window.open('https://instagram.com/leilaolegendscom', '_blank', 'noopener')}
             className="w-full border-[3px] border-black rounded-xl p-2.5 mt-3 active:translate-y-0.5 bg-white">
             <p className="font-black text-[13px]" style={OSWALD}>🆓 Sem grana? Seguir no Instagram já ajuda DEMAIS 📲</p>
