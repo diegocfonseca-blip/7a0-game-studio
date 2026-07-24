@@ -20,6 +20,9 @@ type AuthTab = 'login' | 'register'
 interface RoomPlayer { user_id: string; manager_name: string; player_index: number }
 // 💬 mensagem do chat da sala de espera (uid = quem mandou, pra saber o "meu")
 interface LobbyMsg { id: string; uid: string; name: string; text: string }
+// 🎈 reação que FLUTUA (sobe e some) na sala de espera — NÃO entra no chat.
+// Chat é pra escrever; emoji/zoeira flutua por cima de tudo (inclusive do chat aberto).
+interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x: number }
 // tier de apoio de um jogador da sala, lido pelo SELO que viaja no nome dele
 // (👑 ouro · ⭐ prata · 💎 roxo) — assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
@@ -409,6 +412,18 @@ export function EscLobby() {
     lobbyChanRef.current?.send({ type: 'broadcast', event: 'chat', payload: e })
     lobbyChanRef.current?.send({ type: 'broadcast', event: 'emote', payload: e })
   }
+  // 🎈 zoeira que FLUTUA (não entra no chat): sobe na tela e some, pra todos da sala.
+  const [lobbyFloats, setLobbyFloats] = useState<LobbyFloat[]>([])
+  const addLobbyFloat = useCallback((f: LobbyFloat) => {
+    setLobbyFloats(prev => prev.some(x => x.id === f.id) ? prev : [...prev.slice(-10), f])
+    window.setTimeout(() => setLobbyFloats(prev => prev.filter(x => x.id !== f.id)), 3000)
+  }, [])
+  const sendLobbyFloat = (emoji: string, text?: string) => {
+    const myName = players.find(p => p.user_id === user?.id)?.manager_name ?? 'Você'
+    const f: LobbyFloat = { id: Math.random().toString(36).slice(2), emoji, text, name: myName, x: 14 + Math.random() * 62 }
+    addLobbyFloat(f) // mostra o meu na hora (o canal não devolve o próprio broadcast)
+    lobbyChanRef.current?.send({ type: 'broadcast', event: 'float', payload: f })
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -509,6 +524,7 @@ export function EscLobby() {
         })
       .on('broadcast', { event: 'chat' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))
       .on('broadcast', { event: 'emote' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))
+      .on('broadcast', { event: 'float' }, ({ payload }: { payload: LobbyFloat }) => addLobbyFloat(payload))
       .subscribe()
     lobbyChanRef.current = ch
     return () => { ch.unsubscribe(); lobbyChanRef.current = null }
@@ -1463,7 +1479,7 @@ export function EscLobby() {
             <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-2">😜 Enquanto espera… zoa a galera</p>
             <div className="grid grid-cols-2 gap-2">
               {jabs.map((j, i) => (
-                <button key={i} onClick={() => { sendLobbyChat(`${j.ic} ${j.tx}`); openLobbyChat(true) }}
+                <button key={i} onClick={() => sendLobbyFloat(j.ic, j.tx)}
                   className="border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] text-left bg-white text-black active:translate-y-0.5" style={OSWALD}>
                   {j.ic} {j.tx}
                 </button>
@@ -1492,6 +1508,20 @@ export function EscLobby() {
       {!chatOff && <LobbyChatDock
         open={lobbyChatOpen} setOpen={openLobbyChat} unread={lobbyUnread}
         msgs={lobbyChat} myUid={user?.id} listRef={lobbyListRef} onSend={sendLobbyChat} />}
+
+      {/* 🎈 CAMADA FLUTUANTE: as reações da zoeira sobem e somem POR CIMA de tudo —
+          inclusive do chat aberto (z acima da gaveta). Não entra no chat. */}
+      {lobbyFloats.length > 0 && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100000, pointerEvents: 'none', overflow: 'hidden' }}>
+          <style>{'@keyframes lobbyRise{0%{opacity:0;transform:translate(-50%,20px) scale(.7)}14%{opacity:1;transform:translate(-50%,0) scale(1)}72%{opacity:1}100%{opacity:0;transform:translate(-50%,-190px) scale(1)}}'}</style>
+          {lobbyFloats.map(f => (
+            <div key={f.id} style={{ position: 'absolute', left: `${f.x}%`, bottom: '24%', transform: 'translateX(-50%)', animation: 'lobbyRise 3s ease-out forwards', display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: `2px solid ${INK}`, borderRadius: 999, padding: '5px 11px', boxShadow: `2px 2px 0 0 ${INK}`, maxWidth: '82vw' }}>
+              <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>{f.emoji}</span>
+              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><span style={{ color: chatColor(f.name) }}>{f.name}:</span> {f.text}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </>)
   }
   // 🛟 fallback (nunca mais tela preta): "waiting" sem sala, ou qualquer estado
