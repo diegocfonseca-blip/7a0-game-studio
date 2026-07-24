@@ -529,13 +529,21 @@ export function EscLobby() {
       return true
     }
     if (!allowFresh) return false // reconexão sem estado salvo ainda: não recomeça
+    // SEGURANÇA (mesmo se uma vaga duplicada escapou): um assento por usuário.
+    // Deduplica de forma DETERMINÍSTICA (mesma ordem em todo cliente) e usa a
+    // POSIÇÃO na lista como número do técnico — o time é montado pela posição, não
+    // pelo índice cru do banco. Assim ninguém vira dois times nem "veste" o assento
+    // errado. No caso normal (host já limpou) isto não muda nada.
+    const seenU = new Set<string>()
+    const uniq = sorted.filter(p => (seenU.has(p.user_id) ? false : (seenU.add(p.user_id), true)))
+    const myPos = uniq.findIndex(p => p.user_id === user.id)
     dispatch({
       type: 'START_ONLINE',
       roomId: roomData.id, roomCode: roomData.code,
       roomName: gs?.roomName,
       isHost: amHost,
-      playerIndex: myPl.player_index,
-      playerNames: sorted.map(p => p.manager_name),
+      playerIndex: myPos >= 0 ? myPos : myPl.player_index,
+      playerNames: uniq.map(p => p.manager_name),
       formation: gs?.formation ?? '4-3-3',
       stream: !!gs?.stream,
       manual: !!gs?.manual, // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)
@@ -835,16 +843,26 @@ export function EscLobby() {
 
   async function startOnline() {
     if (!room || !isHost || players.length < 2) return
-    // COMPACTA as vagas ANTES de começar: se alguém saiu e voltou, a numeração
-    // pode ter buraco (0,1,3,4). O jogo monta os times pela POSIÇÃO na lista,
-    // então vaga com buraco fazia jogador procurar um time que não existe e ser
-    // devolvido pra tela inicial (bug do "grupo de 4 que não consegue jogar").
-    // Renumerar pra 0..n-1 alinha vaga ↔ time pra todo mundo, sempre.
+    // LIMPA as vagas ANTES de começar (o jogo monta os times pela POSIÇÃO na lista):
+    // (1) DEDUPLICA por usuário. Se o mesmo técnico ficou com DUAS vagas (leitura
+    //     atrasada na entrada deixou passar), ele viraria DOIS times — um "fantasma"
+    //     com o nome dele que trava o leilão esperando lacrar (o bug do "meu nome
+    //     aparece e também diz 'eu'"). Mantém a vaga de menor índice e apaga o resto.
+    // (2) RENUMERA pra 0..n-1. Buraco na numeração (0,1,3,4) fazia jogador procurar
+    //     um time que não existe e ser devolvido pra tela inicial.
     const { data: pls } = await supabase.from('room_players').select('user_id, player_index').eq('room_id', room.id).order('player_index')
     const rows = (pls ?? []) as { user_id: string; player_index: number }[]
-    for (let i = 0; i < rows.length; i++) {
-      if (rows[i].player_index !== i) {
-        await supabase.from('room_players').update({ player_index: i }).eq('room_id', room.id).eq('user_id', rows[i].user_id).then(() => {}, () => {})
+    const seen = new Set<string>()
+    const keep: { user_id: string; player_index: number }[] = []
+    for (const r of rows) {
+      if (seen.has(r.user_id)) {
+        // vaga repetida do MESMO técnico → apaga (pelo índice, que é único na sala)
+        await supabase.from('room_players').delete().eq('room_id', room.id).eq('player_index', r.player_index).then(() => {}, () => {})
+      } else { seen.add(r.user_id); keep.push(r) }
+    }
+    for (let i = 0; i < keep.length; i++) {
+      if (keep[i].player_index !== i) {
+        await supabase.from('room_players').update({ player_index: i }).eq('room_id', room.id).eq('player_index', keep[i].player_index).then(() => {}, () => {})
       }
     }
     await supabase.from('game_rooms').update({ status: 'started' }).eq('id', room.id)
