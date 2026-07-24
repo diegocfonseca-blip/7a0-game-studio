@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
-import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, loadPyramidCloud, deletePyramidCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, MAX_CAREER_SLOTS } from './store'
+import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, deletePyramidCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, MAX_CAREER_SLOTS, syncCareersWithCloud } from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playChime, playWhistle, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -780,17 +780,14 @@ function useResumableSolo() {
   const [saved, setSaved] = useState<EscState | null>(null)
   useEffect(() => {
     let alive = true
-    let localAt = 0
-    try { const r = localStorage.getItem('esc-solo-career'); if (r) setSaved(JSON.parse(r) as EscState); localAt = +(localStorage.getItem('esc-solo-career-at') || 0) } catch { setSaved(null) }
-    // logado: se a NUVEM tiver um save mais recente que o local (ex.: outro
-    // aparelho), usa o da nuvem — a carreira segue a conta.
+    // pinta rápido com o que já está no aparelho
+    try { const r = localStorage.getItem('esc-solo-career'); if (r) setSaved(JSON.parse(r) as EscState) } catch { setSaved(null) }
+    // 🪜 logado: une TODAS as carreiras da nuvem com as do aparelho (segue a conta em
+    // qualquer aparelho) e reescreve os dois lados. Depois relê a ativa.
     ;(async () => {
-      try {
-        const cloud = await loadPyramidCloud()
-        if (!alive || !cloud) return
-        const c = cloud.save
-        if (c && c.careerOnline && Array.isArray(c.managers) && c.managers.length && cloud.at > localAt) setSaved(c)
-      } catch { /* ignora */ }
+      const ok = await syncCareersWithCloud()
+      if (!alive || !ok) return
+      try { const r = localStorage.getItem('esc-solo-career'); if (r) setSaved(JSON.parse(r) as EscState) } catch { /* ignora */ }
     })()
     return () => { alive = false }
   }, [])

@@ -3203,28 +3203,75 @@ export function deleteCareerSlot(seed: number) {
     return
   }
   writeCareerArchive(readCareerArchive().filter(s => s.save.seed !== seed))
+  const a = readActiveCareer(); if (a) savePyramidCloud(a.save, true) // sincroniza a exclusão na nuvem
 }
 
 // além do save local (esc-solo-career), quem está logado espelha o save inteiro
 // na tabela esc_pyramid_saves. Ao continuar, pega o MAIS RECENTE (local x nuvem).
 let lastPyrCloud = 0
+// grava na nuvem TODAS as carreiras da conta (ativa + arquivo), não só a ativa —
+// assim os saves seguem o login em qualquer aparelho. Formato novo:
+// { __multi:1, careers:[{save,at}, ...] }. Rows antigas (EscState cru) são lidas
+// como carreira única (compatível). A ativa = o state passado (recém-jogado).
 export async function savePyramidCloud(state: EscState, force = false) {
   try {
     if (!force && Date.now() - lastPyrCloud < 6000) return // throttle: no máx. 1 escrita/6s
     const { data } = await supabase.auth.getUser()
     if (!data?.user) return
     lastPyrCloud = Date.now()
-    await supabase.from('esc_pyramid_saves').upsert({ user_id: data.user.id, save: state, updated_at: new Date().toISOString() })
+    let payload: unknown = state
+    if (isCareerSave(state)) {
+      const active: CareerSlot = { save: state, at: Date.now() }
+      const archive = readCareerArchive().filter(s => s.save.seed !== state.seed)
+      payload = { __multi: 1, careers: [active, ...archive].slice(0, MAX_CAREER_SLOTS) }
+    }
+    await supabase.from('esc_pyramid_saves').upsert({ user_id: data.user.id, save: payload, updated_at: new Date().toISOString() })
   } catch { /* best effort — o local sempre garante */ }
 }
-export async function loadPyramidCloud(): Promise<{ save: EscState; at: number } | null> {
+type CloudCareers = { save: EscState; at: number; careers: CareerSlot[] }
+export async function loadPyramidCloud(): Promise<CloudCareers | null> {
   try {
     const { data } = await supabase.auth.getUser()
     if (!data?.user) return null
     const { data: row } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', data.user.id).maybeSingle()
-    if (row?.save) return { save: row.save as EscState, at: new Date(row.updated_at as string).getTime() }
+    const raw = row?.save as unknown
+    const at0 = row?.updated_at ? new Date(row.updated_at as string).getTime() : Date.now()
+    if (!raw || typeof raw !== 'object') return null
+    // formato NOVO (várias carreiras)
+    const multi = raw as { __multi?: number; careers?: CareerSlot[] }
+    if (multi.__multi && Array.isArray(multi.careers)) {
+      const careers = multi.careers.filter(c => isCareerSave(c?.save))
+      if (!careers.length) return null
+      const active = [...careers].sort((a, b) => b.at - a.at)[0]
+      return { save: active.save, at: active.at, careers }
+    }
+    // formato ANTIGO (EscState cru) — carreira única
+    if (isCareerSave(raw)) return { save: raw as EscState, at: at0, careers: [{ save: raw as EscState, at: at0 }] }
   } catch { /* ignora */ }
   return null
+}
+// une nuvem ↔ local por seed (mantém a versão mais NOVA de cada), sem perder
+// nenhuma carreira, e reescreve os dois lados com o conjunto unido. A ativa passa a
+// ser a mais recente do conjunto. Roda na HOME (nunca no meio de um jogo).
+export async function syncCareersWithCloud(): Promise<boolean> {
+  try {
+    const cloud = await loadPyramidCloud()
+    if (!cloud) return false
+    const bySeed = new Map<number, CareerSlot>()
+    const put = (s: CareerSlot) => { if (!isCareerSave(s?.save)) return; const cur = bySeed.get(s.save.seed); if (!cur || (s.at ?? 0) > (cur.at ?? 0)) bySeed.set(s.save.seed, s) }
+    for (const { slot } of listAllCareers()) put(slot)
+    for (const s of cloud.careers) put(s)
+    const all = [...bySeed.values()].sort((a, b) => (b.at ?? 0) - (a.at ?? 0)).slice(0, MAX_CAREER_SLOTS)
+    if (!all.length) return false
+    const [active, ...rest] = all
+    try {
+      localStorage.setItem('esc-solo-career', JSON.stringify(active.save))
+      localStorage.setItem('esc-solo-career-at', String(active.at ?? Date.now()))
+      writeCareerArchive(rest)
+    } catch { /* ignora */ }
+    savePyramidCloud(active.save, true) // reescreve a nuvem com o conjunto unido
+    return true
+  } catch { return false }
 }
 export async function deletePyramidCloud() {
   try { const { data } = await supabase.auth.getUser(); if (data?.user) await supabase.from('esc_pyramid_saves').delete().eq('user_id', data.user.id) } catch { /* ignora */ }
