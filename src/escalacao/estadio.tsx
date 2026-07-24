@@ -3,7 +3,7 @@ import { useState } from 'react'
 // Cada compra APARECE no desenho: torcida enchendo os setores, refletores
 // acendendo (anoitece!), telão ligando, loja, estacionamento, cobertura.
 // Melhorias destravam em árvore. Renda cai sozinha no fim de cada temporada.
-import { STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, sectorPct, hasExtra, extraUnlocked, stadiumIncome, stadiumSeats, stadiumLevel } from './estadiodata'
+import { STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, STADIUM_BASE, sectorPct, hasExtra, extraUnlocked, stadiumIncome, stadiumBuiltIncome, stadiumSeats, stadiumLevel } from './estadiodata'
 import type { StadiumSave } from './estadiodata'
 import { myApoioPerk, loggedEmail, APOIO_PERKS } from './apoio'
 import type { ApoioPerk } from './apoio'
@@ -156,10 +156,11 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
           <span style={{ background: GOLD, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '4px 11px', fontSize: 12, fontWeight: 900, ...OSW }}>{prontoPct}% pronto</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 10, padding: '7px 11px' }}>
-          <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: .8, textTransform: 'uppercase', opacity: .92, ...OSW }}>💰 Bilheteria por temporada</span>
+          <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: .8, textTransform: 'uppercase', opacity: .92, ...OSW }}>🎟️ Bilheteria por temporada</span>
           <b style={{ fontSize: 17 }}>+{income}</b>
         </div>
-        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '7px 2px 0', lineHeight: 1.35 }}>A renda cai sozinha no seu caixa ao fim de cada temporada. Setor rende proporcional ao construído; melhoria pronta rende pra sempre.</p>
+        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '7px 2px 0', lineHeight: 1.35 }}>
+          <b>Base do estádio +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/temporada</b>. Todo clube já vende ingresso — construir <b>soma em cima da base</b>. Cai sozinha no caixa ao fim de cada temporada; melhoria pronta rende pra sempre.</p>
       </div>
 
       <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '0 2px 8px', ...OSW }}>🧱 Arquibancadas — investe aos poucos</p>
