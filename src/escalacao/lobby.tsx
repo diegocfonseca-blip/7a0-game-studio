@@ -1512,7 +1512,7 @@ export function EscLobby() {
           {lobbyFloats.map(f => (
             <div key={f.id} style={{ position: 'absolute', left: `${f.x}%`, bottom: '24%', transform: 'translateX(-50%)', animation: 'lobbyRise 3s ease-out forwards', display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: `2px solid ${INK}`, borderRadius: 999, padding: '5px 11px', boxShadow: `2px 2px 0 0 ${INK}`, maxWidth: '82vw' }}>
               <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>{f.emoji}</span>
-              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><span style={{ color: chatColor(f.name) }}>{f.name}:</span> {f.text}</span>
+              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12, color: INK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><span style={{ color: chatColor(f.name) }}>{f.name}:</span> {f.text}</span>
             </div>
           ))}
         </div>
