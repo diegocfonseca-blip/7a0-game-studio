@@ -2600,7 +2600,6 @@ export function EscSeason() {
   const streamRoom = online && (state.streamMode || !!state.manualRoom) // sala com ritmo do host: Copa/etapas sem cronômetro pra ninguém
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
-  const youPos = table.findIndex(t => t.id === you.id) + 1
   const fixture = state.round < 38 ? state.fixtures[state.round].find(([h, a]) => h === you.id || a === you.id) : undefined
   const opp = fixture ? state.league.find(t => t.id === (fixture[0] === you.id ? fixture[1] : fixture[0])) : undefined
   // confronto direto: clássico quando o adversário é um humano da sala OU um
@@ -2636,31 +2635,36 @@ export function EscSeason() {
 
   // manchete PESSOAL (por quem vê): detecta quando VOCÊ muda de faixa na
   // tabela. Feito no cliente pra ficar certo pra cada um no online.
-  const prevPosRef = useRef(youPos)
+  // 🙈 ANTI-SPOILER: usa a posição EXIBIDA (a tabela segura o resultado até o
+  // jogo terminar de animar), NÃO a posição crua. Assim a manchete só muda quando
+  // o placar é revelado na tela — sem depender de um flag de tempo que, no ONLINE,
+  // podia estar "atrasado" e disparar o aviso antes da partida animar (o spoiler
+  // relatado: "você entrou no G4" antes do jogo rolar).
+  const youPosShown = (() => {
+    const disp = !resultRevealed && state.lastResults.length > 0 ? sortedTable(leagueBeforeResults(state.league, state.lastResults)) : table
+    return disp.findIndex(t => t.id === you.id) + 1
+  })()
+  const prevPosRef = useRef(youPosShown)
   const [personalNews, setPersonalNews] = useState<string | null>(null)
   const personalTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
-    // 🙈 ANTI-SPOILER: só dispara DEPOIS que o jogo terminou de animar (resultRevealed).
-    // A tabela/posição muda na hora que a rodada é calculada — se avisasse aí, o
-    // "você é o novo líder" entregava o resultado antes da partida rolar na tela.
-    if (!resultRevealed) return
     const prev = prevPosRef.current
-    prevPosRef.current = youPos
-    if (state.round === 0 || prev === youPos) return
+    prevPosRef.current = youPosShown
+    if (state.round === 0 || youPosShown === 0 || prev === youPosShown) return
     // só MOMENTOS marcantes (cruzou uma faixa). Sem número de posição — ele fica
     // velho na hora, porque a temporada roda rápido. E some sozinho em 5s pra não
     // ficar contradizendo a tabela embaixo.
     let msg: string | null = null
-    if (youPos === 1 && prev !== 1) msg = '👑 Você é o novo LÍDER do campeonato!'
-    else if (youPos <= 4 && prev > 4) msg = '📈 Você ENTROU no G4!'
-    else if (youPos >= 17 && prev < 17) msg = '⚠️ PERIGO! Você caiu pra zona de rebaixamento!'
-    else if (youPos < 17 && prev >= 17) msg = '😮‍💨 Você escapou do Z4!'
+    if (youPosShown === 1 && prev !== 1) msg = '👑 Você é o novo LÍDER do campeonato!'
+    else if (youPosShown <= 4 && prev > 4) msg = '📈 Você ENTROU no G4!'
+    else if (youPosShown >= 17 && prev < 17) msg = '⚠️ PERIGO! Você caiu pra zona de rebaixamento!'
+    else if (youPosShown < 17 && prev >= 17) msg = '😮‍💨 Você escapou do Z4!'
     if (msg) {
       setPersonalNews(msg)
       if (personalTimer.current) clearTimeout(personalTimer.current)
       personalTimer.current = setTimeout(() => setPersonalNews(null), 5000)
     }
-  }, [resultRevealed, youPos, state.round])
+  }, [youPosShown, state.round])
   useEffect(() => () => { if (personalTimer.current) clearTimeout(personalTimer.current) }, [])
 
   // autoplay: só quem "puxa" a temporada dispara a próxima rodada (host no
