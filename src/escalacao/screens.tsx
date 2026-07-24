@@ -303,8 +303,11 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
                 <button onClick={() => setCorSel(open ? null : t.key)} className="w-full text-left border-[3px] border-black rounded-xl px-3 py-2.5 active:translate-y-0.5 flex items-center justify-between gap-2"
                   style={{ background: grad, boxShadow: `3px 3px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
                   {t.holo > 0 && <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: `linear-gradient(115deg,transparent 30%,rgba(255,255,255,${t.holo}) 48%,transparent 62%)`, backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />}
-                  <span className="font-black text-[13.5px] relative" style={{ ...OSWALD, color: t.ink, textShadow: t.ink === '#fff' ? '1px 1px 0 rgba(0,0,0,.35)' : 'none' }}>
-                    {t.selo && <span style={{ fontSize: t.key === 'ouro' ? 15 : 11, marginRight: 4 }}>{t.selo}</span>}{t.nome}
+                  <span className="relative min-w-0" style={{ color: t.ink, textShadow: t.ink === '#fff' ? '1px 1px 0 rgba(0,0,0,.35)' : 'none' }}>
+                    <span className="font-black text-[13.5px] block" style={OSWALD}>
+                      {t.selo && <span style={{ fontSize: t.key === 'ouro' ? 15 : 11, marginRight: 4 }}>{t.selo}</span>}{t.nome}
+                    </span>
+                    {t.key === 'prata' && <span className="font-black text-[9px] block" style={{ ...OSWALD, opacity: 0.8 }}>🎮 cor + Modo Manual</span>}
                   </span>
                   <span className="flex items-center gap-1.5 flex-shrink-0 relative">
                     <span className="font-black text-[11px]" style={{ ...OSWALD, color: t.ink, opacity: 0.85 }}>{t.preco}</span>
