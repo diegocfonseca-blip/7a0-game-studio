@@ -1326,6 +1326,7 @@ export function CardAccountNote() {
 export function EscStreamIntro() {
   const { state, dispatch } = useEsc()
   const online = state.onlineMode === 'online'
+  const isCareerSolo = !!state.careerOnline && !online // 🏆 banner "vira o clube mais bem-sucedido" só na carreira solo
   const isHost = !online || state.isHost
   const you = state.managers[state.youIdx]
   const humans = state.managers.filter(m => m.isHuman)
@@ -1333,6 +1334,20 @@ export function EscStreamIntro() {
   const perkColor = (name: string) => name.includes('👑') ? APOIO_PERKS.ouro : name.includes('⭐') ? APOIO_PERKS.prata : name.includes('💎') ? APOIO_PERKS.roxo : null
   return (
     <Shell>
+      {isCareerSolo && (
+        <div style={{ position: 'relative', overflow: 'hidden', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, background: 'linear-gradient(160deg,#141414,#26313d)', color: '#fff', padding: '20px 18px 22px' }}>
+          <div style={{ position: 'absolute', inset: 'auto -30% -60% -30%', height: 220, background: 'radial-gradient(closest-side, rgba(245,179,1,.30), transparent 70%)', pointerEvents: 'none' }} />
+          <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: GOLD, position: 'relative' }}>Série D → o topo</span>
+          <h1 style={{ ...OSWALD, fontWeight: 800, fontSize: 30, lineHeight: .97, margin: '12px 0 0', position: 'relative' }}>Não é só levantar <span style={{ color: GOLD }}>taça.</span><br />É virar o clube mais <span style={{ color: GOLD }}>bem-sucedido.</span></h1>
+          <p style={{ fontSize: 13.5, lineHeight: 1.45, color: 'rgba(255,255,255,.82)', margin: '10px 0 0', fontWeight: 500, position: 'relative' }}>Você assume um clube na várzea e sobe na pirâmide. Mas sucesso aqui não é só título: é <b style={{ color: '#fff' }}>administrar</b> — encher o caixa, construir patrimônio (estádio, SAF) e dominar dentro e fora de campo.</p>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, marginTop: 15, position: 'relative' }}>
+            {([['D', 26], ['C', 38], ['B', 52]] as [string, number][]).map(([l, h]) => (
+              <div key={l} style={{ flex: 1, border: '2px solid rgba(255,255,255,.85)', borderRadius: '5px 5px 0 0', background: 'rgba(255,255,255,.08)', height: h, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', ...OSWALD, fontWeight: 700, fontSize: 11, color: '#fff', paddingBottom: 3 }}>{l}</div>
+            ))}
+            <div style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: '5px 5px 0 0', background: GOLD, height: 70, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', ...OSWALD, fontWeight: 700, fontSize: 11, color: INK, paddingBottom: 3 }}>A 👑</div>
+          </div>
+        </div>
+      )}
       <div className="text-center pt-4">
         <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>{state.streamMode ? '🎥 Modo Stream' : '🔨 Como funciona'}</span>
         <h2 className="font-black text-3xl mt-3 leading-none" style={OSWALD}>BEM-VINDO<br />AO PREGÃO! 🔨</h2>
