@@ -283,6 +283,33 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             📸 MANDAR COMPROVANTE NO @leilaolegendscom
           </button>
           <p className="text-[10px] font-bold text-black/45 text-center mt-1.5">a mensagem já vai copiada · liberamos em até 24h no seu e-mail 💛</p>
+
+          {/* 🪜 NÃO É BECO SEM SAÍDA: o manual é a porta de entrada, mas dá pra levar
+              MUITO mais pelo mesmo valor (Craque) ou pouco mais (Lenda) — e a pessoa
+              precisa ver que existe estádio/cor/batizar clube, não só o R$ 19,90. */}
+          <div className="border-[3px] border-black rounded-xl px-3 py-3 mt-4" style={{ background: 'linear-gradient(150deg,#EFE7FF,#FBF3D6)', boxShadow: `4px 4px 0 0 ${INK}` }}>
+            <p className="font-black text-[12.5px] text-center" style={OSWALD}>🪜 Pelo mesmo valor dá pra levar MAIS</p>
+            <div className="mt-2 space-y-1.5">
+              <p className="text-[11px] font-bold text-black/80 leading-snug">⭐ <b>Craque · R$ 19,90</b> — <b>o mesmo preço</b>: além do Modo Manual, você ainda <b>pinta o time todo</b> (cor prata com brilho no elenco, no estádio e nas tabelas).</p>
+              <p className="text-[11px] font-bold text-black/80 leading-snug">👑 <b>Lenda · R$ 39,90</b> — Manual + <b>ouro (ou qualquer cor)</b> com brilho, <b>batiza um clube</b> do campeonato pra sempre e já garante a <b>Carreira Online</b> (chegando).</p>
+            </div>
+            <button onClick={() => { logApoio('👀 manual → ver tudo'); setScreen('choice') }}
+              className="w-full rounded-xl border-[3px] border-black font-black text-[13px] py-2.5 mt-2.5 active:translate-y-0.5"
+              style={{ background: GOLD, color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
+              👉 Ver tudo que dá pra apoiar
+            </button>
+          </div>
+
+          {/* 💛 por que isso existe — a história do Diego e do filho (mesma da tela principal) */}
+          <div className="border-t-[3px] border-black/15 mt-4 pt-3">
+            <p className="font-black text-[13px]" style={OSWALD}>Quem faz isso aqui 🔴⚫</p>
+            <p className="text-[11px] font-bold text-black/60 mt-1 leading-snug">
+              Sou o Diego, flamenguista, vendo carro com meu pai durante o dia e faço esse jogo de madrugada.
+              Tenho um filho com uma condição rara — são <b>120 casos no mundo</b>. Esse jogo é por ele:
+              cada apoio ajuda a dar uma vida melhor pra ele e mantém o Leilão Legends <b>100% grátis, com tudo
+              liberado, pra sempre</b>. Obrigado por estar aqui. 💛
+            </p>
+          </div>
         </Modal>
       )}
 
