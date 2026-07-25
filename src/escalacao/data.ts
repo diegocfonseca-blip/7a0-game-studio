@@ -1109,7 +1109,8 @@ const GOL_EU: C[] = [
   { name: "Kepa", club: "Chelsea", year: 2019, fame: 1, lo: 56, hi: 78, folk: true, bio: "O goleiro mais caro da HISTÓRIA — eternizado por se recusar a ser substituído na final da Copa da Liga. Cinema." },
   { name: "Edwin van der Sar", club: "Manchester United", year: 2009, fame: 4, lo: 85, hi: 91, bio: "O holandês gigante do United campeão da Champions — recorde de minutos sem tomar gol e frieza total nas decisões." },
   { name: "Jordan Pickford", club: "Everton", year: 2018, fame: 3, lo: 77, hi: 85, bio: "Goleiro titular da Inglaterra — explosivo, bom de pênalti e sempre no meio de uma treta. Herói e vilão na mesma tarde." },
-  { name: "Doni", club: "Roma", year: 2008, fame: 2, lo: 76, hi: 84, bio: "Goleiro brasileiro que fez carreira sólida na Roma antes de passar pelo Liverpool — reflexo firme na Série A." }
+  { name: "Doni", club: "Roma", year: 2008, fame: 2, lo: 76, hi: 84, bio: "Goleiro brasileiro que fez carreira sólida na Roma antes de passar pelo Liverpool — reflexo firme na Série A." },
+  { name: "Emiliano “Dibu” Martínez", club: "Aston Villa", year: 2023, fame: 4, lo: 82, hi: 88, bio: "Arqueiro argentino campeão do mundo em 2022 — luva de ouro, pegador de pênalti e provocador nato, herói na final e nas disputas." }
 ]
 const LAT_EU: C[] = [
   { name: "Carvajal", club: "Real Madrid", year: 2022, fame: 4, lo: 82, hi: 89 },
@@ -1147,7 +1148,11 @@ const LAT_EU: C[] = [
   { name: "Royston Drenthe", club: "Real Madrid", year: 2008, fame: 1, lo: 54, hi: 78, folk: true, bio: "A promessa galáctica que trocou o Bernabéu pelo rap — talento de sobra, foco nem tanto. Folclore mundial." },
   { name: "Pablo Armero", club: "Napoli", year: 2013, fame: 1, lo: 54, hi: 77, bio: "O colombiano da dancinha — memes, sorriso e um futebol que oscilava entre Seleção e resenha." },
   { name: "Benjamin Pavard", club: "Bayern", year: 2020, fame: 3, lo: 79, hi: 86, bio: "Lateral-direito francês campeão da Champions pelo Bayern — eternizado pelo golaço de voleio na Copa de 2018." },
-  { name: "Giovanni van Bronckhorst", club: "Barcelona", year: 2006, fame: 3, lo: 79, hi: 86, bio: "Lateral-esquerdo holandês campeão da Champions pelo Barça — canhota afiada na bola parada e vice do Mundial de 2010 com a Holanda." }
+  { name: "Giovanni van Bronckhorst", club: "Barcelona", year: 2006, fame: 3, lo: 79, hi: 86, bio: "Lateral-esquerdo holandês campeão da Champions pelo Barça — canhota afiada na bola parada e vice do Mundial de 2010 com a Holanda." },
+  { name: "Gonzalo Montiel", club: "Sevilla", year: 2023, fame: 2, lo: 68, hi: 82, bio: "Lateral-direito argentino — bateu o pênalti que deu a Copa do Mundo de 2022, e faturou a Europa League pelo Sevilla." },
+  { name: "Nicolás Tagliafico", club: "Ajax", year: 2019, fame: 2, lo: 70, hi: 83, bio: "Lateral-esquerdo argentino raçudo — titular do Ajax semifinalista da Champions de 2019 e campeão do mundo em 2022." },
+  { name: "Marcos Acuña", club: "Sevilla", year: 2023, fame: 3, lo: 74, hi: 84, bio: "‘Huevo’ — lateral/ala esquerdo de pulmão infinito e cruzamento afiado, ídolo do Sevilla e campeão do mundo com a Argentina." },
+  { name: "Lionel Scaloni", club: "Deportivo La Coruña", year: 2004, fame: 2, lo: 68, hi: 82, bio: "Antes de ser o técnico campeão do mundo, foi lateral-direito raçudo — ídolo do Deportivo La Coruña que brigou pela Champions." }
 ]
 const ZAG_EU: C[] = [
   { name: "Maguire", club: "Man United", year: 2019, fame: 2, lo: 66, hi: 82 },
@@ -1199,7 +1204,10 @@ const ZAG_EU: C[] = [
   { name: "Jan Vertonghen", club: "Tottenham", year: 2017, fame: 4, lo: 82, hi: 88, bio: "Zagueiro belga canhoto do Tottenham — leitura de jogo, saída de bola e regularidade de elite por quase uma década." },
   { name: "Antonio Rüdiger", club: "Real Madrid", year: 2024, fame: 4, lo: 83, hi: 89, bio: "Zagueirão alemão de raça e velocidade — muralha do Real Madrid campeão da Champions e ex-pilar do Chelsea." },
   { name: "Aymeric Laporte", club: "Manchester City", year: 2021, fame: 3, lo: 81, hi: 88, bio: "Zagueiro canhoto de saída de bola refinada — peça dos títulos do City de Guardiola antes de defender a Espanha." },
-  { name: "José María Giménez", club: "Atlético de Madrid", year: 2019, fame: 3, lo: 81, hi: 88, bio: "Zagueiro uruguaio de marcação feroz e jogo aéreo — parceria histórica com Godín na muralha do Atlético de Simeone." }
+  { name: "José María Giménez", club: "Atlético de Madrid", year: 2019, fame: 3, lo: 81, hi: 88, bio: "Zagueiro uruguaio de marcação feroz e jogo aéreo — parceria histórica com Godín na muralha do Atlético de Simeone." },
+  { name: "Lisandro Martínez", club: "Manchester United", year: 2023, fame: 3, lo: 78, hi: 85, bio: "‘Carnicero’ — zagueiro-canhoto argentino baixinho e brabo, campeão do mundo em 2022 e muralha raçuda do Manchester United." },
+  { name: "Nicolás Otamendi", club: "Manchester City", year: 2018, fame: 3, lo: 78, hi: 85, bio: "‘General’ argentino de marcação truculenta — bicampeão inglês pelo City e pilar eterno da seleção campeã do mundo em 2022." },
+  { name: "Ronald Koeman", club: "Barcelona", year: 1992, fame: 4, lo: 83, hi: 89, bio: "Zagueiro-artilheiro holandês de canhota canhão — fez o gol do primeiro título europeu do Barça de Cruyff em Wembley, 1992." }
 ]
 const MEI_EU: C[] = [
   { name: "Payet", club: "Marseille", year: 2017, fame: 3, lo: 80, hi: 87 },
@@ -1325,7 +1333,10 @@ const MEI_EU: C[] = [
   { name: "Hidetoshi Nakata", club: "Roma", year: 2001, fame: 3, lo: 79, hi: 86, bio: "O maior nome do futebol japonês — meia elegante campeão italiano pela Roma, pioneiro que abriu as portas da Europa para a Ásia." },
   { name: "Keisuke Honda", club: "Milan", year: 2014, fame: 3, lo: 76, hi: 84, bio: "Meia japonês de personalidade e chute venenoso de fora — brilhou no CSKA e vestiu a 10 do Milan, decisivo em Copas pelo Japão." },
   { name: "Lee Kang-in", club: "PSG", year: 2024, fame: 3, lo: 77, hi: 84, bio: "Meia sul-coreano de drible curto e passe refinado — revelado no Valencia e peça de talento no Paris Saint-Germain." },
-  { name: "Christian Eriksen", club: "Tottenham", year: 2017, fame: 4, lo: 84, hi: 90, bio: "Meia dinamarquês de passe e bola parada de elite — cérebro criativo do Tottenham e depois de Inter e Manchester United." }
+  { name: "Christian Eriksen", club: "Tottenham", year: 2017, fame: 4, lo: 84, hi: 90, bio: "Meia dinamarquês de passe e bola parada de elite — cérebro criativo do Tottenham e depois de Inter e Manchester United." },
+  { name: "Leandro Paredes", club: "Roma", year: 2018, fame: 2, lo: 72, hi: 83, bio: "Volante argentino de passe longo milimétrico e pé quente na bola parada — brilhou na Roma e no PSG, campeão do mundo em 2022." },
+  { name: "Giovani Lo Celso", club: "Real Betis", year: 2019, fame: 2, lo: 74, hi: 84, bio: "Meia argentino canhoto de chegada e chute de fora — explodiu no Real Betis antes do Tottenham, peça da seleção campeã do mundo." },
+  { name: "Pablo Aimar", club: "Valencia", year: 2002, fame: 3, lo: 80, hi: 87, bio: "‘El Payaso’ — meia argentino de drible e passe geniais, craque do Valencia bicampeão espanhol e ídolo de infância do Messi." }
 ]
 const ATA_EU: C[] = [
   { name: "Ricardo Quaresma", club: "Porto", year: 2007, fame: 3, lo: 74, hi: 84, folk: true },
@@ -1479,7 +1490,11 @@ const ATA_EU: C[] = [
   { name: "Olivier Giroud", club: "Milan", year: 2023, fame: 3, lo: 80, hi: 87, bio: "Centroavante francês de pivô e voleios acrobáticos — artilheiro histórico da França, campeão do mundo em 2018 e do scudetto pelo Milan." },
   { name: "Bradley Barcola", club: "PSG", year: 2024, fame: 3, lo: 78, hi: 85, bio: "Ponta francês veloz e desequilibrante — revelado no Lyon e peça ofensiva de destaque no Paris Saint-Germain." },
   { name: "Nacho Prestianni", club: "Benfica", year: 2024, fame: 1, lo: 62, hi: 82, promessa: true, bio: "Joia argentina de Vélez — ponta canhoto habilidoso que rumou cedo ao Benfica como aposta de futuro." },
-  { name: "Santiago Solari", club: "Real Madrid", year: 2002, fame: 2, lo: 76, hi: 84, bio: "Ponta-esquerda argentino dos Galácticos do Real — velocidade e drible que renderam títulos, incluindo a Champions de 2002." },
+  { name: "Santiago Solari", club: "Real Madrid", year: 2002, fame: 2, lo: 76, hi: 84, bio: "Ponta-esquerda argentino dos Galácticos do Real — velocidade e drible que renderam títulos, incluindo a Champions de 2002." },,
+  { name: "Giuliano Simeone", club: "Atlético de Madrid", year: 2025, fame: 2, lo: 68, hi: 82, promessa: true, bio: "Ponta argentino de correria incansável — filho do Cholo que ganhou espaço no Atlético na raça e na intensidade." },
+  { name: "Diego Costa", club: "Atlético de Madrid", year: 2014, fame: 4, lo: 83, hi: 89, bio: "Centroavante hispano-brasileiro de força bruta, provocação e gols — artilheiro do Atlético campeão espanhol de 2014." },
+  { name: "Julián Álvarez", club: "Atlético de Madrid", year: 2025, fame: 4, lo: 82, hi: 89, bio: "‘La Araña’ — centroavante argentino de movimentação e faro, campeão do mundo em 2022 e da tríplice coroa pelo City antes de brilhar no Atlético." },
+  { name: "Lautaro Martínez", club: "Inter", year: 2024, fame: 4, lo: 84, hi: 90, bio: "‘El Toro’ — centroavante argentino matador e capitão da Inter campeã italiana de 2024, artilheiro e campeão do mundo em 2022." }
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
 
