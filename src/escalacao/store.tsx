@@ -879,7 +879,7 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
   const you = s.managers.find(m => m.isHuman)
   if (!you) return
   const before = s.careerCoins?.[you.id] ?? 0
-  const after = Math.max(0, before + cut) // corte nunca deixa a caixa negativa
+  const after = before + cut // 50% de título/acesso rende; 50% da queda desconta (pode negativar) — pra o extrato bater
   s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: after }
   s.careerFilial = { ...f, earned: (f.earned ?? 0) + cut }
   // 🧾 registra no extrato pela VARIAÇÃO REAL da caixa (título/acesso da SAF rende;
