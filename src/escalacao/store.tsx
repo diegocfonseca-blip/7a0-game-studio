@@ -407,7 +407,7 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   // em vez de dar sempre o mesmo resultado, e a média longa continua nos 8%.
   // Se o setor tem poucas cartas no catálogo, pega só o que existe (pode ficar 0
   // lenda). O que sobrar do setor vira bom jogador. Folk não é cota (é só selo).
-  const RARITY = { legend: 0.08, star: 0.20, promessa: 0.15, low: 0.28 } // % por posição
+  const RARITY = { legend: 0.16, star: 0.26, promessa: 0.17, low: 0.29 } // % por posição (o resto = bom jogador ~12%)
   const stoch = (x: number) => { const f = Math.floor(x); return f + (rng() < x - f ? 1 : 0) } // arredonda por sorteio (mantém a média)
   const alloc = {} as Record<Sector, { legend: number; star: number; promessa: number; low: number }>
   const availOf = (pos: Sector, pred: (c: (typeof CATALOG)[Sector][number]) => boolean) =>
