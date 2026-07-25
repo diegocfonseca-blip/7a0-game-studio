@@ -887,6 +887,24 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
   logFin(s, 'saf', '🏢 Prêmios da SAF', after - before)
 }
 
+// 🏢 VALOR DE VENDA DA SAF (carreira solo): a SAF valoriza conforme você a
+// desenvolve. Base 1.000 + bônus da DIVISÃO atual dela (D 0 · C +250 · B +500 ·
+// A +750) + 250 por TÍTULO que ela ganhou (qualquer série). Teto 3.000. Você pagou
+// 2.000 — então só uma SAF campeã na elite dá lucro de verdade (quem fica na D perde
+// metade). Comissão já recebida NÃO conta (já caiu no seu bolso). Lê a divisão de
+// careerPlacements e os títulos de careerHonors (chave = nome do clube, que é CPU).
+const FILIAL_DIV_BONUS: Record<string, number> = { D: 0, C: 250, B: 500, A: 750 }
+export const FILIAL_SALE_CAP = 3000
+export function filialSaleValue(s: EscState): { value: number; div: string; titles: number; divBonus: number; titleBonus: number; paid: number } {
+  const team = s.careerFilial?.team
+  const div = (team && s.careerPlacements?.[team]) || 'D'
+  const h = (team && s.careerHonors?.[team]) || { A: 0, B: 0, C: 0, D: 0 }
+  const titles = (h.A ?? 0) + (h.B ?? 0) + (h.C ?? 0) + (h.D ?? 0)
+  const divBonus = FILIAL_DIV_BONUS[div] ?? 0
+  const titleBonus = titles * 250
+  const value = Math.min(FILIAL_SALE_CAP, 1000 + divBonus + titleBonus)
+  return { value, div, titles, divBonus, titleBonus, paid: 2000 }
+}
 // devolve os DOIS empréstimos ativos (se houver) na virada de temporada — a
 // janela reabre do zero pra próxima: renovar o mesmo, escolher outro ou nenhum.
 function revertFilialLoans(s: EscState) {
@@ -1562,6 +1580,7 @@ type Action =
   | { type: 'MONTE_TIMEOUT' }
   | { type: 'SET_SPONSOR'; id: string } // 👕 escolhe a marca do patrocínio (carreira solo)
   | { type: 'BUY_FILIAL'; team: string } // 🏢 compra o clube-filial (carreira offline, teste)
+  | { type: 'SELL_FILIAL' } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 3.000)
   | { type: 'LOAN_TO_FILIAL'; cardId: string } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda, volta na virada)
   | { type: 'LOAN_FROM_FILIAL'; cardId: string } // 🏢 pega um jogador emprestado DA SAF (idem)
   | { type: 'MONTE_PASS'; mgrId: number } // carreira: recusa as sobras e passa a vez (o time já tem os 11)
@@ -2357,6 +2376,20 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerCoins = { ...s.careerCoins, [you.id]: coins - 2000 }
       s.careerFilial = { team: action.team, since: s.seasonNo, earned: 0 }
       logFin(s, 'safbuy', `🏢 Compra da SAF · ${action.team}`, -2000) // 🧾 compra da SAF entra no extrato
+      return s
+    }
+    case 'SELL_FILIAL': {
+      // 🏢 vende a SAF: valor progressivo (divisão + títulos, teto 3.000). Devolve os
+      // empréstimos ativos, credita o valor na caixa e libera comprar outra depois.
+      if (!s.careerOnline || s.onlineMode === 'online' || !s.careerFilial) return s
+      const you = s.managers[s.youIdx]
+      if (!you?.isHuman) return s
+      const team = s.careerFilial.team
+      const { value } = filialSaleValue(s)
+      revertFilialLoans(s) // empréstimos ativos voltam antes de vender
+      s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: (s.careerCoins?.[you.id] ?? 0) + value }
+      logFin(s, 'safsell', `🏢 Venda da SAF · ${team}`, value) // 🧾 venda da SAF entra no extrato
+      s.careerFilial = null
       return s
     }
     case 'LOAN_TO_FILIAL': {

@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, oldChain } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots } from './store'
+import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue } from './store'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
@@ -544,7 +544,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
   // transferências
   const vendidos = rev.filter(e => e.kind === 'sell')
   const noElenco = squad.filter(c => !c.fake && c.club !== 'Várzea' && !c.emprestado && (c.buyPrice != null || c.paid != null))
-  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? '🏆 Prêmios da temporada' : k === 'gate' ? '🎟️ Bilheteria' : k === 'salary' ? '💸 Folha salarial' : k === 'saf' ? '🏢 Prêmios da SAF' : k === 'stadium' ? '🏟️ Obra no estádio' : k === 'safbuy' ? '🏢 Compra da SAF' : k === 'opening' ? '🏁 Saldo inicial' : ''
+  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? '🏆 Prêmios da temporada' : k === 'gate' ? '🎟️ Bilheteria' : k === 'salary' ? '💸 Folha salarial' : k === 'saf' ? '🏢 Prêmios da SAF' : k === 'stadium' ? '🏟️ Obra no estádio' : k === 'safbuy' ? '🏢 Compra da SAF' : k === 'safsell' ? '🏢 Venda da SAF' : k === 'opening' ? '🏁 Saldo inicial' : ''
   return (
     <>
       {/* RESUMO fixo: caixa atual + saldo da temporada */}
@@ -1959,8 +1959,15 @@ export function PyramidSeasonScreen() {
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           const openMesmo = () => dispatch({ type: 'NEXT_SEASON_ONLINE', ...args() })
           // JOGO SOLO (host sozinho): sem votação, começa direto como antes.
+          const noVermelho = (state.careerCoins?.[youId] ?? 0) < 0
           if (humans.length <= 1) return (
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
+              {noVermelho && (
+                <div style={{ background: '#C2452F', color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 11, boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 11px', marginBottom: 10, ...OSWALD }}>
+                  <p style={{ fontWeight: 900, fontSize: 12.5, margin: 0 }}>🚫 Transfer ban — clube no vermelho ({state.careerCoins?.[youId] ?? 0} 🪙)</p>
+                  <p style={{ fontWeight: 700, fontSize: 10.5, margin: '3px 0 0', lineHeight: 1.35, color: 'rgba(255,255,255,.9)' }}>Você ainda entra no leilão, mas <b>sem grana pra comprar</b>: dá pra <b>vender pra recuperar</b> e tentar a sorte pegando <b>jogador de graça no monte</b>. Ganhando prêmios e bilheteria você sai do vermelho.</p>
+                </div>
+              )}
               <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>📅 Próxima temporada</p>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas (por nome exato) já entram. {state.seasonNo === 1
                 ? <>Abra o <b>leilão de reservas</b> (todos com a sua caixa, compram pra encher o banco até 22), ou siga com o mesmo elenco.</>
@@ -2059,6 +2066,8 @@ export function PyramidSeasonScreen() {
                 return null
               })()}
               onBuyFilial={team => dispatch({ type: 'BUY_FILIAL', team })}
+              onSellFilial={() => dispatch({ type: 'SELL_FILIAL' })}
+              filialSale={state.careerFilial ? filialSaleValue(state) : undefined}
               mySquad={state.managers[state.youIdx]?.squad}
               filialSquad={state.careerFilial ? (state.cpuSquads?.[state.careerFilial.team] as WonCard[] | undefined) : undefined}
               loanableOutIds={(() => {
@@ -2328,6 +2337,13 @@ export function ReserveListScreen() {
           <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>📋 LISTAR PRA LEILÃO · TEMP. {state.seasonNo}</span>
           <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: remaining <= 10 ? '#e8503a' : '#fff', color: remaining <= 10 ? '#fff' : INK, borderRadius: 8, padding: '2px 9px' }}>{remaining}s</span>
         </div>
+        {/* 🚫 TRANSFER BAN: no vermelho, não dá pra comprar — só vender e pegar de graça */}
+        {(state.careerCoins?.[youId] ?? 0) < 0 && (
+          <div style={{ ...box('#C2452F'), padding: 11, marginBottom: 10, color: '#fff' }}>
+            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🚫 Transfer ban — caixa no vermelho ({state.careerCoins?.[youId] ?? 0} 🪙)</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, margin: 0, lineHeight: 1.4, color: 'rgba(255,255,255,.92)' }}>Você não pode <b>comprar pagando</b> nesta janela — mas pode <b>vender pra fazer caixa</b> e, no <b>monte</b> (as sobras do leilão), <b>tentar a sorte pegando jogador de graça</b>. Prêmios e bilheteria vão te tirando do vermelho.</p>
+          </div>
+        )}
         {/* aviso de desbloqueio da temporada */}
         {state.seasonNo === 2 && (
           <div style={{ ...box('#EAF3FF'), padding: 11, marginBottom: 10 }}>

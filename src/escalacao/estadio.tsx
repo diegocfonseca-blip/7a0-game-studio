@@ -168,7 +168,7 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions, filialInfo, onBuyFilial, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, onLoanFrom, loanSlots = 1 }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, onLoanFrom, loanSlots = 1 }: {
   st: StadiumSave | undefined
   coins: number
   onInvest: (sector: string) => void
@@ -177,6 +177,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
   filialOptions?: string[]
   filialInfo?: { div: string; pos: number } | null
   onBuyFilial?: (team: string) => void
+  onSellFilial?: () => void
+  filialSale?: { value: number; div: string; titles: number; divBonus: number; titleBonus: number; paid: number }
   mySquad?: { id: string; name: string; pos: string; emprestado?: string }[]
   filialSquad?: { id: string; name: string; pos: string; emprestado?: string }[]
   loanableOutIds?: Set<string>
@@ -188,6 +190,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
   const [buying, setBuying] = useState(false)
   const [pickOut, setPickOut] = useState(false)
   const [pickIn, setPickIn] = useState(false)
+  const [sellingSaf, setSellingSaf] = useState(false)
   const lvl = stadiumLevel(st)
   const seats = stadiumSeats(st)
   const income = stadiumIncome(st)
@@ -343,6 +346,38 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
               ) : null}
             </div>
             {regras}
+
+            {/* 💸 VENDER A SAF — valor progressivo (divisão + títulos), com o porquê */}
+            {onSellFilial && filialSale && (
+              <div style={{ marginTop: 11, borderTop: '2px dashed rgba(0,0,0,.15)', paddingTop: 10 }}>
+                {!sellingSaf ? (
+                  <button onClick={() => setSellingSaf(true)}
+                    style={{ width: '100%', border: `2px solid ${INK}`, borderRadius: 10, padding: '9px 0', fontWeight: 900, fontSize: 12.5, ...OSW, background: '#fff', color: INK, cursor: 'pointer' }}>
+                    💸 Vender a SAF · vale <b style={{ color: GREEN }}>{filialSale.value}</b> 🪙 agora
+                  </button>
+                ) : (
+                  <div style={{ background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 12, boxShadow: `2px 2px 0 0 ${INK}`, padding: '11px 12px' }}>
+                    <p style={{ ...OSW, fontWeight: 900, fontSize: 14, margin: '0 0 2px' }}>💼 Vender a SAF · {filial.team}</p>
+                    <p style={{ ...OSW, fontWeight: 900, fontSize: 20, color: GREEN, margin: '2px 0 8px' }}>💰 Você recebe agora: {filialSale.value} 🪙</p>
+                    <p style={{ fontSize: 9.5, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 4px' }}>Como calculamos</p>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', lineHeight: 1.7 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• Base</span><span>+1.000</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• Série {filialSale.div} (divisão atual)</span><span>+{filialSale.divBonus}</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• {filialSale.titles} {filialSale.titles === 1 ? 'título' : 'títulos'} da SAF (+250 cada)</span><span>+{filialSale.titleBonus}</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,.15)', marginTop: 3, paddingTop: 3, fontWeight: 900, color: INK }}><span>Total</span><span>{filialSale.value} 🪙{filialSale.value >= 3000 ? ' (teto)' : ''}</span></div>
+                    </div>
+                    <p style={{ fontSize: 11, fontWeight: 800, margin: '7px 0 0', color: filialSale.value - filialSale.paid >= 0 ? GREEN : '#B23B2E' }}>
+                      Você pagou {filialSale.paid} → {filialSale.value - filialSale.paid >= 0 ? `lucro de +${filialSale.value - filialSale.paid} 📈` : `prejuízo de −${filialSale.paid - filialSale.value} 📉`}
+                    </p>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '6px 0 9px' }}>⚠️ Empréstimos ativos voltam na hora. Depois de vender, dá pra comprar outra SAF.</p>
+                    <div style={{ display: 'flex', gap: 7 }}>
+                      <button onClick={() => setSellingSaf(false)} style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 10, padding: '9px 0', fontWeight: 900, fontSize: 12, ...OSW, background: '#fff', color: INK, cursor: 'pointer' }}>Cancelar</button>
+                      <button onClick={() => { if (window.confirm(`Vender a SAF do ${filial.team} por ${filialSale.value} 🪙?`)) { onSellFilial(); setSellingSaf(false) } }} style={{ flex: 1.4, border: `2px solid ${INK}`, borderRadius: 10, padding: '9px 0', fontWeight: 900, fontSize: 12.5, ...OSW, background: GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>Vender · +{filialSale.value} 🪙</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           )
         }
