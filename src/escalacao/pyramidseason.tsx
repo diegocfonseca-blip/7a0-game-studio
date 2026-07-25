@@ -767,7 +767,7 @@ export function PyramidTables({ tables, order, colors, myDiv, final, safTeam, sa
   return <>{(order ?? DIVS).map(d => <DivTable key={d} div={d} teams={tables[d]} colors={cols} mine={d === myDiv} final={final} safTeam={safTeam} safCol={safCol} />)}</>
 }
 // caixa de artilharia reutilizável (temporada e todos os tempos) — top N já pronto.
-function ArtilhariaBox({ scorers, colors, title, sub, foot }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string }) {
+function ArtilhariaBox({ scorers, colors, title, sub, foot, safTeam }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string }) {
   const cols = colors ?? {}
   return (
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
@@ -778,12 +778,13 @@ function ArtilhariaBox({ scorers, colors, title, sub, foot }: { scorers: SeasonS
           <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Jogador</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>Gols</th></tr></thead>
           <tbody>
             {scorers.map((s, i) => {
-              const fc = (s.human || s.rival) ? cols[s.teamId] : undefined
+              const isSaf = !s.you && !!safTeam && s.teamName === safTeam
+              const fc = (s.human || s.rival || isSaf) ? cols[s.teamId] : undefined
               return (
               <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, background: fc?.light }}>
                 <td style={{ paddingRight: 4 }}>{i + 1}</td>
                 <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}><span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : s.rival ? '⚔️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : isSaf ? '💼 ' : s.rival ? '⚔️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{s.goals}</td>
               </tr>
             )})}
@@ -798,7 +799,7 @@ function ArtilhariaBox({ scorers, colors, title, sub, foot }: { scorers: SeasonS
 // Artilharia da TEMPORADA separada por SÉRIE (A › B › C › D), top 5 de cada —
 // em vez de uma lista única misturando todas as divisões. Deixa claro quem é o
 // goleador de cada série (é ele que vira artilheiro/piso da divisão).
-function ArtilhariaByDiv({ scorers, colors, title, sub, foot }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string }) {
+function ArtilhariaByDiv({ scorers, colors, title, sub, foot, safTeam }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string }) {
   const cols = colors ?? {}
   const total = scorers.length
   return (
@@ -817,12 +818,13 @@ function ArtilhariaByDiv({ scorers, colors, title, sub, foot }: { scorers: Seaso
               <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                 <tbody>
                   {top.map((s, i) => {
-                    const fc = (s.human || s.rival) ? cols[s.teamId] : undefined
+                    const isSaf = !s.you && !!safTeam && s.teamName === safTeam
+                    const fc = (s.human || s.rival || isSaf) ? cols[s.teamId] : undefined
                     return (
                     <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', fontWeight: 600, background: fc?.light }}>
                       <td style={{ paddingRight: 4, width: 16, color: 'rgba(0,0,0,0.5)', fontWeight: 800 }}>{i + 1}</td>
                       <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>{i === 0 ? '👑 ' : ''}{s.name}</td>
-                      <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : s.rival ? '⚔️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
+                      <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : isSaf ? '💼 ' : s.rival ? '⚔️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
                       <td style={{ textAlign: 'center', fontWeight: 900, width: 30 }}>{s.goals}</td>
                     </tr>
                   )})}
@@ -1339,7 +1341,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
 // TÍTULOS (Série A → B → C → D) e depois DINHEIRO, com desempate em cascata. ──
 type Honors = { A: number; B: number; C: number; D: number }
 const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0 }
-function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId, seasonNo, myDiv }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number; seasonNo?: number; myDiv?: Div | null }) {
+function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId, seasonNo, myDiv, safTeam }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number; seasonNo?: number; myDiv?: Div | null; safTeam?: string }) {
   const rows = DIVS.flatMap(d => tables[d]).map(t => {
     const key = teamKey(t)
     const olds = oldChain(key) // save antigo pode ter caixa/títulos em QUALQUER nome velho da corrente
@@ -1367,12 +1369,15 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
         <tbody>
           {top.map((r, i) => {
             const you = r.t.teamId === youId && r.t.teamId >= 0
-            const colored = r.t.human || r.t.rival
-            const fc = colored ? colors[r.t.teamId] : undefined
+            // 🏢 a SUA SAF veste a sua cor no rank também (💼) — ela está no mapa
+            // de cores com a sua cor, então basta ler colors[teamId] direto.
+            const isSaf = !you && !!safTeam && r.t.name === safTeam
+            const colored = r.t.human || r.t.rival || isSaf
+            const fc = colors[r.t.teamId]
             return (
               <tr key={r.key} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: fc?.light, fontWeight: colored ? 800 : 500 }}>
                 <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>{i + 1}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: fc?.solid ?? INK }}>{you ? '👤 ' : r.t.rival ? '⚔️ ' : r.t.human ? '🔥 ' : ''}{(() => { const pk = you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(r.t.name)}</span> : r.t.name })()}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: fc?.solid ?? INK }}>{you ? '👤 ' : isSaf ? '💼 ' : r.t.rival ? '⚔️ ' : r.t.human ? '🔥 ' : ''}{(() => { const pk = you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(r.t.name)}</span> : r.t.name })()}</td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                   {(r.h.A + r.h.B + r.h.C + r.h.D + r.copas) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
                     {r.copas > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: INK, background: GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆Copa{r.copas > 1 ? r.copas : ''}</span>}
@@ -2229,15 +2234,15 @@ export function PyramidSeasonScreen() {
               ))}
             </div>
             {rankSub === 'clubes' ? (
-              <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} />
+              <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} />
             ) : (
               <>
                 {/* durante a Copa (fim de temporada), a artilharia da COPA entra no
                     lugar da artilharia das divisões; o "todos os tempos" fica embaixo. */}
                 {done && copa && copa.scorers.length > 0
-                  ? <ArtilhariaBox scorers={copa.scorers} colors={colors} title="🏆 ARTILHARIA · COPA LEGENDS" sub="Gols do mata-mata da Copa — top 20." foot="🏅 O artilheiro da Copa rende +16 ao clube e sobe +16 no piso do jogador." />
-                  : <ArtilhariaByDiv scorers={scorersAll} colors={colors} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual — top 5 de cada série." foot="🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Série D +4 · C +8 · B +12 · A +16." />}
-                <ArtilhariaBox scorers={allTimeScorers} colors={colors} title="🏆 ARTILHARIA · TODOS OS TEMPOS" sub="Gols somados de todas as temporadas da sala — top 20." foot={allTimeScorers.length === 0 ? 'Começa a contar a partir de agora.' : undefined} />
+                  ? <ArtilhariaBox scorers={copa.scorers} colors={colors} safTeam={safTeamName} title="🏆 ARTILHARIA · COPA LEGENDS" sub="Gols do mata-mata da Copa — top 20." foot="🏅 O artilheiro da Copa rende +16 ao clube e sobe +16 no piso do jogador." />
+                  : <ArtilhariaByDiv scorers={scorersAll} colors={colors} safTeam={safTeamName} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual — top 5 de cada série." foot="🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Série D +4 · C +8 · B +12 · A +16." />}
+                <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title="🏆 ARTILHARIA · TODOS OS TEMPOS" sub="Gols somados de todas as temporadas da sala — top 20." foot={allTimeScorers.length === 0 ? 'Começa a contar a partir de agora.' : undefined} />
               </>
             )}
           </>
