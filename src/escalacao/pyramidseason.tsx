@@ -2181,7 +2181,13 @@ export function PyramidSeasonScreen() {
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               filial={state.careerFilial}
-              filialOptions={tables.D.filter(t => !t.you && !t.human && !t.rival).map(t => t.name).filter(t => !state.careerRivals.some(r => r.team === t))}
+              filialOptions={(() => {
+                // 🏢 só dá pra comprar clube que VAI FICAR na Série D: tira os 4
+                // primeiros (zona de acesso — estão subindo pra Série C). Sem isso,
+                // dava pra comprar um time prestes a subir e ganhar divisão de graça.
+                const fica = sortDiv(tables.D).slice(4)
+                return fica.filter(t => !t.you && !t.human && !t.rival).map(t => t.name).filter(t => !state.careerRivals.some(r => r.team === t))
+              })()}
               filialInfo={(() => {
                 const fn = state.careerFilial?.team
                 if (!fn) return null

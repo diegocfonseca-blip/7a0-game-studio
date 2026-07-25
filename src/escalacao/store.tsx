@@ -901,7 +901,11 @@ export function filialSaleValue(s: EscState): { value: number; div: string; titl
   const team = s.careerFilial?.team
   const div = (team && s.careerPlacements?.[team]) || 'D'
   const h = (team && s.careerHonors?.[team]) || { A: 0, B: 0, C: 0, D: 0 }
-  const titles = (h.A ?? 0) + (h.B ?? 0) + (h.C ?? 0) + (h.D ?? 0)
+  const totalTitles = (h.A ?? 0) + (h.B ?? 0) + (h.C ?? 0) + (h.D ?? 0)
+  // 🏢 só contam os títulos ganhos DEPOIS da compra — os que o clube já tinha na
+  // vida dele (titlesAtBuy) não entram no seu lucro. Saves antigos sem o snapshot
+  // caem em 0 (não conta nenhum histórico antigo, que é o comportamento correto).
+  const titles = Math.max(0, totalTitles - (s.careerFilial?.titlesAtBuy ?? totalTitles))
   const divBonus = FILIAL_DIV_BONUS[div] ?? 0
   const titleBonus = titles * 250
   const value = Math.min(FILIAL_SALE_CAP, 1000 + divBonus + titleBonus)
@@ -2378,7 +2382,11 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!ready) return s
       if (s.careerRivals.some(r => r.team === action.team) || you.teamName === action.team) return s
       s.careerCoins = { ...s.careerCoins, [you.id]: coins - 2000 }
-      s.careerFilial = { team: action.team, since: s.seasonNo, earned: 0 }
+      // 🏢 congela os títulos que o clube JÁ tinha (da vida dele antes de você):
+      // esses NÃO contam pro valor de venda — só o que ele ganhar sob seu comando.
+      const h0 = s.careerHonors?.[action.team]
+      const titlesAtBuy = h0 ? (h0.A + h0.B + h0.C + h0.D) : 0
+      s.careerFilial = { team: action.team, since: s.seasonNo, earned: 0, titlesAtBuy }
       logFin(s, 'safbuy', `🏢 Compra da SAF · ${action.team}`, -2000) // 🧾 compra da SAF entra no extrato
       return s
     }

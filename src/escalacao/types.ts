@@ -323,6 +323,7 @@ export interface EscState {
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
   careerFilial?: {
     team: string; since: number; earned?: number
+    titlesAtBuy?: number // 🏢 nº de títulos que o clube JÁ tinha na hora da compra — só o que ele ganhar DEPOIS conta pro valor de venda (não os títulos da vida dele antes de você)
     loanOut?: WonCard[] // jogadores SEUS emprestados PRA SAF (somem do seu elenco, jogam lá) — nº de vagas cresce com a divisão (D=1, C=2, B=3, A=4)
     loanIn?: WonCard[]  // jogadores DA SAF emprestados pra VOCÊ (jogam no seu time)
   } | null // 🏢 SAF (carreira OFFLINE, em teste): clube da Série D comprado — 50% dos prêmios de campanha dele (± em queda) caem no seu caixa
