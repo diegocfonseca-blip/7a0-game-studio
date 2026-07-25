@@ -667,7 +667,9 @@ const GOL: C[] = [
   { name: "Denis", club: "São Paulo", year: 2016, fame: 1, lo: 56, hi: 77 },
   { name: "Everson", club: "Atlético-MG", year: 2021, fame: 3, lo: 72, hi: 84, bio: "Paredão e pegador de pênaltis do Galo campeão de tudo em 2021 — segurança que virou ídolo." },
   { name: "Danilo (Chape)", club: "Chapecoense", year: 2016, fame: 3, lo: 72, hi: 84, bio: "Goleiro-herói da Chapecoense na campanha mágica da Sul-Americana de 2016 — pegou o pênalti que levou o time à final. Homenagem eterna." },
-  { name: "Felipe", club: "Corinthians", year: 2005, fame: 3, lo: 63, hi: 83, bio: "Goleiro de reflexo firme e saída segura, com passagens marcantes por Corinthians (o auge) e Flamengo — confiança embaixo das traves." }
+  { name: "Felipe", club: "Corinthians", year: 2005, fame: 3, lo: 63, hi: 83, bio: "Goleiro de reflexo firme e saída segura, com passagens marcantes por Corinthians (o auge) e Flamengo — confiança embaixo das traves." },
+  { name: "Carlos Miguel", club: "Corinthians", year: 2024, fame: 2, lo: 70, hi: 84, bio: "Goleirão de reflexo e presença na área — teve seu auge no Corinthians em 2024 antes de rumar ao futebol inglês." },
+  { name: "Marcelo Boeck", club: "Fortaleza", year: 2019, fame: 1, lo: 58, hi: 80, bio: "Goleiro rodado e seguro — regularidade que marcou passagens por Sporting, Chapecoense e o Fortaleza da elite." }
 ]
 
 const LAT: C[] = [
@@ -722,7 +724,9 @@ const LAT: C[] = [
   { name: "André Santos", club: "Corinthians", year: 2011, fame: 2, lo: 62, hi: 82, folk: true },
   { name: "Fagner", club: "Corinthians", year: 2017, fame: 3, lo: 70, hi: 83, bio: "Lateral raçudo do Corinthians campeão de 2017 — dono da direita e presença de Seleção." },
   { name: "Nino Paraíba", club: "Bahia", year: 2019, fame: 1, lo: 56, hi: 78, bio: "O nome já é resenha — e o lateral foi sólido de verdade no Esquadrão. Cult do Nordeste." },
-  { name: "Cortês", club: "Botafogo", year: 2010, fame: 1, lo: 54, hi: 77, bio: "Canhota de cruzamento doce que encantou o Rio — e sumiu do mapa tão rápido quanto brilhou." }
+  { name: "Cortês", club: "Botafogo", year: 2010, fame: 1, lo: 54, hi: 77, bio: "Canhota de cruzamento doce que encantou o Rio — e sumiu do mapa tão rápido quanto brilhou." },
+  { name: "Luciano Juba", club: "Bahia", year: 2023, fame: 2, lo: 68, hi: 82, bio: "Lateral-esquerdo/ponta de arrancada e bola parada afiada — explodiu no Sport e virou peça do Bahia." },
+  { name: "Geferson", club: "Internacional", year: 2017, fame: 1, lo: 52, hi: 75, folk: true, bio: "Lateral revelado no Inter que entrou pro folclore ao sair de campo trocando farpas com a própria torcida." }
 ]
 
 const ZAG: C[] = [
@@ -789,7 +793,8 @@ const ZAG: C[] = [
   { name: "Edu Dracena", club: "Santos", year: 2011, fame: 3, lo: 76, hi: 84, bio: "Zagueiro seguro e capitão — leitura de jogo e saída limpa no Santos de Neymar, depois de erguer o tri do Cruzeiro em 2003." },
   { name: "Durval", club: "Santos", year: 2013, fame: 1, lo: 56, hi: 78, bio: "Zagueiro veterano e capitão raçudo do Santos — cabeçada firme e liderança de vestiário por vários anos na Vila." },
   { name: "Arboleda", club: "São Paulo", year: 2022, fame: 3, lo: 74, hi: 84, bio: "Zagueirão equatoriano do São Paulo — imponente no jogo aéreo e ídolo da fiel, soma raça e saída de bola." },
-  { name: "Paulo Miranda", club: "São Paulo", year: 2015, fame: 2, lo: 72, hi: 83, bio: "Viveu o auge no São Paulo por volta de 2015 — sólido o bastante pra ser convocado à Seleção do Dunga. Depois foi campeão da Copa do Brasil pelo Grêmio em 2016." }
+  { name: "Paulo Miranda", club: "São Paulo", year: 2015, fame: 2, lo: 72, hi: 83, bio: "Viveu o auge no São Paulo por volta de 2015 — sólido o bastante pra ser convocado à Seleção do Dunga. Depois foi campeão da Copa do Brasil pelo Grêmio em 2016." },
+  { name: "Leandro Eusébio", club: "Cruzeiro", year: 2003, fame: 2, lo: 63, hi: 82, bio: "Zagueiro firme e regular — peça da defesa do Cruzeiro campeão brasileiro de 2003 e também ídolo no Vasco." }
 ]
 
 const MEI: C[] = [
@@ -902,7 +907,12 @@ const MEI: C[] = [
   { name: "Falcão (do Futsal)", club: "São Paulo", year: 2005, fame: 1, lo: 56, hi: 80, folk: true, bio: "O maior craque da história do futsal — magia absurda na quadra, mas no campo pelo São Paulo quase não deu as caras. Folclore garantido." },
   { name: "Richard Ríos", club: "Palmeiras", year: 2024, fame: 3, lo: 76, hi: 84, bio: "Volante box-to-box colombiano que explodiu no Palmeiras — do futsal à Copa América, motor de força e passe que rendeu transferência à Europa." },
   { name: "Zito", club: "Santos", year: 1962, fame: 4, lo: 84, hi: 91, bio: "Camisa 5 do Santos de Pelé e da Seleção bicampeã do mundo — equilíbrio, liderança e o gol no título da Copa de 1962." },
-  { name: "Somália", club: "Botafogo", year: 2016, fame: 1, lo: 55, hi: 78, folk: true }
+  { name: "Somália", club: "Botafogo", year: 2016, fame: 1, lo: 55, hi: 78, folk: true },
+  { name: "Pedrinho", club: "Vasco", year: 2000, fame: 3, lo: 72, hi: 87, bio: "Meia-craque do Vasco campeão brasileiro de 2000 — drible curto, passe e gols que fizeram a alegria de São Januário." },
+  { name: "Felipe Bastos", club: "Vasco", year: 2011, fame: 1, lo: 55, hi: 77, bio: "Meia de bom pé em bola parada — rodou o país com passagens marcantes por Vasco e Goiás." },
+  { name: "Bobô", club: "Bahia", year: 1988, fame: 3, lo: 72, hi: 85, bio: "Ídolo do Bahia campeão brasileiro de 1988 — faro de gol que depois o eternizou como lenda no Beşiktaş." },
+  { name: "Zina", club: "Ceará", year: 2007, fame: 1, lo: 56, hi: 77, folk: true, bio: "Meia folclórico e xodó da torcida do Ceará — categoria e personalidade que marcaram época no Vozão." },
+  { name: "Mattheus Oliveira", club: "Cruzeiro", year: 2018, fame: 1, lo: 54, hi: 77, bio: "Meia canhoto filho de Bebeto — talento de passe que buscou o próprio caminho no Brasil e em Portugal." }
 ]
 
 const ATA: C[] = [
@@ -1068,7 +1078,13 @@ const ATA: C[] = [
   { name: "Roger Guedes", club: "Corinthians", year: 2022, fame: 3, lo: 74, hi: 84, bio: "Atacante de finalização caprichada e faltas venenosas, ídolo e artilheiro do Corinthians — voltou da China pra brilhar em Itaquera." },
   { name: "Thiago Galhardo", club: "Internacional", year: 2020, fame: 3, lo: 74, hi: 84, bio: "Meia-atacante de faro raro — vice-artilheiro do Brasileirão de 2020 pelo Inter, gol de todo tipo numa temporada mágica." },
   { name: "Mauro Shampoo", club: "Íbis", year: 1980, fame: 1, lo: 35, hi: 55, folk: true, bio: "Centroavante-cabeleireiro do Íbis, o time mais fraco do mundo — símbolo máximo do futebol folclórico. O pior nível do jogo, com muito orgulho." },
-  { name: "Carlos Kaiser", club: "Bangu", year: 1986, fame: 1, lo: 35, hi: 55, folk: true, bio: "O maior farsante da história do futebol — passou a carreira inteira fingindo ser jogador sem nunca entrar em campo de verdade. No Bangu, arrumou briga com a torcida só pra ser expulso e não precisar jogar — e ainda ganhou renovação de contrato." }
+  { name: "Carlos Kaiser", club: "Bangu", year: 1986, fame: 1, lo: 35, hi: 55, folk: true, bio: "O maior farsante da história do futebol — passou a carreira inteira fingindo ser jogador sem nunca entrar em campo de verdade. No Bangu, arrumou briga com a torcida só pra ser expulso e não precisar jogar — e ainda ganhou renovação de contrato." },
+  { name: "Wellington Rato", club: "São Paulo", year: 2023, fame: 2, lo: 68, hi: 82, bio: "Ponta esperto de último passe e chute de fora — brilhou no Atlético-GO e virou peça criativa do São Paulo." },
+  { name: "Robinho Jr", club: "Santos", year: 2024, fame: 1, lo: 50, hi: 78, promessa: true, bio: "Cria da Vila e filho de Robinho — joia canhota que surgiu na base santista carregando um sobrenome de peso." },
+  { name: "Nonato", club: "Bahia", year: 2024, fame: 2, lo: 66, hi: 81, bio: "Meia de chegada à área e faro de gol — motor ofensivo que ganhou moral no Bahia da nova era." },
+  { name: "Sérgio Alves", club: "Ceará", year: 1993, fame: 2, lo: 62, hi: 82, folk: true, bio: "O 'Furacão' — artilheiro histórico e maior ídolo goleador do Ceará, terror das defesas nordestinas." },
+  { name: "Magno Alves", club: "Ceará", year: 2010, fame: 2, lo: 64, hi: 83, bio: "O 'Magrão' em casa — faro de gol e longevidade absurda que fizeram dele ídolo eterno do Ceará." },
+  { name: "Tiquinho Soares", club: "Botafogo", year: 2023, fame: 2, lo: 70, hi: 83, bio: "Centroavante matador — vice-artilheiro do Brasileirão de 2023 puxando o ataque do Botafogo." }
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
@@ -1157,7 +1173,8 @@ const LAT_EU: C[] = [
   { name: "Nicolás Tagliafico", club: "Ajax", year: 2019, fame: 2, lo: 70, hi: 83, bio: "Lateral-esquerdo argentino raçudo — titular do Ajax semifinalista da Champions de 2019 e campeão do mundo em 2022." },
   { name: "Marcos Acuña", club: "Sevilla", year: 2023, fame: 3, lo: 74, hi: 84, bio: "‘Huevo’ — lateral/ala esquerdo de pulmão infinito e cruzamento afiado, ídolo do Sevilla e campeão do mundo com a Argentina." },
   { name: "Lionel Scaloni", club: "Deportivo La Coruña", year: 2004, fame: 2, lo: 68, hi: 82, bio: "Antes de ser o técnico campeão do mundo, foi lateral-direito raçudo — ídolo do Deportivo La Coruña que brigou pela Champions." },
-  { name: "Joshua Kimmich", club: "Bayern", year: 2020, fame: 4, lo: 82, hi: 89, bio: "Alemão versátil e cerebral — lateral e volante de passe milimétrico, peça do Bayern da tríplice coroa de 2020." }
+  { name: "Joshua Kimmich", club: "Bayern", year: 2020, fame: 4, lo: 82, hi: 89, bio: "Alemão versátil e cerebral — lateral e volante de passe milimétrico, peça do Bayern da tríplice coroa de 2020." },
+  { name: "Douglas", club: "Barcelona", year: 2015, fame: 1, lo: 55, hi: 78, folk: true, bio: "Lateral-direito brasileiro que o Barça contratou e mal usou — virou símbolo do reforço que não vingou no Camp Nou." }
 ]
 const ZAG_EU: C[] = [
   { name: "Maguire", club: "Man United", year: 2019, fame: 2, lo: 66, hi: 82 },
@@ -1214,7 +1231,8 @@ const ZAG_EU: C[] = [
   { name: "Nicolás Otamendi", club: "Manchester City", year: 2018, fame: 3, lo: 78, hi: 85, bio: "‘General’ argentino de marcação truculenta — bicampeão inglês pelo City e pilar eterno da seleção campeã do mundo em 2022." },
   { name: "Ronald Koeman", club: "Barcelona", year: 1992, fame: 4, lo: 83, hi: 89, bio: "Zagueiro-artilheiro holandês de canhota canhão — fez o gol do primeiro título europeu do Barça de Cruyff em Wembley, 1992." },
   { name: "David Alaba", club: "Real Madrid", year: 2022, fame: 3, lo: 81, hi: 88, bio: "Austríaco versátil e canhoto — campeão da Champions pelo Bayern e pelo Real Madrid, zagueiro de saída de bola e bola parada." },
-  { name: "William Saliba", club: "Arsenal", year: 2024, fame: 3, lo: 80, hi: 87, bio: "Zagueiro francês elegante e veloz — a muralha do Arsenal da nova era, leitura de jogo e saída de bola de sobra." }
+  { name: "William Saliba", club: "Arsenal", year: 2024, fame: 3, lo: 80, hi: 87, bio: "Zagueiro francês elegante e veloz — a muralha do Arsenal da nova era, leitura de jogo e saída de bola de sobra." },
+  { name: "Jérôme Boateng", club: "Bayern", year: 2020, fame: 4, lo: 83, hi: 90, bio: "Zagueiro alemão forte e de lançamento preciso — campeão do mundo em 2014 e pilar do Bayern da tríplice coroa de 2020." }
 ]
 const MEI_EU: C[] = [
   { name: "Payet", club: "Marseille", year: 2017, fame: 3, lo: 80, hi: 87 },
@@ -1343,7 +1361,8 @@ const MEI_EU: C[] = [
   { name: "Christian Eriksen", club: "Tottenham", year: 2017, fame: 4, lo: 84, hi: 90, bio: "Meia dinamarquês de passe e bola parada de elite — cérebro criativo do Tottenham e depois de Inter e Manchester United." },
   { name: "Leandro Paredes", club: "Roma", year: 2018, fame: 2, lo: 72, hi: 83, bio: "Volante argentino de passe longo milimétrico e pé quente na bola parada — brilhou na Roma e no PSG, campeão do mundo em 2022." },
   { name: "Giovani Lo Celso", club: "Real Betis", year: 2019, fame: 2, lo: 74, hi: 84, bio: "Meia argentino canhoto de chegada e chute de fora — explodiu no Real Betis antes do Tottenham, peça da seleção campeã do mundo." },
-  { name: "Pablo Aimar", club: "Valencia", year: 2002, fame: 3, lo: 80, hi: 87, bio: "‘El Payaso’ — meia argentino de drible e passe geniais, craque do Valencia bicampeão espanhol e ídolo de infância do Messi." }
+  { name: "Pablo Aimar", club: "Valencia", year: 2002, fame: 3, lo: 80, hi: 87, bio: "‘El Payaso’ — meia argentino de drible e passe geniais, craque do Valencia bicampeão espanhol e ídolo de infância do Messi." },
+  { name: "Lucas Leiva", club: "Liverpool", year: 2011, fame: 3, lo: 74, hi: 84, bio: "Volante brasileiro de marcação e regularidade — mais de dez anos de Liverpool e uma segunda casa na Lazio." }
 ]
 const ATA_EU: C[] = [
   { name: "Ricardo Quaresma", club: "Porto", year: 2007, fame: 3, lo: 74, hi: 84, folk: true },
