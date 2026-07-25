@@ -275,27 +275,29 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <p className="text-[11px] font-bold text-black/75 leading-snug mt-1">👴 Quem <b>já tem uma carreira em andamento</b> não perde nada — segue com o manual normal. A partir de agora, vale pras <b>carreiras novas</b>.</p>
           </div>
 
-          <p className="font-black text-center text-lg mt-3.5" style={OSWALD}>R$ 19,90 · uma vez só</p>
-          <div className="mt-2"><PixBox label="copiar Pix (R$ 19,90)" ctx="modo manual" amount={19.9} /></div>
-          <button onClick={() => { logApoio('🎮 QUER O MODO MANUAL (R$ 19,90)'); igMsg('Opa! Apoiei o Leilão Legends 💛 Quero o MODO MANUAL — comprovante em anexo!') }}
+          {/* ⭐ O manual NÃO é um produto avulso: ele É o tier Craque. Pelos mesmos
+              R$ 19,90 a pessoa leva o Manual E a cor do time — um apoio só. */}
+          <div className="border-[3px] border-black rounded-xl px-3 py-2.5 mt-4" style={{ background: 'linear-gradient(150deg,#F4F7FB,#CBD4DE)', boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <p className="font-black text-[13px] text-center" style={OSWALD}>⭐ O Modo Manual é o tier Craque</p>
+            <p className="text-[11px] font-bold text-black/70 text-center mt-1 leading-snug">Um apoio só: pelos mesmos <b>R$ 19,90</b> você libera o Manual <b>e</b> pinta o time todo — cor prata com brilho no elenco, no estádio e nas tabelas.</p>
+          </div>
+
+          <p className="font-black text-center text-lg mt-3" style={OSWALD}>R$ 19,90 · uma vez só</p>
+          <div className="mt-2"><PixBox label="copiar Pix (R$ 19,90)" ctx="craque (manual + cor)" amount={19.9} /></div>
+          <button onClick={() => { logApoio('⭐ QUER O CRAQUE / MANUAL (R$ 19,90)'); igMsg('Opa! Apoiei o Leilão Legends 💛 Quero o ⭐ CRAQUE (Modo Manual + cor do time) — comprovante em anexo!') }}
             className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-3 mt-2.5 active:translate-y-0.5"
             style={{ background: '#E1306C', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
             📸 MANDAR COMPROVANTE NO @leilaolegendscom
           </button>
           <p className="text-[10px] font-bold text-black/45 text-center mt-1.5">a mensagem já vai copiada · liberamos em até 24h no seu e-mail 💛</p>
 
-          {/* 🪜 NÃO É BECO SEM SAÍDA: o manual é a porta de entrada, mas dá pra levar
-              MUITO mais pelo mesmo valor (Craque) ou pouco mais (Lenda) — e a pessoa
-              precisa ver que existe estádio/cor/batizar clube, não só o R$ 19,90. */}
-          <div className="border-[3px] border-black rounded-xl px-3 py-3 mt-4" style={{ background: 'linear-gradient(150deg,#EFE7FF,#FBF3D6)', boxShadow: `4px 4px 0 0 ${INK}` }}>
-            <p className="font-black text-[12.5px] text-center" style={OSWALD}>🪜 Pelo mesmo valor dá pra levar MAIS</p>
-            <div className="mt-2 space-y-1.5">
-              <p className="text-[11px] font-bold text-black/80 leading-snug">⭐ <b>Craque · R$ 19,90</b> — <b>o mesmo preço</b>: além do Modo Manual, você ainda <b>pinta o time todo</b> (cor prata com brilho no elenco, no estádio e nas tabelas).</p>
-              <p className="text-[11px] font-bold text-black/80 leading-snug">👑 <b>Lenda · R$ 39,90</b> — Manual + <b>ouro (ou qualquer cor)</b> com brilho, <b>batiza um clube</b> do campeonato pra sempre e já garante a <b>Carreira Online</b> (chegando).</p>
-            </div>
+          {/* 👑 upsell honesto pro Lenda — aqui SIM é mais que o Craque, por mais R$ 20 */}
+          <div className="border-[3px] border-black rounded-xl px-3 py-3 mt-4" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400,#E8A200)', boxShadow: `4px 4px 0 0 ${INK}` }}>
+            <p className="font-black text-[12.5px] text-center" style={OSWALD}>👑 Ou sobe pro Lenda · R$ 39,90</p>
+            <p className="text-[11px] font-bold text-black/80 leading-snug mt-1.5">Tudo do Craque <b>+ ouro</b> (ou qualquer cor) com brilho, <b>batiza um clube</b> do campeonato pra sempre e já garante a <b>Carreira Online</b> (chegando).</p>
             <button onClick={() => { logApoio('👀 manual → ver tudo'); setScreen('choice') }}
               className="w-full rounded-xl border-[3px] border-black font-black text-[13px] py-2.5 mt-2.5 active:translate-y-0.5"
-              style={{ background: GOLD, color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
+              style={{ background: '#fff', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
               👉 Ver tudo que dá pra apoiar
             </button>
           </div>
