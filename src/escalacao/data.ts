@@ -902,6 +902,7 @@ const MEI: C[] = [
   { name: "Mazinho", club: "Palmeiras", year: 1993, fame: 3, lo: 74, hi: 84, bio: "Volante versátil do tetra 94, peça do Palmeiras da era Parmalat." },
   { name: "Assis", club: "Fluminense", year: 1993, fame: 4, lo: 82, hi: 89, bio: "Meia de muito talento e visão, parceiro histórico do Renato Gaúcho — pura magia no meio-campo." },
   { name: "Falcão (do Futsal)", club: "São Paulo", year: 2005, fame: 1, lo: 56, hi: 80, folk: true, bio: "O maior craque da história do futsal — magia absurda na quadra, mas no campo pelo São Paulo quase não deu as caras. Folclore garantido." },
+  { name: "Richard Ríos", club: "Palmeiras", year: 2024, fame: 3, lo: 76, hi: 84, bio: "Volante box-to-box colombiano que explodiu no Palmeiras — do futsal à Copa América, motor de força e passe que rendeu transferência à Europa." },
 ]
 
 const ATA: C[] = [
@@ -1326,7 +1327,12 @@ const MEI_EU: C[] = [
   { name: "Alfie Haaland (pai do Erling)", club: "Man City", year: 2001, fame: 1, lo: 56, hi: 78, folk: true, bio: "Volante/zagueiro norueguês raçudo de Leeds e Manchester City — e, claro, o pai do fenômeno Erling. Eternizado na rivalidade com Roy Keane." },
   { name: "David Beckham", club: "Manchester United", year: 1999, fame: 4, lo: 86, hi: 92, bio: "O rei da bola parada — cruzamento e falta milimétricos pela direita do United da tríplice coroa. Ícone dentro e fora de campo." },
   { name: "Declan Rice", club: "Arsenal", year: 2024, fame: 4, lo: 83, hi: 89, bio: "Volante-motor da Inglaterra — desarme, fôlego e saída de bola que fizeram dele a espinha do meio do Arsenal e do West Ham." },
-  { name: "Youri Tielemans", club: "Leicester", year: 2021, fame: 3, lo: 79, hi: 86, bio: "Meia belga de passe elegante — eternizado pelo golaço que deu a FA Cup ao Leicester em Wembley." }
+  { name: "Youri Tielemans", club: "Leicester", year: 2021, fame: 3, lo: 79, hi: 86, bio: "Meia belga de passe elegante — eternizado pelo golaço que deu a FA Cup ao Leicester em Wembley." },
+  { name: "Phil Foden", club: "Manchester City", year: 2024, fame: 4, lo: 85, hi: 91, bio: "Joia de Stockport lapidada por Guardiola — canhota mágica e faro de gol que renderam o prêmio de melhor da Premier League em 2024." },
+  { name: "Bastian Schweinsteiger", club: "Bayern", year: 2013, fame: 4, lo: 85, hi: 91, bio: "O 'Fussballgott' — volante-cérebro do Bayern da tríplice coroa e campeão do mundo com a Alemanha em 2014." },
+  { name: "Hidetoshi Nakata", club: "Roma", year: 2001, fame: 3, lo: 79, hi: 86, bio: "O maior nome do futebol japonês — meia elegante campeão italiano pela Roma, pioneiro que abriu as portas da Europa para a Ásia." },
+  { name: "Keisuke Honda", club: "Milan", year: 2014, fame: 3, lo: 76, hi: 84, bio: "Meia japonês de personalidade e chute venenoso de fora — brilhou no CSKA e vestiu a 10 do Milan, decisivo em Copas pelo Japão." },
+  { name: "Lee Kang-in", club: "PSG", year: 2024, fame: 3, lo: 77, hi: 84, bio: "Meia sul-coreano de drible curto e passe refinado — revelado no Valencia e peça de talento no Paris Saint-Germain." }
 ]
 const ATA_EU: C[] = [
   { name: "Ricardo Quaresma", club: "Porto", year: 2007, fame: 3, lo: 74, hi: 84, folk: true },
@@ -1474,6 +1480,14 @@ const ATA_EU: C[] = [
   { name: "Oliver Bierhoff", club: "Milan", year: 1999, fame: 3, lo: 80, hi: 87, bio: "Centroavante alemão letal de cabeça — autor do primeiro gol de ouro da história, na conquista da Euro 96, e artilheiro no Udinese e no Milan." },
   { name: "Giovani dos Santos", club: "Villarreal", year: 2013, fame: 3, lo: 78, hi: 85, bio: "Meia-atacante mexicano de drible e categoria — joia do Barça que engrenou no Villarreal e no Tottenham, craque histórico da seleção do México." },
   { name: "Evandro Roncatto", club: "Dinamo Bucareste", year: 2011, fame: 1, lo: 60, hi: 80, folk: true, bio: "Atacante brasileiro andarilho que virou ídolo cult no Dinamo de Bucareste — folclore de artilheiro rodando o Leste Europeu e o Oriente Médio." },
+  { name: "Khvicha Kvaratskhelia", club: "Napoli", year: 2023, fame: 4, lo: 84, hi: 90, bio: "'Kvaradona' — ponta georgiano de drible eletrizante que encantou a Itália e levou o Napoli ao scudetto de 2023." },
+  { name: "Henrik Larsson", club: "Celtic", year: 2001, fame: 4, lo: 84, hi: 90, bio: "O 'Rei Leão' sueco — artilheiro lendário do Celtic e peça decisiva do Barça campeão da Champions de 2006." },
+  { name: "Edin Džeko", club: "Roma", year: 2017, fame: 4, lo: 83, hi: 89, bio: "'Diamante' bósnio — centroavante alto e matador, artilheiro no Wolfsburg, campeão inglês pelo City e goleador histórico da Roma." },
+  { name: "Marc Overmars", club: "Ajax", year: 1995, fame: 4, lo: 84, hi: 90, bio: "Ponta-esquerda holandês voador — velocidade pura no Ajax campeão da Champions de 1995 e no Arsenal do início dos Invencíveis." },
+  { name: "Kingsley Coman", club: "Bayern", year: 2020, fame: 3, lo: 80, hi: 87, bio: "Ponta francês de explosão e drible — eternizado pelo gol de cabeça que deu a Champions ao Bayern em 2020." },
+  { name: "Olivier Giroud", club: "Milan", year: 2023, fame: 3, lo: 80, hi: 87, bio: "Centroavante francês de pivô e voleios acrobáticos — artilheiro histórico da França, campeão do mundo em 2018 e do scudetto pelo Milan." },
+  { name: "Bradley Barcola", club: "PSG", year: 2024, fame: 3, lo: 78, hi: 85, bio: "Ponta francês veloz e desequilibrante — revelado no Lyon e peça ofensiva de destaque no Paris Saint-Germain." },
+  { name: "Nacho Prestianni", club: "Benfica", year: 2024, fame: 1, lo: 62, hi: 82, promessa: true, bio: "Joia argentina de Vélez — ponta canhoto habilidoso que rumou cedo ao Benfica como aposta de futuro." },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
 
