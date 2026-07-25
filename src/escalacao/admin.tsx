@@ -22,6 +22,23 @@ const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 // nada é feito com a conta do jogador.
 const COINS_ALERT = 20000
 
+// 🚩 DETECTOR DE SAVE SUSPEITO (carreira é client-side; dá pra editar no DevTools).
+// Teto de caixa PLAUSÍVEL por divisão — divisões de baixo rendem pouco (D não tem
+// patrocínio e o campeão SOBE de série), então caixa alto lá embaixo é sinal de
+// save adulterado. É só alerta visual pro admin — nada é feito com a conta.
+const DIV_COIN_CAP: Record<string, number> = { D: 600, C: 1000, B: 2000 } // A: usa o COINS_ALERT geral
+function suspectReason(p: LiveRow): string | null {
+  if (p.mode !== 'career' || !p.careerDivision) return null
+  const div = p.careerDivision
+  const coins = p.careerCoins ?? 0
+  const titles = p.careerTitles ?? 0
+  const cap = DIV_COIN_CAP[div]
+  if (cap != null && coins > cap) return `caixa ${coins} 🪙 alto demais pra Série ${div} (plausível até ~${cap})`
+  if (div === 'D' && titles >= 4) return `${titles} títulos ainda na Série D — campeão da D sobe de série`
+  if (div === 'C' && titles >= 8) return `${titles} títulos ainda na Série C`
+  return null
+}
+
 type DailyRow = { day: string; plays: number; cpu: number; online: number; visits: number }
 type UserRow = { name: string; sid: string; total: number; today: number; last_play: string; registered: boolean }
 type LiveRow = { name: string; mode: string; screen: string; playing: boolean; ago: number; careerSeason?: number | null; careerDivision?: string | null; deckLeague?: string | null; registered?: boolean; careerCoins?: number | null; careerTitles?: number | null; uid?: string | null }
@@ -261,12 +278,20 @@ function Dashboard({ email }: { email: string }) {
               const v = squad.data
               const ORD = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
               const list = [...(v.squad ?? [])].sort((a, b) => (ORD.indexOf(a.pos) - ORD.indexOf(b.pos)) || (((b.lo ?? 0) + (b.hi ?? 0)) - ((a.lo ?? 0) + (a.hi ?? 0))))
+              // 🚩 elenco forte demais pra divisão: craques (mid ≥ 85) num time de série baixa
+              const craques = list.filter(c => !c.fake && ((c.lo ?? 0) + (c.hi ?? 0)) / 2 >= 85).length
+              const tooStrong = (v.division === 'D' || v.division === 'C') && craques >= 4
               return (
                 <>
                   <p style={{ fontWeight: 800, fontSize: 17, margin: '0 0 2px', ...OSWALD }}>🪜 {v.team || squad.name}</p>
                   <p style={{ fontSize: 12, opacity: .7, margin: '0 0 10px' }}>
                     {v.division ? `${DIV_LABEL[v.division] ?? v.division} · ` : ''}T{v.season ?? '?'}{v.coins != null ? ` · 💰 ${v.coins}` : ''}{v.formation ? ` · ${v.formation}` : ''} · {list.length} jogadores
                   </p>
+                  {tooStrong && (
+                    <p style={{ background: 'rgba(255,77,77,.15)', border: '1px solid rgba(255,77,77,.5)', borderRadius: 8, padding: '7px 9px', margin: '0 0 10px', fontSize: 12, fontWeight: 700, color: '#FF6B6B' }}>
+                      🚩 Elenco muito acima da Série {v.division}: {craques} craques (nível ≥ 85). Provável save editado no DevTools — a carreira é client-side. Só um alerta.
+                    </p>
+                  )}
                   {list.map((c, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 13, padding: '4px 0', borderTop: '1px solid rgba(255,255,255,.08)', opacity: c.fake ? .45 : 1 }}>
                       <span style={{ flex: 'none', width: 34, fontWeight: 800, fontSize: 10.5, color: GOLD }}>{c.pos}</span>
@@ -316,6 +341,9 @@ function Dashboard({ email }: { email: string }) {
                   {p.playing && <span style={{ opacity: 0.6 }}> · {MODE_LABEL[p.mode] || p.mode}</span>}
                   {p.mode === 'career' && p.careerDivision && (
                     <span style={{ opacity: 0.85, color: '#C9A9FF', fontWeight: 700 }}> · {DIV_LABEL[p.careerDivision] || p.careerDivision} · T{p.careerSeason ?? 1}</span>
+                  )}
+                  {suspectReason(p) && (
+                    <span title={`🚩 Save suspeito: ${suspectReason(p)}. A carreira é client-side (dá pra editar no DevTools) — só um alerta pra observar, nada é feito com a conta.`} style={{ color: '#FF4D4D', fontWeight: 900 }}> · 🚩 suspeito</span>
                   )}
                   {/* 💰 caixa atual + 🏆 títulos (qualquer série) — vêm do próprio
                       batimento, então funciona pra anônimo e pra pirâmide também.
