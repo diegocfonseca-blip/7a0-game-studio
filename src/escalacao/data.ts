@@ -666,7 +666,8 @@ const GOL: C[] = [
   { name: "Clemer", club: "Internacional", year: 2004, fame: 3, lo: 74, hi: 83 },
   { name: "Denis", club: "São Paulo", year: 2016, fame: 1, lo: 56, hi: 77 },
   { name: "Everson", club: "Atlético-MG", year: 2021, fame: 3, lo: 72, hi: 84, bio: "Paredão e pegador de pênaltis do Galo campeão de tudo em 2021 — segurança que virou ídolo." },
-  { name: "Danilo (Chape)", club: "Chapecoense", year: 2016, fame: 3, lo: 72, hi: 84, bio: "Goleiro-herói da Chapecoense na campanha mágica da Sul-Americana de 2016 — pegou o pênalti que levou o time à final. Homenagem eterna." }
+  { name: "Danilo (Chape)", club: "Chapecoense", year: 2016, fame: 3, lo: 72, hi: 84, bio: "Goleiro-herói da Chapecoense na campanha mágica da Sul-Americana de 2016 — pegou o pênalti que levou o time à final. Homenagem eterna." },
+  { name: "Felipe", club: "Corinthians", year: 2005, fame: 3, lo: 63, hi: 83, bio: "Goleiro de reflexo firme e saída segura, com passagens marcantes por Corinthians (o auge) e Flamengo — confiança embaixo das traves." }
 ]
 
 const LAT: C[] = [
@@ -1502,7 +1503,8 @@ const ATA_EU: C[] = [
   { name: "Julián Álvarez", club: "Atlético de Madrid", year: 2025, fame: 4, lo: 82, hi: 89, bio: "‘La Araña’ — centroavante argentino de movimentação e faro, campeão do mundo em 2022 e da tríplice coroa pelo City antes de brilhar no Atlético." },
   { name: "Lautaro Martínez", club: "Inter", year: 2024, fame: 4, lo: 84, hi: 90, bio: "‘El Toro’ — centroavante argentino matador e capitão da Inter campeã italiana de 2024, artilheiro e campeão do mundo em 2022." },
   { name: "Hakim Ziyech", club: "Ajax", year: 2019, fame: 3, lo: 78, hi: 85, bio: "Meia-atacante marroquino canhoto de passe e chute venenosos — cérebro criativo do Ajax semifinalista da Champions de 2019." },
-  { name: "Benni McCarthy", club: "Porto", year: 2004, fame: 3, lo: 76, hi: 84, bio: "Centroavante sul-africano matador — herói do Porto de Mourinho campeão da Champions de 2004, com os gols que eliminaram o United." }
+  { name: "Benni McCarthy", club: "Porto", year: 2004, fame: 3, lo: 76, hi: 84, bio: "Centroavante sul-africano matador — herói do Porto de Mourinho campeão da Champions de 2004, com os gols que eliminaram o United." },
+  { name: "Liedson", club: "Sporting", year: 2008, fame: 3, lo: 68, hi: 86, bio: "‘O Levita’ — goleador brasileiro que virou ídolo e artilheiro histórico do Sporting, faro de gol afiado que ainda o levou à Seleção." }
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
 
