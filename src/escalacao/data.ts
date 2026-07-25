@@ -794,7 +794,8 @@ const ZAG: C[] = [
   { name: "Durval", club: "Santos", year: 2013, fame: 1, lo: 56, hi: 78, bio: "Zagueiro veterano e capitão raçudo do Santos — cabeçada firme e liderança de vestiário por vários anos na Vila." },
   { name: "Arboleda", club: "São Paulo", year: 2022, fame: 3, lo: 74, hi: 84, bio: "Zagueirão equatoriano do São Paulo — imponente no jogo aéreo e ídolo da fiel, soma raça e saída de bola." },
   { name: "Paulo Miranda", club: "São Paulo", year: 2015, fame: 2, lo: 72, hi: 83, bio: "Viveu o auge no São Paulo por volta de 2015 — sólido o bastante pra ser convocado à Seleção do Dunga. Depois foi campeão da Copa do Brasil pelo Grêmio em 2016." },
-  { name: "Leandro Eusébio", club: "Cruzeiro", year: 2003, fame: 2, lo: 63, hi: 82, bio: "Zagueiro firme e regular — peça da defesa do Cruzeiro campeão brasileiro de 2003 e também ídolo no Vasco." }
+  { name: "Leandro Eusébio", club: "Cruzeiro", year: 2003, fame: 2, lo: 63, hi: 82, bio: "Zagueiro firme e regular — peça da defesa do Cruzeiro campeão brasileiro de 2003 e também ídolo no Vasco." },
+  { name: "Pedro Basílio", club: "Fortaleza", year: 1978, fame: 3, lo: 68, hi: 85, bio: "A 'Maravilha Negra' — maior ídolo defensivo da história do Fortaleza, recordista de jogos (479) e de títulos cearenses. Zagueirão que começou na lateral." }
 ]
 
 const MEI: C[] = [
@@ -1084,7 +1085,8 @@ const ATA: C[] = [
   { name: "Nonato", club: "Bahia", year: 2024, fame: 2, lo: 66, hi: 81, bio: "Meia de chegada à área e faro de gol — motor ofensivo que ganhou moral no Bahia da nova era." },
   { name: "Sérgio Alves", club: "Ceará", year: 1993, fame: 2, lo: 62, hi: 82, folk: true, bio: "O 'Furacão' — artilheiro histórico e maior ídolo goleador do Ceará, terror das defesas nordestinas." },
   { name: "Magno Alves", club: "Ceará", year: 2010, fame: 2, lo: 64, hi: 83, bio: "O 'Magrão' em casa — faro de gol e longevidade absurda que fizeram dele ídolo eterno do Ceará." },
-  { name: "Tiquinho Soares", club: "Botafogo", year: 2023, fame: 2, lo: 70, hi: 83, bio: "Centroavante matador — vice-artilheiro do Brasileirão de 2023 puxando o ataque do Botafogo." }
+  { name: "Tiquinho Soares", club: "Botafogo", year: 2023, fame: 2, lo: 70, hi: 83, bio: "Centroavante matador — vice-artilheiro do Brasileirão de 2023 puxando o ataque do Botafogo." },
+  { name: "Muñoz", club: "Palmeiras", year: 2003, fame: 2, lo: 62, hi: 82, bio: "Centroavante colombiano de Medellín — goleador xodó da torcida do Palmeiras, artilheiro na campanha do título da Série B de 2003." }
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
