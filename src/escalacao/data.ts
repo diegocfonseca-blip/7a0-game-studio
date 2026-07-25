@@ -1542,6 +1542,88 @@ export const CATALOG_BOTH: Record<Sector, C[]> = {
   ATA: [...CATALOG.ATA, ...CATALOG_EU.ATA],
 }
 
+// ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
+// Craques que ficaram famosos SEM passar pela Europa nem pelo Brasil: idols do
+// México, Argentina (só liga local), Colômbia, Peru, Bolívia, EUA/MLS, Oriente
+// Médio, Ásia e África doméstica. Inclui os 5 "quase" (passagem curta/relâmpago
+// pela Europa) a pedido. Mesmas categorias dos outros baralhos. Fica pronto pra
+// virar o 3º baralho selecionável quando for liberado — por ora não tem seletor.
+const GOL_WORLD: C[] = [
+  { name: "Jorge Campos", club: "Pumas", year: 1994, fame: 4, lo: 83, hi: 90, bio: "Goleiro mexicano das camisas fluorescentes desenhadas por ele mesmo — baixinho, elástico e tão ofensivo que às vezes jogava de atacante e fazia gol." },
+  { name: "René Higuita", club: "Atlético Nacional", year: 1990, fame: 4, lo: 82, hi: 89, bio: "O goleiro-líbero colombiano do escorpião em Wembley — saía driblando na área como um camisa 10. Ousadia e loucura em pessoa." },
+  { name: "José Luis Chilavert", club: "Vélez Sarsfield", year: 1998, fame: 4, lo: 83, hi: 90, bio: "O goleiro paraguaio que batia falta e pênalti e FAZIA gol — mais de 60 na carreira. Personalidade explosiva e mira de artilheiro." },
+  { name: "Amadeo Carrizo", club: "River Plate", year: 1962, fame: 4, lo: 82, hi: 89, bio: "Pioneiro argentino: inventou o goleiro que sai da área e joga com os pés, décadas antes de virar moda. Lenda máxima do River." },
+  { name: "Hugo Gatti", club: "Boca Juniors", year: 1980, fame: 3, lo: 78, hi: 86, bio: "'El Loco' — recordista de jogos no futebol argentino, provocador e adiantadíssimo. Um showman embaixo das traves." },
+  { name: "Óscar Pérez", club: "Cruz Azul", year: 2000, fame: 3, lo: 76, hi: 85, bio: "'Conejo' — baixinho e eterno, foi convocado pra várias Copas do México ao longo de quase 20 anos de estrada." },
+  { name: "Mohammed Al-Deayea", club: "Al-Hilal", year: 1998, fame: 3, lo: 77, hi: 85 },
+  { name: "Óscar Córdoba", club: "Boca Juniors", year: 2001, fame: 3, lo: 77, hi: 85, bio: "Muralha colombiana do Boca bi da Libertadores e campeão do Mundo (Intercontinental) contra o Real." },
+  { name: "Vozinha", club: "Cabo Verde", year: 2013, fame: 2, lo: 62, hi: 80, bio: "O goleiro-símbolo dos Tubarões Azuis de Cabo Verde — a cara da seleção-surpresa que encantou a África com raça e alegria." },
+  { name: "Essam El-Hadary", club: "Al Ahly", year: 2008, fame: 3, lo: 76, hi: 84, bio: "Lenda egípcia e o jogador mais velho a atuar numa Copa do Mundo, aos 45 anos. Muralha multicampeã africana pelo Al Ahly." },
+  { name: "Nery Pumpido", club: "River Plate", year: 1986, fame: 3, lo: 76, hi: 84, bio: "Goleiro campeão do mundo com a Argentina em 1986, titular na campanha do México." },
+  { name: "Tony Meola", club: "MetroStars", year: 1994, fame: 2, lo: 66, hi: 80 },
+]
+const LAT_WORLD: C[] = [
+  { name: "Silvio Marzolini", club: "Boca Juniors", year: 1965, fame: 4, lo: 82, hi: 88, bio: "O lateral-esquerdo mais elegante da história argentina — ídolo eterno do Boca, técnica e classe de sobra na marcação e no apoio." },
+  { name: "Ramón Ramírez", club: "Chivas", year: 1997, fame: 3, lo: 76, hi: 85, bio: "Lateral/meia-esquerda incansável do Chivas e da seleção mexicana dos anos 90 — pé bom e fôlego infinito." },
+  { name: "Salvador Carmona", club: "Toluca", year: 2000, fame: 2, lo: 66, hi: 81 },
+  { name: "Frankie Hejduk", club: "Columbus Crew", year: 2008, fame: 2, lo: 62, hi: 78 },
+  { name: "Jeff Agoos", club: "DC United", year: 1999, fame: 1, lo: 55, hi: 76 },
+  { name: "Mario Méndez", club: "Monterrey", year: 2002, fame: 1, lo: 55, hi: 76 },
+  { name: "Joel Sánchez", club: "Necaxa", year: 1998, fame: 1, lo: 55, hi: 74 },
+]
+const ZAG_WORLD: C[] = [
+  { name: "Andrés Escobar", club: "Atlético Nacional", year: 1991, fame: 4, lo: 82, hi: 88, bio: "'El Caballero del fútbol' — zagueiro elegante e ídolo do Nacional, primeiro colombiano campeão da Libertadores. Assassinado dias após um gol contra na Copa de 1994, virou símbolo trágico do futebol." },
+  { name: "Hong Myung-bo", club: "Pohang Steelers", year: 2002, fame: 4, lo: 81, hi: 88, bio: "O capitão-líbero da Coreia do Sul que levou o país à semifinal da Copa de 2002 — saída de bola de craque e liderança total." },
+  { name: "Héctor Chumpitaz", club: "Universitario", year: 1975, fame: 3, lo: 78, hi: 86, bio: "'El Capitán de América' — o eterno capitão do Peru das Copas de 70 e 78, zagueiro-líbero de personalidade gigante." },
+  { name: "Claudio Suárez", club: "Chivas", year: 1998, fame: 3, lo: 77, hi: 85, bio: "'El Emperador' — recordista mundial de jogos por seleção na época, muralha do México por quase 15 anos." },
+  { name: "Alberto Quintano", club: "Cruz Azul", year: 1974, fame: 2, lo: 66, hi: 81 },
+  { name: "Marcelo Balboa", club: "Colorado Rapids", year: 1994, fame: 2, lo: 66, hi: 81, bio: "O rabo-de-cavalo e as bicicletas do zagueiro símbolo dos EUA na Copa de 94 — pioneiro do futebol americano moderno." },
+  { name: "Yuji Nakazawa", club: "Yokohama F. Marinos", year: 2005, fame: 2, lo: 66, hi: 81 },
+  { name: "Eddie Pope", club: "DC United", year: 1998, fame: 2, lo: 64, hi: 80 },
+  { name: "Iván Hurtado", club: "Equador", year: 2002, fame: 2, lo: 64, hi: 80 },
+  { name: "Fernando Quirarte", club: "Chivas", year: 1986, fame: 2, lo: 64, hi: 80 },
+  { name: "Rafael Albrecht", club: "San Lorenzo", year: 1968, fame: 2, lo: 64, hi: 80 },
+  { name: "Choi Jin-cheul", club: "Jeonbuk", year: 2002, fame: 1, lo: 60, hi: 78 },
+]
+const MEI_WORLD: C[] = [
+  { name: "Carlos Valderrama", club: "Deportivo Cali", year: 1988, fame: 5, lo: 87, hi: 93, bio: "'El Pibe' — a cabeleira loira e o passe mais genial da história colombiana. Enxergava lançamentos que ninguém via; pura arte no meio-campo." },
+  { name: "Ricardo Bochini", club: "Independiente", year: 1984, fame: 4, lo: 84, hi: 90, bio: "O ídolo máximo do Maradona — 'El Bocha' passou a vida inteira no Independiente ditando o ritmo com toques curtos e a famosa 'pausa'." },
+  { name: "Teófilo Cubillas", club: "Alianza Lima", year: 1978, fame: 4, lo: 84, hi: 90, bio: "O maior craque da história do Peru — meia goleador das Copas de 70 e 78, chute violento e faltas indefensáveis." },
+  { name: "Cuauhtémoc Blanco", club: "América", year: 1998, fame: 4, lo: 82, hi: 89, bio: "Gênio malandro do América e do México — inventor da 'Cuauhtemiña', o salto driblando com a bola presa entre os pés. Craque e polêmico." },
+  { name: "Norberto Alonso", club: "River Plate", year: 1977, fame: 3, lo: 80, hi: 87, bio: "'El Beto' — canhota de ouro do River campeão, faltas e passes de puro veludo. Craque amado no Monumental." },
+  { name: "Álex Aguinaga", club: "Necaxa", year: 1998, fame: 3, lo: 77, hi: 85, bio: "O maior jogador da história do Equador — cérebro do Necaxa mexicano e da seleção por mais de uma década." },
+  { name: "Tomás Boy", club: "Tigres", year: 1986, fame: 3, lo: 77, hi: 85, bio: "'El Jefe' — o meia-camisa-10 mandão dos Tigres e do México dos anos 80, líder de personalidade forte." },
+  { name: "Alberto García Aspe", club: "América", year: 1994, fame: 3, lo: 76, hi: 85 },
+  { name: "Leonel Álvarez", club: "Atlético Nacional", year: 1990, fame: 3, lo: 76, hi: 84 },
+  { name: "Marco Etcheverry", club: "DC United", year: 1998, fame: 3, lo: 78, hi: 86, bio: "'El Diablo' — o maestro boliviano, craque da geração de ouro de 94 e ídolo fundador do DC United na MLS." },
+  { name: "Amado Guevara", club: "MetroStars", year: 2004, fame: 2, lo: 66, hi: 82 },
+  { name: "Julio César Baldivieso", club: "Bolívar", year: 1997, fame: 2, lo: 66, hi: 82 },
+  { name: "Benjamín Galindo", club: "Cruz Azul", year: 1994, fame: 2, lo: 66, hi: 82 },
+  { name: "Luis Flores", club: "Pumas", year: 1986, fame: 2, lo: 64, hi: 81 },
+  { name: "Diego Cagna", club: "Boca Juniors", year: 2001, fame: 2, lo: 66, hi: 82 },
+]
+const ATA_WORLD: C[] = [
+  { name: "Majed Abdullah", club: "Al-Nassr", year: 1984, fame: 4, lo: 82, hi: 89, bio: "'O Pelé árabe' — o maior ídolo do futebol saudita, artilheiro lendário do Al-Nassr e da seleção por quase 20 anos." },
+  { name: "Ángel Labruna", club: "River Plate", year: 1950, fame: 4, lo: 84, hi: 90, bio: "Ídolo eterno do River e artilheiro histórico da 'Máquina' — mais de 300 gols e uma vida inteira de camisa vermelha." },
+  { name: "Carlos Hermosillo", club: "Cruz Azul", year: 1994, fame: 3, lo: 78, hi: 86, bio: "Centroavante possante, tricampeão de artilharia e maior goleador da história do Cruz Azul e do México da sua era." },
+  { name: "Salvador Cabañas", club: "América", year: 2007, fame: 3, lo: 78, hi: 86, bio: "Artilheiro paraguaio idolatrado no América-MEX, no auge quando foi baleado num bar em 2010 — sobreviveu, mas a tragédia interrompeu uma carreira brilhante." },
+  { name: "Luis Hernández", club: "Necaxa", year: 1998, fame: 3, lo: 77, hi: 85, bio: "'El Matador' — o cabelo loiro oxigenado e os gols do México na Copa de 98. Velocidade e faro de artilheiro." },
+  { name: "Saeed Al-Owairan", club: "Al-Shabab", year: 1994, fame: 3, lo: 78, hi: 86, bio: "Autor de um dos maiores gols da história das Copas: driblou meia Bélgica sozinho em 1994. O 'Maradona do deserto'." },
+  { name: "Antony de Ávila", club: "América de Cali", year: 1990, fame: 3, lo: 76, hi: 85, bio: "'El Pitufo' — baixinho e mortal na área, artilheiro ídolo do América de Cali dos vice-campeonatos da Libertadores." },
+  { name: "Carlos Caszely", club: "Colo-Colo", year: 1973, fame: 3, lo: 77, hi: 85, bio: "Ídolo do Colo-Colo e símbolo da resistência ao regime militar chileno — artilheiro corajoso dentro e fora de campo." },
+  { name: "Enrique Borja", club: "América", year: 1968, fame: 3, lo: 78, hi: 85 },
+  { name: "José Sanfilippo", club: "San Lorenzo", year: 1960, fame: 3, lo: 80, hi: 87 },
+  { name: "Sami Al-Jaber", club: "Al-Hilal", year: 1996, fame: 3, lo: 77, hi: 85 },
+  { name: "Mahmoud El-Khatib", club: "Al Ahly", year: 1983, fame: 3, lo: 78, hi: 86, bio: "'Bibo' — o maior ídolo da história do Al Ahly e do futebol egípcio, artilheiro elegante e Bola de Ouro africana." },
+  { name: "Hossam Hassan", club: "Al Ahly", year: 1998, fame: 3, lo: 77, hi: 85 },
+  { name: "Landon Donovan", club: "LA Galaxy", year: 2010, fame: 3, lo: 79, hi: 86, bio: "O maior nome da história do futebol dos EUA — decisivo nas Copas e maior artilheiro/garçom da seleção americana." },
+  { name: "Masashi Nakayama", club: "Júbilo Iwata", year: 1998, fame: 2, lo: 66, hi: 82 },
+  { name: "Zague", club: "América", year: 1993, fame: 2, lo: 68, hi: 83 },
+  { name: "Bernabé Ferreyra", club: "River Plate", year: 1935, fame: 3, lo: 80, hi: 87, bio: "'La Fiera' — o chute mais temido dos anos 30, primeiro grande ídolo-artilheiro do River e recordista de gols da época." },
+  { name: "Clint Mathis", club: "MetroStars", year: 2002, fame: 2, lo: 64, hi: 81 },
+]
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: GOL_WORLD, LAT: LAT_WORLD, ZAG: ZAG_WORLD, MEI: MEI_WORLD, ATA: ATA_WORLD }
+
 // nomes marcados como PROMESSA (5º tier) — usado no álbum quando o flag não vem no dado
 export const PROMESSA_SET = new Set([...Object.values(CATALOG).flat(), ...Object.values(CATALOG_EU).flat()].filter(c => c.promessa).map(c => c.name))
 

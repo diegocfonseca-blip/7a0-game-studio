@@ -6,14 +6,15 @@ import type {
   QuickCopaState, QuickCopaTie, LedgerEntry, EmpCard,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, newestTeamName } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, newestTeamName } from './data'
 
 // baralho ativo da partida atual (só solo troca): 🇧🇷 Brasileirão ou 🌍 Liga
 // Europa. buildDeck e makeBotSquad leem daqui. É setado no início de cada
 // partida (START / RESTORE_CAREER / CAREER_ADVANCE) e forçado pra BR no
 // online e no Manager, que sempre usam o baralho brasileiro.
 let ACTIVE_CATALOG = CATALOG
-function setActiveCatalog(league: 'br' | 'eu' | 'both' | undefined) { ACTIVE_CATALOG = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : CATALOG }
+// 'world' = baralho "Resto do Mundo" (dormente — ainda sem seletor na UI).
+function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'world' | undefined) { ACTIVE_CATALOG = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : league === 'world' ? CATALOG_WORLD : CATALOG }
 // soma as moedas da temporada (base+título/acesso/queda) na caixa de cada técnico
 function applyRewards(coins: Record<number, number> | undefined, rewards?: Record<number, number>): Record<number, number> {
   const out = { ...(coins ?? {}) }
