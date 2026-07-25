@@ -891,12 +891,12 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
 
 // 🏢 VALOR DE VENDA DA SAF (carreira solo): a SAF valoriza conforme você a
 // desenvolve. Base 1.000 + bônus da DIVISÃO atual dela (D 0 · C +250 · B +500 ·
-// A +750) + 250 por TÍTULO que ela ganhou (qualquer série). Teto 3.000. Você pagou
+// A +750) + 250 por TÍTULO que ela ganhou (qualquer série). Teto 2.500. Você pagou
 // 2.000 — então só uma SAF campeã na elite dá lucro de verdade (quem fica na D perde
 // metade). Comissão já recebida NÃO conta (já caiu no seu bolso). Lê a divisão de
 // careerPlacements e os títulos de careerHonors (chave = nome do clube, que é CPU).
 const FILIAL_DIV_BONUS: Record<string, number> = { D: 0, C: 250, B: 500, A: 750 }
-export const FILIAL_SALE_CAP = 3000
+export const FILIAL_SALE_CAP = 2500
 export function filialSaleValue(s: EscState): { value: number; div: string; titles: number; divBonus: number; titleBonus: number; paid: number } {
   const team = s.careerFilial?.team
   const div = (team && s.careerPlacements?.[team]) || 'D'
@@ -1586,7 +1586,7 @@ type Action =
   | { type: 'MONTE_TIMEOUT' }
   | { type: 'SET_SPONSOR'; id: string } // 👕 escolhe a marca do patrocínio (carreira solo)
   | { type: 'BUY_FILIAL'; team: string } // 🏢 compra o clube-filial (carreira offline, teste)
-  | { type: 'SELL_FILIAL' } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 3.000)
+  | { type: 'SELL_FILIAL' } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 2.500)
   | { type: 'ADD_EMPRESARIO_CARD'; card: EmpCard; key?: string } // 💼 registra uma carta ganha (pacote de campeão) na agência do Empresário. `key` = seasonKey do pacote (dedup por temporada — aceita repetida entre temporadas)
   | { type: 'LOAN_TO_FILIAL'; cardId: string } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda, volta na virada)
   | { type: 'LOAN_FROM_FILIAL'; cardId: string } // 🏢 pega um jogador emprestado DA SAF (idem)
@@ -2391,7 +2391,7 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'SELL_FILIAL': {
-      // 🏢 vende a SAF: valor progressivo (divisão + títulos, teto 3.000). Devolve os
+      // 🏢 vende a SAF: valor progressivo (divisão + títulos, teto 2.500). Devolve os
       // empréstimos ativos, credita o valor na caixa e libera comprar outra depois.
       if (!s.careerOnline || s.onlineMode === 'online' || !s.careerFilial) return s
       const you = s.managers[s.youIdx]

@@ -364,7 +364,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• Base</span><span>+1.000</span></div>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• Série {filialSale.div} (divisão atual)</span><span>+{filialSale.divBonus}</span></div>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• {filialSale.titles} {filialSale.titles === 1 ? 'título' : 'títulos'} da SAF (+250 cada)</span><span>+{filialSale.titleBonus}</span></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,.15)', marginTop: 3, paddingTop: 3, fontWeight: 900, color: INK }}><span>Total</span><span>{filialSale.value} 🪙{filialSale.value >= 3000 ? ' (teto)' : ''}</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,.15)', marginTop: 3, paddingTop: 3, fontWeight: 900, color: INK }}><span>Total</span><span>{filialSale.value} 🪙{filialSale.value >= 2500 ? ' (teto)' : ''}</span></div>
                     </div>
                     <p style={{ fontSize: 11, fontWeight: 800, margin: '7px 0 0', color: filialSale.value - filialSale.paid >= 0 ? GREEN : '#B23B2E' }}>
                       Você pagou {filialSale.paid} → {filialSale.value - filialSale.paid >= 0 ? `lucro de +${filialSale.value - filialSale.paid} 📈` : `prejuízo de −${filialSale.paid - filialSale.value} 📉`}
