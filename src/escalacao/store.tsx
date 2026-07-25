@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
-  QuickCopaState, QuickCopaTie, LedgerEntry,
+  QuickCopaState, QuickCopaTie, LedgerEntry, EmpCard,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, newestTeamName } from './data'
@@ -82,10 +82,18 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
     if (spay > 0) s.careerCoins = { ...s.careerCoins, [y]: (s.careerCoins[y] ?? 0) + spay }
   }
   const b4 = s.careerCoins[y] ?? 0
+  // 💼 EMPRESÁRIO (só carreira SOLO): renda das cartas ganhas nesta carreira, por
+  // raridade — só as categorias DESBLOQUEADAS (estádio/SAF) rendem.
+  if (s.onlineMode !== 'online') {
+    const inc = empresarioIncome(s.empresarioCards, s.stadiums?.[y], !!s.careerFilial).total
+    if (inc > 0) s.careerCoins = { ...s.careerCoins, [y]: (s.careerCoins[y] ?? 0) + inc }
+  }
+  const b5 = s.careerCoins[y] ?? 0
   logFin(s, 'reward', '🏆 Prêmios da temporada', b1 - b0)
   logFin(s, 'gate', '🎟️ Bilheteria', b2 - b1)
   logFin(s, 'salary', '💸 Folha salarial', b3 - b2)
   logFin(s, 'sponsor', '👕 Patrocínio', b4 - b3)
+  logFin(s, 'empresario', '💼 Renda do Empresário', b5 - b4)
 }
 // caixa dos OUTROS times (por teamKey string), nunca negativo — soma título/acesso, tira queda
 function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Record<string, number>): Record<string, number> {
@@ -129,7 +137,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
   return out
 }
 import type { CareerTeam } from './data'
-import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium, sectorPct, hasExtra, SPONSOR_PAY } from './estadiodata'
+import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium, sectorPct, hasExtra, SPONSOR_PAY, empresarioIncome } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { logPlay, logVisit, heartbeat } from './analytics'
 
@@ -1592,6 +1600,7 @@ type Action =
   | { type: 'SET_SPONSOR'; id: string } // 👕 escolhe a marca do patrocínio (carreira solo)
   | { type: 'BUY_FILIAL'; team: string } // 🏢 compra o clube-filial (carreira offline, teste)
   | { type: 'SELL_FILIAL' } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 3.000)
+  | { type: 'ADD_EMPRESARIO_CARD'; card: EmpCard } // 💼 registra uma carta ganha (pacote de campeão) na agência do Empresário
   | { type: 'LOAN_TO_FILIAL'; cardId: string } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda, volta na virada)
   | { type: 'LOAN_FROM_FILIAL'; cardId: string } // 🏢 pega um jogador emprestado DA SAF (idem)
   | { type: 'MONTE_PASS'; mgrId: number } // carreira: recusa as sobras e passa a vez (o time já tem os 11)
@@ -2136,6 +2145,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerHonors = {}; s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.statsSeason = 0
       s.careerLedger = [] // 🧾 livro-caixa novo: extrato/transferências começam vazios
+      s.empresarioCards = [] // 💼 agência do Empresário começa vazia (renda das cartas ganhas nesta carreira)
       s.careerSponsor = undefined // 👕 patrocínio começa sem marca escolhida
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
       // vazando de uma carreira anterior (bug reportado: o estádio vinha completo).
@@ -2401,6 +2411,16 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: (s.careerCoins?.[you.id] ?? 0) + value }
       logFin(s, 'safsell', `🏢 Venda da SAF · ${team}`, value) // 🧾 venda da SAF entra no extrato
       s.careerFilial = null
+      return s
+    }
+    case 'ADD_EMPRESARIO_CARD': {
+      // 💼 carta ganha no pacote de campeão entra na agência do Empresário (só
+      // carreira SOLO). Não duplica a mesma carta (nome+clube+ano).
+      if (!s.careerOnline || s.onlineMode === 'online') return s
+      const c = action.card
+      const arr = s.empresarioCards ?? []
+      if (arr.some(x => x.name === c.name && x.club === c.club && x.year === c.year)) return s
+      s.empresarioCards = [...arr, c]
       return s
     }
     case 'LOAN_TO_FILIAL': {

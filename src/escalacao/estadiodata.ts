@@ -106,3 +106,47 @@ export function stadiumLevel(st: StadiumSave | undefined): { n: number; name: st
   const name = n >= 9 ? '👑 Templo Legends' : n >= 6 ? '🏟️ Arena Legends' : n >= 4 ? '🏛️ Estádio Municipal' : n >= 2 ? '🪵 Estádio de Bairro' : n >= 1 ? '🚧 Canteiro de Obras' : '🌱 Campo de Várzea'
   return { n, name }
 }
+export function stadiumComplete(st: StadiumSave | undefined): boolean {
+  return sectorsDone(st) >= STADIUM_SECTORS.length && STADIUM_EXTRAS.every(e => hasExtra(st, e.k))
+}
+
+// ─── 💼 EMPRESÁRIO — renda das cartas ganhas NA carreira (por raridade) ─────
+// Cada carta que o técnico ganha no pacote de campeão entra na "agência" do save
+// (começa vazia pra todo mundo). Cada categoria rende um fixo por temporada e só
+// conta quando DESBLOQUEADA — puxando o estádio e a SAF. Só a base é livre.
+export type EmpCat = 'prof' | 'bom' | 'promessa' | 'craque' | 'lenda'
+export const EMP_ORDER: EmpCat[] = ['lenda', 'craque', 'promessa', 'bom', 'prof']
+export const EMP_META: Record<EmpCat, { label: string; emoji: string; value: number; req: string }> = {
+  lenda:    { label: 'Lenda',            emoji: '👑', value: 6, req: 'comprar a SAF' },
+  craque:   { label: 'Craque',           emoji: '⭐', value: 4, req: 'estádio 100% completo' },
+  promessa: { label: 'Promessa',         emoji: '💎', value: 3, req: '3 setores prontos' },
+  bom:      { label: 'Bom Jogador',      emoji: '📇', value: 2, req: '1 setor do estádio pronto' },
+  prof:     { label: 'Foi Profissional', emoji: '💼', value: 1, req: 'livre' },
+}
+// categoria de uma carta pela raridade (promessa manda; senão pela fama)
+export function empCat(c: { fame?: number; promessa?: boolean }): EmpCat {
+  if (c.promessa) return 'promessa'
+  const f = c.fame ?? 1
+  return f >= 5 ? 'lenda' : f === 4 ? 'craque' : f >= 2 ? 'bom' : 'prof'
+}
+// categoria desbloqueada? (gates ligados ao estádio/SAF — grandfather automático:
+// quem já completou/comprou já entra destravado)
+export function empCatUnlocked(cat: EmpCat, st: StadiumSave | undefined, hasFilial: boolean): boolean {
+  switch (cat) {
+    case 'prof': return true
+    case 'bom': return sectorsDone(st) >= 1
+    case 'promessa': return sectorsDone(st) >= 3
+    case 'craque': return stadiumComplete(st)
+    case 'lenda': return hasFilial
+    default: return false
+  }
+}
+// renda por temporada + detalhamento por categoria (só as desbloqueadas rendem)
+export function empresarioIncome(cards: { fame?: number; promessa?: boolean }[] | undefined, st: StadiumSave | undefined, hasFilial: boolean): { total: number; by: Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }> } {
+  const by = {} as Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }>
+  for (const k of EMP_ORDER) by[k] = { count: 0, unlocked: empCatUnlocked(k, st, hasFilial), value: EMP_META[k].value, income: 0 }
+  for (const c of cards ?? []) by[empCat(c)].count++
+  let total = 0
+  for (const k of EMP_ORDER) { const b = by[k]; b.income = b.unlocked ? b.count * b.value : 0; total += b.income }
+  return { total, by }
+}

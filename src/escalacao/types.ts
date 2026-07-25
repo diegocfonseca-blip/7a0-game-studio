@@ -42,12 +42,24 @@ export interface WonCard extends Card {
 export interface LedgerEntry {
   id: string
   season: number // temporada do lançamento
-  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' | 'saf' | 'stadium' | 'safbuy' | 'safsell' | 'opening' // prêmios · bilheteria · folha · compra · venda · patrocínio · comissão da SAF · obra no estádio · compra da SAF · venda da SAF · saldo inicial
+  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' | 'saf' | 'stadium' | 'safbuy' | 'safsell' | 'opening' | 'empresario' // prêmios · bilheteria · folha · compra · venda · patrocínio · comissão da SAF · obra no estádio · compra da SAF · venda da SAF · saldo inicial · renda do empresário
   label: string
   amount: number // sinal: + entrada, − saída
   player?: string // compra/venda: nome do jogador
   pos?: Sector // compra/venda: posição
   buyPrice?: number // venda: quanto tinha sido pago (pra calcular o lucro)
+}
+
+// 💼 carta na "agência" do Empresário (por carreira): as cartas ganhas no pacote
+// de campeão desta carreira. Guarda só o essencial pra mostrar e ranquear a renda.
+export interface EmpCard {
+  name: string
+  club: string
+  year: number
+  pos: Sector
+  fame: number
+  folk?: boolean
+  promessa?: boolean
 }
 
 // só duas formações — GOL/LAT/ZAG são sempre 1/2/2 nas duas (nunca variam),
@@ -264,6 +276,7 @@ export interface EscState {
   marketLog?: string[] // carreira online: resumo do que os BOTS fizeram no leilão/monte (arrematou X, pegou Y de graça, comprou o listado Z por W) — mostrado na cerimônia pra dar visibilidade. Zera a cada leilão.
   careerLedger?: LedgerEntry[] // 🧾 carreira SOLO: livro-caixa (extrato + transferências) — só exibição, nunca realimenta o caixa. Cresce ao longo da carreira; limitado às últimas ~250 entradas.
   careerSponsor?: string // 👕 carreira SOLO: id da marca de patrocínio escolhida (cosmético). O quanto rende é POR DIVISÃO, não pela marca.
+  empresarioCards?: EmpCard[] // 💼 carreira SOLO: agência do Empresário — cartas ganhas no pacote de campeão desta carreira (começa vazia). Rende por temporada por raridade (categorias destravam com estádio/SAF).
   careerEra?: number // 🎮 carreira SOLO: "geração" da carreira. Ausente = carreira ANTIGA (começou antes da cobrança do Modo Manual) → manual liberado pra sempre (grandfather). Preenchido = carreira NOVA, o manual pede o apoio. Nunca mexe em save antigo.
   marketSellers?: Record<Sector, number[]> // carreira online: por posição, os ids dos BOTS que perderam um jogador pro mercado neste leilão — são justamente eles que podem dar lance NAQUELA posição (rebuscar o que perderam), quando 0 ou 1 humano oferta.
   seasonVotes?: Record<number, 'leilao' | 'mesmo'> // carreira online: no fim da temporada cada humano vota entre abrir o leilão de transferências ou seguir com o mesmo time. O host só inicia quando todos votam; empate → o voto do host decide. Zera ao iniciar a próxima temporada.

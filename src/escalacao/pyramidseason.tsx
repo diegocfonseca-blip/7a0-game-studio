@@ -8,10 +8,12 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, oldChain } from './data'
-import type { Card, Manager, Sector, WonCard, LedgerEntry } from './types'
+import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue } from './store'
-import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls } from './screens'
+import { empresarioIncome, empCat, EMP_ORDER, EMP_META } from './estadiodata'
+import type { EmpCat, StadiumSave } from './estadiodata'
+import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, SponsorCard } from './estadio'
@@ -512,6 +514,69 @@ const box = (bg = '#fff'): React.CSSProperties => ({ background: bg, border: `3p
 //    Transferências (compras/vendas com lucro). Lê o livro-caixa (careerLedger),
 //    que é só um registro — nunca mexe no dinheiro de verdade. ──
 const FIN_RED = '#C2452F'
+
+// ── 💼 AGÊNCIA / ESCRITÓRIO DO EMPRESÁRIO (aba Clube › Agência) ──────────────
+// Mostra as cartas ganhas NESTA carreira por raridade e a renda por temporada.
+// Cada categoria só rende quando desbloqueada (estádio/SAF). Tocar numa carta
+// abre a carta cheia com a bio (mesmo card do álbum).
+function EscritorioTab({ cards, st, hasFilial }: { cards: EmpCard[]; st: StadiumSave | undefined; hasFilial: boolean }) {
+  const [open, setOpen] = useState<EmpCard | null>(null)
+  const { total, by } = empresarioIncome(cards, st, hasFilial)
+  const catCards = (k: EmpCat) => cards.filter(c => empCat(c) === k)
+  return (
+    <>
+      {/* RESUMO: renda por temporada */}
+      <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '12px 14px', marginBottom: 10 }}>
+        <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>💼 Renda do Empresário</div>
+        <div style={{ ...OSWALD, fontSize: 27, fontWeight: 900, lineHeight: 1, marginTop: 2 }}>+{total} 🪙 <span style={{ fontSize: 13, fontWeight: 700, opacity: .75 }}>/ temporada</span></div>
+        <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.8)', marginTop: 6, lineHeight: 1.4 }}>Cai no caixa toda virada. Vale só pelas cartas de categorias <b>desbloqueadas</b> — puxe o estádio e a SAF pra liberar as raras.</div>
+      </div>
+
+      {/* CATEGORIAS: quanto tem, o que rende, o que falta destravar */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {EMP_ORDER.map(k => {
+          const b = by[k], m = EMP_META[k], list = catCards(k)
+          return (
+            <div key={k} style={{ ...box(b.unlocked ? '#fff' : '#F1EBD9'), padding: '10px 12px', opacity: b.unlocked ? 1 : .72 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <span style={{ fontSize: 20 }}>{m.emoji}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{m.label} <span style={{ fontWeight: 700, fontSize: 11, color: '#8a8069' }}>+{m.value}/carta</span></div>
+                  <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069' }}>{list.length} {list.length === 1 ? 'carta' : 'cartas'}{b.unlocked ? '' : ` · 🔒 destrava: ${m.req}`}</div>
+                </div>
+                <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: b.unlocked ? GREEN : '#b3a688', whiteSpace: 'nowrap' }}>{b.unlocked ? `+${b.income}` : '🔒'}</div>
+              </div>
+              {list.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 9 }}>
+                  {list.map((c, i) => (
+                    <button key={i} onClick={() => setOpen(c)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FBF6E9', border: `2px solid ${INK}`, borderRadius: 9, boxShadow: `2px 2px 0 0 ${INK}`, padding: '7px 9px', cursor: 'pointer', textAlign: 'left' }}>
+                      <span style={{ ...OSWALD, fontWeight: 800, fontSize: 9.5, background: INK, color: '#fff', borderRadius: 6, padding: '1px 6px' }}>{c.pos}</span>
+                      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: INK, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
+                      <span style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069', whiteSpace: 'nowrap' }}>{c.club} · {c.year}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+      {cards.length === 0 && (
+        <div style={{ ...box('#FBF6E9'), padding: 16, textAlign: 'center', fontWeight: 700, color: '#8a7d59', fontSize: 12.5, marginTop: 10 }}>Sua agência está vazia. Seja <b>campeão</b> pra ganhar cartas no pacote — elas entram aqui e rendem por temporada.</div>
+      )}
+
+      {/* modal: carta cheia com bio */}
+      {open && (
+        <div onClick={() => setOpen(null)} style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 300 }}>
+            <CollectibleCard name={open.name} club={open.club} year={open.year} pos={open.pos} fame={open.fame} folk={open.folk} promessa={open.promessa} big showBio />
+            <button onClick={() => setOpen(null)} style={{ width: '100%', marginTop: 10, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>Fechar</button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
 function FinLine({ label, sub, amount }: { label: string; sub?: string; amount: number }) {
   const pos = amount >= 0
   return (
@@ -544,7 +609,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
   // transferências
   const vendidos = rev.filter(e => e.kind === 'sell')
   const noElenco = squad.filter(c => !c.fake && c.club !== 'Várzea' && !c.emprestado && (c.buyPrice != null || c.paid != null))
-  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? '🏆 Prêmios da temporada' : k === 'gate' ? '🎟️ Bilheteria' : k === 'salary' ? '💸 Folha salarial' : k === 'saf' ? '🏢 Prêmios da SAF' : k === 'stadium' ? '🏟️ Obra no estádio' : k === 'safbuy' ? '🏢 Compra da SAF' : k === 'safsell' ? '🏢 Venda da SAF' : k === 'opening' ? '🏁 Saldo inicial' : ''
+  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? '🏆 Prêmios da temporada' : k === 'gate' ? '🎟️ Bilheteria' : k === 'salary' ? '💸 Folha salarial' : k === 'saf' ? '🏢 Prêmios da SAF' : k === 'stadium' ? '🏟️ Obra no estádio' : k === 'safbuy' ? '🏢 Compra da SAF' : k === 'safsell' ? '🏢 Venda da SAF' : k === 'empresario' ? '💼 Renda do Empresário' : k === 'opening' ? '🏁 Saldo inicial' : ''
   return (
     <>
       {/* RESUMO fixo: caixa atual + saldo da temporada */}
@@ -1630,7 +1695,7 @@ export function PyramidSeasonScreen() {
   const done = seasonOver && endShown
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti'>('arti')
-  const [clubeSub, setClubeSub] = useState<'estadio' | 'financas'>('estadio') // 🏟️/💰 sub-abas da aba Clube
+  const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio'>('estadio') // 🏟️/💰/💼 sub-abas da aba Clube
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads])
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const careerLineup = (state.careerLineup ?? {}) as RoundLineups
@@ -1935,7 +2000,7 @@ export function PyramidSeasonScreen() {
 
         {copaFinished && me?.champ && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
-            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`} origin={state.roomId ? 'online' : 'cpu'} />
+            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`} origin={state.roomId ? 'online' : 'cpu'} onClaimed={!state.roomId ? (c => dispatch({ type: 'ADD_EMPRESARIO_CARD', card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })) : undefined} />
           </div>
         )}
         {/* 🏆 Campeão da COPA LEGENDS (mata-mata dos 16) ganha carta À PARTE do
@@ -1943,7 +2008,7 @@ export function PyramidSeasonScreen() {
             duas. seasonKey própria (sufixo ":copa") pra não colidir com a de cima. */}
         {copaFinished && copa?.champion?.you && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
-            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:copa`} origin={state.roomId ? 'online' : 'cpu'} />
+            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:copa`} origin={state.roomId ? 'online' : 'cpu'} onClaimed={!state.roomId ? (c => dispatch({ type: 'ADD_EMPRESARIO_CARD', card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })) : undefined} />
           </div>
         )}
         {copaFinished && (() => {
@@ -2041,13 +2106,15 @@ export function PyramidSeasonScreen() {
 
         {tab === 'estadio' ? (
           <>
-            {/* sub-abas do Clube: 🏟️ Estádio (tudo que já existia) | 💰 Finanças */}
+            {/* sub-abas do Clube: 🏟️ Estádio | 💰 Finanças | 💼 Agência (Empresário) */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              {([['estadio', '🏟️', 'Estádio'], ['financas', '💰', 'Finanças']] as [typeof clubeSub, string, string][]).map(([s, ic, label]) => (
-                <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
+              {([['estadio', '🏟️', 'Estádio'], ['financas', '💰', 'Finanças'], ['escritorio', '💼', 'Agência']] as [typeof clubeSub, string, string][]).map(([s, ic, label]) => (
+                <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>
-            {clubeSub === 'financas' ? (
+            {clubeSub === 'escritorio' ? (
+              <EscritorioTab cards={state.empresarioCards ?? []} st={state.stadiums?.[youId]} hasFilial={!!state.careerFilial} />
+            ) : clubeSub === 'financas' ? (
               <FinancasTab ledger={state.careerLedger ?? []} caixa={state.careerCoins?.[youId] ?? 0} seasonNo={state.seasonNo ?? 1}
                 squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
             ) : (
