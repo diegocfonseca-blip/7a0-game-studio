@@ -292,7 +292,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             style={{ background: APOIO_PERKS.ouro.grad, boxShadow: `4px 4px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.6) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />
             <p className="font-black text-[13px] relative" style={OSWALD}>⚽ Batiza teu clube · R$ 59,90 <span className="float-right">👉</span></p>
-            <p className="text-[10.5px] font-bold text-black/75 leading-snug relative mt-0.5">O topo: <b>tudo do Lenda</b> + o <b>SEU nome</b> num clube do campeonato que todo mundo joga, pra sempre.</p>
+            <p className="text-[10.5px] font-bold text-black/75 leading-snug relative mt-0.5">O topo: <b>tudo do Lenda</b> + o <b>SEU nome</b> num clube do campeonato que todo mundo joga.</p>
           </button>
           <button onClick={() => { logApoio('👀 manual → ver tudo'); setScreen('choice') }} className="w-full text-[11px] font-black underline text-black/45 mt-2 active:opacity-60">ver todos os apoios</button>
 
