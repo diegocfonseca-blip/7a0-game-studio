@@ -269,12 +269,6 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             ))}
           </div>
 
-          {/* 🔑 deixa CLARO: é cobrado na CARREIRA; no online o host controla e é de graça */}
-          <div className="border-[3px] border-black rounded-xl px-3 py-2.5 mt-3.5" style={{ background: '#EAF4EC' }}>
-            <p className="text-[11px] font-bold text-black/75 leading-snug">🪜 O Modo Manual é da <b>Carreira</b>. No <b>online</b> o ritmo é do host e continua <b>de graça</b> pra todos.</p>
-            <p className="text-[11px] font-bold text-black/75 leading-snug mt-1">👴 Quem <b>já tem uma carreira em andamento</b> não perde nada — segue com o manual normal. A partir de agora, vale pras <b>carreiras novas</b>.</p>
-          </div>
-
           {/* ⭐ O manual NÃO é um produto avulso: ele É o tier Craque. Pelos mesmos
               R$ 19,90 a pessoa leva o Manual E a cor do time — um apoio só. */}
           <div className="border-[3px] border-black rounded-xl px-3 py-2.5 mt-4" style={{ background: 'linear-gradient(150deg,#F4F7FB,#CBD4DE)', boxShadow: `3px 3px 0 0 ${INK}` }}>
@@ -296,7 +290,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           <div className="border-[3px] border-black rounded-xl px-3 py-3 mt-4" style={{ background: 'linear-gradient(150deg,#FFF3CE,#FFE18A)', boxShadow: `4px 4px 0 0 ${INK}` }}>
             <p className="font-black text-[12.5px] text-center" style={OSWALD}>🪜 Ou sobe mais na escada</p>
             <div className="mt-2 space-y-1.5">
-              <p className="text-[11px] font-bold text-black/80 leading-snug">👑 <b>Lenda · R$ 39,90</b> — tudo do Craque <b>+ ouro</b> (ou qualquer cor) com brilho e selo, e já garante a <b>Carreira Online</b> (chegando).</p>
+              <p className="text-[11px] font-bold text-black/80 leading-snug">👑 <b>Lenda · R$ 39,90</b> — tudo do Craque <b>+ ouro</b> (ou qualquer cor) com brilho e selo, e já garante os modos que vêm aí: <b>Carreira Online</b> e <b>Liga Fechada</b> (chegando).</p>
               <p className="text-[11px] font-bold text-black/80 leading-snug">⚽ <b>Batiza teu clube · R$ 59,90</b> — o topo: <b>tudo do Lenda</b> + o <b>SEU nome</b> num clube do campeonato que todo mundo joga, pra sempre.</p>
             </div>
             <button onClick={() => { logApoio('👀 manual → ver tudo'); setScreen('choice') }}
