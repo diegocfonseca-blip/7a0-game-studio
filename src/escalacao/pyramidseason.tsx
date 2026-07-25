@@ -856,15 +856,22 @@ export const COPA_LEG_MS = 8000 // cada JOGO da Copa rola ~8s (como uma partida 
 // de quem APOIA o projeto (escada do modal APOIE). A paleta sorteada antiga
 // foi aposentada quando a escada de cores virou o padrão.
 export interface FCol { solid: string; light: string }
-export function playerColors(humanIds: number[], youId: number, seed: number): Record<number, FCol> {
+// 🟤 cor dos RIVAIS escolhidos na carreira: um marrom próprio, SEMPRE distinto
+// do bege/tier do técnico. A cor de apoio é EXCLUSIVA do seu clube (e da sua
+// SAF) — rival nenhum pode aparecer com a mesma cor que você.
+export const RIVAL_COL: FCol = { solid: '#9B4D2E', light: '#EBD5C6' }
+export function playerColors(humanIds: number[], youId: number, seed: number, rivalIds: number[] = []): Record<number, FCol> {
   void seed // a semente era da paleta sorteada; fica na assinatura pra não mexer nos chamadores
   const bege = APOIO_PERKS.bege
   const map: Record<number, FCol> = {}
   for (const id of humanIds) map[id] = { solid: bege.solid, light: bege.light }
+  // rivais escolhidos ganham o marrom próprio (nunca a cor do usuário)
+  for (const id of rivalIds) map[id] = { solid: RIVAL_COL.solid, light: RIVAL_COL.light }
   // quem tem tier de apoio joga com a cor DELE por cima do bege — no próprio
   // aparelho (o selo no nome os outros já veem; a cor cruzada vem com o Supabase).
+  // Sem tier, o SEU time fica bege garantido (nunca herda o marrom de rival).
   const perk = myApoioPerk()
-  if (perk && map[youId]) map[youId] = { solid: perk.solid, light: perk.light }
+  if (map[youId]) map[youId] = perk ? { solid: perk.solid, light: perk.light } : { solid: bege.solid, light: bege.light }
   return map
 }
 // ordem das divisões: a SUA primeiro, depois a pirâmide de cima pra baixo
@@ -1599,7 +1606,7 @@ function ChampionsPanel({ copa, tables, scorers, seasonNo }: { copa: CopaResult;
     </div>
   )
 }
-function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers, seasonNo }: { copa: CopaResult; colors: Record<number, FCol>; youId: number; tables: Record<Div, SimTeam[]>; ord: Div[]; myDiv: Div | null; reveal: number; scorers?: SeasonScorer[]; seasonNo?: number }) {
+function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers, seasonNo, safTeam, safCol }: { copa: CopaResult; colors: Record<number, FCol>; youId: number; tables: Record<Div, SimTeam[]>; ord: Div[]; myDiv: Div | null; reveal: number; scorers?: SeasonScorer[]; seasonNo?: number; safTeam?: string; safCol?: FCol }) {
   const champ = copa.champion
   const finished = reveal >= copa.rounds.length
   const shown = copa.rounds.slice(0, reveal) // fases já decididas
@@ -1632,7 +1639,7 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers,
       {/* CLASSIFICAÇÃO das divisões logo abaixo da Copa — a sua em destaque */}
       <div style={{ borderTop: `2px dashed ${INK}22`, margin: '14px 0 10px' }} />
       <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.5)', margin: '0 0 8px' }}>📊 Classificação das divisões{myDiv ? ' · a sua primeiro' : ''}</p>
-      <PyramidTables tables={tables} order={myDiv ? [myDiv, ...ord.filter(d => d !== myDiv)] : ord} colors={colors} myDiv={myDiv} final />
+      <PyramidTables tables={tables} order={myDiv ? [myDiv, ...ord.filter(d => d !== myDiv)] : ord} colors={colors} myDiv={myDiv} final safTeam={safTeam} safCol={safCol} />
       <PrizesBox />
     </div>
   )
@@ -1724,10 +1731,25 @@ export function PyramidSeasonScreen() {
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
   const myTactic = tacAt(careerTactics, youId, round) // tática que vale do PRÓXIMO jogo em diante
-  // coloridos = humanos (você/amigos) + rivais escolhidos (carreira offline)
-  const humanKey = state.managers.filter(m => m.isHuman || m.rival).map(m => m.id).join(',')
-  const colors = useMemo(() => playerColors(humanKey ? humanKey.split(',').map(Number) : [], youId, state.seed), [humanKey, youId, state.seed])
-  const myCol = colors[youId] ?? { solid: APOIO_PERKS.bege.solid, light: APOIO_PERKS.bege.light }
+  // coloridos = humanos (você/amigos) em bege/tier; rivais escolhidos em MARROM
+  // próprio — nunca a sua cor. A SUA cor é exclusiva do seu clube e da sua SAF.
+  const humanKey = state.managers.filter(m => m.isHuman).map(m => m.id).join(',')
+  const rivalKey = state.managers.filter(m => m.rival && !m.isHuman).map(m => m.id).join(',')
+  const baseColors = useMemo(() => playerColors(
+    humanKey ? humanKey.split(',').map(Number) : [], youId, state.seed,
+    rivalKey ? rivalKey.split(',').map(Number) : [],
+  ), [humanKey, rivalKey, youId, state.seed])
+  const myCol = baseColors[youId] ?? { solid: APOIO_PERKS.bege.solid, light: APOIO_PERKS.bege.light }
+  // 🏢 a SUA SAF veste a MESMA cor do seu clube (mesma "marca"): acha o teamId
+  // dela na tabela e injeta a sua cor no mapa — assim ela pinta igual em jogos,
+  // artilharia e classificação. O ícone 💼 (vs 👤) é quem diferencia vocês.
+  const safTeamName = state.careerFilial?.team
+  const colors = useMemo(() => {
+    if (!safTeamName) return baseColors
+    let safId: number | undefined
+    for (const d of DIVS) { const t = tables[d]?.find(x => x.name === safTeamName); if (t) { safId = t.teamId; break } }
+    return safId != null ? { ...baseColors, [safId]: myCol } : baseColors
+  }, [baseColors, safTeamName, tables, myCol])
   // COPA LEGENDS: no fim da temporada, o mata-mata dos 16 (determinístico da
   // classificação final + semente + temporada). Alimenta a aba Tabelas (chave),
   // a aba Rank (artilharia da Copa) e os prêmios da virada.
@@ -2330,10 +2352,10 @@ export function PyramidSeasonScreen() {
           </>
           )
         ) : done && copa && copa.rounds.length > 0 ? (
-          <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaFinished ? nCopaRounds : copaRound} scorers={scorers} seasonNo={state.seasonNo} />
+          <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaFinished ? nCopaRounds : copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} />
         ) : (
           <>
-            <PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} final={done} />
+            <PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} />
             <PrizesBox />
           </>
         )}
