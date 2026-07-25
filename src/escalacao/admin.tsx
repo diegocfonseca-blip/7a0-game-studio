@@ -213,6 +213,14 @@ function Dashboard({ email }: { email: string }) {
   const [d, setD] = useState<Dash | null>(null)
   const [err, setErr] = useState('')
   const [updatedAt, setUpdatedAt] = useState<number>(0)
+  // 🔽 ordenar a lista ao vivo por métrica da carreira (offline). 'default' = ordem
+  // do "no site agora". Clicar de novo na mesma métrica inverte (mais → menos).
+  const [sortKey, setSortKey] = useState<'default' | 'coins' | 'titles' | 'seasons' | 'suspect'>('default')
+  const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc')
+  const pickSort = (k: 'coins' | 'titles' | 'seasons' | 'suspect') => {
+    if (sortKey === k) setSortDir(d => d === 'desc' ? 'asc' : 'desc')
+    else { setSortKey(k); setSortDir('desc') }
+  }
   // 👀 espiar o ELENCO da carreira de quem tem conta (save na nuvem, só admin)
   const [squad, setSquad] = useState<{ name: string; loading: boolean; data?: SquadView | null } | null>(null)
   const openSquad = async (p: LiveRow) => {
@@ -327,9 +335,39 @@ function Dashboard({ email }: { email: string }) {
         <div style={{ marginTop: 8, fontSize: 13, fontWeight: 700, color: d.online_now >= d.peak && d.online_now > 0 ? '#37D067' : '#F5B301' }}>
           {d.online_now >= d.peak && d.online_now > 0 ? '🔥 NOVO RECORDE ao vivo!' : `🏆 Recorde ao vivo: ${d.peak}`}
         </div>
-        {d.live_list.length > 0 && (
+        {d.live_list.length > 0 && (() => {
+          // ordena por métrica de carreira; não-carreira (e sem o dado) sempre embaixo.
+          const metric = (p: LiveRow): number | null => {
+            if (p.mode !== 'career') return null
+            if (sortKey === 'coins') return p.careerCoins ?? null
+            if (sortKey === 'titles') return p.careerTitles ?? null
+            if (sortKey === 'seasons') return p.careerSeason ?? null
+            if (sortKey === 'suspect') return suspectReason(p) ? 1 : 0
+            return null
+          }
+          const rows = sortKey === 'default' ? d.live_list : [...d.live_list].sort((a, b) => {
+            const ma = metric(a), mb = metric(b)
+            if (ma == null && mb == null) return 0
+            if (ma == null) return 1   // quem não é carreira/sem dado fica abaixo
+            if (mb == null) return -1
+            return sortDir === 'desc' ? (mb - ma) : (ma - mb)
+          })
+          const arrow = sortDir === 'desc' ? ' ↓' : ' ↑'
+          const SORTS: ['coins' | 'titles' | 'seasons' | 'suspect', string][] = [['coins', '💰 Caixa'], ['titles', '🏆 Títulos'], ['seasons', '📅 Temporadas'], ['suspect', '🚩 Suspeitos']]
+          return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
-            {d.live_list.map((p, i) => (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 4 }}>
+              <span style={{ fontSize: 11, opacity: .55, alignSelf: 'center', fontWeight: 700 }}>Ordenar (carreira):</span>
+              {SORTS.map(([k, label]) => (
+                <button key={k} onClick={() => pickSort(k)} style={{ fontSize: 11.5, fontWeight: 800, padding: '4px 9px', borderRadius: 8, cursor: 'pointer', border: `1px solid ${sortKey === k ? GOLD : 'rgba(255,255,255,.2)'}`, background: sortKey === k ? 'rgba(245,179,1,.18)' : 'transparent', color: sortKey === k ? GOLD : '#ccc' }}>
+                  {label}{sortKey === k ? arrow : ''}
+                </button>
+              ))}
+              {sortKey !== 'default' && (
+                <button onClick={() => setSortKey('default')} style={{ fontSize: 11.5, fontWeight: 700, padding: '4px 9px', borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(255,255,255,.2)', background: 'transparent', color: '#999' }}>✕ limpar</button>
+              )}
+            </div>
+            {rows.map((p, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, opacity: 0.92 }}>
                 <span>
                   {p.playing ? (MODE_ICON[p.mode] || '🤖') : '👀'}{' '}
@@ -368,7 +406,8 @@ function Dashboard({ email }: { email: string }) {
               </div>
             ))}
           </div>
-        )}
+          )
+        })()}
       </div>
 
       {/* 🎨 INTENÇÕES DE APOIO: toques no modal APOIE — cruza com o Pix que chegou */}
