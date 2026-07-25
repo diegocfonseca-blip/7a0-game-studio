@@ -1200,7 +1200,10 @@ const ZAG_EU: C[] = [
   { name: "Rúben Dias", club: "Manchester City", year: 2021, fame: 4, lo: 82, hi: 89, bio: "Chegou e virou o chefe da defesa do City campeão — liderança lusitana de general." },
   { name: "Raphaël Varane", club: "Real Madrid", year: 2016, fame: 4, lo: 80, hi: 88, bio: "Elegância francesa no miolo do Real tetracampeão da Champions — campeão de tudo antes dos 30." },
   { name: "Sébastien Squillaci", club: "Arsenal", year: 2010, fame: 1, lo: 52, hi: 75, bio: "O francês que a torcida do Arsenal tenta esquecer — flop de grife, presença garantida em lista de piores contratações." },
-  { name: "Jan Vertonghen", club: "Tottenham", year: 2017, fame: 4, lo: 82, hi: 88, bio: "Zagueiro belga canhoto do Tottenham — leitura de jogo, saída de bola e regularidade de elite por quase uma década." }
+  { name: "Jan Vertonghen", club: "Tottenham", year: 2017, fame: 4, lo: 82, hi: 88, bio: "Zagueiro belga canhoto do Tottenham — leitura de jogo, saída de bola e regularidade de elite por quase uma década." },
+  { name: "Antonio Rüdiger", club: "Real Madrid", year: 2024, fame: 4, lo: 83, hi: 89, bio: "Zagueirão alemão de raça e velocidade — muralha do Real Madrid campeão da Champions e ex-pilar do Chelsea." },
+  { name: "Aymeric Laporte", club: "Manchester City", year: 2021, fame: 3, lo: 81, hi: 88, bio: "Zagueiro canhoto de saída de bola refinada — peça dos títulos do City de Guardiola antes de defender a Espanha." },
+  { name: "José María Giménez", club: "Atlético de Madrid", year: 2019, fame: 3, lo: 81, hi: 88, bio: "Zagueiro uruguaio de marcação feroz e jogo aéreo — parceria histórica com Godín na muralha do Atlético de Simeone." }
 ]
 const MEI_EU: C[] = [
   { name: "Sneijder", club: "Inter", year: 2010, fame: 4, lo: 84, hi: 90 },
@@ -1333,7 +1336,8 @@ const MEI_EU: C[] = [
   { name: "Bastian Schweinsteiger", club: "Bayern", year: 2013, fame: 4, lo: 85, hi: 91, bio: "O 'Fussballgott' — volante-cérebro do Bayern da tríplice coroa e campeão do mundo com a Alemanha em 2014." },
   { name: "Hidetoshi Nakata", club: "Roma", year: 2001, fame: 3, lo: 79, hi: 86, bio: "O maior nome do futebol japonês — meia elegante campeão italiano pela Roma, pioneiro que abriu as portas da Europa para a Ásia." },
   { name: "Keisuke Honda", club: "Milan", year: 2014, fame: 3, lo: 76, hi: 84, bio: "Meia japonês de personalidade e chute venenoso de fora — brilhou no CSKA e vestiu a 10 do Milan, decisivo em Copas pelo Japão." },
-  { name: "Lee Kang-in", club: "PSG", year: 2024, fame: 3, lo: 77, hi: 84, bio: "Meia sul-coreano de drible curto e passe refinado — revelado no Valencia e peça de talento no Paris Saint-Germain." }
+  { name: "Lee Kang-in", club: "PSG", year: 2024, fame: 3, lo: 77, hi: 84, bio: "Meia sul-coreano de drible curto e passe refinado — revelado no Valencia e peça de talento no Paris Saint-Germain." },
+  { name: "Christian Eriksen", club: "Tottenham", year: 2017, fame: 4, lo: 84, hi: 90, bio: "Meia dinamarquês de passe e bola parada de elite — cérebro criativo do Tottenham e depois de Inter e Manchester United." }
 ]
 const ATA_EU: C[] = [
   { name: "Ricardo Quaresma", club: "Porto", year: 2007, fame: 3, lo: 74, hi: 84, folk: true },
