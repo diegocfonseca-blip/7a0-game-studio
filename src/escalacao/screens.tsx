@@ -3641,7 +3641,7 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
         {initial}
       </div>
       <div className="relative">
-        <p className="font-black leading-none truncate" style={{ ...OSWALD, color: t.ink, fontSize: big ? 26 : 17 }}>{name}</p>
+        <p className="font-black truncate" style={{ ...OSWALD, color: t.ink, fontSize: big ? 26 : 17, lineHeight: 1.2, paddingBottom: 2 }}>{name}</p>
         <p className="font-extrabold" style={{ color: t.ink, opacity: .62, fontSize: big ? 12 : 10 }}>{club} · {year}</p>
         <p style={{ fontSize: big ? 13 : 11, letterSpacing: 1, marginTop: 3 }}>{isProm ? '💎💎💎' : '⭐'.repeat(fame)}</p>
         {(big || showBio) && text && (
