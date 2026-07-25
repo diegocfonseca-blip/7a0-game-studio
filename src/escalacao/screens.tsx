@@ -209,7 +209,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <p className="font-black text-[13px]" style={OSWALD}>Quem faz isso aqui 🔴⚫</p>
             <p className="text-[11px] font-bold text-black/60 mt-1 leading-snug">
               Sou o Diego, flamenguista, vendo carro com meu pai durante o dia e faço esse jogo de madrugada.
-              Tenho um filho com uma condição rara — são cerca de 120 casos no mundo. Esse jogo é por ele:
+              Tenho um filho com uma condição rara — são <b>120 casos no mundo</b>. Esse jogo é por ele:
               cada apoio ajuda a dar uma vida melhor pra ele e mantém o Leilão Legends <b>100% grátis, com tudo
               liberado, pra sempre</b>. Obrigado por estar aqui. 💛
             </p>
