@@ -1148,7 +1148,8 @@ const LAT_EU: C[] = [
   { name: "César Azpilicueta", club: "Chelsea", year: 2017, fame: 4, lo: 79, hi: 87, bio: "O capitão-faz-tudo do Chelsea — lateral dos dois lados e zagueiro, intocável no título inglês de 2017 e campeão da Champions." },
   { name: "Royston Drenthe", club: "Real Madrid", year: 2008, fame: 1, lo: 54, hi: 78, folk: true, bio: "A promessa galáctica que trocou o Bernabéu pelo rap — talento de sobra, foco nem tanto. Folclore mundial." },
   { name: "Pablo Armero", club: "Napoli", year: 2013, fame: 1, lo: 54, hi: 77, bio: "O colombiano da dancinha — memes, sorriso e um futebol que oscilava entre Seleção e resenha." },
-  { name: "Benjamin Pavard", club: "Bayern", year: 2020, fame: 3, lo: 79, hi: 86, bio: "Lateral-direito francês campeão da Champions pelo Bayern — eternizado pelo golaço de voleio na Copa de 2018." }
+  { name: "Benjamin Pavard", club: "Bayern", year: 2020, fame: 3, lo: 79, hi: 86, bio: "Lateral-direito francês campeão da Champions pelo Bayern — eternizado pelo golaço de voleio na Copa de 2018." },
+  { name: "Giovanni van Bronckhorst", club: "Barcelona", year: 2006, fame: 3, lo: 79, hi: 86, bio: "Lateral-esquerdo holandês campeão da Champions pelo Barça — canhota afiada na bola parada e vice do Mundial de 2010 com a Holanda." }
 ]
 const ZAG_EU: C[] = [
   { name: "Maguire", club: "Man United", year: 2019, fame: 2, lo: 66, hi: 82 },
@@ -1470,6 +1471,9 @@ const ATA_EU: C[] = [
   { name: "Luís Boa Morte", club: "Fulham", year: 2003, fame: 2, lo: 74, hi: 84, bio: "Ponta-esquerda explosivo e raçudo — ídolo do Fulham nos anos 2000 e peça de Portugal, velocidade e entrega que marcaram a Premier League." },
   { name: "Andrey Arshavin", club: "Arsenal", year: 2009, fame: 3, lo: 80, hi: 87, bio: "Meia-atacante russo genial — eternizado pelos 4 gols que fez sozinho em Anfield pelo Arsenal. Talento explosivo e imprevisível." },
   { name: "Svetoslav Todorov", club: "Portsmouth", year: 2003, fame: 2, lo: 72, hi: 83, bio: "Centroavante búlgaro artilheiro do Portsmouth — carregou o clube à Premier League com uma temporada de gols na Championship." },
+  { name: "Oliver Bierhoff", club: "Milan", year: 1999, fame: 3, lo: 80, hi: 87, bio: "Centroavante alemão letal de cabeça — autor do primeiro gol de ouro da história, na conquista da Euro 96, e artilheiro no Udinese e no Milan." },
+  { name: "Giovani dos Santos", club: "Villarreal", year: 2013, fame: 3, lo: 78, hi: 85, bio: "Meia-atacante mexicano de drible e categoria — joia do Barça que engrenou no Villarreal e no Tottenham, craque histórico da seleção do México." },
+  { name: "Evandro Roncatto", club: "Dinamo Bucareste", year: 2011, fame: 1, lo: 60, hi: 80, folk: true, bio: "Atacante brasileiro andarilho que virou ídolo cult no Dinamo de Bucareste — folclore de artilheiro rodando o Leste Europeu e o Oriente Médio." },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
 
