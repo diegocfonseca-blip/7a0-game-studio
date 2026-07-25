@@ -1108,7 +1108,10 @@ const GOL_EU: C[] = [
   { name: "Heurelho Gomes", club: "Tottenham", year: 2011, fame: 1, lo: 60, hi: 80, folk: true },
   { name: "Loris Karius", club: "Liverpool", year: 2018, fame: 1, lo: 55, hi: 78, folk: true },
   { name: "Keylor Navas", club: "Real Madrid", year: 2016, fame: 4, lo: 80, hi: 88, bio: "Tricampeão seguido da Champions no gol do Real — reflexo felino e frieza nas decisões." },
-  { name: "Kepa", club: "Chelsea", year: 2019, fame: 1, lo: 56, hi: 78, folk: true, bio: "O goleiro mais caro da HISTÓRIA — eternizado por se recusar a ser substituído na final da Copa da Liga. Cinema." }
+  { name: "Kepa", club: "Chelsea", year: 2019, fame: 1, lo: 56, hi: 78, folk: true, bio: "O goleiro mais caro da HISTÓRIA — eternizado por se recusar a ser substituído na final da Copa da Liga. Cinema." },
+  { name: "Edwin van der Sar", club: "Manchester United", year: 2009, fame: 4, lo: 85, hi: 91, bio: "O holandês gigante do United campeão da Champions — recorde de minutos sem tomar gol e frieza total nas decisões." },
+  { name: "Jordan Pickford", club: "Everton", year: 2018, fame: 3, lo: 77, hi: 85, bio: "Goleiro titular da Inglaterra — explosivo, bom de pênalti e sempre no meio de uma treta. Herói e vilão na mesma tarde." },
+  { name: "Doni", club: "Roma", year: 2008, fame: 2, lo: 76, hi: 84, bio: "Goleiro brasileiro que fez carreira sólida na Roma antes de passar pelo Liverpool — reflexo firme na Série A." }
 ]
 const LAT_EU: C[] = [
   { name: "Carvajal", club: "Real Madrid", year: 2022, fame: 4, lo: 82, hi: 89 },
@@ -1144,7 +1147,8 @@ const LAT_EU: C[] = [
   { name: "Andrew Robertson", club: "Liverpool", year: 2019, fame: 4, lo: 82, hi: 89, bio: "Incansável da esquerda do Liverpool campeão da Champions e da Premier — cruzamento na cabeça o jogo inteiro." },
   { name: "César Azpilicueta", club: "Chelsea", year: 2017, fame: 4, lo: 79, hi: 87, bio: "O capitão-faz-tudo do Chelsea — lateral dos dois lados e zagueiro, intocável no título inglês de 2017 e campeão da Champions." },
   { name: "Royston Drenthe", club: "Real Madrid", year: 2008, fame: 1, lo: 54, hi: 78, folk: true, bio: "A promessa galáctica que trocou o Bernabéu pelo rap — talento de sobra, foco nem tanto. Folclore mundial." },
-  { name: "Pablo Armero", club: "Napoli", year: 2013, fame: 1, lo: 54, hi: 77, bio: "O colombiano da dancinha — memes, sorriso e um futebol que oscilava entre Seleção e resenha." }
+  { name: "Pablo Armero", club: "Napoli", year: 2013, fame: 1, lo: 54, hi: 77, bio: "O colombiano da dancinha — memes, sorriso e um futebol que oscilava entre Seleção e resenha." },
+  { name: "Benjamin Pavard", club: "Bayern", year: 2020, fame: 3, lo: 79, hi: 86, bio: "Lateral-direito francês campeão da Champions pelo Bayern — eternizado pelo golaço de voleio na Copa de 2018." }
 ]
 const ZAG_EU: C[] = [
   { name: "Maguire", club: "Man United", year: 2019, fame: 2, lo: 66, hi: 82 },
@@ -1192,7 +1196,8 @@ const ZAG_EU: C[] = [
   { name: "Kalidou Koulibaly", club: "Napoli", year: 2018, fame: 4, lo: 82, hi: 89, bio: "A muralha senegalesa do Napoli — força, velocidade e saída de bola de meia." },
   { name: "Rúben Dias", club: "Manchester City", year: 2021, fame: 4, lo: 82, hi: 89, bio: "Chegou e virou o chefe da defesa do City campeão — liderança lusitana de general." },
   { name: "Raphaël Varane", club: "Real Madrid", year: 2016, fame: 4, lo: 80, hi: 88, bio: "Elegância francesa no miolo do Real tetracampeão da Champions — campeão de tudo antes dos 30." },
-  { name: "Sébastien Squillaci", club: "Arsenal", year: 2010, fame: 1, lo: 52, hi: 75, bio: "O francês que a torcida do Arsenal tenta esquecer — flop de grife, presença garantida em lista de piores contratações." }
+  { name: "Sébastien Squillaci", club: "Arsenal", year: 2010, fame: 1, lo: 52, hi: 75, bio: "O francês que a torcida do Arsenal tenta esquecer — flop de grife, presença garantida em lista de piores contratações." },
+  { name: "Jan Vertonghen", club: "Tottenham", year: 2017, fame: 4, lo: 82, hi: 88, bio: "Zagueiro belga canhoto do Tottenham — leitura de jogo, saída de bola e regularidade de elite por quase uma década." }
 ]
 const MEI_EU: C[] = [
   { name: "Sneijder", club: "Inter", year: 2010, fame: 4, lo: 84, hi: 90 },
@@ -1317,7 +1322,10 @@ const MEI_EU: C[] = [
   { name: "Lucas Silva", club: "Real Madrid", year: 2015, fame: 1, lo: 58, hi: 78, folk: true },
   { name: "Mauro Silva", club: "Deportivo La Coruña", year: 1996, fame: 4, lo: 83, hi: 89 },
   { name: "Ljungberg", club: "Arsenal", year: 2004, fame: 3, lo: 78, hi: 85, bio: "O sueco ruivo dos Invencíveis do Arsenal — chegada surpresa pela direita e faro de gol nos momentos decisivos." },
-  { name: "Alfie Haaland (pai do Erling)", club: "Man City", year: 2001, fame: 1, lo: 56, hi: 78, folk: true, bio: "Volante/zagueiro norueguês raçudo de Leeds e Manchester City — e, claro, o pai do fenômeno Erling. Eternizado na rivalidade com Roy Keane." }
+  { name: "Alfie Haaland (pai do Erling)", club: "Man City", year: 2001, fame: 1, lo: 56, hi: 78, folk: true, bio: "Volante/zagueiro norueguês raçudo de Leeds e Manchester City — e, claro, o pai do fenômeno Erling. Eternizado na rivalidade com Roy Keane." },
+  { name: "David Beckham", club: "Manchester United", year: 1999, fame: 4, lo: 86, hi: 92, bio: "O rei da bola parada — cruzamento e falta milimétricos pela direita do United da tríplice coroa. Ícone dentro e fora de campo." },
+  { name: "Declan Rice", club: "Arsenal", year: 2024, fame: 4, lo: 83, hi: 89, bio: "Volante-motor da Inglaterra — desarme, fôlego e saída de bola que fizeram dele a espinha do meio do Arsenal e do West Ham." },
+  { name: "Youri Tielemans", club: "Leicester", year: 2021, fame: 3, lo: 79, hi: 86, bio: "Meia belga de passe elegante — eternizado pelo golaço que deu a FA Cup ao Leicester em Wembley." }
 ]
 const ATA_EU: C[] = [
   { name: "Ricardo Quaresma", club: "Porto", year: 2007, fame: 3, lo: 74, hi: 84, folk: true },
@@ -1460,6 +1468,8 @@ const ATA_EU: C[] = [
   { name: "Andy Carroll", club: "Newcastle", year: 2010, fame: 3, lo: 76, hi: 84 },
   { name: "Bebeto", club: "Deportivo La Coruña", year: 1993, fame: 4, lo: 85, hi: 91 },
   { name: "Luís Boa Morte", club: "Fulham", year: 2003, fame: 2, lo: 74, hi: 84, bio: "Ponta-esquerda explosivo e raçudo — ídolo do Fulham nos anos 2000 e peça de Portugal, velocidade e entrega que marcaram a Premier League." },
+  { name: "Andrey Arshavin", club: "Arsenal", year: 2009, fame: 3, lo: 80, hi: 87, bio: "Meia-atacante russo genial — eternizado pelos 4 gols que fez sozinho em Anfield pelo Arsenal. Talento explosivo e imprevisível." },
+  { name: "Svetoslav Todorov", club: "Portsmouth", year: 2003, fame: 2, lo: 72, hi: 83, bio: "Centroavante búlgaro artilheiro do Portsmouth — carregou o clube à Premier League com uma temporada de gols na Championship." },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
 
