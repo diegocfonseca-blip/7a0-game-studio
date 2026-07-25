@@ -11,7 +11,7 @@ import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
-import { stripEmoji, myApoioPerk, APOIO_PERKS, logApoio } from './apoio'
+import { stripEmoji, myApoioPerk, APOIO_PERKS, logApoio, useHasManual } from './apoio'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
@@ -2626,7 +2626,24 @@ export function useStreamSimMode(): [boolean, () => void] {
   const toggle = () => setManual(m => { const v = !m; try { localStorage.setItem('esc-stream-auto', v ? '0' : '1') } catch { /* ignora */ } return v })
   return [manual, toggle]
 }
-export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLabel = '▶️ Próxima rodada' }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string }) {
+// 🔒 cadeado do Modo Manual no jogo rápido offline: quem não apoia vê isto no
+// lugar do toggle Auto/Manual — leva pra tela de Apoie (igual à carreira).
+export function QuickManualLock() {
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <ApoieButton startScreen="manual" trigger={open => (
+        <button onClick={open} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontFamily: 'Oswald, sans-serif' }}>
+          <span>🎮 MANUAL: pausar entre as rodadas</span>
+          <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>Apoie 🔒</span>
+        </button>
+      )} />
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '4px 2px 0', fontFamily: 'Oswald, sans-serif' }}>Pause entre as rodadas e controle o ritmo. Toque pra desbloquear.</p>
+    </div>
+  )
+}
+export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLabel = '▶️ Próxima rodada', lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
+  // 🔒 sem apoio no modo rápido offline: o toggle vira cadeado (leva pro Apoie)
+  if (lock) return <>{lock}</>
   // 🎮 MANUAL com PULAR: "Próxima rodada" GRANDE à esquerda (espera a partida
   // acabar, como sempre); à direita, "⏭️ Pular" em cima (vai direto pro resultado,
   // sem esperar) e "🔁 Modo auto" embaixo. Fino e sutil. Só aparece no manual.
@@ -2701,7 +2718,11 @@ export function EscSeason() {
   const streamHost = online && state.isHost && (state.streamMode || !!state.manualRoom)
   const [manualPref, toggleSim] = useSimMode()
   const [streamManual, toggleStream] = useStreamSimMode()
-  const manual = streamHost ? streamManual : (manualPref && !online)
+  // 🔒 no rápido OFFLINE o Modo Manual agora é apoiado (pago pra todos, sem
+  // grandfather). Online host-paced (stream/sala manual) segue livre.
+  const hasManual = useHasManual()
+  const manual = streamHost ? streamManual : (manualPref && !online && hasManual)
+  const manualLocked = !online && !hasManual // rápido offline sem apoio: mostra o cadeado
   // ⏩ AUTO é SEMPRE o ritmo padrão: ao voltar pro auto, zera a velocidade (Normal).
   // Assim a marcha escolhida vale só dentro do manual, e o manual sempre COMEÇA no
   // Normal (o do meio) — igual ao auto. (Sincroniza via estado, então bate pra sala.)
@@ -3062,12 +3083,14 @@ export function EscSeason() {
         // e "pular" as 38 rodadas na hora. No começo (round 0) libera pra dar o
         // pontapé; da rodada 1 em diante espera a animação (resultRevealed).
         <SimControls manual={manual} onToggle={toggleManual} canNext={state.round === 0 || resultRevealed}
+          lock={manualLocked ? <QuickManualLock /> : undefined}
           onNext={() => dispatch({ type: 'PLAY_ROUND' })}
           onSkip={() => dispatch({ type: 'PLAY_ROUND' })}
           nextLabel={!(state.round === 0 || resultRevealed) ? '⏳ Deixa a rodada acabar…' : state.round === 0 && !myLast ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
       )}
       {(!online || streamHost) && copaLive && (
         <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
+          lock={manualLocked ? <QuickManualLock /> : undefined}
           onNext={() => dispatch({ type: 'PLAY_COPA_LEG' })}
           onSkip={() => dispatch({ type: 'PLAY_COPA_LEG' })}
           nextLabel={!copaAdvReady ? '⏳ Deixa o jogo/pênaltis acabar…' : firstLegPending ? '🏆 Iniciar a Copa dos 8' : copaJustAdvanced ? '▶️ Começar a próxima fase' : '⚽ Próximo jogo da Copa'} />
