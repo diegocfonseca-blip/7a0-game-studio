@@ -191,12 +191,12 @@ export function computePromotions(tables: Record<Div, SimTeam[]>): Record<string
 // moedas da temporada por técnico — SEM base recorrente (o técnico já começou
 // com 100). Só desempenho, com valores DIFERENTES por série (reforçados por causa
 // do salário — o campeão/artilheiro precisa bancar a folha):
-//   campeão: A 50 · B 40 · C 30 · D 20
+//   campeão: A 65 · B 50 · C 35 · D 20
 //   top 4 (zona/acesso): A 30 · B 25 · C 20 · D 0 — nas de baixo é acesso (sobe);
-//     na A é "manter entre os 4". Sair da D é de graça (0). Campeão da A = 50 + 30 = 80.
+//     na A é "manter entre os 4". Sair da D é de graça (0). Campeão da A = 65 + 30 = 95.
 //   queda (caiu, pela série de onde caiu): mesmo valor da zona — A 30 · B 25 · C 20
 const DIV_RANK: Record<Div, number> = { A: 3, B: 2, C: 1, D: 0 }
-const CAMPEAO: Record<Div, number> = { A: 50, B: 40, C: 30, D: 20 }
+const CAMPEAO: Record<Div, number> = { A: 65, B: 50, C: 35, D: 20 }
 const ZONA: Record<Div, number> = { A: 30, B: 25, C: 20, D: 0 }
 const QUEDA: Record<Div, number> = { A: 30, B: 25, C: 20, D: 0 }
 export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, number> {
@@ -1344,7 +1344,7 @@ function PrizesBox() {
         </table>
       </div>
       <ul style={{ margin: '8px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,0.7)', lineHeight: 1.5 }}>
-        <li><b>Top-4</b>: nas séries de baixo é <b>acesso</b> (sobe de divisão); na A é "manter entre os 4". Campeão da A leva os dois: <b>50 + 30 = 80</b>. <b>Sair da Série D é de graça</b> (sem bônus de acesso).</li>
+        <li><b>Top-4</b>: nas séries de baixo é <b>acesso</b> (sobe de divisão); na A é "manter entre os 4". Campeão da A leva os dois: <b>65 + 30 = 95</b>. <b>Sair da Série D é de graça</b> (sem bônus de acesso).</li>
         <li><b>Queda</b>: perde moedas ao cair (mesmo valor do acesso). <b>Da Série D ninguém cai</b> (é a última).</li>
         <li><b>⚽ Artilheiro</b> de cada divisão (e da Copa): o valor vai pro <b>caixa do clube</b>; e o <b>piso (valor)</b> do jogador sobe <b>+10 fixo</b> pro próximo leilão.</li>
       </ul>
