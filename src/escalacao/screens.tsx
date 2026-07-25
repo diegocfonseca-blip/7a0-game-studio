@@ -13,7 +13,7 @@ import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, logApoio, useHasManual } from './apoio'
 import { DinastiaButton } from './dinastia'
-import { CareerOnlineButton } from './careeronline'
+import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
@@ -1090,6 +1090,7 @@ export function EscIntro() {
         <AdminButton />
         <DinastiaButton />
         <CareerOnlineButton />
+        <LigaFechadaButton />
       </div>
       {/* como funciona — 4 cartões enxutos em grade 2×2 */}
       <div className="grid grid-cols-2 gap-2.5">

@@ -260,6 +260,16 @@ export function CareerOnlineButton() {
   )
 }
 
+// Liga Fechada: liga só com amigos (sem bot). Ainda não abriu — fica como
+// "em breve" na home, no mesmo estilo do Carreira Online.
+export function LigaFechadaButton() {
+  return (
+    <div style={{ width: '100%', boxSizing: 'border-box', background: '#e7e3d7', color: '#8a8577', border: '2px solid #bdb7a6', borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, textAlign: 'center', marginTop: 2, ...OSWALD, cursor: 'default' }}>
+      🏆 Liga Fechada · só com amigos <span style={{ opacity: 0.85 }}>(em breve)</span>
+    </div>
+  )
+}
+
 function Overlay({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: CREAM, color: INK, zIndex: 9000, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
