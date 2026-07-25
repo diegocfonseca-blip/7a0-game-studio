@@ -1339,7 +1339,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
 // TÍTULOS (Série A → B → C → D) e depois DINHEIRO, com desempate em cascata. ──
 type Honors = { A: number; B: number; C: number; D: number }
 const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0 }
-function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number }) {
+function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId, seasonNo, myDiv }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number; seasonNo?: number; myDiv?: Div | null }) {
   const rows = DIVS.flatMap(d => tables[d]).map(t => {
     const key = teamKey(t)
     const olds = oldChain(key) // save antigo pode ter caixa/títulos em QUALQUER nome velho da corrente
@@ -1349,7 +1349,16 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
   })
   rows.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
   const top = rows.slice(0, 20)
+  // 🏆 SEUS troféus (chave do humano = m<id>) — base do Hall de Troféus embaixo.
+  const myH = honors[`m${youId}`] ?? EMPTY_HONORS
+  const myCopas = copaHonors[`m${youId}`] ?? 0
+  const totalT = myH.A + myH.B + myH.C + myH.D + myCopas
+  const trofeus = [
+    ...(myCopas > 0 ? [{ key: 'copa', label: 'Copa Legends', n: myCopas, bg: GOLD, c: INK }] : []),
+    ...(['A', 'B', 'C', 'D'] as Div[]).filter(d => myH[d] > 0).map(d => ({ key: d, label: DIV_NAME[d], n: myH[d], bg: CDTAG[d].bg, c: CDTAG[d].c })),
+  ]
   return (
+    <>
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>🏆 RANKING GERAL</p>
       <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Títulos (Série A › B › C › D) e depois dinheiro — top 20.</p>
@@ -1379,6 +1388,31 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
         </tbody>
       </table>
     </div>
+    {/* 🏆 HALL DE TROFÉUS: a estante PESSOAL do seu clube (só os SEUS títulos) —
+        conquistas ganhas nesta carreira, guardadas pra sempre. */}
+    <div style={{ ...box('linear-gradient(160deg,#FFF7E0,#FFEBB0)'), padding: 12, marginBottom: 12 }}>
+      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: '0 0 2px' }}>🏆 Hall de Troféus</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '0 0 10px' }}>A estante do seu clube — o que você conquistou nesta carreira{seasonNo ? ` · temporada ${seasonNo}` : ''}.</p>
+      {totalT === 0 ? (
+        <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', textAlign: 'center', padding: '10px 0' }}>Estante vazia por enquanto… 🏆 Ganhe um título e ele fica guardado aqui pra sempre.</p>
+      ) : (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {trofeus.map(t => (
+            <div key={t.key} style={{ width: 82, border: `2.5px solid ${INK}`, borderRadius: 12, background: t.bg, color: t.c, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 6px 8px', textAlign: 'center' }}>
+              <div style={{ fontSize: 30, lineHeight: 1 }}>🏆</div>
+              <div style={{ fontWeight: 900, fontSize: 15, ...OSWALD, marginTop: 2 }}>×{t.n}</div>
+              <div style={{ fontWeight: 800, fontSize: 9, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.2, marginTop: 1, opacity: 0.92 }}>{t.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12, alignItems: 'center' }}>
+        <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: INK, color: '#fff', borderRadius: 8, padding: '3px 8px' }}>Total: {totalT} 🏆</span>
+        {myH.A > 0 && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: '#FFC400', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 8px' }}>{'⭐'.repeat(Math.min(myH.A, 5))}{myH.A > 5 ? ` ×${myH.A}` : ''} Série A</span>}
+        {myDiv && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 8px' }}>Hoje na {DIV_NAME[myDiv]}</span>}
+      </div>
+    </div>
+    </>
   )
 }
 
@@ -2189,7 +2223,7 @@ export function PyramidSeasonScreen() {
               ))}
             </div>
             {rankSub === 'clubes' ? (
-              <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} />
+              <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} />
             ) : (
               <>
                 {/* durante a Copa (fim de temporada), a artilharia da COPA entra no
