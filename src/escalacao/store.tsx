@@ -861,6 +861,14 @@ function otherDivRivalDefs(rivals: CareerRival[], div: Division): CareerTeam[] {
 // empréstimos voltam na virada, cada temporada pega o número da divisão NOVA.
 export const FILIAL_SLOTS: Record<string, number> = { A: 4, B: 3, C: 2, D: 1 }
 export const filialSlots = (div?: string | null): number => FILIAL_SLOTS[div ?? 'D'] ?? 1
+// 🏢 divisão ATUAL do humano: na pirâmide a fonte de verdade é a colocação
+// (careerPlacements['m<id>']), que muda a cada acesso/queda. s.careerDivision só é
+// atualizado no fluxo clássico — na pirâmide ficava travado em 'D', então as vagas de
+// empréstimo nunca cresciam. Aqui pega o placement e cai pra careerDivision se faltar.
+function myCareerDiv(s: EscState): string {
+  const youId = s.managers[s.youIdx]?.id ?? s.youIdx
+  return s.careerPlacements?.[`m${youId}`] ?? s.careerDivision ?? 'D'
+}
 // normaliza empréstimo pra lista (saves antigos gravavam 1 jogador só, não array)
 const loanList = (x: unknown): WonCard[] => Array.isArray(x) ? x as WonCard[] : x ? [x as WonCard] : []
 
@@ -2397,7 +2405,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // continua SEU (não é venda). Vagas crescem com a divisão (D1·C2·B3·A4).
       if (!s.careerOnline || s.onlineMode === 'online' || !s.careerFilial) return s
       const outs = loanList(s.careerFilial.loanOut)
-      if (outs.length >= filialSlots(s.careerDivision)) return s
+      if (outs.length >= filialSlots(myCareerDiv(s))) return s
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
       const card = you.squad.find(c => c.id === action.cardId)
@@ -2419,7 +2427,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // dela — volta sozinho na virada. Vagas crescem com a divisão (D1·C2·B3·A4).
       if (!s.careerOnline || s.onlineMode === 'online' || !s.careerFilial) return s
       const ins = loanList(s.careerFilial.loanIn)
-      if (ins.length >= filialSlots(s.careerDivision)) return s
+      if (ins.length >= filialSlots(myCareerDiv(s))) return s
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
       const safSquad = (s.cpuSquads?.[s.careerFilial.team] ?? []) as WonCard[]
