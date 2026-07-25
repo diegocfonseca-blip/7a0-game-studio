@@ -875,8 +875,13 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
   if (!cut) return
   const you = s.managers.find(m => m.isHuman)
   if (!you) return
-  s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: Math.max(0, (s.careerCoins?.[you.id] ?? 0) + cut) }
+  const before = s.careerCoins?.[you.id] ?? 0
+  const after = Math.max(0, before + cut) // corte nunca deixa a caixa negativa
+  s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: after }
   s.careerFilial = { ...f, earned: (f.earned ?? 0) + cut }
+  // 🧾 registra no extrato pela VARIAÇÃO REAL da caixa (título/acesso da SAF rende;
+  // queda dela desconta) — mantém o extrato batendo com o caixa, como os outros.
+  logFin(s, 'saf', '🏢 Prêmios da SAF', after - before)
 }
 
 // devolve os DOIS empréstimos ativos (se houver) na virada de temporada — a
