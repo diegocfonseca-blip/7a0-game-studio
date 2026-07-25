@@ -35,7 +35,10 @@ export function squadPayroll(squad: WonCard[]): number {
 // 💸 FOLHA no VIRA-TEMPORADA: cada técnico HUMANO paga a folha do elenco que JOGOU
 // a temporada. Roda ANTES do leilão/venda — então quem for contratado agora só entra
 // na folha no ano que vem (nunca cobra salário de quem você acabou de contratar).
-// Nunca deixa a caixa negativa (trava no 0). Só humanos pagam da careerCoins.
+// Cobra SEMPRE a folha REAL do elenco (nunca capa o valor): se a caixa não cobrir,
+// ela fica NEGATIVA (dívida). Assim o número da folha no Extrato bate certinho com o
+// elenco — só muda quando o time muda. Gastar (contratar/investir) fica bloqueado
+// enquanto a caixa estiver no vermelho. Só humanos pagam da careerCoins.
 function chargeSalaries(s: EscState) {
   // 🔓 só a partir da 4ª temporada (fôlego: T1 monta o time, T2 reservas, T3 vender).
   // Roda ANTES do seasonNo++, então s.seasonNo aqui = a temporada que ACABOU de rolar.
@@ -44,7 +47,7 @@ function chargeSalaries(s: EscState) {
   for (const m of s.managers) {
     if (!m.isHuman) continue
     const folha = squadPayroll(m.squad as WonCard[])
-    if (folha > 0) cc[m.id] = Math.max(0, (cc[m.id] ?? 0) - folha)
+    if (folha > 0) cc[m.id] = (cc[m.id] ?? 0) - folha // folha REAL, pode negativar (dívida)
   }
   s.careerCoins = cc
 }
@@ -1372,7 +1375,7 @@ function takeFromMonte(state: EscState, cardId: string) {
   // si mesmo). O vendedor (outro) recebe como sempre.
   const isOwn = (card as { seller?: number }).seller === mgrId
   if (state.careerOnline && paid > 0 && !isOwn) {
-    m.money = Math.max(0, m.money - paid)
+    m.money = m.money - paid // deduz o valor cheio (pode negativar) — bate com o lançamento do extrato
     if (m.isHuman) logFin(state, 'buy', `🛒 ${card.name}`, -paid, { player: card.name, pos: card.pos }) // 🧾 compra no monte
   }
   creditSeller(state, card, paid, mgrId) // vendedor recebe o valor mesmo indo pelo monte
@@ -1959,6 +1962,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (pay <= 0) return s
       s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { inv: { ...st.inv, [action.sector]: invested + pay }, ext: st.ext } }
       s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: wallet - pay }
+      logFin(s, 'stadium', `🏟️ Obra: ${sec.n}`, -pay) // 🧾 investimento no estádio entra no extrato (pra a conta fechar)
       return s
     }
     // 🏟️ compra uma melhoria DESTRAVADA (árvore de requisitos em estadiodata)
@@ -1970,6 +1974,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (st.ext.includes(action.ext) || !extraUnlocked(st, action.ext) || wallet < ext.cost) return s
       s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { inv: st.inv, ext: [...st.ext, action.ext] } }
       s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: wallet - ext.cost }
+      logFin(s, 'stadium', `🏟️ Melhoria: ${ext.n}`, -ext.cost) // 🧾 melhoria do estádio entra no extrato
       return s
     }
     // o host anterior saiu de vez e me passou a batuta: viro autoritativo. O
@@ -2120,6 +2125,10 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const m of s.managers) if (m.isHuman) { cc[m.id] = 100; m.money = 100 }
       s.careerCoins = cc
       s.seasonNo = 1
+      // 🧾 carreira nova: zera o livro-caixa e registra o SALDO INICIAL de 100, pra
+      // somar o Extrato dar exatamente a Caixa (era o único dinheiro fora do extrato).
+      s.careerLedger = []
+      logFin(s, 'opening', '🏁 Saldo inicial', 100)
       // 🔨 tela de regras antes do 1º pregão da carreira (mantém o modal de rivais
       // no setup; isto é só a página nova ao avançar).
       if (action.intro) { s.screen = 'streamIntro'; return s }
@@ -2133,7 +2142,23 @@ export function reducer(state: EscState, action: Action): EscState {
       setActiveCatalog(action.saved.deckLeague)
       // nunca retoma numa tela lateral (álbum/ranking) — cai sempre no jogo.
       const scr = (action.saved.screen === 'album' || action.saved.screen === 'ranking') ? 'season' : action.saved.screen
-      return migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true })
+      const restored = migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true })
+      // 🧾 RECONCILIAÇÃO 1x de saves ANTIGOS (feitos antes do extrato registrar
+      // saldo inicial, estádio e SAF): se o extrato não tem o 'saldo inicial', lança
+      // um ajuste único = Caixa − soma dos lançamentos, pra somar o Extrato dar a
+      // Caixa também nas carreiras que já estavam rolando. Guardado pelo kind 'opening'
+      // (uma vez só; carreiras novas já nascem com o saldo inicial e caem fora daqui).
+      const rLed = restored.careerLedger ?? []
+      if (!rLed.some(e => e.kind === 'opening')) {
+        const youId = restored.managers[restored.youIdx]?.id ?? restored.youIdx
+        const caixa = restored.careerCoins?.[youId] ?? 0
+        const soma = rLed.reduce((a, e) => a + e.amount, 0)
+        const ajuste = caixa - soma
+        const seasonMin = rLed.length ? Math.min(...rLed.map(e => e.season)) : (restored.seasonNo ?? 1)
+        const entry: LedgerEntry = { id: Math.random().toString(36).slice(2), season: seasonMin, kind: 'opening', label: '🏁 Saldo inicial', amount: ajuste }
+        restored.careerLedger = [entry, ...rLed]
+      }
+      return restored
     }
     case 'START_ONLINE': {
       s.simV = 2 // fórmula nova só vale a partir desta temporada
@@ -2331,6 +2356,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.careerRivals.some(r => r.team === action.team) || you.teamName === action.team) return s
       s.careerCoins = { ...s.careerCoins, [you.id]: coins - 2000 }
       s.careerFilial = { team: action.team, since: s.seasonNo, earned: 0 }
+      logFin(s, 'safbuy', `🏢 Compra da SAF · ${action.team}`, -2000) // 🧾 compra da SAF entra no extrato
       return s
     }
     case 'LOAN_TO_FILIAL': {
@@ -2466,7 +2492,7 @@ export function reducer(state: EscState, action: Action): EscState {
         // caixa vira o que sobrou do orçamento — o próximo leilão parte desse saldo
         // (mais bônus de título/acesso, menos queda), nunca zera pra 100 de novo.
         const cc = { ...(s.careerCoins ?? {}) }
-        for (const m of s.managers) if (m.isHuman) cc[m.id] = Math.max(0, Math.round(m.money))
+        for (const m of s.managers) if (m.isHuman) cc[m.id] = Math.round(m.money) // pode ser negativo (dívida) — não zera o vermelho
         s.careerCoins = cc
         // PERSISTE as transações dos bots no caixa (clubCash): quem VENDEU pro
         // mercado ganhou grana, quem COMPROU gastou. Assim o caixa vira história

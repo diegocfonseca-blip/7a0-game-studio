@@ -544,15 +544,16 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
   // transferências
   const vendidos = rev.filter(e => e.kind === 'sell')
   const noElenco = squad.filter(c => !c.fake && c.club !== 'Várzea' && !c.emprestado && (c.buyPrice != null || c.paid != null))
-  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? '🏆 Prêmios da temporada' : k === 'gate' ? '🎟️ Bilheteria' : k === 'salary' ? '💸 Folha salarial' : k === 'saf' ? '🏢 Prêmios da SAF' : ''
+  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? '🏆 Prêmios da temporada' : k === 'gate' ? '🎟️ Bilheteria' : k === 'salary' ? '💸 Folha salarial' : k === 'saf' ? '🏢 Prêmios da SAF' : k === 'stadium' ? '🏟️ Obra no estádio' : k === 'safbuy' ? '🏢 Compra da SAF' : k === 'opening' ? '🏁 Saldo inicial' : ''
   return (
     <>
       {/* RESUMO fixo: caixa atual + saldo da temporada */}
-      <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '12px 14px', marginBottom: 10 }}>
+      <div style={{ ...box(), background: caixa < 0 ? `linear-gradient(160deg, ${FIN_RED}, #7a1b10)` : `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '12px 14px', marginBottom: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div>
-            <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>Caixa atual</div>
-            <div style={{ ...OSWALD, fontSize: 27, fontWeight: 900, lineHeight: 1, marginTop: 2 }}>🪙 {caixa}</div>
+            <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>Caixa atual{caixa < 0 ? ' · no vermelho' : ''}</div>
+            <div style={{ ...OSWALD, fontSize: 27, fontWeight: 900, lineHeight: 1, marginTop: 2 }}>🪙 {caixa < 0 ? `−${Math.abs(caixa)}` : caixa}</div>
+            {caixa < 0 && <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.85)', marginTop: 3 }}>Folha maior que a caixa — contratar e investir travam até sair do vermelho.</div>}
           </div>
           <div style={{ textAlign: 'right', fontSize: 10, color: 'rgba(255,255,255,.7)', fontWeight: 700 }}>Temporada {summarySeason}</div>
         </div>
