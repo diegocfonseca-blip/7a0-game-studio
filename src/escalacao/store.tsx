@@ -400,21 +400,25 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   // ── passo 2: cotas de raridade POR POSIÇÃO (não global) ──────────────────
   // Cada setor (GOL/LAT/ZAG/MEI/ATA) recebe a MESMA % de cada nível. Assim o
   // total do leilão bate esse mesmo % de forma natural, e nenhuma posição — em
-  // especial o MEI, que é a maior — vira "festival de lenda". Se um setor tem
-  // poucas cartas no catálogo, pega só o que existe (pode ficar com 0 lenda, e
-  // tudo bem: lenda é rara). O que sobrar do setor vira bom jogador natural.
-  // Folclórico não é cota: o folk entra normal pelo nível dele (é só um selo).
+  // especial o MEI, que é a maior — vira "festival de lenda".
+  // SORTEIO PONDERADO: a fração vira CHANCE (não arredondamento fixo). Ex.: GOL
+  // com 3 cartas → lenda = 3×0,08 = 0,24 → 24% de chance de vir 1 lenda, 76% de
+  // vir 0. Assim posição pequena VARIA a cada save (às vezes sai um goleiro lenda)
+  // em vez de dar sempre o mesmo resultado, e a média longa continua nos 8%.
+  // Se o setor tem poucas cartas no catálogo, pega só o que existe (pode ficar 0
+  // lenda). O que sobrar do setor vira bom jogador. Folk não é cota (é só selo).
   const RARITY = { legend: 0.08, star: 0.20, promessa: 0.15, low: 0.28 } // % por posição
+  const stoch = (x: number) => { const f = Math.floor(x); return f + (rng() < x - f ? 1 : 0) } // arredonda por sorteio (mantém a média)
   const alloc = {} as Record<Sector, { legend: number; star: number; promessa: number; low: number }>
   const availOf = (pos: Sector, pred: (c: (typeof CATALOG)[Sector][number]) => boolean) =>
     plan[pos].catalog.filter(c => pred(c) && !used.has(ident(c))).length
   for (const pos of SECTORS) {
     const cnt = plan[pos].count
-    // pede a fração de cada nível, mas NUNCA mais do que existe no catálogo do setor
-    let legend = Math.min(availOf(pos, c => c.fame === 5), Math.round(cnt * RARITY.legend))
-    let star = Math.min(availOf(pos, c => c.fame === 4 && !c.promessa), Math.round(cnt * RARITY.star)) // craque
-    let promessa = Math.min(availOf(pos, c => !!c.promessa), Math.round(cnt * RARITY.promessa))
-    let low = Math.min(availOf(pos, c => c.fame === 1), Math.round(cnt * RARITY.low))                  // foi profissional
+    // pede a fração (por sorteio) de cada nível, nunca mais do que existe no setor
+    let legend = Math.min(availOf(pos, c => c.fame === 5), stoch(cnt * RARITY.legend))
+    let star = Math.min(availOf(pos, c => c.fame === 4 && !c.promessa), stoch(cnt * RARITY.star)) // craque
+    let promessa = Math.min(availOf(pos, c => !!c.promessa), stoch(cnt * RARITY.promessa))
+    let low = Math.min(availOf(pos, c => c.fame === 1), stoch(cnt * RARITY.low))                  // foi profissional
     // se a soma passar do tamanho do setor, corta primeiro dos mais comuns
     // (foi profissional → promessa → craque → lenda), pra a raridade se manter.
     let over = legend + star + promessa + low - cnt
