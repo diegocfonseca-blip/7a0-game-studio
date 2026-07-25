@@ -1062,7 +1062,6 @@ const ATA: C[] = [
   { name: "Anelka", club: "Atlético-MG (quase)", year: 2014, fame: 4, lo: 80, hi: 90, folk: true, bio: "O craque francês que QUASE vestiu o manto do Galo em 2014 — o reforço bombástico que só existiu na imaginação (e no sonho) da torcida." },
   { name: "Igor Jesus", club: "Botafogo", year: 2024, fame: 3, lo: 74, hi: 84, bio: "Centroavante que explodiu no Botafogo campeão da Libertadores em 2024 e ganhou a Seleção — força e faro de gol." },
   { name: "Amarildo", club: "Botafogo", year: 1962, fame: 4, lo: 82, hi: 89, bio: "O 'Possesso' que entrou no lugar de Pelé e decidiu a Copa de 62 — ídolo do Botafogo." },
-  { name: "Magno Alves", club: "Fluminense", year: 2002, fame: 3, lo: 74, hi: 84, bio: "O 'Magrão' — faro de gol e longevidade absurda, artilheiro do Brasileirão de 2002 pelo Tricolor." },
   { name: "Calleri", club: "São Paulo", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Centroavante argentino raçudo, ídolo e artilheiro do São Paulo — briga cada bola." },
   { name: "Wellington Paulista", club: "Fortaleza", year: 2019, fame: 2, lo: 68, hi: 79, folk: true, bio: "Centroavante andarilho que rodou o Brasil inteiro — o eterno 'salvador' de cada temporada." },
   { name: "Fábio Júnior", club: "Cruzeiro", year: 1999, fame: 2, lo: 66, hi: 80, folk: true, bio: "Veloz e goleador no Cruzeiro, mas eternizado como o rei de perder gol feito na Roma — 'errou que nem Fábio Júnior'." },
@@ -1084,7 +1083,7 @@ const ATA: C[] = [
   { name: "Robinho Jr", club: "Santos", year: 2024, fame: 1, lo: 50, hi: 78, promessa: true, bio: "Cria da Vila e filho de Robinho — joia canhota que surgiu na base santista carregando um sobrenome de peso." },
   { name: "Nonato", club: "Bahia", year: 2024, fame: 2, lo: 66, hi: 81, bio: "Meia de chegada à área e faro de gol — motor ofensivo que ganhou moral no Bahia da nova era." },
   { name: "Sérgio Alves", club: "Ceará", year: 1993, fame: 2, lo: 62, hi: 82, folk: true, bio: "O 'Furacão' — artilheiro histórico e maior ídolo goleador do Ceará, terror das defesas nordestinas." },
-  { name: "Magno Alves", club: "Ceará", year: 2010, fame: 2, lo: 64, hi: 83, bio: "O 'Magrão' em casa — faro de gol e longevidade absurda que fizeram dele ídolo eterno do Ceará." },
+  { name: "Magno Alves", club: "Ceará", year: 2010, fame: 3, lo: 66, hi: 84, bio: "O 'Magrão' — faro de gol e longevidade absurda: artilheiro do Brasileirão de 2002 e ídolo eterno do Ceará, onde escreveu história." },
   { name: "Tiquinho Soares", club: "Botafogo", year: 2023, fame: 2, lo: 70, hi: 83, bio: "Centroavante matador — vice-artilheiro do Brasileirão de 2023 puxando o ataque do Botafogo." },
   { name: "Muñoz", club: "Palmeiras", year: 2003, fame: 2, lo: 62, hi: 82, bio: "Centroavante colombiano de Medellín — goleador xodó da torcida do Palmeiras, artilheiro na campanha do título da Série B de 2003." }
 ]
