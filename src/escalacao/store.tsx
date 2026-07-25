@@ -1600,7 +1600,7 @@ type Action =
   | { type: 'SET_SPONSOR'; id: string } // 👕 escolhe a marca do patrocínio (carreira solo)
   | { type: 'BUY_FILIAL'; team: string } // 🏢 compra o clube-filial (carreira offline, teste)
   | { type: 'SELL_FILIAL' } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 3.000)
-  | { type: 'ADD_EMPRESARIO_CARD'; card: EmpCard } // 💼 registra uma carta ganha (pacote de campeão) na agência do Empresário
+  | { type: 'ADD_EMPRESARIO_CARD'; card: EmpCard; key?: string } // 💼 registra uma carta ganha (pacote de campeão) na agência do Empresário. `key` = seasonKey do pacote (dedup por temporada — aceita repetida entre temporadas)
   | { type: 'LOAN_TO_FILIAL'; cardId: string } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda, volta na virada)
   | { type: 'LOAN_FROM_FILIAL'; cardId: string } // 🏢 pega um jogador emprestado DA SAF (idem)
   | { type: 'MONTE_PASS'; mgrId: number } // carreira: recusa as sobras e passa a vez (o time já tem os 11)
@@ -2145,7 +2145,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerHonors = {}; s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.statsSeason = 0
       s.careerLedger = [] // 🧾 livro-caixa novo: extrato/transferências começam vazios
-      s.empresarioCards = [] // 💼 agência do Empresário começa vazia (renda das cartas ganhas nesta carreira)
+      s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência do Empresário começa vazia (renda das cartas ganhas nesta carreira)
       s.careerSponsor = undefined // 👕 patrocínio começa sem marca escolhida
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
       // vazando de uma carreira anterior (bug reportado: o estádio vinha completo).
@@ -2415,12 +2415,14 @@ export function reducer(state: EscState, action: Action): EscState {
     }
     case 'ADD_EMPRESARIO_CARD': {
       // 💼 carta ganha no pacote de campeão entra na agência do Empresário (só
-      // carreira SOLO). Não duplica a mesma carta (nome+clube+ano).
+      // carreira SOLO). Dedup por TEMPORADA (o pacote reoferece a carta no reload):
+      // cada pacote conta uma vez, mas cartas REPETIDAS entre temporadas EMPILHAM
+      // (renda cresce). O álbum geral ignora repetidas sozinho (dedup por carta lá).
       if (!s.careerOnline || s.onlineMode === 'online') return s
-      const c = action.card
-      const arr = s.empresarioCards ?? []
-      if (arr.some(x => x.name === c.name && x.club === c.club && x.year === c.year)) return s
-      s.empresarioCards = [...arr, c]
+      const keys = s.empresarioClaimKeys ?? []
+      if (action.key && keys.includes(action.key)) return s // este pacote já foi registrado
+      s.empresarioCards = [...(s.empresarioCards ?? []), action.card]
+      if (action.key) s.empresarioClaimKeys = [...keys, action.key]
       return s
     }
     case 'LOAN_TO_FILIAL': {
