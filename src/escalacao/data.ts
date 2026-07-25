@@ -900,7 +900,7 @@ const MEI: C[] = [
   { name: "Assis", club: "Fluminense", year: 1993, fame: 4, lo: 82, hi: 89, bio: "Meia de muito talento e visão, parceiro histórico do Renato Gaúcho — pura magia no meio-campo." },
   { name: "Falcão (do Futsal)", club: "São Paulo", year: 2005, fame: 1, lo: 56, hi: 80, folk: true, bio: "O maior craque da história do futsal — magia absurda na quadra, mas no campo pelo São Paulo quase não deu as caras. Folclore garantido." },
   { name: "Richard Ríos", club: "Palmeiras", year: 2024, fame: 3, lo: 76, hi: 84, bio: "Volante box-to-box colombiano que explodiu no Palmeiras — do futsal à Copa América, motor de força e passe que rendeu transferência à Europa." },
-  { name: "Zito", club: "Santos", year: 1962, fame: 4, lo: 84, hi: 91, bio: "Camisa 5 do Santos de Pelé e da Seleção bicampeã do mundo — equilíbrio, liderança e o gol no título da Copa de 1962." },,
+  { name: "Zito", club: "Santos", year: 1962, fame: 4, lo: 84, hi: 91, bio: "Camisa 5 do Santos de Pelé e da Seleção bicampeã do mundo — equilíbrio, liderança e o gol no título da Copa de 1962." },
   { name: "Somália", club: "Botafogo", year: 2016, fame: 1, lo: 55, hi: 78, folk: true }
 ]
 
@@ -1496,7 +1496,7 @@ const ATA_EU: C[] = [
   { name: "Olivier Giroud", club: "Milan", year: 2023, fame: 3, lo: 80, hi: 87, bio: "Centroavante francês de pivô e voleios acrobáticos — artilheiro histórico da França, campeão do mundo em 2018 e do scudetto pelo Milan." },
   { name: "Bradley Barcola", club: "PSG", year: 2024, fame: 3, lo: 78, hi: 85, bio: "Ponta francês veloz e desequilibrante — revelado no Lyon e peça ofensiva de destaque no Paris Saint-Germain." },
   { name: "Nacho Prestianni", club: "Benfica", year: 2024, fame: 1, lo: 62, hi: 82, promessa: true, bio: "Joia argentina de Vélez — ponta canhoto habilidoso que rumou cedo ao Benfica como aposta de futuro." },
-  { name: "Santiago Solari", club: "Real Madrid", year: 2002, fame: 2, lo: 76, hi: 84, bio: "Ponta-esquerda argentino dos Galácticos do Real — velocidade e drible que renderam títulos, incluindo a Champions de 2002." },,
+  { name: "Santiago Solari", club: "Real Madrid", year: 2002, fame: 2, lo: 76, hi: 84, bio: "Ponta-esquerda argentino dos Galácticos do Real — velocidade e drible que renderam títulos, incluindo a Champions de 2002." },
   { name: "Giuliano Simeone", club: "Atlético de Madrid", year: 2025, fame: 2, lo: 68, hi: 82, promessa: true, bio: "Ponta argentino de correria incansável — filho do Cholo que ganhou espaço no Atlético na raça e na intensidade." },
   { name: "Diego Costa", club: "Atlético de Madrid", year: 2014, fame: 4, lo: 83, hi: 89, bio: "Centroavante hispano-brasileiro de força bruta, provocação e gols — artilheiro do Atlético campeão espanhol de 2014." },
   { name: "Julián Álvarez", club: "Atlético de Madrid", year: 2025, fame: 4, lo: 82, hi: 89, bio: "‘La Araña’ — centroavante argentino de movimentação e faro, campeão do mundo em 2022 e da tríplice coroa pelo City antes de brilhar no Atlético." },
