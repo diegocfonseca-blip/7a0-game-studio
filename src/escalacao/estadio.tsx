@@ -168,12 +168,12 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions, filialInfo, onBuyFilial, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, onLoanFrom }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions, filialInfo, onBuyFilial, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, onLoanFrom, loanSlots = 1 }: {
   st: StadiumSave | undefined
   coins: number
   onInvest: (sector: string) => void
   onBuild: (ext: string) => void
-  filial?: { team: string; since: number; earned?: number; loanOut?: { id: string; name: string; pos: string }; loanIn?: { id: string; name: string; pos: string } } | null
+  filial?: { team: string; since: number; earned?: number; loanOut?: { id: string; name: string; pos: string }[]; loanIn?: { id: string; name: string; pos: string }[] } | null
   filialOptions?: string[]
   filialInfo?: { div: string; pos: number } | null
   onBuyFilial?: (team: string) => void
@@ -183,6 +183,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
   loanableInIds?: Set<string>
   onLoanTo?: (cardId: string) => void
   onLoanFrom?: (cardId: string) => void
+  loanSlots?: number // 🏢 vagas de empréstimo por lado (cresce com a divisão)
 }) {
   const [buying, setBuying] = useState(false)
   const [pickOut, setPickOut] = useState(false)
@@ -270,7 +271,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
             <li>🙅 <b>Nada</b> dos lucros de compra/venda do clube no mercado — só campanha</li>
             <li>⚖️ O clube da SAF <b>nunca disputa seu leilão</b>: vida própria, sobe e desce por mérito</li>
             <li>📈 Ela sobe de série? Sua comissão cresce junto (prêmio de série alta paga mais)</li>
-            <li>📋 Empréstimo de jogador entre os clubes: escolha na hora, <b>sempre volta</b> na virada de temporada</li>
+            <li>🔄 <b>Empréstimos crescem com a divisão</b> (emprestar E pegar): Série D <b>1</b> · C <b>2</b> · B <b>3</b> · A <b>4</b> por lado. Sobe/cai junto com você e <b>sempre volta</b> na virada</li>
+            <li>👥 Pegando emprestado, seu elenco passa de 22 — <b>até 26 na Série A</b></li>
           </ul>
         )
         if (filial) {
@@ -283,17 +285,19 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
 
             {/* 🔄 JANELA DE EMPRÉSTIMO — propriedade nunca muda, sempre volta na virada */}
             <div style={{ marginTop: 10, borderTop: '2px dashed rgba(0,0,0,.15)', paddingTop: 9 }}>
-              <p style={{ fontWeight: 900, fontSize: 12, margin: '0 0 6px', ...OSW }}>🔄 Janela de empréstimo</p>
+              <p style={{ fontWeight: 900, fontSize: 12, margin: '0 0 2px', ...OSW }}>🔄 Janela de empréstimo</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '0 0 7px' }}>Até <b>{loanSlots}</b> {loanSlots === 1 ? 'jogador' : 'jogadores'} por lado nesta divisão · cresce ao acessar (D 1 · C 2 · B 3 · A 4) · tudo volta na virada</p>
 
-              {/* empresta PRA SAF */}
-              {filial.loanOut ? (
-                <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', marginBottom: 6, fontSize: 11, fontWeight: 800 }}>
-                  📤 <b>{filial.loanOut.name}</b> ({filial.loanOut.pos}) jogando na SAF · volta pra você na próxima temporada
+              {/* empresta PRA SAF (várias vagas conforme a divisão) */}
+              {(filial.loanOut ?? []).map(lo => (
+                <div key={lo.id} style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', marginBottom: 6, fontSize: 11, fontWeight: 800 }}>
+                  📤 <b>{lo.name}</b> ({lo.pos}) jogando na SAF · volta na próxima temporada
                 </div>
-              ) : onLoanTo && (mySquad?.length ?? 0) > 0 ? (
+              ))}
+              {(filial.loanOut ?? []).length < loanSlots && onLoanTo && (mySquad?.length ?? 0) > 0 ? (
                 <div style={{ marginBottom: 6 }}>
                   <button onClick={() => setPickOut(o => !o)} style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 10px', fontWeight: 900, fontSize: 11, ...OSW, background: '#fff', width: '100%', textAlign: 'left', cursor: 'pointer' }}>
-                    📤 {pickOut ? '▾' : '▸'} Emprestar um jogador seu pra SAF
+                    📤 {pickOut ? '▾' : '▸'} Emprestar um jogador pra SAF <span style={{ opacity: .55 }}>({(filial.loanOut ?? []).length}/{loanSlots})</span>
                   </button>
                   {pickOut && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 5, maxHeight: 160, overflowY: 'auto' }}>
@@ -311,15 +315,16 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
                 </div>
               ) : null}
 
-              {/* pega emprestado DA SAF */}
-              {filial.loanIn ? (
-                <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', fontSize: 11, fontWeight: 800 }}>
-                  📥 <b>{filial.loanIn.name}</b> ({filial.loanIn.pos}) jogando com você · volta pra SAF na próxima temporada
+              {/* pega emprestado DA SAF (várias vagas conforme a divisão) */}
+              {(filial.loanIn ?? []).map(li => (
+                <div key={li.id} style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', marginBottom: 6, fontSize: 11, fontWeight: 800 }}>
+                  📥 <b>{li.name}</b> ({li.pos}) jogando com você · volta pra SAF na virada
                 </div>
-              ) : onLoanFrom && (filialSquad?.length ?? 0) > 0 ? (
+              ))}
+              {(filial.loanIn ?? []).length < loanSlots && onLoanFrom && (filialSquad?.length ?? 0) > 0 ? (
                 <div>
                   <button onClick={() => setPickIn(o => !o)} style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 10px', fontWeight: 900, fontSize: 11, ...OSW, background: '#fff', width: '100%', textAlign: 'left', cursor: 'pointer' }}>
-                    📥 {pickIn ? '▾' : '▸'} Pegar um jogador emprestado da SAF
+                    📥 {pickIn ? '▾' : '▸'} Pegar um jogador da SAF <span style={{ opacity: .55 }}>({(filial.loanIn ?? []).length}/{loanSlots})</span>
                   </button>
                   {pickIn && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 5, maxHeight: 160, overflowY: 'auto' }}>
@@ -346,7 +351,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
             <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>💼 COMPRAR UMA SAF</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '3px 0 6px' }}>
               {allDone
-                ? <>Compre a <b>SAF de um clube da Série D</b> e vire dono: você adquire o direito a <b>50% dos lucros de campanha</b> dele (e assume metade do prejuízo na queda). O clube segue jogando por conta própria — sem leilão contra você. Empréstimos de jogadores entre os clubes: em breve.</>
+                ? <>Compre a <b>SAF de um clube da Série D</b> e vire dono: você adquire o direito a <b>50% dos lucros de campanha</b> dele (e assume metade do prejuízo na queda). O clube segue jogando por conta própria — sem leilão contra você. E você <b>empresta e pega jogadores</b> dele: <b>+vagas conforme você sobe de série</b> (D 1 · C 2 · B 3 · A 4).</>
                 : <>🔒 destrava com: <b style={{ color: '#9a4b00' }}>Estádio 100% completo</b> (setores + melhorias) · a SAF custa 2.000 💰</>}
             </p>
             {allDone && regras}
