@@ -159,10 +159,13 @@ function hashCode(s: string): number {
 // embaralhador JUSTO (Fisher-Yates). O antigo `sort(() => rng()-0.5)` é
 // viciado — deixava as cartas do começo da lista (ex.: Pelé) aparecerem
 // bem mais que as outras. Com isso todas as lendas têm chance igual.
-// IDENTIDADE de um jogador = AUGE (nome+clube+ano). Vini Jr Flamengo e Vini Jr
-// Real Madrid são jogadores DIFERENTES (níveis bem distintos) — podem aparecer os
-// dois na mesma carreira. Só o auge idêntico é que é "o mesmo jogador".
-const ident = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
+// IDENTIDADE de um jogador = nome+CLUBE (ignora o ano). Um jogador é ÚNICO por time
+// no jogo: nunca pode aparecer duas cartas do mesmo jogador no mesmo clube na mesma
+// partida. Vini Jr Flamengo e Vini Jr Real Madrid seguem sendo DIFERENTES (clubes
+// distintos). O ano ficava na chave e deixava um save antigo (ex.: Yamal/Barcelona
+// 2024 guardado num elenco) conviver com a versão nova do catálogo (2025) como se
+// fossem cartas diferentes — bug dos dois Yamal. Tirar o ano resolve de vez.
+const ident = (c: { name: string; club: string }) => `${c.name}|${c.club}`
 function shuffle<T>(arr: T[], rng: () => number): T[] {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
