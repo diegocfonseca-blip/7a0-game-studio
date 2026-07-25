@@ -259,21 +259,12 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             </div>
           </div>
 
-          {/* o que cada coisa faz */}
-          <div className="mt-3 space-y-1.5">
-            {[['🐢', 'Devagar', 'assiste o jogo com calma, gol por gol'], ['⚡', 'Rápido', 'acelera 2× ou 4× quando quiser correr'], ['▶️', 'Próxima rodada', 'só avança quando VOCÊ mandar — nada passa sozinho'], ['⏭️', 'Pular', 'joga a rodada na hora, sem esperar a animação'], ['🔁', 'Modo auto', 'quando cansar de clicar, ele volta a rodar sozinho']].map(([ic, t, d]) => (
-              <div key={t} className="flex items-start gap-2">
-                <span className="text-[15px] flex-shrink-0">{ic}</span>
-                <p className="text-[11.5px] font-bold text-black/75 leading-snug"><b>{t}</b> — {d}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* ⭐ O manual NÃO é um produto avulso: ele É o tier Craque. Pelos mesmos
-              R$ 19,90 a pessoa leva o Manual E a cor do time — um apoio só. */}
-          <div className="border-[3px] border-black rounded-xl px-3 py-2.5 mt-4" style={{ background: 'linear-gradient(150deg,#F4F7FB,#CBD4DE)', boxShadow: `3px 3px 0 0 ${INK}` }}>
-            <p className="font-black text-[13px] text-center" style={OSWALD}>⭐ O Modo Manual é o tier Craque</p>
-            <p className="text-[11px] font-bold text-black/70 text-center mt-1 leading-snug">Um apoio só: pelos mesmos <b>R$ 19,90</b> você libera o Manual <b>e</b> pinta o time todo — cor prata com brilho no elenco, no estádio e nas tabelas.</p>
+          {/* ⭐ O manual NÃO é um produto avulso: ele É o tier Craque. O box brilha
+              prata (holo do craque) — é como estar DENTRO do botão de R$ 19,90. */}
+          <div className="border-[3px] border-black rounded-xl px-3 py-2.5 mt-4" style={{ background: APOIO_PERKS.prata.grad, boxShadow: `3px 3px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.5) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />
+            <p className="font-black text-[13px] text-center relative" style={OSWALD}>⭐ O Modo Manual é o tier Craque</p>
+            <p className="text-[11px] font-bold text-black/70 text-center mt-1 leading-snug relative">Um apoio só: pelos mesmos <b>R$ 19,90</b> você libera o Manual <b>e</b> pinta o time todo — cor prata com brilho no elenco, no estádio e nas tabelas.</p>
           </div>
 
           <p className="font-black text-center text-lg mt-3" style={OSWALD}>R$ 19,90 · uma vez só</p>
@@ -285,20 +276,25 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           </button>
           <p className="text-[10px] font-bold text-black/45 text-center mt-1.5">a mensagem já vai copiada · liberamos em até 24h no seu e-mail 💛</p>
 
-          {/* 👑 escadinha honesta pra cima do Craque: Lenda (ouro) e, no topo, o
-              Batismo (R$ 59,90) — que é o ÚNICO que dá o nome do clube. */}
-          <div className="border-[3px] border-black rounded-xl px-3 py-3 mt-4" style={{ background: 'linear-gradient(150deg,#FFF3CE,#FFE18A)', boxShadow: `4px 4px 0 0 ${INK}` }}>
-            <p className="font-black text-[12.5px] text-center" style={OSWALD}>🪜 Ou sobe mais na escada</p>
-            <div className="mt-2 space-y-1.5">
-              <p className="text-[11px] font-bold text-black/80 leading-snug">👑 <b>Lenda · R$ 39,90</b> — tudo do Craque <b>+ ouro</b> (ou qualquer cor) com brilho e selo, e já garante os modos que vêm aí: <b>Carreira Online</b> e <b>Liga Fechada</b> (chegando).</p>
-              <p className="text-[11px] font-bold text-black/80 leading-snug">⚽ <b>Batiza teu clube · R$ 59,90</b> — o topo: <b>tudo do Lenda</b> + o <b>SEU nome</b> num clube do campeonato que todo mundo joga, pra sempre.</p>
-            </div>
-            <button onClick={() => { logApoio('👀 manual → ver tudo'); setScreen('choice') }}
-              className="w-full rounded-xl border-[3px] border-black font-black text-[13px] py-2.5 mt-2.5 active:translate-y-0.5"
-              style={{ background: '#fff', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
-              👉 Ver tudo que dá pra apoiar
-            </button>
-          </div>
+          {/* 👑 escadinha pra cima do Craque: cada tier é um BOTÃO dourado que
+              brilha e leva pro fluxo dele (Lenda → cores/ouro; Batismo → dream),
+              igual quando se aperta na home. */}
+          <p className="font-black text-[12.5px] text-center mt-4 mb-2" style={OSWALD}>🪜 Ou sobe mais na escada</p>
+          <button onClick={() => { logApoio('👀 manual → lenda'); setScreen('cores'); setCorSel('ouro') }}
+            className="w-full text-left rounded-xl border-[3px] border-black px-3 py-2.5 active:translate-y-0.5"
+            style={{ background: APOIO_PERKS.ouro.grad, boxShadow: `4px 4px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.6) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />
+            <p className="font-black text-[13px] relative" style={OSWALD}>👑 Lenda · R$ 39,90 <span className="float-right">👉</span></p>
+            <p className="text-[10.5px] font-bold text-black/75 leading-snug relative mt-0.5">Tudo do Craque <b>+ ouro</b> (ou qualquer cor) com brilho e selo, e já garante os modos que vêm aí: <b>Carreira Online</b> e <b>Liga Fechada</b> (chegando).</p>
+          </button>
+          <button onClick={() => { logApoio('👀 manual → batismo'); setScreen('dream') }}
+            className="w-full text-left rounded-xl border-[3px] border-black px-3 py-2.5 mt-2 active:translate-y-0.5"
+            style={{ background: APOIO_PERKS.ouro.grad, boxShadow: `4px 4px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.6) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />
+            <p className="font-black text-[13px] relative" style={OSWALD}>⚽ Batiza teu clube · R$ 59,90 <span className="float-right">👉</span></p>
+            <p className="text-[10.5px] font-bold text-black/75 leading-snug relative mt-0.5">O topo: <b>tudo do Lenda</b> + o <b>SEU nome</b> num clube do campeonato que todo mundo joga, pra sempre.</p>
+          </button>
+          <button onClick={() => { logApoio('👀 manual → ver tudo'); setScreen('choice') }} className="w-full text-[11px] font-black underline text-black/45 mt-2 active:opacity-60">ver todos os apoios</button>
 
           {/* 💛 por que isso existe — a história do Diego e do filho (mesma da tela principal) */}
           <div className="border-t-[3px] border-black/15 mt-4 pt-3">
