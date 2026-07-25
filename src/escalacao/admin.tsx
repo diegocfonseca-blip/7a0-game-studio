@@ -321,9 +321,11 @@ function Dashboard({ email }: { email: string }) {
                       batimento, então funciona pra anônimo e pra pirâmide também.
                       Sem o dado novo (app antigo), cai no fallback por nome. */}
                   {p.mode === 'career' && typeof p.careerCoins === 'number' && (
-                    p.careerCoins >= COINS_ALERT
-                      ? <span title={`⚠️ Caixa suspeita: ${p.careerCoins} moedas (limite ${COINS_ALERT}). O valor é auto-reportado pelo navegador do jogador e o servidor não valida — pode ter sido adulterado. Só um alerta pra você observar; nada é feito com a conta.`} style={{ color: '#FF6B57', fontWeight: 900 }}> · ⚠️ 💰 {p.careerCoins}</span>
-                      : <span style={{ color: '#7FE3A0', fontWeight: 800 }}> · 💰 {p.careerCoins}</span>
+                    p.careerCoins < 0
+                      ? <span title="Caixa no vermelho — a folha ficou maior que o caixa (dívida)." style={{ color: '#FF6B57', fontWeight: 900 }}> · 💰 −{Math.abs(p.careerCoins)}</span>
+                      : p.careerCoins >= COINS_ALERT
+                        ? <span title={`⚠️ Caixa suspeita: ${p.careerCoins} moedas (limite ${COINS_ALERT}). O valor é auto-reportado pelo navegador do jogador e o servidor não valida — pode ter sido adulterado. Só um alerta pra você observar; nada é feito com a conta.`} style={{ color: '#FF6B57', fontWeight: 900 }}> · ⚠️ 💰 {p.careerCoins}</span>
+                        : <span style={{ color: '#7FE3A0', fontWeight: 800 }}> · 💰 {p.careerCoins}</span>
                   )}
                   {p.mode === 'career' && ((p.careerTitles ?? -1) > 0
                     ? <span style={{ color: GOLD, fontWeight: 800 }}> · 🏆 {p.careerTitles}</span>
