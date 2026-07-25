@@ -3778,7 +3778,7 @@ const ALL_POOL: WonCard[] = (() => {
   return out
 })()
 
-export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onStatus, noTimer }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; noTimer?: boolean }) {
+export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onStatus, noTimer, saveCards }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; noTimer?: boolean; saveCards?: { name: string; club: string; year: number }[] }) {
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
   // avisa quem renderiza (EscEnd) o status da carta — pra travar a votação online
@@ -3821,9 +3821,19 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
   // (baralho BR + Europa), sempre uma que o campeão ainda NÃO tem (só repetiria
   // se já tivesse o catálogo inteiro). Trocamos o "escolher" pela emoção de abrir.
   const packPool = useMemo(() => {
+    // MODO CARREIRA: a unicidade do pacote é do SAVE (agência), não do álbum geral.
+    // Assim uma carta que você já tem no álbum de rua mas ainda NÃO neste save
+    // entra normalmente no save (conta pra agência) — não gera carta substituta e,
+    // por já existir, não infla o álbum geral (o álbum deduplica por nome|clube|ano).
+    // Só evita repetir o que já está NESTE save: aí sim sorteia outra que falta no save.
+    if (saveCards) {
+      const saveSet = new Set(saveCards.map(c => `${c.name}|${c.club}|${c.year}`))
+      const un = ALL_POOL.filter(c => !saveSet.has(`${c.name}|${c.club}|${c.year}`))
+      return un.length ? un : ALL_POOL
+    }
     const un = ALL_POOL.filter(c => !owned.has(c.name))
     return un.length ? un : ALL_POOL
-  }, [owned])
+  }, [owned, saveCards])
   const [opening, setOpening] = useState(false)
   const openPack = () => {
     if (opening || claimingRef.current) return
