@@ -60,6 +60,7 @@ export interface EmpCard {
   fame: number
   folk?: boolean
   promessa?: boolean
+  season?: number // 💼 temporada em que a carta foi ganha — só começa a render na temporada SEGUINTE (não na que ela foi tirada no fim)
 }
 
 // só duas formações — GOL/LAT/ZAG são sempre 1/2/2 nas duas (nunca variam),

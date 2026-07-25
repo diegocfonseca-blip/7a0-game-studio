@@ -86,7 +86,10 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
   // 💼 EMPRESÁRIO (só carreira SOLO): renda das cartas ganhas nesta carreira, por
   // raridade — só as categorias DESBLOQUEADAS (estádio/SAF) rendem.
   if (s.onlineMode !== 'online') {
-    const inc = empresarioIncome(s.empresarioCards, s.stadiums?.[y], !!s.careerFilial).total
+    // só rendem as cartas ganhas em temporadas ANTERIORES — a carta tirada no fim
+    // desta temporada (season == seasonNo atual) só começa a render na próxima virada.
+    const maduras = (s.empresarioCards ?? []).filter(c => (c.season ?? 0) < (s.seasonNo ?? 1))
+    const inc = empresarioIncome(maduras, s.stadiums?.[y], !!s.careerFilial).total
     if (inc > 0) s.careerCoins = { ...s.careerCoins, [y]: (s.careerCoins[y] ?? 0) + inc }
   }
   const b5 = s.careerCoins[y] ?? 0
@@ -2412,7 +2415,9 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!s.careerOnline || s.onlineMode === 'online') return s
       const keys = s.empresarioClaimKeys ?? []
       if (action.key && keys.includes(action.key)) return s // este pacote já foi registrado
-      s.empresarioCards = [...(s.empresarioCards ?? []), action.card]
+      // carimba a temporada em que a carta foi ganha — ela só começa a render na
+      // temporada SEGUINTE (não na virada da temporada em que foi tirada no fim).
+      s.empresarioCards = [...(s.empresarioCards ?? []), { ...action.card, season: s.seasonNo ?? 1 }]
       if (action.key) s.empresarioClaimKeys = [...keys, action.key]
       return s
     }
