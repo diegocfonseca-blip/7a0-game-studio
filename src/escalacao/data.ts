@@ -789,7 +789,8 @@ const ZAG: C[] = [
   { name: "Werley", club: "Grêmio", year: 2013, fame: 1, lo: 56, hi: 78, bio: "O convocado-surpresa do Felipão que fez o Brasil inteiro perguntar 'quem?' — bom zagueiro, história melhor ainda." },
   { name: "Edu Dracena", club: "Santos", year: 2011, fame: 3, lo: 76, hi: 84, bio: "Zagueiro seguro e capitão — leitura de jogo e saída limpa no Santos de Neymar, depois de erguer o tri do Cruzeiro em 2003." },
   { name: "Durval", club: "Santos", year: 2013, fame: 1, lo: 56, hi: 78, bio: "Zagueiro veterano e capitão raçudo do Santos — cabeçada firme e liderança de vestiário por vários anos na Vila." },
-  { name: "Arboleda", club: "São Paulo", year: 2022, fame: 3, lo: 74, hi: 84, bio: "Zagueirão equatoriano do São Paulo — imponente no jogo aéreo e ídolo da fiel, soma raça e saída de bola." }
+  { name: "Arboleda", club: "São Paulo", year: 2022, fame: 3, lo: 74, hi: 84, bio: "Zagueirão equatoriano do São Paulo — imponente no jogo aéreo e ídolo da fiel, soma raça e saída de bola." },
+  { name: "Paulo Miranda", club: "São Paulo", year: 2015, fame: 2, lo: 72, hi: 83, bio: "Viveu o auge no São Paulo por volta de 2015 — sólido o bastante pra ser convocado à Seleção do Dunga. Depois foi campeão da Copa do Brasil pelo Grêmio em 2016." }
 ]
 
 const MEI: C[] = [
@@ -1065,7 +1066,9 @@ const ATA: C[] = [
   { name: "Alex Mineiro", club: "Athletico-PR", year: 2005, fame: 3, lo: 72, hi: 84, bio: "Artilheiro decisivo do Athletico vice da Libertadores de 2005 — também brilhou em Palmeiras e Grêmio e vestiu a Seleção." },
   { name: "Víctor Aristizábal", club: "Santos", year: 2001, fame: 3, lo: 74, hi: 85, bio: "Goleador colombiano ídolo do Santos — faro de gol matador que marcou época na Vila Belmiro." },
   { name: "Roger Guedes", club: "Corinthians", year: 2022, fame: 3, lo: 74, hi: 84, bio: "Atacante de finalização caprichada e faltas venenosas, ídolo e artilheiro do Corinthians — voltou da China pra brilhar em Itaquera." },
-  { name: "Thiago Galhardo", club: "Internacional", year: 2020, fame: 3, lo: 74, hi: 84, bio: "Meia-atacante de faro raro — vice-artilheiro do Brasileirão de 2020 pelo Inter, gol de todo tipo numa temporada mágica." }
+  { name: "Thiago Galhardo", club: "Internacional", year: 2020, fame: 3, lo: 74, hi: 84, bio: "Meia-atacante de faro raro — vice-artilheiro do Brasileirão de 2020 pelo Inter, gol de todo tipo numa temporada mágica." },
+  { name: "Mauro Shampoo", club: "Íbis", year: 1980, fame: 1, lo: 35, hi: 55, folk: true, bio: "Centroavante-cabeleireiro do Íbis, o time mais fraco do mundo — símbolo máximo do futebol folclórico. O pior nível do jogo, com muito orgulho." },
+  { name: "Carlos Kaiser", club: "Bangu", year: 1986, fame: 1, lo: 35, hi: 55, folk: true, bio: "O maior farsante da história do futebol — passou a carreira inteira fingindo ser jogador sem nunca entrar em campo de verdade. No Bangu, arrumou briga com a torcida só pra ser expulso e não precisar jogar — e ainda ganhou renovação de contrato." }
 ]
 
 export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
@@ -1456,6 +1459,7 @@ const ATA_EU: C[] = [
   { name: "Alexis Sánchez", club: "Arsenal", year: 2014, fame: 4, lo: 85, hi: 91 },
   { name: "Andy Carroll", club: "Newcastle", year: 2010, fame: 3, lo: 76, hi: 84 },
   { name: "Bebeto", club: "Deportivo La Coruña", year: 1993, fame: 4, lo: 85, hi: 91 },
+  { name: "Luís Boa Morte", club: "Fulham", year: 2003, fame: 2, lo: 74, hi: 84, bio: "Ponta-esquerda explosivo e raçudo — ídolo do Fulham nos anos 2000 e peça de Portugal, velocidade e entrega que marcaram a Premier League." },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
 
