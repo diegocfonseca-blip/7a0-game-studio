@@ -291,10 +291,14 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           </button>
           <p className="text-[10px] font-bold text-black/45 text-center mt-1.5">a mensagem já vai copiada · liberamos em até 24h no seu e-mail 💛</p>
 
-          {/* 👑 upsell honesto pro Lenda — aqui SIM é mais que o Craque, por mais R$ 20 */}
-          <div className="border-[3px] border-black rounded-xl px-3 py-3 mt-4" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400,#E8A200)', boxShadow: `4px 4px 0 0 ${INK}` }}>
-            <p className="font-black text-[12.5px] text-center" style={OSWALD}>👑 Ou sobe pro Lenda · R$ 39,90</p>
-            <p className="text-[11px] font-bold text-black/80 leading-snug mt-1.5">Tudo do Craque <b>+ ouro</b> (ou qualquer cor) com brilho, <b>batiza um clube</b> do campeonato pra sempre e já garante a <b>Carreira Online</b> (chegando).</p>
+          {/* 👑 escadinha honesta pra cima do Craque: Lenda (ouro) e, no topo, o
+              Batismo (R$ 59,90) — que é o ÚNICO que dá o nome do clube. */}
+          <div className="border-[3px] border-black rounded-xl px-3 py-3 mt-4" style={{ background: 'linear-gradient(150deg,#FFF3CE,#FFE18A)', boxShadow: `4px 4px 0 0 ${INK}` }}>
+            <p className="font-black text-[12.5px] text-center" style={OSWALD}>🪜 Ou sobe mais na escada</p>
+            <div className="mt-2 space-y-1.5">
+              <p className="text-[11px] font-bold text-black/80 leading-snug">👑 <b>Lenda · R$ 39,90</b> — tudo do Craque <b>+ ouro</b> (ou qualquer cor) com brilho e selo, e já garante a <b>Carreira Online</b> (chegando).</p>
+              <p className="text-[11px] font-bold text-black/80 leading-snug">⚽ <b>Batiza teu clube · R$ 59,90</b> — o topo: <b>tudo do Lenda</b> + o <b>SEU nome</b> num clube do campeonato que todo mundo joga, pra sempre.</p>
+            </div>
             <button onClick={() => { logApoio('👀 manual → ver tudo'); setScreen('choice') }}
               className="w-full rounded-xl border-[3px] border-black font-black text-[13px] py-2.5 mt-2.5 active:translate-y-0.5"
               style={{ background: '#fff', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
