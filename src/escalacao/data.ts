@@ -344,7 +344,7 @@ export const BIOS: Record<string, string> = {
   "Miguel Borja": "Centroavante colombiano forte e finalizador, artilheiro pelo Palmeiras.",
   "Diego Tardelli": "Velocidade e inteligência. Recompunha e aparecia pra decidir no Atlético-MG.",
   "Emerson Sheik": "Atacante habilidoso e polêmico, ídolo do Corinthians campeão do mundo de 2012.",
-  "Somália": "Atacante veloz e raçudo, artilheiro folclórico rodado pelo futebol carioca.",
+  "Somália": "Meia raçudo e folclórico, figura rodada pelo futebol carioca.",
   "Ricardo Oliveira": "Longevidade e faro de gol intactos. Técnico saindo da área e finalizador letal.",
   "Flávio Caça-Rato": "Ícone carismático do Santa Cruz. Gols decisivos e dancinhas de comemoração.",
   "Kerlon Foquinha": "O inventor do drible da foca — a firula que parou o Mineirão em 2007.",
@@ -900,7 +900,8 @@ const MEI: C[] = [
   { name: "Assis", club: "Fluminense", year: 1993, fame: 4, lo: 82, hi: 89, bio: "Meia de muito talento e visão, parceiro histórico do Renato Gaúcho — pura magia no meio-campo." },
   { name: "Falcão (do Futsal)", club: "São Paulo", year: 2005, fame: 1, lo: 56, hi: 80, folk: true, bio: "O maior craque da história do futsal — magia absurda na quadra, mas no campo pelo São Paulo quase não deu as caras. Folclore garantido." },
   { name: "Richard Ríos", club: "Palmeiras", year: 2024, fame: 3, lo: 76, hi: 84, bio: "Volante box-to-box colombiano que explodiu no Palmeiras — do futsal à Copa América, motor de força e passe que rendeu transferência à Europa." },
-  { name: "Zito", club: "Santos", year: 1962, fame: 4, lo: 84, hi: 91, bio: "Camisa 5 do Santos de Pelé e da Seleção bicampeã do mundo — equilíbrio, liderança e o gol no título da Copa de 1962." },
+  { name: "Zito", club: "Santos", year: 1962, fame: 4, lo: 84, hi: 91, bio: "Camisa 5 do Santos de Pelé e da Seleção bicampeã do mundo — equilíbrio, liderança e o gol no título da Copa de 1962." },,
+  { name: "Somália", club: "Botafogo", year: 2016, fame: 1, lo: 55, hi: 78, folk: true }
 ]
 
 const ATA: C[] = [
@@ -973,7 +974,6 @@ const ATA: C[] = [
   { name: "Diego Tardelli", club: "Atlético-MG", year: 2014, fame: 2, lo: 70, hi: 84 },
   { name: "Emerson Sheik", club: "Corinthians", year: 2012, fame: 3, lo: 75, hi: 86 },
   { name: "Deyverson", club: "Palmeiras", year: 2018, fame: 2, lo: 55, hi: 83, folk: true },
-  { name: "Somália", club: "Botafogo", year: 2016, fame: 1, lo: 55, hi: 78, folk: true },
   { name: "Ricardo Oliveira", club: "Santos", year: 2015, fame: 3, lo: 77, hi: 84 },
   { name: "Flávio Caça-Rato", club: "Santa Cruz", year: 2013, fame: 2, lo: 58, hi: 80, folk: true },
   { name: "Kerlon Foquinha", club: "Cruzeiro", year: 2007, fame: 2, lo: 55, hi: 82, folk: true },
@@ -1110,7 +1110,10 @@ const GOL_EU: C[] = [
   { name: "Edwin van der Sar", club: "Manchester United", year: 2009, fame: 4, lo: 85, hi: 91, bio: "O holandês gigante do United campeão da Champions — recorde de minutos sem tomar gol e frieza total nas decisões." },
   { name: "Jordan Pickford", club: "Everton", year: 2018, fame: 3, lo: 77, hi: 85, bio: "Goleiro titular da Inglaterra — explosivo, bom de pênalti e sempre no meio de uma treta. Herói e vilão na mesma tarde." },
   { name: "Doni", club: "Roma", year: 2008, fame: 2, lo: 76, hi: 84, bio: "Goleiro brasileiro que fez carreira sólida na Roma antes de passar pelo Liverpool — reflexo firme na Série A." },
-  { name: "Emiliano “Dibu” Martínez", club: "Aston Villa", year: 2023, fame: 4, lo: 82, hi: 88, bio: "Arqueiro argentino campeão do mundo em 2022 — luva de ouro, pegador de pênalti e provocador nato, herói na final e nas disputas." }
+  { name: "Emiliano “Dibu” Martínez", club: "Aston Villa", year: 2023, fame: 4, lo: 82, hi: 88, bio: "Arqueiro argentino campeão do mundo em 2022 — luva de ouro, pegador de pênalti e provocador nato, herói na final e nas disputas." },
+  { name: "Mike Maignan", club: "Milan", year: 2022, fame: 3, lo: 80, hi: 87, bio: "Goleiro francês de reflexo felino e saída de bola moderna — pilar do Milan campeão italiano de 2022." },
+  { name: "Hugo Lloris", club: "Tottenham", year: 2018, fame: 3, lo: 80, hi: 87, bio: "Capitão da França campeã do mundo em 2018 — reflexos rápidos e uma década de regularidade no Tottenham." },
+  { name: "Wojciech Szczęsny", club: "Juventus", year: 2021, fame: 3, lo: 78, hi: 85, bio: "Goleiro polonês seguro e experiente — anos de regularidade na Juventus após despontar no Arsenal." }
 ]
 const LAT_EU: C[] = [
   { name: "Carvajal", club: "Real Madrid", year: 2022, fame: 4, lo: 82, hi: 89 },
@@ -1152,7 +1155,8 @@ const LAT_EU: C[] = [
   { name: "Gonzalo Montiel", club: "Sevilla", year: 2023, fame: 2, lo: 68, hi: 82, bio: "Lateral-direito argentino — bateu o pênalti que deu a Copa do Mundo de 2022, e faturou a Europa League pelo Sevilla." },
   { name: "Nicolás Tagliafico", club: "Ajax", year: 2019, fame: 2, lo: 70, hi: 83, bio: "Lateral-esquerdo argentino raçudo — titular do Ajax semifinalista da Champions de 2019 e campeão do mundo em 2022." },
   { name: "Marcos Acuña", club: "Sevilla", year: 2023, fame: 3, lo: 74, hi: 84, bio: "‘Huevo’ — lateral/ala esquerdo de pulmão infinito e cruzamento afiado, ídolo do Sevilla e campeão do mundo com a Argentina." },
-  { name: "Lionel Scaloni", club: "Deportivo La Coruña", year: 2004, fame: 2, lo: 68, hi: 82, bio: "Antes de ser o técnico campeão do mundo, foi lateral-direito raçudo — ídolo do Deportivo La Coruña que brigou pela Champions." }
+  { name: "Lionel Scaloni", club: "Deportivo La Coruña", year: 2004, fame: 2, lo: 68, hi: 82, bio: "Antes de ser o técnico campeão do mundo, foi lateral-direito raçudo — ídolo do Deportivo La Coruña que brigou pela Champions." },
+  { name: "Joshua Kimmich", club: "Bayern", year: 2020, fame: 4, lo: 82, hi: 89, bio: "Alemão versátil e cerebral — lateral e volante de passe milimétrico, peça do Bayern da tríplice coroa de 2020." }
 ]
 const ZAG_EU: C[] = [
   { name: "Maguire", club: "Man United", year: 2019, fame: 2, lo: 66, hi: 82 },
@@ -1207,7 +1211,9 @@ const ZAG_EU: C[] = [
   { name: "José María Giménez", club: "Atlético de Madrid", year: 2019, fame: 3, lo: 81, hi: 88, bio: "Zagueiro uruguaio de marcação feroz e jogo aéreo — parceria histórica com Godín na muralha do Atlético de Simeone." },
   { name: "Lisandro Martínez", club: "Manchester United", year: 2023, fame: 3, lo: 78, hi: 85, bio: "‘Carnicero’ — zagueiro-canhoto argentino baixinho e brabo, campeão do mundo em 2022 e muralha raçuda do Manchester United." },
   { name: "Nicolás Otamendi", club: "Manchester City", year: 2018, fame: 3, lo: 78, hi: 85, bio: "‘General’ argentino de marcação truculenta — bicampeão inglês pelo City e pilar eterno da seleção campeã do mundo em 2022." },
-  { name: "Ronald Koeman", club: "Barcelona", year: 1992, fame: 4, lo: 83, hi: 89, bio: "Zagueiro-artilheiro holandês de canhota canhão — fez o gol do primeiro título europeu do Barça de Cruyff em Wembley, 1992." }
+  { name: "Ronald Koeman", club: "Barcelona", year: 1992, fame: 4, lo: 83, hi: 89, bio: "Zagueiro-artilheiro holandês de canhota canhão — fez o gol do primeiro título europeu do Barça de Cruyff em Wembley, 1992." },
+  { name: "David Alaba", club: "Real Madrid", year: 2022, fame: 3, lo: 81, hi: 88, bio: "Austríaco versátil e canhoto — campeão da Champions pelo Bayern e pelo Real Madrid, zagueiro de saída de bola e bola parada." },
+  { name: "William Saliba", club: "Arsenal", year: 2024, fame: 3, lo: 80, hi: 87, bio: "Zagueiro francês elegante e veloz — a muralha do Arsenal da nova era, leitura de jogo e saída de bola de sobra." }
 ]
 const MEI_EU: C[] = [
   { name: "Payet", club: "Marseille", year: 2017, fame: 3, lo: 80, hi: 87 },
@@ -1393,7 +1399,7 @@ const ATA_EU: C[] = [
   { name: "Franck Ribéry", club: "Bayern", year: 2013, fame: 4, lo: 85, hi: 91 },
   { name: "Fernando Torres", club: "Liverpool", year: 2008, fame: 4, lo: 85, hi: 91 },
   { name: "David Villa", club: "Barcelona", year: 2010, fame: 4, lo: 85, hi: 91 },
-  { name: "Robinho", club: "Real Madrid", year: 2008, fame: 4, lo: 83, hi: 89 },
+  { name: "Robinho", club: "Real Madrid", year: 2007, fame: 4, lo: 83, hi: 89 },
   { name: "Hulk", club: "Porto", year: 2012, fame: 3, lo: 82, hi: 88 },
   { name: "Filippo Inzaghi", club: "Milan", year: 2003, fame: 4, lo: 83, hi: 89 },
   { name: "David Trezeguet", club: "Juventus", year: 2002, fame: 4, lo: 83, hi: 89 },
@@ -1480,7 +1486,7 @@ const ATA_EU: C[] = [
   { name: "Andrey Arshavin", club: "Arsenal", year: 2009, fame: 3, lo: 80, hi: 87, bio: "Meia-atacante russo genial — eternizado pelos 4 gols que fez sozinho em Anfield pelo Arsenal. Talento explosivo e imprevisível." },
   { name: "Svetoslav Todorov", club: "Portsmouth", year: 2003, fame: 2, lo: 72, hi: 83, bio: "Centroavante búlgaro artilheiro do Portsmouth — carregou o clube à Premier League com uma temporada de gols na Championship." },
   { name: "Oliver Bierhoff", club: "Milan", year: 1999, fame: 3, lo: 80, hi: 87, bio: "Centroavante alemão letal de cabeça — autor do primeiro gol de ouro da história, na conquista da Euro 96, e artilheiro no Udinese e no Milan." },
-  { name: "Giovani dos Santos", club: "Villarreal", year: 2013, fame: 3, lo: 78, hi: 85, bio: "Meia-atacante mexicano de drible e categoria — joia do Barça que engrenou no Villarreal e no Tottenham, craque histórico da seleção do México." },
+  { name: "Giovani dos Santos", club: "Villarreal", year: 2014, fame: 3, lo: 78, hi: 85, bio: "Meia-atacante mexicano de drible e categoria — joia do Barça que engrenou no Villarreal e no Tottenham, craque histórico da seleção do México." },
   { name: "Evandro Roncatto", club: "Dinamo Bucareste", year: 2011, fame: 1, lo: 60, hi: 80, folk: true, bio: "Atacante brasileiro andarilho que virou ídolo cult no Dinamo de Bucareste — folclore de artilheiro rodando o Leste Europeu e o Oriente Médio." },
   { name: "Khvicha Kvaratskhelia", club: "Napoli", year: 2023, fame: 4, lo: 84, hi: 90, bio: "'Kvaradona' — ponta georgiano de drible eletrizante que encantou a Itália e levou o Napoli ao scudetto de 2023." },
   { name: "Henrik Larsson", club: "Celtic", year: 2001, fame: 4, lo: 84, hi: 90, bio: "O 'Rei Leão' sueco — artilheiro lendário do Celtic e peça decisiva do Barça campeão da Champions de 2006." },
@@ -1494,7 +1500,9 @@ const ATA_EU: C[] = [
   { name: "Giuliano Simeone", club: "Atlético de Madrid", year: 2025, fame: 2, lo: 68, hi: 82, promessa: true, bio: "Ponta argentino de correria incansável — filho do Cholo que ganhou espaço no Atlético na raça e na intensidade." },
   { name: "Diego Costa", club: "Atlético de Madrid", year: 2014, fame: 4, lo: 83, hi: 89, bio: "Centroavante hispano-brasileiro de força bruta, provocação e gols — artilheiro do Atlético campeão espanhol de 2014." },
   { name: "Julián Álvarez", club: "Atlético de Madrid", year: 2025, fame: 4, lo: 82, hi: 89, bio: "‘La Araña’ — centroavante argentino de movimentação e faro, campeão do mundo em 2022 e da tríplice coroa pelo City antes de brilhar no Atlético." },
-  { name: "Lautaro Martínez", club: "Inter", year: 2024, fame: 4, lo: 84, hi: 90, bio: "‘El Toro’ — centroavante argentino matador e capitão da Inter campeã italiana de 2024, artilheiro e campeão do mundo em 2022." }
+  { name: "Lautaro Martínez", club: "Inter", year: 2024, fame: 4, lo: 84, hi: 90, bio: "‘El Toro’ — centroavante argentino matador e capitão da Inter campeã italiana de 2024, artilheiro e campeão do mundo em 2022." },
+  { name: "Hakim Ziyech", club: "Ajax", year: 2019, fame: 3, lo: 78, hi: 85, bio: "Meia-atacante marroquino canhoto de passe e chute venenosos — cérebro criativo do Ajax semifinalista da Champions de 2019." },
+  { name: "Benni McCarthy", club: "Porto", year: 2004, fame: 3, lo: 76, hi: 84, bio: "Centroavante sul-africano matador — herói do Porto de Mourinho campeão da Champions de 2004, com os gols que eliminaram o United." }
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
 
