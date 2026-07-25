@@ -853,6 +853,14 @@ function otherDivRivalDefs(rivals: CareerRival[], div: Division): CareerTeam[] {
 // nome da época pra sempre. Aqui, ao restaurar, todo nome velho vira o atual
 // carregando junto colocação, elenco, caixa e títulos. Nome de HUMANO não muda.
 
+// 🏢 vagas de empréstimo da SAF por divisão: quanto mais alto você joga, mais o
+// clube-satélite te abastece. Vale pros DOIS lados (emprestar E pegar). Como os
+// empréstimos voltam na virada, cada temporada pega o número da divisão NOVA.
+export const FILIAL_SLOTS: Record<string, number> = { A: 4, B: 3, C: 2, D: 1 }
+export const filialSlots = (div?: string | null): number => FILIAL_SLOTS[div ?? 'D'] ?? 1
+// normaliza empréstimo pra lista (saves antigos gravavam 1 jogador só, não array)
+const loanList = (x: unknown): WonCard[] => Array.isArray(x) ? x as WonCard[] : x ? [x as WonCard] : []
+
 // ── 🏢 GRUPO EMPRESARIAL (teste): comissão do DONO sobre a campanha da filial —
 // 50% dos prêmios de título/acesso (e 50% do prejuízo na queda). NÃO inclui
 // lucros de compra/venda do bot no mercado — só campanha. O acumulado fica em
@@ -867,33 +875,41 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
   if (!cut) return
   const you = s.managers.find(m => m.isHuman)
   if (!you) return
-  s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: Math.max(0, (s.careerCoins?.[you.id] ?? 0) + cut) }
+  const before = s.careerCoins?.[you.id] ?? 0
+  const after = Math.max(0, before + cut) // corte nunca deixa a caixa negativa
+  s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: after }
   s.careerFilial = { ...f, earned: (f.earned ?? 0) + cut }
+  // 🧾 registra no extrato pela VARIAÇÃO REAL da caixa (título/acesso da SAF rende;
+  // queda dela desconta) — mantém o extrato batendo com o caixa, como os outros.
+  logFin(s, 'saf', '🏢 Prêmios da SAF', after - before)
 }
 
 // devolve os DOIS empréstimos ativos (se houver) na virada de temporada — a
 // janela reabre do zero pra próxima: renovar o mesmo, escolher outro ou nenhum.
 function revertFilialLoans(s: EscState) {
   const f = s.careerFilial
-  if (!f || (!f.loanOut && !f.loanIn)) return
+  const outs = loanList(f?.loanOut)
+  const ins = loanList(f?.loanIn)
+  if (!f || (outs.length === 0 && ins.length === 0)) return
   const you = s.managers.find(m => m.isHuman)
   if (!you) return
   const cpuSq = { ...(s.cpuSquads ?? {}) }
   const safSquad = [...(cpuSq[f.team] ?? [])]
-  if (f.loanOut) {
+  for (const lo of outs) {
     // estava jogando na SAF: tira de lá (por id) e devolve pro seu elenco
-    const i = safSquad.findIndex(c => c.id === f.loanOut!.id)
+    const i = safSquad.findIndex(c => c.id === lo.id)
     if (i >= 0) safSquad.splice(i, 1)
-    you.squad = [...you.squad, { ...f.loanOut, emprestado: undefined } as WonCard]
+    you.squad = [...you.squad, { ...lo, emprestado: undefined } as WonCard]
   }
-  if (f.loanIn) {
-    // estava jogando com você: tira do seu elenco e devolve pra SAF
-    you.squad = you.squad.filter(c => c.id !== f.loanIn!.id)
-    safSquad.push({ ...f.loanIn, emprestado: undefined } as WonCard)
+  if (ins.length) {
+    // estavam jogando com você: tira do seu elenco e devolve pra SAF
+    const inIds = new Set(ins.map(c => c.id))
+    you.squad = you.squad.filter(c => !inIds.has(c.id))
+    for (const li of ins) safSquad.push({ ...li, emprestado: undefined } as WonCard)
   }
   cpuSq[f.team] = safSquad
   s.cpuSquads = cpuSq
-  s.careerFilial = { ...f, loanOut: undefined, loanIn: undefined }
+  s.careerFilial = { ...f, loanOut: [], loanIn: [] }
 }
 
 function migrateTeamNames(st: EscState): EscState {
@@ -910,6 +926,8 @@ function migrateTeamNames(st: EscState): EscState {
   st.clubCash = mapKeys(st.clubCash) ?? st.clubCash
   st.careerHonors = mapKeys(st.careerHonors) ?? st.careerHonors
   st.careerCopaHonors = mapKeys(st.careerCopaHonors) ?? st.careerCopaHonors
+  // 🏢 saves antigos gravavam UM empréstimo (objeto); agora são LISTAS por divisão
+  if (st.careerFilial) st.careerFilial = { ...st.careerFilial, loanOut: loanList(st.careerFilial.loanOut), loanIn: loanList(st.careerFilial.loanIn) }
   return st
 }
 
@@ -2317,8 +2335,10 @@ export function reducer(state: EscState, action: Action): EscState {
     }
     case 'LOAN_TO_FILIAL': {
       // empresta um jogador SEU pra SAF: some do seu time, joga lá — mas
-      // continua SEU (não é venda). Só 1 empréstimo de saída por vez.
-      if (!s.careerOnline || s.onlineMode === 'online' || !s.careerFilial || s.careerFilial.loanOut) return s
+      // continua SEU (não é venda). Vagas crescem com a divisão (D1·C2·B3·A4).
+      if (!s.careerOnline || s.onlineMode === 'online' || !s.careerFilial) return s
+      const outs = loanList(s.careerFilial.loanOut)
+      if (outs.length >= filialSlots(s.careerDivision)) return s
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
       const card = you.squad.find(c => c.id === action.cardId)
@@ -2332,13 +2352,15 @@ export function reducer(state: EscState, action: Action): EscState {
       const cpuSq = { ...(s.cpuSquads ?? {}) }
       cpuSq[s.careerFilial.team] = [...(cpuSq[s.careerFilial.team] ?? []), loaned]
       s.cpuSquads = cpuSq
-      s.careerFilial = { ...s.careerFilial, loanOut: loaned }
+      s.careerFilial = { ...s.careerFilial, loanOut: [...outs, loaned] }
       return s
     }
     case 'LOAN_FROM_FILIAL': {
       // pega um jogador emprestado DA SAF: joga com você, mas continua sendo
-      // dela — volta sozinho na virada. Só 1 empréstimo de entrada por vez.
-      if (!s.careerOnline || s.onlineMode === 'online' || !s.careerFilial || s.careerFilial.loanIn) return s
+      // dela — volta sozinho na virada. Vagas crescem com a divisão (D1·C2·B3·A4).
+      if (!s.careerOnline || s.onlineMode === 'online' || !s.careerFilial) return s
+      const ins = loanList(s.careerFilial.loanIn)
+      if (ins.length >= filialSlots(s.careerDivision)) return s
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
       const safSquad = (s.cpuSquads?.[s.careerFilial.team] ?? []) as WonCard[]
@@ -2353,7 +2375,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.cpuSquads = cpuSq
       const loaned = { ...card, emprestado: 'saf' } as WonCard
       you.squad = [...you.squad, loaned]
-      s.careerFilial = { ...s.careerFilial, loanIn: loaned }
+      s.careerFilial = { ...s.careerFilial, loanIn: [...ins, loaned] }
       return s
     }
     case 'MONTE_PASS': {

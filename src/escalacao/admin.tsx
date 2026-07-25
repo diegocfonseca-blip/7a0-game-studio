@@ -16,6 +16,11 @@ const CAREER_ONLINE_TESTERS = [ADMIN_EMAIL, 'leafarcruz06@gmail.com', 'leafar06@
 const INK = '#0C0C0C'
 const GOLD = '#F5B301'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
+// ⚠️ ALERTA DE CAIXA SUSPEITA: careerCoins é AUTO-REPORTADO pelo navegador do
+// jogador (heartbeat) — o servidor não valida. A partir deste teto, o painel
+// marca em vermelho com ⚠️ só pra o admin OBSERVAR. É sinalização visual pura:
+// nada é feito com a conta do jogador.
+const COINS_ALERT = 20000
 
 type DailyRow = { day: string; plays: number; cpu: number; online: number; visits: number }
 type UserRow = { name: string; sid: string; total: number; today: number; last_play: string; registered: boolean }
@@ -316,7 +321,9 @@ function Dashboard({ email }: { email: string }) {
                       batimento, então funciona pra anônimo e pra pirâmide também.
                       Sem o dado novo (app antigo), cai no fallback por nome. */}
                   {p.mode === 'career' && typeof p.careerCoins === 'number' && (
-                    <span style={{ color: '#7FE3A0', fontWeight: 800 }}> · 💰 {p.careerCoins}</span>
+                    p.careerCoins >= COINS_ALERT
+                      ? <span title={`⚠️ Caixa suspeita: ${p.careerCoins} moedas (limite ${COINS_ALERT}). O valor é auto-reportado pelo navegador do jogador e o servidor não valida — pode ter sido adulterado. Só um alerta pra você observar; nada é feito com a conta.`} style={{ color: '#FF6B57', fontWeight: 900 }}> · ⚠️ 💰 {p.careerCoins}</span>
+                      : <span style={{ color: '#7FE3A0', fontWeight: 800 }}> · 💰 {p.careerCoins}</span>
                   )}
                   {p.mode === 'career' && ((p.careerTitles ?? -1) > 0
                     ? <span style={{ color: GOLD, fontWeight: 800 }}> · 🏆 {p.careerTitles}</span>

@@ -42,7 +42,7 @@ export interface WonCard extends Card {
 export interface LedgerEntry {
   id: string
   season: number // temporada do lançamento
-  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' // prêmios · bilheteria · folha · compra · venda · patrocínio
+  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' | 'saf' // prêmios · bilheteria · folha · compra · venda · patrocínio · comissão da SAF
   label: string
   amount: number // sinal: + entrada, − saída
   player?: string // compra/venda: nome do jogador
@@ -309,8 +309,8 @@ export interface EscState {
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
   careerFilial?: {
     team: string; since: number; earned?: number
-    loanOut?: WonCard // jogador SEU emprestado PRA SAF (some do seu elenco, joga lá)
-    loanIn?: WonCard  // jogador DA SAF emprestado pra VOCÊ (joga no seu time)
+    loanOut?: WonCard[] // jogadores SEUS emprestados PRA SAF (somem do seu elenco, jogam lá) — nº de vagas cresce com a divisão (D=1, C=2, B=3, A=4)
+    loanIn?: WonCard[]  // jogadores DA SAF emprestados pra VOCÊ (jogam no seu time)
   } | null // 🏢 SAF (carreira OFFLINE, em teste): clube da Série D comprado — 50% dos prêmios de campanha dele (± em queda) caem no seu caixa
   simV?: number // versão da fórmula da simulação: 2+ = teto de elite 1.28 (só vale de temporada NOVA em diante — a que está rolando termina na fórmula em que começou)
   careerPlacements?: Record<string, string> | null // pirâmide: chave do time → divisão ('A'..'D'). Compacto (só a colocação). Atualiza a cada temporada.

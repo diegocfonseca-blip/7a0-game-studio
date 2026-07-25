@@ -11,7 +11,7 @@ import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
-import { stripEmoji, myApoioPerk, APOIO_PERKS, logApoio } from './apoio'
+import { stripEmoji, myApoioPerk, APOIO_PERKS, logApoio, useHasManual } from './apoio'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
@@ -209,7 +209,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <p className="font-black text-[13px]" style={OSWALD}>Quem faz isso aqui 🔴⚫</p>
             <p className="text-[11px] font-bold text-black/60 mt-1 leading-snug">
               Sou o Diego, flamenguista, vendo carro com meu pai durante o dia e faço esse jogo de madrugada.
-              Tenho um filho com uma condição rara — são cerca de 500 casos no mundo. Esse jogo é por ele:
+              Tenho um filho com uma condição rara — são <b>120 casos no mundo</b>. Esse jogo é por ele:
               cada apoio ajuda a dar uma vida melhor pra ele e mantém o Leilão Legends <b>100% grátis, com tudo
               liberado, pra sempre</b>. Obrigado por estar aqui. 💛
             </p>
@@ -807,10 +807,10 @@ function CardFace({ c, big = false, surprise = false, highlight = false }: { c: 
 // Mostra SÓ a novidade mais recente, com X pra fechar. Ao fechar, guarda o id
 // no aparelho — só reaparece quando eu trocar o LATEST_NEWS por um id novo.
 const LATEST_NEWS = {
-  id: '2026-07-financas',
-  emoji: '💰',
-  title: 'Finanças do clube: Extrato e Transferências!',
-  text: 'No Modo Carreira, a aba Estádio virou 💰 Clube. Agora tem um EXTRATO de tudo que entra e sai (prêmios, bilheteria, salários, compras e vendas) e uma aba de TRANSFERÊNCIAS com o lucro/prejuízo de cada venda. Descubra se lucrou naquele craque! E no online: chat de verdade na sala de espera e o host escolhe o tempo do leilão. 🔨',
+  id: '2026-07-argentinos-saf',
+  emoji: '🌎',
+  title: 'Reforço argentino + SAF turbinada!',
+  text: 'Chegou uma leva de craques no baralho Europa — Lautaro, Julián Álvarez, Dibu Martínez, Lisandro Martínez, Otamendi, Aimar, Koeman e mais. E no Modo Carreira, a SAF agora empresta MAIS jogadores conforme você sobe de série (a Série A libera até 4 por lado, e o elenco chega a 26!) — e os prêmios dela entram no Extrato. 🔨',
 }
 function NewsBanner() {
   const [dismissed, setDismissed] = useState(() => {
@@ -837,12 +837,12 @@ function NewsSection() {
       <div>
         <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>✨ No jogo</p>
         <div className="mt-1 space-y-1">
-          <p className="text-xs font-bold text-black/75">💰 <b>Finanças do clube</b> — no <b>Modo Carreira</b>: a aba Estádio virou <b>💰 Clube</b>. Tem um <b>Extrato</b> de tudo que entra e sai (prêmios, bilheteria, salários, compras e vendas) e uma aba de <b>Transferências</b> com o <b>lucro/prejuízo</b> de cada venda e a valorização de quem está no elenco.</p>
+          <p className="text-xs font-bold text-black/75">💰 <b>Finanças do clube</b> — no <b>Modo Carreira</b>: a aba Estádio virou <b>💰 Clube</b>. Tem um <b>Extrato</b> de tudo que entra e sai (prêmios, bilheteria, salários, <b>patrocínio</b>, <b>prêmios da SAF</b>, compras e vendas) e uma aba de <b>Transferências</b> com o <b>lucro/prejuízo</b> de cada venda e a valorização de quem está no elenco.</p>
           <p className="text-xs font-bold text-black/75">💬 <b>Chat de verdade na sala de espera</b> — no <b>online</b>: as mensagens agora <b>ficam</b> (não somem mais) e seguem você se recarregar a página. As frases prontas de "zoar a galera" continuam.</p>
           <p className="text-xs font-bold text-black/75">⏱️ <b>Tempo do leilão</b> — no <b>online</b> com <b>Modo Stream</b>: o host escolhe quantos <b>segundos</b> dura cada envelope do pregão (20 a 90s), ou deixa <b>sem tempo</b> e <b>avança cada negociação no botão</b> — todo mundo segue sincronizado.</p>
           <p className="text-xs font-bold text-black/75">🎮 <b>Controles de ritmo na Copa</b> — no <b>Modo Carreira</b> em modo manual: velocidade, <b>pular</b> e avançar cada fase agora valem também na <b>Copa Legends</b>.</p>
           <p className="text-xs font-bold text-black/75">🏆 <b>Copa dos 8</b> — no <b>jogo rápido</b> (offline e online): quando a liga acaba, os <b>8 primeiros</b> disputam um mata-mata de <b>ida e volta</b> (final única). O campeão da Copa leva uma <b>carta nova</b> pro álbum e um <b>título no ranking</b>! Escolha "Liga + Copa" ao começar.</p>
-          <p className="text-xs font-bold text-black/75">💼 <b>SAF</b> — no <b>Modo Carreira</b>: compre a SAF de um clube da Série D, leve <b>50% dos lucros de título e acesso</b> dele, empreste jogadores entre os clubes e veja ele subir na pirâmide. Destrava com o Estádio 100%.</p>
+          <p className="text-xs font-bold text-black/75">💼 <b>SAF</b> — no <b>Modo Carreira</b>: compre a SAF de um clube da Série D, leve <b>50% dos lucros de título e acesso</b> dele e veja ele subir na pirâmide. Os <b>empréstimos crescem com a divisão</b> (Série D <b>1</b> · C <b>2</b> · B <b>3</b> · A <b>4</b> por lado — seu elenco chega a <b>26</b> na Série A!). Destrava com o Estádio 100%.</p>
           <p className="text-xs font-bold text-black/75">🏟️ <b>Estádio</b> — no <b>Modo Carreira</b>: construa arquibancadas, refletores, telão e cobertura. O desenho cresce a cada compra e a bilheteria rende toda temporada!</p>
           <p className="text-xs font-bold text-black/75">🏆 <b>Copa Legends</b> — no <b>Modo Carreira</b>, no fim de cada temporada os 16 melhores das 4 divisões se enfrentam num mata-mata sorteado. Série D pode eliminar Série A!</p>
           <p className="text-xs font-bold text-black/75">🪜 <b>Modo Carreira liberado</b> — pirâmide de 4 divisões (Série D → A), com leilão de reservas, transferências e substituições.</p>
@@ -863,8 +863,8 @@ function NewsSection() {
       </div>
       <div>
         <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>🆕 Recém-chegados</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>🇧🇷 BR:</b> Enner Valencia, Alan Patrick, Bernabei (reforços do Inter), Kaio Jorge, Neilton 💎, GarrinSha 🃏, Paulinho (atacante), Reinier 🃏, <b>Evaristo de Macedo 👑</b>, Donizete Pantera, Oséas, Luciano, Caio Ribeiro 💎, Galeano, Cláudio Pitbull, Souza, Giovanni, Rodrigo Souto, Richarlyson, Domingos, Rogério (pedala Robinho) 🃏, Matheus Pereira, <b>Ademir de Menezes 👑</b>, Nelinho, César Sampaio, Luizão, Waldir Peres, Josimar, <b>Figueroa 👑</b>, Bolívar, Índio, Alexandre Pato 💎, Vegetti, Edu Dracena, Alex Mineiro, Durval, Danilo (Chape), Víctor Aristizábal, Roger Guedes, Thiago Galhardo, Arboleda, Hernanes (Profeta).</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>🌍 Europa:</b> Payet, Abel Ferreira 🃏, Matip, Keisuke Honda, Salomon Kalou, Matheus Cunha, Carvajal, Cucurella, Míchel Salgado, Ivanović, Sneijder, Ricardo Quaresma 🃏, Nani, Thomas Müller, Reus, Foden, Ter Stegen, Djorkaeff, Petit, Deschamps, Maguire, Raphinha, Gabriel Magalhães, Martinelli, Bremer, Ljungberg, Alfie Haaland (pai do Erling) 🃏.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>🇧🇷 BR:</b> <b>Zito 👑</b>, Enner Valencia, Alan Patrick, Bernabei (reforços do Inter), Kaio Jorge, Neilton 💎, GarrinSha 🃏, Paulinho (atacante), Reinier 🃏, <b>Evaristo de Macedo 👑</b>, Donizete Pantera, Oséas, Luciano, Caio Ribeiro 💎, Galeano, Cláudio Pitbull, Souza, Giovanni, Rodrigo Souto, Richarlyson, Domingos, Rogério (pedala Robinho) 🃏, Matheus Pereira, <b>Ademir de Menezes 👑</b>, Nelinho, César Sampaio, Luizão, Waldir Peres, Josimar, <b>Figueroa 👑</b>, Bolívar, Índio, Alexandre Pato 💎, Vegetti, Edu Dracena, Alex Mineiro, Durval, Danilo (Chape), Víctor Aristizábal, Roger Guedes, Thiago Galhardo, Arboleda, Hernanes (Profeta).</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>🌍 Europa:</b> <b>Lautaro Martínez, Julián Álvarez, Dibu Martínez, Lisandro Martínez, Otamendi, Koeman, Aimar, Diego Costa, Lo Celso, Paredes, Acuña, Tagliafico, Montiel, Scaloni, Giuliano Simeone 💎</b>, Christian Eriksen, Rüdiger, Laporte, José Giménez, Santiago Solari, Payet, Abel Ferreira 🃏, Matip, Salomon Kalou, Matheus Cunha, Carvajal, Cucurella, Míchel Salgado, Ivanović, Ricardo Quaresma 🃏, Nani, Thomas Müller, Reus, Ter Stegen, Petit, Deschamps, Maguire, Raphinha, Gabriel Magalhães, Martinelli, Bremer, Ljungberg, Alfie Haaland (pai do Erling) 🃏.</p>
         <p className="text-[11px] font-bold text-black/50 mt-1">O baralho só cresce — sempre entrando craque novo. 🔨</p>
       </div>
     </Box>
@@ -2626,7 +2626,24 @@ export function useStreamSimMode(): [boolean, () => void] {
   const toggle = () => setManual(m => { const v = !m; try { localStorage.setItem('esc-stream-auto', v ? '0' : '1') } catch { /* ignora */ } return v })
   return [manual, toggle]
 }
-export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLabel = '▶️ Próxima rodada' }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string }) {
+// 🔒 cadeado do Modo Manual no jogo rápido offline: quem não apoia vê isto no
+// lugar do toggle Auto/Manual — leva pra tela de Apoie (igual à carreira).
+export function QuickManualLock() {
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <ApoieButton startScreen="manual" trigger={open => (
+        <button onClick={open} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontFamily: 'Oswald, sans-serif' }}>
+          <span>🎮 MANUAL: pausar entre as rodadas</span>
+          <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>Apoie 🔒</span>
+        </button>
+      )} />
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '4px 2px 0', fontFamily: 'Oswald, sans-serif' }}>Pause entre as rodadas e controle o ritmo. Toque pra desbloquear.</p>
+    </div>
+  )
+}
+export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLabel = '▶️ Próxima rodada', lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
+  // 🔒 sem apoio no modo rápido offline: o toggle vira cadeado (leva pro Apoie)
+  if (lock) return <>{lock}</>
   // 🎮 MANUAL com PULAR: "Próxima rodada" GRANDE à esquerda (espera a partida
   // acabar, como sempre); à direita, "⏭️ Pular" em cima (vai direto pro resultado,
   // sem esperar) e "🔁 Modo auto" embaixo. Fino e sutil. Só aparece no manual.
@@ -2701,7 +2718,11 @@ export function EscSeason() {
   const streamHost = online && state.isHost && (state.streamMode || !!state.manualRoom)
   const [manualPref, toggleSim] = useSimMode()
   const [streamManual, toggleStream] = useStreamSimMode()
-  const manual = streamHost ? streamManual : (manualPref && !online)
+  // 🔒 no rápido OFFLINE o Modo Manual agora é apoiado (pago pra todos, sem
+  // grandfather). Online host-paced (stream/sala manual) segue livre.
+  const hasManual = useHasManual()
+  const manual = streamHost ? streamManual : (manualPref && !online && hasManual)
+  const manualLocked = !online && !hasManual // rápido offline sem apoio: mostra o cadeado
   // ⏩ AUTO é SEMPRE o ritmo padrão: ao voltar pro auto, zera a velocidade (Normal).
   // Assim a marcha escolhida vale só dentro do manual, e o manual sempre COMEÇA no
   // Normal (o do meio) — igual ao auto. (Sincroniza via estado, então bate pra sala.)
@@ -3062,12 +3083,14 @@ export function EscSeason() {
         // e "pular" as 38 rodadas na hora. No começo (round 0) libera pra dar o
         // pontapé; da rodada 1 em diante espera a animação (resultRevealed).
         <SimControls manual={manual} onToggle={toggleManual} canNext={state.round === 0 || resultRevealed}
+          lock={manualLocked ? <QuickManualLock /> : undefined}
           onNext={() => dispatch({ type: 'PLAY_ROUND' })}
           onSkip={() => dispatch({ type: 'PLAY_ROUND' })}
           nextLabel={!(state.round === 0 || resultRevealed) ? '⏳ Deixa a rodada acabar…' : state.round === 0 && !myLast ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
       )}
       {(!online || streamHost) && copaLive && (
         <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
+          lock={manualLocked ? <QuickManualLock /> : undefined}
           onNext={() => dispatch({ type: 'PLAY_COPA_LEG' })}
           onSkip={() => dispatch({ type: 'PLAY_COPA_LEG' })}
           nextLabel={!copaAdvReady ? '⏳ Deixa o jogo/pênaltis acabar…' : firstLegPending ? '🏆 Iniciar a Copa dos 8' : copaJustAdvanced ? '▶️ Começar a próxima fase' : '⚽ Próximo jogo da Copa'} />
