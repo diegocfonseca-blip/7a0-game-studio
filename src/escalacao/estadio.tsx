@@ -309,6 +309,10 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
                   </button>
                   {pickOut && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 5, maxHeight: 160, overflowY: 'auto' }}>
+                      {/* ninguém elegível: explica o PORQUÊ (antes abria vazio e parecia bug) */}
+                      {(mySquad ?? []).filter(c => loanableOutIds?.has(c.id)).length === 0 && (
+                        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: 0, padding: '4px 2px', lineHeight: 1.35 }}>🔒 Ninguém disponível agora: emprestar não pode deixar seu <b>time titular incompleto</b> em nenhuma posição. Contrate reservas (ou traga alguém de volta) e tente de novo.</p>
+                      )}
                       {(mySquad ?? []).filter(c => loanableOutIds?.has(c.id)).map(c => (
                         <button key={c.id} onClick={() => { onLoanTo(c.id); setPickOut(false) }}
                           style={{ display: 'flex', justifyContent: 'space-between', border: '1.5px solid rgba(0,0,0,.25)', borderRadius: 7, padding: '5px 8px', fontSize: 10.5, fontWeight: 700, background: '#fff', cursor: 'pointer' }}>
@@ -336,6 +340,10 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
                   </button>
                   {pickIn && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 5, maxHeight: 160, overflowY: 'auto' }}>
+                      {/* ninguém elegível: a SAF também não pode ficar com o XI dela furado */}
+                      {(filialSquad ?? []).filter(c => loanableInIds?.has(c.id)).length === 0 && (
+                        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: 0, padding: '4px 2px', lineHeight: 1.35 }}>🔒 Ninguém disponível agora: a SAF precisa manter o <b>time titular dela completo</b>. Dica: empreste um jogador SEU pra ela primeiro — aí abre folga na posição pra puxar alguém de lá.</p>
+                      )}
                       {(filialSquad ?? []).filter(c => loanableInIds?.has(c.id)).map(c => (
                         <button key={c.id} onClick={() => { onLoanFrom(c.id); setPickIn(false) }}
                           style={{ display: 'flex', justifyContent: 'space-between', border: '1.5px solid rgba(0,0,0,.25)', borderRadius: 7, padding: '5px 8px', fontSize: 10.5, fontWeight: 700, background: '#fff', cursor: 'pointer' }}>

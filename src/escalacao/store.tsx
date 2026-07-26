@@ -2567,7 +2567,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const f = you ? s.careerFilials?.[you.id] : undefined
         if (!s.careerOnline || !you?.isHuman || !f) return s
         const outs = loanList(f.loanOut)
-        if (outs.length >= filialSlots(s.careerPlacements?.[`m${you.id}`])) return s
+        if (outs.length >= filialSlots(s.careerPlacements?.[`m${you.id}`] ?? s.careerDivision)) return s
         const card = you.squad.find(c => c.id === action.cardId)
         if (!card || card.emprestado) return s
         const need = FORMATIONS[you.formation]
@@ -2607,7 +2607,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const f = you ? s.careerFilials?.[you.id] : undefined
         if (!s.careerOnline || !you?.isHuman || !f) return s
         const ins = loanList(f.loanIn)
-        if (ins.length >= filialSlots(s.careerPlacements?.[`m${you.id}`])) return s
+        if (ins.length >= filialSlots(s.careerPlacements?.[`m${you.id}`] ?? s.careerDivision)) return s
         const safSquad = (s.cpuSquads?.[f.team] ?? []) as WonCard[]
         const card = safSquad.find(c => c.id === action.cardId)
         if (!card || card.emprestado) return s
