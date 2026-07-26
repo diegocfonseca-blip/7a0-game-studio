@@ -1563,10 +1563,8 @@ function AuctionBar() {
 // talk do poker. A 💸 ainda faz CHOVER DINHEIRO na tela de todo mundo (MoneyRain).
 // Flutuam na mesma camada de sempre; opcional, um toque, não mexe em tempo nenhum.
 const CANTADAS: { k: string; t?: string }[] = [
-  { k: '😈', t: 'TÔ NESSE' },
-  { k: '💣', t: 'vou com TUDO' },
+  { k: '😈', t: 'TÔ NESSE, vou com TUDO!' }, // diabinho roxo
   { k: '💸', t: 'esse vai ficar CARO…' }, // + chuva de dinheiro na sala inteira
-  { k: '😤', t: 'esse é MEU, se afasta' },
   { k: '❤️', t: 'meu ÍDOLO — não perco por nada' },
   { k: '🪙', t: 'relaxa, 1 moedinha leva esse 🤣' }, // desdém… ou armadilha pra galera dar lance baixo
   { k: '🥱', t: 'nem quero…' },
