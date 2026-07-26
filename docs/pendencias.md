@@ -14,5 +14,8 @@
 
 ## 🏀 BidLegends
 - Conceito completo: `docs/conceito-basquete.md` (pirâmide, 82 jogos, conferências, elenco 15, domínio bidlegendsarena.com).
-- Próximo passo: **Fase 1** — seletor ⚽/🏀 na home + app reconhecendo bidlegendsarena.com (testável antes do DNS).
-- DNS do domínio: apontar pro mesmo host do leilaolegends.com (falta o Diego informar onde hospeda).
+- **Fase 1 — FEITA na branch `claude/bidlegends-fase-1-7vtrzu` (aguardando OK visual do Diego pra fundir na main):**
+  - `src/escalacao/sport.ts` — detecção de esporte (hostname + override `?sport=` de teste) e **trava por conta**: basquete SÓ aparece pra `diego.c.fonseca@gmail.com` (regra nova do Diego 26/07: nada de basquete visível pra ninguém ainda). Pra todo o resto o app é idêntico ao futebol de hoje.
+  - Seletor ⚽/🏀 no topo da home (só pro Diego) + home do BidLegends "chegando" (mesma cara, conteúdo de basquete) em `screens.tsx` (`SportTabs`, `BidLegendsHome`). Título da aba vira "BidLegends" só pra ele.
+  - Mockup aprovado?: artifact "Mockup — BidLegends Fase 1" (sessão 26/07). **NÃO fundir na main sem o OK do Diego no visual.**
+- **DNS do bidlegendsarena.com**: registrado, falta configurar. Host = GitHub Pages, que serve 1 domínio custom só (hoje leilaolegends.com via CNAME) → 2º domínio direto no Pages redireciona pro principal. Caminho limpo p/ dividir por hostname = Cloudflare grátis na frente (Fase 2+). Pra Fase 1 NÃO precisa do domínio: a trava é por conta, o Diego testa logado no leilaolegends.com. Falta: onde o Diego registrou o domínio (registrar).

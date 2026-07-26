@@ -18,6 +18,7 @@ import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, COPA_LEG_MS } from './pyramidseason'
+import { useSport, useSportUnlocked, type Sport } from './sport'
 
 // universo colecionável = os DOIS baralhos (BR + Europa), por nomes únicos
 // (Kaká, Cafu etc. aparecem nos dois — conta uma vez só).
@@ -1038,7 +1039,102 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
   )
 }
 
+// ─── SELETOR DE ESPORTE ⚽/🏀 (topo da home) ───────────────────────────
+// Abas aprovadas com o Diego. O futebol (ao vivo) segue no ⚽; o 🏀 abre o
+// BidLegends (basquete). A escolha fica gravada no aparelho (ver sport.ts).
+// COR ATIVA: verde do futebol · telha/vermelho do basquete — ambas da paleta
+// oficial (nada de cor nova inventada).
+function SportTabs() {
+  const [sport, setSport] = useSport()
+  const tab = (s: Sport, emoji: string, label: string, activeBg: string) => {
+    const active = sport === s
+    return (
+      <button onClick={() => setSport(s)} aria-pressed={active}
+        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border-[3px] border-black py-2.5 active:translate-y-0.5"
+        style={{ background: active ? activeBg : '#fff', color: active ? '#fff' : 'rgba(0,0,0,.4)', boxShadow: active ? `3px 3px 0 0 ${INK}` : 'none', fontWeight: 900, textTransform: 'uppercase', letterSpacing: .5, fontSize: 14, ...OSWALD }}>
+        <span style={{ fontSize: 19, lineHeight: 1 }}>{emoji}</span>{label}
+      </button>
+    )
+  }
+  return (
+    <div className="flex gap-2 pt-3">
+      {tab('futebol', '⚽', 'Futebol', GREEN)}
+      {tab('basquete', '🏀', 'Basquete', '#C2452F')}
+    </div>
+  )
+}
+
+// ─── HOME DO BIDLEGENDS (basquete) — Fase 1 ────────────────────────────
+// Mesma cara do jogo (creme/bordas/Oswald), só troca o conteúdo. Como o
+// basquete ainda está em construção, esta é a tela "chegando": apresenta a
+// marca, o conceito (pirâmide + quinteto) e deixa claro que o FUTEBOL segue
+// 100% no ar na aba ⚽. Zero risco pro jogo ao vivo.
+function BidLegendsHome() {
+  const PYR = [
+    ['🛝', 'STREET LEAGUE', 'A base. 20 times, pontos corridos. Sobem 4, ninguém cai.'],
+    ['🔷', 'G LEAGUE', 'Leste × Oeste, 82 jogos, playoffs. Sobe quem vai longe.'],
+    ['💍', 'NBA', 'O topo. Chegue às Finals e leve o anel pro seu álbum.'],
+  ] as [string, string, string][]
+  return (
+    <Shell>
+      <SportTabs />
+      <div className="text-center pt-6">
+        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
+          🏀 Leilão às cegas de lendas
+        </span>
+        <h1 className="font-black text-5xl mt-4 leading-none" style={OSWALD}>BIDLEGENDS</h1>
+        <div className="mx-auto mt-2" style={{ width: 150, height: 10, borderRadius: 5, background: '#C2452F', border: `2px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}` }} />
+        <p className="mt-3 font-semibold text-black/60 max-w-sm mx-auto">O leilão cego das lendas do <b>basquete</b>. Monte seu quinteto no pregão, suba a pirâmide da NBA e colecione os craques no seu álbum.</p>
+      </div>
+      {/* vitrine: as MESMAS cartas do futebol, só que de basquete (mesmo visual) */}
+      <div className="grid grid-cols-2 gap-3">
+        <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="Michael Jordan" club="Bulls" year={1996} pos="ALA" fame={5} showBio bio="Melhor de todos os tempos. Seis anéis, seis MVPs de Finals. Fechou a carreira do jeito que começou: por cima." /></div>
+        <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Dwyane Wade" club="Heat" year={2006} pos="ARM" fame={4} showBio bio="Flash. Carregou o Heat ao título em 2006 numa das melhores finais individuais da história." /></div>
+        <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Victor Wembanyama" club="Spurs" year={2024} pos="PIVÔ" fame={3} promessa showBio bio="O alienígena. 2,24m que enterra, cravou e acerta de três. O futuro chegou cedo." /></div>
+        <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="JaVale McGee" club="Wizards" year={2011} pos="PIVÔ" fame={2} folk showBio bio="Rei do Shaqtin' a Fool. Errou uns, acertou anéis. Folclore puro do garrafão." /></div>
+      </div>
+      <p className="text-center text-[11px] font-black uppercase tracking-wide text-black/45" style={OSWALD}>👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — colecione todos</p>
+      {/* aviso "chegando" — honesto, sem prometer o que ainda não tem */}
+      <div className="border-[3px] border-black rounded-2xl p-4 text-center" style={{ background: '#fff', boxShadow: `4px 4px 0 0 ${INK}` }}>
+        <div className="text-3xl">🚧</div>
+        <p className="font-black text-lg uppercase mt-1" style={OSWALD}>Chegando ao BidLegends</p>
+        <p className="text-[13px] font-semibold text-black/60 mt-1 leading-snug">
+          O basquete está em construção — o mesmo motor do Leilão Legends, agora com o quinteto e a pirâmide da NBA. Quer jogar HOJE? Toca em <b>⚽ Futebol</b> aí em cima: o jogo completo está no ar.
+        </p>
+      </div>
+      {/* a pirâmide (conceito) */}
+      <div className="space-y-2.5">
+        <p className="text-center text-[11px] font-black uppercase tracking-widest text-black/40" style={OSWALD}>A pirâmide do basquete</p>
+        {PYR.map(([ic, t, d]) => (
+          <div key={t} className="flex items-center gap-3 border-[3px] border-black rounded-xl bg-white p-3" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
+            <div className="text-2xl shrink-0">{ic}</div>
+            <div>
+              <p className="font-black text-sm uppercase" style={OSWALD}>{t}</p>
+              <p className="text-[11px] font-semibold text-black/60 leading-snug">{d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* como funciona — espelha os 4 cartões do futebol, adaptado ao basquete */}
+      <div className="grid grid-cols-2 gap-2.5">
+        {([['🏀', 'O Pregão', '5 rodadas de leilão cego: armador, ala-armador, ala, ala-pivô e pivô. Ninguém vê o lance de ninguém.'],
+           ['🎭', 'Níveis ocultos', 'Você aposta no nome. O nível só abre na Cerimônia — e todo craque tem noite boa e noite ruim.'],
+           ['🪜', 'Pirâmide', 'Da Street League à NBA. Cada anel vira uma carta no seu álbum.'],
+           ['💎', 'Vale o auge', 'O nível é o auge do craque naquele ano/franquia (Jordan 1996 lenda; Wade 2006 craque).']] as [string, string, string][]).map(([ic, t, d]) => (
+          <div key={t} className="border-[3px] border-black rounded-xl bg-white p-3" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
+            <div className="text-xl">{ic}</div>
+            <p className="font-black text-[13px] uppercase mt-1.5" style={OSWALD}>{t}</p>
+            <p className="text-[11px] font-semibold text-black/60 mt-0.5 leading-snug">{d}</p>
+          </div>
+        ))}
+      </div>
+    </Shell>
+  )
+}
+
 export function EscIntro() {
+  const [sport] = useSport()
+  const unlocked = useSportUnlocked() // 🔒 só o Diego vê qualquer coisa de basquete
   const { dispatch } = useEsc()
   const resumable = useResumableRoom()
   const solo = useResumableSolo()
@@ -1052,8 +1148,13 @@ export function EscIntro() {
       setShared(true); setTimeout(() => setShared(false), 2500)
     } catch { /* usuário cancelou */ }
   }
+  // 🏀 na aba Basquete abre a home do BidLegends (SÓ pro Diego; o futebol nem
+  // carrega — seguro). Pra qualquer outra conta, `unlocked` é false e nada disso
+  // existe: a home é EXATAMENTE a de hoje.
+  if (unlocked && sport === 'basquete') return <BidLegendsHome />
   return (
     <Shell>
+      {unlocked && <SportTabs />}
       {resumable && (
         <div className="rounded-2xl border-4 border-black p-3 mb-1 space-y-2.5" style={{ background: '#1B7A3D', boxShadow: `4px 4px 0 0 ${INK}` }}>
           <p className="font-black text-sm text-white leading-tight" style={OSWALD}>

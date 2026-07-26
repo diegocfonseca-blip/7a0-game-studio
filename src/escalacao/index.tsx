@@ -5,6 +5,7 @@ import { EscProvider, useEsc } from './store'
 import { setSoundAllowed, isMuted, toggleMuted, onSoundChange, playCoin } from './sound'
 import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
 import { EscLobby } from './lobby'
+import { useSport, useSportUnlocked, SPORT_BRAND } from './sport'
 import { hadLogin } from './apoio'
 import { AdminPanel } from './admin'
 import { DinastiaGame } from './dinastia'
@@ -262,10 +263,22 @@ function SessionExpiredBanner() {
   )
 }
 
+// 🏷️ TÍTULO DA ABA conforme o esporte: bidlegendsarena.com (ou aba 🏀) mostra
+// "BidLegends"; futebol mantém "Leilão Legends". Só o texto da aba muda.
+function SportTitle() {
+  const [sport] = useSport()
+  const unlocked = useSportUnlocked() // 🔒 só o Diego troca o título pra BidLegends
+  useEffect(() => {
+    try { document.title = (unlocked && sport === 'basquete') ? SPORT_BRAND.basquete.name : 'Leilão Legends' } catch { /* ignora */ }
+  }, [sport, unlocked])
+  return null
+}
+
 export default function EscalacaoGame() {
   return (
     <ErrorBoundary>
       <EscProvider>
+        <SportTitle />
         <MaintenanceBanner />
         <SessionExpiredBanner />
         <AnnouncementToast />
