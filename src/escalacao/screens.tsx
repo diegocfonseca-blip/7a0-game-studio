@@ -3196,7 +3196,8 @@ export function EscSeason() {
                 const homeIsYou = legHomeId === you.id
                 const oppId = homeIsYou ? legAwayId : legHomeId
                 const oppIsHuman = state.managers.some(m => m.id === oppId && m.isHuman)
-                const oppColor = oppIsHuman ? '#E8503A' : '#3A7CA5'
+                // 🎨 mesmo padrão da liga: amigo = cor do tier DELE (gratuito = bege)
+                const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
                 const hl = myTie.lastHighlights ?? []
                 const goals = hl.map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === legHomeId }))
                 return (
@@ -3235,7 +3236,10 @@ export function EscSeason() {
         const homeIsYou = myLast.homeId === you.id
         const oppId = homeIsYou ? myLast.awayId : myLast.homeId
         const oppIsHuman = state.managers.some(m => m.id === oppId && m.isHuman)
-        const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid, oppColor = oppIsHuman ? '#E8503A' : '#3A7CA5'
+        // 🎨 amigo online joga com a cor do TIER dele (gratuito = bege) — nunca uma
+        // cor emprestada. CPU segue o azul neutro.
+        const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
+        const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
         const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
         const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/); return mm ? mm[1] : text.replace(/^⚽\s*/, '').replace(/\.$/, '') }
         const goals = myLast.highlights.map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === myLast.homeId }))
@@ -3543,9 +3547,17 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
             // qualquer outro técnico HUMANO na sala (gente de verdade, não bot)
             const isOnlineRival = state.onlineMode === 'online' && !isYou && !!state.managers.find(m => m.id === t.id)?.isHuman
             const isRival = (!!state.careerDivision && state.careerRivals.some(rv => rv.team === t.name)) || isOnlineRival
+            // 🎨 cada técnico leva a cor do PRÓPRIO tier pra faixa dele na tabela
+            // (igual à carreira): você = seu tier (Lenda = dourado) · amigo online =
+            // tier DELE (gratuito = bege) · rival de carreira/CPU segue o salmão.
+            const rowBg = isYou
+              ? (myApoioPerk()?.light ?? APOIO_PERKS.bege.light)
+              : isOnlineRival
+                ? (perkFromSelo(state.managers.find(m => m.id === t.id)?.teamName ?? '')?.light ?? APOIO_PERKS.bege.light)
+                : isRival ? '#FFE0D6' : zoneColor(rank, table.length)
             return (
               <tr key={t.id} className="border-t border-black/10 font-semibold"
-                style={{ backgroundColor: isYou ? GOLD : isRival ? '#FFE0D6' : zoneColor(rank, table.length), fontWeight: isMgr ? 800 : 500 }}>
+                style={{ backgroundColor: rowBg, fontWeight: isMgr ? 800 : 500 }}>
                 <td className="pr-1">{rank}</td>
                 <td className="truncate max-w-[130px]">{isRival ? '🔥 ' : isMgr ? '👤 ' : ''}{t.name}</td>
                 <td className="text-center font-black">{t.pts}</td>
