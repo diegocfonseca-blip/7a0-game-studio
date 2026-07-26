@@ -3066,6 +3066,15 @@ export function EscSeason() {
   // — assim TODOS os jogos progridem juntos, minuto a minuto, em vez de já mostrar
   // o resultado pronto. Reinicia por copaTieKey (muda quando entra uma perna nova).
   const [copaMin, setCopaMin] = useState(93)
+  // 🚫 ANTI-SPOILER DO GIRO: as manchetes descrevem a rodada que AINDA está
+  // animando na tela — mostrar na hora entrega zebra/líder/placar antes do apito
+  // (a tabela é segurada com holdResults, mas o giro não era). Segura o giro do
+  // MESMO jeito: só troca pro texto novo quando o resultado revela (liga) ou a
+  // perna fecha (Copa, relógio 93'). Enquanto anima, mostra o giro ANTERIOR.
+  const giroReady = copaLive ? copaMin >= 93 : (resultRevealed || state.lastResults.length === 0)
+  const giroRef = useRef<string[] | null>(null)
+  if (giroReady) giroRef.current = state.news
+  const giroNews = giroRef.current ?? []
   // 🚫 ANTI-SPOILER: quando entra uma perna/fase nova (copaTieKey muda), o relógio
   // ainda está no 93' da anterior por 1 frame — o que piscaria o placar FINAL (com o
   // vencedor riscado) do jogo novo antes do apito. Zera JÁ na renderização.
@@ -3351,7 +3360,9 @@ export function EscSeason() {
         // antes do apito. Some SÓ essas linhas de Copa; o resto do giro segue. Quando
         // o relógio fecha (copaMin >= 93), o giro aparece completo.
         const isCopaReveal = (n: string) => /^⚽ Copa /.test(n) || /passou nos PÊNALTIS/.test(n) || /avançou na Copa/.test(n) || /CAMPEÃO DA COPA/.test(n)
-        const shownNews = copaLive && copaMin < 93 ? state.news.filter(n => !isCopaReveal(n)) : state.news
+        // giroNews é o giro SEGURADO (só atualiza no apito) — o filtro de linhas de
+        // Copa fica como segurança extra enquanto a perna anima.
+        const shownNews = copaLive && copaMin < 93 ? giroNews.filter(n => !isCopaReveal(n)) : giroNews
         if (shownNews.length === 0) return null
         return (
           <Box bg="#FFF6DC" className="p-3 space-y-1">
