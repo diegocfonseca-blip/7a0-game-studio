@@ -48,6 +48,26 @@ responde melhor a explicações simples, sem jargão).
 - Home com seletor ⚽/🏀 no topo (mockup aprovado pelo Diego); o resto da cara
   é IDÊNTICO ao jogo atual (creme/bordas/Oswald) — só troca o conteúdo.
 
+## 💛 Gostos do Diego (aprendidos na prática — respeitar)
+- **Segurança acima de feature**: prefere bloquear com aviso claro a deixar
+  acontecer algo estranho. Toda trava explica O PORQUÊ e O CAMINHO ("faltam 2
+  meias — contrate no leilão ou traga da SAF").
+- **Odeia spoiler**: tabela, giro, artilharia — NADA revela resultado antes da
+  animação/apito na tela.
+- **Nada pode atrasar o ritmo do jogo**: zoeira/interação nova entra nos tempos
+  mortos, nunca adiciona passo nem espera extra (regra de ouro do leilão).
+- **Zoeira é a alma do jogo**: textos com humor BR, emojis, provocação entre
+  amigos (cantadas de blefe, chuva de dinheiro 💸, "QUASE!" no martelo com
+  frases BEM variadas). Folclóricos > nomes reais em conteúdo inventado.
+- **Fidelidade de tier é sagrada**: quem paga ouro vê ouro brilhante em TODO
+  lugar; gratuito vê bege em todo lugar. Nenhuma cor emprestada, nunca.
+- **UI nova = mockup primeiro**: ele quer VER (artifact/screenshot) e aprovar
+  antes de codar. Textos de UI: simples, diretos, sem tecniquês.
+- **Sempre quer saber se dá pra reverter** ("qualquer bug eu posso voltar
+  atrás né?") — responder isso proativamente a cada entrega.
+- Sons: martelo só pra QUEM ganha (ou vende) — nada de som genérico pra todos.
+- Explicações embaixo do botão/do lugar exato, não parágrafos soltos.
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e
