@@ -519,14 +519,18 @@ type CopaFill = { bg: string; ink: string; holo: number; mark: string }
 const _lum = (r: number, g: number, b: number) => 0.3 * r + 0.59 * g + 0.11 * b
 const _inkFor = (hex: string) => { const n = parseInt(hex.slice(1), 16); return _lum((n >> 16) & 255, (n >> 8) & 255, n & 255) > 150 ? '#0c0c0c' : '#ffffff' }
 const TIER_INK: Record<string, string> = { bege: '#0c0c0c', verde: '#ffffff', roxo: '#ffffff', prata: '#0c0c0c', ouro: '#0c0c0c' }
-function copaSideFill(t: SimTeam, colors: Record<number, FCol>, safName?: string): CopaFill {
-  if (t.you) { const p = myApoioPerk() ?? APOIO_PERKS.bege; return { bg: p.grad, ink: TIER_INK[p.tier], holo: p.holo, mark: '👤' } }
-  if (safName && t.name === safName) { const p = myApoioPerk() ?? APOIO_PERKS.bege; return { bg: p.grad, ink: TIER_INK[p.tier], holo: p.holo, mark: '💼' } }
-  if (t.human) { const solid = colors[t.teamId]?.solid ?? '#3A7CA5'; return { bg: solid, ink: _inkFor(solid), holo: 0, mark: '🔥' } }
-  const hex = copaSideColor(t.name), n = parseInt(hex.slice(1), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
-  if (t.rival) return { bg: hex, ink: _inkFor(hex), holo: 0, mark: '⚔️' }
+type TeamKind = 'you' | 'saf' | 'human' | 'rival' | 'bot'
+function fillFor(kind: TeamKind, name: string, humanColor?: string): CopaFill {
+  if (kind === 'you' || kind === 'saf') { const p = myApoioPerk() ?? APOIO_PERKS.bege; return { bg: p.grad, ink: TIER_INK[p.tier], holo: p.holo, mark: kind === 'you' ? '👤' : '💼' } }
+  if (kind === 'human') { const solid = humanColor ?? '#3A7CA5'; return { bg: solid, ink: _inkFor(solid), holo: 0, mark: '🔥' } }
+  const hex = copaSideColor(name), n = parseInt(hex.slice(1), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
+  if (kind === 'rival') return { bg: hex, ink: _inkFor(hex), holo: 0, mark: '⚔️' }
   const mx = (v: number) => Math.round(v * 0.4 + 170 * 0.6), mr = mx(r), mg = mx(g), mb = mx(b) // bot: dessaturado
   return { bg: `rgb(${mr},${mg},${mb})`, ink: _lum(mr, mg, mb) > 150 ? '#0c0c0c' : '#ffffff', holo: 0, mark: '' }
+}
+function copaSideFill(t: SimTeam, colors: Record<number, FCol>, safName?: string): CopaFill {
+  const kind: TeamKind = t.you ? 'you' : (safName && t.name === safName) ? 'saf' : t.human ? 'human' : t.rival ? 'rival' : 'bot'
+  return fillFor(kind, t.name, colors[t.teamId]?.solid)
 }
 // os DOIS lados coloridos como fundo do card (com o brilho do tier quando houver)
 const CopaHalves = ({ fL, fR }: { fL: CopaFill; fR: CopaFill }) => (
@@ -914,7 +918,6 @@ export function playerColors(humanIds: number[], youId: number, seed: number, ri
 }
 // ordem das divisões: a SUA primeiro, depois a pirâmide de cima pra baixo
 function orderedDivs(myDiv: Div | null): Div[] { return myDiv ? [myDiv, ...DIVS.filter(d => d !== myDiv)] : DIVS }
-const matchBg = (m: { hId: number; aId: number }, colors: Record<number, FCol>) => colors[m.hId]?.light ?? colors[m.aId]?.light ?? undefined
 
 // chips com os times dos AMIGOS (e você) que estão numa divisão — pra bater o
 // olho quem está em qual série. Cada um com a SUA cor (inclusive você).
@@ -1093,25 +1096,36 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
 }
 
 // ── os JOGOS de uma divisão (placar + quem fez os gols), cores por amigo ──
-function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matches: SimMatch[]; colors: Record<number, FCol>; humans: { name: string; teamId: number; you: boolean; rival?: boolean }[]; hideId?: number }) {
-  const nameCol = (id: number) => colors[id]?.solid ?? '#5a5647'
+function DivMatches({ div, matches, colors, humans, hideId, youId, safName }: { div: Div; matches: SimMatch[]; colors: Record<number, FCol>; humans: { name: string; teamId: number; you: boolean; rival?: boolean }[]; hideId?: number; youId?: number; safName?: string }) {
+  // 🎨 mesma cor-por-time da Copa: você/SAF na cor do tier, rival cor fixa, bot
+  // apagado, amigo na cor de login. Classifica pelo id/nome do jogo em questão.
+  const kindOf = (id: number, name: string): TeamKind => {
+    if (id === youId) return 'you'
+    if (safName && name === safName) return 'saf'
+    const h = humans.find(x => x.teamId === id)
+    if (h) return h.rival ? 'rival' : 'human'
+    return 'bot'
+  }
   return (
     <div style={{ ...box('#fff'), padding: 9, marginBottom: 8 }}>
       <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>{DIV_LABEL[div]}</p>
       <DivChips humans={humans} colors={colors} />
-      <div style={{ marginTop: 6 }}>
+      <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
         {matches.map((m, i) => {
           if (hideId != null && (m.hId === hideId || m.aId === hideId)) return null
-          const bg = matchBg(m, colors)
           const last = m.goals.length ? m.goals[m.goals.length - 1] : null
+          const fH = fillFor(kindOf(m.hId, m.h), m.h, colors[m.hId]?.solid), fA = fillFor(kindOf(m.aId, m.a), m.a, colors[m.aId]?.solid)
           return (
-            <div key={i} style={{ padding: '3px 4px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: bg, borderRadius: bg ? 5 : 0 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5 }}>
-                <span style={{ textAlign: 'right', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: nameCol(m.hId) }}>{m.h}</span>
-                <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: bg ? INK : '#eee', color: bg ? '#fff' : INK, borderRadius: 5, padding: '0 7px' }}>{m.hg}×{m.ag}</span>
-                <span style={{ textAlign: 'left', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: nameCol(m.aId) }}>{m.a}</span>
+            <div key={i} style={{ position: 'relative', overflow: 'hidden', borderRadius: 7, border: '1.5px solid rgba(0,0,0,.16)' }}>
+              <CopaHalves fL={fH} fR={fA} />
+              <div style={{ position: 'relative', zIndex: 1, padding: '4px 6px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5 }}>
+                  <span style={{ textAlign: 'right', fontWeight: 800, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: fH.ink }}>{m.h}{fH.mark ? ' ' + fH.mark : ''}</span>
+                  <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: INK, color: '#fff', borderRadius: 5, padding: '0 7px', whiteSpace: 'nowrap' }}>{m.hg}×{m.ag}</span>
+                  <span style={{ textAlign: 'left', fontWeight: 800, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: fA.ink }}>{fA.mark ? fA.mark + ' ' : ''}{m.a}</span>
+                </div>
+                {last && <p style={{ margin: '2px 0 0', textAlign: 'center' }}><span style={{ ...copaCenterChip, fontSize: 9, fontWeight: 700 }}>⚽ {last.name} {last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></p>}
               </div>
-              {last && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '1px 0 0', textAlign: 'center' }}>⚽ {last.name} <span style={{ opacity: 0.7 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></p>}
             </div>
           )
         })}
@@ -2469,7 +2483,7 @@ export function PyramidSeasonScreen() {
               }
               return <RivalryTicker items={flavors} />
             })()}
-            {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
+            {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} youId={youId} safName={safTeamName} />)}
           </>
           )
         ) : done && copa && copa.rounds.length > 0 ? (
