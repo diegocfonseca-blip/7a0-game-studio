@@ -2198,31 +2198,36 @@ export function PyramidSeasonScreen() {
           )
         })()}
 
-        {/* abas em pílulas — a ativa fica na SUA cor. 🏟️ Estádio: só na carreira
-            SOLO por enquanto (online precisa sincronizar as compras — etapa 2). */}
+        {/* abas em pílulas — a ativa fica na SUA cor. 🏟️ Clube (Estádio) agora vale
+            também no ONLINE (Passo 1): construir + renda já sincronizam por-técnico.
+            SAF · Patrocínio · Finanças · Agência ainda são só SOLO (Passo 2). */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-          {(([['jogos', '🗓️', 'Jogos'], ['tabelas', '📊', 'Tabelas'], ['elenco', '👥', 'Elenco'], ['ranking', '🏆', 'Rank']] as [typeof tab, string, string][]).concat(state.onlineMode !== 'online' ? [['estadio', '💰', 'Clube'] as [typeof tab, string, string]] : [])).map(([t, ic, label]) => (
+          {([['jogos', '🗓️', 'Jogos'], ['tabelas', '📊', 'Tabelas'], ['elenco', '👥', 'Elenco'], ['ranking', '🏆', 'Rank'], ['estadio', '💰', 'Clube']] as [typeof tab, string, string][]).map(([t, ic, label]) => (
             <button key={t} onClick={() => setTab(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: tab === t ? myCol.solid : '#fff', color: tab === t ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
           ))}
         </div>
 
         {tab === 'estadio' ? (
           <>
-            {/* sub-abas do Clube: 🏟️ Estádio | 💰 Finanças | 💼 Agência (Empresário) */}
+            {/* sub-abas do Clube: 🏟️ Estádio | 💰 Finanças | 💼 Agência — só SOLO.
+                No ONLINE (Passo 1) mostra só o Estádio, sem sub-abas. */}
+            {state.onlineMode !== 'online' && (
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
               {([['estadio', '🏟️', 'Estádio'], ['financas', '💰', 'Finanças'], ['escritorio', '💼', 'Agência']] as [typeof clubeSub, string, string][]).map(([s, ic, label]) => (
                 <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>
-            {clubeSub === 'escritorio' ? (
+            )}
+            {state.onlineMode !== 'online' && clubeSub === 'escritorio' ? (
               <EscritorioTab cards={state.empresarioCards ?? []} st={state.stadiums?.[youId]} hasFilial={!!state.careerFilial} />
-            ) : clubeSub === 'financas' ? (
+            ) : state.onlineMode !== 'online' && clubeSub === 'financas' ? (
               <FinancasTab ledger={state.careerLedger ?? []} caixa={state.careerCoins?.[youId] ?? 0} seasonNo={state.seasonNo ?? 1}
                 squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
             ) : (
           <>
-            {/* 👕 Patrocínio: escolhe a marca (por divisão); rende no vira-temporada */}
-            {me && <SponsorCard div={me.div} chosen={state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id })} />}
+            {/* 👕 Patrocínio: escolhe a marca (por divisão); rende no vira-temporada.
+                Só SOLO por enquanto (Passo 2 no online). */}
+            {state.onlineMode !== 'online' && me && <SponsorCard div={me.div} chosen={state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id })} />}
             <StadiumTab st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
@@ -2240,7 +2245,7 @@ export function PyramidSeasonScreen() {
                 for (const d of DIVS) { const i = tables[d].findIndex(t => t.name === fn); if (i >= 0) return { div: d, pos: i + 1 } }
                 return null
               })()}
-              onBuyFilial={team => dispatch({ type: 'BUY_FILIAL', team })}
+              onBuyFilial={state.onlineMode === 'online' ? undefined : (team => dispatch({ type: 'BUY_FILIAL', team }))}
               onSellFilial={() => dispatch({ type: 'SELL_FILIAL' })}
               filialSale={state.careerFilial ? filialSaleValue(state) : undefined}
               mySquad={state.managers[state.youIdx]?.squad}
