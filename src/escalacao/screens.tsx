@@ -875,8 +875,29 @@ function NewsBanner() {
   )
 }
 
+// 🆕 RECÉM-CHEGADOS automáticos: puxa as ÚLTIMAS cartas de cada baralho (as novas
+// entram no FIM de cada posição no data.ts) com o selo do tier — sem lista à mão,
+// reflete sempre as cartas de verdade e fica dividido por baralho.
+type Recruit = (typeof CATALOG)[Sector][number]
+const RECENT_PER_POS = 4 // últimas N cartas de cada posição, por baralho
+function recruitSelo(c: Recruit): string {
+  // 5 categorias de NÍVEL (mesma regra da carta): 👑 lenda · ⭐ craque · 💎 promessa ·
+  // 🎯 bom jogador · 🪵 foi profissional. O 🃏 folclórico NÃO é categoria — é vibe, e
+  // entra MISTURADO (selo extra) junto da categoria de nível do jogador.
+  const isProm = c.promessa ?? PROMESSA_SET.has(c.name)
+  const lvl = isProm ? '💎' : c.fame >= 5 ? '👑' : c.fame === 4 ? '⭐' : c.fame >= 2 ? '🎯' : '🪵'
+  return ' ' + lvl + (c.folk ? '🃏' : '')
+}
+function recentArrivals(cat: Record<Sector, Recruit[]>): Recruit[] {
+  const out: Recruit[] = []
+  for (const pos of SECTORS) { const arr = cat[pos]; for (const c of arr.slice(Math.max(0, arr.length - RECENT_PER_POS)).reverse()) out.push(c) }
+  return out
+}
+
 // seção detalhada lá embaixo: novidades do jogo + jogadores que entraram
 function NewsSection() {
+  const recentBR = recentArrivals(CATALOG)
+  const recentEU = recentArrivals(CATALOG_EU)
   return (
     <Box bg="#F6F2FF" className="p-4 space-y-3">
       <p className="font-black text-base" style={OSWALD}>📢 Últimas novidades</p>
@@ -901,16 +922,9 @@ function NewsSection() {
         </div>
       </div>
       <div>
-        <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>🌍 Baralho da Liga Europa</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>Lendas:</b> Maradona, Zidane, Messi, Cristiano, Mbappé, Vini Jr, Ronaldinho Gaúcho, Kaká, Henry, Pirlo, Cruyff, van Basten, Puskás, George Best, Yashin.</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>Craques:</b> Yamal, Bellingham, Bebeto, Totti, Del Piero, Cantona, Zola, Rui Costa, Hagi, Drogba, Harry Kane, Van Dijk, Sergio Ramos.</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>Promessas 💎:</b> Musiala, Wirtz, João Félix, Pato, Endrick.</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>Flops &amp; folclore 🃏:</b> Gabigol, Kléberson, Ali Dia, Bebé, Kerlon, Vampeta, Pedro, Denílson Show, Fellaini.</p>
-      </div>
-      <div>
         <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>🆕 Recém-chegados</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>🇧🇷 BR:</b> <b>Zito 👑</b>, Enner Valencia, Alan Patrick, Bernabei (reforços do Inter), Kaio Jorge, Neilton 💎, GarrinSha 🃏, Paulinho (atacante), Reinier 🃏, <b>Evaristo de Macedo 👑</b>, Donizete Pantera, Oséas, Luciano, Caio Ribeiro 💎, Galeano, Cláudio Pitbull, Souza, Giovanni, Rodrigo Souto, Richarlyson, Domingos, Rogério (pedala Robinho) 🃏, Matheus Pereira, <b>Ademir de Menezes 👑</b>, Nelinho, César Sampaio, Luizão, Waldir Peres, Josimar, <b>Figueroa 👑</b>, Bolívar, Índio, Alexandre Pato 💎, Vegetti, Edu Dracena, Alex Mineiro, Durval, Danilo (Chape), Víctor Aristizábal, Roger Guedes, Thiago Galhardo, Arboleda, Hernanes (Profeta).</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>🌍 Europa:</b> <b>Lautaro Martínez, Julián Álvarez, Dibu Martínez, Lisandro Martínez, Otamendi, Koeman, Aimar, Diego Costa, Lo Celso, Paredes, Acuña, Tagliafico, Montiel, Scaloni, Giuliano Simeone 💎</b>, Christian Eriksen, Rüdiger, Laporte, José Giménez, Santiago Solari, Payet, Abel Ferreira 🃏, Matip, Salomon Kalou, Matheus Cunha, Carvajal, Cucurella, Míchel Salgado, Ivanović, Ricardo Quaresma 🃏, Nani, Thomas Müller, Reus, Ter Stegen, Petit, Deschamps, Maguire, Raphinha, Gabriel Magalhães, Martinelli, Bremer, Ljungberg, Alfie Haaland (pai do Erling) 🃏.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>🇧🇷 BR:</b> {recentBR.map(c => c.name + recruitSelo(c)).join(', ')}.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>🌍 Europa:</b> {recentEU.map(c => c.name + recruitSelo(c)).join(', ')}.</p>
         <p className="text-[11px] font-bold text-black/50 mt-1">O baralho só cresce — sempre entrando craque novo. 🔨</p>
       </div>
     </Box>
