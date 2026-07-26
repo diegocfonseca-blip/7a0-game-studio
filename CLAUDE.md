@@ -47,6 +47,15 @@ responde melhor a explicações simples, sem jargão).
   `leilaolegends.com` → futebol. Marca visível: "BidLegends".
 - Home com seletor ⚽/🏀 no topo (mockup aprovado pelo Diego); o resto da cara
   é IDÊNTICO ao jogo atual (creme/bordas/Oswald) — só troca o conteúdo.
+- 🌐 **BILÍNGUE (BR/EN) OBRIGATÓRIO**: o basquete é internacional (NBA). TODO
+  texto novo do BidLegends NASCE em PT **e** EN — usar `useT()` de
+  `src/escalacao/lang.ts` (`const t = useT(); t('Português','English')`). Botão
+  BR/EN fica no **canto direito do header** do BidLegends (`LangToggle`). Padrão:
+  navegador PT → BR, senão EN; escolha manual grava no aparelho. ⚠️ Isto é SÓ do
+  basquete — o FUTEBOL segue 100% em PT, não traduzir.
+- 🔒 Enquanto está em construção, o basquete é **invisível pra todo mundo**: só
+  aparece pra `diego.c.fonseca@gmail.com` logado (trava por conta em
+  `src/escalacao/sport.ts`, `BASQUETE_TESTERS`). Não fundir na main sem OK visual.
 
 ## 🔄 Protocolo de memória compartilhada (OBRIGATÓRIO em toda sessão)
 As sessões não se veem — o repo é a memória comum. Então TODA sessão deve:

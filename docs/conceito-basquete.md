@@ -3,6 +3,14 @@
 > Decidido com o Diego em 26/07/2026. Este doc é a fonte de verdade pra quando
 > formos construir. O jogo de FUTEBOL não muda em NADA.
 
+## Idioma (BR/EN) — decidido 26/07/2026
+- O BidLegends é INTERNACIONAL (NBA). Tem **botão BR/EN no canto direito do
+  header** — troca o idioma do BidLegends inteiro. TODO texto novo do basquete
+  nasce nas DUAS línguas (helper `useT()` em `src/escalacao/lang.ts`).
+- Padrão: navegador em PT abre em BR; senão, EN. A escolha manual fica gravada
+  no aparelho.
+- ⚠️ Vale SÓ pro basquete. O futebol (Leilão Legends) continua 100% em PT.
+
 ## Domínio / hospedagem
 - Domínio REGISTRADO (26/07/2026): **bidlegendsarena.com** — aponta pro MESMO site/deploy do leilaolegends.com.
 - Marca visível: **BidLegends** (o "arena" mora só no endereço).

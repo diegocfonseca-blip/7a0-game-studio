@@ -19,6 +19,7 @@ import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, COPA_LEG_MS } from './pyramidseason'
 import { useSport, useSportUnlocked, type Sport } from './sport'
+import { useLang, useT } from './lang'
 
 // universo colecionável = os DOIS baralhos (BR + Europa), por nomes únicos
 // (Kaká, Cafu etc. aparecem nos dois — conta uma vez só).
@@ -1046,6 +1047,7 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
 // oficial (nada de cor nova inventada).
 function SportTabs() {
   const [sport, setSport] = useSport()
+  const t = useT()
   const tab = (s: Sport, emoji: string, label: string, activeBg: string) => {
     const active = sport === s
     return (
@@ -1058,8 +1060,30 @@ function SportTabs() {
   }
   return (
     <div className="flex gap-2 pt-3">
-      {tab('futebol', '⚽', 'Futebol', GREEN)}
-      {tab('basquete', '🏀', 'Basquete', '#C2452F')}
+      {tab('futebol', '⚽', t('Futebol', 'Soccer'), GREEN)}
+      {tab('basquete', '🏀', t('Basquete', 'Basketball'), '#C2452F')}
+    </div>
+  )
+}
+
+// 🌐 BOTÃO BR/EN — canto direito do header do BidLegends (regra do Diego). Só
+// aparece no basquete; o futebol não tem idioma pra trocar. Segmento compacto.
+function LangToggle() {
+  const [lang, setLang] = useLang()
+  const seg = (l: 'pt' | 'en', flag: string, code: string) => {
+    const on = lang === l
+    return (
+      <button onClick={() => setLang(l)} aria-pressed={on}
+        className="flex items-center gap-1 rounded-lg active:translate-y-0.5"
+        style={{ padding: '3px 8px', background: on ? INK : 'transparent', color: on ? '#fff' : 'rgba(0,0,0,.5)', fontWeight: 900, fontSize: 12, ...OSWALD }}>
+        <span style={{ fontSize: 13, lineHeight: 1 }}>{flag}</span>{code}
+      </button>
+    )
+  }
+  return (
+    <div className="inline-flex items-center gap-0.5 rounded-xl border-2 border-black bg-white" style={{ padding: 2, boxShadow: `2px 2px 0 0 ${INK}` }}>
+      {seg('pt', '🇧🇷', 'BR')}
+      {seg('en', '🇺🇸', 'EN')}
     </div>
   )
 }
@@ -1070,46 +1094,51 @@ function SportTabs() {
 // marca, o conceito (pirâmide + quinteto) e deixa claro que o FUTEBOL segue
 // 100% no ar na aba ⚽. Zero risco pro jogo ao vivo.
 function BidLegendsHome() {
+  const t = useT()
   const PYR = [
-    ['🛝', 'STREET LEAGUE', 'A base. 20 times, pontos corridos. Sobem 4, ninguém cai.'],
-    ['🔷', 'G LEAGUE', 'Leste × Oeste, 82 jogos, playoffs. Sobe quem vai longe.'],
-    ['💍', 'NBA', 'O topo. Chegue às Finals e leve o anel pro seu álbum.'],
+    ['🛝', 'STREET LEAGUE', t('A base. 20 times, pontos corridos. Sobem 4, ninguém cai.', 'The base. 20 teams, round-robin. Top 4 go up, nobody drops.')],
+    ['🔷', 'G LEAGUE', t('Leste × Oeste, 82 jogos, playoffs. Sobe quem vai longe.', 'East × West, 82 games, playoffs. Go far and move up.')],
+    ['💍', 'NBA', t('O topo. Chegue às Finals e leve o anel pro seu álbum.', 'The top. Reach the Finals and take the ring to your album.')],
   ] as [string, string, string][]
   return (
     <Shell>
+      {/* header: botão de idioma BR/EN no canto direito (só o BidLegends tem) */}
+      <div className="flex justify-end pt-2"><LangToggle /></div>
       <SportTabs />
       <div className="text-center pt-6">
         <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
-          🏀 Leilão às cegas de lendas
+          🏀 {t('Leilão às cegas de lendas', 'Blind auction of legends')}
         </span>
         <h1 className="font-black text-5xl mt-4 leading-none" style={OSWALD}>BIDLEGENDS</h1>
         <div className="mx-auto mt-2" style={{ width: 150, height: 10, borderRadius: 5, background: '#C2452F', border: `2px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}` }} />
-        <p className="mt-3 font-semibold text-black/60 max-w-sm mx-auto">O leilão cego das lendas do <b>basquete</b>. Monte seu quinteto no pregão, suba a pirâmide da NBA e colecione os craques no seu álbum.</p>
+        <p className="mt-3 font-semibold text-black/60 max-w-sm mx-auto">
+          {t('O leilão cego das lendas do ', 'The blind auction of ')}<b>{t('basquete', 'basketball')}</b>{t('. Monte seu quinteto no pregão, suba a pirâmide da NBA e colecione os craques no seu álbum.', ' legends. Draft your starting five, climb the NBA pyramid and collect the stars in your album.')}
+        </p>
       </div>
       {/* vitrine: as MESMAS cartas do futebol, só que de basquete (mesmo visual) */}
       <div className="grid grid-cols-2 gap-3">
-        <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="Michael Jordan" club="Bulls" year={1996} pos="ALA" fame={5} showBio bio="Melhor de todos os tempos. Seis anéis, seis MVPs de Finals. Fechou a carreira do jeito que começou: por cima." /></div>
-        <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Dwyane Wade" club="Heat" year={2006} pos="ARM" fame={4} showBio bio="Flash. Carregou o Heat ao título em 2006 numa das melhores finais individuais da história." /></div>
-        <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Victor Wembanyama" club="Spurs" year={2024} pos="PIVÔ" fame={3} promessa showBio bio="O alienígena. 2,24m que enterra, cravou e acerta de três. O futuro chegou cedo." /></div>
-        <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="JaVale McGee" club="Wizards" year={2011} pos="PIVÔ" fame={2} folk showBio bio="Rei do Shaqtin' a Fool. Errou uns, acertou anéis. Folclore puro do garrafão." /></div>
+        <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="Michael Jordan" club="Bulls" year={1996} pos="ALA" fame={5} showBio bio={t('Melhor de todos os tempos. Seis anéis, seis MVPs de Finals. Fechou a carreira do jeito que começou: por cima.', 'The greatest of all time. Six rings, six Finals MVPs. Ended his career the way it began: on top.')} /></div>
+        <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Dwyane Wade" club="Heat" year={2006} pos="ARM" fame={4} showBio bio={t('Flash. Carregou o Heat ao título em 2006 numa das melhores finais individuais da história.', 'Flash. Carried the Heat to the 2006 title in one of the greatest individual Finals ever.')} /></div>
+        <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Victor Wembanyama" club="Spurs" year={2024} pos="PIVÔ" fame={3} promessa showBio bio={t('O alienígena. 2,24m que enterra, cravou e acerta de três. O futuro chegou cedo.', 'The alien. 7-foot-4 that dunks and drains threes. The future came early.')} /></div>
+        <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="JaVale McGee" club="Wizards" year={2011} pos="PIVÔ" fame={2} folk showBio bio={t("Rei do Shaqtin' a Fool. Errou uns, acertou anéis. Folclore puro do garrafão.", "King of Shaqtin' a Fool. Missed a few, won rings. Pure paint folklore.")} /></div>
       </div>
-      <p className="text-center text-[11px] font-black uppercase tracking-wide text-black/45" style={OSWALD}>👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — colecione todos</p>
+      <p className="text-center text-[11px] font-black uppercase tracking-wide text-black/45" style={OSWALD}>{t('👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — colecione todos', '👑 legend · ⭐ star · 💎 prospect · 🃏 cult hero — collect them all')}</p>
       {/* aviso "chegando" — honesto, sem prometer o que ainda não tem */}
       <div className="border-[3px] border-black rounded-2xl p-4 text-center" style={{ background: '#fff', boxShadow: `4px 4px 0 0 ${INK}` }}>
         <div className="text-3xl">🚧</div>
-        <p className="font-black text-lg uppercase mt-1" style={OSWALD}>Chegando ao BidLegends</p>
+        <p className="font-black text-lg uppercase mt-1" style={OSWALD}>{t('Chegando ao BidLegends', 'Coming to BidLegends')}</p>
         <p className="text-[13px] font-semibold text-black/60 mt-1 leading-snug">
-          O basquete está em construção — o mesmo motor do Leilão Legends, agora com o quinteto e a pirâmide da NBA. Quer jogar HOJE? Toca em <b>⚽ Futebol</b> aí em cima: o jogo completo está no ar.
+          {t('O basquete está em construção — o mesmo motor do Leilão Legends, agora com o quinteto e a pirâmide da NBA. Quer jogar HOJE? Toca em ', 'Basketball is under construction — the same engine as Leilão Legends, now with the starting five and the NBA pyramid. Want to play TODAY? Tap ')}<b>{t('⚽ Futebol', '⚽ Soccer')}</b>{t(' aí em cima: o jogo completo está no ar.', ' up top: the full game is live.')}
         </p>
       </div>
       {/* a pirâmide (conceito) */}
       <div className="space-y-2.5">
-        <p className="text-center text-[11px] font-black uppercase tracking-widest text-black/40" style={OSWALD}>A pirâmide do basquete</p>
-        {PYR.map(([ic, t, d]) => (
-          <div key={t} className="flex items-center gap-3 border-[3px] border-black rounded-xl bg-white p-3" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
+        <p className="text-center text-[11px] font-black uppercase tracking-widest text-black/40" style={OSWALD}>{t('A pirâmide do basquete', 'The basketball pyramid')}</p>
+        {PYR.map(([ic, ti, d]) => (
+          <div key={ti} className="flex items-center gap-3 border-[3px] border-black rounded-xl bg-white p-3" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
             <div className="text-2xl shrink-0">{ic}</div>
             <div>
-              <p className="font-black text-sm uppercase" style={OSWALD}>{t}</p>
+              <p className="font-black text-sm uppercase" style={OSWALD}>{ti}</p>
               <p className="text-[11px] font-semibold text-black/60 leading-snug">{d}</p>
             </div>
           </div>
@@ -1117,13 +1146,13 @@ function BidLegendsHome() {
       </div>
       {/* como funciona — espelha os 4 cartões do futebol, adaptado ao basquete */}
       <div className="grid grid-cols-2 gap-2.5">
-        {([['🏀', 'O Pregão', '5 rodadas de leilão cego: armador, ala-armador, ala, ala-pivô e pivô. Ninguém vê o lance de ninguém.'],
-           ['🎭', 'Níveis ocultos', 'Você aposta no nome. O nível só abre na Cerimônia — e todo craque tem noite boa e noite ruim.'],
-           ['🪜', 'Pirâmide', 'Da Street League à NBA. Cada anel vira uma carta no seu álbum.'],
-           ['💎', 'Vale o auge', 'O nível é o auge do craque naquele ano/franquia (Jordan 1996 lenda; Wade 2006 craque).']] as [string, string, string][]).map(([ic, t, d]) => (
-          <div key={t} className="border-[3px] border-black rounded-xl bg-white p-3" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
+        {([['🏀', t('O Pregão', 'The Auction'), t('5 rodadas de leilão cego: armador, ala-armador, ala, ala-pivô e pivô. Ninguém vê o lance de ninguém.', '5 blind auction rounds: PG, SG, SF, PF and C. No one sees anyone else’s bid.')],
+           ['🎭', t('Níveis ocultos', 'Hidden ratings'), t('Você aposta no nome. O nível só abre na Cerimônia — e todo craque tem noite boa e noite ruim.', 'You bet on the name. The rating only opens at the Ceremony — and every star has good and bad nights.')],
+           ['🪜', t('Pirâmide', 'The Pyramid'), t('Da Street League à NBA. Cada anel vira uma carta no seu álbum.', 'From the Street League to the NBA. Each ring becomes a card in your album.')],
+           ['💎', t('Vale o auge', 'Peak counts'), t('O nível é o auge do craque naquele ano/franquia (Jordan 1996 lenda; Wade 2006 craque).', 'The rating is the star’s peak that year/franchise (Jordan 1996 legend; Wade 2006 star).')]] as [string, string, string][]).map(([ic, ti, d]) => (
+          <div key={ti} className="border-[3px] border-black rounded-xl bg-white p-3" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
             <div className="text-xl">{ic}</div>
-            <p className="font-black text-[13px] uppercase mt-1.5" style={OSWALD}>{t}</p>
+            <p className="font-black text-[13px] uppercase mt-1.5" style={OSWALD}>{ti}</p>
             <p className="text-[11px] font-semibold text-black/60 mt-0.5 leading-snug">{d}</p>
           </div>
         ))}
