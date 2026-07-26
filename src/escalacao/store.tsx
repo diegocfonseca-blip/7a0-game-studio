@@ -3905,8 +3905,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
     ch.on('broadcast', { event: 'host_change' }, ({ payload }: { payload: { newHostIndex: number } }) => {
       if (payload.newHostIndex !== stateRef.current.youIdx || isHostRef.current) return
       rawDispatch({ type: 'BECOME_HOST' })
+      // fica na tela até a pessoa dar OK (antes sumia em 6s e dava pra virar host
+      // "sem saber" — aí a decisão de host assustava, tipo o voto que vira início).
       setBecameHost(true)
-      setTimeout(() => setBecameHost(false), 6000)
     })
     ch.on('presence', { event: 'sync' }, () => {
       const pState = ch.presenceState()
@@ -4133,7 +4134,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
           }}>
             <div style={{ fontSize: 52, lineHeight: 1 }}>🎖️</div>
             <p style={{ fontWeight: 900, fontSize: 26, color: '#0C0C0C', margin: '10px 0 4px', letterSpacing: .5 }}>VOCÊ VIROU O HOST!</p>
-            <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.72)' }}>O host anterior saiu da sala e passou o comando pra você. Agora é você quem toca a partida. 🎮</p>
+            <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.72)' }}>O host anterior saiu da sala e passou o comando pra você. Agora é <b>você</b> quem toca a partida: avançar fases, começar o leilão e decidir depois da votação. 🎮</p>
+            <button onClick={() => setBecameHost(false)}
+              style={{ marginTop: 16, width: '100%', background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '12px 0', fontWeight: 900, fontSize: 16, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>
+              👑 OK, ENTENDI — SOU O HOST
+            </button>
           </div>
         </div>
       )}
