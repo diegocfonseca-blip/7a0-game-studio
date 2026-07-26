@@ -277,6 +277,7 @@ export interface EscState {
   marketLog?: string[] // carreira online: resumo do que os BOTS fizeram no leilão/monte (arrematou X, pegou Y de graça, comprou o listado Z por W) — mostrado na cerimônia pra dar visibilidade. Zera a cada leilão.
   careerLedger?: LedgerEntry[] // 🧾 carreira SOLO: livro-caixa (extrato + transferências) — só exibição, nunca realimenta o caixa. Cresce ao longo da carreira; limitado às últimas ~250 entradas.
   careerSponsor?: string // 👕 carreira SOLO: id da marca de patrocínio escolhida (cosmético). O quanto rende é POR DIVISÃO, não pela marca.
+  careerSponsors?: Record<number, string> // 👕 carreira ONLINE: marca escolhida por técnico (mgrId → id da marca). Offline usa careerSponsor; online usa este.
   empresarioCards?: EmpCard[] // 💼 carreira SOLO: agência do Empresário — cartas ganhas no pacote de campeão desta carreira (começa vazia). Rende por temporada por raridade (categorias destravam com estádio/SAF). Aceita REPETIDAS (o álbum geral ignora; a agência do save conta).
   empresarioClaimKeys?: string[] // 💼 idempotência: seasonKeys dos pacotes já registrados na agência (o pacote reoferece a carta no reload, então dedup por temporada, não por carta).
   careerEra?: number // 🎮 carreira SOLO: "geração" da carreira. Ausente = carreira ANTIGA (começou antes da cobrança do Modo Manual) → manual liberado pra sempre (grandfather). Preenchido = carreira NOVA, o manual pede o apoio. Nunca mexe em save antigo.

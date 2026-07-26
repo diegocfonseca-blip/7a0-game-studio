@@ -2226,8 +2226,8 @@ export function PyramidSeasonScreen() {
             ) : (
           <>
             {/* 👕 Patrocínio: escolhe a marca (por divisão); rende no vira-temporada.
-                Só SOLO por enquanto (Passo 2 no online). */}
-            {state.onlineMode !== 'online' && me && <SponsorCard div={me.div} chosen={state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id })} />}
+                Online: por técnico (careerSponsors[youId]). Offline: careerSponsor. */}
+            {me && <SponsorCard div={me.div} chosen={state.onlineMode === 'online' ? state.careerSponsors?.[youId] : state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id, mgrId: youId })} />}
             <StadiumTab st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}

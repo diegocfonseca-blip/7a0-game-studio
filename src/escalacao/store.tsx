@@ -81,6 +81,13 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
     const div = s.careerPlacements?.[`m${y}`]
     const spay = div ? (SPONSOR_PAY[div] ?? 0) : 0
     if (spay > 0) s.careerCoins = { ...s.careerCoins, [y]: (s.careerCoins[y] ?? 0) + spay }
+  } else {
+    // 👕 ONLINE: cada humano ganha o patrocínio da DIVISÃO dele (não da marca).
+    for (const h of s.managers.filter(m => m.isHuman)) {
+      const div = s.careerPlacements?.[`m${h.id}`]
+      const spay = div ? (SPONSOR_PAY[div] ?? 0) : 0
+      if (spay > 0) s.careerCoins = { ...(s.careerCoins ?? {}), [h.id]: (s.careerCoins?.[h.id] ?? 0) + spay }
+    }
   }
   const b4 = s.careerCoins[y] ?? 0
   // 💼 EMPRESÁRIO (só carreira SOLO): renda das cartas ganhas nesta carreira, por
@@ -1588,7 +1595,7 @@ type Action =
   | { type: 'FORCE_TIEBREAK' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string }
   | { type: 'MONTE_TIMEOUT' }
-  | { type: 'SET_SPONSOR'; id: string } // 👕 escolhe a marca do patrocínio (carreira solo)
+  | { type: 'SET_SPONSOR'; id: string; mgrId?: number } // 👕 escolhe a marca do patrocínio (solo: careerSponsor · online: careerSponsors[mgrId])
   | { type: 'BUY_FILIAL'; team: string } // 🏢 compra o clube-filial (carreira offline, teste)
   | { type: 'SELL_FILIAL' } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 2.500)
   | { type: 'ADD_EMPRESARIO_CARD'; card: EmpCard; key?: string } // 💼 registra uma carta ganha (pacote de campeão) na agência do Empresário. `key` = seasonKey do pacote (dedup por temporada — aceita repetida entre temporadas)
@@ -2388,9 +2395,15 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'SET_SPONSOR': {
-      // 👕 escolhe a marca do patrocínio (cosmético — o valor é por divisão)
-      if (!s.careerOnline || s.onlineMode === 'online') return s
-      s.careerSponsor = action.id
+      // 👕 escolhe a marca do patrocínio (cosmético — o valor é por divisão).
+      // Online: por técnico (careerSponsors[mgrId]). Offline: careerSponsor (igual).
+      if (!s.careerOnline) return s
+      if (s.onlineMode === 'online') {
+        const id = action.mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
+        s.careerSponsors = { ...(s.careerSponsors ?? {}), [id]: action.id }
+      } else {
+        s.careerSponsor = action.id
+      }
       return s
     }
     case 'BUY_FILIAL': {
