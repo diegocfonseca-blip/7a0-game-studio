@@ -4940,6 +4940,26 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   // aviso do host quando ainda tem gente sem decidir: um mini-modal com 3 saídas
   // (esperar · começar com eles · excluir e começar). Se todos prontos, começa direto.
   const [askStart, setAskStart] = useState<'mesmo' | 'leilao' | null>(null)
+  // 👥 QUEM AINDA ESTÁ NA SALA (pra ninguém decidir "jogar de novo" no escuro —
+  // ex.: a sala era 10 e agora só tem 3). Presença via realtime (+ eu mesmo);
+  // quem fechou o app aparece esmaecido como "saiu". A tag 👑 HOST vem do banco
+  // (host_id → player_index) — é a fonte de verdade, inclusive após passar a coroa.
+  const present = new Set([...(state.presence ?? []), youId])
+  const [hostIdx, setHostIdx] = useState<number | null>(isHost ? youId : null)
+  useEffect(() => {
+    if (!state.roomId) return
+    ;(async () => {
+      try {
+        const [{ data: room }, { data: pls }] = await Promise.all([
+          supabase.from('game_rooms').select('host_id').eq('id', state.roomId).maybeSingle(),
+          supabase.from('room_players').select('user_id, player_index').eq('room_id', state.roomId),
+        ])
+        const hid = (room as { host_id?: string } | null)?.host_id
+        const row = ((pls ?? []) as { user_id: string; player_index: number }[]).find(p => p.user_id === hid)
+        if (row) setHostIdx(row.player_index)
+      } catch { /* sem tag de host — segue */ }
+    })()
+  }, [state.roomId, isHost])
   const startMesmo = () => dispatch({ type: 'REPLAY_SEASON' })
   // "Novo leilão": a MESMA galera segue na sala, com um leilão do zero (jogadores
   // novos) — SEM voltar pra sala de espera. O host monta e transmite; os
@@ -4983,6 +5003,30 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   return (
     <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: 'linear-gradient(160deg,#C9A9FF,#8B5CF6 52%,#5B2FB0)', boxShadow: `4px 4px 0 ${INK}` }}>
       <p className="font-black text-lg text-center" style={{ ...OSWALD, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>🗳️ E agora?</p>
+      {/* 👥 quem está na sala — igual à sala de espera: bolinha no DEGRADÊ do tier
+          de cada um (com brilho), nome, 👑 HOST e status (na sala / saiu). */}
+      {humans.length > 0 && (
+        <div className="rounded-xl border-2 border-black px-3 py-2" style={{ background: 'rgba(255,255,255,.95)' }}>
+          <p className="text-[10px] font-black uppercase tracking-widest text-black/50 mb-1.5" style={OSWALD}>👥 Na sala agora · {humans.filter(m => present.has(m.id)).length}/{humans.length}</p>
+          <div className="space-y-1.5">
+            {humans.map(m => {
+              const pk = (m.id === youId ? myApoioPerk() : perkFromSelo(m.teamName)) ?? APOIO_PERKS.bege
+              const here = present.has(m.id)
+              return (
+                <div key={m.id} className="flex items-center gap-2" style={{ opacity: here ? 1 : 0.45 }}>
+                  <div className="w-7 h-7 rounded-full border-2 border-black flex items-center justify-center text-xs font-black shrink-0" style={{ background: pk.grad, color: TIER_INK[pk.tier], position: 'relative', overflow: 'hidden' }}>
+                    <span style={{ position: 'relative', zIndex: 2 }}>{stripEmoji(m.teamName).trim()[0]?.toUpperCase() ?? '?'}</span>
+                    {pk.holo > 0 && <ApoioSheen holo={pk.holo} dur={2.6} />}
+                  </div>
+                  <span className="font-black text-[13px] text-black flex-1 truncate" style={OSWALD}>{m.teamName}{m.id === youId ? ' (você)' : ''}</span>
+                  {hostIdx === m.id && <span className="text-[9px] font-black uppercase bg-yellow-400 border border-black px-1.5 py-0.5 rounded-full shrink-0">👑 HOST</span>}
+                  <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: here ? '#166534' : '#8a8672' }}>{here ? '🟢 na sala' : '🚪 saiu'}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
       {awaitingCard ? (
         // 🎁 Jeito 1: você foi campeão e ainda não abriu a carta — trava o voto/começar
         // até pegar, pra NUNCA trocar de tela e perder a carta.
