@@ -1646,7 +1646,7 @@ type Action =
   | { type: 'SET_SPONSOR'; id: string; mgrId?: number } // 👕 escolhe a marca do patrocínio (solo: careerSponsor · online: careerSponsors[mgrId])
   | { type: 'BUY_FILIAL'; team: string; mgrId?: number } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])
   | { type: 'SELL_FILIAL'; mgrId?: number } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 2.500)
-  | { type: 'ADD_EMPRESARIO_CARD'; card: EmpCard; key?: string } // 💼 registra uma carta ganha (pacote de campeão) na agência do Empresário. `key` = seasonKey do pacote (dedup por temporada — aceita repetida entre temporadas)
+  | { type: 'ADD_EMPRESARIO_CARD'; card: EmpCard; key?: string; mgrId?: number } // 💼 registra uma carta ganha (pacote de campeão) na agência do Empresário. `key` = seasonKey do pacote (dedup por temporada — aceita repetida entre temporadas). `mgrId` = técnico dono (online: por-técnico)
   | { type: 'LOAN_TO_FILIAL'; cardId: string; mgrId?: number } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda, volta na virada)
   | { type: 'LOAN_FROM_FILIAL'; cardId: string; mgrId?: number } // 🏢 pega um jogador emprestado DA SAF (idem)
   | { type: 'MONTE_PASS'; mgrId: number } // carreira: recusa as sobras e passa a vez (o time já tem os 11)
@@ -2527,7 +2527,18 @@ export function reducer(state: EscState, action: Action): EscState {
       // carreira SOLO). Dedup por TEMPORADA (o pacote reoferece a carta no reload):
       // cada pacote conta uma vez, mas cartas REPETIDAS entre temporadas EMPILHAM
       // (renda cresce). O álbum geral ignora repetidas sozinho (dedup por carta lá).
-      if (!s.careerOnline || s.onlineMode === 'online') return s
+      if (s.onlineMode === 'online') {
+        // online: agência POR-TÉCNICO (careerEmpresario/careerEmpresarioClaims
+        // keyados por mgrId). Mesma regra de dedup por temporada do offline.
+        const mid = action.mgrId
+        if (mid == null) return s
+        const claims = s.careerEmpresarioClaims?.[mid] ?? []
+        if (action.key && claims.includes(action.key)) return s
+        s.careerEmpresario = { ...(s.careerEmpresario ?? {}), [mid]: [...(s.careerEmpresario?.[mid] ?? []), { ...action.card, season: s.seasonNo ?? 1 }] }
+        if (action.key) s.careerEmpresarioClaims = { ...(s.careerEmpresarioClaims ?? {}), [mid]: [...claims, action.key] }
+        return s
+      }
+      if (!s.careerOnline) return s
       const keys = s.empresarioClaimKeys ?? []
       if (action.key && keys.includes(action.key)) return s // este pacote já foi registrado
       // carimba a temporada em que a carta foi ganha — ela só começa a render na

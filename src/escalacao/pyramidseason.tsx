@@ -2104,7 +2104,7 @@ export function PyramidSeasonScreen() {
 
         {copaFinished && me?.champ && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
-            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`} origin={state.roomId ? 'online' : 'cpu'} saveCards={!state.roomId ? (state.empresarioCards ?? []) : undefined} onClaimed={!state.roomId ? (c => dispatch({ type: 'ADD_EMPRESARIO_CARD', key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })) : undefined} />
+            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onClaimed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
           </div>
         )}
         {/* 🏆 Campeão da COPA LEGENDS (mata-mata dos 16) ganha carta À PARTE do
@@ -2112,7 +2112,7 @@ export function PyramidSeasonScreen() {
             duas. seasonKey própria (sufixo ":copa") pra não colidir com a de cima. */}
         {copaFinished && copa?.champion?.you && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
-            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:copa`} origin={state.roomId ? 'online' : 'cpu'} saveCards={!state.roomId ? (state.empresarioCards ?? []) : undefined} onClaimed={!state.roomId ? (c => dispatch({ type: 'ADD_EMPRESARIO_CARD', key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:copa`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })) : undefined} />
+            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:copa`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onClaimed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:copa`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
           </div>
         )}
         {copaFinished && (() => {
@@ -2212,16 +2212,15 @@ export function PyramidSeasonScreen() {
         {tab === 'estadio' ? (
           <>
             {/* sub-abas do Clube: 🏟️ Estádio | 💰 Finanças | 💼 Agência.
-                Online: Estádio + Finanças (Agência é Passo 2c). */}
+                Agora tudo (Estádio · Finanças · Agência) vale online também,
+                por-técnico (Passo 2c completa a paridade com o offline). */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              {((state.onlineMode === 'online'
-                ? [['estadio', '🏟️', 'Estádio'], ['financas', '💰', 'Finanças']]
-                : [['estadio', '🏟️', 'Estádio'], ['financas', '💰', 'Finanças'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][]).map(([s, ic, label]) => (
+              {(([['estadio', '🏟️', 'Estádio'], ['financas', '💰', 'Finanças'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][]).map(([s, ic, label]) => (
                 <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>
-            {state.onlineMode !== 'online' && clubeSub === 'escritorio' ? (
-              <EscritorioTab cards={state.empresarioCards ?? []} st={state.stadiums?.[youId]} hasFilial={!!state.careerFilial} />
+            {clubeSub === 'escritorio' ? (
+              <EscritorioTab cards={(state.onlineMode === 'online' ? state.careerEmpresario?.[youId] : state.empresarioCards) ?? []} st={state.stadiums?.[youId]} hasFilial={state.onlineMode === 'online' ? !!state.careerFilials?.[youId] : !!state.careerFilial} />
             ) : clubeSub === 'financas' ? (
               <FinancasTab ledger={(state.onlineMode === 'online' ? state.careerLedgers?.[youId] : state.careerLedger) ?? []} caixa={state.careerCoins?.[youId] ?? 0} seasonNo={state.seasonNo ?? 1}
                 squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
