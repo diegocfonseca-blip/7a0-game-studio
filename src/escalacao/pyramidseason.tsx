@@ -2211,19 +2211,19 @@ export function PyramidSeasonScreen() {
 
         {tab === 'estadio' ? (
           <>
-            {/* sub-abas do Clube: 🏟️ Estádio | 💰 Finanças | 💼 Agência — só SOLO.
-                No ONLINE (Passo 1) mostra só o Estádio, sem sub-abas. */}
-            {state.onlineMode !== 'online' && (
+            {/* sub-abas do Clube: 🏟️ Estádio | 💰 Finanças | 💼 Agência.
+                Online: Estádio + Finanças (Agência é Passo 2c). */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              {([['estadio', '🏟️', 'Estádio'], ['financas', '💰', 'Finanças'], ['escritorio', '💼', 'Agência']] as [typeof clubeSub, string, string][]).map(([s, ic, label]) => (
+              {((state.onlineMode === 'online'
+                ? [['estadio', '🏟️', 'Estádio'], ['financas', '💰', 'Finanças']]
+                : [['estadio', '🏟️', 'Estádio'], ['financas', '💰', 'Finanças'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][]).map(([s, ic, label]) => (
                 <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>
-            )}
             {state.onlineMode !== 'online' && clubeSub === 'escritorio' ? (
               <EscritorioTab cards={state.empresarioCards ?? []} st={state.stadiums?.[youId]} hasFilial={!!state.careerFilial} />
-            ) : state.onlineMode !== 'online' && clubeSub === 'financas' ? (
-              <FinancasTab ledger={state.careerLedger ?? []} caixa={state.careerCoins?.[youId] ?? 0} seasonNo={state.seasonNo ?? 1}
+            ) : clubeSub === 'financas' ? (
+              <FinancasTab ledger={(state.onlineMode === 'online' ? state.careerLedgers?.[youId] : state.careerLedger) ?? []} caixa={state.careerCoins?.[youId] ?? 0} seasonNo={state.seasonNo ?? 1}
                 squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
             ) : (
           <>

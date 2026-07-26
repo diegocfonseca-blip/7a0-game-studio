@@ -55,10 +55,18 @@ function chargeSalaries(s: EscState) {
 // 🧾 LIVRO-CAIXA (carreira SOLO): registra um lançamento no extrato. É SÓ pra
 // exibição — NUNCA realimenta o caixa de verdade. Ignora o online (lá não tem a
 // aba Finanças) e valor 0. Guarda as últimas ~250 entradas.
-function logFin(s: EscState, kind: LedgerEntry['kind'], label: string, amount: number, extra?: Partial<LedgerEntry>) {
-  if (s.onlineMode === 'online') return
+function logFin(s: EscState, kind: LedgerEntry['kind'], label: string, amount: number, extra?: Partial<LedgerEntry>, mgrId?: number) {
   if (!amount) return
   const e: LedgerEntry = { id: Math.random().toString(36).slice(2), season: s.seasonNo ?? 1, kind, label, amount, ...extra }
+  if (s.onlineMode === 'online') {
+    // 🧾 ONLINE: livro-caixa POR TÉCNICO (careerLedgers[mgrId]). Sem mgrId, cai no local.
+    const id = mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
+    const ls = (s.careerLedgers = s.careerLedgers ?? {})
+    const arr = (ls[id] = ls[id] ?? [])
+    arr.push(e)
+    if (arr.length > 250) ls[id] = arr.slice(-250)
+    return
+  }
   const arr = (s.careerLedger = s.careerLedger ?? [])
   arr.push(e)
   if (arr.length > 250) s.careerLedger = arr.slice(-250)
@@ -67,44 +75,50 @@ function logFin(s: EscState, kind: LedgerEntry['kind'], label: string, amount: n
 // REGISTRA cada um no extrato pela VARIAÇÃO REAL da caixa do humano. Mantém a
 // mesma ordem/efeito de antes (prêmios → bilheteria → folha) — só soma o registro.
 function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
+  const online = s.onlineMode === 'online'
+  const humans = s.managers.filter(m => m.isHuman)
+  // snapshot da caixa de cada humano — pra registrar o extrato pela VARIAÇÃO REAL
+  const snap = (): Record<number, number> => { const o: Record<number, number> = {}; for (const h of humans) o[h.id] = s.careerCoins?.[h.id] ?? 0; return o }
   const y = s.managers[s.youIdx]?.id ?? s.youIdx
-  const b0 = s.careerCoins?.[y] ?? 0
+  const s0 = snap()
   s.careerCoins = applyRewards(s.careerCoins, rewards)
-  const b1 = s.careerCoins[y] ?? 0
+  const s1 = snap()
   s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums, s.managers)
-  const b2 = s.careerCoins[y] ?? 0
+  const s2 = snap()
   chargeSalaries(s)
-  const b3 = s.careerCoins[y] ?? 0
-  // 👕 PATROCÍNIO (só carreira SOLO): renda por divisão da temporada que rolou.
-  // Série D não atrai marca (0). O caixa segue por divisão, não pela marca.
-  if (s.onlineMode !== 'online') {
+  const s3 = snap()
+  // 👕 PATROCÍNIO: renda por divisão da temporada (Série D = 0). Por técnico.
+  if (!online) {
     const div = s.careerPlacements?.[`m${y}`]
     const spay = div ? (SPONSOR_PAY[div] ?? 0) : 0
     if (spay > 0) s.careerCoins = { ...s.careerCoins, [y]: (s.careerCoins[y] ?? 0) + spay }
   } else {
-    // 👕 ONLINE: cada humano ganha o patrocínio da DIVISÃO dele (não da marca).
-    for (const h of s.managers.filter(m => m.isHuman)) {
+    for (const h of humans) {
       const div = s.careerPlacements?.[`m${h.id}`]
       const spay = div ? (SPONSOR_PAY[div] ?? 0) : 0
       if (spay > 0) s.careerCoins = { ...(s.careerCoins ?? {}), [h.id]: (s.careerCoins?.[h.id] ?? 0) + spay }
     }
   }
-  const b4 = s.careerCoins[y] ?? 0
-  // 💼 EMPRESÁRIO (só carreira SOLO): renda das cartas ganhas nesta carreira, por
-  // raridade — só as categorias DESBLOQUEADAS (estádio/SAF) rendem.
-  if (s.onlineMode !== 'online') {
-    // só rendem as cartas ganhas em temporadas ANTERIORES — a carta tirada no fim
-    // desta temporada (season == seasonNo atual) só começa a render na próxima virada.
+  const s4 = snap()
+  // 💼 EMPRESÁRIO: renda das cartas ganhas (categorias destravam com estádio/SAF).
+  // Offline: careerFilial + empresarioCards. Online: por técnico (Passo 2c).
+  if (!online) {
     const maduras = (s.empresarioCards ?? []).filter(c => (c.season ?? 0) < (s.seasonNo ?? 1))
     const inc = empresarioIncome(maduras, s.stadiums?.[y], !!s.careerFilial).total
     if (inc > 0) s.careerCoins = { ...s.careerCoins, [y]: (s.careerCoins[y] ?? 0) + inc }
+  } else {
+    for (const h of humans) {
+      const maduras = (s.careerEmpresario?.[h.id] ?? []).filter(c => (c.season ?? 0) < (s.seasonNo ?? 1))
+      const inc = empresarioIncome(maduras, s.stadiums?.[h.id], !!s.careerFilials?.[h.id]).total
+      if (inc > 0) s.careerCoins = { ...(s.careerCoins ?? {}), [h.id]: (s.careerCoins?.[h.id] ?? 0) + inc }
+    }
   }
-  const b5 = s.careerCoins[y] ?? 0
-  logFin(s, 'reward', '🏆 Prêmios da temporada', b1 - b0)
-  logFin(s, 'gate', '🎟️ Bilheteria', b2 - b1)
-  logFin(s, 'salary', '💸 Folha salarial', b3 - b2)
-  logFin(s, 'sponsor', '👕 Patrocínio', b4 - b3)
-  logFin(s, 'empresario', '💼 Renda do Empresário', b5 - b4)
+  const s5 = snap()
+  // 🧾 extrato pela variação real. Offline: só o humano (y). Online: cada um no seu.
+  const rows: [LedgerEntry['kind'], string][] = [['reward', '🏆 Prêmios da temporada'], ['gate', '🎟️ Bilheteria'], ['salary', '💸 Folha salarial'], ['sponsor', '👕 Patrocínio'], ['empresario', '💼 Renda do Empresário']]
+  const steps = [s0, s1, s2, s3, s4, s5]
+  const ids = online ? humans.map(h => h.id) : [y]
+  for (const id of ids) for (let i = 0; i < rows.length; i++) logFin(s, rows[i][0], rows[i][1], (steps[i + 1][id] ?? 0) - (steps[i][id] ?? 0), undefined, id)
 }
 // caixa dos OUTROS times (por teamKey string), nunca negativo — soma título/acesso, tira queda
 function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Record<string, number>): Record<string, number> {
@@ -359,7 +373,7 @@ function creditSeller(state: EscState, card: Card, amount: number, buyerId?: num
   // tinha pago, pra a aba Transferências mostrar o lucro/prejuízo real.
   if (seller?.isHuman) {
     const boughtFor = (card as WonCard).buyPrice ?? (card as { paid?: number }).paid ?? 0
-    logFin(state, 'sell', `💰 ${card.name}`, amount, { player: card.name, pos: card.pos, buyPrice: boughtFor })
+    logFin(state, 'sell', `💰 ${card.name}`, amount, { player: card.name, pos: card.pos, buyPrice: boughtFor }, sellerId)
   }
 }
 // ARTILHEIRO DA TEMPORADA: o goleador de cada divisão faz o valor de piso do
@@ -637,7 +651,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   const m = state.managers.find(x => x.id === winner)!
   m.money -= max
   m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
-  if (m.isHuman) logFin(state, 'buy', `🛒 ${tb.card.name}`, -max, { player: tb.card.name, pos: tb.card.pos }) // 🧾 compra no desempate
+  if (m.isHuman) logFin(state, 'buy', `🛒 ${tb.card.name}`, -max, { player: tb.card.name, pos: tb.card.pos }, m.id) // 🧾 compra no desempate
   recordPrice(state, tb.card.name, max) // livro de preços
   creditSeller(state, tb.card, max, winner) // o vendedor recebe a grana da venda
   tb.winner = winner
@@ -902,6 +916,7 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
       const cut = Math.round((clubRewards[key] ?? 0) * 0.5); if (!cut) continue
       s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: (s.careerCoins?.[you.id] ?? 0) + cut }
       s.careerFilials = { ...(s.careerFilials ?? {}), [you.id]: { ...f, earned: (f.earned ?? 0) + cut } }
+      logFin(s, 'saf', '🏢 Prêmios da SAF', cut, undefined, you.id) // 🧾 extrato do dono da SAF
     }
     return
   }
@@ -1443,7 +1458,7 @@ function takeFromMonte(state: EscState, cardId: string) {
   const isOwn = (card as { seller?: number }).seller === mgrId
   if (state.careerOnline && paid > 0 && !isOwn) {
     m.money = m.money - paid // deduz o valor cheio (pode negativar) — bate com o lançamento do extrato
-    if (m.isHuman) logFin(state, 'buy', `🛒 ${card.name}`, -paid, { player: card.name, pos: card.pos }) // 🧾 compra no monte
+    if (m.isHuman) logFin(state, 'buy', `🛒 ${card.name}`, -paid, { player: card.name, pos: card.pos }, m.id) // 🧾 compra no monte
   }
   creditSeller(state, card, paid, mgrId) // vendedor recebe o valor mesmo indo pelo monte
   m.squad.push({ ...card, paid, buyPrice: paid, via: 'monte' })
@@ -1811,7 +1826,7 @@ function sealAndResolve(state: EscState) {
     recordPrice(state, q.card.name, q.paid) // livro de preços
     creditSeller(state, q.card, q.paid, q.winner) // o vendedor recebe a grana da venda
     const w = state.managers.find(m => m.id === q.winner) // resumo dos bots (visibilidade)
-    if (w?.isHuman) logFin(state, 'buy', `🛒 ${q.card.name}`, -q.paid, { player: q.card.name, pos: q.card.pos }) // 🧾 compra no leilão
+    if (w?.isHuman) logFin(state, 'buy', `🛒 ${q.card.name}`, -q.paid, { player: q.card.name, pos: q.card.pos }, w.id) // 🧾 compra no leilão
     if (w?.backstop) (state.marketLog = state.marketLog ?? []).push(`⚽ ${w.teamName} arrematou ${q.card.name} por ${q.paid} 🪙`)
     // bot arrematou famoso e tá com o banco cheio? tira um FAKE (incógnito) pra dar
     // lugar ao famoso — não deixa o elenco do bot inchar de carta de brincadeira.
@@ -2032,7 +2047,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (pay <= 0) return s
       s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { inv: { ...st.inv, [action.sector]: invested + pay }, ext: st.ext } }
       s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: wallet - pay }
-      logFin(s, 'stadium', `🏟️ Obra: ${sec.n}`, -pay) // 🧾 investimento no estádio entra no extrato (pra a conta fechar)
+      logFin(s, 'stadium', `🏟️ Obra: ${sec.n}`, -pay, undefined, action.mgrId) // 🧾 investimento no estádio entra no extrato (pra a conta fechar)
       return s
     }
     // 🏟️ compra uma melhoria DESTRAVADA (árvore de requisitos em estadiodata)
@@ -2044,7 +2059,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (st.ext.includes(action.ext) || !extraUnlocked(st, action.ext) || wallet < ext.cost) return s
       s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { inv: st.inv, ext: [...st.ext, action.ext] } }
       s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: wallet - ext.cost }
-      logFin(s, 'stadium', `🏟️ Melhoria: ${ext.n}`, -ext.cost) // 🧾 melhoria do estádio entra no extrato
+      logFin(s, 'stadium', `🏟️ Melhoria: ${ext.n}`, -ext.cost, undefined, action.mgrId) // 🧾 melhoria do estádio entra no extrato
       return s
     }
     // o host anterior saiu de vez e me passou a batuta: viro autoritativo. O
@@ -2322,6 +2337,9 @@ export function reducer(state: EscState, action: Action): EscState {
         const cc: Record<number, number> = {}
         for (const m of s.managers) if (m.isHuman) { cc[m.id] = 100; m.money = 100 }
         s.careerCoins = cc
+        // 🧾 livro-caixa online por técnico: zera e registra o saldo inicial de cada um
+        s.careerLedgers = {}; s.careerEmpresario = {}; s.careerEmpresarioClaims = {}
+        for (const m of s.managers) if (m.isHuman) logFin(s, 'opening', '🏁 Saldo inicial', 100, undefined, m.id)
       }
       s.seasonNo = 1
       s.seasonVotes = {} // novo leilão: zera a votação de fim de jogo (senão volta marcada)
@@ -2458,6 +2476,7 @@ export function reducer(state: EscState, action: Action): EscState {
         s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - 2000 }
         const h0O = s.careerHonors?.[action.team]
         s.careerFilials = { ...(s.careerFilials ?? {}), [you.id]: { team: action.team, since: s.seasonNo, earned: 0, titlesAtBuy: h0O ? (h0O.A + h0O.B + h0O.C + h0O.D) : 0 } }
+        logFin(s, 'safbuy', `🏢 Compra da SAF · ${action.team}`, -2000, undefined, you.id)
         return s
       }
       if (!s.careerOnline || s.careerFilial) return s
@@ -2488,6 +2507,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const { value } = filialSaleValue(s, f)
         returnFilialLoansFor(s, you, f) // empréstimos ativos voltam antes de vender
         s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: (s.careerCoins?.[you.id] ?? 0) + value }
+        logFin(s, 'safsell', `🏢 Venda da SAF · ${f.team}`, value, undefined, you.id)
         const rest = { ...(s.careerFilials ?? {}) }; delete rest[you.id]; s.careerFilials = rest
         return s
       }
