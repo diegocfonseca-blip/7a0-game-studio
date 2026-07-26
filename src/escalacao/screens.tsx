@@ -3448,11 +3448,12 @@ function TopScorersBox({ highlight, title = '⚽ ARTILHARIA · TEMPO REAL' }: { 
         </thead>
         <tbody>
           {rows.map((r, i) => (
+            // 🎨 sua linha veste o SEU tier (Lenda = dourado metálico; gratuito = bege)
             <tr key={`${r.teamId}-${r.name}`} className="border-t border-black/10 font-semibold text-black"
-              style={{ backgroundColor: r.teamId === highlight ? GOLD : undefined }}>
+              style={r.teamId === highlight ? { background: myApoioPerk()?.grad ?? APOIO_PERKS.bege.light, color: TIER_INK[myApoioPerk()?.tier ?? 'bege'] } : undefined}>
               <td className="pr-1">{i + 1}</td>
               <td className="truncate max-w-[130px]">{r.name}</td>
-              <td className="truncate max-w-[110px] text-black/70">{r.teamName}</td>
+              <td className={`truncate max-w-[110px] ${r.teamId === highlight ? '' : 'text-black/70'}`}>{r.teamName}</td>
               <td className="text-center font-black">{r.goals}</td>
             </tr>
           ))}
@@ -3480,11 +3481,12 @@ function CopaScorersBox({ highlight }: { highlight: number }) {
         </thead>
         <tbody>
           {rows.map((r, i) => (
+            // 🎨 sua linha veste o SEU tier (Lenda = dourado metálico; gratuito = bege)
             <tr key={`${r.teamId}-${r.name}`} className="border-t border-black/10 font-semibold text-black"
-              style={{ backgroundColor: r.teamId === highlight ? GOLD : undefined }}>
+              style={r.teamId === highlight ? { background: myApoioPerk()?.grad ?? APOIO_PERKS.bege.light, color: TIER_INK[myApoioPerk()?.tier ?? 'bege'] } : undefined}>
               <td className="pr-1">{i + 1}</td>
               <td className="truncate max-w-[130px]">{r.name}</td>
-              <td className="truncate max-w-[110px] text-black/70">{r.teamName}</td>
+              <td className={`truncate max-w-[110px] ${r.teamId === highlight ? '' : 'text-black/70'}`}>{r.teamName}</td>
               <td className="text-center font-black">{r.goals}</td>
             </tr>
           ))}
@@ -3558,17 +3560,20 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
             // qualquer outro técnico HUMANO na sala (gente de verdade, não bot)
             const isOnlineRival = state.onlineMode === 'online' && !isYou && !!state.managers.find(m => m.id === t.id)?.isHuman
             const isRival = (!!state.careerDivision && state.careerRivals.some(rv => rv.team === t.name)) || isOnlineRival
-            // 🎨 cada técnico leva a cor do PRÓPRIO tier pra faixa dele na tabela
-            // (igual à carreira): você = seu tier (Lenda = dourado) · amigo online =
-            // tier DELE (gratuito = bege) · rival de carreira/CPU segue o salmão.
+            // 🎨 cada técnico leva o VISUAL do próprio tier pra faixa dele: quem tem
+            // tier brilha com o DEGRADÊ da carta (Lenda = dourado metálico, Craque =
+            // prata brilhante…); gratuito = bege chapado. Rival de carreira = salmão.
+            const youPerk = isYou ? myApoioPerk() : null
+            const rivPerk = isOnlineRival ? perkFromSelo(state.managers.find(m => m.id === t.id)?.teamName ?? '') : null
             const rowBg = isYou
-              ? (myApoioPerk()?.light ?? APOIO_PERKS.bege.light)
+              ? (youPerk ? youPerk.grad : APOIO_PERKS.bege.light)
               : isOnlineRival
-                ? (perkFromSelo(state.managers.find(m => m.id === t.id)?.teamName ?? '')?.light ?? APOIO_PERKS.bege.light)
+                ? (rivPerk ? rivPerk.grad : APOIO_PERKS.bege.light)
                 : isRival ? '#FFE0D6' : zoneColor(rank, table.length)
+            const rowInk = youPerk ? TIER_INK[youPerk.tier] : rivPerk ? TIER_INK[rivPerk.tier] : undefined
             return (
               <tr key={t.id} className="border-t border-black/10 font-semibold"
-                style={{ backgroundColor: rowBg, fontWeight: isMgr ? 800 : 500 }}>
+                style={{ background: rowBg, color: rowInk, fontWeight: isMgr ? 800 : 500 }}>
                 <td className="pr-1">{rank}</td>
                 <td className="truncate max-w-[130px]">{isRival ? '🔥 ' : isMgr ? '👤 ' : ''}{t.name}</td>
                 <td className="text-center font-black">{t.pts}</td>
