@@ -1146,7 +1146,7 @@ const LAT_EU: C[] = [
   { name: "Michel Bastos", club: "Lyon", year: 2010, fame: 3, lo: 75, hi: 86, bio: "Canhoto versátil (lateral e meia) — auge no Lyon com cobranças de falta perfeitas; titular da Seleção na Copa de 2010." },
   { name: "Rafael (irmão do Fábio)", club: "Manchester United", year: 2013, fame: 3, lo: 74, hi: 85, bio: "Lateral-direito gêmeo revelado no Fluminense — chegou garoto ao Manchester United de Ferguson, raçudo e ofensivo, bicampeão inglês." },
   { name: "Fábio (irmão do Rafael)", club: "Manchester United", year: 2011, fame: 2, lo: 68, hi: 83, bio: "Lateral-esquerdo gêmeo, irmão do Rafael — do Fluminense direto pro Manchester United bicampeão, com boa sequência depois no Cardiff." },
-  { name: "Júnior (ex-Parma)", club: "Parma", year: 2002, fame: 3, lo: 74, hi: 84, bio: "Lateral-esquerdo brasileiro que brilhou no Parma (vice da Serie A e Copa Itália 2002) — reserva do penta em 2002. Antes, Palmeiras campeão da Libertadores de 99." },
+  { name: "Júnior", club: "Parma", year: 2002, fame: 3, lo: 74, hi: 84, bio: "Lateral-esquerdo brasileiro que brilhou no Parma (vice da Serie A e Copa Itália 2002) — reserva do penta em 2002. Antes, Palmeiras campeão da Libertadores de 99." },
   { name: "Carvajal", club: "Real Madrid", year: 2022, fame: 4, lo: 82, hi: 89 },
   { name: "Cucurella", club: "Chelsea", year: 2024, fame: 3, lo: 76, hi: 84 },
   { name: "Míchel Salgado", club: "Real Madrid", year: 2003, fame: 3, lo: 76, hi: 84 },
