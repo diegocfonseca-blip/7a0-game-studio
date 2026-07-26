@@ -2066,6 +2066,15 @@ export function PyramidSeasonScreen() {
           </>
           ) : <ManualLockButton />
         )}
+        {/* 🎮 CONVIDADO (online): NÃO controla o ritmo (só o host), mas VÊ o estado —
+            e a mudança reflete na hora quando o host troca manual↔auto (manualRoom
+            sincroniza). Assim ele entende por que a temporada pausou ou seguiu. */}
+        {state.onlineMode === 'online' && !state.isHost && !seasonOver && !copaPlaying && (
+          <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 10, textAlign: 'center', background: manual ? '#EAF3FF' : '#F1EFE6' }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, margin: 0, color: INK }}>{manual ? '🎮 Modo Manual — o host controla o ritmo' : '⚡ Auto — a temporada anda sozinha'}</p>
+            <p style={{ fontWeight: 700, fontSize: 10, margin: '2px 0 0', color: 'rgba(0,0,0,.55)' }}>{manual ? 'A próxima rodada anda quando o host avançar.' : 'O host pode pausar (Manual) a qualquer hora.'}</p>
+          </div>
+        )}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
         {copaPlaying && myCopaTie && <div style={{ marginBottom: 12 }}><CopaLiveMatch tie={myCopaTie} pos={copaPos} big youColor={myCol.solid} /></div>}
@@ -2082,6 +2091,13 @@ export function PyramidSeasonScreen() {
               nextLabel={!copaReady ? '⏳ Deixa o jogo acabar…' : copaRound + 1 >= nCopaRounds ? '🏆 Ver o campeão' : '▶️ Próxima fase'} />
           </>
           ) : <ManualLockButton />
+        )}
+        {/* 🎮 CONVIDADO (online) na Copa: vê o ritmo do host (read-only), reflete a troca */}
+        {state.onlineMode === 'online' && !state.isHost && copaPlaying && (
+          <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 10, textAlign: 'center', background: manual ? '#EAF3FF' : '#F1EFE6' }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, margin: 0, color: INK }}>{manual ? '🎮 Modo Manual — o host controla o ritmo' : '⚡ Auto — a Copa anda sozinha'}</p>
+            <p style={{ fontWeight: 700, fontSize: 10, margin: '2px 0 0', color: 'rgba(0,0,0,.55)' }}>{manual ? 'A próxima fase anda quando o host avançar.' : 'O host pode pausar (Manual) a qualquer hora.'}</p>
+          </div>
         )}
 
         {copaFinished && me?.champ && state.careerOnline && (
