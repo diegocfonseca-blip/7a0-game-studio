@@ -4,8 +4,9 @@
 > formos construir. O jogo de FUTEBOL não muda em NADA.
 
 ## Domínio / hospedagem
-- Novo domínio **bidlegends.com** apontando pro MESMO site/deploy do leilaolegends.com.
-- O app olha o hostname: `bidlegends.com` → abre no modo basquete; `leilaolegends.com` → futebol.
+- Domínio REGISTRADO (26/07/2026): **bidlegendsarena.com** — aponta pro MESMO site/deploy do leilaolegends.com.
+- Marca visível: **BidLegends** (o "arena" mora só no endereço).
+- O app olha o hostname: `bidlegendsarena.com` → abre no modo basquete; `leilaolegends.com` → futebol.
 - Home tem o seletor dos dois esportes (mockup já feito: abas ⚽ Futebol · 🏀 Basquete).
 - Mesma conta/login/álbum (Supabase atual). Um repo só.
 
