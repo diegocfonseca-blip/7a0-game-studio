@@ -5,6 +5,7 @@ import { EscProvider, useEsc } from './store'
 import { setSoundAllowed, isMuted, toggleMuted, onSoundChange, playCoin } from './sound'
 import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
 import { EscLobby } from './lobby'
+import { hadLogin } from './apoio'
 import { AdminPanel } from './admin'
 import { DinastiaGame } from './dinastia'
 import { CareerOnlineGame } from './careeronline'
@@ -229,11 +230,44 @@ function SoundGate() {
   )
 }
 
+// 🔑 SESSÃO CAÍDA: aparece SÓ pra quem já logou antes (hadLogin) e agora está sem
+// sessão (token expirou). Quem NUNCA logou não tem o marcador → nunca vê nada.
+// Dispensável (X) por sessão de navegação. "Entrar" leva pra tela de login.
+function SessionExpiredBanner() {
+  const { dispatch } = useEsc()
+  const [show, setShow] = useState(false)
+  useEffect(() => {
+    let alive = true
+    let dismissed = false
+    try { dismissed = sessionStorage.getItem('esc-sess-x') === '1' } catch { /* ignora */ }
+    const check = async () => {
+      if (!alive) return
+      if (dismissed || !hadLogin()) { setShow(false); return }
+      const { data } = await supabase.auth.getSession()
+      if (alive) setShow(!data.session) // já logou antes, mas sem sessão agora = caiu
+    }
+    check()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => check())
+    return () => { alive = false; subscription.unsubscribe() }
+  }, [])
+  if (!show) return null
+  const close = () => { try { sessionStorage.setItem('esc-sess-x', '1') } catch { /* ignora */ } setShow(false) }
+  return (
+    <div style={{ position: 'fixed', top: 8, left: 8, right: 8, zIndex: 99997, margin: '0 auto', maxWidth: 460, background: '#F5B301', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', boxShadow: '0 4px 14px rgba(0,0,0,.3)', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Oswald, sans-serif' }}>
+      <span style={{ fontSize: 18, lineHeight: 1 }}>🔑</span>
+      <span style={{ flex: 1, fontWeight: 800, fontSize: 11.5, lineHeight: 1.25 }}>Sua sessão caiu — entre de novo pra ganhar cartas, aparecer no ranking e usar a SAF.</span>
+      <button onClick={() => { dispatch({ type: 'GO_LOBBY_ONLINE' }); setShow(false) }} style={{ flexShrink: 0, background: '#0C0C0C', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 10px', fontWeight: 900, fontSize: 11.5, cursor: 'pointer', fontFamily: 'Oswald, sans-serif' }}>Entrar</button>
+      <button onClick={close} aria-label="Dispensar" style={{ flexShrink: 0, width: 22, height: 22, borderRadius: 999, background: '#fff', border: '2px solid #000', fontWeight: 900, fontSize: 11, cursor: 'pointer', lineHeight: 1 }}>✕</button>
+    </div>
+  )
+}
+
 export default function EscalacaoGame() {
   return (
     <ErrorBoundary>
       <EscProvider>
         <MaintenanceBanner />
+        <SessionExpiredBanner />
         <AnnouncementToast />
         <OpenInBrowserBanner />
         <VersionWatcher />

@@ -5,6 +5,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { logout } from './apoio'
 
 const ADMIN_EMAIL = 'diego.c.fonseca@gmail.com'
 // contas liberadas pra testar o MODO MANAGER (além do criador) — não dá acesso
@@ -199,7 +200,7 @@ function AdminOverlay() {
             <p style={{ opacity: 0.7, marginBottom: 14 }}>
               A conta <b>{email}</b> não é a do criador. Este painel é privado.
             </p>
-            <button onClick={() => supabase.auth.signOut()} style={btn('#333', '#fff')}>Trocar de conta</button>
+            <button onClick={() => logout()} style={btn('#333', '#fff')}>Trocar de conta</button>
           </div>
         )}
 
@@ -528,7 +529,7 @@ function Dashboard({ email }: { email: string }) {
         <span>Logado: {email}</span>
         <span>Atualiza sozinho · {updatedAt ? new Date(updatedAt).toLocaleTimeString('pt-BR') : ''}</span>
       </div>
-      <button onClick={() => supabase.auth.signOut()} style={{ ...btn('#2a2a2a', '#fff'), opacity: 0.7 }}>Sair da conta</button>
+      <button onClick={() => logout()} style={{ ...btn('#2a2a2a', '#fff'), opacity: 0.7 }}>Sair da conta</button>
     </div>
   )
 }

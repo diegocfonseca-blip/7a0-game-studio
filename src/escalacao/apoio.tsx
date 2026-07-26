@@ -56,8 +56,8 @@ async function fetchDbTier(email: string | null) {
     if (t && t in APOIO_PERKS) dbTier = t
   } catch { /* tabela ainda não existe / rede — segue com FOUNDERS */ }
 }
-supabase.auth.getUser().then(({ data }) => { myEmail = data?.user?.email?.toLowerCase() ?? null; fetchDbTier(myEmail); fixOldEmojiName(data?.user) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { const em = s?.user?.email?.toLowerCase() ?? null; if (em !== myEmail) { myEmail = em; fetchDbTier(em) } fixOldEmojiName(s?.user) })
+supabase.auth.getUser().then(({ data }) => { myEmail = data?.user?.email?.toLowerCase() ?? null; if (myEmail) markHadLogin(); fetchDbTier(myEmail); fixOldEmojiName(data?.user) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { const em = s?.user?.email?.toLowerCase() ?? null; if (em) markHadLogin(); if (em !== myEmail) { myEmail = em; fetchDbTier(em) } fixOldEmojiName(s?.user) })
 
 // cadastro ANTIGO com emoji no nome: corrige no banco uma vez, no login.
 // (nome que era só emoji vira o prefixo do e-mail.)
@@ -90,6 +90,15 @@ export function logApoio(choice: string) {
 
 // e-mail da conta logada (pra gates de teste de features) — null se deslogado
 export function loggedEmail(): string | null { return myEmail }
+
+// 🔑 marcador "esta pessoa JÁ logou ao menos uma vez neste aparelho". Serve SÓ
+// pra decidir se mostramos o aviso "sua sessão caiu". Quem NUNCA logou não tem
+// o marcador — então nunca vê o aviso (não atrapalha jogador sem conta).
+function markHadLogin() { try { localStorage.setItem('esc-had-login', '1') } catch { /* ignora */ } }
+export function hadLogin(): boolean { try { return localStorage.getItem('esc-had-login') === '1' } catch { return false } }
+// logout "limpo": apaga o marcador ANTES de sair (senão o aviso apareceria pra
+// quem saiu de propósito) e desloga de fato.
+export function logout() { try { localStorage.removeItem('esc-had-login') } catch { /* ignora */ } return supabase.auth.signOut() }
 
 export function myApoioPerk(): ApoioPerk | null {
   if (!myEmail) return null

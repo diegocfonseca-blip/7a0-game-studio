@@ -4,7 +4,7 @@ import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useEsc } from './store'
 import { AdminButton, useCanCareerOnline } from './admin'
-import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk } from './apoio'
+import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout } from './apoio'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { DIVISION_TEAMS } from './data'
@@ -1506,7 +1506,7 @@ export function EscLobby() {
         </div>
       )}
       <AdminButton />
-      <button onClick={() => { clearSavedRoom(); supabase.auth.signOut() }} className="text-white/30 text-xs underline w-full text-center">Sair da conta</button>
+      <button onClick={() => { clearSavedRoom(); logout() }} className="text-white/30 text-xs underline w-full text-center">Sair da conta</button>
       <button onClick={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} className="text-white/40 text-sm underline w-full text-center">← Menu inicial</button>
     </>, () => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) })
   }
