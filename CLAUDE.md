@@ -48,6 +48,19 @@ responde melhor a explicações simples, sem jargão).
 - Home com seletor ⚽/🏀 no topo (mockup aprovado pelo Diego); o resto da cara
   é IDÊNTICO ao jogo atual (creme/bordas/Oswald) — só troca o conteúdo.
 
+## 🔄 Protocolo de memória compartilhada (OBRIGATÓRIO em toda sessão)
+As sessões não se veem — o repo é a memória comum. Então TODA sessão deve:
+1. **Ao começar**: `git pull` e ler `git log --oneline -15` (o que as outras
+   sessões fizeram), + `docs/pendencias.md`. Se for trabalho de basquete, ler
+   também `docs/conceito-basquete.md`.
+2. **Ao terminar cada entrega**: atualizar `docs/pendencias.md` (riscar o que
+   fez, adicionar o que ficou combinado e ainda não foi feito) e commitar
+   junto. Pendência que só existe no chat SE PERDE — anotar sempre.
+3. **Quando o Diego revelar um gosto/decisão novos**: gravar na hora na seção
+   "Gostos do Diego" deste arquivo (ou no doc do assunto) e commitar.
+4. Commits sempre descritivos em PT — eles são o diário que as outras sessões
+   leem.
+
 ## 💛 Gostos do Diego (aprendidos na prática — respeitar)
 - **Segurança acima de feature**: prefere bloquear com aviso claro a deixar
   acontecer algo estranho. Toda trava explica O PORQUÊ e O CAMINHO ("faltam 2
