@@ -913,7 +913,7 @@ const MEI: C[] = [
   { name: "Felipe Bastos", club: "Vasco", year: 2011, fame: 1, lo: 55, hi: 77, bio: "Meia de bom pé em bola parada — rodou o país com passagens marcantes por Vasco e Goiás." },
   { name: "Bobô", club: "Bahia", year: 1988, fame: 3, lo: 72, hi: 85, bio: "Ídolo do Bahia campeão brasileiro de 1988 — faro de gol que depois o eternizou como lenda no Beşiktaş." },
   { name: "Zina", club: "Ceará", year: 2007, fame: 1, lo: 56, hi: 77, folk: true, bio: "Meia folclórico e xodó da torcida do Ceará — categoria e personalidade que marcaram época no Vozão." },
-  { name: "Mattheus Oliveira", club: "Flamengo", year: 2014, fame: 1, lo: 54, hi: 77, bio: "Meia canhoto filho de Bebeto — revelado no Flamengo (campeão da Copa do Brasil 2013 e do Carioca 2014) antes de seguir carreira em Portugal." }
+  { name: "Mattheus (filho do Bebeto)", club: "Flamengo", year: 2014, fame: 1, lo: 54, hi: 77, bio: "Meia canhoto revelado no Flamengo (campeão da Copa do Brasil 2013 e do Carioca 2014) antes de seguir carreira em Portugal." }
 ]
 
 const ATA: C[] = [
