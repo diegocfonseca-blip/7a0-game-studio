@@ -727,7 +727,10 @@ const LAT: C[] = [
   { name: "Nino Paraíba", club: "Bahia", year: 2019, fame: 1, lo: 56, hi: 78, bio: "O nome já é resenha — e o lateral foi sólido de verdade no Esquadrão. Cult do Nordeste." },
   { name: "Cortês", club: "Botafogo", year: 2010, fame: 1, lo: 54, hi: 77, bio: "Canhota de cruzamento doce que encantou o Rio — e sumiu do mapa tão rápido quanto brilhou." },
   { name: "Luciano Juba", club: "Bahia", year: 2023, fame: 2, lo: 68, hi: 82, bio: "Lateral-esquerdo/ponta de arrancada e bola parada afiada — explodiu no Sport e virou peça do Bahia." },
-  { name: "Geferson", club: "Internacional", year: 2017, fame: 1, lo: 52, hi: 75, folk: true, bio: "Lateral revelado no Inter que entrou pro folclore ao sair de campo trocando farpas com a própria torcida." }
+  { name: "Geferson", club: "Internacional", year: 2017, fame: 1, lo: 52, hi: 75, folk: true, bio: "Lateral revelado no Inter que entrou pro folclore ao sair de campo trocando farpas com a própria torcida." },
+  { name: "Piquerez", club: "Palmeiras", year: 2023, fame: 3, lo: 74, hi: 84, bio: "Lateral-esquerdo uruguaio de fôlego e chegada — bicampeão da Libertadores e multicampeão pelo Palmeiras, marcação firme e apoio constante." },
+  { name: "Juninho Capixaba", club: "Red Bull Bragantino", year: 2021, fame: 2, lo: 68, hi: 82, bio: "Lateral-esquerdo de bom cruzamento — viveu o auge no Red Bull Bragantino, vice da Sul-Americana de 2021." },
+  { name: "Kaki", club: "Cruzeiro", year: 2024, fame: 1, lo: 58, hi: 80, promessa: true, bio: "Lateral-direito da base do Cruzeiro — promessa veloz e de bom apoio, subindo pro time profissional." }
 ]
 
 const ZAG: C[] = [
@@ -796,7 +799,8 @@ const ZAG: C[] = [
   { name: "Arboleda", club: "São Paulo", year: 2022, fame: 3, lo: 74, hi: 84, bio: "Zagueirão equatoriano do São Paulo — imponente no jogo aéreo e ídolo da fiel, soma raça e saída de bola." },
   { name: "Paulo Miranda", club: "São Paulo", year: 2015, fame: 2, lo: 72, hi: 83, bio: "Viveu o auge no São Paulo por volta de 2015 — sólido o bastante pra ser convocado à Seleção do Dunga. Depois foi campeão da Copa do Brasil pelo Grêmio em 2016." },
   { name: "Leandro Eusébio", club: "Cruzeiro", year: 2003, fame: 2, lo: 63, hi: 82, bio: "Zagueiro firme e regular — peça da defesa do Cruzeiro campeão brasileiro de 2003 e também ídolo no Vasco." },
-  { name: "Pedro Basílio", club: "Fortaleza", year: 1978, fame: 3, lo: 68, hi: 85, bio: "A 'Maravilha Negra' — maior ídolo defensivo da história do Fortaleza, recordista de jogos (479) e de títulos cearenses. Zagueirão que começou na lateral." }
+  { name: "Pedro Basílio", club: "Fortaleza", year: 1978, fame: 3, lo: 68, hi: 85, bio: "A 'Maravilha Negra' — maior ídolo defensivo da história do Fortaleza, recordista de jogos (479) e de títulos cearenses. Zagueirão que começou na lateral." },
+  { name: "Lyanco", club: "Atlético-MG", year: 2024, fame: 2, lo: 70, hi: 82, bio: "Zagueiro brasileiro forte no jogo aéreo — rodou a Europa (Torino, Southampton) e voltou pra ser titular do Atlético-MG." }
 ]
 
 const MEI: C[] = [
@@ -1194,7 +1198,9 @@ const LAT_EU: C[] = [
   { name: "Douglas", club: "Barcelona", year: 2015, fame: 1, lo: 55, hi: 78, folk: true, bio: "Lateral-direito brasileiro que o Barça contratou e mal usou — virou símbolo do reforço que não vingou no Camp Nou." },
   { name: "Fábio Coentrão", club: "Real Madrid", year: 2012, fame: 3, lo: 77, hi: 86, bio: "Lateral-esquerdo português no auge — revelou-se no Benfica e virou titular do Real Madrid (La Liga 2012, Champions de 2014), fôlego e chegada ao ataque." },
   { name: "Arbeloa", club: "Real Madrid", year: 2012, fame: 3, lo: 75, hi: 84, bio: "Lateral versátil espanhol — campeão do mundo (2010), da Euro (2008 e 2012) e da Champions de 2014 pelo Real Madrid; marcação firme e experiência." },
-  { name: "Capdevila", club: "Villarreal", year: 2010, fame: 3, lo: 74, hi: 84, bio: "Lateral-esquerdo campeão do mundo (2010) e da Euro (2008) pela Espanha — titular na base do Villarreal, cruzamento afiado." }
+  { name: "Capdevila", club: "Villarreal", year: 2010, fame: 3, lo: 74, hi: 84, bio: "Lateral-esquerdo campeão do mundo (2010) e da Euro (2008) pela Espanha — titular na base do Villarreal, cruzamento afiado." },
+  { name: "Cuadrado", club: "Juventus", year: 2020, fame: 3, lo: 76, hi: 85, bio: "Colombiano habilidoso reconvertido em ala/lateral-direito — anos de Juventus multicampeã italiana, drible e cruzamento pela direita." },
+  { name: "Emerson Royal", club: "Tottenham", year: 2023, fame: 1, lo: 66, hi: 80, bio: "Lateral-direito brasileiro que rodou a Europa — despontou no Betis, passou pelo Barcelona e teve sequência no Tottenham na Premier League." }
 ]
 const ZAG_EU: C[] = [
   { name: "Maguire", club: "Man United", year: 2019, fame: 2, lo: 66, hi: 82 },
@@ -1388,7 +1394,8 @@ const MEI_EU: C[] = [
   { name: "Giovani Lo Celso", club: "Real Betis", year: 2019, fame: 2, lo: 74, hi: 84, bio: "Meia argentino canhoto de chegada e chute de fora — explodiu no Real Betis antes do Tottenham, peça da seleção campeã do mundo." },
   { name: "Pablo Aimar", club: "Valencia", year: 2002, fame: 3, lo: 80, hi: 87, bio: "‘El Payaso’ — meia argentino de drible e passe geniais, craque do Valencia bicampeão espanhol e ídolo de infância do Messi." },
   { name: "Lucas Leiva", club: "Liverpool", year: 2011, fame: 3, lo: 74, hi: 84, bio: "Volante brasileiro de marcação e regularidade — mais de dez anos de Liverpool e uma segunda casa na Lazio." },
-  { name: "Ever Banega", club: "Sevilla", year: 2019, fame: 3, lo: 78, hi: 85, bio: "Meia argentino de passe refinado — cérebro do Sevilla multicampeão da Europa League, canhota precisa e visão de jogo. Antes, ídolo do Valencia." }
+  { name: "Ever Banega", club: "Sevilla", year: 2019, fame: 3, lo: 78, hi: 85, bio: "Meia argentino de passe refinado — cérebro do Sevilla multicampeão da Europa League, canhota precisa e visão de jogo. Antes, ídolo do Valencia." },
+  { name: "De Rossi", club: "Roma", year: 2010, fame: 4, lo: 82, hi: 89, bio: "Volante-capitão da Roma por quase 20 anos — símbolo de raça e liderança, passe de primeira e campeão do mundo em 2006 com a Itália." }
 ]
 const ATA_EU: C[] = [
   { name: "Berbatov", club: "Manchester United", year: 2011, fame: 4, lo: 82, hi: 91, bio: "Atacante búlgaro de classe e categoria — toque refinado e Chuteira de Ouro da Premier em 2011 pelo Manchester United. Também brilhou no Tottenham." },
@@ -1551,7 +1558,8 @@ const ATA_EU: C[] = [
   { name: "Lautaro Martínez", club: "Inter", year: 2024, fame: 4, lo: 84, hi: 90, bio: "‘El Toro’ — centroavante argentino matador e capitão da Inter campeã italiana de 2024, artilheiro e campeão do mundo em 2022." },
   { name: "Hakim Ziyech", club: "Ajax", year: 2019, fame: 3, lo: 78, hi: 85, bio: "Meia-atacante marroquino canhoto de passe e chute venenosos — cérebro criativo do Ajax semifinalista da Champions de 2019." },
   { name: "Benni McCarthy", club: "Porto", year: 2004, fame: 3, lo: 76, hi: 84, bio: "Centroavante sul-africano matador — herói do Porto de Mourinho campeão da Champions de 2004, com os gols que eliminaram o United." },
-  { name: "Liedson", club: "Sporting", year: 2008, fame: 3, lo: 68, hi: 86, bio: "‘O Levita’ — goleador brasileiro que virou ídolo e artilheiro histórico do Sporting, faro de gol afiado que ainda o levou à Seleção." }
+  { name: "Liedson", club: "Sporting", year: 2008, fame: 3, lo: 68, hi: 86, bio: "‘O Levita’ — goleador brasileiro que virou ídolo e artilheiro histórico do Sporting, faro de gol afiado que ainda o levou à Seleção." },
+  { name: "Diogo Jota", club: "Liverpool", year: 2022, fame: 4, lo: 80, hi: 88, bio: "Atacante português clínico do Liverpool — finalizador frio e campeão inglês, titular de Portugal. Faleceu tragicamente em 2025; o Liverpool aposentou sua camisa 20 em homenagem." }
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
 
