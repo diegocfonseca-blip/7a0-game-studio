@@ -1140,7 +1140,10 @@ const GOL_EU: C[] = [
   { name: "Emiliano “Dibu” Martínez", club: "Aston Villa", year: 2023, fame: 4, lo: 82, hi: 88, bio: "Arqueiro argentino campeão do mundo em 2022 — luva de ouro, pegador de pênalti e provocador nato, herói na final e nas disputas." },
   { name: "Mike Maignan", club: "Milan", year: 2022, fame: 3, lo: 80, hi: 87, bio: "Goleiro francês de reflexo felino e saída de bola moderna — pilar do Milan campeão italiano de 2022." },
   { name: "Hugo Lloris", club: "Tottenham", year: 2018, fame: 3, lo: 80, hi: 87, bio: "Capitão da França campeã do mundo em 2018 — reflexos rápidos e uma década de regularidade no Tottenham." },
-  { name: "Wojciech Szczęsny", club: "Juventus", year: 2021, fame: 3, lo: 78, hi: 85, bio: "Goleiro polonês seguro e experiente — anos de regularidade na Juventus após despontar no Arsenal." }
+  { name: "Wojciech Szczęsny", club: "Juventus", year: 2021, fame: 3, lo: 78, hi: 85, bio: "Goleiro polonês seguro e experiente — anos de regularidade na Juventus após despontar no Arsenal." },
+  { name: "Joe Hart", club: "Man City", year: 2012, fame: 3, lo: 79, hi: 86, bio: "Goleiro nº1 da Inglaterra no auge — quatro Luvas de Ouro da Premier League e dois títulos ingleses pelo City (2012 e 2014), reflexo explosivo." },
+  { name: "Vítor Baía", club: "Porto", year: 2004, fame: 4, lo: 82, hi: 89, bio: "Ídolo eterno do Porto — campeão da Champions de 2004 com Mourinho e da Copa da UEFA; um dos maiores goleiros da história de Portugal." },
+  { name: "Tim Howard", club: "Everton", year: 2014, fame: 3, lo: 78, hi: 85, bio: "Paredão americano do Everton — eternizado pelas 16 defesas contra a Bélgica na Copa de 2014, recorde do Mundial. Antes, FA Cup pelo United." }
 ]
 const LAT_EU: C[] = [
   { name: "Michel Bastos", club: "Lyon", year: 2010, fame: 3, lo: 75, hi: 86, bio: "Canhoto versátil (lateral e meia) — auge no Lyon com cobranças de falta perfeitas; titular da Seleção na Copa de 2010." },
@@ -1188,7 +1191,10 @@ const LAT_EU: C[] = [
   { name: "Marcos Acuña", club: "Sevilla", year: 2023, fame: 3, lo: 74, hi: 84, bio: "‘Huevo’ — lateral/ala esquerdo de pulmão infinito e cruzamento afiado, ídolo do Sevilla e campeão do mundo com a Argentina." },
   { name: "Lionel Scaloni", club: "Deportivo La Coruña", year: 2004, fame: 2, lo: 68, hi: 82, bio: "Antes de ser o técnico campeão do mundo, foi lateral-direito raçudo — ídolo do Deportivo La Coruña que brigou pela Champions." },
   { name: "Joshua Kimmich", club: "Bayern", year: 2020, fame: 4, lo: 82, hi: 89, bio: "Alemão versátil e cerebral — lateral e volante de passe milimétrico, peça do Bayern da tríplice coroa de 2020." },
-  { name: "Douglas", club: "Barcelona", year: 2015, fame: 1, lo: 55, hi: 78, folk: true, bio: "Lateral-direito brasileiro que o Barça contratou e mal usou — virou símbolo do reforço que não vingou no Camp Nou." }
+  { name: "Douglas", club: "Barcelona", year: 2015, fame: 1, lo: 55, hi: 78, folk: true, bio: "Lateral-direito brasileiro que o Barça contratou e mal usou — virou símbolo do reforço que não vingou no Camp Nou." },
+  { name: "Fábio Coentrão", club: "Real Madrid", year: 2012, fame: 3, lo: 77, hi: 86, bio: "Lateral-esquerdo português no auge — revelou-se no Benfica e virou titular do Real Madrid (La Liga 2012, Champions de 2014), fôlego e chegada ao ataque." },
+  { name: "Arbeloa", club: "Real Madrid", year: 2012, fame: 3, lo: 75, hi: 84, bio: "Lateral versátil espanhol — campeão do mundo (2010), da Euro (2008 e 2012) e da Champions de 2014 pelo Real Madrid; marcação firme e experiência." },
+  { name: "Capdevila", club: "Villarreal", year: 2010, fame: 3, lo: 74, hi: 84, bio: "Lateral-esquerdo campeão do mundo (2010) e da Euro (2008) pela Espanha — titular na base do Villarreal, cruzamento afiado." }
 ]
 const ZAG_EU: C[] = [
   { name: "Maguire", club: "Man United", year: 2019, fame: 2, lo: 66, hi: 82 },
@@ -1246,7 +1252,11 @@ const ZAG_EU: C[] = [
   { name: "Ronald Koeman", club: "Barcelona", year: 1992, fame: 4, lo: 83, hi: 89, bio: "Zagueiro-artilheiro holandês de canhota canhão — fez o gol do primeiro título europeu do Barça de Cruyff em Wembley, 1992." },
   { name: "David Alaba", club: "Real Madrid", year: 2022, fame: 3, lo: 81, hi: 88, bio: "Austríaco versátil e canhoto — campeão da Champions pelo Bayern e pelo Real Madrid, zagueiro de saída de bola e bola parada." },
   { name: "William Saliba", club: "Arsenal", year: 2024, fame: 3, lo: 80, hi: 87, bio: "Zagueiro francês elegante e veloz — a muralha do Arsenal da nova era, leitura de jogo e saída de bola de sobra." },
-  { name: "Jérôme Boateng", club: "Bayern", year: 2020, fame: 4, lo: 83, hi: 90, bio: "Zagueiro alemão forte e de lançamento preciso — campeão do mundo em 2014 e pilar do Bayern da tríplice coroa de 2020." }
+  { name: "Jérôme Boateng", club: "Bayern", year: 2020, fame: 4, lo: 83, hi: 90, bio: "Zagueiro alemão forte e de lançamento preciso — campeão do mundo em 2014 e pilar do Bayern da tríplice coroa de 2020." },
+  { name: "Upamecano", club: "Bayern", year: 2023, fame: 3, lo: 79, hi: 86, bio: "Zagueiro francês forte e veloz — pilar da defesa do Bayern e da Seleção Francesa; saída de bola moderna e recuperação no corpo a corpo." },
+  { name: "Barzagli", club: "Juventus", year: 2015, fame: 4, lo: 82, hi: 88, bio: "Um terço da lendária BBC da Juventus (com Bonucci e Chiellini) — campeão do mundo em 2006 e muralha de vários Scudettos, marcação impecável." },
+  { name: "Albiol", club: "Napoli", year: 2016, fame: 3, lo: 77, hi: 84, bio: "Zagueiro espanhol seguro e experiente — campeão do mundo em 2010, anos de regularidade no Real Madrid e no Napoli, posicionamento inteligente." },
+  { name: "Rafa Márquez", club: "Barcelona", year: 2006, fame: 4, lo: 80, hi: 87, bio: "Zagueiro-capitão do México, elegante com a bola nos pés — bicampeão da Champions pelo Barça (2006 e 2009), líder em cinco Copas do Mundo." }
 ]
 const MEI_EU: C[] = [
   { name: "Joseph Minala (Benjamin Button)", club: "Lazio", year: 2014, fame: 1, lo: 44, hi: 63, folk: true, bio: "O 'Benjamin Button' do futebol — camaronês da base da Lazio que virou meme em 2014 por parecer ter 40 anos aos 17. A idade foi confirmada; o folclore ficou." },
@@ -1377,7 +1387,8 @@ const MEI_EU: C[] = [
   { name: "Leandro Paredes", club: "Roma", year: 2018, fame: 2, lo: 72, hi: 83, bio: "Volante argentino de passe longo milimétrico e pé quente na bola parada — brilhou na Roma e no PSG, campeão do mundo em 2022." },
   { name: "Giovani Lo Celso", club: "Real Betis", year: 2019, fame: 2, lo: 74, hi: 84, bio: "Meia argentino canhoto de chegada e chute de fora — explodiu no Real Betis antes do Tottenham, peça da seleção campeã do mundo." },
   { name: "Pablo Aimar", club: "Valencia", year: 2002, fame: 3, lo: 80, hi: 87, bio: "‘El Payaso’ — meia argentino de drible e passe geniais, craque do Valencia bicampeão espanhol e ídolo de infância do Messi." },
-  { name: "Lucas Leiva", club: "Liverpool", year: 2011, fame: 3, lo: 74, hi: 84, bio: "Volante brasileiro de marcação e regularidade — mais de dez anos de Liverpool e uma segunda casa na Lazio." }
+  { name: "Lucas Leiva", club: "Liverpool", year: 2011, fame: 3, lo: 74, hi: 84, bio: "Volante brasileiro de marcação e regularidade — mais de dez anos de Liverpool e uma segunda casa na Lazio." },
+  { name: "Ever Banega", club: "Sevilla", year: 2019, fame: 3, lo: 78, hi: 85, bio: "Meia argentino de passe refinado — cérebro do Sevilla multicampeão da Europa League, canhota precisa e visão de jogo. Antes, ídolo do Valencia." }
 ]
 const ATA_EU: C[] = [
   { name: "Berbatov", club: "Manchester United", year: 2011, fame: 4, lo: 82, hi: 91, bio: "Atacante búlgaro de classe e categoria — toque refinado e Chuteira de Ouro da Premier em 2011 pelo Manchester United. Também brilhou no Tottenham." },
