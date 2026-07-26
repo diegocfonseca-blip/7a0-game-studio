@@ -11,7 +11,7 @@ import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
-import { stripEmoji, myApoioPerk, APOIO_PERKS, logApoio, useHasManual } from './apoio'
+import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual } from './apoio'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
@@ -32,15 +32,29 @@ const GAME_URL = 'https://diegocfonseca-blip.github.io/7a0-game-studio/leilao-le
 const CREAM = '#F4ECD6'
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
-// 🎨 cor por time pra distinguir os dois lados do placar da Copa (Copa dos 8).
-// Determinística pelo nome e FORA da paleta de tiers (nada de verde/roxo/prata/
-// dourado). Devolve um fundo com leve tinta em cada lado.
+// 🎨 COR SÓLIDA de cada lado do placar da Copa dos 8 (estilo Brasfoot). VOCÊ = cor
+// do seu TIER (com brilho); amigo (online) = cor fixa viva; BOT = mesma paleta porém
+// APAGADA (dois bots se distinguem pelo matiz). Paleta FORA das cores de tier.
 const COPA_SIDE_COLORS = ['#C2452F', '#2E6FC2', '#123A63', '#B5541F', '#9C1F2E', '#0E7C86', '#3A5A8A', '#7A3E2A', '#8A3560', '#B0491F', '#155E73', '#963D2E']
 const copaSideColor = (name: string): string => { let h = 0; for (let i = 0; i < name.length; i++) h = (Math.imul(31, h) + name.charCodeAt(i)) >>> 0; return COPA_SIDE_COLORS[h % COPA_SIDE_COLORS.length] }
-const copaSideBg = (base: string, lName: string, rName: string): string => {
-  const rgba = (hex: string, a: number) => { const n = parseInt(hex.slice(1), 16); return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})` }
-  return `linear-gradient(90deg, ${rgba(copaSideColor(lName), 0.22)} 0%, rgba(0,0,0,0) 44%, rgba(0,0,0,0) 56%, ${rgba(copaSideColor(rName), 0.22)} 100%), ${base}`
+type CopaFill = { bg: string; ink: string; holo: number }
+const _lum = (r: number, g: number, b: number) => 0.3 * r + 0.59 * g + 0.11 * b
+const _inkFor = (hex: string) => { const n = parseInt(hex.slice(1), 16); return _lum((n >> 16) & 255, (n >> 8) & 255, n & 255) > 150 ? '#0c0c0c' : '#ffffff' }
+const TIER_INK: Record<string, string> = { bege: '#0c0c0c', verde: '#ffffff', roxo: '#ffffff', prata: '#0c0c0c', ouro: '#0c0c0c' }
+function copaFill(kind: 'you' | 'human' | 'bot', name: string): CopaFill {
+  if (kind === 'you') { const p = myApoioPerk() ?? APOIO_PERKS.bege; return { bg: p.grad, ink: TIER_INK[p.tier], holo: p.holo } }
+  const hex = copaSideColor(name), n = parseInt(hex.slice(1), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
+  if (kind === 'human') return { bg: hex, ink: _inkFor(hex), holo: 0 }
+  const mx = (v: number) => Math.round(v * 0.4 + 170 * 0.6), mr = mx(r), mg = mx(g), mb = mx(b) // bot: dessaturado
+  return { bg: `rgb(${mr},${mg},${mb})`, ink: _lum(mr, mg, mb) > 150 ? '#0c0c0c' : '#ffffff', holo: 0 }
 }
+const CopaHalves = ({ fL, fR }: { fL: CopaFill; fR: CopaFill }) => (
+  <div style={{ position: 'absolute', inset: 0, display: 'flex', zIndex: 0 }}>
+    <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: fL.bg }}>{fL.holo > 0 && <ApoioSheen holo={fL.holo} />}</div>
+    <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: fR.bg }}>{fR.holo > 0 && <ApoioSheen holo={fR.holo} />}</div>
+  </div>
+)
+const copaCenterChip: React.CSSProperties = { background: 'rgba(8,8,10,.55)', borderRadius: 7, padding: '1px 7px', color: '#fff' }
 const GREEN = '#1B7A3D'
 const RED = '#E8503A'
 const PURPLE = '#7C3AED'
@@ -3047,22 +3061,25 @@ export function EscSeason() {
           const aWin = tie.winner === tie.aId
           const minLabel = copaMin >= 93 ? '' : copaMin > 90 ? `90+${copaMin - 90}'` : `${copaMin}'`
           const live = !clockDone && nLegs > 0
+          const kindOf = (id: number): 'you' | 'human' | 'bot' => id === you.id ? 'you' : state.managers.some(m => m.id === id && m.isHuman) ? 'human' : 'bot'
+          const fA = copaFill(kindOf(tie.aId), tie.aName), fB = copaFill(kindOf(tie.bId), tie.bName)
           return (
-            <Box key={`${tie.aId}-${tie.bId}`} bg={mine ? '#FFF6D6' : '#fff'} style={{ background: copaSideBg(mine ? '#FFF6D6' : '#fff', tie.aName, tie.bName) }} className="p-3" shadow={4}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
-                <span className="font-black text-sm truncate" style={{ ...OSWALD, color: settled && !aWin ? 'rgba(0,0,0,.4)' : INK, textDecoration: settled && !aWin ? 'line-through' : 'none' }}>{tie.aName}{nameTag(tie.aId)}</span>
-                <span className="font-black text-sm px-2 py-0.5 rounded inline-flex items-center gap-1.5" style={{ ...OSWALD, background: INK, color: '#fff' }}>
-                  {live && <span className="text-[9px] font-black" style={{ color: '#F87168' }}>●{minLabel}</span>}
-                  {showA} × {showB}
-                </span>
-                <span className="font-black text-sm truncate text-right" style={{ ...OSWALD, color: settled && aWin ? 'rgba(0,0,0,.4)' : INK, textDecoration: settled && aWin ? 'line-through' : 'none' }}>{tie.bName}{nameTag(tie.bId)}</span>
+            <Box key={`${tie.aId}-${tie.bId}`} bg="transparent" style={{ position: 'relative', overflow: 'hidden', borderColor: mine ? '#B23B2E' : undefined }} className="p-3" shadow={4}>
+              <CopaHalves fL={fA} fR={fB} />
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
+                  <span className="font-black text-sm truncate" style={{ ...OSWALD, color: fA.ink, opacity: settled && !aWin ? .6 : 1, textDecoration: settled && !aWin ? 'line-through' : 'none' }}>{tie.aName}{nameTag(tie.aId)}</span>
+                  <span className="font-black text-sm px-2 py-0.5 rounded inline-flex items-center gap-1.5" style={{ ...OSWALD, background: INK, color: '#fff' }}>
+                    {live && <span className="text-[9px] font-black" style={{ color: '#F87168' }}>●{minLabel}</span>}
+                    {showA} × {showB}
+                  </span>
+                  <span className="font-black text-sm truncate text-right" style={{ ...OSWALD, color: fB.ink, opacity: settled && aWin ? .6 : 1, textDecoration: settled && aWin ? 'line-through' : 'none' }}>{tie.bName}{nameTag(tie.bId)}</span>
+                </div>
+                {settled && nLegs > 0 && (
+                  <p className="text-center mt-1" style={{ fontSize: 10, fontWeight: 800 }}><span style={copaCenterChip}>{nLegs === 1 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]}` : `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}`}</span></p>
+                )}
+                {settled && tie.pens && <PensShootout pens={tie.pens} aName={tie.aName} bName={tie.bName} />}
               </div>
-              {settled && nLegs > 0 && (
-                <p className="text-[10px] font-bold text-black/45 text-center mt-1">
-                  {nLegs === 1 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]}` : `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}`}
-                </p>
-              )}
-              {settled && tie.pens && <PensShootout pens={tie.pens} aName={tie.aName} bName={tie.bName} />}
             </Box>
           )
         }
