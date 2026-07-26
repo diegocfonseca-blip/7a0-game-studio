@@ -1567,6 +1567,8 @@ const CANTADAS: { k: string; t?: string }[] = [
   { k: '💣', t: 'vou com TUDO' },
   { k: '💸', t: 'esse vai ficar CARO…' }, // + chuva de dinheiro na sala inteira
   { k: '😤', t: 'esse é MEU, se afasta' },
+  { k: '❤️', t: 'meu ÍDOLO — não perco por nada' },
+  { k: '🪙', t: 'relaxa, 1 moedinha leva esse 🤣' }, // desdém… ou armadilha pra galera dar lance baixo
   { k: '🥱', t: 'nem quero…' },
   { k: '🤣' }, // risada pura, sem frase (clássica)
 ]
