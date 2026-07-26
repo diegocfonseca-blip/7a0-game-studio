@@ -2636,6 +2636,14 @@ export function ReserveListScreen() {
             <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: nListed ? GOLD : 'rgba(0,0,0,0.06)', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 10px' }}>📋 {nListed} no leilão</span>
           </div>
         )}
+        {/* 🔒 explica por que alguns jogadores aparecem travados (cinza): vendê-los
+            deixaria o XI incompleto pra formação atual. Só aparece quando há algum. */}
+        {marketUnlocked && mgr.squad.some(c => !c.fake && !c.emprestado && !listed.has(c.id) && !canList(c)) && (
+          <div style={{ ...box('#FDECEA'), padding: '9px 11px', marginBottom: 10 }}>
+            <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 2px', color: '#c0392b' }}>🔒 Alguns jogadores estão travados</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>Vendê-los deixaria seu <b>XI incompleto</b> na formação <b>{mgr.formation}</b>. Pra liberar: contrate/traga um substituto naquela posição, ou <b>troque de formação</b> antes (na aba Elenco).</p>
+          </div>
+        )}
         {/* mesmo layout da aba Elenco (Titulares/Reservas), mas em modo listagem */}
         <SquadTab mgr={mgr} col={col} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]}
           list={{ listed, canList, onList: (id) => dispatch({ type: 'TOGGLE_RESERVE_LIST', mgrId: youId, cardId: id }) }} />
