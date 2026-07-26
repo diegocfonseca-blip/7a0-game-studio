@@ -268,6 +268,23 @@ function Field({ label, ...props }: { label: string } & React.InputHTMLAttribute
     </div>
   )
 }
+// 🔑 campo de SENHA com botão de mostrar/ocultar (olho) — mesma cara do Field
+function PwField({ label, value, onChange, onKeyDown, placeholder }: { label: string; value: string; onChange: React.ChangeEventHandler<HTMLInputElement>; onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>; placeholder?: string }) {
+  const [show, setShow] = useState(false)
+  return (
+    <div>
+      <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">{label}</p>
+      <div style={{ position: 'relative' }}>
+        <input type={show ? 'text' : 'password'} value={value} onChange={onChange} onKeyDown={onKeyDown} placeholder={placeholder}
+          className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" style={{ paddingRight: 44 }} />
+        <button type="button" onClick={() => setShow(s => !s)} aria-label={show ? 'Ocultar senha' : 'Mostrar senha'}
+          style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', width: 32, height: 32, borderRadius: 7, border: '2px solid #000', background: '#fff', fontSize: 15, lineHeight: 1, cursor: 'pointer' }}>
+          {show ? '🙈' : '👁️'}
+        </button>
+      </div>
+    </div>
+  )
+}
 function Big({ children, onClick, color = GOLD, disabled = false }: { children: React.ReactNode; onClick?: () => void; color?: string; disabled?: boolean }) {
   return (
     <motion.button whileTap={disabled ? undefined : { x: 3, y: 3 }} onClick={disabled ? undefined : onClick} disabled={disabled}
@@ -347,6 +364,8 @@ export function EscLobby() {
   })
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [recovering, setRecovering] = useState(false) // 🔑 voltou pelo link de "esqueci a senha" → tela de nova senha
+  const [newPw, setNewPw] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [authError, setAuthError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -441,8 +460,10 @@ export function EscLobby() {
       const u = data.session?.user ?? null
       setUser(u); if (u) setPhase('menu')
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const u = session?.user ?? null
+      // 🔑 voltou pelo link de redefinição: NÃO cai no menu — abre a tela de nova senha
+      if (event === 'PASSWORD_RECOVERY') { setUser(u); setRecovering(true); setPhase('auth'); return }
       setUser(u); if (u) setPhase('menu')
     })
     return () => subscription.unsubscribe()
@@ -739,6 +760,34 @@ export function EscLobby() {
     setLoading(false)
   }
 
+  // 🔑 ESQUECI A SENHA: manda o email de redefinição pro endereço digitado.
+  async function handleForgot() {
+    const em = email.trim().toLowerCase()
+    if (!em) { setAuthError('Digite seu email aí em cima primeiro — aí eu mando o link de redefinição.'); return }
+    setLoading(true); setAuthError('')
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(em, { redirectTo: window.location.origin + window.location.pathname })
+      setAuthError(error ? friendlyAuthErr(error.message) : '✉️ Enviei um link pro seu email pra criar uma senha nova. Confere a caixa de entrada (e o spam).')
+    } catch (e) {
+      setAuthError(friendlyAuthErr(e instanceof Error ? e.message : String(e)))
+    }
+    setLoading(false)
+  }
+
+  // 🔑 salva a nova senha (depois de voltar pelo link de redefinição)
+  async function handleSaveNewPw() {
+    if (newPw.length < 6) { setAuthError('A senha precisa de pelo menos 6 caracteres.'); return }
+    setLoading(true); setAuthError('')
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPw })
+      if (error) { setAuthError(friendlyAuthErr(error.message)); setLoading(false); return }
+      setNewPw(''); setRecovering(false); setAuthError(''); setPhase('menu')
+    } catch (e) {
+      setAuthError(friendlyAuthErr(e instanceof Error ? e.message : String(e)))
+    }
+    setLoading(false)
+  }
+
   async function createRoom() {
     if (!user) return
     setLoading(true); setRoomError('')
@@ -1003,6 +1052,23 @@ export function EscLobby() {
     </div>
   )
 
+  if (recovering) {
+    return wrap(<>
+    <div className="text-center">
+      <div className="text-6xl mb-2">🔑</div>
+      <h1 className="font-black text-3xl text-white" style={OSWALD}>NOVA SENHA</h1>
+      <p className="text-white/60 text-sm font-bold mt-1">Crie uma senha nova pra sua conta.</p>
+    </div>
+    <div className="space-y-3">
+      <PwField label="Nova senha" value={newPw} onChange={e => setNewPw(e.target.value)} placeholder="mínimo 6 caracteres"
+        onKeyDown={e => e.key === 'Enter' && handleSaveNewPw()} />
+      {authError && <p className={`text-sm font-bold ${authError.startsWith('✉️') ? 'text-green-400' : 'text-red-400'}`}>{authError}</p>}
+    </div>
+    <Big onClick={handleSaveNewPw}>{loading ? '...' : 'Salvar nova senha →'}</Big>
+    <button onClick={() => { setRecovering(false); setPhase(user ? 'menu' : 'auth') }} className="text-white/40 text-sm underline w-full text-center">Pular</button>
+  </>)
+  }
+
   if (phase === 'auth') {
     const pendingInvite = loadInvite()
     return wrap(<>
@@ -1034,8 +1100,13 @@ export function EscLobby() {
     <div className="space-y-3">
       {authTab === 'register' && <Field label="Nome de técnico" value={displayName} onChange={e => setDisplayName(stripEmoji(e.target.value))} placeholder="Como te chamam?" />}
       <Field label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" />
-      <Field label="Senha" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
+      <PwField label="Senha" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
         onKeyDown={e => e.key === 'Enter' && handleAuth()} />
+      {authTab === 'login' && (
+        <button onClick={handleForgot} className="text-white/50 text-xs font-bold underline w-full text-right" style={{ marginTop: -6 }}>
+          Esqueci minha senha
+        </button>
+      )}
       {authError && (authError.startsWith('🔧')
         ? <div className="rounded-xl border-2 border-amber-400/60 bg-amber-400/10 px-3 py-2 text-sm font-bold text-amber-200">{authError}</div>
         : <p className={`text-sm font-bold ${authError.startsWith('✉️') ? 'text-green-400' : 'text-red-400'}`}>{authError}</p>)}
