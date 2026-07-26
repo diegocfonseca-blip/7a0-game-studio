@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { GameProvider, useGame } from './store/gameStore'
 import IntroScreen from './screens/IntroScreen'
@@ -12,6 +12,8 @@ import MarketScreen from './screens/MarketScreen'
 import EmpresarioGame from './empresario'
 import DraftGame from './draft'
 import EscalacaoGame from './escalacao'
+import BidLegendsGame from './basquete'
+import { detectSport, rememberSport, SPORT_BRAND, type Sport } from './sport'
 
 type GameKey = 'ladrao' | 'empresario' | 'draft' | 'escalacao'
 
@@ -100,6 +102,56 @@ function GameSelector({ onSelect }: { onSelect: (game: GameKey) => void }) {
   )
 }
 
+// Abas ⚽ Futebol · 🏀 Basquete no topo da home (mockup do BidLegends).
+function SportTabs({ sport, onChange }: { sport: Sport; onChange: (s: Sport) => void }) {
+  const tabs: { key: Sport; label: string }[] = [
+    { key: 'futebol', label: '⚽ Futebol' },
+    { key: 'basquete', label: '🏀 Basquete' },
+  ]
+  return (
+    <div className="w-full max-w-sm flex gap-3 pt-4">
+      {tabs.map((t) => {
+        const active = sport === t.key
+        return (
+          <motion.button
+            key={t.key}
+            onClick={() => onChange(t.key)}
+            whileTap={{ x: 2, y: 2 }}
+            className="flex-1 border-[3px] border-black rounded-2xl py-3 font-black text-lg transition-all"
+            style={{
+              fontFamily: 'Oswald, sans-serif',
+              backgroundColor: active ? '#0C0C0C' : '#FFFFFF',
+              color: active ? '#FFFFFF' : '#0C0C0C',
+              boxShadow: active ? '4px 4px 0 0 #E8590C' : '4px 4px 0 0 #0C0C0C',
+            }}
+          >
+            {t.label}
+          </motion.button>
+        )
+      })}
+    </div>
+  )
+}
+
+// Home unificada: abas dos 2 esportes + o conteúdo do esporte ativo.
+// Futebol = seletor de jogos de sempre (não muda em nada). Basquete = BidLegends.
+function SportHome({
+  sport,
+  onChangeSport,
+  onSelectGame,
+}: {
+  sport: Sport
+  onChangeSport: (s: Sport) => void
+  onSelectGame: (game: GameKey) => void
+}) {
+  return (
+    <div className="flex flex-col items-center" style={{ backgroundColor: '#F4ECD6' }}>
+      <SportTabs sport={sport} onChange={onChangeSport} />
+      {sport === 'basquete' ? <BidLegendsGame /> : <GameSelector onSelect={onSelectGame} />}
+    </div>
+  )
+}
+
 export default function App() {
   const forcedGame = (import.meta.env.VITE_ONLY_GAME as GameKey | undefined) ?? null
   // Link de convite (?j=CODE) sempre abre direto o Leilão Legends — o amigo
@@ -118,13 +170,26 @@ export default function App() {
   const [selectedGame, setSelectedGame] = useState<GameKey | null>(
     forcedGame ?? (inviteCode ? 'escalacao' : null),
   )
+  // Esporte ativo da home: hostname (bidlegendsarena.com → 🏀) ou override ?sport=.
+  // Um link de convite (?j=) é sempre futebol e ignora o esporte-padrão.
+  const [sport, setSport] = useState<Sport>(() => (inviteCode ? 'futebol' : detectSport()))
+
+  // Marca visível segue o esporte (o "arena" mora só no endereço).
+  useEffect(() => {
+    document.title = SPORT_BRAND[sport]
+  }, [sport])
 
   function choose(game: GameKey) {
     setSelectedGame(game)
   }
 
+  function switchSport(s: Sport) {
+    rememberSport(s)
+    setSport(s)
+  }
+
   if (!selectedGame) {
-    return <GameSelector onSelect={choose} />
+    return <SportHome sport={sport} onChangeSport={switchSport} onSelectGame={choose} />
   }
 
   if (selectedGame === 'empresario') {
