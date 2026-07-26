@@ -55,8 +55,12 @@ function chargeSalaries(s: EscState) {
 // 🧾 LIVRO-CAIXA (carreira SOLO): registra um lançamento no extrato. É SÓ pra
 // exibição — NUNCA realimenta o caixa de verdade. Ignora o online (lá não tem a
 // aba Finanças) e valor 0. Guarda as últimas ~250 entradas.
-function logFin(s: EscState, kind: LedgerEntry['kind'], label: string, amount: number, extra?: Partial<LedgerEntry>, mgrId?: number) {
-  if (!amount) return
+function logFin(s: EscState, kind: LedgerEntry['kind'], label: string, amount: number, extra?: Partial<LedgerEntry>, mgrId?: number, force?: boolean) {
+  // por padrão não registra linha de valor 0 (evita lixo no extrato de venda/monte
+  // etc.). `force` = registra mesmo em 0 — usado no RESUMO DE FIM DE TEMPORADA, pra
+  // o quadro completo (prêmios do time, prêmios da SAF, bilheteria, patrocínio,
+  // folha, empresário) aparecer SEMPRE na tela quando a temporada acaba.
+  if (!amount && !force) return
   const e: LedgerEntry = { id: Math.random().toString(36).slice(2), season: s.seasonNo ?? 1, kind, label, amount, ...extra }
   if (s.onlineMode === 'online') {
     // 🧾 ONLINE: livro-caixa POR TÉCNICO (careerLedgers[mgrId]). Sem mgrId, cai no local.
@@ -118,7 +122,9 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
   const rows: [LedgerEntry['kind'], string][] = [['reward', '🏆 Prêmios da temporada'], ['gate', '🎟️ Bilheteria'], ['salary', '💸 Folha salarial'], ['sponsor', '👕 Patrocínio'], ['empresario', '💼 Renda do Empresário']]
   const steps = [s0, s1, s2, s3, s4, s5]
   const ids = online ? humans.map(h => h.id) : [y]
-  for (const id of ids) for (let i = 0; i < rows.length; i++) logFin(s, rows[i][0], rows[i][1], (steps[i + 1][id] ?? 0) - (steps[i][id] ?? 0), undefined, id)
+  // `force` = todas as 5 linhas do fim de temporada aparecem SEMPRE (mesmo 0), pra o
+  // técnico ver o quadro financeiro completo assim que a temporada acaba.
+  for (const id of ids) for (let i = 0; i < rows.length; i++) logFin(s, rows[i][0], rows[i][1], (steps[i + 1][id] ?? 0) - (steps[i][id] ?? 0), undefined, id, true)
 }
 // caixa dos OUTROS times (por teamKey string), nunca negativo — soma título/acesso, tira queda
 function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Record<string, number>): Record<string, number> {
@@ -913,10 +919,12 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
       const f = s.careerFilials?.[you.id]; if (!f) continue
       const mgr = s.managers.find(m => !m.isHuman && m.teamName === f.team)
       const key = mgr ? `m${mgr.id}` : f.team
-      const cut = Math.round((clubRewards[key] ?? 0) * 0.5); if (!cut) continue
-      s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: (s.careerCoins?.[you.id] ?? 0) + cut }
-      s.careerFilials = { ...(s.careerFilials ?? {}), [you.id]: { ...f, earned: (f.earned ?? 0) + cut } }
-      logFin(s, 'saf', '🏢 Prêmios da SAF', cut, undefined, you.id) // 🧾 extrato do dono da SAF
+      const cut = Math.round((clubRewards[key] ?? 0) * 0.5)
+      if (cut) {
+        s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: (s.careerCoins?.[you.id] ?? 0) + cut }
+        s.careerFilials = { ...(s.careerFilials ?? {}), [you.id]: { ...f, earned: (f.earned ?? 0) + cut } }
+      }
+      logFin(s, 'saf', '🏢 Prêmios da SAF', cut, undefined, you.id, true) // 🧾 extrato do dono da SAF (sempre, mesmo 0 — resumo de fim de temporada)
     }
     return
   }
@@ -926,16 +934,18 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
   const key = mgr ? `m${mgr.id}` : f.team
   const delta = clubRewards[key] ?? 0
   const cut = Math.round(delta * 0.5)
-  if (!cut) return
   const you = s.managers.find(m => m.isHuman)
   if (!you) return
   const before = s.careerCoins?.[you.id] ?? 0
   const after = before + cut // 50% de título/acesso rende; 50% da queda desconta (pode negativar) — pra o extrato bater
-  s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: after }
-  s.careerFilial = { ...f, earned: (f.earned ?? 0) + cut }
+  if (cut) {
+    s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: after }
+    s.careerFilial = { ...f, earned: (f.earned ?? 0) + cut }
+  }
   // 🧾 registra no extrato pela VARIAÇÃO REAL da caixa (título/acesso da SAF rende;
-  // queda dela desconta) — mantém o extrato batendo com o caixa, como os outros.
-  logFin(s, 'saf', '🏢 Prêmios da SAF', after - before)
+  // queda dela desconta) — SEMPRE (mesmo 0), pra o resumo de fim de temporada ficar
+  // completo assim que a temporada acaba.
+  logFin(s, 'saf', '🏢 Prêmios da SAF', after - before, undefined, undefined, true)
 }
 
 // 🏢 VALOR DE VENDA DA SAF (carreira solo): a SAF valoriza conforme você a
