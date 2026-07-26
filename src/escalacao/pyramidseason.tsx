@@ -509,6 +509,15 @@ export function copaRewards(copa: CopaResult): { rewards: Record<number, number>
 
 // ── VISÃO das 4 divisões (mesmo visual das outras tabelas do jogo) ──
 const box = (bg = '#fff'): React.CSSProperties => ({ background: bg, border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}` })
+// 🎨 cor por time pra distinguir os dois lados do placar da Copa — determinística
+// pelo nome. FORA da paleta de tiers do jogo (nada de verde/roxo/prata/dourado, que
+// significam categoria de jogador). Devolve um FUNDO com leve tinta em cada lado.
+const COPA_SIDE_COLORS = ['#C2452F', '#2E6FC2', '#123A63', '#B5541F', '#9C1F2E', '#0E7C86', '#3A5A8A', '#7A3E2A', '#8A3560', '#B0491F', '#155E73', '#963D2E']
+const copaSideColor = (name: string): string => { let h = 0; for (let i = 0; i < name.length; i++) h = (Math.imul(31, h) + name.charCodeAt(i)) >>> 0; return COPA_SIDE_COLORS[h % COPA_SIDE_COLORS.length] }
+const copaSideBg = (base: string, lName: string, rName: string): string => {
+  const rgba = (hex: string, a: number) => { const n = parseInt(hex.slice(1), 16); return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})` }
+  return `linear-gradient(90deg, ${rgba(copaSideColor(lName), 0.22)} 0%, rgba(0,0,0,0) 44%, rgba(0,0,0,0) 56%, ${rgba(copaSideColor(rName), 0.22)} 100%), ${base}`
+}
 
 // ── 💰 FINANÇAS (aba Clube › Finanças): Extrato (tudo que entra/sai) +
 //    Transferências (compras/vendas com lucro). Lê o livro-caixa (careerLedger),
@@ -1559,7 +1568,7 @@ function CopaTieRow({ tie }: { tie: CopaTie }) {
     </span>
   )
   return (
-    <div style={{ ...box(you ? '#FFF6D6' : '#fff'), border: `2.5px solid ${you ? '#B23B2E' : INK}`, boxShadow: `3px 3px 0 0 ${INK}`, padding: '7px 9px', marginBottom: 7 }}>
+    <div style={{ ...box(copaSideBg(you ? '#FFF6D6' : '#fff', tie.a.name, tie.b.name)), border: `2.5px solid ${you ? '#B23B2E' : INK}`, boxShadow: `3px 3px 0 0 ${INK}`, padding: '7px 9px', marginBottom: 7 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
         {side(tie.a, tie.aDiv, aWin, false)}
         <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: INK, color: '#fff', borderRadius: 7, padding: '2px 8px', whiteSpace: 'nowrap' }}>{tie.aggA} × {tie.aggB}</span>
@@ -1606,7 +1615,7 @@ function CopaLiveMatch({ tie, pos, big, youColor }: { tie: CopaTie; pos: number;
   const L = { name: copaName(swap ? tie.b : tie.a), div: swap ? tie.bDiv : tie.aDiv, isA: !swap, score: swap ? showB : showA }
   const R = { name: copaName(swap ? tie.a : tie.b), div: swap ? tie.aDiv : tie.bDiv, isA: swap, score: swap ? showA : showB }
   return (
-    <div style={{ ...box(you ? '#FFF6D6' : '#fff'), border: `${big ? 3 : 2}px solid ${you ? '#B23B2E' : INK}`, boxShadow: `${big ? 4 : 2}px ${big ? 4 : 2}px 0 0 ${INK}`, padding: big ? '9px 12px' : '6px 9px', marginBottom: big ? 9 : 6 }}>
+    <div style={{ ...box(copaSideBg(you ? '#FFF6D6' : '#fff', L.name, R.name)), border: `${big ? 3 : 2}px solid ${you ? '#B23B2E' : INK}`, boxShadow: `${big ? 4 : 2}px ${big ? 4 : 2}px 0 0 ${INK}`, padding: big ? '9px 12px' : '6px 9px', marginBottom: big ? 9 : 6 }}>
       {!done && <p style={{ fontSize: big ? 10 : 9, fontWeight: 800, color: '#E8503A', textAlign: 'center', margin: '0 0 4px', ...OSWALD }}>🔴 {phaseLbl ? phaseLbl + ' · ' : ''}{legMin}'</p>}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>{copaDt(L.div)}<span style={nameStyle(L.isA)}>{L.name}</span></span>
