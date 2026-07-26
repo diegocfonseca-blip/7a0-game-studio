@@ -862,18 +862,26 @@ export interface FCol { solid: string; light: string }
 // do bege/tier do técnico. A cor de apoio é EXCLUSIVA do seu clube (e da sua
 // SAF) — rival nenhum pode aparecer com a mesma cor que você.
 export const RIVAL_COL: FCol = { solid: '#9B4D2E', light: '#EBD5C6' }
-export function playerColors(humanIds: number[], youId: number, seed: number, rivalIds: number[] = []): Record<number, FCol> {
+// tier de apoio lido pelo SELO que viaja no nome do técnico (👑 ouro · ⭐ prata ·
+// 💎 roxo) — é o que TODOS já veem, então serve pra cruzar a cor de cada humano
+// entre os aparelhos, sem depender de lookup extra. Sem selo → sem tier (bege).
+export function perkFromSelo(name: string): ApoioPerk | null {
+  return name.includes('👑') ? APOIO_PERKS.ouro : name.includes('⭐') ? APOIO_PERKS.prata : name.includes('💎') ? APOIO_PERKS.roxo : null
+}
+// perkById: tier de CADA humano (por id), pra colorir amigos com a cor do login
+// deles — não só você. Sem entrada = bege (sem fallback: dois sem tier ficam bege).
+export function playerColors(humanIds: number[], youId: number, seed: number, rivalIds: number[] = [], perkById: Record<number, ApoioPerk | null> = {}): Record<number, FCol> {
   void seed // a semente era da paleta sorteada; fica na assinatura pra não mexer nos chamadores
   const bege = APOIO_PERKS.bege
   const map: Record<number, FCol> = {}
-  for (const id of humanIds) map[id] = { solid: bege.solid, light: bege.light }
+  // cada humano com a cor do tier DELE (login), lido do selo no nome. Sem tier = bege.
+  for (const id of humanIds) { const p = perkById[id]; map[id] = p ? { solid: p.solid, light: p.light } : { solid: bege.solid, light: bege.light } }
   // rivais escolhidos ganham o marrom próprio (nunca a cor do usuário)
   for (const id of rivalIds) map[id] = { solid: RIVAL_COL.solid, light: RIVAL_COL.light }
-  // quem tem tier de apoio joga com a cor DELE por cima do bege — no próprio
-  // aparelho (o selo no nome os outros já veem; a cor cruzada vem com o Supabase).
-  // Sem tier, o SEU time fica bege garantido (nunca herda o marrom de rival).
-  const perk = myApoioPerk()
-  if (map[youId]) map[youId] = perk ? { solid: perk.solid, light: perk.light } : { solid: bege.solid, light: bege.light }
+  // VOCÊ: usa o seu tier autoritativo (myApoioPerk, cobre founders/verde sem selo);
+  // sem ele, cai no selo do próprio nome e por fim no bege.
+  const perk = myApoioPerk() ?? perkById[youId]
+  if (map[youId] !== undefined) map[youId] = perk ? { solid: perk.solid, light: perk.light } : { solid: bege.solid, light: bege.light }
   return map
 }
 // ordem das divisões: a SUA primeiro, depois a pirâmide de cima pra baixo
@@ -1774,10 +1782,17 @@ export function PyramidSeasonScreen() {
   // próprio — nunca a sua cor. A SUA cor é exclusiva do seu clube e da sua SAF.
   const humanKey = state.managers.filter(m => m.isHuman).map(m => m.id).join(',')
   const rivalKey = state.managers.filter(m => m.rival && !m.isHuman).map(m => m.id).join(',')
-  const baseColors = useMemo(() => playerColors(
-    humanKey ? humanKey.split(',').map(Number) : [], youId, state.seed,
-    rivalKey ? rivalKey.split(',').map(Number) : [],
-  ), [humanKey, rivalKey, youId, state.seed])
+  // nomes dos humanos (com selo) — muda a cor cruzada quando alguém entra/troca de tier
+  const nameKey = state.managers.filter(m => m.isHuman).map(m => `${m.id}:${m.teamName}`).join('|')
+  const baseColors = useMemo(() => {
+    const perkById: Record<number, ApoioPerk | null> = {}
+    for (const m of state.managers) if (m.isHuman) perkById[m.id] = perkFromSelo(m.teamName)
+    return playerColors(
+      humanKey ? humanKey.split(',').map(Number) : [], youId, state.seed,
+      rivalKey ? rivalKey.split(',').map(Number) : [], perkById,
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [humanKey, rivalKey, youId, state.seed, nameKey])
   const myCol = baseColors[youId] ?? { solid: APOIO_PERKS.bege.solid, light: APOIO_PERKS.bege.light }
   // 🏢 a SUA SAF veste a MESMA cor do seu clube (mesma "marca"): acha o teamId
   // dela na tabela e injeta a sua cor no mapa — assim ela pinta igual em jogos,
@@ -2432,7 +2447,13 @@ export function ReserveListScreen() {
   useEffect(() => { const iv = setInterval(() => setNow(Date.now()), 250); return () => clearInterval(iv) }, [])
   const remaining = Math.max(0, Math.ceil(((state.phaseDeadline ?? 0) - now) / 1000))
   const humanIds = state.managers.filter(m => m.isHuman).map(m => m.id)
-  const colors = useMemo(() => playerColors(humanIds, youId, state.seed), [humanIds.join(','), youId, state.seed])
+  const nameKey = state.managers.filter(m => m.isHuman).map(m => `${m.id}:${m.teamName}`).join('|')
+  const colors = useMemo(() => {
+    const perkById: Record<number, ApoioPerk | null> = {}
+    for (const m of state.managers) if (m.isHuman) perkById[m.id] = perkFromSelo(m.teamName)
+    return playerColors(humanIds, youId, state.seed, [], perkById)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [humanIds.join(','), youId, state.seed, nameKey])
   const col = colors[youId] ?? { solid: APOIO_PERKS.bege.solid, light: APOIO_PERKS.bege.light }
   const need = FORMATIONS[mgr?.formation ?? '4-3-3']
   // titulares/reservas = a SUA escalação REAL (com as trocas da temporada), não o

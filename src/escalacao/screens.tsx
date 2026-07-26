@@ -17,7 +17,7 @@ import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
-import { playerColors, LiveScoreCard, PensShootout, COPA_LEG_MS } from './pyramidseason'
+import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, COPA_LEG_MS } from './pyramidseason'
 
 // universo colecionável = os DOIS baralhos (BR + Europa), por nomes únicos
 // (Kaká, Cafu etc. aparecem nos dois — conta uma vez só).
@@ -1775,7 +1775,10 @@ function Envelope() {
   // cores dos técnicos (iguais às da tabela da temporada) — pra marcar de quem
   // é o jogador listado no leilão. Só na carreira online (onde há listagem).
   const seasonColors = state.careerOnline
-    ? playerColors(state.managers.filter(m => m.isHuman || m.rival).map(m => m.id), you.id, state.seed)
+    ? playerColors(
+        state.managers.filter(m => m.isHuman || m.rival).map(m => m.id), you.id, state.seed, [],
+        Object.fromEntries(state.managers.filter(m => m.isHuman).map(m => [m.id, perkFromSelo(m.teamName)])),
+      )
     : {}
   const timerColor = remaining <= 10 ? RED : remaining <= 20 ? GOLD : GREEN
   const timerTextColor = remaining <= 20 ? INK : '#fff'
