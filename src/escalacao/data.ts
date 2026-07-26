@@ -616,6 +616,7 @@ export const BIOS: Record<string, string> = {
 }
 
 const GOL: C[] = [
+  { name: "John", club: "Botafogo", year: 2024, fame: 3, lo: 76, hi: 86, bio: "Goleirão do Botafogo bicampeão de 2024 (Libertadores + Brasileirão) — eleito o melhor goleiro do Brasileirão e o menos vazado, antes de ir pra Europa." },
   { name: "Waldir Peres", club: "São Paulo", year: 1982, fame: 2, lo: 68, hi: 82 },
   { name: "Gilmar", club: "Santos", year: 1962, fame: 5, lo: 93, hi: 97 },
   { name: "Taffarel", club: "Internacional", year: 1989, fame: 5, lo: 88, hi: 93 },
@@ -628,7 +629,7 @@ const GOL: C[] = [
   { name: "Carlos Germano", club: "Vasco", year: 1997, fame: 3, lo: 74, hi: 83 },
   { name: "Ronaldo Giovanelli", club: "Corinthians", year: 1990, fame: 2, lo: 62, hi: 81 },
   { name: "Velloso", club: "Palmeiras", year: 1994, fame: 1, lo: 61, hi: 78 },
-  { name: "Sérgio", club: "Palmeiras", year: 1993, fame: 1, lo: 60, hi: 78 },
+  { name: "Sérgio", club: "Palmeiras", year: 1993, fame: 2, lo: 68, hi: 84, bio: "Goleiro que quebrou o jejum de 16 anos do Palmeiras no Paulista de 1993 e virou ídolo da geração Parmalat — bi paulista e campeão brasileiro." },
   { name: "Emerson Leão", club: "Palmeiras", year: 1974, fame: 4, lo: 87, hi: 93 },
   { name: "Félix", club: "Fluminense", year: 1970, fame: 3, lo: 80, hi: 84 },
   { name: "Júlio César", club: "Flamengo", year: 2003, fame: 3, lo: 78, hi: 84, promessa: true },
@@ -799,6 +800,12 @@ const ZAG: C[] = [
 ]
 
 const MEI: C[] = [
+  { name: "Roger Flores", club: "Fluminense", year: 2002, fame: 3, lo: 74, hi: 84, bio: "Meia canhoto de técnica e liderança revelado no Fluminense — dribles, passe e chute forte. Capitão raçudo; depois campeão brasileiro pelo Corinthians em 2005." },
+  { name: "Mineiro", club: "São Paulo", year: 2005, fame: 3, lo: 74, hi: 85, bio: "Volante raçudo do São Paulo campeão de tudo em 2005 — dele o gol do título Mundial sobre o Liverpool em Yokohama. Tri pela Seleção na Copa América 2007." },
+  { name: "Edenílson", club: "Internacional", year: 2021, fame: 3, lo: 75, hi: 85, bio: "Volante box-to-box do Internacional — chegada ao gol e passe decisivo. Duas vezes Bola de Prata como melhor volante do Brasil; 2021 foi seu auge, com 15 gols." },
+  { name: "Rodrigo Lindoso", club: "Botafogo", year: 2017, fame: 2, lo: 66, hi: 82, bio: "Volante de marcação e liderança — projeção nacional no Botafogo (Série B 2015, Carioca, Libertadores) e anos firmes no Internacional." },
+  { name: "Ramon Menezes", club: "Vasco", year: 1998, fame: 3, lo: 74, hi: 85, bio: "Meia habilidoso e exímio cobrador de falta do Vasco campeão da Libertadores de 1998 — foi o artilheiro do time naquele ano." },
+  { name: "Toró", club: "Flamengo", year: 2009, fame: 2, lo: 64, hi: 82, bio: "Começou atacante e virou volante de intensidade no Flamengo — titular no título brasileiro de 2009 do Adriano e Petkovic. Revelado no Fluminense." },
   { name: "Alan Patrick", club: "Internacional", year: 2024, fame: 3, lo: 76, hi: 84 },
   { name: "Souza", club: "São Paulo", year: 2000, fame: 2, lo: 66, hi: 80 },
   { name: "Giovanni", club: "Santos", year: 1995, fame: 3, lo: 76, hi: 84 },
@@ -917,6 +924,8 @@ const MEI: C[] = [
 ]
 
 const ATA: C[] = [
+  { name: "Dentinho", club: "Corinthians", year: 2009, fame: 2, lo: 68, hi: 84, bio: "Revelado no Corinthians, brilhou em 2009 ao lado do Ronaldo (Paulista invicto + Copa do Brasil). Depois virou ídolo do Shakhtar na Ucrânia." },
+  { name: "Adriano Gabiru", club: "Internacional", year: 2006, fame: 2, lo: 64, hi: 84, folk: true, bio: "O herói mais improvável: entrou e fez o gol do título Mundial do Inter sobre o Barcelona em 2006. Folclore puro do Beira-Rio." },
   { name: "Enner Valencia", club: "Internacional", year: 2024, fame: 3, lo: 74, hi: 84 },
   { name: "Luciano", club: "São Paulo", year: 2023, fame: 3, lo: 74, hi: 83 },
   { name: "Caio Ribeiro", club: "São Paulo", year: 1997, fame: 2, lo: 68, hi: 82, promessa: true },
@@ -1134,6 +1143,10 @@ const GOL_EU: C[] = [
   { name: "Wojciech Szczęsny", club: "Juventus", year: 2021, fame: 3, lo: 78, hi: 85, bio: "Goleiro polonês seguro e experiente — anos de regularidade na Juventus após despontar no Arsenal." }
 ]
 const LAT_EU: C[] = [
+  { name: "Michel Bastos", club: "Lyon", year: 2010, fame: 3, lo: 75, hi: 86, bio: "Canhoto versátil (lateral e meia) — auge no Lyon com cobranças de falta perfeitas; titular da Seleção na Copa de 2010." },
+  { name: "Rafael (irmão do Fábio)", club: "Manchester United", year: 2013, fame: 3, lo: 74, hi: 85, bio: "Lateral-direito gêmeo revelado no Fluminense — chegou garoto ao Manchester United de Ferguson, raçudo e ofensivo, bicampeão inglês." },
+  { name: "Fábio (irmão do Rafael)", club: "Manchester United", year: 2011, fame: 2, lo: 68, hi: 83, bio: "Lateral-esquerdo gêmeo, irmão do Rafael — do Fluminense direto pro Manchester United bicampeão, com boa sequência depois no Cardiff." },
+  { name: "Júnior (ex-Parma)", club: "Parma", year: 2002, fame: 3, lo: 74, hi: 84, bio: "Lateral-esquerdo brasileiro que brilhou no Parma (vice da Serie A e Copa Itália 2002) — reserva do penta em 2002. Antes, Palmeiras campeão da Libertadores de 99." },
   { name: "Carvajal", club: "Real Madrid", year: 2022, fame: 4, lo: 82, hi: 89 },
   { name: "Cucurella", club: "Chelsea", year: 2024, fame: 3, lo: 76, hi: 84 },
   { name: "Míchel Salgado", club: "Real Madrid", year: 2003, fame: 3, lo: 76, hi: 84 },
@@ -1236,6 +1249,7 @@ const ZAG_EU: C[] = [
   { name: "Jérôme Boateng", club: "Bayern", year: 2020, fame: 4, lo: 83, hi: 90, bio: "Zagueiro alemão forte e de lançamento preciso — campeão do mundo em 2014 e pilar do Bayern da tríplice coroa de 2020." }
 ]
 const MEI_EU: C[] = [
+  { name: "Joseph Minala (Benjamin Button)", club: "Lazio", year: 2014, fame: 1, lo: 44, hi: 63, folk: true, bio: "O 'Benjamin Button' do futebol — camaronês da base da Lazio que virou meme em 2014 por parecer ter 40 anos aos 17. A idade foi confirmada; o folclore ficou." },
   { name: "Payet", club: "Marseille", year: 2017, fame: 3, lo: 80, hi: 87 },
   { name: "Petit", club: "Arsenal", year: 1998, fame: 3, lo: 78, hi: 85 },
   { name: "Deschamps", club: "Juventus", year: 1998, fame: 3, lo: 76, hi: 84 },
@@ -1366,6 +1380,8 @@ const MEI_EU: C[] = [
   { name: "Lucas Leiva", club: "Liverpool", year: 2011, fame: 3, lo: 74, hi: 84, bio: "Volante brasileiro de marcação e regularidade — mais de dez anos de Liverpool e uma segunda casa na Lazio." }
 ]
 const ATA_EU: C[] = [
+  { name: "Berbatov", club: "Manchester United", year: 2011, fame: 4, lo: 82, hi: 91, bio: "Atacante búlgaro de classe e categoria — toque refinado e Chuteira de Ouro da Premier em 2011 pelo Manchester United. Também brilhou no Tottenham." },
+  { name: "Rafael Leão", club: "Milan", year: 2022, fame: 4, lo: 83, hi: 91, bio: "Ponta português explosivo do Milan — velocidade, drible e potência. MVP da Serie A no Scudetto de 2022." },
   { name: "Ricardo Quaresma", club: "Porto", year: 2007, fame: 3, lo: 74, hi: 84, folk: true },
   { name: "Nani", club: "Man United", year: 2011, fame: 3, lo: 78, hi: 85 },
   { name: "Thomas Müller", club: "Bayern", year: 2014, fame: 4, lo: 83, hi: 90 },
