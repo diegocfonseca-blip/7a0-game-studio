@@ -263,9 +263,14 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
           </div>
         )
       })}
-      {onBuyFilial && !!loggedEmail() && (() => {
+      {onBuyFilial && (() => {
+        // 🔐 a SAF EXIGE login (direitos ligados à conta). Antes, sem login a seção
+        // SUMIA — e o jogador não entendia (ele só via a SAF "desaparecer"). Agora
+        // ela SEMPRE aparece: sem login, fica apagada com "faça login" (a sessão
+        // pode ter expirado mesmo pra quem já jogou online). Só some se não for solo.
+        const logged = !!loggedEmail()
         const allDone = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && STADIUM_EXTRAS.every(e => hasExtra(st, e.k))
-        const canBuy = allDone && coins >= 2000
+        const canBuy = logged && allDone && coins >= 2000
         const regras = (
           <ul style={{ margin: '7px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', lineHeight: 1.55 }}>
             <li>💰 A SAF custa <b>2.000</b> · compra única · os direitos são seus <b>pra sempre nesta carreira</b> (não vende, não troca)</li>
@@ -382,22 +387,24 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
           )
         }
         return (
-          <div style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '11px 12px', marginTop: 14, opacity: allDone ? 1 : .6, borderStyle: allDone ? 'solid' : 'dashed', boxShadow: allDone ? `4px 4px 0 0 ${INK}` : 'none' }}>
+          <div style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '11px 12px', marginTop: 14, opacity: (allDone && logged) ? 1 : .6, borderStyle: (allDone && logged) ? 'solid' : 'dashed', boxShadow: (allDone && logged) ? `4px 4px 0 0 ${INK}` : 'none' }}>
             <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>💼 COMPRAR UMA SAF</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '3px 0 6px' }}>
-              {allDone
+              {!logged
+                ? <>🔒 <b style={{ color: '#9a4b00' }}>Faça login</b> (ou entre de novo — sua sessão pode ter caído) pra comprar a SAF. Seu progresso da carreira fica salvo na conta.</>
+                : allDone
                 ? <>Compre a <b>SAF de um clube da Série D</b> e vire dono: você adquire o direito a <b>50% dos lucros de campanha</b> dele (e assume metade do prejuízo na queda). O clube segue jogando por conta própria — sem leilão contra você. E você <b>empresta e pega jogadores</b> dele: <b>+vagas conforme você sobe de série</b> (D 1 · C 2 · B 3 · A 4).</>
                 : <>🔒 destrava com: <b style={{ color: '#9a4b00' }}>Estádio 100% completo</b> (setores + melhorias) · a SAF custa 2.000 💰</>}
             </p>
-            {allDone && regras}
-            {allDone && <div style={{ height: 7 }} />}
-            {allDone && !buying && (
+            {logged && allDone && regras}
+            {logged && allDone && <div style={{ height: 7 }} />}
+            {logged && allDone && !buying && (
               <button onClick={() => canBuy && setBuying(true)} disabled={!canBuy}
                 style={{ width: '100%', border: 'none', borderRadius: 10, padding: '10px 0', fontWeight: 900, fontSize: 13.5, ...OSW, background: canBuy ? INK : '#d9cfb4', color: canBuy ? '#fff' : '#7d7358', cursor: canBuy ? 'pointer' : 'default' }}>
                 {canBuy ? '💼 Comprar a SAF de um clube · −2.000 💰' : `Junte 2.000 💰 (tem ${coins})`}
               </button>
             )}
-            {allDone && buying && (
+            {logged && allDone && buying && (
               <div>
                 <p style={{ fontSize: 11, fontWeight: 900, margin: '2px 0 6px', ...OSW }}>Escolha o clube (Série D atual):</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
