@@ -88,6 +88,11 @@ export interface Manager {
   // vida própria na pirâmide). Bidder no pregão, mas NÃO entra na sua liga.
   auctionOnly?: boolean
   formation: FormationKey
+  // 🎽 carreira: destrava a troca de formação (4-3-3↔4-4-2) na aba Elenco.
+  // Vira true na PRIMEIRA vez que o elenco chega a 22 jogadores reais e FICA true
+  // pra sempre (não tranca mais se depois cair de 22). A trava por-posição segue
+  // valendo em cada troca, então nunca entra perna-de-pau.
+  formUnlocked?: boolean
   money: number
   squad: WonCard[]
   // carreira online: BOT FIADOR do leilão — rival de CPU que só entra pra dar lance

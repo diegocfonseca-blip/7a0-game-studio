@@ -1361,7 +1361,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
         // 🎽 troca de formação — só destrava com 22 REAIS e só pra formação que o
         // elenco aguenta por posição (nunca entra perna-de-pau).
         const real = mgr.squad.filter(c => !c.fake)
-        const unlocked = real.length >= 22
+        const unlocked = !!mgr.formUnlocked || real.length >= 22 // destravou uma vez → fica destravado
         const availByPos = (pos: Sector) => real.filter(c => c.pos === pos && !c.emprestado).length
         const missFor = (f: FormationKey) => SECTORS.filter(pos => availByPos(pos) < FORMATIONS[f][pos]).map(pos => `${FORMATIONS[f][pos] - availByPos(pos)} ${POS_SHORT[pos]}${FORMATIONS[f][pos] - availByPos(pos) > 1 ? 's' : ''}`)
         const other: FormationKey = mgr.formation === '4-3-3' ? '4-4-2' : '4-3-3'
@@ -1848,6 +1848,14 @@ export function PyramidSeasonScreen() {
   const me = myStanding(tables)
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
+  // 🎽 destrava PERMANENTE da troca de formação na 1ª vez que o elenco chega a 22
+  // reais (fica destravado mesmo se depois cair de 22). Só marca o selo — a trava
+  // por-posição segue valendo em cada troca.
+  const meMgr = state.managers[state.youIdx]
+  const realCount = meMgr?.squad.filter(c => !c.fake).length ?? 0
+  useEffect(() => {
+    if (state.careerOnline && meMgr && !meMgr.formUnlocked && realCount >= 22) dispatch({ type: 'FORMATION_UNLOCK', mgrId: youId })
+  }, [state.careerOnline, meMgr?.formUnlocked, realCount, youId, dispatch])
   // 🏢 SAF do técnico: online = careerFilials[youId] (por-técnico) · offline = careerFilial (single)
   const myFilial = state.onlineMode === 'online' ? state.careerFilials?.[youId] : state.careerFilial
   const myTactic = tacAt(careerTactics, youId, round) // tática que vale do PRÓXIMO jogo em diante

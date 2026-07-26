@@ -1623,6 +1623,7 @@ type Action =
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number } // 🎽 carreira: troca 4-3-3↔4-4-2. Só libera com 22 no elenco E jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante.
+  | { type: 'FORMATION_UNLOCK'; mgrId?: number } // 🎽 marca o destravamento permanente da troca de formação (1ª vez que chega a 22 reais)
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
@@ -2938,13 +2939,25 @@ export function reducer(state: EscState, action: Action): EscState {
       const m = s.managers.find(x => x.id === mid && x.isHuman)
       if (!m || m.formation === action.formation) return s
       const real = m.squad.filter(c => !c.fake)
-      if (real.length < 22) return s // trava: elenco ainda não completou 22
+      if (!m.formUnlocked && real.length < 22) return s // trava: ainda não destravou (nunca completou 22)
+      if (real.length >= 22) m.formUnlocked = true // destrava de vez ao ter 22
       const need = FORMATIONS[action.formation]
       for (const pos of SECTORS) if (real.filter(c => c.pos === pos && !c.emprestado).length < need[pos]) return s // falta jogador na posição
       m.formation = action.formation
       const cl = { ...(s.careerLineup ?? {}) }
       cl[m.id] = { ...(cl[m.id] ?? {}), [s.round]: bestXIids(m.squad, action.formation) }
       s.careerLineup = cl
+      return s
+    }
+    case 'FORMATION_UNLOCK': {
+      // destrava permanente ao chegar a 22 reais (mesmo que o jogador nem troque a
+      // formação na hora). Só marca — a trava por-posição segue valendo na troca.
+      if (!s.careerOnline) return s
+      const mid = action.mgrId ?? s.managers[s.youIdx]?.id
+      const m = s.managers.find(x => x.id === mid && x.isHuman)
+      if (!m || m.formUnlocked) return s
+      if (m.squad.filter(c => !c.fake).length < 22) return s
+      m.formUnlocked = true
       return s
     }
     case 'CAST_SEASON_VOTE': {
