@@ -1051,13 +1051,17 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
 
   const Team = ({ name, color, you, flash }: { name: string; color: string; you: boolean; flash?: boolean }) => {
     const perk = you ? myApoioPerk() : null
+    // lado SÓLIDO na cor do time: você = tier (com brilho); rival/amigo = a cor
+    // que o jogo deu (rival = marrom único · amigo = tier dele). Texto em contraste.
+    const bg = perk ? perk.grad : color
+    const ink = perk ? TIER_INK[perk.tier] : _inkFor(color)
     return (
-    <div style={{ position: 'relative', overflow: 'hidden', padding: '22px 8px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textAlign: 'center', background: `linear-gradient(180deg, ${color}22, transparent)`, minWidth: 0 }}>
-      {flash && <div style={{ position: 'absolute', inset: 0, background: color, animation: 'coGoalFlash 1.6s ease', pointerEvents: 'none' }} />}
+    <div style={{ position: 'relative', overflow: 'hidden', padding: '22px 8px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textAlign: 'center', background: bg, minWidth: 0 }}>
+      {flash && <div style={{ position: 'absolute', inset: 0, background: '#fff', animation: 'coGoalFlash 1.6s ease', pointerEvents: 'none' }} />}
       {perk && <ApoioSheen holo={perk.holo} dur={4.2} />}
-      <div style={{ position: 'relative', width: 28, height: 28, borderRadius: 8, border: `2px solid ${INK}`, background: perk ? perk.grad : color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 13, ...OSWALD, animation: flash ? 'coBump .6s ease' : undefined }}>{ini(name)}</div>
-      <div style={{ position: 'relative', fontSize: 12, fontWeight: 900, ...OSWALD, color: you ? color : '#3a3630', lineHeight: 1.05, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%', ...(perk ? apoioText(perk) : {}) }}>{perk ? apoioName(name) : name}</div>
-      <div style={{ position: 'relative', fontSize: 9, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: '#9a8f78' }}>{you ? 'você' : 'rival'}</div>
+      <div style={{ position: 'relative', width: 28, height: 28, borderRadius: 8, border: `2px solid ${INK}`, background: '#fff', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 13, ...OSWALD, animation: flash ? 'coBump .6s ease' : undefined }}>{ini(name)}</div>
+      <div style={{ position: 'relative', fontSize: 12, fontWeight: 900, ...OSWALD, color: ink, lineHeight: 1.05, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{perk ? apoioName(name) : name}</div>
+      <div style={{ position: 'relative', fontSize: 9, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: ink, opacity: 0.72 }}>{you ? 'você' : 'rival'}</div>
     </div>
     )
   }
