@@ -39,6 +39,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'willian.chagass@outlook.com': 'ouro',
   'gabrielcunico1909@gmail.com': 'ouro',
   'davidsccp16@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual
+  'daviddmartinsff11m@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
 }
 
 // e-mail da conta logada, cacheado — os pontos que usam (playerColors, nomes)
