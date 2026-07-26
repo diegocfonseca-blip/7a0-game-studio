@@ -916,6 +916,8 @@ export function playerColors(humanIds: number[], youId: number, seed: number, ri
   if (map[youId] !== undefined) map[youId] = perk ? { solid: perk.solid, light: perk.light } : { solid: bege.solid, light: bege.light }
   return map
 }
+// fundo leve da linha do jogo QUANDO envolve um time colorido (você/SAF/amigo/rival)
+const matchBg = (m: { hId: number; aId: number }, colors: Record<number, FCol>) => colors[m.hId]?.light ?? colors[m.aId]?.light ?? undefined
 // ordem das divisões: a SUA primeiro, depois a pirâmide de cima pra baixo
 function orderedDivs(myDiv: Div | null): Div[] { return myDiv ? [myDiv, ...DIVS.filter(d => d !== myDiv)] : DIVS }
 
@@ -1096,36 +1098,27 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
 }
 
 // ── os JOGOS de uma divisão (placar + quem fez os gols), cores por amigo ──
-function DivMatches({ div, matches, colors, humans, hideId, youId, safName }: { div: Div; matches: SimMatch[]; colors: Record<number, FCol>; humans: { name: string; teamId: number; you: boolean; rival?: boolean }[]; hideId?: number; youId?: number; safName?: string }) {
-  // 🎨 mesma cor-por-time da Copa: você/SAF na cor do tier, rival cor fixa, bot
-  // apagado, amigo na cor de login. Classifica pelo id/nome do jogo em questão.
-  const kindOf = (id: number, name: string): TeamKind => {
-    if (id === youId) return 'you'
-    if (safName && name === safName) return 'saf'
-    const h = humans.find(x => x.teamId === id)
-    if (h) return h.rival ? 'rival' : 'human'
-    return 'bot'
-  }
+function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matches: SimMatch[]; colors: Record<number, FCol>; humans: { name: string; teamId: number; you: boolean; rival?: boolean }[]; hideId?: number }) {
+  // cor SÓ pra quem interessa: você/SAF (tier) e rivais (marrom) vêm do `colors`;
+  // bots ficam sem cor (nome cinza, linha branca) — placar limpo, como era.
+  const nameCol = (id: number) => colors[id]?.solid ?? '#5a5647'
   return (
     <div style={{ ...box('#fff'), padding: 9, marginBottom: 8 }}>
       <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>{DIV_LABEL[div]}</p>
       <DivChips humans={humans} colors={colors} />
-      <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ marginTop: 6 }}>
         {matches.map((m, i) => {
           if (hideId != null && (m.hId === hideId || m.aId === hideId)) return null
+          const bg = matchBg(m, colors)
           const last = m.goals.length ? m.goals[m.goals.length - 1] : null
-          const fH = fillFor(kindOf(m.hId, m.h), m.h, colors[m.hId]?.solid), fA = fillFor(kindOf(m.aId, m.a), m.a, colors[m.aId]?.solid)
           return (
-            <div key={i} style={{ position: 'relative', overflow: 'hidden', borderRadius: 7, border: '1.5px solid rgba(0,0,0,.16)' }}>
-              <CopaHalves fL={fH} fR={fA} />
-              <div style={{ position: 'relative', zIndex: 1, padding: '4px 6px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5 }}>
-                  <span style={{ textAlign: 'right', fontWeight: 800, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: fH.ink }}>{m.h}{fH.mark ? ' ' + fH.mark : ''}</span>
-                  <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: INK, color: '#fff', borderRadius: 5, padding: '0 7px', whiteSpace: 'nowrap' }}>{m.hg}×{m.ag}</span>
-                  <span style={{ textAlign: 'left', fontWeight: 800, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: fA.ink }}>{fA.mark ? fA.mark + ' ' : ''}{m.a}</span>
-                </div>
-                {last && <p style={{ margin: '2px 0 0', textAlign: 'center' }}><span style={{ ...copaCenterChip, fontSize: 9, fontWeight: 700 }}>⚽ {last.name} {last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></p>}
+            <div key={i} style={{ padding: '3px 4px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: bg, borderRadius: bg ? 5 : 0 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5 }}>
+                <span style={{ textAlign: 'right', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: nameCol(m.hId) }}>{m.h}</span>
+                <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: bg ? INK : '#eee', color: bg ? '#fff' : INK, borderRadius: 5, padding: '0 7px' }}>{m.hg}×{m.ag}</span>
+                <span style={{ textAlign: 'left', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: nameCol(m.aId) }}>{m.a}</span>
               </div>
+              {last && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '1px 0 0', textAlign: 'center' }}>⚽ {last.name} <span style={{ opacity: 0.7 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></p>}
             </div>
           )
         })}
@@ -2483,7 +2476,7 @@ export function PyramidSeasonScreen() {
               }
               return <RivalryTicker items={flavors} />
             })()}
-            {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} youId={youId} safName={safTeamName} />)}
+            {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
           </>
           )
         ) : done && copa && copa.rounds.length > 0 ? (
