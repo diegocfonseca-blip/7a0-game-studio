@@ -2640,8 +2640,8 @@ export function ReserveListScreen() {
             deixaria o XI incompleto pra formação atual. Só aparece quando há algum. */}
         {marketUnlocked && mgr.squad.some(c => !c.fake && !c.emprestado && !listed.has(c.id) && !canList(c)) && (
           <div style={{ ...box('#FDECEA'), padding: '9px 11px', marginBottom: 10 }}>
-            <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 2px', color: '#c0392b' }}>🔒 Alguns jogadores estão travados</p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>Vendê-los deixaria seu <b>XI incompleto</b> na formação <b>{mgr.formation}</b>. Pra liberar: contrate/traga um substituto naquela posição, ou <b>troque de formação</b> antes (na aba Elenco).</p>
+            <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 2px', color: '#c0392b' }}>🔒 Não dá pra vender esses</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>Seu time ficaria <b>sem jogador suficiente na posição</b>. Pra liberar: traga um substituto, ou <b>troque de formação</b> antes (aba Elenco).</p>
           </div>
         )}
         {/* mesmo layout da aba Elenco (Titulares/Reservas), mas em modo listagem */}
