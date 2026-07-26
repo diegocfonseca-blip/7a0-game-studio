@@ -2444,7 +2444,7 @@ function RivalsStrip() {
 
 // ─── MONTE FINAL ─────────────────────────────────────────────────────
 export function EscMonte() {
-  const { state, dispatch } = useEsc()
+  const { state, dispatch, emote } = useEsc()
   const you = state.managers[state.youIdx]
   const isYourTurn = state.monteOrder[state.monteIdx] === you.id && totalHoles(you) > 0
   // esconde o que está reservado pro dono (prioridade); afford fica no botão
@@ -2540,7 +2540,34 @@ export function EscMonte() {
           </p>
         </Box>
       )}
+      {/* 😈 ZOEIRA DO MONTE (online): cutuca quem está escolhendo a sobra. As frases
+          miram o técnico da vez (curMgr) e aparecem flutuando pra todos, igual leilão. */}
+      {online && curMgr && curMgr.id !== you.id && (() => {
+        const n = curMgr.teamName || curMgr.name
+        const jabs: { ic: string; label: string; mk: (x: string) => string }[] = [
+          { ic: '👆', label: 'Aperta o Pegar!', mk: x => `Qual a dificuldade de apertar o Pegar, ${x}?` },
+          { ic: '🐢', label: 'Anda!', mk: x => `Anda, ${x}, é só sobra!` },
+          { ic: '😴', label: 'Dormiu?', mk: x => `${x} dormiu na vez?` },
+          { ic: '🗑️', label: 'Perna-de-pau', mk: x => `Só vai sobrar perna-de-pau pro ${x}!` },
+          { ic: '🤡', label: 'Sobra o Gol Contra', mk: x => `Vai sobrar o Adriano Gol Contra pro ${x} 😂` },
+          { ic: '🤏', label: 'Mão de vaca', mk: x => `Na próxima deixa de ser mão de vaca, ${x}!` },
+        ]
+        return (
+          <div className="mt-1">
+            <p className="text-[11px] font-black text-black/45 mb-1.5" style={OSWALD}>😈 CUTUCA QUEM TÁ ESCOLHENDO</p>
+            <div className="flex flex-wrap gap-1.5 justify-center">
+              {jabs.map(j => (
+                <button key={j.ic} onClick={() => emote(j.ic, undefined, j.mk(n))}
+                  className="border-2 border-black rounded-full px-2.5 py-1 text-xs font-black bg-white text-black active:translate-y-0.5" style={{ ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}` }}>
+                  {j.ic} {j.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
       <YourPitch />
+      <FloatingEmotes />
     </Shell>
   )
 }
