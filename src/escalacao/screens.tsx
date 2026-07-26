@@ -1558,7 +1558,18 @@ function AuctionBar() {
 }
 
 // ─── reações efêmeras (zoeira/blefe) — só online ─────────────────────
-const EMOTE_KINDS = ['👀', '🤣', '❤️', '💸']
+// 🎤 CANTADAS DE MESA: no lugar dos emojis soltos, declarações públicas de blefe
+// presas à carta ("Fulano → Romário: TÔ NESSE 😈"). PODE ser mentira — é o table
+// talk do poker. A 💸 ainda faz CHOVER DINHEIRO na tela de todo mundo (MoneyRain).
+// Flutuam na mesma camada de sempre; opcional, um toque, não mexe em tempo nenhum.
+const CANTADAS: { k: string; t?: string }[] = [
+  { k: '😈', t: 'TÔ NESSE' },
+  { k: '💣', t: 'vou com TUDO' },
+  { k: '💸', t: 'esse vai ficar CARO…' }, // + chuva de dinheiro na sala inteira
+  { k: '😤', t: 'esse é MEU, se afasta' },
+  { k: '🥱', t: 'nem quero…' },
+  { k: '🤣' }, // risada pura, sem frase (clássica)
+]
 
 // camada flutuante que mostra as reações de todo mundo subindo e sumindo
 // cor por usuário (estável pelo nome) — diferencia as mensagens de cada um no balão.
@@ -1595,11 +1606,34 @@ function FloatingEmotes() {
               style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
               <span className="text-lg leading-none">{e.kind}</span>
               {/* alfinetada (frase) → nome de quem manda NA FRENTE; reação simples → "quem → carta" */}
-              <span className="text-xs font-black text-black truncate max-w-[70vw]" style={OSWALD}>{e.text ? <><span style={{ color: chatColor(m?.teamName || m?.name || who) }}>{who}:</span> {e.text}</> : <>{who}{cn ? ` → ${cn}` : ''}</>}</span>
+              {/* cantada presa à carta: "Fulano → Romário: TÔ NESSE"; alfinetada solta: "Fulano: frase" */}
+              <span className="text-xs font-black text-black truncate max-w-[70vw]" style={OSWALD}>{e.text ? <><span style={{ color: chatColor(m?.teamName || m?.name || who) }}>{who}{cn ? ` → ${cn}` : ''}:</span> {e.text}</> : <>{who}{cn ? ` → ${cn}` : ''}</>}</span>
             </motion.div>
           )
         })}
       </AnimatePresence>
+    </div>
+  )
+}
+
+// 💸 CHUVA DE DINHEIRO: quando alguém solta a cantada 💸 ("esse vai ficar CARO…"),
+// chove nota na tela de TODO MUNDO por ~2,4s. Puro teatro de blefe — camada fixa,
+// pointer-events none, fora do reducer: não toca em lance, tempo nem resultado.
+function moneySeed(s: string): number { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h }
+function MoneyRain() {
+  const { state, emotes } = useEsc()
+  if (state.onlineMode !== 'online') return null
+  const bursts = emotes.filter(e => e.kind === '💸')
+  if (bursts.length === 0) return null
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 99980, pointerEvents: 'none', overflow: 'hidden' }}>
+      <style>{'@keyframes escMoneyFall{0%{transform:translateY(-10vh) rotate(-16deg);opacity:0}8%{opacity:1}88%{opacity:1}100%{transform:translateY(108vh) rotate(18deg);opacity:0}}'}</style>
+      {bursts.flatMap(b => Array.from({ length: 14 }, (_, i) => {
+        // pseudo-aleatório ESTÁVEL por nota (semente no id do emote): re-render não embaralha
+        const h = moneySeed(`${b.id}:${i}`)
+        const left = 3 + (h % 90), dur = 1.7 + ((h >> 3) % 70) / 100, delay = ((h >> 7) % 50) / 100, size = 17 + ((h >> 11) % 14)
+        return <span key={`${b.id}-${i}`} style={{ position: 'absolute', top: 0, left: `${left}%`, fontSize: size, animation: `escMoneyFall ${dur}s linear ${delay}s forwards`, opacity: 0 }}>💸</span>
+      }))}
     </div>
   )
 }
@@ -1613,11 +1647,16 @@ function CardReact({ cardId }: { cardId: string }) {
       <button onClick={() => setOpen(o => !o)} aria-label="reagir"
         className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black leading-none">😏</button>
       {open && (
-        <div className="absolute right-0 top-9 z-30 flex gap-1 bg-white border-2 border-black rounded-lg p-1"
+        <div className="absolute right-0 top-9 z-30 flex flex-col gap-1 bg-white border-2 border-black rounded-lg p-1.5 w-48"
           style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
-          {EMOTE_KINDS.map(k => (
-            <button key={k} onClick={() => { emote(k, cardId); setOpen(false) }} className="text-xl leading-none px-0.5">{k}</button>
+          {CANTADAS.map(c => (
+            <button key={c.k} onClick={() => { emote(c.k, cardId, c.t); setOpen(false) }}
+              className="flex items-center gap-1.5 border border-black/15 rounded-md px-1.5 py-1 text-left active:bg-black/5">
+              <span className="text-lg leading-none">{c.k}</span>
+              {c.t && <span className="text-[11px] font-black text-black leading-tight" style={OSWALD}>{c.t}</span>}
+            </button>
           ))}
+          <p className="text-[9px] font-bold text-black/40 text-center leading-tight">a sala toda vê… mas pode ser blefe 😏</p>
         </div>
       )}
     </div>
@@ -1630,7 +1669,7 @@ export function EscAuction() {
   if (state.phase === 'envelope' || state.phase === 'resq_envelope') sub = <Envelope />
   else if (state.phase === 'tiebreak') sub = <Tiebreak />
   else sub = <Reveal />
-  return <>{sub}<FloatingEmotes /></>
+  return <>{sub}<FloatingEmotes /><MoneyRain /></>
 }
 
 function Envelope() {
@@ -2391,6 +2430,23 @@ function Reveal() {
               )
             })}
           </div>
+          {/* 😱 QUASE!: facada revelada — perdeu por 1-2 moedas. Só drama no reveal
+              que já existe (empate no topo vira desempate, que tem o próprio show). */}
+          {sold && !tie && (() => {
+            const win = item.bids.find(b => b.mgr === item.winner)
+            const losers = item.bids.filter(b => b.mgr !== item.winner && !item.voided.includes(b.mgr))
+            if (!win || losers.length === 0) return null
+            const best = Math.max(...losers.map(b => b.amount))
+            const diff = win.amount - best
+            if (diff < 1 || diff > 2) return null
+            const names = losers.filter(b => b.amount === best).map(b => { const m = state.managers.find(x => x.id === b.mgr); return m ? (m.id === you.id ? 'Você' : (m.teamName || m.name)) : '' }).filter(Boolean)
+            return (
+              <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: hammerDelay + 0.4 }}
+                className="mt-2 border-2 border-black rounded-lg px-3 py-1.5 text-center" style={{ backgroundColor: '#FFE1DC' }}>
+                <p className="font-black text-[13px]" style={{ ...OSWALD, color: RED }}>😱 QUASE! {names.slice(0, 2).join(' e ')} perde{names.length > 1 ? 'm' : ''} {item.card.name} por {diff === 1 ? '1 MOEDA' : '2 moedas'}!</p>
+              </motion.div>
+            )
+          })()}
           {tie && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: item.bids.length * 0.25 + 0.15 }}
               className="mt-3 border-[3px] border-black rounded-xl p-2.5" style={{ backgroundColor: '#FFE9B0' }}>
