@@ -852,25 +852,30 @@ function CardFace({ c, big = false, surprise = false, highlight = false }: { c: 
 // ─── NOVIDADES ───────────────────────────────────────────────────────
 // Mostra SÓ a novidade mais recente, com X pra fechar. Ao fechar, guarda o id
 // no aparelho — só reaparece quando eu trocar o LATEST_NEWS por um id novo.
-const LATEST_NEWS = {
-  id: '2026-07-argentinos-saf',
-  emoji: '🌎',
-  title: 'Reforço argentino + SAF turbinada!',
-  text: 'Chegou uma leva de craques no baralho Europa — Lautaro, Julián Álvarez, Dibu Martínez, Lisandro Martínez, Otamendi, Aimar, Koeman e mais. E no Modo Carreira, a SAF agora empresta MAIS jogadores conforme você sobe de série (a Série A libera até 4 por lado, e o elenco chega a 26!) — e os prêmios dela entram no Extrato. 🔨',
-}
+// avisos do topo (só informativos — não levam a lugar nenhum). Ao fechar, guarda
+// o id no aparelho; troque o NEWS_ID por um novo pra reaparecer pra todos.
+const NEWS_ID = '2026-07-trofeus-patrocinio'
+const NEWS_ITEMS = [
+  { emoji: '🏆', title: 'Hall da Fama — Sala de Troféus', text: 'No Modo Carreira, na aba Rank (embaixo do rank de clubes): a estante do seu clube com TODOS os títulos que você conquistou, guardados pra sempre.' },
+  { emoji: '👕', title: 'Agência de Patrocínio', text: 'No Modo Carreira, na aba Clube: escolha a marca que patrocina o seu time — ela pinga dinheiro no caixa toda temporada (quanto mais alta a divisão, mais rende).' },
+]
 function NewsBanner() {
   const [dismissed, setDismissed] = useState(() => {
-    try { return localStorage.getItem('esc_news_seen') === LATEST_NEWS.id } catch { return false }
+    try { return localStorage.getItem('esc_news_seen') === NEWS_ID } catch { return false }
   })
   if (dismissed) return null
-  const close = () => { try { localStorage.setItem('esc_news_seen', LATEST_NEWS.id) } catch { /* ignore */ } setDismissed(true) }
+  const close = () => { try { localStorage.setItem('esc_news_seen', NEWS_ID) } catch { /* ignore */ } setDismissed(true) }
   return (
-    <div className="relative rounded-2xl border-[3px] border-black p-3 pr-9 mb-1" style={{ background: '#EDE7FF', boxShadow: `4px 4px 0 0 ${INK}` }}>
-      <button onClick={close} aria-label="Fechar novidade"
+    <div className="relative rounded-2xl border-[3px] border-black p-3 pr-9 mb-1 space-y-2.5" style={{ background: '#EDE7FF', boxShadow: `4px 4px 0 0 ${INK}` }}>
+      <button onClick={close} aria-label="Fechar novidades"
         className="absolute top-2 right-2 w-6 h-6 rounded-full border-2 border-black bg-white font-black text-xs leading-none active:translate-y-0.5">✕</button>
-      <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: PURPLE }}>✨ Novidade</p>
-      <p className="font-black text-sm leading-tight" style={OSWALD}>{LATEST_NEWS.emoji} {LATEST_NEWS.title}</p>
-      <p className="text-xs font-bold text-black/70 mt-0.5">{LATEST_NEWS.text}</p>
+      <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: PURPLE }}>✨ Novidades</p>
+      {NEWS_ITEMS.map(n => (
+        <div key={n.title}>
+          <p className="font-black text-sm leading-tight" style={OSWALD}>{n.emoji} {n.title}</p>
+          <p className="text-xs font-bold text-black/70 mt-0.5">{n.text}</p>
+        </div>
+      ))}
     </div>
   )
 }
@@ -880,14 +885,6 @@ function NewsBanner() {
 // reflete sempre as cartas de verdade e fica dividido por baralho.
 type Recruit = (typeof CATALOG)[Sector][number]
 const RECENT_PER_POS = 4 // últimas N cartas de cada posição, por baralho
-function recruitSelo(c: Recruit): string {
-  // 5 categorias de NÍVEL (mesma regra da carta): 👑 lenda · ⭐ craque · 💎 promessa ·
-  // 🎯 bom jogador · 🪵 foi profissional. O 🃏 folclórico NÃO é categoria — é vibe, e
-  // entra MISTURADO (selo extra) junto da categoria de nível do jogador.
-  const isProm = c.promessa ?? PROMESSA_SET.has(c.name)
-  const lvl = isProm ? '💎' : c.fame >= 5 ? '👑' : c.fame === 4 ? '⭐' : c.fame >= 2 ? '🎯' : '🪵'
-  return ' ' + lvl + (c.folk ? '🃏' : '')
-}
 function recentArrivals(cat: Record<Sector, Recruit[]>): Recruit[] {
   const out: Recruit[] = []
   for (const pos of SECTORS) { const arr = cat[pos]; for (const c of arr.slice(Math.max(0, arr.length - RECENT_PER_POS)).reverse()) out.push(c) }
@@ -923,8 +920,8 @@ function NewsSection() {
       </div>
       <div>
         <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>🆕 Recém-chegados</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>🇧🇷 BR:</b> {recentBR.map(c => c.name + recruitSelo(c)).join(', ')}.</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>🌍 Europa:</b> {recentEU.map(c => c.name + recruitSelo(c)).join(', ')}.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>🇧🇷 BR:</b> {recentBR.map(c => c.name).join(', ')}.</p>
+        <p className="text-xs font-bold text-black/75 mt-1"><b>🌍 Europa:</b> {recentEU.map(c => c.name).join(', ')}.</p>
         <p className="text-[11px] font-bold text-black/50 mt-1">O baralho só cresce — sempre entrando craque novo. 🔨</p>
       </div>
     </Box>
