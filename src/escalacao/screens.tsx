@@ -2677,7 +2677,7 @@ const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // ~4,7s por rodada
 // pra dar pra acompanhar o placar subindo (Diego achou muito rápido). Só o rápido.
 const QUICK_COPA_LEG_MS = COPA_LEG_MS + 6000
 // tempo de LEITURA da telinha "Chegou a Copa" antes da 1ª partida (modo automático)
-const COPA_INTRO_SECONDS = 30
+const COPA_INTRO_SECONDS = 10
 
 // ── RITMO da simulação (só modos SOLO): auto (padrão) ou manual — no manual
 // a temporada PARA depois de cada rodada e você avança no botão. A escolha
@@ -4956,7 +4956,7 @@ export function EscEnd() {
   // o próprio cronômetro dela zera; se este daqui fosse igual ou menor,
   // poderia trocar de tela ANTES da carta terminar de gravar e o campeão
   // perderia a carta da liga. Essa folga evita a corrida.
-  const COPA_GATE_S = CARD_PICK_SECONDS + 12
+  const COPA_GATE_S = 30 // quadro "COPA DOS 8 · fica ligado" (mostra o chaveamento) antes de começar
   const copaPending = !!state.quickCopa && state.quickCopa.phase !== 'done'
   // online: só o HOST puxa a Copa (e sincroniza pra sala). Solo: o próprio cliente.
   const canDriveCopa = !online || state.isHost
