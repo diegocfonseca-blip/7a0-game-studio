@@ -7,6 +7,7 @@ import { AdminButton, useCanCareerOnline } from './admin'
 import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk } from './apoio'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
+import { DIVISION_TEAMS } from './data'
 import type { EscState, FormationKey } from './types'
 
 // A Escalação usa as mesmas tabelas do Draft (game_rooms/room_players).
@@ -27,7 +28,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // (👑 ouro · ⭐ prata · 💎 roxo) — assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : null
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira'; deck?: DeckChoice; ligaFechada?: boolean }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira'; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -356,6 +357,15 @@ export function EscLobby() {
   const [rapidoDeck, setRapidoDeck] = useState<DeckChoice>('br') // rápido online: host escolhe o baralho (BR / Europa / os dois)
   const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa'>('liga_copa') // 🏆 rápido online: liga só, ou liga + Copa dos 8 no fim (padrão)
   const [ligaFechada, setLigaFechada] = useState(false) // 🏆 liga só com a galera (sem bots) — só quem tem Lenda cria
+  // 🌐 CARREIRA ONLINE: o host escolhe os rivais CPU do leilão (igual offline).
+  // Quantidade + quais times da Série D (vazio = padrões).
+  const [careerRivals, setCareerRivals] = useState(5)
+  const [careerRivalPicks, setCareerRivalPicks] = useState<string[]>([])
+  const toggleCareerRival = (team: string) => setCareerRivalPicks(prev => {
+    if (prev.includes(team)) return prev.filter(t => t !== team)
+    const next = [...prev, team]
+    return next.length > careerRivals ? next.slice(next.length - careerRivals) : next
+  })
   const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
   const [joinCode, setJoinCode] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
@@ -637,6 +647,8 @@ export function EscLobby() {
       auctionSecs: gs?.auctionSecs, // ⏱️ tempo do leilão (undefined=45s · N=N seg · 0=host avança)
       deck: gs?.deck ?? 'br', // carreira = 'both'; rápido = escolha do host (br/eu/both)
       career: gs?.mode === 'carreira',
+      rivals: gs?.rivals, // 🌐 carreira online: nº de rivais CPU no leilão (escolha do host)
+      rivalTeams: gs?.rivalTeams, // 🌐 carreira online: times da Série D escolhidos como rivais
       ligaFechada: !!(gs as GS & { ligaFechada?: boolean })?.ligaFechada, // 🏆 liga só com a galera, sem bots
       locked: gs?.locked, pwHash: gs?.pwHash, // preserva a senha da sala pelo autosave
       copaMode: gs?.copaMode, // 🏆 rápido: liga só ou liga + Copa dos 8 (escolha do host na criação)
@@ -741,7 +753,7 @@ export function EscLobby() {
     const locked = roomLocked && !!roomPw.trim()
     const pwHash = locked ? hashPw(roomPw.trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomManual ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck } : { deck: rapidoDeck, copaMode: rapidoCopaMode, ...(canLiga && ligaFechada ? { ligaFechada: true } : {}) }) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomManual ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, copaMode: rapidoCopaMode, ...(canLiga && ligaFechada ? { ligaFechada: true } : {}) }) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -1179,6 +1191,43 @@ export function EscLobby() {
               </SegField>
             )}
           </Section>
+
+          {/* ② OS RIVAIS — só na carreira (igual offline: host escolhe os CPUs do leilão) */}
+          {isCareer && (
+            <Section num={2} title="Os rivais" icon="🔥">
+              <div>
+                <p className="text-white/70 text-[11px] font-black uppercase mb-1.5" style={{ letterSpacing: '.1em' }}>Rivais no leilão (CPUs)</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {[3, 5, 7, 9].map(n => (
+                    <button key={n} onClick={() => setCareerRivals(n)}
+                      className="border-[2.5px] border-black rounded-xl py-2 font-black text-sm"
+                      style={{ background: careerRivals === n ? PURPLE : '#fff', color: careerRivals === n ? '#fff' : '#000', ...OSWALD }}>
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">Eles dão lance no pregão e disputam a temporada com vocês — igual ao offline. Na tabela aparecem como time comum (sem selo); só vocês e as SAFs ficam marcados.</p>
+              </div>
+              <div>
+                <p className="text-white text-[11px] font-black uppercase mb-1">🔥 Escolha os rivais <span className="text-white/50">({careerRivalPicks.length}/{careerRivals})</span></p>
+                <div className="flex flex-wrap gap-1.5">
+                  {DIVISION_TEAMS['D'].map(t => {
+                    const on = careerRivalPicks.includes(t.team)
+                    return (
+                      <button key={t.team} onClick={() => toggleCareerRival(t.team)}
+                        className="border-2 border-black rounded-lg px-2 py-1 font-black text-[11px] active:translate-y-0.5"
+                        style={{ background: on ? '#E8503A' : '#fff', color: on ? '#fff' : '#000' }}>
+                        {on ? '🔥 ' : ''}{t.team}
+                      </button>
+                    )
+                  })}
+                </div>
+                <button onClick={() => setCareerRivalPicks([])} className="mt-2 border-2 border-black rounded-lg px-2.5 py-1 font-black text-[11px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
+                  🎲 Não escolher — usar rivais padrão
+                </button>
+              </div>
+            </Section>
+          )}
 
           {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
           {!isCareer && (

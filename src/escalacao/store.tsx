@@ -1560,7 +1560,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both'; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' }
+  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both'; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa'; rivals?: number; rivalTeams?: string[] }
   | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). scorerValues = bonus de piso dos artilheiros
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
@@ -2237,11 +2237,23 @@ export function reducer(state: EscState, action: Action): EscState {
       // os clubes batizados pelos apoiadores — têm que aparecer sempre). A ordem
       // embaralha a cada sala, e só se faltar nome (não falta: são 20) completa
       // com as outras séries. Carreira online mantém a estrutura das divisões.
-      const namePool = action.career ? undefined : [...shuffle([...DIVISION_TEAMS.D], rng), ...shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C], rng)]
       // 🏆 LIGA FECHADA: a tabela é só a galera (leagueSize = nº de humanos) → sem
       // bots. Nos outros modos, completa até 20 como sempre.
       const onlineLeagueSize = action.ligaFechada ? action.playerNames.length : LEAGUE_SIZE
-      const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, 0, onlineLeagueSize, rng, namePool)
+      // 🌐 CARREIRA ONLINE: igual ao offline — os rivais ESCOLHIDOS pelo host entram
+      // como CPUs que DÃO LANCE no leilão (auctionRival) e disputam a temporada. A
+      // ordem de nomes coloca os escolhidos primeiro (viram os auction-rivals),
+      // depois o resto da Série D. Rápido: pool embaralhado, sem rivais de leilão.
+      const careerChosen = (action.rivalTeams ?? []).map(tn => DIVISION_TEAMS['D'].find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
+      const careerRest = DIVISION_TEAMS['D'].filter(t => !careerChosen.some(c => c.team === t.team))
+      const namePool = action.career
+        ? [...careerChosen, ...careerRest]
+        : [...shuffle([...DIVISION_TEAMS.D], rng), ...shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C], rng)]
+      const onlineRivalCount = action.career ? Math.max(0, Math.min(action.rivals ?? 0, onlineLeagueSize - action.playerNames.length)) : 0
+      const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, onlineRivalCount, onlineLeagueSize, rng, namePool)
+      // ⚠️ NÃO marca os rivais como `rival` (diferente do offline): na tabela online
+      // só ficam marcados os HUMANOS (👤/🔥) e as SAFs (💼). Os rivais CPU brigam no
+      // leilão mas aparecem como time comum, sem selo ⚔️.
       s.managers = onlineManagers
       // rápido (e T1 de carreira) começam SEM piso. O livro de preços
       // (marketValues) é memória da carreira ENTRE temporadas — não pode vazar do
