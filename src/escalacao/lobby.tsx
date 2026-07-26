@@ -594,6 +594,40 @@ export function EscLobby() {
     return () => clearTimeout(t)
   }, [phase, room])
 
+  // 👑 BATIMENTO DO HOST NA SALA DE ESPERA: enquanto o host está no lobby, grava
+  // updated_at a cada 30s. É o sinal de "host vivo" — sem ele, um host que CAI
+  // (fechou o app / perdeu sinal, sem apertar "sair") deixaria a sala presa pra
+  // sempre. Os convidados vigiam esse batimento (efeito abaixo) e a lista de
+  // Salas Abertas também usa ele pra sumir com sala sem dono.
+  useEffect(() => {
+    if (phase !== 'waiting' || !room || !isHost) return
+    const beat = () => supabase.from('game_rooms').update({ updated_at: new Date().toISOString() }).eq('id', room.id).then(() => {}, () => {})
+    beat()
+    const iv = setInterval(beat, 30_000)
+    return () => clearInterval(iv)
+  }, [phase, room, isHost])
+
+  // 🛟 HOST CAIU SEM AVISAR: o convidado vigia o batimento do host na sala de
+  // espera. Se a sala sumiu (host apertou "sair" e apagou) → banner na hora. Se o
+  // batimento parou há mais de 3 min (host travou/caiu) → encerra a sala e mostra
+  // o banner. 3 min de folga pra NUNCA fechar por uma piscada de conexão. A saída
+  // LIMPA do host já dispara host_left instantâneo; isto é a rede pro acidente.
+  useEffect(() => {
+    if (phase !== 'waiting' || !room || isHost) return
+    const check = async () => {
+      const { data } = await supabase.from('game_rooms').select('updated_at').eq('id', room.id).maybeSingle()
+      if (!data) { setHostLeft(true); return } // sala já foi encerrada pelo host
+      const beat = data.updated_at ? new Date(data.updated_at).getTime() : 0
+      if (beat && Date.now() - beat > 180_000) {
+        await supabase.from('room_players').delete().eq('room_id', room.id).then(() => {}, () => {})
+        await supabase.from('game_rooms').delete().eq('id', room.id).then(() => {}, () => {})
+        setHostLeft(true)
+      }
+    }
+    const iv = setInterval(check, 30_000)
+    return () => clearInterval(iv)
+  }, [phase, room, isHost])
+
   // Busca a lista de jogadores DIRETO do banco (não confia em estado local
   // que pode estar vazio/desatualizado, ex.: logo após reconectar) — usar
   // uma lista errada aqui faz o jogo montar o time errado como "você".
@@ -843,6 +877,12 @@ export function EscLobby() {
     // de sala abandonada de verdade.
     const ROOM_HEARTBEAT_MS = 60_000
     const isFresh = (r: RoomInfo) => !!r.updated_at && Date.now() - new Date(r.updated_at).getTime() < ROOM_HEARTBEAT_MS
+    // sala 'waiting' SEM host: o host bate updated_at a cada 30s enquanto está no
+    // lobby. Parou de bater há mais de 3 min = host caiu/saiu → some da lista (não
+    // deixa entrar numa sala que ninguém vai abrir). Folga maior que a do jogo
+    // rolando pra não sumir por engano; a sala em si é encerrada pela vigia acima.
+    const WAIT_STALE_MS = 180_000
+    const waitingAlive = (r: RoomInfo) => !r.updated_at || Date.now() - new Date(r.updated_at).getTime() < WAIT_STALE_MS
     // só salas vivas: sem ninguém dentro (count 0) é sala fantasma abandonada.
     // esperando gente aparece primeiro (é nelas que dá pra entrar); as com
     // jogo rolando de verdade (heartbeat fresco) ficam depois, só como aviso.
@@ -850,7 +890,7 @@ export function EscLobby() {
     // pública — entra por convite/código ou por "Minhas carreiras" (host).
     const isCareer = (r: RoomInfo) => r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
-      .filter(r => r.count >= 1 && (r.status !== 'started' || isFresh(r)) && !isCareer(r))
+      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r))
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
