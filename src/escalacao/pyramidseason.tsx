@@ -1777,6 +1777,8 @@ export function PyramidSeasonScreen() {
   const me = myStanding(tables)
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
+  // 🏢 SAF do técnico: online = careerFilials[youId] (por-técnico) · offline = careerFilial (single)
+  const myFilial = state.onlineMode === 'online' ? state.careerFilials?.[youId] : state.careerFilial
   const myTactic = tacAt(careerTactics, youId, round) // tática que vale do PRÓXIMO jogo em diante
   // coloridos = humanos (você/amigos) em bege/tier; rivais escolhidos em MARROM
   // próprio — nunca a sua cor. A SUA cor é exclusiva do seu clube e da sua SAF.
@@ -2231,37 +2233,39 @@ export function PyramidSeasonScreen() {
             <StadiumTab st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
-              filial={state.careerFilial}
+              filial={myFilial}
               filialOptions={(() => {
                 // 🏢 só dá pra comprar clube que VAI FICAR na Série D: tira os 4
                 // primeiros (zona de acesso — estão subindo pra Série C). Sem isso,
                 // dava pra comprar um time prestes a subir e ganhar divisão de graça.
+                // No online, tira também os clubes que OUTRO humano já tem de SAF.
                 const fica = sortDiv(tables.D).slice(4)
-                return fica.filter(t => !t.you && !t.human && !t.rival).map(t => t.name).filter(t => !state.careerRivals.some(r => r.team === t))
+                const taken = state.onlineMode === 'online' ? new Set(Object.values(state.careerFilials ?? {}).map(f => f?.team)) : new Set<string | undefined>()
+                return fica.filter(t => !t.you && !t.human && !t.rival).map(t => t.name).filter(t => !state.careerRivals.some(r => r.team === t) && !taken.has(t))
               })()}
               filialInfo={(() => {
-                const fn = state.careerFilial?.team
+                const fn = myFilial?.team
                 if (!fn) return null
                 for (const d of DIVS) { const i = tables[d].findIndex(t => t.name === fn); if (i >= 0) return { div: d, pos: i + 1 } }
                 return null
               })()}
-              onBuyFilial={state.onlineMode === 'online' ? undefined : (team => dispatch({ type: 'BUY_FILIAL', team }))}
-              onSellFilial={() => dispatch({ type: 'SELL_FILIAL' })}
-              filialSale={state.careerFilial ? filialSaleValue(state) : undefined}
+              onBuyFilial={team => dispatch({ type: 'BUY_FILIAL', team, mgrId: youId })}
+              onSellFilial={() => dispatch({ type: 'SELL_FILIAL', mgrId: youId })}
+              filialSale={myFilial ? filialSaleValue(state, myFilial) : undefined}
               mySquad={state.managers[state.youIdx]?.squad}
-              filialSquad={state.careerFilial ? (state.cpuSquads?.[state.careerFilial.team] as WonCard[] | undefined) : undefined}
+              filialSquad={myFilial ? (state.cpuSquads?.[myFilial.team] as WonCard[] | undefined) : undefined}
               loanableOutIds={(() => {
                 const sq = state.managers[state.youIdx]?.squad ?? []
                 const fm = FORMATIONS[state.managers[state.youIdx]?.formation ?? '4-3-3']
                 return new Set(sq.filter(c => !c.emprestado && sq.filter(x => x.pos === c.pos && !x.fake).length - 1 >= fm[c.pos]).map(c => c.id))
               })()}
               loanableInIds={(() => {
-                const safSq = (state.careerFilial ? (state.cpuSquads?.[state.careerFilial.team] as WonCard[] | undefined) : undefined) ?? []
+                const safSq = (myFilial ? (state.cpuSquads?.[myFilial.team] as WonCard[] | undefined) : undefined) ?? []
                 const fm = FORMATIONS['4-3-3']
                 return new Set(safSq.filter(c => !c.emprestado && safSq.filter(x => x.pos === c.pos && !x.fake).length - 1 >= fm[c.pos]).map(c => c.id))
               })()}
-              onLoanTo={cardId => dispatch({ type: 'LOAN_TO_FILIAL', cardId })}
-              onLoanFrom={cardId => dispatch({ type: 'LOAN_FROM_FILIAL', cardId })}
+              onLoanTo={cardId => dispatch({ type: 'LOAN_TO_FILIAL', cardId, mgrId: youId })}
+              onLoanFrom={cardId => dispatch({ type: 'LOAN_FROM_FILIAL', cardId, mgrId: youId })}
               loanSlots={filialSlots(me?.div)} />
             <GoldTeaser label="Ver o estádio DOURADO completo (prévia)">
               <div style={{ ...box('#FBF6E9'), padding: 12, position: 'relative' }}>

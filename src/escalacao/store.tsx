@@ -880,7 +880,31 @@ const loanList = (x: unknown): WonCard[] => Array.isArray(x) ? x as WonCard[] : 
 // 50% dos prêmios de título/acesso (e 50% do prejuízo na queda). NÃO inclui
 // lucros de compra/venda do bot no mercado — só campanha. O acumulado fica em
 // careerFilial.earned pro painel.
+// 🏢 devolve os empréstimos de UM técnico (online: por-técnico na virada e na venda).
+// Efeitos: mexe no elenco do técnico e no cpuSquads; devolve a SAF com as listas zeradas.
+function returnFilialLoansFor(s: EscState, you: Manager, f: NonNullable<EscState['careerFilial']>): NonNullable<EscState['careerFilial']> {
+  const outs = loanList(f.loanOut), ins = loanList(f.loanIn)
+  if (outs.length === 0 && ins.length === 0) return f
+  const cpuSq = { ...(s.cpuSquads ?? {}) }
+  const safSquad = [...(cpuSq[f.team] ?? [])]
+  for (const lo of outs) { const i = safSquad.findIndex(c => c.id === lo.id); if (i >= 0) safSquad.splice(i, 1); you.squad = [...you.squad, { ...lo, emprestado: undefined } as WonCard] }
+  if (ins.length) { const inIds = new Set(ins.map(c => c.id)); you.squad = you.squad.filter(c => !inIds.has(c.id)); for (const li of ins) safSquad.push({ ...li, emprestado: undefined } as WonCard) }
+  cpuSq[f.team] = safSquad; s.cpuSquads = cpuSq
+  return { ...f, loanOut: [], loanIn: [] }
+}
 function applyFilialCommission(s: EscState, clubRewards: Record<string, number>) {
+  if (s.onlineMode === 'online') {
+    // 🏢 ONLINE: cada humano com SAF recebe 50% da campanha DELA no caixa dele.
+    for (const you of s.managers.filter(m => m.isHuman)) {
+      const f = s.careerFilials?.[you.id]; if (!f) continue
+      const mgr = s.managers.find(m => !m.isHuman && m.teamName === f.team)
+      const key = mgr ? `m${mgr.id}` : f.team
+      const cut = Math.round((clubRewards[key] ?? 0) * 0.5); if (!cut) continue
+      s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: (s.careerCoins?.[you.id] ?? 0) + cut }
+      s.careerFilials = { ...(s.careerFilials ?? {}), [you.id]: { ...f, earned: (f.earned ?? 0) + cut } }
+    }
+    return
+  }
   const f = s.careerFilial
   if (!f) return
   const mgr = s.managers.find(m => !m.isHuman && m.teamName === f.team)
@@ -907,15 +931,16 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
 // careerPlacements e os títulos de careerHonors (chave = nome do clube, que é CPU).
 const FILIAL_DIV_BONUS: Record<string, number> = { D: 0, C: 250, B: 500, A: 750 }
 export const FILIAL_SALE_CAP = 2500
-export function filialSaleValue(s: EscState): { value: number; div: string; titles: number; divBonus: number; titleBonus: number; paid: number } {
-  const team = s.careerFilial?.team
+export function filialSaleValue(s: EscState, filial?: EscState['careerFilial']): { value: number; div: string; titles: number; divBonus: number; titleBonus: number; paid: number } {
+  const f = filial ?? s.careerFilial
+  const team = f?.team
   const div = (team && s.careerPlacements?.[team]) || 'D'
   const h = (team && s.careerHonors?.[team]) || { A: 0, B: 0, C: 0, D: 0 }
   const totalTitles = (h.A ?? 0) + (h.B ?? 0) + (h.C ?? 0) + (h.D ?? 0)
   // 🏢 só contam os títulos ganhos DEPOIS da compra — os que o clube já tinha na
   // vida dele (titlesAtBuy) não entram no seu lucro. Saves antigos sem o snapshot
   // caem em 0 (não conta nenhum histórico antigo, que é o comportamento correto).
-  const titles = Math.max(0, totalTitles - (s.careerFilial?.titlesAtBuy ?? totalTitles))
+  const titles = Math.max(0, totalTitles - (f?.titlesAtBuy ?? totalTitles))
   const divBonus = FILIAL_DIV_BONUS[div] ?? 0
   const titleBonus = titles * 250
   const value = Math.min(FILIAL_SALE_CAP, 1000 + divBonus + titleBonus)
@@ -924,6 +949,14 @@ export function filialSaleValue(s: EscState): { value: number; div: string; titl
 // devolve os DOIS empréstimos ativos (se houver) na virada de temporada — a
 // janela reabre do zero pra próxima: renovar o mesmo, escolher outro ou nenhum.
 function revertFilialLoans(s: EscState) {
+  if (s.onlineMode === 'online') {
+    // 🏢 ONLINE: devolve os empréstimos de CADA técnico com SAF; janela reabre.
+    for (const you of s.managers.filter(m => m.isHuman)) {
+      const f = s.careerFilials?.[you.id]; if (!f) continue
+      s.careerFilials = { ...(s.careerFilials ?? {}), [you.id]: returnFilialLoansFor(s, you, f) }
+    }
+    return
+  }
   const f = s.careerFilial
   const outs = loanList(f?.loanOut)
   const ins = loanList(f?.loanIn)
@@ -1596,11 +1629,11 @@ type Action =
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string }
   | { type: 'MONTE_TIMEOUT' }
   | { type: 'SET_SPONSOR'; id: string; mgrId?: number } // 👕 escolhe a marca do patrocínio (solo: careerSponsor · online: careerSponsors[mgrId])
-  | { type: 'BUY_FILIAL'; team: string } // 🏢 compra o clube-filial (carreira offline, teste)
-  | { type: 'SELL_FILIAL' } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 2.500)
+  | { type: 'BUY_FILIAL'; team: string; mgrId?: number } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])
+  | { type: 'SELL_FILIAL'; mgrId?: number } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 2.500)
   | { type: 'ADD_EMPRESARIO_CARD'; card: EmpCard; key?: string } // 💼 registra uma carta ganha (pacote de campeão) na agência do Empresário. `key` = seasonKey do pacote (dedup por temporada — aceita repetida entre temporadas)
-  | { type: 'LOAN_TO_FILIAL'; cardId: string } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda, volta na virada)
-  | { type: 'LOAN_FROM_FILIAL'; cardId: string } // 🏢 pega um jogador emprestado DA SAF (idem)
+  | { type: 'LOAN_TO_FILIAL'; cardId: string; mgrId?: number } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda, volta na virada)
+  | { type: 'LOAN_FROM_FILIAL'; cardId: string; mgrId?: number } // 🏢 pega um jogador emprestado DA SAF (idem)
   | { type: 'MONTE_PASS'; mgrId: number } // carreira: recusa as sobras e passa a vez (o time já tem os 11)
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[] } // carreira online: define os 11 titulares (escalação), vale do PRÓXIMO jogo
@@ -2223,6 +2256,7 @@ export function reducer(state: EscState, action: Action): EscState {
         s.marketLog = []
         s.careerScorersAll = {}; s.statsSeason = 0 // artilharia de todos os tempos começa do zero
         s.clubCash = seedClubCash({}, pl) // todo time da pirâmide começa com caixa (base por divisão)
+        s.careerFilials = {}; s.careerSponsors = {} // 🏢👕 Clube online por técnico começa zerado
       }
       s.roomId = action.roomId
       s.roomCode = action.roomCode
@@ -2409,7 +2443,24 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'BUY_FILIAL': {
       // 🏢 compra do clube-filial: só carreira OFFLINE, estádio 100% completo,
       // 2.000 de caixa, um por carreira, nunca um rival (nem o próprio time).
-      if (!s.careerOnline || s.onlineMode === 'online' || s.careerFilial) return s
+      if (s.onlineMode === 'online') {
+        // 🏢 ONLINE: SAF por técnico (careerFilials[mgrId]); mesmas regras do solo.
+        const you = s.managers.find(m => m.id === action.mgrId)
+        if (!s.careerOnline || !you?.isHuman || s.careerFilials?.[you.id]) return s
+        const coins = s.careerCoins?.[you.id] ?? 0
+        if (coins < 2000) return s
+        const stO = s.stadiums?.[you.id]
+        const readyO = STADIUM_SECTORS.every(x => sectorPct(stO, x.k) >= 100) && STADIUM_EXTRAS.every(e => hasExtra(stO, e.k))
+        if (!readyO) return s
+        if (s.careerRivals.some(r => r.team === action.team) || you.teamName === action.team) return s
+        // e nunca um clube que OUTRO humano já tem de SAF
+        if (Object.values(s.careerFilials ?? {}).some(f => f?.team === action.team)) return s
+        s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - 2000 }
+        const h0O = s.careerHonors?.[action.team]
+        s.careerFilials = { ...(s.careerFilials ?? {}), [you.id]: { team: action.team, since: s.seasonNo, earned: 0, titlesAtBuy: h0O ? (h0O.A + h0O.B + h0O.C + h0O.D) : 0 } }
+        return s
+      }
+      if (!s.careerOnline || s.careerFilial) return s
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
       const coins = s.careerCoins?.[you.id] ?? 0
@@ -2430,7 +2481,17 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'SELL_FILIAL': {
       // 🏢 vende a SAF: valor progressivo (divisão + títulos, teto 2.500). Devolve os
       // empréstimos ativos, credita o valor na caixa e libera comprar outra depois.
-      if (!s.careerOnline || s.onlineMode === 'online' || !s.careerFilial) return s
+      if (s.onlineMode === 'online') {
+        const you = s.managers.find(m => m.id === action.mgrId)
+        const f = you ? s.careerFilials?.[you.id] : undefined
+        if (!s.careerOnline || !you?.isHuman || !f) return s
+        const { value } = filialSaleValue(s, f)
+        returnFilialLoansFor(s, you, f) // empréstimos ativos voltam antes de vender
+        s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: (s.careerCoins?.[you.id] ?? 0) + value }
+        const rest = { ...(s.careerFilials ?? {}) }; delete rest[you.id]; s.careerFilials = rest
+        return s
+      }
+      if (!s.careerOnline || !s.careerFilial) return s
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
       const team = s.careerFilial.team
@@ -2458,7 +2519,25 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'LOAN_TO_FILIAL': {
       // empresta um jogador SEU pra SAF: some do seu time, joga lá — mas
       // continua SEU (não é venda). Vagas crescem com a divisão (D1·C2·B3·A4).
-      if (!s.careerOnline || s.onlineMode === 'online' || !s.careerFilial) return s
+      if (s.onlineMode === 'online') {
+        const you = s.managers.find(m => m.id === action.mgrId)
+        const f = you ? s.careerFilials?.[you.id] : undefined
+        if (!s.careerOnline || !you?.isHuman || !f) return s
+        const outs = loanList(f.loanOut)
+        if (outs.length >= filialSlots(s.careerPlacements?.[`m${you.id}`])) return s
+        const card = you.squad.find(c => c.id === action.cardId)
+        if (!card || card.emprestado) return s
+        const need = FORMATIONS[you.formation]
+        if (you.squad.filter(c => c.pos === card.pos && !c.fake).length - 1 < need[card.pos]) return s
+        you.squad = you.squad.filter(c => c.id !== action.cardId)
+        const loaned = { ...card, emprestado: 'dono' } as WonCard
+        const cpuSq = { ...(s.cpuSquads ?? {}) }
+        cpuSq[f.team] = [...(cpuSq[f.team] ?? []), loaned]
+        s.cpuSquads = cpuSq
+        s.careerFilials = { ...(s.careerFilials ?? {}), [you.id]: { ...f, loanOut: [...outs, loaned] } }
+        return s
+      }
+      if (!s.careerOnline || !s.careerFilial) return s
       const outs = loanList(s.careerFilial.loanOut)
       if (outs.length >= filialSlots(myCareerDiv(s))) return s
       const you = s.managers[s.youIdx]
@@ -2480,7 +2559,26 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'LOAN_FROM_FILIAL': {
       // pega um jogador emprestado DA SAF: joga com você, mas continua sendo
       // dela — volta sozinho na virada. Vagas crescem com a divisão (D1·C2·B3·A4).
-      if (!s.careerOnline || s.onlineMode === 'online' || !s.careerFilial) return s
+      if (s.onlineMode === 'online') {
+        const you = s.managers.find(m => m.id === action.mgrId)
+        const f = you ? s.careerFilials?.[you.id] : undefined
+        if (!s.careerOnline || !you?.isHuman || !f) return s
+        const ins = loanList(f.loanIn)
+        if (ins.length >= filialSlots(s.careerPlacements?.[`m${you.id}`])) return s
+        const safSquad = (s.cpuSquads?.[f.team] ?? []) as WonCard[]
+        const card = safSquad.find(c => c.id === action.cardId)
+        if (!card || card.emprestado) return s
+        const need = FORMATIONS['4-3-3']
+        if (safSquad.filter(c => c.pos === card.pos && !c.fake).length - 1 < need[card.pos]) return s
+        const cpuSq = { ...(s.cpuSquads ?? {}) }
+        cpuSq[f.team] = safSquad.filter(c => c.id !== action.cardId)
+        s.cpuSquads = cpuSq
+        const loaned = { ...card, emprestado: 'saf' } as WonCard
+        you.squad = [...you.squad, loaned]
+        s.careerFilials = { ...(s.careerFilials ?? {}), [you.id]: { ...f, loanIn: [...ins, loaned] } }
+        return s
+      }
+      if (!s.careerOnline || !s.careerFilial) return s
       const ins = loanList(s.careerFilial.loanIn)
       if (ins.length >= filialSlots(myCareerDiv(s))) return s
       const you = s.managers[s.youIdx]

@@ -329,6 +329,7 @@ export interface EscState {
     loanOut?: WonCard[] // jogadores SEUS emprestados PRA SAF (somem do seu elenco, jogam lá) — nº de vagas cresce com a divisão (D=1, C=2, B=3, A=4)
     loanIn?: WonCard[]  // jogadores DA SAF emprestados pra VOCÊ (jogam no seu time)
   } | null // 🏢 SAF (carreira OFFLINE, em teste): clube da Série D comprado — 50% dos prêmios de campanha dele (± em queda) caem no seu caixa
+  careerFilials?: Record<number, { team: string; since: number; earned?: number; titlesAtBuy?: number; loanOut?: WonCard[]; loanIn?: WonCard[] }> // 🏢 SAF na carreira ONLINE, por técnico (mgrId → SAF). Offline usa careerFilial (single).
   simV?: number // versão da fórmula da simulação: 2+ = teto de elite 1.28 (só vale de temporada NOVA em diante — a que está rolando termina na fórmula em que começou)
   careerPlacements?: Record<string, string> | null // pirâmide: chave do time → divisão ('A'..'D'). Compacto (só a colocação). Atualiza a cada temporada.
   copaDoneSeason?: number // pirâmide: nº da temporada cuja Copa Legends JÁ foi assistida até o fim — ao retomar o save, não re-anima a Copa do zero (mostra direto os campeões/decisão).
