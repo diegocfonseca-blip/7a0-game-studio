@@ -1540,8 +1540,10 @@ function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus
   const totalCpus = Math.max(0, leagueSize - humans.length)
   const nAuction = Math.min(Math.max(0, auctionCpus), totalCpus)
   const nFiller = totalCpus - nAuction
-  // distribuição de força dos bots de preenchimento: 10% fortes · 75% médios · 15% fracos
-  const strongN = Math.max(1, Math.round(nFiller * 0.10))
+  // distribuição de força dos bots de preenchimento: 9% fortes · 76% médios · 15%
+  // fracos. Forte arredonda PRA BAIXO (floor): senão, numa liga de 20 (~18 bots),
+  // 9% e 10% davam os mesmos 2 fortes e o corte não valia — com floor vira 1.
+  const strongN = Math.max(1, Math.floor(nFiller * 0.09))
   const weakN = Math.max(1, Math.round(nFiller * 0.15))
   // times dos CPUs = os mesmos da Série D da carreira (online e revanche usam a
   // divisão de base, pra não aparecer nome velho tipo "Nininho EC").
