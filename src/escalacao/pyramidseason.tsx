@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, oldChain } from './data'
-import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard } from './types'
+import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue } from './store'
 import { empresarioIncome, empCat, EMP_ORDER, EMP_META } from './estadiodata'
@@ -1330,7 +1330,8 @@ function GoldTeaser({ label, children }: { label: string; children: React.ReactN
   )
 }
 
-function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = null, seasonNo, perkOverride }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk }) {
+const POS_SHORT: Record<Sector, string> = { GOL: 'goleiro', LAT: 'lateral', ZAG: 'zagueiro', MEI: 'meia', ATA: 'atacante' }
+function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey) => void }) {
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
@@ -1356,6 +1357,38 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
         <span title="Soma do valor de mercado dos 22 jogadores (não é a sua caixa de moedas)" style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>{elenco ? `🏷️ Elenco vale ${total} 💵` : `🪙 Caixa: ${coins}`}</span>
         {caption && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>}
       </div>
+      {elenco && onSetFormation && (() => {
+        // 🎽 troca de formação — só destrava com 22 REAIS e só pra formação que o
+        // elenco aguenta por posição (nunca entra perna-de-pau).
+        const real = mgr.squad.filter(c => !c.fake)
+        const unlocked = real.length >= 22
+        const availByPos = (pos: Sector) => real.filter(c => c.pos === pos && !c.emprestado).length
+        const missFor = (f: FormationKey) => SECTORS.filter(pos => availByPos(pos) < FORMATIONS[f][pos]).map(pos => `${FORMATIONS[f][pos] - availByPos(pos)} ${POS_SHORT[pos]}${FORMATIONS[f][pos] - availByPos(pos) > 1 ? 's' : ''}`)
+        const other: FormationKey = mgr.formation === '4-3-3' ? '4-4-2' : '4-3-3'
+        const otherMiss = missFor(other)
+        return (
+          <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
+            <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>🎽 Formação{!unlocked ? ' · 🔒' : ''}</p>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => {
+                const cur = mgr.formation === f
+                const can = cur || (unlocked && missFor(f).length === 0)
+                return (
+                  <button key={f} disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f) }}
+                    style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '8px 4px', fontWeight: 900, fontSize: 12.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? col.solid : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.7, boxShadow: cur ? `2px 2px 0 0 ${INK}` : 'none' }}>
+                    {f}{cur ? ' ✓' : ''}
+                  </button>
+                )
+              })}
+            </div>
+            {!unlocked
+              ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#8a6a2a', margin: '6px 0 0', lineHeight: 1.35 }}>🔒 Complete <b>22 jogadores</b> no elenco pra liberar a troca de formação ({real.length}/22).</p>
+              : otherMiss.length
+                ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>⚠️ Pra jogar <b>{other}</b> faltam <b>{otherMiss.join(', ')}</b>. Contrate no leilão ou traga da SAF.</p>
+                : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>✅ Dá pra trocar pra <b>{other}</b> quando quiser — vale do próximo jogo.</p>}
+          </div>
+        )
+      })()}
       {elenco ? (
         <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} selId={selId} onTap={onSwap} seasonNo={seasonNo} />
       ) : (<>
@@ -2351,7 +2384,7 @@ export function PyramidSeasonScreen() {
                 <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}><b>Tática e substituições</b> valem do <b>próximo jogo</b> em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</p>
               </>
             )}
-            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} />
+            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} onSetFormation={f => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId })} />
             {me && (
               <ShareElencoBtn mgr={state.managers[state.youIdx]} col={myCol} xi={myXI as WonCard[]} xiIds={myXIids}
                 goals={goalsByCard} divName={DIV_NAME[me.div]} tablePos={me.pos} seasonNo={state.seasonNo}

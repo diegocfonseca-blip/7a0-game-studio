@@ -1622,6 +1622,7 @@ type Action =
   | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both'; intro?: boolean } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
+  | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number } // 🎽 carreira: troca 4-3-3↔4-4-2. Só libera com 22 no elenco E jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante.
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
@@ -2923,6 +2924,27 @@ export function reducer(state: EscState, action: Action): EscState {
         }
       }
       s.news = [...copaHeads, ...s.news].slice(0, 12)
+      return s
+    }
+    case 'CHANGE_FORMATION': {
+      // 🎽 troca de formação (carreira). SEGURANÇA em camadas, pra nunca dar merda
+      // em listar/vender/jogar e nunca entrar perna-de-pau:
+      //  1) só na carreira;  2) só destrava com 22 jogadores REAIS no elenco;
+      //  3) só troca se houver jogadores REAIS e disponíveis (não emprestados)
+      //     suficientes por POSIÇÃO pra nova escalação (senão o pedido é ignorado).
+      // Aplica da RODADA ATUAL em diante (pin no round atual) — não mexe no passado.
+      if (!s.careerOnline) return s
+      const mid = action.mgrId ?? s.managers[s.youIdx]?.id
+      const m = s.managers.find(x => x.id === mid && x.isHuman)
+      if (!m || m.formation === action.formation) return s
+      const real = m.squad.filter(c => !c.fake)
+      if (real.length < 22) return s // trava: elenco ainda não completou 22
+      const need = FORMATIONS[action.formation]
+      for (const pos of SECTORS) if (real.filter(c => c.pos === pos && !c.emprestado).length < need[pos]) return s // falta jogador na posição
+      m.formation = action.formation
+      const cl = { ...(s.careerLineup ?? {}) }
+      cl[m.id] = { ...(cl[m.id] ?? {}), [s.round]: bestXIids(m.squad, action.formation) }
+      s.careerLineup = cl
       return s
     }
     case 'CAST_SEASON_VOTE': {
