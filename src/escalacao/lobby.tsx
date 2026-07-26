@@ -225,10 +225,17 @@ export function useResumableRoom() {
     const amHost = rd.host_id === user.id
     let myPl = sorted.find(p => p.user_id === user.id)
     if (!myPl && amHost) {
-      // host tinha saído (vaga removida) — recria a vaga 0 pra voltar ao próprio save
-      const nm = ((gs?.managers ?? []) as { isHuman?: boolean; name?: string }[]).find(m => m.isHuman)?.name ?? 'Host'
-      await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: 0, manager_name: nm, is_ready: true }).then(() => {}, () => {})
-      myPl = { room_id: rd.id, user_id: user.id, player_index: 0, manager_name: nm, is_ready: true } as RoomPlayer
+      // host tinha saído (vaga removida) — recria a vaga NO ASSENTO DELE. Antes era
+      // sempre a vaga 0: se o host não era o técnico 0, ele voltava controlando o
+      // time de OUTRO ("tô dando lance por alguém que não sou eu"). Acha o assento
+      // pelo NOME do host nos managers do save; só cai no 0 se não achar.
+      const mgrs = (gs?.managers ?? []) as { isHuman?: boolean; name?: string; id?: number }[]
+      const dn = stripEmoji((user.user_metadata?.display_name as string | undefined) ?? '').trim()
+      const mineMgr = (dn ? mgrs.find(m => m.isHuman && stripEmoji(m.name ?? '').trim() === dn) : undefined) ?? mgrs.find(m => m.isHuman)
+      const seatIdx = mineMgr?.id ?? 0
+      const nm = mineMgr?.name ?? 'Host'
+      await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: seatIdx, manager_name: nm, is_ready: true }).then(() => {}, () => {})
+      myPl = { room_id: rd.id, user_id: user.id, player_index: seatIdx, manager_name: nm, is_ready: true } as RoomPlayer
     }
     if (!myPl) return
     saveRoom(rd.id)

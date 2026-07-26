@@ -7,6 +7,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, newestTeamName } from './data'
+import { stripEmoji } from './apoio'
 
 // baralho ativo da partida atual (só solo troca): 🇧🇷 Brasileirão ou 🌍 Liga
 // Europa. buildDeck e makeBotSquad leem daqui. É setado no início de cada
@@ -1646,6 +1647,7 @@ type Action =
   | { type: 'STADIUM_INVEST'; mgrId: number; sector: string } // 🏟️ carreira: investe +20 no setor
   | { type: 'STADIUM_BUILD'; mgrId: number; ext: string } // 🏟️ carreira: compra melhoria destravada
   | { type: 'BECOME_HOST' }
+  | { type: 'FIX_YOU_IDX'; idx: number } // 🛟 auto-cura local: reancora "quem sou eu" no assento com o MEU nome (índice deslizou em rematch/reconexão). NUNCA roteado pro host.
   | { type: 'KICK_PLAYER'; playerIndex: number }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[] }
   | { type: 'ADVANCE_REVEAL' }
@@ -2078,6 +2080,7 @@ export function reducer(state: EscState, action: Action): EscState {
     // canal realtime re-inscreve como host (reage a s.isHost) e passo a emitir
     // e persistir o estado da sala.
     case 'BECOME_HOST': { s.isHost = true; return s }
+    case 'FIX_YOU_IDX': { s.youIdx = action.idx; return s } // identidade é local (não sincroniza)
     case 'KICK_PLAYER': {
       // Host removeu um técnico da partida: a CPU assume o time dele e o jogo
       // segue sem travar. O cliente removido é ejetado pelo evento 'kick' à
@@ -3999,6 +4002,32 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const t = setTimeout(() => dispatch({ type: 'FORCE_TIEBREAK' }), Math.max(0, state.phaseDeadline - Date.now()) + 800)
     return () => clearTimeout(t)
   }, [state.phaseDeadline, state.phase, state.tiebreakIdx, state.onlineMode, dispatch])
+
+  // 🛟 AUTO-CURA DE IDENTIDADE (online): depois de um "jogar de novo"/reconexão o
+  // índice local ("quem sou eu") pode DESLIZAR — você passa a controlar o assento
+  // de OUTRO técnico e o assento com o SEU nome fica órfão ("pensando" eterno,
+  // "tô dando lance por alguém que não sou eu"). Cura: se o manager no meu índice
+  // é humano mas NÃO tem o meu nome, e existe EXATAMENTE UM manager humano com o
+  // meu nome, reancora youIdx nele (local; nome repetido na sala = não mexe).
+  const myDisplayNameRef = useRef<string | null>(null)
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      myDisplayNameRef.current = stripEmoji((data?.user?.user_metadata?.display_name as string | undefined) ?? '').trim() || null
+    }, () => {})
+  }, [])
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.roomId) return
+    if (state.screen === 'intro' || state.screen === 'lobby') return
+    const dn = myDisplayNameRef.current
+    if (!dn) return
+    const clean = (x?: string) => stripEmoji(x ?? '').trim()
+    const mine = state.managers[state.youIdx]
+    if (!mine || !mine.isHuman || clean(mine.name) === dn) return // assento certo (ou estado ainda montando)
+    const cands = state.managers.filter(m => m.isHuman && clean(m.name) === dn)
+    if (cands.length !== 1) return
+    const idx = state.managers.findIndex(m => m.id === cands[0].id)
+    if (idx >= 0 && idx !== state.youIdx) rawDispatch({ type: 'FIX_YOU_IDX', idx })
+  }, [state.managers, state.youIdx, state.onlineMode, state.roomId, state.screen])
 
   // convidado vigia o host: sem estado recebido há >10s durante o jogo, acende
   // o aviso "host caiu" e segue pedindo o estado — se o host voltar, ressincroniza.
