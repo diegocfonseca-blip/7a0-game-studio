@@ -1583,6 +1583,7 @@ type Action =
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[] }
   | { type: 'ADVANCE_REVEAL' }
   | { type: 'FORCE_SEAL' }
+  | { type: 'SET_MANUAL_ROOM'; on: boolean } // 🎮 host troca o ritmo (auto/manual) no meio da carreira online — sincroniza pra todos
   | { type: 'SUBMIT_TIEBREAK'; mgrId: number; amount: number }
   | { type: 'FORCE_TIEBREAK' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string }
@@ -2343,6 +2344,13 @@ export function reducer(state: EscState, action: Action): EscState {
         }
       }
       maybeResolveTiebreak(s)
+      return s
+    }
+    case 'SET_MANUAL_ROOM': {
+      // 🎮 só faz sentido na sala online: o host liga/desliga o ritmo manual e o
+      // estado sincroniza (SYNC_STATE) — todos passam a ver o mesmo ritmo.
+      if (s.onlineMode !== 'online') return s
+      s.manualRoom = action.on
       return s
     }
     case 'FORCE_SEAL': {

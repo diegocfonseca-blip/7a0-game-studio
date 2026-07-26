@@ -1823,7 +1823,9 @@ export function PyramidSeasonScreen() {
   // ou (b) a pessoa tem o Modo Manual/Lenda. Online segue de graça (outra tela).
   const hasManual = useHasManual()
   const manualAllowed = state.onlineMode === 'online' || !state.careerEra || hasManual
-  const manual = manualPref && state.onlineMode !== 'online' && manualAllowed
+  // 🎮 ONLINE: o ritmo é do HOST (state.manualRoom, escolhido na criação e trocável
+  // no meio) — sincroniza pra todos. OFFLINE/solo: preferência local do aparelho.
+  const manual = state.onlineMode === 'online' ? !!state.manualRoom : (manualPref && manualAllowed)
   // 🚫 ANTI-SPOILER: ao VIRAR de fase da Copa (copaRound muda), o relógio ainda está
   // no fim da fase anterior por 1 frame — o que piscaria o placar/vencedor da fase
   // NOVA antes do apito. Zera JÁ na renderização (o efeito abaixo religa a animação).
@@ -1976,6 +1978,14 @@ export function PyramidSeasonScreen() {
   // ⏩ AUTO é sempre o ritmo padrão: ao voltar pro auto, zera a velocidade (Normal).
   const toggleManualCareer = () => {
     const goingManual = !manual
+    // 🎮 ONLINE: quem troca o ritmo é o HOST, e a mudança sincroniza pra todos
+    // (SET_MANUAL_ROOM) — nada de preferência local aqui.
+    if (state.onlineMode === 'online') {
+      if (!state.isHost) return
+      dispatch({ type: 'SET_MANUAL_ROOM', on: goingManual })
+      if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
+      return
+    }
     // 🔒 carreira NOVA sem o Modo Manual: não liga o manual — o botão vira convite
     // pro Apoie (tratado no render, este toggle nem é chamado quando travado).
     if (goingManual && !manualAllowed) return
@@ -2045,7 +2055,7 @@ export function PyramidSeasonScreen() {
           <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>👉 ver o chaveamento da Copa na aba Tabelas</button>
         )}
         {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} />}
-        {state.onlineMode !== 'online' && state.isHost && !seasonOver && !copaPlaying && (
+        {state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
           manualAllowed ? (
           <>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
@@ -2062,7 +2072,7 @@ export function PyramidSeasonScreen() {
         {/* 🎮 mesmos controles da liga valem na COPA quando o manual está ligado:
             velocidade + Próxima fase / Pular / Modo auto. No AUTO a Copa segue
             sozinha (só aparece o botão de ativar o manual). */}
-        {copaPlaying && state.onlineMode !== 'online' && state.isHost && (
+        {copaPlaying && state.isHost && (state.onlineMode !== 'online' || hasManual) && (
           manualAllowed ? (
           <>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}

@@ -4,7 +4,7 @@ import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useEsc } from './store'
 import { AdminButton, useCanCareerOnline } from './admin'
-import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk } from './apoio'
+import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, useHasManual } from './apoio'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { DIVISION_TEAMS } from './data'
@@ -352,6 +352,7 @@ export function EscLobby() {
   const [loading, setLoading] = useState(false)
 
   const canCareer = useCanCareerOnline()
+  const hasManual = useHasManual() // 🎮 Modo Manual é perk de Lenda+ — gate do toggle de ritmo
   const [roomMode, setRoomMode] = useState<'rapido' | 'carreira'>('rapido')
   const careerDeck: DeckChoice = 'both' // carreira: sempre BR + Europa juntos (preenche os 80 times das 4 divisões)
   const [rapidoDeck, setRapidoDeck] = useState<DeckChoice>('br') // rápido online: host escolhe o baralho (BR / Europa / os dois)
@@ -753,7 +754,7 @@ export function EscLobby() {
     const locked = roomLocked && !!roomPw.trim()
     const pwHash = locked ? hashPw(roomPw.trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomManual ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, copaMode: rapidoCopaMode, ...(canLiga && ligaFechada ? { ligaFechada: true } : {}) }) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && (!carreira || hasManual)) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, copaMode: rapidoCopaMode, ...(canLiga && ligaFechada ? { ligaFechada: true } : {}) }) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -1273,6 +1274,26 @@ export function EscLobby() {
               )}
             </div>
             <ToggleRow icon={roomChat ? '💬' : '🔕'} title="Chat da sala" sub={roomChat ? 'A galera pode zoar na sala' : 'Sem chat'} on={roomChat} onClick={() => setRoomChat(v => !v)} />
+            {/* 🎮 RITMO — só na carreira (o rápido tem o Ritmo na seção "A partida").
+                Manual é perk de Lenda+; sem ele, aparece travado como convite. */}
+            {isCareer && (
+              <SegField label="Ritmo">
+                {hasManual ? (
+                  <>
+                    <Seg options={[[false, '⚡ Auto'], [true, '🎮 Manual']] as [boolean, string][]} value={roomManual} onSet={v => setRoomManual(v)} />
+                    <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{roomManual ? '🎮 O host avança cada rodada e pode pausar entre os jogos — dá pra trocar auto/manual durante a carreira.' : '⚡ As rodadas andam sozinhas. O host pode ligar o manual a qualquer hora na partida.'}</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden">
+                      <button className="flex-1 font-black" style={{ padding: '9px 2px', fontSize: 12.5, background: GOLD, color: '#000', ...OSWALD }}>⚡ Auto</button>
+                      <button disabled className="flex-1 font-black border-l-[2.5px] border-black" style={{ padding: '9px 2px', fontSize: 11, background: '#fff', color: '#000', opacity: 0.4, cursor: 'default', ...OSWALD }}>🎮 Manual · 👑 Lenda</button>
+                    </div>
+                    <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">🎮 <b>Ritmo Manual</b> (pausar entre as rodadas) vem no <b>Lenda 👑</b>.</p>
+                  </>
+                )}
+              </SegField>
+            )}
             {!isCareer && (
               <div>
                 <ToggleRow icon="🎥" title="Modo Stream" sub={roomStream ? 'Valores dos lances ocultos' : 'Esconde os valores (pra live)'} on={roomStream} onClick={() => { if (roomStream) setRoomStream(false); else setStreamModal(true) }} />
