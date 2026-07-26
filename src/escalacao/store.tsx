@@ -2285,10 +2285,11 @@ export function reducer(state: EscState, action: Action): EscState {
       s.seasonNo = 1
       s.seasonVotes = {} // novo leilão: zera a votação de fim de jogo (senão volta marcada)
       s.restartPending = false; s.restartReady = [] // e a prontidão do restart
-      // 🎥 STREAM: antes do pregão, uma tela explicativa (moedas, o auge, quem tá
-      // jogando) — o STREAMER decide quando começar o leilão (START_STREAM_AUCTION).
-      // No online normal/manual cai direto no leilão, como sempre.
-      if (s.streamMode) { s.screen = 'streamIntro'; return s }
+      // 🎥 STREAM / 🌐 CARREIRA: antes do pregão, uma tela explicativa (regras da
+      // carreira, moedas, o auge, quem tá jogando) — os dois se veem online e o
+      // HOST decide quando começar o leilão (START_STREAM_AUCTION). No rápido
+      // normal/manual cai direto no leilão, como sempre.
+      if (s.streamMode || s.careerOnline) { s.screen = 'streamIntro'; return s }
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s

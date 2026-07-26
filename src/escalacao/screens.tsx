@@ -1350,7 +1350,7 @@ export function CardAccountNote() {
 export function EscStreamIntro() {
   const { state, dispatch } = useEsc()
   const online = state.onlineMode === 'online'
-  const isCareerSolo = !!state.careerOnline && !online // 🏆 banner "vira o clube mais bem-sucedido" só na carreira solo
+  const isCareer = !!state.careerOnline // 🏆 banner "vira o clube mais bem-sucedido" — na carreira solo E online
   const isHost = !online || state.isHost
   const you = state.managers[state.youIdx]
   const humans = state.managers.filter(m => m.isHuman)
@@ -1358,7 +1358,7 @@ export function EscStreamIntro() {
   const perkColor = (name: string) => name.includes('👑') ? APOIO_PERKS.ouro : name.includes('⭐') ? APOIO_PERKS.prata : name.includes('💎') ? APOIO_PERKS.roxo : null
   return (
     <Shell>
-      {isCareerSolo && (
+      {isCareer && (
         <div style={{ position: 'relative', overflow: 'hidden', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, background: 'linear-gradient(160deg,#141414,#26313d)', color: '#fff', padding: '20px 18px 22px' }}>
           <div style={{ position: 'absolute', inset: 'auto -30% -60% -30%', height: 220, background: 'radial-gradient(closest-side, rgba(245,179,1,.30), transparent 70%)', pointerEvents: 'none' }} />
           <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: GOLD, position: 'relative' }}>Série D → o topo</span>
