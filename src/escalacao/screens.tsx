@@ -2363,8 +2363,11 @@ function Reveal() {
     const delayMs = (it.bids.length * 0.25 + (tieHit ? 1.2 : 0.2)) * 1000
     const sold = it.winner !== null && it.bids.length > 0
     const iWon = sold && it.winner === you?.id // 🔨 martelo/chime tocam só pra QUEM levou a carta (cada um ouve o seu)
+    // 🔨 e pro VENDEDOR: na carreira, quando um jogador SEU listado é arrematado
+    // por outro, você também ouve a martelada (é a SUA venda fechando).
+    const iSold = sold && (it.card as { seller?: number }).seller === you?.id && it.winner !== you?.id
     const timers: ReturnType<typeof setTimeout>[] = []
-    if (iWon) timers.push(setTimeout(() => playHammer(), delayMs))
+    if (iWon || iSold) timers.push(setTimeout(() => playHammer(), delayMs))
     // ✨ chime dourado da LENDA: só pra quem levou a carta (não pra sala toda nem em win de bot/outro).
     if (it.card.fame >= 5 && iWon) timers.push(setTimeout(() => playChime(), delayMs + 260))
     return () => timers.forEach(clearTimeout)
@@ -2430,8 +2433,9 @@ function Reveal() {
               )
             })}
           </div>
-          {/* 😱 QUASE!: facada revelada — perdeu por 1-2 moedas. Só drama no reveal
-              que já existe (empate no topo vira desempate, que tem o próprio show). */}
+          {/* 😱 QUASE!: facada revelada — perdeu por 1-2 moedas. Frase BEM variada,
+              sorteada de forma determinística pela carta (a sala toda vê a mesma).
+              Só drama no reveal que já existe (empate no topo vira desempate). */}
           {sold && !tie && (() => {
             const win = item.bids.find(b => b.mgr === item.winner)
             const losers = item.bids.filter(b => b.mgr !== item.winner && !item.voided.includes(b.mgr))
@@ -2440,10 +2444,21 @@ function Reveal() {
             const diff = win.amount - best
             if (diff < 1 || diff > 2) return null
             const names = losers.filter(b => b.amount === best).map(b => { const m = state.managers.find(x => x.id === b.mgr); return m ? (m.id === you.id ? 'Você' : (m.teamName || m.name)) : '' }).filter(Boolean)
+            const who = names.slice(0, 2).join(' e '), card = item.card.name, n = diff === 1 ? '1 MOEDA' : '2 moedas'
+            const frases = [
+              `😱 QUASE! ${who} perde${names.length > 1 ? 'm' : ''} ${card} por ${n}!`,
+              `🔪 FACADA! ${n} separou ${who} de ${card}!`,
+              `💔 Por ${n}… ${card} escapou de ${who}!`,
+              `😭 ${who} sonhou com ${card} — faltou ${n}!`,
+              `🥶 Na tampa! ${who} viu ${card} ir embora por ${n}!`,
+              `🫠 Doeu: ${n} a mais e ${card} tinha outro dono…`,
+              `⚰️ Enterrado por ${n}! ${who} quase leva ${card}!`,
+              `🎯 Errou por ${n}! ${card} passou raspando de ${who}!`,
+            ]
             return (
               <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: hammerDelay + 0.4 }}
                 className="mt-2 border-2 border-black rounded-lg px-3 py-1.5 text-center" style={{ backgroundColor: '#FFE1DC' }}>
-                <p className="font-black text-[13px]" style={{ ...OSWALD, color: RED }}>😱 QUASE! {names.slice(0, 2).join(' e ')} perde{names.length > 1 ? 'm' : ''} {item.card.name} por {diff === 1 ? '1 MOEDA' : '2 moedas'}!</p>
+                <p className="font-black text-[13px]" style={{ ...OSWALD, color: RED }}>{frases[moneySeed(item.card.id) % frases.length]}</p>
               </motion.div>
             )
           })()}
