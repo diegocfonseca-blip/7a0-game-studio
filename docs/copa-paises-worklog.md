@@ -19,6 +19,21 @@
 - [ ] Sugestões de famosos pra completar 16 seleções.
 - [ ] Aprovação do Diego → só depois entrar nos dados.
 
+## ✅ RESULTADO da contagem (27/07 — 3 baralhos: BR + EU + WORLD dormente)
+Meta por seleção: 22 = formação em dobro (2 GOL · 4 LAT · 4 ZAG · 6-8 MEI · 4-6 ATA).
+
+### PRONTAS (4): Brasil · Argentina (~47!) · França (~41) · Espanha (~37)
+### QUASE (1-4 cartas): Inglaterra (falta 1 LAT: Kyle Walker) · Itália (1 LAT: Cabrini) ·
+### Alemanha (2 LAT: Brehme, Marzel/Schulz) · México (1-2 MEI/ZAG: Márquez já tem; Gio? → Torrado) ·
+### Portugal (4: Rui Patrício GOL, Nélson Semedo+Guerreiro LAT, José Fonte ZAG) ·
+### Holanda (4: Cillessen GOL, Krol+Blind LAT, Gullit já cobre MEI/ATA → +De Jong MEI)
+### MÉDIAS (~8-12): Colômbia (James, Ospina, Yepes, Perea, S. Escobar, Rincón…) ·
+### Bélgica (Alderweireld, Meunier, Witsel, Lukaku, Mertens…) · Uruguai (Muslera,
+### Cáceres, Lugano, Recoba, Arévalo Ríos…) · EUA (já tem 8 no WORLD: Dempsey, Bradley…) ·
+### Chile (Bravo, Isla, Medel, Valdivia, Salas…) · Coreia (já tem 5: Cha Bum-kun…)
+### → 16 = as 4 prontas + 6 quase + 6 médias. ~60-70 cartas novas no total.
+Listas completas por país × posição: gerar de novo com scratchpad/cartas.txt + eu-names.txt.
+
 ## Decisões já tomadas (ver docs/pendencias.md item Copa do Mundo)
 - Leilão cego é dos PAÍSES; convocação dos 11 é grátis; prêmio = status
   (carta dourada + estrela mundial permanente); a cada 10 temporadas; só
