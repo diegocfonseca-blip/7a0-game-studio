@@ -42,6 +42,18 @@ Meta por seleção: 22 = formação em dobro (2 GOL · 4 LAT · 4 ZAG · 6-8 MEI
 ### ⚠️ LIÇÃO: sempre varrer o baralho BR por estrangeiros antes de listar buracos.
 Listas completas por país × posição: gerar de novo com scratchpad/cartas.txt + eu-names.txt.
 
+## 📏 REGRAS DAS CARTAS (Diego, 27/07 — valem pra TODA carta nova da Copa)
+1. Carta pertence ao baralho de ONDE foi o auge (BR = clube brasileiro; EU =
+   clube europeu). Mesma pessoa pode ter carta nos dois (Kaká SP 💎 + Kaká Milan 👑).
+2. NÍVEL HONESTO POR CLUBE/ÉPOCA, nunca pela fama da carreira: Valderrama no
+   Montpellier vale o que ele foi LÁ (craque, não lenda). Toda sugestão nova de
+   carta precisa dizer clube + ano + nível honesto daquele contexto.
+3. Na Copa pode ter VERSÕES repetidas do mesmo jogador no pool da seleção — o
+   técnico escolhe QUAL versão convoca (mesma pessoa só 1× no XI).
+- PENDENTE decidir (Diego): usar o baralho WORLD dormente como fonte extra da
+  Copa (recomendado; ídolos prontos) ou linha dura só BR+EU (aí Valderrama vira
+  carta EU/Montpellier e Blanco/Bochini etc. ficam de fora).
+
 ## Decisões já tomadas (ver docs/pendencias.md item Copa do Mundo)
 - Leilão cego é dos PAÍSES; convocação dos 11 é grátis; prêmio = status
   (carta dourada + estrela mundial permanente); a cada 10 temporadas; só
