@@ -5110,6 +5110,29 @@ function CareerStars({ n, size = 13 }: { n: number; size?: number }) {
 }
 
 // painel de fim de temporada da carreira (sobe/cai + continuar/trocar/salvar/sair)
+// 🏀 fim de temporada da CARREIRA do basquete (Street League). Botão de PRÓXIMA
+// TEMPORADA: se ainda falta banco, abre o leilão de reservas (mantém o quinteto);
+// senão, começa a temporada com o mesmo time. (Salvar/continuar = próximo passo.)
+function NbaCareerEndPanel() {
+  const { state, dispatch } = useEsc()
+  const t = useT()
+  const you = state.managers[state.youIdx]
+  const roster = you?.squad.filter(c => !c.fake).length ?? 0
+  const full = roster >= 10 // por ora o teto é a rotação (10); o elenco 15 vem depois
+  return (
+    <div className="space-y-2">
+      <Btn onClick={() => dispatch({ type: 'NEXT_NBA_SEASON' })} bg={GREEN} className="w-full text-lg">
+        <span className="text-white">▶️ {t('Próxima temporada', 'Next season')}</span>
+      </Btn>
+      <p className="text-center text-[11px] font-semibold text-black/50 -mt-1">
+        {full
+          ? t('Rotação montada — a próxima temporada começa com o mesmo time.', 'Rotation set — next season starts with the same team.')
+          : t('Abre o leilão de RESERVAS: você mantém o quinteto e monta o banco (rotação de 10). 🔧 em teste', 'Opens the RESERVE auction: keep your five and build the bench (10-man rotation). 🔧 testing')}
+      </p>
+      <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full" bg="#fff">🏠 {t('Voltar ao início', 'Back home')}</Btn>
+    </div>
+  )
+}
 function CareerEndPanel() {
   const { state, dispatch } = useEsc()
   const div = state.careerDivision!
@@ -5698,7 +5721,7 @@ export function EscEnd() {
       <ShareResultPanel opts={shareOpts} />
       {state.dinastia ? (
         <Btn onClick={() => { window.location.hash = 'dinastia' }} bg={GREEN} className="w-full text-lg"><span className="text-white">🏰 Ir pra janela de transferências →</span></Btn>
-      ) : state.careerDivision ? <CareerEndPanel /> : (online || copaPending) ? null : (<>
+      ) : state.careerDivision ? <CareerEndPanel /> : state.nbaCareer ? <NbaCareerEndPanel /> : (online || copaPending) ? null : (<>
       {restartPending
         ? (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2" style={{ background: '#FEF3C7' }}>

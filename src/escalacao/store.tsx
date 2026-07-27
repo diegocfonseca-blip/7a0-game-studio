@@ -55,6 +55,9 @@ const NBA_QUICK_BUDGET = 50
 // QUINTETO (5, 1 por posição) — ~10/jogador, MESMO equilíbrio do futebol. Nas
 // temporadas seguintes o leilão de reservas dá mais caixa pra encher rotação/elenco.
 const NBA_CAREER_BUDGET = 50
+// 💰 orçamento do leilão de RESERVAS (T2+): 50 moedas pra encher as 5 vagas novas
+// do banco (a rotação). Você mantém o quinteto e só compra os reservas.
+const NBA_RESERVE_BUDGET = 50
 // 🛝 times da STREET LEAGUE (a base amadora = streetball): 20 CREWS DE QUADRA DE
 // RUA — NÃO franquias da NBA (essas ficam pro topo da pirâmide, a NBA de verdade).
 // É o espelho da Série D do futebol (times de várzea, não Flamengo/Palmeiras).
@@ -1781,6 +1784,7 @@ type Action =
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both'; copaMode?: 'liga' | 'liga_copa'; intro?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
+  | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
   | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both'; intro?: boolean } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
@@ -2342,7 +2346,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
       s.careerOnline = false; s.careerLedger = []
       s.reserveAuction = false; s.reserveListed = {} // não herda "modo reservas" de um jogo anterior (mesmo fix do rápido)
-      s.sport = 'basquete'
+      s.sport = 'basquete'; s.nbaCareer = false // jogo rápido (não é carreira)
       setActiveSport('basquete', 'quick') // baralho NBA + 1 vaga por posição
       s.deckLeague = 'br' // não usado no basquete (o baralho é o NBA), mas mantém o campo válido
       s.careerDivision = null; s.careerIntent = false; s.careerTitles = 0; s.careerTitlesA = 0
@@ -2380,7 +2384,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
       s.careerOnline = false; s.careerLedger = []
       s.reserveAuction = false; s.reserveListed = {}
-      s.sport = 'basquete'
+      s.sport = 'basquete'; s.nbaCareer = true // é CARREIRA (salva, avança temporada, reservas)
       setActiveSport('basquete', 'career') // baralho NBA + 1 vaga por posição (quinteto = 5)
       s.deckLeague = 'br'
       s.careerDivision = null; s.careerIntent = false; s.careerTitles = 0; s.careerTitlesA = 0
@@ -2401,6 +2405,49 @@ export function reducer(state: EscState, action: Action): EscState {
       s.tactics = {}; s.seasonNo = 1
       s.screen = 'auction'
       startAuctionPhase(s, false)
+      return s
+    }
+    // 🏀 PRÓXIMA TEMPORADA da carreira do basquete: avança e abre o LEILÃO DE
+    // RESERVAS. Você MANTÉM o quinteto e leiloa só as vagas novas (T2: 5→10). Os
+    // outros times ficam no quinteto (5), como a Série D do futebol fica no XI.
+    // Autocontido no basquete (guardado por nbaCareer) — o futebol não passa aqui.
+    case 'NEXT_NBA_SEASON': {
+      if (s.sport !== 'basquete' || !s.nbaCareer) return s
+      s.seasonNo++
+      s.seed = Math.floor(Math.random() * 1e9)
+      const rng = mulberry(s.seed)
+      setActiveSport('basquete', 'career') // base = 1/posição (quinteto)
+      const you = s.managers[s.youIdx]
+      // só VOCÊ cresce pra rotação (deepSquad → 2/posição = 10); os outros mantêm
+      // o quinteto (5). Os elencos de todos são preservados da temporada passada.
+      for (const m of s.managers) m.deepSquad = (m.id === you.id)
+      s.round = 0; s.champion = null; s.news = []; s.scorers = []; s.lastResults = []
+      // ainda tem vaga de reserva pra encher (T2: 5→10)? ABRE o leilão de reservas
+      // (mantém o quinteto, leiloa só as vagas novas). Já cheio? começa a temporada
+      // com o mesmo time (o "elenco 15" e vender vêm no próximo passo).
+      const wantReserve = SECTORS.some(pos => openSlots(you, pos) > 0)
+      if (wantReserve) {
+        s.reserveAuction = true; s.reserveListed = {}
+        you.money = NBA_RESERVE_BUDGET
+        const used = new Set<string>()
+        for (const m of s.managers) for (const c of m.squad) used.add(ident(c))
+        s.deck = buildDeck([you], rng, 2.0, used, 1) // baralho só pras suas vagas novas
+        s.surpriseId = pickSurprise(s.deck, rng)
+        for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
+        s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []
+        s.tactics = {}
+        s.screen = 'auction'
+        startAuctionPhase(s, false)
+      } else {
+        // mesmo time: nova temporada direto (sem leilão)
+        s.reserveAuction = false; s.reserveListed = {}
+        for (const m of s.managers) m.deepSquad = false
+        s.cpuAtkAdj = 0; s.cpuDefAdj = 0
+        s.league = buildLeague(s.managers, !s.ligaFechada)
+        s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+        s.tactics = {}
+        s.screen = 'season'
+      }
       return s
     }
     case 'START_CAREER_SOLO': {

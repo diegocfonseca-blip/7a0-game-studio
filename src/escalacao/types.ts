@@ -237,6 +237,9 @@ export interface EscState {
   // 🏀 esporte da partida atual: ausente/'futebol' = futebol (padrão, tudo como
   // hoje); 'basquete' = BidLegends. Só metadado — o motor usa o mesmo fluxo.
   sport?: 'futebol' | 'basquete'
+  // 🏀 carreira do basquete (Street League): true = é carreira (salva, avança
+  // temporada, leilão de reservas cresce 5→10→15); ausente/false = jogo rápido.
+  nbaCareer?: boolean
   seed: number
   // online
   onlineMode: OnlineMode
