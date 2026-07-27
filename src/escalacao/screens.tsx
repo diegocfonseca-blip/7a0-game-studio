@@ -5157,7 +5157,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
                     const v = votes[m.id]
                     return v
                       ? <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#166534' }}>{v === 'mesmo' ? '✅ ▶️ mesmo time' : '✅ 🔨 novo leilão'}</span>
-                      : <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#92600A' }}>⏳ não votou</span>
+                      : <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#92600A' }}>⏳ não votou ainda…</span>
                   })()}
                 </div>
               )
