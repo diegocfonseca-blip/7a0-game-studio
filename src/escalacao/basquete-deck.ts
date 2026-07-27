@@ -47,3 +47,21 @@ export function buildNbaDeck(): Record<Sector, Card[]> {
   })
   return out
 }
+
+// CATÁLOGO CRU (sem id) no formato que o `buildDeck` do motor consome — é o que
+// o `ACTIVE_CATALOG` do futebol usa (Record<Setor, {name,club,year,fame,lo,hi,
+// bio?,folk?,promessa?}[]>). Ao ligar o basquete, o motor aponta pra CÁ e o
+// MESMO buildDeck (incógnitas, preenchimento, margens) roda com as cartas NBA.
+export type NbaCatCard = { name: string; club: string; year: number; fame: 1 | 2 | 3 | 4 | 5; lo: number; hi: number; bio?: string; folk?: boolean; promessa?: boolean }
+export function buildNbaCatalog(): Record<Sector, NbaCatCard[]> {
+  const lang = getLang()
+  const out = {} as Record<Sector, NbaCatCard[]>
+  SECTORS.forEach((s, i) => {
+    const pos = NBA_POS_ORDER[i]
+    out[s] = CATALOG_NBA[pos].map(c => ({
+      name: c.name, club: c.club, year: c.year, fame: c.fame, lo: c.lo, hi: c.hi,
+      bio: lang === 'en' ? c.bioEn : c.bioPt, folk: c.folk, promessa: c.promessa,
+    }))
+  })
+  return out
+}
