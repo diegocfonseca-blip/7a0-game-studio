@@ -1621,7 +1621,7 @@ export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: 
 // virar o 3º baralho selecionável quando for liberado — por ora não tem seletor.
 const GOL_WORLD: C[] = [
   { name: "Jorge Campos", club: "Pumas", year: 1994, fame: 4, lo: 83, hi: 90, bio: "Goleiro mexicano das camisas fluorescentes desenhadas por ele mesmo — baixinho, elástico e tão ofensivo que às vezes jogava de atacante e fazia gol." },
-  { name: "René Higuita", club: "Atlético Nacional", year: 1990, fame: 4, lo: 82, hi: 89, bio: "O goleiro-líbero colombiano do escorpião em Wembley — saía driblando na área como um camisa 10. Ousadia e loucura em pessoa." },
+  { name: "René Higuita", club: "Atlético Nacional", year: 1990, fame: 5, lo: 85, hi: 92, bio: "O goleiro-líbero colombiano do escorpião em Wembley — saía driblando na área como um camisa 10. Ousadia e loucura em pessoa." },
   { name: "José Luis Chilavert", club: "Vélez Sarsfield", year: 1998, fame: 4, lo: 83, hi: 90, bio: "O goleiro paraguaio que batia falta e pênalti e FAZIA gol — mais de 60 na carreira. Personalidade explosiva e mira de artilheiro." },
   { name: "Amadeo Carrizo", club: "River Plate", year: 1962, fame: 4, lo: 82, hi: 89, bio: "Pioneiro argentino: inventou o goleiro que sai da área e joga com os pés, décadas antes de virar moda. Lenda máxima do River." },
   { name: "Hugo Gatti", club: "Boca Juniors", year: 1980, fame: 3, lo: 78, hi: 86, bio: "'El Loco' — recordista de jogos no futebol argentino, provocador e adiantadíssimo. Um showman embaixo das traves." },
