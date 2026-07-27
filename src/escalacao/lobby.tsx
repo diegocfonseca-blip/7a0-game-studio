@@ -461,6 +461,39 @@ export function EscLobby() {
     addLobbyFloat(f) // mostra o meu na hora (o canal não devolve o próprio broadcast)
     lobbyChanRef.current?.send({ type: 'broadcast', event: 'float', payload: f })
   }
+  // 📞 BUZINA DA ZOEIRA (v1, sala de espera): áudio de meme que toca pra SALA
+  // INTEIRA. Regras anti-bagunça: (1) UM som por vez na sala — chegou outro no
+  // meio, é descartado (sem fila: som atrasado confunde); (2) cooldown de 30s
+  // POR PESSOA (o botão mostra a contagem); (3) sempre com assinatura flutuante
+  // de quem mandou. Fora do reducer/jogo — zero impacto em qualquer partida.
+  const SFX_COOLDOWN_S = 30
+  const sfxPlayingRef = useRef(false)
+  const sfxLastRef = useRef(0)
+  const [sfxCoolLeft, setSfxCoolLeft] = useState(0)
+  useEffect(() => {
+    if (sfxCoolLeft <= 0) return
+    const t = setTimeout(() => setSfxCoolLeft(s => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [sfxCoolLeft])
+  const playSfx = useCallback((fromName: string) => {
+    if (sfxPlayingRef.current) return // um som por vez na sala
+    sfxPlayingRef.current = true
+    try {
+      const a = new Audio(`${import.meta.env.BASE_URL}sfx/posso-te-ligar.mp3`)
+      a.onended = () => { sfxPlayingRef.current = false }
+      a.onerror = () => { sfxPlayingRef.current = false }
+      a.play().catch(() => { sfxPlayingRef.current = false }) // autoplay bloqueado: falha em silêncio
+    } catch { sfxPlayingRef.current = false }
+    window.setTimeout(() => { sfxPlayingRef.current = false }, 9000) // trava de segurança
+    addLobbyFloat({ id: Math.random().toString(36).slice(2), emoji: '📞', text: 'mandou: "Posso te ligar agora?" 🔊', name: fromName, x: 14 + Math.random() * 62 })
+  }, [addLobbyFloat])
+  const sendSfx = () => {
+    if (sfxPlayingRef.current || Date.now() - sfxLastRef.current < SFX_COOLDOWN_S * 1000) return
+    sfxLastRef.current = Date.now(); setSfxCoolLeft(SFX_COOLDOWN_S)
+    const myName = players.find(p => p.user_id === user?.id)?.manager_name ?? 'Você'
+    lobbyChanRef.current?.send({ type: 'broadcast', event: 'sfx', payload: { name: myName } })
+    playSfx(myName) // o canal não devolve o próprio broadcast — toca local também
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -559,6 +592,8 @@ export function EscLobby() {
       .on('broadcast', { event: 'chat' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))
       .on('broadcast', { event: 'emote' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))
       .on('broadcast', { event: 'float' }, ({ payload }: { payload: LobbyFloat }) => addLobbyFloat(payload))
+      // 📞 buzina: toca o meme pra sala toda (um por vez; regra no playSfx)
+      .on('broadcast', { event: 'sfx' }, ({ payload }: { payload: { name: string } }) => playSfx(payload?.name ?? 'Alguém'))
       .subscribe()
     lobbyChanRef.current = ch
     return () => { ch.unsubscribe(); lobbyChanRef.current = null }
@@ -1649,6 +1684,13 @@ export function EscLobby() {
                 </button>
               ))}
             </div>
+            {/* 📞 BUZINA: áudio de meme pra sala TODA. 1 por pessoa a cada 30s
+                (contagem no botão) e um som por vez na sala. */}
+            <button onClick={sendSfx} disabled={sfxCoolLeft > 0}
+              className="mt-2 w-full border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] active:translate-y-0.5 flex items-center justify-center gap-1.5"
+              style={{ ...OSWALD, background: sfxCoolLeft > 0 ? '#e4ddc9' : GOLD, color: sfxCoolLeft > 0 ? 'rgba(0,0,0,.45)' : '#000' }}>
+              {sfxCoolLeft > 0 ? `📞 recarregando… ${sfxCoolLeft}s` : '📞 "Posso te ligar agora?" · toca pra sala 🔊'}
+            </button>
             <button onClick={() => openLobbyChat(true)}
               className="mt-2 w-full border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] bg-white text-black active:translate-y-0.5 flex items-center justify-center gap-1.5" style={OSWALD}>
               💬 Abrir chat da sala {lobbyChat.length > 0 && <span className="opacity-60">({lobbyChat.length})</span>}
