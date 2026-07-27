@@ -16,7 +16,8 @@
 - Andreas Brehme · Inter 1990 · LAT ⭐4 — "Batia com as duas pernas igual. Fez o pênalti que deu a Copa de 90 pra Alemanha — frieza de cirurgião."
 - Christian Ziege · Bayern 1996 · LAT 🎯3 — "Esquerda de ferro do Bayern e da Alemanha da Euro 96 — cruzamento e falta venenosa."
 
-## 🇲🇽 MÉXICO — faltam 2
+## 🇲🇽 MÉXICO — faltam 3
+- Memo Ochoa · América 2014 · GOL 🎯3 🃏 — "O homem que parou o Brasil sozinho na Copa de 2014 — voava tanto que a Fuleco pediu autógrafo. Nas Copas vira paredão; 5 mundiais de milagres." *(baralho Mundo)*
 - Andrés Guardado · PSV 2016 · MEI 🎯3 — "'El Principito' — canhota educada, 6 Copas do México no currículo (recorde de resenha)."
 - Gerardo Torrado · Cruz Azul 2008 · MEI 🎯2 — "'El Borrego' — volante-xerife do Cruz Azul, barba e carrinho sempre em dia."
 
@@ -85,7 +86,7 @@
 
 ---
 ## 📊 Resumo
-- **43 cartas novas** fecham as 12 seleções incompletas (+ 4 já prontas = **16 seleções**).
+- **44 cartas novas** fecham as 12 seleções incompletas (+ 4 já prontas = **16 seleções**).
 - Por baralho: ~36 no EU · 4 no BR (Mina, Mena, M.González… jogaram no Brasil) · 3 no Mundo.
 - Todos famosos (do craque ao ruim conhecido), nível honesto por clube/época — e o selo 🃏 é vibe, pode estar em qualquer nível (ex.: Ahn Jung-hwan 🎯3 + 🃏).
 - Bônus: essas cartas entram nos baralhos NORMAIS também (leilão comum fica mais rico).
