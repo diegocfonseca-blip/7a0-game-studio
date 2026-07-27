@@ -45,6 +45,13 @@ const PG: BC[] = [
   { name: 'Kyrie Irving', club: 'Cavaliers', year: 2016, fame: 4, lo: 84, hi: 91, bioPt: 'Drible de outra dimensão e a bola de 3 que calou os Warriors em 2016.', bioEn: 'Handles from another dimension and the 2016 dagger three that silenced the Warriors.' },
   { name: 'Ja Morant', club: 'Grizzlies', year: 2022, fame: 3, lo: 78, hi: 88, promessa: true, bioPt: 'Voa mais alto do que armador tem direito. Pura eletricidade vinda de Memphis.', bioEn: 'Flies higher than a guard has any right to. Pure Memphis electricity.' },
   { name: 'Jeremy Lin', club: 'Knicks', year: 2012, fame: 2, lo: 66, hi: 83, folk: true, bioPt: 'LINSANITY. Duas semanas em que o mundo inteiro virou torcedor dos Knicks.', bioEn: 'LINSANITY. Two weeks when the whole world became Knicks fans.' },
+  // ── Lote 2 ──
+  { name: 'Russell Westbrook (Brodie)', club: 'Thunder', year: 2017, fame: 4, lo: 86, hi: 93, bioPt: 'Máquina de triple-double e MVP. "Why not?" e a roupa mais doida do vestiário.', bioEn: 'A triple-double machine and MVP. "Why not?" and the wildest outfits in the locker room.' },
+  { name: 'Derrick Rose', club: 'Bulls', year: 2011, fame: 4, lo: 85, hi: 92, bioPt: 'O MVP mais jovem da história. O joelho traiu o sonho, mas Chicago nunca esqueceu.', bioEn: 'The youngest MVP ever. His knee betrayed the dream, but Chicago never forgot.' },
+  { name: 'Tony Parker', club: 'Spurs', year: 2007, fame: 4, lo: 84, hi: 90, bioPt: 'Francês veloz, floater no garrafão e MVP de final. O motorzinho dos Spurs campeões.', bioEn: 'A speedy Frenchman, floaters in the paint and a Finals MVP. The engine of the champion Spurs.' },
+  { name: 'Jason Williams (White Chocolate)', club: 'Kings', year: 2002, fame: 3, lo: 78, hi: 86, folk: true, bioPt: 'Passe de cotovelo, elastic pass, o playground na NBA. Mais firula que troféu.', bioEn: 'Elbow passes, the elastic pass, the playground in the NBA. More flash than trophies.' },
+  { name: 'Muggsy Bogues', club: 'Hornets', year: 1994, fame: 2, lo: 64, hi: 82, folk: true, bioPt: '1,60m — o menor da história — roubando a bola dos gigantes. Tamanho não é tudo.', bioEn: 'Five-foot-three — the shortest ever — stealing the ball from giants. Size isn\'t everything.' },
+  { name: 'Marcelinho Huertas', club: 'Lakers', year: 2016, fame: 1, lo: 58, hi: 77, folk: true, bioPt: 'Brasileiro de passe mágico que jogou na NBA e nunca para de jogar. Eterno cérebro. 🇧🇷', bioEn: 'A Brazilian magician who made the NBA and just never stops playing. An eternal floor general. 🇧🇷' },
 ]
 
 // ─── SG · ALA-ARMADOR ────────────────────────────────────────────────
@@ -60,6 +67,13 @@ const SG: BC[] = [
   { name: 'Reggie Miller', club: 'Pacers', year: 1995, fame: 4, lo: 84, hi: 91, folk: true, bioPt: '8 pontos em 9 segundos e o sinal de "choke" pro Spike Lee. Vilão amado de Nova York.', bioEn: '8 points in 9 seconds and the choke sign to Spike Lee. New York\'s beloved villain.' },
   { name: 'Anthony Edwards', club: 'Wolves', year: 2024, fame: 3, lo: 79, hi: 88, promessa: true, bioPt: 'Sorriso, gargalhada e enterrada na sua cara. O futuro chegou e é divertido.', bioEn: 'Smile, laugh and a dunk in your face. The future is here and it\'s fun.' },
   { name: 'JR Smith', club: 'Cavaliers', year: 2018, fame: 2, lo: 66, hi: 82, folk: true, bioPt: 'Pegou o rebote na final de 2018 e... esqueceu o placar. Meme eterno.', bioEn: 'Grabbed the 2018 Finals rebound and... forgot the score. Eternal meme.' },
+  // ── Lote 2 ──
+  { name: 'Klay Thompson', club: 'Warriors', year: 2016, fame: 4, lo: 85, hi: 92, bioPt: 'Splash Brother nº2. 37 pontos num quarto só. Chega quieto e te afoga de 3.', bioEn: 'Splash Brother No.2. 37 points in a single quarter. Shows up quiet and drowns you in threes.' },
+  { name: 'Nick Young (Swaggy P)', club: 'Lakers', year: 2014, fame: 2, lo: 64, hi: 82, folk: true, bioPt: 'Comemorou uma bola de 3 que NÃO entrou. O meme mais honesto da NBA.', bioEn: 'Celebrated a three that DIDN\'T go in. The most honest meme in the NBA.' },
+  { name: 'Nate Robinson', club: 'Knicks', year: 2010, fame: 2, lo: 62, hi: 81, folk: true, bioPt: '1,75m e TRÊS títulos de enterrada. Pulou por cima do Yao no concurso. Depois levou nocaute no boxe 😅.', bioEn: 'Five-foot-nine and THREE dunk titles. Leapt over Yao in the contest. Later got knocked out boxing 😅.' },
+  { name: 'Leandrinho (Brazilian Blur)', club: 'Suns', year: 2007, fame: 2, lo: 66, hi: 83, folk: true, bioPt: 'O Borrão Brasileiro. Sexto Homem do Ano, velocidade pura e anel em 2007. 🇧🇷', bioEn: 'The Brazilian Blur. Sixth Man of the Year, pure speed and a 2007 ring. 🇧🇷' },
+  { name: 'Brian Scalabrine (White Mamba)', club: 'Celtics', year: 2008, fame: 1, lo: 52, hi: 72, folk: true, bioPt: 'O herói do banco. A torcida gritava o nome dele nos 2 minutos finais. Anel em 2008 sem suar.', bioEn: 'The bench hero. The crowd chanted his name in garbage time. A 2008 ring without breaking a sweat.' },
+  { name: 'Adam Morrison', club: 'Lakers', year: 2008, fame: 1, lo: 50, hi: 70, folk: true, bioPt: 'Bigode, cabelão e DOIS anéis... aquecendo o banco. O bust mais estiloso da história.', bioEn: 'Mustache, long hair and TWO rings... warming the bench. The most stylish bust ever.' },
 ]
 
 // ─── SF · ALA ────────────────────────────────────────────────────────
@@ -74,6 +88,12 @@ const SF: BC[] = [
   { name: 'Jayson Tatum', club: 'Celtics', year: 2024, fame: 4, lo: 85, hi: 92, bioPt: 'Aluno do Kobe com anel em 2024. Sobe fácil e marca de todo jeito.', bioEn: 'Kobe\'s student with a 2024 ring. Rises easy and scores every which way.' },
   { name: 'Grant Hill', club: 'Pistons', year: 1997, fame: 3, lo: 80, hi: 88, bioPt: 'Era o "próximo Jordan" até o tornozelo trair. Elegância pura antes das lesões.', bioEn: 'Was the "next Jordan" until his ankle betrayed him. Pure elegance before the injuries.' },
   { name: 'Metta World Peace', club: 'Lakers', year: 2010, fame: 3, lo: 78, hi: 87, folk: true, bioPt: 'Agradeceu o psiquiatra na TV depois do anel. Defesa insana, mente livre.', bioEn: 'Thanked his psychiatrist on live TV after the ring. Insane defense, free mind.' },
+  // ── Lote 2 ──
+  { name: 'Oscar Schmidt (Mão Santa)', club: 'Brasil', year: 1987, fame: 5, lo: 88, hi: 95, folk: true, bioPt: 'Maior pontuador da história do basquete. Recusou a NBA pra jogar pelo Brasil e fez 46 na cara dos EUA no Pan de 87. LENDA. 🇧🇷', bioEn: 'Basketball\'s all-time leading scorer. Turned down the NBA to play for Brazil and dropped 46 on Team USA in \'87. A LEGEND. 🇧🇷' },
+  { name: 'Anderson Varejão (Wild Thing)', club: 'Cavaliers', year: 2010, fame: 2, lo: 66, hi: 83, folk: true, bioPt: 'O cabelo, os flops teatrais e a energia infinita ao lado do LeBron. Xodó do Brasil na NBA. 🇧🇷', bioEn: 'The hair, the theatrical flops and endless energy next to LeBron. Brazil\'s NBA darling. 🇧🇷' },
+  { name: 'Bruno Caboclo (Dois Anos)', club: 'Raptors', year: 2014, fame: 1, lo: 50, hi: 72, folk: true, bioPt: '"Está a dois anos de estar a dois anos de distância." A frase de scout que virou lenda. 🇧🇷', bioEn: '"Two years away from being two years away." The scouting line that became legend. 🇧🇷' },
+  { name: 'Andrei Kirilenko (AK-47)', club: 'Jazz', year: 2004, fame: 3, lo: 80, hi: 88, bioPt: 'Russo que enchia a súmula: pontos, tocos, roubos, tudo. O canivete suíço do Jazz.', bioEn: 'A Russian who stuffed the box score: points, blocks, steals, everything. The Jazz\'s Swiss army knife.' },
+  { name: 'Robert Horry (Big Shot Bob)', club: 'Lakers', year: 2002, fame: 3, lo: 76, hi: 86, folk: true, bioPt: 'Coadjuvante com SETE anéis. Sumia o jogo todo e acertava a bola que ganhava a série.', bioEn: 'A role player with SEVEN rings. Vanished all game then hit the shot that won the series.' },
 ]
 
 // ─── PF · ALA-PIVÔ ───────────────────────────────────────────────────
@@ -88,6 +108,12 @@ const PF: BC[] = [
   { name: 'Pau Gasol', club: 'Lakers', year: 2010, fame: 4, lo: 84, hi: 90, bioPt: 'Espanhol de mão macia — parceiro de anel do Kobe. Passe de pivô, técnica de armador.', bioEn: 'A soft-handed Spaniard — Kobe\'s ring partner. Big-man passing, guard\'s touch.' },
   { name: 'Zion Williamson', club: 'Pelicans', year: 2023, fame: 3, lo: 79, hi: 88, promessa: true, bioPt: '129 quilos que voam. A força da natureza que faz o aro tremer.', bioEn: '285 pounds that fly. A force of nature that makes the rim shake.' },
   { name: 'Dennis Rodman', club: 'Bulls', year: 1996, fame: 4, lo: 82, hi: 90, folk: true, bioPt: 'The Worm. Cabelo colorido, rebote insano e vestido de noiva no lançamento do livro.', bioEn: 'The Worm. Rainbow hair, insane rebounding and a wedding dress at his book launch.' },
+  // ── Lote 2 ──
+  { name: 'Draymond Green', club: 'Warriors', year: 2017, fame: 4, lo: 82, hi: 89, folk: true, bioPt: 'O cérebro e o barraco dos Warriors. Marca as 5 posições e distribui chute e soco.', bioEn: 'The brain and the drama of the Warriors. Guards all five spots and hands out kicks and punches.' },
+  { name: 'Blake Griffin', club: 'Clippers', year: 2014, fame: 4, lo: 84, hi: 90, bioPt: 'Lob City. Enterrou POR CIMA de um carro no concurso. Pôster ambulante da geração.', bioEn: 'Lob City. Dunked OVER a car in the contest. The walking poster of his generation.' },
+  { name: 'Kwame Brown', club: 'Wizards', year: 2003, fame: 1, lo: 50, hi: 70, folk: true, bioPt: '1ª escolha geral que o Jordan escolheu... e se arrependeu. O bust nº1 do manual.', bioEn: 'A No.1 overall pick Jordan himself chose... and regretted. The textbook bust.' },
+  { name: 'Darko Miličić', club: 'Pistons', year: 2004, fame: 1, lo: 52, hi: 72, folk: true, bioPt: 'Escolhido na FRENTE de Melô, Wade E Bosh. O "e se?" mais caro da NBA.', bioEn: 'Drafted AHEAD of Melo, Wade AND Bosh. The most expensive "what if?" in the NBA.' },
+  { name: 'Tiago Splitter', club: 'Spurs', year: 2014, fame: 2, lo: 70, hi: 84, folk: true, bioPt: 'Pivô brasileiro dos Spurs campeões de 2014. Sólido, discreto e com anel no dedo. 🇧🇷', bioEn: 'A Brazilian big on the 2014 champion Spurs. Solid, quiet and with a ring on his finger. 🇧🇷' },
 ]
 
 // ─── C · PIVÔ ────────────────────────────────────────────────────────
@@ -104,6 +130,14 @@ const C: BC[] = [
   { name: 'Dikembe Mutombo', club: 'Nuggets', year: 1995, fame: 3, lo: 80, hi: 88, folk: true, bioPt: 'Não. NÃO. O dedo mais famoso da NBA depois de cada toco no adversário.', bioEn: 'No. NO. The most famous finger wag in the NBA after every block.' },
   { name: 'Victor Wembanyama', club: 'Spurs', year: 2024, fame: 3, lo: 80, hi: 90, promessa: true, bioPt: 'O alienígena. 2,24m que enterra, crava toco e acerta de três. O futuro chegou cedo.', bioEn: 'The alien. 7-foot-4 that dunks, swats and drains threes. The future came early.' },
   { name: 'Boban Marjanović', club: 'Clippers', year: 2019, fame: 1, lo: 58, hi: 78, folk: true, bioPt: 'Mãos do tamanho da sua cara. Faz a bola de basquete parecer bolinha de tênis.', bioEn: 'Hands the size of your face. Makes a basketball look like a tennis ball.' },
+  // ── Lote 2 ──
+  { name: 'Nenê', club: 'Nuggets', year: 2011, fame: 3, lo: 78, hi: 86, folk: true, bioPt: 'O primeiro brasileiro escolhido no top 10 do draft. Força, técnica e 18 anos de NBA. 🇧🇷', bioEn: 'The first Brazilian picked in the draft top 10. Strength, skill and 18 NBA seasons. 🇧🇷' },
+  { name: 'Rudy Gobert (Stifle Tower)', club: 'Jazz', year: 2021, fame: 3, lo: 80, hi: 88, folk: true, bioPt: 'Melhor defensor 4x. Ficou famoso por tocar TODOS os microfones bem no começo da pandemia 😷.', bioEn: '4x Defensive Player of the Year. Got famous for touching EVERY mic right as the pandemic hit 😷.' },
+  { name: 'DeAndre Jordan', club: 'Clippers', year: 2015, fame: 3, lo: 78, hi: 86, bioPt: 'Lob City no ar, pesadelo no lance livre. Rei do alley-oop do Chris Paul.', bioEn: 'Lob City in the air, a nightmare at the line. King of the Chris Paul alley-oop.' },
+  { name: 'Bill Laimbeer', club: 'Pistons', year: 1990, fame: 3, lo: 76, hi: 85, folk: true, bioPt: 'O vilão dos Bad Boys que todo mundo adorava odiar. Cotovelada com sorriso. Bicampeão.', bioEn: 'The Bad Boys villain everyone loved to hate. An elbow with a smile. Two-time champ.' },
+  { name: 'Manute Bol', club: 'Bullets', year: 1986, fame: 1, lo: 54, hi: 74, folk: true, bioPt: '2,31m, o mais alto da história. Tocava tudo e ainda arriscava bola de 3. Folclore vivo.', bioEn: 'Seven-foot-seven, the tallest ever. Blocked everything and still chucked threes. Living folklore.' },
+  { name: 'Shawn Bradley', club: 'Mavericks', year: 1998, fame: 1, lo: 54, hi: 74, folk: true, bioPt: '2,29m que virou o pôster favorito de todo mundo — levou enterrada de meio mundo.', bioEn: 'Seven-foot-six who became everyone\'s favorite poster — got dunked on by half the league.' },
+  { name: 'Greg Oden', club: 'Blazers', year: 2009, fame: 1, lo: 56, hi: 78, folk: true, bioPt: 'Escolhido na frente do Durant. Os joelhos roubaram a carreira antes de começar. O maior "e se?".', bioEn: 'Picked ahead of Durant. His knees stole the career before it began. The great "what if?".' },
 ]
 
 // catálogo por posição — mesma forma do futebol (Record<posição, cartas[]>)
