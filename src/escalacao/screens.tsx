@@ -2891,6 +2891,7 @@ export function EscMonte() {
 // ─── CERIMÔNIA DA REVELAÇÃO ──────────────────────────────────────────
 export function EscCerimonia() {
   const { state, dispatch } = useEsc()
+  const t = useT()
   const [idx, setIdx] = useState(0)
   // esconde os participantes TEMPORÁRIOS do mercado (times de fundo) — eles só
   // brigaram no leilão, não entram na sua liga nem na revelação.
@@ -2937,7 +2938,7 @@ export function EscCerimonia() {
             return (
             <div key={c.id} className="flex items-center justify-between border-2 border-black rounded-lg px-3 py-1.5 bg-white">
               <div>
-                <p className="font-bold text-sm">{c.pos} · {c.name} <span className="text-black/70 text-xs">({c.club} {c.year})</span></p>
+                <p className="font-bold text-sm">{posTag(c.pos)} · {c.name} <span className="text-black/70 text-xs">({c.club} {c.year})</span></p>
                 <p className="text-[10px] font-semibold text-black/70">
                   {c.via === 'bot' ? 'escalado direto' : c.via === 'monte' ? 'monte (grátis)' : c.via === 'repescagem' ? `repescagem · pagou ${c.paid}` : `leilão · pagou ${c.paid}`}
                 </p>
@@ -2974,7 +2975,20 @@ export function EscCerimonia() {
         <div className="flex-1"><Btn className="w-full" bg={GOLD}
           onClick={() => setIdx((idx + 1) % mgrs.length)}>Próximo ▶</Btn></div>
       </div>
-      {canStart ? (
+      {/* 🏀 basquete: a temporada (por pontos) ainda não entrou — em vez de cair
+          na temporada de FUTEBOL, mostra um aviso honesto e volta pra home. */}
+      {state.sport === 'basquete' ? (
+        <div className="border-[3px] border-black rounded-2xl p-4 text-center space-y-2" style={{ background: '#fff', boxShadow: `4px 4px 0 0 ${INK}` }}>
+          <div className="text-3xl">🏆</div>
+          <p className="font-black text-lg uppercase" style={OSWALD}>{t('Quinteto fechado!', 'Your five is set!')}</p>
+          <p className="text-[13px] font-semibold text-black/60 leading-snug">
+            {t('Você montou seu time no pregão. A temporada do basquete (jogos por pontos, tabela e playoffs) entra na próxima atualização. 🔧', 'You built your team in the auction. The basketball season (games by points, standings and playoffs) arrives in the next update. 🔧')}
+          </p>
+          <Btn className="w-full" bg={GREEN} onClick={() => dispatch({ type: 'GO_LOBBY' })}>
+            <span style={{ color: '#fff' }}>🏠 {t('Voltar ao início', 'Back to home')}</span>
+          </Btn>
+        </div>
+      ) : canStart ? (
         <Btn className="w-full text-lg" bg={GREEN} onClick={() => dispatch({ type: 'FINISH_CEREMONY' })}>
           <span style={{ color: '#fff' }}>{(state.streamMode || state.manualRoom) ? '▶️ COMEÇAR O CAMPEONATO 🏆' : 'COMEÇAR AGORA 🏆'}</span>
         </Btn>
