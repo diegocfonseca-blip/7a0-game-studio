@@ -8,14 +8,45 @@ import type {
 import { SECTORS, FORMATIONS } from './types'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, newestTeamName } from './data'
 import { stripEmoji } from './apoio'
+import { buildNbaCatalog } from './basquete-deck'
+import { NBA_SLOTS_PER_POS } from './sportcfg'
 
 // baralho ativo da partida atual (só solo troca): 🇧🇷 Brasileirão ou 🌍 Liga
 // Europa. buildDeck e makeBotSquad leem daqui. É setado no início de cada
 // partida (START / RESTORE_CAREER / CAREER_ADVANCE) e forçado pra BR no
 // online e no Manager, que sempre usam o baralho brasileiro.
 let ACTIVE_CATALOG = CATALOG
+// 🏀 ESPORTE ATIVO DO MOTOR — mesmo padrão do ACTIVE_CATALOG: 'futebol' por
+// padrão; só vira 'basquete' quando um jogo de basquete começa. Guarda a única
+// diferença de mecânica (QUANTIDADE de vagas por posição) sem tocar no futebol.
+let ACTIVE_SPORT: 'futebol' | 'basquete' = 'futebol'
+let NBA_BASE_SLOTS = 1 // vagas por posição no basquete: 1 (rápido) ou 2 (carreira)
 // 'world' = baralho "Resto do Mundo" (dormente — ainda sem seletor na UI).
-function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'world' | undefined) { ACTIVE_CATALOG = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : league === 'world' ? CATALOG_WORLD : CATALOG }
+// TODO caminho de FUTEBOL passa por aqui → reancora o esporte pra futebol.
+function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'world' | undefined) {
+  ACTIVE_SPORT = 'futebol'
+  ACTIVE_CATALOG = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : league === 'world' ? CATALOG_WORLD : CATALOG
+}
+// liga o motor no basquete: baralho NBA + vagas por posição do modo (rápido/carreira).
+function setActiveSport(sport: 'futebol' | 'basquete', mode: 'quick' | 'career' = 'quick') {
+  ACTIVE_SPORT = sport
+  if (sport === 'basquete') {
+    ACTIVE_CATALOG = buildNbaCatalog() as unknown as typeof CATALOG
+    NBA_BASE_SLOTS = NBA_SLOTS_PER_POS[mode]
+  }
+}
+// vagas-base por posição: no futebol vem da FORMAÇÃO; no basquete é o padrão do
+// modo (toda posição igual). É o único ponto onde a QUANTIDADE muda por esporte.
+function baseSlots(formation: FormationKey, pos: Sector): number {
+  return ACTIVE_SPORT === 'basquete' ? NBA_BASE_SLOTS : FORMATIONS[formation][pos]
+}
+
+// 🏀 franquias da NBA usadas como rivais CPU do basquete (o motor lê {team,name}
+// igual aos times do futebol; aqui o nome do "técnico" é a própria franquia).
+const NBA_TEAMS: { team: string; name: string }[] = [
+  'Lakers', 'Celtics', 'Bulls', 'Warriors', 'Heat', 'Spurs', 'Knicks', 'Nets',
+  'Bucks', 'Suns', 'Nuggets', 'Mavericks', 'Clippers', 'Sixers', 'Raptors', 'Grizzlies',
+].map(t => ({ team: t, name: t }))
 // soma as moedas da temporada (base+título/acesso/queda) na caixa de cada técnico
 function applyRewards(coins: Record<number, number> | undefined, rewards?: Record<number, number>): Record<number, number> {
   const out = { ...(coins ?? {}) }
@@ -278,7 +309,8 @@ function healCpuSquads(s: EscState) {
 // ─── helpers de elenco ───────────────────────────────────────────────
 export function slotsOf(m: Manager, pos: Sector): number {
   // elenco fundo (leilão de reservas): mira 22 = 2× a formação por posição.
-  return FORMATIONS[m.formation][pos] * (m.deepSquad ? 2 : 1)
+  // (baseSlots devolve a formação no futebol; o padrão do modo no basquete.)
+  return baseSlots(m.formation, pos) * (m.deepSquad ? 2 : 1)
 }
 export function filled(m: Manager, pos: Sector): number {
   return m.squad.filter(c => c.pos === pos).length
@@ -1503,7 +1535,7 @@ type Tier = 'strong' | 'mid' | 'weak'
 function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, used: Set<string>): WonCard[] {
   const squad: WonCard[] = []
   for (const pos of SECTORS) {
-    const need = FORMATIONS[formation][pos]
+    const need = baseSlots(formation, pos)
     const shuffled = shuffle(ACTIVE_CATALOG[pos], rng).filter(c => !used.has(ident(c)))
     const pool = tier === 'strong' ? shuffled.filter(c => c.fame >= 3)
       : tier === 'weak' ? shuffled.filter(c => c.fame <= 2)
@@ -1622,6 +1654,7 @@ type Action =
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both'; copaMode?: 'liga' | 'liga_copa'; intro?: boolean }
+  | { type: 'START_NBA'; teamName: string; rivals: number } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both'; intro?: boolean } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
@@ -2170,6 +2203,36 @@ export function reducer(state: EscState, action: Action): EscState {
       // toca "Começar o leilão" (START_STREAM_AUCTION) quando quiser. Sem intro
       // (dinastia/manager) cai direto no leilão, como sempre.
       if (action.intro) { s.screen = 'streamIntro'; return s }
+      s.screen = 'auction'
+      startAuctionPhase(s, false)
+      return s
+    }
+    // 🏀 JOGO RÁPIDO DO BASQUETE — MESMO motor/telas/fluxo do futebol. Só troca o
+    // conteúdo: baralho NBA, franquias como rivais e 1 vaga por posição (=5, o
+    // quinteto). O futebol não passa por aqui.
+    case 'START_NBA': {
+      s.seed = Math.floor(Math.random() * 1e9)
+      const rng = mulberry(s.seed)
+      s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
+      s.careerOnline = false; s.careerLedger = []
+      s.sport = 'basquete'
+      setActiveSport('basquete', 'quick') // baralho NBA + 1 vaga por posição
+      s.deckLeague = 'br' // não usado no basquete (o baralho é o NBA), mas mantém o campo válido
+      s.careerDivision = null; s.careerIntent = false; s.careerTitles = 0; s.careerTitlesA = 0
+      s.copaMode = action.rivals >= 7 ? 'liga_copa' : 'liga'
+      s.careerRivalCount = action.rivals; s.careerRivals = []
+      s.cpuAtkAdj = 0; s.cpuDefAdj = 0
+      const rivals = Math.max(1, action.rivals)
+      const { managers, botPlans } = makeManagers([action.teamName || 'Meu Time'], '4-3-3', rivals, rivals + 1, rng, NBA_TEAMS)
+      s.managers = managers; s.youIdx = 0
+      s.dinastia = false; s.dinastiaBudget = undefined
+      const used = new Set<string>()
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+      s.surpriseId = pickSurprise(s.deck, rng)
+      dealBotSquads(s.managers, botPlans, rng, used)
+      for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
+      s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      s.tactics = {}; s.seasonNo = 1
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s

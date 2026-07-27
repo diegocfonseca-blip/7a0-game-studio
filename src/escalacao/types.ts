@@ -234,6 +234,9 @@ export interface CareerRival {
 
 export interface EscState {
   screen: Screen
+  // 🏀 esporte da partida atual: ausente/'futebol' = futebol (padrão, tudo como
+  // hoje); 'basquete' = BidLegends. Só metadado — o motor usa o mesmo fluxo.
+  sport?: 'futebol' | 'basquete'
   seed: number
   // online
   onlineMode: OnlineMode
