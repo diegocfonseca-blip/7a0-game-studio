@@ -88,6 +88,22 @@ Listas completas por país × posição: gerar de novo com scratchpad/cartas.txt
 - Mockup aguardando OK: artifact a73c7ec1 (busca + abas por posição + campinho
   enchendo + 2 estados do botão).
 
+## 🏆 FORMATO DO TORNEIO (Diego, 27/07 — decisão firme)
+- **Grupos**: 4 grupos de 4, todos contra todos em IDA E VOLTA (6 jogos por
+  seleção). Classificam os 2 primeiros. Desempate: nº de VITÓRIAS, depois
+  SALDO DE GOLS.
+- **Mata-mata**: os 8 classificados entram em SORTEIO ALEATÓRIO (estilo Copa
+  real — pontos da fase de grupos não valem mais). 16→8 = começa nas QUARTAS
+  (4 confrontos) → semi → final. Quartas e semi em IDA E VOLTA; FINAL ÚNICA.
+- **Bots/CPU**: cada seleção rival convoca automaticamente os MELHORES 11 dela
+  (pelo nível interno das cartas; a UI não mostra categoria, mas o motor usa).
+- **Formação do usuário**: escolhe 4-3-3 ou 4-4-2, MAS só se o país fecha o
+  esquema com jogadores reais; senão o esquema indisponível aparece TRANCADO
+  com aviso ("a Coreia não tem meias pra 4-4-2 — jogue no 4-3-3").
+- ✅ Mockup da CONVOCAÇÃO **APROVADO pelo Diego** (v2: campinho oficial com
+  placa da Vadico, SEM categorias — só nome+clube+ano —, listão A-Z rolável
+  por posição + busca, contador 11/11, botão trancado explicando o que falta).
+
 ## 🎯 REGRA DA ESCOLHA DE SELEÇÃO (Diego, 27/07 — decisão firme)
 - Os 16 participantes entram RANQUEADOS (posição 1-16 na classificação pra Copa).
 - **Quem ficou em N só pode escolher seleção da posição N pra BAIXO no ranking
