@@ -1,9 +1,10 @@
 # 🌍 Copa do Mundo Legends — PROPOSTA de cartas novas (aguardando OK do Diego)
 
 > Regras aplicadas: baralho por auge (BR/EU/Mundo) · nível HONESTO por clube/época
-> (não pela fama da carreira) · Copa usa os 3 baralhos. Nível: 👑5 lenda · ⭐4
-> craque · 🎯3-2 bom jogador · 🪵1 · 🃏 folclórico (vibe). NADA entra no jogo
-> antes do OK do Diego, país por país.
+> (não pela fama da carreira) · Copa usa os 3 baralhos.
+> CATEGORIAS (5 níveis): 👑5 lenda · ⭐4 craque · 💎 promessa · 🎯3-2 bom jogador ·
+> 🪵1 foi profissional (a pior). O 🃏 folclórico NÃO é categoria — é selo de vibe
+> que pode acompanhar QUALQUER nível. NADA entra no jogo antes do OK do Diego.
 
 ## 🏴 INGLATERRA — falta 1
 - Kyle Walker · Man City 2018 · LAT 🎯3 — "O lateral mais veloz da Premier: recuperava qualquer contra-ataque na base do foguete."
@@ -86,5 +87,5 @@
 ## 📊 Resumo
 - **43 cartas novas** fecham as 12 seleções incompletas (+ 4 já prontas = **16 seleções**).
 - Por baralho: ~36 no EU · 4 no BR (Mina, Mena, M.González… jogaram no Brasil) · 3 no Mundo.
-- Todos famosos (bons, medianos ou folclóricos — mas conhecidos), nível honesto por clube/época.
+- Todos famosos (do craque ao ruim conhecido), nível honesto por clube/época — e o selo 🃏 é vibe, pode estar em qualquer nível (ex.: Ahn Jung-hwan 🎯3 + 🃏).
 - Bônus: essas cartas entram nos baralhos NORMAIS também (leilão comum fica mais rico).
