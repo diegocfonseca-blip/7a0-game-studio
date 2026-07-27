@@ -1612,19 +1612,6 @@ const ATA_EU: C[] = [
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
 
-// ─── BARALHO COMBINADO: os dois juntos (só carreira online, por enquanto) ──
-// Junta brasileiro + europeu. Nomes iguais entre os dois baralhos são de clubes
-// diferentes (Kaká do Milan e Kaká do SP, Vini Jr do Flamengo e do Real) — e
-// isso É desejado: viram cartas distintas. Como cada baralho já não tem repetido
-// interno, não existe carta 100% idêntica (dois Obinas). Com ~700 reais no total,
-// quase não sobra fake pra completar os times.
-export const CATALOG_BOTH: Record<Sector, C[]> = {
-  GOL: [...CATALOG.GOL, ...CATALOG_EU.GOL],
-  LAT: [...CATALOG.LAT, ...CATALOG_EU.LAT],
-  ZAG: [...CATALOG.ZAG, ...CATALOG_EU.ZAG],
-  MEI: [...CATALOG.MEI, ...CATALOG_EU.MEI],
-  ATA: [...CATALOG.ATA, ...CATALOG_EU.ATA],
-}
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
 // Craques que ficaram famosos SEM passar pela Europa nem pelo Brasil: idols do
@@ -1634,14 +1621,14 @@ export const CATALOG_BOTH: Record<Sector, C[]> = {
 // virar o 3º baralho selecionável quando for liberado — por ora não tem seletor.
 const GOL_WORLD: C[] = [
   { name: "Jorge Campos", club: "Pumas", year: 1994, fame: 4, lo: 83, hi: 90, bio: "Goleiro mexicano das camisas fluorescentes desenhadas por ele mesmo — baixinho, elástico e tão ofensivo que às vezes jogava de atacante e fazia gol." },
-  { name: "René Higuita", club: "Atlético Nacional", year: 1990, fame: 4, lo: 82, hi: 89, bio: "O goleiro-líbero colombiano do escorpião em Wembley — saía driblando na área como um camisa 10. Ousadia e loucura em pessoa." },
+  { name: "René Higuita", club: "Atlético Nacional", year: 1990, fame: 5, lo: 85, hi: 92, bio: "O goleiro-líbero colombiano do escorpião em Wembley — saía driblando na área como um camisa 10. Ousadia e loucura em pessoa." },
   { name: "José Luis Chilavert", club: "Vélez Sarsfield", year: 1998, fame: 4, lo: 83, hi: 90, bio: "O goleiro paraguaio que batia falta e pênalti e FAZIA gol — mais de 60 na carreira. Personalidade explosiva e mira de artilheiro." },
   { name: "Amadeo Carrizo", club: "River Plate", year: 1962, fame: 4, lo: 82, hi: 89, bio: "Pioneiro argentino: inventou o goleiro que sai da área e joga com os pés, décadas antes de virar moda. Lenda máxima do River." },
   { name: "Hugo Gatti", club: "Boca Juniors", year: 1980, fame: 3, lo: 78, hi: 86, bio: "'El Loco' — recordista de jogos no futebol argentino, provocador e adiantadíssimo. Um showman embaixo das traves." },
   { name: "Óscar Pérez", club: "Cruz Azul", year: 2000, fame: 3, lo: 76, hi: 85, bio: "'Conejo' — baixinho e eterno, foi convocado pra várias Copas do México ao longo de quase 20 anos de estrada." },
   { name: "Mohammed Al-Deayea", club: "Al-Hilal", year: 1998, fame: 3, lo: 77, hi: 85 },
   { name: "Óscar Córdoba", club: "Boca Juniors", year: 2001, fame: 3, lo: 77, hi: 85, bio: "Muralha colombiana do Boca bi da Libertadores e campeão do Mundo (Intercontinental) contra o Real." },
-  { name: "Vozinha", club: "Cabo Verde", year: 2013, fame: 2, lo: 62, hi: 80, bio: "O goleiro-símbolo dos Tubarões Azuis de Cabo Verde — a cara da seleção-surpresa que encantou a África com raça e alegria." },
+  { name: "Vozinha", club: "Cabo Verde", year: 2026, fame: 5, lo: 85, hi: 92, folk: true, bio: "O goleiro-símbolo dos Tubarões Azuis de Cabo Verde — a muralha da seleção-surpresa que encantou a África. LENDA por aclamação popular: quem viu, viu." },
   { name: "Essam El-Hadary", club: "Al Ahly", year: 2008, fame: 3, lo: 76, hi: 84, bio: "Lenda egípcia e o jogador mais velho a atuar numa Copa do Mundo, aos 45 anos. Muralha multicampeã africana pelo Al Ahly." },
   { name: "Nery Pumpido", club: "River Plate", year: 1986, fame: 3, lo: 76, hi: 84, bio: "Goleiro campeão do mundo com a Argentina em 1986, titular na campanha do México." },
   { name: "Tony Meola", club: "MetroStars", year: 1994, fame: 2, lo: 66, hi: 80 },
@@ -1712,6 +1699,20 @@ const ATA_WORLD: C[] = [
   { name: "Clint Mathis", club: "MetroStars", year: 2002, fame: 2, lo: 64, hi: 81 },
 ]
 export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: GOL_WORLD, LAT: LAT_WORLD, ZAG: ZAG_WORLD, MEI: MEI_WORLD, ATA: ATA_WORLD }
+
+// ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
+// A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).
+// No RÁPIDO (offline/online) ele é a opção "Todos juntos" — o baralho Mundo NUNCA
+// entra sozinho nos modos rápidos (tem poucas cartas), só somado aos outros.
+// Nomes repetidos entre baralhos são auges DIFERENTES (Kaká SP × Kaká Milan) — é
+// desejado: viram cartas distintas.
+export const CATALOG_BOTH: Record<Sector, C[]> = {
+  GOL: [...CATALOG.GOL, ...CATALOG_EU.GOL, ...CATALOG_WORLD.GOL],
+  LAT: [...CATALOG.LAT, ...CATALOG_EU.LAT, ...CATALOG_WORLD.LAT],
+  ZAG: [...CATALOG.ZAG, ...CATALOG_EU.ZAG, ...CATALOG_WORLD.ZAG],
+  MEI: [...CATALOG.MEI, ...CATALOG_EU.MEI, ...CATALOG_WORLD.MEI],
+  ATA: [...CATALOG.ATA, ...CATALOG_EU.ATA, ...CATALOG_WORLD.ATA],
+}
 
 // nomes marcados como PROMESSA (5º tier) — usado no álbum quando o flag não vem no dado
 export const PROMESSA_SET = new Set([...Object.values(CATALOG).flat(), ...Object.values(CATALOG_EU).flat()].filter(c => c.promessa).map(c => c.name))

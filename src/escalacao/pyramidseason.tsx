@@ -453,7 +453,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     }
     goals.sort((x, y) => x.min - y.min)
     let pens: [number, number] | undefined, win: 'a' | 'b'
-    if (aggA === aggB) { let x = 3 + Math.floor(rng() * 3), y = 3 + Math.floor(rng() * 3); if (x === y) (rng() < 0.5 ? x++ : y++); pens = [x, y]; win = x > y ? 'a' : 'b' }
+    if (aggA === aggB) { let x = 2 + Math.floor(rng() * 4), y = 2 + Math.floor(rng() * 4); if (x === y) (rng() < 0.5 ? x++ : y++); pens = [x, y]; win = x > y ? 'a' : 'b' }
     else win = aggA > aggB ? 'a' : 'b'
     return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA, aggB, pens, win, goals, legs, legGoals }
   }
@@ -1576,12 +1576,21 @@ const copaName = (t: SimTeam) => t.you ? `${t.name} (você)` : t.name
 // ── DISPUTA DE PÊNALTIS animada: as cobranças aparecem uma a uma, alternando
 // os times (verde = gol, vermelho = perdeu), e o total fecha no fim. A ordem
 // das cobranças é sorteada de forma determinística a partir do próprio placar.
+// tempo (s) até a disputa de pênaltis terminar de animar — usado pra SEGURAR a
+// revelação do vencedor (riscado/zebra) até a última cobrança pipocar na tela.
+export function pensRevealDelay(pens: [number, number]): number {
+  if (Math.max(pens[0], pens[1]) > 5) return 0.7 + 12 * 0.85 + 0.6
+  // pior caso do para-quando-decide: até 10 cobranças
+  const kicks = Math.min(10, pens[0] + pens[1] + (5 - Math.min(pens[0], pens[1])) * 2 + 2)
+  return 0.7 + kicks * 0.85 + 0.6
+}
 export function PensShootout({ pens, aName, bName }: { pens: [number, number]; aName: string; bName: string }) {
   // REGRA REAL: 5 cobranças alternadas; PARA na hora que decide (quem não
   // alcança mais nem batendo todas, acabou — as bolinhas restantes ficam
   // vazias). 6×5 = foi perfeito até o fim e decidiu na morte súbita.
   type Kick = { side: 0 | 1; ok: boolean }
-  const rng = mulberry(((pens[0] * 31 + pens[1] * 7) ^ 0xA1B2) >>> 0)
+  let salt = 0; for (const ch of aName + '|' + bName) salt = (salt * 31 + ch.charCodeAt(0)) >>> 0
+  const rng = mulberry(((pens[0] * 31 + pens[1] * 7) ^ salt ^ 0xA1B2) >>> 0)
   const win = pens[0] > pens[1] ? 0 : 1
   const seq: Kick[] = []
   const taken: [number, number] = [0, 0]
@@ -1644,13 +1653,17 @@ export function PensShootout({ pens, aName, bName }: { pens: [number, number]; a
 // chaveamento e na lista "outros jogos da fase" ao vivo.
 function CopaTieRow({ tie, colors = {}, safName }: { tie: CopaTie; colors?: Record<number, FCol>; safName?: string }) {
   const you = tie.a.you || tie.b.you, aWin = tie.win === 'a'
+  // 🚫 ANTI-SPOILER DOS PÊNALTIS: o perdedor riscado + zebra só aparecem DEPOIS
+  // que a última cobrança pipoca na tela (antes, o card entregava quem passou
+  // desde o primeiro segundo da disputa).
+  const pensDelay = tie.pens ? pensRevealDelay(tie.pens) : 0
   const winDiv = aWin ? tie.aDiv : tie.bDiv, loseDiv = aWin ? tie.bDiv : tie.aDiv
   const zebra = DIV_RANKN[winDiv] < DIV_RANKN[loseDiv]
   const fA = copaSideFill(tie.a, colors, safName), fB = copaSideFill(tie.b, colors, safName)
   const side = (t: SimTeam, win: boolean, away: boolean, f: CopaFill) => (
     <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: away ? 'flex-end' : 'flex-start' }}>
       {!away && <span style={{ fontSize: 10 }}>{f.mark}</span>}
-      <span style={{ fontWeight: 800, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: f.ink, opacity: win ? 1 : 0.62, textDecoration: win ? 'none' : 'line-through' }}>{copaName(t)}</span>
+      <span style={{ fontWeight: 800, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: f.ink, ...(win ? {} : pensDelay > 0 ? { animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` } : { opacity: 0.62, textDecoration: 'line-through' }) }}>{copaName(t)}</span>
       {away && <span style={{ fontSize: 10 }}>{f.mark}</span>}
     </span>
   )
@@ -1664,8 +1677,9 @@ function CopaTieRow({ tie, colors = {}, safName }: { tie: CopaTie; colors?: Reco
           {side(tie.b, !aWin, true, fB)}
         </div>
         <p style={{ fontSize: 9, fontWeight: 800, textAlign: 'center', margin: '4px 0 0' }}><span style={copaCenterChip}>{tie.legs.length === 2 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}` : 'jogo único'}</span></p>
+        {tie.pens && <style>{'@keyframes copaLoserFade{to{opacity:.62;text-decoration:line-through}}'}</style>}
         {tie.pens && <PensShootout pens={tie.pens} aName={tie.a.name} bName={tie.b.name} />}
-        {zebra && <p style={{ fontSize: 9.5, fontWeight: 800, textAlign: 'center', margin: '3px 0 0' }}><span style={{ ...copaCenterChip, color: '#ffb4a6' }}>💥 zebra — Série {winDiv} eliminou Série {loseDiv}</span></p>}
+        {zebra && <p style={{ fontSize: 9.5, fontWeight: 800, textAlign: 'center', margin: '3px 0 0', ...(pensDelay > 0 ? { opacity: 0, animation: `pensPop .35s ease ${pensDelay.toFixed(2)}s forwards` } : {}) }}><span style={{ ...copaCenterChip, color: '#ffb4a6' }}>💥 zebra — Série {winDiv} eliminou Série {loseDiv}</span></p>}
       </div>
     </div>
   )
