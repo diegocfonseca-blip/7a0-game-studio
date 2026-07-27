@@ -2,7 +2,7 @@ import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
-import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
+import { FORMATIONS, SECTORS } from './types'
 import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, deletePyramidCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, MAX_CAREER_SLOTS, syncCareersWithCloud } from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playChime, playWhistle, startCrowd, stopCrowd } from './sound'
@@ -18,8 +18,21 @@ import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, COPA_LEG_MS } from './pyramidseason'
-import { useSport, useSportUnlocked, type Sport } from './sport'
+import { useSport, useSportUnlocked, getSport, type Sport } from './sport'
 import { useLang, useT } from './lang'
+import { POS_LABELS } from './sportcfg'
+
+// 🏀/⚽ rótulo do SETOR conforme esporte + idioma (futebol = igual a SECTOR_LABEL;
+// basquete = Armadores/Alas/Pivôs em BR ou EN). Usado no topo do pregão.
+function secLabel(sport: Sport, pos: Sector, lang: 'pt' | 'en'): string {
+  return POS_LABELS[sport][pos].plural[lang]
+}
+// selo curto da posição na carta (GOL… no futebol; PG/SG/SF/PF/C no basquete).
+const SECTOR_KEYS: Sector[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
+function posTag(pos: string): string {
+  return getSport() === 'basquete' && (SECTOR_KEYS as string[]).includes(pos)
+    ? POS_LABELS.basquete[pos as Sector].tag : pos
+}
 
 // universo colecionável = os DOIS baralhos (BR + Europa), por nomes únicos
 // (Kaká, Cafu etc. aparecem nos dois — conta uma vez só).
@@ -841,7 +854,7 @@ function CardFace({ c, big = false, surprise = false, highlight = false }: { c: 
   return (
     <div className="text-left">
       <div className="flex items-center gap-2">
-        <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black" style={{ backgroundColor: INK, color: '#fff' }}>{c.pos}</span>
+        <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black" style={{ backgroundColor: INK, color: '#fff' }}>{posTag(c.pos)}</span>
         {surprise
           ? <span className={`font-black ${big ? 'text-2xl' : 'text-base'} inline-flex items-center gap-1.5`} style={{ ...OSWALD, color: PURPLE }}>🎁 <span aria-hidden style={{ filter: 'blur(7px)', userSelect: 'none' }}>{c.name}</span></span>
           : <p className={`font-black ${big ? 'text-2xl' : 'text-base'}`} style={{ ...OSWALD, color: highlight ? PURPLE : INK }}>{c.name}{highlight ? ' 🎁' : ''}</p>}
@@ -1095,6 +1108,7 @@ function LangToggle() {
 // 100% no ar na aba ⚽. Zero risco pro jogo ao vivo.
 function BidLegendsHome() {
   const t = useT()
+  const { dispatch } = useEsc()
   const PYR = [
     ['🛝', 'STREET LEAGUE', t('A base. 20 times, pontos corridos. Sobem 4, ninguém cai.', 'The base. 20 teams, round-robin. Top 4 go up, nobody drops.')],
     ['🔷', 'G LEAGUE', t('Leste × Oeste, 82 jogos, playoffs. Sobe quem vai longe.', 'East × West, 82 games, playoffs. Go far and move up.')],
@@ -1123,6 +1137,12 @@ function BidLegendsHome() {
         <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="JaVale McGee" club="Wizards" year={2011} pos="PIVÔ" fame={2} folk showBio bio={t("Rei do Shaqtin' a Fool. Errou uns, acertou anéis. Folclore puro do garrafão.", "King of Shaqtin' a Fool. Missed a few, won rings. Pure paint folklore.")} /></div>
       </div>
       <p className="text-center text-[11px] font-black uppercase tracking-wide text-black/45" style={OSWALD}>{t('👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — colecione todos', '👑 legend · ⭐ star · 💎 prospect · 🃏 cult hero — collect them all')}</p>
+      {/* ⚡ PARTIDA RÁPIDA (vs CPU) — pregão cego do basquete, MESMO motor do
+          futebol. Em teste (só o Diego vê). 3 rivais (franquias da NBA). */}
+      <Btn onClick={() => dispatch({ type: 'START_NBA', teamName: t('Meu Time', 'My Team'), rivals: 3 })} className="w-full text-lg">
+        ⚡ {t('PARTIDA RÁPIDA (VS CPU)', 'QUICK GAME (VS CPU)')}
+      </Btn>
+      <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('Pregão cego do quinteto (5) — em teste 🔧', 'Blind auction for your five (5) — testing 🔧')}</p>
       {/* aviso "chegando" — honesto, sem prometer o que ainda não tem */}
       <div className="border-[3px] border-black rounded-2xl p-4 text-center" style={{ background: '#fff', boxShadow: `4px 4px 0 0 ${INK}` }}>
         <div className="text-3xl">🚧</div>
@@ -1678,7 +1698,7 @@ function AuctionBar() {
         {SECTORS.map((p, i) => (
           <span key={p} className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black"
             style={{ backgroundColor: i < state.sectorIdx ? INK : i === state.sectorIdx ? GOLD : '#fff', color: i < state.sectorIdx ? '#fff' : INK }}>
-            {p}
+            {posTag(p)}
           </span>
         ))}
       </div>
@@ -1804,8 +1824,13 @@ export function EscAuction() {
 
 function Envelope() {
   const { state, dispatch, emote } = useEsc()
+  const [blLang] = useLang()
   const you = state.managers[state.youIdx]
   const pos = SECTORS[state.sectorIdx]
+  // esporte da partida (futebol = tudo como hoje) + rótulo do setor no idioma
+  const sport: Sport = state.sport === 'basquete' ? 'basquete' : 'futebol'
+  const lang: 'pt' | 'en' = blLang === 'en' ? 'en' : 'pt'
+  const posName = secLabel(sport, pos, lang)
   const rescue = state.phase === 'resq_envelope'
   const [bids, setBids] = useState<Record<string, number>>({})
   const [pickerCard, setPickerCard] = useState<Card | null>(null) // 🎯 escolher valor redondo
@@ -2011,7 +2036,7 @@ function Envelope() {
       <div className="pt-1 flex items-start justify-between gap-3">
         <div className="flex-1">
           <h2 className="font-black text-3xl" style={OSWALD}>
-            {rescue ? '⚡ REPESCAGEM · ' : '🔨 '}{SECTOR_LABEL[pos].toUpperCase()}
+            {rescue ? '⚡ REPESCAGEM · ' : '🔨 '}{posName.toUpperCase()}
           </h2>
           <p className="text-sm font-semibold text-black/70">
             {rescue
@@ -2024,8 +2049,8 @@ function Envelope() {
               <span className="text-sm leading-none">📦</span>
               <span className="text-[11px] font-black text-white uppercase tracking-wide" style={OSWALD}>
                 {totalBatches - curBatch > 0
-                  ? `Leva ${curBatch} de ${totalBatches} · ainda ${totalBatches - curBatch > 1 ? 'vêm' : 'vem'} mais ${totalBatches - curBatch} leva${totalBatches - curBatch > 1 ? 's' : ''} de ${SECTOR_LABEL[pos].toLowerCase()}`
-                  : `Última leva de ${SECTOR_LABEL[pos].toLowerCase()} · ${curBatch} de ${totalBatches}`}
+                  ? `Leva ${curBatch} de ${totalBatches} · ainda ${totalBatches - curBatch > 1 ? 'vêm' : 'vem'} mais ${totalBatches - curBatch} leva${totalBatches - curBatch > 1 ? 's' : ''} de ${posName.toLowerCase()}`
+                  : `Última leva de ${posName.toLowerCase()} · ${curBatch} de ${totalBatches}`}
               </span>
             </div>
           )}
@@ -3963,7 +3988,7 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
           transition={{ duration: !isProm && fame === 5 ? 2.2 : !isProm && fame === 4 ? 2.8 : 3.6, repeat: Infinity, ease: 'linear' }} />
       )}
       <div className="relative flex justify-between items-start gap-1">
-        <span className="font-black rounded-lg" style={{ ...OSWALD, background: INK, color: '#fff', border: '2px solid rgba(255,255,255,.25)', fontSize: big ? 13 : 11, padding: '2px 7px' }}>{pos}</span>
+        <span className="font-black rounded-lg" style={{ ...OSWALD, background: INK, color: '#fff', border: '2px solid rgba(255,255,255,.25)', fontSize: big ? 13 : 11, padding: '2px 7px' }}>{posTag(pos)}</span>
         <div className="flex flex-col items-end gap-1">
           <span className="font-black tracking-wide text-right" style={{ ...OSWALD, color: t.tierColor, fontSize: big ? 11 : 9 }}>{t.label}</span>
           {folk && (
