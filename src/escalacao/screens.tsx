@@ -1459,7 +1459,7 @@ export function EscSetup() {
           <button onClick={() => setLeague('both')}
             className="w-full mt-2 border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
             style={{ backgroundColor: league === 'both' ? GOLD : '#fff', boxShadow: league === 'both' ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
-            🌎 Os dois juntos
+            🌎 Todos juntos (BR + Europa + Mundo)
           </button>
           <p className="text-[11px] font-semibold text-black/55 mt-1">{league === 'br' ? 'Auges do futebol brasileiro — de Pelé a Obina.' : league === 'eu' ? 'Auges nos clubes europeus — de Yashin a Mbappé.' : 'Brasileirão + Europa juntos (~700 nomes) — craques e folclóricos dos dois lados no mesmo martelo.'}</p>
           {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>🃏 Quer resenha? Só aqui tem até o Walter Minhoca.</p>}

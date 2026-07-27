@@ -1612,19 +1612,6 @@ const ATA_EU: C[] = [
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
 
-// ─── BARALHO COMBINADO: os dois juntos (só carreira online, por enquanto) ──
-// Junta brasileiro + europeu. Nomes iguais entre os dois baralhos são de clubes
-// diferentes (Kaká do Milan e Kaká do SP, Vini Jr do Flamengo e do Real) — e
-// isso É desejado: viram cartas distintas. Como cada baralho já não tem repetido
-// interno, não existe carta 100% idêntica (dois Obinas). Com ~700 reais no total,
-// quase não sobra fake pra completar os times.
-export const CATALOG_BOTH: Record<Sector, C[]> = {
-  GOL: [...CATALOG.GOL, ...CATALOG_EU.GOL],
-  LAT: [...CATALOG.LAT, ...CATALOG_EU.LAT],
-  ZAG: [...CATALOG.ZAG, ...CATALOG_EU.ZAG],
-  MEI: [...CATALOG.MEI, ...CATALOG_EU.MEI],
-  ATA: [...CATALOG.ATA, ...CATALOG_EU.ATA],
-}
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
 // Craques que ficaram famosos SEM passar pela Europa nem pelo Brasil: idols do
@@ -1712,6 +1699,20 @@ const ATA_WORLD: C[] = [
   { name: "Clint Mathis", club: "MetroStars", year: 2002, fame: 2, lo: 64, hi: 81 },
 ]
 export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: GOL_WORLD, LAT: LAT_WORLD, ZAG: ZAG_WORLD, MEI: MEI_WORLD, ATA: ATA_WORLD }
+
+// ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
+// A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).
+// No RÁPIDO (offline/online) ele é a opção "Todos juntos" — o baralho Mundo NUNCA
+// entra sozinho nos modos rápidos (tem poucas cartas), só somado aos outros.
+// Nomes repetidos entre baralhos são auges DIFERENTES (Kaká SP × Kaká Milan) — é
+// desejado: viram cartas distintas.
+export const CATALOG_BOTH: Record<Sector, C[]> = {
+  GOL: [...CATALOG.GOL, ...CATALOG_EU.GOL, ...CATALOG_WORLD.GOL],
+  LAT: [...CATALOG.LAT, ...CATALOG_EU.LAT, ...CATALOG_WORLD.LAT],
+  ZAG: [...CATALOG.ZAG, ...CATALOG_EU.ZAG, ...CATALOG_WORLD.ZAG],
+  MEI: [...CATALOG.MEI, ...CATALOG_EU.MEI, ...CATALOG_WORLD.MEI],
+  ATA: [...CATALOG.ATA, ...CATALOG_EU.ATA, ...CATALOG_WORLD.ATA],
+}
 
 // nomes marcados como PROMESSA (5º tier) — usado no álbum quando o flag não vem no dado
 export const PROMESSA_SET = new Set([...Object.values(CATALOG).flat(), ...Object.values(CATALOG_EU).flat()].filter(c => c.promessa).map(c => c.name))

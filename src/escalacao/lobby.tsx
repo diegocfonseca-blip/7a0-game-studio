@@ -1347,7 +1347,7 @@ export function EscLobby() {
               </div>
             ) : (
               <SegField label="Baralho de craques">
-                <Seg options={[['br', '🇧🇷 Brasil'], ['eu', '🌍 Europa'], ['both', '🌎 Os dois']] as [DeckChoice, string][]} value={rapidoDeck} onSet={v => setRapidoDeck(v)} />
+                <Seg options={[['br', '🇧🇷 Brasil'], ['eu', '🌍 Europa'], ['both', '🌎 Todos (BR+EU+Mundo)']] as [DeckChoice, string][]} value={rapidoDeck} onSet={v => setRapidoDeck(v)} />
               </SegField>
             )}
             {!isCareer && (
@@ -1483,7 +1483,7 @@ export function EscLobby() {
             const full = r.count >= r.max_players
             const live = r.status === 'started'
             // baralho escolhido na criação: BR · EU · B/E (os dois). Sala antiga sem deck = BR.
-            const deckLbl = r.game_state?.deck === 'eu' ? 'EU' : r.game_state?.deck === 'both' ? 'B/E' : 'BR'
+            const deckLbl = r.game_state?.deck === 'eu' ? 'EU' : r.game_state?.deck === 'both' ? 'B/E/M' : 'BR'
             // carreira tem ritmo/copa próprios — auto/manual e liga/copa valem só no rápido
             const isCareerRoom = r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
             const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto
