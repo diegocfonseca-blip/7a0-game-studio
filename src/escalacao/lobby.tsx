@@ -476,7 +476,13 @@ export function EscLobby() {
     const t = setTimeout(() => setSfxCoolLeft(s => s - 1), 1000)
     return () => clearTimeout(t)
   }, [sfxCoolLeft])
-  const playSfx = useCallback((fromName: string) => {
+  const playSfx = useCallback((fromName: string, key = 'ligar') => {
+    // cardápio da buzina: arquivo, duração (trava) e o balão de assinatura
+    const lib: Record<string, { file: string; dur: number; emoji: string; balao: string }> = {
+      ligar: { file: 'posso-te-ligar.mp3', dur: 9000, emoji: '📞', balao: 'mandou: "Posso te ligar agora?" 🔊' },
+      meme2: { file: 'meme2.mp3', dur: 17000, emoji: '🎙️', balao: 'soltou AQUELE áudio 🔊' },
+    }
+    const s = lib[key] ?? lib.ligar
     if (sfxPlayingRef.current) return // um som por vez na sala
     sfxPlayingRef.current = true
     // 🔇 respeita o MUDO do jogo (o alto-falante do canto): quem silenciou vê o
@@ -484,21 +490,21 @@ export function EscLobby() {
     // pra manter o ritmo da sala sincronizado.
     if (!isMuted()) {
       try {
-        const a = new Audio(`${import.meta.env.BASE_URL}sfx/posso-te-ligar.mp3`)
+        const a = new Audio(`${import.meta.env.BASE_URL}sfx/${s.file}`)
         a.onended = () => { sfxPlayingRef.current = false }
         a.onerror = () => { sfxPlayingRef.current = false }
         a.play().catch(() => { sfxPlayingRef.current = false }) // autoplay bloqueado: falha em silêncio
       } catch { sfxPlayingRef.current = false }
     }
-    window.setTimeout(() => { sfxPlayingRef.current = false }, 9000) // trava de segurança (e janela do mudo)
-    addLobbyFloat({ id: Math.random().toString(36).slice(2), emoji: '📞', text: 'mandou: "Posso te ligar agora?" 🔊', name: fromName, x: 14 + Math.random() * 62 })
+    window.setTimeout(() => { sfxPlayingRef.current = false }, s.dur) // trava de segurança (e janela do mudo)
+    addLobbyFloat({ id: Math.random().toString(36).slice(2), emoji: s.emoji, text: s.balao, name: fromName, x: 14 + Math.random() * 62 })
   }, [addLobbyFloat])
-  const sendSfx = () => {
+  const sendSfx = (key: string) => {
     if (sfxPlayingRef.current || Date.now() - sfxLastRef.current < SFX_COOLDOWN_S * 1000) return
     sfxLastRef.current = Date.now(); setSfxCoolLeft(SFX_COOLDOWN_S)
     const myName = players.find(p => p.user_id === user?.id)?.manager_name ?? 'Você'
-    lobbyChanRef.current?.send({ type: 'broadcast', event: 'sfx', payload: { name: myName } })
-    playSfx(myName) // o canal não devolve o próprio broadcast — toca local também
+    lobbyChanRef.current?.send({ type: 'broadcast', event: 'sfx', payload: { name: myName, key } })
+    playSfx(myName, key) // o canal não devolve o próprio broadcast — toca local também
   }
 
   useEffect(() => {
@@ -599,7 +605,7 @@ export function EscLobby() {
       .on('broadcast', { event: 'emote' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))
       .on('broadcast', { event: 'float' }, ({ payload }: { payload: LobbyFloat }) => addLobbyFloat(payload))
       // 📞 buzina: toca o meme pra sala toda (um por vez; regra no playSfx)
-      .on('broadcast', { event: 'sfx' }, ({ payload }: { payload: { name: string } }) => playSfx(payload?.name ?? 'Alguém'))
+      .on('broadcast', { event: 'sfx' }, ({ payload }: { payload: { name: string; key?: string } }) => playSfx(payload?.name ?? 'Alguém', payload?.key ?? 'ligar'))
       .subscribe()
     lobbyChanRef.current = ch
     return () => { ch.unsubscribe(); lobbyChanRef.current = null }
@@ -1690,13 +1696,17 @@ export function EscLobby() {
                 </button>
               ))}
             </div>
-            {/* 📞 BUZINA: áudio de meme pra sala TODA. 1 por pessoa a cada 30s
-                (contagem no botão) e um som por vez na sala. */}
-            <button onClick={sendSfx} disabled={sfxCoolLeft > 0}
-              className="mt-2 w-full border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] active:translate-y-0.5 flex items-center justify-center gap-1.5"
-              style={{ ...OSWALD, background: sfxCoolLeft > 0 ? '#e4ddc9' : GOLD, color: sfxCoolLeft > 0 ? 'rgba(0,0,0,.45)' : '#000' }}>
-              {sfxCoolLeft > 0 ? `📞 recarregando… ${sfxCoolLeft}s` : '📞 "Posso te ligar agora?" · toca pra sala 🔊'}
-            </button>
+            {/* 📞🎙️ BUZINA: áudios de meme pra sala TODA. 1 por pessoa a cada 30s
+                (contagem compartilhada) e um som por vez na sala. */}
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {([['ligar', '📞', '"Posso te ligar agora?"'], ['meme2', '🎙️', 'AQUELE áudio']] as [string, string, string][]).map(([k, ic, tx]) => (
+                <button key={k} onClick={() => sendSfx(k)} disabled={sfxCoolLeft > 0}
+                  className="border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] active:translate-y-0.5"
+                  style={{ ...OSWALD, background: sfxCoolLeft > 0 ? '#e4ddc9' : GOLD, color: sfxCoolLeft > 0 ? 'rgba(0,0,0,.45)' : '#000' }}>
+                  {sfxCoolLeft > 0 ? `${ic} ${sfxCoolLeft}s…` : `${ic} ${tx} 🔊`}
+                </button>
+              ))}
+            </div>
             <button onClick={() => openLobbyChat(true)}
               className="mt-2 w-full border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] bg-white text-black active:translate-y-0.5 flex items-center justify-center gap-1.5" style={OSWALD}>
               💬 Abrir chat da sala {lobbyChat.length > 0 && <span className="opacity-60">({lobbyChat.length})</span>}

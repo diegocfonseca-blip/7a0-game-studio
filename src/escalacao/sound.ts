@@ -96,6 +96,11 @@ export function playSeal() { noise(0.12, 0.5, 700, 0.7); tone(150, 0.14, 'sine',
 export function playHammer() { noise(0.09, 0.6, 320, 0.6); tone(120, 0.18, 'sine', 0.6, 0, 60); tone(90, 0.22, 'sine', 0.4, 0.02, 45) }
 // ✨ chime dourado (LENDA): arpejo subindo com brilho
 export function playChime() { [660, 880, 1100, 1320].forEach((f, i) => tone(f, 0.5, 'sine', 0.32, i * 0.08)); tone(1980, 0.6, 'sine', 0.14, 0.28) }
+// 🎙️ toca um ARQUIVO de áudio (memes .mp3 do public/sfx) respeitando mudo/permissão
+export function playMp3(url: string) {
+  if (!allowed || muted) return
+  try { const a = new Audio(url); a.play().catch(() => { /* autoplay bloqueado: silêncio */ }) } catch { /* ignora */ }
+}
 // 📣 apito do juiz: tom agudo com trinado + sopro
 export function playWhistle() {
   const c = ac(); if (!c || !master) return

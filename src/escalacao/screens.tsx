@@ -5,7 +5,7 @@ import type { Card, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tacti
 import { FORMATIONS, SECTORS, SECTOR_LABEL } from './types'
 import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, deletePyramidCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, MAX_CAREER_SLOTS, syncCareersWithCloud } from './store'
 import type { CareerSlot } from './store'
-import { playCoin, playSeal, playTick, playHammer, playChime, playWhistle, startCrowd, stopCrowd } from './sound'
+import { playCoin, playSeal, playTick, playHammer, playMp3, playWhistle, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
@@ -2498,8 +2498,10 @@ function Reveal() {
     const iSold = sold && (it.card as { seller?: number }).seller === you?.id && it.winner !== you?.id
     const timers: ReturnType<typeof setTimeout>[] = []
     if (iWon || iSold) timers.push(setTimeout(() => playHammer(), delayMs))
-    // ✨ chime dourado da LENDA: só pra quem levou a carta (não pra sala toda nem em win de bot/outro).
-    if (it.card.fame >= 5 && iWon) timers.push(setTimeout(() => playChime(), delayMs + 260))
+    // 🎙️ ÁUDIO DA LENDA (meme "faah"): só pra QUEM pega a lenda no martelo — ou pra
+    // quem VENDE uma lenda listada (a venda dele fechando). Vale em todos os modos
+    // que usam o reveal; respeita o mudo (playMp3). Substitui o antigo chime.
+    if (it.card.fame >= 5 && (iWon || iSold)) timers.push(setTimeout(() => playMp3(`${import.meta.env.BASE_URL}sfx/lenda.mp3`), delayMs + 260))
     return () => timers.forEach(clearTimeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.revealIdx])
