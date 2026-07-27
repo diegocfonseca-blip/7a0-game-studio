@@ -19,7 +19,7 @@ import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, COPA_LEG_MS } from './pyramidseason'
 import { useSport, useSportUnlocked, getSport, type Sport } from './sport'
-import { useLang, useT } from './lang'
+import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
 
 // 🏀/⚽ rótulo do SETOR conforme esporte + idioma (futebol = igual a SECTOR_LABEL;
@@ -3009,6 +3009,16 @@ export function EscCerimonia() {
 
 // ─── TEMPORADA (autoplay: 38 rodadas em ~3 min, relógio correndo) ─────
 const TACTIC_LABEL: Record<Tactic, string> = { retranca: '🧱 Retranca', equilibrio: '⚖️ Equilíbrio', ataque: '🔥 Ataque' }
+// 🏀 mesma pedra-papel-tesoura, nomes de basquete (defesa/equilíbrio/run-and-gun).
+const TACTIC_LABEL_NBA: Record<Tactic, { pt: string; en: string }> = {
+  retranca: { pt: '🛡️ Defesa', en: '🛡️ Defense' },
+  equilibrio: { pt: '⚖️ Equilíbrio', en: '⚖️ Balanced' },
+  ataque: { pt: '🏃 Run-and-gun', en: '🏃 Run & gun' },
+}
+// rótulo da tática conforme o esporte + idioma (futebol = igual a hoje).
+function tacticLabel(t: Tactic, bb: boolean, lang: 'pt' | 'en'): string {
+  return bb ? TACTIC_LABEL_NBA[t][lang] : TACTIC_LABEL[t]
+}
 export const SEASON_TOTAL_MS = 180_000
 const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // ~4,7s por rodada
 // 🏆 Copa dos 8 (rápido): cada JOGO roda +6s mais devagar que a Copa da carreira,
@@ -3350,7 +3360,7 @@ export function EscSeason() {
         const myTie = qc.ties.find(t => t.aId === you.id || t.bId === you.id)
         const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
         const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
-        const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/); return mm ? mm[1] : text.replace(/^⚽\s*/, '').replace(/\.$/, '') }
+        const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/) || text.match(/🏀\s+(.+?)\s+anota para/); return mm ? mm[1] : text.replace(/^[⚽🏀]\s*/, '').replace(/\.$/, '') }
         // 🔥 marca os AMIGOS (humanos da sala, no online) — pra saber quem é rival de
         // verdade e quem é CPU. "(você)" pra você; 🔥 pros outros humanos.
         const nameTag = (id: number) => id === you.id ? ' (você)' : state.managers.some(m => m.id === id && m.isHuman) ? ' 🔥' : ''
@@ -3457,7 +3467,7 @@ export function EscSeason() {
                 )
               })() : (
                 <Box bg="#fff" className="p-6" shadow={6}>
-                  <p className="text-center font-black" style={OSWALD}>🏁 Aguardando o pontapé inicial da Copa…</p>
+                  <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the Cup jump ball…' : '🏀 Aguardando a bola ao alto da Copa…') : '🏁 Aguardando o pontapé inicial da Copa…'}</p>
                 </Box>
               )
             ) : (
@@ -3483,15 +3493,16 @@ export function EscSeason() {
         const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
         const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
         const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
-        const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/); return mm ? mm[1] : text.replace(/^⚽\s*/, '').replace(/\.$/, '') }
+        const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/) || text.match(/🏀\s+(.+?)\s+anota para/); return mm ? mm[1] : text.replace(/^[⚽🏀]\s*/, '').replace(/\.$/, '') }
         const goals = myLast.highlights.map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === myLast.homeId }))
         return <LiveScoreCard key={state.round}
           homeName={nameOf(myLast.homeId)} awayName={nameOf(myLast.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
-          youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={roundMs} classico={oppIsHuman} />
+          youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={roundMs} classico={oppIsHuman}
+          basket={state.sport === 'basquete' ? { h: myLast.hg, a: myLast.ag } : undefined} />
       })() : (
         <Box bg="#fff" className="p-6" shadow={6}>
-          <p className="text-center font-black" style={OSWALD}>🏁 Aguardando o pontapé inicial…</p>
+          <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the jump ball…' : '🏀 Aguardando a bola ao alto…') : '🏁 Aguardando o pontapé inicial…'}</p>
         </Box>
       )}
 
@@ -3552,7 +3563,7 @@ export function EscSeason() {
               <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })}
                 className="border-[3px] border-black rounded-xl py-2 text-xs font-black"
                 style={{ backgroundColor: myTactic === t ? GOLD : '#fff', boxShadow: myTactic === t ? `3px 3px 0 0 ${INK}` : 'none' }}>
-                {TACTIC_LABEL[t]}
+                {tacticLabel(t, state.sport === 'basquete', getLang() === 'en' ? 'en' : 'pt')}
               </button>
             ))}
           </div>
@@ -3562,7 +3573,7 @@ export function EscSeason() {
             </div>
             <p className="text-center text-xs font-bold text-black/60">⏱️ Temporada rolando sozinha — sente e assista.</p>
           </div>
-          <p className="text-[11px] font-semibold text-black/70">Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.</p>
+          <p className="text-[11px] font-semibold text-black/70">{state.sport === 'basquete' ? 'Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.' : 'Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.'}</p>
         </Box>
       )}
 
@@ -3661,22 +3672,25 @@ function RivalTracker() {
 
 function TopScorersBox({ highlight, title = '⚽ ARTILHARIA · TEMPO REAL' }: { highlight: number; title?: string }) {
   const { state } = useEsc()
+  const [blLang] = useLang()
+  const bb = state.sport === 'basquete' // 🏀 basquete: cestinha/pontos no lugar de artilharia/gols
+  const L = (pt: string, en: string) => (bb && blLang === 'en') ? en : pt
   const rows = topScorers(state, 10)
   if (rows.length === 0) {
     return (
       <Box className="p-3">
-        <p className="font-black text-sm mb-1 text-black" style={OSWALD}>⚽ ARTILHARIA</p>
-        <p className="text-xs text-black/60 font-semibold">Sem gols ainda. Bola rolando…</p>
+        <p className="font-black text-sm mb-1 text-black" style={OSWALD}>{bb ? L('🏀 CESTINHA', '🏀 SCORING') : '⚽ ARTILHARIA'}</p>
+        <p className="text-xs text-black/60 font-semibold">{bb ? L('Sem pontos ainda. Bola quicando…', 'No points yet. Ball is bouncing…') : 'Sem gols ainda. Bola rolando…'}</p>
       </Box>
     )
   }
   return (
     <Box className="p-3">
-      <p className="font-black text-sm mb-2 text-black" style={OSWALD}>{title}</p>
+      <p className="font-black text-sm mb-2 text-black" style={OSWALD}>{bb ? L('🏀 CESTINHA DA LIGA', '🏀 SCORING LEADERS') : title}</p>
       <table className="w-full text-xs">
         <thead>
           <tr className="text-left text-black/60 font-black">
-            <th className="pr-1">#</th><th>Jogador</th><th>Time</th><th className="text-center">Gols</th>
+            <th className="pr-1">#</th><th>{bb ? L('Jogador', 'Player') : 'Jogador'}</th><th>{bb ? L('Time', 'Team') : 'Time'}</th><th className="text-center">{bb ? L('Pontos', 'Points') : 'Gols'}</th>
           </tr>
         </thead>
         <tbody>
@@ -3765,6 +3779,9 @@ function leagueBeforeResults<T extends { id: number; pts: number; w: number; d: 
 
 function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: number; holdResults?: boolean; title?: string }) {
   const { state } = useEsc()
+  const [blLang] = useLang()
+  const bb = state.sport === 'basquete' // 🏀 basquete: saldo de CESTAS (SC) no lugar de SG
+  const L = (pt: string, en: string) => (bb && blLang === 'en') ? en : pt
   const league = holdResults && state.lastResults.length > 0 ? leagueBeforeResults(state.league, state.lastResults) : state.league
   const table = sortedTable(league)
   return (
@@ -3781,7 +3798,7 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
       <table className="w-full text-xs">
         <thead>
           <tr className="text-left text-black/70 font-black">
-            <th className="pr-1">#</th><th>Time</th><th className="text-center">P</th><th className="text-center">V</th><th className="text-center">E</th><th className="text-center">D</th><th className="text-center">SG</th>
+            <th className="pr-1">#</th><th>{L('Time', 'Team')}</th><th className="text-center">P</th><th className="text-center">V</th><th className="text-center">E</th><th className="text-center">D</th><th className="text-center">{bb ? 'SC' : 'SG'}</th>
           </tr>
         </thead>
         <tbody>

@@ -52,6 +52,27 @@ export function buildNbaDeck(): Record<Sector, Card[]> {
 // o `ACTIVE_CATALOG` do futebol usa (Record<Setor, {name,club,year,fame,lo,hi,
 // bio?,folk?,promessa?}[]>). Ao ligar o basquete, o motor aponta pra CÁ e o
 // MESMO buildDeck (incógnitas, preenchimento, margens) roda com as cartas NBA.
+// 🏀 as 30 franquias da NBA, com força-base (mesma escala do CLASSIC_CLUBS do
+// futebol, ~66-80). Usadas pra COMPLETAR a liga do basquete no lugar dos clubes
+// de futebol. atk/def variados dão uma tabela com fortes, médios e fracos.
+export const NBA_CLUBS: { name: string; atk: number; def: number }[] = [
+  { name: 'Celtics', atk: 80, def: 79 }, { name: 'Nuggets', atk: 80, def: 76 },
+  { name: 'Thunder', atk: 79, def: 78 }, { name: 'Timberwolves', atk: 76, def: 80 },
+  { name: 'Mavericks', atk: 79, def: 74 }, { name: 'Knicks', atk: 77, def: 76 },
+  { name: 'Bucks', atk: 78, def: 73 }, { name: 'Sixers', atk: 77, def: 74 },
+  { name: 'Suns', atk: 78, def: 70 }, { name: 'Cavaliers', atk: 74, def: 77 },
+  { name: 'Clippers', atk: 75, def: 74 }, { name: 'Pacers', atk: 79, def: 68 },
+  { name: 'Heat', atk: 72, def: 76 }, { name: 'Warriors', atk: 76, def: 72 },
+  { name: 'Kings', atk: 76, def: 70 }, { name: 'Pelicans', atk: 74, def: 73 },
+  { name: 'Lakers', atk: 75, def: 72 }, { name: 'Magic', atk: 70, def: 78 },
+  { name: 'Rockets', atk: 71, def: 75 }, { name: 'Nets', atk: 73, def: 71 },
+  { name: 'Hawks', atk: 75, def: 68 }, { name: 'Bulls', atk: 72, def: 71 },
+  { name: 'Spurs', atk: 72, def: 69 }, { name: 'Jazz', atk: 71, def: 69 },
+  { name: 'Grizzlies', atk: 69, def: 72 }, { name: 'Raptors', atk: 70, def: 69 },
+  { name: 'Hornets', atk: 69, def: 68 }, { name: 'Blazers', atk: 68, def: 68 },
+  { name: 'Pistons', atk: 67, def: 68 }, { name: 'Wizards', atk: 69, def: 66 },
+]
+
 export type NbaCatCard = { name: string; club: string; year: number; fame: 1 | 2 | 3 | 4 | 5; lo: number; hi: number; bio?: string; folk?: boolean; promessa?: boolean }
 export function buildNbaCatalog(): Record<Sector, NbaCatCard[]> {
   const lang = getLang()

@@ -8,7 +8,7 @@ import type {
 import { SECTORS, FORMATIONS } from './types'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, newestTeamName } from './data'
 import { stripEmoji } from './apoio'
-import { buildNbaCatalog } from './basquete-deck'
+import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
 import { NBA_SLOTS_PER_POS } from './sportcfg'
 
 // baralho ativo da partida atual (só solo troca): 🇧🇷 Brasileirão ou 🌍 Liga
@@ -751,8 +751,12 @@ function buildLeague(managers: Manager[], fillBots = true): LeagueTeam[] {
   // Nos demais modos, completa até 20 como sempre.
   if (fillBots) {
     const fill = LEAGUE_SIZE - teams.length
+    // 🏀 basquete: completa a liga com FRANQUIAS DA NBA (não clubes de futebol),
+    // pulando as que já são time de algum técnico (evita repetir Lakers/Bulls…).
+    const used = new Set(teams.map(t => t.name.toLowerCase()))
+    const pool = ACTIVE_SPORT === 'basquete' ? NBA_CLUBS.filter(c => !used.has(c.name.toLowerCase())) : CLASSIC_CLUBS
     for (let i = 0; i < fill; i++) {
-      const c = CLASSIC_CLUBS[i % CLASSIC_CLUBS.length]
+      const c = pool[i % pool.length]
       teams.push({
         id: 100 + i, name: c.name, isManager: false, baseAtk: c.atk, baseDef: c.def,
         pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0,
@@ -1205,6 +1209,59 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   const hg = poisson(lh, rng), ag = poisson(la, rng)
 
   const highlights: MatchHighlight[] = []
+
+  // 🏀 BASQUETE: placar de PONTOS (~100), sem empate (prorrogação). A "cestinha"
+  // soma os pontos por jogador (todas as 5 posições pontuam; nível manda). Usa a
+  // mesma força (fh/fa/táticas) do futebol — só o placar e a distribuição mudam.
+  if (state.sport === 'basquete') {
+    const scoreOf = (atkF: TeamForm, defF: TeamForm, home: boolean) =>
+      Math.max(72, Math.round(100 + (atkF.atk - defF.def) * 0.85 + (home && !neutral ? 2.5 : 0) + (rng() * 26 - 13)))
+    let hp = scoreOf(fh, fa, true)
+    let ap = scoreOf(fa, fh, false)
+    while (hp === ap) { if (rng() < 0.5) hp += 2; else ap += 2 } // prorrogação: nunca empata
+    const hNameB = state.league.find(t => t.id === homeId)!.name
+    const aNameB = state.league.find(t => t.id === awayId)!.name
+    const POS_W: Record<string, number> = { GOL: 3, LAT: 4, ZAG: 3.5, MEI: 3, ATA: 3 } // PG/SG/SF/PF/C
+    const creditPts = (id: number, pts: number, prefix: string) => {
+      const m = state.managers.find(x => x.id === id)
+      if (!m || m.squad.length === 0) return
+      const pool = m.squad.map(c => {
+        const n = Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42)
+        return { name: c.name, w: (POS_W[c.pos] ?? 3) * (0.15 + n * n * 1.7) * (0.5 + rng() * 1.6) }
+      })
+      const total = pool.reduce((s, p) => s + p.w, 0) || 1
+      pool.sort((a, b) => b.w - a.w)
+      let left = pts
+      pool.forEach((p, i) => {
+        const share = i === pool.length - 1 ? left : Math.min(left, Math.round(pts * p.w / total))
+        left -= share
+        if (share <= 0) return
+        const row = scorersList.find(s => s.name === p.name && s.teamId === id)
+        if (row) row.goals += share
+        else scorersList.push({ name: p.name, teamId: id, teamName: prefix, goals: share })
+      })
+      if (involveHuman) {
+        const top = pool.slice(0, 3)
+        for (let k = 0; k < Math.min(6, top.length * 2); k++) {
+          const p = top[k % top.length]
+          highlights.push({ min: 1 + Math.floor(rng() * 47), text: `🏀 ${p.name} anota para ${prefix}!`, teamId: id })
+        }
+      }
+    }
+    creditPts(homeId, hp, hNameB)
+    creditPts(awayId, ap, aNameB)
+    if (involveHuman) {
+      highlights.sort((a, b) => a.min - b.min)
+      for (const [id, f] of [[homeId, fh], [awayId, fa]] as [number, TeamForm][]) {
+        if (f.inspired && isHuman(id)) {
+          const tn = state.league.find(t => t.id === id)!.name
+          state.news.unshift(`🔥 NOITE INSPIRADA: ${f.inspired} (${tn}) acordou astro na rodada ${state.round + 1}!`)
+        }
+      }
+    }
+    return { homeId, awayId, hg: hp, ag: ap, highlights }
+  }
+
   // atribui os gols a um jogador real e credita na artilharia da temporada
   const creditGoals = (id: number, goals: number, prefix: string) => {
     const m = state.managers.find(x => x.id === id)
@@ -1368,15 +1425,17 @@ function narrateRound(s: EscState, results: MatchResult[], prevRank: Map<number,
     heads.push(`👑 ${leader.name} assumiu a liderança do campeonato!`)
   }
 
-  // 2) artilheiro pegando fogo (cruzou marca de 5 gols nesta rodada)
+  // 2) cestinha/artilheiro pegando fogo (cruzou uma marca nesta rodada)
+  const bbNews = s.sport === 'basquete'
+  const fireStep = bbNews ? 25 : 5 // basquete conta em PONTOS (marca a cada 25); futebol a cada 5 gols
   let milestone: { name: string; team: string; g: number } | null = null
   for (const sc of s.scorers) {
     const before = prevGoals.get(sc.name + ':' + sc.teamId) ?? 0
-    if (sc.goals >= 5 && Math.floor(sc.goals / 5) > Math.floor(before / 5)) {
+    if (sc.goals >= fireStep && Math.floor(sc.goals / fireStep) > Math.floor(before / fireStep)) {
       if (!milestone || sc.goals > milestone.g) milestone = { name: sc.name, team: sc.teamName, g: sc.goals }
     }
   }
-  if (milestone) heads.push(`🎯 ${milestone.name} (${milestone.team}) tá pegando fogo: ${milestone.g} gols na temporada!`)
+  if (milestone) heads.push(`🎯 ${milestone.name} (${milestone.team}) tá pegando fogo: ${milestone.g} ${bbNews ? 'pontos' : 'gols'} na temporada!`)
 
   // 3) zebra da rodada (vencedor bem pior colocado que o perdedor)
   let zebra: { winId: number; loseId: number; wr: number; lr: number; wg: number; lg: number; gap: number } | null = null
@@ -1392,16 +1451,18 @@ function narrateRound(s: EscState, results: MatchResult[], prevRank: Map<number,
   }
   if (zebra) heads.push(`😱 ZEBRA! ${nameOf(zebra.winId)} (${zebra.wr}º) derrubou o ${nameOf(zebra.loseId)} (${zebra.lr}º): ${zebra.wg}×${zebra.lg}.`)
 
-  // 4) goleada da rodada (fora a zebra, se sobrar espaço)
+  // 4) goleada/atropelo da rodada (fora a zebra, se sobrar espaço). No basquete a
+  // margem de "atropelo" é bem maior (basta ver: 4 pontos não é goleada).
   let big: { r: MatchResult; d: number } | null = null
+  const blowout = bbNews ? 18 : 4
   for (const r of results) {
     const d = Math.abs(r.hg - r.ag)
-    if (d >= 4 && (!big || d > big.d)) big = { r, d }
+    if (d >= blowout && (!big || d > big.d)) big = { r, d }
   }
   if (big && (!zebra || (big.r.homeId !== zebra.winId && big.r.homeId !== zebra.loseId))) {
     const winId = big.r.hg > big.r.ag ? big.r.homeId : big.r.awayId
     const loseId = big.r.hg > big.r.ag ? big.r.awayId : big.r.homeId
-    heads.push(`💥 ${nameOf(winId)} goleou o ${nameOf(loseId)}: ${Math.max(big.r.hg, big.r.ag)}×${Math.min(big.r.hg, big.r.ag)}.`)
+    heads.push(`💥 ${nameOf(winId)} ${bbNews ? 'atropelou' : 'goleou'} o ${nameOf(loseId)}: ${Math.max(big.r.hg, big.r.ag)}×${Math.min(big.r.hg, big.r.ag)}.`)
   }
 
   return heads.slice(0, 3).map(h => `R${roundNum} · ${h}`)
@@ -2774,10 +2835,6 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'FINISH_CEREMONY': {
       if (s.screen !== 'cerimonia') return s
       s.cerimoniaDeadline = null
-      // 🏀 basquete: a TEMPORADA por pontos (times NBA, cestinha, placar 100×98)
-      // ainda está em construção. NÃO cai na temporada de FUTEBOL (times de futebol,
-      // "artilharia"/"gols") — volta pra home. Vale pro botão E pro avanço automático.
-      if (s.sport === 'basquete') { s.screen = 'intro'; return s }
       // FAKE DÁ LUGAR: bot que contratou jogador REAL e estourou o teto da posição
       // dispensa o incógnito mais fraco (nunca um real) até caber no elenco.
       if (s.careerOnline) for (const m of s.managers) {

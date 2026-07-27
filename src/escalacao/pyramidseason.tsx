@@ -974,8 +974,11 @@ function RivalryTicker({ items }: { items: Flavor[] }) {
 // ── PLACAR AO VIVO (reutilizável): relógio animado, selo GOOOL, flash e bump.
 // Usado na carreira (pirâmide) E no jogo rápido (offline/online) — mesmo visual.
 export interface ScoreGoal { name: string; min: number; home: boolean }
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico }:
-  { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean }) {
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket }:
+  { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number } }) {
+  // 🏀 basquete: `basket` traz os PONTOS finais (ex.: 112/98). O placar então SOBE
+  // até esse total conforme o relógio (não conta lances). SÓ o basquete passa isto
+  // — no futebol `basket` é undefined e TUDO fica exatamente como hoje.
   const [min, setMin] = useState(finished ? 93 : 0)
   // 🚫 ANTI-SPOILER: quando entra uma rodada nova (roundKey muda) o relógio ainda
   // está no 93' da rodada anterior por 1 frame — o que mostraria TODOS os gols (o
@@ -1005,7 +1008,12 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // tabela (antes, gol nos acréscimos além do relógio sumia da tela e o
   // resultado exibido divergia da pontuação: vitória virava empate etc.).
   const shown = done ? goals : goals.filter(g => g.min <= min)
-  const hg = shown.filter(g => g.home).length, ag = shown.filter(g => !g.home).length
+  // futebol: placar = nº de gols mostrados. 🏀 basquete: pontos interpolados 0→total.
+  const hg = basket ? Math.round(basket.h * (done ? 1 : min / 93)) : shown.filter(g => g.home).length
+  const ag = basket ? Math.round(basket.a * (done ? 1 : min / 93)) : shown.filter(g => !g.home).length
+  // eventos (lances) mostrados — no futebol batem com os gols; no basquete são os
+  // ~6 lances de destaque. O SELO (gol/cesta) dispara por evento, não por ponto.
+  const evH = shown.filter(g => g.home).length, evA = shown.filter(g => !g.home).length
   // ── RITUAIS DO JOGO: apito inicial e apito final (frases fixas de narração —
   // lances aleatórios no meio soavam robóticos e foram removidos). O texto fica
   // uns segundos REAIS na faixinha de baixo e some.
@@ -1020,8 +1028,12 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
         : min <= 18 ? 'start'
           : (min >= 45 && min <= 63) ? 'half'
             : null
-  const endPhrase = ['📢 Apito final — termina o jogo!', '📢 Apitou o árbitro: acabou!', '📢 Fim de jogo — pode tirar o uniforme!'][Math.abs(roundKey) % 3]
-  const ritualTxt = ritual === 'start' ? '🟢 Aaaaaauutoriza o árbitro — começa o primeiro tempo!' : ritual === 'half' ? '🟢 Aaaaaauutoriza o árbitro — rola o segundo tempo!' : ritual === 'end' ? endPhrase : null
+  const endPhrase = basket
+    ? ['📢 Buzina final — acabou o jogo!', '📢 Fim de jogo na quadra!', '📢 Soou a buzina: fim de papo!'][Math.abs(roundKey) % 3]
+    : ['📢 Apito final — termina o jogo!', '📢 Apitou o árbitro: acabou!', '📢 Fim de jogo — pode tirar o uniforme!'][Math.abs(roundKey) % 3]
+  const ritualTxt = basket
+    ? (ritual === 'start' ? '🟢 Bola ao alto — começa o jogo!' : ritual === 'half' ? '🟢 Volta pra quadra — segundo tempo!' : ritual === 'end' ? endPhrase : null)
+    : (ritual === 'start' ? '🟢 Aaaaaauutoriza o árbitro — começa o primeiro tempo!' : ritual === 'half' ? '🟢 Aaaaaauutoriza o árbitro — rola o segundo tempo!' : ritual === 'end' ? endPhrase : null)
   const minLabel = min >= 93 ? 'FIM' : min > 90 ? `90+${min - 90}'` : `${min}'`
   const iAmHome = youIsHome
   const last = shown.length ? [...shown].sort((a, b) => a.min - b.min)[shown.length - 1] : null
@@ -1030,15 +1042,15 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
 
   // ── SAIU GOL! detecta quando hg/ag sobem (só ao vivo) e dispara o selo GOOOL,
   //    o flash no lado de quem marcou e o "bump" no número. ──
-  const prev = useRef({ h: hg, a: ag, key: roundKey })
+  const prev = useRef({ h: evH, a: evA, key: roundKey })
   const [goal, setGoal] = useState<'h' | 'a' | null>(null)
-  const [lateGoal, setLateGoal] = useState(false) // gol depois dos 85' → selo especial
+  const [lateGoal, setLateGoal] = useState(false) // gol/cesta depois dos 85' → selo especial
   useEffect(() => {
     const p = prev.current
-    if (p.key !== roundKey) { p.key = roundKey; p.h = hg; p.a = ag; return } // trocou a rodada: rebaseia sem animar
+    if (p.key !== roundKey) { p.key = roundKey; p.h = evH; p.a = evA; return } // trocou a rodada: rebaseia sem animar
     let side: 'h' | 'a' | null = null
-    if (hg > p.h) side = 'h'; else if (ag > p.a) side = 'a'
-    p.h = hg; p.a = ag
+    if (evH > p.h) side = 'h'; else if (evA > p.a) side = 'a'
+    p.h = evH; p.a = evA
     if (side && !finished) {
       setGoal(side)
       setLateGoal(min >= 86)
@@ -1046,7 +1058,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       return () => clearTimeout(t)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hg, ag, roundKey, finished])
+  }, [evH, evA, roundKey, finished])
   void iAmHome
 
   const Team = ({ name, color, you, flash }: { name: string; color: string; you: boolean; flash?: boolean }) => {
@@ -1070,7 +1082,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coStamp{0%{transform:translateX(-50%) scale(0) rotate(-14deg);opacity:0}45%{transform:translateX(-50%) scale(1.18) rotate(-7deg);opacity:1}70%{transform:translateX(-50%) scale(.94) rotate(-7deg)}100%{transform:translateX(-50%) scale(1) rotate(-7deg);opacity:1}}'}</style>
       {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>🥊 CLÁSSICO</div>}
       {/* selo GOOOL! — surge sobre o lado de quem marcou */}
-      {goal && <div style={{ position: 'absolute', top: 4, left: goal === 'h' ? '25%' : '75%', transform: 'translateX(-50%) rotate(-7deg)', zIndex: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '3px 12px', ...OSWALD, fontWeight: 900, fontSize: 17, letterSpacing: 0.5, boxShadow: `2px 2px 0 0 ${INK}`, animation: 'coStamp .5s cubic-bezier(.2,1.4,.5,1) both', whiteSpace: 'nowrap', ...(lateGoal ? { background: '#FF5B4D', color: '#fff' } : {}) }}>{lateGoal ? '🔥 GOL NO FIM!' : '⚽ GOOOL!'}</div>}
+      {goal && <div style={{ position: 'absolute', top: 4, left: goal === 'h' ? '25%' : '75%', transform: 'translateX(-50%) rotate(-7deg)', zIndex: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '3px 12px', ...OSWALD, fontWeight: 900, fontSize: 17, letterSpacing: 0.5, boxShadow: `2px 2px 0 0 ${INK}`, animation: 'coStamp .5s cubic-bezier(.2,1.4,.5,1) both', whiteSpace: 'nowrap', ...(lateGoal ? { background: '#FF5B4D', color: '#fff' } : {}) }}>{basket ? (lateGoal ? '🔥 CESTA NO FIM!' : '🏀 CESTA!') : (lateGoal ? '🔥 GOL NO FIM!' : '⚽ GOOOL!')}</div>}
       <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', background: INK, color: '#fff', fontSize: 11, fontWeight: 900, ...OSWALD, padding: '3px 11px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 6, zIndex: 2, whiteSpace: 'nowrap' }}>
         <span style={{ width: 7, height: 7, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite' }} /> {done ? 'FIM' : minLabel}
       </div>
