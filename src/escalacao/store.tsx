@@ -1785,6 +1785,7 @@ type Action =
   | { type: 'START_NBA'; teamName: string; rivals: number } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
+  | { type: 'RESUME_NBA_CAREER'; saved: EscState } // 🏀 retoma a carreira do basquete salva (bl-nba-career)
   | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both'; intro?: boolean } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
@@ -2449,6 +2450,13 @@ export function reducer(state: EscState, action: Action): EscState {
         s.screen = 'season'
       }
       return s
+    }
+    case 'RESUME_NBA_CAREER': {
+      // retoma a carreira do basquete salva (restaura o estado inteiro). Reancora
+      // o esporte/baralho/vagas — um reload zera os ponteiros do motor pra futebol.
+      const sv = action.saved
+      setActiveSport('basquete', 'career')
+      return sv
     }
     case 'START_CAREER_SOLO': {
       // CARREIRA OFFLINE na pirâmide: mesmas regras do online (4 divisões, leilão
@@ -4246,6 +4254,19 @@ export function EscProvider({ children }: { children: ReactNode }) {
     soloSigRef.current = sig
     try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
     savePyramidCloud(state) // logado: espelha na nuvem (throttled) pra seguir a conta
+  }, [state])
+
+  // 🏀 autosave da CARREIRA do basquete — ISOLADO do futebol (chave própria
+  // `bl-nba-career`, não mexe no `esc-solo-career`). Salva o progresso pra você
+  // continuar de onde parou; não salva em tela lateral (álbum/ranking). Só local.
+  const nbaSigRef = useRef('')
+  useEffect(() => {
+    if (state.onlineMode === 'online' || state.sport !== 'basquete' || !state.nbaCareer) return
+    if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
+    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}`
+    if (sig === nbaSigRef.current) return
+    nbaSigRef.current = sig
+    try { localStorage.setItem('bl-nba-career', JSON.stringify(state)); localStorage.setItem('bl-nba-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
   }, [state])
 
   // Vigia do Monte: se a vez de um humano estoura o tempo (AFK), força o

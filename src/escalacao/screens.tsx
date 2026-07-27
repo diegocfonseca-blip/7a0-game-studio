@@ -1053,6 +1053,24 @@ function useResumableSolo() {
   }
 }
 
+// 🏀 continuar a CARREIRA do basquete (Street League) — lê a chave própria
+// `bl-nba-career`, ISOLADA do futebol. Só local (sem nuvem por enquanto).
+function useResumableNbaCareer() {
+  const { dispatch } = useEsc()
+  const [saved, setSaved] = useState<EscState | null>(null)
+  useEffect(() => {
+    try { const r = localStorage.getItem('bl-nba-career'); if (r) setSaved(JSON.parse(r) as EscState) } catch { setSaved(null) }
+  }, [])
+  if (!saved || saved.sport !== 'basquete' || !saved.nbaCareer || !saved.managers?.length) return null
+  const you = saved.managers[saved.youIdx ?? 0]
+  return {
+    seasonNo: saved.seasonNo ?? 1,
+    teamName: you?.teamName ?? 'Meu Time',
+    resume: () => dispatch({ type: 'RESUME_NBA_CAREER', saved }),
+    discard: () => { try { localStorage.removeItem('bl-nba-career'); localStorage.removeItem('bl-nba-career-at') } catch { /* ignora */ } setSaved(null) },
+  }
+}
+
 // banner de "continuar carreira offline" (pirâmide) — aparece na home E logo
 // abaixo do botão de começar, no setup, quando existe um jogo salvo.
 function SoloContinueBanner() {
@@ -1191,6 +1209,7 @@ function LangToggle() {
 function BidLegendsHome() {
   const t = useT()
   const { dispatch } = useEsc()
+  const nbaSolo = useResumableNbaCareer() // 🏀 carreira do basquete salva (continuar)
   const PYR = [
     ['🛝', 'STREET LEAGUE', t('A base. 20 times, pontos corridos. Sobem 4, ninguém cai.', 'The base. 20 teams, round-robin. Top 4 go up, nobody drops.')],
     ['🔷', 'G LEAGUE', t('Leste × Oeste, 82 jogos, playoffs. Sobe quem vai longe.', 'East × West, 82 games, playoffs. Go far and move up.')],
@@ -1201,6 +1220,21 @@ function BidLegendsHome() {
       {/* header: botão de idioma BR/EN no canto direito (só o BidLegends tem) */}
       <div className="flex justify-end pt-2"><LangToggle /></div>
       <SportTabs />
+      {/* 🏀 carreira do basquete em andamento — continuar de onde parou (salvo local) */}
+      {nbaSolo && (
+        <div className="rounded-2xl border-4 border-black p-3 mt-2 space-y-2.5" style={{ background: PURPLE, boxShadow: `4px 4px 0 0 ${INK}` }}>
+          <p className="font-black text-sm text-white leading-tight" style={OSWALD}>
+            🛝 {t('Carreira em andamento', 'Career in progress')}<br />
+            <span className="opacity-80 text-xs">{nbaSolo.teamName} · {t('Temporada', 'Season')} {nbaSolo.seasonNo}</span>
+          </p>
+          <button onClick={nbaSolo.resume} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
+            ▶️ {t('Continuar carreira', 'Continue career')} ({nbaSolo.teamName})
+          </button>
+          <button onClick={nbaSolo.discard} className="w-full rounded-xl border-2 border-black font-black text-xs py-2 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
+            🗑️ {t('Largar e começar outra', 'Drop and start a new one')}
+          </button>
+        </div>
+      )}
       <div className="text-center pt-6">
         <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
           🏀 {t('Leilão às cegas de lendas', 'Blind auction of legends')}
