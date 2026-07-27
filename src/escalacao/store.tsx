@@ -793,8 +793,12 @@ function buildLeague(managers: Manager[], fillBots = true): LeagueTeam[] {
 // método do círculo (returno duplo). Times PAR: igual sempre. Times ÍMPAR: entra
 // um "fantasma" (id -1) e quem calha de pegar ele FOLGA naquela rodada — padrão de
 // liga de verdade. Com número par nada muda (nenhum -1 é criado).
-function buildFixtures(teams: LeagueTeam[]): [number, number][][] {
-  const ids = teams.map(t => t.id)
+function buildFixtures(teams: LeagueTeam[], rng?: () => number): [number, number][][] {
+  // 🎲 com rng: EMBARALHA a ordem dos times antes do round-robin — sem isso o
+  // calendário era IDÊNTICO toda temporada (mesma ordem de ids), e no "jogar de
+  // novo (mesmo time)" você SEMPRE estreava contra o mesmo adversário da vez
+  // anterior (bug relatado: "depois da 38ª pega o primeiro time de novo").
+  const ids = rng ? shuffle(teams.map(t => t.id), rng) : teams.map(t => t.id)
   if (ids.length % 2 === 1) ids.push(-1) // fantasma da folga
   const n = ids.length
   const rounds: [number, number][][] = []
@@ -2929,7 +2933,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const adj = cpuAdjFor(s) // nível-base fixo por divisão nos bots de fundo; rivais sem ajuste
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.league = buildLeague(s.managers, !s.ligaFechada)
-      s.fixtures = buildFixtures(s.league)
+      s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.round = 0
       s.scorers = []
       if (s.careerOnline) {
@@ -3552,7 +3556,7 @@ export function reducer(state: EscState, action: Action): EscState {
         s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
         s.sectorIdx = 0; s.sectorCursor = 0
         s.league = buildLeague(s.managers, !s.ligaFechada)
-        s.fixtures = buildFixtures(s.league)
+        s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
         s.seasonNo++
         s.screen = 'season'
         return s
@@ -3619,7 +3623,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
       s.sectorIdx = 0; s.sectorCursor = 0
       s.league = buildLeague(s.managers, !s.ligaFechada)
-      s.fixtures = buildFixtures(s.league)
+      s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.screen = 'season'
       return s
     }
@@ -3649,7 +3653,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerRivals = (action.rivals ?? []).map(r => ({ team: r.team, name: r.name, division: r.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
       s.careerTitles = 0; s.careerTitlesA = 0
       s.league = buildLeague(s.managers, !s.ligaFechada)
-      s.fixtures = buildFixtures(s.league)
+      s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.screen = 'season'
       return s
     }
@@ -3665,7 +3669,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // (host dispara e sincroniza por SYNC_STATE, então online também fica ok.)
       s.seed = Math.floor(Math.random() * 1e9)
       s.league = buildLeague(s.managers, !s.ligaFechada)
-      s.fixtures = buildFixtures(s.league)
+      s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.round = 0
       s.scorers = []
       s.lastResults = []
