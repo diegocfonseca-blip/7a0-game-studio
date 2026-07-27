@@ -35,20 +35,19 @@ export const POS_LABELS: Record<Sport, Record<Sector, PosLabel>> = {
   },
 }
 
-// vagas no LEILÃO INICIAL por setor:
-//  - futebol: vem da FORMAÇÃO (1/2/2/3/3 ou 1/2/2/4/2) — este mapa NÃO é usado
-//    no futebol; fica como referência da regra atual.
-//  - basquete: 2 por posição (a "rotação" = 10). Titular no quinteto = 1 por posição.
-export const INITIAL_SLOTS: Record<Sport, Record<Sector, number>> = {
-  futebol: { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }, // = 11 (formação 4-3-3, base)
-  basquete: { GOL: 2, LAT: 2, ZAG: 2, MEI: 2, ATA: 2 }, // = 10 (rotação)
-}
+// 🏀 VAGAS POR POSIÇÃO NO BASQUETE — cada posição usa a regra de um slot que o
+// motor JÁ conhece (decidido com o Diego 27/07):
+//   - modo RÁPIDO (offline + online): 1 por posição → 5 (o quinteto titular).
+//     Cada posição se comporta como o GOLEIRO do futebol (1 vaga). Você leiloa
+//     o time que entra em quadra, igual o rápido do futebol leiloa o XI.
+//   - modo CARREIRA: 2 por posição → 10 (a rotação). Cada posição se comporta
+//     como o LATERAL (2 vagas). Reservas (parada do meio) +1 por posição →
+//     3 por posição = elenco 15.
+// (No futebol as vagas vêm da FORMAÇÃO 1/2/2/3/3 — nada disso muda lá.)
+export const NBA_SLOTS_PER_POS = { quick: 1, career: 2, reservesTo: 3 } as const
 
-// quinteto TITULAR do basquete = 1 por posição (5). (futebol titular = a formação.)
-export const STARTER_SLOTS: Record<Sport, Record<Sector, number>> = {
-  futebol: { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
-  basquete: { GOL: 1, LAT: 1, ZAG: 1, MEI: 1, ATA: 1 },
-}
+// total de jogadores no leilão inicial, por modo (5 posições × vagas)
+export const NBA_INITIAL_TOTAL = { quick: 5, career: 10 } as const
 
 // palavra de "gol" por esporte (placar/artilharia) — pro texto da temporada depois.
 export const SCORE_WORD: Record<Sport, { goal: { pt: string; en: string }; scorer: { pt: string; en: string } }> = {

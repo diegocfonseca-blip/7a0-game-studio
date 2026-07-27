@@ -23,13 +23,15 @@
 - **Quinteto titular = 5** (o "XI"): 1 por posição, ESCOLHIDO pelo jogador entre os que ele arrematou.
 - **Elenco completo = 15 (3 por posição)** — limite real da NBA; 82 jogos pedem banco fundo.
   (Futebol usa 2×=22; basquete usa 3×=15.)
-- 🗳️ **Como fatiar os leilões (decidido 27/07, opção A):**
-  - **Leilão INICIAL enche 10** (2 por posição = a "rotação"). Como 1 por posição
-    ficava curto/rápido demais perto do leilão de 11 do futebol, o inicial já traz
-    a rotação inteira. Depois o jogador **escolhe quais 5 são titulares**.
-  - **Leilão de RESERVAS (meio da temporada, a parada da rodada 41) enche +5**
-    (1 por posição) → fecha os **15**.
-  - Espelho do futebol: lá é 11 (inicial) + 11 (reservas) = 22; aqui é 10 + 5 = 15.
+- 🗳️ **Quantas vagas por posição (decidido 27/07) — cada posição usa a regra de um slot que o motor JÁ tem:**
+  - **Modo RÁPIDO (offline + online): 1 por posição → 5** (o quinteto titular).
+    Cada posição se comporta como o **goleiro** do futebol (1 vaga). Você leiloa
+    o time que entra em quadra — igual o rápido do futebol leiloa o XI.
+  - **Modo CARREIRA: 2 por posição → 10** (a "rotação"). Cada posição se comporta
+    como o **lateral** (2 vagas). Depois, o **leilão de RESERVAS** (parada da
+    rodada 41) põe +1 por posição → **3 por posição = elenco 15**.
+  - Espelho do futebol: rápido = o time em campo (11 ⚽ / 5 🏀); carreira cresce
+    até o elenco cheio (22 ⚽ / 15 🏀). No código: `NBA_SLOTS_PER_POS` em `sportcfg.ts`.
 - Pisos de venda/empréstimo/listar: nunca deixar a posição abaixo do quinteto (regra igual à do futebol).
 - Pisos de venda/empréstimo/listar: nunca deixar a posição abaixo do quinteto (regra igual à do futebol).
 
