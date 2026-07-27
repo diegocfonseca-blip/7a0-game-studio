@@ -17,7 +17,7 @@ import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
-import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, COPA_LEG_MS } from './pyramidseason'
+import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { useSport, useSportUnlocked, getSport, type Sport } from './sport'
 import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
@@ -3412,6 +3412,9 @@ export function EscSeason() {
           }
           const settled = clockDone && tie.winner != null // só risca/mostra pênaltis depois que o relógio fecha
           const aWin = tie.winner === tie.aId
+          // 🚫 anti-spoiler: com PÊNALTIS, o riscado do perdedor espera a última cobrança animar
+          const pd = settled && tie.pens ? pensRevealDelay(tie.pens) : 0
+          const loserStyle = (isLoser: boolean) => !settled || !isLoser ? {} : pd > 0 ? { animation: `qcLoserFade .4s ease ${pd.toFixed(2)}s forwards` } : { opacity: .6, textDecoration: 'line-through' as const }
           const minLabel = copaMin >= 93 ? '' : copaMin > 90 ? `90+${copaMin - 90}'` : `${copaMin}'`
           const live = !clockDone && nLegs > 0
           const kindOf = (id: number): 'you' | 'human' | 'bot' => id === you.id ? 'you' : state.managers.some(m => m.id === id && m.isHuman) ? 'human' : 'bot'
@@ -3421,17 +3424,17 @@ export function EscSeason() {
               <CopaHalves fL={fA} fR={fB} />
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
-                  <span className="font-black text-sm truncate" style={{ ...OSWALD, color: fA.ink, opacity: settled && !aWin ? .6 : 1, textDecoration: settled && !aWin ? 'line-through' : 'none' }}>{tie.aName}{nameTag(tie.aId)}</span>
+                  <span className="font-black text-sm truncate" style={{ ...OSWALD, color: fA.ink, ...loserStyle(!aWin) }}>{tie.aName}{nameTag(tie.aId)}</span>
                   <span className="font-black text-sm px-2 py-0.5 rounded inline-flex items-center gap-1.5" style={{ ...OSWALD, background: INK, color: '#fff' }}>
                     {live && <span className="text-[9px] font-black" style={{ color: '#F87168' }}>●{minLabel}</span>}
                     {showA} × {showB}
                   </span>
-                  <span className="font-black text-sm truncate text-right" style={{ ...OSWALD, color: fB.ink, opacity: settled && aWin ? .6 : 1, textDecoration: settled && aWin ? 'line-through' : 'none' }}>{tie.bName}{nameTag(tie.bId)}</span>
+                  <span className="font-black text-sm truncate text-right" style={{ ...OSWALD, color: fB.ink, ...loserStyle(aWin) }}>{tie.bName}{nameTag(tie.bId)}</span>
                 </div>
                 {settled && nLegs > 0 && (
                   <p className="text-center mt-1" style={{ fontSize: 10, fontWeight: 800 }}><span style={copaCenterChip}>{nLegs === 1 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]}` : `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}`}</span></p>
                 )}
-                {settled && tie.pens && <PensShootout pens={tie.pens} aName={tie.aName} bName={tie.bName} />}
+                {settled && tie.pens && <><style>{'@keyframes qcLoserFade{to{opacity:.6;text-decoration:line-through}}'}</style><PensShootout pens={tie.pens} aName={tie.aName} bName={tie.bName} /></>}
               </div>
             </Box>
           )

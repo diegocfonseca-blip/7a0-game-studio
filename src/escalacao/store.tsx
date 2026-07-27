@@ -1377,7 +1377,7 @@ function resolveQuickCopaTie(tie: QuickCopaTie, rng: () => number) {
   const aggA = tie.legs.reduce((s2, l) => s2 + l[0], 0)
   const aggB = tie.legs.reduce((s2, l) => s2 + l[1], 0)
   if (aggA === aggB) {
-    let x = 3 + Math.floor(rng() * 3), y = 3 + Math.floor(rng() * 3)
+    let x = 2 + Math.floor(rng() * 4), y = 2 + Math.floor(rng() * 4)
     if (x === y) (rng() < 0.5 ? x++ : y++)
     tie.pens = [x, y]
     tie.winner = x > y ? tie.aId : tie.bId
