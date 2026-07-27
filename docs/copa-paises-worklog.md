@@ -70,11 +70,16 @@ Listas completas por país × posição: gerar de novo com scratchpad/cartas.txt
 11 Colômbia 22 · 12 Uruguai 20 · 13 Chile 16 · 14 Bélgica 15 · 15 EUA 13 ·
 16 Coreia do Sul 12 · (17 Paraguai 8, primeiro da fila)
 
-## 🕳️ BURACOS pra fechar formação em dobro (2G·4L·4Z·6M·4A) — próximas cartas
-- México 1 ZAG · Colômbia 1 LAT · Uruguai 1 LAT + 1 MEI · Chile 2 LAT + 2 MEI ·
-- Bélgica 2 LAT + 1 ZAG + 2 ATA · EUA 1 LAT + 2 ZAG + 5 MEI ·
-- Coreia 2 GOL (nem goleiro tem! Lee Woon-jae…) + 2 LAT + 1 ZAG + 3 MEI
-- ≈ 29 cartas pra formação + chegar TODAS a 22 no total ≈ 36 cartas novas.
+## ✅ CORREÇÃO DE ESCOPO (Diego, 27/07 — vale sobre tudo acima)
+- **NÃO tem meta de 22, nem meta por categoria, nem "36/100 cartas".** A
+  convocação usa o baralho COMO ESTÁ: todo jogador já etiquetado com o país
+  aparece no listão da seleção (qualquer nível). Cartas novas só se o Diego
+  pedir — o baralho cresce no ritmo normal do jogo e a Copa acompanha sozinha.
+- Única exigência: a seleção precisa FECHAR UM 11 em alguma formação
+  (senão quebra — regra nº1). Estado de hoje: só 2 travadas →
+  **Coreia (0 goleiros)** e **EUA (1 meia só)**. Bélgica fecha só no 4-4-2
+  (a trava de formação resolve). PROPOSTA enviada pro Diego (aguardando OK):
+  3 cartas — Lee Woon-jae (GOL·Coreia), Michael Bradley + Kyle Beckerman (MEI·EUA).
 - Fluxo aprovado: botão dourado "🌍 DISPUTAR A COPA" na tela novo leilão/mesmo
   time a cada 10 temporadas + notícia-hype 1 temporada antes + trava "só campeões".
 
