@@ -1208,7 +1208,7 @@ function BidLegendsHome() {
           <span className="text-white">🛝 {t('CARREIRA · STREET LEAGUE', 'CAREER · STREET LEAGUE')} <span className="text-yellow-300">(new)</span></span>
         </Btn>
       </motion.div>
-      <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('A base: rotação de 10, liga de 20, pontos corridos — em teste 🔧', 'The base: 10-man rotation, 20-team league, round-robin — testing 🔧')}</p>
+      <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('A base: quinteto (5), liga de 20 — cresce nas reservas 🔧 em construção', 'The base: starting five (5), 20-team league — grows in the reserve auction 🔧 building')}</p>
       {/* aviso "chegando" — honesto, sem prometer o que ainda não tem */}
       <div className="border-[3px] border-black rounded-2xl p-4 text-center" style={{ background: '#fff', boxShadow: `4px 4px 0 0 ${INK}` }}>
         <div className="text-3xl">🚧</div>

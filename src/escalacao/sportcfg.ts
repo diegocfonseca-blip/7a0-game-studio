@@ -44,10 +44,17 @@ export const POS_LABELS: Record<Sport, Record<Sector, PosLabel>> = {
 //     como o LATERAL (2 vagas). Reservas (parada do meio) +1 por posição →
 //     3 por posição = elenco 15.
 // (No futebol as vagas vêm da FORMAÇÃO 1/2/2/3/3 — nada disso muda lá.)
-export const NBA_SLOTS_PER_POS = { quick: 1, career: 2, reservesTo: 3 } as const
+// 🗳️ MODELO APROVADO (Diego 27/07) — espelho FIEL do futebol:
+//   • TODO time começa com o QUINTETO (1/posição = 5) — o "XI do basquete", os 5
+//     que entram em quadra. Igual o futebol começa todo mundo com o XI (11).
+//   • O leilão de RESERVAS enche SÓ você + rivais: quinteto → rotação (2/pos=10)
+//     → elenco cheio (3/pos=15). Os bots ficam no quinteto (5), como a Série D do
+//     futebol fica no XI (11). Desbloqueios por temporada, iguais ao futebol:
+//     T1 monta titulares · T2 reservas · T3 vender.
+export const NBA_SLOTS_PER_POS = { quick: 1, career: 1, rotation: 2, roster: 3 } as const
 
-// total de jogadores no leilão inicial, por modo (5 posições × vagas)
-export const NBA_INITIAL_TOTAL = { quick: 5, career: 10 } as const
+// total de jogadores por etapa (5 posições × vagas): quinteto → rotação → elenco.
+export const NBA_INITIAL_TOTAL = { quick: 5, career: 5, rotation: 10, roster: 15 } as const
 
 // palavra de "gol" por esporte (placar/artilharia) — pro texto da temporada depois.
 export const SCORE_WORD: Record<Sport, { goal: { pt: string; en: string }; scorer: { pt: string; en: string } }> = {

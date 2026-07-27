@@ -51,9 +51,10 @@ const NBA_TEAMS: { team: string; name: string }[] = [
 // mesmo equilíbrio do futebol, que dá 100 pra 11). Na carreira (10 jogadores)
 // será ~100, como o futebol.
 const NBA_QUICK_BUDGET = 50
-// 💰 orçamento da CARREIRA do basquete (Street League): 100 moedas p/ montar a
-// rotação de 10 (2 por posição) — ~10/jogador, o MESMO equilíbrio do futebol.
-const NBA_CAREER_BUDGET = 100
+// 💰 orçamento inicial da CARREIRA do basquete (Street League): 50 moedas p/ o
+// QUINTETO (5, 1 por posição) — ~10/jogador, MESMO equilíbrio do futebol. Nas
+// temporadas seguintes o leilão de reservas dá mais caixa pra encher rotação/elenco.
+const NBA_CAREER_BUDGET = 50
 // 🛝 times da STREET LEAGUE (a base amadora = streetball): 20 CREWS DE QUADRA DE
 // RUA — NÃO franquias da NBA (essas ficam pro topo da pirâmide, a NBA de verdade).
 // É o espelho da Série D do futebol (times de várzea, não Flamengo/Palmeiras).
@@ -2338,9 +2339,11 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     // 🛝 STREET LEAGUE — a BASE da carreira do basquete. MESMO motor/telas do
-    // futebol e do rápido do basquete; a diferença é só a ROTAÇÃO de 10 (2 por
-    // posição, igual ao lateral do futebol) e a liga cheia de 20 times, pontos
-    // corridos. O futebol não passa por aqui. (Salvar/subir de liga = próximo passo.)
+    // futebol e do rápido do basquete. Modelo aprovado: TODO time começa com o
+    // QUINTETO (5, 1 por posição) — igual o futebol começa com o XI (11). Liga
+    // cheia de 20 times, pontos corridos. O leilão de reservas (crescer pra
+    // rotação 10 → elenco 15), os desbloqueios por temporada e salvar/continuar
+    // são o próximo passo. O futebol não passa por aqui.
     case 'START_NBA_CAREER': {
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
@@ -2348,7 +2351,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerOnline = false; s.careerLedger = []
       s.reserveAuction = false; s.reserveListed = {}
       s.sport = 'basquete'
-      setActiveSport('basquete', 'career') // baralho NBA + 2 vagas por posição (rotação de 10)
+      setActiveSport('basquete', 'career') // baralho NBA + 1 vaga por posição (quinteto = 5)
       s.deckLeague = 'br'
       s.careerDivision = null; s.careerIntent = false; s.careerTitles = 0; s.careerTitlesA = 0
       s.copaMode = 'liga' // Street League: só pontos corridos (sem copa por enquanto)
