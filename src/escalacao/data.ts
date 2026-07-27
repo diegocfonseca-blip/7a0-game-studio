@@ -1628,7 +1628,7 @@ const GOL_WORLD: C[] = [
   { name: "Óscar Pérez", club: "Cruz Azul", year: 2000, fame: 3, lo: 76, hi: 85, bio: "'Conejo' — baixinho e eterno, foi convocado pra várias Copas do México ao longo de quase 20 anos de estrada." },
   { name: "Mohammed Al-Deayea", club: "Al-Hilal", year: 1998, fame: 3, lo: 77, hi: 85 },
   { name: "Óscar Córdoba", club: "Boca Juniors", year: 2001, fame: 3, lo: 77, hi: 85, bio: "Muralha colombiana do Boca bi da Libertadores e campeão do Mundo (Intercontinental) contra o Real." },
-  { name: "Vozinha", club: "Cabo Verde", year: 2013, fame: 2, lo: 62, hi: 80, bio: "O goleiro-símbolo dos Tubarões Azuis de Cabo Verde — a cara da seleção-surpresa que encantou a África com raça e alegria." },
+  { name: "Vozinha", club: "Cabo Verde", year: 2013, fame: 5, lo: 85, hi: 92, folk: true, bio: "O goleiro-símbolo dos Tubarões Azuis de Cabo Verde — a muralha da seleção-surpresa que encantou a África. LENDA por aclamação popular: quem viu, viu." },
   { name: "Essam El-Hadary", club: "Al Ahly", year: 2008, fame: 3, lo: 76, hi: 84, bio: "Lenda egípcia e o jogador mais velho a atuar numa Copa do Mundo, aos 45 anos. Muralha multicampeã africana pelo Al Ahly." },
   { name: "Nery Pumpido", club: "River Plate", year: 1986, fame: 3, lo: 76, hi: 84, bio: "Goleiro campeão do mundo com a Argentina em 1986, titular na campanha do México." },
   { name: "Tony Meola", club: "MetroStars", year: 1994, fame: 2, lo: 66, hi: 80 },
