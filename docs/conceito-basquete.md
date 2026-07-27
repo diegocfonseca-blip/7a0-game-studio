@@ -30,6 +30,9 @@
 - Carta = nome · franquia · ano do auge (Jordan · Bulls 1996 👑; Wade · Heat 2006 ⭐) + bio zoeira em PT.
 - Baralho inicial ~150-200 cartas (30-40 por posição). Folclóricos: JR Smith 2018, JaVale, Boban, Nick Young…
 - Nível = auge NAQUELE ano/franquia (igual à regra do futebol: Kaká 2003 promessa vs 2007 lenda).
+- 🇺🇸 **SÓ QUEM JOGOU NA NBA (decisão do Diego).** O baralho é NBA de verdade (franquias reais). Quem nunca vestiu uma franquia NBA NÃO entra — ex.: Oscar Schmidt (recusou o draft) ficou de fora. Brasileiros valem SE jogaram NBA (Nenê, Leandrinho, Varejão, Splitter, Bruno Caboclo, Marcelinho Huertas). Lendas FIBA/mundiais (Oscar, Dražen, Sabonis…) só num baralho À PARTE, se um dia o Diego quiser.
+- 🏷️ **Regra do "conhecido":** o jogador só precisa ser CONHECIDO — craque, ruim ou zuado (busts, memes) valem igual. **Apelido no NOME da carta só pra quem é REALMENTE chamado pelo apelido** (ex.: Swaggy P, White Chocolate, AK-47, Big Shot Bob, The Iceman, Dr. J, Agent Zero, The Glove). Os demais: nome normal, apelido/graça mora na BIO. (Referência do futebol: Romarinho, Adriano Gol Contra.)
+- Baralho do BidLegends em `src/escalacao/data-basquete.ts` (bio já bilíngue PT+EN). Prévia gerável pelo script `scratchpad/gen-deck-preview.mjs`.
 
 ## A pirâmide (modo carreira)
 1. **🛝 STREET LEAGUE** — 20 times, pontos corridos ida e volta (motor atual como está), **sobem 4**, ninguém desce (base).
