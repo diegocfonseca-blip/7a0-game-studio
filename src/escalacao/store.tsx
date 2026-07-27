@@ -2774,6 +2774,10 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'FINISH_CEREMONY': {
       if (s.screen !== 'cerimonia') return s
       s.cerimoniaDeadline = null
+      // 🏀 basquete: a TEMPORADA por pontos (times NBA, cestinha, placar 100×98)
+      // ainda está em construção. NÃO cai na temporada de FUTEBOL (times de futebol,
+      // "artilharia"/"gols") — volta pra home. Vale pro botão E pro avanço automático.
+      if (s.sport === 'basquete') { s.screen = 'intro'; return s }
       // FAKE DÁ LUGAR: bot que contratou jogador REAL e estourou o teto da posição
       // dispensa o incógnito mais fraco (nunca um real) até caber no elenco.
       if (s.careerOnline) for (const m of s.managers) {
