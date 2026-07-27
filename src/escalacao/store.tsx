@@ -1270,15 +1270,25 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     const creditPts = (id: number, pts: number, prefix: string) => {
       const m = state.managers.find(x => x.id === id)
       if (!m || m.squad.length === 0) return
+      // peso define a ORDEM (quem é o astro): nível + posição + "dia" (variação por
+      // jogo). O nível manda na média; o dia deixa um coadjuvante brilhar às vezes.
       const pool = m.squad.map(c => {
         const n = Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42)
-        return { name: c.name, w: (POS_W[c.pos] ?? 3) * (0.15 + n * n * 1.7) * (0.5 + rng() * 1.6) }
+        return { name: c.name, w: (POS_W[c.pos] ?? 3) * (0.3 + Math.pow(n, 1.3) * 1.1) * (0.5 + rng() * 1.5) }
       })
-      const total = pool.reduce((s, p) => s + p.w, 0) || 1
       pool.sort((a, b) => b.w - a.w)
+      // 🏀 só a ROTAÇÃO pontua (topo ~9); banco fundo quase não marca, igual à NBA.
+      // Os pontos caem por DECAIMENTO de posto (astro ~28% do time, 2º ~21%…) —
+      // assim o cestinha da liga fecha numa média REALISTA (~30/jogo) em vez de
+      // um número inflado, e varia de temporada pra temporada (às vezes 37, às
+      // vezes 28). Independe do tamanho do elenco (5 no quinteto ou 15 no cheio).
+      const rotation = pool.slice(0, Math.min(9, pool.length))
+      const DECAY = 0.76
+      const shareW = rotation.map((_, i) => Math.pow(DECAY, i))
+      const shareTot = shareW.reduce((s, x) => s + x, 0) || 1
       let left = pts
-      pool.forEach((p, i) => {
-        const share = i === pool.length - 1 ? left : Math.min(left, Math.round(pts * p.w / total))
+      rotation.forEach((p, i) => {
+        const share = i === rotation.length - 1 ? left : Math.max(0, Math.min(left, Math.round(pts * shareW[i] / shareTot)))
         left -= share
         if (share <= 0) return
         const row = scorersList.find(s => s.name === p.name && s.teamId === id)
