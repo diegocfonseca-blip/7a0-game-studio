@@ -2215,6 +2215,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const rng = mulberry(s.seed)
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
       s.careerOnline = false; s.careerLedger = []
+      s.reserveAuction = false; s.reserveListed = {} // não herda "modo reservas" de um jogo anterior (mesmo fix do rápido)
       s.sport = 'basquete'
       setActiveSport('basquete', 'quick') // baralho NBA + 1 vaga por posição
       s.deckLeague = 'br' // não usado no basquete (o baralho é o NBA), mas mantém o campo válido
