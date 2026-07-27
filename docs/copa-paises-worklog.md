@@ -100,9 +100,14 @@ Listas completas por país × posição: gerar de novo com scratchpad/cartas.txt
 - **Formação do usuário**: escolhe 4-3-3 ou 4-4-2, MAS só se o país fecha o
   esquema com jogadores reais; senão o esquema indisponível aparece TRANCADO
   com aviso ("a Coreia não tem meias pra 4-4-2 — jogue no 4-3-3").
-- ✅ Mockup da CONVOCAÇÃO **APROVADO pelo Diego** (v2: campinho oficial com
-  placa da Vadico, SEM categorias — só nome+clube+ano —, listão A-Z rolável
-  por posição + busca, contador 11/11, botão trancado explicando o que falta).
+- ✅ Mockup da CONVOCAÇÃO **APROVADO pelo Diego** (campinho = cópia FIEL do
+  Field do pregão com o logo OFICIAL da Vadico; SEM categorias — só
+  nome+clube+ano —, listão A-Z rolável por posição + busca, contador 11/11,
+  botão trancado explicando o que falta).
+- 📜 **Regra do listão (Diego, 27/07)**: aparecem TODAS as cartas do país, de
+  TODOS os níveis (lenda, craque E perna-de-pau, tudo junto) — vale pra todas
+  as seleções. Nenhuma indicação de categoria na tela: convocar mal é risco do
+  técnico (a zoeira é essa). Bots continuam convocando os melhores 11 por dentro.
 
 ## 🎯 REGRA DA ESCOLHA DE SELEÇÃO (Diego, 27/07 — decisão firme)
 - Os 16 participantes entram RANQUEADOS (posição 1-16 na classificação pra Copa).
