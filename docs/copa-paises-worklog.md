@@ -78,6 +78,16 @@ Listas completas por país × posição: gerar de novo com scratchpad/cartas.txt
 - Fluxo aprovado: botão dourado "🌍 DISPUTAR A COPA" na tela novo leilão/mesmo
   time a cada 10 temporadas + notícia-hype 1 temporada antes + trava "só campeões".
 
+## 📣 CONVOCAÇÃO (Diego, 27/07 — MUDANÇA de conceito, decisão firme)
+- Dentro da seleção **NÃO tem leilão nenhum**: é CONVOCAÇÃO pura.
+- Aparecem TODOS os jogadores do país e o técnico escolhe **SÓ 11 titulares**
+  (não 22, sem banco, sem moedas).
+- Jogador com versões repetidas (Kaká SP/Milan): convocou uma, a outra apaga
+  (1 pessoa por time). Formação 4-3-3/4-4-2, a mesma da carreira.
+- Botão de fechar só libera com 11/11; trancado explica o que falta (estilo Diego).
+- Mockup aguardando OK: artifact a73c7ec1 (busca + abas por posição + campinho
+  enchendo + 2 estados do botão).
+
 ## 🎯 REGRA DA ESCOLHA DE SELEÇÃO (Diego, 27/07 — decisão firme)
 - Os 16 participantes entram RANQUEADOS (posição 1-16 na classificação pra Copa).
 - **Quem ficou em N só pode escolher seleção da posição N pra BAIXO no ranking
