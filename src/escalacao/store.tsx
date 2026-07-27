@@ -794,12 +794,9 @@ function buildLeague(managers: Manager[], fillBots = true): LeagueTeam[] {
 // método do círculo (returno duplo). Times PAR: igual sempre. Times ÍMPAR: entra
 // um "fantasma" (id -1) e quem calha de pegar ele FOLGA naquela rodada — padrão de
 // liga de verdade. Com número par nada muda (nenhum -1 é criado).
-function buildFixtures(teams: LeagueTeam[], rng?: () => number): [number, number][][] {
-  // 🎲 com rng: EMBARALHA a ordem dos times antes do round-robin — sem isso o
-  // calendário era IDÊNTICO toda temporada (mesma ordem de ids), e no "jogar de
-  // novo (mesmo time)" você SEMPRE estreava contra o mesmo adversário da vez
-  // anterior (bug relatado: "depois da 38ª pega o primeiro time de novo").
-  const ids = rng ? shuffle(teams.map(t => t.id), rng) : teams.map(t => t.id)
+// gera UM turno-returno (todos contra todos ida e volta) a partir de uma ordem de ids
+function oneDoubleRR(order: number[]): [number, number][][] {
+  const ids = order.slice()
   if (ids.length % 2 === 1) ids.push(-1) // fantasma da folga
   const n = ids.length
   const rounds: [number, number][][] = []
@@ -819,6 +816,25 @@ function buildFixtures(teams: LeagueTeam[], rng?: () => number): [number, number
   }
   const volta: [number, number][][] = rounds.map(r => r.map(([h, a]) => [a, h] as [number, number]))
   return [...rounds, ...volta]
+}
+// 🏀 temporada da NBA tem 82 jogos (o futebol segue com 38 = todos contra todos
+// ida e volta). Pra chegar aos 82 no basquete, concatena turnos-returno extras
+// (reembaralhando a ordem a cada ciclo) e corta em 82. Só o basquete faz isso.
+const NBA_SEASON_GAMES = 82
+function buildFixtures(teams: LeagueTeam[], rng?: () => number): [number, number][][] {
+  // 🎲 com rng: EMBARALHA a ordem dos times antes do round-robin — sem isso o
+  // calendário era IDÊNTICO toda temporada (mesma ordem de ids), e no "jogar de
+  // novo (mesmo time)" você SEMPRE estreava contra o mesmo adversário da vez
+  // anterior (bug relatado: "depois da 38ª pega o primeiro time de novo").
+  const baseIds = teams.map(t => t.id)
+  let fixtures = oneDoubleRR(rng ? shuffle(baseIds, rng) : baseIds)
+  if (ACTIVE_SPORT === 'basquete') {
+    while (fixtures.length < NBA_SEASON_GAMES) {
+      fixtures = fixtures.concat(oneDoubleRR(rng ? shuffle(baseIds, rng) : baseIds))
+    }
+    fixtures = fixtures.slice(0, NBA_SEASON_GAMES)
+  }
+  return fixtures
 }
 
 interface TeamForm { atk: number; def: number; inspired: string | null }

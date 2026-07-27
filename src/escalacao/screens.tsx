@@ -3174,7 +3174,11 @@ export function EscSeason() {
   // O Normal do manual é IGUAL ao do auto (ROUND_MS) — quem quiser mais devagar usa
   // a marcha 🐢. (Antes o manual tinha uma folga fixa que o deixava mais lento.)
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
-  const roundMs = Math.round(ROUND_MS / speedFactor)
+  // 🏀 basquete tem 82 rodadas (não 38): acelera cada rodada pra a temporada
+  // caber no MESMO tempo total (~3 min), senão levaria mais que o dobro. Futebol
+  // segue com o ROUND_MS de sempre (38 rodadas) — nada muda lá.
+  const baseRoundMs = state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) : ROUND_MS
+  const roundMs = Math.round(baseRoundMs / speedFactor)
   const streamRoom = online && (state.streamMode || !!state.manualRoom) // sala com ritmo do host: Copa/etapas sem cronômetro pra ninguém
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
@@ -3712,20 +3716,27 @@ function TopScorersBox({ highlight, title = '⚽ ARTILHARIA · TEMPO REAL' }: { 
       <table className="w-full text-xs">
         <thead>
           <tr className="text-left text-black/60 font-black">
-            <th className="pr-1">#</th><th>{bb ? L('Jogador', 'Player') : 'Jogador'}</th><th>{bb ? L('Time', 'Team') : 'Time'}</th><th className="text-center">{bb ? L('Pontos', 'Points') : 'Gols'}</th>
+            <th className="pr-1">#</th><th>{bb ? L('Jogador', 'Player') : 'Jogador'}</th><th>{bb ? L('Time', 'Team') : 'Time'}</th><th className="text-center">{bb ? L('Média', 'PPG') : 'Gols'}</th>{bb && <th className="text-center text-black/40">{L('Pts', 'Pts')}</th>}
           </tr>
         </thead>
         <tbody>
-          {rows.map((r, i) => (
+          {rows.map((r, i) => {
+            // 🏀 cestinha da NBA é por MÉDIA de pontos por jogo (não total). games =
+            // rodadas jogadas até agora; no fim da temporada = 82.
+            const games = Math.max(1, state.round)
+            const ppg = r.goals / games
+            const ppgTxt = blLang === 'en' ? ppg.toFixed(1) : ppg.toFixed(1).replace('.', ',')
+            return (
             // 🎨 sua linha veste o SEU tier (Lenda = dourado metálico; gratuito = bege)
             <tr key={`${r.teamId}-${r.name}`} className="border-t border-black/10 font-semibold text-black"
               style={r.teamId === highlight ? { background: myApoioPerk()?.grad ?? APOIO_PERKS.bege.light, color: TIER_INK[myApoioPerk()?.tier ?? 'bege'] } : undefined}>
               <td className="pr-1">{i + 1}</td>
               <td className="truncate max-w-[130px]">{r.name}</td>
               <td className={`truncate max-w-[110px] ${r.teamId === highlight ? '' : 'text-black/70'}`}>{r.teamName}</td>
-              <td className="text-center font-black">{r.goals}</td>
+              <td className="text-center font-black">{bb ? ppgTxt : r.goals}</td>
+              {bb && <td className="text-center text-black/40">{r.goals}</td>}
             </tr>
-          ))}
+          )})}
         </tbody>
       </table>
     </Box>
@@ -3820,7 +3831,10 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
       <table className="w-full text-xs">
         <thead>
           <tr className="text-left text-black/70 font-black">
-            <th className="pr-1">#</th><th>{L('Time', 'Team')}</th><th className="text-center">P</th><th className="text-center">V</th><th className="text-center">E</th><th className="text-center">D</th><th className="text-center">{bb ? 'SC' : 'SG'}</th>
+            <th className="pr-1">#</th><th>{L('Time', 'Team')}</th>
+            {bb
+              ? <><th className="text-center">V</th><th className="text-center">D</th><th className="text-center">{L('AP', 'PCT')}</th><th className="text-center">SC</th></>
+              : <><th className="text-center">P</th><th className="text-center">V</th><th className="text-center">E</th><th className="text-center">D</th><th className="text-center">SG</th></>}
           </tr>
         </thead>
         <tbody>
@@ -3848,9 +3862,20 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
                 style={{ background: rowBg, color: rowInk, fontWeight: isMgr ? 800 : 500 }}>
                 <td className="pr-1">{rank}</td>
                 <td className="truncate max-w-[130px]">{isRival ? '🔥 ' : isMgr ? '👤 ' : ''}{t.name}</td>
-                <td className="text-center font-black">{t.pts}</td>
-                <td className="text-center">{t.w}</td><td className="text-center">{t.d}</td><td className="text-center">{t.l}</td>
-                <td className="text-center">{t.gf - t.ga}</td>
+                {bb ? (
+                  <>
+                    <td className="text-center font-black">{t.w}</td>
+                    <td className="text-center">{t.l}</td>
+                    <td className="text-center">{(t.w + t.l) > 0 ? Math.round(100 * t.w / (t.w + t.l)) : 0}%</td>
+                    <td className="text-center">{t.gf - t.ga}</td>
+                  </>
+                ) : (
+                  <>
+                    <td className="text-center font-black">{t.pts}</td>
+                    <td className="text-center">{t.w}</td><td className="text-center">{t.d}</td><td className="text-center">{t.l}</td>
+                    <td className="text-center">{t.gf - t.ga}</td>
+                  </>
+                )}
               </tr>
             )
           })}
