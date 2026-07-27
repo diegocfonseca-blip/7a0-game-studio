@@ -50,6 +50,13 @@
 3. **💍 NBA** — 30 times, Leste × Oeste. Descem 4 (2 por conferência). Topo da pirâmide.
    (G League real também é Leste×Oeste — a estrutura espelha a vida real.)
 
+> 🔧 **Ordem de construção (confirmada pelo Diego 27/07):** a **Street League usa o
+> MOTOR DO FUTEBOL como está** — pontos corridos, 20 times, sobem 4/ninguém cai —
+> que é justamente a temporada que JÁ roda no rápido offline do basquete. Só a
+> Street League é "parecida com o futebol". **G League e NBA têm regras PRÓPRIAS**
+> (conferências Leste×Oeste, 82 jogos, playoffs top-8, finais → Finals) — bloco à
+> parte, construído depois. Então a carreira começa reusando a Street League.
+
 ## Formato da temporada (G League e NBA — mesmo motor)
 - **82 jogos** (calendário real: ~52 na conferência + 30 contra o outro lado; só a tabela da SUA conferência classifica).
 - **Parada na rodada 41**: votação MESMO TIME × NOVO LEILÃO (o "vira-temporada" do futebol; tematicamente é a trade deadline).
