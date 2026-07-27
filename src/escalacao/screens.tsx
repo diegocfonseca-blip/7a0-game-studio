@@ -1887,6 +1887,8 @@ function Envelope() {
   const sport: Sport = state.sport === 'basquete' ? 'basquete' : 'futebol'
   const lang: 'pt' | 'en' = blLang === 'en' ? 'en' : 'pt'
   const posName = secLabel(sport, pos, lang)
+  // 🌐 tradução SÓ do basquete: no futebol devolve sempre o PT (idêntico a hoje).
+  const L = (pt: string, en: string) => (sport === 'basquete' && lang === 'en') ? en : pt
   const rescue = state.phase === 'resq_envelope'
   const [bids, setBids] = useState<Record<string, number>>({})
   const [pickerCard, setPickerCard] = useState<Card | null>(null) // 🎯 escolher valor redondo
@@ -2077,7 +2079,9 @@ function Envelope() {
   const chosenCount = Object.keys(bids).length
 
   const showLanceTip = firstGame && !tipClosed
-  const tipTxt = state.sectorIdx % 2 === 0
+  const tipTxt = sport === 'basquete'
+    ? <>{L('💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 100 pra montar o time inteiro.', '💡 This is a REAL auction: whoever bids the MOST coins gets the player. You have 100 to build the whole team.')}</>
+    : state.sectorIdx % 2 === 0
     ? <>💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 100 pra montar o time inteiro.</>
     : <>💡 O nível da carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda. Repara no clube e no ano!</>
   return (
@@ -2096,8 +2100,8 @@ function Envelope() {
           </h2>
           <p className="text-sm font-semibold text-black/70">
             {rescue
-              ? <>Sobras do setor, última chance de pagar por elas. Só quem ficou com buraco participa. Suas vagas: <b>{myOpen}</b>.</>
-              : 'Lance cego: distribua suas moedas em segredo. Ninguém vê nada até a revelação.'}
+              ? <>{L('Sobras do setor, última chance de pagar por elas. Só quem ficou com buraco participa. Suas vagas: ', 'Leftovers from this position — last chance to pay for them. Only those with an open slot join. Your slots: ')}<b>{myOpen}</b>.</>
+              : L('Lance cego: distribua suas moedas em segredo. Ninguém vê nada até a revelação.', 'Blind bid: spread your coins in secret. No one sees anything until the reveal.')}
           </p>
           {!rescue && totalBatches > 1 && (
             <div className="mt-1.5 inline-flex items-center gap-1.5 border-[3px] border-black rounded-full px-3 py-1"
@@ -2114,13 +2118,13 @@ function Envelope() {
         {noTimer ? (
           <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center min-w-[64px]"
             style={{ backgroundColor: '#2E6FB0', boxShadow: `3px 3px 0 0 ${INK}` }}>
-            <p className="text-[9px] font-black uppercase text-white">Ritmo</p>
+            <p className="text-[9px] font-black uppercase text-white">{L('Ritmo', 'Pace')}</p>
             <p className="font-black text-lg leading-none text-white" style={OSWALD}>🎮 host</p>
           </div>
         ) : (
           <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center min-w-[64px]"
             style={{ backgroundColor: timerColor, boxShadow: `3px 3px 0 0 ${INK}` }}>
-            <p className="text-[9px] font-black uppercase" style={{ color: timerTextColor }}>Tempo</p>
+            <p className="text-[9px] font-black uppercase" style={{ color: timerTextColor }}>{L('Tempo', 'Time')}</p>
             <p className="font-black text-2xl leading-none" style={{ ...OSWALD, color: timerTextColor }}>{remaining}s</p>
           </div>
         )}
@@ -2138,14 +2142,14 @@ function Envelope() {
         <div className="space-y-2">
           <div className="text-center border-[3px] border-black rounded-xl px-3 py-2"
             style={{ background: `linear-gradient(180deg, #FFE07A 0%, ${GOLD} 100%)`, boxShadow: `3px 3px 0 0 ${INK}` }}>
-            <p className="font-black text-lg leading-tight" style={OSWALD}>🏆 GANHA QUEM DÁ O MAIOR LANCE</p>
-            <p className="text-[11px] font-bold text-black/70 mt-0.5">Não é 1 moeda que leva — é quem <b>paga mais</b>. Empate? Re-lance às cegas.</p>
+            <p className="font-black text-lg leading-tight" style={OSWALD}>🏆 {L('GANHA QUEM DÁ O MAIOR LANCE', 'HIGHEST BID WINS')}</p>
+            <p className="text-[11px] font-bold text-black/70 mt-0.5">{L('Não é 1 moeda que leva — é quem ', 'It\'s not one coin that wins — it\'s who ')}<b>{L('paga mais', 'pays most')}</b>{L('. Empate? Re-lance às cegas.', '. Tie? Blind re-bid.')}</p>
           </div>
           <div className="text-center border-[3px] border-black rounded-xl px-3 py-1.5"
             style={{ background: '#E7F7EC', boxShadow: `3px 3px 0 0 ${INK}` }}>
             {bidLimit === 1
-              ? <p className="text-sm font-black" style={{ color: '#146c33' }}>Você tem <b>1 vaga</b> — dê seu lance em quem quer levar.</p>
-              : <p className="text-sm font-black" style={{ color: '#146c33' }}>Você tem <b>{bidLimit} vagas</b> — pode dar lance em até <b>{bidLimit} jogadores DE UMA VEZ</b> nesta rodada, não só em um! 👈</p>}
+              ? <p className="text-sm font-black" style={{ color: '#146c33' }}>{L('Você tem ', 'You have ')}<b>{L('1 vaga', '1 slot')}</b>{L(' — dê seu lance em quem quer levar.', ' — bid on the one you want.')}</p>
+              : <p className="text-sm font-black" style={{ color: '#146c33' }}>{L('Você tem ', 'You have ')}<b>{L(`${bidLimit} vagas`, `${bidLimit} slots`)}</b>{L(` — pode dar lance em até ${bidLimit} jogadores DE UMA VEZ nesta rodada, não só em um! 👈`, ` — you can bid on up to ${bidLimit} players AT ONCE this round, not just one! 👈`)}</p>}
           </div>
           {cards.some(c => c.id === state.surpriseId) && (
             <div className="text-center border-[3px] border-black rounded-xl px-3 py-1.5 text-white"
@@ -2198,8 +2202,8 @@ function Envelope() {
                   {/* rótulo: carta com piso mostra o mínimo (🔒); senão, na 1ª tela, "seu lance".
                       Escondido no stream até o peek (aí volta como jogo normal). */}
                   {!masked && (floor > 0
-                    ? <span className="text-[9px] font-black uppercase leading-none mb-0.5 tracking-wide" style={{ color: belowFloor ? RED : '#B8860B' }}>mín 🔒 {floor}</span>
-                    : state.sectorIdx === 0 && <span className="text-[9px] font-black uppercase leading-none mb-0.5 tracking-wide" style={{ color: '#B8860B' }}>seu lance</span>)}
+                    ? <span className="text-[9px] font-black uppercase leading-none mb-0.5 tracking-wide" style={{ color: belowFloor ? RED : '#B8860B' }}>{L('mín', 'min')} 🔒 {floor}</span>
+                    : state.sectorIdx === 0 && <span className="text-[9px] font-black uppercase leading-none mb-0.5 tracking-wide" style={{ color: '#B8860B' }}>{L('seu lance', 'your bid')}</span>)}
                   <div className="flex items-center gap-1.5">
                     <HoldButton onStep={() => bump(c, -1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</HoldButton>
                     {/* caixa do lance: toca e abre um modalzinho CENTRALIZADO pra
@@ -2239,9 +2243,9 @@ function Envelope() {
         </Box>
       )}
       <Box bg="#fff" className="p-3 flex items-center justify-between">
-        <p className="font-black text-black" style={OSWALD}>ENVELOPE: {state.streamMode && !peek ? '🔒' : total} / {you.money}</p>
+        <p className="font-black text-black" style={OSWALD}>{L('ENVELOPE', 'ENVELOPE')}: {state.streamMode && !peek ? '🔒' : total} / {you.money}</p>
         <Btn onClick={seal} bg={RED}>
-          <span className="text-white">LACRAR 🔒</span>
+          <span className="text-white">{L('LACRAR', 'SEAL')} 🔒</span>
         </Btn>
       </Box>
       {online && waitingFor.length > 0 && (
@@ -2733,6 +2737,8 @@ function Reveal() {
 
 function RivalsStrip() {
   const { state } = useEsc()
+  const [blLang] = useLang()
+  const L = (pt: string, en: string) => (state.sport === 'basquete' && blLang === 'en') ? en : pt
   const you = state.managers[state.youIdx]
   // só quem REALMENTE disputa o leilão, sem contar você mesmo: no solo são
   // os rivais CPU; online são os amigos humanos da sala (bots de
@@ -2742,14 +2748,14 @@ function RivalsStrip() {
   if (rivals.length === 0) return null
   return (
     <div>
-      <p className="text-xs font-black uppercase text-black/70 mb-1.5">A sala</p>
+      <p className="text-xs font-black uppercase text-black/70 mb-1.5">{L('A sala', 'The room')}</p>
       <div className="grid grid-cols-2 gap-2">
         {rivals.map(m => (
           <Box key={m.id} className="p-2.5" shadow={3}>
             <p className="font-black text-sm truncate" style={OSWALD}>{m.teamName}</p>
             <p className="text-[11px] font-semibold text-black/55">{state.sport === 'basquete' ? '' : `${m.formation} · `}💰 {m.money} · {m.squad.length}/{m.squad.length + totalHoles(m)}</p>
             <p className="text-[10px] font-medium text-black/70" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-              {[...m.squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(c => c.name).join(', ') || 'ainda sem contratações'}
+              {[...m.squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(c => c.name).join(', ') || L('ainda sem contratações', 'no signings yet')}
             </p>
           </Box>
         ))}
