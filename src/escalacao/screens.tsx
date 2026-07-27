@@ -175,6 +175,10 @@ const COR_TIERS = [
 // 🖋️ FUNDADOR: os 100 primeiros Lendas. Contador MANUAL — cada Lenda que o Diego
 // confirmar no Instagram, baixar este número aqui (não dá pra contar sozinho).
 const FUNDADOR_VAGAS = 77
+// 🔗 link direto pro APOIE (pra postar nos stories/grupo): leilaolegends.com/?apoie=lenda
+// abre o modal já na cor OURO. Também vale ?apoie=craque (manual) e ?apoie=1 (tela geral).
+// consumido UMA vez só (vários ApoieButton montam ao mesmo tempo — só o primeiro abre).
+let apoieLinkConsumido = false
 export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { big?: boolean; startScreen?: 'choice' | 'manual'; trigger?: (open: () => void) => React.ReactNode }) {
   const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'dream' | 'batismo' | 'cores' | 'manual'>('off')
   const openApoio = () => { if (startScreen === 'manual') logApoio('👀 abriu: modo manual (trava)'); setScreen(startScreen) }
@@ -186,6 +190,16 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
     supabase.auth.getUser().then(({ data }) => { const dn = ((data?.user?.user_metadata?.display_name as string) ?? '').trim(); if (dn) setMeuNome(dn) }).catch(() => { /* deslogado: usa "Seu Nome" */ })
   }, [screen, meuNome])
   const close = () => { setScreen('off'); setCorSel(null) }
+  useEffect(() => {
+    if (apoieLinkConsumido) return
+    const a = new URLSearchParams(window.location.search).get('apoie')
+    if (!a) return
+    apoieLinkConsumido = true
+    logApoio(`🔗 chegou pelo link direto: apoie=${a}`)
+    if (a === 'lenda') { setScreen('cores'); setCorSel('ouro') }
+    else if (a === 'craque' || a === 'manual') setScreen('manual')
+    else setScreen('choice')
+  }, [])
   const igMsg = async (msg: string) => {
     try { await navigator.clipboard.writeText(msg) } catch { /* segue o baile */ }
     window.open(APOIO_IG, '_blank', 'noopener')
