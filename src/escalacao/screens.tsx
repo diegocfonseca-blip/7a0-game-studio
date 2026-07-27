@@ -2080,7 +2080,7 @@ function Envelope() {
 
   const showLanceTip = firstGame && !tipClosed
   const tipTxt = sport === 'basquete'
-    ? <>{L('💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 100 pra montar o time inteiro.', '💡 This is a REAL auction: whoever bids the MOST coins gets the player. You have 100 to build the whole team.')}</>
+    ? <>{L('💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 50 pra montar o quinteto inteiro.', '💡 This is a REAL auction: whoever bids the MOST coins gets the player. You have 50 to build the whole five.')}</>
     : state.sectorIdx % 2 === 0
     ? <>💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 100 pra montar o time inteiro.</>
     : <>💡 O nível da carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda. Repara no clube e no ano!</>

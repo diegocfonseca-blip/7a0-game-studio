@@ -47,6 +47,10 @@ const NBA_TEAMS: { team: string; name: string }[] = [
   'Lakers', 'Celtics', 'Bulls', 'Warriors', 'Heat', 'Spurs', 'Knicks', 'Nets',
   'Bucks', 'Suns', 'Nuggets', 'Mavericks', 'Clippers', 'Sixers', 'Raptors', 'Grizzlies',
 ].map(t => ({ team: t, name: t }))
+// 💰 orçamento do RÁPIDO do basquete: 50 moedas (5 jogadores = ~10/jogador, o
+// mesmo equilíbrio do futebol, que dá 100 pra 11). Na carreira (10 jogadores)
+// será ~100, como o futebol.
+const NBA_QUICK_BUDGET = 50
 // soma as moedas da temporada (base+título/acesso/queda) na caixa de cada técnico
 function applyRewards(coins: Record<number, number> | undefined, rewards?: Record<number, number>): Record<number, number> {
   const out = { ...(coins ?? {}) }
@@ -2296,6 +2300,10 @@ export function reducer(state: EscState, action: Action): EscState {
       const rivals = Math.max(1, action.rivals)
       const { managers, botPlans } = makeManagers([action.teamName || 'Meu Time'], '4-3-3', rivals, rivals + 1, rng, NBA_TEAMS)
       s.managers = managers; s.youIdx = 0
+      // 💰 orçamento do rápido do basquete = 50 (não 100). São só 5 jogadores (o
+      // quinteto); 50 dá ~10/jogador, o MESMO equilíbrio do futebol (100 pra 11).
+      // Com 100 dava 20/jogador e dava pra pagar caro em todo mundo — inflava.
+      for (const m of s.managers) m.money = NBA_QUICK_BUDGET
       s.dinastia = false; s.dinastiaBudget = undefined
       const used = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
