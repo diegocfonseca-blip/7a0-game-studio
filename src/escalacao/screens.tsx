@@ -2577,10 +2577,14 @@ function Reveal() {
     const tieHit = state.tiebreaks.find(t => t.card.id === it.card.id && t.winner !== null)
     const delayMs = (it.bids.length * 0.25 + (tieHit ? 1.2 : 0.2)) * 1000
     const sold = it.winner !== null && it.bids.length > 0
-    const iWon = sold && it.winner === you?.id // 🔨 martelo/chime tocam só pra QUEM levou a carta (cada um ouve o seu)
-    // 🔨 e pro VENDEDOR: na carreira, quando um jogador SEU listado é arrematado
-    // por outro, você também ouve a martelada (é a SUA venda fechando).
-    const iSold = sold && (it.card as { seller?: number }).seller === you?.id && it.winner !== you?.id
+    // identidade EXPLÍCITA: sons só com "eu" válido e humano. Sem isso, carta sem
+    // vendedor (campo vazio) batia com "você" vazio num piscar de transição —
+    // "vazio === vazio" dava verdadeiro e o faah/martelo tocava em vitória de CPU.
+    const meId = you && you.isHuman ? you.id : null
+    const iWon = sold && meId != null && it.winner === meId // 🔨 só pra QUEM levou a carta
+    const sellerId = (it.card as { seller?: number }).seller
+    // 🔨 e pro VENDEDOR (carreira): jogador SEU listado arrematado por outro.
+    const iSold = sold && meId != null && sellerId != null && sellerId === meId && it.winner !== meId
     const timers: ReturnType<typeof setTimeout>[] = []
     if (iWon || iSold) timers.push(setTimeout(() => playHammer(), delayMs))
     // 🎙️ ÁUDIO DA LENDA (meme "faah"): só pra QUEM pega a lenda no martelo — ou pra
