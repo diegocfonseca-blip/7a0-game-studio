@@ -730,7 +730,8 @@ const LAT: C[] = [
   { name: "Geferson", club: "Internacional", year: 2017, fame: 1, lo: 52, hi: 75, folk: true, bio: "Lateral revelado no Inter que entrou pro folclore ao sair de campo trocando farpas com a própria torcida." },
   { name: "Piquerez", club: "Palmeiras", year: 2023, fame: 3, lo: 74, hi: 84, bio: "Lateral-esquerdo uruguaio de fôlego e chegada — bicampeão da Libertadores e multicampeão pelo Palmeiras, marcação firme e apoio constante." },
   { name: "Juninho Capixaba", club: "Red Bull Bragantino", year: 2021, fame: 2, lo: 68, hi: 82, bio: "Lateral-esquerdo de bom cruzamento — viveu o auge no Red Bull Bragantino, vice da Sul-Americana de 2021." },
-  { name: "Kaki", club: "Cruzeiro", year: 2024, fame: 1, lo: 58, hi: 80, promessa: true, bio: "Lateral-direito da base do Cruzeiro — promessa veloz e de bom apoio, subindo pro time profissional." }
+  { name: "Kaki", club: "Cruzeiro", year: 2024, fame: 1, lo: 58, hi: 80, promessa: true, bio: "Lateral-direito da base do Cruzeiro — promessa veloz e de bom apoio, subindo pro time profissional." },
+  { name: "Eugenio Mena", club: "Santos", year: 2014, fame: 2, lo: 64, hi: 80, bio: "Lateral da Roja bicampeã da América — passou pela Vila Belmiro correndo a esquerda." },
 ]
 
 const ZAG: C[] = [
@@ -800,7 +801,9 @@ const ZAG: C[] = [
   { name: "Paulo Miranda", club: "São Paulo", year: 2015, fame: 2, lo: 72, hi: 83, bio: "Viveu o auge no São Paulo por volta de 2015 — sólido o bastante pra ser convocado à Seleção do Dunga. Depois foi campeão da Copa do Brasil pelo Grêmio em 2016." },
   { name: "Leandro Eusébio", club: "Cruzeiro", year: 2003, fame: 2, lo: 63, hi: 82, bio: "Zagueiro firme e regular — peça da defesa do Cruzeiro campeão brasileiro de 2003 e também ídolo no Vasco." },
   { name: "Pedro Basílio", club: "Fortaleza", year: 1978, fame: 3, lo: 68, hi: 85, bio: "A 'Maravilha Negra' — maior ídolo defensivo da história do Fortaleza, recordista de jogos (479) e de títulos cearenses. Zagueirão que começou na lateral." },
-  { name: "Lyanco", club: "Atlético-MG", year: 2024, fame: 2, lo: 70, hi: 82, bio: "Zagueiro brasileiro forte no jogo aéreo — rodou a Europa (Torino, Southampton) e voltou pra ser titular do Atlético-MG." }
+  { name: "Lyanco", club: "Atlético-MG", year: 2024, fame: 2, lo: 70, hi: 82, bio: "Zagueiro brasileiro forte no jogo aéreo — rodou a Europa (Torino, Southampton) e voltou pra ser titular do Atlético-MG." },
+  { name: "Yerry Mina", club: "Palmeiras", year: 2017, fame: 3, lo: 74, hi: 84, bio: "O gigante dançarino — zagueiro artilheiro que comemorava rebolando no Allianz." },
+  { name: "Marcos González", club: "Flamengo", year: 2012, fame: 2, lo: 64, hi: 80, bio: "Zagueiro-torre chileno campeão da Copa do Brasil no Fla." },
 ]
 
 const MEI: C[] = [
@@ -1147,7 +1150,13 @@ const GOL_EU: C[] = [
   { name: "Wojciech Szczęsny", club: "Juventus", year: 2021, fame: 3, lo: 78, hi: 85, bio: "Goleiro polonês seguro e experiente — anos de regularidade na Juventus após despontar no Arsenal." },
   { name: "Joe Hart", club: "Man City", year: 2012, fame: 3, lo: 79, hi: 86, bio: "Goleiro nº1 da Inglaterra no auge — quatro Luvas de Ouro da Premier League e dois títulos ingleses pelo City (2012 e 2014), reflexo explosivo." },
   { name: "Vítor Baía", club: "Porto", year: 2004, fame: 4, lo: 82, hi: 89, bio: "Ídolo eterno do Porto — campeão da Champions de 2004 com Mourinho e da Copa da UEFA; um dos maiores goleiros da história de Portugal." },
-  { name: "Tim Howard", club: "Everton", year: 2014, fame: 3, lo: 78, hi: 85, bio: "Paredão americano do Everton — eternizado pelas 16 defesas contra a Bélgica na Copa de 2014, recorde do Mundial. Antes, FA Cup pelo United." }
+  { name: "Tim Howard", club: "Everton", year: 2014, fame: 3, lo: 78, hi: 85, bio: "Paredão americano do Everton — eternizado pelas 16 defesas contra a Bélgica na Copa de 2014, recorde do Mundial. Antes, FA Cup pelo United." },
+  { name: "Rui Patrício", club: "Sporting", year: 2018, fame: 3, lo: 77, hi: 85, bio: "Paredão da Euro 2016 — o goleiro do único título de Portugal, frieza de monge." },
+  { name: "Hans van Breukelen", club: "PSV", year: 1988, fame: 3, lo: 76, hi: 85, bio: "Pegou o pênalti que deu a Euro 88 à Holanda — provocador oficial das traves." },
+  { name: "David Ospina", club: "Arsenal", year: 2015, fame: 3, lo: 76, hi: 84, bio: "O goleiro eterno da Colômbia — voava em Londres e na seleção com a mesma calma." },
+  { name: "Fernando Muslera", club: "Lazio", year: 2010, fame: 3, lo: 76, hi: 85, bio: "Revelado na Lazio antes de virar lenda turca — reflexo elástico e cara de bravo." },
+  { name: "Claudio Bravo", club: "Barcelona", year: 2015, fame: 3, lo: 77, hi: 85, bio: "Capitão chileno bicampeão da América — saía jogando com os pés antes de virar moda." },
+  { name: "Jean-Marie Pfaff", club: "Bayern", year: 1986, fame: 4, lo: 81, hi: 88, bio: "Showman-goleiro do Bayern penta — eleito melhor do mundo em 87, carisma de programa de auditório." },
 ]
 const LAT_EU: C[] = [
   { name: "Michel Bastos", club: "Lyon", year: 2010, fame: 3, lo: 75, hi: 86, bio: "Canhoto versátil (lateral e meia) — auge no Lyon com cobranças de falta perfeitas; titular da Seleção na Copa de 2010." },
@@ -1200,7 +1209,22 @@ const LAT_EU: C[] = [
   { name: "Arbeloa", club: "Real Madrid", year: 2012, fame: 3, lo: 75, hi: 84, bio: "Lateral versátil espanhol — campeão do mundo (2010), da Euro (2008 e 2012) e da Champions de 2014 pelo Real Madrid; marcação firme e experiência." },
   { name: "Capdevila", club: "Villarreal", year: 2010, fame: 3, lo: 74, hi: 84, bio: "Lateral-esquerdo campeão do mundo (2010) e da Euro (2008) pela Espanha — titular na base do Villarreal, cruzamento afiado." },
   { name: "Cuadrado", club: "Juventus", year: 2020, fame: 3, lo: 76, hi: 85, bio: "Colombiano habilidoso reconvertido em ala/lateral-direito — anos de Juventus multicampeã italiana, drible e cruzamento pela direita." },
-  { name: "Emerson Royal", club: "Tottenham", year: 2023, fame: 1, lo: 66, hi: 80, bio: "Lateral-direito brasileiro que rodou a Europa — despontou no Betis, passou pelo Barcelona e teve sequência no Tottenham na Premier League." }
+  { name: "Emerson Royal", club: "Tottenham", year: 2023, fame: 1, lo: 66, hi: 80, bio: "Lateral-direito brasileiro que rodou a Europa — despontou no Betis, passou pelo Barcelona e teve sequência no Tottenham na Premier League." },
+  { name: "Kyle Walker", club: "Man City", year: 2018, fame: 3, lo: 78, hi: 86, bio: "O lateral mais veloz da Premier: recuperava qualquer contra-ataque na base do foguete." },
+  { name: "Antonio Cabrini", club: "Juventus", year: 1982, fame: 4, lo: 81, hi: 88, bio: "'Bell'Antonio' — lateral-galã campeão do mundo em 82, esquerda finíssima da Juve multicampeã." },
+  { name: "Andreas Brehme", club: "Inter", year: 1990, fame: 4, lo: 82, hi: 89, bio: "Batia com as duas pernas igual. Fez o pênalti que deu a Copa de 90 pra Alemanha — frieza de cirurgião." },
+  { name: "Christian Ziege", club: "Bayern", year: 1996, fame: 3, lo: 76, hi: 84, bio: "Esquerda de ferro do Bayern e da Alemanha da Euro 96 — cruzamento e falta venenosa." },
+  { name: "Paulo Ferreira", club: "Chelsea", year: 2005, fame: 3, lo: 76, hi: 84, bio: "Contratado pelo Mourinho, bicampeão inglês — o lateral que nunca reclamava e nunca falhava." },
+  { name: "Raphaël Guerreiro", club: "Dortmund", year: 2016, fame: 3, lo: 77, hi: 85, bio: "Lateral-meia de pé de veludo — cruzava, batia falta e ainda fazia gol de camisa 10." },
+  { name: "Ruud Krol", club: "Ajax", year: 1974, fame: 4, lo: 82, hi: 89, bio: "O lateral do Carrossel Holandês — defendia, armava e ditava o futebol total de Cruyff." },
+  { name: "Daley Blind", club: "Ajax", year: 2019, fame: 2, lo: 66, hi: 81, bio: "Filho do Danny, canhota pensante — jogava de lateral, zagueiro e volante SEM correr (genética)." },
+  { name: "Santiago Arias", club: "PSV", year: 2018, fame: 2, lo: 66, hi: 81, bio: "Lateral-motorzinho colombiano campeão holandês — subia e descia a linha o jogo inteiro." },
+  { name: "Martín Cáceres", club: "Juventus", year: 2012, fame: 2, lo: 66, hi: 82, bio: "'El Pelado' — lateral-zagueiro de carrinho voador, sempre convocado, sempre lesionado, sempre voltando." },
+  { name: "Maxi Pereira", club: "Benfica", year: 2011, fame: 3, lo: 76, hi: 84, bio: "'El Mono' — dez anos de Benfica correndo a linha direita como se não houvesse amanhã." },
+  { name: "Thomas Meunier", club: "PSG", year: 2018, fame: 2, lo: 66, hi: 81, bio: "Lateral-avião belga — cruzamento forte e chegada de surpresa na área." },
+  { name: "Timothy Castagne", club: "Leicester", year: 2021, fame: 2, lo: 64, hi: 80, bio: "Lateral dos dois lados — motorzinho da geração dourada belga." },
+  { name: "DaMarcus Beasley", club: "PSV", year: 2005, fame: 2, lo: 64, hi: 81, bio: "4 Copas do Mundo — o único americano a tanto, correndo a esquerda a 100 por hora." },
+  { name: "Lee Young-pyo", club: "Tottenham", year: 2006, fame: 2, lo: 64, hi: 80, bio: "Lateral-relâmpago da geração coreana de 2002 — subia a esquerda de Seul a Londres." },
 ]
 const ZAG_EU: C[] = [
   { name: "Maguire", club: "Man United", year: 2019, fame: 2, lo: 66, hi: 82 },
@@ -1262,7 +1286,15 @@ const ZAG_EU: C[] = [
   { name: "Upamecano", club: "Bayern", year: 2023, fame: 3, lo: 79, hi: 86, bio: "Zagueiro francês forte e veloz — pilar da defesa do Bayern e da Seleção Francesa; saída de bola moderna e recuperação no corpo a corpo." },
   { name: "Barzagli", club: "Juventus", year: 2015, fame: 4, lo: 82, hi: 88, bio: "Um terço da lendária BBC da Juventus (com Bonucci e Chiellini) — campeão do mundo em 2006 e muralha de vários Scudettos, marcação impecável." },
   { name: "Albiol", club: "Napoli", year: 2016, fame: 3, lo: 77, hi: 84, bio: "Zagueiro espanhol seguro e experiente — campeão do mundo em 2010, anos de regularidade no Real Madrid e no Napoli, posicionamento inteligente." },
-  { name: "Rafa Márquez", club: "Barcelona", year: 2006, fame: 4, lo: 80, hi: 87, bio: "Zagueiro-capitão do México, elegante com a bola nos pés — bicampeão da Champions pelo Barça (2006 e 2009), líder em cinco Copas do Mundo." }
+  { name: "Rafa Márquez", club: "Barcelona", year: 2006, fame: 4, lo: 80, hi: 87, bio: "Zagueiro-capitão do México, elegante com a bola nos pés — bicampeão da Champions pelo Barça (2006 e 2009), líder em cinco Copas do Mundo." },
+  { name: "Fernando Couto", club: "Lazio", year: 2000, fame: 4, lo: 80, hi: 88, bio: "Cabeleira ao vento e cabeçada firme — zagueiro-símbolo da geração de ouro portuguesa." },
+  { name: "Mario Yepes", club: "PSG", year: 2005, fame: 3, lo: 76, hi: 85, bio: "Capitão-zagueiro elegante — dez anos segurando a defesa da Colômbia no peito e na raça." },
+  { name: "Cristián Zapata", club: "Milan", year: 2015, fame: 2, lo: 66, hi: 81, bio: "Zagueiro-velocista do Milan — resolvia no carrinho o que a zaga deixava passar." },
+  { name: "Paolo Montero", club: "Juventus", year: 1998, fame: 4, lo: 80, hi: 88, bio: "O zagueiro mais casca-grossa da Juve — recordista de expulsões E de respeito na Itália." },
+  { name: "Sebastián Coates", club: "Sporting", year: 2019, fame: 3, lo: 76, hi: 84, bio: "Torre uruguaia capitã do Sporting — cabeceava nas duas áreas." },
+  { name: "Gary Medel", club: "Inter", year: 2014, fame: 3, lo: 76, hi: 84, bio: "'El Pitbull' — 1,71m de zagueiro que mordia centroavante de 1,90m no lombo." },
+  { name: "Toby Alderweireld", club: "Tottenham", year: 2018, fame: 3, lo: 77, hi: 85, bio: "Saída de bola de meia e lançamento de 50 metros na cabeça do atacante." },
+  { name: "Kim Min-jae", club: "Napoli", year: 2023, fame: 4, lo: 81, hi: 89, bio: "'The Monster' — o muro do scudetto do Napoli: melhor zagueiro da Itália no ano." },
 ]
 const MEI_EU: C[] = [
   { name: "Joseph Minala (Benjamin Button)", club: "Lazio", year: 2014, fame: 1, lo: 44, hi: 63, folk: true, bio: "O 'Benjamin Button' do futebol — camaronês da base da Lazio que virou meme em 2014 por parecer ter 40 anos aos 17. A idade foi confirmada; o folclore ficou." },
@@ -1395,7 +1427,17 @@ const MEI_EU: C[] = [
   { name: "Pablo Aimar", club: "Valencia", year: 2002, fame: 3, lo: 80, hi: 87, bio: "‘El Payaso’ — meia argentino de drible e passe geniais, craque do Valencia bicampeão espanhol e ídolo de infância do Messi." },
   { name: "Lucas Leiva", club: "Liverpool", year: 2011, fame: 3, lo: 74, hi: 84, bio: "Volante brasileiro de marcação e regularidade — mais de dez anos de Liverpool e uma segunda casa na Lazio." },
   { name: "Ever Banega", club: "Sevilla", year: 2019, fame: 3, lo: 78, hi: 85, bio: "Meia argentino de passe refinado — cérebro do Sevilla multicampeão da Europa League, canhota precisa e visão de jogo. Antes, ídolo do Valencia." },
-  { name: "De Rossi", club: "Roma", year: 2010, fame: 4, lo: 82, hi: 89, bio: "Volante-capitão da Roma por quase 20 anos — símbolo de raça e liderança, passe de primeira e campeão do mundo em 2006 com a Itália." }
+  { name: "De Rossi", club: "Roma", year: 2010, fame: 4, lo: 82, hi: 89, bio: "Volante-capitão da Roma por quase 20 anos — símbolo de raça e liderança, passe de primeira e campeão do mundo em 2006 com a Itália." },
+  { name: "Andrés Guardado", club: "PSV", year: 2016, fame: 3, lo: 76, hi: 84, bio: "'El Principito' — canhota educada, 6 Copas do México no currículo (recorde de resenha)." },
+  { name: "Frenkie de Jong", club: "Barcelona", year: 2022, fame: 3, lo: 78, hi: 86, bio: "Saída de bola hipnótica — atravessa a pressão driblando como quem passeia de bicicleta em Amsterdã." },
+  { name: "Álvaro Recoba", club: "Inter", year: 1999, fame: 4, lo: 81, hi: 89, folk: true, bio: "'El Chino' — a canhota mais açucarada da Inter: gol de 40 metros era rotina, correr é que era opcional." },
+  { name: "Walter Gargano", club: "Napoli", year: 2011, fame: 2, lo: 66, hi: 81, bio: "Volante-formiga do Napoli — 1,68m de pura mordida no tornozelo alheio." },
+  { name: "Matías Fernández", club: "Villarreal", year: 2007, fame: 3, lo: 77, hi: 85, bio: "'Matigol' — melhor da América em 2006, canhota de falta que fez o Villarreal apostar alto." },
+  { name: "Jan Ceulemans", club: "Brugge", year: 1986, fame: 3, lo: 78, hi: 86, bio: "O capitão da Bélgica de 86 (4º lugar na Copa) — recusou o Milan pra ficar em Brugge, lenda local." },
+  { name: "Enzo Scifo", club: "Anderlecht", year: 1990, fame: 3, lo: 78, hi: 86, bio: "'O Mozart belga' — meia clássico de passe fino, 4 Copas do Mundo no currículo." },
+  { name: "Axel Witsel", club: "Dortmund", year: 2018, fame: 2, lo: 68, hi: 82, bio: "Black power inconfundível — volante elegante da geração de ouro belga." },
+  { name: "Claudio Reyna", club: "Rangers", year: 2000, fame: 2, lo: 66, hi: 81, bio: "Capitão América original — meia cerebral que abriu portas na Europa." },
+  { name: "Ki Sung-yueng", club: "Swansea", year: 2015, fame: 2, lo: 66, hi: 81, bio: "Maestro coreano do país de Gales — passe limpo e pênalti garantido." },
 ]
 const ATA_EU: C[] = [
   { name: "Berbatov", club: "Manchester United", year: 2011, fame: 4, lo: 82, hi: 91, bio: "Atacante búlgaro de classe e categoria — toque refinado e Chuteira de Ouro da Premier em 2011 pelo Manchester United. Também brilhou no Tottenham." },
@@ -1559,7 +1601,14 @@ const ATA_EU: C[] = [
   { name: "Hakim Ziyech", club: "Ajax", year: 2019, fame: 3, lo: 78, hi: 85, bio: "Meia-atacante marroquino canhoto de passe e chute venenosos — cérebro criativo do Ajax semifinalista da Champions de 2019." },
   { name: "Benni McCarthy", club: "Porto", year: 2004, fame: 3, lo: 76, hi: 84, bio: "Centroavante sul-africano matador — herói do Porto de Mourinho campeão da Champions de 2004, com os gols que eliminaram o United." },
   { name: "Liedson", club: "Sporting", year: 2008, fame: 3, lo: 68, hi: 86, bio: "‘O Levita’ — goleador brasileiro que virou ídolo e artilheiro histórico do Sporting, faro de gol afiado que ainda o levou à Seleção." },
-  { name: "Diogo Jota", club: "Liverpool", year: 2022, fame: 4, lo: 80, hi: 88, bio: "Atacante português clínico do Liverpool — finalizador frio e campeão inglês, titular de Portugal. Faleceu tragicamente em 2025; o Liverpool aposentou sua camisa 20 em homenagem." }
+  { name: "Diogo Jota", club: "Liverpool", year: 2022, fame: 4, lo: 80, hi: 88, bio: "Atacante português clínico do Liverpool — finalizador frio e campeão inglês, titular de Portugal. Faleceu tragicamente em 2025; o Liverpool aposentou sua camisa 20 em homenagem." },
+  { name: "Marcelo Salas", club: "Lazio", year: 1999, fame: 4, lo: 81, hi: 89, bio: "'El Matador' — matava no peito e fuzilava: o gol de peito-e-voleio contra a Inglaterra é poesia." },
+  { name: "Romelu Lukaku", club: "Inter", year: 2020, fame: 4, lo: 80, hi: 88, bio: "Touro belga do scudetto da Inter — força bruta com faro fino: maior artilheiro da história da seleção." },
+  { name: "Christian Pulisic", club: "Chelsea", year: 2021, fame: 3, lo: 76, hi: 85, bio: "'Captain America' — campeão da Champions com a bandeira dos EUA nas costas." },
+  { name: "Clint Dempsey", club: "Fulham", year: 2012, fame: 3, lo: 76, hi: 85, folk: true, bio: "'Deuce' — o texano folgado que fazia gol de calcanhar na Premier e rimava rap nas horas vagas." },
+  { name: "Cha Bum-kun", club: "Leverkusen", year: 1985, fame: 4, lo: 81, hi: 89, bio: "'Cha Boom' — o pai do futebol coreano: 98 gols na Bundesliga e chute que arrancava rede." },
+  { name: "Ahn Jung-hwan", club: "Perugia", year: 2002, fame: 3, lo: 76, hi: 85, folk: true, bio: "Fez o gol que eliminou a Itália na Copa de 2002… e foi DEMITIDO do Perugia por isso. Lenda do caos." },
+  { name: "Hwang Hee-chan", club: "Wolves", year: 2023, fame: 2, lo: 66, hi: 82, bio: "'Hwangso' (o touro) — correria incansável e gols de oportunista na Premier." },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
 
@@ -1596,6 +1645,8 @@ const GOL_WORLD: C[] = [
   { name: "Essam El-Hadary", club: "Al Ahly", year: 2008, fame: 3, lo: 76, hi: 84, bio: "Lenda egípcia e o jogador mais velho a atuar numa Copa do Mundo, aos 45 anos. Muralha multicampeã africana pelo Al Ahly." },
   { name: "Nery Pumpido", club: "River Plate", year: 1986, fame: 3, lo: 76, hi: 84, bio: "Goleiro campeão do mundo com a Argentina em 1986, titular na campanha do México." },
   { name: "Tony Meola", club: "MetroStars", year: 1994, fame: 2, lo: 66, hi: 80 },
+  { name: "Memo Ochoa", club: "América", year: 2014, fame: 3, lo: 77, hi: 86, folk: true, bio: "O homem que parou o Brasil sozinho na Copa de 2014 — nas Copas vira paredão: 5 mundiais de milagres." },
+  { name: "Johnny Herrera", club: "U. de Chile", year: 2011, fame: 2, lo: 66, hi: 82, bio: "Ídolo-goleiro da U tricampeã — personalidade do tamanho do Estádio Nacional." },
 ]
 const LAT_WORLD: C[] = [
   { name: "Silvio Marzolini", club: "Boca Juniors", year: 1965, fame: 4, lo: 82, hi: 88, bio: "O lateral-esquerdo mais elegante da história argentina — ídolo eterno do Boca, técnica e classe de sobra na marcação e no apoio." },
@@ -1605,6 +1656,7 @@ const LAT_WORLD: C[] = [
   { name: "Jeff Agoos", club: "DC United", year: 1999, fame: 1, lo: 55, hi: 76 },
   { name: "Mario Méndez", club: "Monterrey", year: 2002, fame: 1, lo: 55, hi: 76 },
   { name: "Joel Sánchez", club: "Necaxa", year: 1998, fame: 1, lo: 55, hi: 74 },
+  { name: "Song Chong-gug", club: "Suwon", year: 2002, fame: 2, lo: 64, hi: 80, bio: "Lateral-direito herói da campanha coreana de 2002 — fôlego infinito diante do país inteiro." },
 ]
 const ZAG_WORLD: C[] = [
   { name: "Andrés Escobar", club: "Atlético Nacional", year: 1991, fame: 4, lo: 82, hi: 88, bio: "'El Caballero del fútbol' — zagueiro elegante e ídolo do Nacional, primeiro colombiano campeão da Libertadores. Assassinado dias após um gol contra na Copa de 1994, virou símbolo trágico do futebol." },
@@ -1636,6 +1688,8 @@ const MEI_WORLD: C[] = [
   { name: "Benjamín Galindo", club: "Cruz Azul", year: 1994, fame: 2, lo: 66, hi: 82 },
   { name: "Luis Flores", club: "Pumas", year: 1986, fame: 2, lo: 64, hi: 81 },
   { name: "Diego Cagna", club: "Boca Juniors", year: 2001, fame: 2, lo: 66, hi: 82 },
+  { name: "Egidio Arévalo Ríos", club: "Tigres", year: 2011, fame: 2, lo: 66, hi: 81, bio: "'El Cacha' — o trator de marcação da Celeste campeã da América de 2011." },
+  { name: "Gerardo Torrado", club: "Cruz Azul", year: 2008, fame: 2, lo: 66, hi: 81, bio: "O Borrego — volante-xerife do Cruz Azul e da seleção mexicana, barba e carrinho sempre em dia." },
 ]
 const ATA_WORLD: C[] = [
   { name: "Majed Abdullah", club: "Al-Nassr", year: 1984, fame: 4, lo: 82, hi: 89, bio: "'O Pelé árabe' — o maior ídolo do futebol saudita, artilheiro lendário do Al-Nassr e da seleção por quase 20 anos." },
