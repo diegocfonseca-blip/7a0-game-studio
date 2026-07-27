@@ -54,6 +54,30 @@ Listas completas por país × posição: gerar de novo com scratchpad/cartas.txt
   Copa (recomendado; ídolos prontos) ou linha dura só BR+EU (aí Valderrama vira
   carta EU/Montpellier e Blanco/Bochini etc. ficam de fora).
 
+## ✅ PASSO 1 FEITO (27/07): país etiquetado nas 1032 cartas
+- `src/escalacao/paises.ts` — mapa `PAIS` (nome → seleção), `paisDe(nome, baralho)`
+  e `rankingSelecoes()`. Baralho BR sem etiqueta = Brasil por padrão; EU/MUNDO
+  100% etiquetados. Exceções por baralho (`PAIS_POR_BARALHO`): Pepe (Santos=BR ·
+  Real=Portugal) e Pedro (Fla=BR · Barça/Chelsea=Espanha).
+- Regra aplicada: país = seleção que DEFENDEU (Deco/Liedson→Portugal, Diego
+  Costa/Laporte→Espanha, Amauri→Itália, Zague→México).
+- ⚠️ O arquivo ainda NÃO é importado pelo jogo — zero risco. Verificação:
+  `scratchpad/checa-paises.mjs` + `paises-pos.mjs` (rodar após toda carta nova).
+
+## 🌍 RANKING OFICIAL (27/07, decisão do Diego: nº de cartas = posição)
+1 Brasil 510 · 2 Argentina 63 · 3 França 43 · 4 Espanha 41 · 5 Inglaterra 37 ·
+6 Itália 31 · 7 Alemanha 30 · 8 Holanda 29 · 9 Portugal 27 · 10 México 23 ·
+11 Colômbia 22 · 12 Uruguai 20 · 13 Chile 16 · 14 Bélgica 15 · 15 EUA 13 ·
+16 Coreia do Sul 12 · (17 Paraguai 8, primeiro da fila)
+
+## 🕳️ BURACOS pra fechar formação em dobro (2G·4L·4Z·6M·4A) — próximas cartas
+- México 1 ZAG · Colômbia 1 LAT · Uruguai 1 LAT + 1 MEI · Chile 2 LAT + 2 MEI ·
+- Bélgica 2 LAT + 1 ZAG + 2 ATA · EUA 1 LAT + 2 ZAG + 5 MEI ·
+- Coreia 2 GOL (nem goleiro tem! Lee Woon-jae…) + 2 LAT + 1 ZAG + 3 MEI
+- ≈ 29 cartas pra formação + chegar TODAS a 22 no total ≈ 36 cartas novas.
+- Fluxo aprovado: botão dourado "🌍 DISPUTAR A COPA" na tela novo leilão/mesmo
+  time a cada 10 temporadas + notícia-hype 1 temporada antes + trava "só campeões".
+
 ## Decisões já tomadas (ver docs/pendencias.md item Copa do Mundo)
 - Leilão cego é dos PAÍSES; convocação dos 11 é grátis; prêmio = status
   (carta dourada + estrela mundial permanente); a cada 10 temporadas; só
