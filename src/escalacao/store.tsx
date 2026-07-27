@@ -2221,6 +2221,10 @@ export function reducer(state: EscState, action: Action): EscState {
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      // 🛟 flag do leilão de RESERVAS (carreira) não pode vazar pro jogo novo: quem
+      // saía de uma carreira NO MEIO do leilão de reservas e abria um jogo novo via
+      // o pregão nascer com BANCO e mirando 22 (bug "tá com reservas no rápido?!").
+      s.reserveAuction = false; s.reserveListed = {}
       s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — jogo novo não herda a Copa de uma sessão anterior
       s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
       s.tactics = {}; s.careerTactics = {}; s.careerLineup = {}; s.seasonVotes = {}
@@ -2342,6 +2346,10 @@ export function reducer(state: EscState, action: Action): EscState {
       dealBotSquads(s.managers, onlinePlans, rng, onlineUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      // 🛟 flag do leilão de RESERVAS (carreira) não pode vazar pro jogo novo: quem
+      // saía de uma carreira NO MEIO do leilão de reservas e abria um jogo novo via
+      // o pregão nascer com BANCO e mirando 22 (bug "tá com reservas no rápido?!").
+      s.reserveAuction = false; s.reserveListed = {}
       s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — jogo novo não herda a Copa de uma sessão anterior
       s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
       s.tactics = {}; s.careerTactics = {}
