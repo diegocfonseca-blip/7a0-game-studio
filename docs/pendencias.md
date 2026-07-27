@@ -14,9 +14,10 @@
 
 ## 🏀 BidLegends
 - Conceito completo: `docs/conceito-basquete.md` (pirâmide, 82 jogos, conferências, elenco 15, domínio bidlegendsarena.com).
-- **Fase 1 — FEITA na branch `claude/bidlegends-fase-1-7vtrzu` (aguardando OK visual do Diego pra fundir na main):**
-  - `src/escalacao/sport.ts` — detecção de esporte (hostname + override `?sport=` de teste) e **trava por conta**: basquete SÓ aparece pra `diego.c.fonseca@gmail.com` (regra nova do Diego 26/07: nada de basquete visível pra ninguém ainda). Pra todo o resto o app é idêntico ao futebol de hoje.
+- **Fase 1 — ✅ NO AR (fundida na main 26/07, aprovada pelo Diego):**
+  - `src/escalacao/sport.ts` — detecção de esporte (hostname + override `?sport=` de teste) e **trava por conta**: basquete SÓ aparece pra `diego.c.fonseca@gmail.com` (regra do Diego 26/07: nada de basquete visível pra ninguém ainda). Pra todo o resto o app é idêntico ao futebol de hoje.
   - Seletor ⚽/🏀 no topo da home (só pro Diego) + home do BidLegends "chegando" (mesma cara, conteúdo de basquete) em `screens.tsx` (`SportTabs`, `BidLegendsHome`). Título da aba vira "BidLegends" só pra ele.
   - 🌐 **Bilíngue BR/EN**: `src/escalacao/lang.ts` (`useT()`) + botão `LangToggle` no canto direito do header do BidLegends. TODO texto novo do basquete daqui pra frente NASCE em PT+EN. Futebol NÃO se traduz.
-  - **Visual APROVADO pelo Diego (26/07).** Falta só: OK pra fundir na main (deploy) — não subir sem ele pedir.
-- **DNS do bidlegendsarena.com**: registrado, falta configurar. Host = GitHub Pages, que serve 1 domínio custom só (hoje leilaolegends.com via CNAME) → 2º domínio direto no Pages redireciona pro principal. Caminho limpo p/ dividir por hostname = Cloudflare grátis na frente (Fase 2+). Pra Fase 1 NÃO precisa do domínio: a trava é por conta, o Diego testa logado no leilaolegends.com. Falta: onde o Diego registrou o domínio (registrar).
+- **Baralho NBA — Lote 1 (`src/escalacao/data-basquete.ts`):** 54 cartas, 5 posições (PG/SG/SF/PF/C), bio bilíngue PT+EN, mistura de tiers + folclóricos (Jeremy Lin, JR Smith, Rodman, Mutombo, Boban…). Formato espelha o `data.ts` do futebol (motor pluga direto). Prévia: artifact "Prévia — Baralho NBA (Lote 1)".
+  - **Falta (próximos lotes):** chegar em ~150-200 cartas (30-40 por posição) — hoje ~10-11 por posição. Ainda NÃO ligado a nenhuma tela do app (é só dados/fundação).
+- **DNS do bidlegendsarena.com**: registrado na **Hostinger**, falta configurar. Host = GitHub Pages, que serve 1 domínio custom só (hoje leilaolegends.com via CNAME) → 2º domínio direto no Pages redireciona pro principal. Caminho limpo p/ dividir por hostname = Cloudflare grátis na frente (Fase 2+). Pra Fase 1 NÃO precisa do domínio: a trava é por conta, o Diego testa logado no leilaolegends.com.
