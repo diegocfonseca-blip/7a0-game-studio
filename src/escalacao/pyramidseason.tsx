@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, oldChain } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue } from './store'
+import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount } from './store'
 import { empresarioIncome, empCat, EMP_ORDER, EMP_META } from './estadiodata'
 import type { EmpCat, StadiumSave } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -1852,7 +1852,8 @@ export function PyramidSeasonScreen() {
   // reais (fica destravado mesmo se depois cair de 22). Só marca o selo — a trava
   // por-posição segue valendo em cada troca.
   const meMgr = state.managers[state.youIdx]
-  const realCount = meMgr?.squad.filter(c => !c.fake).length ?? 0
+  // conta o que é DELE: elenco real + os dele emprestados na SAF (ownedRealCount)
+  const realCount = meMgr ? ownedRealCount(state, meMgr) : 0
   useEffect(() => {
     if (state.careerOnline && meMgr && !meMgr.formUnlocked && realCount >= 22) dispatch({ type: 'FORMATION_UNLOCK', mgrId: youId })
   }, [state.careerOnline, meMgr?.formUnlocked, realCount, youId, dispatch])

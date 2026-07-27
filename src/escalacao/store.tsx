@@ -928,6 +928,15 @@ function myCareerDiv(s: EscState): string {
 }
 // normaliza empréstimo pra lista (saves antigos gravavam 1 jogador só, não array)
 const loanList = (x: unknown): WonCard[] => Array.isArray(x) ? x as WonCard[] : x ? [x as WonCard] : []
+// 🎽 quantos jogadores REALMENTE SÃO DELE: elenco real (sem fake e sem os que ele
+// só pegou emprestado DA SAF) + os DELE que estão emprestados NA SAF (saíram do
+// squad mas continuam sendo dele). Usado no destrave da troca de formação — sem
+// contar o loanOut, quem tinha 22 e emprestou 1 ficava "com 21" e nunca destravava.
+export function ownedRealCount(s: EscState, m: Manager): number {
+  const own = m.squad.filter(c => !c.fake && c.emprestado !== 'saf').length
+  const f = s.onlineMode === 'online' ? s.careerFilials?.[m.id] : s.careerFilial
+  return own + loanList(f?.loanOut).length
+}
 
 // ── 🏢 GRUPO EMPRESARIAL (teste): comissão do DONO sobre a campanha da filial —
 // 50% dos prêmios de título/acesso (e 50% do prejuízo na queda). NÃO inclui
@@ -3016,8 +3025,9 @@ export function reducer(state: EscState, action: Action): EscState {
       const m = s.managers.find(x => x.id === mid && x.isHuman)
       if (!m || m.formation === action.formation) return s
       const real = m.squad.filter(c => !c.fake)
-      if (!m.formUnlocked && real.length < 22) return s // trava: ainda não destravou (nunca completou 22)
-      if (real.length >= 22) m.formUnlocked = true // destrava de vez ao ter 22
+      const owned = ownedRealCount(s, m) // conta também os DELE emprestados na SAF
+      if (!m.formUnlocked && owned < 22) return s // trava: ainda não destravou (nunca completou 22)
+      if (owned >= 22) m.formUnlocked = true // destrava de vez ao ter 22
       const need = FORMATIONS[action.formation]
       for (const pos of SECTORS) if (real.filter(c => c.pos === pos && !c.emprestado).length < need[pos]) return s // falta jogador na posição
       m.formation = action.formation
@@ -3033,7 +3043,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const mid = action.mgrId ?? s.managers[s.youIdx]?.id
       const m = s.managers.find(x => x.id === mid && x.isHuman)
       if (!m || m.formUnlocked) return s
-      if (m.squad.filter(c => !c.fake).length < 22) return s
+      if (ownedRealCount(s, m) < 22) return s // conta também os DELE emprestados na SAF
       m.formUnlocked = true
       return s
     }
