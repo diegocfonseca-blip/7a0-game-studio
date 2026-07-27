@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { useEsc } from './store'
 import { AdminButton, useCanCareerOnline } from './admin'
 import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout } from './apoio'
+import { isMuted } from './sound'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { DIVISION_TEAMS } from './data'
@@ -478,13 +479,18 @@ export function EscLobby() {
   const playSfx = useCallback((fromName: string) => {
     if (sfxPlayingRef.current) return // um som por vez na sala
     sfxPlayingRef.current = true
-    try {
-      const a = new Audio(`${import.meta.env.BASE_URL}sfx/posso-te-ligar.mp3`)
-      a.onended = () => { sfxPlayingRef.current = false }
-      a.onerror = () => { sfxPlayingRef.current = false }
-      a.play().catch(() => { sfxPlayingRef.current = false }) // autoplay bloqueado: falha em silêncio
-    } catch { sfxPlayingRef.current = false }
-    window.setTimeout(() => { sfxPlayingRef.current = false }, 9000) // trava de segurança
+    // 🔇 respeita o MUDO do jogo (o alto-falante do canto): quem silenciou vê o
+    // balão da zoeira, mas não ouve nada. A trava de "um por vez" segue igual
+    // pra manter o ritmo da sala sincronizado.
+    if (!isMuted()) {
+      try {
+        const a = new Audio(`${import.meta.env.BASE_URL}sfx/posso-te-ligar.mp3`)
+        a.onended = () => { sfxPlayingRef.current = false }
+        a.onerror = () => { sfxPlayingRef.current = false }
+        a.play().catch(() => { sfxPlayingRef.current = false }) // autoplay bloqueado: falha em silêncio
+      } catch { sfxPlayingRef.current = false }
+    }
+    window.setTimeout(() => { sfxPlayingRef.current = false }, 9000) // trava de segurança (e janela do mudo)
     addLobbyFloat({ id: Math.random().toString(36).slice(2), emoji: '📞', text: 'mandou: "Posso te ligar agora?" 🔊', name: fromName, x: 14 + Math.random() * 62 })
   }, [addLobbyFloat])
   const sendSfx = () => {
