@@ -811,11 +811,62 @@ function Campinho({ m, small = false, bench = false, title }: { m: Manager; smal
 // campinho(s) do SEU time no fluxo do leilão. No leilão de RESERVAS mostra dois
 // campinhos empilhados: o banco (o que está sendo montado agora) na frente e os
 // titulares logo abaixo. Fora do leilão de reservas, só o time único.
+// 🏀 QUADRA DO BIDLEGENDS (aprovada pelo Diego 27/07): meia-quadra de madeira,
+// garrafão laranja, logo no centro. Substitui o campinho SÓ no basquete — o
+// campinho do futebol não muda em nada. As 5 posições sentam nos 5 setores do
+// motor (PG→GOL · SG→LAT · SF→ZAG · PF→MEI · C→ATA); o rótulo sai via posTag.
+function NbaCourt({ m }: { m: Manager }) {
+  const t = useT()
+  const SPOTS: { pos: Sector; x: number; y: number }[] = [
+    { pos: 'ATA', x: 62, y: 22 }, // C · pivô (cesta)
+    { pos: 'MEI', x: 38, y: 22 }, // PF · ala-pivô
+    { pos: 'ZAG', x: 19, y: 50 }, // SF · ala
+    { pos: 'LAT', x: 81, y: 50 }, // SG · ala-armador
+    { pos: 'GOL', x: 50, y: 84 }, // PG · armador
+  ]
+  const surname = (n: string) => n.replace(/\s*\(.*?\)\s*/g, ' ').trim().split(' ').pop() || n
+  const isProm = (c: Card) => c.promessa ?? PROMESSA_SET.has(c.name)
+  const tierOf = (c: Card) => (isProm(c) ? PROMESSA_TIER : (FAME_TIER[c.fame] ?? FAME_TIER[1]))
+  const tierEmoji = (c: Card) => (isProm(c) ? '💎' : c.fame >= 5 ? '👑' : c.fame === 4 ? '⭐' : c.fame === 1 ? '🪵' : '🎯')
+  return (
+    <div className="relative w-full mx-auto" style={{ maxWidth: 320, aspectRatio: '1 / 1.18', border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, background: 'linear-gradient(180deg,#E7BE85,#DFB074 55%,#D7A566)' }}>
+      <svg viewBox="0 0 100 118" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+        <rect x="37" y="3" width="26" height="40" fill="#E8703A" fillOpacity="0.92" />
+        <g fill="none" stroke="rgba(20,12,4,.55)" strokeWidth="1.1">
+          <rect x="3" y="3" width="94" height="112" rx="3" />
+          <rect x="37" y="3" width="26" height="40" />
+          <circle cx="50" cy="43" r="12" />
+          <path d="M14 3 L14 26 A 36 36 0 0 0 86 26 L86 3" />
+          <path d="M30 115 A 20 20 0 0 1 70 115" />
+        </g>
+        <line x1="42" y1="7" x2="58" y2="7" stroke="rgba(20,12,4,.7)" strokeWidth="1.8" />
+        <circle cx="50" cy="10" r="2.6" fill="none" stroke="#C2452F" strokeWidth="1.6" />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(90deg,rgba(120,72,20,.16) 0 1.5px,transparent 1.5px 26px)', opacity: .7 }} />
+      <div style={{ position: 'absolute', left: '50%', top: '56%', transform: 'translate(-50%,-50%)', width: 118, height: 118, borderRadius: 999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: '3px solid rgba(12,12,12,.45)', background: 'rgba(232,112,58,.13)', opacity: .9 }}>
+        <span style={{ ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: 15, lineHeight: .92, color: 'rgba(12,12,12,.8)' }}>Bid<br />Legends</span>
+        <span style={{ fontSize: 20, marginTop: 2 }}>🏀</span>
+      </div>
+      {SPOTS.map(({ pos, x, y }) => {
+        const c = m.squad.find(cc => cc.pos === pos && !cc.fake)
+        const tt = c ? tierOf(c) : null
+        return (
+          <div key={pos} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%,-50%)', width: 82, textAlign: 'center', zIndex: 3 }}>
+            <div style={{ border: `3px solid ${INK}`, borderRadius: 11, boxShadow: c ? `2px 3px 0 0 ${INK}` : 'none', padding: '5px 4px 6px', background: c && tt ? tt.grad : 'rgba(255,255,255,.35)', borderStyle: c ? 'solid' : 'dashed' }}>
+              <span style={{ ...OSWALD, display: 'inline-block', fontWeight: 900, fontSize: 10, background: c ? INK : 'rgba(0,0,0,.55)', color: '#fff', borderRadius: 6, padding: '1px 7px', marginBottom: 3 }}>{posTag(pos)}</span>
+              {c && tt
+                ? <><div style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, lineHeight: 1, color: tt.ink }}>{surname(c.name)}</div><div style={{ fontSize: 11, marginTop: 1 }}>{tierEmoji(c)}</div></>
+                : <div style={{ ...OSWALD, fontWeight: 800, fontSize: 11, color: 'rgba(12,12,12,.7)' }}>{t('Vazio', 'Empty')}</div>}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function YourPitch({ small = false }: { small?: boolean }) {
   const { state } = useEsc()
-  // 🏀 basquete: o campinho de futebol não faz sentido. Fica escondido por ora —
-  // a QUADRA (visual novo) entra depois, com mockup aprovado pelo Diego.
-  if (state.sport === 'basquete') return null
   const you = state.managers[state.youIdx]
   // SEM SPOILER: durante a revelação, os vencedores já estão decididos por
   // dentro — mas o campinho só mostra a carta DEPOIS que o martelo dela bateu
@@ -839,6 +890,8 @@ function YourPitch({ small = false }: { small?: boolean }) {
     ? new Set((state.revealQueue ?? []).slice(state.phase === 'tiebreak' ? 0 : state.revealIdx + 1).map(it => it.card.id))
     : new Set<string>()
   const shown = pendingIds.size ? { ...you, squad: you.squad.filter(c => !pendingIds.has(c.id)) } : you
+  // 🏀 basquete: a QUADRA no lugar do campinho (mesma lógica anti-spoiler acima).
+  if (state.sport === 'basquete') return <NbaCourt m={shown} />
   if (state.reserveAuction) {
     // "Reservas" só na 2ª temporada (quando se monta o banco); da 3ª em diante é
     // o mercado, então o campinho de baixo é só o "Banco".
