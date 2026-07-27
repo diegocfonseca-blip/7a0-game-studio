@@ -11,7 +11,8 @@
    - Mockup de referência: artifact "Mockup — Painel PRÓXIMO (rápido)" (sessão de 26/07).
 2. (Opcional, oferecido) Brilho ANIMADO (sheen) na faixa do tier nas tabelas — hoje é só o degradê parado.
 3. (Opcional, oferecido) CPU/rivais escolherem a própria formação (4-3-3/4-4-2) na carreira — hoje só humano troca.
-4. 📯 Buzina da Zoeira (sala de espera online) FEITA (2 memes + regras: 30s/pessoa, 1 som por vez, assinatura, mudo). Áudio "faah" na LENDA (pega/vende) FEITO. **Ampliar cardápio**: Diego manda MP3s novos (myinstants) → entram como botões novos. Futuro possível: buzina TAMBÉM dentro do leilão.
+4. 🏆 **COPA DO MUNDO LEGENDS (ideia aprovada em conceito, 27/07 — endgame):** a cada 10 temporadas da carreira, entre temporadas. Desbloqueio: já foi campeão de alguma série. Jogador escolhe uma SELEÇÃO e monta o XI por leilão cego só com cartas daquele país ("Brasil de Neymarzetti"); 16 seleções (amigos + CPU), grupos + mata-mata. Prêmio = status: carta dourada exclusiva + estrela de campeão mundial permanente no nome + mural eterno. Trabalho novo: país em cada carta + tela de convocação (motor reusa leilão/copa). Motivo: veteranos com 100+ temporadas ricos e sem objetivo.
+5. 📯 Buzina da Zoeira (sala de espera online) FEITA (2 memes + regras: 30s/pessoa, 1 som por vez, assinatura, mudo). Áudio "faah" na LENDA (pega/vende) FEITO. **Ampliar cardápio**: Diego manda MP3s novos (myinstants) → entram como botões novos. Futuro possível: buzina TAMBÉM dentro do leilão.
 
 ## 🏀 BidLegends
 - Conceito completo: `docs/conceito-basquete.md` (pirâmide, 82 jogos, conferências, elenco 15, domínio bidlegendsarena.com).
