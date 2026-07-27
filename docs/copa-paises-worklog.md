@@ -27,11 +27,19 @@ Meta por seleção: 22 = formação em dobro (2 GOL · 4 LAT · 4 ZAG · 6-8 MEI
 ### Alemanha (2 LAT: Brehme, Marzel/Schulz) · México (1-2 MEI/ZAG: Márquez já tem; Gio? → Torrado) ·
 ### Portugal (4: Rui Patrício GOL, Nélson Semedo+Guerreiro LAT, José Fonte ZAG) ·
 ### Holanda (4: Cillessen GOL, Krol+Blind LAT, Gullit já cobre MEI/ATA → +De Jong MEI)
-### MÉDIAS (~8-12): Colômbia (James, Ospina, Yepes, Perea, S. Escobar, Rincón…) ·
-### Bélgica (Alderweireld, Meunier, Witsel, Lukaku, Mertens…) · Uruguai (Muslera,
-### Cáceres, Lugano, Recoba, Arévalo Ríos…) · EUA (já tem 8 no WORLD: Dempsey, Bradley…) ·
-### Chile (Bravo, Isla, Medel, Valdivia, Salas…) · Coreia (já tem 5: Cha Bum-kun…)
-### → 16 = as 4 prontas + 6 quase + 6 médias. ~60-70 cartas novas no total.
+### MÉDIAS (corrigido 27/07 — o baralho BR tem MUITOS estrangeiros já contáveis):
+### Colômbia falta ~5 (tem Higuita, Córdoba, Valderrama, James, Rincón, J.Arias,
+###   R.Ríos, Cuadrado, Armero, Asprilla, Borja, Falcao, Aristizábal, Escobar →
+###   faltam: 2 LAT [S.Arias, Mojica], 3 ZAG [Yepes, Perea, Mina]) ·
+### Uruguai falta ~8 (tem Rochet, Lugano, Godín, Giménez, Piquerez, Arrascaeta,
+###   Francescoli, Suárez, Cavani, Forlán, Loco Abreu → faltam Muslera, Cáceres,
+###   M.Pereira, Coates, Recoba, Arévalo, Pérez…) ·
+### Chile ~10 (tem Vidal, A.Sánchez, Zamorano, Caszely, Isla, Valdivia, Aránguiz) ·
+### Bélgica ~10 (Courtois, Kompany, Vertonghen, KDB, Fellaini, Tielemans, Hazard) ·
+### EUA ~6 (8 no WORLD + Howard EU) · Coreia ~10 (Son, Park, Hong, Choi, Lee, Honda é JAP) ·
+### Paraguai ~10 candidata extra (Chilavert, Gatito, Gamarra, G.Gómez, J.Alonso, Arce, Cabañas)
+### → 16 = 4 prontas + 6 quase + 6 médias ≈ **~50-55 cartas novas** no total.
+### ⚠️ LIÇÃO: sempre varrer o baralho BR por estrangeiros antes de listar buracos.
 Listas completas por país × posição: gerar de novo com scratchpad/cartas.txt + eu-names.txt.
 
 ## Decisões já tomadas (ver docs/pendencias.md item Copa do Mundo)
