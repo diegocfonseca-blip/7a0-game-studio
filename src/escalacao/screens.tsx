@@ -172,6 +172,9 @@ const COR_TIERS = [
   { key: 'prata', nome: 'Craque', selo: '⭐', preco: 'R$ 19,90', valor: 19.9, g: ['#F4F7FB', '#CBD4DE', '#9BA7B5'], ink: '#0C0C0C', holo: 0.5 },
   { key: 'ouro',  nome: 'Lenda — ouro OU qualquer cor com brilho', selo: '👑', preco: 'R$ 39,90', valor: 39.9, g: ['#FFE79A', '#FFC400', '#E8A200'], ink: '#0C0C0C', holo: 0.75 },
 ] as const
+// 🖋️ FUNDADOR: os 100 primeiros Lendas. Contador MANUAL — cada Lenda que o Diego
+// confirmar no Instagram, baixar este número aqui (não dá pra contar sozinho).
+const FUNDADOR_VAGAS = 77
 export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { big?: boolean; startScreen?: 'choice' | 'manual'; trigger?: (open: () => void) => React.ReactNode }) {
   const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'dream' | 'batismo' | 'cores' | 'manual'>('off')
   const openApoio = () => { if (startScreen === 'manual') logApoio('👀 abriu: modo manual (trava)'); setScreen(startScreen) }
@@ -233,11 +236,15 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <p className="text-[11px] font-bold text-black/65 mt-1 leading-snug">Escolhe o nome do SEU time e ele entra no campeonato que <b>todo mundo</b> joga. Seu clube, vivo, pra sempre*. <b>E já vem com TUDO do tier Lenda 👑</b> — ouro (ou qualquer cor) com brilho.</p>
           </button>
           <p className="text-[10px] font-bold text-black/45 text-center mt-2">*ou até alguém fazer uma proposta maior pelo clube… aí é cobrir ou chorar 😄</p>
-          {/* 🔒 EM BREVE pra quem apoia — modos premium (SÓ teaser: ainda não entram no jogo) */}
+          {/* 🔒 SÓ NO LENDA — grupo VIP (já vale HOJE) + modos premium (teaser) + fundador */}
           <div className="border-[3px] border-black rounded-xl px-3 py-2.5 mt-3" style={{ background: 'linear-gradient(150deg,#EFE7FF,#E3D6FF)', boxShadow: `4px 4px 0 0 ${INK}` }}>
-            <p className="font-black text-[11px] uppercase tracking-wide" style={{ ...OSWALD, color: '#5B21B6' }}>🔒 Já vem no Lenda 👑 · chegando em breve</p>
-            <p className="text-[11px] font-bold text-black/75 mt-1.5 leading-snug">🌐 <b>Carreira Online</b> — leve seu técnico numa carreira de verdade, temporada após temporada, contra outros humanos.</p>
-            <p className="text-[11px] font-bold text-black/75 mt-1.5 leading-snug">🏆 <b>Liga Fechada</b> — monte uma liga <b>só com amigos, sem nenhum bot</b>: só vocês disputando o título. Com <b>8+ pessoas</b> destrava também a Copa.</p>
+            <p className="font-black text-[11px] uppercase tracking-wide" style={{ ...OSWALD, color: '#5B21B6' }}>🔒 Só pra quem é Lenda 👑</p>
+            <p className="text-[11px] font-bold text-black/75 mt-1.5 leading-snug">📲 <b>Grupo privado no WhatsApp</b> — entra HOJE no grupo fechado com a galera que joga online e com o <b>Diego, criador do jogo</b>: marca partida, monta sala e sabe de tudo primeiro.</p>
+            <p className="text-[11px] font-bold text-black/75 mt-1.5 leading-snug">🌐 <b>Carreira Online</b> e 🏆 <b>Liga Fechada</b> (liga só com amigos, sem bot) — chegando em breve, <b>já garantidas pra você</b>.</p>
+            <div className="border-2 border-black rounded-lg px-2.5 py-2 mt-2" style={{ background: '#0C0C0C' }}>
+              <p className="font-black text-[10.5px]" style={{ ...OSWALD, color: GOLD }}>🖋️ OS 100 PRIMEIROS VIRAM FUNDADORES</p>
+              <p className="text-[10px] font-bold leading-snug mt-0.5" style={{ color: 'rgba(255,255,255,.88)' }}>Selo 🖋️ eterno do lado do nome (<b>Seu Nome 👑🖋️</b>) + nome gravado no mural dos Fundadores. <b style={{ color: '#FF8A75' }}>🔥 restam {FUNDADOR_VAGAS} de 100 vagas.</b></p>
+            </div>
           </div>
           <button onClick={() => window.open('https://instagram.com/leilaolegendscom', '_blank', 'noopener')}
             className="w-full border-[3px] border-black rounded-xl p-2.5 mt-3 active:translate-y-0.5 bg-white">
@@ -323,7 +330,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             style={{ background: APOIO_PERKS.ouro.grad, boxShadow: `4px 4px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.6) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />
             <p className="font-black text-[13px] relative" style={OSWALD}>👑 Lenda · R$ 39,90 <span className="float-right">👉</span></p>
-            <p className="text-[10.5px] font-bold text-black/75 leading-snug relative mt-0.5">Tudo do Craque <b>+ ouro</b> (ou qualquer cor) com brilho e selo, e já garante os modos que vêm aí: <b>Carreira Online</b> e <b>Liga Fechada</b> (chegando).</p>
+            <p className="text-[10.5px] font-bold text-black/75 leading-snug relative mt-0.5">Tudo do Craque <b>+ ouro</b> (ou qualquer cor) com brilho e selo, o <b>📲 grupo privado no WhatsApp</b> com o criador, e já garante <b>Carreira Online</b> e <b>Liga Fechada</b> (chegando). 🖋️ 100 primeiros = <b>FUNDADOR</b>.</p>
           </button>
           <button onClick={() => { logApoio('👀 manual → batismo'); setScreen('dream') }}
             className="w-full text-left rounded-xl border-[3px] border-black px-3 py-2.5 mt-2 active:translate-y-0.5"
@@ -368,7 +375,9 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
                     <span className="font-black text-[13.5px] block" style={OSWALD}>
                       {t.selo && <span style={{ fontSize: t.key === 'ouro' ? 15 : 11, marginRight: 4 }}>{t.selo}</span>}{t.nome}
                     </span>
-                    {t.key === 'prata' && <span className="font-black text-[9px] block" style={{ ...OSWALD, opacity: 0.8 }}>🎮 cor + Modo Manual</span>}
+                    {t.key === 'roxo' && <span className="font-black text-[9px] block" style={{ ...OSWALD, opacity: 0.8 }}>🎨 no nome, elenco e estádio — todos os modos</span>}
+                    {t.key === 'prata' && <span className="font-black text-[9px] block" style={{ ...OSWALD, opacity: 0.8 }}>🎨 cor em todos os modos + 🎮 Modo Manual</span>}
+                    {t.key === 'ouro' && <span className="font-black text-[9px] block" style={{ ...OSWALD, opacity: 0.8 }}>📲 grupo VIP c/ o criador · 🖋️ 100 primeiros = FUNDADOR</span>}
                   </span>
                   <span className="flex items-center gap-1.5 flex-shrink-0 relative">
                     <span className="font-black text-[11px]" style={{ ...OSWALD, color: t.ink, opacity: 0.85 }}>{t.preco}</span>
@@ -427,6 +436,23 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
                             </div>
                           </div>
                         )}
+                        {/* 👑 LENDA: o que só ele tem — grupo VIP no WhatsApp + Fundador (100 primeiros) */}
+                        {t.key === 'ouro' && (
+                          <>
+                            <div className="border-[3px] border-black rounded-xl overflow-hidden mb-2.5" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
+                              <p className="text-[10px] font-black uppercase tracking-wide text-center py-1.5" style={{ background: '#1B7A3D', color: '#fff', ...OSWALD }}>📲 GRUPO PRIVADO NO WHATSAPP</p>
+                              <div style={{ background: '#F4ECD6', padding: 9 }}>
+                                <p className="text-[10.5px] font-bold text-black/70 leading-snug">Grupo fechado com a <b>galera que joga online</b> e com o <b>Diego, criador do jogo</b>: marca partida, monta sala e sabe das novidades antes de todo mundo.</p>
+                                <p className="bg-white border-2 border-black rounded-lg px-2 py-1 mt-1.5 text-[9.5px] font-bold text-black/80">👑 <b style={OSWALD}>Diego (criador):</b> sala aberta AGORA, código 7GK2 — quem vem? 🔨</p>
+                              </div>
+                            </div>
+                            <div className="border-[3px] border-black rounded-xl px-3 py-2.5 mb-2.5" style={{ background: '#0C0C0C', boxShadow: `3px 3px 0 0 ${INK}` }}>
+                              <p className="font-black text-[11px]" style={{ ...OSWALD, color: GOLD }}>🖋️ OS 100 PRIMEIROS VIRAM FUNDADORES</p>
+                              <p className="text-[10px] font-bold leading-snug mt-1" style={{ color: 'rgba(255,255,255,.88)' }}>A caneta de quem <b>assinou a fundação do jogo</b>: selo 🖋️ eterno do lado do 👑 (<b>Seu Nome 👑🖋️</b>) + nome gravado no mural <b>"Fundadores do Leilão Legends"</b>. Depois dos 100, nunca mais.</p>
+                              <span className="inline-block text-[9.5px] font-black rounded-full px-2.5 py-0.5 mt-1.5 border-2" style={{ background: '#E8503A', color: '#fff', borderColor: '#000' }}>🔥 restam {FUNDADOR_VAGAS} de 100 vagas</span>
+                            </div>
+                          </>
+                        )}
                         <div className="mb-2"><PixBox label={`copiar Pix (${t.preco})`} ctx={`cor ${t.key}`} amount={t.valor} /></div>
                         <button onClick={() => { logApoio(`🎨 QUER A COR: ${t.key.toUpperCase()} (${t.preco})`); igMsg(`Opa! Apoiei o Leilão Legends 💛 Quero ${t.key === 'prata' ? 'o CRAQUE ⭐ (cor + Modo Manual)' : `a cor ${t.nome.toUpperCase()}`} — comprovante em anexo!`) }}
                           className="w-full rounded-xl border-[3px] border-black font-black text-[13px] py-2.5 active:translate-y-0.5"
@@ -445,7 +471,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           <div className="border-[3px] border-black rounded-xl px-3 py-2.5 mt-3" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)', boxShadow: `4px 4px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.7) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />
             <p className="font-black text-[12px] relative" style={OSWALD}>👑 O Lenda (R$ 39,90) é mais que cor</p>
-            <p className="text-[10.5px] font-bold text-black/75 mt-1 leading-snug relative">Além do ouro com brilho, já vem com o <b>🎮 Modo Manual</b> e, chegando em breve, a <b>🌐 Carreira Online</b> e a <b>🏆 Liga Fechada</b> (liga só com amigos, sem bot).</p>
+            <p className="text-[10.5px] font-bold text-black/75 mt-1 leading-snug relative">Além do ouro com brilho, já vem com o <b>🎮 Modo Manual</b>, o <b>📲 grupo privado no WhatsApp</b> com o criador do jogo e, chegando em breve, a <b>🌐 Carreira Online</b> e a <b>🏆 Liga Fechada</b>. 🖋️ E os <b>100 primeiros</b> viram <b>FUNDADORES</b> — restam {FUNDADOR_VAGAS} vagas.</p>
           </div>
           <p className="text-[10px] font-bold text-black/45 text-center mt-3">🤫 Nenhum valor aparece pra ninguém, nunca. Só a cor — e a inveja. 😄</p>
         </Modal>
@@ -471,7 +497,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           <div className="border-[3px] border-black rounded-xl px-3 py-2.5 mt-3" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)', boxShadow: `3px 3px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.75) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />
             <p className="font-black text-[12.5px] relative" style={OSWALD}>👑 E JÁ INCLUI TUDO do Lenda</p>
-            <p className="text-[10.5px] font-bold text-black/70 mt-0.5 leading-snug relative">Cor ouro (ou qualquer cor com brilho), selo 👑, o <b>🎮 Modo Manual</b> e — em breve — <b>Carreira Online</b> e <b>Liga Fechada</b>. Tudo <b>seu pra sempre</b>, mais o <b>nome do clube</b> no jogo (esse, só até alguém cobrir a proposta).</p>
+            <p className="text-[10.5px] font-bold text-black/70 mt-0.5 leading-snug relative">Cor ouro (ou qualquer cor com brilho), selo 👑, o <b>🎮 Modo Manual</b>, o <b>📲 grupo privado no WhatsApp</b> com o criador e — em breve — <b>Carreira Online</b> e <b>Liga Fechada</b>. Tudo <b>seu pra sempre</b>, mais o <b>nome do clube</b> no jogo (esse, só até alguém cobrir a proposta).</p>
           </div>
           <button onClick={() => setScreen('batismo')} className="w-full mt-3.5 rounded-xl border-[3px] border-black font-black text-base py-3 active:translate-y-0.5"
             style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
