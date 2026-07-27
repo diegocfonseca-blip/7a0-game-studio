@@ -5150,7 +5150,15 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
                   </div>
                   <span className="font-black text-[13px] text-black flex-1 truncate" style={OSWALD}>{m.teamName}{m.id === youId ? ' (você)' : ''}</span>
                   {hostIdx === m.id && <span className="text-[9px] font-black uppercase bg-yellow-400 border border-black px-1.5 py-0.5 rounded-full shrink-0">👑 HOST</span>}
-                  <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: here ? '#166534' : '#8a8672' }}>{here ? '🟢 na sala' : '🚪 saiu'}</span>
+                  {/* status: saiu · voto de cada um (▶️/🔨) · ainda não votou. Host não vota (decide). */}
+                  {(() => {
+                    if (!here) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#8a8672' }}>🚪 saiu</span>
+                    if (m.id === hostIdx) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#166534' }}>🟢 na sala</span>
+                    const v = votes[m.id]
+                    return v
+                      ? <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#166534' }}>{v === 'mesmo' ? '✅ ▶️ mesmo time' : '✅ 🔨 novo leilão'}</span>
+                      : <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#92600A' }}>⏳ não votou</span>
+                  })()}
                 </div>
               )
             })}
