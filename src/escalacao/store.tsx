@@ -51,19 +51,34 @@ const NBA_TEAMS: { team: string; name: string }[] = [
 // mesmo equilíbrio do futebol, que dá 100 pra 11). Na carreira (10 jogadores)
 // será ~100, como o futebol.
 const NBA_QUICK_BUDGET = 50
+// 💰 orçamento da CARREIRA do basquete (Street League): 100 moedas p/ montar a
+// rotação de 10 (2 por posição) — ~10/jogador, o MESMO equilíbrio do futebol.
+const NBA_CAREER_BUDGET = 100
+// 🛝 times da STREET LEAGUE (a base amadora = streetball): 20 CREWS DE QUADRA DE
+// RUA — NÃO franquias da NBA (essas ficam pro topo da pirâmide, a NBA de verdade).
+// É o espelho da Série D do futebol (times de várzea, não Flamengo/Palmeiras).
+const NBA_STREET_TEAMS: { team: string; name: string }[] = [
+  'Rucker Kings', 'Dyckman Ballers', 'Blacktop Kings', 'Concrete Jungle', 'Asphalt Assassins',
+  'Ankle Breakers', 'Rim Rockers', 'Crossover Kingz', 'Downtown Ballers', 'Cage Fighters',
+  'Uptown Hustlers', 'Halfcourt Heroes', 'Sidewalk Slammers', 'Backboard Bullies', 'And-One Army',
+  'Streetball Souljahs', 'Playground Legends', 'Chain Gang', 'Buckets Crew', 'Venice Ballers',
+].map(t => ({ team: t, name: t }))
 // soma as moedas da temporada (base+título/acesso/queda) na caixa de cada técnico
 function applyRewards(coins: Record<number, number> | undefined, rewards?: Record<number, number>): Record<number, number> {
   const out = { ...(coins ?? {}) }
   for (const id in (rewards ?? {})) out[+id] = (out[+id] ?? 0) + (rewards as Record<number, number>)[+id]
   return out
 }
+// clube-sentinela dos fillers "perna-de-pau" (tampa-buraco, não colecionável, sem
+// salário): 'Várzea' no futebol, 'Pickup' no basquete (Street League). Mesmo papel.
+export const isFillerClub = (club: string): boolean => club === 'Várzea' || club === 'Pickup'
 // 💸 SALÁRIO de um jogador = piso (paid) ÷ 10, arredondado. Incógnita (fake/Várzea)
 // não tem salário. É o MESMO número mostrado no elenco (💰 paid), pra bater certinho.
 export function salaryOfCard(c: WonCard): number {
   // 🏢 EMPRÉSTIMO da SAF (nos dois sentidos) NÃO paga salário: o que você pegou
   // emprestado não é seu, e o que você emprestou já saiu do seu elenco. Incógnita
   // (fake/Várzea) também não tem salário.
-  if (c.fake || c.club === 'Várzea' || c.emprestado) return 0
+  if (c.fake || isFillerClub(c.club) || c.emprestado) return 0
   return Math.round((c.paid ?? 0) / 10)
 }
 export function squadPayroll(squad: WonCard[]): number {
@@ -252,10 +267,15 @@ function shuffle<T>(arr: T[], rng: () => number): T[] {
 // filler de várzea (perna-de-pau): tampa vaga quando não há jogador real. Nível
 // baixo. Usado pra manter os times de fundo em 11 quando perdem e não repõem.
 const FIL_NAMES = ['Perna-de-pau', 'Ferro Velho', 'Pé de Anjo', 'Canela Seca', 'Zé Ninguém', 'Trapalhão', 'Bola Murcha', 'Meia-Boca']
+// 🏀 pernas-de-pau do basquete (só o basquete usa): tijolo puro de quadra de
+// rua. Espelha a várzea do futebol; nunca aparece no futebol (guarda por esporte).
+const FIL_NAMES_NBA = ['Brick', 'Air Ball', 'Turnstile', 'Benchwarmer', 'Water Boy', 'Ball Hog', 'Bricklayer', 'Practice Squad']
 let fillCounter = 0
 function fillerCard(pos: Sector, rng: () => number): WonCard {
   const lo = 30 + Math.floor(rng() * 6)
-  return { id: `fil-s-${fillCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 6 + Math.floor(rng() * 4), paid: 0, via: 'bot' }
+  const nba = ACTIVE_SPORT === 'basquete'
+  const names = nba ? FIL_NAMES_NBA : FIL_NAMES
+  return { id: `fil-s-${fillCounter++}`, name: names[Math.floor(rng() * names.length)], club: nba ? 'Pickup' : 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 6 + Math.floor(rng() * 4), paid: 0, via: 'bot' }
 }
 // completa um elenco de time de fundo até o mínimo da formação (11) com filler,
 // por posição — a rede de segurança pra nunca ficar com menos de 11.
@@ -276,7 +296,7 @@ function fillToEleven(squad: WonCard[], formation: FormationKey, rng: () => numb
 // Auges diferentes do mesmo nome (Kaká Milan x Kaká SP) são jogadores distintos.
 function ownedRealIdents(s: EscState): Set<string> {
   const seen = new Set<string>()
-  const isReal = (c: WonCard) => !c.fake && c.club !== 'Várzea'
+  const isReal = (c: WonCard) => !c.fake && !isFillerClub(c.club)
   for (const m of s.managers) for (const c of m.squad as WonCard[]) if (isReal(c)) seen.add(ident(c))
   if (s.cpuSquads) for (const name of Object.keys(s.cpuSquads)) for (const c of s.cpuSquads[name] as WonCard[]) if (isReal(c)) seen.add(ident(c))
   return seen
@@ -291,7 +311,7 @@ function ownedRealIdents(s: EscState): Set<string> {
 // Várzea) não têm identidade real, então ficam. NÃO cria nem repõe nada: só remove.
 function healCpuSquads(s: EscState) {
   if (!s.cpuSquads) return
-  const isReal = (c: WonCard) => !c.fake && c.club !== 'Várzea'
+  const isReal = (c: WonCard) => !c.fake && !isFillerClub(c.club)
   const owned = new Set<string>()
   for (const m of s.managers) for (const c of m.squad as WonCard[]) if (isReal(c)) owned.add(ident(c))
   const out: Record<string, Card[]> = {}
@@ -522,7 +542,7 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     // baralho fica só com os reais que existem (menos cartas, mas sem "fake").
     const gems = Math.max(1, Math.ceil(managers.length / 3))
     let gi = 0
-    while (!noFake && cards.length < count) { cards.push(makeIncognita(pos, cards.length, gi < gems, rng, bt)); gi++ }
+    while (!noFake && cards.length < count) { cards.push(makeIncognita(pos, cards.length, gi < gems, rng, bt, ACTIVE_SPORT === 'basquete')); gi++ }
     // embaralha a ordem final: as cotas montam o baralho com lenda/craque
     // primeiro, então sem isto os melhores ficariam sempre no topo da tela e
     // dava pra "ler" o nível pela posição — furando o leilão às cegas.
@@ -1618,7 +1638,7 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
     for (const c of picks) used.add(ident(c))
     let gi = 0
     while (picks.length < need) {
-      picks.push(makeIncognita(pos, squad.length + picks.length, tier === 'strong' && gi < 1, rng))
+      picks.push(makeIncognita(pos, squad.length + picks.length, tier === 'strong' && gi < 1, rng, '', ACTIVE_SPORT === 'basquete'))
       gi++
     }
     for (const c of picks) squad.push({ ...c, id: `bot-${pos}-${squad.length}-${Math.floor(rng() * 1e6)}`, pos, paid: 0, via: 'bot' })
@@ -1729,6 +1749,7 @@ type Action =
   | { type: 'GO_RANKING' }
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both'; copaMode?: 'liga' | 'liga_copa'; intro?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number } // 🏀 jogo rápido do basquete (mesmo motor)
+  | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both'; intro?: boolean } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
@@ -2304,6 +2325,39 @@ export function reducer(state: EscState, action: Action): EscState {
       // quinteto); 50 dá ~10/jogador, o MESMO equilíbrio do futebol (100 pra 11).
       // Com 100 dava 20/jogador e dava pra pagar caro em todo mundo — inflava.
       for (const m of s.managers) m.money = NBA_QUICK_BUDGET
+      s.dinastia = false; s.dinastiaBudget = undefined
+      const used = new Set<string>()
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+      s.surpriseId = pickSurprise(s.deck, rng)
+      dealBotSquads(s.managers, botPlans, rng, used)
+      for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
+      s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      s.tactics = {}; s.seasonNo = 1
+      s.screen = 'auction'
+      startAuctionPhase(s, false)
+      return s
+    }
+    // 🛝 STREET LEAGUE — a BASE da carreira do basquete. MESMO motor/telas do
+    // futebol e do rápido do basquete; a diferença é só a ROTAÇÃO de 10 (2 por
+    // posição, igual ao lateral do futebol) e a liga cheia de 20 times, pontos
+    // corridos. O futebol não passa por aqui. (Salvar/subir de liga = próximo passo.)
+    case 'START_NBA_CAREER': {
+      s.seed = Math.floor(Math.random() * 1e9)
+      const rng = mulberry(s.seed)
+      s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
+      s.careerOnline = false; s.careerLedger = []
+      s.reserveAuction = false; s.reserveListed = {}
+      s.sport = 'basquete'
+      setActiveSport('basquete', 'career') // baralho NBA + 2 vagas por posição (rotação de 10)
+      s.deckLeague = 'br'
+      s.careerDivision = null; s.careerIntent = false; s.careerTitles = 0; s.careerTitlesA = 0
+      s.copaMode = 'liga' // Street League: só pontos corridos (sem copa por enquanto)
+      const rivals = NBA_STREET_TEAMS.length - 1 // liga cheia: você + 19 rivais = 20 times
+      s.careerRivalCount = rivals; s.careerRivals = []
+      s.cpuAtkAdj = 0; s.cpuDefAdj = 0
+      const { managers, botPlans } = makeManagers([action.teamName || 'Meu Time'], '4-3-3', rivals, rivals + 1, rng, NBA_STREET_TEAMS)
+      s.managers = managers; s.youIdx = 0
+      for (const m of s.managers) m.money = NBA_CAREER_BUDGET
       s.dinastia = false; s.dinastiaBudget = undefined
       const used = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)

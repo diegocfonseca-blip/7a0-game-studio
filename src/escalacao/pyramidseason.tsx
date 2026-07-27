@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, oldChain } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount } from './store'
+import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub } from './store'
 import { empresarioIncome, empCat, EMP_ORDER, EMP_META } from './estadiodata'
 import type { EmpCat, StadiumSave } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -640,7 +640,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
   const saiu = thisSeason.filter(e => e.amount < 0).reduce((a, e) => a - e.amount, 0)
   // transferências
   const vendidos = rev.filter(e => e.kind === 'sell')
-  const noElenco = squad.filter(c => !c.fake && c.club !== 'Várzea' && !c.emprestado && (c.buyPrice != null || c.paid != null))
+  const noElenco = squad.filter(c => !c.fake && !isFillerClub(c.club) && !c.emprestado && (c.buyPrice != null || c.paid != null))
   const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? '🏆 Prêmios da temporada' : k === 'gate' ? '🎟️ Bilheteria' : k === 'salary' ? '💸 Folha salarial' : k === 'saf' ? '🏢 Prêmios da SAF' : k === 'stadium' ? '🏟️ Obra no estádio' : k === 'safbuy' ? '🏢 Compra da SAF' : k === 'safsell' ? '🏢 Venda da SAF' : k === 'empresario' ? '💼 Renda do Empresário' : k === 'opening' ? '🏁 Saldo inicial' : ''
   return (
     <>

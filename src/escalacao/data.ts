@@ -1671,13 +1671,24 @@ const INC_FIRST = ['Valdir', 'Josimar', 'Cleiton', 'Ednaldo', 'Wanderson', 'Gon�
 const INC_NICK = ['da Ilha', 'Perna Torta', 'Bola Sete', 'do Sertão', 'Trovoada', 'Canela Fina', 'Pé de Ferro', 'Maestro', 'Furacão', 'da Baixada', 'Gaúcho', 'Paraíba', 'Matuto', 'Serrano', 'do Brejo', 'Cigano', 'Foguete', 'Peixe Frito', 'da Várzea', 'Bicudo']
 const INC_CLUBS = ['Operário', 'Treze', 'Caldense', 'Ypiranga', 'Ferroviário', 'Uberlândia', 'Anapolina', 'Itabaiana', 'River-PI', 'Sergipe', 'Central-PE', 'Mixto', 'Rio Branco', 'Olaria', 'Bangu', 'Portuguesa', 'Inter de Limeira', 'União São João', 'Tuna Luso', 'XV de Piracicaba']
 
-export function makeIncognita(pos: Sector, idx: number, gem: boolean, rng: () => number, salt = ''): Card {
+// 🏀 versão STREETBALL das incógnitas (só o basquete usa): lendas de quadra de
+// rua, jogadas em praças FAMOSAS de verdade (Rucker Park, Venice Beach…). É o
+// espelho da várzea do futebol — o desconhecido em que você aposta às cegas na
+// base (Street League). NUNCA entra no futebol (o flag `nba` só vem do basquete).
+const INC_FIRST_NBA = ['Tyrone', 'Jamal', 'DeShawn', 'Marcus', 'Reggie', 'Antoine', 'Rashad', 'Terrell', 'Lamar', 'Cedric', 'Darius', 'Marquis', 'Tyreke', 'Jermaine', 'Kwame', 'Malik', 'Trey', 'Deon', 'Devonte', 'Rasheed']
+const INC_NICK_NBA = ['Buckets', 'Hops', 'Crossover', 'Downtown', 'Splash', 'Handles', 'Slim', 'And-One', 'Skywalker', 'Playground', 'Blacktop', 'Half-Court', 'Franchise', 'Money', 'Deadeye', 'Ankles', 'Air', 'Cash', 'The Truth', 'Rim Rocker']
+const INC_CLUBS_NBA = ['Rucker Park', 'Venice Beach', 'The Cage', 'Dyckman', 'Goodman League', 'Drew League', 'Barry Farm', 'Nike Pro City', 'King Towers', 'Gersh Park', 'West 4th St', 'Kingdome', 'Tri-State', 'Baisley Park', 'Sole in the Hole', 'Watts', 'Compton Rec', 'Oakland Rec', 'St. Mary', 'Hunter College']
+
+export function makeIncognita(pos: Sector, idx: number, gem: boolean, rng: () => number, salt = '', nba = false): Card {
   const lo = gem ? 72 + Math.floor(rng() * 6) : 46 + Math.floor(rng() * 12)
   const width = 12 + Math.floor(rng() * 7)
   const hi = Math.min(93, lo + width)
-  const name = `${INC_FIRST[Math.floor(rng() * INC_FIRST.length)]} ${INC_NICK[Math.floor(rng() * INC_NICK.length)]}`
-  const club = INC_CLUBS[Math.floor(rng() * INC_CLUBS.length)]
-  const year = 1968 + Math.floor(rng() * 40)
+  const first = nba ? INC_FIRST_NBA : INC_FIRST
+  const nick = nba ? INC_NICK_NBA : INC_NICK
+  const clubs = nba ? INC_CLUBS_NBA : INC_CLUBS
+  const name = `${first[Math.floor(rng() * first.length)]} ${nick[Math.floor(rng() * nick.length)]}`
+  const club = clubs[Math.floor(rng() * clubs.length)]
+  const year = nba ? 1998 + Math.floor(rng() * 26) : 1968 + Math.floor(rng() * 40)
   return { id: `inc-${pos}-${idx}${salt ? `-${salt}` : ''}`, name, club, year, pos, fame: 1, lo, hi, fake: true }
 }
 

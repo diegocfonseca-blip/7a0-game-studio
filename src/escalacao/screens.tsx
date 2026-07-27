@@ -1199,6 +1199,16 @@ function BidLegendsHome() {
         ⚡ {t('PARTIDA RÁPIDA (VS CPU)', 'QUICK GAME (VS CPU)')}
       </Btn>
       <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('Pregão cego do quinteto (5) — em teste 🔧', 'Blind auction for your five (5) — testing 🔧')}</p>
+      {/* 🛝 CARREIRA · STREET LEAGUE — a base da pirâmide, MESMO motor do futebol.
+          Rotação de 10 (2 por posição) e liga cheia de pontos corridos. Em teste. */}
+      <motion.div className="rounded-xl"
+        animate={{ boxShadow: ['0 0 0 0 rgba(124,58,237,0)', '0 0 16px 4px rgba(124,58,237,0.7)', '0 0 0 0 rgba(124,58,237,0)'] }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}>
+        <Btn onClick={() => dispatch({ type: 'START_NBA_CAREER', teamName: t('Meu Time', 'My Team') })} className="w-full text-lg" bg={PURPLE}>
+          <span className="text-white">🛝 {t('CARREIRA · STREET LEAGUE', 'CAREER · STREET LEAGUE')} <span className="text-yellow-300">(new)</span></span>
+        </Btn>
+      </motion.div>
+      <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('A base: rotação de 10, liga de 20, pontos corridos — em teste 🔧', 'The base: 10-man rotation, 20-team league, round-robin — testing 🔧')}</p>
       {/* aviso "chegando" — honesto, sem prometer o que ainda não tem */}
       <div className="border-[3px] border-black rounded-2xl p-4 text-center" style={{ background: '#fff', boxShadow: `4px 4px 0 0 ${INK}` }}>
         <div className="text-3xl">🚧</div>
@@ -2079,8 +2089,13 @@ function Envelope() {
   const chosenCount = Object.keys(bids).length
 
   const showLanceTip = firstGame && !tipClosed
+  // 🏀 basquete: rápido = quinteto (5, 50 moedas); carreira/Street League = rotação
+  // de 10 (100 moedas). Distingo pelo total de vagas do elenco (10 → carreira).
+  const nbaRotacao = totalHoles(you) >= 8
   const tipTxt = sport === 'basquete'
-    ? <>{L('💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 50 pra montar o quinteto inteiro.', '💡 This is a REAL auction: whoever bids the MOST coins gets the player. You have 50 to build the whole five.')}</>
+    ? (nbaRotacao
+      ? <>{L('💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 100 pra montar a rotação de 10.', '💡 This is a REAL auction: whoever bids the MOST coins gets the player. You have 100 to build your 10-man rotation.')}</>
+      : <>{L('💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 50 pra montar o quinteto inteiro.', '💡 This is a REAL auction: whoever bids the MOST coins gets the player. You have 50 to build the whole five.')}</>)
     : state.sectorIdx % 2 === 0
     ? <>💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 100 pra montar o time inteiro.</>
     : <>💡 O nível da carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda. Repara no clube e no ano!</>
