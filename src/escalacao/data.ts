@@ -1689,6 +1689,7 @@ const MEI_WORLD: C[] = [
   { name: "Luis Flores", club: "Pumas", year: 1986, fame: 2, lo: 64, hi: 81 },
   { name: "Diego Cagna", club: "Boca Juniors", year: 2001, fame: 2, lo: 66, hi: 82 },
   { name: "Egidio Arévalo Ríos", club: "Tigres", year: 2011, fame: 2, lo: 66, hi: 81, bio: "'El Cacha' — o trator de marcação da Celeste campeã da América de 2011." },
+  { name: "Gerardo Torrado", club: "Cruz Azul", year: 2008, fame: 2, lo: 66, hi: 81, bio: "O Borrego — volante-xerife do Cruz Azul e da seleção mexicana, barba e carrinho sempre em dia." },
 ]
 const ATA_WORLD: C[] = [
   { name: "Majed Abdullah", club: "Al-Nassr", year: 1984, fame: 4, lo: 82, hi: 89, bio: "'O Pelé árabe' — o maior ídolo do futebol saudita, artilheiro lendário do Al-Nassr e da seleção por quase 20 anos." },
