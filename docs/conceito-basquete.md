@@ -20,9 +20,17 @@
 
 ## Posições e elenco
 - **5 posições** (mapeiam 1:1 nos 5 setores do motor): PG armador · SG ala-armador · SF ala · PF ala-pivô · C pivô.
-- **Quinteto titular = 5** (o "XI"). Leilão inicial = 5 rodadas de pregão (uma por posição).
+- **Quinteto titular = 5** (o "XI"): 1 por posição, ESCOLHIDO pelo jogador entre os que ele arrematou.
 - **Elenco completo = 15 (3 por posição)** — limite real da NBA; 82 jogos pedem banco fundo.
   (Futebol usa 2×=22; basquete usa 3×=15.)
+- 🗳️ **Como fatiar os leilões (decidido 27/07, opção A):**
+  - **Leilão INICIAL enche 10** (2 por posição = a "rotação"). Como 1 por posição
+    ficava curto/rápido demais perto do leilão de 11 do futebol, o inicial já traz
+    a rotação inteira. Depois o jogador **escolhe quais 5 são titulares**.
+  - **Leilão de RESERVAS (meio da temporada, a parada da rodada 41) enche +5**
+    (1 por posição) → fecha os **15**.
+  - Espelho do futebol: lá é 11 (inicial) + 11 (reservas) = 22; aqui é 10 + 5 = 15.
+- Pisos de venda/empréstimo/listar: nunca deixar a posição abaixo do quinteto (regra igual à do futebol).
 - Pisos de venda/empréstimo/listar: nunca deixar a posição abaixo do quinteto (regra igual à do futebol).
 
 ## Cartas
