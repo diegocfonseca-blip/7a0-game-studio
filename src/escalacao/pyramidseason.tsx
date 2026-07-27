@@ -1034,7 +1034,19 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const ritualTxt = basket
     ? (ritual === 'start' ? '🟢 Bola ao alto — começa o jogo!' : ritual === 'half' ? '🟢 Volta pra quadra — segundo tempo!' : ritual === 'end' ? endPhrase : null)
     : (ritual === 'start' ? '🟢 Aaaaaauutoriza o árbitro — começa o primeiro tempo!' : ritual === 'half' ? '🟢 Aaaaaauutoriza o árbitro — rola o segundo tempo!' : ritual === 'end' ? endPhrase : null)
-  const minLabel = min >= 93 ? 'FIM' : min > 90 ? `90+${min - 90}'` : `${min}'`
+  // ⏱️ relógio: futebol conta 0→90'; 🏀 basquete = 4 quartos de 12min contando
+  // pra baixo (Q1 12:00 → Q4 0:00). O `min` (0→93) só dirige a animação — aqui
+  // vira o rótulo certo por esporte.
+  const basketClock = () => {
+    const prog = Math.min(1, min / 93) // 0..1 do jogo
+    if (prog >= 1) return 'FINAL'
+    const q = Math.min(4, Math.floor(prog * 4) + 1) // quarto 1..4
+    const within = (prog * 4) % 1 // 0..1 dentro do quarto
+    const secLeft = Math.max(0, Math.round((1 - within) * 12 * 60)) // conta regressiva de 12min
+    const mm = Math.floor(secLeft / 60), ss = secLeft % 60
+    return `Q${q} ${mm}:${ss.toString().padStart(2, '0')}`
+  }
+  const minLabel = basket ? basketClock() : (min >= 93 ? 'FIM' : min > 90 ? `90+${min - 90}'` : `${min}'`)
   const iAmHome = youIsHome
   const last = shown.length ? [...shown].sort((a, b) => a.min - b.min)[shown.length - 1] : null
   const homeCol = homeColor, awayCol = awayColor
@@ -1084,7 +1096,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       {/* selo GOOOL! — surge sobre o lado de quem marcou */}
       {goal && <div style={{ position: 'absolute', top: 4, left: goal === 'h' ? '25%' : '75%', transform: 'translateX(-50%) rotate(-7deg)', zIndex: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '3px 12px', ...OSWALD, fontWeight: 900, fontSize: 17, letterSpacing: 0.5, boxShadow: `2px 2px 0 0 ${INK}`, animation: 'coStamp .5s cubic-bezier(.2,1.4,.5,1) both', whiteSpace: 'nowrap', ...(lateGoal ? { background: '#FF5B4D', color: '#fff' } : {}) }}>{basket ? (lateGoal ? '🔥 CESTA NO FIM!' : '🏀 CESTA!') : (lateGoal ? '🔥 GOL NO FIM!' : '⚽ GOOOL!')}</div>}
       <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', background: INK, color: '#fff', fontSize: 11, fontWeight: 900, ...OSWALD, padding: '3px 11px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 6, zIndex: 2, whiteSpace: 'nowrap' }}>
-        <span style={{ width: 7, height: 7, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite' }} /> {done ? 'FIM' : minLabel}
+        <span style={{ width: 7, height: 7, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite' }} /> {done ? (basket ? 'FINAL' : 'FIM') : minLabel}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch' }}>
         <Team name={homeName} color={homeCol} you={youIsHome} flash={goal === 'h'} />
@@ -1097,7 +1109,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '7px 12px', borderTop: '2px solid #e6dcbf', background: '#efe4c8' }}>
         <span key={ritualTxt ?? 'g'} style={{ fontSize: 11, fontWeight: ritualTxt ? 900 : 700, ...OSWALD, color: ritualTxt ? INK : 'rgba(0,0,0,0.72)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%', animation: ritualTxt ? 'coFade .4s ease' : undefined }}>
-          {ritualTxt ?? (last ? <>⚽ {last.name} <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></> : (done ? 'sem gols' : '🟢 bola rolando…'))}
+          {ritualTxt ?? (last ? <>{basket ? '🏀' : '⚽'} {last.name}{!basket && <> <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></>}</> : (done ? (basket ? 'sem cestas' : 'sem gols') : (basket ? '🟢 bola quicando…' : '🟢 bola rolando…')))}
         </span>
       </div>
     </div>
