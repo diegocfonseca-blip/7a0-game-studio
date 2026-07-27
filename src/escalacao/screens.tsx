@@ -813,6 +813,9 @@ function Campinho({ m, small = false, bench = false, title }: { m: Manager; smal
 // titulares logo abaixo. Fora do leilão de reservas, só o time único.
 function YourPitch({ small = false }: { small?: boolean }) {
   const { state } = useEsc()
+  // 🏀 basquete: o campinho de futebol não faz sentido. Fica escondido por ora —
+  // a QUADRA (visual novo) entra depois, com mockup aprovado pelo Diego.
+  if (state.sport === 'basquete') return null
   const you = state.managers[state.youIdx]
   // SEM SPOILER: durante a revelação, os vencedores já estão decididos por
   // dentro — mas o campinho só mostra a carta DEPOIS que o martelo dela bateu
@@ -2691,7 +2694,7 @@ function RivalsStrip() {
         {rivals.map(m => (
           <Box key={m.id} className="p-2.5" shadow={3}>
             <p className="font-black text-sm truncate" style={OSWALD}>{m.teamName}</p>
-            <p className="text-[11px] font-semibold text-black/55">{m.formation} · 💰 {m.money} · {m.squad.length}/{m.squad.length + totalHoles(m)}</p>
+            <p className="text-[11px] font-semibold text-black/55">{state.sport === 'basquete' ? '' : `${m.formation} · `}💰 {m.money} · {m.squad.length}/{m.squad.length + totalHoles(m)}</p>
             <p className="text-[10px] font-medium text-black/70" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
               {[...m.squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(c => c.name).join(', ') || 'ainda sem contratações'}
             </p>
@@ -2874,7 +2877,7 @@ export function EscCerimonia() {
         </div>
       )}
       <Box bg={m.id === you.id ? GOLD : '#fff'} className="p-4" shadow={6}>
-        <p className="font-black text-xl" style={OSWALD}>{m.id === you.id ? `🫵 ${m.teamName}` : m.teamName} <span className="text-sm font-bold text-black/70">({m.formation})</span></p>
+        <p className="font-black text-xl" style={OSWALD}>{m.id === you.id ? `🫵 ${m.teamName}` : m.teamName}{state.sport === 'basquete' ? '' : <span className="text-sm font-bold text-black/70"> ({m.formation})</span>}</p>
         <div className="mt-2 space-y-1.5">
           {[...m.squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(c => {
             const tb = tierBadge(c)
