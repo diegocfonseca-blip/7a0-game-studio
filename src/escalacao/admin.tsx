@@ -23,21 +23,85 @@ const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 // nada é feito com a conta do jogador.
 const COINS_ALERT = 20000
 
-// 🚩 DETECTOR DE SAVE SUSPEITO (carreira é client-side; dá pra editar no DevTools).
-// Teto de caixa PLAUSÍVEL por divisão — divisões de baixo rendem pouco (D não tem
-// patrocínio e o campeão SOBE de série), então caixa alto lá embaixo é sinal de
-// save adulterado. É só alerta visual pro admin — nada é feito com a conta.
-const DIV_COIN_CAP: Record<string, number> = { D: 600, C: 1000, B: 2000 } // A: usa o COINS_ALERT geral
-function suspectReason(p: LiveRow): string | null {
-  if (p.mode !== 'career' || !p.careerDivision) return null
-  const div = p.careerDivision
+// 🚩 DETECTOR DE SAVE SUSPEITO — a carreira roda NO NAVEGADOR do jogador
+// (client-side): dá pra editar no DevTools. Em vez de olhar só o número final, a
+// gente CRUZA os campos: caixa e títulos têm um MÁXIMO plausível pro tanto de
+// temporada jogada. Quem passa disso deu um "pulo" que não vem de jogar (ex.: 500
+// → 99 mil moedas, ou mais títulos do que temporadas). É SÓ alerta visual pro
+// admin — nada é feito com a conta do jogador.
+const DIV_COIN_CAP: Record<string, number> = { D: 600, C: 1000, B: 2000 } // teto de caixa plausível nas séries de baixo (rendem pouco)
+// A caixa REAL fica baixa (gasta-se no leilão a cada temporada). Estes tetos são
+// bem FOLGADOS de propósito: melhor deixar passar um trapaceiro na dúvida do que
+// acusar quem jogou muito e juntou de verdade.
+const COIN_BASE = 2000        // colchão inicial
+const COIN_PER_SEASON = 500   // folga por temporada jogada (o ganho real fica ~150/temporada)
+const nf = (n: number) => n.toLocaleString('pt-BR')
+// devolve a LISTA do que está brusco (moeda / título), com o número — pra mostrar
+// exatamente o que destoa. Vazio = nada suspeito.
+function suspectReasons(p: LiveRow): string[] {
+  if (p.mode !== 'career') return []
+  const season = p.careerSeason ?? 1
   const coins = p.careerCoins ?? 0
   const titles = p.careerTitles ?? 0
-  const cap = DIV_COIN_CAP[div]
-  if (cap != null && coins > cap) return `caixa ${coins} 🪙 alto demais pra Série ${div} (plausível até ~${cap})`
-  if (div === 'D' && titles >= 4) return `${titles} títulos ainda na Série D — campeão da D sobe de série`
-  if (div === 'C' && titles >= 8) return `${titles} títulos ainda na Série C`
-  return null
+  const div = p.careerDivision
+  const out: string[] = []
+  // 💰 caixa impossível pro tanto de temporada jogada (pega o pulo brusco de moeda)
+  const capSeason = COIN_BASE + Math.max(1, season) * COIN_PER_SEASON
+  if (coins > capSeason) out.push(`💰 ${nf(coins)} moedas com só ${season} temporada(s) — jogando dá no máx. ~${nf(capSeason)}`)
+  else if (div && DIV_COIN_CAP[div] != null && coins > DIV_COIN_CAP[div]) out.push(`💰 ${nf(coins)} moedas alto demais pra Série ${div} (plausível ~${nf(DIV_COIN_CAP[div])})`)
+  // 🏆 mais títulos do que temporadas jogadas é impossível (1 liga por temporada)
+  if (titles > season) out.push(`🏆 ${titles} títulos em só ${season} temporada(s) — no máx. 1 por temporada`)
+  else if (div === 'D' && titles >= 4) out.push(`🏆 ${titles} títulos ainda na Série D — o campeão da D sobe de série`)
+  else if (div === 'C' && titles >= 8) out.push(`🏆 ${titles} títulos ainda na Série C`)
+  return out
+}
+
+// 🚩 DETECTOR DE PULO (salto no tempo) — guarda NO APARELHO do admin quanto cada
+// jogador tinha da última vez que o painel viu e compara. Se a caixa ou os títulos
+// deram um salto que NÃO cabe nas temporadas que passaram (ex.: 200 → 10.000 sem
+// jogar), marca o pulo e o mantém visível até você limpar. Fica só no localStorage
+// do admin — não toca em NADA do jogo nem da conta do jogador.
+type SeenSnap = { coins: number; titles: number; season: number; at: number }
+export type JumpInfo = { coinsFrom?: number; coinsTo?: number; titlesFrom?: number; titlesTo?: number; at: number }
+const SEEN_KEY = 'esc-admin-seen-v1'
+const JUMPS_KEY = 'esc-admin-jumps-v1'
+// folga de caixa entre duas leituras sem virar "pulo": um fixo (venda de reserva no
+// meio da temporada) + a folga por temporada que passou entre uma leitura e outra.
+const JUMP_CUSHION = 1500
+function readMap<T>(key: string): Record<string, T> {
+  try { const r = localStorage.getItem(key); if (r) return JSON.parse(r) as Record<string, T> } catch { /* ignora */ }
+  return {}
+}
+function writeMap(key: string, m: unknown) { try { localStorage.setItem(key, JSON.stringify(m)) } catch { /* ignora */ } }
+function detectJumps(list: LiveRow[]): Record<string, JumpInfo> {
+  const seen = readMap<SeenSnap>(SEEN_KEY)
+  const jumps = readMap<JumpInfo>(JUMPS_KEY)
+  for (const p of list) {
+    if (p.mode !== 'career' || !p.uid || typeof p.careerCoins !== 'number') continue
+    const cur: SeenSnap = { coins: p.careerCoins, titles: p.careerTitles ?? 0, season: p.careerSeason ?? 1, at: Date.now() }
+    const prev = seen[p.uid]
+    if (prev) {
+      const seasonsPassed = Math.max(0, cur.season - prev.season)
+      const allowedGain = JUMP_CUSHION + seasonsPassed * COIN_PER_SEASON
+      const j: JumpInfo = { ...(jumps[p.uid] ?? { at: 0 }) }
+      let hit = false
+      if (cur.coins - prev.coins > allowedGain) { j.coinsFrom = prev.coins; j.coinsTo = cur.coins; hit = true }
+      if (cur.titles - prev.titles > seasonsPassed + 1) { j.titlesFrom = prev.titles; j.titlesTo = cur.titles; hit = true }
+      if (hit) { j.at = Date.now(); jumps[p.uid] = j }
+    }
+    seen[p.uid] = cur
+  }
+  writeMap(SEEN_KEY, seen)
+  writeMap(JUMPS_KEY, jumps)
+  return jumps
+}
+// texto do pulo pra mostrar na linha do jogador
+function jumpReasons(j: JumpInfo | undefined): string[] {
+  if (!j) return []
+  const out: string[] = []
+  if (j.coinsTo != null) out.push(`💰 PULO: ${nf(j.coinsFrom ?? 0)} → ${nf(j.coinsTo)} moedas`)
+  if (j.titlesTo != null) out.push(`🏆 PULO: ${j.titlesFrom ?? 0} → ${j.titlesTo} títulos`)
+  return out
 }
 
 type DailyRow = { day: string; plays: number; cpu: number; online: number; visits: number }
@@ -218,6 +282,9 @@ function Dashboard({ email }: { email: string }) {
   // do "no site agora". Clicar de novo na mesma métrica inverte (mais → menos).
   const [sortKey, setSortKey] = useState<'default' | 'coins' | 'titles' | 'seasons' | 'suspect'>('default')
   const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc')
+  // 🚩 pulos detectados (uid → salto), guardados no aparelho do admin
+  const [jumps, setJumps] = useState<Record<string, JumpInfo>>(() => readMap<JumpInfo>(JUMPS_KEY))
+  const clearJumps = () => { writeMap(JUMPS_KEY, {}); setJumps({}) }
   const pickSort = (k: 'coins' | 'titles' | 'seasons' | 'suspect') => {
     if (sortKey === k) setSortDir(d => d === 'desc' ? 'asc' : 'desc')
     else { setSortKey(k); setSortDir('desc') }
@@ -246,7 +313,7 @@ function Dashboard({ email }: { email: string }) {
       let lastErr = ''
       for (const s of scopes) {
         const { data, error } = await supabase.rpc('esc_admin_dashboard', { p_days: s.d, p_users: s.u })
-        if (!error) { setErr(''); setD(data as Dash); setUpdatedAt(Date.now()); return }
+        if (!error) { setErr(''); setD(data as Dash); setUpdatedAt(Date.now()); setJumps(detectJumps((data as Dash).live_list ?? [])); return }
         lastErr = error.message
         if (!/timeout|canceling statement/i.test(error.message)) break // erro que não é lentidão: reduzir não adianta
       }
@@ -343,7 +410,7 @@ function Dashboard({ email }: { email: string }) {
             if (sortKey === 'coins') return p.careerCoins ?? null
             if (sortKey === 'titles') return p.careerTitles ?? null
             if (sortKey === 'seasons') return p.careerSeason ?? null
-            if (sortKey === 'suspect') return suspectReason(p) ? 1 : 0
+            if (sortKey === 'suspect') return (suspectReasons(p).length > 0 || (p.uid ? jumpReasons(jumps[p.uid]).length > 0 : false)) ? 1 : 0
             return null
           }
           const rows = sortKey === 'default' ? d.live_list : [...d.live_list].sort((a, b) => {
@@ -367,8 +434,15 @@ function Dashboard({ email }: { email: string }) {
               {sortKey !== 'default' && (
                 <button onClick={() => setSortKey('default')} style={{ fontSize: 11.5, fontWeight: 700, padding: '4px 9px', borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(255,255,255,.2)', background: 'transparent', color: '#999' }}>✕ limpar</button>
               )}
+              {Object.keys(jumps).length > 0 && (
+                <button onClick={clearJumps} title="Esquece os pulos já marcados (recomeça a observar do valor atual). Não mexe em nada da conta do jogador." style={{ fontSize: 11.5, fontWeight: 800, padding: '4px 9px', borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(255,77,77,.5)', background: 'rgba(255,77,77,.12)', color: '#FF7A7A' }}>🧹 limpar pulos ({Object.keys(jumps).length})</button>
+              )}
             </div>
-            {rows.map((p, i) => (
+            {rows.map((p, i) => {
+              // 🚩 junta o PULO (salto no tempo) + a plausibilidade (impossível pro
+              // tanto de temporada) numa lista só — mostrada em vermelho na linha.
+              const reasons = [...(p.uid ? jumpReasons(jumps[p.uid]) : []), ...suspectReasons(p)]
+              return (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, opacity: 0.92 }}>
                 <span>
                   {p.playing ? (MODE_ICON[p.mode] || '🤖') : '👀'}{' '}
@@ -381,8 +455,8 @@ function Dashboard({ email }: { email: string }) {
                   {p.mode === 'career' && p.careerDivision && (
                     <span style={{ opacity: 0.85, color: '#C9A9FF', fontWeight: 700 }}> · {DIV_LABEL[p.careerDivision] || p.careerDivision} · T{p.careerSeason ?? 1}</span>
                   )}
-                  {suspectReason(p) && (
-                    <span title={`🚩 Save suspeito: ${suspectReason(p)}. A carreira é client-side (dá pra editar no DevTools) — só um alerta pra observar, nada é feito com a conta.`} style={{ color: '#FF4D4D', fontWeight: 900 }}> · 🚩 suspeito</span>
+                  {reasons.length > 0 && (
+                    <span title="🚩 Alerta pra você OBSERVAR — a carreira roda no navegador do jogador (dá pra editar no DevTools). Nada é feito com a conta." style={{ color: '#FF4D4D', fontWeight: 900 }}> · 🚩 {reasons.join(' · ')}</span>
                   )}
                   {/* 💰 caixa atual + 🏆 títulos (qualquer série) — vêm do próprio
                       batimento, então funciona pra anônimo e pra pirâmide também.
@@ -405,7 +479,8 @@ function Dashboard({ email }: { email: string }) {
                 </span>
                 <span style={{ opacity: 0.5 }}>{p.ago < 60 ? 'agora' : `${Math.floor(p.ago / 60)}min`}</span>
               </div>
-            ))}
+              )
+            })}
           </div>
           )
         })()}
