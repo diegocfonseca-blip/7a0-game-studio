@@ -16,6 +16,10 @@ import { paisDe, rankingSelecoes, type Baralho } from './paises'
 // os MESMOS componentes da liga/copa da carreira. Import circular com
 // pyramidseason é seguro: são function declarations usadas só no render.
 import { LiveScoreCard, PensShootout, pensRevealDelay, type ScoreGoal } from './pyramidseason'
+// controles de ritmo OFICIAIS (mesmos da liga/copa): auto por padrão, Manual
+// (🐢/⚡ + pular + próxima fase) pra quem tem o tier — cadeado do APOIE pro resto.
+import { SimControls, SpeedControls, useSimMode, QuickManualLock } from './screens'
+import { useHasManual } from './apoio'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#C2452F'
 const OSWALD = { fontFamily: "'Oswald','Arial Narrow',system-ui,sans-serif" } as const
@@ -465,20 +469,48 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
   const club = (i: number) => entrants[i].club
   const isYou = (i: number) => entrants[i].you
 
+  // 🎮 ritmo IGUAL à liga: AUTO por padrão (a Copa anda sozinha); quem tem o
+  // Modo Manual usa os MESMOS controles (🐢/⚡ · pular · próxima fase); quem não
+  // tem vê o cadeado do APOIE. Mesma preferência salva (useSimMode) da carreira.
+  const hasManual = useHasManual()
+  const [manualPref, toggleManual] = useSimMode()
+  const manual = hasManual && manualPref
+  const [speed, setSpeed] = useState(1)
+  const roundMs = Math.round(9000 / speed) // 9s = ROUND_MS da liga
+
   const next = () => { const s = step + 1; setStep(s); if (LIVE(s)) { setLiveDone(false); setRoundKey(k => k + 1) } }
-  // relógio da rodada: 9s (padrão da liga) + tempo dos pênaltis quando o MEU
-  // confronto (ou a final) decide na marca — suspense completo antes de liberar.
+  // ⏭️ pular (só manual): corta a espera — apito na hora; de novo = próxima fase já resolvida
+  const skip = () => {
+    if (!liveDone) { setLiveDone(true); return }
+    const s = step + 1; setStep(s)
+    if (LIVE(s)) { setRoundKey(k => k + 1); setLiveDone(true) }
+  }
+  // relógio da rodada: ritmo da liga (ajustado pela velocidade do manual) +
+  // tempo dos pênaltis dos confrontos VISÍVEIS ao vivo — suspense completo.
   useEffect(() => {
     if (liveDone) return
     let extra = 700
-    const penMs = (t: KoTie) => t.pen && (isYou(t.h) || isYou(t.a)) ? pensRevealDelay(t.pen) * 1000 : 0
+    const penMs = (t: KoTie) => {
+      if (!t.pen) return 0
+      const mine = isYou(t.h) || isYou(t.a)
+      const meInStage = (step === 9 ? world.qf : world.sf).some(x => isYou(x.h) || isYou(x.a))
+      return (mine || !meInStage) ? pensRevealDelay(t.pen) * 1000 : 0 // eliminado assiste TUDO ao vivo
+    }
     if (step === 9) extra += Math.max(0, ...world.qf.map(penMs))
     if (step === 11) extra += Math.max(0, ...world.sf.map(penMs))
     if (step === 12 && world.final.pen) extra += pensRevealDelay(world.final.pen) * 1000
-    const t = setTimeout(() => setLiveDone(true), 9000 + extra)
+    const t = setTimeout(() => setLiveDone(true), roundMs + extra)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roundKey])
+  // 🔁 MODO AUTO (padrão, igual à liga): a Copa anda sozinha fase a fase —
+  // pequena pausa pós-apito pra ler o resultado, e segue o baile.
+  useEffect(() => {
+    if (done || manual || !liveDone) return
+    const t = setTimeout(next, step === 0 ? 500 : 1600)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveDone, step, manual, done])
 
   // persiste os prêmios UMA vez, quando chega no fim (fora do render!)
   useEffect(() => {
@@ -496,7 +528,7 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
   const live = (h: number, a: number, ev: ScoreGoal[]) => (
     <div style={{ marginBottom: 8 }}>
       <LiveScoreCard homeName={nm(h)} awayName={nm(a)} homeColor={GREEN} awayColor={RED}
-        youIsHome={h === myIdx} goals={ev} roundKey={roundKey} roundMs={9000} finished={liveDone} />
+        youIsHome={h === myIdx} goals={ev} roundKey={roundKey} roundMs={roundMs} finished={liveDone} />
     </div>
   )
   // linha compacta de confronto resolvido (ida+volta+pênaltis) — só pós-apito
@@ -560,10 +592,10 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
         const mySf = world.sf.find(t => isYou(t.h) || isYou(t.a))
         return (
           <>
-            {step === 8 && myQf && live(myQf.h, myQf.a, myQf.ev1!)}
-            {step === 9 && myQf && myTieVolta(myQf)}
-            {step === 10 && mySf && live(mySf.h, mySf.a, mySf.ev1!)}
-            {step === 11 && mySf && myTieVolta(mySf)}
+            {step === 8 && (myQf ? live(myQf.h, myQf.a, myQf.ev1!) : world.qf.map(t => <div key={`i${t.h}`}>{live(t.h, t.a, t.ev1!)}</div>))}
+            {step === 9 && (myQf ? myTieVolta(myQf) : world.qf.map(t => myTieVolta(t)))}
+            {step === 10 && (mySf ? live(mySf.h, mySf.a, mySf.ev1!) : world.sf.map(t => <div key={`i${t.h}`}>{live(t.h, t.a, t.ev1!)}</div>))}
+            {step === 11 && (mySf ? myTieVolta(mySf) : world.sf.map(t => myTieVolta(t)))}
             {step === 12 && live(world.final.h, world.final.a, world.final.ev)}
             {step === 12 && liveDone && world.final.pen && (
               <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
@@ -575,8 +607,8 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>🎲 MATA-MATA (sorteio livre — ida e volta)</p>
               {world.qf.map((t, i) => {
                 const mine = isYou(t.h) || isYou(t.a)
-                if (step === 8) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} × {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· jogando…</span></div> : null}</div>
-                if (step === 9) return <div key={i}>{liveDone ? tieRow(t, true) : mine ? null : <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} {t.g1![0]}×{t.g1![1]} {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· volta rolando…</span></div>}</div>
+                if (step === 8) return <div key={i}>{!mine && myQf && liveDone ? tieRow(t, false) : !mine && myQf ? <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} × {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· jogando…</span></div> : null}</div>
+                if (step === 9) return <div key={i}>{liveDone ? tieRow(t, true) : (mine || !myQf) ? null : <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} {t.g1![0]}×{t.g1![1]} {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· volta rolando…</span></div>}</div>
                 if (step === 7) return <div key={i} style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: mine ? 900 : 700 }}>{nm(t.h)} × {nm(t.a)}</div>
                 return <div key={i}>{tieRow(t, true)}</div>
               })}
@@ -584,8 +616,8 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px' }}>SEMIFINAIS</p>
                 {world.sf.map((t, i) => {
                   const mine = isYou(t.h) || isYou(t.a)
-                  if (step === 10) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} × {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· jogando…</span></div> : null}</div>
-                  if (step === 11) return <div key={i}>{liveDone ? tieRow(t, true) : mine ? null : <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} {t.g1![0]}×{t.g1![1]} {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· volta rolando…</span></div>}</div>
+                  if (step === 10) return <div key={i}>{!mine && mySf && liveDone ? tieRow(t, false) : !mine && mySf ? <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} × {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· jogando…</span></div> : null}</div>
+                  if (step === 11) return <div key={i}>{liveDone ? tieRow(t, true) : (mine || !mySf) ? null : <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} {t.g1![0]}×{t.g1![1]} {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· volta rolando…</span></div>}</div>
                   return <div key={i}>{tieRow(t, true)}</div>
                 })}
               </>)}
@@ -634,8 +666,16 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
 
       {done ? (
         <button onClick={onClose} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>▶️ VOLTAR PRA CARREIRA</button>
+      ) : hasManual ? (
+        <>
+          {manual && <SpeedControls speed={speed} onSet={setSpeed} />}
+          <SimControls manual={manual} onToggle={toggleManual} canNext={liveDone} onNext={next} onSkip={skip} nextLabel={nextLabel} />
+        </>
       ) : (
-        <button disabled={!liveDone} onClick={next} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: liveDone ? GOLD : '#cfcabb', boxShadow: liveDone ? `4px 4px 0 0 ${INK}` : 'none', cursor: liveDone ? 'pointer' : 'not-allowed' }}>{nextLabel}</button>
+        <>
+          <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', textAlign: 'center', margin: '0 0 8px' }}>{liveDone ? '⚡ A Copa anda sozinha — próxima fase já vem…' : '🟢 bola rolando…'}</p>
+          <QuickManualLock />
+        </>
       )}
     </>
   )
