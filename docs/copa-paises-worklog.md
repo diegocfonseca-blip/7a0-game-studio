@@ -70,11 +70,23 @@ Listas completas por país × posição: gerar de novo com scratchpad/cartas.txt
 11 Colômbia 22 · 12 Uruguai 20 · 13 Chile 16 · 14 Bélgica 15 · 15 EUA 13 ·
 16 Coreia do Sul 12 · (17 Paraguai 8, primeiro da fila)
 
-## 🕳️ BURACOS pra fechar formação em dobro (2G·4L·4Z·6M·4A) — próximas cartas
-- México 1 ZAG · Colômbia 1 LAT · Uruguai 1 LAT + 1 MEI · Chile 2 LAT + 2 MEI ·
-- Bélgica 2 LAT + 1 ZAG + 2 ATA · EUA 1 LAT + 2 ZAG + 5 MEI ·
-- Coreia 2 GOL (nem goleiro tem! Lee Woon-jae…) + 2 LAT + 1 ZAG + 3 MEI
-- ≈ 29 cartas pra formação + chegar TODAS a 22 no total ≈ 36 cartas novas.
+## ✅ ESCOPO FINAL (Diego, 27-28/07): baralho como está + MÍNIMO 22 por seleção
+- A convocação usa o baralho COMO ESTÁ (todo nível aparece, sem meta por
+  categoria). MAS o Diego confirmou: **mínimo 22 FAMOSOS por seleção**
+  (ruim ou bom, tanto faz).
+- ✅ **FEITO (28/07): lote de 36 cartas aprovado e NO AR** — Coreia +10
+  (Lee Woon-jae, Kim Byung-ji 🃏, Cha Du-ri, Park Joo-ho, Kim Young-gwon,
+  Lee Chung-yong, Koo Ja-cheol, Kim Nam-il, Hwang Sun-hong, Seol Ki-hyeon),
+  EUA +9 (Friedel, Cherundolo, Lalas 🃏, Onyewu, Bradley, Jermaine Jones,
+  Beckerman 🃏, Tab Ramos, Cobi Jones 🃏), Bélgica +7 (Gerets, J.Lukaku 🃏,
+  Van Buyten, Nainggolan 🃏, Wilmots, Batshuayi 🃏, Benteke), Chile +6
+  (Mendoza, Beausejour, Pizarro, M.Díaz, Vargas, Suazo), Uruguai +2
+  (Á.Pereira, Cebolla), Colômbia +1 (Zúñiga), México +1 (H.Moreno).
+  24 no baralho EU (auge europeu) + 12 no MUNDO. Total agora: 1068 cartas.
+- ✅ Verificado (checa-paises + paises-pos): TODAS as 16 com 22+ e formação
+  em dobro fechando. Ranking final: BRA 510 · ARG 63 · FRA 43 · ESP 41 ·
+  ING 37 · ITA 31 · ALE 30 · HOL 29 · POR 27 · MEX 24 · COL 23 · URU/CHI/
+  BEL/EUA/COR 22 · (Paraguai 8 na fila).
 - Fluxo aprovado: botão dourado "🌍 DISPUTAR A COPA" na tela novo leilão/mesmo
   time a cada 10 temporadas + notícia-hype 1 temporada antes + trava "só campeões".
 
@@ -87,6 +99,17 @@ Listas completas por país × posição: gerar de novo com scratchpad/cartas.txt
 - Botão de fechar só libera com 11/11; trancado explica o que falta (estilo Diego).
 - Mockup aguardando OK: artifact a73c7ec1 (busca + abas por posição + campinho
   enchendo + 2 estados do botão).
+
+## 🔓 DESBLOQUEIO (Diego, 28/07 — substitui o "a cada 10 desde o início")
+- A Copa **desbloqueia na TEMPORADA 100** da carreira (coisa de veterano).
+- A partir do desbloqueio, rola **de 10 em 10**:
+  - Save NOVO (ou abaixo de 100): desbloqueia na 100 → Copas na 110, 120, 130…
+  - Save ANTIGO já além da 100 quando o modo chegar (ex.: na 142): primeira
+    Copa 10 temporadas depois → 152, depois 162, 172…
+  - Pulou uma edição? A próxima segue o calendário (não acumula).
+- (Substitui/absorve a trava "só campeões" — 100 temporadas É a prova de veterano.)
+- Mockup da ENTRADA aguardando OK: artifact 2c13a218 (4 peças: botão dourado na
+  temporada de Copa · chip "faltam X" · trava com barra "37 de 100" · notícia-hype).
 
 ## 🏆 FORMATO DO TORNEIO (Diego, 27/07 — decisão firme)
 - **Grupos**: 4 grupos de 4, todos contra todos em IDA E VOLTA (6 jogos por

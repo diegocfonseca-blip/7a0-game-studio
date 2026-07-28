@@ -1157,6 +1157,7 @@ const GOL_EU: C[] = [
   { name: "Fernando Muslera", club: "Lazio", year: 2010, fame: 3, lo: 76, hi: 85, bio: "Revelado na Lazio antes de virar lenda turca — reflexo elástico e cara de bravo." },
   { name: "Claudio Bravo", club: "Barcelona", year: 2015, fame: 3, lo: 77, hi: 85, bio: "Capitão chileno bicampeão da América — saía jogando com os pés antes de virar moda." },
   { name: "Jean-Marie Pfaff", club: "Bayern", year: 1986, fame: 4, lo: 81, hi: 88, bio: "Showman-goleiro do Bayern penta — eleito melhor do mundo em 87, carisma de programa de auditório." },
+  { name: "Brad Friedel", club: "Blackburn", year: 2004, fame: 4, lo: 76, hi: 88, bio: "O muro americano da Premier League — 310 jogos seguidos sem faltar um, reflexos de gato e até gol marcado. Respeito eterno na Inglaterra." },
 ]
 const LAT_EU: C[] = [
   { name: "Michel Bastos", club: "Lyon", year: 2010, fame: 3, lo: 75, hi: 86, bio: "Canhoto versátil (lateral e meia) — auge no Lyon com cobranças de falta perfeitas; titular da Seleção na Copa de 2010." },
@@ -1225,6 +1226,14 @@ const LAT_EU: C[] = [
   { name: "Timothy Castagne", club: "Leicester", year: 2021, fame: 2, lo: 64, hi: 80, bio: "Lateral dos dois lados — motorzinho da geração dourada belga." },
   { name: "DaMarcus Beasley", club: "PSV", year: 2005, fame: 2, lo: 64, hi: 81, bio: "4 Copas do Mundo — o único americano a tanto, correndo a esquerda a 100 por hora." },
   { name: "Lee Young-pyo", club: "Tottenham", year: 2006, fame: 2, lo: 64, hi: 80, bio: "Lateral-relâmpago da geração coreana de 2002 — subia a esquerda de Seul a Londres." },
+  { name: "Eric Gerets", club: "PSV", year: 1988, fame: 4, lo: 75, hi: 87, bio: "O 'Leão de Rekem' — capitão do PSV campeão europeu de 88, lateral que marcava no grito e na raça." },
+  { name: "Jordan Lukaku", club: "Lazio", year: 2017, fame: 1, lo: 55, hi: 75, folk: true, bio: "O irmão do Lukaku — a genética foi quase toda pro Romelu, mas ele lutou bonito na Lazio." },
+  { name: "Jean Beausejour", club: "Birmingham", year: 2011, fame: 2, lo: 62, hi: 79, bio: "Lateral chileno de duas Américas seguidas campeãs (2015/16) — cruzamento certeiro e pulmão infinito." },
+  { name: "Cha Du-ri", club: "Celtic", year: 2010, fame: 2, lo: 60, hi: 78, bio: "Filho do lendário Cha Bum-kun — trator coreano pela direita no Celtic, correndo como se devesse dinheiro." },
+  { name: "Park Joo-ho", club: "Dortmund", year: 2015, fame: 2, lo: 60, hi: 76, bio: "Lateral coreano do Dortmund — hoje mais famoso pelos filhos fofos na TV do que pelos cruzamentos, e tá tudo bem." },
+  { name: "Camilo Zúñiga", club: "Napoli", year: 2013, fame: 3, lo: 66, hi: 81, bio: "Lateral colombiano voador do Napoli — no Brasil, tristemente eterno pela joelhada em Neymar em 2014. Perdão nunca. 😤" },
+  { name: "Álvaro Pereira", club: "Inter de Milão", year: 2012, fame: 3, lo: 68, hi: 83, bio: "'Palito' — lateral uruguaio de garra charrúa pura, campeão da América de 2011 e depois guerreiro no São Paulo." },
+  { name: "Steve Cherundolo", club: "Hannover", year: 2010, fame: 3, lo: 66, hi: 81, bio: "O 'Prefeito de Hannover' — 15 anos de clube único na Alemanha, tão querido que a cidade o adotou de vez." },
 ]
 const ZAG_EU: C[] = [
   { name: "Maguire", club: "Man United", year: 2019, fame: 2, lo: 66, hi: 82 },
@@ -1295,6 +1304,10 @@ const ZAG_EU: C[] = [
   { name: "Gary Medel", club: "Inter", year: 2014, fame: 3, lo: 76, hi: 84, bio: "'El Pitbull' — 1,71m de zagueiro que mordia centroavante de 1,90m no lombo." },
   { name: "Toby Alderweireld", club: "Tottenham", year: 2018, fame: 3, lo: 77, hi: 85, bio: "Saída de bola de meia e lançamento de 50 metros na cabeça do atacante." },
   { name: "Kim Min-jae", club: "Napoli", year: 2023, fame: 4, lo: 81, hi: 89, bio: "'The Monster' — o muro do scudetto do Napoli: melhor zagueiro da Itália no ano." },
+  { name: "Alexi Lalas", club: "Padova", year: 1994, fame: 2, lo: 60, hi: 78, folk: true, bio: "A barba ruiva mais famosa dos gramados — primeiro americano da Serie A, parecia um viking perdido no Calcio." },
+  { name: "Oguchi Onyewu", club: "Milan", year: 2009, fame: 2, lo: 60, hi: 79, bio: "O 'Gooch' — armário americano de 1,93m que assinou com o Milan e uma vez brigou no treino com o Ibrahimović. Sobreviveu." },
+  { name: "Daniel Van Buyten", club: "Bayern", year: 2010, fame: 3, lo: 70, hi: 84, bio: "Torre belga de 1,97m do Bayern — subia pra cabecear e o estádio inteiro prendia a respiração." },
+  { name: "Héctor Moreno", club: "Real Sociedad", year: 2016, fame: 3, lo: 68, hi: 82, bio: "Zagueiro mexicano de elegância europeia — uma década segurando atacante graúdo na Espanha e na Holanda." },
 ]
 const MEI_EU: C[] = [
   { name: "Joseph Minala (Benjamin Button)", club: "Lazio", year: 2014, fame: 1, lo: 44, hi: 63, folk: true, bio: "O 'Benjamin Button' do futebol — camaronês da base da Lazio que virou meme em 2014 por parecer ter 40 anos aos 17. A idade foi confirmada; o folclore ficou." },
@@ -1438,6 +1451,14 @@ const MEI_EU: C[] = [
   { name: "Axel Witsel", club: "Dortmund", year: 2018, fame: 2, lo: 68, hi: 82, bio: "Black power inconfundível — volante elegante da geração de ouro belga." },
   { name: "Claudio Reyna", club: "Rangers", year: 2000, fame: 2, lo: 66, hi: 81, bio: "Capitão América original — meia cerebral que abriu portas na Europa." },
   { name: "Ki Sung-yueng", club: "Swansea", year: 2015, fame: 2, lo: 66, hi: 81, bio: "Maestro coreano do país de Gales — passe limpo e pênalti garantido." },
+  { name: "Michael Bradley", club: "Roma", year: 2014, fame: 3, lo: 68, hi: 83, bio: "O general americano — careca iluminada, passe seguro e liderança de quem nasceu capitão." },
+  { name: "Jermaine Jones", club: "Schalke", year: 2012, fame: 3, lo: 66, hi: 81, bio: "Volante teuto-americano da pancadaria educada — carrinho, cartão e um golaço na Copa de 2014." },
+  { name: "Lee Chung-yong", club: "Bolton", year: 2010, fame: 3, lo: 68, hi: 82, bio: "O 'Blue Dragon' — ponta coreano do Bolton, drible curto e gols que faziam a Premier respeitar a Coreia." },
+  { name: "Koo Ja-cheol", club: "Augsburg", year: 2014, fame: 3, lo: 68, hi: 82, bio: "Capitão coreano na Bundesliga — chegava de trás e enchia a rede quando ninguém esperava." },
+  { name: "Radja Nainggolan", club: "Roma", year: 2017, fame: 4, lo: 75, hi: 88, folk: true, bio: "O 'Ninja' — moicano, chute de trivela dos 30 metros e um cigarrinho pós-jogo. Craque e personagem no mesmo corpo." },
+  { name: "Marc Wilmots", club: "Schalke", year: 1997, fame: 3, lo: 70, hi: 84, bio: "O 'Touro de Dongelberg' — herói da UEFA de 97 do Schalke, jogava no cascão e decidia." },
+  { name: "David Pizarro", club: "Roma", year: 2007, fame: 4, lo: 74, hi: 87, bio: "O 'Pek' — maestro chileno da Roma, baixinho de passe milimétrico que tocava a orquestra de Totti." },
+  { name: "Marcelo Díaz", club: "Basel", year: 2014, fame: 3, lo: 68, hi: 82, bio: "'Carepato' — volante cerebral do Chile bicampeão da América, dono do passe que virou pênalti histórico em 2015." },
 ]
 const ATA_EU: C[] = [
   { name: "Berbatov", club: "Manchester United", year: 2011, fame: 4, lo: 82, hi: 91, bio: "Atacante búlgaro de classe e categoria — toque refinado e Chuteira de Ouro da Premier em 2011 pelo Manchester United. Também brilhou no Tottenham." },
@@ -1609,6 +1630,9 @@ const ATA_EU: C[] = [
   { name: "Cha Bum-kun", club: "Leverkusen", year: 1985, fame: 4, lo: 81, hi: 89, bio: "'Cha Boom' — o pai do futebol coreano: 98 gols na Bundesliga e chute que arrancava rede." },
   { name: "Ahn Jung-hwan", club: "Perugia", year: 2002, fame: 3, lo: 76, hi: 85, folk: true, bio: "Fez o gol que eliminou a Itália na Copa de 2002… e foi DEMITIDO do Perugia por isso. Lenda do caos." },
   { name: "Hwang Hee-chan", club: "Wolves", year: 2023, fame: 2, lo: 66, hi: 82, bio: "'Hwangso' (o touro) — correria incansável e gols de oportunista na Premier." },
+  { name: "Michy Batshuayi", club: "Chelsea", year: 2017, fame: 2, lo: 62, hi: 80, folk: true, bio: "'Batsman' — rei do meme e do gol de última hora: decidiu título inglês entrando aos 88 minutos." },
+  { name: "Christian Benteke", club: "Aston Villa", year: 2013, fame: 3, lo: 68, hi: 83, bio: "Centroavante belga de ombros largos — cabeceio de canhão e voleios que quebravam a trave inglesa." },
+  { name: "Seol Ki-hyeon", club: "Anderlecht", year: 2002, fame: 2, lo: 62, hi: 79, bio: "O coreano do gol de empate contra a Itália em 2002 — o começo da noite mais insana das Copas." },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
 
@@ -1634,6 +1658,8 @@ const GOL_WORLD: C[] = [
   { name: "Tony Meola", club: "MetroStars", year: 1994, fame: 2, lo: 66, hi: 80 },
   { name: "Memo Ochoa", club: "América", year: 2014, fame: 3, lo: 77, hi: 86, folk: true, bio: "O homem que parou o Brasil sozinho na Copa de 2014 — nas Copas vira paredão: 5 mundiais de milagres." },
   { name: "Johnny Herrera", club: "U. de Chile", year: 2011, fame: 2, lo: 66, hi: 82, bio: "Ídolo-goleiro da U tricampeã — personalidade do tamanho do Estádio Nacional." },
+  { name: "Lee Woon-jae", club: "Suwon Bluewings", year: 2002, fame: 3, lo: 70, hi: 84, bio: "A 'Mão-Aranha' — pegou o pênalti que botou a Coreia na semifinal de 2002. Herói nacional com carteirinha." },
+  { name: "Kim Byung-ji", club: "Pohang Steelers", year: 1998, fame: 2, lo: 62, hi: 80, folk: true, bio: "Goleiro-líbero do topete platinado — saía driblando da área como se fosse meia. 706 jogos de loucura na K-League." },
 ]
 const LAT_WORLD: C[] = [
   { name: "Silvio Marzolini", club: "Boca Juniors", year: 1965, fame: 4, lo: 82, hi: 88, bio: "O lateral-esquerdo mais elegante da história argentina — ídolo eterno do Boca, técnica e classe de sobra na marcação e no apoio." },
@@ -1644,6 +1670,7 @@ const LAT_WORLD: C[] = [
   { name: "Mario Méndez", club: "Monterrey", year: 2002, fame: 1, lo: 55, hi: 76 },
   { name: "Joel Sánchez", club: "Necaxa", year: 1998, fame: 1, lo: 55, hi: 74 },
   { name: "Song Chong-gug", club: "Suwon", year: 2002, fame: 2, lo: 64, hi: 80, bio: "Lateral-direito herói da campanha coreana de 2002 — fôlego infinito diante do país inteiro." },
+  { name: "Gabriel Mendoza", club: "Colo-Colo", year: 1991, fame: 3, lo: 66, hi: 81, bio: "O 'Coca' — lateral da Libertadores histórica do Colo-Colo em 91, depois figuraça no Corinthians de 99." },
 ]
 const ZAG_WORLD: C[] = [
   { name: "Andrés Escobar", club: "Atlético Nacional", year: 1991, fame: 4, lo: 82, hi: 88, bio: "'El Caballero del fútbol' — zagueiro elegante e ídolo do Nacional, primeiro colombiano campeão da Libertadores. Assassinado dias após um gol contra na Copa de 1994, virou símbolo trágico do futebol." },
@@ -1658,6 +1685,7 @@ const ZAG_WORLD: C[] = [
   { name: "Fernando Quirarte", club: "Chivas", year: 1986, fame: 2, lo: 64, hi: 80 },
   { name: "Rafael Albrecht", club: "San Lorenzo", year: 1968, fame: 2, lo: 64, hi: 80 },
   { name: "Choi Jin-cheul", club: "Jeonbuk", year: 2002, fame: 1, lo: 60, hi: 78 },
+  { name: "Kim Young-gwon", club: "Guangzhou", year: 2018, fame: 3, lo: 68, hi: 82, bio: "O zagueiro do gol que ELIMINOU a Alemanha em 2018 — o Brasil inteiro gritou junto. Gratidão eterna. 🙏" },
 ]
 const MEI_WORLD: C[] = [
   { name: "Carlos Valderrama", club: "Deportivo Cali", year: 1988, fame: 5, lo: 87, hi: 93, bio: "'El Pibe' — a cabeleira loira e o passe mais genial da história colombiana. Enxergava lançamentos que ninguém via; pura arte no meio-campo." },
@@ -1677,6 +1705,11 @@ const MEI_WORLD: C[] = [
   { name: "Diego Cagna", club: "Boca Juniors", year: 2001, fame: 2, lo: 66, hi: 82 },
   { name: "Egidio Arévalo Ríos", club: "Tigres", year: 2011, fame: 2, lo: 66, hi: 81, bio: "'El Cacha' — o trator de marcação da Celeste campeã da América de 2011." },
   { name: "Gerardo Torrado", club: "Cruz Azul", year: 2008, fame: 2, lo: 66, hi: 81, bio: "O Borrego — volante-xerife do Cruz Azul e da seleção mexicana, barba e carrinho sempre em dia." },
+  { name: "Kim Nam-il", club: "Chunnam Dragons", year: 2002, fame: 2, lo: 60, hi: 78, bio: "O volante 'faca nos dentes' de 2002 — marcava até o pensamento do adversário." },
+  { name: "Kyle Beckerman", club: "Real Salt Lake", year: 2014, fame: 2, lo: 58, hi: 77, folk: true, bio: "O rasta mais famoso da MLS — dreadlock imponente e carrinho honesto. Estilo é tudo." },
+  { name: "Tab Ramos", club: "Tigres", year: 1994, fame: 3, lo: 66, hi: 81, bio: "O primeiro camisa 10 de respeito dos EUA — talento puro que levou cotovelada criminosa do Leonardo em 94." },
+  { name: "Cobi Jones", club: "LA Galaxy", year: 1998, fame: 2, lo: 60, hi: 79, folk: true, bio: "Dreadlocks ao vento e 164 jogos pela seleção americana — recorde eterno e cabelo eterno." },
+  { name: "Cebolla Rodríguez", club: "Peñarol", year: 2013, fame: 3, lo: 66, hi: 81, bio: "O 'Cebolla' — ponta charrúa de dribles atrevidos que depois fez a alegria (e a raiva) da torcida do Grêmio." },
 ]
 const ATA_WORLD: C[] = [
   { name: "Majed Abdullah", club: "Al-Nassr", year: 1984, fame: 4, lo: 82, hi: 89, bio: "'O Pelé árabe' — o maior ídolo do futebol saudita, artilheiro lendário do Al-Nassr e da seleção por quase 20 anos." },
@@ -1697,6 +1730,9 @@ const ATA_WORLD: C[] = [
   { name: "Zague", club: "América", year: 1993, fame: 2, lo: 68, hi: 83 },
   { name: "Bernabé Ferreyra", club: "River Plate", year: 1935, fame: 3, lo: 80, hi: 87, bio: "'La Fiera' — o chute mais temido dos anos 30, primeiro grande ídolo-artilheiro do River e recordista de gols da época." },
   { name: "Clint Mathis", club: "MetroStars", year: 2002, fame: 2, lo: 64, hi: 81 },
+  { name: "Hwang Sun-hong", club: "Pohang", year: 2002, fame: 3, lo: 68, hi: 83, bio: "Matador coreano — abriu o placar contra a Polônia em 2002: a PRIMEIRA vitória da Coreia em Copas." },
+  { name: "Eduardo Vargas", club: "U. de Chile", year: 2011, fame: 3, lo: 70, hi: 84, bio: "'Turboman' da U. de Chile campeã invicta da Sul-Americana de 2011 — na seleção virava monstro, artilheiro de duas Américas." },
+  { name: "Humberto Suazo", club: "Monterrey", year: 2010, fame: 3, lo: 70, hi: 84, bio: "'Chupete' — chutava com os dois pés e mascava chiclete como quem já sabia que ia ser artilheiro do mundo em 2006." },
 ]
 export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: GOL_WORLD, LAT: LAT_WORLD, ZAG: ZAG_WORLD, MEI: MEI_WORLD, ATA: ATA_WORLD }
 
