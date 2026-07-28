@@ -1411,6 +1411,19 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
               : otherMiss.length
                 ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>⚠️ Pra jogar <b>{other}</b> faltam <b>{otherMiss.join(', ')}</b>. Contrate no leilão ou traga da SAF.</p>
                 : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>✅ Dá pra trocar pra <b>{other}</b> quando quiser — vale do próximo jogo.</p>}
+            {/* ⚠️ AVISO DE TETO (pedido de um jogador 28/07): a formação nova pode ter
+                MENOS vagas por posição (teto = 2× a escalação). Quem passa do teto não
+                é vendido sozinho, mas trava compras e fica sobrando — avisar ANTES. */}
+            {unlocked && (() => {
+              const overFor = (f: FormationKey) => SECTORS
+                .map(pos => ({ pos, over: real.filter(c => c.pos === pos).length - FORMATIONS[f][pos] * 2 }))
+                .filter(x => x.over > 0)
+                .map(x => `${x.over} ${POS_SHORT[x.pos]}${x.over > 1 ? 's' : ''}`)
+              const ov = overFor(other)
+              return ov.length > 0
+                ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#8a6a2a', margin: '4px 0 0', lineHeight: 1.35 }}>⚠️ Atenção: no <b>{other}</b> o teto do elenco muda — você ficaria com <b>{ov.join(' e ')} acima do teto</b>. Ninguém é vendido sozinho, mas o excedente ocupa folha e trava novas compras na posição. Se preferir, venda você mesmo no leilão de transferências.</p>
+                : null
+            })()}
           </div>
         )
       })()}
