@@ -42,6 +42,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'daviddmartinsff11m@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'victorcarvalhoalves@hotmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'dasilva1227br@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
+  'davisantana1312@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
 }
 
 // 🖋️ FUNDADORES (os 100 primeiros Lendas): e-mail → número do fundador.
@@ -49,6 +50,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
 // O número entra no mural "Fundadores do Leilão Legends" (tela futura).
 const FUNDADOR_N: Record<string, number> = {
   'dasilva1227br@gmail.com': 9,
+  'davisantana1312@gmail.com': 11,
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null
