@@ -2346,6 +2346,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // "Continuar carreira" (bug relatado: rápido virando carreira).
       s.careerOnline = false
       s.careerLedger = []
+      // ⚽ START é sempre FUTEBOL (o basquete tem START_NBA próprio). Sem isto, um
+      // rápido de futebol aberto DEPOIS de um jogo de basquete herdava
+      // sport='basquete' — placar de pontos e playoffs por conferência no futebol.
+      s.sport = 'futebol'; s.nbaCareer = false
       // baralho escolhido (só solo): Brasileirão ou Liga Europa. Manager (que
       // também dispara START) sempre usa BR — não manda league.
       s.deckLeague = action.dinastia ? 'br' : (action.league ?? 'br')
@@ -2664,6 +2668,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // ou os dois juntos (escolha do host). O leilão e a temporada são o motor
       // real de sempre — só muda o catálogo de craques.
       s.deckLeague = action.deck ?? 'br'; setActiveCatalog(s.deckLeague)
+      s.sport = 'futebol'; s.nbaCareer = false // ⚽ online é sempre futebol (não herda basquete de um jogo anterior)
       s.locked = action.locked; s.pwHash = action.pwHash // guarda a senha no estado (sobrevive ao autosave)
       s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido
       s.ligaFechada = !!action.ligaFechada // 🏆 liga só com humanos (sem bots na tabela)

@@ -174,7 +174,7 @@ const COR_TIERS = [
 ] as const
 // 🖋️ FUNDADOR: os 100 primeiros Lendas. Contador MANUAL — cada Lenda que o Diego
 // confirmar no Instagram, baixar este número aqui (não dá pra contar sozinho).
-const FUNDADOR_VAGAS = 77
+const FUNDADOR_VAGAS = 72
 // 🔗 link direto pro APOIE (pra postar nos stories/grupo): leilaolegends.com/?apoie=lenda
 // abre o modal já na cor OURO. Também vale ?apoie=craque (manual) e ?apoie=1 (tela geral).
 // consumido UMA vez só (vários ApoieButton montam ao mesmo tempo — só o primeiro abre).
@@ -3283,13 +3283,19 @@ export function EscSeason() {
 
   // só revela o resultado do clássico DEPOIS que o card do jogo terminou de
   // animar os 90' — senão a faixa entregava o placar antes da simulação.
-  const [resultRevealed, setResultRevealed] = useState(false)
+  // 🏁 temporada JÁ ENCERRADA (campeão coroado / Copa dos 8 semeada): não segura
+  // nada — a última rodada já animou. Sem isto, re-entrar na tela (ex.: apertar
+  // "Iniciar a Copa") re-armava o segurador e a tabela ficava ~8s SEM a última
+  // rodada, contradizendo a Copa (parecia que "o 10º se classificou").
+  const seasonSettled = state.round >= totalRounds && (state.quickCopa != null || state.champion != null)
+  const [resultRevealed, setResultRevealed] = useState(seasonSettled)
   const [showPyramid, setShowPyramid] = useState(false)
   useEffect(() => {
+    if (seasonSettled) { setResultRevealed(true); return }
     setResultRevealed(false)
     const t = setTimeout(() => setResultRevealed(true), roundMs * 0.85 + 250)
     return () => clearTimeout(t)
-  }, [state.round])
+  }, [state.round, seasonSettled])
   // 🏟️ torcida ao fundo enquanto a temporada roda (para ao sair da tela)
   useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
   // 📣 apito no início de cada jogo (kickoff) — só quando há partida rolando
