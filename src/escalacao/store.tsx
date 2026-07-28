@@ -67,6 +67,29 @@ const NBA_STREET_TEAMS: { team: string; name: string }[] = [
   'Uptown Hustlers', 'Halfcourt Heroes', 'Sidewalk Slammers', 'Backboard Bullies', 'And-One Army',
   'Streetball Souljahs', 'Playground Legends', 'Chain Gang', 'Buckets Crew', 'Venice Ballers',
 ].map(t => ({ team: t, name: t }))
+// 🔷 G LEAGUE — afiliados REAIS da liga de desenvolvimento da NBA (o meio da
+// pirâmide). 24 times. É o degrau entre a várzea (Street) e a elite (NBA).
+const NBA_GLEAGUE_TEAMS: { team: string; name: string }[] = [
+  'Ignite', 'Blue Coats', 'Vipers', 'Skyforce', 'Maine Celtics', 'Mad Ants', 'Herd', 'Swarm',
+  'Texas Legends', 'SLC Stars', 'Windy City Bulls', 'Skyhawks', 'Grand Rapids Gold', 'Iowa Wolves',
+  'Long Island Nets', 'Memphis Hustle', 'OKC Blue', 'Osceola Magic', 'Raptors 905', 'Santa Cruz Warriors',
+  'South Bay Lakers', 'Stockton Kings', 'Westchester Knicks', 'Cleveland Charge',
+].map(t => ({ team: t, name: t }))
+// 💍 NBA — as 30 franquias REAIS (o topo da pirâmide, onde mora a elite).
+const NBA_PRO_TEAMS: { team: string; name: string }[] = [
+  'Lakers', 'Celtics', 'Bulls', 'Warriors', 'Heat', 'Spurs', 'Knicks', 'Nets', 'Bucks', 'Suns',
+  'Nuggets', 'Mavericks', 'Clippers', 'Sixers', 'Raptors', 'Grizzlies', 'Kings', 'Magic', 'Pistons',
+  'Hornets', 'Hawks', 'Cavaliers', 'Pacers', 'Thunder', 'Trail Blazers', 'Jazz', 'Pelicans', 'Wizards',
+  'Rockets', 'Timberwolves',
+].map(t => ({ team: t, name: t }))
+// 🪜 os 3 andares da pirâmide do basquete: times + rótulo. Subir de andar = novos
+// adversários (crews → afiliados → franquias) e um passo mais perto do anel.
+type NbaTier = 'street' | 'gleague' | 'nba'
+const NBA_TIERS: Record<NbaTier, { teams: { team: string; name: string }[]; labelPt: string; labelEn: string; next: NbaTier | null }> = {
+  street: { teams: NBA_STREET_TEAMS, labelPt: '🛝 Street League', labelEn: '🛝 Street League', next: 'gleague' },
+  gleague: { teams: NBA_GLEAGUE_TEAMS, labelPt: '🔷 G League', labelEn: '🔷 G League', next: 'nba' },
+  nba: { teams: NBA_PRO_TEAMS, labelPt: '💍 NBA', labelEn: '💍 NBA', next: null },
+}
 // soma as moedas da temporada (base+título/acesso/queda) na caixa de cada técnico
 function applyRewards(coins: Record<number, number> | undefined, rewards?: Record<number, number>): Record<number, number> {
   const out = { ...(coins ?? {}) }
@@ -2389,6 +2412,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerOnline = false; s.careerLedger = []
       s.reserveAuction = false; s.reserveListed = {}
       s.sport = 'basquete'; s.nbaCareer = true // é CARREIRA (salva, avança temporada, reservas)
+      s.nbaTier = 'street' // começa na base da pirâmide (Street League)
       setActiveSport('basquete', 'career') // baralho NBA + 1 vaga por posição (quinteto = 5)
       s.deckLeague = 'br'
       s.careerDivision = null; s.careerIntent = false; s.careerTitles = 0; s.careerTitlesA = 0
@@ -2427,6 +2451,26 @@ export function reducer(state: EscState, action: Action): EscState {
       // todos preservados da temporada passada.
       you.nbaSlots = s.seasonNo >= 3 ? 3 : 2
       for (const m of s.managers) m.deepSquad = false
+      // 🪜 SUBIR DE LIGA: terminou no TOP 4 da temporada que acabou? sobe um andar
+      // (Street → G League → NBA). Você LEVA seu elenco; os adversários viram os do
+      // andar de cima (crews → afiliados → franquias). Ninguém cai (base amadora).
+      const lastTable = sortedTable(s.league)
+      const youPos = lastTable.findIndex(t => t.id === you.id) + 1
+      const tier: NbaTier = s.nbaTier ?? 'street'
+      const promoted = youPos >= 1 && youPos <= 4 && NBA_TIERS[tier].next != null
+      if (promoted) {
+        const newTier = NBA_TIERS[tier].next as NbaTier
+        s.nbaTier = newTier
+        const tierTeams = NBA_TIERS[newTier].teams
+        // novos adversários do andar (CPUs recebem elenco, não dão lance); VOCÊ fica.
+        const { managers, botPlans } = makeManagers([you.teamName], '4-3-3', 0, tierTeams.length, rng, tierTeams)
+        managers[0] = you // mantém você (elenco, nbaSlots, money, id 0)
+        s.managers = managers; s.youIdx = 0
+        s.careerRivalCount = tierTeams.length - 1
+        const usedP = new Set<string>()
+        for (const c of you.squad) usedP.add(ident(c))
+        dealBotSquads(s.managers, botPlans, rng, usedP)
+      }
       // 🏀 VENDER: tira do elenco as reservas que você DISPENSOU (marcadas na tela
       // de fim) — as vagas voltam a abrir e o leilão de reservas repõe.
       const released = new Set(s.reserveListed?.[you.id] ?? [])

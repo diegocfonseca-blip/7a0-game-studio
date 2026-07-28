@@ -5187,6 +5187,12 @@ function CareerStars({ n, size = 13 }: { n: number; size?: number }) {
 // 🏀 fim de temporada da CARREIRA do basquete (Street League). Botão de PRÓXIMA
 // TEMPORADA: se ainda falta banco, abre o leilão de reservas (mantém o quinteto);
 // senão, começa a temporada com o mesmo time. (Salvar/continuar = próximo passo.)
+// 🪜 rótulo de cada andar + o de cima (pro aviso de subir de liga)
+const NBA_TIER_LABEL: Record<'street' | 'gleague' | 'nba', { pt: string; en: string; nextPt?: string; nextEn?: string }> = {
+  street: { pt: '🛝 Street League', en: '🛝 Street League', nextPt: '🔷 G League', nextEn: '🔷 G League' },
+  gleague: { pt: '🔷 G League', en: '🔷 G League', nextPt: '💍 NBA', nextEn: '💍 NBA' },
+  nba: { pt: '💍 NBA', en: '💍 NBA' },
+}
 function NbaCareerEndPanel() {
   const { state, dispatch } = useEsc()
   const t = useT()
@@ -5194,6 +5200,12 @@ function NbaCareerEndPanel() {
   const you = state.managers[state.youIdx]
   const real = (you?.squad ?? []).filter(c => !c.fake)
   const roster = real.length
+  // 🪜 subir de liga: terminou no top 4 e tem andar acima? sobe na próxima temporada.
+  const tier = state.nbaTier ?? 'street'
+  const tbl = sortedTable(state.league)
+  const youPos = tbl.findIndex(tt => tt.id === you?.id) + 1
+  const tierInfo = NBA_TIER_LABEL[tier]
+  const willPromote = youPos >= 1 && youPos <= 4 && !!tierInfo.nextPt
   const marked = new Set(state.reserveListed?.[you?.id ?? 0] ?? [])
   const nMarked = marked.size
   // 🏀 VENDER só na T3+ com elenco cheio (15). Fraco primeiro (o banco a trocar).
@@ -5208,6 +5220,16 @@ function NbaCareerEndPanel() {
     : t('Elenco cheio (15) — a próxima temporada começa com o mesmo time (ou dispense reservas pra trocar).', 'Full roster (15) — next season starts with the same team (or release bench players to swap).')
   return (
     <div className="space-y-2">
+      {/* 🪜 subiu de liga! (top 4) — feedback antes de tocar em próxima temporada */}
+      {willPromote && (
+        <div className="rounded-xl border-[3px] border-black px-3 py-2 text-center" style={{ background: '#1B7A3D', boxShadow: `3px 3px 0 ${INK}` }}>
+          <p className="font-black text-white text-sm" style={OSWALD}>🔼 {youPos}º {t('lugar', 'place')} — {t('SUBIU DE LIGA!', 'PROMOTED!')}</p>
+          <p className="font-bold text-white/85 text-[11px]">{t('Próxima temporada na', 'Next season in')} {t(tierInfo.nextPt!, tierInfo.nextEn!)}</p>
+        </div>
+      )}
+      {!willPromote && tier !== 'nba' && (
+        <p className="text-center text-[11px] font-bold text-black/45">{t(`${youPos}º na ${tierInfo.pt} — top 4 sobe de liga.`, `${youPos}${youPos === 1 ? 'st' : 'th'} in ${tierInfo.en} — top 4 gets promoted.`)}</p>
+      )}
       <Btn onClick={() => dispatch({ type: 'NEXT_NBA_SEASON' })} bg={GREEN} className="w-full text-lg">
         <span className="text-white">▶️ {t('Próxima temporada', 'Next season')}</span>
       </Btn>

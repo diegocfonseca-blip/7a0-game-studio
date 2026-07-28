@@ -244,6 +244,9 @@ export interface EscState {
   // 🏀 carreira do basquete (Street League): true = é carreira (salva, avança
   // temporada, leilão de reservas cresce 5→10→15); ausente/false = jogo rápido.
   nbaCareer?: boolean
+  // 🏀 andar da pirâmide do basquete: 'street' (base) → 'gleague' → 'nba' (topo).
+  // Sobe quando você termina no top 4. Muda os adversários (crews→afiliados→franquias).
+  nbaTier?: 'street' | 'gleague' | 'nba'
   seed: number
   // online
   onlineMode: OnlineMode
