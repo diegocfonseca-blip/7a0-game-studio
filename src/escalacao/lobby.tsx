@@ -481,6 +481,7 @@ export function EscLobby() {
     const lib: Record<string, { file: string; dur: number; emoji: string; balao: string }> = {
       ligar: { file: 'posso-te-ligar.mp3', dur: 9000, emoji: '📞', balao: 'mandou: "Posso te ligar agora?" 🔊' },
       meme2: { file: 'meme2.mp3', dur: 17000, emoji: '🎙️', balao: 'soltou AQUELE áudio 🔊' },
+      siuu: { file: 'siuu.mp3', dur: 3000, emoji: '🗣️', balao: 'gritou SIIIIUUU! 🔊' },
     }
     const s = lib[key] ?? lib.ligar
     if (sfxPlayingRef.current) return // um som por vez na sala
@@ -1699,7 +1700,7 @@ export function EscLobby() {
             {/* 📞🎙️ BUZINA: áudios de meme pra sala TODA. 1 por pessoa a cada 30s
                 (contagem compartilhada) e um som por vez na sala. */}
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {([['ligar', '📞', '"Posso te ligar agora?"'], ['meme2', '🎙️', 'AQUELE áudio']] as [string, string, string][]).map(([k, ic, tx]) => (
+              {([['ligar', '📞', '"Posso te ligar agora?"'], ['meme2', '🎙️', 'AQUELE áudio'], ['siuu', '🗣️', 'SIIIIUU!']] as [string, string, string][]).map(([k, ic, tx]) => (
                 <button key={k} onClick={() => sendSfx(k)} disabled={sfxCoolLeft > 0}
                   className="border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] active:translate-y-0.5"
                   style={{ ...OSWALD, background: sfxCoolLeft > 0 ? '#e4ddc9' : GOLD, color: sfxCoolLeft > 0 ? 'rgba(0,0,0,.45)' : '#000' }}>

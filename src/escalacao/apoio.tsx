@@ -41,6 +41,21 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'davidsccp16@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual
   'daviddmartinsff11m@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'victorcarvalhoalves@hotmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
+  'dasilva1227br@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
+  'davisantana1312@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
+  'ambielvictor@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
+}
+
+// 🖋️ FUNDADORES (os 100 primeiros Lendas): e-mail → número do fundador.
+// O selo 🖋️ cola no 👑 no nome ("Fulano 👑🖋️") em todo canto do jogo.
+// O número entra no mural "Fundadores do Leilão Legends" (tela futura).
+const FUNDADOR_N: Record<string, number> = {
+  'dasilva1227br@gmail.com': 9,
+  'davisantana1312@gmail.com': 11,
+  'ambielvictor@gmail.com': 12,
+}
+export function myFundadorN(): number | null {
+  return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null
 }
 
 // e-mail da conta logada, cacheado — os pontos que usam (playerColors, nomes)
@@ -139,17 +154,20 @@ export function useHasManual(): boolean {
   return manualCol || tier === 'prata' || tier === 'ouro'
 }
 
-// selo pronto pra colar no fim do nome (' 👑' ou '')
+// selo pronto pra colar no fim do nome (' 👑', ' 👑🖋️' pra fundador, ou '').
+// O 🖋️ vem GRUDADO no 👑 — quem procura o 👑 no nome (perkFromSelo etc.)
+// continua achando, então cor/tier não mudam em nada.
 export function apoioSelo(): string {
   const p = myApoioPerk()
-  return p && p.selo ? ` ${p.selo}` : ''
+  if (!p || !p.selo) return ''
+  return ` ${p.selo}${myFundadorN() != null ? '🖋️' : ''}`
 }
 
 // nome com o selo garantido (sem duplicar — saves antigos já podem ter o emoji)
 export function apoioName(name: string): string {
   const p = myApoioPerk()
   if (!p || !p.selo || name.includes(p.selo)) return name
-  return `${name} ${p.selo}`
+  return `${name} ${p.selo}${myFundadorN() != null ? '🖋️' : ''}`
 }
 
 // tira emoji/pictogramas dos nomes digitados (cadastro, sala, time): os selos
