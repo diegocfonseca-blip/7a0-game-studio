@@ -132,8 +132,11 @@ Listas completas por país × posição: gerar de novo com scratchpad/cartas.txt
   as seleções. Nenhuma indicação de categoria na tela: convocar mal é risco do
   técnico (a zoeira é essa). Bots continuam convocando os melhores 11 por dentro.
 
-## 🎯 REGRA DA ESCOLHA DE SELEÇÃO (Diego, 27/07 — decisão firme)
-- Os 16 participantes entram RANQUEADOS (posição 1-16 na classificação pra Copa).
+## 🎯 REGRA DA ESCOLHA DE SELEÇÃO (Diego, 27-28/07 — decisão firme)
+- **A vaga e a posição vêm do RANKING DE CLUBES (o mural do Rank)**: só entra
+  quem está no TOP 16 do ranking de clubes, e a posição N do clube LÁ é a que
+  manda na escolha (28/07 — "tem que estar entre o top 16 do ranking de times,
+  aquele mural"). Trava dupla: temporada 100 + top 16 do mural.
 - **Quem ficou em N só pode escolher seleção da posição N pra BAIXO no ranking
   de seleções** (1º escolhe qualquer uma; 7º escolhe da 7ª à 16ª). O Brasil (1º)
   é PRÊMIO de quem fez a melhor campanha.
