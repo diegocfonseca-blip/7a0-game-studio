@@ -12,6 +12,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
 import { paisDe, rankingSelecoes, type Baralho } from './paises'
+// placar AO VIVO oficial (relógio 0→90', GOOOL, bump) + pênaltis com suspense —
+// os MESMOS componentes da liga/copa da carreira. Import circular com
+// pyramidseason é seguro: são function declarations usadas só no render.
+import { LiveScoreCard, PensShootout, pensRevealDelay, type ScoreGoal } from './pyramidseason'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#C2452F'
 const OSWALD = { fontFamily: "'Oswald','Arial Narrow',system-ui,sans-serif" } as const
@@ -98,9 +102,27 @@ function pens(r: () => number): [number, number] {
   return [a, b]
 }
 
-type GMatch = { h: number; a: number; gh?: number; ga?: number }
+type GMatch = { h: number; a: number; gh?: number; ga?: number; ev?: ScoreGoal[] }
 type Group = { teams: number[]; matches: GMatch[][] } // matches[rodada][jogo]
-type KoTie = { h: number; a: number; g1?: [number, number]; g2?: [number, number]; pen?: [number, number]; winner?: number }
+type KoTie = { h: number; a: number; g1?: [number, number]; g2?: [number, number]; ev1?: ScoreGoal[]; ev2?: ScoreGoal[]; pen?: [number, number]; winner?: number }
+
+// quem marca: sorteio ponderado no XI (ATA pesa 4 · MEI 2 · defesa 1 · GOL nunca)
+function scorerPick(r: () => number, xi: PoolCard[]): string {
+  const pool: PoolCard[] = []
+  for (const c of xi) {
+    const w = c.sec === 'ATA' ? 4 : c.sec === 'MEI' ? 2 : c.sec === 'GOL' ? 0 : 1
+    for (let i = 0; i < w; i++) pool.push(c)
+  }
+  return (pool[Math.floor(r() * pool.length)] ?? xi[xi.length - 1]).name
+}
+// minutos + autores dos gols (seedado): alimenta o LiveScoreCard — o gol pinga
+// no minuto certo do relógio, com o NOME de quem fez (as lendas convocadas!)
+function goalEvents(r: () => number, gh: number, ga: number, home: Entrant, away: Entrant): ScoreGoal[] {
+  const evs: ScoreGoal[] = []
+  for (let i = 0; i < gh; i++) evs.push({ home: true, min: 2 + Math.floor(r() * 89), name: scorerPick(r, home.xi) })
+  for (let i = 0; i < ga; i++) evs.push({ home: false, min: 2 + Math.floor(r() * 89), name: scorerPick(r, away.xi) })
+  return evs.sort((a, b) => a.min - b.min)
+}
 
 // tabela do grupo: pontos → VITÓRIAS → saldo (regra do Diego)
 function groupTable(g: Group, upTo: number) {
@@ -380,9 +402,11 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
   )
 }
 
-// ── tela 3: o torneio (grupos → sorteio → mata-mata → final → cerimônia) ──
+// ── tela 3: o torneio AO VIVO (mesmo ritmo/suspense da liga: relógio, GOOOL,
+// pênaltis cobrança a cobrança — nada aparece pronto) ──
 function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants: Entrant[]; rng: () => number; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; onClose: () => void }) {
-  // tudo pré-computado com a MESMA seed; só é REVELADO quando a rodada é jogada
+  // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
+  // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
   const world = useMemo(() => {
     const idx = entrants.map((_, i) => i)
     for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]] }
@@ -396,17 +420,22 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
       ]
       const returno: GMatch[][] = turno.map(rd => rd.map(m => ({ h: m.a, a: m.h })))
       const matches = [...turno, ...returno]
-      for (const rd of matches) for (const m of rd) { const [gh, ga] = playMatch(rng, entrants[m.h], entrants[m.a]); m.gh = gh; m.ga = ga }
+      for (const rd of matches) for (const m of rd) {
+        const [gh, ga] = playMatch(rng, entrants[m.h], entrants[m.a])
+        m.gh = gh; m.ga = ga
+        m.ev = goalEvents(rng, gh, ga, entrants[m.h], entrants[m.a])
+      }
       return { teams, matches }
     })
-    // classificados: 2 por grupo → sorteio ALEATÓRIO do mata-mata (pontos não valem mais)
     const q8 = groups.flatMap(g => groupTable(g, 6).slice(0, 2).map(r => r.t))
     const ord = [...q8]
     for (let i = ord.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [ord[i], ord[j]] = [ord[j], ord[i]] }
     const mkTie = (h: number, a: number): KoTie => {
       const t: KoTie = { h, a }
       t.g1 = playMatch(rng, entrants[h], entrants[a])
+      t.ev1 = goalEvents(rng, t.g1[0], t.g1[1], entrants[h], entrants[a])
       t.g2 = playMatch(rng, entrants[a], entrants[h])
+      t.ev2 = goalEvents(rng, t.g2[0], t.g2[1], entrants[a], entrants[h])
       const hg = t.g1[0] + t.g2[1], ag = t.g1[1] + t.g2[0]
       if (hg > ag) t.winner = h; else if (ag > hg) t.winner = a
       else { t.pen = pens(rng); t.winner = t.pen[0] > t.pen[1] ? h : a }
@@ -416,20 +445,40 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
     const sf = [mkTie(qf[0].winner!, qf[1].winner!), mkTie(qf[2].winner!, qf[3].winner!)]
     const fh = sf[0].winner!, fa = sf[1].winner!
     const fg = playMatch(rng, entrants[fh], entrants[fa])
+    const fev = goalEvents(rng, fg[0], fg[1], entrants[fh], entrants[fa])
     const fpen = fg[0] === fg[1] ? pens(rng) : null
     const champion = fg[0] > fg[1] ? fh : fg[1] > fg[0] ? fa : (fpen![0] > fpen![1] ? fh : fa)
-    return { groups, qf, sf, final: { h: fh, a: fa, g: fg, pen: fpen, champion } }
+    return { groups, qf, sf, final: { h: fh, a: fa, g: fg, ev: fev, pen: fpen, champion } }
   }, [entrants, rng])
 
-  // step = nº de revelações FEITAS: 1-6 rodadas de grupo · 7 sorteio · 8 QF ida ·
-  // 9 QF volta · 10 SF ida · 11 SF volta · 12 final · 13 cerimônia. Sem spoiler:
-  // tudo pré-computado, mas só aparece quando o técnico aperta o botão.
+  // step = revelações FEITAS: 1-6 rodadas de grupo · 7 sorteio · 8 QF ida ·
+  // 9 QF volta · 10 SF ida · 11 SF volta · 12 final · 13 cerimônia.
   const [step, setStep] = useState(0)
-  const gRound = Math.min(6, step) // rodadas de grupo já reveladas
+  const [liveDone, setLiveDone] = useState(true)
+  const [roundKey, setRoundKey] = useState(0)
+  const LIVE = (s: number) => (s >= 1 && s <= 6) || (s >= 8 && s <= 12)
+  const gRound = Math.min(6, step)
+  const shownRounds = step <= 6 && !liveDone ? Math.max(0, gRound - 1) : gRound // tabela/resultados só DEPOIS do apito
   const done = step >= 13
+  const myIdx = entrants.findIndex(isYouE)
   const nm = (i: number) => `${FLAG[entrants[i].pais]} ${entrants[i].pais}`
   const club = (i: number) => entrants[i].club
   const isYou = (i: number) => entrants[i].you
+
+  const next = () => { const s = step + 1; setStep(s); if (LIVE(s)) { setLiveDone(false); setRoundKey(k => k + 1) } }
+  // relógio da rodada: 9s (padrão da liga) + tempo dos pênaltis quando o MEU
+  // confronto (ou a final) decide na marca — suspense completo antes de liberar.
+  useEffect(() => {
+    if (liveDone) return
+    let extra = 700
+    const penMs = (t: KoTie) => t.pen && (isYou(t.h) || isYou(t.a)) ? pensRevealDelay(t.pen) * 1000 : 0
+    if (step === 9) extra += Math.max(0, ...world.qf.map(penMs))
+    if (step === 11) extra += Math.max(0, ...world.sf.map(penMs))
+    if (step === 12 && world.final.pen) extra += pensRevealDelay(world.final.pen) * 1000
+    const t = setTimeout(() => setLiveDone(true), 9000 + extra)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roundKey])
 
   // persiste os prêmios UMA vez, quando chega no fim (fora do render!)
   useEffect(() => {
@@ -441,36 +490,62 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done])
 
-  const nextLabel = step < 6 ? `▶️ Rodada ${step + 1} de 6` : step === 6 ? '🎲 Sortear o mata-mata' : step === 7 ? '▶️ Jogar as quartas (ida)' : step === 8 ? '▶️ Quartas — jogo de volta' : step === 9 ? '▶️ Semifinais (ida)' : step === 10 ? '▶️ Semis — jogo de volta' : step === 11 ? '🏆 A GRANDE FINAL' : '🎉 Cerimônia'
+  const nextLabel = !liveDone ? '⏳ Deixa o jogo acabar…' : step < 6 ? `▶️ Rodada ${step + 1} de 6` : step === 6 ? '🎲 Sortear o mata-mata' : step === 7 ? '▶️ Jogar as quartas (ida)' : step === 8 ? '▶️ Quartas — jogo de volta' : step === 9 ? '▶️ Semifinais (ida)' : step === 10 ? '▶️ Semis — jogo de volta' : step === 11 ? '🏆 A GRANDE FINAL' : '🎉 Cerimônia'
 
-  const tieRow = (t: KoTie, revealVolta: boolean) => (
+  // cartão AO VIVO (o mesmo LiveScoreCard da liga/copa — relógio, GOOOL, bump)
+  const live = (h: number, a: number, ev: ScoreGoal[]) => (
+    <div style={{ marginBottom: 8 }}>
+      <LiveScoreCard homeName={nm(h)} awayName={nm(a)} homeColor={GREEN} awayColor={RED}
+        youIsHome={h === myIdx} goals={ev} roundKey={roundKey} roundMs={9000} finished={liveDone} />
+    </div>
+  )
+  // linha compacta de confronto resolvido (ida+volta+pênaltis) — só pós-apito
+  const tieRow = (t: KoTie, showVolta: boolean, showPens = true) => (
     <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: isYou(t.h) || isYou(t.a) ? 900 : 700 }}>
       <span>{nm(t.h)} {t.g1![0]}×{t.g1![1]} {nm(t.a)}</span>
-      {revealVolta && <span style={{ display: 'block', color: 'rgba(0,0,0,.6)' }}>volta: {t.g2![0]}×{t.g2![1]}{t.pen ? ` · pênaltis ${t.pen[0]}×${t.pen[1]}` : ''} → <b style={{ color: GREEN }}>{nm(t.winner!)} avança</b></span>}
+      {showVolta && <span style={{ display: 'block', color: 'rgba(0,0,0,.6)' }}>volta: {t.g2![0]}×{t.g2![1]}{showPens && t.pen ? ` · pênaltis ${t.pen[0]}×${t.pen[1]}` : ''} → <b style={{ color: GREEN }}>{nm(t.winner!)} avança</b></span>}
+    </div>
+  )
+  // o MEU confronto de volta: placar ao vivo + pênaltis com o suspense OFICIAL
+  const myTieVolta = (t: KoTie) => (
+    <div key={`v${t.h}`}>
+      {live(t.a, t.h, t.ev2!)}
+      {liveDone && t.pen && (
+        <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 AGREGADO {t.g1![0] + t.g2![1]}×{t.g1![1] + t.g2![0]} — DECISÃO NOS PÊNALTIS</p>
+          <PensShootout pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} />
+        </div>
+      )}
     </div>
   )
 
   return (
     <>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 18, margin: 0, textAlign: 'center', textTransform: 'uppercase' }}>🌍 Copa do Mundo Legends · temporada {seasonNo}</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', textAlign: 'center', margin: '3px 0 10px' }}>Você: <b>{nm(entrants.findIndex(isYouE))}</b> ({club(entrants.findIndex(isYouE))})</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', textAlign: 'center', margin: '3px 0 10px' }}>Você: <b>{nm(myIdx)}</b> ({club(myIdx)})</p>
 
-      {/* GRUPOS (ficam na tela até o sorteio ser revelado) */}
+      {/* GRUPOS: SEU jogo ao vivo em cima (relógio da liga); tabela e os outros
+          resultados só entram DEPOIS do apito — zero spoiler. */}
+      {step >= 1 && step <= 6 && (() => {
+        const g = world.groups.find(gr => gr.teams.includes(myIdx))
+        const m = g?.matches[gRound - 1]?.find(mm => mm.h === myIdx || mm.a === myIdx)
+        return m ? live(m.h, m.a, m.ev ?? []) : null
+      })()}
       {step <= 7 && (
         <>
           {world.groups.map((g, gi) => (
             <div key={gi} style={{ ...box('#fff'), padding: 10, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>GRUPO {'ABCD'[gi]}</p>
-              {groupTable(g, gRound).map((r, i) => (
+              {groupTable(g, shownRounds).map((r, i) => (
                 <div key={r.t} style={{ display: 'flex', gap: 6, fontSize: 10.5, fontWeight: isYou(r.t) ? 900 : 600, background: isYou(r.t) ? '#FFE9B0' : i < 2 ? '#F0F7F1' : 'transparent', borderRadius: 6, padding: '2px 5px' }}>
                   <span style={{ width: 12, color: 'rgba(0,0,0,.45)' }}>{i + 1}</span>
                   <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nm(r.t)} <span style={{ color: 'rgba(0,0,0,.4)', fontSize: 8.5 }}>· {club(r.t)}</span></span>
                   <span style={{ fontWeight: 900 }}>{r.pts}pt</span><span>{r.w}V</span><span>{r.sg > 0 ? '+' : ''}{r.sg}</span>
                 </div>
               ))}
-              {gRound > 0 && (
+              {shownRounds > 0 && (
                 <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 0 0' }}>
-                  rodada {gRound}: {g.matches[gRound - 1].map(m => `${FLAG[entrants[m.h].pais]} ${m.gh}×${m.ga} ${FLAG[entrants[m.a].pais]}`).join(' · ')}
+                  rodada {shownRounds}: {g.matches[shownRounds - 1].map(m => `${FLAG[entrants[m.h].pais]} ${m.gh}×${m.ga} ${FLAG[entrants[m.a].pais]}`).join(' · ')}
                 </p>
               )}
             </div>
@@ -479,21 +554,58 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
         </>
       )}
 
-      {/* SORTEIO + MATA-MATA (revelado por etapa) */}
-      {step >= 7 && !done && (
+      {/* MATA-MATA: seu confronto ao vivo; os demais aparecem pós-apito */}
+      {step >= 8 && !done && (() => {
+        const myQf = world.qf.find(t => isYou(t.h) || isYou(t.a))
+        const mySf = world.sf.find(t => isYou(t.h) || isYou(t.a))
+        return (
+          <>
+            {step === 8 && myQf && live(myQf.h, myQf.a, myQf.ev1!)}
+            {step === 9 && myQf && myTieVolta(myQf)}
+            {step === 10 && mySf && live(mySf.h, mySf.a, mySf.ev1!)}
+            {step === 11 && mySf && myTieVolta(mySf)}
+            {step === 12 && live(world.final.h, world.final.a, world.final.ev)}
+            {step === 12 && liveDone && world.final.pen && (
+              <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 FINAL DECIDIDA NOS PÊNALTIS</p>
+                <PensShootout pens={world.final.pen} aName={entrants[world.final.h].pais} bName={entrants[world.final.a].pais} />
+              </div>
+            )}
+            <div style={{ ...box('#fff'), padding: 10, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>🎲 MATA-MATA (sorteio livre — ida e volta)</p>
+              {world.qf.map((t, i) => {
+                const mine = isYou(t.h) || isYou(t.a)
+                if (step === 8) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} × {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· jogando…</span></div> : null}</div>
+                if (step === 9) return <div key={i}>{liveDone ? tieRow(t, true) : mine ? null : <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} {t.g1![0]}×{t.g1![1]} {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· volta rolando…</span></div>}</div>
+                if (step === 7) return <div key={i} style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: mine ? 900 : 700 }}>{nm(t.h)} × {nm(t.a)}</div>
+                return <div key={i}>{tieRow(t, true)}</div>
+              })}
+              {step >= 10 && (<>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px' }}>SEMIFINAIS</p>
+                {world.sf.map((t, i) => {
+                  const mine = isYou(t.h) || isYou(t.a)
+                  if (step === 10) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} × {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· jogando…</span></div> : null}</div>
+                  if (step === 11) return <div key={i}>{liveDone ? tieRow(t, true) : mine ? null : <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} {t.g1![0]}×{t.g1![1]} {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· volta rolando…</span></div>}</div>
+                  return <div key={i}>{tieRow(t, true)}</div>
+                })}
+              </>)}
+              {step === 12 && liveDone && (
+                <>
+                  <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px' }}>🏆 FINAL ÚNICA</p>
+                  <p style={{ fontSize: 12, fontWeight: 900, margin: 0 }}>{nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? ` · pênaltis ${world.final.pen[0]}×${world.final.pen[1]}` : ''}</p>
+                </>
+              )}
+            </div>
+          </>
+        )
+      })()}
+
+      {step === 7 && (
         <div style={{ ...box('#fff'), padding: 10, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
-          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>🎲 MATA-MATA (sorteio livre — ida e volta)</p>
-          {world.qf.map((t, i) => <div key={i}>{step >= 8 ? tieRow(t, step >= 9) : <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: isYou(t.h) || isYou(t.a) ? 900 : 700 }}>{nm(t.h)} × {nm(t.a)}</div>}</div>)}
-          {step >= 10 && (<>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px' }}>SEMIFINAIS</p>
-            {world.sf.map((t, i) => <div key={i}>{tieRow(t, step >= 11)}</div>)}
-          </>)}
-          {step >= 12 && (
-            <>
-              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px' }}>🏆 FINAL ÚNICA</p>
-              <p style={{ fontSize: 12, fontWeight: 900, margin: 0 }}>{nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? ` · pênaltis ${world.final.pen[0]}×${world.final.pen[1]}` : ''}</p>
-            </>
-          )}
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>🎲 O SORTEIO DAS QUARTAS (ida e volta)</p>
+          {world.qf.map((t, i) => (
+            <div key={i} style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: isYou(t.h) || isYou(t.a) ? 900 : 700 }}>{nm(t.h)} × {nm(t.a)}{(isYou(t.h) || isYou(t.a)) ? ' 👈 VOCÊ' : ''}</div>
+          ))}
         </div>
       )}
 
@@ -507,7 +619,7 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
           <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0', position: 'relative' }}>final: {nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? ` (pên. ${world.final.pen[0]}×${world.final.pen[1]})` : ''}</p>
         </div>
       )}
-      {done && save.mural.concat([{ season: seasonNo, selecao: entrants[world.final.champion].pais, campeao: entrants[world.final.champion].club, voce: isYou(world.final.champion) }]).length > 0 && (
+      {done && (
         <div style={{ ...box('#0C0C0C'), padding: 10, marginBottom: 10, borderRadius: 12 }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, margin: '0 0 4px', color: GOLD, textTransform: 'uppercase' }}>📜 Mural dos Campeões do Mundo</p>
           {[...save.mural, { season: seasonNo, selecao: entrants[world.final.champion].pais, campeao: entrants[world.final.champion].club, voce: isYou(world.final.champion) }]
@@ -523,9 +635,10 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
       {done ? (
         <button onClick={onClose} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>▶️ VOLTAR PRA CARREIRA</button>
       ) : (
-        <button onClick={() => setStep(s => s + 1)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: GOLD, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>{nextLabel}</button>
+        <button disabled={!liveDone} onClick={next} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: liveDone ? GOLD : '#cfcabb', boxShadow: liveDone ? `4px 4px 0 0 ${INK}` : 'none', cursor: liveDone ? 'pointer' : 'not-allowed' }}>{nextLabel}</button>
       )}
     </>
   )
 }
+
 const isYouE = (e: Entrant) => e.you
