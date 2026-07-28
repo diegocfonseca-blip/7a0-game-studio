@@ -91,6 +91,10 @@ const PG: BC[] = [
   { name: "Isaiah Thomas", club: "Celtics", year: 2017, fame: 3, lo: 78, hi: 86, folk: true, bioPt: "1,75m e 28,9 pontos por jogo jogando pelo irmão. O pequeno gigante de Boston (não confunda com o Isiah!).", bioEn: "Five-foot-nine and 28.9 a night playing for his sister. Bostons little giant (dont confuse him with Isiah!)." },
   { name: "Steve Francis", club: "Rockets", year: 2004, fame: 3, lo: 79, hi: 87, folk: true, bioPt: "Stevie Franchise. Explosão pura e enterradas impossíveis pra um armador de 1,91m.", bioEn: "Stevie Franchise. Pure explosion and impossible dunks for a six-foot-three guard." },
   { name: "Raul Neto", club: "Jazz", year: 2016, fame: 1, lo: 62, hi: 80, folk: true, bioPt: "Brasiliense raçudo que segurou vaga na NBA no peito. Orgulho verde-amarelo no garrafão gringo.", bioEn: "A gritty guard from Brasília who earned his NBA spot on grit. Green-and-yellow pride in the foreign paint." },
+  // ── Lote 4 (modernos + variedade) ──
+  { name: "Tyrese Maxey", club: "Sixers", year: 2024, fame: 3, lo: 79, hi: 87, bioPt: "Velocidade pura e três de longe, sempre sorrindo. O motor jovem da Filadélfia.", bioEn: "Blazing speed and deep threes, always smiling. Philadelphias young engine." },
+  { name: "Mike Conley", club: "Grizzlies", year: 2016, fame: 3, lo: 79, hi: 86, bioPt: "O armador mais subestimado de uma geração. Comando silencioso, defesa e caráter.", bioEn: "The most underrated point guard of a generation. Quiet control, defense and character." },
+  { name: "Dennis Schröder", club: "Hawks", year: 2023, fame: 2, lo: 74, hi: 84, folk: true, bioPt: "Alemão veloz e destemido — herói do ouro mundial de 2023. Fala pouco, corre muito.", bioEn: "A fast, fearless German — hero of the 2023 World Cup gold. Talks little, runs a lot." },
 ]
 
 // ─── SG · ALA-ARMADOR ────────────────────────────────────────────────
@@ -148,6 +152,10 @@ const SG: BC[] = [
   { name: "Jrue Holiday", club: "Bucks", year: 2021, fame: 3, lo: 80, hi: 87, bioPt: "O cão de guarda dos armadores rivais. Defesa que ganha anel (Milwaukee 2021) e caráter fora da quadra.", bioEn: "The watchdog of rival guards. Ring-winning defense (Milwaukee 2021) and character off the floor." },
   { name: "CJ McCollum", club: "Blazers", year: 2016, fame: 3, lo: 79, hi: 87, bioPt: "Parceiro de backcourt do Dame com meia distância de manual e um dos caras mais articulados da liga.", bioEn: "Dame's backcourt partner with a textbook mid-range and one of the most articulate voices in the league." },
   { name: "Lou Williams", club: "Clippers", year: 2018, fame: 2, lo: 74, hi: 85, folk: true, bioPt: "Lord of the Fourth Quarter. Melhor sexto homem da história — chegava do banco e detonava o jogo.", bioEn: "Lord of the Fourth Quarter. The best sixth man ever — came off the bench and torched the game." },
+  // ── Lote 4 (modernos + variedade) ──
+  { name: "Sidney Moncrief", club: "Bucks", year: 1983, fame: 4, lo: 83, hi: 90, bioPt: "Sir Sid. Duas vezes Defensor do Ano — travava o melhor do rival e ainda pontuava. HOF discreto.", bioEn: "Sir Sid. Two-time Defensive Player of the Year — locked up the rivals best and still scored. A quiet HOFer." },
+  { name: "World B. Free", club: "Clippers", year: 1980, fame: 3, lo: 79, hi: 86, folk: true, bioPt: "All-World. Trocou o nome pra 'Mundo' e jogava como o nome — 30 por jogo de puro estilo.", bioEn: "All-World. Legally changed his name and played like it — 30 a night of pure style." },
+  { name: "Anfernee Simons", club: "Blazers", year: 2023, fame: 2, lo: 76, hi: 85, folk: true, bioPt: "Salto de mola e três em série — o herdeiro do backcourt de Portland.", bioEn: "Springy hops and threes in bunches — heir to Portlands backcourt." },
 ]
 
 // ─── SF · ALA ────────────────────────────────────────────────────────
@@ -203,6 +211,11 @@ const SF: BC[] = [
   { name: "Mikal Bridges", club: "Suns", year: 2022, fame: 3, lo: 78, hi: 86, bioPt: "Ferro de marcação e motor que nunca para — jogou todos os jogos da carreira por anos a fio.", bioEn: "A lockdown defender and a motor that never stops — played every game of his career for years straight." },
   { name: "Franz Wagner", club: "Magic", year: 2024, fame: 3, lo: 77, hi: 87, promessa: true, bioPt: "Alemão alto e habilidoso que faz de tudo. O futuro do Orlando construído na base da inteligência.", bioEn: "A tall, skilled German who does a bit of everything. Orlandos future built on pure basketball IQ." },
   { name: "Ben Simmons", club: "Sixers", year: 2018, fame: 2, lo: 74, hi: 86, folk: true, bioPt: "Point-forward que defende as 5 posições — e o maior meme da liga por não querer arremessar.", bioEn: "A point-forward who guards all five spots — and the leagues biggest meme for refusing to shoot." },
+  // ── Lote 4 (modernos + variedade) ──
+  { name: "Marques Johnson", club: "Bucks", year: 1979, fame: 3, lo: 80, hi: 87, bioPt: "Point-forward antes do termo existir. Elegância e versatilidade em Milwaukee.", bioEn: "A point-forward before the term existed. Elegance and versatility in Milwaukee." },
+  { name: "Scottie Barnes", club: "Raptors", year: 2024, fame: 3, lo: 77, hi: 88, promessa: true, bioPt: "Gigante-canivete que arma, defende e sorri. O futuro do Toronto.", bioEn: "A Swiss-army giant who playmakes, defends and smiles. Torontos future." },
+  { name: "Jalen Williams", club: "Thunder", year: 2024, fame: 3, lo: 77, hi: 87, promessa: true, bioPt: "J-Dub. Ala completo e peça de título do OKC jovem. Cresceu rápido demais.", bioEn: "J-Dub. A complete wing and title piece of the young Thunder. Grew up too fast." },
+  { name: "Cedric Ceballos", club: "Suns", year: 1993, fame: 2, lo: 74, hi: 84, folk: true, bioPt: "Ganhou o concurso de enterradas DE OLHOS VENDADOS. Pontuava e curtia a vida.", bioEn: "Won the dunk contest BLINDFOLDED. Scored buckets and enjoyed life." },
 ]
 
 // ─── PF · ALA-PIVÔ ───────────────────────────────────────────────────
@@ -258,6 +271,11 @@ const PF: BC[] = [
   { name: "Paolo Banchero", club: "Magic", year: 2024, fame: 3, lo: 77, hi: 88, promessa: true, bioPt: "Grandão que dribla, passa e pontua como ala. A esperança nº1 de Orlando pro futuro.", bioEn: "A big man who dribbles, passes and scores like a wing. Orlandos number-one hope for the future." },
   { name: "Kurt Rambis", club: "Lakers", year: 1985, fame: 2, lo: 72, hi: 83, folk: true, bioPt: "Óculos, bigode e faxina no garrafão do Showtime. O operário que a galera amava (e o Kevin McHale odiava).", bioEn: "Glasses, mustache and garbage work in the Showtime paint. The blue-collar guy fans loved (and McHale clotheslined)." },
   { name: "Anthony Bennett", club: "Cavaliers", year: 2013, fame: 1, lo: 55, hi: 80, folk: true, bioPt: "O nº1 do draft que virou sinônimo de fracasso. Saiu da NBA em 3 anos. O maior bust da história recente.", bioEn: "The number-one pick who became a synonym for failure. Out of the NBA in three years. The biggest recent bust." },
+  // ── Lote 4 (modernos + variedade) ──
+  { name: "Evan Mobley", club: "Cavaliers", year: 2024, fame: 3, lo: 78, hi: 87, promessa: true, bioPt: "Braços infinitos, toco em tudo e toque macio — Defensor do Ano em construção.", bioEn: "Endless arms, blocks everything, soft touch — a Defensive Player of the Year in the making." },
+  { name: "Terry Cummings", club: "Bucks", year: 1985, fame: 3, lo: 80, hi: 87, bioPt: "Força bruta e motor no garrafão — Novato do Ano e reboteiro implacável.", bioEn: "Brute force and motor in the paint — Rookie of the Year and a relentless rebounder." },
+  { name: "Larry Nance", club: "Suns", year: 1984, fame: 3, lo: 79, hi: 86, folk: true, bioPt: "O PRIMEIRO campeão do concurso de enterradas (1984). Voava e dava toco de sobra.", bioEn: "The FIRST-ever dunk contest champion (1984). Flew and swatted with ease." },
+  { name: "Marvin Bagley III", club: "Kings", year: 2019, fame: 1, lo: 58, hi: 80, folk: true, bioPt: "Draftado na frente do Doncic e do Trae. As lesões escreveram o resto. Que se?", bioEn: "Drafted ahead of Doncic and Trae. Injuries wrote the rest. What a what-if." },
 ]
 
 // ─── C · PIVÔ ────────────────────────────────────────────────────────
@@ -317,6 +335,11 @@ const C: BC[] = [
   { name: "Michael Olowokandi", club: "Clippers", year: 2002, fame: 1, lo: 56, hi: 80, folk: true, bioPt: "The Kandi Man. Nº1 do draft de 98 na frente de craques. Virou aula de como NÃO escolher no draft.", bioEn: "The Kandi Man. Number-one pick of 98 ahead of stars. Became a lesson in how NOT to draft." },
   { name: "Hasheem Thabeet", club: "Grizzlies", year: 2010, fame: 1, lo: 55, hi: 79, folk: true, bioPt: "2,21m escolhido em 2º lugar que mal jogou. Foi rebaixado pra liga de desenvolvimento sendo top pick.", bioEn: "Seven-foot-three, picked second, barely played. Got demoted to the D-League as a top pick." },
   { name: "Tacko Fall", club: "Celtics", year: 2020, fame: 1, lo: 60, hi: 80, folk: true, bioPt: "2,26m de fofura senegalesa. Não precisava pular pra tocar o aro. Xodó absoluto da torcida.", bioEn: "Seven-foot-six of Senegalese sweetness. Didn't need to jump to touch the rim. An absolute fan favorite." },
+  // ── Lote 4 (modernos + variedade) ──
+  { name: "Alperen Sengun", club: "Rockets", year: 2024, fame: 3, lo: 78, hi: 87, promessa: true, bioPt: "Baby Jokic. Cotovelo de armador num pivô turco — passe mágico e faro de cesta.", bioEn: "Baby Jokic. A point guards elbow on a Turkish center — magic passing and a nose for the bucket." },
+  { name: "Jack Sikma", club: "SuperSonics", year: 1982, fame: 3, lo: 80, hi: 87, bioPt: "Cabelo enrolado e o step-back de pivô que virou aula. Campeão e HOF em Seattle.", bioEn: "Curly hair and the big-man step-back that became a teaching tool. Champion and HOFer in Seattle." },
+  { name: "Brook Lopez", club: "Bucks", year: 2021, fame: 3, lo: 79, hi: 86, bioPt: "Splash Mountain. Pivô que virou muralha de três e toco — âncora do título de 2021.", bioEn: "Splash Mountain. A center turned three-point wall and shot-blocker — anchor of the 2021 title." },
+  { name: "Timofey Mozgov", club: "Lakers", year: 2017, fame: 1, lo: 60, hi: 80, folk: true, bioPt: "O russo que ficou famoso pelo CONTRATO de 64 milhões — e por um pôster do Blake Griffin.", bioEn: "The Russian famous for his 64-million-dollar CONTRACT — and a Blake Griffin poster." },
 ]
 
 // catálogo por posição — mesma forma do futebol (Record<posição, cartas[]>)
