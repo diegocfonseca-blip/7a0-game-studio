@@ -3331,6 +3331,9 @@ export function reducer(state: EscState, action: Action): EscState {
       if (owned >= 22) m.formUnlocked = true // destrava de vez ao ter 22
       const need = FORMATIONS[action.formation]
       for (const pos of SECTORS) if (real.filter(c => c.pos === pos && !c.emprestado).length < need[pos]) return s // falta jogador na posição
+      // 🔒 e NUNCA deixa trocar pra formação em que o elenco estoura o teto (2× a
+      // escalação por posição) — a UI trava com aviso; aqui é o cinto de segurança.
+      for (const pos of SECTORS) if (real.filter(c => c.pos === pos).length > need[pos] * 2) return s
       m.formation = action.formation
       const cl = { ...(s.careerLineup ?? {}) }
       cl[m.id] = { ...(cl[m.id] ?? {}), [s.round]: bestXIids(m.squad, action.formation) }
@@ -3509,7 +3512,10 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.seasonNo >= 3) {
         const rate = (c: WonCard) => (c.lo + c.hi) / 2
         const rl = { ...(s.reserveListed ?? {}) }
-        for (const m of s.managers.filter(x => x.rival)) {
+        // 🔒 BLINDAGEM (bug 28/07: atacantes de HUMANO vendidos sozinhos na carreira
+        // offline): a listagem automática é SÓ de CPU — humano NUNCA entra aqui,
+        // mesmo que a marcação rival escorregue pro assento dele.
+        for (const m of s.managers.filter(x => x.rival && !x.isHuman)) {
           const rrng = mulberry((s.seed ^ (s.seasonNo * 7919) ^ (m.id * 104729)) >>> 0)
           const choices = [0, 0, 1, 1, 1, 2, 2, 3] // uns não listam, a maioria 1, alguns 2-3
           const nList = choices[Math.floor(rrng() * choices.length)]

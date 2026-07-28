@@ -1390,6 +1390,8 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
         const availByPos = (pos: Sector) => real.filter(c => c.pos === pos && !c.emprestado).length
         const missFor = (f: FormationKey) => SECTORS.filter(pos => availByPos(pos) < FORMATIONS[f][pos]).map(pos => `${FORMATIONS[f][pos] - availByPos(pos)} ${POS_SHORT[pos]}${FORMATIONS[f][pos] - availByPos(pos) > 1 ? 's' : ''}`)
         const other: FormationKey = mgr.formation === '4-3-3' ? '4-4-2' : '4-3-3'
+        // 🔒 teto: quantos ficam ACIMA de 2× a escalação na formação f (trava a troca)
+        const overFor = (f: FormationKey) => SECTORS.map(pos => ({ pos, over: real.filter(c => c.pos === pos).length - FORMATIONS[f][pos] * 2 })).filter(x => x.over > 0).map(x => `${x.over} ${POS_SHORT[x.pos]}${x.over > 1 ? 's' : ''}`)
         const otherMiss = missFor(other)
         return (
           <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
@@ -1397,7 +1399,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
             <div style={{ display: 'flex', gap: 6 }}>
               {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => {
                 const cur = mgr.formation === f
-                const can = cur || (unlocked && missFor(f).length === 0)
+                const can = cur || (unlocked && missFor(f).length === 0 && overFor(f).length === 0)
                 return (
                   <button key={f} disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f) }}
                     style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '8px 4px', fontWeight: 900, fontSize: 12.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? col.solid : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.7, boxShadow: cur ? `2px 2px 0 0 ${INK}` : 'none' }}>
@@ -1410,20 +1412,9 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
               ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#8a6a2a', margin: '6px 0 0', lineHeight: 1.35 }}>🔒 Complete <b>22 jogadores</b> no elenco pra liberar a troca de formação ({real.length}/22).</p>
               : otherMiss.length
                 ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>⚠️ Pra jogar <b>{other}</b> faltam <b>{otherMiss.join(', ')}</b>. Contrate no leilão ou traga da SAF.</p>
-                : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>✅ Dá pra trocar pra <b>{other}</b> quando quiser — vale do próximo jogo.</p>}
-            {/* ⚠️ AVISO DE TETO (pedido de um jogador 28/07): a formação nova pode ter
-                MENOS vagas por posição (teto = 2× a escalação). Quem passa do teto não
-                é vendido sozinho, mas trava compras e fica sobrando — avisar ANTES. */}
-            {unlocked && (() => {
-              const overFor = (f: FormationKey) => SECTORS
-                .map(pos => ({ pos, over: real.filter(c => c.pos === pos).length - FORMATIONS[f][pos] * 2 }))
-                .filter(x => x.over > 0)
-                .map(x => `${x.over} ${POS_SHORT[x.pos]}${x.over > 1 ? 's' : ''}`)
-              const ov = overFor(other)
-              return ov.length > 0
-                ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#8a6a2a', margin: '4px 0 0', lineHeight: 1.35 }}>⚠️ Atenção: no <b>{other}</b> o teto do elenco muda — você ficaria com <b>{ov.join(' e ')} acima do teto</b>. Ninguém é vendido sozinho, mas o excedente ocupa folha e trava novas compras na posição. Se preferir, venda você mesmo no leilão de transferências.</p>
-                : null
-            })()}
+                : overFor(other).length
+                  ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>🔒 Troca pra <b>{other}</b> TRANCADA: você ficaria com <b>{overFor(other).join(' e ')} acima do teto</b> do elenco (2× a escalação). <b>Venda o excedente no leilão de transferências</b> — aí a troca libera. Ninguém é vendido sozinho.</p>
+                  : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>✅ Dá pra trocar pra <b>{other}</b> quando quiser — vale do próximo jogo.</p>}
           </div>
         )
       })()}
