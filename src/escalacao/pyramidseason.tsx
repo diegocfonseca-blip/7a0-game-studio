@@ -17,6 +17,7 @@ import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls,
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, SponsorCard } from './estadio'
+import { CopaMundoGate } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual } from './apoio'
@@ -2249,6 +2250,23 @@ export function PyramidSeasonScreen() {
           const noVermelho = (state.careerCoins?.[youId] ?? 0) < 0
           if (humans.length <= 1) return (
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
+              {/* 🌍 COPA DO MUNDO LEGENDS (SOLO): trava/contagem/botão dourado no fim
+                  da temporada. Vaga e ordem = TOP 16 do ranking de clubes (mural). */}
+              {(() => {
+                const hn = (state.careerHonors ?? {}) as Record<string, Honors>
+                const ch = state.careerCopaHonors ?? {}
+                const cc = state.clubCash ?? {}
+                const rws = DIVS.flatMap(d => tables[d]).map(t => {
+                  const key = teamKey(t)
+                  const olds = oldChain(key)
+                  const pick = <V,>(rec: Record<string, V>): V | undefined => rec[key] ?? olds.map(o => rec[o]).find(v => v !== undefined)
+                  const money = t.human ? (state.careerCoins?.[t.teamId] ?? 0) : Math.round(pick(cc) ?? 0)
+                  return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, money }
+                })
+                rws.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
+                const top16 = rws.slice(0, 16).map(r => ({ name: r.t.name, you: r.t.teamId === youId && r.t.teamId >= 0 }))
+                return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} />
+              })()}
               {noVermelho && (
                 <div style={{ background: '#C2452F', color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 11, boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 11px', marginBottom: 10, ...OSWALD }}>
                   <p style={{ fontWeight: 900, fontSize: 12.5, margin: 0 }}>🚫 Transfer ban — clube no vermelho ({state.careerCoins?.[youId] ?? 0} 🪙)</p>
