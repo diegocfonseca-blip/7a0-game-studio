@@ -1788,6 +1788,7 @@ type Action =
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
   | { type: 'RESUME_NBA_CAREER'; saved: EscState } // 🏀 retoma a carreira do basquete salva (bl-nba-career)
+  | { type: 'TOGGLE_NBA_RELEASE'; cardId: string } // 🏀 carreira: marca/desmarca uma reserva pra DISPENSAR (T3+); repõe no leilão
   | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both'; intro?: boolean } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
@@ -2426,6 +2427,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // todos preservados da temporada passada.
       you.nbaSlots = s.seasonNo >= 3 ? 3 : 2
       for (const m of s.managers) m.deepSquad = false
+      // 🏀 VENDER: tira do elenco as reservas que você DISPENSOU (marcadas na tela
+      // de fim) — as vagas voltam a abrir e o leilão de reservas repõe.
+      const released = new Set(s.reserveListed?.[you.id] ?? [])
+      if (released.size) you.squad = you.squad.filter(c => !released.has(c.id))
       s.round = 0; s.champion = null; s.news = []; s.scorers = []; s.lastResults = []
       // ainda tem vaga de reserva pra encher (T2 5→10, T3 10→15)? ABRE o leilão
       // (mantém o quinteto, leiloa só as vagas novas). Já cheio? começa a temporada
@@ -2461,6 +2466,28 @@ export function reducer(state: EscState, action: Action): EscState {
       const sv = action.saved
       setActiveSport('basquete', 'career')
       return sv
+    }
+    case 'TOGGLE_NBA_RELEASE': {
+      // 🏀 VENDER (T3+): marca/desmarca uma reserva pra dispensar. Trava do quinteto:
+      // nunca deixa uma posição sem o titular (mín. 1 real por posição). Os marcados
+      // saem do elenco na próxima temporada e o leilão de reservas repõe as vagas.
+      if (s.sport !== 'basquete' || !s.nbaCareer || s.seasonNo < 3) return s
+      const you = s.managers[s.youIdx]
+      const listed = { ...(s.reserveListed ?? {}) }
+      const arr = [...(listed[you.id] ?? [])]
+      const i = arr.indexOf(action.cardId)
+      if (i >= 0) arr.splice(i, 1) // desmarca
+      else {
+        const card = you.squad.find(c => c.id === action.cardId)
+        if (!card || card.fake) return s
+        // piso do quinteto: só dispensa se sobrar pelo menos 1 real na posição
+        const realLeft = you.squad.filter(c => c.pos === card.pos && !c.fake && !arr.includes(c.id)).length
+        if (realLeft <= 1) return s
+        arr.push(action.cardId)
+      }
+      listed[you.id] = arr
+      s.reserveListed = listed
+      return s
     }
     case 'START_CAREER_SOLO': {
       // CARREIRA OFFLINE na pirâmide: mesmas regras do online (4 divisões, leilão

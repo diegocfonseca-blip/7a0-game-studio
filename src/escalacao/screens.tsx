@@ -5190,19 +5190,52 @@ function CareerStars({ n, size = 13 }: { n: number; size?: number }) {
 function NbaCareerEndPanel() {
   const { state, dispatch } = useEsc()
   const t = useT()
+  const [showSell, setShowSell] = useState(false)
   const you = state.managers[state.youIdx]
-  const roster = you?.squad.filter(c => !c.fake).length ?? 0
+  const real = (you?.squad ?? []).filter(c => !c.fake)
+  const roster = real.length
+  const marked = new Set(state.reserveListed?.[you?.id ?? 0] ?? [])
+  const nMarked = marked.size
+  // 🏀 VENDER só na T3+ com elenco cheio (15). Fraco primeiro (o banco a trocar).
+  const canSell = (state.seasonNo ?? 1) >= 3 && roster >= 15
+  const sellable = [...real].sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi))
   const note = roster < 10
     ? t('Abre o leilão de RESERVAS: mantém o quinteto e monta o banco (rotação de 10). 🔧 em teste', 'Opens the RESERVE auction: keep your five and build the bench (10-man rotation). 🔧 testing')
     : roster < 15
     ? t('Abre o leilão de RESERVAS: completa o elenco cheio da NBA (15). 🔧 em teste', 'Opens the RESERVE auction: fill out the full NBA roster (15). 🔧 testing')
-    : t('Elenco cheio (15) — a próxima temporada começa com o mesmo time.', 'Full roster (15) — next season starts with the same team.')
+    : nMarked > 0
+    ? t(`Você dispensou ${nMarked} — o leilão de reservas vai repor as vagas.`, `You released ${nMarked} — the reserve auction will refill the slots.`)
+    : t('Elenco cheio (15) — a próxima temporada começa com o mesmo time (ou dispense reservas pra trocar).', 'Full roster (15) — next season starts with the same team (or release bench players to swap).')
   return (
     <div className="space-y-2">
       <Btn onClick={() => dispatch({ type: 'NEXT_NBA_SEASON' })} bg={GREEN} className="w-full text-lg">
         <span className="text-white">▶️ {t('Próxima temporada', 'Next season')}</span>
       </Btn>
       <p className="text-center text-[11px] font-semibold text-black/50 -mt-1">{note}</p>
+      {/* 🔄 VENDER (T3+): dispensa reservas fracas — nunca abaixo do quinteto */}
+      {canSell && (
+        <>
+          <button onClick={() => setShowSell(s => !s)} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2 active:translate-y-0.5" style={OSWALD}>
+            🔄 {showSell ? t('Fechar', 'Close') : t('Trocar reservas (vender)', 'Swap bench (sell)')}{nMarked > 0 ? ` · ${nMarked} 🗑️` : ''}
+          </button>
+          {showSell && (
+            <div className="space-y-1 max-h-72 overflow-y-auto rounded-xl border-2 border-black bg-white p-2">
+              <p className="text-[10px] font-semibold text-black/55 leading-snug px-0.5">{t('Dispense reservas fracas pra abrir vaga — nunca abaixo do quinteto. As vagas voltam no leilão de reservas da próxima temporada.', 'Release weak bench players to open slots — never below your five. Slots reopen in next season’s reserve auction.')}</p>
+              {sellable.map(c => {
+                const on = marked.has(c.id)
+                return (
+                  <button key={c.id} onClick={() => dispatch({ type: 'TOGGLE_NBA_RELEASE', cardId: c.id })}
+                    className="w-full flex items-center justify-between gap-2 rounded-lg border-2 border-black px-2 py-1.5 active:translate-y-0.5"
+                    style={{ background: on ? '#E8503A' : '#F4ECD6' }}>
+                    <span className="font-black text-xs truncate" style={{ color: on ? '#fff' : INK }}>{posTag(c.pos)} · {c.name}</span>
+                    <span className="text-[10px] font-black shrink-0" style={{ color: on ? '#fff' : '#999' }}>{on ? t('DISPENSADO 🗑️', 'RELEASED 🗑️') : t('dispensar', 'release')}</span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </>
+      )}
       <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full" bg="#fff">🏠 {t('Voltar ao início', 'Back home')}</Btn>
     </div>
   )
