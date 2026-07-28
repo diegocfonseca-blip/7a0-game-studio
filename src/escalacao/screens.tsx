@@ -3411,7 +3411,10 @@ export function EscSeason() {
   // (a tabela é segurada com holdResults, mas o giro não era). Segura o giro do
   // MESMO jeito: só troca pro texto novo quando o resultado revela (liga) ou a
   // perna fecha (Copa, relógio 93'). Enquanto anima, mostra o giro ANTERIOR.
-  const giroReady = copaLive ? copaMin >= 93 : (resultRevealed || state.lastResults.length === 0)
+  // ⚠️ pênaltis: a disputa anima ~12s DEPOIS do relógio bater 93' — o giro tem
+  // que esperar a MESMA trava do botão (copaAdvReady, que inclui os pênaltis),
+  // senão a manchete entrega o vencedor no meio das cobranças (bug do Diego 28/07).
+  const giroReady = copaLive ? (copaMin >= 93 && copaAdvReady) : (resultRevealed || state.lastResults.length === 0)
   const giroRef = useRef<string[] | null>(null)
   if (giroReady) giroRef.current = state.news
   const giroNews = giroRef.current ?? []

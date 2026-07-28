@@ -17,7 +17,7 @@ import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls,
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, SponsorCard } from './estadio'
-import { CopaMundoGate } from './copa-mundo'
+import { CopaMundoGate, loadCopaSave } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual } from './apoio'
@@ -1446,21 +1446,28 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
 // TÍTULOS (Série A → B → C → D) e depois DINHEIRO, com desempate em cascata. ──
 type Honors = { A: number; B: number; C: number; D: number }
 const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0 }
-function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId, seasonNo, myDiv, safTeam }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number; seasonNo?: number; myDiv?: Div | null; safTeam?: string }) {
+function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId, seasonNo, myDiv, safTeam, seed }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number; seasonNo?: number; myDiv?: Div | null; safTeam?: string; seed?: number }) {
+  // 🌍 títulos da COPA DO MUNDO LEGENDS (mural local por save): entram no rank
+  // ABAIXO da Série D (preferência do Diego) e no Hall de Troféus.
+  const cmMural = seed != null ? (loadCopaSave(seed)?.mural ?? []) : []
+  const cmTitles: Record<string, number> = {}
+  for (const m of cmMural) cmTitles[m.campeao] = (cmTitles[m.campeao] ?? 0) + 1
   const rows = DIVS.flatMap(d => tables[d]).map(t => {
     const key = teamKey(t)
     const olds = oldChain(key) // save antigo pode ter caixa/títulos em QUALQUER nome velho da corrente
     const pick = <V,>(rec: Record<string, V>): V | undefined => rec[key] ?? olds.map(o => rec[o]).find(v => v !== undefined)
     const money = t.human ? (coins[t.teamId] ?? 0) : Math.round(pick(clubCash) ?? 0)
-    return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, money }
+    return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, money, wc: cmTitles[t.name] ?? 0 }
   })
-  rows.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
+  rows.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.wc - a.wc || b.money - a.money || a.t.name.localeCompare(b.t.name))
   const top = rows.slice(0, 20)
   // 🏆 SEUS troféus (chave do humano = m<id>) — base do Hall de Troféus embaixo.
   const myH = honors[`m${youId}`] ?? EMPTY_HONORS
   const myCopas = copaHonors[`m${youId}`] ?? 0
-  const totalT = myH.A + myH.B + myH.C + myH.D + myCopas
+  const myWorld = cmMural.filter(m => m.voce).length
+  const totalT = myH.A + myH.B + myH.C + myH.D + myCopas + myWorld
   const trofeus = [
+    ...(myWorld > 0 ? [{ key: 'mundo', label: 'Copa do Mundo', n: myWorld, bg: INK, c: GOLD }] : []),
     ...(myCopas > 0 ? [{ key: 'copa', label: 'Copa Legends', n: myCopas, bg: GOLD, c: INK }] : []),
     ...(['A', 'B', 'C', 'D'] as Div[]).filter(d => myH[d] > 0).map(d => ({ key: d, label: DIV_NAME[d], n: myH[d], bg: CDTAG[d].bg, c: CDTAG[d].c })),
   ]
@@ -1484,7 +1491,8 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
                 <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>{i + 1}</td>
                 <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: fc?.solid ?? INK }}>{you ? '👤 ' : isSaf ? '💼 ' : r.t.rival ? '⚔️ ' : r.t.human ? '🔥 ' : ''}{(() => { const pk = you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(r.t.name)}</span> : r.t.name })()}</td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
-                  {(r.h.A + r.h.B + r.h.C + r.h.D + r.copas) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
+                  {(r.h.A + r.h.B + r.h.C + r.h.D + r.copas + r.wc) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
+                    {r.wc > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Mundo{r.wc > 1 ? r.wc : ''}</span>}
                     {r.copas > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: INK, background: GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆Copa{r.copas > 1 ? r.copas : ''}</span>}
                     {(['A', 'B', 'C', 'D'] as Div[]).map(d => r.h[d] > 0 ? (
                       <span key={d} style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG[d].l}{r.h[d]}</span>
@@ -2266,7 +2274,7 @@ export function PyramidSeasonScreen() {
             })
             rws.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
             const top16 = rws.slice(0, 16).map(r => ({ name: r.t.name, you: r.t.teamId === youId && r.t.teamId >= 0 }))
-            return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} />
+            return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} onPrize={humans.length <= 1 ? () => dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: youId }) : undefined} />
           })()
           if (humans.length <= 1) return (
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
@@ -2428,7 +2436,7 @@ export function PyramidSeasonScreen() {
               ))}
             </div>
             {rankSub === 'clubes' ? (
-              <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} />
+              <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} />
             ) : (
               <>
                 {/* durante a Copa (fim de temporada), a artilharia da COPA entra no
