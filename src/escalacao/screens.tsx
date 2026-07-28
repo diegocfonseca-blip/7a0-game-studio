@@ -5838,16 +5838,30 @@ export function EscEnd() {
               : <>Os 8 melhores da liga entram numa Copa à parte — ida e volta, semifinal e final única. O 1º pega o 8º, o 2º pega o 7º, o 3º pega o 6º, o 4º pega o 5º. Quem for campeão da Copa ganha <b>outra carta</b> pro álbum!</>}
           </p>
           <div className="space-y-1.5">
-            {state.quickCopa.ties.map(t => {
+            {(() => {
               const tag = (id: number) => id === you.id ? ' (você)' : state.managers.some(m => m.id === id && m.isHuman) ? ' 🔥' : ''
-              return (
+              const tieRow = (t: typeof state.quickCopa.ties[number]) => (
                 <div key={`${t.aId}-${t.bId}`} className="flex items-center justify-between gap-2 bg-white/80 rounded-lg px-3 py-1.5 border-2 border-black">
                   <span className="font-black text-xs truncate flex-1" style={OSWALD}>{t.aName}{tag(t.aId)}</span>
                   <span className="font-black text-[10px] text-black/50 shrink-0">×</span>
                   <span className="font-black text-xs truncate flex-1 text-right" style={OSWALD}>{t.bName}{tag(t.bId)}</span>
                 </div>
               )
-            })}
+              const ties = state.quickCopa.ties
+              // 🏀 quartas por conferência (Leste = ties 0,1 · Oeste = 2,3): agrupa
+              // com cabeçalho. Fora disso (futebol, ou fases seguintes), lista direto.
+              if (bbEnd && state.quickCopa.phase === 'quartas' && ties.length === 4) {
+                return (
+                  <>
+                    <p className="text-[11px] font-black text-center" style={{ ...OSWALD, color: '#1D5FC4' }}>🔵 {LE('CONFERÊNCIA LESTE', 'EASTERN CONFERENCE')}</p>
+                    {ties.slice(0, 2).map(tieRow)}
+                    <p className="text-[11px] font-black text-center pt-1" style={{ ...OSWALD, color: '#C2452F' }}>🔴 {LE('CONFERÊNCIA OESTE', 'WESTERN CONFERENCE')}</p>
+                    {ties.slice(2, 4).map(tieRow)}
+                  </>
+                )
+              }
+              return ties.map(tieRow)
+            })()}
           </div>
           {online && <p className="text-[11px] font-bold text-center text-black/60">🔥 = amigo da sala · sem foguinho = time da CPU</p>}
           {canDriveCopa ? (
