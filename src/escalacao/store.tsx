@@ -930,6 +930,12 @@ function fillerAdj(managers: Manager[], target: number): { atk: number; def: num
 }
 // alvo de nível conforme o modo: carreira usa a divisão; rápido = D; online = base própria.
 function cpuAdjFor(s: EscState): { atk: number; def: number } {
+  // 🏀 dificuldade cresce por andar da pirâmide do basquete: Street 0 · G League
+  // +3 · NBA +6. Os times de cima são mais fortes — a NBA não é mole.
+  if (s.sport === 'basquete' && s.nbaCareer) {
+    const b = s.nbaTier === 'nba' ? 6 : s.nbaTier === 'gleague' ? 3 : 0
+    return { atk: b, def: b }
+  }
   const target = s.onlineMode === 'online' ? ONLINE_BASE : DIVISION_BASE[s.careerDivision ?? 'D']
   return fillerAdj(s.managers, target)
 }
@@ -2501,10 +2507,11 @@ export function reducer(state: EscState, action: Action): EscState {
         s.screen = 'auction'
         startAuctionPhase(s, false)
       } else {
-        // mesmo time: nova temporada direto (sem leilão)
+        // mesmo time: nova temporada direto (sem leilão). Dificuldade do andar
+        // aplicada agora (no leilão, o FINISH_CEREMONY já chama cpuAdjFor).
         s.reserveAuction = false; s.reserveListed = {}
         for (const m of s.managers) m.deepSquad = false
-        s.cpuAtkAdj = 0; s.cpuDefAdj = 0
+        const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
         s.league = buildLeague(s.managers, !s.ligaFechada)
         s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
         s.tactics = {}
