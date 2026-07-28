@@ -3219,6 +3219,9 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
 
 export function EscSeason() {
   const { state, dispatch } = useEsc()
+  const [seasonLang] = useLang()
+  const bbS = state.sport === 'basquete' // 🏀 no basquete a "Copa dos 8" vira "Playoffs"
+  const LS = (pt: string, en: string) => (bbS && seasonLang === 'en') ? en : pt
   const you = state.managers[state.youIdx]
   const online = state.onlineMode === 'online'
   const canAdvance = !online || state.isHost
@@ -3445,7 +3448,7 @@ export function EscSeason() {
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
           {state.careerOnline && !state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 CARREIRA · SÉRIE D</span>}
           {state.careerTitlesA > 0 && <span className="mr-1.5"><CareerStars n={state.careerTitlesA} size={12} /></span>}
-          {copaLive && qc ? `🏆 COPA · ${qc.phase === 'quartas' ? 'QUARTAS' : qc.phase === 'semis' ? 'SEMI' : 'FINAL'}` : `RODADA ${Math.min(state.round + 1, totalRounds)}/${totalRounds}`}
+          {copaLive && qc ? `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA'} · ${qc.phase === 'quartas' ? (bbS ? LS('QUARTAS', 'QF') : 'QUARTAS') : qc.phase === 'semis' ? (bbS ? LS('SEMI', 'SF') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}` : `RODADA ${Math.min(state.round + 1, totalRounds)}/${totalRounds}`}
         </span>
         <span className="font-black text-sm" style={OSWALD}>{(() => {
           const disp = !resultRevealed && state.lastResults.length > 0 ? sortedTable(leagueBeforeResults(state.league, state.lastResults)) : table
@@ -3523,14 +3526,18 @@ export function EscSeason() {
         return (
           <>
             <Box bg={INK} className="p-3 text-center" shadow={4}>
-              <p className="font-black text-sm" style={{ ...OSWALD, color: GOLD }}>🏆 COPA DOS 8 · {phaseLabel.toUpperCase()}</p>
+              <p className="font-black text-sm" style={{ ...OSWALD, color: GOLD }}>🏆 {bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA DOS 8'} · {phaseLabel.toUpperCase()}</p>
               <p className="font-black text-[11px]" style={{ color: 'rgba(255,255,255,.75)' }}>{legLabel}</p>
             </Box>
             {firstLegPending && (
               <Box bg={GOLD} className="p-4 space-y-2" shadow={6}>
-                <p className="font-black text-base text-center" style={OSWALD}>🏆 Chegou a Copa dos 8!</p>
+                <p className="font-black text-base text-center" style={OSWALD}>🏆 {bbS ? LS('Chegaram os Playoffs!', 'Playoffs are here!') : 'Chegou a Copa dos 8!'}</p>
                 <p className="text-sm font-bold text-center text-black/75">
-                  Os 8 melhores da liga se enfrentam ida e volta: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passar cai na semifinal — e a final é jogo único. O campeão da Copa ganha <b>outra carta</b> pro álbum, além da carta da liga!
+                  {bbS
+                    ? (seasonLang === 'en'
+                      ? <>The top 8 face off in the bracket: 1×8, 2×7, 3×6, 4×5. Winners reach the semis — the final is one game. The champion takes the <b>ring</b> to the album! 🏀</>
+                      : <>Os 8 melhores da temporada se enfrentam no mata-mata: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passa vai à semi — e a decisão é jogo único. O campeão leva o <b>anel</b> pro álbum! 🏀</>)
+                    : <>Os 8 melhores da liga se enfrentam ida e volta: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passar cai na semifinal — e a final é jogo único. O campeão da Copa ganha <b>outra carta</b> pro álbum, além da carta da liga!</>}
                 </p>
                 {!manual && !streamRoom && (
                   <p className="text-center font-black text-sm" style={OSWALD}>⚽ A primeira partida começa em {copaFirstLeft}s</p>
@@ -3630,7 +3637,7 @@ export function EscSeason() {
           lock={manualLocked ? <QuickManualLock /> : undefined}
           onNext={() => dispatch({ type: 'PLAY_COPA_LEG' })}
           onSkip={() => dispatch({ type: 'PLAY_COPA_LEG' })}
-          nextLabel={!copaAdvReady ? '⏳ Deixa o jogo/pênaltis acabar…' : firstLegPending ? '🏆 Iniciar a Copa dos 8' : copaJustAdvanced ? '▶️ Começar a próxima fase' : '⚽ Próximo jogo da Copa'} />
+          nextLabel={!copaAdvReady ? (bbS ? LS('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : '⏳ Deixa o jogo/pênaltis acabar…') : firstLegPending ? (bbS ? LS('🏆 Iniciar os Playoffs', '🏆 Start the Playoffs') : '🏆 Iniciar a Copa dos 8') : copaJustAdvanced ? (bbS ? LS('▶️ Próxima fase', '▶️ Next round') : '▶️ Começar a próxima fase') : (bbS ? LS('🏀 Próximo jogo dos Playoffs', '🏀 Next playoff game') : '⚽ Próximo jogo da Copa')} />
       )}
       {!copaLive && lastWasClassico && lastRiv && resultRevealed && (
         <Box bg={myGoals > oppGoals ? GREEN : myGoals < oppGoals ? RED : '#fff'} className="p-3 text-center" shadow={4}>
@@ -3825,15 +3832,18 @@ function TopScorersBox({ highlight, title = '⚽ ARTILHARIA · TEMPO REAL' }: { 
 // artilharia da liga (que congela no fim das 38 rodadas).
 function CopaScorersBox({ highlight }: { highlight: number }) {
   const { state } = useEsc()
+  const [cLang] = useLang()
+  const bbC = state.sport === 'basquete'
+  const LC = (pt: string, en: string) => (bbC && cLang === 'en') ? en : pt
   const rows = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, 10)
   if (rows.length === 0) return null
   return (
     <Box bg="#FFFBEF" className="p-3">
-      <p className="font-black text-sm mb-2" style={{ ...OSWALD, color: '#9a6d00' }}>🏆 ARTILHARIA DA COPA</p>
+      <p className="font-black text-sm mb-2" style={{ ...OSWALD, color: '#9a6d00' }}>{bbC ? LC('🏀 CESTINHA DOS PLAYOFFS', '🏀 PLAYOFF SCORING') : '🏆 ARTILHARIA DA COPA'}</p>
       <table className="w-full text-xs">
         <thead>
           <tr className="text-left text-black/60 font-black">
-            <th className="pr-1">#</th><th>Jogador</th><th>Time</th><th className="text-center">Gols</th>
+            <th className="pr-1">#</th><th>{bbC ? LC('Jogador', 'Player') : 'Jogador'}</th><th>{bbC ? LC('Time', 'Team') : 'Time'}</th><th className="text-center">{bbC ? LC('Pts', 'Pts') : 'Gols'}</th>
           </tr>
         </thead>
         <tbody>
