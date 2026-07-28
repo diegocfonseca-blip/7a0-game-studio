@@ -4310,7 +4310,23 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (!state.isHost) channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
     })
     channelRef.current = ch
-    return () => { ch.unsubscribe(); channelRef.current = null }
+    // 📱 TROCAR DE APP NÃO DERRUBA NINGUÉM (bug 28/07: sala travava quando alguém
+    // dava uma volta em outro app e voltava): o celular mata a conexão em 2º plano
+    // EM SILÊNCIO. Ao voltar pra tela: se o canal morreu, RECONECTA na hora; host
+    // volta "falando" (re-manda o estado pra sala ressincronizar) e convidado
+    // volta "ouvindo" (pede o estado). Ninguém sai da sala sem apertar sair.
+    const onVis = () => {
+      if (typeof document === 'undefined' || document.visibilityState !== 'visible') return
+      const alive = (ch as unknown as { state?: string }).state === 'joined'
+      const resync = () => {
+        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: sanitize(stateRef.current) })
+        else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
+      }
+      if (alive) { resync(); return }
+      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx }); resync() }) } catch { /* tenta de novo na próxima volta */ }
+    }
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
+    return () => { if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); ch.unsubscribe(); channelRef.current = null }
   }, [state.roomId, state.onlineMode, state.isHost]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // host retransmite estado (sanitizado: envelopes pendentes não vazam)
