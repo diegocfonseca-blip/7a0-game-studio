@@ -44,6 +44,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'victorreservauso@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'venturakaua2@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'luancamposreal@hotmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
+  'juniormelocdm@hotmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'dasilva1227br@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'davisantana1312@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'ambielvictor@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
