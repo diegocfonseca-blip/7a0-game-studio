@@ -760,11 +760,11 @@ function Shell({ children, bar, hideExit = false }: { children: React.ReactNode;
               <button onClick={leaveRoom} className="text-black/35 text-xs font-semibold underline active:opacity-60" title="Sai da sala de vez (removido)">🚪 sair da sala</button>
             </div>
           ) : (
-            <button onClick={leave} className="block mx-auto text-black/30 text-xs font-semibold underline active:opacity-60">sair do jogo</button>
+            <button onClick={leave} className="block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">🚪 sair do jogo</button>
           )}
           {canManage && others.length > 0 && (
-            <button onClick={() => setManage(v => !v)} className="block mx-auto text-black/30 text-xs font-semibold underline active:opacity-60">
-              {manage ? 'fechar' : 'gerenciar técnicos'}
+            <button onClick={() => setManage(v => !v)} className="block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">
+              {manage ? 'fechar' : '⚙️ gerenciar técnicos'}
             </button>
           )}
           {canManage && manage && (

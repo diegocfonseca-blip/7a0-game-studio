@@ -1723,7 +1723,7 @@ export function EscLobby() {
           ? <Big onClick={startOnline} disabled={!ready} color={ready ? GREEN : '#ccc'}><span style={{ color: ready ? '#fff' : '#000' }}>{ready ? startLabel : `Aguardando… (${players.length}/2 mín)`}</span></Big>
           : <p className="text-white/60 text-sm font-bold text-center py-3">{waitMsg}</p>
       })()}
-      <button onClick={leaveRoom} className="text-white/30 text-xs underline w-full text-center">← Sair da sala</button>
+      <button onClick={leaveRoom} className="text-white/75 text-[13px] font-black underline w-full text-center active:opacity-60">🚪 Sair da sala</button>
 
       {/* 💬 CHAT DA SALA DE ESPERA — igual ao do leilão: botãozinho flutuante que
           abre uma gaveta com as mensagens (que FICAM), a caixa de digitar e o
