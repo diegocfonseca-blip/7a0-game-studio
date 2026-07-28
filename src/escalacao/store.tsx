@@ -1840,6 +1840,7 @@ type Action =
   | { type: 'STADIUM_BUILD'; mgrId: number; ext: string } // 🏟️ carreira: compra melhoria destravada
   | { type: 'BECOME_HOST' }
   | { type: 'FIX_YOU_IDX'; idx: number } // 🛟 auto-cura local: reancora "quem sou eu" no assento com o MEU nome (índice deslizou em rematch/reconexão). NUNCA roteado pro host.
+  | { type: 'COPA_MUNDO_PRIZE'; mgrId: number } // 🌍 prêmio do campeão da Copa do Mundo Legends: +100 moedas (só carreira SOLO — no online cada um joga local, não sincroniza caixa)
   | { type: 'KICK_PLAYER'; playerIndex: number }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[] }
   | { type: 'ADVANCE_REVEAL' }
@@ -2273,6 +2274,7 @@ export function reducer(state: EscState, action: Action): EscState {
     // e persistir o estado da sala.
     case 'BECOME_HOST': { s.isHost = true; return s }
     case 'FIX_YOU_IDX': { s.youIdx = action.idx; return s } // identidade é local (não sincroniza)
+    case 'COPA_MUNDO_PRIZE': { s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: (s.careerCoins?.[action.mgrId] ?? 0) + 100 }; return s }
     case 'KICK_PLAYER': {
       // Host removeu um técnico da partida: a CPU assume o time dele e o jogo
       // segue sem travar. O cliente removido é ejetado pelo evento 'kick' à

@@ -172,7 +172,7 @@ function MiniLive({ nmH, nmA, ev, min, bold }: { nmH: string; nmA: string; ev: S
 }
 
 // ── componente principal: o portão + o torneio inteiro num modal ──
-export function CopaMundoGate({ seasonNo, seed, top16, myPos }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number }) {
+export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onPrize?: () => void }) {
   const save = useMemo(() => ensureSave(seed, seasonNo), [seed, seasonNo])
   const [open, setOpen] = useState(false)
   const copaNow = isCopaSeason(save, seasonNo) && !save.played.includes(seasonNo)
@@ -218,12 +218,12 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos }: { seasonNo: numb
         <span style={{ position: 'relative' }}>🌍 DISPUTAR A COPA DO MUNDO</span>
         <span style={{ position: 'relative', display: 'block', fontSize: 9.5, fontWeight: 800, textTransform: 'none', fontFamily: 'system-ui', marginTop: 2 }}>chegou a hora — ela só volta na temporada {seasonNo + 10}!</span>
       </button>
-      {open && <CopaMundo seasonNo={seasonNo} seed={seed} top16={top16} myPos={myPos} paises16={paises16} save={save} onClose={() => setOpen(false)} />}
+      {open && <CopaMundo seasonNo={seasonNo} seed={seed} top16={top16} myPos={myPos} paises16={paises16} save={save} onPrize={onPrize} onClose={() => setOpen(false)} />}
     </>
   )
 }
 
-function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onClose }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onClose: () => void }) {
+function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onClose }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onPrize?: () => void; onClose: () => void }) {
   const rng = useMemo(() => mulberry((seed ^ Math.imul(seasonNo, 2654435761)) >>> 0), [seed, seasonNo])
   const [phase, setPhase] = useState<'select' | 'convoke' | 'cup'>('select')
   const [myPais, setMyPais] = useState<string | null>(null)
@@ -269,7 +269,7 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onClose }: { 
   )
   if (phase === 'cup' && entrants) return (
     <Modal wide>
-      <CupScreen entrants={entrants} rng={rng} seasonNo={seasonNo} seed={seed} save={save} myForm={myForm} onClose={onClose} />
+      <CupScreen entrants={entrants} rng={rng} seasonNo={seasonNo} seed={seed} save={save} myForm={myForm} onPrize={onPrize} onClose={onClose} />
     </Modal>
   )
   return null
@@ -438,7 +438,7 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
 
 // ── tela 3: o torneio AO VIVO (mesmo ritmo/suspense da liga: relógio, GOOOL,
 // pênaltis cobrança a cobrança — nada aparece pronto) ──
-function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants: Entrant[]; rng: () => number; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; onClose: () => void }) {
+function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { entrants: Entrant[]; rng: () => number; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; onPrize?: () => void; onClose: () => void }) {
   // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
   // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
   const world = useMemo(() => {
@@ -545,6 +545,7 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
     if (cur.played.includes(seasonNo)) return
     const c = world.final.champion
     saveCopaSave(seed, { ...cur, played: [...cur.played, seasonNo], mural: [...cur.mural, { season: seasonNo, selecao: entrants[c].pais, campeao: entrants[c].club, voce: isYou(c) }] })
+    if (isYou(c)) onPrize?.() // 💰 +100 moedas (só solo — no online o caixa é do host)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done])
 
@@ -676,10 +677,30 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
           {isYou(world.final.champion) && <span style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.7) 48%,transparent 60%)', backgroundSize: '250% 250%', animation: 'cmSheen 2.4s linear infinite' }} />}
           <p style={{ fontSize: 34, margin: 0, position: 'relative' }}>🏆</p>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: '2px 0 0', textTransform: 'uppercase', position: 'relative' }}>{nm(world.final.champion)} CAMPEÃO DO MUNDO!</p>
-          <p style={{ fontSize: 10.5, fontWeight: 800, margin: '3px 0 0', position: 'relative' }}>{isYou(world.final.champion) ? <>VOCÊ ({club(world.final.champion)}) entrou pra história: ⭐ estrela de campeão do MUNDO no mural — pra sempre. 🎉</> : <>Título de {club(world.final.champion)}. A próxima Copa é na temporada {seasonNo + 10} — treina o dedo. 😤</>}</p>
+          <p style={{ fontSize: 10.5, fontWeight: 800, margin: '3px 0 0', position: 'relative' }}>{isYou(world.final.champion) ? <>VOCÊ ({club(world.final.champion)}) entrou pra história: ⭐ estrela eterna no mural{onPrize ? ' + 💰 100 MOEDAS no caixa do clube' : ''}. 🎉</> : <>Título de {club(world.final.champion)}. A próxima Copa é na temporada {seasonNo + 10} — treina o dedo. 😤</>}</p>
           <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0', position: 'relative' }}>final: {nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? ` (pên. ${world.final.pen[0]}×${world.final.pen[1]})` : ''}</p>
         </div>
       )}
+      {done && (() => {
+        const tally: Record<string, { goals: number; team: number }> = {}
+        const add = (evs: ScoreGoal[] | undefined, h: number, a: number) => { for (const e of evs ?? []) { const t = e.home ? h : a; const k = e.name + '|' + t; tally[k] = { goals: (tally[k]?.goals ?? 0) + 1, team: t } } }
+        for (const g of world.groups) for (const rd of g.matches) for (const m of rd) add(m.ev, m.h, m.a)
+        for (const t of [...world.qf, ...world.sf]) { add(t.ev1, t.h, t.a); add(t.ev2, t.a, t.h) }
+        add(world.final.ev, world.final.h, world.final.a)
+        const top = Object.entries(tally).map(([k, v]) => ({ name: k.split('|')[0], ...v })).sort((x, y) => y.goals - x.goals).slice(0, 8)
+        return (
+          <div style={{ ...box('#fff'), padding: 10, marginBottom: 10, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, margin: '0 0 4px', textTransform: 'uppercase' }}>⚽ Artilharia da Copa</p>
+            {top.map((r, i) => (
+              <div key={r.name + r.team} style={{ display: 'flex', gap: 6, fontSize: 10.5, fontWeight: entrants[r.team].you ? 900 : 600, background: entrants[r.team].you ? '#FFE9B0' : 'transparent', borderRadius: 6, padding: '2px 5px' }}>
+                <span style={{ width: 16 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`}</span>
+                <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name} <span style={{ fontSize: 9, color: 'rgba(0,0,0,.5)' }}>{FLAG[entrants[r.team].pais]}</span></span>
+                <span style={{ fontWeight: 900 }}>{r.goals} gol{r.goals > 1 ? 's' : ''}</span>
+              </div>
+            ))}
+          </div>
+        )
+      })()}
       {done && (
         <div style={{ ...box('#0C0C0C'), padding: 10, marginBottom: 10, borderRadius: 12 }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, margin: '0 0 4px', color: GOLD, textTransform: 'uppercase' }}>📜 Mural dos Campeões do Mundo</p>
