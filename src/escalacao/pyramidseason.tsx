@@ -2248,25 +2248,29 @@ export function PyramidSeasonScreen() {
           const openMesmo = () => dispatch({ type: 'NEXT_SEASON_ONLINE', ...args() })
           // JOGO SOLO (host sozinho): sem votação, começa direto como antes.
           const noVermelho = (state.careerCoins?.[youId] ?? 0) < 0
+          // 🌍 COPA DO MUNDO LEGENDS: trava/contagem/botão dourado no fim da
+          // temporada (SOLO e ONLINE). Vaga e ordem = TOP 16 do ranking de clubes
+          // (mural). No ONLINE cada técnico disputa a SUA Copa no próprio aparelho
+          // (os demais clubes do top 16 entram como CPU) — nada é sincronizado,
+          // então zero risco pro estado da sala; a Copa em sala (votação) é fase futura.
+          const copaGate = (() => {
+            const hn = (state.careerHonors ?? {}) as Record<string, Honors>
+            const ch = state.careerCopaHonors ?? {}
+            const cc = state.clubCash ?? {}
+            const rws = DIVS.flatMap(d => tables[d]).map(t => {
+              const key = teamKey(t)
+              const olds = oldChain(key)
+              const pick = <V,>(rec: Record<string, V>): V | undefined => rec[key] ?? olds.map(o => rec[o]).find(v => v !== undefined)
+              const money = t.human ? (state.careerCoins?.[t.teamId] ?? 0) : Math.round(pick(cc) ?? 0)
+              return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, money }
+            })
+            rws.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
+            const top16 = rws.slice(0, 16).map(r => ({ name: r.t.name, you: r.t.teamId === youId && r.t.teamId >= 0 }))
+            return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} />
+          })()
           if (humans.length <= 1) return (
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
-              {/* 🌍 COPA DO MUNDO LEGENDS (SOLO): trava/contagem/botão dourado no fim
-                  da temporada. Vaga e ordem = TOP 16 do ranking de clubes (mural). */}
-              {(() => {
-                const hn = (state.careerHonors ?? {}) as Record<string, Honors>
-                const ch = state.careerCopaHonors ?? {}
-                const cc = state.clubCash ?? {}
-                const rws = DIVS.flatMap(d => tables[d]).map(t => {
-                  const key = teamKey(t)
-                  const olds = oldChain(key)
-                  const pick = <V,>(rec: Record<string, V>): V | undefined => rec[key] ?? olds.map(o => rec[o]).find(v => v !== undefined)
-                  const money = t.human ? (state.careerCoins?.[t.teamId] ?? 0) : Math.round(pick(cc) ?? 0)
-                  return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, money }
-                })
-                rws.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
-                const top16 = rws.slice(0, 16).map(r => ({ name: r.t.name, you: r.t.teamId === youId && r.t.teamId >= 0 }))
-                return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} />
-              })()}
+              {copaGate}
               {noVermelho && (
                 <div style={{ background: '#C2452F', color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 11, boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 11px', marginBottom: 10, ...OSWALD }}>
                   <p style={{ fontWeight: 900, fontSize: 12.5, margin: 0 }}>🚫 Transfer ban — clube no vermelho ({state.careerCoins?.[youId] ?? 0} 🪙)</p>
@@ -2298,6 +2302,9 @@ export function PyramidSeasonScreen() {
           )
           return (
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
+              {/* 🌍 no ONLINE a Copa é individual (cada técnico no seu aparelho) —
+                  jogar não trava a votação: dá pra disputar e voltar pra votar. */}
+              {copaGate}
               <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>🗳️ Votação — próxima temporada</p>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas já entram. Todos votam: abrir o <b>{leilaoLabel.toLowerCase()}</b> {state.seasonNo === 1 ? '(encher o banco até 22)' : '(1 carta nova por posição + os listados)'} ou seguir com o <b>mesmo time</b>. Empate → o host decide.</p>
               <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
