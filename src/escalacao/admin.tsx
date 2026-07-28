@@ -302,10 +302,20 @@ function Dashboard({ email }: { email: string }) {
 
   // 🎨 intenções de apoio (modal APOIE): quem tocou em quê — pra cruzar com o Pix
   const [intents, setIntents] = useState<{ id: number; created_at: string; email: string | null; nick: string | null; choice: string }[]>([])
+  // 🔒 saves que o LACRE pegou editados na mão (esc_cheat_flags) — só marca, nada é feito
+  const [cheats, setCheats] = useState<Record<string, { name: string; detail: string; at: string }>>({})
   const load = useCallback(async () => {
     try {
       supabase.from('apoio_intents').select('*').order('id', { ascending: false }).limit(40)
         .then(({ data: it }) => { if (it) setIntents(it as typeof intents) }, () => {})
+      // 🔒 lista dos saves marcados pelo lacre (se a tabela ainda não existe, ignora)
+      supabase.from('esc_cheat_flags').select('user_id, display_name, detail, last_at').order('last_at', { ascending: false }).limit(200)
+        .then(({ data: cf }) => {
+          if (!cf) return
+          const m: Record<string, { name: string; detail: string; at: string }> = {}
+          for (const r of cf as { user_id: string; display_name: string | null; detail: string | null; last_at: string }[]) m[r.user_id] = { name: r.display_name || 'Técnico', detail: r.detail || '', at: r.last_at }
+          setCheats(m)
+        }, () => {})
       // 🛟 se a janela cheia (30d/200) estourar o tempo do banco ("statement
       // timeout"), tenta de novo com janelas menores em vez de mostrar erro —
       // o painel carrega com o que der. (Correção definitiva é um índice no banco.)
@@ -410,7 +420,7 @@ function Dashboard({ email }: { email: string }) {
             if (sortKey === 'coins') return p.careerCoins ?? null
             if (sortKey === 'titles') return p.careerTitles ?? null
             if (sortKey === 'seasons') return p.careerSeason ?? null
-            if (sortKey === 'suspect') return (suspectReasons(p).length > 0 || (p.uid ? jumpReasons(jumps[p.uid]).length > 0 : false)) ? 1 : 0
+            if (sortKey === 'suspect') return (suspectReasons(p).length > 0 || (p.uid ? (jumpReasons(jumps[p.uid]).length > 0 || !!cheats[p.uid]) : false)) ? 1 : 0
             return null
           }
           const rows = sortKey === 'default' ? d.live_list : [...d.live_list].sort((a, b) => {
@@ -455,6 +465,9 @@ function Dashboard({ email }: { email: string }) {
                   {p.mode === 'career' && p.careerDivision && (
                     <span style={{ opacity: 0.85, color: '#C9A9FF', fontWeight: 700 }}> · {DIV_LABEL[p.careerDivision] || p.careerDivision} · T{p.careerSeason ?? 1}</span>
                   )}
+                  {p.uid && cheats[p.uid] && (
+                    <span title={`🔒 LACRE não bateu: esse save foi EDITADO NA MÃO (${cheats[p.uid].detail}). Convicção alta — o carimbo secreto não fecha com os números. Nada é feito com a conta; você decide.`} style={{ color: '#FF2D2D', fontWeight: 900 }}> · 🔒 mexeu na mão</span>
+                  )}
                   {reasons.length > 0 && (
                     <span title="🚩 Alerta pra você OBSERVAR — a carreira roda no navegador do jogador (dá pra editar no DevTools). Nada é feito com a conta." style={{ color: '#FF4D4D', fontWeight: 900 }}> · 🚩 {reasons.join(' · ')}</span>
                   )}
@@ -485,6 +498,27 @@ function Dashboard({ email }: { email: string }) {
           )
         })()}
       </div>
+
+      {/* 🔒 SAVES EDITADOS NA MÃO (lacre): lista completa, mesmo de quem não está online.
+          Nada é feito com a conta — é só pra você olhar e decidir na mão. */}
+      {Object.keys(cheats).length > 0 && (
+        <div style={{ ...card(), borderColor: '#FF2D2D' }}>
+          <p style={{ fontWeight: 700, marginBottom: 4 }}>🔒 Saves editados na mão <span style={{ opacity: .5, fontWeight: 400, fontSize: 12 }}>(o lacre não bateu · convicção alta · só você vê · nada é feito com a conta)</span></p>
+          <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+            {Object.entries(cheats).sort((a, b) => (a[1].at < b[1].at ? 1 : -1)).map(([uid, c]) => {
+              const dt = new Date(c.at)
+              const when = `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`
+              return (
+                <div key={uid} style={{ display: 'flex', gap: 8, alignItems: 'baseline', padding: '3px 0', borderBottom: '1px solid rgba(255,255,255,.06)', fontSize: 12.5 }}>
+                  <span style={{ opacity: .45, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>{when}</span>
+                  <span style={{ fontWeight: 800, color: '#FF6B57', flexShrink: 0, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
+                  <span style={{ opacity: .85 }}>{c.detail}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* 🎨 INTENÇÕES DE APOIO: toques no modal APOIE — cruza com o Pix que chegou */}
       {intents.length > 0 && (
