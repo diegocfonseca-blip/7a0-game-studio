@@ -5576,6 +5576,9 @@ export function EscEnd() {
   const { state, dispatch } = useEsc()
   const [manualPref] = useSimMode()
   const [streamManual] = useStreamSimMode()
+  const [endLang] = useLang()
+  const bbEnd = state.sport === 'basquete' // 🏀 no basquete a "Copa dos 8" vira "Playoffs"
+  const LE = (pt: string, en: string) => (bbEnd && endLang === 'en') ? en : pt
   const you = state.managers[state.youIdx]
   const table = sortedTable(state.league)
   const champ = table[0]
@@ -5805,9 +5808,13 @@ export function EscEnd() {
       {ligaChampionCard}
       {copaPending && state.quickCopa && (
         <Box bg={GOLD} className="p-4 space-y-2" shadow={6}>
-          <p className="font-black text-lg text-center" style={OSWALD}>🏆 COPA DOS 8 · fica ligado!</p>
+          <p className="font-black text-lg text-center" style={OSWALD}>{bbEnd ? LE('🏆 PLAYOFFS · fica ligado!', '🏆 PLAYOFFS · stay tuned!') : '🏆 COPA DOS 8 · fica ligado!'}</p>
           <p className="text-sm font-bold text-center text-black/75">
-            Os 8 melhores da liga entram numa Copa à parte — ida e volta, semifinal e final única. O 1º pega o 8º, o 2º pega o 7º, o 3º pega o 6º, o 4º pega o 5º. Quem for campeão da Copa ganha <b>outra carta</b> pro álbum!
+            {bbEnd
+              ? (endLang === 'en'
+                ? <>The top 8 of the season enter the <b>playoffs</b> — knockout to the Finals. 1×8, 2×7, 3×6, 4×5. The champion takes the <b>ring</b> to the album! 🏀</>
+                : <>Os 8 melhores da temporada entram nos <b>playoffs</b> — mata-mata até as Finais. 1º×8º, 2º×7º, 3º×6º, 4º×5º. O campeão leva o <b>anel</b> pro álbum! 🏀</>)
+              : <>Os 8 melhores da liga entram numa Copa à parte — ida e volta, semifinal e final única. O 1º pega o 8º, o 2º pega o 7º, o 3º pega o 6º, o 4º pega o 5º. Quem for campeão da Copa ganha <b>outra carta</b> pro álbum!</>}
           </p>
           <div className="space-y-1.5">
             {state.quickCopa.ties.map(t => {
@@ -5824,7 +5831,7 @@ export function EscEnd() {
           {online && <p className="text-[11px] font-bold text-center text-black/60">🔥 = amigo da sala · sem foguinho = time da CPU</p>}
           {canDriveCopa ? (
             <Btn onClick={() => dispatch({ type: 'START_COPA' })} bg={INK} className="w-full text-lg">
-              <span className="text-white">{(manual || pacedRoom) ? '▶️ Iniciar Copa dos 8' : `▶️ A Copa começa em ${copaLeft}s (toque pra já)`}</span>
+              <span className="text-white">{(manual || pacedRoom) ? (bbEnd ? LE('▶️ Iniciar os Playoffs', '▶️ Start the Playoffs') : '▶️ Iniciar Copa dos 8') : (bbEnd ? LE(`▶️ Os Playoffs começam em ${copaLeft}s (toque pra já)`, `▶️ Playoffs start in ${copaLeft}s (tap to go)`) : `▶️ A Copa começa em ${copaLeft}s (toque pra já)`)}</span>
             </Btn>
           ) : (
             <div className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black" style={{ background: '#fff', ...OSWALD }}>⏳ {pacedRoom ? 'A Copa começa quando o host quiser' : `A Copa começa em ${copaLeft}s — o host puxa`}</div>
@@ -5853,7 +5860,7 @@ export function EscEnd() {
       <ShareResultPanel opts={shareOpts} />
       {state.dinastia ? (
         <Btn onClick={() => { window.location.hash = 'dinastia' }} bg={GREEN} className="w-full text-lg"><span className="text-white">🏰 Ir pra janela de transferências →</span></Btn>
-      ) : state.careerDivision ? <CareerEndPanel /> : state.nbaCareer ? <NbaCareerEndPanel /> : (online || copaPending) ? null : (<>
+      ) : state.careerDivision ? <CareerEndPanel /> : state.nbaCareer ? (copaPending ? null : <NbaCareerEndPanel />) : (online || copaPending) ? null : (<>
       {restartPending
         ? (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2" style={{ background: '#FEF3C7' }}>

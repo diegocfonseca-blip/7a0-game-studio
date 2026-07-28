@@ -2463,6 +2463,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (promoted) {
         const newTier = NBA_TIERS[tier].next as NbaTier
         s.nbaTier = newTier
+        s.quickCopa = null // zera o chaveamento da temporada passada
         const tierTeams = NBA_TIERS[newTier].teams
         // novos adversários do andar (CPUs recebem elenco, não dão lance); VOCÊ fica.
         const { managers, botPlans } = makeManagers([you.teamName], '4-3-3', 0, tierTeams.length, rng, tierTeams)
@@ -2473,6 +2474,11 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const c of you.squad) usedP.add(ident(c))
         dealBotSquads(s.managers, botPlans, rng, usedP)
       }
+      // 🏆 PLAYOFFS: só nos andares de cima (G League/NBA) — top 8 disputa o
+      // mata-mata depois da temporada regular (mesma máquina da Copa dos 8: relógio
+      // ao vivo, tudo simula, zero spoiler). A Street League é só pontos corridos.
+      s.copaMode = (s.nbaTier ?? 'street') === 'street' ? 'liga' : 'liga_copa'
+      s.quickCopa = null // reseeda o chaveamento a cada temporada
       // 🏀 VENDER: tira do elenco as reservas que você DISPENSOU (marcadas na tela
       // de fim) — as vagas voltam a abrir e o leilão de reservas repõe.
       const released = new Set(s.reserveListed?.[you.id] ?? [])
