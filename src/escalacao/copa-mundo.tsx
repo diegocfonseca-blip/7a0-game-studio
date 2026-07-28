@@ -141,6 +141,36 @@ function groupTable(g: Group, upTo: number) {
     .map(t => ({ t, ...st[t] }))
 }
 
+// ⏱️ minuto ao vivo compartilhado (mesmo pace do LiveScoreCard: 82% do roundMs)
+function useLiveMin(roundKey: number, roundMs: number, finished: boolean): number {
+  const [min, setMin] = useState(finished ? 93 : 0)
+  useEffect(() => {
+    if (finished) { setMin(93); return }
+    setMin(0)
+    const t0 = Date.now()
+    const dur = Math.max(400, roundMs * 0.82)
+    const iv = setInterval(() => {
+      const p = Math.min(1, (Date.now() - t0) / dur)
+      setMin(Math.round(p * 93))
+      if (p >= 1) clearInterval(iv)
+    }, 250)
+    return () => clearInterval(iv)
+  }, [roundKey, finished, roundMs])
+  return min
+}
+// linha compacta de jogo dos BOTS rolando (padrão Copa Legends: todo confronto
+// aparece sendo simulado — placar sobe no minuto do gol, FIM no apito)
+function MiniLive({ nmH, nmA, ev, min, bold }: { nmH: string; nmA: string; ev: ScoreGoal[]; min: number; bold?: boolean }) {
+  const gh = ev.filter(e => e.home && e.min <= min).length
+  const ga = ev.filter(e => !e.home && e.min <= min).length
+  return (
+    <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: bold ? 900 : 700, display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+      <span>{nmH} <b>{gh}×{ga}</b> {nmA}</span>
+      <span style={{ color: min >= 93 ? '#1B7A3D' : 'rgba(0,0,0,.45)', fontWeight: 900, fontSize: 10 }}>{min >= 93 ? 'FIM' : `${Math.min(90, min)}'`}</span>
+    </div>
+  )
+}
+
 // ── componente principal: o portão + o torneio inteiro num modal ──
 export function CopaMundoGate({ seasonNo, seed, top16, myPos }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number }) {
   const save = useMemo(() => ensureSave(seed, seasonNo), [seed, seasonNo])
@@ -478,6 +508,7 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
   const [speed, setSpeed] = useState(1)
   const roundMs = Math.round(9000 / speed) // 9s = ROUND_MS da liga
 
+  const liveMin = useLiveMin(roundKey, roundMs, liveDone)
   const next = () => { const s = step + 1; setStep(s); if (LIVE(s)) { setLiveDone(false); setRoundKey(k => k + 1) } }
   // ⏭️ pular (só manual): corta a espera — apito na hora; de novo = próxima fase já resolvida
   const skip = () => {
@@ -490,12 +521,7 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
   useEffect(() => {
     if (liveDone) return
     let extra = 700
-    const penMs = (t: KoTie) => {
-      if (!t.pen) return 0
-      const mine = isYou(t.h) || isYou(t.a)
-      const meInStage = (step === 9 ? world.qf : world.sf).some(x => isYou(x.h) || isYou(x.a))
-      return (mine || !meInStage) ? pensRevealDelay(t.pen) * 1000 : 0 // eliminado assiste TUDO ao vivo
-    }
+    const penMs = (t: KoTie) => t.pen && (isYou(t.h) || isYou(t.a)) ? pensRevealDelay(t.pen) * 1000 : 0
     if (step === 9) extra += Math.max(0, ...world.qf.map(penMs))
     if (step === 11) extra += Math.max(0, ...world.sf.map(penMs))
     if (step === 12 && world.final.pen) extra += pensRevealDelay(world.final.pen) * 1000
@@ -575,7 +601,10 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
                   <span style={{ fontWeight: 900 }}>{r.pts}pt</span><span>{r.w}V</span><span>{r.sg > 0 ? '+' : ''}{r.sg}</span>
                 </div>
               ))}
-              {shownRounds > 0 && (
+              {step >= 1 && step <= 6 && !liveDone && g.matches[gRound - 1]?.filter(m => m.h !== myIdx && m.a !== myIdx).map((m, k) => (
+                <MiniLive key={k} nmH={nm(m.h)} nmA={nm(m.a)} ev={m.ev ?? []} min={liveMin} />
+              ))}
+              {shownRounds > 0 && liveDone && (
                 <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 0 0' }}>
                   rodada {shownRounds}: {g.matches[shownRounds - 1].map(m => `${FLAG[entrants[m.h].pais]} ${m.gh}×${m.ga} ${FLAG[entrants[m.a].pais]}`).join(' · ')}
                 </p>
@@ -592,10 +621,10 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
         const mySf = world.sf.find(t => isYou(t.h) || isYou(t.a))
         return (
           <>
-            {step === 8 && (myQf ? live(myQf.h, myQf.a, myQf.ev1!) : world.qf.map(t => <div key={`i${t.h}`}>{live(t.h, t.a, t.ev1!)}</div>))}
-            {step === 9 && (myQf ? myTieVolta(myQf) : world.qf.map(t => myTieVolta(t)))}
-            {step === 10 && (mySf ? live(mySf.h, mySf.a, mySf.ev1!) : world.sf.map(t => <div key={`i${t.h}`}>{live(t.h, t.a, t.ev1!)}</div>))}
-            {step === 11 && (mySf ? myTieVolta(mySf) : world.sf.map(t => myTieVolta(t)))}
+            {step === 8 && myQf && live(myQf.h, myQf.a, myQf.ev1!)}
+            {step === 9 && myQf && myTieVolta(myQf)}
+            {step === 10 && mySf && live(mySf.h, mySf.a, mySf.ev1!)}
+            {step === 11 && mySf && myTieVolta(mySf)}
             {step === 12 && live(world.final.h, world.final.a, world.final.ev)}
             {step === 12 && liveDone && world.final.pen && (
               <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
@@ -607,8 +636,8 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>🎲 MATA-MATA (sorteio livre — ida e volta)</p>
               {world.qf.map((t, i) => {
                 const mine = isYou(t.h) || isYou(t.a)
-                if (step === 8) return <div key={i}>{!mine && myQf && liveDone ? tieRow(t, false) : !mine && myQf ? <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} × {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· jogando…</span></div> : null}</div>
-                if (step === 9) return <div key={i}>{liveDone ? tieRow(t, true) : (mine || !myQf) ? null : <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} {t.g1![0]}×{t.g1![1]} {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· volta rolando…</span></div>}</div>
+                if (step === 8) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} ev={t.ev1!} min={liveMin} /> : null}</div>
+                if (step === 9) return <div key={i}>{liveDone ? tieRow(t, true) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
                 if (step === 7) return <div key={i} style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: mine ? 900 : 700 }}>{nm(t.h)} × {nm(t.a)}</div>
                 return <div key={i}>{tieRow(t, true)}</div>
               })}
@@ -616,8 +645,8 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onClose }: { entrants:
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px' }}>SEMIFINAIS</p>
                 {world.sf.map((t, i) => {
                   const mine = isYou(t.h) || isYou(t.a)
-                  if (step === 10) return <div key={i}>{!mine && mySf && liveDone ? tieRow(t, false) : !mine && mySf ? <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} × {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· jogando…</span></div> : null}</div>
-                  if (step === 11) return <div key={i}>{liveDone ? tieRow(t, true) : (mine || !mySf) ? null : <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11 }}>{nm(t.h)} {t.g1![0]}×{t.g1![1]} {nm(t.a)} <span style={{ color: 'rgba(0,0,0,.4)' }}>· volta rolando…</span></div>}</div>
+                  if (step === 10) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} ev={t.ev1!} min={liveMin} /> : null}</div>
+                  if (step === 11) return <div key={i}>{liveDone ? tieRow(t, true) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
                   return <div key={i}>{tieRow(t, true)}</div>
                 })}
               </>)}
