@@ -242,6 +242,27 @@ export const PAIS: Record<string, string> = {
   'Christian Pulisic': 'EUA', 'Clint Dempsey': 'EUA', 'Cha Bum-kun': 'Coreia do Sul',
   'Ahn Jung-hwan': 'Coreia do Sul', 'Hwang Hee-chan': 'Coreia do Sul',
 
+  // ── Lote "22 no mínimo" (27/07, aprovado pelo Diego) — parte EU ──
+  'Brad Friedel': 'EUA', 'Steve Cherundolo': 'EUA', 'Alexi Lalas': 'EUA',
+  'Oguchi Onyewu': 'EUA', 'Michael Bradley': 'EUA', 'Jermaine Jones': 'EUA',
+  'Eric Gerets': 'Bélgica', 'Jordan Lukaku': 'Bélgica',
+  'Daniel Van Buyten': 'Bélgica', 'Radja Nainggolan': 'Bélgica',
+  'Marc Wilmots': 'Bélgica', 'Michy Batshuayi': 'Bélgica',
+  'Christian Benteke': 'Bélgica', 'Jean Beausejour': 'Chile',
+  'David Pizarro': 'Chile', 'Marcelo Díaz': 'Chile',
+  'Cha Du-ri': 'Coreia do Sul', 'Park Joo-ho': 'Coreia do Sul',
+  'Lee Chung-yong': 'Coreia do Sul', 'Koo Ja-cheol': 'Coreia do Sul',
+  'Seol Ki-hyeon': 'Coreia do Sul', 'Camilo Zúñiga': 'Colômbia',
+  'Álvaro Pereira': 'Uruguai', 'Héctor Moreno': 'México',
+
+  // ── Lote "22 no mínimo" — parte MUNDO ──
+  'Lee Woon-jae': 'Coreia do Sul', 'Kim Byung-ji': 'Coreia do Sul',
+  'Kim Young-gwon': 'Coreia do Sul', 'Kim Nam-il': 'Coreia do Sul',
+  'Hwang Sun-hong': 'Coreia do Sul', 'Kyle Beckerman': 'EUA',
+  'Tab Ramos': 'EUA', 'Cobi Jones': 'EUA', 'Gabriel Mendoza': 'Chile',
+  'Eduardo Vargas': 'Chile', 'Humberto Suazo': 'Chile',
+  'Cebolla Rodríguez': 'Uruguai',
+
   // ── Baralho MUNDO ──
   'Jorge Campos': 'México', 'René Higuita': 'Colômbia',
   'José Luis Chilavert': 'Paraguai', 'Amadeo Carrizo': 'Argentina',

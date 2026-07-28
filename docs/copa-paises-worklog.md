@@ -70,16 +70,23 @@ Listas completas por país × posição: gerar de novo com scratchpad/cartas.txt
 11 Colômbia 22 · 12 Uruguai 20 · 13 Chile 16 · 14 Bélgica 15 · 15 EUA 13 ·
 16 Coreia do Sul 12 · (17 Paraguai 8, primeiro da fila)
 
-## ✅ CORREÇÃO DE ESCOPO (Diego, 27/07 — vale sobre tudo acima)
-- **NÃO tem meta de 22, nem meta por categoria, nem "36/100 cartas".** A
-  convocação usa o baralho COMO ESTÁ: todo jogador já etiquetado com o país
-  aparece no listão da seleção (qualquer nível). Cartas novas só se o Diego
-  pedir — o baralho cresce no ritmo normal do jogo e a Copa acompanha sozinha.
-- Única exigência: a seleção precisa FECHAR UM 11 em alguma formação
-  (senão quebra — regra nº1). Estado de hoje: só 2 travadas →
-  **Coreia (0 goleiros)** e **EUA (1 meia só)**. Bélgica fecha só no 4-4-2
-  (a trava de formação resolve). PROPOSTA enviada pro Diego (aguardando OK):
-  3 cartas — Lee Woon-jae (GOL·Coreia), Michael Bradley + Kyle Beckerman (MEI·EUA).
+## ✅ ESCOPO FINAL (Diego, 27-28/07): baralho como está + MÍNIMO 22 por seleção
+- A convocação usa o baralho COMO ESTÁ (todo nível aparece, sem meta por
+  categoria). MAS o Diego confirmou: **mínimo 22 FAMOSOS por seleção**
+  (ruim ou bom, tanto faz).
+- ✅ **FEITO (28/07): lote de 36 cartas aprovado e NO AR** — Coreia +10
+  (Lee Woon-jae, Kim Byung-ji 🃏, Cha Du-ri, Park Joo-ho, Kim Young-gwon,
+  Lee Chung-yong, Koo Ja-cheol, Kim Nam-il, Hwang Sun-hong, Seol Ki-hyeon),
+  EUA +9 (Friedel, Cherundolo, Lalas 🃏, Onyewu, Bradley, Jermaine Jones,
+  Beckerman 🃏, Tab Ramos, Cobi Jones 🃏), Bélgica +7 (Gerets, J.Lukaku 🃏,
+  Van Buyten, Nainggolan 🃏, Wilmots, Batshuayi 🃏, Benteke), Chile +6
+  (Mendoza, Beausejour, Pizarro, M.Díaz, Vargas, Suazo), Uruguai +2
+  (Á.Pereira, Cebolla), Colômbia +1 (Zúñiga), México +1 (H.Moreno).
+  24 no baralho EU (auge europeu) + 12 no MUNDO. Total agora: 1068 cartas.
+- ✅ Verificado (checa-paises + paises-pos): TODAS as 16 com 22+ e formação
+  em dobro fechando. Ranking final: BRA 510 · ARG 63 · FRA 43 · ESP 41 ·
+  ING 37 · ITA 31 · ALE 30 · HOL 29 · POR 27 · MEX 24 · COL 23 · URU/CHI/
+  BEL/EUA/COR 22 · (Paraguai 8 na fila).
 - Fluxo aprovado: botão dourado "🌍 DISPUTAR A COPA" na tela novo leilão/mesmo
   time a cada 10 temporadas + notícia-hype 1 temporada antes + trava "só campeões".
 
