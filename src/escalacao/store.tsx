@@ -1420,15 +1420,31 @@ export function topScorers(state: EscState, limit = 10): ScorerRow[] {
 function finishSeason(s: EscState) {
   s.champion = sortedTable(s.league)[0].id
   if (s.copaMode === 'liga_copa' && !s.quickCopa) {
-    s.quickCopa = seedQuickCopa(s.league)
+    const bbCopa = s.sport === 'basquete'
+    s.quickCopa = seedQuickCopa(s.league, bbCopa)
     // 📣 zera o giro da liga: durante a Copa o giro fala DA COPA, não das rodadas
-    s.news = ['🏆 A liga acabou — chegou a COPA DOS 8! Os 8 melhores brigam pelo título.']
+    s.news = [bbCopa
+      ? '🏆 Fim da temporada regular — chegaram os PLAYOFFS! Leste × Oeste, top 4 de cada conferência.'
+      : '🏆 A liga acabou — chegou a COPA DOS 8! Os 8 melhores brigam pelo título.']
   }
   s.screen = 'end'
 }
-function seedQuickCopa(league: LeagueTeam[]): QuickCopaState {
-  const top8 = sortedTable(league).slice(0, 8)
+function seedQuickCopa(league: LeagueTeam[], nba = false): QuickCopaState {
+  const sorted = sortedTable(league)
   const mk = (a: LeagueTeam, b: LeagueTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
+  // 🏀 PLAYOFFS POR CONFERÊNCIA (Leste × Oeste): top 4 de CADA lado. Uma conferência
+  // é cada METADE da chave (ties[0,1] = Leste, ties[2,3] = Oeste) — os campeões de
+  // conferência (vencedores das semis) só se cruzam nas FINAIS. Conferência estável
+  // por id (par = Leste, ímpar = Oeste). Se um lado não fecha 4, cai no top-8 único.
+  if (nba) {
+    const east = sorted.filter(t => t.id % 2 === 0).slice(0, 4)
+    const west = sorted.filter(t => t.id % 2 !== 0).slice(0, 4)
+    if (east.length === 4 && west.length === 4) {
+      const ties = [mk(east[0], east[3]), mk(east[1], east[2]), mk(west[0], west[3]), mk(west[1], west[2])]
+      return { phase: 'quartas', ties, legIdx: 0, bracket: [], scorers: [] }
+    }
+  }
+  const top8 = sorted.slice(0, 8)
   const ties = [mk(top8[0], top8[7]), mk(top8[3], top8[4]), mk(top8[1], top8[6]), mk(top8[2], top8[5])]
   return { phase: 'quartas', ties, legIdx: 0, bracket: [], scorers: [] }
 }

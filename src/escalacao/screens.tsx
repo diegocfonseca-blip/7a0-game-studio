@@ -3448,7 +3448,7 @@ export function EscSeason() {
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
           {state.careerOnline && !state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 CARREIRA · SÉRIE D</span>}
           {state.careerTitlesA > 0 && <span className="mr-1.5"><CareerStars n={state.careerTitlesA} size={12} /></span>}
-          {copaLive && qc ? `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA'} · ${qc.phase === 'quartas' ? (bbS ? LS('QUARTAS', 'QF') : 'QUARTAS') : qc.phase === 'semis' ? (bbS ? LS('SEMI', 'SF') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}` : `RODADA ${Math.min(state.round + 1, totalRounds)}/${totalRounds}`}
+          {copaLive && qc ? `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA'} · ${qc.phase === 'quartas' ? (bbS ? LS('SEMIS DE CONF.', 'CONF. SEMIS') : 'QUARTAS') : qc.phase === 'semis' ? (bbS ? LS('FINAIS DE CONF.', 'CONF. FINALS') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}` : `RODADA ${Math.min(state.round + 1, totalRounds)}/${totalRounds}`}
         </span>
         <span className="font-black text-sm" style={OSWALD}>{(() => {
           const disp = !resultRevealed && state.lastResults.length > 0 ? sortedTable(leagueBeforeResults(state.league, state.lastResults)) : table
@@ -5822,8 +5822,8 @@ export function EscEnd() {
           <p className="text-sm font-bold text-center text-black/75">
             {bbEnd
               ? (endLang === 'en'
-                ? <>The top 8 of the season enter the <b>playoffs</b> — knockout to the Finals. 1×8, 2×7, 3×6, 4×5. The champion takes the <b>ring</b> to the album! 🏀</>
-                : <>Os 8 melhores da temporada entram nos <b>playoffs</b> — mata-mata até as Finais. 1º×8º, 2º×7º, 3º×6º, 4º×5º. O campeão leva o <b>anel</b> pro álbum! 🏀</>)
+                ? <><b>Playoffs — East × West.</b> Top 4 of each conference. Each conference crowns its champion, and the two meet in the <b>Finals</b> for the <b>ring</b>! 🏀</>
+                : <><b>Playoffs — Leste × Oeste.</b> Top 4 de cada conferência. Cada lado decide seu campeão, e os dois se cruzam nas <b>Finais</b> pelo <b>anel</b>! 🏀</>)
               : <>Os 8 melhores da liga entram numa Copa à parte — ida e volta, semifinal e final única. O 1º pega o 8º, o 2º pega o 7º, o 3º pega o 6º, o 4º pega o 5º. Quem for campeão da Copa ganha <b>outra carta</b> pro álbum!</>}
           </p>
           <div className="space-y-1.5">
