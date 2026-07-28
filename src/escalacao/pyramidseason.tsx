@@ -2274,7 +2274,11 @@ export function PyramidSeasonScreen() {
             })
             rws.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
             const top16 = rws.slice(0, 16).map(r => ({ name: r.t.name, you: r.t.teamId === youId && r.t.teamId >= 0 }))
-            return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} onPrize={humans.length <= 1 ? () => dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: youId }) : undefined} />
+            // 💰 prêmio da Copa (+100): dispatch normal — no SOLO aplica direto; no
+            // ONLINE o convidado roteia AUTOMATICAMENTE pro host (mesmo cano do
+            // lance de leilão), o host anota no caixa oficial e sincroniza pra sala.
+            // Ninguém aperta nada: é conversa entre os celulares.
+            return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} onPrize={() => dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: youId })} />
           })()
           if (humans.length <= 1) return (
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>

@@ -44,12 +44,14 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'dasilva1227br@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'davisantana1312@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'ambielvictor@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
+  'cesar.verissimo27@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
 }
 
 // 🖋️ FUNDADORES (os 100 primeiros Lendas): e-mail → número do fundador.
 // O selo 🖋️ cola no 👑 no nome ("Fulano 👑🖋️") em todo canto do jogo.
 // O número entra no mural "Fundadores do Leilão Legends" (tela futura).
 const FUNDADOR_N: Record<string, number> = {
+  'cesar.verissimo27@gmail.com': 3,
   'dasilva1227br@gmail.com': 9,
   'davisantana1312@gmail.com': 11,
   'ambielvictor@gmail.com': 12,
