@@ -3902,6 +3902,10 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
   const [blLang] = useLang()
   const bb = state.sport === 'basquete' // 🏀 basquete: saldo de CESTAS (SC) no lugar de SG
   const L = (pt: string, en: string) => (bb && blLang === 'en') ? en : pt
+  // 🏀 andar com playoffs (G League/NBA): mostra a conferência de cada time (🔵
+  // Leste par · 🔴 Oeste ímpar) — top 4 de cada vai aos playoffs. Na Street não.
+  const confTier = bb && state.copaMode === 'liga_copa'
+  const confOf = (id: number) => id % 2 === 0 ? '🔵 ' : '🔴 '
   const league = holdResults && state.lastResults.length > 0 ? leagueBeforeResults(state.league, state.lastResults) : state.league
   const table = sortedTable(league)
   return (
@@ -3915,6 +3919,7 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
           <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#F9D8D3' }} />Z{zoneN(table.length)}</span>
         </div>
       </div>
+      {confTier && <p className="text-[10px] font-bold text-black/55 mb-1.5">{L('🔵 Leste · 🔴 Oeste — top 4 de cada conferência vai aos playoffs', '🔵 East · 🔴 West — top 4 of each conference makes the playoffs')}</p>}
       <table className="w-full text-xs">
         <thead>
           <tr className="text-left text-black/70 font-black">
@@ -3948,7 +3953,7 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
               <tr key={t.id} className="border-t border-black/10 font-semibold"
                 style={{ background: rowBg, color: rowInk, fontWeight: isMgr ? 800 : 500 }}>
                 <td className="pr-1">{rank}</td>
-                <td className="truncate max-w-[130px]">{isRival ? '🔥 ' : isMgr ? '👤 ' : ''}{t.name}</td>
+                <td className="truncate max-w-[130px]">{confTier ? confOf(t.id) : ''}{isRival ? '🔥 ' : isMgr ? '👤 ' : ''}{t.name}</td>
                 {bb ? (
                   <>
                     <td className="text-center font-black">{t.w}</td>
