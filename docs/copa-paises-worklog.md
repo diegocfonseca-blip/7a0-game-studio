@@ -100,6 +100,17 @@ Listas completas por país × posição: gerar de novo com scratchpad/cartas.txt
 - Mockup aguardando OK: artifact a73c7ec1 (busca + abas por posição + campinho
   enchendo + 2 estados do botão).
 
+## 🔓 DESBLOQUEIO (Diego, 28/07 — substitui o "a cada 10 desde o início")
+- A Copa **desbloqueia na TEMPORADA 100** da carreira (coisa de veterano).
+- A partir do desbloqueio, rola **de 10 em 10**:
+  - Save NOVO (ou abaixo de 100): desbloqueia na 100 → Copas na 110, 120, 130…
+  - Save ANTIGO já além da 100 quando o modo chegar (ex.: na 142): primeira
+    Copa 10 temporadas depois → 152, depois 162, 172…
+  - Pulou uma edição? A próxima segue o calendário (não acumula).
+- (Substitui/absorve a trava "só campeões" — 100 temporadas É a prova de veterano.)
+- Mockup da ENTRADA aguardando OK: artifact 2c13a218 (4 peças: botão dourado na
+  temporada de Copa · chip "faltam X" · trava com barra "37 de 100" · notícia-hype).
+
 ## 🏆 FORMATO DO TORNEIO (Diego, 27/07 — decisão firme)
 - **Grupos**: 4 grupos de 4, todos contra todos em IDA E VOLTA (6 jogos por
   seleção). Classificam os 2 primeiros. Desempate: nº de VITÓRIAS, depois
