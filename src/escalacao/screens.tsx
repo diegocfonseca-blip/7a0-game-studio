@@ -5192,17 +5192,17 @@ function NbaCareerEndPanel() {
   const t = useT()
   const you = state.managers[state.youIdx]
   const roster = you?.squad.filter(c => !c.fake).length ?? 0
-  const full = roster >= 10 // por ora o teto é a rotação (10); o elenco 15 vem depois
+  const note = roster < 10
+    ? t('Abre o leilão de RESERVAS: mantém o quinteto e monta o banco (rotação de 10). 🔧 em teste', 'Opens the RESERVE auction: keep your five and build the bench (10-man rotation). 🔧 testing')
+    : roster < 15
+    ? t('Abre o leilão de RESERVAS: completa o elenco cheio da NBA (15). 🔧 em teste', 'Opens the RESERVE auction: fill out the full NBA roster (15). 🔧 testing')
+    : t('Elenco cheio (15) — a próxima temporada começa com o mesmo time.', 'Full roster (15) — next season starts with the same team.')
   return (
     <div className="space-y-2">
       <Btn onClick={() => dispatch({ type: 'NEXT_NBA_SEASON' })} bg={GREEN} className="w-full text-lg">
         <span className="text-white">▶️ {t('Próxima temporada', 'Next season')}</span>
       </Btn>
-      <p className="text-center text-[11px] font-semibold text-black/50 -mt-1">
-        {full
-          ? t('Rotação montada — a próxima temporada começa com o mesmo time.', 'Rotation set — next season starts with the same team.')
-          : t('Abre o leilão de RESERVAS: você mantém o quinteto e monta o banco (rotação de 10). 🔧 em teste', 'Opens the RESERVE auction: keep your five and build the bench (10-man rotation). 🔧 testing')}
-      </p>
+      <p className="text-center text-[11px] font-semibold text-black/50 -mt-1">{note}</p>
       <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full" bg="#fff">🏠 {t('Voltar ao início', 'Back home')}</Btn>
     </div>
   )

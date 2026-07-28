@@ -104,6 +104,10 @@ export interface Manager {
   // (XI + banco = 2× a formação por posição). Fora do leilão de reservas fica
   // undefined, então o leilão normal (T1/solo/dinastia/rápido) segue mirando 11.
   deepSquad?: boolean
+  // 🏀 carreira do basquete: alvo de vagas POR POSIÇÃO deste técnico (1 quinteto →
+  // 2 rotação → 3 elenco cheio). Cresce a cada temporada só p/ você (+ rivais);
+  // bots ficam sem = quinteto. undefined fora do basquete.
+  nbaSlots?: number
   // carreira OFFLINE (pirâmide solo): rival ESCOLHIDO pelo jogador (nome próprio).
   // É CPU (usa clubCash), mas aparece COLORIDO e marcado como rival no display,
   // igual à carreira antiga. Não afeta economia — só o visual.

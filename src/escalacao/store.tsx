@@ -336,8 +336,10 @@ function healCpuSquads(s: EscState) {
 
 // ─── helpers de elenco ───────────────────────────────────────────────
 export function slotsOf(m: Manager, pos: Sector): number {
+  // 🏀 basquete: o alvo é POR TÉCNICO (nbaSlots) — quinteto 1 → rotação 2 →
+  // elenco 3, crescendo a cada temporada só p/ você; bots sem nbaSlots = quinteto.
+  if (ACTIVE_SPORT === 'basquete') return m.nbaSlots ?? NBA_BASE_SLOTS
   // elenco fundo (leilão de reservas): mira 22 = 2× a formação por posição.
-  // (baseSlots devolve a formação no futebol; o padrão do modo no basquete.)
   return baseSlots(m.formation, pos) * (m.deepSquad ? 2 : 1)
 }
 export function filled(m: Manager, pos: Sector): number {
@@ -2419,11 +2421,13 @@ export function reducer(state: EscState, action: Action): EscState {
       const rng = mulberry(s.seed)
       setActiveSport('basquete', 'career') // base = 1/posição (quinteto)
       const you = s.managers[s.youIdx]
-      // só VOCÊ cresce pra rotação (deepSquad → 2/posição = 10); os outros mantêm
-      // o quinteto (5). Os elencos de todos são preservados da temporada passada.
-      for (const m of s.managers) m.deepSquad = (m.id === you.id)
+      // só VOCÊ cresce: T2 → rotação (2/posição = 10), T3+ → elenco cheio (3/pos
+      // = 15). Os outros times ficam no quinteto (nbaSlots undefined). Elencos de
+      // todos preservados da temporada passada.
+      you.nbaSlots = s.seasonNo >= 3 ? 3 : 2
+      for (const m of s.managers) m.deepSquad = false
       s.round = 0; s.champion = null; s.news = []; s.scorers = []; s.lastResults = []
-      // ainda tem vaga de reserva pra encher (T2: 5→10)? ABRE o leilão de reservas
+      // ainda tem vaga de reserva pra encher (T2 5→10, T3 10→15)? ABRE o leilão
       // (mantém o quinteto, leiloa só as vagas novas). Já cheio? começa a temporada
       // com o mesmo time (o "elenco 15" e vender vêm no próximo passo).
       const wantReserve = SECTORS.some(pos => openSlots(you, pos) > 0)
