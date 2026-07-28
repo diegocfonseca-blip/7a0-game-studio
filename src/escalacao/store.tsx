@@ -1007,7 +1007,7 @@ export const filialSlots = (div?: string | null): number => FILIAL_SLOTS[div ?? 
 // empréstimo nunca cresciam. Aqui pega o placement e cai pra careerDivision se faltar.
 function myCareerDiv(s: EscState): string {
   const youId = s.managers[s.youIdx]?.id ?? s.youIdx
-  return s.careerPlacements?.[`m${youId}`] ?? s.careerDivision ?? 'D'
+  return s.careerPlacements?.[`m${youId}`] ?? 'D' // ⚠️ NUNCA cair em careerDivision: é da DINASTIA (bug: 4 vagas na série D)
 }
 // normaliza empréstimo pra lista (saves antigos gravavam 1 jogador só, não array)
 const loanList = (x: unknown): WonCard[] => Array.isArray(x) ? x as WonCard[] : x ? [x as WonCard] : []
@@ -2954,7 +2954,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const f = you ? s.careerFilials?.[you.id] : undefined
         if (!s.careerOnline || !you?.isHuman || !f) return s
         const outs = loanList(f.loanOut)
-        if (outs.length >= filialSlots(s.careerPlacements?.[`m${you.id}`] ?? s.careerDivision)) return s
+        if (outs.length >= filialSlots(s.careerPlacements?.[`m${you.id}`] ?? 'D')) return s
         const card = you.squad.find(c => c.id === action.cardId)
         if (!card || card.emprestado) return s
         const need = FORMATIONS[you.formation]
@@ -2994,7 +2994,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const f = you ? s.careerFilials?.[you.id] : undefined
         if (!s.careerOnline || !you?.isHuman || !f) return s
         const ins = loanList(f.loanIn)
-        if (ins.length >= filialSlots(s.careerPlacements?.[`m${you.id}`] ?? s.careerDivision)) return s
+        if (ins.length >= filialSlots(s.careerPlacements?.[`m${you.id}`] ?? 'D')) return s
         const safSquad = (s.cpuSquads?.[f.team] ?? []) as WonCard[]
         const card = safSquad.find(c => c.id === action.cardId)
         if (!card || card.emprestado) return s

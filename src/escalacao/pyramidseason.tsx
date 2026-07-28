@@ -2426,7 +2426,7 @@ export function PyramidSeasonScreen() {
               onLoanFrom={cardId => dispatch({ type: 'LOAN_FROM_FILIAL', cardId, mgrId: youId })}
               loanSlots={/* mesma fonte de divisão da REGRA (colocação gravada; tabela ao vivo
                 como reserva) — se divergirem, o botão prometia 2 e o clique não fazia nada */
-                filialSlots(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? me?.div)} />
+                filialSlots(state.careerPlacements?.[`m${youId}`] ?? me?.div ?? 'D')} />
             <GoldTeaser label="Ver o estádio DOURADO completo (prévia)">
               <div style={{ ...box('#FBF6E9'), padding: 12, position: 'relative' }}>
                 <StadiumSvg st={{ inv: { geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'grama', 'cober'] }} perkOverride={APOIO_PERKS.ouro} />
