@@ -2011,17 +2011,13 @@ export function PyramidSeasonScreen() {
   useEffect(() => {
     if (!done || !state.careerOnline) return
     if ((state.statsSeason ?? 0) >= state.seasonNo) return
-    // 🐛 BUG do "meu jogador fez gol e não contou": antes gravava só o TOP 60 da
-    // temporada (scorersAll.slice(0,60)). Como são 4 divisões (80 times, centenas
-    // de goleadores), o jogador de um USUÁRIO abaixo do 60º lugar tinha os gols
-    // DESCARTADOS do acumulado geral. Agora os goleadores HUMANOS (você + amigos)
-    // entram SEMPRE, e o top 60 completa o resto pro ranking dos bots grandes.
-    // Dedup pela chave única da temporada (nome+time+carta) pra não contar 2x.
-    const uk = (s: SeasonScorer) => `${s.name}|${s.teamId}|${s.cardId ?? ''}`
-    const seen = new Set<string>()
-    const toRecord = [...scorersAll.slice(0, 60), ...scorersAll.filter(s => s.human)]
-      .filter(s => (seen.has(uk(s)) ? false : (seen.add(uk(s)), true)))
-    dispatch({ type: 'RECORD_SEASON_STATS', scorers: toRecord })
+    // 🐛 BUG "meu jogador fez gol e não contou": antes gravava só o TOP 60 da
+    // temporada (scorersAll.slice(0,60)) — quem ficava abaixo do 60º tinha os gols
+    // DESCARTADOS do acumulado. Agora conta o gol de TODO time (usuário, bot,
+    // rival), de todas as 4 divisões — nenhum gol é jogado fora. O ranking mostra
+    // o top 20; o reducer guarda bem mais (top 300) pra ninguém perto de entrar
+    // ficar de fora, sem o save crescer sem limite.
+    dispatch({ type: 'RECORD_SEASON_STATS', scorers: scorersAll })
   }, [done, state.careerOnline, state.seasonNo, state.statsSeason]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // MATERIALIZA a ficha dos 60 times de fundo (1x): antes eram recalculados na

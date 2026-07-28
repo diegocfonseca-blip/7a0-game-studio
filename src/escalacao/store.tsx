@@ -3381,8 +3381,9 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'RECORD_SEASON_STATS': {
-      // fim de temporada: soma os gols dos artilheiros no acumulado de TODOS OS
-      // TEMPOS (por nome). Idempotente: só grava uma vez por temporada.
+      // fim de temporada: soma os gols dos artilheiros de TODOS os times (usuário,
+      // bot e rival, todas as 4 divisões) no acumulado de TODOS OS TEMPOS (por
+      // nome). Idempotente: só grava uma vez por temporada.
       if (!s.careerOnline) return s
       if ((s.statsSeason ?? 0) >= s.seasonNo) return s
       const all = { ...(s.careerScorersAll ?? {}) }
@@ -3390,7 +3391,11 @@ export function reducer(state: EscState, action: Action): EscState {
         const prev = all[sc.name]
         all[sc.name] = { ...sc, goals: (prev?.goals ?? 0) + sc.goals } // teamName/div = os da última temporada (display)
       }
-      s.careerScorersAll = all
+      // guarda os 300 MELHORES de todos os tempos: o ranking mostra só 20, então
+      // 300 é folga de sobra (cobre quem está perto de entrar) e evita o save
+      // crescer sem fim. Ninguém relevante pro ranking é cortado.
+      const top = Object.values(all).sort((a, b) => b.goals - a.goals).slice(0, 300)
+      s.careerScorersAll = Object.fromEntries(top.map(x => [x.name, x]))
       s.statsSeason = s.seasonNo
       return s
     }
