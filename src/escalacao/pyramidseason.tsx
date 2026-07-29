@@ -1979,12 +1979,23 @@ export function PyramidSeasonScreen() {
   // dela na tabela e injeta a sua cor no mapa — assim ela pinta igual em jogos,
   // artilharia e classificação. O ícone 💼 (vs 👤) é quem diferencia vocês.
   const safTeamName = state.careerFilial?.team
+  // 🏛️ o 2º clube (Multiclubes) — mesmo DORMINDO — veste a MESMA cor do seu tier,
+  // igual à SAF. É teu clube, então carrega tua marca em toda tabela/artilharia.
+  const multiTeamName = state.multiClube?.team
   const colors = useMemo(() => {
-    if (!safTeamName) return baseColors
-    let safId: number | undefined
-    for (const d of DIVS) { const t = tables[d]?.find(x => x.name === safTeamName); if (t) { safId = t.teamId; break } }
-    return safId != null ? { ...baseColors, [safId]: myCol } : baseColors
-  }, [baseColors, safTeamName, tables, myCol])
+    const idOf = (teamName?: string) => {
+      if (!teamName) return undefined
+      for (const d of DIVS) { const t = tables[d]?.find(x => x.name === teamName); if (t) return t.teamId }
+      return undefined
+    }
+    const safId = idOf(safTeamName)
+    const multiId = idOf(multiTeamName)
+    if (safId == null && multiId == null) return baseColors
+    const out = { ...baseColors }
+    if (safId != null) out[safId] = myCol
+    if (multiId != null) out[multiId] = myCol
+    return out
+  }, [baseColors, safTeamName, multiTeamName, tables, myCol])
   // COPA LEGENDS: no fim da temporada, o mata-mata dos 16 (determinístico da
   // classificação final + semente + temporada). Alimenta a aba Tabelas (chave),
   // a aba Rank (artilharia da Copa) e os prêmios da virada.
