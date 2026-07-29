@@ -1451,8 +1451,9 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
 type Honors = { A: number; B: number; C: number; D: number }
 const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0 }
 function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId, seasonNo, myDiv, safTeam, seed }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number; seasonNo?: number; myDiv?: Div | null; safTeam?: string; seed?: number }) {
-  // 🌍 títulos da COPA DO MUNDO LEGENDS (mural local por save): entram no rank
-  // ABAIXO da Série D (preferência do Diego) e no Hall de Troféus.
+  // 🌍 títulos da COPA DO MUNDO LEGENDS (mural local por save): entram no rank e
+  // no Hall de Troféus. Ordem do ranking (pedido do Diego): Série A → Copa do
+  // Mundo → Copa Legends → Série B → Série C → Série D → Dinheiro.
   const cmMural = seed != null ? (loadCopaSave(seed)?.mural ?? []) : []
   const cmTitles: Record<string, number> = {}
   for (const m of cmMural) cmTitles[m.campeao] = (cmTitles[m.campeao] ?? 0) + 1
@@ -1463,7 +1464,8 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
     const money = t.human ? (coins[t.teamId] ?? 0) : Math.round(pick(clubCash) ?? 0)
     return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, money, wc: cmTitles[t.name] ?? 0 }
   })
-  rows.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.wc - a.wc || b.money - a.money || a.t.name.localeCompare(b.t.name))
+  // ordem: Série A · Copa do Mundo · Copa Legends · Série B · Série C · Série D · Dinheiro
+  rows.sort((a, b) => b.h.A - a.h.A || b.wc - a.wc || b.copas - a.copas || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
   const top = rows.slice(0, 20)
   // 🏆 SEUS troféus (chave do humano = m<id>) — base do Hall de Troféus embaixo.
   const myH = honors[`m${youId}`] ?? EMPTY_HONORS
