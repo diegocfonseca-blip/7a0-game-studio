@@ -235,6 +235,23 @@ function applyHonors(honors: Record<string, Honors> | undefined, champions?: Rec
   }
   return out
 }
+// 🏛️ MULTICLUBES · guarda a carta do clube que DORMIA quando ele foi campeão nesta
+// temporada (título de divisão e/ou Copa Legends). Chamado no fim de temporada, ANTES
+// do seasonNo++. Keyed pelo id do clube (já separado do ativo). Ao passar o comando pra
+// ele, o pacote aparece pra você abrir. NÃO faz nada fora do solo com 2º clube.
+function recordDormantCards(s: EscState, champions?: Record<string, 'A' | 'B' | 'C' | 'D'>, copaChampion?: string | null) {
+  if (!s.multiClube) return
+  const dk = `m${s.multiClube.id}` // teamKey do clube que dorme (managed → m{id})
+  const wonDiv = !!(champions && champions[dk])
+  const wonCopa = copaChampion === dk
+  if (!wonDiv && !wonCopa) return
+  const pend = { ...(s.multiClubePendingCards ?? {}) }
+  const arr = [...(pend[s.multiClube.id] ?? [])]
+  if (wonDiv) arr.push({ season: s.seasonNo }) // carta do título de divisão
+  if (wonCopa) arr.push({ season: s.seasonNo, copa: true }) // carta da Copa Legends (à parte)
+  pend[s.multiClube.id] = arr
+  s.multiClubePendingCards = pend
+}
 // 🏟️ bilheteria: soma a renda do estádio de cada técnico HUMANO no caixa (fim de
 // temporada). Inclui a BILHETERIA-BASE (stadiumIncome vale mesmo sem estádio), então
 // dá pra render pra quem nunca abriu a tela do estádio também. Bots não têm estádio
@@ -591,9 +608,10 @@ function pickSurprise(deck: Record<Sector, Card[]>, rng: () => number): string |
   return all.length ? all[Math.floor(rng() * all.length)] : undefined
 }
 
-// managers que efetivamente brigam no leilão (exclui bots de preenchimento)
+// managers que efetivamente brigam no leilão (exclui bots de preenchimento e o
+// 🏛️ MULTICLUBES que está DORMINDO — o 2º clube não-selecionado não dá lance).
 function auctioningManagers(managers: Manager[]): Manager[] {
-  return managers.filter(m => m.isHuman || m.auctionRival)
+  return managers.filter(m => (m.isHuman || m.auctionRival) && !m.dormindo)
 }
 
 // ─── CPU: envelopes de lance ─────────────────────────────────────────
@@ -1886,6 +1904,9 @@ type Action =
   | { type: 'MONTE_TIMEOUT' }
   | { type: 'SET_SPONSOR'; id: string; mgrId?: number } // 👕 escolhe a marca do patrocínio (solo: careerSponsor · online: careerSponsors[mgrId])
   | { type: 'BUY_FILIAL'; team: string; mgrId?: number } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])
+  | { type: 'BUY_MULTICLUBE'; team: string } // 🏛️ MULTICLUBES (solo): compra um 2º clube da Série D por 4.000 moedas (só Lenda; trava de tier fica na UI)
+  | { type: 'SWITCH_MULTICLUBE' } // 🏛️ MULTICLUBES (solo): passa o comando pro outro clube (só entre temporadas). O que sai dorme.
+  | { type: 'CLEAR_MULTICLUBE_PENDING'; mgrId: number; season: number; copa?: boolean } // 🏛️ MULTICLUBES: risca a carta guardada depois que você abriu o pacote
   | { type: 'SELL_FILIAL'; mgrId?: number } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 2.500)
   | { type: 'ADD_EMPRESARIO_CARD'; card: EmpCard; key?: string; mgrId?: number } // 💼 registra uma carta ganha (pacote de campeão) na agência do Empresário. `key` = seasonKey do pacote (dedup por temporada — aceita repetida entre temporadas). `mgrId` = técnico dono (online: por-técnico)
   | { type: 'LOAN_TO_FILIAL'; cardId: string; mgrId?: number } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda, volta na virada)
@@ -2949,6 +2970,64 @@ export function reducer(state: EscState, action: Action): EscState {
       logFin(s, 'safbuy', `🏢 Compra da SAF · ${action.team}`, -2000) // 🧾 compra da SAF entra no extrato
       return s
     }
+    case 'BUY_MULTICLUBE': {
+      // 🏛️ MULTICLUBES · a compra: transforma um clube EXISTENTE da Série D (um bot da
+      // sua liga) no SEU 2º clube. Vira um assento independente (id próprio → caixa,
+      // títulos, estádio, divisão JÁ separados por construção). Começa DORMINDO.
+      const PRECO = 4000
+      if (s.onlineMode === 'online' || !s.careerOnline || s.multiClube) return s
+      const you = s.managers[s.youIdx]
+      if (!you?.isHuman) return s
+      const coins = s.careerCoins?.[you.id] ?? 0
+      if (coins < PRECO) return s
+      // o alvo é um bot da Série D (não você, não rival, não já-meu)
+      const club = s.managers.find(m => m.teamName === action.team && !m.rival && !m.auctionRival && m.id !== you.id && !m.mine)
+      if (!club || (s.careerPlacements?.[`m${club.id}`] ?? 'D') !== 'D') return s
+      club.mine = true; club.dormindo = true; club.isHuman = true; club.auctionRival = false
+      const cc = { ...(s.careerCoins ?? {}) }
+      cc[you.id] = coins - PRECO // paga do TEU caixa (do clube ativo)
+      cc[club.id] = Math.round(s.clubCash?.[`m${club.id}`] ?? 100) // caixa PRÓPRIA do 2º clube (herda o que ele tinha)
+      s.careerCoins = cc
+      s.multiClube = { team: action.team, since: s.seasonNo, id: club.id }
+      s.multiClubeAtivo = false // você segue no comando do principal; o 2º dorme
+      logFin(s, 'safbuy', `🏛️ Compra do 2º clube (Multiclubes) · ${action.team}`, -PRECO)
+      return s
+    }
+    case 'SWITCH_MULTICLUBE': {
+      // 🏛️ MULTICLUBES · troca de comando (SÓ entre temporadas — a UI só mostra o
+      // botão na tela de fim). Passa o comando pro outro clube; o que sai DORME
+      // (congelado, "mesmo time"). Nada mistura: caixa/títulos/estádio já são por id;
+      // os campos ÚNICOS do solo (extrato/SAF/patrocínio/agência) fazem swap com o stash.
+      if (s.onlineMode === 'online' || !s.careerOnline || !s.multiClube) return s
+      const active = s.managers[s.youIdx]
+      const sleepIdx = s.managers.findIndex(m => m.id === s.multiClube!.id)
+      if (!active || sleepIdx < 0) return s
+      const sleeping = s.managers[sleepIdx]
+      active.dormindo = true; sleeping.dormindo = false
+      s.youIdx = sleepIdx
+      // swap dos campos ÚNICOS (o que estava ativo vai pro stash; o que dormia volta)
+      const stash = { ledger: s.careerLedger ?? [], filial: s.careerFilial ?? undefined, sponsor: s.careerSponsor, empresario: s.empresarioCards ?? [], empresarioClaims: s.empresarioClaimKeys ?? [] }
+      s.careerLedger = s.multiClube.ledger ?? []
+      s.careerFilial = s.multiClube.filial ?? null
+      s.careerSponsor = s.multiClube.sponsor
+      s.empresarioCards = s.multiClube.empresario ?? []
+      s.empresarioClaimKeys = s.multiClube.empresarioClaims ?? []
+      s.multiClube = { team: active.teamName, id: active.id, since: s.multiClube.since, ...stash }
+      s.multiClubeAtivo = !s.multiClubeAtivo
+      return s
+    }
+    case 'CLEAR_MULTICLUBE_PENDING': {
+      // 🏛️ MULTICLUBES: você abriu o pacote guardado — risca essa carta pendente do clube.
+      const cur = s.multiClubePendingCards?.[action.mgrId]
+      if (!cur) return s
+      const idx = cur.findIndex(p => p.season === action.season && !!p.copa === !!action.copa)
+      if (idx < 0) return s
+      const arr = cur.slice(); arr.splice(idx, 1)
+      const pend = { ...(s.multiClubePendingCards ?? {}) }
+      if (arr.length) pend[action.mgrId] = arr; else delete pend[action.mgrId]
+      s.multiClubePendingCards = pend
+      return s
+    }
     case 'SELL_FILIAL': {
       // 🏢 vende a SAF: valor progressivo (divisão + títulos, teto 2.500). Devolve os
       // empréstimos ativos, credita o valor na caixa e libera comprar outra depois.
@@ -3527,6 +3606,7 @@ export function reducer(state: EscState, action: Action): EscState {
       revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada (pro ranking)
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
+      recordDormantCards(s, action.champions, action.copaChampion) // 🏛️ guarda a carta se o 2º clube (dormindo) foi campeão
       s.careerPlacements = action.placements
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid)
       s.seasonNo++
@@ -3582,6 +3662,7 @@ export function reducer(state: EscState, action: Action): EscState {
       revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
       s.careerHonors = applyHonors(s.careerHonors, action.champions)
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
+      recordDormantCards(s, action.champions, action.copaChampion) // 🏛️ guarda a carta se o 2º clube (dormindo) foi campeão
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid) antes da venda/leilão de reservas
       s.seasonNo++
       s.careerPlacements = action.placements
@@ -4217,6 +4298,12 @@ export function deleteCareerSlot(seed: number) {
 // além do save local (esc-solo-career), quem está logado espelha o save inteiro
 // na tabela esc_pyramid_saves. Ao continuar, pega o MAIS RECENTE (local x nuvem).
 let lastPyrCloud = 0
+// 🔒 TRAVA DE VERSÃO (evita perder progresso entre aparelhos): guarda a versão
+// (updated_at) da nuvem que ESTE aparelho conhece. Se, na hora de gravar, a nuvem
+// estiver diferente disso, é porque OUTRO aparelho salvou depois → não sobrescreve
+// (senão o save mais velho apagaria o mais novo). A Home (syncCareersWithCloud) detecta
+// que a nuvem mudou e puxa o mais recente. O local é salvo à parte (nunca se perde nada seu).
+let pyrCloudBaseIso: string | null = null
 // grava na nuvem TODAS as carreiras da conta (ativa + arquivo), não só a ativa —
 // assim os saves seguem o login em qualquer aparelho. Formato novo:
 // { __multi:1, careers:[{save,at}, ...] }. Rows antigas (EscState cru) são lidas
@@ -4227,6 +4314,13 @@ export async function savePyramidCloud(state: EscState, force = false) {
     const { data } = await supabase.auth.getUser()
     if (!data?.user) return
     lastPyrCloud = Date.now()
+    // 🔒 ANTI-SOBRESCRITA: confere a versão da nuvem AGORA. Se ela mudou desde a nossa
+    // base (outro aparelho salvou depois), NÃO grava — senão o save deste aparelho
+    // apagaria o progresso mais novo do outro. Marca conflito pra Home puxar o mais
+    // recente. (Se ainda não temos base e já existe algo na nuvem, também não arrisca.)
+    const { data: cur } = await supabase.from('esc_pyramid_saves').select('updated_at').eq('user_id', data.user.id).maybeSingle()
+    const cloudIso = (cur?.updated_at as string | undefined) ?? null
+    if (cloudIso && cloudIso !== pyrCloudBaseIso) return // nuvem mudou (outro aparelho) → não sobrescreve
     let payload: unknown = state
     if (isCareerSave(state)) {
       // 🔒 carimba o save ativo com o lacre antes de subir pra nuvem (as do arquivo já
@@ -4235,10 +4329,12 @@ export async function savePyramidCloud(state: EscState, force = false) {
       const archive = readCareerArchive().filter(s => s.save.seed !== state.seed)
       payload = { __multi: 1, careers: [active, ...archive].slice(0, MAX_CAREER_SLOTS) }
     }
-    await supabase.from('esc_pyramid_saves').upsert({ user_id: data.user.id, save: payload, updated_at: new Date().toISOString() })
+    const nowIso = new Date().toISOString()
+    await supabase.from('esc_pyramid_saves').upsert({ user_id: data.user.id, save: payload, updated_at: nowIso })
+    pyrCloudBaseIso = nowIso // nossa gravação é a nova base
   } catch { /* best effort — o local sempre garante */ }
 }
-type CloudCareers = { save: EscState; at: number; careers: CareerSlot[] }
+type CloudCareers = { save: EscState; at: number; careers: CareerSlot[]; iso: string | null }
 export async function loadPyramidCloud(): Promise<CloudCareers | null> {
   try {
     const { data } = await supabase.auth.getUser()
@@ -4254,10 +4350,10 @@ export async function loadPyramidCloud(): Promise<CloudCareers | null> {
       if (!careers.length) return null
       const active = [...careers].sort((a, b) => b.at - a.at)[0]
       if (saveMexido(active.save)) marcaMexido(active.save) // 🔒 confere o lacre da nuvem também
-      return { save: active.save, at: active.at, careers }
+      return { save: active.save, at: active.at, careers, iso: (row?.updated_at as string | undefined) ?? null }
     }
     // formato ANTIGO (EscState cru) — carreira única
-    if (isCareerSave(raw)) return { save: raw as EscState, at: at0, careers: [{ save: raw as EscState, at: at0 }] }
+    if (isCareerSave(raw)) return { save: raw as EscState, at: at0, careers: [{ save: raw as EscState, at: at0 }], iso: (row?.updated_at as string | undefined) ?? null }
   } catch { /* ignora */ }
   return null
 }
@@ -4266,12 +4362,17 @@ export async function loadPyramidCloud(): Promise<CloudCareers | null> {
 // ser a mais recente do conjunto. Roda na HOME (nunca no meio de um jogo).
 export async function syncCareersWithCloud(): Promise<boolean> {
   try {
+    const prevBase = pyrCloudBaseIso
     const cloud = await loadPyramidCloud()
     if (!cloud) return false
+    // 🔒 conflito = a nuvem mudou desde a nossa base (outro aparelho salvou depois).
+    // Nesse caso o save da NUVEM vale (opção B: o mais recente da conta manda), mesmo
+    // que o local tenha carimbo de hora mais novo (o local podia estar desatualizado).
+    const conflict = prevBase != null && cloud.iso != null && cloud.iso !== prevBase
     const bySeed = new Map<number, CareerSlot>()
-    const put = (s: CareerSlot) => { if (!isCareerSave(s?.save)) return; const cur = bySeed.get(s.save.seed); if (!cur || (s.at ?? 0) > (cur.at ?? 0)) bySeed.set(s.save.seed, s) }
-    for (const { slot } of listAllCareers()) put(slot)
-    for (const s of cloud.careers) put(s)
+    const put = (s: CareerSlot, fromCloud = false) => { if (!isCareerSave(s?.save)) return; const cur = bySeed.get(s.save.seed); if (!cur || (fromCloud && conflict) || (s.at ?? 0) > (cur.at ?? 0)) bySeed.set(s.save.seed, s) }
+    for (const { slot } of listAllCareers()) put(slot, false)
+    for (const s of cloud.careers) put(s, true) // nuvem por último: no conflito, ela vence
     const all = [...bySeed.values()].sort((a, b) => (b.at ?? 0) - (a.at ?? 0)).slice(0, MAX_CAREER_SLOTS)
     if (!all.length) return false
     const [active, ...rest] = all
@@ -4280,6 +4381,7 @@ export async function syncCareersWithCloud(): Promise<boolean> {
       localStorage.setItem('esc-solo-career-at', String(active.at ?? Date.now()))
       writeCareerArchive(rest)
     } catch { /* ignora */ }
+    pyrCloudBaseIso = cloud.iso // agora estamos baseados na versão que acabamos de ler
     savePyramidCloud(active.save, true) // reescreve a nuvem com o conjunto unido
     return true
   } catch { return false }

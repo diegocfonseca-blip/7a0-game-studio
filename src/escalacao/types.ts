@@ -118,6 +118,11 @@ export interface Manager {
   // a ficha dele (cpuSquads) é atualizada e ele SAI da lista. Fica sempre em 11.
   marketCpu?: boolean
   marketTeam?: string // nome do time de fundo que este participante temporário representa (chave da ficha/clubCash)
+  // 🏛️ MULTICLUBES: `mine` = 2º clube do PRÓPRIO jogador (assento independente, id
+  // próprio → caixa/títulos/estádio separados). `dormindo` = não está no comando
+  // agora (fica congelado, "mesmo time", não vai ao leilão, não dá lance). Só solo.
+  mine?: boolean
+  dormindo?: boolean
   // arquétipo da CPU
   aggression: number // 0..1 — quanto gasta cedo
   starHunger: number // 0..1 — quanto concentra em figurões
@@ -353,6 +358,26 @@ export interface EscState {
     loanIn?: WonCard[]  // jogadores DA SAF emprestados pra VOCÊ (jogam no seu time)
   } | null // 🏢 SAF (carreira OFFLINE, em teste): clube da Série D comprado — 50% dos prêmios de campanha dele (± em queda) caem no seu caixa
   careerFilials?: Record<number, { team: string; since: number; earned?: number; titlesAtBuy?: number; loanOut?: WonCard[]; loanIn?: WonCard[] }> // 🏢 SAF na carreira ONLINE, por técnico (mgrId → SAF). Offline usa careerFilial (single).
+  // 🏛️ MULTICLUBES (carreira SOLO, em construção — invisível pro público): 2º clube
+  // comprado por 4.000 moedas (só Lenda). Igual à SAF: escolhe um clube EXISTENTE da
+  // Série D, que passa a ser seu (herda nome/história, vira sua cor). O não-selecionado
+  // DORME (não lista/compra/dá lance). Fase 1 = só a compra.
+  // `id` = id do assento do 2º clube (manager independente). Caixa/títulos/estádio/
+  // divisão são keyed por id → JÁ separados. Os campos "únicos" do solo (extrato, SAF,
+  // patrocínio, agência) NÃO são keyed por id, então guardamos aqui a versão do clube
+  // que está DORMINDO — troca no seletor (nada mistura entre os dois).
+  multiClube?: {
+    team: string; since: number; id: number
+    ledger?: LedgerEntry[]; filial?: EscState['careerFilial']; sponsor?: string
+    empresario?: EmpCard[]; empresarioClaims?: string[]
+  } | null
+  multiClubeAtivo?: boolean // true = o 2º clube está no comando (youIdx aponta pra ele); false/undefined = principal ativo
+  // 🏛️ MULTICLUBES · cartas GUARDADAS: quando o clube que DORMIA foi campeão (título de
+  // divisão e/ou Copa Legends), a carta fica pendente aqui, keyed pelo id do clube (já
+  // separado). Ao passar o comando pra ele, o pacote aparece pra você abrir. `copa`
+  // distingue a carta da Copa Legends da carta do título (podem cair as duas na mesma
+  // temporada = duas entradas).
+  multiClubePendingCards?: Record<number, { season: number; copa?: boolean }[]>
   simV?: number // versão da fórmula da simulação: 2+ = teto de elite 1.28 (só vale de temporada NOVA em diante — a que está rolando termina na fórmula em que começou)
   careerPlacements?: Record<string, string> | null // pirâmide: chave do time → divisão ('A'..'D'). Compacto (só a colocação). Atualiza a cada temporada.
   copaDoneSeason?: number // pirâmide: nº da temporada cuja Copa Legends JÁ foi assistida até o fim — ao retomar o save, não re-anima a Copa do zero (mostra direto os campeões/decisão).

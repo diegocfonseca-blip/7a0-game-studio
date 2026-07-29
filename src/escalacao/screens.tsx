@@ -2241,11 +2241,15 @@ function Envelope() {
     return () => clearInterval(iv)
   }, [online, pending, iSubmitted, dispatch, you.id])
 
-  // auto-lacra ao zerar o timer
+  // auto-lacra ao zerar o timer. IMPORTANTE: lacra MESMO quem não pode dar lance
+  // (setor completo / 22 jogadores → só assiste). Sem isso, um espectador solo
+  // nunca lacrava, nada disparava a resolução da rodada e a tela travava eterno
+  // no TEMPO 0s (bug: só dava pra voltar ao menu, fora do save). Envelope vazio
+  // resolve o leilão normalmente.
   useEffect(() => {
-    if (remaining <= 0 && canBid && !iSubmitted && !pending) seal()
+    if (remaining <= 0 && !iSubmitted && !pending) seal()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remaining, canBid, iSubmitted, pending])
+  }, [remaining, iSubmitted, pending])
 
   // já lacrei, ou enviei e tô esperando o host confirmar (online)
   if (online && (iSubmitted || pending)) {
@@ -4270,12 +4274,103 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
 
 // ─── card de resultado pra compartilhar ────────────────────────────────
 type ShareCard = { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }
-async function buildShareCardBlob(opts: {
+type ShareBlobOpts = {
   teamName: string; youPos: number; youWon: boolean; champName: string
   pts: number; w: number; d: number; l: number; scorerName?: string; scorerGoals?: number
   nTeams?: number // tamanho da liga (pra faixa 🥈/🪦 proporcional; ausente = 20)
   card?: ShareCard // carta-lembrança do campeão (só quando você venceu e escolheu)
-}): Promise<Blob | null> {
+}
+// 🏆 CAMPEÃO (jogo rápido): a imagem de compartilhar é a CARTA BONITA do craque-troféu
+// (mesma cara holográfica/bio da carta colecionável) com uma faixa dourada "🏆 CAMPEÃO
+// + time" em cima e uma linha de stats logo abaixo. Só pra QUEM GANHA e tem carta; o
+// resto (2º, rebaixado) segue no card creme de estatística (buildResultStatsBlob).
+async function buildChampionShareBlob(opts: ShareBlobOpts): Promise<Blob | null> {
+  const c = opts.card!
+  const W = 900, TOP = 206, CH = 1260, FOOT = 96, H = TOP + CH + FOOT
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H
+  const x = cv.getContext('2d'); if (!x) return null
+  try { await document.fonts.load('900 60px Oswald') } catch { /* segue */ }
+  const OSW = 'Oswald, sans-serif'
+  const isProm = c.promessa ?? PROMESSA_SET.has(c.name)
+  const grads: Record<string, [string, string, string]> = {
+    prom: ['#C9A9FF', '#8B5CF6', '#5B2FB0'], f5: ['#FFE79A', '#FFC400', '#E8A200'],
+    f4: ['#F4F7FB', '#CBD4DE', '#9BA7B5'], f3: ['#41C07A', '#2E9E5B', '#1E7A45'], f1: ['#DBD1B5', '#CBBF9E', '#B2A583'],
+  }
+  const key = isProm ? 'prom' : c.fame >= 5 ? 'f5' : c.fame === 4 ? 'f4' : c.fame >= 2 ? 'f3' : 'f1'
+  const [g1, g2, g3] = grads[key]
+  const dark = key === 'prom' || key === 'f3'
+  const inkC = dark ? '#ffffff' : '#0C0C0C'
+  const tierLabel = isProm ? '💎 PROMESSA' : c.fame >= 5 ? '👑 LENDA' : c.fame === 4 ? '⭐ CRAQUE' : c.fame >= 2 ? '🎯 BOM JOGADOR' : '🪵 FOI PROFISSIONAL'
+  const rrp = (px: number, py: number, w: number, h: number, r: number) => {
+    x.beginPath(); x.moveTo(px + r, py); x.arcTo(px + w, py, px + w, py + h, r); x.arcTo(px + w, py + h, px, py + h, r); x.arcTo(px, py + h, px, py, r); x.arcTo(px, py, px + w, py, r); x.closePath()
+  }
+  // fundo creme
+  x.fillStyle = '#F4ECD6'; x.fillRect(0, 0, W, H)
+  // 🏆 faixa de campeão + stats
+  x.fillStyle = GOLD; x.fillRect(0, 0, W, TOP)
+  x.fillStyle = INK; x.fillRect(0, TOP - 8, W, 8)
+  x.textAlign = 'center'; x.fillStyle = INK
+  x.font = `900 62px ${OSW}`; x.fillText('🏆 CAMPEÃO', W / 2, 78)
+  let tf = 40; x.font = `800 ${tf}px ${OSW}`
+  while (x.measureText(opts.teamName).width > W - 120 && tf > 24) { tf -= 2; x.font = `800 ${tf}px ${OSW}` }
+  x.fillText(opts.teamName, W / 2, 130)
+  const stats = `${opts.pts} pts · ${opts.w}V ${opts.d}E ${opts.l}D` + (opts.scorerName ? `  ·  ⚽ ${opts.scorerName} (${opts.scorerGoals})` : '')
+  x.font = `700 26px ${OSW}`; x.fillStyle = 'rgba(0,0,0,0.72)'
+  let sf = 26; x.font = `700 ${sf}px ${OSW}`
+  while (x.measureText(stats).width > W - 90 && sf > 16) { sf -= 1; x.font = `700 ${sf}px ${OSW}` }
+  x.fillText(stats, W / 2, 176)
+  // ── a CARTA (deslocada pra baixo da faixa) ──
+  const OY = TOP, M = 46, cw = W - M * 2, ch = CH - M * 2
+  const gr = x.createLinearGradient(M, OY + M, M + cw, OY + M + ch)
+  gr.addColorStop(0, g1); gr.addColorStop(0.5, g2); gr.addColorStop(1, g3)
+  rrp(M, OY + M, cw, ch, 44); x.fillStyle = gr; x.fill()
+  x.lineWidth = 10; x.strokeStyle = '#0C0C0C'; rrp(M, OY + M, cw, ch, 44); x.stroke()
+  if (key === 'f5' || key === 'f4' || key === 'prom') {
+    x.save(); rrp(M, OY + M, cw, ch, 44); x.clip()
+    const hg = x.createLinearGradient(M, OY + M + ch, M + cw, OY + M)
+    hg.addColorStop(0.35, 'rgba(255,255,255,0)'); hg.addColorStop(0.5, `rgba(255,255,255,${key === 'f5' ? 0.55 : 0.35})`); hg.addColorStop(0.65, 'rgba(255,255,255,0)')
+    x.fillStyle = hg; x.fillRect(M, OY + M, cw, ch); x.restore()
+  }
+  x.fillStyle = '#0C0C0C'; rrp(M + 34, OY + M + 34, 108, 62, 16); x.fill()
+  x.fillStyle = '#fff'; x.font = `900 38px ${OSW}`; x.textAlign = 'center'; x.fillText(c.pos, M + 88, OY + M + 78)
+  x.textAlign = 'right'; x.font = `900 34px ${OSW}`; x.fillStyle = dark ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.62)'
+  x.fillText(tierLabel, M + cw - 36, OY + M + 76)
+  if (c.folk) {
+    x.font = `900 27px ${OSW}`
+    const fw = x.measureText('🃏 FOLCLÓRICO').width + 40
+    x.fillStyle = 'rgba(0,0,0,0.30)'; rrp(M + cw - 36 - fw, OY + M + 96, fw, 46, 23); x.fill()
+    x.fillStyle = '#fff'; x.fillText('🃏 FOLCLÓRICO', M + cw - 56, OY + M + 129)
+  }
+  x.textAlign = 'center'
+  x.beginPath(); x.arc(W / 2, OY + M + ch * 0.40, 130, 0, Math.PI * 2)
+  x.fillStyle = dark ? 'rgba(255,255,255,0.42)' : 'rgba(255,255,255,0.5)'; x.fill()
+  x.lineWidth = 8; x.strokeStyle = 'rgba(0,0,0,0.28)'; x.stroke()
+  x.fillStyle = dark ? '#2b1a4d' : 'rgba(0,0,0,0.55)'; x.font = `900 118px ${OSW}`
+  x.fillText((c.name.trim()[0] || '?').toUpperCase(), W / 2, OY + M + ch * 0.40 + 42)
+  let fs = 64; x.font = `900 ${fs}px ${OSW}`
+  while (x.measureText(c.name).width > cw - 80 && fs > 30) { fs -= 3; x.font = `900 ${fs}px ${OSW}` }
+  x.fillStyle = inkC; x.fillText(c.name, W / 2, OY + M + ch * 0.66)
+  x.font = `800 32px Arial`; x.fillStyle = dark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.62)'
+  x.fillText(`${c.club} · ${c.year}`, W / 2, OY + M + ch * 0.66 + 48)
+  x.font = `700 36px Arial`
+  x.fillText(isProm ? '💎💎💎' : '⭐'.repeat(Math.max(1, c.fame)), W / 2, OY + M + ch * 0.66 + 104)
+  const bioText = BIOS[c.name] // bio REAL (sem inventar); vazio se não tiver
+  if (bioText) {
+    x.font = `italic 700 28px Georgia`; x.fillStyle = dark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.72)'
+    const words = ('“' + bioText + '”').split(' '); const lines: string[] = []; let ln = ''
+    for (const w2 of words) { const t = ln ? ln + ' ' + w2 : w2; if (x.measureText(t).width > cw - 130 && ln) { lines.push(ln); ln = w2 } else ln = t }
+    if (ln) lines.push(ln)
+    lines.slice(0, 4).forEach((l, i) => x.fillText(l, W / 2, OY + M + ch * 0.66 + 168 + i * 38))
+  }
+  // rodapé da marca
+  x.fillStyle = '#0C0C0C'; x.fillRect(0, TOP + CH, W, FOOT)
+  x.fillStyle = '#F5B301'; x.font = `900 28px ${OSW}`; x.textAlign = 'center'
+  x.fillText('🏆 campeão do Leilão Legends · leilaolegends.com 🔨', W / 2, TOP + CH + 60)
+  return new Promise(resolve => cv.toBlob(b => resolve(b), 'image/png'))
+}
+async function buildShareCardBlob(opts: ShareBlobOpts): Promise<Blob | null> {
+  // 🏆 QUEM GANHA (e tem carta-troféu) leva a carta bonita; o resto segue no card creme.
+  if (opts.youWon && opts.card) return buildChampionShareBlob(opts)
   const canvas = document.createElement('canvas')
   canvas.width = 900; canvas.height = 1200
   const ctx = canvas.getContext('2d')
@@ -4599,9 +4694,13 @@ async function shareCardImage(c: { name: string; club: string; year: number; pos
   x.fillText(`${c.club} · ${c.year}`, W / 2, M + ch * 0.66 + 48)
   x.font = `700 36px Arial`
   x.fillText(isProm ? '💎💎💎' : '⭐'.repeat(Math.max(1, c.fame)), W / 2, M + ch * 0.66 + 104)
-  if (c.bio) {
+  // 📝 BIO: a carta compartilhada leva a bio REAL do jogador (a escrita na carta ou a
+  // do catálogo por nome, BIOS[nome]). Se o jogador NÃO tem bio, fica vazio mesmo —
+  // nada de texto genérico inventado (pedido do Diego).
+  const bioText = c.bio ?? BIOS[c.name]
+  if (bioText) {
     x.font = `italic 700 28px Georgia`; x.fillStyle = dark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.72)'
-    const words = ('“' + c.bio + '”').split(' '); const lines: string[] = []; let ln = ''
+    const words = ('“' + bioText + '”').split(' '); const lines: string[] = []; let ln = ''
     for (const w2 of words) { const t = ln ? ln + ' ' + w2 : w2; if (x.measureText(t).width > cw - 130 && ln) { lines.push(ln); ln = w2 } else ln = t }
     if (ln) lines.push(ln)
     lines.slice(0, 4).forEach((l, i) => x.fillText(l, W / 2, M + ch * 0.66 + 168 + i * 38))

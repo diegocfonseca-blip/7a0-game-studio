@@ -136,6 +136,26 @@ function hashPw(text: string): string {
 }
 function saveRoom(id: string) { try { localStorage.setItem(LS_KEY, id) } catch { /* ignora */ } }
 function clearSavedRoom() { try { localStorage.removeItem(LS_KEY) } catch { /* ignora */ } }
+// 🔒 corta o nome da sala/técnico por CARACTERE de verdade (nunca parte um emoji no
+// meio) e descarta qualquer "meio-emoji" solto. BUG REAL corrigido: o selo ' 👑🖋️' do
+// Lenda/Fundador + o corte antigo em 24 (por code unit) deixava metade de emoji pra
+// certos TAMANHOS de nome → o Postgres rejeitava como json inválido (PGRST102) e ALGUNS
+// Lendas não conseguiam criar sala (dependia do comprimento do nome; por isso uns davam
+// erro e outros não). Agora é à prova disso pra qualquer nome.
+function cutName(s: string, n = 24): string {
+  const cut = [...s].slice(0, n).join('') // itera por code point: emoji fica inteiro
+  let out = ''
+  for (let i = 0; i < cut.length; i++) {
+    const c = cut.charCodeAt(i)
+    if (c >= 0xD800 && c <= 0xDBFF) { // metade de cima de um emoji
+      const nx = cut.charCodeAt(i + 1)
+      if (nx >= 0xDC00 && nx <= 0xDFFF) { out += cut[i] + cut[i + 1]; i++ } // par completo: mantém
+      // senão (surrogate órfão): descarta
+    } else if (c >= 0xDC00 && c <= 0xDFFF) { /* metade de baixo órfã: descarta */ }
+    else out += cut[i]
+  }
+  return out
+}
 function loadSavedRoom(): string | null { try { return localStorage.getItem(LS_KEY) } catch { return null } }
 // salas que o técnico dispensou no "Sair da sala e começar uma nova": a faixa da
 // home NÃO volta a aparecer pra elas (mesmo que ele ainda seja host/membro no
@@ -441,7 +461,7 @@ export function EscLobby() {
     if (open) setLobbyUnread(0)
   }
   const sendLobbyChat = (text: string) => {
-    const t = text.trim().slice(0, 160)
+    const t = cutName(text.trim(), 160) // corte seguro (não parte emoji → nada de json inválido)
     if (!t) return
     const myName = players.find(p => p.user_id === user?.id)?.manager_name ?? 'Você'
     const e: LobbyMsg = { id: Math.random().toString(36).slice(2), uid: user?.id ?? 'me', name: myName, text: t }
@@ -482,6 +502,7 @@ export function EscLobby() {
       ligar: { file: 'posso-te-ligar.mp3', dur: 9000, emoji: '📞', balao: 'mandou: "Posso te ligar agora?" 🔊' },
       meme2: { file: 'meme2.mp3', dur: 17000, emoji: '🎙️', balao: 'soltou AQUELE áudio 🔊' },
       siuu: { file: 'siuu.mp3', dur: 3000, emoji: '🗣️', balao: 'gritou SIIIIUUU! 🔊' },
+      novo5: { file: 'myinstants5.mp3', dur: 6000, emoji: '🔊', balao: 'soltou um áudio novo 🔊' },
     }
     const s = lib[key] ?? lib.ligar
     if (sfxPlayingRef.current) return // um som por vez na sala
@@ -885,7 +906,7 @@ export function EscLobby() {
       const { data } = await supabase.from('game_rooms').select('id').eq('code', code).maybeSingle()
       if (!data) break; code = randCode()
     }
-    const name = (roomName.trim() || `Sala do ${nameOf()}`).slice(0, 24)
+    const name = cutName(roomName.trim() || `Sala do ${nameOf()}`)
     // sala fechada: exige uma senha
     if (roomLocked && !roomPw.trim()) { setRoomError('Digite uma senha ou desmarque "sala fechada".'); setLoading(false); return }
     const locked = roomLocked && !!roomPw.trim()
@@ -895,7 +916,20 @@ export function EscLobby() {
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: gs })
       .select().single()
-    if (re || !rd) { setRoomError('Erro ao criar sala.'); setLoading(false); return }
+    if (re || !rd) {
+      // 🔎 mostra a CAUSA real (antes era só "Erro ao criar sala." e a gente ficava no
+      // escuro). O código do Postgres/PostgREST diz na hora o que houve — 42501 = RLS
+      // (sem permissão), PGRST116 = criou mas não deixou ler de volta (RLS de leitura),
+      // 23505 = código repetido. Assim dá pra consertar a trava certa sem adivinhar.
+      console.error('[createRoom] falhou:', re)
+      const code2 = re?.code
+      const hint = code2 === '42501' ? 'sem permissão (RLS). Avise o Diego.'
+        : code2 === 'PGRST116' ? 'a sala foi criada mas o app não pôde lê-la de volta (RLS de leitura). Avise o Diego.'
+        : code2 === '23505' ? 'código repetido — tente de novo.'
+        : (re?.message || 'tente de novo em instantes.')
+      setRoomError(`Erro ao criar sala: ${hint}${code2 ? ` [${code2}]` : ''}`)
+      setLoading(false); return
+    }
     await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: 0, manager_name: nameOf(), is_ready: true })
     saveRoom(rd.id)
     setRoom(rd); setIsHost(true); setPhase('waiting'); setLoading(false)
@@ -1700,7 +1734,7 @@ export function EscLobby() {
             {/* 📞🎙️ BUZINA: áudios de meme pra sala TODA. 1 por pessoa a cada 30s
                 (contagem compartilhada) e um som por vez na sala. */}
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {([['ligar', '📞', '"Posso te ligar agora?"'], ['meme2', '🎙️', 'AQUELE áudio'], ['siuu', '🗣️', 'SIIIIUU!']] as [string, string, string][]).map(([k, ic, tx]) => (
+              {([['ligar', '📞', '"Posso te ligar agora?"'], ['meme2', '🎙️', 'AQUELE áudio'], ['siuu', '🗣️', 'SIIIIUU!'], ['novo5', '🔊', 'Áudio novo']] as [string, string, string][]).map(([k, ic, tx]) => (
                 <button key={k} onClick={() => sendSfx(k)} disabled={sfxCoolLeft > 0}
                   className="border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] active:translate-y-0.5"
                   style={{ ...OSWALD, background: sfxCoolLeft > 0 ? '#e4ddc9' : GOLD, color: sfxCoolLeft > 0 ? 'rgba(0,0,0,.45)' : '#000' }}>

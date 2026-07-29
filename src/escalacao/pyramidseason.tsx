@@ -103,8 +103,8 @@ function roundRobin(n: number): [number, number][][] {
   return [...rounds, ...rounds.map(r => r.map(([h, a]) => [a, h] as [number, number]))]
 }
 
-export interface SimTeam { name: string; you: boolean; human: boolean; rival?: boolean; backstop?: boolean; teamId: number; squad: PoolCard[]; xi: PoolCard[]; pts: number; w: number; d: number; l: number; gf: number; ga: number }
-export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean; rival?: boolean; cardId?: string }
+export interface SimTeam { name: string; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; backstop?: boolean; teamId: number; squad: PoolCard[]; xi: PoolCard[]; pts: number; w: number; d: number; l: number; gf: number; ga: number }
+export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string }
 
 function pickCatalog(deck: 'br' | 'eu' | 'both') { return deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : CATALOG }
 
@@ -138,11 +138,11 @@ export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? 
 // monta as 4 divisões pela COLOCAÇÃO guardada (placements): D começa com os
 // técnicos reais; a cada temporada os times sobem/descem por nome exato.
 export function buildPyramid(managers: Manager[], youId: number, seed: number, deck: 'br' | 'eu' | 'both', placements?: Record<string, string> | null, cpuSquads?: Record<string, Card[]>): Record<Div, SimTeam[]> {
-  const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number, backstop = false, rival = false): SimTeam => ({ name, you, human, rival, backstop, teamId, squad, xi: bestXI(squad), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
+  const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number, backstop = false, rival = false, dorm = false): SimTeam => ({ name, you, human, rival, dorm, backstop, teamId, squad, xi: bestXI(squad), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
   const world: Record<Div, SimTeam[]> = { A: [], B: [], C: [], D: [] }
   const divOf = (key: string, fallback: Div): Div => { const d = placements?.[key]; return (d === 'A' || d === 'B' || d === 'C' || d === 'D') ? d : fallback }
   for (const m of managers.slice(0, 20)) {
-    const t = mk(m.teamName, (m.squad as WonCard[]).map(c => ({ ...c })), m.isHuman, m.id === youId, m.id, !!m.backstop, !!m.rival)
+    const t = mk(m.teamName, (m.squad as WonCard[]).map(c => ({ ...c })), m.isHuman, m.id === youId, m.id, !!m.backstop, !!m.rival, !!m.dormindo)
     world[divOf(`m${m.id}`, 'D')].push(t)
   }
   const cpu = buildCpuSquads(managers, seed, deck)
@@ -303,7 +303,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       let r = rng() * total, pick = pool[0].c
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
       const key = `${t.name}:${pick.id}`, row = scorers.get(key)
-      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, cardId: pick.id })
+      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: pick.id })
       const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 90) // acréscimos SÓ até 90+3 (o relógio do card vai até 93)
       evs.push({ name: pick.name, min })
     }
@@ -549,6 +549,52 @@ const copaCenterChip: React.CSSProperties = { background: 'rgba(8,8,10,.55)', bo
 //    que é só um registro — nunca mexe no dinheiro de verdade. ──
 const FIN_RED = '#C2452F'
 
+// 🏛️ MULTICLUBES — liberado pra TODOS na carreira SOLO (offline). Não-Lenda vê a área
+// com o botão APOIE; Lenda com 4.000 moedas compra. NUNCA aparece no online (o motor é
+// solo-only: reducer ignora BUY/SWITCH em modo online, e o estado guarda 1 clube só).
+
+// 🏛️ MULTICLUBES · Fase 1 (a COMPRA): painel pra comprar um 2º clube da Série D por
+// 4.000 moedas (só Lenda). O seletor + "clube dormindo" vêm nas próximas fases.
+function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
+  jaTem?: string; opcoes: string[]; coins: number; preco: number; isLenda: boolean; onBuy: (team: string) => void
+}) {
+  const [pick, setPick] = useState<string | null>(null)
+  const lock: React.CSSProperties = { fontFamily: 'system-ui', fontSize: 10.5, fontWeight: 800, background: '#CBBF9E', color: 'rgba(0,0,0,.65)', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', marginTop: 8 }
+  if (jaTem) return (
+    <div style={{ ...box('#0C0C0C'), padding: 13, color: '#fff', marginTop: 10 }}>
+      <p style={{ fontWeight: 900, fontSize: 14, color: GOLD, ...OSWALD, margin: 0 }}>🏛️ MULTICLUBES</p>
+      <p style={{ fontFamily: 'system-ui', fontSize: 11, marginTop: 4, lineHeight: 1.4 }}>Você já comanda um 2º clube: <b style={{ color: GOLD }}>{jaTem}</b>. <span style={{ opacity: .6 }}>Entre as temporadas você passa o comando pro outro (o que sai dorme e joga sozinho).</span></p>
+    </div>
+  )
+  const faltam = preco - coins
+  return (
+    <div style={{ ...box('#0C0C0C'), padding: 13, color: '#fff', marginTop: 10 }}>
+      <p style={{ fontWeight: 900, fontSize: 15, color: GOLD, ...OSWALD, margin: 0 }}>🏛️ Compre um SEGUNDO CLUBE</p>
+      <p style={{ fontFamily: 'system-ui', fontSize: 10.5, color: 'rgba(255,255,255,.82)', margin: '5px 0 0', lineHeight: 1.45 }}>Escolha um clube <b>da Série D</b> pra chamar de seu — ele veste a <b>sua cor</b> e você comanda os dois. Custa <b>4.000 🪙</b> e é regalia do tier <b>Lenda 👑</b>.</p>
+      {!isLenda && (
+        <>
+          <div style={lock}>🔒 Regalia de <b>Lenda 👑</b> — vire Lenda pra comandar 2 clubes.</div>
+          <ApoieButton startScreen="choice" trigger={(open) => (
+            <button onClick={open} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, background: 'linear-gradient(135deg,#FFE79A,#FFC400,#E8A200)', color: '#000', cursor: 'pointer', ...OSWALD }}>👑 VIRAR LENDA NO APOIE</button>
+          )} />
+        </>
+      )}
+      {isLenda && faltam > 0 && <div style={lock}>🔒 Faltam <b>{faltam.toLocaleString('pt-BR')}</b> 🪙 — custa {preco.toLocaleString('pt-BR')}, você tem {coins.toLocaleString('pt-BR')}.</div>}
+      {isLenda && faltam <= 0 && (
+        <>
+          <div style={{ marginTop: 8, maxHeight: 160, overflowY: 'auto' }}>
+            {opcoes.length === 0 && <p style={{ fontFamily: 'system-ui', fontSize: 10.5, opacity: .6 }}>Nenhum clube da Série D disponível agora.</p>}
+            {opcoes.map(t => (
+              <button key={t} onClick={() => setPick(t)} style={{ display: 'block', width: '100%', textAlign: 'left', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', marginTop: 5, fontWeight: 900, fontSize: 12, background: pick === t ? GOLD : '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>🏟️ {t}{pick === t ? '  ✓' : ''}</button>
+            ))}
+          </div>
+          <button disabled={!pick} onClick={() => pick && onBuy(pick)} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: pick ? GOLD : '#555', color: pick ? '#000' : 'rgba(255,255,255,.5)', cursor: pick ? 'pointer' : 'default', ...OSWALD }}>💰 COMPRAR {pick ? pick.toUpperCase() : 'POR'} · {preco.toLocaleString('pt-BR')} 🪙</button>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── 💼 AGÊNCIA / ESCRITÓRIO DO EMPRESÁRIO (aba Clube › Agência) ──────────────
 // Mostra as cartas ganhas NESTA carreira por raridade e a renda por temporada.
 // Cada categoria só rende quando desbloqueada (estádio/SAF). Tocar numa carta
@@ -749,7 +795,7 @@ function ZoneLegend() {
 const UP_OF: Partial<Record<Div, Div>> = { B: 'A', C: 'B', D: 'C' }
 const DOWN_OF: Partial<Record<Div, Div>> = { A: 'B', B: 'C', C: 'D' }
 function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: Div; teams: SimTeam[]; colors: Record<number, FCol>; mine?: boolean; final?: boolean; safTeam?: string; safCol?: FCol }) {
-  const humans = teams.filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival }))
+  const humans = teams.filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival, dorm: !!t.dorm }))
   // temporada FECHADA: setinhas animadas de acesso (▲ verde) e queda (▼ vermelha)
   // pra TODOS os times, e um banner quando é VOCÊ que sobe/cai/é campeão.
   const youPos = final && mine ? teams.findIndex(t => t.you) + 1 : 0
@@ -783,7 +829,7 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
             return (
               <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', background: bg, fontWeight: colored || isSaf ? 800 : 500 }}>
                 <td style={{ paddingRight: 4, whiteSpace: 'nowrap' }}>{i + 1}{final && i < 4 && UP_OF[div] && <span style={{ display: 'inline-block', color: '#1B7A3D', fontWeight: 900, marginLeft: 2, animation: 'divUp 1.4s ease-in-out infinite' }}>▲</span>}{final && i === 0 && div === 'A' && <span style={{ marginLeft: 2 }}>🏆</span>}{final && i >= teams.length - 4 && DOWN_OF[div] && <span style={{ display: 'inline-block', color: '#B23B2E', fontWeight: 900, marginLeft: 2, animation: 'divDown 1.4s ease-in-out infinite' }}>▼</span>}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: nameColor }}>{t.you ? '👤 ' : t.rival ? '⚔️ ' : isSaf ? '💼 ' : ''}{t.you && youPerk ? <span style={apoioText(youPerk)}>{apoioName(t.name)}</span> : t.name}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: nameColor }}>{t.you ? '👤 ' : t.dorm ? '🏛️ ' : t.rival ? '⚔️ ' : isSaf ? '💼 ' : ''}{t.you && youPerk ? <span style={apoioText(youPerk)}>{apoioName(t.name)}</span> : t.name}</td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{t.pts}</td>
                 <td style={{ textAlign: 'center' }}>{t.w}</td><td style={{ textAlign: 'center' }}>{t.d}</td><td style={{ textAlign: 'center' }}>{t.l}</td>
                 <td style={{ textAlign: 'center' }}>{t.gf - t.ga}</td>
@@ -818,7 +864,7 @@ function ArtilhariaBox({ scorers, colors, title, sub, foot, safTeam }: { scorers
               <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, background: fc?.light }}>
                 <td style={{ paddingRight: 4 }}>{i + 1}</td>
                 <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}><span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : isSaf ? '💼 ' : s.rival ? '⚔️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : isSaf ? '💼 ' : s.rival ? '⚔️ ' : s.dorm ? '🏛️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{s.goals}</td>
               </tr>
             )})}
@@ -858,7 +904,7 @@ function ArtilhariaByDiv({ scorers, colors, title, sub, foot, safTeam }: { score
                     <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', fontWeight: 600, background: fc?.light }}>
                       <td style={{ paddingRight: 4, width: 16, color: 'rgba(0,0,0,0.5)', fontWeight: 800 }}>{i + 1}</td>
                       <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>{i === 0 ? '👑 ' : ''}{s.name}</td>
-                      <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : isSaf ? '💼 ' : s.rival ? '⚔️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
+                      <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : isSaf ? '💼 ' : s.rival ? '⚔️ ' : s.dorm ? '🏛️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
                       <td style={{ textAlign: 'center', fontWeight: 900, width: 30 }}>{s.goals}</td>
                     </tr>
                   )})}
@@ -925,14 +971,14 @@ function orderedDivs(myDiv: Div | null): Div[] { return myDiv ? [myDiv, ...DIVS.
 
 // chips com os times dos AMIGOS (e você) que estão numa divisão — pra bater o
 // olho quem está em qual série. Cada um com a SUA cor (inclusive você).
-function DivChips({ humans, colors }: { humans: { name: string; teamId: number; you: boolean; rival?: boolean }[]; colors: Record<number, FCol> }) {
+function DivChips({ humans, colors }: { humans: { name: string; teamId: number; you: boolean; rival?: boolean; dorm?: boolean }[]; colors: Record<number, FCol> }) {
   if (humans.length === 0) return null
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
       {humans.map((h, i) => {
         const perk = h.you ? myApoioPerk() : null
         return (
-          <span key={i} style={{ fontSize: 9.5, fontWeight: 900, ...OSWALD, color: '#fff', background: perk ? perk.grad : colors[h.teamId]?.solid ?? '#888', borderRadius: 6, padding: '1px 7px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', ...(perk ? { position: 'relative' } : {}) }}>{h.you ? '👤 ' : h.rival ? '⚔️ ' : ''}{h.you ? apoioName(h.name) : h.name}{perk && <ApoioSheen holo={perk.holo} dur={3} />}</span>
+          <span key={i} style={{ fontSize: 9.5, fontWeight: 900, ...OSWALD, color: '#fff', background: perk ? perk.grad : colors[h.teamId]?.solid ?? '#888', borderRadius: 6, padding: '1px 7px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', ...(perk ? { position: 'relative' } : {}) }}>{h.you ? '👤 ' : h.dorm ? '🏛️ ' : h.rival ? '⚔️ ' : ''}{h.you ? apoioName(h.name) : h.name}{perk && <ApoioSheen holo={perk.holo} dur={3} />}</span>
         )
       })}
     </div>
@@ -1134,7 +1180,7 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
 }
 
 // ── os JOGOS de uma divisão (placar + quem fez os gols), cores por amigo ──
-function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matches: SimMatch[]; colors: Record<number, FCol>; humans: { name: string; teamId: number; you: boolean; rival?: boolean }[]; hideId?: number }) {
+function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matches: SimMatch[]; colors: Record<number, FCol>; humans: { name: string; teamId: number; you: boolean; rival?: boolean; dorm?: boolean }[]; hideId?: number }) {
   // cor SÓ pra quem interessa: você/SAF (tier) e rivais (marrom) vêm do `colors`;
   // bots ficam sem cor (nome cinza, linha branca) — placar limpo, como era.
   const nameCol = (id: number) => colors[id]?.solid ?? '#5a5647'
@@ -1458,8 +1504,9 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
 type Honors = { A: number; B: number; C: number; D: number }
 const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0 }
 function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId, seasonNo, myDiv, safTeam, seed }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number; seasonNo?: number; myDiv?: Div | null; safTeam?: string; seed?: number }) {
-  // 🌍 títulos da COPA DO MUNDO LEGENDS (mural local por save): entram no rank
-  // ABAIXO da Série D (preferência do Diego) e no Hall de Troféus.
+  // 🌍 títulos da COPA DO MUNDO LEGENDS (mural local por save): entram no rank e
+  // no Hall de Troféus. Ordem do ranking (pedido do Diego): Série A → Copa do
+  // Mundo → Copa Legends → Série B → Série C → Série D → Dinheiro.
   const cmMural = seed != null ? (loadCopaSave(seed)?.mural ?? []) : []
   const cmTitles: Record<string, number> = {}
   for (const m of cmMural) cmTitles[m.campeao] = (cmTitles[m.campeao] ?? 0) + 1
@@ -1470,7 +1517,8 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
     const money = t.human ? (coins[t.teamId] ?? 0) : Math.round(pick(clubCash) ?? 0)
     return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, money, wc: cmTitles[t.name] ?? 0 }
   })
-  rows.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.wc - a.wc || b.money - a.money || a.t.name.localeCompare(b.t.name))
+  // ordem: Série A · Copa do Mundo · Copa Legends · Série B · Série C · Série D · Dinheiro
+  rows.sort((a, b) => b.h.A - a.h.A || b.wc - a.wc || b.copas - a.copas || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
   const top = rows.slice(0, 20)
   // 🏆 SEUS troféus (chave do humano = m<id>) — base do Hall de Troféus embaixo.
   const myH = honors[`m${youId}`] ?? EMPTY_HONORS
@@ -1500,7 +1548,7 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
             return (
               <tr key={r.key} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: fc?.light, fontWeight: colored ? 800 : 500 }}>
                 <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>{i + 1}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: fc?.solid ?? INK }}>{you ? '👤 ' : isSaf ? '💼 ' : r.t.rival ? '⚔️ ' : r.t.human ? '🔥 ' : ''}{(() => { const pk = you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(r.t.name)}</span> : r.t.name })()}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: fc?.solid ?? INK }}>{you ? '👤 ' : isSaf ? '💼 ' : r.t.rival ? '⚔️ ' : r.t.dorm ? '🏛️ ' : r.t.human ? '🔥 ' : ''}{(() => { const pk = you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(r.t.name)}</span> : r.t.name })()}</td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                   {(r.h.A + r.h.B + r.h.C + r.h.D + r.copas + r.wc) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
                     {r.wc > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Mundo{r.wc > 1 ? r.wc : ''}</span>}
@@ -1938,12 +1986,23 @@ export function PyramidSeasonScreen() {
   // dela na tabela e injeta a sua cor no mapa — assim ela pinta igual em jogos,
   // artilharia e classificação. O ícone 💼 (vs 👤) é quem diferencia vocês.
   const safTeamName = state.careerFilial?.team
+  // 🏛️ o 2º clube (Multiclubes) — mesmo DORMINDO — veste a MESMA cor do seu tier,
+  // igual à SAF. É teu clube, então carrega tua marca em toda tabela/artilharia.
+  const multiTeamName = state.multiClube?.team
   const colors = useMemo(() => {
-    if (!safTeamName) return baseColors
-    let safId: number | undefined
-    for (const d of DIVS) { const t = tables[d]?.find(x => x.name === safTeamName); if (t) { safId = t.teamId; break } }
-    return safId != null ? { ...baseColors, [safId]: myCol } : baseColors
-  }, [baseColors, safTeamName, tables, myCol])
+    const idOf = (teamName?: string) => {
+      if (!teamName) return undefined
+      for (const d of DIVS) { const t = tables[d]?.find(x => x.name === teamName); if (t) return t.teamId }
+      return undefined
+    }
+    const safId = idOf(safTeamName)
+    const multiId = idOf(multiTeamName)
+    if (safId == null && multiId == null) return baseColors
+    const out = { ...baseColors }
+    if (safId != null) out[safId] = myCol
+    if (multiId != null) out[multiId] = myCol
+    return out
+  }, [baseColors, safTeamName, multiTeamName, tables, myCol])
   // COPA LEGENDS: no fim da temporada, o mata-mata dos 16 (determinístico da
   // classificação final + semente + temporada). Alimenta a aba Tabelas (chave),
   // a aba Rank (artilharia da Copa) e os prêmios da virada.
@@ -2116,7 +2175,7 @@ export function PyramidSeasonScreen() {
   const myDiv = me?.div ?? null
   const ord = orderedDivs(myDiv)
   const myMatch = myDiv ? matches[myDiv]?.find(x => x.you) : undefined
-  const humansOf = (d: Div) => tables[d].filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival }))
+  const humansOf = (d: Div) => tables[d].filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival, dorm: !!t.dorm }))
 
   // host conduz: avança a rodada (isso sincroniza pra todos). Nos modos SOLO
   // dá pra pausar entre rodadas (manual) e o jogo roda +5s mais calmo.
@@ -2260,7 +2319,9 @@ export function PyramidSeasonScreen() {
           </div>
         )}
         {copaFinished && (() => {
-          const humans = state.managers.filter(m => m.isHuman)
+          // 🏛️ MULTICLUBES: o 2º clube dormindo é `isHuman` (assento meu), mas NÃO conta
+          // como técnico na votação — senão o SOLO cairia no fluxo online. Fica de fora aqui.
+          const humans = state.managers.filter(m => m.isHuman && !m.dormindo)
           const votes = state.seasonVotes ?? {}
           const myVote = votes[youId]
           const leilaoLabel = state.seasonNo === 1 ? 'Leilão de reservas' : 'Leilão de transferências'
@@ -2307,6 +2368,42 @@ export function PyramidSeasonScreen() {
                 </div>
               )}
               <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>📅 Próxima temporada</p>
+              {/* 🏛️ MULTICLUBES · seletor (só entre temporadas, só testers) */}
+              {state.onlineMode !== 'online' && state.multiClube && (() => {
+                const ativo = state.managers[state.youIdx]?.teamName ?? '—'
+                const dormindo = state.multiClube.team
+                return (
+                  <div style={{ ...box('#0C0C0C'), padding: 11, color: '#fff', margin: '0 0 10px' }}>
+                    <p style={{ fontWeight: 900, fontSize: 12.5, color: GOLD, ...OSWALD, margin: 0 }}>🏛️ MULTICLUBES — quem você comanda?</p>
+                    <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
+                      <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: GOLD, color: '#000', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>🟡 {ativo}<div style={{ fontSize: 8, fontWeight: 800 }}>no comando ✓</div></div>
+                      <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: '#3a3a3a', color: 'rgba(255,255,255,.7)', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>⚪ {dormindo}<div style={{ fontSize: 8, fontWeight: 800 }}>dormindo 💤</div></div>
+                    </div>
+                    <button onClick={() => dispatch({ type: 'SWITCH_MULTICLUBE' })} style={{ width: '100%', marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 12, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>🔄 Passar o comando pro {dormindo}</button>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 8.5, color: 'rgba(255,255,255,.45)', margin: '6px 0 0', textAlign: 'center' }}>Trocar = na próxima você comanda o outro; este dorme (mesmo time).</p>
+                  </div>
+                )
+              })()}
+              {/* 🏛️ MULTICLUBES · cartas GUARDADAS: quando o clube que estava dormindo foi
+                  campeão, o pacote fica esperando e aparece aqui pra VOCÊ abrir assim que
+                  passa o comando pra ele. Uma por título (divisão e/ou Copa Legends). */}
+              {state.onlineMode !== 'online' && (state.multiClubePendingCards?.[youId] ?? []).length > 0 && (
+                <div style={{ margin: '0 0 12px' }}>
+                  <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, color: INK, margin: '0 0 7px', textAlign: 'center' }}>🎁 Enquanto dormia, o <b>{state.managers[state.youIdx]?.teamName}</b> foi campeão! Abra {(state.multiClubePendingCards?.[youId] ?? []).length > 1 ? 'os pacotes guardados' : 'o pacote guardado'} 👇</p>
+                  {(state.multiClubePendingCards?.[youId] ?? []).map(p => {
+                    const key = `co:solo${state.seed}:${p.season}:mc${youId}${p.copa ? ':copa' : ''}`
+                    return (
+                      <div key={key} style={{ marginBottom: 10 }}>
+                        <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={key} origin="cpu" saveCards={state.empresarioCards ?? []}
+                          onClaimed={c => {
+                            dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })
+                            dispatch({ type: 'CLEAR_MULTICLUBE_PENDING', mgrId: youId, season: p.season, copa: p.copa })
+                          }} />
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
               <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas (por nome exato) já entram. {state.seasonNo === 1
                 ? <>Abra o <b>leilão de reservas</b> (todos com a sua caixa, compram pra encher o banco até 22), ou siga com o mesmo elenco.</>
                 : <>Abra o <b>leilão de transferências</b> (1 carta nova por posição + os jogadores que cada técnico listar), ou siga com o mesmo elenco.</>}</p>
@@ -2440,6 +2537,28 @@ export function PyramidSeasonScreen() {
               loanSlots={/* mesma fonte de divisão da REGRA (colocação gravada; tabela ao vivo
                 como reserva) — se divergirem, o botão prometia 2 e o clique não fazia nada */
                 filialSlots(state.careerPlacements?.[`m${youId}`] ?? me?.div ?? 'D')} />
+            {/* 🏛️ MULTICLUBES (Fase 1 — a compra) · em construção, só testers veem · só solo */}
+            {state.onlineMode !== 'online' && (() => {
+              const opcoes = (() => {
+                const safName = myFilial?.team
+                // os 4 primeiros da Série D SOBEM — não entram (você pega quem FICA na D)
+                const sobem = new Set(sortDiv(tables.D).slice(0, 4).map(t => t.name))
+                // só times de VERDADE da liga que VÃO ficar na Série D (colocação oficial = D),
+                // fora: você, rivais, a SAF, quem sobe e o que já é seu. Isso bate EXATO com o
+                // que o motor da compra aceita — então TODO time que aparece compra de primeira
+                // (antes a lista usava a tabela ao vivo e mostrava time que o motor recusava).
+                return state.managers
+                  .filter(m => !m.isHuman && !m.rival && !m.auctionRival && !m.mine
+                    && (state.careerPlacements?.[`m${m.id}`] ?? 'D') === 'D'
+                    && m.teamName !== safName
+                    && !sobem.has(m.teamName)
+                    && !state.careerRivals.some(r => r.team === m.teamName))
+                  .map(m => m.teamName)
+              })()
+              return <MultiClubeBuy jaTem={state.multiClube?.team} opcoes={opcoes}
+                coins={state.careerCoins?.[youId] ?? 0} preco={4000} isLenda={myApoioPerk()?.tier === 'ouro'}
+                onBuy={team => dispatch({ type: 'BUY_MULTICLUBE', team })} />
+            })()}
             <GoldTeaser label="Ver o estádio DOURADO completo (prévia)">
               <div style={{ ...box('#FBF6E9'), padding: 12, position: 'relative' }}>
                 <StadiumSvg st={{ inv: { geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'grama', 'cober'] }} perkOverride={APOIO_PERKS.ouro} />

@@ -51,23 +51,26 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'cesar.verissimo27@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'denilson.stifler10@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'filipeabraaodasilva@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro, SEM fundador (não entra no FUNDADOR_N)
-  'taylorsenachek@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
+  'taylorsenachek2@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'pedrohmbispo@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
-  'sasukecdz851@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
+  'wandersonosantos@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
+  'rodriguinhobettiojr@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
 }
 
 // 🖋️ FUNDADORES (os 100 primeiros Lendas): e-mail → número do fundador.
 // O selo 🖋️ cola no 👑 no nome ("Fulano 👑🖋️") em todo canto do jogo.
 // O número entra no mural "Fundadores do Leilão Legends" (tela futura).
 const FUNDADOR_N: Record<string, number> = {
+  'diego.c.fonseca@gmail.com': 1, // 🖋️ o criador do jogo — fundador nº 1
   'cesar.verissimo27@gmail.com': 3,
   'dasilva1227br@gmail.com': 9,
   'davisantana1312@gmail.com': 11,
   'ambielvictor@gmail.com': 12,
   'denilson.stifler10@gmail.com': 13,
-  'taylorsenachek@gmail.com': 14,
+  'taylorsenachek2@gmail.com': 14,
   'pedrohmbispo@gmail.com': 15,
-  'sasukecdz851@gmail.com': 16,
+  'wandersonosantos@hotmail.com': 16,
+  'rodriguinhobettiojr@gmail.com': 17,
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null
