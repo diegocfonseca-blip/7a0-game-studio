@@ -719,11 +719,14 @@ function Shell({ children, bar, hideExit = false }: { children: React.ReactNode;
   // branco (botões/fundos escuros) já define a cor explicitamente.
   const { state, dispatch, kickPlayer, leaveRoom: leaveRoomHard } = useEsc()
   const [manage, setManage] = useState(false)
+  // 🌐 bilíngue SÓ no basquete (futebol sempre PT — guard sport==='basquete').
+  const [shellLang] = useLang()
+  const Lx = (pt: string, en: string) => (state.sport === 'basquete' && shellLang === 'en') ? en : pt
   // "sair do jogo" discreto: só durante uma partida (não na home/álbum). Ao
   // sair, o dispatch libera a vaga na sala online (não vira fantasma).
   const inGame = ['setup', 'auction', 'monte', 'cerimonia', 'season', 'end'].includes(state.screen)
   const leave = () => {
-    if (window.confirm('Sair do jogo? Você vai perder esta partida.')) dispatch({ type: 'GO_LOBBY' })
+    if (window.confirm(Lx('Sair do jogo? Você vai perder esta partida.', 'Exit the game? You’ll lose this match.'))) dispatch({ type: 'GO_LOBBY' })
   }
   // online: dois caminhos. Voltar pro menu MANTÉM a vaga (dá pra voltar pela
   // faixa "Voltar pra partida"). Sair da sala remove a vaga de vez.
@@ -760,7 +763,7 @@ function Shell({ children, bar, hideExit = false }: { children: React.ReactNode;
               <button onClick={leaveRoom} className="text-black/35 text-xs font-semibold underline active:opacity-60" title="Sai da sala de vez (removido)">🚪 sair da sala</button>
             </div>
           ) : (
-            <button onClick={leave} className="block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">🚪 sair do jogo</button>
+            <button onClick={leave} className="block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">🚪 {Lx('sair do jogo', 'exit game')}</button>
           )}
           {canManage && others.length > 0 && (
             <button onClick={() => setManage(v => !v)} className="block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">
@@ -2630,6 +2633,9 @@ function Tiebreak() {
   const you = state.managers[state.youIdx]
   const tb = state.tiebreaks[state.tiebreakIdx]
   const online = state.onlineMode === 'online'
+  // 🌐 bilíngue SÓ no basquete (futebol sempre PT — guard sport==='basquete').
+  const [tbLang] = useLang()
+  const L = (pt: string, en: string) => (state.sport === 'basquete' && tbLang === 'en') ? en : pt
 
   const amInIt = !!tb && tb.managers.includes(you.id)
   const iSubmitted = !!tb && tb.submitted.includes(you.id)
@@ -2676,8 +2682,8 @@ function Tiebreak() {
     <Shell bar={<AuctionBar />}>
       <div className="text-center pt-12 space-y-2">
         <p className="text-4xl">⚔️</p>
-        <p className="font-black text-lg" style={OSWALD}>Preparando o desempate…</p>
-        <p className="text-sm font-bold text-black/60">{online ? 'Sincronizando com o host…' : 'Só um instante.'}</p>
+        <p className="font-black text-lg" style={OSWALD}>{L('Preparando o desempate…', 'Setting up the tiebreak…')}</p>
+        <p className="text-sm font-bold text-black/60">{online ? L('Sincronizando com o host…', 'Syncing with the host…') : L('Só um instante.', 'Just a second.')}</p>
       </div>
     </Shell>
   )
@@ -2687,13 +2693,13 @@ function Tiebreak() {
   const canRaise = amount < maxBid
   const names = tb.managers.map((id, i) => {
     const m = state.managers.find(x => x.id === id)!
-    return { id, label: m.id === you.id ? '🫵 Você' : (m.teamName || m.name), color: TIE_COLORS[i % TIE_COLORS.length], done: tb.submitted.includes(id) }
+    return { id, label: m.id === you.id ? L('🫵 Você', '🫵 You') : (m.teamName || m.name), color: TIE_COLORS[i % TIE_COLORS.length], done: tb.submitted.includes(id) }
   })
 
   const header = (
     <div className="text-center space-y-1 pt-1">
       <p className="text-xs font-black uppercase" style={{ color: RED }}>
-        ⚔️ Desempate {state.tiebreakIdx + 1} / {total} · empate no maior lance
+        {L('⚔️ Desempate', '⚔️ Tiebreak')} {state.tiebreakIdx + 1} / {total} · {L('empate no maior lance', 'tie at the top bid')}
       </p>
       <div className="flex flex-wrap items-center justify-center gap-1.5">
         {names.map((n, i) => (
@@ -2705,8 +2711,8 @@ function Tiebreak() {
         ))}
       </div>
       <p className="text-sm font-semibold text-black/70">
-        Empataram em <b>{tb.amount}</b>. Re-lance <b>às cegas</b> só nesta carta — quem paga mais leva.
-        Empatar de novo cai na 🎡 roleta.
+        {L('Empataram em', 'Tied at')} <b>{tb.amount}</b>. {L('Re-lance', 'Re-bid')} <b>{L('às cegas', 'blind')}</b> {L('só nesta carta — quem paga mais leva.', 'on this card only — highest payer wins.')}
+        {' '}{L('Empatar de novo cai na 🎡 roleta.', 'Tie again and it goes to the 🎡 wheel.')}
       </p>
     </div>
   )
@@ -2719,9 +2725,9 @@ function Tiebreak() {
         <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
           <Box bg={GOLD} className="p-5" shadow={6}>
             <CardFace c={tb.card} big />
-            <p className="mt-4 text-center font-black text-lg" style={OSWALD}>🍿 Você assiste este duelo</p>
+            <p className="mt-4 text-center font-black text-lg" style={OSWALD}>{L('🍿 Você assiste este duelo', '🍿 You’re watching this duel')}</p>
             <p className="text-center text-sm font-bold text-black/60">
-              Já re-lançaram: {tb.submitted.length}/{tb.managers.length}
+              {L('Já re-lançaram:', 'Re-bid so far:')} {tb.submitted.length}/{tb.managers.length}
             </p>
           </Box>
         </motion.div>
@@ -2737,14 +2743,14 @@ function Tiebreak() {
         {header}
         <div className="pt-6 text-center space-y-3">
           <div className="text-5xl">{iSubmitted ? '🔒' : '🔄'}</div>
-          <h2 className="font-black text-2xl" style={OSWALD}>{iSubmitted ? 'RE-LANCE ENVIADO' : 'ENVIANDO…'}</h2>
+          <h2 className="font-black text-2xl" style={OSWALD}>{iSubmitted ? L('RE-LANCE ENVIADO', 'RE-BID SENT') : L('ENVIANDO…', 'SENDING…')}</h2>
           <p className="font-semibold text-black/70">
-            {iSubmitted ? `Aguardando os outros do empate… (${remaining}s)` : 'Confirmando com o host…'}
+            {iSubmitted ? L(`Aguardando os outros do empate… (${remaining}s)`, `Waiting on the others in the tie… (${remaining}s)`) : L('Confirmando com o host…', 'Confirming with the host…')}
           </p>
           <Box className="p-3 text-left max-w-xs mx-auto">
             {names.map(n => (
               <p key={n.id} className="text-sm font-bold flex justify-between text-black">
-                <span>{n.label}</span><span>{n.done ? '✅ lançou' : '⏳ pensando'}</span>
+                <span>{n.label}</span><span>{n.done ? L('✅ lançou', '✅ bid') : L('⏳ pensando', '⏳ thinking')}</span>
               </p>
             ))}
           </Box>
@@ -2762,7 +2768,7 @@ function Tiebreak() {
       <div className="flex justify-end">
         <div className="border-[3px] border-black rounded-xl px-3 py-1.5 text-center min-w-[60px]"
           style={{ backgroundColor: timerColor, boxShadow: `3px 3px 0 0 ${INK}` }}>
-          <p className="text-[9px] font-black uppercase" style={{ color: timerTextColor }}>Tempo</p>
+          <p className="text-[9px] font-black uppercase" style={{ color: timerTextColor }}>{L('Tempo', 'Time')}</p>
           <p className="font-black text-xl leading-none" style={{ ...OSWALD, color: timerTextColor }}>{remaining}s</p>
         </div>
       </div>
@@ -2772,7 +2778,7 @@ function Tiebreak() {
         </Box>
       </motion.div>
       <Box bg="#fff" className="p-4 space-y-3">
-        <p className="text-center font-black text-black" style={OSWALD}>SEU RE-LANCE</p>
+        <p className="text-center font-black text-black" style={OSWALD}>{L('SEU RE-LANCE', 'YOUR RE-BID')}</p>
         <div className="flex items-center justify-center gap-3">
           <button onClick={() => setAmount(v => Math.max(tb.amount, v - 1))}
             className="border-2 border-black rounded-lg w-11 h-11 font-black text-xl bg-white text-black">−</button>
@@ -2782,10 +2788,10 @@ function Tiebreak() {
             style={{ backgroundColor: GOLD }}>+</button>
         </div>
         <p className="text-center text-xs font-bold text-black/55">
-          Mínimo {tb.amount} · seu caixa 💰 {you.money}
+          {L('Mínimo', 'Minimum')} {tb.amount} · {L('seu caixa 💰', 'your cash 💰')} {you.money}
         </p>
         <Btn onClick={() => send(amount)} bg={RED} className="w-full">
-          <span className="text-white">{amount > tb.amount ? `COBRIR POR ${amount} 🔨` : `MANTER ${amount} 🔒`}</span>
+          <span className="text-white">{amount > tb.amount ? L(`COBRIR POR ${amount} 🔨`, `COVER FOR ${amount} 🔨`) : L(`MANTER ${amount} 🔒`, `HOLD ${amount} 🔒`)}</span>
         </Btn>
       </Box>
       <YourPitch small />
@@ -2846,6 +2852,10 @@ function Reveal() {
   const you = state.managers[state.youIdx]
   const online = state.onlineMode === 'online'
   const canDrive = !online || state.isHost
+  // 🌐 bilíngue SÓ no basquete (regra do Diego): futebol sempre PT (o guard
+  // sport==='basquete' garante que a tela de futebol sai byte-idêntica).
+  const [revLang] = useLang()
+  const L = (pt: string, en: string) => (state.sport === 'basquete' && revLang === 'en') ? en : pt
   // 🛟 AUTO-CURA: se a revelação ficou SEM carta (leva vazia ou índice fora de
   // faixa — ex.: um save antigo gravado nesse instante), em vez de tela em branco,
   // quem conduz (solo/host) empurra pro próximo passo; convidado espera o sync do
@@ -2883,9 +2893,9 @@ function Reveal() {
   if (!item) return (
     <Shell bar={<AuctionBar />}>
       <div className="text-center pt-12 space-y-2">
-        <p className="text-4xl">⚽</p>
-        <p className="font-black text-lg" style={OSWALD}>Preparando o pregão…</p>
-        <p className="text-sm font-bold text-black/60">{online ? 'Sincronizando com o host…' : 'Só um instante.'}</p>
+        <p className="text-4xl">{state.sport === 'basquete' ? '🏀' : '⚽'}</p>
+        <p className="font-black text-lg" style={OSWALD}>{L('Preparando o pregão…', 'Setting up the auction…')}</p>
+        <p className="text-sm font-bold text-black/60">{online ? L('Sincronizando com o host…', 'Syncing with the host…') : L('Só um instante.', 'Just a second.')}</p>
       </div>
     </Shell>
   )
@@ -2907,22 +2917,22 @@ function Reveal() {
   return (
     <Shell bar={<AuctionBar />}>
       <p className="text-center text-xs font-black uppercase text-black/70 pt-1">
-        Revelação {state.revealIdx + 1} / {state.revealQueue.length} · pote crescente
+        {L('Revelação', 'Reveal')} {state.revealIdx + 1} / {state.revealQueue.length} · {L('pote crescente', 'growing pot')}
       </p>
       <motion.div key={item.card.id} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
         <motion.div animate={sold ? { x: [0, -11, 11, -8, 8, -4, 4, 0] } : undefined}
           transition={{ delay: hammerDelay, duration: 0.5 }}>
         <Box bg={item.card.fame >= 5 ? GOLD : '#fff'} className="p-5 relative" shadow={6}>
           {item.card.fame >= 5 && (
-            <span className="absolute top-2 right-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black bg-white" style={OSWALD}>👑 LENDA</span>
+            <span className="absolute top-2 right-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black bg-white" style={OSWALD}>👑 {L('LENDA', 'LEGEND')}</span>
           )}
           {item.card.id === state.surpriseId && (
-            <span className="absolute top-2 left-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black text-white" style={{ ...OSWALD, background: PURPLE }}>🎁 SURPRESA</span>
+            <span className="absolute top-2 left-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black text-white" style={{ ...OSWALD, background: PURPLE }}>🎁 {L('SURPRESA', 'SURPRISE')}</span>
           )}
           <CardFace c={item.card} big highlight={item.card.id === state.surpriseId} />
           <div className="mt-4 space-y-1.5">
             {item.bids.length === 0 && (
-              <p className="font-bold text-black/70">Nenhum lance. Vai pro Monte Final. 🪣</p>
+              <p className="font-bold text-black/70">{L('Nenhum lance. Vai pro Monte Final. 🪣', 'No bids. Goes to the Final Pot. 🪣')}</p>
             )}
             {item.bids.map((b, i) => {
               const m = state.managers.find(x => x.id === b.mgr)!
@@ -2933,7 +2943,7 @@ function Reveal() {
                   className="flex items-center justify-between border-2 border-black rounded-lg px-3 py-1.5"
                   style={{ backgroundColor: isWinner ? GREEN : voided ? '#ddd' : '#fff' }}>
                   <p className="font-bold text-sm" style={{ color: isWinner ? '#fff' : INK }}>
-                    {m.id === you.id ? '🫵 Você' : m.teamName}{voided ? ' · anulado (setor cheio)' : ''}
+                    {m.id === you.id ? L('🫵 Você', '🫵 You') : m.teamName}{voided ? L(' · anulado (setor cheio)', ' · voided (position full)') : ''}
                   </p>
                   <p className="font-black" style={{ ...OSWALD, color: isWinner ? '#fff' : INK }}>{b.amount}</p>
                 </motion.div>
@@ -2950,10 +2960,13 @@ function Reveal() {
             const best = Math.max(...losers.map(b => b.amount))
             const diff = win.amount - best
             if (diff < 1 || diff > 2) return null
-            const names = losers.filter(b => b.amount === best).map(b => { const m = state.managers.find(x => x.id === b.mgr); return m ? (m.id === you.id ? 'Você' : (m.teamName || m.name)) : '' }).filter(Boolean)
-            const who = names.slice(0, 2).join(' e '), card = item.card.name, n = diff === 1 ? '1 MOEDA' : '2 moedas'
-            const frases = [
-              `😱 QUASE! ${who} perde${names.length > 1 ? 'm' : ''} ${card} por ${n}!`,
+            const en = state.sport === 'basquete' && revLang === 'en'
+            const names = losers.filter(b => b.amount === best).map(b => { const m = state.managers.find(x => x.id === b.mgr); return m ? (m.id === you.id ? (en ? 'You' : 'Você') : (m.teamName || m.name)) : '' }).filter(Boolean)
+            const plural = names.length > 1
+            const who = names.slice(0, 2).join(en ? ' and ' : ' e '), card = item.card.name
+            const n = diff === 1 ? (en ? '1 COIN' : '1 MOEDA') : (en ? '2 coins' : '2 moedas')
+            const frasesPt = [
+              `😱 QUASE! ${who} perde${plural ? 'm' : ''} ${card} por ${n}!`,
               `🔪 FACADA! ${n} separou ${who} de ${card}!`,
               `💔 Por ${n}… ${card} escapou de ${who}!`,
               `😭 ${who} sonhou com ${card} — faltou ${n}!`,
@@ -2962,6 +2975,17 @@ function Reveal() {
               `⚰️ Enterrado por ${n}! ${who} quase leva ${card}!`,
               `🎯 Errou por ${n}! ${card} passou raspando de ${who}!`,
             ]
+            const frasesEn = [
+              `😱 SO CLOSE! ${who} ${plural ? 'lose' : 'loses'} ${card} by ${n}!`,
+              `🔪 ROBBED! ${n} kept ${who} off ${card}!`,
+              `💔 By ${n}… ${card} slipped away from ${who}!`,
+              `😭 ${who} dreamed of ${card} — short by ${n}!`,
+              `🥶 At the buzzer! ${who} watched ${card} walk for ${n}!`,
+              `🫠 Ouch: ${n} more and ${card} had another owner…`,
+              `⚰️ Buried by ${n}! ${who} nearly landed ${card}!`,
+              `🎯 Missed by ${n}! ${card} grazed right past ${who}!`,
+            ]
+            const frases = en ? frasesEn : frasesPt
             return (
               <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: hammerDelay + 0.4 }}
                 className="mt-2 border-2 border-black rounded-lg px-3 py-1.5 text-center" style={{ backgroundColor: '#FFE1DC' }}>
@@ -2972,7 +2996,7 @@ function Reveal() {
           {tie && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: item.bids.length * 0.25 + 0.15 }}
               className="mt-3 border-[3px] border-black rounded-xl p-2.5" style={{ backgroundColor: '#FFE9B0' }}>
-              <p className="text-[11px] font-black uppercase text-center" style={{ color: RED }}>⚔️ Desempate · re-lance às cegas</p>
+              <p className="text-[11px] font-black uppercase text-center" style={{ color: RED }}>{L('⚔️ Desempate · re-lance às cegas', '⚔️ Tiebreak · blind re-bid')}</p>
               <div className="mt-1.5 space-y-1">
                 {tieRows.map(r => {
                   const isWin = r.id === tie.winner
@@ -2981,7 +3005,7 @@ function Reveal() {
                       style={{ backgroundColor: isWin ? GREEN : '#fff' }}>
                       <span className="text-xs font-black" style={{ color: isWin ? '#fff' : INK }}>{r.label}</span>
                       <span className="text-xs font-black" style={{ ...OSWALD, color: isWin ? '#fff' : INK }}>
-                        {r.amt > tie.amount ? `cobriu ${r.amt}` : `manteve ${r.amt}`}
+                        {r.amt > tie.amount ? L(`cobriu ${r.amt}`, `raised to ${r.amt}`) : L(`manteve ${r.amt}`, `held ${r.amt}`)}
                       </span>
                     </div>
                   )
@@ -2989,7 +3013,7 @@ function Reveal() {
               </div>
               {tie.viaRoulette && (
                 <div className="mt-2 text-center">
-                  <p className="text-[11px] font-black uppercase" style={{ color: RED }}>🎡 Empataram em {tieMax} — a roleta decidiu!</p>
+                  <p className="text-[11px] font-black uppercase" style={{ color: RED }}>{L(`🎡 Empataram em ${tieMax} — a roleta decidiu!`, `🎡 Tied at ${tieMax} — the wheel decided!`)}</p>
                   <TieSorteio names={rouletteNames} winnerId={tie.winner!} />
                 </div>
               )}
@@ -3005,12 +3029,12 @@ function Reveal() {
                     transition={{ delay: hammerDelay, duration: 0.5, type: 'spring', bounce: 0.55 }}>🔨</motion.div>
                   <motion.p className="font-black text-3xl -mt-1" style={{ ...OSWALD, color: RED }}
                     initial={{ scale: 0 }} animate={{ scale: [0, 1.3, 1] }} transition={{ delay: hammerDelay + 0.12, duration: 0.35 }}>
-                    MARTELO!
+                    {L('MARTELO!', 'SOLD!')}
                   </motion.p>
                 </>
               )}
               <p className="font-black text-lg" style={OSWALD}>
-                🔨 VENDIDO {winnerMgr.id === you.id ? 'PRA VOCÊ' : `pro ${winnerMgr.teamName}`} por {item.paid}!
+                {winnerMgr.id === you.id ? L(`🔨 VENDIDO PRA VOCÊ por ${item.paid}!`, `🔨 IT’S YOURS for ${item.paid}!`) : L(`🔨 VENDIDO pro ${winnerMgr.teamName} por ${item.paid}!`, `🔨 ${winnerMgr.teamName} WINS IT for ${item.paid}!`)}
               </p>
             </motion.div>
           )}
@@ -3020,7 +3044,7 @@ function Reveal() {
       {/* auto-avanço: 1s por carta, 2s se houve lance; +tempo se teve desempate */}
       <AutoAdvance hasBids={item.bids.length > 0} canDrive={canDrive} isLast={isLast} extraMs={tie ? (tie.viaRoulette ? 3200 : 1500) : 0} />
       <p className="text-center text-xs font-bold text-black/60 py-1">
-        {canDrive ? '🎬 Passando automaticamente…' : '🔨 O host está conduzindo a revelação…'}
+        {canDrive ? L('🎬 Passando automaticamente…', '🎬 Auto-advancing…') : L('🔨 O host está conduzindo a revelação…', '🔨 The host is running the reveal…')}
       </p>
       <YourPitch small />
     </Shell>
@@ -3190,6 +3214,10 @@ export function EscMonte() {
 export function EscCerimonia() {
   const { state, dispatch } = useEsc()
   const t = useT()
+  // 🌐 bilíngue SÓ no basquete (futebol sempre PT — guard sport==='basquete').
+  const [cerLang] = useLang()
+  const bb = state.sport === 'basquete'
+  const L = (pt: string, en: string) => (bb && cerLang === 'en') ? en : pt
   const [idx, setIdx] = useState(0)
   // esconde os participantes TEMPORÁRIOS do mercado (times de fundo) — eles só
   // brigaram no leilão, não entram na sua liga nem na revelação.
@@ -3218,14 +3246,14 @@ export function EscCerimonia() {
   return (
     <Shell>
       <div className="text-center pt-4">
-        <h2 className="font-black text-3xl" style={OSWALD}>🎭 CERIMÔNIA DA REVELAÇÃO</h2>
-        <p className="text-sm font-semibold text-black/60">As faixas de nível abrem. Agora todo mundo descobre o que comprou.</p>
+        <h2 className="font-black text-3xl" style={OSWALD}>{L('🎭 CERIMÔNIA DA REVELAÇÃO', '🎭 REVEAL CEREMONY')}</h2>
+        <p className="text-sm font-semibold text-black/60">{L('As faixas de nível abrem. Agora todo mundo descobre o que comprou.', 'The rating bands open. Now everyone finds out what they bought.')}</p>
       </div>
       {secsLeft !== null && (
         <div className="rounded-2xl border-[3px] border-black p-3 text-center" style={{ background: secsLeft <= 10 ? '#E8503A' : GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
-          <p className="font-black text-white text-sm leading-tight" style={OSWALD}>⏱️ O campeonato começa em</p>
+          <p className="font-black text-white text-sm leading-tight" style={OSWALD}>{L('⏱️ O campeonato começa em', '⏱️ The season starts in')}</p>
           <p className="font-black text-white text-4xl leading-none mt-0.5" style={OSWALD}>{secsLeft}s</p>
-          <p className="font-bold text-white/80 text-[11px] mt-1">Aproveite pra ver os times de todo mundo 👀</p>
+          <p className="font-bold text-white/80 text-[11px] mt-1">{L('Aproveite pra ver os times de todo mundo 👀', 'Take a look at everyone’s squads 👀')}</p>
         </div>
       )}
       <Box bg={m.id === you.id ? GOLD : '#fff'} className="p-4" shadow={6}>
@@ -3238,7 +3266,7 @@ export function EscCerimonia() {
               <div>
                 <p className="font-bold text-sm">{posTag(c.pos)} · {c.name} <span className="text-black/70 text-xs">({c.club} {c.year})</span></p>
                 <p className="text-[10px] font-semibold text-black/70">
-                  {c.via === 'bot' ? 'escalado direto' : c.via === 'monte' ? 'monte (grátis)' : c.via === 'repescagem' ? `repescagem · pagou ${c.paid}` : `leilão · pagou ${c.paid}`}
+                  {c.via === 'bot' ? L('escalado direto', 'drafted in') : c.via === 'monte' ? L('monte (grátis)', 'pot (free)') : c.via === 'repescagem' ? L(`repescagem · pagou ${c.paid}`, `revival · paid ${c.paid}`) : L(`leilão · pagou ${c.paid}`, `auction · paid ${c.paid}`)}
                 </p>
               </div>
               <motion.span initial={{ rotateY: 90 }} animate={{ rotateY: 0 }} transition={{ delay: 0.15 }}
@@ -3253,8 +3281,8 @@ export function EscCerimonia() {
       </Box>
       {isLastMgr && bestDeal && worstDeal && (
         <Box className="p-4 space-y-1.5">
-          <p className="font-black text-sm" style={OSWALD}>🏅 ACHADO DO PREGÃO: {bestDeal.c.name} ({bestDeal.c.lo}–{bestDeal.c.hi}) por {bestDeal.c.paid} — {bestDeal.mg.teamName}</p>
-          <p className="font-black text-sm" style={OSWALD}>🐴 MICO DO PREGÃO: {worstDeal.c.name} ({worstDeal.c.lo}–{worstDeal.c.hi}) por {worstDeal.c.paid} — {worstDeal.mg.teamName}</p>
+          <p className="font-black text-sm" style={OSWALD}>{L('🏅 ACHADO DO PREGÃO:', '🏅 STEAL OF THE AUCTION:')} {bestDeal.c.name} ({bestDeal.c.lo}–{bestDeal.c.hi}) {L('por', 'for')} {bestDeal.c.paid} — {bestDeal.mg.teamName}</p>
+          <p className="font-black text-sm" style={OSWALD}>{L('🐴 MICO DO PREGÃO:', '🐴 FLOP OF THE AUCTION:')} {worstDeal.c.name} ({worstDeal.c.lo}–{worstDeal.c.hi}) {L('por', 'for')} {worstDeal.c.paid} — {worstDeal.mg.teamName}</p>
         </Box>
       )}
       {state.careerOnline && (state.marketLog?.length ?? 0) > 0 && (
@@ -3268,10 +3296,10 @@ export function EscCerimonia() {
       {/* navegação livre pelos times durante os 45s (dá a volta) */}
       <div className="flex gap-2">
         <div className="flex-1"><Btn className="w-full" bg="#fff"
-          onClick={() => setIdx((idx - 1 + mgrs.length) % mgrs.length)}>◀ Anterior</Btn></div>
+          onClick={() => setIdx((idx - 1 + mgrs.length) % mgrs.length)}>{L('◀ Anterior', '◀ Previous')}</Btn></div>
         <div className="shrink-0 flex items-center px-2 font-black text-sm text-black/50" style={OSWALD}>{idx + 1}/{mgrs.length}</div>
         <div className="flex-1"><Btn className="w-full" bg={GOLD}
-          onClick={() => setIdx((idx + 1) % mgrs.length)}>Próximo ▶</Btn></div>
+          onClick={() => setIdx((idx + 1) % mgrs.length)}>{L('Próximo ▶', 'Next ▶')}</Btn></div>
       </div>
       {/* 🏀 basquete: a temporada (por pontos) ainda não entrou — em vez de cair
           na temporada de FUTEBOL, mostra um aviso honesto e volta pra home. */}
