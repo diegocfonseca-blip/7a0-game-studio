@@ -3690,8 +3690,12 @@ export function EscSeason() {
       </div>
     }>
       {copaLive && qc ? (() => {
-        const phaseLabel = qc.phase === 'quartas' ? LS('Quartas de Final', 'Quarterfinals') : qc.phase === 'semis' ? LS('Semifinal', 'Semifinal') : LS('Final', 'Final')
-        const legLabel = qc.phase === 'final' ? LS('Jogo único · campo neutro', 'Single game · neutral court') : qc.legIdx === 0 ? LS('Jogo de ida', 'First leg') : LS('Jogo de volta', 'Second leg')
+        const phaseLabel = bbS
+          ? (qc.phase === 'quartas' ? LS('Semifinais de Conferência', 'Conference Semifinals') : qc.phase === 'semis' ? LS('Finais de Conferência', 'Conference Finals') : LS('Finais', 'The Finals'))
+          : (qc.phase === 'quartas' ? LS('Quartas de Final', 'Quarterfinals') : qc.phase === 'semis' ? LS('Semifinal', 'Semifinal') : LS('Final', 'Final'))
+        const legLabel = bbS
+          ? LS(`Jogo ${qc.legIdx + 1} · série melhor-de-3`, `Game ${qc.legIdx + 1} · best-of-3`)
+          : (qc.phase === 'final' ? LS('Jogo único · campo neutro', 'Single game · neutral court') : qc.legIdx === 0 ? LS('Jogo de ida', 'First leg') : LS('Jogo de volta', 'Second leg'))
         const myTie = qc.ties.find(t => t.aId === you.id || t.bId === you.id)
         const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
         const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
@@ -3726,6 +3730,16 @@ export function EscSeason() {
             showA = doneA + minsA.filter(m => m <= copaMin).length
             showB = doneB + minsB.filter(m => m <= copaMin).length
           }
+          // 🏀 basquete = série melhor-de-3: o placar do confronto é por VITÓRIAS
+          // (não agregado de pontos). Conta só os jogos JÁ fechados (anti-spoiler: o
+          // jogo que anima agora só entra na conta depois do apito/relógio cheio).
+          let seriesA = showA, seriesB = showB
+          if (bbS) {
+            const doneLegs = clockDone ? tie.legs : tie.legs.slice(0, Math.max(0, nLegs - 1))
+            let wa = 0, wb = 0
+            for (const [a2, b2] of doneLegs) { if (a2 > b2) wa++; else if (b2 > a2) wb++ }
+            seriesA = wa; seriesB = wb
+          }
           const settled = clockDone && tie.winner != null // só risca/mostra pênaltis depois que o relógio fecha
           const aWin = tie.winner === tie.aId
           // 🚫 anti-spoiler: com PÊNALTIS, o riscado do perdedor espera a última cobrança animar
@@ -3742,13 +3756,16 @@ export function EscSeason() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
                   <span className="font-black text-sm truncate" style={{ ...OSWALD, color: fA.ink, ...loserStyle(!aWin) }}>{tie.aName}{nameTag(tie.aId)}</span>
                   <span className="font-black text-sm px-2 py-0.5 rounded inline-flex items-center gap-1.5" style={{ ...OSWALD, background: INK, color: '#fff' }}>
-                    {live && <span className="text-[9px] font-black" style={{ color: '#F87168' }}>●{minLabel}</span>}
-                    {showA} × {showB}
+                    {live && <span className="text-[9px] font-black" style={{ color: '#F87168' }}>●{bbS ? '' : minLabel}</span>}
+                    {bbS ? seriesA : showA} × {bbS ? seriesB : showB}
+                    {bbS && <span className="text-[8px] font-black opacity-60">{LS('série', 'series')}</span>}
                   </span>
                   <span className="font-black text-sm truncate text-right" style={{ ...OSWALD, color: fB.ink, ...loserStyle(aWin) }}>{tie.bName}{nameTag(tie.bId)}</span>
                 </div>
                 {settled && nLegs > 0 && (
-                  <p className="text-center mt-1" style={{ fontSize: 10, fontWeight: 800 }}><span style={copaCenterChip}>{nLegs === 1 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]}` : `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}`}</span></p>
+                  <p className="text-center mt-1" style={{ fontSize: 10, fontWeight: 800 }}><span style={copaCenterChip}>{bbS
+                    ? tie.legs.map((l, gi) => `${LS('J', 'G')}${gi + 1} ${l[0]}×${l[1]}`).join(' · ')
+                    : (nLegs === 1 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]}` : `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}`)}</span></p>
                 )}
                 {settled && tie.pens && <><style>{'@keyframes qcLoserFade{to{opacity:.6;text-decoration:line-through}}'}</style><PensShootout pens={tie.pens} aName={tie.aName} bName={tie.bName} /></>}
               </div>
@@ -3767,8 +3784,8 @@ export function EscSeason() {
                 <p className="text-sm font-bold text-center text-black/75">
                   {bbS
                     ? (seasonLang === 'en'
-                      ? <>The top 8 face off in the bracket: 1×8, 2×7, 3×6, 4×5. Winners reach the semis — the final is one game. The champion takes the <b>ring</b> to the album! 🏀</>
-                      : <>Os 8 melhores da temporada se enfrentam no mata-mata: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passa vai à semi — e a decisão é jogo único. O campeão leva o <b>anel</b> pro álbum! 🏀</>)
+                      ? <>Top 4 of each conference. Every round is a <b>best-of-3 series</b> — first to 2 wins advances. Conference champs meet in the Finals; the champion takes the <b>ring</b> to the album! 🏀</>
+                      : <>Top 4 de cada conferência. Toda rodada é <b>série melhor-de-3</b> — quem ganha 2 jogos passa. Os campeões de conferência se encontram nas Finais; o campeão leva o <b>anel</b> pro álbum! 🏀</>)
                     : <>Os 8 melhores da liga se enfrentam ida e volta: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passar cai na semifinal — e a final é jogo único. O campeão da Copa ganha <b>outra carta</b> pro álbum, além da carta da liga!</>}
                 </p>
                 {!manual && !streamRoom && (
@@ -3794,6 +3811,12 @@ export function EscSeason() {
                 const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
                 const hl = myTie.lastHighlights ?? []
                 const goals = hl.map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === legHomeId }))
+                // 🏀 basquete: o card do jogo mostra os PONTOS (relógio de quartos, ~100),
+                // não gols/90' — igual à liga. `basket` = placar final do jogo pro card
+                // subir no relógio. (Futebol: undefined → tudo como sempre.)
+                const lastLeg = myTie.legs[lastLegIdx] // [pontos de A, pontos de B]
+                const aIsHome = legHomeId === myTie.aId
+                const basket = bbS ? { h: aIsHome ? lastLeg[0] : lastLeg[1], a: aIsHome ? lastLeg[1] : lastLeg[0] } : undefined
                 return (
                   <>
                     <LiveScoreCard key={`copa-${qc.phase}-${myTie.legs.length}`}
@@ -3801,8 +3824,8 @@ export function EscSeason() {
                       homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
                       youIsHome={homeIsYou} goals={goals}
                       roundKey={myTie.legs.length + (qc.phase === 'quartas' ? 0 : qc.phase === 'semis' ? 10 : 20)}
-                      roundMs={QUICK_COPA_LEG_MS} classico={oppIsHuman} />
-                    {myTie.legs.length === 2 && (
+                      roundMs={QUICK_COPA_LEG_MS} classico={oppIsHuman} basket={basket} />
+                    {!bbS && myTie.legs.length === 2 && (
                       <p className="text-center text-[11px] font-black text-black/55 -mt-1">↩️ Ida: {nameOf(myTie.aId)} {myTie.legs[0][0]} × {myTie.legs[0][1]} {nameOf(myTie.bId)}</p>
                     )}
                   </>

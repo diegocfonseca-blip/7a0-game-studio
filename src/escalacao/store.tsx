@@ -3290,6 +3290,77 @@ export function reducer(state: EscState, action: Action): EscState {
       const qc = s.quickCopa
       if (!qc || qc.phase === 'done') return s
       if (!qc.scorers) qc.scorers = [] // saves antigos sem o campo
+      // 🏀 PLAYOFFS DO BASQUETE = SÉRIE MELHOR-DE-3 (primeiro a 2 vitórias passa) —
+      // cara da NBA. Autocontido e com `return s` ANTES do código do futebol, que
+      // fica 100% intocado (Copa dos 8 segue ida-e-volta agregado, byte-idêntico).
+      if (s.sport === 'basquete') {
+        const isFinalB = qc.phase === 'final'
+        const WINS_NEEDED = 2 // melhor-de-3
+        const winsOf = (t: typeof qc.ties[number]): [number, number] => {
+          let a = 0, b = 0
+          for (const [ga, gb] of t.legs) { if (ga > gb) a++; else if (gb > ga) b++ }
+          return [a, b]
+        }
+        const enB = getLang() === 'en'
+        // 1) TODAS as séries decididas? fecha a fase (ou coroa o campeão).
+        if (qc.ties.every(t => t.winner !== null)) {
+          qc.bracket = [...qc.bracket, { phase: qc.phase, ties: qc.ties }]
+          if (isFinalB) {
+            const champ = qc.ties[0]; const champId = champ.winner!
+            const champName = champId === champ.aId ? champ.aName : champ.bName
+            const youC = s.managers.find(m => m.id === champId && m.isHuman)
+            qc.champion = { id: champId, name: champName, you: !!youC }
+            s.news = [(enB ? `👑 ${champName} ARE THE CHAMPIONS! 🏀💍` : `👑 ${champName} É CAMPEÃO DOS PLAYOFFS! 🏀💍`), ...s.news].slice(0, 12)
+            qc.phase = 'done'; qc.ties = []; s.screen = 'end'
+          } else {
+            const wN = (t: typeof qc.ties[number]) => t.winner === t.aId ? t.aName : t.bName
+            const mkT = (x: typeof qc.ties[number], y: typeof qc.ties[number]) => ({ aId: x.winner!, bId: y.winner!, aName: wN(x), bName: wN(y), legs: [] as [number, number][], winner: null })
+            qc.ties = qc.phase === 'quartas'
+              ? [mkT(qc.ties[0], qc.ties[1]), mkT(qc.ties[2], qc.ties[3])]
+              : [mkT(qc.ties[0], qc.ties[1])]
+            qc.phase = qc.phase === 'quartas' ? 'semis' : 'final'
+            qc.legIdx = 0
+          }
+          return s
+        }
+        // 2) joga o PRÓXIMO jogo da série (só das indecisas). Mando alterna A,B,A —
+        // quem veio melhor na temporada (A) leva o jogo 1 e o 3 (vantagem de casa).
+        const gameNo = Math.min(...qc.ties.filter(t => t.winner === null).map(t => t.legs.length))
+        qc.legIdx = gameNo
+        const rngB = mulberry(s.seed + 90000 + s.seasonNo * 733 + qc.ties.length * 31 + qc.bracket.length * 97 + gameNo * 13)
+        for (const tie of qc.ties) {
+          if (tie.winner !== null) continue
+          const aHome = tie.legs.length % 2 === 0
+          const homeId = aHome ? tie.aId : tie.bId
+          const awayId = aHome ? tie.bId : tie.aId
+          const r = simMatch(s, homeId, awayId, rngB, qc.scorers, isFinalB) // final = quadra neutra
+          tie.legs.push(aHome ? [r.hg, r.ag] : [r.ag, r.hg]) // sempre [A, B]
+          tie.lastHighlights = r.highlights
+          const [wa, wb] = winsOf(tie)
+          if (wa >= WINS_NEEDED || wb >= WINS_NEEDED) tie.winner = wa > wb ? tie.aId : tie.bId
+        }
+        // 3) GIRO dos playoffs (bilíngue) — prefixo 🏀 Playoffs é marcador anti-spoiler.
+        const phaseWordB = enB
+          ? (isFinalB ? 'FINALS' : qc.phase === 'semis' ? 'CONF FINALS' : 'CONF SEMIS')
+          : (isFinalB ? 'FINAIS' : qc.phase === 'semis' ? 'FINAIS DE CONF' : 'SEMIS DE CONF')
+        const copaHeadsB: string[] = []
+        for (const tie of qc.ties) {
+          const leg = tie.legs[tie.legs.length - 1]; if (!leg) continue
+          const gNo = tie.legs.length
+          const aWasHome = (tie.legs.length - 1) % 2 === 0
+          const mand = aWasHome ? tie.aName : tie.bName, vis = aWasHome ? tie.bName : tie.aName
+          const mandG = aWasHome ? leg[0] : leg[1], visG = aWasHome ? leg[1] : leg[0]
+          const [wa, wb] = winsOf(tie)
+          copaHeadsB.push(`🏀 Playoffs ${phaseWordB} ${enB ? 'game' : 'jogo'} ${gNo}: ${mand} ${mandG} × ${visG} ${vis} (${wa}-${wb})`)
+          if (tie.winner !== null) {
+            const w = tie.winner === tie.aId ? tie.aName : tie.bName
+            const l = tie.winner === tie.aId ? tie.bName : tie.aName
+            copaHeadsB.push(enB ? `🏆 ${w} won the series over ${l}!` : `🏆 ${w} venceu a série contra ${l}!`)
+          }
+        }
+        s.news = [...copaHeadsB, ...s.news].slice(0, 12)
+        return s
+      }
       const isFinal = qc.phase === 'final'
       const legsNeeded = isFinal ? 1 : 2 // ida+volta (fases) ou jogo único (final)
       const legsPlayed = qc.ties[0]?.legs.length ?? 0
@@ -3305,13 +3376,8 @@ export function reducer(state: EscState, action: Action): EscState {
           const champName = champId === champ.aId ? champ.aName : champ.bName
           const you = s.managers.find(m => m.id === champId && m.isHuman)
           qc.champion = { id: champId, name: champName, you: !!you }
-          {
-            const enC = s.sport === 'basquete' && getLang() === 'en'
-            const champHead = s.sport === 'basquete'
-              ? (enC ? `👑 ${champName} ARE THE CHAMPIONS! 🏀💍` : `👑 ${champName} É CAMPEÃO DOS PLAYOFFS! 🏀💍`)
-              : `👑 ${champName} É CAMPEÃO DA COPA DOS 8!`
-            s.news = [champHead, ...s.news].slice(0, 12)
-          }
+          // (basquete tem seu próprio ramo melhor-de-3 acima; aqui é só futebol)
+          s.news = [`👑 ${champName} É CAMPEÃO DA COPA DOS 8!`, ...s.news].slice(0, 12)
           qc.phase = 'done'
           qc.ties = []
           s.screen = 'end'
@@ -3351,19 +3417,10 @@ export function reducer(state: EscState, action: Action): EscState {
         if (isLastLeg) resolveQuickCopaTie(tie, rng) // só resolve no fim (agregado/pênaltis)
       }
       // 📣 GIRO DA COPA: manchetes do que acabou de rolar (placar, quem passou,
-      // pênaltis) — o giro fala DA COPA agora, não das rodadas da liga.
-      // 🌐 basquete bilíngue (futebol sempre PT). O prefixo do placar é marcador
-      // ESTÁVEL do anti-spoiler (screens: isCopaReveal): futebol "⚽ Copa ", basquete
-      // "🏀 Playoffs " — o filtro pega os dois, então NADA de placar de playoff
-      // aparece antes do apito (regra #1 do Diego: zero spoiler).
-      const bbC = s.sport === 'basquete'
-      const enC = bbC && getLang() === 'en'
-      const phaseWord = bbC
-        ? (enC ? (isFinal ? 'FINALS' : qc.phase === 'semis' ? 'CONF FINALS' : 'CONF SEMIS') : (isFinal ? 'FINAIS' : qc.phase === 'semis' ? 'FINAIS DE CONF' : 'SEMIS DE CONF'))
-        : (isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : 'QUARTAS')
-      const legWord = isFinal ? '' : bbC
-        ? (enC ? (qc.legIdx === 0 ? ' · game 1' : ' · game 2') : (qc.legIdx === 0 ? ' · jogo 1' : ' · jogo 2'))
-        : (qc.legIdx === 0 ? ' · ida' : ' · volta')
+      // pênaltis) — o giro fala DA COPA agora, não das rodadas da liga. (Só futebol:
+      // o basquete tem o giro dos Playoffs no ramo melhor-de-3 lá em cima.)
+      const phaseWord = isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : 'QUARTAS'
+      const legWord = isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
       const copaHeads: string[] = []
       for (const tie of qc.ties) {
         const leg = tie.legs[tie.legs.length - 1]
@@ -3373,13 +3430,11 @@ export function reducer(state: EscState, action: Action): EscState {
         const swap = qc.legIdx === 1 // volta
         const mand = swap ? tie.bName : tie.aName, vis = swap ? tie.aName : tie.bName
         const mandG = swap ? leg[1] : leg[0], visG = swap ? leg[0] : leg[1]
-        copaHeads.push(`${bbC ? '🏀 Playoffs' : '⚽ Copa'} ${phaseWord}${legWord}: ${mand} ${mandG} × ${visG} ${vis}`)
+        copaHeads.push(`⚽ Copa ${phaseWord}${legWord}: ${mand} ${mandG} × ${visG} ${vis}`)
         if (tie.winner !== null) {
           const w = tie.winner === tie.aId ? tie.aName : tie.bName
           const l = tie.winner === tie.aId ? tie.bName : tie.aName
-          copaHeads.push(bbC
-            ? (enC ? `🏆 ${w} won the series over ${l}!` : `🏆 ${w} venceu a série contra ${l}!`)
-            : (tie.pens ? `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!` : `🏆 ${w} avançou na Copa — adeus, ${l}!`))
+          copaHeads.push(tie.pens ? `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!` : `🏆 ${w} avançou na Copa — adeus, ${l}!`)
         }
       }
       s.news = [...copaHeads, ...s.news].slice(0, 12)
