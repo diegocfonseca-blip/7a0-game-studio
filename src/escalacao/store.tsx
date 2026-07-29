@@ -67,6 +67,8 @@ const NBA_STREET_TEAMS: { team: string; name: string }[] = [
   'Uptown Hustlers', 'Halfcourt Heroes', 'Sidewalk Slammers', 'Backboard Bullies', 'And-One Army',
   'Streetball Souljahs', 'Playground Legends', 'Chain Gang', 'Buckets Crew', 'Venice Ballers',
 ].map(t => ({ team: t, name: t }))
+// nomes dos crews (pra tela de montagem do basquete escolher os rivais)
+export const NBA_STREET_TEAM_NAMES: string[] = NBA_STREET_TEAMS.map(t => t.team)
 // 🔷 G LEAGUE — afiliados REAIS da liga de desenvolvimento da NBA (o meio da
 // pirâmide). 24 times. É o degrau entre a várzea (Street) e a elite (NBA).
 const NBA_GLEAGUE_TEAMS: { team: string; name: string }[] = [
@@ -1829,8 +1831,10 @@ type Action =
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both'; copaMode?: 'liga' | 'liga_copa'; intro?: boolean }
-  | { type: 'START_NBA'; teamName: string; rivals: number } // 🏀 jogo rápido do basquete (mesmo motor)
-  | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
+  | { type: 'START_NBA'; teamName: string; rivals: number; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
+  | { type: 'START_NBA_CAREER'; teamName: string; rivals?: number; rivalTeams?: string[]; intro?: boolean } // 🏀 carreira: Street League. Em teste.
+  | { type: 'GO_SETUP_NBA' } // 🏀 abre a tela de montagem do jogo rápido do basquete
+  | { type: 'GO_SETUP_NBA_CAREER' } // 🏀 abre a tela de montagem da carreira do basquete
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
   | { type: 'RESUME_NBA_CAREER'; saved: EscState } // 🏀 retoma a carreira do basquete salva (bl-nba-career)
   | { type: 'TOGGLE_NBA_RELEASE'; cardId: string } // 🏀 carreira: marca/desmarca uma reserva pra DISPENSAR (T3+); repõe no leilão
@@ -2248,6 +2252,10 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'GO_LOBBY_ONLINE': { s.screen = 'lobby'; return s }
     case 'GO_SETUP': { s.screen = 'setup'; s.careerIntent = false; return s }
     case 'GO_SETUP_CAREER': { s.screen = 'setup'; s.careerIntent = true; return s }
+    // 🏀 telas de montagem do basquete (própria, pra não mexer no setup do futebol):
+    // careerIntent distingue rápido (false) de carreira (true), como no futebol.
+    case 'GO_SETUP_NBA': { s.screen = 'nbaSetup'; s.careerIntent = false; return s }
+    case 'GO_SETUP_NBA_CAREER': { s.screen = 'nbaSetup'; s.careerIntent = true; return s }
     case 'GO_ALBUM': { s.screen = 'album'; return s }
     case 'GO_RANKING': { s.screen = 'ranking'; return s }
     case 'SET_PRESENCE': { s.presence = action.indices; return s }
@@ -2423,6 +2431,9 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}; s.seasonNo = 1
+      // 🔨 regras antes do pregão (igual o futebol): a tela explica moedas/quinteto
+      // e o jogador toca "Começar o leilão" (START_STREAM_AUCTION) quando quiser.
+      if (action.intro) { s.screen = 'nbaIntro'; return s }
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s
@@ -2445,10 +2456,21 @@ export function reducer(state: EscState, action: Action): EscState {
       s.deckLeague = 'br'
       s.careerDivision = null; s.careerIntent = false; s.careerTitles = 0; s.careerTitlesA = 0
       s.copaMode = 'liga' // Street League: só pontos corridos (sem copa por enquanto)
-      const rivals = NBA_STREET_TEAMS.length - 1 // liga cheia: você + 19 rivais = 20 times
+      // 🔥 rivais DE LEILÃO (dão lance): você escolhe QUANTOS (3/5/7/9) e QUAIS crews
+      // na tela de montagem, igual o futebol. A liga fica SEMPRE cheia (20 crews): os
+      // que você não escolheu entram como preenchimento (elenco pronto, não brigam no
+      // pregão). Sem escolha = 5 rivais na ordem padrão.
+      const leagueSize = NBA_STREET_TEAMS.length // 20 crews sempre
+      const rivals = Math.min(Math.max(1, action.rivals ?? 5), leagueSize - 1)
       s.careerRivalCount = rivals; s.careerRivals = []
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0
-      const { managers, botPlans } = makeManagers([action.teamName || 'Meu Time'], '4-3-3', rivals, rivals + 1, rng, NBA_STREET_TEAMS)
+      // rivais escolhidos vêm PRIMEIRO (viram os que dão lance); o resto completa 20.
+      const pick = action.rivalTeams ?? []
+      const orderedCrews = [
+        ...pick.map(tn => NBA_STREET_TEAMS.find(c => c.team === tn)).filter((c): c is { team: string; name: string } => !!c),
+        ...NBA_STREET_TEAMS.filter(c => !pick.includes(c.team)),
+      ]
+      const { managers, botPlans } = makeManagers([action.teamName || 'Meu Time'], '4-3-3', rivals, leagueSize, rng, orderedCrews)
       s.managers = managers; s.youIdx = 0
       for (const m of s.managers) m.money = NBA_CAREER_BUDGET
       s.dinastia = false; s.dinastiaBudget = undefined
@@ -2459,6 +2481,8 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}; s.seasonNo = 1
+      // 🔨 regras antes do pregão (igual o futebol) — só na abertura da carreira.
+      if (action.intro) { s.screen = 'nbaIntro'; return s }
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s
@@ -4457,7 +4481,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const nbaSigRef = useRef('')
   useEffect(() => {
     if (state.onlineMode === 'online' || state.sport !== 'basquete' || !state.nbaCareer) return
-    if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
+    if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'nbaSetup' || state.screen === 'nbaIntro' || state.screen === 'album' || state.screen === 'ranking') return
     const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}`
     if (sig === nbaSigRef.current) return
     nbaSigRef.current = sig

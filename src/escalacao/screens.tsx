@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS } from './types'
-import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, deletePyramidCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, MAX_CAREER_SLOTS, syncCareersWithCloud } from './store'
+import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, deletePyramidCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, MAX_CAREER_SLOTS, syncCareersWithCloud, NBA_STREET_TEAM_NAMES } from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, playWhistle, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -1269,7 +1269,7 @@ function BidLegendsHome() {
       <p className="text-center text-[11px] font-black uppercase tracking-wide text-black/45" style={OSWALD}>{t('👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — colecione todos', '👑 legend · ⭐ star · 💎 prospect · 🃏 cult hero — collect them all')}</p>
       {/* ⚡ PARTIDA RÁPIDA (vs CPU) — pregão cego do basquete, MESMO motor do
           futebol. Em teste (só o Diego vê). 3 rivais (franquias da NBA). */}
-      <Btn onClick={() => dispatch({ type: 'START_NBA', teamName: t('Meu Time', 'My Team'), rivals: 3 })} className="w-full text-lg">
+      <Btn onClick={() => dispatch({ type: 'GO_SETUP_NBA' })} className="w-full text-lg">
         ⚡ {t('PARTIDA RÁPIDA (VS CPU)', 'QUICK GAME (VS CPU)')}
       </Btn>
       <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('Pregão cego do quinteto (5) — em teste 🔧', 'Blind auction for your five (5) — testing 🔧')}</p>
@@ -1278,7 +1278,7 @@ function BidLegendsHome() {
       <motion.div className="rounded-xl"
         animate={{ boxShadow: ['0 0 0 0 rgba(124,58,237,0)', '0 0 16px 4px rgba(124,58,237,0.7)', '0 0 0 0 rgba(124,58,237,0)'] }}
         transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}>
-        <Btn onClick={() => dispatch({ type: 'START_NBA_CAREER', teamName: t('Meu Time', 'My Team') })} className="w-full text-lg" bg={PURPLE}>
+        <Btn onClick={() => dispatch({ type: 'GO_SETUP_NBA_CAREER' })} className="w-full text-lg" bg={PURPLE}>
           <span className="text-white">🛝 {t('CARREIRA · STREET LEAGUE', 'CAREER · STREET LEAGUE')} <span className="text-yellow-300">(new)</span></span>
         </Btn>
       </motion.div>
@@ -1317,6 +1317,203 @@ function BidLegendsHome() {
           </div>
         ))}
       </div>
+    </Shell>
+  )
+}
+
+// ─── SETUP DO BASQUETE (BidLegends) ───────────────────────────────────
+// Tela própria de montagem (não mexe no setup do futebol): nome do time,
+// quantos rivais dão lance e — na carreira — quais crews são seus rivais.
+// Bilíngue (BR/EN). Depois de AVANÇAR vai pra tela de regras (EscNbaIntro).
+export function EscNbaSetup() {
+  const t = useT()
+  const { state, dispatch } = useEsc()
+  const career = state.careerIntent // carreira (Street League) vs partida rápida
+  const [name, setName] = useState('')
+  const [rivals, setRivals] = useState(career ? 5 : 3)
+  const [rivalPicks, setRivalPicks] = useState<string[]>([])
+  const toggleRival = (team: string) => setRivalPicks(prev => {
+    if (prev.includes(team)) return prev.filter(t => t !== team)
+    const next = [...prev, team]
+    return next.length > rivals ? next.slice(next.length - rivals) : next
+  })
+  // nome do time = nome da conta (mesmo do online/estatísticas), editável aqui.
+  const [accountName, setAccountName] = useState<string | null>(null)
+  useEffect(() => {
+    let alive = true
+    const apply = (u: { user_metadata?: Record<string, unknown> } | null | undefined) => {
+      if (!alive) return
+      if (!u) { setAccountName(null); return }
+      const dn = ((u.user_metadata?.display_name as string) ?? '').trim()
+      setAccountName(dn)
+      if (dn) setName(prev => prev.trim() ? prev : dn)
+    }
+    supabase.auth.getUser().then(({ data }) => apply(data?.user))
+    const { data: sub } = supabase.auth.onAuthStateChange((_, s) => apply(s?.user))
+    return () => { alive = false; sub.subscription.unsubscribe() }
+  }, [])
+
+  async function start() {
+    const clean = stripEmoji(name).trim()
+    if (accountName !== null && clean && clean !== accountName) {
+      try { await supabase.auth.updateUser({ data: { display_name: clean } }) } catch { /* não trava o jogo */ }
+    }
+    const teamName = clean || t('Meu Time', 'My Team')
+    if (career) dispatch({ type: 'START_NBA_CAREER', teamName, rivals, rivalTeams: rivalPicks, intro: true })
+    else dispatch({ type: 'START_NBA', teamName, rivals, intro: true })
+  }
+
+  return (
+    <Shell>
+      <div className="flex justify-end pt-2"><LangToggle /></div>
+      <button onClick={() => dispatch({ type: 'GO_LOBBY' })}
+        className="flex items-center gap-1 text-black/60 font-black text-sm -mt-1 -mb-1 active:opacity-60" style={OSWALD}>
+        <span className="text-lg leading-none">←</span> {t('Início', 'Home')}
+      </button>
+      <h2 className="font-black text-3xl pt-2" style={OSWALD}>
+        {career ? `🛝 ${t('CARREIRA · STREET LEAGUE', 'CAREER · STREET LEAGUE')}` : `⚡ ${t('PARTIDA RÁPIDA', 'QUICK GAME')}`}
+      </h2>
+      <p className="text-sm font-bold text-black/60 -mt-1">
+        {career
+          ? t('Comece na várzea (Street League) e suba até a NBA. O leilão é o mesmo — o que muda é subir de liga a cada temporada. Dá pra salvar e voltar depois.', 'Start on the blacktop (Street League) and climb to the NBA. The auction is the same — what changes is moving up a league each season. You can save and come back later.')
+          : t('Uma temporada avulsa: monte o quinteto no pregão e dispute a liga.', 'A one-off season: draft your five at the auction and play the league.')}
+      </p>
+      <Box className="p-4 space-y-4">
+        {/* baralho fixo do basquete (NBA) — não tem escolha BR/Europa aqui */}
+        <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
+          <p className="font-black text-sm" style={OSWALD}>🏀 {t('Baralho fixo: lendas da NBA', 'Fixed deck: NBA legends')}</p>
+          <p className="text-[11px] font-bold text-black/65 mt-1">
+            {t('No basquete o baralho é sempre o das lendas da NBA (auges por ano/franquia). Não tem baralho BR nem Europa por aqui.', 'In basketball the deck is always the NBA legends (peaks by year/franchise). No BR or Europe deck here.')}
+          </p>
+        </div>
+        {/* nome do time */}
+        <div>
+          <p className="text-xs font-black uppercase mb-1">{t('Nome do seu time', 'Your team name')}</p>
+          <input
+            value={name}
+            onChange={e => setName(stripEmoji(e.target.value))}
+            placeholder={t('Ex.: Rucker Kings', 'e.g. Rucker Kings')}
+            className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-bold bg-white"
+          />
+          {accountName !== null && (
+            <p className="text-[11px] font-semibold text-black/55 mt-1">
+              🔗 {t('É o nome da sua conta — vale no CPU e no online. Se editar aqui, troca em todos os lugares.', 'It’s your account name — used vs CPU and online. Editing here changes it everywhere.')}
+            </p>
+          )}
+        </div>
+        {/* rivais que dão lance */}
+        <div>
+          <p className="text-xs font-black uppercase mb-1">{t('Rivais no pregão (CPUs)', 'Rivals at the auction (CPUs)')}</p>
+          <div className="grid grid-cols-4 gap-2">
+            {[3, 5, 7, 9].map(n => (
+              <button key={n} onClick={() => setRivals(n)}
+                className="border-[3px] border-black rounded-xl py-2 font-black text-sm"
+                style={{ backgroundColor: rivals === n ? PURPLE : '#fff', color: rivals === n ? '#fff' : INK, boxShadow: rivals === n ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                {n}
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] font-semibold text-black/60 mt-1.5 leading-snug">
+            {career
+              ? t('Quantos crews brigam com você no pregão. A liga é sempre de 20 times — o resto joga a temporada sem dar lance.', 'How many crews fight you at the auction. The league is always 20 teams — the rest play the season without bidding.')
+              : t('Mais rivais: mais gente brigando no leilão e mais variedade. Menos: jogo mais rápido.', 'More rivals: more bidders and more variety. Fewer: a faster game.')}
+          </p>
+        </div>
+        {/* carreira: escolher quais crews são seus rivais */}
+        {career && (
+          <div>
+            <p className="text-xs font-black uppercase mb-1">🔥 {t('Escolha seus rivais', 'Pick your rivals')} <span className="text-black/50">({rivalPicks.length}/{rivals})</span></p>
+            <p className="text-[11px] font-semibold text-black/55 mb-1.5">{t('Eles brigam com você no pregão da várzea.', 'They fight you at the blacktop auction.')}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {NBA_STREET_TEAM_NAMES.map(team => {
+                const on = rivalPicks.includes(team)
+                return (
+                  <button key={team} onClick={() => toggleRival(team)}
+                    className="border-2 border-black rounded-lg px-2 py-1 font-black text-[11px] active:translate-y-0.5"
+                    style={{ backgroundColor: on ? '#E8503A' : '#fff', color: on ? '#fff' : INK }}>
+                    {on ? '🔥 ' : ''}{team}
+                  </button>
+                )
+              })}
+            </div>
+            <button onClick={() => setRivalPicks([])} className="mt-2 border-2 border-black rounded-lg px-2.5 py-1 font-black text-[11px] bg-white active:translate-y-0.5" style={OSWALD}>
+              🎲 {t('Não escolher — usar rivais padrão', 'Don’t pick — use default rivals')}
+            </button>
+          </div>
+        )}
+        {career && <p className="text-xs font-semibold text-black/70">🏟️ {t('A liga completa 20 crews da várzea — você disputa a temporada contra todos.', 'The league fills 20 blacktop crews — you play the season against them all.')}</p>}
+      </Box>
+      <Btn onClick={start} className="w-full text-lg" bg={GREEN}>
+        <span className="text-white">{t('AVANÇAR', 'CONTINUE')} 🏀</span>
+      </Btn>
+    </Shell>
+  )
+}
+
+// ─── REGRAS DO BASQUETE (antes do pregão) ─────────────────────────────
+// Espelha a tela "Como funciona" do futebol, adaptada ao basquete e bilíngue:
+// moedas = lance, o quinteto (5 posições) e o nível = auge do craque. O jogador
+// toca "Começar o leilão" (START_STREAM_AUCTION) quando entender. Voltar = setup.
+export function EscNbaIntro() {
+  const t = useT()
+  const { state, dispatch } = useEsc()
+  const POS = [
+    ['PG', t('Armador', 'Point Guard')],
+    ['SG', t('Ala-armador', 'Shooting Guard')],
+    ['SF', t('Ala', 'Small Forward')],
+    ['PF', t('Ala-pivô', 'Power Forward')],
+    ['C', t('Pivô', 'Center')],
+  ] as [string, string][]
+  return (
+    <Shell>
+      <div className="flex justify-end pt-2"><LangToggle /></div>
+      <div className="text-center pt-2">
+        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>🏀 {t('Como funciona', 'How it works')}</span>
+        <h2 className="font-black text-3xl mt-3 leading-none" style={OSWALD}>{t('BEM-VINDO', 'WELCOME')}<br />{t('AO PREGÃO! 🏀', 'TO THE AUCTION! 🏀')}</h2>
+        <p className="text-sm font-semibold text-black/60 mt-2">{t('Antes de começar, entenda o leilão às cegas — pra quem tá chegando agora.', 'Before we start, get the blind auction — for anyone just arriving.')}</p>
+      </div>
+
+      <Box bg={GOLD} className="p-4" shadow={6}>
+        <p className="font-black text-lg" style={OSWALD}>🪙 {t('Moedas = seu lance', 'Coins = your bid')}</p>
+        <p className="text-sm font-bold text-black/75 mt-1 leading-snug">
+          {t('Cada técnico começa com ', 'Each manager starts with ')}<b>{t('50 moedas', '50 coins')}</b>{t('. Você dá um ', '. You place a ')}<b>{t('lance secreto', 'secret bid')}</b>{t(' (ninguém vê) em cada jogador. Na revelação: ', ' (nobody sees it) on each player. At the reveal: ')}<b>{t('quem deu o MAIOR lance leva o craque', 'the HIGHEST bid wins the star')}</b>{t(' e paga o que ofertou. Empate? Re-lance às cegas! ⚔️', ' and pays what they bid. Tie? Blind re-bid! ⚔️')}
+        </p>
+      </Box>
+
+      <Box bg="#EDE7FF" className="p-4" shadow={6}>
+        <p className="font-black text-lg" style={OSWALD}>🏀 {t('Você monta o QUINTETO (5)', 'You draft your STARTING FIVE (5)')}</p>
+        <p className="text-xs font-bold text-black/65 mt-1 mb-3 leading-snug">{t('Cinco rodadas de leilão cego, uma por posição — do armador ao pivô:', 'Five blind auction rounds, one per position — point guard to center:')}</p>
+        <div className="space-y-1.5">
+          {POS.map(([tag, label]) => (
+            <div key={tag} className="flex items-center gap-2 rounded-lg px-3 py-2 border-2 border-black bg-white">
+              <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px', minWidth: 30, textAlign: 'center' }}>{tag}</span>
+              <span className="font-black text-sm" style={OSWALD}>{label}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs font-bold text-black/70 mt-2 leading-snug">👆 {t('Toque na caixinha e digite quantas moedas quer dar — quanto mais moedas, mais chance de levar o craque! Bota 7, 15, 30… não só 1 😉', 'Tap the box and type how many coins to bid — more coins, more chance to land the star! Put 7, 15, 30… not just 1 😉')}</p>
+      </Box>
+
+      <Box bg="#EDE7FF" className="p-4" shadow={6}>
+        <p className="font-black text-lg" style={OSWALD}>🎭 {t('O nível é o AUGE do craque', 'The rating is the star’s PEAK')}</p>
+        <p className="text-xs font-bold text-black/65 mt-1 mb-3 leading-snug">{t('O mesmo jogador vale diferente conforme o ano e a franquia. Você aposta no nome — o nível só abre na revelação!', 'The same player is worth differently by year and franchise. You bet on the name — the rating only opens at the reveal!')}</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <CollectibleCard name="Michael Jordan" club="Bulls" year={1996} pos="ALA" fame={5} />
+            <p className="text-center text-[11px] font-black mt-1.5 leading-tight" style={OSWALD}>👑 {t('auge nos Bulls', 'peak with the Bulls')}<br />= {t('LENDA', 'LEGEND')}</p>
+          </div>
+          <div>
+            <CollectibleCard name="Victor Wembanyama" club="Spurs" year={2024} pos="PIVÔ" fame={3} promessa />
+            <p className="text-center text-[11px] font-black mt-1.5 leading-tight" style={OSWALD}>💎 {t('novato nos Spurs', 'rookie with the Spurs')}<br />= {t('PROMESSA', 'PROSPECT')}</p>
+          </div>
+        </div>
+      </Box>
+
+      <Btn onClick={() => dispatch({ type: 'START_STREAM_AUCTION' })} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ {t('COMEÇAR O LEILÃO', 'START THE AUCTION')} 🏀</span></Btn>
+      <button onClick={() => dispatch({ type: state.nbaCareer ? 'GO_SETUP_NBA_CAREER' : 'GO_SETUP_NBA' })}
+        className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black bg-white active:translate-y-0.5" style={{ ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}` }}>
+        ← {t('Voltar', 'Back')}
+      </button>
     </Shell>
   )
 }

@@ -211,6 +211,8 @@ export type Screen =
   | 'lobby'
   | 'setup'
   | 'streamIntro'
+  | 'nbaSetup'
+  | 'nbaIntro'
   | 'auction'
   | 'monte'
   | 'cerimonia'

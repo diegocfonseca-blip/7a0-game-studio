@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { flushPendingWrites } from './pending'
 import { EscProvider, useEsc } from './store'
 import { setSoundAllowed, isMuted, toggleMuted, onSoundChange, playCoin } from './sound'
-import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
+import { EscIntro, EscSetup, EscStreamIntro, EscNbaSetup, EscNbaIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
 import { EscLobby } from './lobby'
 import { useSport, useSportUnlocked, SPORT_BRAND } from './sport'
 import { hadLogin } from './apoio'
@@ -20,6 +20,8 @@ function Router() {
     case 'lobby':     return <EscLobby />
     case 'setup':     return <EscSetup />
     case 'streamIntro': return <EscStreamIntro />
+    case 'nbaSetup':  return <EscNbaSetup />
+    case 'nbaIntro':  return <EscNbaIntro />
     case 'auction':   return <EscAuction />
     case 'monte':     return <EscMonte />
     case 'cerimonia': return <EscCerimonia />
