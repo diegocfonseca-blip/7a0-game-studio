@@ -2041,11 +2041,15 @@ function Envelope() {
     return () => clearInterval(iv)
   }, [online, pending, iSubmitted, dispatch, you.id])
 
-  // auto-lacra ao zerar o timer
+  // auto-lacra ao zerar o timer. IMPORTANTE: lacra MESMO quem não pode dar lance
+  // (setor completo / 22 jogadores → só assiste). Sem isso, um espectador solo
+  // nunca lacrava, nada disparava a resolução da rodada e a tela travava eterno
+  // no TEMPO 0s (bug: só dava pra voltar ao menu, fora do save). Envelope vazio
+  // resolve o leilão normalmente.
   useEffect(() => {
-    if (remaining <= 0 && canBid && !iSubmitted && !pending) seal()
+    if (remaining <= 0 && !iSubmitted && !pending) seal()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remaining, canBid, iSubmitted, pending])
+  }, [remaining, iSubmitted, pending])
 
   // já lacrei, ou enviei e tô esperando o host confirmar (online)
   if (online && (iSubmitted || pending)) {
