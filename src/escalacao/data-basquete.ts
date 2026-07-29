@@ -95,6 +95,9 @@ const PG: BC[] = [
   { name: "Tyrese Maxey", club: "Sixers", year: 2024, fame: 3, lo: 79, hi: 87, bioPt: "Velocidade pura e três de longe, sempre sorrindo. O motor jovem da Filadélfia.", bioEn: "Blazing speed and deep threes, always smiling. Philadelphias young engine." },
   { name: "Mike Conley", club: "Grizzlies", year: 2016, fame: 3, lo: 79, hi: 86, bioPt: "O armador mais subestimado de uma geração. Comando silencioso, defesa e caráter.", bioEn: "The most underrated point guard of a generation. Quiet control, defense and character." },
   { name: "Dennis Schröder", club: "Hawks", year: 2023, fame: 2, lo: 74, hi: 84, folk: true, bioPt: "Alemão veloz e destemido — herói do ouro mundial de 2023. Fala pouco, corre muito.", bioEn: "A fast, fearless German — hero of the 2023 World Cup gold. Talks little, runs a lot." },
+  // ── Lote 5 (icônicos que faltavam) ──
+  { name: "Kevin Johnson", club: "Suns", year: 1990, fame: 3, lo: 80, hi: 87, bioPt: "KJ. Explosão e floater no garrafão — e o pôster em cima do Hakeem que ninguém esquece. Virou prefeito.", bioEn: "KJ. Explosion and floaters in the paint — and the poster on Hakeem nobody forgets. Later became a mayor." },
+  { name: "Earl Boykins", club: "Nuggets", year: 2004, fame: 1, lo: 60, hi: 80, folk: true, bioPt: "1,65m de pura coragem — o menor a marcar 30 num jogo. Levantava peso que gigante não levantava.", bioEn: "Five-foot-five of pure guts — the shortest ever to score 30 in a game. Bench-pressed more than the big men." },
 ]
 
 // ─── SG · ALA-ARMADOR ────────────────────────────────────────────────
@@ -156,6 +159,10 @@ const SG: BC[] = [
   { name: "Sidney Moncrief", club: "Bucks", year: 1983, fame: 4, lo: 83, hi: 90, bioPt: "Sir Sid. Duas vezes Defensor do Ano — travava o melhor do rival e ainda pontuava. HOF discreto.", bioEn: "Sir Sid. Two-time Defensive Player of the Year — locked up the rivals best and still scored. A quiet HOFer." },
   { name: "World B. Free", club: "Clippers", year: 1980, fame: 3, lo: 79, hi: 86, folk: true, bioPt: "All-World. Trocou o nome pra 'Mundo' e jogava como o nome — 30 por jogo de puro estilo.", bioEn: "All-World. Legally changed his name and played like it — 30 a night of pure style." },
   { name: "Anfernee Simons", club: "Blazers", year: 2023, fame: 2, lo: 76, hi: 85, folk: true, bioPt: "Salto de mola e três em série — o herdeiro do backcourt de Portland.", bioEn: "Springy hops and threes in bunches — heir to Portlands backcourt." },
+  // ── Lote 5 (icônicos que faltavam) ──
+  { name: "David Thompson", club: "Nuggets", year: 1978, fame: 4, lo: 84, hi: 91, bioPt: "Skywalker. Voava tão alto que inspirou o Jordan. Cravou 73 num jogo — pura elegância aérea.", bioEn: "Skywalker. Flew so high he inspired Jordan himself. Dropped 73 in a game — pure aerial elegance." },
+  { name: "Spud Webb", club: "Hawks", year: 1986, fame: 2, lo: 73, hi: 84, folk: true, bioPt: "1,68m que GANHOU o concurso de enterradas em 1986, humilhando gigantes. O menorzinho voador.", bioEn: "Five-foot-seven who WON the 1986 dunk contest, embarrassing giants. The tiny high-flyer." },
+  { name: "Reggie Theus", club: "Kings", year: 1983, fame: 3, lo: 79, hi: 86, folk: true, bioPt: "Estiloso dentro e fora da quadra — All-Star, galã e depois ator. Sacramento no sangue.", bioEn: "Stylish on and off the court — All-Star, heartthrob and later an actor. Sacramento in his blood." },
 ]
 
 // ─── SF · ALA ────────────────────────────────────────────────────────
@@ -216,6 +223,9 @@ const SF: BC[] = [
   { name: "Scottie Barnes", club: "Raptors", year: 2024, fame: 3, lo: 77, hi: 88, promessa: true, bioPt: "Gigante-canivete que arma, defende e sorri. O futuro do Toronto.", bioEn: "A Swiss-army giant who playmakes, defends and smiles. Torontos future." },
   { name: "Jalen Williams", club: "Thunder", year: 2024, fame: 3, lo: 77, hi: 87, promessa: true, bioPt: "J-Dub. Ala completo e peça de título do OKC jovem. Cresceu rápido demais.", bioEn: "J-Dub. A complete wing and title piece of the young Thunder. Grew up too fast." },
   { name: "Cedric Ceballos", club: "Suns", year: 1993, fame: 2, lo: 74, hi: 84, folk: true, bioPt: "Ganhou o concurso de enterradas DE OLHOS VENDADOS. Pontuava e curtia a vida.", bioEn: "Won the dunk contest BLINDFOLDED. Scored buckets and enjoyed life." },
+  // ── Lote 5 (icônicos que faltavam) ──
+  { name: "DeMar DeRozan", club: "Bulls", year: 2022, fame: 3, lo: 81, hi: 88, bioPt: "O último samurai da meia distância. Recusou os três e virou lenda do jumper de fadeaway.", bioEn: "The last mid-range samurai. Refused the three and became a fadeaway-jumper legend." },
+  { name: "Bill Bradley", club: "Knicks", year: 1973, fame: 3, lo: 80, hi: 87, bioPt: "Dollar Bill. Cérebro do Knicks campeão, HOF — e depois senador dos EUA. Elenco e caráter.", bioEn: "Dollar Bill. The brain of the champion Knicks, a HOFer — and later a U.S. senator. Skill and character." },
 ]
 
 // ─── PF · ALA-PIVÔ ───────────────────────────────────────────────────
@@ -340,6 +350,10 @@ const C: BC[] = [
   { name: "Jack Sikma", club: "SuperSonics", year: 1982, fame: 3, lo: 80, hi: 87, bioPt: "Cabelo enrolado e o step-back de pivô que virou aula. Campeão e HOF em Seattle.", bioEn: "Curly hair and the big-man step-back that became a teaching tool. Champion and HOFer in Seattle." },
   { name: "Brook Lopez", club: "Bucks", year: 2021, fame: 3, lo: 79, hi: 86, bioPt: "Splash Mountain. Pivô que virou muralha de três e toco — âncora do título de 2021.", bioEn: "Splash Mountain. A center turned three-point wall and shot-blocker — anchor of the 2021 title." },
   { name: "Timofey Mozgov", club: "Lakers", year: 2017, fame: 1, lo: 60, hi: 80, folk: true, bioPt: "O russo que ficou famoso pelo CONTRATO de 64 milhões — e por um pôster do Blake Griffin.", bioEn: "The Russian famous for his 64-million-dollar CONTRACT — and a Blake Griffin poster." },
+  // ── Lote 5 (icônicos que faltavam) ──
+  { name: "Al Jefferson", club: "Bobcats", year: 2014, fame: 3, lo: 79, hi: 86, bioPt: "Big Al. Footwork de manual no poste baixo — a última aula de jogo de costas pra cesta.", bioEn: "Big Al. Textbook footwork on the low block — the last great post-up master." },
+  { name: "Steven Adams", club: "Thunder", year: 2016, fame: 2, lo: 74, hi: 84, folk: true, bioPt: "O maori de bigode que quebra pick como parede. Faz o trabalho sujo sorrindo — xodó de todo mundo.", bioEn: "The mustached Kiwi who sets screens like a brick wall. Does the dirty work with a grin — a total fan favorite." },
+  { name: "DeAndre Ayton", club: "Suns", year: 2021, fame: 2, lo: 77, hi: 85, bioPt: "Grandão dominante que levou o Phoenix à final de 2021. Talento de sobra, motor que oscila.", bioEn: "A dominant big who took Phoenix to the 2021 Finals. Loads of talent, a motor that comes and goes." },
 ]
 
 // catálogo por posição — mesma forma do futebol (Record<posição, cartas[]>)
