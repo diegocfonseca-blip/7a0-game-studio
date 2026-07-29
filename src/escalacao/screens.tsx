@@ -3301,19 +3301,18 @@ export function EscCerimonia() {
         <div className="flex-1"><Btn className="w-full" bg={GOLD}
           onClick={() => setIdx((idx + 1) % mgrs.length)}>{L('Próximo ▶', 'Next ▶')}</Btn></div>
       </div>
-      {/* 🏀 basquete: a temporada (por pontos) ainda não entrou — em vez de cair
-          na temporada de FUTEBOL, mostra um aviso honesto e volta pra home. */}
+      {/* 🏀 basquete: quinteto montado → começa a TEMPORADA (jogos por pontos, tabela,
+          cestinha, playoffs). O cronômetro acima já dá o start sozinho; este botão só
+          adianta. Bilíngue. (Antes tinha um aviso "chega na próxima atualização" que
+          contradizia o cronômetro — a temporada já existe.) */}
       {state.sport === 'basquete' ? (
-        <div className="border-[3px] border-black rounded-2xl p-4 text-center space-y-2" style={{ background: '#fff', boxShadow: `4px 4px 0 0 ${INK}` }}>
-          <div className="text-3xl">🏆</div>
-          <p className="font-black text-lg uppercase" style={OSWALD}>{t('Quinteto fechado!', 'Your five is set!')}</p>
-          <p className="text-[13px] font-semibold text-black/60 leading-snug">
-            {t('Você montou seu time no pregão. A temporada do basquete (jogos por pontos, tabela e playoffs) entra na próxima atualização. 🔧', 'You built your team in the auction. The basketball season (games by points, standings and playoffs) arrives in the next update. 🔧')}
-          </p>
-          <Btn className="w-full" bg={GREEN} onClick={() => dispatch({ type: 'GO_LOBBY' })}>
-            <span style={{ color: '#fff' }}>🏠 {t('Voltar ao início', 'Back to home')}</span>
+        canStart ? (
+          <Btn className="w-full text-lg" bg={GREEN} onClick={() => dispatch({ type: 'FINISH_CEREMONY' })}>
+            <span style={{ color: '#fff' }}>🏀 {t('COMEÇAR A TEMPORADA', 'START THE SEASON')}</span>
           </Btn>
-        </div>
+        ) : (
+          <p className="text-center text-sm font-bold text-black/55 py-1">🏀 {t('A temporada começa quando o tempo acabar…', 'The season starts when the clock runs out…')}</p>
+        )
       ) : canStart ? (
         <Btn className="w-full text-lg" bg={GREEN} onClick={() => dispatch({ type: 'FINISH_CEREMONY' })}>
           <span style={{ color: '#fff' }}>{(state.streamMode || state.manualRoom) ? '▶️ COMEÇAR O CAMPEONATO 🏆' : 'COMEÇAR AGORA 🏆'}</span>
@@ -4139,18 +4138,34 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
   // Leste par · 🔴 Oeste ímpar) — top 4 de cada vai aos playoffs. Na Street não.
   const confTier = bb && state.copaMode === 'liga_copa'
   const confOf = (id: number) => id % 2 === 0 ? '🔵 ' : '🔴 '
+  // 🏀 título da tabela = nome do ANDAR (🛝 Street League / 🔷 G League / 💍 NBA) na
+  // carreira; genérico no jogo rápido. Futebol mantém o título recebido (LIGA LEGENDS).
+  const bbTitle = state.nbaCareer ? NBA_TIER_LABEL[state.nbaTier ?? 'street'][blLang === 'en' ? 'en' : 'pt'] : L('🏀 Classificação', '🏀 Standings')
   const league = holdResults && state.lastResults.length > 0 ? leagueBeforeResults(state.league, state.lastResults) : state.league
   const table = sortedTable(league)
   return (
     <Box className="p-3 overflow-x-auto">
       <div className="flex items-center justify-between mb-2">
-        <p className="font-black text-sm" style={OSWALD}>{title}</p>
-        <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#D6E9FA' }} />G{zoneN(table.length)}</span>
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFF3B8' }} />Pré</span>
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block border border-black/20" style={{ backgroundColor: '#fff' }} />Meio</span>
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#F9D8D3' }} />Z{zoneN(table.length)}</span>
-        </div>
+        <p className="font-black text-sm" style={OSWALD}>{bb ? bbTitle : title}</p>
+        {bb ? (
+          // 🏀 no basquete NINGUÉM CAI: sem zona de rebaixamento (Z) nem "Pré". Na
+          // Street a faixa verde = quem SOBE (top 4); nos andares de playoff a
+          // qualificação é por conferência (🔵/🔴) — explicada na nota abaixo, sem
+          // faixa por posição geral (que enganaria).
+          !confTier && (
+            <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">
+              <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#D6E9FA' }} />{L('Sobe', 'Up')}</span>
+              <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block border border-black/20" style={{ backgroundColor: '#fff' }} />{L('Meio', 'Mid')}</span>
+            </div>
+          )
+        ) : (
+          <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">
+            <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#D6E9FA' }} />G{zoneN(table.length)}</span>
+            <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFF3B8' }} />Pré</span>
+            <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block border border-black/20" style={{ backgroundColor: '#fff' }} />Meio</span>
+            <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#F9D8D3' }} />Z{zoneN(table.length)}</span>
+          </div>
+        )}
       </div>
       {confTier && <p className="text-[10px] font-bold text-black/55 mb-1.5">{L('🔵 Leste · 🔴 Oeste — top 4 de cada conferência vai aos playoffs', '🔵 East · 🔴 West — top 4 of each conference makes the playoffs')}</p>}
       <table className="w-full text-xs">
@@ -4180,7 +4195,7 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
               ? (youPerk ? youPerk.grad : APOIO_PERKS.bege.light)
               : isOnlineRival
                 ? (rivPerk ? rivPerk.grad : APOIO_PERKS.bege.light)
-                : isRival ? '#FFE0D6' : zoneColor(rank, table.length)
+                : isRival ? '#FFE0D6' : (bb ? (confTier ? undefined : (rank <= zoneN(table.length) ? '#D6E9FA' : undefined)) : zoneColor(rank, table.length))
             const rowInk = youPerk ? TIER_INK[youPerk.tier] : rivPerk ? TIER_INK[rivPerk.tier] : undefined
             return (
               <tr key={t.id} className="border-t border-black/10 font-semibold"
