@@ -118,6 +118,11 @@ export interface Manager {
   // a ficha dele (cpuSquads) é atualizada e ele SAI da lista. Fica sempre em 11.
   marketCpu?: boolean
   marketTeam?: string // nome do time de fundo que este participante temporário representa (chave da ficha/clubCash)
+  // 🏛️ MULTICLUBES: `mine` = 2º clube do PRÓPRIO jogador (assento independente, id
+  // próprio → caixa/títulos/estádio separados). `dormindo` = não está no comando
+  // agora (fica congelado, "mesmo time", não vai ao leilão, não dá lance). Só solo.
+  mine?: boolean
+  dormindo?: boolean
   // arquétipo da CPU
   aggression: number // 0..1 — quanto gasta cedo
   starHunger: number // 0..1 — quanto concentra em figurões
@@ -355,8 +360,16 @@ export interface EscState {
   // comprado por 4.000 moedas (só Lenda). Igual à SAF: escolhe um clube EXISTENTE da
   // Série D, que passa a ser seu (herda nome/história, vira sua cor). O não-selecionado
   // DORME (não lista/compra/dá lance). Fase 1 = só a compra.
-  multiClube?: { team: string; since: number } | null
-  multiClubeAtivo?: boolean // true = o 2º clube está selecionado (o principal dorme); false/undefined = principal ativo. (Fase 2: seletor)
+  // `id` = id do assento do 2º clube (manager independente). Caixa/títulos/estádio/
+  // divisão são keyed por id → JÁ separados. Os campos "únicos" do solo (extrato, SAF,
+  // patrocínio, agência) NÃO são keyed por id, então guardamos aqui a versão do clube
+  // que está DORMINDO — troca no seletor (nada mistura entre os dois).
+  multiClube?: {
+    team: string; since: number; id: number
+    ledger?: LedgerEntry[]; filial?: EscState['careerFilial']; sponsor?: string
+    empresario?: EmpCard[]; empresarioClaims?: string[]
+  } | null
+  multiClubeAtivo?: boolean // true = o 2º clube está no comando (youIdx aponta pra ele); false/undefined = principal ativo
   simV?: number // versão da fórmula da simulação: 2+ = teto de elite 1.28 (só vale de temporada NOVA em diante — a que está rolando termina na fórmula em que começou)
   careerPlacements?: Record<string, string> | null // pirâmide: chave do time → divisão ('A'..'D'). Compacto (só a colocação). Atualiza a cada temporada.
   copaDoneSeason?: number // pirâmide: nº da temporada cuja Copa Legends JÁ foi assistida até o fim — ao retomar o save, não re-anima a Copa do zero (mostra direto os campeões/decisão).

@@ -588,9 +588,10 @@ function pickSurprise(deck: Record<Sector, Card[]>, rng: () => number): string |
   return all.length ? all[Math.floor(rng() * all.length)] : undefined
 }
 
-// managers que efetivamente brigam no leilão (exclui bots de preenchimento)
+// managers que efetivamente brigam no leilão (exclui bots de preenchimento e o
+// 🏛️ MULTICLUBES que está DORMINDO — o 2º clube não-selecionado não dá lance).
 function auctioningManagers(managers: Manager[]): Manager[] {
-  return managers.filter(m => m.isHuman || m.auctionRival)
+  return managers.filter(m => (m.isHuman || m.auctionRival) && !m.dormindo)
 }
 
 // ─── CPU: envelopes de lance ─────────────────────────────────────────
@@ -1875,6 +1876,7 @@ type Action =
   | { type: 'SET_SPONSOR'; id: string; mgrId?: number } // 👕 escolhe a marca do patrocínio (solo: careerSponsor · online: careerSponsors[mgrId])
   | { type: 'BUY_FILIAL'; team: string; mgrId?: number } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])
   | { type: 'BUY_MULTICLUBE'; team: string } // 🏛️ MULTICLUBES (solo): compra um 2º clube da Série D por 4.000 moedas (só Lenda; trava de tier fica na UI)
+  | { type: 'SWITCH_MULTICLUBE' } // 🏛️ MULTICLUBES (solo): passa o comando pro outro clube (só entre temporadas). O que sai dorme.
   | { type: 'SELL_FILIAL'; mgrId?: number } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 2.500)
   | { type: 'ADD_EMPRESARIO_CARD'; card: EmpCard; key?: string; mgrId?: number } // 💼 registra uma carta ganha (pacote de campeão) na agência do Empresário. `key` = seasonKey do pacote (dedup por temporada — aceita repetida entre temporadas). `mgrId` = técnico dono (online: por-técnico)
   | { type: 'LOAN_TO_FILIAL'; cardId: string; mgrId?: number } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda, volta na virada)
@@ -2919,21 +2921,49 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'BUY_MULTICLUBE': {
-      // 🏛️ MULTICLUBES (Fase 1 — a compra): 2º clube da Série D por 4.000 moedas. SÓ
-      // carreira SOLO. A trava de tier (só Lenda) fica na UI; aqui garantimos o resto:
-      // caixa suficiente, ainda não comprou, e o alvo é um clube que ESTÁ na Série D e
-      // NÃO é seu nem de outro técnico/rival. (O "dorme/seletor" vem na Fase 2.)
+      // 🏛️ MULTICLUBES · a compra: transforma um clube EXISTENTE da Série D (um bot da
+      // sua liga) no SEU 2º clube. Vira um assento independente (id próprio → caixa,
+      // títulos, estádio, divisão JÁ separados por construção). Começa DORMINDO.
       const PRECO = 4000
       if (s.onlineMode === 'online' || !s.careerOnline || s.multiClube) return s
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
       const coins = s.careerCoins?.[you.id] ?? 0
       if (coins < PRECO) return s
-      if (you.teamName === action.team || s.managers.some(m => m.teamName === action.team)) return s
-      if (s.careerPlacements?.[action.team] !== 'D') return s // tem que ser um clube da Série D
-      s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - PRECO }
-      s.multiClube = { team: action.team, since: s.seasonNo }
+      // o alvo é um bot da Série D (não você, não rival, não já-meu)
+      const club = s.managers.find(m => m.teamName === action.team && !m.rival && !m.auctionRival && m.id !== you.id && !m.mine)
+      if (!club || (s.careerPlacements?.[`m${club.id}`] ?? 'D') !== 'D') return s
+      club.mine = true; club.dormindo = true; club.isHuman = true; club.auctionRival = false
+      const cc = { ...(s.careerCoins ?? {}) }
+      cc[you.id] = coins - PRECO // paga do TEU caixa (do clube ativo)
+      cc[club.id] = Math.round(s.clubCash?.[`m${club.id}`] ?? 100) // caixa PRÓPRIA do 2º clube (herda o que ele tinha)
+      s.careerCoins = cc
+      s.multiClube = { team: action.team, since: s.seasonNo, id: club.id }
+      s.multiClubeAtivo = false // você segue no comando do principal; o 2º dorme
       logFin(s, 'safbuy', `🏛️ Compra do 2º clube (Multiclubes) · ${action.team}`, -PRECO)
+      return s
+    }
+    case 'SWITCH_MULTICLUBE': {
+      // 🏛️ MULTICLUBES · troca de comando (SÓ entre temporadas — a UI só mostra o
+      // botão na tela de fim). Passa o comando pro outro clube; o que sai DORME
+      // (congelado, "mesmo time"). Nada mistura: caixa/títulos/estádio já são por id;
+      // os campos ÚNICOS do solo (extrato/SAF/patrocínio/agência) fazem swap com o stash.
+      if (s.onlineMode === 'online' || !s.careerOnline || !s.multiClube) return s
+      const active = s.managers[s.youIdx]
+      const sleepIdx = s.managers.findIndex(m => m.id === s.multiClube!.id)
+      if (!active || sleepIdx < 0) return s
+      const sleeping = s.managers[sleepIdx]
+      active.dormindo = true; sleeping.dormindo = false
+      s.youIdx = sleepIdx
+      // swap dos campos ÚNICOS (o que estava ativo vai pro stash; o que dormia volta)
+      const stash = { ledger: s.careerLedger ?? [], filial: s.careerFilial ?? undefined, sponsor: s.careerSponsor, empresario: s.empresarioCards ?? [], empresarioClaims: s.empresarioClaimKeys ?? [] }
+      s.careerLedger = s.multiClube.ledger ?? []
+      s.careerFilial = s.multiClube.filial ?? null
+      s.careerSponsor = s.multiClube.sponsor
+      s.empresarioCards = s.multiClube.empresario ?? []
+      s.empresarioClaimKeys = s.multiClube.empresarioClaims ?? []
+      s.multiClube = { team: active.teamName, id: active.id, since: s.multiClube.since, ...stash }
+      s.multiClubeAtivo = !s.multiClubeAtivo
       return s
     }
     case 'SELL_FILIAL': {

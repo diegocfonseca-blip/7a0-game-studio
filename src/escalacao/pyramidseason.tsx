@@ -2343,6 +2343,22 @@ export function PyramidSeasonScreen() {
                 </div>
               )}
               <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>📅 Próxima temporada</p>
+              {/* 🏛️ MULTICLUBES · seletor (só entre temporadas, só testers) */}
+              {MULTICLUBE_TESTERS.includes((loggedEmail() ?? '').toLowerCase()) && state.multiClube && (() => {
+                const ativo = state.managers[state.youIdx]?.teamName ?? '—'
+                const dormindo = state.multiClube.team
+                return (
+                  <div style={{ ...box('#0C0C0C'), padding: 11, color: '#fff', margin: '0 0 10px' }}>
+                    <p style={{ fontWeight: 900, fontSize: 12.5, color: GOLD, ...OSWALD, margin: 0 }}>🏛️ MULTICLUBES — quem você comanda?</p>
+                    <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
+                      <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: GOLD, color: '#000', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>🟡 {ativo}<div style={{ fontSize: 8, fontWeight: 800 }}>no comando ✓</div></div>
+                      <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: '#3a3a3a', color: 'rgba(255,255,255,.7)', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>⚪ {dormindo}<div style={{ fontSize: 8, fontWeight: 800 }}>dormindo 💤</div></div>
+                    </div>
+                    <button onClick={() => dispatch({ type: 'SWITCH_MULTICLUBE' })} style={{ width: '100%', marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 12, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>🔄 Passar o comando pro {dormindo}</button>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 8.5, color: 'rgba(255,255,255,.45)', margin: '6px 0 0', textAlign: 'center' }}>Trocar = na próxima você comanda o outro; este dorme (mesmo time). 🏗️ em teste.</p>
+                  </div>
+                )
+              })()}
               <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas (por nome exato) já entram. {state.seasonNo === 1
                 ? <>Abra o <b>leilão de reservas</b> (todos com a sua caixa, compram pra encher o banco até 22), ou siga com o mesmo elenco.</>
                 : <>Abra o <b>leilão de transferências</b> (1 carta nova por posição + os jogadores que cada técnico listar), ou siga com o mesmo elenco.</>}</p>
