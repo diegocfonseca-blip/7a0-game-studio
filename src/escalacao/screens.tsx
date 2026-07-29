@@ -4314,9 +4314,13 @@ async function shareCardImage(c: { name: string; club: string; year: number; pos
   x.fillText(`${c.club} · ${c.year}`, W / 2, M + ch * 0.66 + 48)
   x.font = `700 36px Arial`
   x.fillText(isProm ? '💎💎💎' : '⭐'.repeat(Math.max(1, c.fame)), W / 2, M + ch * 0.66 + 104)
-  if (c.bio) {
+  // 📝 BIO: a carta compartilhada leva a bio REAL do jogador (a escrita na carta ou a
+  // do catálogo por nome, BIOS[nome]). Se o jogador NÃO tem bio, fica vazio mesmo —
+  // nada de texto genérico inventado (pedido do Diego).
+  const bioText = c.bio ?? BIOS[c.name]
+  if (bioText) {
     x.font = `italic 700 28px Georgia`; x.fillStyle = dark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.72)'
-    const words = ('“' + c.bio + '”').split(' '); const lines: string[] = []; let ln = ''
+    const words = ('“' + bioText + '”').split(' '); const lines: string[] = []; let ln = ''
     for (const w2 of words) { const t = ln ? ln + ' ' + w2 : w2; if (x.measureText(t).width > cw - 130 && ln) { lines.push(ln); ln = w2 } else ln = t }
     if (ln) lines.push(ln)
     lines.slice(0, 4).forEach((l, i) => x.fillText(l, W / 2, M + ch * 0.66 + 168 + i * 38))
