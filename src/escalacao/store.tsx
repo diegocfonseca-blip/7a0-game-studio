@@ -10,6 +10,7 @@ import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSI
 import { stripEmoji } from './apoio'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
 import { NBA_SLOTS_PER_POS } from './sportcfg'
+import { getLang } from './lang'
 
 // baralho ativo da partida atual (só solo troca): 🇧🇷 Brasileirão ou 🌍 Liga
 // Europa. buildDeck e makeBotSquad leem daqui. É setado no início de cada
@@ -1346,7 +1347,9 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       for (const [id, f] of [[homeId, fh], [awayId, fa]] as [number, TeamForm][]) {
         if (f.inspired && isHuman(id)) {
           const tn = state.league.find(t => t.id === id)!.name
-          state.news.unshift(`🔥 NOITE INSPIRADA: ${f.inspired} (${tn}) acordou astro na rodada ${state.round + 1}!`)
+          state.news.unshift(state.sport === 'basquete' && getLang() === 'en'
+            ? `🔥 INSPIRED NIGHT: ${f.inspired} (${tn}) caught fire in round ${state.round + 1}!`
+            : `🔥 NOITE INSPIRADA: ${f.inspired} (${tn}) acordou astro na rodada ${state.round + 1}!`)
         }
       }
     }
@@ -1524,16 +1527,21 @@ function narrateRound(s: EscState, results: MatchResult[], prevRank: Map<number,
   const nameOf = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
   const nowSorted = sortedTable(s.league)
   const heads: string[] = []
+  // 🌐 notícias do basquete nascem bilíngues (regra do Diego); futebol SEMPRE PT.
+  // getLang() fixa o idioma no momento em que a notícia é criada (o basquete é o
+  // único que checa; futebol cai no ramo PT sempre, byte-idêntico).
+  const bbNews = s.sport === 'basquete'
+  const en = bbNews && getLang() === 'en'
+  const N = (pt: string, e: string) => en ? e : pt
 
   // 1) novo líder?
   const leader = nowSorted[0]
   const prevLeaderId = [...prevRank.entries()].find(([, r]) => r === 1)?.[0]
   if (leader && prevLeaderId != null && prevLeaderId !== leader.id) {
-    heads.push(`👑 ${leader.name} assumiu a liderança do campeonato!`)
+    heads.push(N(`👑 ${leader.name} assumiu a liderança do campeonato!`, `👑 ${leader.name} took over first place!`))
   }
 
   // 2) cestinha/artilheiro pegando fogo (cruzou uma marca nesta rodada)
-  const bbNews = s.sport === 'basquete'
   const fireStep = bbNews ? 25 : 5 // basquete conta em PONTOS (marca a cada 25); futebol a cada 5 gols
   let milestone: { name: string; team: string; g: number } | null = null
   for (const sc of s.scorers) {
@@ -1542,7 +1550,7 @@ function narrateRound(s: EscState, results: MatchResult[], prevRank: Map<number,
       if (!milestone || sc.goals > milestone.g) milestone = { name: sc.name, team: sc.teamName, g: sc.goals }
     }
   }
-  if (milestone) heads.push(`🎯 ${milestone.name} (${milestone.team}) tá pegando fogo: ${milestone.g} ${bbNews ? 'pontos' : 'gols'} na temporada!`)
+  if (milestone) heads.push(N(`🎯 ${milestone.name} (${milestone.team}) tá pegando fogo: ${milestone.g} ${bbNews ? 'pontos' : 'gols'} na temporada!`, `🎯 ${milestone.name} (${milestone.team}) is on fire: ${milestone.g} points this season!`))
 
   // 3) zebra da rodada (vencedor bem pior colocado que o perdedor)
   let zebra: { winId: number; loseId: number; wr: number; lr: number; wg: number; lg: number; gap: number } | null = null
@@ -1556,7 +1564,7 @@ function narrateRound(s: EscState, results: MatchResult[], prevRank: Map<number,
       zebra = { winId, loseId, wr, lr, wg: Math.max(r.hg, r.ag), lg: Math.min(r.hg, r.ag), gap }
     }
   }
-  if (zebra) heads.push(`😱 ZEBRA! ${nameOf(zebra.winId)} (${zebra.wr}º) derrubou o ${nameOf(zebra.loseId)} (${zebra.lr}º): ${zebra.wg}×${zebra.lg}.`)
+  if (zebra) heads.push(N(`😱 ZEBRA! ${nameOf(zebra.winId)} (${zebra.wr}º) derrubou o ${nameOf(zebra.loseId)} (${zebra.lr}º): ${zebra.wg}×${zebra.lg}.`, `😱 UPSET! ${nameOf(zebra.winId)} (#${zebra.wr}) took down ${nameOf(zebra.loseId)} (#${zebra.lr}): ${zebra.wg}×${zebra.lg}.`))
 
   // 4) goleada/atropelo da rodada (fora a zebra, se sobrar espaço). No basquete a
   // margem de "atropelo" é bem maior (basta ver: 4 pontos não é goleada).
@@ -1569,7 +1577,7 @@ function narrateRound(s: EscState, results: MatchResult[], prevRank: Map<number,
   if (big && (!zebra || (big.r.homeId !== zebra.winId && big.r.homeId !== zebra.loseId))) {
     const winId = big.r.hg > big.r.ag ? big.r.homeId : big.r.awayId
     const loseId = big.r.hg > big.r.ag ? big.r.awayId : big.r.homeId
-    heads.push(`💥 ${nameOf(winId)} ${bbNews ? 'atropelou' : 'goleou'} o ${nameOf(loseId)}: ${Math.max(big.r.hg, big.r.ag)}×${Math.min(big.r.hg, big.r.ag)}.`)
+    heads.push(N(`💥 ${nameOf(winId)} ${bbNews ? 'atropelou' : 'goleou'} o ${nameOf(loseId)}: ${Math.max(big.r.hg, big.r.ag)}×${Math.min(big.r.hg, big.r.ag)}.`, `💥 ${nameOf(winId)} ran over ${nameOf(loseId)}: ${Math.max(big.r.hg, big.r.ag)}×${Math.min(big.r.hg, big.r.ag)}.`))
   }
 
   return heads.slice(0, 3).map(h => `R${roundNum} · ${h}`)
@@ -3297,7 +3305,13 @@ export function reducer(state: EscState, action: Action): EscState {
           const champName = champId === champ.aId ? champ.aName : champ.bName
           const you = s.managers.find(m => m.id === champId && m.isHuman)
           qc.champion = { id: champId, name: champName, you: !!you }
-          s.news = [`👑 ${champName} É CAMPEÃO DA COPA DOS 8!`, ...s.news].slice(0, 12)
+          {
+            const enC = s.sport === 'basquete' && getLang() === 'en'
+            const champHead = s.sport === 'basquete'
+              ? (enC ? `👑 ${champName} ARE THE CHAMPIONS! 🏀💍` : `👑 ${champName} É CAMPEÃO DOS PLAYOFFS! 🏀💍`)
+              : `👑 ${champName} É CAMPEÃO DA COPA DOS 8!`
+            s.news = [champHead, ...s.news].slice(0, 12)
+          }
           qc.phase = 'done'
           qc.ties = []
           s.screen = 'end'
@@ -3338,8 +3352,18 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       // 📣 GIRO DA COPA: manchetes do que acabou de rolar (placar, quem passou,
       // pênaltis) — o giro fala DA COPA agora, não das rodadas da liga.
-      const phaseWord = isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : 'QUARTAS'
-      const legWord = isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
+      // 🌐 basquete bilíngue (futebol sempre PT). O prefixo do placar é marcador
+      // ESTÁVEL do anti-spoiler (screens: isCopaReveal): futebol "⚽ Copa ", basquete
+      // "🏀 Playoffs " — o filtro pega os dois, então NADA de placar de playoff
+      // aparece antes do apito (regra #1 do Diego: zero spoiler).
+      const bbC = s.sport === 'basquete'
+      const enC = bbC && getLang() === 'en'
+      const phaseWord = bbC
+        ? (enC ? (isFinal ? 'FINALS' : qc.phase === 'semis' ? 'CONF FINALS' : 'CONF SEMIS') : (isFinal ? 'FINAIS' : qc.phase === 'semis' ? 'FINAIS DE CONF' : 'SEMIS DE CONF'))
+        : (isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : 'QUARTAS')
+      const legWord = isFinal ? '' : bbC
+        ? (enC ? (qc.legIdx === 0 ? ' · game 1' : ' · game 2') : (qc.legIdx === 0 ? ' · jogo 1' : ' · jogo 2'))
+        : (qc.legIdx === 0 ? ' · ida' : ' · volta')
       const copaHeads: string[] = []
       for (const tie of qc.ties) {
         const leg = tie.legs[tie.legs.length - 1]
@@ -3349,11 +3373,13 @@ export function reducer(state: EscState, action: Action): EscState {
         const swap = qc.legIdx === 1 // volta
         const mand = swap ? tie.bName : tie.aName, vis = swap ? tie.aName : tie.bName
         const mandG = swap ? leg[1] : leg[0], visG = swap ? leg[0] : leg[1]
-        copaHeads.push(`⚽ Copa ${phaseWord}${legWord}: ${mand} ${mandG} × ${visG} ${vis}`)
+        copaHeads.push(`${bbC ? '🏀 Playoffs' : '⚽ Copa'} ${phaseWord}${legWord}: ${mand} ${mandG} × ${visG} ${vis}`)
         if (tie.winner !== null) {
           const w = tie.winner === tie.aId ? tie.aName : tie.bName
           const l = tie.winner === tie.aId ? tie.bName : tie.aName
-          copaHeads.push(tie.pens ? `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!` : `🏆 ${w} avançou na Copa — adeus, ${l}!`)
+          copaHeads.push(bbC
+            ? (enC ? `🏆 ${w} won the series over ${l}!` : `🏆 ${w} venceu a série contra ${l}!`)
+            : (tie.pens ? `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!` : `🏆 ${w} avançou na Copa — adeus, ${l}!`))
         }
       }
       s.news = [...copaHeads, ...s.news].slice(0, 12)

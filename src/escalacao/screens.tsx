@@ -3945,14 +3945,21 @@ export function EscSeason() {
         // manchetes que revelam PLACAR / quem passou / campeão entregam o resultado
         // antes do apito. Some SÓ essas linhas de Copa; o resto do giro segue. Quando
         // o relógio fecha (copaMin >= 93), o giro aparece completo.
-        const isCopaReveal = (n: string) => /^⚽ Copa /.test(n) || /passou nos PÊNALTIS/.test(n) || /avançou na Copa/.test(n) || /CAMPEÃO DA COPA/.test(n)
+        // 🚫 ANTI-SPOILER: pega TODA manchete de resultado de mata-mata (futebol E
+        // basquete, PT E EN) — placar (prefixo ⚽ Copa / 🏀 Playoffs), quem passou
+        // (pênaltis/avançou/série/advanced) e o campeão — pra nada vazar antes do apito.
+        const isCopaReveal = (n: string) =>
+          /^⚽ Copa /.test(n) || /^🏀 Playoffs /.test(n) ||
+          /passou nos PÊNALTIS|avançou|venceu a série/.test(n) ||
+          /advanced|won the series/.test(n) ||
+          /CAMPEÃO|CHAMPION/.test(n)
         // giroNews é o giro SEGURADO (só atualiza no apito) — o filtro de linhas de
         // Copa fica como segurança extra enquanto a perna anima.
         const shownNews = copaLive && copaMin < 93 ? giroNews.filter(n => !isCopaReveal(n)) : giroNews
         if (shownNews.length === 0) return null
         return (
           <Box bg="#FFF6DC" className="p-3 space-y-1">
-            <p className="font-black text-xs uppercase tracking-wide mb-1" style={OSWALD}>{copaLive ? '🏆 Giro da Copa' : '📣 Giro da rodada'}</p>
+            <p className="font-black text-xs uppercase tracking-wide mb-1" style={OSWALD}>{copaLive ? (bbS ? LS('🏆 Giro dos Playoffs', '🏆 Playoff roundup') : '🏆 Giro da Copa') : (bbS ? LS('📣 Giro da rodada', '📣 Round roundup') : '📣 Giro da rodada')}</p>
             {shownNews.slice(0, 4).map((n, i) => <p key={i} className="text-xs font-bold">{n}</p>)}
           </Box>
         )
