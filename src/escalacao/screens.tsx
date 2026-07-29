@@ -4144,12 +4144,66 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
   // 🏀 andar com playoffs (G League/NBA): mostra a conferência de cada time (🔵
   // Leste par · 🔴 Oeste ímpar) — top 4 de cada vai aos playoffs. Na Street não.
   const confTier = bb && state.copaMode === 'liga_copa'
-  const confOf = (id: number) => id % 2 === 0 ? '🔵 ' : '🔴 '
+  const PLAYOFF_CUT = 4 // 🏀 top 4 de cada conferência vai aos playoffs
   // 🏀 título da tabela = nome do ANDAR (🛝 Street League / 🔷 G League / 💍 NBA) na
   // carreira; genérico no jogo rápido. Futebol mantém o título recebido (LIGA LEGENDS).
   const bbTitle = state.nbaCareer ? NBA_TIER_LABEL[state.nbaTier ?? 'street'][blLang === 'en' ? 'en' : 'pt'] : L('🏀 Classificação', '🏀 Standings')
   const league = holdResults && state.lastResults.length > 0 ? leagueBeforeResults(state.league, state.lastResults) : state.league
   const table = sortedTable(league)
+  // 🏀 nos andares de playoff a tabela é DIVIDIDA por conferência (Leste id par ·
+  // Oeste id ímpar), cada uma com seu ranking — igual a NBA. Já vem ordenada.
+  const east = table.filter(t => t.id % 2 === 0)
+  const west = table.filter(t => t.id % 2 === 1)
+  const headEl = (
+    <thead>
+      <tr className="text-left text-black/70 font-black">
+        <th className="pr-1">#</th><th>{L('Time', 'Team')}</th>
+        {bb
+          ? <><th className="text-center">V</th><th className="text-center">D</th><th className="text-center">{L('AP', 'PCT')}</th><th className="text-center">SC</th></>
+          : <><th className="text-center">P</th><th className="text-center">V</th><th className="text-center">E</th><th className="text-center">D</th><th className="text-center">SG</th></>}
+      </tr>
+    </thead>
+  )
+  // uma linha da tabela; `rank` é a posição DENTRO da lista recebida (na conferência,
+  // 1..N por conferência → top 4 = zona de playoff verde).
+  const rowsOf = (rows: typeof table) => rows.map((t, i) => {
+    const isMgr = state.managers.some(m => m.id === t.id)
+    const rank = i + 1
+    const isYou = t.id === highlight
+    const isOnlineRival = state.onlineMode === 'online' && !isYou && !!state.managers.find(m => m.id === t.id)?.isHuman
+    const isRival = (!!state.careerDivision && state.careerRivals.some(rv => rv.team === t.name)) || isOnlineRival
+    const youPerk = isYou ? myApoioPerk() : null
+    const rivPerk = isOnlineRival ? perkFromSelo(state.managers.find(m => m.id === t.id)?.teamName ?? '') : null
+    // faixa: você/rival com a cor do tier; senão a zona — no basquete SÓ verde
+    // (playoff/sobe), sem rebaixamento; no futebol as 4 zonas de sempre.
+    const rowBg = isYou
+      ? (youPerk ? youPerk.grad : APOIO_PERKS.bege.light)
+      : isOnlineRival
+        ? (rivPerk ? rivPerk.grad : APOIO_PERKS.bege.light)
+        : isRival ? '#FFE0D6' : (bb ? ((confTier ? rank <= PLAYOFF_CUT : rank <= zoneN(table.length)) ? '#D6E9FA' : undefined) : zoneColor(rank, table.length))
+    const rowInk = youPerk ? TIER_INK[youPerk.tier] : rivPerk ? TIER_INK[rivPerk.tier] : undefined
+    return (
+      <tr key={t.id} className="border-t border-black/10 font-semibold"
+        style={{ background: rowBg, color: rowInk, fontWeight: isMgr ? 800 : 500 }}>
+        <td className="pr-1">{rank}</td>
+        <td className="truncate max-w-[130px]">{isRival ? '🔥 ' : isMgr ? '👤 ' : ''}{t.name}</td>
+        {bb ? (
+          <>
+            <td className="text-center font-black">{t.w}</td>
+            <td className="text-center">{t.l}</td>
+            <td className="text-center">{(t.w + t.l) > 0 ? Math.round(100 * t.w / (t.w + t.l)) : 0}%</td>
+            <td className="text-center">{t.gf - t.ga}</td>
+          </>
+        ) : (
+          <>
+            <td className="text-center font-black">{t.pts}</td>
+            <td className="text-center">{t.w}</td><td className="text-center">{t.d}</td><td className="text-center">{t.l}</td>
+            <td className="text-center">{t.gf - t.ga}</td>
+          </>
+        )}
+      </tr>
+    )
+  })
   return (
     <Box className="p-3 overflow-x-auto">
       <div className="flex items-center justify-between mb-2">
@@ -4174,60 +4228,19 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
           </div>
         )}
       </div>
-      {confTier && <p className="text-[10px] font-bold text-black/55 mb-1.5">{L('🔵 Leste · 🔴 Oeste — top 4 de cada conferência vai aos playoffs', '🔵 East · 🔴 West — top 4 of each conference makes the playoffs')}</p>}
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="text-left text-black/70 font-black">
-            <th className="pr-1">#</th><th>{L('Time', 'Team')}</th>
-            {bb
-              ? <><th className="text-center">V</th><th className="text-center">D</th><th className="text-center">{L('AP', 'PCT')}</th><th className="text-center">SC</th></>
-              : <><th className="text-center">P</th><th className="text-center">V</th><th className="text-center">E</th><th className="text-center">D</th><th className="text-center">SG</th></>}
-          </tr>
-        </thead>
-        <tbody>
-          {table.map((t, i) => {
-            const isMgr = state.managers.some(m => m.id === t.id)
-            const rank = i + 1
-            const isYou = t.id === highlight
-            // rival de carreira (fixo, vida própria na pirâmide) OU, no online,
-            // qualquer outro técnico HUMANO na sala (gente de verdade, não bot)
-            const isOnlineRival = state.onlineMode === 'online' && !isYou && !!state.managers.find(m => m.id === t.id)?.isHuman
-            const isRival = (!!state.careerDivision && state.careerRivals.some(rv => rv.team === t.name)) || isOnlineRival
-            // 🎨 cada técnico leva o VISUAL do próprio tier pra faixa dele: quem tem
-            // tier brilha com o DEGRADÊ da carta (Lenda = dourado metálico, Craque =
-            // prata brilhante…); gratuito = bege chapado. Rival de carreira = salmão.
-            const youPerk = isYou ? myApoioPerk() : null
-            const rivPerk = isOnlineRival ? perkFromSelo(state.managers.find(m => m.id === t.id)?.teamName ?? '') : null
-            const rowBg = isYou
-              ? (youPerk ? youPerk.grad : APOIO_PERKS.bege.light)
-              : isOnlineRival
-                ? (rivPerk ? rivPerk.grad : APOIO_PERKS.bege.light)
-                : isRival ? '#FFE0D6' : (bb ? (confTier ? undefined : (rank <= zoneN(table.length) ? '#D6E9FA' : undefined)) : zoneColor(rank, table.length))
-            const rowInk = youPerk ? TIER_INK[youPerk.tier] : rivPerk ? TIER_INK[rivPerk.tier] : undefined
-            return (
-              <tr key={t.id} className="border-t border-black/10 font-semibold"
-                style={{ background: rowBg, color: rowInk, fontWeight: isMgr ? 800 : 500 }}>
-                <td className="pr-1">{rank}</td>
-                <td className="truncate max-w-[130px]">{confTier ? confOf(t.id) : ''}{isRival ? '🔥 ' : isMgr ? '👤 ' : ''}{t.name}</td>
-                {bb ? (
-                  <>
-                    <td className="text-center font-black">{t.w}</td>
-                    <td className="text-center">{t.l}</td>
-                    <td className="text-center">{(t.w + t.l) > 0 ? Math.round(100 * t.w / (t.w + t.l)) : 0}%</td>
-                    <td className="text-center">{t.gf - t.ga}</td>
-                  </>
-                ) : (
-                  <>
-                    <td className="text-center font-black">{t.pts}</td>
-                    <td className="text-center">{t.w}</td><td className="text-center">{t.d}</td><td className="text-center">{t.l}</td>
-                    <td className="text-center">{t.gf - t.ga}</td>
-                  </>
-                )}
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+      {confTier ? (
+        // 🏀 DUAS tabelas: Conferência Leste e Oeste, cada uma com seu ranking
+        // (top 4 = verde = playoffs). Igual à cara da NBA.
+        <>
+          <p className="text-[11px] font-black uppercase tracking-wide mb-1" style={{ ...OSWALD, color: '#2F6BAE' }}>🔵 {L('Conferência Leste', 'Eastern Conference')}</p>
+          <table className="w-full text-xs mb-3">{headEl}<tbody>{rowsOf(east)}</tbody></table>
+          <p className="text-[11px] font-black uppercase tracking-wide mb-1" style={{ ...OSWALD, color: '#C2452F' }}>🔴 {L('Conferência Oeste', 'Western Conference')}</p>
+          <table className="w-full text-xs">{headEl}<tbody>{rowsOf(west)}</tbody></table>
+          <p className="text-[10px] font-bold text-black/55 mt-1.5">{L('Top 4 de cada conferência (faixa azul) vai aos playoffs.', 'Top 4 of each conference (blue band) makes the playoffs.')}</p>
+        </>
+      ) : (
+        <table className="w-full text-xs">{headEl}<tbody>{rowsOf(table)}</tbody></table>
+      )}
     </Box>
   )
 }
