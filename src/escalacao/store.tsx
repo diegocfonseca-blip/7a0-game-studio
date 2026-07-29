@@ -1874,6 +1874,7 @@ type Action =
   | { type: 'MONTE_TIMEOUT' }
   | { type: 'SET_SPONSOR'; id: string; mgrId?: number } // 👕 escolhe a marca do patrocínio (solo: careerSponsor · online: careerSponsors[mgrId])
   | { type: 'BUY_FILIAL'; team: string; mgrId?: number } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])
+  | { type: 'BUY_MULTICLUBE'; team: string } // 🏛️ MULTICLUBES (solo): compra um 2º clube da Série D por 4.000 moedas (só Lenda; trava de tier fica na UI)
   | { type: 'SELL_FILIAL'; mgrId?: number } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 2.500)
   | { type: 'ADD_EMPRESARIO_CARD'; card: EmpCard; key?: string; mgrId?: number } // 💼 registra uma carta ganha (pacote de campeão) na agência do Empresário. `key` = seasonKey do pacote (dedup por temporada — aceita repetida entre temporadas). `mgrId` = técnico dono (online: por-técnico)
   | { type: 'LOAN_TO_FILIAL'; cardId: string; mgrId?: number } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda, volta na virada)
@@ -2915,6 +2916,24 @@ export function reducer(state: EscState, action: Action): EscState {
       const titlesAtBuy = h0 ? (h0.A + h0.B + h0.C + h0.D) : 0
       s.careerFilial = { team: action.team, since: s.seasonNo, earned: 0, titlesAtBuy }
       logFin(s, 'safbuy', `🏢 Compra da SAF · ${action.team}`, -2000) // 🧾 compra da SAF entra no extrato
+      return s
+    }
+    case 'BUY_MULTICLUBE': {
+      // 🏛️ MULTICLUBES (Fase 1 — a compra): 2º clube da Série D por 4.000 moedas. SÓ
+      // carreira SOLO. A trava de tier (só Lenda) fica na UI; aqui garantimos o resto:
+      // caixa suficiente, ainda não comprou, e o alvo é um clube que ESTÁ na Série D e
+      // NÃO é seu nem de outro técnico/rival. (O "dorme/seletor" vem na Fase 2.)
+      const PRECO = 4000
+      if (s.onlineMode === 'online' || !s.careerOnline || s.multiClube) return s
+      const you = s.managers[s.youIdx]
+      if (!you?.isHuman) return s
+      const coins = s.careerCoins?.[you.id] ?? 0
+      if (coins < PRECO) return s
+      if (you.teamName === action.team || s.managers.some(m => m.teamName === action.team)) return s
+      if (s.careerPlacements?.[action.team] !== 'D') return s // tem que ser um clube da Série D
+      s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - PRECO }
+      s.multiClube = { team: action.team, since: s.seasonNo }
+      logFin(s, 'safbuy', `🏛️ Compra do 2º clube (Multiclubes) · ${action.team}`, -PRECO)
       return s
     }
     case 'SELL_FILIAL': {

@@ -351,6 +351,12 @@ export interface EscState {
     loanIn?: WonCard[]  // jogadores DA SAF emprestados pra VOCÊ (jogam no seu time)
   } | null // 🏢 SAF (carreira OFFLINE, em teste): clube da Série D comprado — 50% dos prêmios de campanha dele (± em queda) caem no seu caixa
   careerFilials?: Record<number, { team: string; since: number; earned?: number; titlesAtBuy?: number; loanOut?: WonCard[]; loanIn?: WonCard[] }> // 🏢 SAF na carreira ONLINE, por técnico (mgrId → SAF). Offline usa careerFilial (single).
+  // 🏛️ MULTICLUBES (carreira SOLO, em construção — invisível pro público): 2º clube
+  // comprado por 4.000 moedas (só Lenda). Igual à SAF: escolhe um clube EXISTENTE da
+  // Série D, que passa a ser seu (herda nome/história, vira sua cor). O não-selecionado
+  // DORME (não lista/compra/dá lance). Fase 1 = só a compra.
+  multiClube?: { team: string; since: number } | null
+  multiClubeAtivo?: boolean // true = o 2º clube está selecionado (o principal dorme); false/undefined = principal ativo. (Fase 2: seletor)
   simV?: number // versão da fórmula da simulação: 2+ = teto de elite 1.28 (só vale de temporada NOVA em diante — a que está rolando termina na fórmula em que começou)
   careerPlacements?: Record<string, string> | null // pirâmide: chave do time → divisão ('A'..'D'). Compacto (só a colocação). Atualiza a cada temporada.
   copaDoneSeason?: number // pirâmide: nº da temporada cuja Copa Legends JÁ foi assistida até o fim — ao retomar o save, não re-anima a Copa do zero (mostra direto os campeões/decisão).

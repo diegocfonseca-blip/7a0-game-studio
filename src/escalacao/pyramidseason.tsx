@@ -20,7 +20,7 @@ import { StadiumTab, StadiumSvg, SponsorCard } from './estadio'
 import { CopaMundoGate, loadCopaSave } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
-import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual } from './apoio'
+import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, loggedEmail } from './apoio'
 import type { ApoioPerk } from './apoio'
 
 const INK = '#0C0C0C'
@@ -547,6 +547,47 @@ const copaCenterChip: React.CSSProperties = { background: 'rgba(8,8,10,.55)', bo
 //    Transferências (compras/vendas com lucro). Lê o livro-caixa (careerLedger),
 //    que é só um registro — nunca mexe no dinheiro de verdade. ──
 const FIN_RED = '#C2452F'
+
+// 🏛️ MULTICLUBES — em construção, VISÍVEL SÓ PRA ESTES E-MAILS (teste). Enquanto
+// não está pronto, o público não vê nada. Depois de pronto/aprovado, troca a trava.
+const MULTICLUBE_TESTERS = ['diego.c.fonseca@gmail.com']
+
+// 🏛️ MULTICLUBES · Fase 1 (a COMPRA): painel pra comprar um 2º clube da Série D por
+// 4.000 moedas (só Lenda). O seletor + "clube dormindo" vêm nas próximas fases.
+function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
+  jaTem?: string; opcoes: string[]; coins: number; preco: number; isLenda: boolean; onBuy: (team: string) => void
+}) {
+  const [pick, setPick] = useState<string | null>(null)
+  const lock: React.CSSProperties = { fontFamily: 'system-ui', fontSize: 10.5, fontWeight: 800, background: '#CBBF9E', color: 'rgba(0,0,0,.65)', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', marginTop: 8 }
+  if (jaTem) return (
+    <div style={{ ...box('#0C0C0C'), padding: 13, color: '#fff', marginTop: 10 }}>
+      <p style={{ fontWeight: 900, fontSize: 14, color: GOLD, ...OSWALD, margin: 0 }}>🏛️ MULTICLUBES</p>
+      <p style={{ fontFamily: 'system-ui', fontSize: 11, marginTop: 4, lineHeight: 1.4 }}>Você já comanda um 2º clube: <b style={{ color: GOLD }}>{jaTem}</b>. <span style={{ opacity: .6 }}>(O seletor pra trocar de clube e o "clube dormindo" vêm na próxima fase.)</span></p>
+      <p style={{ fontFamily: 'system-ui', fontSize: 8.5, color: 'rgba(255,255,255,.4)', margin: '7px 0 0', textAlign: 'center' }}>🏗️ Em construção — visível só pra você (teste).</p>
+    </div>
+  )
+  const faltam = preco - coins
+  return (
+    <div style={{ ...box('#0C0C0C'), padding: 13, color: '#fff', marginTop: 10 }}>
+      <p style={{ fontWeight: 900, fontSize: 15, color: GOLD, ...OSWALD, margin: 0 }}>🏛️ Compre um SEGUNDO CLUBE</p>
+      <p style={{ fontFamily: 'system-ui', fontSize: 10.5, color: 'rgba(255,255,255,.82)', margin: '5px 0 0', lineHeight: 1.45 }}>Escolha um clube <b>da Série D</b> pra chamar de seu — ele veste a <b>sua cor</b> e você comanda os dois. Custa <b>4.000 🪙</b> e é regalia do tier <b>Lenda 👑</b>.</p>
+      {!isLenda && <div style={lock}>🔒 Só pra <b>Lenda 👑</b> — vire Lenda no APOIE pra liberar.</div>}
+      {isLenda && faltam > 0 && <div style={lock}>🔒 Faltam <b>{faltam.toLocaleString('pt-BR')}</b> 🪙 — custa {preco.toLocaleString('pt-BR')}, você tem {coins.toLocaleString('pt-BR')}.</div>}
+      {isLenda && faltam <= 0 && (
+        <>
+          <div style={{ marginTop: 8, maxHeight: 160, overflowY: 'auto' }}>
+            {opcoes.length === 0 && <p style={{ fontFamily: 'system-ui', fontSize: 10.5, opacity: .6 }}>Nenhum clube da Série D disponível agora.</p>}
+            {opcoes.map(t => (
+              <button key={t} onClick={() => setPick(t)} style={{ display: 'block', width: '100%', textAlign: 'left', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', marginTop: 5, fontWeight: 900, fontSize: 12, background: pick === t ? GOLD : '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>🏟️ {t}{pick === t ? '  ✓' : ''}</button>
+            ))}
+          </div>
+          <button disabled={!pick} onClick={() => pick && onBuy(pick)} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: pick ? GOLD : '#555', color: pick ? '#000' : 'rgba(255,255,255,.5)', cursor: pick ? 'pointer' : 'default', ...OSWALD }}>💰 COMPRAR {pick ? pick.toUpperCase() : 'POR'} · {preco.toLocaleString('pt-BR')} 🪙</button>
+        </>
+      )}
+      <p style={{ fontFamily: 'system-ui', fontSize: 8.5, color: 'rgba(255,255,255,.4)', margin: '7px 0 0', textAlign: 'center' }}>🏗️ Multiclubes em construção — visível só pra você (teste).</p>
+    </div>
+  )
+}
 
 // ── 💼 AGÊNCIA / ESCRITÓRIO DO EMPRESÁRIO (aba Clube › Agência) ──────────────
 // Mostra as cartas ganhas NESTA carreira por raridade e a renda por temporada.
@@ -2435,6 +2476,18 @@ export function PyramidSeasonScreen() {
               loanSlots={/* mesma fonte de divisão da REGRA (colocação gravada; tabela ao vivo
                 como reserva) — se divergirem, o botão prometia 2 e o clique não fazia nada */
                 filialSlots(state.careerPlacements?.[`m${youId}`] ?? me?.div ?? 'D')} />
+            {/* 🏛️ MULTICLUBES (Fase 1 — a compra) · em construção, só testers veem · só solo */}
+            {state.onlineMode !== 'online' && MULTICLUBE_TESTERS.includes((loggedEmail() ?? '').toLowerCase()) && (() => {
+              const opcoes = (() => {
+                const fica = sortDiv(tables.D).slice(4) // tira a zona de acesso (igual à SAF)
+                const safName = myFilial?.team
+                return fica.filter(t => !t.you && !t.human && !t.rival).map(t => t.name)
+                  .filter(t => !state.careerRivals.some(r => r.team === t) && t !== safName)
+              })()
+              return <MultiClubeBuy jaTem={state.multiClube?.team} opcoes={opcoes}
+                coins={state.careerCoins?.[youId] ?? 0} preco={4000} isLenda={myApoioPerk()?.tier === 'ouro'}
+                onBuy={team => dispatch({ type: 'BUY_MULTICLUBE', team })} />
+            })()}
             <GoldTeaser label="Ver o estádio DOURADO completo (prévia)">
               <div style={{ ...box('#FBF6E9'), padding: 12, position: 'relative' }}>
                 <StadiumSvg st={{ inv: { geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'grama', 'cober'] }} perkOverride={APOIO_PERKS.ouro} />
