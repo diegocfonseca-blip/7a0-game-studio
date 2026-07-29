@@ -102,8 +102,8 @@ function roundRobin(n: number): [number, number][][] {
   return [...rounds, ...rounds.map(r => r.map(([h, a]) => [a, h] as [number, number]))]
 }
 
-export interface SimTeam { name: string; you: boolean; human: boolean; rival?: boolean; backstop?: boolean; teamId: number; squad: PoolCard[]; xi: PoolCard[]; pts: number; w: number; d: number; l: number; gf: number; ga: number }
-export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean; rival?: boolean; cardId?: string }
+export interface SimTeam { name: string; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; backstop?: boolean; teamId: number; squad: PoolCard[]; xi: PoolCard[]; pts: number; w: number; d: number; l: number; gf: number; ga: number }
+export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string }
 
 function pickCatalog(deck: 'br' | 'eu' | 'both') { return deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : CATALOG }
 
@@ -137,11 +137,11 @@ export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? 
 // monta as 4 divisões pela COLOCAÇÃO guardada (placements): D começa com os
 // técnicos reais; a cada temporada os times sobem/descem por nome exato.
 export function buildPyramid(managers: Manager[], youId: number, seed: number, deck: 'br' | 'eu' | 'both', placements?: Record<string, string> | null, cpuSquads?: Record<string, Card[]>): Record<Div, SimTeam[]> {
-  const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number, backstop = false, rival = false): SimTeam => ({ name, you, human, rival, backstop, teamId, squad, xi: bestXI(squad), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
+  const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number, backstop = false, rival = false, dorm = false): SimTeam => ({ name, you, human, rival, dorm, backstop, teamId, squad, xi: bestXI(squad), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
   const world: Record<Div, SimTeam[]> = { A: [], B: [], C: [], D: [] }
   const divOf = (key: string, fallback: Div): Div => { const d = placements?.[key]; return (d === 'A' || d === 'B' || d === 'C' || d === 'D') ? d : fallback }
   for (const m of managers.slice(0, 20)) {
-    const t = mk(m.teamName, (m.squad as WonCard[]).map(c => ({ ...c })), m.isHuman, m.id === youId, m.id, !!m.backstop, !!m.rival)
+    const t = mk(m.teamName, (m.squad as WonCard[]).map(c => ({ ...c })), m.isHuman, m.id === youId, m.id, !!m.backstop, !!m.rival, !!m.dormindo)
     world[divOf(`m${m.id}`, 'D')].push(t)
   }
   const cpu = buildCpuSquads(managers, seed, deck)
@@ -302,7 +302,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       let r = rng() * total, pick = pool[0].c
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
       const key = `${t.name}:${pick.id}`, row = scorers.get(key)
-      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, cardId: pick.id })
+      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: pick.id })
       const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 90) // acréscimos SÓ até 90+3 (o relógio do card vai até 93)
       evs.push({ name: pick.name, min })
     }
@@ -794,7 +794,7 @@ function ZoneLegend() {
 const UP_OF: Partial<Record<Div, Div>> = { B: 'A', C: 'B', D: 'C' }
 const DOWN_OF: Partial<Record<Div, Div>> = { A: 'B', B: 'C', C: 'D' }
 function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: Div; teams: SimTeam[]; colors: Record<number, FCol>; mine?: boolean; final?: boolean; safTeam?: string; safCol?: FCol }) {
-  const humans = teams.filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival }))
+  const humans = teams.filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival, dorm: !!t.dorm }))
   // temporada FECHADA: setinhas animadas de acesso (▲ verde) e queda (▼ vermelha)
   // pra TODOS os times, e um banner quando é VOCÊ que sobe/cai/é campeão.
   const youPos = final && mine ? teams.findIndex(t => t.you) + 1 : 0
@@ -828,7 +828,7 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
             return (
               <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', background: bg, fontWeight: colored || isSaf ? 800 : 500 }}>
                 <td style={{ paddingRight: 4, whiteSpace: 'nowrap' }}>{i + 1}{final && i < 4 && UP_OF[div] && <span style={{ display: 'inline-block', color: '#1B7A3D', fontWeight: 900, marginLeft: 2, animation: 'divUp 1.4s ease-in-out infinite' }}>▲</span>}{final && i === 0 && div === 'A' && <span style={{ marginLeft: 2 }}>🏆</span>}{final && i >= teams.length - 4 && DOWN_OF[div] && <span style={{ display: 'inline-block', color: '#B23B2E', fontWeight: 900, marginLeft: 2, animation: 'divDown 1.4s ease-in-out infinite' }}>▼</span>}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: nameColor }}>{t.you ? '👤 ' : t.rival ? '⚔️ ' : isSaf ? '💼 ' : ''}{t.you && youPerk ? <span style={apoioText(youPerk)}>{apoioName(t.name)}</span> : t.name}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: nameColor }}>{t.you ? '👤 ' : t.dorm ? '🏛️ ' : t.rival ? '⚔️ ' : isSaf ? '💼 ' : ''}{t.you && youPerk ? <span style={apoioText(youPerk)}>{apoioName(t.name)}</span> : t.name}</td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{t.pts}</td>
                 <td style={{ textAlign: 'center' }}>{t.w}</td><td style={{ textAlign: 'center' }}>{t.d}</td><td style={{ textAlign: 'center' }}>{t.l}</td>
                 <td style={{ textAlign: 'center' }}>{t.gf - t.ga}</td>
@@ -863,7 +863,7 @@ function ArtilhariaBox({ scorers, colors, title, sub, foot, safTeam }: { scorers
               <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, background: fc?.light }}>
                 <td style={{ paddingRight: 4 }}>{i + 1}</td>
                 <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}><span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : isSaf ? '💼 ' : s.rival ? '⚔️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : isSaf ? '💼 ' : s.rival ? '⚔️ ' : s.dorm ? '🏛️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{s.goals}</td>
               </tr>
             )})}
@@ -903,7 +903,7 @@ function ArtilhariaByDiv({ scorers, colors, title, sub, foot, safTeam }: { score
                     <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', fontWeight: 600, background: fc?.light }}>
                       <td style={{ paddingRight: 4, width: 16, color: 'rgba(0,0,0,0.5)', fontWeight: 800 }}>{i + 1}</td>
                       <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>{i === 0 ? '👑 ' : ''}{s.name}</td>
-                      <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : isSaf ? '💼 ' : s.rival ? '⚔️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
+                      <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : isSaf ? '💼 ' : s.rival ? '⚔️ ' : s.dorm ? '🏛️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
                       <td style={{ textAlign: 'center', fontWeight: 900, width: 30 }}>{s.goals}</td>
                     </tr>
                   )})}
@@ -970,14 +970,14 @@ function orderedDivs(myDiv: Div | null): Div[] { return myDiv ? [myDiv, ...DIVS.
 
 // chips com os times dos AMIGOS (e você) que estão numa divisão — pra bater o
 // olho quem está em qual série. Cada um com a SUA cor (inclusive você).
-function DivChips({ humans, colors }: { humans: { name: string; teamId: number; you: boolean; rival?: boolean }[]; colors: Record<number, FCol> }) {
+function DivChips({ humans, colors }: { humans: { name: string; teamId: number; you: boolean; rival?: boolean; dorm?: boolean }[]; colors: Record<number, FCol> }) {
   if (humans.length === 0) return null
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
       {humans.map((h, i) => {
         const perk = h.you ? myApoioPerk() : null
         return (
-          <span key={i} style={{ fontSize: 9.5, fontWeight: 900, ...OSWALD, color: '#fff', background: perk ? perk.grad : colors[h.teamId]?.solid ?? '#888', borderRadius: 6, padding: '1px 7px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', ...(perk ? { position: 'relative' } : {}) }}>{h.you ? '👤 ' : h.rival ? '⚔️ ' : ''}{h.you ? apoioName(h.name) : h.name}{perk && <ApoioSheen holo={perk.holo} dur={3} />}</span>
+          <span key={i} style={{ fontSize: 9.5, fontWeight: 900, ...OSWALD, color: '#fff', background: perk ? perk.grad : colors[h.teamId]?.solid ?? '#888', borderRadius: 6, padding: '1px 7px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', ...(perk ? { position: 'relative' } : {}) }}>{h.you ? '👤 ' : h.dorm ? '🏛️ ' : h.rival ? '⚔️ ' : ''}{h.you ? apoioName(h.name) : h.name}{perk && <ApoioSheen holo={perk.holo} dur={3} />}</span>
         )
       })}
     </div>
@@ -1173,7 +1173,7 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
 }
 
 // ── os JOGOS de uma divisão (placar + quem fez os gols), cores por amigo ──
-function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matches: SimMatch[]; colors: Record<number, FCol>; humans: { name: string; teamId: number; you: boolean; rival?: boolean }[]; hideId?: number }) {
+function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matches: SimMatch[]; colors: Record<number, FCol>; humans: { name: string; teamId: number; you: boolean; rival?: boolean; dorm?: boolean }[]; hideId?: number }) {
   // cor SÓ pra quem interessa: você/SAF (tier) e rivais (marrom) vêm do `colors`;
   // bots ficam sem cor (nome cinza, linha branca) — placar limpo, como era.
   const nameCol = (id: number) => colors[id]?.solid ?? '#5a5647'
@@ -1541,7 +1541,7 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
             return (
               <tr key={r.key} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: fc?.light, fontWeight: colored ? 800 : 500 }}>
                 <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>{i + 1}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: fc?.solid ?? INK }}>{you ? '👤 ' : isSaf ? '💼 ' : r.t.rival ? '⚔️ ' : r.t.human ? '🔥 ' : ''}{(() => { const pk = you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(r.t.name)}</span> : r.t.name })()}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: fc?.solid ?? INK }}>{you ? '👤 ' : isSaf ? '💼 ' : r.t.rival ? '⚔️ ' : r.t.dorm ? '🏛️ ' : r.t.human ? '🔥 ' : ''}{(() => { const pk = you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(r.t.name)}</span> : r.t.name })()}</td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                   {(r.h.A + r.h.B + r.h.C + r.h.D + r.copas + r.wc) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
                     {r.wc > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Mundo{r.wc > 1 ? r.wc : ''}</span>}
@@ -2168,7 +2168,7 @@ export function PyramidSeasonScreen() {
   const myDiv = me?.div ?? null
   const ord = orderedDivs(myDiv)
   const myMatch = myDiv ? matches[myDiv]?.find(x => x.you) : undefined
-  const humansOf = (d: Div) => tables[d].filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival }))
+  const humansOf = (d: Div) => tables[d].filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival, dorm: !!t.dorm }))
 
   // host conduz: avança a rodada (isso sincroniza pra todos). Nos modos SOLO
   // dá pra pausar entre rodadas (manual) e o jogo roda +5s mais calmo.
