@@ -36,6 +36,15 @@ function setActiveSport(sport: 'futebol' | 'basquete', mode: 'quick' | 'career' 
     NBA_BASE_SLOTS = NBA_SLOTS_PER_POS[mode]
   }
 }
+// 🌐🏀 reancora o MOTOR (esporte + baralho + vagas) a partir de um estado recebido
+// do host (SYNC_STATE) ou restaurado do banco (RESTORE_ONLINE). Sem isto, um
+// convidado numa sala de BASQUETE aplicava o estado do host (sport='basquete')
+// mas o motor dele seguia no baralho de FUTEBOL → quinteto/cartas erradas. Futebol
+// cai no ramo de sempre (setActiveCatalog) → byte-idêntico.
+function applyEngineSportFrom(st: { sport?: 'futebol' | 'basquete'; deckLeague?: 'br' | 'eu' | 'both' | 'world'; nbaCareer?: boolean }) {
+  if (st.sport === 'basquete') setActiveSport('basquete', st.nbaCareer ? 'career' : 'quick')
+  else setActiveCatalog(st.deckLeague)
+}
 // vagas-base por posição: no futebol vem da FORMAÇÃO; no basquete é o padrão do
 // modo (toda posição igual). É o único ponto onde a QUANTIDADE muda por esporte.
 function baseSlots(formation: FormationKey, pos: Sector): number {
@@ -1872,7 +1881,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both'; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa'; rivals?: number; rivalTeams?: string[] }
+  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both'; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa'; rivals?: number; rivalTeams?: string[]; nba?: boolean }
   | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). scorerValues = bonus de piso dos artilheiros
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
@@ -2228,7 +2237,7 @@ function maybeStartRedraft(s: EscState): EscState {
 
 export function reducer(state: EscState, action: Action): EscState {
   if (action.type === 'SYNC_STATE') {
-    setActiveCatalog(action.newState.deckLeague) // o ponteiro do baralho segue o estado do host (reload zera pra BR)
+    applyEngineSportFrom(action.newState) // 🏀 esporte+baralho seguem o host (futebol = setActiveCatalog de sempre)
     // O host manda o estado do JOGO (managers, deck, leilão, temporada...),
     // mas identidade é local a cada cliente: "quem sou eu" (youIdx), "sou
     // host?", sala. Sem isso, um convidado que recebe o broadcast do host
@@ -2249,7 +2258,7 @@ export function reducer(state: EscState, action: Action): EscState {
     }
   }
   if (action.type === 'RESTORE_ONLINE') {
-    setActiveCatalog(action.state.deckLeague) // reancora o baralho da sala (reload zera o ponteiro pra BR)
+    applyEngineSportFrom(action.state) // 🏀 reancora esporte+baralho da sala (futebol = setActiveCatalog de sempre)
     // reconexão/host-caiu: adota o estado salvo no banco em vez de recomeçar
     // do zero. A identidade ("quem sou eu", host?) é sempre local a este
     // cliente; efêmeros host-only voltam limpos (já vêm sanitizados).
@@ -2720,10 +2729,16 @@ export function reducer(state: EscState, action: Action): EscState {
       // baralho da sala: Rápido sempre BR; Carreira online pode ser BR, Europa
       // ou os dois juntos (escolha do host). O leilão e a temporada são o motor
       // real de sempre — só muda o catálogo de craques.
-      s.deckLeague = action.deck ?? 'br'; setActiveCatalog(s.deckLeague)
-      s.sport = 'futebol'; s.nbaCareer = false // ⚽ online é sempre futebol (não herda basquete de um jogo anterior)
+      // 🏀 sala de BASQUETE (rápido online): baralho NBA + quinteto. O resto do
+      // motor online (host-autoritativo, sync, assentos) é o MESMO — só muda o
+      // conteúdo. Guardado por `action.nba`; futebol cai no ramo de sempre.
+      const nbaRoom = !!action.nba
+      s.sport = nbaRoom ? 'basquete' : 'futebol'; s.nbaCareer = false // online: só RÁPIDO por enquanto (carreira online do basquete é fase 2)
+      s.deckLeague = action.deck ?? 'br'
+      if (nbaRoom) setActiveSport('basquete', 'quick') // baralho NBA + 1 vaga/posição (quinteto)
+      else setActiveCatalog(s.deckLeague)
       s.locked = action.locked; s.pwHash = action.pwHash // guarda a senha no estado (sobrevive ao autosave)
-      s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido
+      s.careerOnline = nbaRoom ? false : !!action.career // sala no modo Carreira (4 divisões) vs online rápido — basquete online é só rápido por ora
       s.ligaFechada = !!action.ligaFechada // 🏆 liga só com humanos (sem bots na tabela)
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
       // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
@@ -2772,15 +2787,19 @@ export function reducer(state: EscState, action: Action): EscState {
       // depois o resto da Série D. Rápido: pool embaralhado, sem rivais de leilão.
       const careerChosen = (action.rivalTeams ?? []).map(tn => DIVISION_TEAMS['D'].find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
       const careerRest = DIVISION_TEAMS['D'].filter(t => !careerChosen.some(c => c.team === t.team))
-      const namePool = action.career
-        ? [...careerChosen, ...careerRest]
-        : [...shuffle([...DIVISION_TEAMS.D], rng), ...shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C], rng)]
+      const namePool = nbaRoom
+        ? [...shuffle([...NBA_PRO_TEAMS], rng)] // 🏀 os bots da tabela são franquias da NBA
+        : action.career
+          ? [...careerChosen, ...careerRest]
+          : [...shuffle([...DIVISION_TEAMS.D], rng), ...shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C], rng)]
       const onlineRivalCount = action.career ? Math.max(0, Math.min(action.rivals ?? 0, onlineLeagueSize - action.playerNames.length)) : 0
       const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, onlineRivalCount, onlineLeagueSize, rng, namePool)
       // ⚠️ NÃO marca os rivais como `rival` (diferente do offline): na tabela online
       // só ficam marcados os HUMANOS (👤/🔥) e as SAFs (💼). Os rivais CPU brigam no
       // leilão mas aparecem como time comum, sem selo ⚔️.
       s.managers = onlineManagers
+      // 🏀 orçamento do rápido do basquete = 50 (quinteto de 5), igual ao offline.
+      if (nbaRoom) for (const m of s.managers) m.money = NBA_QUICK_BUDGET
       // rápido (e T1 de carreira) começam SEM piso. O livro de preços
       // (marketValues) é memória da carreira ENTRE temporadas — não pode vazar do
       // jogo anterior nem do "novo leilão" do rápido, senão aparece "valor mínimo".

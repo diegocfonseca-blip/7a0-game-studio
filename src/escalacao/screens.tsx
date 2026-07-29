@@ -1286,6 +1286,12 @@ function BidLegendsHome() {
         </Btn>
       </motion.div>
       <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('A base: quinteto (5), liga de 20 — cresce nas reservas 🔧 em construção', 'The base: starting five (5), 20-team league — grows in the reserve auction 🔧 building')}</p>
+      {/* 👥 JOGAR ONLINE (basquete) — MESMO motor host-autoritativo do futebol, só que
+          com o baralho da NBA. Cria/lista salas de BASQUETE (o futebol não vê). Em teste. */}
+      <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg" bg={GREEN}>
+        <span className="text-white">👥 {t('JOGAR ONLINE (CHAMA A GALERA!)', 'PLAY ONLINE (BRING FRIENDS!)')}</span>
+      </Btn>
+      <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('Pregão do quinteto com os amigos — mesmo motor do futebol 🔧 em teste', 'Draft your five with friends — same engine as soccer 🔧 testing')}</p>
       {/* aviso "chegando" — honesto, sem prometer o que ainda não tem */}
       <div className="border-[3px] border-black rounded-2xl p-4 text-center" style={{ background: '#fff', boxShadow: `4px 4px 0 0 ${INK}` }}>
         <div className="text-3xl">🚧</div>

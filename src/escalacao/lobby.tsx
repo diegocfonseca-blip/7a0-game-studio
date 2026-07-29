@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useEsc } from './store'
+import { useSport } from './sport'
 import { AdminButton, useCanCareerOnline } from './admin'
 import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout } from './apoio'
 import { isMuted } from './sound'
@@ -383,6 +384,10 @@ function ToggleRow({ icon, title, sub, on, onClick }: { icon: string; title: str
 
 export function EscLobby() {
   const { dispatch } = useEsc()
+  // 🏀 esporte da sala: no BidLegends (useSport='basquete') o online cria/lista
+  // salas de BASQUETE; no futebol, salas de futebol. Um não vê o outro na lista.
+  const [lobbySport] = useSport()
+  const isNbaLobby = lobbySport === 'basquete'
   const [user, setUser] = useState<User | null>(null)
   const [phase, setPhase] = useState<Phase>('auth')
   const [authTab, setAuthTab] = useState<AuthTab>(() => {
@@ -783,6 +788,7 @@ export function EscLobby() {
       ligaFechada: !!(gs as GS & { ligaFechada?: boolean })?.ligaFechada, // 🏆 liga só com a galera, sem bots
       locked: gs?.locked, pwHash: gs?.pwHash, // preserva a senha da sala pelo autosave
       copaMode: gs?.copaMode, // 🏆 rápido: liga só ou liga + Copa dos 8 (escolha do host na criação)
+      nba: (gs as GS & { sport?: string })?.sport === 'basquete', // 🏀 sala de basquete → baralho NBA + quinteto
     })
     return true
   }
@@ -912,7 +918,7 @@ export function EscLobby() {
     const locked = roomLocked && !!roomPw.trim()
     const pwHash = locked ? hashPw(roomPw.trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, copaMode: rapidoCopaMode, ...(canLiga && ligaFechada ? { ligaFechada: true } : {}) }) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(isNbaLobby ? { sport: 'basquete' } : {}), ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, copaMode: rapidoCopaMode, ...(canLiga && ligaFechada ? { ligaFechada: true } : {}) }) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -978,8 +984,11 @@ export function EscLobby() {
     // carreira online é EM TESTE (só os e-mails liberados): não aparece na lista
     // pública — entra por convite/código ou por "Minhas carreiras" (host).
     const isCareer = (r: RoomInfo) => r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
+    // 🏀 só mostra salas do MESMO esporte da aba: futebol não vê salas de basquete
+    // (e vice-versa). Salas antigas sem `sport` contam como futebol.
+    const roomIsNba = (r: RoomInfo) => (r.game_state as GS & { sport?: string })?.sport === 'basquete'
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
-      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r))
+      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && roomIsNba(r) === isNbaLobby)
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
