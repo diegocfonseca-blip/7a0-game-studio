@@ -2296,7 +2296,9 @@ export function PyramidSeasonScreen() {
           </div>
         )}
         {copaFinished && (() => {
-          const humans = state.managers.filter(m => m.isHuman)
+          // 🏛️ MULTICLUBES: o 2º clube dormindo é `isHuman` (assento meu), mas NÃO conta
+          // como técnico na votação — senão o SOLO cairia no fluxo online. Fica de fora aqui.
+          const humans = state.managers.filter(m => m.isHuman && !m.dormindo)
           const votes = state.seasonVotes ?? {}
           const myVote = votes[youId]
           const leilaoLabel = state.seasonNo === 1 ? 'Leilão de reservas' : 'Leilão de transferências'
@@ -2359,6 +2361,26 @@ export function PyramidSeasonScreen() {
                   </div>
                 )
               })()}
+              {/* 🏛️ MULTICLUBES · cartas GUARDADAS: quando o clube que estava dormindo foi
+                  campeão, o pacote fica esperando e aparece aqui pra VOCÊ abrir assim que
+                  passa o comando pra ele. Uma por título (divisão e/ou Copa Legends). */}
+              {MULTICLUBE_TESTERS.includes((loggedEmail() ?? '').toLowerCase()) && (state.multiClubePendingCards?.[youId] ?? []).length > 0 && (
+                <div style={{ margin: '0 0 12px' }}>
+                  <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, color: INK, margin: '0 0 7px', textAlign: 'center' }}>🎁 Enquanto dormia, o <b>{state.managers[state.youIdx]?.teamName}</b> foi campeão! Abra {(state.multiClubePendingCards?.[youId] ?? []).length > 1 ? 'os pacotes guardados' : 'o pacote guardado'} 👇</p>
+                  {(state.multiClubePendingCards?.[youId] ?? []).map(p => {
+                    const key = `co:solo${state.seed}:${p.season}:mc${youId}${p.copa ? ':copa' : ''}`
+                    return (
+                      <div key={key} style={{ marginBottom: 10 }}>
+                        <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={key} origin="cpu" saveCards={state.empresarioCards ?? []}
+                          onClaimed={c => {
+                            dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })
+                            dispatch({ type: 'CLEAR_MULTICLUBE_PENDING', mgrId: youId, season: p.season, copa: p.copa })
+                          }} />
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
               <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas (por nome exato) já entram. {state.seasonNo === 1
                 ? <>Abra o <b>leilão de reservas</b> (todos com a sua caixa, compram pra encher o banco até 22), ou siga com o mesmo elenco.</>
                 : <>Abra o <b>leilão de transferências</b> (1 carta nova por posição + os jogadores que cada técnico listar), ou siga com o mesmo elenco.</>}</p>

@@ -370,6 +370,12 @@ export interface EscState {
     empresario?: EmpCard[]; empresarioClaims?: string[]
   } | null
   multiClubeAtivo?: boolean // true = o 2º clube está no comando (youIdx aponta pra ele); false/undefined = principal ativo
+  // 🏛️ MULTICLUBES · cartas GUARDADAS: quando o clube que DORMIA foi campeão (título de
+  // divisão e/ou Copa Legends), a carta fica pendente aqui, keyed pelo id do clube (já
+  // separado). Ao passar o comando pra ele, o pacote aparece pra você abrir. `copa`
+  // distingue a carta da Copa Legends da carta do título (podem cair as duas na mesma
+  // temporada = duas entradas).
+  multiClubePendingCards?: Record<number, { season: number; copa?: boolean }[]>
   simV?: number // versão da fórmula da simulação: 2+ = teto de elite 1.28 (só vale de temporada NOVA em diante — a que está rolando termina na fórmula em que começou)
   careerPlacements?: Record<string, string> | null // pirâmide: chave do time → divisão ('A'..'D'). Compacto (só a colocação). Atualiza a cada temporada.
   copaDoneSeason?: number // pirâmide: nº da temporada cuja Copa Legends JÁ foi assistida até o fim — ao retomar o save, não re-anima a Copa do zero (mostra direto os campeões/decisão).

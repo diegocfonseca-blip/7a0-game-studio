@@ -232,6 +232,23 @@ function applyHonors(honors: Record<string, Honors> | undefined, champions?: Rec
   }
   return out
 }
+// 🏛️ MULTICLUBES · guarda a carta do clube que DORMIA quando ele foi campeão nesta
+// temporada (título de divisão e/ou Copa Legends). Chamado no fim de temporada, ANTES
+// do seasonNo++. Keyed pelo id do clube (já separado do ativo). Ao passar o comando pra
+// ele, o pacote aparece pra você abrir. NÃO faz nada fora do solo com 2º clube.
+function recordDormantCards(s: EscState, champions?: Record<string, 'A' | 'B' | 'C' | 'D'>, copaChampion?: string | null) {
+  if (!s.multiClube) return
+  const dk = `m${s.multiClube.id}` // teamKey do clube que dorme (managed → m{id})
+  const wonDiv = !!(champions && champions[dk])
+  const wonCopa = copaChampion === dk
+  if (!wonDiv && !wonCopa) return
+  const pend = { ...(s.multiClubePendingCards ?? {}) }
+  const arr = [...(pend[s.multiClube.id] ?? [])]
+  if (wonDiv) arr.push({ season: s.seasonNo }) // carta do título de divisão
+  if (wonCopa) arr.push({ season: s.seasonNo, copa: true }) // carta da Copa Legends (à parte)
+  pend[s.multiClube.id] = arr
+  s.multiClubePendingCards = pend
+}
 // 🏟️ bilheteria: soma a renda do estádio de cada técnico HUMANO no caixa (fim de
 // temporada). Inclui a BILHETERIA-BASE (stadiumIncome vale mesmo sem estádio), então
 // dá pra render pra quem nunca abriu a tela do estádio também. Bots não têm estádio
@@ -1877,6 +1894,7 @@ type Action =
   | { type: 'BUY_FILIAL'; team: string; mgrId?: number } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])
   | { type: 'BUY_MULTICLUBE'; team: string } // 🏛️ MULTICLUBES (solo): compra um 2º clube da Série D por 4.000 moedas (só Lenda; trava de tier fica na UI)
   | { type: 'SWITCH_MULTICLUBE' } // 🏛️ MULTICLUBES (solo): passa o comando pro outro clube (só entre temporadas). O que sai dorme.
+  | { type: 'CLEAR_MULTICLUBE_PENDING'; mgrId: number; season: number; copa?: boolean } // 🏛️ MULTICLUBES: risca a carta guardada depois que você abriu o pacote
   | { type: 'SELL_FILIAL'; mgrId?: number } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 2.500)
   | { type: 'ADD_EMPRESARIO_CARD'; card: EmpCard; key?: string; mgrId?: number } // 💼 registra uma carta ganha (pacote de campeão) na agência do Empresário. `key` = seasonKey do pacote (dedup por temporada — aceita repetida entre temporadas). `mgrId` = técnico dono (online: por-técnico)
   | { type: 'LOAN_TO_FILIAL'; cardId: string; mgrId?: number } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda, volta na virada)
@@ -2966,6 +2984,18 @@ export function reducer(state: EscState, action: Action): EscState {
       s.multiClubeAtivo = !s.multiClubeAtivo
       return s
     }
+    case 'CLEAR_MULTICLUBE_PENDING': {
+      // 🏛️ MULTICLUBES: você abriu o pacote guardado — risca essa carta pendente do clube.
+      const cur = s.multiClubePendingCards?.[action.mgrId]
+      if (!cur) return s
+      const idx = cur.findIndex(p => p.season === action.season && !!p.copa === !!action.copa)
+      if (idx < 0) return s
+      const arr = cur.slice(); arr.splice(idx, 1)
+      const pend = { ...(s.multiClubePendingCards ?? {}) }
+      if (arr.length) pend[action.mgrId] = arr; else delete pend[action.mgrId]
+      s.multiClubePendingCards = pend
+      return s
+    }
     case 'SELL_FILIAL': {
       // 🏢 vende a SAF: valor progressivo (divisão + títulos, teto 2.500). Devolve os
       // empréstimos ativos, credita o valor na caixa e libera comprar outra depois.
@@ -3471,6 +3501,7 @@ export function reducer(state: EscState, action: Action): EscState {
       revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada (pro ranking)
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
+      recordDormantCards(s, action.champions, action.copaChampion) // 🏛️ guarda a carta se o 2º clube (dormindo) foi campeão
       s.careerPlacements = action.placements
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid)
       s.seasonNo++
@@ -3526,6 +3557,7 @@ export function reducer(state: EscState, action: Action): EscState {
       revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
       s.careerHonors = applyHonors(s.careerHonors, action.champions)
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
+      recordDormantCards(s, action.champions, action.copaChampion) // 🏛️ guarda a carta se o 2º clube (dormindo) foi campeão
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid) antes da venda/leilão de reservas
       s.seasonNo++
       s.careerPlacements = action.placements
