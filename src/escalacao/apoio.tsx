@@ -60,6 +60,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
 // O selo 🖋️ cola no 👑 no nome ("Fulano 👑🖋️") em todo canto do jogo.
 // O número entra no mural "Fundadores do Leilão Legends" (tela futura).
 const FUNDADOR_N: Record<string, number> = {
+  'diego.c.fonseca@gmail.com': 1, // 🖋️ o criador do jogo — fundador nº 1
   'cesar.verissimo27@gmail.com': 3,
   'dasilva1227br@gmail.com': 9,
   'davisantana1312@gmail.com': 11,
