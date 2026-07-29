@@ -2522,10 +2522,20 @@ export function PyramidSeasonScreen() {
             {/* 🏛️ MULTICLUBES (Fase 1 — a compra) · em construção, só testers veem · só solo */}
             {state.onlineMode !== 'online' && (() => {
               const opcoes = (() => {
-                const fica = sortDiv(tables.D).slice(4) // tira a zona de acesso (igual à SAF)
                 const safName = myFilial?.team
-                return fica.filter(t => !t.you && !t.human && !t.rival).map(t => t.name)
-                  .filter(t => !state.careerRivals.some(r => r.team === t) && t !== safName)
+                // os 4 primeiros da Série D SOBEM — não entram (você pega quem FICA na D)
+                const sobem = new Set(sortDiv(tables.D).slice(0, 4).map(t => t.name))
+                // só times de VERDADE da liga que VÃO ficar na Série D (colocação oficial = D),
+                // fora: você, rivais, a SAF, quem sobe e o que já é seu. Isso bate EXATO com o
+                // que o motor da compra aceita — então TODO time que aparece compra de primeira
+                // (antes a lista usava a tabela ao vivo e mostrava time que o motor recusava).
+                return state.managers
+                  .filter(m => !m.isHuman && !m.rival && !m.auctionRival && !m.mine
+                    && (state.careerPlacements?.[`m${m.id}`] ?? 'D') === 'D'
+                    && m.teamName !== safName
+                    && !sobem.has(m.teamName)
+                    && !state.careerRivals.some(r => r.team === m.teamName))
+                  .map(m => m.teamName)
               })()
               return <MultiClubeBuy jaTem={state.multiClube?.team} opcoes={opcoes}
                 coins={state.careerCoins?.[youId] ?? 0} preco={4000} isLenda={myApoioPerk()?.tier === 'ouro'}
