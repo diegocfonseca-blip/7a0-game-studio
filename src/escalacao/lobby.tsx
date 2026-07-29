@@ -136,6 +136,26 @@ function hashPw(text: string): string {
 }
 function saveRoom(id: string) { try { localStorage.setItem(LS_KEY, id) } catch { /* ignora */ } }
 function clearSavedRoom() { try { localStorage.removeItem(LS_KEY) } catch { /* ignora */ } }
+// 🔒 corta o nome da sala/técnico por CARACTERE de verdade (nunca parte um emoji no
+// meio) e descarta qualquer "meio-emoji" solto. BUG REAL corrigido: o selo ' 👑🖋️' do
+// Lenda/Fundador + o corte antigo em 24 (por code unit) deixava metade de emoji pra
+// certos TAMANHOS de nome → o Postgres rejeitava como json inválido (PGRST102) e ALGUNS
+// Lendas não conseguiam criar sala (dependia do comprimento do nome; por isso uns davam
+// erro e outros não). Agora é à prova disso pra qualquer nome.
+function cutName(s: string, n = 24): string {
+  const cut = [...s].slice(0, n).join('') // itera por code point: emoji fica inteiro
+  let out = ''
+  for (let i = 0; i < cut.length; i++) {
+    const c = cut.charCodeAt(i)
+    if (c >= 0xD800 && c <= 0xDBFF) { // metade de cima de um emoji
+      const nx = cut.charCodeAt(i + 1)
+      if (nx >= 0xDC00 && nx <= 0xDFFF) { out += cut[i] + cut[i + 1]; i++ } // par completo: mantém
+      // senão (surrogate órfão): descarta
+    } else if (c >= 0xDC00 && c <= 0xDFFF) { /* metade de baixo órfã: descarta */ }
+    else out += cut[i]
+  }
+  return out
+}
 function loadSavedRoom(): string | null { try { return localStorage.getItem(LS_KEY) } catch { return null } }
 // salas que o técnico dispensou no "Sair da sala e começar uma nova": a faixa da
 // home NÃO volta a aparecer pra elas (mesmo que ele ainda seja host/membro no
@@ -441,7 +461,7 @@ export function EscLobby() {
     if (open) setLobbyUnread(0)
   }
   const sendLobbyChat = (text: string) => {
-    const t = text.trim().slice(0, 160)
+    const t = cutName(text.trim(), 160) // corte seguro (não parte emoji → nada de json inválido)
     if (!t) return
     const myName = players.find(p => p.user_id === user?.id)?.manager_name ?? 'Você'
     const e: LobbyMsg = { id: Math.random().toString(36).slice(2), uid: user?.id ?? 'me', name: myName, text: t }
@@ -886,7 +906,7 @@ export function EscLobby() {
       const { data } = await supabase.from('game_rooms').select('id').eq('code', code).maybeSingle()
       if (!data) break; code = randCode()
     }
-    const name = (roomName.trim() || `Sala do ${nameOf()}`).slice(0, 24)
+    const name = cutName(roomName.trim() || `Sala do ${nameOf()}`)
     // sala fechada: exige uma senha
     if (roomLocked && !roomPw.trim()) { setRoomError('Digite uma senha ou desmarque "sala fechada".'); setLoading(false); return }
     const locked = roomLocked && !!roomPw.trim()
