@@ -20,7 +20,7 @@ import { StadiumTab, StadiumSvg, SponsorCard } from './estadio'
 import { CopaMundoGate, loadCopaSave } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
-import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, loggedEmail } from './apoio'
+import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual } from './apoio'
 import type { ApoioPerk } from './apoio'
 
 const INK = '#0C0C0C'
@@ -548,9 +548,9 @@ const copaCenterChip: React.CSSProperties = { background: 'rgba(8,8,10,.55)', bo
 //    que é só um registro — nunca mexe no dinheiro de verdade. ──
 const FIN_RED = '#C2452F'
 
-// 🏛️ MULTICLUBES — em construção, VISÍVEL SÓ PRA ESTES E-MAILS (teste). Enquanto
-// não está pronto, o público não vê nada. Depois de pronto/aprovado, troca a trava.
-const MULTICLUBE_TESTERS = ['diego.c.fonseca@gmail.com']
+// 🏛️ MULTICLUBES — liberado pra TODOS na carreira SOLO (offline). Não-Lenda vê a área
+// com o botão APOIE; Lenda com 4.000 moedas compra. NUNCA aparece no online (o motor é
+// solo-only: reducer ignora BUY/SWITCH em modo online, e o estado guarda 1 clube só).
 
 // 🏛️ MULTICLUBES · Fase 1 (a COMPRA): painel pra comprar um 2º clube da Série D por
 // 4.000 moedas (só Lenda). O seletor + "clube dormindo" vêm nas próximas fases.
@@ -562,8 +562,7 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
   if (jaTem) return (
     <div style={{ ...box('#0C0C0C'), padding: 13, color: '#fff', marginTop: 10 }}>
       <p style={{ fontWeight: 900, fontSize: 14, color: GOLD, ...OSWALD, margin: 0 }}>🏛️ MULTICLUBES</p>
-      <p style={{ fontFamily: 'system-ui', fontSize: 11, marginTop: 4, lineHeight: 1.4 }}>Você já comanda um 2º clube: <b style={{ color: GOLD }}>{jaTem}</b>. <span style={{ opacity: .6 }}>(O seletor pra trocar de clube e o "clube dormindo" vêm na próxima fase.)</span></p>
-      <p style={{ fontFamily: 'system-ui', fontSize: 8.5, color: 'rgba(255,255,255,.4)', margin: '7px 0 0', textAlign: 'center' }}>🏗️ Em construção — visível só pra você (teste).</p>
+      <p style={{ fontFamily: 'system-ui', fontSize: 11, marginTop: 4, lineHeight: 1.4 }}>Você já comanda um 2º clube: <b style={{ color: GOLD }}>{jaTem}</b>. <span style={{ opacity: .6 }}>Entre as temporadas você passa o comando pro outro (o que sai dorme e joga sozinho).</span></p>
     </div>
   )
   const faltam = preco - coins
@@ -571,7 +570,14 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
     <div style={{ ...box('#0C0C0C'), padding: 13, color: '#fff', marginTop: 10 }}>
       <p style={{ fontWeight: 900, fontSize: 15, color: GOLD, ...OSWALD, margin: 0 }}>🏛️ Compre um SEGUNDO CLUBE</p>
       <p style={{ fontFamily: 'system-ui', fontSize: 10.5, color: 'rgba(255,255,255,.82)', margin: '5px 0 0', lineHeight: 1.45 }}>Escolha um clube <b>da Série D</b> pra chamar de seu — ele veste a <b>sua cor</b> e você comanda os dois. Custa <b>4.000 🪙</b> e é regalia do tier <b>Lenda 👑</b>.</p>
-      {!isLenda && <div style={lock}>🔒 Só pra <b>Lenda 👑</b> — vire Lenda no APOIE pra liberar.</div>}
+      {!isLenda && (
+        <>
+          <div style={lock}>🔒 Regalia de <b>Lenda 👑</b> — vire Lenda pra comandar 2 clubes.</div>
+          <ApoieButton startScreen="choice" trigger={(open) => (
+            <button onClick={open} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, background: 'linear-gradient(135deg,#FFE79A,#FFC400,#E8A200)', color: '#000', cursor: 'pointer', ...OSWALD }}>👑 VIRAR LENDA NO APOIE</button>
+          )} />
+        </>
+      )}
       {isLenda && faltam > 0 && <div style={lock}>🔒 Faltam <b>{faltam.toLocaleString('pt-BR')}</b> 🪙 — custa {preco.toLocaleString('pt-BR')}, você tem {coins.toLocaleString('pt-BR')}.</div>}
       {isLenda && faltam <= 0 && (
         <>
@@ -584,7 +590,6 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
           <button disabled={!pick} onClick={() => pick && onBuy(pick)} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: pick ? GOLD : '#555', color: pick ? '#000' : 'rgba(255,255,255,.5)', cursor: pick ? 'pointer' : 'default', ...OSWALD }}>💰 COMPRAR {pick ? pick.toUpperCase() : 'POR'} · {preco.toLocaleString('pt-BR')} 🪙</button>
         </>
       )}
-      <p style={{ fontFamily: 'system-ui', fontSize: 8.5, color: 'rgba(255,255,255,.4)', margin: '7px 0 0', textAlign: 'center' }}>🏗️ Multiclubes em construção — visível só pra você (teste).</p>
     </div>
   )
 }
@@ -2346,7 +2351,7 @@ export function PyramidSeasonScreen() {
               )}
               <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>📅 Próxima temporada</p>
               {/* 🏛️ MULTICLUBES · seletor (só entre temporadas, só testers) */}
-              {MULTICLUBE_TESTERS.includes((loggedEmail() ?? '').toLowerCase()) && state.multiClube && (() => {
+              {state.onlineMode !== 'online' && state.multiClube && (() => {
                 const ativo = state.managers[state.youIdx]?.teamName ?? '—'
                 const dormindo = state.multiClube.team
                 return (
@@ -2357,14 +2362,14 @@ export function PyramidSeasonScreen() {
                       <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: '#3a3a3a', color: 'rgba(255,255,255,.7)', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>⚪ {dormindo}<div style={{ fontSize: 8, fontWeight: 800 }}>dormindo 💤</div></div>
                     </div>
                     <button onClick={() => dispatch({ type: 'SWITCH_MULTICLUBE' })} style={{ width: '100%', marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 12, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>🔄 Passar o comando pro {dormindo}</button>
-                    <p style={{ fontFamily: 'system-ui', fontSize: 8.5, color: 'rgba(255,255,255,.45)', margin: '6px 0 0', textAlign: 'center' }}>Trocar = na próxima você comanda o outro; este dorme (mesmo time). 🏗️ em teste.</p>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 8.5, color: 'rgba(255,255,255,.45)', margin: '6px 0 0', textAlign: 'center' }}>Trocar = na próxima você comanda o outro; este dorme (mesmo time).</p>
                   </div>
                 )
               })()}
               {/* 🏛️ MULTICLUBES · cartas GUARDADAS: quando o clube que estava dormindo foi
                   campeão, o pacote fica esperando e aparece aqui pra VOCÊ abrir assim que
                   passa o comando pra ele. Uma por título (divisão e/ou Copa Legends). */}
-              {MULTICLUBE_TESTERS.includes((loggedEmail() ?? '').toLowerCase()) && (state.multiClubePendingCards?.[youId] ?? []).length > 0 && (
+              {state.onlineMode !== 'online' && (state.multiClubePendingCards?.[youId] ?? []).length > 0 && (
                 <div style={{ margin: '0 0 12px' }}>
                   <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, color: INK, margin: '0 0 7px', textAlign: 'center' }}>🎁 Enquanto dormia, o <b>{state.managers[state.youIdx]?.teamName}</b> foi campeão! Abra {(state.multiClubePendingCards?.[youId] ?? []).length > 1 ? 'os pacotes guardados' : 'o pacote guardado'} 👇</p>
                   {(state.multiClubePendingCards?.[youId] ?? []).map(p => {
@@ -2515,7 +2520,7 @@ export function PyramidSeasonScreen() {
                 como reserva) — se divergirem, o botão prometia 2 e o clique não fazia nada */
                 filialSlots(state.careerPlacements?.[`m${youId}`] ?? me?.div ?? 'D')} />
             {/* 🏛️ MULTICLUBES (Fase 1 — a compra) · em construção, só testers veem · só solo */}
-            {state.onlineMode !== 'online' && MULTICLUBE_TESTERS.includes((loggedEmail() ?? '').toLowerCase()) && (() => {
+            {state.onlineMode !== 'online' && (() => {
               const opcoes = (() => {
                 const fica = sortDiv(tables.D).slice(4) // tira a zona de acesso (igual à SAF)
                 const safName = myFilial?.team
