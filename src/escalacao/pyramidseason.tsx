@@ -14,6 +14,7 @@ import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, fili
 import { empresarioIncome, empCat, EMP_ORDER, EMP_META } from './estadiodata'
 import type { EmpCat, StadiumSave } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
+import { useLang } from './lang'
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, SponsorCard } from './estadio'
@@ -980,6 +981,10 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // 🏀 basquete: `basket` traz os PONTOS finais (ex.: 112/98). O placar então SOBE
   // até esse total conforme o relógio (não conta lances). SÓ o basquete passa isto
   // — no futebol `basket` é undefined e TUDO fica exatamente como hoje.
+  // 🌐 bilíngue SÓ no basquete (basket definido). Futebol (basket undefined) =
+  // en sempre false → tudo em PT, byte-idêntico.
+  const [blLang] = useLang()
+  const en = !!basket && blLang === 'en'
   const [min, setMin] = useState(finished ? 93 : 0)
   // 🚫 ANTI-SPOILER: quando entra uma rodada nova (roundKey muda) o relógio ainda
   // está no 93' da rodada anterior por 1 frame — o que mostraria TODOS os gols (o
@@ -1030,10 +1035,12 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
           : (min >= 45 && min <= 63) ? 'half'
             : null
   const endPhrase = basket
-    ? ['📢 Buzina final — acabou o jogo!', '📢 Fim de jogo na quadra!', '📢 Soou a buzina: fim de papo!'][Math.abs(roundKey) % 3]
+    ? (en
+      ? ['📢 Final buzzer — game over!', '📢 That’s the game on the court!', '📢 Buzzer sounds: ballgame!'][Math.abs(roundKey) % 3]
+      : ['📢 Buzina final — acabou o jogo!', '📢 Fim de jogo na quadra!', '📢 Soou a buzina: fim de papo!'][Math.abs(roundKey) % 3])
     : ['📢 Apito final — termina o jogo!', '📢 Apitou o árbitro: acabou!', '📢 Fim de jogo — pode tirar o uniforme!'][Math.abs(roundKey) % 3]
   const ritualTxt = basket
-    ? (ritual === 'start' ? '🟢 Bola ao alto — começa o jogo!' : ritual === 'half' ? '🟢 Volta pra quadra — segundo tempo!' : ritual === 'end' ? endPhrase : null)
+    ? (ritual === 'start' ? (en ? '🟢 Tip-off — game on!' : '🟢 Bola ao alto — começa o jogo!') : ritual === 'half' ? (en ? '🟢 Back on court — second half!' : '🟢 Volta pra quadra — segundo tempo!') : ritual === 'end' ? endPhrase : null)
     : (ritual === 'start' ? '🟢 Aaaaaauutoriza o árbitro — começa o primeiro tempo!' : ritual === 'half' ? '🟢 Aaaaaauutoriza o árbitro — rola o segundo tempo!' : ritual === 'end' ? endPhrase : null)
   // ⏱️ relógio: futebol conta 0→90'; 🏀 basquete = 4 quartos de 12min contando
   // pra baixo (Q1 12:00 → Q4 0:00). O `min` (0→93) só dirige a animação — aqui
@@ -1086,7 +1093,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       {perk && <ApoioSheen holo={perk.holo} dur={4.2} />}
       <div style={{ position: 'relative', width: 28, height: 28, borderRadius: 8, border: `2px solid ${INK}`, background: '#fff', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 13, ...OSWALD, animation: flash ? 'coBump .6s ease' : undefined }}>{ini(name)}</div>
       <div style={{ position: 'relative', fontSize: 12, fontWeight: 900, ...OSWALD, color: ink, lineHeight: 1.05, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{perk ? apoioName(name) : name}</div>
-      <div style={{ position: 'relative', fontSize: 9, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: ink, opacity: 0.72 }}>{you ? 'você' : 'rival'}</div>
+      <div style={{ position: 'relative', fontSize: 9, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: ink, opacity: 0.72 }}>{you ? (en ? 'you' : 'você') : 'rival'}</div>
     </div>
     )
   }
@@ -1095,9 +1102,9 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coStamp{0%{transform:translateX(-50%) scale(0) rotate(-14deg);opacity:0}45%{transform:translateX(-50%) scale(1.18) rotate(-7deg);opacity:1}70%{transform:translateX(-50%) scale(.94) rotate(-7deg)}100%{transform:translateX(-50%) scale(1) rotate(-7deg);opacity:1}}'}</style>
       {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>🥊 CLÁSSICO</div>}
       {/* selo GOOOL! — surge sobre o lado de quem marcou */}
-      {goal && <div style={{ position: 'absolute', top: 4, left: goal === 'h' ? '25%' : '75%', transform: 'translateX(-50%) rotate(-7deg)', zIndex: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '3px 12px', ...OSWALD, fontWeight: 900, fontSize: 17, letterSpacing: 0.5, boxShadow: `2px 2px 0 0 ${INK}`, animation: 'coStamp .5s cubic-bezier(.2,1.4,.5,1) both', whiteSpace: 'nowrap', ...(lateGoal ? { background: '#FF5B4D', color: '#fff' } : {}) }}>{basket ? (lateGoal ? '🔥 CESTA NO FIM!' : '🏀 CESTA!') : (lateGoal ? '🔥 GOL NO FIM!' : '⚽ GOOOL!')}</div>}
+      {goal && <div style={{ position: 'absolute', top: 4, left: goal === 'h' ? '25%' : '75%', transform: 'translateX(-50%) rotate(-7deg)', zIndex: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '3px 12px', ...OSWALD, fontWeight: 900, fontSize: 17, letterSpacing: 0.5, boxShadow: `2px 2px 0 0 ${INK}`, animation: 'coStamp .5s cubic-bezier(.2,1.4,.5,1) both', whiteSpace: 'nowrap', ...(lateGoal ? { background: '#FF5B4D', color: '#fff' } : {}) }}>{basket ? (en ? (lateGoal ? '🔥 BUCKET AT THE BUZZER!' : '🏀 BUCKET!') : (lateGoal ? '🔥 CESTA NO FIM!' : '🏀 CESTA!')) : (lateGoal ? '🔥 GOL NO FIM!' : '⚽ GOOOL!')}</div>}
       <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', background: INK, color: '#fff', fontSize: 11, fontWeight: 900, ...OSWALD, padding: '3px 11px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 6, zIndex: 2, whiteSpace: 'nowrap' }}>
-        <span style={{ width: 7, height: 7, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite' }} /> {done ? (basket ? 'FINAL' : 'FIM') : minLabel}
+        <span style={{ width: 7, height: 7, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite' }} /> {done ? (basket ? 'FINAL' : 'FIM') : minLabel}{/* FINAL/FIM: 'FINAL' já serve em EN */}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch' }}>
         <Team name={homeName} color={homeCol} you={youIsHome} flash={goal === 'h'} />
@@ -1110,7 +1117,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '7px 12px', borderTop: '2px solid #e6dcbf', background: '#efe4c8' }}>
         <span key={ritualTxt ?? 'g'} style={{ fontSize: 11, fontWeight: ritualTxt ? 900 : 700, ...OSWALD, color: ritualTxt ? INK : 'rgba(0,0,0,0.72)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%', animation: ritualTxt ? 'coFade .4s ease' : undefined }}>
-          {ritualTxt ?? (last ? <>{basket ? '🏀' : '⚽'} {last.name}{!basket && <> <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></>}</> : (done ? (basket ? 'sem cestas' : 'sem gols') : (basket ? '🟢 bola quicando…' : '🟢 bola rolando…')))}
+          {ritualTxt ?? (last ? <>{basket ? '🏀' : '⚽'} {last.name}{!basket && <> <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></>}</> : (done ? (basket ? (en ? 'no buckets' : 'sem cestas') : 'sem gols') : (basket ? (en ? '🟢 ball bouncing…' : '🟢 bola quicando…') : '🟢 bola rolando…')))}
         </span>
       </div>
     </div>

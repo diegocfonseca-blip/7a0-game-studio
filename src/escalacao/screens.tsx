@@ -3376,7 +3376,9 @@ export function QuickManualLock() {
     </div>
   )
 }
-export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLabel = '▶️ Próxima rodada', lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
+export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLabel = '▶️ Próxima rodada', lock, en = false }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode; en?: boolean }) {
+  // 🌐 en=true só vem do basquete em inglês; futebol nunca passa → PT (byte-idêntico).
+  const T = (pt: string, e: string) => (en ? e : pt)
   // 🔒 sem apoio no modo rápido offline: o toggle vira cadeado (leva pro Apoie)
   if (lock) return <>{lock}</>
   // 🎮 MANUAL com PULAR: "Próxima rodada" GRANDE à esquerda (espera a partida
@@ -3389,10 +3391,10 @@ export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLab
           {nextLabel}
         </button>
         <button onClick={onSkip} style={{ gridColumn: 2, gridRow: 1, border: `1.5px solid ${INK}`, borderRadius: 10, padding: 8, fontWeight: 800, fontSize: 12.5, fontFamily: 'Oswald, sans-serif', background: '#2F6BAE', color: '#fff', boxShadow: `1.5px 1.5px 0 0 ${INK}`, cursor: 'pointer' }}>
-          ⏭️ Pular
+          {T('⏭️ Pular', '⏭️ Skip')}
         </button>
         <button onClick={onToggle} style={{ gridColumn: 2, gridRow: 2, border: `1.5px solid ${INK}`, borderRadius: 10, padding: 8, fontWeight: 800, fontSize: 11.5, fontFamily: 'Oswald, sans-serif', background: '#fff', color: '#5a5647', boxShadow: `1.5px 1.5px 0 0 ${INK}`, cursor: 'pointer' }}>
-          🔁 Modo auto
+          {T('🔁 Modo auto', '🔁 Auto mode')}
         </button>
       </div>
     )
@@ -3405,7 +3407,7 @@ export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLab
         </button>
       )}
       <button onClick={onToggle} style={{ flex: manual ? 'none' : 1, border: `2.5px solid ${INK}`, borderRadius: 12, padding: manual ? '8px 12px' : '9px 10px', fontWeight: 900, fontSize: manual ? 11 : 12, fontFamily: 'Oswald, sans-serif', background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
-        {manual ? '🔁 voltar pro AUTO' : '⏸️ MANUAL: pausar entre as rodadas'}
+        {manual ? T('🔁 voltar pro AUTO', '🔁 back to AUTO') : T('⏸️ MANUAL: pausar entre as rodadas', '⏸️ MANUAL: pause between games')}
       </button>
     </div>
   )
@@ -3421,11 +3423,11 @@ export const SPEED_OPTS: { v: number; label: string }[] = [
   { v: 2, label: '⚡ 2×' },
   { v: 4, label: '⚡ 4×' },
 ]
-export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: number) => void }) {
+export function SpeedControls({ speed, onSet, en = false }: { speed: number; onSet: (v: number) => void; en?: boolean }) {
   const cur = speed > 0 ? speed : 1
   return (
     <div style={{ marginBottom: 10 }}>
-      <p style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.5)', margin: '0 0 5px 2px' }}>⏩ Velocidade da partida</p>
+      <p style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.5)', margin: '0 0 5px 2px' }}>{en ? '⏩ Match speed' : '⏩ Velocidade da partida'}</p>
       <div style={{ display: 'flex', gap: 5 }}>
         {SPEED_OPTS.map(o => {
           const on = cur === o.v
@@ -3689,8 +3691,8 @@ export function EscSeason() {
       </div>
     }>
       {copaLive && qc ? (() => {
-        const phaseLabel = qc.phase === 'quartas' ? 'Quartas de Final' : qc.phase === 'semis' ? 'Semifinal' : 'Final'
-        const legLabel = qc.phase === 'final' ? 'Jogo único · campo neutro' : qc.legIdx === 0 ? 'Jogo de ida' : 'Jogo de volta'
+        const phaseLabel = qc.phase === 'quartas' ? LS('Quartas de Final', 'Quarterfinals') : qc.phase === 'semis' ? LS('Semifinal', 'Semifinal') : LS('Final', 'Final')
+        const legLabel = qc.phase === 'final' ? LS('Jogo único · campo neutro', 'Single game · neutral court') : qc.legIdx === 0 ? LS('Jogo de ida', 'First leg') : LS('Jogo de volta', 'Second leg')
         const myTie = qc.ties.find(t => t.aId === you.id || t.bId === you.id)
         const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
         const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
@@ -3771,10 +3773,10 @@ export function EscSeason() {
                     : <>Os 8 melhores da liga se enfrentam ida e volta: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passar cai na semifinal — e a final é jogo único. O campeão da Copa ganha <b>outra carta</b> pro álbum, além da carta da liga!</>}
                 </p>
                 {!manual && !streamRoom && (
-                  <p className="text-center font-black text-sm" style={OSWALD}>⚽ A primeira partida começa em {copaFirstLeft}s</p>
+                  <p className="text-center font-black text-sm" style={OSWALD}>{bbS ? '🏀' : '⚽'} {LS('A primeira partida começa em', 'The first game starts in')} {copaFirstLeft}s</p>
                 )}
                 {streamRoom && !canAdvance && (
-                  <p className="text-center font-black text-sm" style={OSWALD}>⏳ O host começa a Copa quando quiser…</p>
+                  <p className="text-center font-black text-sm" style={OSWALD}>{LS('⏳ O host começa a Copa quando quiser…', '⏳ The host starts the Playoffs whenever…')}</p>
                 )}
               </Box>
             )}
@@ -3850,21 +3852,21 @@ export function EscSeason() {
       {manual && !state.dinastiaPaused && (
         // ⏩ marcha da velocidade: só no manual (o passo é seu). No online manual/stream
         // só o HOST vê e escolhe — o valor vai pro estado e sincroniza pra sala toda.
-        <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />
+        <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} en={bbS && seasonLang === 'en'} />
       )}
       {(!online || streamHost) && !state.dinastiaPaused && state.round < totalRounds && (
         // 🎮 MANUAL: "Próxima rodada" só LIBERA depois que a partida terminou de
         // simular (respeita o tempo da rodada). Sem isto, dava pra clicar sem parar
         // e "pular" as 38 rodadas na hora. No começo (round 0) libera pra dar o
         // pontapé; da rodada 1 em diante espera a animação (resultRevealed).
-        <SimControls manual={manual} onToggle={toggleManual} canNext={state.round === 0 || resultRevealed}
+        <SimControls manual={manual} onToggle={toggleManual} canNext={state.round === 0 || resultRevealed} en={bbS && seasonLang === 'en'}
           lock={manualLocked ? <QuickManualLock /> : undefined}
           onNext={() => dispatch({ type: 'PLAY_ROUND' })}
           onSkip={() => dispatch({ type: 'PLAY_ROUND' })}
-          nextLabel={!(state.round === 0 || resultRevealed) ? '⏳ Deixa a rodada acabar…' : state.round === 0 && !myLast ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
+          nextLabel={!(state.round === 0 || resultRevealed) ? LS('⏳ Deixa a rodada acabar…', '⏳ Let the game finish…') : state.round === 0 && !myLast ? LS('▶️ Começar a temporada', '▶️ Start the season') : LS('▶️ Próxima rodada', '▶️ Next game')} />
       )}
       {(!online || streamHost) && copaLive && (
-        <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
+        <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady} en={bbS && seasonLang === 'en'}
           lock={manualLocked ? <QuickManualLock /> : undefined}
           onNext={() => dispatch({ type: 'PLAY_COPA_LEG' })}
           onSkip={() => dispatch({ type: 'PLAY_COPA_LEG' })}
