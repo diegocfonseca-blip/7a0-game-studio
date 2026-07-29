@@ -3381,8 +3381,9 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'RECORD_SEASON_STATS': {
-      // fim de temporada: soma os gols dos artilheiros no acumulado de TODOS OS
-      // TEMPOS (por nome). Idempotente: só grava uma vez por temporada.
+      // fim de temporada: soma os gols dos artilheiros de TODOS os times (usuário,
+      // bot e rival, todas as 4 divisões) no acumulado de TODOS OS TEMPOS (por
+      // nome). Idempotente: só grava uma vez por temporada.
       if (!s.careerOnline) return s
       if ((s.statsSeason ?? 0) >= s.seasonNo) return s
       const all = { ...(s.careerScorersAll ?? {}) }
@@ -3390,7 +3391,11 @@ export function reducer(state: EscState, action: Action): EscState {
         const prev = all[sc.name]
         all[sc.name] = { ...sc, goals: (prev?.goals ?? 0) + sc.goals } // teamName/div = os da última temporada (display)
       }
-      s.careerScorersAll = all
+      // guarda os 300 MELHORES de todos os tempos: o ranking mostra só 20, então
+      // 300 é folga de sobra (cobre quem está perto de entrar) e evita o save
+      // crescer sem fim. Ninguém relevante pro ranking é cortado.
+      const top = Object.values(all).sort((a, b) => b.goals - a.goals).slice(0, 300)
+      s.careerScorersAll = Object.fromEntries(top.map(x => [x.name, x]))
       s.statsSeason = s.seasonNo
       return s
     }
@@ -3962,6 +3967,57 @@ async function leaveOnlineRoom(roomId: string, keepSlot = false) {
 // descarta a página em segundo plano), voltava pro zero (home) e perdia a
 // temporada. Salvamos a partida solo em andamento no aparelho e retomamos de
 // onde parou. (O online tem seu próprio resume via sala — aqui é só cpu.)
+// ─── 🔒 LACRE (carimbo) contra edição do save na mão ────────────────────────
+// A carreira SOLO roda no navegador, então dá pra editar o localStorage (moedas,
+// títulos, etc.). O lacre é um "código secreto" gravado junto do save, feito dos
+// campos-chave + um segredo que só o jogo conhece. Ao SALVAR, carimba; ao ABRIR,
+// refaz o carimbo e compara: se não bate, o save foi MEXIDO na mão (a pessoa
+// trocou o número mas não soube refazer o carimbo). NUNCA trava o jogo — só
+// registra uma marca no painel do criador (esc_cheat_flags) pra o Diego OLHAR e
+// decidir. Grandfather: save sem lacre (antigo) NÃO é acusado. Pega o casual
+// (99%); quem lê o bundle e refaz o carimbo passa — limitação assumida.
+const LACRE_SEGREDO = 'll7a0·v1·9f2kx'
+function lacreDe(s: EscState): string {
+  const youId = s.managers?.[s.youIdx]?.id ?? s.youIdx ?? 0
+  const coins = Math.round(s.careerCoins?.[youId] ?? 0)
+  const hon = s.careerHonors?.['m' + youId]
+  const titles = hon ? (hon.A + hon.B + hon.C + hon.D) : (s.careerTitles ?? 0)
+  const div = s.careerPlacements?.['m' + youId] ?? s.careerDivision ?? ''
+  const base = `${LACRE_SEGREDO}|${coins}|${titles}|${div}|${s.seasonNo ?? 1}`
+  let h = 0
+  for (let i = 0; i < base.length; i++) h = (Math.imul(31, h) + base.charCodeAt(i)) >>> 0
+  return h.toString(36)
+}
+// serializa o estado JÁ carimbado (sem alterar o state em memória)
+function comLacre(s: EscState): string { return JSON.stringify({ ...s, _ll: lacreDe(s) }) }
+// true = MEXIDO na mão. Sem _ll (save antigo) ou não-carreira = não acusa.
+function saveMexido(save: unknown): boolean {
+  if (!save || typeof save !== 'object') return false
+  const s = save as EscState & { _ll?: string }
+  if (typeof s._ll !== 'string') return false // save antigo — perdoado
+  if (!s.careerDivision && !s.careerOnline) return false // não é carreira solo
+  return lacreDe(s) !== s._ll
+}
+// registra a marca no painel do criador (só quando o save do PRÓPRIO usuário
+// aparece mexido). Fire-and-forget: nunca trava nem atrapalha o jogo.
+function marcaMexido(save: EscState) {
+  try {
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!data?.user) return
+      const youId = save.managers?.[save.youIdx]?.id ?? 0
+      const coins = Math.round(save.careerCoins?.[youId] ?? 0)
+      const hon = save.careerHonors?.['m' + youId]
+      const titles = hon ? (hon.A + hon.B + hon.C + hon.D) : (save.careerTitles ?? 0)
+      supabase.from('esc_cheat_flags').upsert({
+        user_id: data.user.id,
+        display_name: save.managers?.[save.youIdx]?.teamName ?? null,
+        detail: `caixa ${coins} · ${titles} tít. · T${save.seasonNo ?? 1}`,
+        last_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' }).then(() => {}, () => {})
+    }, () => {})
+  } catch { /* silencioso — nunca atrapalha o jogo */ }
+}
+
 const SOLO_RESUME_KEY = 'esc-solo-inprogress-v1'
 const SOLO_GAME_SCREENS = ['auction', 'monte', 'cerimonia', 'season', 'end'] as const
 function isSoloGameScreen(screen: string): boolean {
@@ -3972,7 +4028,10 @@ function loadSoloInProgress(): EscState | null {
     const raw = localStorage.getItem(SOLO_RESUME_KEY)
     if (!raw) return null
     const s = JSON.parse(raw) as EscState
-    if (s && s.onlineMode === 'cpu' && isSoloGameScreen(s.screen) && Array.isArray(s.managers) && s.managers.length > 0) return s
+    if (s && s.onlineMode === 'cpu' && isSoloGameScreen(s.screen) && Array.isArray(s.managers) && s.managers.length > 0) {
+      if (saveMexido(s)) marcaMexido(s) // 🔒 lacre não bateu = editado na mão → marca no painel (não trava)
+      return s
+    }
   } catch { /* estado inválido/versão antiga — começa do zero */ }
   return null
 }
@@ -3996,7 +4055,7 @@ function writeCareerArchive(slots: CareerSlot[]) {
   try { localStorage.setItem(CAREER_ARCHIVE_KEY, JSON.stringify(slots.slice(0, MAX_CAREER_SLOTS))) } catch { /* cota cheia — ignora */ }
 }
 export function readActiveCareer(): CareerSlot | null {
-  try { const r = localStorage.getItem('esc-solo-career'); if (r) { const save = JSON.parse(r); if (isCareerSave(save)) return { save, at: +(localStorage.getItem('esc-solo-career-at') || Date.now()) } } } catch { /* ignora */ }
+  try { const r = localStorage.getItem('esc-solo-career'); if (r) { const save = JSON.parse(r); if (isCareerSave(save)) { if (saveMexido(save)) marcaMexido(save); return { save, at: +(localStorage.getItem('esc-solo-career-at') || Date.now()) } } } } catch { /* ignora */ }
   return null
 }
 // guarda a carreira ATIVA no arquivo (dedup por seed). Não apaga a ativa.
@@ -4065,7 +4124,9 @@ export async function savePyramidCloud(state: EscState, force = false) {
     lastPyrCloud = Date.now()
     let payload: unknown = state
     if (isCareerSave(state)) {
-      const active: CareerSlot = { save: state, at: Date.now() }
+      // 🔒 carimba o save ativo com o lacre antes de subir pra nuvem (as do arquivo já
+      // vêm carimbadas de quando foram salvas). Assim a nuvem também dá pra conferir.
+      const active: CareerSlot = { save: { ...state, _ll: lacreDe(state) } as EscState, at: Date.now() }
       const archive = readCareerArchive().filter(s => s.save.seed !== state.seed)
       payload = { __multi: 1, careers: [active, ...archive].slice(0, MAX_CAREER_SLOTS) }
     }
@@ -4087,6 +4148,7 @@ export async function loadPyramidCloud(): Promise<CloudCareers | null> {
       const careers = multi.careers.filter(c => isCareerSave(c?.save))
       if (!careers.length) return null
       const active = [...careers].sort((a, b) => b.at - a.at)[0]
+      if (saveMexido(active.save)) marcaMexido(active.save) // 🔒 confere o lacre da nuvem também
       return { save: active.save, at: active.at, careers }
     }
     // formato ANTIGO (EscState cru) — carreira única
@@ -4126,7 +4188,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // salva a partida solo em andamento (e limpa quando volta pra home)
   useEffect(() => {
     try {
-      if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen)) localStorage.setItem(SOLO_RESUME_KEY, JSON.stringify(state))
+      if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen)) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state))
       else if (state.screen === 'intro') localStorage.removeItem(SOLO_RESUME_KEY)
     } catch { /* quota cheia etc. — não trava o jogo */ }
   }, [state])
@@ -4385,7 +4447,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}|${JSON.stringify(state.stadiums ?? {})}`
     if (sig === soloSigRef.current) return
     soloSigRef.current = sig
-    try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
+    try { localStorage.setItem('esc-solo-career', comLacre(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
     savePyramidCloud(state) // logado: espelha na nuvem (throttled) pra seguir a conta
   }, [state])
 

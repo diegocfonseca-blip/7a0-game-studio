@@ -2011,7 +2011,13 @@ export function PyramidSeasonScreen() {
   useEffect(() => {
     if (!done || !state.careerOnline) return
     if ((state.statsSeason ?? 0) >= state.seasonNo) return
-    dispatch({ type: 'RECORD_SEASON_STATS', scorers: scorersAll.slice(0, 60) })
+    // 🐛 BUG "meu jogador fez gol e não contou": antes gravava só o TOP 60 da
+    // temporada (scorersAll.slice(0,60)) — quem ficava abaixo do 60º tinha os gols
+    // DESCARTADOS do acumulado. Agora conta o gol de TODO time (usuário, bot,
+    // rival), de todas as 4 divisões — nenhum gol é jogado fora. O ranking mostra
+    // o top 20; o reducer guarda bem mais (top 300) pra ninguém perto de entrar
+    // ficar de fora, sem o save crescer sem limite.
+    dispatch({ type: 'RECORD_SEASON_STATS', scorers: scorersAll })
   }, [done, state.careerOnline, state.seasonNo, state.statsSeason]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // MATERIALIZA a ficha dos 60 times de fundo (1x): antes eram recalculados na
