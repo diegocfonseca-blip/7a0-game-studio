@@ -896,7 +896,20 @@ export function EscLobby() {
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: gs })
       .select().single()
-    if (re || !rd) { setRoomError('Erro ao criar sala.'); setLoading(false); return }
+    if (re || !rd) {
+      // 🔎 mostra a CAUSA real (antes era só "Erro ao criar sala." e a gente ficava no
+      // escuro). O código do Postgres/PostgREST diz na hora o que houve — 42501 = RLS
+      // (sem permissão), PGRST116 = criou mas não deixou ler de volta (RLS de leitura),
+      // 23505 = código repetido. Assim dá pra consertar a trava certa sem adivinhar.
+      console.error('[createRoom] falhou:', re)
+      const code2 = re?.code
+      const hint = code2 === '42501' ? 'sem permissão (RLS). Avise o Diego.'
+        : code2 === 'PGRST116' ? 'a sala foi criada mas o app não pôde lê-la de volta (RLS de leitura). Avise o Diego.'
+        : code2 === '23505' ? 'código repetido — tente de novo.'
+        : (re?.message || 'tente de novo em instantes.')
+      setRoomError(`Erro ao criar sala: ${hint}${code2 ? ` [${code2}]` : ''}`)
+      setLoading(false); return
+    }
     await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: 0, manager_name: nameOf(), is_ready: true })
     saveRoom(rd.id)
     setRoom(rd); setIsHost(true); setPhase('waiting'); setLoading(false)
