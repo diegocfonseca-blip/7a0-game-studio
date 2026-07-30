@@ -1919,7 +1919,13 @@ export function PyramidSeasonScreen() {
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const careerLineup = (state.careerLineup ?? {}) as RoundLineups
   const capElite = (state.simV ?? 1) >= 2 ? 1.28 : 1.2 // temporada velha termina na fórmula velha
-  const live = useMemo(() => simulatePyramid(world, state.seed, round, careerTactics, careerLineup, capElite), [world, state.seed, round, careerTactics, careerLineup, capElite])
+  // 🎲 seed da simulação MUDA a cada temporada (mistura seed + seasonNo). Sem isto,
+  // no online "mesmo time" a seed ficava fixa e TODA temporada refazia os MESMOS
+  // sorteios — a mesma goleada, o mesmo placar, temporada após temporada. É
+  // determinístico (seed e seasonNo são sincronizados), então todos os clientes
+  // online chegam no mesmo resultado. Cada temporada roda como se fosse uma nova.
+  const seasonSeed = (state.seed ^ ((state.seasonNo ?? 1) * 2654435761)) >>> 0
+  const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite), [world, seasonSeed, round, careerTactics, careerLineup, capElite])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
   // está animando na sua tela — os pontos só entram quando o relógio dela acaba.
@@ -1936,7 +1942,7 @@ export function PyramidSeasonScreen() {
   // os gols da partida apareciam ANTES dela animar (a tabela já segurava, mas a
   // artilharia entregava). Quando a rodada termina de animar (revealed = round),
   // tudo passa a vir da simulação completa (live), sem recomputar à toa.
-  const shown = useMemo(() => revealed >= round ? live : simulatePyramid(world, state.seed, revealed, careerTactics, careerLineup, capElite), [live, revealed, round, world, state.seed, careerTactics, careerLineup, capElite])
+  const shown = useMemo(() => revealed >= round ? live : simulatePyramid(world, seasonSeed, revealed, careerTactics, careerLineup, capElite), [live, revealed, round, world, seasonSeed, careerTactics, careerLineup, capElite])
   const { scorers, scorersAll, goalsByCard, divTop } = shown
   const tables = shown.tables
   const me = myStanding(tables)
