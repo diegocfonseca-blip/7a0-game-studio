@@ -4514,7 +4514,7 @@ const ALL_POOL: WonCard[] = (() => {
   return out
 })()
 
-export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onStatus, noTimer, saveCards }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; noTimer?: boolean; saveCards?: { name: string; club: string; year: number }[] }) {
+export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onStatus, noTimer, saveCards }: { you?: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; noTimer?: boolean; saveCards?: { name: string; club: string; year: number }[] }) {
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
   // avisa quem renderiza (EscEnd) o status da carta — pra travar a votação online

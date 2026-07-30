@@ -18,7 +18,7 @@ import { paisDe, rankingSelecoes, type Baralho } from './paises'
 import { LiveScoreCard, PensShootout, pensRevealDelay, type ScoreGoal } from './pyramidseason'
 // controles de ritmo OFICIAIS (mesmos da liga/copa): auto por padrão, Manual
 // (🐢/⚡ + pular + próxima fase) pra quem tem o tier — cadeado do APOIE pro resto.
-import { SimControls, SpeedControls, useSimMode, QuickManualLock } from './screens'
+import { SimControls, SpeedControls, useSimMode, QuickManualLock, CardCollectPrompt } from './screens'
 import { useHasManual } from './apoio'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#C2452F'
@@ -679,6 +679,13 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: '2px 0 0', textTransform: 'uppercase', position: 'relative' }}>{nm(world.final.champion)} CAMPEÃO DO MUNDO!</p>
           <p style={{ fontSize: 10.5, fontWeight: 800, margin: '3px 0 0', position: 'relative' }}>{isYou(world.final.champion) ? <>VOCÊ ({club(world.final.champion)}) entrou pra história: ⭐ estrela eterna no mural{onPrize ? ' + 💰 100 MOEDAS no caixa do clube' : ''}. 🎉</> : <>Título de {club(world.final.champion)}. A próxima Copa é na temporada {seasonNo + 10} — treina o dedo. 😤</>}</p>
           <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0', position: 'relative' }}>final: {nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? ` (pên. ${world.final.pen[0]}×${world.final.pen[1]})` : ''}</p>
+        </div>
+      )}
+      {/* 🎴 CARTA DO CAMPEÃO DO MUNDO — só pra quem venceu (privada). Igual às
+          outras copas: a carta é gravada na conta NA HORA (conta mesmo sem abrir). */}
+      {done && isYou(world.final.champion) && (
+        <div style={{ marginBottom: 10 }}>
+          <CardCollectPrompt seasonKey={`copamundo:${seed}:${seasonNo}`} origin="online" />
         </div>
       )}
       {done && (() => {
