@@ -1618,7 +1618,9 @@ export function EscSetup() {
         <div>
           <p className="text-xs font-black uppercase mb-1">Formação (travada antes do pregão)</p>
           <div className="grid grid-cols-4 gap-2">
-            {(Object.keys(FORMATIONS) as FormationKey[]).map(f => (
+            {/* INÍCIO: só 4-3-3 e 4-4-2 (base do leilão). O 4-5-1 é troca TÁTICA na
+                carreira depois — nunca no começo. */}
+            {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => (
               <button key={f} onClick={() => setFormation(f)}
                 className="border-[3px] border-black rounded-xl py-2 font-black text-sm"
                 style={{ backgroundColor: formation === f ? GOLD : '#fff', boxShadow: formation === f ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>

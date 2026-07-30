@@ -1437,12 +1437,12 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
         const availByPos = (pos: Sector) => real.filter(c => c.pos === pos && !c.emprestado).length
         const missFor = (f: FormationKey) => SECTORS.filter(pos => availByPos(pos) < FORMATIONS[f][pos]).map(pos => `${FORMATIONS[f][pos] - availByPos(pos)} ${POS_SHORT[pos]}${FORMATIONS[f][pos] - availByPos(pos) > 1 ? 's' : ''}`)
         // dica: as formações pra onde AINDA falta gente (pra ele saber o que buscar)
-        const blocked = (['4-3-3', '4-4-2'] as FormationKey[]).filter(f => f !== mgr.formation && missFor(f).length > 0)
+        const blocked = (['4-3-3', '4-4-2', '4-5-1'] as FormationKey[]).filter(f => f !== mgr.formation && missFor(f).length > 0)
         return (
           <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
             <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>🎽 Formação</p>
             <div style={{ display: 'flex', gap: 6 }}>
-              {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => {
+              {(['4-3-3', '4-4-2', '4-5-1'] as FormationKey[]).map(f => {
                 const cur = mgr.formation === f
                 const can = cur || missFor(f).length === 0
                 return (

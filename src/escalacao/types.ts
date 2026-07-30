@@ -65,11 +65,14 @@ export interface EmpCard {
 
 // só duas formações — GOL/LAT/ZAG são sempre 1/2/2 nas duas (nunca variam),
 // só MEI/ATA mudam. Isso é o que sustenta o plano de rodadas por vaga.
-export type FormationKey = '4-3-3' | '4-4-2'
+// 4-3-3 e 4-4-2 são as formações INICIAIS (base do leilão). 4-5-1 é uma troca
+// TÁTICA que o técnico faz na carreira quando tiver 5 meias (nunca no início).
+export type FormationKey = '4-3-3' | '4-4-2' | '4-5-1'
 
 export const FORMATIONS: Record<FormationKey, Record<Sector, number>> = {
   '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
   '4-4-2': { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 },
+  '4-5-1': { GOL: 1, LAT: 2, ZAG: 2, MEI: 5, ATA: 1 },
 }
 
 export type Tactic = 'retranca' | 'equilibrio' | 'ataque'
