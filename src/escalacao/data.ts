@@ -1787,7 +1787,7 @@ const NOVOS_WORLD_MEI: C[] = [
   { name: 'Gilberto Mora', club: 'Tijuana', year: 2024, fame: 3, lo: 74, hi: 84, promessa: true, bio: 'Menino-prodígio mexicano do Tijuana — dos mais novos a se destacar no país, promessa que já joga como gente grande.' },
 ]
 const NOVOS_WORLD_ATA: C[] = [
-  { name: 'Takefusa Kubo', club: 'Real Sociedad', year: 2024, fame: 4, lo: 81, hi: 90, bio: 'A joia japonesa do drible, dono da bola no Real Sociedad. Baixinho endiabrado que enlouquece marcador.' },
+  { name: 'Takefusa Kubo', club: 'Real Sociedad', year: 2024, fame: 3, lo: 78, hi: 86, promessa: true, bio: 'A joia japonesa do drible, dono da bola no Real Sociedad. Baixinho endiabrado que enlouquece marcador.' },
   { name: 'Milton Caraglio', club: 'Cruz Azul', year: 2018, fame: 2, lo: 63, hi: 79, folk: true, bio: 'Centroavante argentino faro de área — e um nome que no Brasil rende piada garantida.' },
   { name: 'Carlos Vela', club: 'LAFC', year: 2019, fame: 2, lo: 70, hi: 83, bio: 'Craque mexicano de canhota abençoada — recordista de gols numa temporada mágica pelo LAFC nos Estados Unidos.' },
   { name: 'Hirving Lozano', club: 'Napoli', year: 2020, fame: 2, lo: 70, hi: 82, bio: '"Chucky" — ponta mexicano explosivo, herói da vitória sobre a Alemanha na Copa de 2018 e destaque no Napoli.' },
