@@ -3422,27 +3422,20 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'CHANGE_FORMATION': {
-      // 🎽 troca de formação (carreira). SEGURANÇA em camadas, pra nunca dar merda
-      // em listar/vender/jogar e nunca entrar perna-de-pau:
-      //  1) só na carreira;  2) só destrava com 22 jogadores REAIS no elenco;
-      //  3) só troca se houver jogadores REAIS e disponíveis (não emprestados)
-      //     suficientes por POSIÇÃO pra nova escalação (senão o pedido é ignorado).
-      // Aplica da RODADA ATUAL em diante (pin no round atual) — não mexe no passado.
+      // 🎽 troca de formação (carreira). REGRA (aprovada pelo Diego): troca pra
+      // QUALQUER formação que você consiga PREENCHER por posição com jogadores REAIS
+      // e SEUS. O emprestado NÃO conta (é extra temporário: volta na virada — assim
+      // nunca fica sem jogador em campo depois), e NUNCA entra perna-de-pau/fake.
+      // Sem exigir 22 e sem teto: o excedente vira banco. Aplica da rodada atual em
+      // diante (não mexe no passado).
       if (!s.careerOnline) return s
       const mid = action.mgrId ?? s.managers[s.youIdx]?.id
       const m = s.managers.find(x => x.id === mid && x.isHuman)
       if (!m || m.formation === action.formation) return s
       const real = m.squad.filter(c => !c.fake)
-      const owned = ownedRealCount(s, m) // conta também os DELE emprestados na SAF
-      if (!m.formUnlocked && owned < 22) return s // trava: ainda não destravou (nunca completou 22)
-      if (owned >= 22) m.formUnlocked = true // destrava de vez ao ter 22
       const need = FORMATIONS[action.formation]
-      for (const pos of SECTORS) if (real.filter(c => c.pos === pos && !c.emprestado).length < need[pos]) return s // falta jogador na posição
-      // 🔒 e NUNCA deixa trocar pra formação em que o elenco PRÓPRIO estoura o teto (2×
-      // a escalação por posição) — a UI trava com aviso; aqui é o cinto de segurança.
-      // 🏢 emprestado NÃO conta no teto: é extra temporário (volta na virada), igual não
-      // conta pra completar a formação. Assim o empréstimo alarga o elenco de verdade.
-      for (const pos of SECTORS) if (real.filter(c => c.pos === pos && !c.emprestado).length > need[pos] * 2) return s
+      if (!need) return s // formação desconhecida (save/rota estranha) — nunca quebra
+      for (const pos of SECTORS) if (real.filter(c => c.pos === pos && !c.emprestado).length < need[pos]) return s // falta jogador real na posição
       m.formation = action.formation
       const cl = { ...(s.careerLineup ?? {}) }
       cl[m.id] = { ...(cl[m.id] ?? {}), [s.round]: bestXIids(m.squad, action.formation) }
