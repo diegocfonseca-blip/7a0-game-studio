@@ -1099,32 +1099,9 @@ function useResumableNbaCareer() {
   }
 }
 
-// banner de "continuar carreira offline" (pirâmide) — aparece na home E logo
-// abaixo do botão de começar, no setup, quando existe um jogo salvo.
-function SoloContinueBanner() {
-  const solo = useResumableSolo()
-  const [gate, setGate] = useState(false)
-  if (!solo) return null
-  // 🔒 carreira só logado: confere o login antes de continuar; sem sessão, abre a tela de login.
-  const tryResume = async () => { try { const { data } = await supabase.auth.getSession(); if (data.session) { solo.resume(); return } } catch { /* sem login */ } setGate(true) }
-  return (
-    <>
-    <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: '#6C43C0', boxShadow: `4px 4px 0 0 ${INK}` }}>
-      <p className="font-black text-sm text-white leading-tight" style={OSWALD}>
-        🪜 Carreira offline salva<br />
-        <span className="opacity-80 text-xs">{solo.teamName} · Temporada {solo.seasonNo}</span>
-      </p>
-      <button onClick={tryResume} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
-        ▶️ Continuar carreira ({solo.teamName})
-      </button>
-      <button onClick={solo.discard} className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
-        🗑️ Descartar e começar do zero
-      </button>
-    </div>
-    {gate && <CareerLoginGate onClose={() => setGate(false)} />}
-    </>
-  )
-}
+// (O banner de "continuar carreira offline" da pirâmide vive inline na HOME —
+// EscIntro, no bloco {solo && ...}. Não existe mais versão pra tela de setup: lá
+// ele criava um loop quando o save estava travado no próprio setup.)
 
 // "jogou há X" curtinho a partir de um timestamp
 function agoLabel(at: number): string {
@@ -1689,10 +1666,11 @@ export function EscSetup() {
       <Btn onClick={start} className="w-full text-lg" bg={GREEN}>
         <span className="text-white">{career ? 'AVANÇAR 🪜' : 'AVANÇAR 🔨'}</span>
       </Btn>
-      {/* pirâmide nova (todo save novo) + carreira antiga (só pra quem já tinha um
-          save em andamento poder terminar). Cada banner some sozinho se não houver
-          save — então quem começa do zero vê só a pirâmide. */}
-      {career && <><SoloContinueBanner /><CareerContinueBanner /></>}
+      {/* carreira antiga (só pra quem já tinha um save no formato antigo poder
+          terminar). O "Continuar carreira" da pirâmide NÃO entra aqui de propósito:
+          na tela de setup ele criava um LOOP (save travado no próprio setup →
+          tocar em continuar voltava pro setup). Continuar a pirâmide é na HOME. */}
+      {career && <CareerContinueBanner />}
       <CardAccountNote />
     </Shell>
   )
