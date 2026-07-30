@@ -3586,7 +3586,10 @@ export function reducer(state: EscState, action: Action): EscState {
         if (!card) return s
         const pos = card.pos
         const listedInPos = arr.filter(id => mgr.squad.find(c => c.id === id)?.pos === pos).length
-        const filledPos = mgr.squad.filter(c => c.pos === pos).length
+        // 🏢 conta SÓ os jogadores SEUS (não emprestados): o emprestado volta na virada,
+        // então não pode servir de "muleta" pra você vender abaixo do que a formação
+        // precisa — senão, quando ele volta, você ficaria sem montar a formação.
+        const filledPos = mgr.squad.filter(c => c.pos === pos && !c.emprestado).length
         if (filledPos - listedInPos - 1 < FORMATIONS[mgr.formation][pos]) return s // deixaria a posição incompleta
         arr.push(action.cardId)
       }

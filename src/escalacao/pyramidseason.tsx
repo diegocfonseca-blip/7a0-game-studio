@@ -2779,7 +2779,8 @@ export function ReserveListScreen() {
   const canList = (c: WonCard) => {
     if (!marketUnlocked || c.emprestado) return false // 🏢 jogador de empréstimo nunca é vendido — não é seu
     const listedInPos = [...listed].filter(id => mgr.squad.find(x => x.id === id)?.pos === c.pos).length
-    const filledPos = mgr.squad.filter(x => x.pos === c.pos).length
+    // 🏢 conta SÓ os SEUS (emprestado volta na virada — não pode virar muleta pra vender demais)
+    const filledPos = mgr.squad.filter(x => x.pos === c.pos && !x.emprestado).length
     return filledPos - listedInPos - 1 >= need[c.pos]
   }
   // host conduz: quando zera o tempo, abre o leilão (compra) sozinho
