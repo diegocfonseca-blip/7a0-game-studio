@@ -4526,7 +4526,8 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
   const [now, setNow] = useState(() => Date.now())
   const [authOpen, setAuthOpen] = useState(false) // cadastro rápido INLINE, sem sair da tela de campeão
   const [reload, setReload] = useState(0)          // re-checa o login após criar conta → cai no pega-carta real
-  const claimingRef = useRef(false)
+  const [pendingPick, setPendingPick] = useState<WonCard | null>(null) // carta já sorteada e GRAVADA, esperando a cerimônia de abrir
+  const savedRef = useRef(false) // idempotência: grava a carta UMA vez por montagem
 
   useEffect(() => {
     ;(async () => {
@@ -4571,34 +4572,46 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
     return un.length ? un : ALL_POOL
   }, [owned, saveCards])
   const [opening, setOpening] = useState(false)
-  const openPack = () => {
-    if (opening || claimingRef.current) return
-    const pick = packPool[Math.floor(Math.random() * packPool.length)]
-    if (!pick) return
-    setOpening(true)
-    setTimeout(() => claim(pick), 950) // pacote balança/estoura antes de revelar
-  }
-
-  async function claim(card: WonCard) {
-    if (claimingRef.current) return
-    claimingRef.current = true
+  // 🔒 grava a carta na conta (álbum) — RESILIENTE: se o backend cair, guarda no
+  // aparelho e re-tenta ao reabrir. NÃO revela: só garante que a carta É do campeão.
+  async function persist(card: WonCard) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setStatus('noauth'); return }
     // season_key ENCURTADO (a coluna tem limite): se ainda vier longo, corta.
     const key = seasonKey.length > 48 ? seasonKey.slice(0, 48) : seasonKey
-    // gravação RESILIENTE: se o backend estiver fora, guarda no aparelho e
-    // re-tenta ao reabrir o jogo — ninguém perde a carta numa instabilidade.
     await resilientWrite({ table: 'user_cards', row: {
       user_id: user.id, season_key: key, origin,
       card_name: card.name, card_club: card.club, card_year: card.year, card_pos: card.pos, card_fame: card.fame,
     } })
-    setClaimed(card); onClaimed?.(card)
-    setStatus('revealed')
+  }
+  // 🔒 GARANTIA "conta mesmo sem abrir": assim que o campeão cai na tela (status
+  // 'picking'), a carta é sorteada e GRAVADA na conta NA HORA — antes de qualquer
+  // toque. Se a pessoa sair, fechar ou nunca abrir o pacote, a carta JÁ ESTÁ no
+  // álbum. Abrir o pacote vira só a cerimônia de ver qual foi. Idempotente: o
+  // season_key é único por temporada, e ao reabrir o check de cima acha e revela.
+  useEffect(() => {
+    if (status !== 'picking' || savedRef.current || !packPool.length) return
+    const pick = packPool[Math.floor(Math.random() * packPool.length)]
+    if (!pick) return
+    savedRef.current = true
+    setPendingPick(pick)
+    void persist(pick)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, packPool])
+
+  const openPack = () => {
+    if (opening) return
+    const card = pendingPick ?? packPool[Math.floor(Math.random() * packPool.length)]
+    if (!card) return
+    if (!savedRef.current) { savedRef.current = true; void persist(card) } // rede de segurança
+    setOpening(true)
+    // pacote balança/estoura e revela a carta JÁ garantida (não sorteia de novo)
+    setTimeout(() => { setClaimed(card); onClaimed?.(card); setStatus('revealed') }, 950)
   }
 
   useEffect(() => {
     if (noTimer || status !== 'picking' || remaining > 0) return // 🎥 stream: sem tempo — o host/campeão abre quando quiser
-    openPack() // tempo esgotou: o pacote abre sozinho (ninguém fica sem carta)
+    openPack() // tempo esgotou: o pacote abre sozinho (a carta já estava garantida)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining, status])
 

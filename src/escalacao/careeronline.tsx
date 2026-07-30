@@ -421,7 +421,9 @@ function ChampionCard({ deck, seed, team, seasonKey }: { deck: DeckChoice; seed:
   const [claimed, setClaimed] = useState<CardOpt | null>(null)
   const [deadline] = useState(() => Date.now() + CARD_PICK_SECONDS * 1000)
   const [now, setNow] = useState(() => Date.now())
-  const claimingRef = useRef(false)
+  const savedRef = useRef(false) // idempotência: grava a carta UMA vez
+  const statusRef = useRef(status) // pro guardião de saída ler o status atual
+  statusRef.current = status
   const opts = useRef<CardOpt[]>(teamSquad(deck, seed, team)).current
 
   useEffect(() => {
@@ -429,7 +431,7 @@ function ChampionCard({ deck, seed, team, seasonKey }: { deck: DeckChoice; seed:
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setStatus('noauth'); return }
       const { data } = await supabase.from('user_cards').select('*').eq('user_id', user.id).eq('season_key', seasonKey).maybeSingle()
-      if (data) { setClaimed({ name: data.card_name, club: data.card_club, year: data.card_year, pos: data.card_pos, fame: data.card_fame }); setStatus('revealed') }
+      if (data) { savedRef.current = true; setClaimed({ name: data.card_name, club: data.card_club, year: data.card_year, pos: data.card_pos, fame: data.card_fame }); setStatus('revealed') }
       else setStatus('picking')
     })()
   }, [seasonKey])
@@ -437,15 +439,19 @@ function ChampionCard({ deck, seed, team, seasonKey }: { deck: DeckChoice; seed:
   useEffect(() => { if (status !== 'picking') return; const iv = setInterval(() => setNow(Date.now()), 250); return () => clearInterval(iv) }, [status])
   const remaining = Math.max(0, Math.ceil((deadline - now) / 1000))
 
-  async function claim(card: CardOpt) {
-    if (claimingRef.current) return
-    claimingRef.current = true
+  // grava a carta no álbum (RESILIENTE) — separado da revelação
+  async function persist(card: CardOpt) {
     let user
     try { user = (await supabase.auth.getUser()).data.user } catch { user = null }
-    if (!user) { setStatus('noauth'); claimingRef.current = false; return }
-    // gravação RESILIENTE: se o backend cair, guarda no aparelho e re-tenta ao
-    // reabrir — a carta do campeão da carreira online não se perde numa queda.
+    if (!user) { setStatus('noauth'); return false }
     await resilientWrite({ table: 'user_cards', row: { user_id: user.id, season_key: seasonKey, origin: 'online', card_name: card.name, card_club: card.club, card_year: card.year, card_pos: card.pos, card_fame: card.fame } })
+    return true
+  }
+  async function claim(card: CardOpt) {
+    if (savedRef.current) return
+    savedRef.current = true
+    const ok = await persist(card)
+    if (!ok) { savedRef.current = false; return }
     setClaimed(card); setStatus('revealed')
   }
   useEffect(() => {
@@ -454,6 +460,16 @@ function ChampionCard({ deck, seed, team, seasonKey }: { deck: DeckChoice; seed:
     if (pick) claim(pick)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining, status])
+  // 🔒 GARANTIA "conta mesmo sem escolher": se o campeão SAIR da tela sem escolher
+  // (e antes do tempo estourar), grava uma carta do time na saída — ninguém perde
+  // a carta por fechar/voltar antes. Só age se ainda estava escolhendo e nada foi salvo.
+  useEffect(() => () => {
+    if (savedRef.current || statusRef.current !== 'picking') return
+    savedRef.current = true
+    const pick = opts[Math.floor(Math.random() * opts.length)]
+    if (pick) void persist(pick)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (status === 'checking') return null
   if (status === 'noauth') return (
