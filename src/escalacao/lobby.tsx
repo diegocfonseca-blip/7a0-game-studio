@@ -833,10 +833,11 @@ export function EscLobby() {
   const [shareOk, setShareOk] = useState<'link' | 'code' | null>(null)
   async function shareInvite(code: string, roomName?: string) {
     const url = `${window.location.origin}${window.location.pathname}?j=${code}`
-    const text = `🔨 Te desafio no Leilão Legends! Entre na sala ${roomName ? `"${roomName}" ` : ''}(${code}):\n${url}`
+    const brand = isNbaLobby ? 'BidLegends' : 'Leilão Legends'
+    const text = `${isNbaLobby ? '🏀' : '🔨'} Te desafio no ${brand}! Entre na sala ${roomName ? `"${roomName}" ` : ''}(${code}):\n${url}`
     const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> }
     if (typeof nav.share === 'function') {
-      try { await nav.share({ title: 'Leilão Legends', text, url }); return } catch { /* usuário cancelou ou não suporta */ }
+      try { await nav.share({ title: brand, text, url }); return } catch { /* usuário cancelou ou não suporta */ }
     }
     try { await navigator.clipboard.writeText(url); setShareOk('link'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
   }
@@ -1211,8 +1212,8 @@ export function EscLobby() {
     const pendingInvite = loadInvite()
     return wrap(<>
     <div className="text-center">
-      <div className="text-6xl mb-2">🔨</div>
-      <h1 className="font-black text-3xl text-white" style={OSWALD}>LEILÃO LEGENDS · ONLINE</h1>
+      <div className="text-6xl mb-2">{isNbaLobby ? '🏀' : '🔨'}</div>
+      <h1 className="font-black text-3xl text-white" style={OSWALD}>{isNbaLobby ? 'BIDLEGENDS · ONLINE' : 'LEILÃO LEGENDS · ONLINE'}</h1>
     </div>
     {pendingInvite && (
       <div className="rounded-xl border-[3px] border-black px-3 py-2.5" style={{ background: PURPLE, boxShadow: `3px 3px 0 ${INK}` }}>
@@ -1272,8 +1273,8 @@ export function EscLobby() {
             <span className="text-white/80 text-[10px] font-black uppercase tracking-widest">Multiplayer</span>
           </div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-2xl">🔨</span>
-            <p className="text-white/70 text-[10px] font-black uppercase tracking-[0.2em]">Leilão Legends</p>
+            <span className="text-2xl">{isNbaLobby ? '🏀' : '🔨'}</span>
+            <p className="text-white/70 text-[10px] font-black uppercase tracking-[0.2em]">{isNbaLobby ? 'BidLegends' : 'Leilão Legends'}</p>
           </div>
           <h1 className="font-black text-white text-[26px] leading-[1] mb-1.5" style={OSWALD}>
             CHAME A GALERA
@@ -1440,7 +1441,7 @@ export function EscLobby() {
 
           {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
           {!isCareer && (
-            <Section num={2} title="A partida" icon="⚽">
+            <Section num={2} title="A partida" icon={isNbaLobby ? '🏀' : '⚽'}>
               <SegField label="Tabela">
                 {canLiga ? (
                   <>
