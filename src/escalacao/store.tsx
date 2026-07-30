@@ -2227,8 +2227,12 @@ export function reducer(state: EscState, action: Action): EscState {
       rivalries: action.newState.rivalries ?? {}, // saves/broadcasts antigos
       cpuAtkAdj: action.newState.cpuAtkAdj ?? 0,
       cpuDefAdj: action.newState.cpuDefAdj ?? 0,
-      streamMode: action.newState.streamMode ?? false,
-      manualRoom: action.newState.manualRoom ?? false,
+      // 🎥 lê streamMode OU o flag de criação da sala `stream` (idem manual). Sem
+      // isso, um estado que só tinha `stream` (registro da sala) perdia o modo
+      // stream e os lances apareciam na tela. `??` não dispara em `false`, então
+      // sala sem stream continua sem stream — zero regressão.
+      streamMode: action.newState.streamMode ?? !!(action.newState as { stream?: boolean }).stream,
+      manualRoom: action.newState.manualRoom ?? !!(action.newState as { manual?: boolean }).manual,
       youIdx: state.youIdx,
       isHost: state.isHost,
       roomId: state.roomId,
@@ -2246,8 +2250,11 @@ export function reducer(state: EscState, action: Action): EscState {
       rivalries: action.state.rivalries ?? {}, // saves antigos sem o campo
       cpuAtkAdj: action.state.cpuAtkAdj ?? 0,
       cpuDefAdj: action.state.cpuDefAdj ?? 0,
-      streamMode: action.state.streamMode ?? false,
-      manualRoom: action.state.manualRoom ?? false,
+      // 🎥 restaura o modo stream lendo streamMode OU o flag `stream` da sala (idem
+      // manual). Antes, restaurar de um estado que só tinha `stream` (reconexão /
+      // host caiu / registro da sala) desligava o stream e os lances apareciam.
+      streamMode: action.state.streamMode ?? !!(action.state as { stream?: boolean }).stream,
+      manualRoom: action.state.manualRoom ?? !!(action.state as { manual?: boolean }).manual,
       onlineMode: 'online',
       roomId: action.roomId,
       roomCode: action.roomCode,
