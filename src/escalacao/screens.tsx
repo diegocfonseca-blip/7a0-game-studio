@@ -4527,6 +4527,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
   const [authOpen, setAuthOpen] = useState(false) // cadastro rápido INLINE, sem sair da tela de campeão
   const [reload, setReload] = useState(0)          // re-checa o login após criar conta → cai no pega-carta real
   const [pendingPick, setPendingPick] = useState<WonCard | null>(null) // carta já sorteada e GRAVADA, esperando a cerimônia de abrir
+  const [dismissed, setDismissed] = useState(false) // fechou o popup "na cara" → vira pílula pra reabrir (a carta já conta)
   const savedRef = useRef(false) // idempotência: grava a carta UMA vez por montagem
 
   useEffect(() => {
@@ -4617,8 +4618,9 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
 
   if (status === 'checking') return null
 
+  let content: React.ReactNode = null
   if (status === 'noauth') {
-    return (
+    content = (
       <Box bg={GOLD} className="p-5 text-center" shadow={6}>
         <p className="font-black text-2xl" style={OSWALD}>🎁 Você foi campeão!</p>
         <p className="text-sm font-bold text-black/75 mt-1 mb-3">Todo campeão abre um <b>PACOTE SURPRESA</b> e leva uma carta colecionável pro álbum — tipo essa 👇</p>
@@ -4635,10 +4637,8 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
         }} />}
       </Box>
     )
-  }
-
-  if (status === 'revealed' && claimed) {
-    return (
+  } else if (status === 'revealed' && claimed) {
+    content = (
       <Box bg={CREAM} className="p-5 text-center" shadow={6}>
         <p className="text-xs font-black uppercase text-black/60 mb-3">🎁 Saiu do pacote — foi pro seu álbum!</p>
         <motion.div initial={{ rotateY: 90, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.7, type: 'spring', bounce: 0.35 }}
@@ -4649,11 +4649,10 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
         <p className="text-[11px] font-bold text-black/50 mt-2">📖 Veja o álbum completo no menu inicial.</p>
       </Box>
     )
-  }
-
+  } else {
   // 🎁 o PACOTE LACRADO: flutua brilhando; ao tocar balança, o lacre estoura,
   // um clarão toma a tela e a carta é revelada (o componente real do álbum).
-  return (
+  content = (
     <Box bg={GOLD} className="p-4 text-center" shadow={6}>
       <style>{'@keyframes escPackSheen{0%{background-position:0% 0%}100%{background-position:100% 100%}}'}</style>
       <div className="flex items-center justify-between mb-1">
@@ -4684,6 +4683,28 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
           initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} transition={{ duration: 0.5, delay: 0.6 }} />
       )}
     </Box>
+    )
+  }
+
+  // 🎁 NA CARA: o pacote/carta aparece num POPUP por cima da tela, na hora que
+  // vira campeão. Dá pra tocar fora / no ✕ e seguir o jogo — a carta JÁ está
+  // gravada na conta (não depende de abrir). Fechou = vira uma pílula pra reabrir.
+  if (dismissed) {
+    return (
+      <button onClick={() => setDismissed(false)} className="w-full rounded-xl border-[3px] border-black px-3 py-2.5 font-black text-sm flex items-center justify-center gap-2" style={{ ...OSWALD, background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}` }}>
+        🎁 Ver a carta do campeão
+      </button>
+    )
+  }
+  return createPortal(
+    <div onClick={() => setDismissed(true)} style={{ position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(8,6,3,.64)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, overflowY: 'auto' }}>
+      <motion.div initial={{ scale: 0.66, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', bounce: 0.3, duration: 0.5 }}
+        onClick={e => e.stopPropagation()} style={{ position: 'relative', width: '100%', maxWidth: 360, margin: 'auto' }}>
+        <button onClick={() => setDismissed(true)} aria-label="Fechar" style={{ position: 'absolute', top: -14, right: -8, zIndex: 2, width: 34, height: 34, borderRadius: 999, border: `3px solid ${INK}`, background: '#fff', fontWeight: 900, fontSize: 15, cursor: 'pointer', boxShadow: `2px 2px 0 ${INK}`, ...OSWALD }}>✕</button>
+        {content}
+      </motion.div>
+    </div>,
+    document.body
   )
 }
 
@@ -5815,9 +5836,12 @@ export function EscEnd() {
   // não abriu; qualquer outro status (revelado, sem conta) não trava.
   const [ligaCardStatus, setLigaCardStatus] = useState('')
   const [copaCardStatus, setCopaCardStatus] = useState('')
-  // 'checking' entra junto pra fechar a brecha de votar no instante da conferência.
-  const stillGetting = (s: string) => s === 'checking' || s === 'picking'
-  const awaitingCard = online && (stillGetting(ligaCardStatus) || stillGetting(copaCardStatus))
+  // 🔓 A trava foi SOLTA (decisão do Diego 30/07): a carta agora é gravada na conta
+  // ASSIM QUE o campeão vira campeão (não depende mais de abrir), então ninguém
+  // perde carta e a sala não precisa esperar. "Amigo ganhou não trava ninguém."
+  // (Mantido o wiring de status só por compatibilidade — não bloqueia mais.)
+  void ligaCardStatus; void copaCardStatus
+  const awaitingCard = false
   const featured = youWon ? (myCard ?? [...you.squad].sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))[0]) : undefined
   const shareOpts: ShareOpts = {
     teamName: you.teamName, youPos, youWon, champName: champ.name, nTeams: table.length,
