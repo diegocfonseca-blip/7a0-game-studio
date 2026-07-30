@@ -4651,6 +4651,16 @@ export function EscProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId, state.screen])
 
+  // 🔒 o aparelho lembra de qual sala ele é DONO (host). Serve SÓ pra não mostrar o
+  // aviso "host caiu" pra ele mesmo — se a rede piscar no reconectar e o "sou host?"
+  // ler errado por um instante, o dono não leva susto. NÃO muda quem é autoritativo
+  // (não reassume host — isso é a parte arriscada que fica de fora de propósito).
+  useEffect(() => {
+    if (state.onlineMode === 'online' && state.isHost && state.roomId) {
+      try { localStorage.setItem('esc-room-owner', state.roomId) } catch { /* cota cheia — ignora */ }
+    }
+  }, [state.onlineMode, state.isHost, state.roomId])
+
   // host persiste no banco a cada 3s — em INTERVALO FIXO (não debounce). Antes
   // era um setTimeout que zerava a cada mudança de estado; durante a simulação
   // rápida da temporada (uma rodada a cada ~1s) o timer nunca disparava e o
@@ -4724,7 +4734,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(iv)
   }, [state.screen, state.onlineMode, state.careerDivision, state.careerOnline, state.seasonNo, state.careerPlacements])
 
-  const showHostBanner = state.onlineMode === 'online' && !state.isHost && hostStale
+  // não mostra o "host caiu" pro DONO da sala (mesmo que o "sou host?" pisque errado
+  // no reconectar) — é só cosmético; guest de verdade segue vendo normal.
+  const iOwnThisRoom = (() => { try { return !!state.roomId && localStorage.getItem('esc-room-owner') === state.roomId } catch { return false } })()
+  const showHostBanner = state.onlineMode === 'online' && !state.isHost && hostStale && !iOwnThisRoom
     && state.screen !== 'intro' && state.screen !== 'lobby'
   return (
     <Ctx.Provider value={{ state, dispatch, emote, emotes, chat, chatUnread, sendChat, chatOpen, setChatOpen, hostStale, kickPlayer, leaveRoom, becameHost }}>
