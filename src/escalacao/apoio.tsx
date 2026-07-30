@@ -48,6 +48,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'nevesgabriel95@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual
   'valentinnavitoria165@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual
   'mmmartins246@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual
+  'feeriibeiro25@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'dasilva1227br@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'davisantana1312@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'ambielvictor@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
