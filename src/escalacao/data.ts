@@ -1019,7 +1019,7 @@ const ATA: C[] = [
   { name: "Richarlison Pombo", club: "Fluminense", year: 2016, fame: 3, lo: 76, hi: 83, promessa: true },
   { name: "Endrick", club: "Palmeiras", year: 2023, fame: 3, lo: 70, hi: 79, promessa: true },
   { name: "Antony", club: "São Paulo", year: 2020, fame: 2, lo: 70, hi: 80 },
-  { name: "Vitor Roque", club: "Athletico-PR", year: 2023, fame: 2, lo: 70, hi: 81 },
+  { name: "Vitor Roque", club: "Athletico-PR", year: 2023, fame: 3, lo: 74, hi: 84, promessa: true },
   { name: "Yuri Alberto", club: "Corinthians", year: 2023, fame: 2, lo: 70, hi: 82 },
   { name: "Alecsandro", club: "Atlético-MG", year: 2013, fame: 3, lo: 73, hi: 84, folk: true },
   { name: "Marta", club: "Santos", year: 2010, fame: 4, lo: 84, hi: 89 },
@@ -1107,6 +1107,7 @@ const ATA: C[] = [
 // 🆕 cartas novas (baralho BR) — pedidas pelo Diego: reais e folclóricos do futebol nacional.
 const NOVOS_BR_GOL: C[] = [
   { name: 'Sílvio Luiz', club: 'São Caetano', year: 2002, fame: 2, lo: 65, hi: 80, bio: 'Paredão do São Caetano na campanha do vice da Libertadores de 2002 — pegador de pênalti e voz de comando na área.' },
+  { name: 'Edinho', club: 'Santos', year: 1994, fame: 2, lo: 62, hi: 79, folk: true, bio: 'Goleiro do Santos nos anos 90 e filho do Pelé — carregou o sobrenome mais pesado do futebol debaixo das traves e ainda assim foi titular do Peixe.' },
 ]
 const NOVOS_BR_LAT: C[] = [
   { name: 'Sérginho', club: 'São Caetano', year: 2004, fame: 2, lo: 68, hi: 81, bio: 'Guerreiro do timaço do São Caetano dos anos 2000 — eternizado no coração do Azulão.' },
@@ -1116,11 +1117,15 @@ const NOVOS_BR_LAT: C[] = [
 ]
 const NOVOS_BR_MEI: C[] = [
   { name: 'Adjemar', club: 'São Caetano', year: 2002, fame: 2, lo: 64, hi: 79, bio: 'Meia habilidoso do timaço do São Caetano do Muricy — toque de bola nos anos dourados do Azulão.' },
+  { name: 'Leandro Ávila', club: 'Botafogo', year: 1995, fame: 2, lo: 66, hi: 81, bio: 'Volante raçudo dos anos 90, passou pelos quatro grandes do Rio — peça do Botafogo campeão brasileiro de 1995.' },
+  { name: 'Vinícius Pacheco', club: 'Paraná', year: 2007, fame: 1, lo: 52, hi: 70, bio: 'Meia-atacante canhoto e habilidoso que rodou o Brasil — teve boa passagem pelo Paraná Clube no fim dos anos 2000.' },
 ]
 const NOVOS_BR_ATA: C[] = [
   { name: 'Loide Augusto', club: 'Vasco', year: 2021, fame: 1, lo: 58, hi: 74, bio: 'Revelado como profissional no Vasco — atacante rápido, faro de gol e a molecagem da base cruzmaltina.' },
   { name: 'Leynny', club: 'Fluminense', year: 2019, fame: 1, lo: 52, hi: 68, bio: 'Atacante que vestiu a camisa do Fluminense — passou pelo profissional tricolor lutando por espaço no ataque.' },
   { name: 'Valdir Papel', club: 'Vasco', year: 2006, fame: 1, lo: 48, hi: 64, folk: true, bio: 'Andarilho de 30+ clubes; teve seus 15 minutos no Vasco em 2006 — expulso na final da Copa do Brasil e ainda levou bronca do Renato no vestiário.' },
+  { name: 'Gonzalo Plata', club: 'Flamengo', year: 2024, fame: 2, lo: 66, hi: 81, bio: 'Ponta equatoriano de drible e velocidade — chegou ao Flamengo pra dar profundidade e ligar o jogo pelos lados.' },
+  { name: 'Vitor Roque (Barcelona)', club: 'Barcelona', year: 2024, fame: 1, lo: 58, hi: 74, bio: 'O Matador que atravessou o oceano cedo demais: no Barcelona não engrenou e virou aviso sobre pressa — depois voltou pra reencontrar o faro de gol.' },
 ]
 export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT], ZAG, MEI: [...MEI, ...NOVOS_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA] }
 
@@ -1655,13 +1660,20 @@ const ATA_EU: C[] = [
 // 🆕 cartas novas (baralho EU) — pedidas pelo Diego.
 const NOVOS_EU_GOL: C[] = [
   { name: 'Javi Varas', club: 'Sevilla', year: 2011, fame: 2, lo: 68, hi: 81, folk: true, bio: 'Goleirão espanhol do Sevilla — e um nome que no Brasil vira piada na hora: "já vi vara". Mas debaixo das traves, levava a sério.' },
+  { name: 'Luca Zidane', club: 'Real Madrid', year: 2019, fame: 1, lo: 52, hi: 70, folk: true, bio: 'Goleiro filho de Zinedine Zidane — formado no Real Madrid, seguiu o próprio caminho nas traves longe da sombra do pai.' },
 ]
 const NOVOS_EU_MEI: C[] = [
   { name: 'Koke', club: 'Atlético de Madrid', year: 2016, fame: 4, lo: 82, hi: 90, bio: 'O cérebro do Atlético do Simeone — camisa 6 eterno, passe milimétrico e raça de sobra no meio.' },
   { name: 'Marcos Senna', club: 'Villarreal', year: 2008, fame: 4, lo: 81, hi: 89, bio: 'Brasileiro que virou herói da Espanha: volante do Villarreal, campeão da Eurocopa de 2008 vestindo a Fúria.' },
+  { name: 'Federico Valverde', club: 'Real Madrid', year: 2024, fame: 4, lo: 85, hi: 92, bio: 'Motor uruguaio do Real Madrid — corre o jogo inteiro, desarma, chega na área e solta a bomba de fora. Pulmão infinito.' },
+  { name: 'Hakan Çalhanoğlu', club: 'Inter', year: 2024, fame: 4, lo: 83, hi: 90, bio: 'O regista turco da Inter — reinventado como camisa 6, dita o ritmo, cobra falta com veneno e não erra pênalti.' },
+  { name: 'Arda Güler', club: 'Real Madrid', year: 2024, fame: 3, lo: 76, hi: 85, promessa: true, bio: 'Joia turca do Real Madrid — canhota refinada, passe e chute de fora da área. A promessa que a Europa toda cobiçava.' },
+  { name: 'Brahim Díaz', club: 'Real Madrid', year: 2024, fame: 2, lo: 72, hi: 83, bio: 'Meia-atacante veloz e driblador — brilhou no Milan e voltou ao Real Madrid pra decidir com arranques e gols.' },
 ]
 const NOVOS_EU_ATA: C[] = [
   { name: 'Jérémy Doku', club: 'Manchester City', year: 2024, fame: 4, lo: 82, hi: 91, bio: 'Ala belga de arrancada elétrica — dribla, chega na linha de fundo e faz zagueiro passar vergonha, na velocidade do City.' },
+  { name: 'Hatem Ben Arfa', club: 'Nice', year: 2016, fame: 4, lo: 80, hi: 90, folk: true, bio: 'Talento francês de driblar meio time sozinho — o gol solo pelo Nice virou lenda. Gênio indomável: brigou com técnico atrás de técnico e desperdiçou parte do que prometia.' },
+  { name: 'Roque Santa Cruz', club: 'Blackburn', year: 2008, fame: 2, lo: 70, hi: 82, bio: 'Centroavante paraguaio alto e técnico — jovem campeão pelo Bayern e artilheiro querido no Blackburn.' },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL], LAT: LAT_EU, ZAG: ZAG_EU, MEI: [...MEI_EU, ...NOVOS_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA] }
 
@@ -1771,10 +1783,14 @@ const NOVOS_WORLD_LAT: C[] = [
 const NOVOS_WORLD_MEI: C[] = [
   { name: 'Shinji Kagawa', club: 'Borussia Dortmund', year: 2012, fame: 4, lo: 82, hi: 90, bio: 'O japonês que encantou o Dortmund com dois títulos alemães. O nome faz rir no Brasil — mas em campo era pura categoria.' },
   { name: 'Moisés Caicedo', club: 'Brighton', year: 2023, fame: 4, lo: 82, hi: 90, bio: 'Volante equatoriano de pulmão infinito — desarma, sai jogando e virou um dos mais caros do mundo.' },
+  { name: 'Papa Bouba Diop', club: 'Fulham', year: 2004, fame: 2, lo: 66, hi: 80, folk: true, bio: 'Volante gigante de Senegal — imortalizado pelo gol que derrubou a França campeã na estreia da Copa de 2002.' },
+  { name: 'Gilberto Mora', club: 'Tijuana', year: 2024, fame: 3, lo: 74, hi: 84, promessa: true, bio: 'Menino-prodígio mexicano do Tijuana — dos mais novos a se destacar no país, promessa que já joga como gente grande.' },
 ]
 const NOVOS_WORLD_ATA: C[] = [
   { name: 'Takefusa Kubo', club: 'Real Sociedad', year: 2024, fame: 4, lo: 81, hi: 90, bio: 'A joia japonesa do drible, dono da bola no Real Sociedad. Baixinho endiabrado que enlouquece marcador.' },
   { name: 'Milton Caraglio', club: 'Cruz Azul', year: 2018, fame: 2, lo: 63, hi: 79, folk: true, bio: 'Centroavante argentino faro de área — e um nome que no Brasil rende piada garantida.' },
+  { name: 'Carlos Vela', club: 'LAFC', year: 2019, fame: 2, lo: 70, hi: 83, bio: 'Craque mexicano de canhota abençoada — recordista de gols numa temporada mágica pelo LAFC nos Estados Unidos.' },
+  { name: 'Hirving Lozano', club: 'Napoli', year: 2020, fame: 2, lo: 70, hi: 82, bio: '"Chucky" — ponta mexicano explosivo, herói da vitória sobre a Alemanha na Copa de 2018 e destaque no Napoli.' },
 ]
 export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: GOL_WORLD, LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT], ZAG: ZAG_WORLD, MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA] }
 
