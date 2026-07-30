@@ -558,11 +558,15 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
         youIsHome={h === myIdx} goals={ev} roundKey={roundKey} roundMs={roundMs} finished={liveDone} />
     </div>
   )
-  // linha compacta de confronto resolvido (ida+volta+pênaltis) — só pós-apito
-  const tieRow = (t: KoTie, showVolta: boolean, showPens = true) => (
+  // linha compacta de confronto resolvido (ida+volta+pênaltis) — só pós-apito.
+  // 🚫 winDelay > 0 (SÓ o seu confronto que foi pra pênaltis): segura o placar dos
+  // pênaltis + o "avança" até a última cobrança pipocar na disputa animada de cima
+  // — senão o chaveamento entregava quem passou antes de você ver a decisão.
+  const tieRow = (t: KoTie, showVolta: boolean, showPens = true, winDelay = 0) => (
     <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: isYou(t.h) || isYou(t.a) ? 900 : 700 }}>
+      {winDelay > 0 && <style>{'@keyframes cmWinPop{from{opacity:0}to{opacity:1}}'}</style>}
       <span>{nm(t.h)} {t.g1![0]}×{t.g1![1]} {nm(t.a)}</span>
-      {showVolta && <span style={{ display: 'block', color: 'rgba(0,0,0,.6)' }}>volta: {t.g2![0]}×{t.g2![1]}{showPens && t.pen ? ` · pênaltis ${t.pen[0]}×${t.pen[1]}` : ''} → <b style={{ color: GREEN }}>{nm(t.winner!)} avança</b></span>}
+      {showVolta && <span style={{ display: 'block', color: 'rgba(0,0,0,.6)' }}>volta: {t.g2![0]}×{t.g2![1]}<span style={winDelay > 0 ? { opacity: 0, animation: `cmWinPop .35s ease ${winDelay.toFixed(2)}s forwards` } : undefined}>{showPens && t.pen ? ` · pênaltis ${t.pen[0]}×${t.pen[1]}` : ''} → <b style={{ color: GREEN }}>{nm(t.winner!)} avança</b></span></span>}
     </div>
   )
   // o MEU confronto de volta: placar ao vivo + pênaltis com o suspense OFICIAL
@@ -638,7 +642,7 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
               {world.qf.map((t, i) => {
                 const mine = isYou(t.h) || isYou(t.a)
                 if (step === 8) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} ev={t.ev1!} min={liveMin} /> : null}</div>
-                if (step === 9) return <div key={i}>{liveDone ? tieRow(t, true) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
+                if (step === 9) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
                 if (step === 7) return <div key={i} style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: mine ? 900 : 700 }}>{nm(t.h)} × {nm(t.a)}</div>
                 return <div key={i}>{tieRow(t, true)}</div>
               })}
@@ -647,14 +651,15 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
                 {world.sf.map((t, i) => {
                   const mine = isYou(t.h) || isYou(t.a)
                   if (step === 10) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} ev={t.ev1!} min={liveMin} /> : null}</div>
-                  if (step === 11) return <div key={i}>{liveDone ? tieRow(t, true) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
+                  if (step === 11) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
                   return <div key={i}>{tieRow(t, true)}</div>
                 })}
               </>)}
               {step === 12 && liveDone && (
                 <>
                   <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px' }}>🏆 FINAL ÚNICA</p>
-                  <p style={{ fontSize: 12, fontWeight: 900, margin: 0 }}>{nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? ` · pênaltis ${world.final.pen[0]}×${world.final.pen[1]}` : ''}</p>
+                  {world.final.pen && <style>{'@keyframes cmWinPop{from{opacity:0}to{opacity:1}}'}</style>}
+                  <p style={{ fontSize: 12, fontWeight: 900, margin: 0 }}>{nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? <span style={{ opacity: 0, animation: `cmWinPop .35s ease ${pensRevealDelay(world.final.pen).toFixed(2)}s forwards` }}> · pênaltis {world.final.pen[0]}×{world.final.pen[1]}</span> : ''}</p>
                 </>
               )}
             </div>

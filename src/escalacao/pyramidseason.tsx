@@ -1768,13 +1768,22 @@ function CopaLiveMatch({ tie, pos, big, colors = {}, safName }: { tie: CopaTie; 
   const lastG = [...g].filter(x => x.min <= legMin).sort((x, y) => x.min - y.min).pop()
   const phaseLbl = nLegs === 1 ? '' : legIdx === 0 ? 'IDA' : 'VOLTA'
   const winName = aWin ? copaName(tie.a) : copaName(tie.b)
+  // 🚫 ANTI-SPOILER DOS PÊNALTIS: com decisão nos pênaltis, o riscado do perdedor E
+  // o "✅ avança" só entram DEPOIS que a última cobrança pipoca (senão o card
+  // entregava quem passou já no 1º chute). Mesmo atraso que a Copa dos 8 já usa.
+  const pensDelay = done && tie.pens ? pensRevealDelay(tie.pens) : 0
   // no jogo de VOLTA (ao vivo), o mandante é o B — e mandante joga na ESQUERDA,
   // igual na vida real. Então inverte os lados (e o placar) só nesse leg.
   const swap = !done && legIdx === 1
   const teamL = swap ? tie.b : tie.a, teamR = swap ? tie.a : tie.b
   const L = { name: copaName(teamL), win: swap ? !aWin : aWin, score: swap ? showB : showA, f: copaSideFill(teamL, colors, safName) }
   const R = { name: copaName(teamR), win: swap ? aWin : !aWin, score: swap ? showA : showB, f: copaSideFill(teamR, colors, safName) }
-  const nameStyle = (s: typeof L): React.CSSProperties => ({ fontWeight: big ? 900 : 800, fontSize: big ? 13.5 : 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: s.f.ink, opacity: done && !s.win ? 0.6 : 1, textDecoration: done && !s.win ? 'line-through' : 'none' })
+  const nameStyle = (s: typeof L): React.CSSProperties => {
+    const base: React.CSSProperties = { fontWeight: big ? 900 : 800, fontSize: big ? 13.5 : 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: s.f.ink }
+    if (!done || s.win) return { ...base, opacity: 1, textDecoration: 'none' }
+    if (pensDelay > 0) return { ...base, animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` } // perdedor por pênaltis: espera a disputa
+    return { ...base, opacity: 0.6, textDecoration: 'line-through' }
+  }
   return (
     <div style={{ ...box('transparent'), position: 'relative', overflow: 'hidden', border: `${big ? 3 : 2}px solid ${you ? '#B23B2E' : INK}`, boxShadow: `${big ? 4 : 2}px ${big ? 4 : 2}px 0 0 ${INK}`, padding: big ? '9px 12px' : '6px 9px', marginBottom: big ? 9 : 6 }}>
       <CopaHalves fL={L.f} fR={R.f} />
@@ -1789,8 +1798,9 @@ function CopaLiveMatch({ tie, pos, big, colors = {}, safName }: { tie: CopaTie; 
           ? (lastG ? <p style={{ textAlign: 'center', margin: '4px 0 0' }}><span style={{ ...copaCenterChip, fontSize: big ? 10 : 9, fontWeight: 800, ...OSWALD }}>⚽ {lastG.name}</span></p> : null)
           : <>
               {nLegs === 2 && <p style={{ textAlign: 'center', margin: '4px 0 0' }}><span style={{ ...copaCenterChip, fontSize: 9, fontWeight: 800 }}>ida {tie.legs[0][0]}×{tie.legs[0][1]} · volta {tie.legs[1][1]}×{tie.legs[1][0]}</span></p>}
+              {tie.pens && <style>{'@keyframes copaLoserFade{to{opacity:.6;text-decoration:line-through}}'}</style>}
               {tie.pens && <PensShootout pens={tie.pens} aName={tie.a.name} bName={tie.b.name} />}
-              <p style={{ textAlign: 'center', margin: '3px 0 0' }}><span style={{ ...copaCenterChip, fontSize: 9.5, fontWeight: 900, color: '#8ff0a8', ...OSWALD }}>✅ {winName} avança</span></p>
+              <p style={{ textAlign: 'center', margin: '3px 0 0', ...(pensDelay > 0 ? { opacity: 0, animation: `pensPop .35s ease ${pensDelay.toFixed(2)}s forwards` } : {}) }}><span style={{ ...copaCenterChip, fontSize: 9.5, fontWeight: 900, color: '#8ff0a8', ...OSWALD }}>✅ {winName} avança</span></p>
             </>}
       </div>
     </div>
