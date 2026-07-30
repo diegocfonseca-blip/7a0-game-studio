@@ -1212,11 +1212,11 @@ function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boo
   const dim = !!list && !list.listable && !listed // modo listagem: sem poder listar (último da posição / bloqueado)
   const onClick = onSwap ?? (list && (list.listable || listed) ? list.onList : undefined)
   return (
-    <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: listed ? '#FFF6D6' : titular ? '#fff' : 'rgba(255,255,255,0.5)', borderLeft: `3px solid ${listed ? GOLD : titular ? col.solid : 'transparent'}`, marginBottom: 3, opacity: dim ? 0.45 : 1, cursor: onClick ? 'pointer' : 'default' }}>
-      <span style={{ fontWeight: titular ? 800 : 600, fontSize: 12, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: listed ? '#8a6d0b' : titular ? INK : '#6a6658' }}>
+    <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: listed ? '#FDE7E4' : titular ? '#fff' : 'rgba(255,255,255,0.5)', borderLeft: `3px solid ${listed ? '#C2452F' : titular ? col.solid : 'transparent'}`, marginBottom: 3, opacity: dim ? 0.45 : 1, cursor: onClick ? 'pointer' : 'default' }}>
+      <span style={{ fontWeight: titular ? 800 : 600, fontSize: 12, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: listed ? '#a23325' : titular ? INK : '#6a6658' }}>
         {c.name}
         {onSwap && <span style={{ fontWeight: 900, marginLeft: 4, color: titular ? '#c0392b' : GREEN }}>{titular ? '▼' : '▲'}</span>}
-        {list && <span style={{ fontWeight: 900, marginLeft: 4, fontSize: 10, color: listed ? '#b8860b' : dim ? 'rgba(0,0,0,0.35)' : GREEN }}>{listed ? '✓ tirar' : dim ? '🔒' : '+ listar'}</span>}
+        {list && <span style={{ fontWeight: 900, marginLeft: 4, fontSize: 10, color: listed ? '#C2452F' : dim ? 'rgba(0,0,0,0.35)' : GREEN }}>{listed ? '🔴 À VENDA (tirar)' : dim ? '🔒' : '+ listar'}</span>}
       </span>
       <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, whiteSpace: 'nowrap', color: '#5a5647', flexShrink: 0 }}>💰 {c.paid ?? 0}</span>
     </div>
@@ -2835,7 +2835,14 @@ export function ReserveListScreen() {
             </div>}
         {marketUnlocked && (
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
-            <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: nListed ? GOLD : 'rgba(0,0,0,0.06)', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 10px' }}>📋 {nListed} no leilão</span>
+            <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: nListed ? '#C2452F' : 'rgba(0,0,0,0.06)', color: nListed ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 10px' }}>{nListed ? '🔴' : '📋'} {nListed} à venda</span>
+          </div>
+        )}
+        {/* ⚠️ AVISO GRITANTE: listar = pôr à venda. Nunca some jogador calado. */}
+        {marketUnlocked && nListed > 0 && (
+          <div style={{ ...box('#C2452F'), padding: '10px 12px', marginBottom: 10, color: '#fff' }}>
+            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>⚠️ {nListed} {nListed > 1 ? 'jogadores à VENDA' : 'jogador à VENDA'}</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, margin: 0, lineHeight: 1.4, color: 'rgba(255,255,255,.92)' }}>Se outro técnico cobrir o lance e você <b>não recomprar</b> no leilão, esse jogador <b>SAI do seu time de vez</b> (vira moedas). Só liste quem você topa <b>perder</b> — toque de novo pra tirar da lista.</p>
           </div>
         )}
         {/* 🔒 explica por que alguns jogadores aparecem travados (cinza): vendê-los
@@ -2853,7 +2860,7 @@ export function ReserveListScreen() {
           <div style={{ ...box('#FFF3CF'), padding: '11px 13px', margin: '10px 0' }}>
             <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 4px', color: INK }}>💡 O que acontece ao listar</p>
             <p style={{ fontSize: 12.5, fontWeight: 700, color: '#4a4740', margin: 0, lineHeight: 1.4 }}>
-              Quem você lista vai a leilão: se alguém der lance, <b>você ganha as moedas</b> (pode render até mais). Se <b>ninguém comprar</b>, ele vai pro <b>monte valendo METADE</b>.
+              Listar = pôr <b>à venda</b>. Vai a leilão e <b>você pode recomprar</b>. Se <b>não recomprar</b> e outro técnico levar, o jogador <b>SAI do seu time</b> — você fica só com as <b>moedas</b>. Se ninguém comprar, ele vai pro <b>monte valendo metade</b>.
             </p>
             <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '5px 0 0' }}>Obs.: a metade arredonda pra baixo — então só quem vale <b>1</b> (metade = 0,5) cai pra <b>0</b>.</p>
           </div>
