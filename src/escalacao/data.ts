@@ -900,7 +900,7 @@ const MEI: C[] = [
   { name: "Seedorf", club: "Botafogo", year: 2013, fame: 4, lo: 85, hi: 90 },
   { name: "Adílio", club: "Flamengo", year: 1981, fame: 4, lo: 87, hi: 93 },
   { name: "Fernando Diniz", club: "Fluminense", year: 2001, fame: 1, lo: 54, hi: 73, folk: true },
-  { name: "James Rodríguez", club: "São Paulo", year: 2023, fame: 3, lo: 68, hi: 80 },
+  { name: "James Rodríguez", club: "São Paulo", year: 2023, fame: 2, lo: 72, hi: 83, bio: "Camisa 10 colombiano, mestre da trivela e da bola parada. Artilheiro da Copa de 2014, desembarcou pra encantar o Morumbi." },
   { name: "Deco", club: "Fluminense", year: 2011, fame: 4, lo: 82, hi: 90 },
   { name: "Elano", club: "Santos", year: 2009, fame: 4, lo: 84, hi: 91 },
   { name: "Felipe Melo", club: "Palmeiras", year: 2017, fame: 4, lo: 83, hi: 91, folk: true },
@@ -1109,18 +1109,18 @@ const NOVOS_BR_GOL: C[] = [
   { name: 'Sílvio Luiz', club: 'São Caetano', year: 2002, fame: 2, lo: 65, hi: 80, bio: 'Paredão do São Caetano na campanha do vice da Libertadores de 2002 — pegador de pênalti e voz de comando na área.' },
 ]
 const NOVOS_BR_LAT: C[] = [
-  { name: 'Sérginho', club: 'São Caetano', year: 2004, fame: 3, lo: 70, hi: 82, bio: 'Guerreiro do timaço do São Caetano dos anos 2000 — eternizado no coração do Azulão.' },
+  { name: 'Sérginho', club: 'São Caetano', year: 2004, fame: 2, lo: 68, hi: 81, bio: 'Guerreiro do timaço do São Caetano dos anos 2000 — eternizado no coração do Azulão.' },
   { name: 'Triguinho', club: 'São Caetano', year: 2004, fame: 2, lo: 64, hi: 79, bio: 'De segurança a lateral-esquerdo campeão: passou por Figueirense, São Caetano e até a Bélgica. Raça pura na faixa.' },
-  { name: 'Fabrício', club: 'Internacional', year: 2015, fame: 2, lo: 63, hi: 78, folk: true, bio: 'Eternizado em 2015: perdeu a cabeça, mostrou o dedo pra torcida do Inter, foi expulso, arrancou a camisa e jurou nunca mais jogar. 🖕' },
-  { name: 'Douglas Barriga de Cadela', club: 'Corinthians', year: 2014, fame: 2, lo: 62, hi: 78, folk: true, bio: 'O lateral que a Fiel judiava pela forma física — ganhou o apelido cruel e virou meme eterno da arquibancada.' },
+  { name: 'Fabrício', club: 'Internacional', year: 2015, fame: 1, lo: 55, hi: 72, folk: true, bio: 'Eternizado em 2015: perdeu a cabeça, mostrou o dedo pra torcida do Inter, foi expulso, arrancou a camisa e jurou nunca mais jogar. 🖕' },
+  { name: 'Douglas Barriga de Cadela', club: 'Corinthians', year: 2014, fame: 1, lo: 52, hi: 68, folk: true, bio: 'O lateral que a Fiel judiava pela forma física — ganhou o apelido cruel e virou meme eterno da arquibancada.' },
 ]
 const NOVOS_BR_MEI: C[] = [
-  { name: 'James Rodríguez', club: 'São Paulo', year: 2023, fame: 4, lo: 82, hi: 91, bio: 'Camisa 10 colombiano, mestre da trivela e da bola parada. Artilheiro da Copa de 2014, desembarcou pra encantar o Morumbi.' },
   { name: 'Adjemar', club: 'São Caetano', year: 2002, fame: 2, lo: 64, hi: 79, bio: 'Meia habilidoso do timaço do São Caetano do Muricy — toque de bola nos anos dourados do Azulão.' },
 ]
 const NOVOS_BR_ATA: C[] = [
-  { name: 'Loide Augusto', club: 'Vasco', year: 2021, fame: 3, lo: 72, hi: 84, bio: 'Joia revelada como profissional no Vasco — atacante rápido, faro de gol e a molecagem da base cruzmaltina.' },
-  { name: 'Valdir Papel', club: 'Vasco', year: 2006, fame: 2, lo: 58, hi: 76, folk: true, bio: 'Andarilho de 30+ clubes; teve seus 15 minutos no Vasco em 2006 — expulso na final da Copa do Brasil e ainda levou bronca do Renato no vestiário.' },
+  { name: 'Loide Augusto', club: 'Vasco', year: 2021, fame: 1, lo: 58, hi: 74, bio: 'Revelado como profissional no Vasco — atacante rápido, faro de gol e a molecagem da base cruzmaltina.' },
+  { name: 'Leynny', club: 'Fluminense', year: 2019, fame: 1, lo: 52, hi: 68, bio: 'Atacante que vestiu a camisa do Fluminense — passou pelo profissional tricolor lutando por espaço no ataque.' },
+  { name: 'Valdir Papel', club: 'Vasco', year: 2006, fame: 1, lo: 48, hi: 64, folk: true, bio: 'Andarilho de 30+ clubes; teve seus 15 minutos no Vasco em 2006 — expulso na final da Copa do Brasil e ainda levou bronca do Renato no vestiário.' },
 ]
 export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT], ZAG, MEI: [...MEI, ...NOVOS_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA] }
 
@@ -1654,7 +1654,7 @@ const ATA_EU: C[] = [
 ]
 // 🆕 cartas novas (baralho EU) — pedidas pelo Diego.
 const NOVOS_EU_GOL: C[] = [
-  { name: 'Javi Varas', club: 'Sevilla', year: 2011, fame: 3, lo: 72, hi: 83, bio: 'Goleirão espanhol do Sevilla — e um nome que no Brasil vira piada na hora: "já vi vara". Mas debaixo das traves, levava a sério.' },
+  { name: 'Javi Varas', club: 'Sevilla', year: 2011, fame: 2, lo: 68, hi: 81, folk: true, bio: 'Goleirão espanhol do Sevilla — e um nome que no Brasil vira piada na hora: "já vi vara". Mas debaixo das traves, levava a sério.' },
 ]
 const NOVOS_EU_MEI: C[] = [
   { name: 'Koke', club: 'Atlético de Madrid', year: 2016, fame: 4, lo: 82, hi: 90, bio: 'O cérebro do Atlético do Simeone — camisa 6 eterno, passe milimétrico e raça de sobra no meio.' },
@@ -1765,7 +1765,7 @@ const ATA_WORLD: C[] = [
 ]
 // 🆕 cartas novas (baralho WORLD) — pedidas pelo Diego.
 const NOVOS_WORLD_LAT: C[] = [
-  { name: 'Yukinari Sugawara', club: 'AZ Alkmaar', year: 2023, fame: 3, lo: 70, hi: 82, bio: 'Lateral japonês trabalhador — subiu e desceu a faixa direita do AZ sem cansar nunca.' },
+  { name: 'Yukinari Sugawara', club: 'AZ Alkmaar', year: 2023, fame: 2, lo: 68, hi: 80, bio: 'Lateral japonês trabalhador — subiu e desceu a faixa direita do AZ sem cansar nunca.' },
   { name: 'Khuliso Mudau', club: 'Mamelodi Sundowns', year: 2023, fame: 2, lo: 64, hi: 79, bio: 'Lateral-direito sul-africano do Sundowns, motor incansável da seleção Bafana Bafana.' },
 ]
 const NOVOS_WORLD_MEI: C[] = [
