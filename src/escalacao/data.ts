@@ -1104,7 +1104,25 @@ const ATA: C[] = [
   { name: "Muñoz", club: "Palmeiras", year: 2003, fame: 2, lo: 62, hi: 82, bio: "Centroavante colombiano de Medellín — goleador xodó da torcida do Palmeiras, artilheiro na campanha do título da Série B de 2003." }
 ]
 
-export const CATALOG: Record<Sector, C[]> = { GOL, LAT, ZAG, MEI, ATA }
+// 🆕 cartas novas (baralho BR) — pedidas pelo Diego: reais e folclóricos do futebol nacional.
+const NOVOS_BR_GOL: C[] = [
+  { name: 'Sílvio Luiz', club: 'São Caetano', year: 2002, fame: 2, lo: 65, hi: 80, bio: 'Paredão do São Caetano na campanha do vice da Libertadores de 2002 — pegador de pênalti e voz de comando na área.' },
+]
+const NOVOS_BR_LAT: C[] = [
+  { name: 'Sérginho', club: 'São Caetano', year: 2004, fame: 3, lo: 70, hi: 82, bio: 'Guerreiro do timaço do São Caetano dos anos 2000 — eternizado no coração do Azulão.' },
+  { name: 'Triguinho', club: 'São Caetano', year: 2004, fame: 2, lo: 64, hi: 79, bio: 'De segurança a lateral-esquerdo campeão: passou por Figueirense, São Caetano e até a Bélgica. Raça pura na faixa.' },
+  { name: 'Fabrício', club: 'Internacional', year: 2015, fame: 2, lo: 63, hi: 78, folk: true, bio: 'Eternizado em 2015: perdeu a cabeça, mostrou o dedo pra torcida do Inter, foi expulso, arrancou a camisa e jurou nunca mais jogar. 🖕' },
+  { name: 'Douglas Barriga de Cadela', club: 'Corinthians', year: 2014, fame: 2, lo: 62, hi: 78, folk: true, bio: 'O lateral que a Fiel judiava pela forma física — ganhou o apelido cruel e virou meme eterno da arquibancada.' },
+]
+const NOVOS_BR_MEI: C[] = [
+  { name: 'James Rodríguez', club: 'São Paulo', year: 2023, fame: 4, lo: 82, hi: 91, bio: 'Camisa 10 colombiano, mestre da trivela e da bola parada. Artilheiro da Copa de 2014, desembarcou pra encantar o Morumbi.' },
+  { name: 'Adjemar', club: 'São Caetano', year: 2002, fame: 2, lo: 64, hi: 79, bio: 'Meia habilidoso do timaço do São Caetano do Muricy — toque de bola nos anos dourados do Azulão.' },
+]
+const NOVOS_BR_ATA: C[] = [
+  { name: 'Loide Augusto', club: 'Vasco', year: 2021, fame: 3, lo: 72, hi: 84, bio: 'Joia revelada como profissional no Vasco — atacante rápido, faro de gol e a molecagem da base cruzmaltina.' },
+  { name: 'Valdir Papel', club: 'Vasco', year: 2006, fame: 2, lo: 58, hi: 76, folk: true, bio: 'Andarilho de 30+ clubes; teve seus 15 minutos no Vasco em 2006 — expulso na final da Copa do Brasil e ainda levou bronca do Renato no vestiário.' },
+]
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT], ZAG, MEI: [...MEI, ...NOVOS_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
@@ -1634,7 +1652,18 @@ const ATA_EU: C[] = [
   { name: "Christian Benteke", club: "Aston Villa", year: 2013, fame: 3, lo: 68, hi: 83, bio: "Centroavante belga de ombros largos — cabeceio de canhão e voleios que quebravam a trave inglesa." },
   { name: "Seol Ki-hyeon", club: "Anderlecht", year: 2002, fame: 2, lo: 62, hi: 79, bio: "O coreano do gol de empate contra a Itália em 2002 — o começo da noite mais insana das Copas." },
 ]
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: GOL_EU, LAT: LAT_EU, ZAG: ZAG_EU, MEI: MEI_EU, ATA: ATA_EU }
+// 🆕 cartas novas (baralho EU) — pedidas pelo Diego.
+const NOVOS_EU_GOL: C[] = [
+  { name: 'Javi Varas', club: 'Sevilla', year: 2011, fame: 3, lo: 72, hi: 83, bio: 'Goleirão espanhol do Sevilla — e um nome que no Brasil vira piada na hora: "já vi vara". Mas debaixo das traves, levava a sério.' },
+]
+const NOVOS_EU_MEI: C[] = [
+  { name: 'Koke', club: 'Atlético de Madrid', year: 2016, fame: 4, lo: 82, hi: 90, bio: 'O cérebro do Atlético do Simeone — camisa 6 eterno, passe milimétrico e raça de sobra no meio.' },
+  { name: 'Marcos Senna', club: 'Villarreal', year: 2008, fame: 4, lo: 81, hi: 89, bio: 'Brasileiro que virou herói da Espanha: volante do Villarreal, campeão da Eurocopa de 2008 vestindo a Fúria.' },
+]
+const NOVOS_EU_ATA: C[] = [
+  { name: 'Jérémy Doku', club: 'Manchester City', year: 2024, fame: 4, lo: 82, hi: 91, bio: 'Ala belga de arrancada elétrica — dribla, chega na linha de fundo e faz zagueiro passar vergonha, na velocidade do City.' },
+]
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL], LAT: LAT_EU, ZAG: ZAG_EU, MEI: [...MEI_EU, ...NOVOS_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
@@ -1734,7 +1763,20 @@ const ATA_WORLD: C[] = [
   { name: "Eduardo Vargas", club: "U. de Chile", year: 2011, fame: 3, lo: 70, hi: 84, bio: "'Turboman' da U. de Chile campeã invicta da Sul-Americana de 2011 — na seleção virava monstro, artilheiro de duas Américas." },
   { name: "Humberto Suazo", club: "Monterrey", year: 2010, fame: 3, lo: 70, hi: 84, bio: "'Chupete' — chutava com os dois pés e mascava chiclete como quem já sabia que ia ser artilheiro do mundo em 2006." },
 ]
-export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: GOL_WORLD, LAT: LAT_WORLD, ZAG: ZAG_WORLD, MEI: MEI_WORLD, ATA: ATA_WORLD }
+// 🆕 cartas novas (baralho WORLD) — pedidas pelo Diego.
+const NOVOS_WORLD_LAT: C[] = [
+  { name: 'Yukinari Sugawara', club: 'AZ Alkmaar', year: 2023, fame: 3, lo: 70, hi: 82, bio: 'Lateral japonês trabalhador — subiu e desceu a faixa direita do AZ sem cansar nunca.' },
+  { name: 'Khuliso Mudau', club: 'Mamelodi Sundowns', year: 2023, fame: 2, lo: 64, hi: 79, bio: 'Lateral-direito sul-africano do Sundowns, motor incansável da seleção Bafana Bafana.' },
+]
+const NOVOS_WORLD_MEI: C[] = [
+  { name: 'Shinji Kagawa', club: 'Borussia Dortmund', year: 2012, fame: 4, lo: 82, hi: 90, bio: 'O japonês que encantou o Dortmund com dois títulos alemães. O nome faz rir no Brasil — mas em campo era pura categoria.' },
+  { name: 'Moisés Caicedo', club: 'Brighton', year: 2023, fame: 4, lo: 82, hi: 90, bio: 'Volante equatoriano de pulmão infinito — desarma, sai jogando e virou um dos mais caros do mundo.' },
+]
+const NOVOS_WORLD_ATA: C[] = [
+  { name: 'Takefusa Kubo', club: 'Real Sociedad', year: 2024, fame: 4, lo: 81, hi: 90, bio: 'A joia japonesa do drible, dono da bola no Real Sociedad. Baixinho endiabrado que enlouquece marcador.' },
+  { name: 'Milton Caraglio', club: 'Cruz Azul', year: 2018, fame: 2, lo: 63, hi: 79, folk: true, bio: 'Centroavante argentino faro de área — e um nome que no Brasil rende piada garantida.' },
+]
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: GOL_WORLD, LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT], ZAG: ZAG_WORLD, MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA] }
 
 // ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
 // A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).
