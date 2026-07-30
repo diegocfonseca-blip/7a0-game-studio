@@ -152,7 +152,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | nu
           {/* 🔎 detalhe técnico (stack) — pequeno; ajuda a achar EXATAMENTE onde quebrou
              quando o print chega. Mostra só as primeiras linhas pra não assustar. */}
           {this.state.err?.stack && (
-            <pre style={{ fontSize: 8, color: 'rgba(0,0,0,.4)', marginTop: 6, maxWidth: 340, maxHeight: 96, overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: 'left', fontFamily: 'monospace' }}>{this.state.err.stack.split('\n').slice(0, 5).join('\n')}</pre>
+            <pre style={{ fontSize: 8, color: 'rgba(0,0,0,.4)', marginTop: 6, maxWidth: 340, maxHeight: 96, overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: 'left', fontFamily: 'monospace' }}>{this.state.err.stack.split('\n').slice(0, 14).join('\n')}</pre>
           )}
           <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,.45)', marginTop: 6 }}>Manda um print disso <b>inteiro</b> pro <b>@leilaolegendscom</b> 🙏</p>
         </div>
