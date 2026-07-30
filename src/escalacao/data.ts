@@ -1844,6 +1844,7 @@ export const OLD_NAME: Record<string, string> = {
   'Inter Estadual': 'Bigode FC', 'Cuiabagre': 'Bagres do Rio', 'Santos Dumont': 'Tonhão FC',
   'Pardemeias': 'Tico do Bar FR', 'Livre-pool': 'Xandão EC',
   'White Thigs do GuGu': 'Astronáutico',
+  'Nightfull FC': 'Pelado FR', // ⚽ batismo do Guilherme: em save antigo, o Pelado FR vira Nightfull FC ao carregar
 }
 // corrente de nomes antigos: 'White Thigs do GuGu' → ['Astronáutico', 'Sinhô Futebol']
 export const oldChain = (name: string): string[] => {
