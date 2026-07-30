@@ -4,6 +4,7 @@ import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useEsc } from './store'
 import { useSport } from './sport'
+import { useLang } from './lang'
 import { AdminButton, useCanCareerOnline } from './admin'
 import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout } from './apoio'
 import { isMuted } from './sound'
@@ -388,6 +389,10 @@ export function EscLobby() {
   // salas de BASQUETE; no futebol, salas de futebol. Um não vê o outro na lista.
   const [lobbySport] = useSport()
   const isNbaLobby = lobbySport === 'basquete'
+  // 🌐 bilíngue SÓ no basquete (regra do BidLegends): cada texto vira L(pt,en).
+  // No futebol L SEMPRE devolve o PT original → lobby do futebol byte-idêntico.
+  const [lobbyLang] = useLang()
+  const L = (pt: string, en: string) => (isNbaLobby && lobbyLang === 'en') ? en : pt
   const [user, setUser] = useState<User | null>(null)
   const [phase, setPhase] = useState<Phase>('auth')
   const [authTab, setAuthTab] = useState<AuthTab>(() => {
@@ -1218,8 +1223,8 @@ export function EscLobby() {
     {pendingInvite && (
       <div className="rounded-xl border-[3px] border-black px-3 py-2.5" style={{ background: PURPLE, boxShadow: `3px 3px 0 ${INK}` }}>
         <p className="text-xs font-black text-white leading-snug" style={OSWALD}>
-          🎮 Você foi convidado pra sala <span className="bg-white text-black px-1.5 rounded">{pendingInvite}</span>.<br />
-          <span className="text-white/80">Entre ou crie sua conta — te levo direto pra sala.</span>
+          🎮 {L('Você foi convidado pra sala', 'You were invited to room')} <span className="bg-white text-black px-1.5 rounded">{pendingInvite}</span>.<br />
+          <span className="text-white/80">{L('Entre ou crie sua conta — te levo direto pra sala.', 'Log in or create your account — I’ll take you straight to the room.')}</span>
         </p>
       </div>
     )}
@@ -1227,37 +1232,37 @@ export function EscLobby() {
       {(['login', 'register'] as AuthTab[]).map(tab => (
         <button key={tab} onClick={() => { setAuthTab(tab); setAuthError('') }}
           className="flex-1 py-2.5 font-black text-sm uppercase" style={{ backgroundColor: authTab === tab ? GOLD : '#fff', color: '#000' }}>
-          {tab === 'login' ? 'Entrar' : 'Cadastrar'}
+          {tab === 'login' ? L('Entrar', 'Log in') : L('Cadastrar', 'Sign up')}
         </button>
       ))}
     </div>
     {authTab === 'register' && (
       <div className="rounded-xl border-[3px] border-black px-3 py-2.5" style={{ background: GOLD }}>
-        <p className="text-xs font-black text-black leading-snug" style={OSWALD}>🎴 Com a conta, ser campeão (no CPU ou online) te dá uma carta-lembrança limitada pro álbum. Sem conta, não ganha carta.</p>
+        <p className="text-xs font-black text-black leading-snug" style={OSWALD}>🎴 {L('Com a conta, ser campeão (no CPU ou online) te dá uma carta-lembrança limitada pro álbum. Sem conta, não ganha carta.', 'With an account, winning a title (vs CPU or online) gives you a limited keepsake card for your album. No account, no card.')}</p>
       </div>
     )}
     <div className="space-y-3">
-      {authTab === 'register' && <Field label="Nome de técnico" value={displayName} onChange={e => setDisplayName(stripEmoji(e.target.value))} placeholder="Como te chamam?" />}
+      {authTab === 'register' && <Field label={L('Nome de técnico', 'Manager name')} value={displayName} onChange={e => setDisplayName(stripEmoji(e.target.value))} placeholder={L('Como te chamam?', 'What do they call you?')} />}
       <Field label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" />
-      <PwField label="Senha" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
+      <PwField label={L('Senha', 'Password')} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
         onKeyDown={e => e.key === 'Enter' && handleAuth()} />
       {authTab === 'login' && (
         <button onClick={handleForgot} className="text-white/50 text-xs font-bold underline w-full text-right" style={{ marginTop: -6 }}>
-          Esqueci minha senha
+          {L('Esqueci minha senha', 'Forgot my password')}
         </button>
       )}
       {authError && (authError.startsWith('🔧')
         ? <div className="rounded-xl border-2 border-amber-400/60 bg-amber-400/10 px-3 py-2 text-sm font-bold text-amber-200">{authError}</div>
         : <p className={`text-sm font-bold ${authError.startsWith('✉️') ? 'text-green-400' : 'text-red-400'}`}>{authError}</p>)}
     </div>
-    <Big onClick={handleAuth}>{loading ? '...' : authTab === 'login' ? 'Entrar →' : 'Criar conta →'}</Big>
-    <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">← Voltar</button>
+    <Big onClick={handleAuth}>{loading ? '...' : authTab === 'login' ? L('Entrar →', 'Log in →') : L('Criar conta →', 'Create account →')}</Big>
+    <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">← {L('Voltar', 'Back')}</button>
   </>)
   }
 
   if (phase === 'menu') {
     const TABS: { id: 'create' | 'open' | 'join'; label: string }[] = [
-      { id: 'create', label: 'Criar sala' }, { id: 'open', label: 'Salas abertas' }, { id: 'join', label: 'Entrar' },
+      { id: 'create', label: L('Criar sala', 'Create room') }, { id: 'open', label: L('Salas abertas', 'Open rooms') }, { id: 'join', label: L('Entrar', 'Join') },
     ]
     const hasName = !!user?.user_metadata?.display_name
     const filtered = openRooms.filter(r => {
@@ -1277,10 +1282,12 @@ export function EscLobby() {
             <p className="text-white/70 text-[10px] font-black uppercase tracking-[0.2em]">{isNbaLobby ? 'BidLegends' : 'Leilão Legends'}</p>
           </div>
           <h1 className="font-black text-white text-[26px] leading-[1] mb-1.5" style={OSWALD}>
-            CHAME A GALERA
+            {L('CHAME A GALERA', 'BRING THE CREW')}
           </h1>
           <p className="text-white/90 text-[13px] leading-snug font-medium">
-            Toda a adrenalina do leilão, agora <b>contra seus amigos</b>. Cria a sala, manda o código no zap e briguem pelas lendas.
+            {(isNbaLobby && lobbyLang === 'en')
+              ? <>All the auction adrenaline, now <b>against your friends</b>. Create a room, send the code and fight over the legends.</>
+              : <>Toda a adrenalina do leilão, agora <b>contra seus amigos</b>. Cria a sala, manda o código no zap e briguem pelas lendas.</>}
           </p>
         </div>
         <div className="px-4 py-2 flex items-center gap-2 justify-between" style={{ background: '#1a1220' }}>
