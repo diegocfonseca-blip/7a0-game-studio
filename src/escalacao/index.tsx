@@ -196,8 +196,10 @@ function VersionWatcher() {
     window.addEventListener('focus', onVis)
     return () => { alive = false; clearTimeout(t0); clearInterval(iv); document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', onVis) }
   }, [])
-  // telas SEGURAS pra recarregar sem atrapalhar (não estamos no meio de um jogo).
-  const safe = state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup'
+  // AUTO-reload só na TELA INICIAL (home) — onde não tem NADA em andamento.
+  // Nunca no leilão/temporada (jogo), nunca no lobby (sala online), nunca no
+  // setup (escolhas). Nessas, só o botão aparece — atualiza apenas se TOCAR.
+  const safe = state.screen === 'intro'
   // AUTO-atualiza em silêncio quando a pessoa está numa tela segura (rede de
   // segurança pra quem não toca no botão). Anti-loop: no máx. 1x/5min. Não
   // recarrega se a pessoa DISPENSOU (respeita a escolha dela). Espera uns
