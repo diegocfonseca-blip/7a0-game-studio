@@ -172,14 +172,11 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | nu
 // nunca entrar em loop (no máx. 1 auto-reload a cada 5 min).
 function VersionWatcher() {
   const { state } = useEsc()
-  const [stale, setStale] = useState(false)
-  // 🔕 o BANNER visível aparece UMA VEZ SÓ por pessoa (marcador persistente).
-  // Depois disso nunca mais incomoda — a atualização segue acontecendo sozinha
-  // e silenciosa na tela inicial (o auto-reload abaixo), sem banner nenhum.
-  const [bannerSeen] = useState(() => { try { return localStorage.getItem('esc-upd-banner-seen') === '1' } catch { return false } })
-  useEffect(() => {
-    if (stale && !bannerSeen) { try { localStorage.setItem('esc-upd-banner-seen', '1') } catch { /* ignora */ } }
-  }, [stale, bannerSeen])
+  // guarda o ARQUIVO NOVO detectado no servidor (o hash muda a cada deploy).
+  const [newBundle, setNewBundle] = useState<string | null>(null)
+  // dispensa é POR VERSÃO (sessão): fechou o banner desta versão, some — mas a
+  // PRÓXIMA versão nova volta a avisar. (Antes era "1 vez na vida" e travava.)
+  const [dismissed, setDismissed] = useState<string | null>(() => { try { return sessionStorage.getItem('esc-upd-dismiss') } catch { return null } })
   useEffect(() => {
     const cur = Array.from(document.scripts).map(s => s.getAttribute('src') || '').find(s => /assets\/index-[\w-]+\.js/.test(s)) || ''
     if (!cur) return
@@ -189,7 +186,7 @@ function VersionWatcher() {
         const base = import.meta.env.BASE_URL || '/'
         const html = await fetch(`${base}index.html?v=${Date.now()}`, { cache: 'no-store' }).then(r => r.ok ? r.text() : '')
         const m = html.match(/assets\/index-[\w-]+\.js/)
-        if (alive && m && !cur.includes(m[0])) setStale(true)
+        if (alive && m && !cur.includes(m[0])) setNewBundle(m[0])
       } catch { /* offline/erro de rede — ignora, tenta de novo depois */ }
     }
     const t0 = setTimeout(check, 8000) // 1ª checagem uns segundos após abrir
@@ -199,24 +196,32 @@ function VersionWatcher() {
     window.addEventListener('focus', onVis)
     return () => { alive = false; clearTimeout(t0); clearInterval(iv); document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', onVis) }
   }, [])
-  // auto-atualiza SÓ na tela inicial (não interrompe jogo) e no máx. 1x/5min (anti-loop)
+  // telas SEGURAS pra recarregar sem atrapalhar (não estamos no meio de um jogo).
+  const safe = state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup'
+  // AUTO-atualiza em silêncio quando a pessoa está numa tela segura. Anti-loop:
+  // no máx. 1x/5min. Assim a maioria pega a versão nova sozinha, sem banner.
   useEffect(() => {
-    if (!stale || state.screen !== 'intro') return
+    if (!newBundle || !safe) return
     let last = 0
     try { last = +(sessionStorage.getItem('esc-auto-upd-at') || 0) } catch { /* ignora */ }
-    if (Date.now() - last < 300_000) return // já atualizou há pouco — mostra só o banner
+    if (Date.now() - last < 300_000) return
     const t = setTimeout(() => {
       try { sessionStorage.setItem('esc-auto-upd-at', String(Date.now())) } catch { /* ignora */ }
       window.location.reload()
     }, 2000)
     return () => clearTimeout(t)
-  }, [stale, state.screen])
-  if (!stale || bannerSeen) return null
+  }, [newBundle, safe])
+  // banner: aparece só QUANDO tem versão nova E a pessoa está no MEIO de um jogo
+  // (onde o auto-reload não pode entrar). Reaparece a cada versão nova; dispensável.
+  if (!newBundle || safe || dismissed === newBundle) return null
   return (
-    <button onClick={() => window.location.reload()}
-      style={{ position: 'fixed', top: 8, left: 8, right: 8, zIndex: 99999, margin: '0 auto', maxWidth: 440, background: '#1B7A3D', color: '#fff', border: '2px solid #0C0C0C', borderRadius: 12, padding: '10px 12px', textAlign: 'center', fontWeight: 800, fontSize: 12.5, lineHeight: 1.3, boxShadow: '0 4px 14px rgba(0,0,0,.35)', cursor: 'pointer', fontFamily: 'Oswald, sans-serif' }}>
-      ✨ Saiu novidade nova no jogo! Toque aqui pra atualizar 🔄
-    </button>
+    <div style={{ position: 'fixed', top: 8, left: 8, right: 8, zIndex: 99999, margin: '0 auto', maxWidth: 440, display: 'flex', alignItems: 'center', gap: 8, background: '#1B7A3D', color: '#fff', border: '2px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', boxShadow: '0 4px 14px rgba(0,0,0,.35)', fontFamily: 'Oswald, sans-serif' }}>
+      <button onClick={() => window.location.reload()} style={{ flex: 1, background: 'transparent', border: 'none', color: '#fff', fontWeight: 800, fontSize: 12.5, lineHeight: 1.3, textAlign: 'left', cursor: 'pointer', fontFamily: 'Oswald, sans-serif' }}>
+        ✨ Saiu versão nova do jogo! Toque pra atualizar 🔄 <span style={{ opacity: .85, fontWeight: 700 }}>(seu save tá guardado)</span>
+      </button>
+      <button onClick={() => { setDismissed(newBundle); try { sessionStorage.setItem('esc-upd-dismiss', newBundle) } catch { /* ignora */ } }} aria-label="Depois"
+        style={{ flexShrink: 0, width: 22, height: 22, borderRadius: 999, background: '#fff', border: '2px solid #000', color: '#000', fontWeight: 900, fontSize: 11, cursor: 'pointer', lineHeight: 1 }}>✕</button>
+    </div>
   )
 }
 
