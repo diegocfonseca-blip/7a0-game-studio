@@ -4217,7 +4217,11 @@ export async function savePyramidCloud(state: EscState, force = false) {
     // recente. (Se ainda não temos base e já existe algo na nuvem, também não arrisca.)
     const { data: cur } = await supabase.from('esc_pyramid_saves').select('updated_at').eq('user_id', data.user.id).maybeSingle()
     const cloudIso = (cur?.updated_at as string | undefined) ?? null
-    if (cloudIso && cloudIso !== pyrCloudBaseIso) return // nuvem mudou (outro aparelho) → não sobrescreve
+    // 1ª gravação da sessão sem base: adota a versão atual da nuvem como base e NÃO
+    // grava agora (não arrisca apagar algo mais novo de outro aparelho). As próximas
+    // gravações já funcionam normal — antes ficava pulando pra sempre (bug).
+    if (cloudIso && pyrCloudBaseIso == null) { pyrCloudBaseIso = cloudIso; return }
+    if (cloudIso && cloudIso !== pyrCloudBaseIso) return // outro aparelho gravou depois → não sobrescreve
     let payload: unknown = state
     if (isCareerSave(state)) {
       // 🔒 carimba o save ativo com o lacre antes de subir pra nuvem (as do arquivo já
