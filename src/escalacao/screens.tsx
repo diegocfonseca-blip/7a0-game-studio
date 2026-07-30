@@ -1348,7 +1348,11 @@ function BidLegendsHome() {
 // Partida rápida e leilão avulso NÃO passam por aqui. Dá pra voltar pra home (✕).
 function CareerLoginGate({ onClose }: { onClose: () => void }) {
   const { dispatch } = useEsc()
-  const go = () => { dispatch({ type: 'GO_LOBBY_ONLINE' }); onClose() }
+  // register=true abre o login já na aba CADASTRAR (o login lê `esc_open_register`).
+  const go = (register?: boolean) => {
+    if (register) { try { localStorage.setItem('esc_open_register', '1') } catch { /* ignora */ } }
+    dispatch({ type: 'GO_LOBBY_ONLINE' }); onClose()
+  }
   const btn = (bg: string, color: string): React.CSSProperties => ({ display: 'block', width: '100%', background: bg, color, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 ${INK}`, fontWeight: 800, fontSize: 19, textTransform: 'uppercase', padding: 14, marginBottom: 12, cursor: 'pointer', fontFamily: 'Oswald, sans-serif' })
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 99990, background: '#F4ECD6', overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '26px 16px 40px', fontFamily: 'Oswald, sans-serif' }}>
@@ -1365,8 +1369,8 @@ function CareerLoginGate({ onClose }: { onClose: () => void }) {
             <div style={{ background: '#F1FBF4', border: `2px solid ${GREEN}`, borderRadius: 12, padding: '10px 12px', margin: '0 auto 18px', maxWidth: 380 }}>
               <span style={{ fontWeight: 700, fontSize: 13.5, color: '#155e2e', lineHeight: 1.3 }}>💾 Você nunca mais perde sua carreira. Salva sozinho a cada temporada.</span>
             </div>
-            <button onClick={go} style={btn(GOLD, INK)}>🔑 Entrar</button>
-            <button onClick={go} style={btn(GREEN, '#fff')}>✏️ Criar conta grátis</button>
+            <button onClick={() => go()} style={btn(GOLD, INK)}>🔑 Entrar</button>
+            <button onClick={() => go(true)} style={btn(GREEN, '#fff')}>✏️ Criar conta grátis</button>
             <p style={{ fontWeight: 600, fontSize: 12.5, color: '#6a6152', marginTop: 6, lineHeight: 1.35 }}>Seu save de agora <b>não se perde</b> — ao entrar, ele sobe pra sua conta.</p>
           </div>
         </div>
