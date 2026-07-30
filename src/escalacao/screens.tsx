@@ -1103,20 +1103,26 @@ function useResumableNbaCareer() {
 // abaixo do botão de começar, no setup, quando existe um jogo salvo.
 function SoloContinueBanner() {
   const solo = useResumableSolo()
+  const [gate, setGate] = useState(false)
   if (!solo) return null
+  // 🔒 carreira só logado: confere o login antes de continuar; sem sessão, abre a tela de login.
+  const tryResume = async () => { try { const { data } = await supabase.auth.getSession(); if (data.session) { solo.resume(); return } } catch { /* sem login */ } setGate(true) }
   return (
+    <>
     <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: '#6C43C0', boxShadow: `4px 4px 0 0 ${INK}` }}>
       <p className="font-black text-sm text-white leading-tight" style={OSWALD}>
         🪜 Carreira offline salva<br />
         <span className="opacity-80 text-xs">{solo.teamName} · Temporada {solo.seasonNo}</span>
       </p>
-      <button onClick={solo.resume} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
+      <button onClick={tryResume} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
         ▶️ Continuar carreira ({solo.teamName})
       </button>
       <button onClick={solo.discard} className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
         🗑️ Descartar e começar do zero
       </button>
     </div>
+    {gate && <CareerLoginGate onClose={() => setGate(false)} />}
+    </>
   )
 }
 
@@ -1335,6 +1341,45 @@ function BidLegendsHome() {
   )
 }
 
+// 🔒 TELA DE LOGIN DA CARREIRA: aparece quando a pessoa tenta jogar/continuar
+// carreira SEM login ativo (conta nova, ou login caiu por cache/sessão). A
+// carreira mora na conta — sem login não dá pra garantir o save. Reaproveita o
+// login que já existe (GO_LOBBY_ONLINE), então "esqueci a senha" vem junto.
+// Partida rápida e leilão avulso NÃO passam por aqui. Dá pra voltar pra home (✕).
+function CareerLoginGate({ onClose }: { onClose: () => void }) {
+  const { dispatch } = useEsc()
+  const go = () => { dispatch({ type: 'GO_LOBBY_ONLINE' }); onClose() }
+  const btn = (bg: string, color: string): React.CSSProperties => ({ display: 'block', width: '100%', background: bg, color, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 ${INK}`, fontWeight: 800, fontSize: 19, textTransform: 'uppercase', padding: 14, marginBottom: 12, cursor: 'pointer', fontFamily: 'Oswald, sans-serif' })
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 99990, background: '#F4ECD6', overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '26px 16px 40px', fontFamily: 'Oswald, sans-serif' }}>
+      <div style={{ width: '100%', maxWidth: 440 }}>
+        <div style={{ background: '#fff', border: `4px solid ${INK}`, borderRadius: 22, boxShadow: `6px 6px 0 ${INK}`, overflow: 'hidden' }}>
+          <div style={{ background: PURPLE, color: '#fff', padding: '13px 16px', borderBottom: `4px solid ${INK}`, fontWeight: 800, fontSize: 20, textTransform: 'uppercase', letterSpacing: .5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span>🪜 Modo Carreira</span>
+            <button onClick={onClose} aria-label="Voltar" style={{ background: 'rgba(255,255,255,.22)', border: 'none', color: '#fff', width: 26, height: 26, borderRadius: 999, fontWeight: 900, fontSize: 13, cursor: 'pointer', lineHeight: 1 }}>✕</button>
+          </div>
+          <div style={{ padding: '24px 22px 26px', textAlign: 'center' }}>
+            <div style={{ fontSize: 58 }}>🔒</div>
+            <p style={{ fontWeight: 800, fontSize: 29, lineHeight: 1.02, textTransform: 'uppercase', margin: '6px 0 14px' }}>Sua carreira mora na sua conta</p>
+            <p style={{ fontWeight: 600, fontSize: 15, lineHeight: 1.35, color: '#2b2b2b', margin: '0 auto 14px', maxWidth: 380 }}>Pra jogar carreira, você precisa estar <b>logado</b>. Assim seu progresso fica <b>salvo na sua conta</b> e te segue em <b>qualquer aparelho ou navegador</b>.</p>
+            <div style={{ background: '#F1FBF4', border: `2px solid ${GREEN}`, borderRadius: 12, padding: '10px 12px', margin: '0 auto 18px', maxWidth: 380 }}>
+              <span style={{ fontWeight: 700, fontSize: 13.5, color: '#155e2e', lineHeight: 1.3 }}>💾 Você nunca mais perde sua carreira. Salva sozinho a cada temporada.</span>
+            </div>
+            <button onClick={go} style={btn(GOLD, INK)}>🔑 Entrar</button>
+            <button onClick={go} style={btn(GREEN, '#fff')}>✏️ Criar conta grátis</button>
+            <p style={{ fontWeight: 600, fontSize: 12.5, color: '#6a6152', marginTop: 6, lineHeight: 1.35 }}>Seu save de agora <b>não se perde</b> — ao entrar, ele sobe pra sua conta.</p>
+          </div>
+        </div>
+        <div style={{ background: GOLD, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 ${INK}`, padding: '12px 14px', textAlign: 'center', marginTop: 16 }}>
+          <div style={{ fontWeight: 800, fontSize: 14, textTransform: 'uppercase' }}>⚽ Partida rápida e leilão avulso</div>
+          <div style={{ fontWeight: 600, fontSize: 12.5, color: '#5a4d1e', marginTop: 3 }}>continuam <b>sem precisar de login</b> — só a carreira pede.</div>
+        </div>
+        <button onClick={onClose} style={{ display: 'block', width: '100%', marginTop: 16, background: 'transparent', border: 'none', color: '#6a6152', fontWeight: 800, fontSize: 13.5, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'Oswald, sans-serif' }}>← Voltar pra home</button>
+      </div>
+    </div>
+  )
+}
+
 export function EscIntro() {
   const [sport] = useSport()
   const unlocked = useSportUnlocked() // 🔒 só o Diego vê qualquer coisa de basquete
@@ -1342,7 +1387,15 @@ export function EscIntro() {
   const resumable = useResumableRoom()
   const solo = useResumableSolo()
   const [showCarreiras, setShowCarreiras] = useState(false)
+  const [careerGate, setCareerGate] = useState(false)
   const [shared, setShared] = useState(false)
+  // 🔒 toda entrada de CARREIRA passa por aqui: se não tem login ATIVO reconhecido
+  // agora (conta nova, ou sessão caiu por cache), mostra a tela de login em vez de
+  // deixar entrar. getSession() lê do aparelho (rápido, sem rede).
+  const startCareer = async (fn: () => void) => {
+    try { const { data } = await supabase.auth.getSession(); if (data.session) { fn(); return } } catch { /* trata como sem login */ }
+    setCareerGate(true)
+  }
   const shareGame = async () => {
     const data = { title: 'Leilão Legends', text: 'Bora jogar Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨⚽', url: 'https://leilaolegends.com' }
     try {
@@ -1381,15 +1434,16 @@ export function EscIntro() {
             🪜 Carreira offline em andamento<br />
             <span className="opacity-80 text-xs">{solo.teamName} · Temporada {solo.seasonNo}</span>
           </p>
-          <button onClick={solo.resume} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
+          <button onClick={() => startCareer(solo.resume)} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
             ▶️ Continuar carreira ({solo.teamName})
           </button>
-          <button onClick={() => setShowCarreiras(true)} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
+          <button onClick={() => startCareer(() => setShowCarreiras(true))} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
             🪜 Minhas carreiras · trocar de save
           </button>
         </div>
       )}
-      {showCarreiras && <MinhasCarreiras onClose={() => setShowCarreiras(false)} onNew={() => { setShowCarreiras(false); dispatch({ type: 'GO_SETUP_CAREER' }) }} />}
+      {showCarreiras && <MinhasCarreiras onClose={() => setShowCarreiras(false)} onNew={() => { setShowCarreiras(false); startCareer(() => dispatch({ type: 'GO_SETUP_CAREER' })) }} />}
+      {careerGate && <CareerLoginGate onClose={() => setCareerGate(false)} />}
       <div className="text-center pt-8">
         <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
           ⚽ Leilão às cegas de lendas
@@ -1414,7 +1468,7 @@ export function EscIntro() {
         <motion.div className="rounded-xl"
           animate={{ boxShadow: ['0 0 0 0 rgba(124,58,237,0)', '0 0 16px 4px rgba(124,58,237,0.7)', '0 0 0 0 rgba(124,58,237,0)'] }}
           transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}>
-          <Btn onClick={() => { if (listAllCareers().length > 0) setShowCarreiras(true); else dispatch({ type: 'GO_SETUP_CAREER' }) }} className="w-full text-lg" bg={PURPLE}>
+          <Btn onClick={() => startCareer(() => { if (listAllCareers().length > 0) setShowCarreiras(true); else dispatch({ type: 'GO_SETUP_CAREER' }) })} className="w-full text-lg" bg={PURPLE}>
             <span className="text-white">🪜 CARREIRA POR DIVISÕES <span className="text-yellow-300">(new)</span></span>
           </Btn>
         </motion.div>
