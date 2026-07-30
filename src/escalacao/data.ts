@@ -1660,7 +1660,7 @@ const ATA_EU: C[] = [
 // 🆕 cartas novas (baralho EU) — pedidas pelo Diego.
 const NOVOS_EU_GOL: C[] = [
   { name: 'Javi Varas', club: 'Sevilla', year: 2011, fame: 2, lo: 68, hi: 81, folk: true, bio: 'Goleirão espanhol do Sevilla — e um nome que no Brasil vira piada na hora: "já vi vara". Mas debaixo das traves, levava a sério.' },
-  { name: 'Luca Zidane', club: 'Real Madrid', year: 2019, fame: 1, lo: 52, hi: 70, folk: true, bio: 'Goleiro filho de Zinedine Zidane — formado no Real Madrid, seguiu o próprio caminho nas traves longe da sombra do pai.' },
+  { name: 'Luca Zidane', club: 'Granada', year: 2024, fame: 1, lo: 52, hi: 70, folk: true, bio: 'Goleiro filho de Zinedine Zidane — formado no Real Madrid, foi buscar espaço e titularidade longe da sombra do pai (Eibar, Granada).' },
 ]
 const NOVOS_EU_MEI: C[] = [
   { name: 'Koke', club: 'Atlético de Madrid', year: 2016, fame: 4, lo: 82, hi: 90, bio: 'O cérebro do Atlético do Simeone — camisa 6 eterno, passe milimétrico e raça de sobra no meio.' },
