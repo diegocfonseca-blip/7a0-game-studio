@@ -1388,7 +1388,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
           // posição × NÍVEL² (igual à carreira): craque leva a maioria dos gols,
           // perna-de-pau quase nunca marca — antes era só por posição e o filler
           // de várzea brigava na artilharia com o Pelé.
-          const posW = c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05
+          const posW = c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : (/chilavert|ceni/i.test(c.name) ? 0.05 : 0)
           const n = Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42)
           pool.push({ name: c.name, w: posW * (0.12 + n * n * 1.8) * (day.get(c.id) ?? 1) })
         }

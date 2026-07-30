@@ -297,7 +297,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     const day = new Map<string, number>()
     for (const c of xi) day.set(c.id, 0.4 + rng() * 2.2)
     for (let g = 0; g < goals; g++) {
-      const pool = xi.map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05) * goalW(c) * (day.get(c.id) ?? 1) }))
+      const pool = xi.map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : (/chilavert|ceni/i.test(c.name) ? 0.05 : 0)) * goalW(c) * (day.get(c.id) ?? 1) }))
       const total = pool.reduce((s, p) => s + p.w, 0)
       let r = rng() * total, pick = pool[0].c
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
@@ -412,7 +412,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     const day = new Map<string, number>()
     for (const c of xi) day.set(c.id, 0.4 + rng() * 2.2)
     for (let g = 0; g < goals; g++) {
-      const pool = xi.map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0.05) * goalW(c) * (day.get(c.id) ?? 1) }))
+      const pool = xi.map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : (/chilavert|ceni/i.test(c.name) ? 0.05 : 0)) * goalW(c) * (day.get(c.id) ?? 1) }))
       const total = pool.reduce((s, p) => s + p.w, 0); let r = rng() * total, pick = pool[0]?.c
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
       if (!pick) continue
