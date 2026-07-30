@@ -285,6 +285,13 @@ function lineupAt(lineups: RoundLineups, teamId: number, r: number, squad: PoolC
 function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
+  // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
+  // embaralhamos QUAL time ocupa cada vaga (0..19) usando a semente da temporada.
+  // Assim o adversário da rodada 1 (e a ordem toda) muda a cada ano — acaba o
+  // "toda temporada começa contra o mesmo time". Determinístico (semente sincronizada
+  // = mesmo calendário em todos os aparelhos no online). Relabelar vagas preserva o
+  // round-robin completo (todo mundo joga com todo mundo, ida e volta).
+  const slot = shuffle(Array.from({ length: 20 }, (_, i) => i), mulberry((seed ^ 0x1B873593) >>> 0))
   // credita os gols na artilharia da temporada e devolve os eventos (nome + minuto)
   // peso de artilharia por NÍVEL: um filler (nível ~40) quase não marca; um craque
   // (nível ~85) leva a maioria. Antes era só por posição — por isso Bola Murcha e
@@ -310,7 +317,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
   }
   const nr = Math.min(round, 38)
   for (let r = 0; r < nr; r++) for (const [hi, ai] of fix[r]) {
-    const H = teams[hi], A = teams[ai]
+    const H = teams[slot[hi]], A = teams[slot[ai]]
     if (!H || !A) continue // série fora do padrão (save antigo) — nunca derruba o jogo
     // humano usa a tática que ELE escolheu (sincronizada); CPU sorteia
     const th: Tac = H.human ? tacAt(tactics, H.teamId, r) : TACS[Math.floor(rng() * 3)]
