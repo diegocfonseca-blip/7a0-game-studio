@@ -4756,7 +4756,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
           padding: '8px 12px', fontWeight: 800, fontSize: 13,
           fontFamily: 'Oswald, sans-serif', borderBottom: '3px solid #0C0C0C',
         }}>
-          ⏳ O host caiu ou está sem conexão — tentando reconectar…
+          ⏳ Segura a onda! O host trocou de tela ou caiu — já tá voltando. Enquanto isso, reclama com ele! 😤
         </div>
       )}
     </Ctx.Provider>
