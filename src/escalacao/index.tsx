@@ -149,7 +149,12 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | nu
           <button onClick={() => { try { window.location.hash = '' } catch { /* ignora */ } window.location.reload() }}
             style={{ marginTop: 16, background: '#1B7A3D', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '12px 22px', fontWeight: 900, fontSize: 16, fontFamily: 'Oswald, sans-serif', boxShadow: '4px 4px 0 #0C0C0C', cursor: 'pointer' }}>🏠 Voltar ao início</button>
           <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,.45)', marginTop: 18, maxWidth: 340, wordBreak: 'break-word' }}>Erro: {String(this.state.err?.message || this.state.err)}</p>
-          <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,.45)', marginTop: 2 }}>Manda um print disso pro <b>@leilaolegendscom</b> 🙏</p>
+          {/* 🔎 detalhe técnico (stack) — pequeno; ajuda a achar EXATAMENTE onde quebrou
+             quando o print chega. Mostra só as primeiras linhas pra não assustar. */}
+          {this.state.err?.stack && (
+            <pre style={{ fontSize: 8, color: 'rgba(0,0,0,.4)', marginTop: 6, maxWidth: 340, maxHeight: 96, overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: 'left', fontFamily: 'monospace' }}>{this.state.err.stack.split('\n').slice(0, 5).join('\n')}</pre>
+          )}
+          <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,.45)', marginTop: 6 }}>Manda um print disso <b>inteiro</b> pro <b>@leilaolegendscom</b> 🙏</p>
         </div>
       )
     }

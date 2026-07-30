@@ -13,4 +13,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: process.env.DEPLOY_BASE ?? '/7a0-game-studio/',
   define: { __BUILD_ID__: JSON.stringify(buildId) },
+  // 🔎 mantém os NOMES das funções/classes no build minificado — assim, quando dá
+  // crash, o "stack" na tela de erro mostra o nome real (ex.: LiveScoreCard) e dá pra
+  // achar EXATAMENTE onde quebrou pelo print. Custo: bundle um tico maior, nada demais.
+  esbuild: { keepNames: true } as import('vite').ESBuildOptions & { keepNames: boolean },
 })
