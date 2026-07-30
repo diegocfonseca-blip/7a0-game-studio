@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS } from './types'
-import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, deletePyramidCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, MAX_CAREER_SLOTS, syncCareersWithCloud } from './store'
+import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, MAX_CAREER_SLOTS, syncCareersWithCloud } from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, playWhistle, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -1044,26 +1044,40 @@ function NewsSection() {
 function useResumableSolo() {
   const { dispatch } = useEsc()
   const [saved, setSaved] = useState<EscState | null>(null)
+  const readLocal = (): EscState | null => { try { const r = localStorage.getItem('esc-solo-career'); return r ? JSON.parse(r) as EscState : null } catch { return null } }
   useEffect(() => {
     let alive = true
-    // pinta rápido com o que já está no aparelho
-    try { const r = localStorage.getItem('esc-solo-career'); if (r) setSaved(JSON.parse(r) as EscState) } catch { setSaved(null) }
-    // 🪜 logado: une TODAS as carreiras da nuvem com as do aparelho (segue a conta em
-    // qualquer aparelho) e reescreve os dois lados. Depois relê a ativa.
-    ;(async () => {
-      const ok = await syncCareersWithCloud()
-      if (!alive || !ok) return
-      try { const r = localStorage.getItem('esc-solo-career'); if (r) setSaved(JSON.parse(r) as EscState) } catch { /* ignora */ }
-    })()
-    return () => { alive = false }
+    setSaved(readLocal()) // pinta rápido com o que já está no aparelho
+    // 🪜 logado: une TODAS as carreiras da nuvem com as do aparelho (cada save, o
+    // seu; segue a conta em qualquer aparelho) e relê a ativa mais nova.
+    const pull = async () => { const ok = await syncCareersWithCloud(); if (alive && ok) setSaved(readLocal()) }
+    pull()
+    // aba parada há tempão? ao voltar o foco pra ela, puxa a conta de novo — assim
+    // uma aba aberta há um mês pega a versão mais nova (fecha o furo da aba velha).
+    const onFocus = () => { if (typeof document === 'undefined' || !document.hidden) pull() }
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onFocus)
+    if (typeof window !== 'undefined') window.addEventListener('focus', onFocus)
+    return () => {
+      alive = false
+      if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onFocus)
+      if (typeof window !== 'undefined') window.removeEventListener('focus', onFocus)
+    }
   }, [])
   if (!saved || !saved.careerOnline || !saved.managers?.length) return null
   const you = saved.managers[saved.youIdx ?? 0]
   return {
     seasonNo: saved.seasonNo ?? 1,
     teamName: you?.teamName ?? 'Meu time',
-    resume: () => dispatch({ type: 'RESUME_CAREER_SOLO', saved }),
-    discard: () => { try { localStorage.removeItem('esc-solo-career'); localStorage.removeItem('esc-solo-career-at') } catch { /* ignora */ } deletePyramidCloud(); setSaved(null) },
+    // ao CONTINUAR, puxa a conta primeiro e abre a versão MAIS NOVA daquele save —
+    // nunca a cópia velha de uma aba parada.
+    resume: async () => { await syncCareersWithCloud(); dispatch({ type: 'RESUME_CAREER_SOLO', saved: readLocal() ?? saved }) },
+    // descartar tira SÓ este save (não mexe nas outras carreiras da conta).
+    discard: () => {
+      const seed = saved.seed
+      try { localStorage.removeItem('esc-solo-career'); localStorage.removeItem('esc-solo-career-at') } catch { /* ignora */ }
+      if (typeof seed === 'number') removeCareerFromCloud(seed); else deletePyramidCloud()
+      setSaved(null)
+    },
   }
 }
 
