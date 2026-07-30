@@ -3431,9 +3431,11 @@ export function reducer(state: EscState, action: Action): EscState {
       if (owned >= 22) m.formUnlocked = true // destrava de vez ao ter 22
       const need = FORMATIONS[action.formation]
       for (const pos of SECTORS) if (real.filter(c => c.pos === pos && !c.emprestado).length < need[pos]) return s // falta jogador na posição
-      // 🔒 e NUNCA deixa trocar pra formação em que o elenco estoura o teto (2× a
-      // escalação por posição) — a UI trava com aviso; aqui é o cinto de segurança.
-      for (const pos of SECTORS) if (real.filter(c => c.pos === pos).length > need[pos] * 2) return s
+      // 🔒 e NUNCA deixa trocar pra formação em que o elenco PRÓPRIO estoura o teto (2×
+      // a escalação por posição) — a UI trava com aviso; aqui é o cinto de segurança.
+      // 🏢 emprestado NÃO conta no teto: é extra temporário (volta na virada), igual não
+      // conta pra completar a formação. Assim o empréstimo alarga o elenco de verdade.
+      for (const pos of SECTORS) if (real.filter(c => c.pos === pos && !c.emprestado).length > need[pos] * 2) return s
       m.formation = action.formation
       const cl = { ...(s.careerLineup ?? {}) }
       cl[m.id] = { ...(cl[m.id] ?? {}), [s.round]: bestXIids(m.squad, action.formation) }

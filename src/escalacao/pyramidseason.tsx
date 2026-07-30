@@ -1437,7 +1437,8 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
         const missFor = (f: FormationKey) => SECTORS.filter(pos => availByPos(pos) < FORMATIONS[f][pos]).map(pos => `${FORMATIONS[f][pos] - availByPos(pos)} ${POS_SHORT[pos]}${FORMATIONS[f][pos] - availByPos(pos) > 1 ? 's' : ''}`)
         const other: FormationKey = mgr.formation === '4-3-3' ? '4-4-2' : '4-3-3'
         // 🔒 teto: quantos ficam ACIMA de 2× a escalação na formação f (trava a troca)
-        const overFor = (f: FormationKey) => SECTORS.map(pos => ({ pos, over: real.filter(c => c.pos === pos).length - FORMATIONS[f][pos] * 2 })).filter(x => x.over > 0).map(x => `${x.over} ${POS_SHORT[x.pos]}${x.over > 1 ? 's' : ''}`)
+        // 🏢 emprestado NÃO conta no teto (é extra temporário, igual não conta pra completar a formação)
+        const overFor = (f: FormationKey) => SECTORS.map(pos => ({ pos, over: real.filter(c => c.pos === pos && !c.emprestado).length - FORMATIONS[f][pos] * 2 })).filter(x => x.over > 0).map(x => `${x.over} ${POS_SHORT[x.pos]}${x.over > 1 ? 's' : ''}`)
         const otherMiss = missFor(other)
         return (
           <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
