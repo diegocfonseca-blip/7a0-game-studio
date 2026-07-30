@@ -198,22 +198,24 @@ function VersionWatcher() {
   }, [])
   // telas SEGURAS pra recarregar sem atrapalhar (não estamos no meio de um jogo).
   const safe = state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup'
-  // AUTO-atualiza em silêncio quando a pessoa está numa tela segura. Anti-loop:
-  // no máx. 1x/5min. Assim a maioria pega a versão nova sozinha, sem banner.
+  // AUTO-atualiza em silêncio quando a pessoa está numa tela segura (rede de
+  // segurança pra quem não toca no botão). Anti-loop: no máx. 1x/5min. Não
+  // recarrega se a pessoa DISPENSOU (respeita a escolha dela). Espera uns
+  // segundos pra dar tempo de VER e tocar no botão antes.
   useEffect(() => {
-    if (!newBundle || !safe) return
+    if (!newBundle || !safe || dismissed === newBundle) return
     let last = 0
     try { last = +(sessionStorage.getItem('esc-auto-upd-at') || 0) } catch { /* ignora */ }
     if (Date.now() - last < 300_000) return
     const t = setTimeout(() => {
       try { sessionStorage.setItem('esc-auto-upd-at', String(Date.now())) } catch { /* ignora */ }
       window.location.reload()
-    }, 2000)
+    }, 6000)
     return () => clearTimeout(t)
-  }, [newBundle, safe])
-  // banner: aparece só QUANDO tem versão nova E a pessoa está no MEIO de um jogo
-  // (onde o auto-reload não pode entrar). Reaparece a cada versão nova; dispensável.
-  if (!newBundle || safe || dismissed === newBundle) return null
+  }, [newBundle, safe, dismissed])
+  // BOTÃO/banner visível em TODAS as telas (inclusive a home) quando tem versão
+  // nova — pra todo mundo ver e tocar. Reaparece a cada versão nova; dispensável.
+  if (!newBundle || dismissed === newBundle) return null
   return (
     <div style={{ position: 'fixed', top: 8, left: 8, right: 8, zIndex: 99999, margin: '0 auto', maxWidth: 440, display: 'flex', alignItems: 'center', gap: 8, background: '#1B7A3D', color: '#fff', border: '2px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', boxShadow: '0 4px 14px rgba(0,0,0,.35)', fontFamily: 'Oswald, sans-serif' }}>
       <button onClick={() => window.location.reload()} style={{ flex: 1, background: 'transparent', border: 'none', color: '#fff', fontWeight: 800, fontSize: 12.5, lineHeight: 1.3, textAlign: 'left', cursor: 'pointer', fontFamily: 'Oswald, sans-serif' }}>
