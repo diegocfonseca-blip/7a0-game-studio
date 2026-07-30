@@ -4181,58 +4181,70 @@ export function deleteCareerSlot(seed: number) {
       const next = [...arch].sort((a, b) => b.at - a.at)[0]
       writeCareerArchive(arch.filter(s => s.save.seed !== next.save.seed))
       try { localStorage.setItem('esc-solo-career', JSON.stringify(next.save)); localStorage.setItem('esc-solo-career-at', String(next.at)) } catch { /* ignora */ }
-      savePyramidCloud(next.save, true)
     } else {
       try { localStorage.removeItem('esc-solo-career'); localStorage.removeItem('esc-solo-career-at') } catch { /* ignora */ }
-      deletePyramidCloud()
     }
+    removeCareerFromCloud(seed) // tira SÓ essa carreira da nuvem, com precisão
     return
   }
   writeCareerArchive(readCareerArchive().filter(s => s.save.seed !== seed))
-  const a = readActiveCareer(); if (a) savePyramidCloud(a.save, true) // sincroniza a exclusão na nuvem
+  removeCareerFromCloud(seed) // tira SÓ essa carreira da nuvem, com precisão
 }
 
 // além do save local (esc-solo-career), quem está logado espelha o save inteiro
 // na tabela esc_pyramid_saves. Ao continuar, pega o MAIS RECENTE (local x nuvem).
 let lastPyrCloud = 0
-// 🔒 TRAVA DE VERSÃO (evita perder progresso entre aparelhos): guarda a versão
-// (updated_at) da nuvem que ESTE aparelho conhece. Se, na hora de gravar, a nuvem
-// estiver diferente disso, é porque OUTRO aparelho salvou depois → não sobrescreve
-// (senão o save mais velho apagaria o mais novo). A Home (syncCareersWithCloud) detecta
-// que a nuvem mudou e puxa o mais recente. O local é salvo à parte (nunca se perde nada seu).
-let pyrCloudBaseIso: string | null = null
-// grava na nuvem TODAS as carreiras da conta (ativa + arquivo), não só a ativa —
-// assim os saves seguem o login em qualquer aparelho. Formato novo:
+// ── junção segura de carreiras (nunca perde nem volta no tempo) ──────────────
+// extrai as carreiras de um valor cru da nuvem (formato novo multi OU o antigo,
+// que era um EscState cru = carreira única).
+function careersFromCloudRaw(raw: unknown, fallbackAt: number): CareerSlot[] {
+  if (!raw || typeof raw !== 'object') return []
+  const multi = raw as { __multi?: number; careers?: CareerSlot[] }
+  if (multi.__multi && Array.isArray(multi.careers)) return multi.careers.filter(c => isCareerSave(c?.save))
+  if (isCareerSave(raw)) return [{ save: raw as EscState, at: fallbackAt }]
+  return []
+}
+// quão avançada está a carreira (nº de temporadas). Progresso SÓ anda pra frente
+// — não dá pra "desjogar" — então a de temporada MAIOR é a de verdade mais nova.
+function careerProgress(s: CareerSlot): number { return (s?.save as EscState)?.seasonNo ?? 0 }
+// junta várias listas de carreiras por seed, mantendo pra cada uma a MAIS
+// AVANÇADA (temporada maior; empate = a jogada por último). Nunca joga fora uma
+// carreira nem troca por uma mais atrasada. É o coração da blindagem do save.
+function mergeCareers(...lists: CareerSlot[][]): CareerSlot[] {
+  const bySeed = new Map<number, CareerSlot>()
+  for (const list of lists) for (const s of list) {
+    if (!isCareerSave(s?.save)) continue
+    const seed = (s.save as EscState).seed
+    const cur = bySeed.get(seed)
+    const better = !cur || careerProgress(s) > careerProgress(cur)
+      || (careerProgress(s) === careerProgress(cur) && (s.at ?? 0) >= (cur.at ?? 0))
+    if (better) bySeed.set(seed, s)
+  }
+  return [...bySeed.values()].sort((a, b) => (b.at ?? 0) - (a.at ?? 0)).slice(0, MAX_CAREER_SLOTS)
+}
+
+// grava na nuvem TODAS as carreiras da conta, JUNTANDO com o que já está lá —
+// nunca sobrescreve o cheio com o vazio, nunca volta no tempo. Assim, mesmo que
+// o aparelho tenha limpado os dados, o backup da nuvem fica intacto. Formato:
 // { __multi:1, careers:[{save,at}, ...] }. Rows antigas (EscState cru) são lidas
-// como carreira única (compatível). A ativa = o state passado (recém-jogado).
+// como carreira única (compatível).
 export async function savePyramidCloud(state: EscState, force = false) {
   try {
     if (!force && Date.now() - lastPyrCloud < 6000) return // throttle: no máx. 1 escrita/6s
     const { data } = await supabase.auth.getUser()
     if (!data?.user) return
     lastPyrCloud = Date.now()
-    // 🔒 ANTI-SOBRESCRITA: confere a versão da nuvem AGORA. Se ela mudou desde a nossa
-    // base (outro aparelho salvou depois), NÃO grava — senão o save deste aparelho
-    // apagaria o progresso mais novo do outro. Marca conflito pra Home puxar o mais
-    // recente. (Se ainda não temos base e já existe algo na nuvem, também não arrisca.)
-    const { data: cur } = await supabase.from('esc_pyramid_saves').select('updated_at').eq('user_id', data.user.id).maybeSingle()
-    const cloudIso = (cur?.updated_at as string | undefined) ?? null
-    // 1ª gravação da sessão sem base: adota a versão atual da nuvem como base e NÃO
-    // grava agora (não arrisca apagar algo mais novo de outro aparelho). As próximas
-    // gravações já funcionam normal — antes ficava pulando pra sempre (bug).
-    if (cloudIso && pyrCloudBaseIso == null) { pyrCloudBaseIso = cloudIso; return }
-    if (cloudIso && cloudIso !== pyrCloudBaseIso) return // outro aparelho gravou depois → não sobrescreve
     let payload: unknown = state
     if (isCareerSave(state)) {
-      // 🔒 carimba o save ativo com o lacre antes de subir pra nuvem (as do arquivo já
-      // vêm carimbadas de quando foram salvas). Assim a nuvem também dá pra conferir.
+      // lê o que JÁ tem na nuvem e JUNTA (a nuvem nunca é jogada fora nem rebaixada):
+      const { data: cur } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', data.user.id).maybeSingle()
+      const cloudAt = cur?.updated_at ? new Date(cur.updated_at as string).getTime() : Date.now()
+      // 🔒 carimba a ativa com o lacre antes de subir (as do arquivo já vêm carimbadas).
       const active: CareerSlot = { save: { ...state, _ll: lacreDe(state) } as EscState, at: Date.now() }
-      const archive = readCareerArchive().filter(s => s.save.seed !== state.seed)
-      payload = { __multi: 1, careers: [active, ...archive].slice(0, MAX_CAREER_SLOTS) }
+      payload = { __multi: 1, careers: mergeCareers([active], careersFromCloudRaw(cur?.save, cloudAt), readCareerArchive()) }
     }
     const nowIso = new Date().toISOString()
     await supabase.from('esc_pyramid_saves').upsert({ user_id: data.user.id, save: payload, updated_at: nowIso })
-    pyrCloudBaseIso = nowIso // nossa gravação é a nova base
   } catch { /* best effort — o local sempre garante */ }
 }
 type CloudCareers = { save: EscState; at: number; careers: CareerSlot[]; iso: string | null }
@@ -4258,23 +4270,15 @@ export async function loadPyramidCloud(): Promise<CloudCareers | null> {
   } catch { /* ignora */ }
   return null
 }
-// une nuvem ↔ local por seed (mantém a versão mais NOVA de cada), sem perder
-// nenhuma carreira, e reescreve os dois lados com o conjunto unido. A ativa passa a
-// ser a mais recente do conjunto. Roda na HOME (nunca no meio de um jogo).
+// une nuvem ↔ local por seed, mantendo pra cada uma a MAIS AVANÇADA (temporada
+// maior; nunca volta no tempo, nunca perde nenhuma) e reescreve os dois lados com
+// o conjunto unido. A ativa passa a ser a mais recente. Roda na HOME (nunca no jogo).
 export async function syncCareersWithCloud(): Promise<boolean> {
   try {
-    const prevBase = pyrCloudBaseIso
     const cloud = await loadPyramidCloud()
     if (!cloud) return false
-    // 🔒 conflito = a nuvem mudou desde a nossa base (outro aparelho salvou depois).
-    // Nesse caso o save da NUVEM vale (opção B: o mais recente da conta manda), mesmo
-    // que o local tenha carimbo de hora mais novo (o local podia estar desatualizado).
-    const conflict = prevBase != null && cloud.iso != null && cloud.iso !== prevBase
-    const bySeed = new Map<number, CareerSlot>()
-    const put = (s: CareerSlot, fromCloud = false) => { if (!isCareerSave(s?.save)) return; const cur = bySeed.get(s.save.seed); if (!cur || (fromCloud && conflict) || (s.at ?? 0) > (cur.at ?? 0)) bySeed.set(s.save.seed, s) }
-    for (const { slot } of listAllCareers()) put(slot, false)
-    for (const s of cloud.careers) put(s, true) // nuvem por último: no conflito, ela vence
-    const all = [...bySeed.values()].sort((a, b) => (b.at ?? 0) - (a.at ?? 0)).slice(0, MAX_CAREER_SLOTS)
+    const localCareers = listAllCareers().map(({ slot }) => slot)
+    const all = mergeCareers(localCareers, cloud.careers)
     if (!all.length) return false
     const [active, ...rest] = all
     try {
@@ -4282,13 +4286,25 @@ export async function syncCareersWithCloud(): Promise<boolean> {
       localStorage.setItem('esc-solo-career-at', String(active.at ?? Date.now()))
       writeCareerArchive(rest)
     } catch { /* ignora */ }
-    pyrCloudBaseIso = cloud.iso // agora estamos baseados na versão que acabamos de ler
     savePyramidCloud(active.save, true) // reescreve a nuvem com o conjunto unido
     return true
   } catch { return false }
 }
 export async function deletePyramidCloud() {
   try { const { data } = await supabase.auth.getUser(); if (data?.user) await supabase.from('esc_pyramid_saves').delete().eq('user_id', data.user.id) } catch { /* ignora */ }
+}
+// remove UMA carreira da nuvem pelo seed (apagar carreira). Não depende de
+// espelhar o local — tira só ela, mantendo as outras. Se ficar vazio, apaga a linha.
+export async function removeCareerFromCloud(seed: number) {
+  try {
+    const { data } = await supabase.auth.getUser()
+    if (!data?.user) return
+    const { data: cur } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', data.user.id).maybeSingle()
+    const cloudAt = cur?.updated_at ? new Date(cur.updated_at as string).getTime() : Date.now()
+    const kept = careersFromCloudRaw(cur?.save, cloudAt).filter(c => (c.save as EscState).seed !== seed)
+    if (!kept.length) await supabase.from('esc_pyramid_saves').delete().eq('user_id', data.user.id)
+    else await supabase.from('esc_pyramid_saves').upsert({ user_id: data.user.id, save: { __multi: 1, careers: kept }, updated_at: new Date().toISOString() })
+  } catch { /* ignora */ }
 }
 
 export function EscProvider({ children }: { children: ReactNode }) {
