@@ -2035,6 +2035,23 @@ export function PyramidSeasonScreen() {
   const nCopaRounds = copa?.rounds.length ?? 0
   const copaPlaying = done && !!copa && nCopaRounds > 0 && copaRound < nCopaRounds
   const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
+  // 🚫 ANTI-SPOILER na ARTILHARIA da Copa: o torneio inteiro é pré-calculado, mas
+  // a artilharia mostrada conta SÓ as fases JÁ APITADAS (reveladas). Enquanto as
+  // oitavas rolam (copaRound=0), a artilharia da Copa fica vazia — cai na do
+  // campeonato. A cada fase que fecha, entram os gols daquela fase. No fim
+  // (copaFinished) mostra tudo. Assim ninguém lê o artilheiro antes dos jogos.
+  const copaScorersShown = useMemo<SeasonScorer[]>(() => {
+    if (!copa) return []
+    const upto = copaFinished ? copa.rounds.length : copaRound // fases apitadas
+    const m = new Map<string, SeasonScorer>()
+    for (let r = 0; r < upto; r++) for (const tie of copa.rounds[r].ties) for (const g of tie.goals) {
+      const t = g.home ? tie.a : tie.b, div = g.home ? tie.aDiv : tie.bDiv
+      const key = t.teamId + '|' + g.name, row = m.get(key)
+      if (row) row.goals++
+      else m.set(key, { name: g.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm })
+    }
+    return [...m.values()].sort((a, b) => b.goals - a.goals).slice(0, 20)
+  }, [copa, copaRound, copaFinished])
   // ao TERMINAR de animar a Copa, marca no save (pra não re-animar ao retomar)
   useEffect(() => {
     if (copaFinished && state.careerOnline && state.copaDoneSeason !== state.seasonNo) dispatch({ type: 'MARK_COPA_DONE' })
@@ -2582,8 +2599,8 @@ export function PyramidSeasonScreen() {
               <>
                 {/* durante a Copa (fim de temporada), a artilharia da COPA entra no
                     lugar da artilharia das divisões; o "todos os tempos" fica embaixo. */}
-                {done && copa && copa.scorers.length > 0
-                  ? <ArtilhariaBox scorers={copa.scorers} colors={colors} safTeam={safTeamName} title="🏆 ARTILHARIA · COPA LEGENDS" sub="Gols do mata-mata da Copa — top 20." foot="🏅 O artilheiro da Copa rende +16 ao clube e sobe +16 no piso do jogador." />
+                {done && copa && copaScorersShown.length > 0
+                  ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} title="🏆 ARTILHARIA · COPA LEGENDS" sub={copaFinished ? 'Gols do mata-mata da Copa — top 20.' : `Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`} foot="🏅 O artilheiro da Copa rende +16 ao clube e sobe +16 no piso do jogador." />
                   : <ArtilhariaByDiv scorers={scorersAll} colors={colors} safTeam={safTeamName} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual — top 5 de cada série." foot="🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Série D +4 · C +8 · B +12 · A +16." />}
                 <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title="🏆 ARTILHARIA · TODOS OS TEMPOS" sub="Gols somados de todas as temporadas da sala — top 20." foot={allTimeScorers.length === 0 ? 'Começa a contar a partir de agora.' : undefined} />
               </>
