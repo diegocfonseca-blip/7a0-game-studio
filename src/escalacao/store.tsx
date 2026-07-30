@@ -4713,6 +4713,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // conta como "ao vivo no site"; as telas de jogo contam como "jogando").
   useEffect(() => {
     const beat = () => {
+      // aba escondida (minimizada/em segundo plano): não gasta gravação — a
+      // pessoa nem tá olhando. Volta a marcar presença assim que ela reabre.
+      if (typeof document !== 'undefined' && document.hidden) return
       const st = stateRef.current
       // modo pro "ao vivo": distingue carreira da partida rápida (ambas são cpu
       // por baixo). A carreira NOVA (pirâmide) usa careerOnline + a colocação do
@@ -4734,9 +4737,18 @@ export function EscProvider({ children }: { children: ReactNode }) {
       heartbeat(liveMode, st.managers[st.youIdx]?.teamName, st.screen, career, deck)
     }
     beat()
-    const iv = setInterval(beat, 30_000)
-    return () => clearInterval(iv)
-  }, [state.screen, state.onlineMode, state.careerDivision, state.careerOnline, state.seasonNo, state.careerPlacements])
+    // a cada 60s (era 30s) — metade da gravação, e o painel "ao vivo" segue
+    // mostrando todo mundo (a janela do online é 90s). Como o `beat` lê o estado
+    // atual via ref, NÃO precisa reiniciar a cada troca de tela: antes isso
+    // gravava um "tô aqui" extra em cada mudança de tela/temporada.
+    const iv = setInterval(beat, 60_000)
+    const onVis = () => { if (typeof document !== 'undefined' && !document.hidden) beat() }
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
+    return () => {
+      clearInterval(iv)
+      if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [])
 
   // não mostra o "host caiu" pro DONO da sala (mesmo que o "sou host?" pisque errado
   // no reconectar) — é só cosmético; guest de verdade segue vendo normal.

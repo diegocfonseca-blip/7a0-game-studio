@@ -7,6 +7,18 @@ import { supabase } from '../lib/supabase'
 
 const SID_KEY = 'esc_sid'
 
+// Quem é o usuário logado — SEM ida-e-volta na rede. getSession() lê do
+// aparelho (localStorage), enquanto getUser() batia no servidor de auth a cada
+// pulso (30-60s). Como isso roda o tempo todo, tirar essa chamada de rede alivia
+// bastante o servidor. O user continua igual pro registro (id + nome).
+async function authUser(): Promise<{ id: string; user_metadata?: Record<string, unknown> } | null> {
+  try {
+    const { data } = await supabase.auth.getSession()
+    const u = data.session?.user
+    return u ? { id: u.id, user_metadata: u.user_metadata } : null
+  } catch { return null }
+}
+
 // id persistente por aparelho/navegador
 export function sessionId(): string {
   try {
@@ -26,10 +38,10 @@ export function sessionId(): string {
 // carregamento da página.
 export async function logVisit() {
   try {
-    const { data } = await supabase.auth.getUser()
+    const user = await authUser()
     await supabase.from('site_visits').insert({
       session_id: sessionId(),
-      user_id: data?.user?.id ?? null,
+      user_id: user?.id ?? null,
     })
   } catch { /* silencioso */ }
 }
@@ -45,12 +57,12 @@ function pickName(displayName: string | undefined, user: { user_metadata?: Recor
 // registra o início de uma partida (não bloqueia o jogo se falhar)
 export async function logPlay(mode: 'cpu' | 'online', displayName?: string) {
   try {
-    const { data } = await supabase.auth.getUser()
+    const user = await authUser()
     await supabase.from('game_plays').insert({
       mode,
       session_id: sessionId(),
-      display_name: pickName(displayName, data?.user),
-      user_id: data?.user?.id ?? null,
+      display_name: pickName(displayName, user),
+      user_id: user?.id ?? null,
     })
   } catch { /* silencioso — analytics nunca atrapalha o jogo */ }
 }
@@ -60,12 +72,12 @@ export async function logPlay(mode: 'cpu' | 'online', displayName?: string) {
 // são podadas no servidor; o "ao vivo" olha só os últimos 90s.
 export async function heartbeat(mode: 'cpu' | 'online' | 'career', displayName: string | undefined, screen: string, career?: { season: number; division: string; coins?: number; titles?: number }, deckLeague?: 'br' | 'eu' | 'both') {
   try {
-    const { data } = await supabase.auth.getUser()
+    const user = await authUser()
     await supabase.from('live_beats').insert({
       session_id: sessionId(),
       mode,
-      display_name: pickName(displayName, data?.user),
-      user_id: data?.user?.id ?? null,
+      display_name: pickName(displayName, user),
+      user_id: user?.id ?? null,
       screen,
       career_season: career?.season ?? null,
       career_division: career?.division ?? null,
