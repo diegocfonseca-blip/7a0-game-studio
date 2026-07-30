@@ -1668,7 +1668,7 @@ const NOVOS_EU_MEI: C[] = [
   { name: 'Federico Valverde', club: 'Real Madrid', year: 2024, fame: 4, lo: 85, hi: 92, bio: 'Motor uruguaio do Real Madrid — corre o jogo inteiro, desarma, chega na área e solta a bomba de fora. Pulmão infinito.' },
   { name: 'Hakan Çalhanoğlu', club: 'Inter', year: 2024, fame: 4, lo: 83, hi: 90, bio: 'O regista turco da Inter — reinventado como camisa 6, dita o ritmo, cobra falta com veneno e não erra pênalti.' },
   { name: 'Arda Güler', club: 'Real Madrid', year: 2024, fame: 3, lo: 76, hi: 85, promessa: true, bio: 'Joia turca do Real Madrid — canhota refinada, passe e chute de fora da área. A promessa que a Europa toda cobiçava.' },
-  { name: 'Brahim Díaz', club: 'Real Madrid', year: 2024, fame: 2, lo: 72, hi: 83, bio: 'Meia-atacante veloz e driblador — brilhou no Milan e voltou ao Real Madrid pra decidir com arranques e gols.' },
+  { name: 'Brahim Díaz', club: 'Milan', year: 2022, fame: 2, lo: 72, hi: 83, bio: 'Meia-atacante veloz e driblador — foi no Milan que virou titular e brilhou, com arranques e gols, antes de voltar ao Real Madrid.' },
 ]
 const NOVOS_EU_ATA: C[] = [
   { name: 'Jérémy Doku', club: 'Manchester City', year: 2024, fame: 4, lo: 82, hi: 91, bio: 'Ala belga de arrancada elétrica — dribla, chega na linha de fundo e faz zagueiro passar vergonha, na velocidade do City.' },
