@@ -98,6 +98,13 @@ const PG: BC[] = [
   // ── Lote 5 (icônicos que faltavam) ──
   { name: "Kevin Johnson", club: "Suns", year: 1990, fame: 3, lo: 80, hi: 87, bioPt: "KJ. Explosão e floater no garrafão — e o pôster em cima do Hakeem que ninguém esquece. Virou prefeito.", bioEn: "KJ. Explosion and floaters in the paint — and the poster on Hakeem nobody forgets. Later became a mayor." },
   { name: "Earl Boykins", club: "Nuggets", year: 2004, fame: 1, lo: 60, hi: 80, folk: true, bioPt: "1,65m de pura coragem — o menor a marcar 30 num jogo. Levantava peso que gigante não levantava.", bioEn: "Five-foot-five of pure guts — the shortest ever to score 30 in a game. Bench-pressed more than the big men." },
+  // ── Lote 6 (mais variedade: eras, posições, folclóricos) ──
+  { name: "Rod Strickland", club: "Wizards", year: 1998, fame: 3, lo: 79, hi: 86, bioPt: "Um dos maiores maestros de assistência sem All-Star. Drible de rua e passe de graça.", bioEn: "One of the great assist maestros who never made an All-Star team. Streetball handle, gift-wrapped passes." },
+  { name: "Andre Miller (The Professor)", club: "Sixers", year: 2002, fame: 3, lo: 77, hi: 85, folk: true, bioPt: "Sem pular, sem correr — só cérebro. Lento por fora, sempre um passe à frente por dentro.", bioEn: "No hops, no speed — just brains. Slow on the outside, always a pass ahead on the inside." },
+  { name: "Mookie Blaylock", club: "Hawks", year: 1997, fame: 3, lo: 78, hi: 85, folk: true, bioPt: "Rei do roubo de bola e do arremesso de três. A banda Pearl Jam quase levou o nome dele.", bioEn: "A steals-and-threes king. The band Pearl Jam nearly took his name." },
+  { name: "Terry Porter", club: "Blazers", year: 1991, fame: 3, lo: 78, hi: 86, bioPt: "O motor firme dos Blazers que foram a duas finais. Liderança calada e três na hora certa.", bioEn: "The steady engine of the Blazers who reached two Finals. Quiet leadership and clutch threes." },
+  { name: "Darius Garland", club: "Cavaliers", year: 2022, fame: 3, lo: 78, hi: 87, promessa: true, bioPt: "Baixinho de mão macia e floater no garrafão — o cérebro da nova Cleveland.", bioEn: "A small guard with soft touch and floaters in the paint — the brain of the new Cleveland." },
+  { name: "Cade Cunningham", club: "Pistons", year: 2024, fame: 3, lo: 77, hi: 88, promessa: true, bioPt: "Nº1 do draft: armador grandão que enxerga a quadra de cima. O futuro de Detroit.", bioEn: "The No.1 pick: an oversized playmaker who sees the floor from above. Detroit's future." },
 ]
 
 // ─── SG · ALA-ARMADOR ────────────────────────────────────────────────
@@ -163,6 +170,13 @@ const SG: BC[] = [
   { name: "David Thompson", club: "Nuggets", year: 1978, fame: 4, lo: 84, hi: 91, bioPt: "Skywalker. Voava tão alto que inspirou o Jordan. Cravou 73 num jogo — pura elegância aérea.", bioEn: "Skywalker. Flew so high he inspired Jordan himself. Dropped 73 in a game — pure aerial elegance." },
   { name: "Spud Webb", club: "Hawks", year: 1986, fame: 2, lo: 73, hi: 84, folk: true, bioPt: "1,68m que GANHOU o concurso de enterradas em 1986, humilhando gigantes. O menorzinho voador.", bioEn: "Five-foot-seven who WON the 1986 dunk contest, embarrassing giants. The tiny high-flyer." },
   { name: "Reggie Theus", club: "Kings", year: 1983, fame: 3, lo: 79, hi: 86, folk: true, bioPt: "Estiloso dentro e fora da quadra — All-Star, galã e depois ator. Sacramento no sangue.", bioEn: "Stylish on and off the court — All-Star, heartthrob and later an actor. Sacramento in his blood." },
+  // ── Lote 6 ──
+  { name: "Joe Johnson (Iso Joe)", club: "Hawks", year: 2010, fame: 3, lo: 81, hi: 88, bioPt: "Sete vezes All-Star do isolamento: pega a bola no lado e resolve no salto pra trás.", bioEn: "A seven-time All-Star of isolation ball: catch it on the wing and bury the fadeaway." },
+  { name: "Eddie Jones", club: "Lakers", year: 1998, fame: 3, lo: 79, hi: 87, bioPt: "Elegante nas duas pontas — atirava, roubava e voava. Um All-Star meio esquecido.", bioEn: "Elegant on both ends — shot it, stole it and flew. A slightly forgotten All-Star." },
+  { name: "Kyle Korver", club: "Hawks", year: 2015, fame: 2, lo: 72, hi: 86, folk: true, bioPt: "Puro veneno de três — quando ele levanta, a rede já treme. Recorde de temporada acima de 50%.", bioEn: "Pure three-point poison — when he rises, the net already trembles. Once shot over 50% for a season." },
+  { name: "Austin Reaves", club: "Lakers", year: 2024, fame: 2, lo: 71, hi: 84, folk: true, bioPt: "Não foi draftado e virou xodó de LA. Cara de office boy, jogo de gente grande.", bioEn: "Went undrafted and became LA's darling. Looks like an intern, plays like a grown man." },
+  { name: "Desmond Bane", club: "Grizzlies", year: 2023, fame: 3, lo: 79, hi: 87, bioPt: "Braços curtos, mira longa. Um dos melhores arremessadores de três da sua geração.", bioEn: "Short arms, long range. One of the best three-point shooters of his generation." },
+  { name: "Jerry Stackhouse", club: "Pistons", year: 2001, fame: 3, lo: 80, hi: 87, bioPt: "Marcou quase 30 por jogo numa temporada. Cestinha durão que virou técnico respeitado.", bioEn: "Averaged nearly 30 a game one season. A tough scorer who became a respected coach." },
 ]
 
 // ─── SF · ALA ────────────────────────────────────────────────────────
@@ -226,6 +240,13 @@ const SF: BC[] = [
   // ── Lote 5 (icônicos que faltavam) ──
   { name: "DeMar DeRozan", club: "Bulls", year: 2022, fame: 3, lo: 81, hi: 88, bioPt: "O último samurai da meia distância. Recusou os três e virou lenda do jumper de fadeaway.", bioEn: "The last mid-range samurai. Refused the three and became a fadeaway-jumper legend." },
   { name: "Bill Bradley", club: "Knicks", year: 1973, fame: 3, lo: 80, hi: 87, bioPt: "Dollar Bill. Cérebro do Knicks campeão, HOF — e depois senador dos EUA. Elenco e caráter.", bioEn: "Dollar Bill. The brain of the champion Knicks, a HOFer — and later a U.S. senator. Skill and character." },
+  // ── Lote 6 ──
+  { name: "Shane Battier", club: "Rockets", year: 2007, fame: 3, lo: 76, hi: 85, folk: true, bioPt: "O 'All-Star sem estatística': fazia o astro adversário sofrer e acertava o canto de três. Bicampeão no Heat.", bioEn: "The 'no-stats All-Star': made the other team's star suffer and drilled the corner three. Two-time champ with the Heat." },
+  { name: "Bruce Bowen", club: "Spurs", year: 2005, fame: 2, lo: 71, hi: 83, folk: true, bioPt: "Trava-craque dos Spurs campeões: colava no melhor do rival a noite toda e ainda punia do canto.", bioEn: "The lockdown wing of the champion Spurs: glued to the rival's best all night, then punished from the corner." },
+  { name: "Rudy Gay", club: "Grizzlies", year: 2010, fame: 3, lo: 80, hi: 87, bioPt: "Atletismo de sobra e jumper macio — o ala moderno antes da moda. Enterrava por cima de qualquer um.", bioEn: "Loads of athleticism and a smooth jumper — the modern wing before it was cool. Dunked over anyone." },
+  { name: "OG Anunoby", club: "Raptors", year: 2022, fame: 3, lo: 79, hi: 86, bioPt: "Ombros de armário e mãos rápidas: o 3-and-D que rouba a bola e crava o canto. Campeão em 2019.", bioEn: "Cabinet-sized shoulders and quick hands: the 3-and-D who picks your pocket and drills the corner. 2019 champ." },
+  { name: "Xavier McDaniel (The X-Man)", club: "SuperSonics", year: 1988, fame: 3, lo: 79, hi: 86, folk: true, bioPt: "Careca, carrancudo e brigão — pintava e bordava no garrafão. Ninguém queria trombar com o X.", bioEn: "Bald, scowling and scrappy — banged bodies in the paint. Nobody wanted to tangle with the X." },
+  { name: "Harrison Barnes", club: "Warriors", year: 2016, fame: 2, lo: 76, hi: 84, bioPt: "Peça calada da dinastia dos Warriors — defende, acerta o canto e nunca reclama. Profissa.", bioEn: "The quiet piece of the Warriors dynasty — defends, hits the corner and never complains. A pro's pro." },
 ]
 
 // ─── PF · ALA-PIVÔ ───────────────────────────────────────────────────
@@ -286,6 +307,13 @@ const PF: BC[] = [
   { name: "Terry Cummings", club: "Bucks", year: 1985, fame: 3, lo: 80, hi: 87, bioPt: "Força bruta e motor no garrafão — Novato do Ano e reboteiro implacável.", bioEn: "Brute force and motor in the paint — Rookie of the Year and a relentless rebounder." },
   { name: "Larry Nance", club: "Suns", year: 1984, fame: 3, lo: 79, hi: 86, folk: true, bioPt: "O PRIMEIRO campeão do concurso de enterradas (1984). Voava e dava toco de sobra.", bioEn: "The FIRST-ever dunk contest champion (1984). Flew and swatted with ease." },
   { name: "Marvin Bagley III", club: "Kings", year: 2019, fame: 1, lo: 58, hi: 80, folk: true, bioPt: "Draftado na frente do Doncic e do Trae. As lesões escreveram o resto. Que se?", bioEn: "Drafted ahead of Doncic and Trae. Injuries wrote the rest. What a what-if." },
+  // ── Lote 6 ──
+  { name: "Charles Oakley (Oak)", club: "Knicks", year: 1994, fame: 3, lo: 78, hi: 86, folk: true, bioPt: "O xerife do garrafão de Nova York: pegava rebote e distribuía porrada legal. Guarda-costas do Jordan e do Ewing.", bioEn: "New York's paint sheriff: grabbed boards and handed out legal punishment. Bodyguard to Jordan and Ewing." },
+  { name: "Kenyon Martin", club: "Nets", year: 2004, fame: 3, lo: 79, hi: 87, bioPt: "Fúria e enterrada: o motor atlético que levou o Nets a duas finais. Tatuagem e alley-oop.", bioEn: "Fury and flush: the athletic motor that took the Nets to two Finals. Tattoos and alley-oops." },
+  { name: "Carlos Boozer", club: "Jazz", year: 2008, fame: 3, lo: 81, hi: 88, bioPt: "Duplo-duplo garantido: bandeja de gancho e rebote no garrafão do Utah. All-Star de ombros largos.", bioEn: "A double-double lock: hook shots and boards in the Utah paint. A broad-shouldered All-Star." },
+  { name: "P.J. Tucker", club: "Rockets", year: 2018, fame: 2, lo: 72, hi: 83, folk: true, bioPt: "Baixo pra posição, mas defende pivô e crava o canto. Coleção de tênis mais cara que contrato.", bioEn: "Undersized for the spot, yet guards centers and drills the corner. A sneaker collection worth more than his deal." },
+  { name: "Tom Chambers", club: "Suns", year: 1990, fame: 3, lo: 80, hi: 88, folk: true, bioPt: "Voava alto pra época — o pôster em cima do Mark Jackson é eterno. Cestinha de 20 mil pontos.", bioEn: "Flew high for his era — the poster over Mark Jackson is forever. A 20,000-point scorer." },
+  { name: "Kenneth Faried (Manimal)", club: "Nuggets", year: 2013, fame: 2, lo: 74, hi: 84, folk: true, bioPt: "Puro instinto e rebote de ofensiva — energia que não cansava. O Animal de Denver.", bioEn: "Pure instinct and offensive boards — a motor that never quit. Denver's Manimal." },
 ]
 
 // ─── C · PIVÔ ────────────────────────────────────────────────────────
@@ -354,6 +382,13 @@ const C: BC[] = [
   { name: "Al Jefferson", club: "Bobcats", year: 2014, fame: 3, lo: 79, hi: 86, bioPt: "Big Al. Footwork de manual no poste baixo — a última aula de jogo de costas pra cesta.", bioEn: "Big Al. Textbook footwork on the low block — the last great post-up master." },
   { name: "Steven Adams", club: "Thunder", year: 2016, fame: 2, lo: 74, hi: 84, folk: true, bioPt: "O maori de bigode que quebra pick como parede. Faz o trabalho sujo sorrindo — xodó de todo mundo.", bioEn: "The mustached Kiwi who sets screens like a brick wall. Does the dirty work with a grin — a total fan favorite." },
   { name: "DeAndre Ayton", club: "Suns", year: 2021, fame: 2, lo: 77, hi: 85, bioPt: "Grandão dominante que levou o Phoenix à final de 2021. Talento de sobra, motor que oscila.", bioEn: "A dominant big who took Phoenix to the 2021 Finals. Loads of talent, a motor that comes and goes." },
+  // ── Lote 6 ──
+  { name: "Marcus Camby", club: "Nuggets", year: 2007, fame: 3, lo: 79, hi: 87, bioPt: "Melhor Defensor do ano: tocava tudo que subia no garrafão. Braços de aranha, tempo de sobra.", bioEn: "Defensive Player of the Year: swatted everything that rose in the paint. Spider arms, perfect timing." },
+  { name: "Jermaine O'Neal", club: "Pacers", year: 2004, fame: 3, lo: 81, hi: 89, bioPt: "Saiu do colégio direto pra NBA e virou astro em Indiana. Gancho, toco e seis All-Stars.", bioEn: "Jumped from high school to the NBA and became a star in Indiana. Hooks, blocks and six All-Stars." },
+  { name: "Zydrunas Ilgauskas (Big Z)", club: "Cavaliers", year: 2005, fame: 3, lo: 78, hi: 86, folk: true, bioPt: "O gigante lituano de pés frágeis que insistiu e virou ídolo eterno de Cleveland. Jumper de pivô.", bioEn: "The Lithuanian giant with fragile feet who persevered into a forever Cleveland idol. A center's jumper." },
+  { name: "Nikola Vučević", club: "Magic", year: 2021, fame: 3, lo: 80, hi: 87, bioPt: "Pivô montenegrino de mão macia: duplo-duplo tranquilo e três de fora. All-Star silencioso.", bioEn: "A soft-handed Montenegrin center: easy double-doubles and threes from outside. A quiet All-Star." },
+  { name: "Clint Capela", club: "Rockets", year: 2019, fame: 3, lo: 79, hi: 86, bioPt: "Alvo eterno de alley-oop: sobe, crava e tampa. Rebote e toco sem precisar da bola na mão.", bioEn: "An eternal alley-oop target: rises, slams and swats. Boards and blocks without needing the ball." },
+  { name: "Kelly Olynyk", club: "Heat", year: 2020, fame: 2, lo: 72, hi: 83, folk: true, bioPt: "Cabeludo canadense que arremessa de três e apronta no garrafão. Herói improvável de playoff.", bioEn: "The long-haired Canadian who shoots threes and stirs it up in the paint. An unlikely playoff hero." },
 ]
 
 // catálogo por posição — mesma forma do futebol (Record<posição, cartas[]>)
