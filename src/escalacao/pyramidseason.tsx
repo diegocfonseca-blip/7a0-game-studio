@@ -1983,11 +1983,18 @@ export function PyramidSeasonScreen() {
   const myFilial = state.onlineMode === 'online' ? state.careerFilials?.[youId] : state.careerFilial
   const myTactic = tacAt(careerTactics, youId, round) // tática que vale do PRÓXIMO jogo em diante
   // coloridos = humanos (você/amigos) em bege/tier; rivais escolhidos em MARROM
-  // próprio — nunca a sua cor. A SUA cor é exclusiva do seu clube e da sua SAF.
-  const humanKey = state.managers.filter(m => m.isHuman).map(m => m.id).join(',')
+  // próprio — nunca a sua cor. A SUA cor é EXCLUSIVA dos clubes ATUAIS: no ONLINE,
+  // cada humano da sala; no SOLO, só o clube que você comanda AGORA (+ o 2º clube
+  // ATUAL do multiclube). Clube que você comprou e não comanda mais (o `isHuman`
+  // fica preso no save) NÃO leva mais a sua cor — some do dourado no rank/jogos. A
+  // SAF ATUAL entra à parte logo abaixo (também só a de agora, não a que já vendeu).
+  const myHumans = state.onlineMode === 'online'
+    ? state.managers.filter(m => m.isHuman)
+    : state.managers.filter(m => m.isHuman && (m.id === youId || m.id === state.multiClube?.id))
+  const humanKey = myHumans.map(m => m.id).join(',')
   const rivalKey = state.managers.filter(m => m.rival && !m.isHuman).map(m => m.id).join(',')
   // nomes dos humanos (com selo) — muda a cor cruzada quando alguém entra/troca de tier
-  const nameKey = state.managers.filter(m => m.isHuman).map(m => `${m.id}:${m.teamName}`).join('|')
+  const nameKey = myHumans.map(m => `${m.id}:${m.teamName}`).join('|')
   const baseColors = useMemo(() => {
     const perkById: Record<number, ApoioPerk | null> = {}
     for (const m of state.managers) if (m.isHuman) perkById[m.id] = perkFromSelo(m.teamName)
