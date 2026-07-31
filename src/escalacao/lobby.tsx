@@ -1723,23 +1723,23 @@ export function EscLobby() {
       {!chatOff && (() => {
         const carreira = room.game_state?.mode === 'carreira'
         const hostName = players.find(p => p.player_index === 0)?.manager_name ?? 'host'
-        const abrir = carreira ? 'começa logo a carreira!' : 'abre o pregão!'
+        const abrir = carreira ? 'começa logo a carreira!' : L('abre o pregão!', 'open the auction!')
         const jabs = isHost
           ? [
-              { ic: '😏', tx: 'Calma que já vai começar…' },
-              { ic: '📣', tx: 'Chamando mais gente, segura!' },
-              { ic: '😈', tx: 'Preparados pra perder?' },
-              { ic: '🍿', tx: 'Senta que o show vai começar!' },
+              { ic: '😏', tx: L('Calma que já vai começar…', 'Chill, it’s about to start…') },
+              { ic: '📣', tx: L('Chamando mais gente, segura!', 'Rounding up more folks, hold on!') },
+              { ic: '😈', tx: L('Preparados pra perder?', 'Ready to lose?') },
+              { ic: '🍿', tx: L('Senta que o show vai começar!', 'Grab a seat, the show’s starting!') },
             ]
           : [
-              { ic: '🐢', tx: `Anda, ${hostName}, ${abrir}` },
-              { ic: '🔨', tx: `Solta o martelo, ${hostName}!` },
-              { ic: '😴', tx: `Dormiu, ${hostName}?` },
-              { ic: '🔥', tx: 'Tô pronto pra ganhar de todo mundo!' },
+              { ic: isNbaLobby ? '🐢' : '🐢', tx: `${L('Anda', 'Come on')}, ${hostName}, ${abrir}` },
+              { ic: isNbaLobby ? '🏀' : '🔨', tx: isNbaLobby ? L(`Solta a bola, ${hostName}!`, `Tip it off, ${hostName}!`) : `Solta o martelo, ${hostName}!` },
+              { ic: '😴', tx: `${L('Dormiu', 'Fell asleep')}, ${hostName}?` },
+              { ic: '🔥', tx: L('Tô pronto pra ganhar de todo mundo!', 'I’m ready to beat everyone!') },
             ]
         return (
           <div className="rounded-2xl border-[3px] border-black p-3 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
-            <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-2">😜 Enquanto espera… zoa a galera</p>
+            <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-2">😜 {L('Enquanto espera… zoa a galera', 'While you wait… roast the crew')}</p>
             <div className="grid grid-cols-2 gap-2">
               {jabs.map((j, i) => (
                 <button key={i} onClick={() => sendLobbyFloat(j.ic, j.tx)}
@@ -1761,7 +1761,7 @@ export function EscLobby() {
             </div>
             <button onClick={() => openLobbyChat(true)}
               className="mt-2 w-full border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] bg-white text-black active:translate-y-0.5 flex items-center justify-center gap-1.5" style={OSWALD}>
-              💬 Abrir chat da sala {lobbyChat.length > 0 && <span className="opacity-60">({lobbyChat.length})</span>}
+              💬 {L('Abrir chat da sala', 'Open room chat')} {lobbyChat.length > 0 && <span className="opacity-60">({lobbyChat.length})</span>}
             </button>
           </div>
         )
