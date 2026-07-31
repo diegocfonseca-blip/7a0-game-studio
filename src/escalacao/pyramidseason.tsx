@@ -312,8 +312,11 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     for (let g = 0; g < goals; g++) {
       const pool = xi.map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : (/chilavert|ceni/i.test(c.name) ? 0.05 : 0)) * goalW(c) * (day.get(c.id) ?? 1) }))
       const total = pool.reduce((s, p) => s + p.w, 0)
-      let r = rng() * total, pick = pool[0].c
+      let r = rng() * total, pick = pool[0]?.c
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
+      // 🛟 XI vazio (save torto / time sem elenco) → não crasha a tela: só não credita
+      // artilheiro nesse gol (o placar já foi somado à parte). Mesma guarda da Copa.
+      if (!pick) continue
       const key = `${t.name}:${pick.id}`, row = scorers.get(key)
       if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: pick.id })
       const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 90) // acréscimos SÓ até 90+3 (o relógio do card vai até 93)
