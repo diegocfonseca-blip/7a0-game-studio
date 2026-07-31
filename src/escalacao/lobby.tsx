@@ -1663,21 +1663,21 @@ export function EscLobby() {
     return wrap(<>
       <div className="text-center">
         {room.game_state?.roomName && <p className="text-white font-black text-xl mb-1" style={OSWALD}>{room.game_state.roomName}</p>}
-        <p className="text-white/50 text-[11px] font-black uppercase tracking-widest">Código da Sala</p>
+        <p className="text-white/50 text-[11px] font-black uppercase tracking-widest">{L('Código da Sala', 'Room Code')}</p>
         <p className="font-black text-5xl text-white tracking-[0.2em] mt-1">{room.code}</p>
       </div>
 
       {/* Convite: manda o link direto no zap — o amigo cai na sala automaticamente
           (se já tem conta) ou no cadastro rápido e depois na sala. */}
       <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
-        <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>📣 Chame a galera</p>
+        <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>📣 {L('Chame a galera', 'Bring the crew')}</p>
         <p className="text-white/80 text-[11px] font-medium leading-snug">
-          Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.
+          {L('Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.', 'Send the link — anyone with an account drops right in; anyone without signs up and lands here.')}
         </p>
         <div className="flex gap-2">
           <button onClick={() => shareInvite(room.code, room.game_state?.roomName)}
             className="flex-1 border-[2px] border-black rounded-xl py-2.5 font-black text-xs uppercase bg-white text-black active:translate-y-0.5" style={OSWALD}>
-            📤 Compartilhar convite
+            📤 {L('Compartilhar convite', 'Share invite')}
           </button>
           <button onClick={() => copyCode(room.code)}
             className="border-[2px] border-black rounded-xl px-3 py-2.5 font-black text-xs uppercase bg-[#FFC400] text-black active:translate-y-0.5" style={OSWALD}
@@ -1687,13 +1687,13 @@ export function EscLobby() {
         </div>
         {shareOk && (
           <p className="text-white text-[11px] font-black text-center" style={OSWALD}>
-            ✓ {shareOk === 'code' ? 'Código copiado' : 'Link copiado — cola no zap'}
+            ✓ {shareOk === 'code' ? L('Código copiado', 'Code copied') : L('Link copiado — cola no zap', 'Link copied — paste it in chat')}
           </p>
         )}
       </div>
 
       <div className="border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
-        <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-3">Técnicos ({players.length}/{room.max_players})</p>
+        <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-3">{L('Técnicos', 'Managers')} ({players.length}/{room.max_players})</p>
         <div className="space-y-2">
           {players.map(p => (
             <div key={p.user_id} className="flex items-center gap-3">
@@ -1713,7 +1713,7 @@ export function EscLobby() {
               )}
             </div>
           ))}
-          {players.length < 2 && <p className="text-black/40 text-xs italic mt-1">Aguardando mais técnicos…</p>}
+          {players.length < 2 && <p className="text-black/40 text-xs italic mt-1">{L('Aguardando mais técnicos…', 'Waiting for more managers…')}</p>}
         </div>
       </div>
 
@@ -1768,13 +1768,13 @@ export function EscLobby() {
       })()}
       {(() => {
         const carreira = room.game_state?.mode === 'carreira'
-        const startLabel = carreira ? '🌐 Começar Carreira!' : '🔨 Abrir o Pregão!'
-        const waitMsg = carreira ? 'Aguardando o host começar a carreira…' : 'Aguardando o host abrir o pregão…'
+        const startLabel = carreira ? '🌐 Começar Carreira!' : `${isNbaLobby ? '🏀' : '🔨'} ${L('Abrir o Pregão!', 'Open the Auction!')}`
+        const waitMsg = carreira ? 'Aguardando o host começar a carreira…' : L('Aguardando o host abrir o pregão…', 'Waiting for the host to open the auction…')
         return isHost
-          ? <Big onClick={startOnline} disabled={!ready} color={ready ? GREEN : '#ccc'}><span style={{ color: ready ? '#fff' : '#000' }}>{ready ? startLabel : `Aguardando… (${players.length}/2 mín)`}</span></Big>
+          ? <Big onClick={startOnline} disabled={!ready} color={ready ? GREEN : '#ccc'}><span style={{ color: ready ? '#fff' : '#000' }}>{ready ? startLabel : L(`Aguardando… (${players.length}/2 mín)`, `Waiting… (${players.length}/2 min)`)}</span></Big>
           : <p className="text-white/60 text-sm font-bold text-center py-3">{waitMsg}</p>
       })()}
-      <button onClick={leaveRoom} className="text-white/75 text-[13px] font-black underline w-full text-center active:opacity-60">🚪 Sair da sala</button>
+      <button onClick={leaveRoom} className="text-white/75 text-[13px] font-black underline w-full text-center active:opacity-60">🚪 {L('Sair da sala', 'Leave room')}</button>
 
       {/* 💬 CHAT DA SALA DE ESPERA — igual ao do leilão: botãozinho flutuante que
           abre uma gaveta com as mensagens (que FICAM), a caixa de digitar e o
