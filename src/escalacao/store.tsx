@@ -4780,7 +4780,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const myDisplayNameRef = useRef<string | null>(null)
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      myDisplayNameRef.current = stripEmoji((data?.user?.user_metadata?.display_name as string | undefined) ?? '').trim() || null
+      // MESMA fonte do nome do técnico no lobby (nameOf): display_name; se vazio,
+      // o começo do e-mail. Assim a auto-cura acha o assento certo mesmo pra quem
+      // não pôs nome — senão o índice deslizado nunca se conserta.
+      const dn = stripEmoji((data?.user?.user_metadata?.display_name as string | undefined) ?? '').trim()
+      const em = stripEmoji(data?.user?.email?.split('@')[0] ?? '').trim()
+      myDisplayNameRef.current = dn || em || null
     }, () => {})
   }, [])
   useEffect(() => {
@@ -4790,7 +4795,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (!dn) return
     const clean = (x?: string) => stripEmoji(x ?? '').trim()
     const mine = state.managers[state.youIdx]
-    if (!mine || !mine.isHuman || clean(mine.name) === dn) return // assento certo (ou estado ainda montando)
+    if (mine && mine.isHuman && clean(mine.name) === dn) return // já estou no MEU assento
+    // meu índice deslizou: posso ter caído num assento de BOT (isHuman=false — foi o
+    // caso do "virei o Biriba United") OU de OUTRO humano. Nos dois, se existe
+    // EXATAMENTE UM humano com o meu nome, reancoro nele. (Antes só curava quando eu
+    // caía em cima de outro HUMANO — o assento de bot escapava e travava a pessoa.)
     const cands = state.managers.filter(m => m.isHuman && clean(m.name) === dn)
     if (cands.length !== 1) return
     const idx = state.managers.findIndex(m => m.id === cands[0].id)
