@@ -2099,9 +2099,16 @@ function Envelope() {
   // no TEMPO 0s (bug: só dava pra voltar ao menu, fora do save). Envelope vazio
   // resolve o leilão normalmente.
   useEffect(() => {
-    if (remaining <= 0 && !iSubmitted && !pending) seal()
+    if (remaining > 0) return
+    if (!iSubmitted && !pending) { seal(); return }
+    // 🏛️ SOLO PRESO: já lacrei (ou não posso lançar) e o leilão NÃO resolveu — é o
+    // leilão travado no "TEMPO 0s" (estado antigo do Multiclubes, ou save já
+    // parado). FORCE_SEAL fecha os que faltam (no solo = só o MEU assento, os outros
+    // já são ignorados) e resolve. Só age com o tempo zerado; no jogo normal o
+    // seal() acima já resolveu antes, então aqui vira no-op (a fase já não é envelope).
+    if (!online) dispatch({ type: 'FORCE_SEAL' })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remaining, iSubmitted, pending])
+  }, [remaining, iSubmitted, pending, online])
 
   // já lacrei, ou enviei e tô esperando o host confirmar (online)
   if (online && (iSubmitted || pending)) {
