@@ -34,6 +34,7 @@ export interface WonCard extends Card {
   via: Acquisition
   reforco?: boolean // carreira online: comprado no leilão de reservas/mercado (não é do elenco original) — usado pras frases de "como vão as contratações"
   emprestado?: 'saf' | 'dono' // 🏢 SAF: jogador de EMPRÉSTIMO (propriedade não mudou) — 'saf' = veio da SAF pro dono; 'dono' = veio do dono pra SAF. Nunca pode ser vendido/listado; volta sozinho na virada de temporada.
+  byClub?: number // 🏛️ MULTICLUBES: qual dos SEUS clubes fez este empréstimo (id do manager). Só usado quando há 2º clube — pra devolver o empréstimo pro clube certo na virada. Ausente = carreira normal (1 clube).
   buyPrice?: number // 💰 quanto se PAGOU de fato ao comprar (imutável). Diferente de `paid`, que é o piso e pode subir com bônus de artilheiro. Usado no Extrato/Transferências pra mostrar o valor pago e a valorização sem distorção.
 }
 

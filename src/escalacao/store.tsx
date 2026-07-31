@@ -1129,21 +1129,28 @@ function revertFilialLoans(s: EscState) {
   const outs = loanList(f?.loanOut)
   const ins = loanList(f?.loanIn)
   if (!f || (outs.length === 0 && ins.length === 0)) return
-  const you = s.managers.find(m => m.isHuman)
-  if (!you) return
+  const humans = s.managers.filter(m => m.isHuman)
+  if (!humans.length) return
+  // 🏛️ MULTICLUBES: a SAF é UMA só, compartilhada pelos 2 clubes. Cada empréstimo
+  // sabe (byClub) qual clube fez — então devolvo pro dono CERTO. Sem 2º clube só
+  // existe 1 humano → tudo cai nele, idêntico ao de antes.
+  const ownerOf = (card: WonCard): Manager =>
+    humans.find(m => m.id === card.byClub) ?? humans.find(m => m.id === s.managers[s.youIdx]?.id) ?? humans[0]
   const cpuSq = { ...(s.cpuSquads ?? {}) }
   const safSquad = [...(cpuSq[f.team] ?? [])]
   for (const lo of outs) {
-    // estava jogando na SAF: tira de lá (por id) e devolve pro seu elenco
+    // seu jogador estava jogando na SAF: tira de lá (por id) e devolve pro clube DONO
     const i = safSquad.findIndex(c => c.id === lo.id)
     if (i >= 0) safSquad.splice(i, 1)
-    you.squad = [...you.squad, { ...lo, emprestado: undefined } as WonCard]
+    const o = ownerOf(lo)
+    o.squad = [...o.squad, { ...lo, emprestado: undefined, byClub: undefined } as WonCard]
   }
   if (ins.length) {
-    // estavam jogando com você: tira do seu elenco e devolve pra SAF
+    // jogador da SAF estava jogando num dos seus clubes: tira de QUALQUER elenco seu
+    // (por id) e devolve pra SAF — assim nunca duplica se estava no clube que dormia.
     const inIds = new Set(ins.map(c => c.id))
-    you.squad = you.squad.filter(c => !inIds.has(c.id))
-    for (const li of ins) safSquad.push({ ...li, emprestado: undefined } as WonCard)
+    for (const m of humans) m.squad = m.squad.filter(c => !inIds.has(c.id))
+    for (const li of ins) safSquad.push({ ...li, emprestado: undefined, byClub: undefined } as WonCard)
   }
   cpuSq[f.team] = safSquad
   s.cpuSquads = cpuSq
@@ -2998,7 +3005,12 @@ export function reducer(state: EscState, action: Action): EscState {
       // o botão em momento SEGURO — fora do leilão (outra tela) e sem rodada/Copa
       // animando. Passa o comando pro outro clube; o que sai DORME (congelado, "mesmo
       // time"). Nada mistura: caixa/títulos/estádio já são por id; os campos ÚNICOS do
-      // solo (extrato/SAF/patrocínio/agência) fazem swap com o stash.
+      // solo (extrato/patrocínio/agência) fazem swap com o stash.
+      // 🏢 A SAF é UMA só, COMPARTILHADA pelos 2 clubes (decisão do Diego): fica
+      // grudada no clube ativo pra novos empréstimos, e o que um clube já pegou sai
+      // do bolo (o outro só usa o que sobrou). Por isso a SAF NÃO faz swap — segue
+      // igual. (Saves antigos guardavam uma SAF no clube que dormia: se a atual
+      // estiver vazia, adoto a que estava guardada pra não perder.)
       if (s.onlineMode === 'online' || !s.careerOnline || !s.multiClube) return s
       const active = s.managers[s.youIdx]
       const sleepIdx = s.managers.findIndex(m => m.id === s.multiClube!.id)
@@ -3006,10 +3018,11 @@ export function reducer(state: EscState, action: Action): EscState {
       const sleeping = s.managers[sleepIdx]
       active.dormindo = true; sleeping.dormindo = false
       s.youIdx = sleepIdx
-      // swap dos campos ÚNICOS (o que estava ativo vai pro stash; o que dormia volta)
-      const stash = { ledger: s.careerLedger ?? [], filial: s.careerFilial ?? undefined, sponsor: s.careerSponsor, empresario: s.empresarioCards ?? [], empresarioClaims: s.empresarioClaimKeys ?? [] }
+      if (!s.careerFilial && s.multiClube.filial) s.careerFilial = s.multiClube.filial // migra SAF de save antigo
+      // swap dos campos ÚNICOS (o que estava ativo vai pro stash; o que dormia volta) —
+      // SEM a SAF, que é compartilhada.
+      const stash = { ledger: s.careerLedger ?? [], sponsor: s.careerSponsor, empresario: s.empresarioCards ?? [], empresarioClaims: s.empresarioClaimKeys ?? [] }
       s.careerLedger = s.multiClube.ledger ?? []
-      s.careerFilial = s.multiClube.filial ?? null
       s.careerSponsor = s.multiClube.sponsor
       s.empresarioCards = s.multiClube.empresario ?? []
       s.empresarioClaimKeys = s.multiClube.empresarioClaims ?? []
@@ -3101,10 +3114,14 @@ export function reducer(state: EscState, action: Action): EscState {
         return s
       }
       if (!s.careerOnline || !s.careerFilial) return s
-      const outs = loanList(s.careerFilial.loanOut)
-      if (outs.length >= filialSlots(myCareerDiv(s))) return s
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
+      const outs = loanList(s.careerFilial.loanOut)
+      // 🏛️ com 2º clube a SAF é compartilhada: o limite por divisão conta só o que
+      // ESTE clube emprestou (o do outro clube não gasta a sua vaga). Sem 2º clube =
+      // conta tudo, idêntico ao de antes.
+      const myOuts = s.multiClube ? outs.filter(c => c.byClub === you.id) : outs
+      if (myOuts.length >= filialSlots(myCareerDiv(s))) return s
       const card = you.squad.find(c => c.id === action.cardId)
       if (!card || card.emprestado) return s
       // não pode abrir buraco no SEU titular emprestando
@@ -3112,7 +3129,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const filled = you.squad.filter(c => c.pos === card.pos && !c.fake).length
       if (filled - 1 < need[card.pos]) return s
       you.squad = you.squad.filter(c => c.id !== action.cardId)
-      const loaned = { ...card, emprestado: 'dono' } as WonCard
+      const loaned = { ...card, emprestado: 'dono', byClub: you.id } as WonCard // 🏛️ carimba o clube que emprestou (multiclube)
       const cpuSq = { ...(s.cpuSquads ?? {}) }
       cpuSq[s.careerFilial.team] = [...(cpuSq[s.careerFilial.team] ?? []), loaned]
       s.cpuSquads = cpuSq
@@ -3142,10 +3159,14 @@ export function reducer(state: EscState, action: Action): EscState {
         return s
       }
       if (!s.careerOnline || !s.careerFilial) return s
-      const ins = loanList(s.careerFilial.loanIn)
-      if (ins.length >= filialSlots(myCareerDiv(s))) return s
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
+      const ins = loanList(s.careerFilial.loanIn)
+      // 🏛️ com 2º clube a SAF é compartilhada: o limite por divisão conta só o que
+      // ESTE clube pegou (o do outro clube não gasta a sua vaga). Sem 2º clube =
+      // conta tudo, idêntico ao de antes.
+      const myIns = s.multiClube ? ins.filter(c => c.byClub === you.id) : ins
+      if (myIns.length >= filialSlots(myCareerDiv(s))) return s
       const safSquad = (s.cpuSquads?.[s.careerFilial.team] ?? []) as WonCard[]
       const card = safSquad.find(c => c.id === action.cardId)
       if (!card || card.emprestado) return s
@@ -3156,7 +3177,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const cpuSq = { ...(s.cpuSquads ?? {}) }
       cpuSq[s.careerFilial.team] = safSquad.filter(c => c.id !== action.cardId)
       s.cpuSquads = cpuSq
-      const loaned = { ...card, emprestado: 'saf' } as WonCard
+      const loaned = { ...card, emprestado: 'saf', byClub: you.id } as WonCard // 🏛️ carimba o clube que pegou (multiclube)
       you.squad = [...you.squad, loaned]
       s.careerFilial = { ...s.careerFilial, loanIn: [...ins, loaned] }
       return s
