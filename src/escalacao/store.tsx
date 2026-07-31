@@ -615,7 +615,13 @@ function auctioningManagers(managers: Manager[]): Manager[] {
 function perceived(card: Card, rng: () => number): number {
   const mid = (card.lo + card.hi) / 2
   const noise = card.fame === 1 ? 14 : card.fame === 2 ? 7 : 3
-  return mid + (rng() * 2 - 1) * noise
+  const swing = rng() * 2 - 1 // -1..1
+  // 🦶 PERNA-DE-PAU (fame 1): o "chute" do CPU vai muito mais pra BAIXO (pechincha)
+  // do que pra cima. Antes o ±14 simétrico às vezes fazia o CPU ENXERGAR um craque
+  // num perna-de-pau e pagar caro por ele. Agora ele ainda pode ver como zica
+  // (barato), mas quase nunca superavalia — perna-de-pau não fica caro no leilão.
+  const up = card.fame === 1 ? 0.3 : 1 // teto do erro PRA CIMA menor só no fame 1
+  return mid + (swing >= 0 ? swing * noise * up : swing * noise)
 }
 
 const SECTOR_WEIGHT: Record<Sector, number> = { GOL: 0.12, LAT: 0.15, ZAG: 0.19, MEI: 0.25, ATA: 0.29 }
