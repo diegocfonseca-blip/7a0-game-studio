@@ -556,6 +556,9 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
 const CHAT_DOTS = [RED, '#2E6FB0', GREEN, PURPLE, GOLD, '#E0731E', '#0EA5A0']
 export function ChatWidget() {
   const { state, chat, chatUnread, sendChat, chatOpen, setChatOpen, dispatch } = useEsc()
+  const [blLang] = useLang()
+  // 🌐 só o basquete em inglês troca os textos; futebol = PT de sempre (idêntico).
+  const L = (pt: string, en: string) => (state.sport === 'basquete' && blLang === 'en') ? en : pt
   const [text, setText] = useState('')
   const listRef = useRef<HTMLDivElement>(null)
   const online = state.onlineMode === 'online'
@@ -570,7 +573,7 @@ export function ChatWidget() {
   return (
     <>
       {!chatOpen && (
-        <button onClick={() => setChatOpen(true)} aria-label="Abrir chat da sala"
+        <button onClick={() => setChatOpen(true)} aria-label={L('Abrir chat da sala', 'Open room chat')}
           style={{ position: 'fixed', left: 12, bottom: 12, zIndex: 99990, width: 46, height: 46, borderRadius: 999, background: chatOff ? '#fff' : GOLD, border: '3px solid #000', display: 'grid', placeItems: 'center', fontSize: 20, boxShadow: '3px 3px 0 0 #000', cursor: 'pointer' }}>
           {chatOff ? '🔕' : '💬'}
           {chatUnread > 0 && !chatOff && (
@@ -583,29 +586,29 @@ export function ChatWidget() {
           <div onClick={() => setChatOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.28)' }} />
           <div style={{ position: 'relative', color: INK, background: '#FBF6E7', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '64vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -6px 0 0 rgba(0,0,0,.12)' }}>
             <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px' }}>
-              <span style={{ ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: 14 }}>💬 Zoeira da sala</span>
-              <button onClick={() => setChatOpen(false)} aria-label="Fechar" style={{ width: 24, height: 24, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
+              <span style={{ ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: 14 }}>{L('💬 Zoeira da sala', '💬 Room trash talk')}</span>
+              <button onClick={() => setChatOpen(false)} aria-label={L('Fechar', 'Close')} style={{ width: 24, height: 24, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
             </div>
             {isHost && (
               <button onClick={() => dispatch({ type: 'SET_CHAT', off: !chatOff })}
                 style={{ ...OSWALD, color: INK, fontWeight: 800, fontSize: 12, padding: '7px 12px', background: chatOff ? '#f0ece0' : '#E7F7EC', borderBottom: '2px solid #000', textAlign: 'left', cursor: 'pointer', width: '100%' }}>
-                👑 Host: chat <b style={{ color: chatOff ? RED : GREEN }}>{chatOff ? 'DESLIGADO' : 'LIGADO'}</b> — toque pra {chatOff ? 'LIGAR' : 'DESLIGAR'}
+                {L('👑 Host: chat ', '👑 Host: chat ')}<b style={{ color: chatOff ? RED : GREEN }}>{chatOff ? L('DESLIGADO', 'OFF') : L('LIGADO', 'ON')}</b>{L(' — toque pra ', ' — tap to ')}{chatOff ? L('LIGAR', 'TURN ON') : L('DESLIGAR', 'TURN OFF')}
               </button>
             )}
             {chatOff ? (
-              <p style={{ padding: 20, textAlign: 'center', fontWeight: 700, color: '#6b5f3f' }}>🔕 O chat está desligado pra esta sala.{isHost ? ' Ligue no botão acima.' : ''}</p>
+              <p style={{ padding: 20, textAlign: 'center', fontWeight: 700, color: '#6b5f3f' }}>{L('🔕 O chat está desligado pra esta sala.', '🔕 Chat is turned off for this room.')}{isHost ? L(' Ligue no botão acima.', ' Turn it on with the button above.') : ''}</p>
             ) : (
               <>
                 <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: 10, display: 'flex', flexDirection: 'column', gap: 7, minHeight: 90 }}>
                   {chat.length === 0
-                    ? <p style={{ textAlign: 'center', color: '#8a7d59', fontWeight: 700, fontSize: 12, marginTop: 10 }}>Manda a primeira zoeira 😎</p>
+                    ? <p style={{ textAlign: 'center', color: '#8a7d59', fontWeight: 700, fontSize: 12, marginTop: 10 }}>{L('Manda a primeira zoeira 😎', 'Drop the first trash talk 😎')}</p>
                     : chat.map(m => {
                       const mine = m.from === state.youIdx
                       return (
                         <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
                           <span style={{ width: 11, height: 11, borderRadius: 999, border: '1.5px solid #000', background: dot(m.from), marginTop: 4, flexShrink: 0 }} />
                           <div style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%' }}>
-                            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1 }}>{mine ? 'Você' : m.name}</span>
+                            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1 }}>{mine ? L('Você', 'You') : m.name}</span>
                             <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word' }}>{m.text}</span>
                           </div>
                         </div>
@@ -614,9 +617,9 @@ export function ChatWidget() {
                 </div>
                 <div style={{ display: 'flex', gap: 6, padding: 9, borderTop: '2px solid #000', background: CREAM }}>
                   <input value={text} onChange={e => setText(e.target.value)} maxLength={160}
-                    onKeyDown={e => { if (e.key === 'Enter') send(text) }} placeholder="manda a real…"
+                    onKeyDown={e => { if (e.key === 'Enter') send(text) }} placeholder={L('manda a real…', 'say it…')}
                     style={{ flex: 1, minWidth: 0, color: INK, background: '#fff', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', fontSize: 13, fontWeight: 600 }} />
-                  <button onClick={() => send(text)} disabled={!text.trim()} style={{ ...OSWALD, fontWeight: 900, fontSize: 13, background: text.trim() ? GREEN : '#cfc6ae', color: '#fff', border: '2px solid #000', borderRadius: 9, padding: '0 14px', boxShadow: '2px 2px 0 0 #000', cursor: text.trim() ? 'pointer' : 'default', flexShrink: 0 }}>Enviar</button>
+                  <button onClick={() => send(text)} disabled={!text.trim()} style={{ ...OSWALD, fontWeight: 900, fontSize: 13, background: text.trim() ? GREEN : '#cfc6ae', color: '#fff', border: '2px solid #000', borderRadius: 9, padding: '0 14px', boxShadow: '2px 2px 0 0 #000', cursor: text.trim() ? 'pointer' : 'default', flexShrink: 0 }}>{L('Enviar', 'Send')}</button>
                 </div>
               </>
             )}
@@ -2059,12 +2062,13 @@ function AuctionBar() {
 // presas à carta ("Fulano → Romário: TÔ NESSE 😈"). PODE ser mentira — é o table
 // talk do poker. A 💸 ainda faz CHOVER DINHEIRO na tela de todo mundo (MoneyRain).
 // Flutuam na mesma camada de sempre; opcional, um toque, não mexe em tempo nenhum.
-const CANTADAS: { k: string; t?: string }[] = [
-  { k: '😈', t: 'TÔ NESSE, vou com TUDO!' }, // diabinho roxo
-  { k: '💸', t: 'esse vai ficar CARO…' }, // + chuva de dinheiro na sala inteira
-  { k: '❤️', t: 'meu ÍDOLO — não perco por nada' },
-  { k: '🪙', t: 'relaxa, 1 moedinha leva esse 🤣' }, // desdém… ou armadilha pra galera dar lance baixo
-  { k: '🥱', t: 'nem quero…' },
+// t = PT (futebol e padrão) · tEn = versão EN, usada só no basquete em inglês.
+const CANTADAS: { k: string; t?: string; tEn?: string }[] = [
+  { k: '😈', t: 'TÔ NESSE, vou com TUDO!', tEn: 'THIS ONE\'S MINE, all in!' }, // diabinho roxo
+  { k: '💸', t: 'esse vai ficar CARO…', tEn: 'this one\'s gonna get PRICEY…' }, // + chuva de dinheiro na sala inteira
+  { k: '❤️', t: 'meu ÍDOLO — não perco por nada', tEn: 'my IDOL — no way I lose this' },
+  { k: '🪙', t: 'relaxa, 1 moedinha leva esse 🤣', tEn: 'chill, 1 coin takes this one 🤣' }, // desdém… ou armadilha pra galera dar lance baixo
+  { k: '🥱', t: 'nem quero…', tEn: 'don\'t even want it…' },
   { k: '🤣' }, // risada pura, sem frase (clássica)
 ]
 
@@ -2137,8 +2141,12 @@ function MoneyRain() {
 
 // botãozinho de reação numa carta do leilão (blefe: não revela seu lance)
 function CardReact({ cardId }: { cardId: string }) {
-  const { emote } = useEsc()
+  const { state, emote } = useEsc()
+  const [blLang] = useLang()
   const [open, setOpen] = useState(false)
+  // 🌐 só o basquete em inglês troca o texto da cantada; futebol = PT de sempre.
+  const enBb = state.sport === 'basquete' && blLang === 'en'
+  const cantadaText = (c: { t?: string; tEn?: string }) => (enBb ? (c.tEn ?? c.t) : c.t)
   return (
     <div className="relative">
       <button onClick={() => setOpen(o => !o)} aria-label="reagir"
@@ -2147,13 +2155,13 @@ function CardReact({ cardId }: { cardId: string }) {
         <div className="absolute right-0 top-9 z-30 flex flex-col gap-1 bg-white border-2 border-black rounded-lg p-1.5 w-48"
           style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
           {CANTADAS.map(c => (
-            <button key={c.k} onClick={() => { emote(c.k, cardId, c.t); setOpen(false) }}
+            <button key={c.k} onClick={() => { emote(c.k, cardId, cantadaText(c)); setOpen(false) }}
               className="flex items-center gap-1.5 border border-black/15 rounded-md px-1.5 py-1 text-left active:bg-black/5">
               <span className="text-lg leading-none">{c.k}</span>
-              {c.t && <span className="text-[11px] font-black text-black leading-tight" style={OSWALD}>{c.t}</span>}
+              {cantadaText(c) && <span className="text-[11px] font-black text-black leading-tight" style={OSWALD}>{cantadaText(c)}</span>}
             </button>
           ))}
-          <p className="text-[9px] font-bold text-black/40 text-center leading-tight">a sala toda vê… mas pode ser blefe 😏</p>
+          <p className="text-[9px] font-bold text-black/40 text-center leading-tight">{enBb ? 'the whole room sees it… but it might be a bluff 😏' : 'a sala toda vê… mas pode ser blefe 😏'}</p>
         </div>
       )}
     </div>
@@ -2284,15 +2292,15 @@ function Envelope() {
             const slow = waitingFor.filter(m => m.id !== you.id)
             const target = () => (slow[Math.floor(Math.random() * slow.length)]?.teamName) ?? 'a galera'
             const jabs: { ic: string; label: string; mk: (n: string) => string }[] = [
-              { ic: '🐢', label: 'Anda!', mk: n => `Anda, ${n}!` },
-              { ic: '😴', label: 'Dormiu?', mk: n => `${n} dormiu?` },
-              { ic: '🔒', label: 'Lacra logo!', mk: n => `Lacra logo, ${n}!` },
-              { ic: '🧮', label: 'Conta moeda?', mk: n => `${n} tá contando moeda no dedo?` },
-              { ic: '💸', label: 'Chora depois!', mk: n => `${n} vai gastar tudo e chorar depois` },
+              { ic: '🐢', label: L('Anda!', 'Hurry!'), mk: n => L(`Anda, ${n}!`, `Hurry up, ${n}!`) },
+              { ic: '😴', label: L('Dormiu?', 'Asleep?'), mk: n => L(`${n} dormiu?`, `${n} fell asleep?`) },
+              { ic: '🔒', label: L('Lacra logo!', 'Seal it!'), mk: n => L(`Lacra logo, ${n}!`, `Seal it already, ${n}!`) },
+              { ic: '🧮', label: L('Conta moeda?', 'Counting coins?'), mk: n => L(`${n} tá contando moeda no dedo?`, `${n} counting coins on their fingers?`) },
+              { ic: '💸', label: L('Chora depois!', 'Cry later!'), mk: n => L(`${n} vai gastar tudo e chorar depois`, `${n} is gonna blow it all and cry later`) },
             ]
             return (
               <div className="mt-3">
-                <p className="text-[11px] font-black text-black/45 mb-1.5" style={OSWALD}>😈 CUTUCA QUEM TÁ PENSANDO</p>
+                <p className="text-[11px] font-black text-black/45 mb-1.5" style={OSWALD}>{L('😈 CUTUCA QUEM TÁ PENSANDO', '😈 POKE THE SLOWPOKES')}</p>
                 <div className="flex flex-wrap gap-1.5 justify-center">
                   {jabs.map(j => (
                     <button key={j.ic} onClick={() => emote(j.ic, undefined, j.mk(target()))}
@@ -3094,6 +3102,10 @@ function RivalsStrip() {
 // ─── MONTE FINAL ─────────────────────────────────────────────────────
 export function EscMonte() {
   const { state, dispatch, emote } = useEsc()
+  const [blLang] = useLang()
+  // 🌐 tradução SÓ do basquete em inglês; futebol devolve sempre o PT (idêntico).
+  const enBb = state.sport === 'basquete' && blLang === 'en'
+  const L = (pt: string, en: string) => enBb ? en : pt
   const you = state.managers[state.youIdx]
   const isYourTurn = state.monteOrder[state.monteIdx] === you.id && totalHoles(you) > 0
   // esconde o que está reservado pro dono (prioridade); afford fica no botão
@@ -3112,27 +3124,33 @@ export function EscMonte() {
 
   return (
     <Shell bar={<AuctionBar />}>
-      <h2 className="font-black text-3xl pt-1" style={OSWALD}>🪣 MONTE FINAL</h2>
+      <h2 className="font-black text-3xl pt-1" style={OSWALD}>{L('🪣 MONTE FINAL', '🪣 FINAL SCRAPS')}</h2>
       <p className="text-sm font-semibold text-black/70">
-        As sobras do pregão. Quem tem mais buracos escolhe primeiro, em serpente. Seus buracos: <b>{totalHoles(you)}</b>.
+        {L('As sobras do pregão. Quem tem mais buracos escolhe primeiro, em serpente. Seus buracos: ', 'The auction leftovers. Whoever has the most holes picks first, snake order. Your holes: ')}<b>{totalHoles(you)}</b>.
       </p>
       {state.careerOnline && state.monte.some(c => ((c as { paid?: number }).paid ?? 0) > 0) && (
         <p className="text-xs font-semibold text-black/60">
-          🆓 Sobra <b>sem valor</b> é de <b>graça</b>. Jogador <b>com piso</b> (💰) é <b>compra sem leilão</b> — paga o valor fixo. Nos jogadores que <b>você listou</b> você tem <b>preferência</b>: a primeira chance de recuperar de graça (já valendo a metade). Se deixar passar, aí os outros levam — pagando metade. E <b>ninguém é obrigado</b>: dá pra passar a vez.
+          {enBb
+            ? <>🆓 A scrap with <b>no price</b> is <b>free</b>. A player with a <b>floor</b> (💰) is a <b>no-auction buy</b> — pay the fixed price. On players <b>you listed</b> you get <b>preference</b>: first chance to reclaim for free (already worth half). Let it slide and the others take it — paying half. And <b>nobody is forced</b>: you can pass your turn.</>
+            : <>🆓 Sobra <b>sem valor</b> é de <b>graça</b>. Jogador <b>com piso</b> (💰) é <b>compra sem leilão</b> — paga o valor fixo. Nos jogadores que <b>você listou</b> você tem <b>preferência</b>: a primeira chance de recuperar de graça (já valendo a metade). Se deixar passar, aí os outros levam — pagando metade. E <b>ninguém é obrigado</b>: dá pra passar a vez.</>}
         </p>
       )}
       {online && (
         <p className="text-xs font-semibold text-black/60">
-          ⏱️ {remaining ?? MONTE_SECONDS}s por vez. {state.careerOnline
-            ? <>Se estourar o tempo, você <b>não pega ninguém</b> e passa a vez — sem multa (seu time já tem os 11).</>
-            : <>Estourou o tempo (foi ao banheiro?), o jogo escolhe a pior sobra pra você e cobra 5 moedas de multa.</>}
+          ⏱️ {remaining ?? MONTE_SECONDS}{L('s por vez. ', 's per turn. ')}{state.careerOnline
+            ? (enBb
+              ? <>If time runs out you <b>take nobody</b> and pass — no penalty (your roster is already set).</>
+              : <>Se estourar o tempo, você <b>não pega ninguém</b> e passa a vez — sem multa (seu time já tem os 11).</>)
+            : (enBb
+              ? <>Time ran out (bathroom break?) — the game picks the worst scrap for you and charges a 5-coin penalty.</>
+              : <>Estourou o tempo (foi ao banheiro?), o jogo escolhe a pior sobra pra você e cobra 5 moedas de multa.</>)}
         </p>
       )}
       {isYourTurn ? (
         <div className="space-y-2">
           <Box bg={remaining !== null && remaining <= 5 ? RED : GOLD} className="p-3">
             <p className="font-black text-center" style={{ ...OSWALD, color: remaining !== null && remaining <= 5 ? '#fff' : INK }}>
-              SUA VEZ — escolha uma carta{remaining !== null ? ` · ${remaining}s` : ''}
+              {L('SUA VEZ — escolha uma carta', 'YOUR TURN — pick a card')}{remaining !== null ? ` · ${remaining}s` : ''}
             </p>
           </Box>
           {valid.map(c => {
@@ -3146,18 +3164,18 @@ export function EscMonte() {
               <div className="flex items-center gap-2 shrink-0">
                 {own && val > 0 && (
                   <span className="text-right leading-tight" style={{ color: GREEN }}>
-                    <span className="text-sm font-black" style={OSWALD}>🫵 seu</span>
-                    <br /><span className="text-[8px] font-bold uppercase" style={{ color: 'rgba(0,0,0,0.5)' }}>recupere grátis · vale {val}</span>
+                    <span className="text-sm font-black" style={OSWALD}>{L('🫵 seu', '🫵 yours')}</span>
+                    <br /><span className="text-[8px] font-bold uppercase" style={{ color: 'rgba(0,0,0,0.5)' }}>{L('recupere grátis · vale ', 'reclaim free · worth ')}{val}</span>
                   </span>
                 )}
                 {paidCard && (
                   <span className="text-right leading-tight" style={{ color: afford ? '#B8860B' : RED }}>
                     <span className="text-sm font-black" style={OSWALD}>💰 {val}</span>
-                    <br /><span className="text-[8px] font-bold uppercase" style={{ color: afford ? 'rgba(0,0,0,0.5)' : RED }}>pague sem leilão</span>
+                    <br /><span className="text-[8px] font-bold uppercase" style={{ color: afford ? 'rgba(0,0,0,0.5)' : RED }}>{L('pague sem leilão', 'buy, no auction')}</span>
                   </span>
                 )}
                 <Btn onClick={() => afford && dispatch({ type: 'MONTE_PICK', mgrId: you.id, cardId: c.id })} bg={paidCard ? GOLD : GREEN} disabled={!afford}>
-                  <span style={{ color: paidCard ? INK : '#fff' }}>{paidCard ? (afford ? `PAGAR ${val}` : 'SEM CAIXA') : 'PEGAR'}</span>
+                  <span style={{ color: paidCard ? INK : '#fff' }}>{paidCard ? (afford ? `${L('PAGAR', 'PAY')} ${val}` : L('SEM CAIXA', 'NO CASH')) : L('PEGAR', 'GRAB')}</span>
                 </Btn>
               </div>
             </Box>
@@ -3172,20 +3190,20 @@ export function EscMonte() {
               <button onClick={() => dispatch({ type: 'MONTE_PASS', mgrId: you.id })}
                 className="w-full rounded-xl border-[3px] border-black bg-white font-black text-sm py-3 active:translate-y-0.5"
                 style={{ color: '#B23B2E', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
-                🙅 PASSAR A VEZ — não quero nenhuma sobra
+                {L('🙅 PASSAR A VEZ — não quero nenhuma sobra', '🙅 PASS — I don\'t want any scraps')}
               </button>
-              <p className="text-[10px] font-bold text-black/45 text-center">Seu time já tem os 11 — sobra é opcional, ninguém é obrigado a pagar.</p>
+              <p className="text-[10px] font-bold text-black/45 text-center">{L('Seu time já está fechado — sobra é opcional, ninguém é obrigado a pagar.', 'Your roster is already set — scraps are optional, nobody has to pay.')}</p>
             </>
           ) : (
             <p className="text-[11px] font-black text-center rounded-xl border-2 border-black py-2 px-3" style={{ background: '#FFE9B0', ...OSWALD }}>
-              ⚠️ Você tem BURACO no time titular — aqui não dá pra passar: pega alguém pra fechar os 11!
+              {L('⚠️ Você tem BURACO no time titular — aqui não dá pra passar: pega alguém pra fechar o time!', '⚠️ You have a HOLE in your starting lineup — no passing here: grab someone to fill it!')}
             </p>
           ))}
         </div>
       ) : (
         <Box className="p-4">
           <p className="font-bold text-center text-black">
-            {curMgr ? <>Vez de <b>{curMgr.teamName}</b>{remaining !== null ? ` · ${remaining}s` : ''}…</> : 'Aguardando a serpente chegar em você…'}
+            {curMgr ? <>{L('Vez de ', 'Turn: ')}<b>{curMgr.teamName}</b>{remaining !== null ? ` · ${remaining}s` : ''}…</> : L('Aguardando a serpente chegar em você…', 'Waiting for the snake to reach you…')}
           </p>
         </Box>
       )}
@@ -3194,16 +3212,16 @@ export function EscMonte() {
       {online && curMgr && curMgr.id !== you.id && (() => {
         const n = curMgr.teamName || curMgr.name
         const jabs: { ic: string; label: string; mk: (x: string) => string }[] = [
-          { ic: '👆', label: 'Aperta o Pegar!', mk: x => `Qual a dificuldade de apertar o Pegar, ${x}?` },
-          { ic: '🐢', label: 'Anda!', mk: x => `Anda, ${x}, é só sobra!` },
-          { ic: '😴', label: 'Dormiu?', mk: x => `${x} dormiu na vez?` },
-          { ic: '🗑️', label: 'Perna-de-pau', mk: x => `Só vai sobrar perna-de-pau pro ${x}!` },
-          { ic: '🤡', label: 'Sobra o Gol Contra', mk: x => `Vai sobrar o Adriano Gol Contra pro ${x} 😂` },
-          { ic: '🤏', label: 'Mão de vaca', mk: x => `Na próxima deixa de ser mão de vaca, ${x}!` },
+          { ic: '👆', label: L('Aperta o Pegar!', 'Hit Grab!'), mk: x => L(`Qual a dificuldade de apertar o Pegar, ${x}?`, `How hard is it to hit Grab, ${x}?`) },
+          { ic: '🐢', label: L('Anda!', 'Move it!'), mk: x => L(`Anda, ${x}, é só sobra!`, `Move it, ${x}, it's just scraps!`) },
+          { ic: '😴', label: L('Dormiu?', 'Asleep?'), mk: x => L(`${x} dormiu na vez?`, `${x} fell asleep on the clock?`) },
+          { ic: '🗑️', label: L('Perna-de-pau', 'Benchwarmer'), mk: x => L(`Só vai sobrar perna-de-pau pro ${x}!`, `Only benchwarmers left for ${x}!`) },
+          { ic: '🤡', label: L('Sobra o Gol Contra', 'Air ball king'), mk: x => L(`Vai sobrar o Adriano Gol Contra pro ${x} 😂`, `${x} is gonna get the air ball king 😂`) },
+          { ic: '🤏', label: L('Mão de vaca', 'Cheapskate'), mk: x => L(`Na próxima deixa de ser mão de vaca, ${x}!`, `Next time stop being a cheapskate, ${x}!`) },
         ]
         return (
           <div className="mt-1">
-            <p className="text-[11px] font-black text-black/45 mb-1.5" style={OSWALD}>😈 CUTUCA QUEM TÁ ESCOLHENDO</p>
+            <p className="text-[11px] font-black text-black/45 mb-1.5" style={OSWALD}>{L('😈 CUTUCA QUEM TÁ ESCOLHENDO', '😈 POKE WHOEVER IS PICKING')}</p>
             <div className="flex flex-wrap gap-1.5 justify-center">
               {jabs.map(j => (
                 <button key={j.ic} onClick={() => emote(j.ic, undefined, j.mk(n))}
