@@ -4563,6 +4563,29 @@ export function EscProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId])
 
+  // 🔌 VIGIA DA CONEXÃO (host E convidado): o `visibilitychange` só reconecta
+  // quando a pessoa VOLTA pro app. Mas se o canal realtime cai — ou nem conecta —
+  // com a TELA ABERTA (WiFi que oscila, aperto de rede), ninguém reconectava e
+  // ficava preso no "Enviando…" (o resend do lance e o heartbeat do host dependem
+  // do canal vivo). Este vigia checa a cada 5s: se o canal NÃO está 'joined' nem
+  // 'joining', re-inscreve e ressincroniza — a MESMA reconexão que o onVis já faz,
+  // só que sem depender de trocar de app. No-op quando o canal está saudável.
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.roomId) return
+    const iv = setInterval(() => {
+      const ch = channelRef.current
+      if (!ch) return
+      const st = (ch as unknown as { state?: string }).state
+      if (st === 'joined' || st === 'joining') return // saudável ou conectando — não mexe
+      const resync = () => {
+        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: sanitize(stateRef.current) })
+        else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
+      }
+      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx }); resync() }) } catch { /* tenta de novo no próximo tique */ }
+    }, 5000)
+    return () => clearInterval(iv)
+  }, [state.onlineMode, state.roomId])
+
   // AUTOSAVE da carreira OFFLINE (solo): sem sala, o jogo inteiro vai pro
   // localStorage a cada transição importante — dá pra fechar e voltar depois.
   const soloSigRef = useRef('')
