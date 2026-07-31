@@ -2691,12 +2691,12 @@ export function reducer(state: EscState, action: Action): EscState {
       // nunca retoma numa tela lateral (álbum/ranking) — cai sempre no jogo.
       const scr = (action.saved.screen === 'album' || action.saved.screen === 'ranking') ? 'season' : action.saved.screen
       // 🏛️ MULTICLUBES: na carreira NORMAL o técnico é sempre o assento 0. Mas com
-      // 2º clube, o comando pode estar em OUTRO assento (você trocou de clube). Se
-      // eu forçasse 0 no reload, o clube que você comandava virava "outro humano na
-      // sala" e o seletor mostrava OS DOIS com o SEU nome. Então: com multiclube,
-      // reancoro no assento ATIVO (o humano que NÃO é o que está dormindo); sem, 0.
-      const resumeYouIdx = activeSeatIdx(action.saved)
-      const restored = migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: resumeYouIdx, humanCount: 1, careerOnline: true })
+      // 2º clube, o comando pode estar em OUTRO assento (você trocou de clube) e o
+      // save pode vir torto. `normalizeMultiSeats` crava 1 humano ativo + dormindo
+      // certo e reancora o youIdx — assim o solo nunca cai em votação nem mostra os
+      // dois clubes com o mesmo nome. No-op sem 2º clube.
+      const restored = migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true })
+      normalizeMultiSeats(restored)
       // 🧾 RECONCILIAÇÃO 1x de saves ANTIGOS (feitos antes do extrato registrar
       // saldo inicial, estádio e SAF): se o extrato não tem o 'saldo inicial', lança
       // um ajuste único = Caixa − soma dos lançamentos, pra somar o Extrato dar a
@@ -4149,6 +4149,19 @@ function activeSeatIdx(s: EscState): number {
   const i = s.managers.findIndex(m => m.isHuman && m.id !== s.multiClube!.id)
   return i >= 0 ? i : 0
 }
+// 🏛️ MULTICLUBES: deixa os assentos COERENTES num save de carreira. `multiClube.id`
+// é SEMPRE o clube que DORME → crava exatamente 1 humano ATIVO (o outro) e o
+// dormindo certo, e reancora o youIdx. Sem isto, um save antigo/torto podia ter os
+// DOIS clubes como humanos ativos — aí o SOLO caía na VOTAÇÃO online (sem sentido
+// numa carreira offline) e o clube que dorme corria risco de entrar no leilão.
+// Repara o que já foi gravado torto. No-op sem 2º clube.
+function normalizeMultiSeats(s: EscState): EscState {
+  if (!s?.multiClube || !Array.isArray(s.managers)) return s
+  const dormId = s.multiClube.id
+  for (const m of s.managers) if (m.isHuman) m.dormindo = (m.id === dormId)
+  s.youIdx = activeSeatIdx(s)
+  return s
+}
 function loadSoloInProgress(): EscState | null {
   try {
     const raw = localStorage.getItem(SOLO_RESUME_KEY)
@@ -4156,7 +4169,7 @@ function loadSoloInProgress(): EscState | null {
     const s = JSON.parse(raw) as EscState
     if (s && s.onlineMode === 'cpu' && isSoloGameScreen(s.screen) && Array.isArray(s.managers) && s.managers.length > 0) {
       if (saveMexido(s)) marcaMexido(s) // 🔒 lacre não bateu = editado na mão → marca no painel (não trava)
-      if (s.multiClube) s.youIdx = activeSeatIdx(s) // reancora no clube que você comanda (nunca no dormindo)
+      normalizeMultiSeats(s) // 🏛️ multiclube: 1 humano ativo + dormindo certo (reancora youIdx; no-op sem 2º clube)
       return s
     }
   } catch { /* estado inválido/versão antiga — começa do zero */ }

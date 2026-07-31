@@ -2397,7 +2397,11 @@ export function PyramidSeasonScreen() {
             // Ninguém aperta nada: é conversa entre os celulares.
             return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} onPrize={() => dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: youId })} />
           })()
-          if (humans.length <= 1) return (
+          // 🗳️ a VOTAÇÃO é só do ONLINE (vários técnicos na sala decidem juntos).
+          // No SOLO/carreira offline NUNCA vota — mesmo com 2º clube (multiclube),
+          // quem decide é você e o leilão é de UM clube só. Guarda por onlineMode
+          // pra um save torto (2 humanos ativos) não cair na votação sem sentido.
+          if (state.onlineMode !== 'online' || humans.length <= 1) return (
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
               {copaGate}
               {noVermelho && (
