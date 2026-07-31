@@ -3810,7 +3810,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // dobraria. Humano gasta do careerCoins; bot sorteado gasta do clubCash dele.
       const cash = s.clubCash ?? {}
       for (const m of s.managers) {
-        if (m.isHuman) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
+        // 🏛️ MULTICLUBES: o clube DORMINDO NÃO entra no leilão de reservas — segue
+        // "mesmo time" congelado. Sem isto ele virava deepSquad (mirava 22) e entrava
+        // no leilão junto do clube ativo, fazendo o pregão pular entre os dois times e
+        // travar (o dormindo nunca lacra). Agora só o clube ATIVO enche o banco.
+        if (m.isHuman && !m.dormindo) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
         else if (m.rival) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // rival = "humano": enche banco, gasta clubCash
         else if (m.backstop) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // LIBERADO: além de repor, pode pegar reserva (mira 22 como todo mundo)
       }
