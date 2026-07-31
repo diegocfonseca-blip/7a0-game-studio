@@ -2446,6 +2446,18 @@ export function PyramidSeasonScreen() {
               <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas (por nome exato) já entram. {state.seasonNo === 1
                 ? <>Abra o <b>leilão de reservas</b> (todos com a sua caixa, compram pra encher o banco até 22), ou siga com o mesmo elenco.</>
                 : <>Abra o <b>leilão de transferências</b> (1 carta nova por posição + os jogadores que cada técnico listar), ou siga com o mesmo elenco.</>}</p>
+              {/* 🏛️ MULTICLUBES: deixa claro que o leilão é SÓ do clube ativo; o outro
+                  segue mesmo time (sem leilão). Pra leiloar o outro, troca no seletor antes. */}
+              {state.multiClube && (() => {
+                const ativo = state.managers[state.youIdx]?.teamName ?? '—'
+                const dormindo = state.multiClube.team
+                return (
+                  <div style={{ ...box('#FFF3CF'), padding: 10, marginBottom: 10, border: `2.5px solid ${INK}` }}>
+                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, color: INK, margin: 0 }}>🏛️ Você tem 2 clubes — o leilão é de UM só</p>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 10.5, fontWeight: 600, color: '#5a4a1a', margin: '4px 0 0', lineHeight: 1.4 }}>Se abrir o leilão, ele vale <b>só pro {ativo}</b> (o que você comanda). O <b>{dormindo}</b> segue <b>mesmo time</b>, sem leilão. Quer leiloar o {dormindo}? <b>Troque no seletor</b> aqui em cima <b>antes</b> de abrir.</p>
+                  </div>
+                )
+              })()}
               <button onClick={openLeilao} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>🔨 {leilaoLabel}</button>
               <button onClick={openMesmo} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>▶️ Mesmo time (sem leilão)</button>
             </div>
@@ -2607,7 +2619,7 @@ export function PyramidSeasonScreen() {
                   <div onClick={e => e.stopPropagation()} style={{ ...box('#F4ECD6'), maxWidth: 340, width: '100%', padding: 16, textAlign: 'center' }}>
                     <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: 0 }}>🔄 Trocar de clube</p>
                     <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 600, color: '#3a3222', margin: '8px 0 0', lineHeight: 1.5 }}>Você vai comandar o <b>{dormindo}</b> agora. O <b>{ativo}</b> passa a <b>dormir</b>: segue a temporada no automático, com o time como está.</p>
-                    <p style={{ fontFamily: 'system-ui', fontSize: 11.5, fontWeight: 600, color: '#5a5647', margin: '8px 0 0', lineHeight: 1.45 }}>💤 Se um empréstimo acabar enquanto ele dorme, o titular do próprio clube volta sozinho — nunca joga com 10. Dá pra voltar quando quiser.</p>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 11.5, fontWeight: 600, color: '#5a5647', margin: '8px 0 0', lineHeight: 1.45 }}>💤 Na <b>virada da temporada</b>, empréstimo que acaba volta pro dono e o titular do próprio clube entra no lugar — nunca joga com 10. Dá pra voltar pro comando dele quando quiser.</p>
                     <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
                       <button onClick={() => setMultiAsk(false)} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>Voltar</button>
                       <button onClick={() => { setMultiAsk(false); dispatch({ type: 'SWITCH_MULTICLUBE' }) }} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#1B7A3D', color: '#fff', cursor: 'pointer', ...OSWALD }}>🔄 Trocar</button>
