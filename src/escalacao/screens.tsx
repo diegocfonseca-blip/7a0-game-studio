@@ -3321,7 +3321,11 @@ export function EscCerimonia() {
             <span style={{ color: '#fff' }}>🏀 {t('COMEÇAR A TEMPORADA', 'START THE SEASON')}</span>
           </Btn>
         ) : (
-          <p className="text-center text-sm font-bold text-black/55 py-1">🏀 {t('A temporada começa quando o tempo acabar…', 'The season starts when the clock runs out…')}</p>
+          // 🌐 online conduzido pelo host (stream/manual) não tem cronômetro: o
+          // convidado espera o HOST começar. No rápido normal (com relógio), espera o tempo.
+          <p className="text-center text-sm font-bold text-black/55 py-1">🏀 {(state.streamMode || state.manualRoom)
+            ? t('A temporada começa quando o host começar…', 'The season starts when the host does…')
+            : t('A temporada começa quando o tempo acabar…', 'The season starts when the clock runs out…')}</p>
         )
       ) : canStart ? (
         <Btn className="w-full text-lg" bg={GREEN} onClick={() => dispatch({ type: 'FINISH_CEREMONY' })}>
@@ -5848,6 +5852,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         isHost: state.isHost, playerIndex: state.youIdx,
         playerNames, formation: state.managers[state.youIdx]?.formation ?? '4-3-3',
         deck: state.deckLeague, rematch: Date.now(), copaMode: state.copaMode, // mantém a escolha da sala
+        nba: state.sport === 'basquete', // 🏀 novo leilão preserva o esporte da sala (senão o basquete voltava pro futebol)
       })
     } catch { dispatch({ type: 'REMATCH' }) }
   }
