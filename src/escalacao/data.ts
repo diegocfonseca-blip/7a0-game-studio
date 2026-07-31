@@ -1905,6 +1905,7 @@ export const OLD_NAME: Record<string, string> = {
   'Nightfull FC': 'Pelado FR', // ⚽ batismo do Guilherme: em save antigo, o Pelado FR vira Nightfull FC ao carregar
   'Murriz FC': 'Robertão United', // ⚽ batismo do msb102010: save antigo com Robertão United vira Murriz FC ao carregar
   'Tokyo City Esperion': 'FC Galáticos', // ⚽ batismo do denilson.stifler10: save antigo com FC Galáticos vira Tokyo City Esperion ao carregar
+  'Tôka10': 'Biriba United', // ⚽ batismo do ofc.toka10: save antigo com Biriba United vira Tôka10 ao carregar
 }
 // corrente de nomes antigos: 'White Thigs do GuGu' → ['Astronáutico', 'Sinhô Futebol']
 export const oldChain = (name: string): string[] => {
@@ -1952,7 +1953,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Serjão', team: 'Real Madruga' },
     { name: 'Painitto', team: 'Painitto FC' },
     { name: 'Robertão', team: 'Murriz FC' }, // ⚽ clube BATIZADO por apoiador (msb102010 — Murriz FC, ex-Robertão United)
-    { name: 'Biriba', team: 'Biriba United' },
+    { name: 'Biriba', team: 'Tôka10' }, // ⚽ clube BATIZADO por apoiador (ofc.toka10 — Tôka10, ex-Biriba United)
     { name: 'Duda Fortuna', team: 'Fortuna SAF' },
     { name: 'PC Magrão', team: 'Magrão EC' }, // Magrão EC veio pra cá (o Pelado FR saiu pra dar lugar ao Nightfull FC)
     { name: 'Neguinho do Apito', team: 'Tokyo City Esperion' }, // ⚽ clube BATIZADO por apoiador (denilson.stifler10 — Tokyo City Esperion, ex-FC Galáticos)
