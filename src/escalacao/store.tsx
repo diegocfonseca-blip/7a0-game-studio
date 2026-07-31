@@ -2690,7 +2690,15 @@ export function reducer(state: EscState, action: Action): EscState {
       setActiveCatalog(action.saved.deckLeague)
       // nunca retoma numa tela lateral (álbum/ranking) — cai sempre no jogo.
       const scr = (action.saved.screen === 'album' || action.saved.screen === 'ranking') ? 'season' : action.saved.screen
-      const restored = migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true })
+      // 🏛️ MULTICLUBES: na carreira NORMAL o técnico é sempre o assento 0. Mas com
+      // 2º clube, o comando pode estar em OUTRO assento (você trocou de clube). Se
+      // eu forçasse 0 no reload, o clube que você comandava virava "outro humano na
+      // sala" e o seletor mostrava OS DOIS com o SEU nome. Então: com multiclube,
+      // reancoro no assento ATIVO (o humano que NÃO está dormindo); sem, segue 0.
+      const resumeYouIdx = action.saved.multiClube
+        ? (() => { const i = (action.saved.managers ?? []).findIndex(m => m.isHuman && !m.dormindo); return i >= 0 ? i : 0 })()
+        : 0
+      const restored = migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: resumeYouIdx, humanCount: 1, careerOnline: true })
       // 🧾 RECONCILIAÇÃO 1x de saves ANTIGOS (feitos antes do extrato registrar
       // saldo inicial, estádio e SAF): se o extrato não tem o 'saldo inicial', lança
       // um ajuste único = Caixa − soma dos lançamentos, pra somar o Extrato dar a
