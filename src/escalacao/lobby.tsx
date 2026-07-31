@@ -1373,7 +1373,7 @@ export function EscLobby() {
         return (
         <div className="space-y-3">
           {/* ① O BÁSICO — modo, nome, baralho, formação */}
-          <Section num={1} title="O básico" icon="📋">
+          <Section num={1} title={L('O básico', 'The basics')} icon="📋">
             <div>
               <SegField label={canCareer ? 'Modo de jogo (teste)' : 'Modo de jogo'}>
                 {canCareer ? (
@@ -1391,7 +1391,7 @@ export function EscLobby() {
                 {!canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
               </p>
             </div>
-            <Field label="Nome da sala" value={roomName} onChange={e => setRoomName(stripEmoji(e.target.value))} placeholder={`Sala do ${nameOf()}`} maxLength={24} />
+            <Field label={L('Nome da sala', 'Room name')} value={roomName} onChange={e => setRoomName(stripEmoji(e.target.value))} placeholder={L(`Sala do ${nameOf()}`, `${nameOf()}'s room`)} maxLength={24} />
             {isCareer ? (
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <p className="text-white font-black text-[12.5px]" style={OSWALD}>🌎 Baralho fixo: Brasil + Europa</p>
@@ -1448,7 +1448,7 @@ export function EscLobby() {
 
           {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
           {!isCareer && (
-            <Section num={2} title="A partida" icon={isNbaLobby ? '🏀' : '⚽'}>
+            <Section num={2} title={L('A partida', 'The match')} icon={isNbaLobby ? '🏀' : '⚽'}>
               <SegField label="Tabela">
                 {canLiga ? (
                   <>
@@ -1480,16 +1480,16 @@ export function EscLobby() {
           )}
 
           {/* ③ A SALA — privacidade, chat, stream (+ tempo do leilão) */}
-          <Section num={3} title="A sala" icon="🔧">
+          <Section num={3} title={L('A sala', 'The room')} icon="🔧">
             <div>
-              <ToggleRow icon={roomLocked ? '🔒' : '🔓'} title={roomLocked ? 'Sala fechada' : 'Sala aberta'} sub={roomLocked ? 'Só entra com senha' : 'Qualquer um entra'} on={roomLocked} onClick={() => setRoomLocked(v => !v)} />
+              <ToggleRow icon={roomLocked ? '🔒' : '🔓'} title={roomLocked ? L('Sala fechada', 'Private room') : L('Sala aberta', 'Open room')} sub={roomLocked ? L('Só entra com senha', 'Password required') : L('Qualquer um entra', 'Anyone can join')} on={roomLocked} onClick={() => setRoomLocked(v => !v)} />
               {roomLocked && (
                 <input type="text" value={roomPw} onChange={e => setRoomPw(e.target.value)} maxLength={20}
-                  placeholder="Senha da sala (avise a galera)"
+                  placeholder={L('Senha da sala (avise a galera)', 'Room password (tell your crew)')}
                   className="w-full mt-2 border-[2.5px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
               )}
             </div>
-            <ToggleRow icon={roomChat ? '💬' : '🔕'} title="Chat da sala" sub={roomChat ? 'A galera pode zoar na sala' : 'Sem chat'} on={roomChat} onClick={() => setRoomChat(v => !v)} />
+            <ToggleRow icon={roomChat ? '💬' : '🔕'} title={L('Chat da sala', 'Room chat')} sub={roomChat ? L('A galera pode zoar na sala', 'The crew can trash-talk') : L('Sem chat', 'No chat')} on={roomChat} onClick={() => setRoomChat(v => !v)} />
             {/* 🎮 RITMO: na carreira NÃO se escolhe na criação — nasce em auto e o
                 HOST liga/desliga o manual DENTRO do jogo (nas partidas). */}
             {!isCareer && (
@@ -1519,7 +1519,7 @@ export function EscLobby() {
           </Section>
 
           <Big onClick={createRoom} color={isCareer ? PURPLE : GOLD}>
-            <span style={{ color: isCareer ? '#fff' : '#000' }}>{loading ? 'Criando...' : isCareer ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
+            <span style={{ color: isCareer ? '#fff' : '#000' }}>{loading ? L('Criando...', 'Creating...') : isCareer ? '🌐 Criar Carreira' : `🏠 ${L('Criar Sala', 'Create Room')}`}</span>
           </Big>
         </div>
         )
