@@ -1456,7 +1456,9 @@ function finishSeason(s: EscState) {
     s.quickCopa = seedQuickCopa(s.league, bbCopa)
     // 📣 zera o giro da liga: durante a Copa o giro fala DA COPA, não das rodadas
     s.news = [bbCopa
-      ? '🏆 Fim da temporada regular — chegaram os PLAYOFFS! Leste × Oeste, top 4 de cada conferência.'
+      ? (getLang() === 'en'
+        ? '🏆 Regular season is over — the PLAYOFFS are here! East × West, top 4 from each conference.'
+        : '🏆 Fim da temporada regular — chegaram os PLAYOFFS! Leste × Oeste, top 4 de cada conferência.')
       : '🏆 A liga acabou — chegou a COPA DOS 8! Os 8 melhores brigam pelo título.']
   }
   s.screen = 'end'

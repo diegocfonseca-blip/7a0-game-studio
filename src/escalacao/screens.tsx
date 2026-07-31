@@ -10,6 +10,7 @@ import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
+import { buildNbaCatalog } from './basquete-deck'
 import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual } from './apoio'
 import { DinastiaButton } from './dinastia'
@@ -4756,8 +4757,27 @@ const ALL_POOL: WonCard[] = (() => {
   }
   return out
 })()
+// 🏀 pool equivalente do BASQUETE: o campeão de uma sala de basquete ganha uma
+// carta de BASQUETE (não um jogador de futebol). Mesmo formato/visual do ALL_POOL,
+// só muda o conteúdo. Nomes/clube/ano/nível não mudam por idioma (só a bio, que a
+// carta busca na hora) → seguro montar no carregamento do módulo. O futebol NÃO
+// passa por aqui: quem não é basquete usa o ALL_POOL de sempre (byte-idêntico).
+const NBA_POOL: WonCard[] = (() => {
+  const cat = buildNbaCatalog()
+  const seen = new Set<string>(); const out: WonCard[] = []
+  for (const pos of SECTORS) for (const c of cat[pos]) {
+    if (seen.has(c.name)) continue; seen.add(c.name)
+    out.push({ id: `nba-wild-${out.length}`, name: c.name, club: c.club, year: c.year, pos, fame: c.fame as Card['fame'], folk: c.folk, promessa: c.promessa, lo: 0, hi: 0, paid: 0, via: 'leilao' })
+    // deixa o álbum manter 🃏/💎 da carta de basquete também (CARD_META é por nome)
+    if (!CARD_META.has(c.name)) CARD_META.set(c.name, { fame: c.fame, club: c.club, year: c.year, folk: c.folk, promessa: c.promessa })
+  }
+  return out
+})()
 
-export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onStatus, noTimer, saveCards }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; noTimer?: boolean; saveCards?: { name: string; club: string; year: number }[] }) {
+export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onStatus, noTimer, saveCards, sport }: { you: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; noTimer?: boolean; saveCards?: { name: string; club: string; year: number }[]; sport?: 'futebol' | 'basquete' }) {
+  // 🏀 numa sala de basquete a carta-prêmio sai do baralho de BASQUETE; futebol
+  // (sport indefinido/'futebol') usa o ALL_POOL de sempre → caminho byte-idêntico.
+  const POOL = sport === 'basquete' ? NBA_POOL : ALL_POOL
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
   // avisa quem renderiza (EscEnd) o status da carta — pra travar a votação online
@@ -4807,12 +4827,12 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
     // Só evita repetir o que já está NESTE save: aí sim sorteia outra que falta no save.
     if (saveCards) {
       const saveSet = new Set(saveCards.map(c => `${c.name}|${c.club}|${c.year}`))
-      const un = ALL_POOL.filter(c => !saveSet.has(`${c.name}|${c.club}|${c.year}`))
-      return un.length ? un : ALL_POOL
+      const un = POOL.filter(c => !saveSet.has(`${c.name}|${c.club}|${c.year}`))
+      return un.length ? un : POOL
     }
-    const un = ALL_POOL.filter(c => !owned.has(c.name))
-    return un.length ? un : ALL_POOL
-  }, [owned, saveCards])
+    const un = POOL.filter(c => !owned.has(c.name))
+    return un.length ? un : POOL
+  }, [owned, saveCards, POOL])
   const [opening, setOpening] = useState(false)
   const openPack = () => {
     if (opening || claimingRef.current) return
@@ -6165,14 +6185,14 @@ export function EscEnd() {
   const ligaChampionCard = (
     <>
       {online && youWon && state.roomId && (
-        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}`} origin="online" onClaimed={bcastCard('liga')} onStatus={setLigaCardStatus} noTimer={streamRoom} />
+        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}`} origin="online" onClaimed={bcastCard('liga')} onStatus={setLigaCardStatus} noTimer={streamRoom} sport={state.sport} />
       )}
       {/* 🎥 STREAM: a sala (quem NÃO é campeão) assiste o pacote do campeão da liga */}
       {streamRoom && !youWon && ligaChampHuman && (
         <StreamSpectatorCard champName={champ.name} card={streamLigaCard} />
       )}
       {!online && youWon && (
-        <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" onClaimed={setMyCard} />
+        <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" onClaimed={setMyCard} sport={state.sport} />
       )}
     </>
   )
@@ -6194,9 +6214,9 @@ export function EscEnd() {
       )}
       {copaChampIsYou && (
         online && state.roomId ? (
-          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}:copa`} origin="online" onClaimed={bcastCard('copa')} onStatus={setCopaCardStatus} noTimer={streamRoom} />
+          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}:copa`} origin="online" onClaimed={bcastCard('copa')} onStatus={setCopaCardStatus} noTimer={streamRoom} sport={state.sport} />
         ) : !online ? (
-          <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`} origin="cpu" onClaimed={setMyCard} />
+          <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`} origin="cpu" onClaimed={setMyCard} sport={state.sport} />
         ) : null
       )}
       {/* 🎥 STREAM: a sala (quem NÃO é campeão da Copa) assiste o pacote do campeão */}
