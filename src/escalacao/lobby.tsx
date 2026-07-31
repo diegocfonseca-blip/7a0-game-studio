@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
-import { useEsc } from './store'
+import { useEsc, NBA_STREET_TEAM_NAMES } from './store'
 import { useSport } from './sport'
 import { useLang } from './lang'
 import { AdminButton, useCanCareerOnline } from './admin'
@@ -1388,14 +1388,16 @@ export function EscLobby() {
                 )}
               </SegField>
               <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-                {!canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
+                {isNbaLobby
+                  ? (!canCareer ? L('🌐 Carreira (pirâmide da quadra) tá chegando — em breve no online!', '🌐 Career (the court ladder) is coming — soon online!') : isCareer ? L('🛝 Street League — a base da pirâmide. Cada técnico monta o quinteto e disputa a temporada. Mesmo mundo pra todos.', '🛝 Street League — the bottom of the ladder. Each coach builds a starting five and plays the season. Same world for everyone.') : L('🏀 O leilão de sempre — uma temporada avulsa.', '🏀 The usual auction — a one-off season.'))
+                  : (!canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.')}
               </p>
             </div>
             <Field label={L('Nome da sala', 'Room name')} value={roomName} onChange={e => setRoomName(stripEmoji(e.target.value))} placeholder={L(`Sala do ${nameOf()}`, `${nameOf()}'s room`)} maxLength={24} />
             {isCareer ? (
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                <p className="text-white font-black text-[12.5px]" style={OSWALD}>🌎 Baralho fixo: Brasil + Europa</p>
-                <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">A Carreira usa os dois juntos (~700 nomes) pra preencher os 80 times das 4 divisões.</p>
+                <p className="text-white font-black text-[12.5px]" style={OSWALD}>{isNbaLobby ? L('🏀 Baralho fixo: lendas da NBA', '🏀 Fixed deck: NBA legends') : '🌎 Baralho fixo: Brasil + Europa'}</p>
+                <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{isNbaLobby ? L('A carreira do basquete usa o baralho da NBA — os craques da quadra pra encher os 20 crews da Street League.', 'The basketball career uses the NBA deck — court legends to fill the 20 Street League crews.') : 'A Carreira usa os dois juntos (~700 nomes) pra preencher os 80 times das 4 divisões.'}</p>
               </div>
             ) : (
               <SegField label="Baralho de craques">
@@ -1411,9 +1413,9 @@ export function EscLobby() {
 
           {/* ② OS RIVAIS — só na carreira (igual offline: host escolhe os CPUs do leilão) */}
           {isCareer && (
-            <Section num={2} title="Os rivais" icon="🔥">
+            <Section num={2} title={L('Os rivais', 'The rivals')} icon="🔥">
               <div>
-                <p className="text-white/70 text-[11px] font-black uppercase mb-1.5" style={{ letterSpacing: '.1em' }}>Rivais no leilão (CPUs)</p>
+                <p className="text-white/70 text-[11px] font-black uppercase mb-1.5" style={{ letterSpacing: '.1em' }}>{L('Rivais no leilão (CPUs)', 'Auction rivals (CPUs)')}</p>
                 <div className="grid grid-cols-4 gap-2">
                   {[3, 5, 7, 9].map(n => (
                     <button key={n} onClick={() => setCareerRivals(n)}
@@ -1423,24 +1425,24 @@ export function EscLobby() {
                     </button>
                   ))}
                 </div>
-                <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">Eles dão lance no pregão e disputam a temporada com vocês — igual ao offline. Na tabela aparecem como time comum (sem selo); só vocês e as SAFs ficam marcados.</p>
+                <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{isNbaLobby ? L('Eles dão lance no pregão e disputam a temporada com vocês — igual ao offline. Na tabela aparecem como crew comum (sem selo); só vocês ficam marcados.', 'They bid in the auction and play the season with you — like offline. On the table they show as a regular crew (no badge); only you are marked.') : 'Eles dão lance no pregão e disputam a temporada com vocês — igual ao offline. Na tabela aparecem como time comum (sem selo); só vocês e as SAFs ficam marcados.'}</p>
               </div>
               <div>
-                <p className="text-white text-[11px] font-black uppercase mb-1">🔥 Escolha os rivais <span className="text-white/50">({careerRivalPicks.length}/{careerRivals})</span></p>
+                <p className="text-white text-[11px] font-black uppercase mb-1">{L('🔥 Escolha os rivais', '🔥 Pick your rivals')} <span className="text-white/50">({careerRivalPicks.length}/{careerRivals})</span></p>
                 <div className="flex flex-wrap gap-1.5">
-                  {DIVISION_TEAMS['D'].map(t => {
-                    const on = careerRivalPicks.includes(t.team)
+                  {(isNbaLobby ? NBA_STREET_TEAM_NAMES : DIVISION_TEAMS['D'].map(t => t.team)).map(team => {
+                    const on = careerRivalPicks.includes(team)
                     return (
-                      <button key={t.team} onClick={() => toggleCareerRival(t.team)}
+                      <button key={team} onClick={() => toggleCareerRival(team)}
                         className="border-2 border-black rounded-lg px-2 py-1 font-black text-[11px] active:translate-y-0.5"
                         style={{ background: on ? '#E8503A' : '#fff', color: on ? '#fff' : '#000' }}>
-                        {on ? '🔥 ' : ''}{t.team}
+                        {on ? '🔥 ' : ''}{team}
                       </button>
                     )
                   })}
                 </div>
                 <button onClick={() => setCareerRivalPicks([])} className="mt-2 border-2 border-black rounded-lg px-2.5 py-1 font-black text-[11px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
-                  🎲 Não escolher — usar rivais padrão
+                  {L('🎲 Não escolher — usar rivais padrão', '🎲 Don\'t pick — use default rivals')}
                 </button>
               </div>
             </Section>

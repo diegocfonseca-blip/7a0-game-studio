@@ -5674,6 +5674,22 @@ function NbaCareerEndPanel() {
     : nMarked > 0
     ? t(`Você dispensou ${nMarked} — o leilão de reservas vai repor as vagas.`, `You released ${nMarked} — the reserve auction will refill the slots.`)
     : t('Elenco cheio (15) — a próxima temporada começa com o mesmo time (ou dispense reservas pra trocar).', 'Full roster (15) — next season starts with the same team (or release bench players to swap).')
+  // 🌐🏀 CARREIRA ONLINE (fase 2): o AVANÇO de temporada (subir de andar, leilão de
+  // reservas sincronizado) ainda não está pronto no online — então NÃO mostramos o
+  // botão "próxima temporada" aqui (ele roda NEXT_NBA_SEASON, que é 1-humano e no
+  // online não faz nada de propósito). Em vez de travar, damos um aviso claro e sem
+  // spoiler de tabela. O OFFLINE segue com todo o fluxo normal abaixo (idêntico).
+  if (state.onlineMode === 'online') {
+    return (
+      <div className="rounded-2xl border-4 border-black p-4 text-center space-y-2" style={{ background: '#FFF6D6', boxShadow: `4px 4px 0 ${INK}` }}>
+        <p className="font-black text-lg" style={OSWALD}>🏀 {t('Temporada completa!', 'Season complete!')}</p>
+        <p className="text-sm font-semibold text-black/70">
+          {t('A carreira online continua já já: subir de liga com a galera vem no próximo update. Por enquanto, é só criar uma sala nova pra jogar outra temporada.',
+            'Online career keeps going soon: climbing the ladder with your crew is coming in the next update. For now, just spin up a new room to play another season.')}
+        </p>
+      </div>
+    )
+  }
   return (
     <div className="space-y-2">
       {/* 🪜 subiu de liga! (top 4) — feedback antes de tocar em próxima temporada */}
@@ -6324,7 +6340,7 @@ export function EscEnd() {
       {/* No online, a votação "E agora?" vem ANTES do compartilhar (é a ação principal).
           Durante a ESPERA da Copa (copaPending) ela some — senão daria pra começar a
           próxima temporada e PULAR a Copa. Volta quando a Copa acaba. */}
-      {online && !copaPending && <OnlineEndVote awaitingCard={awaitingCard} />}
+      {online && !copaPending && !state.nbaCareer && <OnlineEndVote awaitingCard={awaitingCard} />}
       <ShareResultPanel opts={shareOpts} />
       {state.dinastia ? (
         <Btn onClick={() => { window.location.hash = 'dinastia' }} bg={GREEN} className="w-full text-lg"><span className="text-white">🏰 Ir pra janela de transferências →</span></Btn>

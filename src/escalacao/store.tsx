@@ -2533,6 +2533,11 @@ export function reducer(state: EscState, action: Action): EscState {
     // Autocontido no basquete (guardado por nbaCareer) — o futebol não passa aqui.
     case 'NEXT_NBA_SEASON': {
       if (s.sport !== 'basquete' || !s.nbaCareer) return s
+      // 🔒 SÓ OFFLINE: o avanço de temporada do basquete (subir de andar, sortear novo
+      // seed, refazer bots) assume 1 humano no youIdx. Na carreira ONLINE isso ainda
+      // não está sincronizado (fase 2) — se o botão vazar numa sala, NÃO faz nada
+      // (o fim de temporada online mostra um aviso claro em vez de avançar).
+      if (s.onlineMode === 'online') return s
       s.seasonNo++
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
@@ -2735,17 +2740,27 @@ export function reducer(state: EscState, action: Action): EscState {
       // motor online (host-autoritativo, sync, assentos) é o MESMO — só muda o
       // conteúdo. Guardado por `action.nba`; futebol cai no ramo de sempre.
       const nbaRoom = !!action.nba
-      s.sport = nbaRoom ? 'basquete' : 'futebol'; s.nbaCareer = false // online: só RÁPIDO por enquanto (carreira online do basquete é fase 2)
+      // 🏀 CARREIRA ONLINE do basquete (fase 2): sala de basquete NO modo carreira.
+      // ⚠️ DECISÃO DE SEGURANÇA: a carreira do basquete online usa `nbaCareer=true`
+      // mas MANTÉM `careerOnline=false` — assim ela roda pelo MESMO caminho já provado
+      // do RÁPIDO online (EscSeason + live-sim + SYNC_STATE), e NUNCA cai na tela da
+      // pirâmide do futebol (PyramidSeasonScreen), que rodaria subida/descida de 4
+      // séries em cima do basquete (estado quebrado). Só muda o enquadramento:
+      // andar (street), orçamento, e o fim de temporada (por ora dá um aviso claro).
+      const nbaCareerRoom = nbaRoom && !!action.career
+      s.sport = nbaRoom ? 'basquete' : 'futebol'; s.nbaCareer = nbaCareerRoom
       s.deckLeague = action.deck ?? 'br'
-      if (nbaRoom) setActiveSport('basquete', 'quick') // baralho NBA + 1 vaga/posição (quinteto)
+      if (nbaRoom) setActiveSport('basquete', nbaCareerRoom ? 'career' : 'quick') // NBA: carreira = vagas de carreira; rápido = quinteto
       else setActiveCatalog(s.deckLeague)
       s.locked = action.locked; s.pwHash = action.pwHash // guarda a senha no estado (sobrevive ao autosave)
-      s.careerOnline = nbaRoom ? false : !!action.career // sala no modo Carreira (4 divisões) vs online rápido — basquete online é só rápido por ora
+      s.careerOnline = nbaRoom ? false : !!action.career // 🔒 basquete NUNCA liga careerOnline (ver nota acima); só o futebol usa a pirâmide online
+      if (nbaCareerRoom) { s.nbaTier = 'street' } // começa na base da pirâmide do basquete (Street League)
       s.ligaFechada = !!action.ligaFechada // 🏆 liga só com humanos (sem bots na tabela)
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
       // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
-      s.copaMode = (action.ligaFechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
-      if (action.career) {
+      // 🏀 carreira street = só pontos corridos (sem playoffs), igual ao offline.
+      s.copaMode = nbaCareerRoom ? 'liga' : (action.ligaFechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
+      if (action.career && !nbaRoom) { // 🔒 SÓ futebol semeia a pirâmide de 4 séries (careerPlacements/SAF/honras); basquete tem andar próprio
         // colocação da temporada 1: todos os técnicos na Série D; A/B/C com os
         // times de CPU fixos. Compacto (só a divisão) — os elencos são derivados.
         const pl: Record<string, string> = {}
@@ -2789,19 +2804,30 @@ export function reducer(state: EscState, action: Action): EscState {
       // depois o resto da Série D. Rápido: pool embaralhado, sem rivais de leilão.
       const careerChosen = (action.rivalTeams ?? []).map(tn => DIVISION_TEAMS['D'].find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
       const careerRest = DIVISION_TEAMS['D'].filter(t => !careerChosen.some(c => c.team === t.team))
-      const namePool = nbaRoom
-        ? [...shuffle([...NBA_PRO_TEAMS], rng)] // 🏀 os bots da tabela são franquias da NBA
-        : action.career
-          ? [...careerChosen, ...careerRest]
-          : [...shuffle([...DIVISION_TEAMS.D], rng), ...shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C], rng)]
-      const onlineRivalCount = action.career ? Math.max(0, Math.min(action.rivals ?? 0, onlineLeagueSize - action.playerNames.length)) : 0
+      // 🏀 CARREIRA STREET: os bots da tabela são os 20 crews da Street League (não as
+      // franquias da NBA — essas moram no topo da pirâmide). Rivais escolhidos primeiro.
+      const nbaCareerChosen = (action.rivalTeams ?? []).map(tn => NBA_STREET_TEAMS.find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
+      const nbaCareerRest = NBA_STREET_TEAMS.filter(t => !nbaCareerChosen.some(c => c.team === t.team))
+      const namePool = nbaCareerRoom
+        ? [...nbaCareerChosen, ...shuffle([...nbaCareerRest], rng)] // 🏀 carreira: crews da Street League
+        : nbaRoom
+          ? [...shuffle([...NBA_PRO_TEAMS], rng)] // 🏀 rápido: franquias da NBA
+          : action.career
+            ? [...careerChosen, ...careerRest]
+            : [...shuffle([...DIVISION_TEAMS.D], rng), ...shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C], rng)]
+      // 🏀 carreira street online: rivais de leilão como no offline (padrão 5). Rápido do
+      // basquete = 0 (bots não dão lance). Futebol carreira = como sempre.
+      const onlineRivalCount = nbaCareerRoom
+        ? Math.max(1, Math.min(action.rivals ?? 5, onlineLeagueSize - action.playerNames.length))
+        : action.career ? Math.max(0, Math.min(action.rivals ?? 0, onlineLeagueSize - action.playerNames.length)) : 0
       const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, onlineRivalCount, onlineLeagueSize, rng, namePool)
       // ⚠️ NÃO marca os rivais como `rival` (diferente do offline): na tabela online
       // só ficam marcados os HUMANOS (👤/🔥) e as SAFs (💼). Os rivais CPU brigam no
       // leilão mas aparecem como time comum, sem selo ⚔️.
       s.managers = onlineManagers
-      // 🏀 orçamento do rápido do basquete = 50 (quinteto de 5), igual ao offline.
-      if (nbaRoom) for (const m of s.managers) m.money = NBA_QUICK_BUDGET
+      // 🏀 orçamento do basquete = 50 (quinteto de 5), igual ao offline — rápido e
+      // carreira começam iguais; a carreira cresce a caixa entre temporadas (fase 2).
+      if (nbaRoom) for (const m of s.managers) m.money = nbaCareerRoom ? NBA_CAREER_BUDGET : NBA_QUICK_BUDGET
       // rápido (e T1 de carreira) começam SEM piso. O livro de preços
       // (marketValues) é memória da carreira ENTRE temporadas — não pode vazar do
       // jogo anterior nem do "novo leilão" do rápido, senão aparece "valor mínimo".
