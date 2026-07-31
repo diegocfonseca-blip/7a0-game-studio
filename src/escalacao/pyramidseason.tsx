@@ -1181,9 +1181,10 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
 
 // ── os JOGOS de uma divisão (placar + quem fez os gols), cores por amigo ──
 function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matches: SimMatch[]; colors: Record<number, FCol>; humans: { name: string; teamId: number; you: boolean; rival?: boolean; dorm?: boolean }[]; hideId?: number }) {
-  // cor SÓ pra quem interessa: você/SAF (tier) e rivais (marrom) vêm do `colors`;
-  // bots ficam sem cor (nome cinza, linha branca) — placar limpo, como era.
-  const nameCol = (id: number) => colors[id]?.solid ?? '#5a5647'
+  // cor SÓ pra quem interessa: você/SAF/2º clube (seu tier) e rivais (marrom) vêm
+  // do `colors`; bots ficam PRETO NEUTRO (igual à tabela de classificação) — antes
+  // ficavam num tom quente que parecia DOURADO e confundia com a sua cor de tier.
+  const nameCol = (id: number) => colors[id]?.solid ?? INK
   return (
     <div style={{ ...box('#fff'), padding: 9, marginBottom: 8 }}>
       <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>{DIV_LABEL[div]}</p>
