@@ -334,24 +334,16 @@ function Dashboard({ email }: { email: string }) {
     }
   }, [])
 
-  // ⚙️ ECONOMIA DE SERVIDOR: antes o painel consultava o banco a cada 12s SEMPRE
-  // (inclusive a consulta pesada de 30 dias), mesmo com a aba escondida. Agora:
-  // (1) intervalo de 30s (menos da metade das consultas); (2) PARA de consultar
-  // quando o painel não está visível (troca de aba/app) e retoma — atualizando na
-  // hora — quando você volta a olhar. "Quem está online agora" continua ao vivo
-  // pelo realtime (não depende deste intervalo), então não fica lento.
+  // ⚙️ ECONOMIA DE SERVIDOR (máx.): antes o painel consultava o banco a cada 12s
+  // SEMPRE (inclusive a consulta pesada de 30 dias). Agora NÃO tem mais consulta
+  // automática de fundo — só bate no banco quando: (1) você ABRE o painel; (2) você
+  // VOLTA pra ele (troca de aba/app e retorna); (3) você toca no botão "🔄 Atualizar".
+  // "Quem está online agora" continua ao vivo pelo realtime (não depende disto).
   useEffect(() => {
-    let iv: ReturnType<typeof setInterval> | null = null
-    const stop = () => { if (iv) { clearInterval(iv); iv = null } }
-    const start = () => { if (!iv) iv = setInterval(load, 30_000) }
-    const onVis = () => {
-      if (document.visibilityState === 'visible') { load(); start() } // voltou a olhar → atualiza já e retoma
-      else stop() // painel escondido → não gasta servidor à toa
-    }
     load()
-    if (document.visibilityState === 'visible') start()
+    const onVis = () => { if (document.visibilityState === 'visible') load() } // voltou a olhar → atualiza uma vez
     document.addEventListener('visibilitychange', onVis)
-    return () => { stop(); document.removeEventListener('visibilitychange', onVis) }
+    return () => document.removeEventListener('visibilitychange', onVis)
   }, [load])
 
   if (err) return <div style={card()}><p style={{ color: '#FF6B5A' }}>Erro ao carregar: {err}</p></div>
@@ -648,9 +640,10 @@ function Dashboard({ email }: { email: string }) {
         </div>
       </div>
 
+      <button onClick={() => load()} style={{ ...btn('#1B7A3D', '#fff') }}>🔄 Atualizar dados</button>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', opacity: 0.5, fontSize: 12 }}>
         <span>Logado: {email}</span>
-        <span>Atualiza sozinho · {updatedAt ? new Date(updatedAt).toLocaleTimeString('pt-BR') : ''}</span>
+        <span>Atualizado às {updatedAt ? new Date(updatedAt).toLocaleTimeString('pt-BR') : '—'}</span>
       </div>
       <button onClick={() => logout()} style={{ ...btn('#2a2a2a', '#fff'), opacity: 0.7 }}>Sair da conta</button>
     </div>
