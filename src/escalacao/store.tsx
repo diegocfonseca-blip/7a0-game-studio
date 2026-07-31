@@ -2634,6 +2634,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.onlineMode = 'cpu'
       s.isHost = true
       s.careerOnline = true
+      s.simV = 3 // carreira nova já nasce na fórmula nova (gol realista + menos goleada)
       s.careerEra = MANUAL_ERA // 🎮 carreira NOVA: o Modo Manual pede apoio. Saves ANTIGOS não têm esse campo → seguem com o manual liberado (grandfather).
       s.roomId = ''; s.roomCode = ''; s.roomName = undefined
       s.locked = undefined; s.pwHash = undefined; s.streamMode = false; s.manualRoom = false
@@ -2727,7 +2728,7 @@ export function reducer(state: EscState, action: Action): EscState {
       return restored
     }
     case 'START_ONLINE': {
-      s.simV = 2 // fórmula nova só vale a partir desta temporada
+      s.simV = 3 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       s.onlineMode = 'online'
       // baralho da sala: Rápido sempre BR; Carreira online pode ser BR, Europa
       // ou os dois juntos (escolha do host). O leilão e a temporada são o motor
@@ -3547,7 +3548,7 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'NEXT_SEASON_ONLINE': {
-      s.simV = 2 // fórmula nova só vale a partir desta temporada
+      s.simV = 3 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       // carreira online (mesmo time): nova colocação (acessos/quedas já aplicados
       // pelo host, determinístico) + zera a rodada e sobe a temporada. Os elencos
       // seguem os mesmos (novo leilão é um fluxo à parte).
@@ -3570,7 +3571,7 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'REAUCTION_ONLINE': {
-      s.simV = 2 // fórmula nova só vale a partir desta temporada
+      s.simV = 3 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       // carreira online (novo leilão): aplica a nova colocação e REFAZ o leilão
       // — mesmos técnicos (ids/times preservados), elencos zerados, orçamento
       // parelho pra todos. A divisão só importa na hora de jogar a temporada.
@@ -3655,7 +3656,7 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'RESERVE_AUCTION_ONLINE': {
-      s.simV = 2 // fórmula nova só vale a partir desta temporada
+      s.simV = 3 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       // fecha a VENDA e abre a COMPRA (leilão de reservas). MANTÉM os elencos,
       // consome a lista (tira os listados dos times e joga no baralho — o dono
       // pode dar lance de volta), marca "elenco fundo" (mira 22) e o orçamento é a
