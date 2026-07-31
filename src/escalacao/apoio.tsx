@@ -37,7 +37,7 @@ export const APOIO_PERKS: Record<ApoioTier, ApoioPerk> = {
 const FOUNDERS: Record<string, ApoioTier> = {
   'diego.c.fonseca@gmail.com': 'ouro',
   'willian.chagass@outlook.com': 'ouro',
-  'gabrielcunico1909@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual (era ouro por engano; Diego confirmou Craque)
+  'gabrielcunico1909@gmail.com': 'ouro',
   'davidsccp16@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual
   'daviddmartinsff11m@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'victorcarvalhoalves@hotmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
