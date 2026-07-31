@@ -2110,8 +2110,12 @@ function sealAndResolve(state: EscState) {
 // presença é um sinal instável de rede e causava avanço prematuro/dessincronizado
 // entre jogadores — um "piscar" de conexão fazia o jogo achar que só faltava um).
 function humansToSubmit(state: EscState, pos: Sector): number[] {
+  // 🏛️ MULTICLUBES: o clube que está DORMINDO é `isHuman` (assento meu), mas NÃO
+  // dá lance nem lacra — ele fica congelado "mesmo time". Sem excluí-lo aqui, o
+  // leilão esperava PRA SEMPRE ele lacrar (allIn nunca fechava) e travava no
+  // "TEMPO 0s". No-op em jogo normal (ninguém tem `dormindo`).
   return state.managers
-    .filter(m => m.isHuman && openSlots(m, pos) > 0 && m.money > 0)
+    .filter(m => m.isHuman && !m.dormindo && openSlots(m, pos) > 0 && m.money > 0)
     .map(m => m.id)
 }
 
