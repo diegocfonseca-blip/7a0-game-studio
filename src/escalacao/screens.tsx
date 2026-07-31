@@ -952,7 +952,9 @@ function CardFace({ c, big = false, surprise = false, highlight = false }: { c: 
       <div className="flex items-center gap-2">
         <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black" style={{ backgroundColor: INK, color: '#fff' }}>{posTag(c.pos)}</span>
         {surprise
-          ? <span className={`font-black ${big ? 'text-2xl' : 'text-base'} inline-flex items-center gap-1.5`} style={{ ...OSWALD, color: PURPLE }}>🎁 <span aria-hidden style={{ filter: 'blur(7px)', userSelect: 'none' }}>{c.name}</span></span>
+          // 🙈 ANTI-SPOILER: o nome REAL não vai pro HTML (antes só era borrado por CSS —
+          // dava pra ler no "inspecionar"). Placeholder mascarado até a revelação.
+          ? <span className={`font-black ${big ? 'text-2xl' : 'text-base'} inline-flex items-center gap-1.5`} style={{ ...OSWALD, color: PURPLE }}>🎁 <span aria-hidden style={{ filter: 'blur(4px)', letterSpacing: 3, userSelect: 'none' }}>? ? ? ?</span></span>
           : <p className={`font-black ${big ? 'text-2xl' : 'text-base'}`} style={{ ...OSWALD, color: highlight ? PURPLE : INK }}>{c.name}{highlight ? ' 🎁' : ''}</p>}
       </div>
       <p className={`${big ? 'text-sm' : 'text-xs'} font-semibold text-black/60 mt-0.5`}>{c.club} · {c.year}</p>
@@ -2747,6 +2749,20 @@ function Reveal() {
     return () => timers.forEach(clearTimeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.revealIdx])
+  // 🔨 ANTI-SPOILER: o vencedor só fica VERDE quando o martelo bate (hammerDelay) —
+  // nunca antes. Sem isto, a linha do maior lance entrava já verde em ~0s e a sala
+  // via quem ganhou (e por quanto) antes do apito/martelo.
+  const [hammered, setHammered] = useState(false)
+  useEffect(() => {
+    setHammered(false)
+    const it = state.revealQueue[state.revealIdx]
+    if (!it) return
+    const tieHit = state.tiebreaks.some(t => t.card.id === it.card.id && t.winner !== null)
+    const hd = it.bids.length * 0.25 + (tieHit ? 1.2 : 0.2)
+    const t = setTimeout(() => setHammered(true), hd * 1000)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.revealIdx])
   if (!item) return (
     <Shell bar={<AuctionBar />}>
       <div className="text-center pt-12 space-y-2">
@@ -2791,12 +2807,16 @@ function Reveal() {
             {item.bids.length === 0 && (
               <p className="font-bold text-black/70">Nenhum lance. Vai pro Monte Final. 🪣</p>
             )}
-            {item.bids.map((b, i) => {
+            {/* 🔒 ANTI-SPOILER + "pote crescente": lances revelados do MENOR pro MAIOR,
+                então o vencedor (maior) aparece por ÚLTIMO, coladinho no martelo — e só
+                fica VERDE quando o martelo bate (hammered). Antes o maior vinha 1º e já
+                verde: entregava o ganhador antes do apito. */}
+            {[...item.bids].sort((a, b) => a.amount - b.amount).map((b, i) => {
               const m = state.managers.find(x => x.id === b.mgr)!
               const voided = item.voided.includes(b.mgr)
-              const isWinner = item.winner === b.mgr
+              const isWinner = item.winner === b.mgr && hammered
               return (
-                <motion.div key={i} initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.25 }}
+                <motion.div key={b.mgr} initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.25 }}
                   className="flex items-center justify-between border-2 border-black rounded-lg px-3 py-1.5"
                   style={{ backgroundColor: isWinner ? GREEN : voided ? '#ddd' : '#fff' }}>
                   <p className="font-bold text-sm" style={{ color: isWinner ? '#fff' : INK }}>
@@ -2828,11 +2848,19 @@ function Reveal() {
               `🫠 Doeu: ${n} a mais e ${card} tinha outro dono…`,
               `⚰️ Enterrado por ${n}! ${who} quase leva ${card}!`,
               `🎯 Errou por ${n}! ${card} passou raspando de ${who}!`,
+              `🥊 No detalhe! ${n} tirou ${card} das mãos de ${who}!`,
+              `😤 Faltou ${n} pra ${who} fechar com ${card}. Que ódio!`,
+              `🎣 Escapou do anzol! ${card} livrou-se de ${who} por ${n}!`,
+              `🧊 Gelou! ${who} perde${names.length > 1 ? 'm' : ''} ${card} por meros ${n}.`,
+              `🚪 Bateu a porta na cara: ${card} foi embora por ${n} de ${who}!`,
+              `🩹 Ai! ${n} de diferença e ${card} não é de ${who}…`,
+              `📉 Deu ruim por ${n}! ${who} olha ${card} de longe.`,
+              `🫥 Sumiu por ${n}: ${card} escorregou de ${who}!`,
             ]
             return (
               <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: hammerDelay + 0.4 }}
                 className="mt-2 border-2 border-black rounded-lg px-3 py-1.5 text-center" style={{ backgroundColor: '#FFE1DC' }}>
-                <p className="font-black text-[13px]" style={{ ...OSWALD, color: RED }}>{frases[moneySeed(item.card.id) % frases.length]}</p>
+                <p className="font-black text-[13px]" style={{ ...OSWALD, color: RED }}>{frases[(moneySeed(item.card.id) + state.revealIdx) % frases.length]}</p>
               </motion.div>
             )
           })()}
@@ -3808,7 +3836,7 @@ export function EscSeason() {
           gol animar. Só mostra depois do apito. */}
       {copaLive && copaMin >= 93 && <CopaScorersBox highlight={you.id} />}
       <TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" />
-      <TopScorersBox highlight={you.id} title="⚽ ARTILHARIA DA LIGA LEGENDS" />
+      <TopScorersBox highlight={you.id} title="⚽ ARTILHARIA DA LIGA LEGENDS" hold={!resultRevealed} />
       <YourPitch small />
       {state.careerDivision && <RivalTracker />}
       <CreditLine className="pt-4 pb-2" />
@@ -3850,12 +3878,16 @@ function RivalTracker() {
   )
 }
 
-function TopScorersBox({ highlight, title = '⚽ ARTILHARIA · TEMPO REAL' }: { highlight: number; title?: string }) {
+function TopScorersBox({ highlight, title = '⚽ ARTILHARIA · TEMPO REAL', hold = false }: { highlight: number; title?: string; hold?: boolean }) {
   const { state } = useEsc()
   const [blLang] = useLang()
   const bb = state.sport === 'basquete' // 🏀 basquete: cestinha/pontos no lugar de artilharia/gols
   const L = (pt: string, en: string) => (bb && blLang === 'en') ? en : pt
-  const rows = topScorers(state, 10)
+  // 🙈 ANTI-SPOILER: enquanto o SEU jogo anima (hold), mostra a artilharia de ANTES
+  // da rodada (scorersPrev) — os gols novos só entram no apito. Sem isto o total do
+  // artilheiro subia com a partida rolando e entregava o gol antes de animar.
+  const src = hold && state.scorersPrev ? state.scorersPrev : state.scorers
+  const rows = [...src].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, 10)
   if (rows.length === 0) {
     return (
       <Box className="p-3">
