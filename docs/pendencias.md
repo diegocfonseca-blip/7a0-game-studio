@@ -86,6 +86,12 @@ Diego: "muita gente diz que às vezes NÃO CONTA ou NÃO APARECE" a carta do cam
   - **NÃO mexido de propósito (pedido do Diego):** logo de patrocínio repetido (Vadico) em `estadio.tsx` — ele quer manter.
   - **Buildado (tsc+vite OK). 4 commits isolados (pyramidseason · jornal · store+types · screens). Reversível.**
 
+## ⚖️ Balanceamento / realismo da carreira pirâmide (31/07)
+- **Análise a fundo com o MOTOR REAL** (SSR do Vite headless, centenas de temporadas simuladas — sonda de nível 60→88 em cada divisão + baseline). Veredito: **mérito e escada de dificuldade já estavam BONS** (melhor time fica na frente; D→C→B→A exige time melhor; Série A no talo = ~metade dos anos de título, corrida real). Os 2 furos reais eram **gol demais** (Série A 4,2/jogo, arcade) e **Série A com freguês** (lanterna ~12 pts; folga 1º-20º de 75, a elite era a MAIS bagunçada).
+- ✅ **FEITO (só simulação da partida; NÃO tocou leilão, divisões nem dificuldade):** fórmula de gol **v3** — base/casa/peso-da-diferença menores + teto de qualidade 1.12. Resultado medido: Série A **4,2→3,1 gols/jogo**, lanterna **12→17 pts**, folga **75→66** (elite mais equilibrada); mérito/escada intactos (nível 88 = campeão da A em ~56% dos anos). **Travado por `simV`** (v3): temporada em andamento (simV<3) termina no modelo antigo, a próxima nasce no novo; carreira nova já nasce v3. Medido: **v2 byte-idêntico ao de hoje** (in-progress não muda). `pyramidseason.tsx` (GOAL_TUNE + gating) + `store.tsx` (simV 2→3). Reversível.
+- ❌ **DESCARTADO com o Diego (não fazer):** "mundo evolui" (rival ganha força sozinho — briga com o leilão, que os bots já disputam) e "envelhecimento de elenco" — Diego não quis. Regra do leilão (quem vai, quantos) **NÃO se mexe**.
+- 💤 **Na gaveta (ideia do Diego, é DIVERSÃO não balanceamento):** 👑 "peso da coroa" — quando você é campeão, começam a pintar **machucado / expulsão / zoeira** (Romário pulou o muro, Edmundo faltou o treino…), **mas só se tiver reserva na posição** (senão nem aparece o banner — profundidade importa, nunca deixa o time quebrado). Conteúdo em 2 camadas: banco genérico (serve pra todos) + pérolas folclóricas (`folk`) pingadas aos poucos. Fazer mockup do banner antes. Não decidido — quando o Diego quiser.
+
 ## 🏀 BidLegends
 - Conceito completo: `docs/conceito-basquete.md` (pirâmide, 82 jogos, conferências, elenco 15, domínio bidlegendsarena.com).
 - **Fase 1 — ✅ NO AR (fundida na main 26/07, aprovada pelo Diego):**
