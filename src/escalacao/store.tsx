@@ -4172,6 +4172,41 @@ export function readCareerArchive(): CareerSlot[] {
 function writeCareerArchive(slots: CareerSlot[]) {
   try { localStorage.setItem(CAREER_ARCHIVE_KEY, JSON.stringify(slots.slice(0, MAX_CAREER_SLOTS))) } catch { /* cota cheia — ignora */ }
 }
+// 🔐 DONO do armazenamento LOCAL de carreiras. Na NUVEM cada carreira já é por
+// CONTA (user_id). Mas os saves LOCAIS do aparelho (esc-solo-career + arquivo)
+// eram COMPARTILHADOS — se outra conta logava no MESMO celular, as carreiras se
+// misturavam (a conta A subia pra nuvem da conta B). Agora o aparelho pertence a
+// UMA conta por vez: ao TROCAR de conta, guardo as carreiras da conta anterior num
+// COFRE local (não perde NADA) e começo limpo pra conta que entrou (que puxa os
+// saves DELA da nuvem). Quando a conta volta, restauro o cofre dela. O que manda é
+// o LOGIN, nunca o aparelho.
+const CAREER_OWNER_KEY = 'esc-career-owner'
+const CAREER_VAULT_PREFIX = 'esc-career-vault::'
+const LOCAL_CAREER_KEYS = ['esc-solo-career', 'esc-solo-career-at', CAREER_ARCHIVE_KEY, SOLO_RESUME_KEY]
+type CareerVault = Record<string, string | null>
+function stashLocalCareers(): CareerVault {
+  const v: CareerVault = {}
+  for (const k of LOCAL_CAREER_KEYS) { try { v[k] = localStorage.getItem(k) } catch { v[k] = null } }
+  return v
+}
+function clearLocalCareers() { for (const k of LOCAL_CAREER_KEYS) { try { localStorage.removeItem(k) } catch { /* ignora */ } } }
+function restoreLocalCareers(v: CareerVault) {
+  for (const k of LOCAL_CAREER_KEYS) { try { const val = v[k]; if (val == null) localStorage.removeItem(k); else localStorage.setItem(k, val) } catch { /* ignora */ } }
+}
+// carimba o aparelho com a conta atual. Mesma conta = no-op (caminho quente, roda
+// a cada autosave). 1ª vez (saves antigos, sem dono) = a conta atual assume o que
+// já está no aparelho (não mexe em quem já jogava). Conta DIFERENTE = guarda a
+// anterior no cofre, limpa o compartilhado e restaura o cofre da conta que entrou.
+function ensureCareerOwner(uid: string) {
+  let owner: string | null = null
+  try { owner = localStorage.getItem(CAREER_OWNER_KEY) } catch { /* ignora */ }
+  if (owner === uid) return
+  if (owner == null) { try { localStorage.setItem(CAREER_OWNER_KEY, uid) } catch { /* ignora */ } return }
+  try { localStorage.setItem(CAREER_VAULT_PREFIX + owner, JSON.stringify(stashLocalCareers())) } catch { /* ignora */ }
+  clearLocalCareers()
+  try { const raw = localStorage.getItem(CAREER_VAULT_PREFIX + uid); if (raw) restoreLocalCareers(JSON.parse(raw) as CareerVault) } catch { /* ignora */ }
+  try { localStorage.setItem(CAREER_OWNER_KEY, uid) } catch { /* ignora */ }
+}
 export function readActiveCareer(): CareerSlot | null {
   try { const r = localStorage.getItem('esc-solo-career'); if (r) { const save = JSON.parse(r); if (isCareerSave(save)) { if (saveMexido(save)) marcaMexido(save); return { save, at: +(localStorage.getItem('esc-solo-career-at') || Date.now()) } } } } catch { /* ignora */ }
   return null
@@ -4268,6 +4303,7 @@ export async function savePyramidCloud(state: EscState, force = false) {
     if (!force && Date.now() - lastPyrCloud < 6000) return // throttle: no máx. 1 escrita/6s
     const { data } = await supabase.auth.getUser()
     if (!data?.user) return
+    ensureCareerOwner(data.user.id) // 🔐 este aparelho é DESTA conta — nunca sobe/mistura carreira de outra
     lastPyrCloud = Date.now()
     let payload: unknown = state
     if (isCareerSave(state)) {
@@ -4310,6 +4346,9 @@ export async function loadPyramidCloud(): Promise<CloudCareers | null> {
 // o conjunto unido. A ativa passa a ser a mais recente. Roda na HOME (nunca no jogo).
 export async function syncCareersWithCloud(): Promise<boolean> {
   try {
+    const { data: u } = await supabase.auth.getUser()
+    if (!u?.user) return false
+    ensureCareerOwner(u.user.id) // 🔐 rebaseia o aparelho pra ESTA conta ANTES de juntar local↔nuvem
     const cloud = await loadPyramidCloud()
     if (!cloud) return false
     const localCareers = listAllCareers().map(({ slot }) => slot)
