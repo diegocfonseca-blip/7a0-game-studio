@@ -2988,10 +2988,11 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'SWITCH_MULTICLUBE': {
-      // 🏛️ MULTICLUBES · troca de comando (SÓ entre temporadas — a UI só mostra o
-      // botão na tela de fim). Passa o comando pro outro clube; o que sai DORME
-      // (congelado, "mesmo time"). Nada mistura: caixa/títulos/estádio já são por id;
-      // os campos ÚNICOS do solo (extrato/SAF/patrocínio/agência) fazem swap com o stash.
+      // 🏛️ MULTICLUBES · troca de comando LIVRE (Opção B): a UI (aba Clube) só libera
+      // o botão em momento SEGURO — fora do leilão (outra tela) e sem rodada/Copa
+      // animando. Passa o comando pro outro clube; o que sai DORME (congelado, "mesmo
+      // time"). Nada mistura: caixa/títulos/estádio já são por id; os campos ÚNICOS do
+      // solo (extrato/SAF/patrocínio/agência) fazem swap com o stash.
       if (s.onlineMode === 'online' || !s.careerOnline || !s.multiClube) return s
       const active = s.managers[s.youIdx]
       const sleepIdx = s.managers.findIndex(m => m.id === s.multiClube!.id)

@@ -1932,6 +1932,10 @@ export function PyramidSeasonScreen() {
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti'>('arti')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio'>('estadio') // 🏟️/💰/💼 sub-abas da aba Clube
+  // 🏛️ MULTICLUBES (Opção B): seletor livre. `multiAsk` = modal de confirmar a troca;
+  // `multiPending` = você apertou no meio de uma rodada (auto) → troca no fim dela.
+  const [multiAsk, setMultiAsk] = useState(false)
+  const [multiPending, setMultiPending] = useState(false)
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads])
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const careerLineup = (state.careerLineup ?? {}) as RoundLineups
@@ -2067,6 +2071,13 @@ export function PyramidSeasonScreen() {
     if (copaFinished && state.careerOnline && state.copaDoneSeason !== state.seasonNo) dispatch({ type: 'MARK_COPA_DONE' })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished])
+  // 🏛️ MULTICLUBES: momento SEGURO pra trocar = nenhuma rodada nem Copa animando na
+  // tela (fora do leilão já é garantido — o leilão é outra tela). Se apertou o seletor
+  // no meio de uma rodada (auto), a troca ESPERA e abre o confirmar no fim dela.
+  const multiTravada = (!done && revealed < round) || copaPlaying
+  useEffect(() => {
+    if (multiPending && !multiTravada) { setMultiPending(false); setMultiAsk(true) }
+  }, [multiPending, multiTravada])
   // fase da Copa tocando agora (pra mostrar DISCRETO no cabeçalho, no lugar da divisão)
   const copaFase = copaPlaying && copa ? copa.rounds[copaRound] : null
   const copaFaseName = copaFase ? (copaFase.name === 'Final' ? 'Final' : copaFase.name) : ''
@@ -2565,6 +2576,46 @@ export function PyramidSeasonScreen() {
               loanSlots={/* mesma fonte de divisão da REGRA (colocação gravada; tabela ao vivo
                 como reserva) — se divergirem, o botão prometia 2 e o clique não fazia nada */
                 filialSlots(state.careerPlacements?.[`m${youId}`] ?? me?.div ?? 'D')} />
+            {/* 🏛️ MULTICLUBES · SELETOR LIVRE (Opção B): troca de clube a qualquer hora,
+                fora do leilão (outra tela) e de jogo/Copa rolando. Só testers, só solo. */}
+            {state.onlineMode !== 'online' && state.multiClube && (() => {
+              const ativo = state.managers[state.youIdx]?.teamName ?? '—'
+              const dormindo = state.multiClube.team
+              return (
+                <div style={{ ...box('#0C0C0C'), padding: 12, color: '#fff', marginBottom: 10 }}>
+                  <p style={{ fontWeight: 900, fontSize: 12.5, color: GOLD, ...OSWALD, margin: '0 0 7px' }}>🏛️ MULTICLUBES — quem você comanda?</p>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: GOLD, color: '#000', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>🟡 {ativo}<div style={{ fontSize: 8, fontWeight: 800 }}>no comando ✓</div></div>
+                    <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: '#3a3a3a', color: 'rgba(255,255,255,.7)', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>⚪ {dormindo}<div style={{ fontSize: 8, fontWeight: 800 }}>dormindo 💤</div></div>
+                  </div>
+                  {multiTravada
+                    ? <div style={{ marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 11, background: '#4a4740', color: 'rgba(255,255,255,.9)', textAlign: 'center', ...OSWALD }}>
+                        {multiPending ? '🔄 Vou parar no fim desta rodada pra você trocar…' : `🔒 ${copaPlaying ? 'Deixe a Copa acabar' : 'Deixe a rodada acabar'} pra trocar de clube`}
+                        {!multiPending && !manual && !copaPlaying && <button onClick={() => setMultiPending(true)} style={{ display: 'block', width: '100%', marginTop: 6, border: '2px solid #000', borderRadius: 8, padding: 6, fontWeight: 900, fontSize: 10.5, background: GOLD, color: '#000', cursor: 'pointer', ...OSWALD }}>🔄 Trocar no fim desta rodada</button>}
+                      </div>
+                    : <button onClick={() => setMultiAsk(true)} style={{ width: '100%', marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 10, fontWeight: 900, fontSize: 12.5, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>🔄 Passar o comando pro {dormindo}</button>}
+                  <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(255,255,255,.5)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.4 }}>Cada clube tem o <b>seu</b> caixa, elenco, títulos e estádio — nada se mistura. O que dorme segue a temporada no automático, com o time como está.</p>
+                </div>
+              )
+            })()}
+            {/* modal de CONFIRMAR a troca (explicação completa) */}
+            {multiAsk && state.multiClube && (() => {
+              const dormindo = state.multiClube.team
+              const ativo = state.managers[state.youIdx]?.teamName ?? '—'
+              return (
+                <div onClick={() => setMultiAsk(false)} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(8,6,3,.66)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+                  <div onClick={e => e.stopPropagation()} style={{ ...box('#F4ECD6'), maxWidth: 340, width: '100%', padding: 16, textAlign: 'center' }}>
+                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: 0 }}>🔄 Trocar de clube</p>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 600, color: '#3a3222', margin: '8px 0 0', lineHeight: 1.5 }}>Você vai comandar o <b>{dormindo}</b> agora. O <b>{ativo}</b> passa a <b>dormir</b>: segue a temporada no automático, com o time como está.</p>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 11.5, fontWeight: 600, color: '#5a5647', margin: '8px 0 0', lineHeight: 1.45 }}>💤 Se um empréstimo acabar enquanto ele dorme, o titular do próprio clube volta sozinho — nunca joga com 10. Dá pra voltar quando quiser.</p>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                      <button onClick={() => setMultiAsk(false)} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>Voltar</button>
+                      <button onClick={() => { setMultiAsk(false); dispatch({ type: 'SWITCH_MULTICLUBE' }) }} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#1B7A3D', color: '#fff', cursor: 'pointer', ...OSWALD }}>🔄 Trocar</button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
             {/* 🏛️ MULTICLUBES (Fase 1 — a compra) · em construção, só testers veem · só solo */}
             {state.onlineMode !== 'online' && (() => {
               const opcoes = (() => {
