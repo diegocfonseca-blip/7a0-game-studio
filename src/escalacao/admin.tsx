@@ -330,14 +330,28 @@ function Dashboard({ email }: { email: string }) {
       setErr(lastErr || 'erro ao carregar')
     } catch {
       // backend fora (instabilidade Supabase): mostra aviso em vez de travar em "Carregando…"
-      setErr('Servidor fora do ar (instabilidade). Re-tentando sozinho a cada 12s…')
+      setErr('Servidor fora do ar (instabilidade). Re-tentando sozinho a cada 30s…')
     }
   }, [])
 
+  // ⚙️ ECONOMIA DE SERVIDOR: antes o painel consultava o banco a cada 12s SEMPRE
+  // (inclusive a consulta pesada de 30 dias), mesmo com a aba escondida. Agora:
+  // (1) intervalo de 30s (menos da metade das consultas); (2) PARA de consultar
+  // quando o painel não está visível (troca de aba/app) e retoma — atualizando na
+  // hora — quando você volta a olhar. "Quem está online agora" continua ao vivo
+  // pelo realtime (não depende deste intervalo), então não fica lento.
   useEffect(() => {
+    let iv: ReturnType<typeof setInterval> | null = null
+    const stop = () => { if (iv) { clearInterval(iv); iv = null } }
+    const start = () => { if (!iv) iv = setInterval(load, 30_000) }
+    const onVis = () => {
+      if (document.visibilityState === 'visible') { load(); start() } // voltou a olhar → atualiza já e retoma
+      else stop() // painel escondido → não gasta servidor à toa
+    }
     load()
-    const iv = setInterval(load, 12_000)
-    return () => clearInterval(iv)
+    if (document.visibilityState === 'visible') start()
+    document.addEventListener('visibilitychange', onVis)
+    return () => { stop(); document.removeEventListener('visibilitychange', onVis) }
   }, [load])
 
   if (err) return <div style={card()}><p style={{ color: '#FF6B5A' }}>Erro ao carregar: {err}</p></div>
