@@ -1603,7 +1603,10 @@ function buildMonteOrder(managers: Manager[], rng: () => number, careerOnline: b
   // fundo de 22 vagas teriam buracos demais e pegariam as sobras antes dos
   // humanos). Eles só levam o que ganham no pregão pago.
   const holes = (m: Manager) => careerOnline ? careerHoles(m) : totalHoles(m)
-  const withHoles = managers.filter(m => holes(m) > 0 && !m.backstop && !m.marketCpu)
+  // 🏛️ MULTICLUBES: o clube DORMINDO (isHuman, assento meu) não pesca no monte —
+  // sem excluí-lo, o monte parava na "vez" dele esperando uma escolha que nunca
+  // vem e o leilão não fechava. No-op em jogo normal (ninguém dormindo).
+  const withHoles = managers.filter(m => holes(m) > 0 && !m.backstop && !m.marketCpu && !m.dormindo)
   if (withHoles.length === 0) return []
   const base = [...withHoles].sort((a, b) => holes(b) - holes(a) || rng() - 0.5).map(m => m.id)
   const maxHoles = Math.max(...withHoles.map(holes))
@@ -2207,7 +2210,9 @@ function redraftSeason(s: EscState): EscState {
 // só a si mesmo) e isso liberava o reinício sem o OK dos outros. Se alguém caiu
 // e não confirma, o host tem o botão Cancelar.
 function humanManagerIds(s: EscState): number[] {
-  return s.managers.filter(m => m.isHuman).map(m => m.id)
+  // 🏛️ MULTICLUBES: clube dormindo não conta como "técnico pronto" — senão o
+  // reinício ficava esperando um assento que nunca confirma. No-op em jogo normal.
+  return s.managers.filter(m => m.isHuman && !m.dormindo).map(m => m.id)
 }
 function maybeStartRedraft(s: EscState): EscState {
   if (!s.restartPending) return s
