@@ -5634,8 +5634,18 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   const startLeilao = async () => {
     if (!state.roomId) { dispatch({ type: 'REMATCH' }); return }
     try {
-      const { data: pls } = await supabase.from('room_players').select('manager_name, player_index').eq('room_id', state.roomId).order('player_index')
-      const playerNames = ((pls ?? []) as { manager_name: string }[]).map(p => p.manager_name)
+      const { data: auth } = await supabase.auth.getUser()
+      const { data: pls } = await supabase.from('room_players').select('user_id, manager_name, player_index').eq('room_id', state.roomId).order('player_index')
+      // 🛟 DEDUPLICA por usuário (reconexão/refresh no meio do jogo pode ter deixado
+      // vaga DUPLICADA no banco) e usa a POSIÇÃO na lista limpa como número do
+      // técnico — EXATAMENTE como o INÍCIO da sala faz. Sem isso, o "novo leilão"
+      // montava os assentos numa ordem diferente do jogo 1 e o "quem sou eu" (youIdx)
+      // deslizava pra um BOT (o bug do "virei o Biriba United"). Assim a ordem dos
+      // assentos é IDÊNTICA à do jogo anterior e ninguém desliza.
+      const sorted = ((pls ?? []) as { user_id: string; manager_name: string; player_index: number }[])
+      const seen = new Set<string>()
+      const uniq = sorted.filter(p => (seen.has(p.user_id) ? false : (seen.add(p.user_id), true)))
+      const playerNames = uniq.map(p => p.manager_name)
       // sobrou só o host na sala (ex.: excluiu o único convidado)? Leilão novo
       // precisa de 2+ — volta pra sala de espera pra chamar gente, sem travar.
       if (playerNames.length < 2) {
@@ -5645,10 +5655,11 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         return
       }
       await supabase.from('game_rooms').update({ status: 'started' }).eq('id', state.roomId)
+      const myPos = auth?.user ? uniq.findIndex(p => p.user_id === auth.user!.id) : -1
       dispatch({
         type: 'START_ONLINE',
         roomId: state.roomId, roomCode: state.roomCode, roomName: state.roomName,
-        isHost: state.isHost, playerIndex: state.youIdx,
+        isHost: state.isHost, playerIndex: myPos >= 0 ? myPos : state.youIdx, // meu assento = minha posição na lista limpa
         playerNames, formation: state.managers[state.youIdx]?.formation ?? '4-3-3',
         deck: state.deckLeague, rematch: Date.now(), copaMode: state.copaMode, // mantém a escolha da sala
       })
