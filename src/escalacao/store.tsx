@@ -2694,10 +2694,8 @@ export function reducer(state: EscState, action: Action): EscState {
       // 2º clube, o comando pode estar em OUTRO assento (você trocou de clube). Se
       // eu forçasse 0 no reload, o clube que você comandava virava "outro humano na
       // sala" e o seletor mostrava OS DOIS com o SEU nome. Então: com multiclube,
-      // reancoro no assento ATIVO (o humano que NÃO está dormindo); sem, segue 0.
-      const resumeYouIdx = action.saved.multiClube
-        ? (() => { const i = (action.saved.managers ?? []).findIndex(m => m.isHuman && !m.dormindo); return i >= 0 ? i : 0 })()
-        : 0
+      // reancoro no assento ATIVO (o humano que NÃO é o que está dormindo); sem, 0.
+      const resumeYouIdx = activeSeatIdx(action.saved)
       const restored = migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: resumeYouIdx, humanCount: 1, careerOnline: true })
       // 🧾 RECONCILIAÇÃO 1x de saves ANTIGOS (feitos antes do extrato registrar
       // saldo inicial, estádio e SAF): se o extrato não tem o 'saldo inicial', lança
@@ -4141,6 +4139,16 @@ const SOLO_GAME_SCREENS = ['auction', 'monte', 'cerimonia', 'season', 'end'] as 
 function isSoloGameScreen(screen: string): boolean {
   return (SOLO_GAME_SCREENS as readonly string[]).includes(screen)
 }
+// 🏛️ MULTICLUBES: qual assento está NO COMANDO num save de carreira. Sem 2º clube
+// (ou save comum) = 0. Com multiclube, `multiClube.id` é SEMPRE o clube que DORME
+// → o ativo é o humano cujo id é DIFERENTE dele. É o sinal mais confiável (mais
+// que a flag `dormindo`, que poderia dessincronizar). Assim o reload nunca mostra
+// os dois clubes com o mesmo nome nem cria "humano fantasma" no leilão solo.
+function activeSeatIdx(s: EscState): number {
+  if (!s?.multiClube || !Array.isArray(s.managers)) return 0
+  const i = s.managers.findIndex(m => m.isHuman && m.id !== s.multiClube!.id)
+  return i >= 0 ? i : 0
+}
 function loadSoloInProgress(): EscState | null {
   try {
     const raw = localStorage.getItem(SOLO_RESUME_KEY)
@@ -4148,6 +4156,7 @@ function loadSoloInProgress(): EscState | null {
     const s = JSON.parse(raw) as EscState
     if (s && s.onlineMode === 'cpu' && isSoloGameScreen(s.screen) && Array.isArray(s.managers) && s.managers.length > 0) {
       if (saveMexido(s)) marcaMexido(s) // 🔒 lacre não bateu = editado na mão → marca no painel (não trava)
+      if (s.multiClube) s.youIdx = activeSeatIdx(s) // reancora no clube que você comanda (nunca no dormindo)
       return s
     }
   } catch { /* estado inválido/versão antiga — começa do zero */ }
