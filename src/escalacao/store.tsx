@@ -1277,8 +1277,8 @@ export function buildCareerSave(s: EscState): CareerSave | null {
 function poisson(lambda: number, rng: () => number): number {
   const L = Math.exp(-lambda)
   let k = 0, p = 1
-  do { k++; p *= rng() } while (p > L)
-  return k - 1
+  do { k++; p *= rng() } while (p > L && k < 12)
+  return Math.min(k - 1, 7) // teto de 7 gols: jogo muito desigual não vira goleada irreal (8×0, 9×0)
 }
 
 const CPU_TACTICS: Tactic[] = ['retranca', 'equilibrio', 'ataque']
@@ -1400,9 +1400,14 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
           pool.push({ name: c.name, w: posW * (0.12 + n * n * 1.8) * (day.get(c.id) ?? 1) })
         }
         const total = pool.reduce((s, p) => s + p.w, 0)
-        let r = rng() * total
-        for (const p of pool) { r -= p.w; if (r <= 0) { scorerName = p.name; break } }
-        if (!scorerName) scorerName = pool[0].name
+        // 🧤 elenco degenerado (só goleiros/zagueiros sem peso = total 0): NÃO credita
+        // ninguém — vira "Gol de {time}" genérico. Sem isto, o rng*0 caía no pool[0] e
+        // um GOLEIRO podia ser cravado artilheiro (fere a regra do "sem perna-de-pau").
+        if (total > 0) {
+          let r = rng() * total
+          for (const p of pool) { r -= p.w; if (r <= 0) { scorerName = p.name; break } }
+          if (!scorerName) scorerName = pool[0].name
+        }
       }
       if (scorerName) {
         // credita no ranking (liga = state.scorers; Copa = qc.scorers, passado à parte)
@@ -3345,6 +3350,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // pro clássico 38 só se as fixtures ainda não existirem.
       const roundsTotal = s.fixtures.length || TOTAL_ROUNDS
       const isHumanId = (id: number) => !!s.managers.find(m => m.id === id && m.isHuman)
+      // 🙈 ANTI-SPOILER (liga offline): foto da artilharia ANTES desta rodada. A tela
+      // mostra ESTA foto enquanto o SEU jogo anima e só troca pela nova no apito —
+      // senão o total do artilheiro subia (ex.: "Romário 12→13") e entregava que ele
+      // te fez gol antes da partida animar. A tabela já segurava; a artilharia não.
+      s.scorersPrev = s.scorers.map(sc => ({ ...sc }))
       for (let i = 0; i < times && s.round < roundsTotal; i++) {
         const rng = mulberry(s.seed + 5000 + s.round * 37)
         // fotografa posições e gols ANTES pra narrar as viradas

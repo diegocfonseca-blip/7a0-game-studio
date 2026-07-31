@@ -396,6 +396,8 @@ export interface EscState {
   careerRivalCount: number // quantos rivais de leilão (3/5/7/9) na carreira
   careerRivals: CareerRival[] // rivais fixos (vida própria na pirâmide)
   scorers: ScorerRow[] // artilharia acumulada da temporada
+  scorersPrev?: ScorerRow[] // 🙈 anti-spoiler (liga offline): foto da artilharia ANTES da rodada que está animando — a tela mostra esta até o apito
+
   seasonNo: number // conta quantas temporadas essa sala/sessão já jogou (revanche)
   // "Reiniciar com novos times" (re-draft): precisa da galera toda online e
   // pronta antes de refazer o leilão. restartPending liga o painel de espera;
