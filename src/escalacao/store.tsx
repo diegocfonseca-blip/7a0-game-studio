@@ -1598,7 +1598,7 @@ function narrateRound(s: EscState, results: MatchResult[], prevRank: Map<number,
 function halveListed(cards: Card[]): Card[] {
   return cards.map(c => { const p = (c as { paid?: number }).paid; return p && p > 0 ? { ...c, paid: Math.floor(p / 2) } : c })
 }
-function buildMonteOrder(managers: Manager[], rng: () => number, careerOnline: boolean): number[] {
+function buildMonteOrder(managers: Manager[], rng: () => number, careerOnline: boolean, soloYouId?: number): number[] {
   // bots fiadores e times de fundo do mercado NÃO entram no monte (com elenco
   // fundo de 22 vagas teriam buracos demais e pegariam as sobras antes dos
   // humanos). Eles só levam o que ganham no pregão pago.
@@ -1606,7 +1606,12 @@ function buildMonteOrder(managers: Manager[], rng: () => number, careerOnline: b
   // 🏛️ MULTICLUBES: o clube DORMINDO (isHuman, assento meu) não pesca no monte —
   // sem excluí-lo, o monte parava na "vez" dele esperando uma escolha que nunca
   // vem e o leilão não fechava. No-op em jogo normal (ninguém dormindo).
-  const withHoles = managers.filter(m => holes(m) > 0 && !m.backstop && !m.marketCpu && !m.dormindo)
+  let withHoles = managers.filter(m => holes(m) > 0 && !m.backstop && !m.marketCpu && !m.dormindo)
+  // 🏛️ SOLO (robusto): só o assento ATIVO (youIdx) pesca no monte pela tela. Qualquer
+  // OUTRO assento humano (2º clube — dormindo OU com flag inconsistente por uma troca
+  // no meio do leilão) travaria a pilha esperando uma escolha que nunca vem. Bots/rivais
+  // (não-humanos) seguem pescando sozinhos. No online todos pescam no próprio aparelho.
+  if (soloYouId != null) withHoles = withHoles.filter(m => !m.isHuman || m.id === soloYouId)
   if (withHoles.length === 0) return []
   const base = [...withHoles].sort((a, b) => holes(b) - holes(a) || rng() - 0.5).map(m => m.id)
   const maxHoles = Math.max(...withHoles.map(holes))
@@ -2113,13 +2118,18 @@ function sealAndResolve(state: EscState) {
 // presença é um sinal instável de rede e causava avanço prematuro/dessincronizado
 // entre jogadores — um "piscar" de conexão fazia o jogo achar que só faltava um).
 function humansToSubmit(state: EscState, pos: Sector): number[] {
-  // 🏛️ MULTICLUBES: o clube que está DORMINDO é `isHuman` (assento meu), mas NÃO
-  // dá lance nem lacra — ele fica congelado "mesmo time". Sem excluí-lo aqui, o
-  // leilão esperava PRA SEMPRE ele lacrar (allIn nunca fechava) e travava no
-  // "TEMPO 0s". No-op em jogo normal (ninguém tem `dormindo`).
-  return state.managers
-    .filter(m => m.isHuman && !m.dormindo && openSlots(m, pos) > 0 && m.money > 0)
-    .map(m => m.id)
+  const eligible = state.managers.filter(m => m.isHuman && !m.dormindo && openSlots(m, pos) > 0 && m.money > 0)
+  // 🏛️ MULTICLUBES / SOLO: no solo SÓ o assento ATIVO (youIdx) consegue lacrar
+  // pela tela. Qualquer OUTRO assento humano (o 2º clube do Multiclubes — dormindo,
+  // OU com o flag `dormindo` inconsistente por uma troca no meio do leilão) nunca
+  // lacra e travaria o leilão pra sempre no "TEMPO 0s". Então, no solo, só espero o
+  // meu assento. No ONLINE cada humano lacra no próprio aparelho (mantém todos).
+  // No-op no jogo solo normal (só existe 1 humano = o youIdx).
+  if (state.onlineMode !== 'online') {
+    const meId = state.managers[state.youIdx]?.id
+    return eligible.filter(m => m.id === meId).map(m => m.id)
+  }
+  return eligible.map(m => m.id)
 }
 
 function advanceSectorOrFinish(state: EscState, rng: () => number) {
@@ -2129,7 +2139,7 @@ function advanceSectorOrFinish(state: EscState, rng: () => number) {
     state.sectorUnsoldAccum = []
     startAuctionPhase(state, false)
   } else {
-    state.monteOrder = buildMonteOrder(state.managers, rng, !!state.careerOnline)
+    state.monteOrder = buildMonteOrder(state.managers, rng, !!state.careerOnline, state.onlineMode !== 'online' ? state.managers[state.youIdx]?.id : undefined)
     state.monteIdx = 0
     state.screen = 'monte'
     advanceMonte(state, rng)
