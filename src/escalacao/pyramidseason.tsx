@@ -60,7 +60,7 @@ const NEED: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
 type PoolCard = Card
 const mid = (c: PoolCard) => (c.lo + c.hi) / 2
 function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
-function poisson(l: number, rng: () => number): number { const L = Math.exp(-l); let k = 0, p = 1; do { k++; p *= rng() } while (p > L); return k - 1 }
+function poisson(l: number, rng: () => number): number { const L = Math.exp(-l); let k = 0, p = 1; do { k++; p *= rng() } while (p > L && k < 12); return Math.min(k - 1, 7) } // teto de 7 gols: num jogo muito desigual evita goleada irreal (8×0, 9×0)
 function sectorPow(rolls: number[]): number { if (rolls.length === 0) return 40; const avg = rolls.reduce((a, b) => a + b, 0) / rolls.length; const min = Math.min(...rolls); return avg - (avg - min) * 0.35 }
 function shuffle<T>(arr: T[], rng: () => number): T[] { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1));[a[i], a[j]] = [a[j], a[i]] } return a }
 let filCounter = 0
@@ -1082,12 +1082,24 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
         : min <= 18 ? 'start'
           : (min >= 45 && min <= 63) ? 'half'
             : null
-  const endPhrase = basket
-    ? ['📢 Buzina final — acabou o jogo!', '📢 Fim de jogo na quadra!', '📢 Soou a buzina: fim de papo!'][Math.abs(roundKey) % 3]
-    : ['📢 Apito final — termina o jogo!', '📢 Apitou o árbitro: acabou!', '📢 Fim de jogo — pode tirar o uniforme!'][Math.abs(roundKey) % 3]
-  const ritualTxt = basket
-    ? (ritual === 'start' ? '🟢 Bola ao alto — começa o jogo!' : ritual === 'half' ? '🟢 Volta pra quadra — segundo tempo!' : ritual === 'end' ? endPhrase : null)
-    : (ritual === 'start' ? '🟢 Aaaaaauutoriza o árbitro — começa o primeiro tempo!' : ritual === 'half' ? '🟢 Aaaaaauutoriza o árbitro — rola o segundo tempo!' : ritual === 'end' ? endPhrase : null)
+  // 🎙️ NARRAÇÃO variada: cada rodada sorteia (determinístico pelo roundKey → a sala
+  // toda vê o mesmo no online) uma frase do banco pra apito inicial, volta do
+  // intervalo e apito final. Bem mais vida que a mesma frase toda partida — sem
+  // re-introduzir a narração robótica do meio do jogo (que foi tirada de propósito).
+  const rk = Math.abs(roundKey)
+  const START = basket
+    ? ['🟢 Bola ao alto — começa o jogo!', '🟢 Pulou a bola — tá valendo!', '🟢 Começa o duelo na quadra!']
+    : ['🟢 Aaaaaauutoriza o árbitro — começa o primeiro tempo!', '🟢 Rolou a bola — começa o jogo!', '🟢 Apitou o juiz: é dado o pontapé inicial!', '🟢 Começa a peleja de gente grande!', '🟢 Bola rolando — que comece a batalha!', '🟢 De saída! O árbitro liberou o duelo!']
+  const HALF = basket
+    ? ['🟢 Volta pra quadra — segundo tempo!', '🟢 Recomeça o jogo na quadra!', '🟢 Segunda metade — agora vale!']
+    : ['🟢 Aaaaaauutoriza o árbitro — rola o segundo tempo!', '🟢 Volta do intervalo — bola rolando de novo!', '🟢 Recomeça o jogo pra etapa final!', '🟢 Segundo tempo na área — agora decide!', '🟢 Voltaram os times: 45 minutos pra história!']
+  const END = basket
+    ? ['📢 Buzina final — acabou o jogo!', '📢 Fim de jogo na quadra!', '📢 Soou a buzina: fim de papo!', '📢 Acabou o duelo na quadra!']
+    : ['📢 Apito final — termina o jogo!', '📢 Apitou o árbitro: acabou!', '📢 Fim de jogo — pode tirar o uniforme!', '📢 Acabou! O juiz encerrou a peleja!', '📢 Fim de papo — placar fechado!', '📢 Soou o apito final — é isso aí!']
+  const ritualTxt = ritual === 'start' ? START[rk % START.length]
+    : ritual === 'half' ? HALF[rk % HALF.length]
+      : ritual === 'end' ? END[rk % END.length]
+        : null
   // ⏱️ relógio: futebol conta 0→90'; 🏀 basquete = 4 quartos de 12min contando
   // pra baixo (Q1 12:00 → Q4 0:00). O `min` (0→93) só dirige a animação — aqui
   // vira o rótulo certo por esporte.
@@ -1143,12 +1155,19 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     </div>
     )
   }
+  // 🎙️ selo de GOL variado (determinístico pelo minuto do gol → mesmo selo no online)
+  const goalSeed = Math.abs(last?.min ?? min)
+  const GOAL_FUT = ['⚽ GOOOL!', '⚽ É GOOOL!', '⚽ PINGOU!', '⚽ NA REDE!', '⚽ SACUDIU!', '⚽ ESTUFOU!', '⚽ GOLAÇO!']
+  const GOAL_FUT_LATE = ['🔥 GOL NO FIM!', '🔥 NO ÚLTIMO SUSPIRO!', '🔥 NOS ACRÉSCIMOS!', '🔥 SALVOU NO FIM!']
+  const goalStamp = basket
+    ? (lateGoal ? '🔥 CESTA NO FIM!' : '🏀 CESTA!')
+    : (lateGoal ? GOAL_FUT_LATE[goalSeed % GOAL_FUT_LATE.length] : GOAL_FUT[goalSeed % GOAL_FUT.length])
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coStamp{0%{transform:translateX(-50%) scale(0) rotate(-14deg);opacity:0}45%{transform:translateX(-50%) scale(1.18) rotate(-7deg);opacity:1}70%{transform:translateX(-50%) scale(.94) rotate(-7deg)}100%{transform:translateX(-50%) scale(1) rotate(-7deg);opacity:1}}'}</style>
       {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>🥊 CLÁSSICO</div>}
       {/* selo GOOOL! — surge sobre o lado de quem marcou */}
-      {goal && <div style={{ position: 'absolute', top: 4, left: goal === 'h' ? '25%' : '75%', transform: 'translateX(-50%) rotate(-7deg)', zIndex: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '3px 12px', ...OSWALD, fontWeight: 900, fontSize: 17, letterSpacing: 0.5, boxShadow: `2px 2px 0 0 ${INK}`, animation: 'coStamp .5s cubic-bezier(.2,1.4,.5,1) both', whiteSpace: 'nowrap', ...(lateGoal ? { background: '#FF5B4D', color: '#fff' } : {}) }}>{basket ? (lateGoal ? '🔥 CESTA NO FIM!' : '🏀 CESTA!') : (lateGoal ? '🔥 GOL NO FIM!' : '⚽ GOOOL!')}</div>}
+      {goal && <div style={{ position: 'absolute', top: 4, left: goal === 'h' ? '25%' : '75%', transform: 'translateX(-50%) rotate(-7deg)', zIndex: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '3px 12px', ...OSWALD, fontWeight: 900, fontSize: 17, letterSpacing: 0.5, boxShadow: `2px 2px 0 0 ${INK}`, animation: 'coStamp .5s cubic-bezier(.2,1.4,.5,1) both', whiteSpace: 'nowrap', ...(lateGoal ? { background: '#FF5B4D', color: '#fff' } : {}) }}>{goalStamp}</div>}
       <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', background: INK, color: '#fff', fontSize: 11, fontWeight: 900, ...OSWALD, padding: '3px 11px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 6, zIndex: 2, whiteSpace: 'nowrap' }}>
         <span style={{ width: 7, height: 7, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite' }} /> {done ? (basket ? 'FINAL' : 'FIM') : minLabel}
       </div>
@@ -1180,7 +1199,7 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
 }
 
 // ── os JOGOS de uma divisão (placar + quem fez os gols), cores por amigo ──
-function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matches: SimMatch[]; colors: Record<number, FCol>; humans: { name: string; teamId: number; you: boolean; rival?: boolean; dorm?: boolean }[]; hideId?: number }) {
+function DivMatches({ div, matches, colors, humans, hideId, reveal = true }: { div: Div; matches: SimMatch[]; colors: Record<number, FCol>; humans: { name: string; teamId: number; you: boolean; rival?: boolean; dorm?: boolean }[]; hideId?: number; reveal?: boolean }) {
   // cor SÓ pra quem interessa: você/SAF/2º clube (seu tier) e rivais (marrom) vêm
   // do `colors`; bots ficam PRETO NEUTRO (igual à tabela de classificação) — antes
   // ficavam num tom quente que parecia DOURADO e confundia com a sua cor de tier.
@@ -1198,10 +1217,14 @@ function DivMatches({ div, matches, colors, humans, hideId }: { div: Div; matche
             <div key={i} style={{ padding: '3px 4px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: bg, borderRadius: bg ? 5 : 0 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5 }}>
                 <span style={{ textAlign: 'right', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: nameCol(m.hId) }}>{m.h}</span>
-                <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: bg ? INK : '#eee', color: bg ? '#fff' : INK, borderRadius: 5, padding: '0 7px' }}>{m.hg}×{m.ag}</span>
+                {/* 🙈 ANTI-SPOILER: enquanto o SEU jogo anima, os outros jogos ficam "em jogo"
+                    (placar e gol escondidos). Todos revelam juntos quando o seu apito soa. */}
+                {reveal
+                  ? <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: bg ? INK : '#eee', color: bg ? '#fff' : INK, borderRadius: 5, padding: '0 7px' }}>{m.hg}×{m.ag}</span>
+                  : <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, background: '#efe4c8', color: 'rgba(0,0,0,.55)', borderRadius: 5, padding: '0 7px', whiteSpace: 'nowrap' }}>🟢 em jogo</span>}
                 <span style={{ textAlign: 'left', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: nameCol(m.aId) }}>{m.a}</span>
               </div>
-              {last && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '1px 0 0', textAlign: 'center' }}>⚽ {last.name} <span style={{ opacity: 0.7 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></p>}
+              {reveal && last && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '1px 0 0', textAlign: 'center' }}>⚽ {last.name} <span style={{ opacity: 0.7 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></p>}
             </div>
           )
         })}
@@ -1956,9 +1979,13 @@ export function PyramidSeasonScreen() {
   useEffect(() => {
     if (done || round <= 0) { setRevealed(round); return }
     setRevealed(round - 1) // segura a rodada atual enquanto a partida anima
-    const t = setTimeout(() => setRevealed(round), Math.round(ROUND_MS * 0.86))
+    // 🙈 ANTI-SPOILER: o segurador tem que acompanhar a VELOCIDADE (🐢/⚡), igual ao
+    // card do jogo (dur = roundMs*0.82) e ao fim de temporada (endShown). Antes usava
+    // ROUND_MS FIXO: na marcha lenta o jogo animava 15-30s mas a tabela/artilharia
+    // soltavam aos ~7,7s — entregava a rodada com a partida ainda rolando.
+    const t = setTimeout(() => setRevealed(round), Math.round((ROUND_MS / speedFactor) * 0.86))
     return () => clearTimeout(t)
-  }, [round, done])
+  }, [round, done, speedFactor])
   // 🙈 ANTI-SPOILER: a artilharia, os gols por jogador (ex.: "Romário 3") e os
   // líderes de artilharia saem da rodada JÁ REVELADA — não da atual. Sem isto,
   // os gols da partida apareciam ANTES dela animar (a tabela já segurava, mas a
@@ -2831,7 +2858,7 @@ export function PyramidSeasonScreen() {
               }
               return <RivalryTicker items={flavors} />
             })()}
-            {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} />)}
+            {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} reveal={revealed >= round} />)}
           </>
           )
         ) : done && copa && copa.rounds.length > 0 ? (
