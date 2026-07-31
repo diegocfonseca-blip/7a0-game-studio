@@ -2100,15 +2100,16 @@ function Envelope() {
   // resolve o leilão normalmente.
   useEffect(() => {
     if (remaining > 0) return
+    // ⚠️ SÓ no ENVELOPE: este efeito não pode tocar na REVELAÇÃO/monte (senão fica
+    // disparando FORCE_SEAL à toa e atrapalha o avanço da revelação).
+    if (state.phase !== 'envelope' && state.phase !== 'resq_envelope') return
     if (!iSubmitted && !pending) { seal(); return }
-    // 🏛️ SOLO PRESO: já lacrei (ou não posso lançar) e o leilão NÃO resolveu — é o
-    // leilão travado no "TEMPO 0s" (estado antigo do Multiclubes, ou save já
-    // parado). FORCE_SEAL fecha os que faltam (no solo = só o MEU assento, os outros
-    // já são ignorados) e resolve. Só age com o tempo zerado; no jogo normal o
-    // seal() acima já resolveu antes, então aqui vira no-op (a fase já não é envelope).
+    // 🏛️ SOLO PRESO: já lacrei (ou não posso lançar) e o envelope NÃO resolveu — é o
+    // leilão travado no "TEMPO 0s". FORCE_SEAL fecha os que faltam (no solo = só o MEU
+    // assento) e resolve. No jogo normal o seal() acima já resolveu antes.
     if (!online) dispatch({ type: 'FORCE_SEAL' })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remaining, iSubmitted, pending, online])
+  }, [remaining, iSubmitted, pending, online, state.phase])
 
   // já lacrei, ou enviei e tô esperando o host confirmar (online)
   if (online && (iSubmitted || pending)) {
