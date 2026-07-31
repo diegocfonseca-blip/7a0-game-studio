@@ -864,7 +864,7 @@ export function PyramidTables({ tables, order, colors, myDiv, final, safTeam, sa
   return <>{(order ?? DIVS).map(d => <DivTable key={d} div={d} teams={tables[d]} colors={cols} mine={d === myDiv} final={final} safTeam={safTeam} safCol={safCol} />)}</>
 }
 // caixa de artilharia reutilizável (temporada e todos os tempos) — top N já pronto.
-function ArtilhariaBox({ scorers, colors, title, sub, foot, safTeam }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string }) {
+function ArtilhariaBox({ scorers, colors, title, sub, foot, safTeam, safCol }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string; safCol?: FCol }) {
   const cols = colors ?? {}
   return (
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
@@ -876,7 +876,7 @@ function ArtilhariaBox({ scorers, colors, title, sub, foot, safTeam }: { scorers
           <tbody>
             {scorers.map((s, i) => {
               const isSaf = !s.you && !!safTeam && s.teamName === safTeam
-              const fc = (s.human || s.rival || isSaf) ? cols[s.teamId] : undefined
+              const fc = isSaf ? safCol : ((s.human || s.rival) ? cols[s.teamId] : undefined)
               return (
               <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, background: fc?.light }}>
                 <td style={{ paddingRight: 4 }}>{i + 1}</td>
@@ -896,7 +896,7 @@ function ArtilhariaBox({ scorers, colors, title, sub, foot, safTeam }: { scorers
 // Artilharia da TEMPORADA separada por SÉRIE (A › B › C › D), top 5 de cada —
 // em vez de uma lista única misturando todas as divisões. Deixa claro quem é o
 // goleador de cada série (é ele que vira artilheiro/piso da divisão).
-function ArtilhariaByDiv({ scorers, colors, title, sub, foot, safTeam }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string }) {
+function ArtilhariaByDiv({ scorers, colors, title, sub, foot, safTeam, safCol }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string; safCol?: FCol }) {
   const cols = colors ?? {}
   const total = scorers.length
   return (
@@ -916,7 +916,7 @@ function ArtilhariaByDiv({ scorers, colors, title, sub, foot, safTeam }: { score
                 <tbody>
                   {top.map((s, i) => {
                     const isSaf = !s.you && !!safTeam && s.teamName === safTeam
-                    const fc = (s.human || s.rival || isSaf) ? cols[s.teamId] : undefined
+                    const fc = isSaf ? safCol : ((s.human || s.rival) ? cols[s.teamId] : undefined)
                     return (
                     <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', fontWeight: 600, background: fc?.light }}>
                       <td style={{ paddingRight: 4, width: 16, color: 'rgba(0,0,0,0.5)', fontWeight: 800 }}>{i + 1}</td>
@@ -1574,7 +1574,10 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
             // de cores com a sua cor, então basta ler colors[teamId] direto.
             const isSaf = !you && !!safTeam && r.t.name === safTeam
             const colored = r.t.human || r.t.rival || isSaf
-            const fc = colors[r.t.teamId]
+            // 🎨 cor SÓ pra você/2º clube/rival (id real no mapa) e pra SUA SAF (por
+            // NOME → a sua cor). CPU comum (id -1) NÃO herda cor — senão o baralho
+            // inteiro ficava dourado por causa do id -1 compartilhado por todo bot.
+            const fc = isSaf ? colors[youId] : ((r.t.human || r.t.rival) ? colors[r.t.teamId] : undefined)
             return (
               <tr key={r.key} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: fc?.light, fontWeight: colored ? 800 : 500 }}>
                 <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>{i + 1}</td>
@@ -2060,14 +2063,15 @@ export function PyramidSeasonScreen() {
       for (const d of DIVS) { const t = tables[d]?.find(x => x.name === teamName); if (t) return t.teamId }
       return undefined
     }
-    const safId = idOf(safTeamName)
+    // 🎨 injeta a SUA cor SÓ em id de time REAL (assento seu, id >= 0). NÃO colore a
+    // SAF por aqui: a SAF é time de CPU e TODO CPU compartilha o id -1 — pintar por -1
+    // pintava o BARALHO INTEIRO com a sua cor de tier. A SAF é colorida por NOME
+    // (isSaf) no rank e na artilharia. Só o 2º clube do Multiclubes (assento próprio,
+    // id real) entra aqui.
     const multiId = idOf(multiTeamName)
-    if (safId == null && multiId == null) return baseColors
-    const out = { ...baseColors }
-    if (safId != null) out[safId] = myCol
-    if (multiId != null) out[multiId] = myCol
-    return out
-  }, [baseColors, safTeamName, multiTeamName, tables, myCol])
+    if (multiId == null || multiId < 0) return baseColors
+    return { ...baseColors, [multiId]: myCol }
+  }, [baseColors, multiTeamName, tables, myCol])
   // COPA LEGENDS: no fim da temporada, o mata-mata dos 16 (determinístico da
   // classificação final + semente + temporada). Alimenta a aba Tabelas (chave),
   // a aba Rank (artilharia da Copa) e os prêmios da virada.
@@ -2727,8 +2731,8 @@ export function PyramidSeasonScreen() {
                 {/* durante a Copa (fim de temporada), a artilharia da COPA entra no
                     lugar da artilharia das divisões; o "todos os tempos" fica embaixo. */}
                 {done && copa && copaScorersShown.length > 0
-                  ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} title="🏆 ARTILHARIA · COPA LEGENDS" sub={copaFinished ? 'Gols do mata-mata da Copa — top 20.' : `Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`} foot="🏅 O artilheiro da Copa rende +16 ao clube e sobe +16 no piso do jogador." />
-                  : <ArtilhariaByDiv scorers={scorersAll} colors={colors} safTeam={safTeamName} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual — top 5 de cada série." foot="🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Série D +4 · C +8 · B +12 · A +16." />}
+                  ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title="🏆 ARTILHARIA · COPA LEGENDS" sub={copaFinished ? 'Gols do mata-mata da Copa — top 20.' : `Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`} foot="🏅 O artilheiro da Copa rende +16 ao clube e sobe +16 no piso do jogador." />
+                  : <ArtilhariaByDiv scorers={scorersAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual — top 5 de cada série." foot="🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Série D +4 · C +8 · B +12 · A +16." />}
                 <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title="🏆 ARTILHARIA · TODOS OS TEMPOS" sub="Gols somados de todas as temporadas da sala — top 20." foot={allTimeScorers.length === 0 ? 'Começa a contar a partir de agora.' : undefined} />
               </>
             )}
