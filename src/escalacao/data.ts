@@ -1124,6 +1124,7 @@ const NOVOS_BR_MEI: C[] = [
   { name: 'Dátolo', club: 'Atlético-MG', year: 2012, fame: 2, lo: 68, hi: 81, bio: 'Meia-atacante argentino de bom pé e bola parada — peça de criação do Atlético-MG, também com passagens por Napoli e no futebol argentino.' },
   { name: 'Gilmar Fubá', club: 'Corinthians', year: 1999, fame: 2, lo: 68, hi: 82, bio: 'Volante de marcação e raça — ídolo do Corinthians campeão paulista de 1997 e do Mundial de 2000; também passou pelo Schalke, na Alemanha.' },
   { name: 'Élvis', club: 'Santo André', year: 2004, fame: 2, lo: 66, hi: 80, bio: 'Meia-maestro do Santo André — cérebro da campanha histórica que levou o clube do ABC ao título da Copa do Brasil de 2004.' },
+  { name: 'Tchê Tchê', club: 'Palmeiras', year: 2016, fame: 2, lo: 66, hi: 80, bio: 'Volante/meia brasileiro de fôlego e boa saída de bola — peça do Palmeiras campeão brasileiro de 2016; também passou por São Paulo e Botafogo.' },
   { name: 'Douglas Barriga de Cadela', club: 'Corinthians', year: 2014, fame: 1, lo: 52, hi: 68, folk: true, bio: 'O meia que a Fiel judiava pela forma física — ganhou o apelido cruel e virou meme eterno da arquibancada.' },
 ]
 const NOVOS_BR_ATA: C[] = [
@@ -1272,6 +1273,7 @@ const LAT_EU: C[] = [
 const ZAG_EU: C[] = [
   { name: "Pau Torres", club: "Villarreal", year: 2021, fame: 3, lo: 78, hi: 85, bio: "Zagueiro espanhol canhoto de saída de bola elegante — peça do Villarreal campeão da Europa League e da seleção da Espanha, depois no Aston Villa." },
   { name: "Armando Obispo", club: "PSV", year: 2023, fame: 2, lo: 66, hi: 80, bio: "Zagueiro holandês do PSV — subiu da base ao time principal, forte no jogo aéreo e na saída de bola." },
+  { name: "Frank de Boer", club: "Ajax", year: 1995, fame: 4, lo: 82, hi: 89, bio: "Zagueiro holandês elegante e canhoto — capitão do Ajax campeão da Europa em 1995, depois no Barcelona; recordista de jogos pela Holanda e mestre no passe longo." },
   { name: "Maguire", club: "Man United", year: 2019, fame: 2, lo: 66, hi: 82 },
   { name: "Matip", club: "Liverpool", year: 2019, fame: 3, lo: 78, hi: 85 },
   { name: "Gabriel Magalhães", club: "Arsenal", year: 2024, fame: 3, lo: 80, hi: 87 },
