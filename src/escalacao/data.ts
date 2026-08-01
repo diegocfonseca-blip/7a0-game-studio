@@ -736,6 +736,7 @@ const LAT: C[] = [
 
 const ZAG: C[] = [
   { name: "Junior Alonso", club: "Atlético-MG", year: 2021, fame: 3, lo: 76, hi: 84 },
+  { name: "Cláudio Caçapa", club: "Lyon", year: 2004, fame: 3, lo: 74, hi: 84, bio: "Zagueiro brasileiro sólido e de liderança — capitão e ídolo do Lyon na dinastia multicampeã do futebol francês nos anos 2000." },
   { name: "Domingos", club: "Santos", year: 2007, fame: 1, lo: 55, hi: 78 },
   { name: "Domingos da Guia", club: "Flamengo", year: 1944, fame: 5, lo: 93, hi: 98 },
   { name: "Aldair", club: "Flamengo", year: 1987, fame: 3, lo: 78, hi: 84, promessa: true },
@@ -1126,6 +1127,7 @@ const NOVOS_BR_ATA: C[] = [
   { name: 'Valdir Papel', club: 'Vasco', year: 2006, fame: 1, lo: 48, hi: 64, folk: true, bio: 'Andarilho de 30+ clubes; teve seus 15 minutos no Vasco em 2006 — expulso na final da Copa do Brasil e ainda levou bronca do Renato no vestiário.' },
   { name: 'Gonzalo Plata', club: 'Flamengo', year: 2024, fame: 2, lo: 66, hi: 81, bio: 'Ponta equatoriano de drible e velocidade — chegou ao Flamengo pra dar profundidade e ligar o jogo pelos lados.' },
   { name: 'Vitor Roque (Barcelona)', club: 'Barcelona', year: 2024, fame: 1, lo: 58, hi: 74, bio: 'O Matador que atravessou o oceano cedo demais: no Barcelona não engrenou e virou aviso sobre pressa — depois voltou pra reencontrar o faro de gol.' },
+  { name: 'Rafael Moura (He-Man)', club: 'Atlético-MG', year: 2013, fame: 2, lo: 66, hi: 80, bio: 'Centroavante brasileiro apelidado de "He-Man" pelo físico avantajado — rodou por Grêmio, Fluminense e Atlético-MG, sempre com faro de gol e presença na área.' },
 ]
 export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT], ZAG, MEI: [...MEI, ...NOVOS_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA] }
 
@@ -1259,6 +1261,7 @@ const LAT_EU: C[] = [
   { name: "Steve Cherundolo", club: "Hannover", year: 2010, fame: 3, lo: 66, hi: 81, bio: "O 'Prefeito de Hannover' — 15 anos de clube único na Alemanha, tão querido que a cidade o adotou de vez." },
 ]
 const ZAG_EU: C[] = [
+  { name: "Pau Torres", club: "Villarreal", year: 2021, fame: 3, lo: 78, hi: 85, bio: "Zagueiro espanhol canhoto de saída de bola elegante — peça do Villarreal campeão da Europa League e da seleção da Espanha, depois no Aston Villa." },
   { name: "Maguire", club: "Man United", year: 2019, fame: 2, lo: 66, hi: 82 },
   { name: "Matip", club: "Liverpool", year: 2019, fame: 3, lo: 78, hi: 85 },
   { name: "Gabriel Magalhães", club: "Arsenal", year: 2024, fame: 3, lo: 80, hi: 87 },
