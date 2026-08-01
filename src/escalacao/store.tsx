@@ -301,6 +301,25 @@ function hashCode(s: string): number {
 // 2024 guardado num elenco) conviver com a versão nova do catálogo (2025) como se
 // fossem cartas diferentes — bug dos dois Yamal. Tirar o ano resolve de vez.
 const ident = (c: { name: string; club: string }) => `${c.name}|${c.club}`
+// 🧹 PENEIRA FINAL anti-duplicata do baralho do leilão: por mais que cada fonte
+// (mercado, listados, sobras, fichas de fundo) já tente não repetir, uma cópia do
+// MESMO jogador real (nome+clube) pode escapar por uma brecha — ou vir de um save
+// antigo que já carregava a duplicata. Isto varre o baralho na hora de abrir o
+// leilão e tira o repetido (mantém o 1º). Incógnitos (fake/várzea) NÃO são
+// mexidos (cada um é um jogador distinto). Foi assim que o "dois Van der Sar" no
+// mesmo leilão (um num time, outro solto na sobra) sumia de vez.
+function dedupeDeck(deck: Record<Sector, Card[]>) {
+  for (const pos of SECTORS) {
+    if (!deck[pos]) continue
+    const seen = new Set<string>()
+    deck[pos] = deck[pos].filter(c => {
+      if (c.fake) return true // incógnito: não tem identidade real, cada um é único
+      const k = ident(c)
+      if (seen.has(k)) return false // já apareceu esse jogador → tira a cópia
+      seen.add(k); return true
+    })
+  }
+}
 function shuffle<T>(arr: T[], rng: () => number): T[] {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
@@ -2023,6 +2042,13 @@ export function batchCount(total: number): number {
 }
 
 function startAuctionPhase(state: EscState, rescue: boolean) {
+  // 🧹 no ARRANQUE do leilão (1ª posição, nada distribuído ainda): tira qualquer
+  // jogador repetido do baralho — fecha o "dois Van der Sar". Roda 1x por leilão
+  // (nas levas/próximos setores sectorCursor>0 ou sectorIdx>0, então não repete).
+  if (!rescue && state.sectorIdx === 0 && state.sectorCursor === 0) {
+    dedupeDeck(state.deck)
+    if (state.stock) for (const p of SECTORS) state.stock[p] = state.deck[p].length
+  }
   const pos = SECTORS[state.sectorIdx]
   state.phase = rescue ? 'resq_envelope' : 'envelope'
   if (!rescue) {
