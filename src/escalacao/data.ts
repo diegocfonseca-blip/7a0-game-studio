@@ -737,6 +737,7 @@ const LAT: C[] = [
 const ZAG: C[] = [
   { name: "Junior Alonso", club: "Atlético-MG", year: 2021, fame: 3, lo: 76, hi: 84 },
   { name: "Cláudio Caçapa", club: "Lyon", year: 2004, fame: 3, lo: 74, hi: 84, bio: "Zagueiro brasileiro sólido e de liderança — capitão e ídolo do Lyon na dinastia multicampeã do futebol francês nos anos 2000." },
+  { name: "Pinga", club: "Internacional", year: 1992, fame: 2, lo: 72, hi: 84, bio: "Zagueiro colorado — titular da defesa do Brasil na final olímpica de 1984 e herói do Internacional campeão da Copa do Brasil de 1992, após voltar de uma grave lesão no joelho." },
   { name: "Domingos", club: "Santos", year: 2007, fame: 1, lo: 55, hi: 78 },
   { name: "Domingos da Guia", club: "Flamengo", year: 1944, fame: 5, lo: 93, hi: 98 },
   { name: "Aldair", club: "Flamengo", year: 1987, fame: 3, lo: 78, hi: 84, promessa: true },
@@ -1134,7 +1135,6 @@ const NOVOS_BR_ATA: C[] = [
   { name: 'Rafael Moura (He-Man)', club: 'Atlético-MG', year: 2013, fame: 2, lo: 66, hi: 80, bio: 'Centroavante brasileiro apelidado de "He-Man" pelo físico avantajado — rodou por Grêmio, Fluminense e Atlético-MG, sempre com faro de gol e presença na área.' },
   { name: 'Romarinho (Corinthians)', club: 'Corinthians', year: 2012, fame: 2, lo: 66, hi: 80, bio: 'Atacante eternizado pelo gol do Corinthians contra o Chelsea no Mundial de 2012 — matador querido da Fiel, depois artilheiro no futebol árabe.' },
   { name: 'Creedence', club: 'Figueirense', year: 2005, fame: 1, lo: 52, hi: 72, folk: true, bio: 'Atacante que rodou o Brasil (Figueirense, Botafogo-SP, Brasiliense) e ganhou fama pelo nome: batizado Creedence Clearwater Couto, em homenagem à banda.' },
-  { name: 'Pinga', club: 'Vasco', year: 1957, fame: 3, lo: 78, hi: 86, bio: 'Um dos maiores artilheiros da história do Vasco — o matador da Colina que marcou época em São Januário nos anos 1950.' },
 ]
 export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT], ZAG, MEI: [...MEI, ...NOVOS_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA] }
 
