@@ -123,3 +123,32 @@ Diego: "muita gente diz que às vezes NÃO CONTA ou NÃO APARECE" a carta do cam
       - ✅ **PLAYOFFS NO AR (28/07, reusa a Copa dos 8):** copaMode='liga_copa' nos andares G League/NBA (street = só pontos corridos). Cronômetro ao vivo + tudo simula + zero spoiler (herdado). ✅ **CONFERÊNCIAS Leste × Oeste**: `seedQuickCopa(nba)` = top 4 de cada conferência (id par=Leste/ímpar=Oeste), cada conf é metade da chave → campeões se cruzam nas FINAIS pelo anel. Rótulos bilíngues (SEMIS/FINAIS DE CONF. → FINAIS). **FALTA refino:** top 8 por conf (hoje 4) · séries melhor-de (hoje ida-volta agregada) · standings split por conf na tela · dificuldade já cresce por andar (Street 0/G+3/NBA+6).
   - **FALTA além da carreira:** (a) online (rápido + carreira); (b) placar com relógio de 48min/4 quartos (a partida ao vivo já tem o de quartos; o resto reusa o de 90'); (c) i18n dos textos do MARTELO/cerimônia; (d) baralho pode engordar mais.
 - **DNS do bidlegendsarena.com**: registrado na **Hostinger**, falta configurar. Host = GitHub Pages, que serve 1 domínio custom só (hoje leilaolegends.com via CNAME) → 2º domínio direto no Pages redireciona pro principal. Caminho limpo p/ dividir por hostname = Cloudflare grátis na frente (Fase 2+). Pra Fase 1 NÃO precisa do domínio: a trava é por conta, o Diego testa logado no leilaolegends.com.
+
+---
+
+## 🔧 ONLINE travando ("erro de host" / preso no "Enviando…") — CORRIGIDO (01/08)
+**Sintoma (relato do Murriz FC, sala de 8):** todo convidado (menos o host) dava
+"erro de host" já no 1º leilão (goleiro); só destravava dando F5, e a cada leilão
+de novo; alguém entrou na sala e não apareceu pros outros.
+
+**Causa RAIZ (confirmada no log do Realtime do Supabase):**
+`UnprocessableEntity: "Payload size exceeds tenant limit" → Sent 422`. O host
+manda o estado INTEIRO do jogo pros convidados a cada mudança + a cada 3s
+(heartbeat). Esse estado chega a **~80 KB** (baralho + elencos + monte + bios) e
+**estoura o limite de tamanho de mensagem** do Supabase Realtime → a mensagem é
+**descartada em silêncio** → o convidado nunca recebe a confirmação → trava no
+"Enviando…" e acende o "host caiu". F5 só pegava o estado atual uma vez.
+
+**Correção (`src/escalacao/netpack.ts` + `store.tsx`):** o estado agora vai
+**COMPRIMIDO** no fio (lz-string vendorizado, sem dependência nova no npm).
+Medido: **82 KB → ~36 KB** (round-trip idêntico, testado). Empacota como
+`{ z: <base64> }`; **nada é cortado** (deck, bios, troca de host, reconexão: tudo
+igual). O recebedor aceita os dois formatos (comprimido e cru) pra não quebrar na
+janela de deploy; pacote corrompido é ignorado (heartbeat conserta em ~3s). Cache
+por identidade evita reempacotar o mesmo estado. Futebol/solo/offline intactos
+(só mexeu no broadcast do evento 'state' do online). **Revertível** (1 commit).
+- ⚠️ Depois do deploy, quem estava no meio de uma sala precisa dar **F5 uma vez**
+  pra carregar o código novo (host E convidados). Salas novas já nascem certas.
+- 💡 Rede de segurança do lado do servidor (opcional, não feito): dá pra **subir o
+  teto de payload do Realtime** no painel do Supabase — protegeria até clientes em
+  cache antigo. Confirmar plano.

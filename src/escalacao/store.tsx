@@ -266,6 +266,7 @@ import type { CareerTeam } from './data'
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium, sectorPct, hasExtra, SPONSOR_PAY, empresarioIncome } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { logPlay, logVisit, heartbeat } from './analytics'
+import { pack, unpack } from './netpack'
 
 export const START_MONEY = 100
 // 🎮 "geração" da carreira solo: carreiras iniciadas a partir da cobrança do
@@ -4601,12 +4602,17 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.isHost) {
       ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
       ch.on('broadcast', { event: 'request_state' }, () => {
-        channelRef.current?.send({ type: 'broadcast', event: 'state', payload: sanitize(stateRef.current) })
+        channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
       })
     } else {
-      ch.on('broadcast', { event: 'state' }, ({ payload }: { payload: EscState }) => {
+      ch.on('broadcast', { event: 'state' }, ({ payload }: { payload: unknown }) => {
+        // pacote corrompido/parcial não pode derrubar o canal: ignora essa
+        // mensagem (o heartbeat do host reenvia um estado bom em ~3s).
+        let next: EscState
+        try { next = readState(payload) } catch { return }
+        if (!next || typeof next !== 'object') return
         lastHostMsgRef.current = Date.now() // notícia fresca do host
-        rawDispatch({ type: 'SYNC_STATE', newState: payload })
+        rawDispatch({ type: 'SYNC_STATE', newState: next })
       })
     }
     // reações chegam pra todos (host e convidados), fora do fluxo de ações
@@ -4660,7 +4666,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (typeof document === 'undefined' || document.visibilityState !== 'visible') return
       const alive = (ch as unknown as { state?: string }).state === 'joined'
       const resync = () => {
-        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: sanitize(stateRef.current) })
+        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       if (alive) { resync(); return }
@@ -4676,7 +4682,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     if (prevRef.current === state) return
     prevRef.current = state
-    channelRef.current?.send({ type: 'broadcast', event: 'state', payload: sanitize(state) })
+    channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(state) })
   }, [state])
 
   // HEARTBEAT do host: reemite o estado a cada 3s. Sem isto, se UMA mensagem do
@@ -4689,7 +4695,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     const iv = setInterval(() => {
       if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
-      channelRef.current?.send({ type: 'broadcast', event: 'state', payload: sanitize(stateRef.current) })
+      channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
     }, 3000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId])
@@ -4709,7 +4715,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       const st = (ch as unknown as { state?: string }).state
       if (st === 'joined' || st === 'joining') return // saudável ou conectando — não mexe
       const resync = () => {
-        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: sanitize(stateRef.current) })
+        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx }); resync() }) } catch { /* tenta de novo no próximo tique */ }
@@ -4978,6 +4984,31 @@ export function EscProvider({ children }: { children: ReactNode }) {
 // só quem já lacrou (contador) — os valores só aparecem na revelação.
 function sanitize(state: EscState): EscState {
   return { ...state, pendingEnvelopes: {}, tiebreakPending: {} }
+}
+
+// 📦 o estado que o host manda pros convidados chega a ~80 KB e ESTOURAVA o limite
+// de tamanho de mensagem do Supabase Realtime → a mensagem era DESCARTADA e o
+// convidado travava no "Enviando…"/"host caiu". Agora vai COMPRIMIDO (~15-35 KB),
+// com folga. Empacota como { z: <base64 comprimido> }; nada é cortado.
+// cache por IDENTIDADE do estado: o efeito de retransmissão, o heartbeat (3s) e os
+// resyncs podem pedir o pacote do MESMO objeto de estado várias vezes por segundo.
+// Como cada dispatch cria um objeto novo (imutável), comparar por referência basta
+// pra comprimir só uma vez por estado — evita gastar CPU do celular do host à toa.
+let _packSrc: EscState | null = null
+let _packOut: { z: string } = { z: '' }
+function packState(state: EscState): { z: string } {
+  if (state === _packSrc) return _packOut
+  _packSrc = state
+  _packOut = { z: pack(sanitize(state)) }
+  return _packOut
+}
+// lê o payload do evento 'state': aceita o novo formato comprimido { z } e também
+// o antigo (estado cru) — pra não quebrar na janela de deploy, quando host e
+// convidado podem estar em versões diferentes por uns minutos.
+function readState(payload: unknown): EscState {
+  const p = payload as { z?: string } | EscState
+  if (p && typeof (p as { z?: string }).z === 'string') return unpack<EscState>((p as { z: string }).z)
+  return p as EscState
 }
 
 export function useEsc() {
