@@ -1701,6 +1701,7 @@ export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GO
 // pela Europa) a pedido. Mesmas categorias dos outros baralhos. Fica pronto pra
 // virar o 3º baralho selecionável quando for liberado — por ora não tem seletor.
 const GOL_WORLD: C[] = [
+  { name: "Robert Kidiaba", club: "TP Mazembe", year: 2010, fame: 2, lo: 66, hi: 80, folk: true, bio: "Goleiro congolês do TP Mazembe — eternizado no Mundial de 2010, quando eliminou o Inter no 'Mazembe Day' e comemorou com a dança sentado no chão, batendo o bumbum na grama. Ídolo folclórico." },
   { name: "Jorge Campos", club: "Pumas", year: 1994, fame: 4, lo: 83, hi: 90, bio: "Goleiro mexicano das camisas fluorescentes desenhadas por ele mesmo — baixinho, elástico e tão ofensivo que às vezes jogava de atacante e fazia gol." },
   { name: "René Higuita", club: "Atlético Nacional", year: 1990, fame: 5, lo: 85, hi: 92, bio: "O goleiro-líbero colombiano do escorpião em Wembley — saía driblando na área como um camisa 10. Ousadia e loucura em pessoa." },
   { name: "José Luis Chilavert", club: "Vélez Sarsfield", year: 1998, fame: 4, lo: 83, hi: 90, bio: "O goleiro paraguaio que batia falta e pênalti e FAZIA gol — mais de 60 na carreira. Personalidade explosiva e mira de artilheiro." },
