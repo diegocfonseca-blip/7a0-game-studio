@@ -414,6 +414,10 @@ export function EscLobby() {
     return next.length > careerRivals ? next.slice(next.length - careerRivals) : next
   })
   const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
+  // 🏆 Liga Fechada ainda NÃO liberada: esconde o seletor da tela de criar sala
+  // (o Diego decide quando abrir). Toda sala nasce Aberta. Pra liberar de novo,
+  // basta trocar pra `true` — o resto do código continua pronto.
+  const LIGA_FECHADA_LIBERADA = false
   const [joinCode, setJoinCode] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [roomName, setRoomName] = useState('')
@@ -1432,6 +1436,7 @@ export function EscLobby() {
           {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
           {!isCareer && (
             <Section num={2} title="A partida" icon="⚽">
+              {LIGA_FECHADA_LIBERADA && (
               <SegField label="Tabela">
                 {canLiga ? (
                   <>
@@ -1450,6 +1455,7 @@ export function EscLobby() {
                   </>
                 )}
               </SegField>
+              )}
               <SegField label="Depois da liga">
                 <Seg options={[['liga_copa', '🏆 Liga + Copa'], ['liga', '📊 Só liga']] as ['liga_copa' | 'liga', string][]} value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} />
               </SegField>
