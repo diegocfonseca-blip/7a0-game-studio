@@ -1115,12 +1115,15 @@ const NOVOS_BR_LAT: C[] = [
   { name: 'Triguinho', club: 'São Caetano', year: 2004, fame: 2, lo: 64, hi: 79, bio: 'De segurança a lateral-esquerdo campeão: passou por Figueirense, São Caetano e até a Bélgica. Raça pura na faixa.' },
   { name: 'Fabrício', club: 'Internacional', year: 2015, fame: 1, lo: 55, hi: 72, folk: true, bio: 'Eternizado em 2015: perdeu a cabeça, mostrou o dedo pra torcida do Inter, foi expulso, arrancou a camisa e jurou nunca mais jogar. 🖕' },
   { name: 'Douglas Barriga de Cadela', club: 'Corinthians', year: 2014, fame: 1, lo: 52, hi: 68, folk: true, bio: 'O lateral que a Fiel judiava pela forma física — ganhou o apelido cruel e virou meme eterno da arquibancada.' },
+  { name: 'Eduardo Ratinho', club: 'Corinthians', year: 2005, fame: 2, lo: 62, hi: 79, bio: 'Lateral-direito veloz e driblador, com boa bola parada — a revelação do Corinthians em 2005; ainda passou por CSKA Moscou, Toulouse e Fluminense antes de parar cedo.' },
 ]
 const NOVOS_BR_MEI: C[] = [
   { name: 'Adjemar', club: 'São Caetano', year: 2002, fame: 2, lo: 64, hi: 79, bio: 'Meia habilidoso do timaço do São Caetano do Muricy — toque de bola nos anos dourados do Azulão.' },
   { name: 'Leandro Ávila', club: 'Botafogo', year: 1995, fame: 2, lo: 66, hi: 81, bio: 'Volante raçudo dos anos 90, passou pelos quatro grandes do Rio — peça do Botafogo campeão brasileiro de 1995.' },
   { name: 'Vinícius Pacheco', club: 'Paraná', year: 2007, fame: 1, lo: 52, hi: 70, bio: 'Meia-atacante canhoto e habilidoso que rodou o Brasil — teve boa passagem pelo Paraná Clube no fim dos anos 2000.' },
   { name: 'Dátolo', club: 'Atlético-MG', year: 2012, fame: 2, lo: 68, hi: 81, bio: 'Meia-atacante argentino de bom pé e bola parada — peça de criação do Atlético-MG, também com passagens por Napoli e no futebol argentino.' },
+  { name: 'Gilmar Fubá', club: 'Corinthians', year: 1999, fame: 2, lo: 68, hi: 82, bio: 'Volante de marcação e raça — ídolo do Corinthians campeão paulista de 1997 e do Mundial de 2000; também passou pelo Schalke, na Alemanha.' },
+  { name: 'Élvis', club: 'Santo André', year: 2004, fame: 2, lo: 66, hi: 80, bio: 'Meia-maestro do Santo André — cérebro da campanha histórica que levou o clube do ABC ao título da Copa do Brasil de 2004.' },
 ]
 const NOVOS_BR_ATA: C[] = [
   { name: 'Loide Augusto', club: 'Vasco', year: 2021, fame: 1, lo: 58, hi: 74, bio: 'Revelado como profissional no Vasco — atacante rápido, faro de gol e a molecagem da base cruzmaltina.' },
@@ -1130,6 +1133,8 @@ const NOVOS_BR_ATA: C[] = [
   { name: 'Vitor Roque (Barcelona)', club: 'Barcelona', year: 2024, fame: 1, lo: 58, hi: 74, bio: 'O Matador que atravessou o oceano cedo demais: no Barcelona não engrenou e virou aviso sobre pressa — depois voltou pra reencontrar o faro de gol.' },
   { name: 'Rafael Moura (He-Man)', club: 'Atlético-MG', year: 2013, fame: 2, lo: 66, hi: 80, bio: 'Centroavante brasileiro apelidado de "He-Man" pelo físico avantajado — rodou por Grêmio, Fluminense e Atlético-MG, sempre com faro de gol e presença na área.' },
   { name: 'Romarinho (Corinthians)', club: 'Corinthians', year: 2012, fame: 2, lo: 66, hi: 80, bio: 'Atacante eternizado pelo gol do Corinthians contra o Chelsea no Mundial de 2012 — matador querido da Fiel, depois artilheiro no futebol árabe.' },
+  { name: 'Creedence', club: 'Figueirense', year: 2005, fame: 1, lo: 52, hi: 72, folk: true, bio: 'Atacante que rodou o Brasil (Figueirense, Botafogo-SP, Brasiliense) e ganhou fama pelo nome: batizado Creedence Clearwater Couto, em homenagem à banda.' },
+  { name: 'Pinga', club: 'Vasco', year: 1957, fame: 3, lo: 78, hi: 86, bio: 'Um dos maiores artilheiros da história do Vasco — o matador da Colina que marcou época em São Januário nos anos 1950.' },
 ]
 export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT], ZAG, MEI: [...MEI, ...NOVOS_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA] }
 
@@ -1188,6 +1193,7 @@ const GOL_EU: C[] = [
 ]
 const LAT_EU: C[] = [
   { name: "Benjamin Mendy", club: "Manchester City", year: 2018, fame: 3, lo: 74, hi: 85, bio: "Lateral-esquerdo francês veloz e potente na subida — campeão do mundo com a França em 2018 e peça do Manchester City de Guardiola quando livre de lesões." },
+  { name: "Ali Maamar", club: "Anderlecht", year: 2024, fame: 2, lo: 64, hi: 79, bio: "Lateral-direito belga do Anderlecht — subiu da base ao time principal, forte na marcação e no apoio pela direita." },
   { name: "Michel Bastos", club: "Lyon", year: 2010, fame: 3, lo: 75, hi: 86, bio: "Canhoto versátil (lateral e meia) — auge no Lyon com cobranças de falta perfeitas; titular da Seleção na Copa de 2010." },
   { name: "Rafael (irmão do Fábio)", club: "Manchester United", year: 2013, fame: 3, lo: 74, hi: 85, bio: "Lateral-direito gêmeo revelado no Fluminense — chegou garoto ao Manchester United de Ferguson, raçudo e ofensivo, bicampeão inglês." },
   { name: "Fábio (irmão do Rafael)", club: "Manchester United", year: 2011, fame: 2, lo: 68, hi: 83, bio: "Lateral-esquerdo gêmeo, irmão do Rafael — do Fluminense direto pro Manchester United bicampeão, com boa sequência depois no Cardiff." },
