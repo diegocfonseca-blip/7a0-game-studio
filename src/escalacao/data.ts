@@ -1678,6 +1678,7 @@ const NOVOS_EU_ATA: C[] = [
   { name: 'Hatem Ben Arfa', club: 'Nice', year: 2016, fame: 4, lo: 80, hi: 90, folk: true, bio: 'Talento francês de driblar meio time sozinho — o gol solo pelo Nice virou lenda. Gênio indomável: brigou com técnico atrás de técnico e desperdiçou parte do que prometia.' },
   { name: 'Roque Santa Cruz', club: 'Blackburn', year: 2008, fame: 2, lo: 70, hi: 82, bio: 'Centroavante paraguaio alto e técnico — jovem campeão pelo Bayern e artilheiro querido no Blackburn.' },
   { name: 'Quincy Promes', club: 'Spartak Moscou', year: 2018, fame: 3, lo: 74, hi: 84, bio: 'Ponta holandês veloz e goleador — brilhou no Spartak Moscou, passou por Sevilla e Ajax e defendeu a Holanda. Fora dos gramados, foi condenado na Justiça por tráfico de drogas e cumpre pena.' },
+  { name: 'Cacau', club: 'Stuttgart', year: 2009, fame: 3, lo: 74, hi: 84, bio: 'Atacante brasileiro naturalizado alemão — artilheiro querido do Stuttgart na Bundesliga (307 jogos, 88 gols entre Stuttgart e Nuremberg) e da seleção da Alemanha na Copa de 2010.' },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL], LAT: LAT_EU, ZAG: ZAG_EU, MEI: [...MEI_EU, ...NOVOS_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA] }
 
