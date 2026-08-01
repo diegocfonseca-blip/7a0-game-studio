@@ -1690,6 +1690,7 @@ const NOVOS_EU_ATA: C[] = [
   { name: 'Roque Santa Cruz', club: 'Blackburn', year: 2008, fame: 2, lo: 70, hi: 82, bio: 'Centroavante paraguaio alto e técnico — jovem campeão pelo Bayern e artilheiro querido no Blackburn.' },
   { name: 'Quincy Promes', club: 'Spartak Moscou', year: 2018, fame: 3, lo: 74, hi: 84, bio: 'Ponta holandês veloz e goleador — brilhou no Spartak Moscou, passou por Sevilla e Ajax e defendeu a Holanda. Fora dos gramados, foi condenado na Justiça por tráfico de drogas e cumpre pena.' },
   { name: 'Cacau', club: 'Stuttgart', year: 2009, fame: 3, lo: 74, hi: 84, bio: 'Atacante brasileiro naturalizado alemão — artilheiro querido do Stuttgart na Bundesliga (307 jogos, 88 gols entre Stuttgart e Nuremberg) e da seleção da Alemanha na Copa de 2010.' },
+  { name: 'Rummenigge', club: 'Bayern', year: 1981, fame: 5, lo: 90, hi: 95, bio: 'Karl-Heinz Rummenigge — atacante alemão duas vezes Bola de Ouro (1980 e 1981), craque elegante e ídolo máximo do Bayern de Munique, vice-campeão do mundo com a Alemanha.' },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL], LAT: LAT_EU, ZAG: ZAG_EU, MEI: [...MEI_EU, ...NOVOS_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA] }
 
