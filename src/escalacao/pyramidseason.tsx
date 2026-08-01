@@ -26,7 +26,19 @@ import type { ApoioPerk } from './apoio'
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
 const GREEN = '#1B7A3D'
+const SLATE = '#3E4A5A' // 🔄 marca de EMPRÉSTIMO (cinza-ardósia): NEUTRA de propósito — cor é sagrada dos tiers, então o emprestado não empresta cor de tier nenhum
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
+
+// 🔄 chip "EMP" do jogador emprestado (pego DA SAF). Fica do lado do nome, pequeno,
+// sem poluir. `mini` = versão selo do campinho (canto da mini-carta).
+function EmpTag({ mini = false }: { mini?: boolean }) {
+  if (mini) return (
+    <span style={{ position: 'absolute', top: -8, right: -6, ...OSWALD, fontWeight: 900, fontSize: 7.5, letterSpacing: .4, color: '#fff', background: SLATE, border: `1.5px solid ${INK}`, borderRadius: 5, padding: '0 4px', lineHeight: '15px', textTransform: 'uppercase', boxShadow: `1.5px 1.5px 0 ${INK}` }}>EMP</span>
+  )
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, ...OSWALD, fontWeight: 900, fontSize: 8, letterSpacing: .6, color: '#fff', background: SLATE, border: `1.5px solid ${INK}`, borderRadius: 5, padding: '1px 5px', marginLeft: 6, flexShrink: 0, textTransform: 'uppercase', verticalAlign: 'middle' }}>🔄 EMP</span>
+  )
+}
 
 // 🔒 no lugar dos controles de manual, quando a carreira NOVA ainda não tem o
 // Modo Manual: um convite que abre o Apoie direto na explicação do manual. A
@@ -1265,6 +1277,7 @@ function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boo
     <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: listed ? '#FDE7E4' : titular ? '#fff' : 'rgba(255,255,255,0.5)', borderLeft: `3px solid ${listed ? '#C2452F' : titular ? col.solid : 'transparent'}`, marginBottom: 3, opacity: dim ? 0.45 : 1, cursor: onClick ? 'pointer' : 'default' }}>
       <span style={{ fontWeight: titular ? 800 : 600, fontSize: 12, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: listed ? '#a23325' : titular ? INK : '#6a6658' }}>
         {c.name}
+        {c.emprestado && <EmpTag />}
         {onSwap && <span style={{ fontWeight: 900, marginLeft: 4, color: titular ? '#c0392b' : GREEN }}>{titular ? '▼' : '▲'}</span>}
         {list && <span style={{ fontWeight: 900, marginLeft: 4, fontSize: 10, color: listed ? '#C2452F' : dim ? 'rgba(0,0,0,0.35)' : GREEN }}>{listed ? '🔴 À VENDA (tirar)' : dim ? '🔒' : '+ listar'}</span>}
       </span>
@@ -1308,7 +1321,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { m
     <div key={c.id} onClick={() => onTap?.(c.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, height: 48, padding: '0 6px', borderRadius: 6, background: st === 'sel' ? '#FFF6D6' : titular ? '#fff' : 'rgba(255,255,255,0.88)', border: `2px solid ${st === 'idle' ? 'transparent' : borderOf(st)}`, marginBottom: 3, opacity: st === 'dim' ? 0.5 : 1, cursor: onTap ? 'pointer' : 'default' }}>
       <span style={{ minWidth: 0 }}>
         <span style={{ display: 'block', fontWeight: titular ? 800 : 700, fontSize: 11.5, ...OSWALD, color: titular ? INK : '#4a4740', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          <span style={{ fontWeight: 900, fontSize: 8.5, color: col.solid, marginRight: 4 }}>{c.pos}</span>{c.name}
+          <span style={{ fontWeight: 900, fontSize: 8.5, color: col.solid, marginRight: 4 }}>{c.pos}</span>{c.name}{c.emprestado && <EmpTag />}
         </span>
         <span style={{ display: 'block', fontWeight: 700, fontSize: 9, color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.club} · {c.year}</span>
       </span>
@@ -1336,7 +1349,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { m
           {rows.map(r => (
             <div key={r.key} style={{ display: 'flex', justifyContent: 'center', gap: 5, flexWrap: 'wrap' }}>
               {r.cards.map(c => { const st = stateOf(c); return (
-                <button key={c.id} onClick={() => onTap?.(c.id)} disabled={!onTap} style={{ border: `2px solid ${borderOf(st)}`, borderRadius: 8, background: st === 'sel' ? '#FFF6D6' : '#fff', padding: '3px 6px', minWidth: 58, maxWidth: 96, textAlign: 'center', cursor: onTap ? 'pointer' : 'default', opacity: st === 'dim' ? 0.5 : 1, boxShadow: st === 'target' ? `0 0 0 2px ${GREEN}` : 'none', ...OSWALD }}>
+                <button key={c.id} onClick={() => onTap?.(c.id)} disabled={!onTap} style={{ position: 'relative', border: `2px solid ${borderOf(st)}`, borderRadius: 8, background: st === 'sel' ? '#FFF6D6' : '#fff', padding: '3px 6px', minWidth: 58, maxWidth: 96, textAlign: 'center', cursor: onTap ? 'pointer' : 'default', opacity: st === 'dim' ? 0.5 : 1, boxShadow: st === 'target' ? `0 0 0 2px ${GREEN}` : 'none', ...OSWALD }}>
+                  {c.emprestado && <EmpTag mini />}
                   <span style={{ display: 'block', fontSize: 8, fontWeight: 900, color: col.solid }}>{c.pos}</span>
                   <span style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: INK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</span>
                   {goalsOf(c) > 0 && <span style={{ display: 'block', fontSize: 8.5, fontWeight: 900, color: GREEN }}>⚽ {goalsOf(c)}</span>}
