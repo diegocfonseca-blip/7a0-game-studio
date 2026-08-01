@@ -54,6 +54,13 @@ const DIV_TAG: Record<Div, { l: string; bg: string }> = { A: { l: 'A', bg: '#B88
 // atropelados de goleada — o NÍVEL/lenda continua mandando (time forte lidera). A
 // zebra/variação fica por conta do "dia" (MATCH_LUCK). Tunável.
 const CPU_DIV_BOOST: Record<Div, number> = { A: 6, B: 9, C: 12, D: 2 }
+// ⚖️ ESCADA JUSTA (simV>=4): o bônus escondido dos bots era tão alto que só time de
+// LENDA competia nas séries de cima — time bom/médio fazia ioiô (subia e caía todo
+// ano, "campeão num dia, rebaixado no outro"). Reduzido pra o NÍVEL REAL do time
+// mandar: o desafio passa a vir de adversário forte de verdade, não de um handicap
+// invisível. Só vale pra temporada NOVA (trava simV) — temporada em andamento
+// termina na regra em que começou (nada muda no meio do jogo).
+const CPU_DIV_BOOST_FAIR: Record<Div, number> = { A: 2, B: 3, C: 4, D: 2 }
 // ⚽ REALISMO DE GOL (v3, travado por simV): menos gol e menos goleada — a Série A
 // sai de ~4,2 pra ~3,0 gols/jogo e a lanterna deixa de ser freguês (goleada
 // comprimida, sem mudar QUEM ganha — o melhor time segue na frente). v2 = fórmula
@@ -288,7 +295,7 @@ function lineupAt(lineups: RoundLineups, teamId: number, r: number, squad: PoolC
   }
   return xi.length === 11 ? xi : bestXI(squad)
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false) {
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -338,7 +345,8 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     // times de CPU NATIVOS ganham a força-base da divisão (pra as séries serem
     // disputadas de verdade). Humano e rivais escolhidos NÃO ganham (jogam com o
     // elenco real que montaram).
-    const bh = (!H.human && !H.rival) ? CPU_DIV_BOOST[div] : 0, ba = (!A.human && !A.rival) ? CPU_DIV_BOOST[div] : 0
+    const BM = fairBoost ? CPU_DIV_BOOST_FAIR : CPU_DIV_BOOST
+    const bh = (!H.human && !H.rival) ? BM[div] : 0, ba = (!A.human && !A.rival) ? BM[div] : 0
     fh.atk += bh; fh.def += bh; fa.atk += ba; fa.def += ba
     // SORTE: cada time tem um "dia" (bom/ruim) por jogo — o forte às vezes tropeça,
     // o fraco às vezes surpreende. NÍVEL segue mandando (na média o melhor ganha),
@@ -364,14 +372,14 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const tables = {} as Record<Div, SimTeam[]>
   const matches = {} as Record<Div, SimMatch[]>
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
@@ -1982,13 +1990,16 @@ export function PyramidSeasonScreen() {
   // termina na versão em que começou (não muda no meio).
   const realGoals = (state.simV ?? 1) >= 3
   const capElite = realGoals ? 1.12 : (state.simV ?? 1) >= 2 ? 1.28 : 1.2
+  // ⚖️ escada justa (bônus dos bots reduzido) só a partir do simV 4 — temporada
+  // em andamento (simV<4) termina na escada antiga; a próxima já entra na nova.
+  const fairBoost = (state.simV ?? 1) >= 4
   // 🎲 seed da simulação MUDA a cada temporada (mistura seed + seasonNo). Sem isto,
   // no online "mesmo time" a seed ficava fixa e TODA temporada refazia os MESMOS
   // sorteios — a mesma goleada, o mesmo placar, temporada após temporada. É
   // determinístico (seed e seasonNo são sincronizados), então todos os clientes
   // online chegam no mesmo resultado. Cada temporada roda como se fosse uma nova.
   const seasonSeed = (state.seed ^ ((state.seasonNo ?? 1) * 2654435761)) >>> 0
-  const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals])
+  const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
   // está animando na sua tela — os pontos só entram quando o relógio dela acaba.
@@ -2009,7 +2020,7 @@ export function PyramidSeasonScreen() {
   // os gols da partida apareciam ANTES dela animar (a tabela já segurava, mas a
   // artilharia entregava). Quando a rodada termina de animar (revealed = round),
   // tudo passa a vir da simulação completa (live), sem recomputar à toa.
-  const shown = useMemo(() => revealed >= round ? live : simulatePyramid(world, seasonSeed, revealed, careerTactics, careerLineup, capElite, realGoals), [live, revealed, round, world, seasonSeed, careerTactics, careerLineup, capElite, realGoals])
+  const shown = useMemo(() => revealed >= round ? live : simulatePyramid(world, seasonSeed, revealed, careerTactics, careerLineup, capElite, realGoals, fairBoost), [live, revealed, round, world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost])
   const { scorers, scorersAll, goalsByCard, divTop } = shown
   const tables = shown.tables
   const me = myStanding(tables)

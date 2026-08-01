@@ -152,3 +152,27 @@ por identidade evita reempacotar o mesmo estado. Futebol/solo/offline intactos
 - 💡 Rede de segurança do lado do servidor (opcional, não feito): dá pra **subir o
   teto de payload do Realtime** no painel do Supabase — protegeria até clientes em
   cache antigo. Confirmar plano.
+
+---
+
+## ⚖️ JUSTIÇA DA CARREIRA — escada menos injusta (01/08)
+**Problema (medido, time de lendas + forte + médio, 150 temporadas/série):** o
+"bônus escondido" que os bots ganhavam por divisão era altíssimo
+(`CPU_DIV_BOOST {A:6,B:9,C:12,D:2}`) — e o humano/rivais NÃO ganham. Resultado:
+só time de LENDA competia na Série A (10% título), time FORTE (80) era rebaixado
+94% na A / 93% na B, e time MÉDIO (68) ganhava a D e era **rebaixado da C em 99%**
+→ ioiô eterno ("campeão num dia, rebaixado no outro"). O bônus ainda era torto
+(C ganhava +12, mais que a A). Detalhe importante: esse bônus é somado IGUAL a
+todos os bots, então nem deixava as divisões de CPU mais disputadas entre si — só
+segurava o jogador (handicap invisível).
+**Ajuste (aprovado pelo Diego = 2/3/4/2):** `CPU_DIV_BOOST_FAIR {A:2,B:3,C:4,D:2}`,
+travado por **simV>=4** (temporada em andamento termina na escada antiga; a
+próxima já entra na nova). Agora o NÍVEL REAL do time manda: lendas brigam/ganham
+a A (27% título, 71% acesso, ~nunca rebaixa), forte é dono da C e briga na B,
+médio ganha a D e precisa reforçar pra firmar. A sorte NÃO foi mexida (testado:
+quase não muda — o vilão era o bônus). Só a simulação da carreira (solo+online);
+leilão, online e futebol ao vivo intactos. `computeCopa` não usa esse bônus (Copa
+inalterada). **Revertível** (1 commit).
+- PRÓXIMO passo combinado: leilão mais esperto pra bots+rivais (valorizar
+  lenda/craque) pra o desafio vir de adversário forte de verdade; e "real na
+  frente de fake" (bot compra sobra pra tirar perna-de-pau do banco). Medir antes.
