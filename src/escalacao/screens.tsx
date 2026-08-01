@@ -5674,19 +5674,29 @@ function NbaCareerEndPanel() {
     : nMarked > 0
     ? t(`Você dispensou ${nMarked} — o leilão de reservas vai repor as vagas.`, `You released ${nMarked} — the reserve auction will refill the slots.`)
     : t('Elenco cheio (15) — a próxima temporada começa com o mesmo time (ou dispense reservas pra trocar).', 'Full roster (15) — next season starts with the same team (or release bench players to swap).')
-  // 🌐🏀 CARREIRA ONLINE (fase 2): o AVANÇO de temporada (subir de andar, leilão de
-  // reservas sincronizado) ainda não está pronto no online — então NÃO mostramos o
-  // botão "próxima temporada" aqui (ele roda NEXT_NBA_SEASON, que é 1-humano e no
-  // online não faz nada de propósito). Em vez de travar, damos um aviso claro e sem
-  // spoiler de tabela. O OFFLINE segue com todo o fluxo normal abaixo (idêntico).
+  // 🌐🏀 CARREIRA ONLINE (Fatia 2): avança a temporada NO MESMO ANDAR (street) — o host
+  // clica e todos vão juntos pro leilão de RESERVAS (crescer o elenco 5→10→15) ou,
+  // com elenco cheio, direto pra próxima temporada. Subir de andar (Street→G→NBA) é a
+  // Fatia 3. Anti-spoiler: não mostra posição/tabela. Host dispara NEXT_NBA_SEASON_ONLINE;
+  // guest só espera (mesmo padrão do OnlineEndVote). OFFLINE segue o fluxo normal abaixo.
   if (state.onlineMode === 'online') {
+    const willAuction = roster < 15 // ainda cabe reserva → próximo passo é o leilão de reservas
+    const nextNote = willAuction
+      ? t('O host começa e todo mundo vai pro leilão de RESERVAS — cada um monta seu banco.', 'The host starts and everyone heads to the RESERVE auction — each of you builds a bench.')
+      : t('Elenco cheio — a próxima temporada começa com o mesmo time.', 'Full roster — next season starts with the same team.')
     return (
       <div className="rounded-2xl border-4 border-black p-4 text-center space-y-2" style={{ background: '#FFF6D6', boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="font-black text-lg" style={OSWALD}>🏀 {t('Temporada completa!', 'Season complete!')}</p>
-        <p className="text-sm font-semibold text-black/70">
-          {t('A carreira online continua já já: subir de liga com a galera vem no próximo update. Por enquanto, é só criar uma sala nova pra jogar outra temporada.',
-            'Online career keeps going soon: climbing the ladder with your crew is coming in the next update. For now, just spin up a new room to play another season.')}
-        </p>
+        {state.isHost ? (
+          <>
+            <Btn onClick={() => dispatch({ type: 'NEXT_NBA_SEASON_ONLINE' })} bg={GREEN} className="w-full text-lg">
+              <span className="text-white">▶️ {t('Próxima temporada', 'Next season')}</span>
+            </Btn>
+            <p className="text-center text-[11px] font-semibold text-black/55 -mt-1">{nextNote}</p>
+          </>
+        ) : (
+          <p className="text-sm font-semibold text-black/70">⏳ {t('Aguardando o host começar a próxima temporada…', 'Waiting for the host to start the next season…')}</p>
+        )}
       </div>
     )
   }

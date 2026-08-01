@@ -1873,6 +1873,7 @@ type Action =
   | { type: 'GO_SETUP_NBA' } // 🏀 abre a tela de montagem do jogo rápido do basquete
   | { type: 'GO_SETUP_NBA_CAREER' } // 🏀 abre a tela de montagem da carreira do basquete
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
+  | { type: 'NEXT_NBA_SEASON_ONLINE' } // 🌐🏀 carreira ONLINE (Fatia 2): avança a temporada NO MESMO ANDAR + leilão de reservas multi-humano (host dispara)
   | { type: 'RESUME_NBA_CAREER'; saved: EscState } // 🏀 retoma a carreira do basquete salva (bl-nba-career)
   | { type: 'TOGGLE_NBA_RELEASE'; cardId: string } // 🏀 carreira: marca/desmarca uma reserva pra DISPENSAR (T3+); repõe no leilão
   | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both'; intro?: boolean } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
@@ -2598,6 +2599,54 @@ export function reducer(state: EscState, action: Action): EscState {
       } else {
         // mesmo time: nova temporada direto (sem leilão). Dificuldade do andar
         // aplicada agora (no leilão, o FINISH_CEREMONY já chama cpuAdjFor).
+        s.reserveAuction = false; s.reserveListed = {}
+        for (const m of s.managers) m.deepSquad = false
+        const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
+        s.league = buildLeague(s.managers, !s.ligaFechada)
+        s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+        s.tactics = {}
+        s.screen = 'season'
+      }
+      return s
+    }
+    case 'NEXT_NBA_SEASON_ONLINE': {
+      // 🌐🏀 CARREIRA ONLINE DO BASQUETE — Fatia 2: avança a temporada NO MESMO ANDAR
+      // (subir de liga = Fatia 3, mais arriscada). Host-autoritativo: SÓ o host dispara
+      // (o botão da tela de fim é host-only); os guests recebem tudo via SYNC_STATE.
+      // Reusa o MESMO motor do rápido/reservas — futebol NUNCA passa aqui (guardado por
+      // sport==='basquete' && nbaCareer && online). É o espelho ONLINE do NEXT_NBA_SEASON
+      // offline, MENOS o bloco de promoção (que assume 1 humano no youIdx=0).
+      if (s.onlineMode !== 'online' || s.sport !== 'basquete' || !s.nbaCareer) return s
+      s.seasonNo++
+      const rng = mulberry((s.seed ^ (s.seasonNo * 2246822519)) >>> 0)
+      setActiveSport('basquete', 'career') // base = 1/posição (quinteto); nbaSlots cresce por humano
+      // TODOS os humanos crescem (o offline cresce só o youIdx): T2 → rotação (2/pos = 10),
+      // T3+ → elenco cheio (3/pos = 15). Os bots (crews) ficam no quinteto (sem nbaSlots).
+      const humans = s.managers.filter(m => m.isHuman)
+      for (const m of humans) m.nbaSlots = s.seasonNo >= 3 ? 3 : 2
+      for (const m of s.managers) m.deepSquad = false
+      // 🚫 SEM subir de andar aqui (Fatia 3). Mantém tier e o modo de copa do andar.
+      s.copaMode = (s.nbaTier ?? 'street') === 'street' ? 'liga' : 'liga_copa'
+      s.quickCopa = null // reseeda o chaveamento a cada temporada
+      s.round = 0; s.champion = null; s.news = []; s.scorers = []; s.lastResults = []
+      s.seasonVotes = {} // temporada nova: zera a votação de fim
+      // ainda tem vaga de reserva pra encher (T2 5→10, T3 10→15)? ABRE o leilão de
+      // reservas MULTI-HUMANO (mantém o quinteto, cada humano leiloa só as vagas novas).
+      // Já cheio (elenco 15)? começa a temporada com o mesmo time (sem leilão).
+      const wantReserve = humans.some(you => SECTORS.some(pos => openSlots(you, pos) > 0))
+      if (wantReserve) {
+        s.reserveAuction = true; s.reserveListed = {}
+        for (const m of humans) m.money = NBA_RESERVE_BUDGET // cada humano ganha o orçamento de reservas
+        const used = new Set<string>()
+        for (const m of s.managers) for (const c of m.squad) used.add(ident(c)) // ninguém repete quem já tem
+        s.deck = buildDeck(humans, rng, 2.0, used, 1) // baralho só pras vagas novas dos humanos
+        s.surpriseId = pickSurprise(s.deck, rng)
+        for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
+        s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []
+        s.tactics = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
+        s.screen = 'auction'
+        startAuctionPhase(s, false)
+      } else {
         s.reserveAuction = false; s.reserveListed = {}
         for (const m of s.managers) m.deepSquad = false
         const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
