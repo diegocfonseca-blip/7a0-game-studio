@@ -1674,6 +1674,7 @@ const NOVOS_EU_ATA: C[] = [
   { name: 'Jérémy Doku', club: 'Manchester City', year: 2024, fame: 4, lo: 82, hi: 91, bio: 'Ala belga de arrancada elétrica — dribla, chega na linha de fundo e faz zagueiro passar vergonha, na velocidade do City.' },
   { name: 'Hatem Ben Arfa', club: 'Nice', year: 2016, fame: 4, lo: 80, hi: 90, folk: true, bio: 'Talento francês de driblar meio time sozinho — o gol solo pelo Nice virou lenda. Gênio indomável: brigou com técnico atrás de técnico e desperdiçou parte do que prometia.' },
   { name: 'Roque Santa Cruz', club: 'Blackburn', year: 2008, fame: 2, lo: 70, hi: 82, bio: 'Centroavante paraguaio alto e técnico — jovem campeão pelo Bayern e artilheiro querido no Blackburn.' },
+  { name: 'Quincy Promes', club: 'Spartak Moscou', year: 2018, fame: 3, lo: 74, hi: 84, bio: 'Ponta holandês veloz e goleador — brilhou no Spartak Moscou, passou por Sevilla e Ajax e defendeu a Holanda. Fora dos gramados, foi condenado na Justiça por tráfico de drogas e cumpre pena.' },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL], LAT: LAT_EU, ZAG: ZAG_EU, MEI: [...MEI_EU, ...NOVOS_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA] }
 
