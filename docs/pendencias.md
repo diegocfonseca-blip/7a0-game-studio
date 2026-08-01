@@ -177,3 +177,23 @@ inalterada). **Revertível** (1 commit).
 - PRÓXIMO passo combinado: leilão mais esperto pra bots+rivais (valorizar
   lenda/craque) pra o desafio vir de adversário forte de verdade; e "real na
   frente de fake" (bot compra sobra pra tirar perna-de-pau do banco). Medir antes.
+
+---
+
+## 🧹 Bug "dois Van der Sar" no leilão — CORRIGIDO (01/08)
+**Relato do Diego:** no leilão apareceu o MESMO jogador (Van der Sar) duas vezes —
+um num time (com dono) e outro solto, como se fosse uma "sobra". Só existe 1 Van
+der Sar no baralho, então é duplicata de verdade.
+**Investigação:** a trava anti-duplicata (por nome+clube, `ident`) é minuciosa em
+todas as fontes (mercado/listados/sobras/fichas). Rodei 6 temporadas de carreira
+solo (com o mercado das fichas ativo) e NÃO reproduzi — indício de que a cópia
+escapa num caso específico (online, "novo pregão", ou um SAVE ANTIGO que já
+carregava a duplicata de uma versão anterior).
+**Correção (universal):** `dedupeDeck` — uma peneira final que roda no ARRANQUE de
+todo leilão (1ª posição, antes de distribuir), tirando qualquer jogador real
+repetido do baralho (mantém o 1º; incógnitos/fake ficam, cada um é único).
+Guardado por `sectorIdx===0 && sectorCursor===0` → roda 1x por leilão. Pega TODOS
+os casos, inclusive save antigo. Não importa por onde a cópia entrou, ela não
+chega mais na tela. Testado (2 Van der Sar → 1, fakes preservados). Revertível.
+- FALTA (se voltar a aparecer): achar a ORIGEM exata — provavelmente online ou o
+  "novo pregão"/REAUCTION. A peneira já mata o sintoma pra todo mundo enquanto isso.
