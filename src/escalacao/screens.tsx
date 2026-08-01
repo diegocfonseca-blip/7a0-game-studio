@@ -5082,11 +5082,11 @@ export function EscRanking() {
   }, [mode])
 
   const loading = rows === null
-  // Lista única: 1º critério títulos, 2º artilharias (desempate por gols).
-  // Entra quem tem ao menos 1 título OU 1 artilharia.
+  // Ranking por TÍTULOS (a artilharia saiu — é rara/pouco significativa e fácil
+  // de forjar). Desempate simples por gols. Entra quem tem ao menos 1 título.
   const shown = useMemo(() => (rows ?? [])
-    .filter(r => r.titles > 0 || r.scorer_titles > 0)
-    .sort((a, b) => b.titles - a.titles || b.scorer_titles - a.scorer_titles || b.goals - a.goals),
+    .filter(r => r.titles > 0)
+    .sort((a, b) => b.titles - a.titles || b.goals - a.goals),
     [rows])
   const inList = !!meId && shown.some(r => r.user_id === meId)
 
@@ -5101,7 +5101,7 @@ export function EscRanking() {
     <Shell>
       <div className="text-center pt-4">
         <h2 className="font-black text-4xl" style={OSWALD}>🏆 RANKING</h2>
-        <p className="font-semibold text-black/60 mt-1">Só técnicos com cadastro. 1º critério: títulos · 2º: artilharias.</p>
+        <p className="font-semibold text-black/60 mt-1">Só técnicos com cadastro. Ranking por títulos. 🏆</p>
       </div>
 
       {/* filtro: geral / online / cpu */}
@@ -5125,7 +5125,6 @@ export function EscRanking() {
           <span className="w-9 shrink-0" />
           <span className="flex-1" />
           <span className="w-12 text-center font-black text-[11px] text-black/45 shrink-0" style={OSWALD}>🏆 Tít.</span>
-          <span className="w-12 text-center font-black text-[11px] text-black/45 shrink-0" style={OSWALD}>⚽ Art.</span>
         </div>
       )}
 
@@ -5149,13 +5148,12 @@ export function EscRanking() {
             <span className="font-black text-lg w-9 text-center shrink-0" style={OSWALD}>{medal(i)}</span>
             <span className="font-black text-black text-sm flex-1 min-w-0 truncate text-left" style={OSWALD}>{r.name}{r.user_id === meId ? ' (você)' : ''}</span>
             <span className="w-12 text-center font-black text-lg shrink-0" style={OSWALD}>{r.titles}</span>
-            <span className="w-12 text-center font-black text-lg shrink-0" style={OSWALD}>{r.scorer_titles}</span>
           </button>
         ))}
       </div>
       {!loading && !inList && meId && shown.length > 0 && (
         <Box bg="#fff" className="p-3 text-center">
-          <p className="font-bold text-black/70 text-sm">Você ainda não pontuou{mode !== 'geral' ? ` ${mode === 'online' ? 'no online' : 'no CPU'}` : ''}. Seja campeão ou artilheiro pra entrar! 🔨</p>
+          <p className="font-bold text-black/70 text-sm">Você ainda não pontuou{mode !== 'geral' ? ` ${mode === 'online' ? 'no online' : 'no CPU'}` : ''}. Seja campeão pra entrar! 🔨</p>
         </Box>
       )}
       {!loading && !meId && (
