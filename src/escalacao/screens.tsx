@@ -2807,11 +2807,10 @@ function Reveal() {
             {item.bids.length === 0 && (
               <p className="font-bold text-black/70">Nenhum lance. Vai pro Monte Final. 🪣</p>
             )}
-            {/* 🔒 ANTI-SPOILER + "pote crescente": lances revelados do MENOR pro MAIOR,
-                então o vencedor (maior) aparece por ÚLTIMO, coladinho no martelo — e só
-                fica VERDE quando o martelo bate (hammered). Antes o maior vinha 1º e já
-                verde: entregava o ganhador antes do apito. */}
-            {[...item.bids].sort((a, b) => a.amount - b.amount).map((b, i) => {
+            {/* MAIOR lance em CIMA (quem ganha no topo) — como sempre foi. O
+                anti-spoiler que importa é só a cor: a linha do vencedor só fica
+                VERDE quando o martelo bate (hammered), nunca antes do apito. */}
+            {[...item.bids].sort((a, b) => b.amount - a.amount).map((b, i) => {
               const m = state.managers.find(x => x.id === b.mgr)!
               const voided = item.voided.includes(b.mgr)
               const isWinner = item.winner === b.mgr && hammered
