@@ -1120,6 +1120,7 @@ const NOVOS_BR_MEI: C[] = [
   { name: 'Adjemar', club: 'São Caetano', year: 2002, fame: 2, lo: 64, hi: 79, bio: 'Meia habilidoso do timaço do São Caetano do Muricy — toque de bola nos anos dourados do Azulão.' },
   { name: 'Leandro Ávila', club: 'Botafogo', year: 1995, fame: 2, lo: 66, hi: 81, bio: 'Volante raçudo dos anos 90, passou pelos quatro grandes do Rio — peça do Botafogo campeão brasileiro de 1995.' },
   { name: 'Vinícius Pacheco', club: 'Paraná', year: 2007, fame: 1, lo: 52, hi: 70, bio: 'Meia-atacante canhoto e habilidoso que rodou o Brasil — teve boa passagem pelo Paraná Clube no fim dos anos 2000.' },
+  { name: 'Dátolo', club: 'Atlético-MG', year: 2012, fame: 2, lo: 68, hi: 81, bio: 'Meia-atacante argentino de bom pé e bola parada — peça de criação do Atlético-MG, também com passagens por Napoli e no futebol argentino.' },
 ]
 const NOVOS_BR_ATA: C[] = [
   { name: 'Loide Augusto', club: 'Vasco', year: 2021, fame: 1, lo: 58, hi: 74, bio: 'Revelado como profissional no Vasco — atacante rápido, faro de gol e a molecagem da base cruzmaltina.' },
@@ -1128,6 +1129,7 @@ const NOVOS_BR_ATA: C[] = [
   { name: 'Gonzalo Plata', club: 'Flamengo', year: 2024, fame: 2, lo: 66, hi: 81, bio: 'Ponta equatoriano de drible e velocidade — chegou ao Flamengo pra dar profundidade e ligar o jogo pelos lados.' },
   { name: 'Vitor Roque (Barcelona)', club: 'Barcelona', year: 2024, fame: 1, lo: 58, hi: 74, bio: 'O Matador que atravessou o oceano cedo demais: no Barcelona não engrenou e virou aviso sobre pressa — depois voltou pra reencontrar o faro de gol.' },
   { name: 'Rafael Moura (He-Man)', club: 'Atlético-MG', year: 2013, fame: 2, lo: 66, hi: 80, bio: 'Centroavante brasileiro apelidado de "He-Man" pelo físico avantajado — rodou por Grêmio, Fluminense e Atlético-MG, sempre com faro de gol e presença na área.' },
+  { name: 'Romarinho (Corinthians)', club: 'Corinthians', year: 2012, fame: 2, lo: 66, hi: 80, bio: 'Atacante eternizado pelo gol do Corinthians contra o Chelsea no Mundial de 2012 — matador querido da Fiel, depois artilheiro no futebol árabe.' },
 ]
 export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT], ZAG, MEI: [...MEI, ...NOVOS_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA] }
 
@@ -1185,6 +1187,7 @@ const GOL_EU: C[] = [
   { name: "Brad Friedel", club: "Blackburn", year: 2004, fame: 4, lo: 76, hi: 88, bio: "O muro americano da Premier League — 310 jogos seguidos sem faltar um, reflexos de gato e até gol marcado. Respeito eterno na Inglaterra." },
 ]
 const LAT_EU: C[] = [
+  { name: "Benjamin Mendy", club: "Manchester City", year: 2018, fame: 3, lo: 74, hi: 85, bio: "Lateral-esquerdo francês veloz e potente na subida — campeão do mundo com a França em 2018 e peça do Manchester City de Guardiola quando livre de lesões." },
   { name: "Michel Bastos", club: "Lyon", year: 2010, fame: 3, lo: 75, hi: 86, bio: "Canhoto versátil (lateral e meia) — auge no Lyon com cobranças de falta perfeitas; titular da Seleção na Copa de 2010." },
   { name: "Rafael (irmão do Fábio)", club: "Manchester United", year: 2013, fame: 3, lo: 74, hi: 85, bio: "Lateral-direito gêmeo revelado no Fluminense — chegou garoto ao Manchester United de Ferguson, raçudo e ofensivo, bicampeão inglês." },
   { name: "Fábio (irmão do Rafael)", club: "Manchester United", year: 2011, fame: 2, lo: 68, hi: 83, bio: "Lateral-esquerdo gêmeo, irmão do Rafael — do Fluminense direto pro Manchester United bicampeão, com boa sequência depois no Cardiff." },
@@ -1673,6 +1676,7 @@ const NOVOS_EU_MEI: C[] = [
   { name: 'Hakan Çalhanoğlu', club: 'Inter', year: 2024, fame: 4, lo: 83, hi: 90, bio: 'O regista turco da Inter — reinventado como camisa 6, dita o ritmo, cobra falta com veneno e não erra pênalti.' },
   { name: 'Arda Güler', club: 'Real Madrid', year: 2024, fame: 3, lo: 76, hi: 85, promessa: true, bio: 'Joia turca do Real Madrid — canhota refinada, passe e chute de fora da área. A promessa que a Europa toda cobiçava.' },
   { name: 'Brahim Díaz', club: 'Milan', year: 2022, fame: 2, lo: 72, hi: 83, bio: 'Meia-atacante veloz e driblador — foi no Milan que virou titular e brilhou, com arranques e gols, antes de voltar ao Real Madrid.' },
+  { name: 'Danny Drinkwater', club: 'Leicester', year: 2016, fame: 2, lo: 68, hi: 82, bio: 'Volante inglês de marcação e passe certo — peça-chave do Leicester campeão inglês de 2016, o maior conto de fadas da Premier League.' },
 ]
 const NOVOS_EU_ATA: C[] = [
   { name: 'Jérémy Doku', club: 'Manchester City', year: 2024, fame: 4, lo: 82, hi: 91, bio: 'Ala belga de arrancada elétrica — dribla, chega na linha de fundo e faz zagueiro passar vergonha, na velocidade do City.' },
