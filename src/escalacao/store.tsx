@@ -1164,6 +1164,77 @@ function revertFilialLoans(s: EscState) {
   s.careerFilial = { ...f, loanOut: [], loanIn: [] }
 }
 
+// 🏢 na VIRADA de temporada o empréstimo NÃO volta mais sozinho — ele PERSISTE
+// (o Diego pediu: quem quer mexer mexe, quem não quer mantém o que tinha). A ÚNICA
+// devolução automática é o EXCEDENTE quando você é REBAIXADO e a divisão nova tem
+// MENOS vagas: o que não cabe volta pro dono (loanOut) ou pra SAF (loanIn), sempre
+// os últimos que entraram. Retorna quantos foram devolvidos (pra avisar na tela).
+function trimFilialLoansToDivision(s: EscState): number {
+  // devolve o excedente de UMA carteira: mantém os primeiros `cap` de cada direção.
+  const trim = (owner: Manager, outs: WonCard[], ins: WonCard[], cap: number, safSquad: WonCard[]): { keptOut: WonCard[]; keptIn: WonCard[]; returned: number } => {
+    let returned = 0
+    const keptOut = outs.slice(0, cap), keptIn = ins.slice(0, cap)
+    for (const lo of outs.slice(cap)) {
+      const i = safSquad.findIndex(c => c.id === lo.id); if (i >= 0) safSquad.splice(i, 1)
+      owner.squad = [...owner.squad, { ...lo, emprestado: undefined, byClub: undefined } as WonCard]; returned++
+    }
+    const excessIn = ins.slice(cap)
+    if (excessIn.length) {
+      const inIds = new Set(excessIn.map(c => c.id))
+      for (const m of s.managers) if (m.isHuman) m.squad = m.squad.filter(c => !inIds.has(c.id))
+      for (const li of excessIn) safSquad.push({ ...li, emprestado: undefined, byClub: undefined } as WonCard)
+      returned += excessIn.length
+    }
+    return { keptOut, keptIn, returned }
+  }
+  if (s.onlineMode === 'online') {
+    let returned = 0
+    for (const you of s.managers.filter(m => m.isHuman)) {
+      const f = s.careerFilials?.[you.id]; if (!f) continue
+      const outs = loanList(f.loanOut), ins = loanList(f.loanIn)
+      const cap = filialSlots(s.careerPlacements?.[`m${you.id}`] ?? 'D')
+      if (outs.length <= cap && ins.length <= cap) continue
+      const cpuSq = { ...(s.cpuSquads ?? {}) }
+      const safSquad = [...(cpuSq[f.team] ?? [])] as WonCard[]
+      const r = trim(you, outs, ins, cap, safSquad)
+      cpuSq[f.team] = safSquad; s.cpuSquads = cpuSq
+      s.careerFilials = { ...(s.careerFilials ?? {}), [you.id]: { ...f, loanOut: r.keptOut, loanIn: r.keptIn } }
+      returned += r.returned
+    }
+    return returned
+  }
+  const f = s.careerFilial
+  const outs = loanList(f?.loanOut), ins = loanList(f?.loanIn)
+  if (!f || (outs.length === 0 && ins.length === 0)) return 0
+  const humans = s.managers.filter(m => m.isHuman)
+  if (!humans.length) return 0
+  const cpuSq = { ...(s.cpuSquads ?? {}) }
+  const safSquad = [...(cpuSq[f.team] ?? [])] as WonCard[]
+  let returned = 0
+  let keptOut: WonCard[] = [], keptIn: WonCard[] = []
+  if (s.multiClube) {
+    // 🏛️ MULTICLUBES: SAF compartilhada, cada clube tem sua divisão e sua vaga (byClub).
+    // Trima por clube — o rebaixamento de UM não devolve o empréstimo do outro.
+    for (const club of humans) {
+      const cap = filialSlots(s.careerPlacements?.[`m${club.id}`] ?? 'D')
+      const myOut = outs.filter(c => c.byClub === club.id)
+      const myIn = ins.filter(c => c.byClub === club.id)
+      const r = trim(club, myOut, myIn, cap, safSquad)
+      keptOut.push(...r.keptOut); keptIn.push(...r.keptIn); returned += r.returned
+    }
+    // saves antigos sem byClub: mantém como estavam (não sei de qual clube são)
+    keptOut.push(...outs.filter(c => c.byClub == null))
+    keptIn.push(...ins.filter(c => c.byClub == null))
+  } else {
+    const cap = filialSlots(myCareerDiv(s))
+    const r = trim(humans[0], outs, ins, cap, safSquad)
+    keptOut = r.keptOut; keptIn = r.keptIn; returned = r.returned
+  }
+  cpuSq[f.team] = safSquad; s.cpuSquads = cpuSq
+  s.careerFilial = { ...f, loanOut: keptOut, loanIn: keptIn }
+  return returned
+}
+
 function migrateTeamNames(st: EscState): EscState {
   const mapKeys = <V,>(rec: Record<string, V> | null | undefined): typeof rec => {
     if (!rec) return rec
@@ -1924,8 +1995,10 @@ type Action =
   | { type: 'CLEAR_MULTICLUBE_PENDING'; mgrId: number; season: number; copa?: boolean } // 🏛️ MULTICLUBES: risca a carta guardada depois que você abriu o pacote
   | { type: 'SELL_FILIAL'; mgrId?: number } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 2.500)
   | { type: 'ADD_EMPRESARIO_CARD'; card: EmpCard; key?: string; mgrId?: number } // 💼 registra uma carta ganha (pacote de campeão) na agência do Empresário. `key` = seasonKey do pacote (dedup por temporada — aceita repetida entre temporadas). `mgrId` = técnico dono (online: por-técnico)
-  | { type: 'LOAN_TO_FILIAL'; cardId: string; mgrId?: number } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda, volta na virada)
+  | { type: 'LOAN_TO_FILIAL'; cardId: string; mgrId?: number } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda; agora PERSISTE entre temporadas)
   | { type: 'LOAN_FROM_FILIAL'; cardId: string; mgrId?: number } // 🏢 pega um jogador emprestado DA SAF (idem)
+  | { type: 'RETURN_FILIAL_LOAN'; cardId: string; mgrId?: number } // 🏢 traz UM empréstimo de volta na hora (seu volta pro elenco / o da SAF volta pra SAF)
+  | { type: 'CLEAR_FILIAL_TRIM_NOTICE' } // 🏢 dispensa o aviso de "empréstimos voltaram por rebaixamento"
   | { type: 'MONTE_PASS'; mgrId: number } // carreira: recusa as sobras e passa a vez (o time já tem os 11)
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[] } // carreira online: define os 11 titulares (escalação), vale do PRÓXIMO jogo
@@ -3195,6 +3268,41 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerFilial = { ...s.careerFilial, loanIn: [...ins, loaned] }
       return s
     }
+    case 'RETURN_FILIAL_LOAN': {
+      // 🏢 traz UM empréstimo de volta na HORA (agora que o empréstimo persiste, é
+      // assim que se desfaz — inclusive pra poder vender/listar quem estava emprestado).
+      // Funciona nos 2 sentidos: seu jogador que estava na SAF volta pro seu elenco;
+      // jogador da SAF que estava com você volta pra SAF.
+      const online = s.onlineMode === 'online'
+      const you = online ? s.managers.find(m => m.id === action.mgrId) : s.managers[s.youIdx]
+      const f = online ? (you ? s.careerFilials?.[you.id] : undefined) : s.careerFilial
+      if (!s.careerOnline || !you?.isHuman || !f) return s
+      const outs = loanList(f.loanOut), ins = loanList(f.loanIn)
+      const outCard = outs.find(c => c.id === action.cardId)
+      const inCard = ins.find(c => c.id === action.cardId)
+      if (!outCard && !inCard) return s
+      const cpuSq = { ...(s.cpuSquads ?? {}) }
+      const safSquad = [...(cpuSq[f.team] ?? [])]
+      if (outCard) {
+        // seu jogador estava jogando na SAF → tira de lá e devolve pro clube DONO
+        const i = safSquad.findIndex(c => c.id === outCard.id); if (i >= 0) safSquad.splice(i, 1)
+        const owner = (!online && s.multiClube) ? (s.managers.find(m => m.isHuman && m.id === outCard.byClub) ?? you) : you
+        owner.squad = [...owner.squad, { ...outCard, emprestado: undefined, byClub: undefined } as WonCard]
+      } else if (inCard) {
+        // jogador da SAF estava no seu time → tira do elenco (qualquer humano) e volta pra SAF
+        for (const m of s.managers) if (m.isHuman) m.squad = m.squad.filter(c => c.id !== inCard.id)
+        safSquad.push({ ...inCard, emprestado: undefined, byClub: undefined } as WonCard)
+      }
+      cpuSq[f.team] = safSquad; s.cpuSquads = cpuSq
+      const newF = { ...f, loanOut: outs.filter(c => c.id !== action.cardId), loanIn: ins.filter(c => c.id !== action.cardId) }
+      if (online) s.careerFilials = { ...(s.careerFilials ?? {}), [you.id]: newF }
+      else s.careerFilial = newF
+      return s
+    }
+    case 'CLEAR_FILIAL_TRIM_NOTICE': {
+      s.filialTrimNotice = null
+      return s
+    }
     case 'MONTE_PASS': {
       // CARREIRA: ninguém é obrigado a levar sobra (muito menos a PAGAR piso) —
       // o time já tem os 11. Fora da carreira não existe passar: o Monte fecha o XI.
@@ -3565,11 +3673,11 @@ export function reducer(state: EscState, action: Action): EscState {
       applySeasonMoney(s, action.rewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha (e registra no extrato) — antes de contratar reforço
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
-      revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
+      s.careerPlacements = action.placements // ⚠️ ANTES do trim: a devolução do excedente usa a divisão NOVA
+      s.filialTrimNotice = trimFilialLoansToDivision(s) || null // 🏢 empréstimo PERSISTE; só devolve o excedente se rebaixou (com aviso)
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada (pro ranking)
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
       recordDormantCards(s, action.champions, action.copaChampion) // 🏛️ guarda a carta se o 2º clube (dormindo) foi campeão
-      s.careerPlacements = action.placements
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid)
       s.seasonNo++
       s.round = 0
@@ -3621,13 +3729,13 @@ export function reducer(state: EscState, action: Action): EscState {
       applySeasonMoney(s, action.rewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha (e registra no extrato) — ANTES da venda/leilão de reservas
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
-      revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
+      s.careerPlacements = action.placements // ⚠️ ANTES do trim: a devolução do excedente usa a divisão NOVA
+      s.filialTrimNotice = trimFilialLoansToDivision(s) || null // 🏢 empréstimo PERSISTE; só devolve o excedente se rebaixou (com aviso)
       s.careerHonors = applyHonors(s.careerHonors, action.champions)
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
       recordDormantCards(s, action.champions, action.copaChampion) // 🏛️ guarda a carta se o 2º clube (dormindo) foi campeão
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid) antes da venda/leilão de reservas
       s.seasonNo++
-      s.careerPlacements = action.placements
       s.round = 0; s.champion = null
       s.careerTactics = {}
       s.reserveListed = {}
@@ -3649,6 +3757,9 @@ export function reducer(state: EscState, action: Action): EscState {
       else {
         const card = mgr.squad.find(c => c.id === action.cardId)
         if (!card) return s
+        // 🏢 emprestado NÃO pode ir pra lista/venda: ou é um jogador da SAF (não é seu
+        // pra vender), ou é seu que está na SAF. Traga de volta primeiro (botão na SAF).
+        if (card.emprestado) return s
         const pos = card.pos
         const listedInPos = arr.filter(id => mgr.squad.find(c => c.id === id)?.pos === pos).length
         // 🏢 conta SÓ os jogadores SEUS (não emprestados): o emprestado volta na virada,

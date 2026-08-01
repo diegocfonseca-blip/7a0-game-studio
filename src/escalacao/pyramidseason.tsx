@@ -2654,6 +2654,9 @@ export function PyramidSeasonScreen() {
               })()}
               onLoanTo={cardId => dispatch({ type: 'LOAN_TO_FILIAL', cardId, mgrId: youId })}
               onLoanFrom={cardId => dispatch({ type: 'LOAN_FROM_FILIAL', cardId, mgrId: youId })}
+              onReturnLoan={cardId => dispatch({ type: 'RETURN_FILIAL_LOAN', cardId, mgrId: youId })}
+              trimNotice={state.filialTrimNotice}
+              onDismissTrimNotice={() => dispatch({ type: 'CLEAR_FILIAL_TRIM_NOTICE' })}
               loanSlots={/* mesma fonte de divisão da REGRA (colocação gravada; tabela ao vivo
                 como reserva) — se divergirem, o botão prometia 2 e o clique não fazia nada */
                 filialSlots(state.careerPlacements?.[`m${youId}`] ?? me?.div ?? 'D')} />

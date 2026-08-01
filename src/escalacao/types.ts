@@ -360,6 +360,7 @@ export interface EscState {
     loanIn?: WonCard[]  // jogadores DA SAF emprestados pra VOCÊ (jogam no seu time)
   } | null // 🏢 SAF (carreira OFFLINE, em teste): clube da Série D comprado — 50% dos prêmios de campanha dele (± em queda) caem no seu caixa
   careerFilials?: Record<number, { team: string; since: number; earned?: number; titlesAtBuy?: number; loanOut?: WonCard[]; loanIn?: WonCard[] }> // 🏢 SAF na carreira ONLINE, por técnico (mgrId → SAF). Offline usa careerFilial (single).
+  filialTrimNotice?: number | null // 🏢 aviso: quantos empréstimos voltaram sozinhos na última virada por REBAIXAMENTO (SAF perdeu vaga). Some ao dispensar. null/0 = nada a avisar
   // 🏛️ MULTICLUBES (carreira SOLO, em construção — invisível pro público): 2º clube
   // comprado por 4.000 moedas (só Lenda). Igual à SAF: escolhe um clube EXISTENTE da
   // Série D, que passa a ser seu (herda nome/história, vira sua cor). O não-selecionado
