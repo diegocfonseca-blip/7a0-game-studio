@@ -1262,6 +1262,7 @@ const LAT_EU: C[] = [
 ]
 const ZAG_EU: C[] = [
   { name: "Pau Torres", club: "Villarreal", year: 2021, fame: 3, lo: 78, hi: 85, bio: "Zagueiro espanhol canhoto de saída de bola elegante — peça do Villarreal campeão da Europa League e da seleção da Espanha, depois no Aston Villa." },
+  { name: "Armando Obispo", club: "PSV", year: 2023, fame: 2, lo: 66, hi: 80, bio: "Zagueiro holandês do PSV — subiu da base ao time principal, forte no jogo aéreo e na saída de bola." },
   { name: "Maguire", club: "Man United", year: 2019, fame: 2, lo: 66, hi: 82 },
   { name: "Matip", club: "Liverpool", year: 2019, fame: 3, lo: 78, hi: 85 },
   { name: "Gabriel Magalhães", club: "Arsenal", year: 2024, fame: 3, lo: 80, hi: 87 },
