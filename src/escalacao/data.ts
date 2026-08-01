@@ -1274,6 +1274,7 @@ const ZAG_EU: C[] = [
   { name: "Pau Torres", club: "Villarreal", year: 2021, fame: 3, lo: 78, hi: 85, bio: "Zagueiro espanhol canhoto de saída de bola elegante — peça do Villarreal campeão da Europa League e da seleção da Espanha, depois no Aston Villa." },
   { name: "Armando Obispo", club: "PSV", year: 2023, fame: 2, lo: 66, hi: 80, bio: "Zagueiro holandês do PSV — subiu da base ao time principal, forte no jogo aéreo e na saída de bola." },
   { name: "Frank de Boer", club: "Ajax", year: 1995, fame: 4, lo: 82, hi: 89, bio: "Zagueiro holandês elegante e canhoto — capitão do Ajax campeão da Europa em 1995, depois no Barcelona; recordista de jogos pela Holanda e mestre no passe longo." },
+  { name: "Luisão", club: "Benfica", year: 2010, fame: 4, lo: 82, hi: 89, bio: "Zagueiro brasileiro — capitão e maior campeão da história do Benfica (20 títulos em 15 anos), líder na defesa e fortíssimo no jogo aéreo; campeão da Copa América de 2004 pelo Brasil." },
   { name: "Maguire", club: "Man United", year: 2019, fame: 2, lo: 66, hi: 82 },
   { name: "Matip", club: "Liverpool", year: 2019, fame: 3, lo: 78, hi: 85 },
   { name: "Gabriel Magalhães", club: "Arsenal", year: 2024, fame: 3, lo: 80, hi: 87 },
