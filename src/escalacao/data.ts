@@ -730,7 +730,7 @@ const LAT: C[] = [
   { name: "Geferson", club: "Internacional", year: 2017, fame: 1, lo: 52, hi: 75, folk: true, bio: "Lateral revelado no Inter que entrou pro folclore ao sair de campo trocando farpas com a própria torcida." },
   { name: "Piquerez", club: "Palmeiras", year: 2023, fame: 3, lo: 74, hi: 84, bio: "Lateral-esquerdo uruguaio de fôlego e chegada — bicampeão da Libertadores e multicampeão pelo Palmeiras, marcação firme e apoio constante." },
   { name: "Juninho Capixaba", club: "Red Bull Bragantino", year: 2021, fame: 2, lo: 68, hi: 82, bio: "Lateral-esquerdo de bom cruzamento — viveu o auge no Red Bull Bragantino, vice da Sul-Americana de 2021." },
-  { name: "Kaki", club: "Cruzeiro", year: 2024, fame: 1, lo: 58, hi: 80, promessa: true, bio: "Lateral-direito da base do Cruzeiro — promessa veloz e de bom apoio, subindo pro time profissional." },
+  { name: "Kaiki", club: "Cruzeiro", year: 2024, fame: 1, lo: 58, hi: 80, promessa: true, bio: "Lateral-direito da base do Cruzeiro — promessa veloz e de bom apoio, subindo pro time profissional." },
   { name: "Eugenio Mena", club: "Santos", year: 2014, fame: 2, lo: 64, hi: 80, bio: "Lateral da Roja bicampeã da América — passou pela Vila Belmiro correndo a esquerda." },
 ]
 
@@ -1115,7 +1115,6 @@ const NOVOS_BR_LAT: C[] = [
   { name: 'Sérginho', club: 'São Caetano', year: 2004, fame: 2, lo: 68, hi: 81, bio: 'Guerreiro do timaço do São Caetano dos anos 2000 — eternizado no coração do Azulão.' },
   { name: 'Triguinho', club: 'São Caetano', year: 2004, fame: 2, lo: 64, hi: 79, bio: 'De segurança a lateral-esquerdo campeão: passou por Figueirense, São Caetano e até a Bélgica. Raça pura na faixa.' },
   { name: 'Fabrício', club: 'Internacional', year: 2015, fame: 1, lo: 55, hi: 72, folk: true, bio: 'Eternizado em 2015: perdeu a cabeça, mostrou o dedo pra torcida do Inter, foi expulso, arrancou a camisa e jurou nunca mais jogar. 🖕' },
-  { name: 'Douglas Barriga de Cadela', club: 'Corinthians', year: 2014, fame: 1, lo: 52, hi: 68, folk: true, bio: 'O lateral que a Fiel judiava pela forma física — ganhou o apelido cruel e virou meme eterno da arquibancada.' },
   { name: 'Eduardo Ratinho', club: 'Corinthians', year: 2005, fame: 2, lo: 62, hi: 79, bio: 'Lateral-direito veloz e driblador, com boa bola parada — a revelação do Corinthians em 2005; ainda passou por CSKA Moscou, Toulouse e Fluminense antes de parar cedo.' },
 ]
 const NOVOS_BR_MEI: C[] = [
@@ -1125,6 +1124,7 @@ const NOVOS_BR_MEI: C[] = [
   { name: 'Dátolo', club: 'Atlético-MG', year: 2012, fame: 2, lo: 68, hi: 81, bio: 'Meia-atacante argentino de bom pé e bola parada — peça de criação do Atlético-MG, também com passagens por Napoli e no futebol argentino.' },
   { name: 'Gilmar Fubá', club: 'Corinthians', year: 1999, fame: 2, lo: 68, hi: 82, bio: 'Volante de marcação e raça — ídolo do Corinthians campeão paulista de 1997 e do Mundial de 2000; também passou pelo Schalke, na Alemanha.' },
   { name: 'Élvis', club: 'Santo André', year: 2004, fame: 2, lo: 66, hi: 80, bio: 'Meia-maestro do Santo André — cérebro da campanha histórica que levou o clube do ABC ao título da Copa do Brasil de 2004.' },
+  { name: 'Douglas Barriga de Cadela', club: 'Corinthians', year: 2014, fame: 1, lo: 52, hi: 68, folk: true, bio: 'O meia que a Fiel judiava pela forma física — ganhou o apelido cruel e virou meme eterno da arquibancada.' },
 ]
 const NOVOS_BR_ATA: C[] = [
   { name: 'Loide Augusto', club: 'Vasco', year: 2021, fame: 1, lo: 58, hi: 74, bio: 'Revelado como profissional no Vasco — atacante rápido, faro de gol e a molecagem da base cruzmaltina.' },
