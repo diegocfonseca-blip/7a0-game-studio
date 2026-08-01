@@ -68,6 +68,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'gfpicolo13@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro, SEM fundador (não entra no FUNDADOR_N)
   'alvarolino7712@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'matheusncruz1@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Skyy FC)
+  'adriano.ferrari@quepazseguros.com.br': 'ouro', // 👑 Lenda (pago) — tudo do ouro + batismo (SC Ferrari)
 }
 
 // 🖋️ FUNDADORES (os 100 primeiros Lendas): e-mail → número do fundador.
