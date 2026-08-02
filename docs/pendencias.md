@@ -213,3 +213,24 @@ lenda/craque/promessa. Todo mundo no mesmo nível (peladão).
   restaurado depois. Europa/Todos e a carreira NÃO têm a opção. Futebol offline e
   carreira intactos. Flag `varzea` viaja na sala (game_state) → host e convidados
   pegam igual. Marca "🥅" na lista de salas. Revertível.
+
+## 🏷️ Auditoria de nível do baralho BR — craques presos na várzea (02/08)
+O Diego reclamou que a Várzea tinha **craque de verdade** (Zinho, Weverton,
+Veiga…) marcado como "bom jogador" → apareciam no peladão. Auditei as 340 cartas
+do pool (BR, fame ≤ 3). **40 correções** aprovadas pelo Diego:
+- **Subiram pra CRAQUE (fame 4) → saíram da várzea (37):** Weverton, Leonardo,
+  David Luiz, Lugano, Edmílson, Oscar, Zinho, Raphael Veiga, Mascherano,
+  Zé Roberto, Gerson, Renato Augusto, Denílson, Giovanni, Hernanes, Depay,
+  Everton Cebolinha, Müller, Amoroso, Guerrero, Félix, Maicon, Sorín, Belletti,
+  Rafinha, Dedé, Gustavo Gómez, Everton Ribeiro, Fernandinho, Juninho Paulista,
+  Pedro, Casagrande, Dudu, Grafite, Germán Cano, Serginho Chulapa, Calleri.
+- **Folclórico mal avaliado (o selo 🃏 não é categoria — é PLUS):** Valdivia
+  fame 2 → **craque** (sai da várzea); Dadá Maravilha e Vampeta fame 2 → **bom
+  jogador (3)** (seguem no peladão). Selo folk mantido nos três.
+- ⚠️ **Só mexi no `fame` (etiqueta/curadoria) — `lo/hi` (força de jogo) INTACTO**,
+  então nenhuma partida muda de resultado; futebol ao vivo e carreira seguem
+  iguais em equilíbrio. Só muda a etiqueta exibida e a raridade. Revertível
+  (1 número por linha).
+- Pool da várzea: 340 → **302 cartas** (ainda enche os 20 times sem fake).
+- FALTA (se o Diego quiser depois): decidir se algum desses craques deve ficar
+  mais FORTE (subir lo/hi) — hoje viraram craque mas jogam no mesmo nível de antes.
