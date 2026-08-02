@@ -1119,13 +1119,15 @@ const DIV_COLOR: Record<string, string> = { A: '#E7A21F', B: '#8C97A3', C: '#C77
 function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () => void }) {
   const { dispatch } = useEsc()
   const [list, setList] = useState<{ slot: CareerSlot; active: boolean }[]>(() => listAllCareers())
+  // confirmação de apagar é DENTRO do jogo (dois toques) — window.confirm é
+  // bloqueado no navegador do WhatsApp/Instagram e o 🗑️ "não fazia nada" pra galera.
+  const [confirmKey, setConfirmKey] = useState<string | null>(null)
   const open = (slot: CareerSlot, active: boolean) => {
     const save = active ? slot.save : (activateCareerSlot(slot.save.seed) ?? slot.save)
     dispatch({ type: 'RESUME_CAREER_SOLO', saved: save })
   }
   const del = (slot: CareerSlot) => {
-    if (!window.confirm(`Apagar esta carreira (Temporada ${slot.save.seasonNo ?? 1})? Não dá pra desfazer.`)) return
-    deleteCareerSlot(slot.save.seed); setList(listAllCareers())
+    deleteCareerSlot(slot.save.seed); setConfirmKey(null); setList(listAllCareers())
   }
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '18px 12px' }}>
@@ -1154,7 +1156,14 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
                 <button onClick={() => open(slot, active)} style={{ background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 11px', fontWeight: 900, fontSize: 12.5, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>▶️ Continuar</button>
-                <button onClick={() => del(slot)} aria-label="Apagar" style={{ background: 'transparent', border: 'none', fontSize: 14, cursor: 'pointer', opacity: 0.7 }}>🗑️</button>
+                {confirmKey === String(slot.save.seed ?? i) ? (
+                  <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                    <button onClick={() => del(slot)} style={{ background: '#C2452F', color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', fontWeight: 900, fontSize: 11, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>🗑️ Apagar</button>
+                    <button onClick={() => setConfirmKey(null)} aria-label="Cancelar" style={{ background: 'transparent', border: 'none', fontSize: 15, fontWeight: 900, cursor: 'pointer', opacity: 0.6, lineHeight: 1 }}>✕</button>
+                  </div>
+                ) : (
+                  <button onClick={() => setConfirmKey(String(slot.save.seed ?? i))} aria-label="Apagar" style={{ background: 'transparent', border: 'none', fontSize: 14, cursor: 'pointer', opacity: 0.7 }}>🗑️</button>
+                )}
               </div>
             </div>
           )
@@ -5352,8 +5361,8 @@ function CareerContinueBanner() {
   const { dispatch } = useEsc()
   const [save, setSave] = useState<CareerSave | null>(null)
   const [decideOpen, setDecideOpen] = useState(false)
+  const [confirmDel, setConfirmDel] = useState(false) // confirma no app (window.confirm é bloqueado no navegador do zap/insta)
   const onDelete = async () => {
-    if (!window.confirm('Excluir esse save de carreira? Isso não tem volta.')) return
     await deleteCareer()
     setSave(null)
   }
@@ -5406,10 +5415,17 @@ function CareerContinueBanner() {
           className="flex-1 rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
           ▶️ Continuar carreira ({save.teamName})
         </button>
-        <button onClick={onDelete} aria-label="Excluir save da carreira" title="Excluir save"
-          className="rounded-xl border-2 border-black bg-white text-red-600 font-black text-lg px-3.5 active:translate-y-0.5" style={OSWALD}>
-          ✕
-        </button>
+        {confirmDel ? (
+          <div className="flex gap-1 items-center shrink-0">
+            <button onClick={onDelete} className="rounded-xl border-2 border-black text-white font-black text-xs px-2.5 active:translate-y-0.5" style={{ background: '#C2452F', ...OSWALD }}>🗑️ Apagar</button>
+            <button onClick={() => setConfirmDel(false)} aria-label="Cancelar" className="text-white/70 font-black text-lg px-1 active:opacity-60">✕</button>
+          </div>
+        ) : (
+          <button onClick={() => setConfirmDel(true)} aria-label="Excluir save da carreira" title="Excluir save"
+            className="rounded-xl border-2 border-black bg-white text-red-600 font-black text-lg px-3.5 active:translate-y-0.5" style={OSWALD}>
+            ✕
+          </button>
+        )}
       </div>
     </div>
   )

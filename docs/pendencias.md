@@ -348,3 +348,13 @@ teste) — Diego proíbe fake.
   Saulo, lateral Gedeílson, Wellington Saci**. E PLAYTEST do Diego pra dizer se a
   dificuldade ficou boa (aí eu afino o VARZEA_BASE). Conforme entrar mais foi-prof,
   dá pra subir o % do leilão de volta rumo aos 70% que ele curte.
+
+## 🗑️ Botão de excluir carreira "não fazia nada" — CORRIGIDO (02/08 — Diego relatou)
+Amigo tentou apagar uma carreira no 🗑️ e não conseguia. CAUSA: o botão usava
+`window.confirm(...)`, que é **bloqueado no navegador embutido do WhatsApp/
+Instagram** (volta "cancelado" sozinho) — aí o apagar nunca rodava. É onde a
+galera mais abre o jogo. CORREÇÃO: troquei por confirmação DENTRO do jogo (dois
+toques): 1º toque no 🗑️ mostra "🗑️ Apagar" (vermelho) + ✕ cancelar; 2º toque
+apaga. Vale na lista "Minhas Carreiras" (`MinhasCarreiras`) e no banner antigo
+de carreira em andamento (`CareerContinueBanner`). Funciona em qualquer
+navegador. Seeds das carreiras são únicos (não era colisão). Revertível.
