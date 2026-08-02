@@ -402,6 +402,7 @@ export function EscLobby() {
   const [roomMode, setRoomMode] = useState<'rapido' | 'carreira'>('rapido')
   const careerDeck: DeckChoice = 'both' // carreira: sempre BR + Europa juntos (preenche os 80 times das 4 divisões)
   const [rapidoDeck, setRapidoDeck] = useState<DeckChoice>('br') // rápido online: host escolhe o baralho (BR / Europa / os dois)
+  const [rapidoVarzea, setRapidoVarzea] = useState(false) // 🥅 rápido online + BR: categoria "Sem craques" (várzea) — só bom jogador + foi profissional
   const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa'>('liga_copa') // 🏆 rápido online: liga só, ou liga + Copa dos 8 no fim (padrão)
   const [ligaFechada, setLigaFechada] = useState(false) // 🏆 liga só com a galera (sem bots) — só quem tem Lenda cria
   // 🌐 CARREIRA ONLINE: o host escolhe os rivais CPU do leilão (igual offline).
@@ -781,6 +782,7 @@ export function EscLobby() {
       chatOff: !!gs?.chatOff, // 💬 chat ligado/desligado (escolha do host na criação)
       auctionSecs: gs?.auctionSecs, // ⏱️ tempo do leilão (undefined=45s · N=N seg · 0=host avança)
       deck: gs?.deck ?? 'br', // carreira = 'both'; rápido = escolha do host (br/eu/both)
+      varzea: !!gs?.varzea, // 🥅 rápido + BR, categoria "Sem craques" (só bom jogador + foi profissional)
       career: gs?.mode === 'carreira',
       rivals: gs?.rivals, // 🌐 carreira online: nº de rivais CPU no leilão (escolha do host)
       rivalTeams: gs?.rivalTeams, // 🌐 carreira online: times da Série D escolhidos como rivais
@@ -916,7 +918,7 @@ export function EscLobby() {
     const locked = roomLocked && !!roomPw.trim()
     const pwHash = locked ? hashPw(roomPw.trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, copaMode: rapidoCopaMode, ...(canLiga && ligaFechada ? { ligaFechada: true } : {}) }) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, copaMode: rapidoCopaMode, ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(canLiga && ligaFechada ? { ligaFechada: true } : {}) }) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -1387,6 +1389,14 @@ export function EscLobby() {
             ) : (
               <SegField label="Baralho de craques">
                 <Seg options={[['br', '🇧🇷 Brasil'], ['eu', '🌍 Europa'], ['both', '🌎 Todos (BR+EU+Mundo)']] as [DeckChoice, string][]} value={rapidoDeck} onSet={v => setRapidoDeck(v)} />
+                {/* 🥅 categoria SÓ do baralho Brasil: Todos (padrão) ou Várzea (sem craques) */}
+                {rapidoDeck === 'br' && (
+                  <div className="mt-2.5">
+                    <p className="text-white/55 text-[10.5px] font-black uppercase tracking-wide mb-1" style={OSWALD}>Categoria</p>
+                    <Seg options={[[false, 'Todos'], [true, '🥅 Várzea']] as [boolean, string][]} value={rapidoVarzea} onSet={v => setRapidoVarzea(v)} />
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">{rapidoVarzea ? '🥅 Sem craques: só bom jogador e foi profissional — todo mundo no mesmo nível, peladão puro.' : '🇧🇷 Baralho BR inteiro, do craque ao perna-de-pau.'}</p>
+                  </div>
+                )}
               </SegField>
             )}
             {!isCareer && (
@@ -1524,7 +1534,7 @@ export function EscLobby() {
             const full = r.count >= r.max_players
             const live = r.status === 'started'
             // baralho escolhido na criação: BR · EU · B/E (os dois). Sala antiga sem deck = BR.
-            const deckLbl = r.game_state?.deck === 'eu' ? 'EU' : r.game_state?.deck === 'both' ? 'B/E/M' : 'BR'
+            const deckLbl = (r.game_state?.deck === 'eu' ? 'EU' : r.game_state?.deck === 'both' ? 'B/E/M' : 'BR') + ((r.game_state as GS)?.varzea ? ' 🥅' : '')
             // carreira tem ritmo/copa próprios — auto/manual e liga/copa valem só no rápido
             const isCareerRoom = r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
             const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto

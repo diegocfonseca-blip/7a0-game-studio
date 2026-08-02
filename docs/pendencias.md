@@ -197,3 +197,19 @@ os casos, inclusive save antigo. Não importa por onde a cópia entrou, ela não
 chega mais na tela. Testado (2 Van der Sar → 1, fakes preservados). Revertível.
 - FALTA (se voltar a aparecer): achar a ORIGEM exata — provavelmente online ou o
   "novo pregão"/REAUCTION. A peneira já mata o sintoma pra todo mundo enquanto isso.
+
+---
+
+## 🥅 Categoria "Várzea" (Sem craques) no rápido ONLINE (02/08)
+No criar-sala do **jogo rápido online**, quando o host escolhe o baralho **🇧🇷 Brasil**,
+abre embaixo a **Categoria**: **Todos (padrão)** ou **🥅 Várzea (sem craques)**.
+Várzea = leilão só com **Bom jogador (fame 2/3) + Foi profissional (fame 1)** — sem
+lenda/craque/promessa. Todo mundo no mesmo nível (peladão).
+- Medido: BR "sem craques" = **342 cartas**, enche os **20 times sem nenhum fake**.
+- Implementação: `filterVarzea` + `setActiveCatalog(league, varzea)`; aplicado no
+  `START_ONLINE` SÓ quando `!career && deck==='br' && varzea` (filtra o baralho pro
+  leilão E os bots de uma vez), e **restaura o baralho cheio logo após montar**.
+  Testado: várzea sem craque em lugar nenhum; normal segue com craque; baralho
+  restaurado depois. Europa/Todos e a carreira NÃO têm a opção. Futebol offline e
+  carreira intactos. Flag `varzea` viaja na sala (game_state) → host e convidados
+  pegam igual. Marca "🥅" na lista de salas. Revertível.
