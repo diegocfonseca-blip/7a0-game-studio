@@ -486,3 +486,21 @@ Flag `contratosOn` no estado: nasce `true` só em START_CAREER_SOLO e START_ONLI
 com career. **Save antigo (sem a flag) fica exatamente como era** — sem atribuição,
 sem renovação, sem vencidos no mercado (3 portões: cerimônia, leilão de reservas,
 RENEW_CONTRACT). Testado: carreira nova com contratos ✓, save antigo intocado ✓.
+## 🌍 Copa do Mundo: "seleção ??" com jogadores misturados + gate de escolha torto — FEITO (02/08)
+Diego (print do Giovani Picolo): a convocação mostrava "CONVOCAÇÃO · ??" com jogadores
+de países misturados (Frank de Boer, Pau Torres, Sugawara, Luisão...); e um usuário ~4º
+do rank só conseguia escolher seleção do 6º pra baixo. RAIZ: em `paisDe` (paises.ts) as
+cartas dos baralhos EU/MUNDO SEM etiqueta de país viram '??', e `rankingSelecoes` CONTAVA
+o balde '??'. Como 32 cartas novas (adicionadas em sessões anteriores) não tinham país,
+o '??' juntou 32 cartas e virou a **6ª "seleção"** do top 16 — com elenco de nacionalidades
+misturadas, e empurrando as seleções reais pra baixo (por isso o gate `locked = i < myPos`,
+que está CERTO, mostrava as reais em posições piores). **Fix:** (1) etiquetei os 32 com o
+país real (Espanha: Pau Torres/Koke/Javi Varas/Marcos Senna; Holanda: de Boer/Obispo/Promes;
+França: Mendy/Ben Arfa; Japão: Sugawara/Kagawa/Kubo; México: Vela/Lozano/Gilberto Mora;
+Alemanha: Cacau/Rummenigge; etc. — alguns órfãos: Argélia/Luca Zidane, Marrocos/Brahim Díaz,
+Congo/Kidiaba, Senegal/Bouba Diop, Turquia/Çalhanoğlu+Güler, África do Sul/Mudau). (2) `rankingSelecoes`
+agora FILTRA '??' fora (segurança pra qualquer carta futura sem país). Resultado: **0 cartas
+sem país**, top 16 limpo (Brasil…Coreia do Sul), gate alinhado (4º escolhe do 4º pra baixo).
+Só dados (paises.ts), revertível. ⚠️ FALTA: rodar `scripts/checa-paises` a cada carta EU/MUNDO
+nova pra nunca mais acumular '??' (o comentário "não importado pelo jogo" em paises.ts está
+DESATUALIZADO — copa-mundo.tsx importa paisDe/rankingSelecoes).

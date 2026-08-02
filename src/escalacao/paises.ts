@@ -296,6 +296,29 @@ export const PAIS: Record<string, string> = {
   'Hossam Hassan': 'Egito', 'Landon Donovan': 'EUA',
   'Masashi Nakayama': 'Japão', 'Zague': 'México', 'Bernabé Ferreyra': 'Argentina',
   'Clint Mathis': 'EUA',
+  // ── 🌍 Etiquetas que faltavam (cartas EU/MUNDO novas que caíam em '??' e
+  // bagunçavam a Copa do Mundo — 02/08). País = a seleção que defendeu/defenderia.
+  'Javi Varas': 'Espanha', 'Pau Torres': 'Espanha', 'Koke': 'Espanha',
+  'Marcos Senna': 'Espanha', // naturalizado — campeão da Euro 2008 pela Espanha
+  'Brahim Díaz': 'Marrocos', // defendeu a Espanha de base, mas se comprometeu com Marrocos (2023)
+  'Luca Zidane': 'Argélia', // filho do Zidane, mas estreou pela Argélia em 2024
+  'Benjamin Mendy': 'França', 'Hatem Ben Arfa': 'França',
+  'Frank de Boer': 'Holanda', 'Armando Obispo': 'Holanda', 'Quincy Promes': 'Holanda',
+  'Luisão': 'Brasil',
+  'Federico Valverde': 'Uruguai',
+  'Hakan Çalhanoğlu': 'Turquia', 'Arda Güler': 'Turquia',
+  'Danny Drinkwater': 'Inglaterra',
+  'Jérémy Doku': 'Bélgica', 'Ali Maamar': 'Bélgica', // belga de origem argelina (base da Bélgica)
+  'Roque Santa Cruz': 'Paraguai',
+  'Cacau': 'Alemanha', // naturalizado — jogou pela Alemanha (Copa 2010)
+  'Rummenigge': 'Alemanha',
+  'Robert Kidiaba': 'Congo', // RD Congo (TP Mazembe)
+  'Yukinari Sugawara': 'Japão', 'Shinji Kagawa': 'Japão', 'Takefusa Kubo': 'Japão',
+  'Khuliso Mudau': 'África do Sul',
+  'Moisés Caicedo': 'Equador',
+  'Papa Bouba Diop': 'Senegal',
+  'Gilberto Mora': 'México', 'Carlos Vela': 'México', 'Hirving Lozano': 'México',
+  'Milton Caraglio': 'Argentina',
 }
 
 // Mesmo NOME em baralhos diferentes com país diferente (hoje só estes dois):
@@ -330,5 +353,7 @@ export function rankingSelecoes(): { pais: string; cartas: number }[] {
   walk(CATALOG as unknown as Record<string, { name: string }[]>, 'BR')
   walk(CATALOG_EU as unknown as Record<string, { name: string }[]>, 'EU')
   walk(CATALOG_WORLD as unknown as Record<string, { name: string }[]>, 'WORLD')
-  return Object.entries(cnt).map(([pais, cartas]) => ({ pais, cartas })).sort((a, b) => b.cartas - a.cartas)
+  // 🚫 '??' (carta EU/MUNDO sem etiqueta de país) NUNCA vira seleção — senão vira um
+  // "time" de nacionalidades misturadas no top 16 e empurra as seleções reais pra baixo.
+  return Object.entries(cnt).filter(([pais]) => pais !== '??').map(([pais, cartas]) => ({ pais, cartas })).sort((a, b) => b.cartas - a.cartas)
 }
