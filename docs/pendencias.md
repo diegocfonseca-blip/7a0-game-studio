@@ -225,8 +225,9 @@ do pool (BR, fame ≤ 3). **40 correções** aprovadas pelo Diego:
   Rafinha, Dedé, Gustavo Gómez, Everton Ribeiro, Fernandinho, Juninho Paulista,
   Pedro, Casagrande, Dudu, Grafite, Germán Cano, Serginho Chulapa, Calleri.
 - **Folclórico mal avaliado (o selo 🃏 não é categoria — é PLUS):** Valdivia
-  fame 2 → **craque** (sai da várzea); Dadá Maravilha e Vampeta fame 2 → **bom
-  jogador (3)** (seguem no peladão). Selo folk mantido nos três.
+  fame 2 → **craque** (sai da várzea); Dadá Maravilha e Vampeta fame 2 →
+  **craque** também (o Diego pediu subir os três juntos — saíram do peladão).
+  Selo folk mantido nos três.
 - ⚠️ **Só mexi no `fame` (etiqueta/curadoria) — `lo/hi` (força de jogo) INTACTO**,
   então nenhuma partida muda de resultado; futebol ao vivo e carreira seguem
   iguais em equilíbrio. Só muda a etiqueta exibida e a raridade. Revertível
