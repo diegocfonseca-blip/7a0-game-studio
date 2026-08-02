@@ -358,3 +358,13 @@ toques): 1º toque no 🗑️ mostra "🗑️ Apagar" (vermelho) + ✕ cancelar;
 apaga. Vale na lista "Minhas Carreiras" (`MinhasCarreiras`) e no banner antigo
 de carreira em andamento (`CareerContinueBanner`). Funciona em qualquer
 navegador. Seeds das carreiras são únicos (não era colisão). Revertível.
+
+## 🥅 Campinho: linha de defesa "quebrando" (lateral em cima do goleiro) — FEITO (02/08)
+Diego (com print): no elenco/campinho (`ElencoField`, pyramidseason.tsx) alguns
+times pareciam com "formação errada" — um lateral flutuando sozinho em cima do
+goleiro. RAIZ: a linha de defesa do 4-3-3 tem 4 cartas (LAT-ZAG-ZAG-LAT) e o row
+usava `flexWrap: wrap` → no celular a 4ª carta não cabia e pulava pra outra linha,
+parecendo formação torta. A formação estava CERTA (3-3-4-1 no desenho = 4-3-3), era
+só o layout. Fix: row com `flexWrap: nowrap` + cartas `flex: 1 1 0; minWidth: 0`
+(encolhem pra caber lado a lado) — a linha de trás fica reta. Nome trunca com "…" se
+faltar espaço. Só visual, revertível.

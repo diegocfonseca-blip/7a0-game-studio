@@ -1353,9 +1353,13 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo }: { m
       <div style={{ border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
         <div style={{ padding: '8px 5px', display: 'flex', flexDirection: 'column', gap: 5, background: `repeating-linear-gradient(180deg, ${GREEN} 0 30px, #166332 30px 60px)` }}>
           {rows.map(r => (
-            <div key={r.key} style={{ display: 'flex', justifyContent: 'center', gap: 5, flexWrap: 'wrap' }}>
+            // 🥅 linha ÚNICA por setor (nunca quebra): a defesa tem 4 cartas (LAT-ZAG-
+            // ZAG-LAT) e no celular a 4ª "pulava" pra baixo, parecendo formação errada
+            // (um lateral em cima do goleiro). Com nowrap + flex, as cartas ENCOLHEM
+            // pra caber lado a lado — a linha de trás fica reta, como um 4-3-3 de verdade.
+            <div key={r.key} style={{ display: 'flex', justifyContent: 'center', gap: 5, flexWrap: 'nowrap' }}>
               {r.cards.map(c => { const st = stateOf(c); return (
-                <button key={c.id} onClick={() => onTap?.(c.id)} disabled={!onTap} style={{ position: 'relative', border: `2px solid ${borderOf(st)}`, borderRadius: 8, background: st === 'sel' ? '#FFF6D6' : '#fff', padding: '3px 6px', minWidth: 58, maxWidth: 96, textAlign: 'center', cursor: onTap ? 'pointer' : 'default', opacity: st === 'dim' ? 0.5 : 1, boxShadow: st === 'target' ? `0 0 0 2px ${GREEN}` : 'none', ...OSWALD }}>
+                <button key={c.id} onClick={() => onTap?.(c.id)} disabled={!onTap} style={{ position: 'relative', flex: '1 1 0', minWidth: 0, border: `2px solid ${borderOf(st)}`, borderRadius: 8, background: st === 'sel' ? '#FFF6D6' : '#fff', padding: '3px 6px', maxWidth: 96, textAlign: 'center', cursor: onTap ? 'pointer' : 'default', opacity: st === 'dim' ? 0.5 : 1, boxShadow: st === 'target' ? `0 0 0 2px ${GREEN}` : 'none', ...OSWALD }}>
                   {c.emprestado && <EmpTag mini />}
                   <span style={{ display: 'block', fontSize: 8, fontWeight: 900, color: col.solid }}>{c.pos}</span>
                   <span style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: INK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</span>
