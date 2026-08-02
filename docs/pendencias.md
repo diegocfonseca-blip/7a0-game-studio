@@ -358,3 +358,25 @@ toques): 1º toque no 🗑️ mostra "🗑️ Apagar" (vermelho) + ✕ cancelar;
 apaga. Vale na lista "Minhas Carreiras" (`MinhasCarreiras`) e no banner antigo
 de carreira em andamento (`CareerContinueBanner`). Funciona em qualquer
 navegador. Seeds das carreiras são únicos (não era colisão). Revertível.
+
+## 🏆 Caça ao bug do Hall da Fama / carta de campeão (02/08) — investigação + conserto seguro
+Diego pediu consultas no Supabase (leitura) pra caçar o bug (suspeita: limite da
+coluna season_key). ACHADOS:
+- `season_key` em `user_cards` e `esc_results` é **`text` (SEM limite)** → a teoria
+  do "estoura a coluna" está descartada.
+- Havia **4 truncamentos `.slice(0, 48)`** da season_key no código (careeronline,
+  CardCollectPrompt, e 2 na carreira pirâmide). Como a coluna é ilimitada, o corte
+  era inútil E perigoso: a LEITURA da carta usa a chave inteira, mas a escrita
+  salvava cortada (não batia); e no modo careeronline a chave passava de 48 →
+  colava todas as temporadas numa só. CONSERTO: removi os 4 cortes (chave inteira
+  sempre). Seguro (text), e o `resilientWrite` já re-tenta. No banco só 1 linha de
+  `esc_results` tinha sido cortada (careeronline quase não é usado) — então era
+  mais fragilidade latente que estrago.
+- `game_champions`: SAUDÁVEL (só 3 salas com buraco em 4.131).
+- Ranking global (`esc_ranking`): **CORRETO** — agrupa por `user_id` e mostra o
+  nome mais recente. Ex.: o "Cess" tem 3 nomes (Cess FC / Cess Fc / CESS PHB) no
+  MESMO cadastro, e o ranking soma tudo (148 títulos numa entrada só, não divide).
+- Cess: 149 títulos ≈ 146 cartas (diferença de 3, dentro do normal).
+- CONCLUSÃO: dados saudáveis, sem bug espalhado. FALTA o SINTOMA exato que o
+  Cess/Caue viram (título sumiu? campeão errado numa sala? não ganhou a carta?)
+  pra achar a causa pontual — a investigação por dados não achou fumaça.

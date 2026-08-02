@@ -4626,8 +4626,9 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
   async function persist(card: WonCard) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setStatus('noauth'); return }
-    // season_key ENCURTADO (a coluna tem limite): se ainda vier longo, corta.
-    const key = seasonKey.length > 48 ? seasonKey.slice(0, 48) : seasonKey
+    // season_key INTEIRA: a coluna é `text` (sem limite). Cortar em 48 quebrava a
+    // dedup (a leitura usa a chave inteira) e colava temporadas na mesma chave.
+    const key = seasonKey
     await resilientWrite({ table: 'user_cards', row: {
       user_id: user.id, season_key: key, origin,
       card_name: card.name, card_club: card.club, card_year: card.year, card_pos: card.pos, card_fame: card.fame,
