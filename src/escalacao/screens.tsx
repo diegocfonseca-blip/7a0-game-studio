@@ -2354,8 +2354,10 @@ function Envelope() {
             <div className="min-w-0">
               {sellerM && (
                 <span className="inline-flex items-center gap-1 rounded-full border-2 border-black px-1.5 py-0.5 text-[9px] font-black uppercase leading-none mb-1"
-                  style={{ background: sCol?.solid ?? '#6b7280', color: '#fff', ...OSWALD }}>
-                  {isMine ? '🫵 seu jogador' : `${sellerM.rival ? '⚔️' : sellerM.isHuman ? '🔥' : '🔁'} ${sellerM.teamName}`}
+                  style={{ background: c.semContrato ? '#C2452F' : (sCol?.solid ?? '#6b7280'), color: '#fff', ...OSWALD }}>
+                  {c.semContrato
+                    ? (isMine ? '⏳ seu — sem contrato' : `⏳ sem contrato · ${sellerM.teamName}`)
+                    : (isMine ? '🫵 seu jogador' : `${sellerM.rival ? '⚔️' : sellerM.isHuman ? '🔥' : '🔁'} ${sellerM.teamName}`)}
                 </span>
               )}
               <CardFace c={c} surprise={c.id === state.surpriseId} />

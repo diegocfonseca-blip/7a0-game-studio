@@ -499,19 +499,48 @@ function recordPrice(state: EscState, name: string, price: number) {
   if (!state.careerOnline || price <= 0) return
   state.marketValues = { ...(state.marketValues ?? {}), [name]: price }
 }
+// ── 📝 CONTRATOS (carreira) ──────────────────────────────────────────────────
+// VALOR OFICIAL do jogador: o maior entre o piso de mercado (livro/paid) e a
+// TABELA por categoria. A tabela existe porque o piso de leilão nasce baixo
+// (orçamento 100 pra 11 → jogador comprado por 1-2): sem ela, renovação e teto
+// de venda ficariam "de graça" pra metade do elenco.
+const CONTRATO_TABELA = (c: Card): number => c.fame >= 5 ? 30 : c.promessa ? 12 : c.fame === 4 ? 20 : c.fame >= 2 ? 8 : 3
+export function valorOficial(state: EscState, c: Card): number {
+  return Math.max(state.marketValues?.[c.name] ?? 0, (c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c))
+}
+// prazo da renovação com "tempero": 5 vira 4-6 e 10 vira 9-11 (preço não muda).
+// Sem isso, todo mundo renovando por 5 EXATOS re-alinhava os vencimentos e, anos
+// depois, meia dúzia de contratos venciam JUNTOS (medido em simulação: até 13!).
+function contratoDur(anos: 5 | 10, rng: () => number): number {
+  const r = rng()
+  return anos + (r < 1 / 3 ? -1 : r < 2 / 3 ? 0 : 1)
+}
 // paga o VENDEDOR da carta (quem listou/soltou no mercado) quando ela é vendida —
 // no leilão ou no monte. A grana entra na caixa (money) dele, pra reinvestir na
 // hora. Não paga a si mesmo (se recomprou o próprio jogador).
+// 📝 SEM CONTRATO: se a carta chegou ao mercado por CONTRATO ENCERRADO, o vendedor
+// recebe NO MÁXIMO o valor oficial do jogador — o que passar disso "fica com a
+// família/empresário do jogador" (decisão do Diego: vender ANTES de vencer pega
+// o preço cheio; deixar vencer perde o excedente).
 function creditSeller(state: EscState, card: Card, amount: number, buyerId?: number) {
   const sellerId = (card as { seller?: number }).seller
   if (sellerId == null || amount <= 0 || sellerId === buyerId) return
   const seller = state.managers.find(m => m.id === sellerId)
-  if (seller) seller.money += amount
+  let credit = amount
+  if (card.semContrato) {
+    const teto = valorOficial(state, card)
+    if (credit > teto) {
+      const familia = credit - teto
+      credit = teto
+      ;(state.marketLog = state.marketLog ?? []).push(`💼 ${card.name} saiu SEM CONTRATO: a família gananciosa abocanhou ${familia} 🪙 — ${seller?.teamName ?? 'o clube'} levou só ${teto}`)
+    }
+  }
+  if (seller) seller.money += credit
   // 🧾 se quem VENDEU foi o humano (carreira solo), registra a venda + o que
   // tinha pago, pra a aba Transferências mostrar o lucro/prejuízo real.
   if (seller?.isHuman) {
     const boughtFor = (card as WonCard).buyPrice ?? (card as { paid?: number }).paid ?? 0
-    logFin(state, 'sell', `💰 ${card.name}`, amount, { player: card.name, pos: card.pos, buyPrice: boughtFor }, sellerId)
+    logFin(state, 'sell', card.semContrato ? `💼 ${card.name} (sem contrato)` : `💰 ${card.name}`, credit, { player: card.name, pos: card.pos, buyPrice: boughtFor }, sellerId)
   }
 }
 // ARTILHEIRO DA TEMPORADA: o goleador de cada divisão faz o valor de piso do
@@ -781,7 +810,8 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     const wid = tiedTop[0]
     const m = managers.find(x => x.id === wid)!
     m.money -= top
-    m.squad.push({ ...card, paid: top, buyPrice: top, via, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
+    // 📝 clube novo = contrato novo: limpa selo/prazo — a próxima cerimônia sorteia 5-10
+    m.squad.push({ ...card, paid: top, buyPrice: top, via, semContrato: undefined, contratoAte: undefined, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
     queue.push({ card, bids: sorted, winner: wid, paid: top, voided })
   }
   return { queue, unsold, ties }
@@ -805,7 +835,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   else { winner = top[Math.floor(rng() * top.length)]; tb.viaRoulette = true } // empatou de novo → roleta
   const m = state.managers.find(x => x.id === winner)!
   m.money -= max
-  m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
+  m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, semContrato: undefined, contratoAte: undefined, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
   if (m.isHuman) logFin(state, 'buy', `🛒 ${tb.card.name}`, -max, { player: tb.card.name, pos: tb.card.pos }, m.id) // 🧾 compra no desempate
   recordPrice(state, tb.card.name, max) // livro de preços
   creditSeller(state, tb.card, max, winner) // o vendedor recebe a grana da venda
@@ -1839,7 +1869,7 @@ function takeFromMonte(state: EscState, cardId: string) {
     if (m.isHuman) logFin(state, 'buy', `🛒 ${card.name}`, -paid, { player: card.name, pos: card.pos }, m.id) // 🧾 compra no monte
   }
   creditSeller(state, card, paid, mgrId) // vendedor recebe o valor mesmo indo pelo monte
-  m.squad.push({ ...card, paid, buyPrice: paid, via: 'monte' })
+  m.squad.push({ ...card, paid, buyPrice: paid, via: 'monte', semContrato: undefined, contratoAte: undefined })
 }
 
 // avança o ponteiro do monte, deixando CPUs escolherem sozinhas.
@@ -2033,6 +2063,7 @@ type Action =
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
+  | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: 5 | 10 } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — 10 anos = valor oficial cheio, 5 = metade. Prazo real sai com tempero (±1) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); quem não renovar vai pro leilão com teto de venda
   | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
   | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
   | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos 60 times de fundo (1x)
@@ -2108,7 +2139,7 @@ function sweepMonteToBackstops(st: EscState) {
     const paid = (card as { paid?: number }).paid ?? 0
     const listed = (card as { seller?: number }).seller != null
     creditSeller(st, card, paid, bot.id) // o vendedor recebe (também na varredura do bot)
-    bot.squad.push({ ...card, paid, via: 'monte' })
+    bot.squad.push({ ...card, paid, via: 'monte', semContrato: undefined, contratoAte: undefined })
     if (paid > 0) recordPrice(st, card.name, paid)
     // resumo dos bots (visibilidade na cerimônia)
     const msg = listed
@@ -3446,6 +3477,20 @@ export function reducer(state: EscState, action: Action): EscState {
           }
         }
       }
+      // 📝 CONTRATOS (carreira): todo jogador de HUMANO ou RIVAL que ainda não tem
+      // contrato ganha um de 5-10 temporadas (contando a atual) — vale pro elenco
+      // recém-montado no leilão E pra save antigo (ganha aqui na próxima cerimônia).
+      // Sorteio determinístico (semente + temporada) → host e convidados iguais.
+      if (s.careerOnline) {
+        const crng = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 92821) ^ 0xC027A) >>> 0)
+        for (const m of s.managers) {
+          if (!m.isHuman && !m.rival) continue
+          for (const c of m.squad) {
+            if (c.fake || c.contratoAte != null) continue
+            c.contratoAte = (s.seasonNo ?? 1) + 5 + Math.floor(crng() * 6) - 1 // 5..10 anos, vence no fim de contratoAte
+          }
+        }
+      }
       // MERCADO DOS 80: fecha a ficha dos times de fundo que entraram como
       // participantes TEMPORÁRIOS — completa em 11 com filler (se não repôs) e guarda
       // caixa + elenco. A troca "cola" pra próxima temporada. Depois eles saem.
@@ -3857,6 +3902,25 @@ export function reducer(state: EscState, action: Action): EscState {
       s.reserveListed = listed
       return s
     }
+    case 'RENEW_CONTRACT': {
+      // 📝 renova um contrato ENCERRADO na janela de venda (tela reserveList).
+      // 10 anos = valor oficial cheio · 5 anos = metade. Precisa ter a grana
+      // (sem fiado aqui — sem grana, o caminho é deixar ir pro leilão).
+      if (!s.careerOnline || s.screen !== 'reserveList') return s
+      const mgr = s.managers.find(m => m.id === action.mgrId)
+      if (!mgr?.isHuman) return s
+      const card = mgr.squad.find(c => c.id === action.cardId) as WonCard | undefined
+      if (!card || card.fake || card.emprestado) return s
+      if (card.contratoAte == null || card.contratoAte >= s.seasonNo) return s // só contrato JÁ encerrado
+      const oficial = valorOficial(s, card)
+      const custo = action.anos === 10 ? oficial : Math.max(1, Math.ceil(oficial / 2))
+      const saldo = s.careerCoins?.[mgr.id] ?? 0
+      if (saldo < custo) return s
+      s.careerCoins = { ...(s.careerCoins ?? {}), [mgr.id]: saldo - custo }
+      card.contratoAte = s.seasonNo + contratoDur(action.anos, rngOf(s)) - 1
+      logFin(s, 'buy', `📝 Renovação: ${card.name} (${action.anos} anos)`, -custo, { player: card.name, pos: card.pos }, mgr.id)
+      return s
+    }
     case 'RESERVE_AUCTION_ONLINE': {
       s.simV = 4 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       // fecha a VENDA e abre a COMPRA (leilão de reservas). MANTÉM os elencos,
@@ -3912,7 +3976,75 @@ export function reducer(state: EscState, action: Action): EscState {
         const keep: WonCard[] = [], out: WonCard[] = []
         for (const c of m.squad) (ids.has(c.id) ? out : keep).push(c)
         m.squad = keep
-        for (const c of out) listedCards.push({ ...c, seller: m.id }) // paid = piso; seller recebe a grana quando vender
+        // 📝 se a carta listada JÁ está com contrato encerrado, leva o selo mesmo
+        // assim (senão listar manualmente o vencido furava o teto da venda)
+        for (const c of out) listedCards.push({ ...c, seller: m.id, ...(c.contratoAte != null && c.contratoAte < s.seasonNo ? { semContrato: true } : {}) })
+      }
+      // 1b) 📝 CONTRATOS ENCERRADOS que NÃO foram renovados na janela de venda:
+      // • HUMANO: o jogador vai pro leilão com selo SEM CONTRATO (venda com teto no
+      //   valor oficial — o excedente "fica com a família"). TRAVA DE SEGURANÇA: se a
+      //   saída deixasse a formação incompleta (ou o cara está emprestado na SAF),
+      //   renova "no aperto" por 5 anos pagando metade — pode ficar no vermelho
+      //   (dívida já existe no jogo), com aviso claro no resumo do mercado.
+      // • RIVAL: decide como técnico de verdade — renova quem é bom SE tiver caixa
+      //   (craque 85% · bom 60% · resto 35%), pagando do clubCash (sobra menos pro
+      //   leilão). Dos que soltou, o MELHOR de cada posição entra no leilão com selo;
+      //   o resto volta pro mundo em silêncio (pode reaparecer nas sobras).
+      {
+        const ctrRng = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 65537) ^ 0x5EED) >>> 0)
+        for (const m of s.managers) {
+          if (!m.isHuman || m.dormindo) continue
+          const expirados = (m.squad as WonCard[]).filter(c => !c.fake && c.contratoAte != null && c.contratoAte < s.seasonNo)
+          const removidosPorPos: Record<string, number> = {}
+          for (const c of expirados) {
+            const need = FORMATIONS[m.formation][c.pos]
+            const filledPos = m.squad.filter(x => x.pos === c.pos && !x.emprestado && !x.fake).length
+            const quebraXI = c.emprestado || (filledPos - (removidosPorPos[c.pos] ?? 0) - 1 < need)
+            if (quebraXI) {
+              // renovação no aperto: 5 anos por metade, pode ficar devendo
+              const custo = Math.max(1, Math.ceil(valorOficial(s, c) / 2))
+              s.careerCoins = { ...(s.careerCoins ?? {}), [m.id]: (s.careerCoins?.[m.id] ?? 0) - custo }
+              c.contratoAte = s.seasonNo + contratoDur(5, ctrRng) - 1
+              ;(s.marketLog = s.marketLog ?? []).push(`📝 ${m.teamName}: ${c.name} renovou NO APERTO por ${custo} 🪙 (5 anos) — sem ele a formação não fechava`)
+              if (m.isHuman) logFin(s, 'buy', `📝 Renovação no aperto: ${c.name}`, -custo, { player: c.name, pos: c.pos }, m.id)
+            } else {
+              removidosPorPos[c.pos] = (removidosPorPos[c.pos] ?? 0) + 1
+              m.squad = m.squad.filter(x => x.id !== c.id)
+              listedCards.push({ ...c, seller: m.id, semContrato: true })
+            }
+          }
+        }
+        // rivais (CPU escolhidos): renovam com o caixa do clube; melhor solto por posição vai pro leilão
+        const cashR = { ...(s.clubCash ?? {}) }
+        const soltos: WonCard[] = []
+        for (const m of s.managers) {
+          if (m.isHuman || !m.rival) continue
+          const expirados = (m.squad as WonCard[]).filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < s.seasonNo)
+          for (const c of expirados) {
+            const oficial = valorOficial(s, c)
+            const custo = Math.max(1, Math.ceil(oficial / 2))
+            const quer = c.fame >= 4 ? 0.85 : c.fame >= 2 ? 0.6 : 0.35
+            const need = FORMATIONS[m.formation][c.pos]
+            const filledPos = m.squad.filter(x => x.pos === c.pos && !x.fake).length
+            const podeSoltar = filledPos - 1 >= need
+            if (!podeSoltar || (ctrRng() < quer && (cashR['m' + m.id] ?? 0) >= custo)) {
+              cashR['m' + m.id] = Math.max(0, (cashR['m' + m.id] ?? 0) - custo)
+              ;(c as WonCard).contratoAte = s.seasonNo + contratoDur(5, ctrRng) - 1
+            } else {
+              m.squad = m.squad.filter(x => x.id !== c.id)
+              soltos.push({ ...c, seller: m.id, semContrato: true })
+            }
+          }
+        }
+        s.clubCash = cashR
+        for (const pos of SECTORS) {
+          const best = soltos.filter(c => c.pos === pos).sort((a, b) => valorOficial(s, b) - valorOficial(s, a))[0]
+          if (best) {
+            listedCards.push(best)
+            ;(s.marketLog = s.marketLog ?? []).push(`⏳ ${s.managers.find(m => m.id === best.seller)?.teamName ?? 'Rival'} NÃO renovou ${best.name} — tá no mercado sem contrato! 🍿`)
+          }
+        }
+        // os soltos que não couberam voltam pro mundo em silêncio (sobras futuras)
       }
       // 2) baralho ANTES de marcar elenco fundo — assim a demanda usa a formação
       // NORMAL (não dobrada) e a quantidade por posição fica IGUAL ao leilão online
