@@ -571,13 +571,15 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   // Se o setor tem poucas cartas no catálogo, pega só o que existe (pode ficar 0
   // lenda). O que sobrar do setor vira bom jogador. Folk não é cota (é só selo).
   // 🥅 VÁRZEA: não existe lenda/craque/promessa no baralho (a cota alta some
-  // sozinha = 0). Decisão do Diego (02/08): o LEILÃO dos usuários tem que ser
-  // 70/30 — 70% foi profissional, 30% bom jogador (a graça do modo). Sem cartas
-  // novas e sem fake: se a posição não tiver foi-profissional suficiente, o resto
-  // vira bom jogador (e vice-versa) — os passos de baixo já completam com o que
-  // existe. Fora da várzea, tudo igual.
+  // sozinha = 0). EQUILÍBRIO (02/08): antes o leilão vinha 70% foi profissional
+  // mas os bots só ~17% → o time do usuário nascia MUITO mais fraco (bots
+  // imbatíveis). Agora o leilão fica ~40% foi profissional pra bater com o nível
+  // dos bots (mesma pegada do modo padrão, onde o seu leilão fica no mesmo nível
+  // ou acima dos bots). Como o usuário ESCOLHE no leilão, ele monta um time acima
+  // da média e briga de igual. Sem cartas novas obrigatórias e sem fake. Fora da
+  // várzea, tudo igual.
   const RARITY = varzea
-    ? { legend: 0, star: 0, promessa: 0, low: 0.70 }
+    ? { legend: 0, star: 0, promessa: 0, low: 0.40 }
     : { legend: 0.16, star: 0.26, promessa: 0.17, low: 0.29 } // % por posição (o resto = bom jogador ~12%)
   const stoch = (x: number) => { const f = Math.floor(x); return f + (rng() < x - f ? 1 : 0) } // arredonda por sorteio (mantém a média)
   const alloc = {} as Record<Sector, { legend: number; star: number; promessa: number; low: number }>

@@ -323,3 +323,28 @@ Diego quer que comece na **100** e siga de 10 em 10 (100, 110, 120…). CORREÇ�
 são realinhados pra 100 (o save antigo que nasceu com 110 se corrige sozinho);
 quem já jogou uma edição mantém a agenda. Tela de "🔒 desbloqueia na 100"
 aparece pra todo mundo abaixo da 100. Revertível.
+
+## 🥅 Várzea online: bots MUITO difíceis + fakes + cartas novas (02/08 — Diego relatou)
+Diego: no rápido online da várzea os bots estavam quase imbatíveis (no padrão a
+dificuldade está "certinha"). MEDIDO: o leilão do usuário vinha **70% foi
+profissional (nível 67.9)** e os bots só **~17% foi prof (nível 73.6)** → o time
+do humano nascia **6 pontos mais fraco**. E ACHEI FAKES entrando nos bots (9 no
+teste) — Diego proíbe fake.
+**O que foi feito:**
+- **+18 cartas reais de "foi profissional" (BR)** pedidas/aprovadas pelo Diego
+  (auges reais, clube+ano, bio de auge; folk onde cabe). Total foi-prof: 74 → 92.
+  GOL: Júlio César (Corinthians), Renan Ribeiro. LAT: China, Jorge. ZAG (array
+  NOVOS_BR_ZAG novo): Erazo, Rafael Vaz, Lucão, Bressan. MEI: Lulinha, Renato
+  Cajá, Camacho, Marlone, Giovanni Augusto, Rivaldinho. ATA: Léo Gamalho, Finazzi,
+  Maxi Lopez, Paulinho Bóia. (Cortados por já existirem: Renato Abreu = craque no
+  Fla; Carlos Alberto = já está pelo Flu.)
+- **Equilíbrio:** cota de foi profissional do LEILÃO baixou de 0.70 → **0.40**
+  (`buildDeck` várzea) pra bater com o nível dos bots. Medido: leilão 71.4 vs bots
+  72.5 (gap 6 → 1); bots agora carregam foi-prof de verdade (3.3/time, era 1.9).
+- **ZERO fakes** agora (medido em salas de 2/4/8 humanos) — as cartas novas + o %
+  menor tiram a pressão que fazia o incógnito disparar.
+- `VARZEA_BASE=69` mantido (calibrado por simulação, escala de "power").
+- FALTA: Diego mandar clube/ano de 3 que ele pediu mas não achei o auge — **goleiro
+  Saulo, lateral Gedeílson, Wellington Saci**. E PLAYTEST do Diego pra dizer se a
+  dificuldade ficou boa (aí eu afino o VARZEA_BASE). Conforme entrar mais foi-prof,
+  dá pra subir o % do leilão de volta rumo aos 70% que ele curte.
