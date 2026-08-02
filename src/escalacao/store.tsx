@@ -980,6 +980,12 @@ const DIVISIONS: Division[] = ['D', 'C', 'B', 'A'] // de baixo pra cima
 // simulação (2500 temporadas/divisão).
 const DIVISION_BASE: Record<Division, number> = { D: 64, C: 70, B: 75, A: 82 }
 const ONLINE_BASE = 74
+// 🥅 VÁRZEA: o leilão é 70% foi profissional, então o time do humano nasce mais
+// FRACO (~71) que no normal (~76). A balança (fillerAdj) puxa os bots pra um alvo
+// fixo — se ficasse em 74 (como o normal), os bots ficariam fortes demais e o humano
+// terminava ~14-16º (medido). Alvo 69 deixa o humano ~2 acima da média dos bots →
+// briga pelo título (top 5-6 em sala de 2, medido), sem ser de graça. Só na várzea.
+const VARZEA_BASE = 69
 // desloca os BOTS DE FUNDO (não-rivais) pra bater no nível-base alvo. Devolve um
 // offset escalar (aplicado só aos fillers no simMatch); os rivais ficam com 0.
 function fillerAdj(managers: Manager[], target: number): { atk: number; def: number } {
@@ -997,7 +1003,7 @@ function cpuAdjFor(s: EscState): { atk: number; def: number } {
     const b = s.nbaTier === 'nba' ? 6 : s.nbaTier === 'gleague' ? 3 : 0
     return { atk: b, def: b }
   }
-  const target = s.onlineMode === 'online' ? ONLINE_BASE : DIVISION_BASE[s.careerDivision ?? 'D']
+  const target = s.onlineMode === 'online' ? (s.varzea ? VARZEA_BASE : ONLINE_BASE) : DIVISION_BASE[s.careerDivision ?? 'D']
   return fillerAdj(s.managers, target)
 }
 // sobe (top 3), cai (Z4: 17º+) ou fica — limitado por A (topo) e D (base).

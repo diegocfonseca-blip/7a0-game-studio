@@ -287,6 +287,15 @@ força que o normal já usa — 9%/76%/15%).**
     tipo acaba na posição, completa com o outro — nunca fake.
   - Modo PADRÃO 100% intocado (só `START_ONLINE` passa `varzea`; makeBotSquad/
     buildDeck/dealBotSquads têm branch `if (varzea)` — fora dela, idêntico). Revertível.
+  - ✅ **EQUILÍBRIO da força dos bots (02/08, Diego perguntou "tá rivalizando ou muito
+    fortes?"):** medido — com o alvo do `fillerAdj` em 74 (igual ao normal), na várzea
+    o humano terminava **~14-16º** (bots fortes demais), porque o leilão 70% foi prof
+    deixa o time do humano mais fraco (~71 vs ~76 do normal). Fix: `VARZEA_BASE = 69`
+    em `cpuAdjFor` (só quando `s.varzea` no online) — puxa a média dos bots pra 69 →
+    humano ~2 acima → briga pelo título (top 5-6 em sala de 2, top 2-4 em sala de 4,
+    medido em 40 seeds). A `fillerAdj` aplica UM offset a todos os fillers, então a
+    variação fraco/médio/forte (das cartas) continua — só desce a média. Normal (74)
+    intocado. Revertível (1 número).
 - ✅ **BUG "novo leilão perdia a várzea" (FEITO 02/08 — Diego relatou):** ao acabar
   o jogo da várzea online e a galera votar "novo leilão" pra continuar na MESMA sala,
   o leilão novo vinha em modo PADRÃO (com craque/lenda). RAIZ: o `startLeilao`
