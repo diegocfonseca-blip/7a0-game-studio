@@ -288,6 +288,29 @@ function tacAt(tactics: RoundTactics, teamId: number, r: number): Tac {
   for (const k in byRound) { const kn = +k; if (kn <= r && kn > bestK) { bestK = kn; best = byRound[kn] } }
   return best
 }
+// 🧹 RESPIRO: banner de ENSINO que fica INTEIRO nas primeiras N temporadas em que
+// aparece e depois vira uma pílula pequena — a informação NUNCA some (abre no
+// toque). Conta 1 "vista" por temporada (não por render). Regra do Diego: ensinar
+// BASTANTE antes de encolher (N=6, 1 número pra calibrar). Aviso de REGRA DA
+// JOGADA (vagas, piso, saldo, transfer ban, venda séria) NUNCA passa por aqui.
+const ENSINO_VEZES = 6
+function EnsinoPilula({ k, pill, seasonNo, children }: { k: string; pill: string; seasonNo: number; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false)
+  const full = useMemo(() => {
+    try {
+      const raw = JSON.parse(localStorage.getItem(`esc-ensino-${k}`) ?? '{"n":0,"last":0}') as { n: number; last: number }
+      if (raw.last !== seasonNo) { raw.n += 1; raw.last = seasonNo; localStorage.setItem(`esc-ensino-${k}`, JSON.stringify(raw)) }
+      return raw.n <= ENSINO_VEZES
+    } catch { return true }
+  }, [k, seasonNo])
+  if (full || open) return <>{children}</>
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <button onClick={() => setOpen(true)} style={{ border: `2px solid ${INK}`, borderRadius: 999, background: '#fff', fontWeight: 800, fontSize: 10.5, padding: '3px 11px', cursor: 'pointer', color: 'rgba(0,0,0,.65)' }}>{pill}</button>
+    </div>
+  )
+}
+
 // escalação (XI) de um humano é POR JOGO, igual à tática: `lineups[teamId]` é um
 // mapa rodada→ids; na rodada r vale a última escolha numa rodada <= r. Se não há
 // escolha (ou a escalação não tem 11 válidos), cai pro bestXI automático.
@@ -3094,22 +3117,26 @@ export function ReserveListScreen() {
         {/* 🔒 explica por que alguns jogadores aparecem travados (cinza): vendê-los
             deixaria o XI incompleto pra formação atual. Só aparece quando há algum. */}
         {marketUnlocked && mgr.squad.some(c => !c.fake && !c.emprestado && !listed.has(c.id) && !canList(c)) && (
-          <div style={{ ...box('#FDECEA'), padding: '9px 11px', marginBottom: 10 }}>
-            <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 2px', color: '#c0392b' }}>🔒 Não dá pra vender esses</p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>Seu time ficaria <b>sem jogador suficiente na posição</b>. Pra liberar: traga um substituto, ou <b>troque de formação</b> antes (aba Elenco).</p>
-          </div>
+          <EnsinoPilula k="travados" pill="🔒 tem jogador travado (por quê?)" seasonNo={state.seasonNo}>
+            <div style={{ ...box('#FDECEA'), padding: '9px 11px', marginBottom: 10 }}>
+              <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 2px', color: '#c0392b' }}>🔒 Não dá pra vender esses</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>Seu time ficaria <b>sem jogador suficiente na posição</b>. Pra liberar: traga um substituto, ou <b>troque de formação</b> antes (aba Elenco).</p>
+            </div>
+          </EnsinoPilula>
         )}
         {/* mesmo layout da aba Elenco (Titulares/Reservas), mas em modo listagem */}
         <SquadTab mgr={mgr} col={col} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]}
           list={{ listed, canList, onList: (id) => dispatch({ type: 'TOGGLE_RESERVE_LIST', mgrId: youId, cardId: id }) }} />
         {marketUnlocked && (
-          <div style={{ ...box('#FFF3CF'), padding: '11px 13px', margin: '10px 0' }}>
-            <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 4px', color: INK }}>💡 O que acontece ao listar</p>
-            <p style={{ fontSize: 12.5, fontWeight: 700, color: '#4a4740', margin: 0, lineHeight: 1.4 }}>
-              Listar = pôr <b>à venda</b>. Vai a leilão e <b>você pode recomprar</b>. Se <b>não recomprar</b> e outro técnico levar, o jogador <b>SAI do seu time</b> — você fica só com as <b>moedas</b>. Se ninguém comprar, ele vai pro <b>monte valendo metade</b>.
-            </p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '5px 0 0' }}>Obs.: a metade arredonda pra baixo — então só quem vale <b>1</b> (metade = 0,5) cai pra <b>0</b>.</p>
-          </div>
+          <EnsinoPilula k="listar" pill="ℹ️ como funciona a venda" seasonNo={state.seasonNo}>
+            <div style={{ ...box('#FFF3CF'), padding: '11px 13px', margin: '10px 0' }}>
+              <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 4px', color: INK }}>💡 O que acontece ao listar</p>
+              <p style={{ fontSize: 12.5, fontWeight: 700, color: '#4a4740', margin: 0, lineHeight: 1.4 }}>
+                Listar = pôr <b>à venda</b>. Vai a leilão e <b>você pode recomprar</b>. Se <b>não recomprar</b> e outro técnico levar, o jogador <b>SAI do seu time</b> — você fica só com as <b>moedas</b>. Se ninguém comprar, ele vai pro <b>monte valendo metade</b>.
+              </p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '5px 0 0' }}>Obs.: a metade arredonda pra baixo — então só quem vale <b>1</b> (metade = 0,5) cai pra <b>0</b>.</p>
+            </div>
+          </EnsinoPilula>
         )}
         {state.isHost ? (
           <button onClick={() => dispatch({ type: 'RESERVE_AUCTION_ONLINE' })}

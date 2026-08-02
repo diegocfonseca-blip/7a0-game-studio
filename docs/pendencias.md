@@ -540,3 +540,15 @@ lateral", piso, saldo — NUNCA some; ensino contextual vira pílula após 2 vis
 banner de novidade some após 1-2). 4. **Tema Noturno** — todas as telas, fundo
 escurece e cartas/caixas seguem idênticas; claro NÃO muda 1 pixel (camada
 opt-in). Cada parte em commit separado (reversíveis).
+
+## 🧹 Respiro (parte 3 do plano) — FEITO (02/08, lista vetada pelo Diego)
+Só os 2 avisos de ENSINO aprovados viram pílula, e com a régua que o Diego pediu:
+**ficam INTEIROS nas primeiras 6 temporadas** em que aparecem (constante
+`ENSINO_VEZES = 6` em pyramidseason.tsx — 1 número pra calibrar) e depois viram
+pílula pequena que ABRE NO TOQUE (informação nunca é apagada):
+- "💡 O que acontece ao listar" → pílula "ℹ️ como funciona a venda"
+- "🔒 Não dá pra vender esses" → pílula "🔒 tem jogador travado (por quê?)"
+Conta 1 vista por TEMPORADA (não por render; localStorage esc-ensino-*). TODOS os
+avisos de regra da jogada (transfer ban, chip à venda, aviso "sai do time",
+contratos, vagas/piso/saldo do leilão) INTOCADOS — a tela do leilão nem foi
+tocada. FALTA (parte 4): 🌙 Tema Noturno (todas as telas; claro intocado).
