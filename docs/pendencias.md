@@ -277,3 +277,10 @@ força que o normal já usa — 9%/76%/15%).**
   baralho BR só tem ~74 foi-prof, quando o estoque acaba (mais provável nos bots, 20
   times) a posição completa com bom jogador — exatamente o "se não tem de um bota o
   outro". Modo PADRÃO 100% intocado (só `START_ONLINE` passa `varzea`). Revertível.
+- ✅ **BUG "novo leilão perdia a várzea" (FEITO 02/08 — Diego relatou):** ao acabar
+  o jogo da várzea online e a galera votar "novo leilão" pra continuar na MESMA sala,
+  o leilão novo vinha em modo PADRÃO (com craque/lenda). RAIZ: o `startLeilao`
+  (screens.tsx) montava o `START_ONLINE` do rematch passando só `deck: state.deckLeague`,
+  **sem o `varzea`** → `onlineVarzea` caía em false. Fix: passa `varzea: state.varzea`
+  junto (o estado já guarda a escolha da sala, e é sincronizado pros convidados). O
+  "mesmo time" (REPLAY_SEASON) não monta baralho, então nunca teve o problema. Revertível.

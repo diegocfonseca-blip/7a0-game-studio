@@ -5690,7 +5690,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         roomId: state.roomId, roomCode: state.roomCode, roomName: state.roomName,
         isHost: state.isHost, playerIndex: myPos >= 0 ? myPos : state.youIdx, // meu assento = minha posição na lista limpa
         playerNames, formation: state.managers[state.youIdx]?.formation ?? '4-3-3',
-        deck: state.deckLeague, rematch: Date.now(), copaMode: state.copaMode, // mantém a escolha da sala
+        deck: state.deckLeague, varzea: state.varzea, rematch: Date.now(), copaMode: state.copaMode, // 🥅 mantém a escolha da sala (deck E modo várzea — senão o "novo leilão" caía no padrão)
       })
     } catch { dispatch({ type: 'REMATCH' }) }
   }
