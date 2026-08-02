@@ -235,3 +235,26 @@ do pool (BR, fame ≤ 3). **40 correções** aprovadas pelo Diego:
 - Pool da várzea: 340 → **302 cartas** (ainda enche os 20 times sem fake).
 - FALTA (se o Diego quiser depois): decidir se algum desses craques deve ficar
   mais FORTE (subir lo/hi) — hoje viraram craque mas jogam no mesmo nível de antes.
+
+## ⚖️ Várzea online estava DESEQUILIBRADA (bots ganhavam fácil) (02/08)
+Diego notou: no rápido online da várzea "todo mundo ficou muito longe de ganhar
+dos bots". **Medi e confirmei a causa (2 assimetrias):**
+1. O baralho do LEILÃO (o que o humano disputa) vinha com **27% de "foi
+   profissional"** (cota `low` de 29%, pensada pra um baralho que TAMBÉM tinha
+   lenda/craque compensando — na várzea não tem). Média do leilão caía pra **72.8**.
+2. Os BOTS pegam elenco pronto filtrado por fame (médio = fame 2/3, forte = fame≥3),
+   então **fugiam do "foi profissional"** (14/16 bots com ZERO perna-curta) e
+   ficavam com média **74.0** — mais fortes que o time que o humano montava.
+   Resultado: o humano pegava o refugo e ficava atrás. (No modo normal é o
+   contrário: leilão 77.6 > bots 76.1, porque o humano compra craque/lenda.)
+**Correção (só na várzea, resto intacto):**
+- `buildDeck(..., varzea)`: na várzea a cota de "foi profissional" cai de 29% →
+  **12%** (ainda aparece, como o Diego pediu, mas para de entupir). Leilão sobe
+  pra **74.3**.
+- `makeBotSquad(..., varzea)` / `dealBotSquads(..., varzea)`: na várzea o bot
+  MÉDIO também carrega a mesma pitada de perna-curta (fame ≤ 3), forte segue no
+  topo (bom jogador). Bots caem pra média **72.7** (top5 78/76/75/75/74, antes
+  era 78/77/77/77/77). Agora **1/16** bot sem perna-curta (antes 14/16).
+- Placar novo: leilão **74.3 > bots 72.7** (+1.6, mesma vantagem do modo normal).
+  O humano volta a poder brigar pelo título montando bem no leilão. Modo normal
+  NÃO mudou (77.6/76.1). Só muda quando `varzea` está ligado. Revertível.
