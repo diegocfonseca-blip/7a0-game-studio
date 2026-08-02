@@ -25,6 +25,7 @@ export interface Card {
   promessa?: boolean // 5º tier: foi só promessa aqui e virou estrela na Europa (nível abaixo de craque)
   fake?: boolean // jogador INCÓGNITO (nome gerado, não é do catálogo real) — usado só pra completar elenco quando o baralho real acaba; nunca entra no mercado de venda dos bots
   seller?: number // carreira online: id do técnico/bot que LISTOU esta carta pro mercado — quando ela é vendida (leilão ou monte), ele recebe a grana na caixa
+  semContrato?: boolean // 📝 CONTRATOS (carreira): esta carta chegou ao leilão porque o CONTRATO ENCERROU (não foi venda planejada) — a grana do vendedor tem TETO no valor oficial do jogador (o que passar "fica com a família/empresário")
 }
 
 export type Acquisition = 'leilao' | 'repescagem' | 'monte' | 'bot'
@@ -32,6 +33,7 @@ export type Acquisition = 'leilao' | 'repescagem' | 'monte' | 'bot'
 export interface WonCard extends Card {
   paid: number
   via: Acquisition
+  contratoAte?: number // 📝 CONTRATOS (carreira): temporada em que o contrato ENCERRA (vence no FIM dela). Sorteado 5-10 na chegada; renovação = 10 anos (valor cheio) ou 5 (metade). Ausente = save antigo (ganha na próxima cerimônia)
   reforco?: boolean // carreira online: comprado no leilão de reservas/mercado (não é do elenco original) — usado pras frases de "como vão as contratações"
   emprestado?: 'saf' | 'dono' // 🏢 SAF: jogador de EMPRÉSTIMO (propriedade não mudou) — 'saf' = veio da SAF pro dono; 'dono' = veio do dono pra SAF. Nunca pode ser vendido/listado; volta sozinho na virada de temporada.
   byClub?: number // 🏛️ MULTICLUBES: qual dos SEUS clubes fez este empréstimo (id do manager). Só usado quando há 2º clube — pra devolver o empréstimo pro clube certo na virada. Ausente = carreira normal (1 clube).

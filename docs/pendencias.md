@@ -443,3 +443,40 @@ Implementado o fix do atropelo (rematch reseta seasonNo=1):
   regravação vinga e o campeão certo aparece. (Sem migração, sem mexer no uuid/FK.)
 - Tudo forward-safe (dados antigos ficam; jogos novos usam a chave nova). Buildado.
   Revertível.
+
+## 📝 CONTRATOS na carreira — IMPLEMENTADO (02/08, mockup aprovado pelo Diego)
+Sistema desenhado COM o Diego em longa conversa (+ simulações de 9.000 temporadas):
+- **Todo jogador de humano/rival ganha contrato sorteado de 5-10 temporadas** ao
+  chegar (atribuído na cerimônia — vale save antigo tb, ganha na próxima). Fake não.
+- **Desbloqueia junto da folha (T4-T5):** como o menor contrato é 5, o primeiro
+  vencimento cai no fim da T5 — a tela explica na primeira vez ("CONTRATOS
+  CHEGARAM!"), e mostra "último ano" na anterior.
+- **Venceu → tela de venda (reserveList):** renova **10 anos = valor oficial
+  CHEIO** · **5 anos = METADE** · ou deixa ir → vai pro leilão com selo
+  **⏳ SEM CONTRATO** e a venda tem **TETO no valor oficial** (o excedente "fica
+  com a família gananciosa" — msg no resumo do mercado). Vender ANTES de vencer
+  segue preço cheio. Listar manualmente um vencido também leva o selo (anti-furo).
+- **Valor oficial** = max(livro de preços, paid, TABELA por categoria: lenda 30 ·
+  craque 20 · promessa 12 · bom 8 · foi-prof 3) — mata a "renovação de graça"
+  (piso de leilão nasce 1-2). `valorOficial()` exportado.
+- **Prazo temperado:** renovação de 5 assina 4-6, de 10 assina 9-11 (preço igual)
+  — sem isso os vencimentos re-alinhavam (simulado: até 13 juntos; agora máx ~5).
+- **Trava do XI:** se a saída do vencido quebrar a formação (ou ele estiver
+  emprestado na SAF), renova sozinho "NO APERTO" (5 anos, metade, pode ficar no
+  vermelho — dívida já existe) com aviso no mercado. Ninguém fica sem time.
+- **RIVAIS na mesma regra:** renovam com o clubCash (craque 85% · bom 60% ·
+  fraco 35%, se a grana der), gastando verba que fazia falta no leilão. O MELHOR
+  solto por posição entra no leilão com selo + zoeira ("Paixandu NÃO renovou
+  fulano! 🍿"); o resto volta pro mundo em silêncio (sem inflar). Bots de fundo:
+  o sorteio de famoso de sempre (sem mudança).
+- **Comprou = contrato novo:** os 4 pontos de compra (leilão/desempate/monte/
+  varredura de bot) limpam selo+prazo; a cerimônia sorteia 5-10 novo.
+- Ações: `RENEW_CONTRACT {mgrId, cardId, anos:5|10}` (guest roteia pro host
+  normal). UI: painel na reserveList (pyramidseason) + selo vermelho na carta do
+  leilão (screens). Campos: `WonCard.contratoAte`, `Card.semContrato`.
+- TESTADO headless (carreira solo até T7): atribuição ✓ renovação ✓ trava do XI
+  ("renovou NO APERTO") ✓ rival soltando com zoeira ✓ selo no baralho ✓ recompra
+  limpa contrato ✓. Rápido/várzea/dinastia intocados (tudo atrás de careerOnline).
+- FALTA (combinado, próximos passos): mostrar "contrato até T__" na carta do
+  Elenco; banner T4 dedicado (hoje a explicação aparece na 1ª tela de renovação);
+  Diego fazer playtest de dificuldade/custos (tabela é 1 lugar só pra calibrar).

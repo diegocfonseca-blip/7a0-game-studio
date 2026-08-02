@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, oldChain } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub } from './store'
+import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial } from './store'
 import { empresarioIncome, empCat, EMP_ORDER, EMP_META } from './estadiodata'
 import type { EmpCat, StadiumSave } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -3019,6 +3019,47 @@ export function ReserveListScreen() {
             <p style={{ fontSize: 10.5, fontWeight: 700, margin: 0, lineHeight: 1.4, color: 'rgba(255,255,255,.92)' }}>Você não pode <b>comprar pagando</b> nesta janela — mas pode <b>vender pra fazer caixa</b> e, no <b>monte</b> (as sobras do leilão), <b>tentar a sorte pegando jogador de graça</b>. Prêmios e bilheteria vão te tirando do vermelho.</p>
           </div>
         )}
+        {/* 📝 CONTRATOS — encerrados esperando decisão + aviso de último ano */}
+        {(() => {
+          const sq = mgr.squad as WonCard[]
+          const expirados = sq.filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < state.seasonNo)
+          const ultimoAno = sq.filter(c => !c.fake && c.contratoAte === state.seasonNo)
+          if (expirados.length === 0 && ultimoAno.length === 0) return null
+          const coins = state.careerCoins?.[youId] ?? 0
+          const primeira = state.seasonNo <= 6 // estreia do recurso: explica com mais calma
+          const btn = (bg: string, fg: string, dis: boolean): React.CSSProperties => ({ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 10.5, ...OSWALD, background: dis ? '#d8cfb5' : bg, color: dis ? 'rgba(0,0,0,.4)' : fg, boxShadow: dis ? 'none' : `2px 2px 0 0 ${INK}`, cursor: dis ? 'not-allowed' : 'pointer', textTransform: 'uppercase' as const, lineHeight: 1.15 })
+          return (
+            <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
+              <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>{primeira ? '📝 CONTRATOS CHEGARAM!' : '⏳ CONTRATOS ENCERRANDO'}</p>
+              {primeira && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Seu clube é profissional: <b>todo jogador tem contrato</b> (5 a 10 anos, sorteado na chegada). Quando encerra, você decide: <b>renovar ou deixar ir</b>.</p>}
+              {expirados.map(c => {
+                const oficial = valorOficial(state, c)
+                const c5 = Math.max(1, Math.ceil(oficial / 2))
+                return (
+                  <div key={c.id} style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 9px', marginBottom: 8, background: '#FCFBF4', boxShadow: `2px 2px 0 0 ${INK}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
+                      <span style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, background: INK, color: '#fff', borderRadius: 5, padding: '1px 6px' }}>{c.pos}</span>
+                      <span style={{ fontWeight: 900, fontSize: 14, ...OSWALD, flex: 1 }}>{c.name}</span>
+                      <span style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, color: '#5a5647' }}>valor {oficial} 🪙</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: youId, cardId: c.id, anos: 10 })} disabled={coins < oficial} style={btn(GOLD, INK, coins < oficial)}>Renovar 10 anos<br />{oficial} 🪙</button>
+                      <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: youId, cardId: c.id, anos: 5 })} disabled={coins < c5} style={btn('#EAF6EE', INK, coins < c5)}>Renovar 5 anos<br />{c5} 🪙</button>
+                    </div>
+                  </div>
+                )
+              })}
+              {expirados.length > 0 && (
+                <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '2px 0 0', lineHeight: 1.45 }}>
+                  Não renovou? Ele <b>vai pro leilão</b> quando o pregão começar — você recebe a venda <b>até o valor dele</b> (o que passar fica com a <b>família gananciosa</b> do jogador 😏). Se a saída fosse te deixar sem o XI, ele renova sozinho por 5 anos (metade), <b>mesmo no vermelho</b>.
+                </p>
+              )}
+              {ultimoAno.length > 0 && (
+                <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: expirados.length ? '7px 0 0' : 0, lineHeight: 1.4 }}>⏳ <b>Último ano de contrato:</b> {ultimoAno.map(c => c.name).join(', ')} — encerra{ultimoAno.length > 1 ? 'm' : ''} no fim desta temporada. Quer garantir a grana cheia? <b>Venda antes de vencer.</b></p>
+              )}
+            </div>
+          )
+        })()}
         {/* aviso de desbloqueio da temporada */}
         {state.seasonNo === 2 && (
           <div style={{ ...box('#EAF3FF'), padding: 11, marginBottom: 10 }}>
