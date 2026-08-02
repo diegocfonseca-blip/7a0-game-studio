@@ -1764,7 +1764,10 @@ export function PensShootout({ pens, aName, bName }: { pens: [number, number]; a
       <span style={{ fontSize: 9, fontWeight: 900, ...OSWALD, maxWidth: 74, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right', flexShrink: 0 }}>{name}</span>
       {Array.from({ length: nSlots }, (_, i) => {
         const k = r[i]
-        if (!k) return <span key={i} style={{ width: 13, height: 13, borderRadius: 999, border: '1.5px dashed rgba(0,0,0,.3)', background: 'rgba(0,0,0,.05)', flexShrink: 0 }} />
+        // 🎯 cobrança NÃO batida (a disputa já tinha decidido): NÃO desenha bolinha
+        // nenhuma — antes ficava um círculo tracejado/transparente que parecia bug e
+        // dava a entender que faltou cobrar. Mostra só as cobranças que aconteceram.
+        if (!k) return null
         return <span key={i} style={{ width: 13, height: 13, borderRadius: 999, border: `1.5px solid ${INK}`, background: k.ok ? '#37D067' : '#F87168', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 7.5, fontWeight: 900, lineHeight: 1, opacity: 0, animation: `pensPop .45s cubic-bezier(.2,1.5,.5,1) ${(lead + k.at * step).toFixed(2)}s forwards`, flexShrink: 0 }}>{k.ok ? '' : '✕'}</span>
       })}
     </div>
