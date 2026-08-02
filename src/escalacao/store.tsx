@@ -571,13 +571,13 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   // Se o setor tem poucas cartas no catálogo, pega só o que existe (pode ficar 0
   // lenda). O que sobrar do setor vira bom jogador. Folk não é cota (é só selo).
   // 🥅 VÁRZEA: não existe lenda/craque/promessa no baralho (a cota alta some
-  // sozinha = 0). Decisão do Diego (02/08): "coloque só bom jogador e foi
-  // profissional; se não tem de um, bota o outro". Então DIVIDIDO — meio a meio
-  // (50% foi profissional / 50% bom jogador). Sem cartas novas e sem fake: se a
+  // sozinha = 0). Decisão do Diego (02/08): o LEILÃO dos usuários tem que ter MAIS
+  // foi profissional do que bom jogador (a graça do modo). Então cota `low` = 0.60
+  // (60% foi profissional / 40% bom jogador). Sem cartas novas e sem fake: se a
   // posição não tiver foi-profissional suficiente, o resto vira bom jogador (e
   // vice-versa) — os passos de baixo já completam com o que existe. Fora da várzea, tudo igual.
   const RARITY = varzea
-    ? { legend: 0, star: 0, promessa: 0, low: 0.50 }
+    ? { legend: 0, star: 0, promessa: 0, low: 0.60 }
     : { legend: 0.16, star: 0.26, promessa: 0.17, low: 0.29 } // % por posição (o resto = bom jogador ~12%)
   const stoch = (x: number) => { const f = Math.floor(x); return f + (rng() < x - f ? 1 : 0) } // arredonda por sorteio (mantém a média)
   const alloc = {} as Record<Sector, { legend: number; star: number; promessa: number; low: number }>
@@ -1867,13 +1867,13 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
     let picks: (typeof CATALOG)[Sector][number][]
     if (varzea) {
       // 🥅 VÁRZEA (decisão do Diego 02/08): "coloque só bom jogador e foi
-      // profissional; se não tem de um, bota o outro". Cada time nasce DIVIDIDO —
-      // meio a meio (fame 1 x fame 2/3). Ainda varia um pouco por TIER de força
-      // (forte pega mais bom jogador, fraco mais perna-curta), mas centrado em 50/50
-      // — não empilha em bom jogador como antes. Se a posição ficar sem foi
-      // profissional (o baralho BR tem poucos), completa com bom jogador (e
-      // vice-versa) — nunca inventa fake. Média ≈ 50%.
-      const foiRate = tier === 'strong' ? 0.35 : tier === 'weak' ? 0.65 : 0.50
+      // profissional; se não tem de um, bota o outro", ESPALHANDO — todo time tem
+      // mistura, o FRACO leva mais foi profissional e o FORTE mais bom jogador. Como
+      // o baralho BR tem pouco foi profissional (~74 pra 20 times), os times fracos
+      // são montados PRIMEIRO (ver dealBotSquads) pra o foi profissional cair no time
+      // certo — assim o tier de força vale de verdade, em vez de o perna-curta cair
+      // por sorteio. Se a posição ficar sem um tipo, completa com o outro (nunca fake).
+      const foiRate = tier === 'strong' ? 0.22 : tier === 'weak' ? 0.55 : 0.40
       const nFoi = Math.round(need * foiRate)
       const foi = shuffled.filter(c => c.fame === 1)
       const bom = shuffled.filter(c => c.fame === 2 || c.fame === 3)
@@ -1960,7 +1960,13 @@ function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus
 // escala os bots DEPOIS do baralho do leilão já ter reservado os reais que
 // os humanos vão disputar. `used` chega com os nomes do baralho dentro.
 function dealBotSquads(managers: Manager[], botPlans: BotPlan[], rng: () => number, used: Set<string>, varzea = false) {
-  for (const plan of botPlans) {
+  // 🥅 VÁRZEA: monta os times FRACOS primeiro. O baralho BR tem pouco foi
+  // profissional (~74 pra 20 times); dando pros fracos ANTES, eles ficam de fato
+  // mais fracos (mais perna-curta) e os fortes, montados por último, pegam mais bom
+  // jogador — o tier de força vale de verdade. Fora da várzea a ordem não importa.
+  const rank: Record<Tier, number> = { weak: 0, mid: 1, strong: 2 }
+  const order = varzea ? [...botPlans].sort((a, b) => rank[a.tier] - rank[b.tier]) : botPlans
+  for (const plan of order) {
     const bot = managers.find(m => m.id === plan.id)
     if (bot) bot.squad = makeBotSquad(plan.formation, plan.tier, rng, used, varzea)
   }

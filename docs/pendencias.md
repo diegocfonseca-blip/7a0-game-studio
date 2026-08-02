@@ -267,16 +267,21 @@ força que o normal já usa — 9%/76%/15%).**
   offline NÃO mudam (77.6/76.1). Só vale com `varzea` ligado. Revertível.
 - FALTA (se o Diego quiser 50/50 mesmo): só criando cartas de foi profissional
   novas no baralho BR (mais nomes reais), pra ter estoque pra encher 20 times.
-- ✅ **Diego fechou (02/08): "coloque SÓ bom jogador e foi profissional; se não tem
-  de um, bota o outro" — DIVIDIDO (50/50), sem adicionar cartas novas.** Ajustado:
-  (a) `buildDeck` cota `low` da várzea = **0.50** (leilão meio a meio foi-prof/bom
-  jogador; se faltar de um, os passos de baixo completam com o outro — nunca fake);
-  (b) `makeBotSquad` foiRate da várzea centrado em 50% (forte 0.35 · médio 0.50 ·
-  fraco 0.65 → média ~50%, ainda varia um pouco por força, mas não empilha em bom
-  jogador). Recusou adicionar cartas de foi profissional novas. ⚠️ Nota real: como o
-  baralho BR só tem ~74 foi-prof, quando o estoque acaba (mais provável nos bots, 20
-  times) a posição completa com bom jogador — exatamente o "se não tem de um bota o
-  outro". Modo PADRÃO 100% intocado (só `START_ONLINE` passa `varzea`). Revertível.
+- ✅ **AJUSTE FINAL da várzea (02/08, aprovado + simulado):** sem adicionar cartas.
+  - **LEILÃO dos usuários = MAIORIA foi profissional** (pedido do Diego "quero mais
+    foi profissional do q bom jogador de %"): `buildDeck` cota `low` da várzea =
+    **0.60** (simulado: ~59% foi prof / 41% bom jogador). Baralho embaralha a cada
+    leilão novo (semente nova no rematch) → variedade; só lembrar que foi-prof tem
+    menos cartas (GOL 8) então esses repetem mais que bom jogador.
+  - **BOTS espalhados + fraco mais foi prof (opção 1 do Diego):** `dealBotSquads`
+    monta os times FRACOS primeiro (o baralho BR só tem ~74 foi-prof pra 20 times →
+    dando pros fracos antes, o perna-curta cai no time certo e o tier de força vale
+    de verdade); `makeBotSquad` foiRate da várzea = fraco 0.55 · médio 0.40 · forte
+    0.22. Simulado (4 e 2 humanos): **0 times sem foi profissional** (antes metade
+    da liga ficava só com bom jogador), fracos ~68 de força, fortes ~74-76. Se um
+    tipo acaba na posição, completa com o outro — nunca fake.
+  - Modo PADRÃO 100% intocado (só `START_ONLINE` passa `varzea`; makeBotSquad/
+    buildDeck/dealBotSquads têm branch `if (varzea)` — fora dela, idêntico). Revertível.
 - ✅ **BUG "novo leilão perdia a várzea" (FEITO 02/08 — Diego relatou):** ao acabar
   o jogo da várzea online e a galera votar "novo leilão" pra continuar na MESMA sala,
   o leilão novo vinha em modo PADRÃO (com craque/lenda). RAIZ: o `startLeilao`
