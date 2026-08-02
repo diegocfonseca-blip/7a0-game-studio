@@ -2638,17 +2638,20 @@ export function reducer(state: EscState, action: Action): EscState {
         const humanPos = humans.map(h => lastTable.findIndex(t => t.id === h.id) + 1).filter(p => p > 0)
         const bestHumanPos = humanPos.length ? Math.min(...humanPos) : 99
         if (bestHumanPos >= 1 && bestHumanPos <= 4) {
-          s.nbaTier = nextTier
-          promotedTo = nextTier
           const tierTeams = NBA_TIERS[nextTier].teams
           const newSize = tierTeams.length
-          // gera 1 humano-placeholder + os bots do novo andar (0 rivais de leilão → todos
-          // filler, elenco pronto: no online quem cresce é só o humano, via reservas).
-          const { managers: gen, botPlans: genPlans } = makeManagers(['__ph__'], '4-3-3', 0, newSize, rng, tierTeams)
-          const genBots = gen.filter(m => !m.isHuman)
           const humanEntries = s.managers.map((m, i) => ({ m, i })).filter(x => x.m.isHuman)
           const humanIds = new Set(humanEntries.map(x => x.m.id))
           const humanTeams = new Set(humanEntries.map(x => x.m.teamName))
+          // 🔒 pool de times do novo andar SEM os nomes que algum humano já usa (o humano
+          // "é" aquele time). Excluindo ANTES de gerar, nunca precisamos pular bot no meio
+          // do preenchimento — o que evitava um BURACO no array quando o nome batia (ex.:
+          // técnico se chama "Lakers" e sobe pra NBA). O pool sempre tem sobra: newSize−k
+          // times (k = humanos que colidem) ≥ newSize−nHumanos assentos de bot.
+          const botTeamPool = tierTeams.filter(t => !humanTeams.has(t.team))
+          // gera 1 placeholder + 1 bot por time do pool (0 rivais de leilão → todos filler).
+          const { managers: gen, botPlans: genPlans } = makeManagers(['__ph__'], '4-3-3', 0, botTeamPool.length + 1, rng, botTeamPool)
+          const genBots = gen.filter(m => !m.isHuman)
           const newManagers: Manager[] = new Array(newSize)
           for (const { m, i } of humanEntries) if (i < newSize) newManagers[i] = m // pin no MESMO índice
           let nextBotId = 0
@@ -2657,19 +2660,28 @@ export function reducer(state: EscState, action: Action): EscState {
           let bc = 0
           for (let i = 0; i < newSize; i++) {
             if (newManagers[i]) continue // assento de humano — não toca
-            while (bc < genBots.length && humanTeams.has(genBots[bc].teamName)) bc++ // nunca duplica o nome da crew de um humano
             const b = genBots[bc++]
-            if (!b) continue
+            if (!b) break
             const id = freshId()
             const plan = genPlans.find(p => p.id === b.id)
             newManagers[i] = { ...b, id }
             if (plan) newPlans.push({ ...plan, id })
           }
-          s.managers = newManagers
-          s.careerRivalCount = newSize - humanEntries.length
-          const usedP = new Set<string>()
-          for (const { m } of humanEntries) for (const c of m.squad) usedP.add(ident(c)) // bots não repetem quem o humano já tem
-          dealBotSquads(s.managers, newPlans, rng, usedP)
+          // 🔒 BLINDAGEM ANTI-ESTADO-QUEBRADO: só COMETE a subida se o array ficou 100%
+          // preenchido E todos os humanos entraram (nenhum buraco/índice perdido). Se por
+          // qualquer motivo faltou bot, NÃO sobe de andar nesta temporada (mantém o time
+          // atual) — melhor deixar de subir do que travar a sala inteira com um `undefined`
+          // que o broadcast vira `null` no aparelho de todo mundo.
+          const filledOk = newManagers.every(m => !!m) && newManagers.filter(m => m.isHuman).length === humanEntries.length
+          if (filledOk) {
+            s.nbaTier = nextTier
+            promotedTo = nextTier
+            s.managers = newManagers
+            s.careerRivalCount = newSize - humanEntries.length
+            const usedP = new Set<string>()
+            for (const { m } of humanEntries) for (const c of m.squad) usedP.add(ident(c)) // bots não repetem quem o humano já tem
+            dealBotSquads(s.managers, newPlans, rng, usedP)
+          }
         }
       }
       // modo de copa segue o andar ATUAL (já promovido, se subiu): street = só pontos

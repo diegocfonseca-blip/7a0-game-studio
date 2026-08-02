@@ -5680,7 +5680,10 @@ function NbaCareerEndPanel() {
   // Fatia 3. Anti-spoiler: não mostra posição/tabela. Host dispara NEXT_NBA_SEASON_ONLINE;
   // guest só espera (mesmo padrão do OnlineEndVote). OFFLINE segue o fluxo normal abaixo.
   if (state.onlineMode === 'online') {
-    const willAuction = roster < 15 // ainda cabe reserva → próximo passo é o leilão de reservas
+    // baseado na TEMPORADA (sincronizada), não no elenco LOCAL: o leilão de reservas
+    // abre ao avançar pra T2 (5→10) e T3 (10→15); da T3 em diante o elenco já é cheio.
+    // Assim host e guest veem o mesmo aviso (o elenco local podia divergir).
+    const willAuction = state.seasonNo < 3
     const nextNote = willAuction
       ? t('O host começa e todo mundo vai pro leilão de RESERVAS — cada um monta seu banco.', 'The host starts and everyone heads to the RESERVE auction — each of you builds a bench.')
       : t('Elenco cheio — a próxima temporada começa com o mesmo time.', 'Full roster — next season starts with the same team.')
