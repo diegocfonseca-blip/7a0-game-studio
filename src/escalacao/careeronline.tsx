@@ -524,7 +524,7 @@ function SeasonEnd({ c, roomId, canControl, onNextSeason, onEnd, onTable }: { c:
         const displayName = stripEmoji(user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? out!.team)
         await resilientWrite({ table: 'esc_results', onConflict: 'user_id,season_key', row: {
           user_id: user.id, display_name: displayName,
-          mode: 'online', season_key: `careeronline:${roomId}:${c.season}`.slice(0, 48),
+          mode: 'online', season_key: `careeronline:${roomId}:${c.season}`,
           champion: true, top_scorer: false, goals: me?.gf ?? 0,
         } })
       } catch { /* nunca trava o jogo */ }

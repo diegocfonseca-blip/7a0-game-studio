@@ -2244,7 +2244,7 @@ export function PyramidSeasonScreen() {
         const displayName = stripEmoji(user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? me.team)
         await resilientWrite({ table: 'esc_results', onConflict: 'user_id,season_key', row: {
           user_id: user.id, display_name: displayName,
-          mode: state.roomId ? 'online' : 'cpu', season_key: key.slice(0, 48),
+          mode: state.roomId ? 'online' : 'cpu', season_key: key,
           champion: me.champ, top_scorer: topScorer?.teamId === youId,
           goals: myTeam?.gf ?? 0,
         } })
@@ -2269,7 +2269,7 @@ export function PyramidSeasonScreen() {
         const displayName = stripEmoji(user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? me?.team ?? 'Técnico')
         await resilientWrite({ table: 'esc_results', onConflict: 'user_id,season_key', row: {
           user_id: user.id, display_name: displayName,
-          mode: state.roomId ? 'online' : 'cpu', season_key: key.slice(0, 48),
+          mode: state.roomId ? 'online' : 'cpu', season_key: key,
           champion: true, top_scorer: false, goals: 0,
         } })
       } catch { /* nunca trava o jogo */ }

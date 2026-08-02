@@ -406,3 +406,23 @@ gravado; risco alto de quebrar geral, então NÃO fiz blind):**
 **A outra sessão (com Supabase) deve confirmar:** (a) os registros de `game_champions`
 dessa sala (pra ver o "Caue" atropelado); (b) o limite da coluna `season_key`. Aí dá
 pra implementar certo e seguro.
+
+### ✅ CONFIRMAÇÃO da sessão com Supabase (02/08) — responde o que faltava acima
+Rodei as consultas de leitura no banco. Resultados:
+- **Limite da coluna `season_key` (a dúvida acima): NÃO TEM.** Em `user_cards` E
+  `esc_results` a coluna é **`text` (ilimitada)**. Então o FIX pode usar a chave
+  INTEIRA com o seed (ex.: `on:${seed}:${seasonNo}`) sem medo de estourar/cortar.
+- **Limpei 4 truncamentos legados `.slice(0, 48)`** (careeronline, CardCollectPrompt,
+  2 na pirâmide) — eram inúteis (coluna é text) e a leitura da carta usava a chave
+  inteira enquanto a escrita cortava (não batia). Agora chave inteira sempre. Só 1
+  linha no banco tinha sido cortada, então era fragilidade latente, não o estrago.
+- `game_champions`: sem BURACOS (3 em 4.131) — mas o bug é ATROPELO (update por
+  cima), que não aparece como buraco. Bate com o diagnóstico do rematch acima.
+- Ranking global (`esc_ranking`): agrupa por `user_id` (soma certo; o "Cess" tem 3
+  nomes no mesmo cadastro = 148-149 títulos numa entrada só). Cess: 149 títulos ≈
+  146 cartas.
+- **CONCLUSÃO conjunta:** a RAIZ é o rematch resetando `seasonNo=1` + gravação por
+  sala+temporada (diagnóstico da outra sessão). O fix é **botar o `seed` (único por
+  jogo) nas chaves** de `game_champions` / `user_cards` / `esc_results`, com chave
+  INTEIRA (a coluna aguenta) + gravação com retry. FALTA: OK do Diego pra implementar
+  (mexe em como todo campeão/carta/título é gravado — risco alto, então não fiz blind).
