@@ -104,9 +104,14 @@ function rollForm(squad: PoolCard[], tac: Tac, _opp: Tac, rng: () => number) {
   if (tac === 'retranca') { def += 4; atk -= 3 } if (tac === 'ataque') { atk += 4; def -= 3 } if (tac === 'equilibrio') { atk += 1; def += 1 }
   return { atk, def }
 }
-function bestXI(squad: PoolCard[]): PoolCard[] {
+// XI automático RESPEITANDO a formação do time (4-3-3, 4-4-2, 4-5-1). Sem a
+// formação (times de CPU, que são montados no padrão 4-3-3) cai no NEED base.
+// BUG antigo: usava NEED fixo (4-3-3) pra todo mundo — quem jogava 4-4-2 tinha o
+// 4º meia jogado pro banco e entrava em campo com 10 (faltava 1 meia).
+function bestXI(squad: PoolCard[], formation?: FormationKey): PoolCard[] {
+  const need = formation ? FORMATIONS[formation] : NEED
   const out: PoolCard[] = []
-  for (const p of SECTORS) { const cands = squad.filter(c => c.pos === p).sort((a, b) => mid(b) - mid(a)); for (let i = 0; i < NEED[p] && i < cands.length; i++) out.push(cands[i]) }
+  for (const p of SECTORS) { const cands = squad.filter(c => c.pos === p).sort((a, b) => mid(b) - mid(a)); for (let i = 0; i < need[p] && i < cands.length; i++) out.push(cands[i]) }
   return out
 }
 function dealSquads(bucket: PoolCard[], nTeams: number, rng: () => number): PoolCard[][] {
@@ -127,7 +132,7 @@ function roundRobin(n: number): [number, number][][] {
   return [...rounds, ...rounds.map(r => r.map(([h, a]) => [a, h] as [number, number]))]
 }
 
-export interface SimTeam { name: string; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; backstop?: boolean; teamId: number; squad: PoolCard[]; xi: PoolCard[]; pts: number; w: number; d: number; l: number; gf: number; ga: number }
+export interface SimTeam { name: string; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; backstop?: boolean; teamId: number; squad: PoolCard[]; xi: PoolCard[]; formation?: FormationKey; pts: number; w: number; d: number; l: number; gf: number; ga: number }
 export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string }
 
 function pickCatalog(deck: 'br' | 'eu' | 'both') { return deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : CATALOG }
@@ -162,11 +167,11 @@ export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? 
 // monta as 4 divisões pela COLOCAÇÃO guardada (placements): D começa com os
 // técnicos reais; a cada temporada os times sobem/descem por nome exato.
 export function buildPyramid(managers: Manager[], youId: number, seed: number, deck: 'br' | 'eu' | 'both', placements?: Record<string, string> | null, cpuSquads?: Record<string, Card[]>): Record<Div, SimTeam[]> {
-  const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number, backstop = false, rival = false, dorm = false): SimTeam => ({ name, you, human, rival, dorm, backstop, teamId, squad, xi: bestXI(squad), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
+  const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number, backstop = false, rival = false, dorm = false, formation?: FormationKey): SimTeam => ({ name, you, human, rival, dorm, backstop, teamId, squad, formation, xi: bestXI(squad, formation), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
   const world: Record<Div, SimTeam[]> = { A: [], B: [], C: [], D: [] }
   const divOf = (key: string, fallback: Div): Div => { const d = placements?.[key]; return (d === 'A' || d === 'B' || d === 'C' || d === 'D') ? d : fallback }
   for (const m of managers.slice(0, 20)) {
-    const t = mk(m.teamName, (m.squad as WonCard[]).map(c => ({ ...c })), m.isHuman, m.id === youId, m.id, !!m.backstop, !!m.rival, !!m.dormindo)
+    const t = mk(m.teamName, (m.squad as WonCard[]).map(c => ({ ...c })), m.isHuman, m.id === youId, m.id, !!m.backstop, !!m.rival, !!m.dormindo, m.formation)
     world[divOf(`m${m.id}`, 'D')].push(t)
   }
   const cpu = buildCpuSquads(managers, seed, deck)
@@ -287,25 +292,26 @@ function tacAt(tactics: RoundTactics, teamId: number, r: number): Tac {
 // mapa rodada→ids; na rodada r vale a última escolha numa rodada <= r. Se não há
 // escolha (ou a escalação não tem 11 válidos), cai pro bestXI automático.
 export type RoundLineups = Record<number, Record<number, string[]>>
-function lineupAt(lineups: RoundLineups, teamId: number, r: number, squad: PoolCard[]): PoolCard[] {
+function lineupAt(lineups: RoundLineups, teamId: number, r: number, squad: PoolCard[], formation?: FormationKey): PoolCard[] {
+  const need4 = formation ? FORMATIONS[formation] : NEED
   const byRound = lineups[teamId]
   let bestK = -1, ids: string[] | null = null
   if (byRound) for (const k in byRound) { const kn = +k; if (kn <= r && kn > bestK) { bestK = kn; ids = byRound[kn] } }
-  if (!ids) return bestXI(squad)
+  if (!ids) return bestXI(squad, formation)
   const map = new Map(squad.map(c => [c.id, c]))
   const xi = ids.map(id => map.get(id)).filter((c): c is PoolCard => !!c)
   if (xi.length === 11) return xi
   // PARCIAL: se um titular saiu (vendido), mantém os que ficaram e completa SÓ
   // aquela vaga com o melhor do banco na posição — não remonta o time inteiro
-  // (evita o auto-mudar titular que o usuário não pediu).
+  // (evita o auto-mudar titular que o usuário não pediu). Respeita a formação.
   const used = new Set(xi.map(c => c.id))
   for (const p of SECTORS) {
-    let need = NEED[p] - xi.filter(c => c.pos === p).length
+    let need = need4[p] - xi.filter(c => c.pos === p).length
     if (need <= 0) continue
     const bench = squad.filter(c => c.pos === p && !used.has(c.id)).sort((a, b) => mid(b) - mid(a))
     for (const c of bench) { if (need <= 0) break; xi.push(c); used.add(c.id); need-- }
   }
-  return xi.length === 11 ? xi : bestXI(squad)
+  return xi.length === 11 ? xi : bestXI(squad, formation)
 }
 function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
@@ -351,8 +357,8 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     const th: Tac = H.human ? tacAt(tactics, H.teamId, r) : TACS[Math.floor(rng() * 3)]
     const ta: Tac = A.human ? tacAt(tactics, A.teamId, r) : TACS[Math.floor(rng() * 3)]
     // XI daquele jogo: humano usa a escalação que ELE montou (por rodada); CPU o fixo
-    const hxi = H.human ? lineupAt(lineups, H.teamId, r, H.squad) : H.xi
-    const axi = A.human ? lineupAt(lineups, A.teamId, r, A.squad) : A.xi
+    const hxi = H.human ? lineupAt(lineups, H.teamId, r, H.squad, H.formation) : H.xi
+    const axi = A.human ? lineupAt(lineups, A.teamId, r, A.squad, A.formation) : A.xi
     const fh = rollForm(hxi, th, ta, rng), fa = rollForm(axi, ta, th, rng)
     // times de CPU NATIVOS ganham a força-base da divisão (pra as séries serem
     // disputadas de verdade). Humano e rivais escolhidos NÃO ganham (jogam com o
@@ -2184,7 +2190,7 @@ export function PyramidSeasonScreen() {
   useEffect(() => { if (copaPlaying) setTab('jogos') }, [copaPlaying])
   // escalação (XI) do SEU time pro próximo jogo — pra aba Elenco (substituição)
   const mgrMe = state.managers[state.youIdx]
-  const myXI = useMemo(() => (mgrMe ? lineupAt(careerLineup, youId, round, mgrMe.squad) : []), [careerLineup, youId, round, mgrMe])
+  const myXI = useMemo(() => (mgrMe ? lineupAt(careerLineup, youId, round, mgrMe.squad, mgrMe.formation) : []), [careerLineup, youId, round, mgrMe])
   const myXIids = useMemo(() => new Set(myXI.map(c => c.id)), [myXI])
 
   // artilheiros de TODOS OS TEMPOS (acumulado entre temporadas) — top 20
@@ -2962,7 +2968,7 @@ export function ReserveListScreen() {
   const need = FORMATIONS[mgr?.formation ?? '4-3-3']
   // titulares/reservas = a SUA escalação REAL (com as trocas da temporada), não o
   // melhor-11 automático — o elenco tem que refletir o time em tempo real.
-  const myXI = useMemo(() => lineupAt(state.careerLineup ?? {}, youId, state.round, mgr?.squad ?? []), [state.careerLineup, youId, state.round, mgr])
+  const myXI = useMemo(() => lineupAt(state.careerLineup ?? {}, youId, state.round, mgr?.squad ?? [], mgr?.formation), [state.careerLineup, youId, state.round, mgr])
   const myXIids = useMemo(() => new Set(myXI.map(c => c.id)), [myXI])
   const marketUnlocked = state.seasonNo >= 3 // vender/negociar só libera na 3ª temporada
   const canList = (c: WonCard) => {

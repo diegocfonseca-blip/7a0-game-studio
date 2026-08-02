@@ -303,3 +303,23 @@ força que o normal já usa — 9%/76%/15%).**
   **sem o `varzea`** → `onlineVarzea` caía em false. Fix: passa `varzea: state.varzea`
   junto (o estado já guarda a escolha da sala, e é sincronizado pros convidados). O
   "mesmo time" (REPLAY_SEASON) não monta baralho, então nunca teve o problema. Revertível.
+
+## 🐛 Bug do 4-4-2 (faltava 1 meia / time com 10) — CORRIGIDO (02/08)
+Amigo começou carreira no 4-4-2 e o time entrava com 10 (faltava 1 meia; o 4º
+meia ficava no banco). CAUSA: em `pyramidseason.tsx` o `bestXI` e o `lineupAt`
+usavam uma constante fixa `NEED` = 4-3-3 (`MEI:3, ATA:3`) pra montar o XI de TODO
+mundo, ignorando a formação real do técnico. No 4-4-2 (4 MEI, 2 ATA) isso jogava
+o 4º meia pro banco e tentava um 3º atacante que não existe → só 10 em campo.
+CORREÇÃO: `bestXI(squad, formation)` e `lineupAt(..., formation)` passam a usar
+`FORMATIONS[formation]`; a formação viaja no `SimTeam` (via `mk`/`buildPyramid`) e
+nos dois pontos de exibição do Elenco e na simulação da partida. CPU de fundo
+segue no padrão (montado 4-3-3), então nada muda pra eles. Vale pra 4-4-2 E 4-5-1.
+Testado (4-4-2 → XI=11 com 4 meias). 4-3-3 intacto. Revertível.
+
+## 🌍 Copa do Mundo começando na 110 em vez da 100 — CORRIGIDO (02/08)
+A 1ª Copa do Mundo Legends abria só na temporada 110 (a âncora nascia 110).
+Diego quer que comece na **100** e siga de 10 em 10 (100, 110, 120…). CORREÇÃO em
+`copa-mundo.tsx`: `COPA_ANCHOR = 100`; saves que ainda NÃO jogaram nenhuma Copa
+são realinhados pra 100 (o save antigo que nasceu com 110 se corrige sozinho);
+quem já jogou uma edição mantém a agenda. Tela de "🔒 desbloqueia na 100"
+aparece pra todo mundo abaixo da 100. Revertível.
