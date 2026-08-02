@@ -1969,7 +1969,9 @@ function dealBotSquads(managers: Manager[], botPlans: BotPlan[], rng: () => numb
 }
 
 // ─── estado inicial ──────────────────────────────────────────────────
-const INITIAL: EscState = {
+// exportado (além do uso interno) pra permitir simulações headless da carreira
+// em testes — só leitura do estado-semente, nenhum efeito no jogo.
+export const INITIAL: EscState = {
   screen: 'intro', seed: 1,
   onlineMode: 'cpu', roomId: '', roomCode: '', isHost: true,
   humanCount: 1, submitted: [], pendingEnvelopes: {}, presence: [],
