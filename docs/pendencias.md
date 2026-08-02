@@ -368,3 +368,41 @@ parecendo formação torta. A formação estava CERTA (3-3-4-1 no desenho = 4-3-
 só o layout. Fix: row com `flexWrap: nowrap` + cartas `flex: 1 1 0; minWidth: 0`
 (encolhem pra caber lado a lado) — a linha de trás fica reta. Nome trunca com "…" se
 faltar espaço. Só visual, revertível.
+
+## 🏆 Hall da Fama campeão ERRADO + carta de campeão não aparece/não conta — DIAGNÓSTICO (02/08, Diego relatou)
+Diego (2 prints): Cess FC foi campeão da liga (1º, 77 pts) e no aparelho dele aparece
+campeão certo; mas no HALL DA FAMA (aparelho do host) mostra "Temporada 1: 🏆 Caue"
+(que é só o 7º!). A Copa (Cess FC) está certa. E vários reclamam que a CARTA de campeão
+não aparece e às vezes não conta no álbum/ranking.
+
+**RAIZ ÚNICA encontrada (por código; não deu pra consultar o banco desta sessão —
+aprovação do Supabase MCP só na outra sessão do Diego):** o **"novo leilão" reseta
+`s.seasonNo = 1`** (`START_ONLINE`, store.tsx ~2994). Mas TRÊS coisas guardam por
+**sala + nº da temporada**, e como a temporada volta a ser "1" a cada novo leilão na
+MESMA sala, os registros de jogos diferentes se ATROPELAM:
+1. **Hall da Fama (`game_champions`, chave room_id+season_no):** o campeão da "temporada
+   1" de um jogo anterior (Caue) fica, e a regravação do novo (Cess) falha/atropela. Pior:
+   a gravação é CRUA (`supabase...update`, screens.tsx ~4330) SEM retry → no navegador do
+   WhatsApp falha fácil e fica o velho. (A ordenação da tabela é determinística — Caue com
+   63 nunca seria table[0] sobre Cess com 77 — logo NÃO é cálculo, é registro atropelado.)
+2. **Carta (`user_cards`, season_key = `${roomId}:${seasonNo}`, screens.tsx 6025/6054):**
+   se já foi campeão da "temporada 1" nessa sala antes, o check acha o registro velho e
+   não dá carta nova.
+3. **Ranking (`esc_results`, mesmo season_key, `onConflict: user_id,season_key`,
+   RankResultWriter ~5214/5231):** o upsert do jogo novo grava POR CIMA do antigo → título
+   some ("não conta no ranking").
+
+**FIX PROPOSTO (aguardando OK do Diego — mexe em como TODO campeão/carta/título é
+gravado; risco alto de quebrar geral, então NÃO fiz blind):**
+- Botar a "impressão digital" do jogo (o `s.seed`, que já é único por leilão =
+  hashCode(roomCode+rematch)) nas chaves, pra jogos diferentes na mesma sala não
+  colidirem. season_key online → algo curto tipo `on:${seed}:${seasonNo}` (⚠️ a coluna
+  season_key tem limite ~48 — a outra sessão precisa confirmar o limite exato).
+- Hall da Fama: distinguir por jogo (seed) — provavelmente precisa de uma coluninha
+  `seed`/`game_id` em `game_champions` (migration) OU limpar os registros da sala no
+  novo leilão. E tornar a gravação RESILIENTE (retry, como a `resilientWrite`).
+- Conferir também o ângulo `youIdx` (identidade local): `champion: champ.id === you.id`
+  usa `managers[youIdx]` — se o assento deslizou, o flag de campeão sai errado pra alguém.
+**A outra sessão (com Supabase) deve confirmar:** (a) os registros de `game_champions`
+dessa sala (pra ver o "Caue" atropelado); (b) o limite da coluna `season_key`. Aí dá
+pra implementar certo e seguro.
