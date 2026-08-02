@@ -4327,10 +4327,18 @@ function HallDaFama({ roomId, isHost, seasonNo, champName, scorerName, scorerGoa
       // antes a leitura corria em paralelo com a escrita e a temporada atual
       // não aparecia, mostrando só a anterior (parecia campeão errado).
       if (isHost) {
-        const { data: existing } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', seasonNo).maybeSingle()
         const payload = { champion_name: champName, top_scorer_name: scorerName ?? null, top_scorer_goals: scorerGoals ?? null, copa_champion_name: copaChampName ?? null, copa_top_scorer_name: copaScorerName ?? null, copa_top_scorer_goals: copaScorerGoals ?? null }
-        if (existing) await supabase.from('game_champions').update(payload).eq('id', existing.id)
-        else await supabase.from('game_champions').insert({ room_id: roomId, season_no: seasonNo, ...payload })
+        // RESILIENTE: re-tenta até 3x (no navegador do WhatsApp a 1ª gravação falha
+        // fácil e o campeão novo não sobrescrevia o antigo → Hall da Fama travava no
+        // campeão de um jogo anterior). Com o retry, a regravação do host vinga.
+        for (let i = 0; i < 3; i++) {
+          const { data: existing } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', seasonNo).maybeSingle()
+          const { error } = existing
+            ? await supabase.from('game_champions').update(payload).eq('id', existing.id)
+            : await supabase.from('game_champions').insert({ room_id: roomId, season_no: seasonNo, ...payload })
+          if (!error) break
+          await new Promise(r => setTimeout(r, 400 * (i + 1)))
+        }
       }
       // 2) lê o histórico completo
       const { data } = await supabase.from('game_champions').select('season_no, champion_name, top_scorer_name, top_scorer_goals, copa_champion_name, copa_top_scorer_name, copa_top_scorer_goals').eq('room_id', roomId).order('season_no', { ascending: true })
@@ -5212,7 +5220,10 @@ function RankResultWriter() {
   const { state } = useEsc()
   const wrote = useRef(false)
   // base do season_key deste jogo (online / dinastia / cpu) — reusada pela liga e pela Copa
-  const baseKey = () => state.onlineMode === 'online' ? `${state.roomId}:${state.seasonNo}` : state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`
+  // 🔑 online: inclui o SEED (impressão digital do jogo, único por leilão/revanche)
+  // — senão o "novo leilão" na MESMA sala reseta a temporada pra 1 e o título novo
+  // grava POR CIMA do antigo (sumia do ranking). Solo/dinastia já têm o seed.
+  const baseKey = () => state.onlineMode === 'online' ? `${state.roomId}:${state.seed}:${state.seasonNo}` : state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`
   useEffect(() => {
     if (wrote.current) return
     wrote.current = true
@@ -6023,7 +6034,7 @@ export function EscEnd() {
   const ligaChampionCard = (
     <>
       {online && youWon && state.roomId && (
-        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}`} origin="online" onClaimed={bcastCard('liga')} onStatus={setLigaCardStatus} noTimer={streamRoom} />
+        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}`} origin="online" onClaimed={bcastCard('liga')} onStatus={setLigaCardStatus} noTimer={streamRoom} />
       )}
       {/* 🎥 STREAM: a sala (quem NÃO é campeão) assiste o pacote do campeão da liga */}
       {streamRoom && !youWon && ligaChampHuman && (
@@ -6052,7 +6063,7 @@ export function EscEnd() {
       )}
       {copaChampIsYou && (
         online && state.roomId ? (
-          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seasonNo}:copa`} origin="online" onClaimed={bcastCard('copa')} onStatus={setCopaCardStatus} noTimer={streamRoom} />
+          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}:copa`} origin="online" onClaimed={bcastCard('copa')} onStatus={setCopaCardStatus} noTimer={streamRoom} />
         ) : !online ? (
           <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`} origin="cpu" onClaimed={setMyCard} />
         ) : null

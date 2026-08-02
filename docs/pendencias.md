@@ -426,3 +426,20 @@ Rodei as consultas de leitura no banco. Resultados:
   jogo) nas chaves** de `game_champions` / `user_cards` / `esc_results`, com chave
   INTEIRA (a coluna aguenta) + gravação com retry. FALTA: OK do Diego pra implementar
   (mexe em como todo campeão/carta/título é gravado — risco alto, então não fiz blind).
+
+### ✅ CONSERTO APLICADO (02/08) — "faça o que achar melhor" (Diego)
+Implementado o fix do atropelo (rematch reseta seasonNo=1):
+- **Cartas (`user_cards`) e Títulos (`esc_results`):** a season_key ONLINE agora
+  inclui o **seed** (impressão digital do jogo): `${roomId}:${seed}:${seasonNo}`
+  (e `:copa`). Vale no rápido (RankResultWriter + CardCollectPrompt liga/copa) e na
+  carreira pirâmide (2 writers). Solo/dinastia já tinham o seed. Assim jogo novo e
+  antigo na MESMA sala não colidem → título/carta não somem. Coluna é `text`, chave
+  inteira, sem cortar.
+- **Hall da Fama (`game_champions`):** a coluna `room_id` é `uuid` COM foreign key
+  (aponta pra sala) — então NÃO dá pra botar chave composta ali (quebraria). Como o
+  Hall da Fama é um placar VIVO da sala (não registro permanente), a correção certa
+  era a GRAVAÇÃO com **retry (3x)**: o bug era o host gravar cru e falhar no
+  navegador do WhatsApp, deixando o campeão de um jogo anterior. Com retry, a
+  regravação vinga e o campeão certo aparece. (Sem migração, sem mexer no uuid/FK.)
+- Tudo forward-safe (dados antigos ficam; jogos novos usam a chave nova). Buildado.
+  Revertível.

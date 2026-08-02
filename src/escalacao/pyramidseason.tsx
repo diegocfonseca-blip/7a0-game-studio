@@ -2231,7 +2231,9 @@ export function PyramidSeasonScreen() {
     if (!done || !me || !state.careerOnline) return
     // chave da temporada: online usa o id da sala; offline (solo) usa a semente da
     // carreira (única por save), pra cada temporada contar sem colidir entre carreiras.
-    const room = state.roomId || `solo${state.seed}`
+    // 🔑 online: sala + SEED (impressão digital do jogo) — o "novo leilão" reseta a
+    // temporada pra 1, então sem o seed o título novo grava por cima do antigo.
+    const room = state.roomId ? `${state.roomId}:${state.seed}` : `solo${state.seed}`
     const key = `co:${room}:${state.seasonNo}`
     if (rankWriteRef.current === key) return
     rankWriteRef.current = key
@@ -2258,7 +2260,7 @@ export function PyramidSeasonScreen() {
   const copaRankRef = useRef('')
   useEffect(() => {
     if (!copaFinished || !copa?.champion?.you || !state.careerOnline) return
-    const room = state.roomId || `solo${state.seed}`
+    const room = state.roomId ? `${state.roomId}:${state.seed}` : `solo${state.seed}`
     const key = `co:${room}:${state.seasonNo}:copa`
     if (copaRankRef.current === key) return
     copaRankRef.current = key
