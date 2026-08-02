@@ -267,3 +267,13 @@ força que o normal já usa — 9%/76%/15%).**
   offline NÃO mudam (77.6/76.1). Só vale com `varzea` ligado. Revertível.
 - FALTA (se o Diego quiser 50/50 mesmo): só criando cartas de foi profissional
   novas no baralho BR (mais nomes reais), pra ter estoque pra encher 20 times.
+- ✅ **Diego corrigiu (02/08): o LEILÃO tem que ter MAIS foi profissional (a graça
+  do modo).** Não é pra ser 1/3 no leilão — subi a cota `low` da várzea no
+  `buildDeck` de 0.33 → **0.60** (maioria foi profissional; "dividido, talvez até
+  mais foi profissional do q bom jogador"). O leilão é pequeno (só a demanda), então
+  tem foi-profissional real de sobra pra isso SEM fake. ⚠️ Os BOTS (20 times) seguem
+  limitados pelo estoque real (~74 foi-prof / baralho) → lá o teto sem fake é ~1/3;
+  pra os times dos bots também virem MAIORIA perna-curta, o caminho é **adicionar
+  mais cartas reais de foi profissional no baralho BR** (pendência acima). Confirmado
+  que o modo PADRÃO (online rápido, solo, carreira) está 100% intocado: só a chamada
+  do `START_ONLINE` passa `varzea`; as outras 10 chamadas de `buildDeck` não. Revertível.

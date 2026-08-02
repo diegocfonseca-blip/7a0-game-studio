@@ -571,14 +571,15 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   // Se o setor tem poucas cartas no catálogo, pega só o que existe (pode ficar 0
   // lenda). O que sobrar do setor vira bom jogador. Folk não é cota (é só selo).
   // 🥅 VÁRZEA: não existe lenda/craque/promessa no baralho (a cota alta some
-  // sozinha = 0). A graça é ser PARELHO entre bom jogador e foi profissional. O
-  // ideal seria 50/50, mas o baralho BR só tem ~74 foi-profissional pra ~226 bom
-  // jogador — encher 20 times (220 vagas) meio a meio pediria 110 perna-curta, o
-  // que só sairia INVENTANDO fake (proibido). Então uso o teto REAL: ~1/3 de foi
-  // profissional (o máximo que dá sem fake), igual pros humanos e pros bots. Cada
-  // time do campeonato nasce com a mesma cara de peladão. Fora da várzea, tudo igual.
+  // sozinha = 0). Decisão do Diego (02/08): a GRAÇA do modo é ter VÁRIOS foi
+  // profissional — o LEILÃO (o que o humano disputa) nasce com MAIORIA de foi
+  // profissional (60%), não meio-a-meio. Como o leilão é pequeno (só a demanda),
+  // sobra foi-profissional real de sobra pra isso — SEM inventar fake. (Os 20 times
+  // dos bots dividem os ~74 foi-profissional que existem no baralho BR, então lá o
+  // teto real fica em ~1/3 sem fake; pra os bots também virem maioria perna-curta
+  // precisaria de mais cartas reais de foi profissional no baralho.) Fora da várzea, tudo igual.
   const RARITY = varzea
-    ? { legend: 0, star: 0, promessa: 0, low: 0.33 }
+    ? { legend: 0, star: 0, promessa: 0, low: 0.60 }
     : { legend: 0.16, star: 0.26, promessa: 0.17, low: 0.29 } // % por posição (o resto = bom jogador ~12%)
   const stoch = (x: number) => { const f = Math.floor(x); return f + (rng() < x - f ? 1 : 0) } // arredonda por sorteio (mantém a média)
   const alloc = {} as Record<Sector, { legend: number; star: number; promessa: number; low: number }>
