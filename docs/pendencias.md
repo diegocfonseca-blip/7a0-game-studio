@@ -268,11 +268,16 @@ força que o normal já usa — 9%/76%/15%).**
 - FALTA (se o Diego quiser 50/50 mesmo): só criando cartas de foi profissional
   novas no baralho BR (mais nomes reais), pra ter estoque pra encher 20 times.
 - ✅ **AJUSTE FINAL da várzea (02/08, aprovado + simulado):** sem adicionar cartas.
-  - **LEILÃO dos usuários = MAIORIA foi profissional** (pedido do Diego "quero mais
-    foi profissional do q bom jogador de %"): `buildDeck` cota `low` da várzea =
-    **0.60** (simulado: ~59% foi prof / 41% bom jogador). Baralho embaralha a cada
-    leilão novo (semente nova no rematch) → variedade; só lembrar que foi-prof tem
-    menos cartas (GOL 8) então esses repetem mais que bom jogador.
+  - **LEILÃO dos usuários = 70/30 foi profissional** (pedido do Diego "deixe 70 a 30
+    sendo mais foi profissional 70"): `buildDeck` cota `low` da várzea = **0.70**.
+    Simulado (40 seeds × tamanhos de sala): 2–6 humanos = 69–74% foi prof; 8 = 62%;
+    12 = 50% (sala grande esgota os ~74 foi-prof → completa com bom jogador, nunca
+    fake). Baralho embaralha a cada leilão novo (semente nova no rematch) →
+    variedade; só lembrar que foi-prof tem menos cartas (GOL 8) então repetem mais.
+  - 🚫 **SEM FAKE (pedido explícito do Diego):** simulado 40 seeds × 6 tamanhos de
+    sala = **0 fakes** em todos. Se acabar um tipo na posição, o bot completa com o
+    OUTRO tipo REAL (bom jogador ↔ foi profissional) — a incógnita (`makeIncognita`)
+    nunca dispara na várzea porque o pool real (foi+bom) sempre cobre a demanda.
   - **BOTS espalhados + fraco mais foi prof (opção 1 do Diego):** `dealBotSquads`
     monta os times FRACOS primeiro (o baralho BR só tem ~74 foi-prof pra 20 times →
     dando pros fracos antes, o perna-curta cai no time certo e o tier de força vale
