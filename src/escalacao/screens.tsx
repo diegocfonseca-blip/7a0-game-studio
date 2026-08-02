@@ -1381,6 +1381,7 @@ export function EscIntro() {
   const [showCarreiras, setShowCarreiras] = useState(false)
   const [careerGate, setCareerGate] = useState(false)
   const [shared, setShared] = useState(false)
+  const [showManual, setShowManual] = useState(false) // 📖 Manual do Técnico (overlay)
   // 🔒 toda entrada de CARREIRA passa por aqui: se não tem login ATIVO reconhecido
   // agora (conta nova, ou sessão caiu por cache), mostra a tela de login em vez de
   // deixar entrar. getSession() lê do aparelho (rápido, sem rede).
@@ -1489,6 +1490,8 @@ export function EscIntro() {
           </div>
         ))}
       </div>
+      <Btn onClick={() => setShowManual(true)} className="w-full" bg="#fff">📖 Manual do Técnico (as regras completas)</Btn>
+      {showManual && <ManualDoTecnico onClose={() => setShowManual(false)} />}
       <CardAccountNote />
       <ApoieButton big />
       <Btn onClick={shareGame} className="w-full" bg="#fff">
@@ -1496,6 +1499,81 @@ export function EscIntro() {
       </Btn>
       <NewsSection />
     </Shell>
+  )
+}
+
+// ─── 📖 MANUAL DO TÉCNICO ────────────────────────────────────────────
+// A regra-mãe (o leilão, igual em todo modo) UMA vez + um card por modo com só
+// o que muda. Modos ainda não liberados (Dinastia/Carreira online/Liga Fechada)
+// ficam de fora até o Diego liberar. É um complemento — o ensino de verdade
+// continua sendo contextual, dentro do jogo.
+function ManualDoTecnico({ onClose }: { onClose: () => void }) {
+  const fases: [string, string, string][] = [
+    ['✉️', 'Envelope', 'lance secreto — ninguém vê o seu'],
+    ['👀', 'Revelação', 'abrem todos juntos'],
+    ['🔨', 'Martelo', 'maior lance leva'],
+    ['🃏', 'Monte', 'sobras: pega de graça na sua vez'],
+  ]
+  const modos: [string, string, string][] = [
+    ['⚡', 'Rápido (offline)', 'Você contra a CPU. Monta o time no leilão e joga UMA temporada (liga + Copa dos 8). Bom pra treinar o dedo.'],
+    ['🌐', 'Rápido Online', 'Mesma coisa, só que os lances são dos seus AMIGOS na sala (até 8). Baralho Brasil, Europa, Todos — ou a Várzea 🥅 (sem craques).'],
+    ['🪜', 'Carreira', 'A vida de técnico: começa na Série D e sobe a pirâmide até a A. Temporada a temporada desbloqueia reservas, vendas, folha salarial, contratos, estádio, SAF…'],
+  ]
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '18px 12px' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+          <p style={{ flex: 1, fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>📖 Manual do Técnico</p>
+          <button onClick={onClose} aria-label="Fechar" style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+        </div>
+        {/* a regra-mãe: o leilão */}
+        <div style={{ border: `3px solid ${INK}`, borderRadius: 14, background: GOLD, padding: '10px 11px', boxShadow: `3px 3px 0 0 ${INK}`, marginBottom: 10 }}>
+          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, textTransform: 'uppercase' }}>🔨 Como funciona o leilão (a base de tudo)</p>
+          <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+            {fases.map(([ic, t, d]) => (
+              <div key={t} style={{ flex: 1, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', textAlign: 'center' }}>
+                <div style={{ fontSize: 16 }}>{ic}</div>
+                <p style={{ fontWeight: 900, fontSize: 9, ...OSWALD, margin: '2px 0 0', textTransform: 'uppercase' }}>{t}</p>
+                <p style={{ fontSize: 8, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0', lineHeight: 1.25 }}>{d}</p>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontSize: 10, fontWeight: 700, margin: '7px 2px 0', lineHeight: 1.4 }}>Empatou no maior lance? Tem <b>desempate</b>. Sobrou sem lance? Vai pro <b>monte</b> — cada técnico pode pegar na sua vez. E o nível do jogador <b>só abre na Cerimônia</b>: você aposta no nome!</p>
+        </div>
+        {/* um card por modo — só o que muda */}
+        {modos.map(([ic, t, d]) => (
+          <div key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 10px', marginBottom: 7, background: '#FCFBF4', boxShadow: `2.5px 2.5px 0 0 ${INK}` }}>
+            <span style={{ fontSize: 20, lineHeight: 1 }}>{ic}</span>
+            <div>
+              <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0, textTransform: 'uppercase' }}>{t}</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '1px 0 0', lineHeight: 1.35 }}>{d}</p>
+            </div>
+          </div>
+        ))}
+        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 2px 0' }}>Outros modos entram no manual quando forem liberados. 😉</p>
+      </div>
+    </div>
+  )
+}
+
+// ─── 🎙️ NARRADOR DA PRIMEIRA PARTIDA ─────────────────────────────────
+// Balãozinho de dica que aparece UMA vez em cada fase do primeiro leilão
+// (envelope → revelação → monte) e some pra sempre depois do "entendi".
+// "pular todas" desliga o narrador de vez. Guarda no aparelho (localStorage).
+function NarradorDica({ fase, texto }: { fase: string; texto: string }) {
+  const K = `esc-dica-${fase}`, KOFF = 'esc-dicas-off'
+  const [vista, setVista] = useState<boolean>(() => { try { return !!(localStorage.getItem(K) || localStorage.getItem(KOFF)) } catch { return true } })
+  if (vista) return null
+  const marca = (tudo: boolean) => { try { localStorage.setItem(K, '1'); if (tudo) localStorage.setItem(KOFF, '1') } catch { /* segue */ } setVista(true) }
+  return (
+    <div style={{ border: `3px solid ${INK}`, borderRadius: 13, borderBottomLeftRadius: 4, background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, padding: '9px 11px', marginBottom: 10 }}>
+      <span style={{ display: 'inline-block', fontWeight: 900, fontSize: 9, ...OSWALD, textTransform: 'uppercase', background: GOLD, border: `2px solid ${INK}`, borderRadius: 999, padding: '1px 8px', marginBottom: 5 }}>🎙️ Narrador</span>
+      <p style={{ margin: 0, fontSize: 12, fontWeight: 800, lineHeight: 1.35 }}>{texto}</p>
+      <div style={{ display: 'flex', gap: 8, marginTop: 7, alignItems: 'center' }}>
+        <button onClick={() => marca(false)} style={{ border: `2.5px solid ${INK}`, borderRadius: 9, background: GREEN, color: '#fff', fontWeight: 900, fontSize: 11, ...OSWALD, padding: '4px 12px', boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>✅ Entendi</button>
+        <button onClick={() => marca(true)} style={{ border: 'none', background: 'transparent', fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.45)', cursor: 'pointer', textDecoration: 'underline' }}>pular todas as dicas</button>
+      </div>
+    </div>
   )
 }
 
@@ -2250,6 +2328,7 @@ function Envelope() {
     : <>💡 O nível da carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda. Repara no clube e no ano!</>
   return (
     <Shell bar={<AuctionBar />}>
+      {sport !== 'basquete' && <NarradorDica fase="envelope" texto="✉️ Escreve teu lance ESCONDIDO — ninguém vê o de ninguém! Quem der mais, leva no martelo. E se segura: são 5 posições pra encher o time. 💰" />}
       {showLanceTip && !rescue && (
         <div className="relative border-[3px] border-black rounded-xl p-3 pr-8" style={{ background: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p className="text-[12.5px] font-black leading-snug" style={OSWALD}>{tipTxt}</p>
@@ -2800,6 +2879,7 @@ function Reveal() {
 
   return (
     <Shell bar={<AuctionBar />}>
+      {state.sport !== 'basquete' && <NarradorDica fase="revelacao" texto="👀 Abriram os envelopes! O maior lance leva a carta. Cobriram o seu? QUASE! Se recompõe e vem mais esperto na próxima leva. 🔨" />}
       <p className="text-center text-xs font-black uppercase text-black/70 pt-1">
         Revelação {state.revealIdx + 1} / {state.revealQueue.length} · pote crescente
       </p>
@@ -2982,6 +3062,7 @@ export function EscMonte() {
 
   return (
     <Shell bar={<AuctionBar />}>
+      {state.sport !== 'basquete' && <NarradorDica fase="monte" texto="🃏 Sobrou jogador sem dono! Na sua vez, pega DE GRAÇA (ou paga o piso, se tiver 💰). É a hora de fechar o time sem gastar. Também pode passar a vez!" />}
       <h2 className="font-black text-3xl pt-1" style={OSWALD}>🪣 MONTE FINAL</h2>
       <p className="text-sm font-semibold text-black/70">
         As sobras do pregão. Quem tem mais buracos escolhe primeiro, em serpente. Seus buracos: <b>{totalHoles(you)}</b>.
