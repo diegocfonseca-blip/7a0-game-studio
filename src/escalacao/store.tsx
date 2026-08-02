@@ -2610,12 +2610,11 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'NEXT_NBA_SEASON_ONLINE': {
-      // 🌐🏀 CARREIRA ONLINE DO BASQUETE — Fatia 2: avança a temporada NO MESMO ANDAR
-      // (subir de liga = Fatia 3, mais arriscada). Host-autoritativo: SÓ o host dispara
-      // (o botão da tela de fim é host-only); os guests recebem tudo via SYNC_STATE.
-      // Reusa o MESMO motor do rápido/reservas — futebol NUNCA passa aqui (guardado por
-      // sport==='basquete' && nbaCareer && online). É o espelho ONLINE do NEXT_NBA_SEASON
-      // offline, MENOS o bloco de promoção (que assume 1 humano no youIdx=0).
+      // 🌐🏀 CARREIRA ONLINE DO BASQUETE — Fatias 2+3: avança a temporada (leilão de
+      // reservas multi-humano) e, quando a crew vai bem, SOBE DE ANDAR junto (Fatia 3).
+      // Host-autoritativo: SÓ o host dispara (o botão da tela de fim é host-only); os
+      // guests recebem tudo via SYNC_STATE. Reusa o MESMO motor do rápido/reservas —
+      // futebol NUNCA passa aqui (guardado por sport==='basquete' && nbaCareer && online).
       if (s.onlineMode !== 'online' || s.sport !== 'basquete' || !s.nbaCareer) return s
       s.seasonNo++
       const rng = mulberry((s.seed ^ (s.seasonNo * 2246822519)) >>> 0)
@@ -2625,10 +2624,68 @@ export function reducer(state: EscState, action: Action): EscState {
       const humans = s.managers.filter(m => m.isHuman)
       for (const m of humans) m.nbaSlots = s.seasonNo >= 3 ? 3 : 2
       for (const m of s.managers) m.deepSquad = false
-      // 🚫 SEM subir de andar aqui (Fatia 3). Mantém tier e o modo de copa do andar.
+      // 🪜 SUBIR DE ANDAR (Fatia 3) — a CREW sobe JUNTA (fica numa liga só): se o MELHOR
+      // humano terminou no TOP 4 e existe andar acima (Street → G League → NBA), o quarto
+      // inteiro sobe. Ninguém cai (base amadora). ⚠️ SEGURANÇA DE ASSENTO (bug histórico
+      // "virei bot"): cada humano continua NO MESMO ÍNDICE do array de técnicos — só os
+      // BOTS trocam de assento. Senão o youIdx LOCAL de cada guest apontaria pro técnico
+      // errado. Regra do TOP 4 é ajustável (o Diego decide na hora do teste).
+      const curTier: NbaTier = s.nbaTier ?? 'street'
+      const nextTier = NBA_TIERS[curTier].next
+      let promotedTo: NbaTier | null = null
+      if (nextTier) {
+        const lastTable = sortedTable(s.league)
+        const humanPos = humans.map(h => lastTable.findIndex(t => t.id === h.id) + 1).filter(p => p > 0)
+        const bestHumanPos = humanPos.length ? Math.min(...humanPos) : 99
+        if (bestHumanPos >= 1 && bestHumanPos <= 4) {
+          s.nbaTier = nextTier
+          promotedTo = nextTier
+          const tierTeams = NBA_TIERS[nextTier].teams
+          const newSize = tierTeams.length
+          // gera 1 humano-placeholder + os bots do novo andar (0 rivais de leilão → todos
+          // filler, elenco pronto: no online quem cresce é só o humano, via reservas).
+          const { managers: gen, botPlans: genPlans } = makeManagers(['__ph__'], '4-3-3', 0, newSize, rng, tierTeams)
+          const genBots = gen.filter(m => !m.isHuman)
+          const humanEntries = s.managers.map((m, i) => ({ m, i })).filter(x => x.m.isHuman)
+          const humanIds = new Set(humanEntries.map(x => x.m.id))
+          const humanTeams = new Set(humanEntries.map(x => x.m.teamName))
+          const newManagers: Manager[] = new Array(newSize)
+          for (const { m, i } of humanEntries) if (i < newSize) newManagers[i] = m // pin no MESMO índice
+          let nextBotId = 0
+          const freshId = () => { while (humanIds.has(nextBotId)) nextBotId++; return nextBotId++ } // id de bot nunca colide com humano
+          const newPlans: BotPlan[] = []
+          let bc = 0
+          for (let i = 0; i < newSize; i++) {
+            if (newManagers[i]) continue // assento de humano — não toca
+            while (bc < genBots.length && humanTeams.has(genBots[bc].teamName)) bc++ // nunca duplica o nome da crew de um humano
+            const b = genBots[bc++]
+            if (!b) continue
+            const id = freshId()
+            const plan = genPlans.find(p => p.id === b.id)
+            newManagers[i] = { ...b, id }
+            if (plan) newPlans.push({ ...plan, id })
+          }
+          s.managers = newManagers
+          s.careerRivalCount = newSize - humanEntries.length
+          const usedP = new Set<string>()
+          for (const { m } of humanEntries) for (const c of m.squad) usedP.add(ident(c)) // bots não repetem quem o humano já tem
+          dealBotSquads(s.managers, newPlans, rng, usedP)
+        }
+      }
+      // modo de copa segue o andar ATUAL (já promovido, se subiu): street = só pontos
+      // corridos; G League/NBA = playoffs (o chaveamento por conferência que já existe).
       s.copaMode = (s.nbaTier ?? 'street') === 'street' ? 'liga' : 'liga_copa'
       s.quickCopa = null // reseeda o chaveamento a cada temporada
       s.round = 0; s.champion = null; s.news = []; s.scorers = []; s.lastResults = []
+      // 🪜 momento SUBIU DE LIGA: anuncia no giro da nova temporada (bilíngue — o idioma
+      // fixa na criação da notícia, mesmo padrão do narrateRound). Sem spoiler: só diz que
+      // a crew subiu (a temporada passada já acabou).
+      if (promotedTo) {
+        const lab = getLang() === 'en' ? NBA_TIERS[promotedTo].labelEn : NBA_TIERS[promotedTo].labelPt
+        s.news = [getLang() === 'en'
+          ? `🪜 The crew climbed! Welcome to ${lab} — tougher rivals, one step closer to the ring.`
+          : `🪜 A crew SUBIU! Bem-vindos à ${lab} — adversários mais duros, um passo mais perto do anel.`]
+      }
       s.seasonVotes = {} // temporada nova: zera a votação de fim
       // ainda tem vaga de reserva pra encher (T2 5→10, T3 10→15)? ABRE o leilão de
       // reservas MULTI-HUMANO (mantém o quinteto, cada humano leiloa só as vagas novas).
