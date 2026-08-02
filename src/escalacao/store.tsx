@@ -571,15 +571,13 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   // Se o setor tem poucas cartas no catálogo, pega só o que existe (pode ficar 0
   // lenda). O que sobrar do setor vira bom jogador. Folk não é cota (é só selo).
   // 🥅 VÁRZEA: não existe lenda/craque/promessa no baralho (a cota alta some
-  // sozinha = 0). Decisão do Diego (02/08): a GRAÇA do modo é ter VÁRIOS foi
-  // profissional — o LEILÃO (o que o humano disputa) nasce com MAIORIA de foi
-  // profissional (60%), não meio-a-meio. Como o leilão é pequeno (só a demanda),
-  // sobra foi-profissional real de sobra pra isso — SEM inventar fake. (Os 20 times
-  // dos bots dividem os ~74 foi-profissional que existem no baralho BR, então lá o
-  // teto real fica em ~1/3 sem fake; pra os bots também virem maioria perna-curta
-  // precisaria de mais cartas reais de foi profissional no baralho.) Fora da várzea, tudo igual.
+  // sozinha = 0). Decisão do Diego (02/08): "coloque só bom jogador e foi
+  // profissional; se não tem de um, bota o outro". Então DIVIDIDO — meio a meio
+  // (50% foi profissional / 50% bom jogador). Sem cartas novas e sem fake: se a
+  // posição não tiver foi-profissional suficiente, o resto vira bom jogador (e
+  // vice-versa) — os passos de baixo já completam com o que existe. Fora da várzea, tudo igual.
   const RARITY = varzea
-    ? { legend: 0, star: 0, promessa: 0, low: 0.60 }
+    ? { legend: 0, star: 0, promessa: 0, low: 0.50 }
     : { legend: 0.16, star: 0.26, promessa: 0.17, low: 0.29 } // % por posição (o resto = bom jogador ~12%)
   const stoch = (x: number) => { const f = Math.floor(x); return f + (rng() < x - f ? 1 : 0) } // arredonda por sorteio (mantém a média)
   const alloc = {} as Record<Sector, { legend: number; star: number; promessa: number; low: number }>
@@ -1868,15 +1866,14 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
     const shuffled = shuffle(ACTIVE_CATALOG[pos], rng).filter(c => !used.has(ident(c)))
     let picks: (typeof CATALOG)[Sector][number][]
     if (varzea) {
-      // 🥅 VÁRZEA (peladão parelho): sem craque/lenda, o baralho é só bom jogador
-      // (fame 2/3) + foi profissional (fame 1) — metade/metade. Os bots NÃO fogem
-      // da perna-curta (o bug era esse): cada time carrega foi profissional numa
-      // proporção que depende só do TIER de força (a mesma regra 9%/76%/15% do
-      // normal). Forte puxa pra bom jogador, médio é meio-a-meio, fraco puxa pra
-      // baixo — mas todos sentem a várzea. Assim o campo fica parelho com o leilão
-      // do humano (que também é ~1/3 foi profissional) e dá pra brigar de igual
-      // pra igual. Média dos tiers ≈ 1/3, o teto real do baralho (ver buildDeck).
-      const foiRate = tier === 'strong' ? 0.15 : tier === 'weak' ? 0.6 : 0.33
+      // 🥅 VÁRZEA (decisão do Diego 02/08): "coloque só bom jogador e foi
+      // profissional; se não tem de um, bota o outro". Cada time nasce DIVIDIDO —
+      // meio a meio (fame 1 x fame 2/3). Ainda varia um pouco por TIER de força
+      // (forte pega mais bom jogador, fraco mais perna-curta), mas centrado em 50/50
+      // — não empilha em bom jogador como antes. Se a posição ficar sem foi
+      // profissional (o baralho BR tem poucos), completa com bom jogador (e
+      // vice-versa) — nunca inventa fake. Média ≈ 50%.
+      const foiRate = tier === 'strong' ? 0.35 : tier === 'weak' ? 0.65 : 0.50
       const nFoi = Math.round(need * foiRate)
       const foi = shuffled.filter(c => c.fame === 1)
       const bom = shuffled.filter(c => c.fame === 2 || c.fame === 3)
