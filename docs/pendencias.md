@@ -486,3 +486,23 @@ Flag `contratosOn` no estado: nasce `true` só em START_CAREER_SOLO e START_ONLI
 com career. **Save antigo (sem a flag) fica exatamente como era** — sem atribuição,
 sem renovação, sem vencidos no mercado (3 portões: cerimônia, leilão de reservas,
 RENEW_CONTRACT). Testado: carreira nova com contratos ✓, save antigo intocado ✓.
+
+## 📖 Manual do Técnico + 🎙️ Narrador da 1ª partida — FEITOS (02/08, mockup aprovado)
+Sugestão de usuário (via Diego): jogo confuso pra quem chega ("fui explicar pro
+cunhado…"). Plano de 4 partes aprovado em mockup; as 2 primeiras publicadas:
+1. **Manual do Técnico** (`ManualDoTecnico` em screens.tsx): overlay aberto por
+   botão na home (abaixo da grade "como funciona"). Capítulo-mãe "Como funciona o
+   LEILÃO" (envelope → revelação → martelo → monte, + desempate/nível oculto) e um
+   card por modo SÓ com o que muda: ⚡ Rápido offline · 🌐 Rápido online (cita
+   Várzea) · 🪜 Carreira. Dinastia/Carreira online/Liga Fechada FICAM DE FORA até
+   liberar (decisão do Diego). PT-só (futebol).
+2. **Narrador da 1ª partida** (`NarradorDica`): balão de dica com zoeira que
+   aparece UMA vez por fase (envelope/revelação/monte) e some no "✅ Entendi";
+   "pular todas as dicas" desliga geral. Guarda no aparelho (esc-dica-*/
+   esc-dicas-off). SÓ futebol (basquete é bilíngue, ficou de fora por ora).
+FALTAM (combinados): 3. **Respiro** — SÓ depois do Diego vetar/aprovar a lista
+classificada de avisos (regra dura: aviso de REGRA DA JOGADA — ex. "2 vagas de
+lateral", piso, saldo — NUNCA some; ensino contextual vira pílula após 2 vistas;
+banner de novidade some após 1-2). 4. **Tema Noturno** — todas as telas, fundo
+escurece e cartas/caixas seguem idênticas; claro NÃO muda 1 pixel (camada
+opt-in). Cada parte em commit separado (reversíveis).
