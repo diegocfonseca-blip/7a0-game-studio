@@ -570,16 +570,15 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   // em vez de dar sempre o mesmo resultado, e a média longa continua nos 8%.
   // Se o setor tem poucas cartas no catálogo, pega só o que existe (pode ficar 0
   // lenda). O que sobrar do setor vira bom jogador. Folk não é cota (é só selo).
-  // 🥅 VÁRZEA: não existe lenda/craque/promessa no baralho, então a cota alta some
-  // sozinha (fica 0). O problema é o "foi profissional" (fame 1): com os 29% de
-  // sempre, o leilão dos HUMANOS virava 27% perna-curta enquanto os bots (que
-  // pegam elenco pronto filtrado por fame≥2) fugiam dela — o humano ficava com o
-  // refugo e não alcançava os bots. Na várzea derruba a cota de fame 1 pra ~12%:
-  // o leilão vira quase todo bom jogador (mesmo teto dos bots), o humano volta a
-  // ter vantagem de montar o time, e o "foi profissional" ainda aparece de vez em
-  // quando (Diego pediu que existisse). Fora da várzea, tudo como sempre.
+  // 🥅 VÁRZEA: não existe lenda/craque/promessa no baralho (a cota alta some
+  // sozinha = 0). A graça é ser PARELHO entre bom jogador e foi profissional. O
+  // ideal seria 50/50, mas o baralho BR só tem ~74 foi-profissional pra ~226 bom
+  // jogador — encher 20 times (220 vagas) meio a meio pediria 110 perna-curta, o
+  // que só sairia INVENTANDO fake (proibido). Então uso o teto REAL: ~1/3 de foi
+  // profissional (o máximo que dá sem fake), igual pros humanos e pros bots. Cada
+  // time do campeonato nasce com a mesma cara de peladão. Fora da várzea, tudo igual.
   const RARITY = varzea
-    ? { legend: 0, star: 0, promessa: 0, low: 0.12 }
+    ? { legend: 0, star: 0, promessa: 0, low: 0.33 }
     : { legend: 0.16, star: 0.26, promessa: 0.17, low: 0.29 } // % por posição (o resto = bom jogador ~12%)
   const stoch = (x: number) => { const f = Math.floor(x); return f + (rng() < x - f ? 1 : 0) } // arredonda por sorteio (mantém a média)
   const alloc = {} as Record<Sector, { legend: number; star: number; promessa: number; low: number }>
@@ -1866,19 +1865,29 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
   for (const pos of SECTORS) {
     const need = baseSlots(formation, pos)
     const shuffled = shuffle(ACTIVE_CATALOG[pos], rng).filter(c => !used.has(ident(c)))
-    // 🥅 VÁRZEA: sem craque/lenda, os bots médios estavam pegando SÓ bom jogador
-    // (fugindo do "foi profissional") e ficavam mais fortes que o time que o humano
-    // conseguia montar no leilão. No peladão o bot médio também sente a várzea:
-    // entra a mesma pitada de perna-curta (fame ≤ 3) que o humano pega. Forte segue
-    // pegando o topo (bom jogador) e fraco puxa mais pra baixo. Fora da várzea, tudo igual.
-    const pool = varzea
-      ? (tier === 'strong' ? shuffled.filter(c => c.fame === 3)
+    let picks: (typeof CATALOG)[Sector][number][]
+    if (varzea) {
+      // 🥅 VÁRZEA (peladão parelho): sem craque/lenda, o baralho é só bom jogador
+      // (fame 2/3) + foi profissional (fame 1) — metade/metade. Os bots NÃO fogem
+      // da perna-curta (o bug era esse): cada time carrega foi profissional numa
+      // proporção que depende só do TIER de força (a mesma regra 9%/76%/15% do
+      // normal). Forte puxa pra bom jogador, médio é meio-a-meio, fraco puxa pra
+      // baixo — mas todos sentem a várzea. Assim o campo fica parelho com o leilão
+      // do humano (que também é ~1/3 foi profissional) e dá pra brigar de igual
+      // pra igual. Média dos tiers ≈ 1/3, o teto real do baralho (ver buildDeck).
+      const foiRate = tier === 'strong' ? 0.15 : tier === 'weak' ? 0.6 : 0.33
+      const nFoi = Math.round(need * foiRate)
+      const foi = shuffled.filter(c => c.fame === 1)
+      const bom = shuffled.filter(c => c.fame === 2 || c.fame === 3)
+      picks = [...foi.slice(0, nFoi), ...bom.slice(0, need - nFoi)]
+      // se faltou de um lado (posição com poucos de um tipo), completa do outro
+      if (picks.length < need) for (const c of [...bom.slice(need - nFoi), ...foi.slice(nFoi)]) { if (picks.length >= need) break; picks.push(c) }
+    } else {
+      const pool = tier === 'strong' ? shuffled.filter(c => c.fame >= 3)
         : tier === 'weak' ? shuffled.filter(c => c.fame <= 2)
-        : shuffled.filter(c => c.fame <= 3))
-      : (tier === 'strong' ? shuffled.filter(c => c.fame >= 3)
-        : tier === 'weak' ? shuffled.filter(c => c.fame <= 2)
-        : shuffled.filter(c => c.fame === 2 || c.fame === 3))
-    const picks = pool.slice(0, need)
+        : shuffled.filter(c => c.fame === 2 || c.fame === 3)
+      picks = pool.slice(0, need)
+    }
     for (const c of picks) used.add(ident(c))
     let gi = 0
     while (picks.length < need) {

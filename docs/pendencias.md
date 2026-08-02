@@ -247,14 +247,23 @@ dos bots". **Medi e confirmei a causa (2 assimetrias):**
    ficavam com média **74.0** — mais fortes que o time que o humano montava.
    Resultado: o humano pegava o refugo e ficava atrás. (No modo normal é o
    contrário: leilão 77.6 > bots 76.1, porque o humano compra craque/lenda.)
-**Correção (só na várzea, resto intacto):**
-- `buildDeck(..., varzea)`: na várzea a cota de "foi profissional" cai de 29% →
-  **12%** (ainda aparece, como o Diego pediu, mas para de entupir). Leilão sobe
-  pra **74.3**.
-- `makeBotSquad(..., varzea)` / `dealBotSquads(..., varzea)`: na várzea o bot
-  MÉDIO também carrega a mesma pitada de perna-curta (fame ≤ 3), forte segue no
-  topo (bom jogador). Bots caem pra média **72.7** (top5 78/76/75/75/74, antes
-  era 78/77/77/77/77). Agora **1/16** bot sem perna-curta (antes 14/16).
-- Placar novo: leilão **74.3 > bots 72.7** (+1.6, mesma vantagem do modo normal).
-  O humano volta a poder brigar pelo título montando bem no leilão. Modo normal
-  NÃO mudou (77.6/76.1). Só muda quando `varzea` está ligado. Revertível.
+**Correção (v2 — o Diego corrigiu: NÃO é pra diminuir foi profissional; tem que
+ser PARELHO entre bom jogador e foi profissional, e os bots seguem a regra de
+força que o normal já usa — 9%/76%/15%).**
+- Descoberta: 50/50 de verdade é IMPOSSÍVEL sem fake. O baralho BR só tem **74
+  foi profissional** pra **226 bom jogador**; 20 times = 220 vagas → meio a meio
+  pediria 110 perna-curta. Teto REAL sem inventar fake = **~1/3 foi profissional**.
+- `buildDeck(..., varzea)`: cota de foi profissional (fame 1) na várzea = **33%**
+  (era 29% no normal; a graça do modo pede mais perna-curta). Leilão = 33% foi
+  prof / 67% bom jogador, média 72.1.
+- `makeBotSquad(..., varzea)` / `dealBotSquads(..., varzea)`: mantém o rateio de
+  força 9/76/15 (igual ao normal), mas cada tier carrega foi profissional na
+  proporção parelha — forte 15%, médio 33%, fraco 60% (média ≈ 1/3, o teto real).
+  Antes os bots FUGIAM da perna-curta (14/16 sem nenhuma); agora todos sentem a
+  várzea (2.6 por time). Top dos bots caiu de 77-78 → 75-76.
+- Placar: leilão 72.1 / bots 72.8 — parelho. E como no leilão o humano ESCOLHE
+  (pega os bons, deixa a perna-curta pros bots), o time montado fica acima da
+  média → dá pra brigar pelo título de igual pra igual. Modo normal, carreira e
+  offline NÃO mudam (77.6/76.1). Só vale com `varzea` ligado. Revertível.
+- FALTA (se o Diego quiser 50/50 mesmo): só criando cartas de foi profissional
+  novas no baralho BR (mais nomes reais), pra ter estoque pra encher 20 times.
