@@ -351,6 +351,7 @@ export interface EscState {
   // Quem não é campeão só assiste (não grava no álbum). null/vazio = ainda não abriu.
   streamChampCard?: { liga?: WonCard | null; copa?: WonCard | null } | null
   deckLeague: 'br' | 'eu' | 'both' // baralho escolhido: 🇧🇷 Brasileirão, 🌍 Liga Europa ou 🌎 os dois juntos (both = só na carreira online)
+  varzea?: boolean // 🥅 rápido online + baralho BR, categoria "Sem craques": leilão só com bom jogador + foi profissional
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
   careerFilial?: {

@@ -23,9 +23,18 @@ let ACTIVE_SPORT: 'futebol' | 'basquete' = 'futebol'
 let NBA_BASE_SLOTS = 1 // vagas por posição no basquete: 1 (rápido) ou 2 (carreira)
 // 'world' = baralho "Resto do Mundo" (dormente — ainda sem seletor na UI).
 // TODO caminho de FUTEBOL passa por aqui → reancora o esporte pra futebol.
-function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'world' | undefined) {
+// 🥅 VÁRZEA ("Sem craques" — categoria do rápido online no baralho BR): tira
+// lenda (fame 5), craque (fame 4) e promessa do baralho. Sobra só BOM JOGADOR
+// (fame 2/3) + FOI PROFISSIONAL (fame 1) — todo mundo no mesmo nível, peladão.
+function filterVarzea(cat: typeof CATALOG): typeof CATALOG {
+  const out = {} as typeof CATALOG
+  for (const pos of SECTORS) out[pos] = (cat[pos] || []).filter(c => c.fame <= 3 && !c.promessa)
+  return out
+}
+function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'world' | undefined, varzea = false) {
   ACTIVE_SPORT = 'futebol'
-  ACTIVE_CATALOG = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : league === 'world' ? CATALOG_WORLD : CATALOG
+  const base = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : league === 'world' ? CATALOG_WORLD : CATALOG
+  ACTIVE_CATALOG = varzea ? filterVarzea(base) : base
 }
 // liga o motor no basquete: baralho NBA + vagas por posição do modo (rápido/carreira).
 function setActiveSport(sport: 'futebol' | 'basquete', mode: 'quick' | 'career' = 'quick') {
@@ -1977,7 +1986,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both'; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa'; rivals?: number; rivalTeams?: string[] }
+  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa'; rivals?: number; rivalTeams?: string[] }
   | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). scorerValues = bonus de piso dos artilheiros
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
@@ -2839,7 +2848,13 @@ export function reducer(state: EscState, action: Action): EscState {
       // baralho da sala: Rápido sempre BR; Carreira online pode ser BR, Europa
       // ou os dois juntos (escolha do host). O leilão e a temporada são o motor
       // real de sempre — só muda o catálogo de craques.
-      s.deckLeague = action.deck ?? 'br'; setActiveCatalog(s.deckLeague)
+      s.deckLeague = action.deck ?? 'br'
+      // 🥅 VÁRZEA ("Sem craques"): SÓ no rápido online + baralho BR (carreira e
+      // Europa/Todos não têm essa categoria). Filtra o baralho pro leilão E os bots
+      // saírem sem craque/lenda de uma vez. Restaura o baralho cheio logo após montar.
+      const onlineVarzea = !action.career && (action.deck ?? 'br') === 'br' && !!action.varzea
+      s.varzea = onlineVarzea
+      setActiveCatalog(s.deckLeague, onlineVarzea)
       s.sport = 'futebol'; s.nbaCareer = false // ⚽ online é sempre futebol (não herda basquete de um jogo anterior)
       s.locked = action.locked; s.pwHash = action.pwHash // guarda a senha no estado (sobrevive ao autosave)
       s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido
@@ -2911,6 +2926,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1, s.marketValues)
       s.surpriseId = pickSurprise(s.deck, rng)
       dealBotSquads(s.managers, onlinePlans, rng, onlineUsed)
+      if (onlineVarzea) setActiveCatalog(s.deckLeague) // baralho várzea já foi montado → restaura o cheio pro resto
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       // 🛟 flag do leilão de RESERVAS (carreira) não pode vazar pro jogo novo: quem
