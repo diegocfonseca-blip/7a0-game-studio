@@ -80,13 +80,18 @@ export function loadCopaSave(seed: number): CopaSave | null {
   try { const r = localStorage.getItem(skey(seed)); return r ? JSON.parse(r) as CopaSave : null } catch { return null }
 }
 function saveCopaSave(seed: number, s: CopaSave) { try { localStorage.setItem(skey(seed), JSON.stringify(s)) } catch { /* segue */ } }
-// âncora do calendário: save já além da 100 quando o modo chega → primeira Copa
-// 10 temporadas depois (142 → 152); senão desbloqueia na 100 → primeira na 110.
-function ensureSave(seed: number, seasonNo: number): CopaSave {
+// âncora do calendário: a 1ª Copa do Mundo é na temporada 100, e depois de 10 em
+// 10 (100, 110, 120…). Save que ainda NÃO jogou nenhuma Copa é realinhado pra 100
+// (corrige o save antigo que tinha nascido com âncora 110). Quem já jogou uma Copa
+// mantém a agenda dele (não bagunça o que já rolou).
+const COPA_ANCHOR = 100
+function ensureSave(seed: number): CopaSave {
   const cur = loadCopaSave(seed)
-  if (cur) return cur
-  const anchor = seasonNo >= 100 ? seasonNo + 10 : 110
-  const fresh: CopaSave = { anchor, mural: [], played: [] }
+  if (cur) {
+    if ((cur.played?.length ?? 0) === 0 && cur.anchor !== COPA_ANCHOR) { cur.anchor = COPA_ANCHOR; saveCopaSave(seed, cur) }
+    return cur
+  }
+  const fresh: CopaSave = { anchor: COPA_ANCHOR, mural: [], played: [] }
   saveCopaSave(seed, fresh)
   return fresh
 }
@@ -173,7 +178,7 @@ function MiniLive({ nmH, nmA, ev, min, bold }: { nmH: string; nmA: string; ev: S
 
 // ── componente principal: o portão + o torneio inteiro num modal ──
 export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onPrize?: () => void }) {
-  const save = useMemo(() => ensureSave(seed, seasonNo), [seed, seasonNo])
+  const save = useMemo(() => ensureSave(seed), [seed])
   const [open, setOpen] = useState(false)
   const copaNow = isCopaSeason(save, seasonNo) && !save.played.includes(seasonNo)
   const inTop16 = myPos >= 0
@@ -182,7 +187,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize }: { seaso
   // ranking das seleções (nº de cartas — atualiza sozinho quando o baralho engorda)
   const paises16 = useMemo(() => rankingSelecoes().slice(0, 16).map(p => p.pais), [])
 
-  if (seasonNo < 100 && save.anchor === 110) return (
+  if (seasonNo < COPA_ANCHOR) return (
     <div style={{ ...box('#CBBF9E'), padding: '10px 12px', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, color: 'rgba(0,0,0,.75)', textTransform: 'uppercase' }}>🔒 Copa do Mundo Legends</p>
       <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>Torneio de seleções, coisa de <b>veterano</b>: desbloqueia na <b>temporada 100</b> — e só entra quem estiver no <b>TOP 16 do ranking de clubes</b> (aba Rank). Continue jogando e subindo no mural.</p>
