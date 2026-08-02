@@ -504,3 +504,19 @@ sem país**, top 16 limpo (Brasil…Coreia do Sul), gate alinhado (4º escolhe d
 Só dados (paises.ts), revertível. ⚠️ FALTA: rodar `scripts/checa-paises` a cada carta EU/MUNDO
 nova pra nunca mais acumular '??' (o comentário "não importado pelo jogo" em paises.ts está
 DESATUALIZADO — copa-mundo.tsx importa paisDe/rankingSelecoes).
+
+## 🌍 Copa do Mundo: expandir 16 → 20 seleções quando +4 países fecharem 11 (pedido do Diego 02/08)
+Hoje **16 países fecham um XI válido** (4-3-3 ou 4-4-2) → a Copa é top-16. O Diego quer
+subir pra **20** quando MAIS 4 países conseguirem montar 11 (formação válida). **AVISAR O
+DIEGO** quando isso acontecer. Medição atual (script scratchpad/copafield.mjs — G/L/Z/A/M
+por posição; "falta" = jogadores pra fechar o XI):
+- ✅ FECHAM (16): Brasil, Argentina, Espanha, França, Inglaterra, Holanda, Alemanha, Itália,
+  Portugal, México, Bélgica, Uruguai, Colômbia, Chile, EUA, Coreia do Sul.
+- ⏳ PRÓXIMOS: **Paraguai falta 4** (precisa de MEIAS — tem 0 meia! [G2 L1 Z3 M0 A3]) ·
+  **Japão falta 4** [G0 L1 Z1 M3 A2] · Equador/Camarões/Senegal faltam 6 · Bolívia/Dinamarca/
+  Suécia/Egito/Arábia Saudita faltam 7.
+- Pra chegar aos 20: fechar Paraguai + Japão + 2 de {Equador, Camarões, Senegal}. A cada
+  carta EU/MUNDO nova, rodar copafield.mjs e conferir se cruzou +4.
+- QUANDO FOR HORA (o Diego autoriza subir pra 20): trocar `.slice(0, 16)` → `.slice(0, 20)`
+  em `copa-mundo.tsx` (rankingSelecoes) e o `top16` em `pyramidseason.tsx` (~2492) pra pegar
+  os 20 primeiros do rank de clubes. (1-2 números; hoje NÃO fazer — só 16 fecham.)
