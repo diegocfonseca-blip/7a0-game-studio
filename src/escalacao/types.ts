@@ -354,6 +354,7 @@ export interface EscState {
   streamChampCard?: { liga?: WonCard | null; copa?: WonCard | null } | null
   deckLeague: 'br' | 'eu' | 'both' // baralho escolhido: 🇧🇷 Brasileirão, 🌍 Liga Europa ou 🌎 os dois juntos (both = só na carreira online)
   varzea?: boolean // 🥅 rápido online + baralho BR, categoria "Sem craques": leilão só com bom jogador + foi profissional
+  contratosOn?: boolean // 📝 CONTRATOS de jogador ligados NESTA carreira. Só carreira NOVA nasce com true (decisão do Diego) — save antigo fica sem contratos pra sempre (nada muda no meio da carreira de ninguém)
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
   careerFilial?: {

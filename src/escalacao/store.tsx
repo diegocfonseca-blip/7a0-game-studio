@@ -2823,6 +2823,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.isHost = true
       s.careerOnline = true
       s.simV = 4 // carreira nova já nasce na fórmula nova (gol realista + menos goleada)
+      s.contratosOn = true // 📝 contratos de jogador: SÓ carreira NOVA (save antigo segue sem)
       s.careerEra = MANUAL_ERA // 🎮 carreira NOVA: o Modo Manual pede apoio. Saves ANTIGOS não têm esse campo → seguem com o manual liberado (grandfather).
       s.roomId = ''; s.roomCode = ''; s.roomName = undefined
       s.locked = undefined; s.pwHash = undefined; s.streamMode = false; s.manualRoom = false
@@ -2931,6 +2932,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.sport = 'futebol'; s.nbaCareer = false // ⚽ online é sempre futebol (não herda basquete de um jogo anterior)
       s.locked = action.locked; s.pwHash = action.pwHash // guarda a senha no estado (sobrevive ao autosave)
       s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido
+      s.contratosOn = !!action.career // 📝 contratos: SÓ carreira NOVA nasce com eles (save antigo segue sem)
       s.ligaFechada = !!action.ligaFechada // 🏆 liga só com humanos (sem bots na tabela)
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
       // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
@@ -3478,10 +3480,10 @@ export function reducer(state: EscState, action: Action): EscState {
         }
       }
       // 📝 CONTRATOS (carreira): todo jogador de HUMANO ou RIVAL que ainda não tem
-      // contrato ganha um de 5-10 temporadas (contando a atual) — vale pro elenco
-      // recém-montado no leilão E pra save antigo (ganha aqui na próxima cerimônia).
+      // contrato ganha um de 5-10 temporadas (contando a atual). SÓ em carreira que
+      // NASCEU com contratos (contratosOn) — save antigo fica como sempre foi.
       // Sorteio determinístico (semente + temporada) → host e convidados iguais.
-      if (s.careerOnline) {
+      if (s.careerOnline && s.contratosOn) {
         const crng = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 92821) ^ 0xC027A) >>> 0)
         for (const m of s.managers) {
           if (!m.isHuman && !m.rival) continue
@@ -3906,7 +3908,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // 📝 renova um contrato ENCERRADO na janela de venda (tela reserveList).
       // 10 anos = valor oficial cheio · 5 anos = metade. Precisa ter a grana
       // (sem fiado aqui — sem grana, o caminho é deixar ir pro leilão).
-      if (!s.careerOnline || s.screen !== 'reserveList') return s
+      if (!s.careerOnline || !s.contratosOn || s.screen !== 'reserveList') return s
       const mgr = s.managers.find(m => m.id === action.mgrId)
       if (!mgr?.isHuman) return s
       const card = mgr.squad.find(c => c.id === action.cardId) as WonCard | undefined
@@ -3990,7 +3992,8 @@ export function reducer(state: EscState, action: Action): EscState {
       //   (craque 85% · bom 60% · resto 35%), pagando do clubCash (sobra menos pro
       //   leilão). Dos que soltou, o MELHOR de cada posição entra no leilão com selo;
       //   o resto volta pro mundo em silêncio (pode reaparecer nas sobras).
-      {
+      // (SÓ carreira nascida com contratos — save antigo nem passa por aqui.)
+      if (s.contratosOn) {
         const ctrRng = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 65537) ^ 0x5EED) >>> 0)
         for (const m of s.managers) {
           if (!m.isHuman || m.dormindo) continue

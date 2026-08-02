@@ -480,3 +480,9 @@ Sistema desenhado COM o Diego em longa conversa (+ simulações de 9.000 tempora
 - FALTA (combinado, próximos passos): mostrar "contrato até T__" na carta do
   Elenco; banner T4 dedicado (hoje a explicação aparece na 1ª tela de renovação);
   Diego fazer playtest de dificuldade/custos (tabela é 1 lugar só pra calibrar).
+
+### 🔒 Ajuste (02/08, pedido do Diego): contratos SÓ pra carreira NOVA
+Flag `contratosOn` no estado: nasce `true` só em START_CAREER_SOLO e START_ONLINE
+com career. **Save antigo (sem a flag) fica exatamente como era** — sem atribuição,
+sem renovação, sem vencidos no mercado (3 portões: cerimônia, leilão de reservas,
+RENEW_CONTRACT). Testado: carreira nova com contratos ✓, save antigo intocado ✓.
