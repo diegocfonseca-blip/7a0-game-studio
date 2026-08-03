@@ -745,7 +745,7 @@ function Shell({ children, bar, hideExit = false }: { children: React.ReactNode;
     if (window.confirm(msg)) kickPlayer(m.id)
   }
   return (
-    <div className="min-h-screen pb-16" style={{ backgroundColor: CREAM, color: INK }}>
+    <div className="min-h-screen pb-16 palco" style={{ backgroundColor: CREAM, color: INK }}>
       {bar && (
         <div className="sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5" style={{ backgroundColor: '#fff', color: INK }}>
           {bar}
@@ -1382,6 +1382,7 @@ export function EscIntro() {
   const [careerGate, setCareerGate] = useState(false)
   const [shared, setShared] = useState(false)
   const [showManual, setShowManual] = useState(false) // 📖 Manual do Técnico (overlay)
+  const [tema, setTema] = useState<string>(() => { try { return localStorage.getItem('esc-tema') ?? 'claro' } catch { return 'claro' } }) // 🌙 tema atual (rótulo do botão)
   // 🔒 toda entrada de CARREIRA passa por aqui: se não tem login ATIVO reconhecido
   // agora (conta nova, ou sessão caiu por cache), mostra a tela de login em vez de
   // deixar entrar. getSession() lê do aparelho (rápido, sem rede).
@@ -1492,6 +1493,16 @@ export function EscIntro() {
       </div>
       <Btn onClick={() => setShowManual(true)} className="w-full" bg="#fff">📖 Manual do Técnico (as regras completas)</Btn>
       {showManual && <ManualDoTecnico onClose={() => setShowManual(false)} />}
+      {/* 🌙 tema noturno: opt-in, guarda no aparelho. O claro é o padrão e não muda. */}
+      <div className="flex justify-center">
+        <button onClick={() => {
+          const on = document.documentElement.classList.toggle('noturno')
+          try { localStorage.setItem('esc-tema', on ? 'noturno' : 'claro') } catch { /* segue */ }
+          setTema(on ? 'noturno' : 'claro')
+        }} className="border-2 border-black rounded-full px-4 py-1.5 text-xs font-black bg-white text-black" style={{ ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}` }}>
+          {tema === 'noturno' ? '☀️ Voltar pro tema claro' : '🌙 Tema noturno (estádio à noite)'}
+        </button>
+      </div>
       <CardAccountNote />
       <ApoieButton big />
       <Btn onClick={shareGame} className="w-full" bg="#fff">

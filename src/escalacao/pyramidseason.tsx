@@ -2373,7 +2373,7 @@ export function PyramidSeasonScreen() {
   }, [round, roundMs])
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
+    <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
         <div style={{ ...box(INK), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 8 }}>
           <div style={{ padding: '12px 14px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
@@ -3019,7 +3019,7 @@ export function ReserveListScreen() {
   // leilão). O host já avança sozinho pro leilão quando o tempo zera (efeito
   // acima), então ninguém fica preso aqui.
   if (!mgr) return (
-    <div style={{ minHeight: '100vh', background: '#F4ECD6', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontSize: 40 }}>📋</p>
         <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>Preparando o leilão de reservas…</p>
@@ -3029,7 +3029,7 @@ export function ReserveListScreen() {
   )
   const nListed = state.reserveListed?.[youId]?.length ?? 0
   return (
-    <div style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
+    <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
         <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>📋 LISTAR PRA LEILÃO · TEMP. {state.seasonNo}</span>
