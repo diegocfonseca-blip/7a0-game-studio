@@ -371,6 +371,14 @@ export interface EscState {
   agenciaEventos?: { season: number; rows: AgEvento[]; eventosDone?: boolean } // eventos PENDENTES da temporada (artilheiro/campeão) — pagos na virada
   agenciaFatura?: { season: number; mensal: number; rows: AgEvento[]; total: number } // fatura JÁ PAGA (mensalidades + comissões) — vira o quadro da Cerimônia/aba
   agenciaHist?: Record<string, number> // acumulado por carta (chave name|club|year) — "já te rendeu X nesta carreira"
+  // 🪜 ESCADA DE CATEGORIAS (carreira solo NOVA, teste na conta do Diego): cada
+  // divisão só negocia certas categorias no leilão — D(estreia)=foi-prof+bom ·
+  // C=bom+promessa · B=promessa+craque · A=craque+lenda — ATÉ liberar geral
+  // (2 temporadas jogadas na Série A). Banco de reservas só depois do 1º acesso.
+  escadaOn?: boolean // ligada só em carreira nova de conta liberada (ESCADA)
+  escadaLivre?: boolean // true = mercado liberou geral (2 temporadas na A) — vira o jogo normal pra sempre
+  escadaTempA?: number // temporadas COMPLETAS jogadas na Série A (conta até 2)
+  escadaSubiu?: boolean // já subiu da divisão de estreia? destrava o banco de reservas (não tranca de novo se cair)
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
   careerFilial?: {

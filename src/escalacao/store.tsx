@@ -194,6 +194,18 @@ function agenciaTransacao(s: EscState, card: { name: string; club?: string; year
   fat.total += 1
   s.agenciaHist = { ...(s.agenciaHist ?? {}), [agKey(ag)]: (s.agenciaHist?.[agKey(ag)] ?? 0) + 1 }
 }
+// 🪜 ESCADA · marcos da carreira: (a) subiu da divisão de estreia → destrava o
+// BANCO DE RESERVAS (persiste mesmo caindo depois); chamado logo após aplicar as
+// colocações novas da temporada. Solo apenas (escadaOn não existe no online).
+function escadaAfterPlacements(s: EscState) {
+  if (!s.escadaOn || s.escadaSubiu) return
+  const y = s.managers[s.youIdx]?.id ?? 0
+  const d = s.careerPlacements?.[`m${y}`]
+  if (d && d !== 'D') {
+    s.escadaSubiu = true
+    ;(s.marketLog = s.marketLog ?? []).push('🪜 SUBIU! Banco de reservas LIBERADO — a partir de agora o leilão mira 22. 🔓')
+  }
+}
 // 💰 VIRA-TEMPORADA: aplica prêmios + bilheteria + folha na caixa do técnico e
 // REGISTRA cada um no extrato pela VARIAÇÃO REAL da caixa do humano. Mantém a
 // mesma ordem/efeito de antes (prêmios → bilheteria → folha) — só soma o registro.
@@ -203,6 +215,21 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
   // snapshot da caixa de cada humano — pra registrar o extrato pela VARIAÇÃO REAL
   const snap = (): Record<number, number> => { const o: Record<number, number> = {}; for (const h of humans) o[h.id] = s.careerCoins?.[h.id] ?? 0; return o }
   const y = s.managers[s.youIdx]?.id ?? s.youIdx
+  // 🪜 ESCADA: conta temporadas COMPLETAS jogadas na Série A — com 2, o mercado
+  // LIBERA geral pra sempre (vira o jogo normal). Placements aqui ainda são os
+  // da temporada que acabou de ser jogada.
+  if (!online && s.escadaOn && !s.escadaLivre) {
+    const played = s.careerPlacements?.[`m${y}`]
+    if (played === 'A') {
+      s.escadaTempA = (s.escadaTempA ?? 0) + 1
+      if ((s.escadaTempA ?? 0) >= 2) {
+        s.escadaLivre = true
+        ;(s.marketLog = s.marketLog ?? []).push('🔓 MERCADO LIBERADO! Duas temporadas na elite — o leilão agora mistura TODAS as categorias, como sempre foi. Bem-vindo ao mercado grande. 🍾')
+      } else {
+        ;(s.marketLog = s.marketLog ?? []).push('🪜 Primeira temporada na Série A concluída — mais UMA e o mercado libera todas as categorias! 👀')
+      }
+    }
+  }
   const s0 = snap()
   s.careerCoins = applyRewards(s.careerCoins, rewards)
   const s1 = snap()
@@ -364,7 +391,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
 import type { CareerTeam } from './data'
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium, sectorPct, hasExtra, SPONSOR_PAY, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat } from './estadiodata'
 import { supabase } from '../lib/supabase'
-import { agenciaLiberada } from './sport'
+import { agenciaLiberada, escadaLiberada } from './sport'
 import { logPlay, logVisit, heartbeat } from './analytics'
 import { pack, unpack } from './netpack'
 
@@ -660,14 +687,45 @@ function montePush(state: EscState, cards: Card[]) {
   state.monte.push(...halved)
 }
 
-function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0, values?: Record<string, number>, noFake = false, varzea = false): Record<Sector, Card[]> {
+// 🪜 ESCADA DE CATEGORIAS (carreira solo NOVA — teste na conta do Diego): cada
+// divisão só negocia certas categorias no leilão, até o mercado liberar geral
+// (2 temporadas jogadas na Série A). Fase 1 (sem a divisão Várzea real ainda):
+// D (estreia) = foi-prof + bom · C = bom + promessa · B = promessa + craque ·
+// A = craque + lenda. Quando a Várzea entrar (Fase 2), a régua desce um degrau.
+type EscadaDiv = 'A' | 'B' | 'C' | 'D'
+export function escadaAllows(div: EscadaDiv, c: { fame?: number; promessa?: boolean }): boolean {
+  const f = c.fame ?? 1
+  switch (div) {
+    case 'D': return !c.promessa && f <= 3
+    case 'C': return !!c.promessa || (f >= 2 && f <= 3)
+    case 'B': return !!c.promessa || (!c.promessa && f === 4)
+    case 'A': return !c.promessa && f >= 4
+  }
+}
+// divisão que manda no baralho AGORA (a SUA divisão) — null = mercado normal
+function escadaDivOf(s: EscState): EscadaDiv | null {
+  if (!s.escadaOn || s.escadaLivre) return null
+  const y = s.managers[s.youIdx]?.id ?? 0
+  const d = s.careerPlacements?.[`m${y}`]
+  return (d === 'A' || d === 'B' || d === 'C' || d === 'D') ? d : 'D'
+}
+// cotas de raridade por degrau (o "resto" do setor vira a categoria comum do degrau)
+const ESCADA_RARITY: Record<EscadaDiv, { legend: number; star: number; promessa: number; low: number }> = {
+  D: { legend: 0, star: 0, promessa: 0, low: 0.40 },    // igual à Várzea do rápido: ~40% foi-prof, resto bom
+  C: { legend: 0, star: 0, promessa: 0.30, low: 0 },    // ~30% promessa, resto bom
+  B: { legend: 0, star: 0.60, promessa: 0.40, low: 0 }, // craque + promessa
+  A: { legend: 0.30, star: 0.70, promessa: 0, low: 0 }, // elite: craque + lenda
+}
+function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0, values?: Record<string, number>, noFake = false, varzea = false, escada: EscadaDiv | null = null): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
   const bt = nextBuildTok()
   // ── passo 1: define o tamanho de cada setor e embaralha o catálogo ──
   const plan = {} as Record<Sector, { count: number; catalog: (typeof CATALOG)[Sector] }>
   for (const pos of SECTORS) {
     const demand = managers.reduce((s, m) => s + slotsOf(m, pos), 0)
-    const catalog = shuffle(ACTIVE_CATALOG[pos], rng)
+    // 🪜 escada: o catálogo do setor é FILTRADO pras categorias da divisão —
+    // trava dura (nem o "completa com qualquer real" fura a régua).
+    const catalog = shuffle(escada ? ACTIVE_CATALOG[pos].filter(c => escadaAllows(escada, c)) : ACTIVE_CATALOG[pos], rng)
     const realFree = catalog.filter(c => !used.has(ident(c))).length
     // margem adaptativa: queremos "sempre dobrado" (demand × margin), mas nunca
     // pedir mais jogadores REAIS do que existem na posição — senão vira fake.
@@ -698,7 +756,9 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   // ou acima dos bots). Como o usuário ESCOLHE no leilão, ele monta um time acima
   // da média e briga de igual. Sem cartas novas obrigatórias e sem fake. Fora da
   // várzea, tudo igual.
-  const RARITY = varzea
+  const RARITY = escada
+    ? ESCADA_RARITY[escada] // 🪜 cotas do degrau da escada (catálogo já filtrado acima)
+    : varzea
     ? { legend: 0, star: 0, promessa: 0, low: 0.40 }
     : { legend: 0.16, star: 0.26, promessa: 0.17, low: 0.29 } // % por posição (o resto = bom jogador ~12%)
   const stoch = (x: number) => { const f = Math.floor(x); return f + (rng() < x - f ? 1 : 0) } // arredonda por sorteio (mantém a média)
@@ -2934,6 +2994,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // comum nasce SEM a flag e fica 100% igual ao jogo de sempre.
       s.agenciaOn = agenciaLiberada() || undefined
       s.agenciados = []; s.agenciaEventos = undefined; s.agenciaFatura = undefined; s.agenciaHist = {}
+      // 🪜 ESCADA DE CATEGORIAS: SÓ carreira NOVA de conta liberada (teste do Diego).
+      // Começa presa ao degrau da divisão; libera geral após 2 temporadas na Série A.
+      s.escadaOn = escadaLiberada() || undefined
+      s.escadaLivre = undefined; s.escadaTempA = 0; s.escadaSubiu = undefined
       s.careerEra = MANUAL_ERA // 🎮 carreira NOVA: o Modo Manual pede apoio. Saves ANTIGOS não têm esse campo → seguem com o manual liberado (grandfather).
       s.roomId = ''; s.roomCode = ''; s.roomName = undefined
       s.locked = undefined; s.pwHash = undefined; s.streamMode = false; s.manualRoom = false
@@ -2970,9 +3034,11 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerTitles = 0; s.careerTitlesA = 0; s.careerDivision = 'D'
       s.clubCash = seedClubCash({}, pl)
       const used = new Set<string>()
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues)
+      // 🪜 escada ligada: leilão de estreia = degrau D (foi-prof + bom) e bots
+      // montados no modo várzea (fracos primeiro) — mesmo nível do usuário.
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, false, false, escadaDivOf(s))
       s.surpriseId = pickSurprise(s.deck, rng)
-      dealBotSquads(s.managers, botPlans, rng, used)
+      dealBotSquads(s.managers, botPlans, rng, used, !!s.escadaOn)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       // 🛟 flag do leilão de RESERVAS (carreira) não pode vazar pro jogo novo: quem
@@ -3975,6 +4041,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       s.careerPlacements = action.placements // ⚠️ ANTES do trim: a devolução do excedente usa a divisão NOVA
+      escadaAfterPlacements(s) // 🪜 subiu da estreia? destrava o banco
       s.filialTrimNotice = trimFilialLoansToDivision(s) || null // 🏢 empréstimo PERSISTE; só devolve o excedente se rebaixou (com aviso)
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada (pro ranking)
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
@@ -4003,6 +4070,7 @@ export function reducer(state: EscState, action: Action): EscState {
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso no livro (o novo leilão já sai com o valor atualizado)
       s.seasonNo++
       s.careerPlacements = action.placements
+      escadaAfterPlacements(s) // 🪜 subiu da estreia? destrava o banco
       s.round = 0; s.champion = null
       const humanNames = s.managers.filter(m => m.isHuman).map(m => m.name)
       const formation = s.managers.find(m => m.isHuman)?.formation ?? '4-3-3'
@@ -4010,7 +4078,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const { managers, botPlans } = makeManagers(humanNames, formation, 0, LEAGUE_SIZE, rng)
       s.managers = managers
       const used = new Set<string>()
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues)
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, false, false, escadaDivOf(s))
       s.surpriseId = pickSurprise(s.deck, rng)
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -4031,6 +4099,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       s.careerPlacements = action.placements // ⚠️ ANTES do trim: a devolução do excedente usa a divisão NOVA
+      escadaAfterPlacements(s) // 🪜 subiu da estreia? destrava o banco
       s.filialTrimNotice = trimFilialLoansToDivision(s) || null // 🏢 empréstimo PERSISTE; só devolve o excedente se rebaixou (com aviso)
       s.careerHonors = applyHonors(s.careerHonors, action.champions)
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
@@ -4262,12 +4331,16 @@ export function reducer(state: EscState, action: Action): EscState {
           }
           return m
         }
+        // 🪜 escada: o "famoso" que o mercado lista respeita a régua da SUA divisão
+        // (na D lista bom jogador, não craque). Fora da escada segue fame ≥ 4.
+        const escM = escadaDivOf(s)
+        const famosoOk = (c: Card) => escM ? escadaAllows(escM, c) && (c.fame ?? 1) >= 2 : c.fame >= 4
         for (const pos of SECTORS) {
           // junta TODOS os famosos da posição (bots da liga + 60 de fundo) e pega UM ao acaso
           const cands: { card: Card; ownerBot?: Manager; ownerName?: string }[] = []
-          for (const bot of s.managers.filter(isMktBot)) for (const c of bot.squad) if (c.pos === pos && !c.fake && c.fame >= 4) cands.push({ card: c, ownerBot: bot })
+          for (const bot of s.managers.filter(isMktBot)) for (const c of bot.squad) if (c.pos === pos && !c.fake && famosoOk(c)) cands.push({ card: c, ownerBot: bot })
           // 🏢 jogador de EMPRÉSTIMO na SAF nunca entra no sorteio — não é dela, é do dono
-          for (const name in cpuSq) for (const c of cpuSq[name]) if (c.pos === pos && !c.fake && c.fame >= 4 && !(c as WonCard).emprestado) cands.push({ card: c, ownerName: name })
+          for (const name in cpuSq) for (const c of cpuSq[name]) if (c.pos === pos && !c.fake && famosoOk(c) && !(c as WonCard).emprestado) cands.push({ card: c, ownerName: name })
           if (cands.length) {
             const pick = cands[Math.floor(rng() * cands.length)]
             const owner = pick.ownerBot ?? materialize(pick.ownerName!)
@@ -4277,8 +4350,8 @@ export function reducer(state: EscState, action: Action): EscState {
             marketSellers[pos].push(owner.id)
             if (pick.ownerBot) pick.ownerBot.backstop = true // bot da liga: caixa via clubCash; fica em 11 (só repõe o que perdeu)
           } else {
-            const fam = shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && c.fame >= 4), rng)[0]
-              ?? shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c))), rng)[0]
+            const fam = shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && famosoOk(c as Card)), rng)[0]
+              ?? shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && (!escM || escadaAllows(escM, c))), rng)[0]
             if (fam) { used.add(ident(fam)); const fl = s.marketValues?.[fam.name] ?? 0; deck[pos].push({ ...fam, id: `mkt-${pos}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
           }
         }
@@ -4289,7 +4362,7 @@ export function reducer(state: EscState, action: Action): EscState {
         // RESERVAS (2ª temporada): baralho SÓ COM REAIS (noFake) — reserva é opcional,
         // então nada de incógnito enchendo o leilão. Os bots do mercado (não-escolhidos)
         // também soltam suas reservas REAIS pro baralho, e são eles que disputam (0/1).
-        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, true)
+        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, true, false, escadaDivOf(s))
         const nBots = Math.max(1, Math.floor(nMain / 2))
         const chosen = shuffle(s.managers.filter(isMktBot), rng).slice(0, nBots)
         for (const bot of chosen) {
@@ -4360,9 +4433,13 @@ export function reducer(state: EscState, action: Action): EscState {
         // "mesmo time" congelado. Sem isto ele virava deepSquad (mirava 22) e entrava
         // no leilão junto do clube ativo, fazendo o pregão pular entre os dois times e
         // travar (o dormindo nunca lacra). Agora só o clube ATIVO enche o banco.
-        if (m.isHuman && !m.dormindo) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
-        else if (m.rival) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // rival = "humano": enche banco, gasta clubCash
-        else if (m.backstop) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // LIBERADO: além de repor, pode pegar reserva (mira 22 como todo mundo)
+        // 🪜 escada: BANCO DE RESERVAS só depois do 1º acesso (subiu da divisão de
+        // estreia) — antes disso todo mundo do leilão mira 11 (mercado é só reposição).
+        // Vale igual pra você, rivais e bots liberados (regra pareja do Diego).
+        const benchOK = !(s.escadaOn && !s.escadaLivre && !s.escadaSubiu)
+        if (m.isHuman && !m.dormindo) { m.deepSquad = benchOK; m.money = s.careerCoins?.[m.id] ?? 0 }
+        else if (m.rival) { m.deepSquad = benchOK; m.money = cash['m' + m.id] ?? 100 } // rival = "humano": enche banco, gasta clubCash
+        else if (m.backstop) { m.deepSquad = benchOK; m.money = cash['m' + m.id] ?? 100 } // LIBERADO: além de repor, pode pegar reserva (mira 22 como todo mundo)
       }
       s.surpriseId = pickSurprise(s.deck, rng)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length

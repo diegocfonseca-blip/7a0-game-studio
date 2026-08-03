@@ -19,7 +19,7 @@ import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, SponsorCard } from './estadio'
 import { CopaMundoGate, loadCopaSave } from './copa-mundo'
 import { supabase } from '../lib/supabase'
-import { useAgenciaLiberada } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada } from './sport'
 import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
@@ -3365,6 +3365,7 @@ export function PyramidSeasonScreen() {
 // tem 11 não lista nada — só aguarda. O host começa o leilão (ou vai sozinho no 0). ──
 export function ReserveListScreen() {
   const { state, dispatch } = useEsc()
+  const escLib = useEscadaLiberada() // 🪜 escada de categorias: por enquanto só a conta do Diego
   const mgr = state.managers[state.youIdx]
   const youId = mgr?.id ?? 0
   const listed = useMemo(() => new Set(state.reserveListed?.[youId] ?? []), [state.reserveListed, youId])
@@ -3466,8 +3467,21 @@ export function ReserveListScreen() {
             </div>
           )
         })()}
+        {/* 🪜 ESCADA DE CATEGORIAS (carreira nova, teste): a régua da SUA divisão */}
+        {state.escadaOn && escLib && !state.escadaLivre && (() => {
+          const d = (state.careerPlacements?.[`m${youId}`] ?? 'D') as 'A' | 'B' | 'C' | 'D'
+          const CATS: Record<string, string> = { D: '🪵 Foi Profissional + 🎯 Bom Jogador', C: '🎯 Bom Jogador + 💎 Promessa', B: '💎 Promessa + ⭐ Craque', A: '⭐ Craque + 👑 Lenda' }
+          return (
+            <div style={{ ...box('#FFF7DB'), padding: 11, marginBottom: 10 }}>
+              <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🪜 Mercado da Série {d}</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Nesta divisão o leilão só negocia <b>{CATS[d]}</b>. Subiu de série? O mercado sobe junto — categoria melhor entra no pregão.</p>
+              {!state.escadaSubiu && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '5px 0 0', lineHeight: 1.4 }}>🔒 <b>Banco de reservas travado</b> — na divisão de estreia joga-se com os 11. No seu <b>primeiro acesso</b> ele destrava.</p>}
+              {d === 'A' && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '5px 0 0', lineHeight: 1.4 }}>👑 Elite! Complete <b>2 temporadas na Série A</b> ({state.escadaTempA ?? 0}/2) e o mercado <b>libera TODAS as categorias</b> de vez.</p>}
+            </div>
+          )
+        })()}
         {/* aviso de desbloqueio da temporada */}
-        {state.seasonNo === 2 && (
+        {state.seasonNo === 2 && !(state.escadaOn && escLib && !state.escadaSubiu) && (
           <div style={{ ...box('#EAF3FF'), padding: 11, marginBottom: 10 }}>
             <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px', color: '#2563EB' }}>🔓 Desbloqueado: Reservas!</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>Agora você compra reservas pra encher o banco. A <b>venda/negociação de jogadores libera na 3ª temporada</b>.</p>

@@ -135,6 +135,14 @@ function applyAgenciaUnlock(email?: string | null): void {
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
 }
 export function agenciaLiberada(): boolean { return agenciaOk }
+// 🪜 ESCADA DE CATEGORIAS na carreira (03/08): mesma trava — por enquanto SÓ o
+// Diego testa. Carreira nova de conta comum nasce sem a escada (jogo de sempre).
+export function escadaLiberada(): boolean { return agenciaOk } // mesma lista/conta da agência (AGENCIA_TESTERS)
+export function useEscadaLiberada(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return agenciaOk
+}
 // hook React: re-renderiza quando o login resolve/troca de conta
 export function useAgenciaLiberada(): boolean {
   const [, force] = useState(0)

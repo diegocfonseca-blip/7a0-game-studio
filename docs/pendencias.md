@@ -809,3 +809,28 @@ Revertível: commit isolado; agenciaOn só nasce em carreira nova.
 - 📖 Manual do Técnico ainda não fala da Agência 2.0 — adicionar quando o Diego
   liberar a feature pro público (hoje só carreiras novas dele em teste? NÃO — já
   vale pra TODO MUNDO que criar carreira nova; visual aprovado).
+
+## 🪜 ESCADA DE CATEGORIAS na carreira — FEITO Fase 1 (03/08, SÓ conta do Diego)
+Ideia do Diego: divisão dita as categorias do leilão. Fase 1 (sem a divisão
+Várzea real ainda — essa é a Fase 2, pendente, com mockup antes):
+- D (estreia) = 🪵 foi-prof + 🎯 bom (baralho estilo Várzea, bots parejos) ·
+  C = 🎯 bom + 💎 promessa · B = 💎 promessa + ⭐ craque · A = ⭐ craque + 👑 lenda.
+- 🔓 LIBERA GERAL depois de **2 temporadas COMPLETAS jogadas na Série A**
+  (decisão do Diego) — vira o jogo normal pra sempre (escadaLivre).
+- 🔒 BANCO DE RESERVAS só destrava no **1º acesso** (sai da divisão de estreia);
+  não tranca de novo se cair. Rivais/bots seguem a MESMA regra (deepSquad).
+- Mercado secundário (sobras, contratos vencidos, venda de jogador existente)
+  NÃO respeita a régua de propósito — palavras do Diego ("tem as sobras").
+- Gate: ESCADA_TESTERS = mesma lista da agência (sport.ts). Carreira nova de
+  conta comum nasce SEM escadaOn. Caixa informativa na tela de venda
+  (ReserveListScreen) explica régua/banco/progresso 2-na-A.
+- SIMULAÇÃO 40 temporadas ×2 (simescada.mjs no scratchpad, usa sportstub.js):
+  régua 100% no baralho novo (0 fake, 0 furo), zoeira perfeita na estreia
+  (Falcão do Futsal, Walter Gordinho...), sobe RÁPIDO (A na T4-T7, livre T6-T10)
+  — se o Diego quiser arco mais longo, opções: mínimo de temporadas por degrau
+  ou régua só sobe quando é CAMPEÃO. Dinheiro: harness sem vender jogador não
+  chega na SAF 2000 em 40 temporadas (venda de jogador é o motor real de grana).
+### Pendências da escada:
+- Fase 2: divisão VÁRZEA real embaixo da D (20 times zoeiros, acesso) — mockup 1º.
+- Decisão do Diego: manter subida livre (rápida) ou segurar o arco?
+- Banco Legends (comprar moeda de verdade) segue parado aguardando ele.
