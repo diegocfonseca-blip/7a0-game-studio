@@ -809,3 +809,18 @@ Revertível: commit isolado; agenciaOn só nasce em carreira nova.
 - 📖 Manual do Técnico ainda não fala da Agência 2.0 — adicionar quando o Diego
   liberar a feature pro público (hoje só carreiras novas dele em teste? NÃO — já
   vale pra TODO MUNDO que criar carreira nova; visual aprovado).
+
+## 🃏 AUDITORIA DOS BARALHOS (04/08) — feita
+Analisadas as 1204 cartas (BR 516 · Europa 534 · Mundo 154). ZERO duplicado exato,
+zero mesmo-nome+mesmo-clube, zero erro factual de clube/ano/posição encontrado (dataset
+muito bem curado). Nomes repetidos (54) são de PROPÓSITO (auge BR + auge Europa do mesmo
+craque). Único ajuste: PADRONIZAÇÃO de clubes escritos de 2 jeitos (mesmo clube virava
+dois no álbum) — grafia por maioria: Manchester United→Man United, Manchester City→Man
+City, Bayern München→Bayern, Borussia Dortmund→Dortmund, Bayer Leverkusen→Leverkusen,
+Inter de Milão→Inter, FC Porto→Porto, Sporting CP→Sporting, Olympique Lyon→Lyon,
+Olympique Marseille→Marseille, Leicester City→Leicester, Schalke 04→Schalke,
+Pohang→Pohang Steelers, Suwon Bluewings→Suwon, Birmingham City→Birmingham (35 cartas).
+Mantidos de propósito: Bernard (ATA-BR/MEI-EU) e Denílson (MEI-BR/ATA "Denílson Show"-EU)
+= auges diferentes em países diferentes. Falsos-alarme (clubes DIFERENTES, não mexer):
+América×América de Cali×América-RJ · Inter×Internacional · Sport×Sporting · Grêmio×
+Grêmio Barueri · Bragantino×Red Bull Bragantino (renome de época).
