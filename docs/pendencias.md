@@ -1,5 +1,22 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## 🌱 CRIA DA BASE na renovação — MOCKUP enviado, AGUARDANDO OK (03/08)
+Crítica justa do Diego: quando a saída do contrato vencido quebraria o XI, o
+jogo FORÇA a renovação no aperto (dívida) sem dar escolha. Proposta desenhada
+(mockup-base.html no scratchpad):
+- Janela de renovação: Renovar 10 (90%) · Renovar 5 (metade) · "😢 Deixar ir —
+  sobe um CRIA" SEMPRE habilitado (sem caixa, os renovar ficam apagados
+  mostrando o preço).
+- Escolheu deixar ir e quebraria o XI → entra um 🌱 CRIA DA BASE: nível 🪵 de
+  base, valor 1, salário simbólico, contrato ~3 anos, nome folclórico sorteado
+  (Zezinho, Guri, Pituquinha…), selo 🌱 claro no elenco + BANNER com historinha
+  emotiva na virada ("o menino realizou um sonho").
+- Anti-malandragem: cria fraco de verdade (deixar craque ir nunca compensa "de
+  graça"), não vira carta de álbum, valor de mercado 1.
+- AFK/sem decisão: mantém a regra de hoje (renova NO APERTO, cheque especial) —
+  dívida forçada só por OMISSÃO, nunca contra a escolha do usuário.
+- Só carreiras com contratos. ❌ NÃO CODAR antes do OK do Diego.
+
 ## 🚑 SUPABASE ESTOURANDO (03/08, pós-liberação geral): egress/realtime/lentidão
 Sintomas: salas lentas, admin com "Could not query the database for the schema
 cache", Diego avisado de limite de egress + realtime messages no plano Pro $25.
