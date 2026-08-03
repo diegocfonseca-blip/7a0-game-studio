@@ -158,6 +158,15 @@ function logFin(s: EscState, kind: LedgerEntry['kind'], label: string, amount: n
     if (arr.length > 250) ls[id] = arr.slice(-250)
     return
   }
+  // 🏛️ MULTICLUBES: lançamento do clube que está DORMINDO vai pro extrato DELE
+  // (guardado no stash) — quando o dono trocar de clube, o Extrato mostra tudo o
+  // que aconteceu enquanto ele dormia (prêmios, bilheteria, folha…), sem misturar.
+  if (s.multiClube && mgrId != null && mgrId === s.multiClube.id) {
+    const led = (s.multiClube.ledger = s.multiClube.ledger ?? [])
+    led.push(e)
+    if (led.length > 250) s.multiClube.ledger = led.slice(-250)
+    return
+  }
   const arr = (s.careerLedger = s.careerLedger ?? [])
   arr.push(e)
   if (arr.length > 250) s.careerLedger = arr.slice(-250)
@@ -178,11 +187,20 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
   const s2 = snap()
   chargeSalaries(s)
   const s3 = snap()
+  // 🏛️ MULTICLUBES (solo): o clube DORMINDO também é independente — recebe o
+  // patrocínio e a renda do empresário DELE (dados guardados no stash) na caixa
+  // DELE, como se estivesse ativo. Sem isso, dormir = deixar de faturar.
+  const dorm = (!online && s.multiClube && s.multiClube.id !== y) ? s.multiClube.id : null
   // 👕 PATROCÍNIO: renda por divisão da temporada (Série D = 0). Por técnico.
   if (!online) {
     const div = s.careerPlacements?.[`m${y}`]
     const spay = div ? (SPONSOR_PAY[div] ?? 0) : 0
     if (spay > 0) s.careerCoins = { ...s.careerCoins, [y]: (s.careerCoins[y] ?? 0) + spay }
+    if (dorm != null) {
+      const divD = s.careerPlacements?.[`m${dorm}`]
+      const spayD = divD ? (SPONSOR_PAY[divD] ?? 0) : 0
+      if (spayD > 0) s.careerCoins = { ...s.careerCoins, [dorm]: (s.careerCoins[dorm] ?? 0) + spayD }
+    }
   } else {
     for (const h of humans) {
       const div = s.careerPlacements?.[`m${h.id}`]
@@ -197,6 +215,12 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
     const maduras = (s.empresarioCards ?? []).filter(c => (c.season ?? 0) < (s.seasonNo ?? 1))
     const inc = empresarioIncome(maduras, s.stadiums?.[y], !!s.careerFilial).total
     if (inc > 0) s.careerCoins = { ...s.careerCoins, [y]: (s.careerCoins[y] ?? 0) + inc }
+    if (dorm != null) {
+      // agência do clube dormindo mora no stash; estádio é o DELE; SAF é compartilhada
+      const madurasD = (s.multiClube?.empresario ?? []).filter(c => (c.season ?? 0) < (s.seasonNo ?? 1))
+      const incD = empresarioIncome(madurasD, s.stadiums?.[dorm], !!s.careerFilial).total
+      if (incD > 0) s.careerCoins = { ...s.careerCoins, [dorm]: (s.careerCoins[dorm] ?? 0) + incD }
+    }
   } else {
     for (const h of humans) {
       const maduras = (s.careerEmpresario?.[h.id] ?? []).filter(c => (c.season ?? 0) < (s.seasonNo ?? 1))
@@ -208,7 +232,9 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
   // 🧾 extrato pela variação real. Offline: só o humano (y). Online: cada um no seu.
   const rows: [LedgerEntry['kind'], string][] = [['reward', '🏆 Prêmios da temporada'], ['gate', '🎟️ Bilheteria'], ['salary', '💸 Folha salarial'], ['sponsor', '👕 Patrocínio'], ['empresario', '💼 Renda do Empresário']]
   const steps = [s0, s1, s2, s3, s4, s5]
-  const ids = online ? humans.map(h => h.id) : [y]
+  // 🏛️ solo com 2º clube: o DORMINDO também ganha o resumo — o logFin roteia as
+  // linhas dele pro extrato guardado no stash (aparecem quando ele voltar ao comando)
+  const ids = online ? humans.map(h => h.id) : (dorm != null ? [y, dorm] : [y])
   // `force` = todas as 5 linhas do fim de temporada aparecem SEMPRE (mesmo 0), pra o
   // técnico ver o quadro financeiro completo assim que a temporada acaba.
   for (const id of ids) for (let i = 0; i < rows.length; i++) logFin(s, rows[i][0], rows[i][1], (steps[i + 1][id] ?? 0) - (steps[i][id] ?? 0), undefined, id, true)
@@ -3523,7 +3549,11 @@ export function reducer(state: EscState, action: Action): EscState {
         // caixa vira o que sobrou do orçamento — o próximo leilão parte desse saldo
         // (mais bônus de título/acesso, menos queda), nunca zera pra 100 de novo.
         const cc = { ...(s.careerCoins ?? {}) }
-        for (const m of s.managers) if (m.isHuman) cc[m.id] = Math.round(m.money) // pode ser negativo (dívida) — não zera o vermelho
+        // 🏛️ MULTICLUBES: o clube DORMINDO é humano mas NÃO participa do leilão — o
+        // `money` dele é um número VELHO. Gravar ele aqui APAGAVA os prêmios que o
+        // clube ganhou dormindo (bug relatado: "premiação some/caixa se mistura").
+        // Só quem jogou o leilão (não-dormindo) tem o troco reconciliado.
+        for (const m of s.managers) if (m.isHuman && !m.dormindo) cc[m.id] = Math.round(m.money) // pode ser negativo (dívida) — não zera o vermelho
         s.careerCoins = cc
         // PERSISTE as transações dos bots no caixa (clubCash): quem VENDEU pro
         // mercado ganhou grana, quem COMPROU gastou. Assim o caixa vira história
