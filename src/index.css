@@ -172,28 +172,38 @@ html.noturno .palco :is([class*="bg-white"],
   [style*="rgb(255, 247, 221)"], [style*="rgb(234, 243, 255)"], [style*="rgb(234, 246, 238)"],
   [style*="rgb(253, 236, 234)"], [style*="rgb(237, 231, 255)"], [style*="rgb(233, 245, 236)"],
   [style*="rgb(251, 235, 231)"], [style*="rgb(203, 191, 158)"], [style*="rgb(216, 207, 181)"],
-  [style*="rgb(255, 251, 235)"], [style*="rgb(255, 253, 246)"]) { color: #0C0C0C; }
+  [style*="rgb(255, 251, 235)"], [style*="rgb(255, 253, 246)"], [style*="rgb(246, 242, 255)"], [style*="rgb(255, 247, 219)"]) { color: #0C0C0C; }
 /* 2) texto escuro direto no palco clareia (classes text-black/* e tinta/cinza
-   inline). Estratégia de CASCATA (sem :not, que é frágil): primeiro clareia
-   TUDO no palco; a regra 3, mais específica e depois, re-escurece o que está
-   DENTRO de container claro. */
+   inline). Cascata: a regra 3, mais específica e depois, re-escurece o que está
+   em cima de fundo claro. */
 html.noturno .palco :is([class*="text-black"],
   [style*="color: rgb(12, 12, 12)"], [style*="color: rgba(0, 0, 0"],
   [style*="color: rgb(90, 86, 71)"], [style*="color: rgb(74, 71, 64)"],
   [style*="color: rgb(139, 129, 104)"], [style*="color: rgb(43, 39, 28)"]) {
   color: rgba(242, 232, 207, 0.85);
 }
-/* 3) …mas DENTRO de container claro o escuro é o certo (volta pra tinta) */
+/* 3) …mas em cima de fundo CLARO o escuro é o certo — vale pro texto DENTRO da
+   caixa clara E pro elemento que é caixa clara E texto ao mesmo tempo (botão
+   bg-white text-black, ex.: "Continuar carreira", seletor ⚽/🏀). */
 html.noturno .palco :is([class*="bg-white"],
   [style*="rgb(255, 255, 255)"], [style*="rgb(252, 251, 244)"], [style*="rgb(244, 236, 214)"],
   [style*="rgb(255, 196, 0)"],  [style*="rgb(255, 231, 154)"], [style*="rgb(255, 243, 207)"],
   [style*="rgb(255, 247, 221)"], [style*="rgb(234, 243, 255)"], [style*="rgb(234, 246, 238)"],
   [style*="rgb(253, 236, 234)"], [style*="rgb(237, 231, 255)"], [style*="rgb(233, 245, 236)"],
   [style*="rgb(251, 235, 231)"], [style*="rgb(203, 191, 158)"], [style*="rgb(216, 207, 181)"],
-  [style*="rgb(255, 251, 235)"], [style*="rgb(255, 253, 246)"])
-  :is([class*="text-black"],
+  [style*="rgb(255, 251, 235)"], [style*="rgb(255, 253, 246)"], [style*="rgb(246, 242, 255)"], [style*="rgb(255, 247, 219)"]):is([class*="text-black"],
+  [style*="color: rgb(12, 12, 12)"], [style*="color: rgba(0, 0, 0"],
+  [style*="color: rgb(90, 86, 71)"], [style*="color: rgb(74, 71, 64)"],
+  [style*="color: rgb(139, 129, 104)"], [style*="color: rgb(43, 39, 28)"]),
+html.noturno .palco :is([class*="bg-white"],
+  [style*="rgb(255, 255, 255)"], [style*="rgb(252, 251, 244)"], [style*="rgb(244, 236, 214)"],
+  [style*="rgb(255, 196, 0)"],  [style*="rgb(255, 231, 154)"], [style*="rgb(255, 243, 207)"],
+  [style*="rgb(255, 247, 221)"], [style*="rgb(234, 243, 255)"], [style*="rgb(234, 246, 238)"],
+  [style*="rgb(253, 236, 234)"], [style*="rgb(237, 231, 255)"], [style*="rgb(233, 245, 236)"],
+  [style*="rgb(251, 235, 231)"], [style*="rgb(203, 191, 158)"], [style*="rgb(216, 207, 181)"],
+  [style*="rgb(255, 251, 235)"], [style*="rgb(255, 253, 246)"], [style*="rgb(246, 242, 255)"], [style*="rgb(255, 247, 219)"]) :is([class*="text-black"],
   [style*="color: rgb(12, 12, 12)"], [style*="color: rgba(0, 0, 0"],
   [style*="color: rgb(90, 86, 71)"], [style*="color: rgb(74, 71, 64)"],
   [style*="color: rgb(139, 129, 104)"], [style*="color: rgb(43, 39, 28)"]) {
-  color: rgba(0, 0, 0, 0.7);
+  color: rgba(0, 0, 0, 0.75);
 }
