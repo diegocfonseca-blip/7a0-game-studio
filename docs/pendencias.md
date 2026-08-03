@@ -961,3 +961,17 @@ Lulinha, Marlone, Giovanni Augusto, Rivaldinho, Lucão, Erazo, Finazzi, China
 (Flamengo 2004 — ⚠️ ano ainda é chute; Diego confirma quando souber).
 REGRA NOVA: carta nova SEMPRE passa a ficha (clube+ano+bio) pelo Diego ANTES de
 entrar no jogo.
+
+## 🤖 DIFICULDADE da carreira nova — handicap SUBIU (04/08, decisão do Diego "tá fácil")
+Amigo do Diego subiu rápido demais e ganhou muitos títulos. Simulei 5 receitas
+(30 temporadas cada) antes de mexer:
+- 6/9/12/2 (antigo) e 4/6/8/3/4: RESSUSCITAM o ioiô (A19→cai, C20→cai) ❌
+- 3/4/5/3/4: ioiô no topo (A:3 pune quem acabou de subir) ❌
+- ✅ APLICADO: **A:2 · B:4 · C:5 · D:3 · V:4** (era A:2 B:3 C:4 D:2 V:0→3) —
+  chegada na Série A vai de T4-T7 pra **T13-T23**, títulos 30T caem pra 1-3,
+  topo continua justo (A fica em 2; o vai-e-vem A↔B restante é elenco limitado,
+  não handicap). Vale pra TODA carreira da fórmula nova (simV>=4) — inclusive
+  em andamento, a partir da próxima temporada. Carreiras antigas seguem 6/9/12/2.
+Alavancas NÃO usadas (anotadas): G3/G2 no acesso (sobem 3/2 — visível, muda a
+régua de todo mundo) e bots mais espertos no leilão. Se ainda reclamar de fácil,
+próxima é G3.
