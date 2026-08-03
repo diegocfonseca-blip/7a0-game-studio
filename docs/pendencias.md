@@ -975,3 +975,20 @@ Amigo do Diego subiu rápido demais e ganhou muitos títulos. Simulei 5 receitas
 Alavancas NÃO usadas (anotadas): G3/G2 no acesso (sobem 3/2 — visível, muda a
 régua de todo mundo) e bots mais espertos no leilão. Se ainda reclamar de fácil,
 próxima é G3.
+
+## 🔎 AUDITORIA GERAL (04/08, pedido do Diego) — auditoria.mjs no scratchpad
+15 temporadas ×2 no reducer real (carreira nova completa). ✅ PASSARAM: caixa ×
+extrato batem EXATO na virada (prêmios+bilheteria+folha+patrocínio+agência);
+tabelas fecham (pts=3V+E, 38 jogos, gols pró=contra); artilharia 100% (todo gol
+tem dono, por divisão); mundo 100 times sem duplicação; Copa Legends sempre 16
+de A-D (Várzea fora); contratos presentes em todo real de humano/rival; XI de
+HUMANOS nunca quebra; fatura da agência fecha; caixa nunca NaN.
+⚠️ ACHADO MENOR (aberto): na escada, 1-2 RIVAIS de várzea podem ficar com 1
+INCÓGNITO no XI persistente (perderam a posição no leilão V e o monte esgotou;
+a IA não prioriza repor). Não quebra jogo (jogam com 11, incógnito é fraco), mas
+fere o "nunca fake em rival" — consertar: IA do bot prioriza posição com fake no
+leilão de reservas. Bots de FUNDO da várzea com incógnito = ok temático.
+## 👻 Cartas :mc no Supabase (04/08): 157 cartas de 4 usuários desde 31/07 —
+MISTURA de legítimas (donos reais de 2º clube) e do bug fantasma (mc0 sem 2º
+clube real). Separar exige abrir os saves — aguardando decisão do Diego (dá pra
+cruzar esc_pyramid_saves × user_cards se ele quiser limpeza fina).
