@@ -1,6 +1,6 @@
 // ─── 🌍 COPA DO MUNDO LEGENDS (v1 · carreira SOLO) ───────────────────────────
 // O endgame dos veteranos: desbloqueia na TEMPORADA 100, rola de 10 em 10.
-// Vaga e ordem de escolha = TOP 16 do RANKING DE CLUBES (o mural do Rank).
+// Vaga e ordem de escolha = TOP 20 do RANKING DE CLUBES (o mural do Rank).
 // Dentro da seleção NÃO tem leilão: é CONVOCAÇÃO pura — TODAS as cartas do país
 // aparecem (sem categoria na tela!) e o técnico escolhe SÓ 11.
 // Formato: 4 grupos ida-e-volta (desempate vitórias > saldo) → sorteio → quartas
@@ -133,6 +133,23 @@ function goalEvents(r: () => number, gh: number, ga: number, home: Entrant, away
   return evs.sort((a, b) => a.min - b.min)
 }
 
+// 🌍 formato da Copa: 4 grupos de 5 (turno único = 5 rodadas) → top 2 de cada = 8
+// → quartas/semis/final. (Era 4 grupos de 4 ida-volta = 16; expandido pra 20 seleções.)
+const NUM_GROUPS = 4, GROUP_SIZE = 5, GROUP_ROUNDS = 5, COPA_TEAMS = NUM_GROUPS * GROUP_SIZE // 20
+
+// turno único (round-robin) pra N times — cada um joga contra todos UMA vez. N ímpar
+// ganha um "bye" por rodada (o -1 é descartado). Determinístico (a ordem vem de fora).
+function roundRobin(teams: number[]): GMatch[][] {
+  const t = [...teams]; if (t.length % 2 === 1) t.push(-1)
+  const n = t.length, out: GMatch[][] = []
+  for (let r = 0; r < n - 1; r++) {
+    const rd: GMatch[] = []
+    for (let i = 0; i < n / 2; i++) { const h = t[i], a = t[n - 1 - i]; if (h >= 0 && a >= 0) rd.push({ h, a }) }
+    out.push(rd)
+    t.splice(1, 0, t.pop()!) // rotaciona mantendo o t[0] fixo
+  }
+  return out
+}
 // tabela do grupo: pontos → VITÓRIAS → saldo (regra do Diego)
 function groupTable(g: Group, upTo: number) {
   const st: Record<number, { pts: number; w: number; sg: number; gp: number }> = {}
@@ -185,12 +202,12 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize }: { seaso
   const proxima = nextCopaSeason(save, isCopaSeason(save, seasonNo) ? seasonNo + 1 : seasonNo)
 
   // ranking das seleções (nº de cartas — atualiza sozinho quando o baralho engorda)
-  const paises16 = useMemo(() => rankingSelecoes().slice(0, 16).map(p => p.pais), [])
+  const paises16 = useMemo(() => rankingSelecoes().slice(0, COPA_TEAMS).map(p => p.pais), [])
 
   if (seasonNo < COPA_ANCHOR) return (
     <div style={{ ...box('#CBBF9E'), padding: '10px 12px', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, color: 'rgba(0,0,0,.75)', textTransform: 'uppercase' }}>🔒 Copa do Mundo Legends</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>Torneio de seleções, coisa de <b>veterano</b>: desbloqueia na <b>temporada 100</b> — e só entra quem estiver no <b>TOP 16 do ranking de clubes</b> (aba Rank). Continue jogando e subindo no mural.</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>Torneio de seleções, coisa de <b>veterano</b>: desbloqueia na <b>temporada 100</b> — e só entra quem estiver no <b>TOP 20 do ranking de clubes</b> (aba Rank). Continue jogando e subindo no mural.</p>
       <div style={{ height: 13, border: `2.5px solid ${INK}`, borderRadius: 999, background: '#fff', marginTop: 7, overflow: 'hidden', position: 'relative' }}>
         <div style={{ position: 'absolute', inset: 0, width: `${Math.min(100, seasonNo)}%`, background: `linear-gradient(90deg,#FFE79A,${GOLD})`, borderRight: `2px solid ${INK}` }} />
         <b style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 8.5, fontWeight: 900, color: INK }}>temporada {seasonNo} de 100</b>
@@ -211,7 +228,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize }: { seaso
   if (!inTop16) return (
     <div style={{ ...box('#CBBF9E'), padding: '10px 12px', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, color: 'rgba(0,0,0,.75)', textTransform: 'uppercase' }}>🔒 Copa do Mundo Legends — temporada {seasonNo}</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>É temporada de Copa, mas <b>seu clube não está no TOP 16 do ranking de clubes</b> (aba Rank). Ganhe títulos e junte dinheiro pra subir no mural — a próxima edição é na <b>{proxima}</b>.</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>É temporada de Copa, mas <b>seu clube não está no TOP 20 do ranking de clubes</b> (aba Rank). Ganhe títulos e junte dinheiro pra subir no mural — a próxima edição é na <b>{proxima}</b>.</p>
     </div>
   )
 
@@ -449,16 +466,9 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
   const world = useMemo(() => {
     const idx = entrants.map((_, i) => i)
     for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]] }
-    const groups: Group[] = [0, 1, 2, 3].map(g => {
-      const teams = idx.slice(g * 4, g * 4 + 4)
-      const [a, b, c, d] = teams
-      const turno: GMatch[][] = [
-        [{ h: a, a: b }, { h: c, a: d }],
-        [{ h: a, a: c }, { h: b, a: d }],
-        [{ h: a, a: d }, { h: b, a: c }],
-      ]
-      const returno: GMatch[][] = turno.map(rd => rd.map(m => ({ h: m.a, a: m.h })))
-      const matches = [...turno, ...returno]
+    const groups: Group[] = Array.from({ length: NUM_GROUPS }, (_, g) => {
+      const teams = idx.slice(g * GROUP_SIZE, g * GROUP_SIZE + GROUP_SIZE)
+      const matches = roundRobin(teams) // 4 grupos de 5 = turno único (5 rodadas, 1 folga/rodada)
       for (const rd of matches) for (const m of rd) {
         const [gh, ga] = playMatch(rng, entrants[m.h], entrants[m.a])
         m.gh = gh; m.ga = ga
@@ -466,7 +476,7 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
       }
       return { teams, matches }
     })
-    const q8 = groups.flatMap(g => groupTable(g, 6).slice(0, 2).map(r => r.t))
+    const q8 = groups.flatMap(g => groupTable(g, GROUP_ROUNDS).slice(0, 2).map(r => r.t))
     const ord = [...q8]
     for (let i = ord.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [ord[i], ord[j]] = [ord[j], ord[i]] }
     const mkTie = (h: number, a: number): KoTie => {
@@ -490,15 +500,17 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
     return { groups, qf, sf, final: { h: fh, a: fa, g: fg, ev: fev, pen: fpen, champion } }
   }, [entrants, rng])
 
-  // step = revelações FEITAS: 1-6 rodadas de grupo · 7 sorteio · 8 QF ida ·
-  // 9 QF volta · 10 SF ida · 11 SF volta · 12 final · 13 cerimônia.
+  // step = revelações FEITAS (GR = rodadas de grupo): 1..GR rodadas de grupo ·
+  // GR+1 sorteio · GR+2 QF ida · GR+3 QF volta · GR+4 SF ida · GR+5 SF volta ·
+  // GR+6 final · GR+7 cerimônia.
+  const GR = GROUP_ROUNDS
   const [step, setStep] = useState(0)
   const [liveDone, setLiveDone] = useState(true)
   const [roundKey, setRoundKey] = useState(0)
-  const LIVE = (s: number) => (s >= 1 && s <= 6) || (s >= 8 && s <= 12)
-  const gRound = Math.min(6, step)
-  const shownRounds = step <= 6 && !liveDone ? Math.max(0, gRound - 1) : gRound // tabela/resultados só DEPOIS do apito
-  const done = step >= 13
+  const LIVE = (s: number) => (s >= 1 && s <= GR) || (s >= GR + 2 && s <= GR + 6)
+  const gRound = Math.min(GR, step)
+  const shownRounds = step <= GR && !liveDone ? Math.max(0, gRound - 1) : gRound // tabela/resultados só DEPOIS do apito
+  const done = step >= GR + 7
   const myIdx = entrants.findIndex(isYouE)
   const nm = (i: number) => `${FLAG[entrants[i].pais]} ${entrants[i].pais}`
   const club = (i: number) => entrants[i].club
@@ -527,9 +539,9 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
     if (liveDone) return
     let extra = 700
     const penMs = (t: KoTie) => t.pen && (isYou(t.h) || isYou(t.a)) ? pensRevealDelay(t.pen) * 1000 : 0
-    if (step === 9) extra += Math.max(0, ...world.qf.map(penMs))
-    if (step === 11) extra += Math.max(0, ...world.sf.map(penMs))
-    if (step === 12 && world.final.pen) extra += pensRevealDelay(world.final.pen) * 1000
+    if (step === GR + 3) extra += Math.max(0, ...world.qf.map(penMs)) // QF volta
+    if (step === GR + 5) extra += Math.max(0, ...world.sf.map(penMs)) // SF volta
+    if (step === GR + 6 && world.final.pen) extra += pensRevealDelay(world.final.pen) * 1000 // final
     const t = setTimeout(() => setLiveDone(true), roundMs + extra)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -554,7 +566,7 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done])
 
-  const nextLabel = !liveDone ? '⏳ Deixa o jogo acabar…' : step < 6 ? `▶️ Rodada ${step + 1} de 6` : step === 6 ? '🎲 Sortear o mata-mata' : step === 7 ? '▶️ Jogar as quartas (ida)' : step === 8 ? '▶️ Quartas — jogo de volta' : step === 9 ? '▶️ Semifinais (ida)' : step === 10 ? '▶️ Semis — jogo de volta' : step === 11 ? '🏆 A GRANDE FINAL' : '🎉 Cerimônia'
+  const nextLabel = !liveDone ? '⏳ Deixa o jogo acabar…' : step < GR ? `▶️ Rodada ${step + 1} de ${GR}` : step === GR ? '🎲 Sortear o mata-mata' : step === GR + 1 ? '▶️ Jogar as quartas (ida)' : step === GR + 2 ? '▶️ Quartas — jogo de volta' : step === GR + 3 ? '▶️ Semifinais (ida)' : step === GR + 4 ? '▶️ Semis — jogo de volta' : step === GR + 5 ? '🏆 A GRANDE FINAL' : '🎉 Cerimônia'
 
   // cartão AO VIVO (o mesmo LiveScoreCard da liga/copa — relógio, GOOOL, bump)
   const live = (h: number, a: number, ev: ScoreGoal[]) => (
@@ -594,12 +606,14 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
 
       {/* GRUPOS: SEU jogo ao vivo em cima (relógio da liga); tabela e os outros
           resultados só entram DEPOIS do apito — zero spoiler. */}
-      {step >= 1 && step <= 6 && (() => {
+      {step >= 1 && step <= GR && (() => {
         const g = world.groups.find(gr => gr.teams.includes(myIdx))
         const m = g?.matches[gRound - 1]?.find(mm => mm.h === myIdx || mm.a === myIdx)
-        return m ? live(m.h, m.a, m.ev ?? []) : null
+        // 🛌 grupo de 5 → cada seleção FOLGA uma rodada (bye). Sem jogo meu, mostra o aviso.
+        if (m) return live(m.h, m.a, m.ev ?? [])
+        return <div style={{ ...box('#FFF6D6'), padding: '8px 11px', marginBottom: 8, textAlign: 'center', fontWeight: 800, fontSize: 11, ...OSWALD }}>🛌 {nm(myIdx)} folga nesta rodada — os outros jogos rolam abaixo.</div>
       })()}
-      {step <= 7 && (
+      {step <= GR + 1 && (
         <>
           {world.groups.map((g, gi) => (
             <div key={gi} style={{ ...box('#fff'), padding: 10, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
@@ -611,7 +625,7 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
                   <span style={{ fontWeight: 900 }}>{r.pts}pt</span><span>{r.w}V</span><span>{r.sg > 0 ? '+' : ''}{r.sg}</span>
                 </div>
               ))}
-              {step >= 1 && step <= 6 && !liveDone && g.matches[gRound - 1]?.filter(m => m.h !== myIdx && m.a !== myIdx).map((m, k) => (
+              {step >= 1 && step <= GR && !liveDone && g.matches[gRound - 1]?.filter(m => m.h !== myIdx && m.a !== myIdx).map((m, k) => (
                 <MiniLive key={k} nmH={nm(m.h)} nmA={nm(m.a)} ev={m.ev ?? []} min={liveMin} />
               ))}
               {shownRounds > 0 && liveDone && (
@@ -626,17 +640,17 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
       )}
 
       {/* MATA-MATA: seu confronto ao vivo; os demais aparecem pós-apito */}
-      {step >= 8 && !done && (() => {
+      {step >= GR + 2 && !done && (() => {
         const myQf = world.qf.find(t => isYou(t.h) || isYou(t.a))
         const mySf = world.sf.find(t => isYou(t.h) || isYou(t.a))
         return (
           <>
-            {step === 8 && myQf && live(myQf.h, myQf.a, myQf.ev1!)}
-            {step === 9 && myQf && myTieVolta(myQf)}
-            {step === 10 && mySf && live(mySf.h, mySf.a, mySf.ev1!)}
-            {step === 11 && mySf && myTieVolta(mySf)}
-            {step === 12 && live(world.final.h, world.final.a, world.final.ev)}
-            {step === 12 && liveDone && world.final.pen && (
+            {step === GR + 2 && myQf && live(myQf.h, myQf.a, myQf.ev1!)}
+            {step === GR + 3 && myQf && myTieVolta(myQf)}
+            {step === GR + 4 && mySf && live(mySf.h, mySf.a, mySf.ev1!)}
+            {step === GR + 5 && mySf && myTieVolta(mySf)}
+            {step === GR + 6 && live(world.final.h, world.final.a, world.final.ev)}
+            {step === GR + 6 && liveDone && world.final.pen && (
               <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 FINAL DECIDIDA NOS PÊNALTIS</p>
                 <PensShootout pens={world.final.pen} aName={entrants[world.final.h].pais} bName={entrants[world.final.a].pais} />
@@ -646,21 +660,21 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>🎲 MATA-MATA (sorteio livre — ida e volta)</p>
               {world.qf.map((t, i) => {
                 const mine = isYou(t.h) || isYou(t.a)
-                if (step === 8) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} ev={t.ev1!} min={liveMin} /> : null}</div>
-                if (step === 9) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
-                if (step === 7) return <div key={i} style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: mine ? 900 : 700 }}>{nm(t.h)} × {nm(t.a)}</div>
+                if (step === GR + 2) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} ev={t.ev1!} min={liveMin} /> : null}</div>
+                if (step === GR + 3) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
+                if (step === GR + 1) return <div key={i} style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: mine ? 900 : 700 }}>{nm(t.h)} × {nm(t.a)}</div>
                 return <div key={i}>{tieRow(t, true)}</div>
               })}
-              {step >= 10 && (<>
+              {step >= GR + 4 && (<>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px' }}>SEMIFINAIS</p>
                 {world.sf.map((t, i) => {
                   const mine = isYou(t.h) || isYou(t.a)
-                  if (step === 10) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} ev={t.ev1!} min={liveMin} /> : null}</div>
-                  if (step === 11) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
+                  if (step === GR + 4) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} ev={t.ev1!} min={liveMin} /> : null}</div>
+                  if (step === GR + 5) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
                   return <div key={i}>{tieRow(t, true)}</div>
                 })}
               </>)}
-              {step === 12 && liveDone && (
+              {step === GR + 6 && liveDone && (
                 <>
                   <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px' }}>🏆 FINAL ÚNICA</p>
                   {world.final.pen && <style>{'@keyframes cmWinPop{from{opacity:0}to{opacity:1}}'}</style>}
@@ -672,7 +686,7 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
         )
       })()}
 
-      {step === 7 && (
+      {step === GR + 1 && (
         <div style={{ ...box('#fff'), padding: 10, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>🎲 O SORTEIO DAS QUARTAS (ida e volta)</p>
           {world.qf.map((t, i) => (

@@ -580,3 +580,12 @@ muda 1 pixel (sem a classe, o CSS nem existe). Botão na home ("🌙 Tema noturn
   rgb(...) — os seletores [style*=] do CSS noturno usam ESSA forma, não hex.
   Home verificada com screenshot real; telas internas usam os mesmos padrões —
   se escapar texto escuro num canto, é 1 linha de CSS (lista de containers).
+### ✅ Copa do Mundo virou 20 seleções (02/08) — FEITO
+Chave de 16→20: `copa-mundo.tsx` agora **4 grupos de 5, turno único (5 rodadas, 1 folga/rodada)
+→ top 2 de cada = 8 → QF/SF/final** (mata-mata igual). Parametrizado: `NUM_GROUPS=4, GROUP_SIZE=5,
+GROUP_ROUNDS=5, COPA_TEAMS=20` + helper `roundRobin()` + a máquina de passos agora usa `GR`
+(=GROUP_ROUNDS) em vez de números fixos (grupos 1..GR · sorteio GR+1 · QF GR+2/GR+3 · SF GR+4/GR+5 ·
+final GR+6 · fim GR+7). `rankingSelecoes().slice(0,20)` e o top-20 do rank de clubes (pyramidseason
+~2510). Aviso de FOLGA (bye) na rodada que sua seleção descansa. Textos "TOP 16"→"TOP 20". Copa é
+LOCAL (localStorage, sem reducer) → não toca futebol ao vivo/online. Simulado: 4×5, todos jogam 4x,
+40 jogos de grupo. Build ok. Revertível.
