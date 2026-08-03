@@ -18,6 +18,16 @@ esses estados gigantes.
   jogo e a lista baixava até 30 deles.
 - triggerStart: TRAVA — se o fetch fresco falhar e a linha for magra (sem
   managers), aborta em vez de "começar do zero" (nunca reseta sala).
+✅ ITEM 1 EXECUTADO (03/08, ordem do Diego: "parada há 2 dias já pode"):
+7.736 salas rápidas paradas 2+ dias DELETADAS (de 8.603 → 882; as 13 carreiras
+online 100% intactas — carreira NUNCA entra na limpeza). Registro leve do que
+saiu em game_rooms_cleanup_log. FKs room_players/game_champions caíram por
+CASCADE (game_champions é placar vivo da sala; títulos permanentes = esc_results,
+intocados). LIMPEZA AUTOMÁTICA ligada: pg_cron 'limpa-salas-rapidas' todo dia
+08:00 UTC (05:00 BRT) com o MESMO critério; desligar =
+select cron.unschedule('limpa-salas-rapidas'). VACUUM (analyze) rodado (o
+espaço vira reuso; o VACUUM FULL que encolhe o arquivo fica pra madrugada,
+junto do item 2).
 ⚠️ Advisors pendentes (fazer em janela calma): auth_rls_initplan ×39 (RLS
 reavaliando auth.uid() por LINHA — trocar por (select auth.uid()) nas policies
 quentes: esc_pyramid_saves, game_rooms, room_players, esc_results, user_cards);
