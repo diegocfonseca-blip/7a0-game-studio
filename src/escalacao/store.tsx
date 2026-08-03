@@ -6,7 +6,7 @@ import type {
   QuickCopaState, QuickCopaTie, LedgerEntry, EmpCard, AgCard, AgEvento,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, newestTeamName } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName } from './data'
 import { stripEmoji } from './apoio'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
 import { NBA_SLOTS_PER_POS } from './sportcfg'
@@ -649,6 +649,26 @@ function recordPrice(state: EscState, name: string, price: number) {
 // (orçamento 100 pra 11 → jogador comprado por 1-2): sem ela, renovação e teto
 // de venda ficariam "de graça" pra metade do elenco.
 const CONTRATO_TABELA = (c: Card): number => c.fame >= 5 ? 30 : c.promessa ? 12 : c.fame === 4 ? 20 : c.fame >= 2 ? 8 : 3
+// 🌱 CRIA DA BASE: nasce quando o técnico ESCOLHE deixar um contrato vencido ir
+// e a saída quebraria o XI. Ruim de doer (derruba o nível do time), SEM
+// contrato, invendável (valor 0, ninguém compra), e some sozinho quando chega
+// reforço de verdade. Cada cria usa um nome NOVO da listinha (nunca repete).
+function spawnCria(s: EscState, m: Manager, pos: Sector, saiu: string, rng: () => number): void {
+  const usados = new Set(s.criaNames ?? [])
+  const livres = CRIA_NOMES.filter(n => !usados.has(n))
+  const nome = livres.length ? livres[Math.floor(rng() * livres.length)] : `${CRIA_NOMES[Math.floor(rng() * CRIA_NOMES.length)]} ${((s.criaNames?.length ?? 0) + 1)}º`
+  s.criaNames = [...(s.criaNames ?? []), nome]
+  const cria = { id: `cria-${pos}-${nextBuildTok()}`, name: nome, club: 'Sub-20', year: new Date().getFullYear(), pos, fame: 1, lo: 48, hi: 58, cria: true } as Card
+  m.squad.push({ ...cria, paid: 0, buyPrice: 0, via: 'monte' } as WonCard)
+  const historias = [
+    `Sem renovar com o ${saiu}, a diretoria desceu no Sub-20 e gritou: "sobe, ${nome}!". O menino é RUIM de doer — trava a bola, tropeça no vento — mas dá pra tapar o buraco, e ele dormiu abraçado com a camisa do clube. 🥹`,
+    `O ${saiu} foi embora e não tinha ninguém: a solução foi o ${nome}, cria da base. Perna torta, chute pra fora... mas coração GIGANTE. Tapa o buraco até chegar reforço — e a vó dele já tá na arquibancada. 🥹`,
+    `Adeus, ${saiu}. Quem assume é o ${nome}, do Sub-20: o guri é fraquinho mesmo, todo mundo sabe — mas ninguém corre mais que ele. Quebra o galho até o clube conseguir gente grande. 💚`,
+  ]
+  const texto = historias[Math.floor(rng() * historias.length)]
+  ;(s.criaNews = s.criaNews ?? []).push({ texto, nome, pos })
+  ;(s.marketLog = s.marketLog ?? []).push(`🌱 ${m.teamName}: ${nome} subiu da base pra tapar o buraco do ${saiu} (de graça, sem contrato)`)
+}
 export function valorOficial(state: EscState, c: Card): number {
   return Math.max(state.marketValues?.[c.name] ?? 0, (c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c))
 }
@@ -2306,6 +2326,7 @@ type Action =
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
+  | { type: 'RELEASE_CONTRACT'; mgrId: number; cardId: string } // 🌱 marca/desmarca "deixar ir" na janela de renovação (se quebrar o XI, um Cria da Base assume)
   | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: 5 | 10 } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — 10 anos = valor oficial cheio, 5 = metade. Prazo real sai com tempero (±1) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); quem não renovar vai pro leilão com teto de venda
   | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
   | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
@@ -3801,7 +3822,7 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const m of s.managers) {
           if (!m.isHuman && !m.rival) continue
           for (const c of m.squad) {
-            if (c.fake || c.contratoAte != null) continue
+            if (c.fake || c.cria || c.contratoAte != null) continue // 🌱 cria NUNCA assina contrato
             c.contratoAte = (s.seasonNo ?? 1) + 5 + Math.floor(crng() * 6) - 1 // 5..10 anos, vence no fim de contratoAte
           }
         }
@@ -4226,6 +4247,21 @@ export function reducer(state: EscState, action: Action): EscState {
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
       recordDormantCards(s, action.champions, action.copaChampion) // 🏛️ guarda a carta se o 2º clube (dormindo) foi campeão
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid) antes da venda/leilão de reservas
+      // 🌱 cria que não é mais necessário SOME do jogo ("volta pra base"): se a
+      // posição fecha a formação sem ele (chegou reforço de verdade), ele sai de
+      // graça, com carinho no resumo. Nunca sai se a saída quebrar o XI.
+      for (const m of s.managers) {
+        if (!m.isHuman || m.dormindo) continue
+        for (const c of [...(m.squad as WonCard[])]) {
+          if (!c.cria) continue
+          const need = FORMATIONS[m.formation][c.pos]
+          const semEle = m.squad.filter(x => x.pos === c.pos && !x.emprestado && !x.fake && x.id !== c.id).length
+          if (semEle >= need) {
+            m.squad = m.squad.filter(x => x.id !== c.id)
+            ;(s.marketLog = s.marketLog ?? []).push(`🌱 ${c.name} voltou pra base de cabeça erguida — missão cumprida, chegou reforço. Valeu, guri! 💚`)
+          }
+        }
+      }
       s.seasonNo++
       s.round = 0; s.champion = null
       s.careerTactics = {}
@@ -4248,6 +4284,7 @@ export function reducer(state: EscState, action: Action): EscState {
       else {
         const card = mgr.squad.find(c => c.id === action.cardId)
         if (!card) return s
+        if ((card as WonCard).cria) return s // 🌱 cria é invendável — ninguém paga nada por ele
         // 🏢 emprestado NÃO pode ir pra lista/venda: ou é um jogador da SAF (não é seu
         // pra vender), ou é seu que está na SAF. Traga de volta primeiro (botão na SAF).
         if (card.emprestado) return s
@@ -4262,6 +4299,20 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       listed[action.mgrId] = arr
       s.reserveListed = listed
+      return s
+    }
+    case 'RELEASE_CONTRACT': {
+      // 🌱 marca "deixar ir": o jogador de contrato VENCIDO sai no leilão mesmo
+      // que quebre o XI — nesse caso um Cria da Base assume a vaga (de graça).
+      // Toggle: clicar de novo desmarca. Só na janela de venda.
+      if (!s.careerOnline || !s.contratosOn || s.screen !== 'reserveList') return s
+      const mgr = s.managers.find(m => m.id === action.mgrId)
+      if (!mgr?.isHuman) return s
+      const card = mgr.squad.find(c => c.id === action.cardId) as WonCard | undefined
+      if (!card || card.fake || card.emprestado || card.cria) return s
+      if (card.contratoAte == null || card.contratoAte >= s.seasonNo) return s // só contrato JÁ vencido
+      const cur = s.contratoRelease ?? []
+      s.contratoRelease = cur.includes(action.cardId) ? cur.filter(id => id !== action.cardId) : [...cur, action.cardId]
       return s
     }
     case 'RENEW_CONTRACT': {
@@ -4296,6 +4347,7 @@ export function reducer(state: EscState, action: Action): EscState {
       healCpuSquads(s) // 🔒 conserta save antigo: se uma ficha de fundo ficou com um jogador que
       // um técnico já tem, tira daqui ANTES do Mercado — senão o Mercado soltava a cópia no leilão
       s.marketLog = [] // zera o resumo dos bots pra este leilão
+      s.criaNews = [] // 🌱 historinhas de cria: só as DESTA virada aparecem na cerimônia
       // 0) limpa as marcas do leilão anterior. marketSellers[pos] = ids dos bots que
       // perderam jogador NAQUELA posição — são eles que podem dar lance nela.
       for (const m of s.managers) if (!m.isHuman) { m.backstop = false; m.deepSquad = false }
@@ -4357,28 +4409,37 @@ export function reducer(state: EscState, action: Action): EscState {
       // (SÓ carreira nascida com contratos — save antigo nem passa por aqui.)
       if (s.contratosOn) {
         const ctrRng = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 65537) ^ 0x5EED) >>> 0)
+        const released = new Set(s.contratoRelease ?? [])
         for (const m of s.managers) {
           if (!m.isHuman || m.dormindo) continue
-          const expirados = (m.squad as WonCard[]).filter(c => !c.fake && c.contratoAte != null && c.contratoAte < s.seasonNo)
+          const expirados = (m.squad as WonCard[]).filter(c => !c.fake && !c.cria && c.contratoAte != null && c.contratoAte < s.seasonNo)
           const removidosPorPos: Record<string, number> = {}
           for (const c of expirados) {
             const need = FORMATIONS[m.formation][c.pos]
             const filledPos = m.squad.filter(x => x.pos === c.pos && !x.emprestado && !x.fake).length
             const quebraXI = c.emprestado || (filledPos - (removidosPorPos[c.pos] ?? 0) - 1 < need)
-            if (quebraXI) {
-              // renovação no aperto: 5 anos por metade, pode ficar devendo
+            // 🌱 o técnico ESCOLHEU deixar ir (botão na janela): sai mesmo quebrando
+            // o XI — um Cria da Base assume a vaga (de graça, sem contrato). Só o
+            // emprestado na SAF não tem como soltar (a carta nem está aqui).
+            const querSoltar = released.has(c.id) && !c.emprestado
+            if (quebraXI && !querSoltar) {
+              // renovação no aperto: 5 anos por metade, pode ficar devendo.
+              // ⚠️ Só acontece por OMISSÃO (não decidiu nada na janela) — quem
+              // marca "deixar ir" nunca é endividado à força (regra do Diego).
               const custo = Math.max(1, Math.ceil(valorOficial(s, c) / 2))
               s.careerCoins = { ...(s.careerCoins ?? {}), [m.id]: (s.careerCoins?.[m.id] ?? 0) - custo }
               c.contratoAte = s.seasonNo + contratoDur(5, ctrRng) - 1
               ;(s.marketLog = s.marketLog ?? []).push(`📝 ${m.teamName}: ${c.name} renovou NO APERTO por ${custo} 🪙 (5 anos) — sem ele a formação não fechava`)
               if (m.isHuman) logFin(s, 'buy', `📝 Renovação no aperto: ${c.name}`, -custo, { player: c.name, pos: c.pos }, m.id)
             } else {
-              removidosPorPos[c.pos] = (removidosPorPos[c.pos] ?? 0) + 1
               m.squad = m.squad.filter(x => x.id !== c.id)
               listedCards.push({ ...c, seller: m.id, semContrato: true })
+              if (quebraXI && querSoltar) spawnCria(s, m, c.pos, c.name, ctrRng) // cria tapa o buraco → posição segue preenchida
+              else removidosPorPos[c.pos] = (removidosPorPos[c.pos] ?? 0) + 1
             }
           }
         }
+        s.contratoRelease = undefined // janela consumida
         // rivais (CPU escolhidos): renovam com o caixa do clube; melhor solto por posição vai pro leilão
         const cashR = { ...(s.clubCash ?? {}) }
         const soltos: WonCard[] = []

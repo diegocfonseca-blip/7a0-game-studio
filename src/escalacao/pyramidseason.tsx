@@ -1751,6 +1751,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contr
   // clube · ano. Cinza quando está tudo certo (quase invisível); ⏳ âmbar no
   // último ano; ❗ vermelho vencido. Emprestado/incógnito não mostram nada.
   const ctInfo = (c: WonCard): { txt: string; color: string } | null => {
+    if (c.cria) return { txt: '🌱 cria da base — sem contrato', color: 'rgba(0,0,0,0.45)' }
     if (!contratosOn || c.fake || c.emprestado || c.contratoAte == null) return null
     const sn = seasonNo ?? 1
     if (c.contratoAte < sn) return { txt: '❗ vencido — decida na janela', color: '#C2452F' }
@@ -3599,16 +3600,18 @@ export function ReserveListScreen() {
                       <span style={{ fontWeight: 900, fontSize: 14, ...OSWALD, flex: 1 }}>{c.name}</span>
                       <span style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, color: '#5a5647' }}>valor {oficial} 🪙</span>
                     </div>
+                    {(() => { const solto = (state.contratoRelease ?? []).includes(c.id); return (
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: youId, cardId: c.id, anos: 10 })} disabled={coins < c10} style={btn(GOLD, INK, coins < c10)}>Renovar 10 anos<br />{c10} 🪙 (-10%)</button>
-                      <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: youId, cardId: c.id, anos: 5 })} disabled={coins < c5} style={btn('#EAF6EE', INK, coins < c5)}>Renovar 5 anos<br />{c5} 🪙</button>
-                    </div>
+                      <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: youId, cardId: c.id, anos: 10 })} disabled={coins < c10 || solto} style={btn(GOLD, INK, coins < c10 || solto)}>Renovar 10 anos<br />{c10} 🪙 (-10%)</button>
+                      <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: youId, cardId: c.id, anos: 5 })} disabled={coins < c5 || solto} style={btn('#EAF6EE', INK, coins < c5 || solto)}>Renovar 5 anos<br />{c5} 🪙</button>
+                      <button onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: youId, cardId: c.id })} style={btn(solto ? '#C2452F' : '#FDECEA', solto ? '#fff' : '#a23325', false)}>{solto ? '🌱 vai embora\u2028(desfazer)' : '😢 Deixar ir'}<br />{solto ? 'cria assume se faltar' : 'de graça'}</button>
+                    </div>) })()}
                   </div>
                 )
               })}
               {expirados.length > 0 && (
                 <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '2px 0 0', lineHeight: 1.45 }}>
-                  Não renovou? Ele <b>vai pro leilão</b> quando o pregão começar — você recebe a venda <b>até o valor dele</b> (o que passar fica com a <b>família gananciosa</b> do jogador 😏). Se a saída fosse te deixar sem o XI, ele renova sozinho por 5 anos (metade), <b>mesmo no vermelho</b>.
+                  Não renovou? Ele <b>vai pro leilão</b> quando o pregão começar — você recebe a venda <b>até o valor dele</b> (o que passar fica com a <b>família gananciosa</b> do jogador 😏). <b>😢 Deixar ir</b>: sai de graça e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume (fraquinho, sem contrato, some quando chegar reforço). ⚠️ <b>Não decidiu nada e avançou?</b> Quem o time precisa <b>renova SOZINHO por 5 anos (metade)</b> — mesmo no vermelho.
                 </p>
               )}
               {ultimoAno.length > 0 && (

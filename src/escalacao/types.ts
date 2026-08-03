@@ -25,7 +25,8 @@ export interface Card {
   promessa?: boolean // 5º tier: foi só promessa aqui e virou estrela na Europa (nível abaixo de craque)
   fake?: boolean // jogador INCÓGNITO (nome gerado, não é do catálogo real) — usado só pra completar elenco quando o baralho real acaba; nunca entra no mercado de venda dos bots
   seller?: number // carreira online: id do técnico/bot que LISTOU esta carta pro mercado — quando ela é vendida (leilão ou monte), ele recebe a grana na caixa
-  semContrato?: boolean // 📝 CONTRATOS (carreira): esta carta chegou ao leilão porque o CONTRATO ENCERROU (não foi venda planejada) — a grana do vendedor tem TETO no valor oficial do jogador (o que passar "fica com a família/empresário")
+  semContrato?: boolean
+  cria?: boolean // 🌱 Cria da Base: tapa-buraco sem contrato, ruim de doer, invendável — some quando chega reforço // 📝 CONTRATOS (carreira): esta carta chegou ao leilão porque o CONTRATO ENCERROU (não foi venda planejada) — a grana do vendedor tem TETO no valor oficial do jogador (o que passar "fica com a família/empresário")
 }
 
 export type Acquisition = 'leilao' | 'repescagem' | 'monte' | 'bot'
@@ -380,6 +381,11 @@ export interface EscState {
   escadaLivre?: boolean // true = mercado liberou geral (2 temporadas na A) — vira o jogo normal pra sempre
   escadaTempA?: number // temporadas COMPLETAS jogadas na Série A (conta até 2)
   escadaSubiu?: boolean // já subiu da divisão de estreia (virou profissional)? não tranca de novo se cair
+  // 🌱 CRIA DA BASE (contratos): "deixar ir" marcado na janela de renovação;
+  // se a saída quebrar o XI, um cria tapa o buraco (sem contrato, invendável).
+  contratoRelease?: string[] // ids marcados "deixar ir" na janela atual (consumido no leilão)
+  criaNames?: string[] // nomes de cria já usados NESTA carreira (nunca repete)
+  criaNews?: { texto: string; nome: string; pos: Sector }[] // historinhas da virada (banner na cerimônia)
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
   careerFilial?: {

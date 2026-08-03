@@ -2142,6 +2142,10 @@ export const newestTeamName = (name: string): string => {
 
 // 🌱 TIMES DA VÁRZEA (Fase 2 da escada — carreira nova, teste do Diego): os
 // bots de preenchimento da sala na divisão V. Nomes 100% zoeira de peladão.
+// 🌱 nomes dos CRIAS DA BASE (contratos: tapa-buraco quando o técnico deixa um
+// jogador ir). Cada entrada na carreira usa um nome NOVO (o jogo não repete).
+export const CRIA_NOMES = ['Zezinho', 'Guri', 'Pituquinha', 'Neneca', 'Cabecinha', 'Juninho Pipoca', 'Toquinho', 'Buiú', 'Sapinho', 'Carequinha', 'Foguinho', 'Pezão', 'Miudinho', 'Bidu', 'Cotoco', 'Mirim', 'Formiguinha', 'Pintinho', 'Grilo', 'Peninha', 'Xandoca', 'Tonhinho', 'Ratinho', 'Biscoito', 'Chulé', 'Fubá', 'Pipoquinha', 'Zé Pequeno da Base', 'Canelinha', 'Tampinha']
+
 export const VARZEA_TEAMS: CareerTeam[] = [
   { name: 'Bilu', team: 'Unidos da Resenha' },
   { name: 'Careca', team: 'Chuteira Rachada FC' },

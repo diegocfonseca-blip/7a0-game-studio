@@ -3303,6 +3303,22 @@ export function EscCerimonia() {
           <p className="font-black text-sm" style={OSWALD}>🐴 MICO DO PREGÃO: {worstDeal.c.name} ({worstDeal.c.lo}–{worstDeal.c.hi}) por {worstDeal.c.paid} — {worstDeal.mg.teamName}</p>
         </Box>
       )}
+      {/* 🌱 CRIA DA BASE: a historinha de quem subiu do Sub-20 nesta virada
+          (o técnico deixou um contrato vencido ir e o guri tapou o buraco). */}
+      {(state.criaNews ?? []).map((n, i) => (
+        <div key={i} className="border-[3px] border-black rounded-2xl overflow-hidden" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+          <div className="p-3" style={{ background: 'linear-gradient(150deg,#2E7D46,#1B5E33)', color: '#fff' }}>
+            <p className="font-black text-[9px] uppercase tracking-widest" style={{ color: 'rgba(255,255,255,.65)' }}>Direto da base</p>
+            <p className="font-black text-sm uppercase" style={OSWALD}>🌱 O menino {n.nome} realizou um sonho!</p>
+          </div>
+          <div className="bg-white p-3">
+            <p className="text-[12px] font-semibold leading-relaxed">{n.texto}</p>
+            <div className="mt-2 border-2 border-dashed border-black/30 rounded-xl px-3 py-1.5 text-[11px] font-bold" style={{ background: '#F3EFE2' }}>
+              🌱 {n.nome} · {n.pos} — nível de base · sem contrato · sai de graça quando chegar reforço
+            </div>
+          </div>
+        </div>
+      ))}
       {/* 🕴️ AGÊNCIA 2.0: fatura da temporada (mensalidades pagas na virada +
           comissões de artilheiro/campeão + negociações do leilão que acabou).
           Tudo JÁ caiu no caixa do 1º clube — aqui é o resumo pós-apito. */}

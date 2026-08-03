@@ -15,7 +15,24 @@ jogo FORÇA a renovação no aperto (dívida) sem dar escolha. Proposta desenhad
   graça"), não vira carta de álbum, valor de mercado 1.
 - AFK/sem decisão: mantém a regra de hoje (renova NO APERTO, cheque especial) —
   dívida forçada só por OMISSÃO, nunca contra a escolha do usuário.
-- Só carreiras com contratos. ❌ NÃO CODAR antes do OK do Diego.
+- Só carreiras com contratos.
+✅ IMPLEMENTADO (03/08) com os ajustes finais do Diego:
+- Cria SEM contrato nenhum (cerimônia pula ele no sorteio), RUIM mesmo (48-58 —
+  derruba o nível do time; 2-3 crias = time capenga), INVENDÁVEL (não lista,
+  nunca entra em leilão/monte, bot nenhum paga nada), SOME DE GRAÇA quando
+  chega reforço que fecha a formação sem ele ("voltou pra base de cabeça
+  erguida", no resumo), nome NOVO a cada entrada (CRIA_NOMES ~30, sem repetir
+  na carreira; esgotou → sufixo).
+- Historinha melhorada e honesta (3 variações: "é RUIM de doer... mas dá pra
+  tapar o buraco") — banner verde na CERIMÔNIA (criaNews) + linha no resumo.
+- Botão "😢 Deixar ir" na janela (toggle; marcado = renovar apaga) via
+  RELEASE_CONTRACT; aviso no rodapé: "não decidiu e avançou? renova SOZINHO
+  por 5 anos (metade), mesmo no vermelho" (pedido dele de avisar).
+- Aperto forçado agora SÓ por omissão. Selo "🌱 cria da base — sem contrato"
+  na linha do elenco.
+- TESTADO (criatest.mjs): 2 carreiras ×9 temporadas soltando TODO vencido —
+  crias nomes únicos, zero dívida forçada, XI nunca fura, vencido não volta
+  (anti-malandragem segue), invariantes todos verdes.
 
 ## 🚑 SUPABASE ESTOURANDO (03/08, pós-liberação geral): egress/realtime/lentidão
 Sintomas: salas lentas, admin com "Could not query the database for the schema
