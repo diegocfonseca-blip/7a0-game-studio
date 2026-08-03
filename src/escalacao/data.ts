@@ -1114,7 +1114,7 @@ const NOVOS_BR_GOL: C[] = [
   { name: "Saulo", club: "Sport", year: 2022, fame: 1, lo: 61, hi: 80, bio: "Goleiro que defendeu o gol do Sport na reta final da Série B de 2022 — passagem sólida pela Ilha do Retiro." },
   { name: "Matheus Donelli", club: "Corinthians", year: 2023, fame: 2, lo: 66, hi: 82, bio: "Goleiro da base do Corinthians que ganhou espaço entre os profissionais — bons reflexos no gol alvinegro." },
   { name: "Brazão", club: "Santos", year: 2025, fame: 3, lo: 78, hi: 86, bio: "Goleirão do Santos — assumiu o gol na volta à elite e virou um dos melhores do país, líder em defesas em 2025." },
-  { name: "Diego (goleiro)", club: "Flamengo", year: 2009, fame: 1, lo: 61, hi: 79, bio: "Goleiro do Flamengo no fim dos anos 2000, antes da era dos grandes títulos." },
+  { name: "Diego", club: "Flamengo", year: 2009, fame: 1, lo: 61, hi: 79, bio: "Goleiro do Flamengo no fim dos anos 2000, antes da era dos grandes títulos." },
   { name: "Martín Silva", club: "Vasco", year: 2015, fame: 3, lo: 78, hi: 86, bio: "Goleirão uruguaio do Vasco — paredão querido em São Januário e titular da Celeste." },
   { name: 'Júlio César', club: 'Corinthians', year: 2010, fame: 1, lo: 56, hi: 76, bio: 'Goleiro titular do Corinthians em 2010-11, antes do Cássio chegar. (Não confundir com o Júlio César da Seleção!)' },
   { name: 'Renan Ribeiro', club: 'Atlético-MG', year: 2016, fame: 1, lo: 57, hi: 77, bio: 'Paredão suplente do Atlético-MG antes de rodar Portugal — reflexo e frieza no pênalti.' },
