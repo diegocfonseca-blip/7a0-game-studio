@@ -32,6 +32,21 @@ export const APOIO_PERKS: Record<ApoioTier, ApoioPerk> = {
            grad: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', svgFull: ['#ffd85a', '#e09e00'], svgPart: ['#e6c766', '#a67c00'] },
 }
 
+// 🟢 VERDE BRILHANTE DE LENDA — pele especial (só cosmética): tudo do tier OURO
+// (selo 👑, brilho holo 0.75, Modo Manual…), mas com o degradê/cor VERDE no MESMO
+// capricho do dourado. Usada SÓ na carreira offline pra contas do CAREER_GREEN
+// (pedido do Diego). Em todo o resto (online, rápido…) a conta segue ouro normal.
+const VERDE_LENDA: ApoioPerk = {
+  tier: 'ouro', selo: '👑', solid: '#1B9E4B', light: '#D6F5DE', holo: 0.75,
+  grad: 'linear-gradient(160deg,#8FF0AE,#22C55E 40%,#0E9B45 70%,#6FE39A)', svgFull: ['#5FE08A', '#12833B'], svgPart: ['#4bc873', '#0e6630'],
+}
+// contas que veem o VERDE DE LENDA só na carreira offline (senão, ouro normal).
+const CAREER_GREEN = new Set<string>(['feehcamp11@gmail.com'])
+// 🎨 "contexto de cor": a carreira OFFLINE liga isto (setCareerColorCtx) enquanto a
+// tela está montada; fora dela fica null. É o que faz o verde valer SÓ lá.
+let careerColorCtx: 'offline' | null = null
+export function setCareerColorCtx(v: 'offline' | null) { careerColorCtx = v }
+
 // contas fundadoras / apoios aplicados à mão (email → tier). O criador do jogo
 // entra com tudo do tier máximo — menos o batismo de clube, que é só dos apoiadores.
 const FOUNDERS: Record<string, ApoioTier> = {
@@ -74,6 +89,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'felipe.vrod10@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual
   'pedrohenriquedasilva315@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'gabriel.arruda.1999@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
+  'feehcamp11@gmail.com': 'ouro', // 👑 Lenda (pago) + FUNDADOR — ouro normal em tudo, MAS verde brilhante SÓ na carreira offline (CAREER_GREEN)
 }
 
 // 🖋️ FUNDADORES (os 100 primeiros Lendas): e-mail → número do fundador.
@@ -99,6 +115,7 @@ const FUNDADOR_N: Record<string, number> = {
   'matheusncruz1@gmail.com': 24,
   'pedrohenriquedasilva315@gmail.com': 25,
   'gabriel.arruda.1999@hotmail.com': 26,
+  'feehcamp11@gmail.com': 27,
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null
@@ -166,7 +183,11 @@ export function logout() { try { localStorage.removeItem('esc-had-login') } catc
 export function myApoioPerk(): ApoioPerk | null {
   if (!myEmail) return null
   const tier = dbTier ?? FOUNDERS[myEmail]
-  return tier ? APOIO_PERKS[tier] : null
+  if (!tier) return null
+  // 🟢 pele verde de Lenda SÓ na carreira offline (pra quem está no CAREER_GREEN);
+  // em qualquer outro contexto, a cor é a do tier normal (ouro etc.).
+  if (careerColorCtx === 'offline' && CAREER_GREEN.has(myEmail)) return VERDE_LENDA
+  return APOIO_PERKS[tier]
 }
 
 // 🎮 ACESSO AO MODO MANUAL (na carreira): liberado pra quem tem o tier Craque

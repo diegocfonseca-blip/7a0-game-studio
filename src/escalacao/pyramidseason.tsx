@@ -20,7 +20,7 @@ import { StadiumTab, StadiumSvg, SponsorCard } from './estadio'
 import { CopaMundoGate, loadCopaSave } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
-import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual } from './apoio'
+import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
 
 const INK = '#0C0C0C'
@@ -2009,6 +2009,10 @@ function CoinsBadge({ coins }: { coins: number }) {
 }
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
+  // 🟢 liga o "contexto verde" da carreira OFFLINE (feehcamp etc. veem verde SÓ aqui;
+  // ouro em todo o resto). Inline (roda antes dos filhos, sem flash) + limpa ao sair.
+  setCareerColorCtx(state.careerOnline && state.onlineMode !== 'online' ? 'offline' : null)
+  useEffect(() => () => setCareerColorCtx(null), [])
   const round = state.round
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
   // 🏁 ÚLTIMA RODADA: `seasonOver` = a 38ª foi jogada; mas o fim (campeão/tabela final)
