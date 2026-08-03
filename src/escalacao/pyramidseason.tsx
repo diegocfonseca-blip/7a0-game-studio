@@ -3582,13 +3582,13 @@ export function ReserveListScreen() {
             <div style={{ ...box('#FFF7DB'), padding: 11, marginBottom: 10 }}>
               <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🪜 Mercado da {d === 'V' ? '🌱 Várzea' : `Série ${d}`}</p>
               <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Nesta divisão o leilão só negocia <b>{CATS[d]}</b>. Subiu de série? O mercado sobe junto — categoria melhor entra no pregão.</p>
-              {!state.escadaSubiu && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '5px 0 0', lineHeight: 1.4 }}>🔒 <b>Banco de reservas travado</b> — na Várzea joga-se com os 11. Ao <b>subir pra Série D</b> (virar profissional) ele destrava.</p>}
+              {!state.escadaSubiu && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '5px 0 0', lineHeight: 1.4 }}>🌱 Na Várzea o banco enche com essas categorias — <b>suba pra Série D</b> (vire profissional) e jogador melhor entra no pregão.</p>}
               {d === 'A' && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '5px 0 0', lineHeight: 1.4 }}>👑 Elite! Complete <b>2 temporadas na Série A</b> ({state.escadaTempA ?? 0}/2) e o mercado <b>libera TODAS as categorias</b> de vez.</p>}
             </div>
           )
         })()}
         {/* aviso de desbloqueio da temporada */}
-        {state.seasonNo === 2 && !(state.escadaOn && escLib && !state.escadaSubiu) && (
+        {state.seasonNo === 2 && (
           <div style={{ ...box('#EAF3FF'), padding: 11, marginBottom: 10 }}>
             <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px', color: '#2563EB' }}>🔓 Desbloqueado: Reservas!</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>Agora você compra reservas pra encher o banco. A <b>venda/negociação de jogadores libera na 3ª temporada</b>.</p>

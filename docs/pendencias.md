@@ -1,5 +1,32 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## 🪜 HOTFIX — "loop 1→12" no leilão de reservas da escada (03/08, Diego bravo) ✅
+Relato (carreira nova com escada/Várzea): iniciou o leilão de reservas na virada
+T1→T2, tela dizia "não liberado" mas rodou mesmo assim, e virou um desfile de
+resultados 1→12→1 sem leilão de verdade (teve que sair do jogo).
+CAUSA-RAIZ: a trava "banco de reservas só depois do 1º acesso" (benchOK em
+RESERVE_AUCTION_ONLINE) deixava TODO MUNDO mirando 11 — e a sala inteira já tem
+11/11 na virada. Ninguém podia dar lance em NADA → cada leva de 12 lotes
+(BATCH_SIZE=12) lacrava sozinha, tudo "não vendido", leva após leva, setor após
+setor (~10 levas de 12 = o "looping de 1 a 12"). Não era infinito (terminava na
+cerimônia), mas era um leilão 100% inútil e parecia travado.
+✅ CONSERTO (regra nova do Diego: "o leilão de reservas deve funcionar sim, e na
+3ª temporada libera a venda"):
+- Trava do banco REMOVIDA: leilão de reservas da escada funciona desde a T2 igual
+  à carreira normal (todo mundo mira 22; venda continua liberando na T3, regra
+  global que já existia). A RÉGUA de categorias por divisão FICA (na Várzea o
+  banco enche de 🪵+🎯, etc.).
+- `escadaSubiu` virou só marco de "virou profissional" (persiste; muda a régua) —
+  textos e mensagem de acesso atualizados; caixa "banco travado" da tela de venda
+  substituída por explicação da régua; banner T2 "🔓 Desbloqueado: Reservas!"
+  voltou a aparecer na escada (antes era suprimido e contradizia o fluxo).
+- Simulação headless (simescada) re-rodada: 30 temporadas sem stall, elenco chega
+  a 22, régua respeitada, arco V→A preservado.
+- SOBRE O "caixa aumentou estranhamente" ao iniciar o leilão: é a VIRADA legítima
+  — prêmios da temporada + bilheteria − folha entram exatamente no
+  OPEN_RESERVE_LIST e BATEM com o extrato (invariante auditado caixa×extrato).
+  Explicar pro Diego; se ele suspeitar de valor, pedir print do extrato.
+
 ## 🏛️ BUG — SEGUNDO CLUBE não compra depois que o técnico SOBE da Série D (04/08)
 Relato: Lenda com 4.000 moedas, botão fica CINZA com "Nenhum clube da Série D
 disponível agora." (SOLO/offline — não é o online.) CAUSA: a lista `opcoes`

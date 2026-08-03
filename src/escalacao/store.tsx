@@ -213,8 +213,8 @@ function agenciaTransacao(s: EscState, card: { name: string; club?: string; year
   fat.total += 1
   s.agenciaHist = { ...(s.agenciaHist ?? {}), [agKey(ag)]: (s.agenciaHist?.[agKey(ag)] ?? 0) + 1 }
 }
-// 🪜 ESCADA · marcos da carreira: (a) subiu da divisão de estreia → destrava o
-// BANCO DE RESERVAS (persiste mesmo caindo depois); chamado logo após aplicar as
+// 🪜 ESCADA · marco da carreira: subiu da divisão de estreia (Várzea) → virou
+// profissional (persiste mesmo caindo depois); chamado logo após aplicar as
 // colocações novas da temporada. Solo apenas (escadaOn não existe no online).
 function escadaAfterPlacements(s: EscState) {
   if (!s.escadaOn || s.escadaSubiu) return
@@ -222,7 +222,7 @@ function escadaAfterPlacements(s: EscState) {
   const d = s.careerPlacements?.[`m${y}`]
   if (d && d !== 'V') {
     s.escadaSubiu = true
-    ;(s.marketLog = s.marketLog ?? []).push('🪜 SUBIU pra Série D! Agora é profissional: banco de reservas LIBERADO — o leilão mira 22. 🔓')
+    ;(s.marketLog = s.marketLog ?? []).push('🪜 SUBIU pra Série D! Agora é profissional — o mercado sobe junto: categoria melhor entra no pregão. 🔓')
   }
 }
 // 💰 VIRA-TEMPORADA: aplica prêmios + bilheteria + folha na caixa do técnico e
@@ -4491,13 +4491,16 @@ export function reducer(state: EscState, action: Action): EscState {
         // "mesmo time" congelado. Sem isto ele virava deepSquad (mirava 22) e entrava
         // no leilão junto do clube ativo, fazendo o pregão pular entre os dois times e
         // travar (o dormindo nunca lacra). Agora só o clube ATIVO enche o banco.
-        // 🪜 escada: BANCO DE RESERVAS só depois do 1º acesso (subiu da divisão de
-        // estreia) — antes disso todo mundo do leilão mira 11 (mercado é só reposição).
-        // Vale igual pra você, rivais e bots liberados (regra pareja do Diego).
-        const benchOK = !(s.escadaOn && !s.escadaLivre && !s.escadaSubiu)
-        if (m.isHuman && !m.dormindo) { m.deepSquad = benchOK; m.money = s.careerCoins?.[m.id] ?? 0 }
-        else if (m.rival) { m.deepSquad = benchOK; m.money = cash['m' + m.id] ?? 100 } // rival = "humano": enche banco, gasta clubCash
-        else if (m.backstop) { m.deepSquad = benchOK; m.money = cash['m' + m.id] ?? 100 } // LIBERADO: além de repor, pode pegar reserva (mira 22 como todo mundo)
+        // 🪜 escada: o leilão de reservas FUNCIONA desde a 2ª temporada, igual à
+        // carreira normal (todo mundo mira 22). O que muda na escada é a RÉGUA:
+        // o baralho só traz as categorias da SUA divisão. (A trava antiga de
+        // "banco só depois do acesso" deixava a sala inteira 11/11 sem poder dar
+        // lance — o leilão virava um desfile de "não vendido" em levas de 12,
+        // parecendo um loop infinito. Regra do Diego: compra desde a 2ª, venda
+        // libera na 3ª.)
+        if (m.isHuman && !m.dormindo) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
+        else if (m.rival) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // rival = "humano": enche banco, gasta clubCash
+        else if (m.backstop) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // LIBERADO: além de repor, pode pegar reserva (mira 22 como todo mundo)
       }
       s.surpriseId = pickSurprise(s.deck, rng)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
