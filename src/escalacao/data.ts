@@ -1148,7 +1148,7 @@ const NOVOS_BR_MEI: C[] = [
   { name: "Nicolás Lodeiro", club: "Botafogo", year: 2013, fame: 3, lo: 78, hi: 86, bio: "Meia-atacante uruguaio criativo — passes e bolas paradas decisivas no Botafogo." },
   { name: "Jean Pyerre", club: "Grêmio", year: 2019, fame: 2, lo: 68, hi: 84, bio: "Meia de canhota abençoada do Grêmio — talento cru perseguido pelas lesões." },
   { name: "Maicosuel", club: "Botafogo", year: 2009, fame: 2, lo: 66, hi: 83 },
-  { name: "Fellype Gabriel", club: "Botafogo", year: 2011, fame: 2, lo: 66, hi: 82 },
+  { name: "Fellype Gabriel", club: "Botafogo", year: 2013, fame: 2, lo: 66, hi: 82, bio: "Meia de bom passe do Botafogo — equilíbrio e gols no time campeão carioca de 2013." },
   { name: "Bernardo", club: "Vasco", year: 2011, fame: 2, lo: 66, hi: 82 },
   { name: "Gustavo Blanco", club: "Atlético-MG", year: 2018, fame: 2, lo: 66, hi: 82 },
   { name: "Matías Defederico", club: "Corinthians", year: 2009, fame: 2, lo: 66, hi: 82, bio: "Meia argentino habilidoso que chegou com fama ao Corinthians." },
@@ -1203,6 +1203,7 @@ const NOVOS_BR_ATA: C[] = [
   { name: 'Creedence', club: 'Figueirense', year: 2005, fame: 1, lo: 52, hi: 72, folk: true, bio: 'Atacante que rodou o Brasil (Figueirense, Botafogo-SP, Brasiliense) e ganhou fama pelo nome: batizado Creedence Clearwater Couto, em homenagem à banda.' },
 ]
 const NOVOS_BR_ZAG: C[] = [
+  { name: "Ronaldo Angelim", club: "Flamengo", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Zagueiro cearense de raça — eternizado pelo gol do título brasileiro do Flamengo em 2009, no Maracanã lotado." },
   { name: "Victor Ramos", club: "Vitória", year: 2013, fame: 2, lo: 66, hi: 82, bio: "Zagueiro de força do Vitória — muralha baiana marcante na defesa rubro-negra." },
   { name: "Sergio Escobar", club: "Vasco", year: 1996, fame: 2, lo: 64, hi: 82 },
   { name: "Rodrigo Alvim", club: "Internacional", year: 2006, fame: 1, lo: 62, hi: 80 },
