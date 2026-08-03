@@ -4829,6 +4829,19 @@ function activeSeatIdx(s: EscState): number {
 function normalizeMultiSeats(s: EscState): EscState {
   if (!s?.multiClube || !Array.isArray(s.managers)) return s
   const dormId = s.multiClube.id
+  // 🏛️ FANTASMA (bug 04/08, print do Murriz): save contaminado por multiClube de
+  // OUTRA carreira (o START não limpava). Se o "2º clube" não existe de verdade
+  // entre os managers — ou só existe UM humano — o stash é lixo: PURGA e o save
+  // volta a ser carreira de clube único. Save legítimo (2 humanos, dormant real)
+  // passa direto.
+  const humanos = s.managers.filter(m => m.isHuman)
+  const dormReal = humanos.some(m => m.id === dormId)
+  if (!dormReal || humanos.length < 2) {
+    s.multiClube = undefined
+    for (const m of s.managers) if (m.isHuman) m.dormindo = false
+    s.youIdx = Math.max(0, s.managers.findIndex(m => m.isHuman))
+    return s
+  }
   for (const m of s.managers) if (m.isHuman) m.dormindo = (m.id === dormId)
   s.youIdx = activeSeatIdx(s)
   return s
