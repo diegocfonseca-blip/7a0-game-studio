@@ -152,10 +152,14 @@ function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | '
   const q = Math.ceil(rest.length / 3)
   const bucket: Record<'A' | 'B' | 'C', PoolCard[]> = { A: rest.slice(0, q), B: rest.slice(q, q * 2), C: rest.slice(q * 2) }
   const map = new Map<string, PoolCard[]>()
+  // 🏛️ um time que virou MANAGER (ex.: 2º clube do Multiclubes comprado de outra
+  // divisão) NÃO pode também nascer como time de fundo — senão apareceria DUPLICADO
+  // na pirâmide. Normalmente nenhum time A/B/C é manager, então isto é no-op.
+  const mgrNames = new Set(managers.map(m => m.teamName))
   for (const d of ['A', 'B', 'C'] as const) {
     const names = DIVISION_TEAMS[d].map(t => t.team).slice(0, 20)
     const dealt = dealSquads(bucket[d], 20, rng)
-    names.forEach((nm, i) => map.set(nm, dealt[i]))
+    names.forEach((nm, i) => { if (!mgrNames.has(nm)) map.set(nm, dealt[i]) })
   }
   return map
 }
@@ -2760,19 +2764,16 @@ export function PyramidSeasonScreen() {
             {state.onlineMode !== 'online' && (() => {
               const opcoes = (() => {
                 const safName = myFilial?.team
-                // os 4 primeiros da Série D SOBEM — não entram (você pega quem FICA na D)
-                const sobem = new Set(sortDiv(tables.D).slice(0, 4).map(t => t.name))
-                // só times de VERDADE da liga que VÃO ficar na Série D (colocação oficial = D),
-                // fora: você, rivais, a SAF, quem sobe e o que já é seu. Isso bate EXATO com o
-                // que o motor da compra aceita — então TODO time que aparece compra de primeira
-                // (antes a lista usava a tabela ao vivo e mostrava time que o motor recusava).
-                return state.managers
-                  .filter(m => !m.isHuman && !m.rival && !m.auctionRival && !m.mine
-                    && (state.careerPlacements?.[`m${m.id}`] ?? 'D') === 'D'
-                    && m.teamName !== safName
-                    && !sobem.has(m.teamName)
-                    && !state.careerRivals.some(r => r.team === m.teamName))
-                  .map(m => m.teamName)
+                // 🏛️ IGUAL À SAF: a lista vem de `tables.D` (a Série D DE VERDADE, exista
+                // você na divisão que existir) — por isso dá pra comprar de qualquer
+                // divisão, não só quando você está na D. Tira os 4 que estão subindo
+                // (pega quem FICA/joga a Série D), você/humanos/rivais, a SAF e o que já
+                // é seu 2º clube. O motor da compra aceita exatamente esses.
+                const fica = sortDiv(tables.D).slice(4)
+                return fica
+                  .filter(t => !t.you && !t.human && !t.rival)
+                  .map(t => t.name)
+                  .filter(t => t !== safName && t !== state.multiClube?.team && !state.careerRivals.some(r => r.team === t))
               })()
               return <MultiClubeBuy jaTem={state.multiClube?.team} opcoes={opcoes}
                 coins={state.careerCoins?.[youId] ?? 0} preco={4000} isLenda={myApoioPerk()?.tier === 'ouro'}

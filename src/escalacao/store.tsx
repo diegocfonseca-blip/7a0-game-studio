@@ -3224,13 +3224,41 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!you?.isHuman) return s
       const coins = s.careerCoins?.[you.id] ?? 0
       if (coins < PRECO) return s
-      // o alvo é um bot da Série D (não você, não rival, não já-meu)
-      const club = s.managers.find(m => m.teamName === action.team && !m.rival && !m.auctionRival && m.id !== you.id && !m.mine)
-      if (!club || (s.careerPlacements?.[`m${club.id}`] ?? 'D') !== 'D') return s
-      club.mine = true; club.dormindo = true; club.isHuman = true; club.auctionRival = false
+      // CASO 1 — estou NA Série D: o alvo já é um bot da minha liga → só transforma.
+      let club = s.managers.find(m => m.teamName === action.team && !m.rival && !m.auctionRival && m.id !== you.id && !m.mine && (s.careerPlacements?.[`m${m.id}`] ?? 'D') === 'D')
+      if (club) {
+        club.mine = true; club.dormindo = true; club.isHuman = true; club.auctionRival = false
+      } else {
+        // CASO 2 — comprei de OUTRA divisão: o clube da Série D é um time de FUNDO (não
+        // é manager). IGUAL À SAF (que compra por nome de qualquer divisão), eu CRIO ele
+        // como 2º clube dormindo. O resultado é um assento `mine+dormindo` IDÊNTICO ao do
+        // Caso 1 — então, daqui pra frente, ele segue o MESMO caminho já testado (dorme,
+        // joga a temporada, troca de comando). Travas defensivas: nunca você/rival/SAF, e
+        // o alvo TEM que estar hoje na Série D — senão não compra nada (nunca corrompe).
+        if (you.teamName === action.team) return s
+        if (s.careerRivals.some(r => r.team === action.team)) return s
+        if (s.careerFilial?.team === action.team) return s
+        const divNow = s.careerPlacements?.[action.team] ?? (DIVISION_TEAMS['D'].some(t => t.team === action.team) ? 'D' : undefined)
+        if (divNow !== 'D') return s
+        // pra manter a liga em 20 assentos, um preenchimento (bot anônimo) cede o lugar
+        // ao 2º clube. Sem preenchimento livre → não compra (defensivo: nunca 21 assentos).
+        const fillerIdx = s.managers.findIndex(m => !m.isHuman && !m.mine && !m.rival && !m.auctionRival && !m.dormindo && m.id !== you.id)
+        if (fillerIdx < 0) return s
+        const removed = s.managers[fillerIdx]
+        const newId = Math.max(0, ...s.managers.map(m => m.id)) + 1
+        const squad = ((s.cpuSquads?.[action.team] ?? []) as WonCard[]).map(c => ({ ...c }))
+        club = { id: newId, name: action.team, teamName: action.team, isHuman: true, auctionRival: false, mine: true, dormindo: true, formation: '4-3-3', money: 0, squad, aggression: 0.5, starHunger: 0.5 }
+        s.managers = s.managers.map((m, i) => i === fillerIdx ? club! : m)
+        const pl = { ...(s.careerPlacements ?? {}) }
+        pl[`m${newId}`] = 'D'          // o 2º clube joga a Série D
+        delete pl[action.team]         // deixa de existir como time de fundo (por nome)
+        delete pl[`m${removed.id}`]    // o preenchimento que cedeu o lugar
+        s.careerPlacements = pl
+        s.clubCash = { ...(s.clubCash ?? {}), [`m${newId}`]: Math.round(s.clubCash?.[action.team] ?? 100) }
+      }
       const cc = { ...(s.careerCoins ?? {}) }
       cc[you.id] = coins - PRECO // paga do TEU caixa (do clube ativo)
-      cc[club.id] = Math.round(s.clubCash?.[`m${club.id}`] ?? 100) // caixa PRÓPRIA do 2º clube (herda o que ele tinha)
+      cc[club.id] = cc[club.id] ?? Math.round(s.clubCash?.[`m${club.id}`] ?? 100) // caixa PRÓPRIA do 2º clube
       s.careerCoins = cc
       s.multiClube = { team: action.team, since: s.seasonNo, id: club.id }
       s.multiClubeAtivo = false // você segue no comando do principal; o 2º dorme

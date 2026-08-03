@@ -9,12 +9,26 @@ placeados em 'D'. Mas `state.managers` = só ~20 times da SUA divisão atual
 FUNDO gerados por `buildCpuSquads`, que NÃO estão em `state.managers`. Então, assim que
 o técnico sobe pra C/B/A, a Série D vira só times de fundo → lista vazia → botão cinza.
 Justo quem tem 4.000 moedas (várias temporadas) já subiu → não consegue comprar.
-FIX (a fazer, SOLO só — sem risco pro online): montar `opcoes` a partir de `tables.D`
-(nomes reais da Série D, sempre existem) e o `BUY_MULTICLUBE` passar a CRIAR um manager
-dormindo pro time de fundo escolhido (id novo, squad via cpuSquads, placement D,
-mine+dormindo), deixando o buildPyramid rebalancear os 20 da D. ⚠️ Toca SAVE de
-carreira → testar bem (Diego odeia estado quebrado). WORKAROUND imediato: comprar o 2º
-clube ENQUANTO ainda está na Série D (antes de subir).
+✅ FEITO (04/08) — "comprar de qualquer divisão, igual à SAF":
+- `opcoes` (pyramidseason) agora vem de `sortDiv(tables.D).slice(4)` (a Série D DE
+  VERDADE, exista você onde existir), filtrando você/humanos/rivais/SAF/2º-clube — igual
+  à lista da SAF.
+- `BUY_MULTICLUBE` (store): CASO 1 (estou na D) = transforma o bot como antes; CASO 2
+  (outra divisão) = CRIA o 2º clube dormindo (id novo, squad via `cpuSquads`, placement
+  D, mine+dormindo), e um preenchimento cede o lugar pra liga seguir com 20. Resultado é
+  um assento `mine+dormindo` IDÊNTICO ao do Caso 1 → reusa o caminho já testado (dorme/
+  joga/troca). Travas: nunca você/rival/SAF; alvo TEM que estar na D; sem filler livre →
+  não compra (nunca cria estado inválido). Regra do Diego: 1º time em qualquer divisão;
+  2º escolhido entre os que HOJE jogam a Série D; depois cada um vai pra onde o mérito
+  levar. Escolha "todos que vão jogar a D" (inclui caídos da C) atendida por usar tables.D.
+- `buildCpuSquads` agora exclui nomes que viraram MANAGER (evita time DUPLICADO na
+  pirâmide quando um clube de fundo vira 2º clube). No-op no jogo normal.
+Testado: build OK + app sobe sem erro de JS no navegador. NÃO deu pra fazer playthrough
+multi-temporada aqui (Supabase bloqueado no ambiente de teste → sem login/carreira).
+⚠️ FALTA: Diego (ou tester) testar em carreira real: subir pra Série A, comprar 2º clube
+da D, passar 1-2 temporadas e conferir que o clube PERSISTE e dá pra assumir. Reversível
+(commit isolado). FALTA TB: textinho informativo no painel (visual → aguardando OK do
+Diego). WORKAROUND enquanto valida: comprar ainda na Série D.
 
 ## 🚨🚨 BUG SÉRIO — IDENTIDADE/ASSENTO EM SALA GRANDE (03/08) — Diego quer MANTER 20
 Sala LOTADA (18/20) na noite 03/08. Relatos do jogador "Viria" (host): (1) "no começo
