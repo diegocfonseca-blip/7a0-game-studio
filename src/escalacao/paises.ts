@@ -319,6 +319,33 @@ export const PAIS: Record<string, string> = {
   'Papa Bouba Diop': 'Senegal',
   'Gilberto Mora': 'México', 'Carlos Vela': 'México', 'Hirving Lozano': 'México',
   'Milton Caraglio': 'Argentina',
+  // ── 🌍 LOTE COPA (02/08): 4 seleções novas a 22 cada (baralho WORLD) ──
+  // Paraguai
+  'Paulo da Silva': 'Paraguai', 'Claudio Morel Rodríguez': 'Paraguai', 'Denis Caniza': 'Paraguai',
+  'Iván Piris': 'Paraguai', 'Cristian Riveros': 'Paraguai', 'Miguel Almirón': 'Paraguai',
+  'Julio César Romero': 'Paraguai', 'Carlos Paredes': 'Paraguai', 'Nelson Cuevas': 'Paraguai',
+  'Derlis González': 'Paraguai', 'Óscar Cardozo': 'Paraguai', 'José Saturnino Cardozo': 'Paraguai',
+  'Roberto Cabañas': 'Paraguai',
+  // Japão
+  'Yoshikatsu Kawaguchi': 'Japão', 'Eiji Kawashima': 'Japão', 'Yuto Nagatomo': 'Japão',
+  'Atsuto Uchida': 'Japão', 'Hiroki Sakai': 'Japão', 'Maya Yoshida': 'Japão',
+  'Takehiro Tomiyasu': 'Japão', 'Tsuneyasu Miyamoto': 'Japão', 'Shunsuke Nakamura': 'Japão',
+  'Yasuhito Endo': 'Japão', 'Shinji Ono': 'Japão', 'Shinji Okazaki': 'Japão',
+  'Kazuyoshi Miura': 'Japão', 'Kaoru Mitoma': 'Japão', 'Yuya Osako': 'Japão',
+  // Camarões
+  'Thomas N’Kono': 'Camarões', 'Rigobert Song': 'Camarões', 'Nicolas N’Koulou': 'Camarões',
+  'Sébastien Bassong': 'Camarões', 'Lauren': 'Camarões', 'Benoît Assou-Ekotto': 'Camarões',
+  'Pierre Womé': 'Camarões', 'Timothée Atouba': 'Camarões', 'Geremi': 'Camarões',
+  'Alex Song': 'Camarões', 'Modeste M’bami': 'Camarões', 'André-Frank Zambo Anguissa': 'Camarões',
+  'Roger Milla': 'Camarões', 'Patrick Mboma': 'Camarões', 'Vincent Aboubakar': 'Camarões',
+  'Eric Maxim Choupo-Moting': 'Camarões', 'Karl Toko Ekambi': 'Camarões',
+  // Senegal
+  'Édouard Mendy': 'Senegal', 'Tony Sylva': 'Senegal', 'Lamine Diatta': 'Senegal',
+  'Abdou Diallo': 'Senegal', 'Pape Abou Cissé': 'Senegal', 'Ferdinand Coly': 'Senegal',
+  'Habib Beye': 'Senegal', 'Youssouf Sabaly': 'Senegal', 'Pape Souaré': 'Senegal',
+  'Idrissa Gana Gueye': 'Senegal', 'Khalilou Fadiga': 'Senegal', 'Aliou Cissé': 'Senegal',
+  'Salif Diao': 'Senegal', 'Cheikhou Kouyaté': 'Senegal', 'Demba Ba': 'Senegal',
+  'Papiss Cissé': 'Senegal', 'Ismaïla Sarr': 'Senegal',
 }
 
 // Mesmo NOME em baralhos diferentes com país diferente (hoje só estes dois):
