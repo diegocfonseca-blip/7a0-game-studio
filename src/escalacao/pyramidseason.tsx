@@ -11,7 +11,7 @@ import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, EXTRA_D_TEAMS, oldCh
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, catalogTodos } from './store'
-import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS } from './estadiodata'
+import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS } from './estadiodata'
 import type { EmpCat, StadiumSave } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
@@ -878,7 +878,7 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
       </button>
       {locked.length > 0 && (
         <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', background: '#FFF7DB', border: `2px solid ${INK}`, borderRadius: 10, padding: '6px 9px' }}>
-          🔒 {locked.map(k => `${EMP_META[k].label} destrava: ${EMP_META[k].req}`).join(' · ')} — os desbloqueios seguem na aba <b>Clube › Agência</b>.
+          🔒 {locked.map(k => `${EMP_META[k].label} destrava: ${EMP_META[k].req}`).join(' · ')} — os desbloqueios ficam em <b>Clube › 🏗️ Estrutura</b> (a obra do estádio destrava).
         </div>
       )}
 
@@ -1004,36 +1004,59 @@ function ConvocacaoAgencia({ current, pool, onClose, onSave }: { current: AgCard
   )
 }
 
-// 🔓 Clube › Agência quando a AGÊNCIA 2.0 está ligada: aqui ficam SÓ os
-// desbloqueios (decisão do Diego: "deixa lá junto do estádio") — a agência em si
-// mora na aba Elenco › Agenciados.
-function AgenciaDesbloqueios({ st, hasFilial }: { st: StadiumSave | undefined; hasFilial: boolean }) {
+// 🕴️ AGÊNCIA na área do estádio (Clube › Estrutura) — mockup aprovado pelo Diego
+// (03/08): a escada de desbloqueios mora ABAIXO do estádio/patrocínio, em caixa
+// escura pra não confundir com a obra. A agência em si (os 22 na ativa) segue em
+// Elenco › Agenciados — o botão no fim leva pra lá.
+const AG_EMOJI: Record<EmpCat, string> = { prof: '🪵', bom: '🎯', promessa: '💎', craque: '⭐', lenda: '👑' }
+function AgenciaDesbloqueios({ st, hasFilial, onVerAgenciados }: { st: StadiumSave | undefined; hasFilial: boolean; onVerAgenciados?: () => void }) {
+  const done = sectorsDone(st)
+  const faltam: string[] = []
+  for (const s of STADIUM_SECTORS) if (sectorPct(st, s.k) < 100) faltam.push(s.n)
+  for (const e of STADIUM_EXTRAS) if (!hasExtra(st, e.k)) faltam.push(e.n)
+  const obras = STADIUM_SECTORS.length + STADIUM_EXTRAS.length - faltam.length
+  const totObras = STADIUM_SECTORS.length + STADIUM_EXTRAS.length
+  // texto da exigência com o PROGRESSO real (regra do Diego: trava diz o que falta)
+  const req: Record<EmpCat, string> = {
+    prof: 'Liberada desde o 1º dia — aprende a mexer sem custo.',
+    bom: done >= 1 ? `1 setor do estádio pronto — você já tem ${done}. ✓` : '1 setor do estádio pronto — termine a primeira obra.',
+    promessa: done >= 3 ? `3 setores prontos — você já tem ${done}. ✓` : `3 setores prontos — você tem ${done}.`,
+    craque: faltam.length === 0 ? 'Estádio 100% completo. ✓' : `Estádio 100% (${totObras} obras). Falta: ${faltam.slice(0, 3).join(', ')}${faltam.length > 3 ? '…' : ''}.`,
+    lenda: hasFilial ? 'SAF comprada — chegou no ápice. ✓' : 'Compre a SAF (2.000 🪙 + estádio completo) — o ápice do clube.',
+  }
+  const chip: Record<EmpCat, string> = { prof: '', bom: `🔒 ${Math.min(done, 1)}/1 SETOR`, promessa: `🔒 ${Math.min(done, 3)}/3 SETORES`, craque: `🔒 ${obras}/${totObras} OBRAS`, lenda: '🔒 SAF' }
+  const ordem = [...EMP_ORDER].reverse() // escada de baixo pra cima: 🪵 primeiro (aberta), 👑 por último (ápice)
+  const firstLocked = ordem.find(k => !empCatUnlocked(k, st, hasFilial))
   return (
-    <>
-      <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '12px 14px', marginBottom: 10 }}>
-        <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>🕴️ Desbloqueios da Agência</div>
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.85)', marginTop: 4, lineHeight: 1.45 }}>Cada categoria de agenciado só <b>rende</b> quando destravada — puxando o <b>estádio</b> e a <b>SAF</b>. Sua agência (os 22 na ativa) fica na aba <b>Elenco › 🕴️ Agenciados</b>.</div>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {EMP_ORDER.map(k => {
-          const m = EMP_META[k]
+    <div style={{ ...box(), background: 'linear-gradient(160deg,#241E33,#0C0C0C 70%)', color: '#fff', padding: 12, marginBottom: 10 }}>
+      <div style={{ fontSize: 9.5, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800, ...OSWALD }}>A obra destrava o escritório</div>
+      <div style={{ ...OSWALD, fontWeight: 900, fontSize: 19, textTransform: 'uppercase', color: GOLD, lineHeight: 1.1, margin: '2px 0 3px' }}>🕴️ Agência de Jogadores</div>
+      <p style={{ fontSize: 10.5, fontWeight: 600, color: 'rgba(255,255,255,.82)', lineHeight: 1.5, margin: '0 0 10px' }}>Cada categoria que você libera aqui passa a <b>render moedas por temporada</b> quando está na ativa (Elenco › Agenciados). Clube maior = agência maior.</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+        {ordem.map(k => {
           const ok = empCatUnlocked(k, st, hasFilial)
+          const next = k === firstLocked
+          const bg = ok ? '#EAF6EE' : next ? '#FFF7DB' : '#EDE8DA'
           return (
-            <div key={k} style={{ ...box(ok ? '#fff' : '#F1EBD9'), padding: '10px 12px', opacity: ok ? 1 : .75, display: 'flex', alignItems: 'center', gap: 9 }}>
-              <span style={{ fontSize: 20 }}>{m.emoji}</span>
+            <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 13, padding: '8px 10px', background: bg, color: INK, boxShadow: '2px 2px 0 rgba(0,0,0,.55)', opacity: ok || next ? 1 : .92 }}>
+              <span style={{ fontSize: 22, width: 28, textAlign: 'center' }}>{AG_EMOJI[k]}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{m.label} <span style={{ fontWeight: 700, fontSize: 11, color: '#8a8069' }}>+{AG_VALUES[k]}/temporada por carta na ativa</span></div>
-                <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069' }}>{ok ? '✅ destravada — rende normal' : `🔒 destrava: ${m.req}`}</div>
+                <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', lineHeight: 1.1 }}>{EMP_META[k].label}</div>
+                <div style={{ fontSize: 9.5, fontWeight: 600, color: '#5a5647', lineHeight: 1.35 }}>{req[k]}</div>
               </div>
-              <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: ok ? GREEN : '#b3a688' }}>{ok ? `+${AG_VALUES[k]}` : '🔒'}</div>
+              <div style={{ ...OSWALD, fontWeight: 900, fontSize: 11, whiteSpace: 'nowrap', textAlign: 'right', lineHeight: 1.2 }}>
+                +{AG_VALUES[k]} 🪙/carta
+                <span style={{ display: 'block', fontSize: 8.5, fontWeight: 800, letterSpacing: .5, borderRadius: 6, padding: '1px 6px', marginTop: 3, background: ok ? GREEN : next ? GOLD : '#8a8064', color: ok ? '#fff' : next ? INK : '#fff', ...OSWALD }}>{ok ? '✓ ABERTA' : chip[k]}</span>
+              </div>
             </div>
           )
         })}
-        <div style={{ ...box('#FFF7DB'), padding: '9px 12px', fontSize: 10.5, fontWeight: 700, color: '#5a5647', lineHeight: 1.45 }}>
-          🃏 Carta <b>Folclórica</b> na ativa ganha <b>+{AG_FOLK_BONUS}</b> por cima da categoria · comissões: 🥇 artilheiro +1 · 🏆 campeão +1 · 💸 negociado no leilão +1.
-        </div>
       </div>
-    </>
+      <div style={{ fontSize: 9.5, fontWeight: 600, color: 'rgba(255,255,255,.75)', marginTop: 9, lineHeight: 1.45 }}>🃏 Carta <b>folclórica</b> rende <b>+{AG_FOLK_BONUS} 🪙</b> por cima — junto com a categoria dela liberada · comissões: 🥇 artilheiro +1 · 🏆 campeão +1 · 💸 negociado no leilão +1.</div>
+      {onVerAgenciados && (
+        <button onClick={onVerAgenciados} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 13, padding: 10, fontWeight: 900, fontSize: 13, ...OSWALD, textTransform: 'uppercase', background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: '3px 3px 0 rgba(0,0,0,.55)', marginTop: 10, cursor: 'pointer' }}>🧢 Ver meus agenciados — Elenco › Agenciados</button>
+      )}
+    </div>
   )
 }
 
@@ -2439,6 +2462,7 @@ export function PyramidSeasonScreen() {
   const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio'>('estadio') // 🏟️/💰/💼 sub-abas da aba Clube
   const [elencoSub, setElencoSub] = useState<'elenco' | 'agencia'>('elenco') // 👥/🕴️ sub-abas do Elenco (Agenciados só na Agência 2.0 — carreira nova)
   const agLib = useAgenciaLiberada() // 🔒 Agência 2.0 por enquanto SÓ a conta do Diego — pros outros o jogo fica 100% igual
+  const agenciaOk = !!state.agenciaOn && agLib // 🏗️ Clube vira "Estrutura" (estádio→patrocínio→agência) SÓ na Agência 2.0
   // 🏛️ MULTICLUBES (Opção B): seletor livre. `multiAsk` = modal de confirmar a troca;
   // `multiPending` = você apertou no meio de uma rodada (auto) → troca no fim dela.
   const [multiAsk, setMultiAsk] = useState(false)
@@ -3112,18 +3136,17 @@ export function PyramidSeasonScreen() {
                 Agora tudo (Estádio · Finanças · Agência) vale online também,
                 por-técnico (Passo 2c completa a paridade com o offline). */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              {(([['estadio', '🏟️', 'Estádio'], ['financas', '💰', 'Finanças'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
-                // 🕴️ Agência 2.0 ligada: a agência mora em Elenco › Agenciados — some a sub-aba daqui (pedido do Diego)
-                .filter(([sb]) => !(sb === 'escritorio' && state.agenciaOn && agLib)).map(([s, ic, label]) => (
+              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? 'Estrutura' : 'Estádio'], ['financas', '💰', 'Finanças'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
+                // 🕴️ Agência 2.0 ligada: a agência mora em Elenco › Agenciados e os
+                // desbloqueios DENTRO da Estrutura — some a sub-aba daqui (pedido do Diego)
+                .filter(([sb]) => !(sb === 'escritorio' && agenciaOk)).map(([s, ic, label]) => (
                 <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>
-            {clubeSub === 'escritorio' ? (
-              // 🕴️ AGÊNCIA 2.0 (carreira nova): aqui ficam SÓ os desbloqueios; a agência
-              // em si mora em Elenco › Agenciados. Saves antigos seguem no clássico.
-              (state.agenciaOn && agLib)
-                ? <AgenciaDesbloqueios st={state.stadiums?.[state.agenciaClubeId ?? youId]} hasFilial={!!state.careerFilial} />
-                : <EscritorioTab cards={(state.onlineMode === 'online' ? state.careerEmpresario?.[youId] : state.empresarioCards) ?? []} st={state.stadiums?.[youId]} hasFilial={state.onlineMode === 'online' ? !!state.careerFilials?.[youId] : !!state.careerFilial} />
+            {clubeSub === 'escritorio' && !agenciaOk ? (
+              // 💼 escritório CLÁSSICO (saves antigos). Na Agência 2.0 a sub-aba não
+              // existe (um clubeSub 'escritorio' herdado cai na Estrutura, logo abaixo).
+              <EscritorioTab cards={(state.onlineMode === 'online' ? state.careerEmpresario?.[youId] : state.empresarioCards) ?? []} st={state.stadiums?.[youId]} hasFilial={state.onlineMode === 'online' ? !!state.careerFilials?.[youId] : !!state.careerFilial} />
             ) : clubeSub === 'financas' ? (
               <>
               <FinancasTab ledger={(state.onlineMode === 'online' ? state.careerLedgers?.[youId] : state.careerLedger) ?? []} caixa={state.careerCoins?.[youId] ?? 0} seasonNo={state.seasonNo ?? 1}
@@ -3133,8 +3156,11 @@ export function PyramidSeasonScreen() {
             ) : (
           <>
             {/* 👕 Patrocínio: escolhe a marca (por divisão); rende no vira-temporada.
-                Online: por técnico (careerSponsors[youId]). Offline: careerSponsor. */}
-            {me && <SponsorCard div={me.div} chosen={state.onlineMode === 'online' ? state.careerSponsors?.[youId] : state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id, mgrId: youId })} />}
+                Online: por técnico (careerSponsors[youId]). Offline: careerSponsor.
+                🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
+                estádio continua a primeira coisa visível (sagrado) → patrocínio →
+                agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
+            {!agenciaOk && me && <SponsorCard div={me.div} chosen={state.onlineMode === 'online' ? state.careerSponsors?.[youId] : state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id, mgrId: youId })} />}
             <StadiumTab st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
@@ -3177,6 +3203,11 @@ export function PyramidSeasonScreen() {
               loanSlots={/* mesma fonte de divisão da REGRA (colocação gravada; tabela ao vivo
                 como reserva) — se divergirem, o botão prometia 2 e o clique não fazia nada */
                 filialSlots(state.careerPlacements?.[`m${youId}`] ?? me?.div ?? 'D')} />
+            {/* 🏗️ ESTRUTURA (Agência 2.0): patrocínio DEPOIS do estádio, e a escada
+                da agência fecha a página (caixa escura — não confunde com a obra) */}
+            {agenciaOk && me && <SponsorCard div={me.div} chosen={state.onlineMode === 'online' ? state.careerSponsors?.[youId] : state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id, mgrId: youId })} />}
+            {agenciaOk && <AgenciaDesbloqueios st={state.stadiums?.[state.agenciaClubeId ?? youId]} hasFilial={!!state.careerFilial}
+              onVerAgenciados={() => { setTab('elenco'); setElencoSub('agencia') }} />}
             {/* 🏛️ MULTICLUBES · SELETOR LIVRE (Opção B): troca de clube a qualquer hora,
                 fora do leilão (outra tela) e de jogo/Copa rolando. Só testers, só solo. */}
             {state.onlineMode !== 'online' && state.multiClube && (() => {

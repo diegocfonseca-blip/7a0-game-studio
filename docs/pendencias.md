@@ -30,9 +30,17 @@ Pedidos do áudio do Diego:
    ordem: 1) StadiumSvg no TOPO (intacto, primeira coisa visível) · 2) obras/
    melhorias · 3) patrocínio · 4) caixa escura da Agência por último (destaca,
    não confunde com a obra). Aguardando OK do v2.
-❌ NÃO CODAR o visual antes do OK do Diego (regra dele). Quando aprovar:
-   mover AgenciaDesbloqueios pro fim da branch do estádio, renomear sub-aba,
-   corrigir o texto ~881, remover o branch escritorio da Agência 2.0.
+✅ IMPLEMENTADO (03/08) — Diego aprovou o v2 ("Gostei", com a ressalva de NÃO
+   mexer no visual do estádio; o desenho do mockup era só marcador meu):
+   - Sub-aba vira "🏗️ Estrutura" e ordem StadiumTab (desenho intacto, primeiro)
+     → SponsorCard → AgenciaDesbloqueios (escada escura nova com progresso real:
+     você tem X setores, falta camarote/telão…, chips ✓ABERTA/🔒N-de-M, CTA
+     "Ver meus agenciados" que pula pra Elenco › Agenciados).
+   - TUDO atrás de `agenciaOk` (agenciaOn && conta liberada) — jogo clássico e
+     saves antigos 100% intocados (patrocínio continua em cima, aba Agência
+     clássica continua existindo pra eles).
+   - clubeSub 'escritorio' herdado numa carreira 2.0 cai na Estrutura (nada de
+     tela órfã); texto da AgenciadosTab agora aponta pra Clube › Estrutura.
 
 ## 🔬 AUDITORIA FINA da carreira nova (escada) — pedido do Diego pós-loop (03/08) ✅
 Diego pediu: (a) confirmar leilão de reservas na 2ª + listar na 3ª; (b) contratos
