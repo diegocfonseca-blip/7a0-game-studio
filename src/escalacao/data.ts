@@ -2206,7 +2206,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Robertão', team: 'Murriz FC' }, // ⚽ clube BATIZADO por apoiador (msb102010 — Murriz FC, ex-Robertão United)
     { name: 'Biriba', team: 'Tôka10' }, // ⚽ clube BATIZADO por apoiador (ofc.toka10 — Tôka10, ex-Biriba United)
     { name: 'Duda Fortuna', team: 'Skyy FC' }, // ⚽ clube BATIZADO por apoiador (matheusncruz1 — Skyy FC, ex-Fortuna SAF)
-    { name: 'PC Magrão', team: 'Magrão EC' }, // Magrão EC veio pra cá (o Pelado FR saiu pra dar lugar ao Nightfull FC)
+    { name: 'PC Magrão', team: 'Vasco da Grana' }, // ⚽ clube BATIZADO (pedido do Diego 03/08 — Vasco da Grana, ex-Magrão EC)
     { name: 'Neguinho do Apito', team: 'Tokyo City Esperion' }, // ⚽ clube BATIZADO por apoiador (denilson.stifler10 — Tokyo City Esperion, ex-FC Galáticos)
     { name: 'Dedé Bigode', team: 'Inter Estadual' },
     { name: 'Tião Bagre', team: 'Cuiabagre' },
