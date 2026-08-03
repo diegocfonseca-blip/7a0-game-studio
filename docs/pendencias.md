@@ -1,19 +1,44 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
-## 🚨🚨 BUG SÉRIO — JOGADOR EM DOBRO / EXPULSAR BAGUNÇA OS ASSENTOS (03/08)
-Sala LOTADA (18/20 técnicos) na noite de 03/08. Relato do jogador "Viria" (host):
-"no começo tinha DOIS eu; o segundo não dava lance em nada (bug), aí eu expulsei —
-e acho q tem a ver com isso". Sintomas: leilão **lacrando sozinho** e **time montado
-sozinho do meio pra frente** "como se o tempo tivesse acabado, mas não acabou".
-→ É o histórico "índices de assento" que o CLAUDE.md avisa. Causa provável: o MESMO
-usuário entrou em DOIS assentos (corrida no join/rejoin de sala cheia) e/ou o
-**KICK_PLAYER desloca os índices** e um assento vira fantasma que auto-lacra
-(FORCE_SEAL / auto-lacra em `screens.tsx` ~2197-2213, quem "não pode dar lance"
-lacra vazio) e auto-preenche o time. **A INVESTIGAR COM CUIDADO** (área sensível,
-host-autoritativo): (a) impedir 2 assentos pro mesmo user no join; (b) revisar o
-efeito de KICK nos youIdx/seat de todo mundo. NÃO foi a mudança de heartbeat (essa
-só mexia na frequência de reenvio; foi revertida — ver abaixo). Não hot-patchar com
-sala cheia ao vivo; trazer fix testado.
+## 🚨🚨 BUG SÉRIO — IDENTIDADE/ASSENTO EM SALA GRANDE (03/08) — Diego quer MANTER 20
+Sala LOTADA (18/20) na noite 03/08. Relatos do jogador "Viria" (host): (1) "no começo
+tinha DOIS eu; o 2º não dava lance (fantasma), aí expulsei"; (2) depois ficou
+**jogando com o NOME DE OUTRO técnico**; (3) deu **F5 e trocou pra OUTRO nome, ainda
+não o dele**. Sintomas colaterais: leilão lacrando sozinho + time montado sozinho.
+Diego escolheu **MANTER limite 20** (não capar sala) → precisa consertar a RAIZ.
+
+### O que já apurei no código (03/08):
+- **KICK NÃO desloca o array** (era minha suspeita, ERRADA): `KICK_PLAYER` (store.tsx
+  ~2547) acha o manager por **id** e só faz `isHuman=false` **no lugar** (vira CPU).
+  Não faz splice → não empurra índices. Então o kick sozinho não é o vilão.
+- **A âncora de identidade é FRÁGIL**: `FIX_YOU_IDX` (auto-cura, store.tsx ~5145-5160)
+  reancora o `youIdx` **pelo NOME** (device display_name × manager.name), e só quando
+  há EXATAMENTE 1 humano com aquele nome. Fura quando: (a) existe **fantasma com nome
+  igual** (cands≠1 → não cura); (b) o **nome do device ≠ nome do time** no jogo (nunca
+  casa → nunca cura); (c) **carreira online reordena os managers entre temporadas** →
+  `player_index` do room_players deixa de bater com a posição no array.
+- No reconnect, `RESTORE_ONLINE` faz `youIdx = room_players.player_index` (lobby ~270),
+  e o **host-recreate usa `seatIdx = mineMgr.id`** (lobby ~256) — id NÃO é
+  necessariamente a posição do array. Somados, dá pra cair no assento errado.
+- Dedup "1 técnico = 1 assento" só roda no **startOnline** (lobby ~1139-1151); um
+  fantasma criado por corrida/reconexão DEPOIS do start escapa.
+
+### PLANO DO FIX (área sensível — testar antes de subir pra sala grande):
+1. **Assento ancorado por ID ESTÁVEL, não por nome**: guardar o `manager.id` do técnico
+   por usuário (ex.: gravar no room_players no START_ONLINE) e no reconnect fazer
+   `youIdx = managers.findIndex(m => m.id === meuManagerId)`. Sobrevive a reordenação
+   de temporada e a nome de time custom. (Fallback: nome, só se não achar por id.)
+2. **1 técnico = 1 assento SEMPRE**: rodar a dedup por usuário também na reconexão/no
+   meio do jogo, não só no start → fantasma nunca existe.
+3. Revisar auto-lacra do espectador (screens.tsx ~2197-2213) pra assento fantasma não
+   forçar SEAL.
+⚠️ NÃO hot-patchar na sala ao vivo de 20; **reproduzir num teste de 2-3 pessoas** e
+subir validado. Deploy não derruba quem já joga (só vale em F5/próxima sala).
+
+### ✅ Já consertado nesta noite (03/08):
+- **Velocidade** (commit 6a42317): sala AUTO rodava "ultra rápida" porque `simSpeed`
+  (sincronizado na sala) vinha alto de um jogo anterior e o online não tem botão pra
+  voltar. `START_ONLINE` agora zera `simSpeed=1`. Só afeta jogos NOVOS. Reversível.
 
 ## 🚨 CUSTO SUPABASE — estourou cota (03/08) — fix REVERTIDO, RE-APLICAR com calma
 Pro Plan. Ciclo passou da cota: **Realtime Messages 20mi/5mi (400%)** e **Egress
