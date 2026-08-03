@@ -1108,9 +1108,12 @@ const ATA: C[] = [
 
 // 🆕 cartas novas (baralho BR) — pedidas pelo Diego: reais e folclóricos do futebol nacional.
 const NOVOS_BR_GOL: C[] = [
+  { name: "Getúlio Vargas", club: "Brasiliense", year: 2006, fame: 1, lo: 60, hi: 79, folk: true, bio: "Goleiro folclórico do Brasiliense — dividia o nome com o presidente e ainda pegava pênalti no Centro-Oeste." },
+  { name: "Gideão", club: "Náutico", year: 2011, fame: 1, lo: 60, hi: 79 },
+  { name: "Rodrigo Arroz", club: "Flamengo", year: 2005, fame: 1, lo: 60, hi: 79, folk: true, bio: "O goleiro Arroz do Flamengo nos anos 2000 — apelido folclórico que ninguém esquece." },
   { name: "Matheus Donelli", club: "Corinthians", year: 2023, fame: 2, lo: 66, hi: 82, bio: "Goleiro da base do Corinthians que ganhou espaço entre os profissionais — bons reflexos no gol alvinegro." },
   { name: "Ivan Brazão", club: "Santos", year: 2020, fame: 2, lo: 64, hi: 82, bio: "Goleiro revelado na base do Santos — camisa 1 jovem da Vila Belmiro." },
-  { name: "Diego (goleiro)", club: "Flamengo", year: 2009, fame: 2, lo: 66, hi: 83, bio: "Goleiro do Flamengo no fim dos anos 2000, antes da era dos grandes títulos." },
+  { name: "Diego (goleiro)", club: "Flamengo", year: 2009, fame: 1, lo: 61, hi: 79, bio: "Goleiro do Flamengo no fim dos anos 2000, antes da era dos grandes títulos." },
   { name: "Martín Silva", club: "Vasco", year: 2015, fame: 3, lo: 78, hi: 86, bio: "Goleirão uruguaio do Vasco — paredão querido em São Januário e titular da Celeste." },
   { name: 'Júlio César', club: 'Corinthians', year: 2010, fame: 1, lo: 56, hi: 76, bio: 'Goleiro titular do Corinthians em 2010-11, antes do Cássio chegar. (Não confundir com o Júlio César da Seleção!)' },
   { name: 'Renan Ribeiro', club: 'Atlético-MG', year: 2016, fame: 1, lo: 57, hi: 77, bio: 'Paredão suplente do Atlético-MG antes de rodar Portugal — reflexo e frieza no pênalti.' },
@@ -1118,14 +1121,13 @@ const NOVOS_BR_GOL: C[] = [
   { name: 'Edinho', club: 'Santos', year: 1994, fame: 2, lo: 62, hi: 79, folk: true, bio: 'Goleiro do Santos nos anos 90 e filho do Pelé — carregou o sobrenome mais pesado do futebol debaixo das traves e ainda assim foi titular do Peixe.' },
 ]
 const NOVOS_BR_LAT: C[] = [
-  { name: "Anderson Pico", club: "Grêmio", year: 2010, fame: 2, lo: 66, hi: 82 },
+  { name: "Anderson Pico", club: "Grêmio", year: 2010, fame: 1, lo: 61, hi: 79 },
   { name: "Victor Ferraz", club: "Santos", year: 2016, fame: 2, lo: 68, hi: 83 },
   { name: "Zeca", club: "Santos", year: 2016, fame: 2, lo: 66, hi: 82 },
   { name: "Gustavo Nery", club: "São Paulo", year: 2004, fame: 3, lo: 76, hi: 85, bio: "Lateral-esquerdo canhoto de bom cruzamento — passou pela Seleção na Copa de 2002." },
   { name: "Carlinhos", club: "Fluminense", year: 2014, fame: 2, lo: 66, hi: 82 },
   { name: "Ilsinho", club: "São Paulo", year: 2006, fame: 3, lo: 77, hi: 85, bio: "Lateral/ponta-direita driblador do São Paulo — velocidade e dribles curtos." },
-  { name: "Yoshimar Yotún", club: "Vasco", year: 2013, fame: 2, lo: 68, hi: 83, bio: "Lateral-esquerdo peruano de bom pé — passagem pelo Vasco antes de rodar o mundo." },
-  { name: "Morais", club: "Vasco", year: 2006, fame: 2, lo: 64, hi: 81 },
+  { name: "Yoshimar Yotún", club: "Vasco", year: 2013, fame: 1, lo: 61, hi: 79, bio: "Lateral-esquerdo peruano de bom pé — passagem pelo Vasco antes de rodar o mundo." },
   { name: 'China', club: 'Flamengo', year: 2004, fame: 1, lo: 54, hi: 74, bio: 'Lateral raçudo do Flamengo — marcação e disposição pela faixa.' },
   { name: 'Jorge', club: 'Flamengo', year: 2016, fame: 1, lo: 57, hi: 78, bio: 'Lateral-esquerdo joia do Flamengo, arrancada e cruzamento — foi cedo pro Mônaco.' },
   { name: 'Sérginho', club: 'São Caetano', year: 2004, fame: 2, lo: 68, hi: 81, bio: 'Guerreiro do timaço do São Caetano dos anos 2000 — eternizado no coração do Azulão.' },
@@ -1134,6 +1136,7 @@ const NOVOS_BR_LAT: C[] = [
   { name: 'Eduardo Ratinho', club: 'Corinthians', year: 2005, fame: 2, lo: 62, hi: 79, bio: 'Lateral-direito veloz e driblador, com boa bola parada — a revelação do Corinthians em 2005; ainda passou por CSKA Moscou, Toulouse e Fluminense antes de parar cedo.' },
 ]
 const NOVOS_BR_MEI: C[] = [
+  { name: "Morais", club: "Vasco", year: 2006, fame: 2, lo: 66, hi: 82 },
   { name: "Renato", club: "Santos", year: 2005, fame: 3, lo: 77, hi: 86, bio: "Volante de boa saída de bola e capitão de raça — meio-campo sólido no Brasil e na Europa." },
   { name: "Arouca", club: "Santos", year: 2012, fame: 3, lo: 77, hi: 85, bio: "Volante marcador do Santos de Neymar — pegada firme e primeiro passe simples." },
   { name: "Lúcio Flávio", club: "Botafogo", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Meia canhoto de falta perigosa — maestro do Botafogo no fim dos anos 2000." },
@@ -1142,7 +1145,6 @@ const NOVOS_BR_MEI: C[] = [
   { name: "Maicosuel", club: "Botafogo", year: 2009, fame: 2, lo: 66, hi: 83 },
   { name: "Fellype Gabriel", club: "Botafogo", year: 2011, fame: 2, lo: 66, hi: 82 },
   { name: "Bernardo", club: "Vasco", year: 2011, fame: 2, lo: 66, hi: 82 },
-  { name: "Negreiros", club: "Flamengo", year: 2006, fame: 2, lo: 64, hi: 81 },
   { name: "Gustavo Blanco", club: "Atlético-MG", year: 2018, fame: 2, lo: 66, hi: 82 },
   { name: "Matías Defederico", club: "Corinthians", year: 2009, fame: 2, lo: 66, hi: 82, bio: "Meia argentino habilidoso que chegou com fama ao Corinthians." },
   { name: "Abedi Pelé", club: "Vasco", year: 2007, fame: 3, lo: 76, hi: 85 },
@@ -1162,6 +1164,7 @@ const NOVOS_BR_MEI: C[] = [
   { name: 'Douglas Barriga de Cadela', club: 'Corinthians', year: 2014, fame: 1, lo: 52, hi: 68, folk: true, bio: 'O meia que a Fiel judiava pela forma física — ganhou o apelido cruel e virou meme eterno da arquibancada.' },
 ]
 const NOVOS_BR_ATA: C[] = [
+  { name: "Negreiros", club: "Flamengo", year: 2006, fame: 1, lo: 61, hi: 79 },
   { name: "Marinho", club: "Santos", year: 2020, fame: 3, lo: 78, hi: 86, bio: "Atacante driblador e artilheiro do Santos vice da Libertadores 2020 — melhor da América no ano." },
   { name: "Lucas Pratto", club: "São Paulo", year: 2017, fame: 3, lo: 78, hi: 86, bio: "\u0022El Oso\u0022 — centroavante argentino brigador e goleador do São Paulo." },
   { name: "Ángel Romero", club: "Corinthians", year: 2016, fame: 3, lo: 76, hi: 85, bio: "Atacante paraguaio de faro e chute forte — peça do Corinthians campeão." },
