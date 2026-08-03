@@ -6,7 +6,7 @@ import type {
   QuickCopaState, QuickCopaTie, LedgerEntry, EmpCard, AgCard, AgEvento,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, newestTeamName } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, newestTeamName } from './data'
 import { stripEmoji } from './apoio'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
 import { NBA_SLOTS_PER_POS } from './sportcfg'
@@ -220,9 +220,9 @@ function escadaAfterPlacements(s: EscState) {
   if (!s.escadaOn || s.escadaSubiu) return
   const y = s.managers[s.youIdx]?.id ?? 0
   const d = s.careerPlacements?.[`m${y}`]
-  if (d && d !== 'D') {
+  if (d && d !== 'V') {
     s.escadaSubiu = true
-    ;(s.marketLog = s.marketLog ?? []).push('🪜 SUBIU! Banco de reservas LIBERADO — a partir de agora o leilão mira 22. 🔓')
+    ;(s.marketLog = s.marketLog ?? []).push('🪜 SUBIU pra Série D! Agora é profissional: banco de reservas LIBERADO — o leilão mira 22. 🔓')
   }
 }
 // 💰 VIRA-TEMPORADA: aplica prêmios + bilheteria + folha na caixa do técnico e
@@ -366,14 +366,14 @@ function seedClubCash(cash: Record<string, number>, placements: Record<string, s
   for (const [k, d] of Object.entries(placements ?? {})) if (out[k] == null) out[k] = DIV_BASE_CASH[d] ?? 100
   return out
 }
-type Honors = { A: number; B: number; C: number; D: number }
+type Honors = { A: number; B: number; C: number; D: number; V?: number }
 // credita +1 título na divisão que cada time foi campeão nesta temporada
-function applyHonors(honors: Record<string, Honors> | undefined, champions?: Record<string, 'A' | 'B' | 'C' | 'D'>): Record<string, Honors> {
+function applyHonors(honors: Record<string, Honors> | undefined, champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>): Record<string, Honors> {
   const out: Record<string, Honors> = { ...(honors ?? {}) }
   for (const key in (champions ?? {})) {
-    const div = (champions as Record<string, 'A' | 'B' | 'C' | 'D'>)[key]
+    const div = (champions as Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>)[key]
     const cur = out[key] ?? { A: 0, B: 0, C: 0, D: 0 }
-    out[key] = { ...cur, [div]: cur[div] + 1 }
+    out[key] = { ...cur, [div]: (cur[div] ?? 0) + 1 }
   }
   return out
 }
@@ -381,7 +381,7 @@ function applyHonors(honors: Record<string, Honors> | undefined, champions?: Rec
 // temporada (título de divisão e/ou Copa Legends). Chamado no fim de temporada, ANTES
 // do seasonNo++. Keyed pelo id do clube (já separado do ativo). Ao passar o comando pra
 // ele, o pacote aparece pra você abrir. NÃO faz nada fora do solo com 2º clube.
-function recordDormantCards(s: EscState, champions?: Record<string, 'A' | 'B' | 'C' | 'D'>, copaChampion?: string | null) {
+function recordDormantCards(s: EscState, champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>, copaChampion?: string | null) {
   if (!s.multiClube) return
   const dk = `m${s.multiClube.id}` // teamKey do clube que dorme (managed → m{id})
   const wonDiv = !!(champions && champions[dk])
@@ -711,12 +711,15 @@ function montePush(state: EscState, cards: Card[]) {
 // (2 temporadas jogadas na Série A). Fase 1 (sem a divisão Várzea real ainda):
 // D (estreia) = foi-prof + bom · C = bom + promessa · B = promessa + craque ·
 // A = craque + lenda. Quando a Várzea entrar (Fase 2), a régua desce um degrau.
-type EscadaDiv = 'A' | 'B' | 'C' | 'D'
+// Fase 2 (VÁRZEA real): V = foi-prof + bom · D = bom + promessa · C e B =
+// promessa + craque · A = craque + lenda (spec original do Diego, completa).
+type EscadaDiv = 'A' | 'B' | 'C' | 'D' | 'V'
 export function escadaAllows(div: EscadaDiv, c: { fame?: number; promessa?: boolean }): boolean {
   const f = c.fame ?? 1
   switch (div) {
-    case 'D': return !c.promessa && f <= 3
-    case 'C': return !!c.promessa || (f >= 2 && f <= 3)
+    case 'V': return !c.promessa && f <= 3
+    case 'D': return !!c.promessa || (f >= 2 && f <= 3)
+    case 'C': return !!c.promessa || (!c.promessa && f === 4)
     case 'B': return !!c.promessa || (!c.promessa && f === 4)
     case 'A': return !c.promessa && f >= 4
   }
@@ -726,13 +729,14 @@ function escadaDivOf(s: EscState): EscadaDiv | null {
   if (!s.escadaOn || s.escadaLivre) return null
   const y = s.managers[s.youIdx]?.id ?? 0
   const d = s.careerPlacements?.[`m${y}`]
-  return (d === 'A' || d === 'B' || d === 'C' || d === 'D') ? d : 'D'
+  return (d === 'A' || d === 'B' || d === 'C' || d === 'D' || d === 'V') ? d : 'V'
 }
 // cotas de raridade por degrau (o "resto" do setor vira a categoria comum do degrau)
 const ESCADA_RARITY: Record<EscadaDiv, { legend: number; star: number; promessa: number; low: number }> = {
-  D: { legend: 0, star: 0, promessa: 0, low: 0.40 },    // igual à Várzea do rápido: ~40% foi-prof, resto bom
-  C: { legend: 0, star: 0, promessa: 0.30, low: 0 },    // ~30% promessa, resto bom
-  B: { legend: 0, star: 0.60, promessa: 0.40, low: 0 }, // craque + promessa
+  V: { legend: 0, star: 0, promessa: 0, low: 0.40 },    // peladão: ~40% foi-prof, resto bom
+  D: { legend: 0, star: 0, promessa: 0.30, low: 0 },    // ~30% promessa, resto bom
+  C: { legend: 0, star: 0.55, promessa: 0.45, low: 0 }, // promessa + craque
+  B: { legend: 0, star: 0.60, promessa: 0.40, low: 0 }, // promessa + craque
   A: { legend: 0.30, star: 0.70, promessa: 0, low: 0 }, // elite: craque + lenda
 }
 function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0, values?: Record<string, number>, noFake = false, varzea = false, escada: EscadaDiv | null = null): Record<Sector, Card[]> {
@@ -1181,7 +1185,7 @@ const DIVISIONS: Division[] = ['D', 'C', 'B', 'A'] // de baixo pra cima
 // Rápido = Série D (fillers fracos + rivais do leilão). Online (sem rivais) usa
 // um nível-base próprio, senão o campo fica fraco demais. Números validados em
 // simulação (2500 temporadas/divisão).
-const DIVISION_BASE: Record<Division, number> = { D: 64, C: 70, B: 75, A: 82 }
+const DIVISION_BASE: Record<Division, number> = { V: 58, D: 64, C: 70, B: 75, A: 82 } // V = várzea (nível peladão)
 const ONLINE_BASE = 74
 // 🥅 VÁRZEA: o leilão é 70% foi profissional, então o time do humano nasce mais
 // FRACO (~71) que no normal (~76). A balança (fillerAdj) puxa os bots pra um alvo
@@ -1216,7 +1220,7 @@ export function nextDivision(div: Division, youPos: number): { div: Division; re
   if (youPos >= 17 && i > 0) return { div: DIVISIONS[i - 1], result: 'down' }                    // Z4 cai
   return { div, result: 'stay' }
 }
-export const DIVISION_LABEL: Record<Division, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
+export const DIVISION_LABEL: Record<Division, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D', V: 'Várzea' }
 // o que é salvo na conta (Supabase) pra retomar a carreira depois.
 // `division`/`seasonNo` já são os da PRÓXIMA temporada (subiu/caiu/ficou já
 // resolvido no fim da temporada); `pendingDecision` marca que a pessoa salvou
@@ -1504,7 +1508,7 @@ function makeCareerManagers(teamName: string, formation: FormationKey, div: Divi
   const human: Manager = { id: 0, name: teamName, teamName, isHuman: true, auctionRival: true, formation, money: START_MONEY, squad: [], aggression: 0.5, starHunger: 0.5 }
   const usedTeams = new Set(rivalDefs.map(r => r.team))
   const fillerNeeded = LEAGUE_SIZE - 1 - rivalDefs.length
-  const fillerDefs = DIVISION_TEAMS[div].filter(t => !usedTeams.has(t.team)).slice(0, fillerNeeded)
+  const fillerDefs = DIVISION_TEAMS[div === 'V' ? 'D' : div].filter(t => !usedTeams.has(t.team)).slice(0, fillerNeeded)
   const cpus: Manager[] = []
   const botPlans: BotPlan[] = []
   let id = 1
@@ -2231,13 +2235,13 @@ type Action =
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa'; rivals?: number; rivalTeams?: string[] }
-  | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). scorerValues = bonus de piso dos artilheiros
-  | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
-  | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
+  | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). scorerValues = bonus de piso dos artilheiros
+  | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
+  | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
   | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: 5 | 10 } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — 10 anos = valor oficial cheio, 5 = metade. Prazo real sai com tempero (±1) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); quem não renovar vai pro leilão com teto de venda
   | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
-  | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
+  | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
   | { type: 'SET_AGENCIA'; cards: AgCard[] } // 🕴️ AGÊNCIA 2.0: grava a convocação dos até 22 "na ativa" (escolhidos do álbum). Só carreira solo nova (agenciaOn)
   | { type: 'AGENCIA_SEASON_EVENTS'; season: number; rows: AgEvento[] } // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro/campeão dos agenciados) — computados na tela quando a Copa termina; pagos na virada. Idempotente por temporada
   | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos 60 times de fundo (1x)
@@ -3031,7 +3035,9 @@ export function reducer(state: EscState, action: Action): EscState {
       // o resto da Série D sem repetir.
       const chosen = (action.rivalTeams ?? []).map(tn => DIVISION_TEAMS['D'].find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
       const rest = DIVISION_TEAMS['D'].filter(t => !chosen.some(c => c.team === t.team))
-      const nameOrder = [...chosen, ...rest]
+      // 🌱 escada: os bots de preenchimento da sala usam os times de VÁRZEA (a sala
+      // é a divisão V) — os nomes da Série D ficam livres pro fundo profissional.
+      const nameOrder = escadaLiberada() ? [...chosen, ...VARZEA_TEAMS] : [...chosen, ...rest]
       const { managers, botPlans } = makeManagers([action.teamName || 'Meu Time'], action.formation, rivalCount, LEAGUE_SIZE, rng, nameOrder)
       // marca os rivais escolhidos (os auction-rivals, ids 1..rivalCount) como
       // RIVAIS coloridos no display — são CPU, mas aparecem como rivais de verdade.
@@ -3039,9 +3045,17 @@ export function reducer(state: EscState, action: Action): EscState {
       s.managers = managers
       s.agenciaClubeId = managers[0]?.id ?? 0 // 🕴️ o 1º clube (fundação) — destino fixo da renda da agência, NUNCA muda (nem com 2º clube)
       // colocação inicial: você e os rivais na Série D; A/B/C com os times fixos.
+      // 🌱 ESCADA (Fase 2): a sala inteira nasce na VÁRZEA (V) e a Série D vira
+      // divisão de fundo (times fixos da D − rivais escolhidos + extras, até 20).
       const pl: Record<string, string> = {}
-      for (const m of s.managers) pl[`m${m.id}`] = 'D'
+      const divIni = s.escadaOn ? 'V' : 'D'
+      for (const m of s.managers) pl[`m${m.id}`] = divIni
       for (const d of ['A', 'B', 'C'] as const) for (const t of DIVISION_TEAMS[d].slice(0, 20)) pl[t.team] = d
+      if (s.escadaOn) {
+        const mgrNames = new Set(s.managers.map(m => m.teamName))
+        const dNames = [...DIVISION_TEAMS.D.map(t => t.team), ...EXTRA_D_TEAMS.map(t => t.team)].filter(nm => !mgrNames.has(nm)).slice(0, 20)
+        for (const nm of dNames) pl[nm] = 'D'
+      }
       s.careerPlacements = pl
       s.careerHonors = {}; s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.statsSeason = 0
@@ -3051,7 +3065,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
       // vazando de uma carreira anterior (bug reportado: o estádio vinha completo).
       s.stadiums = {}; s.careerFilial = undefined
-      s.careerTitles = 0; s.careerTitlesA = 0; s.careerDivision = 'D'
+      s.careerTitles = 0; s.careerTitlesA = 0; s.careerDivision = s.escadaOn ? 'V' : 'D'
       s.clubCash = seedClubCash({}, pl)
       const used = new Set<string>()
       // 🪜 escada ligada: leilão de estreia = degrau D (foi-prof + bom) e bots
@@ -4404,8 +4418,10 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const m of s.managers) for (const c of m.squad) placed.add(ident(c))
         for (const name in (s.cpuSquads ?? {})) for (const c of s.cpuSquads![name]) placed.add(ident(c))
         for (const pos of SECTORS) for (const c of s.deck[pos]) placed.add(ident(c))
+        // 🪜 escada: a sobra do mundo também respeita a régua da SUA divisão
+        const escL = escadaDivOf(s)
         for (const pos of SECTORS) {
-          const spare = shuffle(ACTIVE_CATALOG[pos].filter(c => !placed.has(ident(c))), rng)[0]
+          const spare = shuffle(ACTIVE_CATALOG[pos].filter(c => !placed.has(ident(c)) && (!escL || escadaAllows(escL, c))), rng)[0]
           if (spare) { const fl = s.marketValues?.[spare.name] ?? 0; s.deck[pos].push({ ...spare, id: `left-${pos}-${bt2}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
         }
       }
@@ -4544,7 +4560,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // rivais salvos (saves antigos: recria na própria divisão como fallback)
       s.careerRivals = (sv.rivals && sv.rivals.length > 0)
         ? sv.rivals
-        : DIVISION_TEAMS[sv.division].slice(0, s.careerRivalCount).map(t => ({ team: t.team, name: t.name, division: sv.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
+        : DIVISION_TEAMS[sv.division === 'V' ? 'D' : sv.division].slice(0, s.careerRivalCount).map(t => ({ team: t.team, name: t.name, division: sv.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
       s.careerRivals = s.careerRivals.map(r => ({ ...r, team: newestTeamName(r.team) }))

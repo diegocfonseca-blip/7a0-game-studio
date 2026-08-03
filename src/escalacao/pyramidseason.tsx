@@ -7,7 +7,7 @@
 // preenchidas pelo resto do baralho, distribuído por força (A a mais forte).
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, oldChain } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, EXTRA_D_TEAMS, oldChain } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, catalogTodos } from './store'
@@ -58,22 +58,25 @@ function ManualLockButton() {
   )
 }
 
-export type Div = 'A' | 'B' | 'C' | 'D'
-export const DIVS: Div[] = ['A', 'B', 'C', 'D']
-const DIV_LABEL: Record<Div, string> = { A: '🏆 Série A', B: '🥈 Série B', C: '🥉 Série C', D: 'Série D' }
-const DIV_TAG: Record<Div, { l: string; bg: string }> = { A: { l: 'A', bg: '#B8892B' }, B: { l: 'B', bg: '#3E8E4E' }, C: { l: 'C', bg: '#9A7B33' }, D: { l: 'D', bg: '#7A7460' } }
+// 🌱 'V' = VÁRZEA (5ª divisão, embaixo da D) — SÓ existe em carreira nova com a
+// escada ligada (teste do Diego). Nas carreiras normais a tabela V fica vazia e
+// tudo se comporta como as 4 séries de sempre (loops pulam divisão vazia).
+export type Div = 'A' | 'B' | 'C' | 'D' | 'V'
+export const DIVS: Div[] = ['A', 'B', 'C', 'D', 'V']
+const DIV_LABEL: Record<Div, string> = { A: '🏆 Série A', B: '🥈 Série B', C: '🥉 Série C', D: 'Série D', V: '🌱 Várzea' }
+const DIV_TAG: Record<Div, { l: string; bg: string }> = { A: { l: 'A', bg: '#B8892B' }, B: { l: 'B', bg: '#3E8E4E' }, C: { l: 'C', bg: '#9A7B33' }, D: { l: 'D', bg: '#7A7460' }, V: { l: 'V', bg: '#8B5E3C' } }
 // força-base por divisão dos times de CPU NATIVOS (não humano, não rival). Só um
 // EMPURRÃO leve (não paridade!) pra os nativos das séries de baixo não serem
 // atropelados de goleada — o NÍVEL/lenda continua mandando (time forte lidera). A
 // zebra/variação fica por conta do "dia" (MATCH_LUCK). Tunável.
-const CPU_DIV_BOOST: Record<Div, number> = { A: 6, B: 9, C: 12, D: 2 }
+const CPU_DIV_BOOST: Record<Div, number> = { A: 6, B: 9, C: 12, D: 2, V: 0 }
 // ⚖️ ESCADA JUSTA (simV>=4): o bônus escondido dos bots era tão alto que só time de
 // LENDA competia nas séries de cima — time bom/médio fazia ioiô (subia e caía todo
 // ano, "campeão num dia, rebaixado no outro"). Reduzido pra o NÍVEL REAL do time
 // mandar: o desafio passa a vir de adversário forte de verdade, não de um handicap
 // invisível. Só vale pra temporada NOVA (trava simV) — temporada em andamento
 // termina na regra em que começou (nada muda no meio do jogo).
-const CPU_DIV_BOOST_FAIR: Record<Div, number> = { A: 2, B: 3, C: 4, D: 2 }
+const CPU_DIV_BOOST_FAIR: Record<Div, number> = { A: 2, B: 3, C: 4, D: 2, V: 0 }
 // ⚽ REALISMO DE GOL (v3, travado por simV): menos gol e menos goleada — a Série A
 // sai de ~4,2 pra ~3,0 gols/jogo e a lanterna deixa de ser freguês (goleada
 // comprimida, sem mudar QUEM ganha — o melhor time segue na frente). v2 = fórmula
@@ -140,7 +143,7 @@ function pickCatalog(deck: 'br' | 'eu' | 'both' | 'todos') { return deck === 'eu
 
 // elencos determinísticos dos 60 times de CPU (A/B/C), por NOME — estável entre
 // temporadas: quando um time sobe/desce, leva o mesmo elenco (chave = nome).
-function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both' | 'todos'): Map<string, PoolCard[]> {
+function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both' | 'todos', comVarzea = false): Map<string, PoolCard[]> {
   const rng = mulberry((seed ^ 0x9E3779B1) >>> 0)
   // dedup por AUGE (nome+clube+ano): auges diferentes do mesmo nome (Vini Flamengo
   // x Real) são jogadores distintos — cabem os dois, mais cartas pra encher os times.
@@ -150,22 +153,31 @@ function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | '
   const cat = pickCatalog(deck)
   const pool: PoolCard[] = (Object.keys(cat) as Sector[]).flatMap(pos => cat[pos].map((c, i) => ({ ...c, pos, id: `${pos}-${i}` })))
   const rest = shuffle(pool.filter(c => !used.has(idOf(c))), rng).sort((a, b) => mid(b) - mid(a))
-  const q = Math.ceil(rest.length / 3)
-  const bucket: Record<'A' | 'B' | 'C', PoolCard[]> = { A: rest.slice(0, q), B: rest.slice(q, q * 2), C: rest.slice(q * 2) }
+  // 🌱 escada com VÁRZEA (comVarzea): a sala do usuário vira a divisão V, então a
+  // Série D também precisa de 20 times de fundo — o pool é fatiado em 4 (a fatia
+  // mais fraca vira a D, que na régua da escada é terra de bom jogador).
+  const nDivs = comVarzea ? 4 : 3
+  const q = Math.ceil(rest.length / nDivs)
+  const bucket: Record<'A' | 'B' | 'C' | 'D', PoolCard[]> = comVarzea
+    ? { A: rest.slice(0, q), B: rest.slice(q, q * 2), C: rest.slice(q * 2, q * 3), D: rest.slice(q * 3) }
+    : { A: rest.slice(0, q), B: rest.slice(q, q * 2), C: rest.slice(q * 2), D: [] }
   const map = new Map<string, PoolCard[]>()
   // 🏛️ um time que virou MANAGER (ex.: 2º clube do Multiclubes comprado de outra
   // divisão) NÃO pode também nascer como time de fundo — senão apareceria DUPLICADO
   // na pirâmide. Normalmente nenhum time A/B/C é manager, então isto é no-op.
   const mgrNames = new Set(managers.map(m => m.teamName))
-  for (const d of ['A', 'B', 'C'] as const) {
-    const names = DIVISION_TEAMS[d].map(t => t.team).slice(0, 20)
+  for (const d of (comVarzea ? ['A', 'B', 'C', 'D'] as const : ['A', 'B', 'C'] as const)) {
+    // na D (escada), rivais escolhidos "ocupam" nomes da lista — completa com os extras
+    const names = d === 'D'
+      ? [...DIVISION_TEAMS.D.map(t => t.team), ...EXTRA_D_TEAMS.map(t => t.team)].filter(nm => !mgrNames.has(nm)).slice(0, 20)
+      : DIVISION_TEAMS[d].map(t => t.team).slice(0, 20)
     const dealt = dealSquads(bucket[d], 20, rng)
     names.forEach((nm, i) => { if (!mgrNames.has(nm)) map.set(nm, dealt[i]) })
   }
   return map
 }
 // divisão de origem de um time de CPU (temporada 1) — usada como fallback
-const cpuOrigDiv = (name: string): Div => DIVISION_TEAMS.A.some(t => t.team === name) ? 'A' : DIVISION_TEAMS.B.some(t => t.team === name) ? 'B' : 'C'
+const cpuOrigDiv = (name: string): Div => DIVISION_TEAMS.A.some(t => t.team === name) ? 'A' : DIVISION_TEAMS.B.some(t => t.team === name) ? 'B' : DIVISION_TEAMS.C.some(t => t.team === name) ? 'C' : DIVISION_TEAMS.D.some(t => t.team === name) || EXTRA_D_TEAMS.some(t => t.team === name) ? 'D' : 'C'
 // chave estável de um time: técnico = m<id>; CPU = nome
 export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? `m${t.teamId}` : t.name
 
@@ -173,15 +185,18 @@ export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? 
 // técnicos reais; a cada temporada os times sobem/descem por nome exato.
 export function buildPyramid(managers: Manager[], youId: number, seed: number, deck: 'br' | 'eu' | 'both' | 'todos', placements?: Record<string, string> | null, cpuSquads?: Record<string, Card[]>): Record<Div, SimTeam[]> {
   const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number, backstop = false, rival = false, dorm = false, formation?: FormationKey): SimTeam => ({ name, you, human, rival, dorm, backstop, teamId, squad, formation, xi: bestXI(squad, formation), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
-  const world: Record<Div, SimTeam[]> = { A: [], B: [], C: [], D: [] }
-  const divOf = (key: string, fallback: Div): Div => { const d = placements?.[key]; return (d === 'A' || d === 'B' || d === 'C' || d === 'D') ? d : fallback }
+  const world: Record<Div, SimTeam[]> = { A: [], B: [], C: [], D: [], V: [] }
+  const divOf = (key: string, fallback: Div): Div => { const d = placements?.[key]; return (d === 'A' || d === 'B' || d === 'C' || d === 'D' || d === 'V') ? d : fallback }
+  // 🌱 mundo COM VÁRZEA: detectado pelas colocações (alguém em 'V') — só carreira
+  // nova com a escada. Managers caem na V por padrão; a Série D vira fundo de CPU.
+  const hasV = Object.values(placements ?? {}).includes('V')
   // os 20 da liga + o 2º clube do Multiclubes (assento `mine`), que pode vir além dos
   // 20 e joga a divisão dele (não é excluído por causa do corte dos 20).
   for (const m of managers.filter((mm, i) => i < 20 || mm.mine)) {
     const t = mk(m.teamName, (m.squad as WonCard[]).map(c => ({ ...c })), m.isHuman, m.id === youId, m.id, !!m.backstop, !!m.rival, !!m.dormindo, m.formation)
-    world[divOf(`m${m.id}`, 'D')].push(t)
+    world[divOf(`m${m.id}`, hasV ? 'V' : 'D')].push(t)
   }
-  const cpu = buildCpuSquads(managers, seed, deck)
+  const cpu = buildCpuSquads(managers, seed, deck, hasV)
   // usa a FICHA salva do time de fundo se existir (memória de mercado); senão, a
   // receita determinística (base). Assim vender/comprar cola entre temporadas.
   // Times RENOMEADOS: se o save antigo guardou colocação/ficha no nome VELHO,
@@ -197,21 +212,22 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
   // inteira. Sobras saem do fim da série cheia (nunca humano) e completam a
   // série vazia — determinístico, então online continua sincronizado.
   const over: SimTeam[] = []
-  for (const d of DIVS) {
+  const balanceDivs = hasV ? DIVS : DIVS.filter(d => d !== 'V') // sem escada, a V fica vazia (não puxa time)
+  for (const d of balanceDivs) {
     while (world[d].length > 20) {
       let i = world[d].length - 1
       while (i > 0 && world[d][i].human) i--
       over.push(world[d].splice(i, 1)[0])
     }
   }
-  for (const d of DIVS) while (world[d].length < 20 && over.length) world[d].push(over.pop()!)
+  for (const d of balanceDivs) while (world[d].length < 20 && over.length) world[d].push(over.pop()!)
   return world
 }
 // semeia a ficha dos 60 times de fundo a partir da receita (base determinística)
 // — materializa 1x os elencos que antes eram só calculados na hora.
-export function seedCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both' | 'todos'): Record<string, Card[]> {
+export function seedCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both' | 'todos', comVarzea = false): Record<string, Card[]> {
   const out: Record<string, Card[]> = {}
-  for (const [name, squad] of buildCpuSquads(managers, seed, deck)) out[name] = squad
+  for (const [name, squad] of buildCpuSquads(managers, seed, deck, comVarzea)) out[name] = squad
   return out
 }
 
@@ -219,11 +235,14 @@ export function seedCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'e
 // vizinhas. Devolve a nova colocação (chave do time → divisão).
 export function computePromotions(tables: Record<Div, SimTeam[]>): Record<string, string> {
   const pl: Record<string, string> = {}
-  for (const d of DIVS) for (const t of tables[d]) pl[teamKey(t)] = d
-  for (let i = 0; i < 3; i++) {
+  for (const d of DIVS) for (const t of (tables[d] ?? [])) pl[teamKey(t)] = d
+  // 🌱 a Várzea (V) só entra na dança quando EXISTE (carreira nova com escada) —
+  // nas carreiras normais a tabela V é vazia e o acesso/queda fica A↔B↔C↔D como sempre.
+  const pares = (tables.V?.length ?? 0) > 0 ? 4 : 3
+  for (let i = 0; i < pares; i++) {
     const U = DIVS[i], L = DIVS[i + 1] // U = de cima, L = de baixo
-    for (const t of tables[U].slice(-4)) pl[teamKey(t)] = L // caem
-    for (const t of tables[L].slice(0, 4)) pl[teamKey(t)] = U // sobem
+    for (const t of (tables[U] ?? []).slice(-4)) pl[teamKey(t)] = L // caem
+    for (const t of (tables[L] ?? []).slice(0, 4)) pl[teamKey(t)] = U // sobem
   }
   return pl
 }
@@ -235,10 +254,10 @@ export function computePromotions(tables: Record<Div, SimTeam[]>): Record<string
 //   top 4 (zona/acesso): A 30 · B 25 · C 20 · D 0 — nas de baixo é acesso (sobe);
 //     na A é "manter entre os 4". Sair da D é de graça (0). Campeão da A = 65 + 30 = 95.
 //   queda (caiu, pela série de onde caiu): mesmo valor da zona — A 30 · B 25 · C 20
-const DIV_RANK: Record<Div, number> = { A: 3, B: 2, C: 1, D: 0 }
-const CAMPEAO: Record<Div, number> = { A: 65, B: 50, C: 35, D: 20 }
-const ZONA: Record<Div, number> = { A: 30, B: 25, C: 20, D: 0 }
-const QUEDA: Record<Div, number> = { A: 30, B: 25, C: 20, D: 0 }
+const DIV_RANK: Record<Div, number> = { A: 4, B: 3, C: 2, D: 1, V: 0 }
+const CAMPEAO: Record<Div, number> = { A: 65, B: 50, C: 35, D: 20, V: 12 }
+const ZONA: Record<Div, number> = { A: 30, B: 25, C: 20, D: 0, V: 0 }
+const QUEDA: Record<Div, number> = { A: 30, B: 25, C: 20, D: 0, V: 0 }
 export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, number> {
   const newPl = computePromotions(tables)
   const out: Record<number, number> = {}
@@ -255,7 +274,7 @@ export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, nu
 }
 // caixa-base por divisão (clubes de cima mais ricos) + os lucros das vendas do
 // mercado + prêmios. Também usado pra "curar" salas sem caixa.
-export const DIV_BASE_CASH: Record<Div, number> = { A: 250, B: 200, C: 150, D: 100 }
+export const DIV_BASE_CASH: Record<Div, number> = { A: 250, B: 200, C: 150, D: 100, V: 60 }
 // prêmios da temporada pros OUTROS times (CPUs + reservas de fundo, tudo que não
 // é humano nem bot fiador) — mesmo cálculo do seasonRewards, mas por teamKey (o
 // CPU não tem id numérico). Alimenta o caixa deles pra aparecer real no ranking.
@@ -444,7 +463,7 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
 // PISO do jogador sobe SEMPRE +10 (fixo, qualquer divisão e Copa). O piso é fixo
 // baixo de propósito por causa do salário (salário = piso ÷ 10): se subisse muito,
 // a folha do artilheiro explodia. Vale offline/online, rival/bot/humano.
-const DIV_SCORER_BONUS: Record<Div, number> = { A: 30, B: 20, C: 15, D: 10 } // caixa do TIME
+const DIV_SCORER_BONUS: Record<Div, number> = { A: 30, B: 20, C: 15, D: 10, V: 6 } // caixa do TIME
 const SCORER_PISO_BONUS = 10 // 🔒 piso do artilheiro: +10 fixo (qualquer divisão / Copa)
 export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { rewards: Record<number, number>; clubRewards: Record<string, number>; values: Record<string, number> } {
   const rewards: Record<number, number> = {}, clubRewards: Record<string, number> = {}, values: Record<string, number> = {}
@@ -469,12 +488,14 @@ const COPA_CHAMP_COINS = 25 // caixa do campeão da Copa
 const COPA_VICE_COINS = 15 // vice-campeão (10 a menos que o campeão)
 const COPA_SCORER_BONUS = 16 // caixa do time pelo artilheiro da Copa (o PISO dele sobe +10 fixo, ver copaRewards)
 // prestígio por divisão na Copa: A favorita, D azarão (soma no ataque e defesa).
-const COPA_DIV_STRENGTH: Record<Div, number> = { A: 10, B: 6, C: 3, D: 0 }
+const COPA_DIV_STRENGTH: Record<Div, number> = { A: 10, B: 6, C: 3, D: 0, V: 0 } // Várzea não joga a Copa (só A-D)
 
 export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false): CopaResult {
   const rng = mulberry((seed ^ (seasonNo * 0x9E3779B1) ^ 0xC0FA5EED) >>> 0)
   let field: { t: SimTeam; div: Div }[] = []
-  for (const d of DIVS) for (const t of (tables[d] ?? []).slice(0, 4)) field.push({ t, div: d })
+  // 🌱 a VÁRZEA fica FORA da Copa (peladeiro não joga mata-mata nacional 🍺) — o
+  // campo segue sendo o top-4 das séries A-D, 16 times como sempre.
+  for (const d of DIVS) { if (d === 'V') continue; for (const t of (tables[d] ?? []).slice(0, 4)) field.push({ t, div: d }) }
   if (field.length < 2) return { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }
   field = shuffle(field, rng)
   const scorers = new Map<string, SeasonScorer>()
@@ -1309,7 +1330,7 @@ export function myStanding(tables: Record<Div, SimTeam[]>): { div: Div; pos: num
   }
   return null
 }
-const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
+const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D', V: 'Várzea' }
 // ritmo da carreira online: +1s por jogo em relação aos outros modos, pra dar
 // tempo de decidir tática/Time A-B durante a partida: 8s por rodada (fixo). Só aqui.
 const ROUND_MS = 9000
@@ -1902,8 +1923,8 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
 
 // ── RANKING GERAL: TODOS os times do jogo (amigos + CPUs), ordenados por
 // TÍTULOS (Série A → B → C → D) e depois DINHEIRO, com desempate em cascata. ──
-type Honors = { A: number; B: number; C: number; D: number }
-const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0 }
+type Honors = { A: number; B: number; C: number; D: number; V?: number }
+const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0, V: 0 }
 function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId, seasonNo, myDiv, safTeam, seed }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number; seasonNo?: number; myDiv?: Div | null; safTeam?: string; seed?: number }) {
   // 🌍 títulos da COPA DO MUNDO LEGENDS (mural local por save): entram no rank e
   // no Hall de Troféus. Ordem do ranking (pedido do Diego): Série A → Copa do
@@ -1929,7 +1950,7 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
   const trofeus = [
     ...(myWorld > 0 ? [{ key: 'mundo', label: 'Copa do Mundo', n: myWorld, bg: INK, c: GOLD }] : []),
     ...(myCopas > 0 ? [{ key: 'copa', label: 'Copa Legends', n: myCopas, bg: GOLD, c: INK }] : []),
-    ...(['A', 'B', 'C', 'D'] as Div[]).filter(d => myH[d] > 0).map(d => ({ key: d, label: DIV_NAME[d], n: myH[d], bg: CDTAG[d].bg, c: CDTAG[d].c })),
+    ...(['A', 'B', 'C', 'D', 'V'] as Div[]).filter(d => (myH[d] ?? 0) > 0).map(d => ({ key: d, label: DIV_NAME[d], n: myH[d] ?? 0, bg: CDTAG[d].bg, c: CDTAG[d].c })),
   ]
   return (
     <>
@@ -1957,7 +1978,7 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
                   {(r.h.A + r.h.B + r.h.C + r.h.D + r.copas + r.wc) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
                     {r.wc > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Mundo{r.wc > 1 ? r.wc : ''}</span>}
                     {r.copas > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: INK, background: GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆Copa{r.copas > 1 ? r.copas : ''}</span>}
-                    {(['A', 'B', 'C', 'D'] as Div[]).map(d => r.h[d] > 0 ? (
+                    {(['A', 'B', 'C', 'D', 'V'] as Div[]).map(d => (r.h[d] ?? 0) > 0 ? (
                       <span key={d} style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG[d].l}{r.h[d]}</span>
                     ) : null)}
                   </>}
@@ -2042,8 +2063,8 @@ function PrizesBox() {
 // chaveamento da Copa na aba Tabelas (fim de temporada). Toggle pra ver a
 // classificação final das divisões. Confronto seu em destaque, tag de divisão
 // em cada time e aviso de zebra quando um time de baixo elimina um de cima.
-const CDTAG: Record<Div, { bg: string; c: string }> = { A: { bg: '#FFC400', c: '#0C0C0C' }, B: { bg: '#C3CCD8', c: '#0C0C0C' }, C: { bg: '#CD7F4A', c: '#fff' }, D: { bg: '#EDE6D0', c: '#0C0C0C' } }
-const DIV_RANKN: Record<Div, number> = { A: 3, B: 2, C: 1, D: 0 }
+const CDTAG: Record<Div, { bg: string; c: string }> = { A: { bg: '#FFC400', c: '#0C0C0C' }, B: { bg: '#C3CCD8', c: '#0C0C0C' }, C: { bg: '#CD7F4A', c: '#fff' }, D: { bg: '#EDE6D0', c: '#0C0C0C' }, V: { bg: '#8B5E3C', c: '#fff' } }
+const DIV_RANKN: Record<Div, number> = { A: 4, B: 3, C: 2, D: 1, V: 0 }
 const copaName = (t: SimTeam) => t.you ? `${t.name} (você)` : t.name
 // ── DISPUTA DE PÊNALTIS animada: as cobranças aparecem uma a uma, alternando
 // os times (verde = gol, vermelho = perdeu), e o total fecha no fim. A ordem
@@ -2223,7 +2244,7 @@ function CopaLiveMatch({ tie, pos, big, colors = {}, safName }: { tie: CopaTie; 
 // da Copa e de cada série A/B/C/D. Reutilizado na aba Tabelas e na tela de fim.
 function ChampionsPanel({ copa, tables, scorers, seasonNo }: { copa: CopaResult; tables: Record<Div, SimTeam[]>; scorers?: SeasonScorer[]; seasonNo?: number }) {
   const champ = copa.champion
-  const divs: Div[] = ['A', 'B', 'C', 'D']
+  const divs: Div[] = (tables.V?.length ?? 0) > 0 ? ['A', 'B', 'C', 'D', 'V'] : ['A', 'B', 'C', 'D']
   const topOf = (d: Div) => (scorers ?? []).filter(s => s.div === d).sort((a, b) => b.goals - a.goals)[0]
   const line = (icon: string, title: string, champName: string | undefined, champYou: boolean, top: { name: string; teamName: string; goals: number } | undefined) => (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'start', padding: '6px 0', borderTop: `1px solid ${INK}14` }}>
@@ -2567,7 +2588,7 @@ export function PyramidSeasonScreen() {
   // Idempotente (só semeia se ainda não existe).
   useEffect(() => {
     if (!state.careerOnline || state.cpuSquads) return
-    dispatch({ type: 'SEED_CPU_SQUADS', squads: seedCpuSquads(state.managers, state.seed, state.deckLeague) })
+    dispatch({ type: 'SEED_CPU_SQUADS', squads: seedCpuSquads(state.managers, state.seed, state.deckLeague, !!state.escadaOn) })
   }, [state.careerOnline, state.cpuSquads, state.seed, state.deckLeague]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // RANKING da carreira online: cada cliente grava o SEU resultado do fim da
@@ -2677,7 +2698,7 @@ export function PyramidSeasonScreen() {
     setSelId(null)
   }
   const myDiv = me?.div ?? null
-  const ord = orderedDivs(myDiv)
+  const ord = orderedDivs(myDiv).filter(d => d !== 'V' || (tables.V?.length ?? 0) > 0) // 🌱 Várzea só aparece quando existe
   const myMatch = myDiv ? matches[myDiv]?.find(x => x.you) : undefined
   const humansOf = (d: Div) => tables[d].filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival, dorm: !!t.dorm }))
 
@@ -3471,13 +3492,13 @@ export function ReserveListScreen() {
         })()}
         {/* 🪜 ESCADA DE CATEGORIAS (carreira nova, teste): a régua da SUA divisão */}
         {state.escadaOn && escLib && !state.escadaLivre && (() => {
-          const d = (state.careerPlacements?.[`m${youId}`] ?? 'D') as 'A' | 'B' | 'C' | 'D'
-          const CATS: Record<string, string> = { D: '🪵 Foi Profissional + 🎯 Bom Jogador', C: '🎯 Bom Jogador + 💎 Promessa', B: '💎 Promessa + ⭐ Craque', A: '⭐ Craque + 👑 Lenda' }
+          const d = (state.careerPlacements?.[`m${youId}`] ?? 'V') as 'A' | 'B' | 'C' | 'D' | 'V'
+          const CATS: Record<string, string> = { V: '🪵 Foi Profissional + 🎯 Bom Jogador', D: '🎯 Bom Jogador + 💎 Promessa', C: '💎 Promessa + ⭐ Craque', B: '💎 Promessa + ⭐ Craque', A: '⭐ Craque + 👑 Lenda' }
           return (
             <div style={{ ...box('#FFF7DB'), padding: 11, marginBottom: 10 }}>
-              <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🪜 Mercado da Série {d}</p>
+              <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🪜 Mercado da {d === 'V' ? '🌱 Várzea' : `Série ${d}`}</p>
               <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Nesta divisão o leilão só negocia <b>{CATS[d]}</b>. Subiu de série? O mercado sobe junto — categoria melhor entra no pregão.</p>
-              {!state.escadaSubiu && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '5px 0 0', lineHeight: 1.4 }}>🔒 <b>Banco de reservas travado</b> — na divisão de estreia joga-se com os 11. No seu <b>primeiro acesso</b> ele destrava.</p>}
+              {!state.escadaSubiu && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '5px 0 0', lineHeight: 1.4 }}>🔒 <b>Banco de reservas travado</b> — na Várzea joga-se com os 11. Ao <b>subir pra Série D</b> (virar profissional) ele destrava.</p>}
               {d === 'A' && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '5px 0 0', lineHeight: 1.4 }}>👑 Elite! Complete <b>2 temporadas na Série A</b> ({state.escadaTempA ?? 0}/2) e o mercado <b>libera TODAS as categorias</b> de vez.</p>}
             </div>
           )
