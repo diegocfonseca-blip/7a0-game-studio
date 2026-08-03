@@ -1,5 +1,16 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## 🏆 Ranking Carreira: uma linha POR CARREIRA, sem unificar (03/08) ✅
+Dúvida do Diego (caso Alface, 379 títulos): carreira NOVA com o mesmo nome
+unificaria? SIM, unificava (esc_ranking agrupava só por user_id). Regra dele:
+"unificar não pode — é uma nova carreira; dois Alface pode". Migração
+esc_ranking_carreira_por_save: a aba 'carreira' agora agrupa por conta+SAVE
+(prefixo do season_key até o seed: co:solo<seed> / co:<room>:<seed>), e o
+total de CARTAS também sai por carreira (prefixo igual no user_cards).
+Alface antigo fica intacto com os 379; carreira nova dele = linha nova do
+zero. Abas rápido online/offline intocadas (por conta, como sempre).
+Verificado no banco: top da aba continua batendo (Alfacehh 379/384 cartas).
+
 ## 💰 Renovação de 10 anos agora custa 90% (03/08, decisão do Diego)
 Análise que embasou (amigo sugeriu 80%): por temporada, 5 anos=10%/ano e 10
 anos a 100% também 10%/ano (dilema fraco); a 80% os 10 anos dominavam demais e
