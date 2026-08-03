@@ -1,5 +1,34 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## ⚠️ LIÇÃO DE DEPLOY (03/08): commitar no branch NÃO põe no ar!
+O hotfix do loop ficou 2 commits só no branch `claude/denis-...` enquanto o site
+(main) seguia sem ele — por isso o Diego continuou vendo bugs "já consertados".
+Protocolo: depois de commitar/pushar no branch, conferir `git log origin/main` e
+publicar com `git push origin HEAD:main` (fast-forward). Feito agora — main tem
+o hotfix do leilão de reservas.
+
+## 🕴️ AGÊNCIA NO ESTÁDIO — mockup mostrado, AGUARDANDO OK do Diego (03/08)
+Pedidos do áudio do Diego:
+1. "Aba antiga de Agência ainda aparece" — no código ela JÁ está escondida
+   (filter em pyramidseason ~3117, main tem). Provável bundle em cache no
+   aparelho dele (pedir F5/atualizar). ⚠️ MAS ao esconder a sub-aba, a tela
+   AgenciaDesbloqueios ficou INALCANÇÁVEL — resolve junto com o item 2.
+2. Mover os desbloqueios das categorias da agência pra DENTRO da área do
+   estádio (Clube), visualmente integrado ("no estádio fica fácil de entender").
+   Mockup enviado (scratchpad `mockup-estadio-agencia.html/png` + artifact):
+   seção "🕴️ Agência de Jogadores" DENTRO da aba do estádio, escada de 5
+   categorias com estado/falta/renda: 🪵 grátis de cara · 🎯 1 setor · 💎 3
+   setores · ⭐ estádio 100% · 👑 SAF (= a régua que JÁ existe em empCatUnlocked
+   — Diego confirmou no áudio que lenda é pós-SAF e prof ~de início; sugeri
+   manter grátis de cara). CTA aponta pra Elenco › Agenciados. Texto stale da
+   AgenciadosTab ("desbloqueios seguem na aba Clube › Agência", linha ~881)
+   deve passar a apontar pra nova casa QUANDO implementar.
+3. Nome da sub-aba: sugeri "🏗️ Estrutura" (alternativas: Patrimônio, manter
+   Estádio) — Diego escolhe no mockup.
+❌ NÃO CODAR o visual antes do OK do Diego (regra dele). Quando aprovar:
+   mover AgenciaDesbloqueios pro fim da branch do estádio, renomear sub-aba,
+   corrigir o texto ~881, remover o branch escritorio da Agência 2.0.
+
 ## 🔬 AUDITORIA FINA da carreira nova (escada) — pedido do Diego pós-loop (03/08) ✅
 Diego pediu: (a) confirmar leilão de reservas na 2ª + listar na 3ª; (b) contratos
 com a MESMA ordem de avisos/liberação da carreira antiga; (c) "analisar cada
