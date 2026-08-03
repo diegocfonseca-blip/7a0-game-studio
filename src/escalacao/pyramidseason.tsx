@@ -76,7 +76,7 @@ const CPU_DIV_BOOST: Record<Div, number> = { A: 6, B: 9, C: 12, D: 2, V: 0 }
 // mandar: o desafio passa a vir de adversário forte de verdade, não de um handicap
 // invisível. Só vale pra temporada NOVA (trava simV) — temporada em andamento
 // termina na regra em que começou (nada muda no meio do jogo).
-const CPU_DIV_BOOST_FAIR: Record<Div, number> = { A: 2, B: 3, C: 4, D: 2, V: 0 }
+const CPU_DIV_BOOST_FAIR: Record<Div, number> = { A: 2, B: 3, C: 4, D: 2, V: 3 } // V:3 (04/08): estreia pareja era TAPETE — simulado: chegada na A cai de T4-T7 pra T9-T15
 // ⚽ REALISMO DE GOL (v3, travado por simV): menos gol e menos goleada — a Série A
 // sai de ~4,2 pra ~3,0 gols/jogo e a lanterna deixa de ser freguês (goleada
 // comprimida, sem mudar QUEM ganha — o melhor time segue na frente). v2 = fórmula
