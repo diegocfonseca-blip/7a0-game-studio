@@ -1,5 +1,13 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## 🎨 Arte de stories "CONTRATOS chegaram" entregue (03/08)
+PNG 1080×1920 no visual do jogo (creme/Oswald/sombras duras): carta-contrato,
+3 bullets (renovar/deixar ir, teto + família gananciosa, rivais no mercado) e
+carimbo vermelho grandão "SÓ PRA CARREIRAS NOVAS — save antigo segue igual".
+Enviada pro Diego postar; fonte em scratchpad (story-contratos.html). Se pedir
+variações (cores/texto), é editar o HTML e re-renderizar (chromium headless
+1080×2100 + crop 1920 — o viewport do headless come ~180px do window-size).
+
 ## 💰 PREÇOS INTELIGENTES na carreira nova (03/08, relato do tester Maurice) ✅
 Relato: "🪵 vendido por 40 e ⭐ pelos mesmos 40; CPU pagando alto em jogador
 ruim". MEDIDO em simulação (25 temporadas × runs, todas as vendas do leilão):
