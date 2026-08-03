@@ -1108,8 +1108,8 @@ const ATA: C[] = [
 
 // 🆕 cartas novas (baralho BR) — pedidas pelo Diego: reais e folclóricos do futebol nacional.
 const NOVOS_BR_GOL: C[] = [
-  { name: 'Júlio César', club: 'Corinthians', year: 2013, fame: 1, lo: 56, hi: 76, bio: 'Goleiro do Corinthians na era Cássio — seguro na bola parada. (Não confundir com o Júlio César da Seleção!)' },
-  { name: 'Renan Ribeiro', club: 'Atlético-MG', year: 2014, fame: 1, lo: 57, hi: 77, bio: 'Paredão suplente do Atlético-MG antes de rodar Portugal — reflexo e frieza no pênalti.' },
+  { name: 'Júlio César', club: 'Corinthians', year: 2010, fame: 1, lo: 56, hi: 76, bio: 'Goleiro titular do Corinthians em 2010-11, antes do Cássio chegar. (Não confundir com o Júlio César da Seleção!)' },
+  { name: 'Renan Ribeiro', club: 'Atlético-MG', year: 2016, fame: 1, lo: 57, hi: 77, bio: 'Paredão suplente do Atlético-MG antes de rodar Portugal — reflexo e frieza no pênalti.' },
   { name: 'Sílvio Luiz', club: 'São Caetano', year: 2002, fame: 2, lo: 65, hi: 80, bio: 'Paredão do São Caetano na campanha do vice da Libertadores de 2002 — pegador de pênalti e voz de comando na área.' },
   { name: 'Edinho', club: 'Santos', year: 1994, fame: 2, lo: 62, hi: 79, folk: true, bio: 'Goleiro do Santos nos anos 90 e filho do Pelé — carregou o sobrenome mais pesado do futebol debaixo das traves e ainda assim foi titular do Peixe.' },
 ]
@@ -1123,8 +1123,8 @@ const NOVOS_BR_LAT: C[] = [
 ]
 const NOVOS_BR_MEI: C[] = [
   { name: 'Lulinha', club: 'Corinthians', year: 2008, fame: 1, lo: 54, hi: 74, folk: true, bio: 'A joia mais badalada da base do Corinthians nos anos 2000.' },
-  { name: 'Renato Cajá', club: 'Bahia', year: 2016, fame: 1, lo: 55, hi: 76, folk: true, bio: 'Canhota refinada de passe — meia cult e andarilho do Nordeste.' },
-  { name: 'Camacho', club: 'Corinthians', year: 2014, fame: 1, lo: 56, hi: 76, bio: 'Volante de marcação e recomposição do Corinthians.' },
+  { name: 'Renato Cajá', club: 'Ponte Preta', year: 2012, fame: 1, lo: 55, hi: 76, folk: true, bio: 'Canhota refinada de passe — o auge cult foi comandando a Ponte Preta.' },
+  { name: 'Camacho', club: 'Corinthians', year: 2017, fame: 1, lo: 56, hi: 76, bio: 'Volante de marcação e recomposição do Corinthians campeão de 2017.' },
   { name: 'Marlone', club: 'Corinthians', year: 2016, fame: 1, lo: 56, hi: 77, folk: true, bio: 'Meia do Corinthians dono de um golaço de bicicleta histórico.' },
   { name: 'Giovanni Augusto', club: 'Corinthians', year: 2016, fame: 1, lo: 57, hi: 77, bio: 'Meia de chegada à área — bom momento no Corinthians em 2016.' },
   { name: 'Rivaldinho', club: 'Mogi Mirim', year: 2015, fame: 1, lo: 52, hi: 74, folk: true, bio: 'O filho do Rivaldo — chegou a jogar ao lado do pai no Mogi Mirim.' },
@@ -1138,10 +1138,10 @@ const NOVOS_BR_MEI: C[] = [
   { name: 'Douglas Barriga de Cadela', club: 'Corinthians', year: 2014, fame: 1, lo: 52, hi: 68, folk: true, bio: 'O meia que a Fiel judiava pela forma física — ganhou o apelido cruel e virou meme eterno da arquibancada.' },
 ]
 const NOVOS_BR_ATA: C[] = [
-  { name: 'Léo Gamalho', club: 'Criciúma', year: 2013, fame: 1, lo: 57, hi: 78, bio: 'Centroavante goleador e andarilho — matador de área que rodou o Brasil.' },
+  { name: 'Léo Gamalho', club: 'Goiás', year: 2019, fame: 1, lo: 57, hi: 78, bio: 'Centroavante goleador e andarilho — o auge de gols foi com a camisa do Goiás.' },
   { name: 'Finazzi', club: 'Grêmio Barueri', year: 2009, fame: 1, lo: 55, hi: 76, folk: true, bio: 'Atacante cult do Grêmio Barueri — faro de gol e comemoração marcante.' },
-  { name: 'Maxi Lopez', club: 'Grêmio', year: 2016, fame: 1, lo: 56, hi: 77, folk: true, bio: 'Centroavante argentino do Grêmio — mais famoso pela novela do que pelos gols.' },
-  { name: 'Paulinho Bóia', club: 'Flamengo', year: 2015, fame: 1, lo: 54, hi: 75, folk: true, bio: 'Ponta do Flamengo de apelido folclórico — velocidade pelos lados.' },
+  { name: 'Maxi Lopez', club: 'Vasco', year: 2017, fame: 1, lo: 56, hi: 77, folk: true, bio: 'Centroavante argentino do Vasco — mais famoso pela novela do que pelos gols.' },
+  { name: 'Paulinho Bóia', club: 'São Paulo', year: 2019, fame: 1, lo: 54, hi: 75, folk: true, bio: 'Ponta cria do São Paulo de apelido folclórico — velocidade pelos lados.' },
   { name: 'Loide Augusto', club: 'Vasco', year: 2021, fame: 1, lo: 58, hi: 74, bio: 'Revelado como profissional no Vasco — atacante rápido, faro de gol e a molecagem da base cruzmaltina.' },
   { name: 'Leynny', club: 'Fluminense', year: 2019, fame: 1, lo: 52, hi: 68, bio: 'Atacante que vestiu a camisa do Fluminense — passou pelo profissional tricolor lutando por espaço no ataque.' },
   { name: 'Valdir Papel', club: 'Vasco', year: 2006, fame: 1, lo: 48, hi: 64, folk: true, bio: 'Andarilho de 30+ clubes; teve seus 15 minutos no Vasco em 2006 — expulso na final da Copa do Brasil e ainda levou bronca do Renato no vestiário.' },
@@ -1153,9 +1153,9 @@ const NOVOS_BR_ATA: C[] = [
 ]
 const NOVOS_BR_ZAG: C[] = [
   { name: 'Erazo', club: 'Flamengo', year: 2014, fame: 1, lo: 57, hi: 78, bio: 'Zagueirão equatoriano do Flamengo — imponente no jogo aéreo.' },
-  { name: 'Rafael Vaz', club: 'Flamengo', year: 2015, fame: 1, lo: 56, hi: 77, bio: 'Zagueiro de boa saída e gol de bola parada pelo Flamengo.' },
+  { name: 'Rafael Vaz', club: 'Flamengo', year: 2016, fame: 1, lo: 56, hi: 77, bio: 'Zagueiro de boa saída e gol de bola parada pelo Flamengo.' },
   { name: 'Lucão', club: 'São Paulo', year: 2016, fame: 1, lo: 55, hi: 76, bio: 'Zagueiro da base do São Paulo, firme na marcação.' },
-  { name: 'Bressan', club: 'Grêmio', year: 2017, fame: 1, lo: 54, hi: 75, folk: true, bio: 'Zagueiro bicampeão da Libertadores pelo Grêmio em 2017.' },
+  { name: 'Bressan', club: 'Grêmio', year: 2014, fame: 1, lo: 54, hi: 75, folk: true, bio: 'Zagueiro folclórico do Grêmio — a torcida prendia a respiração a cada recuo.' },
 ]
 export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA] }
 
