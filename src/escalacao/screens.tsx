@@ -788,7 +788,23 @@ function Shell({ children, bar, hideExit = false }: { children: React.ReactNode;
 
 // ─── campinho ────────────────────────────────────────────────────────
 // linhas top→bottom: ATA · MEI · defesa (LAT-esq · ZAG · ZAG · LAT-dir) · GOL
+// 🎨 GRAMADO POR CONTEXTO (mockup aprovado pelo Diego 03/08): 🌱 várzea = terra
+// batida marrom (vale a divisão V da carreira nova E o modo várzea do rápido);
+// 👑 Série A da carreira nova = verde premium mais vivo; resto = verde de sempre.
+// Formato/casinhas/placa de patrocínio NÃO mudam (Diego: "a logo não remova!").
+function turfColors(state: EscState): [string, string] {
+  if (state.varzea) return ['#8B5E3C', '#7A4E2E'] // 🥅 rápido "sem craques" = peladão
+  if (state.escadaOn && state.careerOnline) {
+    const y = state.managers[state.youIdx]?.id ?? 0
+    const d = (state.careerPlacements?.[`m${y}`] as string | undefined) ?? state.careerDivision ?? 'V'
+    if (d === 'V') return ['#8B5E3C', '#7A4E2E'] // 🌱 Várzea: terra batida
+    if (d === 'A') return ['#23984F', '#1A7F40'] // 👑 elite: gramado premium
+  }
+  return [GREEN, '#166332'] // verde tradicional (tudo que já existia fica igual)
+}
 function Campinho({ m, small = false, bench = false, title }: { m: Manager; small?: boolean; bench?: boolean; title?: string }) {
+  const { state } = useEsc()
+  const [g1, g2] = turfColors(state)
   const rows: { key: string; slots: { pos: Sector; card: WonCard | null }[] }[] = useMemo(() => {
     const filled = (p: Sector) => m.squad.filter(c => c.pos === p)
     const buildRow = (p: Sector): { pos: Sector; card: WonCard | null }[] => {
@@ -821,7 +837,7 @@ function Campinho({ m, small = false, bench = false, title }: { m: Manager; smal
           <span className="font-black uppercase tracking-wide" style={{ ...OSWALD, fontSize: small ? 10 : 12 }}>{title}</span>
         </div>
       )}
-      <div className="px-3 py-2 flex flex-col gap-2" style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)` }}>
+      <div className="px-3 py-2 flex flex-col gap-2" style={{ background: `repeating-linear-gradient(180deg, ${g1} 0 34px, ${g2} 34px 68px)` }}>
         {rows.map(row => (
           <div key={row.key} className="flex justify-center gap-2">
             {row.slots.map((slot, i) => (

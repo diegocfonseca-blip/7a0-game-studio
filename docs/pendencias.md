@@ -14,9 +14,13 @@ nas outras, e o verde da Série A "mais bonito". Mockup enviado com os 5:
 D/C/B verde de hoje #1B7A3D/#166332 · 👑 Série A premium #23984F/#1A7F40.
 Formato/casinhas idênticos (Campinho em screens.tsx usa
 repeating-linear-gradient 34px — é trocar o par de cores por divisão).
-❌ NÃO CODAR antes do OK. Quando aprovar: gate só carreira nova (escadaOn),
-campo do leilão + onde o Campinho aparecer; placa de patrocínio pode ganhar
-versão zoeira na Várzea (perguntar se ele quer).
+✅ APROVADO E IMPLEMENTADO (03/08, "adorei tudo, já faça valer"):
+- turfColors() em screens.tsx: 🌱 marrom #8B5E3C/#7A4E2E na divisão V da
+  carreira nova E TAMBÉM no modo várzea do rápido (state.varzea — pedido
+  explícito dele); 👑 Série A da carreira nova = verde premium #23984F/#1A7F40;
+  resto = verde tradicional (tudo que existia fica idêntico).
+- ⚠️ DECISÃO DO DIEGO: a placa/logo de patrocínio (Vadico) FICA em todo campo —
+  o "Bar do Zé" do mockup era só zoeira de mockup, NUNCA trocar a placa.
 
 ## 🎨 Arte de stories "CONTRATOS chegaram" entregue (03/08)
 PNG 1080×1920 no visual do jogo (creme/Oswald/sombras duras): carta-contrato,
