@@ -1120,6 +1120,8 @@ const NOVOS_BR_GOL: C[] = [
   { name: 'Renan Ribeiro', club: 'Atlético-MG', year: 2016, fame: 1, lo: 57, hi: 77, bio: 'Paredão suplente do Atlético-MG antes de rodar Portugal — reflexo e frieza no pênalti.' },
   { name: 'Sílvio Luiz', club: 'São Caetano', year: 2002, fame: 2, lo: 65, hi: 80, bio: 'Paredão do São Caetano na campanha do vice da Libertadores de 2002 — pegador de pênalti e voz de comando na área.' },
   { name: 'Edinho', club: 'Santos', year: 1994, fame: 2, lo: 62, hi: 79, folk: true, bio: 'Goleiro do Santos nos anos 90 e filho do Pelé — carregou o sobrenome mais pesado do futebol debaixo das traves e ainda assim foi titular do Peixe.' },
+  { name: "Bosco", club: "Sport", year: 2000, fame: 2, lo: 66, hi: 82, bio: "Goleiro pernambucano ídolo do Sport — pegador de pênalti que brilhou na Ilha do Retiro e chegou à Seleção em 2000." },
+  { name: "Max Walef", club: "Fortaleza", year: 2022, fame: 1, lo: 60, hi: 79, bio: "Goleiro piauiense revelado no Fortaleza — reflexos e regularidade no gol do Leão do Pici." },
 ]
 const NOVOS_BR_LAT: C[] = [
   { name: "Samuel Xavier", club: "Fluminense", year: 2022, fame: 2, lo: 66, hi: 82, bio: "Lateral-direito rodado e incansável — bom apoio e entrega, titular no Fluminense e por clubes do Nordeste." },
@@ -1137,9 +1139,14 @@ const NOVOS_BR_LAT: C[] = [
   { name: 'Fabrício', club: 'Internacional', year: 2015, fame: 1, lo: 55, hi: 72, folk: true, bio: 'Eternizado em 2015: perdeu a cabeça, mostrou o dedo pra torcida do Inter, foi expulso, arrancou a camisa e jurou nunca mais jogar. 🖕' },
   { name: 'Eduardo Ratinho', club: 'Corinthians', year: 2005, fame: 2, lo: 62, hi: 79, bio: 'Lateral-direito veloz e driblador, com boa bola parada — a revelação do Corinthians em 2005; ainda passou por CSKA Moscou, Toulouse e Fluminense antes de parar cedo.' },
   { name: "Rodrigo Alvim", club: "Internacional", year: 2006, fame: 1, lo: 62, hi: 80, bio: "Lateral-esquerdo revelado no Internacional nos anos 2000 — apoio pela faixa antes de rodar por Grêmio e Portugal." },
+  { name: "Brítez", club: "Fortaleza", year: 2023, fame: 2, lo: 68, hi: 83, bio: "Lateral-direito argentino xerife do Fortaleza — peça-chave da era Vojvoda, raça e marcação pela direita do Leão." },
 ]
 const NOVOS_BR_MEI: C[] = [
   { name: "Zizão", club: "Corinthians", year: 2013, fame: 1, lo: 58, hi: 78, folk: true, bio: "Meia chinês (Chen Zhizhao), o primeiro asiático do Corinthians — chegou como aposta de marketing e virou campeão paulista de 2013. Saudade eterna do churrasco brasileiro." },
+  { name: "Preto Casagrande", club: "Santos", year: 2004, fame: 2, lo: 68, hi: 83, bio: "Volante raçudo campeão brasileiro de 2004 com o Santos — bi-nordestino pelo Vitória e Bola de Prata, marcação e liderança no meio." },
+  { name: "Pochettino", club: "Fortaleza", year: 2024, fame: 2, lo: 70, hi: 84, bio: "Meia argentino motor do Fortaleza — chegada ao ataque, gols e assistências que fizeram dele um dos cérebros do Leão." },
+  { name: "Feijão", club: "Bahia", year: 2013, fame: 1, lo: 60, hi: 79, folk: true, bio: "Volante revelado no Bahia — marcou o milésimo gol do Esquadrão em Brasileirões, entrando pra história tricolor." },
+  { name: "Felipe Cabeleira", club: "Náutico", year: 2022, fame: 1, lo: 58, hi: 78, folk: true, bio: "Meia ofensivo pernambucano do Náutico — a cabeleira é marca registrada; drible e chegada pelo meio nos Aflitos." },
   { name: "Dudu Cearense", club: "Vitória", year: 2004, fame: 2, lo: 66, hi: 82, bio: "Volante cearense de marcação e fôlego — revelado no Vitória e campeão da Copa América 2004 antes de brilhar no CSKA." },
   { name: "Bismarck", club: "Vasco", year: 1989, fame: 3, lo: 76, hi: 85, bio: "Meia-artista do Vasco e depois ídolo eterno no Japão (Kashima) — passe fino e gols de placa." },
   { name: "René Júnior", club: "Bahia", year: 2017, fame: 2, lo: 64, hi: 82, bio: "Volante forte do Nordeste — pegada e chegada ao ataque pelo Bahia." },
@@ -1208,6 +1215,11 @@ const NOVOS_BR_ATA: C[] = [
   { name: 'Alef Manga', club: 'Coritiba', year: 2022, fame: 2, lo: 68, hi: 83, bio: 'Ponta-atacante que foi artilheiro do Coritiba em 2022 (16 gols) — velocidade e faro de gol pelo Couto Pereira.' },
   { name: 'Wallace Pernambucano', club: 'Confiança', year: 2014, fame: 2, lo: 66, hi: 82, folk: true, bio: 'Goleador nordestino de raça — campeão sergipano de 2014 pelo Confiança, depois virou ídolo artilheiro por onde passou.' },
   { name: 'Mascote', club: 'Retrô', year: 2024, fame: 1, lo: 56, hi: 77, folk: true, bio: 'Atacante folclórico do Retrô — chegou a fazer 4 gols num só tempo na Série D; o apelido \u0022Mascote\u0022 caiu como uma luva.' },
+  { name: "Neto Baiano", club: "Vitória", year: 2009, fame: 2, lo: 66, hi: 82, folk: true, bio: "O \u0022artilheiro das decisões\u0022 — maior goleador da história do Barradão pelo Vitória, matador de finais por todo o Nordeste." },
+  { name: "Robgol", club: "Bahia", year: 2002, fame: 2, lo: 66, hi: 82, folk: true, bio: "Centroavante de faro raro — o apelido é trocadilho com \u0022Batigol\u0022. Artilheiro e campeão do Nordeste pelo Bahia, ídolo depois no Paysandu." },
+  { name: "Rogério (Neymar do Nordeste)", club: "Ceará", year: 2020, fame: 2, lo: 66, hi: 82, folk: true, bio: "Apelidado de \u0022Neymar do Nordeste\u0022 pelo drible e velocidade — campeão da Copa do Nordeste de 2020 pelo Ceará, folclórico querido da região." },
+  { name: "Machuca", club: "Fortaleza", year: 2024, fame: 2, lo: 68, hi: 83, bio: "Ponta argentino de drible e velocidade — chegou pra dar profundidade ao ataque do Fortaleza pelos lados." },
+  { name: "Vagalume", club: "Maranhão", year: 2025, fame: 1, lo: 55, hi: 76, folk: true, bio: "Ponta folclórico do Maranhão, orgulho do Coroadinho — o apelido pegou na base e virou marca no futebol nordestino." },
 ]
 const NOVOS_BR_ZAG: C[] = [
   { name: "Ronaldo Angelim", club: "Flamengo", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Zagueiro cearense de raça — eternizado pelo gol do título brasileiro do Flamengo em 2009, no Maracanã lotado." },
