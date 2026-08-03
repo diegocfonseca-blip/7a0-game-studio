@@ -387,6 +387,9 @@ function applyHonors(honors: Record<string, Honors> | undefined, champions?: Rec
 // ele, o pacote aparece pra você abrir. NÃO faz nada fora do solo com 2º clube.
 function recordDormantCards(s: EscState, champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>, copaChampion?: string | null) {
   if (!s.multiClube) return
+  // 🛡️ fantasma: se o "dormindo" é o próprio clube ATIVO (contaminação de carreira
+  // anterior), não fabrica pacote nenhum — o título ativo já dá a carta normal.
+  if (s.multiClube.id === (s.managers[s.youIdx]?.id ?? -1)) return
   const dk = `m${s.multiClube.id}` // teamKey do clube que dorme (managed → m{id})
   const wonDiv = !!(champions && champions[dk])
   const wonCopa = copaChampion === dk
@@ -4838,6 +4841,9 @@ function normalizeMultiSeats(s: EscState): EscState {
   const dormReal = humanos.some(m => m.id === dormId)
   if (!dormReal || humanos.length < 2) {
     s.multiClube = undefined
+    // 🎁 os "pacotes guardados" fabricados pelo fantasma também morrem — eram eles
+    // que faziam a cartinha aparecer "do nada" sem título (relato 04/08)
+    s.multiClubePendingCards = undefined
     for (const m of s.managers) if (m.isHuman) m.dormindo = false
     s.youIdx = Math.max(0, s.managers.findIndex(m => m.isHuman))
     return s
