@@ -1,5 +1,17 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## 📝 Contrato SUTIL no Elenco — MOCKUP enviado, AGUARDANDO escolha (03/08)
+Pedido do Diego: info discreta do contrato embaixo do nome no Elenco ("quantos
+anos faltam, algo sutil"). Era o combinado antigo do sistema de contratos
+("mostrar contrato até T__ na carta do Elenco"). Mockup com 2 opções
+(mockup-contrato-elenco.html no scratchpad):
+- OPÇÃO A (sugerida): na linha que já existe sob o nome — "São Paulo · 2005 ·
+  📝 7 anos"; estados: cinza normal · ⏳ último ano âmbar · ❗ vencido vermelho.
+- OPÇÃO B: selinho compacto na direita junto do 💰/💸 (📝7 / ⏳1 / ❗0).
+Regras nas duas: emprestado/incógnito sem selo; só carreiras com contratos.
+Implementar SÓ depois da escolha (rowOf em pyramidseason ~1777 é o ponto; a
+grade do campinho de cima NÃO leva selo — só as listas).
+
 ## 🏆 Ranking Carreira: uma linha POR CARREIRA, sem unificar (03/08) ✅
 Dúvida do Diego (caso Alface, 379 títulos): carreira NOVA com o mesmo nome
 unificaria? SIM, unificava (esc_ranking agrupava só por user_id). Regra dele:
