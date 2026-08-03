@@ -1,5 +1,12 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## 🔓 CARREIRA NOVA LIBERADA PRA TODOS (03/08, ordem do Diego)
+`AGENCIA_GERAL = true` em sport.ts: Agência 2.0 + Escada/Várzea + baralho
+'todos' + Clube›Estrutura valem pra QUALQUER conta em carreira criada a partir
+de agora (o pacote todo usa o mesmo gate). Saves antigos seguem exatamente
+iguais. Rollback: AGENCIA_GERAL=false volta ao teste fechado (lista de
+testers preservada no código). Basquete e tema seguem só na conta do Diego.
+
 ## 📝 ANTI-MALANDRAGEM dos contratos vencidos (03/08, achado do tester) ✅
 Golpe: deixar o contrato vencer (jogador vai pro leilão com selo SEM CONTRATO)
 e RECOMPRAR barato no pregão/monte — "renovação" mais barata que renovar.

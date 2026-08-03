@@ -128,14 +128,19 @@ export function useTemaLiberado(): boolean {
 // Quando o Diego liberar geral, é só esvaziar a checagem (um lugar só).
 // A MESMA lista libera a ESCADA (Várzea + régua) e o baralho 'todos' — o pacote
 // completo da carreira nova de teste.
+// 🔓 LIBERADO GERAL (03/08, ordem do Diego: "pode liberar já pra todos o novo
+// carreira") — a carreira nova (Agência 2.0 + Escada/Várzea + baralho todos +
+// Estrutura) vale pra TODO MUNDO. Pra voltar ao teste fechado: AGENCIA_GERAL
+// = false e a lista de testers reassume.
+const AGENCIA_GERAL = true
 const AGENCIA_TESTERS = new Set([
   'diego.c.fonseca@gmail.com',
   'msb102010@hotmail.com', // testador convidado pelo Diego (03/08)
   'denilson.stifler10@gmail.com', // testador convidado pelo Diego (03/08)
 ])
-let agenciaOk = false
+let agenciaOk = AGENCIA_GERAL
 function applyAgenciaUnlock(email?: string | null): void {
-  const u = !!email && AGENCIA_TESTERS.has(email.toLowerCase())
+  const u = AGENCIA_GERAL || (!!email && AGENCIA_TESTERS.has(email.toLowerCase()))
   if (u === agenciaOk) return
   agenciaOk = u
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
