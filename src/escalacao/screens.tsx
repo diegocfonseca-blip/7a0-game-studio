@@ -5197,6 +5197,7 @@ async function reconcileCardsToTitles() {
 
 export function EscRanking() {
   const { dispatch } = useEsc()
+  const escLibRank = useAgenciaLiberada() // 🪜 aba Carreira: histórico visível SÓ pro Diego (04/08); público vê "em breve"
   const [mode, setMode] = useState<RankMode>('ronline')
   const [rows, setRows] = useState<RankRow[] | null>(null)
   const [down, setDown] = useState(false) // backend fora do ar — evita travar em "Carregando…"
@@ -5230,8 +5231,9 @@ export function EscRanking() {
     let alive = true
     setRows(null); setDown(false)
     ;(async () => {
-      // 🏆 Carreira: ranking próprio EM BREVE — lista zerada de propósito (Diego)
-      if (mode === 'carreira') { if (alive) setRows([]); return }
+      // 🏆 Carreira: pro PÚBLICO é EM BREVE (zerada); a conta do Diego vê o
+      // histórico completo (títulos de carreira, chave co:) pra avaliar a régua.
+      if (mode === 'carreira' && !escLibRank) { if (alive) setRows([]); return }
       try {
         await reconcileCardsToTitles() // acerta cartas↔títulos antes de somar
         const { data } = await supabase.rpc('esc_ranking', { p_mode: mode })
@@ -5242,7 +5244,7 @@ export function EscRanking() {
       }
     })()
     return () => { alive = false }
-  }, [mode])
+  }, [mode, escLibRank])
 
   const loading = rows === null
   // Ranking por TÍTULOS (a artilharia saiu — é rara/pouco significativa e fácil
