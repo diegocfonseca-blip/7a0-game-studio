@@ -88,6 +88,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **Sempre quer saber se dá pra reverter** ("qualquer bug eu posso voltar
   atrás né?") — responder isso proativamente a cada entrega.
 - Sons: martelo só pra QUEM ganha (ou vende) — nada de som genérico pra todos.
+- **O desenho do estádio (StadiumSvg) é sagrado**: tem que ser a PRIMEIRA coisa
+  visível ao abrir a área do clube ("via o estádio de cara, eu achava bonito").
+  Qualquer coisa nova naquela área entra ABAIXO dele, nunca antes.
 - Explicações embaixo do botão/do lugar exato, não parágrafos soltos.
 
 ## 🗣️ Como falar com o Diego

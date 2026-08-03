@@ -23,8 +23,13 @@ Pedidos do áudio do Diego:
    manter grátis de cara). CTA aponta pra Elenco › Agenciados. Texto stale da
    AgenciadosTab ("desbloqueios seguem na aba Clube › Agência", linha ~881)
    deve passar a apontar pra nova casa QUANDO implementar.
-3. Nome da sub-aba: sugeri "🏗️ Estrutura" (alternativas: Patrimônio, manter
-   Estádio) — Diego escolhe no mockup.
+3. Nome da sub-aba: Diego APROVOU "🏗️ Estrutura" (áudio 03/08: "gostei do nome
+   estrutura, gostei das ideias das três: estádio, patrocínio e o empresário").
+4. Feedback do Diego no mockup v1: ele AMA o estádio ABERTO de cara ("uma
+   pessoa via o estádio de cara, eu achava bonito") → mockup v2 enviado com a
+   ordem: 1) StadiumSvg no TOPO (intacto, primeira coisa visível) · 2) obras/
+   melhorias · 3) patrocínio · 4) caixa escura da Agência por último (destaca,
+   não confunde com a obra). Aguardando OK do v2.
 ❌ NÃO CODAR o visual antes do OK do Diego (regra dele). Quando aprovar:
    mover AgenciaDesbloqueios pro fim da branch do estádio, renomear sub-aba,
    corrigir o texto ~881, remover o branch escritorio da Agência 2.0.
