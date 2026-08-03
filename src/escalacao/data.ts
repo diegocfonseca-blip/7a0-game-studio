@@ -2112,6 +2112,8 @@ export const OLD_NAME: Record<string, string> = {
   'Semervilha': 'Posto 7 FC', 'Real Bets': 'Feira Nova FR', 'Goiaba FC': 'Onça Parda EC',
   'Leve-cuscuz': 'Foguete FC', 'Torta de Rã': 'Fogaréu EC', 'Astronáutico': 'Sinhô Futebol',
   'Inter Estadual': 'Bigode FC', 'Cuiabagre': 'Bagres do Rio', 'Santos Dumont': 'Tonhão FC',
+  'Marreco FC': 'Inter Estadual', // ⚽ batismo do lucasigorbortoliniii: save antigo com Inter Estadual (ou Bigode FC) vira Marreco FC ao carregar
+
   'Pardemeias': 'Tico do Bar FR', 'Livre-pool': 'Xandão EC',
   'White Thigs do GuGu': 'Astronáutico',
   'Nightfull FC': 'Pelado FR', // ⚽ batismo do Guilherme: em save antigo, o Pelado FR vira Nightfull FC ao carregar
@@ -2211,7 +2213,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Duda Fortuna', team: 'Skyy FC' }, // ⚽ clube BATIZADO por apoiador (matheusncruz1 — Skyy FC, ex-Fortuna SAF)
     { name: 'PC Magrão', team: 'Vasco da Grana' }, // ⚽ clube BATIZADO (pedido do Diego 03/08 — Vasco da Grana, ex-Magrão EC)
     { name: 'Neguinho do Apito', team: 'Tokyo City Esperion' }, // ⚽ clube BATIZADO por apoiador (denilson.stifler10 — Tokyo City Esperion, ex-FC Galáticos)
-    { name: 'Dedé Bigode', team: 'Inter Estadual' },
+    { name: 'Dedé Bigode', team: 'Marreco FC' }, // ⚽ clube BATIZADO por apoiador (lucasigorbortoliniii — Marreco FC, ex-Inter Estadual)
     { name: 'Tião Bagre', team: 'Cuiabagre' },
     { name: 'Cabeção da Vila', team: 'Paris São Geraldo' },
     { name: 'Tonhão', team: 'Santos Dumont' },
