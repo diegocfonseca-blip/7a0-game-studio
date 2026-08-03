@@ -1041,20 +1041,18 @@ function AgenciaDesbloqueios({ st, hasFilial }: { st: StadiumSave | undefined; h
 // ── 🏦 BANCO LEGENDS (Clube › Finanças) — compra manual de moedas via Pix ────
 // Fluxo do Diego: jogador manda Pix → comprovante no zap → Diego gera a FICHA no
 // admin → jogador resgata aqui. A validação/queima é ATÔMICA no Supabase (RPC
-// bl_redeem); o reducer só credita. SÓ carreira SOLO. 🔒 Em teste: só a conta
-// do Diego vê (libera geral quando ele passar a chave Pix real).
-const BL_PIX = 'banco@leilaolegends.com' // ⚠️ placeholder — trocar pela chave REAL do Diego antes de liberar geral
+// bl_redeem); o reducer só credita. SÓ carreira SOLO. Liberado GERAL (04/08).
+const BL_PIX = 'diego.c.fonseca@gmail.com' // chave Pix REAL do Diego (04/08) — Banco liberado geral
 const BL_PACOTES: [number, string][] = [[10, 'CAFEZINHO'], [50, 'REFORÇO PONTUAL'], [100, 'FÔLEGO DE TEMPORADA'], [500, 'PROJETO SAF'], [1000, 'INVESTIDOR VISIONÁRIO 👑']]
 function BancoLegends() {
   const { state, dispatch } = useEsc()
-  const lib = useAgenciaLiberada()
   const [aberto, setAberto] = useState(false)
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [fails, setFails] = useState(0)
   const [coolAte, setCoolAte] = useState(0)
   const [msg, setMsg] = useState<{ ok: boolean; coins?: number; tx: string } | null>(null)
-  if (!lib || state.onlineMode === 'online' || !state.careerOnline) return null
+  if (state.onlineMode === 'online' || !state.careerOnline) return null
   const emCooldown = Date.now() < coolAte
   const resgatar = async () => {
     if (busy || emCooldown || !code.trim()) return
@@ -1106,7 +1104,7 @@ function BancoLegends() {
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', margin: '0 0 4px' }}>Como funciona</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.5, margin: 0 }}>1️⃣ Escolha o pacote e mande o Pix pra chave:<br /></p>
             <p style={{ background: '#EAF6EE', border: `2.5px dashed ${INK}`, borderRadius: 10, padding: '6px 8px', fontWeight: 900, fontSize: 11.5, textAlign: 'center', margin: '5px 0' }}>📲 PIX: {BL_PIX}</p>
-            <p style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.5, margin: 0 }}>2️⃣ Manda o <b>comprovante no WhatsApp</b> — o gerente responde com sua <b>FICHA DO BANCO</b> (um código).<br />3️⃣ Digita a ficha abaixo — as moedas caem <b>na hora</b> no caixa do clube. 💸</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.5, margin: 0 }}>2️⃣ Manda o <b>comprovante</b> no Instagram <b>@leilaolegendscom</b> (ou no e-mail acima) — o gerente responde com sua <b>FICHA DO BANCO</b> (um código).<br />3️⃣ Digita a ficha abaixo — as moedas caem <b>na hora</b> no caixa do clube. 💸</p>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             <input value={code} onChange={e => setCode(e.target.value)} placeholder="BL-XXXX-XX" maxLength={14}
