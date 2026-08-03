@@ -121,12 +121,17 @@ export function useTemaLiberado(): boolean {
   return temaLiberado
 }
 
-// 🕴️ AGÊNCIA 2.0 — decisão do Diego (03/08): por enquanto SÓ a conta dele.
+// 🕴️ AGÊNCIA 2.0 — decisão do Diego (03/08): por enquanto SÓ contas de teste.
 // Carreira nova só nasce com a agência se a conta logada estiver na lista; e
 // mesmo um save que tenha a flag (criado na janela em que ficou público) não
 // MOSTRA nada pra conta comum — o jogo fica 100% igual ao de sempre pros outros.
 // Quando o Diego liberar geral, é só esvaziar a checagem (um lugar só).
-const AGENCIA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+// A MESMA lista libera a ESCADA (Várzea + régua) e o baralho 'todos' — o pacote
+// completo da carreira nova de teste.
+const AGENCIA_TESTERS = new Set([
+  'diego.c.fonseca@gmail.com',
+  'msb102010@hotmail.com', // testador convidado pelo Diego (03/08)
+])
 let agenciaOk = false
 function applyAgenciaUnlock(email?: string | null): void {
   const u = !!email && AGENCIA_TESTERS.has(email.toLowerCase())

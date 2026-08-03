@@ -1,5 +1,12 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## 👥 TESTADOR NOVO da carreira nova (03/08): msb102010@hotmail.com
+Diego pediu pra liberar essa conta com o pacote COMPLETO da carreira nova de
+teste, "igual o meu": entrou em AGENCIA_TESTERS (sport.ts) — a mesma lista
+libera Agência 2.0 + Escada/Várzea + baralho 'todos'. Basquete e tema seguem
+SÓ na conta do Diego (não fazem parte da carreira nova; se ele quiser, é
+adicionar nas outras listas do mesmo arquivo).
+
 ## ⚠️ LIÇÃO DE DEPLOY (03/08): commitar no branch NÃO põe no ar!
 O hotfix do loop ficou 2 commits só no branch `claude/denis-...` enquanto o site
 (main) seguia sem ele — por isso o Diego continuou vendo bugs "já consertados".
