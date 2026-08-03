@@ -1208,7 +1208,7 @@ const NOVOS_BR_ZAG: C[] = [
   { name: "Victor Ramos", club: "Vitória", year: 2013, fame: 2, lo: 66, hi: 82, bio: "Zagueiro de força do Vitória — muralha baiana marcante na defesa rubro-negra." },
   { name: "Sergio Escobar", club: "Vasco", year: 1996, fame: 2, lo: 64, hi: 82 },
   { name: "Rodrigo Alvim", club: "Internacional", year: 2006, fame: 1, lo: 62, hi: 80 },
-  { name: "Gustavo Geladeira", club: "Portuguesa", year: 2005, fame: 1, lo: 60, hi: 80, folk: true, bio: "Zagueirão \u0022Geladeira\u0022 da Portuguesa — parrudo e folclórico, muralha dos anos 2000." },
+  { name: "Gustavo Geladeira", club: "Flamengo", year: 2011, fame: 1, lo: 60, hi: 80, folk: true, bio: "Zagueirão \u0022Geladeira\u0022 do Flamengo — o apelido nasceu no vestiário rubro-negro, parrudo e folclórico, parceiro do Ronaldinho Gaúcho." },
   { name: 'Erazo', club: 'Flamengo', year: 2014, fame: 1, lo: 57, hi: 78, bio: 'Zagueirão equatoriano do Flamengo — imponente no jogo aéreo.' },
   { name: 'Rafael Vaz', club: 'Flamengo', year: 2016, fame: 1, lo: 56, hi: 77, bio: 'Zagueiro de boa saída e gol de bola parada pelo Flamengo.' },
   { name: 'Lucão', club: 'São Paulo', year: 2016, fame: 1, lo: 55, hi: 76, bio: 'Zagueiro da base do São Paulo, firme na marcação.' },
