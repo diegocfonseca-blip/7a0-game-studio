@@ -16,6 +16,10 @@ jogo FORÇA a renovação no aperto (dívida) sem dar escolha. Proposta desenhad
 - AFK/sem decisão: mantém a regra de hoje (renova NO APERTO, cheque especial) —
   dívida forçada só por OMISSÃO, nunca contra a escolha do usuário.
 - Só carreiras com contratos.
+✅ AJUSTE (03/08, Diego): renovar por ESCOLHA também pode NEGATIVAR — caiu a
+trava de saldo do RENEW_CONTRACT (botões sempre ativos; sem caixa mostram 💳 e
+o rodapé explica o cheque especial + transfer ban). Dívida por escolha OU por
+omissão; nunca sem saber.
 ✅ IMPLEMENTADO (03/08) com os ajustes finais do Diego:
 - Cria SEM contrato nenhum (cerimônia pula ele no sorteio), RUIM mesmo (48-58 —
   derruba o nível do time; 2-3 crias = time capenga), INVENDÁVEL (não lista,

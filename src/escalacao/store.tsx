@@ -4328,9 +4328,10 @@ export function reducer(state: EscState, action: Action): EscState {
       const oficial = valorOficial(s, card)
       // 💰 10 anos = 90% (decisão do Diego 03/08): desconto de fidelidade — por
       // temporada sai 9% vs 10% dos 5 anos, mas o desembolso à vista é maior.
+      // 💳 SEM trava de saldo (Diego 03/08): renovar por ESCOLHA pode negativar —
+      // a dívida é do jogo (transfer ban no vermelho cuida da consequência).
       const custo = action.anos === 10 ? Math.max(1, Math.ceil(oficial * 0.9)) : Math.max(1, Math.ceil(oficial / 2))
       const saldo = s.careerCoins?.[mgr.id] ?? 0
-      if (saldo < custo) return s
       s.careerCoins = { ...(s.careerCoins ?? {}), [mgr.id]: saldo - custo }
       card.contratoAte = s.seasonNo + contratoDur(action.anos, rngOf(s)) - 1
       logFin(s, 'buy', `📝 Renovação: ${card.name} (${action.anos} anos)`, -custo, { player: card.name, pos: card.pos }, mgr.id)

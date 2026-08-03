@@ -3602,8 +3602,8 @@ export function ReserveListScreen() {
                     </div>
                     {(() => { const solto = (state.contratoRelease ?? []).includes(c.id); return (
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: youId, cardId: c.id, anos: 10 })} disabled={coins < c10 || solto} style={btn(GOLD, INK, coins < c10 || solto)}>Renovar 10 anos<br />{c10} 🪙 (-10%)</button>
-                      <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: youId, cardId: c.id, anos: 5 })} disabled={coins < c5 || solto} style={btn('#EAF6EE', INK, coins < c5 || solto)}>Renovar 5 anos<br />{c5} 🪙</button>
+                      <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: youId, cardId: c.id, anos: 10 })} disabled={solto} style={btn(GOLD, INK, solto)}>Renovar 10 anos<br />{c10} 🪙 (-10%){coins < c10 ? ' 💳' : ''}</button>
+                      <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: youId, cardId: c.id, anos: 5 })} disabled={solto} style={btn('#EAF6EE', INK, solto)}>Renovar 5 anos<br />{c5} 🪙{coins < c5 ? ' 💳' : ''}</button>
                       <button onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: youId, cardId: c.id })} style={btn(solto ? '#C2452F' : '#FDECEA', solto ? '#fff' : '#a23325', false)}>{solto ? '🌱 vai embora\u2028(desfazer)' : '😢 Deixar ir'}<br />{solto ? 'cria assume se faltar' : 'de graça'}</button>
                     </div>) })()}
                   </div>
@@ -3611,7 +3611,7 @@ export function ReserveListScreen() {
               })}
               {expirados.length > 0 && (
                 <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '2px 0 0', lineHeight: 1.45 }}>
-                  Não renovou? Ele <b>vai pro leilão</b> quando o pregão começar — você recebe a venda <b>até o valor dele</b> (o que passar fica com a <b>família gananciosa</b> do jogador 😏). <b>😢 Deixar ir</b>: sai de graça e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume (fraquinho, sem contrato, some quando chegar reforço). ⚠️ <b>Não decidiu nada e avançou?</b> Quem o time precisa <b>renova SOZINHO por 5 anos (metade)</b> — mesmo no vermelho.
+                  Não renovou? Ele <b>vai pro leilão</b> quando o pregão começar — você recebe a venda <b>até o valor dele</b> (o que passar fica com a <b>família gananciosa</b> do jogador 😏). <b>😢 Deixar ir</b>: sai de graça e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume (fraquinho, sem contrato, some quando chegar reforço). 💳 Sem caixa dá pra renovar MESMO ASSIM — entra no <b>cheque especial</b> (caixa negativa, com transfer ban até sair do vermelho). ⚠️ <b>Não decidiu nada e avançou?</b> Quem o time precisa <b>renova SOZINHO por 5 anos (metade)</b> — mesmo no vermelho.
                 </p>
               )}
               {ultimoAno.length > 0 && (
