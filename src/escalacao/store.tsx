@@ -4830,6 +4830,9 @@ function activeSeatIdx(s: EscState): number {
 // numa carreira offline) e o clube que dorme corria risco de entrar no leilão.
 // Repara o que já foi gravado torto. No-op sem 2º clube.
 function normalizeMultiSeats(s: EscState): EscState {
+  // 🎁 pacote ÓRFÃO: sem 2º clube não existe "carta guardada de quem dormia" —
+  // limpa sobras de fantasmas curados antes deste fix (cartinha "do nada")
+  if (s && !s.multiClube && s.multiClubePendingCards && Object.keys(s.multiClubePendingCards).length > 0) s.multiClubePendingCards = undefined
   if (!s?.multiClube || !Array.isArray(s.managers)) return s
   const dormId = s.multiClube.id
   // 🏛️ FANTASMA (bug 04/08, print do Murriz): save contaminado por multiClube de
