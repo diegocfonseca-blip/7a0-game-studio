@@ -1,5 +1,32 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## 🚑 SUPABASE ESTOURANDO (03/08, pós-liberação geral): egress/realtime/lentidão
+Sintomas: salas lentas, admin com "Could not query the database for the schema
+cache", Diego avisado de limite de egress + realtime messages no plano Pro $25.
+MEDIDO (pg_stat_statements): (1) upsert do esc_pyramid_saves = 1s de banco ×651
+(autosave da carreira BAIXAVA+SUBIA o save inteiro a cada 6s por jogador);
+(2) lista pública de salas = 850ms ×207 (baixava o game_state INTEIRO de até 50
+salas A CADA 5s por pessoa na aba — nº 1 de egress); (3) realtime processando
+esses estados gigantes.
+✅ CONSERTOS (03/08):
+- Autosave nuvem: throttle 6s→60s (save LOCAL continua instantâneo; force=true
+  nos momentos-chave permanece). Corta ~10× as escritas/leituras gigantes.
+- fetchOpenRooms: LISTA MAGRA — só os campos exibidos via game_state->>x
+  (roomName/deck/varzea/mode/careerOnline/manual/copaMode/ligaFechada/locked/
+  stream/pwHash/chatOff). De ~MBs por refresh pra ~KBs.
+- fetchMyCareers: idem (nome/temporada/tipo) — carreira tem o maior estado do
+  jogo e a lista baixava até 30 deles.
+- triggerStart: TRAVA — se o fetch fresco falhar e a linha for magra (sem
+  managers), aborta em vez de "começar do zero" (nunca reseta sala).
+⚠️ Advisors pendentes (fazer em janela calma): auth_rls_initplan ×39 (RLS
+reavaliando auth.uid() por LINHA — trocar por (select auth.uid()) nas policies
+quentes: esc_pyramid_saves, game_rooms, room_players, esc_results, user_cards);
+multiple_permissive_policies ×35; índices duplicados em game_plays.
+💡 Billing dito ao Diego: NÃO é o plano de $500 (Team). Opções no Pro $25:
+manter spend cap (estoura = degrada) ou desligar spend cap e pagar excedente
+(egress ~$0.09/GB, realtime ~$2.50/milhão de msgs — dezenas de reais, não
+centenas de dólares). Com os consertos, o consumo deve despencar.
+
 ## 📝 Contrato SUTIL no Elenco — MOCKUP enviado, AGUARDANDO escolha (03/08)
 Pedido do Diego: info discreta do contrato embaixo do nome no Elenco ("quantos
 anos faltam, algo sutil"). Era o combinado antigo do sistema de contratos

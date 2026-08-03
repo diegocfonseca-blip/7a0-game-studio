@@ -723,6 +723,10 @@ export function EscLobby() {
     // pode vir defasado) — é o que permite retomar a partida na reconexão.
     const { data: freshRoom } = await supabase.from('game_rooms').select('game_state').eq('id', roomData.id).maybeSingle()
     const gs = (freshRoom?.game_state ?? roomData.game_state) as GS | undefined
+    // 🔒 TRAVA (listas magras): se o fetch do estado FRESCO falhou e a linha só tem
+    // o mini-estado da lista (sem managers), NÃO segue — seguir cairia no "começa
+    // do zero" e resetaria a partida de todo mundo. Melhor falhar e tentar de novo.
+    if (!freshRoom?.game_state && !(gs && Array.isArray((gs as GS).managers))) return false
     const { data: allPlayers } = await supabase.from('room_players').select('*').eq('room_id', roomData.id).order('player_index')
     const sorted = (allPlayers ?? []) as RoomPlayer[]
     const myPl = sorted.find(p => p.user_id === user.id)
@@ -949,14 +953,23 @@ export function EscLobby() {
     if (!silent) setListLoading(true)
     // só salas recentes: uma sala de horas atrás é sala abandonada
     const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
+    // 🪶 LISTA MAGRA (03/08): NÃO baixa o game_state inteiro (podia ser MBs por
+    // sala × 50 salas × refresh de 5s × cada pessoa na aba — era o nº 1 de
+    // egress/lentidão). Puxa SÓ os campinhos que a lista mostra, via ->> do
+    // JSON, e remonta um mini game_state. Quem ENTRA numa sala busca o estado
+    // completo na hora (triggerStart/enterLoadedRoom já refetcham).
     const { data: rooms } = await supabase.from('game_rooms')
-      .select('id, code, host_id, max_players, status, game_state, updated_at')
+      .select('id, code, host_id, max_players, status, updated_at, gname:game_state->>roomName, gdeck:game_state->>deck, gvarzea:game_state->>varzea, gmode:game_state->>mode, gcareer:game_state->>careerOnline, gmanual:game_state->>manual, gcopa:game_state->>copaMode, gliga:game_state->>ligaFechada, glocked:game_state->>locked, gstream:game_state->>stream, gpw:game_state->>pwHash, gchat:game_state->>chatOff')
       .in('status', ['waiting', 'started'])
       .eq('game_state->>__game', GAME_TAG)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(50)
-    const list = (rooms ?? []) as RoomInfo[]
+    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null }
+    const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).map(r => ({
+      id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
+      game_state: { __game: GAME_TAG, roomName: r.gname ?? undefined, deck: (r.gdeck ?? undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined } as GS,
+    }))
     const ids = list.map(r => r.id)
     const counts: Record<string, number> = {}
     if (ids.length) {
@@ -996,7 +1009,10 @@ export function EscLobby() {
   async function fetchMyCareers() {
     if (!user) return
     const isCareer = (r: RoomInfo) => r.game_state?.__game === GAME_TAG && (r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline)
-    const sel = 'id, code, host_id, max_players, status, game_state, updated_at'
+    // 🪶 LISTA MAGRA (03/08): carreiras têm o MAIOR game_state do jogo — a lista
+    // só precisa de nome/temporada/tipo. O estado completo é buscado na hora de
+    // retomar (triggerStart refetcha), com trava pra nunca começar do zero.
+    const sel = 'id, code, host_id, max_players, status, updated_at, gname:game_state->>roomName, gmode:game_state->>mode, gcareer:game_state->>careerOnline, gseason:game_state->>seasonNo, gtag:game_state->>__game'
     const { data: mine } = await supabase.from('room_players').select('room_id').eq('user_id', user.id)
     const memberIds = [...new Set(((mine ?? []) as { room_id: string }[]).map(r => r.room_id))]
     // inclui também a sala salva NO APARELHO (por id) — é assim que o banner do
@@ -1007,8 +1023,12 @@ export function EscLobby() {
       memberIds.length ? supabase.from('game_rooms').select(sel).in('id', memberIds).eq('status', 'started').limit(30) : Promise.resolve({ data: [] as RoomInfo[] }),
       savedId ? supabase.from('game_rooms').select(sel).eq('id', savedId).eq('status', 'started').limit(1) : Promise.resolve({ data: [] as RoomInfo[] }),
     ])
+    type SlimCareer = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gmode: string | null; gcareer: string | null; gseason: string | null; gtag: string | null }
+    const inflate = (r: SlimCareer): RoomInfo => ({ id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
+      game_state: { __game: r.gtag ?? undefined, roomName: r.gname ?? undefined, mode: (r.gmode ?? undefined) as GS['mode'], careerOnline: r.gcareer === 'true' || undefined, seasonNo: r.gseason != null ? Number(r.gseason) : undefined } as GS })
     const seen = new Set<string>(); const rooms: RoomInfo[] = []
-    for (const r of [...((hostedRes.data ?? []) as RoomInfo[]), ...((memberRes.data ?? []) as RoomInfo[]), ...((savedRes.data ?? []) as RoomInfo[])]) {
+    for (const raw of [...((hostedRes.data ?? []) as unknown as SlimCareer[]), ...((memberRes.data ?? []) as unknown as SlimCareer[]), ...((savedRes.data ?? []) as unknown as SlimCareer[])]) {
+      const r = inflate(raw)
       if (seen.has(r.id) || !isCareer(r)) continue
       seen.add(r.id); rooms.push(r)
     }

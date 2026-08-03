@@ -5085,7 +5085,12 @@ function mergeCareers(...lists: CareerSlot[][]): CareerSlot[] {
 // como carreira única (compatível).
 export async function savePyramidCloud(state: EscState, force = false) {
   try {
-    if (!force && Date.now() - lastPyrCloud < 6000) return // throttle: no máx. 1 escrita/6s
+    // throttle: no máx. 1 escrita/60s — o save LOCAL é o guarda-vidas instantâneo;
+    // a nuvem é backup pra trocar de aparelho. A 6s, cada jogador de carreira
+    // BAIXAVA+SUBIA o save inteiro (MBs) toda hora — era o nº 1 de egress/CPU do
+    // Supabase (medido 03/08: upsert de 1s de banco, 651× em horas). Momentos-
+    // chave (sair pro lobby, trocar carreira) seguem com force=true, na hora.
+    if (!force && Date.now() - lastPyrCloud < 60000) return
     const { data } = await supabase.auth.getUser()
     if (!data?.user) return
     ensureCareerOwner(data.user.id) // 🔐 este aparelho é DESTA conta — nunca sobe/mistura carreira de outra
