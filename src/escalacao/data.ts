@@ -1172,7 +1172,7 @@ const NOVOS_BR_ATA: C[] = [
   { name: "Marcelo Ramos", club: "Cruzeiro", year: 1997, fame: 3, lo: 76, hi: 86, bio: "O Matador — centroavante goleador e quinto maior artilheiro do Cruzeiro, campeão da Libertadores de 1997." },
   { name: "Everaldo", club: "Ceará", year: 2019, fame: 2, lo: 64, hi: 82, bio: "Atacante cearense de briga e gol — destaque do Ceará antes de rodar o Brasileirão." },
   { name: "Biel", club: "Bahia", year: 2023, fame: 2, lo: 64, hi: 82, bio: "Ponta veloz revelado no Bahia — dribles e gols que renderam a ida ao Sporting de Portugal." },
-  { name: "Pimpão", club: "Bahia", year: 2013, fame: 2, lo: 64, hi: 82, bio: "Atacante rodado do Nordeste — faro de gol pelo Bahia e por onde passou, xodó folclórico da torcida." },
+  { name: "Pimpão", club: "Botafogo", year: 2016, fame: 2, lo: 64, hi: 82, bio: "Atacante rodado (Rodrigo Pimpão) — faro de gol e cabeceio, xodó folclórico no Botafogo e no Vasco." },
   { name: "Kieza", club: "Bahia", year: 2015, fame: 2, lo: 64, hi: 82, bio: "Centroavante artilheiro do Nordeste — goleador por Bahia, Botafogo e ABC." },
   { name: "Negreiros", club: "Flamengo", year: 2006, fame: 1, lo: 61, hi: 79 },
   { name: "Marinho", club: "Santos", year: 2020, fame: 3, lo: 78, hi: 86, bio: "Atacante driblador e artilheiro do Santos vice da Libertadores 2020 — melhor da América no ano." },
