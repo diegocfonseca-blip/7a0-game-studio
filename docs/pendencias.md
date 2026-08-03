@@ -1,5 +1,21 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## 🏛️ BUG — SEGUNDO CLUBE não compra depois que o técnico SOBE da Série D (04/08)
+Relato: Lenda com 4.000 moedas, botão fica CINZA com "Nenhum clube da Série D
+disponível agora." (SOLO/offline — não é o online.) CAUSA: a lista `opcoes`
+(pyramidseason ~2761) e o motor `BUY_MULTICLUBE` (store ~3217) só olham `state.managers`
+placeados em 'D'. Mas `state.managers` = só ~20 times da SUA divisão atual
+(buildPyramid usa `managers.slice(0,20)`); os outros 60 (outras divisões) são times de
+FUNDO gerados por `buildCpuSquads`, que NÃO estão em `state.managers`. Então, assim que
+o técnico sobe pra C/B/A, a Série D vira só times de fundo → lista vazia → botão cinza.
+Justo quem tem 4.000 moedas (várias temporadas) já subiu → não consegue comprar.
+FIX (a fazer, SOLO só — sem risco pro online): montar `opcoes` a partir de `tables.D`
+(nomes reais da Série D, sempre existem) e o `BUY_MULTICLUBE` passar a CRIAR um manager
+dormindo pro time de fundo escolhido (id novo, squad via cpuSquads, placement D,
+mine+dormindo), deixando o buildPyramid rebalancear os 20 da D. ⚠️ Toca SAVE de
+carreira → testar bem (Diego odeia estado quebrado). WORKAROUND imediato: comprar o 2º
+clube ENQUANTO ainda está na Série D (antes de subir).
+
 ## 🚨🚨 BUG SÉRIO — IDENTIDADE/ASSENTO EM SALA GRANDE (03/08) — Diego quer MANTER 20
 Sala LOTADA (18/20) na noite 03/08. Relatos do jogador "Viria" (host): (1) "no começo
 tinha DOIS eu; o 2º não dava lance (fantasma), aí expulsei"; (2) depois ficou
