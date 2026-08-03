@@ -1169,9 +1169,9 @@ const NOVOS_BR_MEI: C[] = [
   { name: 'Douglas Barriga de Cadela', club: 'Corinthians', year: 2014, fame: 1, lo: 52, hi: 68, folk: true, bio: 'O meia que a Fiel judiava pela forma física — ganhou o apelido cruel e virou meme eterno da arquibancada.' },
 ]
 const NOVOS_BR_ATA: C[] = [
-  { name: "Marcelo Ramos", club: "América-MG", year: 2001, fame: 2, lo: 66, hi: 83, bio: "O Matador — centroavante goleador dos anos 2000, faro de área por América-MG, Cruzeiro e Vasco." },
+  { name: "Marcelo Ramos", club: "Cruzeiro", year: 1997, fame: 3, lo: 76, hi: 86, bio: "O Matador — centroavante goleador e quinto maior artilheiro do Cruzeiro, campeão da Libertadores de 1997." },
   { name: "Everaldo", club: "Ceará", year: 2019, fame: 2, lo: 64, hi: 82, bio: "Atacante cearense de briga e gol — destaque do Ceará antes de rodar o Brasileirão." },
-  { name: "Biel", club: "Bahia", year: 2022, fame: 2, lo: 64, hi: 82, bio: "Ponta veloz revelado no Bahia — dribles e futuro promissor rumo à Europa." },
+  { name: "Biel", club: "Bahia", year: 2023, fame: 2, lo: 64, hi: 82, bio: "Ponta veloz revelado no Bahia — dribles e gols que renderam a ida ao Sporting de Portugal." },
   { name: "Pimpão", club: "Bahia", year: 2013, fame: 2, lo: 64, hi: 82, bio: "Atacante rodado do Nordeste — faro de gol pelo Bahia e por onde passou, xodó folclórico da torcida." },
   { name: "Kieza", club: "Bahia", year: 2015, fame: 2, lo: 64, hi: 82, bio: "Centroavante artilheiro do Nordeste — goleador por Bahia, Botafogo e ABC." },
   { name: "Negreiros", club: "Flamengo", year: 2006, fame: 1, lo: 61, hi: 79 },
@@ -1182,7 +1182,7 @@ const NOVOS_BR_ATA: C[] = [
   { name: "Leandro Amaral", club: "Vasco", year: 2007, fame: 2, lo: 66, hi: 83 },
   { name: "Victor Simões", club: "Botafogo", year: 2009, fame: 2, lo: 66, hi: 82 },
   { name: "Yuri Mamute", club: "Grêmio", year: 2014, fame: 1, lo: 62, hi: 80, promessa: true, bio: "Promessa de gols da base do Grêmio que não deslanchou." },
-  { name: "Maicon Bolt", club: "Fluminense", year: 2020, fame: 2, lo: 64, hi: 82 },
+  { name: "Maicon Bolt", club: "Fluminense", year: 2009, fame: 2, lo: 64, hi: 82, bio: "Ponta-relâmpago do Fluminense — dupla com Fred na arrancada de 2009 contra o rebaixamento; velocidade de Usain Bolt." },
   { name: "Rodrigão", club: "Santos", year: 2016, fame: 2, lo: 64, hi: 82 },
   { name: "Pipico", club: "Santa Cruz", year: 2019, fame: 1, lo: 60, hi: 80, folk: true, bio: "Centroavante folclórico do Santa Cruz — eternizado pelo meme \u0022vô comê é pipoca\u0022." },
   { name: "Pimentinha", club: "Sampaio Corrêa", year: 2015, fame: 1, lo: 61, hi: 80, folk: true, bio: "Ídolo folclórico do Sampaio Corrêa — artilheiro querido no Maranhão." },
