@@ -5126,7 +5126,7 @@ export function EscAlbum() {
 }
 
 // ─── RANKING DE TÉCNICOS (só contas) ─────────────────────────────────
-type RankMode = 'geral' | 'online' | 'cpu'
+type RankMode = 'carreira' | 'ronline' | 'rcpu' // 🏆 decisão do Diego (04/08): sem 'Geral'; Carreira (em breve, zerada) · Rápido online · Rápido offline
 interface RankRow { user_id: string; name: string; titles: number; scorer_titles: number; goals: number; cards: number }
 
 // ACERTO AUTOMÁTICO cartas↔ranking. Regra do Diego: cada usuário tem que ter a
@@ -5197,7 +5197,7 @@ async function reconcileCardsToTitles() {
 
 export function EscRanking() {
   const { dispatch } = useEsc()
-  const [mode, setMode] = useState<RankMode>('geral')
+  const [mode, setMode] = useState<RankMode>('carreira')
   const [rows, setRows] = useState<RankRow[] | null>(null)
   const [down, setDown] = useState(false) // backend fora do ar — evita travar em "Carregando…"
   const [meId, setMeId] = useState<string | null>(null)
@@ -5230,6 +5230,8 @@ export function EscRanking() {
     let alive = true
     setRows(null); setDown(false)
     ;(async () => {
+      // 🏆 Carreira: ranking próprio EM BREVE — lista zerada de propósito (Diego)
+      if (mode === 'carreira') { if (alive) setRows([]); return }
       try {
         await reconcileCardsToTitles() // acerta cartas↔títulos antes de somar
         const { data } = await supabase.rpc('esc_ranking', { p_mode: mode })
@@ -5252,9 +5254,9 @@ export function EscRanking() {
   const inList = !!meId && shown.some(r => r.user_id === meId)
 
   const MODES: { id: RankMode; label: string }[] = [
-    { id: 'geral', label: 'Geral' },
-    { id: 'online', label: '👥 Online' },
-    { id: 'cpu', label: '🤖 CPU' },
+    { id: 'carreira', label: '🪜 Carreira' },
+    { id: 'ronline', label: '👥 Rápido online' },
+    { id: 'rcpu', label: '🤖 Rápido offline' },
   ]
   const medal = (i: number) => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`
 
@@ -5265,7 +5267,7 @@ export function EscRanking() {
         <p className="font-semibold text-black/60 mt-1">Só técnicos com cadastro. Ranking por títulos. 🏆</p>
       </div>
 
-      {/* filtro: geral / online / cpu */}
+      {/* filtro: Carreira (em breve) / Rápido online / Rápido offline */}
       <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
         {MODES.map(t => (
           <button key={t.id} onClick={() => setMode(t.id)}
@@ -5298,7 +5300,15 @@ export function EscRanking() {
       )}
       {!loading && !down && shown.length === 0 && (
         <Box bg="#fff" className="p-6 text-center">
-          <p className="font-bold text-black/70">Ninguém no ranking ainda. Seja o primeiro campeão! 🔨</p>
+          {mode === 'carreira' ? (
+            <>
+              <p className="text-3xl mb-1">🚧</p>
+              <p className="font-black text-lg" style={OSWALD}>RANKING DA CARREIRA — EM BREVE</p>
+              <p className="font-bold text-black/60 text-sm mt-1">A contagem começa DO ZERO pra todo mundo quando abrir. Vai valendo título da pirâmide — prepara o time. 🪜🏆</p>
+            </>
+          ) : (
+            <p className="font-bold text-black/70">Ninguém no ranking ainda. Seja o primeiro campeão! 🔨</p>
+          )}
         </Box>
       )}
       <div className="space-y-2">
@@ -5314,7 +5324,7 @@ export function EscRanking() {
       </div>
       {!loading && !inList && meId && shown.length > 0 && (
         <Box bg="#fff" className="p-3 text-center">
-          <p className="font-bold text-black/70 text-sm">Você ainda não pontuou{mode !== 'geral' ? ` ${mode === 'online' ? 'no online' : 'no CPU'}` : ''}. Seja campeão pra entrar! 🔨</p>
+          <p className="font-bold text-black/70 text-sm">Você ainda não pontuou {mode === 'ronline' ? 'no rápido online' : 'no rápido offline'}. Seja campeão pra entrar! 🔨</p>
         </Box>
       )}
       {!loading && !meId && (

@@ -902,3 +902,12 @@ useAgenciaLiberada hoje).
    com carta de fora é limpa e para de render).
 4. Bots da várzea tinham PROMESSA no elenco → makeBotSquad (modo várzea) exclui
    promessa (vale também pro modo rápido Várzea — lá o catálogo já vinha filtrado).
+
+## 🏆 RANKING reformulado — FEITO (04/08, pedido do Diego com print)
+Abas novas (saiu o "Geral"): 🪜 **Carreira** (primeira aba, EM BREVE — lista
+ZERADA de propósito, aviso "contagem começa do zero quando abrir") · 👥 **Rápido
+online** · 🤖 **Rápido offline**. RPC esc_ranking ganhou modos 'ronline'/'rcpu'
+que EXCLUEM temporadas de carreira (season_key like 'co:%'); modos antigos
+seguem funcionando (compat com app aberto). PENDENTE: quando o Diego quiser
+abrir o ranking da Carreira, definir a régua (títulos co: por divisão? só Série
+A? copa?) e ligar a aba.
