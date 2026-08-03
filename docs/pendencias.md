@@ -28,6 +28,18 @@ intocados). LIMPEZA AUTOMÁTICA ligada: pg_cron 'limpa-salas-rapidas' todo dia
 select cron.unschedule('limpa-salas-rapidas'). VACUUM (analyze) rodado (o
 espaço vira reuso; o VACUUM FULL que encolhe o arquivo fica pra madrugada,
 junto do item 2).
+✅ MAIS 3 EXECUTADOS (03/08, "pode fazer o que não impacta nada"):
+- RLS initplan das tabelas QUENTES consertado (migração
+  rls_initplan_tabelas_quentes): esc_pyramid_saves, esc_results, game_rooms,
+  room_players, user_cards, user_colors — auth.uid()/jwt() viram
+  (select auth.uid()), semântica idêntica, CPU por consulta despenca.
+  Restam as tabelas frias do advisor (profiles, boloes etc.) pra janela calma.
+- Índices duplicados de analytics dropados (idx_game_plays_created_at,
+  idx_site_visits_created_at ~14 MB). O unique do room_players FICA (é a trava
+  anti-vaga-duplicada do jogo).
+- Host só re-sobe o game_state (100-180 KB) quando ele MUDOU — estado idêntico
+  vira só batimento do updated_at (ex.: 45s de envelope = 15 uploads idênticos
+  → 1). lastUpRef em store.tsx; reconexão intacta (primeiro save sempre sobe).
 ⚠️ Advisors pendentes (fazer em janela calma): auth_rls_initplan ×39 (RLS
 reavaliando auth.uid() por LINHA — trocar por (select auth.uid()) nas policies
 quentes: esc_pyramid_saves, game_rooms, room_players, esc_results, user_cards);

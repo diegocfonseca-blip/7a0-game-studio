@@ -5638,6 +5638,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // estado NUNCA era salvo. Resultado: reconectar não achava a partida e
   // recomeçava o jogo do zero, quebrando a sala. Com intervalo fixo lendo o
   // stateRef, sempre há um snapshot recente pra retomar.
+  const lastUpRef = useRef('') // assinatura do último game_state que subiu (economia de egress)
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     const save = () => {
@@ -5653,8 +5654,19 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // Salas Abertas distingue jogo REALMENTE rolando de sala abandonada (o
       // host fechou a aba e ninguém mais salva nada). Sem escrever isso a
       // cada save, updated_at fica congelado na criação da sala pra sempre.
-      supabase.from('game_rooms').update({ game_state: payload, updated_at: new Date().toISOString() }).eq('id', st.roomId).then(() => {}, () => {})
+      // 💸 ECONOMIA (03/08): estado IDÊNTICO ao último upload (ex.: os 45s do
+      // envelope = nada muda) NÃO re-sobe os ~100-180 KB — só bate o coração
+      // (updated_at, minúsculo). Mudou qualquer coisa → sobe na hora, igual
+      // sempre. Reconexão continua achando o snapshot mais recente.
+      const body = JSON.stringify(payload)
+      if (body === lastUpRef.current) {
+        supabase.from('game_rooms').update({ updated_at: new Date().toISOString() }).eq('id', st.roomId).then(() => {}, () => {})
+      } else {
+        lastUpRef.current = body
+        supabase.from('game_rooms').update({ game_state: payload, updated_at: new Date().toISOString() }).eq('id', st.roomId).then(() => {}, () => {})
+      }
     }
+    lastUpRef.current = '' // sala nova/reconexão: primeiro save sempre sobe inteiro
     save() // salva JÁ ao entrar no jogo (fecha a janela dos 3s do 1º save)
     const iv = setInterval(save, 3000)
     return () => { save(); clearInterval(iv) }
