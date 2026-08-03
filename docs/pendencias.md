@@ -16,6 +16,11 @@ jogo FORÇA a renovação no aperto (dívida) sem dar escolha. Proposta desenhad
 - AFK/sem decisão: mantém a regra de hoje (renova NO APERTO, cheque especial) —
   dívida forçada só por OMISSÃO, nunca contra a escolha do usuário.
 - Só carreiras com contratos.
+✅ AJUSTE 2 (03/08, Diego): avançou a janela SEM escolher = renova AUTOMÁTICO
+por 5 anos (metade) pra TODOS os vencidos — com ou sem caixa (negativa; valor
+REAL no extrato, caixa nunca fura). Jogador só vai pro leilão por ESCOLHA
+("deixar ir"). O caso "quebraria o XI" deixou de existir na omissão (todos
+renovam); o cria só nasce no deixar-ir explícito. Textos da janela atualizados.
 ✅ AJUSTE (03/08, Diego): renovar por ESCOLHA também pode NEGATIVAR — caiu a
 trava de saldo do RENEW_CONTRACT (botões sempre ativos; sem caixa mostram 💳 e
 o rodapé explica o cheque especial + transfer ban). Dívida por escolha OU por

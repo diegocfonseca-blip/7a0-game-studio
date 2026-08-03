@@ -4416,27 +4416,27 @@ export function reducer(state: EscState, action: Action): EscState {
           const expirados = (m.squad as WonCard[]).filter(c => !c.fake && !c.cria && c.contratoAte != null && c.contratoAte < s.seasonNo)
           const removidosPorPos: Record<string, number> = {}
           for (const c of expirados) {
-            const need = FORMATIONS[m.formation][c.pos]
-            const filledPos = m.squad.filter(x => x.pos === c.pos && !x.emprestado && !x.fake).length
-            const quebraXI = c.emprestado || (filledPos - (removidosPorPos[c.pos] ?? 0) - 1 < need)
             // 🌱 o técnico ESCOLHEU deixar ir (botão na janela): sai mesmo quebrando
             // o XI — um Cria da Base assume a vaga (de graça, sem contrato). Só o
             // emprestado na SAF não tem como soltar (a carta nem está aqui).
             const querSoltar = released.has(c.id) && !c.emprestado
-            if (quebraXI && !querSoltar) {
-              // renovação no aperto: 5 anos por metade, pode ficar devendo.
-              // ⚠️ Só acontece por OMISSÃO (não decidiu nada na janela) — quem
-              // marca "deixar ir" nunca é endividado à força (regra do Diego).
+            if (querSoltar) {
+              const need = FORMATIONS[m.formation][c.pos]
+              const filledPos = m.squad.filter(x => x.pos === c.pos && !x.emprestado && !x.fake).length
+              const quebraXI = filledPos - (removidosPorPos[c.pos] ?? 0) - 1 < need
+              m.squad = m.squad.filter(x => x.id !== c.id)
+              listedCards.push({ ...c, seller: m.id, semContrato: true })
+              if (quebraXI) spawnCria(s, m, c.pos, c.name, ctrRng) // cria tapa o buraco → posição segue preenchida
+              else removidosPorPos[c.pos] = (removidosPorPos[c.pos] ?? 0) + 1
+            } else {
+              // ⏳ NÃO DECIDIU na janela (regra do Diego 03/08): renova AUTOMÁTICO
+              // por 5 anos pela metade, tenha caixa ou não (pode negativar — valor
+              // REAL no extrato, caixa nunca fura). Perder jogador, só por escolha.
               const custo = Math.max(1, Math.ceil(valorOficial(s, c) / 2))
               s.careerCoins = { ...(s.careerCoins ?? {}), [m.id]: (s.careerCoins?.[m.id] ?? 0) - custo }
               c.contratoAte = s.seasonNo + contratoDur(5, ctrRng) - 1
-              ;(s.marketLog = s.marketLog ?? []).push(`📝 ${m.teamName}: ${c.name} renovou NO APERTO por ${custo} 🪙 (5 anos) — sem ele a formação não fechava`)
-              if (m.isHuman) logFin(s, 'buy', `📝 Renovação no aperto: ${c.name}`, -custo, { player: c.name, pos: c.pos }, m.id)
-            } else {
-              m.squad = m.squad.filter(x => x.id !== c.id)
-              listedCards.push({ ...c, seller: m.id, semContrato: true })
-              if (quebraXI && querSoltar) spawnCria(s, m, c.pos, c.name, ctrRng) // cria tapa o buraco → posição segue preenchida
-              else removidosPorPos[c.pos] = (removidosPorPos[c.pos] ?? 0) + 1
+              ;(s.marketLog = s.marketLog ?? []).push(`📝 ${m.teamName}: ${c.name} renovou AUTOMÁTICO por ${custo} 🪙 (5 anos) — ninguém decidiu na janela`)
+              if (m.isHuman) logFin(s, 'buy', `📝 Renovação automática: ${c.name}`, -custo, { player: c.name, pos: c.pos }, m.id)
             }
           }
         }

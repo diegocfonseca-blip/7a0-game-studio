@@ -3611,7 +3611,7 @@ export function ReserveListScreen() {
               })}
               {expirados.length > 0 && (
                 <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '2px 0 0', lineHeight: 1.45 }}>
-                  Não renovou? Ele <b>vai pro leilão</b> quando o pregão começar — você recebe a venda <b>até o valor dele</b> (o que passar fica com a <b>família gananciosa</b> do jogador 😏). <b>😢 Deixar ir</b>: sai de graça e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume (fraquinho, sem contrato, some quando chegar reforço). 💳 Sem caixa dá pra renovar MESMO ASSIM — entra no <b>cheque especial</b> (caixa negativa, com transfer ban até sair do vermelho). ⚠️ <b>Não decidiu nada e avançou?</b> Quem o time precisa <b>renova SOZINHO por 5 anos (metade)</b> — mesmo no vermelho.
+                  <b>😢 Deixar ir</b>: ele vai pro leilão (você recebe a venda <b>até o valor dele</b> — o que passar fica com a <b>família gananciosa</b> 😏) e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume de graça (fraquinho, sem contrato, some quando chegar reforço). 💳 Sem caixa dá pra renovar MESMO ASSIM — entra no <b>cheque especial</b> (caixa negativa, transfer ban até sair do vermelho). ⚠️ <b>Avançou sem escolher?</b> Renova <b>AUTOMÁTICO por 5 anos (metade)</b>, com ou sem caixa — jogador só vai embora se VOCÊ mandar.
                 </p>
               )}
               {ultimoAno.length > 0 && (
