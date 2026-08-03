@@ -2754,7 +2754,26 @@ export function PyramidSeasonScreen() {
             uma das 80 posições + os donos da temporada (campeões e artilheiros).
             O painel antigo de campeões saiu: o jornal cobre tudo aquilo. */}
         {copaFinished && me && (
-          <SeasonJornal me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo} />
+          <SeasonJornal me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo}
+            /* 🕴️ AGÊNCIA 2.0: notícias dos agenciados pra página 2 do jornal —
+               SÓ emoção, sem moeda (decisão do Diego). Artilheiro/campeão desta
+               temporada + negociações do último mercado. Sem notícia = sem pág. 2. */
+            agenciaNews={(() => {
+              if (!state.agenciaOn) return undefined
+              const nomes = new Set((state.agenciados ?? []).map(a => a.name))
+              if (!nomes.size) return undefined
+              const nn: { ic: string; titulo: string; sub: string }[] = []
+              for (const d of DIVS) {
+                const top = scorersAll.filter(x => x.div === d).sort((a, b) => b.goals - a.goals)[0]
+                if (top && top.goals > 0 && nomes.has(top.name)) nn.push({ ic: '🥇', titulo: `${top.name} é o artilheiro da ${DIV_NAME[d]}`, sub: `${top.goals} gols pelo ${top.teamName}. A torcida cantou o nome dele — e o telefone da sua agência não parou de tocar.` })
+                const champ = tables[d]?.[0]
+                if (champ) for (const p of champ.squad) if (nomes.has(p.name)) nn.push({ ic: '🏆', titulo: `${p.name} levanta a taça pelo ${champ.name}`, sub: `Campeão da ${DIV_NAME[d]}! Ergueu o troféu e apontou pra tribuna: "esse aí é do meu agente!" 😎` })
+              }
+              if (copa?.champion) for (const p of copa.champion.squad) if (nomes.has(p.name)) nn.push({ ic: '🏆', titulo: `${p.name} campeão da Copa Legends`, sub: `Taça pelo ${copa.champion.name} — cria da sua agência dando show no mata-mata.` })
+              if (copa?.topScorer && nomes.has(copa.topScorer.name)) nn.push({ ic: '🥇', titulo: `${copa.topScorer.name} é o artilheiro da Copa`, sub: `${copa.topScorer.goals} gols no mata-mata — o país inteiro quer saber quem agencia esse craque.` })
+              for (const r of (state.agenciaFatura?.rows ?? []).filter(x => x.emoji === '💸').slice(0, 3)) if (r.nome) nn.push({ ic: '✍️', titulo: `${r.nome} de casa nova`, sub: 'Negociação fechada no mercado — com a bênção da sua agência.' })
+              return nn.length ? nn.slice(0, 6) : undefined
+            })()} />
         )}
         {copaFinished && copa?.champion && (
           <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>👉 ver o chaveamento da Copa na aba Tabelas</button>

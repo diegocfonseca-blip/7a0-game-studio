@@ -3,7 +3,7 @@
 // das 80 posições da pirâmide (Série A a D × 20 colocações), os números do seu
 // time, e "Os Donos da Temporada" (campeão + artilheiro de cada série + Copa).
 // `{t}` nas manchetes é trocado pelo nome do time do jogador.
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { SimTeam, CopaResult, SeasonScorer, Div } from './pyramidseason'
 
 const INK = '#0C0C0C'
@@ -123,18 +123,51 @@ export function seasonHeadline(div: Div, pos: number, team: string): Headline {
   return { h: raw.h.replace('{t}', team.toUpperCase()), s: raw.s.replace('{t}', team) }
 }
 
+// 🕴️ notícia do CADERNO DO EMPRESÁRIO (página 2 — Agência 2.0, carreira nova):
+// só emoção, SEM moeda (decisão do Diego) — a grana aparece na Cerimônia/aba.
+export type AgNews = { ic: string; titulo: string; sub: string }
+
 // ─── a capa ──────────────────────────────────────────────────────────────
-export function SeasonJornal({ me, tables, copa, divTop, seasonNo }: {
+export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews }: {
   me: { div: Div; pos: number; team: string }
   tables: Record<Div, SimTeam[]>
   copa: CopaResult | null
   divTop: Record<Div, SeasonScorer | undefined>
   seasonNo: number
+  agenciaNews?: AgNews[]
 }) {
   // abre EXPANDIDO por padrão (a manchete é a estrela do fim de temporada);
   // o "Fechar" recolhe pro botãozinho se a pessoa quiser limpar a tela.
   const [open, setOpen] = useState(true)
   const [copied, setCopied] = useState(false)
+  // 📰➡️🕴️ PÁGINA 2 (Caderno do Empresário): só existe se a temporada teve
+  // notícia de agenciado. A capa fica 5s e VIRA sozinha (uma vez); toque no
+  // rodapé de páginas vai e volta. Sem notícia/save antigo = só a capa, como hoje.
+  const news = (agenciaNews && agenciaNews.length > 0) ? agenciaNews : null
+  const [page, setPage] = useState(0)
+  const [barGo, setBarGo] = useState(false)
+  const flippedRef = useRef(false)
+  useEffect(() => {
+    if (!open || page !== 0 || !news || flippedRef.current) return
+    const t0 = setTimeout(() => setBarGo(true), 60) // dispara a barrinha (transition 5s)
+    const t1 = setTimeout(() => { flippedRef.current = true; setPage(1) }, 5100)
+    return () => { clearTimeout(t0); clearTimeout(t1) }
+  }, [open, page, news])
+  const virar = (p: number) => { flippedRef.current = true; setPage(p) } // toque manual cancela o automático
+  // manchete do caderno: a MELHOR notícia manda (artilheiro > campeão > mercado)
+  const agManchete = (() => {
+    if (!news) return null
+    const art = news.find(n => n.ic === '🥇'), tit = news.find(n => n.ic === '🏆')
+    if (art) { const nome = art.titulo.split(' é o artilheiro')[0].split(' levanta')[0]; return { h: `${nome.toUpperCase()} É ARTILHEIRO — ORGULHO DA SUA AGÊNCIA!`, s: 'Temporada dos sonhos pros seus meninos: o nome da sua agência correu o país.' } }
+    if (tit) { const nome = tit.titulo.split(' levanta')[0].split(' campeão')[0]; return { h: `${nome.toUpperCase()} CAMPEÃO — CRIA DA SUA AGÊNCIA!`, s: 'Taça no armário e o seu telefone tocando sem parar.' } }
+    return { h: 'MERCADO AGITADO — SUA AGÊNCIA EM ALTA!', s: 'Negociações fechadas e os seus meninos em evidência.' }
+  })()
+  const agQuote = [
+    '"Talento a gente não vende — a gente representa. Hoje o futebol inteiro sabe de quem são esses meninos."',
+    '"Eu vi esse menino treinando na chuva. Hoje o país inteiro canta o nome dele."',
+    '"Contrato bom é aquele que faz o jogador sorrir. O resto é assinatura."',
+    '"Agente de verdade não aparece na foto — aparece na história."',
+  ][seasonNo % 4]
   const mine = tables[me.div]?.find(t => t.you)
   const hl = seasonHeadline(me.div, me.pos, me.team)
   const stamp = stampOf(me.div, me.pos)
@@ -304,15 +337,39 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo }: {
 
   return (
     <div style={{ background: '#F7F1DD', border: `3px solid ${INK}`, boxShadow: `4px 4px 0 0 ${INK}`, borderRadius: 6, padding: '13px 13px 11px', marginBottom: 12, backgroundImage: 'repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,.012) 3px 4px)' }}>
-      {/* cabeçalho do jornal */}
+      {/* cabeçalho do jornal (a pág. 2 vira "Caderno 2 · Negócios") */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `4px double ${INK}`, paddingBottom: 6 }}>
         <div style={{ ...SERIF, fontWeight: 900, fontSize: 26, letterSpacing: 1 }}>O <span style={{ color: '#B23A2A' }}>MARTELO</span></div>
-        <div style={{ textAlign: 'right', fontSize: 8.5, fontWeight: 800, lineHeight: 1.35, color: '#3a3527' }}>EDIÇÃO Nº {seasonNo}<br />TEMPORADA {seasonNo} · {J_DIV_NAME[me.div].toUpperCase()}<br />PREÇO: 1 MOEDA</div>
+        <div style={{ textAlign: 'right', fontSize: 8.5, fontWeight: 800, lineHeight: 1.35, color: '#3a3527' }}>EDIÇÃO Nº {seasonNo}<br />{page === 1 && news ? 'CADERNO 2 · NEGÓCIOS' : `TEMPORADA ${seasonNo} · ${J_DIV_NAME[me.div].toUpperCase()}`}<br />PREÇO: 1 MOEDA</div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: 'uppercase', borderBottom: `1.5px solid ${INK}`, padding: '3px 1px', color: '#3a3527' }}>
-        <span>⚽ O DIÁRIO DO LEILÃO LEGENDS</span><span>FIM DE TEMPORADA</span>
+        {page === 1 && news ? <><span>🕴️ CADERNO DO EMPRESÁRIO</span><span>SEUS AGENCIADOS</span></> : <><span>⚽ O DIÁRIO DO LEILÃO LEGENDS</span><span>FIM DE TEMPORADA</span></>}
       </div>
 
+      {page === 1 && news && agManchete ? (
+        <>
+          {/* ── 🕴️ PÁGINA 2: Caderno do Empresário — SÓ emoção, sem moeda ── */}
+          <h2 style={{ ...SERIF, fontWeight: 900, fontSize: 24, lineHeight: 1.05, margin: '9px 0 4px', letterSpacing: -0.5, color: INK }}>{agManchete.h}</h2>
+          <p style={{ fontSize: 11.5, fontWeight: 700, fontStyle: 'italic', color: '#3a3527', margin: '0 0 9px', lineHeight: 1.3 }}>{agManchete.s}</p>
+          <div style={{ border: `2.5px solid ${INK}`, background: '#fff' }}>
+            <div style={{ background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, letterSpacing: 2, padding: '4px 8px', textTransform: 'uppercase' }}>🗞️ As manchetes dos seus agenciados</div>
+            {news.map((n, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 9px', borderTop: i > 0 ? '1.5px solid rgba(0,0,0,.12)' : 'none', background: i === 0 ? '#fdf6dd' : undefined }}>
+                <div style={{ flex: 'none', width: 24, height: 24, borderRadius: 7, border: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, background: GOLD }}>{n.ic}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 900, lineHeight: 1.1 }}>{n.titulo}</div>
+                  <div style={{ fontSize: 9.5, fontWeight: 700, color: '#3a3527', marginTop: 1.5, lineHeight: 1.3 }}>{n.sub}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 10, border: `2.5px solid ${INK}`, background: 'linear-gradient(160deg,#1B7A3D,#14401f)', color: '#fff', padding: '9px 11px' }}>
+            <div style={{ fontSize: 9.5, fontWeight: 900, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,.7)' }}>🕴️ Palavra do empresário</div>
+            <div style={{ fontSize: 11, fontWeight: 700, fontStyle: 'italic', lineHeight: 1.5, marginTop: 4 }}>{agQuote} <b>— Você, pro Martelo</b></div>
+          </div>
+        </>
+      ) : (
+      <>
       {/* manchete (única pra cada uma das 80 posições) */}
       <h2 style={{ ...SERIF, fontWeight: 900, fontSize: 25, lineHeight: 1.02, margin: '9px 0 4px', letterSpacing: -0.5, color: INK }}>{hl.h}</h2>
       <p style={{ fontSize: 11.5, fontWeight: 700, fontStyle: 'italic', color: '#3a3527', margin: '0 0 9px', lineHeight: 1.3 }}>{hl.s}</p>
@@ -371,6 +428,26 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo }: {
           </div>
         )}
       </div>
+
+      </>
+      )}
+
+      {/* 📄 rodapé de páginas: barrinha dos 5s (na capa) + bolinhas pra ir/voltar.
+          Só aparece quando a temporada teve notícia de agenciado. */}
+      {news && (
+        <>
+          {page === 0 && !flippedRef.current && (
+            <div style={{ height: 5, border: `1.5px solid ${INK}`, borderRadius: 99, overflow: 'hidden', background: '#fff', marginTop: 9 }}>
+              <div style={{ height: '100%', background: GOLD, width: barGo ? '100%' : '0%', transition: 'width 5s linear' }} />
+            </div>
+          )}
+          <button onClick={() => virar(page === 0 ? 1 : 0)} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 8, padding: 0 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 999, border: `2px solid ${INK}`, background: page === 0 ? INK : 'transparent' }} />
+            <span style={{ width: 8, height: 8, borderRadius: 999, border: `2px solid ${INK}`, background: page === 1 ? INK : 'transparent' }} />
+            <span style={{ fontSize: 9, fontWeight: 800, color: '#3a3527' }}>{page === 0 ? (flippedRef.current ? 'toque pra ver o Caderno do Empresário 🕴️' : 'vira sozinho em 5s · toque pra virar já') : 'toque pra voltar à capa'}</span>
+          </button>
+        </>
+      )}
 
       {/* rodapé: compartilhar + fechar */}
       <div style={{ display: 'flex', gap: 8, marginTop: 11 }}>

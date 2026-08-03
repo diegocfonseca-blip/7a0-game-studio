@@ -788,8 +788,12 @@ empresário clássico, nada muda). Decidido com o Diego nesta sessão:
   (senão a transação criava fatura vazia por cima e a Cerimônia perdia tudo).
 Revertível: commit isolado; agenciaOn só nasce em carreira nova.
 ### Combinados que FICARAM (não fazer sem OK):
-- 📰 **Jornal página 2 "Caderno do Empresário"**: capa vira SOZINHA após 5s pra
-  página com as notícias dos agenciados (mockup mandado, AGUARDANDO OK do Diego).
+- ✅ 📰 **Jornal página 2 "Caderno do Empresário" — FEITO (03/08, mockup v2 aprovado)**:
+  capa 100% IGUAL a hoje (donos da temporada intactos — exigência do Diego) + vira
+  SOZINHA após 5s (só 1x; bolinhas pra ir/voltar) pra página com as notícias dos
+  agenciados — SÓ EMOÇÃO, SEM MOEDA (exigência do Diego): artilheiro/campeão da
+  temporada + negociações do último mercado + "Palavra do empresário" (frase
+  rotativa). Sem notícia ou save antigo = só a capa, como hoje (nem pager aparece).
 - 🏦 **Divisão da renda entre os 2 clubes** (futuro): caixinha na sub-aba
   Agenciados, SÓ aparece com 2 clubes — tudo pro 1º / 50-50 / tudo pro 2º
   (mockup já mostrado). Por enquanto renda é 100% do 1º clube.
