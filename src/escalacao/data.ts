@@ -1111,7 +1111,7 @@ const NOVOS_BR_GOL: C[] = [
   { name: "Ivan", club: "Ponte Preta", year: 2020, fame: 2, lo: 66, hi: 83, bio: "Goleiro revelado na Ponte Preta — grandes atuações que renderam a seleção olímpica antes de ir pro Corinthians." },
   { name: "Getúlio Vargas", club: "Flamengo", year: 2005, fame: 1, lo: 60, hi: 79, folk: true, bio: "Goleiro folclórico revelado no Flamengo — dividia o nome com o presidente e defendeu o gol rubro-negro nos anos 2000." },
   { name: "Gideão", club: "Náutico", year: 2011, fame: 1, lo: 60, hi: 79 },
-  { name: "Rodrigo Arroz", club: "Flamengo", year: 2005, fame: 1, lo: 60, hi: 79, folk: true, bio: "O goleiro Arroz do Flamengo nos anos 2000 — apelido folclórico que ninguém esquece." },
+  { name: "Saulo", club: "Sport", year: 2022, fame: 1, lo: 61, hi: 80, bio: "Goleiro que defendeu o gol do Sport na reta final da Série B de 2022 — passagem sólida pela Ilha do Retiro." },
   { name: "Matheus Donelli", club: "Corinthians", year: 2023, fame: 2, lo: 66, hi: 82, bio: "Goleiro da base do Corinthians que ganhou espaço entre os profissionais — bons reflexos no gol alvinegro." },
   { name: "Brazão", club: "Santos", year: 2025, fame: 3, lo: 78, hi: 86, bio: "Goleirão do Santos — assumiu o gol na volta à elite e virou um dos melhores do país, líder em defesas em 2025." },
   { name: "Diego (goleiro)", club: "Flamengo", year: 2009, fame: 1, lo: 61, hi: 79, bio: "Goleiro do Flamengo no fim dos anos 2000, antes da era dos grandes títulos." },
@@ -1202,9 +1202,14 @@ const NOVOS_BR_ATA: C[] = [
   { name: 'Rafael Moura (He-Man)', club: 'Atlético-MG', year: 2013, fame: 2, lo: 66, hi: 80, bio: 'Centroavante brasileiro apelidado de "He-Man" pelo físico avantajado — rodou por Grêmio, Fluminense e Atlético-MG, sempre com faro de gol e presença na área.' },
   { name: 'Romarinho (Corinthians)', club: 'Corinthians', year: 2012, fame: 2, lo: 66, hi: 80, bio: 'Atacante eternizado pelo gol do Corinthians contra o Chelsea no Mundial de 2012 — matador querido da Fiel, depois artilheiro no futebol árabe.' },
   { name: 'Creedence', club: 'Figueirense', year: 2005, fame: 1, lo: 52, hi: 72, folk: true, bio: 'Atacante que rodou o Brasil (Figueirense, Botafogo-SP, Brasiliense) e ganhou fama pelo nome: batizado Creedence Clearwater Couto, em homenagem à banda.' },
+  { name: 'Gonçalo Paciência', club: 'Sport', year: 2025, fame: 3, lo: 76, hi: 85, bio: 'Centroavante português com passagens por Porto, Frankfurt e Schalke — chegou ao Sport em 2025 pra liderar o ataque do Leão da Ilha.' },
+  { name: 'Alef Manga', club: 'Coritiba', year: 2022, fame: 2, lo: 68, hi: 83, bio: 'Ponta-atacante que foi artilheiro do Coritiba em 2022 (16 gols) — velocidade e faro de gol pelo Couto Pereira.' },
+  { name: 'Wallace Pernambucano', club: 'Confiança', year: 2014, fame: 2, lo: 66, hi: 82, folk: true, bio: 'Goleador nordestino de raça — campeão sergipano de 2014 pelo Confiança, depois virou ídolo artilheiro por onde passou.' },
+  { name: 'Mascote', club: 'Retrô', year: 2024, fame: 1, lo: 56, hi: 77, folk: true, bio: 'Atacante folclórico do Retrô — chegou a fazer 4 gols num só tempo na Série D; o apelido \u0022Mascote\u0022 caiu como uma luva.' },
 ]
 const NOVOS_BR_ZAG: C[] = [
   { name: "Ronaldo Angelim", club: "Flamengo", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Zagueiro cearense de raça — eternizado pelo gol do título brasileiro do Flamengo em 2009, no Maracanã lotado." },
+  { name: "Rodrigo Arroz", club: "Flamengo", year: 2005, fame: 1, lo: 60, hi: 79, folk: true, bio: "Zagueiro folclórico revelado na base do Flamengo nos anos 2000 — o apelido \u0022Arroz\u0022 ninguém esquece." },
   { name: "Victor Ramos", club: "Vitória", year: 2013, fame: 2, lo: 66, hi: 82, bio: "Zagueiro de força do Vitória — muralha baiana marcante na defesa rubro-negra." },
   { name: "Sergio Escobar", club: "Vasco", year: 1996, fame: 2, lo: 64, hi: 82 },
   { name: "Rodrigo Alvim", club: "Internacional", year: 2006, fame: 1, lo: 62, hi: 80 },
