@@ -2119,6 +2119,7 @@ export const newestTeamName = (name: string): string => {
 // 🌱 TIMES DA VÁRZEA (Fase 2 da escada — carreira nova, teste do Diego): os
 // bots de preenchimento da sala na divisão V. Nomes 100% zoeira de peladão.
 export const VARZEA_TEAMS: CareerTeam[] = [
+  { name: 'Almirante', team: 'Vasco da Grana' }, // pedido do Diego (03/08) — batismo de honra
   { name: 'Bilu', team: 'Unidos da Resenha' },
   { name: 'Careca', team: 'Chuteira Rachada FC' },
   { name: 'Pastel', team: 'Atlético Pelada' },
