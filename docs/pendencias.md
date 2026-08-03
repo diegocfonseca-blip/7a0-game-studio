@@ -607,3 +607,24 @@ FIX (2 defesas):
 2. **Aviso de recuperação** (pedido do Diego): o banner vermelho ganhou o botão
    "🔄 Travou? Atualiza a página — a partida continua de onde parou".
 Revertível. Se voltar a acontecer, o print novo mostra se a auto-cura disparou.
+
+## 🏛️ MULTICLUBES: caixas se misturando / premiação sumindo — 3 CONSERTOS (03/08, Diego relatou)
+Usuários com 2º clube: prêmios contando só pra um, caixa "se misturando", extrato
+incompleto. INVESTIGADO — 3 causas reais:
+1. **A BOMBA (caixa "se mistura"/premiação some):** no FINISH_CEREMONY o troco do
+   leilão era gravado na carteira de TODO humano — e o clube DORMINDO é humano mas
+   NÃO joga o leilão, então a carteira dele era SOBRESCRITA com um `m.money` velho
+   TODA temporada, apagando os prêmios ganhos dormindo. Fix: só grava quem jogou
+   (`isHuman && !dormindo`). Testado: caixa do dormindo preservada (200→256→256;
+   antes viraria 77).
+2. **Extrato do dormindo vazio:** `logFin` agora ROTEIA lançamento cujo mgrId é o
+   clube dormindo (s.multiClube.id) pro ledger DELE no stash — quando o dono troca
+   de clube, o Extrato mostra tudo que rolou dormindo. E o resumo de fim de
+   temporada (5 linhas) agora sai pros DOIS clubes (ids = [ativo, dormindo]).
+3. **Dormindo não faturava patrocínio/empresário:** applySeasonMoney agora paga o
+   patrocínio (pela divisão DELE) e a renda da agência DELE (cartas do stash +
+   estádio dele + SAF compartilhada) na caixa DELE. Independência total.
+O que É compartilhado POR DESENHO (não é bug): o ÁLBUM de cartas é da CONTA (mesmo
+dono) e a SAF é uma só pros 2 clubes (decisão antiga do Diego). Prêmio de tabela/
+título do dormindo já entrava certo (rewards por id) — só era apagado pela bomba 1.
+Revertível (3 pontos).
