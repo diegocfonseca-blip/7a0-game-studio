@@ -940,3 +940,12 @@ foi afetado, sem perder nada (o fantasma nunca teve nada dentro).
 ## 🃏 Cartas corrigidas (04/08, relato do Diego): China → Flamengo 2004 (ano
 estava 2013) · Léo Gamalho → Criciúma 2013 (clube estava Vasco). ⚠️ Diego:
 confirmar se prefere OUTRO auge pra esses dois (chutei o mais conhecido).
+
+## 🎁 Cartinha "do nada" (sem título) — CONSERTADA (04/08, relato de amigo do Diego)
+CAUSA: mesmo fantasma do Multiclubes — recordDormantCards fabricava "pacotes
+guardados" (multiClubePendingCards) pro clube-fantasma, e o bloco "Enquanto
+dormia, seu time foi campeão! Abra o pacote" renderiza SÓ pela lista de pacotes,
+independente do seletor. FIX triplo: (1) auto-cura do fantasma agora purga os
+pacotes também; (2) pacotes ÓRFÃOS (fantasma curado antes do fix) são limpos ao
+carregar o save; (3) recordDormantCards nunca grava pacote quando o "dormindo"
+é o próprio clube ativo. Basta o afetado ATUALIZAR a página.
