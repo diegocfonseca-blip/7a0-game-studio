@@ -640,7 +640,7 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
   return (
     <div style={{ ...box('#0C0C0C'), padding: 13, color: '#fff', marginTop: 10 }}>
       <p style={{ fontWeight: 900, fontSize: 15, color: GOLD, ...OSWALD, margin: 0 }}>🏛️ Compre um SEGUNDO CLUBE</p>
-      <p style={{ fontFamily: 'system-ui', fontSize: 10.5, color: 'rgba(255,255,255,.82)', margin: '5px 0 0', lineHeight: 1.45 }}>Escolha um clube <b>da Série D</b> pra chamar de seu — ele veste a <b>sua cor</b> e você comanda os dois. Custa <b>4.000 🪙</b> e é regalia do tier <b>Lenda 👑</b>.</p>
+      <p style={{ fontFamily: 'system-ui', fontSize: 10.5, color: 'rgba(255,255,255,.82)', margin: '5px 0 0', lineHeight: 1.45 }}>Escolha um clube que <b>hoje joga a Série D</b> — ele veste a <b>sua cor</b>, <b>dorme</b> e você assume o comando <b>entre as temporadas</b>. Custa <b>4.000 🪙</b> · regalia do tier <b>Lenda 👑</b>.</p>
       {!isLenda && (
         <>
           <div style={lock}>🔒 Regalia de <b>Lenda 👑</b> — vire Lenda pra comandar 2 clubes.</div>
