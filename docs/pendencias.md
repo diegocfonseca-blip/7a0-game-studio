@@ -1,5 +1,31 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## 🔬 AUDITORIA FINA da carreira nova (escada) — pedido do Diego pós-loop (03/08) ✅
+Diego pediu: (a) confirmar leilão de reservas na 2ª + listar na 3ª; (b) contratos
+com a MESMA ordem de avisos/liberação da carreira antiga; (c) "analisar cada
+pontinho" da carreira nova de novo. Feito com harness novo `escadafina.mjs`
+(scratchpad, dirige o reducer REAL com asserções duras, monte via MONTE_PICK/PASS
+de verdade — sem o atalho antigo que duplicava carta). Resultado TUDO VERDE:
+- Gates: T2 compra reservas ✓ (leilão vende ~45-55 lotes; deepSquad ligado);
+  T2 listar BLOQUEADO ✓; T3 listar libera ✓ — carta listada sai do elenco, vai
+  pro baralho com seller, termina em EXATAMENTE 1 elenco (inclui times de fundo
+  via cpuSquads) e a venda aparece no extrato ✓.
+- Contratos: ordem JÁ ERA idêntica à carreira antiga (tudo por seasonNo, nada
+  de código novo): T1 sorteio 5-10 na cerimônia ✓ · fim da T4 primeira folha ✓
+  (antes disso só a linha 0 forçada do resumo) · T5 avisos "último ano" com
+  conteúdo ✓ · T6-T7 primeiro selo ⏳ SEM CONTRATO no baralho ✓ · nenhum
+  contrato vencido sobrevive pós-cerimônia (renova/aperto/leilão) ✓.
+- Invariantes por temporada (10 temporadas × vários runs): caixa×extrato EXATO
+  em toda virada ✓ · sem NaN (careerCoins/clubCash/money) ✓ · sem duplicata de
+  jogador real entre elencos ✓ · sem FAKE no baralho de reservas ✓ · régua da
+  divisão respeitada (fora dela SÓ mercado secundário: seller/sem-contrato, por
+  design) ✓ · placements 20 times × 5 divisões ✓ · sem multiclube fantasma ✓ ·
+  leilão sempre termina ✓.
+- 🎁 Bônus: o achado da auditoria anterior (rival de várzea com incógnito preso
+  no XI) SUMIU — com o leilão de reservas funcionando, os rivais repõem de
+  verdade. Sem warnings em nenhum run.
+Nenhuma mudança de código precisou nesta rodada (contratos já alinhados).
+
 ## 🪜 HOTFIX — "loop 1→12" no leilão de reservas da escada (03/08, Diego bravo) ✅
 Relato (carreira nova com escada/Várzea): iniciou o leilão de reservas na virada
 T1→T2, tela dizia "não liberado" mas rodou mesmo assim, e virou um desfile de
