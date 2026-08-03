@@ -887,7 +887,7 @@ Jogo: botão "🏦 Banco Legends" em Clube › Finanças (SÓ carreira solo) →
 Seu Creuzebek 🤵 + pacotes + passos do Pix + resgatar ficha (anti-chute 3 erros =
 1min) → BANCO_CREDIT credita no caixa do clube ativo + extrato "🏦 Empréstimo do
 Banco Legends" (kind 'banco'). Admin: "Caixa do Gerente" (gera ficha BL-XXXX-XX,
-copia no toque, lista quem usou). ⚠️ BL_PIX = banco@leilaolegends.com é
+copia no toque, lista quem usou). ✅ RESOLVIDO 04/08: chave Pix real = diego.c.fonseca@gmail.com; Banco LIBERADO GERAL (sem gate de conta, segue só carreira solo; comprovante via Instagram @leilaolegendscom ou e-mail). Nota antiga: ⚠️ BL_PIX = banco@leilaolegends.com é
 PLACEHOLDER — Diego precisa passar a chave real; aí troca e libera geral (gate
 useAgenciaLiberada hoje).
 
