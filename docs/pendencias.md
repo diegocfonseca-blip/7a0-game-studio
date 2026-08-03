@@ -9,8 +9,11 @@ anos faltam, algo sutil"). Era o combinado antigo do sistema de contratos
   📝 7 anos"; estados: cinza normal · ⏳ último ano âmbar · ❗ vencido vermelho.
 - OPÇÃO B: selinho compacto na direita junto do 💰/💸 (📝7 / ⏳1 / ❗0).
 Regras nas duas: emprestado/incógnito sem selo; só carreiras com contratos.
-Implementar SÓ depois da escolha (rowOf em pyramidseason ~1777 é o ponto; a
-grade do campinho de cima NÃO leva selo — só as listas).
+✅ IMPLEMENTADO (03/08): Diego escolheu a A ("faz a opção A e já atualize").
+ctInfo() no ElencoField: linha do clube vira "São Paulo · 2005 · 📝 7 anos"
+(cinza) / "⏳ último ano" (âmbar) / "❗ vencido — decida na janela" (vermelho).
+Contagem: contratoAte − seasonNo + 1 (inclui a atual). Emprestado/incógnito sem
+selo; gate contratosOn (só carreiras com contratos). Campinho de cima intocado.
 
 ## 🏆 Ranking Carreira: uma linha POR CARREIRA, sem unificar (03/08) ✅
 Dúvida do Diego (caso Alface, 379 títulos): carreira NOVA com o mesmo nome
