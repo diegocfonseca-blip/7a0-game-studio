@@ -1,5 +1,16 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## 💰 Renovação de 10 anos agora custa 90% (03/08, decisão do Diego)
+Análise que embasou (amigo sugeriu 80%): por temporada, 5 anos=10%/ano e 10
+anos a 100% também 10%/ano (dilema fraco); a 80% os 10 anos dominavam demais e
+secavam o mercado. A 90% nasce o dilema: rico trava preço por 10 (9%/ano),
+apertado paga metade à vista por 5. Mudança: RENEW_CONTRACT (custo ×0.9) +
+botão da tela de venda mostra "(-10%)". Renovação NO APERTO e CPU rival seguem
+na regra de 5 anos/metade (sem mudança). Arte dos stories de Contratos
+atualizada ("90% do valor 🤑") e reenviada. Fatos confirmados pro Diego:
+valorização de jogador parado no elenco = SÓ artilharia (liga/Copa); o livro
+só muda quando ele é negociado; renovar NÃO mexe no piso.
+
 ## 🔓 CARREIRA NOVA LIBERADA PRA TODOS (03/08, ordem do Diego)
 `AGENCIA_GERAL = true` em sport.ts: Agência 2.0 + Escada/Várzea + baralho
 'todos' + Clube›Estrutura valem pra QUALQUER conta em carreira criada a partir

@@ -3579,6 +3579,7 @@ export function ReserveListScreen() {
               {primeira && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Seu clube é profissional: <b>todo jogador tem contrato</b> (5 a 10 anos, sorteado na chegada). Quando encerra, você decide: <b>renovar ou deixar ir</b>.</p>}
               {expirados.map(c => {
                 const oficial = valorOficial(state, c)
+                const c10 = Math.max(1, Math.ceil(oficial * 0.9)) // 💰 10 anos = 90% (decisão do Diego)
                 const c5 = Math.max(1, Math.ceil(oficial / 2))
                 return (
                   <div key={c.id} style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 9px', marginBottom: 8, background: '#FCFBF4', boxShadow: `2px 2px 0 0 ${INK}` }}>
@@ -3588,7 +3589,7 @@ export function ReserveListScreen() {
                       <span style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, color: '#5a5647' }}>valor {oficial} 🪙</span>
                     </div>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: youId, cardId: c.id, anos: 10 })} disabled={coins < oficial} style={btn(GOLD, INK, coins < oficial)}>Renovar 10 anos<br />{oficial} 🪙</button>
+                      <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: youId, cardId: c.id, anos: 10 })} disabled={coins < c10} style={btn(GOLD, INK, coins < c10)}>Renovar 10 anos<br />{c10} 🪙 (-10%)</button>
                       <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: youId, cardId: c.id, anos: 5 })} disabled={coins < c5} style={btn('#EAF6EE', INK, coins < c5)}>Renovar 5 anos<br />{c5} 🪙</button>
                     </div>
                   </div>

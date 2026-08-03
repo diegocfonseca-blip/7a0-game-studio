@@ -4275,7 +4275,9 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!card || card.fake || card.emprestado) return s
       if (card.contratoAte == null || card.contratoAte >= s.seasonNo) return s // só contrato JÁ encerrado
       const oficial = valorOficial(s, card)
-      const custo = action.anos === 10 ? oficial : Math.max(1, Math.ceil(oficial / 2))
+      // 💰 10 anos = 90% (decisão do Diego 03/08): desconto de fidelidade — por
+      // temporada sai 9% vs 10% dos 5 anos, mas o desembolso à vista é maior.
+      const custo = action.anos === 10 ? Math.max(1, Math.ceil(oficial * 0.9)) : Math.max(1, Math.ceil(oficial / 2))
       const saldo = s.careerCoins?.[mgr.id] ?? 0
       if (saldo < custo) return s
       s.careerCoins = { ...(s.careerCoins ?? {}), [mgr.id]: saldo - custo }
