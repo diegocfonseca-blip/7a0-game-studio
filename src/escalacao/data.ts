@@ -1108,11 +1108,12 @@ const ATA: C[] = [
 
 // 🆕 cartas novas (baralho BR) — pedidas pelo Diego: reais e folclóricos do futebol nacional.
 const NOVOS_BR_GOL: C[] = [
-  { name: "Getúlio Vargas", club: "Brasiliense", year: 2006, fame: 1, lo: 60, hi: 79, folk: true, bio: "Goleiro folclórico do Brasiliense — dividia o nome com o presidente e ainda pegava pênalti no Centro-Oeste." },
+  { name: "Ivan", club: "Ponte Preta", year: 2020, fame: 2, lo: 66, hi: 83, bio: "Goleiro revelado na Ponte Preta — grandes atuações que renderam a seleção olímpica antes de ir pro Corinthians." },
+  { name: "Getúlio Vargas", club: "Flamengo", year: 2005, fame: 1, lo: 60, hi: 79, folk: true, bio: "Goleiro folclórico revelado no Flamengo — dividia o nome com o presidente e defendeu o gol rubro-negro nos anos 2000." },
   { name: "Gideão", club: "Náutico", year: 2011, fame: 1, lo: 60, hi: 79 },
-  { name: "Rodrigo Arroz", club: "Flamengo", year: 2005, fame: 1, lo: 60, hi: 79, folk: true, bio: "O goleiro Arroz do Flamengo nos anos 2000 — apelido folclórico que ninguém esquece." },
+  { name: "Saulo", club: "Sport", year: 2022, fame: 1, lo: 61, hi: 80, bio: "Goleiro que defendeu o gol do Sport na reta final da Série B de 2022 — passagem sólida pela Ilha do Retiro." },
   { name: "Matheus Donelli", club: "Corinthians", year: 2023, fame: 2, lo: 66, hi: 82, bio: "Goleiro da base do Corinthians que ganhou espaço entre os profissionais — bons reflexos no gol alvinegro." },
-  { name: "Ivan Brazão", club: "Santos", year: 2020, fame: 2, lo: 64, hi: 82, bio: "Goleiro revelado na base do Santos — camisa 1 jovem da Vila Belmiro." },
+  { name: "Brazão", club: "Santos", year: 2025, fame: 3, lo: 78, hi: 86, bio: "Goleirão do Santos — assumiu o gol na volta à elite e virou um dos melhores do país, líder em defesas em 2025." },
   { name: "Diego (goleiro)", club: "Flamengo", year: 2009, fame: 1, lo: 61, hi: 79, bio: "Goleiro do Flamengo no fim dos anos 2000, antes da era dos grandes títulos." },
   { name: "Martín Silva", club: "Vasco", year: 2015, fame: 3, lo: 78, hi: 86, bio: "Goleirão uruguaio do Vasco — paredão querido em São Januário e titular da Celeste." },
   { name: 'Júlio César', club: 'Corinthians', year: 2010, fame: 1, lo: 56, hi: 76, bio: 'Goleiro titular do Corinthians em 2010-11, antes do Cássio chegar. (Não confundir com o Júlio César da Seleção!)' },
@@ -1137,8 +1138,8 @@ const NOVOS_BR_LAT: C[] = [
   { name: 'Eduardo Ratinho', club: 'Corinthians', year: 2005, fame: 2, lo: 62, hi: 79, bio: 'Lateral-direito veloz e driblador, com boa bola parada — a revelação do Corinthians em 2005; ainda passou por CSKA Moscou, Toulouse e Fluminense antes de parar cedo.' },
 ]
 const NOVOS_BR_MEI: C[] = [
-  { name: "Dudu Cearense", club: "Vasco", year: 2005, fame: 2, lo: 66, hi: 82, bio: "Volante cearense de marcação e fôlego — revelado no Vasco antes de brilhar no CSKA e no Olympiacos." },
-  { name: "Bismarck", club: "Vasco", year: 1993, fame: 3, lo: 76, hi: 85, bio: "Meia-artista do Vasco e depois ídolo eterno no Japão (Kashima) — passe fino e gols de placa." },
+  { name: "Dudu Cearense", club: "Vitória", year: 2004, fame: 2, lo: 66, hi: 82, bio: "Volante cearense de marcação e fôlego — revelado no Vitória e campeão da Copa América 2004 antes de brilhar no CSKA." },
+  { name: "Bismarck", club: "Vasco", year: 1989, fame: 3, lo: 76, hi: 85, bio: "Meia-artista do Vasco e depois ídolo eterno no Japão (Kashima) — passe fino e gols de placa." },
   { name: "René Júnior", club: "Bahia", year: 2017, fame: 2, lo: 64, hi: 82, bio: "Volante forte do Nordeste — pegada e chegada ao ataque pelo Bahia." },
   { name: "Cauly", club: "Bahia", year: 2023, fame: 2, lo: 68, hi: 83, bio: "Meia criativo do Bahia — passes de fantasia e gols que reacenderam o Esquadrão." },
   { name: "Morais", club: "Vasco", year: 2006, fame: 2, lo: 66, hi: 82 },
@@ -1148,7 +1149,7 @@ const NOVOS_BR_MEI: C[] = [
   { name: "Nicolás Lodeiro", club: "Botafogo", year: 2013, fame: 3, lo: 78, hi: 86, bio: "Meia-atacante uruguaio criativo — passes e bolas paradas decisivas no Botafogo." },
   { name: "Jean Pyerre", club: "Grêmio", year: 2019, fame: 2, lo: 68, hi: 84, bio: "Meia de canhota abençoada do Grêmio — talento cru perseguido pelas lesões." },
   { name: "Maicosuel", club: "Botafogo", year: 2009, fame: 2, lo: 66, hi: 83 },
-  { name: "Fellype Gabriel", club: "Botafogo", year: 2011, fame: 2, lo: 66, hi: 82 },
+  { name: "Fellype Gabriel", club: "Botafogo", year: 2013, fame: 2, lo: 66, hi: 82, bio: "Meia de bom passe do Botafogo — equilíbrio e gols no time campeão carioca de 2013." },
   { name: "Bernardo", club: "Vasco", year: 2011, fame: 2, lo: 66, hi: 82 },
   { name: "Gustavo Blanco", club: "Atlético-MG", year: 2018, fame: 2, lo: 66, hi: 82 },
   { name: "Matías Defederico", club: "Corinthians", year: 2009, fame: 2, lo: 66, hi: 82, bio: "Meia argentino habilidoso que chegou com fama ao Corinthians." },
@@ -1170,7 +1171,7 @@ const NOVOS_BR_MEI: C[] = [
 ]
 const NOVOS_BR_ATA: C[] = [
   { name: "Marcelo Ramos", club: "Cruzeiro", year: 1997, fame: 3, lo: 76, hi: 86, bio: "O Matador — centroavante goleador e quinto maior artilheiro do Cruzeiro, campeão da Libertadores de 1997." },
-  { name: "Everaldo", club: "Ceará", year: 2019, fame: 2, lo: 64, hi: 82, bio: "Atacante cearense de briga e gol — destaque do Ceará antes de rodar o Brasileirão." },
+  { name: "Everaldo", club: "Chapecoense", year: 2019, fame: 2, lo: 64, hi: 82, bio: "Atacante de briga e faro de gol — explodiu na Chapecoense de 2019 (19 gols) antes de brilhar no Bahia." },
   { name: "Biel", club: "Bahia", year: 2023, fame: 2, lo: 64, hi: 82, bio: "Ponta veloz revelado no Bahia — dribles e gols que renderam a ida ao Sporting de Portugal." },
   { name: "Pimpão", club: "Botafogo", year: 2016, fame: 2, lo: 64, hi: 82, bio: "Atacante rodado (Rodrigo Pimpão) — faro de gol e cabeceio, xodó folclórico no Botafogo e no Vasco." },
   { name: "Kieza", club: "Bahia", year: 2015, fame: 2, lo: 64, hi: 82, bio: "Centroavante artilheiro do Nordeste — goleador por Bahia, Botafogo e ABC." },
@@ -1184,8 +1185,8 @@ const NOVOS_BR_ATA: C[] = [
   { name: "Yuri Mamute", club: "Grêmio", year: 2014, fame: 1, lo: 62, hi: 80, promessa: true, bio: "Promessa de gols da base do Grêmio que não deslanchou." },
   { name: "Maicon Bolt", club: "Fluminense", year: 2009, fame: 2, lo: 64, hi: 82, bio: "Ponta-relâmpago do Fluminense — dupla com Fred na arrancada de 2009 contra o rebaixamento; velocidade de Usain Bolt." },
   { name: "Rodrigão", club: "Santos", year: 2016, fame: 2, lo: 64, hi: 82 },
-  { name: "Pipico", club: "Santa Cruz", year: 2019, fame: 1, lo: 60, hi: 80, folk: true, bio: "Centroavante folclórico do Santa Cruz — eternizado pelo meme \u0022vô comê é pipoca\u0022." },
-  { name: "Pimentinha", club: "Sampaio Corrêa", year: 2015, fame: 1, lo: 61, hi: 80, folk: true, bio: "Ídolo folclórico do Sampaio Corrêa — artilheiro querido no Maranhão." },
+  { name: "Pipico", club: "Santa Cruz", year: 2019, fame: 1, lo: 60, hi: 80, folk: true, bio: "Matador folclórico do Santa Cruz — artilheiro querido em Pernambuco: vacilou, levou, o Pipico é matador!" },
+  { name: "Pimentinha", club: "Sampaio Corrêa", year: 2013, fame: 1, lo: 61, hi: 80, folk: true, bio: "Ídolo folclórico do Sampaio Corrêa — artilheiro querido no Maranhão." },
   { name: "Wendell Lira", club: "Goianésia", year: 2015, fame: 1, lo: 61, hi: 80, folk: true, bio: "Autor do gol vencedor do Prêmio Puskás 2015 — voleio de bicicleta que rodou o mundo." },
   { name: "Scocco", club: "Internacional", year: 2016, fame: 3, lo: 78, hi: 86, bio: "Centroavante argentino de faro apurado — grande fase no Inter antes de brilhar no River." },
   { name: "Kazuyoshi Miura", club: "Santos", year: 1988, fame: 2, lo: 68, hi: 84, bio: "\u0022Rei Kazu\u0022 — aprendeu futebol no Brasil (Santos) e virou lenda eterna do futebol japonês." },
@@ -1201,12 +1202,18 @@ const NOVOS_BR_ATA: C[] = [
   { name: 'Rafael Moura (He-Man)', club: 'Atlético-MG', year: 2013, fame: 2, lo: 66, hi: 80, bio: 'Centroavante brasileiro apelidado de "He-Man" pelo físico avantajado — rodou por Grêmio, Fluminense e Atlético-MG, sempre com faro de gol e presença na área.' },
   { name: 'Romarinho (Corinthians)', club: 'Corinthians', year: 2012, fame: 2, lo: 66, hi: 80, bio: 'Atacante eternizado pelo gol do Corinthians contra o Chelsea no Mundial de 2012 — matador querido da Fiel, depois artilheiro no futebol árabe.' },
   { name: 'Creedence', club: 'Figueirense', year: 2005, fame: 1, lo: 52, hi: 72, folk: true, bio: 'Atacante que rodou o Brasil (Figueirense, Botafogo-SP, Brasiliense) e ganhou fama pelo nome: batizado Creedence Clearwater Couto, em homenagem à banda.' },
+  { name: 'Gonçalo Paciência', club: 'Sport', year: 2025, fame: 3, lo: 76, hi: 85, bio: 'Centroavante português com passagens por Porto, Frankfurt e Schalke — chegou ao Sport em 2025 pra liderar o ataque do Leão da Ilha.' },
+  { name: 'Alef Manga', club: 'Coritiba', year: 2022, fame: 2, lo: 68, hi: 83, bio: 'Ponta-atacante que foi artilheiro do Coritiba em 2022 (16 gols) — velocidade e faro de gol pelo Couto Pereira.' },
+  { name: 'Wallace Pernambucano', club: 'Confiança', year: 2014, fame: 2, lo: 66, hi: 82, folk: true, bio: 'Goleador nordestino de raça — campeão sergipano de 2014 pelo Confiança, depois virou ídolo artilheiro por onde passou.' },
+  { name: 'Mascote', club: 'Retrô', year: 2024, fame: 1, lo: 56, hi: 77, folk: true, bio: 'Atacante folclórico do Retrô — chegou a fazer 4 gols num só tempo na Série D; o apelido \u0022Mascote\u0022 caiu como uma luva.' },
 ]
 const NOVOS_BR_ZAG: C[] = [
+  { name: "Ronaldo Angelim", club: "Flamengo", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Zagueiro cearense de raça — eternizado pelo gol do título brasileiro do Flamengo em 2009, no Maracanã lotado." },
+  { name: "Rodrigo Arroz", club: "Flamengo", year: 2005, fame: 1, lo: 60, hi: 79, folk: true, bio: "Zagueiro folclórico revelado na base do Flamengo nos anos 2000 — o apelido \u0022Arroz\u0022 ninguém esquece." },
   { name: "Victor Ramos", club: "Vitória", year: 2013, fame: 2, lo: 66, hi: 82, bio: "Zagueiro de força do Vitória — muralha baiana marcante na defesa rubro-negra." },
   { name: "Sergio Escobar", club: "Vasco", year: 1996, fame: 2, lo: 64, hi: 82 },
   { name: "Rodrigo Alvim", club: "Internacional", year: 2006, fame: 1, lo: 62, hi: 80 },
-  { name: "Gustavo Geladeira", club: "Portuguesa", year: 2005, fame: 1, lo: 60, hi: 80, folk: true, bio: "Zagueirão \u0022Geladeira\u0022 da Portuguesa — parrudo e folclórico, muralha dos anos 2000." },
+  { name: "Gustavo Geladeira", club: "Flamengo", year: 2011, fame: 1, lo: 60, hi: 80, folk: true, bio: "Zagueirão \u0022Geladeira\u0022 do Flamengo — o apelido nasceu no vestiário rubro-negro, parrudo e folclórico, parceiro do Ronaldinho Gaúcho." },
   { name: 'Erazo', club: 'Flamengo', year: 2014, fame: 1, lo: 57, hi: 78, bio: 'Zagueirão equatoriano do Flamengo — imponente no jogo aéreo.' },
   { name: 'Rafael Vaz', club: 'Flamengo', year: 2016, fame: 1, lo: 56, hi: 77, bio: 'Zagueiro de boa saída e gol de bola parada pelo Flamengo.' },
   { name: 'Lucão', club: 'São Paulo', year: 2016, fame: 1, lo: 55, hi: 76, bio: 'Zagueiro da base do São Paulo, firme na marcação.' },
