@@ -2930,6 +2930,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.varzea = onlineVarzea
       setActiveCatalog(s.deckLeague, onlineVarzea)
       s.sport = 'futebol'; s.nbaCareer = false // ⚽ online é sempre futebol (não herda basquete de um jogo anterior)
+      s.simSpeed = 1 // ⏩ todo jogo online COMEÇA no ritmo Normal — não herda a velocidade de um jogo anterior (era o "sim ultra rápida" numa sala auto, sem ninguém ter tocado no manual). Manual/stream re-escolhe a marcha dentro do jogo.
       s.locked = action.locked; s.pwHash = action.pwHash // guarda a senha no estado (sobrevive ao autosave)
       s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido
       s.contratosOn = !!action.career // 📝 contratos: SÓ carreira NOVA nasce com eles (save antigo segue sem)
