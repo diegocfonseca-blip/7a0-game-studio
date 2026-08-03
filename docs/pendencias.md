@@ -704,3 +704,10 @@ O que É compartilhado POR DESENHO (não é bug): o ÁLBUM de cartas é da CONTA
 dono) e a SAF é uma só pros 2 clubes (decisão antiga do Diego). Prêmio de tabela/
 título do dormindo já entrava certo (rewards por id) — só era apagado pela bomba 1.
 Revertível (3 pontos).
+
+## 🏛️ Multiclubes: Cerimônia abria no clube ERRADO — FEITO (03/08, print do Diego)
+Após o leilão do 2º clube, a Cerimônia da Revelação abria mostrando o clube
+ORIGINAL (ex.: Carecamburgo) em vez do que leiloou. CAUSA: a tela sempre abria no
+time nº 0 da lista (na carreira normal você É o nº 0 — com o 2º clube no comando,
+o nº 0 é o original dormindo). FIX: `EscCerimonia` abre no índice do SEU clube
+ativo (youIdx) na lista filtrada. Navegar pelos outros times segue igual. Revertível.

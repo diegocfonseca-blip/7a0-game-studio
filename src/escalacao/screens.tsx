@@ -3188,7 +3188,15 @@ export function EscMonte() {
 export function EscCerimonia() {
   const { state, dispatch } = useEsc()
   const t = useT()
-  const [idx, setIdx] = useState(0)
+  // 🏛️ abre SEMPRE no SEU clube (o que acabou de leiloar) — antes abria no time
+  // nº 0 da lista, que na carreira normal É você… mas no MULTICLUBES, comandando
+  // o 2º clube, o nº 0 é o clube ORIGINAL (dormindo) — a cerimônia parecia "do
+  // outro clube" (bug relatado). Navegar pelos outros times continua igual.
+  const [idx, setIdx] = useState(() => {
+    const list = state.managers.filter(m => !m.marketCpu)
+    const p = list.findIndex(m => m.id === state.managers[state.youIdx]?.id)
+    return p >= 0 ? p : 0
+  })
   // esconde os participantes TEMPORÁRIOS do mercado (times de fundo) — eles só
   // brigaram no leilão, não entram na sua liga nem na revelação.
   const mgrs = state.managers.filter(m => !m.marketCpu)
