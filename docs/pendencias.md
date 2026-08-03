@@ -552,3 +552,14 @@ Conta 1 vista por TEMPORADA (não por render; localStorage esc-ensino-*). TODOS 
 avisos de regra da jogada (transfer ban, chip à venda, aviso "sai do time",
 contratos, vagas/piso/saldo do leilão) INTOCADOS — a tela do leilão nem foi
 tocada. FALTA (parte 4): 🌙 Tema Noturno (todas as telas; claro intocado).
+
+### ✅ 4 seleções novas FECHADAS (02/08) — 20 países agora dão time
+Adicionadas 62 cartas famosas (baralho MUNDO) → **Paraguai, Japão, Camarões, Senegal a 22 cada**.
+Agora **20 seleções fecham XI válido** (verificado: rank + copafield). Faltava isso pra Copa de 20.
+⚠️ PORÉM virar a Copa de 16→20 NÃO é 1 número: a chave (`copa-mundo.tsx`, CupScreen ~452) é
+**4 grupos de 4 (6 rodadas ida-volta) → 8 melhores → QF/SF/final**. Pra 20 = **4 grupos de 5
+(8 rodadas)** → top 2 de cada = 8 → mesmo mata-mata. Precisa: (a) `rankingSelecoes().slice(0,16)`
+→ 20 (linha 188); (b) `top16`/entrants pra 20 clubes (pyramidseason ~2492 — hoje pega top 16 do
+rank de clubes; virar 20); (c) montar grupos de 5 e fixtures de 8 rodadas; (d) trocar "Rodada X
+de 6" → "de 8" e o groupTable(g,6)→8. Copa é LOCAL (localStorage, sem reducer) → risco baixo,
+não toca futebol ao vivo. AGUARDANDO OK do Diego pra fazer a chave de 20.
