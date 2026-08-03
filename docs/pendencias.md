@@ -63,7 +63,13 @@ Sandro Gaúcho (2 jogadores diferentes — ambíguo), Everton Páscoa (passagem 
 não confirmada). Andrés Escobar já estava no baralho Mundo (Atlético Nacional 91).
 
 
-## 🎨 Artes de stories entregues (03/08): Contratos + Empresário + Várzea
+## 🎨 Artes de stories entregues (03/08): Contratos + Empresário + Várzea + PROPAGANDA da carreira
+Quarta arte (03/08, pós-liberação geral): "🪜 SUBA NA VIDA — da várzea à glória"
+com a ESCADA visual das 5 divisões (degraus subindo, Várzea marrom → Série A
+premium com 👑), régua por divisão nos degraus e a zoeira pedida pelo Diego:
+"acabou a mordomia: LENDA não aparece mais na Série D — quer o Pelé? Come
+poeira subindo até a elite 😤". CTA dourado "JÁ DISPONÍVEL — crie uma carreira
+nova" (fonte: story-carreira.html no scratchpad).
 Três PNGs 1080×1920 no visual do jogo, todas com carimbo vermelho "SÓ PRA
 CARREIRAS NOVAS": (1) Contratos (carta-contrato assinada); (2) Modo Empresário
 — REFEITA a pedido do Diego (03/08): agora a estrela é a prancheta "CONVOQUE
