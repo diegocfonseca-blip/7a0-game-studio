@@ -5161,6 +5161,13 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // convidado vigia o host: sem estado recebido há >10s durante o jogo, acende
   // o aviso "host caiu" e segue pedindo o estado — se o host voltar, ressincroniza.
+  // 🛟 AUTO-CURA DO HOST (bug do Diego/Rocha 02/08): na largada da partida, a
+  // leitura "sou host?" pode piscar errada (corrida na criação/handoff) — aí o
+  // DONO da sala se acha convidado, NINGUÉM é host e todo mundo trava no
+  // "ENVIANDO…" até dar F5. Agora o aparelho preso confere no BANCO (fonte da
+  // verdade: game_rooms.host_id) se o host é ELE — se for, reassume o comando
+  // sozinho (BECOME_HOST) e a sala destrava sem ninguém atualizar a página.
+  const lastOwnerCheckRef = useRef(0)
   useEffect(() => {
     if (state.onlineMode !== 'online' || state.isHost || !state.roomId) { setHostStale(false); return }
     if (state.screen === 'intro' || state.screen === 'lobby') { setHostStale(false); return }
@@ -5169,6 +5176,20 @@ export function EscProvider({ children }: { children: ReactNode }) {
       const stale = Date.now() - lastHostMsgRef.current > 10_000
       setHostStale(stale)
       if (stale) channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
+      if (stale && Date.now() - lastOwnerCheckRef.current > 10_000) {
+        lastOwnerCheckRef.current = Date.now()
+        ;(async () => {
+          try {
+            const { data: u } = await supabase.auth.getUser()
+            const uid = u?.user?.id
+            if (!uid) return
+            const st = stateRef.current
+            if (!st.roomId || st.isHost) return
+            const { data: r } = await supabase.from('game_rooms').select('host_id').eq('id', st.roomId).maybeSingle()
+            if (r?.host_id === uid && !stateRef.current.isHost) rawDispatch({ type: 'BECOME_HOST' })
+          } catch { /* segue pedindo estado; a próxima volta tenta de novo */ }
+        })()
+      }
     }, 2500)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId, state.screen])
@@ -5304,6 +5325,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
           fontFamily: 'Oswald, sans-serif', borderBottom: '3px solid #0C0C0C',
         }}>
           ⏳ Segura a onda! O host trocou de tela ou caiu — já tá voltando. Enquanto isso, reclama com ele! 😤
+          <button onClick={() => { try { window.location.reload() } catch { /* nada */ } }}
+            style={{ display: 'block', margin: '6px auto 0', border: '2.5px solid #0C0C0C', borderRadius: 10, background: '#fff', color: '#0C0C0C', fontWeight: 800, fontSize: 12, fontFamily: 'Oswald, sans-serif', padding: '4px 14px', cursor: 'pointer', boxShadow: '2px 2px 0 0 #0C0C0C' }}>
+            🔄 Travou? Atualiza a página — a partida continua de onde parou
+          </button>
         </div>
       )}
     </Ctx.Provider>
