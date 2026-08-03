@@ -3393,30 +3393,26 @@ export function reducer(state: EscState, action: Action): EscState {
       if (club) {
         club.mine = true; club.dormindo = true; club.isHuman = true; club.auctionRival = false
       } else {
-        // CASO 2 — comprei de OUTRA divisão: o clube da Série D é um time de FUNDO (não
-        // é manager). IGUAL À SAF (que compra por nome de qualquer divisão), eu CRIO ele
-        // como 2º clube dormindo. O resultado é um assento `mine+dormindo` IDÊNTICO ao do
-        // Caso 1 — então, daqui pra frente, ele segue o MESMO caminho já testado (dorme,
-        // joga a temporada, troca de comando). Travas defensivas: nunca você/rival/SAF, e
-        // o alvo TEM que estar hoje na Série D — senão não compra nada (nunca corrompe).
+        // CASO 2 — comprei de OUTRA divisão: o clube da Série D é um time que JÁ EXISTE
+        // (com elenco próprio, como time de FUNDO). É como TROCAR O TÉCNICO dele: ele vira
+        // seu 2º clube dormindo, com o MESMO elenco que já tinha — NENHUM outro time é
+        // excluído. O resultado é um assento `mine+dormindo` idêntico ao do Caso 1.
+        // Travas defensivas: nunca você/rival/SAF, e o alvo TEM que estar hoje na Série D.
         if (you.teamName === action.team) return s
         if (s.careerRivals.some(r => r.team === action.team)) return s
         if (s.careerFilial?.team === action.team) return s
         const divNow = s.careerPlacements?.[action.team] ?? (DIVISION_TEAMS['D'].some(t => t.team === action.team) ? 'D' : undefined)
         if (divNow !== 'D') return s
-        // pra manter a liga em 20 assentos, um preenchimento (bot anônimo) cede o lugar
-        // ao 2º clube. Sem preenchimento livre → não compra (defensivo: nunca 21 assentos).
-        const fillerIdx = s.managers.findIndex(m => !m.isHuman && !m.mine && !m.rival && !m.auctionRival && !m.dormindo && m.id !== you.id)
-        if (fillerIdx < 0) return s
-        const removed = s.managers[fillerIdx]
         const newId = Math.max(0, ...s.managers.map(m => m.id)) + 1
-        const squad = ((s.cpuSquads?.[action.team] ?? []) as WonCard[]).map(c => ({ ...c }))
+        const squad = ((s.cpuSquads?.[action.team] ?? []) as WonCard[]).map(c => ({ ...c })) // leva o elenco que o clube já tinha
         club = { id: newId, name: action.team, teamName: action.team, isHuman: true, auctionRival: false, mine: true, dormindo: true, formation: '4-3-3', money: 0, squad, aggression: 0.5, starHunger: 0.5 }
-        s.managers = s.managers.map((m, i) => i === fillerIdx ? club! : m)
+        // ADICIONA o clube (não exclui ninguém). O buildPyramid inclui o assento `mine`
+        // mesmo além dos 20 da liga; o clube deixa de ser "de fundo" (vira manager, 1:1
+        // na Série D — o total de 80 times por divisão fica intacto).
+        s.managers = [...s.managers, club]
         const pl = { ...(s.careerPlacements ?? {}) }
-        pl[`m${newId}`] = 'D'          // o 2º clube joga a Série D
-        delete pl[action.team]         // deixa de existir como time de fundo (por nome)
-        delete pl[`m${removed.id}`]    // o preenchimento que cedeu o lugar
+        pl[`m${newId}`] = 'D'   // o 2º clube joga a Série D (mesmo lugar que o time de fundo ocupava)
+        delete pl[action.team]  // o mesmo time deixa de contar como "de fundo" (agora é manager) — troca 1:1
         s.careerPlacements = pl
         s.clubCash = { ...(s.clubCash ?? {}), [`m${newId}`]: Math.round(s.clubCash?.[action.team] ?? 100) }
       }

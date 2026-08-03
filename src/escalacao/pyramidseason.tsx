@@ -175,7 +175,9 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
   const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number, backstop = false, rival = false, dorm = false, formation?: FormationKey): SimTeam => ({ name, you, human, rival, dorm, backstop, teamId, squad, formation, xi: bestXI(squad, formation), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
   const world: Record<Div, SimTeam[]> = { A: [], B: [], C: [], D: [] }
   const divOf = (key: string, fallback: Div): Div => { const d = placements?.[key]; return (d === 'A' || d === 'B' || d === 'C' || d === 'D') ? d : fallback }
-  for (const m of managers.slice(0, 20)) {
+  // os 20 da liga + o 2º clube do Multiclubes (assento `mine`), que pode vir além dos
+  // 20 e joga a divisão dele (não é excluído por causa do corte dos 20).
+  for (const m of managers.filter((mm, i) => i < 20 || mm.mine)) {
     const t = mk(m.teamName, (m.squad as WonCard[]).map(c => ({ ...c })), m.isHuman, m.id === youId, m.id, !!m.backstop, !!m.rival, !!m.dormindo, m.formation)
     world[divOf(`m${m.id}`, 'D')].push(t)
   }
