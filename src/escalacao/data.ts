@@ -1108,12 +1108,24 @@ const ATA: C[] = [
 
 // 🆕 cartas novas (baralho BR) — pedidas pelo Diego: reais e folclóricos do futebol nacional.
 const NOVOS_BR_GOL: C[] = [
+  { name: "Matheus Donelli", club: "Corinthians", year: 2023, fame: 2, lo: 66, hi: 82, bio: "Goleiro da base do Corinthians que ganhou espaço entre os profissionais — bons reflexos no gol alvinegro." },
+  { name: "Ivan Brazão", club: "Santos", year: 2020, fame: 2, lo: 64, hi: 82, bio: "Goleiro revelado na base do Santos — camisa 1 jovem da Vila Belmiro." },
+  { name: "Diego (goleiro)", club: "Flamengo", year: 2009, fame: 2, lo: 66, hi: 83, bio: "Goleiro do Flamengo no fim dos anos 2000, antes da era dos grandes títulos." },
+  { name: "Martín Silva", club: "Vasco", year: 2015, fame: 3, lo: 78, hi: 86, bio: "Goleirão uruguaio do Vasco — paredão querido em São Januário e titular da Celeste." },
   { name: 'Júlio César', club: 'Corinthians', year: 2010, fame: 1, lo: 56, hi: 76, bio: 'Goleiro titular do Corinthians em 2010-11, antes do Cássio chegar. (Não confundir com o Júlio César da Seleção!)' },
   { name: 'Renan Ribeiro', club: 'Atlético-MG', year: 2016, fame: 1, lo: 57, hi: 77, bio: 'Paredão suplente do Atlético-MG antes de rodar Portugal — reflexo e frieza no pênalti.' },
   { name: 'Sílvio Luiz', club: 'São Caetano', year: 2002, fame: 2, lo: 65, hi: 80, bio: 'Paredão do São Caetano na campanha do vice da Libertadores de 2002 — pegador de pênalti e voz de comando na área.' },
   { name: 'Edinho', club: 'Santos', year: 1994, fame: 2, lo: 62, hi: 79, folk: true, bio: 'Goleiro do Santos nos anos 90 e filho do Pelé — carregou o sobrenome mais pesado do futebol debaixo das traves e ainda assim foi titular do Peixe.' },
 ]
 const NOVOS_BR_LAT: C[] = [
+  { name: "Anderson Pico", club: "Grêmio", year: 2010, fame: 2, lo: 66, hi: 82 },
+  { name: "Victor Ferraz", club: "Santos", year: 2016, fame: 2, lo: 68, hi: 83 },
+  { name: "Zeca", club: "Santos", year: 2016, fame: 2, lo: 66, hi: 82 },
+  { name: "Gustavo Nery", club: "São Paulo", year: 2004, fame: 3, lo: 76, hi: 85, bio: "Lateral-esquerdo canhoto de bom cruzamento — passou pela Seleção na Copa de 2002." },
+  { name: "Carlinhos", club: "Fluminense", year: 2014, fame: 2, lo: 66, hi: 82 },
+  { name: "Ilsinho", club: "São Paulo", year: 2006, fame: 3, lo: 77, hi: 85, bio: "Lateral/ponta-direita driblador do São Paulo — velocidade e dribles curtos." },
+  { name: "Yoshimar Yotún", club: "Vasco", year: 2013, fame: 2, lo: 68, hi: 83, bio: "Lateral-esquerdo peruano de bom pé — passagem pelo Vasco antes de rodar o mundo." },
+  { name: "Morais", club: "Vasco", year: 2006, fame: 2, lo: 64, hi: 81 },
   { name: 'China', club: 'Flamengo', year: 2004, fame: 1, lo: 54, hi: 74, bio: 'Lateral raçudo do Flamengo — marcação e disposição pela faixa.' },
   { name: 'Jorge', club: 'Flamengo', year: 2016, fame: 1, lo: 57, hi: 78, bio: 'Lateral-esquerdo joia do Flamengo, arrancada e cruzamento — foi cedo pro Mônaco.' },
   { name: 'Sérginho', club: 'São Caetano', year: 2004, fame: 2, lo: 68, hi: 81, bio: 'Guerreiro do timaço do São Caetano dos anos 2000 — eternizado no coração do Azulão.' },
@@ -1122,6 +1134,18 @@ const NOVOS_BR_LAT: C[] = [
   { name: 'Eduardo Ratinho', club: 'Corinthians', year: 2005, fame: 2, lo: 62, hi: 79, bio: 'Lateral-direito veloz e driblador, com boa bola parada — a revelação do Corinthians em 2005; ainda passou por CSKA Moscou, Toulouse e Fluminense antes de parar cedo.' },
 ]
 const NOVOS_BR_MEI: C[] = [
+  { name: "Renato", club: "Santos", year: 2005, fame: 3, lo: 77, hi: 86, bio: "Volante de boa saída de bola e capitão de raça — meio-campo sólido no Brasil e na Europa." },
+  { name: "Arouca", club: "Santos", year: 2012, fame: 3, lo: 77, hi: 85, bio: "Volante marcador do Santos de Neymar — pegada firme e primeiro passe simples." },
+  { name: "Lúcio Flávio", club: "Botafogo", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Meia canhoto de falta perigosa — maestro do Botafogo no fim dos anos 2000." },
+  { name: "Nicolás Lodeiro", club: "Botafogo", year: 2013, fame: 3, lo: 78, hi: 86, bio: "Meia-atacante uruguaio criativo — passes e bolas paradas decisivas no Botafogo." },
+  { name: "Jean Pyerre", club: "Grêmio", year: 2019, fame: 2, lo: 68, hi: 84, bio: "Meia de canhota abençoada do Grêmio — talento cru perseguido pelas lesões." },
+  { name: "Maicosuel", club: "Botafogo", year: 2009, fame: 2, lo: 66, hi: 83 },
+  { name: "Fellype Gabriel", club: "Botafogo", year: 2011, fame: 2, lo: 66, hi: 82 },
+  { name: "Bernardo", club: "Vasco", year: 2011, fame: 2, lo: 66, hi: 82 },
+  { name: "Negreiros", club: "Flamengo", year: 2006, fame: 2, lo: 64, hi: 81 },
+  { name: "Gustavo Blanco", club: "Atlético-MG", year: 2018, fame: 2, lo: 66, hi: 82 },
+  { name: "Matías Defederico", club: "Corinthians", year: 2009, fame: 2, lo: 66, hi: 82, bio: "Meia argentino habilidoso que chegou com fama ao Corinthians." },
+  { name: "Abedi Pelé", club: "Vasco", year: 2007, fame: 3, lo: 76, hi: 85 },
   { name: 'Lulinha', club: 'Corinthians', year: 2008, fame: 1, lo: 54, hi: 74, folk: true, bio: 'A joia mais badalada da base do Corinthians nos anos 2000.' },
   { name: 'Renato Cajá', club: 'Ponte Preta', year: 2012, fame: 1, lo: 55, hi: 76, folk: true, bio: 'Canhota refinada de passe — o auge cult foi comandando a Ponte Preta.' },
   { name: 'Camacho', club: 'Corinthians', year: 2017, fame: 1, lo: 56, hi: 76, bio: 'Volante de marcação e recomposição do Corinthians campeão de 2017.' },
@@ -1138,6 +1162,20 @@ const NOVOS_BR_MEI: C[] = [
   { name: 'Douglas Barriga de Cadela', club: 'Corinthians', year: 2014, fame: 1, lo: 52, hi: 68, folk: true, bio: 'O meia que a Fiel judiava pela forma física — ganhou o apelido cruel e virou meme eterno da arquibancada.' },
 ]
 const NOVOS_BR_ATA: C[] = [
+  { name: "Marinho", club: "Santos", year: 2020, fame: 3, lo: 78, hi: 86, bio: "Atacante driblador e artilheiro do Santos vice da Libertadores 2020 — melhor da América no ano." },
+  { name: "Lucas Pratto", club: "São Paulo", year: 2017, fame: 3, lo: 78, hi: 86, bio: "\u0022El Oso\u0022 — centroavante argentino brigador e goleador do São Paulo." },
+  { name: "Ángel Romero", club: "Corinthians", year: 2016, fame: 3, lo: 76, hi: 85, bio: "Atacante paraguaio de faro e chute forte — peça do Corinthians campeão." },
+  { name: "Germán Herrera", club: "Corinthians", year: 2008, fame: 2, lo: 66, hi: 82 },
+  { name: "Leandro Amaral", club: "Vasco", year: 2007, fame: 2, lo: 66, hi: 83 },
+  { name: "Victor Simões", club: "Botafogo", year: 2009, fame: 2, lo: 66, hi: 82 },
+  { name: "Yuri Mamute", club: "Grêmio", year: 2014, fame: 1, lo: 62, hi: 80, promessa: true, bio: "Promessa de gols da base do Grêmio que não deslanchou." },
+  { name: "Maicon Bolt", club: "Fluminense", year: 2020, fame: 2, lo: 64, hi: 82 },
+  { name: "Rodrigão", club: "Santos", year: 2016, fame: 2, lo: 64, hi: 82 },
+  { name: "Pipico", club: "Santa Cruz", year: 2019, fame: 1, lo: 60, hi: 80, folk: true, bio: "Centroavante folclórico do Santa Cruz — eternizado pelo meme \u0022vô comê é pipoca\u0022." },
+  { name: "Pimentinha", club: "Sampaio Corrêa", year: 2015, fame: 1, lo: 61, hi: 80, folk: true, bio: "Ídolo folclórico do Sampaio Corrêa — artilheiro querido no Maranhão." },
+  { name: "Wendell Lira", club: "Goianésia", year: 2015, fame: 1, lo: 61, hi: 80, folk: true, bio: "Autor do gol vencedor do Prêmio Puskás 2015 — voleio de bicicleta que rodou o mundo." },
+  { name: "Scocco", club: "Internacional", year: 2016, fame: 3, lo: 78, hi: 86, bio: "Centroavante argentino de faro apurado — grande fase no Inter antes de brilhar no River." },
+  { name: "Kazuyoshi Miura", club: "Santos", year: 1988, fame: 2, lo: 68, hi: 84, bio: "\u0022Rei Kazu\u0022 — aprendeu futebol no Brasil (Santos) e virou lenda eterna do futebol japonês." },
   { name: 'Léo Gamalho', club: 'Goiás', year: 2019, fame: 1, lo: 57, hi: 78, bio: 'Centroavante goleador e andarilho — o auge de gols foi com a camisa do Goiás.' },
   { name: 'Finazzi', club: 'Grêmio Barueri', year: 2009, fame: 1, lo: 55, hi: 76, folk: true, bio: 'Atacante cult do Grêmio Barueri — faro de gol e comemoração marcante.' },
   { name: 'Maxi Lopez', club: 'Vasco', year: 2017, fame: 1, lo: 56, hi: 77, folk: true, bio: 'Centroavante argentino do Vasco — mais famoso pela novela do que pelos gols.' },
@@ -1152,6 +1190,9 @@ const NOVOS_BR_ATA: C[] = [
   { name: 'Creedence', club: 'Figueirense', year: 2005, fame: 1, lo: 52, hi: 72, folk: true, bio: 'Atacante que rodou o Brasil (Figueirense, Botafogo-SP, Brasiliense) e ganhou fama pelo nome: batizado Creedence Clearwater Couto, em homenagem à banda.' },
 ]
 const NOVOS_BR_ZAG: C[] = [
+  { name: "Sergio Escobar", club: "Vasco", year: 1996, fame: 2, lo: 64, hi: 82 },
+  { name: "Rodrigo Alvim", club: "Internacional", year: 2006, fame: 1, lo: 62, hi: 80 },
+  { name: "Gustavo Geladeira", club: "Portuguesa", year: 2005, fame: 1, lo: 60, hi: 80, folk: true, bio: "Zagueirão \u0022Geladeira\u0022 da Portuguesa — parrudo e folclórico, muralha dos anos 2000." },
   { name: 'Erazo', club: 'Flamengo', year: 2014, fame: 1, lo: 57, hi: 78, bio: 'Zagueirão equatoriano do Flamengo — imponente no jogo aéreo.' },
   { name: 'Rafael Vaz', club: 'Flamengo', year: 2016, fame: 1, lo: 56, hi: 77, bio: 'Zagueiro de boa saída e gol de bola parada pelo Flamengo.' },
   { name: 'Lucão', club: 'São Paulo', year: 2016, fame: 1, lo: 55, hi: 76, bio: 'Zagueiro da base do São Paulo, firme na marcação.' },
@@ -1213,6 +1254,10 @@ const GOL_EU: C[] = [
   { name: "Brad Friedel", club: "Blackburn", year: 2004, fame: 4, lo: 76, hi: 88, bio: "O muro americano da Premier League — 310 jogos seguidos sem faltar um, reflexos de gato e até gol marcado. Respeito eterno na Inglaterra." },
 ]
 const LAT_EU: C[] = [
+  { name: "Leighton Baines", club: "Everton", year: 2012, fame: 3, lo: 78, hi: 86, bio: "Lateral-esquerdo inglês de cruzamento e falta afiados — xodó do Everton." },
+  { name: "Lucas Digne", club: "Everton", year: 2020, fame: 3, lo: 77, hi: 85 },
+  { name: "Marcel Schmelzer", club: "Dortmund", year: 2013, fame: 2, lo: 68, hi: 84 },
+  { name: "Łukasz Piszczek", club: "Dortmund", year: 2013, fame: 3, lo: 77, hi: 85, bio: "Lateral-direito polonês incansável do Dortmund campeão alemão." },
   { name: "Benjamin Mendy", club: "Man City", year: 2018, fame: 3, lo: 74, hi: 85, bio: "Lateral-esquerdo francês veloz e potente na subida — campeão do mundo com a França em 2018 e peça do Manchester City de Guardiola quando livre de lesões." },
   { name: "Ali Maamar", club: "Anderlecht", year: 2024, fame: 2, lo: 64, hi: 79, bio: "Lateral-direito belga do Anderlecht — subiu da base ao time principal, forte na marcação e no apoio pela direita." },
   { name: "Michel Bastos", club: "Lyon", year: 2010, fame: 3, lo: 75, hi: 86, bio: "Canhoto versátil (lateral e meia) — auge no Lyon com cobranças de falta perfeitas; titular da Seleção na Copa de 2010." },
@@ -1291,6 +1336,9 @@ const LAT_EU: C[] = [
   { name: "Steve Cherundolo", club: "Hannover", year: 2010, fame: 3, lo: 66, hi: 81, bio: "O 'Prefeito de Hannover' — 15 anos de clube único na Alemanha, tão querido que a cidade o adotou de vez." },
 ]
 const ZAG_EU: C[] = [
+  { name: "Matthias Ginter", club: "Mönchengladbach", year: 2019, fame: 3, lo: 77, hi: 85 },
+  { name: "Presnel Kimpembe", club: "PSG", year: 2020, fame: 3, lo: 77, hi: 85, bio: "Zagueiro francês da base do PSG — campeão do mundo em 2018." },
+  { name: "Taribo West", club: "Inter", year: 1998, fame: 2, lo: 68, hi: 83, bio: "Zagueiro nigeriano de marcação dura e cabelo inconfundível — muralha na Inter e no Milan." },
   { name: "Pau Torres", club: "Villarreal", year: 2021, fame: 3, lo: 78, hi: 85, bio: "Zagueiro espanhol canhoto de saída de bola elegante — peça do Villarreal campeão da Europa League e da seleção da Espanha, depois no Aston Villa." },
   { name: "Armando Obispo", club: "PSV", year: 2023, fame: 2, lo: 66, hi: 80, bio: "Zagueiro holandês do PSV — subiu da base ao time principal, forte no jogo aéreo e na saída de bola." },
   { name: "Frank de Boer", club: "Ajax", year: 1995, fame: 4, lo: 82, hi: 89, bio: "Zagueiro holandês elegante e canhoto — capitão do Ajax campeão da Europa em 1995, depois no Barcelona; recordista de jogos pela Holanda e mestre no passe longo." },
@@ -1695,10 +1743,20 @@ const ATA_EU: C[] = [
 ]
 // 🆕 cartas novas (baralho EU) — pedidas pelo Diego.
 const NOVOS_EU_GOL: C[] = [
+  { name: "Danijel Subašić", club: "Monaco", year: 2017, fame: 3, lo: 78, hi: 86, bio: "Goleiro croata do Monaco — herói dos pênaltis na Copa de 2018." },
+  { name: "Kiko Casilla", club: "Real Madrid", year: 2016, fame: 2, lo: 68, hi: 83 },
   { name: 'Javi Varas', club: 'Sevilla', year: 2011, fame: 2, lo: 68, hi: 81, folk: true, bio: 'Goleirão espanhol do Sevilla — e um nome que no Brasil vira piada na hora: "já vi vara". Mas debaixo das traves, levava a sério.' },
   { name: 'Luca Zidane', club: 'Granada', year: 2024, fame: 1, lo: 52, hi: 70, folk: true, bio: 'Goleiro filho de Zinedine Zidane — formado no Real Madrid, foi buscar espaço e titularidade longe da sombra do pai (Eibar, Granada).' },
 ]
 const NOVOS_EU_MEI: C[] = [
+  { name: "Ivan Rakitić", club: "Barcelona", year: 2016, fame: 4, lo: 85, hi: 91, bio: "Meia croata de motor e chute forte — parceiro de Busquets e Iniesta no Barça." },
+  { name: "Aaron Ramsey", club: "Arsenal", year: 2015, fame: 3, lo: 78, hi: 86, bio: "Meia galês box-to-box do Arsenal — chegada à área e gol de final." },
+  { name: "Marcelo Brozović", club: "Inter", year: 2020, fame: 3, lo: 78, hi: 86 },
+  { name: "Mateo Kovačić", club: "Chelsea", year: 2020, fame: 3, lo: 78, hi: 86 },
+  { name: "Joe Cole", club: "Chelsea", year: 2006, fame: 3, lo: 78, hi: 86, bio: "Meia-atacante inglês de drible e categoria — talento do Chelsea de Mourinho." },
+  { name: "Dele Alli", club: "Tottenham", year: 2017, fame: 3, lo: 78, hi: 87, bio: "Meia inglês de chegada e gols — explosão no Tottenham de Pochettino." },
+  { name: "Kevin-Prince Boateng", club: "Milan", year: 2011, fame: 3, lo: 76, hi: 85, bio: "Meião ganês-alemão de força e chute — noite de gala contra o Barça pelo Milan." },
+  { name: "Lucas Piazón", club: "Chelsea", year: 2012, fame: 1, lo: 62, hi: 82, bio: "Meia brasileiro cheio de fama na base do Chelsea — vida de empréstimos." },
   { name: 'Koke', club: 'Atlético de Madrid', year: 2016, fame: 4, lo: 82, hi: 90, bio: 'O cérebro do Atlético do Simeone — camisa 6 eterno, passe milimétrico e raça de sobra no meio.' },
   { name: 'Marcos Senna', club: 'Villarreal', year: 2008, fame: 4, lo: 81, hi: 89, bio: 'Brasileiro que virou herói da Espanha: volante do Villarreal, campeão da Eurocopa de 2008 vestindo a Fúria.' },
   { name: 'Federico Valverde', club: 'Real Madrid', year: 2024, fame: 4, lo: 85, hi: 92, bio: 'Motor uruguaio do Real Madrid — corre o jogo inteiro, desarma, chega na área e solta a bomba de fora. Pulmão infinito.' },
@@ -1708,6 +1766,14 @@ const NOVOS_EU_MEI: C[] = [
   { name: 'Danny Drinkwater', club: 'Leicester', year: 2016, fame: 2, lo: 68, hi: 82, bio: 'Volante inglês de marcação e passe certo — peça-chave do Leicester campeão inglês de 2016, o maior conto de fadas da Premier League.' },
 ]
 const NOVOS_EU_ATA: C[] = [
+  { name: "Theo Walcott", club: "Arsenal", year: 2013, fame: 3, lo: 78, hi: 86, bio: "Ponta inglês raio do Arsenal — velocidade pura pela direita." },
+  { name: "Ivan Perišić", club: "Inter", year: 2018, fame: 3, lo: 78, hi: 86, bio: "Ponta croata de força e bola aérea — canhota potente e finais decisivas." },
+  { name: "Raheem Sterling", club: "Man City", year: 2019, fame: 4, lo: 85, hi: 91, bio: "Ponta inglês veloz e decisivo do City de Guardiola." },
+  { name: "Pierre-Emerick Aubameyang", club: "Dortmund", year: 2016, fame: 4, lo: 85, hi: 92, bio: "Centroavante gabonês raio — artilheiro implacável do Dortmund." },
+  { name: "Mario Mandžukić", club: "Juventus", year: 2016, fame: 4, lo: 84, hi: 90, bio: "Centroavante croata guerreiro — cabeceio, sacrifício e gols em finais." },
+  { name: "Gervinho", club: "Arsenal", year: 2012, fame: 2, lo: 68, hi: 84, bio: "Ponta marfinense veloz — arrancadas eletrizantes." },
+  { name: "Thorgan Hazard", club: "Dortmund", year: 2019, fame: 2, lo: 68, hi: 84 },
+  { name: "Willian José", club: "Real Sociedad", year: 2018, fame: 3, lo: 77, hi: 85, bio: "Centroavante brasileiro de corpo e finalização — goleador na Real Sociedad." },
   { name: 'Jérémy Doku', club: 'Man City', year: 2024, fame: 4, lo: 82, hi: 91, bio: 'Ala belga de arrancada elétrica — dribla, chega na linha de fundo e faz zagueiro passar vergonha, na velocidade do City.' },
   { name: 'Hatem Ben Arfa', club: 'Nice', year: 2016, fame: 4, lo: 80, hi: 90, folk: true, bio: 'Talento francês de driblar meio time sozinho — o gol solo pelo Nice virou lenda. Gênio indomável: brigou com técnico atrás de técnico e desperdiçou parte do que prometia.' },
   { name: 'Roque Santa Cruz', club: 'Blackburn', year: 2008, fame: 2, lo: 70, hi: 82, bio: 'Centroavante paraguaio alto e técnico — jovem campeão pelo Bayern e artilheiro querido no Blackburn.' },
@@ -1881,6 +1947,7 @@ const NOVOS_WORLD_MEI: C[] = [
   { name: 'Cheikhou Kouyaté', club: 'West Ham', year: 2016, fame: 2, lo: 66, hi: 81, bio: 'Volante/zagueiro alto e forte de Senegal — capitão de raça no West Ham e no Palace.' },
 ]
 const NOVOS_WORLD_ATA: C[] = [
+  { name: "Papa Waigo", club: "Fiorentina", year: 2009, fame: 2, lo: 66, hi: 82, bio: "Centroavante senegalês de força física — passagem pela Fiorentina." },
   { name: 'Takefusa Kubo', club: 'Real Sociedad', year: 2024, fame: 3, lo: 78, hi: 86, promessa: true, bio: 'A joia japonesa do drible, dono da bola no Real Sociedad. Baixinho endiabrado que enlouquece marcador.' },
   { name: 'Milton Caraglio', club: 'Cruz Azul', year: 2018, fame: 2, lo: 63, hi: 79, folk: true, bio: 'Centroavante argentino faro de área — e um nome que no Brasil rende piada garantida.' },
   { name: 'Carlos Vela', club: 'LAFC', year: 2019, fame: 2, lo: 70, hi: 83, bio: 'Craque mexicano de canhota abençoada — recordista de gols numa temporada mágica pelo LAFC nos Estados Unidos.' },
