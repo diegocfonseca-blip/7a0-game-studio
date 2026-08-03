@@ -908,9 +908,11 @@ Abas novas (saiu o "Geral"): 🪜 **Carreira** (primeira aba, EM BREVE — lista
 ZERADA de propósito, aviso "contagem começa do zero quando abrir") · 👥 **Rápido
 online** · 🤖 **Rápido offline**. RPC esc_ranking ganhou modos 'ronline'/'rcpu'
 que EXCLUEM temporadas de carreira (season_key like 'co:%'); modos antigos
-seguem funcionando (compat com app aberto). PENDENTE: quando o Diego quiser
-abrir o ranking da Carreira, definir a régua (títulos co: por divisão? só Série
-A? copa?) e ligar a aba.
+seguem funcionando (compat com app aberto). ✅ RESOLVIDO 04/08: Diego decidiu
+MANTER O HISTÓRICO — aba 🪜 Carreira liberada GERAL com o modo RPC 'carreira'
+(todos os títulos co:, liga+Copa juntos) e títulos novos de carreira seguem
+contando normal. Ordem final das abas: Rápido online · Rápido offline · Carreira.
+Ideias futuras (sem decisão): separar liga/Copa na exibição; régua por divisão.
 
 ## 💀 KFC — LIMPEZA EXECUTADA (04/08, AUTORIZADA pelo Diego: "sei q ele fez hacker, coloque 57")
 user_id 9ba06350-8b24-4ba2-85b6-b045a5a9c28d. Antes: 191 títulos rápido-cpu +
