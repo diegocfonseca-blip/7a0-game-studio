@@ -1122,6 +1122,7 @@ const NOVOS_BR_GOL: C[] = [
   { name: 'Edinho', club: 'Santos', year: 1994, fame: 2, lo: 62, hi: 79, folk: true, bio: 'Goleiro do Santos nos anos 90 e filho do Pelé — carregou o sobrenome mais pesado do futebol debaixo das traves e ainda assim foi titular do Peixe.' },
   { name: "Bosco", club: "Sport", year: 2000, fame: 2, lo: 66, hi: 82, bio: "Goleiro pernambucano ídolo do Sport — pegador de pênalti que brilhou na Ilha do Retiro e chegou à Seleção em 2000." },
   { name: "Max Walef", club: "Fortaleza", year: 2022, fame: 1, lo: 60, hi: 79, bio: "Goleiro piauiense revelado no Fortaleza — reflexos e regularidade no gol do Leão do Pici." },
+  { name: "Milagres", club: "América-MG", year: 1997, fame: 1, lo: 60, hi: 79, folk: true, bio: "Goleiro folclórico recordista de jogos do América-MG — mais de 370 partidas defendendo o Coelho, uma vida inteira debaixo das traves." },
 ]
 const NOVOS_BR_LAT: C[] = [
   { name: "Samuel Xavier", club: "Fluminense", year: 2022, fame: 2, lo: 66, hi: 82, bio: "Lateral-direito rodado e incansável — bom apoio e entrega, titular no Fluminense e por clubes do Nordeste." },
@@ -1143,6 +1144,7 @@ const NOVOS_BR_LAT: C[] = [
 ]
 const NOVOS_BR_MEI: C[] = [
   { name: "Zizão", club: "Corinthians", year: 2013, fame: 1, lo: 58, hi: 78, folk: true, bio: "Meia chinês (Chen Zhizhao), o primeiro asiático do Corinthians — chegou como aposta de marketing e virou campeão paulista de 2013. Saudade eterna do churrasco brasileiro." },
+  { name: "Sandro Goiano", club: "Grêmio", year: 2005, fame: 2, lo: 68, hi: 83, folk: true, bio: "Volante e capitão ídolo do Grêmio — herói da Batalha dos Aflitos e do título da Série B de 2005, raça e liderança no meio-campo." },
   { name: "Preto Casagrande", club: "Santos", year: 2004, fame: 2, lo: 68, hi: 83, bio: "Volante raçudo campeão brasileiro de 2004 com o Santos — bi-nordestino pelo Vitória e Bola de Prata, marcação e liderança no meio." },
   { name: "Pochettino", club: "Fortaleza", year: 2024, fame: 2, lo: 70, hi: 84, bio: "Meia argentino motor do Fortaleza — chegada ao ataque, gols e assistências que fizeram dele um dos cérebros do Leão." },
   { name: "Feijão", club: "Bahia", year: 2013, fame: 1, lo: 60, hi: 79, folk: true, bio: "Volante revelado no Bahia — marcou o milésimo gol do Esquadrão em Brasileirões, entrando pra história tricolor." },
@@ -1223,6 +1225,7 @@ const NOVOS_BR_ATA: C[] = [
 ]
 const NOVOS_BR_ZAG: C[] = [
   { name: "Ronaldo Angelim", club: "Flamengo", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Zagueiro cearense de raça — eternizado pelo gol do título brasileiro do Flamengo em 2009, no Maracanã lotado." },
+  { name: "Ewerton Páscoa", club: "Sport", year: 2014, fame: 2, lo: 66, hi: 82, bio: "Zagueiro pernambucano peça-chave do Sport na conquista da Copa do Nordeste e do Pernambucano de 2014 — firmeza na Ilha do Retiro." },
   { name: "Rodrigo Arroz", club: "Flamengo", year: 2005, fame: 1, lo: 60, hi: 79, folk: true, bio: "Zagueiro folclórico revelado na base do Flamengo nos anos 2000 — o apelido \u0022Arroz\u0022 ninguém esquece." },
   { name: "Victor Ramos", club: "Vitória", year: 2013, fame: 2, lo: 66, hi: 82, bio: "Zagueiro de força do Vitória — muralha baiana marcante na defesa rubro-negra." },
   { name: "Gustavo Geladeira", club: "Flamengo", year: 2011, fame: 1, lo: 60, hi: 80, folk: true, bio: "Zagueirão \u0022Geladeira\u0022 do Flamengo — o apelido nasceu no vestiário rubro-negro, parrudo e folclórico, parceiro do Ronaldinho Gaúcho." },
