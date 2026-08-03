@@ -1164,6 +1164,8 @@ const NOVOS_BR_MEI: C[] = [
   { name: 'Douglas Barriga de Cadela', club: 'Corinthians', year: 2014, fame: 1, lo: 52, hi: 68, folk: true, bio: 'O meia que a Fiel judiava pela forma física — ganhou o apelido cruel e virou meme eterno da arquibancada.' },
 ]
 const NOVOS_BR_ATA: C[] = [
+  { name: "Pimpão", club: "Bahia", year: 2013, fame: 2, lo: 64, hi: 82, bio: "Atacante rodado do Nordeste — faro de gol pelo Bahia e por onde passou, xodó folclórico da torcida." },
+  { name: "Kieza", club: "Bahia", year: 2015, fame: 2, lo: 64, hi: 82, bio: "Centroavante artilheiro do Nordeste — goleador por Bahia, Botafogo e ABC." },
   { name: "Negreiros", club: "Flamengo", year: 2006, fame: 1, lo: 61, hi: 79 },
   { name: "Marinho", club: "Santos", year: 2020, fame: 3, lo: 78, hi: 86, bio: "Atacante driblador e artilheiro do Santos vice da Libertadores 2020 — melhor da América no ano." },
   { name: "Lucas Pratto", club: "São Paulo", year: 2017, fame: 3, lo: 78, hi: 86, bio: "\u0022El Oso\u0022 — centroavante argentino brigador e goleador do São Paulo." },
@@ -1193,6 +1195,7 @@ const NOVOS_BR_ATA: C[] = [
   { name: 'Creedence', club: 'Figueirense', year: 2005, fame: 1, lo: 52, hi: 72, folk: true, bio: 'Atacante que rodou o Brasil (Figueirense, Botafogo-SP, Brasiliense) e ganhou fama pelo nome: batizado Creedence Clearwater Couto, em homenagem à banda.' },
 ]
 const NOVOS_BR_ZAG: C[] = [
+  { name: "Victor Ramos", club: "Vitória", year: 2013, fame: 2, lo: 66, hi: 82, bio: "Zagueiro de força do Vitória — muralha baiana marcante na defesa rubro-negra." },
   { name: "Sergio Escobar", club: "Vasco", year: 1996, fame: 2, lo: 64, hi: 82 },
   { name: "Rodrigo Alvim", club: "Internacional", year: 2006, fame: 1, lo: 62, hi: 80 },
   { name: "Gustavo Geladeira", club: "Portuguesa", year: 2005, fame: 1, lo: 60, hi: 80, folk: true, bio: "Zagueirão \u0022Geladeira\u0022 da Portuguesa — parrudo e folclórico, muralha dos anos 2000." },
