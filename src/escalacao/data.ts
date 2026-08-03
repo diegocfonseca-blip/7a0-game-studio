@@ -1121,6 +1121,7 @@ const NOVOS_BR_GOL: C[] = [
   { name: 'Edinho', club: 'Santos', year: 1994, fame: 2, lo: 62, hi: 79, folk: true, bio: 'Goleiro do Santos nos anos 90 e filho do Pelé — carregou o sobrenome mais pesado do futebol debaixo das traves e ainda assim foi titular do Peixe.' },
 ]
 const NOVOS_BR_LAT: C[] = [
+  { name: "Samuel Xavier", club: "Fluminense", year: 2022, fame: 2, lo: 66, hi: 82, bio: "Lateral-direito rodado e incansável — bom apoio e entrega, titular no Fluminense e por clubes do Nordeste." },
   { name: "Anderson Pico", club: "Grêmio", year: 2010, fame: 1, lo: 61, hi: 79 },
   { name: "Victor Ferraz", club: "Santos", year: 2016, fame: 2, lo: 68, hi: 83 },
   { name: "Zeca", club: "Santos", year: 2016, fame: 2, lo: 66, hi: 82 },
@@ -1136,6 +1137,10 @@ const NOVOS_BR_LAT: C[] = [
   { name: 'Eduardo Ratinho', club: 'Corinthians', year: 2005, fame: 2, lo: 62, hi: 79, bio: 'Lateral-direito veloz e driblador, com boa bola parada — a revelação do Corinthians em 2005; ainda passou por CSKA Moscou, Toulouse e Fluminense antes de parar cedo.' },
 ]
 const NOVOS_BR_MEI: C[] = [
+  { name: "Dudu Cearense", club: "Vasco", year: 2005, fame: 2, lo: 66, hi: 82, bio: "Volante cearense de marcação e fôlego — revelado no Vasco antes de brilhar no CSKA e no Olympiacos." },
+  { name: "Bismarck", club: "Vasco", year: 1993, fame: 3, lo: 76, hi: 85, bio: "Meia-artista do Vasco e depois ídolo eterno no Japão (Kashima) — passe fino e gols de placa." },
+  { name: "René Júnior", club: "Bahia", year: 2017, fame: 2, lo: 64, hi: 82, bio: "Volante forte do Nordeste — pegada e chegada ao ataque pelo Bahia." },
+  { name: "Cauly", club: "Bahia", year: 2023, fame: 2, lo: 68, hi: 83, bio: "Meia criativo do Bahia — passes de fantasia e gols que reacenderam o Esquadrão." },
   { name: "Morais", club: "Vasco", year: 2006, fame: 2, lo: 66, hi: 82 },
   { name: "Renato", club: "Santos", year: 2005, fame: 3, lo: 77, hi: 86, bio: "Volante de boa saída de bola e capitão de raça — meio-campo sólido no Brasil e na Europa." },
   { name: "Arouca", club: "Santos", year: 2012, fame: 3, lo: 77, hi: 85, bio: "Volante marcador do Santos de Neymar — pegada firme e primeiro passe simples." },
@@ -1164,6 +1169,9 @@ const NOVOS_BR_MEI: C[] = [
   { name: 'Douglas Barriga de Cadela', club: 'Corinthians', year: 2014, fame: 1, lo: 52, hi: 68, folk: true, bio: 'O meia que a Fiel judiava pela forma física — ganhou o apelido cruel e virou meme eterno da arquibancada.' },
 ]
 const NOVOS_BR_ATA: C[] = [
+  { name: "Marcelo Ramos", club: "América-MG", year: 2001, fame: 2, lo: 66, hi: 83, bio: "O Matador — centroavante goleador dos anos 2000, faro de área por América-MG, Cruzeiro e Vasco." },
+  { name: "Everaldo", club: "Ceará", year: 2019, fame: 2, lo: 64, hi: 82, bio: "Atacante cearense de briga e gol — destaque do Ceará antes de rodar o Brasileirão." },
+  { name: "Biel", club: "Bahia", year: 2022, fame: 2, lo: 64, hi: 82, bio: "Ponta veloz revelado no Bahia — dribles e futuro promissor rumo à Europa." },
   { name: "Pimpão", club: "Bahia", year: 2013, fame: 2, lo: 64, hi: 82, bio: "Atacante rodado do Nordeste — faro de gol pelo Bahia e por onde passou, xodó folclórico da torcida." },
   { name: "Kieza", club: "Bahia", year: 2015, fame: 2, lo: 64, hi: 82, bio: "Centroavante artilheiro do Nordeste — goleador por Bahia, Botafogo e ABC." },
   { name: "Negreiros", club: "Flamengo", year: 2006, fame: 1, lo: 61, hi: 79 },
