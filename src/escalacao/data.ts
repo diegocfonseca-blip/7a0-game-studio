@@ -1114,7 +1114,7 @@ const NOVOS_BR_GOL: C[] = [
   { name: 'Edinho', club: 'Santos', year: 1994, fame: 2, lo: 62, hi: 79, folk: true, bio: 'Goleiro do Santos nos anos 90 e filho do Pelé — carregou o sobrenome mais pesado do futebol debaixo das traves e ainda assim foi titular do Peixe.' },
 ]
 const NOVOS_BR_LAT: C[] = [
-  { name: 'China', club: 'Flamengo', year: 2013, fame: 1, lo: 54, hi: 74, bio: 'Lateral raçudo do Flamengo — marcação e disposição pela faixa.' },
+  { name: 'China', club: 'Flamengo', year: 2004, fame: 1, lo: 54, hi: 74, bio: 'Lateral raçudo do Flamengo — marcação e disposição pela faixa.' },
   { name: 'Jorge', club: 'Flamengo', year: 2016, fame: 1, lo: 57, hi: 78, bio: 'Lateral-esquerdo joia do Flamengo, arrancada e cruzamento — foi cedo pro Mônaco.' },
   { name: 'Sérginho', club: 'São Caetano', year: 2004, fame: 2, lo: 68, hi: 81, bio: 'Guerreiro do timaço do São Caetano dos anos 2000 — eternizado no coração do Azulão.' },
   { name: 'Triguinho', club: 'São Caetano', year: 2004, fame: 2, lo: 64, hi: 79, bio: 'De segurança a lateral-esquerdo campeão: passou por Figueirense, São Caetano e até a Bélgica. Raça pura na faixa.' },
@@ -1138,7 +1138,7 @@ const NOVOS_BR_MEI: C[] = [
   { name: 'Douglas Barriga de Cadela', club: 'Corinthians', year: 2014, fame: 1, lo: 52, hi: 68, folk: true, bio: 'O meia que a Fiel judiava pela forma física — ganhou o apelido cruel e virou meme eterno da arquibancada.' },
 ]
 const NOVOS_BR_ATA: C[] = [
-  { name: 'Léo Gamalho', club: 'Vasco', year: 2021, fame: 1, lo: 57, hi: 78, bio: 'Centroavante goleador e andarilho — matador de área que rodou o Brasil.' },
+  { name: 'Léo Gamalho', club: 'Criciúma', year: 2013, fame: 1, lo: 57, hi: 78, bio: 'Centroavante goleador e andarilho — matador de área que rodou o Brasil.' },
   { name: 'Finazzi', club: 'Grêmio Barueri', year: 2009, fame: 1, lo: 55, hi: 76, folk: true, bio: 'Atacante cult do Grêmio Barueri — faro de gol e comemoração marcante.' },
   { name: 'Maxi Lopez', club: 'Grêmio', year: 2016, fame: 1, lo: 56, hi: 77, folk: true, bio: 'Centroavante argentino do Grêmio — mais famoso pela novela do que pelos gols.' },
   { name: 'Paulinho Bóia', club: 'Flamengo', year: 2015, fame: 1, lo: 54, hi: 75, folk: true, bio: 'Ponta do Flamengo de apelido folclórico — velocidade pelos lados.' },

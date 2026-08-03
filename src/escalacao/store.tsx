@@ -3070,6 +3070,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
       // vazando de uma carreira anterior (bug reportado: o estádio vinha completo).
       s.stadiums = {}; s.careerFilial = undefined
+      // 🏛️ BUG AO VIVO (04/08, print do Murriz): carreira NOVA nascia com o
+      // MULTICLUBES fantasma da carreira anterior (seletor "M10 × M10") — o stash
+      // nunca era limpo no START. Carreira nova = UM clube, sempre.
+      s.multiClube = undefined; s.multiClubePendingCards = undefined
       s.careerTitles = 0; s.careerTitlesA = 0; s.careerDivision = s.escadaOn ? 'V' : 'D'
       s.clubCash = seedClubCash({}, pl)
       const used = new Set<string>()
