@@ -2470,7 +2470,15 @@ function Envelope() {
               <CardFace c={c} surprise={c.id === state.surpriseId} />
             </div>
             <div className="flex items-center gap-1.5">
-              {canBid && (
+              {/* 📝 ANTI-MALANDRAGEM: você deixou o contrato vencer → não recompra
+                  este jogador (nem no monte). Trava com aviso do porquê. */}
+              {canBid && c.semContrato && isMine && (
+                <div className="border-2 border-black rounded-lg px-2 py-1.5 text-center max-w-[130px]" style={{ background: '#FDECEA' }}>
+                  <p className="text-[9px] font-black uppercase leading-tight" style={{ ...OSWALD, color: RED }}>🔒 {L('sem recompra', 'no rebuy')}</p>
+                  <p className="text-[8px] font-bold leading-tight text-black/60">{L('Você deixou o contrato vencer — só se outro clube levar.', 'You let the contract expire — only if another club signs him.')}</p>
+                </div>
+              )}
+              {canBid && !(c.semContrato && isMine) && (
                 <div className="flex flex-col items-center">
                   {/* rótulo: carta com piso mostra o mínimo (🔒); senão, na 1ª tela, "seu lance".
                       Escondido no stream até o peek (aí volta como jogo normal). */}

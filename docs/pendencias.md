@@ -1,5 +1,23 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## 📝 ANTI-MALANDRAGEM dos contratos vencidos (03/08, achado do tester) ✅
+Golpe: deixar o contrato vencer (jogador vai pro leilão com selo SEM CONTRATO)
+e RECOMPRAR barato no pregão/monte — "renovação" mais barata que renovar.
+Regra do Diego: o ex-dono NÃO pode recomprar nem pegar de graça; só se OUTRO
+clube levar e o jogador voltar ao mercado um dia. Travado em 4 pontos (vale
+humano E bot; a compra por outro clube limpa o selo, então o retorno futuro
+libera sozinho):
+- resolve(): lance do ex-dono em carta sem-contrato é ANULADO (e fora do
+  desempate);
+- cpuEnvelope(): CPU nem gasta lance no próprio vencido;
+- montePickable(): ex-dono não pesca o vencido de graça no monte;
+- sweepMonteToBackstops(): o comprador forçado de última hora nunca é o ex-dono.
+UI: no leilão, a carta "⏳ seu — sem contrato" mostra caixa "🔒 SEM RECOMPRA —
+você deixou o contrato vencer; só se outro clube levar" no lugar dos botões.
+TESTADO (malandragem.mjs, scratchpad): 2 carreiras ×9 temporadas SEM renovar
+nada e dando lance em tudo — todo vencido saiu e NENHUM voltou (leilão, empate,
+monte e varredura). Renovação NO APERTO (trava do XI) segue funcionando.
+
 ## 🃏 Verificação de cartas (03/08) — pesquisa web clube+ano+posição
 ✅ ADICIONADOS hoje (todos conferidos): Saulo (GK Sport 22), Bosco (GK Sport 00),
 Max Walef (GK Fortaleza 22), Brítez (LAT Fortaleza 23), Zizão (MEI Corinthians 13),

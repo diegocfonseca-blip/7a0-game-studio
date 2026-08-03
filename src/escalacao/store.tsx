@@ -950,6 +950,8 @@ function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => nu
     // quem LISTOU o jogador por livre vontade (rival) não o recompra — vendeu
     // porque quis. Recomprar o próprio é só do bot do MERCADO (perda sorteada).
     if ((t.c as Card).seller === m.id && !m.marketCpu && !m.backstop) continue
+    // 📝 contrato vencido: NEM bot recompra o próprio (mesma regra do humano)
+    if ((t.c as Card).semContrato && (t.c as Card).seller === m.id) continue
     const i = result.length
     const share = m.starHunger > 0.5 ? (i === 0 ? 0.7 : 0.3 / Math.max(1, need - 1)) : 1 / need
     let amt = Math.max(1, Math.round(budget * share * (0.75 + rng() * 0.5)))
@@ -1007,12 +1009,16 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
       continue
     }
     // pula do topo pra baixo os inelegíveis (setor cheio / sem dinheiro / abaixo
-    // do piso): anulados
+    // do piso / ex-dono de contrato vencido): anulados
+    // 📝 ANTI-MALANDRAGEM (Diego 03/08): quem DEIXOU O CONTRATO VENCER não pode
+    // recomprar o próprio jogador neste leilão (senão "renovava" barato pelo
+    // pregão). Só volta a poder se OUTRO clube levar e ele reaparecer um dia.
+    const exDono = (card as { semContrato?: boolean }).semContrato ? (card as { seller?: number }).seller : undefined
     const voided: number[] = []
     let i = 0
     for (; i < sorted.length; i++) {
       const m = managers.find(x => x.id === sorted[i].mgr)!
-      if (openSlots(m, card.pos) <= 0 || m.money < sorted[i].amount || sorted[i].amount < floor) { voided.push(sorted[i].mgr); continue }
+      if (openSlots(m, card.pos) <= 0 || m.money < sorted[i].amount || sorted[i].amount < floor || m.id === exDono) { voided.push(sorted[i].mgr); continue }
       break
     }
     if (i >= sorted.length) { // ninguém elegível
@@ -1025,7 +1031,7 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     const tiedTop: number[] = []
     for (let j = i; j < sorted.length && sorted[j].amount === top; j++) {
       const m = managers.find(x => x.id === sorted[j].mgr)!
-      if (openSlots(m, card.pos) > 0 && m.money >= top) tiedTop.push(sorted[j].mgr)
+      if (openSlots(m, card.pos) > 0 && m.money >= top && m.id !== exDono) tiedTop.push(sorted[j].mgr)
     }
     if (tiedTop.length >= 2) {
       // empate no topo → desempate (vencedor decidido depois). Sem dedução aqui.
@@ -2046,6 +2052,10 @@ export function monteLocked(state: EscState, m: Manager, c: Card): boolean {
 // está reservada pro dono.
 export function montePickable(state: EscState, m: Manager, c: Card): boolean {
   const open = state.careerOnline ? careerOpenSlots(m, c.pos) : openSlots(m, c.pos)
+  // 📝 ANTI-MALANDRAGEM: contrato vencido não volta de graça pro ex-dono pelo
+  // monte (senão "deixar vencer" saía mais barato que renovar). Só com outro
+  // clube comprando e o jogador voltando ao mercado um dia.
+  if ((c as { semContrato?: boolean }).semContrato && (c as { seller?: number }).seller === m.id) return false
   return open > 0 && monteAfford(m, c, !!state.careerOnline) && !monteLocked(state, m, c)
 }
 function monteAutoPick(state: EscState, m: Manager, monte: Card[], rng: () => number): Card | null {
@@ -2408,7 +2418,11 @@ function sweepMonteToBackstops(st: EscState) {
   let ai = 0
   for (const card of leftover) {
     if ((card as { seller?: number }).seller == null || anyBots.length === 0) continue
-    takeInto(anyBots[ai++ % anyBots.length], card)
+    // 📝 contrato vencido: o comprador forçado NUNCA é o ex-dono (senão a carta
+    // "voltava pra casa" de graça pela porta dos fundos)
+    let buyer = anyBots[ai++ % anyBots.length]
+    if ((card as { semContrato?: boolean }).semContrato && buyer.id === (card as { seller?: number }).seller && anyBots.length > 1) buyer = anyBots[ai++ % anyBots.length]
+    takeInto(buyer, card)
   }
 }
 function enterCerimonia(st: EscState) {
