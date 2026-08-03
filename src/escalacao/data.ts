@@ -1109,7 +1109,7 @@ const ATA: C[] = [
 // 🆕 cartas novas (baralho BR) — pedidas pelo Diego: reais e folclóricos do futebol nacional.
 const NOVOS_BR_GOL: C[] = [
   { name: "Ivan", club: "Ponte Preta", year: 2020, fame: 2, lo: 66, hi: 83, bio: "Goleiro revelado na Ponte Preta — grandes atuações que renderam a seleção olímpica antes de ir pro Corinthians." },
-  { name: "Getúlio Vargas", club: "Brasiliense", year: 2006, fame: 1, lo: 60, hi: 79, folk: true, bio: "Goleiro folclórico do Brasiliense — dividia o nome com o presidente e ainda pegava pênalti no Centro-Oeste." },
+  { name: "Getúlio Vargas", club: "Flamengo", year: 2005, fame: 1, lo: 60, hi: 79, folk: true, bio: "Goleiro folclórico revelado no Flamengo — dividia o nome com o presidente e defendeu o gol rubro-negro nos anos 2000." },
   { name: "Gideão", club: "Náutico", year: 2011, fame: 1, lo: 60, hi: 79 },
   { name: "Rodrigo Arroz", club: "Flamengo", year: 2005, fame: 1, lo: 60, hi: 79, folk: true, bio: "O goleiro Arroz do Flamengo nos anos 2000 — apelido folclórico que ninguém esquece." },
   { name: "Matheus Donelli", club: "Corinthians", year: 2023, fame: 2, lo: 66, hi: 82, bio: "Goleiro da base do Corinthians que ganhou espaço entre os profissionais — bons reflexos no gol alvinegro." },
@@ -1185,8 +1185,8 @@ const NOVOS_BR_ATA: C[] = [
   { name: "Yuri Mamute", club: "Grêmio", year: 2014, fame: 1, lo: 62, hi: 80, promessa: true, bio: "Promessa de gols da base do Grêmio que não deslanchou." },
   { name: "Maicon Bolt", club: "Fluminense", year: 2009, fame: 2, lo: 64, hi: 82, bio: "Ponta-relâmpago do Fluminense — dupla com Fred na arrancada de 2009 contra o rebaixamento; velocidade de Usain Bolt." },
   { name: "Rodrigão", club: "Santos", year: 2016, fame: 2, lo: 64, hi: 82 },
-  { name: "Pipico", club: "Santa Cruz", year: 2019, fame: 1, lo: 60, hi: 80, folk: true, bio: "Centroavante folclórico do Santa Cruz — eternizado pelo meme \u0022vô comê é pipoca\u0022." },
-  { name: "Pimentinha", club: "Sampaio Corrêa", year: 2015, fame: 1, lo: 61, hi: 80, folk: true, bio: "Ídolo folclórico do Sampaio Corrêa — artilheiro querido no Maranhão." },
+  { name: "Pipico", club: "Santa Cruz", year: 2019, fame: 1, lo: 60, hi: 80, folk: true, bio: "Matador folclórico do Santa Cruz — artilheiro querido em Pernambuco: vacilou, levou, o Pipico é matador!" },
+  { name: "Pimentinha", club: "Sampaio Corrêa", year: 2013, fame: 1, lo: 61, hi: 80, folk: true, bio: "Ídolo folclórico do Sampaio Corrêa — artilheiro querido no Maranhão." },
   { name: "Wendell Lira", club: "Goianésia", year: 2015, fame: 1, lo: 61, hi: 80, folk: true, bio: "Autor do gol vencedor do Prêmio Puskás 2015 — voleio de bicicleta que rodou o mundo." },
   { name: "Scocco", club: "Internacional", year: 2016, fame: 3, lo: 78, hi: 86, bio: "Centroavante argentino de faro apurado — grande fase no Inter antes de brilhar no River." },
   { name: "Kazuyoshi Miura", club: "Santos", year: 1988, fame: 2, lo: 68, hi: 84, bio: "\u0022Rei Kazu\u0022 — aprendeu futebol no Brasil (Santos) e virou lenda eterna do futebol japonês." },
