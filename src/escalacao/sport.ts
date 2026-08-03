@@ -131,6 +131,7 @@ export function useTemaLiberado(): boolean {
 const AGENCIA_TESTERS = new Set([
   'diego.c.fonseca@gmail.com',
   'msb102010@hotmail.com', // testador convidado pelo Diego (03/08)
+  'denilson.stifler10@gmail.com', // testador convidado pelo Diego (03/08)
 ])
 let agenciaOk = false
 function applyAgenciaUnlock(email?: string | null): void {

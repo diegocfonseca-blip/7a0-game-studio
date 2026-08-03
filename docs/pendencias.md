@@ -47,8 +47,8 @@ Obs.: a força média dos elencos CPU é ~constante entre divisões (a dificulda
 por divisão vem do handicap A2 B4 C5 D3 V4, não do elenco) — se o Diego quiser
 elencos visivelmente melhores em cima, é outra alavanca (não mexida).
 
-## 👥 TESTADOR NOVO da carreira nova (03/08): msb102010@hotmail.com
-Diego pediu pra liberar essa conta com o pacote COMPLETO da carreira nova de
+## 👥 TESTADORES da carreira nova (03/08): msb102010@hotmail.com + denilson.stifler10@gmail.com
+Diego pediu pra liberar essas contas com o pacote COMPLETO da carreira nova de
 teste, "igual o meu": entrou em AGENCIA_TESTERS (sport.ts) — a mesma lista
 libera Agência 2.0 + Escada/Várzea + baralho 'todos'. Basquete e tema seguem
 SÓ na conta do Diego (não fazem parte da carreira nova; se ele quiser, é
