@@ -1200,7 +1200,7 @@ const NOVOS_BR_ATA: C[] = [
   { name: "Pimentinha", club: "Sampaio Corrêa", year: 2013, fame: 1, lo: 61, hi: 80, folk: true, bio: "Ídolo folclórico do Sampaio Corrêa — artilheiro querido no Maranhão." },
   { name: "Wendell Lira", club: "Goianésia", year: 2015, fame: 1, lo: 61, hi: 80, folk: true, bio: "Autor do gol vencedor do Prêmio Puskás 2015 — voleio de bicicleta que rodou o mundo." },
   { name: "Scocco", club: "Internacional", year: 2016, fame: 3, lo: 78, hi: 86, bio: "Centroavante argentino de faro apurado — grande fase no Inter antes de brilhar no River." },
-  { name: "Kazuyoshi Miura", club: "Santos", year: 1988, fame: 2, lo: 68, hi: 84, bio: "\u0022Rei Kazu\u0022 — aprendeu futebol no Brasil (Santos) e virou lenda eterna do futebol japonês." },
+  { name: "Kazu Miura", club: "Santos", year: 1988, fame: 2, lo: 68, hi: 84, bio: "\u0022Rei Kazu\u0022 — aprendeu futebol no Brasil (Santos) e virou lenda eterna do futebol japonês." },
   { name: 'Léo Gamalho', club: 'Goiás', year: 2019, fame: 1, lo: 57, hi: 78, bio: 'Centroavante goleador e andarilho — o auge de gols foi com a camisa do Goiás.' },
   { name: 'Finazzi', club: 'Grêmio Barueri', year: 2009, fame: 1, lo: 55, hi: 76, folk: true, bio: 'Atacante cult do Grêmio Barueri — faro de gol e comemoração marcante.' },
   { name: 'Maxi Lopez', club: 'Vasco', year: 2017, fame: 1, lo: 56, hi: 77, folk: true, bio: 'Centroavante argentino do Vasco — mais famoso pela novela do que pelos gols.' },
