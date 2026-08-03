@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, oldChain } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial } from './store'
+import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, catalogTodos } from './store'
 import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS } from './estadiodata'
 import type { EmpCat, StadiumSave } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -136,11 +136,11 @@ function roundRobin(n: number): [number, number][][] {
 export interface SimTeam { name: string; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; backstop?: boolean; teamId: number; squad: PoolCard[]; xi: PoolCard[]; formation?: FormationKey; pts: number; w: number; d: number; l: number; gf: number; ga: number }
 export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string }
 
-function pickCatalog(deck: 'br' | 'eu' | 'both') { return deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : CATALOG }
+function pickCatalog(deck: 'br' | 'eu' | 'both' | 'todos') { return deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : deck === 'todos' ? catalogTodos() : CATALOG }
 
 // elencos determinísticos dos 60 times de CPU (A/B/C), por NOME — estável entre
 // temporadas: quando um time sobe/desce, leva o mesmo elenco (chave = nome).
-function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both'): Map<string, PoolCard[]> {
+function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both' | 'todos'): Map<string, PoolCard[]> {
   const rng = mulberry((seed ^ 0x9E3779B1) >>> 0)
   // dedup por AUGE (nome+clube+ano): auges diferentes do mesmo nome (Vini Flamengo
   // x Real) são jogadores distintos — cabem os dois, mais cartas pra encher os times.
@@ -171,7 +171,7 @@ export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? 
 
 // monta as 4 divisões pela COLOCAÇÃO guardada (placements): D começa com os
 // técnicos reais; a cada temporada os times sobem/descem por nome exato.
-export function buildPyramid(managers: Manager[], youId: number, seed: number, deck: 'br' | 'eu' | 'both', placements?: Record<string, string> | null, cpuSquads?: Record<string, Card[]>): Record<Div, SimTeam[]> {
+export function buildPyramid(managers: Manager[], youId: number, seed: number, deck: 'br' | 'eu' | 'both' | 'todos', placements?: Record<string, string> | null, cpuSquads?: Record<string, Card[]>): Record<Div, SimTeam[]> {
   const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number, backstop = false, rival = false, dorm = false, formation?: FormationKey): SimTeam => ({ name, you, human, rival, dorm, backstop, teamId, squad, formation, xi: bestXI(squad, formation), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
   const world: Record<Div, SimTeam[]> = { A: [], B: [], C: [], D: [] }
   const divOf = (key: string, fallback: Div): Div => { const d = placements?.[key]; return (d === 'A' || d === 'B' || d === 'C' || d === 'D') ? d : fallback }
@@ -207,7 +207,7 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
 }
 // semeia a ficha dos 60 times de fundo a partir da receita (base determinística)
 // — materializa 1x os elencos que antes eram só calculados na hora.
-export function seedCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both'): Record<string, Card[]> {
+export function seedCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both' | 'todos'): Record<string, Card[]> {
   const out: Record<string, Card[]> = {}
   for (const [name, squad] of buildCpuSquads(managers, seed, deck)) out[name] = squad
   return out

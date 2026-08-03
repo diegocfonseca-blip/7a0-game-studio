@@ -61,7 +61,7 @@ function sortSim(ts: Sim[]) { return [...ts].sort((x, y) => y.pts - x.pts || (y.
 
 // artilheiros das divisões de CPU (nomes do baralho, gols ~ proporção dos gols do time)
 interface Goal { name: string; team: string; div: 'A' | 'B' | 'C' | 'D'; goals: number }
-function cpuScorers(seed: number, div: Div, teams: Sim[], deck: 'br' | 'eu' | 'both'): Goal[] {
+function cpuScorers(seed: number, div: Div, teams: Sim[], deck: 'br' | 'eu' | 'both' | 'todos'): Goal[] {
   const cat = deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : CATALOG
   const pool = [...cat.ATA, ...cat.MEI].map(c => c.name)
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
@@ -148,7 +148,7 @@ function RealTable({ league, managers, youId }: { league: LeagueTeam[]; managers
 
 // overlay com as 4 divisões + artilharia geral. Fecha voltando pra temporada.
 export function PyramidOverlay({ league, scorers, managers, youId, seed, round, deckLeague, onClose }: {
-  league: LeagueTeam[]; scorers: ScorerRow[]; managers: Manager[]; youId: number; seed: number; round: number; deckLeague: 'br' | 'eu' | 'both'; onClose: () => void
+  league: LeagueTeam[]; scorers: ScorerRow[]; managers: Manager[]; youId: number; seed: number; round: number; deckLeague: 'br' | 'eu' | 'both' | 'todos'; onClose: () => void
 }) {
   // simula A/B/C determinístico (semente por divisão, derivada do código da sala)
   const cpu: Record<Div, Sim[]> = { A: simDivTo(seed ^ hashCode('A'), 'A', round), B: simDivTo(seed ^ hashCode('B'), 'B', round), C: simDivTo(seed ^ hashCode('C'), 'C', round) }

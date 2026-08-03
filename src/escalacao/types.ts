@@ -358,7 +358,7 @@ export interface EscState {
   // sala inteira via broadcast — todo mundo vê e pode abrir o pacote do campeão.
   // Quem não é campeão só assiste (não grava no álbum). null/vazio = ainda não abriu.
   streamChampCard?: { liga?: WonCard | null; copa?: WonCard | null } | null
-  deckLeague: 'br' | 'eu' | 'both' // baralho escolhido: 🇧🇷 Brasileirão, 🌍 Liga Europa ou 🌎 os dois juntos (both = só na carreira online)
+  deckLeague: 'br' | 'eu' | 'both' | 'todos' // baralho escolhido ('todos' = BR+Europa+Mundo — carreira, teste do Diego): 🇧🇷 Brasileirão, 🌍 Liga Europa ou 🌎 os dois juntos (both = só na carreira online)
   varzea?: boolean // 🥅 rápido online + baralho BR, categoria "Sem craques": leilão só com bom jogador + foi profissional
   contratosOn?: boolean // 📝 CONTRATOS de jogador ligados NESTA carreira. Só carreira NOVA nasce com true (decisão do Diego) — save antigo fica sem contratos pra sempre (nada muda no meio da carreira de ninguém)
   // 🕴️ AGÊNCIA 2.0 (carreira solo NOVA): o técnico convoca até 22 cartas do

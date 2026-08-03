@@ -18,7 +18,7 @@ import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, getSport, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, getSport, escadaLiberada, type Sport } from './sport'
 import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
 
@@ -1665,7 +1665,7 @@ export function EscSetup() {
       <Box className="p-4 space-y-4">
         {career ? (
           <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
-            <p className="font-black text-sm" style={OSWALD}>🌎 Baralho fixo: Brasileirão + Europa juntos</p>
+            <p className="font-black text-sm" style={OSWALD}>{escadaLiberada() ? '🌎 Baralho: Brasileirão + Europa + MUNDO juntos' : '🌎 Baralho fixo: Brasileirão + Europa juntos'}</p>
             <p className="text-[11px] font-bold text-black/65 mt-1">Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</p>
           </div>
         ) : (

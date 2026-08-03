@@ -31,9 +31,28 @@ function filterVarzea(cat: typeof CATALOG): typeof CATALOG {
   for (const pos of SECTORS) out[pos] = (cat[pos] || []).filter(c => c.fame <= 3 && !c.promessa)
   return out
 }
-function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'world' | undefined, varzea = false) {
+// 🌍 baralho TODOS (carreira, teste do Diego): Brasileirão + Europa + Mundo juntos
+// (~850 auges). Dedup por auge (nome+clube+ano) — os do Mundo que já existem no
+// both não entram duas vezes.
+let CATALOG_TODOS_CACHE: typeof CATALOG | null = null
+export function catalogTodos(): typeof CATALOG {
+  if (!CATALOG_TODOS_CACHE) {
+    const out = {} as typeof CATALOG
+    for (const pos of SECTORS) {
+      const seen = new Set<string>()
+      out[pos] = [...(CATALOG_BOTH[pos] ?? []), ...(CATALOG_WORLD[pos] ?? [])].filter(c => {
+        const k = `${c.name}|${c.club}|${c.year}`
+        if (seen.has(k)) return false
+        seen.add(k); return true
+      })
+    }
+    CATALOG_TODOS_CACHE = out
+  }
+  return CATALOG_TODOS_CACHE
+}
+function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'todos' | 'world' | 'todos' | undefined, varzea = false) {
   ACTIVE_SPORT = 'futebol'
-  const base = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : league === 'world' ? CATALOG_WORLD : CATALOG
+  const base = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : league === 'world' ? CATALOG_WORLD : league === 'todos' ? catalogTodos() : CATALOG
   ACTIVE_CATALOG = varzea ? filterVarzea(base) : base
 }
 // liga o motor no basquete: baralho NBA + vagas por posição do modo (rápido/carreira).
@@ -1211,7 +1230,7 @@ export interface CareerSave {
   prevDivision?: Division         // divisão da temporada que acabou (pro banner)
   rivals?: CareerRival[]          // rivais fixos (com divisão/retrospecto próprios)
   rivalCount?: number             // quantos rivais de leilão (3/5/7/9)
-  deckLeague?: 'br' | 'eu' | 'both'  // baralho da carreira (opcional p/ saves antigos = br)
+  deckLeague?: 'br' | 'eu' | 'both' | 'todos'  // baralho da carreira (opcional p/ saves antigos = br; 'todos' = BR+Europa+Mundo)
 }
 
 // rivais fixos da carreira: começam TODOS na Série D (com você). Depois cada um
@@ -2197,13 +2216,13 @@ type Action =
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both'; copaMode?: 'liga' | 'liga_copa'; intro?: boolean }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa'; intro?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
   | { type: 'RESUME_NBA_CAREER'; saved: EscState } // 🏀 retoma a carreira do basquete salva (bl-nba-career)
   | { type: 'TOGGLE_NBA_RELEASE'; cardId: string } // 🏀 carreira: marca/desmarca uma reserva pra DISPENSAR (T3+); repõe no leilão
-  | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both'; intro?: boolean } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
+  | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' | 'todos'; intro?: boolean } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number } // 🎽 carreira: troca 4-3-3↔4-4-2. Só libera com 22 no elenco E jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante.
@@ -2211,7 +2230,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa'; rivals?: number; rivalTeams?: string[] }
+  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa'; rivals?: number; rivalTeams?: string[] }
   | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). scorerValues = bonus de piso dos artilheiros
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
@@ -3001,7 +3020,8 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerEra = MANUAL_ERA // 🎮 carreira NOVA: o Modo Manual pede apoio. Saves ANTIGOS não têm esse campo → seguem com o manual liberado (grandfather).
       s.roomId = ''; s.roomCode = ''; s.roomName = undefined
       s.locked = undefined; s.pwHash = undefined; s.streamMode = false; s.manualRoom = false
-      s.deckLeague = action.league ?? 'br'; setActiveCatalog(s.deckLeague)
+      // 🌍 conta liberada (teste do Diego): carreira nova usa BR+Europa+MUNDO juntos
+      s.deckLeague = escadaLiberada() ? 'todos' : (action.league ?? 'br'); setActiveCatalog(s.deckLeague)
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
       s.humanCount = 1

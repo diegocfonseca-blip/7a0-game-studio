@@ -848,3 +848,11 @@ Mantidos de propósito: Bernard (ATA-BR/MEI-EU) e Denílson (MEI-BR/ATA "Deníls
 = auges diferentes em países diferentes. Falsos-alarme (clubes DIFERENTES, não mexer):
 América×América de Cali×América-RJ · Inter×Internacional · Sport×Sporting · Grêmio×
 Grêmio Barueri · Bragantino×Red Bull Bragantino (renome de época).
+
+## 🌍 Baralho TODOS (BR+Europa+Mundo) na carreira — FEITO (04/08, só conta do Diego)
+Pedido do Diego (print da tela de criação): carreira nova da conta liberada usa
+`deckLeague='todos'` = CATALOG_BOTH + CATALOG_WORLD (dedup por auge, ~850+ nomes).
+setActiveCatalog/pickCatalog sabem 'todos' (cpuSquads também). Todo mundo mais
+segue no both fixo. Texto da tela de criação muda só pra ele. Confirmações dadas:
+rivais escolhidos começam TODOS na divisão de estreia junto do usuário; conta
+dele ativa (precisa criar a carreira LOGADO).
