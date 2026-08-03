@@ -834,3 +834,17 @@ Várzea real ainda — essa é a Fase 2, pendente, com mockup antes):
 - Fase 2: divisão VÁRZEA real embaixo da D (20 times zoeiros, acesso) — mockup 1º.
 - Decisão do Diego: manter subida livre (rápida) ou segurar o arco?
 - Banco Legends (comprar moeda de verdade) segue parado aguardando ele.
+## 🃏 AUDITORIA DOS BARALHOS (04/08) — feita
+Analisadas as 1204 cartas (BR 516 · Europa 534 · Mundo 154). ZERO duplicado exato,
+zero mesmo-nome+mesmo-clube, zero erro factual de clube/ano/posição encontrado (dataset
+muito bem curado). Nomes repetidos (54) são de PROPÓSITO (auge BR + auge Europa do mesmo
+craque). Único ajuste: PADRONIZAÇÃO de clubes escritos de 2 jeitos (mesmo clube virava
+dois no álbum) — grafia por maioria: Manchester United→Man United, Manchester City→Man
+City, Bayern München→Bayern, Borussia Dortmund→Dortmund, Bayer Leverkusen→Leverkusen,
+Inter de Milão→Inter, FC Porto→Porto, Sporting CP→Sporting, Olympique Lyon→Lyon,
+Olympique Marseille→Marseille, Leicester City→Leicester, Schalke 04→Schalke,
+Pohang→Pohang Steelers, Suwon Bluewings→Suwon, Birmingham City→Birmingham (35 cartas).
+Mantidos de propósito: Bernard (ATA-BR/MEI-EU) e Denílson (MEI-BR/ATA "Denílson Show"-EU)
+= auges diferentes em países diferentes. Falsos-alarme (clubes DIFERENTES, não mexer):
+América×América de Cali×América-RJ · Inter×Internacional · Sport×Sporting · Grêmio×
+Grêmio Barueri · Bragantino×Red Bull Bragantino (renome de época).
