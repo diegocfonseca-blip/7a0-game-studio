@@ -552,3 +552,20 @@ Conta 1 vista por TEMPORADA (não por render; localStorage esc-ensino-*). TODOS 
 avisos de regra da jogada (transfer ban, chip à venda, aviso "sai do time",
 contratos, vagas/piso/saldo do leilão) INTOCADOS — a tela do leilão nem foi
 tocada. FALTA (parte 4): 🌙 Tema Noturno (todas as telas; claro intocado).
+
+## 🌙 Tema Noturno — NO AR, SÓ pra conta do Diego (03/08)
+Parte 4 do plano (mockup + screenshots reais aprovados). "Estádio à noite":
+camada CSS opt-in (classe `noturno` no html) — o PALCO escurece (Shell +
+wrappers da carreira marcados `.palco`) e o texto direto nele clareia; CARTAS/
+CAIXAS claras seguem IDÊNTICAS (cascata re-escurece o texto interno). Claro não
+muda 1 pixel (sem a classe, o CSS nem existe). Botão na home ("🌙 Tema noturno")
++ escolha salva no aparelho + ?tema= na URL.
+- 🔒 **Decisão do Diego: por enquanto SÓ a conta dele** (`TEMA_TESTERS` em
+  sport.ts, mesmo padrão do basquete). Conta sem direito: botão nem aparece, e
+  se o noturno estiver ligado por localStorage/URL é DESLIGADO quando o login
+  resolve. **Futuro combinado: virar REGALIA DE PLANO PAGO** (trocar a trava de
+  e-mail pra tier de apoio, 1 lugar só).
+- ⚠️ Detalhe técnico pra próximas sessões: React serializa cores inline como
+  rgb(...) — os seletores [style*=] do CSS noturno usam ESSA forma, não hex.
+  Home verificada com screenshot real; telas internas usam os mesmos padrões —
+  se escapar texto escuro num canto, é 1 linha de CSS (lista de containers).

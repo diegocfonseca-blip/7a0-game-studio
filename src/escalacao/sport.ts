@@ -94,8 +94,35 @@ function applyUnlock(email?: string | null): void {
   if (!u && current === 'basquete') current = 'futebol'
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
 }
-supabase.auth.getUser().then(({ data }) => applyUnlock(data?.user?.email), () => {})
-supabase.auth.onAuthStateChange((_e, s) => applyUnlock(s?.user?.email))
+// 🌙 TEMA NOTURNO — decisão do Diego (03/08): por enquanto SÓ a conta dele vê o
+// botão e consegue ligar (vai virar REGALIA DE PLANO PAGO depois — aí a trava
+// troca de "lista de e-mails" pra "tier de apoio" num lugar só). Conta sem
+// direito: se o noturno estiver ligado por qualquer caminho (localStorage/URL),
+// é DESLIGADO na hora que o login resolve — o claro é o padrão de todos.
+const TEMA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let temaLiberado = false
+function applyTemaUnlock(email?: string | null): void {
+  const u = !!email && TEMA_TESTERS.has(email.toLowerCase())
+  if (u === temaLiberado) return
+  temaLiberado = u
+  if (!u) {
+    try {
+      if (document.documentElement.classList.contains('noturno')) {
+        document.documentElement.classList.remove('noturno')
+        localStorage.setItem('esc-tema', 'claro')
+      }
+    } catch { /* segue no claro */ }
+  }
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function useTemaLiberado(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return temaLiberado
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 
