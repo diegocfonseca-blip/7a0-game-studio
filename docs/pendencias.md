@@ -72,12 +72,15 @@ subir validado. Deploy não derruba quem já joga (só vale em F5/próxima sala)
   Em sala pequena/temporada 1 (id===cadeira) o comportamento é IDÊNTICO ao de antes —
   só corrige os casos desalinhados. Não toca em partida em andamento (vale em novo
   kick/reconexão). Reversível.
-  ⚠️ FALTA: (a) TESTE de 2-3 pessoas (idealmente reproduzindo a carreira online entre
-  temporadas) pra confirmar antes de sala cheia confiar; (b) a auto-cura `FIX_YOU_IDX`
-  (store ~5150) ainda reancora por NOME — deixei como está (tem guarda cands≠1), mas é
-  o próximo band-aid a trocar por id se ainda aparecer troca de assento; (c) confirmar
-  a regra do expulsar (sai, CPU só p/ 2) na prática — o reducer já faz auctionRival=
-  humansLeft<=1; o "virava CPU errado" era o id×índice, teoricamente resolvido agora.
+- **AUTO-CURA por CRACHÁ (id), não por nome (04/08)**: a `FIX_YOU_IDX` agora guarda o
+  id do meu técnico (bootstrap: 1º nome único da sala) e daí reancora pela POSIÇÃO
+  ATUAL desse id — imune a nome repetido (fantasma), nome de time trocado e reordenação
+  de temporada. Zera o crachá ao trocar de sala (ids se repetem entre salas). Fecha o
+  último band-aid do "virei outro / F5 trocou de nome".
+  ⚠️ FALTA SÓ: **TESTE de 2-3 pessoas** (idealmente reproduzindo a carreira online
+  entre temporadas: F5 no meio + expulsar) pra confirmar em campo antes de sala cheia
+  confiar 100%. Regra do expulsar (sai; CPU só p/ 2) já batida pelo reducer
+  (auctionRival=humansLeft<=1) — o "virava CPU errado" era o id×índice, agora alinhado.
 
 ## 🚨 CUSTO SUPABASE — estourou cota (03/08) — fix REVERTIDO, RE-APLICAR com calma
 Pro Plan. Ciclo passou da cota: **Realtime Messages 20mi/5mi (400%)** e **Egress

@@ -5187,20 +5187,31 @@ export function EscProvider({ children }: { children: ReactNode }) {
       myDisplayNameRef.current = dn || em || null
     }, () => {})
   }, [])
+  // guarda o CRACHÁ (id) do meu técnico nesta sala. Uma vez descoberto, a cura passa a
+  // ser por id (robusta), não mais por nome. Zera ao trocar de sala (ids se repetem).
+  const myMgrIdRef = useRef<number | null>(null)
+  const lastRoomRef = useRef<string | undefined>(undefined)
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.roomId) return
     if (state.screen === 'intro' || state.screen === 'lobby') return
+    if (state.roomId !== lastRoomRef.current) { lastRoomRef.current = state.roomId; myMgrIdRef.current = null } // sala nova → esquece o crachá antigo
+    const clean = (x?: string) => stripEmoji(x ?? '').trim()
+    // 1) JÁ SEI MEU CRACHÁ: reancora pela POSIÇÃO ATUAL dele. Imune a nome repetido/
+    //    trocado (fantasma com meu nome) e à reordenação de times entre temporadas —
+    //    é o que faltava pra parar o "virei outro / F5 trocou de nome".
+    const myId = myMgrIdRef.current
+    if (myId != null) {
+      const idx = state.managers.findIndex(m => m.isHuman && m.id === myId)
+      if (idx >= 0) { if (idx !== state.youIdx) rawDispatch({ type: 'FIX_YOU_IDX', idx }); return }
+      myMgrIdRef.current = null // meu crachá sumiu (fui removido / rematch remontou): re-descobre abaixo
+    }
+    // 2) BOOTSTRAP pelo nome — SÓ quando há EXATAMENTE UM humano com o meu nome (sem
+    //    ambiguidade). Guarda o crachá; daí em diante o passo 1 (por id) assume.
     const dn = myDisplayNameRef.current
     if (!dn) return
-    const clean = (x?: string) => stripEmoji(x ?? '').trim()
-    const mine = state.managers[state.youIdx]
-    if (mine && mine.isHuman && clean(mine.name) === dn) return // já estou no MEU assento
-    // meu índice deslizou: posso ter caído num assento de BOT (isHuman=false — foi o
-    // caso do "virei o Biriba United") OU de OUTRO humano. Nos dois, se existe
-    // EXATAMENTE UM humano com o meu nome, reancoro nele. (Antes só curava quando eu
-    // caía em cima de outro HUMANO — o assento de bot escapava e travava a pessoa.)
     const cands = state.managers.filter(m => m.isHuman && clean(m.name) === dn)
     if (cands.length !== 1) return
+    myMgrIdRef.current = cands[0].id
     const idx = state.managers.findIndex(m => m.id === cands[0].id)
     if (idx >= 0 && idx !== state.youIdx) rawDispatch({ type: 'FIX_YOU_IDX', idx })
   }, [state.managers, state.youIdx, state.onlineMode, state.roomId, state.screen])
