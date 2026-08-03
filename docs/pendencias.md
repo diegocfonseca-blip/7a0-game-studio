@@ -949,3 +949,15 @@ independente do seletor. FIX triplo: (1) auto-cura do fantasma agora purga os
 pacotes também; (2) pacotes ÓRFÃOS (fantasma curado antes do fix) são limpos ao
 carregar o save; (3) recordDormantCards nunca grava pacote quando o "dormindo"
 é o próprio clube ativo. Basta o afetado ATUALIZAR a página.
+
+## 🃏 Auditoria das 18 cartas foi-prof adicionadas — 9 CORREÇÕES aplicadas (04/08, OK do Diego)
+Paulinho Bóia → São Paulo 2019 (era "Flamengo", nunca jogou lá) · Maxi Lopez →
+Vasco 2017 (era "Grêmio") · Bressan → Grêmio 2014 + bio corrigida (a antiga
+dizia "bicampeão da Libertadores 2017" — ele saiu antes) · Rafael Vaz →
+Flamengo 2016 · Camacho → Corinthians 2017 · Júlio César goleiro → Corinthians
+2010 + bio ("antes do Cássio") · Renan Ribeiro → Atlético-MG 2016 · Léo Gamalho
+→ Goiás 2019 · Renato Cajá → Ponte Preta 2012. Mantidas como estavam: Jorge,
+Lulinha, Marlone, Giovanni Augusto, Rivaldinho, Lucão, Erazo, Finazzi, China
+(Flamengo 2004 — ⚠️ ano ainda é chute; Diego confirma quando souber).
+REGRA NOVA: carta nova SEMPRE passa a ficha (clube+ano+bio) pelo Diego ANTES de
+entrar no jogo.
