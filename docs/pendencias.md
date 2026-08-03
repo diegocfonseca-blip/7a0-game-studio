@@ -23,6 +23,29 @@ Diego escolheu **MANTER limite 20** (não capar sala) → precisa consertar a RA
 - Dedup "1 técnico = 1 assento" só roda no **startOnline** (lobby ~1139-1151); um
   fantasma criado por corrida/reconexão DEPOIS do start escapa.
 
+### 🎯 SMOKING GUN (04/08) — "expulsar" mistura ID com ÍNDICE DE ASSENTO:
+A UI chama `kickPlayer(m.id)` (screens.tsx 745/5937/5941) → passa o **id** do manager.
+Mas dentro do fluxo o mesmo número é tratado como **índice de assento** em 3 pontos:
+- `kickPlayer` guard (store ~4854): `playerIndex === youIdx` compara **id × índice**.
+- `room_players.delete().eq('player_index', playerIndex)` (store ~4858): apaga a vaga
+  pelo **id** achando que é player_index → apaga a vaga ERRADA (ou nenhuma) → o
+  expulso reconecta na mesma partida / sobra fantasma.
+- Handler do cliente (store ~4952): `payload.playerIndex !== youIdx` compara **id ×
+  índice** → o banner "você foi removido" pode ir pra pessoa ERRADA, e o expulso pode
+  continuar dentro. (O reducer KICK_PLAYER em si usa id e está certo; submitted/
+  monteOrder/tiebreak usam id — OK. O erro está nesses 3 pontos da BORDA.)
+Como `id` só coincide com `youIdx`/`player_index` quando os assentos são 0,1,2… (some
+na carreira online reordenada / salas grandes), é AÍ que "vira outro / removido errado".
+FIX: usar o **id** de ponta a ponta no expulsar → guard compara com o MEU id
+(`managers[youIdx].id`); handler compara `managers[youIdx].id` com o id expulso; e a
+vaga do banco tem que ser apagada pelo assento/usuário certo daquele id (parte que
+depende do item 1 do plano — âncora por id estável).
+
+### 📏 REGRA DO EXPULSAR (Diego, 04/08): expulsou → a pessoa SAI (banner "removido
+pelo host"), NÃO vira CPU. Vira CPU (auctionRival) SÓ quando eram 2 jogadores (pra
+quem ficou não jogar sozinho). O reducer já faz `auctionRival = humansLeft<=1`, mas o
+"exclui de verdade" precisa remover o expulso do fluxo/vaga sem virar filler ativo.
+
 ### PLANO DO FIX (área sensível — testar antes de subir pra sala grande):
 1. **Assento ancorado por ID ESTÁVEL, não por nome**: guardar o `manager.id` do técnico
    por usuário (ex.: gravar no room_players no START_ONLINE) e no reconnect fazer
