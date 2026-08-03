@@ -5008,36 +5008,25 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // host retransmite estado (sanitizado: envelopes pendentes não vazam)
   const prevRef = useRef<EscState | null>(null)
-  // 🕒 quando o host mandou o estado pela última vez (qualquer via). O heartbeat
-  // abaixo usa isto pra NÃO reemitir à toa durante o jogo ativo (cada mudança já
-  // reenvia o estado inteiro e ressincroniza todo mundo). Isto derruba MUITO o
-  // tráfego do Realtime/Egress sem tirar a rede de segurança contra travas.
-  const lastStateSendRef = useRef(0)
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     if (prevRef.current === state) return
     prevRef.current = state
     channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(state) })
-    lastStateSendRef.current = Date.now()
   }, [state])
 
-  // HEARTBEAT do host: rede de segurança contra travas. Se UMA mensagem do host se
-  // perde no caminho DURANTE UM MOMENTO PARADO (sem novas jogadas), o convidado
-  // ficaria preso no "Enviando…" pra sempre — o heartbeat reemite o estado e cura.
-  // ⚠️ ANTES: reemitia o estado INTEIRO a cada 3s SEM PARAR (mesmo no jogo ativo e
-  // parado), e era a maior fonte de estouro do Realtime/Egress do Supabase.
-  // AGORA: só reemite quando está QUIETO (nenhum estado enviado nos últimos ~12s).
-  // No jogo ativo, cada jogada já reenvia o estado inteiro, então o heartbeat nem
-  // dispara; parado, ele ressincroniza em ~12-18s (e o convidado ainda tem o vigia
-  // de 10s como reforço). Mesma proteção, uma fração do tráfego.
+  // HEARTBEAT do host: reemite o estado a cada 3s. Sem isto, se UMA mensagem do
+  // host se perde no caminho (mais comum com 3+ pessoas, mais tráfego), o
+  // convidado fica travado pra sempre — ex.: preso no "Enviando…", porque nunca
+  // recebe a confirmação. Com o heartbeat, quem perdeu uma atualização se
+  // ressincroniza em ~3s. (Guest também reenvia o próprio lance de tempos em
+  // tempos, então os dois lados se recuperam.)
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     const iv = setInterval(() => {
       if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
-      if (Date.now() - lastStateSendRef.current < 12000) return // teve jogada recente → já sincronizado
       channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
-      lastStateSendRef.current = Date.now()
-    }, 6000)
+    }, 3000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId])
 

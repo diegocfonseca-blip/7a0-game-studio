@@ -1,27 +1,4 @@
-# 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
-
-## 🚨 CUSTO SUPABASE — estouro de cota (03/08/2026)
-Org `diegocfonseca-blip` (Pro Plan) passou da cota no ciclo 18/jul–18/ago. Grace
-period até **29/ago/2026** — até lá TUDO funciona e **NÃO cobra overage** (spend cap
-ligado; a tela diz "not billed for overages"). Depois de 29/ago, se continuar acima,
-pode restringir (erro 402) e derrubar o ONLINE. Métricas estouradas:
-- **Realtime Messages: 20,0 mi / 5 mi (400%)** ← o pior.
-- **Egress: 555 GB / 250 GB (222%)**.
-- (Peak connections 79/500, MAU 5.558/100k, disco/edge tranquilos.)
-Causa nº 1: o **heartbeat do host reemitia o ESTADO INTEIRO a cada 3s SEM PARAR**
-(store.tsx), mesmo com o jogo parado → torrente de mensagens + egress.
-- ✅ **FEITO (03/08)**: heartbeat agora só reemite quando a sala está QUIETA (nenhum
-  estado enviado nos últimos ~12s; checa a cada 6s). No jogo ativo cada jogada já
-  reenvia o estado, então o heartbeat nem dispara. Mesma proteção contra travas
-  (reforçada pelo vigia de 10s do convidado), fração do tráfego. Reversível (1 commit).
-- **FALTA / observar**: (a) ver se o corte foi suficiente nas próximas horas ("View
-  usage" atualiza ~1x/h); (b) se ainda estourar, próximos alvos SEGUROS: enxugar o
-  `packState` (mandar menos dado por broadcast) e/ou throttle do broadcast por-mudança
-  durante a simulação rápida da temporada (hoje manda estado inteiro ~1x/s por rodada);
-  (c) DB save de 3s (store.tsx ~5231) é gravação (pouco egress) — mexer só se preciso.
-  ⚠️ NUNCA desligar "spend cap" (é o que passaria a COBRAR).
-
-
+# 📌 Pendências combinadas com o Diego (atualizado 26/07/2026)
 
 ## ⚽ Leilão Legends
 1. **Painel "PRÓXIMO" do modo rápido (online + offline) — APROVADO em mockup, falta implementar:**
