@@ -1650,12 +1650,12 @@ export function EscSetup() {
         className="flex items-center gap-1 text-black/60 font-black text-sm pt-4 -mb-2 active:opacity-60" style={OSWALD}>
         <span className="text-lg leading-none">←</span> Home
       </button>
-      <h2 className="font-black text-3xl pt-2" style={OSWALD}>{career ? '🪜 CARREIRA · SÉRIE D' : 'MONTE SUA SALA'}</h2>
+      <h2 className="font-black text-3xl pt-2" style={OSWALD}>{career ? (escadaLiberada() ? '🪜 CARREIRA · VÁRZEA' : '🪜 CARREIRA · SÉRIE D') : 'MONTE SUA SALA'}</h2>
       {career && <p className="text-sm font-bold text-black/60 -mt-1">{escadaLiberada() ? 'Comece na VÁRZEA (5ª divisão, peladão raiz) e suba até a Série A. O mercado sobe junto com você — de perna-de-pau a lenda. Dá pra salvar e voltar depois.' : 'Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.'}</p>}
       {career && (
         <Box bg="#FFF6DE" className="p-4 space-y-1.5">
           <p className="font-black text-sm" style={OSWALD}>⚡ Como funciona a Carreira</p>
-          <p className="text-xs font-bold text-black/75">🪜 <b>Pirâmide de 4 divisões:</b> começa na Série D e sobe até a A — sobe ou desce a cada temporada, conforme sua colocação.</p>
+          <p className="text-xs font-bold text-black/75">🪜 {escadaLiberada() ? <><b>Pirâmide de 5 divisões:</b> começa na VÁRZEA (peladão raiz 🍺) e sobe até a Série A — sobe ou desce a cada temporada, conforme sua colocação.</> : <><b>Pirâmide de 4 divisões:</b> começa na Série D e sobe até a A — sobe ou desce a cada temporada, conforme sua colocação.</>}</p>
           <p className="text-xs font-bold text-black/75">🔨 <b>Mesmo leilão do modo rápido:</b> monta o time no pregão e disputa o campeonato de 38 rodadas.</p>
           <p className="text-xs font-bold text-black/75">🔥 <b>Rivais pra vida toda:</b> têm vida própria na pirâmide e só te enfrentam quando estão na sua divisão.</p>
           <p className="text-xs font-bold text-black/75">🏆 <b>Títulos acumulam:</b> cada título da Série A vira uma ⭐ no seu escudo.</p>
@@ -1666,7 +1666,7 @@ export function EscSetup() {
         {career ? (
           <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
             <p className="font-black text-sm" style={OSWALD}>{escadaLiberada() ? '🌎 Baralho: Brasileirão + Europa + MUNDO juntos' : '🌎 Baralho fixo: Brasileirão + Europa juntos'}</p>
-            <p className="text-[11px] font-bold text-black/65 mt-1">Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</p>
+            <p className="text-[11px] font-bold text-black/65 mt-1">{escadaLiberada() ? <>Na Carreira o baralho é <b>Brasileirão + Europa + Mundo juntos</b> (~850 nomes) — precisa de todos pra preencher bem os <b>100 times das 5 divisões</b> (da Várzea à Série A). O mercado de cada divisão só negocia as categorias dela.</> : <>Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</>}</p>
           </div>
         ) : (
         <div>
@@ -1838,7 +1838,7 @@ export function EscStreamIntro() {
       {isCareer && (
         <div style={{ position: 'relative', overflow: 'hidden', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, background: 'linear-gradient(160deg,#141414,#26313d)', color: '#fff', padding: '20px 18px 22px' }}>
           <div style={{ position: 'absolute', inset: 'auto -30% -60% -30%', height: 220, background: 'radial-gradient(closest-side, rgba(245,179,1,.30), transparent 70%)', pointerEvents: 'none' }} />
-          <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: GOLD, position: 'relative' }}>Série D → o topo</span>
+          <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: GOLD, position: 'relative' }}>{escadaLiberada() ? 'Várzea → o topo' : 'Série D → o topo'}</span>
           <h1 style={{ ...OSWALD, fontWeight: 800, fontSize: 30, lineHeight: .97, margin: '12px 0 0', position: 'relative' }}>Não é só levantar <span style={{ color: GOLD }}>taça.</span><br />É virar o clube mais <span style={{ color: GOLD }}>bem-sucedido.</span></h1>
           <p style={{ fontSize: 13.5, lineHeight: 1.45, color: 'rgba(255,255,255,.82)', margin: '10px 0 0', fontWeight: 500, position: 'relative' }}>Você assume um clube na várzea e sobe na pirâmide. Mas sucesso aqui não é só título: é <b style={{ color: '#fff' }}>administrar</b> — encher o caixa, construir patrimônio (estádio, SAF) e dominar dentro e fora de campo.</p>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, marginTop: 15, position: 'relative' }}>
@@ -3695,7 +3695,7 @@ export function EscSeason() {
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="font-black text-sm" style={OSWALD}>
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
-          {state.careerOnline && !state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 CARREIRA · SÉRIE D</span>}
+          {state.careerOnline && !state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 CARREIRA{escadaLiberada() ? ' · VÁRZEA' : ' · SÉRIE D'}</span>}
           {state.careerTitlesA > 0 && <span className="mr-1.5"><CareerStars n={state.careerTitlesA} size={12} /></span>}
           {copaLive && qc ? `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA'} · ${qc.phase === 'quartas' ? (bbS ? LS('SEMIS DE CONF.', 'CONF. SEMIS') : 'QUARTAS') : qc.phase === 'semis' ? (bbS ? LS('FINAIS DE CONF.', 'CONF. FINALS') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}` : `RODADA ${Math.min(state.round + 1, totalRounds)}/${totalRounds}`}
         </span>
