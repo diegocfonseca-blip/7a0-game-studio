@@ -64,7 +64,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'valentinnavitoria165@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual
   'mmmartins246@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR (era Craque, subiu pra Lenda)
   'feeriibeiro25@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
-  'jorgericardo777@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
+  'jorgericardo777@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR (era Craque, subiu pra Lenda)
   'dasilva1227br@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'davisantana1312@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'ambielvictor@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
@@ -116,6 +116,7 @@ const FUNDADOR_N: Record<string, number> = {
   'pedrohenriquedasilva315@gmail.com': 25,
   'gabriel.arruda.1999@hotmail.com': 26,
   'feehcamp11@gmail.com': 27,
+  'jorgericardo777@gmail.com': 28,
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null
