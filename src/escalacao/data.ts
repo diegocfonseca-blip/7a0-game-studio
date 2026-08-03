@@ -1137,8 +1137,8 @@ const NOVOS_BR_LAT: C[] = [
   { name: 'Eduardo Ratinho', club: 'Corinthians', year: 2005, fame: 2, lo: 62, hi: 79, bio: 'Lateral-direito veloz e driblador, com boa bola parada — a revelação do Corinthians em 2005; ainda passou por CSKA Moscou, Toulouse e Fluminense antes de parar cedo.' },
 ]
 const NOVOS_BR_MEI: C[] = [
-  { name: "Dudu Cearense", club: "Vasco", year: 2005, fame: 2, lo: 66, hi: 82, bio: "Volante cearense de marcação e fôlego — revelado no Vasco antes de brilhar no CSKA e no Olympiacos." },
-  { name: "Bismarck", club: "Vasco", year: 1993, fame: 3, lo: 76, hi: 85, bio: "Meia-artista do Vasco e depois ídolo eterno no Japão (Kashima) — passe fino e gols de placa." },
+  { name: "Dudu Cearense", club: "Vitória", year: 2004, fame: 2, lo: 66, hi: 82, bio: "Volante cearense de marcação e fôlego — revelado no Vitória e campeão da Copa América 2004 antes de brilhar no CSKA." },
+  { name: "Bismarck", club: "Vasco", year: 1989, fame: 3, lo: 76, hi: 85, bio: "Meia-artista do Vasco e depois ídolo eterno no Japão (Kashima) — passe fino e gols de placa." },
   { name: "René Júnior", club: "Bahia", year: 2017, fame: 2, lo: 64, hi: 82, bio: "Volante forte do Nordeste — pegada e chegada ao ataque pelo Bahia." },
   { name: "Cauly", club: "Bahia", year: 2023, fame: 2, lo: 68, hi: 83, bio: "Meia criativo do Bahia — passes de fantasia e gols que reacenderam o Esquadrão." },
   { name: "Morais", club: "Vasco", year: 2006, fame: 2, lo: 66, hi: 82 },
@@ -1170,7 +1170,7 @@ const NOVOS_BR_MEI: C[] = [
 ]
 const NOVOS_BR_ATA: C[] = [
   { name: "Marcelo Ramos", club: "Cruzeiro", year: 1997, fame: 3, lo: 76, hi: 86, bio: "O Matador — centroavante goleador e quinto maior artilheiro do Cruzeiro, campeão da Libertadores de 1997." },
-  { name: "Everaldo", club: "Ceará", year: 2019, fame: 2, lo: 64, hi: 82, bio: "Atacante cearense de briga e gol — destaque do Ceará antes de rodar o Brasileirão." },
+  { name: "Everaldo", club: "Chapecoense", year: 2019, fame: 2, lo: 64, hi: 82, bio: "Atacante de briga e faro de gol — explodiu na Chapecoense de 2019 (19 gols) antes de brilhar no Bahia." },
   { name: "Biel", club: "Bahia", year: 2023, fame: 2, lo: 64, hi: 82, bio: "Ponta veloz revelado no Bahia — dribles e gols que renderam a ida ao Sporting de Portugal." },
   { name: "Pimpão", club: "Botafogo", year: 2016, fame: 2, lo: 64, hi: 82, bio: "Atacante rodado (Rodrigo Pimpão) — faro de gol e cabeceio, xodó folclórico no Botafogo e no Vasco." },
   { name: "Kieza", club: "Bahia", year: 2015, fame: 2, lo: 64, hi: 82, bio: "Centroavante artilheiro do Nordeste — goleador por Bahia, Botafogo e ABC." },
