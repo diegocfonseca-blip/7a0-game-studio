@@ -5197,7 +5197,8 @@ async function reconcileCardsToTitles() {
 
 export function EscRanking() {
   const { dispatch } = useEsc()
-  const escLibRank = useAgenciaLiberada() // 🪜 aba Carreira: histórico visível SÓ pro Diego (04/08); público vê "em breve"
+  // 🪜 aba Carreira LIBERADA GERAL (decisão do Diego 04/08): histórico completo
+  // visível pra todos e os títulos de carreira novos seguem contando normalmente.
   const [mode, setMode] = useState<RankMode>('ronline')
   const [rows, setRows] = useState<RankRow[] | null>(null)
   const [down, setDown] = useState(false) // backend fora do ar — evita travar em "Carregando…"
@@ -5231,9 +5232,6 @@ export function EscRanking() {
     let alive = true
     setRows(null); setDown(false)
     ;(async () => {
-      // 🏆 Carreira: pro PÚBLICO é EM BREVE (zerada); a conta do Diego vê o
-      // histórico completo (títulos de carreira, chave co:) pra avaliar a régua.
-      if (mode === 'carreira' && !escLibRank) { if (alive) setRows([]); return }
       try {
         await reconcileCardsToTitles() // acerta cartas↔títulos antes de somar
         const { data } = await supabase.rpc('esc_ranking', { p_mode: mode })
@@ -5244,7 +5242,7 @@ export function EscRanking() {
       }
     })()
     return () => { alive = false }
-  }, [mode, escLibRank])
+  }, [mode])
 
   const loading = rows === null
   // Ranking por TÍTULOS (a artilharia saiu — é rara/pouco significativa e fácil
@@ -5258,7 +5256,7 @@ export function EscRanking() {
   const MODES: { id: RankMode; label: string }[] = [
     { id: 'ronline', label: '👥 Rápido online' },
     { id: 'rcpu', label: '🤖 Rápido offline' },
-    { id: 'carreira', label: '🪜 Carreira' }, // última: em breve (zerada) — pedido do Diego
+    { id: 'carreira', label: '🪜 Carreira' }, // histórico completo, liberado geral (04/08)
   ]
   const medal = (i: number) => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`
 
@@ -5302,15 +5300,7 @@ export function EscRanking() {
       )}
       {!loading && !down && shown.length === 0 && (
         <Box bg="#fff" className="p-6 text-center">
-          {mode === 'carreira' ? (
-            <>
-              <p className="text-3xl mb-1">🚧</p>
-              <p className="font-black text-lg" style={OSWALD}>RANKING DA CARREIRA — EM BREVE</p>
-              <p className="font-bold text-black/60 text-sm mt-1">A contagem começa DO ZERO pra todo mundo quando abrir. Vai valendo título da pirâmide — prepara o time. 🪜🏆</p>
-            </>
-          ) : (
-            <p className="font-bold text-black/70">Ninguém no ranking ainda. Seja o primeiro campeão! 🔨</p>
-          )}
+          <p className="font-bold text-black/70">Ninguém no ranking ainda. Seja o primeiro campeão! 🔨</p>
         </Box>
       )}
       <div className="space-y-2">
