@@ -911,3 +911,16 @@ que EXCLUEM temporadas de carreira (season_key like 'co:%'); modos antigos
 seguem funcionando (compat com app aberto). PENDENTE: quando o Diego quiser
 abrir o ranking da Carreira, definir a régua (títulos co: por divisão? só Série
 A? copa?) e ligar a aba.
+
+## 💀 KFC — LIMPEZA EXECUTADA (04/08, AUTORIZADA pelo Diego: "sei q ele fez hacker, coloque 57")
+user_id 9ba06350-8b24-4ba2-85b6-b045a5a9c28d. Antes: 191 títulos rápido-cpu +
+216 cartas CPU (fabricados). Feito: (1) champion=false nos 134 títulos rápido-cpu
+mais NOVOS (ficam os 57 mais antigos — número escolhido pelo Diego); (2) álbum
+CPU enxugado pra 85 cartas mais antigas (= 57 rápido + 28 carreira) — SEM isso o
+reconcileCardsToTitles do cliente RECRIAVA os títulos pra bater com as cartas;
+(3) BACKUP integral antes de apagar: tabela kfc_cards_backup_20260804 (217 rows,
+RLS on). Verificado: cartas_cpu=85 = títulos_cpu=85 → reconcile neutro. Online
+(17) e carreira (28) intocados.
+⚠️ AINDA ABERTO: o buraco em si (cliente grava esc_results/user_cards direto —
+qualquer um pode fabricar). Fechar com validação server-side ANTES de abrir o
+ranking da Carreira.
