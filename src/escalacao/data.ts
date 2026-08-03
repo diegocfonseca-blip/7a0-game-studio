@@ -2034,6 +2034,46 @@ export const newestTeamName = (name: string): string => {
   return n
 }
 
+
+// 🌱 TIMES DA VÁRZEA (Fase 2 da escada — carreira nova, teste do Diego): os
+// bots de preenchimento da sala na divisão V. Nomes 100% zoeira de peladão.
+export const VARZEA_TEAMS: CareerTeam[] = [
+  { name: 'Bilu', team: 'Unidos da Resenha' },
+  { name: 'Careca', team: 'Chuteira Rachada FC' },
+  { name: 'Pastel', team: 'Atlético Pelada' },
+  { name: 'Bode', team: 'Galáticos do Bairro' },
+  { name: 'Zoinho', team: 'Real Domingueira' },
+  { name: 'Tico', team: 'Ressaca United' },
+  { name: 'Sarrafo', team: 'Trave Torta EC' },
+  { name: 'Nem', team: 'Barcelona da Vila' },
+  { name: 'Pituca', team: 'Juventude do Churrasco' },
+  { name: 'Cabeção', team: 'Meia-Boca FC' },
+  { name: 'Xandão', team: 'Perna de Pau City' },
+  { name: 'Russo', team: 'Várzea Legends' },
+  { name: 'Formiga', team: 'Descampado EC' },
+  { name: 'Gordo', team: 'Espeto Corrido FC' },
+  { name: 'Mudinho', team: 'Society do Zé' },
+  { name: 'Alemão', team: 'Campo de Terra SC' },
+  { name: 'Peixe', team: 'Boleiros da Brisa' },
+  { name: 'Torto', team: 'Canelada Real' },
+  { name: 'Sombra', team: 'Falta Técnica FC' },
+  { name: 'Girino', team: 'Doze Contra Onze' },
+]
+// times EXTRAS de Série D (só na escada): completam a D quando rivais escolhidos
+// pelo usuário "ocupam" nomes da lista D original (eles começam na Várzea junto).
+export const EXTRA_D_TEAMS: CareerTeam[] = [
+  { name: 'Chico', team: 'Ferroviário da Serra' },
+  { name: 'Waldir', team: 'Operário do Sul' },
+  { name: 'Tonho', team: 'Comercial da Baixada' },
+  { name: 'Serjão', team: 'Nacional do Agreste' },
+  { name: 'Piru', team: 'Independente do Norte' },
+  { name: 'Caco', team: 'Esportivo da Colônia' },
+  { name: 'Nando', team: 'União da Fronteira' },
+  { name: 'Beto', team: 'Guarani do Cerrado' },
+  { name: 'Lelo', team: 'Marítimo da Ilha' },
+  { name: 'Duda', team: 'Rural EC' },
+]
+
 export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
   C: [
     { name: 'Casa de Vó', team: 'Casa de Vó' },

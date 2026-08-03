@@ -10,8 +10,8 @@ const INK = '#0C0C0C'
 const GOLD = '#FFC400'
 const GOLD_HEX = '#F5B301'
 const J_DIVS: Div[] = ['A', 'B', 'C', 'D']
-const J_DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
-const J_DIV_COLOR: Record<Div, string> = { A: '#B8892B', B: '#3E8E4E', C: '#9A7B33', D: '#7A7460' }
+const J_DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D', V: 'Várzea' }
+const J_DIV_COLOR: Record<Div, string> = { A: '#B8892B', B: '#3E8E4E', C: '#9A7B33', D: '#7A7460', V: '#8B5E3C' }
 const SERIF = { fontFamily: "Georgia, 'Times New Roman', serif" } as const
 const COND = { fontFamily: 'Oswald, sans-serif' } as const
 
@@ -107,8 +107,29 @@ const HEADLINES: Record<Div, Headline[]> = {
     { h: '{t} FLERTA COM O FIM DO MUNDO', s: '19º lugar: abaixo disso, só o campeonato de pelada do bairro.' },
     { h: 'O PIOR TIME DO PAÍS. É ISSO.', s: '{t} é o lanterna da Série D. Sem mais, excelência.' },
   ],
+  V: [
+    { h: '{t} É O REI DO PELADÃO!', s: 'Campeão da Várzea — churrasco, troféu de lata e acesso pra Série D!' },
+    { h: '{t} SOBE DO PELADÃO!', s: 'Vice da Várzea: saiu do campo de terra direto pro profissional.' },
+    { h: '{t} SOBE COM O PÉ NA PORTA!', s: '3º da Várzea — acesso garantido e caravana pro churrasco.' },
+    { h: 'NO APAGAR DAS LUZES: {t} SOBE!', s: '4º da Várzea: pegou a última vaga pro mundo profissional.' },
+    { h: '{t} FICA A UM CHURRASCO DO ACESSO', s: '5º na Várzea — faltou um empurrão (e um juiz menos caseiro).' },
+    { h: '{t} QUASE SAI DO PELADÃO', s: '6º lugar: prometeu acesso, entregou resenha.' },
+    { h: '{t} FAZ BONITO NO BARRO', s: '7º da Várzea — time honesto, chuteira gasta, sonho vivo.' },
+    { h: '{t} NO MEIO DO PELADÃO', s: '8º lugar: nem sobe, nem desce — só o churrasco é garantido.' },
+    { h: '{t} JOGA PELA CERVEJA GELADA', s: '9º na Várzea: o futebol foi médio, a resenha foi campeã.' },
+    { h: '{t} FECHA O TOP 10 DO BARRO', s: '10º — a torcida (12 pessoas e um cachorro) aplaudiu de pé.' },
+    { h: '{t} EMPACA NA TERRA BATIDA', s: '11º da Várzea: o campo não tem grama e o time não tem pressa.' },
+    { h: '{t} VIVE DE RESENHA', s: '12º lugar — perdeu jogo, ganhou amigo. Balanço positivo?' },
+    { h: '{t} DEIXA A DESEJAR NO PELADÃO', s: '13º: até o dono da bola já cobrou reforço.' },
+    { h: '{t} FAZ ANO DE PERNA PESADA', s: '14º da Várzea — culpa do gramado, jura o técnico.' },
+    { h: '{t} LEVA SUSTO NO FIM DE ANO', s: '15º — escapou da lanterna com gol do goleiro. Clássico.' },
+    { h: '{t} RESPIRA NO ÚLTIMO MINUTO', s: '16º da Várzea: se salvou e prometeu "ano que vem a gente sobe".' },
+    { h: '{t} FICA PELO CAMINHO', s: '17º no peladão — o acesso virou lenda de bar.' },
+    { h: '{t} PATINA NO BARRO', s: '18º da Várzea: nem o churrasco salvou a temporada.' },
+    { h: '{t} SÓ NÃO FOI LANTERNA POR EDUCAÇÃO', s: '19º — o time jogou de chinelo. Às vezes literalmente.' },
+    { h: '{t} É A LANTERNA DO PELADÃO', s: 'Último da Várzea — mas na resenha, ninguém ganha deles. 🍺' },
+  ],
 }
-
 // carimbo da "foto" conforme o resultado (sobem 4 / caem 4)
 function stampOf(div: Div, pos: number): { txt: string; color: string } | null {
   if (pos === 1) return { txt: 'CAMPEÃO', color: '#B23A2A' }

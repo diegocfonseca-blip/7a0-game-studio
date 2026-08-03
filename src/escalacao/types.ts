@@ -240,7 +240,7 @@ export type Screen =
 export type OnlineMode = 'cpu' | 'online'
 
 // modo carreira (solo): sobe/desce entre divisões e salva o progresso
-export type Division = 'A' | 'B' | 'C' | 'D'
+export type Division = 'A' | 'B' | 'C' | 'D' | 'V' // 'V' = Várzea (só carreira nova com escada — teste do Diego)
 
 // rival fixo da carreira: escolhido no início, é rival pra vida toda. Tem vida
 // própria na pirâmide (sobe/cai sozinho) — só te enfrenta quando está na sua
@@ -302,7 +302,7 @@ export interface EscState {
   careerTactics?: Record<number, Record<number, Tactic>> // carreira online: tática POR JOGO (mgrId → rodada 0-based → tática); vale daquela rodada em diante até trocar
   careerCoins?: Record<number, number> // carreira online: caixa de moedas por técnico (mgrId → moedas), pra reforços; +100/temporada + bônus de título/acesso, -queda
   clubCash?: Record<string, number> // carreira online: caixa dos OUTROS times (CPUs + reservas de fundo, tudo que não é humano/fiador), por teamKey. Base por divisão + título/acesso/queda. Aparece no ranking pra todo time ter grana real.
-  careerHonors?: Record<string, { A: number; B: number; C: number; D: number }> // carreira online: títulos por divisão de CADA time (chave = m<id> humano / nome do CPU), acumulados por temporada; base do Ranking
+  careerHonors?: Record<string, { A: number; B: number; C: number; D: number; V?: number }> // carreira online: títulos por divisão de CADA time (chave = m<id> humano / nome do CPU), acumulados por temporada; base do Ranking
   locked?: boolean // sala fechada (com senha) — guardado no estado pra sobreviver ao autosave
   pwHash?: string // hash da senha da sala (SHA-256) — idem
   reserveAuction?: boolean // carreira online: o leilão em curso é o de RESERVAS (mantém elenco, mira 22, orçamento = caixa). No fim, sincroniza a caixa e tira o elenco fundo.
@@ -321,7 +321,7 @@ export interface EscState {
   careerEra?: number // 🎮 carreira SOLO: "geração" da carreira. Ausente = carreira ANTIGA (começou antes da cobrança do Modo Manual) → manual liberado pra sempre (grandfather). Preenchido = carreira NOVA, o manual pede o apoio. Nunca mexe em save antigo.
   marketSellers?: Record<Sector, number[]> // carreira online: por posição, os ids dos BOTS que perderam um jogador pro mercado neste leilão — são justamente eles que podem dar lance NAQUELA posição (rebuscar o que perderam), quando 0 ou 1 humano oferta.
   seasonVotes?: Record<number, 'leilao' | 'mesmo'> // carreira online: no fim da temporada cada humano vota entre abrir o leilão de transferências ou seguir com o mesmo time. O host só inicia quando todos votam; empate → o voto do host decide. Zera ao iniciar a próxima temporada.
-  careerScorersAll?: Record<string, { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D'; goals: number; you: boolean; human: boolean }> // carreira online: artilharia de TODOS OS TEMPOS (gols somados de cada jogador entre as temporadas), por nome. Alimenta a aba Rank › Artilheiros.
+  careerScorersAll?: Record<string, { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean }> // carreira online: artilharia de TODOS OS TEMPOS (gols somados de cada jogador entre as temporadas), por nome. Alimenta a aba Rank › Artilheiros.
   statsSeason?: number // carreira online: última temporada cujos artilheiros já foram somados no acumulado (evita contar 2x)
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)

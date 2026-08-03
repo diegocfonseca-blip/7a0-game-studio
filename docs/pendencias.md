@@ -856,3 +856,26 @@ setActiveCatalog/pickCatalog sabem 'todos' (cpuSquads também). Todo mundo mais
 segue no both fixo. Texto da tela de criação muda só pra ele. Confirmações dadas:
 rivais escolhidos começam TODOS na divisão de estreia junto do usuário; conta
 dele ativa (precisa criar a carreira LOGADO).
+
+## 🌱 FASE 2 — DIVISÃO VÁRZEA REAL (V) — FEITO (04/08, só conta do Diego)
+Diego cobrou "tudo novo já" na conta dele → a 5ª divisão entrou de verdade:
+- Tipo Div = A/B/C/D/**V**; carreiras normais têm V VAZIA (guards em promotions/
+  balanceamento/UI — nada muda pra ninguém sem escadaOn; placements sem 'V').
+- Escada com escadaOn: sala inteira (você+rivais+fillers) nasce na **Várzea**;
+  fillers usam VARZEA_TEAMS (20 times zoeiros novos em data.ts: Unidos da
+  Resenha, Perna de Pau City, Doze Contra Onze…); Série D vira divisão de fundo
+  (DIVISION_TEAMS.D − rivais escolhidos + EXTRA_D_TEAMS, 20 times, fichas na
+  fatia mais fraca do pool em buildCpuSquads comVarzea).
+- Régua Fase 2 (spec original do Diego): V=🪵+🎯 · D=🎯+💎 · C=💎+⭐ · B=💎+⭐ ·
+  A=⭐+👑. Banco de reservas destrava ao SUBIR PRA D; livre = 2 temporadas na A.
+- Copa Legends: Várzea NÃO joga (top-4 de A-D como sempre). Promoções V↔D só
+  quando V existe. 20 manchetes de jornal da Várzea (tom peladão). Prêmios/caixa/
+  boost com valores de várzea (CAMPEAO.V=12, base 60, boost 0, patrocínio 0).
+- Vazamento corrigido: as "sobras do mundo" (cartas left- que voltavam do
+  catálogo pro leilão) agora respeitam a régua. Mercado secundário (vendedor real)
+  segue fora da régua DE PROPÓSITO (palavra do Diego).
+- SIMULADO (30 temporadas ×2): mundo 5×20 ✅, arco ÉPICO (ex.: V1→D1→8 anos de
+  Série C→B→A na T14, livre T20, com quedas e voltas), 0 fake, régua do baralho
+  novo 100%. agenciatest ✅ (agência no mundo V) + save antigo clássico ✅.
+- Harnesses (scratchpad): simescada.mjs/agenciatest.mjs usam sportstub.js (alias
+  ./sport com travas ligadas).
