@@ -29,6 +29,16 @@ continua existindo (Diego: "é do jogo").
 - Simulado 28 temporadas ×3: mercado SOBE com a era (🎯 12.9→20.5 · 💎 30→36 ·
   ⭐ 34.7→42.7 max 65) e inversões seguem 0.0%. Time rico já pagava mais pelo
   motor (fatia de orçamento + starHunger) — agora o teto deixa, sem pagar burro.
+### ➕➕ Diego de novo (03/08): "Pelé por 409 depois de muitas temporadas" →
+### teto estendido pra TODA CARREIRA (não só escada)
+- Os 4 gates (lance CPU, empate, piso de artilheiro) mudaram de `escadaOn` pra
+  `careerOnline` — carreira ANTIGA/longa também ganha o teto dinâmico. Modos
+  rápidos seguem intocados (não têm inflação de livro).
+- Piso JÁ inflado num save velho (ex.: Pelé 409) NÃO é reduzido na marra: a CPU
+  para de cobrir (acima do teto), o jogador encalha e o piso CAI PELA METADE a
+  cada relista (mecânica que já existia) até voltar pro teto — deflação natural
+  em 2-3 temporadas, sem mexer em save.
+- Regressões re-rodadas: preços ok, inversões 0.0%, escadafina toda verde.
 ## 📈 "SUBIU COM TIME RUIM?" — verificado, é percepção da régua (03/08)
 Nas 15 promoções simuladas o promovido era SEMPRE mais forte que a MÉDIA da
 divisão (XI ~77-80 vs ~75). Como a régua nivela todo mundo por baixo, o time

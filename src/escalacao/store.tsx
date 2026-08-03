@@ -691,8 +691,9 @@ function creditSeller(state: EscState, card: Card, amount: number, buyerId?: num
 // jogador subir (D+4, C+8, B+12, A+16) — o mesmo número que o time ganhou de
 // prêmio. Sobe o livro de preços (piso em qualquer leilão futuro) E o "paid"
 // (piso de venda) de toda carta com esse nome em qualquer elenco.
-// 💰 TETO DE MERCADO por categoria (carreira nova/escada): o quanto o mercado
-// aceita pagar num jogador daquele nível. Medido em simulação (25 temporadas):
+// 💰 TETO DE MERCADO por categoria (TODA carreira, solo e online — 03/08, Diego:
+// "Pelé por 409 depois de muitas temporadas, continua sem teto"): o quanto o
+// mercado aceita pagar num jogador daquele nível. Medido em simulação (25 temp.):
 // médias saudáveis eram 🪵12 · 🎯15 · 💎29 · ⭐40, mas as CAUDAS estouravam
 // (🎯 a 42 = preço de ⭐, livro de artilheiro chegando a 100) — era isso que o
 // tester viu ("perna-de-pau pelo preço de craque"). O teto deixa folga pro
@@ -722,9 +723,9 @@ function applyScorerValues(state: EscState, values?: Record<string, number>) {
   // economia da sala (antes somava toda temporada sem limite — um 🎯 artilheiro
   // eterno chegava a piso 100 e era vendido a preço de estrela). O teto cresce
   // junto com o mercado; nunca REDUZ um valor já gravado.
-  const econ = state.escadaOn ? escadaEconFactor(state) : 0
+  const econ = state.careerOnline ? escadaEconFactor(state) : 0
   const capOf = (name: string): number | null => {
-    if (!state.escadaOn) return null
+    if (!state.careerOnline) return null
     for (const m of state.managers) for (const c of m.squad) if (c.name === name && !c.fake) return Math.round(catPriceCap(c) * econ)
     for (const t in (state.cpuSquads ?? {})) for (const c of state.cpuSquads![t]) if (c.name === name && !c.fake) return Math.round(catPriceCap(c) * econ)
     return Math.round(42 * econ) // não achou a carta (raro): teto médio, só pra não inflar sem freio
@@ -1054,7 +1055,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
     // 🪜 escada: a CPU não cobre o empate além do teto da categoria × economia
     // (a escalada do re-lance era a última rota de "🎯 a preço de ⭐"). O teto
     // acompanha a riqueza da sala; humano decide sozinho.
-    if (state.escadaOn && !m.isHuman) v = Math.min(v, Math.max(tb.amount, Math.round(catPriceCap(tb.card) * escadaEconFactor(state))))
+    if (state.careerOnline && !m.isHuman) v = Math.min(v, Math.max(tb.amount, Math.round(catPriceCap(tb.card) * escadaEconFactor(state))))
     v = Math.min(m.money, Math.max(tb.amount, Math.round(v))) // trava: ≥ piso e ≤ dinheiro
     amounts[id] = v
   }
@@ -2482,7 +2483,7 @@ function sealAndResolve(state: EscState) {
   const rng = rngOf(state)
   const rescue = state.phase === 'resq_envelope'
   const bidMap: BidMap = new Map()
-  const econ = state.escadaOn ? escadaEconFactor(state) : 0 // 🪜 teto por categoria × riqueza da sala
+  const econ = state.careerOnline ? escadaEconFactor(state) : 0 // 💰 teto por categoria × riqueza da sala (TODA carreira — pedido do Diego: 'Pelé por 409' na carreira longa)
   // CPUs (só quem disputa o leilão — bots de preenchimento nunca dão lance)
   for (const m of state.managers) {
     if (m.isHuman || !m.auctionRival) continue
