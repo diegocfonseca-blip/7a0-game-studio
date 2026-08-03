@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
-  QuickCopaState, QuickCopaTie, LedgerEntry, EmpCard,
+  QuickCopaState, QuickCopaTie, LedgerEntry, EmpCard, AgCard, AgEvento,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, newestTeamName } from './data'
@@ -171,6 +171,29 @@ function logFin(s: EscState, kind: LedgerEntry['kind'], label: string, amount: n
   arr.push(e)
   if (arr.length > 250) s.careerLedger = arr.slice(-250)
 }
+// 🕴️ AGÊNCIA 2.0 · chave estável de uma carta do álbum (auge = nome+clube+ano)
+const agKey = (c: { name: string; club?: string; year?: number }) => `${c.name}|${c.club ?? ''}|${c.year ?? ''}`
+// 🕴️ AGÊNCIA 2.0 · TRANSAÇÃO de agenciado no leilão/monte: o agente (você) fatura
+// +1 na hora, direto no caixa do 1º CLUBE (decisão do Diego). Se o 1º clube é o
+// ATIVO, entra no dinheiro do leilão (m.money — o write-back da Cerimônia leva);
+// se está DORMINDO, cai na caixa dele (extrato roteado pro stash pelo logFin).
+// O evento entra na fatura pra aparecer na Cerimônia. Só carreira solo NOVA.
+function agenciaTransacao(s: EscState, card: { name: string; club?: string; year?: number }) {
+  if (!s.agenciaOn) return
+  const ag = (s.agenciados ?? []).find(a => a.name === card.name)
+  if (!ag) return
+  const active = s.managers[s.youIdx]?.id
+  const dest = s.agenciaClubeId ?? active ?? 0
+  if (dest === active) { const m = s.managers[s.youIdx]; if (m) m.money += 1 }
+  else s.careerCoins = { ...(s.careerCoins ?? {}), [dest]: (s.careerCoins?.[dest] ?? 0) + 1 }
+  logFin(s, 'empresario', `🕴️ Comissão de agente: ${card.name} negociado`, 1, { player: card.name }, dest)
+  const fat = (s.agenciaFatura && s.agenciaFatura.season === (s.seasonNo ?? 1))
+    ? s.agenciaFatura
+    : (s.agenciaFatura = { season: s.seasonNo ?? 1, mensal: 0, rows: [], total: 0 })
+  fat.rows.push({ emoji: '💸', texto: `${card.name} foi negociado no leilão`, coins: 1, nome: ag.name })
+  fat.total += 1
+  s.agenciaHist = { ...(s.agenciaHist ?? {}), [agKey(ag)]: (s.agenciaHist?.[agKey(ag)] ?? 0) + 1 }
+}
 // 💰 VIRA-TEMPORADA: aplica prêmios + bilheteria + folha na caixa do técnico e
 // REGISTRA cada um no extrato pela VARIAÇÃO REAL da caixa do humano. Mantém a
 // mesma ordem/efeito de antes (prêmios → bilheteria → folha) — só soma o registro.
@@ -211,6 +234,47 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
   const s4 = snap()
   // 💼 EMPRESÁRIO: renda das cartas ganhas (categorias destravam com estádio/SAF).
   // Offline: careerFilial + empresarioCards. Online: por técnico (Passo 2c).
+  // 🕴️ AGÊNCIA 2.0 (carreira solo NOVA): troca o empresário clássico pelos 22
+  // "na ativa" — mensalidades por categoria (lenda 5 + folclórico +1) e comissões
+  // de eventos (artilheiro/campeão, acumulados em agenciaEventos). Tudo cai no
+  // caixa do 1º CLUBE (agenciaClubeId), mesmo que ele esteja dormindo.
+  if (!online && s.agenciaOn) {
+    const dest = s.agenciaClubeId ?? y
+    const renda = agenciaRenda(s.agenciados, s.stadiums?.[dest], !!s.careerFilial)
+    if (renda.total > 0) s.careerCoins = { ...s.careerCoins, [dest]: (s.careerCoins[dest] ?? 0) + renda.total }
+    // histórico por carta ("já te rendeu X"): mensalidade de quem rendeu de fato
+    if (renda.total > 0) {
+      const hist = { ...(s.agenciaHist ?? {}) }
+      for (const c of s.agenciados ?? []) {
+        const cat = empCat(c)
+        if (!renda.by[cat]?.unlocked) continue
+        hist[agKey(c)] = (hist[agKey(c)] ?? 0) + renda.by[cat].value + (c.folk ? AG_FOLK_BONUS : 0)
+      }
+      s.agenciaHist = hist
+    }
+    const s45 = snap()
+    // comissões pendentes da temporada que acabou (artilheiro/campeão)
+    const evs = (s.agenciaEventos && s.agenciaEventos.season === (s.seasonNo ?? 1)) ? s.agenciaEventos.rows : []
+    const com = evs.reduce((n, e) => n + e.coins, 0)
+    if (com > 0) {
+      s.careerCoins = { ...s.careerCoins, [dest]: (s.careerCoins[dest] ?? 0) + com }
+      const hist = { ...(s.agenciaHist ?? {}) }
+      for (const e of evs) { const ag = (s.agenciados ?? []).find(a => a.name === e.nome); if (ag) hist[agKey(ag)] = (hist[agKey(ag)] ?? 0) + e.coins }
+      s.agenciaHist = hist
+    }
+    // fatura NOVA da virada — as transações do leilão que vem aí somam nela depois.
+    // ⚠️ o leilão roda já com o seasonNo INCREMENTADO (a virada acontece antes),
+    // então a fatura é carimbada com a temporada NOVA — senão a transação criava
+    // uma fatura vazia por cima e a Cerimônia perdia mensalidades/eventos.
+    s.agenciaFatura = { season: (s.seasonNo ?? 1) + 1, mensal: renda.total, rows: evs, total: renda.total + com }
+    s.agenciaEventos = undefined
+    const s5 = snap()
+    const rows: [LedgerEntry['kind'], string][] = [['reward', '🏆 Prêmios da temporada'], ['gate', '🎟️ Bilheteria'], ['salary', '💸 Folha salarial'], ['sponsor', '👕 Patrocínio'], ['empresario', '🕴️ Agência — mensalidades (na ativa)'], ['empresario', '🕴️ Agência — comissões (artilheiro/campeão)']]
+    const steps = [s0, s1, s2, s3, s4, s45, s5]
+    const ids = dorm != null ? [y, dorm] : [y]
+    for (const id of ids) for (let i = 0; i < rows.length; i++) logFin(s, rows[i][0], rows[i][1], (steps[i + 1][id] ?? 0) - (steps[i][id] ?? 0), undefined, id, true)
+    return
+  }
   if (!online) {
     const maduras = (s.empresarioCards ?? []).filter(c => (c.season ?? 0) < (s.seasonNo ?? 1))
     const inc = empresarioIncome(maduras, s.stadiums?.[y], !!s.careerFilial).total
@@ -298,7 +362,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
   return out
 }
 import type { CareerTeam } from './data'
-import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium, sectorPct, hasExtra, SPONSOR_PAY, empresarioIncome } from './estadiodata'
+import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium, sectorPct, hasExtra, SPONSOR_PAY, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { logPlay, logVisit, heartbeat } from './analytics'
 import { pack, unpack } from './netpack'
@@ -865,6 +929,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   if (m.isHuman) logFin(state, 'buy', `🛒 ${tb.card.name}`, -max, { player: tb.card.name, pos: tb.card.pos }, m.id) // 🧾 compra no desempate
   recordPrice(state, tb.card.name, max) // livro de preços
   creditSeller(state, tb.card, max, winner) // o vendedor recebe a grana da venda
+  agenciaTransacao(state, tb.card) // 🕴️ agenciado negociado → comissão de agente
   tb.winner = winner
   tb.paid = max
   tb.bids = amounts // registra quanto cada um cobriu (transparência na revelação)
@@ -1895,6 +1960,7 @@ function takeFromMonte(state: EscState, cardId: string) {
     if (m.isHuman) logFin(state, 'buy', `🛒 ${card.name}`, -paid, { player: card.name, pos: card.pos }, m.id) // 🧾 compra no monte
   }
   creditSeller(state, card, paid, mgrId) // vendedor recebe o valor mesmo indo pelo monte
+  agenciaTransacao(state, card) // 🕴️ agenciado mudou de clube pelo monte → comissão
   m.squad.push({ ...card, paid, buyPrice: paid, via: 'monte', semContrato: undefined, contratoAte: undefined })
 }
 
@@ -2092,6 +2158,8 @@ type Action =
   | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: 5 | 10 } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — 10 anos = valor oficial cheio, 5 = metade. Prazo real sai com tempero (±1) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); quem não renovar vai pro leilão com teto de venda
   | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
   | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
+  | { type: 'SET_AGENCIA'; cards: AgCard[] } // 🕴️ AGÊNCIA 2.0: grava a convocação dos até 22 "na ativa" (escolhidos do álbum). Só carreira solo nova (agenciaOn)
+  | { type: 'AGENCIA_SEASON_EVENTS'; season: number; rows: AgEvento[] } // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro/campeão dos agenciados) — computados na tela quando a Copa termina; pagos na virada. Idempotente por temporada
   | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos 60 times de fundo (1x)
   | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
@@ -2165,6 +2233,7 @@ function sweepMonteToBackstops(st: EscState) {
     const paid = (card as { paid?: number }).paid ?? 0
     const listed = (card as { seller?: number }).seller != null
     creditSeller(st, card, paid, bot.id) // o vendedor recebe (também na varredura do bot)
+    agenciaTransacao(st, card) // 🕴️ agenciado indo pra bot também é negócio → comissão
     bot.squad.push({ ...card, paid, via: 'monte', semContrato: undefined, contratoAte: undefined })
     if (paid > 0) recordPrice(st, card.name, paid)
     // resumo dos bots (visibilidade na cerimônia)
@@ -2309,6 +2378,7 @@ function sealAndResolve(state: EscState) {
   for (const q of queue) if (q.winner !== null && q.paid > 0) {
     recordPrice(state, q.card.name, q.paid) // livro de preços
     creditSeller(state, q.card, q.paid, q.winner) // o vendedor recebe a grana da venda
+    agenciaTransacao(state, q.card) // 🕴️ agenciado negociado → comissão de agente
     const w = state.managers.find(m => m.id === q.winner) // resumo dos bots (visibilidade)
     if (w?.isHuman) logFin(state, 'buy', `🛒 ${q.card.name}`, -q.paid, { player: q.card.name, pos: q.card.pos }, w.id) // 🧾 compra no leilão
     if (w?.backstop) (state.marketLog = state.marketLog ?? []).push(`⚽ ${w.teamName} arrematou ${q.card.name} por ${q.paid} 🪙`)
@@ -2857,6 +2927,10 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerOnline = true
       s.simV = 4 // carreira nova já nasce na fórmula nova (gol realista + menos goleada)
       s.contratosOn = true // 📝 contratos de jogador: SÓ carreira NOVA (save antigo segue sem)
+      // 🕴️ AGÊNCIA 2.0: SÓ carreira NOVA — convoca até 22 do álbum; renda SEMPRE no
+      // 1º clube (o da fundação). Save antigo segue no empresário clássico.
+      s.agenciaOn = true
+      s.agenciados = []; s.agenciaEventos = undefined; s.agenciaFatura = undefined; s.agenciaHist = {}
       s.careerEra = MANUAL_ERA // 🎮 carreira NOVA: o Modo Manual pede apoio. Saves ANTIGOS não têm esse campo → seguem com o manual liberado (grandfather).
       s.roomId = ''; s.roomCode = ''; s.roomName = undefined
       s.locked = undefined; s.pwHash = undefined; s.streamMode = false; s.manualRoom = false
@@ -2876,6 +2950,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // RIVAIS coloridos no display — são CPU, mas aparecem como rivais de verdade.
       for (let i = 0; i < rivalCount; i++) { const m = managers[1 + i]; if (m && !m.isHuman) m.rival = true }
       s.managers = managers
+      s.agenciaClubeId = managers[0]?.id ?? 0 // 🕴️ o 1º clube (fundação) — destino fixo da renda da agência, NUNCA muda (nem com 2º clube)
       // colocação inicial: você e os rivais na Série D; A/B/C com os times fixos.
       const pl: Record<string, string> = {}
       for (const m of s.managers) pl[`m${m.id}`] = 'D'
@@ -3820,6 +3895,32 @@ export function reducer(state: EscState, action: Action): EscState {
       const top = Object.values(all).sort((a, b) => b.goals - a.goals).slice(0, 300)
       s.careerScorersAll = Object.fromEntries(top.map(x => [x.name, x]))
       s.statsSeason = s.seasonNo
+      return s
+    }
+    case 'SET_AGENCIA': {
+      // 🕴️ AGÊNCIA 2.0: grava a convocação (até 22, nomes únicos — a tela já valida,
+      // aqui é a trava de motor). Só carreira solo nova.
+      if (!s.agenciaOn) return s
+      const seen = new Set<string>()
+      const list: AgCard[] = []
+      for (const c of action.cards) {
+        if (list.length >= 22) break
+        if (seen.has(c.name)) continue // mesma pessoa 2x não vale (dois auges = 1 escolha)
+        seen.add(c.name)
+        list.push({ name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, promessa: c.promessa || undefined, folk: c.folk || undefined })
+      }
+      s.agenciados = list
+      return s
+    }
+    case 'AGENCIA_SEASON_EVENTS': {
+      // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro/campeão) — computados na
+      // tela quando a Copa termina; ficam PENDENTES e são pagos na virada
+      // (applySeasonMoney). Idempotente: só grava uma vez por temporada.
+      if (!s.agenciaOn) return s
+      if (action.season !== (s.seasonNo ?? 1)) return s
+      if (s.agenciaEventos?.season === action.season && s.agenciaEventos.eventosDone) return s
+      const prev = (s.agenciaEventos && s.agenciaEventos.season === action.season) ? s.agenciaEventos.rows : []
+      s.agenciaEventos = { season: action.season, rows: [...prev, ...action.rows], eventosDone: true }
       return s
     }
     case 'SEED_CPU_SQUADS': {

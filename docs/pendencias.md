@@ -727,3 +727,41 @@ ORIGINAL (ex.: Carecamburgo) em vez do que leiloou. CAUSA: a tela sempre abria n
 time nº 0 da lista (na carreira normal você É o nº 0 — com o 2º clube no comando,
 o nº 0 é o original dormindo). FIX: `EscCerimonia` abre no índice do SEU clube
 ativo (youIdx) na lista filtrada. Navegar pelos outros times segue igual. Revertível.
+
+## 🕴️ AGÊNCIA 2.0 (22 convocados do álbum) — FEITO (03/08, spec + mockups aprovados pelo Diego)
+Reforma do empresário de cartas, SÓ CARREIRA SOLO NOVA (save antigo segue no
+empresário clássico, nada muda). Decidido com o Diego nesta sessão:
+- Convoca **até 22 cartas do ÁLBUM** (global da conta) pra "ativa" — só elas
+  rendem. Mesma PESSOA só 1 vez (auges diferentes = 1 vaga). Cap 22 travado no
+  motor (SET_AGENCIA). Convocação estilo COPA: filtro por posição + busca + selo
+  do tier em cada nome. Troca quando quiser.
+- **Mensalidade por categoria** (paga na virada): 👑 lenda **5** (≠ clássico 6,
+  decisão do Diego) · ⭐ 4 · 💎 3 · 🎯 2 · 🪵 1 · carta **🃏 Folclórica +1** por
+  cima. Desbloqueios = os MESMOS do estádio/SAF, e a tela deles CONTINUA em
+  Clube › Agência (AgenciaDesbloqueios) — decisão do Diego.
+- **Comissões por acontecimento** (+1 cada): 🥇 artilheiro de cada série + Copa;
+  🏆 campeão em QUALQUER time (as 4 séries + Copa Legends, elenco do campeão);
+  💸 negociado no leilão/monte (qualquer comprador — banner dourado no tempo
+  morto do martelo, comissão paga NA HORA).
+- **Renda 100% no 1º CLUBE** (agenciaClubeId = clube da fundação), mesmo se ele
+  estiver DORMINDO no Multiclubes (cai na caixa dele + extrato do stash).
+- UI: sub-aba **Elenco › 🕴️ Agenciados** (grade com cor do tier; toque abre a
+  carta IGUAL álbum + "já te rendeu X"); fatura na **Cerimônia** (mensalidades +
+  eventos + transações); extrato com 2 linhas 🕴️ (mensalidades / comissões).
+- Motor testado headless (agenciatest.mjs): cap/dedupe, eventos idempotentes,
+  virada pagando no clube 0, transações +1 na hora somando na fatura, folclórico
+  +1, save antigo intacto (linha clássica 💼, sem 🕴️). Pegadinha corrigida: o
+  leilão roda com seasonNo já virado → fatura carimbada com a temporada NOVA
+  (senão a transação criava fatura vazia por cima e a Cerimônia perdia tudo).
+Revertível: commit isolado; agenciaOn só nasce em carreira nova.
+### Combinados que FICARAM (não fazer sem OK):
+- 📰 **Jornal página 2 "Caderno do Empresário"**: capa vira SOZINHA após 5s pra
+  página com as notícias dos agenciados (mockup mandado, AGUARDANDO OK do Diego).
+- 🏦 **Divisão da renda entre os 2 clubes** (futuro): caixinha na sub-aba
+  Agenciados, SÓ aparece com 2 clubes — tudo pro 1º / 50-50 / tudo pro 2º
+  (mockup já mostrado). Por enquanto renda é 100% do 1º clube.
+- 🎮 Futuro maior: jogos ONLINE usando as cartas do álbum (os 22 convocados são a
+  base natural). Só ideia, sem spec.
+- 📖 Manual do Técnico ainda não fala da Agência 2.0 — adicionar quando o Diego
+  liberar a feature pro público (hoje só carreiras novas dele em teste? NÃO — já
+  vale pra TODO MUNDO que criar carreira nova; visual aprovado).

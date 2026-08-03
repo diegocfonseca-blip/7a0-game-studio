@@ -141,6 +141,27 @@ export function empCatUnlocked(cat: EmpCat, st: StadiumSave | undefined, hasFili
     default: return false
   }
 }
+// ─── 🕴️ AGÊNCIA 2.0 (carreira solo NOVA) — os 22 "na ativa" ─────────────────
+// Valores por categoria decididos pelo Diego: lenda vale 5 AQUI (o empresário
+// clássico dos saves antigos segue com 6) + carta FOLCLÓRICA ganha +1 por cima.
+// Os desbloqueios são os MESMOS do empresário clássico (estádio/SAF).
+export const AG_VALUES: Record<EmpCat, number> = { lenda: 5, craque: 4, promessa: 3, bom: 2, prof: 1 }
+export const AG_FOLK_BONUS = 1
+export function agenciaRenda(cards: { fame?: number; promessa?: boolean; folk?: boolean }[] | undefined, st: StadiumSave | undefined, hasFilial: boolean): { total: number; by: Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }>; folkCount: number; folkIncome: number } {
+  const by = {} as Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }>
+  for (const k of EMP_ORDER) by[k] = { count: 0, unlocked: empCatUnlocked(k, st, hasFilial), value: AG_VALUES[k], income: 0 }
+  let folkCount = 0, folkIncome = 0
+  for (const c of cards ?? []) {
+    const k = empCat(c)
+    by[k].count++
+    // bônus folclórico só rende junto com a categoria destravada (anda colado nela)
+    if (c.folk) { folkCount++; if (by[k].unlocked) folkIncome += AG_FOLK_BONUS }
+  }
+  let total = folkIncome
+  for (const k of EMP_ORDER) { const b = by[k]; b.income = b.unlocked ? b.count * b.value : 0; total += b.income }
+  return { total, by, folkCount, folkIncome }
+}
+
 // renda por temporada + detalhamento por categoria (só as desbloqueadas rendem)
 export function empresarioIncome(cards: { fame?: number; promessa?: boolean }[] | undefined, st: StadiumSave | undefined, hasFilial: boolean): { total: number; by: Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }> } {
   const by = {} as Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }>
