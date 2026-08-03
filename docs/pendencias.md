@@ -1,5 +1,23 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## 🎨 Artes de stories entregues (03/08): Contratos + Empresário + Várzea
+Três PNGs 1080×1920 no visual do jogo, todas com carimbo vermelho "SÓ PRA
+CARREIRAS NOVAS": (1) Contratos (carta-contrato assinada); (2) Modo Empresário
+(extrato da agência: Pelé +5, comissões, teto +11/temporada); (3) Várzea
+(campinho de TERRA MARROM já de teaser, placa "Bar do Zé", bullets escada/
+régua/baralho gigante). Fontes em scratchpad (story-*.html).
+
+## 🎨 MOCKUP dos 5 CAMPOS por divisão — AGUARDANDO OK do Diego (03/08)
+Pedido (áudio): campinho do leilão/pregão MARROM na Várzea, verde tradicional
+nas outras, e o verde da Série A "mais bonito". Mockup enviado com os 5:
+🌱 Várzea terra batida #8B5E3C/#7A4E2E (placa de zoeira "Bar do Zé") ·
+D/C/B verde de hoje #1B7A3D/#166332 · 👑 Série A premium #23984F/#1A7F40.
+Formato/casinhas idênticos (Campinho em screens.tsx usa
+repeating-linear-gradient 34px — é trocar o par de cores por divisão).
+❌ NÃO CODAR antes do OK. Quando aprovar: gate só carreira nova (escadaOn),
+campo do leilão + onde o Campinho aparecer; placa de patrocínio pode ganhar
+versão zoeira na Várzea (perguntar se ele quer).
+
 ## 🎨 Arte de stories "CONTRATOS chegaram" entregue (03/08)
 PNG 1080×1920 no visual do jogo (creme/Oswald/sombras duras): carta-contrato,
 3 bullets (renovar/deixar ir, teto + família gananciosa, rivais no mercado) e
