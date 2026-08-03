@@ -19,6 +19,7 @@ import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, SponsorCard } from './estadio'
 import { CopaMundoGate, loadCopaSave } from './copa-mundo'
 import { supabase } from '../lib/supabase'
+import { useAgenciaLiberada } from './sport'
 import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
@@ -2346,6 +2347,7 @@ export function PyramidSeasonScreen() {
   const [rankSub, setRankSub] = useState<'clubes' | 'arti'>('arti')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio'>('estadio') // 🏟️/💰/💼 sub-abas da aba Clube
   const [elencoSub, setElencoSub] = useState<'elenco' | 'agencia'>('elenco') // 👥/🕴️ sub-abas do Elenco (Agenciados só na Agência 2.0 — carreira nova)
+  const agLib = useAgenciaLiberada() // 🔒 Agência 2.0 por enquanto SÓ a conta do Diego — pros outros o jogo fica 100% igual
   // 🏛️ MULTICLUBES (Opção B): seletor livre. `multiAsk` = modal de confirmar a troca;
   // `multiPending` = você apertou no meio de uma rodada (auto) → troca no fim dela.
   const [multiAsk, setMultiAsk] = useState(false)
@@ -2629,7 +2631,7 @@ export function PyramidSeasonScreen() {
   // aqui tudo já passou do apito). Idempotente: o reducer grava 1x por temporada.
   const agEvRef = useRef('')
   useEffect(() => {
-    if (!copaFinished || !state.agenciaOn || !copa) return
+    if (!copaFinished || !state.agenciaOn || !agLib || !copa) return
     const key = `${state.seed}:${state.seasonNo}`
     if (agEvRef.current === key) return
     agEvRef.current = key
@@ -2647,7 +2649,7 @@ export function PyramidSeasonScreen() {
     }
     dispatch({ type: 'AGENCIA_SEASON_EVENTS', season: state.seasonNo ?? 1, rows })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [copaFinished, state.agenciaOn, state.seasonNo, state.seed])
+  }, [copaFinished, state.agenciaOn, agLib, state.seasonNo, state.seed])
   // substituição libera na 2ª temporada — INCLUSIVE no fim de temporada, pra você
   // já montar o time da próxima (a troca no fim não muda o campeonato que acabou;
   // o SET_LINEUP grava além da rodada 38 e só carrega pra próxima temporada).
@@ -2759,7 +2761,7 @@ export function PyramidSeasonScreen() {
                SÓ emoção, sem moeda (decisão do Diego). Artilheiro/campeão desta
                temporada + negociações do último mercado. Sem notícia = sem pág. 2. */
             agenciaNews={(() => {
-              if (!state.agenciaOn) return undefined
+              if (!state.agenciaOn || !agLib) return undefined
               const nomes = new Set((state.agenciados ?? []).map(a => a.name))
               if (!nomes.size) return undefined
               const nn: { ic: string; titulo: string; sub: string }[] = []
@@ -3026,7 +3028,7 @@ export function PyramidSeasonScreen() {
             {clubeSub === 'escritorio' ? (
               // 🕴️ AGÊNCIA 2.0 (carreira nova): aqui ficam SÓ os desbloqueios; a agência
               // em si mora em Elenco › Agenciados. Saves antigos seguem no clássico.
-              state.agenciaOn
+              (state.agenciaOn && agLib)
                 ? <AgenciaDesbloqueios st={state.stadiums?.[state.agenciaClubeId ?? youId]} hasFilial={!!state.careerFilial} />
                 : <EscritorioTab cards={(state.onlineMode === 'online' ? state.careerEmpresario?.[youId] : state.empresarioCards) ?? []} st={state.stadiums?.[youId]} hasFilial={state.onlineMode === 'online' ? !!state.careerFilials?.[youId] : !!state.careerFilial} />
             ) : clubeSub === 'financas' ? (
@@ -3170,14 +3172,14 @@ export function PyramidSeasonScreen() {
         ) : tab === 'elenco' ? (
           <>
             {/* 🕴️ AGÊNCIA 2.0: sub-abas Elenco | Agenciados (só carreira nova) */}
-            {state.agenciaOn && (
+            {state.agenciaOn && agLib && (
               <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
                 {(([['elenco', '👥', 'Elenco'], ['agencia', '🕴️', 'Agenciados']]) as [typeof elencoSub, string, string][]).map(([sb, ic, label]) => (
                   <button key={sb} onClick={() => setElencoSub(sb)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: elencoSub === sb ? myCol.solid : '#fff', color: elencoSub === sb ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
                 ))}
               </div>
             )}
-            {state.agenciaOn && elencoSub === 'agencia' ? (
+            {state.agenciaOn && agLib && elencoSub === 'agencia' ? (
               <AgenciadosTab cards={state.agenciados ?? []} hist={state.agenciaHist} fatura={state.agenciaFatura}
                 st={state.stadiums?.[state.agenciaClubeId ?? youId]} hasFilial={!!state.careerFilial}
                 primeiroClube={state.managers.find(m => m.id === (state.agenciaClubeId ?? youId))?.teamName ?? 'seu 1º clube'}

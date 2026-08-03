@@ -18,7 +18,7 @@ import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
-import { useSport, useSportUnlocked, useTemaLiberado, getSport, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, getSport, type Sport } from './sport'
 import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
 
@@ -2854,6 +2854,7 @@ function Reveal() {
   // 🔨 ANTI-SPOILER: o vencedor só fica VERDE quando o martelo bate (hammerDelay) —
   // nunca antes. Sem isto, a linha do maior lance entrava já verde em ~0s e a sala
   // via quem ganhou (e por quanto) antes do apito/martelo.
+  const agLibReveal = useAgenciaLiberada() // 🔒 banner da Agência 2.0: por enquanto só a conta do Diego
   const [hammered, setHammered] = useState(false)
   useEffect(() => {
     setHammered(false)
@@ -3011,7 +3012,7 @@ function Reveal() {
               </p>
               {/* 🕴️ AGÊNCIA 2.0: agenciado negociado → banner de comissão no tempo
                   morto do martelo (não adiciona passo). A moeda já entrou no motor. */}
-              {sold && state.agenciaOn && (state.agenciados ?? []).some(a => a.name === item.card.name) && (
+              {sold && state.agenciaOn && agLibReveal && (state.agenciados ?? []).some(a => a.name === item.card.name) && (
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: hammerDelay + 0.5 }}
                   className="mt-2 border-[3px] border-black rounded-2xl px-3 py-2 text-left flex items-center gap-2"
                   style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 60%,#E8A200)', boxShadow: `3px 3px 0 ${INK}` }}>
@@ -3202,6 +3203,7 @@ export function EscMonte() {
 export function EscCerimonia() {
   const { state, dispatch } = useEsc()
   const t = useT()
+  const agLibCer = useAgenciaLiberada() // 🔒 fatura da Agência 2.0: por enquanto só a conta do Diego
   // 🏛️ abre SEMPRE no SEU clube (o que acabou de leiloar) — antes abria no time
   // nº 0 da lista, que na carreira normal É você… mas no MULTICLUBES, comandando
   // o 2º clube, o nº 0 é o clube ORIGINAL (dormindo) — a cerimônia parecia "do
@@ -3280,7 +3282,7 @@ export function EscCerimonia() {
       {/* 🕴️ AGÊNCIA 2.0: fatura da temporada (mensalidades pagas na virada +
           comissões de artilheiro/campeão + negociações do leilão que acabou).
           Tudo JÁ caiu no caixa do 1º clube — aqui é o resumo pós-apito. */}
-      {state.agenciaOn && state.agenciaFatura && (state.agenciaFatura.total > 0 || state.agenciaFatura.rows.length > 0) && (
+      {state.agenciaOn && agLibCer && state.agenciaFatura && (state.agenciaFatura.total > 0 || state.agenciaFatura.rows.length > 0) && (
         <div className="border-[3px] border-black rounded-2xl p-4" style={{ background: `linear-gradient(160deg, ${GREEN}, #14401f)`, boxShadow: `4px 4px 0 ${INK}`, color: '#fff' }}>
           <p className="font-black text-sm uppercase" style={OSWALD}>🕴️ Sua agência faturou</p>
           {state.agenciaFatura.mensal > 0 && (

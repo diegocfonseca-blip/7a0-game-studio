@@ -121,8 +121,29 @@ export function useTemaLiberado(): boolean {
   return temaLiberado
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email) })
+// 🕴️ AGÊNCIA 2.0 — decisão do Diego (03/08): por enquanto SÓ a conta dele.
+// Carreira nova só nasce com a agência se a conta logada estiver na lista; e
+// mesmo um save que tenha a flag (criado na janela em que ficou público) não
+// MOSTRA nada pra conta comum — o jogo fica 100% igual ao de sempre pros outros.
+// Quando o Diego liberar geral, é só esvaziar a checagem (um lugar só).
+const AGENCIA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let agenciaOk = false
+function applyAgenciaUnlock(email?: string | null): void {
+  const u = !!email && AGENCIA_TESTERS.has(email.toLowerCase())
+  if (u === agenciaOk) return
+  agenciaOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function agenciaLiberada(): boolean { return agenciaOk }
+// hook React: re-renderiza quando o login resolve/troca de conta
+export function useAgenciaLiberada(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return agenciaOk
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 

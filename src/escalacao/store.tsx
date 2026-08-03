@@ -179,7 +179,7 @@ const agKey = (c: { name: string; club?: string; year?: number }) => `${c.name}|
 // se está DORMINDO, cai na caixa dele (extrato roteado pro stash pelo logFin).
 // O evento entra na fatura pra aparecer na Cerimônia. Só carreira solo NOVA.
 function agenciaTransacao(s: EscState, card: { name: string; club?: string; year?: number }) {
-  if (!s.agenciaOn) return
+  if (!s.agenciaOn || !agenciaLiberada()) return // 🔒 por enquanto só a conta do Diego
   const ag = (s.agenciados ?? []).find(a => a.name === card.name)
   if (!ag) return
   const active = s.managers[s.youIdx]?.id
@@ -238,7 +238,7 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
   // "na ativa" — mensalidades por categoria (lenda 5 + folclórico +1) e comissões
   // de eventos (artilheiro/campeão, acumulados em agenciaEventos). Tudo cai no
   // caixa do 1º CLUBE (agenciaClubeId), mesmo que ele esteja dormindo.
-  if (!online && s.agenciaOn) {
+  if (!online && s.agenciaOn && agenciaLiberada()) { // 🔒 por enquanto só a conta do Diego
     const dest = s.agenciaClubeId ?? y
     const renda = agenciaRenda(s.agenciados, s.stadiums?.[dest], !!s.careerFilial)
     if (renda.total > 0) s.careerCoins = { ...s.careerCoins, [dest]: (s.careerCoins[dest] ?? 0) + renda.total }
@@ -364,6 +364,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
 import type { CareerTeam } from './data'
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium, sectorPct, hasExtra, SPONSOR_PAY, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat } from './estadiodata'
 import { supabase } from '../lib/supabase'
+import { agenciaLiberada } from './sport'
 import { logPlay, logVisit, heartbeat } from './analytics'
 import { pack, unpack } from './netpack'
 
@@ -2929,7 +2930,9 @@ export function reducer(state: EscState, action: Action): EscState {
       s.contratosOn = true // 📝 contratos de jogador: SÓ carreira NOVA (save antigo segue sem)
       // 🕴️ AGÊNCIA 2.0: SÓ carreira NOVA — convoca até 22 do álbum; renda SEMPRE no
       // 1º clube (o da fundação). Save antigo segue no empresário clássico.
-      s.agenciaOn = true
+      // 🔒 Por enquanto SÓ a conta do Diego (AGENCIA_TESTERS) — carreira de conta
+      // comum nasce SEM a flag e fica 100% igual ao jogo de sempre.
+      s.agenciaOn = agenciaLiberada() || undefined
       s.agenciados = []; s.agenciaEventos = undefined; s.agenciaFatura = undefined; s.agenciaHist = {}
       s.careerEra = MANUAL_ERA // 🎮 carreira NOVA: o Modo Manual pede apoio. Saves ANTIGOS não têm esse campo → seguem com o manual liberado (grandfather).
       s.roomId = ''; s.roomCode = ''; s.roomName = undefined
@@ -3928,7 +3931,7 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'SET_AGENCIA': {
       // 🕴️ AGÊNCIA 2.0: grava a convocação (até 22, nomes únicos — a tela já valida,
       // aqui é a trava de motor). Só carreira solo nova.
-      if (!s.agenciaOn) return s
+      if (!s.agenciaOn || !agenciaLiberada()) return s
       const seen = new Set<string>()
       const list: AgCard[] = []
       for (const c of action.cards) {
@@ -3944,7 +3947,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro/campeão) — computados na
       // tela quando a Copa termina; ficam PENDENTES e são pagos na virada
       // (applySeasonMoney). Idempotente: só grava uma vez por temporada.
-      if (!s.agenciaOn) return s
+      if (!s.agenciaOn || !agenciaLiberada()) return s
       if (action.season !== (s.seasonNo ?? 1)) return s
       if (s.agenciaEventos?.season === action.season && s.agenciaEventos.eventosDone) return s
       const prev = (s.agenciaEventos && s.agenciaEventos.season === action.season) ? s.agenciaEventos.rows : []

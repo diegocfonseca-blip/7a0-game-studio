@@ -787,6 +787,13 @@ empresário clássico, nada muda). Decidido com o Diego nesta sessão:
   leilão roda com seasonNo já virado → fatura carimbada com a temporada NOVA
   (senão a transação criava fatura vazia por cima e a Cerimônia perdia tudo).
 Revertível: commit isolado; agenciaOn só nasce em carreira nova.
+- 🔒 **TRAVA DE CONTA (03/08, pedido do Diego DEPOIS do deploy): Agência 2.0 por
+  enquanto SÓ diego.c.fonseca@gmail.com** (AGENCIA_TESTERS em sport.ts, mesmo
+  padrão do noturno/basquete). Carreira nova de conta comum nasce SEM a flag; e
+  mesmo save com flag (criado na janela pública de ~2h) não mostra NADA pra
+  conta comum — motor e telas checam agenciaLiberada(). Liberar geral = esvaziar
+  a checagem num lugar só. ⚠️ O teste headless (agenciatest.mjs) agora precisa
+  de mock do tester pra rodar (sem auth, gate=false).
 ### Combinados que FICARAM (não fazer sem OK):
 - ✅ 📰 **Jornal página 2 "Caderno do Empresário" — FEITO (03/08, mockup v2 aprovado)**:
   capa 100% IGUAL a hoje (donos da temporada intactos — exigência do Diego) + vira
