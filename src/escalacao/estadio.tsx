@@ -52,8 +52,8 @@ export function SponsorCard({ div, chosen, onChoose }: { div: string; chosen?: s
       {pay === 0 || opts.length === 0 ? (
         <div style={{ background: '#FBF4DE', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: '13px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, textAlign: 'center' }}>
           <span style={{ fontSize: 24 }}>👕</span>
-          <p style={{ ...OSW, fontWeight: 900, fontSize: 13, color: INK, margin: 0, lineHeight: 1.25 }}>A Série D ainda não tem patrocínio</p>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0, lineHeight: 1.4 }}>Nenhuma marca aparece pra bancar a camisa aqui embaixo. <b>Suba de divisão</b> pra começar a faturar:</p>
+          <p style={{ ...OSW, fontWeight: 900, fontSize: 13, color: INK, margin: 0, lineHeight: 1.25 }}>{div === 'V' ? 'A Várzea não atrai patrocínio (ainda 🍺)' : 'A Série D ainda não tem patrocínio'}</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0, lineHeight: 1.4 }}>Nenhuma marca aparece pra bancar a camisa aqui embaixo{div === 'V' ? ' no peladão' : ''}. <b>Suba de divisão</b> pra começar a faturar:</p>
           <div style={{ display: 'flex', gap: 6, marginTop: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
             {[['C', 5], ['B', 10], ['A', 20]].map(([d, v]) => (
               <span key={d as string} style={{ ...OSW, fontWeight: 900, fontSize: 10.5, background: '#fff', border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 9px', color: INK }}>Série {d} <span style={{ color: GREEN }}>+{v}</span></span>

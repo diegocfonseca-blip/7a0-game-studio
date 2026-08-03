@@ -879,3 +879,26 @@ Diego cobrou "tudo novo já" na conta dele → a 5ª divisão entrou de verdade:
   novo 100%. agenciatest ✅ (agência no mundo V) + save antigo clássico ✅.
 - Harnesses (scratchpad): simescada.mjs/agenciatest.mjs usam sportstub.js (alias
   ./sport com travas ligadas).
+
+## 🏦 BANCO LEGENDS — FEITO (04/08, mockup aprovado; visível SÓ pro Diego até a chave Pix real)
+Pacotes 10/50/100/500/1000 (1 real = 1 moeda). Supabase: tabela bl_fichas (RLS só
+admin) + RPC bl_redeem (atômica, security definer, 1 uso por ficha, exige login).
+Jogo: botão "🏦 Banco Legends" em Clube › Finanças (SÓ carreira solo) → gerente
+Seu Creuzebek 🤵 + pacotes + passos do Pix + resgatar ficha (anti-chute 3 erros =
+1min) → BANCO_CREDIT credita no caixa do clube ativo + extrato "🏦 Empréstimo do
+Banco Legends" (kind 'banco'). Admin: "Caixa do Gerente" (gera ficha BL-XXXX-XX,
+copia no toque, lista quem usou). ⚠️ BL_PIX = banco@leilaolegends.com é
+PLACEHOLDER — Diego precisa passar a chave real; aí troca e libera geral (gate
+useAgenciaLiberada hoje).
+
+## 🌱 VÁRZEA — 4 correções do 1º teste do Diego (04/08, prints)
+1. Patrocínio dizia "Série D" na Várzea → texto próprio ("A Várzea não atrai
+   patrocínio (ainda 🍺)"); telas de criação/manual também falam Várzea (conta dele).
+2. Clube › Agência (sub-aba) REMOVIDA quando Agência 2.0 ligada (a agência mora
+   em Elenco › Agenciados; desbloqueios aparecem lá na caixinha de travas).
+3. 🚨 Convocação puxava o ÁLBUM GLOBAL da conta → agora SÓ cartas de título DESTA
+   carreira (empresarioCards + stash do 2º clube), com TRAVA no motor
+   (SET_AGENCIA valida contra o cofre) e SANEAMENTO na virada (convocação antiga
+   com carta de fora é limpa e para de render).
+4. Bots da várzea tinham PROMESSA no elenco → makeBotSquad (modo várzea) exclui
+   promessa (vale também pro modo rápido Várzea — lá o catálogo já vinha filtrado).

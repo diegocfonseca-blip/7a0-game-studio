@@ -770,8 +770,8 @@ const agChip = (c: { fame?: number; promessa?: boolean }) =>
     : (c.fame ?? 1) >= 2 ? { t: '🎯 BOM', bg: '#2E9E5B', ink: '#fff' }
     : { t: '🪵 FOI PROF.', bg: '#CBBF9E', ink: INK }
 
-function AgenciadosTab({ cards, hist, fatura, st, hasFilial, primeiroClube, onSet }: {
-  cards: AgCard[]; hist: Record<string, number> | undefined
+function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube, onSet }: {
+  cards: AgCard[]; pool: AgCard[]; hist: Record<string, number> | undefined
   fatura: { season: number; mensal: number; rows: AgEvento[]; total: number } | undefined
   st: StadiumSave | undefined; hasFilial: boolean; primeiroClube: string
   onSet: (cards: AgCard[]) => void
@@ -787,7 +787,7 @@ function AgenciadosTab({ cards, hist, fatura, st, hasFilial, primeiroClube, onSe
         <span style={{ fontSize: 26 }}>🕴️</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>Sua Agência</div>
-          <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>Convoque até 22 cartas do seu álbum pra "ativa" — só elas rendem. A grana cai no <b>{primeiroClube}</b> (1º clube).</div>
+          <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>Convoque até 22 cartas de título DESTA carreira pra "ativa" — só elas rendem. A grana cai no <b>{primeiroClube}</b> (1º clube).</div>
         </div>
         <div style={{ background: GOLD, border: '2px solid rgba(255,255,255,.25)', borderRadius: 10, padding: '4px 10px', textAlign: 'center', color: INK }}>
           <b style={{ display: 'block', ...OSWALD, fontSize: 16, lineHeight: 1 }}>{cards.length}/22</b>
@@ -868,13 +868,13 @@ function AgenciadosTab({ cards, hist, fatura, st, hasFilial, primeiroClube, onSe
       )}
       {cards.length === 0 && (
         <div style={{ ...box('#FBF6E9'), padding: 16, textAlign: 'center', fontWeight: 700, color: '#8a7d59', fontSize: 12.5, marginBottom: 10 }}>
-          Ninguém na ativa ainda. Toque em <b>Convocar agenciados</b> e escolha até 22 cartas do seu álbum — as cartas você ganha sendo <b>campeão</b> (o pacote do título).
+          Ninguém na ativa ainda. As cartas da agência você ganha sendo <b>campeão NESTA carreira</b> (o pacote do título) — aí é só convocar até 22 pra ativa.
         </div>
       )}
 
       {/* CONVOCAR + trava explicada */}
       <button onClick={() => setConvocando(true)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase', marginBottom: 8 }}>
-        🧢 Convocar agenciados — {cards.length > 0 ? 'trocar os 22' : 'escolher do álbum'}
+        🧢 Convocar agenciados — {cards.length > 0 ? 'trocar os 22' : 'escolher do cofre da carreira'}
       </button>
       {locked.length > 0 && (
         <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', background: '#FFF7DB', border: `2px solid ${INK}`, borderRadius: 10, padding: '6px 9px' }}>
@@ -909,41 +909,19 @@ function AgenciadosTab({ cards, hist, fatura, st, hasFilial, primeiroClube, onSe
         )
       })()}
 
-      {convocando && <ConvocacaoAgencia current={cards} onClose={() => setConvocando(false)} onSave={list => { onSet(list); setConvocando(false) }} />}
+      {convocando && <ConvocacaoAgencia current={cards} pool={pool} onClose={() => setConvocando(false)} onSave={list => { onSet(list); setConvocando(false) }} />}
     </>
   )
 }
 
 // 🧢 CONVOCAÇÃO da agência: escolhe até 22 do ÁLBUM (igual convocação da Copa —
 // filtro por posição + busca). Mesma PESSOA só uma vez (auges diferentes = 1 vaga).
-function ConvocacaoAgencia({ current, onClose, onSave }: { current: AgCard[]; onClose: () => void; onSave: (cards: AgCard[]) => void }) {
-  const [pool, setPool] = useState<AgCard[] | null>(null)
+// ⚠️ CORREÇÃO (relato do Diego 04/08): a agência usa SÓ as cartas ganhas NESTA
+// carreira (pacotes de título daqui) — nada de puxar o álbum global da conta.
+function ConvocacaoAgencia({ current, pool, onClose, onSave }: { current: AgCard[]; pool: AgCard[]; onClose: () => void; onSave: (cards: AgCard[]) => void }) {
   const [tab, setTab] = useState<Sector>('GOL')
   const [q, setQ] = useState('')
   const [sel, setSel] = useState<Record<string, AgCard>>(() => Object.fromEntries(current.map(c => [agKeyOf(c), c])))
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) { setPool([]); return }
-        const { data } = await supabase.from('user_cards').select('card_name, card_club, card_year, card_pos, card_fame').eq('user_id', user.id)
-        // folk/promessa não ficam no álbum — cruza com o catálogo pelo auge (nome+clube+ano)
-        const flag = new Map<string, { folk?: boolean; promessa?: boolean }>()
-        for (const sec of SECTORS) for (const c of (CATALOG_BOTH[sec] ?? [])) flag.set(`${c.name}|${c.club}|${c.year}`, { folk: c.folk, promessa: c.promessa })
-        const seen = new Set<string>(); const out: AgCard[] = []
-        for (const r of (data ?? []) as { card_name: string; card_club: string; card_year: number; card_pos: string; card_fame: number }[]) {
-          if (!r.card_name) continue
-          const k = `${r.card_name}|${r.card_club}|${r.card_year}`
-          if (seen.has(k)) continue
-          seen.add(k)
-          const f = flag.get(k)
-          out.push({ name: r.card_name, club: r.card_club ?? '', year: r.card_year ?? 0, pos: (r.card_pos ?? 'MEI') as Sector, fame: r.card_fame ?? 1, folk: f?.folk || undefined, promessa: f?.promessa || undefined })
-        }
-        out.sort((a, b) => (b.fame - a.fame) || a.name.localeCompare(b.name))
-        setPool(out)
-      } catch { setPool([]) }
-    })()
-  }, [])
   const total = Object.keys(sel).length
   const usedNames = new Set(Object.values(sel).map(c => c.name))
   const toggle = (c: AgCard) => {
@@ -956,7 +934,7 @@ function ConvocacaoAgencia({ current, onClose, onSave }: { current: AgCard[]; on
       nx[k] = c; return nx
     })
   }
-  const list = (pool ?? []).filter(c => c.pos === tab).filter(c => !q || c.name.toLowerCase().includes(q.toLowerCase()))
+  const list = pool.filter(c => c.pos === tab).filter(c => !q || c.name.toLowerCase().includes(q.toLowerCase()))
   const countPos = (p: Sector) => Object.values(sel).filter(c => c.pos === p).length
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.78)', overflowY: 'auto', padding: '18px 12px 30px' }}>
@@ -965,7 +943,7 @@ function ConvocacaoAgencia({ current, onClose, onSave }: { current: AgCard[]; on
           <span style={{ fontSize: 26 }}>🧢</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>Convocação da Agência</div>
-            <div style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>{pool === null ? 'Carregando seu álbum…' : `${pool.length} cartas no seu álbum`} — convoque até 22 pra ativa. Troque quando quiser.</div>
+            <div style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>{pool.length} cartas de título DESTA carreira — convoque até 22 pra ativa. Troque quando quiser.</div>
           </div>
           <div style={{ background: GOLD, border: '2px solid rgba(255,255,255,.25)', borderRadius: 10, padding: '4px 9px', textAlign: 'center', color: INK }}>
             <b style={{ display: 'block', ...OSWALD, fontSize: 15, lineHeight: 1 }}>{total}/22</b>
@@ -981,13 +959,12 @@ function ConvocacaoAgencia({ current, onClose, onSave }: { current: AgCard[]; on
           ))}
         </div>
 
-        <input value={q} onChange={e => setQ(e.target.value)} placeholder={`🔎 buscar nos ${(pool ?? []).filter(c => c.pos === tab).length} da posição…`}
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder={`🔎 buscar nos ${pool.filter(c => c.pos === tab).length} da posição…`}
           style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 11, padding: '7px 11px', fontWeight: 800, fontSize: 12, background: '#fff', marginBottom: 8, boxSizing: 'border-box' }} />
 
         <div style={{ ...box('#fff'), borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
           <div style={{ maxHeight: 300, overflowY: 'auto' }}>
-            {pool === null && <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', padding: 14 }}>Abrindo o álbum… 📖</p>}
-            {pool !== null && list.map(c => {
+            {list.map(c => {
               const k = agKeyOf(c)
               const on = !!sel[k]
               const otherVersion = !on && usedNames.has(c.name)
@@ -1004,9 +981,9 @@ function ConvocacaoAgencia({ current, onClose, onSave }: { current: AgCard[]; on
                 </button>
               )
             })}
-            {pool !== null && list.length === 0 && (
+            {list.length === 0 && (
               <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', padding: 14 }}>
-                {pool.length === 0 ? 'Seu álbum ainda está vazio — ganhe títulos pra ganhar cartas! 🏆' : 'ninguém com esse nome aqui… 🔎'}
+                {pool.length === 0 ? 'O cofre desta carreira ainda está vazio — seja CAMPEÃO aqui pra ganhar cartas! 🏆' : 'ninguém com esse nome aqui… 🔎'}
               </p>
             )}
           </div>
@@ -1057,6 +1034,99 @@ function AgenciaDesbloqueios({ st, hasFilial }: { st: StadiumSave | undefined; h
         </div>
       </div>
     </>
+  )
+}
+
+
+// ── 🏦 BANCO LEGENDS (Clube › Finanças) — compra manual de moedas via Pix ────
+// Fluxo do Diego: jogador manda Pix → comprovante no zap → Diego gera a FICHA no
+// admin → jogador resgata aqui. A validação/queima é ATÔMICA no Supabase (RPC
+// bl_redeem); o reducer só credita. SÓ carreira SOLO. 🔒 Em teste: só a conta
+// do Diego vê (libera geral quando ele passar a chave Pix real).
+const BL_PIX = 'banco@leilaolegends.com' // ⚠️ placeholder — trocar pela chave REAL do Diego antes de liberar geral
+const BL_PACOTES: [number, string][] = [[10, 'CAFEZINHO'], [50, 'REFORÇO PONTUAL'], [100, 'FÔLEGO DE TEMPORADA'], [500, 'PROJETO SAF'], [1000, 'INVESTIDOR VISIONÁRIO 👑']]
+function BancoLegends() {
+  const { state, dispatch } = useEsc()
+  const lib = useAgenciaLiberada()
+  const [aberto, setAberto] = useState(false)
+  const [code, setCode] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [fails, setFails] = useState(0)
+  const [coolAte, setCoolAte] = useState(0)
+  const [msg, setMsg] = useState<{ ok: boolean; coins?: number; tx: string } | null>(null)
+  if (!lib || state.onlineMode === 'online' || !state.careerOnline) return null
+  const emCooldown = Date.now() < coolAte
+  const resgatar = async () => {
+    if (busy || emCooldown || !code.trim()) return
+    setBusy(true); setMsg(null)
+    try {
+      const { data, error } = await supabase.rpc('bl_redeem', { p_code: code.trim() })
+      if (error) throw error
+      if (data === -1) setMsg({ ok: false, tx: 'Entre na sua conta pra resgatar a ficha.' })
+      else if (!data) {
+        const f = fails + 1; setFails(f)
+        if (f >= 3) { setCoolAte(Date.now() + 60000); setFails(0); setMsg({ ok: false, tx: 'Ficha inválida ou já usada. Muitas tentativas — espera 1 minutinho. ⏳' }) }
+        else setMsg({ ok: false, tx: 'Ficha inválida ou já usada. Confere o código no zap do gerente. 🤵' })
+      } else {
+        dispatch({ type: 'BANCO_CREDIT', coins: data as number, code: code.trim().toUpperCase() })
+        setMsg({ ok: true, coins: data as number, tx: 'Vai lá e faz história, doutor. O banco tá de olho. 👀' })
+        setCode(''); setFails(0)
+      }
+    } catch { setMsg({ ok: false, tx: 'Sem conexão com o banco agora — tenta de novo em instantes.' }) }
+    setBusy(false)
+  }
+  return (
+    <div style={{ marginTop: 12 }}>
+      {!aberto ? (
+        <button onClick={() => setAberto(true)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 12px', background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left' }}>
+          <span style={{ fontSize: 24 }}>🏦</span>
+          <span style={{ flex: 1 }}>
+            <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase' }}>Banco Legends</span>
+            <span style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#8a8069' }}>Precisa de um capital pro clube? O gerente aprova na hora. 🤵</span>
+          </span>
+          <span style={{ fontWeight: 900, fontSize: 18 }}>›</span>
+        </button>
+      ) : (
+        <div style={{ ...box('#FBF6E9'), padding: 12 }}>
+          <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '11px 12px', display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 10, borderRadius: 14 }}>
+            <span style={{ flex: 'none', width: 46, height: 46, borderRadius: 999, background: '#F4ECD6', border: `3px solid ${INK}`, display: 'grid', placeItems: 'center', fontSize: 24 }}>🤵</span>
+            <div>
+              <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase' }}>Seu Creuzebek · Gerente do Banco Legends</div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, fontStyle: 'italic', lineHeight: 1.4, color: 'rgba(255,255,255,.9)', marginTop: 2 }}>"Precisa de um capital pro clube, doutor? O banco APROVA na hora — sem juros, sem fiador, sem choro."</div>
+            </div>
+          </div>
+          {BL_PACOTES.map(([v, tag]) => (
+            <div key={v} style={{ display: 'flex', alignItems: 'center', gap: 8, border: `2.5px solid ${INK}`, borderRadius: 12, background: v === 100 ? '#FFF7DB' : '#fff', boxShadow: `2px 2px 0 0 ${INK}`, padding: '7px 10px', marginBottom: 6 }}>
+              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 16, minWidth: 78 }}>{v} 🪙</span>
+              <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: .5, color: '#8a8069' }}>{tag}</span>
+              <span style={{ marginLeft: 'auto', ...OSWALD, fontWeight: 900, fontSize: 13, background: GOLD, border: `2px solid ${INK}`, borderRadius: 9, padding: '3px 10px', whiteSpace: 'nowrap' }}>R$ {v}</span>
+            </div>
+          ))}
+          <div style={{ ...box(), padding: '9px 11px', margin: '10px 0' }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', margin: '0 0 4px' }}>Como funciona</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.5, margin: 0 }}>1️⃣ Escolha o pacote e mande o Pix pra chave:<br /></p>
+            <p style={{ background: '#EAF6EE', border: `2.5px dashed ${INK}`, borderRadius: 10, padding: '6px 8px', fontWeight: 900, fontSize: 11.5, textAlign: 'center', margin: '5px 0' }}>📲 PIX: {BL_PIX}</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.5, margin: 0 }}>2️⃣ Manda o <b>comprovante no WhatsApp</b> — o gerente responde com sua <b>FICHA DO BANCO</b> (um código).<br />3️⃣ Digita a ficha abaixo — as moedas caem <b>na hora</b> no caixa do clube. 💸</p>
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <input value={code} onChange={e => setCode(e.target.value)} placeholder="BL-XXXX-XX" maxLength={14}
+              style={{ flex: 1, border: `3px solid ${INK}`, borderRadius: 12, padding: '9px 10px', ...OSWALD, fontWeight: 700, fontSize: 15, letterSpacing: 2, textTransform: 'uppercase', textAlign: 'center', background: '#fff' }} />
+            <button onClick={resgatar} disabled={busy || emCooldown} style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '9px 14px', ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', background: busy || emCooldown ? '#CBBF9E' : `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `2px 2px 0 0 ${INK}`, cursor: busy || emCooldown ? 'not-allowed' : 'pointer' }}>{busy ? '…' : 'Resgatar'}</button>
+          </div>
+          {msg && (msg.ok ? (
+            <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: 12, textAlign: 'center', marginTop: 10 }}>
+              <span style={{ display: 'inline-block', border: `3px solid ${GOLD}`, color: GOLD, ...OSWALD, fontWeight: 900, fontSize: 13, letterSpacing: 2, padding: '2px 12px', borderRadius: 8, transform: 'rotate(-5deg)', textTransform: 'uppercase' }}>Empréstimo aprovado</span>
+              <div style={{ ...OSWALD, fontWeight: 900, fontSize: 26, marginTop: 6 }}>+{msg.coins} 🪙</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.85)', marginTop: 3 }}>no caixa do clube · assinado: Seu Creuzebek 🖋️<br />"{msg.tx}"</div>
+            </div>
+          ) : (
+            <p style={{ fontSize: 10.5, fontWeight: 800, color: '#c0392b', margin: '8px 0 0', textAlign: 'center' }}>{msg.tx}</p>
+          ))}
+          <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', textAlign: 'center', margin: '8px 0 0' }}>Cada ficha vale UMA vez, só na sua conta · só na carreira solo.</p>
+          <button onClick={() => { setAberto(false); setMsg(null) }} style={{ width: '100%', marginTop: 8, background: 'none', border: 'none', fontSize: 10.5, fontWeight: 900, textDecoration: 'underline', color: 'rgba(0,0,0,.5)', cursor: 'pointer' }}>fechar o banco</button>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -3044,7 +3114,9 @@ export function PyramidSeasonScreen() {
                 Agora tudo (Estádio · Finanças · Agência) vale online também,
                 por-técnico (Passo 2c completa a paridade com o offline). */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              {(([['estadio', '🏟️', 'Estádio'], ['financas', '💰', 'Finanças'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][]).map(([s, ic, label]) => (
+              {(([['estadio', '🏟️', 'Estádio'], ['financas', '💰', 'Finanças'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
+                // 🕴️ Agência 2.0 ligada: a agência mora em Elenco › Agenciados — some a sub-aba daqui (pedido do Diego)
+                .filter(([sb]) => !(sb === 'escritorio' && state.agenciaOn && agLib)).map(([s, ic, label]) => (
                 <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>
@@ -3055,8 +3127,11 @@ export function PyramidSeasonScreen() {
                 ? <AgenciaDesbloqueios st={state.stadiums?.[state.agenciaClubeId ?? youId]} hasFilial={!!state.careerFilial} />
                 : <EscritorioTab cards={(state.onlineMode === 'online' ? state.careerEmpresario?.[youId] : state.empresarioCards) ?? []} st={state.stadiums?.[youId]} hasFilial={state.onlineMode === 'online' ? !!state.careerFilials?.[youId] : !!state.careerFilial} />
             ) : clubeSub === 'financas' ? (
+              <>
               <FinancasTab ledger={(state.onlineMode === 'online' ? state.careerLedgers?.[youId] : state.careerLedger) ?? []} caixa={state.careerCoins?.[youId] ?? 0} seasonNo={state.seasonNo ?? 1}
                 squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
+              <BancoLegends />
+              </>
             ) : (
           <>
             {/* 👕 Patrocínio: escolhe a marca (por divisão); rende no vira-temporada.
@@ -3203,7 +3278,18 @@ export function PyramidSeasonScreen() {
               </div>
             )}
             {state.agenciaOn && agLib && elencoSub === 'agencia' ? (
-              <AgenciadosTab cards={state.agenciados ?? []} hist={state.agenciaHist} fatura={state.agenciaFatura}
+              <AgenciadosTab cards={state.agenciados ?? []}
+                pool={(() => {
+                  const seen = new Set<string>(); const out: AgCard[] = []
+                  for (const c of [...(state.empresarioCards ?? []), ...(state.multiClube?.empresario ?? [])]) {
+                    const k = `${c.name}|${c.club}|${c.year}`
+                    if (seen.has(k)) continue
+                    seen.add(k)
+                    out.push({ name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk || undefined, promessa: c.promessa || undefined })
+                  }
+                  return out.sort((a, b) => (b.fame - a.fame) || a.name.localeCompare(b.name))
+                })()}
+                hist={state.agenciaHist} fatura={state.agenciaFatura}
                 st={state.stadiums?.[state.agenciaClubeId ?? youId]} hasFilial={!!state.careerFilial}
                 primeiroClube={state.managers.find(m => m.id === (state.agenciaClubeId ?? youId))?.teamName ?? 'seu 1º clube'}
                 onSet={cards => dispatch({ type: 'SET_AGENCIA', cards })} />

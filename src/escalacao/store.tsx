@@ -285,6 +285,10 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
   // de eventos (artilheiro/campeão, acumulados em agenciaEventos). Tudo cai no
   // caixa do 1º CLUBE (agenciaClubeId), mesmo que ele esteja dormindo.
   if (!online && s.agenciaOn && agenciaLiberada()) { // 🔒 por enquanto só a conta do Diego
+    // 🧹 saneia a ativa: só carta do cofre DESTA carreira rende (remove convocação
+    // antiga feita quando a tela puxava o álbum global — bug corrigido 04/08)
+    const cofreA = new Set([...(s.empresarioCards ?? []), ...(s.multiClube?.empresario ?? [])].map(c => `${c.name}|${c.club}|${c.year}`))
+    if ((s.agenciados ?? []).some(a => !cofreA.has(`${a.name}|${a.club}|${a.year}`))) s.agenciados = (s.agenciados ?? []).filter(a => cofreA.has(`${a.name}|${a.club}|${a.year}`))
     const dest = s.agenciaClubeId ?? y
     const renda = agenciaRenda(s.agenciados, s.stadiums?.[dest], !!s.careerFilial)
     if (renda.total > 0) s.careerCoins = { ...s.careerCoins, [dest]: (s.careerCoins[dest] ?? 0) + renda.total }
@@ -2089,8 +2093,8 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
       // por sorteio. Se a posição ficar sem um tipo, completa com o outro (nunca fake).
       const foiRate = tier === 'strong' ? 0.22 : tier === 'weak' ? 0.55 : 0.40
       const nFoi = Math.round(need * foiRate)
-      const foi = shuffled.filter(c => c.fame === 1)
-      const bom = shuffled.filter(c => c.fame === 2 || c.fame === 3)
+      const foi = shuffled.filter(c => c.fame === 1 && !c.promessa)
+      const bom = shuffled.filter(c => (c.fame === 2 || c.fame === 3) && !c.promessa) // 💎 promessa NÃO joga várzea (régua do Diego)
       picks = [...foi.slice(0, nFoi), ...bom.slice(0, need - nFoi)]
       // se faltou de um lado (posição com poucos de um tipo), completa do outro
       if (picks.length < need) for (const c of [...bom.slice(need - nFoi), ...foi.slice(nFoi)]) { if (picks.length >= need) break; picks.push(c) }
@@ -2242,6 +2246,7 @@ type Action =
   | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: 5 | 10 } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — 10 anos = valor oficial cheio, 5 = metade. Prazo real sai com tempero (±1) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); quem não renovar vai pro leilão com teto de venda
   | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
   | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
+  | { type: 'BANCO_CREDIT'; coins: number; code: string } // 🏦 Banco Legends: ficha resgatada (RPC já validou/queimou no Supabase) — credita no caixa do clube ATIVO e registra no extrato. Só carreira solo
   | { type: 'SET_AGENCIA'; cards: AgCard[] } // 🕴️ AGÊNCIA 2.0: grava a convocação dos até 22 "na ativa" (escolhidos do álbum). Só carreira solo nova (agenciaOn)
   | { type: 'AGENCIA_SEASON_EVENTS'; season: number; rows: AgEvento[] } // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro/campeão dos agenciados) — computados na tela quando a Copa termina; pagos na virada. Idempotente por temporada
   | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos 60 times de fundo (1x)
@@ -4024,13 +4029,27 @@ export function reducer(state: EscState, action: Action): EscState {
       s.statsSeason = s.seasonNo
       return s
     }
+    case 'BANCO_CREDIT': {
+      // 🏦 BANCO LEGENDS: a validação/queima da ficha é do Supabase (RPC atômica);
+      // aqui só entra o crédito. Solo apenas; valores fixos dos pacotes.
+      if (s.onlineMode === 'online' || !s.careerOnline) return s
+      if (![10, 50, 100, 500, 1000].includes(action.coins)) return s
+      const yb = s.managers[s.youIdx]?.id ?? 0
+      s.careerCoins = { ...(s.careerCoins ?? {}), [yb]: (s.careerCoins?.[yb] ?? 0) + action.coins }
+      logFin(s, 'banco', `🏦 Empréstimo do Banco Legends (ficha ${action.code})`, action.coins, undefined, yb)
+      return s
+    }
     case 'SET_AGENCIA': {
       // 🕴️ AGÊNCIA 2.0: grava a convocação (até 22, nomes únicos — a tela já valida,
       // aqui é a trava de motor). Só carreira solo nova.
       if (!s.agenciaOn || !agenciaLiberada()) return s
+      // 🔒 trava de motor: só carta ganha NESTA carreira (títulos daqui — ativo +
+      // stash do 2º clube) pode ser convocada. Nada de carta de fora entrar.
+      const cofre = new Set([...(s.empresarioCards ?? []), ...(s.multiClube?.empresario ?? [])].map(c => `${c.name}|${c.club}|${c.year}`))
       const seen = new Set<string>()
       const list: AgCard[] = []
       for (const c of action.cards) {
+        if (!cofre.has(`${c.name}|${c.club}|${c.year}`)) continue
         if (list.length >= 22) break
         if (seen.has(c.name)) continue // mesma pessoa 2x não vale (dois auges = 1 escolha)
         seen.add(c.name)

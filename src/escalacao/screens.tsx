@@ -1483,7 +1483,7 @@ export function EscIntro() {
       <div className="grid grid-cols-2 gap-2.5">
         {([['🔨', 'O Pregão', '5 rodadas de leilão cego: goleiro, lateral, zaga, meio e ataque. Ninguém vê o lance de ninguém.'],
            ['🎭', 'Níveis ocultos', 'Você aposta no nome. O nível só abre na Cerimônia — e todo craque tem dia bom e dia ruim.'],
-           ['🪜', 'Pirâmide', 'Comece na Série D e suba até a A. Cada título vira uma carta no seu álbum.'],
+           ['🪜', 'Pirâmide', escadaLiberada() ? 'Comece na VÁRZEA e suba até a Série A. Cada título vira uma carta no seu álbum.' : 'Comece na Série D e suba até a A. Cada título vira uma carta no seu álbum.'],
            ['💎', 'Vale o auge', 'O nível é o auge do craque, conforme o baralho: no 🇧🇷 conta o auge no Brasil; no 🌍 Europa, o auge lá fora. Estrela só na Europa entra como promessa no BR.']] as [string, string, string][]).map(([ic, t, d]) => (
           <div key={t} className="border-[3px] border-black rounded-xl bg-white p-3" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
             <div className="text-xl">{ic}</div>
@@ -1529,7 +1529,7 @@ function ManualDoTecnico({ onClose }: { onClose: () => void }) {
   const modos: [string, string, string][] = [
     ['⚡', 'Rápido (offline)', 'Você contra a CPU. Monta o time no leilão e joga UMA temporada (liga + Copa dos 8). Bom pra treinar o dedo.'],
     ['🌐', 'Rápido Online', 'Mesma coisa, só que os lances são dos seus AMIGOS na sala (até 8). Baralho Brasil, Europa, Todos — ou a Várzea 🥅 (sem craques).'],
-    ['🪜', 'Carreira', 'A vida de técnico: começa na Série D e sobe a pirâmide até a A. Temporada a temporada desbloqueia reservas, vendas, folha salarial, contratos, estádio, SAF…'],
+    ['🪜', 'Carreira', escadaLiberada() ? 'A vida de técnico: começa na VÁRZEA (peladão raiz 🍺) e sobe a pirâmide até a Série A. Temporada a temporada desbloqueia reservas, vendas, folha, contratos, estádio, SAF…' : 'A vida de técnico: começa na Série D e sobe a pirâmide até a A. Temporada a temporada desbloqueia reservas, vendas, folha salarial, contratos, estádio, SAF…'],
   ]
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '18px 12px' }}>
@@ -1651,7 +1651,7 @@ export function EscSetup() {
         <span className="text-lg leading-none">←</span> Home
       </button>
       <h2 className="font-black text-3xl pt-2" style={OSWALD}>{career ? '🪜 CARREIRA · SÉRIE D' : 'MONTE SUA SALA'}</h2>
-      {career && <p className="text-sm font-bold text-black/60 -mt-1">Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.</p>}
+      {career && <p className="text-sm font-bold text-black/60 -mt-1">{escadaLiberada() ? 'Comece na VÁRZEA (5ª divisão, peladão raiz) e suba até a Série A. O mercado sobe junto com você — de perna-de-pau a lenda. Dá pra salvar e voltar depois.' : 'Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.'}</p>}
       {career && (
         <Box bg="#FFF6DE" className="p-4 space-y-1.5">
           <p className="font-black text-sm" style={OSWALD}>⚡ Como funciona a Carreira</p>

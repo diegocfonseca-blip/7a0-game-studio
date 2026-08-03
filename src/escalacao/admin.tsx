@@ -205,6 +205,60 @@ export function AdminButton() {
   )
 }
 
+
+// ── 🏦 BANCO LEGENDS · Caixa do Gerente (só admin) ───────────────────────────
+// Fluxo manual do Diego: Pix caiu → gera a FICHA aqui → manda no zap → acompanha
+// quem resgatou. A ficha é queimada pelo RPC bl_redeem (uma vez, por conta).
+function BancoFichasAdmin() {
+  const [valor, setValor] = useState(100)
+  const [gerada, setGerada] = useState('')
+  const [lista, setLista] = useState<{ code: string; coins: number; created_at: string; used_email: string | null; used_at: string | null }[]>([])
+  const [busy, setBusy] = useState(false)
+  const carregar = async () => {
+    const { data } = await supabase.from('bl_fichas').select('code, coins, created_at, used_email, used_at').order('created_at', { ascending: false }).limit(30)
+    setLista(data ?? [])
+  }
+  useEffect(() => { carregar() }, [])
+  const gerar = async () => {
+    if (busy) return
+    setBusy(true)
+    // código legível sem caractere ambíguo (sem 0/O/1/I)
+    const CH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+    const r = (n: number) => Array.from({ length: n }, () => CH[Math.floor(Math.random() * CH.length)]).join('')
+    const code = `BL-${r(4)}-${r(2)}`
+    const { error } = await supabase.from('bl_fichas').insert({ code, coins: valor })
+    if (!error) { setGerada(code); carregar() }
+    setBusy(false)
+  }
+  return (
+    <div style={{ border: '2px solid ' + GOLD, borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: GOLD, textTransform: 'uppercase', margin: '0 0 10px' }}>🏦 Banco Legends · Caixa do Gerente</p>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+        {[10, 50, 100, 500, 1000].map(v => (
+          <button key={v} onClick={() => setValor(v)} style={{ flex: 1, border: `2.5px solid ${GOLD}`, borderRadius: 10, padding: '7px 2px', ...OSWALD, fontWeight: 900, fontSize: 13, cursor: 'pointer', background: valor === v ? GOLD : 'transparent', color: valor === v ? '#0C0C0C' : GOLD }}>{v}</button>
+        ))}
+      </div>
+      <button onClick={gerar} disabled={busy} style={{ width: '100%', border: 'none', borderRadius: 12, padding: 10, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: GOLD, color: '#0C0C0C', cursor: 'pointer' }}>{busy ? '…' : `🎟️ Gerar ficha de ${valor} 🪙`}</button>
+      {gerada && <p onClick={() => { try { navigator.clipboard.writeText(gerada) } catch { /* ignora */ } }} style={{ background: '#000', border: `2px dashed ${GOLD}`, borderRadius: 10, padding: 9, textAlign: 'center', ...OSWALD, fontWeight: 900, fontSize: 19, letterSpacing: 4, color: GOLD, margin: '8px 0 0', cursor: 'pointer' }} title="toca pra copiar">{gerada}</p>}
+      {gerada && <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(242,232,207,.6)', textAlign: 'center', margin: '4px 0 0' }}>toca no código pra copiar · manda no zap do jogador</p>}
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontWeight: 700, marginTop: 10 }}>
+        <thead><tr>{['Ficha', 'Valor', 'Status', 'Quem usou'].map(h => <th key={h} style={{ padding: '4px 6px', textAlign: 'left', color: 'rgba(242,232,207,.55)', fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase' }}>{h}</th>)}</tr></thead>
+        <tbody>
+          {lista.map(f => (
+            <tr key={f.code}>
+              <td style={{ padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)' }}>{f.code}</td>
+              <td style={{ padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)' }}>{f.coins}</td>
+              <td style={{ padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)', color: f.used_at ? '#6fdb8f' : '#ffd763' }}>{f.used_at ? `✅ usada ${new Date(f.used_at).toLocaleDateString('pt-BR')}` : '⏳ gerada'}</td>
+              <td style={{ padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)' }}>{f.used_email ?? '—'}</td>
+            </tr>
+          ))}
+          {lista.length === 0 && <tr><td colSpan={4} style={{ padding: 8, color: 'rgba(242,232,207,.5)' }}>nenhuma ficha ainda — gera a primeira aí em cima 👆</td></tr>}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 function AdminOverlay() {
   const [email, setEmail] = useState<string | null | undefined>(undefined) // undefined = carregando
   const [busy, setBusy] = useState(false)
@@ -268,7 +322,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <Dashboard email={email!} />}
+        {isAdmin && <><Dashboard email={email!} /><BancoFichasAdmin /></>}
       </div>
     </div>
   )

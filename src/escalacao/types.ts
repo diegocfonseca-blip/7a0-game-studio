@@ -51,7 +51,7 @@ export interface WonCard extends Card {
 export interface LedgerEntry {
   id: string
   season: number // temporada do lançamento
-  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' | 'saf' | 'stadium' | 'safbuy' | 'safsell' | 'opening' | 'empresario' // prêmios · bilheteria · folha · compra · venda · patrocínio · comissão da SAF · obra no estádio · compra da SAF · venda da SAF · saldo inicial · renda do empresário
+  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' | 'saf' | 'stadium' | 'safbuy' | 'safsell' | 'opening' | 'empresario' | 'banco' // prêmios · bilheteria · folha · compra · venda · patrocínio · comissão da SAF · obra no estádio · compra da SAF · venda da SAF · saldo inicial · renda do empresário
   label: string
   amount: number // sinal: + entrada, − saída
   player?: string // compra/venda: nome do jogador
