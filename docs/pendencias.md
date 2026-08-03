@@ -3,7 +3,10 @@
 ## 🎨 Artes de stories entregues (03/08): Contratos + Empresário + Várzea
 Três PNGs 1080×1920 no visual do jogo, todas com carimbo vermelho "SÓ PRA
 CARREIRAS NOVAS": (1) Contratos (carta-contrato assinada); (2) Modo Empresário
-(extrato da agência: Pelé +5, comissões, teto +11/temporada); (3) Várzea
+— REFEITA a pedido do Diego (03/08): agora a estrela é a prancheta "CONVOQUE
+SEUS 22" (5 cartinhas por categoria com renda + vagas tracejadas + contador
+5/22) e os 3 bullets são as comissões que ele gostou (artilheiro · campeão em
+qualquer time · negociado no leilão); (3) Várzea
 (campinho de TERRA MARROM já de teaser, placa "Bar do Zé", bullets escada/
 régua/baralho gigante). Fontes em scratchpad (story-*.html).
 
