@@ -589,3 +589,21 @@ final GR+6 · fim GR+7). `rankingSelecoes().slice(0,20)` e o top-20 do rank de c
 ~2510). Aviso de FOLGA (bye) na rodada que sua seleção descansa. Textos "TOP 16"→"TOP 20". Copa é
 LOCAL (localStorage, sem reducer) → não toca futebol ao vivo/online. Simulado: 4×5, todos jogam 4x,
 40 jogos de grupo. Build ok. Revertível.
+
+## 🛟 Online: sala travada no "ENVIANDO…" na largada (Diego + Rocha, 02/08) — FEITO (03/08)
+Sintoma (print do Diego): ele era o HOST, criou a sala, e na 1ª tela do leilão o
+jogo travou no "ENVIANDO…" COM o banner "o host caiu" — no aparelho DO HOST. F5
+resolvia pra sala toda. DIAGNÓSTICO: a leitura "sou host?" (game_rooms.host_id
+=== user.id, lida na largada/reconexão) pode piscar errada (corrida na criação/
+handoff de presença) → o dono se acha CONVIDADO → ninguém é host → os lances de
+todo mundo vão pro nada e a sala congela até alguém recarregar (o F5 relê o banco
+e conserta — por isso "voltava pra todo mundo").
+FIX (2 defesas):
+1. **Auto-cura**: o vigia de host (que já pedia estado a cada 2,5s) agora, quando
+   fica >10s sem notícia, também confere no BANCO se o host da sala é o PRÓPRIO
+   aparelho — se for, dispara BECOME_HOST e reassume o comando sozinho (o canal
+   re-inscreve como host, heartbeat volta, sala destrava SEM F5). Fonte da
+   verdade = game_rooms.host_id (não memória local — sem risco de host duplo).
+2. **Aviso de recuperação** (pedido do Diego): o banner vermelho ganhou o botão
+   "🔄 Travou? Atualiza a página — a partida continua de onde parou".
+Revertível. Se voltar a acontecer, o print novo mostra se a auto-cura disparou.
