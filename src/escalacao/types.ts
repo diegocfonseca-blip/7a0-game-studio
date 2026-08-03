@@ -30,6 +30,12 @@ export interface Card {
 
 export type Acquisition = 'leilao' | 'repescagem' | 'monte' | 'bot'
 
+// 🕴️ AGÊNCIA 2.0 (carreira solo nova): carta do ÁLBUM convocada pra "ativa".
+// Guarda só o essencial pra identificar o auge (nome+clube+ano) e calcular a renda.
+export interface AgCard { name: string; club: string; year: number; pos: string; fame: number; promessa?: boolean; folk?: boolean }
+// um acontecimento que rendeu comissão (aparece na fatura da Cerimônia)
+export interface AgEvento { emoji: string; texto: string; coins: number; nome?: string }
+
 export interface WonCard extends Card {
   paid: number
   via: Acquisition
@@ -355,6 +361,16 @@ export interface EscState {
   deckLeague: 'br' | 'eu' | 'both' // baralho escolhido: 🇧🇷 Brasileirão, 🌍 Liga Europa ou 🌎 os dois juntos (both = só na carreira online)
   varzea?: boolean // 🥅 rápido online + baralho BR, categoria "Sem craques": leilão só com bom jogador + foi profissional
   contratosOn?: boolean // 📝 CONTRATOS de jogador ligados NESTA carreira. Só carreira NOVA nasce com true (decisão do Diego) — save antigo fica sem contratos pra sempre (nada muda no meio da carreira de ninguém)
+  // 🕴️ AGÊNCIA 2.0 (carreira solo NOVA): o técnico convoca até 22 cartas do
+  // ÁLBUM dele pra "ativa" — só elas rendem (mensalidade por categoria + bônus
+  // folclórico) e pagam comissão por acontecimento (artilheiro/campeão/transação).
+  // A renda cai SEMPRE no caixa do 1º clube (decisão do Diego), mesmo dormindo.
+  agenciaOn?: boolean // ligada SÓ em carreira solo NOVA (save antigo segue com o empresário clássico)
+  agenciaClubeId?: number // id do 1º clube (o da fundação da carreira) — destino fixo da renda
+  agenciados?: AgCard[] // os até 22 convocados "na ativa" (escolhidos do álbum)
+  agenciaEventos?: { season: number; rows: AgEvento[]; eventosDone?: boolean } // eventos PENDENTES da temporada (artilheiro/campeão) — pagos na virada
+  agenciaFatura?: { season: number; mensal: number; rows: AgEvento[]; total: number } // fatura JÁ PAGA (mensalidades + comissões) — vira o quadro da Cerimônia/aba
+  agenciaHist?: Record<string, number> // acumulado por carta (chave name|club|year) — "já te rendeu X nesta carreira"
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
   careerFilial?: {

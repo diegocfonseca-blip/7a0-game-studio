@@ -3009,6 +3009,20 @@ function Reveal() {
               <p className="font-black text-lg" style={OSWALD}>
                 🔨 VENDIDO {winnerMgr.id === you.id ? 'PRA VOCÊ' : `pro ${winnerMgr.teamName}`} por {item.paid}!
               </p>
+              {/* 🕴️ AGÊNCIA 2.0: agenciado negociado → banner de comissão no tempo
+                  morto do martelo (não adiciona passo). A moeda já entrou no motor. */}
+              {sold && state.agenciaOn && (state.agenciados ?? []).some(a => a.name === item.card.name) && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: hammerDelay + 0.5 }}
+                  className="mt-2 border-[3px] border-black rounded-2xl px-3 py-2 text-left flex items-center gap-2"
+                  style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 60%,#E8A200)', boxShadow: `3px 3px 0 ${INK}` }}>
+                  <span className="text-2xl">🕴️</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-sm uppercase leading-tight" style={OSWALD}>Comissão da agência!</p>
+                    <p className="text-[11px] font-bold text-black/70 leading-tight"><b>{item.card.name}</b> é seu agenciado — a negociação te rendeu comissão 🤑</p>
+                  </div>
+                  <span className="font-black text-base px-2 py-1 rounded-lg shrink-0" style={{ ...OSWALD, background: INK, color: GOLD }}>+1 🪙</span>
+                </motion.div>
+              )}
             </motion.div>
           )}
         </Box>
@@ -3262,6 +3276,30 @@ export function EscCerimonia() {
           <p className="font-black text-sm" style={OSWALD}>🏅 ACHADO DO PREGÃO: {bestDeal.c.name} ({bestDeal.c.lo}–{bestDeal.c.hi}) por {bestDeal.c.paid} — {bestDeal.mg.teamName}</p>
           <p className="font-black text-sm" style={OSWALD}>🐴 MICO DO PREGÃO: {worstDeal.c.name} ({worstDeal.c.lo}–{worstDeal.c.hi}) por {worstDeal.c.paid} — {worstDeal.mg.teamName}</p>
         </Box>
+      )}
+      {/* 🕴️ AGÊNCIA 2.0: fatura da temporada (mensalidades pagas na virada +
+          comissões de artilheiro/campeão + negociações do leilão que acabou).
+          Tudo JÁ caiu no caixa do 1º clube — aqui é o resumo pós-apito. */}
+      {state.agenciaOn && state.agenciaFatura && (state.agenciaFatura.total > 0 || state.agenciaFatura.rows.length > 0) && (
+        <div className="border-[3px] border-black rounded-2xl p-4" style={{ background: `linear-gradient(160deg, ${GREEN}, #14401f)`, boxShadow: `4px 4px 0 ${INK}`, color: '#fff' }}>
+          <p className="font-black text-sm uppercase" style={OSWALD}>🕴️ Sua agência faturou</p>
+          {state.agenciaFatura.mensal > 0 && (
+            <div className="flex items-center gap-2 text-[12px] font-bold py-1">
+              💰 <span className="flex-1">Mensalidades dos {state.agenciados?.length ?? 0} na ativa</span>
+              <span className="font-black" style={{ ...OSWALD, color: '#FFE79A' }}>+{state.agenciaFatura.mensal} 🪙</span>
+            </div>
+          )}
+          {state.agenciaFatura.rows.map((r, i) => (
+            <div key={i} className="flex items-center gap-2 text-[12px] font-bold py-1" style={{ borderTop: '1px solid rgba(255,255,255,.16)' }}>
+              {r.emoji} <span className="flex-1 min-w-0">{r.texto}</span>
+              <span className="font-black shrink-0" style={{ ...OSWALD, color: '#FFE79A' }}>+{r.coins} 🪙</span>
+            </div>
+          ))}
+          <div className="mt-2 border-2 border-black rounded-xl px-3 py-1.5 flex items-center justify-between font-black text-[12px]" style={{ background: GOLD, color: INK }}>
+            <span>Total no caixa do 1º clube</span>
+            <span className="text-base" style={OSWALD}>+{state.agenciaFatura.total} 🪙</span>
+          </div>
+        </div>
       )}
       {state.careerOnline && (state.marketLog?.length ?? 0) > 0 && (
         <Box bg="#EEF7FF" className="p-4 space-y-1">

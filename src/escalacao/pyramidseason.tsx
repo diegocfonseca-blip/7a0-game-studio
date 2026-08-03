@@ -8,10 +8,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, oldChain } from './data'
-import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey } from './types'
+import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial } from './store'
-import { empresarioIncome, empCat, EMP_ORDER, EMP_META } from './estadiodata'
+import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS } from './estadiodata'
 import type { EmpCat, StadiumSave } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
@@ -727,6 +727,315 @@ function EscritorioTab({ cards, st, hasFilial }: { cards: EmpCard[]; st: Stadium
     </>
   )
 }
+// ── 🕴️ AGÊNCIA 2.0 (aba Elenco › Agenciados) — SÓ carreira solo NOVA ────────
+// O técnico convoca até 22 cartas do ÁLBUM dele pra "ativa": só elas rendem
+// mensalidade por categoria (👑5 ⭐4 💎3 🎯2 🪵1 · folclórico +1) e comissão por
+// acontecimento (artilheiro/campeão/negociação no leilão). A renda cai SEMPRE
+// no caixa do 1º clube. Convocação no estilo da Copa (filtro por posição+busca).
+const agKeyOf = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
+const agTier = (c: { fame?: number; promessa?: boolean }): { grad: string; ink: string; holo?: boolean } =>
+  c.promessa ? { grad: 'linear-gradient(150deg,#C9A9FF,#8B5CF6,#5B2FB0)', ink: '#fff', holo: true }
+    : (c.fame ?? 1) >= 5 ? { grad: 'linear-gradient(150deg,#FFE79A,#FFC400,#E8A200)', ink: INK, holo: true }
+    : (c.fame ?? 1) === 4 ? { grad: 'linear-gradient(150deg,#F4F7FB,#CBD4DE,#9BA7B5)', ink: INK, holo: true }
+    : (c.fame ?? 1) >= 2 ? { grad: 'linear-gradient(150deg,#41C07A,#2E9E5B,#1E7A45)', ink: '#fff' }
+    : { grad: 'linear-gradient(150deg,#DBD1B5,#CBBF9E,#B2A583)', ink: INK }
+const agChip = (c: { fame?: number; promessa?: boolean }) =>
+  c.promessa ? { t: '💎 PROMESSA', bg: '#8B5CF6', ink: '#fff' }
+    : (c.fame ?? 1) >= 5 ? { t: '👑 LENDA', bg: GOLD, ink: INK }
+    : (c.fame ?? 1) === 4 ? { t: '⭐ CRAQUE', bg: '#E4E9F0', ink: INK }
+    : (c.fame ?? 1) >= 2 ? { t: '🎯 BOM', bg: '#2E9E5B', ink: '#fff' }
+    : { t: '🪵 FOI PROF.', bg: '#CBBF9E', ink: INK }
+
+function AgenciadosTab({ cards, hist, fatura, st, hasFilial, primeiroClube, onSet }: {
+  cards: AgCard[]; hist: Record<string, number> | undefined
+  fatura: { season: number; mensal: number; rows: AgEvento[]; total: number } | undefined
+  st: StadiumSave | undefined; hasFilial: boolean; primeiroClube: string
+  onSet: (cards: AgCard[]) => void
+}) {
+  const [open, setOpen] = useState<AgCard | null>(null)
+  const [convocando, setConvocando] = useState(false)
+  const renda = agenciaRenda(cards, st, hasFilial)
+  const locked = EMP_ORDER.filter(k => !renda.by[k].unlocked && renda.by[k].count > 0)
+  return (
+    <>
+      {/* CABEÇALHO: quantos na ativa */}
+      <div style={{ ...box(INK), color: '#fff', padding: '11px 13px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, borderRadius: 14 }}>
+        <span style={{ fontSize: 26 }}>🕴️</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>Sua Agência</div>
+          <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>Convoque até 22 cartas do seu álbum pra "ativa" — só elas rendem. A grana cai no <b>{primeiroClube}</b> (1º clube).</div>
+        </div>
+        <div style={{ background: GOLD, border: '2px solid rgba(255,255,255,.25)', borderRadius: 10, padding: '4px 10px', textAlign: 'center', color: INK }}>
+          <b style={{ display: 'block', ...OSWALD, fontSize: 16, lineHeight: 1 }}>{cards.length}/22</b>
+          <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1 }}>NA ATIVA</span>
+        </div>
+      </div>
+
+      {/* RENDA GARANTIDA por temporada */}
+      <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '11px 13px', marginBottom: 10 }}>
+        <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>💰 Renda garantida por temporada</div>
+        <div style={{ ...OSWALD, fontSize: 26, fontWeight: 900, lineHeight: 1.1, marginTop: 2 }}>+{renda.total} 🪙</div>
+        <div style={{ marginTop: 6 }}>
+          {EMP_ORDER.map(k => {
+            const b = renda.by[k]; if (b.count === 0) return null
+            const m = EMP_META[k]
+            return (
+              <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 800, padding: '3px 0', borderTop: '1px solid rgba(255,255,255,.14)' }}>
+                <span>{m.emoji} {m.label}</span>
+                <span style={{ opacity: .85 }}>{b.count} × {b.value}</span>
+                <span style={{ marginLeft: 'auto' }}>{b.unlocked ? `= ${b.income} 🪙` : `🔒 destrava: ${m.req}`}</span>
+              </div>
+            )
+          })}
+          {renda.folkCount > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 800, padding: '3px 0', borderTop: '1px solid rgba(255,255,255,.14)' }}>
+              <span>🃏 Folclórico</span><span style={{ opacity: .85 }}>{renda.folkCount} na ativa, +{AG_FOLK_BONUS} cada</span>
+              <span style={{ marginLeft: 'auto' }}>= +{renda.folkIncome} 🪙</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* COMISSÕES / fatura da temporada */}
+      <div style={{ ...box(), padding: '10px 12px', marginBottom: 10 }}>
+        <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', marginBottom: 5 }}>📈 Comissões da agência</div>
+        {(!fatura || (fatura.rows.length === 0 && fatura.mensal === 0)) ? (
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069', margin: 0, lineHeight: 1.4 }}>Ainda nada por aqui. Seus agenciados pagam comissão quando <b>viram artilheiro</b> 🥇, <b>são campeões</b> 🏆 (em qualquer time!) ou <b>são negociados no leilão</b> 💸 — tudo aparece aqui e na Cerimônia.</p>
+        ) : (
+          <>
+            {fatura.mensal > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, fontWeight: 700, padding: '4px 0' }}>
+                💰 <span>Mensalidades pagas na última virada</span>
+                <span style={{ marginLeft: 'auto', ...OSWALD, fontWeight: 900, color: GREEN, fontSize: 12.5 }}>+{fatura.mensal} 🪙</span>
+              </div>
+            )}
+            {fatura.rows.slice(-8).map((r, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, fontWeight: 700, padding: '4px 0', borderTop: '2px solid rgba(0,0,0,.06)' }}>
+                {r.emoji} <span style={{ flex: 1, minWidth: 0 }}>{r.texto}</span>
+                <span style={{ ...OSWALD, fontWeight: 900, color: GREEN, fontSize: 12.5, whiteSpace: 'nowrap' }}>+{r.coins} 🪙</span>
+              </div>
+            ))}
+            <div style={{ marginTop: 6, background: '#FFF7DB', border: `2px solid ${INK}`, borderRadius: 10, padding: '5px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 900, fontSize: 11 }}>
+              <span>🕴️ Total no caixa do {primeiroClube}</span><span style={{ ...OSWALD, color: GREEN, fontSize: 14 }}>+{fatura.total} 🪙</span>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* GRADE dos agenciados (toque abre a carta igual álbum) */}
+      {cards.length > 0 && (
+        <>
+          <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', margin: '2px 2px 6px' }}>🃏 Seus agenciados (toque pra abrir a carta)</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 7, marginBottom: 10 }}>
+            {cards.map(c => {
+              const t = agTier(c)
+              return (
+                <button key={agKeyOf(c)} onClick={() => setOpen(c)} style={{ border: `2.5px solid ${INK}`, borderRadius: 11, aspectRatio: '3/4', padding: '5px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', boxShadow: `2px 2px 0 0 ${INK}`, position: 'relative', overflow: 'hidden', background: t.grad, cursor: 'pointer' }}>
+                  {t.holo && <span style={{ position: 'absolute', inset: 0, background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.6) 48%,transparent 62%)', pointerEvents: 'none' }} />}
+                  {c.folk && <span style={{ position: 'absolute', top: 3, right: 3, background: 'rgba(0,0,0,.75)', color: '#fff', borderRadius: 999, fontSize: 6.5, fontWeight: 900, padding: '1px 5px' }}>🃏 +1</span>}
+                  <span style={{ width: 26, height: 26, borderRadius: 999, border: '2px solid rgba(0,0,0,.28)', display: 'grid', placeItems: 'center', ...OSWALD, fontWeight: 900, fontSize: 13, background: 'rgba(255,255,255,.85)', color: INK }}>{c.name.trim()[0]?.toUpperCase() ?? '?'}</span>
+                  <span style={{ ...OSWALD, fontWeight: 900, fontSize: 8.5, textTransform: 'uppercase', textAlign: 'center', lineHeight: 1.1, color: t.ink }}>{c.name}</span>
+                  <span style={{ fontSize: 6.5, letterSpacing: .5 }}>{c.promessa ? '💎💎💎' : '⭐'.repeat(Math.max(1, Math.min(5, c.fame)))}</span>
+                </button>
+              )
+            })}
+          </div>
+        </>
+      )}
+      {cards.length === 0 && (
+        <div style={{ ...box('#FBF6E9'), padding: 16, textAlign: 'center', fontWeight: 700, color: '#8a7d59', fontSize: 12.5, marginBottom: 10 }}>
+          Ninguém na ativa ainda. Toque em <b>Convocar agenciados</b> e escolha até 22 cartas do seu álbum — as cartas você ganha sendo <b>campeão</b> (o pacote do título).
+        </div>
+      )}
+
+      {/* CONVOCAR + trava explicada */}
+      <button onClick={() => setConvocando(true)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase', marginBottom: 8 }}>
+        🧢 Convocar agenciados — {cards.length > 0 ? 'trocar os 22' : 'escolher do álbum'}
+      </button>
+      {locked.length > 0 && (
+        <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', background: '#FFF7DB', border: `2px solid ${INK}`, borderRadius: 10, padding: '6px 9px' }}>
+          🔒 {locked.map(k => `${EMP_META[k].label} destrava: ${EMP_META[k].req}`).join(' · ')} — os desbloqueios seguem na aba <b>Clube › Agência</b>.
+        </div>
+      )}
+
+      {/* modal: carta cheia (igual álbum) + fatura do jogador */}
+      {open && (() => {
+        const cat = empCat(open)
+        const b = renda.by[cat]
+        const rende = b.unlocked ? b.value + (open.folk ? AG_FOLK_BONUS : 0) : 0
+        const ja = hist?.[agKeyOf(open)] ?? 0
+        return (
+          <div onClick={() => setOpen(null)} style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, overflowY: 'auto' }}>
+            <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 300 }}>
+              <CollectibleCard name={open.name} club={open.club} year={open.year} pos={open.pos} fame={open.fame} folk={open.folk} promessa={open.promessa} big showBio />
+              <div style={{ ...box(), padding: '9px 11px', marginTop: 10 }}>
+                <div style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', marginBottom: 3 }}>💼 Na sua agência</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, fontWeight: 800, padding: '2px 0' }}>
+                  <span>💰 Rende por temporada{open.folk ? ' (com 🃏 +1)' : ''}</span>
+                  <span style={{ ...OSWALD, color: rende > 0 ? GREEN : '#b3a688' }}>{rende > 0 ? `+${rende} 🪙` : `🔒 ${EMP_META[cat].req}`}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, fontWeight: 800, padding: '2px 0', borderTop: '2px solid rgba(0,0,0,.06)' }}>
+                  <span>🏦 Já te rendeu nesta carreira</span>
+                  <span style={{ ...OSWALD, color: GREEN }}>{ja} 🪙</span>
+                </div>
+              </div>
+              <button onClick={() => setOpen(null)} style={{ width: '100%', marginTop: 10, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>Fechar</button>
+            </div>
+          </div>
+        )
+      })()}
+
+      {convocando && <ConvocacaoAgencia current={cards} onClose={() => setConvocando(false)} onSave={list => { onSet(list); setConvocando(false) }} />}
+    </>
+  )
+}
+
+// 🧢 CONVOCAÇÃO da agência: escolhe até 22 do ÁLBUM (igual convocação da Copa —
+// filtro por posição + busca). Mesma PESSOA só uma vez (auges diferentes = 1 vaga).
+function ConvocacaoAgencia({ current, onClose, onSave }: { current: AgCard[]; onClose: () => void; onSave: (cards: AgCard[]) => void }) {
+  const [pool, setPool] = useState<AgCard[] | null>(null)
+  const [tab, setTab] = useState<Sector>('GOL')
+  const [q, setQ] = useState('')
+  const [sel, setSel] = useState<Record<string, AgCard>>(() => Object.fromEntries(current.map(c => [agKeyOf(c), c])))
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { setPool([]); return }
+        const { data } = await supabase.from('user_cards').select('card_name, card_club, card_year, card_pos, card_fame').eq('user_id', user.id)
+        // folk/promessa não ficam no álbum — cruza com o catálogo pelo auge (nome+clube+ano)
+        const flag = new Map<string, { folk?: boolean; promessa?: boolean }>()
+        for (const sec of SECTORS) for (const c of (CATALOG_BOTH[sec] ?? [])) flag.set(`${c.name}|${c.club}|${c.year}`, { folk: c.folk, promessa: c.promessa })
+        const seen = new Set<string>(); const out: AgCard[] = []
+        for (const r of (data ?? []) as { card_name: string; card_club: string; card_year: number; card_pos: string; card_fame: number }[]) {
+          if (!r.card_name) continue
+          const k = `${r.card_name}|${r.card_club}|${r.card_year}`
+          if (seen.has(k)) continue
+          seen.add(k)
+          const f = flag.get(k)
+          out.push({ name: r.card_name, club: r.card_club ?? '', year: r.card_year ?? 0, pos: (r.card_pos ?? 'MEI') as Sector, fame: r.card_fame ?? 1, folk: f?.folk || undefined, promessa: f?.promessa || undefined })
+        }
+        out.sort((a, b) => (b.fame - a.fame) || a.name.localeCompare(b.name))
+        setPool(out)
+      } catch { setPool([]) }
+    })()
+  }, [])
+  const total = Object.keys(sel).length
+  const usedNames = new Set(Object.values(sel).map(c => c.name))
+  const toggle = (c: AgCard) => {
+    const k = agKeyOf(c)
+    setSel(prev => {
+      const nx = { ...prev }
+      if (nx[k]) { delete nx[k]; return nx }
+      if (Object.keys(nx).length >= 22) return prev            // agência cheia
+      if (usedNames.has(c.name)) return prev                   // outra versão da MESMA pessoa
+      nx[k] = c; return nx
+    })
+  }
+  const list = (pool ?? []).filter(c => c.pos === tab).filter(c => !q || c.name.toLowerCase().includes(q.toLowerCase()))
+  const countPos = (p: Sector) => Object.values(sel).filter(c => c.pos === p).length
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.78)', overflowY: 'auto', padding: '18px 12px 30px' }}>
+      <div style={{ maxWidth: 430, margin: '0 auto' }}>
+        <div style={{ ...box(INK), color: '#fff', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 9, borderRadius: 14 }}>
+          <span style={{ fontSize: 26 }}>🧢</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>Convocação da Agência</div>
+            <div style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>{pool === null ? 'Carregando seu álbum…' : `${pool.length} cartas no seu álbum`} — convoque até 22 pra ativa. Troque quando quiser.</div>
+          </div>
+          <div style={{ background: GOLD, border: '2px solid rgba(255,255,255,.25)', borderRadius: 10, padding: '4px 9px', textAlign: 'center', color: INK }}>
+            <b style={{ display: 'block', ...OSWALD, fontSize: 15, lineHeight: 1 }}>{total}/22</b>
+            <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1 }}>CONVOCADOS</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+          {SECTORS.map(p => (
+            <button key={p} onClick={() => setTab(p)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 2px', fontWeight: 900, fontSize: 10.5, ...OSWALD, cursor: 'pointer', background: tab === p ? GOLD : '#fff', color: INK, boxShadow: tab === p ? `2px 2px 0 0 ${INK}` : 'none' }}>
+              {p}<span style={{ display: 'block', fontSize: 7.5, fontWeight: 800, opacity: .75, fontFamily: 'system-ui' }}>{countPos(p)}</span>
+            </button>
+          ))}
+        </div>
+
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder={`🔎 buscar nos ${(pool ?? []).filter(c => c.pos === tab).length} da posição…`}
+          style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 11, padding: '7px 11px', fontWeight: 800, fontSize: 12, background: '#fff', marginBottom: 8, boxSizing: 'border-box' }} />
+
+        <div style={{ ...box('#fff'), borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
+          <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+            {pool === null && <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', padding: 14 }}>Abrindo o álbum… 📖</p>}
+            {pool !== null && list.map(c => {
+              const k = agKeyOf(c)
+              const on = !!sel[k]
+              const otherVersion = !on && usedNames.has(c.name)
+              const full = !on && total >= 22
+              const chip = agChip(c)
+              return (
+                <button key={k} onClick={() => toggle(c)} disabled={otherVersion}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: 'none', borderBottom: '2px solid rgba(0,0,0,.07)', background: on ? '#E9F5EC' : '#fff', cursor: otherVersion ? 'not-allowed' : 'pointer', opacity: otherVersion ? .4 : full ? .65 : 1, textAlign: 'left' }}>
+                  <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : ''}</span>
+                  <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
+                  {c.folk && <span style={{ background: INK, color: '#fff', borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 6px', flexShrink: 0 }}>🃏 +1</span>}
+                  <span style={{ background: chip.bg, color: chip.ink, border: `2px solid ${INK}`, borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 6px', flexShrink: 0 }}>{otherVersion ? 'já convocado' : chip.t}</span>
+                  <span style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', whiteSpace: 'nowrap', flexShrink: 0 }}>{c.club} · {c.year}</span>
+                </button>
+              )
+            })}
+            {pool !== null && list.length === 0 && (
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', padding: 14 }}>
+                {pool.length === 0 ? 'Seu álbum ainda está vazio — ganhe títulos pra ganhar cartas! 🏆' : 'ninguém com esse nome aqui… 🔎'}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div style={{ ...box('#FFF7DB'), padding: '9px 11px', marginBottom: 10 }}>
+          <div style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', marginBottom: 3 }}>💡 Quem tá na ativa rende</div>
+          <p style={{ fontSize: 10, fontWeight: 700, margin: 0, lineHeight: 1.5 }}>💰 Fixo por temporada: 👑 5 · ⭐ 4 · 💎 3 · 🎯 2 · 🪵 1 · 🃏 folclórico +1 por cima<br />🥇 Artilheiro na sua carreira <b>+1</b> · 🏆 Campeão em qualquer time <b>+1</b> · 💸 Negociado no leilão <b>+1</b></p>
+        </div>
+
+        <button onClick={() => onSave(Object.values(sel))} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>
+          ✅ Fechar convocação ({total}/22)
+        </button>
+        {total < 22 && <p style={{ fontSize: 9.5, fontWeight: 800, color: '#F4ECD6', textAlign: 'center', margin: '6px 0 0' }}>ainda dá pra convocar mais {22 - total} — ou feche assim mesmo, você troca quando quiser</p>}
+        <p style={{ textAlign: 'center', marginTop: 8 }}><button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 11, fontWeight: 900, textDecoration: 'underline', color: 'rgba(255,255,255,.75)', cursor: 'pointer' }}>← voltar sem salvar</button></p>
+      </div>
+    </div>
+  )
+}
+
+// 🔓 Clube › Agência quando a AGÊNCIA 2.0 está ligada: aqui ficam SÓ os
+// desbloqueios (decisão do Diego: "deixa lá junto do estádio") — a agência em si
+// mora na aba Elenco › Agenciados.
+function AgenciaDesbloqueios({ st, hasFilial }: { st: StadiumSave | undefined; hasFilial: boolean }) {
+  return (
+    <>
+      <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '12px 14px', marginBottom: 10 }}>
+        <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>🕴️ Desbloqueios da Agência</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.85)', marginTop: 4, lineHeight: 1.45 }}>Cada categoria de agenciado só <b>rende</b> quando destravada — puxando o <b>estádio</b> e a <b>SAF</b>. Sua agência (os 22 na ativa) fica na aba <b>Elenco › 🕴️ Agenciados</b>.</div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {EMP_ORDER.map(k => {
+          const m = EMP_META[k]
+          const ok = empCatUnlocked(k, st, hasFilial)
+          return (
+            <div key={k} style={{ ...box(ok ? '#fff' : '#F1EBD9'), padding: '10px 12px', opacity: ok ? 1 : .75, display: 'flex', alignItems: 'center', gap: 9 }}>
+              <span style={{ fontSize: 20 }}>{m.emoji}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{m.label} <span style={{ fontWeight: 700, fontSize: 11, color: '#8a8069' }}>+{AG_VALUES[k]}/temporada por carta na ativa</span></div>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069' }}>{ok ? '✅ destravada — rende normal' : `🔒 destrava: ${m.req}`}</div>
+              </div>
+              <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: ok ? GREEN : '#b3a688' }}>{ok ? `+${AG_VALUES[k]}` : '🔒'}</div>
+            </div>
+          )
+        })}
+        <div style={{ ...box('#FFF7DB'), padding: '9px 12px', fontSize: 10.5, fontWeight: 700, color: '#5a5647', lineHeight: 1.45 }}>
+          🃏 Carta <b>Folclórica</b> na ativa ganha <b>+{AG_FOLK_BONUS}</b> por cima da categoria · comissões: 🥇 artilheiro +1 · 🏆 campeão +1 · 💸 negociado no leilão +1.
+        </div>
+      </div>
+    </>
+  )
+}
+
 function FinLine({ label, sub, amount }: { label: string; sub?: string; amount: number }) {
   const pos = amount >= 0
   return (
@@ -2036,6 +2345,7 @@ export function PyramidSeasonScreen() {
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti'>('arti')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio'>('estadio') // 🏟️/💰/💼 sub-abas da aba Clube
+  const [elencoSub, setElencoSub] = useState<'elenco' | 'agencia'>('elenco') // 👥/🕴️ sub-abas do Elenco (Agenciados só na Agência 2.0 — carreira nova)
   // 🏛️ MULTICLUBES (Opção B): seletor livre. `multiAsk` = modal de confirmar a troca;
   // `multiPending` = você apertou no meio de uma rodada (auto) → troca no fim dela.
   const [multiAsk, setMultiAsk] = useState(false)
@@ -2312,6 +2622,32 @@ export function PyramidSeasonScreen() {
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished, copa?.champion?.you, state.careerOnline, state.roomId, state.seasonNo, state.seed])
+  // 🕴️ AGÊNCIA 2.0: quando a COPA termina (fim real da temporada), computa os
+  // acontecimentos dos agenciados — artilheiro de cada série + da Copa, e campeão
+  // em QUALQUER time (liga das 4 divisões + Copa Legends). Manda pro motor como
+  // eventos PENDENTES (pagos na virada, aparecem na Cerimônia — zero spoiler,
+  // aqui tudo já passou do apito). Idempotente: o reducer grava 1x por temporada.
+  const agEvRef = useRef('')
+  useEffect(() => {
+    if (!copaFinished || !state.agenciaOn || !copa) return
+    const key = `${state.seed}:${state.seasonNo}`
+    if (agEvRef.current === key) return
+    agEvRef.current = key
+    const nomes = new Set((state.agenciados ?? []).map(a => a.name))
+    const rows: AgEvento[] = []
+    if (nomes.size > 0) {
+      for (const d of DIVS) {
+        const top = scorersAll.filter(x => x.div === d).sort((a, b) => b.goals - a.goals)[0]
+        if (top && top.goals > 0 && nomes.has(top.name)) rows.push({ emoji: '🥇', texto: `${top.name} foi o artilheiro da ${DIV_NAME[d]} (${top.goals} gols)`, coins: 1, nome: top.name })
+        const champ = tables[d]?.[0]
+        if (champ) for (const p of champ.squad) if (nomes.has(p.name)) rows.push({ emoji: '🏆', texto: `${p.name} foi campeão da ${DIV_NAME[d]} pelo ${champ.name}`, coins: 1, nome: p.name })
+      }
+      if (copa.champion) for (const p of copa.champion.squad) if (nomes.has(p.name)) rows.push({ emoji: '🏆', texto: `${p.name} levou a Copa Legends pelo ${copa.champion.name}`, coins: 1, nome: p.name })
+      if (copa.topScorer && nomes.has(copa.topScorer.name)) rows.push({ emoji: '🥇', texto: `${copa.topScorer.name} foi o artilheiro da Copa Legends`, coins: 1, nome: copa.topScorer.name })
+    }
+    dispatch({ type: 'AGENCIA_SEASON_EVENTS', season: state.seasonNo ?? 1, rows })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [copaFinished, state.agenciaOn, state.seasonNo, state.seed])
   // substituição libera na 2ª temporada — INCLUSIVE no fim de temporada, pra você
   // já montar o time da próxima (a troca no fim não muda o campeonato que acabou;
   // o SET_LINEUP grava além da rodada 38 e só carrega pra próxima temporada).
@@ -2669,7 +3005,11 @@ export function PyramidSeasonScreen() {
               ))}
             </div>
             {clubeSub === 'escritorio' ? (
-              <EscritorioTab cards={(state.onlineMode === 'online' ? state.careerEmpresario?.[youId] : state.empresarioCards) ?? []} st={state.stadiums?.[youId]} hasFilial={state.onlineMode === 'online' ? !!state.careerFilials?.[youId] : !!state.careerFilial} />
+              // 🕴️ AGÊNCIA 2.0 (carreira nova): aqui ficam SÓ os desbloqueios; a agência
+              // em si mora em Elenco › Agenciados. Saves antigos seguem no clássico.
+              state.agenciaOn
+                ? <AgenciaDesbloqueios st={state.stadiums?.[state.agenciaClubeId ?? youId]} hasFilial={!!state.careerFilial} />
+                : <EscritorioTab cards={(state.onlineMode === 'online' ? state.careerEmpresario?.[youId] : state.empresarioCards) ?? []} st={state.stadiums?.[youId]} hasFilial={state.onlineMode === 'online' ? !!state.careerFilials?.[youId] : !!state.careerFilial} />
             ) : clubeSub === 'financas' ? (
               <FinancasTab ledger={(state.onlineMode === 'online' ? state.careerLedgers?.[youId] : state.careerLedger) ?? []} caixa={state.careerCoins?.[youId] ?? 0} seasonNo={state.seasonNo ?? 1}
                 squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
@@ -2810,6 +3150,21 @@ export function PyramidSeasonScreen() {
           </>
         ) : tab === 'elenco' ? (
           <>
+            {/* 🕴️ AGÊNCIA 2.0: sub-abas Elenco | Agenciados (só carreira nova) */}
+            {state.agenciaOn && (
+              <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+                {(([['elenco', '👥', 'Elenco'], ['agencia', '🕴️', 'Agenciados']]) as [typeof elencoSub, string, string][]).map(([sb, ic, label]) => (
+                  <button key={sb} onClick={() => setElencoSub(sb)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: elencoSub === sb ? myCol.solid : '#fff', color: elencoSub === sb ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
+                ))}
+              </div>
+            )}
+            {state.agenciaOn && elencoSub === 'agencia' ? (
+              <AgenciadosTab cards={state.agenciados ?? []} hist={state.agenciaHist} fatura={state.agenciaFatura}
+                st={state.stadiums?.[state.agenciaClubeId ?? youId]} hasFilial={!!state.careerFilial}
+                primeiroClube={state.managers.find(m => m.id === (state.agenciaClubeId ?? youId))?.teamName ?? 'seu 1º clube'}
+                onSet={cards => dispatch({ type: 'SET_AGENCIA', cards })} />
+            ) : (
+            <>
             {/* tática do SEU time — POR JOGO, vale do PRÓXIMO jogo em diante. Agora
                 fica AQUI no topo do elenco (era na aba Jogos). */}
             {!done && (
@@ -2839,6 +3194,8 @@ export function PyramidSeasonScreen() {
                 <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 64, background: 'linear-gradient(180deg,transparent,#F4ECD6)', pointerEvents: 'none', zIndex: 2 }} />
               </div>
             </GoldTeaser>
+            </>
+            )}
           </>
         ) : tab === 'jogos' && hasMatches ? (
           copaPlaying && copaFase ? (
