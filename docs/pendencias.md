@@ -1,4 +1,32 @@
-# 📌 Pendências combinadas com o Diego (atualizado 26/07/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
+
+## 🚨🚨 BUG SÉRIO — JOGADOR EM DOBRO / EXPULSAR BAGUNÇA OS ASSENTOS (03/08)
+Sala LOTADA (18/20 técnicos) na noite de 03/08. Relato do jogador "Viria" (host):
+"no começo tinha DOIS eu; o segundo não dava lance em nada (bug), aí eu expulsei —
+e acho q tem a ver com isso". Sintomas: leilão **lacrando sozinho** e **time montado
+sozinho do meio pra frente** "como se o tempo tivesse acabado, mas não acabou".
+→ É o histórico "índices de assento" que o CLAUDE.md avisa. Causa provável: o MESMO
+usuário entrou em DOIS assentos (corrida no join/rejoin de sala cheia) e/ou o
+**KICK_PLAYER desloca os índices** e um assento vira fantasma que auto-lacra
+(FORCE_SEAL / auto-lacra em `screens.tsx` ~2197-2213, quem "não pode dar lance"
+lacra vazio) e auto-preenche o time. **A INVESTIGAR COM CUIDADO** (área sensível,
+host-autoritativo): (a) impedir 2 assentos pro mesmo user no join; (b) revisar o
+efeito de KICK nos youIdx/seat de todo mundo. NÃO foi a mudança de heartbeat (essa
+só mexia na frequência de reenvio; foi revertida — ver abaixo). Não hot-patchar com
+sala cheia ao vivo; trazer fix testado.
+
+## 🚨 CUSTO SUPABASE — estourou cota (03/08) — fix REVERTIDO, RE-APLICAR com calma
+Pro Plan. Ciclo passou da cota: **Realtime Messages 20mi/5mi (400%)** e **Egress
+555/250 GB (222%)**. Grace até **29/ago**; até lá funciona e **NÃO cobra** (spend cap
+ON — "not billed for overages"). Causa: heartbeat do host reemitia o ESTADO INTEIRO
+a cada 3s sem parar (pior com sala de 20). ⚠️ NUNCA "Disable spend cap" (é o que
+cobraria). NÃO precisa Team ($599) nem trocar de plano — resolve no código.
+- Fix feito (commit b72a847) e **REVERTIDO (cffa33d)** na mesma noite só por PRECAUÇÃO
+  quando apareceu o bug do jogador-em-dobro (que NÃO era do fix). O fix era: heartbeat
+  só reemite quando a sala está quieta (>12s sem envio), checando a cada 6s — mesma
+  proteção contra trava, fração do tráfego. **RE-APLICAR com o Diego quando acalmar**
+  (não urgente — 26 dias). Próximos alvos seguros: enxugar `packState`; throttle do
+  broadcast por-mudança na simulação da temporada.
 
 ## ⚽ Leilão Legends
 1. **Painel "PRÓXIMO" do modo rápido (online + offline) — APROVADO em mockup, falta implementar:**
