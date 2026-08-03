@@ -1,5 +1,32 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## 💰 PREÇOS INTELIGENTES na carreira nova (03/08, relato do tester Maurice) ✅
+Relato: "🪵 vendido por 40 e ⭐ pelos mesmos 40; CPU pagando alto em jogador
+ruim". MEDIDO em simulação (25 temporadas × runs, todas as vendas do leilão):
+médias eram saudáveis (🪵12 · 🎯15 · 💎29 · ⭐40) mas as CAUDAS estouravam
+(🎯 max 42 = mediana de ⭐; 🪵 p90 35 na Série B) e o LIVRO inflava sem teto
+(🎯 com piso 100! — bônus de artilheiro somando toda temporada sem limite).
+✅ CONSERTO (tudo atrás de `escadaOn` — jogo ao vivo e saves antigos intocados):
+- `catPriceCap` (store): teto de mercado por categoria 🪵16 · 🎯26 · 💎42 ·
+  ⭐65 · 👑90 (derivado das distribuições saudáveis medidas).
+- `applyScorerValues`: bônus de artilheiro não empurra piso/livro além do teto
+  da categoria (nunca REDUZ valor já gravado; carta não achada → teto médio 42).
+- `cpuEnvelope(smart)`: lance da CPU capado no teto da categoria (×0.8-1.05 de
+  variação) — bot rico/agressivo não fura o nível do jogador.
+- `resolveOneTiebreak`: CPU não cobre EMPATE além do teto (era a última rota —
+  empate a 25 escalava pra 38). Humano segue livre pra pagar o que quiser.
+RESULTADO re-simulado: inversões 3.8%→0.0% (nenhum 🪵/🎯 acima da média ⭐ da
+época); max 🎯 42→27; livro capado; escada por divisão limpa (V:🪵10/🎯14 →
+B:💎36/⭐42). Regressão escadafina toda verde. Relista barato de encalhado
+continua existindo (Diego: "é do jogo").
+## 📈 "SUBIU COM TIME RUIM?" — verificado, é percepção da régua (03/08)
+Nas 15 promoções simuladas o promovido era SEMPRE mais forte que a MÉDIA da
+divisão (XI ~77-80 vs ~75). Como a régua nivela todo mundo por baixo, o time
+parece "ruim" no absoluto mas é o melhor do pelotão — funcionamento desenhado.
+Obs.: a força média dos elencos CPU é ~constante entre divisões (a dificuldade
+por divisão vem do handicap A2 B4 C5 D3 V4, não do elenco) — se o Diego quiser
+elencos visivelmente melhores em cima, é outra alavanca (não mexida).
+
 ## 👥 TESTADOR NOVO da carreira nova (03/08): msb102010@hotmail.com
 Diego pediu pra liberar essa conta com o pacote COMPLETO da carreira nova de
 teste, "igual o meu": entrou em AGENCIA_TESTERS (sport.ts) — a mesma lista
