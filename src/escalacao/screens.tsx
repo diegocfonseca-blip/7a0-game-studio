@@ -5197,7 +5197,7 @@ async function reconcileCardsToTitles() {
 
 export function EscRanking() {
   const { dispatch } = useEsc()
-  const [mode, setMode] = useState<RankMode>('carreira')
+  const [mode, setMode] = useState<RankMode>('ronline')
   const [rows, setRows] = useState<RankRow[] | null>(null)
   const [down, setDown] = useState(false) // backend fora do ar — evita travar em "Carregando…"
   const [meId, setMeId] = useState<string | null>(null)
@@ -5254,9 +5254,9 @@ export function EscRanking() {
   const inList = !!meId && shown.some(r => r.user_id === meId)
 
   const MODES: { id: RankMode; label: string }[] = [
-    { id: 'carreira', label: '🪜 Carreira' },
     { id: 'ronline', label: '👥 Rápido online' },
     { id: 'rcpu', label: '🤖 Rápido offline' },
+    { id: 'carreira', label: '🪜 Carreira' }, // última: em breve (zerada) — pedido do Diego
   ]
   const medal = (i: number) => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`
 
