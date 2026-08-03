@@ -58,10 +58,26 @@ quem ficou não jogar sozinho). O reducer já faz `auctionRival = humansLeft<=1`
 ⚠️ NÃO hot-patchar na sala ao vivo de 20; **reproduzir num teste de 2-3 pessoas** e
 subir validado. Deploy não derruba quem já joga (só vale em F5/próxima sala).
 
-### ✅ Já consertado nesta noite (03/08):
+### ✅ Já consertado nesta noite (03-04/08):
 - **Velocidade** (commit 6a42317): sala AUTO rodava "ultra rápida" porque `simSpeed`
   (sincronizado na sala) vinha alto de um jogo anterior e o online não tem botão pra
   voltar. `START_ONLINE` agora zera `simSpeed=1`. Só afeta jogos NOVOS. Reversível.
+- **EXPULSAR + IDENTIDADE por CRACHÁ (id), não por cadeira (04/08)**: 3 pontos que
+  misturavam id×índice foram alinhados pro id:
+  · `kickPlayer` guard → compara o expulso com o MEU id (`managers[youIdx].id`).
+  · handler do 'kick' no cliente → idem (banner vai pra pessoa certa).
+  · `RESTORE_ONLINE` → `youIdx` acha a posição atual do meu manager pelo id
+    (`findIndex(m.id===player_index)`), fallback pro cru. Corrige "F5 trocou de nome"
+    na carreira reordenada e o "virei outro" ao expulsar em sala grande.
+  Em sala pequena/temporada 1 (id===cadeira) o comportamento é IDÊNTICO ao de antes —
+  só corrige os casos desalinhados. Não toca em partida em andamento (vale em novo
+  kick/reconexão). Reversível.
+  ⚠️ FALTA: (a) TESTE de 2-3 pessoas (idealmente reproduzindo a carreira online entre
+  temporadas) pra confirmar antes de sala cheia confiar; (b) a auto-cura `FIX_YOU_IDX`
+  (store ~5150) ainda reancora por NOME — deixei como está (tem guarda cands≠1), mas é
+  o próximo band-aid a trocar por id se ainda aparecer troca de assento; (c) confirmar
+  a regra do expulsar (sai, CPU só p/ 2) na prática — o reducer já faz auctionRival=
+  humansLeft<=1; o "virava CPU errado" era o id×índice, teoricamente resolvido agora.
 
 ## 🚨 CUSTO SUPABASE — estourou cota (03/08) — fix REVERTIDO, RE-APLICAR com calma
 Pro Plan. Ciclo passou da cota: **Realtime Messages 20mi/5mi (400%)** e **Egress

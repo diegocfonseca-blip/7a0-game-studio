@@ -2490,6 +2490,13 @@ export function reducer(state: EscState, action: Action): EscState {
     // reconexão/host-caiu: adota o estado salvo no banco em vez de recomeçar
     // do zero. A identidade ("quem sou eu", host?) é sempre local a este
     // cliente; efêmeros host-only voltam limpos (já vêm sanitizados).
+    // 🪑 ÂNCORA POR CRACHÁ (id estável), não pela cadeira: o player_index do banco é o
+    // id inicial do técnico. Na carreira online os times REORDENAM entre temporadas,
+    // então esse número pode não ser mais a POSIÇÃO no array — e reancorar cru punha a
+    // pessoa no time de OUTRO ("virei outro / F5 trocou de nome"). Acha a posição ATUAL
+    // do MEU manager pelo id; só cai no valor cru se não achar (save muito antigo).
+    const byId = action.state.managers?.findIndex(m => m.id === action.playerIndex) ?? -1
+    const myIdx = byId >= 0 ? byId : action.playerIndex
     return migrateTeamNames({
       ...action.state,
       rivalries: action.state.rivalries ?? {}, // saves antigos sem o campo
@@ -2504,7 +2511,7 @@ export function reducer(state: EscState, action: Action): EscState {
       roomId: action.roomId,
       roomCode: action.roomCode,
       isHost: action.isHost,
-      youIdx: action.playerIndex,
+      youIdx: myIdx,
       pendingEnvelopes: {},
       tiebreakPending: {},
       presence: [],
@@ -4880,12 +4887,18 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // host remove um técnico da partida: avisa o cliente dele (evento 'kick', que
   // o ejeta pra fora), a CPU assume o time (KICK_PLAYER) e libera a vaga no
   // banco pra ele não reconectar sozinho na mesma partida.
-  const kickPlayer = useCallback((playerIndex: number) => {
-    if (!isHostRef.current || playerIndex === stateRef.current.youIdx) return
-    channelRef.current?.send({ type: 'broadcast', event: 'kick', payload: { playerIndex } })
-    rawDispatch({ type: 'KICK_PLAYER', playerIndex })
+  // ⚠️ `playerIndex` aqui é o CRACHÁ (id) do técnico — a UI chama kickPlayer(m.id).
+  // O reducer, o room_players.player_index (= id inicial do humano) e o handler do
+  // cliente abaixo TÊM que usar o mesmo id. Comparar com youIdx (a cadeira) só
+  // coincidia em sala pequena/temporada 1; na carreira/sala grande expulsava/avisava
+  // a pessoa ERRADA. Agora compara com o MEU próprio id.
+  const kickPlayer = useCallback((mgrId: number) => {
+    const meId = stateRef.current.managers[stateRef.current.youIdx]?.id
+    if (!isHostRef.current || mgrId === meId) return
+    channelRef.current?.send({ type: 'broadcast', event: 'kick', payload: { playerIndex: mgrId } })
+    rawDispatch({ type: 'KICK_PLAYER', playerIndex: mgrId })
     const rid = stateRef.current.roomId
-    if (rid) { supabase.from('room_players').delete().eq('room_id', rid).eq('player_index', playerIndex).then(() => {}) }
+    if (rid) { supabase.from('room_players').delete().eq('room_id', rid).eq('player_index', mgrId).then(() => {}) }
   }, [])
 
   // "acabei de virar host": aviso grande e passageiro (o anterior saiu da sala)
@@ -4981,7 +4994,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
     ch.on('broadcast', { event: 'chat' }, ({ payload }: { payload: ChatMsg }) => addChat(payload, false))
     // host removeu alguém: se for EU, saio da partida DE VEZ e caio no menu online.
     ch.on('broadcast', { event: 'kick' }, ({ payload }: { payload: { playerIndex: number } }) => {
-      if (payload.playerIndex !== stateRef.current.youIdx) return
+      // payload.playerIndex é o CRACHÁ (id) do expulso — comparo com o MEU id, não com
+      // a cadeira (youIdx), senão o banner ia pra pessoa errada e o certo continuava.
+      if (payload.playerIndex !== stateRef.current.managers[stateRef.current.youIdx]?.id) return
       // trava esta sala: nunca reaparece o "voltar pra sala" neste aparelho.
       const rid = stateRef.current.roomId
       if (rid) {
