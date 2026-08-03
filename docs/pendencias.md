@@ -1,5 +1,21 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
 
+## 🃏 Verificação de cartas (03/08) — pesquisa web clube+ano+posição
+✅ ADICIONADOS hoje (todos conferidos): Saulo (GK Sport 22), Bosco (GK Sport 00),
+Max Walef (GK Fortaleza 22), Brítez (LAT Fortaleza 23), Zizão (MEI Corinthians 13),
+Preto Casagrande (MEI Santos 04), Pochettino (MEI Fortaleza 24), Feijão (MEI Bahia 13),
+Felipe Cabeleira (MEI Náutico 22), Gonçalo Paciência (ATA Sport 25), Alef Manga
+(ATA Coritiba 22), Wallace Pernambucano (ATA Confiança 14), Mascote (ATA Retrô 24),
+Neto Baiano (ATA Vitória 09), Robgol (ATA Bahia 02), Rogério "Neymar do Nordeste"
+(ATA Ceará 20), Machuca (ATA Fortaleza 24), Vagalume (ATA Maranhão 25).
+🔧 CORRIGIDOS: Gustavo Geladeira (Portuguesa→Flamengo 11), Rodrigo Arroz (GK→ZAG),
+Rodrigo Alvim (ZAG→LAT). ❌ REMOVIDO: Sérgio Escobar (não existe no Vasco).
+⚠️ SEGURADOS (não bater ano/clube): Yamada (Diego pediu p/ NÃO botar — não achei
+no Palmeiras), Milagres (real é GOL do América-MG, não bate c/ nordeste atacante),
+Sandro Gaúcho (2 jogadores diferentes — ambíguo), Everton Páscoa (passagem nordeste
+não confirmada). Andrés Escobar já estava no baralho Mundo (Atlético Nacional 91).
+
+
 ## 🎨 Artes de stories entregues (03/08): Contratos + Empresário + Várzea
 Três PNGs 1080×1920 no visual do jogo, todas com carimbo vermelho "SÓ PRA
 CARREIRAS NOVAS": (1) Contratos (carta-contrato assinada); (2) Modo Empresário
