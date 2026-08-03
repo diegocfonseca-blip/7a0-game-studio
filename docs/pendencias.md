@@ -926,3 +926,17 @@ RLS on). Verificado: cartas_cpu=85 = títulos_cpu=85 → reconcile neutro. Onlin
 ⚠️ AINDA ABERTO: o buraco em si (cliente grava esc_results/user_cards direto —
 qualquer um pode fabricar). Fechar com validação server-side ANTES de abrir o
 ranking da Carreira.
+
+## 🏛️ BUG AO VIVO: Multiclubes FANTASMA em carreira nova — CONSERTADO (04/08, print do Murriz)
+Sintoma: usuário criou carreira NOVA e na virada apareceu o seletor "MULTICLUBES
+— quem você comanda?" com o PRÓPRIO time duplicado (M10 × M10) + aviso de 2
+clubes. CAUSA-RAIZ: START_CAREER_SOLO nunca limpava s.multiClube/
+multiClubePendingCards — o stash da carreira ANTERIOR (ou de sessão carregada)
+vazava pro save novo. FIX duplo: (1) START limpa os dois campos; (2) AUTO-CURA
+em normalizeMultiSeats: ao carregar QUALQUER save, se o multiClube aponta pra um
+"2º clube" que não existe entre os managers (ou só há 1 humano), o stash é
+PURGADO e a carreira volta a clube único — cura o save do Murriz e de quem mais
+foi afetado, sem perder nada (o fantasma nunca teve nada dentro).
+## 🃏 Cartas corrigidas (04/08, relato do Diego): China → Flamengo 2004 (ano
+estava 2013) · Léo Gamalho → Criciúma 2013 (clube estava Vasco). ⚠️ Diego:
+confirmar se prefere OUTRO auge pra esses dois (chutei o mais conhecido).
