@@ -19,6 +19,16 @@ RESULTADO re-simulado: inversões 3.8%→0.0% (nenhum 🪵/🎯 acima da média 
 época); max 🎯 42→27; livro capado; escada por divisão limpa (V:🪵10/🎯14 →
 B:💎36/⭐42). Regressão escadafina toda verde. Relista barato de encalhado
 continua existindo (Diego: "é do jogo").
+### ➕ Ajuste do Diego (03/08): "quero algo REAL — mercado sobe conforme avança,
+### time rico paga mais (mas inteligente)" → TETO DINÂMICO
+- `escadaEconFactor` (store): teto por categoria × riqueza média da sala (caixa
+  dos humanos + clubCash de rivais/bots). Caixa ~100 = fator 1; cresce até 4×.
+  Aplica no lance da CPU (os DOIS tetos escalam: fairPrice e categoria), na
+  cobertura de empate e no piso de artilheiro. A PROPORÇÃO entre categorias é
+  o que nunca muda (🪵 não alcança ⭐ da mesma época).
+- Simulado 28 temporadas ×3: mercado SOBE com a era (🎯 12.9→20.5 · 💎 30→36 ·
+  ⭐ 34.7→42.7 max 65) e inversões seguem 0.0%. Time rico já pagava mais pelo
+  motor (fatia de orçamento + starHunger) — agora o teto deixa, sem pagar burro.
 ## 📈 "SUBIU COM TIME RUIM?" — verificado, é percepção da régua (03/08)
 Nas 15 promoções simuladas o promovido era SEMPRE mais forte que a MÉDIA da
 divisão (XI ~77-80 vs ~75). Como a régua nivela todo mundo por baixo, o time

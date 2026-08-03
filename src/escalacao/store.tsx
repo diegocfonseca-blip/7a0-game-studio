@@ -702,17 +702,32 @@ function catPriceCap(c: { fame?: number; promessa?: boolean }): number {
   const f = c.fame ?? 1
   return f >= 5 ? 90 : f === 4 ? 65 : f >= 2 ? 26 : 16
 }
+// 📈 FATOR ECONÔMICO da sala (escada): o teto é RELATIVO ao mercado — sala rica
+// (Série A, prêmios altos) paga mais caro em TODAS as categorias, como na vida
+// real; o que nunca muda é a PROPORÇÃO (🪵 não alcança ⭐ da mesma época).
+// Caixa média ~100 = mercado base (fator 1); cresce até 4× em sala muito rica.
+function escadaEconFactor(s: EscState): number {
+  const vals: number[] = []
+  for (const m of s.managers) {
+    if (m.isHuman && !m.dormindo) vals.push(s.careerCoins?.[m.id] ?? 0)
+    else if (m.rival || m.backstop) vals.push(s.clubCash?.['m' + m.id] ?? 100)
+  }
+  const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 100
+  return Math.min(4, Math.max(1, 0.5 + avg / 150))
+}
 function applyScorerValues(state: EscState, values?: Record<string, number>) {
   if (!values) return
   const mv = { ...(state.marketValues ?? {}) }
-  // 🪜 escada: bônus de artilheiro NÃO infla o piso além do teto da categoria
-  // (antes somava toda temporada sem limite — um 🎯 artilheiro eterno chegava a
-  // piso 100 e era vendido a preço de estrela). Nunca REDUZ um valor já gravado.
+  // 🪜 escada: bônus de artilheiro NÃO infla o piso além do teto da categoria ×
+  // economia da sala (antes somava toda temporada sem limite — um 🎯 artilheiro
+  // eterno chegava a piso 100 e era vendido a preço de estrela). O teto cresce
+  // junto com o mercado; nunca REDUZ um valor já gravado.
+  const econ = state.escadaOn ? escadaEconFactor(state) : 0
   const capOf = (name: string): number | null => {
     if (!state.escadaOn) return null
-    for (const m of state.managers) for (const c of m.squad) if (c.name === name && !c.fake) return catPriceCap(c)
-    for (const t in (state.cpuSquads ?? {})) for (const c of state.cpuSquads![t]) if (c.name === name && !c.fake) return catPriceCap(c)
-    return 42 // não achou a carta (raro): teto médio, só pra não inflar sem freio
+    for (const m of state.managers) for (const c of m.squad) if (c.name === name && !c.fake) return Math.round(catPriceCap(c) * econ)
+    for (const t in (state.cpuSquads ?? {})) for (const c of state.cpuSquads![t]) if (c.name === name && !c.fake) return Math.round(catPriceCap(c) * econ)
+    return Math.round(42 * econ) // não achou a carta (raro): teto médio, só pra não inflar sem freio
   }
   for (const name in values) {
     const b = values[name]
@@ -904,10 +919,11 @@ function fairPrice(v: number): number {
   return Math.max(1, Math.round(Math.pow(Math.max(0, v - 40) / 10, 1.55) * 3.2))
 }
 
-// `smart` (🪜 escada/carreira nova): lance da CPU também respeita o TETO DA
-// CATEGORIA — bot rico e agressivo não paga mais preço de ⭐ num 🪵/🎯 (as caudas
-// que o tester flagrou). Fora da escada nada muda (jogo ao vivo intocado).
-function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean, smart = false): (Bid & { cardId: string })[] {
+// `catCapEcon` (🪜 escada/carreira nova): teto da CATEGORIA × fator econômico da
+// sala — bot rico e agressivo não paga preço de ⭐ num 🪵/🎯 da MESMA época (as
+// caudas que o tester flagrou), mas sala rica paga mais em tudo (mercado real).
+// 0 = desligado (fora da escada nada muda — jogo ao vivo intocado).
+function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean, catCapEcon = 0): (Bid & { cardId: string })[] {
   const pos = SECTORS[sectorIdx]
   // FAKE NÃO SEGURA VAGA (só CPU): incógnito no elenco conta como vaga aberta —
   // o bot briga por jogador REAL e, se estourar o teto, o fake é dispensado no
@@ -937,10 +953,12 @@ function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => nu
     const share = m.starHunger > 0.5 ? (i === 0 ? 0.7 : 0.3 / Math.max(1, need - 1)) : 1 / need
     let amt = Math.max(1, Math.round(budget * share * (0.75 + rng() * 0.5)))
     amt = Math.min(amt, Math.max(1, left))
-    // TETO DE VALOR: o lance nunca passa muito do que o jogador vale pro bot
-    let cap = Math.max(2, Math.round(fairPrice(t.v) * (0.85 + m.aggression * 0.5 + rng() * 0.3)))
-    // 🪜 teto da CATEGORIA (escada): a agressividade não fura o nível do jogador
-    if (smart) cap = Math.min(cap, Math.max(2, Math.round(catPriceCap(t.c) * (0.8 + rng() * 0.25))))
+    // TETO DE VALOR: o lance nunca passa muito do que o jogador vale pro bot.
+    // 🪜 escada: os DOIS tetos escalam com a economia da sala (mercado rico paga
+    // mais em tudo), mas o teto da categoria garante a proporção — 🪵/🎯 nunca
+    // alcançam ⭐ da mesma época, por mais rico que o bot seja.
+    let cap = Math.max(2, Math.round(fairPrice(t.v) * (0.85 + m.aggression * 0.5 + rng() * 0.3) * (catCapEcon > 0 ? catCapEcon : 1)))
+    if (catCapEcon > 0) cap = Math.min(cap, Math.max(2, Math.round(catPriceCap(t.c) * catCapEcon * (0.8 + rng() * 0.25))))
     amt = Math.min(amt, cap)
     // PISO (valor fixo): compara com o BOLSO INTEIRO, não com a fatia do setor —
     // craque com piso justo é pechincha e o bot estica pra cobrir. Se o jogador
@@ -1033,9 +1051,10 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   for (const id of tb.managers) {
     const m = state.managers.find(x => x.id === id)!
     let v = m.isHuman ? (state.tiebreakPending[id] ?? tb.amount) : cpuTiebreakBid(m, tb, rng)
-    // 🪜 escada: a CPU não cobre o empate além do teto da categoria (a escalada
-    // do re-lance era a última rota de "🎯 a preço de ⭐"). Humano decide sozinho.
-    if (state.escadaOn && !m.isHuman) v = Math.min(v, Math.max(tb.amount, catPriceCap(tb.card)))
+    // 🪜 escada: a CPU não cobre o empate além do teto da categoria × economia
+    // (a escalada do re-lance era a última rota de "🎯 a preço de ⭐"). O teto
+    // acompanha a riqueza da sala; humano decide sozinho.
+    if (state.escadaOn && !m.isHuman) v = Math.min(v, Math.max(tb.amount, Math.round(catPriceCap(tb.card) * escadaEconFactor(state))))
     v = Math.min(m.money, Math.max(tb.amount, Math.round(v))) // trava: ≥ piso e ≤ dinheiro
     amounts[id] = v
   }
@@ -2463,10 +2482,11 @@ function sealAndResolve(state: EscState) {
   const rng = rngOf(state)
   const rescue = state.phase === 'resq_envelope'
   const bidMap: BidMap = new Map()
+  const econ = state.escadaOn ? escadaEconFactor(state) : 0 // 🪜 teto por categoria × riqueza da sala
   // CPUs (só quem disputa o leilão — bots de preenchimento nunca dão lance)
   for (const m of state.managers) {
     if (m.isHuman || !m.auctionRival) continue
-    for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, !!state.escadaOn)) {
+    for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ)) {
       pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: b.amount })
     }
   }
@@ -2490,7 +2510,7 @@ function sealAndResolve(state: EscState) {
         // teto ~16 num jogador que quer). Com poucas vagas, pode pagar mais.
         const perSlot = Math.max(1, Math.floor(m.money / Math.max(1, totalHoles(m))))
         const capPerCard = Math.max(1, Math.round(perSlot * 1.6))
-        for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, !!state.escadaOn)) {
+        for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ)) {
           pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: Math.min(b.amount, capPerCard) })
         }
       }
