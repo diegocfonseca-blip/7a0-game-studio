@@ -39,8 +39,13 @@ Aprovado pelo Diego e implementado completo (mockup mock-eventos.html ok'd):
   multiclube seguro (banner decide no clube DO evento mesmo se trocar o seletor).
 - Testes: eventotest.mjs (21 checks verdes) + regressões cria/dorm/herança ok;
   auditoria segue só com o "bot com 10" raro já conhecido (pendência antiga).
-- 📣 FALTA: avisar o Diego que PODE POSTAR o story do Instagram (story-eventos);
-  se quiser, troco o selo "CHEGANDO ESSA SEMANA" → "JÁ NO AR" e regenero o PNG.
+- 📣 Story regenerado com "JÁ NO AR 🔥" e entregue pro Diego postar (04/08).
+- 🔒 CORREÇÃO (04/08, relato do Diego — usuário viu banner em carreira ANTIGA):
+  eventos + Departamento Médico agora SÓ em carreira com `agenciaOn` (o novo
+  modo empresário, ligado nas carreiras criadas após 03/08). Carreira antiga:
+  zero banner, zero médico na lista de obras, SAF com a régua de sempre (sem
+  os 1.000 extras) e CURA automática pra quem pegou banner vazado no lançamento
+  (PLAY_ROUND limpa e destrava a rodada). Testes: +5 checks no eventotest.
 
 ## 🔑 Redefinir senha consertado (04/08, relato do Didico) ✅
 Bug: clicava no link do e-mail de "esqueci a senha" e voltava pro site SEM a

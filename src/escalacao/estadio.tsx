@@ -168,11 +168,15 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice }: {
   st: StadiumSave | undefined
   coins: number
   onInvest: (sector: string) => void
   onBuild: (ext: string) => void
+  // 🏥 Departamento Médico SÓ nas carreiras com eventos de jogador (agenciaOn).
+  // Carreira antiga nem VÊ a obra — e a SAF dela segue custando o de sempre
+  // (regra nova nunca muda o meio da carreira de ninguém).
+  medicoOn?: boolean
   filial?: { team: string; since: number; earned?: number; loanOut?: { id: string; name: string; pos: string }[]; loanIn?: { id: string; name: string; pos: string }[] } | null
   filialOptions?: string[]
   filialInfo?: { div: string; pos: number } | null
@@ -201,8 +205,11 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
   const perk = myApoioPerk()
   const ACC = perk?.solid ?? GREEN
   const ACCB = perk ? INK : '#14351f'
-  const totalPieces = STADIUM_SECTORS.length + STADIUM_EXTRAS.length
-  const prontoPct = Math.round((STADIUM_SECTORS.reduce((a, s) => a + sectorPct(st, s.k) / 100, 0) + STADIUM_EXTRAS.filter(e => hasExtra(st, e.k)).length) / totalPieces * 100)
+  // 🏥 lista de melhorias da CARREIRA: sem agenciaOn o médico não existe (nem no
+  // % pronto, nem na exigência da SAF — senão save antigo travava em 91%).
+  const extras = medicoOn ? STADIUM_EXTRAS : STADIUM_EXTRAS.filter(e => e.k !== 'medico')
+  const totalPieces = STADIUM_SECTORS.length + extras.length
+  const prontoPct = Math.round((STADIUM_SECTORS.reduce((a, s) => a + sectorPct(st, s.k) / 100, 0) + extras.filter(e => hasExtra(st, e.k)).length) / totalPieces * 100)
   return (
     <>
       <div style={{ ...box('#FBF6E9'), padding: 12, marginBottom: 12 }}>
@@ -247,7 +254,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
       })}
 
       <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '14px 2px 8px', ...OSW }}>✨ Melhorias — pagam e destravam 🔓</p>
-      {STADIUM_EXTRAS.map(e => {
+      {extras.map(e => {
         const done = hasExtra(st, e.k), unlocked = extraUnlocked(st, e.k), poor = coins < e.cost
         return (
           <div key={e.k} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11, opacity: done || unlocked ? 1 : .55, borderStyle: done || unlocked ? 'solid' : 'dashed', boxShadow: done || unlocked ? `4px 4px 0 0 ${INK}` : 'none' }}>
@@ -273,7 +280,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
         // ela SEMPRE aparece: sem login, fica apagada com "faça login" (a sessão
         // pode ter expirado mesmo pra quem já jogou online). Só some se não for solo.
         const logged = !!loggedEmail()
-        const allDone = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && STADIUM_EXTRAS.every(e => hasExtra(st, e.k))
+        const allDone = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && extras.every(e => hasExtra(st, e.k))
         const canBuy = logged && allDone && coins >= 2000
         const regras = (
           <ul style={{ margin: '7px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', lineHeight: 1.55 }}>

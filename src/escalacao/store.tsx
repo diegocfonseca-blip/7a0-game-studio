@@ -2885,6 +2885,7 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'STADIUM_BUILD': {
       if (!s.careerOnline) return s
       const ext = STADIUM_EXTRAS.find(x => x.k === action.ext); if (!ext) return s
+      if (action.ext === 'medico' && !s.agenciaOn) return s // 🏥 só carreiras com eventos de jogador
       const st = s.stadiums?.[action.mgrId] ?? emptyStadium()
       const wallet = s.careerCoins?.[action.mgrId] ?? 0
       if (st.ext.includes(action.ext) || !extraUnlocked(st, action.ext) || wallet < ext.cost) return s
@@ -3553,7 +3554,9 @@ export function reducer(state: EscState, action: Action): EscState {
         const coins = s.careerCoins?.[you.id] ?? 0
         if (coins < 2000) return s
         const stO = s.stadiums?.[you.id]
-        const readyO = STADIUM_SECTORS.every(x => sectorPct(stO, x.k) >= 100) && STADIUM_EXTRAS.every(e => hasExtra(stO, e.k))
+        // 🏥 o Dep. Médico só conta pra SAF nas carreiras com eventos (agenciaOn) —
+        // save antigo compra a SAF com a régua de sempre (nada muda no meio).
+        const readyO = STADIUM_SECTORS.every(x => sectorPct(stO, x.k) >= 100) && STADIUM_EXTRAS.every(e => (e.k === 'medico' && !s.agenciaOn) || hasExtra(stO, e.k))
         if (!readyO) return s
         if (s.careerRivals.some(r => r.team === action.team) || you.teamName === action.team) return s
         // e nunca um clube que OUTRO humano já tem de SAF
@@ -3570,7 +3573,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const coins = s.careerCoins?.[you.id] ?? 0
       if (coins < 2000) return s
       const st = s.stadiums?.[you.id]
-      const ready = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && STADIUM_EXTRAS.every(e => hasExtra(st, e.k))
+      const ready = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && STADIUM_EXTRAS.every(e => (e.k === 'medico' && !s.agenciaOn) || hasExtra(st, e.k))
       if (!ready) return s
       if (s.careerRivals.some(r => r.team === action.team) || you.teamName === action.team) return s
       s.careerCoins = { ...s.careerCoins, [you.id]: coins - 2000 }
@@ -4075,7 +4078,9 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'EVENTO_SET': {
       // 🎭 EVENTOS (carreira SOLO): registra o causo sorteado na tela. A trava de
       // "1 por temporada" mora AQUI (dispatch repetido/reload vira no-op).
-      if (!s.careerOnline || s.onlineMode === 'online') return s
+      // 🔒 SÓ carreira com o novo modo empresário (agenciaOn) — ordem do Diego:
+      // carreira antiga NUNCA vê banner (nada de regra nova em save velho).
+      if (!s.careerOnline || s.onlineMode === 'online' || !s.agenciaOn) return s
       if (s.eventoTemporada && s.eventoTemporada.season === s.seasonNo) return s
       if (action.evento.season !== s.seasonNo) return s
       s.eventoTemporada = action.evento
@@ -4121,7 +4126,10 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.careerOnline) {
         // 🎭 EVENTOS (solo): banner PENDENTE trava o avanço da rodada — o técnico
         // decide primeiro (a tela nem dispara, isto é o cinto de segurança).
-        if (s.onlineMode !== 'online' && s.eventoTemporada?.status === 'pendente' && s.eventoTemporada.season === s.seasonNo) return s
+        // 🩹 CURA: carreira SEM agenciaOn não pode ter evento (vazou no lançamento
+        // de 04/08 pra saves antigos) — limpa e segue, ninguém fica preso na rodada.
+        if (!s.agenciaOn && s.eventoTemporada) s.eventoTemporada = undefined
+        if (s.onlineMode !== 'online' && s.agenciaOn && s.eventoTemporada?.status === 'pendente' && s.eventoTemporada.season === s.seasonNo) return s
         // cura ids duplicados de elencos antigos (bug do leilão de reservas) — uma
         // vez só; depois vira no-op. Se corrigiu, zera escalações manuais que
         // apontavam pro id duplicado (voltam ao XI automático, correto).

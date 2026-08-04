@@ -2596,9 +2596,9 @@ export function PyramidSeasonScreen() {
   // Vai pra simulação como mod POR RODADA (nunca mexe na carta — o passado não muda).
   const eventoMods = useMemo<RoundMods>(() => {
     const ev = state.eventoTemporada
-    if (!ev || ev.season !== state.seasonNo || ev.status !== 'campo') return {}
+    if (!state.agenciaOn || !ev || ev.season !== state.seasonNo || ev.status !== 'campo') return {}
     return { [ev.mgrId]: { [ev.round]: -2 } }
-  }, [state.eventoTemporada, state.seasonNo])
+  }, [state.eventoTemporada, state.seasonNo, state.agenciaOn])
   const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
@@ -2775,15 +2775,18 @@ export function PyramidSeasonScreen() {
 
   // ─── 🎭 EVENTOS DE JOGADOR (só carreira SOLO — online segue 100% igual) ───
   const soloCareer = state.onlineMode !== 'online'
-  const evAtual = state.eventoTemporada
+  // 🔒 SÓ carreiras com o novo modo empresário (agenciaOn) — ordem do Diego
+  // (04/08): carreira ANTIGA nunca vê banner, médico, nada. Zero mudança nela.
+  const eventosOn = soloCareer && !!state.agenciaOn
+  const evAtual = eventosOn ? state.eventoTemporada : null
   // banner pendente = trava o avanço da rodada até o técnico decidir
-  const eventoPendente = soloCareer && evAtual && evAtual.season === state.seasonNo && evAtual.status === 'pendente' ? evAtual : null
+  const eventoPendente = evAtual && evAtual.season === state.seasonNo && evAtual.status === 'pendente' ? evAtual : null
   // jogador fora (banco/gancho/lesão): não entra na escalação até a rodada da volta
-  const suspenso = soloCareer && evAtual && evAtual.season === state.seasonNo && evAtual.status === 'banco' && (evAtual.volta ?? 0) > round && evAtual.mgrId === youId ? evAtual : null
+  const suspenso = evAtual && evAtual.season === state.seasonNo && evAtual.status === 'banco' && (evAtual.volta ?? 0) > round && evAtual.mgrId === youId ? evAtual : null
   // sorteia o causo da temporada ANTES de avançar a rodada (true = sorteou e trava;
   // o "1 por temporada" e a janela de rodadas moram no sorteio + na trava do store)
   const maybeEvento = (): boolean => {
-    if (!soloCareer || (state.seasonNo ?? 1) < 2 || !mgrMe || seasonOver || copaPlaying) return false
+    if (!eventosOn || (state.seasonNo ?? 1) < 2 || !mgrMe || seasonOver || copaPlaying) return false
     if (evAtual && evAtual.season === state.seasonNo) return false
     const d = sorteiaEvento({ seed: seasonSeed, seasonNo: state.seasonNo ?? 1, round, xi: myXI as EventoCard[], squad: mgrMe.squad as EventoCard[], temMedico: hasExtra(state.stadiums?.[youId], 'medico') })
     if (!d) return false
@@ -3018,7 +3021,7 @@ export function PyramidSeasonScreen() {
         {copaFinished && me && (
           <SeasonJornal me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo}
             /* 🎭 EVENTOS: manchetes do "Aconteceu na temporada" (página própria do jornal) */
-            eventos={soloCareer ? (state.eventoManchetes ?? []).filter(m => m.season === state.seasonNo).map(m => ({ ic: m.emoji, titulo: m.titulo, sub: m.sub })) : undefined}
+            eventos={eventosOn ? (state.eventoManchetes ?? []).filter(m => m.season === state.seasonNo).map(m => ({ ic: m.emoji, titulo: m.titulo, sub: m.sub })) : undefined}
             /* 🕴️ AGÊNCIA 2.0: notícias dos agenciados pra página 2 do jornal —
                SÓ emoção, sem moeda (decisão do Diego). Artilheiro/campeão desta
                temporada + negociações do último mercado. Sem notícia = sem pág. 2. */
@@ -3334,7 +3337,7 @@ export function PyramidSeasonScreen() {
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
             {!agenciaOk && me && <SponsorCard div={me.div} chosen={state.onlineMode === 'online' ? state.careerSponsors?.[youId] : state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id, mgrId: youId })} />}
-            <StadiumTab st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0}
+            <StadiumTab st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               filial={myFilial}
