@@ -18,7 +18,7 @@ import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, getSport, escadaLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, getSport, escadaLiberada, type Sport } from './sport'
 import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
 
@@ -2837,8 +2837,37 @@ function TieSorteio({ names, winnerId }: { names: { id: number; label: string; c
   )
 }
 
+// 🎉 FESTÃO DA LENDA (Revelação Cinema — EM TESTE, só na conta liberada): confete
+// + brilho dourado no instante do martelo quando uma LENDA é arrematada. É SÓ
+// visual (one-shot, pointer-events:none) — não encosta em nenhuma lógica do leilão.
+// Fora da conta liberada nem é renderizado, então o jogo dos outros fica idêntico.
+function LendaParty({ delay }: { delay: number }) {
+  const pieces = useMemo(() => Array.from({ length: 18 }, (_, i) => ({
+    x: (Math.random() * 2 - 1) * 150,
+    rot: (Math.random() * 2 - 1) * 240,
+    dur: 0.9 + Math.random() * 0.7,
+    emoji: ['🎉', '👑', '✨', '💛', '🔨', '🎊'][i % 6],
+    sc: 0.8 + Math.random() * 0.9,
+  })), [])
+  return (
+    <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden" aria-hidden>
+      <motion.div className="absolute left-1/2 top-1/2 rounded-full"
+        style={{ width: 320, height: 320, marginLeft: -160, marginTop: -160, background: 'radial-gradient(circle, rgba(255,196,0,0.7), transparent 65%)' }}
+        initial={{ opacity: 0, scale: 0.3 }} animate={{ opacity: [0, 0.9, 0], scale: [0.3, 1.3, 1.7] }}
+        transition={{ delay, duration: 1.2, ease: 'easeOut' }} />
+      {pieces.map((p, i) => (
+        <motion.span key={i} className="absolute left-1/2 top-1/3 text-2xl"
+          initial={{ opacity: 0, x: 0, y: 0, scale: 0.4, rotate: 0 }}
+          animate={{ opacity: [0, 1, 1, 0], x: p.x, y: [0, -34, 280], scale: p.sc, rotate: p.rot }}
+          transition={{ delay, duration: p.dur + 0.7, ease: 'easeOut' }}>{p.emoji}</motion.span>
+      ))}
+    </div>
+  )
+}
+
 function Reveal() {
   const { state, dispatch } = useEsc()
+  const cinema = useRevealCinema() // 🔨🎬 festão da Lenda: só na conta liberada (Diego)
   const item = state.revealQueue[state.revealIdx]
   const you = state.managers[state.youIdx]
   const online = state.onlineMode === 'online'
@@ -2933,6 +2962,7 @@ function Reveal() {
             <span className="absolute top-2 left-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black text-white" style={{ ...OSWALD, background: PURPLE }}>🎁 SURPRESA</span>
           )}
           <CardFace c={item.card} big highlight={item.card.id === state.surpriseId} />
+          {cinema && sold && item.card.fame >= 5 && <LendaParty delay={hammerDelay} />}
           <div className="mt-4 space-y-1.5">
             {item.bids.length === 0 && (
               <p className="font-bold text-black/70">Nenhum lance. Vai pro Monte Final. 🪣</p>
@@ -2985,6 +3015,24 @@ function Reveal() {
               `🩹 Ai! ${n} de diferença e ${card} não é de ${who}…`,
               `📉 Deu ruim por ${n}! ${who} olha ${card} de longe.`,
               `🫥 Sumiu por ${n}: ${card} escorregou de ${who}!`,
+              `🧨 Explodiu na mão! ${who} perde${names.length > 1 ? 'm' : ''} ${card} por ${n}!`,
+              `🕳️ Caiu no buraco: ${n} e ${card} sumiu de ${who}!`,
+              `🪤 Armadilha! ${card} escapou de ${who} por ${n}.`,
+              `😵‍💫 ${who} nem acredita: ${n} tirou ${card} do colo!`,
+              `🥀 Murchou por ${n}! ${card} não vestiu a camisa de ${who}.`,
+              `🚑 Chama a ambulância! ${who} levou ${n} de facada por ${card}!`,
+              `🧗 Faltou um degrau (${n}) pra ${who} pegar ${card}.`,
+              `⛔ Barrado por ${n}! ${who} fica só na vontade de ${card}.`,
+              `🧤 Escorregou das mãos: ${n} e ${card} era de ${who}…`,
+              `🔒 Trancado por ${n}! ${card} não abriu pra ${who}.`,
+              `🥲 Sorriso amarelo: ${who} viu ${card} ir por ${n}.`,
+              `🧱 Bateu no muro! ${n} separou ${who} de ${card}.`,
+              `🎬 Corta! ${who} perde ${card} no último frame por ${n}.`,
+              `🐐 Por ${n}, ${card} preferiu outro elenco a ${who}.`,
+              `🎢 Que montanha-russa: ${who} perde ${card} lá no alto por ${n}!`,
+              `🫧 Estourou a bolha: ${card} escapou de ${who} por ${n}.`,
+              `📮 Devolvido ao remetente: ${card} voltou por ${n} de ${who}!`,
+              `🧊 Congelou no detalhe: ${n} e ${who} fica sem ${card}.`,
             ]
             return (
               <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: hammerDelay + 0.4 }}
