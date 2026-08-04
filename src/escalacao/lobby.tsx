@@ -393,6 +393,12 @@ export function EscLobby() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [recovering, setRecovering] = useState(false) // 🔑 voltou pelo link de "esqueci a senha" → tela de nova senha
+  // 🔑 trava da redefinição: o link de recuperação dispara TAMBÉM o evento de
+  // "logou" (ordem varia), que jogava a pessoa pro MENU por cima da tela de nova
+  // senha ("cliquei em redefinir e só voltou pro site"). Enquanto a trava está
+  // de pé, NADA muda de tela — só o botão "Salvar nova senha" solta.
+  const recoveringRef = useRef(false)
+  const startRecovery = useCallback(() => { recoveringRef.current = true; setRecovering(true); setPhase('auth') }, [])
   const [newPw, setNewPw] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [authError, setAuthError] = useState('')
@@ -535,25 +541,32 @@ export function EscLobby() {
   }
 
   useEffect(() => {
+    // 🔑 o link do e-mail traz a marca de recuperação na URL (hash no fluxo
+    // clássico, query no PKCE) — detecta JÁ no carregamento, antes de qualquer
+    // evento, e arma a trava. Sem isso, dependia só do evento (que se perde).
+    try {
+      const marca = `${window.location.hash} ${window.location.search}`
+      if (marca.includes('type=recovery')) startRecovery()
+    } catch { /* ignora */ }
     supabase.auth.getSession().then(({ data }) => {
       const u = data.session?.user ?? null
-      setUser(u); if (u) setPhase('menu')
+      setUser(u); if (u && !recoveringRef.current) setPhase('menu')
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const u = session?.user ?? null
       // 🔑 voltou pelo link de redefinição: NÃO cai no menu — abre a tela de nova senha
-      if (event === 'PASSWORD_RECOVERY') { setUser(u); setRecovering(true); setPhase('auth'); return }
-      setUser(u); if (u) setPhase('menu')
+      if (event === 'PASSWORD_RECOVERY') { setUser(u); startRecovery(); return }
+      setUser(u); if (u && !recoveringRef.current) setPhase('menu')
     })
     return () => subscription.unsubscribe()
-  }, [])
+  }, [startRecovery])
 
   // Reconecta sozinho se a página recarregou com uma sala salva (ex.: o
   // navegador descartou a aba ao trocar pro WhatsApp e voltar).
   // Também consome o código de convite (?j=CODE) e entra na sala automaticamente
   // — para quem já estava logado (0 clique) e para quem acabou de se cadastrar.
   useEffect(() => {
-    if (!user) return
+    if (!user || recoveringRef.current) return // 🔑 redefinindo senha: nada de navegar
     const invite = loadInvite()
     if (invite) {
       ;(async () => {
@@ -901,7 +914,7 @@ export function EscLobby() {
     try {
       const { error } = await supabase.auth.updateUser({ password: newPw })
       if (error) { setAuthError(friendlyAuthErr(error.message)); setLoading(false); return }
-      setNewPw(''); setRecovering(false); setAuthError(''); setPhase('menu')
+      setNewPw(''); setRecovering(false); recoveringRef.current = false; setAuthError(''); setPhase('menu')
     } catch (e) {
       setAuthError(friendlyAuthErr(e instanceof Error ? e.message : String(e)))
     }

@@ -1,5 +1,15 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/08/2026)
 
+## 🔑 Redefinir senha consertado (04/08, relato do Didico) ✅
+Bug: clicava no link do e-mail de "esqueci a senha" e voltava pro site SEM a
+tela de nova senha. Causa: o link de recuperação dispara TAMBÉM o evento de
+"logou" (ordem varia) e o handler jogava pro MENU por cima da tela de
+redefinição; o auto-reconectar de sala podia atropelar também. Conserto
+(lobby.tsx): trava recoveringRef — armada pelo evento PASSWORD_RECOVERY E pela
+marca type=recovery na URL (hash/query, já no carregamento); enquanto armada,
+nenhum caminho troca de tela (menu/salas/convite); "Salvar nova senha" solta.
+Pedir pro Didico testar de novo (F5 antes).
+
 ## 🏆 Sub-filtro na aba Carreira do ranking (04/08, pedido do Diego) ✅
 Dois chips dentro da aba Carreira: "🪜 Por carreira" (padrão — cada save uma
 linha, cartas daquela carreira) e "📊 Total da conta" (todas as carreiras
