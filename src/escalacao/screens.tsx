@@ -2977,7 +2977,10 @@ function Reveal() {
           {item.card.id === state.surpriseId && (
             <span className="absolute top-2 left-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black text-white" style={{ ...OSWALD, background: PURPLE }}>🎁 SURPRESA</span>
           )}
-          <CardFace c={item.card} big highlight={item.card.id === state.surpriseId} />
+          {/* 🎁 SURPRESA anti-spoiler: o nome fica BORRADO até alguém GANHAR de fato
+              (martelo com vencedor). Sem lance = nunca revela (vai pro Monte às cegas);
+              com lance = borrado até o martelo bater. */}
+          <CardFace c={item.card} big surprise={item.card.id === state.surpriseId && !(hammered && sold)} highlight={item.card.id === state.surpriseId} />
           {cinema && sold && item.card.fame >= 5 && <LendaParty delay={hammerDelay} />}
           {cinema && sold && (() => {
             const winBid = item.bids.find(b => b.mgr === item.winner)
