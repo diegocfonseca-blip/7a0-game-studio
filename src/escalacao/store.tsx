@@ -2894,7 +2894,13 @@ export function reducer(state: EscState, action: Action): EscState {
     // e persistir o estado da sala.
     case 'BECOME_HOST': { s.isHost = true; return s }
     case 'FIX_YOU_IDX': { s.youIdx = action.idx; return s } // identidade é local (não sincroniza)
-    case 'COPA_MUNDO_PRIZE': { s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: (s.careerCoins?.[action.mgrId] ?? 0) + 100 }; return s }
+    case 'COPA_MUNDO_PRIZE': {
+      // 🌍 +100 por clube SEU classificado (Diego 04/08: dormindo recebe igual —
+      // independência total). logFin roteia o extrato do dormindo pro stash.
+      s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: (s.careerCoins?.[action.mgrId] ?? 0) + 100 }
+      logFin(s, 'reward', '🌍 Prêmio da Copa do Mundo Legends', 100, undefined, action.mgrId)
+      return s
+    }
     case 'KICK_PLAYER': {
       // Host removeu um técnico da partida: a CPU assume o time dele e o jogo
       // segue sem travar. O cliente removido é ejetado pelo evento 'kick' à
@@ -3890,6 +3896,72 @@ export function reducer(state: EscState, action: Action): EscState {
             const fakes = m.squad.filter(c => c.pos === pos && c.fake).sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi))
             const worst = fakes[0]
             m.squad = m.squad.filter(c => c.id !== worst.id)
+          }
+        }
+      }
+      // 🧑‍🔧 REPOSIÇÃO DE ELENCO DOS BOTS (Diego 04/08: "bot não pode ficar com XI
+      // furado — tem carta sobrando no baralho"): técnico de CPU da liga com
+      // buraco na formação puxa carta REAL que não está em elenco nenhum,
+      // respeitando a régua da divisão DELE (escada). Com o real dentro, o
+      // incógnito mais fraco da posição sai. Roda ANTES do sorteio de contratos,
+      // então carta nova de rival já nasce com contrato normal.
+      if (s.careerOnline && s.onlineMode !== 'online') {
+        const idR = (c: { name: string; club?: string; year?: number }) => `${c.name}|${c.club ?? ''}|${c.year ?? ''}`
+        const usados = new Set<string>()
+        for (const m of s.managers) for (const c of m.squad) if (!c.fake) usados.add(idR(c))
+        for (const cards of Object.values(s.cpuSquads ?? {})) for (const c of cards) if (!(c as Card).fake) usados.add(idR(c as Card))
+        const rngR = rngOf(s)
+        for (const m of s.managers) {
+          if (m.isHuman || m.marketCpu || m.backstop) continue
+          const dv = s.careerPlacements?.[`m${m.id}`] ?? 'D'
+          const escDv: EscadaDiv | null = (!s.escadaOn || s.escadaLivre) ? null : ((dv === 'A' || dv === 'B' || dv === 'C' || dv === 'D' || dv === 'V') ? dv : 'V')
+          for (const pos of SECTORS) {
+            const need = FORMATIONS[m.formation][pos]
+            let reais = m.squad.filter(c => c.pos === pos && !c.fake).length
+            let guard = 0
+            while (reais < need && guard++ < 6) {
+              // cascata (Diego 04/08: "bot não pode ficar com XI furado"): 1) baralho
+              // livre na régua da divisão · 2) baralho livre fama ≤3 · 3) SÓ RIVAL:
+              // baralho livre de QUALQUER fama (o mais fraco) · 4) puxa do FUNDO
+              // (cpuSquads; o fundo tampa com zé — lá é cosmético) · 5) SÓ RIVAL:
+              // fundo de qualquer fama (o mais fraco) · 6) incógnito (nunca em rival
+              // com o mundo inteiro varrido — só se ele não existir mesmo).
+              const fraco = (arr: { lo: number; hi: number }[]) => [...arr].sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi))[0]
+              const livres = ACTIVE_CATALOG[pos].filter(c => !usados.has(idR(c)))
+              let pick = shuffle(livres.filter(c => !escDv || escadaAllows(escDv, c)), rngR)[0]
+                ?? shuffle(livres.filter(c => (c.fame ?? 1) <= 3 && !c.promessa), rngR)[0]
+                ?? (m.rival ? fraco(livres) : undefined)
+              let doFundo: WonCard | null = null
+              if (!pick) {
+                const sq2 = { ...(s.cpuSquads ?? {}) }
+                const elegivel = (c: WonCard, qualquer: boolean) => c.pos === pos && !c.fake && !isFillerClub(c.club) && (qualquer || (escDv ? escadaAllows(escDv, c) : (c.fame ?? 1) <= 3 && !c.promessa))
+                for (const rodada of (m.rival ? [false, true] : [false])) {
+                  if (doFundo) break
+                  for (const cardsF of Object.values(sq2)) {
+                    const cand = fraco((cardsF as WonCard[]).filter(c => elegivel(c, rodada)))
+                    if (cand && (!doFundo || (cand.lo + cand.hi) < (doFundo.lo + doFundo.hi))) doFundo = cand as WonCard
+                  }
+                }
+                if (doFundo) {
+                  for (const [teamF, cardsF] of Object.entries(sq2)) {
+                    const i2 = (cardsF as WonCard[]).findIndex(c => c.id === doFundo!.id)
+                    if (i2 >= 0) { const arr2 = [...(cardsF as WonCard[])]; arr2.splice(i2, 1, fillerCard(pos, rngR)); sq2[teamF] = arr2; s.cpuSquads = sq2; break }
+                  }
+                }
+              }
+              const ganho = pick ?? doFundo
+              if (ganho) {
+                usados.add(idR(ganho))
+                // ⚠️ carta do CATÁLOGO não carrega `pos` (a posição vem da chave do
+                // setor) — injetar aqui é OBRIGATÓRIO, senão nasce carta sem posição
+                m.squad.push({ ...ganho, pos, id: `repo-${m.id}-${pos}-${Math.floor(rngR() * 1e9)}`, paid: 0, via: 'monte', emprestado: undefined, seller: undefined, semContrato: undefined, contratoAte: undefined } as WonCard)
+              } else {
+                m.squad.push(fillerCard(pos, rngR))
+              }
+              reais++ // (na pior das hipóteses o incógnito preenche a vaga POSICIONAL)
+              const fakes = m.squad.filter(c => c.pos === pos && c.fake).sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi))
+              if (m.squad.filter(c => c.pos === pos).length > need && fakes[0]) m.squad = m.squad.filter(c => c.id !== fakes[0].id)
+            }
           }
         }
       }

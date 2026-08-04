@@ -1610,3 +1610,36 @@ multiclube contratos ✓ (dormtest); heranças entre carreiras zeradas hoje.
 ⚠️ LIMITES DA SIMULAÇÃO: harness não clica telas/botões (testa o MOTOR);
 "deadlock" do run B (dinheiro parado) é em parte artefato do lance burro do
 robô — re-testar com estratégia esperta antes de concluir.
+
+## 🔬 RODADA 2 da simulação profunda + CONSERTOS (04/08, ordens do Diego)
+PEDIDO: analisar lances de rivais/bots a fundo + consertar XI furado de bot,
+Copa do Mundo pro 2º clube e carta/título da CdM contando em tudo.
+📊 RAIO-X DOS LANCES (150 temporadas instrumentadas, cada lote registrado):
+lances de bots/rivais SENSATOS — craque máx 65 (=teto), lenda 66, médias sobem
+com a era sem inversão; rivais renovam ~95% dos bons/craques e NUNCA soltam
+lenda com caixa; venda cai de 83% (eras cedo) pra ~60% (eras ricas).
+🚨 CONFIRMADO "encalhe do caro": lote com piso ≥30 encalha e CRESCE por era
+(14→26→33→67→85 por bloco de 25 temporadas) — o caro roda leilão sem comprador
+(piso alto), vai pro monte/varredura, MAS NUNCA sai de graça (0 golpes em 550+
+temporadas somadas). PROPOSTA (não feita, decidir): piso do relistado = min(
+paid, valorOficial atual) ou decaimento de 20%/temporada encalhada.
+🔧 CONSERTO 1 — XI DOS BOTS (auditoria: 153 falhas → ~4): reposição na
+cerimônia (FINISH_CEREMONY) com cascata: baralho livre na régua → fama ≤3 →
+(rival) qualquer fama mais fraco → PUXA DO FUNDO (cpuSquads doa o real mais
+fraco e tampa com zé) → (rival) fundo qualquer fama → incógnito só em último
+caso. ⚠️ BUG MEU no meio do caminho (pego pela auditoria): carta de catálogo
+não carrega `pos` — injetar é obrigatório (cartas sem posição nasceram e
+morreram no mesmo dia). Resta caso raro "bot com 10" (~4 em 30 temporadas
+auditadas) — anotado, não crítico.
+🔧 CONSERTO 2 — COPA DO MUNDO × MULTICLUBE: os DOIS clubes seus contam pro
+top-20 e CADA classificado recebe os +100 (COPA_MUNDO_PRIZE agora com logFin —
+extrato do dormindo no stash). 
+🔧 CONSERTO 3 — CARTA/TÍTULO DA CdM CONTAM EM TUDO: chave da carta virou
+co:solo<seed>:<temporada>:copamundo (origin cpu) → soma nas CARTAS do ranking
+Carreira; vitória grava esc_results (champion) → soma nos TÍTULOS; onCard novo
+leva a carta pro COFRE do empresário (ADD_EMPRESARIO_CARD), igual liga/Copa.
+Cartas copamundo: antigas (chave legada) não migram — só as novas contam.
+✅ REGRESSÕES: auditoria 153→4 · criatest 🟢 · dormtest 🟢 · herancatest 🟢 ·
+sim 150 temporadas: golpes 0, monte-grátis 0, XI humano 0, vencidos 0,
+duplicatas 0, NaN 0. (Métrica "bots XI furado" do sim usa 4-3-3 fixo pra todo
+bot — artefato de medição; a régua real é a da auditoria/xiHoles.)

@@ -19,7 +19,9 @@ import { LiveScoreCard, PensShootout, pensRevealDelay, type ScoreGoal } from './
 // controles de ritmo OFICIAIS (mesmos da liga/copa): auto por padrão, Manual
 // (🐢/⚡ + pular + próxima fase) pra quem tem o tier — cadeado do APOIE pro resto.
 import { SimControls, SpeedControls, useSimMode, QuickManualLock, CardCollectPrompt } from './screens'
-import { useHasManual } from './apoio'
+import { useHasManual, stripEmoji } from './apoio'
+import { resilientWrite } from './pending'
+import { supabase } from '../lib/supabase'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#C2452F'
 const OSWALD = { fontFamily: "'Oswald','Arial Narrow',system-ui,sans-serif" } as const
@@ -194,7 +196,7 @@ function MiniLive({ nmH, nmA, ev, min, bold }: { nmH: string; nmA: string; ev: S
 }
 
 // ── componente principal: o portão + o torneio inteiro num modal ──
-export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onPrize?: () => void }) {
+export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onPrize?: () => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void }) {
   const save = useMemo(() => ensureSave(seed), [seed])
   const [open, setOpen] = useState(false)
   const copaNow = isCopaSeason(save, seasonNo) && !save.played.includes(seasonNo)
@@ -240,12 +242,12 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize }: { seaso
         <span style={{ position: 'relative' }}>🌍 DISPUTAR A COPA DO MUNDO</span>
         <span style={{ position: 'relative', display: 'block', fontSize: 9.5, fontWeight: 800, textTransform: 'none', fontFamily: 'system-ui', marginTop: 2 }}>chegou a hora — ela só volta na temporada {seasonNo + 10}!</span>
       </button>
-      {open && <CopaMundo seasonNo={seasonNo} seed={seed} top16={top16} myPos={myPos} paises16={paises16} save={save} onPrize={onPrize} onClose={() => setOpen(false)} />}
+      {open && <CopaMundo seasonNo={seasonNo} seed={seed} top16={top16} myPos={myPos} paises16={paises16} save={save} onPrize={onPrize} onCard={onCard} onClose={() => setOpen(false)} />}
     </>
   )
 }
 
-function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onClose }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onPrize?: () => void; onClose: () => void }) {
+function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCard, onClose }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onPrize?: () => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onClose: () => void }) {
   const rng = useMemo(() => mulberry((seed ^ Math.imul(seasonNo, 2654435761)) >>> 0), [seed, seasonNo])
   const [phase, setPhase] = useState<'select' | 'convoke' | 'cup'>('select')
   const [myPais, setMyPais] = useState<string | null>(null)
@@ -291,7 +293,7 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCl
   )
   if (phase === 'cup' && entrants) return (
     <Modal wide>
-      <CupScreen entrants={entrants} rng={rng} seasonNo={seasonNo} seed={seed} save={save} myForm={myForm} onPrize={onPrize} onClose={onClose} />
+      <CupScreen entrants={entrants} rng={rng} seasonNo={seasonNo} seed={seed} save={save} myForm={myForm} onPrize={onPrize} onCard={onCard} onClose={onClose} />
     </Modal>
   )
   return null
@@ -460,7 +462,7 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
 
 // ── tela 3: o torneio AO VIVO (mesmo ritmo/suspense da liga: relógio, GOOOL,
 // pênaltis cobrança a cobrança — nada aparece pronto) ──
-function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { entrants: Entrant[]; rng: () => number; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; onPrize?: () => void; onClose: () => void }) {
+function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onCard, onClose }: { entrants: Entrant[]; rng: () => number; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; onPrize?: () => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onClose: () => void }) {
   // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
   // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
   const world = useMemo(() => {
@@ -563,6 +565,22 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
     const c = world.final.champion
     saveCopaSave(seed, { ...cur, played: [...cur.played, seasonNo], mural: [...cur.mural, { season: seasonNo, selecao: entrants[c].pais, campeao: entrants[c].club, voce: isYou(c) }] })
     if (isYou(c)) onPrize?.() // 💰 +100 moedas (só solo — no online o caixa é do host)
+    // 🏆 REGRA DO DIEGO (04/08): campeão do MUNDO também é TÍTULO no ranking
+    // Carreira — grava a linha co:solo…:copamundo (mesmo padrão da liga/Copa).
+    if (isYou(c)) {
+      ;(async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser()
+          if (!user) return
+          const displayName = stripEmoji((user.user_metadata?.display_name as string | undefined) ?? user.email?.split('@')[0] ?? 'Técnico')
+          await resilientWrite({ table: 'esc_results', onConflict: 'user_id,season_key', row: {
+            user_id: user.id, display_name: displayName,
+            mode: 'cpu', season_key: `co:solo${seed}:${seasonNo}:copamundo`,
+            champion: true, top_scorer: false, goals: 0,
+          } })
+        } catch { /* nunca trava a Copa */ }
+      })()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done])
 
@@ -709,7 +727,10 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onClose }: { 
           outras copas: a carta é gravada na conta NA HORA (conta mesmo sem abrir). */}
       {done && isYou(world.final.champion) && (
         <div style={{ marginBottom: 10 }}>
-          <CardCollectPrompt seasonKey={`copamundo:${seed}:${seasonNo}`} origin="online" />
+          {/* 🌍 REGRA DO DIEGO (04/08): "tudo que é campeão conta carta" — chave de
+              CARREIRA (co:solo…:copamundo): a carta SOMA no ranking Carreira da
+              home, e o onCard leva pro cofre do empresário, igual liga e Copa. */}
+          <CardCollectPrompt seasonKey={`co:solo${seed}:${seasonNo}:copamundo`} origin="cpu" onClaimed={c => onCard?.(c, `co:solo${seed}:${seasonNo}:copamundo`)} />
         </div>
       )}
       {done && (() => {

@@ -3032,12 +3032,20 @@ export function PyramidSeasonScreen() {
               return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, money }
             })
             rws.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
-            const top16 = rws.slice(0, 20).map(r => ({ name: r.t.name, you: r.t.teamId === youId && r.t.teamId >= 0 })) // 🌍 Copa de 20 seleções (era 16)
+            // 🏛️ MULTICLUBES (regra do Diego 04/08): os DOIS clubes seus contam —
+            // qualquer um deles no top-20 marca "você", e o prêmio vai pra CADA
+            // clube seu classificado (independentes até na Copa do Mundo).
+            const dormeId = state.multiClube?.id
+            const meu = (id: number) => id >= 0 && (id === youId || id === dormeId)
+            const top16 = rws.slice(0, 20).map(r => ({ name: r.t.name, you: meu(r.t.teamId) })) // 🌍 Copa de 20 seleções (era 16)
+            const meusNoTop = rws.slice(0, 20).filter(r => meu(r.t.teamId)).map(r => r.t.teamId)
             // 💰 prêmio da Copa (+100): dispatch normal — no SOLO aplica direto; no
             // ONLINE o convidado roteia AUTOMATICAMENTE pro host (mesmo cano do
             // lance de leilão), o host anota no caixa oficial e sincroniza pra sala.
             // Ninguém aperta nada: é conversa entre os celulares.
-            return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} onPrize={() => dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: youId })} />
+            return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)}
+              onPrize={() => { for (const id of (meusNoTop.length ? meusNoTop : [youId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id }) }}
+              onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
           })()
           // 🗳️ a VOTAÇÃO é só do ONLINE (vários técnicos na sala decidem juntos).
           // No SOLO/carreira offline NUNCA vota — mesmo com 2º clube (multiclube),
