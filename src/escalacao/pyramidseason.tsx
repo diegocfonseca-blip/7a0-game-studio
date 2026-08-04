@@ -3452,6 +3452,11 @@ export function PyramidSeasonScreen() {
                 <StadiumSvg st={{ inv: { geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'grama', 'cober'] }} perkOverride={APOIO_PERKS.ouro} />
               </div>
             </GoldTeaser>
+            {/* 🏦 BANCO LEGENDS fechando a Estrutura (ideia do Diego 04/08): é AQUI
+                que o técnico acabou de ver o preço das obras/SAF e pensa "queria
+                moedas" — o banco aparece na hora certa. Também segue em Finanças.
+                (O componente já se esconde sozinho no online.) */}
+            <BancoLegends />
           </>
             )}
           </>
