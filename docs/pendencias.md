@@ -1475,3 +1475,21 @@ QUE RENDE MAIS dos dois (agenciaEstadio). Extrato de cada clube mostra a sua
 metade sozinho (linhas por variação de caixa por id). Estado agenciaDividir +
 SET_AGENCIA_CLUBE{dividir}. Esclarecido com o Diego: "cartas é única" = cofre
 de cartas da agência (um só da conta); estádio segue um por clube.
+
+## 🏆 HALL DA FAMA DA SALA repaginado (04/08, mockup aprovado) — modo rápido online
+Era uma linha seca de texto por temporada; agora é a ESTANTE (visual da sala de
+troféus da carreira), pra quem fica jogando várias partidas na mesma sala:
+- Cartão por jogador com faixa na COR DO TIER (perkFromSelo no nome; ouro/prata
+  brilham com ApoioSheen; sem selo = bege) + contador "N troféus".
+- Troféus empilhados: 🏆 Liga (dourado c/ brilho) · 🏆 Copa · ⚽ Artilharia
+  (verde, por TIME do artilheiro — coluna nova top_scorer_team) · 🙈 TROFÉU
+  MICO do lanterna (marrom, BALANÇA — animação escMicoWiggle).
+- Zoeira do Mico: 12 frases BR rotativas, sorteio estável por temporada (todo
+  mundo da sala vê a mesma) — "música no Fantástico", "ônibus de ré" etc.
+- 📜 Linha do tempo embaixo (mais novo em cima): T{n} · campeão · copa ·
+  artilheiro · 🙈 mico.
+- Banco: game_champions += top_scorer_team, mico_name (migration
+  hall_da_fama_time_artilheiro_e_mico); host grava, temporadas antigas seguem
+  aparecendo (sem ⚽/🙈 retroativos). Lanterna = último da tabela (pode ser bot,
+  zoeira vale). Ideias anotadas sem decisão: 🐔 Frango de Ouro (defesa mais
+  vazada) · 🥶 Geladeira (temporada sem vitória).
