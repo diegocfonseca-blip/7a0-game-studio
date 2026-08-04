@@ -73,6 +73,29 @@ export interface EmpCard {
   season?: number // 💼 temporada em que a carta foi ganha — só começa a render na temporada SEGUINTE (não na que ela foi tirada no fim)
 }
 
+// 🎭 EVENTOS DE JOGADOR (carreira SOLO): o "causo" da temporada — noitada,
+// expulsão ou lesão de um jogador do SEU time titular. O banner trava o avanço
+// da rodada até o técnico decidir (regras completas no comentário do EscState).
+export type EventoTipo = 'noitada' | 'expulsao' | 'lesao'
+export interface EventoAtivo {
+  season: number   // temporada do evento (marca o "1 por temporada")
+  round: number    // rodada (0-based) em que apareceu — o jogo que AINDA vai rolar
+  mgrId: number    // clube do evento (o ativo na hora — multiclube não mistura)
+  tipo: EventoTipo
+  cardId: string
+  nome: string
+  pos: Sector
+  rodadas: number  // jogos fora (noitada 1 · expulsão 1-3 · lesão 1-5)
+  historia: string // o texto do banner (sorteado uma vez, não muda no reload)
+  // pendente = banner na tela (trava o avanço) · banco = trocou (volta na rodada `volta`)
+  // campo = "escalar assim mesmo" (queda pequena SÓ naquele jogo) · manchete = sem reserva, só zoeira
+  status: 'pendente' | 'banco' | 'campo' | 'manchete'
+  volta?: number   // rodada em que o titular VOLTA (round + rodadas) — só status 'banco'
+  subId?: string   // quem assumiu a vaga
+  subNome?: string
+}
+export interface EventoManchete { season: number; round: number; emoji: string; titulo: string; sub: string }
+
 // só duas formações — GOL/LAT/ZAG são sempre 1/2/2 nas duas (nunca variam),
 // só MEI/ATA mudam. Isso é o que sustenta o plano de rodadas por vaga.
 // 4-3-3 e 4-4-2 são as formações INICIAIS (base do leilão). 4-5-1 é uma troca
@@ -387,6 +410,15 @@ export interface EscState {
   contratoRelease?: string[] // ids marcados "deixar ir" na janela atual (consumido no leilão)
   criaNames?: string[] // nomes de cria já usados NESTA carreira (nunca repete)
   criaNews?: { texto: string; nome: string; pos: Sector }[] // historinhas da virada (banner na cerimônia)
+  // 🎭 EVENTOS DE JOGADOR (carreira SOLO): no MÁXIMO 1 por temporada — noitada
+  // (🍾 baladeiro escolhe: banco 1 jogo ou "escalar assim mesmo" com queda
+  // pequena SÓ naquele jogo), expulsão (🟥 pavio-curto, 1-3 rodadas) e lesão
+  // (🩹 qualquer um, 1-5 rodadas — MORRE pra sempre com o Departamento Médico).
+  // Só dispara se EXISTE reserva na posição (senão vira só manchete de zoeira,
+  // nada trava). A suspensão vive em careerLineup (troca na rodada + volta na
+  // rodada certa) — a formação NUNCA quebra. Morre na virada da temporada.
+  eventoTemporada?: EventoAtivo | null
+  eventoManchetes?: EventoManchete[] // manchetes pro jornal (página "Aconteceu na temporada") — últimas ~24
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
   careerFilial?: {

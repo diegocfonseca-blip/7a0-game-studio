@@ -1,5 +1,34 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/08/2026)
 
+## 🎭 EVENTOS DE JOGADOR na carreira solo — NO AR (04/08) ✅
+Aprovado pelo Diego e implementado completo (mockup mock-eventos.html ok'd):
+- Máx. **1 evento por temporada**, só carreira SOLO (online 100% intacto), só a
+  partir da T2, janela rodadas 3..31 (nunca na reta final; volta máx. rodada 36).
+- **Noitada 🍾** (baladeiros): banner roxo, escolhe "banco 1 jogo" (reserva da
+  MESMA posição assume) ou "escalar assim mesmo" (-2 de força SÓ naquele jogo,
+  via mods POR RODADA na simulação — nunca mexe na carta, o passado não muda).
+- **Expulsão 🟥** (pavio-curto, 1-3 rodadas) e **lesão 🩹** (qualquer um, 1-5):
+  troca obrigatória — só escolhe QUEM assume. Suspensão vive no careerLineup
+  (entrada na rodada + volta automática na rodada certa); SET_LINEUP rejeita o
+  suspenso até a volta; formação NUNCA quebra (reserva = mesma posição, senão
+  nem dispara).
+- **Sem reserva na posição = só manchete de zoeira**, nada trava (regra do Diego).
+- **🏥 Departamento Médico** no estádio: 1.000 🪙, rende 0, destrava depois da
+  Cobertura; construiu = lesões ACABAM pra sempre. SAF agora exige ele também
+  (era o combinado: última obra antes da SAF). Grandfather protegido: quem já
+  tinha estádio 100% NÃO perde a renda de Craque da agência.
+- **Jornal ganhou página "📻 Aconteceu na temporada"** com as manchetes dos causos.
+- Traits curados à mão em eventos.ts (BR/EU/mundo + folclóricos inventados):
+  só folclore LEVE (Romário/Vampeta/Balotelli baladeiros; Edmundo/Zidane/Cantona
+  pavio) — NUNCA tragédia/lesão real de ninguém (Garrincha/Sócrates/Gascoigne
+  ficaram DE FORA de propósito). Lesões são 100% fictícias e bobas.
+- Trava dupla: banner pendente PAUSA o auto e trava PLAY_ROUND no reducer;
+  multiclube seguro (banner decide no clube DO evento mesmo se trocar o seletor).
+- Testes: eventotest.mjs (21 checks verdes) + regressões cria/dorm/herança ok;
+  auditoria segue só com o "bot com 10" raro já conhecido (pendência antiga).
+- 📣 FALTA: avisar o Diego que PODE POSTAR o story do Instagram (story-eventos);
+  se quiser, troco o selo "CHEGANDO ESSA SEMANA" → "JÁ NO AR" e regenero o PNG.
+
 ## 🔑 Redefinir senha consertado (04/08, relato do Didico) ✅
 Bug: clicava no link do e-mail de "esqueci a senha" e voltava pro site SEM a
 tela de nova senha. Causa: o link de recuperação dispara TAMBÉM o evento de

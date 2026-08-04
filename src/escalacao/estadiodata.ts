@@ -21,7 +21,7 @@ export const STADIUM_SECTORS: StadiumSector[] = [
   { k: 'camarote',  n: 'Camarote',  cost: 150, inc: 10, seats: 16000 },
 ]
 
-export interface StadiumExtra { k: string; n: string; cost: number; inc: number; reqTxt: string }
+export interface StadiumExtra { k: string; n: string; cost: number; inc: number; reqTxt: string; perk?: string }
 export const STADIUM_EXTRAS: StadiumExtra[] = [
   { k: 'refl',  n: '💡 Refletores',       cost: 50,  inc: 2, reqTxt: 'Geral 100%' },
   { k: 'telao', n: '📺 Telão',            cost: 60,  inc: 3, reqTxt: 'Cadeiras 100%' },
@@ -29,6 +29,9 @@ export const STADIUM_EXTRAS: StadiumExtra[] = [
   { k: 'estac', n: '🅿️ Estacionamento',   cost: 70,  inc: 4, reqTxt: 'Loja do Clube' },
   { k: 'grama', n: '🌿 Gramado de Elite', cost: 90,  inc: 5, reqTxt: '3 setores prontos' },
   { k: 'cober', n: '☂️ Cobertura',        cost: 130, inc: 8, reqTxt: '4 setores prontos' },
+  // 🏥 não rende moeda: o "lucro" dele é acabar com as LESÕES pra sempre (eventos
+  // de jogador). Última obra antes da SAF (a SAF exige TODAS as melhorias).
+  { k: 'medico', n: '🏥 Departamento Médico', cost: 1000, inc: 0, reqTxt: 'Cobertura', perk: 'acaba com as lesões PRA SEMPRE' },
 ]
 
 export const emptyStadium = (): StadiumSave => ({ inv: {}, ext: [] })
@@ -78,6 +81,7 @@ export function extraUnlocked(st: StadiumSave | undefined, k: string): boolean {
     case 'estac': return hasExtra(st, 'loja')
     case 'grama': return sectorsDone(st) >= 3
     case 'cober': return sectorsDone(st) >= 4
+    case 'medico': return hasExtra(st, 'cober') // 🏥 a última obra da árvore (depois vem a SAF)
     default: return false
   }
 }
@@ -136,7 +140,10 @@ export function empCatUnlocked(cat: EmpCat, st: StadiumSave | undefined, hasFili
     case 'prof': return true
     case 'bom': return sectorsDone(st) >= 1
     case 'promessa': return sectorsDone(st) >= 3
-    case 'craque': return stadiumComplete(st)
+    // ⚠️ NÃO usa stadiumComplete(): quando o 🏥 Dep. Médico entrou na lista de
+    // melhorias, quem JÁ tinha o estádio 100% não pode PERDER a renda de Craque
+    // até construir o médico (grandfather). O gate segue sendo o estádio "clássico".
+    case 'craque': return sectorsDone(st) >= STADIUM_SECTORS.length && STADIUM_EXTRAS.every(e => e.k === 'medico' || hasExtra(st, e.k))
     case 'lenda': return hasFilial
     default: return false
   }

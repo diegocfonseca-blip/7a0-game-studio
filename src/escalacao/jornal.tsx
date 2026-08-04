@@ -149,13 +149,14 @@ export function seasonHeadline(div: Div, pos: number, team: string): Headline {
 export type AgNews = { ic: string; titulo: string; sub: string }
 
 // ─── a capa ──────────────────────────────────────────────────────────────
-export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews }: {
+export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos }: {
   me: { div: Div; pos: number; team: string }
   tables: Record<Div, SimTeam[]>
   copa: CopaResult | null
   divTop: Record<Div, SeasonScorer | undefined>
   seasonNo: number
   agenciaNews?: AgNews[]
+  eventos?: AgNews[] // 🎭 manchetes dos EVENTOS DE JOGADOR — página "Aconteceu na temporada"
 }) {
   // abre EXPANDIDO por padrão (a manchete é a estrela do fim de temporada);
   // o "Fechar" recolhe pro botãozinho se a pessoa quiser limpar a tela.
@@ -165,6 +166,10 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews }
   // notícia de agenciado. A capa fica 5s e VIRA sozinha (uma vez); toque no
   // rodapé de páginas vai e volta. Sem notícia/save antigo = só a capa, como hoje.
   const news = (agenciaNews && agenciaNews.length > 0) ? agenciaNews : null
+  // 🎭 página "Aconteceu na temporada" (eventos de jogador) — só existe se teve causo.
+  // As páginas são dinâmicas: capa → caderno do empresário (se tem) → eventos (se tem).
+  const evs = (eventos && eventos.length > 0) ? eventos : null
+  const pags: ('capa' | 'agencia' | 'eventos')[] = ['capa', ...(news ? ['agencia' as const] : []), ...(evs ? ['eventos' as const] : [])]
   const [page, setPage] = useState(0)
   const [barGo, setBarGo] = useState(false)
   const flippedRef = useRef(false)
@@ -175,6 +180,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews }
     return () => { clearTimeout(t0); clearTimeout(t1) }
   }, [open, page, news])
   const virar = (p: number) => { flippedRef.current = true; setPage(p) } // toque manual cancela o automático
+  const pk = pags[Math.min(page, pags.length - 1)] // página atual (índice sempre válido)
   // manchete do caderno: a MELHOR notícia manda (artilheiro > campeão > mercado)
   const agManchete = (() => {
     if (!news) return null
@@ -361,13 +367,31 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews }
       {/* cabeçalho do jornal (a pág. 2 vira "Caderno 2 · Negócios") */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `4px double ${INK}`, paddingBottom: 6 }}>
         <div style={{ ...SERIF, fontWeight: 900, fontSize: 26, letterSpacing: 1 }}>O <span style={{ color: '#B23A2A' }}>MARTELO</span></div>
-        <div style={{ textAlign: 'right', fontSize: 8.5, fontWeight: 800, lineHeight: 1.35, color: '#3a3527' }}>EDIÇÃO Nº {seasonNo}<br />{page === 1 && news ? 'CADERNO 2 · NEGÓCIOS' : `TEMPORADA ${seasonNo} · ${J_DIV_NAME[me.div].toUpperCase()}`}<br />PREÇO: 1 MOEDA</div>
+        <div style={{ textAlign: 'right', fontSize: 8.5, fontWeight: 800, lineHeight: 1.35, color: '#3a3527' }}>EDIÇÃO Nº {seasonNo}<br />{pk === 'agencia' ? 'CADERNO 2 · NEGÓCIOS' : pk === 'eventos' ? 'CADERNO · BASTIDORES' : `TEMPORADA ${seasonNo} · ${J_DIV_NAME[me.div].toUpperCase()}`}<br />PREÇO: 1 MOEDA</div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: 'uppercase', borderBottom: `1.5px solid ${INK}`, padding: '3px 1px', color: '#3a3527' }}>
-        {page === 1 && news ? <><span>🕴️ CADERNO DO EMPRESÁRIO</span><span>SEUS AGENCIADOS</span></> : <><span>⚽ O DIÁRIO DO LEILÃO LEGENDS</span><span>FIM DE TEMPORADA</span></>}
+        {pk === 'agencia' ? <><span>🕴️ CADERNO DO EMPRESÁRIO</span><span>SEUS AGENCIADOS</span></> : pk === 'eventos' ? <><span>📻 ACONTECEU NA TEMPORADA</span><span>OS BASTIDORES</span></> : <><span>⚽ O DIÁRIO DO LEILÃO LEGENDS</span><span>FIM DE TEMPORADA</span></>}
       </div>
 
-      {page === 1 && news && agManchete ? (
+      {pk === 'eventos' && evs ? (
+        <>
+          {/* ── 🎭 "ACONTECEU NA TEMPORADA": os causos dos jogadores (eventos) ── */}
+          <h2 style={{ ...SERIF, fontWeight: 900, fontSize: 24, lineHeight: 1.05, margin: '9px 0 4px', letterSpacing: -0.5, color: INK }}>{evs[0].titulo.toUpperCase()}</h2>
+          <p style={{ fontSize: 11.5, fontWeight: 700, fontStyle: 'italic', color: '#3a3527', margin: '0 0 9px', lineHeight: 1.3 }}>O que rolou fora das quatro linhas nesta temporada — e como o técnico se virou.</p>
+          <div style={{ border: `2.5px solid ${INK}`, background: '#fff' }}>
+            <div style={{ background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, letterSpacing: 2, padding: '4px 8px', textTransform: 'uppercase' }}>📻 Aconteceu na temporada</div>
+            {evs.map((n, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '7px 9px', borderTop: i > 0 ? '1.5px solid rgba(0,0,0,.12)' : 'none' }}>
+                <div style={{ flex: 'none', width: 24, height: 24, borderRadius: 7, border: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, background: '#F7F1DD' }}>{n.ic}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 900, lineHeight: 1.15 }}>{n.titulo}</div>
+                  <div style={{ fontSize: 9.5, fontWeight: 700, color: '#3a3527', marginTop: 1.5, lineHeight: 1.3 }}>{n.sub}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : pk === 'agencia' && news && agManchete ? (
         <>
           {/* ── 🕴️ PÁGINA 2: Caderno do Empresário — SÓ emoção, sem moeda ── */}
           <h2 style={{ ...SERIF, fontWeight: 900, fontSize: 24, lineHeight: 1.05, margin: '9px 0 4px', letterSpacing: -0.5, color: INK }}>{agManchete.h}</h2>
@@ -455,17 +479,21 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews }
 
       {/* 📄 rodapé de páginas: barrinha dos 5s (na capa) + bolinhas pra ir/voltar.
           Só aparece quando a temporada teve notícia de agenciado. */}
-      {news && (
+      {pags.length > 1 && (
         <>
-          {page === 0 && !flippedRef.current && (
+          {pk === 'capa' && news && !flippedRef.current && (
             <div style={{ height: 5, border: `1.5px solid ${INK}`, borderRadius: 99, overflow: 'hidden', background: '#fff', marginTop: 9 }}>
               <div style={{ height: '100%', background: GOLD, width: barGo ? '100%' : '0%', transition: 'width 5s linear' }} />
             </div>
           )}
-          <button onClick={() => virar(page === 0 ? 1 : 0)} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 8, padding: 0 }}>
-            <span style={{ width: 8, height: 8, borderRadius: 999, border: `2px solid ${INK}`, background: page === 0 ? INK : 'transparent' }} />
-            <span style={{ width: 8, height: 8, borderRadius: 999, border: `2px solid ${INK}`, background: page === 1 ? INK : 'transparent' }} />
-            <span style={{ fontSize: 9, fontWeight: 800, color: '#3a3527' }}>{page === 0 ? (flippedRef.current ? 'toque pra ver o Caderno do Empresário 🕴️' : 'vira sozinho em 5s · toque pra virar já') : 'toque pra voltar à capa'}</span>
+          <button onClick={() => virar((pags.indexOf(pk) + 1) % pags.length)} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 8, padding: 0 }}>
+            {pags.map(p => <span key={p} style={{ width: 8, height: 8, borderRadius: 999, border: `2px solid ${INK}`, background: p === pk ? INK : 'transparent' }} />)}
+            <span style={{ fontSize: 9, fontWeight: 800, color: '#3a3527' }}>{(() => {
+              const next = pags[(pags.indexOf(pk) + 1) % pags.length]
+              if (next === 'capa') return 'toque pra voltar à capa'
+              if (next === 'agencia') return pk === 'capa' && news && !flippedRef.current ? 'vira sozinho em 5s · toque pra virar já' : 'toque pra ver o Caderno do Empresário 🕴️'
+              return 'toque pra ver o Aconteceu na temporada 📻'
+            })()}</span>
           </button>
         </>
       )}

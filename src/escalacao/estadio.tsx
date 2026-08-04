@@ -254,9 +254,10 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{e.n}</div>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', marginTop: 2 }}>
-                {done ? <b style={{ color: ACC }}>rendendo +{e.inc}/temp</b>
-                  : unlocked ? <>custa {e.cost} 💰 · rende <b style={{ color: ACC }}>+{e.inc}/temp</b></>
-                  : <>🔒 destrava com: <b style={{ color: '#9a4b00' }}>{e.reqTxt}</b></>}
+                {/* 🏥 melhoria SEM renda (perk): mostra o benefício, nunca "+0/temp" */}
+                {done ? <b style={{ color: ACC }}>{e.perk ?? `rendendo +${e.inc}/temp`}</b>
+                  : unlocked ? <>custa {e.cost} 💰 · <b style={{ color: ACC }}>{e.perk ?? `rende +${e.inc}/temp`}</b></>
+                  : <>🔒 destrava com: <b style={{ color: '#9a4b00' }}>{e.reqTxt}</b>{e.perk ? <> · {e.perk}</> : null}</>}
               </div>
             </div>
             <button onClick={() => !done && unlocked && !poor && onBuild(e.k)} disabled={done || !unlocked || poor}

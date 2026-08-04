@@ -4,8 +4,10 @@ import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
   QuickCopaState, QuickCopaTie, LedgerEntry, EmpCard, AgCard, AgEvento,
+  EventoAtivo, EventoManchete,
 } from './types'
 import { SECTORS, FORMATIONS } from './types'
+import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName } from './data'
 import { stripEmoji } from './apoio'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
@@ -2440,6 +2442,8 @@ type Action =
   | { type: 'MONTE_PASS'; mgrId: number } // carreira: recusa as sobras e passa a vez (o time já tem os 11)
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[] } // carreira online: define os 11 titulares (escalação), vale do PRÓXIMO jogo
+  | { type: 'EVENTO_SET'; evento: EventoAtivo; manchete?: EventoManchete } // 🎭 carreira SOLO: registra o evento sorteado na tela (pendente = banner trava a rodada; manchete = sem reserva, só zoeira)
+  | { type: 'EVENTO_DECIDE'; escolha: 'troca' | 'campo'; subId?: string; xi: string[] } // 🎭 decisão do banner: troca (reserva assume até a volta) ou "escalar assim mesmo" (só noitada)
   | { type: 'PLAY_ROUND' }
   | { type: 'SIM_MANY'; count: number }
   | { type: 'FINISH_SEASON' } // 🏁 rápido: encerra a liga DEPOIS da última partida animar
@@ -3238,6 +3242,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.copaDoneSeason = undefined // senão a Copa da temporada de mesmo nº era PULADA na carreira nova
       s.varzea = false // modo várzea do rápido não pode pintar o campo da carreira
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined // 🌱 crias/janela zerados
+      s.eventoTemporada = undefined; s.eventoManchetes = undefined // 🎭 eventos de jogador: carreira nova nasce sem causo pendente
       s.agenciaDividir = false // toggle da agência volta ao padrão (1º clube)
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
       // vazando de uma carreira anterior (bug reportado: o estádio vinha completo).
@@ -3418,6 +3423,7 @@ export function reducer(state: EscState, action: Action): EscState {
         // 🧹 FAXINA ANTI-HERANÇA (04/08): mesmos campos do START solo
         s.cpuSquads = undefined; s.copaDoneSeason = undefined
         s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
+        s.eventoTemporada = undefined; s.eventoManchetes = undefined // 🎭 eventos de jogador zerados
         for (const m of s.managers) if (m.isHuman) logFin(s, 'opening', '🏁 Saldo inicial', 100, undefined, m.id)
       }
       s.seasonNo = 1
@@ -4056,10 +4062,55 @@ export function reducer(state: EscState, action: Action): EscState {
       // round = 38) grava ALÉM das 38 já jogadas — assim NÃO re-simula o
       // campeonato que acabou, mas o pinHumanLineups pega essa última escalação e
       // carrega pra próxima temporada (você começa com o time já montado).
+      // 🎭 EVENTOS: jogador SUSPENSO (banco/gancho/lesão) não entra na escalação
+      // enquanto não chega a rodada da volta — a tela já bloqueia, aqui é a trava.
+      const evLine = s.eventoTemporada
+      if (evLine && evLine.season === s.seasonNo && evLine.status === 'banco' && (evLine.volta ?? 0) > s.round && evLine.mgrId === action.mgrId && action.ids.includes(evLine.cardId)) return s
       const r = s.round
       const bl = { ...(s.careerLineup ?? {}) }
       bl[action.mgrId] = { ...(bl[action.mgrId] ?? {}), [r]: action.ids }
       s.careerLineup = bl
+      return s
+    }
+    case 'EVENTO_SET': {
+      // 🎭 EVENTOS (carreira SOLO): registra o causo sorteado na tela. A trava de
+      // "1 por temporada" mora AQUI (dispatch repetido/reload vira no-op).
+      if (!s.careerOnline || s.onlineMode === 'online') return s
+      if (s.eventoTemporada && s.eventoTemporada.season === s.seasonNo) return s
+      if (action.evento.season !== s.seasonNo) return s
+      s.eventoTemporada = action.evento
+      if (action.manchete) s.eventoManchetes = [...(s.eventoManchetes ?? []), action.manchete].slice(-24)
+      return s
+    }
+    case 'EVENTO_DECIDE': {
+      // 🎭 decisão do banner. 'troca': o reserva entra NA MESMA VAGA (posição igual —
+      // formação nunca quebra) e o titular volta sozinho na rodada `volta` (as duas
+      // escalações são gravadas JÁ AQUI no careerLineup; a volta vale até virando a
+      // temporada, via pinHumanLineups). 'campo' (só noitada): joga hoje com queda
+      // pequena SÓ neste jogo (a simulação aplica -2 via mods POR RODADA — nunca
+      // mexe na carta, senão re-simularia o passado).
+      const ev = s.eventoTemporada
+      if (!ev || ev.status !== 'pendente' || ev.season !== s.seasonNo) return s
+      const you = s.managers.find(m => m.id === ev.mgrId)
+      if (!you) return s
+      if (action.escolha === 'campo') {
+        ev.status = 'campo'
+      } else {
+        const sub = you.squad.find(c => c.id === action.subId && c.pos === ev.pos)
+        const idx = action.xi.indexOf(ev.cardId)
+        if (!sub || idx < 0) { ev.status = 'campo' } // 🛟 estado torto (reserva sumiu?) → não trava o jogo: segue em campo
+        else {
+          const ids = action.xi.slice(); ids[idx] = sub.id
+          const volta = ev.round + ev.rodadas
+          const bl = { ...(s.careerLineup ?? {}) }
+          bl[you.id] = { ...(bl[you.id] ?? {}), [ev.round]: ids, [volta]: action.xi.slice() }
+          s.careerLineup = bl
+          ev.status = 'banco'; ev.volta = volta; ev.subId = sub.id; ev.subNome = sub.name
+        }
+      }
+      s.eventoTemporada = { ...ev }
+      const m = mancheteDecisao(ev)
+      s.eventoManchetes = [...(s.eventoManchetes ?? []), { season: ev.season, round: ev.round, ...m }].slice(-24)
       return s
     }
     case 'PLAY_ROUND':
@@ -4068,6 +4119,9 @@ export function reducer(state: EscState, action: Action): EscState {
       // 4 divisões vem dos elencos reais + semente + rodada). Aqui só avançamos a
       // rodada (o host conduz, e isso já sincroniza) — nada de simular a liga viva.
       if (s.careerOnline) {
+        // 🎭 EVENTOS (solo): banner PENDENTE trava o avanço da rodada — o técnico
+        // decide primeiro (a tela nem dispara, isto é o cinto de segurança).
+        if (s.onlineMode !== 'online' && s.eventoTemporada?.status === 'pendente' && s.eventoTemporada.season === s.seasonNo) return s
         // cura ids duplicados de elencos antigos (bug do leilão de reservas) — uma
         // vez só; depois vira no-op. Se corrigiu, zera escalações manuais que
         // apontavam pro id duplicado (voltam ao XI automático, correto).

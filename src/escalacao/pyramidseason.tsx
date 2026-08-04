@@ -8,8 +8,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, EXTRA_D_TEAMS, oldChain } from './data'
-import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento } from './types'
+import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
 import { SECTORS, FORMATIONS } from './types'
+import { sorteiaEvento, mancheteSemReserva, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
+import type { EventoCard } from './eventos'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, catalogTodos, agenciaEstadio } from './store'
 import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS } from './estadiodata'
 import type { EmpCat, StadiumSave } from './estadiodata'
@@ -362,7 +364,11 @@ function lineupAt(lineups: RoundLineups, teamId: number, r: number, squad: PoolC
   }
   return xi.length === 11 ? xi : bestXI(squad, formation)
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false) {
+// 🎭 EVENTOS: ajuste de força POR RODADA (teamId → rodada → delta). Usado no
+// "escalar assim mesmo" da noitada (-2 SÓ naquele jogo). Tem que ser por rodada:
+// mexer na carta re-simularia o passado (a temporada inteira nasce da semente).
+export type RoundMods = Record<number, Record<number, number>>
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -415,6 +421,9 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     const BM = fairBoost ? CPU_DIV_BOOST_FAIR : CPU_DIV_BOOST
     const bh = (!H.human && !H.rival) ? BM[div] : 0, ba = (!A.human && !A.rival) ? BM[div] : 0
     fh.atk += bh; fh.def += bh; fa.atk += ba; fa.def += ba
+    // 🎭 evento "escalar assim mesmo": queda pequena SÓ na rodada do causo (humano)
+    const mh = H.human ? (mods[H.teamId]?.[r] ?? 0) : 0, ma = A.human ? (mods[A.teamId]?.[r] ?? 0) : 0
+    fh.atk += mh; fh.def += mh; fa.atk += ma; fa.def += ma
     // SORTE: cada time tem um "dia" (bom/ruim) por jogo — o forte às vezes tropeça,
     // o fraco às vezes surpreende. NÍVEL segue mandando (na média o melhor ganha),
     // mas evita goleada de campeonato (líder com 104 pts) e dá zebra de vez em quando.
@@ -439,14 +448,14 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const tables = {} as Record<Div, SimTeam[]>
   const matches = {} as Record<Div, SimMatch[]>
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
@@ -2443,6 +2452,60 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers,
   )
 }
 
+// ─── 🎭 EVENTO DE JOGADOR: banner de decisão (visual aprovado no mockup) ────
+// Trava o avanço da rodada até o técnico decidir. Noitada (roxo) tem escolha:
+// banco 1 jogo OU "escalar assim mesmo" (queda pequena só naquele jogo).
+// Expulsão/lesão (vermelho) obrigam a troca — só escolhe QUEM assume a vaga.
+function EventoBanner({ ev, reservas, onDecide }: {
+  ev: EventoAtivo
+  reservas: WonCard[]
+  onDecide: (escolha: 'troca' | 'campo', subId?: string) => void
+}) {
+  const [subId, setSubId] = useState(reservas[0]?.id ?? '')
+  const noit = ev.tipo === 'noitada'
+  const headGrad = noit ? 'linear-gradient(150deg,#7C3AED,#4C1D95)' : 'linear-gradient(150deg,#C2452F,#7a2418)'
+  const trait = traitDe(ev.nome)
+  return (
+    <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
+      <div style={{ padding: '9px 13px', fontWeight: 900, fontSize: 13, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas)}</div>
+      <div style={{ padding: '12px 13px' }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#3a3527', lineHeight: 1.5, margin: 0 }}>{ev.historia}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(160deg,#FFE79A,#FFC400 55%,#E8A200)', padding: '8px 10px', margin: '10px 0', boxShadow: '2px 2px 0 #000' }}>
+          <span style={{ fontSize: 30 }}>{eventoEmoji(ev.tipo)}</span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 900, fontSize: 16, ...OSWALD }}>{ev.nome}</div>
+            <div style={{ fontWeight: 800, fontSize: 9, color: 'rgba(0,0,0,.55)', ...OSWALD, textTransform: 'uppercase' }}>{ev.pos}{trait ? ` · ${trait}` : ''}</div>
+          </div>
+        </div>
+        {/* quem assume a vaga (mesma posição = formação NUNCA quebra) */}
+        <div style={{ border: `2.5px solid ${INK}`, borderRadius: 11, overflow: 'hidden', marginBottom: 10 }}>
+          <div style={{ background: INK, color: GOLD, fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, padding: '5px 10px' }}>quem assume a vaga de {ev.pos}?</div>
+          {reservas.map(c => (
+            <button key={c.id} onClick={() => setSubId(c.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 10px', borderTop: `1.5px solid rgba(0,0,0,.12)`, borderLeft: 'none', borderRight: 'none', borderBottom: 'none', background: subId === c.id ? '#EAF6EE' : '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+              ⚽ {c.name}
+              {subId === c.id && <span style={{ marginLeft: 'auto', fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 9.5, background: GREEN, color: '#fff', borderRadius: 6, padding: '2px 8px' }}>ENTRAR ✓</span>}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => subId && onDecide('troca', subId)} disabled={!subId}
+            style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 6px', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', textAlign: 'center', boxShadow: `2px 2px 0 ${INK}`, lineHeight: 1.25, background: '#EAF6EE', cursor: 'pointer', ...OSWALD }}>
+            {noit ? `😤 Banco por 1 jogo` : '✅ Confirmar a troca'}
+            <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'none', marginTop: 2, color: 'rgba(0,0,0,.6)' }}>{noit ? 'volta descansado na próxima' : `volta em ${ev.rodadas} ${ev.rodadas === 1 ? 'rodada' : 'rodadas'}`}</small>
+          </button>
+          {noit && (
+            <button onClick={() => onDecide('campo')}
+              style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 6px', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', textAlign: 'center', boxShadow: `2px 2px 0 ${INK}`, lineHeight: 1.25, background: GOLD, cursor: 'pointer', ...OSWALD }}>
+              🙏 Escalar assim mesmo
+              <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'none', marginTop: 2, color: 'rgba(0,0,0,.6)' }}>joga hoje, mas pode render menos</small>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // caixa do header com animação: quando o valor muda, sobe/desce um "+N" verde
 // (ganhou: título, prêmio, artilharia, venda) ou "-N" vermelho (gastou no leilão).
 // Como o header tem overflow:hidden, o número flutua PRA BAIXO (não corta em cima).
@@ -2529,7 +2592,14 @@ export function PyramidSeasonScreen() {
   // determinístico (seed e seasonNo são sincronizados), então todos os clientes
   // online chegam no mesmo resultado. Cada temporada roda como se fosse uma nova.
   const seasonSeed = (state.seed ^ ((state.seasonNo ?? 1) * 2654435761)) >>> 0
-  const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost])
+  // 🎭 EVENTOS: "escalar assim mesmo" (noitada) = -2 de força SÓ na rodada do causo.
+  // Vai pra simulação como mod POR RODADA (nunca mexe na carta — o passado não muda).
+  const eventoMods = useMemo<RoundMods>(() => {
+    const ev = state.eventoTemporada
+    if (!ev || ev.season !== state.seasonNo || ev.status !== 'campo') return {}
+    return { [ev.mgrId]: { [ev.round]: -2 } }
+  }, [state.eventoTemporada, state.seasonNo])
+  const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
   // está animando na sua tela — os pontos só entram quando o relógio dela acaba.
@@ -2550,7 +2620,7 @@ export function PyramidSeasonScreen() {
   // os gols da partida apareciam ANTES dela animar (a tabela já segurava, mas a
   // artilharia entregava). Quando a rodada termina de animar (revealed = round),
   // tudo passa a vir da simulação completa (live), sem recomputar à toa.
-  const shown = useMemo(() => revealed >= round ? live : simulatePyramid(world, seasonSeed, revealed, careerTactics, careerLineup, capElite, realGoals, fairBoost), [live, revealed, round, world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost])
+  const shown = useMemo(() => revealed >= round ? live : simulatePyramid(world, seasonSeed, revealed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods), [live, revealed, round, world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods])
   const { scorers, scorersAll, goalsByCard, divTop } = shown
   const tables = shown.tables
   const me = myStanding(tables)
@@ -2703,6 +2773,31 @@ export function PyramidSeasonScreen() {
   const myXI = useMemo(() => (mgrMe ? lineupAt(careerLineup, youId, round, mgrMe.squad, mgrMe.formation) : []), [careerLineup, youId, round, mgrMe])
   const myXIids = useMemo(() => new Set(myXI.map(c => c.id)), [myXI])
 
+  // ─── 🎭 EVENTOS DE JOGADOR (só carreira SOLO — online segue 100% igual) ───
+  const soloCareer = state.onlineMode !== 'online'
+  const evAtual = state.eventoTemporada
+  // banner pendente = trava o avanço da rodada até o técnico decidir
+  const eventoPendente = soloCareer && evAtual && evAtual.season === state.seasonNo && evAtual.status === 'pendente' ? evAtual : null
+  // jogador fora (banco/gancho/lesão): não entra na escalação até a rodada da volta
+  const suspenso = soloCareer && evAtual && evAtual.season === state.seasonNo && evAtual.status === 'banco' && (evAtual.volta ?? 0) > round && evAtual.mgrId === youId ? evAtual : null
+  // sorteia o causo da temporada ANTES de avançar a rodada (true = sorteou e trava;
+  // o "1 por temporada" e a janela de rodadas moram no sorteio + na trava do store)
+  const maybeEvento = (): boolean => {
+    if (!soloCareer || (state.seasonNo ?? 1) < 2 || !mgrMe || seasonOver || copaPlaying) return false
+    if (evAtual && evAtual.season === state.seasonNo) return false
+    const d = sorteiaEvento({ seed: seasonSeed, seasonNo: state.seasonNo ?? 1, round, xi: myXI as EventoCard[], squad: mgrMe.squad as EventoCard[], temMedico: hasExtra(state.stadiums?.[youId], 'medico') })
+    if (!d) return false
+    const base: EventoAtivo = { season: state.seasonNo ?? 1, round, mgrId: youId, tipo: d.tipo, cardId: d.card.id, nome: d.card.name, pos: d.card.pos, rodadas: d.rodadas, historia: d.historia, status: 'pendente' }
+    if (!d.reservas.length) {
+      // sem reserva na posição: NADA trava (regra do Diego) — vira só manchete de zoeira
+      const m = mancheteSemReserva(d.tipo, d.card.name)
+      dispatch({ type: 'EVENTO_SET', evento: { ...base, status: 'manchete' }, manchete: { season: base.season, round, ...m } })
+      return false
+    }
+    dispatch({ type: 'EVENTO_SET', evento: base })
+    return true
+  }
+
   // artilheiros de TODOS OS TEMPOS (acumulado entre temporadas) — top 20
   const allTimeScorers = useMemo(() => Object.values((state.careerScorersAll ?? {}) as Record<string, SeasonScorer>).sort((a, b) => b.goals - a.goals).slice(0, 20), [state.careerScorersAll])
   // ao FIM da temporada, soma os artilheiros dela no acumulado (uma vez por
@@ -2819,6 +2914,9 @@ export function PyramidSeasonScreen() {
   // outro lado (titular↔reserva) troca os dois. Toque em outro qualquer só remarca.
   const onTapPlayer = (cardId: string) => {
     if (!mgrMe) return
+    // 🎭 suspenso (banco/gancho/lesão) não entra em troca até a rodada da volta —
+    // o aviso do porquê fica em cima do elenco (regra: trava sempre explica).
+    if (suspenso && cardId === suspenso.cardId) return
     const card = mgrMe.squad.find(c => c.id === cardId); if (!card) return
     if (selId === null || selId === cardId) { setSelId(selId === cardId ? null : cardId); return }
     const sel = mgrMe.squad.find(c => c.id === selId)
@@ -2865,10 +2963,12 @@ export function PyramidSeasonScreen() {
   useEffect(() => {
     // para de avançar quando a 38ª foi jogada (seasonOver), mesmo antes do fim
     // "revelar" (endShown) — senão dispararia PLAY_ROUND à toa durante a última anim.
-    if (!state.isHost || seasonOver || manual) return
-    const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), roundMs)
+    // 🎭 evento pendente PAUSA o auto: o banner pede a decisão do técnico primeiro.
+    if (!state.isHost || seasonOver || manual || eventoPendente) return
+    const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, roundMs)
     return () => clearTimeout(t)
-  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente])
   // 🚫 no MANUAL, "Próxima rodada" só libera DEPOIS que o jogo termina de animar —
   // igual ao stream/rápido. Sem isto dava pra clicar sem parar e pular os jogos.
   const [roundReady, setRoundReady] = useState(false)
@@ -2917,6 +3017,8 @@ export function PyramidSeasonScreen() {
             O painel antigo de campeões saiu: o jornal cobre tudo aquilo. */}
         {copaFinished && me && (
           <SeasonJornal me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo}
+            /* 🎭 EVENTOS: manchetes do "Aconteceu na temporada" (página própria do jornal) */
+            eventos={soloCareer ? (state.eventoManchetes ?? []).filter(m => m.season === state.seasonNo).map(m => ({ ic: m.emoji, titulo: m.titulo, sub: m.sub })) : undefined}
             /* 🕴️ AGÊNCIA 2.0: notícias dos agenciados pra página 2 do jornal —
                SÓ emoção, sem moeda (decisão do Diego). Artilheiro/campeão desta
                temporada + negociações do último mercado. Sem notícia = sem pág. 2. */
@@ -2941,13 +3043,31 @@ export function PyramidSeasonScreen() {
           <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>👉 ver o chaveamento da Copa na aba Tabelas</button>
         )}
         {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} />}
+        {/* 🎭 EVENTO DE JOGADOR: banner de decisão — a rodada SÓ anda depois da escolha.
+            Elenco/XI vêm do clube DO EVENTO (ev.mgrId): se o técnico trocar de clube
+            (multiclube) com o banner aberto, a decisão segue no clube certo. */}
+        {eventoPendente && (() => {
+          const evMgr = state.managers.find(m => m.id === eventoPendente.mgrId)
+          if (!evMgr) return null
+          const evXI = lineupAt(careerLineup, eventoPendente.mgrId, round, evMgr.squad, evMgr.formation)
+          const evXIids = new Set(evXI.map(c => c.id))
+          return <EventoBanner ev={eventoPendente}
+            reservas={evMgr.squad.filter(c => c.pos === eventoPendente.pos && !evXIids.has(c.id))}
+            onDecide={(escolha, subId) => dispatch({ type: 'EVENTO_DECIDE', escolha, subId, xi: evXI.map(c => c.id) })} />
+        })()}
+        {/* 🎭 aviso do suspenso (o porquê + quando volta) — a trava explica sempre */}
+        {!done && suspenso && (
+          <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 11px', marginBottom: 10, background: '#FDE9C8', fontWeight: 800, fontSize: 11, lineHeight: 1.4 }}>
+            {eventoEmoji(suspenso.tipo)} <b>{suspenso.nome}</b> está fora ({suspenso.tipo === 'noitada' ? 'foi pro banco depois da noitada' : suspenso.tipo === 'expulsao' ? 'cumprindo gancho' : 'se recuperando da lesão'}) — volta na <b>rodada {(suspenso.volta ?? 0) + 1}</b>.{suspenso.subNome ? <> {suspenso.subNome} segura a vaga.</> : null}
+          </div>
+        )}
         {state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
           manualAllowed ? (
           <>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={round === 0 || roundReady}
-              onNext={() => dispatch({ type: 'PLAY_ROUND' })}
-              onSkip={() => dispatch({ type: 'PLAY_ROUND' })}
+              onNext={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+              onSkip={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
               nextLabel={!(round === 0 || roundReady) ? '⏳ Deixa a rodada acabar…' : round === 0 ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
           </>
           ) : <ManualLockButton />
