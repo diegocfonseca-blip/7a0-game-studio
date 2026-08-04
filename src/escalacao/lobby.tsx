@@ -4,7 +4,7 @@ import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useEsc } from './store'
 import { AdminButton, useCanCareerOnline } from './admin'
-import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout } from './apoio'
+import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, emailProblema } from './apoio'
 import { isMuted } from './sound'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
@@ -883,8 +883,11 @@ export function EscLobby() {
         if (error) setAuthError(friendlyAuthErr(error.message))
       } else {
         if (!displayName.trim()) { setAuthError('Escolha um nome de técnico.'); setLoading(false); return }
+        // ✉️ trava anti-bounce: e-mail com cara de erro de digitação/temporário não cadastra
+        const prob = emailProblema(email)
+        if (prob) { setAuthError(prob); setLoading(false); return }
         const { error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: stripEmoji(displayName).trim() } } })
-        setAuthError(error ? friendlyAuthErr(error.message) : '✉️ Verifique seu email pra confirmar o cadastro.')
+        setAuthError(error ? friendlyAuthErr(error.message) : '✅ Conta criada! Guarde bem esse e-mail — é ele que recupera sua senha.')
       }
     } catch (e) {
       // erro de rede que estourou como exceção (backend fora) — trata igual
@@ -897,6 +900,9 @@ export function EscLobby() {
   async function handleForgot() {
     const em = email.trim().toLowerCase()
     if (!em) { setAuthError('Digite seu email aí em cima primeiro — aí eu mando o link de redefinição.'); return }
+    // ✉️ trava anti-bounce: não manda link pra endereço com cara de erro (voltaria)
+    const prob = emailProblema(em)
+    if (prob) { setAuthError(prob); return }
     setLoading(true); setAuthError('')
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(em, { redirectTo: window.location.origin + window.location.pathname })

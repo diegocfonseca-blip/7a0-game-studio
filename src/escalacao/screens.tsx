@@ -11,7 +11,7 @@ import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
-import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual } from './apoio'
+import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, emailProblema } from './apoio'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
@@ -5620,6 +5620,9 @@ function CareerAuthModal({ onClose, onDone }: { onClose: () => void; onDone: () 
       onDone()
     } else {
       if (!nome.trim()) { setErr('Escolha um nome de técnico.'); setLoading(false); return }
+      // ✉️ trava anti-bounce: e-mail com cara de erro de digitação/temporário não cadastra
+      const prob = emailProblema(email)
+      if (prob) { setErr(prob); setLoading(false); return }
       const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: stripEmoji(nome).trim() } } })
       if (error) { setErr(error.message); setLoading(false); return }
       if (data.session) { onDone() } // confirmação desligada: já entrou → salva

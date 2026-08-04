@@ -224,6 +224,33 @@ export function useHasManual(): boolean {
   return manualCol || tier === 'prata' || tier === 'ouro'
 }
 
+// ✉️ TRAVA DE E-MAIL (04/08): o Supabase avisou de bounce alto — e-mail digitado
+// errado no cadastro (gmail.con, gmai.com…) faz o "esqueci a senha" voltar e
+// arrisca o envio de e-mail do jogo inteiro. Corrige os erros clássicos com
+// sugestão e barra domínio temporário ANTES de criar a conta.
+// Devolve null = ok, ou a mensagem de erro pra mostrar na tela.
+const DOM_CERTO: Record<string, string> = {
+  'gmail.con': 'gmail.com', 'gmail.co': 'gmail.com', 'gmail.com.br': 'gmail.com', 'gmail': 'gmail.com',
+  'gmai.com': 'gmail.com', 'gmial.com': 'gmail.com', 'gnail.com': 'gmail.com', 'gamil.com': 'gmail.com',
+  'gemail.com': 'gmail.com', 'gmaill.com': 'gmail.com', 'gmail.om': 'gmail.com', 'gmail.cm': 'gmail.com', 'gmail.comm': 'gmail.com',
+  'hotmail.con': 'hotmail.com', 'hotmal.com': 'hotmail.com', 'hotmial.com': 'hotmail.com', 'hotmail': 'hotmail.com',
+  'homail.com': 'hotmail.com', 'hotmails.com': 'hotmail.com', 'hotmail.co': 'hotmail.com',
+  'outlook.con': 'outlook.com', 'outlok.com': 'outlook.com', 'outlook': 'outlook.com',
+  'iclod.com': 'icloud.com', 'icloud.con': 'icloud.com', 'icloud': 'icloud.com',
+  'yahoo.con': 'yahoo.com', 'yaho.com': 'yahoo.com', 'yahoo': 'yahoo.com',
+}
+const DOM_TEMP = ['temp-mail', 'tempmail', 'mailinator', '10minutemail', 'guerrillamail', 'yopmail', 'trashmail', 'sharklasers', 'getnada', 'dispostable', '.temp']
+export function emailProblema(email: string): string | null {
+  const em = email.trim().toLowerCase()
+  const partes = em.split('@')
+  if (partes.length !== 2 || !partes[0]) return 'Esse e-mail não parece completo — confere se tem @ e o final (ex.: nome@gmail.com).'
+  const dom = partes[1]
+  const certo = DOM_CERTO[dom]
+  if (certo) return `Confere o final do e-mail: você escreveu @${dom} — não seria @${certo}? 🧐`
+  if (DOM_TEMP.some(t => dom.includes(t))) return 'E-mail temporário não vale: se esquecer a senha, você perde a conta (e as cartas) pra sempre. Usa teu e-mail de verdade.'
+  if (!/^[^\s@]+\.[^\s@]{2,}$/.test(dom)) return 'O final do e-mail parece incompleto (ex.: @gmail.com) — dá uma conferida.'
+  return null
+}
 // selo pronto pra colar no fim do nome (' 👑', ' 👑🖋️' pra fundador, ou '').
 // O 🖋️ vem GRUDADO no 👑 — quem procura o 👑 no nome (perkFromSelo etc.)
 // continua achando, então cor/tier não mudam em nada.

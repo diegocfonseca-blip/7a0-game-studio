@@ -1493,3 +1493,19 @@ troféus da carreira), pra quem fica jogando várias partidas na mesma sala:
   aparecendo (sem ⚽/🙈 retroativos). Lanterna = último da tabela (pode ser bot,
   zoeira vale). Ideias anotadas sem decisão: 🐔 Frango de Ouro (defesa mais
   vazada) · 🥶 Geladeira (temporada sem vitória).
+
+## ✉️ AVISO DO SUPABASE: bounce alto de e-mail — TRAVA APLICADA (04/08)
+Supabase mandou e-mail: taxa alta de e-mails devolvidos (risco de suspenderem o
+envio = ninguém recupera senha). Causa medida no banco: cadastros com e-mail
+digitado errado — gmail.con (15), gmai.com (8), gnail.com (6), "gmail" sem
+.com (6), gmail.com.br (4) — e temporários (temp-mail.org 18, bolaoww.temp 22).
+Confirmação de cadastro está DESLIGADA (0 pendentes de 5.958 contas), então o
+bounce vem do "esqueci a senha" indo pra endereço errado.
+FEITO (emailProblema em apoio.tsx, ligada nos 3 formulários — cadastro do
+lobby, esqueci-a-senha, modal salvar-carreira): corrige typo clássico com
+sugestão ("@gmail.con → não seria @gmail.com? 🧐"), barra e-mail temporário
+(aviso do porquê) e final incompleto. Mensagem do cadastro corrigida ("✅ Conta
+criada" — não pede mais confirmação que não existe).
+⏳ PENDENTE (precisa do Diego): SMTP próprio no Supabase (Auth → SMTP) com
+Brevo (300/dia grátis) ou Resend — tira o envio do pool compartilhado do
+Supabase. Volume de reset é baixo, plano grátis sobra.
