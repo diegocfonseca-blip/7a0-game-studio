@@ -1,5 +1,28 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/08/2026)
 
+## 🛡️ ESCUDOS DOS CLUBES (04/08) — motor PRONTO, aguardando autorização
+`src/escalacao/escudos.tsx` — brasão desenhado POR CÓDIGO (SVG), peso ZERO no
+servidor (viaja pelo GitHub Pages junto com o jogo; NÃO encosta no Supabase).
+O gerador lê o NOME: 35 símbolos + dicionário de palavras ("Sertão"→cacto,
+"meias"→par de meias, "fogo"→labareda, "Ferroviária"→trem...). Sem palavra
+conhecida = sorteio FIXO do nome (inicial + padrão/cor), igual em todo aparelho.
+Cobertura medida: 114 de 146 nomes (78%) com símbolo pelo significado.
+⚠️ REGRA: paródia de clube real NUNCA vira cópia (Flamengo do Sertão lê
+«Sertão», não «Flamengo») — marca registrada não entra.
+💰 `LOGOS_PRONTAS` (mapa vazio) = onde entram as logos ARTESANAIS pagas: o
+usuário manda a arte, o Diego aprova, eu redesenho em SVG (~2 KB) e cadastro ali;
+ela passa na frente do automático.
+🚦 **NÃO ESTÁ LIGADO EM NENHUMA TELA** — ordem do Diego (04/08): "só mande pro
+jogo todo quando eu autorizar". O módulo está commitado mas ninguém importa ele,
+então o jogo segue 100% igual. Quando autorizar: plugar `<Escudo nome={} />` na
+tabela da pirâmide, no placar ao vivo, no ranking e no jornal.
+📸 Amostras aprovadas pelo Diego: mockup dos 6 times + folha dos 146
+(scratchpad: mock-6times.png, escudos-todos.png, mock-alface.png).
+ESCADA DE VENDA combinada: (1) escudo automático grátis pra todos · (2) editor
+de brasão pro usuário montar (perk de apoio ou compra barata — entrega sozinho)
+· (3) logo artesanal, a cara, feita sob encomenda quando o cara paga.
+
+
 ## 🏆 Ranking Carreira: saiu a sub-aba "Total da conta" (04/08, Diego) ✅
 A aba Carreira mostra SÓ a lista por carreira (cada save uma linha). O total
 da conta inteira já aparece ao tocar no técnico (álbum, chip "📊 Conta toda")

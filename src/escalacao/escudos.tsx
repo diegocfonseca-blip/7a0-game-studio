@@ -1,0 +1,396 @@
+// ─── 🛡️ ESCUDOS DOS CLUBES — desenhados POR CÓDIGO (peso ZERO no servidor) ──
+// Mockup aprovado pelo Diego (04/08). Nada de imagem baixada: o brasão nasce do
+// NOME do time. O gerador lê as palavras ("Sertão" → cacto, "meias" → par de
+// meias, "fogo" → labareda); sem palavra conhecida, cai num sorteio FIXO do nome
+// (mesmo escudo em todo aparelho, pra sempre). Serve os ~134 times do jogo E
+// qualquer time de batismo que o usuário inventar, sem custo nenhum.
+//
+// ⚠️ REGRA DE SEGURANÇA (decisão do Diego): paródia de clube real NUNCA vira
+// cópia. "Flamengo do Sertão" lê «Sertão» (cacto), não «Flamengo» — escudo de
+// clube profissional é marca registrada e não entra aqui de jeito nenhum.
+//
+// 💰 LOGO ARTESANAL: quem paga entra em LOGOS_PRONTAS (nome → desenho próprio) e
+// passa na frente do automático. É só acrescentar no mapa lá embaixo.
+import type { ReactNode } from 'react'
+
+const INK = '#0C0C0C'
+
+// ─── paleta (só cores da identidade do jogo) ──────────────────────────────
+// [fundo, detalhe] — fundo sempre escuro/saturado, detalhe sempre claro.
+const PALETAS: [string, string][] = [
+  ['#1B7A3D', '#FFC400'], // verde + ouro
+  ['#C2452F', '#F4ECD6'], // vermelho + creme
+  ['#0E3E86', '#F4ECD6'], // azul + creme
+  ['#7C3AED', '#FFC400'], // roxo + ouro
+  ['#0C0C0C', '#FFC400'], // preto + ouro
+  ['#C1571F', '#FFC400'], // laranja terra + ouro
+  ['#14401f', '#8BD44A'], // verde escuro + verde claro
+  ['#8f2a1c', '#F4ECD6'], // vinho + creme
+  ['#17808c', '#F4ECD6'], // azul-petróleo + creme
+  ['#7a4a1e', '#FFC400'], // marrom + ouro
+  ['#2b2d6e', '#8BD44A'], // azul-noite + verde
+  ['#B23A2A', '#FFC400'], // telha + ouro
+]
+
+// ─── formatos do escudo ───────────────────────────────────────────────────
+const SHAPES: string[] = [
+  'M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z',              // clássico
+  'M100 22 L182 46 V142 C182 184 140 210 100 230 C60 210 18 184 18 142 V46 Z',      // pontudo
+  'M100 20 A92 92 0 1 1 99.9 20 Z',                                                  // redondo
+  'M26 34 H174 A12 12 0 0 1 186 46 V138 C186 182 140 212 100 232 C60 212 14 182 14 138 V46 A12 12 0 0 1 26 34 Z', // ombro reto
+]
+
+// ─── padrões de fundo (dentro do escudo, recortados) ──────────────────────
+function padrao(i: number, c2: string): ReactNode {
+  switch (i) {
+    case 1: return <> {/* listras */}
+      <rect x="42" y="10" width="24" height="240" fill={c2} />
+      <rect x="134" y="10" width="24" height="240" fill={c2} />
+    </>
+    case 2: return <rect x="0" y="112" width="200" height="34" fill={c2} /> // faixa
+    case 3: return <path d="M-20 250 L210 20 v40 L20 250 Z" fill={c2} opacity=".9" /> // diagonal
+    case 4: return <rect x="100" y="0" width="110" height="250" fill={c2} opacity=".35" /> // meio a meio
+    case 5: return <> {/* aro */}
+      <circle cx="100" cy="122" r="76" fill="none" stroke={c2} strokeWidth="9" />
+    </>
+    case 6: return <> {/* ondas no pé */}
+      <path d="M-10 176 q40 -22 80 0 t80 0 t80 0 V250 H-10 Z" fill={c2} opacity=".55" />
+      <path d="M-10 196 q40 -22 80 0 t80 0 t80 0 V250 H-10 Z" fill={c2} opacity=".8" />
+    </>
+    default: return null // liso
+  }
+}
+
+// ─── 🎨 os símbolos (paths simples, borda preta grossa — estilo do jogo) ───
+// Cada um desenha dentro de ~(60..140, 58..165). `d` = cor do detalhe.
+const SIM: Record<string, (d: string) => ReactNode> = {
+  trem: d => <>
+    <rect x="52" y="92" width="96" height="52" rx="9" fill={d} stroke={INK} strokeWidth="6" />
+    <rect x="64" y="102" width="28" height="22" rx="4" fill={INK} />
+    <rect x="104" y="102" width="28" height="22" rx="4" fill={INK} />
+    <rect x="118" y="66" width="22" height="28" rx="4" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="74" cy="152" r="13" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="126" cy="152" r="13" fill={d} stroke={INK} strokeWidth="6" />
+  </>,
+  estrela: d => <path d="M100 52 L117 102 L169 102 L127 133 L143 184 L100 153 L57 184 L73 133 L31 102 L83 102 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />,
+  coroa: d => <>
+    <path d="M50 148 L44 78 L74 104 L100 60 L126 104 L156 78 L150 148 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <rect x="48" y="148" width="104" height="20" rx="7" fill={d} stroke={INK} strokeWidth="6" />
+  </>,
+  leao: d => <>
+    <circle cx="100" cy="116" r="52" fill={d} stroke={INK} strokeWidth="6" />
+    {[0, 45, 90, 135, 180, 225, 270, 315].map(a => <circle key={a} cx={100 + 52 * Math.cos(a * Math.PI / 180)} cy={116 + 52 * Math.sin(a * Math.PI / 180)} r="17" fill={d} stroke={INK} strokeWidth="6" />)}
+    <circle cx="100" cy="116" r="38" fill={d} stroke={INK} strokeWidth="5" />
+    <circle cx="86" cy="108" r="6" fill={INK} /><circle cx="114" cy="108" r="6" fill={INK} />
+    <path d="M92 126 h16 l-8 9 Z" fill={INK} />
+    <path d="M86 140 q14 10 28 0" stroke={INK} strokeWidth="5" fill="none" strokeLinecap="round" />
+  </>,
+  aguia: d => <>
+    <path d="M100 78 L36 108 q26 6 34 20 L62 132 q22 4 30 18 L100 168 l8-18 q8-14 30-18 l-8-4 q8-14 34-20 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <circle cx="100" cy="70" r="16" fill={d} stroke={INK} strokeWidth="6" />
+    <path d="M112 66 l16 6 -16 6 Z" fill={INK} />
+    <circle cx="98" cy="66" r="4" fill={INK} />
+  </>,
+  onca: d => <>
+    <path d="M56 84 L70 62 L86 78 h28 l16-16 14 22 q12 16 12 34 a48 40 0 0 1 -96 0 q0-18 12-36 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <circle cx="84" cy="112" r="6" fill={INK} /><circle cx="116" cy="112" r="6" fill={INK} />
+    <path d="M92 132 h16 l-8 8 Z" fill={INK} />
+    <path d="M84 144 q16 10 32 0" stroke={INK} strokeWidth="5" fill="none" strokeLinecap="round" />
+    <g fill={INK} opacity=".55"><circle cx="66" cy="98" r="4" /><circle cx="134" cy="98" r="4" /><circle cx="70" cy="130" r="4" /><circle cx="130" cy="130" r="4" /></g>
+  </>,
+  touro: d => <>
+    <path d="M46 74 q-8 34 18 48 M154 74 q8 34 -18 48" stroke={INK} strokeWidth="17" fill="none" strokeLinecap="round" />
+    <path d="M46 74 q-8 34 18 48 M154 74 q8 34 -18 48" stroke={d} strokeWidth="9" fill="none" strokeLinecap="round" />
+    <path d="M66 108 h68 q10 0 10 12 v20 a44 34 0 0 1 -88 0 v-20 q0-12 10-12 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <circle cx="84" cy="126" r="5.5" fill={INK} /><circle cx="116" cy="126" r="5.5" fill={INK} />
+    <ellipse cx="100" cy="152" rx="17" ry="12" fill={INK} opacity=".5" />
+  </>,
+  cavalo: d => <>
+    <path d="M74 168 V116 q0-26 22-38 l6-22 14 10 20 4 -10 14 q16 10 16 30 v54 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <path d="M96 56 l-4-16 12 10 Z" fill={d} stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+    <circle cx="112" cy="82" r="5" fill={INK} />
+  </>,
+  cobra: d => <>
+    <path d="M62 164 q40 0 40-24 t-40-24 q-40 0 -40-22 t44-18" fill="none" stroke={INK} strokeWidth="22" strokeLinecap="round" />
+    <path d="M62 164 q40 0 40-24 t-40-24 q-40 0 -40-22 t44-18" fill="none" stroke={d} strokeWidth="12" strokeLinecap="round" />
+    <circle cx="112" cy="76" r="17" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="118" cy="72" r="4" fill={INK} />
+    <path d="M128 80 l16 6 -16 2" stroke={INK} strokeWidth="4" fill="none" strokeLinecap="round" />
+  </>,
+  peixe: d => <>
+    <path d="M64 118 q34-38 74 0 q-40 38 -74 0 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <path d="M64 118 l-26-22 v44 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <circle cx="120" cy="112" r="5" fill={INK} />
+    <path d="M74 146 q26 22 52 0" stroke={d} strokeWidth="7" fill="none" strokeLinecap="round" opacity=".8" />
+  </>,
+  arvore: d => <>
+    <path d="M92 172 V128 h16 v44 Z" fill={INK} />
+    <circle cx="100" cy="98" r="42" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="66" cy="116" r="24" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="134" cy="116" r="24" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="100" cy="98" r="42" fill={d} />
+  </>,
+  cacto: d => <>
+    <g stroke={INK} strokeWidth="16" strokeLinecap="round" fill="none">
+      <path d="M100 176 V72" /><path d="M76 112 V128 Q76 141 91 141" /><path d="M124 96 V122 Q124 135 109 135" />
+    </g>
+    <g stroke={d} strokeWidth="8" strokeLinecap="round" fill="none">
+      <path d="M100 176 V72" /><path d="M76 112 V128 Q76 141 91 141" /><path d="M124 96 V122 Q124 135 109 135" />
+    </g>
+  </>,
+  sol: d => <>
+    {Array.from({ length: 12 }, (_, i) => i * 30).map(a => <path key={a} d={`M100 116 l${52 * Math.cos(a * Math.PI / 180)} ${52 * Math.sin(a * Math.PI / 180)}`} stroke={INK} strokeWidth="13" strokeLinecap="round" />)}
+    {Array.from({ length: 12 }, (_, i) => i * 30).map(a => <path key={a} d={`M100 116 l${50 * Math.cos(a * Math.PI / 180)} ${50 * Math.sin(a * Math.PI / 180)}`} stroke={d} strokeWidth="6" strokeLinecap="round" />)}
+    <circle cx="100" cy="116" r="32" fill={d} stroke={INK} strokeWidth="6" />
+  </>,
+  lua: d => <path d="M124 58 a58 58 0 1 0 0 116 a46 46 0 1 1 0 -116 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />,
+  raio: d => <path d="M112 52 L62 124 h30 l-16 62 L142 108 h-32 l14-56 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />,
+  fogo: d => <>
+    <path d="M100 52 C126 92 138 110 138 132 A38 38 0 0 1 62 132 C62 110 74 92 100 52 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <path d="M100 104 c11 17 15 23 15 33 a17 17 0 0 1 -30 0 c0-10 4-16 15-33 Z" fill={INK} opacity=".35" />
+  </>,
+  onda: d => <>
+    <path d="M40 108 q30-30 60 0 t60 0" stroke={INK} strokeWidth="19" fill="none" strokeLinecap="round" />
+    <path d="M40 140 q30-30 60 0 t60 0" stroke={INK} strokeWidth="19" fill="none" strokeLinecap="round" />
+    <path d="M40 108 q30-30 60 0 t60 0" stroke={d} strokeWidth="10" fill="none" strokeLinecap="round" />
+    <path d="M40 140 q30-30 60 0 t60 0" stroke={d} strokeWidth="10" fill="none" strokeLinecap="round" />
+  </>,
+  ancora: d => <>
+    <path d="M100 66 V166" stroke={INK} strokeWidth="17" strokeLinecap="round" />
+    <path d="M64 100 h72" stroke={INK} strokeWidth="15" strokeLinecap="round" />
+    <path d="M52 126 q0 44 48 44 q48 0 48-44" stroke={INK} strokeWidth="17" fill="none" strokeLinecap="round" />
+    <path d="M100 66 V166 M64 100 h72" stroke={d} strokeWidth="8" strokeLinecap="round" />
+    <path d="M52 126 q0 44 48 44 q48 0 48-44" stroke={d} strokeWidth="8" fill="none" strokeLinecap="round" />
+    <circle cx="100" cy="66" r="15" fill="none" stroke={INK} strokeWidth="12" />
+    <circle cx="100" cy="66" r="15" fill="none" stroke={d} strokeWidth="6" />
+  </>,
+  montanha: d => <>
+    <path d="M36 166 L86 84 L116 126 L134 100 L168 166 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <path d="M86 84 L104 114 h-36 Z" fill={INK} opacity=".3" />
+  </>,
+  castelo: d => <>
+    <path d="M52 166 V88 h14 V72 h16 v16 h14 V72 h16 v16 h14 V72 h16 v16 h14 v78 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <path d="M90 166 v-38 a10 10 0 0 1 20 0 v38 Z" fill={INK} opacity=".45" />
+  </>,
+  predio: d => <>
+    <rect x="52" y="94" width="42" height="76" fill={d} stroke={INK} strokeWidth="6" />
+    <rect x="102" y="66" width="46" height="104" fill={d} stroke={INK} strokeWidth="6" />
+    <g fill={INK} opacity=".45">
+      <rect x="62" y="106" width="10" height="12" /><rect x="76" y="106" width="10" height="12" />
+      <rect x="62" y="128" width="10" height="12" /><rect x="76" y="128" width="10" height="12" />
+      <rect x="112" y="80" width="11" height="13" /><rect x="128" y="80" width="11" height="13" />
+      <rect x="112" y="104" width="11" height="13" /><rect x="128" y="104" width="11" height="13" />
+      <rect x="112" y="128" width="11" height="13" /><rect x="128" y="128" width="11" height="13" />
+    </g>
+  </>,
+  farol: d => <>
+    <path d="M78 166 L86 90 h28 l8 76 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <rect x="80" y="72" width="40" height="22" rx="5" fill={d} stroke={INK} strokeWidth="6" />
+    <path d="M100 58 l10 12 h-20 Z" fill={d} stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+    <path d="M76 82 l-24-10 M124 82 l24-10" stroke={d} strokeWidth="8" strokeLinecap="round" />
+    <path d="M84 122 h32 M82 144 h36" stroke={INK} strokeWidth="6" opacity=".4" />
+  </>,
+  engrenagem: d => <>
+    {Array.from({ length: 8 }, (_, i) => i * 45).map(a => <rect key={a} x="92" y="46" width="16" height="26" fill={d} stroke={INK} strokeWidth="5" transform={`rotate(${a} 100 116)`} />)}
+    <circle cx="100" cy="116" r="46" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="100" cy="116" r="19" fill={INK} />
+  </>,
+  martelo: d => <>
+    <path d="M56 68 h58 v30 h-58 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" transform="rotate(-24 100 110)" />
+    <path d="M104 84 L142 162" stroke={INK} strokeWidth="19" strokeLinecap="round" />
+    <path d="M104 84 L142 162" stroke={d} strokeWidth="10" strokeLinecap="round" />
+  </>,
+  carro: d => <>
+    <path d="M46 142 v-18 l14-30 q3-8 12-8 h56 q9 0 12 8 l14 30 v18 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <path d="M68 96 h64 l8 22 H60 Z" fill={INK} opacity=".4" />
+    <circle cx="70" cy="146" r="14" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="130" cy="146" r="14" fill={d} stroke={INK} strokeWidth="6" />
+  </>,
+  foguete: d => <>
+    <path d="M100 50 q26 30 26 66 v22 H74 v-22 q0-36 26-66 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <circle cx="100" cy="98" r="13" fill={INK} opacity=".45" />
+    <path d="M74 118 l-20 26 20 -6 Z" fill={d} stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+    <path d="M126 118 l20 26 -20 -6 Z" fill={d} stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+    <path d="M88 140 h24 l-12 34 Z" fill={INK} opacity=".5" />
+  </>,
+  bola: d => <>
+    <circle cx="100" cy="116" r="50" fill={d} stroke={INK} strokeWidth="6" />
+    <path d="M100 84 l26 19 -10 31 h-32 l-10-31 Z" fill={INK} />
+    <path d="M100 66 v18 M74 104 l-18-8 M126 104 l18-8 M90 134 l-12 24 M110 134 l12 24" stroke={INK} strokeWidth="7" />
+  </>,
+  chuteira: d => <>
+    <path d="M52 96 h30 v34 l38 8 q22 5 22 22 v10 H52 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <g fill={INK}><rect x="60" y="170" width="11" height="12" rx="3" /><rect x="88" y="170" width="11" height="12" rx="3" /><rect x="116" y="170" width="11" height="12" rx="3" /></g>
+    <path d="M84 112 l24 10 M84 126 l30 12" stroke={INK} strokeWidth="5" strokeLinecap="round" opacity=".6" />
+  </>,
+  meias: d => <>
+    <g transform="rotate(-14 100 120)">
+      <path d="M56 62 H86 V116 H116 A15 15 0 0 1 116 146 H56 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+      <rect x="56" y="62" width="30" height="16" fill={INK} opacity=".45" />
+    </g>
+    <g transform="rotate(12 120 130)">
+      <path d="M96 78 H126 V132 H156 A15 15 0 0 1 156 162 H96 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+      <rect x="96" y="78" width="30" height="16" fill={INK} opacity=".45" />
+    </g>
+  </>,
+  espeto: d => <>
+    <path d="M40 158 L160 74" stroke={INK} strokeWidth="12" strokeLinecap="round" />
+    <path d="M40 158 L160 74" stroke={d} strokeWidth="5" strokeLinecap="round" />
+    {[[70, 138], [98, 118], [126, 98]].map(([x, y], i) => <g key={i}>
+      <rect x={x - 17} y={y - 17} width="34" height="34" rx="10" fill={d} stroke={INK} strokeWidth="6" transform={`rotate(-35 ${x} ${y})`} />
+    </g>)}
+  </>,
+  copo: d => <>
+    <path d="M62 76 h64 l-8 88 q-1 10 -11 10 h-26 q-10 0 -11-10 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <path d="M126 96 h16 a14 14 0 0 1 0 28 h-18" fill="none" stroke={INK} strokeWidth="6" />
+    <path d="M58 76 q10-16 22-6 q12-14 24 0 q12-12 24 2 q6 4 4 4 H58 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+  </>,
+  casa: d => <>
+    <path d="M100 56 L166 110 h-16 v58 H50 v-58 H34 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <rect x="86" y="126" width="28" height="42" fill={INK} opacity=".45" />
+  </>,
+  moeda: d => <>
+    <circle cx="88" cy="118" r="42" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="120" cy="126" r="42" fill={d} stroke={INK} strokeWidth="6" />
+    <text x="120" y="144" fontFamily="Oswald, sans-serif" fontWeight="900" fontSize="46" fill={INK} textAnchor="middle">$</text>
+  </>,
+  cocar: d => <>
+    {[-42, -21, 0, 21, 42].map((a, i) => <ellipse key={a} cx="100" cy={i === 2 ? 78 : Math.abs(a) === 21 ? 82 : 88} rx="10" ry={i === 2 ? 38 : Math.abs(a) === 21 ? 36 : 34} transform={`rotate(${a} 100 140)`} fill={d} stroke={INK} strokeWidth="5" />)}
+    <rect x="56" y="136" width="88" height="24" rx="11" fill={INK} />
+    <path d="M70 148 h12 M94 148 h12 M118 148 h12" stroke={d} strokeWidth="6" strokeLinecap="round" />
+  </>,
+  espiga: d => <>
+    <path d="M100 60 q26 26 26 58 t-26 46 q-26-14 -26-46 t26-58 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <path d="M100 74 v82 M84 92 q16 6 32 0 M84 114 q16 6 32 0 M84 136 q16 6 32 0" stroke={INK} strokeWidth="4.5" fill="none" opacity=".55" />
+  </>,
+  ponte: d => <>
+    <path d="M34 150 q66-72 132 0" fill="none" stroke={INK} strokeWidth="15" strokeLinecap="round" />
+    <path d="M34 150 q66-72 132 0" fill="none" stroke={d} strokeWidth="7" strokeLinecap="round" />
+    <rect x="28" y="150" width="144" height="16" rx="5" fill={d} stroke={INK} strokeWidth="6" />
+    <path d="M66 150 V126 M100 150 V112 M134 150 V126" stroke={INK} strokeWidth="6" />
+  </>,
+  bigode: d => <>
+    <circle cx="100" cy="112" r="48" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="84" cy="102" r="6" fill={INK} /><circle cx="116" cy="102" r="6" fill={INK} />
+    <path d="M62 128 q20-14 38 2 q18-16 38-2 q-14 22 -38 10 q-24 12 -38-10 Z" fill={INK} />
+    <path d="M64 82 q16-14 34-8 M136 82 q-16-14 -34-8" stroke={INK} strokeWidth="6" fill="none" strokeLinecap="round" />
+  </>,
+  dragao: d => <>
+    <path d="M46 152 q22-58 62-58 q-6-18 10-28 q4 16 16 18 q26 4 26 30 q0 34-38 42 q-40 8 -76-4 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+    <path d="M96 74 l14-20 4 22" fill={d} stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+    <circle cx="126" cy="88" r="5" fill={INK} />
+    <path d="M60 150 q30 14 62 6" stroke={INK} strokeWidth="5" fill="none" opacity=".5" />
+  </>,
+  fenix: d => <>
+    <path d="M100 56 q-14 26 -8 44 q-26-20 -50-14 q22 12 28 34 q-20-2 -30 8 q26 4 40 22 q18 22 20 34 q2-12 20-34 q14-18 40-22 q-10-10 -30-8 q6-22 28-34 q-24-6 -50 14 q6-18 -8-44 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+  </>,
+}
+
+// ─── 📖 dicionário: palavra no nome → símbolo (a ordem importa: 1ª que casar) ──
+// Só vocabulário GENÉRICO do futebol/geografia — nunca mascote de clube real.
+// ⚠️ Chave que começa com espaço = precisa ser INÍCIO DE PALAVRA. Sem isso,
+// "Ope-RÁRIO DO-cas" casava com «rio » e virava onda; "col-MEIA" virava meias. 😅
+// Ordem: bicho/objeto CONCRETO primeiro, título genérico (coroa, esporte) depois —
+// senão "Dragão Imperial" vira coroa em vez de dragão.
+const DICIO: [string[], keyof typeof SIM][] = [
+  [['ferroviar', 'ferrovia', ' trem', 'locomotiv', 'maria fuma'], 'trem'],
+  [['sertao', 'sertão', 'agreste', 'caatinga', 'cariri', 'serido', 'seridó'], 'cacto'],
+  [['meias', ' meia'], 'meias'],
+  [['dragao', 'dragão'], 'dragao'],
+  [['fenix', 'fênix', 'phoenix'], 'fenix'],
+  [[' leao', ' leão', ' lion', 'leonin'], 'leao'],
+  [['aguia', 'águia', 'gaviao', 'gavião', 'falcao', 'falcão', 'condor'], 'aguia'],
+  [['onca', 'onça', 'jaguar', 'tigre', 'pantera', ' gato', ' puma', 'felin'], 'onca'],
+  [['touro', ' boi ', ' bull', 'bufalo', 'búfalo', ' zebu', ' vaca'], 'touro'],
+  [['cavalo', ' potro', ' egua', ' égua', 'jumento', ' burro'], 'cavalo'],
+  [['cobra', ' naja', 'serpent', 'jararac', 'jacar'], 'cobra'],
+  [['bagre', 'peixe', 'tubara', 'tubarã', 'piranha', 'sardinh', 'marreco', ' pato', 'baiacu'], 'peixe'],
+  [['fogo', 'fogar', ' chama', ' brasa', 'labared', 'inferno', 'vulca', 'vulcã', 'incendi'], 'fogo'],
+  [['estrela', ' astro', 'galat', 'galát', 'stellar', ' star'], 'estrela'],
+  [['guarani', ' tupi', 'tamoio', 'cacique', ' indio', ' índio', 'potiguar', 'tabajara', 'carij'], 'cocar'],
+  [['trovao', 'trovão', ' raio', 'relampag', 'relâmpag', 'tempestad', 'eletric', 'elétric', 'furac'], 'raio'],
+  [['doca', ' porto', 'ancora', 'âncora', 'marinh', ' naval', ' barco', ' canoa'], 'ancora'],
+  [['operari', 'operári', 'industri', 'maquina', 'máquina', ' motor', 'mecanic', 'mecânic', 'engrenag', ' usina', 'fabrica', 'fábrica'], 'engrenagem'],
+  [['maritim', 'marítim', 'litoral', ' praia', ' onda', ' mar ', ' costa', 'nautic', 'náutic', ' rio ', ' ilha', ' lagoa', ' aqua'], 'onda'],
+  [['serra', 'serran', ' monte', ' pico', 'cordilh', 'planalt', ' morro'], 'montanha'],
+  [['cerrad', 'seringu', ' mata', 'florest', ' bosque', ' rural', ' campo', 'varzea', 'várzea', 'descampad', ' roca', ' roça', ' parque', 'arvore', 'árvore', 'pantanal', ' verde'], 'arvore'],
+  [['aurora', ' sol ', 'alvorad', 'nascent', 'amanhec', ' raiar', 'oriente'], 'sol'],
+  [['night', ' lua ', 'noturn', 'meia-noite', 'madrug', 'eclipse'], 'lua'],
+  [['coliseu', 'castelo', 'fortalez', 'muralha', ' torre'], 'castelo'],
+  [['perna', 'chuteir', 'canela', 'canelad', ' trave', ' onze', ' doze'], 'chuteira'],
+  [['metropol', 'metrópol', ' city', ' urban', 'capital', ' centro', ' cidade', 'municipal'], 'predio'],
+  [['farol', ' posto', ' guarda'], 'farol'],
+  [['martelo', ' forja', 'ferreir', ' obra', 'construt', 'pedreir'], 'martelo'],
+  [['kombi', 'ferrari', ' carro', 'veicul', 'veícul', ' turbo', ' garag', ' pneu', 'volante'], 'carro'],
+  [['foguet', 'galaxi', 'galáxi', ' cosmo', 'espaci', 'dumont', ' aviao', ' avião', ' voo', ' sky', 'astronaut', 'orbita', 'órbita', 'cometa', 'meteor'], 'foguete'],
+  [['churrasc', 'espeto', 'grelha', ' carne', 'picanha', 'linguic', 'linguiç', 'espetinh'], 'espeto'],
+  [[' bar ', 'boteco', 'resenha', 'ressaca', ' brisa', ' chopp', 'cerveja', 'domingueir', ' copo', ' gole', ' birit'], 'copo'],
+  [['cuscuz', ' milho', ' feira', 'colheit', 'espiga', 'goiaba', ' fruta', 'tapioc', 'canjic', ' torta', 'milanes', 'napolitan', ' pizza'], 'espiga'],
+  [[' casa', ' vo ', ' vó', ' lar ', 'bairro', ' vila', 'morada', 'quintal', 'condomin'], 'casa'],
+  [[' grana', ' bets', 'fortuna', ' banco', 'dinheir', ' ouro', 'milionar', 'milionár', 'tesour', ' cofre', 'comercial'], 'moeda'],
+  [['ponte', 'fronteira'], 'ponte'],
+  [['bigode', ' barba', 'magra', 'magrã', 'tonha', 'tonhã', 'xanda', 'xandã', 'serja', 'serjã', 'robert', 'sinho', 'sinhô', ' ze ', ' zé ', ' mano ', 'nininho', ' miudo', ' miúdo', ' gugu'], 'bigode'],
+  [['imperador', 'imperial', 'monarca', 'realeza', 'soberan', ' rei ', 'majestad', ' nobre', 'olimpo', ' titan', ' titã', 'prestigi', 'prestígi', ' legado', 'apogeu', ' coroa', 'principe', 'príncipe', 'imperi', 'impéri'], 'coroa'],
+  [[' gol ', 'peteca', 'pelad', 'society', 'boleir', ' pelot', 'craque', ' bola', 'futebol', 'esport', 'atletic', 'atlétic', 'juventu'], 'chuteira'],
+]
+
+// ─── 🔒 hash determinístico do nome (mesmo nome = mesmo escudo, sempre) ────
+function hashNome(nome: string): number {
+  let h = 2166136261
+  const s = nome.trim().toLowerCase()
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) }
+  return Math.abs(h)
+}
+const semAcento = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+
+export interface EscudoDesign { shape: number; pat: number; c1: string; c2: string; sim: keyof typeof SIM | null; letra: string }
+
+// a receita do escudo a partir do NOME (pura, sem estado)
+export function escudoDe(nome: string): EscudoDesign {
+  const h = hashNome(nome)
+  const alvo = ' ' + semAcento(nome) + ' '
+  let sim: keyof typeof SIM | null = null
+  for (const [palavras, s] of DICIO) {
+    if (palavras.some(p => alvo.includes(semAcento(p)))) { sim = s; break }
+  }
+  const [c1, c2] = PALETAS[h % PALETAS.length]
+  return {
+    shape: (h >> 4) % SHAPES.length,
+    pat: (h >> 8) % 7,
+    c1, c2, sim,
+    letra: (nome.trim()[0] ?? '?').toUpperCase(),
+  }
+}
+
+// 💰 LOGOS ARTESANAIS (pagas): nome do time → desenho próprio, entra no lugar do
+// automático. Vazio por enquanto — é só adicionar aqui quando alguém comprar.
+export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {}
+
+// ─── 🛡️ o componente ──────────────────────────────────────────────────────
+// `size` = altura em px. Abaixo de 40px entra a versão MINI: sem detalhes finos
+// e com traço mais grosso (o que lê na tabela é a silhueta + a cor).
+export function Escudo({ nome, size = 30, title }: { nome: string; size?: number; title?: string }) {
+  const pronta = LOGOS_PRONTAS[nome.trim()]
+  if (pronta) return <>{pronta(size)}</>
+  const d = escudoDe(nome)
+  const mini = size < 40
+  const shape = SHAPES[d.shape]
+  const cid = 'esc' + hashNome(nome).toString(36)
+  const w = Math.round(size * 200 / 240)
+  return (
+    <svg width={w} height={size} viewBox="0 0 200 240" aria-label={title ?? nome} role="img" style={{ flex: 'none', display: 'block' }}>
+      <defs><clipPath id={cid}><path d={shape} /></clipPath></defs>
+      <path d={shape} fill={d.c1} />
+      <g clipPath={`url(#${cid})`}>{padrao(d.pat, d.c2)}</g>
+      <path d={shape} fill="none" stroke={INK} strokeWidth={mini ? 9 : 7} strokeLinejoin="round" />
+      {d.sim
+        // escala pra NENHUM símbolo encostar na borda (o mini cresce um tico: na
+        // tabela o que vale é enxergar a silhueta). O centro do escudo é ~(100,118).
+        ? <g transform={`translate(100 118) scale(${mini ? 1 : .88}) translate(-100 -118)`}>{SIM[d.sim](d.c2)}</g>
+        : <>
+          <circle cx="100" cy="118" r="46" fill={d.c2} stroke={INK} strokeWidth={mini ? 8 : 6} />
+          <text x="100" y="146" fontFamily="Oswald, sans-serif" fontWeight="900" fontSize="74" fill={INK} textAnchor="middle">{d.letra}</text>
+        </>}
+    </svg>
+  )
+}
