@@ -5240,6 +5240,10 @@ export function EscRanking() {
   // 🪜 aba Carreira LIBERADA GERAL (decisão do Diego 04/08): histórico completo
   // visível pra todos e os títulos de carreira novos seguem contando normalmente.
   const [mode, setMode] = useState<RankMode>('ronline')
+  // 🪜 sub-filtro da aba Carreira (pedido do Diego 03/08): POR CARREIRA (cada
+  // save uma linha, cartas daquela carreira) ou TOTAL DA CONTA (tudo somado,
+  // todas as cartas de carreira — o jeito antigo).
+  const [carSub, setCarSub] = useState<'porcarreira' | 'total'>('porcarreira')
   const [rows, setRows] = useState<RankRow[] | null>(null)
   const [down, setDown] = useState(false) // backend fora do ar — evita travar em "Carregando…"
   const [meId, setMeId] = useState<string | null>(null)
@@ -5274,7 +5278,7 @@ export function EscRanking() {
     ;(async () => {
       try {
         await reconcileCardsToTitles() // acerta cartas↔títulos antes de somar
-        const { data } = await supabase.rpc('esc_ranking', { p_mode: mode })
+        const { data } = await supabase.rpc('esc_ranking', { p_mode: mode === 'carreira' && carSub === 'total' ? 'carreiratotal' : mode })
         if (alive) setRows(((data ?? []) as RankRow[]))
       } catch {
         // backend fora: não deixa preso em "Carregando…"
@@ -5282,7 +5286,7 @@ export function EscRanking() {
       }
     })()
     return () => { alive = false }
-  }, [mode])
+  }, [mode, carSub])
 
   const loading = rows === null
   // Ranking por TÍTULOS (a artilharia saiu — é rara/pouco significativa e fácil
@@ -5316,6 +5320,20 @@ export function EscRanking() {
           </button>
         ))}
       </div>
+
+      {/* 🪜 sub-filtro da Carreira: por carreira × total da conta */}
+      {mode === 'carreira' && (
+        <div className="flex gap-2">
+          {([['porcarreira', '🪜 Por carreira', 'cada carreira é uma linha'], ['total', '📊 Total da conta', 'todas as carreiras somadas']] as const).map(([id, label, sub]) => (
+            <button key={id} onClick={() => setCarSub(id)}
+              className="flex-1 border-[2.5px] border-black rounded-xl py-2 px-1 font-black text-[11px] uppercase leading-tight"
+              style={{ backgroundColor: carSub === id ? GOLD : '#fff', boxShadow: carSub === id ? `2px 2px 0 0 ${INK}` : 'none', ...OSWALD }}>
+              {label}
+              <span className="block text-[8.5px] font-bold normal-case text-black/55">{sub}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* dica: dá pra tocar num técnico e ver o álbum dele */}
       {!loading && shown.length > 0 && (

@@ -1,4 +1,13 @@
-# 📌 Pendências combinadas com o Diego (atualizado 03/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 04/08/2026)
+
+## 🏆 Sub-filtro na aba Carreira do ranking (04/08, pedido do Diego) ✅
+Dois chips dentro da aba Carreira: "🪜 Por carreira" (padrão — cada save uma
+linha, cartas daquela carreira) e "📊 Total da conta" (todas as carreiras
+somadas + todas as cartas de carreira — o jeito antigo). RPC ganhou o modo
+'carreiratotal' (migração esc_ranking_carreira_total); EscRanking com carSub.
+Contexto: reclamações de "sumiu título/carta" eram a separação por carreira
+(caso Alface) — verificado no banco que NADA sumiu (39/40 campeões recentes com
+carta; liga+copa contando exato). Agora o usuário escolhe a visão.
 
 ## 🌱 CRIA DA BASE na renovação — MOCKUP enviado, AGUARDANDO OK (03/08)
 Crítica justa do Diego: quando a saída do contrato vencido quebraria o XI, o
