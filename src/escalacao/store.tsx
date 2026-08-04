@@ -3751,7 +3751,8 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'SEED_CPU_SQUADS': {
       // materializa a ficha dos 60 times de fundo (1x). Idempotente: se já existe,
       // não sobrescreve (o mercado já pode ter mexido).
-      if (!s.careerOnline || s.cpuSquads) return s
+      // 🏀 basquete não tem os 60 times de fundo da pirâmide do futebol. Trava defensiva.
+      if (!s.careerOnline || s.cpuSquads || s.sport === 'basquete') return s
       s.cpuSquads = action.squads
       healCpuSquads(s) // 🔒 a ficha veio pré-calculada pelo cliente — se ela pegou o elenco de
       // alguém desatualizado (arremate ainda não aplicado), tira o jogador que já tem dono
@@ -3762,7 +3763,9 @@ export function reducer(state: EscState, action: Action): EscState {
       // carreira online (mesmo time): nova colocação (acessos/quedas já aplicados
       // pelo host, determinístico) + zera a rodada e sobe a temporada. Os elencos
       // seguem os mesmos (novo leilão é um fluxo à parte).
-      if (!s.careerOnline) return s
+      // 🏀 basquete NUNCA passa aqui: ele tem o próprio avanço (NEXT_NBA_SEASON*) com
+      // andares/promoção. Trava defensiva contra estado quebrado se a ação escapar.
+      if (!s.careerOnline || s.sport === 'basquete') return s
       pinHumanLineups(s) // mantém o SEU XI (mesmo time) — nada de auto-mudar titular
       s.seasonVotes = {} // temporada nova: zera a votação
       applySeasonMoney(s, action.rewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha (e registra no extrato) — antes de contratar reforço
@@ -3785,7 +3788,8 @@ export function reducer(state: EscState, action: Action): EscState {
       // carreira online (novo leilão): aplica a nova colocação e REFAZ o leilão
       // — mesmos técnicos (ids/times preservados), elencos zerados, orçamento
       // parelho pra todos. A divisão só importa na hora de jogar a temporada.
-      if (!s.careerOnline) return s
+      // 🏀 basquete NUNCA passa aqui (avanço próprio). Trava defensiva.
+      if (!s.careerOnline || s.sport === 'basquete') return s
       s.seasonVotes = {} // temporada nova: zera a votação
       setActiveCatalog(s.deckLeague) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
       applySeasonMoney(s, action.rewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha (e registra no extrato) — ANTES de zerar/refazer o leilão
@@ -3818,7 +3822,8 @@ export function reducer(state: EscState, action: Action): EscState {
       // carreira online: já ENTRA na temporada nova (aplica acessos/quedas, moedas,
       // títulos) e abre a tela de VENDA — "Listar pra leilão" (45s). A compra vem
       // depois (RESERVE_AUCTION_ONLINE), quando o host começa o leilão.
-      if (!s.careerOnline) return s
+      // 🏀 basquete NUNCA passa aqui (mercado de reservas próprio, mais à frente). Trava defensiva.
+      if (!s.careerOnline || s.sport === 'basquete') return s
       pinHumanLineups(s) // fixa o SEU XI ANTES do leilão — reforço novo vai pro banco
       s.seasonVotes = {} // temporada nova: zera a votação
       applySeasonMoney(s, action.rewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha (e registra no extrato) — ANTES da venda/leilão de reservas
@@ -3868,7 +3873,8 @@ export function reducer(state: EscState, action: Action): EscState {
       // consome a lista (tira os listados dos times e joga no baralho — o dono
       // pode dar lance de volta), marca "elenco fundo" (mira 22) e o orçamento é a
       // CAIXA. No fim (FINISH_CEREMONY), a caixa vira o que sobrou e tira o fundo.
-      if (!s.careerOnline) return s
+      // 🏀 basquete NUNCA passa aqui (o mercado dos 80 é só do futebol). Trava defensiva.
+      if (!s.careerOnline || s.sport === 'basquete') return s
       setActiveCatalog(s.deckLeague)
       healCpuSquads(s) // 🔒 conserta save antigo: se uma ficha de fundo ficou com um jogador que
       // um técnico já tem, tira daqui ANTES do Mercado — senão o Mercado soltava a cópia no leilão
