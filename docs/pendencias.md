@@ -1378,3 +1378,7 @@ agora vem PRIMEIRO na linha — "📝 7 anos · Milan · 2007" — então se cor
 some o ano, nunca o contrato; (2) textos compactados: "❗ vencido — decida na
 janela" → "❗ vencido" e "🌱 cria da base — sem contrato" → "🌱 sem contrato"
 (cores e regras iguais). Reverter = 1 commit.
+↳ AJUSTE do Diego (04/08, aplicado): contrato saiu da linha "clube · ano" e
+foi pra coluna da DIREITA, embaixo do 💰 piso e 💸 salário (ali nunca corta).
+A linha "clube · ano" voltou a ficar inteira, com o ano. Textos continuam
+compactos: "📝 N anos" / "⏳ último ano" / "❗ vencido" / "🌱 sem contrato".

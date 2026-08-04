@@ -1747,11 +1747,11 @@ function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boo
 // da MESMA posição do outro lado ACENDEM — toca em qual quer trocar. Vale pros
 // dois sentidos (titular↔reserva). Aplica no próximo jogo, como a tática.
 function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contratosOn }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean }) {
-  // 📝 CONTRATO SUTIL (mockup A aprovado pelo Diego 03/08): vive na linha do
-  // clube · ano, mas SEMPRE antes do clube — a linha corta pela direita em
-  // tela estreita, e o contrato precisa sobreviver ao corte (o ano pode sumir).
-  // Cinza quando está tudo certo (quase invisível); ⏳ âmbar no último ano;
-  // ❗ vermelho vencido. Emprestado/incógnito não mostram nada.
+  // 📝 CONTRATO SUTIL (pedido do Diego 04/08): vive na coluna da DIREITA,
+  // embaixo do 💰 piso e 💸 salário — ali nunca corta em tela estreita, e a
+  // linha "clube · ano" da esquerda fica inteira. Cinza quando está tudo certo
+  // (quase invisível); ⏳ âmbar no último ano; ❗ vermelho vencido.
+  // Emprestado/incógnito não mostram nada.
   const ctInfo = (c: WonCard): { txt: string; color: string } | null => {
     if (c.cria) return { txt: '🌱 sem contrato', color: 'rgba(0,0,0,0.45)' }
     if (!contratosOn || c.fake || c.emprestado || c.contratoAte == null) return null
@@ -1787,14 +1787,15 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contr
   // duas listas cabem lado a lado no celular sem cortar nada importante.
   // altura FIXA (48px) → as duas listas (Titulares | Reservas) batem linha a linha,
   // não importa o tamanho do nome do clube. Na direita: 💰 piso e 💸 salário (piso÷10,
-  // em vermelho = custo) lado a lado; o gol fica em cima, como já era.
+  // em vermelho = custo) lado a lado; o gol fica em cima, como já era; o
+  // contrato (📝/⏳/❗/🌱) fica embaixo dos dois.
   const rowOf = (c: WonCard, titular: boolean) => { const st = stateOf(c); return (
     <div key={c.id} onClick={() => onTap?.(c.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, height: 48, padding: '0 6px', borderRadius: 6, background: st === 'sel' ? '#FFF6D6' : titular ? '#fff' : 'rgba(255,255,255,0.88)', border: `2px solid ${st === 'idle' ? 'transparent' : borderOf(st)}`, marginBottom: 3, opacity: st === 'dim' ? 0.5 : 1, cursor: onTap ? 'pointer' : 'default' }}>
       <span style={{ minWidth: 0 }}>
         <span style={{ display: 'block', fontWeight: titular ? 800 : 700, fontSize: 11.5, ...OSWALD, color: titular ? INK : '#4a4740', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           <span style={{ fontWeight: 900, fontSize: 8.5, color: col.solid, marginRight: 4 }}>{c.pos}</span>{c.name}{c.emprestado && <EmpTag />}
         </span>
-        <span style={{ display: 'block', fontWeight: 700, fontSize: 9, color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(() => { const k = ctInfo(c); return k ? <><span style={{ color: k.color, fontWeight: 800 }}>{k.txt}</span> · </> : null })()}{c.club} · {c.year}</span>
+        <span style={{ display: 'block', fontWeight: 700, fontSize: 9, color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.club} · {c.year}</span>
       </span>
       <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0, lineHeight: 1.25, gap: 1 }}>
         {goalsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: GREEN }}>⚽ {goalsOf(c)}</span>}
@@ -1802,6 +1803,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contr
           <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#5a5647' }}>💰 {c.paid ?? 0}</span>
           {salaryOn && <span title="Salário por ano (piso ÷ 10)" style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, color: '#C2452F', background: 'rgba(194,69,47,.10)', border: '1px solid rgba(194,69,47,.30)', borderRadius: 5, padding: '0 3px' }}>💸 {salaryOfCard(c)}</span>}
         </span>
+        {(() => { const k = ctInfo(c); return k ? <span style={{ fontWeight: 800, fontSize: 8.5, color: k.color, whiteSpace: 'nowrap' }}>{k.txt}</span> : null })()}
       </span>
     </div>
   ) }
