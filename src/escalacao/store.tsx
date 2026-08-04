@@ -483,6 +483,13 @@ function hashCode(s: string): number {
 // 2024 guardado num elenco) conviver com a versão nova do catálogo (2025) como se
 // fossem cartas diferentes — bug dos dois Yamal. Tirar o ano resolve de vez.
 const ident = (c: { name: string; club: string }) => `${c.name}|${c.club}`
+// 🔄 RODÍZIO DO LEILÃO: memória das cartas que caíram na leva ANTERIOR (só idents).
+// A montagem do baralho joga essas pro fim do catálogo, então elas têm menos chance
+// de voltar já na próxima temporada — dá mais variedade. NÃO mexe nas % de raridade
+// (só muda QUAIS cartas preenchem cada cota). Quando as "não-recentes" acabam, elas
+// voltam a entrar (repetir de vez tá ok). Vive no módulo (o host monta o baralho no
+// online e transmite pronto; o guest não remonta, então não desincroniza).
+let RECENT_DECK = new Set<string>()
 // 🧹 PENEIRA FINAL anti-duplicata do baralho do leilão: por mais que cada fonte
 // (mercado, listados, sobras, fichas de fundo) já tente não repetir, uma cópia do
 // MESMO jogador real (nome+clube) pode escapar por uma brecha — ou vir de um save
@@ -839,13 +846,18 @@ const ESCADA_RARITY: Record<EscadaDiv, { legend: number; star: number; promessa:
 function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0, values?: Record<string, number>, noFake = false, varzea = false, escada: EscadaDiv | null = null): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
   const bt = nextBuildTok()
+  const takenNow = new Set<string>() // 🔄 rodízio: idents pegos nesta leva (vira a memória do próximo baralho)
   // ── passo 1: define o tamanho de cada setor e embaralha o catálogo ──
   const plan = {} as Record<Sector, { count: number; catalog: (typeof CATALOG)[Sector] }>
   for (const pos of SECTORS) {
     const demand = managers.reduce((s, m) => s + slotsOf(m, pos), 0)
     // 🪜 escada: o catálogo do setor é FILTRADO pras categorias da divisão —
     // trava dura (nem o "completa com qualquer real" fura a régua).
-    const catalog = shuffle(escada ? ACTIVE_CATALOG[pos].filter(c => escadaAllows(escada, c)) : ACTIVE_CATALOG[pos], rng)
+    const shuffled = shuffle(escada ? ACTIVE_CATALOG[pos].filter(c => escadaAllows(escada, c)) : ACTIVE_CATALOG[pos], rng)
+    // 🔄 RODÍZIO: joga quem caiu na leva passada pro FIM (empate mantém a ordem
+    // embaralhada, então continua aleatório). As cotas pegam do começo → preferem
+    // cartas que NÃO acabaram de aparecer. Só reordena; não muda nenhuma %.
+    const catalog = RECENT_DECK.size ? shuffled.slice().sort((a, b) => (RECENT_DECK.has(ident(a)) ? 1 : 0) - (RECENT_DECK.has(ident(b)) ? 1 : 0)) : shuffled
     const realFree = catalog.filter(c => !used.has(ident(c))).length
     // margem adaptativa: queremos "sempre dobrado" (demand × margin), mas nunca
     // pedir mais jogadores REAIS do que existem na posição — senão vira fake.
@@ -905,7 +917,7 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   for (const pos of SECTORS) {
     const { count, catalog } = plan[pos]
     const cards: Card[] = []
-    const take = (c: (typeof CATALOG)[Sector][number]) => { used.add(ident(c)); const fl = values?.[c.name] ?? 0; cards.push({ ...c, id: `cat-${pos}-${cards.length}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
+    const take = (c: (typeof CATALOG)[Sector][number]) => { used.add(ident(c)); takenNow.add(ident(c)); const fl = values?.[c.name] ?? 0; cards.push({ ...c, id: `cat-${pos}-${cards.length}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
     // 1) LENDA
     let needL = alloc[pos].legend
     for (const c of catalog) { if (needL <= 0) break; if (c.fame !== 5 || used.has(ident(c))) continue; take(c); needL-- }
@@ -933,6 +945,10 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     // dava pra "ler" o nível pela posição — furando o leilão às cegas.
     deck[pos] = shuffle(cards, rng)
   }
+  // 🔄 guarda esta leva como memória do rodízio pra próxima — só nas levas PRINCIPAIS
+  // (a de reservas, noFake, não sobrescreve: senão a próxima principal deixaria de
+  // rodiziar de verdade). Substitui (não acumula): "recente" = só a leva anterior.
+  if (!noFake && takenNow.size) RECENT_DECK = takenNow
   return deck
 }
 
