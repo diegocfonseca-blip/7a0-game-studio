@@ -1748,13 +1748,15 @@ function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boo
 // dois sentidos (titular↔reserva). Aplica no próximo jogo, como a tática.
 function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contratosOn }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean }) {
   // 📝 CONTRATO SUTIL (mockup A aprovado pelo Diego 03/08): vive na linha do
-  // clube · ano. Cinza quando está tudo certo (quase invisível); ⏳ âmbar no
-  // último ano; ❗ vermelho vencido. Emprestado/incógnito não mostram nada.
+  // clube · ano, mas SEMPRE antes do clube — a linha corta pela direita em
+  // tela estreita, e o contrato precisa sobreviver ao corte (o ano pode sumir).
+  // Cinza quando está tudo certo (quase invisível); ⏳ âmbar no último ano;
+  // ❗ vermelho vencido. Emprestado/incógnito não mostram nada.
   const ctInfo = (c: WonCard): { txt: string; color: string } | null => {
-    if (c.cria) return { txt: '🌱 cria da base — sem contrato', color: 'rgba(0,0,0,0.45)' }
+    if (c.cria) return { txt: '🌱 sem contrato', color: 'rgba(0,0,0,0.45)' }
     if (!contratosOn || c.fake || c.emprestado || c.contratoAte == null) return null
     const sn = seasonNo ?? 1
-    if (c.contratoAte < sn) return { txt: '❗ vencido — decida na janela', color: '#C2452F' }
+    if (c.contratoAte < sn) return { txt: '❗ vencido', color: '#C2452F' }
     if (c.contratoAte === sn) return { txt: '⏳ último ano', color: '#B8860B' }
     const anos = c.contratoAte - sn + 1
     return { txt: `📝 ${anos} anos`, color: 'rgba(0,0,0,0.45)' }
@@ -1792,7 +1794,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contr
         <span style={{ display: 'block', fontWeight: titular ? 800 : 700, fontSize: 11.5, ...OSWALD, color: titular ? INK : '#4a4740', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           <span style={{ fontWeight: 900, fontSize: 8.5, color: col.solid, marginRight: 4 }}>{c.pos}</span>{c.name}{c.emprestado && <EmpTag />}
         </span>
-        <span style={{ display: 'block', fontWeight: 700, fontSize: 9, color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.club} · {c.year}{(() => { const k = ctInfo(c); return k ? <> · <span style={{ color: k.color, fontWeight: 800 }}>{k.txt}</span></> : null })()}</span>
+        <span style={{ display: 'block', fontWeight: 700, fontSize: 9, color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(() => { const k = ctInfo(c); return k ? <><span style={{ color: k.color, fontWeight: 800 }}>{k.txt}</span> · </> : null })()}{c.club} · {c.year}</span>
       </span>
       <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0, lineHeight: 1.25, gap: 1 }}>
         {goalsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: GREEN }}>⚽ {goalsOf(c)}</span>}

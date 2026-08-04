@@ -1369,3 +1369,12 @@ leilão de reservas. Bots de FUNDO da várzea com incógnito = ok temático.
 MISTURA de legítimas (donos reais de 2º clube) e do bug fantasma (mc0 sem 2º
 clube real). Separar exige abrir os saves — aguardando decisão do Diego (dá pra
 cruzar esc_pyramid_saves × user_cards se ele quiser limpeza fina).
+
+## 📝 Contrato no Elenco não cortava mais (04/08, screenshot de amigo do Diego)
+Em celular estreito (duas colunas Titulares|Reservas), a linha "clube · ano ·
+📝 N anos" cortava pela direita e escondia JUSTAMENTE o contrato ("Milan ·
+2007 · 📝 ..."). Conserto em ElencoField (pyramidseason.tsx): (1) contrato
+agora vem PRIMEIRO na linha — "📝 7 anos · Milan · 2007" — então se cortar,
+some o ano, nunca o contrato; (2) textos compactados: "❗ vencido — decida na
+janela" → "❗ vencido" e "🌱 cria da base — sem contrato" → "🌱 sem contrato"
+(cores e regras iguais). Reverter = 1 commit.
