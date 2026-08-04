@@ -12,10 +12,11 @@ Cobertura medida: 114 de 146 nomes (78%) com símbolo pelo significado.
 💰 `LOGOS_PRONTAS` (mapa vazio) = onde entram as logos ARTESANAIS pagas: o
 usuário manda a arte, o Diego aprova, eu redesenho em SVG (~2 KB) e cadastro ali;
 ela passa na frente do automático.
-🚦 **NÃO ESTÁ LIGADO EM NENHUMA TELA** — ordem do Diego (04/08): "só mande pro
-jogo todo quando eu autorizar". O módulo está commitado mas ninguém importa ele,
-então o jogo segue 100% igual. Quando autorizar: plugar `<Escudo nome={} />` na
-tabela da pirâmide, no placar ao vivo, no ranking e no jornal.
+✅ **NO AR (04/08, autorizado pelo Diego)** — `<Escudo nome={} />` ligado em 4
+lugares: tabela de classificação (19px), ranking de clubes (19px), lista de jogos
+da rodada (16px, um de cada lado do placar) e placar AO VIVO (34px). Vale igual
+pros times de batismo (o motor só olha o nome). 🏀 O basquete segue com a inicial
+(visual dele ainda não passou pelo Diego).
 📸 Amostras aprovadas pelo Diego: mockup dos 6 times + folha dos 146
 (scratchpad: mock-6times.png, escudos-todos.png, mock-alface.png).
 ESCADA DE VENDA combinada: (1) escudo automático grátis pra todos · (2) editor

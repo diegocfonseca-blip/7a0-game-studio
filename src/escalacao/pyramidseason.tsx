@@ -19,6 +19,7 @@ import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls,
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, SponsorCard } from './estadio'
+import { Escudo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada } from './sport'
@@ -1362,7 +1363,13 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
             return (
               <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', background: bg, fontWeight: colored || isSaf ? 800 : 500 }}>
                 <td style={{ paddingRight: 4, whiteSpace: 'nowrap' }}>{i + 1}{final && i < 4 && UP_OF[div] && <span style={{ display: 'inline-block', color: '#1B7A3D', fontWeight: 900, marginLeft: 2, animation: 'divUp 1.4s ease-in-out infinite' }}>▲</span>}{final && i === 0 && div === 'A' && <span style={{ marginLeft: 2 }}>🏆</span>}{final && i >= teams.length - 4 && DOWN_OF[div] && <span style={{ display: 'inline-block', color: '#B23B2E', fontWeight: 900, marginLeft: 2, animation: 'divDown 1.4s ease-in-out infinite' }}>▼</span>}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: nameColor }}>{t.you ? '👤 ' : t.dorm ? '🏛️ ' : t.rival ? '⚔️ ' : isSaf ? '💼 ' : ''}{t.you && youPerk ? <span style={apoioText(youPerk)}>{apoioName(t.name)}</span> : t.name}</td>
+                <td style={{ maxWidth: 150, color: nameColor }}>
+                  {/* 🛡️ escudo do clube (gerado do nome) + o selo de quem é quem */}
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+                    <Escudo nome={t.name} size={19} />
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.you ? '👤 ' : t.dorm ? '🏛️ ' : t.rival ? '⚔️ ' : isSaf ? '💼 ' : ''}{t.you && youPerk ? <span style={apoioText(youPerk)}>{apoioName(t.name)}</span> : t.name}</span>
+                  </span>
+                </td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{t.pts}</td>
                 <td style={{ textAlign: 'center' }}>{t.w}</td><td style={{ textAlign: 'center' }}>{t.d}</td><td style={{ textAlign: 'center' }}>{t.l}</td>
                 <td style={{ textAlign: 'center' }}>{t.gf - t.ga}</td>
@@ -1676,7 +1683,9 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     <div style={{ position: 'relative', overflow: 'hidden', padding: '22px 8px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textAlign: 'center', background: bg, minWidth: 0 }}>
       {flash && <div style={{ position: 'absolute', inset: 0, background: '#fff', animation: 'coGoalFlash 1.6s ease', pointerEvents: 'none' }} />}
       {perk && <ApoioSheen holo={perk.holo} dur={4.2} />}
-      <div style={{ position: 'relative', width: 28, height: 28, borderRadius: 8, border: `2px solid ${INK}`, background: '#fff', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 13, ...OSWALD, animation: flash ? 'coBump .6s ease' : undefined }}>{ini(name)}</div>
+      {/* 🛡️ escudo do clube no placar (o basquete segue com a inicial — visual dele
+          ainda não foi aprovado) */}
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: flash ? 'coBump .6s ease' : undefined, ...(basket ? { width: 28, height: 28, borderRadius: 8, border: `2px solid ${INK}`, background: '#fff', color: INK, fontWeight: 900, fontSize: 13, ...OSWALD } : null) }}>{basket ? ini(name) : <Escudo nome={name} size={34} />}</div>
       <div style={{ position: 'relative', fontSize: 12, fontWeight: 900, ...OSWALD, color: ink, lineHeight: 1.05, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{perk ? apoioName(name) : name}</div>
       <div style={{ position: 'relative', fontSize: 9, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: ink, opacity: 0.72 }}>{you ? 'você' : 'rival'}</div>
     </div>
@@ -1743,13 +1752,17 @@ function DivMatches({ div, matches, colors, humans, hideId, reveal = true }: { d
           return (
             <div key={i} style={{ padding: '3px 4px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: bg, borderRadius: bg ? 5 : 0 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5 }}>
-                <span style={{ textAlign: 'right', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: nameCol(m.hId) }}>{m.h}</span>
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, minWidth: 0, fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, color: nameCol(m.hId) }}>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.h}</span><Escudo nome={m.h} size={16} />
+                </span>
                 {/* 🙈 ANTI-SPOILER: enquanto o SEU jogo anima, os outros jogos ficam "em jogo"
                     (placar e gol escondidos). Todos revelam juntos quando o seu apito soa. */}
                 {reveal
                   ? <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: bg ? INK : '#eee', color: bg ? '#fff' : INK, borderRadius: 5, padding: '0 7px' }}>{m.hg}×{m.ag}</span>
                   : <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, background: '#efe4c8', color: 'rgba(0,0,0,.55)', borderRadius: 5, padding: '0 7px', whiteSpace: 'nowrap' }}>🟢 em jogo</span>}
-                <span style={{ textAlign: 'left', fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: nameCol(m.aId) }}>{m.a}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, color: nameCol(m.aId) }}>
+                  <Escudo nome={m.a} size={16} /><span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.a}</span>
+                </span>
               </div>
               {reveal && last && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '1px 0 0', textAlign: 'center' }}>⚽ {last.name} <span style={{ opacity: 0.7 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></p>}
             </div>
@@ -2122,7 +2135,12 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
             return (
               <tr key={r.key} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: fc?.light, fontWeight: colored ? 800 : 500 }}>
                 <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>{i + 1}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140, color: fc?.solid ?? INK }}>{you ? '👤 ' : isSaf ? '💼 ' : r.t.rival ? '⚔️ ' : r.t.dorm ? '🏛️ ' : r.t.human ? '🔥 ' : ''}{(() => { const pk = you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(r.t.name)}</span> : r.t.name })()}</td>
+                <td style={{ maxWidth: 150, color: fc?.solid ?? INK }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+                    <Escudo nome={r.t.name} size={19} />
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{you ? '👤 ' : isSaf ? '💼 ' : r.t.rival ? '⚔️ ' : r.t.dorm ? '🏛️ ' : r.t.human ? '🔥 ' : ''}{(() => { const pk = you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(r.t.name)}</span> : r.t.name })()}</span>
+                  </span>
+                </td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                   {(r.h.A + r.h.B + r.h.C + r.h.D + r.copas + r.wc) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
                     {r.wc > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Mundo{r.wc > 1 ? r.wc : ''}</span>}
