@@ -210,6 +210,9 @@ export function AdminButton() {
 // Fluxo manual do Diego: Pix caiu → gera a FICHA aqui → manda no zap → acompanha
 // quem resgatou. A ficha é queimada pelo RPC bl_redeem (uma vez, por conta).
 function BancoFichasAdmin() {
+  // 💱 regra do Diego (04/08): cada R$ 1 do Pix vira 3 🪙 (sempre o triplo).
+  // `valor` = REAIS que o jogador pagou; a ficha nasce com valor × 3 em moedas.
+  const TRIPLO = 3
   const [valor, setValor] = useState(100)
   const [gerada, setGerada] = useState('')
   const [lista, setLista] = useState<{ code: string; coins: number; created_at: string; used_email: string | null; used_at: string | null }[]>([])
@@ -226,7 +229,7 @@ function BancoFichasAdmin() {
     const CH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
     const r = (n: number) => Array.from({ length: n }, () => CH[Math.floor(Math.random() * CH.length)]).join('')
     const code = `BL-${r(4)}-${r(2)}`
-    const { error } = await supabase.from('bl_fichas').insert({ code, coins: valor })
+    const { error } = await supabase.from('bl_fichas').insert({ code, coins: valor * TRIPLO })
     if (!error) { setGerada(code); carregar() }
     setBusy(false)
   }
@@ -235,10 +238,10 @@ function BancoFichasAdmin() {
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: GOLD, textTransform: 'uppercase', margin: '0 0 10px' }}>🏦 Banco Legends · Caixa do Gerente</p>
       <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
         {[10, 50, 100, 500, 1000].map(v => (
-          <button key={v} onClick={() => setValor(v)} style={{ flex: 1, border: `2.5px solid ${GOLD}`, borderRadius: 10, padding: '7px 2px', ...OSWALD, fontWeight: 900, fontSize: 13, cursor: 'pointer', background: valor === v ? GOLD : 'transparent', color: valor === v ? '#0C0C0C' : GOLD }}>{v}</button>
+          <button key={v} onClick={() => setValor(v)} style={{ flex: 1, border: `2.5px solid ${GOLD}`, borderRadius: 10, padding: '7px 2px', ...OSWALD, fontWeight: 900, fontSize: 13, cursor: 'pointer', background: valor === v ? GOLD : 'transparent', color: valor === v ? '#0C0C0C' : GOLD }}>R${v}</button>
         ))}
       </div>
-      <button onClick={gerar} disabled={busy} style={{ width: '100%', border: 'none', borderRadius: 12, padding: 10, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: GOLD, color: '#0C0C0C', cursor: 'pointer' }}>{busy ? '…' : `🎟️ Gerar ficha de ${valor} 🪙`}</button>
+      <button onClick={gerar} disabled={busy} style={{ width: '100%', border: 'none', borderRadius: 12, padding: 10, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: GOLD, color: '#0C0C0C', cursor: 'pointer' }}>{busy ? '…' : `🎟️ Pix de R$ ${valor} → ficha de ${(valor * TRIPLO).toLocaleString('pt-BR')} 🪙`}</button>
       {gerada && <p onClick={() => { try { navigator.clipboard.writeText(gerada) } catch { /* ignora */ } }} style={{ background: '#000', border: `2px dashed ${GOLD}`, borderRadius: 10, padding: 9, textAlign: 'center', ...OSWALD, fontWeight: 900, fontSize: 19, letterSpacing: 4, color: GOLD, margin: '8px 0 0', cursor: 'pointer' }} title="toca pra copiar">{gerada}</p>}
       {gerada && <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(242,232,207,.6)', textAlign: 'center', margin: '4px 0 0' }}>toca no código pra copiar · manda no zap do jogador</p>}
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontWeight: 700, marginTop: 10 }}>

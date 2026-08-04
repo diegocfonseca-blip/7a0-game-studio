@@ -1,5 +1,12 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/08/2026)
 
+## 🏦 Banco Legends: regra do TRIPLO (04/08, decisão do Diego) ✅
+Cada R$ 1 de Pix vira **3 moedas** — sempre o triplo (R$10→30 🪙 · R$50→150 ·
+R$100→300 · R$500→1.500 · R$1.000→3.000). Vitrine no jogo mostra a regra e os
+pacotes ×3; admin escolhe pelo valor do Pix (R$) e a ficha nasce com ×3
+automático (BL_TRIPLO/TRIPLO = 3). Fichas ANTIGAS não resgatadas seguem valendo
+o que foi gravado nelas — se o Diego quiser, gerar de novo pelas novas contas.
+
 ## 💰 AdSense instalado no site (04/08) — AGUARDANDO APROVAÇÃO DO GOOGLE
 Diego mandou o Publisher ID: **pub-7150600438130611**. Instalado:
 - Script do AdSense no `<head>` do index.html (async, não atrasa nada; nenhum

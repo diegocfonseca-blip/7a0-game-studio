@@ -1101,6 +1101,9 @@ function AgenciaDesbloqueios({ st, hasFilial, onVerAgenciados }: { st: StadiumSa
 // admin → jogador resgata aqui. A validação/queima é ATÔMICA no Supabase (RPC
 // bl_redeem); o reducer só credita. SÓ carreira SOLO. Liberado GERAL (04/08).
 const BL_PIX = 'diego.c.fonseca@gmail.com' // chave Pix REAL do Diego (04/08) — Banco liberado geral
+// 💱 REGRA DO DIEGO (04/08): cada R$ 1 vira 3 🪙 — sempre o TRIPLO do Pix.
+// A lista guarda o valor em REAIS; a tela e o admin mostram/geram reais × 3.
+export const BL_TRIPLO = 3
 const BL_PACOTES: [number, string][] = [[10, 'CAFEZINHO'], [50, 'REFORÇO PONTUAL'], [100, 'FÔLEGO DE TEMPORADA'], [500, 'PROJETO SAF'], [1000, 'INVESTIDOR VISIONÁRIO 👑']]
 function BancoLegends() {
   const { state, dispatch } = useEsc()
@@ -1151,9 +1154,10 @@ function BancoLegends() {
               <div style={{ fontSize: 10.5, fontWeight: 700, fontStyle: 'italic', lineHeight: 1.4, color: 'rgba(255,255,255,.9)', marginTop: 2 }}>"Precisa de um capital pro clube, doutor? O banco APROVA na hora — sem juros, sem fiador, sem choro."</div>
             </div>
           </div>
+          <p style={{ textAlign: 'center', fontWeight: 900, fontSize: 10.5, letterSpacing: .5, margin: '0 0 7px', color: '#1B7A3D' }}>💱 Aqui cada R$ 1 vira <b>3 moedas</b> — sempre o TRIPLO!</p>
           {BL_PACOTES.map(([v, tag]) => (
             <div key={v} style={{ display: 'flex', alignItems: 'center', gap: 8, border: `2.5px solid ${INK}`, borderRadius: 12, background: v === 100 ? '#FFF7DB' : '#fff', boxShadow: `2px 2px 0 0 ${INK}`, padding: '7px 10px', marginBottom: 6 }}>
-              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 16, minWidth: 78 }}>{v} 🪙</span>
+              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 16, minWidth: 78 }}>{(v * BL_TRIPLO).toLocaleString('pt-BR')} 🪙</span>
               <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: .5, color: '#8a8069' }}>{tag}</span>
               <span style={{ marginLeft: 'auto', ...OSWALD, fontWeight: 900, fontSize: 13, background: GOLD, border: `2px solid ${INK}`, borderRadius: 9, padding: '3px 10px', whiteSpace: 'nowrap' }}>R$ {v}</span>
             </div>
