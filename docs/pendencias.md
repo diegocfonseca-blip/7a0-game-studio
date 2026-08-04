@@ -1382,3 +1382,22 @@ janela" → "❗ vencido" e "🌱 cria da base — sem contrato" → "🌱 sem c
 foi pra coluna da DIREITA, embaixo do 💰 piso e 💸 salário (ali nunca corta).
 A linha "clube · ano" voltou a ficar inteira, com o ano. Textos continuam
 compactos: "📝 N anos" / "⏳ último ano" / "❗ vencido" / "🌱 sem contrato".
+
+## 👑 Arte de compartilhar elenco com o MANTO do tier (04/08, mockup aprovado)
+Foto do Kata-Kata 👑 mostrou a arte saindo num mostarda apagado: a imagem
+compartilhada usava só a cor CHAPADA do tier (o.color), nunca o degradê+brilho
+da aba Elenco. Agora (jornal.tsx buildElencoBlob): topo e listas pintam com o
+degradê do tier (gradStops/fillTier parseiam o grad CSS de apoio.tsx) + faixa
+de brilho congelada (sheenRect, intensidade = holo do tier). Texto escolhe
+contraste sozinho (ouro/prata/bege → escuro; roxo/verde → branco). Sem tier →
+arte igualzinha à de hoje. Vale pra todos os tiers, cada um com o SEU manto.
+
+## 🏆 Ranking "Total da conta": nome agora é o da MAIOR carreira (04/08)
+Diego estranhou: "HAHAHA · 394" no topo do Total sem existir no Por carreira.
+Causa: o RPC esc_ranking batizava a conta com o nome da ÚLTIMA partida jogada
+— o Alface tinha acabado de jogar numa carreira nova "HAHAHA" (1 título), e o
+Tokyo aparecia como "Xurupitas FC" (45). Somas estavam CERTAS (394 = 379+15;
+333 = 269+45+18+1) — só o nome enganava. Migration
+ranking_total_nome_da_maior_carreira: no modo carreiratotal o nome vem da
+carreira com MAIS títulos da conta (empate → mais recente). Por carreira e
+modos rápidos intocados. Verificado ao vivo: Alfacehh FC 394 · Tokyo 333.

@@ -486,8 +486,47 @@ export type ElencoPlayerRow = { pos: string; name: string; goals: number; paid: 
 export type ElencoShareOpts = {
   teamName: string; divName: string; tablePos: number; seasonNo: number; formation: string
   titles: number; squadValue: number; coins: number; color: string
+  // 🎨 manto do tier de apoio (apoio.tsx): degradê CSS + intensidade do brilho.
+  // Presente → topo e listas ganham o MESMO manto da aba Elenco (fidelidade de
+  // tier: ouro brilha na arte também). Ausente → cor chapada de sempre.
+  tierGrad?: string; tierHolo?: number
   fieldRows: { pos: string; name: string; goals: number }[][] // ATA/MEI/DEF/GOL
   titulares: ElencoPlayerRow[]; reservas: ElencoPlayerRow[]
+}
+// degradê CSS do tier → paradas de gradiente de canvas (só hex + % opcional)
+function gradStops(css: string): { p: number; c: string }[] {
+  const m = [...css.matchAll(/(#[0-9A-Fa-f]{6})(?:\s+(\d+)%)?/g)].map(x0 => ({ c: x0[1], p: x0[2] ? +x0[2] / 100 : -1 }))
+  if (!m.length) return []
+  if (m[0].p < 0) m[0].p = 0
+  if (m[m.length - 1].p < 0) m[m.length - 1].p = 1
+  for (let i = 1; i < m.length - 1; i++) if (m[i].p < 0) m[i].p = (m[i - 1].p + m[i + 1].p) / 2
+  return m
+}
+function fillTier(x: CanvasRenderingContext2D, css: string, px: number, py: number, w: number, h: number) {
+  const g = x.createLinearGradient(px, py, px + w * 0.34, py + h)
+  for (const s of gradStops(css)) g.addColorStop(s.p, s.c)
+  x.fillStyle = g; x.fillRect(px, py, w, h)
+}
+// manto claro (ouro/prata) pede texto escuro; roxo/verde seguem com texto branco
+function tierIsLight(css: string): boolean {
+  const s = gradStops(css); if (!s.length) return false
+  const c = s[Math.floor(s.length / 2)].c
+  const r = parseInt(c.slice(1, 3), 16), g = parseInt(c.slice(3, 5), 16), b = parseInt(c.slice(5, 7), 16)
+  return 0.299 * r + 0.587 * g + 0.114 * b > 150
+}
+// varredura de brilho (a "holo" da carta), congelada na arte: uma faixa clara
+// diagonal dentro do retângulo. `at` = onde a faixa cai (0..1 da largura).
+function sheenRect(x: CanvasRenderingContext2D, px: number, py: number, w: number, h: number, at: number, holo: number) {
+  if (holo <= 0) return
+  x.save(); x.beginPath(); x.rect(px, py, w, h); x.clip()
+  x.transform(1, 0, -0.28, 1, 0, 0)
+  const bx = px + w * at + 0.28 * (py + h / 2)
+  const g = x.createLinearGradient(bx, 0, bx + 130, 0)
+  g.addColorStop(0, 'rgba(255,255,255,0)')
+  g.addColorStop(0.5, `rgba(255,255,255,${0.55 * holo})`)
+  g.addColorStop(1, 'rgba(255,255,255,0)')
+  x.fillStyle = g; x.fillRect(bx - 20, py - 40, 170, h + 80)
+  x.restore()
 }
 function rr(x: CanvasRenderingContext2D, px: number, py: number, w: number, h: number, r: number) {
   x.beginPath()
@@ -514,14 +553,17 @@ export async function buildElencoBlob(o: ElencoShareOpts): Promise<Blob | null> 
   try { await document.fonts.load('900 60px Oswald') } catch { /* segue */ }
   const OSW = 'Oswald, sans-serif', ARI = 'Arial, sans-serif'
 
-  // ── HEADER na cor do time
-  x.fillStyle = o.color; x.fillRect(0, 0, W, HEAD)
+  // ── HEADER na cor do time (com tier de apoio: no MANTO do tier + brilho)
+  const manto = o.tierGrad
+  const claro = manto ? tierIsLight(manto) : false // manto claro → texto escuro
+  if (manto) fillTier(x, manto, 0, 0, W, HEAD)
+  else { x.fillStyle = o.color; x.fillRect(0, 0, W, HEAD) }
   x.textAlign = 'left'
-  x.fillStyle = GOLD_HEX; x.font = `800 26px ${OSW}`
+  x.fillStyle = claro ? 'rgba(0,0,0,0.60)' : GOLD_HEX; x.font = `800 26px ${OSW}`
   x.fillText('🔨 LEILÃO LEGENDS · MEU ELENCO', 44, 56)
-  x.fillStyle = '#fff'; x.font = `900 62px ${OSW}`
+  x.fillStyle = claro ? INK : '#fff'; x.font = `900 62px ${OSW}`
   x.fillText(cut(x, o.teamName, W - 88), 44, 126)
-  x.fillStyle = 'rgba(255,255,255,0.85)'; x.font = `800 27px ${ARI}`
+  x.fillStyle = claro ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.85)'; x.font = `800 27px ${ARI}`
   x.fillText(`${o.divName} · ${o.tablePos}º lugar · Temporada ${o.seasonNo} · ${o.formation}`, 44, 168)
   // chips
   const chips = [`🏆 ${o.titles} título${o.titles === 1 ? '' : 's'}`, `🏷️ Elenco vale ${o.squadValue} 💵`, `🪙 Caixa: ${o.coins}`]
@@ -529,11 +571,12 @@ export async function buildElencoBlob(o: ElencoShareOpts): Promise<Blob | null> 
   x.font = `800 25px ${OSW}`
   for (const c of chips) {
     const w = x.measureText(c).width + 34
-    x.fillStyle = 'rgba(0,0,0,0.30)'; rr(x, cx, 190, w, 44, 12); x.fill()
-    x.strokeStyle = 'rgba(245,179,1,0.75)'; x.lineWidth = 2.5; rr(x, cx, 190, w, 44, 12); x.stroke()
-    x.fillStyle = GOLD_HEX; x.fillText(c, cx + 17, 221)
+    x.fillStyle = claro ? 'rgba(0,0,0,0.45)' : 'rgba(0,0,0,0.30)'; rr(x, cx, 190, w, 44, 12); x.fill()
+    x.strokeStyle = claro ? 'rgba(0,0,0,0.45)' : 'rgba(245,179,1,0.75)'; x.lineWidth = 2.5; rr(x, cx, 190, w, 44, 12); x.stroke()
+    x.fillStyle = claro ? '#FFDD70' : GOLD_HEX; x.fillText(c, cx + 17, 221)
     cx += w + 14
   }
+  if (manto) sheenRect(x, 0, 0, W, HEAD, 0.62, o.tierHolo ?? 0)
   x.fillStyle = INK; x.fillRect(0, HEAD - 6, W, 6)
 
   // ── CAMPO padrão de ponta a ponta (uma cor só: o fundo é a cor do time)
@@ -559,13 +602,14 @@ export async function buildElencoBlob(o: ElencoShareOpts): Promise<Blob | null> 
     }
   })
 
-  // ── LISTAS sobre a cor do time
+  // ── LISTAS sobre a cor do time (ou o manto do tier)
   const ly0 = HEAD + FPAD + FH
-  x.fillStyle = o.color; x.fillRect(0, ly0, W, LISTS)
+  if (manto) fillTier(x, manto, 0, ly0, W, LISTS)
+  else { x.fillStyle = o.color; x.fillRect(0, ly0, W, LISTS) }
   x.fillStyle = INK; x.fillRect(0, ly0, W, 6)
   const colW = (W - 44 * 2 - 26) / 2
   const drawList = (title: string, rows: ElencoPlayerRow[], lx: number) => {
-    x.textAlign = 'left'; x.fillStyle = '#fff'; x.font = `900 30px ${OSW}`
+    x.textAlign = 'left'; x.fillStyle = claro ? INK : '#fff'; x.font = `900 30px ${OSW}`
     x.fillText(title, lx, ly0 + 40)
     rows.forEach((r0, i) => {
       const ry = ly0 + LHEAD + i * (ROWH + ROWG)
@@ -583,6 +627,7 @@ export async function buildElencoBlob(o: ElencoShareOpts): Promise<Blob | null> 
   }
   drawList('⭐ TITULARES', o.titulares, 44)
   drawList('🔁 RESERVAS', o.reservas, 44 + colW + 26)
+  if (manto) sheenRect(x, 0, ly0, W, LISTS, 0.30, o.tierHolo ?? 0)
 
   // ── RODAPÉ dourado
   const fy = H - FOOT

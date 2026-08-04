@@ -1896,10 +1896,13 @@ function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonN
       const titulares = SECTORS.flatMap(pos => of(pos)).map(toRow)
       const reservas = mgr.squad.filter(c => !xiIds.has(c.id))
         .sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(toRow)
+      // 🎨 fidelidade de tier na arte: quem tem tier leva o manto (degradê +
+      // brilho) pra imagem compartilhada também — igual à aba Elenco.
+      const perk = myApoioPerk()
       await shareElenco({
         teamName: mgr.teamName + apoioSelo(), divName, tablePos, seasonNo, formation: mgr.formation,
         titles, squadValue: mgr.squad.reduce((s2, c) => s2 + (c.paid ?? 0), 0), coins,
-        color: col.solid, fieldRows, titulares, reservas,
+        color: col.solid, tierGrad: perk?.grad, tierHolo: perk?.holo ?? 0, fieldRows, titulares, reservas,
       })
     } finally { setBusy(false) }
   }
