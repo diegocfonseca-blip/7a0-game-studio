@@ -1540,3 +1540,23 @@ load de save): se a soma de Copas guardada > nº de temporadas (impossível — 
 Efeito colateral aceito: save contaminado perde também as Copas legítimas da
 carreira atual NA TELA (recomeça a contar dali). Cartas e ranking da home
 NUNCA usaram careerCopaHonors — sempre estiveram certos (esc_results).
+↳ CORREÇÃO da cura (bronca do Diego, certíssima): zerar apagava as Copas
+LEGÍTIMAS. Agora a cura RECONSTRÓI as copas do jogador pelos recibos de carta
+DESTA carreira (empresarioClaimKeys com ':copa'; stash do 2º clube idem) — só
+os bots (sem registro por temporada) recomeçam do zero. herancatest.mjs 🟢.
+## 🧹 FAXINA ANTI-HERANÇA nos STARTs (04/08 — "analise a fundo", Diego)
+Varri TODOS os campos do EscState × o que START_CAREER_SOLO/ONLINE zeram.
+MAIS 3 VAZAMENTOS reais achados e corrigidos (mesma família do Copa21):
+1. cpuSquads: carreira nova REUSAVA as fichas/elencos dos 60 times de fundo da
+   carreira anterior (o semeador só roda "se não existe"). Agora zera → re-semeia.
+2. copaDoneSeason: valor velho podia PULAR a Copa da temporada de mesmo nº na
+   carreira nova. Zerado.
+3. varzea (modo rápido) vazava pro campo da carreira (pintaria marrom errado).
+   Zerado no START solo (online já setava da sala).
++ criaNames/criaNews/contratoRelease/agenciaDividir zerados por higiene.
+Testes: herancatest.mjs novo (carreira A 3 temporadas → START B: nada herda;
+cura reconstrói 2 copas reais e limpa 32 fantasmas) 🟢 · criatest 🟢.
+⚠️ auditoria.mjs: 153 falhas PRÉ-EXISTENTES (com e sem as mudanças dá igual) —
+todas "XI quebrado/bot com 10 jogadores" em bots de VÁRZEA, efeito do handicap
+novo (A:2 B:4 C:5 D:3 V:4) aplicado hoje. Decidir: IA repõe elenco dos bots de
+fundo OU atualizar a invariante da auditoria. NÃO mexido sem o Diego.

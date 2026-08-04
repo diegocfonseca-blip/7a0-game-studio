@@ -1630,12 +1630,25 @@ function migrateTeamNames(st: EscState): EscState {
   // 🏆 CURA (04/08, print do leodiniz85): carreiras novas herdavam as COPAS das
   // carreiras anteriores do aparelho (o START zerava careerHonors mas esquecia
   // careerCopaHonors) — dava "Copa21" na temporada 8. Só existe 1 Copa por
-  // temporada: se a soma guardada passa do nº de temporadas, o histórico é
-  // contaminado → recomeça a contagem (visual do Ranking Geral; cartas e
-  // ranking da home nunca usaram isso, seguem certos).
+  // temporada: soma acima do nº de temporadas = histórico contaminado.
+  // ⚖️ REGRA DO DIEGO ("cada carreira é independente; título ganho NÃO some"):
+  // as SUAS Copas são RECONSTRUÍDAS pelos recibos de carta DESTA carreira (todo
+  // título de Copa gerou um pacote — empresarioClaimKeys guarda ':copa' por
+  // temporada, e o stash do 2º clube idem). Só os BOTS recomeçam do zero (não
+  // existe registro por temporada deles). Cartas e ranking da home nunca
+  // usaram este contador — sempre estiveram certos.
   {
     const somaCopas = Object.values(st.careerCopaHonors ?? {}).reduce((a, b) => a + (b || 0), 0)
-    if (somaCopas > (st.seasonNo ?? 1)) st.careerCopaHonors = {}
+    if (somaCopas > (st.seasonNo ?? 1)) {
+      const rebuilt: Record<string, number> = {}
+      const conta = (keys: string[] | undefined, donoId: number) => {
+        const n = (keys ?? []).filter(k => k.endsWith(':copa')).length
+        if (n > 0) rebuilt['m' + donoId] = (rebuilt['m' + donoId] ?? 0) + n
+      }
+      conta(st.empresarioClaimKeys, st.managers?.[st.youIdx]?.id ?? 0)
+      if (st.multiClube) conta(st.multiClube.empresarioClaims, st.multiClube.id)
+      st.careerCopaHonors = rebuilt
+    }
   }
   // 🏢 saves antigos gravavam UM empréstimo (objeto); agora são LISTAS por divisão
   if (st.careerFilial) st.careerFilial = { ...st.careerFilial, loanOut: loanList(st.careerFilial.loanOut), loanIn: loanList(st.careerFilial.loanIn) }
@@ -3213,6 +3226,13 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerLedger = [] // 🧾 livro-caixa novo: extrato/transferências começam vazios
       s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência do Empresário começa vazia (renda das cartas ganhas nesta carreira)
       s.careerSponsor = undefined // 👕 patrocínio começa sem marca escolhida
+      // 🧹 FAXINA ANTI-HERANÇA (04/08, família do bug "Copa21 em 8 temporadas"):
+      // TUDO que é por-carreira zera aqui — senão vaza do save anterior.
+      s.cpuSquads = undefined // fichas dos times de fundo: re-semeia do zero (antes REUSAVA os elencos da carreira velha!)
+      s.copaDoneSeason = undefined // senão a Copa da temporada de mesmo nº era PULADA na carreira nova
+      s.varzea = false // modo várzea do rápido não pode pintar o campo da carreira
+      s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined // 🌱 crias/janela zerados
+      s.agenciaDividir = false // toggle da agência volta ao padrão (1º clube)
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
       // vazando de uma carreira anterior (bug reportado: o estádio vinha completo).
       s.stadiums = {}; s.careerFilial = undefined
@@ -3389,6 +3409,9 @@ export function reducer(state: EscState, action: Action): EscState {
         s.careerCoins = cc
         // 🧾 livro-caixa online por técnico: zera e registra o saldo inicial de cada um
         s.careerLedgers = {}; s.careerEmpresario = {}; s.careerEmpresarioClaims = {}
+        // 🧹 FAXINA ANTI-HERANÇA (04/08): mesmos campos do START solo
+        s.cpuSquads = undefined; s.copaDoneSeason = undefined
+        s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
         for (const m of s.managers) if (m.isHuman) logFin(s, 'opening', '🏁 Saldo inicial', 100, undefined, m.id)
       }
       s.seasonNo = 1
