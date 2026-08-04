@@ -1560,3 +1560,21 @@ cura reconstrói 2 copas reais e limpa 32 fantasmas) 🟢 · criatest 🟢.
 todas "XI quebrado/bot com 10 jogadores" em bots de VÁRZEA, efeito do handicap
 novo (A:2 B:4 C:5 D:3 V:4) aplicado hoje. Decidir: IA repõe elenco dos bots de
 fundo OU atualizar a invariante da auditoria. NÃO mexido sem o Diego.
+
+## 📉 CORTES DEFINITIVOS rodada 3 (04/08, escolhas do Diego item a item)
+1️⃣2️⃣ RANKING DIÁRIO: esc_ranking_cache (tabela + esc_ranking_cache_refresh +
+pg_cron 'ranking-diario' 06:00 UTC, 4 modos) — a home lê a foto pronta;
+fallback pro RPC ao vivo se a foto faltar. reconcileCardsToTitles roda 1×/dia
+por aparelho (localStorage esc-reconcile-dia). Aviso sutil na tela: "🕐 O
+ranking e as cartas atualizam 1× por dia".
+3️⃣ BOLÃO APOSENTADO (Diego: "não tô usando"): REVOKE anon/authenticated em
+boloes/participantes/palpites/placares_tempo_normal (dados preservados;
+reverter = GRANT). + 🔒 game_rooms_cleanup_log estava SEM RLS (alerta crítico
+do advisor) → RLS ligado sem política (só servidor acessa; cron intacto).
+6️⃣ esc_admin_dashboard: bloco 'daily' virou UMA passada agrupada (era 4
+varreduras × dia) + índices created_at em game_plays/site_visits. Saída igual.
+4️⃣5️⃣ NÃO feitos (Diego não entendeu ainda): amostragem de visitas e batimento
+ao-vivo — re-explicados no chat, aguardando decisão.
+⚠️ Tabelas de um app morto de VISTORIA DE VEÍCULOS (vehicles, inspections,
+escrow_records etc., todas 0 linhas) seguem no projeto — perguntar ao Diego se
+aposenta igual ao bolão.

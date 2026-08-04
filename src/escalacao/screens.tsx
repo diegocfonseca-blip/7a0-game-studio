@@ -5409,9 +5409,26 @@ export function EscRanking() {
     setRows(null); setDown(false)
     ;(async () => {
       try {
-        await reconcileCardsToTitles() // acerta cartas↔títulos antes de somar
-        const { data } = await supabase.rpc('esc_ranking', { p_mode: mode === 'carreira' && carSub === 'total' ? 'carreiratotal' : mode })
-        if (alive) setRows(((data ?? []) as RankRow[]))
+        // 🧾 acerto cartas↔títulos: 1× POR DIA por aparelho (rodava a cada abertura
+        // — decisão do Diego 04/08, junto com o ranking diário)
+        try {
+          const hoje = new Date().toISOString().slice(0, 10)
+          if (localStorage.getItem('esc-reconcile-dia') !== hoje) {
+            await reconcileCardsToTitles()
+            localStorage.setItem('esc-reconcile-dia', hoje)
+          }
+        } catch { /* localStorage bloqueado — segue sem o acerto */ }
+        const pmode = mode === 'carreira' && carSub === 'total' ? 'carreiratotal' : mode
+        // 🕐 RANKING DIÁRIO: lê a foto pronta (esc_ranking_cache, servidor atualiza
+        // 1×/dia) — a conta pesada não roda mais pra cada visitante. Sem foto
+        // (cache recém-limpo), cai no cálculo ao vivo como antes.
+        const { data: cached } = await supabase.from('esc_ranking_cache').select('rows').eq('p_mode', pmode).maybeSingle()
+        let list = (cached?.rows ?? null) as RankRow[] | null
+        if (!list) {
+          const { data } = await supabase.rpc('esc_ranking', { p_mode: pmode })
+          list = (data ?? []) as RankRow[]
+        }
+        if (alive) setRows(list)
       } catch {
         // backend fora: não deixa preso em "Carregando…"
         if (alive) { setDown(true); setRows([]) }
@@ -5447,6 +5464,8 @@ export function EscRanking() {
       <div className="text-center pt-4">
         <h2 className="font-black text-4xl" style={OSWALD}>🏆 RANKING</h2>
         <p className="font-semibold text-black/60 mt-1">Só técnicos com cadastro. Ranking por títulos. 🏆</p>
+        {/* 🕐 aviso sutil do ranking diário (decisão do Diego 04/08) */}
+        <p className="text-[10.5px] font-bold text-black/40 mt-0.5">🕐 O ranking e as cartas atualizam 1× por dia</p>
       </div>
 
       {/* filtro: Carreira (em breve) / Rápido online / Rápido offline */}
