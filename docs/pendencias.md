@@ -1578,3 +1578,35 @@ ao-vivo — re-explicados no chat, aguardando decisão.
 ⚠️ Tabelas de um app morto de VISTORIA DE VEÍCULOS (vehicles, inspections,
 escrow_records etc., todas 0 linhas) seguem no projeto — perguntar ao Diego se
 aposenta igual ao bolão.
+
+## 🔬 SIMULAÇÃO 200 TEMPORADAS ×2 + varredura (04/08, pedido do Diego — SÓ RELATÓRIO, nada consertado)
+Harness: scratchpad/simulacao200.mjs (motor real, 200 temporadas; run A jogador
+"passivo" nunca vende/solta; run B "ativo" vende 1 sobra/temporada e solta todo
+vencido). Resultados completos em sim200.log / sim200b.log.
+✅ PASSOU NAS 400 TEMPORADAS: golpe "comprou 15+→saiu por ≤2" = 0 casos (o caso
+"Ronaldo de graça" NÃO reproduz — travas de 03-04/08 seguram); monte de graça
+de carta valiosa = 0; XI do humano nunca furou (cria SEMPRE tapa); contrato
+vencido sobrando pós-cerimônia = 0; duplicatas = 0; NaN = 0; Copa Legends
+exatamente 1/temporada (contador são); rivais renovam com inteligência (~95%
+dos bons/craques; ZERO lenda solta tendo caixa); rivais listam sobras; preços
+mantêm hierarquia por era (craque máx 105 e bom máx 94 em eras ricas — dentro
+dos tetos×economia; sem inversão na mesma era).
+🚨 ACHADOS REAIS (decisões pro Diego):
+1. ESPIRAL DE DÍVIDA SEM RESGATE: jogador passivo (só auto-renova) afunda no
+   vermelho PRA SEMPRE (-2.282 na T200, transfer ban eterno, 193 temporadas de
+   auto-renew). O jogo nunca quebra, mas também nunca oferece saída da dívida.
+2. HANDICAP NOVO É SECO: passivo ficou 200 temporadas preso em D↔C (13 títulos);
+   soltador afundou na Várzea com 0 título. Estratégias burras, mas mede o peso.
+3. Bots de FUNDO da várzea com XI furado/10 jogadores (auditoria: 153 avisos)
+   — efeito do handicap V:4; decidir se IA repõe ou se é "temático".
+4. Carta da COPA DO MUNDO (chave copamundo:) NÃO conta no ranking Carreira da
+   home (que só soma chaves co:) — decidir se deveria.
+5. Prêmio da Copa do Mundo (+100) só existe pro clube ATIVO (dormindo nunca
+   concorre) — coerente?, decidir.
+📋 ESTÁTICO OK: Copa do Mundo âncora T100 + de 10 em 10 + played[] trava
+rejogar; venda nunca quebra XI (inclusive com emprestado); SAF byClub/trim/
+revert ligados nos 2 caminhos de virada (segue pendente: teste em save real);
+multiclube contratos ✓ (dormtest); heranças entre carreiras zeradas hoje.
+⚠️ LIMITES DA SIMULAÇÃO: harness não clica telas/botões (testa o MOTOR);
+"deadlock" do run B (dinheiro parado) é em parte artefato do lance burro do
+robô — re-testar com estratégia esperta antes de concluir.
