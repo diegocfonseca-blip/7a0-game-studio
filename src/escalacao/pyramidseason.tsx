@@ -3653,7 +3653,7 @@ export function ReserveListScreen() {
                       <div style={{ display: 'flex', flexDirection: empilha ? 'column' : 'row', gap: 6 }}>
                         <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos: 10 })} disabled={solto} style={btn(GOLD, INK, solto)}>Renovar 10 anos{empilha ? ' · ' : <br />}{c10} 🪙 (-10%){saldo < c10 ? ' 💳' : ''}</button>
                         <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos: 5 })} disabled={solto} style={btn('#EAF6EE', INK, solto)}>Renovar 5 anos{empilha ? ' · ' : <br />}{c5} 🪙{saldo < c5 ? ' 💳' : ''}</button>
-                        <button onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={btn(solto ? '#C2452F' : '#FDECEA', solto ? '#fff' : '#a23325', false)}>{solto ? '🌱 vai embora\u2028(desfazer)' : '😢 Deixar ir'}{empilha ? ' · ' : <br />}{solto ? 'cria assume se faltar' : 'de graça'}</button>
+                        <button onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={btn(solto ? '#C2452F' : '#FDECEA', solto ? '#fff' : '#a23325', false)}>{solto ? '🌱 vai embora\u2028(desfazer)' : '😢 Deixar ir'}{empilha ? ' · ' : <br />}{solto ? 'cria assume se faltar' : 'vai pro leilão'}</button>
                       </div>
                     </div>
                   )
