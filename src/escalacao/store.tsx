@@ -4412,7 +4412,23 @@ export function reducer(state: EscState, action: Action): EscState {
         const ctrRng = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 65537) ^ 0x5EED) >>> 0)
         const released = new Set(s.contratoRelease ?? [])
         for (const m of s.managers) {
-          if (!m.isHuman || m.dormindo) continue
+          if (!m.isHuman) continue
+          // 🏛️ MULTICLUBES: o clube DORMINDO é vivo e independente (regra do Diego
+          // 04/08) — mas ninguém decide por ele na janela. Então TODO contrato
+          // vencido dele renova AUTOMÁTICO por 5 anos pela metade, pagando da
+          // caixa DELE (pode negativar — valor real no extrato guardado). Dormir
+          // NUNCA perde jogador nem manda ninguém pro leilão.
+          if (m.dormindo) {
+            const expDorm = (m.squad as WonCard[]).filter(c => !c.fake && !c.cria && !c.emprestado && c.contratoAte != null && c.contratoAte < s.seasonNo)
+            for (const c of expDorm) {
+              const custo = Math.max(1, Math.ceil(valorOficial(s, c) / 2))
+              s.careerCoins = { ...(s.careerCoins ?? {}), [m.id]: (s.careerCoins?.[m.id] ?? 0) - custo }
+              c.contratoAte = s.seasonNo + contratoDur(5, ctrRng) - 1
+              ;(s.marketLog = s.marketLog ?? []).push(`📝 ${m.teamName} (dormindo 💤): ${c.name} renovou automático por ${custo} 🪙 (5 anos)`)
+              logFin(s, 'buy', `📝 Renovação automática (clube dormindo): ${c.name}`, -custo, { player: c.name, pos: c.pos }, m.id)
+            }
+            continue
+          }
           const expirados = (m.squad as WonCard[]).filter(c => !c.fake && !c.cria && c.contratoAte != null && c.contratoAte < s.seasonNo)
           const removidosPorPos: Record<string, number> = {}
           for (const c of expirados) {

@@ -1413,3 +1413,19 @@ ranking); openAlbum busca season_key e guarda SEM dedup (dedup por visão);
 chips só aparecem quando a linha tocada é uma carreira (sub-aba Por carreira);
 no Total da conta e nos rápidos o álbum fica igual era. Sub-abas do ranking
 MANTIDAS (Diego confirmou) e conserto do nome (maior carreira) mantido.
+
+## 🏛️ MULTICLUBES × CONTRATOS: dormindo renova sozinho (04/08, decisão do Diego)
+Diego: "dormindo não quer dizer que não faz as coisas — conta prêmios, títulos,
+cartas, gasta salários... e renovação também". Conferido no código, TUDO já
+rodava pro dormindo: prêmios por colocação (seasonRewards t.human), bilheteria
+(applyStadiumIncome), folha T4+ (chargeSalaries), patrocínio e agência/empresário
+(blocos dorm explícitos), títulos (honors por teamKey), cartas de campeão
+(multiClubePendingCards, abre ao assumir), extrato no stash (logFin roteia).
+FALTAVA só contrato: o bloco de vencidos PULAVA o dormindo (if m.dormindo
+continue). Agora: vencido de clube dormindo renova AUTOMÁTICO 5 anos pela
+metade, pagando da caixa DELE (pode negativar, valor real no extrato guardado
++ linha no resumo do mercado "💤"). Dormir NUNCA perde jogador nem manda
+ninguém pro leilão (ninguém decide por ele — auto-renova tudo). Cerimônia já
+dava contrato 5-10 ao elenco dele (isHuman). Teste novo: scratchpad/dormtest.mjs
+(🟢 verde: contrato na cerimônia, renovação, caixa×extrato EXATO, nada vaza
+pro leilão). criatest/malandragem seguem verdes.
