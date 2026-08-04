@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, EXTRA_D_TEAMS, oldChain } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, catalogTodos } from './store'
+import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, catalogTodos, agenciaEstadio } from './store'
 import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS } from './estadiodata'
 import type { EmpCat, StadiumSave } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -770,7 +770,7 @@ const agChip = (c: { fame?: number; promessa?: boolean }) =>
     : (c.fame ?? 1) >= 2 ? { t: '🎯 BOM', bg: '#2E9E5B', ink: '#fff' }
     : { t: '🪵 FOI PROF.', bg: '#CBBF9E', ink: INK }
 
-function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube, onSet, clubes, destinoId, onSetDestino }: {
+function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube, onSet, clubes, destinoId, dividir, onSetDestino }: {
   cards: AgCard[]; pool: AgCard[]; hist: Record<string, number> | undefined
   fatura: { season: number; mensal: number; rows: AgEvento[]; total: number } | undefined
   st: StadiumSave | undefined; hasFilial: boolean; primeiroClube: string
@@ -778,7 +778,8 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
   // 🏛️ MULTICLUBES (Diego 04/08): com 2 clubes, toggle de destino da renda
   clubes?: { id: number; nome: string; dorme: boolean }[]
   destinoId?: number
-  onSetDestino?: (id: number) => void
+  dividir?: boolean
+  onSetDestino?: (id: number, dividir?: boolean) => void
 }) {
   const [open, setOpen] = useState<AgCard | null>(null)
   const [convocando, setConvocando] = useState(false)
@@ -791,7 +792,7 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
         <span style={{ fontSize: 26 }}>🕴️</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>Sua Agência</div>
-          <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>Convoque até 22 cartas de título DESTA carreira pra "ativa" — só elas rendem. A grana cai no <b>{primeiroClube}</b>{clubes && clubes.length === 2 ? '' : ' (1º clube)'}.</div>
+          <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>Convoque até 22 cartas de título DESTA carreira pra "ativa" — só elas rendem. {dividir ? <>A grana cai <b>meio a meio nos dois clubes</b>.</> : <>A grana cai no <b>{primeiroClube}</b>{clubes && clubes.length === 2 ? '' : ' (1º clube)'}.</>}</div>
         </div>
         <div style={{ background: GOLD, border: '2px solid rgba(255,255,255,.25)', borderRadius: 10, padding: '4px 10px', textAlign: 'center', color: INK }}>
           <b style={{ display: 'block', ...OSWALD, fontSize: 16, lineHeight: 1 }}>{cards.length}/22</b>
@@ -805,13 +806,18 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
         <div style={{ ...box('#fff'), padding: '9px 11px', marginBottom: 10 }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, margin: '0 0 6px', textTransform: 'uppercase' as const }}>💰 A renda da agência cai no caixa de:</p>
           <div style={{ display: 'flex', gap: 6 }}>
-            {clubes.map(c => (
-              <button key={c.id} onClick={() => onSetDestino(c.id)} style={{ flex: 1, minWidth: 0, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '7px 4px', fontWeight: 900, fontSize: 10.5, ...OSWALD, textTransform: 'uppercase' as const, background: destinoId === c.id ? GOLD : '#fff', color: INK, boxShadow: destinoId === c.id ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {c.dorme ? '💤' : '🟡'} {c.nome}{destinoId === c.id ? ' ✓' : ''}
+            {[
+              ...clubes.map(c => ({ key: `c${c.id}`, label: `${c.dorme ? '💤' : '🟡'} ${c.nome}`, on: !dividir && destinoId === c.id, click: () => onSetDestino(c.id) })),
+              { key: 'div', label: '🤝 Dividir os dois', on: !!dividir, click: () => onSetDestino(destinoId ?? clubes[0].id, true) },
+            ].map(b => (
+              <button key={b.key} onClick={b.click} style={{ flex: 1, minWidth: 0, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '7px 4px', fontWeight: 900, fontSize: 10, ...OSWALD, textTransform: 'uppercase' as const, background: b.on ? GOLD : '#fff', color: INK, boxShadow: b.on ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {b.label}{b.on ? ' ✓' : ''}
               </button>
             ))}
           </div>
-          <p style={{ fontSize: 9, fontWeight: 700, color: '#8a8069', margin: '5px 0 0', lineHeight: 1.35 }}>Mensalidades e comissões vão INTEIRAS pro clube marcado (os destraves passam a olhar o estádio dele). Troque quando quiser.</p>
+          <p style={{ fontSize: 9, fontWeight: 700, color: '#8a8069', margin: '5px 0 0', lineHeight: 1.35 }}>{dividir
+            ? <>🤝 <b>Meio a meio</b>: mensalidades e comissões dividem entre os dois (moeda ímpar fica com o clube no comando). Os destraves usam o <b>estádio que rende mais</b> dos dois.</>
+            : <>Mensalidades e comissões vão INTEIRAS pro clube marcado (os destraves passam a olhar o estádio dele). Troque quando quiser.</>}</p>
         </div>
       )}
 
@@ -3245,7 +3251,7 @@ export function PyramidSeasonScreen() {
             {/* 🏗️ ESTRUTURA (Agência 2.0): patrocínio DEPOIS do estádio, e a escada
                 da agência fecha a página (caixa escura — não confunde com a obra) */}
             {agenciaOk && me && <SponsorCard div={me.div} chosen={state.onlineMode === 'online' ? state.careerSponsors?.[youId] : state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id, mgrId: youId })} />}
-            {agenciaOk && <AgenciaDesbloqueios st={state.stadiums?.[state.agenciaClubeId ?? youId]} hasFilial={!!state.careerFilial}
+            {agenciaOk && <AgenciaDesbloqueios st={agenciaEstadio(state)} hasFilial={!!state.careerFilial}
               onVerAgenciados={() => { setTab('elenco'); setElencoSub('agencia') }} />}
             {/* 🏛️ MULTICLUBES · SELETOR LIVRE (Opção B): troca de clube a qualquer hora,
                 fora do leilão (outra tela) e de jogo/Copa rolando. Só testers, só solo. */}
@@ -3358,14 +3364,14 @@ export function PyramidSeasonScreen() {
                   return out.sort((a, b) => (b.fame - a.fame) || a.name.localeCompare(b.name))
                 })()}
                 hist={state.agenciaHist} fatura={state.agenciaFatura}
-                st={state.stadiums?.[state.agenciaClubeId ?? youId]} hasFilial={!!state.careerFilial}
+                st={agenciaEstadio(state)} hasFilial={!!state.careerFilial}
                 primeiroClube={state.managers.find(m => m.id === (state.agenciaClubeId ?? youId))?.teamName ?? 'seu 1º clube'}
                 clubes={state.multiClube ? [
                   { id: youId, nome: state.managers[state.youIdx]?.teamName ?? '', dorme: false },
                   { id: state.multiClube.id, nome: state.multiClube.team, dorme: true },
                 ] : undefined}
-                destinoId={state.agenciaClubeId ?? youId}
-                onSetDestino={id => dispatch({ type: 'SET_AGENCIA_CLUBE', mgrId: id })}
+                destinoId={state.agenciaClubeId ?? youId} dividir={!!state.agenciaDividir}
+                onSetDestino={(id, dividir) => dispatch({ type: 'SET_AGENCIA_CLUBE', mgrId: id, dividir })}
                 onSet={cards => dispatch({ type: 'SET_AGENCIA', cards })} />
             ) : (
             <>

@@ -202,7 +202,9 @@ function agenciaTransacao(s: EscState, card: { name: string; club?: string; year
   const ag = (s.agenciados ?? []).find(a => a.name === card.name)
   if (!ag) return
   const active = s.managers[s.youIdx]?.id
-  const dest = s.agenciaClubeId ?? active ?? 0
+  // 🤝 no modo DIVIDIR, a comissão de negociação (1 🪙) não tem como rachar:
+  // fica com o clube NO COMANDO (mesma regra da moeda ímpar da virada)
+  const dest = (s.agenciaDividir && s.multiClube) ? (active ?? 0) : (s.agenciaClubeId ?? active ?? 0)
   if (dest === active) { const m = s.managers[s.youIdx]; if (m) m.money += 1 }
   else s.careerCoins = { ...(s.careerCoins ?? {}), [dest]: (s.careerCoins?.[dest] ?? 0) + 1 }
   logFin(s, 'empresario', `🕴️ Comissão de agente: ${card.name} negociado`, 1, { player: card.name }, dest)
@@ -212,6 +214,19 @@ function agenciaTransacao(s: EscState, card: { name: string; club?: string; year
   fat.rows.push({ emoji: '💸', texto: `${card.name} foi negociado no leilão`, coins: 1, nome: ag.name })
   fat.total += 1
   s.agenciaHist = { ...(s.agenciaHist ?? {}), [agKey(ag)]: (s.agenciaHist?.[agKey(ag)] ?? 0) + 1 }
+}
+// 🕴️ qual estádio a agência usa pros destraves/renda: o do clube escolhido no
+// toggle — e no modo 🤝 DIVIDIR, o que RENDE MAIS dos dois (você construiu, vale).
+export function agenciaEstadio(s: EscState): NonNullable<EscState['stadiums']>[number] | undefined {
+  const y = s.managers[s.youIdx]?.id ?? 0
+  const dorm = s.multiClube?.id
+  if (s.agenciaDividir && dorm != null) {
+    const a = s.stadiums?.[y], b = s.stadiums?.[dorm]
+    const ra = agenciaRenda(s.agenciados ?? [], a, !!s.careerFilial).total
+    const rb = agenciaRenda(s.agenciados ?? [], b, !!s.careerFilial).total
+    return rb > ra ? b : a
+  }
+  return s.stadiums?.[s.agenciaClubeId ?? y]
 }
 // 🪜 ESCADA · marco da carreira: subiu da divisão de estreia (Várzea) → virou
 // profissional (persiste mesmo caindo depois); chamado logo após aplicar as
@@ -290,8 +305,20 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
     const cofreA = new Set([...(s.empresarioCards ?? []), ...(s.multiClube?.empresario ?? [])].map(c => `${c.name}|${c.club}|${c.year}`))
     if ((s.agenciados ?? []).some(a => !cofreA.has(`${a.name}|${a.club}|${a.year}`))) s.agenciados = (s.agenciados ?? []).filter(a => cofreA.has(`${a.name}|${a.club}|${a.year}`))
     const dest = s.agenciaClubeId ?? y
-    const renda = agenciaRenda(s.agenciados, s.stadiums?.[dest], !!s.careerFilial)
-    if (renda.total > 0) s.careerCoins = { ...s.careerCoins, [dest]: (s.careerCoins[dest] ?? 0) + renda.total }
+    // 🤝 DIVIDIR (toggle, Diego 04/08): renda meio a meio entre os 2 clubes —
+    // moeda ímpar fica com o clube NO COMANDO. A agência usa o estádio que
+    // rende mais dos dois (agenciaEstadio). Cada metade cai no extrato certo
+    // sozinha (as linhas da virada são calculadas por variação de caixa por id).
+    const dividir = !!s.agenciaDividir && dorm != null
+    const paga = (valor: number) => {
+      if (valor <= 0) return
+      if (dividir && dorm != null) {
+        const meuLado = Math.ceil(valor / 2)
+        s.careerCoins = { ...(s.careerCoins ?? {}), [y]: (s.careerCoins?.[y] ?? 0) + meuLado, [dorm]: (s.careerCoins?.[dorm] ?? 0) + (valor - meuLado) }
+      } else s.careerCoins = { ...(s.careerCoins ?? {}), [dest]: (s.careerCoins?.[dest] ?? 0) + valor }
+    }
+    const renda = agenciaRenda(s.agenciados, dividir ? agenciaEstadio(s) : s.stadiums?.[dest], !!s.careerFilial)
+    paga(renda.total)
     // histórico por carta ("já te rendeu X"): mensalidade de quem rendeu de fato
     if (renda.total > 0) {
       const hist = { ...(s.agenciaHist ?? {}) }
@@ -307,7 +334,7 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
     const evs = (s.agenciaEventos && s.agenciaEventos.season === (s.seasonNo ?? 1)) ? s.agenciaEventos.rows : []
     const com = evs.reduce((n, e) => n + e.coins, 0)
     if (com > 0) {
-      s.careerCoins = { ...s.careerCoins, [dest]: (s.careerCoins[dest] ?? 0) + com }
+      paga(com) // 🤝 comissões também dividem (ou vão inteiras pro clube do toggle)
       const hist = { ...(s.agenciaHist ?? {}) }
       for (const e of evs) { const ag = (s.agenciados ?? []).find(a => a.name === e.nome); if (ag) hist[agKey(ag)] = (hist[agKey(ag)] ?? 0) + e.coins }
       s.agenciaHist = hist
@@ -2351,7 +2378,7 @@ type Action =
   | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
   | { type: 'BANCO_CREDIT'; coins: number; code: string } // 🏦 Banco Legends: ficha resgatada (RPC já validou/queimou no Supabase) — credita no caixa do clube ATIVO e registra no extrato. Só carreira solo
   | { type: 'SET_AGENCIA'; cards: AgCard[] } // 🕴️ AGÊNCIA 2.0: grava a convocação dos até 22 "na ativa" (escolhidos do álbum). Só carreira solo nova (agenciaOn)
-  | { type: 'SET_AGENCIA_CLUBE'; mgrId: number } // 🕴️×🏛️ com 2 clubes: escolhe pra qual caixa vai a renda da agência (toggle na tela dos Agenciados)
+  | { type: 'SET_AGENCIA_CLUBE'; mgrId: number; dividir?: boolean } // 🕴️×🏛️ com 2 clubes: escolhe pra qual caixa vai a renda da agência (ou dividir meio a meio) — toggle na tela dos Agenciados
   | { type: 'AGENCIA_SEASON_EVENTS'; season: number; rows: AgEvento[] } // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro/campeão dos agenciados) — computados na tela quando a Copa termina; pagos na virada. Idempotente por temporada
   | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos 60 times de fundo (1x)
   | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
@@ -4158,11 +4185,14 @@ export function reducer(state: EscState, action: Action): EscState {
       // Só solo, e só pra um clube SEU (ativo ou dormindo). Os destraves passam
       // a olhar o estádio do clube escolhido (mesma regra de sempre).
       if (s.onlineMode === 'online' || !s.careerOnline) return s
+      // 🤝 dividir: metade pra cada clube (só existe com 2 clubes)
+      if (action.dividir) { if (!s.multiClube) return s; s.agenciaDividir = true; return s }
       const alvo = s.managers.find(m => m.id === action.mgrId)
       if (!alvo?.isHuman) return s
       const ativo = s.managers[s.youIdx]?.id
       if (alvo.id !== ativo && alvo.id !== s.multiClube?.id) return s
       s.agenciaClubeId = alvo.id
+      s.agenciaDividir = false
       return s
     }
     case 'SET_AGENCIA': {

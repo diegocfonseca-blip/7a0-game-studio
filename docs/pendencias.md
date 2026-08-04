@@ -1467,3 +1467,11 @@ clubes aparece "A renda da agência cai no caixa de: [🟡 A] [💤 B]" — rend
 INTEIRA (mensalidades+comissões) pro marcado, destraves olham o estádio dele,
 troca quando quiser (SET_AGENCIA_CLUBE, só solo, só clube seu). Sem 2º clube,
 tela idêntica. dormtest/criatest 🟢.
+↳ 🤝 OPÇÃO "DIVIDIR OS DOIS" no toggle da agência (04/08, pedido do Diego):
+terceiro botão na tela dos Agenciados — mensalidades E comissões da virada
+racham meio a meio entre os 2 clubes (moeda ímpar fica com o clube NO COMANDO;
+comissão de negociação de 1 🪙 idem). No dividir, os destraves usam o estádio
+QUE RENDE MAIS dos dois (agenciaEstadio). Extrato de cada clube mostra a sua
+metade sozinho (linhas por variação de caixa por id). Estado agenciaDividir +
+SET_AGENCIA_CLUBE{dividir}. Esclarecido com o Diego: "cartas é única" = cofre
+de cartas da agência (um só da conta); estádio segue um por clube.
