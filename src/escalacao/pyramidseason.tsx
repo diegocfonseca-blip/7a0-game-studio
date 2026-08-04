@@ -770,11 +770,15 @@ const agChip = (c: { fame?: number; promessa?: boolean }) =>
     : (c.fame ?? 1) >= 2 ? { t: '🎯 BOM', bg: '#2E9E5B', ink: '#fff' }
     : { t: '🪵 FOI PROF.', bg: '#CBBF9E', ink: INK }
 
-function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube, onSet }: {
+function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube, onSet, clubes, destinoId, onSetDestino }: {
   cards: AgCard[]; pool: AgCard[]; hist: Record<string, number> | undefined
   fatura: { season: number; mensal: number; rows: AgEvento[]; total: number } | undefined
   st: StadiumSave | undefined; hasFilial: boolean; primeiroClube: string
   onSet: (cards: AgCard[]) => void
+  // 🏛️ MULTICLUBES (Diego 04/08): com 2 clubes, toggle de destino da renda
+  clubes?: { id: number; nome: string; dorme: boolean }[]
+  destinoId?: number
+  onSetDestino?: (id: number) => void
 }) {
   const [open, setOpen] = useState<AgCard | null>(null)
   const [convocando, setConvocando] = useState(false)
@@ -787,13 +791,29 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
         <span style={{ fontSize: 26 }}>🕴️</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>Sua Agência</div>
-          <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>Convoque até 22 cartas de título DESTA carreira pra "ativa" — só elas rendem. A grana cai no <b>{primeiroClube}</b> (1º clube).</div>
+          <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>Convoque até 22 cartas de título DESTA carreira pra "ativa" — só elas rendem. A grana cai no <b>{primeiroClube}</b>{clubes && clubes.length === 2 ? '' : ' (1º clube)'}.</div>
         </div>
         <div style={{ background: GOLD, border: '2px solid rgba(255,255,255,.25)', borderRadius: 10, padding: '4px 10px', textAlign: 'center', color: INK }}>
           <b style={{ display: 'block', ...OSWALD, fontSize: 16, lineHeight: 1 }}>{cards.length}/22</b>
           <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1 }}>NA ATIVA</span>
         </div>
       </div>
+
+      {/* 🏛️ MULTICLUBES: escolhe pra qual dos SEUS clubes vai a renda da agência
+          (inteira — mensalidades + comissões; nada de dividir). Só com 2 clubes. */}
+      {clubes && clubes.length === 2 && onSetDestino && (
+        <div style={{ ...box('#fff'), padding: '9px 11px', marginBottom: 10 }}>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, margin: '0 0 6px', textTransform: 'uppercase' as const }}>💰 A renda da agência cai no caixa de:</p>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {clubes.map(c => (
+              <button key={c.id} onClick={() => onSetDestino(c.id)} style={{ flex: 1, minWidth: 0, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '7px 4px', fontWeight: 900, fontSize: 10.5, ...OSWALD, textTransform: 'uppercase' as const, background: destinoId === c.id ? GOLD : '#fff', color: INK, boxShadow: destinoId === c.id ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {c.dorme ? '💤' : '🟡'} {c.nome}{destinoId === c.id ? ' ✓' : ''}
+              </button>
+            ))}
+          </div>
+          <p style={{ fontSize: 9, fontWeight: 700, color: '#8a8069', margin: '5px 0 0', lineHeight: 1.35 }}>Mensalidades e comissões vão INTEIRAS pro clube marcado (os destraves passam a olhar o estádio dele). Troque quando quiser.</p>
+        </div>
+      )}
 
       {/* RENDA GARANTIDA por temporada */}
       <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '11px 13px', marginBottom: 10 }}>
@@ -3340,6 +3360,12 @@ export function PyramidSeasonScreen() {
                 hist={state.agenciaHist} fatura={state.agenciaFatura}
                 st={state.stadiums?.[state.agenciaClubeId ?? youId]} hasFilial={!!state.careerFilial}
                 primeiroClube={state.managers.find(m => m.id === (state.agenciaClubeId ?? youId))?.teamName ?? 'seu 1º clube'}
+                clubes={state.multiClube ? [
+                  { id: youId, nome: state.managers[state.youIdx]?.teamName ?? '', dorme: false },
+                  { id: state.multiClube.id, nome: state.multiClube.team, dorme: true },
+                ] : undefined}
+                destinoId={state.agenciaClubeId ?? youId}
+                onSetDestino={id => dispatch({ type: 'SET_AGENCIA_CLUBE', mgrId: id })}
                 onSet={cards => dispatch({ type: 'SET_AGENCIA', cards })} />
             ) : (
             <>

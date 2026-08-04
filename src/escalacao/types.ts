@@ -367,7 +367,7 @@ export interface EscState {
   // folclórico) e pagam comissão por acontecimento (artilheiro/campeão/transação).
   // A renda cai SEMPRE no caixa do 1º clube (decisão do Diego), mesmo dormindo.
   agenciaOn?: boolean // ligada SÓ em carreira solo NOVA (save antigo segue com o empresário clássico)
-  agenciaClubeId?: number // id do 1º clube (o da fundação da carreira) — destino fixo da renda
+  agenciaClubeId?: number // clube que recebe a renda da agência (nasce = 1º clube; com 2º clube o dono troca no toggle)
   agenciados?: AgCard[] // os até 22 convocados "na ativa" (escolhidos do álbum)
   agenciaEventos?: { season: number; rows: AgEvento[]; eventosDone?: boolean } // eventos PENDENTES da temporada (artilheiro/campeão) — pagos na virada
   agenciaFatura?: { season: number; mensal: number; rows: AgEvento[]; total: number } // fatura JÁ PAGA (mensalidades + comissões) — vira o quadro da Cerimônia/aba

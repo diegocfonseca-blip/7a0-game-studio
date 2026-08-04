@@ -1432,7 +1432,10 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
   const key = mgr ? `m${mgr.id}` : f.team
   const delta = clubRewards[key] ?? 0
   const cut = Math.round(delta * 0.5)
-  const you = s.managers.find(m => m.isHuman)
+  // 🏛️ MULTICLUBES: a comissão vai pro clube ATIVO (a SAF anda grudada nele) —
+  // antes era "o primeiro humano da lista", que podia ser o clube DORMINDO
+  // (dinheiro num clube, extrato no outro). Extrato agora leva o id certo.
+  const you = s.managers[s.youIdx] ?? s.managers.find(m => m.isHuman && !m.dormindo)
   if (!you) return
   const before = s.careerCoins?.[you.id] ?? 0
   const after = before + cut // 50% de título/acesso rende; 50% da queda desconta (pode negativar) — pra o extrato bater
@@ -1443,7 +1446,7 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
   // 🧾 registra no extrato pela VARIAÇÃO REAL da caixa (título/acesso da SAF rende;
   // queda dela desconta) — SEMPRE (mesmo 0), pra o resumo de fim de temporada ficar
   // completo assim que a temporada acaba.
-  logFin(s, 'saf', '🏢 Prêmios da SAF', after - before, undefined, undefined, true)
+  logFin(s, 'saf', '🏢 Prêmios da SAF', after - before, undefined, you.id, true)
 }
 
 // 🏢 VALOR DE VENDA DA SAF (carreira solo): a SAF valoriza conforme você a
@@ -2348,6 +2351,7 @@ type Action =
   | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
   | { type: 'BANCO_CREDIT'; coins: number; code: string } // 🏦 Banco Legends: ficha resgatada (RPC já validou/queimou no Supabase) — credita no caixa do clube ATIVO e registra no extrato. Só carreira solo
   | { type: 'SET_AGENCIA'; cards: AgCard[] } // 🕴️ AGÊNCIA 2.0: grava a convocação dos até 22 "na ativa" (escolhidos do álbum). Só carreira solo nova (agenciaOn)
+  | { type: 'SET_AGENCIA_CLUBE'; mgrId: number } // 🕴️×🏛️ com 2 clubes: escolhe pra qual caixa vai a renda da agência (toggle na tela dos Agenciados)
   | { type: 'AGENCIA_SEASON_EVENTS'; season: number; rows: AgEvento[] } // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro/campeão dos agenciados) — computados na tela quando a Copa termina; pagos na virada. Idempotente por temporada
   | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos 60 times de fundo (1x)
   | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
@@ -3153,7 +3157,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // RIVAIS coloridos no display — são CPU, mas aparecem como rivais de verdade.
       for (let i = 0; i < rivalCount; i++) { const m = managers[1 + i]; if (m && !m.isHuman) m.rival = true }
       s.managers = managers
-      s.agenciaClubeId = managers[0]?.id ?? 0 // 🕴️ o 1º clube (fundação) — destino fixo da renda da agência, NUNCA muda (nem com 2º clube)
+      s.agenciaClubeId = managers[0]?.id ?? 0 // 🕴️ nasce apontando pro 1º clube (fundação); com 2º clube o dono pode trocar no toggle (SET_AGENCIA_CLUBE)
       // colocação inicial: você e os rivais na Série D; A/B/C com os times fixos.
       // 🌱 ESCADA (Fase 2): a sala inteira nasce na VÁRZEA (V) e a Série D vira
       // divisão de fundo (times fixos da D − rivais escolhidos + extras, até 20).
@@ -4146,6 +4150,19 @@ export function reducer(state: EscState, action: Action): EscState {
       const yb = s.managers[s.youIdx]?.id ?? 0
       s.careerCoins = { ...(s.careerCoins ?? {}), [yb]: (s.careerCoins?.[yb] ?? 0) + action.coins }
       logFin(s, 'banco', `🏦 Empréstimo do Banco Legends (ficha ${action.code})`, action.coins, undefined, yb)
+      return s
+    }
+    case 'SET_AGENCIA_CLUBE': {
+      // 🕴️×🏛️ (Diego 04/08): com 2 clubes, VOCÊ escolhe pra qual caixa vai a
+      // renda INTEIRA da agência (mensalidades + comissões) — nada de dividir.
+      // Só solo, e só pra um clube SEU (ativo ou dormindo). Os destraves passam
+      // a olhar o estádio do clube escolhido (mesma regra de sempre).
+      if (s.onlineMode === 'online' || !s.careerOnline) return s
+      const alvo = s.managers.find(m => m.id === action.mgrId)
+      if (!alvo?.isHuman) return s
+      const ativo = s.managers[s.youIdx]?.id
+      if (alvo.id !== ativo && alvo.id !== s.multiClube?.id) return s
+      s.agenciaClubeId = alvo.id
       return s
     }
     case 'SET_AGENCIA': {

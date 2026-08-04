@@ -1443,3 +1443,27 @@ creditava no money (nunca reconciliado) — agora credita direto na careerCoins
 dele. dormtest.mjs reescrito (🟢): solta 1 no banner → leilão com selo, monte
 bloqueado pros 2 clubes, não volta; 2 sem decisão → renovam automático; caixa
 × extrato guardado EXATO. criatest/malandragem verdes.
+
+## 🏛️ AUDITORIA DE INDEPENDÊNCIA dos 2 clubes + toggle da agência (04/08)
+Pedido do Diego: "nada passa de um clube pro outro, tudo independente". Varri
+TODAS as escritas de caixa (careerCoins/money/logFin) do store:
+✅ JÁ INDEPENDENTES: prêmios de liga/Copa/artilheiro (por teamId), bilheteria
+(estádio próprio), folha, patrocínio (divisão de cada um), obras do estádio
+(id + extrato casados), títulos/honras (teamKey), cartas de campeão (pacote
+guardado por clube), extrato (stash roteado), renovações (caixa do dono),
+Banco Legends (ativo), leilão (só o ativo joga; money re-semeado da caixa).
+🔧 VAZAMENTOS ACHADOS E CONSERTADOS (2):
+1. (entrega anterior) venda de jogador solto do DORMINDO caía no money nunca
+   reconciliado → evaporava. Agora: caixa oficial do dormindo + extrato.
+2. Comissão da SAF (50% da campanha) ia pro "PRIMEIRO humano da lista" — podia
+   cair no clube errado (até no dormindo) com extrato no outro. Agora: sempre
+   no clube ATIVO (a SAF anda grudada nele) e extrato com o id certo.
+🤝 COMPARTILHADO DE PROPÓSITO (decisões antigas mantidas): SAF única (bolo,
+byClub devolve certo) · álbum/cofre de cartas ÚNICO da conta (títulos dos 2
+clubes enchem o mesmo cofre — "as cartas é única", Diego).
+📝 NOTA: prêmio da Copa do Mundo de seleções (+100) só o clube ATIVO recebe.
+💰 TOGGLE DA AGÊNCIA (pedido de hoje): na tela Elenco › Agenciados, com 2
+clubes aparece "A renda da agência cai no caixa de: [🟡 A] [💤 B]" — renda
+INTEIRA (mensalidades+comissões) pro marcado, destraves olham o estádio dele,
+troca quando quiser (SET_AGENCIA_CLUBE, só solo, só clube seu). Sem 2º clube,
+tela idêntica. dormtest/criatest 🟢.
