@@ -1983,7 +1983,7 @@ export function EscStreamIntro() {
       {/* ← voltar: só no offline (rápido/carreira), volta pro setup certo pra
           reconfigurar. No online, sair é pelo próprio fluxo da sala. */}
       {!online && (
-        <button onClick={() => dispatch({ type: state.careerOnline ? 'GO_SETUP_CAREER' : 'GO_SETUP' })}
+        <button onClick={() => dispatch({ type: state.sport === 'basquete' ? 'GO_SETUP_NBA_CAREER' : state.careerOnline ? 'GO_SETUP_CAREER' : 'GO_SETUP' })}
           className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black bg-white active:translate-y-0.5" style={{ ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}` }}>
           ← Voltar
         </button>
@@ -3711,7 +3711,9 @@ export function EscSeason() {
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="font-black text-sm" style={OSWALD}>
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
-          {state.careerOnline && !state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 CARREIRA · SÉRIE D</span>}
+          {state.careerOnline && !state.careerDivision && (bbS
+            ? <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">{NBA_TIER_LABEL[state.nbaTier ?? 'street'][seasonLang === 'en' ? 'en' : 'pt']}</span>
+            : <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 CARREIRA · SÉRIE D</span>)}
           {state.careerTitlesA > 0 && <span className="mr-1.5"><CareerStars n={state.careerTitlesA} size={12} /></span>}
           {copaLive && qc ? `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA'} · ${qc.phase === 'quartas' ? (bbS ? LS('SEMIS DE CONF.', 'CONF. SEMIS') : 'QUARTAS') : qc.phase === 'semis' ? (bbS ? LS('FINAIS DE CONF.', 'CONF. FINALS') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}` : `RODADA ${Math.min(state.round + 1, totalRounds)}/${totalRounds}`}
         </span>
@@ -4021,7 +4023,7 @@ export function EscSeason() {
         )
       })()}
 
-      {state.careerOnline && (
+      {state.careerOnline && state.sport !== 'basquete' && (
         <button onClick={() => setShowPyramid(true)}
           className="w-full border-[3px] border-black rounded-xl py-3 font-black text-sm uppercase"
           style={{ backgroundColor: '#7C3AED', color: '#fff', boxShadow: `4px 4px 0 ${INK}`, ...OSWALD }}>
@@ -4037,7 +4039,7 @@ export function EscSeason() {
       <YourPitch small />
       {state.careerDivision && <RivalTracker />}
       <CreditLine className="pt-4 pb-2" />
-      {showPyramid && state.careerOnline && (
+      {showPyramid && state.careerOnline && state.sport !== 'basquete' && (
         <PyramidOverlay league={state.league} scorers={state.scorers} managers={state.managers} youId={you.id}
           seed={state.seed} round={state.round} deckLeague={state.deckLeague} onClose={() => setShowPyramid(false)} />
       )}
@@ -6134,10 +6136,12 @@ export function EscEnd() {
   // (é a próxima ação). Sem Copa, fica no topo como sempre.
   const placementHeader = (padTop: string) => (
     <div className={`text-center ${padTop}`}>
-      <p className="text-6xl">{youWon ? '🏆' : youPos <= zoneN(table.length) ? '🥈' : youPos >= zoneBot(table.length) ? '🪦' : '📻'}</p>
-      <h2 className="font-black text-4xl mt-2" style={OSWALD}>{youWon ? 'CAMPEÃO!' : `${youPos}º LUGAR`}</h2>
+      <p className="text-6xl">{youWon ? '🏆' : bbEnd ? '🏀' : youPos <= zoneN(table.length) ? '🥈' : youPos >= zoneBot(table.length) ? '🪦' : '📻'}</p>
+      <h2 className="font-black text-4xl mt-2" style={OSWALD}>{youWon ? LE('CAMPEÃO!', 'CHAMPION!') : `${youPos}º ${LE('LUGAR', 'PLACE')}`}</h2>
       <p className="font-semibold text-black/60 mt-1">
-        {youWon ? 'O pregão foi seu, o campeonato foi seu. Resenha eterna.' : `Campeão: ${champ.name}. ${youPos >= zoneBot(table.length) ? 'Rebaixado. O leilão cobra caro.' : 'Ano que vem tem pregão de novo.'}`}
+        {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Legendary.')
+          : bbEnd ? `${LE('Campeão', 'Champion')}: ${champ.name}. ${LE('Bola pra frente — ano que vem tem mais.', 'Onward — next season brings more.')}`
+          : `Campeão: ${champ.name}. ${youPos >= zoneBot(table.length) ? 'Rebaixado. O leilão cobra caro.' : 'Ano que vem tem pregão de novo.'}`}
       </p>
     </div>
   )
@@ -6218,10 +6222,12 @@ export function EscEnd() {
       <Box bg={INK} className="p-4 text-center" shadow={6}>
         <p className="font-black text-2xl truncate" style={{ ...OSWALD, color: '#fff' }}>{you.teamName}</p>
         <div className="mt-2 rounded-xl border-2 py-2.5 px-2" style={{ borderColor: 'rgba(255,255,255,.18)', background: 'rgba(255,255,255,.06)' }}>
-          <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>Liga Legends</p>
-          <p className="font-black text-xl" style={{ ...OSWALD, color: '#fff' }}>{youWon ? '🏆 Campeão' : `${youPos}º lugar`}</p>
+          <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>{bbEnd ? LE('BidLegends', 'BidLegends') : 'Liga Legends'}</p>
+          <p className="font-black text-xl" style={{ ...OSWALD, color: '#fff' }}>{youWon ? LE('🏆 Campeão', '🏆 Champion') : `${youPos}º ${LE('lugar', 'place')}`}</p>
           <p className="text-[11px] font-semibold mt-0.5" style={{ color: 'rgba(255,255,255,.62)' }}>
-            {youWon ? 'O pregão foi seu, o campeonato foi seu. Resenha eterna.' : `Campeão: ${champ.name}. ${youPos >= zoneBot(table.length) ? 'Rebaixado — o leilão cobra caro.' : 'Ano que vem tem pregão de novo.'}`}
+            {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Legendary.')
+              : bbEnd ? `${LE('Campeão', 'Champion')}: ${champ.name}. ${LE('Bola pra frente — ano que vem tem mais.', 'Onward — next season brings more.')}`
+              : `Campeão: ${champ.name}. ${youPos >= zoneBot(table.length) ? 'Rebaixado — o leilão cobra caro.' : 'Ano que vem tem pregão de novo.'}`}
           </p>
         </div>
       </Box>

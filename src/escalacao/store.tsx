@@ -102,6 +102,27 @@ const NBA_TIERS: Record<NbaTier, { teams: { team: string; name: string }[]; labe
   gleague: { teams: NBA_GLEAGUE_TEAMS, labelPt: '🔷 G League', labelEn: '🔷 G League', next: 'nba' },
   nba: { teams: NBA_PRO_TEAMS, labelPt: '💍 NBA', labelEn: '💍 NBA', next: null },
 }
+// 🏀→⚽ mapeia o ANDAR do basquete numa DIVISÃO do futebol (A–D). Isso liga TODA a
+// economia da carreira do futebol no basquete de graça (sem editar as tabelas
+// A–D): patrocínio (SPONSOR_PAY: D=0 → street sem patrocínio; A=elite → NBA),
+// vagas/valor de SAF (FILIAL_SLOTS/BONUS), caixa-base (DIV_BASE_CASH). Street é a
+// várzea (D), a NBA é a elite (A), a G League no meio (B).
+const NBA_TIER_DIV: Record<NbaTier, 'A' | 'B' | 'C' | 'D'> = { street: 'D', gleague: 'B', nba: 'A' }
+function tierDivKey(tier: NbaTier | undefined): 'A' | 'B' | 'C' | 'D' { return NBA_TIER_DIV[tier ?? 'street'] }
+// 💰 prêmios de fim de temporada do basquete (por colocação final), escalados pelo
+// andar (NBA paga mais que a várzea). Vão pro caixa via applySeasonMoney (humanos) —
+// mesma mecânica do futebol, mas sem termo de rebaixamento (ninguém cai no basquete).
+function nbaSeasonRewards(table: LeagueTeam[], tier: NbaTier): Record<number, number> {
+  const mult = tier === 'nba' ? 2 : tier === 'gleague' ? 1.5 : 1
+  const out: Record<number, number> = {}
+  table.forEach((t, i) => {
+    if (!t.isManager) return
+    const pos = i + 1
+    const base = pos === 1 ? 40 : pos <= 4 ? 25 : pos <= 10 ? 15 : 8
+    out[t.id] = Math.round(base * mult)
+  })
+  return out
+}
 // soma as moedas da temporada (base+título/acesso/queda) na caixa de cada técnico
 function applyRewards(coins: Record<number, number> | undefined, rewards?: Record<number, number>): Record<number, number> {
   const out = { ...(coins ?? {}) }
@@ -2489,7 +2510,13 @@ export function reducer(state: EscState, action: Action): EscState {
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
-      s.careerOnline = false; s.careerLedger = []
+      // 🏀→⚽ CARREIRA DO BASQUETE = MESMA MÁQUINA DE ECONOMIA DO FUTEBOL (careerOnline):
+      // caixa, folha salarial, patrocínio, SAF, estádio, extrato. A SIMULAÇÃO segue
+      // própria do basquete (liga única + andares + playoffs por conferência via
+      // EscSeason — o roteador bifurca por esporte). Semeia o mesmo estado do
+      // START_CAREER_SOLO, adaptando divisão→andar via tierDivKey.
+      s.careerOnline = true
+      s.careerEra = MANUAL_ERA // carreira NOVA: manual pede apoio (saves antigos seguem liberados)
       s.reserveAuction = false; s.reserveListed = {}
       s.sport = 'basquete'; s.nbaCareer = true // é CARREIRA (salva, avança temporada, reservas)
       s.nbaTier = 'street' // começa na base da pirâmide (Street League)
@@ -2513,7 +2540,26 @@ export function reducer(state: EscState, action: Action): EscState {
       ]
       const { managers, botPlans } = makeManagers([action.teamName || 'Meu Time'], '4-3-3', rivals, leagueSize, rng, orderedCrews)
       s.managers = managers; s.youIdx = 0
-      for (const m of s.managers) m.money = NBA_CAREER_BUDGET
+      // 🧾 ECONOMIA (Camada 1 do futebol): semeia caixa, extrato, colocação (andar→div),
+      // clubCash, e zera SAF/estádio/patrocínio/agência — igual carreira nova do futebol.
+      const pl: Record<string, string> = {}
+      for (const m of s.managers) pl[`m${m.id}`] = tierDivKey(s.nbaTier) // street = 'D' (várzea)
+      s.careerPlacements = pl
+      s.careerHonors = {}; s.marketValues = {}; s.marketLog = []
+      s.careerScorersAll = {}; s.statsSeason = 0
+      s.careerLedger = [] // livro-caixa novo
+      s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência começa vazia
+      s.careerSponsor = undefined // 👕 sem patrocínio escolhido
+      s.stadiums = {}; s.careerFilial = undefined // 🏟️🏢 estádio e SAF do zero
+      s.careerTitles = 0; s.careerTitlesA = 0
+      s.clubCash = seedClubCash({}, pl)
+      s.careerTactics = {}; s.careerLineup = {}; s.seasonVotes = {}
+      // 💰 caixa inicial = orçamento do quinteto (50), preservando o equilíbrio já
+      // afinado do basquete; a economia (folha/patrocínio/prêmios) soma por cima.
+      const cc: Record<number, number> = {}
+      for (const m of s.managers) if (m.isHuman) { cc[m.id] = NBA_CAREER_BUDGET; m.money = NBA_CAREER_BUDGET }
+      s.careerCoins = cc
+      logFin(s, 'opening', '🏁 Saldo inicial', NBA_CAREER_BUDGET)
       s.dinastia = false; s.dinastiaBudget = undefined
       const used = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
@@ -2539,6 +2585,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // não está sincronizado (fase 2) — se o botão vazar numa sala, NÃO faz nada
       // (o fim de temporada online mostra um aviso claro em vez de avançar).
       if (s.onlineMode === 'online') return s
+      // 💰 ECONOMIA (Camada 1 do futebol): fecha o caixa da temporada que ACABOU —
+      // prêmios por colocação + bilheteria/estádio + patrocínio (por andar) − folha
+      // salarial — e registra no extrato, ANTES de avançar. Mesma mecânica do futebol.
+      applySeasonMoney(s, nbaSeasonRewards(sortedTable(s.league), s.nbaTier ?? 'street'))
       s.seasonNo++
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
@@ -2570,6 +2620,12 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const c of you.squad) usedP.add(ident(c))
         dealBotSquads(s.managers, botPlans, rng, usedP)
       }
+      // 🧾 economia por ANDAR: recoloca todos na divisão do andar ATUAL (patrocínio/SAF/
+      // caixa-base seguem o andar) e garante o caixa-base dos bots novos que subiram junto.
+      const plNext: Record<string, string> = {}
+      for (const m of s.managers) plNext[`m${m.id}`] = tierDivKey(s.nbaTier)
+      s.careerPlacements = plNext
+      s.clubCash = seedClubCash(s.clubCash ?? {}, plNext)
       // 🏆 PLAYOFFS: só nos andares de cima (G League/NBA) — top 8 disputa o
       // mata-mata depois da temporada regular (mesma máquina da Copa dos 8: relógio
       // ao vivo, tudo simula, zero spoiler). A Street League é só pontos corridos.
@@ -2586,7 +2642,9 @@ export function reducer(state: EscState, action: Action): EscState {
       const wantReserve = SECTORS.some(pos => openSlots(you, pos) > 0)
       if (wantReserve) {
         s.reserveAuction = true; s.reserveListed = {}
-        you.money = NBA_RESERVE_BUDGET
+        // 💰 orçamento do leilão de reservas = a CAIXA acumulada (economia do futebol),
+        // não mais um valor fixo. Você gasta o que ganhou; o troco volta pro caixa.
+        you.money = Math.max(0, Math.round(s.careerCoins?.[you.id] ?? NBA_RESERVE_BUDGET))
         const used = new Set<string>()
         for (const m of s.managers) for (const c of m.squad) used.add(ident(c))
         s.deck = buildDeck([you], rng, 2.0, used, 1) // baralho só pras suas vagas novas
@@ -3435,7 +3493,10 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'SET_TACTIC': {
-      if (s.careerOnline) {
+      // 🏀 basquete usa a LIGA VIVA (simMatch lê s.tactics), então cai no ramo de
+      // baixo mesmo com careerOnline=true — senão a tática iria pro careerTactics
+      // (que só a pirâmide do futebol lê) e não teria efeito nenhum no basquete.
+      if (s.careerOnline && s.sport !== 'basquete') {
         // carreira online: tática é POR JOGO e vale do PRÓXIMO jogo em diante. O
         // jogo que está rolando (índice round-1) e os já passados NÃO re-simulam:
         // grava no próximo (índice round), então o placar na tela nunca muda.
@@ -3452,7 +3513,8 @@ export function reducer(state: EscState, action: Action): EscState {
       // escalação POR JOGO (carreira online): grava os 11 titulares na rodada
       // ATUAL (round = próximo jogo), como a tática. Libera a partir da 2ª
       // temporada (quando há reservas). Sem re-simular o que já passou.
-      if (!s.careerOnline || s.seasonNo < 2) return s
+      // 🏀 basquete usa a liga viva (o sim ignora careerLineup) e não tem essa tela — trava defensiva.
+      if (!s.careerOnline || s.sport === 'basquete' || s.seasonNo < 2) return s
       // durante a temporada grava na rodada atual (próximo jogo). NO FIM (done,
       // round = 38) grava ALÉM das 38 já jogadas — assim NÃO re-simula o
       // campeonato que acabou, mas o pinHumanLineups pega essa última escalação e
@@ -3468,7 +3530,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // CARREIRA ONLINE: a temporada é SIMULADA e determinística (a pirâmide das
       // 4 divisões vem dos elencos reais + semente + rodada). Aqui só avançamos a
       // rodada (o host conduz, e isso já sincroniza) — nada de simular a liga viva.
-      if (s.careerOnline) {
+      // 🏀 O BASQUETE NÃO passa aqui mesmo com careerOnline=true: ele usa a economia
+      // do futebol (Camada 1) mas a SIMULAÇÃO é a própria (liga viva via EscSeason,
+      // ramo de baixo). "Carreira pirâmide" de verdade = careerOnline && futebol.
+      if (s.careerOnline && s.sport !== 'basquete') {
         // cura ids duplicados de elencos antigos (bug do leilão de reservas) — uma
         // vez só; depois vira no-op. Se corrigiu, zera escalações manuais que
         // apontavam pro id duplicado (voltam ao XI automático, correto).
@@ -3520,7 +3585,9 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'FINISH_SEASON': {
       // 🏁 chamado pela tela quando a ANIMAÇÃO da última rodada acaba: coroa o campeão
       // e vai pro fim (ou semeia a Copa). Idempotente (champion/screen já setados).
-      if (s.careerOnline || s.round < (s.fixtures.length || TOTAL_ROUNDS) || s.screen === 'end') return s
+      // 🏀 basquete usa a liga viva (finishSeason roda normalmente); só o futebol-pirâmide
+      // resolve o fim na própria tela. Por isso o guard exclui o basquete.
+      if ((s.careerOnline && s.sport !== 'basquete') || s.round < (s.fixtures.length || TOTAL_ROUNDS) || s.screen === 'end') return s
       finishSeason(s)
       return s
     }
@@ -3691,7 +3758,8 @@ export function reducer(state: EscState, action: Action): EscState {
       //  3) só troca se houver jogadores REAIS e disponíveis (não emprestados)
       //     suficientes por POSIÇÃO pra nova escalação (senão o pedido é ignorado).
       // Aplica da RODADA ATUAL em diante (pin no round atual) — não mexe no passado.
-      if (!s.careerOnline) return s
+      // 🏀 conceito de formação/22 é do futebol; o basquete não passa aqui — trava defensiva.
+      if (!s.careerOnline || s.sport === 'basquete') return s
       const mid = action.mgrId ?? s.managers[s.youIdx]?.id
       const m = s.managers.find(x => x.id === mid && x.isHuman)
       if (!m || m.formation === action.formation) return s
@@ -3847,7 +3915,8 @@ export function reducer(state: EscState, action: Action): EscState {
       // lista/tira uma carta da lista de leilão. NUNCA deixa a posição abaixo do XI
       // (formação) — se listar deixaria incompleto, ignora. E a VENDA/negociação
       // só está desbloqueada a partir da 3ª temporada (na 2ª só dá pra comprar).
-      if (!s.careerOnline || s.seasonNo < 3) return s
+      // 🏀 basquete usa TOGGLE_NBA_RELEASE (mercado próprio) — trava defensiva.
+      if (!s.careerOnline || s.sport === 'basquete' || s.seasonNo < 3) return s
       const mgr = s.managers.find(m => m.id === action.mgrId)
       if (!mgr) return s
       const listed = { ...(s.reserveListed ?? {}) }
@@ -4818,7 +4887,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // localStorage a cada transição importante — dá pra fechar e voltar depois.
   const soloSigRef = useRef('')
   useEffect(() => {
-    if (state.onlineMode === 'online' || !state.careerOnline) return
+    // 🏀 o basquete tem careerOnline=true agora (usa a economia do futebol), mas o
+    // SAVE dele é isolado em `bl-nba-career` (efeito abaixo). Aqui é só o FUTEBOL —
+    // senão a carreira do basquete vazaria pro `esc-solo-career`/nuvem como pirâmide.
+    if (state.onlineMode === 'online' || !state.careerOnline || state.sport === 'basquete') return
     // não salva quando está numa tela LATERAL (álbum/ranking): senão o
     // "Continuar carreira" restaurava no álbum em vez do jogo.
     if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
