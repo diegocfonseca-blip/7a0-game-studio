@@ -1401,3 +1401,15 @@ Tokyo aparecia como "Xurupitas FC" (45). Somas estavam CERTAS (394 = 379+15;
 ranking_total_nome_da_maior_carreira: no modo carreiratotal o nome vem da
 carreira com MAIS títulos da conta (empate → mais recente). Por carreira e
 modos rápidos intocados. Verificado ao vivo: Alfacehh FC 394 · Tokyo 333.
+
+## 📖 Álbum do técnico com os DOIS totais (04/08, mockup aprovado)
+O que o Diego tinha pedido de verdade no caso Alface: ao tocar num técnico no
+ranking CARREIRA, o álbum abre com dois botões-total — "🪜 Esta carreira · N
+cartas" (só as cartas daquela linha/carreira) × "📊 Conta toda · M cartas"
+(tudo somado) — e a grade de cartas troca junto; filtros Tier/Recentes/etc.
+seguem funcionando. Feito: RPC esc_ranking agora devolve career_key (drop+
+create, coluna extra não quebra chamador antigo — único chamador é o próprio
+ranking); openAlbum busca season_key e guarda SEM dedup (dedup por visão);
+chips só aparecem quando a linha tocada é uma carreira (sub-aba Por carreira);
+no Total da conta e nos rápidos o álbum fica igual era. Sub-abas do ranking
+MANTIDAS (Diego confirmou) e conserto do nome (maior carreira) mantido.

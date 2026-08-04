@@ -5009,8 +5009,8 @@ function StreamSpectatorCard({ champName, card }: { champName: string; card?: Wo
 }
 
 // ─── álbum: coleção de cartas ganhas sendo campeão, entre partidas ────
-interface UserCardRow { card_name: string; card_club: string; card_year: number; card_pos: string; card_fame: number; origin: string | null; obtained_at: string }
-interface AlbumCard { name: string; club: string; year: number; pos: Sector; fame: number; folk?: boolean; promessa?: boolean; origin: 'cpu' | 'online'; at: number }
+interface UserCardRow { card_name: string; card_club: string; card_year: number; card_pos: string; card_fame: number; origin: string | null; obtained_at: string; season_key?: string }
+interface AlbumCard { name: string; club: string; year: number; pos: Sector; fame: number; folk?: boolean; promessa?: boolean; origin: 'cpu' | 'online'; at: number; sk?: string }
 type AlbumFilter = 'all' | 'cpu' | 'online'
 
 // 🗂️ organização do álbum: raridade (melhores primeiro), posição, clube ou
@@ -5167,7 +5167,7 @@ export function EscAlbum() {
 
 // ─── RANKING DE TÉCNICOS (só contas) ─────────────────────────────────
 type RankMode = 'carreira' | 'ronline' | 'rcpu' // 🏆 decisão do Diego (04/08): sem 'Geral'; Carreira (em breve, zerada) · Rápido online · Rápido offline
-interface RankRow { user_id: string; name: string; titles: number; scorer_titles: number; goals: number; cards: number }
+interface RankRow { user_id: string; name: string; career_key: string; titles: number; scorer_titles: number; goals: number; cards: number }
 
 // ACERTO AUTOMÁTICO cartas↔ranking. Regra do Diego: cada usuário tem que ter a
 // MESMA quantidade de cartas (álbum) e de títulos (ranking). A carta é a verdade
@@ -5247,25 +5247,28 @@ export function EscRanking() {
   const [rows, setRows] = useState<RankRow[] | null>(null)
   const [down, setDown] = useState(false) // backend fora do ar — evita travar em "Carregando…"
   const [meId, setMeId] = useState<string | null>(null)
-  const [viewUser, setViewUser] = useState<{ id: string; name: string } | null>(null)
+  const [viewUser, setViewUser] = useState<{ id: string; name: string; careerKey?: string } | null>(null)
   const [viewCards, setViewCards] = useState<AlbumCard[] | null>(null)
   const [viewSort, setViewSort] = useState<AlbumSort>('tier')
+  // 📖 visão do álbum tocado (pedido do Diego 04/08): quando a linha do ranking
+  // é UMA carreira, o álbum mostra os dois totais — só esta carreira × conta toda
+  const [viewScope, setViewScope] = useState<'carreira' | 'conta'>('carreira')
 
   // abre o álbum de QUALQUER técnico (user_cards tem leitura pública)
-  async function openAlbum(userId: string, name: string) {
-    setViewUser({ id: userId, name }); setViewCards(null)
+  async function openAlbum(userId: string, name: string, careerKey?: string) {
+    setViewUser({ id: userId, name, careerKey: careerKey || undefined }); setViewCards(null); setViewScope('carreira')
     try {
       const { data } = await supabase.from('user_cards')
-        .select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at')
+        .select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at, season_key')
         .eq('user_id', userId).order('obtained_at', { ascending: false })
-      const cards = ((data ?? []) as UserCardRow[]).map(c => ({
+      // guarda SEM deduplicar — a deduplicação é por visão (carreira × conta),
+      // senão uma carta repetida em duas carreiras sumiria da visão da carreira
+      setViewCards(((data ?? []) as UserCardRow[]).map(c => ({
         name: c.card_name, club: c.card_club, year: c.card_year, pos: c.card_pos as Sector, fame: c.card_fame,
         ...(CARD_META.get(c.card_name) ?? {}),
         origin: (c.origin === 'cpu' ? 'cpu' : 'online') as 'cpu' | 'online',
-        at: new Date(c.obtained_at).getTime(),
-      }))
-      const seen = new Set<string>()
-      setViewCards(cards.filter(c => (seen.has(c.name) ? false : (seen.add(c.name), true))))
+        at: new Date(c.obtained_at).getTime(), sk: c.season_key,
+      })))
     } catch {
       setViewCards([]) // backend fora: não trava em "Carregando…"
     }
@@ -5296,6 +5299,12 @@ export function EscRanking() {
     .sort((a, b) => b.titles - a.titles || b.goals - a.goals),
     [rows])
   const inList = !!meId && shown.some(r => r.user_id === meId)
+  // 📖 as duas visões do álbum tocado: cada uma deduplica por nome POR SI
+  const dedupByName = (cs: AlbumCard[]) => { const seen = new Set<string>(); return cs.filter(c => (seen.has(c.name) ? false : (seen.add(c.name), true))) }
+  const albumCk = viewUser?.careerKey
+  const albumConta = viewCards ? dedupByName(viewCards) : null
+  const albumCarreira = viewCards && albumCk ? dedupByName(viewCards.filter(c => c.sk?.startsWith(albumCk + ':'))) : null
+  const albumShown = viewScope === 'carreira' && albumCarreira ? albumCarreira : albumConta
 
   const MODES: { id: RankMode; label: string }[] = [
     { id: 'ronline', label: '👥 Rápido online' },
@@ -5363,7 +5372,7 @@ export function EscRanking() {
       )}
       <div className="space-y-2">
         {shown.slice(0, 10).map((r, i) => (
-          <button key={r.user_id} onClick={() => openAlbum(r.user_id, r.name)}
+          <button key={r.user_id} onClick={() => openAlbum(r.user_id, r.name, r.career_key)}
             className="w-full flex items-center gap-3 border-[3px] border-black rounded-xl p-2.5 active:translate-y-0.5"
             style={{ background: r.user_id === meId ? GOLD : '#fff', boxShadow: `3px 3px 0 ${INK}` }}>
             <span className="font-black text-lg w-9 text-center shrink-0" style={OSWALD}>{medal(i)}</span>
@@ -5391,19 +5400,32 @@ export function EscRanking() {
             <div className="flex items-center justify-between px-4 py-3 border-b-[3px] border-black" style={{ background: GOLD }}>
               <div className="min-w-0">
                 <p className="font-black text-black text-lg leading-tight truncate" style={OSWALD}>📖 Álbum de {viewUser.name}</p>
-                {viewCards && <p className="text-black/60 text-xs font-bold">{viewCards.length} carta{viewCards.length === 1 ? '' : 's'}</p>}
+                {albumConta && !albumCarreira && <p className="text-black/60 text-xs font-bold">{albumConta.length} carta{albumConta.length === 1 ? '' : 's'}</p>}
               </div>
               <button onClick={() => setViewUser(null)} className="shrink-0 w-8 h-8 rounded-full border-2 border-black bg-white font-black text-black active:translate-y-0.5">✕</button>
             </div>
-            {viewCards && viewCards.length > 1 && (
+            {/* 🪜×📊 os dois totais (mockup aprovado): só quando a linha tocada é UMA carreira */}
+            {albumCarreira && albumConta && (
+              <div className="flex gap-2 px-4 pt-3">
+                {([['carreira', '🪜 Esta carreira', albumCarreira.length], ['conta', '📊 Conta toda', albumConta.length]] as const).map(([id, label, n]) => (
+                  <button key={id} onClick={() => setViewScope(id)}
+                    className="flex-1 border-[2.5px] border-black rounded-xl py-2 px-1 font-black text-[11px] uppercase leading-tight"
+                    style={{ backgroundColor: viewScope === id ? GOLD : '#fff', boxShadow: viewScope === id ? `2px 2px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                    {label}
+                    <span className="block text-[11px] font-extrabold normal-case">{n} carta{n === 1 ? '' : 's'}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {albumShown && albumShown.length > 1 && (
               <div className="px-4 pt-3"><AlbumSortBar value={viewSort} onChange={setViewSort} /></div>
             )}
             <div className="overflow-y-auto p-4">
-              {!viewCards && <p className="text-center font-bold text-black/60 py-6">Carregando…</p>}
-              {viewCards && viewCards.length === 0 && <p className="text-center font-bold text-black/60 py-6">Esse técnico ainda não ganhou cartas.</p>}
-              {viewCards && viewCards.length > 0 && (
+              {!albumShown && <p className="text-center font-bold text-black/60 py-6">Carregando…</p>}
+              {albumShown && albumShown.length === 0 && <p className="text-center font-bold text-black/60 py-6">{viewScope === 'carreira' && albumCarreira ? 'Nenhuma carta nesta carreira ainda.' : 'Esse técnico ainda não ganhou cartas.'}</p>}
+              {albumShown && albumShown.length > 0 && (
                 <div className="grid grid-cols-2 gap-3">
-                  {sortAlbum(viewCards, viewSort).map((c, i) => (
+                  {sortAlbum(albumShown, viewSort).map((c, i) => (
                     <CollectibleCard key={i} name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} showBio />
                   ))}
                 </div>
