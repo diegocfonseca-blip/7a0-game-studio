@@ -1627,6 +1627,16 @@ function migrateTeamNames(st: EscState): EscState {
   st.clubCash = mapKeys(st.clubCash) ?? st.clubCash
   st.careerHonors = mapKeys(st.careerHonors) ?? st.careerHonors
   st.careerCopaHonors = mapKeys(st.careerCopaHonors) ?? st.careerCopaHonors
+  // 🏆 CURA (04/08, print do leodiniz85): carreiras novas herdavam as COPAS das
+  // carreiras anteriores do aparelho (o START zerava careerHonors mas esquecia
+  // careerCopaHonors) — dava "Copa21" na temporada 8. Só existe 1 Copa por
+  // temporada: se a soma guardada passa do nº de temporadas, o histórico é
+  // contaminado → recomeça a contagem (visual do Ranking Geral; cartas e
+  // ranking da home nunca usaram isso, seguem certos).
+  {
+    const somaCopas = Object.values(st.careerCopaHonors ?? {}).reduce((a, b) => a + (b || 0), 0)
+    if (somaCopas > (st.seasonNo ?? 1)) st.careerCopaHonors = {}
+  }
   // 🏢 saves antigos gravavam UM empréstimo (objeto); agora são LISTAS por divisão
   if (st.careerFilial) st.careerFilial = { ...st.careerFilial, loanOut: loanList(st.careerFilial.loanOut), loanIn: loanList(st.careerFilial.loanIn) }
   return st
@@ -3198,7 +3208,7 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const nm of dNames) pl[nm] = 'D'
       }
       s.careerPlacements = pl
-      s.careerHonors = {}; s.marketValues = {}; s.marketLog = []
+      s.careerHonors = {}; s.careerCopaHonors = {}; s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.statsSeason = 0
       s.careerLedger = [] // 🧾 livro-caixa novo: extrato/transferências começam vazios
       s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência do Empresário começa vazia (renda das cartas ganhas nesta carreira)
@@ -3301,7 +3311,7 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const m of s.managers) pl[`m${m.id}`] = 'D'
         for (const d of ['A', 'B', 'C'] as const) for (const t of DIVISION_TEAMS[d].slice(0, 20)) pl[t.team] = d
         s.careerPlacements = pl
-        s.careerHonors = {} // títulos começam do zero
+        s.careerHonors = {}; s.careerCopaHonors = {} // títulos (liga E Copa) começam do zero
         s.marketValues = {} // livro de preços começa vazio (leilão inicial sem piso)
         s.marketLog = []
         s.careerScorersAll = {}; s.statsSeason = 0 // artilharia de todos os tempos começa do zero

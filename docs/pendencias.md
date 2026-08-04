@@ -1527,3 +1527,16 @@ na hora).
 PENDENTE (Diego): apertar "Disable spend cap" ANTES de 09/08 · transferir
 projeto MAQUETE VIRTUAL pra org Free (API não pausa projeto em org paga) ·
 SMTP Brevo. EU: monitorar consumo diário e reportar a fatura em R$.
+
+## 🏆 BUG: "Copa21 na temporada 8" — Copas herdadas de carreira antiga (04/08, print do leodiniz85)
+No Ranking Geral DENTRO da carreira, clubes (e o próprio usuário) apareciam com
+mais Copas que temporadas existentes. CAUSA: START_CAREER (solo E online)
+zerava careerHonors mas ESQUECIA careerCopaHonors — as Copas de todas as
+carreiras anteriores do aparelho se acumulavam (chave por nome de clube, que
+repete entre carreiras: 'Coliseu United' etc.). CONSERTO: (1) os dois STARTs
+agora zeram careerCopaHonors junto; (2) CURA no migrateTeamNames (roda em todo
+load de save): se a soma de Copas guardada > nº de temporadas (impossível — é
+1 Copa por temporada), o histórico tá contaminado → recomeça a contagem.
+Efeito colateral aceito: save contaminado perde também as Copas legítimas da
+carreira atual NA TELA (recomeça a contar dali). Cartas e ranking da home
+NUNCA usaram careerCopaHonors — sempre estiveram certos (esc_results).
