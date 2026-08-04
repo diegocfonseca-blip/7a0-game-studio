@@ -1509,3 +1509,21 @@ criada" — não pede mais confirmação que não existe).
 ⏳ PENDENTE (precisa do Diego): SMTP próprio no Supabase (Auth → SMTP) com
 Brevo (300/dia grátis) ou Resend — tira o envio do pool compartilhado do
 Supabase. Volume de reset é baixo, plano grátis sobra.
+
+## 📉 CORTES DE CONSUMO rodada 2 (04/08, OK do Diego — itens 4-7 da lista)
+Contexto: aviso do Supabase — restrição em 09/08 se seguir sobre a cota
+(Realtime 424%, Egress 240%); Diego orientado a DESLIGAR O SPEND CAP (senão o
+jogo trava dia 9; custo estimado R$ 500-600 no ciclo, caindo).
+(4) ✅ ECO DO CHAT DO LOBBY removido JÁ (ordem do Diego, sem esperar sexta):
+sendLobbyChat mandava 'chat' + 'emote' (dobro de mensagem Realtime) → agora só
+'chat'; ouvinte de 'emote' MANTIDO (aba antiga ainda é ouvida; aba muito antiga
+precisa de F5 pra ver as novas — custo aceito). Chat/emotes DENTRO da sala já
+eram 1× (sem eco).
+(5) ✅ live_beats 30s→60s: JÁ ESTAVA FEITO por sessão anterior.
+(6) ✅ ~90% já feito antes (estado comprimido ~15-35KB, envia só quando muda,
+reenvio de parado a cada 12s). Resto = migalha com risco no online — NÃO mexer.
+(7) ✅ Lista de salas: refresh 5s→8s (−37% dessas queries; botão 🔄 segue
+na hora).
+PENDENTE (Diego): apertar "Disable spend cap" ANTES de 09/08 · transferir
+projeto MAQUETE VIRTUAL pra org Free (API não pausa projeto em org paga) ·
+SMTP Brevo. EU: monitorar consumo diário e reportar a fatura em R$.

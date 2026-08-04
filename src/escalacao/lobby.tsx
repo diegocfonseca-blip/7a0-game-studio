@@ -477,9 +477,11 @@ export function EscLobby() {
     const myName = players.find(p => p.user_id === user?.id)?.manager_name ?? 'Você'
     const e: LobbyMsg = { id: Math.random().toString(36).slice(2), uid: user?.id ?? 'me', name: myName, text: t }
     addLobbyChat(e, true) // mostra o meu na hora (o canal não devolve o próprio broadcast)
-    // manda em 'chat' (persistente) e 'emote' (clientes antigos ainda enxergam).
+    // 📉 ECO REMOVIDO (04/08, OK do Diego): mandava em 'chat' E 'emote' (dobro de
+    // mensagem Realtime na fatura). Agora só 'chat'; o OUVINTE de 'emote' fica
+    // (mensagem de aba antiga ainda aparece pra todo mundo). Aba muito antiga
+    // deixa de ver as novas até dar F5 — custo aceito.
     lobbyChanRef.current?.send({ type: 'broadcast', event: 'chat', payload: e })
-    lobbyChanRef.current?.send({ type: 'broadcast', event: 'emote', payload: e })
   }
   // 🎈 zoeira que FLUTUA (não entra no chat): sobe na tela e some, pra todos da sala.
   const [lobbyFloats, setLobbyFloats] = useState<LobbyFloat[]>([])
@@ -609,12 +611,13 @@ export function EscLobby() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, user])
 
-  // carrega a lista ao abrir "Salas abertas" e ATUALIZA sozinha a cada 5s —
-  // assim uma sala criada agora aparece pra galera sem precisar apertar nada.
+  // carrega a lista ao abrir "Salas abertas" e ATUALIZA sozinha a cada 8s (era
+  // 5s — corte de consumo 04/08, OK do Diego; sala nova aparece ~3s "depois",
+  // e o botão 🔄 continua atualizando na hora pra quem tiver pressa).
   useEffect(() => {
     if (phase !== 'menu' || tab !== 'open') return
     fetchOpenRooms()
-    const iv = setInterval(() => fetchOpenRooms(true), 5000)
+    const iv = setInterval(() => fetchOpenRooms(true), 8000)
     return () => clearInterval(iv)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, tab])
