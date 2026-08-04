@@ -1,5 +1,18 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/08/2026)
 
+## 💰 AdSense instalado no site (04/08) — AGUARDANDO APROVAÇÃO DO GOOGLE
+Diego mandou o Publisher ID: **pub-7150600438130611**. Instalado:
+- Script do AdSense no `<head>` do index.html (async, não atrasa nada; nenhum
+  anúncio aparece sem a gente criar bloco — é só a fundação/verificação).
+- `public/ads.txt` com a linha padrão do Google (vale pros dois domínios).
+PRÓXIMOS PASSOS: (1) Diego volta no painel do AdSense → Sites → confirma
+leilaolegends.com e pede a REVISÃO (o site já tem o código, o Google acha
+sozinho); (2) aprovação leva de dias a ~2 semanas; (3) SÓ DEPOIS: vídeo
+recompensado via H5 Games Ads (adBreak type 'reward') — UI passa por MOCKUP
+antes, reward provável em moedas da carreira (a combinar com o Diego).
+⚠️ MAQUETE VIRTUAL: transferida pra org gratuita (04/08, feito pelo Diego —
+verificado: sumiu da org paga). Falta SÓ o "Disable spend cap" até 09/08!
+
 ## 🎭 EVENTOS DE JOGADOR na carreira solo — NO AR (04/08) ✅
 Aprovado pelo Diego e implementado completo (mockup mock-eventos.html ok'd):
 - Máx. **1 evento por temporada**, só carreira SOLO (online 100% intacto), só a
