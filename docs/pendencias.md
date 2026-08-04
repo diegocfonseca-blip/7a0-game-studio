@@ -1429,3 +1429,17 @@ ninguém pro leilão (ninguém decide por ele — auto-renova tudo). Cerimônia 
 dava contrato 5-10 ao elenco dele (isHuman). Teste novo: scratchpad/dormtest.mjs
 (🟢 verde: contrato na cerimônia, renovação, caixa×extrato EXATO, nada vaza
 pro leilão). criatest/malandragem seguem verdes.
+↳ MUDANÇA do Diego (04/08): NADA de renovar sozinho no dormindo. Feito no
+lugar (mockup lado a lado aprovado): (1) janela de contratos ganha modo 2
+COLUNAS quando o dormindo tem vencidos — 🟡 ativo × 💤 dormindo, mesmos 3
+botões por jogador (RENEW/RELEASE já aceitavam mgrId), renovação do dormindo
+sai da caixa DELE (saldo na tela); sem 2º clube a janela fica idêntica.
+(2) Avançar sem decidir = regra de sempre nos dois clubes (auto 5 anos metade).
+(3) 😤 MAGOADO: soltou em QUALQUER clube seu → o jogador vai a leilão e NENHUM
+clube seu recompra (mesmoDono() em resolve/tiedTop/montePickable; selo "😤
+magoado com você" + aviso "🙅 não joga pra você!" no leilão; só solo — online
+nunca bloqueia outro humano). (4) BUG evitado: venda de jogador do dormindo
+creditava no money (nunca reconciliado) — agora credita direto na careerCoins
+dele. dormtest.mjs reescrito (🟢): solta 1 no banner → leilão com selo, monte
+bloqueado pros 2 clubes, não volta; 2 sem decisão → renovam automático; caixa
+× extrato guardado EXATO. criatest/malandragem verdes.

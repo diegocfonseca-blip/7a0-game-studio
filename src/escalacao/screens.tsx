@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS } from './types'
-import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, MAX_CAREER_SLOTS, syncCareersWithCloud } from './store'
+import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, MAX_CAREER_SLOTS, syncCareersWithCloud } from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, playWhistle, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -2455,7 +2455,9 @@ function Envelope() {
           const sellerId = (c as { seller?: number }).seller
           const sellerM = sellerId != null ? state.managers.find(m => m.id === sellerId) : undefined
           const sCol = sellerM ? seasonColors[sellerM.id] : undefined
-          const isMine = sellerM?.id === you.id
+          // 😤 "mesmo dono" cobre os DOIS clubes do Multiclubes: soltou no
+          // dormindo → também não recompra pelo ativo (e vice-versa)
+          const isMine = sellerM != null && mesmoDono(state, you.id, sellerM.id)
           return (
           <Box key={c.id} className="p-3 flex items-center justify-between gap-2">
             <div className="min-w-0">
@@ -2463,7 +2465,7 @@ function Envelope() {
                 <span className="inline-flex items-center gap-1 rounded-full border-2 border-black px-1.5 py-0.5 text-[9px] font-black uppercase leading-none mb-1"
                   style={{ background: c.semContrato ? '#C2452F' : (sCol?.solid ?? '#6b7280'), color: '#fff', ...OSWALD }}>
                   {c.semContrato
-                    ? (isMine ? '⏳ seu — sem contrato' : `⏳ sem contrato · ${sellerM.teamName}`)
+                    ? (isMine ? '😤 magoado com você' : `⏳ sem contrato · ${sellerM.teamName}`)
                     : (isMine ? '🫵 seu jogador' : `${sellerM.rival ? '⚔️' : sellerM.isHuman ? '🔥' : '🔁'} ${sellerM.teamName}`)}
                 </span>
               )}
@@ -2474,8 +2476,8 @@ function Envelope() {
                   este jogador (nem no monte). Trava com aviso do porquê. */}
               {canBid && c.semContrato && isMine && (
                 <div className="border-2 border-black rounded-lg px-2 py-1.5 text-center max-w-[130px]" style={{ background: '#FDECEA' }}>
-                  <p className="text-[9px] font-black uppercase leading-tight" style={{ ...OSWALD, color: RED }}>🔒 {L('sem recompra', 'no rebuy')}</p>
-                  <p className="text-[8px] font-bold leading-tight text-black/60">{L('Você deixou o contrato vencer — só se outro clube levar.', 'You let the contract expire — only if another club signs him.')}</p>
+                  <p className="text-[9px] font-black uppercase leading-tight" style={{ ...OSWALD, color: RED }}>🙅 {L('não joga pra você!', "won't play for you!")}</p>
+                  <p className="text-[8px] font-bold leading-tight text-black/60">{L('Você não quis renovar — ele se recusa a ir pra clube que você comanda. Só se outro clube levar.', "You refused to renew — he won't join any club you manage. Only if another club signs him.")}</p>
                 </div>
               )}
               {canBid && !(c.semContrato && isMine) && (

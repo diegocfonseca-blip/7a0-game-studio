@@ -3585,44 +3585,75 @@ export function ReserveListScreen() {
         )}
         {/* 📝 CONTRATOS — encerrados esperando decisão + aviso de último ano */}
         {(() => {
+          // 🏛️ MULTICLUBES (Diego 04/08, mockup lado a lado aprovado): o clube
+          // DORMINDO decide JUNTO aqui, em coluna própria 💤 — a renovação dele
+          // sai da caixa DELE. Sem 2º clube, a janela fica exatamente como era.
+          const dormM = state.multiClube ? state.managers.find(mm => mm.id === state.multiClube!.id) : undefined
+          const expOf = (mm?: Manager) => mm ? (mm.squad as WonCard[]).filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < state.seasonNo) : []
           const sq = mgr.squad as WonCard[]
-          const expirados = sq.filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < state.seasonNo)
+          const expirados = expOf(mgr)
+          const expDorm = expOf(dormM)
           const ultimoAno = sq.filter(c => !c.fake && c.contratoAte === state.seasonNo)
-          if (expirados.length === 0 && ultimoAno.length === 0) return null
+          const uaDorm = dormM ? (dormM.squad as WonCard[]).filter(c => !c.fake && c.contratoAte === state.seasonNo) : []
+          if (expirados.length + expDorm.length + ultimoAno.length + uaDorm.length === 0) return null
+          const saldoDorm = dormM ? (state.careerCoins?.[dormM.id] ?? 0) : 0
           const coins = state.careerCoins?.[youId] ?? 0
           const primeira = state.seasonNo <= 6 // estreia do recurso: explica com mais calma
           const btn = (bg: string, fg: string, dis: boolean): React.CSSProperties => ({ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 10.5, ...OSWALD, background: dis ? '#d8cfb5' : bg, color: dis ? 'rgba(0,0,0,.4)' : fg, boxShadow: dis ? 'none' : `2px 2px 0 0 ${INK}`, cursor: dis ? 'not-allowed' : 'pointer', textTransform: 'uppercase' as const, lineHeight: 1.15 })
           return (
             <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
-              <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>{primeira ? '📝 CONTRATOS CHEGARAM!' : '⏳ CONTRATOS ENCERRANDO'}</p>
+              <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>{primeira ? '📝 CONTRATOS CHEGARAM!' : '⏳ CONTRATOS ENCERRANDO'}{expDorm.length > 0 ? ' — decida clube por clube' : ''}</p>
               {primeira && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Seu clube é profissional: <b>todo jogador tem contrato</b> (5 a 10 anos, sorteado na chegada). Quando encerra, você decide: <b>renovar ou deixar ir</b>.</p>}
-              {expirados.map(c => {
-                const oficial = valorOficial(state, c)
-                const c10 = Math.max(1, Math.ceil(oficial * 0.9)) // 💰 10 anos = 90% (decisão do Diego)
-                const c5 = Math.max(1, Math.ceil(oficial / 2))
-                return (
-                  <div key={c.id} style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 9px', marginBottom: 8, background: '#FCFBF4', boxShadow: `2px 2px 0 0 ${INK}` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
-                      <span style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, background: INK, color: '#fff', borderRadius: 5, padding: '1px 6px' }}>{c.pos}</span>
-                      <span style={{ fontWeight: 900, fontSize: 14, ...OSWALD, flex: 1 }}>{c.name}</span>
-                      <span style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, color: '#5a5647' }}>valor {oficial} 🪙</span>
+              {(() => {
+                // card de decisão de UM jogador; `empilha` = botões em pilha (modo 2 colunas)
+                const decisao = (c: WonCard, dono: Manager, saldo: number, empilha: boolean) => {
+                  const oficial = valorOficial(state, c)
+                  const c10 = Math.max(1, Math.ceil(oficial * 0.9)) // 💰 10 anos = 90% (decisão do Diego)
+                  const c5 = Math.max(1, Math.ceil(oficial / 2))
+                  const solto = (state.contratoRelease ?? []).includes(c.id)
+                  return (
+                    <div key={c.id} style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 9px', marginBottom: 8, background: '#FCFBF4', boxShadow: `2px 2px 0 0 ${INK}` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
+                        <span style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, background: INK, color: '#fff', borderRadius: 5, padding: '1px 6px' }}>{c.pos}</span>
+                        <span style={{ fontWeight: 900, fontSize: empilha ? 12.5 : 14, ...OSWALD, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
+                        <span style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, color: '#5a5647', flex: 'none' }}>{empilha ? '' : 'valor '}{oficial} 🪙</span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: empilha ? 'column' : 'row', gap: 6 }}>
+                        <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos: 10 })} disabled={solto} style={btn(GOLD, INK, solto)}>Renovar 10 anos{empilha ? ' · ' : <br />}{c10} 🪙 (-10%){saldo < c10 ? ' 💳' : ''}</button>
+                        <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos: 5 })} disabled={solto} style={btn('#EAF6EE', INK, solto)}>Renovar 5 anos{empilha ? ' · ' : <br />}{c5} 🪙{saldo < c5 ? ' 💳' : ''}</button>
+                        <button onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={btn(solto ? '#C2452F' : '#FDECEA', solto ? '#fff' : '#a23325', false)}>{solto ? '🌱 vai embora\u2028(desfazer)' : '😢 Deixar ir'}{empilha ? ' · ' : <br />}{solto ? 'cria assume se faltar' : 'de graça'}</button>
+                      </div>
                     </div>
-                    {(() => { const solto = (state.contratoRelease ?? []).includes(c.id); return (
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: youId, cardId: c.id, anos: 10 })} disabled={solto} style={btn(GOLD, INK, solto)}>Renovar 10 anos<br />{c10} 🪙 (-10%){coins < c10 ? ' 💳' : ''}</button>
-                      <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: youId, cardId: c.id, anos: 5 })} disabled={solto} style={btn('#EAF6EE', INK, solto)}>Renovar 5 anos<br />{c5} 🪙{coins < c5 ? ' 💳' : ''}</button>
-                      <button onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: youId, cardId: c.id })} style={btn(solto ? '#C2452F' : '#FDECEA', solto ? '#fff' : '#a23325', false)}>{solto ? '🌱 vai embora\u2028(desfazer)' : '😢 Deixar ir'}<br />{solto ? 'cria assume se faltar' : 'de graça'}</button>
-                    </div>) })()}
+                  )
+                }
+                if (expDorm.length === 0 || !dormM) return <>{expirados.map(c => decisao(c, mgr, coins, false))}</>
+                // 🏛️ modo 2 colunas (mockup lado a lado aprovado): ativo 🟡 × dormindo 💤
+                const clubHead = (nome: string, dorme: boolean) => (
+                  <div style={{ border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 8px', margin: '2px 0 7px', fontWeight: 900, fontSize: 11, ...OSWALD, background: dorme ? INK : GOLD, color: dorme ? '#fff' : INK, textTransform: 'uppercase' as const, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dorme ? '💤 ' : '🟡 '}{nome}</div>
+                )
+                return (
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      {clubHead(mgr.teamName, false)}
+                      {expirados.length === 0
+                        ? <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>Nenhum contrato vencido aqui ✓</p>
+                        : expirados.map(c => decisao(c, mgr, coins, true))}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      {clubHead(dormM.teamName, true)}
+                      {expDorm.map(c => decisao(c, dormM, saldoDorm, true))}
+                      <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>💰 Renovação sai da caixa <b>do {dormM.teamName}</b> ({saldoDorm} 🪙) — não da sua.</p>
+                    </div>
                   </div>
                 )
-              })}
-              {expirados.length > 0 && (
+              })()}
+              {(expirados.length > 0 || expDorm.length > 0) && (
                 <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '2px 0 0', lineHeight: 1.45 }}>
-                  <b>😢 Deixar ir</b>: ele vai pro leilão (você recebe a venda <b>até o valor dele</b> — o que passar fica com a <b>família gananciosa</b> 😏) e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume de graça (fraquinho, sem contrato, some quando chegar reforço). 💳 Sem caixa dá pra renovar MESMO ASSIM — entra no <b>cheque especial</b> (caixa negativa, transfer ban até sair do vermelho). ⚠️ <b>Avançou sem escolher?</b> Renova <b>AUTOMÁTICO por 5 anos (metade)</b>, com ou sem caixa — jogador só vai embora se VOCÊ mandar.
+                  <b>😢 Deixar ir</b>: ele vai pro leilão (você recebe a venda <b>até o valor dele</b> — o que passar fica com a <b>família gananciosa</b> 😏) e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume de graça (fraquinho, sem contrato, some quando chegar reforço). 💳 Sem caixa dá pra renovar MESMO ASSIM — entra no <b>cheque especial</b> (caixa negativa, transfer ban até sair do vermelho). ⚠️ <b>Avançou sem escolher?</b> Renova <b>AUTOMÁTICO por 5 anos (metade)</b>, com ou sem caixa — jogador só vai embora se VOCÊ mandar.{dormM ? <> 😤 <b>Vale pros DOIS clubes:</b> jogador que você soltar fica <b>magoado</b> — não joga por NENHUM clube seu até outro clube contratá-lo.</> : null}
                 </p>
               )}
-              {ultimoAno.length > 0 && (
-                <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: expirados.length ? '7px 0 0' : 0, lineHeight: 1.4 }}>⏳ <b>Último ano de contrato:</b> {ultimoAno.map(c => c.name).join(', ')} — encerra{ultimoAno.length > 1 ? 'm' : ''} no fim desta temporada. Quer garantir a grana cheia? <b>Venda antes de vencer.</b></p>
+              {(ultimoAno.length > 0 || uaDorm.length > 0) && (
+                <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: (expirados.length + expDorm.length) ? '7px 0 0' : 0, lineHeight: 1.4 }}>⏳ <b>Último ano de contrato:</b> {[...ultimoAno.map(c => c.name), ...uaDorm.map(c => `${c.name} 💤`)].join(', ')} — encerra{(ultimoAno.length + uaDorm.length) > 1 ? 'm' : ''} no fim desta temporada. Quer garantir a grana cheia? <b>Venda antes de vencer.</b></p>
               )}
             </div>
           )

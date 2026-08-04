@@ -699,7 +699,10 @@ function creditSeller(state: EscState, card: Card, amount: number, buyerId?: num
       ;(state.marketLog = state.marketLog ?? []).push(`💼 ${card.name} saiu SEM CONTRATO: a família gananciosa abocanhou ${familia} 🪙 — ${seller?.teamName ?? 'o clube'} levou só ${teto}`)
     }
   }
-  if (seller) seller.money += credit
+  // 🏛️ vendedor DORMINDO não joga o leilão: o money dele nunca é reconciliado
+  // na cerimônia — credita direto na caixa oficial (senão a venda evaporava)
+  if (seller?.dormindo) state.careerCoins = { ...(state.careerCoins ?? {}), [seller.id]: (state.careerCoins?.[seller.id] ?? 0) + credit }
+  else if (seller) seller.money += credit
   // 🧾 se quem VENDEU foi o humano (carreira solo), registra a venda + o que
   // tinha pago, pra a aba Transferências mostrar o lucro/prejuízo real.
   if (seller?.isHuman) {
@@ -1004,12 +1007,25 @@ function pushBid(map: BidMap, cardId: string, bid: Bid) {
   list.push(bid)
   map.set(cardId, list)
 }
+// 🏛️ MULTICLUBES × ANTI-MALANDRAGEM ("😤 magoado com você", Diego 04/08): o
+// jogador que VOCÊ deixou sem renovar se recusa a jogar em QUALQUER clube seu —
+// ativo ou dormindo. Mesmo dono = os dois assentos são seus. 2º clube só existe
+// no SOLO, então isto NUNCA bloqueia outro humano de sala online.
+export function mesmoDono(state: EscState, buyerId: number, sellerId: number | undefined | null): boolean {
+  if (sellerId == null) return false
+  if (buyerId === sellerId) return true
+  const mc = state.multiClube
+  if (!mc || state.onlineMode === 'online') return false
+  const youId = state.managers[state.youIdx]?.id
+  const meu = (id: number) => id === youId || id === mc.id
+  return meu(buyerId) && meu(sellerId)
+}
 
 // ─── resolução: pote crescente, maior lance leva, anulação por setor cheio ──
 // Empate no MAIOR lance elegível (≥2 técnicos) não decide na hora: a carta
 // entra na fila de desempate (ties) com vencedor pendente — quem resolve é o
 // re-lance cego (ver resolveOneTiebreak). Sem empate, decide aqui mesmo.
-function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leilao' | 'repescagem', reforco = false): { queue: ResolvedCard[]; unsold: Card[]; ties: TieBreak[] } {
+function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leilao' | 'repescagem', reforco = false, sameOwner: (buyerId: number, sellerId: number) => boolean = (b, sl) => b === sl): { queue: ResolvedCard[]; unsold: Card[]; ties: TieBreak[] } {
   const byPot = [...cards].sort((a, b) => {
     const pa = (bidMap.get(a.id) ?? []).reduce((s, x) => s + x.amount, 0)
     const pb = (bidMap.get(b.id) ?? []).reduce((s, x) => s + x.amount, 0)
@@ -1038,7 +1054,7 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     let i = 0
     for (; i < sorted.length; i++) {
       const m = managers.find(x => x.id === sorted[i].mgr)!
-      if (openSlots(m, card.pos) <= 0 || m.money < sorted[i].amount || sorted[i].amount < floor || m.id === exDono) { voided.push(sorted[i].mgr); continue }
+      if (openSlots(m, card.pos) <= 0 || m.money < sorted[i].amount || sorted[i].amount < floor || (exDono != null && sameOwner(m.id, exDono))) { voided.push(sorted[i].mgr); continue }
       break
     }
     if (i >= sorted.length) { // ninguém elegível
@@ -1051,7 +1067,7 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     const tiedTop: number[] = []
     for (let j = i; j < sorted.length && sorted[j].amount === top; j++) {
       const m = managers.find(x => x.id === sorted[j].mgr)!
-      if (openSlots(m, card.pos) > 0 && m.money >= top && m.id !== exDono) tiedTop.push(sorted[j].mgr)
+      if (openSlots(m, card.pos) > 0 && m.money >= top && !(exDono != null && sameOwner(m.id, exDono))) tiedTop.push(sorted[j].mgr)
     }
     if (tiedTop.length >= 2) {
       // empate no topo → desempate (vencedor decidido depois). Sem dedução aqui.
@@ -2073,9 +2089,9 @@ export function monteLocked(state: EscState, m: Manager, c: Card): boolean {
 export function montePickable(state: EscState, m: Manager, c: Card): boolean {
   const open = state.careerOnline ? careerOpenSlots(m, c.pos) : openSlots(m, c.pos)
   // 📝 ANTI-MALANDRAGEM: contrato vencido não volta de graça pro ex-dono pelo
-  // monte (senão "deixar vencer" saía mais barato que renovar). Só com outro
-  // clube comprando e o jogador voltando ao mercado um dia.
-  if ((c as { semContrato?: boolean }).semContrato && (c as { seller?: number }).seller === m.id) return false
+  // monte (senão "deixar vencer" saía mais barato que renovar). Vale pros DOIS
+  // clubes do dono (😤 magoado). Só com outro clube comprando e voltando um dia.
+  if ((c as { semContrato?: boolean }).semContrato && mesmoDono(state, m.id, (c as { seller?: number }).seller)) return false
   return open > 0 && monteAfford(m, c, !!state.careerOnline) && !monteLocked(state, m, c)
 }
 function monteAutoPick(state: EscState, m: Manager, monte: Card[], rng: () => number): Card | null {
@@ -2552,7 +2568,7 @@ function sealAndResolve(state: EscState) {
       }
     }
   }
-  const { queue, unsold, ties } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao', !!state.reserveAuction)
+  const { queue, unsold, ties } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao', !!state.reserveAuction, (b, sl) => mesmoDono(state, b, sl))
   for (const q of queue) if (q.winner !== null && q.paid > 0) {
     recordPrice(state, q.card.name, q.paid) // livro de preços
     creditSeller(state, q.card, q.paid, q.winner) // o vendedor recebe a grana da venda
@@ -4411,24 +4427,13 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.contratosOn) {
         const ctrRng = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 65537) ^ 0x5EED) >>> 0)
         const released = new Set(s.contratoRelease ?? [])
+        // 🏛️ MULTICLUBES (Diego 04/08): o clube DORMINDO decide JUNTO na janela —
+        // os vencidos dele aparecem no banner (seção 💤) com os mesmos botões.
+        // Daqui pra baixo ele segue o fluxo normal de humano: quem você soltou
+        // vai pro leilão (😤 magoado — nenhum clube seu recompra), quem ficou
+        // sem decisão renova automático 5 anos pela metade, pagando da caixa DELE.
         for (const m of s.managers) {
           if (!m.isHuman) continue
-          // 🏛️ MULTICLUBES: o clube DORMINDO é vivo e independente (regra do Diego
-          // 04/08) — mas ninguém decide por ele na janela. Então TODO contrato
-          // vencido dele renova AUTOMÁTICO por 5 anos pela metade, pagando da
-          // caixa DELE (pode negativar — valor real no extrato guardado). Dormir
-          // NUNCA perde jogador nem manda ninguém pro leilão.
-          if (m.dormindo) {
-            const expDorm = (m.squad as WonCard[]).filter(c => !c.fake && !c.cria && !c.emprestado && c.contratoAte != null && c.contratoAte < s.seasonNo)
-            for (const c of expDorm) {
-              const custo = Math.max(1, Math.ceil(valorOficial(s, c) / 2))
-              s.careerCoins = { ...(s.careerCoins ?? {}), [m.id]: (s.careerCoins?.[m.id] ?? 0) - custo }
-              c.contratoAte = s.seasonNo + contratoDur(5, ctrRng) - 1
-              ;(s.marketLog = s.marketLog ?? []).push(`📝 ${m.teamName} (dormindo 💤): ${c.name} renovou automático por ${custo} 🪙 (5 anos)`)
-              logFin(s, 'buy', `📝 Renovação automática (clube dormindo): ${c.name}`, -custo, { player: c.name, pos: c.pos }, m.id)
-            }
-            continue
-          }
           const expirados = (m.squad as WonCard[]).filter(c => !c.fake && !c.cria && c.contratoAte != null && c.contratoAte < s.seasonNo)
           const removidosPorPos: Record<string, number> = {}
           for (const c of expirados) {
