@@ -2114,6 +2114,7 @@ export const OLD_NAME: Record<string, string> = {
   'Inter Estadual': 'Bigode FC', 'Cuiabagre': 'Bagres do Rio', 'Santos Dumont': 'Tonhão FC',
   'Marreco FC': 'Inter Estadual', // ⚽ batismo do lucasigorbortoliniii: save antigo com Inter Estadual (ou Bigode FC) vira Marreco FC ao carregar
   'Império Samambaia': 'Cuiabagre', // ⚽ batismo do jorgericardo777: save antigo com Cuiabagre (ou Bagres do Rio) vira Império Samambaia ao carregar
+  'Alfacehh': 'Santos Dumont', // ⚽ batismo do matheus223lms: save antigo com Santos Dumont (ou Tonhão FC) vira Alfacehh ao carregar
 
   'Pardemeias': 'Tico do Bar FR', 'Livre-pool': 'Xandão EC',
   'White Thigs do GuGu': 'Astronáutico',
@@ -2221,7 +2222,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Dedé Bigode', team: 'Marreco FC' }, // ⚽ clube BATIZADO por apoiador (lucasigorbortoliniii — Marreco FC, ex-Inter Estadual)
     { name: 'Tião Bagre', team: 'Império Samambaia' }, // ⚽ clube BATIZADO por apoiador (jorgericardo777 — Império Samambaia, ex-Cuiabagre)
     { name: 'Cabeção da Vila', team: 'Paris São Geraldo' },
-    { name: 'Tonhão', team: 'Santos Dumont' },
+    { name: 'Tonhão', team: 'Alfacehh' }, // ⚽ clube BATIZADO por apoiador (matheus223lms — Alfacehh, ex-Santos Dumont)
     { name: 'Zé do Caixote', team: 'River Prato' },
     { name: 'Nininho', team: 'Red Bull Diet' },
     { name: 'Piu do Grêmio', team: 'Milanesa FC' },
