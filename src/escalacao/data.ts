@@ -730,7 +730,7 @@ const LAT: C[] = [
   { name: "Geferson", club: "Internacional", year: 2017, fame: 1, lo: 52, hi: 75, folk: true, bio: "Lateral revelado no Inter que entrou pro folclore ao sair de campo trocando farpas com a própria torcida." },
   { name: "Piquerez", club: "Palmeiras", year: 2023, fame: 3, lo: 74, hi: 84, bio: "Lateral-esquerdo uruguaio de fôlego e chegada — bicampeão da Libertadores e multicampeão pelo Palmeiras, marcação firme e apoio constante." },
   { name: "Juninho Capixaba", club: "Red Bull Bragantino", year: 2021, fame: 2, lo: 68, hi: 82, bio: "Lateral-esquerdo de bom cruzamento — viveu o auge no Red Bull Bragantino, vice da Sul-Americana de 2021." },
-  { name: "Kaiki", club: "Cruzeiro", year: 2024, fame: 1, lo: 58, hi: 80, promessa: true, bio: "Lateral-direito da base do Cruzeiro — promessa veloz e de bom apoio, subindo pro time profissional." },
+  { name: "Kaiki", club: "Cruzeiro", year: 2024, fame: 3, lo: 58, hi: 80, promessa: true, bio: "Lateral-direito da base do Cruzeiro — promessa veloz e de bom apoio, subindo pro time profissional." },
   { name: "Eugenio Mena", club: "Santos", year: 2014, fame: 2, lo: 64, hi: 80, bio: "Lateral da Roja bicampeã da América — passou pela Vila Belmiro correndo a esquerda." },
 ]
 
@@ -1756,9 +1756,9 @@ const ATA_EU: C[] = [
   { name: "Kingsley Coman", club: "Bayern", year: 2020, fame: 3, lo: 80, hi: 87, bio: "Ponta francês de explosão e drible — eternizado pelo gol de cabeça que deu a Champions ao Bayern em 2020." },
   { name: "Olivier Giroud", club: "Milan", year: 2023, fame: 3, lo: 80, hi: 87, bio: "Centroavante francês de pivô e voleios acrobáticos — artilheiro histórico da França, campeão do mundo em 2018 e do scudetto pelo Milan." },
   { name: "Bradley Barcola", club: "PSG", year: 2024, fame: 3, lo: 78, hi: 85, bio: "Ponta francês veloz e desequilibrante — revelado no Lyon e peça ofensiva de destaque no Paris Saint-Germain." },
-  { name: "Nacho Prestianni", club: "Benfica", year: 2024, fame: 1, lo: 62, hi: 82, promessa: true, bio: "Joia argentina de Vélez — ponta canhoto habilidoso que rumou cedo ao Benfica como aposta de futuro." },
+  { name: "Nacho Prestianni", club: "Benfica", year: 2024, fame: 3, lo: 62, hi: 82, promessa: true, bio: "Joia argentina de Vélez — ponta canhoto habilidoso que rumou cedo ao Benfica como aposta de futuro." },
   { name: "Santiago Solari", club: "Real Madrid", year: 2002, fame: 2, lo: 76, hi: 84, bio: "Ponta-esquerda argentino dos Galácticos do Real — velocidade e drible que renderam títulos, incluindo a Champions de 2002." },
-  { name: "Giuliano Simeone", club: "Atlético de Madrid", year: 2025, fame: 2, lo: 68, hi: 82, promessa: true, bio: "Ponta argentino de correria incansável — filho do Cholo que ganhou espaço no Atlético na raça e na intensidade." },
+  { name: "Giuliano Simeone", club: "Atlético de Madrid", year: 2025, fame: 3, lo: 68, hi: 82, promessa: true, bio: "Ponta argentino de correria incansável — filho do Cholo que ganhou espaço no Atlético na raça e na intensidade." },
   { name: "Diego Costa", club: "Atlético de Madrid", year: 2014, fame: 4, lo: 83, hi: 89, bio: "Centroavante hispano-brasileiro de força bruta, provocação e gols — artilheiro do Atlético campeão espanhol de 2014." },
   { name: "Julián Álvarez", club: "Atlético de Madrid", year: 2025, fame: 4, lo: 82, hi: 89, bio: "‘La Araña’ — centroavante argentino de movimentação e faro, campeão do mundo em 2022 e da tríplice coroa pelo City antes de brilhar no Atlético." },
   { name: "Lautaro Martínez", club: "Inter", year: 2024, fame: 4, lo: 84, hi: 90, bio: "‘El Toro’ — centroavante argentino matador e capitão da Inter campeã italiana de 2024, artilheiro e campeão do mundo em 2022." },
