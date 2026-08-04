@@ -17,6 +17,8 @@ lugares: tabela de classificação (19px), ranking de clubes (19px), lista de jo
 da rodada (16px, um de cada lado do placar) e placar AO VIVO (34px). Vale igual
 pros times de batismo (o motor só olha o nome). 🏀 O basquete segue com a inicial
 (visual dele ainda não passou pelo Diego).
+📲 Story do Instagram pronto (scratchpad/story-escudos.png, 1080×2100, selo
+"já no ar 🔥") — Diego vai postar.
 📸 Amostras aprovadas pelo Diego: mockup dos 6 times + folha dos 146
 (scratchpad: mock-6times.png, escudos-todos.png, mock-alface.png).
 ESCADA DE VENDA combinada: (1) escudo automático grátis pra todos · (2) editor
