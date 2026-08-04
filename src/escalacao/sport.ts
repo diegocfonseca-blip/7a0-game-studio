@@ -161,8 +161,28 @@ export function useAgenciaLiberada(): boolean {
   return agenciaOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email) })
+// 🔨🎬 REVELAÇÃO CINEMA (em teste, 03/08): a revelação do martelo ganha tremida
+// de tela, brilho/confete na Lenda e o selo "QUASE!". SÓ a conta do Diego vê,
+// pra ele sentir ao vivo (com os SONS reais do jogo) antes de liberar pra todos.
+// Não muda NADA da lógica do leilão — é só a cara do momento. Liberar geral: é
+// só trocar a lista por AGENCIA_GERAL-style ou esvaziar a checagem.
+const REVEAL_CINEMA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let revealCinema = false
+function applyRevealCinema(email?: string | null): void {
+  const u = !!email && REVEAL_CINEMA_TESTERS.has(email.toLowerCase())
+  if (u === revealCinema) return
+  revealCinema = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function revealCinemaOn(): boolean { return revealCinema }
+export function useRevealCinema(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return revealCinema
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 
