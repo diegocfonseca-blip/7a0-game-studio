@@ -5369,10 +5369,9 @@ export function EscRanking() {
   // 🪜 aba Carreira LIBERADA GERAL (decisão do Diego 04/08): histórico completo
   // visível pra todos e os títulos de carreira novos seguem contando normalmente.
   const [mode, setMode] = useState<RankMode>('ronline')
-  // 🪜 sub-filtro da aba Carreira (pedido do Diego 03/08): POR CARREIRA (cada
-  // save uma linha, cartas daquela carreira) ou TOTAL DA CONTA (tudo somado,
-  // todas as cartas de carreira — o jeito antigo).
-  const [carSub, setCarSub] = useState<'porcarreira' | 'total'>('porcarreira')
+  // 🪜 aba Carreira mostra SÓ por-carreira (04/08, Diego tirou o "Total da conta"
+  // daqui — o total da conta inteira já mora no álbum do técnico, chip Conta toda;
+  // o modo 'carreiratotal' segue existindo no servidor, só não tem botão).
   const [rows, setRows] = useState<RankRow[] | null>(null)
   const [down, setDown] = useState(false) // backend fora do ar — evita travar em "Carregando…"
   const [meId, setMeId] = useState<string | null>(null)
@@ -5418,7 +5417,7 @@ export function EscRanking() {
             localStorage.setItem('esc-reconcile-dia', hoje)
           }
         } catch { /* localStorage bloqueado — segue sem o acerto */ }
-        const pmode = mode === 'carreira' && carSub === 'total' ? 'carreiratotal' : mode
+        const pmode = mode
         // 🕐 RANKING DIÁRIO: lê a foto pronta (esc_ranking_cache, servidor atualiza
         // 1×/dia) — a conta pesada não roda mais pra cada visitante. Sem foto
         // (cache recém-limpo), cai no cálculo ao vivo como antes.
@@ -5435,7 +5434,7 @@ export function EscRanking() {
       }
     })()
     return () => { alive = false }
-  }, [mode, carSub])
+  }, [mode])
 
   const loading = rows === null
   // Ranking por TÍTULOS (a artilharia saiu — é rara/pouco significativa e fácil
@@ -5478,18 +5477,11 @@ export function EscRanking() {
         ))}
       </div>
 
-      {/* 🪜 sub-filtro da Carreira: por carreira × total da conta */}
+      {/* 🪜 Carreira: SÓ a lista por carreira (decisão do Diego 04/08 — a sub-aba
+          "Total da conta" saiu: o total da conta toda já aparece ao tocar no
+          técnico, dentro do álbum, no chip "📊 Conta toda"). */}
       {mode === 'carreira' && (
-        <div className="flex gap-2">
-          {([['porcarreira', '🪜 Por carreira', 'cada carreira é uma linha'], ['total', '📊 Total da conta', 'todas as carreiras somadas']] as const).map(([id, label, sub]) => (
-            <button key={id} onClick={() => setCarSub(id)}
-              className="flex-1 border-[2.5px] border-black rounded-xl py-2 px-1 font-black text-[11px] uppercase leading-tight"
-              style={{ backgroundColor: carSub === id ? GOLD : '#fff', boxShadow: carSub === id ? `2px 2px 0 0 ${INK}` : 'none', ...OSWALD }}>
-              {label}
-              <span className="block text-[8.5px] font-bold normal-case text-black/55">{sub}</span>
-            </button>
-          ))}
-        </div>
+        <p className="text-center text-[10px] font-bold text-black/45">cada carreira é uma linha · toque no técnico pra ver o total da conta</p>
       )}
 
       {/* dica: dá pra tocar num técnico e ver o álbum dele */}

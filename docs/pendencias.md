@@ -1,5 +1,11 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/08/2026)
 
+## 🏆 Ranking Carreira: saiu a sub-aba "Total da conta" (04/08, Diego) ✅
+A aba Carreira mostra SÓ a lista por carreira (cada save uma linha). O total
+da conta inteira já aparece ao tocar no técnico (álbum, chip "📊 Conta toda")
+— tinha ficado redundante. O modo 'carreiratotal' segue no servidor (RPC),
+só não tem mais botão; pra voltar é só recolocar o chip na EscRanking.
+
 ## 🏦 Banco Legends: regra do TRIPLO (04/08, decisão do Diego) ✅
 Cada R$ 1 de Pix vira **3 moedas** — sempre o triplo (R$10→30 🪙 · R$50→150 ·
 R$100→300 · R$500→1.500 · R$1.000→3.000). Vitrine no jogo mostra a regra e os
