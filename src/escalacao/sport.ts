@@ -133,10 +133,12 @@ export function useTemaLiberado(): boolean {
 // Estrutura) vale pra TODO MUNDO. Pra voltar ao teste fechado: AGENCIA_GERAL
 // = false e a lista de testers reassume.
 const AGENCIA_GERAL = true
+// A Agência segue LIBERADA GERAL (AGENCIA_GERAL=true) — TODO MUNDO tem. Esta lista
+// é só o fallback caso um dia volte ao teste fechado; mantemos os convidados aqui.
 const AGENCIA_TESTERS = new Set([
   'diego.c.fonseca@gmail.com',
-  'msb102010@hotmail.com', // testador convidado pelo Diego (03/08)
-  'denilson.stifler10@gmail.com', // testador convidado pelo Diego (03/08)
+  'msb102010@hotmail.com',
+  'denilson.stifler10@gmail.com',
 ])
 let agenciaOk = AGENCIA_GERAL
 function applyAgenciaUnlock(email?: string | null): void {
@@ -166,10 +168,13 @@ export function useAgenciaLiberada(): boolean {
 // pra ele sentir ao vivo (com os SONS reais do jogo) antes de liberar pra todos.
 // Não muda NADA da lógica do leilão — é só a cara do momento. Liberar geral: é
 // só trocar a lista por AGENCIA_GERAL-style ou esvaziar a checagem.
+// 🔓 LIBERADO GERAL (04/08, ordem do Diego): a Revelação Cinema é PRA TODOS.
+// Pra voltar ao teste fechado: REVEAL_CINEMA_GERAL = false e a lista reassume.
+const REVEAL_CINEMA_GERAL = true
 const REVEAL_CINEMA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
-let revealCinema = false
+let revealCinema = REVEAL_CINEMA_GERAL
 function applyRevealCinema(email?: string | null): void {
-  const u = !!email && REVEAL_CINEMA_TESTERS.has(email.toLowerCase())
+  const u = REVEAL_CINEMA_GERAL || (!!email && REVEAL_CINEMA_TESTERS.has(email.toLowerCase()))
   if (u === revealCinema) return
   revealCinema = u
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
