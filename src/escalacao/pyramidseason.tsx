@@ -2323,13 +2323,22 @@ function CopaTieRow({ tie, colors = {}, safName }: { tie: CopaTie; colors?: Reco
   const winDiv = aWin ? tie.aDiv : tie.bDiv, loseDiv = aWin ? tie.bDiv : tie.aDiv
   const zebra = DIV_RANKN[winDiv] < DIV_RANKN[loseDiv]
   const fA = copaSideFill(tie.a, colors, safName), fB = copaSideFill(tie.b, colors, safName)
-  const side = (t: SimTeam, win: boolean, away: boolean, f: CopaFill) => (
-    <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: away ? 'flex-end' : 'flex-start' }}>
-      {!away && <span style={{ fontSize: 10 }}>{f.mark}</span>}
-      <span style={{ fontWeight: 800, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: f.ink, ...(win ? {} : pensDelay > 0 ? { animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` } : { opacity: 0.62, textDecoration: 'line-through' }) }}>{copaName(t)}</span>
-      {away && <span style={{ fontSize: 10 }}>{f.mark}</span>}
-    </span>
-  )
+  const side = (t: SimTeam, win: boolean, away: boolean, f: CopaFill) => {
+    // mesmo dim do nome (anti-spoiler: só risca/apaga o perdedor quando os pênaltis
+    // terminam de animar). Aplicado também ao escudo pra não entregar o resultado.
+    const dim = win ? {} : pensDelay > 0 ? { animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` } : { opacity: 0.62, textDecoration: 'line-through' as const }
+    // 🛡️ escudo (gerado do nome) no confronto da Copa Legends — igual ao placar grande
+    const esc = <span style={{ flex: 'none', display: 'flex', ...dim }}><Escudo nome={copaName(t)} size={15} /></span>
+    return (
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: away ? 'flex-end' : 'flex-start' }}>
+        {!away && esc}
+        {!away && <span style={{ fontSize: 10 }}>{f.mark}</span>}
+        <span style={{ fontWeight: 800, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: f.ink, ...dim }}>{copaName(t)}</span>
+        {away && <span style={{ fontSize: 10 }}>{f.mark}</span>}
+        {away && esc}
+      </span>
+    )
+  }
   return (
     <div style={{ ...box('transparent'), position: 'relative', overflow: 'hidden', border: `2.5px solid ${you ? '#B23B2E' : INK}`, boxShadow: `3px 3px 0 0 ${INK}`, padding: '7px 9px', marginBottom: 7 }}>
       <CopaHalves fL={fA} fR={fB} />
@@ -2384,15 +2393,21 @@ function CopaLiveMatch({ tie, pos, big, colors = {}, safName }: { tie: CopaTie; 
     if (pensDelay > 0) return { ...base, animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` } // perdedor por pênaltis: espera a disputa
     return { ...base, opacity: 0.6, textDecoration: 'line-through' }
   }
+  // 🛡️ mesmo apagar anti-spoiler do nome, mas pro escudo (sem o risco de texto)
+  const escDim = (s: typeof L): React.CSSProperties => {
+    if (!done || s.win) return {}
+    if (pensDelay > 0) return { animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` }
+    return { opacity: 0.6 }
+  }
   return (
     <div style={{ ...box('transparent'), position: 'relative', overflow: 'hidden', border: `${big ? 3 : 2}px solid ${you ? '#B23B2E' : INK}`, boxShadow: `${big ? 4 : 2}px ${big ? 4 : 2}px 0 0 ${INK}`, padding: big ? '9px 12px' : '6px 9px', marginBottom: big ? 9 : 6 }}>
       <CopaHalves fL={L.f} fR={R.f} />
       <div style={{ position: 'relative', zIndex: 1 }}>
         {!done && <p style={{ textAlign: 'center', margin: '0 0 4px' }}><span style={{ ...copaCenterChip, fontSize: big ? 10 : 9, fontWeight: 900, color: '#ff9a8f', ...OSWALD }}>🔴 {phaseLbl ? phaseLbl + ' · ' : ''}{legMin}'</span></p>}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}><span style={{ fontSize: 10 }}>{L.f.mark}</span><span style={nameStyle(L)}>{L.name}</span></span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}><span style={{ flex: 'none', display: 'flex', ...escDim(L) }}><Escudo nome={L.name} size={big ? 18 : 15} /></span><span style={{ fontSize: 10 }}>{L.f.mark}</span><span style={nameStyle(L)}>{L.name}</span></span>
           <span style={{ fontWeight: 900, fontSize: big ? 18 : 13, ...OSWALD, background: INK, color: '#fff', borderRadius: 7, padding: big ? '3px 11px' : '2px 8px', whiteSpace: 'nowrap' }}>{L.score} × {R.score}</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: 'flex-end' }}><span style={nameStyle(R)}>{R.name}</span><span style={{ fontSize: 10 }}>{R.f.mark}</span></span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: 'flex-end' }}><span style={nameStyle(R)}>{R.name}</span><span style={{ fontSize: 10 }}>{R.f.mark}</span><span style={{ flex: 'none', display: 'flex', ...escDim(R) }}><Escudo nome={R.name} size={big ? 18 : 15} /></span></span>
         </div>
         {!done
           ? (lastG ? <p style={{ textAlign: 'center', margin: '4px 0 0' }}><span style={{ ...copaCenterChip, fontSize: big ? 10 : 9, fontWeight: 800, ...OSWALD }}>⚽ {lastG.name}</span></p> : null)
