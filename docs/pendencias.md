@@ -1,4 +1,35 @@
-# 📌 Pendências combinadas com o Diego (atualizado 04/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 05/08/2026)
+
+## ✅ ENTREGUE 05/08 — 3 pedidos do Diego (já na MAIN, ao vivo)
+1. **Escudos nos confrontos da Copa dos 8** — a lista "Todos os jogos da fase"
+   (screens.tsx, `tieRow`) agora mostra o escudo (gerado do nome, o mesmo
+   `<Escudo>` do placar grande) nos dois lados. A Copa do Mundo já tinha a
+   bandeira do país (`nm()` prefixa FLAG), então lá não mexi.
+2. **Expulso SAI da sala de verdade (online)** — o handler do evento `kick`
+   (store.tsx) trocou o `alert()` (que o celular às vezes engolia → pessoa
+   continuava assistindo) por: `KICKED_OUT` na hora + banner vermelho na tela
+   ("VOCÊ FOI EXPULSO", estado `kickedOut`). Não fica mais de penetra.
+3. **Patrocínio da Várzea = zoeira do lanche, SEM dinheiro** — `SPONSOR_PAY.V=0`
+   (várzea não paga nada). Marcas REAIS de esquina: Guaravita, Trakinas, Fofura
+   (estadiodata.ts). O cartão (estadio.tsx, `varzeaLanche`) mostra as 3 com o
+   aviso "não pinga dinheiro, paga em lanche — suba pra Série D pra faturar".
+   Régua nova de renda: D +5 · C +10 · B +15 · A +20 (antes era D0·C5·B10·A20).
+   ⚠️ Diego aprovou TUDO sem pedir mockup ("ta td aprovado").
+
+## ⏳ AINDA PENDENTE (combinado, ainda não feito)
+- **Zoeira dos banners de evento (OCULTO nas cartas)**: ampliar as categorias
+  escondidas que disparam os banners na simulação — 🍺 baladeiro (noitada),
+  🟥 pavio curto (expulsão), 🤕 vidro (lesão) + novas (frangueiro, mercenário,
+  guerreiro, maestro, matador…). NADA escrito na carta; só dispara evento.
+  Analisar TODAS as cartas e classificar mais jogadores + banco de frases.
+  (Regras em eventos.ts: baladeiro→noitada, pavio→expulsão, peso 4× cada.)
+- **Copa dos 8 — visual mais bonito dos jogos simulados** (os que você NÃO tá):
+  Diego achou "muito feio". Mockup em scratchpad/copa-bonita.html. Aguardando.
+- **Modo Libertadores temático** (gated pro Diego testar): 32 times, 8 grupos de
+  4, mata-mata, baralho SÓ de quem jogou a Liberta (clube+ano corretos), jogos
+  simulados AO VIVO minuto a minuto (igual Copa, não resultado pronto nem só
+  tabela). Visual "cara da Liberta". Mockups: scratchpad/liberta-*.html.
+
 
 ## ⚽ Batismo novo + apoiadores (04/08)
 · **Barcenite FC** (batismo do ricardopessoafreire / xRichard56, 👑 Lenda +
