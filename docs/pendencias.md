@@ -1,5 +1,12 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/08/2026)
 
+## 👑 Novo Lenda (04/08): ricardopessoafreire@gmail.com
+Entrou em FOUNDERS como 'ouro' + FUNDADOR **nº 31** (apoio.tsx). Ganha cor/selo
+👑🖋️, Modo Manual, tudo do ouro e direito a batismo de clube (ainda não usou).
+⚠️ Se o Diego NÃO quiser dar o selo de fundador a ele, é só tirar a linha do
+FUNDADOR_N (o tier ouro fica igual).
+
+
 ## 🃏 Baralho: Philipp Lahm virou LENDA (04/08, pedido do Diego)
 Era craque (fame 4, 86-92) — agora 👑 lenda (fame 5, **88-93**), entre Roberto
 Carlos (88-93) e Cafu (87-92). Bio já existia. Efeito: entra no pacote de lendas
