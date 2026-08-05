@@ -18,6 +18,7 @@ import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
+import { Escudo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, getSport, escadaLiberada, type Sport } from './sport'
 import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
@@ -4184,7 +4185,10 @@ function TopScorersBox({ highlight, title = '⚽ ARTILHARIA · TEMPO REAL', hold
               style={r.teamId === highlight ? { background: myApoioPerk()?.grad ?? APOIO_PERKS.bege.light, color: TIER_INK[myApoioPerk()?.tier ?? 'bege'] } : undefined}>
               <td className="pr-1">{i + 1}</td>
               <td className="truncate max-w-[130px]">{r.name}</td>
-              <td className={`truncate max-w-[110px] ${r.teamId === highlight ? '' : 'text-black/70'}`}>{r.teamName}</td>
+              <td className={`max-w-[120px] ${r.teamId === highlight ? '' : 'text-black/70'}`}>
+                {/* 🛡️ escudinho do clube do artilheiro (mesmo brasão da tabela) */}
+                <span className="flex items-center gap-1 min-w-0"><Escudo nome={r.teamName} size={15} /><span className="truncate">{r.teamName}</span></span>
+              </td>
               <td className="text-center font-black">{bb ? ppgTxt : r.goals}</td>
               {bb && <td className="text-center text-black/40">{r.goals}</td>}
             </tr>
@@ -4221,7 +4225,10 @@ function CopaScorersBox({ highlight }: { highlight: number }) {
               style={r.teamId === highlight ? { background: myApoioPerk()?.grad ?? APOIO_PERKS.bege.light, color: TIER_INK[myApoioPerk()?.tier ?? 'bege'] } : undefined}>
               <td className="pr-1">{i + 1}</td>
               <td className="truncate max-w-[130px]">{r.name}</td>
-              <td className={`truncate max-w-[110px] ${r.teamId === highlight ? '' : 'text-black/70'}`}>{r.teamName}</td>
+              <td className={`max-w-[120px] ${r.teamId === highlight ? '' : 'text-black/70'}`}>
+                {/* 🛡️ escudinho do clube do artilheiro (mesmo brasão da tabela) */}
+                <span className="flex items-center gap-1 min-w-0"><Escudo nome={r.teamName} size={15} /><span className="truncate">{r.teamName}</span></span>
+              </td>
               <td className="text-center font-black">{r.goals}</td>
             </tr>
           ))}
@@ -4321,7 +4328,14 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
               <tr key={t.id} className="border-t border-black/10 font-semibold"
                 style={{ background: rowBg, color: rowInk, fontWeight: isMgr ? 800 : 500 }}>
                 <td className="pr-1">{rank}</td>
-                <td className="truncate max-w-[130px]">{confTier ? confOf(t.id) : ''}{isRival ? '🔥 ' : isMgr ? '👤 ' : ''}{t.name}</td>
+                {/* 🛡️ escudo do clube (gerado do nome) — só no futebol; o basquete
+                    segue sem, o visual dele ainda não passou pelo Diego */}
+                <td className="max-w-[150px]">
+                  <span className="flex items-center gap-1.5 min-w-0">
+                    {!bb && <Escudo nome={t.name} size={18} />}
+                    <span className="truncate">{confTier ? confOf(t.id) : ''}{isRival ? '🔥 ' : isMgr ? '👤 ' : ''}{t.name}</span>
+                  </span>
+                </td>
                 {bb ? (
                   <>
                     <td className="text-center font-black">{t.w}</td>

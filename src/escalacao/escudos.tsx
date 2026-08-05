@@ -334,6 +334,14 @@ const DICIO: [string[], keyof typeof SIM][] = [
   [[' gol ', 'peteca', 'pelad', 'society', 'boleir', ' pelot', 'craque', ' bola', 'futebol', 'esport', 'atletic', 'atlétic', 'juventu'], 'chuteira'],
 ]
 
+// ─── 🧼 nome LIMPO: sem emoji e sem espaço sobrando ───────────────────────
+// Na tabela o nome vem com o SELO do tier ("Fulano FC 👑🖊️"). Sem limpar, o
+// escudo mudaria quando a pessoa trocasse de tier — e o clube perderia a cara.
+// (Regex igual ao stripEmoji do apoio.tsx; cópia local pra este módulo ficar puro.)
+export function nomeLimpo(nome: string): string {
+  return nome.replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}‍️︎⃣]/gu, '').replace(/\s+/g, ' ').trim()
+}
+
 // ─── 🔒 hash determinístico do nome (mesmo nome = mesmo escudo, sempre) ────
 function hashNome(nome: string): number {
   let h = 2166136261
@@ -346,7 +354,8 @@ const semAcento = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-�
 export interface EscudoDesign { shape: number; pat: number; c1: string; c2: string; sim: keyof typeof SIM | null; letra: string }
 
 // a receita do escudo a partir do NOME (pura, sem estado)
-export function escudoDe(nome: string): EscudoDesign {
+export function escudoDe(nomeCru: string): EscudoDesign {
+  const nome = nomeLimpo(nomeCru) || nomeCru // 🧼 tira o selo do tier (👑🖊️) antes de tudo
   const h = hashNome(nome)
   const alvo = ' ' + semAcento(nome) + ' '
   let sim: keyof typeof SIM | null = null
@@ -369,8 +378,9 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {}
 // ─── 🛡️ o componente ──────────────────────────────────────────────────────
 // `size` = altura em px. Abaixo de 40px entra a versão MINI: sem detalhes finos
 // e com traço mais grosso (o que lê na tabela é a silhueta + a cor).
-export function Escudo({ nome, size = 30, title }: { nome: string; size?: number; title?: string }) {
-  const pronta = LOGOS_PRONTAS[nome.trim()]
+export function Escudo({ nome: nomeCru, size = 30, title }: { nome: string; size?: number; title?: string }) {
+  const nome = nomeLimpo(nomeCru) || nomeCru // 🧼 mesmo escudo com ou sem o selo do tier
+  const pronta = LOGOS_PRONTAS[nome]
   if (pronta) return <>{pronta(size)}</>
   const d = escudoDe(nome)
   const mini = size < 40

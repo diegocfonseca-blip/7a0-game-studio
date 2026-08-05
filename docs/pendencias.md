@@ -30,8 +30,13 @@ Cobertura medida: 114 de 146 nomes (78%) com símbolo pelo significado.
 💰 `LOGOS_PRONTAS` (mapa vazio) = onde entram as logos ARTESANAIS pagas: o
 usuário manda a arte, o Diego aprova, eu redesenho em SVG (~2 KB) e cadastro ali;
 ela passa na frente do automático.
-✅ **NO AR (04/08, autorizado pelo Diego)** — `<Escudo nome={} />` ligado em 4
-lugares: tabela de classificação (19px), ranking de clubes (19px), lista de jogos
+✅ **NO AR (04/08, autorizado pelo Diego)** — `<Escudo nome={} />` ligado em 6
+lugares (o Diego pediu na tabela do modo RÁPIDO também):
+· modo RÁPIDO: tabela da Liga Legends (18px) e artilharia (15px) — só futebol
+🧼 O nome é LIMPO de emoji antes de gerar (`nomeLimpo`): na tabela o nome vem com
+o selo do tier ("Fulano 👑🖊️") e sem isso o escudo MUDARIA ao trocar de tier.
+Testado em scratchpad/escudocheck.mjs.
+· carreira: tabela de classificação (19px), ranking de clubes (19px), lista de jogos
 da rodada (16px, um de cada lado do placar) e placar AO VIVO (34px). Vale igual
 pros times de batismo (o motor só olha o nome). 🏀 O basquete segue com a inicial
 (visual dele ainda não passou pelo Diego).
