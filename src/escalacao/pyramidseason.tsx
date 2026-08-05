@@ -2758,6 +2758,20 @@ export function PyramidSeasonScreen() {
     if (copaFinished && state.careerOnline && state.copaDoneSeason !== state.seasonNo) dispatch({ type: 'MARK_COPA_DONE' })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished])
+  // 💰 FECHAMENTO DAS CONTAS (carreira SOLO): assim que a liga E as copas acabam,
+  // o caixa recebe TUDO da temporada de uma vez — prêmios, bilheteria, patrocínio,
+  // renda do empresário, menos a folha salarial. Antes isso só entrava quando você
+  // abria o leilão, e a moeda "aparecia do nada" no meio do pregão. No ONLINE
+  // continua como era (quem manda é o host, no dispatch da sala).
+  useEffect(() => {
+    if (!copaFinished || !state.careerOnline || state.onlineMode === 'online') return
+    if (state.booksSeason === state.seasonNo) return
+    const sb = scorerRewards(divTop)
+    const cr = copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] })
+    const mrg = (a: Record<number, number>, b: Record<number, number>) => { const o = { ...a }; for (const k in b) o[+k] = (o[+k] ?? 0) + b[+k]; return o }
+    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards) })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [copaFinished, state.booksSeason, state.seasonNo])
   // 🏛️ MULTICLUBES: momento SEGURO pra trocar = nenhuma rodada nem Copa animando na
   // tela (fora do leilão já é garantido — o leilão é outra tela). Se apertou o seletor
   // no meio de uma rodada (auto), a troca ESPERA e abre o confirmar no fim dela.
