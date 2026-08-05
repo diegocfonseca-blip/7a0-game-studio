@@ -3213,6 +3213,29 @@ export function PyramidSeasonScreen() {
           if (state.onlineMode !== 'online' || humans.length <= 1) return (
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
               {copaGate}
+              {/* 💰 FECHAMENTO DA TEMPORADA — o que entrou e o que saiu, na hora em
+                  que a temporada (liga + copas) acabou. Sem surpresa depois no leilão. */}
+              {state.booksSeason === state.seasonNo && (() => {
+                const led = (state.careerLedger ?? []).filter(e => e.season === state.seasonNo && ['reward', 'gate', 'salary', 'sponsor', 'empresario'].includes(e.kind))
+                if (!led.length) return null
+                const total = led.reduce((n, e) => n + e.amount, 0)
+                return (
+                  <div style={{ ...box('#FFFDF3'), padding: 11, marginBottom: 10 }}>
+                    <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 6px' }}>💰 FECHAMENTO DA TEMPORADA {state.seasonNo}</p>
+                    {led.map(e => (
+                      <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, padding: '2px 0', borderBottom: '1px dashed rgba(0,0,0,.12)' }}>
+                        <span style={{ color: 'rgba(0,0,0,.75)' }}>{e.label}</span>
+                        <span style={{ color: e.amount < 0 ? '#C2452F' : e.amount > 0 ? '#1B7A3D' : 'rgba(0,0,0,.4)', fontWeight: 900 }}>{e.amount > 0 ? '+' : ''}{e.amount} 🪙</span>
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 900, marginTop: 6, ...OSWALD }}>
+                      <span>SALDO DA TEMPORADA</span>
+                      <span style={{ color: total < 0 ? '#C2452F' : '#1B7A3D' }}>{total > 0 ? '+' : ''}{total} 🪙</span>
+                    </div>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(0,0,0,.5)', margin: '5px 0 0' }}>Já caiu no caixa ({state.careerCoins?.[youId] ?? 0} 🪙). Compra e venda no leilão contam na hora, uma a uma.</p>
+                  </div>
+                )
+              })()}
               {noVermelho && (
                 <div style={{ background: '#C2452F', color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 11, boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 11px', marginBottom: 10, ...OSWALD }}>
                   <p style={{ fontWeight: 900, fontSize: 12.5, margin: 0 }}>🚫 Transfer ban — clube no vermelho ({state.careerCoins?.[youId] ?? 0} 🪙)</p>
