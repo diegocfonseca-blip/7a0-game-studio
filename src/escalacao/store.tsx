@@ -246,6 +246,11 @@ function escadaAfterPlacements(s: EscState) {
 // REGISTRA cada um no extrato pela VARIAÇÃO REAL da caixa do humano. Mantém a
 // mesma ordem/efeito de antes (prêmios → bilheteria → folha) — só soma o registro.
 function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
+  // 🔒 UMA VEZ POR TEMPORADA: o fechamento acontece assim que a temporada (liga +
+  // copas) termina. Se já foi lançado, qualquer chamada depois (abrir o leilão,
+  // refazer o leilão) NÃO repete nada — o caixa nunca é creditado duas vezes.
+  if (s.booksSeason === (s.seasonNo ?? 1)) return
+  s.booksSeason = s.seasonNo ?? 1
   const online = s.onlineMode === 'online'
   const humans = s.managers.filter(m => m.isHuman)
   // snapshot da caixa de cada humano — pra registrar o extrato pela VARIAÇÃO REAL
@@ -745,6 +750,18 @@ function creditSeller(state: EscState, card: Card, amount: number, buyerId?: num
     const boughtFor = (card as WonCard).buyPrice ?? (card as { paid?: number }).paid ?? 0
     logFin(state, 'sell', card.semContrato ? `💼 ${card.name} (sem contrato)` : `💰 ${card.name}`, credit, { player: card.name, pos: card.pos, buyPrice: boughtFor }, sellerId)
   }
+  mirrorWallets(state) // 💰 venda entra na caixa NA HORA
+}
+// 💰 CAIXA EM TEMPO REAL (carreira): durante o leilão o `money` do técnico É a
+// caixa do clube (foi semeado dela). Toda compra/venda espelha na careerCoins na
+// mesma hora — antes o número só era reconciliado na cerimônia, então quem
+// vendia via "não aconteceu nada" e quem comprava via o caixa velho.
+// O clube DORMINDO nunca entra aqui (o money dele é um número antigo).
+function mirrorWallets(s: EscState) {
+  if (!s.careerOnline) return
+  const cc = { ...(s.careerCoins ?? {}) }
+  for (const m of s.managers) if (m.isHuman && !m.dormindo) cc[m.id] = Math.round(m.money)
+  s.careerCoins = cc
 }
 // ARTILHEIRO DA TEMPORADA: o goleador de cada divisão faz o valor de piso do
 // jogador subir (D+4, C+8, B+12, A+16) — o mesmo número que o time ganhou de
@@ -1163,6 +1180,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   tb.bids = amounts // registra quanto cada um cobriu (transparência na revelação)
   const rc = state.revealQueue.find(q => q.card.id === tb.cardId)
   if (rc) { rc.winner = winner; rc.paid = max }
+  mirrorWallets(state) // 💰 compra no desempate sai da caixa NA HORA
 }
 
 // CPU no desempate: cobre um pouco acima do valor empatado conforme o
@@ -2220,6 +2238,7 @@ function takeFromMonte(state: EscState, cardId: string) {
   creditSeller(state, card, paid, mgrId) // vendedor recebe o valor mesmo indo pelo monte
   agenciaTransacao(state, card) // 🕴️ agenciado mudou de clube pelo monte → comissão
   m.squad.push({ ...card, paid, buyPrice: paid, via: 'monte', semContrato: undefined, contratoAte: undefined })
+  mirrorWallets(state) // 💰 compra no monte sai da caixa NA HORA
 }
 
 // avança o ponteiro do monte, deixando CPUs escolherem sozinhas.
@@ -2427,6 +2446,7 @@ type Action =
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
   | { type: 'MARK_COPA_DONE' }
+  | { type: 'CLOSE_SEASON_BOOKS'; rewards?: Record<number, number> } // 💰 fecha as contas da temporada (prêmios + bilheteria + patrocínio + empresário − folha) assim que liga+copas acabam
   | { type: 'SET_CHAT'; off: boolean } // 💬 host liga/desliga o chat da sala
   | { type: 'SET_SIM_SPEED'; speed: number } // ⏩ velocidade da simulação (host/solo)
   | { type: 'SET_STREAM_CHAMP_CARD'; slot: 'liga' | 'copa'; card: WonCard } // 🎥 stream: guarda a carta do campeão pra sala inteira ver/abrir
@@ -2654,6 +2674,7 @@ function sealAndResolve(state: EscState) {
     // lugar ao famoso — não deixa o elenco do bot inchar de carta de brincadeira.
     if (w && !w.isHuman && w.squad.length > 20) { const fi = w.squad.findIndex(c => c.fake); if (fi >= 0) w.squad.splice(fi, 1) }
   }
+  mirrorWallets(state) // 💰 arremates e vendas do pregão entram na caixa NA HORA
   state.revealQueue = queue
   state.revealIdx = 0
   state.currentCards = unsold
@@ -2872,6 +2893,16 @@ export function reducer(state: EscState, action: Action): EscState {
     // pirâmide: a Copa da temporada atual terminou de animar → marca, pra o save
     // não re-animar a Copa do zero ao retomar (mostra direto os campeões/decisão).
     case 'MARK_COPA_DONE': { s.copaDoneSeason = s.seasonNo; return s }
+    // 💰 FECHAMENTO DA TEMPORADA (solo): acabou a liga E as copas → contabiliza
+    // TUDO de uma vez (prêmios, bilheteria, patrocínio, renda do empresário,
+    // menos a folha salarial). Antes isso só caía quando você abria o leilão —
+    // por isso a caixa "aumentava do nada" no meio do pregão. Idempotente
+    // (applySeasonMoney trava por temporada): abrir o leilão depois não repete.
+    case 'CLOSE_SEASON_BOOKS': {
+      if (!s.careerOnline) return s
+      applySeasonMoney(s, action.rewards)
+      return s
+    }
     case 'SET_CHAT': { s.chatOff = action.off; return s } // 💬 host ligou/desligou o chat
     case 'SET_SIM_SPEED': { s.simSpeed = action.speed > 0 ? action.speed : 1; return s } // ⏩ ritmo da simulação
     // 🎥 STREAM: o campeão abriu o pacote (ou o host abriu no lugar de quem saiu).

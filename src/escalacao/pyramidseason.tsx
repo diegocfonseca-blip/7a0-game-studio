@@ -2758,6 +2758,20 @@ export function PyramidSeasonScreen() {
     if (copaFinished && state.careerOnline && state.copaDoneSeason !== state.seasonNo) dispatch({ type: 'MARK_COPA_DONE' })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished])
+  // 💰 FECHAMENTO DAS CONTAS (carreira SOLO): assim que a liga E as copas acabam,
+  // o caixa recebe TUDO da temporada de uma vez — prêmios, bilheteria, patrocínio,
+  // renda do empresário, menos a folha salarial. Antes isso só entrava quando você
+  // abria o leilão, e a moeda "aparecia do nada" no meio do pregão. No ONLINE
+  // continua como era (quem manda é o host, no dispatch da sala).
+  useEffect(() => {
+    if (!copaFinished || !state.careerOnline || state.onlineMode === 'online') return
+    if (state.booksSeason === state.seasonNo) return
+    const sb = scorerRewards(divTop)
+    const cr = copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] })
+    const mrg = (a: Record<number, number>, b: Record<number, number>) => { const o = { ...a }; for (const k in b) o[+k] = (o[+k] ?? 0) + b[+k]; return o }
+    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards) })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [copaFinished, state.booksSeason, state.seasonNo])
   // 🏛️ MULTICLUBES: momento SEGURO pra trocar = nenhuma rodada nem Copa animando na
   // tela (fora do leilão já é garantido — o leilão é outra tela). Se apertou o seletor
   // no meio de uma rodada (auto), a troca ESPERA e abre o confirmar no fim dela.
@@ -3199,6 +3213,29 @@ export function PyramidSeasonScreen() {
           if (state.onlineMode !== 'online' || humans.length <= 1) return (
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
               {copaGate}
+              {/* 💰 FECHAMENTO DA TEMPORADA — o que entrou e o que saiu, na hora em
+                  que a temporada (liga + copas) acabou. Sem surpresa depois no leilão. */}
+              {state.booksSeason === state.seasonNo && (() => {
+                const led = (state.careerLedger ?? []).filter(e => e.season === state.seasonNo && ['reward', 'gate', 'salary', 'sponsor', 'empresario'].includes(e.kind))
+                if (!led.length) return null
+                const total = led.reduce((n, e) => n + e.amount, 0)
+                return (
+                  <div style={{ ...box('#FFFDF3'), padding: 11, marginBottom: 10 }}>
+                    <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 6px' }}>💰 FECHAMENTO DA TEMPORADA {state.seasonNo}</p>
+                    {led.map(e => (
+                      <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, padding: '2px 0', borderBottom: '1px dashed rgba(0,0,0,.12)' }}>
+                        <span style={{ color: 'rgba(0,0,0,.75)' }}>{e.label}</span>
+                        <span style={{ color: e.amount < 0 ? '#C2452F' : e.amount > 0 ? '#1B7A3D' : 'rgba(0,0,0,.4)', fontWeight: 900 }}>{e.amount > 0 ? '+' : ''}{e.amount} 🪙</span>
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 900, marginTop: 6, ...OSWALD }}>
+                      <span>SALDO DA TEMPORADA</span>
+                      <span style={{ color: total < 0 ? '#C2452F' : '#1B7A3D' }}>{total > 0 ? '+' : ''}{total} 🪙</span>
+                    </div>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(0,0,0,.5)', margin: '5px 0 0' }}>Já caiu no caixa ({state.careerCoins?.[youId] ?? 0} 🪙). Compra e venda no leilão contam na hora, uma a uma.</p>
+                  </div>
+                )
+              })()}
               {noVermelho && (
                 <div style={{ background: '#C2452F', color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 11, boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 11px', marginBottom: 10, ...OSWALD }}>
                   <p style={{ fontWeight: 900, fontSize: 12.5, margin: 0 }}>🚫 Transfer ban — clube no vermelho ({state.careerCoins?.[youId] ?? 0} 🪙)</p>

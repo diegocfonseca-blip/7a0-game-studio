@@ -334,6 +334,7 @@ export interface EscState {
   careerLineup?: Record<number, Record<number, string[]>> // carreira online: escalação (XI) POR JOGO (mgrId → rodada → ids dos 11 titulares); vale da rodada em diante, como a tática
   marketValues?: Record<string, number> // carreira online: LIVRO DE PREÇOS global (nome do jogador → último preço). Toda venda/lance vencedor e ida ao monte atualiza; todo baralho novo consulta pra carimbar o piso. Assim o valor de cada jogador é memória do jogo inteiro (ex.: Kaká vendido 30 → monte 15 → volta valendo 15).
   marketLog?: string[] // carreira online: resumo do que os BOTS fizeram no leilão/monte (arrematou X, pegou Y de graça, comprou o listado Z por W) — mostrado na cerimônia pra dar visibilidade. Zera a cada leilão.
+  booksSeason?: number // 💰 temporada cujo FECHAMENTO financeiro (prêmios, bilheteria, patrocínio, empresário, folha) já foi lançado no caixa. Trava anti-duplicidade: a contabilidade roda UMA vez, assim que a temporada+copas acabam.
   careerLedger?: LedgerEntry[] // 🧾 carreira SOLO: livro-caixa (extrato + transferências) — só exibição, nunca realimenta o caixa. Cresce ao longo da carreira; limitado às últimas ~250 entradas.
   careerLedgers?: Record<number, LedgerEntry[]> // 🧾 carreira ONLINE: livro-caixa por técnico (mgrId → extrato). Offline usa careerLedger (single).
   careerSponsor?: string // 👕 carreira SOLO: id da marca de patrocínio escolhida (cosmético). O quanto rende é POR DIVISÃO, não pela marca.
