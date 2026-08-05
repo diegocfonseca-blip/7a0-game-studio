@@ -41,7 +41,9 @@ export const emptyStadium = (): StadiumSave => ({ inv: {}, ext: [] })
 // A escolha entre as marcas da sua divisão é só de IDENTIDADE — todas pagam o
 // mesmo valor da divisão. Marcas maiores só destravam ao subir.
 // 🥅 Várzea = paga pouquinho (zoeira, marcas de esquina); a régua sobe por divisão.
-export const SPONSOR_PAY: Record<string, number> = { V: 2, D: 5, C: 10, B: 15, A: 20 }
+// 🥅 Várzea NÃO paga nada (V: 0) — a zoeira é que o "prêmio" é o lanche (Guaravita,
+// Trakinas e Fofura). Dinheiro de verdade só a partir da Série D. A régua sobe por divisão.
+export const SPONSOR_PAY: Record<string, number> = { V: 0, D: 5, C: 10, B: 15, A: 20 }
 export interface Sponsor { id: string; name: string; emoji: string; color: string; div: 'V' | 'D' | 'C' | 'B' | 'A'; logo?: boolean }
 export const SPONSORS: Sponsor[] = [
   // 🌱 VÁRZEA — marcas de esquina, pura zoeira (as reais que o Diego pediu)

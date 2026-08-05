@@ -31,6 +31,9 @@ export function SponsorCard({ div, chosen, onChoose }: { div: string; chosen?: s
   const opts = sponsorsForDiv(div)
   const locked = sponsorsLocked(div)
   const cur = currentSponsor(div, chosen)
+  // 🥤 Várzea: TEM marca (Guaravita/Trakinas/Fofura) mas NÃO paga dinheiro — o
+  // "prêmio" é o lanche. Mostra as marcas com zoeira, não a tela de "sem patrocínio".
+  const varzeaLanche = div === 'V' && pay === 0 && opts.length > 0
   const brand = (s: Sponsor, selectable: boolean, on: boolean, tag?: string) => (
     <button key={s.id} onClick={selectable ? () => onChoose(s.id) : undefined} disabled={!selectable}
       style={{ position: 'relative', flex: '1 1 0', minWidth: 0, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 12, boxShadow: `2px 2px 0 0 ${INK}`, padding: '10px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, cursor: selectable ? 'pointer' : 'default', opacity: selectable ? 1 : .5, outline: on ? `3px solid ${GOLD}` : 'none', outlineOffset: 2 }}>
@@ -47,9 +50,9 @@ export function SponsorCard({ div, chosen, onChoose }: { div: string; chosen?: s
     <div style={{ ...box('#fff'), padding: 12, marginTop: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
         <span style={{ ...OSW, fontWeight: 900, fontSize: 14 }}>👕 Patrocínio</span>
-        <span style={{ ...OSW, fontWeight: 900, fontSize: 13, color: GREEN }}>{pay > 0 ? `+${pay} / temporada` : '—'}</span>
+        <span style={{ ...OSW, fontWeight: 900, fontSize: 13, color: varzeaLanche ? '#B5651D' : GREEN }}>{pay > 0 ? `+${pay} / temporada` : varzeaLanche ? '🥤🍪🌽 só o lanche' : '—'}</span>
       </div>
-      {pay === 0 || opts.length === 0 ? (
+      {opts.length === 0 ? (
         <div style={{ background: '#FBF4DE', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: '13px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, textAlign: 'center' }}>
           <span style={{ fontSize: 24 }}>👕</span>
           <p style={{ ...OSW, fontWeight: 900, fontSize: 13, color: INK, margin: 0, lineHeight: 1.25 }}>{div === 'V' ? 'A Várzea não atrai patrocínio (ainda 🍺)' : 'A Série D ainda não tem patrocínio'}</p>
@@ -62,8 +65,11 @@ export function SponsorCard({ div, chosen, onChoose }: { div: string; chosen?: s
         </div>
       ) : (
         <>
-          <p style={{ ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 2px 6px' }}>Escolha a marca da camisa</p>
+          <p style={{ ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 2px 6px' }}>{varzeaLanche ? '🍺 Patrocínio de esquina — escolha o lanche' : 'Escolha a marca da camisa'}</p>
           <div style={{ display: 'flex', gap: 7 }}>{opts.map(s => brand(s, true, cur?.id === s.id, cur?.id === s.id ? '✓ escolhido' : undefined))}</div>
+          {varzeaLanche && (
+            <p style={{ ...OSW, fontWeight: 800, fontSize: 10.5, color: '#B5651D', margin: '7px 2px 0', lineHeight: 1.3, textAlign: 'center' }}>😅 Aqui embaixo não pinga <b>dinheiro</b> nenhum — o patrocínio da várzea paga em <b>Guaravita, Trakinas e Fofura</b>. Suba pra Série D pra começar a faturar de verdade! 💰</p>
+          )}
           {locked.length > 0 && (
             <>
               <p style={{ ...OSW, fontWeight: 900, fontSize: 9.5, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.4)', margin: '11px 2px 6px' }}>Marcões — destravam subindo 👑</p>
@@ -72,7 +78,7 @@ export function SponsorCard({ div, chosen, onChoose }: { div: string; chosen?: s
           )}
         </>
       )}
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '9px 2px 0', lineHeight: 1.35 }}>Rende por divisão: 🌱 Várzea <b>+2</b> · D <b>+5</b> · C <b>+10</b> · B <b>+15</b> · A <b>+20</b>. Cai no caixa no fim da temporada, junto com a bilheteria. A escolha é só de <b>identidade</b> — todas da mesma divisão pagam igual.</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '9px 2px 0', lineHeight: 1.35 }}>Rende por divisão: 🌱 Várzea <b>só o lanche 🥤</b> · D <b>+5</b> · C <b>+10</b> · B <b>+15</b> · A <b>+20</b>. Cai no caixa no fim da temporada, junto com a bilheteria. A escolha é só de <b>identidade</b> — todas da mesma divisão pagam igual.</p>
     </div>
   )
 }
