@@ -1,5 +1,14 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/08/2026)
 
+## ⚽ Batismo novo + apoiadores (04/08)
+· **Barcenite FC** (batismo do ricardopessoafreire / xRichard56, 👑 Lenda +
+  fundador nº 31) entrou no lugar do **Milanesa FC** na Série D. OLD_NAME
+  atualizado ('Barcenite FC': 'Milanesa FC'), então save antigo com Milanesa
+  carrega já com o nome novo. Escudo automático: escudo vermelho-telha com faixa
+  dourada e inicial B (o nome não tem palavra do dicionário).
+· **victordudu.monte14@gmail.com** (Kings Fc) entrou como ⭐ **Craque** (prata).
+
+
 ## 👑 Novo Lenda (04/08): ricardopessoafreire@gmail.com
 Entrou em FOUNDERS como 'ouro' + FUNDADOR **nº 31** (apoio.tsx). Ganha cor/selo
 👑🖋️, Modo Manual, tudo do ouro e direito a batismo de clube (ainda não usou).

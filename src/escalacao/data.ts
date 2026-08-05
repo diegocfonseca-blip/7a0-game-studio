@@ -2086,7 +2086,7 @@ export const CPU_MANAGERS = [
   { name: 'Dão da Feira', team: 'Feira Nova FR' },
   { name: 'Juca Trovão', team: 'Trovão SAF' },
   { name: 'Mão de Onça', team: 'Onça Parda EC' },
-  { name: 'Piu do Grêmio', team: 'Milanesa FC' },
+  { name: 'Piu do Grêmio', team: 'Barcenite FC' },
   { name: 'Beto Foguete', team: 'Foguete FC' },
   { name: 'Lelê da Serra', team: 'Serra Azul FR' },
   { name: 'Cabelo de Fogo', team: 'Fogaréu EC' },
@@ -2124,6 +2124,7 @@ export const OLD_NAME: Record<string, string> = {
   'Tôka10': 'Biriba United', // ⚽ batismo do ofc.toka10: save antigo com Biriba United vira Tôka10 ao carregar
   'Skyy FC': 'Fortuna SAF', // ⚽ batismo do matheusncruz1: save antigo com Fortuna SAF vira Skyy FC ao carregar
   'SC Ferrari': 'Painitto FC', // ⚽ batismo do adriano.ferrari: save antigo com Painitto FC vira SC Ferrari ao carregar
+  'Barcenite FC': 'Milanesa FC', // ⚽ batismo do ricardopessoafreire: save antigo com Milanesa FC vira Barcenite FC ao carregar
 }
 // corrente de nomes antigos: 'White Thigs do GuGu' → ['Astronáutico', 'Sinhô Futebol']
 export const oldChain = (name: string): string[] => {
@@ -2225,7 +2226,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Tonhão', team: 'Alfacehh' }, // ⚽ clube BATIZADO por apoiador (matheus223lms — Alfacehh, ex-Santos Dumont)
     { name: 'Zé do Caixote', team: 'River Prato' },
     { name: 'Nininho', team: 'Red Bull Diet' },
-    { name: 'Piu do Grêmio', team: 'Milanesa FC' },
+    { name: 'Piu do Grêmio', team: 'Barcenite FC' },
     { name: 'Tico do Bar', team: 'Pardemeias' },
     { name: 'Xandão da Bola', team: 'Livre-pool' },
     { name: 'Val do Buraco', team: 'Flamengo do Sertão' },
