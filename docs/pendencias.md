@@ -1,5 +1,11 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/08/2026)
 
+## 🃏 Baralho: Philipp Lahm virou LENDA (04/08, pedido do Diego)
+Era craque (fame 4, 86-92) — agora 👑 lenda (fame 5, **88-93**), entre Roberto
+Carlos (88-93) e Cafu (87-92). Bio já existia. Efeito: entra no pacote de lendas
+do leilão (Série A da escada), rende como 👑 na agência e sobe o piso dele.
+
+
 ## 🥬 Escudo do Alfacehh: verde + pé de alface (04/08) — AGUARDANDO OK VISUAL
 Pedido do Diego: "a logo do Alfacehh quero que seja verde e emoji de alguma
 planta que pareça alface". Feito em `escudos.tsx`: símbolo `alface` (roseta de

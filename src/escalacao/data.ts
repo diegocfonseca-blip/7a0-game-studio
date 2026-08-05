@@ -1309,7 +1309,7 @@ const LAT_EU: C[] = [
   { name: "Paolo Maldini", club: "Milan", year: 1994, fame: 5, lo: 89, hi: 94 },
   { name: "Roberto Carlos", club: "Real Madrid", year: 2002, fame: 5, lo: 88, hi: 93 },
   { name: "Cafu", club: "Milan", year: 2004, fame: 5, lo: 87, hi: 92 },
-  { name: "Philipp Lahm", club: "Bayern", year: 2013, fame: 4, lo: 86, hi: 92 },
+  { name: "Philipp Lahm", club: "Bayern", year: 2013, fame: 5, lo: 88, hi: 93 }, // 👑 promovido a LENDA (pedido do Diego 04/08): capitão da tríplice do Bayern 2013 e campeão do mundo em 2014
   { name: "Dani Alves", club: "Barcelona", year: 2011, fame: 4, lo: 85, hi: 91 },
   { name: "Javier Zanetti", club: "Inter", year: 2000, fame: 4, lo: 84, hi: 90 },
   { name: "Maicon", club: "Inter", year: 2010, fame: 4, lo: 84, hi: 90 },
