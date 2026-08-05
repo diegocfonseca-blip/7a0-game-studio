@@ -1,5 +1,23 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/08/2026)
 
+## 🐛 BUG DA COPA DO MUNDO CORRIGIDO (04/08, relato de jogador) ✅
+Dois problemas no manual da Copa, ambos consertados:
+1. **"Apertei pular 2× e a partida voltou"** — `next`/`skip` liam o passo da
+   renderização (`const s = step + 1`). Dois toques rápidos liam o MESMO número:
+   o 2º não avançava fase, mas reiniciava o relógio (roundKey) e o jogo parecia
+   voltar do zero. Agora o passo é calculado DENTRO do setState (valor mais novo)
+   e o relógio só reinicia quando a fase realmente mudou.
+2. **"Mudou o resultado da Copa"** (grave) — o torneio era calculado num useMemo
+   que usava o `rng` COMPARTILHADO da tela de cima (gerador COM ESTADO). Como a
+   lista de participantes (`top16`) nasce de um array recriado a cada render, o
+   useMemo refazia o torneio de vez em quando com o gerador JÁ AVANÇADO → outros
+   placares e outro campeão. Agora a simulação virou função pura EXPORTADA
+   (`simulaCopaMundo`) com semente própria fixa: recalcular N vezes dá sempre o
+   mesmo campeão/placar.
+🧪 `scratchpad/copatest.mjs`: 5 recálculos × 3 sementes = idênticos; lista
+recriada = mesmo resultado; sementes/temporadas diferentes = Copas diferentes.
+
+
 ## 🛡️ ESCUDOS DOS CLUBES (04/08) — motor PRONTO, aguardando autorização
 `src/escalacao/escudos.tsx` — brasão desenhado POR CÓDIGO (SVG), peso ZERO no
 servidor (viaja pelo GitHub Pages junto com o jogo; NÃO encosta no Supabase).

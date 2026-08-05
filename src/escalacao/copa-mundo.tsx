@@ -248,7 +248,8 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard }:
 }
 
 function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCard, onClose }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onPrize?: () => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onClose: () => void }) {
-  const rng = useMemo(() => mulberry((seed ^ Math.imul(seasonNo, 2654435761)) >>> 0), [seed, seasonNo])
+  // (o gerador do torneio mora DENTRO do CupScreen agora — ver comentário lá:
+  // um gerador compartilhado com estado fazia o resultado mudar sozinho)
   const [phase, setPhase] = useState<'select' | 'convoke' | 'cup'>('select')
   const [myPais, setMyPais] = useState<string | null>(null)
   const [myXI, setMyXI] = useState<PoolCard[] | null>(null)
@@ -293,7 +294,7 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
   )
   if (phase === 'cup' && entrants) return (
     <Modal wide>
-      <CupScreen entrants={entrants} rng={rng} seasonNo={seasonNo} seed={seed} save={save} myForm={myForm} onPrize={onPrize} onCard={onCard} onClose={onClose} />
+      <CupScreen entrants={entrants} seasonNo={seasonNo} seed={seed} save={save} myForm={myForm} onPrize={onPrize} onCard={onCard} onClose={onClose} />
     </Modal>
   )
   return null
@@ -462,10 +463,17 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
 
 // ── tela 3: o torneio AO VIVO (mesmo ritmo/suspense da liga: relógio, GOOOL,
 // pênaltis cobrança a cobrança — nada aparece pronto) ──
-function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onCard, onClose }: { entrants: Entrant[]; rng: () => number; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; onPrize?: () => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onClose: () => void }) {
-  // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
-  // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
-  const world = useMemo(() => {
+// 🌍 O TORNEIO INTEIRO, calculado de uma vez (função PURA — dá pra testar).
+// 🔒 SEMENTE PRÓPRIA (bug relatado pelo jogador em 04/08: "mudou o resultado da
+// Copa"). Antes isto vivia num useMemo que usava o `rng` COMPARTILHADO da tela de
+// cima — um gerador COM ESTADO. Como a lista de participantes nasce de um array
+// recriado a cada render, o cálculo refazia o torneio de vez em quando… e, como o
+// gerador já tinha avançado, saíam OUTROS placares e OUTRO campeão. Agora o
+// gerador nasce AQUI de uma semente fixa: rodar 100 vezes dá SEMPRE o mesmo
+// resultado (mesma regra determinística da liga).
+export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: number) {
+  {
+    const rng = mulberry((seed ^ Math.imul(seasonNo, 2654435761) ^ 0xC0FA) >>> 0)
     const idx = entrants.map((_, i) => i)
     for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]] }
     const groups: Group[] = Array.from({ length: NUM_GROUPS }, (_, g) => {
@@ -500,7 +508,13 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onCard, onClo
     const fpen = fg[0] === fg[1] ? pens(rng) : null
     const champion = fg[0] > fg[1] ? fh : fg[1] > fg[0] ? fa : (fpen![0] > fpen![1] ? fh : fa)
     return { groups, qf, sf, final: { h: fh, a: fa, g: fg, ev: fev, pen: fpen, champion } }
-  }, [entrants, rng])
+  }
+}
+
+function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; onPrize?: () => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onClose: () => void }) {
+  // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
+  // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
+  const world = useMemo(() => simulaCopaMundo(entrants, seed, seasonNo), [entrants, seed, seasonNo])
 
   // step = revelações FEITAS (GR = rodadas de grupo): 1..GR rodadas de grupo ·
   // GR+1 sorteio · GR+2 QF ida · GR+3 QF volta · GR+4 SF ida · GR+5 SF volta ·
@@ -528,12 +542,24 @@ function CupScreen({ entrants, rng, seasonNo, seed, save, onPrize, onCard, onClo
   const roundMs = Math.round(9000 / speed) // 9s = ROUND_MS da liga
 
   const liveMin = useLiveMin(roundKey, roundMs, liveDone)
-  const next = () => { const s = step + 1; setStep(s); if (LIVE(s)) { setLiveDone(false); setRoundKey(k => k + 1) } }
+  // 🐛 TOQUE DUPLO (bug reportado 04/08: "apertei 2× e a partida voltou"): antes
+  // estas funções liam o `step` da renderização (`const s = step + 1`). Dois
+  // toques rápidos liam o MESMO número: o 2º não avançava fase nenhuma, mas
+  // ainda reiniciava o relógio (roundKey) — e o jogo parecia VOLTAR do zero.
+  // Agora o passo é calculado DENTRO do setState (sempre o valor mais novo) e o
+  // relógio só reinicia quando a fase realmente mudou.
+  const avanca = (jaResolvida: boolean) => {
+    setStep(atual => {
+      const s = atual + 1
+      if (LIVE(s)) { setRoundKey(k => k + 1); setLiveDone(jaResolvida) }
+      return s
+    })
+  }
+  const next = () => avanca(false)
   // ⏭️ pular (só manual): corta a espera — apito na hora; de novo = próxima fase já resolvida
   const skip = () => {
-    if (!liveDone) { setLiveDone(true); return }
-    const s = step + 1; setStep(s)
-    if (LIVE(s)) { setRoundKey(k => k + 1); setLiveDone(true) }
+    if (!liveDone) { setLiveDone(true); return } // 1º toque: só adianta o apito
+    avanca(true)
   }
   // relógio da rodada: ritmo da liga (ajustado pela velocidade do manual) +
   // tempo dos pênaltis dos confrontos VISÍVEIS ao vivo — suspense completo.
