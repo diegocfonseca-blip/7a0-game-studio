@@ -2866,22 +2866,6 @@ function LendaParty({ delay }: { delay: number }) {
   )
 }
 
-// 🔨 CARIMBO "VENDIDO!" (Revelação Cinema — EM TESTE, só na conta liberada): slam
-// no instante do martelo confirmando a venda + quem levou e por quanto. Respeita o
-// anti-spoiler (só entra no hammerDelay, nunca antes). Só visual, pointer-events:none.
-function VendidoStamp({ delay, label }: { delay: number; label: string }) {
-  return (
-    <motion.div className="pointer-events-none absolute inset-x-0 top-[40%] z-30 flex justify-center"
-      initial={{ opacity: 0, scale: 2.4, rotate: -11 }} animate={{ opacity: 1, scale: 1, rotate: -8 }}
-      transition={{ delay, type: 'spring', stiffness: 260, damping: 14 }}>
-      <div className="border-[5px] border-black rounded-2xl px-6 py-1.5 text-center" style={{ background: GREEN, boxShadow: '5px 5px 0 #000' }}>
-        <div className="font-black text-white leading-none" style={{ ...OSWALD, fontSize: 40, letterSpacing: 1 }}>VENDIDO!</div>
-        <div className="font-black leading-tight" style={{ ...OSWALD, fontSize: 15, color: 'rgba(255,255,255,0.95)' }}>{label}</div>
-      </div>
-    </motion.div>
-  )
-}
-
 function Reveal() {
   const { state, dispatch } = useEsc()
   const cinema = useRevealCinema() // 🔨🎬 festão da Lenda: só na conta liberada (Diego)
@@ -2983,12 +2967,8 @@ function Reveal() {
               com lance = borrado até o martelo bater. */}
           <CardFace c={item.card} big surprise={item.card.id === state.surpriseId && !(hammered && sold)} highlight={item.card.id === state.surpriseId} />
           {cinema && sold && item.card.fame >= 5 && <LendaParty delay={hammerDelay} />}
-          {cinema && sold && (() => {
-            const winBid = item.bids.find(b => b.mgr === item.winner)
-            const iWon = !!winnerMgr && winnerMgr.id === you.id
-            const lbl = `${iWon ? '🫵 Você' : (winnerMgr?.teamName || winnerMgr?.name || '')} levou por ${winBid?.amount ?? ''}`
-            return <VendidoStamp delay={hammerDelay} label={lbl} />
-          })()}
+          {/* (carimbo grande "VENDIDO!" removido — vazava da carta e repetia o texto
+              "🔨 VENDIDO pro X por Y!" que já existe embaixo. O festão da Lenda fica.) */}
           <div className="mt-4 space-y-1.5">
             {item.bids.length === 0 && (
               <p className="font-bold text-black/70">Nenhum lance. Vai pro Monte Final. 🪣</p>
