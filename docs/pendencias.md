@@ -1,5 +1,15 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/08/2026)
 
+## 🥬 Escudo do Alfacehh: verde + pé de alface (04/08) — AGUARDANDO OK VISUAL
+Pedido do Diego: "a logo do Alfacehh quero que seja verde e emoji de alguma
+planta que pareça alface". Feito em `escudos.tsx`: símbolo `alface` (roseta de
+folhas) + **paleta TRAVADA no verde** (o DICIO agora aceita um 3º item que fixa
+a cor, pra palavra cuja cor faz parte da identidade). Pega alfac/couve/folha/
+horta/salada/rúcula. Prévia enviada ao Diego (scratchpad/alface.png).
+🚦 COMMITADO SÓ NA BRANCH — **não publicado na main** até o Diego aprovar o
+visual (regra dele). Pra publicar: `git push origin HEAD:main`.
+
+
 ## ⏱️ Revelação do leilão: folga na SURPRESA e na ÚLTIMA carta (04/08, Diego)
 "a surpresa passa tão rápido que nem consigo ver quem foi o jogador". A 🎁
 surpresa só mostra o nome NO MARTELO, então ganhava menos tempo de leitura que

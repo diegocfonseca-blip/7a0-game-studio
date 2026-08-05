@@ -249,6 +249,18 @@ const SIM: Record<string, (d: string) => ReactNode> = {
     <path d="M100 56 L166 110 h-16 v58 H50 v-58 H34 Z" fill={d} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
     <rect x="86" y="126" width="28" height="42" fill={INK} opacity=".45" />
   </>,
+  // 🥬 pé de alface: folhas em roseta (pedido do Diego pro Alfacehh FC)
+  alface: d => <>
+    <circle cx="66" cy="118" r="24" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="134" cy="118" r="24" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="78" cy="86" r="23" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="122" cy="86" r="23" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="100" cy="76" r="23" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="100" cy="140" r="22" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="100" cy="112" r="38" fill={d} stroke={INK} strokeWidth="6" />
+    <circle cx="100" cy="112" r="38" fill="#fff" opacity=".22" /> {/* miolo mais claro: lê como pé de alface, não bola */}
+    <path d="M100 76 v72 M78 86 q10 28 0 52 M122 86 q-10 28 0 52" stroke={INK} strokeWidth="5" fill="none" strokeLinecap="round" opacity=".4" />
+  </>,
   moeda: d => <>
     <circle cx="88" cy="118" r="42" fill={d} stroke={INK} strokeWidth="6" />
     <circle cx="120" cy="126" r="42" fill={d} stroke={INK} strokeWidth="6" />
@@ -292,7 +304,11 @@ const SIM: Record<string, (d: string) => ReactNode> = {
 // "Ope-RÁRIO DO-cas" casava com «rio » e virava onda; "col-MEIA" virava meias. 😅
 // Ordem: bicho/objeto CONCRETO primeiro, título genérico (coroa, esporte) depois —
 // senão "Dragão Imperial" vira coroa em vez de dragão.
-const DICIO: [string[], keyof typeof SIM][] = [
+// 3º item (opcional) = TRAVA a paleta (índice em PALETAS), quando a cor faz
+// parte da identidade da palavra. Sem ele, a cor sai do sorteio pelo nome.
+const DICIO: [string[], keyof typeof SIM, number?][] = [
+  // 🥬 alface/verdura SEMPRE verde (pedido do Diego pro Alfacehh) — paleta 6
+  [['alfac', ' couve', ' folha', 'verdura', ' horta', ' salada', ' rúcula', ' rucula'], 'alface', 6],
   [['ferroviar', 'ferrovia', ' trem', 'locomotiv', 'maria fuma'], 'trem'],
   [['sertao', 'sertão', 'agreste', 'caatinga', 'cariri', 'serido', 'seridó'], 'cacto'],
   [['meias', ' meia'], 'meias'],
@@ -359,10 +375,11 @@ export function escudoDe(nomeCru: string): EscudoDesign {
   const h = hashNome(nome)
   const alvo = ' ' + semAcento(nome) + ' '
   let sim: keyof typeof SIM | null = null
-  for (const [palavras, s] of DICIO) {
-    if (palavras.some(p => alvo.includes(semAcento(p)))) { sim = s; break }
+  let paletaFixa: number | undefined
+  for (const [palavras, s, pal] of DICIO) {
+    if (palavras.some(p => alvo.includes(semAcento(p)))) { sim = s; paletaFixa = pal; break }
   }
-  const [c1, c2] = PALETAS[h % PALETAS.length]
+  const [c1, c2] = PALETAS[paletaFixa ?? (h % PALETAS.length)]
   return {
     shape: (h >> 4) % SHAPES.length,
     pat: (h >> 8) % 7,
