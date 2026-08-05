@@ -133,10 +133,11 @@ export function useTemaLiberado(): boolean {
 // Estrutura) vale pra TODO MUNDO. Pra voltar ao teste fechado: AGENCIA_GERAL
 // = false e a lista de testers reassume.
 const AGENCIA_GERAL = true
+// 04/08: só o Diego na lista de tester (a Agência segue LIBERADA GERAL via
+// AGENCIA_GERAL=true — o público continua com ela; a lista só valeria se voltasse
+// ao teste fechado, e aí seria só o Diego).
 const AGENCIA_TESTERS = new Set([
   'diego.c.fonseca@gmail.com',
-  'msb102010@hotmail.com', // testador convidado pelo Diego (03/08)
-  'denilson.stifler10@gmail.com', // testador convidado pelo Diego (03/08)
 ])
 let agenciaOk = AGENCIA_GERAL
 function applyAgenciaUnlock(email?: string | null): void {

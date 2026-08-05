@@ -10,7 +10,7 @@ import { logout } from './apoio'
 const ADMIN_EMAIL = 'diego.c.fonseca@gmail.com'
 // contas liberadas pra testar o MODO MANAGER (além do criador) — não dá acesso
 // ao painel do criador (#admin), só ao modo em teste.
-const MANAGER_TESTERS = [ADMIN_EMAIL, 'leafarcruz06@gmail.com', 'diego.c.fonsec@gmail.com'].map(e => e.toLowerCase())
+const MANAGER_TESTERS = [ADMIN_EMAIL].map(e => e.toLowerCase()) // só o Diego (04/08: removidos os outros testers)
 // contas liberadas pra testar a CARREIRA ONLINE (4 divisões) — em construção,
 // travada pro público. AGORA SÓ O DIEGO (pedido dele 04/08: tirar todos os outros
 // testers da Carreira Online — só a conta dele vê o modo pirâmide no online).
