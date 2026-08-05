@@ -3129,8 +3129,15 @@ function Reveal() {
         </Box>
         </motion.div>
       </motion.div>
-      {/* auto-avanço: 1s por carta, 2s se houve lance; +tempo se teve desempate */}
-      <AutoAdvance hasBids={item.bids.length > 0} canDrive={canDrive} isLast={isLast} extraMs={tie ? (tie.viaRoulette ? 3200 : 1500) : 0} />
+      {/* auto-avanço: 1s por carta, 2s se houve lance; +tempo se teve desempate.
+          ⏱️ FOLGA A MAIS (pedido do Diego 04/08): a carta 🎁 SURPRESA só revela o
+          nome NO MARTELO — passava tão rápido que ninguém via QUEM era. E a
+          ÚLTIMA revelação fecha a rodada (o resultado), então também merece um
+          respiro. Só nesses dois casos; o resto do pregão segue no ritmo de sempre. */}
+      <AutoAdvance hasBids={item.bids.length > 0} canDrive={canDrive} isLast={isLast}
+        extraMs={(tie ? (tie.viaRoulette ? 3200 : 1500) : 0)
+          + (item.card.id === state.surpriseId && sold ? 1600 : 0)
+          + (isLast ? 1200 : 0)} />
       <p className="text-center text-xs font-bold text-black/60 py-1">
         {canDrive ? '🎬 Passando automaticamente…' : '🔨 O host está conduzindo a revelação…'}
       </p>

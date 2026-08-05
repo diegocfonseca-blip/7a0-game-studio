@@ -1,5 +1,14 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/08/2026)
 
+## ⏱️ Revelação do leilão: folga na SURPRESA e na ÚLTIMA carta (04/08, Diego)
+"a surpresa passa tão rápido que nem consigo ver quem foi o jogador". A 🎁
+surpresa só mostra o nome NO MARTELO, então ganhava menos tempo de leitura que
+as outras. Agora, em `AutoAdvance` (screens.tsx):
+· carta surpresa VENDIDA: **+1,6s** · ÚLTIMA revelação da rodada: **+1,2s**
+(somam com o extra de desempate). O resto do pregão segue no ritmo de sempre —
+a regra de ouro do Diego ("nada atrasa o jogo") vale pro fluxo normal.
+
+
 ## 🐛 BUG DA COPA DO MUNDO CORRIGIDO (04/08, relato de jogador) ✅
 Dois problemas no manual da Copa, ambos consertados:
 1. **"Apertei pular 2× e a partida voltou"** — `next`/`skip` liam o passo da
