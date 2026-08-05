@@ -55,7 +55,7 @@ export function SponsorCard({ div, chosen, onChoose }: { div: string; chosen?: s
           <p style={{ ...OSW, fontWeight: 900, fontSize: 13, color: INK, margin: 0, lineHeight: 1.25 }}>{div === 'V' ? 'A Várzea não atrai patrocínio (ainda 🍺)' : 'A Série D ainda não tem patrocínio'}</p>
           <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0, lineHeight: 1.4 }}>Nenhuma marca aparece pra bancar a camisa aqui embaixo{div === 'V' ? ' no peladão' : ''}. <b>Suba de divisão</b> pra começar a faturar:</p>
           <div style={{ display: 'flex', gap: 6, marginTop: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {[['C', 5], ['B', 10], ['A', 20]].map(([d, v]) => (
+            {[['D', 5], ['C', 10], ['B', 15], ['A', 20]].map(([d, v]) => (
               <span key={d as string} style={{ ...OSW, fontWeight: 900, fontSize: 10.5, background: '#fff', border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 9px', color: INK }}>Série {d} <span style={{ color: GREEN }}>+{v}</span></span>
             ))}
           </div>
@@ -72,7 +72,7 @@ export function SponsorCard({ div, chosen, onChoose }: { div: string; chosen?: s
           )}
         </>
       )}
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '9px 2px 0', lineHeight: 1.35 }}>Rende por divisão: D <b>0</b> · C <b>+5</b> · B <b>+10</b> · A <b>+20</b>. Cai no caixa no fim da temporada, junto com a bilheteria. A escolha é só de <b>identidade</b> — todas da mesma divisão pagam igual.</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '9px 2px 0', lineHeight: 1.35 }}>Rende por divisão: 🌱 Várzea <b>+2</b> · D <b>+5</b> · C <b>+10</b> · B <b>+15</b> · A <b>+20</b>. Cai no caixa no fim da temporada, junto com a bilheteria. A escolha é só de <b>identidade</b> — todas da mesma divisão pagam igual.</p>
     </div>
   )
 }

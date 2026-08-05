@@ -40,16 +40,24 @@ export const emptyStadium = (): StadiumSave => ({ inv: {}, ext: [] })
 // Renda por temporada que CRESCE com a divisão (Série D não atrai marca).
 // A escolha entre as marcas da sua divisão é só de IDENTIDADE — todas pagam o
 // mesmo valor da divisão. Marcas maiores só destravam ao subir.
-export const SPONSOR_PAY: Record<string, number> = { D: 0, C: 5, B: 10, A: 20 }
-export interface Sponsor { id: string; name: string; emoji: string; color: string; div: 'C' | 'B' | 'A'; logo?: boolean }
+// 🥅 Várzea = paga pouquinho (zoeira, marcas de esquina); a régua sobe por divisão.
+export const SPONSOR_PAY: Record<string, number> = { V: 2, D: 5, C: 10, B: 15, A: 20 }
+export interface Sponsor { id: string; name: string; emoji: string; color: string; div: 'V' | 'D' | 'C' | 'B' | 'A'; logo?: boolean }
 export const SPONSORS: Sponsor[] = [
+  // 🌱 VÁRZEA — marcas de esquina, pura zoeira (as reais que o Diego pediu)
+  { id: 'guaravita',  name: 'Guaravita',   emoji: '🥤', color: '#E8A200', div: 'V' },
+  { id: 'trakinas',   name: 'Trakinas',    emoji: '🍪', color: '#5B3A1E', div: 'V' },
+  { id: 'fofura',     name: 'Fofura',      emoji: '🌽', color: '#E5A11B', div: 'V' },
+  // 🅳 SÉRIE D — comércio do bairro
+  { id: 'padaria',     name: 'Padaria do Zé',        emoji: '🥖', color: '#B5651D', div: 'D' },
+  { id: 'acougue',     name: 'Açougue Bom Corte',    emoji: '🥩', color: '#8A1E1E', div: 'D' },
   { id: 'paredao',     name: 'Paredão Materiais',     emoji: '🔧', color: '#C1571F', div: 'C' },
   { id: 'espetinho',   name: 'Espetinho do Baixinho', emoji: '🍗', color: '#8A1E1E', div: 'C' },
   { id: 'borracharia', name: 'Borracharia do Gordo',  emoji: '🛞', color: '#1C1C1C', div: 'B' },
   { id: 'guarana',     name: 'Guaraná Craque',        emoji: '🥤', color: '#127A33', div: 'B' },
   { id: 'vadico',      name: 'Vadico Veículos',       emoji: '🚗', color: '#0E3E86', div: 'A', logo: true },
 ]
-const DIV_RANK_SP: Record<string, number> = { A: 0, B: 1, C: 2, D: 3 } // menor = melhor
+const DIV_RANK_SP: Record<string, number> = { A: 0, B: 1, C: 2, D: 3, V: 4 } // menor = melhor
 // marcas que dá pra ESCOLHER na divisão atual (as da própria divisão)
 export function sponsorsForDiv(div: string): Sponsor[] { return SPONSORS.filter(s => s.div === div) }
 // marcas de divisões ACIMA (melhores) — mostradas bloqueadas, como meta

@@ -3860,12 +3860,19 @@ export function EscSeason() {
               <CopaHalves fL={fA} fR={fB} />
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
-                  <span className="font-black text-sm truncate" style={{ ...OSWALD, color: fA.ink, ...loserStyle(!aWin) }}>{tie.aName}{nameTag(tie.aId)}</span>
+                  {/* 🛡️ escudo (gerado do nome) nos confrontos da Copa, igual ao placar grande */}
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+                    <span style={{ flex: 'none', ...loserStyle(!aWin) }}><Escudo nome={tie.aName} size={18} /></span>
+                    <span className="font-black text-sm truncate" style={{ ...OSWALD, color: fA.ink, ...loserStyle(!aWin) }}>{tie.aName}{nameTag(tie.aId)}</span>
+                  </span>
                   <span className="font-black text-sm px-2 py-0.5 rounded inline-flex items-center gap-1.5" style={{ ...OSWALD, background: INK, color: '#fff' }}>
                     {live && <span className="text-[9px] font-black" style={{ color: '#F87168' }}>●{minLabel}</span>}
                     {showA} × {showB}
                   </span>
-                  <span className="font-black text-sm truncate text-right" style={{ ...OSWALD, color: fB.ink, ...loserStyle(aWin) }}>{tie.bName}{nameTag(tie.bId)}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, justifyContent: 'flex-end' }}>
+                    <span className="font-black text-sm truncate text-right" style={{ ...OSWALD, color: fB.ink, ...loserStyle(aWin) }}>{tie.bName}{nameTag(tie.bId)}</span>
+                    <span style={{ flex: 'none', ...loserStyle(aWin) }}><Escudo nome={tie.bName} size={18} /></span>
+                  </span>
                 </div>
                 {settled && nLegs > 0 && (
                   <p className="text-center mt-1" style={{ fontSize: 10, fontWeight: 800 }}><span style={copaCenterChip}>{nLegs === 1 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]}` : `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}`}</span></p>

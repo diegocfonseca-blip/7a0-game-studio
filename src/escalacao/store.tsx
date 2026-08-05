@@ -5608,6 +5608,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // "acabei de virar host": aviso grande e passageiro (o anterior saiu da sala)
   const [becameHost, setBecameHost] = useState(false)
+  // "fui expulso pelo host": banner vermelho na tela (troca o alert() antigo, que o
+  // celular às vezes engolia e a pessoa continuava vendo a partida). A saída da sala
+  // já aconteceu (KICKED_OUT resetou pro menu) — o banner só explica o porquê.
+  const [kickedOut, setKickedOut] = useState(false)
 
   // "sair da sala" DE VEZ. Se eu for o host de uma partida rápida:
   //  · com gente ainda na sala → sorteia um dos presentes pra virar host novo
@@ -5716,8 +5720,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // pessoa de volta pro jogo (o bug: "dei ok mas continuo vendo a partida").
       try { channelRef.current?.unsubscribe() } catch { /* ignora */ }
       channelRef.current = null
-      try { alert('O host removeu você desta partida.') } catch { /* ignora */ }
-      rawDispatch({ type: 'KICKED_OUT' }) // zera e volta pro menu online, sem reconectar
+      rawDispatch({ type: 'KICKED_OUT' }) // zera e volta pro menu online, sem reconectar — a pessoa SAI da partida na hora
+      setKickedOut(true)                  // e vê o banner vermelho explicando (não fica assistindo)
     })
     // o host saiu da sala e me escolheu como novo host: viro autoritativo e mostro
     // o aviso grande. (chega pra todos; só age quem foi escolhido e ainda não é host)
@@ -6097,6 +6101,26 @@ export function EscProvider({ children }: { children: ReactNode }) {
             <button onClick={() => setBecameHost(false)}
               style={{ marginTop: 16, width: '100%', background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '12px 0', fontWeight: 900, fontSize: 16, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>
               👑 OK, ENTENDI — SOU O HOST
+            </button>
+          </div>
+        </div>
+      )}
+      {kickedOut && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 95, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,.62)', padding: 24, fontFamily: 'Oswald, sans-serif',
+        }}>
+          <div style={{
+            background: 'linear-gradient(150deg,#E8503A,#C2452F 70%)',
+            border: '4px solid #0C0C0C', borderRadius: 22, boxShadow: '6px 7px 0 #0C0C0C',
+            padding: '26px 22px', textAlign: 'center', maxWidth: 340, color: '#fff',
+          }}>
+            <div style={{ fontSize: 52, lineHeight: 1 }}>🟥</div>
+            <p style={{ fontWeight: 900, fontSize: 26, margin: '10px 0 4px', letterSpacing: .5 }}>VOCÊ FOI EXPULSO</p>
+            <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(255,255,255,.9)' }}>O host removeu você desta partida. Você <b>saiu da sala</b> — pode entrar em outra sala ou criar a sua. 👋</p>
+            <button onClick={() => setKickedOut(false)}
+              style={{ marginTop: 16, width: '100%', background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '12px 0', fontWeight: 900, fontSize: 16, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>
+              OK, ENTENDI
             </button>
           </div>
         </div>
