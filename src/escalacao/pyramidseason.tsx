@@ -3788,6 +3788,10 @@ export function ReserveListScreen() {
   const marketUnlocked = state.seasonNo >= 3 // vender/negociar só libera na 3ª temporada
   const canList = (c: WonCard) => {
     if (!marketUnlocked || c.emprestado) return false // 🏢 jogador de empréstimo nunca é vendido — não é seu
+    // 🔒 contrato JÁ vencido: só sai pela janela de "Deixar ir" (CONTRATOS ENCERRANDO),
+    // nunca pelo mercado comum — senão dava pra "fugir" da decisão de contrato vendendo
+    // ele como se fosse reserva qualquer (relato de jogador: "vende e foge do contrato").
+    if (state.contratosOn && c.contratoAte != null && c.contratoAte < state.seasonNo) return false
     const listedInPos = [...listed].filter(id => mgr.squad.find(x => x.id === id)?.pos === c.pos).length
     // 🏢 conta SÓ os SEUS (emprestado volta na virada — não pode virar muleta pra vender demais)
     const filledPos = mgr.squad.filter(x => x.pos === c.pos && !x.emprestado).length

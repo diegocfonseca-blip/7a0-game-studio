@@ -1019,8 +1019,13 @@ function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => nu
   if (need === 0 || m.money <= 0) return []
   const remaining = SECTORS.slice(sectorIdx).reduce((s, p) => s + SECTOR_WEIGHT[p], 0)
   const shape = 0.65 + m.aggression * 0.8
+  // 👑 REPESCAGEM com LENDA na mesa: o bot fica mais esperto — orçamento normal
+  // (4-9) quase nunca cobre o piso de uma lenda, e ela sumia de graça no monte
+  // sem ninguém notar. Com lenda na leva, o bolso da repescagem cresce bastante
+  // (ainda helper, nunca chega no preço do leilão principal).
+  const rescueHasLegend = rescue && cards.some(c => c.fame === 5)
   let budget = rescue
-    ? Math.min(m.money, 4 + Math.floor(rng() * 6))
+    ? Math.min(m.money, (rescueHasLegend ? 14 : 4) + Math.floor(rng() * (rescueHasLegend ? 22 : 6)))
     : Math.max(1, Math.floor(m.money * (SECTOR_WEIGHT[pos] / remaining) * shape * (0.85 + rng() * 0.4)))
   budget = Math.min(budget, m.money)
 
@@ -4565,6 +4570,10 @@ export function reducer(state: EscState, action: Action): EscState {
         // 🏢 emprestado NÃO pode ir pra lista/venda: ou é um jogador da SAF (não é seu
         // pra vender), ou é seu que está na SAF. Traga de volta primeiro (botão na SAF).
         if (card.emprestado) return s
+        // 🔒 contrato JÁ vencido: só sai pela janela de "Deixar ir" (RELEASE_CONTRACT),
+        // nunca pelo mercado comum — trava do lado autoritativo (espelha canList na tela),
+        // senão dava pra vender e "fugir" da decisão de contrato como reserva qualquer.
+        if (s.contratosOn && card.contratoAte != null && card.contratoAte < s.seasonNo) return s
         const pos = card.pos
         const listedInPos = arr.filter(id => mgr.squad.find(c => c.id === id)?.pos === pos).length
         // 🏢 conta SÓ os jogadores SEUS (não emprestados): o emprestado volta na virada,
