@@ -1,5 +1,26 @@
 # 📌 Pendências combinadas com o Diego (atualizado 07/08/2026)
 
+## 🐛 LIVRO DE PREÇOS: preço compartilhado por NOME (relato de jogador, Neymar) ✅ NO AR
+Jogador reportou: renovar o Neymar do Santos estava pedindo o preço do Neymar
+do BARCELONA (vendido por 200+) — são cartas diferentes (nome igual, clube
+diferente), mas o "livro de preços" (piso de mercado/renovação) só guardava
+pelo NOME do jogador, então uma inflava a outra. Bug real, valia pra QUALQUER
+jogador com 2+ cartas (clubes/anos diferentes) — bem comum no baralho.
+Corrigido: a memória de preço agora é por CARTA (nome+clube, usando o `ident`
+que o jogo já usa pra tudo mais), não só nome. Mesma correção aplicada no
+bônus de artilheiro (tinha o mesmo problema escondido). Reversível com
+`git revert fdcc41f`.
+
+## 🤝 Patrocínio: mais 2 ajustes (07/08) ✅ NO AR
+- **Trava reforçada**: além da tela bloquear o botão "Começar a temporada" até
+  escolher a meta, agora o PRÓPRIO reducer recusa avançar a rodada 0 sem a
+  escolha — cinto de segurança extra (Diego relatou que "se demorar, começa
+  sozinho"; não achamos o buraco exato mas essa trava cobre qualquer caminho).
+- **Logos maiores** na tela de escolha das marcas (quase dobrou de tamanho).
+- **Max Joias** (amigo do Diego) entrou no tier 1 (🛡️ Não cair de divisão), no
+  lugar do "Paredão Materiais" fictício. Logo recortada (fundo preto virou
+  transparente) pra combinar com o cartão. Aprovado pelo Diego.
+
 ## 🐛 SELO DE GOL NO 0×0 — CORRIGIDO (07/08, relato do Diego) ✅
 Diego mandou print: jogo **0 × 0 aos 16'** com o selo "🔥 GOL NO FIM!" na tela,
 e a frase **trocando sozinha em looping** ("passando todas as frases").
