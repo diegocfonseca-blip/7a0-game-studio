@@ -3178,8 +3178,8 @@ export function PyramidSeasonScreen() {
               const betOk = round > 0 || !!(myBet && myBet.season === state.seasonNo)
               return (
                 <SimControls manual={manual} onToggle={toggleManualCareer} canNext={betOk && (round === 0 || roundReady)}
-                  onNext={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-                  onSkip={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+                  onNext={() => { if (betOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+                  onSkip={() => { if (betOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
                   nextLabel={round === 0 && !betOk ? '🤝 Escolha o patrocínio aí em cima' : !(round === 0 || roundReady) ? '⏳ Deixa a rodada acabar…' : round === 0 ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
               )
             })()}
