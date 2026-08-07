@@ -3068,15 +3068,23 @@ export function PyramidSeasonScreen() {
   // ⏩ velocidade da simulação (marcha do jogador): divide o tempo da rodada. 1 = normal.
   // O Normal do manual é IGUAL ao do auto (ROUND_MS); quem quiser mais calmo usa o 🐢.
   const roundMs = Math.round(ROUND_MS / speedFactor)
+  // 🤝 no AUTO (offline, sem manual), a rodada 0 NÃO pode andar sozinha antes do
+  // técnico escolher a meta do patrocínio — senão os 9s do ROUND_MS viravam um
+  // cronômetro escondido pra escolher (Diego pediu SEM tempo nenhum nessa área).
+  const sponsorBetOk = round > 0 || !!(state.careerSponsorBet?.[youId] && state.careerSponsorBet[youId].season === state.seasonNo)
   useEffect(() => {
     // para de avançar quando a 38ª foi jogada (seasonOver), mesmo antes do fim
     // "revelar" (endShown) — senão dispararia PLAY_ROUND à toa durante a última anim.
     // 🎭 evento pendente PAUSA o auto: o banner pede a decisão do técnico primeiro.
-    if (!state.isHost || seasonOver || manual || eventoPendente) return
+    // 🤝 round 0 (começo da temporada) NUNCA anda sozinho, nem no automático — exige
+    // o clique no botão "Começar a temporada" (Diego 07/08: escolher o patrocínio
+    // não pode já disparar a temporada; tem que ter o botão, pra quem tem Manual e
+    // pra quem não tem).
+    if (!state.isHost || seasonOver || manual || eventoPendente || !sponsorBetOk || round === 0) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, roundMs)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente])
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, sponsorBetOk])
   // 🚫 no MANUAL, "Próxima rodada" só libera DEPOIS que o jogo termina de animar —
   // igual ao stream/rápido. Sem isto dava pra clicar sem parar e pular os jogos.
   const [roundReady, setRoundReady] = useState(false)
@@ -3192,20 +3200,24 @@ export function PyramidSeasonScreen() {
             </>
           )
         })()}
+        {/* 🤝 escolheu o patrocínio ≠ começou a temporada: o início da T (rodada 0→1)
+            SEMPRE espera um clique explícito — vale pra quem tem Modo Manual e pra
+            quem não tem (o automático só entra a PARTIR da 1ª rodada, nunca pulando
+            essa decisão). Pedido do Diego (07/08): "não deve iniciar automaticamente,
+            tem que ter o botão de iniciar", pra craque/lenda E pra quem não é. */}
         {state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
-          manualAllowed ? (
+          round === 0 ? (
+            <button onClick={() => { if (sponsorBetOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }} disabled={!sponsorBetOk}
+              style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', background: sponsorBetOk ? GREEN : '#cfc6ae', color: sponsorBetOk ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 0 ${INK}`, cursor: sponsorBetOk ? 'pointer' : 'default', marginBottom: 10 }}>
+              {sponsorBetOk ? '▶️ Começar a temporada' : '🤝 Escolha o patrocínio aí em cima'}
+            </button>
+          ) : manualAllowed ? (
           <>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-            {(() => {
-              const myBet = state.careerSponsorBet?.[youId]
-              const betOk = round > 0 || !!(myBet && myBet.season === state.seasonNo)
-              return (
-                <SimControls manual={manual} onToggle={toggleManualCareer} canNext={betOk && (round === 0 || roundReady)}
-                  onNext={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-                  onSkip={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-                  nextLabel={round === 0 && !betOk ? '🤝 Escolha o patrocínio aí em cima' : !(round === 0 || roundReady) ? '⏳ Deixa a rodada acabar…' : round === 0 ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
-              )
-            })()}
+            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady}
+              onNext={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+              onSkip={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+              nextLabel={!roundReady ? '⏳ Deixa a rodada acabar…' : '▶️ Próxima rodada'} />
           </>
           ) : <ManualLockButton />
         )}
@@ -3949,6 +3961,25 @@ export function ReserveListScreen() {
             <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
               <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>{primeira ? '📝 CONTRATOS CHEGARAM!' : '⏳ CONTRATOS ENCERRANDO'}{expDorm.length > 0 ? ' — decida clube por clube' : ''}</p>
               {primeira && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Seu clube é profissional: <b>todo jogador tem contrato</b> (5 a 10 anos, sorteado na chegada). Quando encerra, você decide: <b>renovar ou deixar ir</b>.</p>}
+              {/* ⚡ AÇÃO EM MASSA (07/08, pedido do Diego): com muito contrato vencendo de
+                  uma vez, um botão por CATEGORIA aplica a mesma decisão em TODOS de uma
+                  vez (os dois clubes do multiclube juntos) — sem precisar clicar jogador
+                  por jogador. */}
+              {(expirados.length + expDorm.length) > 1 && (() => {
+                const alvos: { c: WonCard; dono: Manager }[] = [...expirados.map(c => ({ c, dono: mgr })), ...(dormM ? expDorm.map(c => ({ c, dono: dormM })) : [])]
+                const bulkRenovar = (anos: 10 | 5) => { for (const { c, dono } of alvos) dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos }) }
+                const bulkDeixarIr = () => {
+                  const jaSolto = new Set(state.contratoRelease ?? [])
+                  for (const { c, dono } of alvos) if (!jaSolto.has(c.id)) dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })
+                }
+                return (
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 9 }}>
+                    <button onClick={() => bulkRenovar(10)} style={btn(GOLD, INK, false)}>🔟 Renovar TODOS{<br />}10 anos (-10%)</button>
+                    <button onClick={() => bulkRenovar(5)} style={btn('#EAF6EE', INK, false)}>5️⃣ Renovar TODOS{<br />}5 anos</button>
+                    <button onClick={bulkDeixarIr} style={btn('#FDECEA', '#a23325', false)}>😢 Deixar TODOS ir{<br />}vão pro leilão</button>
+                  </div>
+                )
+              })()}
               {(() => {
                 // card de decisão de UM jogador; `empilha` = botões em pilha (modo 2 colunas)
                 const decisao = (c: WonCard, dono: Manager, saldo: number, empilha: boolean) => {

@@ -838,13 +838,13 @@ function Campinho({ m, small = false, bench = false, title }: { m: Manager; smal
           <span className="font-black uppercase tracking-wide" style={{ ...OSWALD, fontSize: small ? 10 : 12 }}>{title}</span>
         </div>
       )}
-      <div className="px-3 py-2 flex flex-col gap-2" style={{ background: `repeating-linear-gradient(180deg, ${g1} 0 34px, ${g2} 34px 68px)` }}>
+      <div className="campinho-field px-3 py-2.5 flex flex-col gap-2.5" style={{ background: `repeating-linear-gradient(180deg, ${g1} 0 34px, ${g2} 34px 68px)` }}>
         {rows.map(row => (
-          <div key={row.key} className="flex justify-center gap-2">
+          <div key={row.key} className="campinho-row flex justify-center gap-2.5">
             {row.slots.map((slot, i) => (
               <div
                 key={i}
-                className={`border-2 border-black rounded-lg text-center ${small ? 'px-1 py-0.5 min-w-[52px]' : 'px-2 py-1 min-w-[72px]'}`}
+                className={`campinho-slot border-2 border-black rounded-lg text-center ${small ? 'px-1.5 py-1 min-w-[56px]' : 'px-2.5 py-1.5 min-w-[76px]'}`}
                 style={{ backgroundColor: slot.card ? '#fff' : 'rgba(255,255,255,0.25)' }}
               >
                 <p className="text-[9px] font-black" style={{ color: slot.card ? RED : '#fff' }}>{slot.pos}</p>
@@ -3509,7 +3509,7 @@ export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLab
         <button onClick={onNext} disabled={!canNext} style={{ gridRow: '1 / 3', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: `2.5px solid ${INK}`, borderRadius: 11, padding: 10, fontWeight: 900, fontSize: 15.5, lineHeight: 1.1, fontFamily: 'Oswald, sans-serif', background: canNext ? GREEN : '#cfc6ae', color: canNext ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `2px 2px 0 0 ${INK}`, cursor: canNext ? 'pointer' : 'default' }}>
           {nextLabel}
         </button>
-        <button onClick={onSkip} style={{ gridColumn: 2, gridRow: 1, border: `1.5px solid ${INK}`, borderRadius: 10, padding: 8, fontWeight: 800, fontSize: 12.5, fontFamily: 'Oswald, sans-serif', background: '#2F6BAE', color: '#fff', boxShadow: `1.5px 1.5px 0 0 ${INK}`, cursor: 'pointer' }}>
+        <button onClick={onSkip} disabled={!canNext} style={{ gridColumn: 2, gridRow: 1, border: `1.5px solid ${INK}`, borderRadius: 10, padding: 8, fontWeight: 800, fontSize: 12.5, fontFamily: 'Oswald, sans-serif', background: canNext ? '#2F6BAE' : '#cfc6ae', color: canNext ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `1.5px 1.5px 0 0 ${INK}`, cursor: canNext ? 'pointer' : 'default' }}>
           ⏭️ Pular
         </button>
         <button onClick={onToggle} style={{ gridColumn: 2, gridRow: 2, border: `1.5px solid ${INK}`, borderRadius: 10, padding: 8, fontWeight: 800, fontSize: 11.5, fontFamily: 'Oswald, sans-serif', background: '#fff', color: '#5a5647', boxShadow: `1.5px 1.5px 0 0 ${INK}`, cursor: 'pointer' }}>

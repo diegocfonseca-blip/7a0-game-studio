@@ -18,6 +18,95 @@ flash, aconteça o que acontecer com o estado.
 Regressão nova: `scratchpad/goltest.mjs` (reproduz o bug na versão antiga e
 prova os 6 comportamentos certos na nova) + eventotest/copatest/dormtest 🟢.
 
+## ✅ ENTREGUE 07/08 — Patrocínio virou APOSTA + correções da carreira (já na MAIN, ao vivo)
+1. **Patrocínio reformulado pra sistema de APOSTA por temporada** (pedido do
+   Diego, inspirado em jogos tipo Motorsport Manager): saiu o patrocínio fixo
+   por divisão, entrou escolha no INÍCIO de cada temporada (banner logo após o
+   leilão, antes do botão "Começar a temporada" — trava o botão até escolher).
+   Três níveis de aposta, cada um com 3 marcas pra escolher (visual): 🛡️ Não
+   cair de divisão · 📈 Acesso (top 4) · 👑 Campeão (liga OU copa, as duas não
+   dobra). Pagamento por divisão (dobra a cada degrau): Várzea 1/2/3 · D 2/4/6
+   · C 4/8/12 · B 8/16/24 · A 16/32/48 (moedas conforme o nível apostado).
+   **Errou a meta = ZERO** (apostou seguro e foi além = só ganha o que apostou,
+   "deu mole" — regra explícita do Diego). Aviso sutil disso no próprio banner.
+   Logo do amigo dentista (ERO Odontologia) e do Vadico Veículos entram como
+   marcas reais no tier 👑 Campeão. Caixa/extrato atualiza sozinho no fim da
+   temporada junto com os outros prêmios (reaproveita o motor que já existia).
+   Multiclube: cada clube tem sua própria aposta (não mistura). Story pra
+   divulgar já entregue (scratchpad/story-patrocinio.html/png).
+2. **Hack do "mesmo time" corrigido** — apertar "mesmo time" ao fim da
+   temporada abria uma brecha que pulava a área de contratos sem o jogador
+   decidir nada. Agora abre o MESMO banner de contratos de sempre (sem leilão
+   depois) — o usuário decide (renovar/deixar ir) e só depois avança.
+3. **Timer da tela de contratos**: offline (modo carreira solo) não tem mais
+   tempo nenhum — decide na hora que quiser. Online continua com tempo, mas
+   reduzido pra 1 minuto (era 45s).
+4. **Caixa em tempo real**: confirmado que compra/venda/renovação no leilão já
+   atualizavam o caixa na hora (motor `mirrorWallets` já fazia isso, achado
+   ao investigar — nenhum bug aqui). Premiação de artilheiro/títulos/folha
+   salarial continuam batendo só no fechamento da liga/copa, como já era.
+5. **Bug dos eventos de zoeira (baladeira/pavio-curto/lesão) sempre na MESMA
+   rodada todo ano** — corrigido. Causa: a semente do sorteio tava sendo
+   embaralhada duas vezes com o mesmo número (cancelava e voltava a ser
+   sempre igual). Também aumentei bastante a variedade de jogadores e de
+   frases de cada evento, e o evento agora evita repetir o MESMO jogador do
+   evento anterior (antes reclamavam que era sempre o Romário, por exemplo).
+6. **Desconto da renovação de 10 anos**: tinha um arredondamento errado que às
+   vezes cobrava o preço CHEIO em vez dos 90% combinados. Corrigido.
+
+## 🐛 BUG DA TRAVA DO PATROCÍNIO consertado (07/08, relato do Diego) ✅
+No Modo Manual tinha um botão "⏭️ Pular" que NÃO respeitava a trava de "precisa
+escolher a meta do patrocínio antes de começar a temporada" — só o botão grande
+"Começar a temporada" travava; o Pular avançava direto. Corrigido nos dois
+lugares (screens.tsx: botão Pular agora fica cinza/desabilitado igual o
+grande; pyramidseason.tsx: o clique também é bloqueado no código, não só
+visual). Confirmado com o Diego como já estava certo: o prêmio da meta é
+sempre calculado com base na temporada que ACABOU de terminar (a mesma em que
+foi escolhida) e cai no caixa/extrato junto com os outros prêmios no fechamento
+daquela temporada — não é preciso trocar nada aí, já funciona assim.
+✅ MAIS UM PONTO (07/08, Diego: "não pode ter tempo nessa área de escolher
+patrocínio no carreira offline"): achado outro buraco — no modo AUTO (sem
+manual ligado) da carreira solo, a rodada 0 tinha um cronômetro ESCONDIDO de
+9s (o mesmo tempo de qualquer rodada) que avançava sozinho mesmo sem escolher
+a meta. Agora esse relógio também espera a escolha — carreira offline fica
+sem tempo nenhum pra escolher o patrocínio, seja no manual ou no automático.
+✅ MAIS UM PONTO (07/08, Diego: "escolheu o patrocínio já inicia a temporada
+sozinho, tem que ter o botão de iniciar — pra quem tem Manual E pra quem não
+tem"): a rodada 0→1 (começo da temporada) agora SEMPRE exige um clique
+explícito no botão "▶️ Começar a temporada", pra TODO mundo — inclusive quem
+não é craque/lenda (não tem Modo Manual) e antes ficava só no automático puro,
+sem botão nenhum, e a temporada começava sozinha 9s depois de escolher.
+A partir da 1ª rodada em diante nada mudou (quem não tem Manual continua 100%
+automático como sempre foi — só o INÍCIO da temporada ganhou a trava).
+
+## 🚀 Contratos: botões de ação em massa (07/08, pedido do Diego) ✅ NO AR
+Quando vence contrato de vários jogadores de uma vez, agora tem 3 botões em
+cima da lista (só aparecem com 2+ contratos vencendo): "🔟 Renovar TODOS 10
+anos", "5️⃣ Renovar TODOS 5 anos", "😢 Deixar TODOS ir". Um clique aplica a
+mesma decisão pra lista inteira de uma vez (multiclube: os dois clubes
+juntos), sem precisar clicar jogador por jogador. Mockup enviado ANTES de
+subir (mesmo visual dos botões individuais já aprovados); pushado já — se o
+Diego não curtir a posição/texto, é reverter o commit 426713d.
+
+## 🖥️ Campinho do Elenco com mais espaço (07/08, Diego: "tá muito apertado") ✅ NO AR
+Celular ganhou um respiro pequeno (gap/padding um pouco maiores). No desktop
+(onde sobrava tela vazia dos dois lados e as casinhas ficavam espremidas
+mesmo assim) o ganho é bem maior: casinha maior e mais espaço entre elas —
+só dentro do `@media (min-width: 1024px)` já usado no resto do "Modo
+Desktop", então o celular não muda em nada além do respiro combinado. Mockup
+antes/depois enviado e aprovado.
+
+## 🆕 Bannerzinho de "o jogo atualizou" voltou (07/08, pedido do Diego) ✅ NO AR
+Tinha sido tirado antes (aparecia toda hora nos dias de muito deploy). Diego
+pediu de volta: banner pequeno no topo pra quem JÁ ESTÁ com o jogo aberto
+quando sai versão nova, com botão "Atualizar" (recarrega na hora) e ✕ pra
+fechar — uma vez fechado, some e NÃO volta nessa versão (só a PRÓXIMA versão
+nova avisa de novo). ⚠️ Efeito colateral esperado nesta primeira leva: quem
+já estava com o jogo aberto ANTES deste deploy não viu o banner aparecer,
+porque o código rodando na aba dele ainda era o ANTIGO (o antigo tinha o
+banner desligado) — só um F5 manual pega a versão nova. A partir de agora
+(próximos deploys), o banner detecta e avisa normalmente.
+
 ## ✅ ENTREGUE 05/08 — 3 pedidos do Diego (já na MAIN, ao vivo)
 1. **Escudos nos confrontos da Copa dos 8** — a lista "Todos os jogos da fase"
    (screens.tsx, `tieRow`) agora mostra o escudo (gerado do nome, o mesmo
