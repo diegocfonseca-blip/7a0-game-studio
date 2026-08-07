@@ -61,6 +61,15 @@ sem botão nenhum, e a temporada começava sozinha 9s depois de escolher.
 A partir da 1ª rodada em diante nada mudou (quem não tem Manual continua 100%
 automático como sempre foi — só o INÍCIO da temporada ganhou a trava).
 
+## 🚀 Contratos: botões de ação em massa (07/08, pedido do Diego) ✅ NO AR
+Quando vence contrato de vários jogadores de uma vez, agora tem 3 botões em
+cima da lista (só aparecem com 2+ contratos vencendo): "🔟 Renovar TODOS 10
+anos", "5️⃣ Renovar TODOS 5 anos", "😢 Deixar TODOS ir". Um clique aplica a
+mesma decisão pra lista inteira de uma vez (multiclube: os dois clubes
+juntos), sem precisar clicar jogador por jogador. Mockup enviado ANTES de
+subir (mesmo visual dos botões individuais já aprovados); pushado já — se o
+Diego não curtir a posição/texto, é reverter o commit 426713d.
+
 ## ✅ ENTREGUE 05/08 — 3 pedidos do Diego (já na MAIN, ao vivo)
 1. **Escudos nos confrontos da Copa dos 8** — a lista "Todos os jogos da fase"
    (screens.tsx, `tieRow`) agora mostra o escudo (gerado do nome, o mesmo
