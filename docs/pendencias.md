@@ -36,6 +36,17 @@
 6. **Desconto da renovação de 10 anos**: tinha um arredondamento errado que às
    vezes cobrava o preço CHEIO em vez dos 90% combinados. Corrigido.
 
+## 🐛 BUG DA TRAVA DO PATROCÍNIO consertado (07/08, relato do Diego) ✅
+No Modo Manual tinha um botão "⏭️ Pular" que NÃO respeitava a trava de "precisa
+escolher a meta do patrocínio antes de começar a temporada" — só o botão grande
+"Começar a temporada" travava; o Pular avançava direto. Corrigido nos dois
+lugares (screens.tsx: botão Pular agora fica cinza/desabilitado igual o
+grande; pyramidseason.tsx: o clique também é bloqueado no código, não só
+visual). Confirmado com o Diego como já estava certo: o prêmio da meta é
+sempre calculado com base na temporada que ACABOU de terminar (a mesma em que
+foi escolhida) e cai no caixa/extrato junto com os outros prêmios no fechamento
+daquela temporada — não é preciso trocar nada aí, já funciona assim.
+
 ## ✅ ENTREGUE 05/08 — 3 pedidos do Diego (já na MAIN, ao vivo)
 1. **Escudos nos confrontos da Copa dos 8** — a lista "Todos os jogos da fase"
    (screens.tsx, `tieRow`) agora mostra o escudo (gerado do nome, o mesmo
