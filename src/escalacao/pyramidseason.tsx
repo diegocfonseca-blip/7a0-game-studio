@@ -3872,7 +3872,7 @@ export function ReserveListScreen() {
                 // card de decisão de UM jogador; `empilha` = botões em pilha (modo 2 colunas)
                 const decisao = (c: WonCard, dono: Manager, saldo: number, empilha: boolean) => {
                   const oficial = valorOficial(state, c)
-                  const c10 = Math.max(1, Math.ceil(oficial * 0.9)) // 💰 10 anos = 90% (decisão do Diego)
+                  const c10 = Math.max(1, Math.floor(oficial * 0.9)) // 💰 10 anos = 90% (Math.floor: desconto de verdade, nunca vira preço cheio por arredondamento)
                   const c5 = Math.max(1, Math.ceil(oficial / 2))
                   const solto = (state.contratoRelease ?? []).includes(c.id)
                   return (

@@ -4648,9 +4648,13 @@ export function reducer(state: EscState, action: Action): EscState {
       const oficial = valorOficial(s, card)
       // 💰 10 anos = 90% (decisão do Diego 03/08): desconto de fidelidade — por
       // temporada sai 9% vs 10% dos 5 anos, mas o desembolso à vista é maior.
+      // 🐛 05/08 (relato do Diego): Math.ceil no desconto de 10% ARREDONDAVA PRA
+      // CIMA — pra vários valores (ex.: piso 8) o "desconto" virava o preço CHEIO
+      // (ceil(8×0.9)=ceil(7.2)=8, igual sem desconto nenhum!). Math.floor garante
+      // desconto de verdade sempre (piso 8 → 7, nunca mais o preço cheio).
       // 💳 SEM trava de saldo (Diego 03/08): renovar por ESCOLHA pode negativar —
       // a dívida é do jogo (transfer ban no vermelho cuida da consequência).
-      const custo = action.anos === 10 ? Math.max(1, Math.ceil(oficial * 0.9)) : Math.max(1, Math.ceil(oficial / 2))
+      const custo = action.anos === 10 ? Math.max(1, Math.floor(oficial * 0.9)) : Math.max(1, Math.ceil(oficial / 2))
       const saldo = s.careerCoins?.[mgr.id] ?? 0
       s.careerCoins = { ...(s.careerCoins ?? {}), [mgr.id]: saldo - custo }
       card.contratoAte = s.seasonNo + contratoDur(action.anos, rngOf(s)) - 1
