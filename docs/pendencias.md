@@ -1,4 +1,40 @@
-# 📌 Pendências combinadas com o Diego (atualizado 05/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 07/08/2026)
+
+## ✅ ENTREGUE 07/08 — Patrocínio virou APOSTA + correções da carreira (já na MAIN, ao vivo)
+1. **Patrocínio reformulado pra sistema de APOSTA por temporada** (pedido do
+   Diego, inspirado em jogos tipo Motorsport Manager): saiu o patrocínio fixo
+   por divisão, entrou escolha no INÍCIO de cada temporada (banner logo após o
+   leilão, antes do botão "Começar a temporada" — trava o botão até escolher).
+   Três níveis de aposta, cada um com 3 marcas pra escolher (visual): 🛡️ Não
+   cair de divisão · 📈 Acesso (top 4) · 👑 Campeão (liga OU copa, as duas não
+   dobra). Pagamento por divisão (dobra a cada degrau): Várzea 1/2/3 · D 2/4/6
+   · C 4/8/12 · B 8/16/24 · A 16/32/48 (moedas conforme o nível apostado).
+   **Errou a meta = ZERO** (apostou seguro e foi além = só ganha o que apostou,
+   "deu mole" — regra explícita do Diego). Aviso sutil disso no próprio banner.
+   Logo do amigo dentista (ERO Odontologia) e do Vadico Veículos entram como
+   marcas reais no tier 👑 Campeão. Caixa/extrato atualiza sozinho no fim da
+   temporada junto com os outros prêmios (reaproveita o motor que já existia).
+   Multiclube: cada clube tem sua própria aposta (não mistura). Story pra
+   divulgar já entregue (scratchpad/story-patrocinio.html/png).
+2. **Hack do "mesmo time" corrigido** — apertar "mesmo time" ao fim da
+   temporada abria uma brecha que pulava a área de contratos sem o jogador
+   decidir nada. Agora abre o MESMO banner de contratos de sempre (sem leilão
+   depois) — o usuário decide (renovar/deixar ir) e só depois avança.
+3. **Timer da tela de contratos**: offline (modo carreira solo) não tem mais
+   tempo nenhum — decide na hora que quiser. Online continua com tempo, mas
+   reduzido pra 1 minuto (era 45s).
+4. **Caixa em tempo real**: confirmado que compra/venda/renovação no leilão já
+   atualizavam o caixa na hora (motor `mirrorWallets` já fazia isso, achado
+   ao investigar — nenhum bug aqui). Premiação de artilheiro/títulos/folha
+   salarial continuam batendo só no fechamento da liga/copa, como já era.
+5. **Bug dos eventos de zoeira (baladeira/pavio-curto/lesão) sempre na MESMA
+   rodada todo ano** — corrigido. Causa: a semente do sorteio tava sendo
+   embaralhada duas vezes com o mesmo número (cancelava e voltava a ser
+   sempre igual). Também aumentei bastante a variedade de jogadores e de
+   frases de cada evento, e o evento agora evita repetir o MESMO jogador do
+   evento anterior (antes reclamavam que era sempre o Romário, por exemplo).
+6. **Desconto da renovação de 10 anos**: tinha um arredondamento errado que às
+   vezes cobrava o preço CHEIO em vez dos 90% combinados. Corrigido.
 
 ## ✅ ENTREGUE 05/08 — 3 pedidos do Diego (já na MAIN, ao vivo)
 1. **Escudos nos confrontos da Copa dos 8** — a lista "Todos os jogos da fase"
