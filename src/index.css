@@ -207,3 +207,45 @@ html.noturno .palco :is([class*="bg-white"],
   [style*="color: rgb(139, 129, 104)"], [style*="color: rgb(43, 39, 28)"]) {
   color: rgba(0, 0, 0, 0.75);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   🖥️ MODO DESKTOP — FASE 1 "respirar" (05/08, pedido do Diego)
+   ═══════════════════════════════════════════════════════════════════════════
+   O jogo nasceu pro celular: tudo mora numa coluna de 576px (max-w-xl). No
+   telefone isso é a tela inteira — perfeito. Num monitor vira uma tirinha no
+   meio com 70% de tela vazia.
+
+   🔒 REGRA DE OURO: TUDO aqui está dentro de `@media (min-width: 1024px)`. O
+   navegador do celular NEM LÊ estas linhas — ele pula o bloco inteiro. Nenhuma
+   tela, botão ou regra muda no telefone. E é SÓ moldura (largura/espaço): não
+   encosta em lógica, estado nem em nada do jogo.
+
+   🔌 INTERRUPTOR: pra desligar o modo desktop inteiro, é só trocar a largura
+   abaixo por um valor gigante (ex.: 99999px) — volta tudo ao que era.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 1024px) {
+  /* 1) A COLUNA RESPIRA: 576 → 900px. É a mudança que resolve metade da
+     queixa — tabelas, jornal e listas param de espremer. */
+  .palco .max-w-xl,
+  .palco .max-w-md { max-width: 900px; }
+
+  /* 2) as barras de topo/rodapé acompanham a coluna (senão o cabeçalho fica
+     estreito com o conteúdo largo embaixo — desalinhado) */
+  .max-w-xl { max-width: 900px; }
+
+  /* 3) um respiro nas laterais e no pé (no celular o dedo precisa de tela
+     cheia; no PC a página encostada na borda parece apertada) */
+  .palco > div[class*="max-w-"] { padding-left: 28px; padding-right: 28px; }
+  .palco { padding-bottom: 40px; }
+
+  /* 4) 🖱️ é mouse, não dedo: mostra a mãozinha em tudo que é clicável e um
+     realce suave ao passar por cima (o celular não tem "passar por cima"). */
+  .palco button:not(:disabled) { cursor: pointer; }
+  .palco button:not(:disabled):hover { filter: brightness(1.06); }
+
+  /* 5) barra de rolagem visível no PC (no celular ela some sozinha; no monitor
+     sumir dá a sensação de "travou, não tem mais nada embaixo") */
+  .palco ::-webkit-scrollbar { width: 10px; height: 10px; }
+  .palco ::-webkit-scrollbar-thumb { background: rgba(12,12,12,.28); border-radius: 6px; }
+  .palco ::-webkit-scrollbar-thumb:hover { background: rgba(12,12,12,.45); }
+}
