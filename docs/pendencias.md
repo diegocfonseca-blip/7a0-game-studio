@@ -11,6 +11,20 @@ que o jogo já usa pra tudo mais), não só nome. Mesma correção aplicada no
 bônus de artilheiro (tinha o mesmo problema escondido). Reversível com
 `git revert fdcc41f`.
 
+## 🐛 BOTÃO "⏭️ PULAR" travado — CORRIGIDO (07/08, relato de jogador) ✅ NO AR
+Jogador (craque/lenda, com Modo Manual) reportou que o Pular parou de
+funcionar. Causa: era EU MESMO, mais cedo hoje — pra fechar o buraco do
+patrocínio (Pular pulando a escolha da meta), botei uma trava no botão Pular
+que na verdade é COMPARTILHADO por vários modos (carreira, rápido, Copa do
+Mundo). Sem querer, isso fez o Pular esperar "a rodada acabar" pra liberar —
+ou seja, perdeu a função dele (que é JUSTAMENTE pular a animação e ir direto
+pro resultado, sem esperar nada). Como a trava do patrocínio já tinha sido
+resolvida de outro jeito (um botão PRÓPRIO só na hora de escolher a meta, fora
+desse componente), a trava no Pular ficou sobrando e não fazia mais falta —
+tirei ela. Agora o Pular volta a ser IMEDIATO em todo lugar (carreira, rápido,
+Copa do Mundo), e a trava do patrocínio continua funcionando (ela nunca
+dependeu do Pular). Reversível com `git revert 8c2664c`.
+
 ## 🤝 Patrocínio: mais 2 ajustes (07/08) ✅ NO AR
 - **Trava reforçada**: além da tela bloquear o botão "Começar a temporada" até
   escolher a meta, agora o PRÓPRIO reducer recusa avançar a rodada 0 sem a
