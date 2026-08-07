@@ -2226,7 +2226,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Cabeção da Vila', team: 'Paris São Geraldo' },
     { name: 'Tonhão', team: 'Alfacehh' }, // ⚽ clube BATIZADO por apoiador (matheus223lms — Alfacehh, ex-Santos Dumont)
     { name: 'Zé do Caixote', team: 'River Prato' },
-    { name: 'Nininho', team: 'Bicho da Seda' },
+    { name: 'Nininho', team: 'Bicho da Seda' }, // ⚽ clube BATIZADO por apoiador (davisantana1312 — Bicho da Seda, ex-Red Bull Diet)
     { name: 'Piu do Grêmio', team: 'Barcenite FC' },
     { name: 'Tico do Bar', team: 'Pardemeias' },
     { name: 'Xandão da Bola', team: 'Livre-pool' },

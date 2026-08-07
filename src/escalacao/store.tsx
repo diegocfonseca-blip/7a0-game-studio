@@ -2433,12 +2433,12 @@ type Action =
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa'; rivals?: number; rivalTeams?: string[] }
-  | { type: 'NEXT_SEASON_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e começa a próxima temporada (mesmo time). scorerValues = bonus de piso dos artilheiros
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
-  | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: abre a tela de VENDA (listar pra leilão, 45s) já na temporada nova, antes da compra
+  | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; mesmo?: boolean } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME)
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
   | { type: 'RELEASE_CONTRACT'; mgrId: number; cardId: string } // 🌱 marca/desmarca "deixar ir" na janela de renovação (se quebrar o XI, um Cria da Base assume)
   | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: 5 | 10 } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — 10 anos = valor oficial cheio, 5 = metade. Prazo real sai com tempero (±1) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); quem não renovar vai pro leilão com teto de venda
+  | { type: 'CONFIRM_MESMO_TIME' } // 🔒 fecha a janela de contratos do voto "mesmo time" (sem leilão): processa Deixar ir/Renovar decididos e volta pra temporada
   | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
   | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
   | { type: 'BANCO_CREDIT'; coins: number; code: string } // 🏦 Banco Legends: ficha resgatada (RPC já validou/queimou no Supabase) — credita no caixa do clube ATIVO e registra no extrato. Só carreira solo
@@ -2505,7 +2505,7 @@ function rngOf(state: EscState): () => number {
 }
 
 const ENVELOPE_MS = 45_000
-const RESERVE_LIST_MS = 45_000 // tela "Listar pra leilão" (venda) antes do leilão de reservas
+const RESERVE_LIST_MS = 60_000 // tela "Listar pra leilão" (venda) antes do leilão de reservas — 1min (só conta pra valer no ONLINE; offline não mostra o relógio)
 const CEREMONY_MS = 45_000 // tempo pra olhar os times antes do campeonato começar sozinho
 
 // entra na cerimônia da revelação e liga o cronômetro de 45s (auto-começa)
@@ -4453,30 +4453,6 @@ export function reducer(state: EscState, action: Action): EscState {
       // alguém desatualizado (arremate ainda não aplicado), tira o jogador que já tem dono
       return s
     }
-    case 'NEXT_SEASON_ONLINE': {
-      s.simV = 4 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
-      // carreira online (mesmo time): nova colocação (acessos/quedas já aplicados
-      // pelo host, determinístico) + zera a rodada e sobe a temporada. Os elencos
-      // seguem os mesmos (novo leilão é um fluxo à parte).
-      if (!s.careerOnline) return s
-      pinHumanLineups(s) // mantém o SEU XI (mesmo time) — nada de auto-mudar titular
-      s.seasonVotes = {} // temporada nova: zera a votação
-      applySeasonMoney(s, action.rewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha (e registra no extrato) — antes de contratar reforço
-      s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
-      applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
-      s.careerPlacements = action.placements // ⚠️ ANTES do trim: a devolução do excedente usa a divisão NOVA
-      escadaAfterPlacements(s) // 🪜 subiu da estreia? destrava o banco
-      s.filialTrimNotice = trimFilialLoansToDivision(s) || null // 🏢 empréstimo PERSISTE; só devolve o excedente se rebaixou (com aviso)
-      s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada (pro ranking)
-      if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
-      recordDormantCards(s, action.champions, action.copaChampion) // 🏛️ guarda a carta se o 2º clube (dormindo) foi campeão
-      applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid)
-      s.seasonNo++
-      s.round = 0
-      s.champion = null
-      s.careerTactics = {} // nova temporada: táticas por jogo zeram
-      return s
-    }
     case 'REAUCTION_ONLINE': {
       s.simV = 4 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       // carreira online (novo leilão): aplica a nova colocação e REFAZ o leilão
@@ -4549,7 +4525,65 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerTactics = {}
       s.reserveListed = {}
       s.screen = 'reserveList'
-      s.phaseDeadline = Date.now() + RESERVE_LIST_MS
+      // 🔒 "mesmo time": mesma tela de contratos, mas SEM leilão depois — o relógio
+      // (que só faz sentido esperando todo mundo listar pro pregão) fica de fora.
+      s.reserveListMesmo = !!action.mesmo
+      s.phaseDeadline = action.mesmo ? null : Date.now() + RESERVE_LIST_MS
+      return s
+    }
+    case 'CONFIRM_MESMO_TIME': {
+      // 🔒 fecha a janela de contratos votada como "mesmo time" (sem leilão pra
+      // soltar jogador pra dentro): quem marcou "Deixar ir" sai de graça (sem venda,
+      // já que não tem comprador) — se quebrar o XI, um Cria da Base assume. Quem
+      // não decidiu renova automático (5 anos, metade), igual sempre foi na janela
+      // do leilão. Antes esta votação pulava a janela INTEIRA — dava pra manter
+      // jogador de contrato vencido de graça pra sempre só votando "mesmo time"
+      // (relato de jogador). Agora SEMPRE passa pela decisão, com ou sem leilão.
+      if (!s.careerOnline || s.screen !== 'reserveList' || !s.reserveListMesmo) return s
+      if (s.contratosOn) {
+        const ctrRng = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 65537) ^ 0x5EED) >>> 0)
+        const released = new Set(s.contratoRelease ?? [])
+        for (const m of s.managers) {
+          if (!m.isHuman) continue // dormindo (2º clube) também é isHuman — decide junto, igual na janela do leilão
+          const expirados = (m.squad as WonCard[]).filter(c => !c.fake && !c.cria && c.contratoAte != null && c.contratoAte < s.seasonNo)
+          const removidosPorPos: Record<string, number> = {}
+          for (const c of expirados) {
+            const querSoltar = released.has(c.id) && !c.emprestado
+            if (querSoltar) {
+              const need = FORMATIONS[m.formation][c.pos]
+              const filledPos = m.squad.filter(x => x.pos === c.pos && !x.emprestado && !x.fake).length
+              const quebraXI = filledPos - (removidosPorPos[c.pos] ?? 0) - 1 < need
+              m.squad = m.squad.filter(x => x.id !== c.id)
+              ;(s.marketLog = s.marketLog ?? []).push(`😢 ${m.teamName}: ${c.name} foi liberado — mesmo time, sem leilão pra vender`)
+              if (quebraXI) spawnCria(s, m, c.pos, c.name, ctrRng)
+              else removidosPorPos[c.pos] = (removidosPorPos[c.pos] ?? 0) + 1
+            } else {
+              const custo = Math.max(1, Math.ceil(valorOficial(s, c) / 2))
+              s.careerCoins = { ...(s.careerCoins ?? {}), [m.id]: (s.careerCoins?.[m.id] ?? 0) - custo }
+              c.contratoAte = s.seasonNo + contratoDur(5, ctrRng) - 1
+              ;(s.marketLog = s.marketLog ?? []).push(`📝 ${m.teamName}: ${c.name} renovou AUTOMÁTICO por ${custo} 🪙 (5 anos) — ninguém decidiu na janela`)
+              logFin(s, 'buy', `📝 Renovação automática: ${c.name}`, -custo, { player: c.name, pos: c.pos }, m.id)
+            }
+          }
+        }
+        s.contratoRelease = undefined
+        // rivais (CPU): sem leilão pra repor, então sempre renovam (paga do clubCash do time)
+        const cashR = { ...(s.clubCash ?? {}) }
+        for (const m of s.managers) {
+          if (m.isHuman || !m.rival) continue
+          const expirados = (m.squad as WonCard[]).filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < s.seasonNo)
+          for (const c of expirados) {
+            const custo = Math.max(1, Math.ceil(valorOficial(s, c) / 2))
+            cashR['m' + m.id] = Math.max(0, (cashR['m' + m.id] ?? 0) - custo)
+            ;(c as WonCard).contratoAte = s.seasonNo + contratoDur(5, ctrRng) - 1
+          }
+        }
+        s.clubCash = cashR
+      }
+      s.reserveListMesmo = undefined
+      s.reserveListed = {}
+      s.phaseDeadline = null
+      s.screen = 'season'
       return s
     }
     case 'TOGGLE_RESERVE_LIST': {
@@ -4614,9 +4648,13 @@ export function reducer(state: EscState, action: Action): EscState {
       const oficial = valorOficial(s, card)
       // 💰 10 anos = 90% (decisão do Diego 03/08): desconto de fidelidade — por
       // temporada sai 9% vs 10% dos 5 anos, mas o desembolso à vista é maior.
+      // 🐛 05/08 (relato do Diego): Math.ceil no desconto de 10% ARREDONDAVA PRA
+      // CIMA — pra vários valores (ex.: piso 8) o "desconto" virava o preço CHEIO
+      // (ceil(8×0.9)=ceil(7.2)=8, igual sem desconto nenhum!). Math.floor garante
+      // desconto de verdade sempre (piso 8 → 7, nunca mais o preço cheio).
       // 💳 SEM trava de saldo (Diego 03/08): renovar por ESCOLHA pode negativar —
       // a dívida é do jogo (transfer ban no vermelho cuida da consequência).
-      const custo = action.anos === 10 ? Math.max(1, Math.ceil(oficial * 0.9)) : Math.max(1, Math.ceil(oficial / 2))
+      const custo = action.anos === 10 ? Math.max(1, Math.floor(oficial * 0.9)) : Math.max(1, Math.ceil(oficial / 2))
       const saldo = s.careerCoins?.[mgr.id] ?? 0
       s.careerCoins = { ...(s.careerCoins ?? {}), [mgr.id]: saldo - custo }
       card.contratoAte = s.seasonNo + contratoDur(action.anos, rngOf(s)) - 1

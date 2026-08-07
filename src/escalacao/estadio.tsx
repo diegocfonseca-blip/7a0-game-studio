@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, STADIUM_BASE, sectorPct, hasExtra, extraUnlocked, stadiumIncome, stadiumBuiltIncome, stadiumSeats, stadiumLevel, SPONSOR_PAY, sponsorsForDiv, sponsorsLocked, currentSponsor } from './estadiodata'
 import type { StadiumSave, Sponsor } from './estadiodata'
 import { VADICO_LOGO } from './vadico'
+import { ERO_LOGO } from './ero'
 import { myApoioPerk, loggedEmail, APOIO_PERKS } from './apoio'
 import type { ApoioPerk } from './apoio'
 
@@ -31,16 +32,19 @@ export function SponsorCard({ div, chosen, onChoose }: { div: string; chosen?: s
   const opts = sponsorsForDiv(div)
   const locked = sponsorsLocked(div)
   const cur = currentSponsor(div, chosen)
-  // 🥤 Várzea: TEM marca (Guaravita/Trakinas/Fofura) mas NÃO paga dinheiro — o
-  // "prêmio" é o lanche. Mostra as marcas com zoeira, não a tela de "sem patrocínio".
-  const varzeaLanche = div === 'V' && pay === 0 && opts.length > 0
+  // 🥤 Várzea: NÃO tem marca pra escolher — é só zoeira em texto (nada de "empresa
+  // patrocinadora" nem cartão de marca; o Diego foi claro: é uma piada, não um sistema).
+  const varzea = div === 'V'
+  // grade que NUNCA aperta: cresce em linhas (min 84px por card) em vez de espremer
+  // tudo numa linha só — antes N marcas bloqueadas (5-7 no caso da Várzea) esborrachavam.
+  const grid: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))', gap: 7 }
   const brand = (s: Sponsor, selectable: boolean, on: boolean, tag?: string) => (
     <button key={s.id} onClick={selectable ? () => onChoose(s.id) : undefined} disabled={!selectable}
-      style={{ position: 'relative', flex: '1 1 0', minWidth: 0, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 12, boxShadow: `2px 2px 0 0 ${INK}`, padding: '10px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, cursor: selectable ? 'pointer' : 'default', opacity: selectable ? 1 : .5, outline: on ? `3px solid ${GOLD}` : 'none', outlineOffset: 2 }}>
+      style={{ position: 'relative', minWidth: 0, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 12, boxShadow: `2px 2px 0 0 ${INK}`, padding: '10px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, cursor: selectable ? 'pointer' : 'default', opacity: selectable ? 1 : .5, outline: on ? `3px solid ${GOLD}` : 'none', outlineOffset: 2 }}>
       {tag && <span style={{ position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)', ...OSW, fontWeight: 900, fontSize: 8.5, textTransform: 'uppercase', padding: '2px 7px', borderRadius: 999, border: `2px solid ${INK}`, whiteSpace: 'nowrap', background: on ? GOLD : '#6b6357', color: on ? INK : '#fff' }}>{tag}</span>}
       <div style={{ height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {s.logo
-          ? <img alt={s.name} src={VADICO_LOGO} style={{ maxHeight: 30, maxWidth: 96, objectFit: 'contain' }} />
+          ? <img alt={s.name} src={s.logo === 'ero' ? ERO_LOGO : VADICO_LOGO} style={{ maxHeight: 30, maxWidth: 96, objectFit: 'contain' }} />
           : <span style={{ ...OSW, fontWeight: 900, fontSize: 12, color: '#fff', background: s.color, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 8px', whiteSpace: 'nowrap' }}>{s.emoji} {s.name.split(' ')[0]}</span>}
       </div>
       <span style={{ ...OSW, fontWeight: 900, fontSize: 11, color: INK, lineHeight: 1.05, textAlign: 'center' }}>{s.name}</span>
@@ -50,42 +54,58 @@ export function SponsorCard({ div, chosen, onChoose }: { div: string; chosen?: s
     <div style={{ ...box('#fff'), padding: 12, marginTop: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
         <span style={{ ...OSW, fontWeight: 900, fontSize: 14 }}>👕 Patrocínio</span>
-        <span style={{ ...OSW, fontWeight: 900, fontSize: 13, color: varzeaLanche ? '#B5651D' : GREEN }}>{pay > 0 ? `+${pay} / temporada` : varzeaLanche ? '🥤🍪🌽 só o lanche' : '—'}</span>
+        <span style={{ ...OSW, fontWeight: 900, fontSize: 13, color: varzea ? '#B5651D' : GREEN }}>{pay > 0 ? `+${pay} / temporada` : varzea ? '🥤🌽 zero grana' : '—'}</span>
       </div>
-      {opts.length === 0 ? (
+      {varzea ? (
+        // 😂 Várzea: SEM escolha de marca, SEM "empresa" — só a zoeira em texto.
+        <div style={{ background: '#FBF4DE', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: '13px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center' }}>
+          <span style={{ fontSize: 26 }}>🥤🌽</span>
+          <p style={{ ...OSW, fontWeight: 900, fontSize: 13, color: INK, margin: 0, lineHeight: 1.3 }}>Aqui embaixo NINGUÉM patrocina o time</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: 0, lineHeight: 1.45 }}>Mas depois do jogo a galera posta no story tomando um <b>Guaravita</b> com <b>Fofura</b> 😂🥤🌽 — é rachar o lanche, não vender camisa. <b>Suba pra Série D</b> pra começar a faturar de verdade:</p>
+        </div>
+      ) : opts.length === 0 ? (
         <div style={{ background: '#FBF4DE', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: '13px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, textAlign: 'center' }}>
           <span style={{ fontSize: 24 }}>👕</span>
-          <p style={{ ...OSW, fontWeight: 900, fontSize: 13, color: INK, margin: 0, lineHeight: 1.25 }}>{div === 'V' ? 'A Várzea não atrai patrocínio (ainda 🍺)' : 'A Série D ainda não tem patrocínio'}</p>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0, lineHeight: 1.4 }}>Nenhuma marca aparece pra bancar a camisa aqui embaixo{div === 'V' ? ' no peladão' : ''}. <b>Suba de divisão</b> pra começar a faturar:</p>
-          <div style={{ display: 'flex', gap: 6, marginTop: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {[['D', 5], ['C', 10], ['B', 15], ['A', 20]].map(([d, v]) => (
-              <span key={d as string} style={{ ...OSW, fontWeight: 900, fontSize: 10.5, background: '#fff', border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 9px', color: INK }}>Série {d} <span style={{ color: GREEN }}>+{v}</span></span>
-            ))}
-          </div>
+          <p style={{ ...OSW, fontWeight: 900, fontSize: 13, color: INK, margin: 0, lineHeight: 1.25 }}>A Série D ainda não tem patrocínio</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0, lineHeight: 1.4 }}>Nenhuma marca aparece pra bancar a camisa aqui embaixo. <b>Suba de divisão</b> pra começar a faturar:</p>
         </div>
       ) : (
         <>
-          <p style={{ ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 2px 6px' }}>{varzeaLanche ? '🍺 Patrocínio de esquina — escolha o lanche' : 'Escolha a marca da camisa'}</p>
-          <div style={{ display: 'flex', gap: 7 }}>{opts.map(s => brand(s, true, cur?.id === s.id, cur?.id === s.id ? '✓ escolhido' : undefined))}</div>
-          {varzeaLanche && (
-            <p style={{ ...OSW, fontWeight: 800, fontSize: 10.5, color: '#B5651D', margin: '7px 2px 0', lineHeight: 1.3, textAlign: 'center' }}>😅 Aqui embaixo não pinga <b>dinheiro</b> nenhum — o patrocínio da várzea paga em <b>Guaravita, Trakinas e Fofura</b>. Suba pra Série D pra começar a faturar de verdade! 💰</p>
-          )}
-          {locked.length > 0 && (
-            <>
-              <p style={{ ...OSW, fontWeight: 900, fontSize: 9.5, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.4)', margin: '11px 2px 6px' }}>Marcões — destravam subindo 👑</p>
-              <div style={{ display: 'flex', gap: 7 }}>{locked.map(s => brand(s, false, false, `🔒 Série ${s.div}`))}</div>
-            </>
-          )}
+          <p style={{ ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 2px 6px' }}>Escolha a marca da camisa</p>
+          <div style={grid}>{opts.map(s => brand(s, true, cur?.id === s.id, cur?.id === s.id ? '✓ escolhido' : undefined))}</div>
         </>
       )}
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '9px 2px 0', lineHeight: 1.35 }}>Rende por divisão: 🌱 Várzea <b>só o lanche 🥤</b> · D <b>+5</b> · C <b>+10</b> · B <b>+15</b> · A <b>+20</b>. Cai no caixa no fim da temporada, junto com a bilheteria. A escolha é só de <b>identidade</b> — todas da mesma divisão pagam igual.</p>
+      {locked.length > 0 && (
+        <>
+          <p style={{ ...OSW, fontWeight: 900, fontSize: 9.5, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.4)', margin: '11px 2px 6px' }}>Marcões — destravam subindo 👑</p>
+          <div style={grid}>{locked.map(s => brand(s, false, false, `🔒 Série ${s.div}`))}</div>
+        </>
+      )}
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '9px 2px 0', lineHeight: 1.35 }}>Rende por divisão: 🌱 Várzea <b>nada, só zoeira</b> · D <b>+5</b> · C <b>+10</b> · B <b>+15</b> · A <b>+20</b>. Cai no caixa no fim da temporada, junto com a bilheteria. A escolha é só de <b>identidade</b> — todas da mesma divisão pagam igual.</p>
     </div>
   )
 }
 
+// 🌱 barro (0%) → grama de elite (100%, um triz mais viva que o verde de sempre —
+// pedido do Diego: "igual quase", só um pouco mais bonita quando completa).
+const DIRT: [RGB, RGB] = [[138, 106, 69], [122, 78, 46]]
+const GRASS: [RGB, RGB] = [[59, 191, 110], [23, 122, 62]]
+type RGB = [number, number, number]
+const lerpHex = (a: [RGB, RGB], b: [RGB, RGB], t: number, i: 0 | 1) => {
+  const c = (x: number, y: number) => Math.round(x + (y - x) * t)
+  return '#' + [c(a[i][0], b[i][0]), c(a[i][1], b[i][1]), c(a[i][2], b[i][2])].map(v => v.toString(16).padStart(2, '0')).join('')
+}
+// buracos de terra que vão fechando conforme o % do gramado sobe (cada um
+// "cicatriza" na sua faixa de progresso — dá a sensação de obra acontecendo)
+const GRASS_HOLES: { x: number; y: number; rx: number; ry: number; at: number }[] = [
+  { x: .18, y: .18, rx: 13, ry: 8, at: 20 }, { x: .68, y: .30, rx: 16, ry: 10, at: 40 },
+  { x: .30, y: .62, rx: 14, ry: 9, at: 60 }, { x: .74, y: .80, rx: 11, ry: 7, at: 80 },
+  { x: .12, y: .50, rx: 9, ry: 6, at: 100 },
+]
 export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; perkOverride?: ApoioPerk }) {
   const night = hasExtra(st, 'refl')
-  const grama = hasExtra(st, 'grama')
+  const gramaPct = sectorPct(st, 'grama')
+  const gt = gramaPct / 100
   // tier de apoio: as arquibancadas vestem a COR do time (setor pronto E em
   // construção), com varredura de brilho quando a categoria tem holo.
   // perkOverride força um tier (usado na PRÉVIA "veja o seu dourado").
@@ -96,7 +116,7 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
   const parts: string[] = []
   parts.push('<defs>')
   for (const k in STANDS) parts.push(`<clipPath id="stc${k}"><polygon points="${P(STANDS[k].pts)}"/></clipPath>`)
-  parts.push(`<linearGradient id="stgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${grama ? '#3bbf6e' : '#37a862'}"/><stop offset="1" stop-color="${grama ? '#177a3e' : '#1e7a44'}"/></linearGradient>`)
+  parts.push(`<linearGradient id="stgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${lerpHex(DIRT, GRASS, gt, 0)}"/><stop offset="1" stop-color="${lerpHex(DIRT, GRASS, gt, 1)}"/></linearGradient>`)
   parts.push(`<linearGradient id="stau" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${f0}"/><stop offset="1" stop-color="${f1}"/></linearGradient>`)
   parts.push(`<linearGradient id="stvd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${v0}"/><stop offset="1" stop-color="${v1}"/></linearGradient>`)
   parts.push('<pattern id="stcrowd" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.4" fill="#0C0C0C" opacity=".25"/><circle cx="6" cy="6" r="1.4" fill="#fff" opacity=".55"/></pattern>')
@@ -115,7 +135,15 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
   // gramado
   const px = 105, py = 75, pw = 130, ph = 160, cx = px + pw / 2, cy = py + ph / 2
   parts.push(`<rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="5" fill="url(#stgr)" stroke="#123f22" stroke-width="2.5"/>`)
-  for (let i = 0; i < pw; i += 13) if ((i / 13) % 2 === 0) parts.push(`<rect x="${px + i}" y="${py}" width="13" height="${ph}" fill="#fff" opacity="${grama ? '.09' : '.05'}"/>`)
+  for (let i = 0; i < pw; i += 13) if ((i / 13) % 2 === 0) parts.push(`<rect x="${px + i}" y="${py}" width="13" height="${ph}" fill="#fff" opacity="${(0.02 + 0.07 * gt).toFixed(2)}"/>`)
+  // 🕳️ buracos de terra que vão fechando conforme o gramado melhora (0% = todos
+  // abertos, terra pura; 100% = nenhum, igual o campo bonito de sempre)
+  for (const h of GRASS_HOLES) {
+    const windowStart = h.at - 20
+    const scale = Math.max(0, Math.min(1, (h.at - gramaPct) / (h.at - windowStart)))
+    if (scale <= 0) continue
+    parts.push(`<ellipse cx="${(px + h.x * pw).toFixed(1)}" cy="${(py + h.y * ph).toFixed(1)}" rx="${(h.rx * scale).toFixed(1)}" ry="${(h.ry * scale).toFixed(1)}" fill="#5c4530" opacity="${(0.55 + 0.25 * scale).toFixed(2)}"/>`)
+  }
   const W = 'rgba(255,255,255,.85)'
   parts.push(`<rect x="${px + 6}" y="${py + 6}" width="${pw - 12}" height="${ph - 12}" fill="none" stroke="${W}" stroke-width="1.6"/>`)
   parts.push(`<line x1="${px}" y1="${cy}" x2="${px + pw}" y2="${cy}" stroke="${W}" stroke-width="1.6"/>`)
@@ -249,7 +277,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
               <div style={{ height: 9, background: '#e6dcc2', border: `1.5px solid ${INK}`, borderRadius: 6, overflow: 'hidden', margin: '5px 0 4px' }}>
                 <div style={{ height: '100%', width: `${p}%`, background: full ? GOLD : ACC, transition: 'width .35s ease' }} />
               </div>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>custo total {s.cost} 💰 · rende <b style={{ color: ACC }}>+{s.inc}/temp</b> · {s.seats.toLocaleString('pt-BR')} lugares</div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>custo total {s.cost} 💰 · rende <b style={{ color: ACC }}>+{s.inc}/temp</b>{s.seats > 0 ? <> · {s.seats.toLocaleString('pt-BR')} lugares</> : null}</div>
             </div>
             <button onClick={() => !full && !poor && onInvest(s.k)} disabled={full || poor}
               style={{ flex: 'none', minWidth: 88, border: 'none', borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 12.5, cursor: full || poor ? 'default' : 'pointer', lineHeight: 1.15, ...OSW, background: full ? GOLD : poor ? '#d9cfb4' : INK, color: full ? INK : poor ? '#7d7358' : '#fff' }}>
