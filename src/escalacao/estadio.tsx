@@ -3,8 +3,8 @@ import { useState } from 'react'
 // Cada compra APARECE no desenho: torcida enchendo os setores, refletores
 // acendendo (anoitece!), telão ligando, loja, estacionamento, cobertura.
 // Melhorias destravam em árvore. Renda cai sozinha no fim de cada temporada.
-import { STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, STADIUM_BASE, sectorPct, hasExtra, extraUnlocked, stadiumIncome, stadiumBuiltIncome, stadiumSeats, stadiumLevel, SPONSOR_PAY, sponsorsForDiv, sponsorsLocked, currentSponsor } from './estadiodata'
-import type { StadiumSave, Sponsor } from './estadiodata'
+import { STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, STADIUM_BASE, sectorPct, hasExtra, extraUnlocked, stadiumIncome, stadiumBuiltIncome, stadiumSeats, stadiumLevel, SPONSOR_BET_META, SPONSOR_BET_PAY, sponsorBrandsOfTier, sponsorBrandOf } from './estadiodata'
+import type { StadiumSave, SponsorBetTier, SponsorBrand } from './estadiodata'
 import { VADICO_LOGO } from './vadico'
 import { ERO_LOGO } from './ero'
 import { myApoioPerk, loggedEmail, APOIO_PERKS } from './apoio'
@@ -26,62 +26,110 @@ const STANDS: Record<string, { pts: number[][]; axis: 'x' | 'y'; from: number; t
 }
 const P = (a: number[][]) => a.map(p => p.join(',')).join(' ')
 
-// ─── 👕 PATROCÍNIO — cartão de escolher a marca (aba Clube › Estádio) ───────
-export function SponsorCard({ div, chosen, onChoose }: { div: string; chosen?: string; onChoose: (id: string) => void }) {
-  const pay = SPONSOR_PAY[div] ?? 0
-  const opts = sponsorsForDiv(div)
-  const locked = sponsorsLocked(div)
-  const cur = currentSponsor(div, chosen)
-  // 🥤 Várzea: NÃO tem marca pra escolher — é só zoeira em texto (nada de "empresa
-  // patrocinadora" nem cartão de marca; o Diego foi claro: é uma piada, não um sistema).
-  const varzea = div === 'V'
-  // grade que NUNCA aperta: cresce em linhas (min 84px por card) em vez de espremer
-  // tudo numa linha só — antes N marcas bloqueadas (5-7 no caso da Várzea) esborrachavam.
-  const grid: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))', gap: 7 }
-  const brand = (s: Sponsor, selectable: boolean, on: boolean, tag?: string) => (
-    <button key={s.id} onClick={selectable ? () => onChoose(s.id) : undefined} disabled={!selectable}
-      style={{ position: 'relative', minWidth: 0, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 12, boxShadow: `2px 2px 0 0 ${INK}`, padding: '10px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, cursor: selectable ? 'pointer' : 'default', opacity: selectable ? 1 : .5, outline: on ? `3px solid ${GOLD}` : 'none', outlineOffset: 2 }}>
-      {tag && <span style={{ position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)', ...OSW, fontWeight: 900, fontSize: 8.5, textTransform: 'uppercase', padding: '2px 7px', borderRadius: 999, border: `2px solid ${INK}`, whiteSpace: 'nowrap', background: on ? GOLD : '#6b6357', color: on ? INK : '#fff' }}>{tag}</span>}
-      <div style={{ height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {s.logo
-          ? <img alt={s.name} src={s.logo === 'ero' ? ERO_LOGO : VADICO_LOGO} style={{ maxHeight: 30, maxWidth: 96, objectFit: 'contain' }} />
-          : <span style={{ ...OSW, fontWeight: 900, fontSize: 12, color: '#fff', background: s.color, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 8px', whiteSpace: 'nowrap' }}>{s.emoji} {s.name.split(' ')[0]}</span>}
-      </div>
-      <span style={{ ...OSW, fontWeight: 900, fontSize: 11, color: INK, lineHeight: 1.05, textAlign: 'center' }}>{s.name}</span>
-    </button>
-  )
+// ─── 🤝 PATROCÍNIO POR APOSTA (05/08) ──────────────────────────────────────
+// Toda temporada o técnico aposta num nível de meta ANTES de jogar. Bateu a
+// meta escolhida → ganha o valor dela. Ficou aquém → NADA. Superou (mirou
+// baixo) → só o valor apostado mesmo assim. 3 marcas por nível (identidade).
+const TIER_BG: Record<SponsorBetTier, string> = { 1: '#EAF3FF', 2: '#FFF3CF', 3: 'linear-gradient(90deg,#FFE79A,#FFC400)' }
+const sponsorLogoSrc = (s: SponsorBrand) => s.logo === 'ero' ? ERO_LOGO : s.logo === 'vadico' ? VADICO_LOGO : undefined
+
+// cartão de UM nível (usado dentro do banner de escolha)
+function SponsorTierCard({ tier, div, chosen, onPick }: { tier: SponsorBetTier; div: string; chosen?: { tier: SponsorBetTier; brandId: string }; onPick: (brandId: string) => void }) {
+  const meta = SPONSOR_BET_META[tier]
+  const value = (SPONSOR_BET_PAY[div] ?? [0, 0, 0])[tier - 1]
+  const brands = sponsorBrandsOfTier(tier)
   return (
-    <div style={{ ...box('#fff'), padding: 12, marginTop: 10 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
-        <span style={{ ...OSW, fontWeight: 900, fontSize: 14 }}>👕 Patrocínio</span>
-        <span style={{ ...OSW, fontWeight: 900, fontSize: 13, color: varzea ? '#B5651D' : GREEN }}>{pay > 0 ? `+${pay} / temporada` : varzea ? '🥤🌽 zero grana' : '—'}</span>
+    <div style={{ ...box('#fff'), overflow: 'hidden', marginBottom: 10 }}>
+      <div style={{ background: TIER_BG[tier], padding: '9px 11px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ ...OSW, fontWeight: 900, fontSize: 13 }}>{meta.emoji} {meta.label}</span>
+        <span style={{ ...OSW, fontWeight: 900, fontSize: 15, background: INK, color: GOLD, borderRadius: 8, padding: '2px 9px' }}>+{value}</span>
       </div>
-      {varzea ? (
-        // 😂 Várzea: SEM escolha de marca, SEM "empresa" — só a zoeira em texto.
-        <div style={{ background: '#FBF4DE', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: '13px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center' }}>
-          <span style={{ fontSize: 26 }}>🥤🌽</span>
-          <p style={{ ...OSW, fontWeight: 900, fontSize: 13, color: INK, margin: 0, lineHeight: 1.3 }}>Aqui embaixo NINGUÉM patrocina o time</p>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: 0, lineHeight: 1.45 }}>Mas depois do jogo a galera posta no story tomando um <b>Guaravita</b> com <b>Fofura</b> 😂🥤🌽 — é rachar o lanche, não vender camisa. <b>Suba pra Série D</b> pra começar a faturar de verdade:</p>
-        </div>
-      ) : opts.length === 0 ? (
-        <div style={{ background: '#FBF4DE', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: '13px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, textAlign: 'center' }}>
-          <span style={{ fontSize: 24 }}>👕</span>
-          <p style={{ ...OSW, fontWeight: 900, fontSize: 13, color: INK, margin: 0, lineHeight: 1.25 }}>A Série D ainda não tem patrocínio</p>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0, lineHeight: 1.4 }}>Nenhuma marca aparece pra bancar a camisa aqui embaixo. <b>Suba de divisão</b> pra começar a faturar:</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '8px 11px' }}>{meta.desc}</p>
+      <div style={{ display: 'flex', gap: 6, padding: '0 9px 10px' }}>
+        {brands.map(b => {
+          const on = chosen?.tier === tier && chosen?.brandId === b.id
+          const logo = sponsorLogoSrc(b)
+          return (
+            <button key={b.id} onClick={() => onPick(b.id)}
+              style={{ flex: 1, minWidth: 0, background: on ? INK : '#FBF6E9', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '7px 4px', textAlign: 'center', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, boxShadow: on ? `0 0 0 3px ${GOLD} inset` : 'none' }}>
+              <div style={{ height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {logo ? <img alt={b.name} src={logo} style={{ maxHeight: 18, maxWidth: 70, objectFit: 'contain', filter: on ? 'brightness(0) invert(1)' : undefined }} /> : <span style={{ fontSize: 16 }}>{b.emoji}</span>}
+              </div>
+              <span style={{ ...OSW, fontWeight: 900, fontSize: 9, lineHeight: 1.1, color: on ? '#fff' : INK }}>{b.name}</span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+// tabela de valores por divisão (pra explicar a régua discretamente)
+export function SponsorPayTable() {
+  const rows: [string, string][] = [['V', '🌱 Várzea'], ['D', 'Série D'], ['C', 'Série C'], ['B', 'Série B'], ['A', 'Série A']]
+  return (
+    <div style={{ ...box('#fff'), padding: '9px 11px', fontSize: 10.5 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 4, fontWeight: 900, ...OSW, color: 'rgba(0,0,0,.45)', fontSize: 8.5, textTransform: 'uppercase', marginBottom: 4 }}>
+        <span>Divisão</span><span style={{ textAlign: 'center' }}>🛡️ Não cair</span><span style={{ textAlign: 'center' }}>📈 Top 4</span><span style={{ textAlign: 'center' }}>👑 Campeão</span>
+      </div>
+      {rows.map(([d, label]) => {
+        const [t1, t2, t3] = SPONSOR_BET_PAY[d] ?? [0, 0, 0]
+        return <div key={d} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 4, fontWeight: 800, padding: '3px 0', borderTop: '1px solid rgba(0,0,0,.08)' }}><span>{label}</span><span style={{ textAlign: 'center' }}>{t1}</span><span style={{ textAlign: 'center' }}>{t2}</span><span style={{ textAlign: 'center' }}>{t3}</span></div>
+      })}
+      <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.4)', margin: '7px 0 0', lineHeight: 1.35 }}>Dobra a cada divisão. Ficou aquém da meta escolhida? Não paga nada. Superou (mirou baixo)? Paga só o que você apostou.</p>
+    </div>
+  )
+}
+// 🎯 BANNER de início de temporada — trava o "Começar a temporada" até escolher.
+export function SponsorBetBanner({ div, chosen, onPick }: { div: string; chosen?: { tier: SponsorBetTier; brandId: string }; onPick: (tier: SponsorBetTier, brandId: string) => void }) {
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ ...box(INK), padding: '10px 13px', marginBottom: 10, color: '#fff', textAlign: 'center' }}>
+        <p style={{ ...OSW, fontWeight: 900, fontSize: 15, color: GOLD, margin: 0 }}>🤝 PATROCÍNIO DA TEMPORADA</p>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.8)', margin: '2px 0 0' }}>Escolha a APOSTA — quanto mais ambiciosa, mais paga (só se der certo)</p>
+      </div>
+      {([1, 2, 3] as SponsorBetTier[]).map(t => <SponsorTierCard key={t} tier={t} div={div} chosen={chosen} onPick={brandId => onPick(t, brandId)} />)}
+      {chosen ? (
+        <div style={{ ...box(GREEN), padding: 11, color: '#fff', textAlign: 'center', fontWeight: 900, ...OSW, fontSize: 13 }}>
+          ✅ Escolhido: {SPONSOR_BET_META[chosen.tier].emoji} {SPONSOR_BET_META[chosen.tier].label} · {sponsorBrandOf(chosen.brandId)?.name}
         </div>
       ) : (
-        <>
-          <p style={{ ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 2px 6px' }}>Escolha a marca da camisa</p>
-          <div style={grid}>{opts.map(s => brand(s, true, cur?.id === s.id, cur?.id === s.id ? '✓ escolhido' : undefined))}</div>
-        </>
+        <p style={{ fontSize: 10.5, fontWeight: 800, color: '#B23A2A', textAlign: 'center', margin: 0 }}>👆 Escolha uma marca aí em cima pra liberar o início da temporada</p>
       )}
-      {locked.length > 0 && (
-        <>
-          <p style={{ ...OSW, fontWeight: 900, fontSize: 9.5, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.4)', margin: '11px 2px 6px' }}>Marcões — destravam subindo 👑</p>
-          <div style={grid}>{locked.map(s => brand(s, false, false, `🔒 Série ${s.div}`))}</div>
-        </>
-      )}
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '9px 2px 0', lineHeight: 1.35 }}>Rende por divisão: 🌱 Várzea <b>nada, só zoeira</b> · D <b>+5</b> · C <b>+10</b> · B <b>+15</b> · A <b>+20</b>. Cai no caixa no fim da temporada, junto com a bilheteria. A escolha é só de <b>identidade</b> — todas da mesma divisão pagam igual.</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '7px 2px 0 2px', lineHeight: 1.4 }}>Vale a temporada inteira. Ficou aquém do escolhido (ex.: apostou "não cair" e caiu)? Não paga nada. Bateu mas podia ter mirado mais alto? Recebe só o que apostou.</p>
+      <div style={{ marginTop: 9 }}><SponsorPayTable /></div>
+    </div>
+  )
+}
+// 🧾 status compacto pra aba Clube (só leitura — a escolha é no banner de início)
+export function SponsorBetStatus({ bet }: { bet?: { tier: SponsorBetTier; brandId: string } }) {
+  if (!bet) return null
+  const meta = SPONSOR_BET_META[bet.tier]
+  const brand = sponsorBrandOf(bet.brandId)
+  return (
+    <div style={{ ...box('#fff'), padding: 12, marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+      <span style={{ fontSize: 22 }}>{meta.emoji}</span>
+      <div style={{ minWidth: 0 }}>
+        <p style={{ ...OSW, fontWeight: 900, fontSize: 12, margin: 0 }}>🤝 Patrocínio: {meta.label}</p>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>{brand?.name} · aposta da temporada</p>
+      </div>
+    </div>
+  )
+}
+// 🏁 resultado da aposta da temporada PASSADA (bateu/não bateu) — banner no fim.
+export function SponsorBetResultCard({ result, div }: { result: { tier: SponsorBetTier; brandId: string; hit: boolean; amount: number }; div: string }) {
+  const meta = SPONSOR_BET_META[result.tier]
+  const brand = sponsorBrandOf(result.brandId)
+  const cap = SPONSOR_BET_PAY[div]?.[2] ?? 0
+  const superou = result.hit && result.tier < 3 && result.amount < cap
+  return (
+    <div style={{ ...box('#fff'), padding: 14, marginBottom: 10, textAlign: 'center' }}>
+      <span style={{ fontSize: 32 }}>{result.hit ? meta.emoji : '🚫'}</span>
+      <p style={{ ...OSW, fontWeight: 900, fontSize: 15, margin: '4px 0 2px' }}>{result.hit ? 'Aposta certeira!' : 'Meta não batida'}</p>
+      <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', lineHeight: 1.4, margin: 0 }}>
+        Você apostou em <b>{meta.emoji} {meta.label}</b> com a <b>{brand?.name}</b> — {result.hit ? 'e bateu a meta! O patrocínio pagou.' : 'mas não bateu a meta. A aposta não vingou.'}
+      </p>
+      <span style={{ display: 'inline-block', marginTop: 8, ...OSW, fontWeight: 900, fontSize: 15, background: result.hit ? GREEN : '#B23A2A', color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 16px' }}>{result.hit ? '+' : ''}{result.amount} 🪙 no caixa</span>
+      {superou && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#8a6d00', margin: '7px 0 0' }}>Você foi além da meta — mas o prêmio é só o do nível apostado. 😉</p>}
     </div>
   )
 }

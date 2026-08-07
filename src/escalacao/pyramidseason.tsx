@@ -13,12 +13,12 @@ import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, mancheteSemReserva, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
 import type { EventoCard } from './eventos'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, catalogTodos, agenciaEstadio } from './store'
-import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS } from './estadiodata'
-import type { EmpCat, StadiumSave } from './estadiodata'
+import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue } from './estadiodata'
+import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
-import { StadiumTab, StadiumSvg, SponsorCard } from './estadio'
+import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, SponsorBetResultCard } from './estadio'
 import { Escudo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave } from './copa-mundo'
 import { supabase } from '../lib/supabase'
@@ -294,6 +294,27 @@ export function clubRewards(tables: Record<Div, SimTeam[]>): Record<string, numb
     out[teamKey(t)] = delta
   })
   return out
+}
+// 🤝 PATROCÍNIO POR APOSTA (05/08): calcula, pra CADA humano, se a aposta da
+// temporada bateu — e quanto rende. Bateu = valor do nível escolhido; não bateu
+// (ficou aquém, ex.: apostou "não cair" e caiu) = ZERO. Superou a meta escolhida
+// (ex.: apostou "não cair" e foi campeão) NÃO rende o nível maior — só o apostado.
+export function sponsorBetRewards(tables: Record<Div, SimTeam[]>, bets: Record<number, { tier: SponsorBetTier; brandId: string; season: number }> | undefined, copaChampionTeamId?: number | null): { rewards: Record<number, number>; results: Record<number, { tier: SponsorBetTier; brandId: string; hit: boolean; amount: number }> } {
+  const rewards: Record<number, number> = {}
+  const results: Record<number, { tier: SponsorBetTier; brandId: string; hit: boolean; amount: number }> = {}
+  for (const d of DIVS) tables[d].forEach((t, i) => {
+    if (!t.human || t.teamId < 0) return
+    const bet = bets?.[t.teamId]
+    if (!bet) return // sem aposta feita (não devia acontecer — o botão de começar trava até escolher)
+    const pos = i + 1
+    const champDiv = i === 0
+    const champCopa = copaChampionTeamId != null && copaChampionTeamId === t.teamId
+    const hit = sponsorBetHit(bet.tier, pos, champDiv, champCopa)
+    const amount = hit ? sponsorBetValue(d, bet.tier) : 0
+    rewards[t.teamId] = amount
+    results[t.teamId] = { tier: bet.tier, brandId: bet.brandId, hit, amount }
+  })
+  return { rewards, results }
 }
 // campeão de cada divisão nesta temporada (chave do time → divisão) — pro ranking
 export function seasonChampions(tables: Record<Div, SimTeam[]>): Record<string, Div> {
@@ -2786,7 +2807,8 @@ export function PyramidSeasonScreen() {
     const sb = scorerRewards(divTop)
     const cr = copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] })
     const mrg = (a: Record<number, number>, b: Record<number, number>) => { const o = { ...a }; for (const k in b) o[+k] = (o[+k] ?? 0) + b[+k]; return o }
-    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards) })
+    const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null)
+    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), sponsorRewards: spb.rewards, sponsorResults: spb.results })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished, state.booksSeason, state.seasonNo])
   // 🏛️ MULTICLUBES: momento SEGURO pra trocar = nenhuma rodada nem Copa animando na
@@ -3132,14 +3154,35 @@ export function PyramidSeasonScreen() {
             {eventoEmoji(suspenso.tipo)} <b>{suspenso.nome}</b> está fora ({suspenso.tipo === 'noitada' ? 'foi pro banco depois da noitada' : suspenso.tipo === 'expulsao' ? 'cumprindo gancho' : 'se recuperando da lesão'}) — volta na <b>rodada {(suspenso.volta ?? 0) + 1}</b>.{suspenso.subNome ? <> {suspenso.subNome} segura a vaga.</> : null}
           </div>
         )}
+        {/* 🤝 PATROCÍNIO POR APOSTA (05/08): banner de início de temporada — aparece
+            pra TODO humano (cada um aposta o seu), logo após o leilão/mesmo-time,
+            ANTES de "Começar a temporada". O resultado da aposta PASSADA vem junto. */}
+        {round === 0 && me && (() => {
+          const myBet = state.careerSponsorBet?.[youId]
+          const myResult = state.careerSponsorResult?.[youId]
+          return (
+            <>
+              {myResult && myResult.season === (state.seasonNo ?? 1) - 1 && <SponsorBetResultCard result={myResult} div={me.div} />}
+              <SponsorBetBanner div={me.div}
+                chosen={myBet && myBet.season === state.seasonNo ? myBet : undefined}
+                onPick={(tier, brandId) => dispatch({ type: 'SET_SPONSOR_BET', tier, brandId, mgrId: youId })} />
+            </>
+          )
+        })()}
         {state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
           manualAllowed ? (
           <>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={round === 0 || roundReady}
-              onNext={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-              onSkip={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-              nextLabel={!(round === 0 || roundReady) ? '⏳ Deixa a rodada acabar…' : round === 0 ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
+            {(() => {
+              const myBet = state.careerSponsorBet?.[youId]
+              const betOk = round > 0 || !!(myBet && myBet.season === state.seasonNo)
+              return (
+                <SimControls manual={manual} onToggle={toggleManualCareer} canNext={betOk && (round === 0 || roundReady)}
+                  onNext={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+                  onSkip={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+                  nextLabel={round === 0 && !betOk ? '🤝 Escolha o patrocínio aí em cima' : !(round === 0 || roundReady) ? '⏳ Deixa a rodada acabar…' : round === 0 ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
+              )
+            })()}
           </>
           ) : <ManualLockButton />
         )}
@@ -3201,7 +3244,8 @@ export function PyramidSeasonScreen() {
           const sb = scorerRewards(divTop)
           const cr = copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }) // campeão +25 · vice +15 · artilheiro +16 (caixa+piso)
           const mrg = (a: Record<string | number, number>, b: Record<string | number, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
-          const args = () => ({ placements: computePromotions(tables), rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey })
+          const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null) // 🤝 aposta do patrocínio (por técnico) da temporada que ACABOU
+          const args = () => ({ placements: computePromotions(tables), rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, sponsorRewards: spb.rewards, sponsorResults: spb.results })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
           // sem mercado/leilão depois: o jogador decide renovar/deixar ir de verdade,
@@ -3425,12 +3469,12 @@ export function PyramidSeasonScreen() {
               </>
             ) : (
           <>
-            {/* 👕 Patrocínio: escolhe a marca (por divisão); rende no vira-temporada.
-                Online: por técnico (careerSponsors[youId]). Offline: careerSponsor.
+            {/* 🤝 Patrocínio por aposta (05/08): a ESCOLHA acontece no banner de início
+                de temporada (antes de "Começar a temporada") — aqui é só status/leitura.
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            {!agenciaOk && me && <SponsorCard div={me.div} chosen={state.onlineMode === 'online' ? state.careerSponsors?.[youId] : state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id, mgrId: youId })} />}
+            {!agenciaOk && me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} />}
             <StadiumTab st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
@@ -3475,7 +3519,7 @@ export function PyramidSeasonScreen() {
                 filialSlots(state.careerPlacements?.[`m${youId}`] ?? me?.div ?? 'D')} />
             {/* 🏗️ ESTRUTURA (Agência 2.0): patrocínio DEPOIS do estádio, e a escada
                 da agência fecha a página (caixa escura — não confunde com a obra) */}
-            {agenciaOk && me && <SponsorCard div={me.div} chosen={state.onlineMode === 'online' ? state.careerSponsors?.[youId] : state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id, mgrId: youId })} />}
+            {agenciaOk && me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} />}
             {agenciaOk && <AgenciaDesbloqueios st={agenciaEstadio(state)} hasFilial={!!state.careerFilial}
               onVerAgenciados={() => { setTab('elenco'); setElencoSub('agencia') }} />}
             {/* 🏛️ MULTICLUBES · SELETOR LIVRE (Opção B): troca de clube a qualquer hora,

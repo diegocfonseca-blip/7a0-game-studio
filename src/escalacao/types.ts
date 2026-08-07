@@ -338,8 +338,12 @@ export interface EscState {
   booksSeason?: number // 💰 temporada cujo FECHAMENTO financeiro (prêmios, bilheteria, patrocínio, empresário, folha) já foi lançado no caixa. Trava anti-duplicidade: a contabilidade roda UMA vez, assim que a temporada+copas acabam.
   careerLedger?: LedgerEntry[] // 🧾 carreira SOLO: livro-caixa (extrato + transferências) — só exibição, nunca realimenta o caixa. Cresce ao longo da carreira; limitado às últimas ~250 entradas.
   careerLedgers?: Record<number, LedgerEntry[]> // 🧾 carreira ONLINE: livro-caixa por técnico (mgrId → extrato). Offline usa careerLedger (single).
-  careerSponsor?: string // 👕 carreira SOLO: id da marca de patrocínio escolhida (cosmético). O quanto rende é POR DIVISÃO, não pela marca.
-  careerSponsors?: Record<number, string> // 👕 carreira ONLINE: marca escolhida por técnico (mgrId → id da marca). Offline usa careerSponsor; online usa este.
+  // 🤝 PATROCÍNIO POR APOSTA (05/08, substitui o antigo "marca fixa por divisão"):
+  // toda temporada o técnico aposta num nível de meta (não cair · top 4 · campeão).
+  // Bate a meta escolhida → ganha o valor dela; fica AQUÉM → zero; supera → só o
+  // valor apostado mesmo assim (vale pra solo E online — chave é sempre o mgrId).
+  careerSponsorBet?: Record<number, { tier: 1 | 2 | 3; brandId: string; season: number }> // aposta da temporada ATUAL (pro banner de início não mostrar de novo se já escolheu)
+  careerSponsorResult?: Record<number, { season: number; tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number }> // resultado da temporada PASSADA (bateu?/quanto rendeu) — pro banner de resultado
   empresarioCards?: EmpCard[] // 💼 carreira SOLO: agência do Empresário — cartas ganhas no pacote de campeão desta carreira (começa vazia). Rende por temporada por raridade (categorias destravam com estádio/SAF). Aceita REPETIDAS (o álbum geral ignora; a agência do save conta).
   empresarioClaimKeys?: string[] // 💼 idempotência: seasonKeys dos pacotes já registrados na agência (o pacote reoferece a carta no reload, então dedup por temporada, não por carta).
   careerEmpresario?: Record<number, EmpCard[]> // 💼 carreira ONLINE: agência do Empresário por técnico (mgrId → cartas). Offline usa empresarioCards.
@@ -441,7 +445,7 @@ export interface EscState {
   // que está DORMINDO — troca no seletor (nada mistura entre os dois).
   multiClube?: {
     team: string; since: number; id: number
-    ledger?: LedgerEntry[]; filial?: EscState['careerFilial']; sponsor?: string
+    ledger?: LedgerEntry[]; filial?: EscState['careerFilial']
     empresario?: EmpCard[]; empresarioClaims?: string[]
   } | null
   multiClubeAtivo?: boolean // true = o 2º clube está no comando (youIdx aponta pra ele); false/undefined = principal ativo

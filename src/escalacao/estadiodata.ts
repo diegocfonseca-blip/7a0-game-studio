@@ -41,35 +41,46 @@ export const STADIUM_EXTRAS: StadiumExtra[] = [
 
 export const emptyStadium = (): StadiumSave => ({ inv: {}, ext: [] })
 
-// ─── 👕 PATROCÍNIO (carreira) ─────────────────────────────────────────────
-// Renda por temporada que CRESCE com a divisão (Série D não atrai marca).
-// A escolha entre as marcas da sua divisão é só de IDENTIDADE — todas pagam o
-// mesmo valor da divisão. Marcas maiores só destravam ao subir.
-// 🥅 Várzea = paga pouquinho (zoeira, marcas de esquina); a régua sobe por divisão.
-// 🥅 Várzea NÃO tem patrocínio de verdade — é SÓ zoeira (nem escolha de marca
-// tem, é uma frase de deboche). Dinheiro de verdade só a partir da Série D.
-export const SPONSOR_PAY: Record<string, number> = { V: 0, D: 5, C: 10, B: 15, A: 20 }
-export interface Sponsor { id: string; name: string; emoji: string; color: string; div: 'D' | 'C' | 'B' | 'A'; logo?: 'vadico' | 'ero' }
-export const SPONSORS: Sponsor[] = [
-  // 🅳 SÉRIE D — comércio do bairro
-  { id: 'padaria',     name: 'Padaria do Zé',        emoji: '🥖', color: '#B5651D', div: 'D' },
-  { id: 'acougue',     name: 'Açougue Bom Corte',    emoji: '🥩', color: '#8A1E1E', div: 'D' },
-  { id: 'paredao',     name: 'Paredão Materiais',     emoji: '🔧', color: '#C1571F', div: 'C' },
-  { id: 'espetinho',   name: 'Espetinho do Baixinho', emoji: '🍗', color: '#8A1E1E', div: 'C' },
-  { id: 'borracharia', name: 'Borracharia do Gordo',  emoji: '🛞', color: '#1C1C1C', div: 'B' },
-  { id: 'guarana',     name: 'Guaraná Craque',        emoji: '🥤', color: '#127A33', div: 'B' },
-  { id: 'ero',         name: 'ERO Odontologia',       emoji: '🦷', color: '#2E6C9E', div: 'B', logo: 'ero' }, // amigo do Diego, pediu (05/08)
-  { id: 'vadico',      name: 'Vadico Veículos',       emoji: '🚗', color: '#0E3E86', div: 'A', logo: 'vadico' },
+// ─── 🤝 PATROCÍNIO POR APOSTA (carreira, 05/08) ────────────────────────────
+// Modelo novo (substitui o antigo "escolhe a marca, ganha fixo por divisão"):
+// toda temporada, ANTES de começar, o técnico aposta num dos 3 níveis de meta.
+// Bate a meta → ganha o valor do nível escolhido. Ficou AQUÉM da meta (ex.:
+// apostou "não cair" e caiu) → NÃO ganha nada. Superou a meta (ex.: apostou
+// "não cair" e foi campeão) → ganha só o valor apostado, nunca o do nível
+// maior — quem mirou baixo "deu mole" e perde o resto do prêmio.
+export type SponsorBetTier = 1 | 2 | 3
+export const SPONSOR_BET_META: Record<SponsorBetTier, { label: string; emoji: string; desc: string }> = {
+  1: { label: 'Não cair de divisão', emoji: '🛡️', desc: 'Aposta segura: termine fora da zona de rebaixamento (fora do Z4).' },
+  2: { label: 'Acesso (top 4)', emoji: '📈', desc: 'Termine entre os 4 primeiros da sua divisão.' },
+  3: { label: 'Campeão (liga ou copa)', emoji: '👑', desc: 'Seja CAMPEÃO — da liga ou da Copa Legends. Ganhar as duas não dobra o prêmio.' },
+}
+// 💰 quanto paga cada nível, por divisão — dobra a cada divisão (Diego 05/08):
+// Várzea 1/2/3 · D 2/4/6 · C 4/8/12 · B 8/16/24 · A 16/32/48.
+export const SPONSOR_BET_PAY: Record<string, [number, number, number]> = {
+  V: [1, 2, 3], D: [2, 4, 6], C: [4, 8, 12], B: [8, 16, 24], A: [16, 32, 48],
+}
+export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' }
+// 3 marcas por nível — a marca é só IDENTIDADE (todas do mesmo nível pagam igual).
+export const SPONSOR_BRANDS: SponsorBrand[] = [
+  { id: 'padaria',     name: 'Padaria do Zé',        emoji: '🥖', color: '#B5651D', tier: 1 },
+  { id: 'acougue',     name: 'Açougue Bom Corte',    emoji: '🥩', color: '#8A1E1E', tier: 1 },
+  { id: 'paredao',     name: 'Paredão Materiais',     emoji: '🔧', color: '#C1571F', tier: 1 },
+  { id: 'espetinho',   name: 'Espetinho do Baixinho', emoji: '🍗', color: '#8A1E1E', tier: 2 },
+  { id: 'borracharia', name: 'Borracharia do Gordo',  emoji: '🛞', color: '#1C1C1C', tier: 2 },
+  { id: 'guarana',     name: 'Guaraná Craque',        emoji: '🥤', color: '#127A33', tier: 2 },
+  { id: 'vadico',      name: 'Vadico Veículos',       emoji: '🚗', color: '#0E3E86', tier: 3, logo: 'vadico' },
+  { id: 'ero',         name: 'ERO Odontologia',       emoji: '🦷', color: '#2E6C9E', tier: 3, logo: 'ero' }, // amigo do Diego (05/08)
+  { id: 'diamante',    name: 'Diamante Joias',        emoji: '💎', color: '#7C3AED', tier: 3 },
 ]
-const DIV_RANK_SP: Record<string, number> = { A: 0, B: 1, C: 2, D: 3, V: 4 } // menor = melhor
-// marcas que dá pra ESCOLHER na divisão atual (as da própria divisão)
-export function sponsorsForDiv(div: string): Sponsor[] { return SPONSORS.filter(s => s.div === div) }
-// marcas de divisões ACIMA (melhores) — mostradas bloqueadas, como meta
-export function sponsorsLocked(div: string): Sponsor[] { return SPONSORS.filter(s => DIV_RANK_SP[s.div] < (DIV_RANK_SP[div] ?? 3)) }
-// a marca válida pra divisão atual (a escolhida, se serve; senão a 1ª da divisão)
-export function currentSponsor(div: string, chosenId?: string): Sponsor | undefined {
-  const opts = sponsorsForDiv(div)
-  return opts.find(s => s.id === chosenId) ?? opts[0]
+export function sponsorBrandsOfTier(tier: SponsorBetTier): SponsorBrand[] { return SPONSOR_BRANDS.filter(b => b.tier === tier) }
+export function sponsorBrandOf(id?: string): SponsorBrand | undefined { return SPONSOR_BRANDS.find(b => b.id === id) }
+// valor da aposta pro nível+divisão (0 se divisão desconhecida)
+export function sponsorBetValue(div: string, tier: SponsorBetTier): number { return (SPONSOR_BET_PAY[div] ?? [0, 0, 0])[tier - 1] }
+// bateu a meta escolhida? pos = colocação final (1 = campeão) na divisão `div`.
+export function sponsorBetHit(tier: SponsorBetTier, pos: number, champDiv: boolean, champCopa: boolean): boolean {
+  if (tier === 3) return champDiv || champCopa
+  if (tier === 2) return pos <= 4
+  return pos <= 16 // 🛡️ não cair: fora da zona de rebaixamento (Z4 de 20 times)
 }
 
 // % construído de um setor (0–100), a partir das moedas investidas

@@ -245,7 +245,7 @@ function escadaAfterPlacements(s: EscState) {
 // 💰 VIRA-TEMPORADA: aplica prêmios + bilheteria + folha na caixa do técnico e
 // REGISTRA cada um no extrato pela VARIAÇÃO REAL da caixa do humano. Mantém a
 // mesma ordem/efeito de antes (prêmios → bilheteria → folha) — só soma o registro.
-function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
+function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsorRewards?: Record<number, number>) {
   // 🔒 UMA VEZ POR TEMPORADA: o fechamento acontece assim que a temporada (liga +
   // copas) termina. Se já foi lançado, qualquer chamada depois (abrir o leilão,
   // refazer o leilão) NÃO repete nada — o caixa nunca é creditado duas vezes.
@@ -282,23 +282,9 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
   // patrocínio e a renda do empresário DELE (dados guardados no stash) na caixa
   // DELE, como se estivesse ativo. Sem isso, dormir = deixar de faturar.
   const dorm = (!online && s.multiClube && s.multiClube.id !== y) ? s.multiClube.id : null
-  // 👕 PATROCÍNIO: renda por divisão da temporada (Série D = 0). Por técnico.
-  if (!online) {
-    const div = s.careerPlacements?.[`m${y}`]
-    const spay = div ? (SPONSOR_PAY[div] ?? 0) : 0
-    if (spay > 0) s.careerCoins = { ...s.careerCoins, [y]: (s.careerCoins[y] ?? 0) + spay }
-    if (dorm != null) {
-      const divD = s.careerPlacements?.[`m${dorm}`]
-      const spayD = divD ? (SPONSOR_PAY[divD] ?? 0) : 0
-      if (spayD > 0) s.careerCoins = { ...s.careerCoins, [dorm]: (s.careerCoins[dorm] ?? 0) + spayD }
-    }
-  } else {
-    for (const h of humans) {
-      const div = s.careerPlacements?.[`m${h.id}`]
-      const spay = div ? (SPONSOR_PAY[div] ?? 0) : 0
-      if (spay > 0) s.careerCoins = { ...(s.careerCoins ?? {}), [h.id]: (s.careerCoins?.[h.id] ?? 0) + spay }
-    }
-  }
+  // 🤝 PATROCÍNIO POR APOSTA: já vem PRONTO (calculado por sponsorBetRewards, na
+  // tela, com tables/copa da temporada que acabou) — aqui só aplica na caixa.
+  s.careerCoins = applyRewards(s.careerCoins, sponsorRewards)
   const s4 = snap()
   // 💼 EMPRESÁRIO: renda das cartas ganhas (categorias destravam com estádio/SAF).
   // Offline: careerFilial + empresarioCards. Online: por técnico (Passo 2c).
@@ -353,7 +339,7 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
     s.agenciaFatura = { season: (s.seasonNo ?? 1) + 1, mensal: renda.total, rows: evs, total: renda.total + com }
     s.agenciaEventos = undefined
     const s5 = snap()
-    const rows: [LedgerEntry['kind'], string][] = [['reward', '🏆 Prêmios da temporada'], ['gate', '🎟️ Bilheteria'], ['salary', '💸 Folha salarial'], ['sponsor', '👕 Patrocínio'], ['empresario', '🕴️ Agência — mensalidades (na ativa)'], ['empresario', '🕴️ Agência — comissões (artilheiro/campeão)']]
+    const rows: [LedgerEntry['kind'], string][] = [['reward', '🏆 Prêmios da temporada'], ['gate', '🎟️ Bilheteria'], ['salary', '💸 Folha salarial'], ['sponsor', '🤝 Patrocínio'], ['empresario', '🕴️ Agência — mensalidades (na ativa)'], ['empresario', '🕴️ Agência — comissões (artilheiro/campeão)']]
     const steps = [s0, s1, s2, s3, s4, s45, s5]
     const ids = dorm != null ? [y, dorm] : [y]
     for (const id of ids) for (let i = 0; i < rows.length; i++) logFin(s, rows[i][0], rows[i][1], (steps[i + 1][id] ?? 0) - (steps[i][id] ?? 0), undefined, id, true)
@@ -378,7 +364,7 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
   }
   const s5 = snap()
   // 🧾 extrato pela variação real. Offline: só o humano (y). Online: cada um no seu.
-  const rows: [LedgerEntry['kind'], string][] = [['reward', '🏆 Prêmios da temporada'], ['gate', '🎟️ Bilheteria'], ['salary', '💸 Folha salarial'], ['sponsor', '👕 Patrocínio'], ['empresario', '💼 Renda do Empresário']]
+  const rows: [LedgerEntry['kind'], string][] = [['reward', '🏆 Prêmios da temporada'], ['gate', '🎟️ Bilheteria'], ['salary', '💸 Folha salarial'], ['sponsor', '🤝 Patrocínio'], ['empresario', '💼 Renda do Empresário']]
   const steps = [s0, s1, s2, s3, s4, s5]
   // 🏛️ solo com 2º clube: o DORMINDO também ganha o resumo — o logFin roteia as
   // linhas dele pro extrato guardado no stash (aparecem quando ele voltar ao comando)
@@ -449,7 +435,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
   return out
 }
 import type { CareerTeam } from './data'
-import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium, sectorPct, hasExtra, SPONSOR_PAY, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat } from './estadiodata'
+import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium, sectorPct, hasExtra, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { agenciaLiberada, escadaLiberada } from './sport'
 import { logPlay, logVisit, heartbeat } from './analytics'
@@ -2433,8 +2419,8 @@ type Action =
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa'; rivals?: number; rivalTeams?: string[] }
-  | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
-  | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; mesmo?: boolean } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME)
+  | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number }> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
+  | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number }> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
   | { type: 'RELEASE_CONTRACT'; mgrId: number; cardId: string } // 🌱 marca/desmarca "deixar ir" na janela de renovação (se quebrar o XI, um Cria da Base assume)
   | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: 5 | 10 } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — 10 anos = valor oficial cheio, 5 = metade. Prazo real sai com tempero (±1) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); quem não renovar vai pro leilão com teto de venda
@@ -2451,7 +2437,7 @@ type Action =
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
   | { type: 'MARK_COPA_DONE' }
-  | { type: 'CLOSE_SEASON_BOOKS'; rewards?: Record<number, number> } // 💰 fecha as contas da temporada (prêmios + bilheteria + patrocínio + empresário − folha) assim que liga+copas acabam
+  | { type: 'CLOSE_SEASON_BOOKS'; rewards?: Record<number, number>; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number }> } // 💰 fecha as contas da temporada (prêmios + bilheteria + patrocínio + empresário − folha) assim que liga+copas acabam
   | { type: 'SET_CHAT'; off: boolean } // 💬 host liga/desliga o chat da sala
   | { type: 'SET_SIM_SPEED'; speed: number } // ⏩ velocidade da simulação (host/solo)
   | { type: 'SET_STREAM_CHAMP_CARD'; slot: 'liga' | 'copa'; card: WonCard } // 🎥 stream: guarda a carta do campeão pra sala inteira ver/abrir
@@ -2469,7 +2455,7 @@ type Action =
   | { type: 'FORCE_TIEBREAK' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string }
   | { type: 'MONTE_TIMEOUT' }
-  | { type: 'SET_SPONSOR'; id: string; mgrId?: number } // 👕 escolhe a marca do patrocínio (solo: careerSponsor · online: careerSponsors[mgrId])
+  | { type: 'SET_SPONSOR_BET'; tier: 1 | 2 | 3; brandId: string; mgrId?: number } // 🤝 aposta do patrocínio da temporada (nível escolhido + marca) — banner de início de temporada
   | { type: 'BUY_FILIAL'; team: string; mgrId?: number } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])
   | { type: 'BUY_MULTICLUBE'; team: string } // 🏛️ MULTICLUBES (solo): compra um 2º clube da Série D por 4.000 moedas (só Lenda; trava de tier fica na UI)
   | { type: 'SWITCH_MULTICLUBE' } // 🏛️ MULTICLUBES (solo): passa o comando pro outro clube (só entre temporadas). O que sai dorme.
@@ -2905,7 +2891,8 @@ export function reducer(state: EscState, action: Action): EscState {
     // (applySeasonMoney trava por temporada): abrir o leilão depois não repete.
     case 'CLOSE_SEASON_BOOKS': {
       if (!s.careerOnline) return s
-      applySeasonMoney(s, action.rewards)
+      applySeasonMoney(s, action.rewards, action.sponsorRewards)
+      if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
       return s
     }
     case 'SET_CHAT': { s.chatOff = action.off; return s } // 💬 host ligou/desligou o chat
@@ -3288,7 +3275,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerScorersAll = {}; s.statsSeason = 0
       s.careerLedger = [] // 🧾 livro-caixa novo: extrato/transferências começam vazios
       s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência do Empresário começa vazia (renda das cartas ganhas nesta carreira)
-      s.careerSponsor = undefined // 👕 patrocínio começa sem marca escolhida
+      s.careerSponsorBet = undefined; s.careerSponsorResult = undefined // 🤝 patrocínio por aposta começa zerado
       // 🧹 FAXINA ANTI-HERANÇA (04/08, família do bug "Copa21 em 8 temporadas"):
       // TUDO que é por-carreira zera aqui — senão vaza do save anterior.
       s.cpuSquads = undefined // fichas dos times de fundo: re-semeia do zero (antes REUSAVA os elencos da carreira velha!)
@@ -3400,7 +3387,7 @@ export function reducer(state: EscState, action: Action): EscState {
         s.marketLog = []
         s.careerScorersAll = {}; s.statsSeason = 0 // artilharia de todos os tempos começa do zero
         s.clubCash = seedClubCash({}, pl) // todo time da pirâmide começa com caixa (base por divisão)
-        s.careerFilials = {}; s.careerSponsors = {} // 🏢👕 Clube online por técnico começa zerado
+        s.careerFilials = {}; s.careerSponsorBet = {}; s.careerSponsorResult = {} // 🏢🤝 Clube online por técnico começa zerado
       }
       s.roomId = action.roomId
       s.roomCode = action.roomCode
@@ -3584,16 +3571,12 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       return s
     }
-    case 'SET_SPONSOR': {
-      // 👕 escolhe a marca do patrocínio (cosmético — o valor é por divisão).
-      // Online: por técnico (careerSponsors[mgrId]). Offline: careerSponsor (igual).
+    case 'SET_SPONSOR_BET': {
+      // 🤝 aposta do patrocínio da temporada (nível + marca) — banner de início de
+      // temporada. Guarda por mgrId (solo e online usam a mesma chave).
       if (!s.careerOnline) return s
-      if (s.onlineMode === 'online') {
-        const id = action.mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
-        s.careerSponsors = { ...(s.careerSponsors ?? {}), [id]: action.id }
-      } else {
-        s.careerSponsor = action.id
-      }
+      const id = action.mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
+      s.careerSponsorBet = { ...(s.careerSponsorBet ?? {}), [id]: { tier: action.tier, brandId: action.brandId, season: s.seasonNo ?? 1 } }
       return s
     }
     case 'BUY_FILIAL': {
@@ -3704,10 +3687,10 @@ export function reducer(state: EscState, action: Action): EscState {
       s.youIdx = sleepIdx
       if (!s.careerFilial && s.multiClube.filial) s.careerFilial = s.multiClube.filial // migra SAF de save antigo
       // swap dos campos ÚNICOS (o que estava ativo vai pro stash; o que dormia volta) —
-      // SEM a SAF, que é compartilhada.
-      const stash = { ledger: s.careerLedger ?? [], sponsor: s.careerSponsor, empresario: s.empresarioCards ?? [], empresarioClaims: s.empresarioClaimKeys ?? [] }
+      // SEM a SAF (compartilhada) e SEM patrocínio (a aposta 05/08 já é por mgrId,
+      // os dois clubes têm a própria sem precisar de troca-troca).
+      const stash = { ledger: s.careerLedger ?? [], empresario: s.empresarioCards ?? [], empresarioClaims: s.empresarioClaimKeys ?? [] }
       s.careerLedger = s.multiClube.ledger ?? []
-      s.careerSponsor = s.multiClube.sponsor
       s.empresarioCards = s.multiClube.empresario ?? []
       s.empresarioClaimKeys = s.multiClube.empresarioClaims ?? []
       s.multiClube = { team: active.teamName, id: active.id, since: s.multiClube.since, ...stash }
@@ -4461,7 +4444,8 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!s.careerOnline) return s
       s.seasonVotes = {} // temporada nova: zera a votação
       setActiveCatalog(s.deckLeague) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
-      applySeasonMoney(s, action.rewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha (e registra no extrato) — ANTES de zerar/refazer o leilão
+      applySeasonMoney(s, action.rewards, action.sponsorRewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES de zerar/refazer o leilão
+      if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
@@ -4495,7 +4479,8 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!s.careerOnline) return s
       pinHumanLineups(s) // fixa o SEU XI ANTES do leilão — reforço novo vai pro banco
       s.seasonVotes = {} // temporada nova: zera a votação
-      applySeasonMoney(s, action.rewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha (e registra no extrato) — ANTES da venda/leilão de reservas
+      applySeasonMoney(s, action.rewards, action.sponsorRewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES da venda/leilão de reservas
+      if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       s.careerPlacements = action.placements // ⚠️ ANTES do trim: a devolução do excedente usa a divisão NOVA
