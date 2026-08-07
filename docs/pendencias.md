@@ -52,6 +52,14 @@ manual ligado) da carreira solo, a rodada 0 tinha um cronômetro ESCONDIDO de
 9s (o mesmo tempo de qualquer rodada) que avançava sozinho mesmo sem escolher
 a meta. Agora esse relógio também espera a escolha — carreira offline fica
 sem tempo nenhum pra escolher o patrocínio, seja no manual ou no automático.
+✅ MAIS UM PONTO (07/08, Diego: "escolheu o patrocínio já inicia a temporada
+sozinho, tem que ter o botão de iniciar — pra quem tem Manual E pra quem não
+tem"): a rodada 0→1 (começo da temporada) agora SEMPRE exige um clique
+explícito no botão "▶️ Começar a temporada", pra TODO mundo — inclusive quem
+não é craque/lenda (não tem Modo Manual) e antes ficava só no automático puro,
+sem botão nenhum, e a temporada começava sozinha 9s depois de escolher.
+A partir da 1ª rodada em diante nada mudou (quem não tem Manual continua 100%
+automático como sempre foi — só o INÍCIO da temporada ganhou a trava).
 
 ## ✅ ENTREGUE 05/08 — 3 pedidos do Diego (já na MAIN, ao vivo)
 1. **Escudos nos confrontos da Copa dos 8** — a lista "Todos os jogos da fase"
