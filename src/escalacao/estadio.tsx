@@ -52,10 +52,10 @@ function SponsorTierCard({ tier, div, chosen, onPick }: { tier: SponsorBetTier; 
           return (
             <button key={b.id} onClick={() => onPick(b.id)}
               style={{ flex: 1, minWidth: 0, background: on ? INK : '#FBF6E9', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '7px 4px', textAlign: 'center', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, boxShadow: on ? `0 0 0 3px ${GOLD} inset` : 'none' }}>
-              <div style={{ height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {logo ? <img alt={b.name} src={logo} style={{ maxHeight: 18, maxWidth: 70, objectFit: 'contain', filter: on ? 'brightness(0) invert(1)' : undefined }} /> : <span style={{ fontSize: 16 }}>{b.emoji}</span>}
+              <div style={{ height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {logo ? <img alt={b.name} src={logo} style={{ maxHeight: 30, maxWidth: 92, objectFit: 'contain', filter: on ? 'brightness(0) invert(1)' : undefined }} /> : <span style={{ fontSize: 26 }}>{b.emoji}</span>}
               </div>
-              <span style={{ ...OSW, fontWeight: 900, fontSize: 9, lineHeight: 1.1, color: on ? '#fff' : INK }}>{b.name}</span>
+              <span style={{ ...OSW, fontWeight: 900, fontSize: 10, lineHeight: 1.1, color: on ? '#fff' : INK }}>{b.name}</span>
             </button>
           )
         })}
