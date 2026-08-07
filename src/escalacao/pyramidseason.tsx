@@ -2110,6 +2110,8 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
           <p style={{ flex: 1, fontWeight: 900, fontSize: 9.5, ...OSWALD, color: 'rgba(0,0,0,0.45)', margin: 0, textTransform: 'uppercase', letterSpacing: 0.3 }}>Reservas</p>
         </div>
       )}
+      {/* 🖥️ no PC as posições ficam em 2 colunas (a classe não existe no celular) */}
+      <div className="desk-grid2">
       {SECTORS.map(pos => {
         const players = mgr.squad.filter(c => c.pos === pos).sort((a, b) => mid(b) - mid(a))
         const titulars = xiIds ? players.filter(c => xiIds.has(c.id)) : players.slice(0, need[pos])
@@ -2124,6 +2126,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
           </div>
         )
       })}
+      </div>
       </>)}
     </div>
   )
@@ -3093,6 +3096,31 @@ export function PyramidSeasonScreen() {
     const t = setTimeout(() => setRoundReady(true), roundMs * 0.85 + 250)
     return () => clearTimeout(t)
   }, [round, roundMs])
+
+  // ⌨️ ATALHOS DE TECLADO — SÓ NO PC (tela ≥ 1024px). Celular não tem teclado
+  // físico, então nem entra: a primeira linha desiste antes de ouvir qualquer
+  // tecla. Também desiste se você estiver DIGITANDO (nome de time, chat, lance)
+  // pra nunca roubar a tecla de um campo de texto.
+  //   1-5 → troca de aba · Espaço/→ → próxima rodada (só no manual, quando libera)
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth < 1024) return
+    const onKey = (e: KeyboardEvent) => {
+      const alvo = e.target as HTMLElement | null
+      const digitando = !!alvo && (alvo.tagName === 'INPUT' || alvo.tagName === 'TEXTAREA' || alvo.isContentEditable)
+      if (digitando || e.metaKey || e.ctrlKey || e.altKey) return
+      const abas = ['jogos', 'tabelas', 'elenco', 'ranking', 'estadio'] as const
+      const n = Number(e.key)
+      if (n >= 1 && n <= abas.length) { setTab(abas[n - 1]); return }
+      if ((e.key === ' ' || e.key === 'ArrowRight') && manual && state.isHost && !seasonOver && !eventoPendente && (round === 0 || roundReady)) {
+        e.preventDefault()
+        if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' })
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [manual, state.isHost, seasonOver, eventoPendente, round, roundReady, dispatch])
+
 
   return (
     <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
