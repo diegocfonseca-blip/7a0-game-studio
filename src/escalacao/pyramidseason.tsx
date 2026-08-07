@@ -2839,7 +2839,14 @@ export function PyramidSeasonScreen() {
   const maybeEvento = (): boolean => {
     if (!eventosOn || (state.seasonNo ?? 1) < 2 || !mgrMe || seasonOver || copaPlaying) return false
     if (evAtual && evAtual.season === state.seasonNo) return false
-    const d = sorteiaEvento({ seed: seasonSeed, seasonNo: state.seasonNo ?? 1, round, xi: myXI as EventoCard[], squad: mgrMe.squad as EventoCard[], temMedico: hasExtra(state.stadiums?.[youId], 'medico') })
+    // 🐛 BUG DA "SEMPRE A MESMA RODADA" (relato de vários jogadores, 05/08): `seasonSeed`
+    // AQUI já vem com a temporada misturada (state.seed ^ seasonNo×hash) — e o
+    // sorteiaEvento mistura a MESMA temporada de novo lá dentro. Duas misturas com o
+    // MESMO valor se CANCELAM (a^b^b=a): a semente final virava idêntica em TODA
+    // temporada, então o sorteio (rodada-alvo, branco/não-branco e QUEM é sorteado)
+    // saía sempre igual. Corrigido passando o seed CRU — sorteiaEvento já faz a
+    // própria mistura por temporada.
+    const d = sorteiaEvento({ seed: state.seed, seasonNo: state.seasonNo ?? 1, round, xi: myXI as EventoCard[], squad: mgrMe.squad as EventoCard[], temMedico: hasExtra(state.stadiums?.[youId], 'medico'), avoidName: evAtual?.nome })
     if (!d) return false
     const base: EventoAtivo = { season: state.seasonNo ?? 1, round, mgrId: youId, tipo: d.tipo, cardId: d.card.id, nome: d.card.name, pos: d.card.pos, rodadas: d.rodadas, historia: d.historia, status: 'pendente' }
     if (!d.reservas.length) {
@@ -3186,7 +3193,10 @@ export function PyramidSeasonScreen() {
           const mrg = (a: Record<string | number, number>, b: Record<string | number, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
           const args = () => ({ placements: computePromotions(tables), rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
-          const openMesmo = () => dispatch({ type: 'NEXT_SEASON_ONLINE', ...args() })
+          // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
+          // sem mercado/leilão depois: o jogador decide renovar/deixar ir de verdade,
+          // não é mais automático (antes pulava a janela inteira — vira CONFIRM_MESMO_TIME).
+          const openMesmo = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args(), mesmo: true })
           // JOGO SOLO (host sozinho): sem votação, começa direto como antes.
           const noVermelho = (state.careerCoins?.[youId] ?? 0) < 0
           // 🌍 COPA DO MUNDO LEGENDS: trava/contagem/botão dourado no fim da
@@ -3797,10 +3807,13 @@ export function ReserveListScreen() {
     const filledPos = mgr.squad.filter(x => x.pos === c.pos && !x.emprestado).length
     return filledPos - listedInPos - 1 >= need[c.pos]
   }
-  // host conduz: quando zera o tempo, abre o leilão (compra) sozinho
+  // host conduz: quando zera o tempo, abre o leilão (compra) sozinho. "Mesmo
+  // time" não tem relógio (phaseDeadline fica null → remaining cai pra 0 na
+  // hora) — sem esta trava, o efeito abria um LEILÃO DE VERDADE escondido
+  // assim que a tela carregasse, o oposto do que a tela mostra.
   useEffect(() => {
-    if (state.isHost && remaining <= 0) dispatch({ type: 'RESERVE_AUCTION_ONLINE' })
-  }, [remaining, state.isHost, dispatch])
+    if (state.isHost && !state.reserveListMesmo && remaining <= 0) dispatch({ type: 'RESERVE_AUCTION_ONLINE' })
+  }, [remaining, state.isHost, state.reserveListMesmo, dispatch])
   // 🛟 estado incompleto (sem "meu time" por um instante — troca de fase / sync):
   // mostra uma tela de espera em vez de renderizar EM BRANCO (mesma proteção do
   // leilão). O host já avança sozinho pro leilão quando o tempo zera (efeito
@@ -3819,15 +3832,16 @@ export function ReserveListScreen() {
     <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
         <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>📋 LISTAR PRA LEILÃO · TEMP. {state.seasonNo}</span>
+          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>{state.reserveListMesmo ? '📝 CONTRATOS · MESMO TIME' : '📋 LISTAR PRA LEILÃO'} · TEMP. {state.seasonNo}</span>
           {/* ⏱️ o relógio só faz sentido ONLINE (esperar todo mundo decidir) — no
               offline (só você) é tempo perdido à toa (pedido do Diego 05/08). */}
           {state.onlineMode === 'online' && (
             <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: remaining <= 10 ? '#e8503a' : '#fff', color: remaining <= 10 ? '#fff' : INK, borderRadius: 8, padding: '2px 9px' }}>{remaining}s</span>
           )}
         </div>
-        {/* 🚫 TRANSFER BAN: no vermelho, não dá pra comprar — só vender e pegar de graça */}
-        {(state.careerCoins?.[youId] ?? 0) < 0 && (
+        {/* 🚫 TRANSFER BAN: no vermelho, não dá pra comprar — só vender e pegar de graça.
+            Não faz sentido em "mesmo time" (não tem leilão pra comprar/vender aqui). */}
+        {!state.reserveListMesmo && (state.careerCoins?.[youId] ?? 0) < 0 && (
           <div style={{ ...box('#C2452F'), padding: 11, marginBottom: 10, color: '#fff' }}>
             <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🚫 Transfer ban — caixa no vermelho ({state.careerCoins?.[youId] ?? 0} 🪙)</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, margin: 0, lineHeight: 1.4, color: 'rgba(255,255,255,.92)' }}>Você não pode <b>comprar pagando</b> nesta janela — mas pode <b>vender pra fazer caixa</b> e, no <b>monte</b> (as sobras do leilão), <b>tentar a sorte pegando jogador de graça</b>. Prêmios e bilheteria vão te tirando do vermelho.</p>
@@ -3899,10 +3913,13 @@ export function ReserveListScreen() {
               })()}
               {(expirados.length > 0 || expDorm.length > 0) && (
                 <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '2px 0 0', lineHeight: 1.45 }}>
-                  <b>😢 Deixar ir</b>: ele vai pro leilão (você recebe a venda <b>até o valor dele</b> — o que passar fica com a <b>família gananciosa</b> 😏) e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume de graça (fraquinho, sem contrato, some quando chegar reforço). 💳 Sem caixa dá pra renovar MESMO ASSIM — entra no <b>cheque especial</b> (caixa negativa, transfer ban até sair do vermelho). ⚠️ <b>Avançou sem escolher?</b> Renova <b>AUTOMÁTICO por 5 anos (metade)</b>, com ou sem caixa — jogador só vai embora se VOCÊ mandar.{dormM ? <> 😤 <b>Vale pros DOIS clubes:</b> jogador que você soltar fica <b>magoado</b> — não joga por NENHUM clube seu até outro clube contratá-lo.</> : null}
+                  {state.reserveListMesmo
+                    ? <><b>😢 Deixar ir</b>: como você ficou no <b>mesmo time</b> (sem leilão), ele sai <b>sem venda</b> — ninguém compra — e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume de graça (fraquinho, sem contrato, some quando chegar reforço).</>
+                    : <><b>😢 Deixar ir</b>: ele vai pro leilão (você recebe a venda <b>até o valor dele</b> — o que passar fica com a <b>família gananciosa</b> 😏) e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume de graça (fraquinho, sem contrato, some quando chegar reforço).</>}
+                  {' '}💳 Sem caixa dá pra renovar MESMO ASSIM — entra no <b>cheque especial</b> (caixa negativa, transfer ban até sair do vermelho). ⚠️ <b>Avançou sem escolher?</b> Renova <b>AUTOMÁTICO por 5 anos (metade)</b>, com ou sem caixa — jogador só vai embora se VOCÊ mandar.{dormM ? <> 😤 <b>Vale pros DOIS clubes:</b> jogador que você soltar fica <b>magoado</b> — não joga por NENHUM clube seu até outro clube contratá-lo.</> : null}
                 </p>
               )}
-              {(ultimoAno.length > 0 || uaDorm.length > 0) && (
+              {(ultimoAno.length > 0 || uaDorm.length > 0) && !state.reserveListMesmo && (
                 <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: (expirados.length + expDorm.length) ? '7px 0 0' : 0, lineHeight: 1.4 }}>⏳ <b>Último ano de contrato:</b> {[...ultimoAno.map(c => c.name), ...uaDorm.map(c => `${c.name} 💤`)].join(', ')} — encerra{(ultimoAno.length + uaDorm.length) > 1 ? 'm' : ''} no fim desta temporada. Quer garantir a grana cheia? <b>Venda antes de vencer.</b></p>
               )}
             </div>
@@ -3921,32 +3938,36 @@ export function ReserveListScreen() {
             </div>
           )
         })()}
-        {/* aviso de desbloqueio da temporada */}
-        {state.seasonNo === 2 && (
+        {/* aviso de desbloqueio da temporada — só faz sentido quando existe leilão depois */}
+        {!state.reserveListMesmo && state.seasonNo === 2 && (
           <div style={{ ...box('#EAF3FF'), padding: 11, marginBottom: 10 }}>
             <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px', color: '#2563EB' }}>🔓 Desbloqueado: Reservas!</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>Agora você compra reservas pra encher o banco. A <b>venda/negociação de jogadores libera na 3ª temporada</b>.</p>
           </div>
         )}
-        {state.seasonNo === 3 && (
+        {!state.reserveListMesmo && state.seasonNo === 3 && (
           <div style={{ ...box('#EAF3FF'), padding: 11, marginBottom: 10 }}>
             <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px', color: GREEN }}>🔓 Desbloqueado: Leilão de transferências!</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>Agora você pode <b>listar jogadores pra leilão</b> (e disputá-los de volta).</p>
           </div>
         )}
-        {marketUnlocked
+        {/* 🔒 "mesmo time": sem mercado, sem leilão — só confere o elenco e decide
+            contrato (acima). Nada de listar/vender aqui. */}
+        {state.reserveListMesmo ? (
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 12px' }}>Você ficou no <b>mesmo time</b> — sem leilão desta vez. Confira seu elenco, decida os contratos vencidos aí em cima e toque em <b>Continuar</b>.</p>
+        ) : marketUnlocked
           ? <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 12px' }}>Toque nos jogadores que você quer <b>pôr no leilão</b>. Você pode disputá-los de volta. Nunca dá pra ficar com menos de 11 (o XI completo).</p>
           : <div style={{ ...box('#FDECEA'), padding: 11, marginBottom: 12 }}>
               <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '0 0 2px', color: '#c0392b' }}>🔒 Vender ainda não liberou</p>
               <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>Nesta temporada você só <b>compra</b> reservas (a venda libera na 3ª). E, de todo jeito, pra vender você precisa de <b>reservas no banco</b> — nunca dá pra ficar com menos de 11. Como você tem 11, não teria quem listar mesmo. É só aguardar o host começar o leilão. 👇</p>
             </div>}
-        {marketUnlocked && (
+        {!state.reserveListMesmo && marketUnlocked && (
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
             <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: nListed ? '#C2452F' : 'rgba(0,0,0,0.06)', color: nListed ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 10px' }}>{nListed ? '🔴' : '📋'} {nListed} à venda</span>
           </div>
         )}
         {/* ⚠️ AVISO GRITANTE: listar = pôr à venda. Nunca some jogador calado. */}
-        {marketUnlocked && nListed > 0 && (
+        {!state.reserveListMesmo && marketUnlocked && nListed > 0 && (
           <div style={{ ...box('#C2452F'), padding: '10px 12px', marginBottom: 10, color: '#fff' }}>
             <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>⚠️ {nListed} {nListed > 1 ? 'jogadores à VENDA' : 'jogador à VENDA'}</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, margin: 0, lineHeight: 1.4, color: 'rgba(255,255,255,.92)' }}>Se outro técnico cobrir o lance e você <b>não recomprar</b> no leilão, esse jogador <b>SAI do seu time de vez</b> (vira moedas). Só liste quem você topa <b>perder</b> — toque de novo pra tirar da lista.</p>
@@ -3954,7 +3975,7 @@ export function ReserveListScreen() {
         )}
         {/* 🔒 explica por que alguns jogadores aparecem travados (cinza): vendê-los
             deixaria o XI incompleto pra formação atual. Só aparece quando há algum. */}
-        {marketUnlocked && mgr.squad.some(c => !c.fake && !c.emprestado && !listed.has(c.id) && !canList(c)) && (
+        {!state.reserveListMesmo && marketUnlocked && mgr.squad.some(c => !c.fake && !c.emprestado && !listed.has(c.id) && !canList(c)) && (
           <EnsinoPilula k="travados" pill="🔒 tem jogador travado (por quê?)" seasonNo={state.seasonNo}>
             <div style={{ ...box('#FDECEA'), padding: '9px 11px', marginBottom: 10 }}>
               <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 2px', color: '#c0392b' }}>🔒 Não dá pra vender esses</p>
@@ -3962,10 +3983,11 @@ export function ReserveListScreen() {
             </div>
           </EnsinoPilula>
         )}
-        {/* mesmo layout da aba Elenco (Titulares/Reservas), mas em modo listagem */}
+        {/* mesmo layout da aba Elenco (Titulares/Reservas), mas em modo listagem —
+            "mesmo time" não tem leilão, então nem mostra o botão de listar/vender */}
         <SquadTab mgr={mgr} col={col} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]}
-          list={{ listed, canList, onList: (id) => dispatch({ type: 'TOGGLE_RESERVE_LIST', mgrId: youId, cardId: id }) }} />
-        {marketUnlocked && (
+          list={state.reserveListMesmo ? undefined : { listed, canList, onList: (id) => dispatch({ type: 'TOGGLE_RESERVE_LIST', mgrId: youId, cardId: id }) }} />
+        {!state.reserveListMesmo && marketUnlocked && (
           <EnsinoPilula k="listar" pill="ℹ️ como funciona a venda" seasonNo={state.seasonNo}>
             <div style={{ ...box('#FFF3CF'), padding: '11px 13px', margin: '10px 0' }}>
               <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 4px', color: INK }}>💡 O que acontece ao listar</p>
@@ -3977,13 +3999,13 @@ export function ReserveListScreen() {
           </EnsinoPilula>
         )}
         {state.isHost ? (
-          <button onClick={() => dispatch({ type: 'RESERVE_AUCTION_ONLINE' })}
+          <button onClick={() => dispatch({ type: state.reserveListMesmo ? 'CONFIRM_MESMO_TIME' : 'RESERVE_AUCTION_ONLINE' })}
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
-            ▶️ Começar o leilão{state.onlineMode === 'online' ? ` (${remaining}s)` : ''}
+            {state.reserveListMesmo ? '▶️ Continuar (mesmo time)' : `▶️ Começar o leilão${state.onlineMode === 'online' ? ` (${remaining}s)` : ''}`}
           </button>
         ) : (
           <div style={{ ...box('#EAF3FF'), padding: 11, textAlign: 'center' }}>
-            <p style={{ fontWeight: 800, fontSize: 12, color: '#3a5a8a', margin: 0 }}>⏱️ Liste quem quiser. O host começa o leilão em {remaining}s.</p>
+            <p style={{ fontWeight: 800, fontSize: 12, color: '#3a5a8a', margin: 0 }}>{state.reserveListMesmo ? '⏱️ Decida seus contratos aí em cima. O host continua quando estiver pronto.' : `⏱️ Liste quem quiser. O host começa o leilão em ${remaining}s.`}</p>
           </div>
         )}
       </div>
