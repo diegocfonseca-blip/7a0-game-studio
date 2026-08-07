@@ -3509,7 +3509,7 @@ export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLab
         <button onClick={onNext} disabled={!canNext} style={{ gridRow: '1 / 3', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: `2.5px solid ${INK}`, borderRadius: 11, padding: 10, fontWeight: 900, fontSize: 15.5, lineHeight: 1.1, fontFamily: 'Oswald, sans-serif', background: canNext ? GREEN : '#cfc6ae', color: canNext ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `2px 2px 0 0 ${INK}`, cursor: canNext ? 'pointer' : 'default' }}>
           {nextLabel}
         </button>
-        <button onClick={onSkip} disabled={!canNext} style={{ gridColumn: 2, gridRow: 1, border: `1.5px solid ${INK}`, borderRadius: 10, padding: 8, fontWeight: 800, fontSize: 12.5, fontFamily: 'Oswald, sans-serif', background: canNext ? '#2F6BAE' : '#cfc6ae', color: canNext ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `1.5px 1.5px 0 0 ${INK}`, cursor: canNext ? 'pointer' : 'default' }}>
+        <button onClick={onSkip} style={{ gridColumn: 2, gridRow: 1, border: `1.5px solid ${INK}`, borderRadius: 10, padding: 8, fontWeight: 800, fontSize: 12.5, fontFamily: 'Oswald, sans-serif', background: '#2F6BAE', color: '#fff', boxShadow: `1.5px 1.5px 0 0 ${INK}`, cursor: 'pointer' }}>
           ⏭️ Pular
         </button>
         <button onClick={onToggle} style={{ gridColumn: 2, gridRow: 2, border: `1.5px solid ${INK}`, borderRadius: 10, padding: 8, fontWeight: 800, fontSize: 11.5, fontFamily: 'Oswald, sans-serif', background: '#fff', color: '#5a5647', boxShadow: `1.5px 1.5px 0 0 ${INK}`, cursor: 'pointer' }}>
