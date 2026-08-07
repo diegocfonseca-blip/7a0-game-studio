@@ -473,7 +473,7 @@ function hashCode(s: string): number {
 // distintos). O ano ficava na chave e deixava um save antigo (ex.: Yamal/Barcelona
 // 2024 guardado num elenco) conviver com a versão nova do catálogo (2025) como se
 // fossem cartas diferentes — bug dos dois Yamal. Tirar o ano resolve de vez.
-const ident = (c: { name: string; club: string }) => `${c.name}|${c.club}`
+export const ident = (c: { name: string; club: string }) => `${c.name}|${c.club}`
 // 🔄 RODÍZIO DO LEILÃO: memória das cartas que caíram na leva ANTERIOR (só idents).
 // A montagem do baralho joga essas pro fim do catálogo, então elas têm menos chance
 // de voltar já na próxima temporada — dá mais variedade. NÃO mexe nas % de raridade
@@ -663,12 +663,16 @@ function healSquadIds(managers: Manager[]): boolean {
   return changed
 }
 
-// LIVRO DE PREÇOS (carreira online): registra o último preço de um jogador pelo
-// NOME. É a memória de valor do jogo inteiro — piso do jogador em qualquer leilão
-// futuro. Só grava preço > 0 (leilão de graça não cria piso).
-function recordPrice(state: EscState, name: string, price: number) {
+// LIVRO DE PREÇOS (carreira online): registra o último preço de uma CARTA
+// (nome+clube — `ident`) — é a memória de valor do jogo inteiro pra AQUELA
+// versão do jogador. 🐛 CORRIGIDO (07/08, relato de jogador): era só pelo NOME,
+// então dois jogadores com o mesmo nome (ex.: Neymar do Santos e Neymar do
+// Barcelona são CARTAS diferentes) dividiam o MESMO preço — vender uma carava
+// inflava a renovação da outra, sem ligação nenhuma entre elas. Só grava
+// preço > 0 (leilão de graça não cria piso).
+function recordPrice(state: EscState, c: { name: string; club: string }, price: number) {
   if (!state.careerOnline || price <= 0) return
-  state.marketValues = { ...(state.marketValues ?? {}), [name]: price }
+  state.marketValues = { ...(state.marketValues ?? {}), [ident(c)]: price }
 }
 // ── 📝 CONTRATOS (carreira) ──────────────────────────────────────────────────
 // VALOR OFICIAL do jogador: o maior entre o piso de mercado (livro/paid) e a
@@ -697,7 +701,7 @@ function spawnCria(s: EscState, m: Manager, pos: Sector, saiu: string, rng: () =
   ;(s.marketLog = s.marketLog ?? []).push(`🌱 ${m.teamName}: ${nome} subiu da base pra tapar o buraco do ${saiu} (de graça, sem contrato)`)
 }
 export function valorOficial(state: EscState, c: Card): number {
-  return Math.max(state.marketValues?.[c.name] ?? 0, (c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c))
+  return Math.max(state.marketValues?.[ident(c)] ?? 0, (c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c))
 }
 // prazo da renovação com "tempero": 5 vira 4-6 e 10 vira 9-11 (preço não muda).
 // Sem isso, todo mundo renovando por 5 EXATOS re-alinhava os vencimentos e, anos
@@ -786,20 +790,33 @@ function applyScorerValues(state: EscState, values?: Record<string, number>) {
   // eterno chegava a piso 100 e era vendido a preço de estrela). O teto cresce
   // junto com o mercado; nunca REDUZ um valor já gravado.
   const econ = state.careerOnline ? escadaEconFactor(state) : 0
-  const capOf = (name: string): number | null => {
-    if (!state.careerOnline) return null
-    for (const m of state.managers) for (const c of m.squad) if (c.name === name && !c.fake) return Math.round(catPriceCap(c) * econ)
-    for (const t in (state.cpuSquads ?? {})) for (const c of state.cpuSquads![t]) if (c.name === name && !c.fake) return Math.round(catPriceCap(c) * econ)
-    return Math.round(42 * econ) // não achou a carta (raro): teto médio, só pra não inflar sem freio
-  }
+  // 🐛 (07/08, mesmo relato do Neymar Santos×Barcelona): o bônus de artilheiro
+  // era achado e somado por NOME — duas cartas do mesmo nome (clubes diferentes)
+  // inflavam JUNTAS. Agora cada CARTA (ident = nome+clube) recebe seu próprio
+  // teto/bônus, só pela que realmente fez os gols daquela temporada.
+  const capOf = (c: Card): number | null => state.careerOnline ? Math.round(catPriceCap(c) * econ) : null
   for (const name in values) {
     const b = values[name]
     if (!b) continue
-    const cap = capOf(name)
-    const lift = (cur: number) => cap == null ? cur + b : Math.min(cur + b, Math.max(cap, cur))
-    mv[name] = lift(mv[name] ?? 0)
+    let matched = false
     for (const m of state.managers) for (const c of m.squad) {
-      if (c.name === name) { const w = c as { paid?: number }; w.paid = lift(w.paid ?? 0) }
+      if (c.name !== name || c.fake) continue
+      matched = true
+      const cap = capOf(c)
+      const nv = cap == null ? (mv[ident(c)] ?? 0) + b : Math.min((mv[ident(c)] ?? 0) + b, Math.max(cap, mv[ident(c)] ?? 0))
+      mv[ident(c)] = nv
+      ;(c as { paid?: number }).paid = nv
+    }
+    for (const t in (state.cpuSquads ?? {})) for (const c of state.cpuSquads![t]) {
+      if (c.name !== name || c.fake) continue
+      matched = true
+      const cap = capOf(c)
+      mv[ident(c)] = cap == null ? (mv[ident(c)] ?? 0) + b : Math.min((mv[ident(c)] ?? 0) + b, Math.max(cap, mv[ident(c)] ?? 0))
+    }
+    if (!matched) {
+      // não achou a carta (raríssimo): teto médio genérico, só pra não inflar sem freio
+      const cap = state.careerOnline ? Math.round(42 * econ) : null
+      mv[name] = cap == null ? (mv[name] ?? 0) + b : Math.min((mv[name] ?? 0) + b, Math.max(cap, mv[name] ?? 0))
     }
   }
   state.marketValues = mv
@@ -809,7 +826,7 @@ function applyScorerValues(state: EscState, values?: Record<string, number>) {
 // esse valor, e é com ele que a carta volta um dia ao mercado).
 function montePush(state: EscState, cards: Card[]) {
   const halved = halveListed(cards)
-  for (const c of halved) { const p = (c as { paid?: number }).paid ?? 0; if (p > 0) recordPrice(state, c.name, p) }
+  for (const c of halved) { const p = (c as { paid?: number }).paid ?? 0; if (p > 0) recordPrice(state, c, p) }
   state.monte.push(...halved)
 }
 
@@ -920,7 +937,7 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   for (const pos of SECTORS) {
     const { count, catalog } = plan[pos]
     const cards: Card[] = []
-    const take = (c: (typeof CATALOG)[Sector][number]) => { used.add(ident(c)); takenNow.add(ident(c)); const fl = values?.[c.name] ?? 0; cards.push({ ...c, id: `cat-${pos}-${cards.length}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
+    const take = (c: (typeof CATALOG)[Sector][number]) => { used.add(ident(c)); takenNow.add(ident(c)); const fl = values?.[ident(c)] ?? 0; cards.push({ ...c, id: `cat-${pos}-${cards.length}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
     // 1) LENDA
     let needL = alloc[pos].legend
     for (const c of catalog) { if (needL <= 0) break; if (c.fame !== 5 || used.has(ident(c))) continue; take(c); needL-- }
@@ -1163,7 +1180,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   m.money -= max
   m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, semContrato: undefined, contratoAte: undefined, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
   if (m.isHuman) logFin(state, 'buy', `🛒 ${tb.card.name}`, -max, { player: tb.card.name, pos: tb.card.pos }, m.id) // 🧾 compra no desempate
-  recordPrice(state, tb.card.name, max) // livro de preços
+  recordPrice(state, tb.card, max) // livro de preços
   creditSeller(state, tb.card, max, winner) // o vendedor recebe a grana da venda
   agenciaTransacao(state, tb.card) // 🕴️ agenciado negociado → comissão de agente
   tb.winner = winner
@@ -2509,7 +2526,7 @@ function sweepMonteToBackstops(st: EscState) {
     creditSeller(st, card, paid, bot.id) // o vendedor recebe (também na varredura do bot)
     agenciaTransacao(st, card) // 🕴️ agenciado indo pra bot também é negócio → comissão
     bot.squad.push({ ...card, paid, via: 'monte', semContrato: undefined, contratoAte: undefined })
-    if (paid > 0) recordPrice(st, card.name, paid)
+    if (paid > 0) recordPrice(st, card, paid)
     // resumo dos bots (visibilidade na cerimônia)
     const msg = listed
       ? `⚽ ${bot.teamName} ficou com ${card.name} (listado) por ${paid} 🪙`
@@ -2655,7 +2672,7 @@ function sealAndResolve(state: EscState) {
   }
   const { queue, unsold, ties } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao', !!state.reserveAuction, (b, sl) => mesmoDono(state, b, sl))
   for (const q of queue) if (q.winner !== null && q.paid > 0) {
-    recordPrice(state, q.card.name, q.paid) // livro de preços
+    recordPrice(state, q.card, q.paid) // livro de preços
     creditSeller(state, q.card, q.paid, q.winner) // o vendedor recebe a grana da venda
     agenciaTransacao(state, q.card) // 🕴️ agenciado negociado → comissão de agente
     const w = state.managers.find(m => m.id === q.winner) // resumo dos bots (visibilidade)
@@ -4854,14 +4871,14 @@ export function reducer(state: EscState, action: Action): EscState {
             const pick = cands[Math.floor(rng() * cands.length)]
             const owner = pick.ownerBot ?? materialize(pick.ownerName!)
             owner.squad = owner.squad.filter(c => c.id !== pick.card.id) // tira do dono → buraco
-            const fl = s.marketValues?.[pick.card.name] ?? (pick.card as WonCard).paid ?? 0 // piso do jogador (economia igual pra todos)
+            const fl = s.marketValues?.[ident(pick.card)] ?? (pick.card as WonCard).paid ?? 0 // piso do jogador (economia igual pra todos)
             deck[pos].push({ ...pick.card, seller: owner.id, ...(fl > 0 ? { paid: fl } : {}) })
             marketSellers[pos].push(owner.id)
             if (pick.ownerBot) pick.ownerBot.backstop = true // bot da liga: caixa via clubCash; fica em 11 (só repõe o que perdeu)
           } else {
             const fam = shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && famosoOk(c as Card)), rng)[0]
               ?? shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && (!escM || escadaAllows(escM, c))), rng)[0]
-            if (fam) { used.add(ident(fam)); const fl = s.marketValues?.[fam.name] ?? 0; deck[pos].push({ ...fam, id: `mkt-${pos}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
+            if (fam) { used.add(ident(fam)); const fl = s.marketValues?.[ident(fam)] ?? 0; deck[pos].push({ ...fam, id: `mkt-${pos}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
           }
         }
         // os times de fundo sorteados entram na sala pra brigar (leilão + monte)
@@ -4901,7 +4918,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const escL = escadaDivOf(s)
         for (const pos of SECTORS) {
           const spare = shuffle(ACTIVE_CATALOG[pos].filter(c => !placed.has(ident(c)) && (!escL || escadaAllows(escL, c))), rng)[0]
-          if (spare) { const fl = s.marketValues?.[spare.name] ?? 0; s.deck[pos].push({ ...spare, id: `left-${pos}-${bt2}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
+          if (spare) { const fl = s.marketValues?.[ident(spare)] ?? 0; s.deck[pos].push({ ...spare, id: `left-${pos}-${bt2}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
         }
       }
       // 🛟 GARANTIA "SEMPRE PELO MENOS 1 POR POSIÇÃO": se depois de TUDO (mercado /
@@ -4924,7 +4941,7 @@ export function reducer(state: EscState, action: Action): EscState {
             if (!spare) continue
             bot.squad = bot.squad.filter(c => c.id !== spare.id)
             bot.backstop = true // agora repõe o que soltou E pode brigar em todas as posições
-            const fl = s.marketValues?.[spare.name] ?? spare.paid ?? 0
+            const fl = s.marketValues?.[ident(spare)] ?? spare.paid ?? 0
             s.deck[pos].push({ ...spare, seller: bot.id, ...(fl > 0 ? { paid: fl } : {}) })
             if (!marketSellers[pos].includes(bot.id)) marketSellers[pos].push(bot.id)
             done = true; break
