@@ -2125,6 +2125,7 @@ export const OLD_NAME: Record<string, string> = {
   'Skyy FC': 'Fortuna SAF', // ⚽ batismo do matheusncruz1: save antigo com Fortuna SAF vira Skyy FC ao carregar
   'SC Ferrari': 'Painitto FC', // ⚽ batismo do adriano.ferrari: save antigo com Painitto FC vira SC Ferrari ao carregar
   'Barcenite FC': 'Milanesa FC', // ⚽ batismo do ricardopessoafreire: save antigo com Milanesa FC vira Barcenite FC ao carregar
+  'Bicho da Seda': 'Red Bull Diet', // ⚽ batismo do davisantana1312: save antigo com Red Bull Diet vira Bicho da Seda ao carregar
 }
 // corrente de nomes antigos: 'White Thigs do GuGu' → ['Astronáutico', 'Sinhô Futebol']
 export const oldChain = (name: string): string[] => {
@@ -2225,7 +2226,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Cabeção da Vila', team: 'Paris São Geraldo' },
     { name: 'Tonhão', team: 'Alfacehh' }, // ⚽ clube BATIZADO por apoiador (matheus223lms — Alfacehh, ex-Santos Dumont)
     { name: 'Zé do Caixote', team: 'River Prato' },
-    { name: 'Nininho', team: 'Red Bull Diet' },
+    { name: 'Nininho', team: 'Bicho da Seda' },
     { name: 'Piu do Grêmio', team: 'Barcenite FC' },
     { name: 'Tico do Bar', team: 'Pardemeias' },
     { name: 'Xandão da Bola', team: 'Livre-pool' },

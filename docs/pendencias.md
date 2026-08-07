@@ -1,5 +1,12 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/08/2026)
 
+## ⚽ Batismo: Bicho da Seda (04/08)
+Clube do **davisantana1312** (👑 Lenda, fundador nº 11) entrou no lugar do
+**Red Bull Diet** na Série D. OLD_NAME atualizado ('Bicho da Seda': 'Red Bull
+Diet') — save antigo carrega já com o nome novo. Escudo automático pelo nome.
+👉 Com ele, são **12 clubes de batismo** na Série D.
+
+
 ## ⚽ Batismo novo + apoiadores (04/08)
 · **Barcenite FC** (batismo do ricardopessoafreire / xRichard56, 👑 Lenda +
   fundador nº 31) entrou no lugar do **Milanesa FC** na Série D. OLD_NAME

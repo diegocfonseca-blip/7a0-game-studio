@@ -66,7 +66,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'feeriibeiro25@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'jorgericardo777@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Império Samambaia, ex-Cuiabagre) (era Craque, subiu pra Lenda)
   'dasilva1227br@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
-  'davisantana1312@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
+  'davisantana1312@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Bicho da Seda, ex-Red Bull Diet)
   'ambielvictor@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'cesar.verissimo27@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'denilson.stifler10@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
@@ -92,7 +92,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'feehcamp11@gmail.com': 'ouro', // 👑 Lenda (pago) + FUNDADOR — ouro normal em tudo, MAS verde brilhante SÓ na carreira offline (CAREER_GREEN)
   'lucasigorbortoliniii@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Marreco FC, ex-Inter Estadual)
   'matheus223lms@icloud.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Alfacehh, ex-Santos Dumont)
-  'ricardopessoafreire@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (04/08)
+  'ricardopessoafreire@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Barcenite FC, ex-Milanesa FC)
   'victordudu.monte14@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual (04/08)
 }
 
