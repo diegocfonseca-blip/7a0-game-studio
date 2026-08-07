@@ -11,6 +11,20 @@ que o jogo já usa pra tudo mais), não só nome. Mesma correção aplicada no
 bônus de artilheiro (tinha o mesmo problema escondido). Reversível com
 `git revert fdcc41f`.
 
+## 🐛 COPA DO MUNDO: pular a FINAL podia perder carta e troféu — CORRIGIDO ✅ NO AR
+Relato de jogador (via Diego, 07/08): "pulei a final, ganhei, mas não veio
+carta nem troféu". Conferido Liga, Copa Legends e Copa do Mundo — só a Copa do
+Mundo tinha o problema. Causa: lá o "Pular" tem 2 estágios (1º toque só corta
+a animação e mostra o placar da final; 2º avança pra "🎉 Cerimônia" de
+verdade) — só DEPOIS desse 2º clique é que o prêmio/carta gravavam. Quem via
+o placar da final (achando "já era, acabou") e não clicava de novo nunca
+recebia nada — não tem mais nenhum jogo pra assistir depois da final, então
+era fácil parar aí achando que tinha terminado.
+Corrigido: prêmio e carta agora gravam assim que o placar da FINAL aparece na
+tela, sem depender do clique extra da cerimônia. Visual não mudou em nada
+(banner/estatísticas continuam iguais) — só a GRAVAÇÃO ficou mais cedo e
+garantida. Reversível com `git revert 79af73c`.
+
 ## 🐛 BOTÃO "⏭️ PULAR" travado — CORRIGIDO (07/08, relato de jogador) ✅ NO AR
 Jogador (craque/lenda, com Modo Manual) reportou que o Pular parou de
 funcionar. Causa: era EU MESMO, mais cedo hoje — pra fechar o buraco do
