@@ -6115,7 +6115,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // caixa + títulos da carreira (pro painel ao vivo): pirâmide usa
       // careerCoins/careerHonors (títulos de QUALQUER série); antiga usa cash/careerTitles.
       const hon = st.careerHonors?.['m' + youId]
-      const titles = division ? (pyramid ? (hon ? hon.A + hon.B + hon.C + hon.D : 0) : st.careerTitles) : undefined
+      const titles = division ? (pyramid ? (hon ? hon.A + hon.B + hon.C + hon.D + (hon.V ?? 0) : 0) : st.careerTitles) : undefined
       const coins = division ? Math.round(pyramid ? (st.careerCoins?.[youId] ?? 0) : (st.managers[st.youIdx]?.money ?? 0)) : undefined
       const career = division ? { season: st.seasonNo, division, coins, titles } : undefined
       // online é sempre baralho brasileiro; solo (rápida/carreira) manda o escolhido

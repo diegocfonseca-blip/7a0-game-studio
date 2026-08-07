@@ -2147,18 +2147,25 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
     const money = t.human ? (coins[t.teamId] ?? 0) : Math.round(pick(clubCash) ?? 0)
     return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, money, wc: cmTitles[t.name] ?? 0 }
   })
-  // ordem: Série A · Copa do Mundo · Copa Legends · Série B · Série C · Série D · Dinheiro
-  rows.sort((a, b) => b.h.A - a.h.A || b.wc - a.wc || b.copas - a.copas || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
+  // ordem: Série A · Copa do Mundo · Copa Legends · Série B · Série C · Série D · Várzea · Dinheiro
+  // 🌱 Várzea agora VALE no ranking (07/08, pedido do Diego) — mas como ÚLTIMO
+  // critério de título (atrás até da Série D), antes só do dinheiro.
+  rows.sort((a, b) => b.h.A - a.h.A || b.wc - a.wc || b.copas - a.copas || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || (b.h.V ?? 0) - (a.h.V ?? 0) || b.money - a.money || a.t.name.localeCompare(b.t.name))
   const top = rows.slice(0, 20)
   // 🏆 SEUS troféus (chave do humano = m<id>) — base do Hall de Troféus embaixo.
   const myH = honors[`m${youId}`] ?? EMPTY_HONORS
   const myCopas = copaHonors[`m${youId}`] ?? 0
   const myWorld = cmMural.filter(m => m.voce).length
-  const totalT = myH.A + myH.B + myH.C + myH.D + myCopas + myWorld
+  const totalT = myH.A + myH.B + myH.C + myH.D + (myH.V ?? 0) + myCopas + myWorld
   const trofeus = [
-    ...(myWorld > 0 ? [{ key: 'mundo', label: 'Copa do Mundo', n: myWorld, bg: INK, c: GOLD }] : []),
-    ...(myCopas > 0 ? [{ key: 'copa', label: 'Copa Legends', n: myCopas, bg: GOLD, c: INK }] : []),
-    ...(['A', 'B', 'C', 'D', 'V'] as Div[]).filter(d => (myH[d] ?? 0) > 0).map(d => ({ key: d, label: DIV_NAME[d], n: myH[d] ?? 0, bg: CDTAG[d].bg, c: CDTAG[d].c })),
+    ...(myWorld > 0 ? [{ key: 'mundo', label: 'Copa do Mundo', n: myWorld, bg: INK, c: GOLD, icon: '🏆' }] : []),
+    ...(myCopas > 0 ? [{ key: 'copa', label: 'Copa Legends', n: myCopas, bg: GOLD, c: INK, icon: '🏆' }] : []),
+    ...(['A', 'B', 'C', 'D'] as Div[]).filter(d => (myH[d] ?? 0) > 0).map(d => ({ key: d, label: DIV_NAME[d], n: myH[d] ?? 0, bg: CDTAG[d].bg, c: CDTAG[d].c, icon: '🏆' })),
+    // 🎖️ Várzea (07/08, Diego: "quero que seja algo cômico, tipo medalha de honra
+    // ao mérito — aquela moeda que a gente ganhava na infância"): NÃO é troféu de
+    // verdade — é a medalha de participação, com legenda própria (deixa claro na
+    // hora o que é, sem confundir com os troféus de série de verdade).
+    ...((myH.V ?? 0) > 0 ? [{ key: 'V', label: 'Honra ao Mérito', sub: '🌱 Várzea', n: myH.V ?? 0, bg: '#C9A876', c: '#3B2A17', icon: '🎖️' }] : []),
   ]
   return (
     <>
@@ -2188,12 +2195,15 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
                   </span>
                 </td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
-                  {(r.h.A + r.h.B + r.h.C + r.h.D + r.copas + r.wc) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
+                  {(r.h.A + r.h.B + r.h.C + r.h.D + (r.h.V ?? 0) + r.copas + r.wc) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
                     {r.wc > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Mundo{r.wc > 1 ? r.wc : ''}</span>}
                     {r.copas > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: INK, background: GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆Copa{r.copas > 1 ? r.copas : ''}</span>}
-                    {(['A', 'B', 'C', 'D', 'V'] as Div[]).map(d => (r.h[d] ?? 0) > 0 ? (
+                    {(['A', 'B', 'C', 'D'] as Div[]).map(d => (r.h[d] ?? 0) > 0 ? (
                       <span key={d} style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG[d].l}{r.h[d]}</span>
                     ) : null)}
+                    {/* 🎖️ Várzea = medalha de participação, não troféu — ícone e cor diferentes
+                        pra ficar claro de cara que é a "moeda de honra ao mérito", não um título de série */}
+                    {(r.h.V ?? 0) > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#3B2A17', background: '#C9A876', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🎖️V{r.h.V}</span>}
                   </>}
                 </td>
                 <td style={{ textAlign: 'right', fontWeight: 900, whiteSpace: 'nowrap', color: '#5a5647' }}>{r.money}</td>
@@ -2214,9 +2224,10 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {trofeus.map(t => (
             <div key={t.key} style={{ width: 82, border: `2.5px solid ${INK}`, borderRadius: 12, background: t.bg, color: t.c, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 6px 8px', textAlign: 'center' }}>
-              <div style={{ fontSize: 30, lineHeight: 1 }}>🏆</div>
+              <div style={{ fontSize: 30, lineHeight: 1 }}>{t.icon ?? '🏆'}</div>
               <div style={{ fontWeight: 900, fontSize: 15, ...OSWALD, marginTop: 2 }}>×{t.n}</div>
               <div style={{ fontWeight: 800, fontSize: 9, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.2, marginTop: 1, opacity: 0.92 }}>{t.label}</div>
+              {t.sub && <div style={{ fontWeight: 700, fontSize: 8, marginTop: 1, opacity: 0.75 }}>{t.sub}</div>}
             </div>
           ))}
         </div>
@@ -3705,7 +3716,7 @@ export function PyramidSeasonScreen() {
               <ShareElencoBtn mgr={state.managers[state.youIdx]} col={myCol} xi={myXI as WonCard[]} xiIds={myXIids}
                 goals={goalsByCard} divName={DIV_NAME[me.div]} tablePos={me.pos} seasonNo={state.seasonNo}
                 coins={state.careerCoins?.[youId] ?? 0}
-                titles={(() => { const h = state.careerHonors?.['m' + youId]; return h ? h.A + h.B + h.C + h.D : 0 })()} />
+                titles={(() => { const h = state.careerHonors?.['m' + youId]; return h ? h.A + h.B + h.C + h.D + (h.V ?? 0) : 0 })()} />
             )}
             <GoldTeaser label="Ver MEU elenco DOURADO (prévia)">
               <div style={{ maxHeight: 400, overflow: 'hidden', borderRadius: 16, position: 'relative' }}>
