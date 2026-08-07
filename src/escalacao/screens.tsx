@@ -838,13 +838,13 @@ function Campinho({ m, small = false, bench = false, title }: { m: Manager; smal
           <span className="font-black uppercase tracking-wide" style={{ ...OSWALD, fontSize: small ? 10 : 12 }}>{title}</span>
         </div>
       )}
-      <div className="px-3 py-2 flex flex-col gap-2" style={{ background: `repeating-linear-gradient(180deg, ${g1} 0 34px, ${g2} 34px 68px)` }}>
+      <div className="campinho-field px-3 py-2.5 flex flex-col gap-2.5" style={{ background: `repeating-linear-gradient(180deg, ${g1} 0 34px, ${g2} 34px 68px)` }}>
         {rows.map(row => (
-          <div key={row.key} className="flex justify-center gap-2">
+          <div key={row.key} className="campinho-row flex justify-center gap-2.5">
             {row.slots.map((slot, i) => (
               <div
                 key={i}
-                className={`border-2 border-black rounded-lg text-center ${small ? 'px-1 py-0.5 min-w-[52px]' : 'px-2 py-1 min-w-[72px]'}`}
+                className={`campinho-slot border-2 border-black rounded-lg text-center ${small ? 'px-1.5 py-1 min-w-[56px]' : 'px-2.5 py-1.5 min-w-[76px]'}`}
                 style={{ backgroundColor: slot.card ? '#fff' : 'rgba(255,255,255,0.25)' }}
               >
                 <p className="text-[9px] font-black" style={{ color: slot.card ? RED : '#fff' }}>{slot.pos}</p>
