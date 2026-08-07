@@ -527,6 +527,14 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onClose }:
   const gRound = Math.min(GR, step)
   const shownRounds = step <= GR && !liveDone ? Math.max(0, gRound - 1) : gRound // tabela/resultados só DEPOIS do apito
   const done = step >= GR + 7
+  // 🐛 (07/08, relato de jogador via Diego): "pulei a final, ganhei, mas não veio
+  // carta nem troféu". Causa: prêmio/carta só gravavam em `done` (depois do
+  // clique EXTRA na "🎉 Cerimônia", que vem DEPOIS da final). O "Pular" na
+  // final é 2 toques (1º só corta a animação, mostra o placar; 2º avança) —
+  // quem parava no 1º toque (viu que ganhou, achou que acabou) nunca chegava
+  // no `done` e o prêmio ficava só "quase". Agora o prêmio conta assim que o
+  // placar da FINAL aparece na tela — sem depender do clique da cerimônia.
+  const finalSeen = step >= GR + 6 && liveDone
   const myIdx = entrants.findIndex(isYouE)
   const nm = (i: number) => `${FLAG[entrants[i].pais]} ${entrants[i].pais}`
   const club = (i: number) => entrants[i].club
@@ -583,9 +591,10 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onClose }:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveDone, step, manual, done])
 
-  // persiste os prêmios UMA vez, quando chega no fim (fora do render!)
+  // persiste os prêmios UMA vez — assim que o placar da FINAL aparece (não
+  // precisa esperar o clique extra da cerimônia — ver comentário no `finalSeen`).
   useEffect(() => {
-    if (!done) return
+    if (!finalSeen) return
     const cur = loadCopaSave(seed) ?? save
     if (cur.played.includes(seasonNo)) return
     const c = world.final.champion
@@ -608,7 +617,7 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onClose }:
       })()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [done])
+  }, [finalSeen])
 
   const nextLabel = !liveDone ? '⏳ Deixa o jogo acabar…' : step < GR ? `▶️ Rodada ${step + 1} de ${GR}` : step === GR ? '🎲 Sortear o mata-mata' : step === GR + 1 ? '▶️ Jogar as quartas (ida)' : step === GR + 2 ? '▶️ Quartas — jogo de volta' : step === GR + 3 ? '▶️ Semifinais (ida)' : step === GR + 4 ? '▶️ Semis — jogo de volta' : step === GR + 5 ? '🏆 A GRANDE FINAL' : '🎉 Cerimônia'
 
@@ -751,11 +760,14 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onClose }:
       )}
       {/* 🎴 CARTA DO CAMPEÃO DO MUNDO — só pra quem venceu (privada). Igual às
           outras copas: a carta é gravada na conta NA HORA (conta mesmo sem abrir). */}
-      {done && isYou(world.final.champion) && (
+      {finalSeen && isYou(world.final.champion) && (
         <div style={{ marginBottom: 10 }}>
           {/* 🌍 REGRA DO DIEGO (04/08): "tudo que é campeão conta carta" — chave de
               CARREIRA (co:solo…:copamundo): a carta SOMA no ranking Carreira da
-              home, e o onCard leva pro cofre do empresário, igual liga e Copa. */}
+              home, e o onCard leva pro cofre do empresário, igual liga e Copa.
+              🐛 (07/08) gatilho trocado de `done` pra `finalSeen`: a carta
+              já grava (persist automático dentro do componente) assim que o
+              placar da final aparece, sem depender do clique da cerimônia. */}
           <CardCollectPrompt seasonKey={`co:solo${seed}:${seasonNo}:copamundo`} origin="cpu" onClaimed={c => onCard?.(c, `co:solo${seed}:${seasonNo}:copamundo`)} />
         </div>
       )}
