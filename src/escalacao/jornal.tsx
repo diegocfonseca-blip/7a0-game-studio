@@ -5,11 +5,14 @@
 // `{t}` nas manchetes é trocado pelo nome do time do jogador.
 import { useState, useEffect, useRef } from 'react'
 import type { SimTeam, CopaResult, SeasonScorer, Div } from './pyramidseason'
+import { Escudo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
 const GOLD_HEX = '#F5B301'
-const J_DIVS: Div[] = ['A', 'B', 'C', 'D']
+// 🌱 Várzea agora entra em "Os Donos da Temporada" — antes só ia até a Série D
+// (pedido do Diego 05/08: "hoje tem só da série D C B A").
+const J_DIVS: Div[] = ['A', 'B', 'C', 'D', 'V']
 const J_DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D', V: 'Várzea' }
 const J_DIV_COLOR: Record<Div, string> = { A: '#B8892B', B: '#3E8E4E', C: '#9A7B33', D: '#7A7460', V: '#8B5E3C' }
 const SERIF = { fontFamily: "Georgia, 'Times New Roman', serif" } as const
@@ -423,7 +426,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
         {/* "foto" */}
         <div style={{ border: `2.5px solid ${INK}`, background: 'radial-gradient(circle at 50% 35%, #2ea457, #123f22)', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 108, overflow: 'hidden' }}>
           {stamp && <div style={{ position: 'absolute', top: 8, right: -16, transform: 'rotate(18deg)', border: `3px solid ${stamp.color}`, color: stamp.color, fontWeight: 900, fontSize: 11, letterSpacing: 2, padding: '2px 16px', borderRadius: 6, opacity: .9, background: 'rgba(247,241,221,.65)', ...COND }}>{stamp.txt}</div>}
-          <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#F7F1DD', border: `3px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 24, ...COND }}>{me.team.trim()[0]?.toUpperCase() ?? '?'}</div>
+          <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#F7F1DD', border: `3px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}><Escudo nome={me.team} size={44} /></div>
           <div style={{ color: '#fff', fontWeight: 900, fontSize: 11, marginTop: 5, ...COND, textShadow: '1px 1px 0 rgba(0,0,0,.5)', maxWidth: '92%', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.team}</div>
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,.68)', color: '#fff', fontSize: 7.5, fontWeight: 700, padding: '2px 6px', fontStyle: 'italic' }}>{me.pos}º colocado da {J_DIV_NAME[me.div]} na temporada {seasonNo}.</div>
         </div>
@@ -454,7 +457,9 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
           return (
             <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 9px 7px 0', borderTop: '1.5px solid rgba(0,0,0,.12)', background: isYou ? '#fdf6dd' : undefined }}>
               <div style={{ width: 5, alignSelf: 'stretch', flex: 'none', background: J_DIV_COLOR[d] }} />
-              <div style={{ flex: 'none', width: 24, height: 24, borderRadius: 7, border: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 900, color: '#fff', background: J_DIV_COLOR[d], ...COND }}>{d}</div>
+              {champ
+                ? <div style={{ flex: 'none', width: 24, height: 24, borderRadius: 7, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Escudo nome={champ.name} size={22} /></div>
+                : <div style={{ flex: 'none', width: 24, height: 24, borderRadius: 7, border: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 900, color: '#fff', background: J_DIV_COLOR[d], ...COND }}>{d}</div>}
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 12, fontWeight: 900, lineHeight: 1.1 }}>{champ?.name ?? '—'} <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', color: isYou ? '#b98600' : '#8a8266', marginLeft: 3 }}>campeão{isYou ? ' ⭐ você' : ''}</span></div>
                 {art && <div style={{ fontSize: 9.5, fontWeight: 700, color: '#3a3527', marginTop: 1.5 }}>⚽ Artilheiro: <b>{art.name}</b> ({art.teamName}) · {art.goals} gols</div>}
