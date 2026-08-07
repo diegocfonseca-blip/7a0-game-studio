@@ -249,3 +249,22 @@ html.noturno .palco :is([class*="bg-white"],
   .palco ::-webkit-scrollbar-thumb { background: rgba(12,12,12,.28); border-radius: 6px; }
   .palco ::-webkit-scrollbar-thumb:hover { background: rgba(12,12,12,.45); }
 }
+
+/* ═══ 🖥️ MODO DESKTOP — FASE 2 "duas colunas" (05/08) ══════════════════════
+   Blocos que hoje ficam EMPILHADOS (as 4 tabelas da pirâmide, os jogos das 4
+   divisões) passam a ficar 2×2 no PC. É só a caixa: a ordem, o conteúdo e o
+   código são os mesmos.
+   🔒 A classe `.desk-grid2` NÃO tem regra nenhuma abaixo de 1024px — no celular
+   ela é uma div sem estilo, e uma div sem estilo não muda absolutamente nada.
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 1024px) {
+  .desk-grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 14px;          /* só espaço horizontal — o vertical já vem do marginBottom de cada card */
+    align-items: start;   /* cada bloco tem a altura dele (não estica pra emparelhar) */
+  }
+  /* dentro das colunas o conteúdo já é estreito: some com a rolagem horizontal
+     que existia pra caber no celular */
+  .desk-grid2 > div { overflow-x: visible; }
+}

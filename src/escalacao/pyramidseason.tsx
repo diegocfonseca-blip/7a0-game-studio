@@ -1384,7 +1384,9 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
 export function PyramidTables({ tables, order, colors, myDiv, final, safTeam, safCol }: { tables: Record<Div, SimTeam[]>; order?: Div[]; colors?: Record<number, FCol>; myDiv?: Div | null; final?: boolean; safTeam?: string; safCol?: FCol }) {
   const cols = colors ?? {}
   // a artilharia saiu daqui (foi pra aba Rank) — a aba Tabelas fica só com as 4 tabelas.
-  return <>{(order ?? DIVS).map(d => <DivTable key={d} div={d} teams={tables[d]} colors={cols} mine={d === myDiv} final={final} safTeam={safTeam} safCol={safCol} />)}</>
+  // 🖥️ no PC as 4 tabelas ficam 2×2 em vez de empilhadas (a classe só tem CSS
+  // acima de 1024px — no celular ela é uma div sem estilo nenhum, nada muda)
+  return <div className="desk-grid2">{(order ?? DIVS).map(d => <DivTable key={d} div={d} teams={tables[d]} colors={cols} mine={d === myDiv} final={final} safTeam={safTeam} safCol={safCol} />)}</div>
 }
 // caixa de artilharia reutilizável (temporada e todos os tempos) — top N já pronto.
 function ArtilhariaBox({ scorers, colors, title, sub, foot, safTeam, safCol }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string; safCol?: FCol }) {
@@ -3750,7 +3752,11 @@ export function PyramidSeasonScreen() {
               }
               return <RivalryTicker items={flavors} />
             })()}
-            {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} reveal={revealed >= round} />)}
+            {/* 🖥️ no PC as divisões ficam LADO A LADO (2 colunas) — no celular a
+                classe não faz nada (o CSS dela só existe acima de 1024px) */}
+            <div className="desk-grid2">
+              {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} reveal={revealed >= round} />)}
+            </div>
           </>
           )
         ) : done && copa && copa.rounds.length > 0 ? (
