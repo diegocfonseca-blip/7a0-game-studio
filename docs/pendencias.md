@@ -1,4 +1,22 @@
-# 📌 Pendências combinadas com o Diego (atualizado 05/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 07/08/2026)
+
+## 🐛 SELO DE GOL NO 0×0 — CORRIGIDO (07/08, relato do Diego) ✅
+Diego mandou print: jogo **0 × 0 aos 16'** com o selo "🔥 GOL NO FIM!" na tela,
+e a frase **trocando sozinha em looping** ("passando todas as frases").
+Eram DOIS defeitos no `LiveScoreCard` (pyramidseason.tsx):
+- **(a) o selo ficava preso**: o `setTimeout` que apagava o selo vivia no
+  *cleanup* do efeito. Quando a rodada virava, o React rodava o cleanup
+  (matando o timer) e o efeito caía no `return` do rebase — ninguém apagava o
+  selo, que atravessava pra rodada seguinte.
+- **(b) a frase corria com o relógio**: `goalSeed = last?.min ?? min`. Sem gol,
+  `last` é `null`, então a semente era o MINUTO CORRENTE → frase nova a cada
+  tique.
+Consertos: timer numa `ref` (o cleanup não o mata mais), rodada nova chama
+`apaga()` explícito, frase **congelada** no minuto do gol (`goalSeedFix`) e uma
+**trava final**: `temGolNaTela` — placar 0×0 na tela = nenhum selo e nenhum
+flash, aconteça o que acontecer com o estado.
+Regressão nova: `scratchpad/goltest.mjs` (reproduz o bug na versão antiga e
+prova os 6 comportamentos certos na nova) + eventotest/copatest/dormtest 🟢.
 
 ## ✅ ENTREGUE 05/08 — 3 pedidos do Diego (já na MAIN, ao vivo)
 1. **Escudos nos confrontos da Copa dos 8** — a lista "Todos os jogos da fase"

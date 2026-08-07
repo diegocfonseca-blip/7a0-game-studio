@@ -1680,20 +1680,37 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const prev = useRef({ h: evH, a: evA, key: roundKey })
   const [goal, setGoal] = useState<'h' | 'a' | null>(null)
   const [lateGoal, setLateGoal] = useState(false) // gol/cesta depois dos 85' → selo especial
+  // 🐛 BUG RELATADO (05/08): "aparece GOL NO FIM/PINGOU num jogo 0×0 e fica
+  // passando todas as frases". Eram DUAS coisas:
+  //  (a) o selo ficava PRESO: o timer que o apagava vivia no cleanup do efeito.
+  //      Quando a rodada virava, o React rodava o cleanup (cancelando o timer) e
+  //      caía no `return` do rebase — ninguém mais apagava o selo, que atravessava
+  //      pra rodada seguinte (0×0 e "GOL NO FIM!" na tela);
+  //  (b) a FRASE era sorteada pelo MINUTO ATUAL do relógio — como o minuto corre,
+  //      a frase trocava a cada tique ("looping passando todas").
+  // Agora: o timer mora numa ref (o cleanup não o mata), a rodada nova apaga o
+  // selo explicitamente, a frase é congelada no instante do gol, e há uma trava
+  // final — sem nenhum gol na tela, selo nenhum aparece.
+  const goalTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [goalSeedFix, setGoalSeedFix] = useState<number | null>(null)
   useEffect(() => {
     const p = prev.current
-    if (p.key !== roundKey) { p.key = roundKey; p.h = evH; p.a = evA; return } // trocou a rodada: rebaseia sem animar
+    const apaga = () => { if (goalTimer.current) { clearTimeout(goalTimer.current); goalTimer.current = null } setGoal(null); setLateGoal(false); setGoalSeedFix(null) }
+    if (p.key !== roundKey) { p.key = roundKey; p.h = evH; p.a = evA; apaga(); return } // rodada nova: rebaseia E limpa o selo
     let side: 'h' | 'a' | null = null
     if (evH > p.h) side = 'h'; else if (evA > p.a) side = 'a'
     p.h = evH; p.a = evA
     if (side && !finished) {
+      if (goalTimer.current) clearTimeout(goalTimer.current)
       setGoal(side)
       setLateGoal(min >= 86)
-      const t = setTimeout(() => setGoal(null), 1700)
-      return () => clearTimeout(t)
+      setGoalSeedFix(Math.abs(last?.min ?? min)) // frase CONGELADA no minuto do gol
+      goalTimer.current = setTimeout(() => { setGoal(null); goalTimer.current = null }, 1700)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [evH, evA, roundKey, finished])
+  // 🧹 desmontou a tela: não deixa timer pendurado
+  useEffect(() => () => { if (goalTimer.current) clearTimeout(goalTimer.current) }, [])
   void iAmHome
 
   const Team = ({ name, color, you, flash }: { name: string; color: string; you: boolean; flash?: boolean }) => {
@@ -1714,30 +1731,36 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     </div>
     )
   }
-  // 🎙️ selo de GOL variado (determinístico pelo minuto do gol → mesmo selo no online)
-  const goalSeed = Math.abs(last?.min ?? min)
+  // 🎙️ selo de GOL variado (determinístico pelo minuto do gol → mesmo selo no
+  //    online). O minuto é CONGELADO no instante do gol (goalSeedFix): se usasse
+  //    o relógio corrente, a frase trocaria a cada tique.
+  const goalSeed = Math.abs(goalSeedFix ?? last?.min ?? min)
   const GOAL_FUT = ['⚽ GOOOL!', '⚽ É GOOOL!', '⚽ PINGOU!', '⚽ NA REDE!', '⚽ SACUDIU!', '⚽ ESTUFOU!', '⚽ GOLAÇO!']
   const GOAL_FUT_LATE = ['🔥 GOL NO FIM!', '🔥 NO ÚLTIMO SUSPIRO!', '🔥 NOS ACRÉSCIMOS!', '🔥 SALVOU NO FIM!']
   const goalStamp = basket
     ? (lateGoal ? '🔥 CESTA NO FIM!' : '🏀 CESTA!')
     : (lateGoal ? GOAL_FUT_LATE[goalSeed % GOAL_FUT_LATE.length] : GOAL_FUT[goalSeed % GOAL_FUT.length])
+  // 🔒 trava final: se o placar na tela está 0×0, NÃO existe gol pra comemorar —
+  //    nenhum selo e nenhum flash, aconteça o que acontecer com o estado.
+  const temGolNaTela = (basket ? hg + ag : evH + evA) > 0
+  const golSide = temGolNaTela ? goal : null
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coStamp{0%{transform:translateX(-50%) scale(0) rotate(-14deg);opacity:0}45%{transform:translateX(-50%) scale(1.18) rotate(-7deg);opacity:1}70%{transform:translateX(-50%) scale(.94) rotate(-7deg)}100%{transform:translateX(-50%) scale(1) rotate(-7deg);opacity:1}}'}</style>
       {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>🥊 CLÁSSICO</div>}
       {/* selo GOOOL! — surge sobre o lado de quem marcou */}
-      {goal && <div style={{ position: 'absolute', top: 4, left: goal === 'h' ? '25%' : '75%', transform: 'translateX(-50%) rotate(-7deg)', zIndex: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '3px 12px', ...OSWALD, fontWeight: 900, fontSize: 17, letterSpacing: 0.5, boxShadow: `2px 2px 0 0 ${INK}`, animation: 'coStamp .5s cubic-bezier(.2,1.4,.5,1) both', whiteSpace: 'nowrap', ...(lateGoal ? { background: '#FF5B4D', color: '#fff' } : {}) }}>{goalStamp}</div>}
+      {golSide && <div style={{ position: 'absolute', top: 4, left: golSide === 'h' ? '25%' : '75%', transform: 'translateX(-50%) rotate(-7deg)', zIndex: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '3px 12px', ...OSWALD, fontWeight: 900, fontSize: 17, letterSpacing: 0.5, boxShadow: `2px 2px 0 0 ${INK}`, animation: 'coStamp .5s cubic-bezier(.2,1.4,.5,1) both', whiteSpace: 'nowrap', ...(lateGoal ? { background: '#FF5B4D', color: '#fff' } : {}) }}>{goalStamp}</div>}
       <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', background: INK, color: '#fff', fontSize: 11, fontWeight: 900, ...OSWALD, padding: '3px 11px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 6, zIndex: 2, whiteSpace: 'nowrap' }}>
         <span style={{ width: 7, height: 7, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite' }} /> {done ? (basket ? 'FINAL' : 'FIM') : minLabel}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch' }}>
-        <Team name={homeName} color={homeCol} you={youIsHome} flash={goal === 'h'} />
+        <Team name={homeName} color={homeCol} you={youIsHome} flash={golSide === 'h'} />
         {/* placar central limpo (sem tarja preta) — número grande no creme; cada
             número dá um "bump" quando MUDA (key = valor → remonta e reanima) */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '22px 6px 8px', minWidth: 88, ...OSWALD, fontWeight: 900, fontSize: 34, color: INK, lineHeight: 1 }}>
           <span key={'h' + hg} style={{ padding: '0 8px', display: 'inline-block', animation: 'coBump .55s ease' }}>{hg}</span><span style={{ color: '#b8b0a0', fontSize: 16 }}>×</span><span key={'a' + ag} style={{ padding: '0 8px', display: 'inline-block', animation: 'coBump .55s ease' }}>{ag}</span>
         </div>
-        <Team name={awayName} color={awayCol} you={!youIsHome} flash={goal === 'a'} />
+        <Team name={awayName} color={awayCol} you={!youIsHome} flash={golSide === 'a'} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '7px 12px', borderTop: '2px solid #e6dcbf', background: '#efe4c8' }}>
         <span key={ritualTxt ?? 'g'} style={{ fontSize: 11, fontWeight: ritualTxt ? 900 : 700, ...OSWALD, color: ritualTxt ? INK : 'rgba(0,0,0,0.72)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%', animation: ritualTxt ? 'coFade .4s ease' : undefined }}>
