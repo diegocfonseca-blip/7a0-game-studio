@@ -46,6 +46,12 @@ visual). Confirmado com o Diego como já estava certo: o prêmio da meta é
 sempre calculado com base na temporada que ACABOU de terminar (a mesma em que
 foi escolhida) e cai no caixa/extrato junto com os outros prêmios no fechamento
 daquela temporada — não é preciso trocar nada aí, já funciona assim.
+✅ MAIS UM PONTO (07/08, Diego: "não pode ter tempo nessa área de escolher
+patrocínio no carreira offline"): achado outro buraco — no modo AUTO (sem
+manual ligado) da carreira solo, a rodada 0 tinha um cronômetro ESCONDIDO de
+9s (o mesmo tempo de qualquer rodada) que avançava sozinho mesmo sem escolher
+a meta. Agora esse relógio também espera a escolha — carreira offline fica
+sem tempo nenhum pra escolher o patrocínio, seja no manual ou no automático.
 
 ## ✅ ENTREGUE 05/08 — 3 pedidos do Diego (já na MAIN, ao vivo)
 1. **Escudos nos confrontos da Copa dos 8** — a lista "Todos os jogos da fase"
