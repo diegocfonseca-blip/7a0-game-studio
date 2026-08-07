@@ -246,6 +246,11 @@ function escadaAfterPlacements(s: EscState) {
 // REGISTRA cada um no extrato pela VARIAÇÃO REAL da caixa do humano. Mantém a
 // mesma ordem/efeito de antes (prêmios → bilheteria → folha) — só soma o registro.
 function applySeasonMoney(s: EscState, rewards?: Record<number, number>) {
+  // 🔒 UMA VEZ POR TEMPORADA: o fechamento acontece assim que a temporada (liga +
+  // copas) termina. Se já foi lançado, qualquer chamada depois (abrir o leilão,
+  // refazer o leilão) NÃO repete nada — o caixa nunca é creditado duas vezes.
+  if (s.booksSeason === (s.seasonNo ?? 1)) return
+  s.booksSeason = s.seasonNo ?? 1
   const online = s.onlineMode === 'online'
   const humans = s.managers.filter(m => m.isHuman)
   // snapshot da caixa de cada humano — pra registrar o extrato pela VARIAÇÃO REAL
@@ -745,6 +750,18 @@ function creditSeller(state: EscState, card: Card, amount: number, buyerId?: num
     const boughtFor = (card as WonCard).buyPrice ?? (card as { paid?: number }).paid ?? 0
     logFin(state, 'sell', card.semContrato ? `💼 ${card.name} (sem contrato)` : `💰 ${card.name}`, credit, { player: card.name, pos: card.pos, buyPrice: boughtFor }, sellerId)
   }
+  mirrorWallets(state) // 💰 venda entra na caixa NA HORA
+}
+// 💰 CAIXA EM TEMPO REAL (carreira): durante o leilão o `money` do técnico É a
+// caixa do clube (foi semeado dela). Toda compra/venda espelha na careerCoins na
+// mesma hora — antes o número só era reconciliado na cerimônia, então quem
+// vendia via "não aconteceu nada" e quem comprava via o caixa velho.
+// O clube DORMINDO nunca entra aqui (o money dele é um número antigo).
+function mirrorWallets(s: EscState) {
+  if (!s.careerOnline) return
+  const cc = { ...(s.careerCoins ?? {}) }
+  for (const m of s.managers) if (m.isHuman && !m.dormindo) cc[m.id] = Math.round(m.money)
+  s.careerCoins = cc
 }
 // ARTILHEIRO DA TEMPORADA: o goleador de cada divisão faz o valor de piso do
 // jogador subir (D+4, C+8, B+12, A+16) — o mesmo número que o time ganhou de
@@ -1002,8 +1019,13 @@ function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => nu
   if (need === 0 || m.money <= 0) return []
   const remaining = SECTORS.slice(sectorIdx).reduce((s, p) => s + SECTOR_WEIGHT[p], 0)
   const shape = 0.65 + m.aggression * 0.8
+  // 👑 REPESCAGEM com LENDA na mesa: o bot fica mais esperto — orçamento normal
+  // (4-9) quase nunca cobre o piso de uma lenda, e ela sumia de graça no monte
+  // sem ninguém notar. Com lenda na leva, o bolso da repescagem cresce bastante
+  // (ainda helper, nunca chega no preço do leilão principal).
+  const rescueHasLegend = rescue && cards.some(c => c.fame === 5)
   let budget = rescue
-    ? Math.min(m.money, 4 + Math.floor(rng() * 6))
+    ? Math.min(m.money, (rescueHasLegend ? 14 : 4) + Math.floor(rng() * (rescueHasLegend ? 22 : 6)))
     : Math.max(1, Math.floor(m.money * (SECTOR_WEIGHT[pos] / remaining) * shape * (0.85 + rng() * 0.4)))
   budget = Math.min(budget, m.money)
 
@@ -1163,6 +1185,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   tb.bids = amounts // registra quanto cada um cobriu (transparência na revelação)
   const rc = state.revealQueue.find(q => q.card.id === tb.cardId)
   if (rc) { rc.winner = winner; rc.paid = max }
+  mirrorWallets(state) // 💰 compra no desempate sai da caixa NA HORA
 }
 
 // CPU no desempate: cobre um pouco acima do valor empatado conforme o
@@ -2220,6 +2243,7 @@ function takeFromMonte(state: EscState, cardId: string) {
   creditSeller(state, card, paid, mgrId) // vendedor recebe o valor mesmo indo pelo monte
   agenciaTransacao(state, card) // 🕴️ agenciado mudou de clube pelo monte → comissão
   m.squad.push({ ...card, paid, buyPrice: paid, via: 'monte', semContrato: undefined, contratoAte: undefined })
+  mirrorWallets(state) // 💰 compra no monte sai da caixa NA HORA
 }
 
 // avança o ponteiro do monte, deixando CPUs escolherem sozinhas.
@@ -2427,6 +2451,7 @@ type Action =
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
   | { type: 'MARK_COPA_DONE' }
+  | { type: 'CLOSE_SEASON_BOOKS'; rewards?: Record<number, number> } // 💰 fecha as contas da temporada (prêmios + bilheteria + patrocínio + empresário − folha) assim que liga+copas acabam
   | { type: 'SET_CHAT'; off: boolean } // 💬 host liga/desliga o chat da sala
   | { type: 'SET_SIM_SPEED'; speed: number } // ⏩ velocidade da simulação (host/solo)
   | { type: 'SET_STREAM_CHAMP_CARD'; slot: 'liga' | 'copa'; card: WonCard } // 🎥 stream: guarda a carta do campeão pra sala inteira ver/abrir
@@ -2654,6 +2679,7 @@ function sealAndResolve(state: EscState) {
     // lugar ao famoso — não deixa o elenco do bot inchar de carta de brincadeira.
     if (w && !w.isHuman && w.squad.length > 20) { const fi = w.squad.findIndex(c => c.fake); if (fi >= 0) w.squad.splice(fi, 1) }
   }
+  mirrorWallets(state) // 💰 arremates e vendas do pregão entram na caixa NA HORA
   state.revealQueue = queue
   state.revealIdx = 0
   state.currentCards = unsold
@@ -2872,6 +2898,16 @@ export function reducer(state: EscState, action: Action): EscState {
     // pirâmide: a Copa da temporada atual terminou de animar → marca, pra o save
     // não re-animar a Copa do zero ao retomar (mostra direto os campeões/decisão).
     case 'MARK_COPA_DONE': { s.copaDoneSeason = s.seasonNo; return s }
+    // 💰 FECHAMENTO DA TEMPORADA (solo): acabou a liga E as copas → contabiliza
+    // TUDO de uma vez (prêmios, bilheteria, patrocínio, renda do empresário,
+    // menos a folha salarial). Antes isso só caía quando você abria o leilão —
+    // por isso a caixa "aumentava do nada" no meio do pregão. Idempotente
+    // (applySeasonMoney trava por temporada): abrir o leilão depois não repete.
+    case 'CLOSE_SEASON_BOOKS': {
+      if (!s.careerOnline) return s
+      applySeasonMoney(s, action.rewards)
+      return s
+    }
     case 'SET_CHAT': { s.chatOff = action.off; return s } // 💬 host ligou/desligou o chat
     case 'SET_SIM_SPEED': { s.simSpeed = action.speed > 0 ? action.speed : 1; return s } // ⏩ ritmo da simulação
     // 🎥 STREAM: o campeão abriu o pacote (ou o host abriu no lugar de quem saiu).
@@ -4534,6 +4570,10 @@ export function reducer(state: EscState, action: Action): EscState {
         // 🏢 emprestado NÃO pode ir pra lista/venda: ou é um jogador da SAF (não é seu
         // pra vender), ou é seu que está na SAF. Traga de volta primeiro (botão na SAF).
         if (card.emprestado) return s
+        // 🔒 contrato JÁ vencido: só sai pela janela de "Deixar ir" (RELEASE_CONTRACT),
+        // nunca pelo mercado comum — trava do lado autoritativo (espelha canList na tela),
+        // senão dava pra vender e "fugir" da decisão de contrato como reserva qualquer.
+        if (s.contratosOn && card.contratoAte != null && card.contratoAte < s.seasonNo) return s
         const pos = card.pos
         const listedInPos = arr.filter(id => mgr.squad.find(c => c.id === id)?.pos === pos).length
         // 🏢 conta SÓ os jogadores SEUS (não emprestados): o emprestado volta na virada,
@@ -5577,6 +5617,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // "acabei de virar host": aviso grande e passageiro (o anterior saiu da sala)
   const [becameHost, setBecameHost] = useState(false)
+  // "fui expulso pelo host": banner vermelho na tela (troca o alert() antigo, que o
+  // celular às vezes engolia e a pessoa continuava vendo a partida). A saída da sala
+  // já aconteceu (KICKED_OUT resetou pro menu) — o banner só explica o porquê.
+  const [kickedOut, setKickedOut] = useState(false)
 
   // "sair da sala" DE VEZ. Se eu for o host de uma partida rápida:
   //  · com gente ainda na sala → sorteia um dos presentes pra virar host novo
@@ -5685,8 +5729,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // pessoa de volta pro jogo (o bug: "dei ok mas continuo vendo a partida").
       try { channelRef.current?.unsubscribe() } catch { /* ignora */ }
       channelRef.current = null
-      try { alert('O host removeu você desta partida.') } catch { /* ignora */ }
-      rawDispatch({ type: 'KICKED_OUT' }) // zera e volta pro menu online, sem reconectar
+      rawDispatch({ type: 'KICKED_OUT' }) // zera e volta pro menu online, sem reconectar — a pessoa SAI da partida na hora
+      setKickedOut(true)                  // e vê o banner vermelho explicando (não fica assistindo)
     })
     // o host saiu da sala e me escolheu como novo host: viro autoritativo e mostro
     // o aviso grande. (chega pra todos; só age quem foi escolhido e ainda não é host)
@@ -6066,6 +6110,26 @@ export function EscProvider({ children }: { children: ReactNode }) {
             <button onClick={() => setBecameHost(false)}
               style={{ marginTop: 16, width: '100%', background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '12px 0', fontWeight: 900, fontSize: 16, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>
               👑 OK, ENTENDI — SOU O HOST
+            </button>
+          </div>
+        </div>
+      )}
+      {kickedOut && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 95, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,.62)', padding: 24, fontFamily: 'Oswald, sans-serif',
+        }}>
+          <div style={{
+            background: 'linear-gradient(150deg,#E8503A,#C2452F 70%)',
+            border: '4px solid #0C0C0C', borderRadius: 22, boxShadow: '6px 7px 0 #0C0C0C',
+            padding: '26px 22px', textAlign: 'center', maxWidth: 340, color: '#fff',
+          }}>
+            <div style={{ fontSize: 52, lineHeight: 1 }}>🟥</div>
+            <p style={{ fontWeight: 900, fontSize: 26, margin: '10px 0 4px', letterSpacing: .5 }}>VOCÊ FOI EXPULSO</p>
+            <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(255,255,255,.9)' }}>O host removeu você desta partida. Você <b>saiu da sala</b> — pode entrar em outra sala ou criar a sua. 👋</p>
+            <button onClick={() => setKickedOut(false)}
+              style={{ marginTop: 16, width: '100%', background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '12px 0', fontWeight: 900, fontSize: 16, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>
+              OK, ENTENDI
             </button>
           </div>
         </div>

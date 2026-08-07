@@ -2323,13 +2323,22 @@ function CopaTieRow({ tie, colors = {}, safName }: { tie: CopaTie; colors?: Reco
   const winDiv = aWin ? tie.aDiv : tie.bDiv, loseDiv = aWin ? tie.bDiv : tie.aDiv
   const zebra = DIV_RANKN[winDiv] < DIV_RANKN[loseDiv]
   const fA = copaSideFill(tie.a, colors, safName), fB = copaSideFill(tie.b, colors, safName)
-  const side = (t: SimTeam, win: boolean, away: boolean, f: CopaFill) => (
-    <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: away ? 'flex-end' : 'flex-start' }}>
-      {!away && <span style={{ fontSize: 10 }}>{f.mark}</span>}
-      <span style={{ fontWeight: 800, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: f.ink, ...(win ? {} : pensDelay > 0 ? { animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` } : { opacity: 0.62, textDecoration: 'line-through' }) }}>{copaName(t)}</span>
-      {away && <span style={{ fontSize: 10 }}>{f.mark}</span>}
-    </span>
-  )
+  const side = (t: SimTeam, win: boolean, away: boolean, f: CopaFill) => {
+    // mesmo dim do nome (anti-spoiler: só risca/apaga o perdedor quando os pênaltis
+    // terminam de animar). Aplicado também ao escudo pra não entregar o resultado.
+    const dim = win ? {} : pensDelay > 0 ? { animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` } : { opacity: 0.62, textDecoration: 'line-through' as const }
+    // 🛡️ escudo (gerado do nome) no confronto da Copa Legends — igual ao placar grande
+    const esc = <span style={{ flex: 'none', display: 'flex', ...dim }}><Escudo nome={copaName(t)} size={15} /></span>
+    return (
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: away ? 'flex-end' : 'flex-start' }}>
+        {!away && esc}
+        {!away && <span style={{ fontSize: 10 }}>{f.mark}</span>}
+        <span style={{ fontWeight: 800, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: f.ink, ...dim }}>{copaName(t)}</span>
+        {away && <span style={{ fontSize: 10 }}>{f.mark}</span>}
+        {away && esc}
+      </span>
+    )
+  }
   return (
     <div style={{ ...box('transparent'), position: 'relative', overflow: 'hidden', border: `2.5px solid ${you ? '#B23B2E' : INK}`, boxShadow: `3px 3px 0 0 ${INK}`, padding: '7px 9px', marginBottom: 7 }}>
       <CopaHalves fL={fA} fR={fB} />
@@ -2384,15 +2393,21 @@ function CopaLiveMatch({ tie, pos, big, colors = {}, safName }: { tie: CopaTie; 
     if (pensDelay > 0) return { ...base, animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` } // perdedor por pênaltis: espera a disputa
     return { ...base, opacity: 0.6, textDecoration: 'line-through' }
   }
+  // 🛡️ mesmo apagar anti-spoiler do nome, mas pro escudo (sem o risco de texto)
+  const escDim = (s: typeof L): React.CSSProperties => {
+    if (!done || s.win) return {}
+    if (pensDelay > 0) return { animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` }
+    return { opacity: 0.6 }
+  }
   return (
     <div style={{ ...box('transparent'), position: 'relative', overflow: 'hidden', border: `${big ? 3 : 2}px solid ${you ? '#B23B2E' : INK}`, boxShadow: `${big ? 4 : 2}px ${big ? 4 : 2}px 0 0 ${INK}`, padding: big ? '9px 12px' : '6px 9px', marginBottom: big ? 9 : 6 }}>
       <CopaHalves fL={L.f} fR={R.f} />
       <div style={{ position: 'relative', zIndex: 1 }}>
         {!done && <p style={{ textAlign: 'center', margin: '0 0 4px' }}><span style={{ ...copaCenterChip, fontSize: big ? 10 : 9, fontWeight: 900, color: '#ff9a8f', ...OSWALD }}>🔴 {phaseLbl ? phaseLbl + ' · ' : ''}{legMin}'</span></p>}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}><span style={{ fontSize: 10 }}>{L.f.mark}</span><span style={nameStyle(L)}>{L.name}</span></span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}><span style={{ flex: 'none', display: 'flex', ...escDim(L) }}><Escudo nome={L.name} size={big ? 18 : 15} /></span><span style={{ fontSize: 10 }}>{L.f.mark}</span><span style={nameStyle(L)}>{L.name}</span></span>
           <span style={{ fontWeight: 900, fontSize: big ? 18 : 13, ...OSWALD, background: INK, color: '#fff', borderRadius: 7, padding: big ? '3px 11px' : '2px 8px', whiteSpace: 'nowrap' }}>{L.score} × {R.score}</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: 'flex-end' }}><span style={nameStyle(R)}>{R.name}</span><span style={{ fontSize: 10 }}>{R.f.mark}</span></span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: 'flex-end' }}><span style={nameStyle(R)}>{R.name}</span><span style={{ fontSize: 10 }}>{R.f.mark}</span><span style={{ flex: 'none', display: 'flex', ...escDim(R) }}><Escudo nome={R.name} size={big ? 18 : 15} /></span></span>
         </div>
         {!done
           ? (lastG ? <p style={{ textAlign: 'center', margin: '4px 0 0' }}><span style={{ ...copaCenterChip, fontSize: big ? 10 : 9, fontWeight: 800, ...OSWALD }}>⚽ {lastG.name}</span></p> : null)
@@ -2758,6 +2773,20 @@ export function PyramidSeasonScreen() {
     if (copaFinished && state.careerOnline && state.copaDoneSeason !== state.seasonNo) dispatch({ type: 'MARK_COPA_DONE' })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished])
+  // 💰 FECHAMENTO DAS CONTAS (carreira SOLO): assim que a liga E as copas acabam,
+  // o caixa recebe TUDO da temporada de uma vez — prêmios, bilheteria, patrocínio,
+  // renda do empresário, menos a folha salarial. Antes isso só entrava quando você
+  // abria o leilão, e a moeda "aparecia do nada" no meio do pregão. No ONLINE
+  // continua como era (quem manda é o host, no dispatch da sala).
+  useEffect(() => {
+    if (!copaFinished || !state.careerOnline || state.onlineMode === 'online') return
+    if (state.booksSeason === state.seasonNo) return
+    const sb = scorerRewards(divTop)
+    const cr = copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] })
+    const mrg = (a: Record<number, number>, b: Record<number, number>) => { const o = { ...a }; for (const k in b) o[+k] = (o[+k] ?? 0) + b[+k]; return o }
+    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards) })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [copaFinished, state.booksSeason, state.seasonNo])
   // 🏛️ MULTICLUBES: momento SEGURO pra trocar = nenhuma rodada nem Copa animando na
   // tela (fora do leilão já é garantido — o leilão é outra tela). Se apertou o seletor
   // no meio de uma rodada (auto), a troca ESPERA e abre o confirmar no fim dela.
@@ -3199,6 +3228,29 @@ export function PyramidSeasonScreen() {
           if (state.onlineMode !== 'online' || humans.length <= 1) return (
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
               {copaGate}
+              {/* 💰 FECHAMENTO DA TEMPORADA — o que entrou e o que saiu, na hora em
+                  que a temporada (liga + copas) acabou. Sem surpresa depois no leilão. */}
+              {state.booksSeason === state.seasonNo && (() => {
+                const led = (state.careerLedger ?? []).filter(e => e.season === state.seasonNo && ['reward', 'gate', 'salary', 'sponsor', 'empresario'].includes(e.kind))
+                if (!led.length) return null
+                const total = led.reduce((n, e) => n + e.amount, 0)
+                return (
+                  <div style={{ ...box('#FFFDF3'), padding: 11, marginBottom: 10 }}>
+                    <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 6px' }}>💰 FECHAMENTO DA TEMPORADA {state.seasonNo}</p>
+                    {led.map(e => (
+                      <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, padding: '2px 0', borderBottom: '1px dashed rgba(0,0,0,.12)' }}>
+                        <span style={{ color: 'rgba(0,0,0,.75)' }}>{e.label}</span>
+                        <span style={{ color: e.amount < 0 ? '#C2452F' : e.amount > 0 ? '#1B7A3D' : 'rgba(0,0,0,.4)', fontWeight: 900 }}>{e.amount > 0 ? '+' : ''}{e.amount} 🪙</span>
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 900, marginTop: 6, ...OSWALD }}>
+                      <span>SALDO DA TEMPORADA</span>
+                      <span style={{ color: total < 0 ? '#C2452F' : '#1B7A3D' }}>{total > 0 ? '+' : ''}{total} 🪙</span>
+                    </div>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(0,0,0,.5)', margin: '5px 0 0' }}>Já caiu no caixa ({state.careerCoins?.[youId] ?? 0} 🪙). Compra e venda no leilão contam na hora, uma a uma.</p>
+                  </div>
+                )
+              })()}
               {noVermelho && (
                 <div style={{ background: '#C2452F', color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 11, boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 11px', marginBottom: 10, ...OSWALD }}>
                   <p style={{ fontWeight: 900, fontSize: 12.5, margin: 0 }}>🚫 Transfer ban — clube no vermelho ({state.careerCoins?.[youId] ?? 0} 🪙)</p>
@@ -3736,6 +3788,10 @@ export function ReserveListScreen() {
   const marketUnlocked = state.seasonNo >= 3 // vender/negociar só libera na 3ª temporada
   const canList = (c: WonCard) => {
     if (!marketUnlocked || c.emprestado) return false // 🏢 jogador de empréstimo nunca é vendido — não é seu
+    // 🔒 contrato JÁ vencido: só sai pela janela de "Deixar ir" (CONTRATOS ENCERRANDO),
+    // nunca pelo mercado comum — senão dava pra "fugir" da decisão de contrato vendendo
+    // ele como se fosse reserva qualquer (relato de jogador: "vende e foge do contrato").
+    if (state.contratosOn && c.contratoAte != null && c.contratoAte < state.seasonNo) return false
     const listedInPos = [...listed].filter(id => mgr.squad.find(x => x.id === id)?.pos === c.pos).length
     // 🏢 conta SÓ os SEUS (emprestado volta na virada — não pode virar muleta pra vender demais)
     const filledPos = mgr.squad.filter(x => x.pos === c.pos && !x.emprestado).length
