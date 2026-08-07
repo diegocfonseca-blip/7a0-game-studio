@@ -3053,7 +3053,11 @@ export function PyramidSeasonScreen() {
     // para de avançar quando a 38ª foi jogada (seasonOver), mesmo antes do fim
     // "revelar" (endShown) — senão dispararia PLAY_ROUND à toa durante a última anim.
     // 🎭 evento pendente PAUSA o auto: o banner pede a decisão do técnico primeiro.
-    if (!state.isHost || seasonOver || manual || eventoPendente || !sponsorBetOk) return
+    // 🤝 round 0 (começo da temporada) NUNCA anda sozinho, nem no automático — exige
+    // o clique no botão "Começar a temporada" (Diego 07/08: escolher o patrocínio
+    // não pode já disparar a temporada; tem que ter o botão, pra quem tem Manual e
+    // pra quem não tem).
+    if (!state.isHost || seasonOver || manual || eventoPendente || !sponsorBetOk || round === 0) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, roundMs)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -3173,14 +3177,24 @@ export function PyramidSeasonScreen() {
             </>
           )
         })()}
+        {/* 🤝 escolheu o patrocínio ≠ começou a temporada: o início da T (rodada 0→1)
+            SEMPRE espera um clique explícito — vale pra quem tem Modo Manual e pra
+            quem não tem (o automático só entra a PARTIR da 1ª rodada, nunca pulando
+            essa decisão). Pedido do Diego (07/08): "não deve iniciar automaticamente,
+            tem que ter o botão de iniciar", pra craque/lenda E pra quem não é. */}
         {state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
-          manualAllowed ? (
+          round === 0 ? (
+            <button onClick={() => { if (sponsorBetOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }} disabled={!sponsorBetOk}
+              style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', background: sponsorBetOk ? GREEN : '#cfc6ae', color: sponsorBetOk ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 0 ${INK}`, cursor: sponsorBetOk ? 'pointer' : 'default', marginBottom: 10 }}>
+              {sponsorBetOk ? '▶️ Começar a temporada' : '🤝 Escolha o patrocínio aí em cima'}
+            </button>
+          ) : manualAllowed ? (
           <>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={sponsorBetOk && (round === 0 || roundReady)}
-              onNext={() => { if (sponsorBetOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-              onSkip={() => { if (sponsorBetOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-              nextLabel={round === 0 && !sponsorBetOk ? '🤝 Escolha o patrocínio aí em cima' : !(round === 0 || roundReady) ? '⏳ Deixa a rodada acabar…' : round === 0 ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
+            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady}
+              onNext={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+              onSkip={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+              nextLabel={!roundReady ? '⏳ Deixa a rodada acabar…' : '▶️ Próxima rodada'} />
           </>
           ) : <ManualLockButton />
         )}
