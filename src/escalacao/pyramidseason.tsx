@@ -3045,15 +3045,19 @@ export function PyramidSeasonScreen() {
   // ⏩ velocidade da simulação (marcha do jogador): divide o tempo da rodada. 1 = normal.
   // O Normal do manual é IGUAL ao do auto (ROUND_MS); quem quiser mais calmo usa o 🐢.
   const roundMs = Math.round(ROUND_MS / speedFactor)
+  // 🤝 no AUTO (offline, sem manual), a rodada 0 NÃO pode andar sozinha antes do
+  // técnico escolher a meta do patrocínio — senão os 9s do ROUND_MS viravam um
+  // cronômetro escondido pra escolher (Diego pediu SEM tempo nenhum nessa área).
+  const sponsorBetOk = round > 0 || !!(state.careerSponsorBet?.[youId] && state.careerSponsorBet[youId].season === state.seasonNo)
   useEffect(() => {
     // para de avançar quando a 38ª foi jogada (seasonOver), mesmo antes do fim
     // "revelar" (endShown) — senão dispararia PLAY_ROUND à toa durante a última anim.
     // 🎭 evento pendente PAUSA o auto: o banner pede a decisão do técnico primeiro.
-    if (!state.isHost || seasonOver || manual || eventoPendente) return
+    if (!state.isHost || seasonOver || manual || eventoPendente || !sponsorBetOk) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, roundMs)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente])
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, sponsorBetOk])
   // 🚫 no MANUAL, "Próxima rodada" só libera DEPOIS que o jogo termina de animar —
   // igual ao stream/rápido. Sem isto dava pra clicar sem parar e pular os jogos.
   const [roundReady, setRoundReady] = useState(false)
@@ -3173,16 +3177,10 @@ export function PyramidSeasonScreen() {
           manualAllowed ? (
           <>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-            {(() => {
-              const myBet = state.careerSponsorBet?.[youId]
-              const betOk = round > 0 || !!(myBet && myBet.season === state.seasonNo)
-              return (
-                <SimControls manual={manual} onToggle={toggleManualCareer} canNext={betOk && (round === 0 || roundReady)}
-                  onNext={() => { if (betOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-                  onSkip={() => { if (betOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-                  nextLabel={round === 0 && !betOk ? '🤝 Escolha o patrocínio aí em cima' : !(round === 0 || roundReady) ? '⏳ Deixa a rodada acabar…' : round === 0 ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
-              )
-            })()}
+            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={sponsorBetOk && (round === 0 || roundReady)}
+              onNext={() => { if (sponsorBetOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+              onSkip={() => { if (sponsorBetOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+              nextLabel={round === 0 && !sponsorBetOk ? '🤝 Escolha o patrocínio aí em cima' : !(round === 0 || roundReady) ? '⏳ Deixa a rodada acabar…' : round === 0 ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
           </>
           ) : <ManualLockButton />
         )}
