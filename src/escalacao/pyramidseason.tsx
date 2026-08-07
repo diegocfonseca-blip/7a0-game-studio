@@ -3820,7 +3820,11 @@ export function ReserveListScreen() {
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
         <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>📋 LISTAR PRA LEILÃO · TEMP. {state.seasonNo}</span>
-          <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: remaining <= 10 ? '#e8503a' : '#fff', color: remaining <= 10 ? '#fff' : INK, borderRadius: 8, padding: '2px 9px' }}>{remaining}s</span>
+          {/* ⏱️ o relógio só faz sentido ONLINE (esperar todo mundo decidir) — no
+              offline (só você) é tempo perdido à toa (pedido do Diego 05/08). */}
+          {state.onlineMode === 'online' && (
+            <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: remaining <= 10 ? '#e8503a' : '#fff', color: remaining <= 10 ? '#fff' : INK, borderRadius: 8, padding: '2px 9px' }}>{remaining}s</span>
+          )}
         </div>
         {/* 🚫 TRANSFER BAN: no vermelho, não dá pra comprar — só vender e pegar de graça */}
         {(state.careerCoins?.[youId] ?? 0) < 0 && (
@@ -3975,7 +3979,7 @@ export function ReserveListScreen() {
         {state.isHost ? (
           <button onClick={() => dispatch({ type: 'RESERVE_AUCTION_ONLINE' })}
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
-            ▶️ Começar o leilão ({remaining}s)
+            ▶️ Começar o leilão{state.onlineMode === 'online' ? ` (${remaining}s)` : ''}
           </button>
         ) : (
           <div style={{ ...box('#EAF3FF'), padding: 11, textAlign: 'center' }}>

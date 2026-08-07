@@ -2505,7 +2505,7 @@ function rngOf(state: EscState): () => number {
 }
 
 const ENVELOPE_MS = 45_000
-const RESERVE_LIST_MS = 45_000 // tela "Listar pra leilão" (venda) antes do leilão de reservas
+const RESERVE_LIST_MS = 60_000 // tela "Listar pra leilão" (venda) antes do leilão de reservas — 1min (só conta pra valer no ONLINE; offline não mostra o relógio)
 const CEREMONY_MS = 45_000 // tempo pra olhar os times antes do campeonato começar sozinho
 
 // entra na cerimônia da revelação e liga o cronômetro de 45s (auto-começa)
@@ -4471,6 +4471,28 @@ export function reducer(state: EscState, action: Action): EscState {
       if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico
       recordDormantCards(s, action.champions, action.copaChampion) // 🏛️ guarda a carta se o 2º clube (dormindo) foi campeão
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid)
+      // 🔒 "mesmo time" NÃO passa pela janela de contratos (não tem leilão pra soltar
+      // pra) — sem isto, o contrato vencido ficava PARADO pra sempre e dava pra fugir
+      // do custo de renovação só votando "mesmo time" toda temporada (relato de
+      // jogador). Aqui TODO vencido renova automático (5 anos, metade), igual quem
+      // "não decide" na janela do leilão — sem decisão nenhuma, sem hack.
+      if (s.contratosOn) {
+        const ctrRng = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 65537) ^ 0x5EED) >>> 0)
+        for (const m of s.managers) {
+          const expirados = (m.squad as WonCard[]).filter(c => !c.fake && !c.cria && !c.emprestado && c.contratoAte != null && c.contratoAte < s.seasonNo)
+          for (const c of expirados) {
+            const custo = Math.max(1, Math.ceil(valorOficial(s, c) / 2))
+            if (m.isHuman) {
+              s.careerCoins = { ...(s.careerCoins ?? {}), [m.id]: (s.careerCoins?.[m.id] ?? 0) - custo }
+              logFin(s, 'buy', `📝 Renovação automática: ${c.name}`, -custo, { player: c.name, pos: c.pos }, m.id)
+            } else {
+              s.clubCash = { ...(s.clubCash ?? {}), ['m' + m.id]: Math.max(0, (s.clubCash?.['m' + m.id] ?? 0) - custo) }
+            }
+            c.contratoAte = s.seasonNo + contratoDur(5, ctrRng) - 1
+            ;(s.marketLog = s.marketLog ?? []).push(`📝 ${m.teamName}: ${c.name} renovou AUTOMÁTICO por ${custo} 🪙 (5 anos) — mesmo time, sem leilão`)
+          }
+        }
+      }
       s.seasonNo++
       s.round = 0
       s.champion = null
