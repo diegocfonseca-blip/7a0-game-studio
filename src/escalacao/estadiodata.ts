@@ -14,7 +14,13 @@ export const STADIUM_STEP = 20 // moedas por clique de "investir" num setor
 export const STADIUM_BASE = 20
 
 export interface StadiumSector { k: string; n: string; cost: number; inc: number; seats: number }
+// 🌱 GRAMADO é o PRIMEIRO setor da árvore (Diego 05/08): TODO estádio nasce
+// terra batida com buraco — mesmo carreira que já estava rolando (save antigo:
+// sectorPct lê inv['grama'] ⁇ 0, então começa em 0% igual todo mundo). Vai
+// enchendo de verde igual qualquer setor (clica, investe 20 em 20, % sobe) —
+// e quando fica 100% é o MESMO gramado bonito de sempre, sem mudar nada nele.
 export const STADIUM_SECTORS: StadiumSector[] = [
+  { k: 'grama',     n: '🌱 Gramado',  cost: 60,  inc: 4,  seats: 0 },
   { k: 'geral',     n: 'Geral',     cost: 60,  inc: 4,  seats: 21500 },
   { k: 'cadeiras',  n: 'Cadeiras',  cost: 90,  inc: 6,  seats: 18500 },
   { k: 'visitante', n: 'Visitante', cost: 120, inc: 8,  seats: 22838 },
@@ -27,7 +33,6 @@ export const STADIUM_EXTRAS: StadiumExtra[] = [
   { k: 'telao', n: '📺 Telão',            cost: 60,  inc: 3, reqTxt: 'Cadeiras 100%' },
   { k: 'loja',  n: '🛍️ Loja do Clube',    cost: 80,  inc: 6, reqTxt: '2 setores prontos' },
   { k: 'estac', n: '🅿️ Estacionamento',   cost: 70,  inc: 4, reqTxt: 'Loja do Clube' },
-  { k: 'grama', n: '🌿 Gramado de Elite', cost: 90,  inc: 5, reqTxt: '3 setores prontos' },
   { k: 'cober', n: '☂️ Cobertura',        cost: 130, inc: 8, reqTxt: '4 setores prontos' },
   // 🏥 não rende moeda: o "lucro" dele é acabar com as LESÕES pra sempre (eventos
   // de jogador). Última obra antes da SAF (a SAF exige TODAS as melhorias).
@@ -41,15 +46,11 @@ export const emptyStadium = (): StadiumSave => ({ inv: {}, ext: [] })
 // A escolha entre as marcas da sua divisão é só de IDENTIDADE — todas pagam o
 // mesmo valor da divisão. Marcas maiores só destravam ao subir.
 // 🥅 Várzea = paga pouquinho (zoeira, marcas de esquina); a régua sobe por divisão.
-// 🥅 Várzea NÃO paga nada (V: 0) — a zoeira é que o "prêmio" é o lanche (Guaravita,
-// Trakinas e Fofura). Dinheiro de verdade só a partir da Série D. A régua sobe por divisão.
+// 🥅 Várzea NÃO tem patrocínio de verdade — é SÓ zoeira (nem escolha de marca
+// tem, é uma frase de deboche). Dinheiro de verdade só a partir da Série D.
 export const SPONSOR_PAY: Record<string, number> = { V: 0, D: 5, C: 10, B: 15, A: 20 }
-export interface Sponsor { id: string; name: string; emoji: string; color: string; div: 'V' | 'D' | 'C' | 'B' | 'A'; logo?: boolean }
+export interface Sponsor { id: string; name: string; emoji: string; color: string; div: 'D' | 'C' | 'B' | 'A'; logo?: 'vadico' | 'ero' }
 export const SPONSORS: Sponsor[] = [
-  // 🌱 VÁRZEA — marcas de esquina, pura zoeira (as reais que o Diego pediu)
-  { id: 'guaravita',  name: 'Guaravita',   emoji: '🥤', color: '#E8A200', div: 'V' },
-  { id: 'trakinas',   name: 'Trakinas',    emoji: '🍪', color: '#5B3A1E', div: 'V' },
-  { id: 'fofura',     name: 'Fofura',      emoji: '🌽', color: '#E5A11B', div: 'V' },
   // 🅳 SÉRIE D — comércio do bairro
   { id: 'padaria',     name: 'Padaria do Zé',        emoji: '🥖', color: '#B5651D', div: 'D' },
   { id: 'acougue',     name: 'Açougue Bom Corte',    emoji: '🥩', color: '#8A1E1E', div: 'D' },
@@ -57,7 +58,8 @@ export const SPONSORS: Sponsor[] = [
   { id: 'espetinho',   name: 'Espetinho do Baixinho', emoji: '🍗', color: '#8A1E1E', div: 'C' },
   { id: 'borracharia', name: 'Borracharia do Gordo',  emoji: '🛞', color: '#1C1C1C', div: 'B' },
   { id: 'guarana',     name: 'Guaraná Craque',        emoji: '🥤', color: '#127A33', div: 'B' },
-  { id: 'vadico',      name: 'Vadico Veículos',       emoji: '🚗', color: '#0E3E86', div: 'A', logo: true },
+  { id: 'ero',         name: 'ERO Odontologia',       emoji: '🦷', color: '#2E6C9E', div: 'B', logo: 'ero' }, // amigo do Diego, pediu (05/08)
+  { id: 'vadico',      name: 'Vadico Veículos',       emoji: '🚗', color: '#0E3E86', div: 'A', logo: 'vadico' },
 ]
 const DIV_RANK_SP: Record<string, number> = { A: 0, B: 1, C: 2, D: 3, V: 4 } // menor = melhor
 // marcas que dá pra ESCOLHER na divisão atual (as da própria divisão)
@@ -72,6 +74,10 @@ export function currentSponsor(div: string, chosenId?: string): Sponsor | undefi
 
 // % construído de um setor (0–100), a partir das moedas investidas
 export function sectorPct(st: StadiumSave | undefined, k: string): number {
+  // 🌱 MIGRAÇÃO: quem já tinha comprado "Gramado de Elite" (a melhoria antiga,
+  // hoje virou este setor) fica com o gramado PRONTO — ninguém perde o que já
+  // pagou. Só quem nunca comprou nasce (ou continua) na terra batida.
+  if (k === 'grama' && st?.ext.includes('grama')) return 100
   const sec = STADIUM_SECTORS.find(s => s.k === k)
   if (!sec) return 0
   return Math.min(100, Math.round(((st?.inv[k] ?? 0) / sec.cost) * 100))
@@ -89,7 +95,6 @@ export function extraUnlocked(st: StadiumSave | undefined, k: string): boolean {
     case 'telao': return sectorPct(st, 'cadeiras') >= 100
     case 'loja':  return sectorsDone(st) >= 2
     case 'estac': return hasExtra(st, 'loja')
-    case 'grama': return sectorsDone(st) >= 3
     case 'cober': return sectorsDone(st) >= 4
     case 'medico': return hasExtra(st, 'cober') // 🏥 a última obra da árvore (depois vem a SAF)
     default: return false
