@@ -7,6 +7,7 @@ import { STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, STADIUM_BASE, sectorPct,
 import type { StadiumSave, SponsorBetTier, SponsorBrand } from './estadiodata'
 import { VADICO_LOGO } from './vadico'
 import { ERO_LOGO } from './ero'
+import { MAXJOIAS_LOGO } from './maxjoias'
 import { myApoioPerk, loggedEmail, APOIO_PERKS } from './apoio'
 import type { ApoioPerk } from './apoio'
 
@@ -31,7 +32,7 @@ const P = (a: number[][]) => a.map(p => p.join(',')).join(' ')
 // meta escolhida → ganha o valor dela. Ficou aquém → NADA. Superou (mirou
 // baixo) → só o valor apostado mesmo assim. 3 marcas por nível (identidade).
 const TIER_BG: Record<SponsorBetTier, string> = { 1: '#EAF3FF', 2: '#FFF3CF', 3: 'linear-gradient(90deg,#FFE79A,#FFC400)' }
-const sponsorLogoSrc = (s: SponsorBrand) => s.logo === 'ero' ? ERO_LOGO : s.logo === 'vadico' ? VADICO_LOGO : undefined
+const sponsorLogoSrc = (s: SponsorBrand) => s.logo === 'ero' ? ERO_LOGO : s.logo === 'vadico' ? VADICO_LOGO : s.logo === 'maxjoias' ? MAXJOIAS_LOGO : undefined
 
 // cartão de UM nível (usado dentro do banner de escolha)
 function SponsorTierCard({ tier, div, chosen, onPick }: { tier: SponsorBetTier; div: string; chosen?: { tier: SponsorBetTier; brandId: string }; onPick: (brandId: string) => void }) {
@@ -51,9 +52,9 @@ function SponsorTierCard({ tier, div, chosen, onPick }: { tier: SponsorBetTier; 
           const logo = sponsorLogoSrc(b)
           return (
             <button key={b.id} onClick={() => onPick(b.id)}
-              style={{ flex: 1, minWidth: 0, background: on ? INK : '#FBF6E9', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '7px 4px', textAlign: 'center', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, boxShadow: on ? `0 0 0 3px ${GOLD} inset` : 'none' }}>
-              <div style={{ height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {logo ? <img alt={b.name} src={logo} style={{ maxHeight: 30, maxWidth: 92, objectFit: 'contain', filter: on ? 'brightness(0) invert(1)' : undefined }} /> : <span style={{ fontSize: 26 }}>{b.emoji}</span>}
+              style={{ flex: 1, minWidth: 0, background: on ? INK : '#FBF6E9', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 5px', textAlign: 'center', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, boxShadow: on ? `0 0 0 3px ${GOLD} inset` : 'none' }}>
+              <div style={{ height: 46, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {logo ? <img alt={b.name} src={logo} style={{ maxHeight: 44, maxWidth: '100%', objectFit: 'contain', filter: on ? 'brightness(0) invert(1)' : undefined }} /> : <span style={{ fontSize: 30 }}>{b.emoji}</span>}
               </div>
               <span style={{ ...OSW, fontWeight: 900, fontSize: 10, lineHeight: 1.1, color: on ? '#fff' : INK }}>{b.name}</span>
             </button>
