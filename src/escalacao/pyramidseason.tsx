@@ -3938,6 +3938,25 @@ export function ReserveListScreen() {
             <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
               <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>{primeira ? '📝 CONTRATOS CHEGARAM!' : '⏳ CONTRATOS ENCERRANDO'}{expDorm.length > 0 ? ' — decida clube por clube' : ''}</p>
               {primeira && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Seu clube é profissional: <b>todo jogador tem contrato</b> (5 a 10 anos, sorteado na chegada). Quando encerra, você decide: <b>renovar ou deixar ir</b>.</p>}
+              {/* ⚡ AÇÃO EM MASSA (07/08, pedido do Diego): com muito contrato vencendo de
+                  uma vez, um botão por CATEGORIA aplica a mesma decisão em TODOS de uma
+                  vez (os dois clubes do multiclube juntos) — sem precisar clicar jogador
+                  por jogador. */}
+              {(expirados.length + expDorm.length) > 1 && (() => {
+                const alvos: { c: WonCard; dono: Manager }[] = [...expirados.map(c => ({ c, dono: mgr })), ...(dormM ? expDorm.map(c => ({ c, dono: dormM })) : [])]
+                const bulkRenovar = (anos: 10 | 5) => { for (const { c, dono } of alvos) dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos }) }
+                const bulkDeixarIr = () => {
+                  const jaSolto = new Set(state.contratoRelease ?? [])
+                  for (const { c, dono } of alvos) if (!jaSolto.has(c.id)) dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })
+                }
+                return (
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 9 }}>
+                    <button onClick={() => bulkRenovar(10)} style={btn(GOLD, INK, false)}>🔟 Renovar TODOS{<br />}10 anos (-10%)</button>
+                    <button onClick={() => bulkRenovar(5)} style={btn('#EAF6EE', INK, false)}>5️⃣ Renovar TODOS{<br />}5 anos</button>
+                    <button onClick={bulkDeixarIr} style={btn('#FDECEA', '#a23325', false)}>😢 Deixar TODOS ir{<br />}vão pro leilão</button>
+                  </div>
+                )
+              })()}
               {(() => {
                 // card de decisão de UM jogador; `empilha` = botões em pilha (modo 2 colunas)
                 const decisao = (c: WonCard, dono: Manager, saldo: number, empilha: boolean) => {
