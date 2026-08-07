@@ -3078,6 +3078,14 @@ export function PyramidSeasonScreen() {
             O painel antigo de campeões saiu: o jornal cobre tudo aquilo. */}
         {copaFinished && me && (
           <SeasonJornal me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo}
+            /* 🌍 Copa do Mundo Legends: mural é save PRÓPRIO (fora do estado), começa
+               na temporada 100 e repete de 10 em 10 — só aparece se ELA terminou nesta
+               temporada exata (pedido do Diego 05/08). */
+            mundial={(() => {
+              if (state.seed == null) return undefined
+              const m = loadCopaSave(state.seed)?.mural.find(x => x.season === state.seasonNo)
+              return m ? { campeao: m.campeao, selecao: m.selecao, voce: m.voce } : undefined
+            })()}
             /* 🎭 EVENTOS: manchetes do "Aconteceu na temporada" (página própria do jornal) */
             eventos={eventosOn ? (state.eventoManchetes ?? []).filter(m => m.season === state.seasonNo).map(m => ({ ic: m.emoji, titulo: m.titulo, sub: m.sub })) : undefined}
             /* 🕴️ AGÊNCIA 2.0: notícias dos agenciados pra página 2 do jornal —
