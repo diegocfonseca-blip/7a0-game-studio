@@ -1214,11 +1214,10 @@ export function EscLobby() {
     if (!ehDuplas && players.length < 2) return
     if (ehDuplas) {
       // cinto e suspensório: o botão já fica apagado, mas a regra é re-checada
-      // aqui — em sala de duplas TODO time joga de dois, ninguém fica sozinho.
+      // aqui — mínimo de DUAS duplas fechadas pra abrir o pregão.
       const dn = players.filter(p => !p.dupla_partner_of)
       const temPar = (uid: string) => players.some(p => p.dupla_partner_of === uid)
-      if (dn.some(d => !temPar(d.user_id))) return
-      if (!dn.some(d => temPar(d.user_id))) return
+      if (dn.filter(d => temPar(d.user_id)).length < 2) return
     }
     // LIMPA as vagas ANTES de começar (o jogo monta os times pela POSIÇÃO na lista):
     // (1) DEDUPLICA por usuário. Se o mesmo técnico ficou com DUAS vagas (leitura
@@ -1855,18 +1854,13 @@ export function EscLobby() {
     const parceiroDe = (uid: string) => players.find(p => p.dupla_partner_of === uid)
     const meuRow = players.find(p => p.user_id === user?.id)
     const souParceiro = !!meuRow?.dupla_partner_of
-    // 🤝 REGRA DA SALA DE DUPLAS (decisão do Diego): TODO time joga de dois. Não
-    // existe "desistir e jogar sozinho" — quem está sem parceiro segura o pregão
-    // até alguém entrar no time dele (ou até o host tirar a pessoa da sala).
-    const semParceiro = duplasOn ? donos.filter(d => !parceiroDe(d.user_id)) : []
+    // 🤝 REGRA DA SALA DE DUPLAS (decisão do Diego, 08/08): a ÚNICA trava é ter
+    // pelo menos DUAS duplas fechadas. Mais nada segura o host — quem ficou sem
+    // parceiro não trava a sala (senão, com gente ímpar, ninguém jogaria nunca).
     const duplasCompletas = duplasOn ? donos.filter(d => !!parceiroDe(d.user_id)).length : 0
-    const ready = duplasOn
-      ? (duplasCompletas >= 1 && semParceiro.length === 0)
-      : players.length >= 2
-    const nomesSem = semParceiro.map(d => stripEmoji(d.manager_name).trim()).join(', ')
-    const travaMsg = !duplasOn ? '' : semParceiro.length > 0
-      ? `🤝 Aqui todo time joga de dois, e ${semParceiro.length === 1 ? `${nomesSem} está` : `${nomesSem} estão`} sem parceiro. Alguém entra no time ${semParceiro.length === 1 ? 'dele' : 'deles'} — ou você tira ${semParceiro.length === 1 ? 'a pessoa' : 'as pessoas'} da sala no ✕ — e o pregão abre.`
-      : duplasCompletas < 1 ? '🤝 Precisa de pelo menos uma dupla formada (2 pessoas no mesmo time) pra abrir o pregão.' : ''
+    const ready = duplasOn ? duplasCompletas >= 2 : players.length >= 2
+    const travaMsg = !duplasOn || ready ? '' :
+      `🤝 O pregão abre com 2 duplas fechadas (dois times com 2 pessoas cada). ${duplasCompletas === 0 ? 'Ainda não tem nenhuma' : 'Tem 1 até agora'} — é só a galera ir entrando nos times uns dos outros.`
     const chatOff = !!room.game_state?.chatOff // host desligou o chat na criação
     return wrap(<>
       <div className="text-center">
@@ -2004,7 +1998,7 @@ export function EscLobby() {
                     <p className="text-black/40 text-[10.5px] font-bold leading-snug mb-1">
                       {p.dupla_seek === 'privada'
                         ? 'Ninguém de fora toca na sua vaga. Mande o link pro seu amigo — quando ele chegar, tire o cadeado pra ele entrar.'
-                        : 'Quem estiver na sala pode entrar e jogar com você. Aqui todo time joga de dois, então o pregão só abre quando você tiver parceiro.'}
+                        : 'Quem estiver na sala pode entrar e jogar com você. Corre atrás de um parceiro: o pregão abre assim que 2 duplas fecharem.'}
                     </p>
                     <button onClick={() => procurarParceiro(p.dupla_seek === 'privada' ? null : 'privada')}
                       className="w-full border-2 border-black rounded-xl py-1.5 font-black text-[11px] active:translate-y-0.5"
@@ -2020,7 +2014,7 @@ export function EscLobby() {
           {players.length < 2 && <p className="text-black/40 text-xs italic mt-1">Aguardando mais técnicos…</p>}
           {duplasOn && (
             <p className="text-black/45 text-[11px] font-bold leading-snug mt-2 pt-2" style={{ borderTop: '2px solid rgba(0,0,0,.1)' }}>
-              🤝 Aqui TODO time joga de dois: um cuida de 3 posições, o outro das outras 3. Por padrão qualquer um da sala pode entrar no seu time; se quiser guardar a vaga pra um amigo, é só pôr o 🔒 cadeado. O pregão só abre quando todo mundo estiver em dupla.
+              🤝 Aqui se joga de dois: um cuida de 3 posições, o outro das outras 3. Qualquer um da sala pode entrar no seu time; se quiser guardar a vaga pro seu amigo, é só pôr o 🔒 cadeado. O pregão abre com 2 duplas fechadas — então corre atrás do seu parceiro antes.
             </p>
           )}
         </div>
