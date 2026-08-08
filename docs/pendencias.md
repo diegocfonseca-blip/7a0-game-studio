@@ -1,6 +1,22 @@
 # 📌 Pendências combinadas com o Diego (atualizado 08/08/2026)
 
-## 💛 LOJA NOVA — v1 REJEITADA, menu de 3 modelos na mesa (08/08, NADA aprovado)
+## 💛 LOJA — DESENHO FECHANDO (08/08): desconto por fidelidade + caixinha definida
+EVOLUÇÃO (ideia do PRÓPRIO Diego, ele gostou): mensal com a MESMA caixinha pra
+todos e preço por fidelidade — grátis paga R$9,90/mês · ⭐ Craque R$4,99 ·
+👑 Lenda/Batismo R$2,99. O vitalício vira "carteirinha de desconto" (fortalece
+a venda da Lenda em vez de canibalizar). Vitalícios intocados.
+CAIXINHA (recomendada, Diego vai cortar o que não quiser vendo a arte):
+📀 Carta do Mês numerada/datada (dia 1, nunca reimpressa) · 🗳️ voto na próxima
+lenda (dia 10) · 🏆 Copa dos Sócios (1ª sexta) · 🎮 Manual · 🕵️ 3 Olheiros ·
+🪙 30 moedas/mês · 🪪 carteirinha com tempo de casa · 🛡️ personalizar o escudo
+GERADO (cores/símbolo). Escudo ARTESANAL fica FORA do mensal (item avulso, não
+escala e é permanente por natureza) — decisão explicada ao Diego.
+Mensagem de custo aprovada pelo conceito: "sócios seguram o servidor" (barra
+de meta na loja). História pessoal reformulada (rodapé escuro, mais clara).
+Arte final: scratchpad/loja-final.png — AGUARDANDO cortes/OK do Diego.
+Já no ar independente: entrega na hora no admin (seção Apoiadores).
+
+## 💛 (histórico) menu de 3 modelos apresentado antes do desenho acima (08/08)
 Diego não gostou do pacote "utilidades" (manual+olheiro+moeda = genérico) e
 NÃO aprovou nada ainda (nem copa mensal, nem preços). Diagnóstico novo: o que
 VENDE no jogo é STATUS/HISTÓRIA (cores, fundador numerado, batismo), não
