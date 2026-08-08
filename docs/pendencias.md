@@ -8,26 +8,85 @@ Revertível com `git revert d482726`.
 
 ## 🤝 DUPLA (2 pessoas dividindo 1 time) — EM DESENHO, NADA NO CÓDIGO AINDA
 Ideia do Diego: dentro de uma sala online, 2 pessoas podem dividir o comando de
-UM MESMO time (não cria time novo — usa uma vaga normal da sala). Mecânica
-combinada:
-- 6 categorias de posição: Goleiro, Zagueiro, Lateral, Meia, Atacante, Monte.
-- Dentro da sala, cada um da dupla escolhe (toca) as categorias que quer
-  comandar — **3 pra cada, sempre**. Quem tocar primeiro numa categoria leva
-  ela; dá pra desmarcar e trocar de ideia livremente.
-- Assim que um dos dois completa 3 escolhas, as outras 3 caem AUTOMÁTICO pro
-  parceiro (não precisa ele escolher também).
-- Se o host iniciar o leilão antes da dupla decidir, sorteia 3 e 3 pra cada um
-  na hora — nunca trava o início do jogo.
+UM MESMO time (não cria time novo — usa uma vaga normal da sala). Design
+100% combinado em conversa (08/08), zero código ainda — **todos os mockups
+abaixo só rodaram como protótipo local da sessão, nenhum subiu pro repo**.
+Antes de programar de verdade falta: schema no Supabase (dono de cada
+categoria por manager, quem tá em dupla com quem), reducer, telas reais.
+
+### 1) Modo Duplas é opção da SALA (não é automático)
+- Ao **criar a sala**, o host escolhe no bloco "O básico": **Solo** (padrão,
+  sala de sempre) ou **🤝 Duplas (beta)**. Só nesse 2º modo as vagas podem
+  virar dupla.
+- Cabe até 20 duplas numa sala (uma por time — mesmo teto de sempre, 20
+  times), ou seja até 40 pessoas jogando juntas.
+- Mockup (toggle no criar sala + o resto abaixo, tudo junto):
+  `scratchpad/mockup-dupla-fluxo.html`.
+
+### 2) Como a dupla se FORMA dentro da sala (aprovado — SUBSTITUI a ideia
+### antiga de convite/aceitar, que tinha ficado só no mockup-dupla-sala.html)
+Não tem convite com aceitar/recusar. É por VAGA VISÍVEL, igual escolher
+qualquer vaga livre hoje:
+- Jogador A entra e marca a própria vaga como **"🌍 Esperando qualquer um"**
+  (fica visível pra quem mais tá na sala, ex: "Fúria FC — 1/2, procurando
+  parceiro") ou **"🔒 Esperando amigo específico"** (não abre pra qualquer um
+  tocar — só quem tem o convite).
+- Jogador B entra na MESMA sala, vê a vaga "procurando parceiro" na lista
+  (do lado das vagas normais) e TOCA nela direto — vira dupla na hora, sem
+  aceite de ninguém. Vaga passa a mostrar "2/2 ✅".
+- **Nota de implementação**: hoje o jogo NÃO tem uma lista de "vaga livre"
+  por time na sala — só mostra "Técnicos (X/20)" com quem já entrou. Essa
+  linha "procurando parceiro" é um tipo de linha NOVO nessa lista, não um
+  recurso que já existia (só corrigi o entendimento nisso; o comportamento de
+  "tocar pra entrar" combinado continua igual).
+
+### 3) Trava de início (host "Iniciar")
+- Vaga **totalmente vazia** (ninguém chegou) → NUNCA trava. Vira CPU quando o
+  host inicia, como já é hoje.
+- Vaga de **dupla incompleta** (1/2, com ou sem 🔒) → TRAVA o início. Não é
+  justo começar e essa pessoa ficar sozinha/virar CPU sem querer.
+- Botão **"Desistir de esperar"** na própria vaga: volta a ser solo (some a
+  trava) a qualquer momento — evita ficar preso esperando pra sempre. Host
+  também pode expulsar normalmente (já existe).
+- **Mínimo pra iniciar (sala em modo Duplas): pelo menos 1 dupla completa (2
+  pessoas)** — confirmado pelo Diego. É a versão "modo duplas" do mínimo de
+  hoje (`ready = players.length >= 2` em `lobby.tsx`).
+- Mockup de tudo isso (vaga tocável + trava + "desistir"):
+  `scratchpad/mockup-dupla-fluxo.html`.
+
+### 4) Divisão das POSIÇÕES (depois que a dupla se forma)
+- 6 categorias: Goleiro, Zagueiro, Lateral, Meia, Atacante, Monte (Monte é
+  categoria própria, não gruda em nenhuma posição).
+- Cada um toca nas categorias que quer — **3 pra cada, sempre**. Primeiro que
+  tocar leva; dá pra desmarcar e trocar de ideia livremente até o host
+  iniciar.
+- Assim que um completa 3 escolhas, as outras 3 caem AUTOMÁTICO pro parceiro
+  (não precisa ele confirmar nada).
+- Se o host iniciar o leilão antes da dupla decidir, sorteia 3 e 3 na hora —
+  nunca trava o início.
 - Quem comanda uma categoria decide TODOS os jogadores dela no elenco (ex:
-  quem pegou "Meia" decide todos os meias, sejam 3, 4, quantos forem).
-- Cabe até 20 duplas numa sala (uma por time — mesmo teto de sempre da sala),
-  ou seja até 40 pessoas jogando juntas.
-- Mockup da telinha de escolha (protótipo clicável, aprovado no visual pelo
-  Diego): `scratchpad/mockup-dupla-posicoes.html` — só rodou local nessa
-  sessão, não subiu pro repo. **Falta ainda combinar/desenhar**: como as
-  duplas se FORMAM dentro da sala (convite/pareamento) — isso ainda não foi
-  discutido. Só depois disso dá pra começar a programar de verdade (schema no
-  Supabase, reducer, telas reais).
+  "Meia" = decide os 3, 4, quantos forem).
+- Mockup (protótipo clicável, aprovado no visual): `scratchpad/mockup-dupla-posicoes.html`.
+
+### 5) Dentro do LEILÃO em si (combinado, ainda sem mockup da telinha)
+Mesma tela/tempo do Rápido Online de sempre, só com um cadeado por categoria:
+- **Envelope (lance secreto)**: só quem é DONO da categoria daquela carta
+  pode digitar/mandar lance pelo time. O parceiro vê a carta igual todo
+  mundo, mas no lugar da caixa de lance aparece um aviso tipo **"⏳ Aguardando
+  o Kaká decidir"** (aprovado) — nunca esconde informação, só trava a AÇÃO.
+- **Martelo (revelação)**: automático pros dois, ninguém clica.
+- **Monte (sobras)**: tem vez normal da mesa; na vez do time, só o dono do
+  "Monte" pode apertar "pegar" — parceiro só assiste.
+- ⚠️ **Ponto de atenção de segurança pra hora de programar**: a trava PRECISA
+  ser confirmada no servidor/host-autoritativo (quem mandou o lance É dono
+  da categoria?), não só escondida na tela — é exatamente a classe de bug que
+  já aconteceu antes ("dei lance por outro", "virei bot"). Testar com calma.
+- **Se um dos dois SAI DE VERDADE da sala** (botão "Sair da sala", disconexão
+  real) → o parceiro que ficou assume TODAS as categorias temporariamente
+  (aprovado). **Só trocar de tela/perder o foco NÃO libera nada** — nesse
+  caso segue igual ao solo hoje (o tempo passa, timeout normal, sem trava
+  especial nova).
+- Falta: mockup da telinha do leilão com o cadeado/aviso.
 
 ## 🐛 LIVRO DE PREÇOS: preço compartilhado por NOME (relato de jogador, Neymar) ✅ NO AR
 Jogador reportou: renovar o Neymar do Santos estava pedindo o preço do Neymar
