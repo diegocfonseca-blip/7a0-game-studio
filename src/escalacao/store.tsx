@@ -3352,7 +3352,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.copaDoneSeason = undefined // senão a Copa da temporada de mesmo nº era PULADA na carreira nova
       s.varzea = false // modo várzea do rápido não pode pintar o campo da carreira
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined // 🌱 crias/janela zerados
-      s.eventoTemporada = undefined; s.eventoManchetes = undefined // 🎭 eventos de jogador: carreira nova nasce sem causo pendente
+      s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined // 🎭 eventos de jogador: carreira nova nasce sem causo pendente nem histórico
       s.agenciaDividir = false // toggle da agência volta ao padrão (1º clube)
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
       // vazando de uma carreira anterior (bug reportado: o estádio vinha completo).
@@ -3533,7 +3533,7 @@ export function reducer(state: EscState, action: Action): EscState {
         // 🧹 FAXINA ANTI-HERANÇA (04/08): mesmos campos do START solo
         s.cpuSquads = undefined; s.copaDoneSeason = undefined
         s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
-        s.eventoTemporada = undefined; s.eventoManchetes = undefined // 🎭 eventos de jogador zerados
+        s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined // 🎭 eventos de jogador zerados
         for (const m of s.managers) if (m.isHuman) logFin(s, 'opening', '🏁 Saldo inicial', 100, undefined, m.id)
       }
       // 🤝 DUPLAS: chega pronto do lobby (assento → quem é dono/parceiro). A chave
@@ -4231,6 +4231,8 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.eventoTemporada && s.eventoTemporada.season === s.seasonNo) return s
       if (action.evento.season !== s.seasonNo) return s
       s.eventoTemporada = action.evento
+      // 🔁 anota QUEM aprontou e QUANDO — é isso que dá o descanso de 5 temporadas
+      if (action.evento.nome) s.eventoHist = { ...(s.eventoHist ?? {}), [action.evento.nome]: s.seasonNo }
       if (action.manchete) s.eventoManchetes = [...(s.eventoManchetes ?? []), action.manchete].slice(-24)
       return s
     }

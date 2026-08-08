@@ -91,6 +91,8 @@ export interface EventoSorteado {
 
 // janela do evento na temporada (0-based; o jogo da rodada AINDA vai rolar):
 // nunca nas primeiras 2 nem depois da 31ª — "antes de chegar no final" (Diego).
+// 🔁 quantas temporadas o mesmo jogador fica de fora depois de aprontar
+export const EVENTO_DESCANSO = 5
 export const EVENTO_MIN_ROUND = 2
 export const EVENTO_MAX_ROUND = 30
 
@@ -102,9 +104,12 @@ export const EVENTO_MAX_ROUND = 30
 export function sorteiaEvento(args: {
   seed: number; seasonNo: number; round: number
   xi: EventoCard[]; squad: EventoCard[]; temMedico: boolean
-  avoidName?: string // 🔁 nome do "causo" da temporada PASSADA — evita repetir o mesmo craque toda vez (relato: "sempre o Romário")
+  // 🔁 histórico: nome do jogador → última temporada em que ELE aprontou.
+  // É o que segura o "toda vez o mesmo cara" (relato do Diego).
+  hist?: Record<string, number>
+  avoidName?: string // (legado) nome do causo da temporada passada — saves antigos sem histórico
 }): EventoSorteado | null {
-  const { seed, seasonNo, round, xi, squad, temMedico, avoidName } = args
+  const { seed, seasonNo, round, xi, squad, temMedico, avoidName, hist } = args
   if (round < EVENTO_MIN_ROUND || round > EVENTO_MAX_ROUND) return null
   const rng = mulberry((seed ^ Math.imul(seasonNo, 2654435761) ^ 0x77AA11) >>> 0)
   if (rng() < 0.15) return null // temporada em branco (nem toda temporada tem causo)
@@ -119,10 +124,19 @@ export function sorteiaEvento(args: {
     if (!temMedico) pool.push({ c, tipo: 'lesao' })
   }
   if (!pool.length) return null // 🏥 médico pronto + ninguém folclórico no XI = temporada em paz
-  // 🔁 fugiu do MESMO craque duas temporadas seguidas: se sobra opção sem ele, tira
-  // do sorteio (só o nome do último causo — não pune quem só tem UM folclórico no XI)
-  const semRepeticao = avoidName ? pool.filter(p => p.c.name !== avoidName) : pool
-  const poolFinal = semRepeticao.length ? semRepeticao : pool
+  // 🔁 DESCANSO DE 5 TEMPORADAS (regra do Diego, 08/08): quem já aprontou fica
+  // FORA do sorteio pelas 5 temporadas seguintes. Antes ele só pulava a temporada
+  // seguinte — voltava e aprontava de novo, que foi a queixa ("toda hora que ele
+  // voltava, vinha da balada de novo").
+  // Se o time tem OUTRO que apronte, o causo vai pra esse outro. Se TODO MUNDO do
+  // XI está de descanso, a temporada passa em paz — melhor isso do que repetir.
+  const descansando = (nome: string) => {
+    const ultima = hist?.[nome]
+    if (ultima != null) return seasonNo - ultima < EVENTO_DESCANSO
+    return avoidName === nome // save antigo sem histórico: pelo menos não repete seguido
+  }
+  const poolFinal = pool.filter(p => !descansando(p.c.name))
+  if (!poolFinal.length) return null
   const pick = poolFinal[Math.floor(rng() * poolFinal.length)]
   const rodadas = pick.tipo === 'noitada' ? 1 : pick.tipo === 'expulsao' ? 1 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 5)
   const textos = pick.tipo === 'noitada' ? HIST_NOITADA : pick.tipo === 'expulsao' ? HIST_EXPULSAO : HIST_LESAO

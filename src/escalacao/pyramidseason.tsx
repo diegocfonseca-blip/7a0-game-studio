@@ -2893,7 +2893,7 @@ export function PyramidSeasonScreen() {
     // temporada, então o sorteio (rodada-alvo, branco/não-branco e QUEM é sorteado)
     // saía sempre igual. Corrigido passando o seed CRU — sorteiaEvento já faz a
     // própria mistura por temporada.
-    const d = sorteiaEvento({ seed: state.seed, seasonNo: state.seasonNo ?? 1, round, xi: myXI as EventoCard[], squad: mgrMe.squad as EventoCard[], temMedico: hasExtra(state.stadiums?.[youId], 'medico'), avoidName: evAtual?.nome })
+    const d = sorteiaEvento({ seed: state.seed, seasonNo: state.seasonNo ?? 1, round, xi: myXI as EventoCard[], squad: mgrMe.squad as EventoCard[], temMedico: hasExtra(state.stadiums?.[youId], 'medico'), hist: state.eventoHist, avoidName: evAtual?.nome })
     if (!d) return false
     const base: EventoAtivo = { season: state.seasonNo ?? 1, round, mgrId: youId, tipo: d.tipo, cardId: d.card.id, nome: d.card.name, pos: d.card.pos, rodadas: d.rodadas, historia: d.historia, status: 'pendente' }
     if (!d.reservas.length) {

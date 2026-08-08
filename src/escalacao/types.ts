@@ -370,6 +370,7 @@ export interface EscState {
   managers: Manager[]
   youIdx: number
   // 🤝 DUPLAS — tudo opcional: sala que não é de duplas nunca vê nada disso.
+  eventoHist?: Record<string, number> // 🎭 nome do jogador → última temporada em que ele aprontou (descanso de 5 temporadas)
   duplasMode?: boolean            // a SALA foi criada no modo "Duplas (beta)"
   duplas?: Record<number, DuplaSeat> // mgrId → a dupla daquele assento
   // ⚠️ IDENTIDADE — LOCAL a cada aparelho, igual ao youIdx: NUNCA sincroniza.
