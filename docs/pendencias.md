@@ -1,6 +1,24 @@
 # 📌 Pendências combinadas com o Diego (atualizado 08/08/2026)
 
-## 💛 LOJA NOVA + PLANO SÓCIO — PROPOSTA ENVIADA, AGUARDANDO OK (08/08)
+## 💛 LOJA NOVA — v1 REJEITADA, menu de 3 modelos na mesa (08/08, NADA aprovado)
+Diego não gostou do pacote "utilidades" (manual+olheiro+moeda = genérico) e
+NÃO aprovou nada ainda (nem copa mensal, nem preços). Diagnóstico novo: o que
+VENDE no jogo é STATUS/HISTÓRIA (cores, fundador numerado, batismo), não
+ferramenta. Menu apresentado:
+- MODELO 1 "Álbum Vivo": Carta do Mês numerada/datada (só sócios do mês; nunca
+  reimpressa) — mesmo mecanismo do fundador, que comprovadamente vende.
+- MODELO 2 "Clube de Sócios": voto mensal na próxima lenda do baralho,
+  carteirinha com tempo de casa, mural de sócios.
+- MODELO 3 "Temporada Premium" (utilidades) — só como tempero.
+Recomendação: 1+2 com 3 de brinde, "SÓCIO LEGENDS" R$9,90/mês (1º mês trava
+7,90 pra sempre), calendário mensal (dia 1 carta, dia 10 votação). Avulsos:
+Kit do Mês R$4,90, Vale-presente (código estilo fichas). Descartados: patrono
+de carta (vira anúncio), caixas/sorteio (cheiro de aposta), XP pago (fere a
+lei nº1). Vitalícios intocados; Lenda ganha olheiros + carta do lançamento.
+✅ JÁ NO AR independente disso: entrega na hora no admin (seção Apoiadores).
+AGUARDANDO: Diego escolher modelo/misturar → aí mockup final.
+
+## 💛 (histórico) proposta v1 enviada antes do menu acima (08/08)
 Diego pediu análise a fundo da área de vendas ("MT gente abrindo os pacotes mas
 não fechando") + plano mensal ~R$5,99 + olheiros por baralho + torneios/escudos
 + qual ferramenta de cobrança mensal. Mockup: `scratchpad/vendas-mock.png`.
