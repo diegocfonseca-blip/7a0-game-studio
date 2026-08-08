@@ -68,25 +68,40 @@ qualquer vaga livre hoje:
   "Meia" = decide os 3, 4, quantos forem).
 - Mockup (protótipo clicável, aprovado no visual): `scratchpad/mockup-dupla-posicoes.html`.
 
-### 5) Dentro do LEILÃO em si (combinado, ainda sem mockup da telinha)
-Mesma tela/tempo do Rápido Online de sempre, só com um cadeado por categoria:
-- **Envelope (lance secreto)**: só quem é DONO da categoria daquela carta
-  pode digitar/mandar lance pelo time. O parceiro vê a carta igual todo
-  mundo, mas no lugar da caixa de lance aparece um aviso tipo **"⏳ Aguardando
-  o Kaká decidir"** (aprovado) — nunca esconde informação, só trava a AÇÃO.
+### 5) Dentro do LEILÃO em si — combinado e mockado (`scratchpad/mockup-dupla-leilao.html`)
+Mesma tela/tempo do Rápido Online de sempre. Descoberta importante ao olhar o
+código (`SECTORS` em `types.ts`): o leilão avança **setor por setor** —
+todos os Goleiros primeiro, depois todos os Laterais, Zagueiros, Meias,
+Atacantes, um de cada vez (nunca mistura posição na mesma leva). Isso
+simplifica a trava de dupla, porque só existe UM dono por leva inteira:
+- Na leva de uma categoria, só quem é DONO dela vê os controles de lance
+  normais e é **quem lacra pelo time inteiro** naquele setor (Diego: "quem
+  lacra é o jogador que tá na vez da dupla"). O parceiro vê as MESMAS cartas
+  (nunca esconde informação), mas com 🔒 no lugar dos controles e um aviso
+  **"⏳ Aguardando o Kaká decidir"** — sem botão de lacrar pra ele nessa leva.
+  Na próxima leva (outra categoria), os papéis podem inverter.
 - **Martelo (revelação)**: automático pros dois, ninguém clica.
 - **Monte (sobras)**: tem vez normal da mesa; na vez do time, só o dono do
   "Monte" pode apertar "pegar" — parceiro só assiste.
 - ⚠️ **Ponto de atenção de segurança pra hora de programar**: a trava PRECISA
-  ser confirmada no servidor/host-autoritativo (quem mandou o lance É dono
-  da categoria?), não só escondida na tela — é exatamente a classe de bug que
-  já aconteceu antes ("dei lance por outro", "virei bot"). Testar com calma.
+  ser confirmada no servidor/host-autoritativo (quem mandou o lance/lacrou É
+  dono da categoria daquele setor?), não só escondida na tela — é exatamente
+  a classe de bug que já aconteceu antes ("dei lance por outro", "virei
+  bot"). Testar com calma.
 - **Se um dos dois SAI DE VERDADE da sala** (botão "Sair da sala", disconexão
   real) → o parceiro que ficou assume TODAS as categorias temporariamente
   (aprovado). **Só trocar de tela/perder o foco NÃO libera nada** — nesse
   caso segue igual ao solo hoje (o tempo passa, timeout normal, sem trava
   especial nova).
-- Falta: mockup da telinha do leilão com o cadeado/aviso.
+
+### 6) Próximo passo (ainda não começado)
+Design 100% combinado agora (categorias, formação por vaga, trava de início,
+turno do leilão, desconexão). Falta: desenhar o schema no Supabase (quem tá
+em dupla com quem, dono de cada categoria por manager) e só DEPOIS mexer no
+reducer/telas reais — com cuidado extra por tocar em arquivo que serve o
+jogo AO VIVO (`store.tsx`, `screens.tsx`, `lobby.tsx`). Plano: construir tudo
+atrás do toggle "Duplas (beta)" (opt-in, sala normal nunca é afetada) e subir
+em commits pequenos e revertíveis, não tudo de uma vez.
 
 ## 🐛 LIVRO DE PREÇOS: preço compartilhado por NOME (relato de jogador, Neymar) ✅ NO AR
 Jogador reportou: renovar o Neymar do Santos estava pedindo o preço do Neymar
