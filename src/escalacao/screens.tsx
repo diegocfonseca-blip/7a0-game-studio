@@ -6372,8 +6372,23 @@ export function EscEnd() {
   // humanos precisam clicar "estou pronto" (não depende do presence, instável)
   const restartPending = state.restartPending
   const humanIds = state.managers.filter(m => m.isHuman).map(m => m.id)
-  const readyCount = state.restartReady.filter(id => humanIds.includes(id)).length
-  const iAmReady = state.restartReady.includes(state.youIdx)
+  // 🤝 DUPLA: a conta é de PESSOAS, não de times — o time é dos dois, então os
+  // dois precisam dizer que estão prontos (decisão do Diego). Sem isso, quem
+  // clicasse primeiro decidia sozinho por quem estava do lado.
+  const meuIdRestart = state.managers[state.youIdx]?.id ?? state.youIdx
+  const pessoasDoTime = (id: number) => { const d = state.duplas?.[id]; return d?.partnerUid && !d.soloUid ? 2 : 1 }
+  const prontasDoTime = (id: number) => {
+    const d = state.duplas?.[id]
+    if (!d?.partnerUid || d.soloUid) return state.restartReady.includes(id) ? 1 : 0
+    const u = state.restartReadyUids ?? []
+    return (u.includes(d.ownerUid) ? 1 : 0) + (u.includes(d.partnerUid) ? 1 : 0)
+  }
+  const totalPessoas = humanIds.reduce((n, id) => n + pessoasDoTime(id), 0)
+  const readyCount = humanIds.reduce((n, id) => n + prontasDoTime(id), 0)
+  const minhaDuplaRestart = state.duplas?.[meuIdRestart]
+  const iAmReady = minhaDuplaRestart?.partnerUid && !minhaDuplaRestart.soloUid
+    ? (state.restartReadyUids ?? []).includes(state.youUid ?? '')
+    : state.restartReady.includes(state.youIdx)
   // cabeçalho da SUA colocação na liga (troféu/rádio + Nº lugar + frase). Quando
   // tem Copa pendente, ele desce pra perto da TABELA — a Copa é que fica no topo
   // (é a próxima ação). Sem Copa, fica no topo como sempre.
@@ -6609,10 +6624,14 @@ export function EscEnd() {
         ? (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2" style={{ background: '#FEF3C7' }}>
             <p className="text-center font-black text-lg" style={OSWALD}>🔀 REINICIAR COM NOVOS TIMES</p>
-            <p className="text-center text-sm font-bold">Esperando todo mundo confirmar… {readyCount}/{humanIds.length} prontos</p>
+            <p className="text-center text-sm font-bold">Esperando todo mundo confirmar… {readyCount}/{totalPessoas} prontos</p>
             {!iAmReady
-              ? <Btn onClick={() => dispatch({ type: 'CONFIRM_RESTART', mgrId: state.youIdx })} bg={GREEN} className="w-full text-lg"><span className="text-white">✅ Estou pronto</span></Btn>
+              ? <Btn onClick={() => dispatch({ type: 'CONFIRM_RESTART', mgrId: state.youIdx, by: state.youUid })} bg={GREEN} className="w-full text-lg"><span className="text-white">✅ Estou pronto</span></Btn>
               : <p className="text-center text-sm font-bold text-black/60">Você está pronto. Aguardando os outros…</p>}
+            {/* 🤝 numa dupla o time só conta como pronto com os DOIS confirmados */}
+            {iAmReady && !!minhaDuplaRestart?.partnerUid && !minhaDuplaRestart.soloUid && prontasDoTime(meuIdRestart) < 2 && (
+              <p className="text-center text-[12px] font-bold text-black/55 leading-snug">🤝 Falta o seu parceiro confirmar — o time só fica pronto com os dois.</p>
+            )}
             {canRestart && <Btn onClick={() => dispatch({ type: 'CANCEL_RESTART' })} className="w-full">Cancelar</Btn>}
           </div>
         )

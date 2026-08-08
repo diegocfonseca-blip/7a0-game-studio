@@ -2501,7 +2501,7 @@ type Action =
   | { type: 'REPLAY_SEASON' }
   | { type: 'START_STREAM_AUCTION' } // 🎥 stream: host começa o leilão a partir da tela explicativa
   | { type: 'REQUEST_NEW_TEAMS' }
-  | { type: 'CONFIRM_RESTART'; mgrId: number }
+  | { type: 'CONFIRM_RESTART'; mgrId: number; by?: string } // by = 🤝 crachá (numa dupla os DOIS precisam confirmar)
   | { type: 'CANCEL_RESTART' }
   | { type: 'REMATCH' }
 
@@ -2805,6 +2805,7 @@ function redraftSeason(s: EscState): EscState {
   s.seasonNo++
   s.restartPending = false
   s.restartReady = []
+  s.restartReadyUids = []
   s.screen = 'auction'
   startAuctionPhase(s, false)
   return s
@@ -2819,10 +2820,21 @@ function humanManagerIds(s: EscState): number[] {
   // reinício ficava esperando um assento que nunca confirma. No-op em jogo normal.
   return s.managers.filter(m => m.isHuman && !m.dormindo).map(m => m.id)
 }
+// 🤝 esse time já está pronto pro novo pregão? Time de uma pessoa: basta ela.
+// DUPLA: os DOIS precisam confirmar (decisão do Diego, 08/08) — o time é dos
+// dois, então um não decide sozinho por quem está do lado. Se o parceiro caiu
+// (soloUid), quem ficou decide sozinho, senão a sala travaria.
+export function restartTimePronto(s: EscState, mgrId: number): boolean {
+  const d = s.duplas?.[mgrId]
+  if (!d || !d.partnerUid) return s.restartReady.includes(mgrId)
+  const uids = s.restartReadyUids ?? []
+  if (d.soloUid) return uids.includes(d.soloUid) || s.restartReady.includes(mgrId)
+  return uids.includes(d.ownerUid) && uids.includes(d.partnerUid)
+}
 function maybeStartRedraft(s: EscState): EscState {
   if (!s.restartPending) return s
   const humans = humanManagerIds(s)
-  if (humans.length > 0 && humans.every(id => s.restartReady.includes(id))) {
+  if (humans.length > 0 && humans.every(id => restartTimePronto(s, id))) {
     return redraftSeason(s)
   }
   return s
@@ -3523,7 +3535,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.duplasMode && s.duplas) sorteiaCategoriasFaltantes(s, rng)
       s.seasonNo = 1
       s.seasonVotes = {} // novo leilão: zera a votação de fim de jogo (senão volta marcada)
-      s.restartPending = false; s.restartReady = [] // e a prontidão do restart
+      s.restartPending = false; s.restartReady = []; s.restartReadyUids = [] // e a prontidão do restart
       // 🎥 STREAM / 🌐 CARREIRA: antes do pregão, uma tela explicativa (regras da
       // carreira, moedas, o auge, quem tá jogando) — os dois se veem online e o
       // HOST decide quando começar o leilão (START_STREAM_AUCTION). No rápido
@@ -5230,16 +5242,21 @@ export function reducer(state: EscState, action: Action): EscState {
       // antes de refazer o leilão. O host já entra confirmado.
       s.restartPending = true
       s.restartReady = s.isHost ? [s.youIdx] : []
+      s.restartReadyUids = s.isHost && s.youUid ? [s.youUid] : []
       return maybeStartRedraft(s)
     }
     case 'CONFIRM_RESTART': {
       if (!s.restartPending) return s
+      // 🤝 guarda QUEM confirmou (crachá), não só o time: numa dupla os dois têm
+      // que dizer que estão prontos, e sem o crachá o primeiro decidia por ambos.
+      if (action.by && !(s.restartReadyUids ?? []).includes(action.by)) s.restartReadyUids = [...(s.restartReadyUids ?? []), action.by]
       if (!s.restartReady.includes(action.mgrId)) s.restartReady = [...s.restartReady, action.mgrId]
       return maybeStartRedraft(s)
     }
     case 'CANCEL_RESTART': {
       s.restartPending = false
       s.restartReady = []
+      s.restartReadyUids = []
       return s
     }
     case 'REMATCH': {

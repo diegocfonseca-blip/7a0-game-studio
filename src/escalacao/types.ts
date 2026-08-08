@@ -364,6 +364,7 @@ export interface EscState {
   submitted: number[]          // ids de técnicos que lacraram o envelope nesta fase
   pendingEnvelopes: Record<number, { cardId: string; amount: number }[]> // host-only (não vaza no broadcast)
   presence: number[]           // ids online (presence do canal)
+  restartReadyUids?: string[]   // 🤝 crachás de quem já disse 'estou pronto' no novo pregão — numa dupla os DOIS precisam
   presenceUids?: string[]      // 🤝 crachás online — numa dupla os dois dividem o mesmo assento, então só o id do técnico não diz QUEM está aí
   // sala
   managers: Manager[]
