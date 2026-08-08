@@ -8,7 +8,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { mancheteDecisao } from './eventos'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, clubCanon } from './data'
 import { stripEmoji } from './apoio'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
 import { NBA_SLOTS_PER_POS } from './sportcfg'
@@ -473,7 +473,9 @@ function hashCode(s: string): number {
 // distintos). O ano ficava na chave e deixava um save antigo (ex.: Yamal/Barcelona
 // 2024 guardado num elenco) conviver com a versão nova do catálogo (2025) como se
 // fossem cartas diferentes — bug dos dois Yamal. Tirar o ano resolve de vez.
-export const ident = (c: { name: string; club: string }) => `${c.name}|${c.club}`
+// ⚖️ identidade da carta: nome + clube CANÔNICO (grafia velha de save antigo
+// conta como o mesmo clube — senão o mundo entrega o jogador em dobro).
+export const ident = (c: { name: string; club: string }) => `${c.name}|${clubCanon(c.club)}`
 // 🔄 RODÍZIO DO LEILÃO: memória das cartas que caíram na leva ANTERIOR (só idents).
 // A montagem do baralho joga essas pro fim do catálogo, então elas têm menos chance
 // de voltar já na próxima temporada — dá mais variedade. NÃO mexe nas % de raridade
@@ -1663,6 +1665,21 @@ function migrateTeamNames(st: EscState): EscState {
     const out: Record<string, V> = {}
     for (const k in rec) { const nk = newestTeamName(k); if (!(nk in out) || nk === k) out[nk] = rec[k] }
     return out
+  }
+  // 🏷️ grafia de clube das CARTAS (save de antes de 03/08): "Manchester United"
+  // vira "Man United" etc. — mesmo jogador, mesma carta, um clube só. Sem isso o
+  // baralho entregava o jogador EM DOBRO (dois van der Sar, relato 08/08).
+  const fixClub = <C extends { club: string }>(c: C): C => { const nc = clubCanon(c.club); return nc === c.club ? c : { ...c, club: nc } }
+  if (Array.isArray(st.managers)) st.managers = st.managers.map(m => ({ ...m, squad: Array.isArray(m.squad) ? m.squad.map(fixClub) : m.squad }))
+  if (st.cpuSquads) { const cs: typeof st.cpuSquads = {}; for (const k in st.cpuSquads) cs[k] = (st.cpuSquads[k] ?? []).map(fixClub); st.cpuSquads = cs }
+  if (st.marketValues) { // livro de preços: junta a chave velha com a nova (fica o maior)
+    const mv: Record<string, number> = {}
+    for (const k in st.marketValues) {
+      const i = k.indexOf('|')
+      const nk = i < 0 ? k : `${k.slice(0, i)}|${clubCanon(k.slice(i + 1))}`
+      mv[nk] = Math.max(mv[nk] ?? 0, st.marketValues[k])
+    }
+    st.marketValues = mv
   }
   if (Array.isArray(st.managers)) st.managers = st.managers.map(m => m.isHuman ? m : { ...m, teamName: newestTeamName(m.teamName) })
   if (st.careerRivals) st.careerRivals = st.careerRivals.map(r => ({ ...r, team: newestTeamName(r.team) }))

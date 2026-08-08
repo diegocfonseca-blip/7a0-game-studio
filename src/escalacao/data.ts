@@ -2107,6 +2107,24 @@ export type CareerTeam = { name: string; team: string }
 // ─── Times RENOMEADOS (novo → velho) ─────────────────────────────────────
 // Saves antigos guardam o nome da época (managers, colocações, caixa, títulos).
 // Estas pontes deixam qualquer geração de save achar o time no nome atual.
+// 🏷️ GRAFIAS ANTIGAS DE CLUBE (03/08 padronizou 35 cartas; saves de antes
+// carregam a grafia velha). Sem este mapa, o jogo achava que "Edwin van der Sar
+// | Manchester United" (save) e "Edwin van der Sar | Man United" (baralho) eram
+// JOGADORES DIFERENTES — e entregava o mesmo cara de novo pra outro clube
+// (relato 08/08: dois van der Sar no mesmo leilão). A identidade da carta agora
+// passa por aqui.
+export const CLUB_GRAFIA: Record<string, string> = {
+  'Manchester United': 'Man United', 'Manchester City': 'Man City',
+  'Inter de Milão': 'Inter', 'Bayer Leverkusen': 'Leverkusen',
+  'Sporting CP': 'Sporting', 'Borussia Dortmund': 'Dortmund',
+  'Suwon Bluewings': 'Suwon', 'Pohang': 'Pohang Steelers',
+  'Olympique Marseille': 'Marseille', 'Schalke 04': 'Schalke',
+  'FC Porto': 'Porto', 'Birmingham City': 'Birmingham',
+  'Leicester City': 'Leicester', 'Bayern München': 'Bayern',
+  'Olympique Lyon': 'Lyon',
+}
+export const clubCanon = (club: string): string => CLUB_GRAFIA[club] ?? club
+
 export const OLD_NAME: Record<string, string> = {
   'Napolitano': 'Canela EC', 'Ponte Branca': 'Grelha SAF', 'CRBebê': 'Peteca FR',
   'Semervilha': 'Posto 7 FC', 'Real Bets': 'Feira Nova FR', 'Goiaba FC': 'Onça Parda EC',
