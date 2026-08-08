@@ -6,6 +6,47 @@ export const SECTOR_LABEL: Record<Sector, string> = {
   GOL: 'Goleiros', LAT: 'Laterais', ZAG: 'Zagueiros', MEI: 'Meio-campo', ATA: 'Ataque',
 }
 
+// ─── 🤝 DUPLA: 2 pessoas dividindo o comando de UM time ───
+// As 6 categorias que a dupla divide (3 pra cada). O MONTE é categoria própria,
+// não gruda em posição nenhuma — quem pega as sobras é quem ficou com ele.
+export type DuplaCat = Sector | 'MONTE'
+export const DUPLA_CATS: DuplaCat[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA', 'MONTE']
+export const DUPLA_CAT_LABEL: Record<DuplaCat, string> = {
+  GOL: 'Goleiro', LAT: 'Lateral', ZAG: 'Zagueiro', MEI: 'Meia', ATA: 'Atacante', MONTE: 'Monte (sobras)',
+}
+export const DUPLA_CAT_ICON: Record<DuplaCat, string> = {
+  GOL: '🧤', LAT: '🏃', ZAG: '🛡️', MEI: '🎩', ATA: '⚽', MONTE: '📦',
+}
+// Uma vaga de time comandada por 2 pessoas. Fica em `EscState.duplas[mgrId]`.
+export interface DuplaSeat {
+  ownerUid: string      // dono do assento (quem tem o player_index de verdade)
+  ownerName: string
+  partnerUid?: string   // vazio = ainda procurando parceiro (vaga 1/2)
+  partnerName?: string
+  seek?: 'aberta' | 'privada' // como a vaga aparece pra sala enquanto procura
+  // categoria → user_id de quem MANDA nela. Vazio = ainda não dividiram.
+  cats?: Partial<Record<DuplaCat, string>>
+  // um dos dois SAIU de verdade da sala → quem ficou assume TUDO (sem trava).
+  // Guarda o uid de quem ficou. Só trocar de tela/perder o foco NÃO seta isto.
+  soloUid?: string
+}
+
+// ⚖️ A REGRA ÚNICA da dupla — usada pela TELA (pra mostrar 🔒) e pelo HOST (pra
+// recusar de verdade). Ter UMA função só é de propósito: se tela e host usassem
+// regras separadas, elas poderiam discordar — e é exatamente aí que nascem os
+// bugs de assento ("dei lance por outro"). Devolve `true` se PODE agir.
+export function duplaPodeAgir(
+  duplas: Record<number, DuplaSeat> | undefined,
+  mgrId: number, cat: DuplaCat, uid?: string,
+): boolean {
+  const d = duplas?.[mgrId]
+  if (!d || !d.partnerUid) return true // vaga normal (ou dupla ainda não formada): tudo como sempre
+  if (d.soloUid) return d.soloUid === uid // o parceiro saiu de verdade: quem ficou manda em tudo
+  const dono = d.cats?.[cat]
+  if (!dono) return true // ainda não dividiram → não trava ninguém (nunca atrasa o jogo)
+  return dono === uid
+}
+
 // fama é interna: guia a CPU e a curadoria do baralho. Nunca é exibida.
 // nível exibido: 5=lenda · 4=craque · 3 e 2=bom jogador · 1=foi profissional (limitado)
 // (o selo "folclórico" é à parte, no campo folk — não é nível)
@@ -302,6 +343,12 @@ export interface EscState {
   // sala
   managers: Manager[]
   youIdx: number
+  // 🤝 DUPLAS — tudo opcional: sala que não é de duplas nunca vê nada disso.
+  duplasMode?: boolean            // a SALA foi criada no modo "Duplas (beta)"
+  duplas?: Record<number, DuplaSeat> // mgrId → a dupla daquele assento
+  // ⚠️ IDENTIDADE — LOCAL a cada aparelho, igual ao youIdx: NUNCA sincroniza.
+  // É o meu user_id; é ele que diz se EU mando na categoria da vez.
+  youUid?: string
   // leilão
   sectorIdx: number // 0..4 dentro de SECTORS
   deck: Record<Sector, Card[]>

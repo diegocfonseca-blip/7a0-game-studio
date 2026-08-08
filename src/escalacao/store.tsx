@@ -4,9 +4,9 @@ import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
   QuickCopaState, QuickCopaTie, LedgerEntry, EmpCard, AgCard, AgEvento,
-  EventoAtivo, EventoManchete,
+  EventoAtivo, EventoManchete, DuplaSeat, DuplaCat,
 } from './types'
-import { SECTORS, FORMATIONS } from './types'
+import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir } from './types'
 import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName } from './data'
 import { stripEmoji } from './apoio'
@@ -2435,7 +2435,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa'; rivals?: number; rivalTeams?: string[] }
+  | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa'; rivals?: number; rivalTeams?: string[] }
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number }> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number }> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -2450,7 +2450,9 @@ type Action =
   | { type: 'AGENCIA_SEASON_EVENTS'; season: number; rows: AgEvento[] } // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro/campeão dos agenciados) — computados na tela quando a Copa termina; pagos na virada. Idempotente por temporada
   | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos 60 times de fundo (1x)
   | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
-  | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number }
+  | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; youUid?: string }
+  | { type: 'DUPLA_TOGGLE_CAT'; mgrId: number; cat: DuplaCat; uid: string } // 🤝 alguém tocou numa categoria na tela de dividir (primeiro que toca leva)
+  | { type: 'DUPLA_SOLO'; mgrId: number; ficouUid: string } // 🤝 o parceiro SAIU de verdade da sala → quem ficou assume todas as categorias
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[] }
   | { type: 'MARK_COPA_DONE' }
@@ -2464,13 +2466,13 @@ type Action =
   | { type: 'FIX_YOU_IDX'; idx: number } // 🛟 auto-cura local: reancora "quem sou eu" no assento com o MEU nome (índice deslizou em rematch/reconexão). NUNCA roteado pro host.
   | { type: 'COPA_MUNDO_PRIZE'; mgrId: number } // 🌍 prêmio do campeão da Copa do Mundo Legends: +100 moedas (só carreira SOLO — no online cada um joga local, não sincroniza caixa)
   | { type: 'KICK_PLAYER'; playerIndex: number }
-  | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[] }
+  | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[]; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'ADVANCE_REVEAL' }
   | { type: 'FORCE_SEAL' }
   | { type: 'SET_MANUAL_ROOM'; on: boolean } // 🎮 host troca o ritmo (auto/manual) no meio da carreira online — sincroniza pra todos
   | { type: 'SUBMIT_TIEBREAK'; mgrId: number; amount: number }
   | { type: 'FORCE_TIEBREAK' }
-  | { type: 'MONTE_PICK'; mgrId: number; cardId: string }
+  | { type: 'MONTE_PICK'; mgrId: number; cardId: string; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'MONTE_TIMEOUT' }
   | { type: 'SET_SPONSOR_BET'; tier: 1 | 2 | 3; brandId: string; mgrId?: number } // 🤝 aposta do patrocínio da temporada (nível escolhido + marca) — banner de início de temporada
   | { type: 'BUY_FILIAL'; team: string; mgrId?: number } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])
@@ -2483,7 +2485,7 @@ type Action =
   | { type: 'LOAN_FROM_FILIAL'; cardId: string; mgrId?: number } // 🏢 pega um jogador emprestado DA SAF (idem)
   | { type: 'RETURN_FILIAL_LOAN'; cardId: string; mgrId?: number } // 🏢 traz UM empréstimo de volta na hora (seu volta pro elenco / o da SAF volta pra SAF)
   | { type: 'CLEAR_FILIAL_TRIM_NOTICE' } // 🏢 dispensa o aviso de "empréstimos voltaram por rebaixamento"
-  | { type: 'MONTE_PASS'; mgrId: number } // carreira: recusa as sobras e passa a vez (o time já tem os 11)
+  | { type: 'MONTE_PASS'; mgrId: number; by?: string } // carreira: recusa as sobras e passa a vez (o time já tem os 11). by = 🤝 crachá (duplas)
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[] } // carreira online: define os 11 titulares (escalação), vale do PRÓXIMO jogo
   | { type: 'EVENTO_SET'; evento: EventoAtivo; manchete?: EventoManchete } // 🎭 carreira SOLO: registra o evento sorteado na tela (pendente = banner trava a rodada; manchete = sem reserva, só zoeira)
@@ -2826,6 +2828,31 @@ function maybeStartRedraft(s: EscState): EscState {
   return s
 }
 
+// 🤝 DUPLA — sorteio 3 e 3 das categorias que ficaram sem dono.
+// Roda quando o host abre o pregão e a dupla não dividiu (ou dividiu pela
+// metade). Usa o RNG da partida (determinístico) pra host e convidado chegarem
+// no MESMO resultado. Regra do Diego: o jogo nunca trava esperando a dupla.
+export function sorteiaCategoriasFaltantes(s: EscState, rng: () => number) {
+  for (const [k, d] of Object.entries(s.duplas ?? {})) {
+    if (!d.partnerUid) continue // vaga de 1 pessoa só: nada a dividir
+    const cats = { ...(d.cats ?? {}) }
+    // respeita o que já foi escolhido à mão e completa o resto
+    const livres = DUPLA_CATS.filter(c => !cats[c])
+    if (livres.length === 0) continue
+    let doDono = DUPLA_CATS.filter(c => cats[c] === d.ownerUid).length
+    let doParceiro = DUPLA_CATS.filter(c => cats[c] === d.partnerUid).length
+    // embaralha as livres pra não dar sempre a mesma divisão
+    const ordem = [...livres]
+    for (let i = ordem.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [ordem[i], ordem[j]] = [ordem[j], ordem[i]] }
+    for (const c of ordem) {
+      // quem tem menos categorias leva; empate → sorteia
+      const paraDono = doDono === doParceiro ? rng() < 0.5 : doDono < doParceiro
+      if (paraDono) { cats[c] = d.ownerUid; doDono++ } else { cats[c] = d.partnerUid!; doParceiro++ }
+    }
+    s.duplas![Number(k)] = { ...d, cats }
+  }
+}
+
 export function reducer(state: EscState, action: Action): EscState {
   if (action.type === 'SYNC_STATE') {
     setActiveCatalog(action.newState.deckLeague) // o ponteiro do baralho segue o estado do host (reload zera pra BR)
@@ -2846,6 +2873,7 @@ export function reducer(state: EscState, action: Action): EscState {
       streamMode: action.newState.streamMode ?? !!(action.newState as { stream?: boolean }).stream,
       manualRoom: action.newState.manualRoom ?? !!(action.newState as { manual?: boolean }).manual,
       youIdx: state.youIdx,
+      youUid: state.youUid, // 🤝 meu crachá da dupla é LOCAL, igual ao youIdx
       isHost: state.isHost,
       roomId: state.roomId,
       roomCode: state.roomCode,
@@ -2879,6 +2907,7 @@ export function reducer(state: EscState, action: Action): EscState {
       roomCode: action.roomCode,
       isHost: action.isHost,
       youIdx: myIdx,
+      youUid: action.youUid ?? state.youUid, // 🤝 crachá da dupla: local, sobrevive à reconexão
       pendingEnvelopes: {},
       tiebreakPending: {},
       presence: [],
@@ -3483,6 +3512,15 @@ export function reducer(state: EscState, action: Action): EscState {
         s.eventoTemporada = undefined; s.eventoManchetes = undefined // 🎭 eventos de jogador zerados
         for (const m of s.managers) if (m.isHuman) logFin(s, 'opening', '🏁 Saldo inicial', 100, undefined, m.id)
       }
+      // 🤝 DUPLAS: chega pronto do lobby (assento → quem é dono/parceiro). A chave
+      // é a POSIÇÃO do técnico na lista, que é exatamente o id do manager humano.
+      s.duplasMode = !!action.duplasMode
+      s.duplas = action.duplasMode ? (action.duplas ?? {}) : undefined
+      s.youUid = action.youUid ?? s.youUid
+      // se alguma dupla entrou sem dividir as categorias, sorteia 3 e 3 AGORA —
+      // regra de ouro do Diego: nada pode atrasar o ritmo do jogo, então o host
+      // nunca fica travado esperando a dupla se resolver.
+      if (s.duplasMode && s.duplas) sorteiaCategoriasFaltantes(s, rng)
       s.seasonNo = 1
       s.seasonVotes = {} // novo leilão: zera a votação de fim de jogo (senão volta marcada)
       s.restartPending = false; s.restartReady = [] // e a prontidão do restart
@@ -3501,9 +3539,50 @@ export function reducer(state: EscState, action: Action): EscState {
       startAuctionPhase(s, false)
       return s
     }
+    // 🤝 DUPLA — tela de dividir as posições. "Primeiro que toca leva": se a
+    // categoria está livre, fica com quem tocou; se já é sua, você solta. Assim
+    // que um fecha 3, as outras 3 caem AUTOMÁTICO pro parceiro (o Diego pediu
+    // que ninguém precise confirmar nada).
+    case 'DUPLA_TOGGLE_CAT': {
+      const d = s.duplas?.[action.mgrId]
+      if (!d || !d.partnerUid) return s
+      if (action.uid !== d.ownerUid && action.uid !== d.partnerUid) return s // não é da dupla: ignora
+      if (s.screen !== 'lobby' && s.screen !== 'streamIntro') { /* pode dividir na espera e na tela de regras */ }
+      const cats = { ...(d.cats ?? {}) }
+      const meu = cats[action.cat]
+      if (meu === action.uid) delete cats[action.cat] // soltei a minha
+      else if (meu) return s // já é do parceiro — quem tocou primeiro levou
+      else {
+        const jaTenho = DUPLA_CATS.filter(c => cats[c] === action.uid).length
+        if (jaTenho >= 3) return s // teto de 3 por pessoa
+        cats[action.cat] = action.uid
+      }
+      // fechou 3? o resto cai automático pro parceiro
+      const outro = action.uid === d.ownerUid ? d.partnerUid : d.ownerUid
+      if (DUPLA_CATS.filter(c => cats[c] === action.uid).length === 3) {
+        for (const c of DUPLA_CATS) if (!cats[c]) cats[c] = outro
+      }
+      s.duplas = { ...s.duplas, [action.mgrId]: { ...d, cats } }
+      return s
+    }
+    // 🤝 DUPLA — o parceiro SAIU DE VERDADE (botão sair / caiu). Quem ficou passa
+    // a mandar em tudo, senão o time ficaria sem quem lacra metade dos setores.
+    // Só trocar de tela/perder o foco NÃO chega aqui.
+    case 'DUPLA_SOLO': {
+      const d = s.duplas?.[action.mgrId]
+      if (!d) return s
+      if (action.ficouUid !== d.ownerUid && action.ficouUid !== d.partnerUid) return s
+      s.duplas = { ...s.duplas, [action.mgrId]: { ...d, soloUid: action.ficouUid } }
+      return s
+    }
     case 'SUBMIT_ENVELOPE': {
       if (s.phase !== 'envelope' && s.phase !== 'resq_envelope') return s
       if (s.submitted.includes(action.mgrId)) return s
+      // 🤝 DUPLA: na leva deste setor só quem MANDA na categoria lacra pelo time.
+      // A checagem é aqui no reducer (lado do HOST) de propósito: esconder o botão
+      // na tela do parceiro não basta — é exatamente essa a família de bug de
+      // assento que já mordeu antes ("dei lance por outro").
+      if (!duplaPodeAgir(s.duplas, action.mgrId, SECTORS[s.sectorIdx], action.by)) return s
       s.pendingEnvelopes[action.mgrId] = action.bids
       s.submitted.push(action.mgrId)
       const pos = SECTORS[s.sectorIdx]
@@ -3575,6 +3654,8 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'MONTE_PICK': {
       if (s.screen !== 'monte') return s
       if (s.monteOrder[s.monteIdx] !== action.mgrId) return s
+      // 🤝 DUPLA: o Monte é categoria própria — só o dono dela pega sobra.
+      if (!duplaPodeAgir(s.duplas, action.mgrId, 'MONTE', action.by)) return s
       // carreira: carta com piso é compra sem leilão — bloqueia se não tem caixa
       const picker = s.managers.find(m => m.id === action.mgrId)
       const pickCard = s.monte.find(c => c.id === action.cardId)
@@ -3906,6 +3987,8 @@ export function reducer(state: EscState, action: Action): EscState {
       // o time já tem os 11. Fora da carreira não existe passar: o Monte fecha o XI.
       if (s.screen !== 'monte' || !s.careerOnline) return s
       if (s.monteOrder[s.monteIdx] !== action.mgrId) return s
+      // 🤝 DUPLA: passar a vez também é decisão do dono do Monte.
+      if (!duplaPodeAgir(s.duplas, action.mgrId, 'MONTE', action.by)) return s
       const m = s.managers.find(x => x.id === action.mgrId)
       if (!m || !m.isHuman) return s
       if (xiHoles(m) > 0) {
