@@ -2173,9 +2173,17 @@ function Envelope() {
   // mas sem os controles. Na leva seguinte os papéis podem inverter.
   const minhaVez = duplaPodeAgir(state.duplas, you.id, pos, state.youUid)
   const duplaDaVez = state.duplas?.[you.id]
+  const donoDaVezUid = !minhaVez && duplaDaVez ? duplaDaVez.cats?.[pos] : undefined
   const quemDecide = !minhaVez && duplaDaVez
-    ? (duplaDaVez.cats?.[pos] === duplaDaVez.ownerUid ? duplaDaVez.ownerName : duplaDaVez.partnerName)
+    ? (donoDaVezUid === duplaDaVez.ownerUid ? duplaDaVez.ownerName : duplaDaVez.partnerName)
     : null
+  // 🆘 PARCEIRO CAIU: quem cai de verdade (fecha o app, perde a net) nunca avisa
+  // nada — e sem isso o time ficava travado pra sempre esperando alguém que não
+  // volta (relato do Diego: "caiu quem era do meio e do monte e o jogo prendeu").
+  // A presença do canal diz quem está online DE VERDADE, por crachá. Some da
+  // presença → o parceiro que ficou pode assumir o time inteiro num toque.
+  const parceiroSumiu = !!donoDaVezUid && Array.isArray(state.presenceUids) && state.presenceUids.length > 0 && !state.presenceUids.includes(donoDaVezUid)
+  const assumirTime = () => dispatch({ type: 'DUPLA_SOLO', mgrId: you.id, ficouUid: state.youUid ?? '' })
   const canBid = myOpen > 0 && you.money > 0 && minhaVez
   const online = state.onlineMode === 'online'
   const iSubmitted = state.submitted.includes(you.id)
@@ -2423,6 +2431,13 @@ function Envelope() {
               <p className="text-[12px] font-bold text-black/65 leading-snug mt-0.5">
                 ⏳ Você vê as mesmas cartas, mas nesta leva quem lacra é ele. Na leva da SUA posição é você que manda — e aí ele é que só assiste.
               </p>
+              {parceiroSumiu && (
+                <button onClick={assumirTime}
+                  className="w-full border-[3px] border-black rounded-xl py-2.5 mt-2 font-black text-[13px] active:translate-y-0.5"
+                  style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
+                  🆘 {quemDecide ? stripEmoji(quemDecide).trim() : 'Seu parceiro'} caiu — assumir o time
+                </button>
+              )}
             </>
           ) : (
             <p className="text-sm font-bold text-black">{myOpen === 0 ? 'Setor completo — você só assiste esta rodada.' : 'Sem dinheiro — resta torcer pelo Monte Final.'}</p>
@@ -3224,10 +3239,21 @@ export function EscMonte() {
       {isYourTurn && !monteMinhaVez && (() => {
         const dp = state.duplas?.[you.id]
         const dono = dp && (dp.cats?.MONTE === dp.ownerUid ? dp.ownerName : dp.partnerName)
+        const donoUid = dp?.cats?.MONTE
+        // 🆘 mesma saída do leilão: se quem manda no Monte caiu de verdade (sumiu
+        // da presença), quem ficou assume o time e a vez anda.
+        const sumiu = !!donoUid && Array.isArray(state.presenceUids) && state.presenceUids.length > 0 && !state.presenceUids.includes(donoUid)
         return (
           <Box bg="#EDE4FF" className="p-3">
             <p className="font-black text-black" style={OSWALD}>🔒 O Monte é do {dono ? stripEmoji(dono).trim() : 'seu parceiro'}</p>
             <p className="text-[12px] font-bold text-black/65 leading-snug mt-0.5">⏳ É a vez do seu time, mas quem escolhe a sobra é ele. Você acompanha daqui.</p>
+            {sumiu && (
+              <button onClick={() => dispatch({ type: 'DUPLA_SOLO', mgrId: you.id, ficouUid: state.youUid ?? '' })}
+                className="w-full border-[3px] border-black rounded-xl py-2.5 mt-2 font-black text-[13px] active:translate-y-0.5"
+                style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
+                🆘 {dono ? stripEmoji(dono).trim() : 'Seu parceiro'} caiu — assumir o time
+              </button>
+            )}
           </Box>
         )
       })()}

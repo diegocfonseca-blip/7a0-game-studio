@@ -20,7 +20,7 @@ const MAX_PLAYERS = 20 // a tabela sempre tem 20 times; os que faltam viram bots
 type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'
 
-interface RoomPlayer { user_id: string; manager_name: string; player_index: number; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_seek?: 'aberta' | 'privada' | null }
+interface RoomPlayer { user_id: string; manager_name: string; player_index: number; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_seek?: 'aberta' | 'privada' | null; dupla_name?: string | null }
 // 💬 mensagem do chat da sala de espera (uid = quem mandou, pra saber o "meu")
 interface LobbyMsg { id: string; uid: string; name: string; text: string }
 // 🎈 reação que FLUTUA (sobe e some) na sala de espera — NÃO entra no chat.
@@ -832,7 +832,15 @@ export function EscLobby() {
       roomName: gs?.roomName,
       isHost: amHost,
       playerIndex: myPos >= 0 ? myPos : myPl.player_index,
-      playerNames: uniq.map(p => p.manager_name),
+      // 🏷️ time de dupla entra com o nome dos DOIS (escolhido ou automático);
+      //    time de uma pessoa só continua com o nome dela, como sempre.
+      playerNames: uniq.map(p => {
+        if (!duplasMode) return p.manager_name
+        const par = sorted.find(x => x.dupla_partner_of === p.user_id && x.user_id !== p.user_id)
+        if (!par) return p.manager_name
+        const corta = (n: string) => { const c = n.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2B00}-\u{2BFF}]/gu, '').trim(); return c.length > 11 ? c.slice(0, 11).trim() : c }
+        return (p.dupla_name || `${corta(p.manager_name)} | ${corta(par.manager_name)}`)
+      }),
       duplasMode, duplas: duplasMode ? duplas : undefined, youUid: user.id,
       formation: gs?.formation ?? '4-3-3',
       stream: !!gs?.stream,
@@ -1277,6 +1285,21 @@ export function EscLobby() {
   // não é de duplas nunca chama nenhuma destas funções.
   // "Procuro parceiro": deixa a minha vaga visível pra sala (aberta) ou
   // reservada pra um amigo que já vem (privada).
+  // 🏷️ nome automático do time da dupla: "Fulano | Beltrano". Sem emoji (o selo
+  // de apoio é da PESSOA, não do time) e com cada metade curta pra caber no
+  // placar, na tabela e no escudo sem virar uma linha gigante.
+  function nomeAutoDupla(a: string, b: string) {
+    const corta = (n: string) => { const c = stripEmoji(n).trim(); return c.length > 11 ? c.slice(0, 11).trim() : c }
+    return `${corta(a)} | ${corta(b)}`
+  }
+  // grava o nome que a dupla escolheu (vazio = volta pro automático)
+  async function salvarNomeDupla(donoUid: string, nome: string) {
+    if (!room || !user) return
+    const limpo = stripEmoji(nome).trim().slice(0, 24)
+    await supabase.from('room_players').update({ dupla_name: limpo || null }).eq('room_id', room.id).eq('user_id', donoUid)
+    fetchPlayers(room.id)
+  }
+
   // 🔒 põe/tira o cadeado da minha vaga. `null` = aberta pra qualquer um da sala
   // (é o padrão). Não existe "jogar sozinho": em sala de duplas todo time é dupla.
   async function procurarParceiro(seek: 'privada' | null) {
@@ -1918,7 +1941,7 @@ export function EscLobby() {
                     {pk.holo > 0 && <ApoioSheen holo={pk.holo} dur={2.6} />}
                   </div>
                 ) })()}
-                <span className="font-black text-black text-sm flex-1">{p.manager_name}</span>
+                <span className="font-black text-black text-sm flex-1">{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : p.manager_name}</span>
                 {duplasOn && <span className="text-[10px] font-black uppercase border border-black px-2 py-0.5 rounded-full" style={{ background: par ? GREEN : '#e6dcbf', color: par ? '#fff' : 'rgba(0,0,0,.6)' }}>{par ? '2/2 ✅' : '1/2'}</span>}
                 {p.user_id === room.host_id && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full">HOST</span>}
                 {isHost && p.user_id !== user?.id && (
@@ -1931,12 +1954,32 @@ export function EscLobby() {
               {par && (
                 <div className="flex items-center gap-3 mt-1.5 pl-3" style={{ borderLeft: `3px solid ${GREEN}` }}>
                   <span className="text-sm">🤝</span>
-                  <span className="font-black text-black/75 text-[13px] flex-1">{par.manager_name}</span>
+                  <span className="font-black text-black/75 text-[13px] flex-1">{stripEmoji(p.manager_name).trim()} <span className="text-black/35">+</span> {par.manager_name}</span>
                   {(par.user_id === user?.id || p.user_id === user?.id) && (
                     <button onClick={() => desfazerDupla(p.user_id, par.user_id)} className="text-[10px] font-black uppercase underline text-black/45 active:opacity-60">
                       {par.user_id === user?.id ? 'Sair da dupla' : 'Desfazer a dupla'}
                     </button>
                   )}
+                </div>
+              )}
+              {/* 🏷️ NOME DO TIME DA DUPLA — o time é dos dois, então precisa de um
+                  nome dos dois. Vazio = "Fulano | Beltrano" automático. */}
+              {par && (p.user_id === user?.id || par.user_id === user?.id) && (
+                <div className="mt-2 pt-2" style={{ borderTop: '2px solid rgba(0,0,0,.1)' }}>
+                  <p className="text-black/60 text-[10.5px] font-black uppercase tracking-wide mb-1" style={OSWALD}>🏷️ Nome do time de vocês</p>
+                  <input
+                    defaultValue={p.dupla_name ?? ''}
+                    placeholder={nomeAutoDupla(p.manager_name, par.manager_name)}
+                    maxLength={24}
+                    onBlur={e => { if ((e.target.value ?? '') !== (p.dupla_name ?? '')) salvarNomeDupla(p.user_id, e.target.value) }}
+                    onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+                    className="w-full border-2 border-black rounded-xl px-2.5 py-1.5 font-black text-[13px] bg-white text-black"
+                    style={OSWALD} />
+                  <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-1">
+                    {p.dupla_name
+                      ? 'É esse nome que vai aparecer na tabela e no placar. Qualquer um dos dois pode mudar.'
+                      : `Deixando em branco, o time se chama "${nomeAutoDupla(p.manager_name, par.manager_name)}". Qualquer um dos dois pode escolher outro.`}
+                  </p>
                 </div>
               )}
               {/* ✋ DIVIDIR AS POSIÇÕES — só aparece pra quem É da dupla */}

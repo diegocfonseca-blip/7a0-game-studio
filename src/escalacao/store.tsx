@@ -2454,7 +2454,7 @@ type Action =
   | { type: 'DUPLA_TOGGLE_CAT'; mgrId: number; cat: DuplaCat; uid: string } // 🤝 alguém tocou numa categoria na tela de dividir (primeiro que toca leva)
   | { type: 'DUPLA_SOLO'; mgrId: number; ficouUid: string } // 🤝 o parceiro SAIU de verdade da sala → quem ficou assume todas as categorias
   | { type: 'SYNC_STATE'; newState: EscState }
-  | { type: 'SET_PRESENCE'; indices: number[] }
+  | { type: 'SET_PRESENCE'; indices: number[]; uids?: string[] } // uids = 🤝 quem está online pelo crachá (numa dupla, os dois dividem o mesmo assento)
   | { type: 'MARK_COPA_DONE' }
   | { type: 'CLOSE_SEASON_BOOKS'; rewards?: Record<number, number>; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number }> } // 💰 fecha as contas da temporada (prêmios + bilheteria + patrocínio + empresário − folha) assim que liga+copas acabam
   | { type: 'SET_CHAT'; off: boolean } // 💬 host liga/desliga o chat da sala
@@ -2926,7 +2926,7 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'GO_SETUP_CAREER': { s.screen = 'setup'; s.careerIntent = true; return s }
     case 'GO_ALBUM': { s.screen = 'album'; return s }
     case 'GO_RANKING': { s.screen = 'ranking'; return s }
-    case 'SET_PRESENCE': { s.presence = action.indices; return s }
+    case 'SET_PRESENCE': { s.presence = action.indices; s.presenceUids = action.uids ?? s.presenceUids; return s }
     // pirâmide: a Copa da temporada atual terminou de animar → marca, pra o save
     // não re-animar a Copa do zero ao retomar (mostra direto os campeões/decisão).
     case 'MARK_COPA_DONE': { s.copaDoneSeason = s.seasonNo; return s }
@@ -5692,8 +5692,16 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const sendChat = useCallback((text: string) => {
     const t = text.trim().slice(0, 160)
     if (!t) return
-    const me = stateRef.current.managers[stateRef.current.youIdx]
-    const m: ChatMsg = { id: Math.random().toString(36).slice(2), from: stateRef.current.youIdx, name: (me?.teamName || me?.name || 'Você'), text: t, ts: Date.now() }
+    const st = stateRef.current
+    const me = st.managers[st.youIdx]
+    // 🤝 DUPLA: os dois dividem o MESMO time, então falar pelo nome do time faria
+    // as duas pessoas aparecerem iguais no chat e ninguém saberia quem escreveu.
+    // Quem está em dupla fala com o PRÓPRIO nome (o time original dele).
+    const d = me ? st.duplas?.[me.id] : undefined
+    const meuNome = d?.partnerUid
+      ? (st.youUid === d.ownerUid ? d.ownerName : st.youUid === d.partnerUid ? d.partnerName : undefined)
+      : undefined
+    const m: ChatMsg = { id: Math.random().toString(36).slice(2), from: st.youIdx, name: (meuNome || me?.teamName || me?.name || 'Você'), text: t, ts: Date.now() }
     addChat(m, true) // aparece pra mim na hora (canal usa self:false)
     channelRef.current?.send({ type: 'broadcast', event: 'chat', payload: m })
   }, [addChat])
@@ -5873,11 +5881,13 @@ export function EscProvider({ children }: { children: ReactNode }) {
     })
     ch.on('presence', { event: 'sync' }, () => {
       const pState = ch.presenceState()
-      const indices = Object.values(pState).flat().map((p: unknown) => (p as { playerIndex: number }).playerIndex)
-      rawDispatch({ type: 'SET_PRESENCE', indices })
+      const todos = Object.values(pState).flat() as unknown as { playerIndex: number; uid?: string }[]
+      const indices = todos.map(p => p.playerIndex)
+      const uids = todos.map(p => p.uid).filter((u): u is string => !!u)
+      rawDispatch({ type: 'SET_PRESENCE', indices, uids })
     })
     ch.subscribe(async () => {
-      await ch.track({ playerIndex: state.youIdx })
+      await ch.track({ playerIndex: state.youIdx, uid: state.youUid })
       if (!state.isHost) channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
     })
     channelRef.current = ch
@@ -5894,7 +5904,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       if (alive) { resync(); return }
-      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx }); resync() }) } catch { /* tenta de novo na próxima volta */ }
+      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx, uid: stateRef.current.youUid }); resync() }) } catch { /* tenta de novo na próxima volta */ }
     }
     if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
     return () => { if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); ch.unsubscribe(); channelRef.current = null }
@@ -5952,7 +5962,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
-      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx }); resync() }) } catch { /* tenta de novo no próximo tique */ }
+      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx, uid: stateRef.current.youUid }); resync() }) } catch { /* tenta de novo no próximo tique */ }
     }, 5000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.roomId])
@@ -5999,6 +6009,40 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const t = setTimeout(() => dispatch({ type: 'MONTE_TIMEOUT' }), Math.max(0, state.monteDeadline - Date.now()) + 300)
     return () => clearTimeout(t)
   }, [state.monteDeadline, state.screen, state.monteIdx, state.onlineMode, state.managers, state.monteOrder, dispatch])
+
+  // 🤝🆘 PARCEIRO QUE CAIU DE VERDADE — liberação automática (relato do Diego,
+  // 08/08: "caiu quem era responsável pelo meio e pelo monte e o jogo ficou
+  // preso, porque quem continuou não podia jogar").
+  // Quem SAI pelo botão avisa (DUPLA_SOLO). Quem simplesmente CAI — fecha o app,
+  // perde a internet, o celular mata a aba — não avisa nada, e o time ficaria
+  // esperando pra sempre alguém que não volta.
+  // Só o HOST decide isso (ele é a autoridade) e só depois de 25 SEGUNDOS fora:
+  // trocar de app derruba a conexão por alguns segundos o tempo todo, e o Diego
+  // foi claro que perder o foco NÃO pode liberar nada. 25s é bem mais que uma
+  // olhadinha no zap e bem menos que os 45s de uma leva.
+  const sumidoDesdeRef = useRef<Record<string, number>>({})
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.isHost || !state.duplasMode) return
+    const iv = setInterval(() => {
+      const st = stateRef.current
+      const online = st.presenceUids
+      if (!Array.isArray(online) || online.length === 0) return // sem leitura confiável: não mexe
+      const agora = Date.now()
+      const visto = sumidoDesdeRef.current
+      for (const [k, d] of Object.entries(st.duplas ?? {})) {
+        if (!d.partnerUid || d.soloUid) continue // sem dupla, ou já resolvido
+        for (const [uid, outro] of [[d.ownerUid, d.partnerUid], [d.partnerUid, d.ownerUid]] as const) {
+          if (online.includes(uid)) { delete visto[uid]; continue }
+          if (!visto[uid]) { visto[uid] = agora; continue }
+          if (agora - visto[uid] < 25000) continue
+          // sumiu de verdade: quem ficou assume o time inteiro
+          delete visto[uid]
+          rawDispatch({ type: 'DUPLA_SOLO', mgrId: Number(k), ficouUid: outro })
+        }
+      }
+    }, 5000)
+    return () => clearInterval(iv)
+  }, [state.onlineMode, state.isHost, state.duplasMode])
 
   // Cronômetro da cerimônia: quando os 45s pra olhar os times acabam, começa
   // o campeonato sozinho. Vale solo e online; no online qualquer cliente pode
