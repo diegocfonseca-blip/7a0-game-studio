@@ -1,6 +1,36 @@
 # 📌 Pendências combinadas com o Diego (atualizado 08/08/2026)
 
-## 🤝 DUPLA — NO AR (08/08) ✅
+## 🤝 DUPLA — NO AR (08/08) ✅ — ajustes da 1ª sala real de duplas
+Diego testou com a galera e foram vários acertos no mesmo dia (todos na main,
+cada um em commit próprio e revertível):
+- **Vaga nasce ABERTA**; só o 🔒 cadeado fecha. "Me esperem" foi cortado ("é a
+  mesma coisa que qualquer um"). Botão único põe/tira o cadeado.
+- **Sem "jogar sozinho"** dentro da sala de duplas ("tem q ter dupla").
+- **Trava do host = 2 duplas fechadas, só isso.** Quem sobrar sem parceiro NÃO
+  segura a sala (com gente ímpar ela nunca abriria) — entra com o time dele.
+- **Nome do time da dupla**: campo na sala de espera (qualquer um dos dois
+  escreve); em branco vira `Neymarzetti|Alfacehh` — formato escolhido pelo Diego,
+  sem espaços em volta do risco. Coluna nova `dupla_name` (aditiva).
+- **Chat**: os dois dividem o MESMO técnico, então falavam com nome idêntico.
+  Quem está em dupla passa a falar com o próprio nome.
+- **Parceiro que CAI** (não sai pelo botão) travava o time pra sempre. Presença
+  agora carrega o crachá; o host libera sozinho após 25s fora (25s de propósito:
+  trocar de app derruba a conexão por segundos e perder o foco não pode liberar)
+  + botão "Fulano caiu — assumir o time" no leilão e no monte.
+- **Novo pregão**: os DOIS da dupla confirmam (antes o 1º clique decidia pelos
+  dois) e a dupla CONTINUA junta, com a mesma divisão e o mesmo nome. ⚠️ Achado
+  ao conferir: o redraft RENUMERA os técnicos, então as duplas tiveram que ser
+  remapeadas — sem isso, se alguém saísse, a dupla caía no time de OUTRO.
+- **Lista de salas**: selo roxo 🤝 DUPLAS + contagem em pessoas. (O flag também
+  passou a vir na lista magra e a sala de espera pergunta direto ao banco — a
+  falta disso foi o "não aparece o botão de duplas".)
+- **✕ do host** num time de dupla deixava o parceiro pendurado sem time
+  (família do "virei bot"): agora ele é solto antes e vira time próprio.
+- ⏸️ **DECIDIDO ADIAR** (Diego, 08/08): time de dupla NÃO leva selo de tier
+  (👑/⭐) — "deixe com os nomes deles mesmo por enquanto". Cada um continua vendo
+  a própria cor na tela dele; o time fica neutro. Rever se ele pedir.
+
+## 🤝 DUPLA — como nasceu (08/08) ✅
 Diego mandou "Faz. O modo da dupla aí cara", viu o mockup
 (`scratchpad/dupla-telas.png`) e aprovou ("Pode fazer. Publicar"). Feito ponta a
 ponta **só no Rápido Online**, tudo atrás do toggle da sala.

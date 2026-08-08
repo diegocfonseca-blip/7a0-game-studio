@@ -839,7 +839,7 @@ export function EscLobby() {
         const par = sorted.find(x => x.dupla_partner_of === p.user_id && x.user_id !== p.user_id)
         if (!par) return p.manager_name
         const corta = (n: string) => { const c = n.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2B00}-\u{2BFF}]/gu, '').trim(); return c.length > 11 ? c.slice(0, 11).trim() : c }
-        return (p.dupla_name || `${corta(p.manager_name)} | ${corta(par.manager_name)}`)
+        return (p.dupla_name || `${corta(p.manager_name)}|${corta(par.manager_name)}`)
       }),
       duplasMode, duplas: duplasMode ? duplas : undefined, youUid: user.id,
       formation: gs?.formation ?? '4-3-3',
@@ -1290,7 +1290,7 @@ export function EscLobby() {
   // placar, na tabela e no escudo sem virar uma linha gigante.
   function nomeAutoDupla(a: string, b: string) {
     const corta = (n: string) => { const c = stripEmoji(n).trim(); return c.length > 11 ? c.slice(0, 11).trim() : c }
-    return `${corta(a)} | ${corta(b)}`
+    return `${corta(a)}|${corta(b)}`
   }
   // grava o nome que a dupla escolheu (vazio = volta pro automático)
   async function salvarNomeDupla(donoUid: string, nome: string) {
