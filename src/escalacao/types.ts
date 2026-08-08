@@ -31,6 +31,30 @@ export interface DuplaSeat {
   soloUid?: string
 }
 
+// ✋ Tocar numa categoria na tela de dividir. Mesma regra usada na SALA DE
+// ESPERA (que grava direto no banco) e dentro do JOGO (reducer) — de novo uma
+// função só, pra não existirem duas versões da regra que possam discordar.
+// Devolve a divisão nova, ou `null` quando o toque não vale (categoria já é do
+// parceiro, ou você já está com as suas 3).
+export function duplaToggleCat(
+  cats: Partial<Record<DuplaCat, string>> | undefined,
+  cat: DuplaCat, uid: string, outroUid: string,
+): Partial<Record<DuplaCat, string>> | null {
+  const n = { ...(cats ?? {}) }
+  const dono = n[cat]
+  if (dono === uid) delete n[cat]        // soltei a minha (dá pra mudar de ideia)
+  else if (dono) return null             // já é do parceiro: quem tocou primeiro levou
+  else {
+    if (DUPLA_CATS.filter(c => n[c] === uid).length >= 3) return null // teto de 3
+    n[cat] = uid
+  }
+  // fechou as 3? as outras 3 caem AUTOMÁTICO pro parceiro (ninguém confirma nada)
+  if (DUPLA_CATS.filter(c => n[c] === uid).length === 3) {
+    for (const c of DUPLA_CATS) if (!n[c]) n[c] = outroUid
+  }
+  return n
+}
+
 // ⚖️ A REGRA ÚNICA da dupla — usada pela TELA (pra mostrar 🔒) e pelo HOST (pra
 // recusar de verdade). Ter UMA função só é de propósito: se tela e host usassem
 // regras separadas, elas poderiam discordar — e é exatamente aí que nascem os

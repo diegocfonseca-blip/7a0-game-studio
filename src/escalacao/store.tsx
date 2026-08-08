@@ -6,7 +6,7 @@ import type {
   QuickCopaState, QuickCopaTie, LedgerEntry, EmpCard, AgCard, AgEvento,
   EventoAtivo, EventoManchete, DuplaSeat, DuplaCat,
 } from './types'
-import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir } from './types'
+import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName } from './data'
 import { stripEmoji } from './apoio'
@@ -3547,21 +3547,9 @@ export function reducer(state: EscState, action: Action): EscState {
       const d = s.duplas?.[action.mgrId]
       if (!d || !d.partnerUid) return s
       if (action.uid !== d.ownerUid && action.uid !== d.partnerUid) return s // não é da dupla: ignora
-      if (s.screen !== 'lobby' && s.screen !== 'streamIntro') { /* pode dividir na espera e na tela de regras */ }
-      const cats = { ...(d.cats ?? {}) }
-      const meu = cats[action.cat]
-      if (meu === action.uid) delete cats[action.cat] // soltei a minha
-      else if (meu) return s // já é do parceiro — quem tocou primeiro levou
-      else {
-        const jaTenho = DUPLA_CATS.filter(c => cats[c] === action.uid).length
-        if (jaTenho >= 3) return s // teto de 3 por pessoa
-        cats[action.cat] = action.uid
-      }
-      // fechou 3? o resto cai automático pro parceiro
       const outro = action.uid === d.ownerUid ? d.partnerUid : d.ownerUid
-      if (DUPLA_CATS.filter(c => cats[c] === action.uid).length === 3) {
-        for (const c of DUPLA_CATS) if (!cats[c]) cats[c] = outro
-      }
+      const cats = duplaToggleCat(d.cats, action.cat, action.uid, outro)
+      if (!cats) return s // toque não vale (já é do parceiro / já tenho as minhas 3)
       s.duplas = { ...s.duplas, [action.mgrId]: { ...d, cats } }
       return s
     }
@@ -5787,7 +5775,16 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // isHuman); o host pode excluir esse rival depois no "gerenciar técnicos".
     const inGame = ['auction', 'monte', 'cerimonia', 'season'].includes(st.screen)
     if (onlineRef.current === 'online' && !isHostRef.current && rid && inGame) {
-      channelRef.current?.send({ type: 'broadcast', event: 'action', payload: { type: 'KICK_PLAYER', playerIndex: st.youIdx } })
+      // 🤝 DUPLA: se eu jogava de dois, o time NÃO vira CPU — seria injusto com
+      // quem ficou. Em vez do KICK_PLAYER, aviso que ele assume TODAS as
+      // categorias (senão metade dos setores ficaria sem quem lacra).
+      const dp = st.duplas?.[st.managers[st.youIdx]?.id ?? st.youIdx]
+      const ficou = dp && dp.partnerUid && (st.youUid === dp.ownerUid ? dp.partnerUid : st.youUid === dp.partnerUid ? dp.ownerUid : null)
+      if (ficou) {
+        channelRef.current?.send({ type: 'broadcast', event: 'action', payload: { type: 'DUPLA_SOLO', mgrId: st.managers[st.youIdx]?.id ?? st.youIdx, ficouUid: ficou } })
+      } else {
+        channelRef.current?.send({ type: 'broadcast', event: 'action', payload: { type: 'KICK_PLAYER', playerIndex: st.youIdx } })
+      }
       await new Promise(r => setTimeout(r, 150)) // deixa o aviso sair antes do canal cair
     }
     // trava local: saí de propósito → não deixa o banner "voltar pra sala"

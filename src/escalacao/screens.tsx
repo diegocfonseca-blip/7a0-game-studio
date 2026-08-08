@@ -2,7 +2,7 @@ import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
-import { FORMATIONS, SECTORS } from './types'
+import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
 import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, MAX_CAREER_SLOTS, syncCareersWithCloud } from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, playWhistle, startCrowd, stopCrowd } from './sound'
@@ -2168,7 +2168,15 @@ function Envelope() {
   const pendingBidsRef = useRef<{ cardId: string; amount: number }[]>([])
   const total = Object.values(bids).reduce((s, v) => s + v, 0)
   const myOpen = openSlots(you, pos)
-  const canBid = myOpen > 0 && you.money > 0
+  // 🤝 DUPLA: nesta leva (um setor por vez) quem lacra pelo time é SÓ quem manda
+  // na categoria. O parceiro vê as MESMAS cartas — nunca escondemos informação —
+  // mas sem os controles. Na leva seguinte os papéis podem inverter.
+  const minhaVez = duplaPodeAgir(state.duplas, you.id, pos, state.youUid)
+  const duplaDaVez = state.duplas?.[you.id]
+  const quemDecide = !minhaVez && duplaDaVez
+    ? (duplaDaVez.cats?.[pos] === duplaDaVez.ownerUid ? duplaDaVez.ownerName : duplaDaVez.partnerName)
+    : null
+  const canBid = myOpen > 0 && you.money > 0 && minhaVez
   const online = state.onlineMode === 'online'
   const iSubmitted = state.submitted.includes(you.id)
   const humanBidders = state.managers.filter(m => m.isHuman && openSlots(m, pos) > 0 && m.money > 0)
@@ -2191,7 +2199,7 @@ function Envelope() {
     const payload = Object.entries(bids).map(([cardId, amount]) => ({ cardId, amount }))
     pendingBidsRef.current = payload
     setPending(true)
-    dispatch({ type: 'SUBMIT_ENVELOPE', mgrId: you.id, bids: payload })
+    dispatch({ type: 'SUBMIT_ENVELOPE', mgrId: you.id, bids: payload, by: state.youUid })
   }
 
   // confirmação chegou (o host aplicou e devolveu o estado): só agora limpa
@@ -2206,7 +2214,7 @@ function Envelope() {
   useEffect(() => {
     if (!online || !pending || iSubmitted) return
     const iv = setInterval(() => {
-      dispatch({ type: 'SUBMIT_ENVELOPE', mgrId: you.id, bids: pendingBidsRef.current })
+      dispatch({ type: 'SUBMIT_ENVELOPE', mgrId: you.id, bids: pendingBidsRef.current, by: state.youUid })
     }, 4000)
     return () => clearInterval(iv)
   }, [online, pending, iSubmitted, dispatch, you.id])
@@ -2221,13 +2229,18 @@ function Envelope() {
     // ⚠️ SÓ no ENVELOPE: este efeito não pode tocar na REVELAÇÃO/monte (senão fica
     // disparando FORCE_SEAL à toa e atrapalha o avanço da revelação).
     if (state.phase !== 'envelope' && state.phase !== 'resq_envelope') return
+    // 🤝 DUPLA: quem NÃO é da vez não lacra nem no estouro do tempo — o host
+    // recusaria e este aparelho ficaria preso no "ENVIANDO…". Quem fecha a leva
+    // é o FORCE_SEAL logo abaixo, que vale pra mesa inteira e não deixa o jogo
+    // parar nem se o dono da posição tiver sumido (regra de ouro: nada atrasa).
+    if (!minhaVez) { dispatch({ type: 'FORCE_SEAL' }); return }
     if (!iSubmitted && !pending) { seal(); return }
     // 🏛️ SOLO PRESO: já lacrei (ou não posso lançar) e o envelope NÃO resolveu — é o
     // leilão travado no "TEMPO 0s". FORCE_SEAL fecha os que faltam (no solo = só o MEU
     // assento) e resolve. No jogo normal o seal() acima já resolveu antes.
     if (!online) dispatch({ type: 'FORCE_SEAL' })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remaining, iSubmitted, pending, online, state.phase])
+  }, [remaining, iSubmitted, pending, online, state.phase, minhaVez])
 
   // já lacrei, ou enviei e tô esperando o host confirmar (online)
   if (online && (iSubmitted || pending)) {
@@ -2403,8 +2416,17 @@ function Envelope() {
       </div>
 
       {!canBid && (
-        <Box bg="#FFE9B0" className="p-3">
-          <p className="text-sm font-bold text-black">{myOpen === 0 ? 'Setor completo — você só assiste esta rodada.' : 'Sem dinheiro — resta torcer pelo Monte Final.'}</p>
+        <Box bg={!minhaVez ? '#EDE4FF' : '#FFE9B0'} className="p-3">
+          {!minhaVez ? (
+            <>
+              <p className="text-sm font-black text-black" style={OSWALD}>🔒 Quem decide {secLabel(sport, pos, lang).toUpperCase()} é {quemDecide ? stripEmoji(quemDecide).trim() : 'seu parceiro'}</p>
+              <p className="text-[12px] font-bold text-black/65 leading-snug mt-0.5">
+                ⏳ Você vê as mesmas cartas, mas nesta leva quem lacra é ele. Na leva da SUA posição é você que manda — e aí ele é que só assiste.
+              </p>
+            </>
+          ) : (
+            <p className="text-sm font-bold text-black">{myOpen === 0 ? 'Setor completo — você só assiste esta rodada.' : 'Sem dinheiro — resta torcer pelo Monte Final.'}</p>
+          )}
         </Box>
       )}
 
@@ -2526,12 +2548,14 @@ function Envelope() {
           </button>
         </Box>
       )}
+      {minhaVez && (
       <Box bg="#fff" className="p-3 flex items-center justify-between">
         <p className="font-black text-black" style={OSWALD}>{L('ENVELOPE', 'ENVELOPE')}: {state.streamMode && !peek ? '🔒' : total} / {you.money}</p>
         <Btn onClick={seal} bg={RED}>
           <span className="text-white">{L('LACRAR', 'SEAL')} 🔒</span>
         </Btn>
       </Box>
+      )}
       {online && waitingFor.length > 0 && (
         <p className="text-center text-xs font-bold text-black/60">Faltam lacrar: {waitingFor.map(m => m.teamName).join(', ')}</p>
       )}
@@ -3160,6 +3184,8 @@ export function EscMonte() {
   const { state, dispatch, emote } = useEsc()
   const you = state.managers[state.youIdx]
   const isYourTurn = state.monteOrder[state.monteIdx] === you.id && totalHoles(you) > 0
+  // 🤝 DUPLA: dentro da vez do time, só quem ficou com a categoria MONTE decide
+  const monteMinhaVez = duplaPodeAgir(state.duplas, you.id, 'MONTE', state.youUid)
   // esconde o que está reservado pro dono (prioridade); afford fica no botão
   const valid = state.monte.filter(c => openSlots(you, c.pos) > 0 && !monteLocked(state, you, c))
   const online = state.onlineMode === 'online'
@@ -3193,7 +3219,19 @@ export function EscMonte() {
             : <>Estourou o tempo (foi ao banheiro?), o jogo escolhe a pior sobra pra você e cobra 5 moedas de multa.</>}
         </p>
       )}
-      {isYourTurn ? (
+      {/* 🤝 DUPLA: o Monte é categoria própria — na vez do time, quem pega a sobra
+          é só quem ficou com ele. O parceiro vê as mesmas cartas e assiste. */}
+      {isYourTurn && !monteMinhaVez && (() => {
+        const dp = state.duplas?.[you.id]
+        const dono = dp && (dp.cats?.MONTE === dp.ownerUid ? dp.ownerName : dp.partnerName)
+        return (
+          <Box bg="#EDE4FF" className="p-3">
+            <p className="font-black text-black" style={OSWALD}>🔒 O Monte é do {dono ? stripEmoji(dono).trim() : 'seu parceiro'}</p>
+            <p className="text-[12px] font-bold text-black/65 leading-snug mt-0.5">⏳ É a vez do seu time, mas quem escolhe a sobra é ele. Você acompanha daqui.</p>
+          </Box>
+        )
+      })()}
+      {isYourTurn && monteMinhaVez ? (
         <div className="space-y-2">
           <Box bg={remaining !== null && remaining <= 5 ? RED : GOLD} className="p-3">
             <p className="font-black text-center" style={{ ...OSWALD, color: remaining !== null && remaining <= 5 ? '#fff' : INK }}>
@@ -3221,7 +3259,7 @@ export function EscMonte() {
                     <br /><span className="text-[8px] font-bold uppercase" style={{ color: afford ? 'rgba(0,0,0,0.5)' : RED }}>pague sem leilão</span>
                   </span>
                 )}
-                <Btn onClick={() => afford && dispatch({ type: 'MONTE_PICK', mgrId: you.id, cardId: c.id })} bg={paidCard ? GOLD : GREEN} disabled={!afford}>
+                <Btn onClick={() => afford && dispatch({ type: 'MONTE_PICK', mgrId: you.id, cardId: c.id, by: state.youUid })} bg={paidCard ? GOLD : GREEN} disabled={!afford}>
                   <span style={{ color: paidCard ? INK : '#fff' }}>{paidCard ? (afford ? `PAGAR ${val}` : 'SEM CAIXA') : 'PEGAR'}</span>
                 </Btn>
               </div>
@@ -3234,7 +3272,7 @@ export function EscMonte() {
             return !(state.careerOnline && val > 0 && !own) || you.money >= val
           }).length === 0 ? (
             <>
-              <button onClick={() => dispatch({ type: 'MONTE_PASS', mgrId: you.id })}
+              <button onClick={() => dispatch({ type: 'MONTE_PASS', mgrId: you.id, by: state.youUid })}
                 className="w-full rounded-xl border-[3px] border-black bg-white font-black text-sm py-3 active:translate-y-0.5"
                 style={{ color: '#B23B2E', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
                 🙅 PASSAR A VEZ — não quero nenhuma sobra

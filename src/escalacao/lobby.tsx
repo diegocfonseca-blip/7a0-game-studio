@@ -9,7 +9,8 @@ import { isMuted } from './sound'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { DIVISION_TEAMS } from './data'
-import type { EscState, FormationKey } from './types'
+import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
+import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 
 // A Escalação usa as mesmas tabelas do Draft (game_rooms/room_players).
 // Marcamos a sala como nossa via game_state.__game pra não colidir com o Draft.
@@ -19,7 +20,7 @@ const MAX_PLAYERS = 20 // a tabela sempre tem 20 times; os que faltam viram bots
 type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'
 
-interface RoomPlayer { user_id: string; manager_name: string; player_index: number }
+interface RoomPlayer { user_id: string; manager_name: string; player_index: number; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_seek?: 'aberta' | 'privada' | null }
 // 💬 mensagem do chat da sala de espera (uid = quem mandou, pra saber o "meu")
 interface LobbyMsg { id: string; uid: string; name: string; text: string }
 // 🎈 reação que FLUTUA (sobe e some) na sala de espera — NÃO entra no chat.
@@ -406,6 +407,11 @@ export function EscLobby() {
 
   const canCareer = useCanCareerOnline()
   const [roomMode, setRoomMode] = useState<'rapido' | 'carreira'>('rapido')
+  // 🤝 DUPLAS (beta): 2 pessoas dividindo o comando de UM time. Escolha da SALA,
+  // na criação — sala Solo é a de sempre e não muda em nada. Por enquanto só no
+  // Rápido: a Carreira online tem caixa/temporada por técnico e merece um passo
+  // próprio depois que as duplas rodarem no pregão.
+  const [roomDuplas, setRoomDuplas] = useState(false)
   const careerDeck: DeckChoice = 'both' // carreira: sempre BR + Europa juntos (preenche os 80 times das 4 divisões)
   const [rapidoDeck, setRapidoDeck] = useState<DeckChoice>('br') // rápido online: host escolhe o baralho (BR / Europa / os dois)
   const [rapidoVarzea, setRapidoVarzea] = useState(false) // 🥅 rápido online + BR: categoria "Sem craques" (várzea) — só bom jogador + foi profissional
@@ -777,6 +783,7 @@ export function EscLobby() {
         state: gs as EscState,
         roomId: roomData.id, roomCode: roomData.code,
         isHost: amHost, playerIndex: myPl.player_index,
+        youUid: user.id, // 🤝 crachá da dupla (local a este aparelho)
       })
       return true
     }
@@ -787,8 +794,28 @@ export function EscLobby() {
     // pelo índice cru do banco. Assim ninguém vira dois times nem "veste" o assento
     // errado. No caso normal (host já limpou) isto não muda nada.
     const seenU = new Set<string>()
-    const uniq = sorted.filter(p => (seenU.has(p.user_id) ? false : (seenU.add(p.user_id), true)))
-    const myPos = uniq.findIndex(p => p.user_id === user.id)
+    // 🤝 DUPLA: só quem é DONO de assento vira time. A linha do parceiro é carona
+    // (ela tem dupla_partner_of) e não pode entrar na contagem de técnicos, senão
+    // a lista de nomes desalinha e todo mundo pega o time do vizinho.
+    const donos = sorted.filter(p => !p.dupla_partner_of)
+    const uniq = donos.filter(p => (seenU.has(p.user_id) ? false : (seenU.add(p.user_id), true)))
+    // se EU sou o parceiro, meu assento é o do meu dono (o time é o mesmo)
+    const meuDonoUid = myPl.dupla_partner_of || user.id
+    const myPos = uniq.findIndex(p => p.user_id === meuDonoUid)
+    // monta o mapa das duplas na chave que o jogo usa: a POSIÇÃO na lista, que é
+    // exatamente o id do técnico humano montado pelo motor.
+    const duplasMode = !!(gs as GS & { duplasMode?: boolean })?.duplasMode
+    const duplas: Record<number, DuplaSeat> = {}
+    if (duplasMode) {
+      uniq.forEach((dono, i) => {
+        const par = sorted.find(p => p.dupla_partner_of === dono.user_id)
+        duplas[i] = {
+          ownerUid: dono.user_id, ownerName: dono.manager_name,
+          ...(par ? { partnerUid: par.user_id, partnerName: par.manager_name } : {}),
+          ...(dono.dupla_categories ? { cats: dono.dupla_categories as DuplaSeat['cats'] } : {}),
+        }
+      })
+    }
     dispatch({
       type: 'START_ONLINE',
       roomId: roomData.id, roomCode: roomData.code,
@@ -796,6 +823,7 @@ export function EscLobby() {
       isHost: amHost,
       playerIndex: myPos >= 0 ? myPos : myPl.player_index,
       playerNames: uniq.map(p => p.manager_name),
+      duplasMode, duplas: duplasMode ? duplas : undefined, youUid: user.id,
       formation: gs?.formation ?? '4-3-3',
       stream: !!gs?.stream,
       manual: !!gs?.manual, // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)
@@ -944,9 +972,9 @@ export function EscLobby() {
     const locked = roomLocked && !!roomPw.trim()
     const pwHash = locked ? hashPw(roomPw.trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, copaMode: rapidoCopaMode, ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(canLiga && ligaFechada ? { ligaFechada: true } : {}) }) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, copaMode: rapidoCopaMode, ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(canLiga && ligaFechada ? { ligaFechada: true } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
-      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: MAX_PLAYERS, game_state: gs })
+      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas ? MAX_PLAYERS * 2 : MAX_PLAYERS, game_state: gs })
       .select().single()
     if (re || !rd) {
       // 🔎 mostra a CAUSA real (antes era só "Erro ao criar sala." e a gente ficava no
@@ -1168,7 +1196,19 @@ export function EscLobby() {
   }
 
   async function startOnline() {
-    if (!room || !isHost || players.length < 2) return
+    if (!room || !isHost) return
+    // trava do início: sala normal = 2 técnicos; sala de duplas = a regra do
+    // bloco de cima (nenhuma vaga esperando parceiro + 1 dupla completa).
+    const duplasSala = !!(room.game_state as GS & { duplasMode?: boolean })?.duplasMode
+    if (!duplasSala && players.length < 2) return
+    if (duplasSala) {
+      // cinto e suspensório: o botão já fica apagado, mas a regra é re-checada
+      // aqui também — ninguém começa com alguém pendurado esperando parceiro.
+      const dn = players.filter(p => !p.dupla_partner_of)
+      const temPar = (uid: string) => players.some(p => p.dupla_partner_of === uid)
+      if (dn.some(d => !!d.dupla_seek && !temPar(d.user_id))) return
+      if (!dn.some(d => temPar(d.user_id))) return
+    }
     // LIMPA as vagas ANTES de começar (o jogo monta os times pela POSIÇÃO na lista):
     // (1) DEDUPLICA por usuário. Se o mesmo técnico ficou com DUAS vagas (leitura
     //     atrasada na entrada deixou passar), ele viraria DOIS times — um "fantasma"
@@ -1176,19 +1216,25 @@ export function EscLobby() {
     //     aparece e também diz 'eu'"). Mantém a vaga de menor índice e apaga o resto.
     // (2) RENUMERA pra 0..n-1. Buraco na numeração (0,1,3,4) fazia jogador procurar
     //     um time que não existe e ser devolvido pra tela inicial.
-    const { data: pls } = await supabase.from('room_players').select('user_id, player_index').eq('room_id', room.id).order('player_index')
-    const rows = (pls ?? []) as { user_id: string; player_index: number }[]
+    const { data: pls } = await supabase.from('room_players').select('user_id, player_index, dupla_partner_of').eq('room_id', room.id).order('player_index')
+    const allRows = (pls ?? []) as { user_id: string; player_index: number; dupla_partner_of?: string | null }[]
+    // 🤝 DUPLA: a linha do PARCEIRO é carona no assento do dono — não é time.
+    // Ela fica FORA da deduplicação e da renumeração; se entrasse, viraria um
+    // time fantasma (exatamente o bug do "virei bot" que já aconteceu antes).
+    const rows = allRows.filter(r => !r.dupla_partner_of)
     const seen = new Set<string>()
     const keep: { user_id: string; player_index: number }[] = []
     for (const r of rows) {
       if (seen.has(r.user_id)) {
         // vaga repetida do MESMO técnico → apaga (pelo índice, que é único na sala)
-        await supabase.from('room_players').delete().eq('room_id', room.id).eq('player_index', r.player_index).then(() => {}, () => {})
+        await supabase.from('room_players').delete().eq('room_id', room.id).eq('user_id', r.user_id).then(() => {}, () => {})
       } else { seen.add(r.user_id); keep.push(r) }
     }
     for (let i = 0; i < keep.length; i++) {
       if (keep[i].player_index !== i) {
-        await supabase.from('room_players').update({ player_index: i }).eq('room_id', room.id).eq('player_index', keep[i].player_index).then(() => {}, () => {})
+        // mira o USER_ID (único de verdade): com parceiro carona, dois registros
+        // podem compartilhar o mesmo player_index e o update pegaria o errado.
+        await supabase.from('room_players').update({ player_index: i }).eq('room_id', room.id).eq('user_id', keep[i].user_id).then(() => {}, () => {})
       }
     }
     await supabase.from('game_rooms').update({ status: 'started' }).eq('id', room.id)
@@ -1207,6 +1253,64 @@ export function EscLobby() {
     clearSavedRoom()
     setRoom(null); setPlayers([]); setPhase('menu')
   }
+  // ── 🤝 DUPLAS: formar/desfazer dupla na sala de espera ──────────────────
+  // Tudo aqui mexe SÓ nas 3 colunas novas de room_players (opcionais). Sala que
+  // não é de duplas nunca chama nenhuma destas funções.
+  // "Procuro parceiro": deixa a minha vaga visível pra sala (aberta) ou
+  // reservada pra um amigo que já vem (privada).
+  async function procurarParceiro(seek: 'aberta' | 'privada') {
+    if (!room || !user) return
+    await supabase.from('room_players').update({ dupla_seek: seek }).eq('room_id', room.id).eq('user_id', user.id)
+    fetchPlayers(room.id)
+  }
+  // "Desistir de esperar": volto a ser um time solo e destravo o início do host.
+  async function desistirDeEsperar() {
+    if (!room || !user) return
+    await supabase.from('room_players').update({ dupla_seek: null }).eq('room_id', room.id).eq('user_id', user.id)
+    fetchPlayers(room.id)
+  }
+  // Toquei numa vaga "procurando parceiro": largo o MEU assento e viro carona no
+  // time dessa pessoa. Sem convite e sem aceitar — igual escolher vaga livre.
+  async function virarParceiro(dono: RoomPlayer) {
+    if (!room || !user || dono.user_id === user.id) return
+    // 🔒 confere no banco AGORA se a vaga ainda está livre: dois podem tocar no
+    // mesmo segundo e o segundo não pode virar um terceiro na mesma dupla.
+    const { data: fresh } = await supabase.from('room_players').select('user_id, dupla_partner_of, dupla_seek').eq('room_id', room.id)
+    const rows = (fresh ?? []) as { user_id: string; dupla_partner_of?: string | null; dupla_seek?: string | null }[]
+    if (rows.some(r => r.dupla_partner_of === dono.user_id)) { setRoomError('😅 Alguém pegou essa vaga um segundinho antes de você.'); fetchPlayers(room.id); return }
+    const eu = rows.find(r => r.user_id === user.id)
+    if (eu?.dupla_partner_of) return // já sou parceiro de alguém
+    await supabase.from('room_players').update({ dupla_partner_of: dono.user_id, dupla_seek: null }).eq('room_id', room.id).eq('user_id', user.id)
+    await supabase.from('room_players').update({ dupla_seek: null }).eq('room_id', room.id).eq('user_id', dono.user_id)
+    fetchPlayers(room.id)
+  }
+  // "Sair da dupla": volto a ter meu próprio time (o assento nunca foi dado a
+  // ninguém — a linha continuou minha o tempo todo, só marcada como carona).
+  async function desfazerDupla() {
+    if (!room || !user) return
+    await supabase.from('room_players').update({ dupla_partner_of: null, dupla_categories: null }).eq('room_id', room.id).eq('user_id', user.id)
+    fetchPlayers(room.id)
+  }
+
+  // ✋ Dividir as 6 posições (3 pra cada). Grava na linha do DONO do assento —
+  // é ela que o início da partida lê pra montar a dupla. Usa a MESMA função do
+  // jogo (duplaToggleCat), então tela e motor nunca discordam.
+  async function tocarCategoria(dono: RoomPlayer, cat: DuplaCat) {
+    if (!room || !user) return
+    const par = players.find(p => p.dupla_partner_of === dono.user_id)
+    if (!par) return
+    if (user.id !== dono.user_id && user.id !== par.user_id) return // não é da dupla
+    const outro = user.id === dono.user_id ? par.user_id : dono.user_id
+    // relê do banco antes de gravar: os dois podem tocar quase junto e quem
+    // chegou primeiro tem que ganhar de verdade, não só na tela.
+    const { data: fresh } = await supabase.from('room_players').select('dupla_categories').eq('room_id', room.id).eq('user_id', dono.user_id).maybeSingle()
+    const atual = (fresh?.dupla_categories ?? undefined) as Partial<Record<DuplaCat, string>> | undefined
+    const novo = duplaToggleCat(atual, cat, user.id, outro)
+    if (!novo) { fetchPlayers(room.id); return } // toque não valeu
+    await supabase.from('room_players').update({ dupla_categories: novo }).eq('room_id', room.id).eq('user_id', dono.user_id)
+    fetchPlayers(room.id)
+  }
+
   // host remove um técnico da sala de espera (antes de abrir o pregão): apaga
   // a vaga dele. O cliente removido percebe pela realtime que sumiu da lista e
   // volta sozinho pro menu (efeito abaixo).
@@ -1422,6 +1526,19 @@ export function EscLobby() {
                 {!canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
               </p>
             </div>
+            {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto */}
+            {!isCareer && (
+              <div>
+                <SegField label="Quem comanda cada time">
+                  <Seg options={[[false, '👤 Solo'], [true, '🤝 Duplas (beta)']] as [boolean, string][]} value={roomDuplas} onSet={v => setRoomDuplas(v)} />
+                </SegField>
+                <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
+                  {roomDuplas
+                    ? '🤝 Dá pra jogar de dois no MESMO time: um cuida de 3 posições, o outro das outras 3. Cabem 20 times, ou seja até 40 pessoas.'
+                    : '👤 Cada pessoa comanda o próprio time — do jeito de sempre.'}
+                </p>
+              </div>
+            )}
             <Field label="Nome da sala" value={roomName} onChange={e => setRoomName(stripEmoji(e.target.value))} placeholder={`Sala do ${nameOf()}`} maxLength={24} />
             {isCareer ? (
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
@@ -1699,7 +1816,24 @@ export function EscLobby() {
   }
 
   if (phase === 'waiting' && room) {
-    const ready = players.length >= 2
+    // 🤝 DUPLAS — quem é DONO de assento é time; quem tem dupla_partner_of é
+    // carona no time do dono. Tudo isto só existe em sala criada no modo Duplas.
+    const duplasOn = !!(room.game_state as GS & { duplasMode?: boolean })?.duplasMode
+    const donos = duplasOn ? players.filter(p => !p.dupla_partner_of) : players
+    const parceiroDe = (uid: string) => players.find(p => p.dupla_partner_of === uid)
+    const meuRow = players.find(p => p.user_id === user?.id)
+    const souParceiro = !!meuRow?.dupla_partner_of
+    // vaga de dupla INCOMPLETA (marcou que procura e ninguém chegou) TRAVA o
+    // início: não é justo começar e a pessoa ficar sozinha sem querer.
+    const esperando = duplasOn ? donos.filter(d => !!d.dupla_seek && !parceiroDe(d.user_id)) : []
+    // mínimo do modo duplas: pelo menos UMA dupla completa (2 pessoas)
+    const duplasCompletas = duplasOn ? donos.filter(d => !!parceiroDe(d.user_id)).length : 0
+    const ready = duplasOn
+      ? (duplasCompletas >= 1 && esperando.length === 0)
+      : players.length >= 2
+    const travaMsg = !duplasOn ? '' : esperando.length > 0
+      ? `⏳ ${esperando.length === 1 ? 'Uma vaga está' : `${esperando.length} vagas estão`} esperando parceiro. Quem está esperando pode tocar em "Desistir de esperar" pra jogar sozinho — aí o pregão abre.`
+      : duplasCompletas < 1 ? '🤝 Precisa de pelo menos uma dupla formada (2 pessoas no mesmo time) pra abrir o pregão.' : ''
     const chatOff = !!room.game_state?.chatOff // host desligou o chat na criação
     return wrap(<>
       <div className="text-center">
@@ -1734,27 +1868,122 @@ export function EscLobby() {
       </div>
 
       <div className="border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
-        <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-3">Técnicos ({players.length}/{room.max_players})</p>
+        <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-3">
+          {duplasOn ? `Times (${donos.length}/20) · ${players.length} ${players.length === 1 ? 'pessoa' : 'pessoas'}` : `Técnicos (${players.length}/${room.max_players})`}
+        </p>
         <div className="space-y-2">
-          {players.map(p => (
-            <div key={p.user_id} className="flex items-center gap-3">
-              {(() => { const pk = perkFromName(p.manager_name) ?? APOIO_PERKS.bege; return (
-                <div className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center text-sm font-black"
-                  style={{ background: pk.grad, position: 'relative', overflow: 'hidden', color: '#0C0C0C' }}>
-                  <span style={{ position: 'relative', zIndex: 2 }}>{stripEmoji(p.manager_name).trim()[0]?.toUpperCase()}</span>
-                  {pk.holo > 0 && <ApoioSheen holo={pk.holo} dur={2.6} />}
+          {donos.map(p => {
+            const par = duplasOn ? parceiroDe(p.user_id) : undefined
+            const souEu = p.user_id === user?.id
+            const procurando = duplasOn && !!p.dupla_seek && !par
+            // posso virar parceiro desta vaga? só em vaga ABERTA, que não é minha,
+            // e se eu ainda não estiver em dupla nenhuma.
+            const posso = duplasOn && procurando && !souEu && p.dupla_seek === 'aberta' && !souParceiro && !parceiroDe(user?.id ?? '')
+            return (
+            <div key={p.user_id} className={duplasOn ? 'rounded-xl border-2 border-black/15 p-2' : ''} style={duplasOn ? { background: '#fff' } : undefined}>
+              <div className="flex items-center gap-3">
+                {(() => { const pk = perkFromName(p.manager_name) ?? APOIO_PERKS.bege; return (
+                  <div className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center text-sm font-black"
+                    style={{ background: pk.grad, position: 'relative', overflow: 'hidden', color: '#0C0C0C' }}>
+                    <span style={{ position: 'relative', zIndex: 2 }}>{stripEmoji(p.manager_name).trim()[0]?.toUpperCase()}</span>
+                    {pk.holo > 0 && <ApoioSheen holo={pk.holo} dur={2.6} />}
+                  </div>
+                ) })()}
+                <span className="font-black text-black text-sm flex-1">{p.manager_name}</span>
+                {duplasOn && <span className="text-[10px] font-black uppercase border border-black px-2 py-0.5 rounded-full" style={{ background: par ? GREEN : '#e6dcbf', color: par ? '#fff' : 'rgba(0,0,0,.6)' }}>{par ? '2/2 ✅' : '1/2'}</span>}
+                {p.user_id === room.host_id && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full">HOST</span>}
+                {isHost && p.user_id !== user?.id && (
+                  <button onClick={() => kickFromRoom(p)} aria-label={`Remover ${p.manager_name}`}
+                    className="shrink-0 w-6 h-6 rounded-full border border-black/20 text-black/40 font-black text-xs leading-none active:opacity-60"
+                    style={{ background: '#fff' }}>✕</button>
+                )}
+              </div>
+              {/* 🤝 linha do PARCEIRO — mesmo time, embaixo do dono */}
+              {par && (
+                <div className="flex items-center gap-3 mt-1.5 pl-3" style={{ borderLeft: `3px solid ${GREEN}` }}>
+                  <span className="text-sm">🤝</span>
+                  <span className="font-black text-black/75 text-[13px] flex-1">{par.manager_name}</span>
+                  {par.user_id === user?.id && (
+                    <button onClick={desfazerDupla} className="text-[10px] font-black uppercase underline text-black/45 active:opacity-60">Sair da dupla</button>
+                  )}
                 </div>
-              ) })()}
-              <span className="font-black text-black text-sm flex-1">{p.manager_name}</span>
-              {p.user_id === room.host_id && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full">HOST</span>}
-              {isHost && p.user_id !== user?.id && (
-                <button onClick={() => kickFromRoom(p)} aria-label={`Remover ${p.manager_name}`}
-                  className="shrink-0 w-6 h-6 rounded-full border border-black/20 text-black/40 font-black text-xs leading-none active:opacity-60"
-                  style={{ background: '#fff' }}>✕</button>
+              )}
+              {/* ✋ DIVIDIR AS POSIÇÕES — só aparece pra quem É da dupla */}
+              {par && (p.user_id === user?.id || par.user_id === user?.id) && (() => {
+                const cats = (p.dupla_categories ?? {}) as Partial<Record<DuplaCat, string>>
+                const meu = (c: DuplaCat) => cats[c] === user?.id
+                const doOutro = (c: DuplaCat) => !!cats[c] && cats[c] !== user?.id
+                const minhas = DUPLA_CATS.filter(meu).length
+                const nomeDoOutro = stripEmoji(user?.id === p.user_id ? par.manager_name : p.manager_name).trim()
+                const fechou = DUPLA_CATS.every(c => !!cats[c])
+                return (
+                  <div className="mt-2 pt-2" style={{ borderTop: '2px solid rgba(0,0,0,.1)' }}>
+                    <p className="text-black/60 text-[10.5px] font-black uppercase tracking-wide mb-1.5" style={OSWALD}>
+                      ✋ Quem cuida de quê {fechou ? '· dividido ✅' : `· suas ${minhas}/3`}
+                    </p>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {DUPLA_CATS.map(c => (
+                        <button key={c} onClick={() => tocarCategoria(p, c)} disabled={doOutro(c)}
+                          className="border-2 border-black rounded-lg py-1.5 px-1 font-black text-[10.5px] leading-tight active:translate-y-0.5"
+                          style={{
+                            ...OSWALD,
+                            background: meu(c) ? GREEN : doOutro(c) ? '#e6dcbf' : '#fff',
+                            color: meu(c) ? '#fff' : doOutro(c) ? 'rgba(0,0,0,.45)' : '#000',
+                            cursor: doOutro(c) ? 'default' : 'pointer',
+                          }}>
+                          <span style={{ fontSize: 13 }}>{DUPLA_CAT_ICON[c]}</span><br />{DUPLA_CAT_LABEL[c]}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-1.5">
+                      {fechou
+                        ? `Tudo dividido: o verde é seu, o resto é do ${nomeDoOutro}. Na hora do leilão, só quem manda na posição dá o lance.`
+                        : `Toque em 3 posições. As outras 3 ficam automático com o ${nomeDoOutro} — e se vocês não escolherem, o jogo divide sozinho na hora de começar.`}
+                    </p>
+                  </div>
+                )
+              })()}
+              {/* 🤝 vaga procurando parceiro */}
+              {procurando && (
+                <div className="mt-1.5 pl-3" style={{ borderLeft: '3px dashed rgba(0,0,0,.25)' }}>
+                  {posso ? (
+                    <button onClick={() => virarParceiro(p)}
+                      className="w-full border-2 border-black rounded-xl py-2 font-black text-[12px] active:translate-y-0.5"
+                      style={{ background: GOLD, color: '#000', ...OSWALD }}>
+                      🤝 Jogar junto com {stripEmoji(p.manager_name).trim()}
+                    </button>
+                  ) : (
+                    <p className="text-black/45 text-[11.5px] font-bold py-1">
+                      {p.dupla_seek === 'privada' ? '🔒 Esperando um amigo específico…' : '🌍 Procurando parceiro…'}
+                    </p>
+                  )}
+                  {souEu && (
+                    <button onClick={desistirDeEsperar} className="mt-1 text-[10.5px] font-black uppercase underline text-black/45 active:opacity-60">
+                      Desistir de esperar (jogo sozinho)
+                    </button>
+                  )}
+                </div>
+              )}
+              {/* 🤝 é o MEU time, ainda sozinho e sem procurar: convida alguém */}
+              {duplasOn && souEu && !par && !p.dupla_seek && (
+                <div className="mt-1.5 pl-3 flex gap-2" style={{ borderLeft: '3px dashed rgba(0,0,0,.25)' }}>
+                  <button onClick={() => procurarParceiro('aberta')}
+                    className="flex-1 border-2 border-black rounded-xl py-1.5 font-black text-[11px] active:translate-y-0.5"
+                    style={{ background: '#fff', color: '#000', ...OSWALD }}>🌍 Chamar qualquer um</button>
+                  <button onClick={() => procurarParceiro('privada')}
+                    className="flex-1 border-2 border-black rounded-xl py-1.5 font-black text-[11px] active:translate-y-0.5"
+                    style={{ background: '#fff', color: '#000', ...OSWALD }}>🔒 Esperar um amigo</button>
+                </div>
               )}
             </div>
-          ))}
+            )
+          })}
           {players.length < 2 && <p className="text-black/40 text-xs italic mt-1">Aguardando mais técnicos…</p>}
+          {duplasOn && (
+            <p className="text-black/45 text-[11px] font-bold leading-snug mt-2 pt-2" style={{ borderTop: '2px solid rgba(0,0,0,.1)' }}>
+              🤝 Cada time pode ser comandado por 2 pessoas: uma cuida de 3 posições, a outra das outras 3. Quem quiser jogar sozinho é só não chamar ninguém.
+            </p>
+          )}
         </div>
       </div>
 
@@ -1811,8 +2040,13 @@ export function EscLobby() {
         const carreira = room.game_state?.mode === 'carreira'
         const startLabel = carreira ? '🌐 Começar Carreira!' : '🔨 Abrir o Pregão!'
         const waitMsg = carreira ? 'Aguardando o host começar a carreira…' : 'Aguardando o host abrir o pregão…'
+        const esperaLabel = duplasOn ? 'Aguardando…' : `Aguardando… (${players.length}/2 mín)`
         return isHost
-          ? <Big onClick={startOnline} disabled={!ready} color={ready ? GREEN : '#ccc'}><span style={{ color: ready ? '#fff' : '#000' }}>{ready ? startLabel : `Aguardando… (${players.length}/2 mín)`}</span></Big>
+          ? <>
+              <Big onClick={startOnline} disabled={!ready} color={ready ? GREEN : '#ccc'}><span style={{ color: ready ? '#fff' : '#000' }}>{ready ? startLabel : esperaLabel}</span></Big>
+              {/* explicação EMBAIXO do botão, no lugar exato — dizendo o porquê e o caminho pra destravar */}
+              {!ready && !!travaMsg && <p className="text-white/60 text-[11.5px] font-bold text-center leading-snug mt-1.5 px-2">{travaMsg}</p>}
+            </>
           : <p className="text-white/60 text-sm font-bold text-center py-3">{waitMsg}</p>
       })()}
       <button onClick={leaveRoom} className="text-white/75 text-[13px] font-black underline w-full text-center active:opacity-60">🚪 Sair da sala</button>
