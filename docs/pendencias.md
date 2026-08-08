@@ -94,14 +94,38 @@ simplifica a trava de dupla, porque só existe UM dono por leva inteira:
   caso segue igual ao solo hoje (o tempo passa, timeout normal, sem trava
   especial nova).
 
-### 6) Próximo passo (ainda não começado)
-Design 100% combinado agora (categorias, formação por vaga, trava de início,
-turno do leilão, desconexão). Falta: desenhar o schema no Supabase (quem tá
-em dupla com quem, dono de cada categoria por manager) e só DEPOIS mexer no
-reducer/telas reais — com cuidado extra por tocar em arquivo que serve o
-jogo AO VIVO (`store.tsx`, `screens.tsx`, `lobby.tsx`). Plano: construir tudo
-atrás do toggle "Duplas (beta)" (opt-in, sala normal nunca é afetada) e subir
-em commits pequenos e revertíveis, não tudo de uma vez.
+### 6) Passo 1 — schema no Supabase ✅ ESCRITO, ⚠️ NÃO APLICADO ainda
+Design 100% combinado (categorias, formação por vaga, trava de início, turno
+do leilão, desconexão). Arquivo `supabase/dupla_schema.sql` criado — só
+ADITIVO, 3 colunas novas opcionais em `room_players` (todas default NULL,
+nenhuma linha/sala existente é afetada):
+- `dupla_partner_of uuid` — NULL = vaga normal de sempre. Preenchido = essa
+  linha é o PARCEIRO (carona no assento de quem tem o `player_index` de
+  verdade, sem criar índice novo — não mexe na lógica de assento único que
+  já existe pra vaga normal).
+- `dupla_categories jsonb` — na linha do DONO do assento, depois de dividida:
+  `{"GOL": "<uuid>", "LAT": "<uuid>", ...}` (quem manda em cada categoria).
+- `dupla_seek text` — `'aberta'` | `'privada'` | NULL enquanto procura
+  parceiro (fica visível/tocável na sala igual ao mockup aprovado).
+- O modo "Duplas (beta)" da SALA entra como chave nova no `game_state` jsonb
+  de `game_rooms` (`duplasMode: true`) — mesmo padrão de `varzea`/`manual`/
+  `ligaFechada`, zero migração extra precisa pra isso.
+- **Reversão**: `alter table room_players drop column dupla_partner_of,
+  drop column dupla_categories, drop column dupla_seek;` (comando completo
+  já no topo do arquivo).
+
+⚠️ **Ainda NÃO apliquei no banco de verdade** — a ferramenta de Supabase
+desta sessão pediu aprovação que não rolou automaticamente (ambiente remoto).
+Pra aplicar: colar o conteúdo de `supabase/dupla_schema.sql` no SQL Editor
+do Supabase (mesmo jeito que os outros `.sql` da pasta) e rodar — é
+idempotente, pode rodar de novo sem problema. Ou uma próxima sessão com
+acesso ao Supabase MCP aplica direto.
+
+### 7) Próximo passo (depois do schema aplicado)
+Mexer no reducer/telas reais — com cuidado extra por tocar em arquivo que
+serve o jogo AO VIVO (`store.tsx`, `screens.tsx`, `lobby.tsx`). Plano:
+construir tudo atrás do toggle "Duplas (beta)" (opt-in, sala normal nunca é
+afetada) e subir em commits pequenos e revertíveis, não tudo de uma vez.
 
 ## 🐛 LIVRO DE PREÇOS: preço compartilhado por NOME (relato de jogador, Neymar) ✅ NO AR
 Jogador reportou: renovar o Neymar do Santos estava pedindo o preço do Neymar
