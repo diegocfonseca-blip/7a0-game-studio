@@ -1,6 +1,26 @@
 # 📌 Pendências combinadas com o Diego (atualizado 08/08/2026)
 
-## 💛 LOJA — DESENHO FECHANDO (08/08): desconto por fidelidade + caixinha definida
+## 💛 LOJA — SPEC COMPLETA ENVIADA (08/08) — aguardando "fecha" do Diego
+Spec final em texto (antes do mockup, como ele pediu). Decisões DELE já dentro:
+- Preços: Sócio 9,90/mês (Craque 4,99 · Lenda/Batismo 2,99) · Craque 19,90 ·
+  Lenda 39,90→49,90 pós-fundador nº100 · Batismo D 69,90 / ABC 59,90 ·
+  upgrade Craque→Lenda por R$20 · vale-presente (código estilo fichas).
+- Caixinha do sócio: votação de categoria das cartas novas (enquete estilo IG,
+  % ao vivo, Diego escolhe a urna) · 3 olheiros · cobertura retrátil
+  (+10/temporada enquanto sócio; cancela → fecha) · 30 moedas/mês · manual ·
+  carteirinha tempo de casa · escudo a dedo após 3 meses · mural dos sócios.
+  SEM carta do mês (cortada por ele) e SEM copa anunciada.
+- 🕵️ OLHEIRO — REGRA VISUAL DO DIEGO (08/08): mostra SÓ o overall "de tanto a
+  tanto" com o FUNDO na cor da categoria (dourado lenda · prata craque · roxo
+  promessa · verde bom · bege foi-profissional). NUNCA a palavra escrita.
+  Exemplo aprovado por ele: Zagallo 92–97 fundo dourado
+  (scratchpad/olheiro-ex.png). Sem olheiro = "?" igual hoje. NUNCA online.
+- Pagamento: 3 planos no MP (cartão) + recarga Pix 30d; entrega pelo painel
+  (já no ar) + validade de 30 dias a construir.
+PERGUNTAS ABERTAS: (1) overall colorido também no ELENCO ou só na compra?
+(2) voto DECIDE a categoria ou só orienta?
+
+## 💛 (histórico) desenho anterior — desconto por fidelidade + caixinha v2
 EVOLUÇÃO (ideia do PRÓPRIO Diego, ele gostou): mensal com a MESMA caixinha pra
 todos e preço por fidelidade — grátis paga R$9,90/mês · ⭐ Craque R$4,99 ·
 👑 Lenda/Batismo R$2,99. O vitalício vira "carteirinha de desconto" (fortalece
