@@ -1753,6 +1753,7 @@ export function EscLobby() {
             const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto
             const copaLbl = r.game_state?.copaMode === 'liga' ? '📊 só liga' : '🏆 liga+copa' // padrão = liga+copa
             const ligaFechadaRoom = !!(r.game_state as GS & { ligaFechada?: boolean })?.ligaFechada // 🏆 liga só com a galera
+            const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
             return (
               <div key={r.id} className="flex items-center gap-2 border-[3px] border-black rounded-xl p-3" style={{ background: live ? '#EFE6C8' : '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
                 <div className="flex-1 min-w-0">
@@ -1760,8 +1761,11 @@ export function EscLobby() {
                     {live && <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />}
                     <span className="truncate">{r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}</span>
                     <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title="Baralho da sala">{deckLbl}</span>
+                    {duplasRoom && (
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: PURPLE, color: '#fff', ...OSWALD }} title="Sala de duplas: cada time é comandado por 2 pessoas">🤝 DUPLAS</span>
+                    )}
                   </p>
-                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}/{r.max_players} · {r.code}{ligaFechadaRoom ? ' · 🏆 liga fechada' : ''}{!isCareerRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>
+                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? 'pessoa' : 'pessoas'}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? ' · 🏆 liga fechada' : ''}{!isCareerRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>
                 </div>
                 {live ? (
                   <span className="border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0" style={{ backgroundColor: '#ccc', color: '#000', ...OSWALD }}>

@@ -2779,7 +2779,8 @@ function afterReveal(state: EscState) {
 // online, o resultado já computado vai por SYNC_STATE pros convidados, então
 // não precisa de seed determinístico aqui.
 function redraftSeason(s: EscState): EscState {
-  const humanNames = s.managers.filter(m => m.isHuman).map(m => m.name)
+  const humanosAntes = s.managers.filter(m => m.isHuman)
+  const humanNames = humanosAntes.map(m => m.name)
   const formation = s.managers.find(m => m.isHuman)?.formation ?? '4-3-3'
   s.seed = Math.floor(Math.random() * 1e9)
   const rng = mulberry(s.seed)
@@ -2789,6 +2790,17 @@ function redraftSeason(s: EscState): EscState {
   const auctionCpus = s.onlineMode === 'online' ? 0 : s.managers.filter(m => !m.isHuman && m.auctionRival).length
   const { managers, botPlans } = makeManagers(humanNames, formation, auctionCpus, LEAGUE_SIZE, rng)
   s.managers = managers
+  // 🤝 DUPLAS sobrevivem ao novo pregão — quem jogou junto continua junto, com a
+  // mesma divisão de posições e o mesmo nome de time.
+  // ⚠️ O REMAPEAMENTO É OBRIGATÓRIO: os técnicos são renumerados 0..n-1 a partir
+  // dos humanos que restaram. Se alguém saiu no meio do caminho (virou CPU), os
+  // números ANDAM — e uma dupla guardada pelo número velho cairia no time de
+  // OUTRA pessoa. É a mesma família de bug do "dei lance por outro".
+  if (s.duplasMode && s.duplas) {
+    const novo: Record<number, DuplaSeat> = {}
+    humanosAntes.forEach((antigo, i) => { const d = s.duplas![antigo.id]; if (d) novo[i] = d })
+    s.duplas = novo
+  }
   s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
   s.surpriseId = pickSurprise(s.deck, rng)
   dealBotSquads(s.managers, botPlans, rng, used)
