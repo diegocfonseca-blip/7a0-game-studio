@@ -1129,8 +1129,9 @@ export function EscLobby() {
       + (outros > 0 ? `⚠️ Tem mais ${outros} ${outros === 1 ? 'técnico' : 'técnicos'} nessa carreira — ${outros === 1 ? 'ele perde' : 'eles perdem'} o save junto.\n\n` : '')
       + 'Isso NÃO tem volta.'
     if (!window.confirm(aviso)) return
-    await supabase.from('room_players').delete().eq('room_id', r.id)
-    await supabase.from('game_rooms').delete().eq('id', r.id)
+    const e1 = (await supabase.from('room_players').delete().eq('room_id', r.id)).error
+    const e2 = (await supabase.from('game_rooms').delete().eq('id', r.id)).error
+    if (e1 || e2) { setRoomError(`Não consegui apagar: ${(e2 ?? e1)?.message}`); return }
     dismissRoom(r.id); if (loadSavedRoom() === r.id) clearSavedRoom()
     fetchMyCareers()
   }
@@ -1328,7 +1329,8 @@ export function EscLobby() {
   async function salvarNomeDupla(donoUid: string, nome: string) {
     if (!room || !user) return
     const limpo = stripEmoji(nome).trim().slice(0, 24)
-    await supabase.from('room_players').update({ dupla_name: limpo || null }).eq('room_id', room.id).eq('user_id', donoUid)
+    const { error } = await supabase.rpc('dupla_definir', { p_room: room.id, p_dono: donoUid, p_nome: limpo || null, p_set_nome: true })
+    if (error) setRoomError(`Não consegui salvar o nome: ${error.message}`)
     fetchPlayers(room.id)
   }
 
@@ -1350,8 +1352,8 @@ export function EscLobby() {
     if (rows.some(r => r.dupla_partner_of === dono.user_id)) { setRoomError('😅 Alguém pegou essa vaga um segundinho antes de você.'); fetchPlayers(room.id); return }
     const eu = rows.find(r => r.user_id === user.id)
     if (eu?.dupla_partner_of) return // já sou parceiro de alguém
-    await supabase.from('room_players').update({ dupla_partner_of: dono.user_id, dupla_seek: null }).eq('room_id', room.id).eq('user_id', user.id)
-    await supabase.from('room_players').update({ dupla_seek: null }).eq('room_id', room.id).eq('user_id', dono.user_id)
+    const { error } = await supabase.from('room_players').update({ dupla_partner_of: dono.user_id, dupla_seek: null }).eq('room_id', room.id).eq('user_id', user.id)
+    if (error) setRoomError(`Não consegui entrar na dupla: ${error.message}`)
     fetchPlayers(room.id)
   }
   // Desfazer a dupla. Vale pros DOIS lados: o parceiro pode "sair da dupla" e o
@@ -1382,7 +1384,11 @@ export function EscLobby() {
     const atual = (fresh?.dupla_categories ?? undefined) as Partial<Record<DuplaCat, string>> | undefined
     const novo = duplaToggleCat(atual, cat, user.id, outro)
     if (!novo) { fetchPlayers(room.id); return } // toque não valeu
-    await supabase.from('room_players').update({ dupla_categories: novo }).eq('room_id', room.id).eq('user_id', dono.user_id)
+    // a linha é do DONO do assento — quem escreve nela é a função do banco, que
+    // confere se quem pediu é mesmo dessa dupla (o parceiro não pode editar a
+    // linha do dono direto, senão daria pra mexer no assento dos outros).
+    const { error } = await supabase.rpc('dupla_definir', { p_room: room.id, p_dono: dono.user_id, p_cats: novo })
+    if (error) setRoomError(`Não consegui salvar a divisão: ${error.message}`)
     fetchPlayers(room.id)
   }
 
