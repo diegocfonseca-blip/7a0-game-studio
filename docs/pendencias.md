@@ -1,5 +1,27 @@
 # 📌 Pendências combinadas com o Diego (atualizado 08/08/2026)
 
+## 💛 LOJA NOVA + PLANO SÓCIO — PROPOSTA ENVIADA, AGUARDANDO OK (08/08)
+Diego pediu análise a fundo da área de vendas ("MT gente abrindo os pacotes mas
+não fechando") + plano mensal ~R$5,99 + olheiros por baralho + torneios/escudos
++ qual ferramenta de cobrança mensal. Mockup: `scratchpad/vendas-mock.png`.
+NÚMEROS (30 dias, apoio_intents): 1.347 pessoas abriram a trava do Manual
+(5.647 aberturas — ~4× por pessoa!); só ~101 copiaram o Pix de 19,90 e ~83
+clicaram "quero". Funil vaza no CHECKOUT (Pix manual → DM comprovante → até
+24h de espera), não no interesse.
+PROPOSTA (nada implementado):
+- Plano ⚽ SÓCIO TORCEDOR R$5,99/mês: Manual (enquanto assinar) + os 3
+  Olheiros + 20 moedas/mês no Banco + Copa dos Sócios mensal. Vitalícios
+  intocados; 👑 Lenda GANHA os 3 olheiros de presente (pra sempre).
+- 🕵️ Olheiros (BR/Europa/Mundo): na carreira SOLO a carta mostra a cor da
+  categoria antes do lance. REGRA SAGRADA: nunca no online/rápido.
+- Trava do Manual com 2 saídas (5,99/mês ou 19,90 vitalício) + "libera em
+  minutos" + garantia de 1ª semana.
+- Cobrança mensal: recomendação Mercado Pago Assinaturas (link pronto, sem
+  código); entrega via user_colors (sem deploy). Alternativas: Asaas/Efí
+  (Pix Automático), Kiwify/Hotmart (mais taxa, zero trabalho).
+DECISÕES DO DIEGO PENDENTES: preço final do Sócio; se o Craque também leva
+Olheiro BR; aprovar o mockup; criar o plano no Mercado Pago.
+
 ## 🤝 DUPLA — NO AR (08/08) ✅ — ajustes da 1ª sala real de duplas
 Diego testou com a galera e foram vários acertos no mesmo dia (todos na main,
 cada um em commit próprio e revertível):
