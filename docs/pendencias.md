@@ -1,5 +1,10 @@
 # 📌 Pendências combinadas com o Diego (atualizado 07/08/2026)
 
+## ⭐ Novo Craque (07/08): gabriel.alves.martins.2010@gmail.com ✅
+Entrou em `FOUNDERS` (apoio.tsx) como `'prata'` → cor/selo ⭐ prata em TODO
+canto do jogo + Modo Manual liberado. Craque NÃO ganha número de fundador
+(isso é só do Lenda 👑), então nada mexeu em `FUNDADOR_N`.
+
 ## 🐛 LIVRO DE PREÇOS: preço compartilhado por NOME (relato de jogador, Neymar) ✅ NO AR
 Jogador reportou: renovar o Neymar do Santos estava pedindo o preço do Neymar
 do BARCELONA (vendido por 200+) — são cartas diferentes (nome igual, clube
