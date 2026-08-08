@@ -175,7 +175,7 @@ const COR_TIERS = [
 ] as const
 // 🖋️ FUNDADOR: os 100 primeiros Lendas. Contador MANUAL — cada Lenda que o Diego
 // confirmar no Instagram, baixar este número aqui (não dá pra contar sozinho).
-const FUNDADOR_VAGAS = 66
+const FUNDADOR_VAGAS = 65
 // 🔗 link direto pro APOIE (pra postar nos stories/grupo): leilaolegends.com/?apoie=lenda
 // abre o modal já na cor OURO. Também vale ?apoie=craque (manual) e ?apoie=1 (tela geral).
 // consumido UMA vez só (vários ApoieButton montam ao mesmo tempo — só o primeiro abre).
