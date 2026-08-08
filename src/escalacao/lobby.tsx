@@ -1101,8 +1101,40 @@ export function EscLobby() {
       seen.add(r.id); rooms.push(r)
     }
     rooms.sort((a, b) => (b.updated_at ?? '').localeCompare(a.updated_at ?? ''))
-    setMyCareers(rooms.map(r => ({ ...r, count: 0 })))
+    // quantos técnicos tem em cada save — o aviso de apagar precisa dizer se
+    // você vai levar a carreira de mais alguém junto.
+    const contagem: Record<string, number> = {}
+    if (rooms.length) {
+      const { data: pls } = await supabase.from('room_players').select('room_id').in('room_id', rooms.map(r => r.id))
+      for (const p of (pls ?? []) as { room_id: string }[]) contagem[p.room_id] = (contagem[p.room_id] ?? 0) + 1
+    }
+    setMyCareers(rooms.map(r => ({ ...r, count: contagem[r.id] ?? 0 })))
   }
+  // 🗑️ APAGAR uma carreira da lista "Minhas carreiras". Só o HOST apaga de
+  // verdade (a carreira é a sala dele); quem é convidado apenas SAI da sala e o
+  // save continua vivo pros outros. Some coisa do banco, então o aviso é claro e
+  // diz quantos técnicos vão perder o save junto.
+  async function apagarCarreira(r: OpenRoom) {
+    if (!user) return
+    const nome = (r.game_state as GS)?.roomName ?? r.code
+    const souHost = r.host_id === user.id
+    if (!souHost) {
+      if (!window.confirm(`Sair da carreira "${nome}"?\n\nEla some da sua lista, mas continua valendo pros outros técnicos.`)) return
+      await supabase.from('room_players').delete().eq('room_id', r.id).eq('user_id', user.id)
+      dismissRoom(r.id); if (loadSavedRoom() === r.id) clearSavedRoom()
+      fetchMyCareers(); return
+    }
+    const outros = Math.max(0, (r.count ?? 1) - 1)
+    const aviso = `Apagar a carreira "${nome}" (temporada ${(r.game_state as GS & { seasonNo?: number })?.seasonNo ?? 1}) PRA SEMPRE?\n\n`
+      + (outros > 0 ? `⚠️ Tem mais ${outros} ${outros === 1 ? 'técnico' : 'técnicos'} nessa carreira — ${outros === 1 ? 'ele perde' : 'eles perdem'} o save junto.\n\n` : '')
+      + 'Isso NÃO tem volta.'
+    if (!window.confirm(aviso)) return
+    await supabase.from('room_players').delete().eq('room_id', r.id)
+    await supabase.from('game_rooms').delete().eq('id', r.id)
+    dismissRoom(r.id); if (loadSavedRoom() === r.id) clearSavedRoom()
+    fetchMyCareers()
+  }
+
   // abrir um save: HOST vê o painel de retomada (3 opções); PARTICIPANTE volta
   // direto pra sala (só o host inicia/conduz — ele espera o host retomar).
   function resumeCareer(rd: OpenRoom) {
@@ -1540,6 +1572,12 @@ export function EscLobby() {
                   style={{ background: iAmHost ? GREEN : PURPLE, color: '#fff', ...OSWALD }}>
                   {iAmHost ? '▶️ Continuar' : '↩️ Voltar'}
                 </button>
+                {/* 🗑️ tirar da lista: host apaga a carreira; convidado só sai dela */}
+                <button onClick={() => apagarCarreira(r)} disabled={loading}
+                  aria-label={iAmHost ? `Apagar a carreira ${nm}` : `Sair da carreira ${nm}`}
+                  title={iAmHost ? 'Apagar essa carreira' : 'Sair dessa carreira'}
+                  className="shrink-0 w-8 h-8 rounded-lg border-2 border-black font-black text-sm leading-none active:translate-y-0.5"
+                  style={{ background: '#fff', color: '#B23B2E' }}>🗑️</button>
               </div>
             )
           })}
