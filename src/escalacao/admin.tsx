@@ -210,6 +210,67 @@ export function AdminButton() {
 // ── 🏦 BANCO LEGENDS · Caixa do Gerente (só admin) ───────────────────────────
 // Fluxo manual do Diego: Pix caiu → gera a FICHA aqui → manda no zap → acompanha
 // quem resgatou. A ficha é queimada pelo RPC bl_redeem (uma vez, por conta).
+// 💛 APOIADORES — ENTREGA NA HORA (08/08): o Pix caiu, o Diego digita o e-mail
+// e escolhe o tier — a pessoa recebe na próxima aberta do jogo, SEM deploy.
+// Escreve na tabela user_colors (que o jogo já lê com prioridade sobre a lista
+// do código) através de uma função que só aceita o e-mail do Diego.
+function ApoioAdmin() {
+  const [email, setEmail] = useState('')
+  const [tier, setTier] = useState<'roxo' | 'prata' | 'ouro'>('prata')
+  const [lista, setLista] = useState<{ email: string; tier: string; manual: boolean; updated_at: string }[]>([])
+  const [msg, setMsg] = useState('')
+  const [busy, setBusy] = useState(false)
+  const carregar = async () => {
+    const { data } = await supabase.rpc('esc_admin_apoio_list')
+    setLista((data ?? []) as typeof lista)
+  }
+  useEffect(() => { carregar() }, [])
+  const liberar = async () => {
+    const em = email.trim().toLowerCase()
+    if (!em || !em.includes('@')) { setMsg('❌ digita o e-mail da conta do jogador'); return }
+    setBusy(true); setMsg('')
+    const { error } = await supabase.rpc('esc_admin_apoio_set', { p_email: em, p_tier: tier })
+    setMsg(error ? `❌ ${error.message}` : `✅ ${em} liberado como ${tier.toUpperCase()} — já vale na próxima aberta do jogo`)
+    if (!error) { setEmail(''); carregar() }
+    setBusy(false)
+  }
+  const remover = async (em: string) => {
+    if (!window.confirm(`Tirar o apoio de ${em}?`)) return
+    await supabase.rpc('esc_admin_apoio_set', { p_email: em, p_tier: null })
+    carregar()
+  }
+  const TIERS: ['roxo' | 'prata' | 'ouro', string][] = [['roxo', '💎 Promessa'], ['prata', '⭐ Craque'], ['ouro', '👑 Lenda']]
+  return (
+    <div style={{ border: '2px solid #C9A9FF', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#C9A9FF', textTransform: 'uppercase', margin: '0 0 4px' }}>💛 Apoiadores · entrega na hora</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Pix caiu → digita o e-mail da conta → escolhe o tier → LIBERAR. Sem esperar deploy: vale assim que a pessoa abrir o jogo. (Craque e Lenda já ganham o Modo Manual junto.)</p>
+      <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email da conta do jogador"
+        style={{ width: '100%', border: '2px solid #C9A9FF', borderRadius: 10, padding: '9px 10px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 13, marginBottom: 8 }} />
+      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+        {TIERS.map(([k, lb]) => (
+          <button key={k} onClick={() => setTier(k)} style={{ flex: 1, border: '2.5px solid #C9A9FF', borderRadius: 10, padding: '7px 2px', ...OSWALD, fontWeight: 900, fontSize: 12, cursor: 'pointer', background: tier === k ? '#C9A9FF' : 'transparent', color: tier === k ? '#0C0C0C' : '#C9A9FF' }}>{lb}</button>
+        ))}
+      </div>
+      <button onClick={liberar} disabled={busy} style={{ width: '100%', border: 'none', borderRadius: 12, padding: 10, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: '#C9A9FF', color: '#0C0C0C', cursor: 'pointer' }}>{busy ? '…' : '⚡ LIBERAR AGORA'}</button>
+      {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('✅') ? '#6fdb8f' : '#ff8a75', margin: '7px 0 0', textAlign: 'center' }}>{msg}</p>}
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontWeight: 700, marginTop: 10 }}>
+        <thead><tr>{['Email', 'Tier', 'Quando', ''].map(h => <th key={h} style={{ padding: '4px 6px', textAlign: 'left', color: 'rgba(242,232,207,.55)', fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase' }}>{h}</th>)}</tr></thead>
+        <tbody>
+          {lista.map(r => (
+            <tr key={r.email}>
+              <td style={{ padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)', wordBreak: 'break-all' }}>{r.email}</td>
+              <td style={{ padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)' }}>{r.tier === 'ouro' ? '👑' : r.tier === 'prata' ? '⭐' : '💎'} {r.tier}</td>
+              <td style={{ padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)' }}>{new Date(r.updated_at).toLocaleDateString('pt-BR')}</td>
+              <td style={{ padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)' }}><button onClick={() => remover(r.email)} style={{ background: 'none', border: 'none', color: '#ff8a75', fontWeight: 900, cursor: 'pointer' }}>✕</button></td>
+            </tr>
+          ))}
+          {lista.length === 0 && <tr><td colSpan={4} style={{ padding: 8, color: 'rgba(242,232,207,.5)' }}>ninguém liberado por aqui ainda — os antigos seguem valendo pela lista do código</td></tr>}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 function BancoFichasAdmin() {
   // 💱 regra do Diego (04/08): cada R$ 1 do Pix vira 3 🪙 (sempre o triplo).
   // `valor` = REAIS que o jogador pagou; a ficha nasce com valor × 3 em moedas.
@@ -326,7 +387,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><BancoFichasAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><ApoioAdmin /><BancoFichasAdmin /></>}
       </div>
     </div>
   )
