@@ -1,5 +1,40 @@
 # 📌 Pendências combinadas com o Diego (atualizado 08/08/2026)
 
+## 🤝 DUPLA — CÓDIGO PRONTO no branch, ⚠️ AGUARDANDO OK VISUAL do Diego (08/08)
+Diego mandou "Faz. O modo da dupla aí cara". Feito ponta a ponta **só no Rápido
+Online**, tudo atrás do toggle da sala. Branch `claude/denis-save-file-x1osct`
+(commits `a5abdce` = motor, `5c06414` = telas). **NÃO está na main** — mockup
+enviado (`scratchpad/dupla-telas.png`), esperando o Diego aprovar.
+- **Criar sala**: escolha nova "Quem comanda cada time" — 👤 Solo (de sempre) ou
+  🤝 Duplas (beta). Grava `duplasMode` no `game_state` (padrão de `varzea`).
+  Sala de duplas nasce com `max_players` dobrado (20 times = até 40 pessoas).
+- **Formar**: lista da sala vira por TIME (1/2 · 2/2). "🌍 Chamar qualquer um" /
+  "🔒 Esperar um amigo"; o outro TOCA na vaga e vira parceiro (sem aceite). Tem
+  "Sair da dupla" e "Desistir de esperar". Iniciar TRAVA com vaga pendurada, com
+  o porquê e o caminho embaixo do botão; mínimo = 1 dupla completa.
+- **Dividir**: 6 categorias (Monte é categoria própria), 3 pra cada, primeiro
+  que toca leva, dá pra soltar, e ao fechar 3 as outras caem pro parceiro. Host
+  abriu antes? sorteia 3-e-3 com o RNG da partida (determinístico).
+- **Leilão**: o pregão já anda setor a setor, então cada leva tem UM dono — só
+  ele lacra; o parceiro vê as MESMAS cartas com o aviso de quem decide. Monte
+  igual. Se um sair de verdade, o outro assume tudo (em vez de virar CPU).
+- **Onde mora a regra**: `duplaPodeAgir` e `duplaToggleCat` em `types.ts` — UMA
+  função só, usada pela tela E pelo host. Se fossem duas, poderiam discordar e é
+  daí que vêm os bugs de assento.
+- **Trava no HOST, não só na tela**: `SUBMIT_ENVELOPE`, `MONTE_PICK` e
+  `MONTE_PASS` levam o crachá (`by`) e o reducer recusa quem não manda na
+  categoria. ⚠️ Honestidade técnica: isso mata o caso REAL (corrida entre os dois
+  aparelhos, tela defasada) — o modelo online do jogo nunca teve identidade
+  assinada, então um cliente adulterado ainda poderia forjar o crachá, exatamente
+  como já podia forjar um `mgrId` hoje. Não é regressão; é limite antigo.
+- **Assento**: a linha do parceiro é CARONA (`dupla_partner_of`) e fica FORA da
+  deduplicação/renumeração — senão viraria time fantasma. A renumeração passou a
+  mirar `user_id` (com carona, `player_index` deixou de ser único).
+- **Regressão**: `scratchpad/duplatest.mjs`, 40 checagens, incluindo a prova de
+  que sala Solo lacra/pega monte exatamente como antes.
+- **Falta (combinado, depois do OK)**: Duplas na Carreira online (lá cada técnico
+  tem caixa e temporada própria — passo separado).
+
 ## 🤝 DUPLA — schema APLICADO no Supabase de verdade (08/08) ✅
 O `supabase/dupla_schema.sql` (escrito no branch `claude/pontosafe-repo-setup-qzjo89`,
 commit `437853d`) **já rodou no banco de produção** (projeto `faabglpjutwursgmrpny`,
