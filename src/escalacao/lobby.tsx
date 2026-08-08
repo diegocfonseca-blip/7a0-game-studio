@@ -412,6 +412,11 @@ export function EscLobby() {
   // Rápido: a Carreira online tem caixa/temporada por técnico e merece um passo
   // próprio depois que as duplas rodarem no pregão.
   const [roomDuplas, setRoomDuplas] = useState(false)
+  // 🤝 é sala de duplas? Perguntado DIRETO ao banco quando entro na sala de
+  // espera. A lista de salas é "magra" (só baixa alguns campos pra não pesar),
+  // então confiar só no objeto que veio dela já fez a tela achar que uma sala de
+  // duplas era normal — foi o bug do "não aparece o botão".
+  const [duplasSala, setDuplasSala] = useState<boolean | null>(null)
   const careerDeck: DeckChoice = 'both' // carreira: sempre BR + Europa juntos (preenche os 80 times das 4 divisões)
   const [rapidoDeck, setRapidoDeck] = useState<DeckChoice>('br') // rápido online: host escolhe o baralho (BR / Europa / os dois)
   const [rapidoVarzea, setRapidoVarzea] = useState(false) // 🥅 rápido online + BR: categoria "Sem craques" (várzea) — só bom jogador + foi profissional
@@ -1009,16 +1014,16 @@ export function EscLobby() {
     // JSON, e remonta um mini game_state. Quem ENTRA numa sala busca o estado
     // completo na hora (triggerStart/enterLoadedRoom já refetcham).
     const { data: rooms } = await supabase.from('game_rooms')
-      .select('id, code, host_id, max_players, status, updated_at, gname:game_state->>roomName, gdeck:game_state->>deck, gvarzea:game_state->>varzea, gmode:game_state->>mode, gcareer:game_state->>careerOnline, gmanual:game_state->>manual, gcopa:game_state->>copaMode, gliga:game_state->>ligaFechada, glocked:game_state->>locked, gstream:game_state->>stream, gpw:game_state->>pwHash, gchat:game_state->>chatOff')
+      .select('id, code, host_id, max_players, status, updated_at, gname:game_state->>roomName, gdeck:game_state->>deck, gvarzea:game_state->>varzea, gmode:game_state->>mode, gcareer:game_state->>careerOnline, gmanual:game_state->>manual, gcopa:game_state->>copaMode, gliga:game_state->>ligaFechada, glocked:game_state->>locked, gstream:game_state->>stream, gpw:game_state->>pwHash, gchat:game_state->>chatOff, gduplas:game_state->>duplasMode')
       .in('status', ['waiting', 'started'])
       .eq('game_state->>__game', GAME_TAG)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(50)
-    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null }
+    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null }
     const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).map(r => ({
       id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
-      game_state: { __game: GAME_TAG, roomName: r.gname ?? undefined, deck: (r.gdeck ?? undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined } as GS,
+      game_state: { __game: GAME_TAG, roomName: r.gname ?? undefined, deck: (r.gdeck ?? undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined } as GS,
     }))
     const ids = list.map(r => r.id)
     const counts: Record<string, number> = {}
@@ -1199,9 +1204,10 @@ export function EscLobby() {
     if (!room || !isHost) return
     // trava do início: sala normal = 2 técnicos; sala de duplas = a regra do
     // bloco de cima (nenhuma vaga esperando parceiro + 1 dupla completa).
-    const duplasSala = !!(room.game_state as GS & { duplasMode?: boolean })?.duplasMode
-    if (!duplasSala && players.length < 2) return
-    if (duplasSala) {
+    // mesmo cinto de segurança da tela: o flag confiável é o do banco
+    const ehDuplas = duplasSala ?? !!(room.game_state as GS & { duplasMode?: boolean })?.duplasMode
+    if (!ehDuplas && players.length < 2) return
+    if (ehDuplas) {
       // cinto e suspensório: o botão já fica apagado, mas a regra é re-checada
       // aqui também — ninguém começa com alguém pendurado esperando parceiro.
       const dn = players.filter(p => !p.dupla_partner_of)
@@ -1253,6 +1259,15 @@ export function EscLobby() {
     clearSavedRoom()
     setRoom(null); setPlayers([]); setPhase('menu')
   }
+  useEffect(() => {
+    const rid = room?.id
+    if (!rid || phase !== 'waiting') { setDuplasSala(null); return }
+    let vivo = true
+    supabase.from('game_rooms').select('gd:game_state->>duplasMode').eq('id', rid).maybeSingle()
+      .then(({ data }) => { if (vivo) setDuplasSala(((data as { gd?: string | null } | null)?.gd ?? null) === 'true') }, () => {})
+    return () => { vivo = false }
+  }, [room?.id, phase])
+
   // ── 🤝 DUPLAS: formar/desfazer dupla na sala de espera ──────────────────
   // Tudo aqui mexe SÓ nas 3 colunas novas de room_players (opcionais). Sala que
   // não é de duplas nunca chama nenhuma destas funções.
@@ -1284,11 +1299,16 @@ export function EscLobby() {
     await supabase.from('room_players').update({ dupla_seek: null }).eq('room_id', room.id).eq('user_id', dono.user_id)
     fetchPlayers(room.id)
   }
-  // "Sair da dupla": volto a ter meu próprio time (o assento nunca foi dado a
-  // ninguém — a linha continuou minha o tempo todo, só marcada como carona).
-  async function desfazerDupla() {
+  // Desfazer a dupla. Vale pros DOIS lados: o parceiro pode "sair da dupla" e o
+  // dono do time pode "jogar sozinho" — ninguém fica preso numa dupla que não
+  // quer mais. Quem era parceiro volta a ter o time dele (o assento nunca foi
+  // dado a ninguém: a linha continuou dele o tempo todo, só marcada como carona).
+  async function desfazerDupla(donoUid: string, parceiroUid: string) {
     if (!room || !user) return
-    await supabase.from('room_players').update({ dupla_partner_of: null, dupla_categories: null }).eq('room_id', room.id).eq('user_id', user.id)
+    if (user.id !== donoUid && user.id !== parceiroUid) return // só quem é da dupla desfaz
+    await supabase.from('room_players').update({ dupla_partner_of: null }).eq('room_id', room.id).eq('user_id', parceiroUid)
+    // a divisão das posições morava na linha do dono: sem dupla, ela não vale mais
+    await supabase.from('room_players').update({ dupla_categories: null }).eq('room_id', room.id).eq('user_id', donoUid)
     fetchPlayers(room.id)
   }
 
@@ -1818,7 +1838,7 @@ export function EscLobby() {
   if (phase === 'waiting' && room) {
     // 🤝 DUPLAS — quem é DONO de assento é time; quem tem dupla_partner_of é
     // carona no time do dono. Tudo isto só existe em sala criada no modo Duplas.
-    const duplasOn = !!(room.game_state as GS & { duplasMode?: boolean })?.duplasMode
+    const duplasOn = duplasSala ?? !!(room.game_state as GS & { duplasMode?: boolean })?.duplasMode
     const donos = duplasOn ? players.filter(p => !p.dupla_partner_of) : players
     const parceiroDe = (uid: string) => players.find(p => p.dupla_partner_of === uid)
     const meuRow = players.find(p => p.user_id === user?.id)
@@ -1903,8 +1923,10 @@ export function EscLobby() {
                 <div className="flex items-center gap-3 mt-1.5 pl-3" style={{ borderLeft: `3px solid ${GREEN}` }}>
                   <span className="text-sm">🤝</span>
                   <span className="font-black text-black/75 text-[13px] flex-1">{par.manager_name}</span>
-                  {par.user_id === user?.id && (
-                    <button onClick={desfazerDupla} className="text-[10px] font-black uppercase underline text-black/45 active:opacity-60">Sair da dupla</button>
+                  {(par.user_id === user?.id || p.user_id === user?.id) && (
+                    <button onClick={() => desfazerDupla(p.user_id, par.user_id)} className="text-[10px] font-black uppercase underline text-black/45 active:opacity-60">
+                      {par.user_id === user?.id ? 'Sair da dupla' : 'Jogar sozinho'}
+                    </button>
                   )}
                 </div>
               )}
