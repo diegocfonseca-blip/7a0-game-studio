@@ -1,6 +1,32 @@
 # 📌 Pendências combinadas com o Diego (atualizado 08/08/2026)
 
-## 💛 LOJA — SPEC COMPLETA ENVIADA (08/08) — aguardando "fecha" do Diego
+## 💛 LOJA — MOCKUPS VISUAIS ENVIADOS (08/08 à noite) — aguardando OK do Diego
+4 artes na identidade do jogo (scratchpad da sessão: loja-m1..m4.png):
+1. loja-m1 — vitrine: card SÓCIO LEGENDS 9,90/mês + preço de fidelidade
+   (Craque 4,99 · Lenda/Batismo 2,99) + 8 benefícios + barra "sócios seguram
+   o servidor" (meta do mês).
+2. loja-m2 — vitalícios: Craque 19,90 · Lenda 39,90 (fundador até nº100 →
+   49,90) · BATISMO "leilão dos barões" A/B/C 59,90 · D 69,90.
+3. loja-m3 — área do sócio: carteirinha tempo de casa, votação com % ao vivo,
+   cobertura retrátil (ABAIXO do StadiumSvg sagrado), escudo à mão (barra
+   3 meses), mural dos sócios (cada nome na cor do próprio tier).
+4. loja-m4 — onde o nome batizado aparece: tabela Série D (fundinho dourado
+   + 🖋️) + jornal + PROPOSTA NOVA mostrada: times dos barões entram no
+   sorteio dos BOTS (sala online + modo rápido) — precisa de OK explícito.
+DECISÕES NOVAS DO DIEGO (08/08 à noite):
+- Manter o desenho DELE (preços/fidelidade como estavam). SEM 1º mês grátis.
+- ⚠️ NUNCA usar "pra sempre" na comunicação do BATISMO: batismo é LEILÃO DOS
+  BARÕES — se alguém oferecer mais e o dono atual não cobrir/igualar, o nome
+  do time MUDA de dono. (Craque/Lenda vitalícios seguem permanentes.)
+- Ele pediu mockup completo incluindo COMO O NOME aparece "na sala online,
+  carreira e todos os modos" → por isso a proposta dos bots batizados no m4.
+PERGUNTA ABERTA (segue sem resposta): voto dos sócios DECIDE ou só orienta?
+Depois do OK: ordem combinada = loja nova → trava do Manual 2 botões →
+olheiros (só elenco) → votação/área do sócio → cobertura retrátil (mockup
+antes, StadiumSvg intocável) → carteirinha/mural. Diego cria os 3 planos no
+Mercado Pago e manda os links; validade 30d do sócio entra no admin.
+
+## 💛 (histórico) LOJA — SPEC COMPLETA ENVIADA (08/08) — texto antes das artes
 Spec final em texto (antes do mockup, como ele pediu). Decisões DELE já dentro:
 - Preços: Sócio 9,90/mês (Craque 4,99 · Lenda/Batismo 2,99) · Craque 19,90 ·
   Lenda 39,90→49,90 pós-fundador nº100 · Batismo D 69,90 / ABC 59,90 ·
