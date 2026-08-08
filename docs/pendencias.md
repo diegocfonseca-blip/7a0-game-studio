@@ -1,4 +1,19 @@
-# 📌 Pendências combinadas com o Diego (atualizado 07/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 08/08/2026)
+
+## 🤝 DUPLA — schema APLICADO no Supabase de verdade (08/08) ✅
+O `supabase/dupla_schema.sql` (escrito no branch `claude/pontosafe-repo-setup-qzjo89`,
+commit `437853d`) **já rodou no banco de produção** (projeto `faabglpjutwursgmrpny`,
+o do Leilão Legends — é o que `src/lib/supabase.ts` usa; o `.env` aponta pra
+OUTRO projeto que o jogo não usa, não confundir).
+`public.room_players` ganhou 3 colunas opcionais, todas NULL:
+`dupla_partner_of` (uuid → auth.users, on delete set null) · `dupla_categories`
+(jsonb) · `dupla_seek` (text, check 'aberta'/'privada').
+Conferido depois de aplicar: **1.232 linhas existentes, as 3 colunas 100% NULL**
+— nenhuma sala/jogo mexido. Rodei o script 2× pra provar que é idempotente.
+⚠️ Pro outro branch: a anotação de lá ("falta aplicar no Supabase") está VELHA.
+Reverter (some tudo, zero rastro):
+`alter table public.room_players drop column if exists dupla_partner_of, drop column if exists dupla_categories, drop column if exists dupla_seek;`
+O código ainda NÃO lê essas colunas — próximo passo é reducer/telas.
 
 ## ⭐ Novo Craque (07/08): gabriel.alves.martins.2010@gmail.com ✅
 Entrou em `FOUNDERS` (apoio.tsx) como `'prata'` → cor/selo ⭐ prata em TODO
