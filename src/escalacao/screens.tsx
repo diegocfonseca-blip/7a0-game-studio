@@ -6096,7 +6096,11 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   const nMesmo = guests.filter(m => votes[m.id] === 'mesmo').length
   const nLeilao = guests.filter(m => votes[m.id] === 'leilao').length
   const nVoted = nMesmo + nLeilao
-  const pend = guests.filter(m => !votes[m.id])
+  // 🐛 08/08 (print do Diego): "Chelsea FC saiu, mas embaixo dizia 'ainda não
+  // votou' e o host ficou esperando". Quem SAIU da sala (sumiu da presença) não
+  // entra mais na conta dos pendentes — voto de fantasma não segura ninguém.
+  // A presença já é a régua do "🚪 saiu" na lista de cima; aqui usa a MESMA.
+  const pendTodos = guests.filter(m => !votes[m.id])
   const vote = (v: 'mesmo' | 'leilao') => dispatch({ type: 'CAST_SEASON_VOTE', mgrId: youId, vote: v })
   // tem um campeão HUMANO (liga ou copa) que NÃO sou eu? (ex.: o host ganhou) — pode
   // estar pegando a carta dele; serve pra explicar pro resto por que ainda não começou.
@@ -6111,6 +6115,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   // quem fechou o app aparece esmaecido como "saiu". A tag 👑 HOST vem do banco
   // (host_id → player_index) — é a fonte de verdade, inclusive após passar a coroa.
   const present = new Set([...(state.presence ?? []), youId])
+  const pend = pendTodos.filter(m => present.has(m.id)) // só quem está NA SALA segura o começo
   const [hostIdx, setHostIdx] = useState<number | null>(isHost ? youId : null)
   useEffect(() => {
     if (!state.roomId) return
@@ -6162,6 +6167,13 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         isHost: state.isHost, playerIndex: myPos >= 0 ? myPos : state.youIdx, // meu assento = minha posição na lista limpa
         playerNames, formation: state.managers[state.youIdx]?.formation ?? '4-3-3',
         deck: state.deckLeague, varzea: state.varzea, rematch: Date.now(), copaMode: state.copaMode, // 🥅 mantém a escolha da sala (deck E modo várzea — senão o "novo leilão" caía no padrão)
+        // 🎥 08/08 (relato do Diego): o "novo leilão" ESQUECIA o modo stream — a sala
+        // começou com valores escondidos e, na revanche, os lances apareciam. O
+        // START_ONLINE zera o que não vier na ação, então TODAS as escolhas da sala
+        // precisam ir junto de novo (stream, manual, chat, tempo, liga fechada, senha).
+        stream: state.streamMode, manual: state.manualRoom, chatOff: state.chatOff,
+        auctionSecs: state.auctionSecs, ligaFechada: state.ligaFechada,
+        locked: state.locked, pwHash: state.pwHash,
       })
     } catch { dispatch({ type: 'REMATCH' }) }
   }
@@ -6225,11 +6237,11 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
           {/* prontidão da galera (só os convidados): nome grande + PRONTO claro */}
           {guests.length > 0 && (
             <div className="space-y-1.5">
-              {guests.map(m => { const v = votes[m.id]; return (
-                <div key={m.id} className="flex items-center justify-between rounded-xl border-2 border-black px-3 py-2" style={{ background: v ? '#DCFCE7' : '#FFF7DE' }}>
-                  <span className="font-black text-sm text-black" style={OSWALD}>{v ? '✅' : '⏳'} {m.teamName}</span>
-                  <span className="text-[11px] font-black" style={{ ...OSWALD, color: v ? '#166534' : '#92600A' }}>
-                    {v ? `PRONTO · quer ${v === 'mesmo' ? '▶️ mesmo time' : '🔨 novo leilão'}` : 'ainda não votou…'}
+              {guests.map(m => { const v = votes[m.id]; const here = present.has(m.id); return (
+                <div key={m.id} className="flex items-center justify-between rounded-xl border-2 border-black px-3 py-2" style={{ background: v ? '#DCFCE7' : here ? '#FFF7DE' : '#EFEAD9', opacity: v || here ? 1 : 0.6 }}>
+                  <span className="font-black text-sm text-black" style={OSWALD}>{v ? '✅' : here ? '⏳' : '🚪'} {m.teamName}</span>
+                  <span className="text-[11px] font-black" style={{ ...OSWALD, color: v ? '#166534' : here ? '#92600A' : '#8a8672' }}>
+                    {v ? `PRONTO · quer ${v === 'mesmo' ? '▶️ mesmo time' : '🔨 novo leilão'}` : here ? 'ainda não votou…' : 'saiu da sala — não segura o começo'}
                   </span>
                 </div>
               )})}
