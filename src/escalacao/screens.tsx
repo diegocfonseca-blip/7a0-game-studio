@@ -1545,7 +1545,7 @@ function ManualDoTecnico({ onClose }: { onClose: () => void }) {
   ]
   const modos: [string, string, string][] = [
     ['⚡', 'Rápido (offline)', 'Você contra a CPU. Monta o time no leilão e joga UMA temporada (liga + Copa dos 8). Bom pra treinar o dedo.'],
-    ['🌐', 'Rápido Online', 'Mesma coisa, só que os lances são dos seus AMIGOS na sala (até 8). Baralho Brasil, Europa, Todos — ou a Várzea 🥅 (sem craques).'],
+    ['🌐', 'Rápido Online', 'Mesma coisa, só que os lances são dos seus AMIGOS na sala (até 20). Baralho Brasil, Europa, Todos — ou a Várzea 🥅 (sem craques).'],
     ['🪜', 'Carreira', escadaLiberada() ? 'A vida de técnico: começa na VÁRZEA (peladão raiz 🍺) e sobe a pirâmide até a Série A. Temporada a temporada desbloqueia reservas, vendas, folha, contratos, estádio, SAF…' : 'A vida de técnico: começa na Série D e sobe a pirâmide até a A. Temporada a temporada desbloqueia reservas, vendas, folha salarial, contratos, estádio, SAF…'],
   ]
   return (
