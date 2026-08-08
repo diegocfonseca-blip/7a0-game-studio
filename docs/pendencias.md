@@ -10,15 +10,16 @@ Spec final em texto (antes do mockup, como ele pediu). Decisões DELE já dentro
   (+10/temporada enquanto sócio; cancela → fecha) · 30 moedas/mês · manual ·
   carteirinha tempo de casa · escudo a dedo após 3 meses · mural dos sócios.
   SEM carta do mês (cortada por ele) e SEM copa anunciada.
-- 🕵️ OLHEIRO — REGRA VISUAL DO DIEGO (08/08): mostra SÓ o overall "de tanto a
-  tanto" com o FUNDO na cor da categoria (dourado lenda · prata craque · roxo
-  promessa · verde bom · bege foi-profissional). NUNCA a palavra escrita.
-  Exemplo aprovado por ele: Zagallo 92–97 fundo dourado
-  (scratchpad/olheiro-ex.png). Sem olheiro = "?" igual hoje. NUNCA online.
+- 🕵️ OLHEIRO — REGRAS DO DIEGO (08/08): aparece SÓ NO ELENCO do usuário
+  (⚠️ NÃO no leilão — decisão dele, e concordo: leilão às cegas é a alma/anti-
+  spoiler + ranking). Mostra SÓ o overall "de tanto a tanto" com o FUNDO na cor
+  da categoria (dourado lenda · prata craque · roxo promessa · verde bom · bege
+  foi-profissional). NUNCA a palavra escrita. Exemplo: Zagallo 92–97 fundo
+  dourado (scratchpad/olheiro-ex.png). Sem olheiro = como hoje. NUNCA online.
+  Ideia guardada (não fazer agora): olheiro no MONTE como meio-termo futuro.
 - Pagamento: 3 planos no MP (cartão) + recarga Pix 30d; entrega pelo painel
   (já no ar) + validade de 30 dias a construir.
-PERGUNTAS ABERTAS: (1) overall colorido também no ELENCO ou só na compra?
-(2) voto DECIDE a categoria ou só orienta?
+PERGUNTA ABERTA: o voto dos sócios DECIDE a categoria ou só orienta?
 
 ## 💛 (histórico) desenho anterior — desconto por fidelidade + caixinha v2
 EVOLUÇÃO (ideia do PRÓPRIO Diego, ele gostou): mensal com a MESMA caixinha pra
