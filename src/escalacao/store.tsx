@@ -4637,7 +4637,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🔒 "mesmo time": mesma tela de contratos, mas SEM leilão depois — o relógio
       // (que só faz sentido esperando todo mundo listar pro pregão) fica de fora.
       s.reserveListMesmo = !!action.mesmo
-      s.phaseDeadline = action.mesmo ? null : Date.now() + RESERVE_LIST_MS
+      // ⏱️ prazo dos 60s SÓ no online (amigos esperando). OFFLINE fica sem prazo:
+      // a janela de venda/contratos espera o botão do jogador (bug 08/08: o prazo
+      // invisível engolia a lista de renovação no meio da decisão).
+      s.phaseDeadline = (action.mesmo || s.onlineMode !== 'online') ? null : Date.now() + RESERVE_LIST_MS
       return s
     }
     case 'CONFIRM_MESMO_TIME': {

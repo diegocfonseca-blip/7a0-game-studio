@@ -3904,9 +3904,16 @@ export function ReserveListScreen() {
   // time" não tem relógio (phaseDeadline fica null → remaining cai pra 0 na
   // hora) — sem esta trava, o efeito abria um LEILÃO DE VERDADE escondido
   // assim que a tela carregasse, o oposto do que a tela mostra.
+  // 🐛 08/08 (relato de amigo do Diego): "apertei pra renovar o 1º jogador e a
+  // lista SUMIU". Não era o toque — era um PRAZO INVISÍVEL. Quando o relógio foi
+  // escondido no offline (05/08), o avanço automático dos 60s ficou armado: a
+  // pessoa estava decidindo os contratos com calma e a tela pulava sozinha pro
+  // leilão, renovando automático o que ela não tinha decidido. OFFLINE agora
+  // NÃO tem prazo nenhum — a janela espera o botão. Online mantém os 60s
+  // (tem gente esperando na sala).
   useEffect(() => {
-    if (state.isHost && !state.reserveListMesmo && remaining <= 0) dispatch({ type: 'RESERVE_AUCTION_ONLINE' })
-  }, [remaining, state.isHost, state.reserveListMesmo, dispatch])
+    if (state.onlineMode === 'online' && state.isHost && !state.reserveListMesmo && remaining <= 0) dispatch({ type: 'RESERVE_AUCTION_ONLINE' })
+  }, [remaining, state.onlineMode, state.isHost, state.reserveListMesmo, dispatch])
   // 🛟 estado incompleto (sem "meu time" por um instante — troca de fase / sync):
   // mostra uma tela de espera em vez de renderizar EM BRANCO (mesma proteção do
   // leilão). O host já avança sozinho pro leilão quando o tempo zera (efeito
