@@ -1,10 +1,9 @@
 # 📌 Pendências combinadas com o Diego (atualizado 08/08/2026)
 
-## 🤝 DUPLA — CÓDIGO PRONTO no branch, ⚠️ AGUARDANDO OK VISUAL do Diego (08/08)
-Diego mandou "Faz. O modo da dupla aí cara". Feito ponta a ponta **só no Rápido
-Online**, tudo atrás do toggle da sala. Branch `claude/denis-save-file-x1osct`
-(commits `a5abdce` = motor, `5c06414` = telas). **NÃO está na main** — mockup
-enviado (`scratchpad/dupla-telas.png`), esperando o Diego aprovar.
+## 🤝 DUPLA — NO AR (08/08) ✅
+Diego mandou "Faz. O modo da dupla aí cara", viu o mockup
+(`scratchpad/dupla-telas.png`) e aprovou ("Pode fazer. Publicar"). Feito ponta a
+ponta **só no Rápido Online**, tudo atrás do toggle da sala.
 - **Criar sala**: escolha nova "Quem comanda cada time" — 👤 Solo (de sempre) ou
   🤝 Duplas (beta). Grava `duplasMode` no `game_state` (padrão de `varzea`).
   Sala de duplas nasce com `max_players` dobrado (20 times = até 40 pessoas).
