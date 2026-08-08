@@ -1,4 +1,33 @@
-# 📌 Pendências combinadas com o Diego (atualizado 07/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 08/08/2026)
+
+## 🐛 TEXTO ERRADO no popup "Como jogar" (08/08) ✅ NO AR
+Rápido Online dizia "seus AMIGOS na sala (até 8)" — texto desatualizado, o teto
+real da sala (`MAX_PLAYERS` em `lobby.tsx`) sempre foi **20**, igual ao
+Carreira. Só corrigiu o texto (`screens.tsx`), nenhum comportamento mudou.
+Revertível com `git revert d482726`.
+
+## 🤝 DUPLA (2 pessoas dividindo 1 time) — EM DESENHO, NADA NO CÓDIGO AINDA
+Ideia do Diego: dentro de uma sala online, 2 pessoas podem dividir o comando de
+UM MESMO time (não cria time novo — usa uma vaga normal da sala). Mecânica
+combinada:
+- 6 categorias de posição: Goleiro, Zagueiro, Lateral, Meia, Atacante, Monte.
+- Dentro da sala, cada um da dupla escolhe (toca) as categorias que quer
+  comandar — **3 pra cada, sempre**. Quem tocar primeiro numa categoria leva
+  ela; dá pra desmarcar e trocar de ideia livremente.
+- Assim que um dos dois completa 3 escolhas, as outras 3 caem AUTOMÁTICO pro
+  parceiro (não precisa ele escolher também).
+- Se o host iniciar o leilão antes da dupla decidir, sorteia 3 e 3 pra cada um
+  na hora — nunca trava o início do jogo.
+- Quem comanda uma categoria decide TODOS os jogadores dela no elenco (ex:
+  quem pegou "Meia" decide todos os meias, sejam 3, 4, quantos forem).
+- Cabe até 20 duplas numa sala (uma por time — mesmo teto de sempre da sala),
+  ou seja até 40 pessoas jogando juntas.
+- Mockup da telinha de escolha (protótipo clicável, aprovado no visual pelo
+  Diego): `scratchpad/mockup-dupla-posicoes.html` — só rodou local nessa
+  sessão, não subiu pro repo. **Falta ainda combinar/desenhar**: como as
+  duplas se FORMAM dentro da sala (convite/pareamento) — isso ainda não foi
+  discutido. Só depois disso dá pra começar a programar de verdade (schema no
+  Supabase, reducer, telas reais).
 
 ## 🐛 LIVRO DE PREÇOS: preço compartilhado por NOME (relato de jogador, Neymar) ✅ NO AR
 Jogador reportou: renovar o Neymar do Santos estava pedindo o preço do Neymar
