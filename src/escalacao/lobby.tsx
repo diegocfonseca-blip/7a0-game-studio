@@ -1852,7 +1852,7 @@ export function EscLobby() {
       ? (duplasCompletas >= 1 && esperando.length === 0)
       : players.length >= 2
     const travaMsg = !duplasOn ? '' : esperando.length > 0
-      ? `⏳ ${esperando.length === 1 ? 'Uma vaga está' : `${esperando.length} vagas estão`} esperando parceiro. Quem está esperando pode tocar em "Desistir de esperar" pra jogar sozinho — aí o pregão abre.`
+      ? `⏳ ${esperando.length === 1 ? 'Uma pessoa pediu' : `${esperando.length} pessoas pediram`} pra esperar parceiro (⏳ Me esperem ou 🔒 Cadeado). Quem pediu é só tocar em "🌍 Deixar aberto" — aí o pregão abre na hora.`
       : duplasCompletas < 1 ? '🤝 Precisa de pelo menos uma dupla formada (2 pessoas no mesmo time) pra abrir o pregão.' : ''
     const chatOff = !!room.game_state?.chatOff // host desligou o chat na criação
     return wrap(<>
@@ -1895,10 +1895,15 @@ export function EscLobby() {
           {donos.map(p => {
             const par = duplasOn ? parceiroDe(p.user_id) : undefined
             const souEu = p.user_id === user?.id
+            // "procurando" = marcou de propósito que quer parceiro (é isso que
+            // segura o início do host). Quem não marcou nada NÃO está esperando.
             const procurando = duplasOn && !!p.dupla_seek && !par
-            // posso virar parceiro desta vaga? só em vaga ABERTA, que não é minha,
-            // e se eu ainda não estiver em dupla nenhuma.
-            const posso = duplasOn && procurando && !souEu && p.dupla_seek === 'aberta' && !souParceiro && !parceiroDe(user?.id ?? '')
+            // 🌍 PADRÃO ABERTO (pedido do Diego): quem não marcou NADA também
+            // aceita companhia — só o 🔒 cadeado fecha a vaga. Então posso entrar
+            // em qualquer time sem parceiro que não esteja de cadeado, desde que
+            // eu mesmo ainda não esteja em dupla nenhuma.
+            const livreProMim = duplasOn && !par && !souEu && p.dupla_seek !== 'privada'
+            const posso = livreProMim && !souParceiro && !parceiroDe(user?.id ?? '')
             return (
             <div key={p.user_id} className={duplasOn ? 'rounded-xl border-2 border-black/15 p-2' : ''} style={duplasOn ? { background: '#fff' } : undefined}>
               <div className="flex items-center gap-3">
@@ -1965,10 +1970,11 @@ export function EscLobby() {
                   </div>
                 )
               })()}
-              {/* 🤝 vaga procurando parceiro */}
-              {procurando && (
+              {/* 🤝 TIME SEM PARCEIRO — o que EU vejo depende de ser meu ou não */}
+              {duplasOn && !par && (
                 <div className="mt-1.5 pl-3" style={{ borderLeft: '3px dashed rgba(0,0,0,.25)' }}>
-                  {posso ? (
+                  {/* time de OUTRA pessoa: entro nele (a não ser que esteja de cadeado) */}
+                  {!souEu && (posso ? (
                     <button onClick={() => virarParceiro(p)}
                       className="w-full border-2 border-black rounded-xl py-2 font-black text-[12px] active:translate-y-0.5"
                       style={{ background: GOLD, color: '#000', ...OSWALD }}>
@@ -1976,25 +1982,39 @@ export function EscLobby() {
                     </button>
                   ) : (
                     <p className="text-black/45 text-[11.5px] font-bold py-1">
-                      {p.dupla_seek === 'privada' ? '🔒 Esperando um amigo específico…' : '🌍 Procurando parceiro…'}
+                      {p.dupla_seek === 'privada' ? '🔒 Guardando a vaga pra um amigo' : procurando ? '🌍 Procurando parceiro…' : '🌍 Aceita companhia'}
                     </p>
-                  )}
-                  {souEu && (
-                    <button onClick={desistirDeEsperar} className="mt-1 text-[10.5px] font-black uppercase underline text-black/45 active:opacity-60">
-                      Desistir de esperar (jogo sozinho)
-                    </button>
-                  )}
-                </div>
-              )}
-              {/* 🤝 é o MEU time, ainda sozinho e sem procurar: convida alguém */}
-              {duplasOn && souEu && !par && !p.dupla_seek && (
-                <div className="mt-1.5 pl-3 flex gap-2" style={{ borderLeft: '3px dashed rgba(0,0,0,.25)' }}>
-                  <button onClick={() => procurarParceiro('aberta')}
-                    className="flex-1 border-2 border-black rounded-xl py-1.5 font-black text-[11px] active:translate-y-0.5"
-                    style={{ background: '#fff', color: '#000', ...OSWALD }}>🌍 Chamar qualquer um</button>
-                  <button onClick={() => procurarParceiro('privada')}
-                    className="flex-1 border-2 border-black rounded-xl py-1.5 font-black text-[11px] active:translate-y-0.5"
-                    style={{ background: '#fff', color: '#000', ...OSWALD }}>🔒 Esperar um amigo</button>
+                  ))}
+                  {/* MEU time: escolho como a minha vaga fica */}
+                  {souEu && (<>
+                    <p className="text-black/55 text-[11.5px] font-black py-0.5" style={OSWALD}>
+                      {p.dupla_seek === 'privada' ? '🔒 CADEADO — só quem você chamar entra'
+                        : p.dupla_seek === 'aberta' ? '🌍 ESPERANDO PARCEIRO — o pregão não abre sem você'
+                        : '🌍 QUALQUER UM PODE ENTRAR NO SEU TIME'}
+                    </p>
+                    <p className="text-black/40 text-[10.5px] font-bold leading-snug mb-1">
+                      {p.dupla_seek === 'privada' ? 'Ninguém toca na sua vaga. Mande o link pro seu amigo e tire o cadeado quando ele chegar.'
+                        : p.dupla_seek === 'aberta' ? 'Além de aceitar qualquer um, o host fica travado até você achar parceiro (ou desistir).'
+                        : 'É o padrão: se alguém quiser, entra e joga com você. Se ninguém entrar, você joga sozinho e o pregão abre normal.'}
+                    </p>
+                    <div className="flex gap-2">
+                      {p.dupla_seek !== 'aberta' && (
+                        <button onClick={() => procurarParceiro('aberta')}
+                          className="flex-1 border-2 border-black rounded-xl py-1.5 font-black text-[11px] active:translate-y-0.5"
+                          style={{ background: '#fff', color: '#000', ...OSWALD }}>⏳ Me esperem</button>
+                      )}
+                      {p.dupla_seek !== 'privada' && (
+                        <button onClick={() => procurarParceiro('privada')}
+                          className="flex-1 border-2 border-black rounded-xl py-1.5 font-black text-[11px] active:translate-y-0.5"
+                          style={{ background: '#fff', color: '#000', ...OSWALD }}>🔒 Cadeado</button>
+                      )}
+                      {!!p.dupla_seek && (
+                        <button onClick={desistirDeEsperar}
+                          className="flex-1 border-2 border-black rounded-xl py-1.5 font-black text-[11px] active:translate-y-0.5"
+                          style={{ background: '#fff', color: '#000', ...OSWALD }}>🌍 Deixar aberto</button>
+                      )}
+                    </div>
+                  </>)}
                 </div>
               )}
             </div>
@@ -2003,7 +2023,7 @@ export function EscLobby() {
           {players.length < 2 && <p className="text-black/40 text-xs italic mt-1">Aguardando mais técnicos…</p>}
           {duplasOn && (
             <p className="text-black/45 text-[11px] font-bold leading-snug mt-2 pt-2" style={{ borderTop: '2px solid rgba(0,0,0,.1)' }}>
-              🤝 Cada time pode ser comandado por 2 pessoas: uma cuida de 3 posições, a outra das outras 3. Quem quiser jogar sozinho é só não chamar ninguém.
+              🤝 Cada time pode ser comandado por 2 pessoas: uma cuida de 3 posições, a outra das outras 3. Por padrão todo time aceita companhia — quem quiser guardar a vaga pra um amigo é só pôr o 🔒 cadeado. Ninguém é obrigado: se ninguém entrar, você joga sozinho normal.
             </p>
           )}
         </div>
