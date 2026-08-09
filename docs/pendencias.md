@@ -91,6 +91,21 @@ DECISÕES NOVAS DO DIEGO (rodada v2 dos mockups, mesma noite):
   fichas no Banco · "recado do presidente" na área do sócio · faixa da
   torcida na simulação (frase aprovada pelo Diego) · conselho mensal "o que
   o presidente constrói primeiro" (orienta).
+- 🥁 IDEIA 8 (do Diego): TORCIDA SONORA na simulação da carreira — loop de
+  arquibancada genérico (⚠️ NUNCA gravações de cantos reais: direitos
+  autorais; usar CC0/encomendado), volume cresce com o estádio da SAF,
+  rugido junto com o carimbo do gol (NUNCA antes — lei do spoiler), só gol
+  do próprio time, botão de mudo com memória. Só pra sócio. Protótipo
+  oferecido, aguardando OK.
+- ❤️ IDEIA 9 (do Diego): PACOTE CORAÇÃO — usuário torce por um clube REAL
+  (ex.: Flamengo) e o jogo usa isso SEM nome/escudo oficial (marca
+  registrada; cores e padrões são livres): (a) MANTO DO CORAÇÃO — o time
+  dele (ex.: Bagres FC) veste as cores/listras do clube do coração no
+  campinho/ficha (⚠️ nome do usuário SEGUE na cor do tier, intocável);
+  (b) carteirinha/mural com "❤️ torço pro X" (texto declarado pelo próprio
+  usuário) + coraçãozinho nas cores; (c) escudo à mão nasce "com alma" do
+  coração; (d) tempero no estilo da torcida sonora. Manto = o mais
+  trabalhoso (mexe no campinho, mockup antes). Aguardando decisão.
 PERGUNTA ABERTA (segue sem resposta): voto dos sócios DECIDE ou só orienta?
 Depois do OK: ordem combinada = loja nova → trava do Manual 2 botões →
 olheiros (só elenco) → votação/área do sócio → cobertura retrátil (mockup
