@@ -2078,7 +2078,7 @@ export const CPU_MANAGERS = [
   { name: 'Waguinho Pipa', team: 'Fatality FC' },
   { name: 'Gugu Canela', team: 'Canela EC' },
   { name: 'Baixinho da Kombi', team: 'Kombi United' },
-  { name: 'Zé Ruela', team: 'Paixandu' },
+  { name: 'Zé Ruela', team: 'Neymarzetti' }, // ⚽ clube BATIZADO (time do Diego, dono do jogo — ex-Paixandu)
   { name: 'Toninho Grelha', team: 'Grelha SAF' },
   { name: 'Vavá Peteca', team: 'Peteca FR' },
   { name: 'Nininho', team: 'Nininho EC' },
@@ -2145,6 +2145,7 @@ export const OLD_NAME: Record<string, string> = {
   'Barcenite FC': 'Milanesa FC', // ⚽ batismo do ricardopessoafreire: save antigo com Milanesa FC vira Barcenite FC ao carregar
   'Bicho da Seda': 'Red Bull Diet', // ⚽ batismo do davisantana1312: save antigo com Red Bull Diet vira Bicho da Seda ao carregar
   'Xurupitas FC': 'Bicho da Seda', // ⚽ davisantana1312 re-batizou 09/08: save com Bicho da Seda (ou Red Bull Diet) vira Xurupitas FC ao carregar
+  'Neymarzetti': 'Paixandu', // ⚽ time do Diego 09/08: save antigo com Paixandu vira Neymarzetti ao carregar
   'Manfré FC': 'Livre-pool', // ⚽ batismo do danielmanfre5: save antigo com Livre-pool (ou Xandão EC) vira Manfré FC ao carregar
   'La Bestia Negra': 'River Prato', // ⚽ batismo do eltonfrossard45: save antigo com River Prato vira La Bestia Negra ao carregar
 }
@@ -2232,7 +2233,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Baixinho da Kombi', team: 'Kombi United' },
   ],
   D: [
-    { name: 'Zé Ruela', team: 'Paixandu' },
+    { name: 'Zé Ruela', team: 'Neymarzetti' }, // ⚽ clube BATIZADO (time do Diego, dono do jogo — ex-Paixandu)
     { name: 'Guilherme', team: 'Nightfull FC' }, // ⚽ clube BATIZADO por apoiador (Guilherme)
     { name: 'GuGu', team: 'White Thigs do GuGu' }, // ⚽ clube BATIZADO por apoiador (1º da história!)
     { name: 'Serjão', team: 'Real Madruga' },
