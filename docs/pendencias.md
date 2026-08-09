@@ -209,6 +209,17 @@ Cobrar → Link de pagamento), trocar a trava do Manual de Pix+DM pra abrir o
 link direto (cartão/Pix em 3 toques) + aviso "libera em minutos" (entrega
 pelo painel já no ar). Commit isolado e revertível. Fase 2 futura: webhook
 do MP → entrega automática. AGUARDANDO O LINK DELE.
+⚖️ MARTELOS DO DIEGO (09/08): (1) OLHEIROS: sócio NÃO vê nenhuma categoria;
+escadinha final = ⭐ Craque vê de craque pra baixo · 👑 Lenda e 🖋️ Batismo
+veem TUDO · grátis nada. DECIDIDO. (2) SOM DE ESTÁDIO: fora do sócio DE VEZ.
+(3) Ele quer ENGORDAR o sócio com coisas "que funcionem" estilo escudo
+("que a pessoa queira ser sócio e não faça por caridade"). 5 propostas
+enviadas: nome do próprio estádio (aprovado por ele à mão, sai no jornal;
+abaixo do StadiumSvg) · gramado à escolha (skins do campinho: noturno/chuva/
+várzea/premium — turfColors já existe) · fichas de carreira em dobro +
+backup na nuvem (dor real) · martelo do sócio (som/estampa própria SÓ pra
+quem ganha — lei do som pessoal) · pacote de cantadas prontas no chat.
+Recomendação: as 3 primeiras. AGUARDANDO a escolha dele.
 📌 STATUS FINAL DA RODADA (08/08, noite): Diego travou na dúvida olheiros-
 no-sócio vs escadinha ("só sei que quero que venda MT"). RECOMENDAÇÃO FIRME
 enviada: ESCADINHA por tier (4 produtos, 4 desejos: sócio=jogo do seu
