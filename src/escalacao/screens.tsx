@@ -984,10 +984,12 @@ function CardFace({ c, big = false, surprise = false, highlight = false }: { c: 
 // no aparelho — só reaparece quando eu trocar o LATEST_NEWS por um id novo.
 // avisos do topo (só informativos — não levam a lugar nenhum). Ao fechar, guarda
 // o id no aparelho; troque o NEWS_ID por um novo pra reaparecer pra todos.
-const NEWS_ID = '2026-07-trofeus-patrocinio'
+const NEWS_ID = '2026-08-duplas'
 const NEWS_ITEMS = [
+  { emoji: '🤝', title: 'Duplas (beta) — Rápido Online', text: 'Chame um amigo pra dividir o comando do MESMO time: cada um manda em 3 das 6 posições (goleiro, zagueiro, lateral, meia, atacante, monte). Ative "🤝 Duplas" ao criar a sala.' },
+  { emoji: '💰', title: 'Patrocínio virou aposta', text: 'No Modo Carreira: escolha a META da temporada (não cair, acesso ou título) e fature de acordo — apostou seguro e foi além, só ganha o combinado.' },
+  { emoji: '🚀', title: 'Contratos em massa', text: 'Vencendo vários contratos de uma vez? Renove ou libere TODOS com um botão só, sem clicar jogador por jogador.' },
   { emoji: '🏆', title: 'Hall da Fama — Sala de Troféus', text: 'No Modo Carreira, na aba Rank (embaixo do rank de clubes): a estante do seu clube com TODOS os títulos que você conquistou, guardados pra sempre.' },
-  { emoji: '👕', title: 'Agência de Patrocínio', text: 'No Modo Carreira, na aba Clube: escolha a marca que patrocina o seu time — ela pinga dinheiro no caixa toda temporada (quanto mais alta a divisão, mais rende).' },
 ]
 function NewsBanner() {
   const [dismissed, setDismissed] = useState(() => {
@@ -1031,6 +1033,9 @@ function NewsSection() {
       <div>
         <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>✨ No jogo</p>
         <div className="mt-1 space-y-1">
+          <p className="text-xs font-bold text-black/75">🤝 <b>Duplas (beta)</b> — no <b>Rápido Online</b>: ative "🤝 Duplas" ao criar a sala e chame um amigo pra dividir o comando do <b>mesmo time</b>. Cada um manda em 3 das 6 posições (goleiro, zagueiro, lateral, meia, atacante, monte) — dá pra ter várias duplas na mesma sala.</p>
+          <p className="text-xs font-bold text-black/75">💰 <b>Patrocínio virou aposta</b> — no <b>Modo Carreira</b>: no início de cada temporada, escolha a meta (não cair de divisão, acesso ou título) e fature de acordo. Apostou seguro e foi além? Só ganha o combinado.</p>
+          <p className="text-xs font-bold text-black/75">🚀 <b>Contratos em massa</b> — quando vencem vários contratos de uma vez, três botões renovam ou liberam <b>TODOS</b> de um clique, sem precisar ir jogador por jogador.</p>
           <p className="text-xs font-bold text-black/75">💰 <b>Finanças do clube</b> — no <b>Modo Carreira</b>: a aba Estádio virou <b>💰 Clube</b>. Tem um <b>Extrato</b> de tudo que entra e sai (prêmios, bilheteria, salários, <b>patrocínio</b>, <b>prêmios da SAF</b>, compras e vendas) e uma aba de <b>Transferências</b> com o <b>lucro/prejuízo</b> de cada venda e a valorização de quem está no elenco.</p>
           <p className="text-xs font-bold text-black/75">💬 <b>Chat de verdade na sala de espera</b> — no <b>online</b>: as mensagens agora <b>ficam</b> (não somem mais) e seguem você se recarregar a página. As frases prontas de "zoar a galera" continuam.</p>
           <p className="text-xs font-bold text-black/75">⏱️ <b>Tempo do leilão</b> — no <b>online</b> com <b>Modo Stream</b>: o host escolhe quantos <b>segundos</b> dura cada envelope do pregão (20 a 90s), ou deixa <b>sem tempo</b> e <b>avança cada negociação no botão</b> — todo mundo segue sincronizado.</p>

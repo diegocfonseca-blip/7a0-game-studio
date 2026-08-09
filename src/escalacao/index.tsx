@@ -162,21 +162,19 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | nu
   }
 }
 
-// 🔄 VIGIA DE VERSÃO (atualização automática): o jogo é um site que fica aberto/
-// cacheado no navegador — quem já está com a página aberta continua na versão
-// ANTIGA até recarregar, e a galera não entende de "versão" nem recarrega. Este
-// vigia compara o arquivo JS que ESالتA página carregou (o hash no nome muda a cada
-// deploy) com o do index.html no servidor. Se mudou: mostra um banner (toque =
-// atualiza) e, se a pessoa estiver na TELA INICIAL (segura), atualiza sozinho —
-// sem interromper jogo em andamento. Guarda a hora do último auto-reload pra
-// nunca entrar em loop (no máx. 1 auto-reload a cada 5 min).
+// 🔄 VIGIA DE VERSÃO (atualização automática, SEM banner): o jogo é um site que
+// fica aberto/cacheado no navegador — quem já está com a página aberta continua
+// na versão ANTIGA até recarregar. Este vigia compara o arquivo JS que esta
+// página carregou (o hash no nome muda a cada deploy) com o do index.html no
+// servidor e, se a pessoa estiver na TELA INICIAL (segura), atualiza sozinho —
+// sem interromper jogo em andamento e SEM avisar (Diego: o banner verde tava
+// aparecendo toda hora, com o tanto de deploy que rola por dia). Guarda a hora
+// do último auto-reload pra nunca entrar em loop (no máx. 1 auto-reload a cada
+// 5 min).
 function VersionWatcher() {
   const { state } = useEsc()
   // guarda o ARQUIVO NOVO detectado no servidor (o hash muda a cada deploy).
   const [newBundle, setNewBundle] = useState<string | null>(null)
-  // dispensa é POR VERSÃO (sessão): fechou o banner desta versão, some — mas a
-  // PRÓXIMA versão nova volta a avisar. (Antes era "1 vez na vida" e travava.)
-  const [dismissed, setDismissed] = useState<string | null>(() => { try { return sessionStorage.getItem('esc-upd-dismiss') } catch { return null } })
   useEffect(() => {
     const cur = Array.from(document.scripts).map(s => s.getAttribute('src') || '').find(s => /assets\/index-[\w-]+\.js/.test(s)) || ''
     if (!cur) return
@@ -201,11 +199,10 @@ function VersionWatcher() {
   // setup (escolhas). Nessas, só o botão aparece — atualiza apenas se TOCAR.
   const safe = state.screen === 'intro'
   // AUTO-atualiza em silêncio quando a pessoa está numa tela segura (rede de
-  // segurança pra quem não toca no botão). Anti-loop: no máx. 1x/5min. Não
-  // recarrega se a pessoa DISPENSOU (respeita a escolha dela). Espera uns
-  // segundos pra dar tempo de VER e tocar no botão antes.
+  // segurança pra quem não recarrega sozinho). Anti-loop: no máx. 1x/5min.
+  // Espera uns segundos pra não recarregar no instante exato que abriu.
   useEffect(() => {
-    if (!newBundle || !safe || dismissed === newBundle) return
+    if (!newBundle || !safe) return
     let last = 0
     try { last = +(sessionStorage.getItem('esc-auto-upd-at') || 0) } catch { /* ignora */ }
     if (Date.now() - last < 300_000) return
@@ -214,20 +211,8 @@ function VersionWatcher() {
       window.location.reload()
     }, 6000)
     return () => clearTimeout(t)
-  }, [newBundle, safe, dismissed])
-  // 🆕 (07/08, pedido do Diego): bannerzinho avisando que o jogo atualizou — toca
-  // "Atualizar" e recarrega na hora; fecha no ✕ e SOME (não volta mais nesta
-  // versão — só a PRÓXIMA versão nova avisa de novo, não é toda hora à toa).
-  if (!newBundle || dismissed === newBundle) return null
-  const dismiss = () => { setDismissed(newBundle); try { sessionStorage.setItem('esc-upd-dismiss', newBundle) } catch { /* ignora */ } }
-  return (
-    <div style={{ position: 'fixed', top: 8, left: 8, right: 8, zIndex: 99998, margin: '0 auto', maxWidth: 420, background: '#1B7A3D', color: '#fff', border: '2px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', boxShadow: '0 4px 14px rgba(0,0,0,.3)', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Oswald, sans-serif' }}>
-      <span style={{ fontSize: 18, lineHeight: 1 }}>🆕</span>
-      <span style={{ flex: 1, fontWeight: 800, fontSize: 11.5, lineHeight: 1.25 }}>O jogo atualizou! Toque pra pegar a versão nova.</span>
-      <button onClick={() => window.location.reload()} style={{ flexShrink: 0, background: '#0C0C0C', color: '#FFC400', border: 'none', borderRadius: 8, padding: '6px 10px', fontWeight: 900, fontSize: 11.5, cursor: 'pointer', fontFamily: 'Oswald, sans-serif' }}>Atualizar</button>
-      <button onClick={dismiss} aria-label="Dispensar" style={{ flexShrink: 0, width: 22, height: 22, borderRadius: 999, background: '#fff', border: '2px solid #000', fontWeight: 900, fontSize: 11, cursor: 'pointer', lineHeight: 1, color: '#0C0C0C' }}>✕</button>
-    </div>
-  )
+  }, [newBundle, safe])
+  return null
 }
 
 // 🔊 SOM: liberado pra TODO MUNDO. Começa MUDO (opt-in) — ninguém leva susto de
