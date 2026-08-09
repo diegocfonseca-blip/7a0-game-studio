@@ -36,6 +36,13 @@ DECISÕES NOVAS DO DIEGO (rodada v2 dos mockups, mesma noite):
   indo de Craque; e vira gancho de retenção "falta 1 mês pro teu Manual";
   cancelou → Manual fecha). Aguardando ele bater o martelo (a outra opção
   dele era tirar o Manual do sócio de vez).
+- 📐 ORDEM DOS BENEFÍCIOS no card do sócio (pedido dele, v4): 1º olheiros/
+  overall · 2º escudo à mão · 3º cor roxa no nome · 4º carteirinha · depois
+  o resto (votação, cobertura, moedas, manual 3º mês, mural).
+- 🛡️ ESCUDO ganhou EXEMPLO DE IMPACTO próprio (igual o do overall):
+  scratchpad/escudo-ex.png — antes (automático) → Alfacehh FC à mão
+  (reaproveita os símbolos #alfacehh/#alfacehhMini do mock-alface de outra
+  entrega), + como fica na tabela e no placar com versão mini.
 PERGUNTA ABERTA (segue sem resposta): voto dos sócios DECIDE ou só orienta?
 Depois do OK: ordem combinada = loja nova → trava do Manual 2 botões →
 olheiros (só elenco) → votação/área do sócio → cobertura retrátil (mockup
