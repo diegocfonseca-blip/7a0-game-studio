@@ -3005,9 +3005,13 @@ export function PyramidSeasonScreen() {
   // temporada (título da sua divisão + artilharia geral) no esc_results — a
   // pirâmide não usa state.league, então o RankResultWriter do modo rápido não
   // pegava isso (por isso título/artilharia da carreira online não contavam).
+  // 🔒 SÓ carreira NOVA (agenciaOn) conta pro ranking (09/08, pedido do Diego:
+  // carreira antiga vira só ranking fácil de grindar — quem quer subir tem
+  // que jogar a carreira nova, com Agência). Não apaga título já gravado —
+  // só para de SOMAR mais em save antigo daqui pra frente.
   const rankWriteRef = useRef('')
   useEffect(() => {
-    if (!done || !me || !state.careerOnline) return
+    if (!done || !me || !state.careerOnline || !state.agenciaOn) return
     // chave da temporada: online usa o id da sala; offline (solo) usa a semente da
     // carreira (única por save), pra cada temporada contar sem colidir entre carreiras.
     // 🔑 online: sala + SEED (impressão digital do jogo) — o "novo leilão" reseta a
@@ -3038,7 +3042,7 @@ export function PyramidSeasonScreen() {
   // Copa na mesma temporada. Grava quando a Copa termina de animar e você venceu.
   const copaRankRef = useRef('')
   useEffect(() => {
-    if (!copaFinished || !copa?.champion?.you || !state.careerOnline) return
+    if (!copaFinished || !copa?.champion?.you || !state.careerOnline || !state.agenciaOn) return
     const room = state.roomId ? `${state.roomId}:${state.seed}` : `solo${state.seed}`
     const key = `co:${room}:${state.seasonNo}:copa`
     if (copaRankRef.current === key) return
@@ -3389,7 +3393,8 @@ export function PyramidSeasonScreen() {
             // Ninguém aperta nada: é conversa entre os celulares.
             return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)}
               onPrize={() => { for (const id of (meusNoTop.length ? meusNoTop : [youId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id }) }}
-              onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
+              onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
+              agenciaOn={!!state.agenciaOn} />
           })()
           // 🗳️ a VOTAÇÃO é só do ONLINE (vários técnicos na sala decidem juntos).
           // No SOLO/carreira offline NUNCA vota — mesmo com 2º clube (multiclube),
