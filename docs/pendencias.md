@@ -245,6 +245,15 @@ CAMPEÃO de qualquer modo, pose levantando a taça no confete, SÓ pós-apito
 (zero spoiler), só o dono vê a sua; (3) sairia na capa de campeão se essa
 entrar; (4) NUNCA no leilão. Feita à mão pelo Diego igual o escudo
 (2 desenhos por mascote: parada + com taça). Aguardando o veredito dele.
+→ Diego: "QUERO a animação quando ganha título!" e pediu mockup REAL no
+rápido online. Enviado (scratchpad/mascote-festa.png), 2 quadros: (1) o
+FESTÃO — overlay de ~4s POR CIMA da tela de fim de temporada, pós-apito:
+fundo verde com raios dourados girados, chuva de confete, "🏆 CAMPEÃO!" +
+nome do time, mascote GRANDE pulando com a taça; só o time campeão vê
+(regra do som do martelo); toque pula. (2) DEPOIS: a mascote fica em cima
+do quadro preto do "Fim da temporada" segurando a taça até a sala votar.
+Mesma festa no rápido offline e na carreira. AGUARDANDO OK do visual pra
+esse ser o comportamento oficial da mascote.
 📌 STATUS FINAL DA RODADA (08/08, noite): Diego travou na dúvida olheiros-
 no-sócio vs escadinha ("só sei que quero que venda MT"). RECOMENDAÇÃO FIRME
 enviada: ESCADINHA por tier (4 produtos, 4 desejos: sócio=jogo do seu
