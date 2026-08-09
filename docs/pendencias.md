@@ -121,6 +121,21 @@ inclusive pode ser convocada pros 22 ativos), só a RENDA em moedas fica
 "🔒 destrava: [requisito]" até desbloquear aquela categoria — nunca esconde
 nem perde a carta, só a moeda que ela renderia.
 
+## 🕵️ OLHEIROS NO AR (09/08, commit 9f7825f — Diego cobrou ao vivo "não tô
+vendo over no meu elenco"): overall "lo–hi" com FUNDO na cor da categoria
+(ouro lenda · prata craque · roxo promessa · verde bom · bege resto) ao
+lado de "clube · ano" nas listas Titulares/Reservas do elenco da CARREIRA.
+Escadinha: 👑 ouro/batismo vê TUDO · ⭐ prata vê fame<5 · resto nada.
+Gates duros: olheiros={onlineMode!=='online'} (nunca online), só
+ElencoField (nunca leilão/monte/YourPitch), cartas fake não mostram,
+NUNCA a palavra da categoria. + MANTO AGORA LÊ DO BANCO: manto.ts busca
+esc_meu_socio (cache com auth listener + hook useMeuSocio), fallback
+MANTO_CONTAS do código; migração socio_personalizacao_admin criou RPC
+esc_admin_socio_perso(email, c1, c2, estadio, mascote) gated no Diego.
+FALTA: inputs de personalização na seção Sócio do admin (chamar o RPC) +
+mostrar estadio_nome na área do clube + mascote/festão + votação/mural +
+cards v14 do craque/lenda/batismo no modal + patch quase-nomes.
+
 ## 🏪 LOJA v1 NO AR (09/08, commit 556f697): o modal APOIE ganhou o SÓCIO
 - Card 🎫 SÓCIO LEGENDS no TOPO da tela "choice" (roxo com brilho, selo
   NOVO): benefícios em 1 linha (manto/escudo/mascote/estádio/30 moedas/
