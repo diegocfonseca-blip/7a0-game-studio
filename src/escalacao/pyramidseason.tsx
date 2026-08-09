@@ -15,6 +15,7 @@ import { empresarioIncome, empCat, EMP_ORDER, EMP_META } from './estadiodata'
 import type { EmpCat, StadiumSave } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
 import { useLang } from './lang'
+import { sectorTitle } from './sportcfg'
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, SponsorCard } from './estadio'
@@ -686,6 +687,8 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, bb = false,
 }) {
   const [sub, setSub] = useState<'extrato' | 'transf'>('extrato')
   const T = (pt: string, e: string) => (bb && en) ? e : pt
+  // rótulo de posição: no basquete vira Armadores/Point Guards…; futebol = POS_LABEL de sempre.
+  const posLbl = (pos: Sector) => bb ? sectorTitle('basquete', pos, en ? 'en' : 'pt') : POS_LABEL[pos]
   // extrato: do mais novo pro mais antigo, agrupado por temporada
   const rev = [...ledger].reverse()
   const seasons = [...new Set(rev.map(e => e.season))]
@@ -759,7 +762,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, bb = false,
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: INK }}>{c.name}</div>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: '#8a8069', textTransform: 'uppercase' }}>{POS_LABEL[c.pos]}</div>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: '#8a8069', textTransform: 'uppercase' }}>{posLbl(c.pos)}</div>
                       </div>
                       <div style={{ display: 'flex', gap: 6 }}>
                         <div style={{ textAlign: 'center' }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>{T('Pago', 'Paid')}</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{pago}</div></div>
@@ -782,7 +785,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, bb = false,
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: INK }}>{e.player ?? e.label}</div>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: '#8a8069', textTransform: 'uppercase' }}>{e.pos ? POS_LABEL[e.pos] : T('Vendido', 'Sold')} · T{e.season}</div>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: '#8a8069', textTransform: 'uppercase' }}>{e.pos ? posLbl(e.pos) : T("Vendido", "Sold")} · T{e.season}</div>
                       </div>
                       <div style={{ display: 'flex', gap: 6 }}>
                         <div style={{ textAlign: 'center' }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>{T('Pagou', 'Paid')}</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{bought}</div></div>
