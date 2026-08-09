@@ -30,6 +30,12 @@ DECISÕES NOVAS DO DIEGO (rodada v2 dos mockups, mesma noite):
 - Lenda+sócio ao mesmo tempo: PROPOSTA enviada (cor mais alta manda — ouro
   continua em todo canto — e o sócio vira selinho 🎫 ao lado do nome; sócio
   puro fica roxo). Aguardando OK dele nessa regra.
+- 🎮 MANUAL NO SÓCIO: Diego temeu canibalizar o Craque ("ng vai pagar o
+  craque mais"). Recomendação enviada e DESENHADA na v3: Manual libera só no
+  3º MÊS de casa do sócio (3×9,90=29,70 > 19,90 → quem quer Manual continua
+  indo de Craque; e vira gancho de retenção "falta 1 mês pro teu Manual";
+  cancelou → Manual fecha). Aguardando ele bater o martelo (a outra opção
+  dele era tirar o Manual do sócio de vez).
 PERGUNTA ABERTA (segue sem resposta): voto dos sócios DECIDE ou só orienta?
 Depois do OK: ordem combinada = loja nova → trava do Manual 2 botões →
 olheiros (só elenco) → votação/área do sócio → cobertura retrátil (mockup
