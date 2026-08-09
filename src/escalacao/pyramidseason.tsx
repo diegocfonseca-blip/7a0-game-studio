@@ -1845,7 +1845,7 @@ function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boo
 // reservas numa lista embaixo. Pra trocar: toca num jogador (fica MARCADO) e os
 // da MESMA posição do outro lado ACENDEM — toca em qual quer trocar. Vale pros
 // dois sentidos (titular↔reserva). Aplica no próximo jogo, como a tática.
-function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contratosOn }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean }) {
+function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contratosOn, olheiros }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean }) {
   // 📝 CONTRATO SUTIL (pedido do Diego 04/08): vive na coluna da DIREITA,
   // embaixo do 💰 piso e 💸 salário — ali nunca corta em tela estreita, e a
   // linha "clube · ano" da esquerda fica inteira. Cinza quando está tudo certo
@@ -1864,6 +1864,23 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contr
   // 🎽 manto do coração (aprovado 09/08): faixinha listrada no topo das fichinhas
   // do campinho — só pra conta com manto (o elenco aqui é sempre o do próprio usuário)
   const manto = meuManto()
+  // 🕵️ OLHEIROS pela escadinha (decisão do Diego 09/08): overall "lo–hi" com o
+  // FUNDO na cor da categoria, SÓ no elenco da carreira (nunca leilão/online —
+  // `olheiros` vem do pai) e SÓ pós-contratação (aqui tudo já é contratado).
+  // 👑 ouro/batismo vê TUDO · ⭐ prata vê de craque pra baixo · resto não vê.
+  // NUNCA a palavra da categoria escrita — só a cor (lei do Diego).
+  const olheiroTier = olheiros ? myApoioPerk()?.tier : undefined
+  const overallChip = (c: WonCard) => {
+    if (!c.lo || !c.hi || c.fake) return null
+    if (olheiroTier !== 'ouro' && !(olheiroTier === 'prata' && c.fame < 5)) return null
+    const isProm = !!c.promessa
+    const [g, ink2] = c.fame >= 5 ? ['linear-gradient(150deg,#FFE79A,#FFC400)', INK]
+      : c.fame === 4 ? ['linear-gradient(150deg,#F4F7FB,#CBD4DE)', INK]
+      : isProm ? ['linear-gradient(150deg,#C9A9FF,#8B5CF6)', '#fff']
+      : c.fame >= 2 ? ['linear-gradient(150deg,#41C07A,#2E9E5B)', '#fff']
+      : ['linear-gradient(150deg,#DBD1B5,#B2A583)', INK]
+    return <span style={{ ...OSWALD, flex: 'none', fontWeight: 700, fontSize: 9.5, border: `1.5px solid ${INK}`, borderRadius: 6, padding: '0 5px', background: g, color: ink2, lineHeight: '13px' }}>{c.lo}–{c.hi}</span>
+  }
   const salaryOn = (seasonNo ?? 1) >= 4 // 🔓 salário/folha só aparecem a partir da 4ª temporada
   const sel = selId ? mgr.squad.find(c => c.id === selId) ?? null : null
   const isTarget = (c: WonCard) => !!sel && sel.id !== c.id && sel.pos === c.pos && (xiIds.has(sel.id) !== xiIds.has(c.id))
@@ -1897,7 +1914,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contr
         <span style={{ display: 'block', fontWeight: titular ? 800 : 700, fontSize: 11.5, ...OSWALD, color: titular ? INK : '#4a4740', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           <span style={{ fontWeight: 900, fontSize: 8.5, color: col.solid, marginRight: 4 }}>{c.pos}</span>{c.name}{c.emprestado && <EmpTag />}
         </span>
-        <span style={{ display: 'block', fontWeight: 700, fontSize: 9, color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.club} · {c.year}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700, fontSize: 9, color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap', overflow: 'hidden' }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.club} · {c.year}</span>{overallChip(c)}</span>
       </span>
       <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0, lineHeight: 1.25, gap: 1 }}>
         {goalsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: GREEN }}>⚽ {goalsOf(c)}</span>}
@@ -2049,7 +2066,7 @@ function GoldTeaser({ label, children }: { label: string; children: React.ReactN
 }
 
 const POS_SHORT: Record<Sector, string> = { GOL: 'goleiro', LAT: 'lateral', ZAG: 'zagueiro', MEI: 'meia', ATA: 'atacante' }
-function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey) => void; contratosOn?: boolean }) {
+function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey) => void; contratosOn?: boolean; olheiros?: boolean }) {
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
@@ -2107,7 +2124,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
         )
       })()}
       {elenco ? (
-        <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} />
+        <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} />
       ) : (<>
       {hasReserves && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 5 }}>
@@ -3774,7 +3791,7 @@ export function PyramidSeasonScreen() {
                 <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}><b>Tática e substituições</b> valem do <b>próximo jogo</b> em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</p>
               </>
             )}
-            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={f => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId })} />
+            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={f => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId })} olheiros={state.onlineMode !== 'online'} />
             {me && (
               <ShareElencoBtn mgr={state.managers[state.youIdx]} col={myCol} xi={myXI as WonCard[]} xiIds={myXIids}
                 goals={goalsByCard} divName={DIV_NAME[me.div]} tablePos={me.pos} seasonNo={state.seasonNo}
@@ -3783,7 +3800,7 @@ export function PyramidSeasonScreen() {
             )}
             <GoldTeaser label="Ver MEU elenco DOURADO (prévia)">
               <div style={{ maxHeight: 400, overflow: 'hidden', borderRadius: 16, position: 'relative' }}>
-                <SquadTab mgr={state.managers[state.youIdx]} col={{ solid: '#C9A227', light: '#F6E9C0' }} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} perkOverride={APOIO_PERKS.ouro} />
+                <SquadTab mgr={state.managers[state.youIdx]} col={{ solid: '#C9A227', light: '#F6E9C0' }} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} perkOverride={APOIO_PERKS.ouro} olheiros={state.onlineMode !== 'online'} />
                 <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 64, background: 'linear-gradient(180deg,transparent,#F4ECD6)', pointerEvents: 'none', zIndex: 2 }} />
               </div>
             </GoldTeaser>
@@ -4178,7 +4195,7 @@ export function ReserveListScreen() {
         )}
         {/* mesmo layout da aba Elenco (Titulares/Reservas), mas em modo listagem —
             "mesmo time" não tem leilão, então nem mostra o botão de listar/vender */}
-        <SquadTab mgr={mgr} col={col} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]}
+        <SquadTab mgr={mgr} col={col} coins={state.careerCoins?.[youId] ?? 0} olheiros={state.onlineMode !== 'online'} xiIds={myXIids} xi={myXI as WonCard[]}
           list={state.reserveListMesmo ? undefined : { listed, canList, onList: (id) => dispatch({ type: 'TOGGLE_RESERVE_LIST', mgrId: youId, cardId: id }) }} />
         {!state.reserveListMesmo && marketUnlocked && (
           <EnsinoPilula k="listar" pill="ℹ️ como funciona a venda" seasonNo={state.seasonNo}>
