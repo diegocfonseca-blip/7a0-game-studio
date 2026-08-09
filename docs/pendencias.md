@@ -47,10 +47,15 @@ DECISÕES NOVAS DO DIEGO (rodada v2 dos mockups, mesma noite):
 - 🚪 REGRA ANTI-CANSAÇO das portas de venda (Diego temeu "muito botão de
   apoie" e cansar quem já pagou; arte portas-ex.png enviada): (1) todo botão
   é atalho pra MESMA loja, não existem lojas separadas; (2) botão/cadeado SÓ
-  aparece pra quem NÃO tem aquilo, e já com o preço da pessoa (Craque vê
-  4,99, Lenda vê 2,99). Craque nunca mais vê o cadeado do Manual; sócio não
-  vê botão nenhum. Cobertura = item com cadeado na estrutura (abaixo do
-  estádio), SEM botão "apoie" solto. Aguardando OK dele nessa regra.
+  aparece pra quem NÃO tem aquilo. Craque nunca mais vê o cadeado do Manual;
+  sócio não vê botão nenhum. Cobertura = item com cadeado na estrutura
+  (abaixo do estádio), SEM botão "apoie" solto.
+- 🕵️→🎫 PORTA DO OLHEIRO — REFINO DO DIEGO (decidido): o botão de sócio nos
+  olheiros aparece pra TODO não-sócio, de QUALQUER categoria (grátis, craque,
+  lenda, batismo). Ao tocar, a pessoa VÊ a diferença: R$ 9,90 RISCADO + "você
+  paga 4,99/2,99" + a escadinha completa com a linha DELA marcada (VOCÊ) — de
+  propósito, pra ela ver o que os outros pagam e sentir o desconto do tier.
+  Arte: scratchpad/olheiro-porta.png.
 PERGUNTA ABERTA (segue sem resposta): voto dos sócios DECIDE ou só orienta?
 Depois do OK: ordem combinada = loja nova → trava do Manual 2 botões →
 olheiros (só elenco) → votação/área do sócio → cobertura retrátil (mockup
