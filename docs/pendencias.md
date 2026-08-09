@@ -1,5 +1,21 @@
 # 📌 Pendências combinadas com o Diego (atualizado 08/08/2026)
 
+## 🆕 Banner verde removido + home com novidades atualizada (08/08, pedido do Diego) ✅ NO AR
+Diego: "remove esse banner verde q atualizou do jogo toda hora" (culpado: com o
+volume de deploys do dia, o `VersionWatcher` — `index.tsx` — avisava sem parar)
++ "atualize a home c várias novidades... banner de cima que fala de hall
+troféus... e o banner novo da novidade do modo online de duplas".
+- **Banner verde removido**: `VersionWatcher` não mostra mais o toast "O jogo
+  atualizou". O auto-reload SILENCIOSO continua (só na tela inicial/home,
+  no máx. 1x/5min) — ninguém fica preso numa versão velha, só não avisa mais.
+- **Banner de cima** (`NewsBanner`, dispensável, em cima do menu): trocado o
+  `NEWS_ID` (→ `2026-08-duplas`) pra reaparecer pra todo mundo, com Duplas
+  (beta), Patrocínio-aposta, Contratos em massa e o Hall da Fama que já tinha.
+- **Seção de baixo** (`NewsSection`, embaixo do botão de tema noturno): 3
+  itens novos no topo da lista "📢 Últimas novidades" — Duplas, Patrocínio-
+  aposta, Contratos em massa.
+- Revertível com `git revert 89c442b`.
+
 ## 💛 LOJA — MOCKUPS VISUAIS ENVIADOS (08/08 à noite) — aguardando OK do Diego
 4 artes na identidade do jogo (scratchpad da sessão: loja-m1..m4.png):
 1. loja-m1 — vitrine: card SÓCIO LEGENDS 9,90/mês + preço de fidelidade
