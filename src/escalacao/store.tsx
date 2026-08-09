@@ -9,7 +9,8 @@ import type {
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, clubCanon } from './data'
-import { stripEmoji } from './apoio'
+import { stripEmoji, myApoioPerk } from './apoio'
+import { souBarao } from './manto'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
 import { NBA_SLOTS_PER_POS } from './sportcfg'
 
@@ -5476,7 +5477,16 @@ function loadSoloInProgress(): EscState | null {
 // única pela `seed`. Limite de slots pra não encher o armazenamento.
 export type CareerSlot = { save: EscState; at: number }
 const CAREER_ARCHIVE_KEY = 'esc-career-archive'
-export const MAX_CAREER_SLOTS = 6
+export const MAX_CAREER_SLOTS = 8 // teto de GUARDA do arquivo (nunca corta nada)
+// 🎟️ FICHAS DE CARREIRA por tier (decisão do Diego 09/08): grátis 2 ·
+// ⭐ Craque 4 · 👑 Lenda 6 · 🖋️ Batismo 8. Grandfather LITERAL ("quem já tem
+// mais não mexo"): o limite pessoal nunca fica abaixo do que a pessoa JÁ tem
+// — nada é apagado nem travado; a régua só vale pra criar ALÉM.
+export function careerSlotLimit(count: number): number {
+  const tier = myApoioPerk()?.tier
+  const base = souBarao() ? 8 : tier === 'ouro' ? 6 : tier === 'prata' ? 4 : 2
+  return Math.max(base, Math.min(count, MAX_CAREER_SLOTS))
+}
 const isCareerSave = (s: unknown): s is EscState => !!s && typeof s === 'object' && !!(s as EscState).careerOnline && Array.isArray((s as EscState).managers) && (s as EscState).managers.length > 0
 export function readCareerArchive(): CareerSlot[] {
   try { const r = localStorage.getItem(CAREER_ARCHIVE_KEY); if (r) { const arr = JSON.parse(r); if (Array.isArray(arr)) return arr.filter((x: CareerSlot) => isCareerSave(x?.save)) } } catch { /* ignora */ }

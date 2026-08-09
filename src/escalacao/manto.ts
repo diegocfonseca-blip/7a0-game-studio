@@ -47,6 +47,11 @@ export function meuEstadioNome(): string | null {
   return meu?.ativo ? (meu.estadioNome ?? null) : null
 }
 
+// 🖋️ sou barão (dono de batismo)? — pro limite de fichas de carreira etc.
+export function souBarao(): boolean {
+  return !!(meu?.ativo && meu.origem === 'batismo')
+}
+
 // hook pra telas que precisam re-renderizar quando o sócio carrega
 export function useMeuSocio(): MeuSocio | null {
   const [, bump] = useState(0)
