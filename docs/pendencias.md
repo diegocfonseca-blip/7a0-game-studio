@@ -36,7 +36,16 @@ nem perde a carta, só a moeda que ela renderia.
 Ele aprovou as carteirinhas ("Perfeito") e mandou construir TUDO que foi
 decidido + um PERFIL COMPLETO do usuário. Ordem de obra combinada (cada
 entrega = commit isolado, buildar antes, main = deploy):
-1. 👤 PERFIL DO TÉCNICO (mockup perfil-ex.png ENVIADO, aguardando OK visual):
+1. ✅ PERFIL DO TÉCNICO v1 NO AR (commit 942e03e; mockup aprovado "Perfeito"
+   + regra dele: 1 carteirinha só = tamanho grande — aplicada, a de fundador
+   sozinha já ocupa a largura toda). O que entrou: tocar no técnico do
+   ranking abre PERFIL (stats 🏆👟⚽🎴 da RankRow + sala de troféus em chips +
+   carteirinha de FUNDADOR — por ora SÓ no próprio perfil, pois FUNDADOR_N é
+   por e-mail local) e o álbum virou seção "🎴 Álbum de cartas" (chips
+   carreira/conta e ordenação intactos). FALTA (fase 2, depende da infra
+   item 2): carteirinhas dos OUTROS + header na cor do tier de cada um (RPC
+   esc_perfil por user_id) + carteirinha de sócio.
+   (era: 👤 PERFIL DO TÉCNICO — mockup perfil-ex.png aprovado):
    tocar num nome (ranking etc.) abre perfil completo — header na cor do
    tier + selos, stats (títulos/artilharias/gols/cartas — RankRow já tem),
    Documentos (carteirinha fundador preta-e-ouro / sócio roxa, só se
