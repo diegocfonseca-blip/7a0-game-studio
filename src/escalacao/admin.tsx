@@ -271,6 +271,62 @@ function ApoioAdmin() {
   )
 }
 
+// 🎫 SÓCIO LEGENDS · entrega manual (09/08): pagamento caiu no Mercado Pago →
+// digita o e-mail → LIBERAR 30 DIAS. Renovar soma +30 na validade. Encerrar
+// NÃO apaga: só expira — nº de sócio e tempo de casa ficam guardados (regra
+// do Diego: tempo de casa nunca zera).
+function SocioAdmin() {
+  const [email, setEmail] = useState('')
+  const [lista, setLista] = useState<{ email: string; socio_n: number; desde: string; valido_ate: string }[]>([])
+  const [msg, setMsg] = useState('')
+  const [busy, setBusy] = useState(false)
+  const carregar = async () => {
+    const { data } = await supabase.rpc('esc_admin_socio_list')
+    setLista((data ?? []) as typeof lista)
+  }
+  useEffect(() => { carregar() }, [])
+  const liberar = async () => {
+    const em = email.trim().toLowerCase()
+    if (!em || !em.includes('@')) { setMsg('❌ digita o e-mail da conta do jogador'); return }
+    setBusy(true); setMsg('')
+    const { error } = await supabase.rpc('esc_admin_socio_set', { p_email: em, p_dias: 33 })
+    setMsg(error ? `❌ ${error.message}` : `✅ ${em} é sócio por +33 dias (30 + folga de renovação)`)
+    if (!error) { setEmail(''); carregar() }
+    setBusy(false)
+  }
+  const encerrar = async (em: string) => {
+    if (!window.confirm(`Encerrar o sócio de ${em}? (o nº e o tempo de casa ficam guardados)`)) return
+    await supabase.rpc('esc_admin_socio_set', { p_email: em, p_dias: 0 })
+    carregar()
+  }
+  const ativo = (v: string) => new Date(v + 'T23:59:59') >= new Date()
+  return (
+    <div style={{ border: '2px solid #A78BFA', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#A78BFA', textTransform: 'uppercase', margin: '0 0 4px' }}>🎫 Sócio Legends · mensal</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Assinatura caiu no Mercado Pago → digita o e-mail → LIBERAR. Renovar de novo no mês seguinte soma +33 dias. Encerrar só expira: nº e tempo de casa ficam guardados.</p>
+      <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email da conta do jogador"
+        style={{ width: '100%', border: '2px solid #A78BFA', borderRadius: 10, padding: '9px 10px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 13, marginBottom: 8 }} />
+      <button onClick={liberar} disabled={busy} style={{ width: '100%', border: 'none', borderRadius: 12, padding: 10, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: '#A78BFA', color: '#0C0C0C', cursor: 'pointer' }}>{busy ? '…' : '⚡ LIBERAR / RENOVAR 30 DIAS'}</button>
+      {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('✅') ? '#6fdb8f' : '#ff8a75', margin: '7px 0 0', textAlign: 'center' }}>{msg}</p>}
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontWeight: 700, marginTop: 10 }}>
+        <thead><tr>{['Nº', 'Email', 'Desde', 'Válido até', ''].map(h => <th key={h} style={{ padding: '4px 6px', textAlign: 'left', color: 'rgba(242,232,207,.55)', fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase' }}>{h}</th>)}</tr></thead>
+        <tbody>
+          {lista.map(r => (
+            <tr key={r.email} style={{ opacity: ativo(r.valido_ate) ? 1 : 0.45 }}>
+              <td style={{ padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)' }}>{r.socio_n}</td>
+              <td style={{ padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)', wordBreak: 'break-all' }}>{r.email}</td>
+              <td style={{ padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)' }}>{new Date(r.desde + 'T12:00').toLocaleDateString('pt-BR')}</td>
+              <td style={{ padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)' }}>{ativo(r.valido_ate) ? '🟢 ' : '🔴 '}{new Date(r.valido_ate + 'T12:00').toLocaleDateString('pt-BR')}</td>
+              <td style={{ padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)' }}><button onClick={() => encerrar(r.email)} style={{ background: 'none', border: 'none', color: '#ff8a75', fontWeight: 900, cursor: 'pointer' }}>✕</button></td>
+            </tr>
+          ))}
+          {lista.length === 0 && <tr><td colSpan={5} style={{ padding: 8, color: 'rgba(242,232,207,.5)' }}>nenhum sócio ainda — o link do plano de R$ 9,90 já existe no Mercado Pago</td></tr>}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 function BancoFichasAdmin() {
   // 💱 regra do Diego (04/08): cada R$ 1 do Pix vira 3 🪙 (sempre o triplo).
   // `valor` = REAIS que o jogador pagou; a ficha nasce com valor × 3 em moedas.
@@ -387,7 +443,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><ApoioAdmin /><BancoFichasAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><ApoioAdmin /><SocioAdmin /><BancoFichasAdmin /></>}
       </div>
     </div>
   )
