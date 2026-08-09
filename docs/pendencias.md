@@ -168,6 +168,15 @@ Spec final em texto (antes do mockup, como ele pediu). Decisões DELE já dentro
 - Pagamento: 3 planos no MP (cartão) + recarga Pix 30d; entrega pelo painel
   (já no ar) + validade de 30 dias a construir.
 PERGUNTA ABERTA: o voto dos sócios DECIDE a categoria ou só orienta?
+📌 STATUS FINAL DA RODADA (08/08, noite): Diego travou na dúvida olheiros-
+no-sócio vs escadinha ("só sei que quero que venda MT"). RECOMENDAÇÃO FIRME
+enviada: ESCADINHA por tier (4 produtos, 4 desejos: sócio=jogo do seu
+jeito · craque=manual+prata+olheiros até ⭐ · lenda=ouro+VIP+olheiros
+totais · batismo=tudo+nome na história; o "?" nas lendas do elenco do
+Craque é o vendedor da Lenda). + Defaults propostos pros 2 martelos
+finais: bots batizados=SIM (propaganda do batismo) · voto=ORIENTA
+(segurança, lei nº1). AGUARDANDO "FECHA TUDO" → arte final da loja →
+aprovação visual → código.
 
 ## 💛 (histórico) desenho anterior — desconto por fidelidade + caixinha v2
 EVOLUÇÃO (ideia do PRÓPRIO Diego, ele gostou): mensal com a MESMA caixinha pra
