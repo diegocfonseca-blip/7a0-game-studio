@@ -97,6 +97,21 @@ DECISÕES NOVAS DO DIEGO (rodada v2 dos mockups, mesma noite):
   qual toca pra cada pagante na temporada da carreira (mudo com memória;
   rugido nunca antes do gol na tela). Aviso legal dado 1x (marca/direitos:
   entrega manual não muda o risco); decisão dele, seguimos.
+- ⚖️ QUADRO LEGAL EXPLICADO AO DIEGO (08/08, pergunta direta dele): nomes
+  reais = marca registrada, precisa licença (por isso Cartola paga e
+  Brasfoot nunca embutiu); canto real = pior ainda (música + gravação,
+  ECAD). Risco prático: pequeno hoje, cresce com o sucesso → notificação
+  pra remover. Alternativa 0-risco com 90% do efeito: QUASE-NOMES estilo
+  PES ("Rubro-Negro Carioca") + som de arquibancada genérico. A TOMADA
+  técnica é idêntica nos dois cenários; conteúdo = escolha/risco dele.
+- 💡 REENQUADRAMENTO PROPOSTO (08/08, após "tô mt na dúvida... N sei se tá
+  tendo vantagem" — o esvaziamento era real): nomes+som viram A COROA do
+  sócio, EXCLUSIVOS do sócio (nunca avulsos, nunca de brinde em tier) — é o
+  único benefício desejado igual por grátis/craque/lenda, sustenta 9,90/
+  4,99/2,99 pros três. Retenção embutida: cancelou → nomes voltam a ser
+  fictícios e estádio fica MUDO. Caixinha final enxuta: nomes reais + som
+  do estádio + voto + 30 moedas/cobertura + escudo à mão + carteirinha/
+  mural/cor roxa. AGUARDANDO O "FECHA" → aí arte final da loja completa.
 - 🥁 IDEIA 8 (do Diego): TORCIDA SONORA na simulação da carreira — loop de
   arquibancada, volume cresce com o estádio da SAF, rugido junto com o
   carimbo do gol (NUNCA antes — lei do spoiler), só gol do próprio time,
