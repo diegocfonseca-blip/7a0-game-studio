@@ -177,12 +177,94 @@ function PixBox({ label = 'copiar', ctx, amount }: { label?: string; ctx?: strin
 // Contador MANUAL — cada batismo que o Diego
 // confirmar no Instagram, baixar este número aqui (não dá pra contar sozinho).
 const FUNDADOR_VAGAS = 64
+// 🎫 ÁREA DO SÓCIO (mockup aprovado 09/08): votação do mês + mural. Regra
+// anti-spoiler do Diego: as barras de resultado SÓ abrem depois de votar.
+// Backend: esc_votacao_atual / esc_votar / esc_mural (1 voto por sócio no banco).
+interface VotAtual { id: number; pergunta: string; opcoes: string[]; votos: number[]; meu_voto: number | null }
+interface MuralRow { nome: string; socio_n: number; desde: string; origem: string; tier: string | null }
+function AreaSocioBody({ socioN }: { socioN: number | null }) {
+  const [vot, setVot] = useState<VotAtual | null>(null)
+  const [mural, setMural] = useState<MuralRow[]>([])
+  const [busy, setBusy] = useState(false)
+  const [carregou, setCarregou] = useState(false)
+  const carregar = async () => {
+    try {
+      const [v, m] = await Promise.all([supabase.rpc('esc_votacao_atual'), supabase.rpc('esc_mural')])
+      const r = (Array.isArray(v.data) ? v.data[0] : v.data) as VotAtual | undefined
+      setVot(r && r.pergunta ? r : null)
+      setMural((m.data ?? []) as MuralRow[])
+    } catch { /* sem rede — mostra o que der */ }
+    setCarregou(true)
+  }
+  useEffect(() => { carregar() }, [])
+  const votar = async (i: number) => {
+    if (!vot || busy || vot.meu_voto != null) return
+    setBusy(true)
+    try { await supabase.rpc('esc_votar', { p_votacao: vot.id, p_opcao: i }); logApoio(`🗳️ votou na opção ${i + 1}`) } catch { /* já votou/fechou */ }
+    await carregar(); setBusy(false)
+  }
+  const total = vot ? vot.votos.reduce((a, b) => a + b, 0) : 0
+  const corTier = (t: string | null) => t === 'ouro' ? GOLD : t === 'prata' ? '#CBD4DE' : t === 'verde' ? '#41C07A' : '#8B5CF6'
+  const selo = (r: MuralRow) => r.origem === 'batismo' ? '👑🖋️' : r.tier === 'ouro' ? '👑🎫' : r.tier === 'prata' ? '⭐🎫' : '🎫'
+  return (
+    <>
+      <div className="border-[3px] border-black rounded-xl px-3 py-2.5" style={{ background: 'linear-gradient(150deg,#A78BFA,#7C3AED)', boxShadow: `4px 4px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.4) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 3s linear infinite' }} />
+        <p className="font-black text-white text-lg uppercase relative" style={{ ...OSWALD, textShadow: '1px 1px 0 rgba(0,0,0,.4)' }}>🎫 Área do Sócio{socioN != null ? ` · nº ${socioN}` : ''}</p>
+        <p className="text-[10.5px] font-bold text-white/85 relative">obrigado por segurar essa resenha com a gente 💜</p>
+      </div>
+
+      <div className="border-[3px] border-black rounded-xl overflow-hidden mt-3" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
+        <p className="text-[10px] font-black uppercase tracking-wide text-center py-1.5 text-white" style={{ background: vot?.meu_voto != null ? GREEN : '#7C3AED', ...OSWALD }}>🗳️ Votação dos sócios — a novidade é você quem escolhe</p>
+        <div style={{ background: '#FBF6E8', padding: 10 }}>
+          {!vot && <p className="text-[11px] font-bold text-black/55 text-center py-2">{carregou ? 'nenhuma votação aberta agora — o Diego avisa no grupo quando abrir a próxima 🔨' : 'carregando…'}</p>}
+          {vot && (
+            <>
+              <p className="font-black text-[13px]">{vot.pergunta}</p>
+              <p className="text-[9.5px] font-bold text-black/50">{vot.meu_voto != null ? `✅ seu voto tá contado · ${total} voto${total === 1 ? '' : 's'} até agora` : '1 voto por sócio · resultado aparece depois de votar 🤫'}</p>
+              {vot.opcoes.map((op, i) => {
+                const votou = vot.meu_voto != null
+                const pct = votou && total > 0 ? Math.round((vot.votos[i] ?? 0) * 100 / total) : 0
+                return votou ? (
+                  <div key={i} className="border-[2.5px] border-black rounded-xl mt-1.5 overflow-hidden relative" style={{ background: '#fff' }}>
+                    <div style={{ position: 'absolute', inset: 0, width: `${pct}%`, background: 'linear-gradient(150deg,#C9A9FF,#8B5CF6)', opacity: vot.meu_voto === i ? 1 : 0.4 }} />
+                    <div className="relative flex justify-between px-2.5 py-1.5 text-[12px] font-black"><span>{op}{vot.meu_voto === i ? ' · seu voto ✔️' : ''}</span><b>{pct}%</b></div>
+                  </div>
+                ) : (
+                  <button key={i} disabled={busy} onClick={() => votar(i)} className="w-full text-left border-[2.5px] border-black rounded-xl px-2.5 py-2 mt-1.5 bg-white active:translate-y-0.5 font-black text-[12px]" style={{ boxShadow: `2px 2px 0 0 ${INK}`, opacity: busy ? 0.6 : 1 }}>{op}</button>
+                )
+              })}
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="border-[3px] border-black rounded-xl overflow-hidden mt-3" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
+        <p className="text-[10px] font-black uppercase tracking-wide text-center py-1.5" style={{ background: '#141414', color: GOLD, ...OSWALD }}>📜 Mural dos Sócios do Leilão Legends</p>
+        <div style={{ background: '#fff', maxHeight: 260, overflowY: 'auto' }}>
+          {mural.map((r, i) => (
+            <div key={i} className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] font-black" style={{ borderTop: i ? '2px dashed rgba(0,0,0,.12)' : 'none' }}>
+              <span style={{ width: 13, height: 13, borderRadius: 999, border: '2px solid #000', background: corTier(r.tier), boxShadow: `0 0 5px 1px ${corTier(r.tier)}`, flexShrink: 0 }} />
+              <span className="truncate">{r.nome} {selo(r)}</span>
+              <span className="text-[9px] font-black border-2 border-black rounded-lg px-1.5 flex-shrink-0" style={{ background: '#FFE79A' }}>nº {r.socio_n}</span>
+              <span className="ml-auto text-[8px] font-bold text-black/45 text-right leading-tight flex-shrink-0">{r.origem === 'batismo' ? 'batismo' : 'sócio'}<br />desde {new Date(r.desde + 'T12:00').toLocaleDateString('pt-BR', { month: '2-digit', year: 'numeric' })}</span>
+            </div>
+          ))}
+          {mural.length === 0 && <p className="text-[11px] font-bold text-black/50 text-center py-3">{carregou ? 'o mural abre quando os sócios chegarem 💜' : 'carregando…'}</p>}
+        </div>
+        <p className="text-[9px] font-bold text-black/50 text-center py-1.5" style={{ background: '#FBF6E8', borderTop: `2px solid ${INK}` }}>cada um na cor do PRÓPRIO tier · o 🖋️ é só de quem batizou</p>
+      </div>
+    </>
+  )
+}
+
 // 🔗 link direto pro APOIE (pra postar nos stories/grupo): leilaolegends.com/?apoie=lenda
 // abre o modal já na cor OURO. Também vale ?apoie=craque (manual) e ?apoie=1 (tela geral).
 // consumido UMA vez só (vários ApoieButton montam ao mesmo tempo — só o primeiro abre).
 let apoieLinkConsumido = false
 export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { big?: boolean; startScreen?: 'choice' | 'manual'; trigger?: (open: () => void) => React.ReactNode }) {
-  const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'pay' | 'batismo' | 'manual'>('off')
+  const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'pay' | 'batismo' | 'manual' | 'socio'>('off')
+  const meuSoc = useMeuSocio() // 🎫 sócio ativo vê a ÁREA dele no lugar da propaganda
   const openApoio = () => { if (startScreen === 'manual') logApoio('👀 abriu: modo manual (trava)'); setScreen(startScreen) }
   const [clube, setClube] = useState('')
   // 🪗 loja de tela ÚNICA (mockup v3 aprovado 09/08): um pacote ampliado por vez
@@ -260,6 +342,13 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           <p className="text-[11.5px] font-bold text-black/65 text-center mt-1.5 leading-snug">Aqui é tudo de coração: o jogo é <b>grátis pra jogar</b>, nada é removido de ninguém e nenhum apoio dá vantagem em campo — quem apoia leva cor, brilho e história. Dentro das quatro linhas, o jogo é igual pra todos. 🔨</p>
           <p className="text-[10px] font-black text-black/45 text-center mt-1.5">👇 toca num pacote pra ver TUDO que tem dentro</p>
 
+          {meuSoc?.ativo ? (
+            <button onClick={() => { logApoio('🎫 abriu área do sócio'); setScreen('socio') }} className="w-full text-left border-[3px] border-black rounded-xl px-3 py-2.5 mt-3 active:translate-y-0.5" style={{ background: 'linear-gradient(150deg,#A78BFA,#7C3AED)', boxShadow: `4px 4px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.45) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.6s linear infinite' }} />
+              <p className="font-black text-white text-[15px] uppercase relative" style={{ ...OSWALD, textShadow: '1px 1px 0 rgba(0,0,0,.4)' }}>🎫 Você é o Sócio nº {meuSoc.socioN ?? '—'} <span className="float-right">👉</span></p>
+              <p className="text-[10.5px] font-bold text-white/85 relative">toca pra abrir a TUA área: 🗳️ votação + 📜 mural dos sócios</p>
+            </button>
+          ) : (
           <Tier k="socio" grad="linear-gradient(150deg,#A78BFA,#7C3AED)" nome="🎫 Sócio Legends" preco={`R$ ${sP}/mês`} corTxt="#fff">
             <p className="font-black text-[12px]">🎽 Manto do coração — teu elenco ganha a faixinha do time</p>
             <div className="border-2 border-black rounded-lg mt-1" style={{ height: 24, background: 'repeating-linear-gradient(90deg,#C2452F 0 16px,#141414 16px 32px)' }} />
@@ -276,6 +365,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <p className="text-[9.5px] font-bold text-black/55 mt-1.5 leading-snug">💳 cartão no Mercado Pago · cancela quando quiser · {sQuem ? <><b>{sQuem}: R$ {sP}/mês</b> (grátis paga 9,90)</> : <>grátis R$ 9,90 · ⭐ Craque R$ 4,90 · 👑 Lenda R$ 2,90</>}</p>
             <button onClick={() => { logApoio(`🎫 abriu MP sócio (${sP})`); window.open(sLink, '_blank', 'noopener') }} className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 mt-2 active:translate-y-0.5" style={{ background: 'linear-gradient(180deg,#A78BFA,#7C3AED)', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>🎫 QUERO SER SÓCIO · R$ {sP}/mês 👉</button>
           </Tier>
+          )}
 
           <Tier k="prata" grad="linear-gradient(150deg,#F4F7FB,#CBD4DE 60%,#9BA7B5)" nome="⭐ Craque" preco="R$ 19,90 · uma vez" corTxt={INK}>
             <p className="font-black text-[12px]">⭐ Cor prata com brilho — teu nome e teu estádio:</p>
@@ -395,6 +485,13 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
         </Modal>
         )
       })()}
+
+      {screen === 'socio' && (
+        <Modal>
+          <AreaSocioBody socioN={meuSoc?.socioN ?? null} />
+          <p className="text-center mt-3"><button onClick={() => setScreen('choice')} className="text-[11px] font-black underline text-black/45">← voltar pros apoios</button></p>
+        </Modal>
+      )}
 
       {screen === 'pix' && (
         <Modal>

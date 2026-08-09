@@ -330,6 +330,12 @@ entrega = commit isolado, buildar antes, main = deploy):
    · 4,90/mês (Craque): https://mpago.la/1jqtK38
    ✔️ 09/08: eltonfrossard45@gmail.com virou LENDA (ouro+manual) + FUNDADOR nº 36
    + SÓCIO nº 12 (origem batismo, validade 2099) — direto no banco.
+   ✔️ 09/08: ÁREA DO SÓCIO no ar (mockup aprovado; SEM votação criada — quem
+   cria as perguntas é o Diego pelo painel): no APOIE, sócio ativo vê "Você é o
+   Sócio nº X" no lugar da propaganda → abre votação (barras SÓ depois de votar,
+   anti-spoiler) + mural (cor do próprio tier, nº, origem, desde). Painel ganhou
+   seção 🗳️ criar/parciais/fechar. ✔️ Xurupitas FC no lugar do Bicho da Seda
+   (davisantana1312) — kit mariposa-da-seda nervosa v5 AGUARDANDO OK do Diego.
    ✔️ 09/08: sócio agora BATIZA O PRÓPRIO ESTÁDIO na área do estádio (✏️ no
    título → formzinho ABAIXO do StadiumSvg; RPC esc_socio_estadio_nome valida
    sócio ativo — batismo entra junto pois é sócio). Vazio = volta ao padrão.

@@ -349,6 +349,66 @@ function SocioAdmin() {
   )
 }
 
+// 🗳️ VOTAÇÕES DOS SÓCIOS: criar (pergunta + opções), ver parciais e fechar.
+// Backend: esc_admin_votacao_criar/fechar + esc_votacao_atual (parciais).
+function VotacaoAdmin() {
+  const [perg, setPerg] = useState('')
+  const [ops, setOps] = useState('')
+  const [atual, setAtual] = useState<{ id: number; pergunta: string; opcoes: string[]; votos: number[] } | null>(null)
+  const [msg, setMsg] = useState('')
+  const [busy, setBusy] = useState(false)
+  const carregar = async () => {
+    const { data } = await supabase.rpc('esc_votacao_atual')
+    const r = (Array.isArray(data) ? data[0] : data) as { id: number; pergunta: string; opcoes: string[]; votos: number[] } | undefined
+    setAtual(r && r.pergunta ? r : null)
+  }
+  useEffect(() => { carregar() }, [])
+  const criar = async () => {
+    const pq = perg.trim(); const oo = ops.split('\n').map(x => x.trim()).filter(Boolean)
+    if (!pq || oo.length < 2) { setMsg('❌ pergunta + pelo menos 2 opções (uma por linha)'); return }
+    setBusy(true); setMsg('')
+    const { error } = await supabase.rpc('esc_admin_votacao_criar', { p_pergunta: pq, p_opcoes: oo })
+    setMsg(error ? `❌ ${error.message}` : '✅ votação no ar — os sócios já podem votar')
+    if (!error) { setPerg(''); setOps(''); carregar() }
+    setBusy(false)
+  }
+  const fechar = async () => {
+    if (!window.confirm('Fechar a votação atual? O resultado congela e some da área do sócio.')) return
+    await supabase.rpc('esc_admin_votacao_fechar'); setMsg('🏁 votação fechada'); carregar()
+  }
+  const total = atual ? atual.votos.reduce((a, b) => a + b, 0) : 0
+  return (
+    <div style={{ border: '2px solid #E8503A', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#E8503A', textTransform: 'uppercase', margin: '0 0 4px' }}>🗳️ Votação dos sócios</p>
+      {atual ? (
+        <>
+          <p style={{ fontSize: 12.5, fontWeight: 900, color: '#F2E8CF', margin: '0 0 6px' }}>ABERTA: {atual.pergunta} <span style={{ color: 'rgba(242,232,207,.55)', fontWeight: 700 }}>· {total} voto{total === 1 ? '' : 's'}</span></p>
+          {atual.opcoes.map((op, i) => {
+            const pct = total > 0 ? Math.round((atual.votos[i] ?? 0) * 100 / total) : 0
+            return (
+              <div key={i} style={{ position: 'relative', border: '1px solid rgba(242,232,207,.35)', borderRadius: 8, marginBottom: 4, overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', inset: 0, width: `${pct}%`, background: 'rgba(232,80,58,.35)' }} />
+                <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', padding: '5px 9px', fontSize: 11.5, fontWeight: 800, color: '#F2E8CF' }}><span>{op}</span><b>{atual.votos[i] ?? 0} · {pct}%</b></div>
+              </div>
+            )
+          })}
+          <button onClick={fechar} style={{ width: '100%', border: '2px solid #E8503A', borderRadius: 10, padding: 8, marginTop: 6, ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', background: 'transparent', color: '#E8503A', cursor: 'pointer' }}>🏁 FECHAR VOTAÇÃO</button>
+        </>
+      ) : (
+        <>
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 8px' }}>Nenhuma aberta. Cria uma: os sócios votam na área deles (resultado só aparece pra quem já votou).</p>
+          <input value={perg} onChange={e => setPerg(e.target.value)} placeholder="pergunta (ex.: qual modo chega primeiro?)"
+            style={{ width: '100%', border: '2px solid #E8503A', borderRadius: 10, padding: '9px 10px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 13, marginBottom: 6 }} />
+          <textarea value={ops} onChange={e => setOps(e.target.value)} placeholder={'uma opção por linha\nex.: Carreira Online\nLiga fechada'} rows={3}
+            style={{ width: '100%', border: '2px solid #E8503A', borderRadius: 10, padding: '9px 10px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 13, marginBottom: 6, resize: 'vertical' }} />
+          <button onClick={criar} disabled={busy} style={{ width: '100%', border: 'none', borderRadius: 12, padding: 10, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: '#E8503A', color: '#0C0C0C', cursor: 'pointer' }}>{busy ? '…' : '➕ ABRIR VOTAÇÃO'}</button>
+        </>
+      )}
+      {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('❌') ? '#ff8a75' : '#6fdb8f', margin: '7px 0 0', textAlign: 'center' }}>{msg}</p>}
+    </div>
+  )
+}
+
 function BancoFichasAdmin() {
   // 💱 regra do Diego (04/08): cada R$ 1 do Pix vira 3 🪙 (sempre o triplo).
   // `valor` = REAIS que o jogador pagou; a ficha nasce com valor × 3 em moedas.
@@ -465,7 +525,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><ApoioAdmin /><SocioAdmin /><BancoFichasAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><ApoioAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /></>}
       </div>
     </div>
   )
