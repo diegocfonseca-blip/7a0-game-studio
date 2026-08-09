@@ -363,6 +363,11 @@ entrega = commit isolado, buildar antes, main = deploy):
    · 4,90/mês (Craque): https://mpago.la/1jqtK38
    ✔️ 09/08: eltonfrossard45@gmail.com virou LENDA (ouro+manual) + FUNDADOR nº 36
    + SÓCIO nº 12 (origem batismo, validade 2099) — direto no banco.
+   ✔️ 09/08: KIT MANFRÉ FC publicado (Paraná Clube do Manfré): escudo azul c/
+   faixa vermelha + CABEÇONA da gralha-azul (molde da referência oficial que o
+   Diego mandou — só a cabeça no escudo, pedido dele); mascote 'gralha' inteira
+   (camisa metade/metade, mão na cintura, pé na bola); manto azul/vermelho no
+   banco. 4º escudo artesanal + 5ª mascote.
    ✔️ 09/08 (noite): KIT NEYMARZETTI publicado (aprovado v5): escudo artesanal
    de perfil c/ crista ÚNICA preto+loiro, brincão, sorrisão c/ dentes; mascote
    'moicano' (camisa 11, meião, bota amarela, bola). Diego virou SÓCIO Nº 1 no

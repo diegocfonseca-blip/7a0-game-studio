@@ -436,6 +436,33 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
       </svg>
     )
   },
+  // 🐦 Manfré FC (danielmanfre5, aprovado 09/08): a CABEÇONA da gralha-azul
+  // paranista (molde da referência dele) no escudo azul c/ faixa vermelha.
+  'Manfré FC': (size: number) => {
+    const mini = size < 40
+    const w = Math.round(size * 200 / 240)
+    return (
+      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Manfré FC" role="img" style={{ flex: 'none', display: 'block' }}>
+        <defs><clipPath id="mfClip"><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" /></clipPath></defs>
+        <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="#0E3E86" />
+        <g clipPath="url(#mfClip)">
+          <path d="M0 176 H200 V196 H0 Z" fill="#C2452F" />
+          {!mini && <path d="M0 170 H200 V176 H0 Z M0 196 H200 V202 H0 Z" fill="#ffffff" />}
+        </g>
+        <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke={INK} strokeWidth={mini ? 9 : 7} strokeLinejoin="round" />
+        <g transform={mini ? 'translate(4,34) scale(1.7)' : 'translate(10,32) scale(1.55)'}>
+          <path d="M50 76 Q34 66 30 48 Q28 30 44 20 Q58 12 74 16 L94 6 L82 24 L104 20 L86 34 Q90 48 78 62 Q66 76 50 76 Z" fill="#2E6FB0" stroke={INK} strokeWidth={mini ? 5 : 4} strokeLinejoin="round" />
+          <path d="M40 46 Q20 46 8 54 Q22 62 40 58 Q46 56 44 50 Z" fill="#C2452F" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+          {!mini && <path d="M14 58 Q26 66 42 62" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" />}
+          {!mini && <path d="M40 62 Q30 68 22 66 Q30 72 42 68 Z" fill="#A33325" stroke={INK} strokeWidth="3" strokeLinejoin="round" />}
+          <path d="M38 34 L52 40 M68 32 L56 40" stroke={INK} strokeWidth={mini ? 5.5 : 4.5} strokeLinecap="round" />
+          <circle cx="48" cy="44" r="6" fill="#fff" stroke={INK} strokeWidth="3" />
+          <circle cx="61" cy="42" r="6" fill="#fff" stroke={INK} strokeWidth="3" />
+          <circle cx="49" cy="45" r={mini ? 3.2 : 2.6} fill={INK} /><circle cx="62" cy="43" r={mini ? 3.2 : 2.6} fill={INK} />
+        </g>
+      </svg>
+    )
+  },
   // 💇‍♂️ Neymarzetti (time do Diego, aprovado 09/08 v5): perfil com a crista
   // ÚNICA preto+loiro (moicano 2011), brincão de pérola, sorrisão com dentes.
   Neymarzetti: (size: number) => {

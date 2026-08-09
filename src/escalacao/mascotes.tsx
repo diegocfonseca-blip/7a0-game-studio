@@ -12,6 +12,35 @@ const INK = '#0C0C0C'
 // registro das mascotes prontas (chave → desenho). Cada sócio que pedir ganha
 // a dele aqui — 1ª da casa: a alface brava do Alfacehh FC.
 export const MASCOTES: Record<string, ReactNode> = {
+  // 🐦 a gralha-azul da MARRA (Manfré FC — danielmanfre5, aprovada 09/08 v2):
+  // molde da referência paranista — cabeçona em gota, bicão vermelho, camisa
+  // metade/metade, mão na cintura e pé na bola.
+  gralha: (
+    <svg width="126" height="176" viewBox="0 0 120 170">
+      <g transform="translate(0,4)">
+        <ellipse cx="58" cy="158" rx="42" ry="9" fill="rgba(0,0,0,.15)" />
+        <circle cx="36" cy="146" r="13" fill="#fff" stroke={INK} strokeWidth="4" />
+        <path d="M36 137 l5 6 -2 7 h-6 l-2 -7 Z" fill={INK} />
+        <path d="M66 128 L68 148" stroke="#cfd6dd" strokeWidth="7" strokeLinecap="round" />
+        <path d="M62 148 l4 8 14 -2 -6 -8 Z" fill="#141414" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+        <path d="M50 128 Q44 132 40 136" stroke="#cfd6dd" strokeWidth="7" strokeLinecap="round" />
+        <path d="M28 132 q8 -4 14 2 l-4 8 q-8 -2 -12 -6 Z" fill="#141414" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+        <path d="M42 110 74 110 76 130 60 126 58 130 40 130 Z" fill="#ffffff" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+        <path d="M40 78 76 78 78 114 38 114 Z" fill="#C2452F" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M58 78 76 78 78 114 58 114 Z" fill="#0E3E86" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M40 84 Q26 92 34 106 L44 104" fill="#2E6FB0" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M76 84 Q90 92 82 106 L72 104" fill="#2E6FB0" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M50 76 Q34 66 30 48 Q28 30 44 20 Q58 12 74 16 L94 6 L82 24 L104 20 L86 34 Q90 48 78 62 Q66 76 50 76 Z" fill="#2E6FB0" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M40 46 Q20 46 8 54 Q22 62 40 58 Q46 56 44 50 Z" fill="#C2452F" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+        <path d="M14 58 Q26 66 42 62" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M40 62 Q30 68 22 66 Q30 72 42 68 Z" fill="#A33325" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+        <path d="M38 34 L52 40 M68 32 L56 40" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />
+        <circle cx="48" cy="44" r="6" fill="#fff" stroke={INK} strokeWidth="3" />
+        <circle cx="61" cy="42" r="6" fill="#fff" stroke={INK} strokeWidth="3" />
+        <circle cx="49" cy="45" r="2.6" fill={INK} /><circle cx="62" cy="43" r="2.6" fill={INK} />
+      </g>
+    </svg>
+  ),
   // 💇‍♂️ o boleiro do MOICANO (Neymarzetti — Diego, aprovado 09/08 v5): perfil
   // driblando, crista preto+loiro, camisa 11, meião branco, bota amarela.
   moicano: (
