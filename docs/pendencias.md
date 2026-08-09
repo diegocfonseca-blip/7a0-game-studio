@@ -254,6 +254,14 @@ nome do time, mascote GRANDE pulando com a taça; só o time campeão vê
 do quadro preto do "Fim da temporada" segurando a taça até a sala votar.
 Mesma festa no rápido offline e na carreira. AGUARDANDO OK do visual pra
 esse ser o comportamento oficial da mascote.
+→ Diego achou o quadro estático "parecendo a carta que já se ganha" e pediu
+INTERATIVO, "boneco solto na tela". Resposta: GIF ANIMADO enviado
+(scratchpad/mascote-festa.gif, 36 frames gerados de mascote-anim.html com
+?f=N + JS posicionando por frame): a mascote ATRAVESSA a tela real de fim
+de temporada quicando POR CIMA da UI (tabela, botão de voto), com um pulão
+no meio, sombra no chão, rotação de gingado, banner CAMPEÃO pulsando e
+confete caindo em loop. Na implementação real: CSS/JS a 60fps, ~4s,
+toque pula. AGUARDANDO veredito do GIF.
 📌 STATUS FINAL DA RODADA (08/08, noite): Diego travou na dúvida olheiros-
 no-sócio vs escadinha ("só sei que quero que venda MT"). RECOMENDAÇÃO FIRME
 enviada: ESCADINHA por tier (4 produtos, 4 desejos: sócio=jogo do seu
