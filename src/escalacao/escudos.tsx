@@ -391,6 +391,51 @@ export function escudoDe(nomeCru: string): EscudoDesign {
 // 💰 LOGOS ARTESANAIS (pagas): nome do time → desenho próprio, entra no lugar do
 // automático. É só adicionar aqui quando alguém comprar.
 export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
+  // 🦋 Xurupitas FC (batismo do davisantana1312, aprovado pelo Diego 09/08):
+  // mariposa-da-seda NERVOSA — só as asas superiores no escudo (pedido dele);
+  // a versão inteira (com as asas de baixo) vive na mascote do festão.
+  'Xurupitas FC': (size: number) => {
+    const mini = size < 40
+    const w = Math.round(size * 200 / 240)
+    return (
+      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Xurupitas FC" role="img" style={{ flex: 'none', display: 'block' }}>
+        <defs><clipPath id="xurClip"><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" /></clipPath></defs>
+        <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="#1B7A3D" />
+        <g clipPath="url(#xurClip)">
+          <rect x="42" y="10" width="24" height="240" fill="#ffffff" opacity=".85" />
+          <rect x="134" y="10" width="24" height="240" fill="#ffffff" opacity=".85" />
+        </g>
+        <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke={INK} strokeWidth={mini ? 9 : 7} strokeLinejoin="round" />
+        {mini ? (
+          <g>
+            <path d="M96 110 C64 70 34 62 28 70 C22 100 40 138 68 146 Q90 152 96 132 Z" fill="#7CD492" stroke={INK} strokeWidth="8" />
+            <path d="M104 110 C136 70 166 62 172 70 C178 100 160 138 132 146 Q110 152 104 132 Z" fill="#7CD492" stroke={INK} strokeWidth="8" />
+            <ellipse cx="100" cy="126" rx="15" ry="28" fill="#fff" stroke={INK} strokeWidth="8" />
+            <circle cx="100" cy="92" r="17" fill="#fff" stroke={INK} strokeWidth="8" />
+            <circle cx="92" cy="92" r="7.5" fill={INK} /><circle cx="108" cy="92" r="7.5" fill={INK} />
+            <path d="M78 78 L94 86 M122 78 L106 86" stroke={INK} strokeWidth="8" strokeLinecap="round" />
+          </g>
+        ) : (
+          <g transform="translate(0,18)">
+            <path d="M96 104 C70 70 40 56 28 62 C18 88 30 128 58 140 C72 146 86 138 94 128 Z" fill="#7CD492" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+            <path d="M104 104 C130 70 160 56 172 62 C182 88 170 128 142 140 C128 146 114 138 106 128 Z" fill="#7CD492" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+            <g fill="#14401f"><ellipse cx="46" cy="86" rx="4" ry="6" /><ellipse cx="60" cy="112" rx="3.5" ry="5" /><ellipse cx="76" cy="92" rx="3" ry="4.5" /><ellipse cx="154" cy="86" rx="4" ry="6" /><ellipse cx="140" cy="112" rx="3.5" ry="5" /><ellipse cx="124" cy="92" rx="3" ry="4.5" /></g>
+            <path d="M40 76 q14 16 24 40 M160 76 q-14 16 -24 40" stroke="#2E9E5B" strokeWidth="3.5" fill="none" />
+            <ellipse cx="100" cy="140" rx="9" ry="12" fill="#EAF7E3" stroke={INK} strokeWidth="5" />
+            <ellipse cx="100" cy="120" rx="11" ry="14" fill="#EAF7E3" stroke={INK} strokeWidth="5" />
+            <ellipse cx="100" cy="100" rx="12" ry="13" fill="#ffffff" stroke={INK} strokeWidth="5" />
+            <path d="M88 72 C74 56 58 48 46 50 C50 62 66 74 84 78 Z" fill="#1B7A3D" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />
+            <path d="M112 72 C126 56 142 48 154 50 C150 62 134 74 116 78 Z" fill="#1B7A3D" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />
+            <circle cx="100" cy="78" r="16" fill="#EAF7E3" stroke={INK} strokeWidth="5" />
+            <circle cx="92" cy="80" r="7.5" fill={INK} /><circle cx="108" cy="80" r="7.5" fill={INK} />
+            <circle cx="94.5" cy="77.5" r="2.2" fill="#fff" /><circle cx="110.5" cy="77.5" r="2.2" fill="#fff" />
+            <path d="M78 65 L96 74 M122 65 L104 74" stroke={INK} strokeWidth="6.5" strokeLinecap="round" />
+            <path d="M93 92 q7 -6 14 0" stroke={INK} strokeWidth="4.5" fill="none" strokeLinecap="round" />
+          </g>
+        )}
+      </svg>
+    )
+  },
   // 🦊 La Bestia Negra (batismo do eltonfrossard45, aprovado pelo Diego 09/08):
   // azul cruzeirense + diagonal clara, estrela creme e a cabeça da raposa.
   'La Bestia Negra': (size: number) => {

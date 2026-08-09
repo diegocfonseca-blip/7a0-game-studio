@@ -12,6 +12,30 @@ const INK = '#0C0C0C'
 // registro das mascotes prontas (chave → desenho). Cada sócio que pedir ganha
 // a dele aqui — 1ª da casa: a alface brava do Alfacehh FC.
 export const MASCOTES: Record<string, ReactNode> = {
+  // 🦋 mariposa-da-seda NERVOSA do Xurupitas FC (Davi Santana, aprovada 09/08):
+  // inteira (asas de cima + de baixo com caudinha) — no festão ela "voa".
+  mariposa: (
+    <svg width="140" height="168" viewBox="0 0 200 240">
+      <g transform="translate(0,10)">
+        <path d="M96 104 C70 70 40 56 28 62 C18 88 30 128 58 140 C72 146 86 138 94 128 Z" fill="#7CD492" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+        <path d="M104 104 C130 70 160 56 172 62 C182 88 170 128 142 140 C128 146 114 138 106 128 Z" fill="#7CD492" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+        <path d="M94 130 C76 142 62 162 64 180 C66 194 76 200 84 192 Q80 206 90 210 C98 200 100 170 98 146 Z" fill="#9FE0AE" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+        <path d="M106 130 C124 142 138 162 136 180 C134 194 124 200 116 192 Q120 206 110 210 C102 200 100 170 102 146 Z" fill="#9FE0AE" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+        <g fill="#14401f"><ellipse cx="46" cy="86" rx="4" ry="6" /><ellipse cx="60" cy="112" rx="3.5" ry="5" /><ellipse cx="76" cy="92" rx="3" ry="4.5" /><ellipse cx="154" cy="86" rx="4" ry="6" /><ellipse cx="140" cy="112" rx="3.5" ry="5" /><ellipse cx="124" cy="92" rx="3" ry="4.5" /><ellipse cx="78" cy="168" rx="3" ry="4.5" /><ellipse cx="122" cy="168" rx="3" ry="4.5" /></g>
+        <path d="M40 76 q14 16 24 40 M160 76 q-14 16 -24 40" stroke="#2E9E5B" strokeWidth="3.5" fill="none" />
+        <ellipse cx="100" cy="140" rx="9" ry="12" fill="#EAF7E3" stroke={INK} strokeWidth="5" />
+        <ellipse cx="100" cy="120" rx="11" ry="14" fill="#EAF7E3" stroke={INK} strokeWidth="5" />
+        <ellipse cx="100" cy="100" rx="12" ry="13" fill="#ffffff" stroke={INK} strokeWidth="5" />
+        <path d="M88 72 C74 56 58 48 46 50 C50 62 66 74 84 78 Z" fill="#1B7A3D" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />
+        <path d="M112 72 C126 56 142 48 154 50 C150 62 134 74 116 78 Z" fill="#1B7A3D" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />
+        <circle cx="100" cy="78" r="16" fill="#EAF7E3" stroke={INK} strokeWidth="5" />
+        <circle cx="92" cy="80" r="7.5" fill={INK} /><circle cx="108" cy="80" r="7.5" fill={INK} />
+        <circle cx="94.5" cy="77.5" r="2.2" fill="#fff" /><circle cx="110.5" cy="77.5" r="2.2" fill="#fff" />
+        <path d="M78 65 L96 74 M122 65 L104 74" stroke={INK} strokeWidth="6.5" strokeLinecap="round" />
+        <path d="M93 92 q7 -6 14 0" stroke={INK} strokeWidth="4.5" fill="none" strokeLinecap="round" />
+      </g>
+    </svg>
+  ),
   // 🦊 raposa azul do La Bestia Negra (Elton) — cara IGUAL à do escudo (pedido
   // do Diego 09/08): orelhão com miolo preto, bigodinho, focinho creme.
   raposa: (
