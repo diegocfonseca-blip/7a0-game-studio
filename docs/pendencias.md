@@ -83,14 +83,20 @@ DECISÕES NOVAS DO DIEGO (rodada v2 dos mockups, mesma noite):
   Craque→Lenda. Sócio pra Lenda fica como clube de torcida (votação,
   cobertura, moedas, escudo, mural, 2,99 simbólico). AGUARDANDO o "fecha"
   final do Diego nessa distribuição.
-- 💡 IDEIAS PESQUISADAS pra engordar o sócio (programas reais: Nação/Avanti/
-  Fiel, socios do Barça, fan tokens — enviadas ao Diego, aguardando ele
-  escolher quais entram): placas de publicidade do campinho com nome dos
-  sócios · aniversário do sócio (moedas + manchete no jornal) · sócios
-  BATIZAM o próximo folclórico da Série D (enquete) · desconto/bônus de
-  fichas no Banco · "recado do presidente" na área do sócio · faixa da
-  torcida na simulação (frase aprovada pelo Diego) · conselho mensal "o que
-  o presidente constrói primeiro" (orienta).
+- ❌ CARDÁPIO DE IDEIAS DESCARTADO PELO DIEGO ("N gostei nda disso"):
+  placas, aniversário, batizar folclórico, bônus de fichas, recado do
+  presidente, faixa da torcida, conselho mensal, pacote coração (manto/
+  carteirinha-coração/escudo-com-alma) e o modelo "comunidade fornece o
+  patch". NÃO reapresentar.
+- ✅ O QUE ELE QUER (decidido 08/08): além dos itens fixos da caixinha, DOIS
+  mimos de ENTREGA MANUAL pelo admin (modelo igual cor/tier de hoje), por
+  e-mail do pagante: (1) 🩹 toggle NOMES REAIS — patch de exibição na
+  carreira (tabela/jornal/placar; de-para preenchido 1x pelo Diego numa
+  tabelinha editável no admin; chave interna intocada; batizado imune);
+  (2) 🥁 CANTO DA TORCIDA — Diego sobe MP3s (1x, Supabase Storage) e escolhe
+  qual toca pra cada pagante na temporada da carreira (mudo com memória;
+  rugido nunca antes do gol na tela). Aviso legal dado 1x (marca/direitos:
+  entrega manual não muda o risco); decisão dele, seguimos.
 - 🥁 IDEIA 8 (do Diego): TORCIDA SONORA na simulação da carreira — loop de
   arquibancada, volume cresce com o estádio da SAF, rugido junto com o
   carimbo do gol (NUNCA antes — lei do spoiler), só gol do próprio time,
