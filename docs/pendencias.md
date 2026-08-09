@@ -1,5 +1,29 @@
 # 📌 Pendências combinadas com o Diego (atualizado 09/08/2026)
 
+## 🤝 DUPLA: formar vaga virou PEDIDO com aceite (09/08, pedido do Diego) ✅ NO AR
+Mudança combinada em conversa: tocar numa vaga não vira dupla mais na hora —
+manda um PEDIDO, a pessoa vê um banner e ACEITA ou RECUSA (ou deixa expirar
+em 30s). O 🔒 cadeado continua igual (a própria pessoa marca na vaga dela,
+bloqueia qualquer pedido de fora — mostra "guardando a vaga pra um amigo").
+- **Schema** (`supabase/dupla_pedido_schema.sql`, JÁ aplicado no projeto real
+  `faabglpjutwursgmrpny` via MCP): 2 colunas em `room_players`
+  (`dupla_request_to`, `dupla_request_at` — moram na linha de QUEM PEDIU,
+  por causa da RLS) + função `dupla_responder` (SECURITY DEFINER: só ela
+  grava `dupla_partner_of` na linha de quem pediu, depois de confirmar no
+  servidor que o pedido é mesmo pra quem tá aceitando/recusando).
+- **Código** (`lobby.tsx`, commit `8efba3c`): `pedirDupla` (manda o pedido,
+  com conferência fresca pra não deixar 2 pedidos brigando pela mesma vaga),
+  `cancelarPedido` (self-clear, inclusive o auto-expira em 30s via
+  `useEffect`), `responderPedido` (chama a RPC). Tela mostra: pra quem pediu
+  "⏳ esperando [nome] responder…" com botão cancelar; pra quem recebeu, o
+  banner com ✅ Aceitar / ✕ Recusar; pra um terceiro olhando a mesma vaga,
+  "⏳ já mandou pedido, aguardando resposta" (não deixa pedir por cima).
+- Reversível: código com `git revert 8efba3c`; schema com o comando no topo
+  do `.sql`.
+- **Não mexido**: nada na formação de dupla durante um REMATCH (aquilo já
+  usa outro caminho, `startLeilao`/`redraftSeason`, que preserva a dupla que
+  JÁ EXISTIA — não passa por pedido/aceite de novo).
+
 ## 🐛 DUPLA ONLINE: relato do próprio Diego jogando com o Didico — 2 corrigidos, 1 em aberto
 Diego jogou de dupla com o host numa sala e relatou dois problemas (fotos):
 **(1) virou "rival" do próprio parceiro** — no fim do jogo, o host apertou
