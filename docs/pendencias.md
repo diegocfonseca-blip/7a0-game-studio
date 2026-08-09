@@ -188,6 +188,20 @@ nome" — verdade (ElencoField usa chips brancos pos+nome). Arte refeita no
 visual REAL (manto-real.png): fichinha branca FICA (nome legível), o coração
 entra como FAIXINHA LISTRADA no topo de cada chip + placa do time nas cores.
 Mudança mínima. A camisa da arte anterior era só conceito.
+✅ ENTREGUE NA MAIN (09/08): Diego aprovou a faixinha ("Gostei assim!") →
+- 🎽 MANTO NO AR (commit 88496b9, beta SÓ diego.c.fonseca@gmail.com):
+  src/escalacao/manto.ts (MANTO_CONTAS email→cores, meuManto() via
+  loggedEmail); faixinha nas fichinhas do Campinho (rápido) e do ElencoField
+  (carreira) + barrinha de título listrada. Vermelho/preto na conta dele.
+  Pra liberar mais gente: adicionar e-mail no MANTO_CONTAS (depois migra
+  pro admin).
+- 🌐 CAMPINHOS DE TODOS NO RÁPIDO ONLINE (commit ffbd922): na temporada do
+  rápido online, abaixo do seu campinho entram os de TODOS os times da sala
+  (👤 humanos e 🤖 bots), um embaixo do outro, com o nome do time na
+  barrinha. Offline/carreira intocados. Sem spoiler (elencos já públicos).
+- ❌ ÁUDIO SINTETIZADO REPROVADO ("ficou ruim") — torcida sonora parada;
+  se voltar, caminho é gravação CC0 real de multidão (não sintetizar).
+  Obs.: já existe um startCrowd() tocando na temporada hoje (sound.ts).
 🔥 AÇÃO IMEDIATA COMBINADA (09/08 00h, print do admin: 8 toques na trava do
 Manual em 1h, Akatsuki FC apertou "quero o Craque"): assim que o Diego criar
 e mandar o LINK DE PAGAMENTO do Mercado Pago do Craque (R$ 19,90 — app MP:
