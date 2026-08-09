@@ -768,7 +768,7 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onClose }:
               🐛 (07/08) gatilho trocado de `done` pra `finalSeen`: a carta
               já grava (persist automático dentro do componente) assim que o
               placar da final aparece, sem depender do clique da cerimônia. */}
-          <CardCollectPrompt seasonKey={`co:solo${seed}:${seasonNo}:copamundo`} origin="cpu" onClaimed={c => onCard?.(c, `co:solo${seed}:${seasonNo}:copamundo`)} />
+          <CardCollectPrompt seasonKey={`co:solo${seed}:${seasonNo}:copamundo`} origin="cpu" onGuaranteed={c => onCard?.(c, `co:solo${seed}:${seasonNo}:copamundo`)} />
         </div>
       )}
       {done && (() => {

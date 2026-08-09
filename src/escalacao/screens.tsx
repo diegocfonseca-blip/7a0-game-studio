@@ -4976,7 +4976,7 @@ const ALL_POOL: WonCard[] = (() => {
   return out
 })()
 
-export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onStatus, noTimer, saveCards }: { you?: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; noTimer?: boolean; saveCards?: { name: string; club: string; year: number }[] }) {
+export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onGuaranteed, onStatus, noTimer, saveCards }: { you?: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onGuaranteed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; noTimer?: boolean; saveCards?: { name: string; club: string; year: number }[] }) {
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
   // avisa quem renderiza (EscEnd) o status da carta — pra travar a votação online
@@ -5002,7 +5002,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
       const { data } = await supabase.from('user_cards').select('*').eq('user_id', user.id).eq('season_key', seasonKey).maybeSingle()
       if (data) {
         const cc = { id: 'x', name: data.card_name, club: data.card_club, year: data.card_year, pos: data.card_pos, fame: data.card_fame, ...(CARD_META.get(data.card_name) ?? {}), lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard
-        setClaimed(cc); onClaimed?.(cc)
+        setClaimed(cc); onClaimed?.(cc); onGuaranteed?.(cc)
         setStatus('revealed')
       } else {
         setStatus('picking')
@@ -5053,6 +5053,10 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
   // toque. Se a pessoa sair, fechar ou nunca abrir o pacote, a carta JÁ ESTÁ no
   // álbum. Abrir o pacote vira só a cerimônia de ver qual foi. Idempotente: o
   // season_key é único por temporada, e ao reabrir o check de cima acha e revela.
+  // 🕴️ onGuaranteed dispara JUNTO (mesmo instante, sem depender de abrir o pacote
+  // nem de esperar o timer) — quem consome isso (ex.: Agência) nunca é spoiler
+  // pra ninguém (é só o PRÓPRIO campeão vendo o próprio prêmio), então não
+  // precisa esperar a cerimônia como o onClaimed espera pros outros da sala.
   useEffect(() => {
     if (status !== 'picking' || savedRef.current || !packPool.length) return
     const pick = packPool[Math.floor(Math.random() * packPool.length)]
@@ -5060,6 +5064,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onS
     savedRef.current = true
     setPendingPick(pick)
     void persist(pick)
+    onGuaranteed?.(pick)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, packPool])
 
