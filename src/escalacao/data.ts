@@ -2094,7 +2094,7 @@ export const CPU_MANAGERS = [
   { name: 'Tião Bagre', team: 'Bagre do Rio' },
   { name: 'Nego do Xote', team: 'Mano Paulista' },
   { name: 'Val do Buraco', team: 'Flamengo do Sertão' },
-  { name: 'Zé do Caixote', team: 'Lá Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — Lá Bestia Negra, ex-River Prato)
+  { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)
   { name: 'Zé Chapéu', team: 'Brodeiragem' },
 ]
 
@@ -2145,7 +2145,7 @@ export const OLD_NAME: Record<string, string> = {
   'Barcenite FC': 'Milanesa FC', // ⚽ batismo do ricardopessoafreire: save antigo com Milanesa FC vira Barcenite FC ao carregar
   'Bicho da Seda': 'Red Bull Diet', // ⚽ batismo do davisantana1312: save antigo com Red Bull Diet vira Bicho da Seda ao carregar
   'Manfré FC': 'Livre-pool', // ⚽ batismo do danielmanfre5: save antigo com Livre-pool (ou Xandão EC) vira Manfré FC ao carregar
-  'Lá Bestia Negra': 'River Prato', // ⚽ batismo do eltonfrossard45: save antigo com River Prato vira Lá Bestia Negra ao carregar
+  'La Bestia Negra': 'River Prato', // ⚽ batismo do eltonfrossard45: save antigo com River Prato vira La Bestia Negra ao carregar
 }
 // corrente de nomes antigos: 'White Thigs do GuGu' → ['Astronáutico', 'Sinhô Futebol']
 export const oldChain = (name: string): string[] => {
@@ -2245,7 +2245,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Tião Bagre', team: 'Império Samambaia' }, // ⚽ clube BATIZADO por apoiador (jorgericardo777 — Império Samambaia, ex-Cuiabagre)
     { name: 'Cabeção da Vila', team: 'Paris São Geraldo' },
     { name: 'Tonhão', team: 'Alfacehh' }, // ⚽ clube BATIZADO por apoiador (matheus223lms — Alfacehh, ex-Santos Dumont)
-    { name: 'Zé do Caixote', team: 'Lá Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — Lá Bestia Negra, ex-River Prato)
+    { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)
     { name: 'Nininho', team: 'Bicho da Seda' }, // ⚽ clube BATIZADO por apoiador (davisantana1312 — Bicho da Seda, ex-Red Bull Diet)
     { name: 'Piu do Grêmio', team: 'Barcenite FC' },
     { name: 'Tico do Bar', team: 'Pardemeias' },
