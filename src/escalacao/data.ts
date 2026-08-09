@@ -2144,6 +2144,7 @@ export const OLD_NAME: Record<string, string> = {
   'SC Ferrari': 'Painitto FC', // ⚽ batismo do adriano.ferrari: save antigo com Painitto FC vira SC Ferrari ao carregar
   'Barcenite FC': 'Milanesa FC', // ⚽ batismo do ricardopessoafreire: save antigo com Milanesa FC vira Barcenite FC ao carregar
   'Bicho da Seda': 'Red Bull Diet', // ⚽ batismo do davisantana1312: save antigo com Red Bull Diet vira Bicho da Seda ao carregar
+  'Xurupitas FC': 'Bicho da Seda', // ⚽ davisantana1312 re-batizou 09/08: save com Bicho da Seda (ou Red Bull Diet) vira Xurupitas FC ao carregar
   'Manfré FC': 'Livre-pool', // ⚽ batismo do danielmanfre5: save antigo com Livre-pool (ou Xandão EC) vira Manfré FC ao carregar
   'La Bestia Negra': 'River Prato', // ⚽ batismo do eltonfrossard45: save antigo com River Prato vira La Bestia Negra ao carregar
 }
@@ -2246,7 +2247,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Cabeção da Vila', team: 'Paris São Geraldo' },
     { name: 'Tonhão', team: 'Alfacehh' }, // ⚽ clube BATIZADO por apoiador (matheus223lms — Alfacehh, ex-Santos Dumont)
     { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)
-    { name: 'Nininho', team: 'Bicho da Seda' }, // ⚽ clube BATIZADO por apoiador (davisantana1312 — Bicho da Seda, ex-Red Bull Diet)
+    { name: 'Nininho', team: 'Xurupitas FC' }, // ⚽ clube BATIZADO por apoiador (davisantana1312 — Xurupitas FC, ex-Bicho da Seda, ex-Red Bull Diet)
     { name: 'Piu do Grêmio', team: 'Barcenite FC' },
     { name: 'Tico do Bar', team: 'Pardemeias' },
     { name: 'Xandão da Bola', team: 'Manfré FC' }, // ⚽ clube BATIZADO por apoiador (danielmanfre5 — Manfré FC, ex-Livre-pool)
