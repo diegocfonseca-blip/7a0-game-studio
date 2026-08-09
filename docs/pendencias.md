@@ -76,14 +76,16 @@ entrega = commit isolado, buildar antes, main = deploy):
    💳 LINK MP DO SÓCIO 9,90/mês (mandado pelo Diego 09/08):
    https://mpago.la/32tTjqE — AINDA FALTAM: planos 4,99 (craque) e 2,99
    (lenda/batismo) + link avulso Craque 19,90 (pra trava do Manual).
-   ⚖️ RODADA DE DÚVIDA DE PREÇO (09/08): Diego pensou em "batismo com tudo
-   completo pra sempre + lenda mensal 3,90". RECOMENDAÇÃO FIRME enviada:
-   NÃO reabrir preços (9,90/4,99/2,99 ficam); o incômodo do barão se
-   resolve com "🖋️ BATISMO VEM COM 6 MESES DE SÓCIO DE BRINDE" (desembala
-   completo, recorrência só adia 6m pros ~10 barões, card ganha argumento).
-   Sem "pra sempre" (mataria a recorrência dos melhores clientes), sem
-   3,90 (retrabalho de arte+MP+confusão). Aguardando veto ou silêncio =
-   segue assim.
+   ⚖️ PREÇO DO BATISMO RESOLVIDO (09/08): Diego vetou o meio-termo dos 6
+   meses ("ou dou ou não dou"). DECISÃO (recomendada e registrada, veto
+   dele desfaz): 🖋️ BATISMO INCLUI O SÓCIO LEGENDS — "ENQUANTO O NOME FOR
+   SEU": o sócio incluso acompanha quem DETÉM o batismo; perdeu o nome no
+   leilão dos barões (não cobriu a oferta) → perde o clube de sócio junto
+   (deixa o leilão dos barões mais valioso). Conta: 1 batismo ≈ 2 anos de
+   2,99 — incluir vende mais batismo e o custo de honrar é virtual. Sem a
+   palavra "pra sempre" em nada. Lenda segue 2,99; preços intactos
+   (9,90/4,99/2,99). Escadinha final: grátis→9,90 · craque→4,99 ·
+   lenda→2,99 · batismo→INCLUSO. Plano MP de 2,99 fica só pra Lenda.
 3. 🪪 CARTEIRINHAS no jogo (área do apoiador + perfil) — visual APROVADO
    (carteirinhas.png), compartilháveis via motor do shareElenco.
 4. 🏟️ NOME DO ESTÁDIO (campo aprovado por Diego no admin; aparece na área do
