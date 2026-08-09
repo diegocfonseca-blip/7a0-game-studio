@@ -178,6 +178,11 @@ do Diego via LOGOS_PRONTAS/admin; aparece no elenco, tabela, placar,
 carteirinha, mural; 1º mês). Seleção recomendada pra caixinha: fixos +
 quase-nomes + som genérico + manto do coração + placas do campinho +
 aniversário do sócio; resto vira novidade mês a mês. AGUARDANDO ele escolher.
+AMOSTRAS ENVIADAS (09/08): 🔊 torcida-demo.wav (28s sintetizado: murmúrio +
+bateria 104bpm + apito + rugido de GOL aos 15s + olé; gerado 100% em código,
+zero direito autoral — é a vibe, produção final pode usar loops CC0 melhores)
++ 🎽 manto-ex.png (antes/depois da camisa, campinho com o Bagres FC de manto
+rubro-negro, 6 opções de cores, regra "cancelou → manto volta pro genérico").
 🔥 AÇÃO IMEDIATA COMBINADA (09/08 00h, print do admin: 8 toques na trava do
 Manual em 1h, Akatsuki FC apertou "quero o Craque"): assim que o Diego criar
 e mandar o LINK DE PAGAMENTO do Mercado Pago do Craque (R$ 19,90 — app MP:
