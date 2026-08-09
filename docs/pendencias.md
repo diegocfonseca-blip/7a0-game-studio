@@ -132,9 +132,14 @@ NUNCA a palavra da categoria. + MANTO AGORA LÊ DO BANCO: manto.ts busca
 esc_meu_socio (cache com auth listener + hook useMeuSocio), fallback
 MANTO_CONTAS do código; migração socio_personalizacao_admin criou RPC
 esc_admin_socio_perso(email, c1, c2, estadio, mascote) gated no Diego.
-FALTA: inputs de personalização na seção Sócio do admin (chamar o RPC) +
-mostrar estadio_nome na área do clube + mascote/festão + votação/mural +
-cards v14 do craque/lenda/batismo no modal + patch quase-nomes.
+✅ ENTREGUE (commit caf9ff8): inputs de personalização no painel (🎨
+"Personalizar sócio": email + 2 cores do manto com PREVIEW das listras +
+nome do estádio → esc_admin_socio_perso) e o NOME BATIZADO no título da
+área do clube ("🏟️ Alfacehh Arena" no lugar do nome de nível; desenho
+intocado, só pro dono sócio ativo).
+AINDA FALTA: mascote/festão animado · votação de categoria + mural ·
+cards v14 do craque/lenda/batismo no modal · patch quase-nomes · nome do
+estádio nas manchetes do jornal · link avulso Craque 19,90 (Diego).
 
 ## 🏪 LOJA v1 NO AR (09/08, commit 556f697): o modal APOIE ganhou o SÓCIO
 - Card 🎫 SÓCIO LEGENDS no TOPO da tela "choice" (roxo com brilho, selo
