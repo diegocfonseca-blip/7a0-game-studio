@@ -4175,6 +4175,13 @@ export function EscSeason() {
       <TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" />
       <TopScorersBox highlight={you.id} title="⚽ ARTILHARIA DA LIGA LEGENDS" hold={!resultRevealed} />
       <YourPitch small />
+      {/* 🌐 SÓ NO RÁPIDO ONLINE (pedido do Diego 09/08): os campinhos de TODOS os
+          times da sala, um embaixo do outro — não só o seu. Sem spoiler: o leilão
+          já acabou, os elencos são públicos (tabela/artilharia já mostram tudo).
+          Offline/carreira: nada muda. */}
+      {online && !state.careerOnline && state.managers.filter(mm => mm.id !== you.id && !mm.auctionOnly && mm.squad.length > 0).map(mm => (
+        <Campinho key={mm.id} m={mm} small title={`${mm.isHuman ? '👤' : '🤖'} ${mm.teamName}`} />
+      ))}
       {state.careerDivision && <RivalTracker />}
       <CreditLine className="pt-4 pb-2" />
       {showPyramid && state.careerOnline && (
