@@ -134,20 +134,22 @@ export function empCat(c: { fame?: number; promessa?: boolean }): EmpCat {
 }
 // categoria desbloqueada? (gates ligados ao estádio/SAF — grandfather automático:
 // quem já completou/comprou já entra destravado)
-export function empCatUnlocked(cat: EmpCat, st: StadiumSave | undefined, hasFilial: boolean): boolean {
+export function empCatUnlocked(cat: EmpCat, st: StadiumSave | undefined, hasFilial: boolean, bb = false): boolean {
   switch (cat) {
     case 'prof': return true
     case 'bom': return sectorsDone(st) >= 1
     case 'promessa': return sectorsDone(st) >= 3
     case 'craque': return stadiumComplete(st)
-    case 'lenda': return hasFilial
+    // 🏀 basquete NÃO tem SAF: a categoria LENDA destrava pela ARENA 100% completa
+    // (o teto do basquete). Futebol segue exigindo a SAF (hasFilial), idêntico.
+    case 'lenda': return bb ? stadiumComplete(st) : hasFilial
     default: return false
   }
 }
 // renda por temporada + detalhamento por categoria (só as desbloqueadas rendem)
-export function empresarioIncome(cards: { fame?: number; promessa?: boolean }[] | undefined, st: StadiumSave | undefined, hasFilial: boolean): { total: number; by: Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }> } {
+export function empresarioIncome(cards: { fame?: number; promessa?: boolean }[] | undefined, st: StadiumSave | undefined, hasFilial: boolean, bb = false): { total: number; by: Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }> } {
   const by = {} as Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }>
-  for (const k of EMP_ORDER) by[k] = { count: 0, unlocked: empCatUnlocked(k, st, hasFilial), value: EMP_META[k].value, income: 0 }
+  for (const k of EMP_ORDER) by[k] = { count: 0, unlocked: empCatUnlocked(k, st, hasFilial, bb), value: EMP_META[k].value, income: 0 }
   for (const c of cards ?? []) by[empCat(c)].count++
   let total = 0
   for (const k of EMP_ORDER) { const b = by[k]; b.income = b.unlocked ? b.count * b.value : 0; total += b.income }
