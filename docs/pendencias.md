@@ -149,6 +149,14 @@ entrega = commit isolado, buildar antes, main = deploy):
    emoção não muda"), pra ninguém comprar esperando ver overall no pregão.
    ⚠️ NA IMPLEMENTAÇÃO: overall aparece apenas em ElencoField/carreira,
    jamais em YourPitch/leilão/monte/online.
+   💛 HISTÓRIA DO DIEGO NA LOJA (pedido dele 09/08: "mais aparente"):
+   reescrita e virou CARD de destaque preto-e-ouro (historia.png):
+   "Quem faz isso aqui 🔴⚫" — vende carro de dia com o pai, faz o jogo de
+   madrugada sozinho; filho com condição rara (120 casos no mundo), o jogo
+   existe por ele; apoio = vida melhor pro filho + jogo 100% grátis;
+   "apoio nenhum dá vantagem em campo"; assinatura "🖋️ Diego · fundador
+   nº 1" + barra "sócios seguram o servidor" INTEGRADA no card. POSIÇÃO:
+   logo abaixo do card do Sócio, antes do Craque. Aguardando OK.
    🕵️→🎨 PEDIDO DO DIEGO (09/08, madrugada): nos cards de Craque/Lenda o
    olheiro tem que DIZER "overall do jogador" e MOSTRAR mini-amostra visual
    (chip colorido tipo "Djalminha 82–91") — feito na v9 do m2 (Craque:
