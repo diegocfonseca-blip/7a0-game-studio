@@ -330,9 +330,8 @@ entrega = commit isolado, buildar antes, main = deploy):
    · 4,90/mês (Craque): https://mpago.la/1jqtK38
    ✔️ 09/08: eltonfrossard45@gmail.com virou LENDA (ouro+manual) + FUNDADOR nº 36
    + SÓCIO nº 12 (origem batismo, validade 2099) — direto no banco.
-   ⏳ PENDENTE: batismo do Elton = "Lá Bestia Negra" entra na SÉRIE A no lugar
-   de um clube forte — Diego vai escolher qual da lista dos 20 (1º batizado da
-   Série A da história). Trocar em DIVISION_TEAMS.A (data.ts) após o OK.
+   ✔️ batismo do Elton: "Lá Bestia Negra" no lugar do River Prato (SÉRIE D, a
+   dos rivais) — DIVISION_TEAMS.D + CPU_MANAGERS + ponte OLD_NAME pros saves.
    ✔️ 09/08 (tarde): LOJA DE TELA ÚNICA no ar (mockup v3 aprovado, "e publique"):
    o modal APOIE virou acordeão — 4 pacotes (Sócio/Craque/Lenda/Batismo), um
    amplia por vez com TUDO dentro (simulação da cor c/ nome real, botões do
