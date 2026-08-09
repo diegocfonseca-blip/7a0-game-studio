@@ -363,6 +363,10 @@ entrega = commit isolado, buildar antes, main = deploy):
    · 4,90/mês (Craque): https://mpago.la/1jqtK38
    ✔️ 09/08: eltonfrossard45@gmail.com virou LENDA (ouro+manual) + FUNDADOR nº 36
    + SÓCIO nº 12 (origem batismo, validade 2099) — direto no banco.
+   ✔️ 09/08: PERFIL ganhou "🛡️ O clube do coração": escudo artesanal + mascote
+   de quem TEM (esc_perfil agora devolve mascote_key + escudo_time; coluna nova
+   escudo_time em esc_socios com os 5 barões). Sem placeholder pra quem não tem.
+   Troféus da Sala de troféus MAIORES (14px, borda 3px, Oswald).
    ✔️ 09/08: KIT NIGHTFULL FC publicado (Atlético-MG do Guilherme): escudo
    alvinegro c/ lua+estrela e o GALO BALADEIRO de óculos escuro; mascote 'galo'
    (corrente de ouro, pose Travolta, bola); manto preto/branco no banco.

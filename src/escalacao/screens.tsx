@@ -19,7 +19,7 @@ import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
-import { Escudo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
+import { Escudo, LOGOS_PRONTAS } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, getSport, escadaLiberada, type Sport } from './sport'
 import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
@@ -5611,17 +5611,17 @@ export function EscRanking() {
   // 🪪 tier + nº de fundador do técnico tocado — via RPC esc_perfil (a ponte
   // segura: o servidor casa user_id → e-mail → tier/fundador e devolve SÓ o
   // público; o e-mail nunca chega ao aparelho de ninguém).
-  const [viewPerfil, setViewPerfil] = useState<{ tier: ApoioTier | null; fundadorN: number | null; socioN: number | null; socioDesde: string | null; socioAtivo: boolean } | null>(null)
+  const [viewPerfil, setViewPerfil] = useState<{ tier: ApoioTier | null; fundadorN: number | null; socioN: number | null; socioDesde: string | null; socioAtivo: boolean; mascoteKey: string | null; escudoTime: string | null } | null>(null)
 
   // abre o PERFIL de QUALQUER técnico (user_cards tem leitura pública)
   async function openAlbum(userId: string, name: string, careerKey?: string, stats?: { titles: number; scorers: number; goals: number; cards: number }) {
     setViewUser({ id: userId, name, careerKey: careerKey || undefined, stats }); setViewCards(null); setViewScope('carreira')
     setViewPerfil(null)
     supabase.rpc('esc_perfil', { p_user: userId }).then(({ data }) => {
-      const row = (Array.isArray(data) ? data[0] : data) as { tier?: string | null; fundador_n?: number | null; socio_n?: number | null; socio_desde?: string | null; socio_ativo?: boolean | null } | undefined
+      const row = (Array.isArray(data) ? data[0] : data) as { tier?: string | null; fundador_n?: number | null; socio_n?: number | null; socio_desde?: string | null; socio_ativo?: boolean | null; mascote_key?: string | null; escudo_time?: string | null } | undefined
       const t = (row?.tier ?? null) as ApoioTier | null
-      setViewPerfil({ tier: t && t in APOIO_PERKS ? t : null, fundadorN: row?.fundador_n ?? null, socioN: row?.socio_n ?? null, socioDesde: row?.socio_desde ?? null, socioAtivo: !!row?.socio_ativo })
-    }, () => setViewPerfil({ tier: null, fundadorN: null, socioN: null, socioDesde: null, socioAtivo: false }))
+      setViewPerfil({ tier: t && t in APOIO_PERKS ? t : null, fundadorN: row?.fundador_n ?? null, socioN: row?.socio_n ?? null, socioDesde: row?.socio_desde ?? null, socioAtivo: !!row?.socio_ativo, mascoteKey: row?.mascote_key ?? null, escudoTime: row?.escudo_time ?? null })
+    }, () => setViewPerfil({ tier: null, fundadorN: null, socioN: null, socioDesde: null, socioAtivo: false, mascoteKey: null, escudoTime: null }))
     try {
       const { data } = await supabase.from('user_cards')
         .select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at, season_key')
@@ -5827,13 +5827,39 @@ export function EscRanking() {
                 </div>
               )
             })()}
+            {/* 🛡️🎭 o CLUBE DO CORAÇÃO: escudo artesanal + mascote — SÓ pra quem
+                tem (regra do Diego 09/08: sem placeholder pra quem não tem). */}
+            {(() => {
+              const escT = viewPerfil?.escudoTime && LOGOS_PRONTAS[viewPerfil.escudoTime] ? viewPerfil.escudoTime : null
+              const masc = viewPerfil?.mascoteKey && MASCOTES[viewPerfil.mascoteKey] ? MASCOTES[viewPerfil.mascoteKey] : null
+              if (!escT && !masc) return null
+              return (
+                <div className="px-4 pt-3">
+                  <p className="font-black text-[11px] uppercase tracking-wide mb-1.5" style={OSWALD}>🛡️ O clube do coração</p>
+                  <div className="border-[2.5px] border-black rounded-xl bg-white flex items-end justify-center gap-6 px-3 py-2.5" style={{ boxShadow: `2px 2px 0 ${INK}` }}>
+                    {escT && (
+                      <div className="text-center">
+                        <Escudo nome={escT} size={78} />
+                        <p className="text-[8.5px] font-black text-black/50 uppercase mt-1" style={OSWALD}>{escT}</p>
+                      </div>
+                    )}
+                    {masc && (
+                      <div className="text-center">
+                        <div style={{ transform: 'scale(.58)', transformOrigin: 'bottom center', height: 176, width: 140, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', marginTop: -66, marginLeft: -22, marginRight: -22 }}>{masc}</div>
+                        <p className="text-[8.5px] font-black text-black/50 uppercase" style={OSWALD}>mascote</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })()}
             {viewUser.stats && (viewUser.stats.titles > 0 || viewUser.stats.scorers > 0) && (
               <div className="px-4 pt-3">
                 <p className="font-black text-[11px] uppercase tracking-wide mb-1.5" style={OSWALD}>🏆 Sala de troféus</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {viewUser.stats.titles > 0 && <span className="border-[2.5px] border-black rounded-lg px-2 py-1 text-[10.5px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2px 2px 0 ${INK}` }}>🏆 Título{viewUser.stats.titles === 1 ? '' : 's'} ×{viewUser.stats.titles}</span>}
-                  {viewUser.stats.scorers > 0 && <span className="border-[2.5px] border-black rounded-lg px-2 py-1 text-[10.5px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2px 2px 0 ${INK}` }}>👟 Artilharia{viewUser.stats.scorers === 1 ? '' : 's'} ×{viewUser.stats.scorers}</span>}
-                  {viewUser.stats.goals > 0 && <span className="border-[2.5px] border-black rounded-lg px-2 py-1 text-[10.5px] font-black bg-white" style={{ boxShadow: `2px 2px 0 ${INK}` }}>⚽ {viewUser.stats.goals} gols</span>}
+                <div className="flex flex-wrap gap-2">
+                  {viewUser.stats.titles > 0 && <span className="border-[3px] border-black rounded-xl px-3 py-1.5 text-[14px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}>🏆 Título{viewUser.stats.titles === 1 ? '' : 's'} ×{viewUser.stats.titles}</span>}
+                  {viewUser.stats.scorers > 0 && <span className="border-[3px] border-black rounded-xl px-3 py-1.5 text-[14px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}>👟 Artilharia{viewUser.stats.scorers === 1 ? '' : 's'} ×{viewUser.stats.scorers}</span>}
+                  {viewUser.stats.goals > 0 && <span className="border-[3px] border-black rounded-xl px-3 py-1.5 text-[14px] font-black bg-white" style={{ boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}>⚽ {viewUser.stats.goals} gols</span>}
                 </div>
               </div>
             )}
