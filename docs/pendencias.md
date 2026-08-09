@@ -136,6 +136,13 @@ entrega = commit isolado, buildar antes, main = deploy):
    batismo · bullet do sócio incluso sem o "mesmo se perder o nome" (a
    regra do barão embaixo já explica, não repetir) · linha da Carreira
    Online/Ligas Fechadas na Lenda com DESTAQUE (caixa dourada).
+   v13 (Diego, 09/08): chip do upgrade "+R$20" fica SÓ na Lenda (saiu do
+   Craque — "já tem no craque falando isso" → decisão final: como estava) ·
+   preço do batismo explicado NA LISTAGEM, curto: "Série A·B·C e Várzea —
+   59,90 · times de todas as divisões do modo carreira" e "Série D — 69,90
+   · os rivais escolhidos pra te enfrentar" (bullet longo do porquê saiu;
+   header do card virou só "uma vez"). ⚠️ NOVO: batismo agora inclui
+   VÁRZEA na faixa de 59,90.
    🕵️→🎨 PEDIDO DO DIEGO (09/08, madrugada): nos cards de Craque/Lenda o
    olheiro tem que DIZER "overall do jogador" e MOSTRAR mini-amostra visual
    (chip colorido tipo "Djalminha 82–91") — feito na v9 do m2 (Craque:
