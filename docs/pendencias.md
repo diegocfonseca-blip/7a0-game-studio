@@ -30,12 +30,13 @@ DECISÕES NOVAS DO DIEGO (rodada v2 dos mockups, mesma noite):
 - Lenda+sócio ao mesmo tempo: PROPOSTA enviada (cor mais alta manda — ouro
   continua em todo canto — e o sócio vira selinho 🎫 ao lado do nome; sócio
   puro fica roxo). Aguardando OK dele nessa regra.
-- 🎮 MANUAL NO SÓCIO: Diego temeu canibalizar o Craque ("ng vai pagar o
-  craque mais"). Recomendação enviada e DESENHADA na v3: Manual libera só no
-  3º MÊS de casa do sócio (3×9,90=29,70 > 19,90 → quem quer Manual continua
-  indo de Craque; e vira gancho de retenção "falta 1 mês pro teu Manual";
-  cancelou → Manual fecha). Aguardando ele bater o martelo (a outra opção
-  dele era tirar o Manual do sócio de vez).
+- 🎮 MANUAL: ⚖️ DECIDIDO PELO DIEGO (08/08) — Manual FORA do sócio de vez
+  ("N pode ter botão de manual pra sócio não em três meses... Só se ele
+  pagar msm o craque tb"). Manual = EXCLUSIVO do ⭐ Craque 19,90. A trava do
+  Manual fica com UM botão só (Craque). O card do Craque na loja vende isso:
+  "Manual seu pra sempre — SÓ o Craque tem, nem o sócio destrava". A ideia
+  do 3º mês foi descartada. Artes v5 atualizadas (m1 sem linha de Manual,
+  m2 e portas-ex reforçando a exclusividade).
 - 📐 ORDEM DOS BENEFÍCIOS no card do sócio (pedido dele, v4): 1º olheiros/
   overall · 2º escudo à mão · 3º cor roxa no nome · 4º carteirinha · depois
   o resto (votação, cobertura, moedas, manual 3º mês, mural).
