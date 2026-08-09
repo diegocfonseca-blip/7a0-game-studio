@@ -26,7 +26,12 @@ const STANDS: Record<string, { pts: number[][]; axis: 'x' | 'y'; from: number; t
 const P = (a: number[][]) => a.map(p => p.join(',')).join(' ')
 
 // ─── 👕 PATROCÍNIO — cartão de escolher a marca (aba Clube › Estádio) ───────
-export function SponsorCard({ div, chosen, onChoose }: { div: string; chosen?: string; onChoose: (id: string) => void }) {
+export function SponsorCard({ div, chosen, onChoose, bb = false, en = false }: { div: string; chosen?: string; onChoose: (id: string) => void; bb?: boolean; en?: boolean }) {
+  // 🏀 no basquete "Série D/C/B/A" vira o nome do ANDAR; e é bilíngue. Futebol = PT idêntico.
+  const T = (pt: string, e: string) => (bb && en) ? e : pt
+  const tierNm = (d: string) => bb
+    ? ({ D: en ? 'Street League' : 'Street League', B: 'G League', A: 'NBA', C: en ? 'G League' : 'G League' } as Record<string, string>)[d] ?? d
+    : `${en ? 'Div' : 'Série'} ${d}`
   const pay = SPONSOR_PAY[div] ?? 0
   const opts = sponsorsForDiv(div)
   const locked = sponsorsLocked(div)
@@ -46,38 +51,40 @@ export function SponsorCard({ div, chosen, onChoose }: { div: string; chosen?: s
   return (
     <div style={{ ...box('#fff'), padding: 12, marginTop: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
-        <span style={{ ...OSW, fontWeight: 900, fontSize: 14 }}>👕 Patrocínio</span>
-        <span style={{ ...OSW, fontWeight: 900, fontSize: 13, color: GREEN }}>{pay > 0 ? `+${pay} / temporada` : '—'}</span>
+        <span style={{ ...OSW, fontWeight: 900, fontSize: 14 }}>{T('👕 Patrocínio', '👕 Sponsor')}</span>
+        <span style={{ ...OSW, fontWeight: 900, fontSize: 13, color: GREEN }}>{pay > 0 ? `+${pay} / ${T('temporada', 'season')}` : '—'}</span>
       </div>
       {pay === 0 || opts.length === 0 ? (
         <div style={{ background: '#FBF4DE', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: '13px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, textAlign: 'center' }}>
           <span style={{ fontSize: 24 }}>👕</span>
-          <p style={{ ...OSW, fontWeight: 900, fontSize: 13, color: INK, margin: 0, lineHeight: 1.25 }}>A Série D ainda não tem patrocínio</p>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0, lineHeight: 1.4 }}>Nenhuma marca aparece pra bancar a camisa aqui embaixo. <b>Suba de divisão</b> pra começar a faturar:</p>
+          <p style={{ ...OSW, fontWeight: 900, fontSize: 13, color: INK, margin: 0, lineHeight: 1.25 }}>{bb ? T(`A ${tierNm('D')} ainda não tem patrocínio`, `${tierNm('D')} has no sponsor yet`) : 'A Série D ainda não tem patrocínio'}</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0, lineHeight: 1.4 }}>{!bb ? <>Nenhuma marca aparece pra bancar a camisa aqui embaixo. <b>Suba de divisão</b> pra começar a faturar:</> : en ? <>No brand backs the jersey down here. <b>Climb up</b> to start cashing in:</> : <>Nenhuma marca banca a camisa aqui na base. <b>Suba de andar</b> pra começar a faturar:</>}</p>
           <div style={{ display: 'flex', gap: 6, marginTop: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {[['C', 5], ['B', 10], ['A', 20]].map(([d, v]) => (
-              <span key={d as string} style={{ ...OSW, fontWeight: 900, fontSize: 10.5, background: '#fff', border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 9px', color: INK }}>Série {d} <span style={{ color: GREEN }}>+{v}</span></span>
+            {(bb ? [['B', 10], ['A', 20]] : [['C', 5], ['B', 10], ['A', 20]]).map(([d, v]) => (
+              <span key={d as string} style={{ ...OSW, fontWeight: 900, fontSize: 10.5, background: '#fff', border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 9px', color: INK }}>{tierNm(d as string)} <span style={{ color: GREEN }}>+{v}</span></span>
             ))}
           </div>
         </div>
       ) : (
         <>
-          <p style={{ ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 2px 6px' }}>Escolha a marca da camisa</p>
-          <div style={{ display: 'flex', gap: 7 }}>{opts.map(s => brand(s, true, cur?.id === s.id, cur?.id === s.id ? '✓ escolhido' : undefined))}</div>
+          <p style={{ ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 2px 6px' }}>{T('Escolha a marca da camisa', 'Pick the jersey brand')}</p>
+          <div style={{ display: 'flex', gap: 7 }}>{opts.map(s => brand(s, true, cur?.id === s.id, cur?.id === s.id ? T('✓ escolhido', '✓ chosen') : undefined))}</div>
           {locked.length > 0 && (
             <>
-              <p style={{ ...OSW, fontWeight: 900, fontSize: 9.5, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.4)', margin: '11px 2px 6px' }}>Marcões — destravam subindo 👑</p>
-              <div style={{ display: 'flex', gap: 7 }}>{locked.map(s => brand(s, false, false, `🔒 Série ${s.div}`))}</div>
+              <p style={{ ...OSW, fontWeight: 900, fontSize: 9.5, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.4)', margin: '11px 2px 6px' }}>{T('Marcões — destravam subindo 👑', 'Big brands — unlock as you climb 👑')}</p>
+              <div style={{ display: 'flex', gap: 7 }}>{locked.map(s => brand(s, false, false, `🔒 ${tierNm(s.div)}`))}</div>
             </>
           )}
         </>
       )}
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '9px 2px 0', lineHeight: 1.35 }}>Rende por divisão: D <b>0</b> · C <b>+5</b> · B <b>+10</b> · A <b>+20</b>. Cai no caixa no fim da temporada, junto com a bilheteria. A escolha é só de <b>identidade</b> — todas da mesma divisão pagam igual.</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '9px 2px 0', lineHeight: 1.35 }}>{bb
+        ? (en ? <>Pays by tier: {tierNm('D')} <b>0</b> · {tierNm('B')} <b>+10</b> · {tierNm('A')} <b>+20</b>. Drops into your cash at season's end, with the ticket sales. The pick is pure <b>identity</b> — all brands in a tier pay the same.</> : <>Rende por andar: {tierNm('D')} <b>0</b> · {tierNm('B')} <b>+10</b> · {tierNm('A')} <b>+20</b>. Cai no caixa no fim da temporada, junto com a bilheteria. A escolha é só de <b>identidade</b> — todas do mesmo andar pagam igual.</>)
+        : <>Rende por divisão: D <b>0</b> · C <b>+5</b> · B <b>+10</b> · A <b>+20</b>. Cai no caixa no fim da temporada, junto com a bilheteria. A escolha é só de <b>identidade</b> — todas da mesma divisão pagam igual.</>}</p>
     </div>
   )
 }
 
-export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; perkOverride?: ApoioPerk }) {
+export function StadiumSvg({ st, perkOverride, bb = false }: { st: StadiumSave | undefined; perkOverride?: ApoioPerk; bb?: boolean }) {
   const night = hasExtra(st, 'refl')
   const grama = hasExtra(st, 'grama')
   // tier de apoio: as arquibancadas vestem a COR do time (setor pronto E em
@@ -90,7 +97,7 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
   const parts: string[] = []
   parts.push('<defs>')
   for (const k in STANDS) parts.push(`<clipPath id="stc${k}"><polygon points="${P(STANDS[k].pts)}"/></clipPath>`)
-  parts.push(`<linearGradient id="stgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${grama ? '#3bbf6e' : '#37a862'}"/><stop offset="1" stop-color="${grama ? '#177a3e' : '#1e7a44'}"/></linearGradient>`)
+  parts.push(`<linearGradient id="stgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${bb ? '#d8ab68' : (grama ? '#3bbf6e' : '#37a862')}"/><stop offset="1" stop-color="${bb ? '#b8894a' : (grama ? '#177a3e' : '#1e7a44')}"/></linearGradient>`)
   parts.push(`<linearGradient id="stau" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${f0}"/><stop offset="1" stop-color="${f1}"/></linearGradient>`)
   parts.push(`<linearGradient id="stvd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${v0}"/><stop offset="1" stop-color="${v1}"/></linearGradient>`)
   parts.push('<pattern id="stcrowd" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.4" fill="#0C0C0C" opacity=".25"/><circle cx="6" cy="6" r="1.4" fill="#fff" opacity=".55"/></pattern>')
@@ -108,14 +115,25 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
   parts.push('<ellipse cx="180" cy="298" rx="160" ry="10" fill="#000" opacity=".16"/>')
   // gramado
   const px = 105, py = 75, pw = 130, ph = 160, cx = px + pw / 2, cy = py + ph / 2
-  parts.push(`<rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="5" fill="url(#stgr)" stroke="#123f22" stroke-width="2.5"/>`)
-  for (let i = 0; i < pw; i += 13) if ((i / 13) % 2 === 0) parts.push(`<rect x="${px + i}" y="${py}" width="13" height="${ph}" fill="#fff" opacity="${grama ? '.09' : '.05'}"/>`)
   const W = 'rgba(255,255,255,.85)'
+  // 🏀 QUADRA (basquete) · ⚽ GRAMADO (futebol) — mesmo tamanho/lugar, só muda o piso.
+  parts.push(`<rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="5" fill="url(#stgr)" stroke="${bb ? '#8a5f2c' : '#123f22'}" stroke-width="2.5"/>`)
+  if (!bb) for (let i = 0; i < pw; i += 13) if ((i / 13) % 2 === 0) parts.push(`<rect x="${px + i}" y="${py}" width="13" height="${ph}" fill="#fff" opacity="${grama ? '.09' : '.05'}"/>`)
   parts.push(`<rect x="${px + 6}" y="${py + 6}" width="${pw - 12}" height="${ph - 12}" fill="none" stroke="${W}" stroke-width="1.6"/>`)
   parts.push(`<line x1="${px}" y1="${cy}" x2="${px + pw}" y2="${cy}" stroke="${W}" stroke-width="1.6"/>`)
-  parts.push(`<circle cx="${cx}" cy="${cy}" r="19" fill="none" stroke="${W}" stroke-width="1.6"/><circle cx="${cx}" cy="${cy}" r="2.2" fill="${W}"/>`)
-  parts.push(`<rect x="${px + 34}" y="${py + 6}" width="62" height="17" fill="none" stroke="${W}" stroke-width="1.6"/>`)
-  parts.push(`<rect x="${px + 34}" y="${py + ph - 23}" width="62" height="17" fill="none" stroke="${W}" stroke-width="1.6"/>`)
+  parts.push(`<circle cx="${cx}" cy="${cy}" r="${bb ? 15 : 19}" fill="none" stroke="${W}" stroke-width="1.6"/><circle cx="${cx}" cy="${cy}" r="2.2" fill="${W}"/>`)
+  if (bb) {
+    // garrafão + círculo de lance livre + aro (dourado) nos dois lados da quadra
+    for (const top of [true, false]) {
+      const ky = top ? py + 6 : py + ph - 6 - 40
+      parts.push(`<rect x="${cx - 16}" y="${ky}" width="32" height="40" fill="rgba(255,255,255,.08)" stroke="${W}" stroke-width="1.6"/>`)
+      parts.push(`<circle cx="${cx}" cy="${top ? ky + 40 : ky}" r="12" fill="none" stroke="${W}" stroke-width="1.6"/>`)
+      parts.push(`<circle cx="${cx}" cy="${top ? py + 12 : py + ph - 12}" r="3.6" fill="none" stroke="${GOLD}" stroke-width="2.4"/>`)
+    }
+  } else {
+    parts.push(`<rect x="${px + 34}" y="${py + 6}" width="62" height="17" fill="none" stroke="${W}" stroke-width="1.6"/>`)
+    parts.push(`<rect x="${px + 34}" y="${py + ph - 23}" width="62" height="17" fill="none" stroke="${W}" stroke-width="1.6"/>`)
+  }
   // arquibancadas (enchem de torcida conforme o investimento)
   for (const k in STANDS) {
     const s2 = STANDS[k], p = sectorPct(st, k), full = p >= 100
@@ -147,8 +165,8 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
   }
   if (hasExtra(st, 'telao')) {
     parts.push(`<rect x="306" y="14" width="44" height="30" rx="4" fill="#0C0C0C" stroke="${INK}" stroke-width="3"/>`)
-    parts.push('<text x="328" y="30" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="900" font-size="11" fill="#37D067">1×0</text>')
-    parts.push(`<text x="328" y="41" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="900" font-size="7" fill="${GOLD}">GOL!</text>`)
+    parts.push(`<text x="328" y="30" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="900" font-size="11" fill="#37D067">${bb ? '88' : '1×0'}</text>`)
+    parts.push(`<text x="328" y="41" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="900" font-size="7" fill="${GOLD}">${bb ? 'CESTA!' : 'GOL!'}</text>`)
     parts.push(`<line x1="328" y1="44" x2="328" y2="54" stroke="${INK}" stroke-width="3"/>`)
   }
   if (hasExtra(st, 'loja')) {
@@ -168,7 +186,7 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, onLoanFrom, loanSlots = 1 }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, onLoanFrom, loanSlots = 1, bb = false, en = false }: {
   st: StadiumSave | undefined
   coins: number
   onInvest: (sector: string) => void
@@ -186,12 +204,16 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
   onLoanTo?: (cardId: string) => void
   onLoanFrom?: (cardId: string) => void
   loanSlots?: number // 🏢 vagas de empréstimo por lado (cresce com a divisão)
+  bb?: boolean // 🏀 basquete: quadra no lugar do gramado + textos de arena, bilíngue
+  en?: boolean // 🏀 idioma EN (só quando bb)
 }) {
   const [buying, setBuying] = useState(false)
   const [pickOut, setPickOut] = useState(false)
   const [pickIn, setPickIn] = useState(false)
   const [sellingSaf, setSellingSaf] = useState(false)
-  const lvl = stadiumLevel(st)
+  // 🏀 T = tradução só no basquete-EN; futebol/PT devolve o 1º texto (idêntico).
+  const T = (pt: string, e: string) => (bb && en) ? e : pt
+  const lvl = stadiumLevel(st, bb, bb && en)
   const seats = stadiumSeats(st)
   const income = stadiumIncome(st)
   // acentos da aba (badge de nível, bilheteria, barras) na cor do tier de apoio
@@ -205,22 +227,24 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
       <div style={{ ...box('#FBF6E9'), padding: 12, marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
           <span style={{ fontWeight: 900, fontSize: 15, textTransform: 'uppercase', ...OSW }}>{lvl.name}</span>
-          <span style={{ background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 999, padding: '2px 10px', fontSize: 10.5, fontWeight: 900, textTransform: 'uppercase', ...OSW }}>nível {lvl.n}</span>
+          <span style={{ background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 999, padding: '2px 10px', fontSize: 10.5, fontWeight: 900, textTransform: 'uppercase', ...OSW }}>{T('nível', 'level')} {lvl.n}</span>
         </div>
-        <StadiumSvg st={st} />
+        <StadiumSvg st={st} bb={bb} />
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 8 }}>
-          <div><b style={{ fontSize: 23, fontWeight: 900 }}>{seats.now.toLocaleString('pt-BR')}</b> <span style={{ fontSize: 11.5, color: 'rgba(0,0,0,.55)', fontWeight: 800 }}>/ {seats.max.toLocaleString('pt-BR')} lugares</span></div>
-          <span style={{ background: GOLD, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '4px 11px', fontSize: 12, fontWeight: 900, ...OSW }}>{prontoPct}% pronto</span>
+          <div><b style={{ fontSize: 23, fontWeight: 900 }}>{seats.now.toLocaleString('pt-BR')}</b> <span style={{ fontSize: 11.5, color: 'rgba(0,0,0,.55)', fontWeight: 800 }}>/ {seats.max.toLocaleString('pt-BR')} {T('lugares', 'seats')}</span></div>
+          <span style={{ background: GOLD, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '4px 11px', fontSize: 12, fontWeight: 900, ...OSW }}>{prontoPct}% {T('pronto', 'done')}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 10, padding: '7px 11px' }}>
-          <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: .8, textTransform: 'uppercase', opacity: .92, ...OSW }}>🎟️ Bilheteria por temporada</span>
+          <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: .8, textTransform: 'uppercase', opacity: .92, ...OSW }}>{T('🎟️ Bilheteria por temporada', '🎟️ Ticket sales per season')}</span>
           <b style={{ fontSize: 17 }}>+{income}</b>
         </div>
         <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '7px 2px 0', lineHeight: 1.35 }}>
-          <b>Base do estádio +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/temporada</b>. Todo clube já vende ingresso — construir <b>soma em cima da base</b>. Cai sozinha no caixa ao fim de cada temporada; melhoria pronta rende pra sempre.</p>
+          {(bb && en)
+            ? <><b>Arena base +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · built +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/season</b>. Every team sells tickets — building <b>adds on top of the base</b>. It drops into your cash at each season's end; finished upgrades pay forever.</>
+            : <><b>Base do estádio +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/temporada</b>. Todo clube já vende ingresso — construir <b>soma em cima da base</b>. Cai sozinha no caixa ao fim de cada temporada; melhoria pronta rende pra sempre.</>}</p>
       </div>
 
-      <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '0 2px 8px', ...OSW }}>🧱 Arquibancadas — investe aos poucos</p>
+      <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '0 2px 8px', ...OSW }}>{T('🧱 Arquibancadas — investe aos poucos', '🧱 Stands — invest bit by bit')}</p>
       {STADIUM_SECTORS.map(s => {
         const p = sectorPct(st, s.k), full = p >= 100, poor = coins < STADIUM_STEP
         return (
@@ -237,13 +261,13 @@ export function StadiumTab({ st, coins, onInvest, onBuild, filial, filialOptions
             </div>
             <button onClick={() => !full && !poor && onInvest(s.k)} disabled={full || poor}
               style={{ flex: 'none', minWidth: 88, border: 'none', borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 12.5, cursor: full || poor ? 'default' : 'pointer', lineHeight: 1.15, ...OSW, background: full ? GOLD : poor ? '#d9cfb4' : INK, color: full ? INK : poor ? '#7d7358' : '#fff' }}>
-              {full ? '✅ pronto' : <>Investir<span style={{ display: 'block', fontSize: 9, opacity: .85 }}>+{STADIUM_STEP} 💰</span></>}
+              {full ? T('✅ pronto', '✅ done') : <>{T('Investir', 'Invest')}<span style={{ display: 'block', fontSize: 9, opacity: .85 }}>+{STADIUM_STEP} 💰</span></>}
             </button>
           </div>
         )
       })}
 
-      <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '14px 2px 8px', ...OSW }}>✨ Melhorias — pagam e destravam 🔓</p>
+      <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '14px 2px 8px', ...OSW }}>{T('✨ Melhorias — pagam e destravam 🔓', '✨ Upgrades — pay off and unlock 🔓')}</p>
       {STADIUM_EXTRAS.map(e => {
         const done = hasExtra(st, e.k), unlocked = extraUnlocked(st, e.k), poor = coins < e.cost
         return (

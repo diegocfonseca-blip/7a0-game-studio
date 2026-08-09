@@ -101,9 +101,12 @@ export function stadiumSeats(st: StadiumSave | undefined): { now: number; max: n
   return { now, max }
 }
 // nível/apelido do estádio pelo total de peças prontas (setores + melhorias)
-export function stadiumLevel(st: StadiumSave | undefined): { n: number; name: string } {
+export function stadiumLevel(st: StadiumSave | undefined, bb = false, en = false): { n: number; name: string } {
   const n = sectorsDone(st) + STADIUM_EXTRAS.filter(e => hasExtra(st, e.k)).length
-  const name = n >= 9 ? '👑 Templo Legends' : n >= 6 ? '🏟️ Arena Legends' : n >= 4 ? '🏛️ Estádio Municipal' : n >= 2 ? '🪵 Estádio de Bairro' : n >= 1 ? '🚧 Canteiro de Obras' : '🌱 Campo de Várzea'
+  // 🏀 basquete = nomes de QUADRA/ARENA (bilíngue); ⚽ futebol = estádio (PT, idêntico).
+  const name = bb
+    ? (n >= 9 ? (en ? '👑 Basketball Temple' : '👑 Templo do Basquete') : n >= 6 ? (en ? '🏟️ Arena' : '🏟️ Arena') : n >= 4 ? (en ? '🏛️ City Arena' : '🏛️ Ginásio Municipal') : n >= 2 ? (en ? '🏫 Community Gym' : '🏫 Ginásio de Bairro') : n >= 1 ? (en ? '🚧 Under Construction' : '🚧 Em Obras') : (en ? '🏀 Street Court' : '🏀 Quadra de Rua'))
+    : (n >= 9 ? '👑 Templo Legends' : n >= 6 ? '🏟️ Arena Legends' : n >= 4 ? '🏛️ Estádio Municipal' : n >= 2 ? '🪵 Estádio de Bairro' : n >= 1 ? '🚧 Canteiro de Obras' : '🌱 Campo de Várzea')
   return { n, name }
 }
 export function stadiumComplete(st: StadiumSave | undefined): boolean {

@@ -1946,10 +1946,10 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
             <FinancasTab ledger={state.careerLedger ?? []} caixa={coins} seasonNo={state.seasonNo ?? 1} squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
           ) : (
             <>
-              <SponsorCard div={div} chosen={state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id, mgrId: youId })} />
+              <SponsorCard div={div} chosen={state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id, mgrId: youId })} bb en={bbLang === 'en'} />
               <StadiumTab st={state.stadiums?.[youId]} coins={coins}
                 onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
-                onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })} />
+                onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })} bb en={bbLang === 'en'} />
               <MultiClubeBuy jaTem={state.multiClube?.team} opcoes={multiOpcoes} coins={coins} preco={4000} isLenda={myApoioPerk()?.tier === 'ouro'} onBuy={team => dispatch({ type: 'BUY_MULTICLUBE', team })} />
             </>
           )}
