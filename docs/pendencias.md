@@ -363,6 +363,14 @@ entrega = commit isolado, buildar antes, main = deploy):
    · 4,90/mês (Craque): https://mpago.la/1jqtK38
    ✔️ 09/08: eltonfrossard45@gmail.com virou LENDA (ouro+manual) + FUNDADOR nº 36
    + SÓCIO nº 12 (origem batismo, validade 2099) — direto no banco.
+   🔁 CORREÇÃO DE DONO (09/08, confirmada pelo Diego): o batismo Xurupitas FC
+   (ex-Bicho da Seda) é da conta denilson.stifler10@gmail.com — a conta que
+   JOGA de Xurupitas no ranking (registro de 07/08 tinha trocado pra
+   davisantana1312). Movido o pacote inteiro: sócio nº 5 origem batismo,
+   mascote mariposa, escudo_time Xurupitas FC, manto verde/branco.
+   davisantana1312 segue Lenda paga + Fundador nº 11 (status original), SEM
+   sócio. Atenção: o batismo Tokyo City também consta nessa mesma conta
+   denilson — Diego vai checar com a galera se está certo.
    ✔️ 09/08: REGRA DO CLONE no ar — nunca dois times com o mesmo nome na mesma
    competição: humano jogando com o nome do próprio batizado esconde o robô
    homônimo DAQUELA partida/carreira (reserva entra; batizado segue normal pro
