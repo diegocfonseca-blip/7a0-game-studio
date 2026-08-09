@@ -122,6 +122,14 @@ entrega = commit isolado, buildar antes, main = deploy):
    caixinha FINAL (manto, escudo, mascote+festão, batizar estádio, roxa,
    voto, 30 moedas, carteirinha/mural — sem olheiro, sem cobertura).
    FALTA SÓ: link avulso do ⭐ Craque R$ 19,90 (pra trava do Manual).
+   🕵️→🎨 PEDIDO DO DIEGO (09/08, madrugada): nos cards de Craque/Lenda o
+   olheiro tem que DIZER "overall do jogador" e MOSTRAR mini-amostra visual
+   (chip colorido tipo "Djalminha 82–91") — feito na v9 do m2 (Craque:
+   Djalminha 82–91 + Zagallo "?" com nota "lendas só com 👑"; Lenda: tudo
+   revelado). E a ÁREA DO SÓCIO (m3) foi reformada pra caixinha final:
+   carteirinha roxa + votação + "mimos à mão" (escudo/mascote/manto, pede
+   ali) + batizar estádio + 30 moedas + mural. Saíram do m3: cobertura
+   (virou obra), olheiros (viraram dos tiers), manual.
    ⚖️ PREÇO DO BATISMO RESOLVIDO — REGRA FINAL (09/08, ajustada pelo senso
    de justiça do Diego): 🖋️ BATISMO INCLUI O SÓCIO LEGENDS, e o incluso é
    DE QUEM PAGOU o batismo — NÃO do nome. Perdeu o nome no leilão dos
