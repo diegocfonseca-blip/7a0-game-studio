@@ -1,5 +1,16 @@
 # 📌 Pendências combinadas com o Diego (atualizado 09/08/2026)
 
+## 💰 BATIZA TEU CLUBE: Pix da Série D não copiava o valor certo (09/08) ✅ NO AR
+Diego reparou que os dois cards de preço (Série A·B·C·Várzea R$59,90 · Série
+D R$69,90) eram só enfeite fixo — o botão "COPIAR PIX" sempre gravava 59,90,
+mesmo pra quem ia batizar clube na Série D.
+- Mockup aprovado ("ficou bom") antes de codar, como sempre pra visual.
+- **Corrigido** (`screens.tsx`, `ApoieButton`): os dois cards agora são
+  TOCÁVEIS — escolhe a série, o card escolhido fica destacado (dourado) e o
+  botão de copiar Pix já muda pro valor certo sozinho (59,90 ou 69,90).
+  Padrão: A·B·C·Várzea (59,90), igual já era.
+- Reversível: `git revert` no commit desse fix.
+
 ## ⚽ COPA LEGENDS (carreira): reserva fazendo gol + substituição não valia (09/08) ✅ NO AR
 Diego repassou relato de usuário: "reserva fazendo gol" na Copa (só valem os
 11 titulares — reserva só entra COM troca) e "não dá pra substituir na Copa".

@@ -267,6 +267,10 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
   const meuSoc = useMeuSocio() // 🎫 sócio ativo vê a ÁREA dele no lugar da propaganda
   const openApoio = () => { if (startScreen === 'manual') logApoio('👀 abriu: modo manual (trava)'); setScreen(startScreen) }
   const [clube, setClube] = useState('')
+  // ⚽ BATISMO: qual série o clube vai jogar — muda o valor do Pix (Série D
+  // custa mais, são os rivais escolhidos). Cards viram seletor (09/08).
+  const [serieBatismo, setSerieBatismo] = useState<'abc' | 'd'>('abc')
+  const precoBatismo = serieBatismo === 'd' ? 69.9 : 59.9
   // 🪗 loja de tela ÚNICA (mockup v3 aprovado 09/08): um pacote ampliado por vez
   const [amp, setAmp] = useState<null | 'socio' | 'prata' | 'ouro' | 'batismo'>(null)
   const [payTier, setPayTier] = useState<'prata' | 'ouro'>('prata')
@@ -618,13 +622,19 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           <input value={clube} onChange={e => setClube(stripEmoji(e.target.value))} maxLength={26} placeholder="Ex.: Atlético do Jefão"
             className="w-full border-[3px] border-black rounded-xl px-3 py-2.5 mt-2 font-black text-base bg-white" style={OSWALD} />
           <p className="text-[10px] font-bold text-black/45 mt-1.5">✅ nome de resenha, zoeira leve, homenagem · ❌ ofensa, política, marca de empresa</p>
-          <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>2</span>Faz o Pix</p>
-          <div className="flex flex-wrap gap-1.5 mt-1.5">
-            <span className="border-2 border-black rounded-lg px-2 py-0.5 text-[9.5px] font-black" style={{ background: GOLD }}>Série A·B·C e Várzea — R$ 59,90</span>
-            <span className="border-2 border-black rounded-lg px-2 py-0.5 text-[9.5px] font-black" style={{ background: GOLD }}>Série D (os rivais) — R$ 69,90</span>
+          <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>2</span>Escolhe a série e faz o Pix</p>
+          <div className="flex gap-1.5 mt-1.5">
+            <button onClick={() => setSerieBatismo('abc')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
+              style={{ background: serieBatismo === 'abc' ? GOLD : '#fff', boxShadow: serieBatismo === 'abc' ? `2px 2px 0 0 ${INK}` : 'none' }}>
+              Série A·B·C e Várzea<br /><span className="text-[12px]" style={OSWALD}>R$ 59,90</span>
+            </button>
+            <button onClick={() => setSerieBatismo('d')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
+              style={{ background: serieBatismo === 'd' ? GOLD : '#fff', boxShadow: serieBatismo === 'd' ? `2px 2px 0 0 ${INK}` : 'none' }}>
+              Série D (os rivais)<br /><span className="text-[12px]" style={OSWALD}>R$ 69,90</span>
+            </button>
           </div>
-          <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">a Série D custa mais porque são os <b>rivais escolhidos</b> — todo mundo joga contra eles logo de cara.</p>
-          <div className="mt-2"><PixBox label="copiar chave Pix" ctx="batismo do clube" amount={59.9} /></div>
+          <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">a Série D custa mais porque são os <b>rivais escolhidos</b> — todo mundo joga contra eles logo de cara. Toque numa das duas pra escolher.</p>
+          <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · série ${serieBatismo}`} amount={precoBatismo} /></div>
           <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>3</span>Manda comprovante + nome</p>
           <button onClick={() => { logApoio(`🏟️ QUER BATISMO: "${clube.trim() || '(sem nome)'}"`); igMsg(`Opa! Acabei de apoiar o Leilão Legends 💛 Quero batizar meu clube: "${clube.trim() || '(nome do clube)'}" — comprovante em anexo!`) }} className="w-full mt-2 rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
             style={{ background: '#E1306C', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
