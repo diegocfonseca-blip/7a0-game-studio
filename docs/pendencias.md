@@ -121,6 +121,15 @@ inclusive pode ser convocada pros 22 ativos), só a RENDA em moedas fica
 "🔒 destrava: [requisito]" até desbloquear aquela categoria — nunca esconde
 nem perde a carta, só a moeda que ela renderia.
 
+## 🎟️ FICHAS DE CARREIRA POR TIER — NO AR (09/08, commit ee324df, Diego
+confirmou 2/4/6/8): grátis 2 · ⭐ Craque 4 · 👑 Lenda 6 · 🖋️ Batismo 8.
+careerSlotLimit(count) em store.tsx: GRANDFATHER LITERAL — limite pessoal
+nunca fica abaixo do que a pessoa JÁ tem (nada apagado, nada travado; a
+régua só vale pra criar ALÉM). MAX_CAREER_SLOTS virou teto de GUARDA = 8
+(o slice do arquivo nunca corta ninguém). Trava com aviso claro + caminho
+("apague uma ou vire ⭐4/👑6/🖋️8") na tela Minhas Carreiras; linha "💾
+Fichas de carreira" adicionada no card de cores do APOIE.
+
 ## 🕵️ OLHEIROS NO AR (09/08, commit 9f7825f — Diego cobrou ao vivo "não tô
 vendo over no meu elenco"): overall "lo–hi" com FUNDO na cor da categoria
 (ouro lenda · prata craque · roxo promessa · verde bom · bege resto) ao
