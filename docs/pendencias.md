@@ -168,6 +168,13 @@ Spec final em texto (antes do mockup, como ele pediu). Decisões DELE já dentro
 - Pagamento: 3 planos no MP (cartão) + recarga Pix 30d; entrega pelo painel
   (já no ar) + validade de 30 dias a construir.
 PERGUNTA ABERTA: o voto dos sócios DECIDE a categoria ou só orienta?
+🔥 AÇÃO IMEDIATA COMBINADA (09/08 00h, print do admin: 8 toques na trava do
+Manual em 1h, Akatsuki FC apertou "quero o Craque"): assim que o Diego criar
+e mandar o LINK DE PAGAMENTO do Mercado Pago do Craque (R$ 19,90 — app MP:
+Cobrar → Link de pagamento), trocar a trava do Manual de Pix+DM pra abrir o
+link direto (cartão/Pix em 3 toques) + aviso "libera em minutos" (entrega
+pelo painel já no ar). Commit isolado e revertível. Fase 2 futura: webhook
+do MP → entrega automática. AGUARDANDO O LINK DELE.
 📌 STATUS FINAL DA RODADA (08/08, noite): Diego travou na dúvida olheiros-
 no-sócio vs escadinha ("só sei que quero que venda MT"). RECOMENDAÇÃO FIRME
 enviada: ESCADINHA por tier (4 produtos, 4 desejos: sócio=jogo do seu
