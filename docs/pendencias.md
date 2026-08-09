@@ -352,6 +352,12 @@ entrega = commit isolado, buildar antes, main = deploy):
    · 4,90/mês (Craque): https://mpago.la/1jqtK38
    ✔️ 09/08: eltonfrossard45@gmail.com virou LENDA (ouro+manual) + FUNDADOR nº 36
    + SÓCIO nº 12 (origem batismo, validade 2099) — direto no banco.
+   ✔️ 09/08 (noite): KIT NEYMARZETTI publicado (aprovado v5): escudo artesanal
+   de perfil c/ crista ÚNICA preto+loiro, brincão, sorrisão c/ dentes; mascote
+   'moicano' (camisa 11, meião, bota amarela, bola). Diego virou SÓCIO Nº 1 no
+   banco (todos os outros desceram +1: Manfré 2, Alface 3...), manto vermelho/
+   preto agora no DB. Mascotes setadas: alface (matheus223lms), mariposa (davi),
+   raposa (elton), moicano (diego). 4 escudos artesanais no ar.
    ✔️ 09/08: ÁREA DO SÓCIO no ar (mockup aprovado; SEM votação criada — quem
    cria as perguntas é o Diego pelo painel): no APOIE, sócio ativo vê "Você é o
    Sócio nº X" no lugar da propaganda → abre votação (barras SÓ depois de votar,
