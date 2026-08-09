@@ -1906,6 +1906,58 @@ function CoinsBadge({ coins }: { coins: number }) {
     </span>
   )
 }
+// 🏀🏢 CLUBE do basquete (carreira SOLO) — a MESMA economia do futebol (patrocínio,
+// estádio, agência, 2º clube/Multiclubes), com os MESMOS valores (o Diego ajusta
+// depois). SEM SAF (decisão do Diego). Fica num overlay próprio porque o basquete
+// roda na EscSeason, não na pirâmide. Reusa os componentes do futebol (StadiumTab
+// sem as props de SAF → a seção de SAF nem aparece). Bilíngue nas abas/título; o
+// miolo dos componentes segue PT por ora (traduzir é o próximo passo).
+export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
+  const { state, dispatch } = useEsc()
+  const [bbLang] = useLang()
+  const L = (pt: string, e: string) => bbLang === 'en' ? e : pt
+  const [sub, setSub] = useState<'estadio' | 'financas' | 'escritorio'>('estadio')
+  const youId = state.managers[state.youIdx]?.id ?? state.youIdx
+  const div = ({ street: 'D', gleague: 'B', nba: 'A' } as Record<string, string>)[state.nbaTier ?? 'street'] ?? 'D'
+  const coins = state.careerCoins?.[youId] ?? 0
+  // 2º clube: crews que VÃO ficar no andar-base (mesma regra do futebol pra Série D)
+  const multiOpcoes = state.managers
+    .filter(m => !m.isHuman && !m.rival && !m.auctionRival && !m.mine
+      && (state.careerPlacements?.[`m${m.id}`] ?? 'D') === 'D'
+      && !state.careerRivals.some(r => r.team === m.teamName))
+    .map(m => m.teamName)
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 99990, background: 'rgba(0,0,0,.4)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0 }} />
+      <div style={{ position: 'relative', background: '#F4ECD6', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px' }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>🏢 {L('Clube', 'Club')} · <span style={{ color: GOLD }}>{coins} 🪙</span></span>
+          <button onClick={onClose} aria-label={L('Fechar', 'Close')} style={{ width: 26, height: 26, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
+        </div>
+        <div style={{ display: 'flex', gap: 6, padding: 10 }}>
+          {(([['estadio', '🏟️', L('Arena', 'Arena')], ['financas', '💰', L('Finanças', 'Finances')], ['escritorio', '💼', L('Agência', 'Agency')]]) as [typeof sub, string, string][]).map(([s, ic, label]) => (
+            <button key={s} onClick={() => setSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: sub === s ? GREEN : '#fff', color: sub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
+          ))}
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 20px' }}>
+          {sub === 'escritorio' ? (
+            <EscritorioTab cards={state.empresarioCards ?? []} st={state.stadiums?.[youId]} hasFilial={false} />
+          ) : sub === 'financas' ? (
+            <FinancasTab ledger={state.careerLedger ?? []} caixa={coins} seasonNo={state.seasonNo ?? 1} squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
+          ) : (
+            <>
+              <SponsorCard div={div} chosen={state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id, mgrId: youId })} />
+              <StadiumTab st={state.stadiums?.[youId]} coins={coins}
+                onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
+                onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })} />
+              <MultiClubeBuy jaTem={state.multiClube?.team} opcoes={multiOpcoes} coins={coins} preco={4000} isLenda={myApoioPerk()?.tier === 'ouro'} onBuy={team => dispatch({ type: 'BUY_MULTICLUBE', team })} />
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const round = state.round

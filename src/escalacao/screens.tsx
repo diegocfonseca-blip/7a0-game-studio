@@ -18,7 +18,7 @@ import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
-import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
+import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS, BbClubeOverlay } from './pyramidseason'
 import { useSport, useSportUnlocked, getSport, type Sport } from './sport'
 import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
@@ -3479,6 +3479,7 @@ export function SpeedControls({ speed, onSet, en = false }: { speed: number; onS
 export function EscSeason() {
   const { state, dispatch } = useEsc()
   const [seasonLang] = useLang()
+  const [bbClube, setBbClube] = useState(false) // 🏀🏢 overlay da economia (Clube) na carreira do basquete
   const bbS = state.sport === 'basquete' // 🏀 no basquete a "Copa dos 8" vira "Playoffs"
   const LS = (pt: string, en: string) => (bbS && seasonLang === 'en') ? en : pt
   const you = state.managers[state.youIdx]
@@ -4030,6 +4031,16 @@ export function EscSeason() {
           🪜 Ver as 4 divisões
         </button>
       )}
+      {/* 🏀🏢 CLUBE (economia do basquete): patrocínio, arena, agência, 2º clube — só na
+          carreira do basquete (offline). Abre o overlay que reusa a economia do futebol. */}
+      {state.careerOnline && bbS && state.onlineMode !== 'online' && (
+        <button onClick={() => setBbClube(true)}
+          className="w-full border-[3px] border-black rounded-xl py-3 font-black text-sm uppercase"
+          style={{ backgroundColor: '#7C3AED', color: '#fff', boxShadow: `4px 4px 0 ${INK}`, ...OSWALD }}>
+          🏢 {LS('Clube — patrocínio, arena, agência', 'Club — sponsor, arena, agency')}
+        </button>
+      )}
+      {bbClube && <BbClubeOverlay onClose={() => setBbClube(false)} />}
       {/* 🚫 ANTI-SPOILER: a artilharia da Copa soma os gols da perna JÁ no sim; se
           aparecer durante a animação (relógio < 93'), entrega quem marcou antes do
           gol animar. Só mostra depois do apito. */}
