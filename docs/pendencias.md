@@ -71,6 +71,21 @@ inclusive pode ser convocada pros 22 ativos), só a RENDA em moedas fica
 "🔒 destrava: [requisito]" até desbloquear aquela categoria — nunca esconde
 nem perde a carta, só a moeda que ela renderia.
 
+## 🚀 FECHA GERAL DADO (09/08, madrugada): "E pode implementar tudo já"
+TUDO aprovado — specs finais: loja em cards v14 (sócio → HISTÓRIA v3 →
+craque → lenda → batismo), história v3 com o LUCA (sem barra de servidor,
+sem "100% grátis"), estilo v11 (título forte + 1 linha de tempero), preços
+9,90/4,90/2,90 com os 3 links MP no diário, batismo com sócio incluso +
+fundador. ✅ JÁ ENTREGUE nesta leva: carteirinha ROXA de sócio no perfil
+(commit 81fc7c0: card roxo com nº/meses de casa/desde + selo 🎫 no nome —
+o 1º sócio que o Diego liberar no painel já aparece). PRÓXIMAS OBRAS na
+ordem: (1) LOJA NOVA no jogo (substituir modal APOIE: cards v14 + história
+v3 + botões abrindo os links MP por tier + corrigir "100% grátis" do
+paywall vivo) · (2) área do sócio (pedidos de escudo/mascote/manto/nome do
+estádio → admin) · (3) manto pelo admin (tirar do hardcode) · (4) nome do
+estádio no jogo · (5) mascote/festão · (6) votação+mural · (7) patch
+quase-nomes. Falta do Diego: link avulso Craque 19,90.
+
 ## 🏗️ PLANO DE OBRA DA LOJA/SÓCIO — "pode implementar" dado pelo Diego (09/08)
 Ele aprovou as carteirinhas ("Perfeito") e mandou construir TUDO que foi
 decidido + um PERFIL COMPLETO do usuário. Ordem de obra combinada (cada
