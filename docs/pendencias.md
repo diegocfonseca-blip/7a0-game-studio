@@ -132,6 +132,10 @@ entrega = commit isolado, buildar antes, main = deploy):
    gravado", não remover ninguém. Arte loja-m2 v7 atualizada e enviada
    (Lenda sem caixa de fundador; Batismo com "agora é o batismo que faz
    FUNDADOR" + chip "SÓCIO INCLUSO — é da conta").
+   + v8 (pedido do Diego 09/08): card da Lenda ganhou de volta a caixa "🔜
+   já garante o que vem chegando: a nova Carreira Online e as Ligas
+   Fechadas SEM BOTS — só entre amigos" (promessa que já existe no paywall
+   ao vivo hoje; não esquecer na loja final).
 3. 🪪 CARTEIRINHAS no jogo (área do apoiador + perfil) — visual APROVADO
    (carteirinhas.png), compartilháveis via motor do shareElenco.
 4. 🏟️ NOME DO ESTÁDIO (campo aprovado por Diego no admin; aparece na área do
