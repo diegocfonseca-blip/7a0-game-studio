@@ -43,6 +43,13 @@ DECISÕES NOVAS DO DIEGO (rodada v2 dos mockups, mesma noite):
   scratchpad/escudo-ex.png — antes (automático) → Alfacehh FC à mão
   (reaproveita os símbolos #alfacehh/#alfacehhMini do mock-alface de outra
   entrega), + como fica na tabela e no placar com versão mini.
+- 🚪 REGRA ANTI-CANSAÇO das portas de venda (Diego temeu "muito botão de
+  apoie" e cansar quem já pagou; arte portas-ex.png enviada): (1) todo botão
+  é atalho pra MESMA loja, não existem lojas separadas; (2) botão/cadeado SÓ
+  aparece pra quem NÃO tem aquilo, e já com o preço da pessoa (Craque vê
+  4,99, Lenda vê 2,99). Craque nunca mais vê o cadeado do Manual; sócio não
+  vê botão nenhum. Cobertura = item com cadeado na estrutura (abaixo do
+  estádio), SEM botão "apoie" solto. Aguardando OK dele nessa regra.
 PERGUNTA ABERTA (segue sem resposta): voto dos sócios DECIDE ou só orienta?
 Depois do OK: ordem combinada = loja nova → trava do Manual 2 botões →
 olheiros (só elenco) → votação/área do sócio → cobertura retrátil (mockup
