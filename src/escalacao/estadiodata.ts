@@ -34,6 +34,12 @@ export const STADIUM_EXTRAS: StadiumExtra[] = [
   { k: 'loja',  n: '🛍️ Loja do Clube',    cost: 80,  inc: 6, reqTxt: '2 setores prontos' },
   { k: 'estac', n: '🅿️ Estacionamento',   cost: 70,  inc: 4, reqTxt: 'Loja do Clube' },
   { k: 'cober', n: '☂️ Cobertura',        cost: 130, inc: 8, reqTxt: '4 setores prontos' },
+  // 🏟️ RETRÁTIL (decisão do Diego 09/08: saiu do sócio — "não tem a ver com
+  // sócio-torcedor" — e virou obra normal da árvore, no padrão de valores):
+  // upgrade da Cobertura comum, +10/temporada. Não muda o desenho (StadiumSvg
+  // é sagrado). Só nas carreiras novas (mesmo gate do médico) — regra nova
+  // nunca muda o meio da carreira de ninguém.
+  { k: 'retratil', n: '🏟️ Cobertura Retrátil', cost: 180, inc: 10, reqTxt: 'Cobertura', perk: 'teto que abre e fecha — casa cheia até na chuva' },
   // 🏥 não rende moeda: o "lucro" dele é acabar com as LESÕES pra sempre (eventos
   // de jogador). Última obra antes da SAF (a SAF exige TODAS as melhorias).
   { k: 'medico', n: '🏥 Departamento Médico', cost: 1000, inc: 0, reqTxt: 'Cobertura', perk: 'acaba com as lesões PRA SEMPRE' },
@@ -107,6 +113,7 @@ export function extraUnlocked(st: StadiumSave | undefined, k: string): boolean {
     case 'loja':  return sectorsDone(st) >= 2
     case 'estac': return hasExtra(st, 'loja')
     case 'cober': return sectorsDone(st) >= 4
+    case 'retratil': return hasExtra(st, 'cober') // 🏟️ upgrade da cobertura comum
     case 'medico': return hasExtra(st, 'cober') // 🏥 a última obra da árvore (depois vem a SAF)
     default: return false
   }
@@ -169,7 +176,7 @@ export function empCatUnlocked(cat: EmpCat, st: StadiumSave | undefined, hasFili
     // ⚠️ NÃO usa stadiumComplete(): quando o 🏥 Dep. Médico entrou na lista de
     // melhorias, quem JÁ tinha o estádio 100% não pode PERDER a renda de Craque
     // até construir o médico (grandfather). O gate segue sendo o estádio "clássico".
-    case 'craque': return sectorsDone(st) >= STADIUM_SECTORS.length && STADIUM_EXTRAS.every(e => e.k === 'medico' || hasExtra(st, e.k))
+    case 'craque': return sectorsDone(st) >= STADIUM_SECTORS.length && STADIUM_EXTRAS.every(e => e.k === 'medico' || e.k === 'retratil' || hasExtra(st, e.k))
     case 'lenda': return hasFilial
     default: return false
   }

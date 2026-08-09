@@ -3718,7 +3718,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const stO = s.stadiums?.[you.id]
         // 🏥 o Dep. Médico só conta pra SAF nas carreiras com eventos (agenciaOn) —
         // save antigo compra a SAF com a régua de sempre (nada muda no meio).
-        const readyO = STADIUM_SECTORS.every(x => sectorPct(stO, x.k) >= 100) && STADIUM_EXTRAS.every(e => (e.k === 'medico' && !s.agenciaOn) || hasExtra(stO, e.k))
+        const readyO = STADIUM_SECTORS.every(x => sectorPct(stO, x.k) >= 100) && STADIUM_EXTRAS.every(e => ((e.k === 'medico' || e.k === 'retratil') && !s.agenciaOn) || hasExtra(stO, e.k))
         if (!readyO) return s
         if (s.careerRivals.some(r => r.team === action.team) || you.teamName === action.team) return s
         // e nunca um clube que OUTRO humano já tem de SAF
@@ -3735,7 +3735,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const coins = s.careerCoins?.[you.id] ?? 0
       if (coins < 2000) return s
       const st = s.stadiums?.[you.id]
-      const ready = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && STADIUM_EXTRAS.every(e => (e.k === 'medico' && !s.agenciaOn) || hasExtra(st, e.k))
+      const ready = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && STADIUM_EXTRAS.every(e => ((e.k === 'medico' || e.k === 'retratil') && !s.agenciaOn) || hasExtra(st, e.k))
       if (!ready) return s
       if (s.careerRivals.some(r => r.team === action.team) || you.teamName === action.team) return s
       s.careerCoins = { ...s.careerCoins, [you.id]: coins - 2000 }

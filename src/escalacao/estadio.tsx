@@ -290,7 +290,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
   const ACCB = perk ? INK : '#14351f'
   // 🏥 lista de melhorias da CARREIRA: sem agenciaOn o médico não existe (nem no
   // % pronto, nem na exigência da SAF — senão save antigo travava em 91%).
-  const extras = medicoOn ? STADIUM_EXTRAS : STADIUM_EXTRAS.filter(e => e.k !== 'medico')
+  // (o 🏟️ retrátil segue o MESMO gate do médico: só carreiras novas veem/exigem)
+  const extras = medicoOn ? STADIUM_EXTRAS : STADIUM_EXTRAS.filter(e => e.k !== 'medico' && e.k !== 'retratil')
   const totalPieces = STADIUM_SECTORS.length + extras.length
   const prontoPct = Math.round((STADIUM_SECTORS.reduce((a, s) => a + sectorPct(st, s.k) / 100, 0) + extras.filter(e => hasExtra(st, e.k)).length) / totalPieces * 100)
   return (
