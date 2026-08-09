@@ -5666,6 +5666,7 @@ function NbaCareerEndPanel() {
   const { state, dispatch } = useEsc()
   const t = useT()
   const [showSell, setShowSell] = useState(false)
+  const [advancing, setAdvancing] = useState(false) // 🔒 trava o botão "próxima temporada" (evita duplo-toque = dobrar prêmios/pular temporada no online)
   const you = state.managers[state.youIdx]
   const real = (you?.squad ?? []).filter(c => !c.fake)
   const roster = real.length
@@ -5705,8 +5706,8 @@ function NbaCareerEndPanel() {
         <p className="font-black text-lg" style={OSWALD}>🏀 {t('Temporada completa!', 'Season complete!')}</p>
         {state.isHost ? (
           <>
-            <Btn onClick={() => dispatch({ type: 'NEXT_NBA_SEASON_ONLINE' })} bg={GREEN} className="w-full text-lg">
-              <span className="text-white">▶️ {t('Próxima temporada', 'Next season')}</span>
+            <Btn onClick={() => { if (advancing) return; setAdvancing(true); dispatch({ type: 'NEXT_NBA_SEASON_ONLINE' }) }} bg={advancing ? '#9aa' : GREEN} disabled={advancing} className="w-full text-lg">
+              <span className="text-white">{advancing ? `⏳ ${t('Começando…', 'Starting…')}` : `▶️ ${t('Próxima temporada', 'Next season')}`}</span>
             </Btn>
             <p className="text-center text-[11px] font-semibold text-black/55 -mt-1">{nextNote}</p>
           </>
