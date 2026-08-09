@@ -92,11 +92,16 @@ DECISÕES NOVAS DO DIEGO (rodada v2 dos mockups, mesma noite):
   torcida na simulação (frase aprovada pelo Diego) · conselho mensal "o que
   o presidente constrói primeiro" (orienta).
 - 🥁 IDEIA 8 (do Diego): TORCIDA SONORA na simulação da carreira — loop de
-  arquibancada genérico (⚠️ NUNCA gravações de cantos reais: direitos
-  autorais; usar CC0/encomendado), volume cresce com o estádio da SAF,
-  rugido junto com o carimbo do gol (NUNCA antes — lei do spoiler), só gol
-  do próprio time, botão de mudo com memória. Só pra sócio. Protótipo
-  oferecido, aguardando OK.
+  arquibancada, volume cresce com o estádio da SAF, rugido junto com o
+  carimbo do gol (NUNCA antes — lei do spoiler), só gol do próprio time,
+  botão de mudo com memória. Só pra sócio. REFINO DO DIEGO: ele quer SUBIR
+  os MP3 ele mesmo (canto real por clube do coração, ex. Flamengo) pelo
+  painel admin → Supabase Storage, um arquivo por clube; sem arquivo → som
+  genérico. ⚠️ Avisado 1x do risco autoral de cantos reais (paródias de
+  músicas protegidas + venda de assinatura); decisão é dele. Alternativa
+  segura sugerida (e MUITO a cara do jogo): a COMUNIDADE grava os próprios
+  cantos (grupo VIP), Diego aprova e sobe — mesmo esquema técnico, zero
+  risco, zoeira máxima. Aguardando decisão.
 - ❤️ IDEIA 9 (do Diego): PACOTE CORAÇÃO — usuário torce por um clube REAL
   (ex.: Flamengo) e o jogo usa isso SEM nome/escudo oficial (marca
   registrada; cores e padrões são livres): (a) MANTO DO CORAÇÃO — o time
