@@ -109,7 +109,7 @@ const PIX_CIDADE = 'RIO DE JANEIRO' // cidade do recebedor (obrigatório, ≤15,
 const APOIO_IG = 'https://ig.me/m/leilaolegendscom'
 // 💳 planos do SÓCIO no Mercado Pago (criados pelo Diego 09/08) — preço por
 // fidelidade: grátis 9,90 · ⭐ Craque 4,90 · 👑 Lenda 2,90 (batismo = incluso)
-const MP_SOCIO = { base: 'https://mpago.la/32tTjqE', craque: 'https://mpago.la/2xzZmiC', lenda: 'https://mpago.la/1BiaXQ6' } as const
+const MP_SOCIO = { base: 'https://mpago.la/2G3nmQq', craque: 'https://mpago.la/1jqtK38', lenda: 'https://mpago.la/2CGoqiJ' } as const
 
 // CRC16-CCITT (poly 0x1021, init 0xFFFF) — exigido no fim do código Pix.
 function pixCrc16(str: string): string {
