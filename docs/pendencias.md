@@ -328,6 +328,17 @@ entrega = commit isolado, buildar antes, main = deploy):
    · 9,90/mês (grátis): https://mpago.la/2G3nmQq
    · 2,90/mês (Lenda): https://mpago.la/2CGoqiJ
    · 4,90/mês (Craque): https://mpago.la/1jqtK38
+   ✔️ 09/08 (tarde): LOJA DE TELA ÚNICA no ar (mockup v3 aprovado, "e publique"):
+   o modal APOIE virou acordeão — 4 pacotes (Sócio/Craque/Lenda/Batismo), um
+   amplia por vez com TUDO dentro (simulação da cor c/ nome real, botões do
+   Manual, overall Djalminha ⭐ 83–88 no Craque e Romário 👑 93–99 no Lenda,
+   grupo VIP, Carreira Online em preto+ouro, tabela do batizado + fundador).
+   Botão do Craque em prata, do Lenda em ouro. Escolheu → tela 'pay' (Pix +
+   comprovante + voltar). Telas 'cores' e 'dream' REMOVIDAS (rotas do Manual e
+   ?apoie=lenda apontam pro novo fluxo). PENDENTE: Diego mandar os 4 links de
+   pagamento avulso do MP (Craque 19,90 · Lenda 39,90 · Batismo 59,90 · Batismo
+   Série D 69,90) → aí entra o botão 💳 "Pagar no cartão" na tela 'pay' e no
+   batismo. Sócio no cartão já funciona (links de assinatura corrigidos).
    ✔️ 09/08: telas INTERNAS (cores/manual/dream/batismo) corrigidas pro mundo novo:
    Promessa 💎 fora da vitrine (roxo agora é cor do Sócio; quem tinha, mantém),
    FUNDADOR só via batismo (saiu do Lenda; contador de vagas foi pro dream),
