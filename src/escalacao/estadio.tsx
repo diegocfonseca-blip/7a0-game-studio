@@ -10,6 +10,7 @@ import { ERO_LOGO } from './ero'
 import { MAXJOIAS_LOGO } from './maxjoias'
 import { myApoioPerk, loggedEmail, APOIO_PERKS } from './apoio'
 import type { ApoioPerk } from './apoio'
+import { useMeuSocio } from './manto'
 
 const INK = '#0C0C0C'
 const GOLD = '#F5B301'
@@ -284,6 +285,10 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
   const lvl = stadiumLevel(st)
   const seats = stadiumSeats(st)
   const income = stadiumIncome(st)
+  // 🏟️ nome batizado pelo sócio (esc_socios via manto.ts): troca SÓ o texto do
+  // título — o desenho do estádio segue intocado e primeiro, como sempre.
+  const meuSocio = useMeuSocio()
+  const nomeEstadio = meuSocio?.ativo && meuSocio.estadioNome ? meuSocio.estadioNome : null
   // acentos da aba (badge de nível, bilheteria, barras) na cor do tier de apoio
   const perk = myApoioPerk()
   const ACC = perk?.solid ?? GREEN
@@ -298,7 +303,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
     <>
       <div style={{ ...box('#FBF6E9'), padding: 12, marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <span style={{ fontWeight: 900, fontSize: 15, textTransform: 'uppercase', ...OSW }}>{lvl.name}</span>
+          <span style={{ fontWeight: 900, fontSize: 15, textTransform: 'uppercase', ...OSW }}>{nomeEstadio ? <>🏟️ {nomeEstadio}</> : lvl.name}</span>
           <span style={{ background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 999, padding: '2px 10px', fontSize: 10.5, fontWeight: 900, textTransform: 'uppercase', ...OSW }}>nível {lvl.n}</span>
         </div>
         <StadiumSvg st={st} />

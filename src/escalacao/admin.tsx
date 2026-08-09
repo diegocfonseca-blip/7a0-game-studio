@@ -277,6 +277,7 @@ function ApoioAdmin() {
 // do Diego: tempo de casa nunca zera).
 function SocioAdmin() {
   const [email, setEmail] = useState('')
+  const [pEmail, setPEmail] = useState(''); const [pC1, setPC1] = useState(''); const [pC2, setPC2] = useState(''); const [pEst, setPEst] = useState('')
   const [lista, setLista] = useState<{ email: string; socio_n: number; desde: string; valido_ate: string }[]>([])
   const [msg, setMsg] = useState('')
   const [busy, setBusy] = useState(false)
@@ -307,6 +308,26 @@ function SocioAdmin() {
       <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email da conta do jogador"
         style={{ width: '100%', border: '2px solid #A78BFA', borderRadius: 10, padding: '9px 10px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 13, marginBottom: 8 }} />
       <button onClick={liberar} disabled={busy} style={{ width: '100%', border: 'none', borderRadius: 12, padding: 10, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: '#A78BFA', color: '#0C0C0C', cursor: 'pointer' }}>{busy ? '…' : '⚡ LIBERAR / RENOVAR 30 DIAS'}</button>
+      {/* 🎨 personalização (após o direct): manto (2 cores), nome do estádio, mascote */}
+      <details style={{ marginTop: 10 }}>
+        <summary style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, color: '#A78BFA', cursor: 'pointer', textTransform: 'uppercase' }}>🎨 Personalizar sócio (manto · estádio · mascote)</summary>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+          <input value={pEmail} onChange={e => setPEmail(e.target.value)} placeholder="email do sócio" style={{ flex: '1 1 100%', border: '2px solid #A78BFA', borderRadius: 8, padding: '7px 9px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 12 }} />
+          <input value={pC1} onChange={e => setPC1(e.target.value)} placeholder="manto cor 1 (#C2452F)" style={{ flex: '1 1 46%', border: '2px solid #A78BFA', borderRadius: 8, padding: '7px 9px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 12 }} />
+          <input value={pC2} onChange={e => setPC2(e.target.value)} placeholder="manto cor 2 (#141414)" style={{ flex: '1 1 46%', border: '2px solid #A78BFA', borderRadius: 8, padding: '7px 9px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 12 }} />
+          <input value={pEst} onChange={e => setPEst(e.target.value)} placeholder="nome do estádio (Alfacehh Arena)" style={{ flex: '1 1 100%', border: '2px solid #A78BFA', borderRadius: 8, padding: '7px 9px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 12 }} />
+        </div>
+        {(pC1.trim() || pC2.trim()) && <div style={{ height: 10, borderRadius: 6, marginTop: 6, border: '1px solid rgba(242,232,207,.4)', background: `repeating-linear-gradient(90deg, ${pC1.trim() || '#999'} 0 9px, ${pC2.trim() || '#333'} 9px 18px)` }} />}
+        <button onClick={async () => {
+          const em = pEmail.trim().toLowerCase()
+          if (!em.includes('@')) { setMsg('❌ digita o e-mail do sócio'); return }
+          setBusy(true); setMsg('')
+          const { error } = await supabase.rpc('esc_admin_socio_perso', { p_email: em, p_c1: pC1.trim() || null, p_c2: pC2.trim() || null, p_estadio: pEst.trim() || null, p_mascote: null })
+          setMsg(error ? `❌ ${error.message}` : `✅ personalização de ${em} salva — vale na próxima aberta do jogo`)
+          if (!error) { setPEmail(''); setPC1(''); setPC2(''); setPEst('') }
+          setBusy(false)
+        }} disabled={busy} style={{ width: '100%', border: '2px solid #A78BFA', borderRadius: 10, padding: 8, marginTop: 8, ...OSWALD, fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', background: 'transparent', color: '#A78BFA', cursor: 'pointer' }}>💾 salvar personalização</button>
+      </details>
       {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('✅') ? '#6fdb8f' : '#ff8a75', margin: '7px 0 0', textAlign: 'center' }}>{msg}</p>}
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontWeight: 700, marginTop: 10 }}>
         <thead><tr>{['Nº', 'Email', 'Desde', 'Válido até', ''].map(h => <th key={h} style={{ padding: '4px 6px', textAlign: 'left', color: 'rgba(242,232,207,.55)', fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase' }}>{h}</th>)}</tr></thead>
