@@ -121,6 +121,13 @@ inclusive pode ser convocada pros 22 ativos), só a RENDA em moedas fica
 "🔒 destrava: [requisito]" até desbloquear aquela categoria — nunca esconde
 nem perde a carta, só a moeda que ela renderia.
 
+## 🚪 PORTA DOS OLHEIROS NO AR (09/08, commit 95119d0): no topo do elenco
+da carreira, quem NÃO tem tier vê o convite discreto "🕵️ Quer ver o
+overall? ⭐ vê até craque · 👑 vê TUDO — toca aqui" → abre o APOIE (tela
+choice). Some pra Craque/Lenda (regra das portas: botão só pra quem não
+tem). Obs: a arte antiga olheiro-porta.png dizia "olheiros do sócio" —
+DESATUALIZADA, olheiros são dos TIERS agora.
+
 ## 🎟️ FICHAS DE CARREIRA POR TIER — NO AR (09/08, commit ee324df, Diego
 confirmou 2/4/6/8): grátis 2 · ⭐ Craque 4 · 👑 Lenda 6 · 🖋️ Batismo 8.
 careerSlotLimit(count) em store.tsx: GRANDFATHER LITERAL — limite pessoal
