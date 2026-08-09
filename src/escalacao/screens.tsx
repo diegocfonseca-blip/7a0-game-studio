@@ -5856,10 +5856,11 @@ export function EscRanking() {
             {viewUser.stats && (viewUser.stats.titles > 0 || viewUser.stats.scorers > 0) && (
               <div className="px-4 pt-3">
                 <p className="font-black text-[11px] uppercase tracking-wide mb-1.5" style={OSWALD}>🏆 Sala de troféus</p>
+                {/* 🏆 troféus GRANDES (pedido do Diego 09/08: o DESENHO grande, não só a letra) */}
                 <div className="flex flex-wrap gap-2">
-                  {viewUser.stats.titles > 0 && <span className="border-[3px] border-black rounded-xl px-3 py-1.5 text-[14px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}>🏆 Título{viewUser.stats.titles === 1 ? '' : 's'} ×{viewUser.stats.titles}</span>}
-                  {viewUser.stats.scorers > 0 && <span className="border-[3px] border-black rounded-xl px-3 py-1.5 text-[14px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}>👟 Artilharia{viewUser.stats.scorers === 1 ? '' : 's'} ×{viewUser.stats.scorers}</span>}
-                  {viewUser.stats.goals > 0 && <span className="border-[3px] border-black rounded-xl px-3 py-1.5 text-[14px] font-black bg-white" style={{ boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}>⚽ {viewUser.stats.goals} gols</span>}
+                  {viewUser.stats.titles > 0 && <span className="flex items-center gap-1.5 border-[3px] border-black rounded-xl px-3 py-1.5 text-[15px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}><span style={{ fontSize: 28, lineHeight: '28px' }}>🏆</span>Título{viewUser.stats.titles === 1 ? '' : 's'} ×{viewUser.stats.titles}</span>}
+                  {viewUser.stats.scorers > 0 && <span className="flex items-center gap-1.5 border-[3px] border-black rounded-xl px-3 py-1.5 text-[15px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}><span style={{ fontSize: 28, lineHeight: '28px' }}>👟</span>Artilharia{viewUser.stats.scorers === 1 ? '' : 's'} ×{viewUser.stats.scorers}</span>}
+                  {viewUser.stats.goals > 0 && <span className="flex items-center gap-1.5 border-[3px] border-black rounded-xl px-3 py-1.5 text-[15px] font-black bg-white" style={{ boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}><span style={{ fontSize: 28, lineHeight: '28px' }}>⚽</span>{viewUser.stats.goals} gols</span>}
                 </div>
               </div>
             )}
