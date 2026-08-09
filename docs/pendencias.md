@@ -56,6 +56,16 @@ DECISÕES NOVAS DO DIEGO (rodada v2 dos mockups, mesma noite):
   paga 4,99/2,99" + a escadinha completa com a linha DELA marcada (VOCÊ) — de
   propósito, pra ela ver o que os outros pagam e sentir o desconto do tier.
   Arte: scratchpad/olheiro-porta.png.
+- 🕵️ OLHEIROS POR ESCADINHA DE TIER — IDEIA DO DIEGO aplicada na v6 (raciocínio
+  dele: "sócio torcedor não tem a ver com olheiros" — sócio é torcida, olheiro
+  é estrutura/status; bate com o funil, status vende). Distribuição:
+  🆓 grátis = nada · 🎫 sócio = olheiro de BASE (💎 promessas + 🪵 ex-
+  profissionais) · ⭐ Craque = de craque pra baixo (tudo menos lendas) ·
+  👑 Lenda = TODOS · 🖋️ Batismo = todos (tudo da Lenda) + ESCUDO À MÃO do
+  time batizado. Elenco misto (parte colorida, parte "?") vira vitrine: quem
+  vê metade quer o resto → upsell natural Craque→Lenda. Sócio pra Lenda fica
+  como clube de torcida (votação, cobertura, moedas, escudo, mural, 2,99
+  simbólico). AGUARDANDO o "fecha" final do Diego nessa distribuição.
 PERGUNTA ABERTA (segue sem resposta): voto dos sócios DECIDE ou só orienta?
 Depois do OK: ordem combinada = loja nova → trava do Manual 2 botões →
 olheiros (só elenco) → votação/área do sócio → cobertura retrátil (mockup
