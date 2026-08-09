@@ -95,6 +95,20 @@ inclusive pode ser convocada pros 22 ativos), só a RENDA em moedas fica
 "🔒 destrava: [requisito]" até desbloquear aquela categoria — nunca esconde
 nem perde a carta, só a moeda que ela renderia.
 
+## 🏪 LOJA v1 NO AR (09/08, commit 556f697): o modal APOIE ganhou o SÓCIO
+- Card 🎫 SÓCIO LEGENDS no TOPO da tela "choice" (roxo com brilho, selo
+  NOVO): benefícios em 1 linha (manto/escudo/mascote/estádio/30 moedas/
+  cor roxa+carteirinha) e o BOTÃO JÁ ABRE O PLANO CERTO do Mercado Pago
+  pelo tier da pessoa (grátis 9,90 · prata 4,90 · ouro 2,90 — MP_SOCIO em
+  screens.tsx) + logApoio pro funil.
+- 💛 História do Luca v3 substituiu a antiga NOS DOIS lugares do modal
+  (card preto-e-ouro, assinada "fundador nº 1").
+- ❌ "100% grátis" REMOVIDO do jogo inteiro (grep = 0) → "grátis pra jogar".
+- FALTA na loja (próximas levas): cards do Craque/Lenda/Batismo no formato
+  v14 (hoje seguem o fluxo antigo de cores/Pix, funcionando) · link avulso
+  Craque 19,90 na trava do Manual (esperando o Diego criar) · área do
+  sócio · manto/mascote/estádio pelo admin · votação/mural · patch nomes.
+
 ## 🖋️🎫 BARÕES VIRARAM SÓCIOS — NO AR (09/08, commit 6ea494c + migração
 baroes_socios_inclusos_e_resgate_mensal):
 - 11 contas de batismo inseridas no esc_socios com validade 2099 e
