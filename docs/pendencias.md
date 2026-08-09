@@ -1,4 +1,39 @@
-# 📌 Pendências combinadas com o Diego (atualizado 08/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 09/08/2026)
+
+## 🏗️ PLANO DE OBRA DA LOJA/SÓCIO — "pode implementar" dado pelo Diego (09/08)
+Ele aprovou as carteirinhas ("Perfeito") e mandou construir TUDO que foi
+decidido + um PERFIL COMPLETO do usuário. Ordem de obra combinada (cada
+entrega = commit isolado, buildar antes, main = deploy):
+1. 👤 PERFIL DO TÉCNICO (mockup perfil-ex.png ENVIADO, aguardando OK visual):
+   tocar num nome (ranking etc.) abre perfil completo — header na cor do
+   tier + selos, stats (títulos/artilharias/gols/cartas — RankRow já tem),
+   Documentos (carteirinha fundador preta-e-ouro / sócio roxa, só se
+   existirem), Sala de Troféus, e o álbum de cartas vira UMA seção ("ver as
+   N →" abre o álbum de hoje). Fundador nº: precisa expor por user_id (hoje
+   FUNDADOR_N é por e-mail, client-side) — criar view/RPC ou coluna no
+   ranking.
+2. 🗄️ INFRA SÓCIO no Supabase: tabela esc_socios (email PK, socio_n serial,
+   desde, ativo, validade 30d, manto_cores, estadio_nome, mascote_key) +
+   RPCs admin (mesmo padrão esc_admin_apoio_set) — entrega manual pelo
+   painel, como Diego faz hoje.
+3. 🪪 CARTEIRINHAS no jogo (área do apoiador + perfil) — visual APROVADO
+   (carteirinhas.png), compartilháveis via motor do shareElenco.
+4. 🏟️ NOME DO ESTÁDIO (campo aprovado por Diego no admin; aparece na área do
+   clube ABAIXO do StadiumSvg + manchetes do jornal).
+5. 🐊 MASCOTE: MASCOTES_PRONTAS (símbolo por conta, tipo LOGOS_PRONTAS) +
+   FESTÃO do título aprovado (GIF): overlay ~4s pós-apito, só o campeão vê,
+   60fps, toque pula; mora na área do clube na carreira.
+6. 🗳️ VOTAÇÃO de categoria (ORIENTA — default recomendado, Diego não vetou)
+   + 🧱 MURAL dos sócios (com selos e tempo de casa).
+7. 🏪 LOJA NOVA (artes v6 aprovadas em série) — TRAVADA esperando Diego criar
+   os planos/links no Mercado Pago (9,90/4,99/2,99 + link Craque 19,90 pra
+   trava do Manual).
+8. 🩹 PATCH QUASE-NOMES estilo PES (toggle por pagante no admin) — depois da
+   infra (2).
+SEM VEREDITO (não fazer): capa de campeão · camisa aposentada · batizar
+torcida/clássico · bots com nomes batizados no online.
+JÁ NO AR: manto beta (conta do Diego) · campinhos de todos no rápido online ·
+retrátil como obra do estádio.
 
 ## 🆕 Banner verde removido + home com novidades atualizada (08/08, pedido do Diego) ✅ NO AR
 Diego: "remove esse banner verde q atualizou do jogo toda hora" (culpado: com o
