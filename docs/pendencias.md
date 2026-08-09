@@ -209,6 +209,14 @@ Cobrar → Link de pagamento), trocar a trava do Manual de Pix+DM pra abrir o
 link direto (cartão/Pix em 3 toques) + aviso "libera em minutos" (entrega
 pelo painel já no ar). Commit isolado e revertível. Fase 2 futura: webhook
 do MP → entrega automática. AGUARDANDO O LINK DELE.
+🏟️ RETRÁTIL ENTREGUE NA MAIN (commit 24532da, decisão do Diego 09/08: "não
+tem a ver com sócio-torcedor → põe nos desbloqueios, mantém padrão de
+valores"): Cobertura Retrátil agora é OBRA da árvore do estádio — 180 🪙,
++10/temporada, exige a ☂️ Cobertura comum. SAIU DO SÓCIO de vez. Mesmo gate
+do Dep. Médico (só carreiras novas com agenciaOn veem/exigem — save antigo
+intocado, incl. régua da SAF nos DOIS pontos do reducer + renda de craque da
+agência com grandfather). StadiumSvg NÃO mudou (sagrado). Reversível: 1
+commit isolado.
 ⚖️ MARTELOS DO DIEGO (09/08): (1) OLHEIROS: sócio NÃO vê nenhuma categoria;
 escadinha final = ⭐ Craque vê de craque pra baixo · 👑 Lenda e 🖋️ Batismo
 veem TUDO · grátis nada. DECIDIDO. (2) SOM DE ESTÁDIO: fora do sócio DE VEZ.
