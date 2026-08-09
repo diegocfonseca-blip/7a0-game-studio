@@ -1928,6 +1928,15 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contr
   ) }
   return (
     <div>
+      {/* 🚪 porta dos olheiros (regra das portas: só pra quem NÃO tem, no lugar
+          da dor, abrindo a MESMA loja). Some pra ⭐/👑 — eles já veem overall. */}
+      {olheiros && olheiroTier !== 'ouro' && olheiroTier !== 'prata' && (
+        <ApoieButton startScreen="choice" trigger={open => (
+          <button onClick={open} style={{ width: '100%', border: `2.5px dashed ${INK}`, borderRadius: 11, padding: '7px 10px', margin: '0 0 10px', background: '#FBF6E8', cursor: 'pointer', textAlign: 'left', fontWeight: 800, fontSize: 11, color: 'rgba(0,0,0,.6)', lineHeight: 1.4 }}>
+            🕵️ Quer ver o <b>overall</b> dos teus jogadores aqui? ⭐ Craque vê até craque · 👑 Lenda vê TUDO — <u>toca aqui</u>
+          </button>
+        )} />
+      )}
       {onTap && (
         <div style={{ border: `3px solid ${sel ? GREEN : INK}`, background: sel ? '#E9F9EF' : '#FFF6D6', borderRadius: 11, padding: '9px 12px', margin: '0 0 10px', boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p style={{ fontSize: 13.5, fontWeight: 900, ...OSWALD, color: sel ? GREEN : INK, margin: 0, lineHeight: 1.2 }}>
