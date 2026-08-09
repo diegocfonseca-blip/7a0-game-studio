@@ -5611,17 +5611,17 @@ export function EscRanking() {
   // 🪪 tier + nº de fundador do técnico tocado — via RPC esc_perfil (a ponte
   // segura: o servidor casa user_id → e-mail → tier/fundador e devolve SÓ o
   // público; o e-mail nunca chega ao aparelho de ninguém).
-  const [viewPerfil, setViewPerfil] = useState<{ tier: ApoioTier | null; fundadorN: number | null; socioN: number | null; socioDesde: string | null; socioAtivo: boolean; mascoteKey: string | null; escudoTime: string | null } | null>(null)
+  const [viewPerfil, setViewPerfil] = useState<{ tier: ApoioTier | null; fundadorN: number | null; socioN: number | null; socioDesde: string | null; socioAtivo: boolean; mascoteKey: string | null; escudoTime: string | null; timeCoracao: string | null } | null>(null)
 
   // abre o PERFIL de QUALQUER técnico (user_cards tem leitura pública)
   async function openAlbum(userId: string, name: string, careerKey?: string, stats?: { titles: number; scorers: number; goals: number; cards: number }) {
     setViewUser({ id: userId, name, careerKey: careerKey || undefined, stats }); setViewCards(null); setViewScope('carreira')
     setViewPerfil(null)
     supabase.rpc('esc_perfil', { p_user: userId }).then(({ data }) => {
-      const row = (Array.isArray(data) ? data[0] : data) as { tier?: string | null; fundador_n?: number | null; socio_n?: number | null; socio_desde?: string | null; socio_ativo?: boolean | null; mascote_key?: string | null; escudo_time?: string | null } | undefined
+      const row = (Array.isArray(data) ? data[0] : data) as { tier?: string | null; fundador_n?: number | null; socio_n?: number | null; socio_desde?: string | null; socio_ativo?: boolean | null; mascote_key?: string | null; escudo_time?: string | null; time_coracao?: string | null } | undefined
       const t = (row?.tier ?? null) as ApoioTier | null
-      setViewPerfil({ tier: t && t in APOIO_PERKS ? t : null, fundadorN: row?.fundador_n ?? null, socioN: row?.socio_n ?? null, socioDesde: row?.socio_desde ?? null, socioAtivo: !!row?.socio_ativo, mascoteKey: row?.mascote_key ?? null, escudoTime: row?.escudo_time ?? null })
-    }, () => setViewPerfil({ tier: null, fundadorN: null, socioN: null, socioDesde: null, socioAtivo: false, mascoteKey: null, escudoTime: null }))
+      setViewPerfil({ tier: t && t in APOIO_PERKS ? t : null, fundadorN: row?.fundador_n ?? null, socioN: row?.socio_n ?? null, socioDesde: row?.socio_desde ?? null, socioAtivo: !!row?.socio_ativo, mascoteKey: row?.mascote_key ?? null, escudoTime: row?.escudo_time ?? null, timeCoracao: row?.time_coracao ?? null })
+    }, () => setViewPerfil({ tier: null, fundadorN: null, socioN: null, socioDesde: null, socioAtivo: false, mascoteKey: null, escudoTime: null, timeCoracao: null }))
     try {
       const { data } = await supabase.from('user_cards')
         .select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at, season_key')
@@ -5832,6 +5832,9 @@ export function EscRanking() {
             {(() => {
               const escT = viewPerfil?.escudoTime && LOGOS_PRONTAS[viewPerfil.escudoTime] ? viewPerfil.escudoTime : null
               const masc = viewPerfil?.mascoteKey && MASCOTES[viewPerfil.mascoteKey] ? MASCOTES[viewPerfil.mascoteKey] : null
+              // ❤️ o rótulo é o time de coração DE VERDADE (Palmeiras, Cruzeiro...) —
+              // vai alimentar o futuro ranking de torcidas. Só sócio tem.
+              const coracao = viewPerfil?.timeCoracao ?? null
               if (!escT && !masc) return null
               return (
                 <div className="px-4 pt-3">
@@ -5840,13 +5843,13 @@ export function EscRanking() {
                     {escT && (
                       <div className="text-center">
                         <Escudo nome={escT} size={78} />
-                        <p className="text-[8.5px] font-black text-black/50 uppercase mt-1" style={OSWALD}>{escT}</p>
+                        <p className="text-[8.5px] font-black text-black/50 uppercase mt-1" style={OSWALD}>{coracao ?? escT}</p>
                       </div>
                     )}
                     {masc && (
                       <div className="text-center">
                         <div style={{ transform: 'scale(.58)', transformOrigin: 'bottom center', height: 176, width: 140, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', marginTop: -66, marginLeft: -22, marginRight: -22 }}>{masc}</div>
-                        <p className="text-[8.5px] font-black text-black/50 uppercase" style={OSWALD}>mascote</p>
+                        <p className="text-[8.5px] font-black text-black/50 uppercase" style={OSWALD}>{!escT && coracao ? coracao : 'mascote'}</p>
                       </div>
                     )}
                   </div>

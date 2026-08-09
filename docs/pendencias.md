@@ -363,6 +363,12 @@ entrega = commit isolado, buildar antes, main = deploy):
    · 4,90/mês (Craque): https://mpago.la/1jqtK38
    ✔️ 09/08: eltonfrossard45@gmail.com virou LENDA (ouro+manual) + FUNDADOR nº 36
    + SÓCIO nº 12 (origem batismo, validade 2099) — direto no banco.
+   ✔️ 09/08: TIME DE CORAÇÃO no perfil (só sócio; batismo já é sócio): coluna
+   time_coracao em esc_socios + esc_perfil devolve + rótulo embaixo do escudo
+   vira o clube REAL (Palmeiras, Cruzeiro...). Painel 🎨 ganhou o campo. Já
+   setados: Xurupitas=Palmeiras · Manfré=Paraná Clube · Elton=Cruzeiro ·
+   Nightfull=Atlético Mineiro · Diego=Flamengo. 💡 FUTURO combinado: ranking de
+   TORCIDAS no jogo usando time_coracao.
    🔁 CORREÇÃO DE DONO (09/08, confirmada pelo Diego): o batismo Xurupitas FC
    (ex-Bicho da Seda) é da conta denilson.stifler10@gmail.com — a conta que
    JOGA de Xurupitas no ranking (registro de 07/08 tinha trocado pra

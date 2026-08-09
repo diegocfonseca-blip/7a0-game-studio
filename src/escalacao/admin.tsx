@@ -277,7 +277,7 @@ function ApoioAdmin() {
 // do Diego: tempo de casa nunca zera).
 function SocioAdmin() {
   const [email, setEmail] = useState('')
-  const [pEmail, setPEmail] = useState(''); const [pC1, setPC1] = useState(''); const [pC2, setPC2] = useState(''); const [pEst, setPEst] = useState(''); const [pMasc, setPMasc] = useState('')
+  const [pEmail, setPEmail] = useState(''); const [pC1, setPC1] = useState(''); const [pC2, setPC2] = useState(''); const [pEst, setPEst] = useState(''); const [pMasc, setPMasc] = useState(''); const [pTime, setPTime] = useState('')
   const [lista, setLista] = useState<{ email: string; socio_n: number; desde: string; valido_ate: string }[]>([])
   const [msg, setMsg] = useState('')
   const [busy, setBusy] = useState(false)
@@ -317,15 +317,16 @@ function SocioAdmin() {
           <input value={pC2} onChange={e => setPC2(e.target.value)} placeholder="manto cor 2 (#141414)" style={{ flex: '1 1 46%', border: '2px solid #A78BFA', borderRadius: 8, padding: '7px 9px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 12 }} />
           <input value={pEst} onChange={e => setPEst(e.target.value)} placeholder="nome do estádio (Alfacehh Arena)" style={{ flex: '1 1 100%', border: '2px solid #A78BFA', borderRadius: 8, padding: '7px 9px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 12 }} />
           <input value={pMasc} onChange={e => setPMasc(e.target.value)} placeholder="mascote (chave: alface)" style={{ flex: '1 1 100%', border: '2px solid #A78BFA', borderRadius: 8, padding: '7px 9px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 12 }} />
+          <input value={pTime} onChange={e => setPTime(e.target.value)} placeholder="❤️ time de coração (Palmeiras)" style={{ flex: '1 1 100%', border: '2px solid #A78BFA', borderRadius: 8, padding: '7px 9px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 12 }} />
         </div>
         {(pC1.trim() || pC2.trim()) && <div style={{ height: 10, borderRadius: 6, marginTop: 6, border: '1px solid rgba(242,232,207,.4)', background: `repeating-linear-gradient(90deg, ${pC1.trim() || '#999'} 0 9px, ${pC2.trim() || '#333'} 9px 18px)` }} />}
         <button onClick={async () => {
           const em = pEmail.trim().toLowerCase()
           if (!em.includes('@')) { setMsg('❌ digita o e-mail do sócio'); return }
           setBusy(true); setMsg('')
-          const { error } = await supabase.rpc('esc_admin_socio_perso', { p_email: em, p_c1: pC1.trim() || null, p_c2: pC2.trim() || null, p_estadio: pEst.trim() || null, p_mascote: pMasc.trim() || null })
+          const { error } = await supabase.rpc('esc_admin_socio_perso', { p_email: em, p_c1: pC1.trim() || null, p_c2: pC2.trim() || null, p_estadio: pEst.trim() || null, p_mascote: pMasc.trim() || null, p_time: pTime.trim() || null })
           setMsg(error ? `❌ ${error.message}` : `✅ personalização de ${em} salva — vale na próxima aberta do jogo`)
-          if (!error) { setPEmail(''); setPC1(''); setPC2(''); setPEst(''); setPMasc('') }
+          if (!error) { setPEmail(''); setPC1(''); setPC2(''); setPEst(''); setPMasc(''); setPTime('') }
           setBusy(false)
         }} disabled={busy} style={{ width: '100%', border: '2px solid #A78BFA', borderRadius: 10, padding: 8, marginTop: 8, ...OSWALD, fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', background: 'transparent', color: '#A78BFA', cursor: 'pointer' }}>💾 salvar personalização</button>
       </details>
