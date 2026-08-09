@@ -330,6 +330,10 @@ entrega = commit isolado, buildar antes, main = deploy):
    · 4,90/mês (Craque): https://mpago.la/1jqtK38
    ✔️ 09/08: eltonfrossard45@gmail.com virou LENDA (ouro+manual) + FUNDADOR nº 36
    + SÓCIO nº 12 (origem batismo, validade 2099) — direto no banco.
+   ✔️ 09/08: sócio agora BATIZA O PRÓPRIO ESTÁDIO na área do estádio (✏️ no
+   título → formzinho ABAIXO do StadiumSvg; RPC esc_socio_estadio_nome valida
+   sócio ativo — batismo entra junto pois é sócio). Vazio = volta ao padrão.
+   Aparece no clube + capa do jornal. Diego segue podendo trocar pelo painel.
    ✔️ 09/08: KIT completo do La Bestia Negra aprovado e no ar — escudo artesanal
    (LOGOS_PRONTAS em escudos.tsx: azul cruzeirense + raposa + estrela creme),
    mascote 'raposa' (mascotes.tsx, cara igual à do escudo) e manto azul/creme

@@ -52,6 +52,17 @@ export function souBarao(): boolean {
   return !!(meu?.ativo && meu.origem === 'batismo')
 }
 
+// ✏️ o PRÓPRIO sócio batiza o estádio (o RPC valida se é sócio ativo; vazio =
+// volta ao nome padrão). Atualiza o cache local na hora — sem esperar refetch.
+export async function batizarEstadio(nome: string): Promise<{ ok: boolean; erro?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('esc_socio_estadio_nome', { p_nome: nome })
+    if (error) return { ok: false, erro: error.message }
+    if (meu) { meu = { ...meu, estadioNome: (data as string | null) ?? null }; listeners.forEach(fn => fn()) }
+    return { ok: true }
+  } catch { return { ok: false, erro: 'sem conexão — tenta de novo' } }
+}
+
 // hook pra telas que precisam re-renderizar quando o sócio carrega
 export function useMeuSocio(): MeuSocio | null {
   const [, bump] = useState(0)

@@ -10,7 +10,8 @@ import { ERO_LOGO } from './ero'
 import { MAXJOIAS_LOGO } from './maxjoias'
 import { myApoioPerk, loggedEmail, APOIO_PERKS } from './apoio'
 import type { ApoioPerk } from './apoio'
-import { useMeuSocio } from './manto'
+import { useMeuSocio, batizarEstadio } from './manto'
+import { stripEmoji } from './apoio'
 
 const INK = '#0C0C0C'
 const GOLD = '#F5B301'
@@ -289,6 +290,13 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
   // título — o desenho do estádio segue intocado e primeiro, como sempre.
   const meuSocio = useMeuSocio()
   const nomeEstadio = meuSocio?.ativo && meuSocio.estadioNome ? meuSocio.estadioNome : null
+  // ✏️ sócio batiza o PRÓPRIO estádio aqui mesmo (pedido do Diego 09/08 — sem
+  // passar pelo painel). O formzinho abre ABAIXO do desenho (StadiumSvg é
+  // sagrado: sempre primeiro). Quem não é sócio não vê nada disso.
+  const [edEstadio, setEdEstadio] = useState(false)
+  const [nomeTmp, setNomeTmp] = useState('')
+  const [salvandoNome, setSalvandoNome] = useState(false)
+  const [erroNome, setErroNome] = useState<string | null>(null)
   // acentos da aba (badge de nível, bilheteria, barras) na cor do tier de apoio
   const perk = myApoioPerk()
   const ACC = perk?.solid ?? GREEN
@@ -303,10 +311,36 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
     <>
       <div style={{ ...box('#FBF6E9'), padding: 12, marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <span style={{ fontWeight: 900, fontSize: 15, textTransform: 'uppercase', ...OSW }}>{nomeEstadio ? <>🏟️ {nomeEstadio}</> : lvl.name}</span>
+          <span style={{ fontWeight: 900, fontSize: 15, textTransform: 'uppercase', ...OSW }}>
+            {nomeEstadio ? <>🏟️ {nomeEstadio}</> : lvl.name}
+            {meuSocio?.ativo && (
+              <button onClick={() => { setNomeTmp(nomeEstadio ?? ''); setErroNome(null); setEdEstadio(v => !v) }}
+                style={{ marginLeft: 7, border: `2px solid ${INK}`, borderRadius: 8, background: '#fff', fontSize: 11, padding: '1px 6px', verticalAlign: 'middle' }}>✏️</button>
+            )}
+          </span>
           <span style={{ background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 999, padding: '2px 10px', fontSize: 10.5, fontWeight: 900, textTransform: 'uppercase', ...OSW }}>nível {lvl.n}</span>
         </div>
         <StadiumSvg st={st} />
+        {edEstadio && meuSocio?.ativo && (
+          <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, background: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 10px', marginTop: 8 }}>
+            <p style={{ fontWeight: 900, fontSize: 12, ...OSW }}>🎫 Batiza teu estádio — mimo de sócio</p>
+            <input value={nomeTmp} maxLength={24} placeholder="Ex.: Caldeirão do Alface"
+              onChange={e => setNomeTmp(stripEmoji(e.target.value))}
+              style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '7px 9px', fontWeight: 900, fontSize: 14, marginTop: 6, background: '#FBF6E9', ...OSW }} />
+            <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
+              <button disabled={salvandoNome} onClick={async () => {
+                setSalvandoNome(true); setErroNome(null)
+                const r = await batizarEstadio(nomeTmp)
+                setSalvandoNome(false)
+                if (r.ok) setEdEstadio(false)
+                else setErroNome(r.erro ?? 'não deu — tenta de novo')
+              }} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, background: GREEN, color: '#fff', fontWeight: 900, fontSize: 12.5, padding: '7px 0', textTransform: 'uppercase', boxShadow: `2px 2px 0 0 ${INK}`, opacity: salvandoNome ? 0.6 : 1, ...OSW }}>{salvandoNome ? 'salvando…' : '✅ Salvar nome'}</button>
+              <button onClick={() => setEdEstadio(false)} style={{ border: `2.5px solid ${INK}`, borderRadius: 10, background: '#fff', fontWeight: 900, fontSize: 12.5, padding: '7px 12px', ...OSW }}>cancelar</button>
+            </div>
+            {erroNome && <p style={{ fontWeight: 800, fontSize: 10.5, color: '#C2452F', marginTop: 5 }}>⚠️ {erroNome}</p>}
+            <p style={{ fontWeight: 700, fontSize: 10, color: 'rgba(0,0,0,.5)', marginTop: 5, lineHeight: 1.35 }}>O nome aparece aqui no clube e na capa do jornal. Apagar tudo e salvar volta ao nome padrão.</p>
+          </div>
+        )}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 8 }}>
           <div><b style={{ fontSize: 23, fontWeight: 900 }}>{seats.now.toLocaleString('pt-BR')}</b> <span style={{ fontSize: 11.5, color: 'rgba(0,0,0,.55)', fontWeight: 800 }}>/ {seats.max.toLocaleString('pt-BR')} lugares</span></div>
           <span style={{ background: GOLD, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '4px 11px', fontSize: 12, fontWeight: 900, ...OSW }}>{prontoPct}% pronto</span>
