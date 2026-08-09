@@ -5490,17 +5490,17 @@ export function EscRanking() {
   // 🪪 tier + nº de fundador do técnico tocado — via RPC esc_perfil (a ponte
   // segura: o servidor casa user_id → e-mail → tier/fundador e devolve SÓ o
   // público; o e-mail nunca chega ao aparelho de ninguém).
-  const [viewPerfil, setViewPerfil] = useState<{ tier: ApoioTier | null; fundadorN: number | null } | null>(null)
+  const [viewPerfil, setViewPerfil] = useState<{ tier: ApoioTier | null; fundadorN: number | null; socioN: number | null; socioDesde: string | null; socioAtivo: boolean } | null>(null)
 
   // abre o PERFIL de QUALQUER técnico (user_cards tem leitura pública)
   async function openAlbum(userId: string, name: string, careerKey?: string, stats?: { titles: number; scorers: number; goals: number; cards: number }) {
     setViewUser({ id: userId, name, careerKey: careerKey || undefined, stats }); setViewCards(null); setViewScope('carreira')
     setViewPerfil(null)
     supabase.rpc('esc_perfil', { p_user: userId }).then(({ data }) => {
-      const row = (Array.isArray(data) ? data[0] : data) as { tier?: string | null; fundador_n?: number | null } | undefined
+      const row = (Array.isArray(data) ? data[0] : data) as { tier?: string | null; fundador_n?: number | null; socio_n?: number | null; socio_desde?: string | null; socio_ativo?: boolean | null } | undefined
       const t = (row?.tier ?? null) as ApoioTier | null
-      setViewPerfil({ tier: t && t in APOIO_PERKS ? t : null, fundadorN: row?.fundador_n ?? null })
-    }, () => setViewPerfil({ tier: null, fundadorN: null }))
+      setViewPerfil({ tier: t && t in APOIO_PERKS ? t : null, fundadorN: row?.fundador_n ?? null, socioN: row?.socio_n ?? null, socioDesde: row?.socio_desde ?? null, socioAtivo: !!row?.socio_ativo })
+    }, () => setViewPerfil({ tier: null, fundadorN: null, socioN: null, socioDesde: null, socioAtivo: false }))
     try {
       const { data } = await supabase.from('user_cards')
         .select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at, season_key')
@@ -5656,7 +5656,7 @@ export function EscRanking() {
             {(() => {
               // 🎨 header na cor do PRÓPRIO tier (fidelidade sagrada): grátis = bege
               const pk = viewPerfil ? APOIO_PERKS[viewPerfil.tier ?? 'bege'] : null
-              const selos = pk ? `${pk.selo}${viewPerfil?.fundadorN != null ? '🖋️' : ''}` : ''
+              const selos = pk ? `${pk.selo}${viewPerfil?.fundadorN != null ? '🖋️' : ''}${viewPerfil?.socioAtivo ? '🎫' : ''}` : ''
               return (
                 <div className="flex items-center justify-between px-4 py-3 border-b-[3px] border-black" style={{ background: pk?.grad ?? GOLD }}>
                   <div className="min-w-0">
@@ -5683,14 +5683,26 @@ export function EscRanking() {
                 GRANDE (regra do Diego 09/08) — a de sócio entra na infra do sócio. */}
             {(() => {
               const fN = viewPerfil?.fundadorN ?? (viewUser.id === meId ? myFundadorN() : null)
-              if (fN == null) return null
+              const socio = viewPerfil?.socioAtivo && viewPerfil.socioN != null ? viewPerfil : null
+              if (fN == null && !socio) return null
+              // 🪪 meses de casa do sócio (desde nunca zera enquanto assinar)
+              const meses = socio?.socioDesde ? Math.max(0, Math.floor((Date.now() - new Date(socio.socioDesde + 'T12:00').getTime()) / (30.44 * 86400e3))) : 0
               return (
-                <div className="px-4 pt-3">
-                  <div className="relative overflow-hidden border-[3px] border-black rounded-xl px-3 py-3" style={{ background: 'linear-gradient(150deg,#241d0c,#141414 55%,#2b230e)', boxShadow: `3px 3px 0 ${INK}` }}>
-                    <span className="absolute right-2.5 top-2.5 font-black text-sm border-2 border-black rounded-lg px-2 py-0.5" style={{ ...OSWALD, background: 'linear-gradient(150deg,#FFE79A,#FFC400)' }}>Nº {fN}</span>
-                    <p className="font-black text-base uppercase" style={{ ...OSWALD, color: GOLD }}>🖋️ Fundador do Leilão Legends</p>
-                    <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.75)' }}>{fN} dos 100 primeiros · pra sempre</p>
-                  </div>
+                <div className="px-4 pt-3 space-y-2">
+                  {fN != null && (
+                    <div className="relative overflow-hidden border-[3px] border-black rounded-xl px-3 py-3" style={{ background: 'linear-gradient(150deg,#241d0c,#141414 55%,#2b230e)', boxShadow: `3px 3px 0 ${INK}` }}>
+                      <span className="absolute right-2.5 top-2.5 font-black text-sm border-2 border-black rounded-lg px-2 py-0.5" style={{ ...OSWALD, background: 'linear-gradient(150deg,#FFE79A,#FFC400)' }}>Nº {fN}</span>
+                      <p className="font-black text-base uppercase" style={{ ...OSWALD, color: GOLD }}>🖋️ Fundador do Leilão Legends</p>
+                      <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.75)' }}>{fN} dos 100 primeiros · pra sempre</p>
+                    </div>
+                  )}
+                  {socio && (
+                    <div className="relative overflow-hidden border-[3px] border-black rounded-xl px-3 py-3" style={{ background: 'linear-gradient(150deg,#A78BFA,#7C3AED)', boxShadow: `3px 3px 0 ${INK}` }}>
+                      <span className="absolute right-2.5 top-2.5 font-black text-sm border-2 border-black rounded-lg px-2 py-0.5 bg-white" style={OSWALD}>nº {socio.socioN}</span>
+                      <p className="font-black text-base uppercase text-white" style={OSWALD}>🎫 Sócio Legends</p>
+                      <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.85)' }}>{meses > 0 ? `${meses} ${meses === 1 ? 'mês' : 'meses'} de casa` : 'recém-chegado ao clube'}{socio.socioDesde ? ` · desde ${new Date(socio.socioDesde + 'T12:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}` : ''}</p>
+                    </div>
+                  )}
                 </div>
               )
             })()}
