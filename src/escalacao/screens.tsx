@@ -23,7 +23,8 @@ import { Escudo } from './escudos' // 🛡️ brasão do clube (desenhado por c�
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, getSport, escadaLiberada, type Sport } from './sport'
 import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
-import { meuManto, mantoStripes } from './manto'
+import { meuManto, mantoStripes, useMeuSocio } from './manto'
+import { MASCOTES, FestaoMascote } from './mascotes'
 
 // 🏀/⚽ rótulo do SETOR conforme esporte + idioma (futebol = igual a SECTOR_LABEL;
 // basquete = Armadores/Alas/Pivôs em BR ou EN). Usado no topo do pregão.
@@ -6504,6 +6505,19 @@ export function EscEnd() {
   const youPos = table.findIndex(t => t.id === you.id) + 1
   const youWon = champ.id === you.id
   const online = state.onlineMode === 'online'
+  // 🐊 FESTÃO DA MASCOTE (aprovado no GIF): só o CAMPEÃO vê, pós-apito (a
+  // liga aqui já acabou), 1x por temporada (sessionStorage), toque pula.
+  const meuSoc = useMeuSocio()
+  const mascKey = youWon && meuSoc?.ativo && meuSoc.mascoteKey && MASCOTES[meuSoc.mascoteKey] ? meuSoc.mascoteKey : null
+  const festaKey = `esc-festa-${state.seed}-${state.seasonNo}`
+  const [festaOn, setFestaOn] = useState(false)
+  useEffect(() => {
+    if (!mascKey) return
+    try { if (sessionStorage.getItem(festaKey) === '1') return } catch { /* segue */ }
+    setFestaOn(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mascKey])
+  const fecharFesta = () => { setFestaOn(false); try { sessionStorage.setItem(festaKey, '1') } catch { /* segue */ } }
   const canRestart = !online || state.isHost
   // streamHost = SÓ stream (usado na carta compartilhada do campeão). hostPaced =
   // host controla o ritmo (stream OU sala manual) — é quem decide começar a Copa.
@@ -6729,6 +6743,7 @@ export function EscEnd() {
   )
   return (
     <Shell hideExit={online}>
+      {festaOn && mascKey && <FestaoMascote nome={you.teamName} mascote={mascKey} onDone={fecharFesta} />}
       <RankResultWriter />
       {/* FIM COM COPA JÁ JOGADA: placar Liga+Copa no topo, e ordem
           Liga → artilheiro da Liga → Copa → artilheiro da Copa. */}

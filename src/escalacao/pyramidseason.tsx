@@ -26,7 +26,8 @@ import { useAgenciaLiberada, useEscadaLiberada } from './sport'
 import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
-import { meuManto, mantoStripes } from './manto'
+import { meuManto, mantoStripes, useMeuSocio } from './manto'
+import { MASCOTES, FestaoMascote } from './mascotes'
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -2806,6 +2807,19 @@ export function PyramidSeasonScreen() {
   const { scorers, scorersAll, goalsByCard, divTop } = shown
   const tables = shown.tables
   const me = myStanding(tables)
+  // 🐊 FESTÃO DA MASCOTE na carreira: campeão da DIVISÃO (pós-apito da 38ª —
+  // `done` espera a última rodada animar) — 1x por temporada, toque pula.
+  const meuSocFesta = useMeuSocio()
+  const mascKeyFesta = done && me?.pos === 1 && meuSocFesta?.ativo && meuSocFesta.mascoteKey && MASCOTES[meuSocFesta.mascoteKey] ? meuSocFesta.mascoteKey : null
+  const festaKeyC = `esc-festa-carreira-${state.seed}-${state.seasonNo}`
+  const [festaOnC, setFestaOnC] = useState(false)
+  useEffect(() => {
+    if (!mascKeyFesta) return
+    try { if (sessionStorage.getItem(festaKeyC) === '1') return } catch { /* segue */ }
+    setFestaOnC(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mascKeyFesta])
+  const fecharFestaC = () => { setFestaOnC(false); try { sessionStorage.setItem(festaKeyC, '1') } catch { /* segue */ } }
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
   // 🎽 destrava PERMANENTE da troca de formação na 1ª vez que o elenco chega a 22
@@ -3200,6 +3214,7 @@ export function PyramidSeasonScreen() {
   return (
     <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
+        {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
         <SocioBaraoBanner />
         <div style={{ ...box(INK), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 8 }}>
           <div style={{ padding: '12px 14px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
