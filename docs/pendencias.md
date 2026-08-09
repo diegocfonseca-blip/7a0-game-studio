@@ -125,6 +125,13 @@ entrega = commit isolado, buildar antes, main = deploy):
    Lenda segue 2,99; preços intactos (9,90/4,99/2,99). Escadinha final:
    grátis→9,90 · craque→4,99 · lenda→2,99 · batismo→INCLUSO (da conta).
    Planos MP necessários: 4,99 e 2,99 + link avulso Craque 19,90.
+   🖋️ FUNDADOR MUDOU DE CASA (decisão do Diego 09/08): a partir de agora o
+   selo FUNDADOR (numerado até o 100) vem do BATISMO, não mais da Lenda.
+   Lenda vira 39,90 SECO (sem "→49,90", escadinha de fundador saiu do card).
+   Quem JÁ é fundador por Lenda (nº 1-35) CONTINUA — "nº gravado é nº
+   gravado", não remover ninguém. Arte loja-m2 v7 atualizada e enviada
+   (Lenda sem caixa de fundador; Batismo com "agora é o batismo que faz
+   FUNDADOR" + chip "SÓCIO INCLUSO — é da conta").
 3. 🪪 CARTEIRINHAS no jogo (área do apoiador + perfil) — visual APROVADO
    (carteirinhas.png), compartilháveis via motor do shareElenco.
 4. 🏟️ NOME DO ESTÁDIO (campo aprovado por Diego no admin; aparece na área do
