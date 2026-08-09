@@ -20,7 +20,7 @@ const MAX_PLAYERS = 20 // a tabela sempre tem 20 times; os que faltam viram bots
 type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'
 
-interface RoomPlayer { user_id: string; manager_name: string; player_index: number; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_seek?: 'aberta' | 'privada' | null; dupla_name?: string | null }
+interface RoomPlayer { user_id: string; manager_name: string; player_index: number; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_seek?: 'aberta' | 'privada' | null; dupla_name?: string | null; dupla_request_to?: string | null; dupla_request_at?: string | null }
 // 💬 mensagem do chat da sala de espera (uid = quem mandou, pra saber o "meu")
 interface LobbyMsg { id: string; uid: string; name: string; text: string }
 // 🎈 reação que FLUTUA (sobe e some) na sala de espera — NÃO entra no chat.
@@ -1341,21 +1341,57 @@ export function EscLobby() {
     await supabase.from('room_players').update({ dupla_seek: seek }).eq('room_id', room.id).eq('user_id', user.id)
     fetchPlayers(room.id)
   }
-  // Toquei numa vaga "procurando parceiro": largo o MEU assento e viro carona no
-  // time dessa pessoa. Sem convite e sem aceitar — igual escolher vaga livre.
-  async function virarParceiro(dono: RoomPlayer) {
+  // 🤝 PEDIDO DE DUPLA (09/08, pedido do Diego: "tem que aparecer um banner
+  // perguntando se ela quer jogar com a outra"): tocar numa vaga não entra
+  // mais na hora — manda um PEDIDO pra pessoa, que aceita ou recusa (ou deixa
+  // expirar). Fica gravado na MINHA própria linha (RLS só deixa mexer na
+  // própria) — o dono vê o pedido chegando e responde pela função
+  // `dupla_responder` (só ela pode gravar na linha de quem pediu).
+  const DUPLA_REQUEST_TIMEOUT_S = 30
+  async function pedirDupla(dono: RoomPlayer) {
     if (!room || !user || dono.user_id === user.id) return
-    // 🔒 confere no banco AGORA se a vaga ainda está livre: dois podem tocar no
-    // mesmo segundo e o segundo não pode virar um terceiro na mesma dupla.
-    const { data: fresh } = await supabase.from('room_players').select('user_id, dupla_partner_of, dupla_seek').eq('room_id', room.id)
-    const rows = (fresh ?? []) as { user_id: string; dupla_partner_of?: string | null; dupla_seek?: string | null }[]
-    if (rows.some(r => r.dupla_partner_of === dono.user_id)) { setRoomError('😅 Alguém pegou essa vaga um segundinho antes de você.'); fetchPlayers(room.id); return }
+    // 🔒 confere no banco AGORA: vaga já fechou, já tem pedido de outra pessoa
+    // chegando nela, ou eu já pedi/já sou de uma dupla — nada disso pode duplicar.
+    const { data: fresh } = await supabase.from('room_players').select('user_id, dupla_partner_of, dupla_seek, dupla_request_to').eq('room_id', room.id)
+    const rows = (fresh ?? []) as { user_id: string; dupla_partner_of?: string | null; dupla_seek?: string | null; dupla_request_to?: string | null }[]
+    const alvo = rows.find(r => r.user_id === dono.user_id)
+    if (!alvo || alvo.dupla_partner_of || alvo.dupla_seek === 'privada') { setRoomError('😅 Essa vaga não tá mais disponível.'); fetchPlayers(room.id); return }
+    if (rows.some(r => r.dupla_request_to === dono.user_id)) { setRoomError('😅 Alguém já mandou um pedido pra essa pessoa — espera ela responder.'); fetchPlayers(room.id); return }
     const eu = rows.find(r => r.user_id === user.id)
-    if (eu?.dupla_partner_of) return // já sou parceiro de alguém
-    const { error } = await supabase.from('room_players').update({ dupla_partner_of: dono.user_id, dupla_seek: null }).eq('room_id', room.id).eq('user_id', user.id)
-    if (error) setRoomError(`Não consegui entrar na dupla: ${error.message}`)
+    if (eu?.dupla_partner_of || eu?.dupla_request_to) return // já sou de uma dupla, ou já tenho um pedido em aberto
+    const { error } = await supabase.from('room_players').update({ dupla_request_to: dono.user_id, dupla_request_at: new Date().toISOString() }).eq('room_id', room.id).eq('user_id', user.id)
+    if (error) setRoomError(`Não consegui mandar o pedido: ${error.message}`)
     fetchPlayers(room.id)
   }
+  // cancela o MEU pedido em aberto (desisti, ou o tempo acabou — self-clear,
+  // não precisa de função porque é a minha própria linha).
+  async function cancelarPedido() {
+    if (!room || !user) return
+    await supabase.from('room_players').update({ dupla_request_to: null, dupla_request_at: null }).eq('room_id', room.id).eq('user_id', user.id)
+    fetchPlayers(room.id)
+  }
+  // responde um pedido que chegou pra MIM (sou o dono da vaga pedida). A troca
+  // de verdade (dupla_partner_of na linha de QUEM PEDIU) só a função do banco
+  // pode fazer — ela confere no servidor que o pedido é mesmo meu antes.
+  async function responderPedido(requesterUid: string, aceitar: boolean) {
+    if (!room || !user) return
+    const { data, error } = await supabase.rpc('dupla_responder', { p_room: room.id, p_requester: requesterUid, p_aceitar: aceitar })
+    if (error) setRoomError(`Não consegui responder: ${error.message}`)
+    else if (data === false) setRoomError('😅 Esse pedido não existe mais (a pessoa deve ter cancelado).')
+    fetchPlayers(room.id)
+  }
+  // ⏳ expira pedidos MEUS sozinho, sem precisar de ninguém responder — regra
+  // de ouro do Diego: nada trava esperando a pessoa decidir pra sempre.
+  useEffect(() => {
+    if (phase !== 'waiting' || !room || !user) return
+    const meuRow = players.find(p => p.user_id === user.id)
+    if (!meuRow?.dupla_request_to || !meuRow.dupla_request_at) return
+    const restante = DUPLA_REQUEST_TIMEOUT_S * 1000 - (Date.now() - new Date(meuRow.dupla_request_at).getTime())
+    if (restante <= 0) { cancelarPedido(); return }
+    const t = setTimeout(cancelarPedido, restante)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, room, user, players])
   // Desfazer a dupla. Vale pros DOIS lados: o parceiro pode "sair da dupla" e o
   // dono do time pode "jogar sozinho" — ninguém fica preso numa dupla que não
   // quer mais. Quem era parceiro volta a ter o time dele (o assento nunca foi
@@ -1973,12 +2009,17 @@ export function EscLobby() {
           {donos.map(p => {
             const par = duplasOn ? parceiroDe(p.user_id) : undefined
             const souEu = p.user_id === user?.id
+            // 🤝 PEDIDO (09/08): quem, se alguém, mandou pedido pra ENTRAR na vaga
+            // de `p`. `dupla_request_to` mora na linha de QUEM PEDIU, então acho
+            // procurando quem aponta pra `p.user_id`.
+            const pedidoPara = players.find(x => x.dupla_request_to === p.user_id)
+            const euPediParaEla = pedidoPara?.user_id === user?.id
             // 🌍 PADRÃO ABERTO (pedido do Diego): a vaga nasce livre pra qualquer
-            // um da sala — só o 🔒 cadeado fecha. Posso entrar em qualquer time
-            // sem parceiro que não esteja de cadeado, desde que eu mesmo ainda
-            // não esteja em dupla nenhuma.
-            const livreProMim = duplasOn && !par && !souEu && p.dupla_seek !== 'privada'
-            const posso = livreProMim && !souParceiro && !parceiroDe(user?.id ?? '')
+            // um da sala — só o 🔒 cadeado fecha, ou já ter um pedido chegando nela
+            // (não deixa dois pedidos brigando pela mesma pessoa). Posso pedir se eu
+            // mesmo ainda não estou em dupla nem tenho outro pedido em aberto.
+            const livreProMim = duplasOn && !par && !souEu && p.dupla_seek !== 'privada' && (!pedidoPara || euPediParaEla)
+            const posso = livreProMim && !souParceiro && !parceiroDe(user?.id ?? '') && !meuRow?.dupla_request_to
             return (
             <div key={p.user_id} className={duplasOn ? 'rounded-xl border-2 border-black/15 p-2' : ''} style={duplasOn ? { background: '#fff' } : undefined}>
               <div className="flex items-center gap-3">
@@ -2065,38 +2106,59 @@ export function EscLobby() {
                   </div>
                 )
               })()}
-              {/* 🤝 TIME SEM PARCEIRO — o que EU vejo depende de ser meu ou não */}
+              {/* 🤝 TIME SEM PARCEIRO — o que EU vejo depende de ser meu ou não,
+                  e de ter (ou não) um pedido rolando nessa vaga */}
               {duplasOn && !par && (
                 <div className="mt-1.5 pl-3" style={{ borderLeft: '3px dashed rgba(0,0,0,.25)' }}>
-                  {/* time de OUTRA pessoa: entro nele (a não ser que esteja de cadeado) */}
-                  {!souEu && (posso ? (
-                    <button onClick={() => virarParceiro(p)}
-                      className="w-full border-2 border-black rounded-xl py-2 font-black text-[12px] active:translate-y-0.5"
-                      style={{ background: GOLD, color: '#000', ...OSWALD }}>
-                      🤝 Jogar junto com {stripEmoji(p.manager_name).trim()}
-                    </button>
-                  ) : (
-                    <p className="text-black/45 text-[11.5px] font-bold py-1">
-                      {p.dupla_seek === 'privada' ? '🔒 Guardando a vaga pra um amigo' : '🤝 Já está em dupla'}
-                    </p>
-                  ))}
-                  {/* MEU time: só escolho se a vaga está livre pra todos ou de
-                      cadeado. Jogar sozinho não existe aqui — a sala é de duplas. */}
-                  {souEu && (<>
+                  {/* time de OUTRA pessoa */}
+                  {!souEu && (
+                    euPediParaEla ? (
+                      <div className="flex items-center justify-between gap-2 py-1">
+                        <p className="text-black/55 text-[11.5px] font-black" style={OSWALD}>⏳ Pedido enviado — esperando {stripEmoji(p.manager_name).trim()} responder…</p>
+                        <button onClick={cancelarPedido} className="text-[10px] font-black uppercase underline text-black/45 active:opacity-60 shrink-0">Cancelar</button>
+                      </div>
+                    ) : posso ? (
+                      <button onClick={() => pedirDupla(p)}
+                        className="w-full border-2 border-black rounded-xl py-2 font-black text-[12px] active:translate-y-0.5"
+                        style={{ background: GOLD, color: '#000', ...OSWALD }}>
+                        🤝 Pedir pra jogar junto com {stripEmoji(p.manager_name).trim()}
+                      </button>
+                    ) : (
+                      <p className="text-black/45 text-[11.5px] font-bold py-1">
+                        {p.dupla_seek === 'privada' ? '🔒 Guardando a vaga pra um amigo'
+                          : pedidoPara ? `⏳ ${stripEmoji(pedidoPara.manager_name).trim()} já mandou um pedido — aguardando resposta`
+                          : meuRow?.dupla_request_to ? '⏳ Você já tem um pedido em aberto com outra pessoa'
+                          : '🤝 Já está em dupla'}
+                      </p>
+                    )
+                  )}
+                  {/* MEU time: se chegou pedido de alguém, primeiro isso — senão o
+                      cadeado de sempre. Jogar sozinho não existe: a sala é de duplas. */}
+                  {souEu && (pedidoPara ? (
+                    <div className="rounded-xl border-2 border-black p-2.5" style={{ background: '#FFF7DE' }}>
+                      <p className="font-black text-[12.5px] text-black" style={OSWALD}>🤝 {stripEmoji(pedidoPara.manager_name).trim()} quer jogar de dupla com você!</p>
+                      <div className="flex gap-2 mt-2">
+                        <button onClick={() => responderPedido(pedidoPara.user_id, true)}
+                          className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] active:translate-y-0.5" style={{ background: GREEN, color: '#fff', ...OSWALD }}>✅ Aceitar</button>
+                        <button onClick={() => responderPedido(pedidoPara.user_id, false)}
+                          className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] active:translate-y-0.5" style={{ background: '#fff', color: '#000', ...OSWALD }}>✕ Recusar</button>
+                      </div>
+                    </div>
+                  ) : (<>
                     <p className="text-black/55 text-[11.5px] font-black py-0.5" style={OSWALD}>
-                      {p.dupla_seek === 'privada' ? '🔒 CADEADO — guardando a vaga pro seu amigo' : '🌍 QUALQUER UM PODE ENTRAR NO SEU TIME'}
+                      {p.dupla_seek === 'privada' ? '🔒 CADEADO — guardando a vaga pro seu amigo' : '🌍 QUALQUER UM PODE TE PEDIR PRA JOGAR JUNTO'}
                     </p>
                     <p className="text-black/40 text-[10.5px] font-bold leading-snug mb-1">
                       {p.dupla_seek === 'privada'
-                        ? 'Ninguém de fora toca na sua vaga. Mande o link pro seu amigo — quando ele chegar, tire o cadeado pra ele entrar.'
-                        : 'Quem estiver na sala pode entrar e jogar com você. Corre atrás de um parceiro: o pregão abre assim que 2 duplas fecharem.'}
+                        ? 'Ninguém de fora consegue te pedir. Mande o link pro seu amigo — quando ele chegar, tire o cadeado pra ele poder pedir.'
+                        : 'Quem estiver na sala pode te chamar — você decide aceitar ou não. Corre atrás de um parceiro: o pregão abre assim que 2 duplas fecharem.'}
                     </p>
                     <button onClick={() => procurarParceiro(p.dupla_seek === 'privada' ? null : 'privada')}
                       className="w-full border-2 border-black rounded-xl py-1.5 font-black text-[11px] active:translate-y-0.5"
                       style={{ background: '#fff', color: '#000', ...OSWALD }}>
-                      {p.dupla_seek === 'privada' ? '🌍 Tirar o cadeado (deixar qualquer um entrar)' : '🔒 Pôr cadeado (guardar pro meu amigo)'}
+                      {p.dupla_seek === 'privada' ? '🌍 Tirar o cadeado (deixar qualquer um te pedir)' : '🔒 Pôr cadeado (guardar pro meu amigo)'}
                     </button>
-                  </>)}
+                  </>))}
                 </div>
               )}
             </div>
