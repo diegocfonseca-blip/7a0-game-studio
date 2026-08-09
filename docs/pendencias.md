@@ -228,6 +228,15 @@ várzea/premium — turfColors já existe) · fichas de carreira em dobro +
 backup na nuvem (dor real) · martelo do sócio (som/estampa própria SÓ pra
 quem ganha — lei do som pessoal) · pacote de cantadas prontas no chat.
 Recomendação: as 3 primeiras. AGUARDANDO a escolha dele.
+→ RESPOSTA DO DIEGO (09/08): 🏟️ NOME DO ESTÁDIO ENTROU no sócio ✅; gramado,
+carreiras/nuvem, martelo e cantadas REJEITADOS ("quero mais interessantes" —
+não reapresentar). Padrão do que ele aprova: feito à mão/patrimônio do clube
+(escudo, manto, nome do estádio). NOVAS 4 propostas nessa família enviadas:
+🐊 mascote do clube desenhada à mão (irmã do escudo) · 🗞️ capa de jornal de
+CAMPEÃO compartilhável (motor do shareElenco já existe) · 🐐 camisa
+aposentada/ídolo eterno no museu do clube (gols já são contados) · 🧣 batizar
+a torcida organizada + o clássico (careerRivals já existe; manchetes usam).
+AGUARDANDO escolha.
 📌 STATUS FINAL DA RODADA (08/08, noite): Diego travou na dúvida olheiros-
 no-sócio vs escadinha ("só sei que quero que venda MT"). RECOMENDAÇÃO FIRME
 enviada: ESCADINHA por tier (4 produtos, 4 desejos: sócio=jogo do seu
