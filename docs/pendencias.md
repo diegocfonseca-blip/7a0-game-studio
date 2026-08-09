@@ -95,6 +95,25 @@ inclusive pode ser convocada pros 22 ativos), só a RENDA em moedas fica
 "🔒 destrava: [requisito]" até desbloquear aquela categoria — nunca esconde
 nem perde a carta, só a moeda que ela renderia.
 
+## 🖋️🎫 BARÕES VIRARAM SÓCIOS — NO AR (09/08, commit 6ea494c + migração
+baroes_socios_inclusos_e_resgate_mensal):
+- 11 contas de batismo inseridas no esc_socios com validade 2099 e
+  origem='batismo' (achadas nos comentários do FOUNDERS; LISTA CONFIRMAR
+  com Diego): danielmanfre5 (Manfré FC) · matheus223lms (Alfacehh) ·
+  jorgericardo777 (Império Samambaia) · davisantana1312 (Bicho da Seda) ·
+  guilhermevictor539 (Nightfull FC) · msb102010 (Murriz FC) · ofc.toka10
+  (Tôka10) · matheusncruz1 (Skyy FC) · adriano.ferrari@quepazseguros (SC
+  Ferrari) · lucasigorbortoliniii (Marreco FC) · ricardopessoafreire
+  (Barcenite FC). Eles já têm carteirinha roxa no perfil + selo 🎫.
+- 🪙 RESGATE MENSAL: RPC esc_socio_resgatar (30 🪙, 1× por conta/mês,
+  trava no servidor via esc_socio_resgates) → cliente credita com
+  BANCO_CREDIT no caixa da carreira ativa. Vale pra TODO sócio ativo.
+- 📢 BANNER DO BARÃO no topo da carreira solo (SÓ origem='batismo'):
+  boas-vindas "seu batismo vale um Sócio", lista das vantagens (30 moedas
+  — "as deste mês JÁ caíram" quando o resgate acontece —, escudo, mascote,
+  manto, estádio, carteirinha) + botão "chamar no direct" (copia msg e
+  abre o IG) + fechar com memória. Aviso pós-fechado quando moedas caem.
+
 ## 🚀 FECHA GERAL DADO (09/08, madrugada): "E pode implementar tudo já"
 TUDO aprovado — specs finais: loja em cards v14 (sócio → HISTÓRIA v3 →
 craque → lenda → batismo), história v3 com o LUCA (sem barra de servidor,
