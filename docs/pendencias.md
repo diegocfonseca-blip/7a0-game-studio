@@ -1,5 +1,43 @@
 # 📌 Pendências combinadas com o Diego (atualizado 09/08/2026)
 
+## 🐛 DUPLA ONLINE: relato do próprio Diego jogando com o Didico — 2 corrigidos, 1 em aberto
+Diego jogou de dupla com o host numa sala e relatou dois problemas (fotos):
+**(1) virou "rival" do próprio parceiro** — no fim do jogo, o host apertou
+"🔨 Novo leilão" e Diego, que era DUPLA do host, apareceu como time
+SEPARADO/adversário, sem ninguém ter pedido pra desfazer a dupla.
+**Causa achada e CORRIGIDA ✅**: o botão "Novo leilão" (`startLeilao` em
+`screens.tsx`) remontava os times só pela ordem crua da tabela
+`room_players`, sem saber que uma das linhas era CARONA de dupla
+(`dupla_partner_of`) — tratava o parceiro como um técnico próprio. A sala
+de espera já resolvia isso certinho; só copiei o mesmo jeito pro "novo
+leilão" (só DONO de assento vira time; `duplasMode`/`duplas`/`youUid` agora
+vão junto no `START_ONLINE`, que antes não mandava nada disso — ficava
+sempre sem dupla nenhuma no leilão novo).
+**(2) chat mostrando "Você" pro parceiro também** — no chat da partida,
+quando o Diego e o parceiro (Didico/Alfacehh) escreviam, os dois apareciam
+como "Você", sem dar pra saber quem tinha falado o quê.
+**Causa achada e CORRIGIDA ✅**: o chat decidia "é minha mensagem?" pelo
+TIME (`from === youIdx`) — numa dupla os dois COMPARTILHAM o mesmo time,
+então a msg do parceiro batia como sendo seguida. `ChatMsg` ganhou um
+campo `uid` (a pessoa de verdade, não o time); a checagem agora usa esse
+uid quando existe. Reversível com `git revert 9bc346e`.
+**(3) AINDA EM ABERTO ⚠️**: Diego relatou que o host conseguiu iniciar o
+"novo leilão" sem ele (o PARCEIRO) ter votado — os outros times da sala
+saíram e o host achou que "todo mundo decidiu". Causa: a tela de votação
+do fim de jogo (`OnlineEndVote`) conta voto por TIME, e numa dupla o
+parceiro nunca aparece como alguém separado pro host — ele é invisível na
+lista de "quem falta votar". Isso NÃO foi mexido ainda (é uma mudança
+maior, estrutural, na forma como a votação conta gente — quero ir com
+calma nisso, é área sensível de identidade online). Próxima sessão: fazer
+essa tela também exigir o OK do parceiro antes do host poder começar, do
+mesmo jeito que já existe (aprovado pelo Diego) na tela de reinício
+OFFLINE (`restartReadyUids`).
+Também relatado, ainda **NÃO confirmado/investigado**: um amigo que entrou
+pra ser dupla do Diego não apareceu no nome da dupla (apareceu o nome de
+OUTRA pessoa) — pode ser sintoma do mesmo bug (1) com dado velho no
+`room_players`, mas não tracei a fundo ainda; avisar se acontecer de novo
+depois desse conserto.
+
 ## 🐛 AGÊNCIA: carta de campeão podia não entrar (relato do Diego sobre o Luiz Filipe Maia, campeão da Série D) ✅ NO AR
 Print do jogador: ganhou a Série D (troféu confirmado no Hall), álbum tem a
 carta certinha, mas "Seus agenciados" tava vazio (0/22, busca sem resultado).
