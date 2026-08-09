@@ -12,6 +12,35 @@ const INK = '#0C0C0C'
 // registro das mascotes prontas (chave → desenho). Cada sócio que pedir ganha
 // a dele aqui — 1ª da casa: a alface brava do Alfacehh FC.
 export const MASCOTES: Record<string, ReactNode> = {
+  // 🐓🌙 o GALO BALADEIRO (Nightfull FC — guilhermevictor539, aprovado 09/08):
+  // alvinegro de óculos escuro, corrente de ouro e pose Travolta da night.
+  galo: (
+    <svg width="126" height="176" viewBox="0 0 120 170">
+      <g transform="translate(0,4)">
+        <ellipse cx="60" cy="158" rx="42" ry="9" fill="rgba(0,0,0,.15)" />
+        <circle cx="90" cy="146" r="12" fill="#fff" stroke={INK} strokeWidth="4" />
+        <path d="M90 138 l4 5 -1 6 h-6 l-1 -6 Z" fill={INK} />
+        <path d="M50 126 l-2 18 M68 126 l2 18" stroke="#E8A200" strokeWidth="6" strokeLinecap="round" />
+        <path d="M42 146 l10 2 M64 146 l12 2 M46 140 l-6 2" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />
+        <path d="M74 92 Q104 68 108 44 Q112 66 96 88 Z" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M76 100 Q112 88 122 66 Q120 94 96 108 Z" fill="#2b2b2b" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M40 88 74 88 78 128 38 128 Z" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M50 88 l2 40 M64 88 l2 40" stroke="#ffffff" strokeWidth="6" />
+        <path d="M70 92 Q86 74 88 56 L82 58 Q86 46 92 40 L96 52 Q98 60 92 72 Q86 84 76 94 Z" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M92 40 l2 -10" stroke={INK} strokeWidth="4" strokeLinecap="round" />
+        <path d="M42 96 Q30 102 36 114 L46 112" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M44 90 Q58 100 70 90" stroke="#FFC400" strokeWidth="4" fill="none" strokeLinecap="round" />
+        <circle cx="57" cy="97" r="4" fill="#FFC400" stroke={INK} strokeWidth="2.5" />
+        <path d="M34 56 Q36 38 54 34 Q74 30 80 46 Q86 60 80 72 Q72 86 54 86 Q38 84 34 70 Z" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M38 38 Q32 22 46 26 Q46 12 60 22 Q64 8 74 22 Q82 16 80 32 L72 44 Z" fill="#E8503A" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+        <path d="M32 60 L14 66 L32 72 Z" fill="#E8A200" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+        <path d="M36 74 q-6 12 3 16 q8 3 10 -6 q-6 -3 -13 -10 Z" fill="#E8503A" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+        <path d="M36 50 Q36 44 44 44 L68 46 Q76 47 74 54 Q73 62 64 62 L44 60 Q36 59 36 50 Z" fill="#0C0C0C" stroke={INK} strokeWidth="3" />
+        <path d="M70 48 L82 44" stroke={INK} strokeWidth="4" strokeLinecap="round" />
+        <path d="M42 49 L60 51" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" opacity=".8" />
+      </g>
+    </svg>
+  ),
   // 🐦 a gralha-azul da MARRA (Manfré FC — danielmanfre5, aprovada 09/08 v2):
   // molde da referência paranista — cabeçona em gota, bicão vermelho, camisa
   // metade/metade, mão na cintura e pé na bola.

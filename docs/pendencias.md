@@ -363,6 +363,10 @@ entrega = commit isolado, buildar antes, main = deploy):
    · 4,90/mês (Craque): https://mpago.la/1jqtK38
    ✔️ 09/08: eltonfrossard45@gmail.com virou LENDA (ouro+manual) + FUNDADOR nº 36
    + SÓCIO nº 12 (origem batismo, validade 2099) — direto no banco.
+   ✔️ 09/08: KIT NIGHTFULL FC publicado (Atlético-MG do Guilherme): escudo
+   alvinegro c/ lua+estrela e o GALO BALADEIRO de óculos escuro; mascote 'galo'
+   (corrente de ouro, pose Travolta, bola); manto preto/branco no banco.
+   Total: 5 escudos artesanais + 6 mascotes no ar.
    ✔️ 09/08: KIT MANFRÉ FC publicado (Paraná Clube do Manfré): escudo azul c/
    faixa vermelha + CABEÇONA da gralha-azul (molde da referência oficial que o
    Diego mandou — só a cabeça no escudo, pedido dele); mascote 'gralha' inteira
