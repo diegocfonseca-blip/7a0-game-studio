@@ -363,6 +363,11 @@ entrega = commit isolado, buildar antes, main = deploy):
    · 4,90/mês (Craque): https://mpago.la/1jqtK38
    ✔️ 09/08: eltonfrossard45@gmail.com virou LENDA (ouro+manual) + FUNDADOR nº 36
    + SÓCIO nº 12 (origem batismo, validade 2099) — direto no banco.
+   📌 REGRA PRA TODA SESSÃO (09/08): liberar Craque/Lenda = setar user_colors
+   (tier + manual). Essa é a CHAVE-MESTRA — overall dos olheiros, fichas de
+   carreira e preço do sócio derivam dela sozinhos, não existe trava separada.
+   E ANTES de explicar o que um tier dá, ler este diário (o mundo mudou 09/08).
+   ✔️ pereirigor@outlook.com = Craque completo (conferido: prata+manual no banco).
    ✔️ 09/08: PERFIL ganhou "🛡️ O clube do coração": escudo artesanal + mascote
    de quem TEM (esc_perfil agora devolve mascote_key + escudo_time; coluna nova
    escudo_time em esc_socios com os 5 barões). Sem placeholder pra quem não tem.
