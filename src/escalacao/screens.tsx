@@ -11,7 +11,7 @@ import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
-import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, emailProblema } from './apoio'
+import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, emailProblema, myFundadorN } from './apoio'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
@@ -5474,16 +5474,18 @@ export function EscRanking() {
   const [rows, setRows] = useState<RankRow[] | null>(null)
   const [down, setDown] = useState(false) // backend fora do ar — evita travar em "Carregando…"
   const [meId, setMeId] = useState<string | null>(null)
-  const [viewUser, setViewUser] = useState<{ id: string; name: string; careerKey?: string } | null>(null)
+  // 👤 PERFIL COMPLETO (mockup aprovado pelo Diego 09/08): tocar num técnico
+  // abre o perfil (stats + documentos + troféus) com o álbum como UMA seção.
+  const [viewUser, setViewUser] = useState<{ id: string; name: string; careerKey?: string; stats?: { titles: number; scorers: number; goals: number; cards: number } } | null>(null)
   const [viewCards, setViewCards] = useState<AlbumCard[] | null>(null)
   const [viewSort, setViewSort] = useState<AlbumSort>('tier')
   // 📖 visão do álbum tocado (pedido do Diego 04/08): quando a linha do ranking
   // é UMA carreira, o álbum mostra os dois totais — só esta carreira × conta toda
   const [viewScope, setViewScope] = useState<'carreira' | 'conta'>('carreira')
 
-  // abre o álbum de QUALQUER técnico (user_cards tem leitura pública)
-  async function openAlbum(userId: string, name: string, careerKey?: string) {
-    setViewUser({ id: userId, name, careerKey: careerKey || undefined }); setViewCards(null); setViewScope('carreira')
+  // abre o PERFIL de QUALQUER técnico (user_cards tem leitura pública)
+  async function openAlbum(userId: string, name: string, careerKey?: string, stats?: { titles: number; scorers: number; goals: number; cards: number }) {
+    setViewUser({ id: userId, name, careerKey: careerKey || undefined, stats }); setViewCards(null); setViewScope('carreira')
     try {
       const { data } = await supabase.from('user_cards')
         .select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at, season_key')
@@ -5611,7 +5613,7 @@ export function EscRanking() {
       )}
       <div className="space-y-2">
         {shown.slice(0, 10).map((r, i) => (
-          <button key={r.user_id} onClick={() => openAlbum(r.user_id, r.name, r.career_key)}
+          <button key={r.user_id} onClick={() => openAlbum(r.user_id, r.name, r.career_key, { titles: r.titles, scorers: r.scorer_titles, goals: r.goals, cards: r.cards })}
             className="w-full flex items-center gap-3 border-[3px] border-black rounded-xl p-2.5 active:translate-y-0.5"
             style={{ background: r.user_id === meId ? GOLD : '#fff', boxShadow: `3px 3px 0 ${INK}` }}>
             <span className="font-black text-lg w-9 text-center shrink-0" style={OSWALD}>{medal(i)}</span>
@@ -5638,11 +5640,46 @@ export function EscRanking() {
           <div className="max-w-md w-full mx-auto my-auto max-h-[85vh] flex flex-col rounded-2xl border-[3px] border-black overflow-hidden" style={{ background: CREAM }} onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 py-3 border-b-[3px] border-black" style={{ background: GOLD }}>
               <div className="min-w-0">
-                <p className="font-black text-black text-lg leading-tight truncate" style={OSWALD}>📖 Álbum de {viewUser.name}</p>
-                {albumConta && !albumCarreira && <p className="text-black/60 text-xs font-bold">{albumConta.length} carta{albumConta.length === 1 ? '' : 's'}</p>}
+                <p className="font-black text-black text-lg leading-tight truncate" style={OSWALD}>👤 {viewUser.name}</p>
+                <p className="text-black/60 text-xs font-bold">perfil do técnico</p>
               </div>
               <button onClick={() => setViewUser(null)} className="shrink-0 w-8 h-8 rounded-full border-2 border-black bg-white font-black text-black active:translate-y-0.5">✕</button>
             </div>
+            {/* 👤 PERFIL (mockup aprovado 09/08): stats + documentos + troféus antes do álbum */}
+            {viewUser.stats && (
+              <div className="flex gap-1.5 px-4 pt-3">
+                {([['🏆', 'títulos', viewUser.stats.titles], ['👟', 'artilharias', viewUser.stats.scorers], ['⚽', 'gols', viewUser.stats.goals], ['🎴', 'cartas', viewUser.stats.cards]] as const).map(([em, lb, n]) => (
+                  <div key={lb} className="flex-1 border-[2.5px] border-black rounded-xl bg-white text-center py-1.5" style={{ boxShadow: `2px 2px 0 ${INK}` }}>
+                    <p className="font-black text-base leading-tight" style={OSWALD}>{n}</p>
+                    <p className="text-[8px] font-black uppercase tracking-wide text-black/50">{em} {lb}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+            {/* 🪪 Documentos: por enquanto SÓ no próprio perfil (fundador vem do
+                FUNDADOR_N por e-mail, local). Pros outros entra quando a infra do
+                sócio expuser via RPC. 1 carteirinha só = tamanho GRANDE (regra do
+                Diego 09/08: "amplia pro tamanho do modal que tá as duas"). */}
+            {viewUser.id === meId && myFundadorN() != null && (
+              <div className="px-4 pt-3">
+                <div className="relative overflow-hidden border-[3px] border-black rounded-xl px-3 py-3" style={{ background: 'linear-gradient(150deg,#241d0c,#141414 55%,#2b230e)', boxShadow: `3px 3px 0 ${INK}` }}>
+                  <span className="absolute right-2.5 top-2.5 font-black text-sm border-2 border-black rounded-lg px-2 py-0.5" style={{ ...OSWALD, background: 'linear-gradient(150deg,#FFE79A,#FFC400)' }}>Nº {myFundadorN()}</span>
+                  <p className="font-black text-base uppercase" style={{ ...OSWALD, color: GOLD }}>🖋️ Fundador do Leilão Legends</p>
+                  <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.75)' }}>{myFundadorN()} dos 100 primeiros · pra sempre</p>
+                </div>
+              </div>
+            )}
+            {viewUser.stats && (viewUser.stats.titles > 0 || viewUser.stats.scorers > 0) && (
+              <div className="px-4 pt-3">
+                <p className="font-black text-[11px] uppercase tracking-wide mb-1.5" style={OSWALD}>🏆 Sala de troféus</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {viewUser.stats.titles > 0 && <span className="border-[2.5px] border-black rounded-lg px-2 py-1 text-[10.5px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2px 2px 0 ${INK}` }}>🏆 Título{viewUser.stats.titles === 1 ? '' : 's'} ×{viewUser.stats.titles}</span>}
+                  {viewUser.stats.scorers > 0 && <span className="border-[2.5px] border-black rounded-lg px-2 py-1 text-[10.5px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2px 2px 0 ${INK}` }}>👟 Artilharia{viewUser.stats.scorers === 1 ? '' : 's'} ×{viewUser.stats.scorers}</span>}
+                  {viewUser.stats.goals > 0 && <span className="border-[2.5px] border-black rounded-lg px-2 py-1 text-[10.5px] font-black bg-white" style={{ boxShadow: `2px 2px 0 ${INK}` }}>⚽ {viewUser.stats.goals} gols</span>}
+                </div>
+              </div>
+            )}
+            {albumShown && <p className="px-4 pt-3 font-black text-[11px] uppercase tracking-wide" style={OSWALD}>🎴 Álbum de cartas</p>}
             {/* 🪜×📊 os dois totais (mockup aprovado): só quando a linha tocada é UMA carreira */}
             {albumCarreira && albumConta && (
               <div className="flex gap-2 px-4 pt-3">
