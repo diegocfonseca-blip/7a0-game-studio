@@ -45,6 +45,18 @@ entrega = commit isolado, buildar antes, main = deploy):
    carreira/conta e ordenação intactos). FALTA (fase 2, depende da infra
    item 2): carteirinhas dos OUTROS + header na cor do tier de cada um (RPC
    esc_perfil por user_id) + carteirinha de sócio.
+   ✅ FASE 2 TAMBÉM NO AR (commit 6d20601 + migração
+   perfil_publico_tiers_e_fundadores): Diego questionou ("se eu te dou o
+   e-mail pra fazer craque/lenda, como não dá pra saber?") — e ele tinha
+   razão: a ponte foi construída. (a) tiers do código FOUNDERS upsertados no
+   user_colors com DO NOTHING (não sobrescreve o painel; 54 linhas);
+   (b) tabela esc_fundadores (email→nº, RLS trancada, 28 fundadores);
+   (c) RPC esc_perfil(p_user) SECURITY DEFINER: user_id → tier + fundador_n
+   SEM expor e-mail. No jogo: header do perfil na COR DO TIER de cada um
+   (grátis=bege) + selos no nome + carteirinha de fundador visível em
+   QUALQUER perfil. ⚠️ Regra nova: ao dar tier/fundador novo, atualizar
+   TAMBÉM o banco (user_colors/esc_fundadores) — ou só pelo painel, que já
+   grava no banco.
    (era: 👤 PERFIL DO TÉCNICO — mockup perfil-ex.png aprovado):
    tocar num nome (ranking etc.) abre perfil completo — header na cor do
    tier + selos, stats (títulos/artilharias/gols/cartas — RankRow já tem),
