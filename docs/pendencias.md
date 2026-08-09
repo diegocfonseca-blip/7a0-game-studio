@@ -111,9 +111,17 @@ entrega = commit isolado, buildar antes, main = deploy):
    esc_admin_socio_list · esc_meu_socio (status próprio) · esc_perfil
    AMPLIADO (agora devolve socio_n/desde/ativo também). Painel ganhou a
    seção "🎫 Sócio Legends · mensal" (roxa, entre Apoiadores e Fichas).
-   💳 LINK MP DO SÓCIO 9,90/mês (mandado pelo Diego 09/08):
-   https://mpago.la/32tTjqE — AINDA FALTAM: planos 4,99 (craque) e 2,99
-   (lenda/batismo) + link avulso Craque 19,90 (pra trava do Manual).
+   💳 LINKS MP DOS SÓCIOS — COMPLETOS (09/08) e PREÇOS OFICIAIS CORRIGIDOS
+   pra terminação ,90 (Diego): grátis R$ 9,90 · Craque R$ 4,90 · Lenda
+   R$ 2,90 (batismo = incluso, sem plano):
+   · 9,90/mês (grátis): https://mpago.la/32tTjqE
+   · 2,90/mês (Lenda): https://mpago.la/1BiaXQ6
+   · 4,90/mês (Craque): https://mpago.la/2xzZmiC
+   ⚠️ NUNCA usar 4,99/2,99 em arte/código — é 4,90/2,90. Artes de referência
+   (m1/m2/olheiro-porta/portas-ex) já corrigidas; m1 também ganhou a
+   caixinha FINAL (manto, escudo, mascote+festão, batizar estádio, roxa,
+   voto, 30 moedas, carteirinha/mural — sem olheiro, sem cobertura).
+   FALTA SÓ: link avulso do ⭐ Craque R$ 19,90 (pra trava do Manual).
    ⚖️ PREÇO DO BATISMO RESOLVIDO — REGRA FINAL (09/08, ajustada pelo senso
    de justiça do Diego): 🖋️ BATISMO INCLUI O SÓCIO LEGENDS, e o incluso é
    DE QUEM PAGOU o batismo — NÃO do nome. Perdeu o nome no leilão dos
