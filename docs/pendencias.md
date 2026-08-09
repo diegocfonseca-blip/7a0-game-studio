@@ -122,6 +122,12 @@ entrega = commit isolado, buildar antes, main = deploy):
    caixinha FINAL (manto, escudo, mascote+festão, batizar estádio, roxa,
    voto, 30 moedas, carteirinha/mural — sem olheiro, sem cobertura).
    FALTA SÓ: link avulso do ⭐ Craque R$ 19,90 (pra trava do Manual).
+   ✍️ ESTILO DE TEXTO DA LOJA — LEI DO DIEGO (09/08): "tá escrevendo
+   demais, seja mais objetiva e bote água na boca — benefícios LISTADOS".
+   v10 do m2 refeita: cards viram LISTA de bullets curtos (um desejo por
+   linha, ícone + frase de 5-8 palavras), mini-amostra visual do overall
+   dentro da linha, zero parágrafo. APLICAR esse estilo em TODA a loja
+   final (m1 e m3 idem quando virarem código).
    🕵️→🎨 PEDIDO DO DIEGO (09/08, madrugada): nos cards de Craque/Lenda o
    olheiro tem que DIZER "overall do jogador" e MOSTRAR mini-amostra visual
    (chip colorido tipo "Djalminha 82–91") — feito na v9 do m2 (Craque:
