@@ -106,6 +106,9 @@ const PIX_KEY = 'diego.c.fonseca@gmail.com'
 const PIX_NOME = 'DIEGO FONSECA'   // recebedor (obrigatório no BR Code, ≤25, sem acento)
 const PIX_CIDADE = 'RIO DE JANEIRO' // cidade do recebedor (obrigatório, ≤15, sem acento)
 const APOIO_IG = 'https://ig.me/m/leilaolegendscom'
+// 💳 planos do SÓCIO no Mercado Pago (criados pelo Diego 09/08) — preço por
+// fidelidade: grátis 9,90 · ⭐ Craque 4,90 · 👑 Lenda 2,90 (batismo = incluso)
+const MP_SOCIO = { base: 'https://mpago.la/32tTjqE', craque: 'https://mpago.la/2xzZmiC', lenda: 'https://mpago.la/1BiaXQ6' } as const
 
 // CRC16-CCITT (poly 0x1021, init 0xFFFF) — exigido no fim do código Pix.
 function pixCrc16(str: string): string {
@@ -235,8 +238,25 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
       {screen === 'choice' && (
         <Modal>
           <p className="font-black text-2xl text-center" style={OSWALD}>💛 APOIAR O LEILÃO LEGENDS</p>
-          <p className="text-[11.5px] font-bold text-black/65 text-center mt-1.5 leading-snug">Aqui é tudo de coração: o jogo continua <b>100% grátis pra sempre</b>, nada é removido de ninguém e nenhum apoio dá vantagem em campo — quem apoia leva só brilho, cor e história. Dentro das quatro linhas, o jogo é igual pra todos. 🔨</p>
-          <button onClick={() => { logApoio('👀 abriu: só apoiar'); setScreen('pix') }} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3.5 active:translate-y-0.5"
+          <p className="text-[11.5px] font-bold text-black/65 text-center mt-1.5 leading-snug">Aqui é tudo de coração: o jogo é <b>grátis pra jogar</b>, nada é removido de ninguém e nenhum apoio dá vantagem em campo — quem apoia leva cor, brilho e história. Dentro das quatro linhas, o jogo é igual pra todos. 🔨</p>
+          {/* 🎫 SÓCIO LEGENDS (09/08): assinatura no Mercado Pago, preço por
+              fidelidade — o botão já abre o plano CERTO pro tier da pessoa. */}
+          {(() => {
+            const t = myApoioPerk()?.tier
+            const [preco, link, quem] = t === 'ouro' ? ['2,90', MP_SOCIO.lenda, '👑 preço de Lenda'] as const
+              : t === 'prata' ? ['4,90', MP_SOCIO.craque, '⭐ preço de Craque'] as const
+              : ['9,90', MP_SOCIO.base, ''] as const
+            return (
+              <button onClick={() => { logApoio(`🎫 abriu MP sócio (${preco})`); window.open(link, '_blank', 'noopener') }} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3.5 active:translate-y-0.5"
+                style={{ background: 'linear-gradient(150deg,#A78BFA,#7C3AED)', boxShadow: `4px 4px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.4) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 3s linear infinite' }} />
+                <p className="font-black text-white text-base relative" style={{ ...OSWALD, textShadow: '1px 1px 0 rgba(0,0,0,.4)' }}>🎫 SÓCIO LEGENDS — R$ {preco}/mês <span className="text-[10px] border-2 border-black rounded-md px-1.5 py-0.5 ml-1 align-middle" style={{ background: GOLD, color: INK, textShadow: 'none' }}>NOVO</span></p>
+                <p className="text-[11px] font-bold text-white/90 mt-1 leading-snug relative" style={{ textShadow: '1px 1px 0 rgba(0,0,0,.3)' }}>O clube com a SUA cara: 🎽 manto do coração · 🛡️ escudo à mão · 🐊 mascote com festão de título · 🏟️ batize seu estádio · 🪙 30 moedas/mês · 💜 cor roxa + carteirinha numerada.</p>
+                <p className="text-[10px] font-bold text-white/75 mt-1 relative">💳 cartão no Mercado Pago · cancela quando quiser{quem ? <> · <b>{quem}: só R$ {preco}</b> (grátis paga 9,90)</> : <> · ⭐ Craque paga 4,90 e 👑 Lenda 2,90</>}</p>
+              </button>
+            )
+          })()}
+          <button onClick={() => { logApoio('👀 abriu: só apoiar'); setScreen('pix') }} className="w-full text-left border-[3px] border-black rounded-xl p-3.5 mt-3 active:translate-y-0.5"
             style={{ background: GREEN, boxShadow: `4px 4px 0 0 ${INK}` }}>
             <p className="font-black text-white text-base" style={OSWALD}>💛 Só apoiar a resenha</p>
             <p className="text-[11px] font-bold text-white/80 mt-1 leading-snug">Qualquer valor no Pix. Sem burocracia — só gratidão eterna.</p>
@@ -267,13 +287,20 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             className="w-full border-[3px] border-black rounded-xl p-2.5 mt-3 active:translate-y-0.5 bg-white">
             <p className="font-black text-[13px]" style={OSWALD}>🆓 Sem grana? Seguir no Instagram já ajuda DEMAIS 📲</p>
           </button>
-          <div className="border-t-[3px] border-black/15 mt-4 pt-3">
-            <p className="font-black text-[13px]" style={OSWALD}>Quem faz isso aqui 🔴⚫</p>
-            <p className="text-[11px] font-bold text-black/60 mt-1 leading-snug">
-              Sou o Diego, flamenguista, vendo carro com meu pai durante o dia e faço esse jogo de madrugada.
-              Tenho um filho com uma condição rara — são <b>120 casos no mundo</b>. Esse jogo é por ele:
-              cada apoio ajuda a dar uma vida melhor pra ele e mantém o Leilão Legends <b>100% grátis, com tudo
-              liberado, pra sempre</b>. Obrigado por estar aqui. 💛
+          <div className="relative overflow-hidden border-[3px] border-black rounded-xl px-3.5 py-3 mt-4" style={{ background: 'linear-gradient(160deg,#241d0c,#141414 60%,#1d1708)', boxShadow: `4px 4px 0 0 ${INK}` }}>
+            <p className="font-black text-[14px] uppercase" style={{ ...OSWALD, color: GOLD }}>Quem faz isso aqui 🔴⚫</p>
+            <p className="text-[11px] font-bold mt-1.5 leading-relaxed" style={{ color: 'rgba(255,255,255,.87)' }}>
+              Sou o <b style={{ color: GOLD }}>Diego</b>. De dia vendo carro com meu pai. De madrugada, quando a casa dorme, faço este jogo — <b style={{ color: GOLD }}>sozinho, na unha</b>.
+            </p>
+            <p className="text-[11px] font-bold mt-1.5 leading-relaxed" style={{ color: 'rgba(255,255,255,.87)' }}>
+              E faço por um motivo com nome: o <b style={{ color: GOLD }}>Luca</b>, meu filho. Ele tem uma condição rara — são <b style={{ color: GOLD }}>120 casos no mundo</b> — e é o menino mais forte que eu conheço. Cada apoio vira <b style={{ color: GOLD }}>uma vida melhor pro Luca</b> e este jogo vivo, crescendo toda semana.
+            </p>
+            <p className="text-[11px] font-bold mt-1.5 leading-relaxed" style={{ color: 'rgba(255,255,255,.87)' }}>
+              E essa história, que é minha e do Luca, passa a ter <b style={{ color: GOLD }}>um pedaço de você</b> dentro dela.
+            </p>
+            <p className="mt-2 flex items-center gap-2">
+              <span className="font-black text-[10.5px] border-2 border-black rounded-lg px-2 py-0.5" style={{ ...OSWALD, background: 'linear-gradient(150deg,#FFE79A,#FFC400)' }}>🖋️ Diego · fundador nº 1</span>
+              <span className="text-[10px] font-bold" style={{ color: 'rgba(255,255,255,.6)' }}>pelo Luca: obrigado por estar aqui 💛</span>
             </p>
           </div>
         </Modal>
@@ -359,13 +386,20 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           <button onClick={() => { logApoio('👀 manual → ver tudo'); setScreen('choice') }} className="w-full text-[11px] font-black underline text-black/45 mt-2 active:opacity-60">ver todos os apoios</button>
 
           {/* 💛 por que isso existe — a história do Diego e do filho (mesma da tela principal) */}
-          <div className="border-t-[3px] border-black/15 mt-4 pt-3">
-            <p className="font-black text-[13px]" style={OSWALD}>Quem faz isso aqui 🔴⚫</p>
-            <p className="text-[11px] font-bold text-black/60 mt-1 leading-snug">
-              Sou o Diego, flamenguista, vendo carro com meu pai durante o dia e faço esse jogo de madrugada.
-              Tenho um filho com uma condição rara — são <b>120 casos no mundo</b>. Esse jogo é por ele:
-              cada apoio ajuda a dar uma vida melhor pra ele e mantém o Leilão Legends <b>100% grátis, com tudo
-              liberado, pra sempre</b>. Obrigado por estar aqui. 💛
+          <div className="relative overflow-hidden border-[3px] border-black rounded-xl px-3.5 py-3 mt-4" style={{ background: 'linear-gradient(160deg,#241d0c,#141414 60%,#1d1708)', boxShadow: `4px 4px 0 0 ${INK}` }}>
+            <p className="font-black text-[14px] uppercase" style={{ ...OSWALD, color: GOLD }}>Quem faz isso aqui 🔴⚫</p>
+            <p className="text-[11px] font-bold mt-1.5 leading-relaxed" style={{ color: 'rgba(255,255,255,.87)' }}>
+              Sou o <b style={{ color: GOLD }}>Diego</b>. De dia vendo carro com meu pai. De madrugada, quando a casa dorme, faço este jogo — <b style={{ color: GOLD }}>sozinho, na unha</b>.
+            </p>
+            <p className="text-[11px] font-bold mt-1.5 leading-relaxed" style={{ color: 'rgba(255,255,255,.87)' }}>
+              E faço por um motivo com nome: o <b style={{ color: GOLD }}>Luca</b>, meu filho. Ele tem uma condição rara — são <b style={{ color: GOLD }}>120 casos no mundo</b> — e é o menino mais forte que eu conheço. Cada apoio vira <b style={{ color: GOLD }}>uma vida melhor pro Luca</b> e este jogo vivo, crescendo toda semana.
+            </p>
+            <p className="text-[11px] font-bold mt-1.5 leading-relaxed" style={{ color: 'rgba(255,255,255,.87)' }}>
+              E essa história, que é minha e do Luca, passa a ter <b style={{ color: GOLD }}>um pedaço de você</b> dentro dela.
+            </p>
+            <p className="mt-2 flex items-center gap-2">
+              <span className="font-black text-[10.5px] border-2 border-black rounded-lg px-2 py-0.5" style={{ ...OSWALD, background: 'linear-gradient(150deg,#FFE79A,#FFC400)' }}>🖋️ Diego · fundador nº 1</span>
+              <span className="text-[10px] font-bold" style={{ color: 'rgba(255,255,255,.6)' }}>pelo Luca: obrigado por estar aqui 💛</span>
             </p>
           </div>
         </Modal>
