@@ -183,6 +183,11 @@ bateria 104bpm + apito + rugido de GOL aos 15s + olé; gerado 100% em código,
 zero direito autoral — é a vibe, produção final pode usar loops CC0 melhores)
 + 🎽 manto-ex.png (antes/depois da camisa, campinho com o Bagres FC de manto
 rubro-negro, 6 opções de cores, regra "cancelou → manto volta pro genérico").
+CORREÇÃO DO DIEGO (09/08): "hoje não tem camisa, é balãozinho/fichinha com o
+nome" — verdade (ElencoField usa chips brancos pos+nome). Arte refeita no
+visual REAL (manto-real.png): fichinha branca FICA (nome legível), o coração
+entra como FAIXINHA LISTRADA no topo de cada chip + placa do time nas cores.
+Mudança mínima. A camisa da arte anterior era só conceito.
 🔥 AÇÃO IMEDIATA COMBINADA (09/08 00h, print do admin: 8 toques na trava do
 Manual em 1h, Akatsuki FC apertou "quero o Craque"): assim que o Diego criar
 e mandar o LINK DE PAGAMENTO do Mercado Pago do Craque (R$ 19,90 — app MP:
