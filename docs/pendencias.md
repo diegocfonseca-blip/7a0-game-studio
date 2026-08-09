@@ -102,6 +102,16 @@ DECISÕES NOVAS DO DIEGO (rodada v2 dos mockups, mesma noite):
   segura sugerida (e MUITO a cara do jogo): a COMUNIDADE grava os próprios
   cantos (grupo VIP), Diego aprova e sobe — mesmo esquema técnico, zero
   risco, zoeira máxima. Aguardando decisão.
+- 🩹 IDEIA 10 (do Diego): PATCH DE NOMES REAIS (estilo Brasfoot) como
+  benefício de sócio. ⚖️ Modelo legal do Brasfoot: o jogo vende o SUPORTE a
+  patch (importar arquivo de apelidos), a COMUNIDADE cria/compartilha o
+  arquivo com nomes reais — o jogo nunca embute marca registrada. 🔧 Lei
+  técnica: patch é APELIDO DE EXIBIÇÃO apenas (tabela/jornal/placar/ficha);
+  a chave interna do time NUNCA muda (lição van der Sar — senão quebra
+  cpuSquads/valores/histórico). Liga/desliga sem efeito no save. 🖋️ REGRA
+  SAGRADA: patch jamais renomeia time BATIZADO (barão pagou pelo nome). Só
+  carreira solo (online precisa de nomes iguais pra todos). Esforço médio.
+  Aguardando decisão.
 - ❤️ IDEIA 9 (do Diego): PACOTE CORAÇÃO — usuário torce por um clube REAL
   (ex.: Flamengo) e o jogo usa isso SEM nome/escudo oficial (marca
   registrada; cores e padrões são livres): (a) MANTO DO CORAÇÃO — o time
