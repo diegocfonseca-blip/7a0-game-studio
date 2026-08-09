@@ -121,6 +121,22 @@ inclusive pode ser convocada pros 22 ativos), só a RENDA em moedas fica
 "🔒 destrava: [requisito]" até desbloquear aquela categoria — nunca esconde
 nem perde a carta, só a moeda que ela renderia.
 
+## 🏪 APOIE v14 COMPLETO — NO AR (09/08, commit 9087922; Diego reclamou
+"quase não mudou" vendo só o card do sócio): o MIOLO do modal foi trocado
+pelos cards aprovados — ⭐ Craque (Manual/prata/overall até ⭐ + chips 4
+fichas e sócio 4,90) · 👑 Lenda (ouro/VIP/overall total + caixa dourada
+Carreira Online/Ligas Fechadas + chips 6 fichas, +R$20, sócio 2,90) ·
+🖋️ Batismo preto-e-ouro (nome no jogo, preços com motivo A·B·C·Várzea
+59,90 / Série D rivais 69,90, tudo da Lenda, SÓCIO INCLUSO, FUNDADOR até
+nº100, regra do barão, 8 fichas). Tocar no card abre o fluxo de compra de
+cada um (cores prata/ouro · dream). "Só apoiar (Pix)" virou botão fino.
+Caixa antiga "Só pra quem é Lenda" saiu (conteúdo mora no card da Lenda).
++ 🗳️ BANCO DA VOTAÇÃO PRONTO (migração votacao_e_mural_dos_socios):
+esc_votacoes/esc_votos + RPCs esc_admin_votacao_criar/fechar,
+esc_votacao_atual (% ao vivo, só sócio), esc_votar (troca permitida
+enquanto aberta) e esc_mural (nome+nº+desde+tier, sem e-mail). FALTA a UI
+(área do sócio no modal + seção votação no painel) — próxima leva.
+
 ## 🐊 FESTÃO DA MASCOTE — NO AR (09/08, commit 9c1d24f):
 src/escalacao/mascotes.tsx = registro MASCOTES (chave→desenho; 1ª: 'alface',
 a alface brava de corpo inteiro) + <FestaoMascote>: overlay do GIF aprovado
