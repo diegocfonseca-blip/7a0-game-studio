@@ -12,6 +12,34 @@ const INK = '#0C0C0C'
 // registro das mascotes prontas (chave → desenho). Cada sócio que pedir ganha
 // a dele aqui — 1ª da casa: a alface brava do Alfacehh FC.
 export const MASCOTES: Record<string, ReactNode> = {
+  // 🦊 raposa azul do La Bestia Negra (Elton) — cara IGUAL à do escudo (pedido
+  // do Diego 09/08): orelhão com miolo preto, bigodinho, focinho creme.
+  raposa: (
+    <svg width="120" height="164" viewBox="0 0 120 170">
+      <g transform="translate(0,6)">
+        <path d="M88 110 q26 -6 24 -34 q14 30 -8 50 q-12 10 -22 4 Z" fill="#1B62C9" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M108 82 q8 16 -4 32 l-10 -8 q10 -10 8 -22 Z" fill="#F4ECD6" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+        <path d="M48 118 48 140 40 146 56 146 55 118 Z" fill={INK} />
+        <path d="M72 118 72 140 80 146 64 146 65 118 Z" fill={INK} />
+        <path d="M44 104 76 104 78 122 62 118 60 122 42 122 Z" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M40 66 80 66 88 110 32 110 Z" fill="#0E3E86" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M52 66 68 66 66 84 60 90 54 84 Z" fill="#F4ECD6" stroke={INK} strokeWidth="3" />
+        <path d="M42 70 L28 46 L36 40 L50 66" fill="#0E3E86" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M78 70 L92 46 L84 40 L70 66" fill="#0E3E86" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <circle cx="32" cy="42" r="7" fill="#1B62C9" stroke={INK} strokeWidth="3.5" />
+        <circle cx="88" cy="42" r="7" fill="#1B62C9" stroke={INK} strokeWidth="3.5" />
+        <g transform="translate(2,-26.7) scale(0.58)">
+          <path d="M64 58 L80 88 L52 92 Z M136 58 L120 88 L148 92 Z" fill="#1B62C9" stroke={INK} strokeWidth="7" strokeLinejoin="round" />
+          <path d="M70 66 L78 84 L60 86 Z M130 66 L122 84 L140 86 Z" fill={INK} />
+          <path d="M62 88 Q100 72 138 88 L144 108 L128 118 L138 128 Q120 158 100 164 Q80 158 62 128 L72 118 L56 108 Z" fill="#1B62C9" stroke={INK} strokeWidth="7" strokeLinejoin="round" />
+          <path d="M100 132 q-16 -4 -24 8 q10 20 24 24 q14 -4 24 -24 q-8 -12 -24 -8 Z" fill="#F4ECD6" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+          <circle cx="84" cy="110" r="7" fill={INK} /><circle cx="116" cy="110" r="7" fill={INK} />
+          <path d="M100 152 l-9 -11 h18 Z" fill={INK} />
+          <path d="M70 126 l-12 -3 M70 132 l-11 3 M130 126 l12 -3 M130 132 l11 3" stroke={INK} strokeWidth="4" strokeLinecap="round" />
+        </g>
+      </g>
+    </svg>
+  ),
   alface: (
     <svg width="120" height="164" viewBox="0 0 120 170">
       <g transform="translate(0,10)">

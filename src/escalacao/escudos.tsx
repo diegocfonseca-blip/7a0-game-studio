@@ -389,8 +389,30 @@ export function escudoDe(nomeCru: string): EscudoDesign {
 }
 
 // 💰 LOGOS ARTESANAIS (pagas): nome do time → desenho próprio, entra no lugar do
-// automático. Vazio por enquanto — é só adicionar aqui quando alguém comprar.
-export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {}
+// automático. É só adicionar aqui quando alguém comprar.
+export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
+  // 🦊 La Bestia Negra (batismo do eltonfrossard45, aprovado pelo Diego 09/08):
+  // azul cruzeirense + diagonal clara, estrela creme e a cabeça da raposa.
+  'La Bestia Negra': (size: number) => {
+    const mini = size < 40
+    const w = Math.round(size * 200 / 240)
+    return (
+      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="La Bestia Negra" role="img" style={{ flex: 'none', display: 'block' }}>
+        <defs><clipPath id="lbnClip"><path d="M100 22 L182 46 V142 C182 184 140 210 100 230 C60 210 18 184 18 142 V46 Z" /></clipPath></defs>
+        <path d="M100 22 L182 46 V142 C182 184 140 210 100 230 C60 210 18 184 18 142 V46 Z" fill="#0E3E86" />
+        <g clipPath="url(#lbnClip)"><path d="M-20 250 L210 20 v40 L20 250 Z" fill="#1B62C9" opacity=".55" /></g>
+        <path d="M100 22 L182 46 V142 C182 184 140 210 100 230 C60 210 18 184 18 142 V46 Z" fill="none" stroke={INK} strokeWidth={mini ? 9 : 7} strokeLinejoin="round" />
+        <path d="M100 38 L106 52 L121 52 L109 61 L114 76 L100 67 L86 76 L91 61 L79 52 L94 52 Z" fill="#F4ECD6" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M64 58 L80 88 L52 92 Z M136 58 L120 88 L148 92 Z" fill="#F4ECD6" stroke={INK} strokeWidth={mini ? 8 : 6} strokeLinejoin="round" />
+        {!mini && <path d="M70 66 L78 84 L60 86 Z M130 66 L122 84 L140 86 Z" fill={INK} />}
+        <path d="M62 88 Q100 72 138 88 L144 108 L128 118 L138 128 Q120 158 100 164 Q80 158 62 128 L72 118 L56 108 Z" fill="#F4ECD6" stroke={INK} strokeWidth={mini ? 8 : 6} strokeLinejoin="round" />
+        <circle cx="84" cy="110" r={mini ? 7.5 : 6.5} fill={INK} /><circle cx="116" cy="110" r={mini ? 7.5 : 6.5} fill={INK} />
+        <path d="M100 152 l-9 -12 h18 Z" fill={INK} />
+        {!mini && <path d="M70 126 l-12 -3 M70 132 l-11 3 M130 126 l12 -3 M130 132 l11 3" stroke={INK} strokeWidth="3.5" strokeLinecap="round" />}
+      </svg>
+    )
+  },
+}
 
 // ─── 🛡️ o componente ──────────────────────────────────────────────────────
 // `size` = altura em px. Abaixo de 40px entra a versão MINI: sem detalhes finos

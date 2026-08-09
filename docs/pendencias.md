@@ -330,6 +330,11 @@ entrega = commit isolado, buildar antes, main = deploy):
    · 4,90/mês (Craque): https://mpago.la/1jqtK38
    ✔️ 09/08: eltonfrossard45@gmail.com virou LENDA (ouro+manual) + FUNDADOR nº 36
    + SÓCIO nº 12 (origem batismo, validade 2099) — direto no banco.
+   ✔️ 09/08: KIT completo do La Bestia Negra aprovado e no ar — escudo artesanal
+   (LOGOS_PRONTAS em escudos.tsx: azul cruzeirense + raposa + estrela creme),
+   mascote 'raposa' (mascotes.tsx, cara igual à do escudo) e manto azul/creme
+   (#0E3E86/#F4ECD6) + mascote_key no banco. Estádio dele ainda SEM nome — se o
+   Elton quiser, Diego seta pelo painel.
    ✔️ batismo do Elton: "Lá Bestia Negra" no lugar do River Prato (SÉRIE D, a
    dos rivais) — DIVISION_TEAMS.D + CPU_MANAGERS + ponte OLD_NAME pros saves.
    ✔️ 09/08 (tarde): LOJA DE TELA ÚNICA no ar (mockup v3 aprovado, "e publique"):
