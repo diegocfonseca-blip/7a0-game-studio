@@ -168,6 +168,16 @@ Spec final em texto (antes do mockup, como ele pediu). Decisões DELE já dentro
 - Pagamento: 3 planos no MP (cartão) + recarga Pix 30d; entrega pelo painel
   (já no ar) + validade de 30 dias a construir.
 PERGUNTA ABERTA: o voto dos sócios DECIDE a categoria ou só orienta?
+⚖️→🎨 DECISÃO DO DIEGO (09/08): NADA de nome real ("Flamengo") nem canto
+real — ele acatou o quadro legal. Cardápio REABERTO a pedido dele (a nota
+"não reapresentar" caiu — ele pediu "fale todas aqui novamente"). Lista
+completa reenviada com as versões LEGAIS destacadas: quase-nomes estilo PES
++ som de estádio genérico + manto do coração (cores são livres) — mesmas
+tomadas técnicas, zero risco. Escudo à mão explicado de novo (desenho manual
+do Diego via LOGOS_PRONTAS/admin; aparece no elenco, tabela, placar,
+carteirinha, mural; 1º mês). Seleção recomendada pra caixinha: fixos +
+quase-nomes + som genérico + manto do coração + placas do campinho +
+aniversário do sócio; resto vira novidade mês a mês. AGUARDANDO ele escolher.
 🔥 AÇÃO IMEDIATA COMBINADA (09/08 00h, print do admin: 8 toques na trava do
 Manual em 1h, Akatsuki FC apertou "quero o Craque"): assim que o Diego criar
 e mandar o LINK DE PAGAMENTO do Mercado Pago do Craque (R$ 19,90 — app MP:
