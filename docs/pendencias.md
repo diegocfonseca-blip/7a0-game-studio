@@ -1,5 +1,31 @@
 # 📌 Pendências combinadas com o Diego (atualizado 09/08/2026)
 
+## 🏆 RANKING: carreira antiga (sem Agência) parou de somar título (09/08, print do Falido FC) ✅ NO AR
+Diego mandou print de um técnico (Falido FC) com 391 títulos/quase 49 mil
+gols — carreira antiga, sem a Agência 2.0, virou um jeito fácil de inflar o
+ranking sem jogar o modo de verdade. Pedido: só carreira NOVA (com Agência)
+soma título pro ranking daqui pra frente; quem quer subir tem que jogar
+carreira nova.
+- **Achado**: os 3 lugares que gravam título de carreira no `esc_results`
+  (o que a aba "🪜 Carreira" do ranking lê) — liga/divisão e Copa Legends em
+  `pyramidseason.tsx`, Copa do Mundo em `copa-mundo.tsx` — não checavam
+  `state.agenciaOn` (o flag que marca carreira nova vs antiga). Corrigido:
+  os 3 agora só gravam com `agenciaOn` true. A Copa do Mundo precisou o flag
+  passado por prop (`CopaMundoGate → CopaMundo → CupScreen`).
+- **A carta de campeão continua garantida em QUALQUER carreira** (antiga ou
+  nova) — só o TÍTULO do ranking que parou de contar em save antigo.
+- **NÃO retroativo**: título já gravado de carreira antiga continua lá (não
+  apaguei histórico de ninguém) — só parou de SOMAR mais daqui pra frente.
+  Se quiser também esconder/zerar o que o Falido FC (e outros) já grindaram
+  assim, é outro passo — avisar antes de eu mexer (apaga dado de gente).
+- **Achado à parte, NÃO mexido**: o modo "carreira online" LEGADO
+  (`careeronline.tsx`, tela antiga) grava `season_key` sem o prefixo `co:`
+  — por isso nem cai na aba Carreira hoje, cai ERRADO na aba Rápido Online
+  (o filtro do RPC `esc_ranking` só exclui `co:%`, não confere o formato
+  certo do rápido). Pode ser OUTRA fonte da inflação do Falido FC — decisão
+  em aberto, e mexer aí é do lado do banco (RPC `esc_ranking`), mais
+  delicado. Reversível com `git revert d55c35b`.
+
 ## 🤝 DUPLA: formar vaga virou PEDIDO com aceite (09/08, pedido do Diego) ✅ NO AR
 Mudança combinada em conversa: tocar numa vaga não vira dupla mais na hora —
 manda um PEDIDO, a pessoa vê um banner e ACEITA ou RECUSA (ou deixa expirar
