@@ -1937,7 +1937,10 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contr
         </div>
       )}
       <div style={{ border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
-        <div style={{ padding: '8px 5px', display: 'flex', flexDirection: 'column', gap: 5, background: `repeating-linear-gradient(180deg, ${GREEN} 0 30px, #166332 30px 60px)` }}>
+        {/* 🌱 campinho mais vertical (09/08, pedido do Diego: "parece achatado")
+            — só o CAMPO cresce (listras + respiro entre as linhas); o balão
+            branco do jogador (padding do botão, mais abaixo) fica igual. */}
+        <div style={{ padding: '14px 5px', display: 'flex', flexDirection: 'column', gap: 9, background: `repeating-linear-gradient(180deg, ${GREEN} 0 38px, #166332 38px 76px)` }}>
           {rows.map(r => (
             // 🥅 linha ÚNICA por setor (nunca quebra): a defesa tem 4 cartas (LAT-ZAG-
             // ZAG-LAT) e no celular a 4ª "pulava" pra baixo, parecendo formação errada
