@@ -121,6 +121,20 @@ inclusive pode ser convocada pros 22 ativos), só a RENDA em moedas fica
 "🔒 destrava: [requisito]" até desbloquear aquela categoria — nunca esconde
 nem perde a carta, só a moeda que ela renderia.
 
+## 🐊 FESTÃO DA MASCOTE — NO AR (09/08, commit 9c1d24f):
+src/escalacao/mascotes.tsx = registro MASCOTES (chave→desenho; 1ª: 'alface',
+a alface brava de corpo inteiro) + <FestaoMascote>: overlay do GIF aprovado
+em CSS 60fps — fundo verde radial + raios girando + chuva de confete +
+"🏆 CAMPEÃO!" pulsando + a mascote ATRAVESSANDO a tela quicando (sombra,
+gingado), ~4,2s, toque pula. Gatilhos: RÁPIDO (EscEnd, youWon) e CARREIRA
+(campeão da divisão, pós-animação da 38ª). Só o campeão vê; 1x por
+temporada (sessionStorage). A chave vem de esc_socios.mascote_key — campo
+novo "mascote (chave: alface)" no painel 🎨. Pra estrear: setar
+mascote_key='alface' pro matheus223lms (Alfacehh) no painel.
+FALTAM da fila grande: votação+mural · cards v14 no modal · patch
+quase-nomes · mascotes novas conforme os barões pedirem (desenhar em
+mascotes.tsx, mesma receita da alface).
+
 ## 📰 ESTÁDIO NO JORNAL — NO AR (09/08, commit 3298204): a capa do jornal
 de fim de temporada (na tela E na imagem compartilhada pro zap/IG) agora
 fecha o subtítulo com "Direto do 🏟️ {nome batizado}." quando o sócio tem
