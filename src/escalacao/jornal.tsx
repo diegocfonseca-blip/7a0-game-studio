@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef } from 'react'
 import type { SimTeam, CopaResult, SeasonScorer, Div } from './pyramidseason'
 import { Escudo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
+import { meuEstadioNome } from './manto' // 🏟️ nome batizado pelo sócio
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -251,7 +252,8 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
     y += 4
     x.fillStyle = '#3a3527'
     const sFont = `italic 700 27px ${SER}`
-    for (const ln of wrap(hl.s, sFont, R - L)) { x.font = sFont; x.fillText(ln, L, y); y += 34 }
+    const subTxt = meuEstadioNome() ? `${hl.s} Direto do 🏟️ ${meuEstadioNome()}.` : hl.s
+    for (const ln of wrap(subTxt, sFont, R - L)) { x.font = sFont; x.fillText(ln, L, y); y += 34 }
     y += 18
     // foto (esq) + números (dir)
     const boxH = 330, colW = (R - L - 24) / 2
@@ -425,7 +427,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
       <>
       {/* manchete (única pra cada uma das 80 posições) */}
       <h2 style={{ ...SERIF, fontWeight: 900, fontSize: 25, lineHeight: 1.02, margin: '9px 0 4px', letterSpacing: -0.5, color: INK }}>{hl.h}</h2>
-      <p style={{ fontSize: 11.5, fontWeight: 700, fontStyle: 'italic', color: '#3a3527', margin: '0 0 9px', lineHeight: 1.3 }}>{hl.s}</p>
+      <p style={{ fontSize: 11.5, fontWeight: 700, fontStyle: 'italic', color: '#3a3527', margin: '0 0 9px', lineHeight: 1.3 }}>{hl.s}{meuEstadioNome() ? <> Direto do <b>🏟️ {meuEstadioNome()}</b>.</> : null}</p>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
         {/* "foto" */}
