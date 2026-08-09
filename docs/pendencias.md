@@ -65,10 +65,17 @@ entrega = commit isolado, buildar antes, main = deploy):
    N →" abre o álbum de hoje). Fundador nº: precisa expor por user_id (hoje
    FUNDADOR_N é por e-mail, client-side) — criar view/RPC ou coluna no
    ranking.
-2. 🗄️ INFRA SÓCIO no Supabase: tabela esc_socios (email PK, socio_n serial,
-   desde, ativo, validade 30d, manto_cores, estadio_nome, mascote_key) +
-   RPCs admin (mesmo padrão esc_admin_apoio_set) — entrega manual pelo
-   painel, como Diego faz hoje.
+2. ✅ INFRA SÓCIO NO AR (09/08, migração infra_socio_legends + commit
+   b3b4453): tabela esc_socios (email PK, socio_n identity FIXO, desde,
+   valido_ate ~33d, manto_c1/c2, estadio_nome, mascote_key; RLS trancada) ·
+   RPCs: esc_admin_socio_set (liberar/renovar +33d; p_dias<=0 EXPIRA sem
+   apagar — nº e tempo de casa preservados, regra do Diego) ·
+   esc_admin_socio_list · esc_meu_socio (status próprio) · esc_perfil
+   AMPLIADO (agora devolve socio_n/desde/ativo também). Painel ganhou a
+   seção "🎫 Sócio Legends · mensal" (roxa, entre Apoiadores e Fichas).
+   💳 LINK MP DO SÓCIO 9,90/mês (mandado pelo Diego 09/08):
+   https://mpago.la/32tTjqE — AINDA FALTAM: planos 4,99 (craque) e 2,99
+   (lenda/batismo) + link avulso Craque 19,90 (pra trava do Manual).
 3. 🪪 CARTEIRINHAS no jogo (área do apoiador + perfil) — visual APROVADO
    (carteirinhas.png), compartilháveis via motor do shareElenco.
 4. 🏟️ NOME DO ESTÁDIO (campo aprovado por Diego no admin; aparece na área do
