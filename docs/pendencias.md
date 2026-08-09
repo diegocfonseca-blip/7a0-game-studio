@@ -1,5 +1,46 @@
 # 📌 Pendências combinadas com o Diego (atualizado 09/08/2026)
 
+## 🎁 CARTA DO CAMPEÃO: achado o motivo de sumir mesmo campeão de verdade (09/08) ✅ NO AR
+Diego relatou um usuário que foi campeão DUAS vezes e não recebeu carta
+NENHUMA das duas — pediu pra analisar a fundo os dois pontos possíveis: (1)
+tem algum modo/cenário onde o pacote nem aparece pro campeão? (2) quando
+falha, a carta some do álbum de vdd (quebra a GARANTIA) ou só o banner
+visual que não aparece?
+- **Ponto 1 (nunca aparece pro campeão): não achei nenhum buraco.** Conferi
+  TODOS os lugares que abrem `CardCollectPrompt` — Rápido CPU/online (liga
+  e Copa dos 8), Carreira liga/divisão (D/C/B/A **e Várzea**), Copa Legends,
+  Copa do Mundo, e o guardado de multiclube — e em todos o pacote só depende
+  de "você é campeão", nunca de `agenciaOn` ou qualquer outro flag que
+  pudesse excluir um campeão de verdade. Inclusive conferi que meu fix de
+  09/08 do ranking (item acima) só mexeu na GRAVAÇÃO DO TÍTULO, não na carta
+  — carta continua garantida em qualquer carreira, nova ou antiga.
+- **Ponto 2: achei e corrigi uma falha real, que apaga a carta de verdade
+  (não é só o banner que some).** O `CardCollectPrompt` checava a conta com
+  `supabase.auth.getUser()` — essa chamada BATE NO SERVIDOR (não é local).
+  Se a rede engasgasse bem naquele instante (comum em carreira, que roda
+  horas — celular volta do fundo, wifi cai um segundo), o código tratava
+  "deu erro de rede" IGUAL a "não tem conta": mostrava a tela de "criar
+  conta grátis" pra um campeão que JÁ TINHA conta, e a carta nunca era
+  gravada (nem entrava na fila de retry — essa parte só existe pra falha na
+  GRAVAÇÃO, não pra falha no check de login). Pior: o `persist()` fazia
+  outro `getUser()` por conta própria — ou seja, DOIS pontos onde uma rede
+  ruim podia derrubar a carta, não só um.
+- **Corrigido** (`screens.tsx`, `CardCollectPrompt`): troquei o check pra
+  `getSession()` (lê local, sem bater na rede — não trava por wifi ruim),
+  com até 3 tentativas antes de desistir de vdd; e o `persist()` agora
+  REUSA a conta já resolvida no check inicial em vez de checar de novo. Isso
+  fecha os dois pontos onde uma instabilidade passageira podia fazer o
+  campeão sumir sem carta.
+- **Achado à parte, NÃO mexido**: esse padrão de `getUser()` (bate na rede,
+  sem retry) se repete em ~40 lugares do jogo todo (vários arquivos) — não
+  mexi em nada além do fluxo da carta (é o único que Diego pediu pra
+  investigar, e mexer nos outros 39 é risco desnecessário pro futebol ao
+  vivo sem pedido). Se aparecer outro relato parecido em outro lugar (ex.:
+  perfil não carrega, apoio não reconhece a conta), é candidato a levar o
+  mesmo tratamento.
+- Reversível: `git revert` no commit desse fix (só mexe no
+  `CardCollectPrompt`, não muda visual nenhum — sem precisar de mockup).
+
 ## 🏆 RANKING: carreira antiga (sem Agência) parou de somar título (09/08, print do Falido FC) ✅ NO AR
 Diego mandou print de um técnico (Falido FC) com 391 títulos/quase 49 mil
 gols — carreira antiga, sem a Agência 2.0, virou um jeito fácil de inflar o

@@ -5073,15 +5073,27 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   const [pendingPick, setPendingPick] = useState<WonCard | null>(null) // carta já sorteada e GRAVADA, esperando a cerimônia de abrir
   const [dismissed, setDismissed] = useState(false) // fechou o popup "na cara" → vira pílula pra reabrir (a carta já conta)
   const savedRef = useRef(false) // idempotência: grava a carta UMA vez por montagem
+  const userIdRef = useRef<string | null>(null) // conta já resolvida — persist() reusa, sem bater na rede de novo
 
   useEffect(() => {
     ;(async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setStatus('noauth'); return } // sem cadastro não ganha carta
+      // 🔒 getSession() (LOCAL, sem rede) em vez de getUser() (bate no servidor):
+      // um campeão JÁ logado não pode cair em "sem conta" por causa de uma rede
+      // instável naquele instante — isso apagava a carta de gente com conta real.
+      // Ainda assim tenta de novo algumas vezes antes de desistir (raríssimo, mas
+      // protege de um hiccup do próprio SDK logo depois de a aba voltar do fundo).
+      let uid: string | null = null
+      for (let tent = 0; tent < 3 && !uid; tent++) {
+        if (tent > 0) await new Promise(r => setTimeout(r, 700))
+        const { data: { session } } = await supabase.auth.getSession()
+        uid = session?.user?.id ?? null
+      }
+      if (!uid) { setStatus('noauth'); return } // sem cadastro (de verdade) não ganha carta
+      userIdRef.current = uid
       // o que o usuário já tem no álbum — pra não oferecer repetida
-      const { data: ownedRows } = await supabase.from('user_cards').select('card_name').eq('user_id', user.id)
+      const { data: ownedRows } = await supabase.from('user_cards').select('card_name').eq('user_id', uid)
       setOwned(new Set((ownedRows ?? []).map((r: { card_name: string }) => r.card_name)))
-      const { data } = await supabase.from('user_cards').select('*').eq('user_id', user.id).eq('season_key', seasonKey).maybeSingle()
+      const { data } = await supabase.from('user_cards').select('*').eq('user_id', uid).eq('season_key', seasonKey).maybeSingle()
       if (data) {
         const cc = { id: 'x', name: data.card_name, club: data.card_club, year: data.card_year, pos: data.card_pos, fame: data.card_fame, ...(CARD_META.get(data.card_name) ?? {}), lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard
         setClaimed(cc); onClaimed?.(cc); onGuaranteed?.(cc)
@@ -5120,13 +5132,17 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // 🔒 grava a carta na conta (álbum) — RESILIENTE: se o backend cair, guarda no
   // aparelho e re-tenta ao reabrir. NÃO revela: só garante que a carta É do campeão.
   async function persist(card: WonCard) {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setStatus('noauth'); return }
+    // reusa a conta já resolvida no check inicial — SEM bater na rede de novo
+    // (era um 2º getUser() aqui, e se ESSE falhasse por instabilidade a carta
+    // sumia mesmo com o campeão logado; getSession() abaixo é só um fallback raro).
+    let uid = userIdRef.current
+    if (!uid) { const { data: { session } } = await supabase.auth.getSession(); uid = session?.user?.id ?? null }
+    if (!uid) { setStatus('noauth'); return }
     // season_key INTEIRA: a coluna é `text` (sem limite). Cortar em 48 quebrava a
     // dedup (a leitura usa a chave inteira) e colava temporadas na mesma chave.
     const key = seasonKey
     await resilientWrite({ table: 'user_cards', row: {
-      user_id: user.id, season_key: key, origin,
+      user_id: uid, season_key: key, origin,
       card_name: card.name, card_club: card.club, card_year: card.year, card_pos: card.pos, card_fame: card.fame,
     } })
   }
