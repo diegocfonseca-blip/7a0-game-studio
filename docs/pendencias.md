@@ -157,6 +157,14 @@ entrega = commit isolado, buildar antes, main = deploy):
    "apoio nenhum dá vantagem em campo"; assinatura "🖋️ Diego · fundador
    nº 1" + barra "sócios seguram o servidor" INTEGRADA no card. POSIÇÃO:
    logo abaixo do card do Sócio, antes do Craque. Aguardando OK.
+   v2 da história (09/08): ❌ BARRA "sócios seguram o servidor" CORTADA
+   (recomendação aceita: número baixo público anuncia fraqueza + tom
+   pedinte; prova social volta só quando houver número bonito) · ❌ "100%
+   grátis com tudo liberado" REMOVIDO (Diego: "não está mais") → virou
+   "este jogo vivo, crescendo toda semana". ⚠️ Checar o paywall AO VIVO:
+   o texto atual da tela principal também promete "100% grátis pra sempre,
+   com tudo liberado" (screens.tsx ~linha 238 e 367) — corrigir junto com
+   a loja nova pra não prometer o que não é.
    🕵️→🎨 PEDIDO DO DIEGO (09/08, madrugada): nos cards de Craque/Lenda o
    olheiro tem que DIZER "overall do jogador" e MOSTRAR mini-amostra visual
    (chip colorido tipo "Djalminha 82–91") — feito na v9 do m2 (Craque:
