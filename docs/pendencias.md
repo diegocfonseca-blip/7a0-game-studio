@@ -262,6 +262,13 @@ de temporada quicando POR CIMA da UI (tabela, botão de voto), com um pulão
 no meio, sombra no chão, rotação de gingado, banner CAMPEÃO pulsando e
 confete caindo em loop. Na implementação real: CSS/JS a 60fps, ~4s,
 toque pula. AGUARDANDO veredito do GIF.
+→ ✅ APROVADO PELO DIEGO (09/08): "Gostei desse pra quem é sócio torcedor".
+A MASCOTE ENTRA NO SÓCIO como benefício oficial: desenhada à mão pelo Diego
+(entrega manual, tipo escudo), mora na área do clube (carreira) e faz o
+FESTÃO ANIMADO do título em todos os modos (versão do GIF: solta na tela,
+quicando por cima da UI, pulão, sombra, confete; 60fps, ~4s, toque pula;
+só o time campeão vê; pós-apito). Pendentes ainda: capa de campeão, camisa
+aposentada, batizar torcida/clássico, bots batizados, voto decide/orienta.
 📌 STATUS FINAL DA RODADA (08/08, noite): Diego travou na dúvida olheiros-
 no-sócio vs escadinha ("só sei que quero que venda MT"). RECOMENDAÇÃO FIRME
 enviada: ESCADINHA por tier (4 produtos, 4 desejos: sócio=jogo do seu
