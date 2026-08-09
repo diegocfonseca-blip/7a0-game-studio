@@ -1932,9 +1932,13 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
   const [bbLang] = useLang()
   const L = (pt: string, e: string) => bbLang === 'en' ? e : pt
   const [sub, setSub] = useState<'estadio' | 'financas' | 'escritorio'>('estadio')
+  const online = state.onlineMode === 'online' // 🌐 online: dados por TÉCNICO (careerSponsors/Ledgers/Empresario[youId])
   const youId = state.managers[state.youIdx]?.id ?? state.youIdx
   const div = ({ street: 'D', gleague: 'B', nba: 'A' } as Record<string, string>)[state.nbaTier ?? 'street'] ?? 'D'
   const coins = state.careerCoins?.[youId] ?? 0
+  const mySponsor = online ? state.careerSponsors?.[youId] : state.careerSponsor
+  const myCards = (online ? state.careerEmpresario?.[youId] : state.empresarioCards) ?? []
+  const myLedger = (online ? state.careerLedgers?.[youId] : state.careerLedger) ?? []
   // 2º clube: crews que VÃO ficar no andar-base (mesma regra do futebol pra Série D)
   const multiOpcoes = state.managers
     .filter(m => !m.isHuman && !m.rival && !m.auctionRival && !m.mine
@@ -1956,16 +1960,17 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 20px' }}>
           {sub === 'escritorio' ? (
-            <EscritorioTab cards={state.empresarioCards ?? []} st={state.stadiums?.[youId]} hasFilial={false} bb en={bbLang === 'en'} />
+            <EscritorioTab cards={myCards} st={state.stadiums?.[youId]} hasFilial={false} bb en={bbLang === 'en'} />
           ) : sub === 'financas' ? (
-            <FinancasTab ledger={state.careerLedger ?? []} caixa={coins} seasonNo={state.seasonNo ?? 1} squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} bb en={bbLang === 'en'} />
+            <FinancasTab ledger={myLedger} caixa={coins} seasonNo={state.seasonNo ?? 1} squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} bb en={bbLang === 'en'} />
           ) : (
             <>
-              <SponsorCard div={div} chosen={state.careerSponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id, mgrId: youId })} bb en={bbLang === 'en'} />
+              <SponsorCard div={div} chosen={mySponsor} onChoose={id => dispatch({ type: 'SET_SPONSOR', id, mgrId: youId })} bb en={bbLang === 'en'} />
               <StadiumTab st={state.stadiums?.[youId]} coins={coins}
                 onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
                 onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })} bb en={bbLang === 'en'} />
-              <MultiClubeBuy jaTem={state.multiClube?.team} opcoes={multiOpcoes} coins={coins} preco={4000} isLenda={myApoioPerk()?.tier === 'ouro'} onBuy={team => dispatch({ type: 'BUY_MULTICLUBE', team })} bb en={bbLang === 'en'} />
+              {/* 🏛️ 2º clube (Multiclubes) é SÓ SOLO — igual ao futebol (online seria pesadelo de sync) */}
+              {!online && <MultiClubeBuy jaTem={state.multiClube?.team} opcoes={multiOpcoes} coins={coins} preco={4000} isLenda={myApoioPerk()?.tier === 'ouro'} onBuy={team => dispatch({ type: 'BUY_MULTICLUBE', team })} bb en={bbLang === 'en'} />}
             </>
           )}
         </div>

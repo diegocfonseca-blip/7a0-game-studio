@@ -2674,6 +2674,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // guests recebem tudo via SYNC_STATE. Reusa o MESMO motor do rápido/reservas —
       // futebol NUNCA passa aqui (guardado por sport==='basquete' && nbaCareer && online).
       if (s.onlineMode !== 'online' || s.sport !== 'basquete' || !s.nbaCareer) return s
+      // 💰 ECONOMIA (Camada 1): fecha o caixa da temporada que ACABOU — prêmios por
+      // colocação + bilheteria/estádio + patrocínio (por andar) − folha — POR TÉCNICO
+      // (applySeasonMoney já trata o online). ANTES de avançar. Mesma coisa do solo.
+      if (s.careerOnline) applySeasonMoney(s, nbaSeasonRewards(sortedTable(s.league), s.nbaTier ?? 'street'))
       s.seasonNo++
       const rng = mulberry((s.seed ^ (s.seasonNo * 2246822519)) >>> 0)
       setActiveSport('basquete', 'career') // base = 1/posição (quinteto); nbaSlots cresce por humano
@@ -2742,6 +2746,14 @@ export function reducer(state: EscState, action: Action): EscState {
           }
         }
       }
+      // 🧾 economia por ANDAR (online): recoloca todos na divisão do andar ATUAL (patrocínio/
+      // caixa-base seguem o andar) e garante o caixa-base dos bots novos que subiram junto.
+      if (s.careerOnline) {
+        const plNext: Record<string, string> = {}
+        for (const m of s.managers) plNext[`m${m.id}`] = tierDivKey(s.nbaTier)
+        s.careerPlacements = plNext
+        s.clubCash = seedClubCash(s.clubCash ?? {}, plNext)
+      }
       // modo de copa segue o andar ATUAL (já promovido, se subiu): street = só pontos
       // corridos; G League/NBA = playoffs (o chaveamento por conferência que já existe).
       s.copaMode = (s.nbaTier ?? 'street') === 'street' ? 'liga' : 'liga_copa'
@@ -2763,7 +2775,8 @@ export function reducer(state: EscState, action: Action): EscState {
       const wantReserve = humans.some(you => SECTORS.some(pos => openSlots(you, pos) > 0))
       if (wantReserve) {
         s.reserveAuction = true; s.reserveListed = {}
-        for (const m of humans) m.money = NBA_RESERVE_BUDGET // cada humano ganha o orçamento de reservas
+        // 💰 orçamento de reservas = a CAIXA acumulada de CADA técnico (economia), não fixo.
+        for (const m of humans) m.money = s.careerOnline ? Math.max(0, Math.round(s.careerCoins?.[m.id] ?? NBA_RESERVE_BUDGET)) : NBA_RESERVE_BUDGET
         const used = new Set<string>()
         for (const m of s.managers) for (const c of m.squad) used.add(ident(c)) // ninguém repete quem já tem
         s.deck = buildDeck(humans, rng, 2.0, used, 1) // baralho só pras vagas novas dos humanos
@@ -2929,7 +2942,11 @@ export function reducer(state: EscState, action: Action): EscState {
       if (nbaRoom) setActiveSport('basquete', nbaCareerRoom ? 'career' : 'quick') // NBA: carreira = vagas de carreira; rápido = quinteto
       else setActiveCatalog(s.deckLeague)
       s.locked = action.locked; s.pwHash = action.pwHash // guarda a senha no estado (sobrevive ao autosave)
-      s.careerOnline = nbaRoom ? false : !!action.career // 🔒 basquete NUNCA liga careerOnline (ver nota acima); só o futebol usa a pirâmide online
+      // 🏀→⚽ CARREIRA ONLINE do basquete agora TAMBÉM usa a economia do futebol
+      // (careerOnline=true), igual ao solo. As travas de simulação (sport!=='basquete'
+      // em PLAY_ROUND/SET_TACTIC/router…) já garantem que ele roda a liga viva própria
+      // (EscSeason), não a pirâmide de 4 séries. Rápido do basquete segue careerOnline=false.
+      s.careerOnline = nbaRoom ? nbaCareerRoom : !!action.career
       if (nbaCareerRoom) { s.nbaTier = 'street' } // começa na base da pirâmide do basquete (Street League)
       s.ligaFechada = !!action.ligaFechada // 🏆 liga só com humanos (sem bots na tabela)
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
@@ -2949,6 +2966,17 @@ export function reducer(state: EscState, action: Action): EscState {
         s.careerScorersAll = {}; s.statsSeason = 0 // artilharia de todos os tempos começa do zero
         s.clubCash = seedClubCash({}, pl) // todo time da pirâmide começa com caixa (base por divisão)
         s.careerFilials = {}; s.careerSponsors = {} // 🏢👕 Clube online por técnico começa zerado
+      }
+      // 🏀 CARREIRA ONLINE DO BASQUETE: semeia a economia por ANDAR (tierDivKey) — igual
+      // ao solo, mas por técnico (careerSponsors/careerFilials/stadiums são por id online).
+      if (nbaCareerRoom) {
+        const pl: Record<string, string> = {}
+        for (const m of s.managers) pl[`m${m.id}`] = tierDivKey(s.nbaTier) // street = 'D'
+        s.careerPlacements = pl
+        s.careerHonors = {}; s.marketValues = {}; s.marketLog = []
+        s.careerScorersAll = {}; s.statsSeason = 0
+        s.clubCash = seedClubCash({}, pl)
+        s.careerFilials = {}; s.careerSponsors = {}; s.stadiums = {} // 🚫 sem SAF; estádio/patrocínio por técnico do zero
       }
       s.roomId = action.roomId
       s.roomCode = action.roomCode
@@ -3030,12 +3058,14 @@ export function reducer(state: EscState, action: Action): EscState {
         // cada HUMANO começa com 100 de caixa (uma vez). Os bots que entram no
         // leilão são SORTEADOS a cada temporada (RESERVE_AUCTION_ONLINE) e usam o
         // caixa deles (clubCash) — no T1 inicial ninguém de bot dá lance.
+        // 🏀 basquete começa com o orçamento do quinteto (50), como o solo; futebol 100.
+        const startCoins = s.sport === 'basquete' ? NBA_CAREER_BUDGET : 100
         const cc: Record<number, number> = {}
-        for (const m of s.managers) if (m.isHuman) { cc[m.id] = 100; m.money = 100 }
+        for (const m of s.managers) if (m.isHuman) { cc[m.id] = startCoins; m.money = startCoins }
         s.careerCoins = cc
         // 🧾 livro-caixa online por técnico: zera e registra o saldo inicial de cada um
         s.careerLedgers = {}; s.careerEmpresario = {}; s.careerEmpresarioClaims = {}
-        for (const m of s.managers) if (m.isHuman) logFin(s, 'opening', '🏁 Saldo inicial', 100, undefined, m.id)
+        for (const m of s.managers) if (m.isHuman) logFin(s, 'opening', '🏁 Saldo inicial', startCoins, undefined, m.id)
       }
       s.seasonNo = 1
       s.seasonVotes = {} // novo leilão: zera a votação de fim de jogo (senão volta marcada)
@@ -3044,7 +3074,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // carreira, moedas, o auge, quem tá jogando) — os dois se veem online e o
       // HOST decide quando começar o leilão (START_STREAM_AUCTION). No rápido
       // normal/manual cai direto no leilão, como sempre.
-      if (s.streamMode || s.careerOnline) { s.screen = 'streamIntro'; return s }
+      // 🏀 basquete NÃO passa pela streamIntro (tela é 100% de futebol: Série D, SAF,
+      // pregão com jogador de futebol). A sala de basquete começa o leilão direto,
+      // como sempre (o host já começou na sala de espera). Futebol careerOnline = idêntico.
+      if ((s.streamMode || s.careerOnline) && s.sport !== 'basquete') { s.screen = 'streamIntro'; return s }
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s

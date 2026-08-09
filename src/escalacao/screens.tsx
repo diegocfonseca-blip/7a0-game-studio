@@ -4031,9 +4031,9 @@ export function EscSeason() {
           🪜 Ver as 4 divisões
         </button>
       )}
-      {/* 🏀🏢 CLUBE (economia do basquete): patrocínio, arena, agência, 2º clube — só na
-          carreira do basquete (offline). Abre o overlay que reusa a economia do futebol. */}
-      {state.careerOnline && bbS && state.onlineMode !== 'online' && (
+      {/* 🏀🏢 CLUBE (economia do basquete): patrocínio, arena, agência, 2º clube (só solo).
+          Vale na carreira do basquete SOLO e ONLINE (dados por técnico no online). */}
+      {state.careerOnline && bbS && (
         <button onClick={() => setBbClube(true)}
           className="w-full border-[3px] border-black rounded-xl py-3 font-black text-sm uppercase"
           style={{ backgroundColor: '#7C3AED', color: '#fff', boxShadow: `4px 4px 0 ${INK}`, ...OSWALD }}>
