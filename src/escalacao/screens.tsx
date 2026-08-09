@@ -6202,6 +6202,15 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   // (host_id → player_index) — é a fonte de verdade, inclusive após passar a coroa.
   const present = new Set([...(state.presence ?? []), youId])
   const pend = pendTodos.filter(m => present.has(m.id)) // só quem está NA SALA segura o começo
+  // 🤝 DUPLA (09/08, relato do Diego jogando com o Didico): o parceiro do HOST
+  // compartilha o MESMO time (youId), então nunca aparece em `guests`/`pend` —
+  // o host conseguia começar sem o parceiro ter votado, porque pro código
+  // parecia que "só falta gente de fora". `votes[youId]` só é escrito pelo
+  // PARCEIRO (o host não vota, decide) — então dá pra usar exatamente essa
+  // chave pra saber se ele já confirmou.
+  const myDupla = state.duplas?.[youId]
+  const partnerPending = isHost && !!myDupla?.partnerUid && !myDupla.soloUid && !votes[youId]
+  const podeComecarDireto = pend.length === 0 && !partnerPending
   const [hostIdx, setHostIdx] = useState<number | null>(isHost ? youId : null)
   useEffect(() => {
     if (!state.roomId) return
@@ -6360,9 +6369,12 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
           {pend.length > 0 && (
             <p className="text-center text-[11.5px] font-black" style={{ color: '#FFE08A', ...OSWALD }}>⏳ Aguardando {pend.map(m => m.teamName).join(', ')} votar{pend.length > 1 ? 'em' : ''}…</p>
           )}
-          <Btn onClick={() => pend.length === 0 ? startMesmo() : setAskStart('mesmo')} bg={pend.length === 0 ? GREEN : '#cfc6ae'} className="w-full text-lg"><span className={pend.length === 0 ? 'text-white' : 'text-black/50'}>{pend.length === 0 ? '▶️' : '🔒'} Começar (mesmo time)</span></Btn>
-          <Btn onClick={() => pend.length === 0 ? startLeilao() : setAskStart('leilao')} bg={pend.length === 0 ? GOLD : '#cfc6ae'} className="w-full text-lg"><span className={pend.length === 0 ? '' : 'text-black/50'}>{pend.length === 0 ? '🔨' : '🔒'} Abrir novo leilão</span></Btn>
-          {pend.length > 0 && (
+          {partnerPending && (
+            <p className="text-center text-[11.5px] font-black" style={{ color: '#FFE08A', ...OSWALD }}>🤝 Aguardando seu parceiro ({myDupla?.partnerName}) votar…</p>
+          )}
+          <Btn onClick={() => podeComecarDireto ? startMesmo() : setAskStart('mesmo')} bg={podeComecarDireto ? GREEN : '#cfc6ae'} className="w-full text-lg"><span className={podeComecarDireto ? 'text-white' : 'text-black/50'}>{podeComecarDireto ? '▶️' : '🔒'} Começar (mesmo time)</span></Btn>
+          <Btn onClick={() => podeComecarDireto ? startLeilao() : setAskStart('leilao')} bg={podeComecarDireto ? GOLD : '#cfc6ae'} className="w-full text-lg"><span className={podeComecarDireto ? '' : 'text-black/50'}>{podeComecarDireto ? '🔨' : '🔒'} Abrir novo leilão</span></Btn>
+          {!podeComecarDireto && (
             <p className="text-center text-[10px] font-bold text-white/70">O começo destrava quando todo mundo votar — ou toque num botão pra decidir o que fazer.</p>
           )}
         </>
@@ -6397,18 +6409,30 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
           <div className="w-full max-w-xs border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
             <p className="font-black text-black text-lg" style={OSWALD}>🔒 Nem todo mundo votou ainda</p>
             <p className="text-black/65 text-sm font-bold mb-3">
-              {pend.length === 1 ? 'Ainda falta votar: ' : 'Ainda faltam votar: '}<b>{pend.map(m => m.teamName).join(', ')}</b>. O começo fica travado até todo mundo votar. O que você quer fazer?
+              {pend.length > 0 && <>{pend.length === 1 ? 'Ainda falta votar: ' : 'Ainda faltam votar: '}<b>{pend.map(m => m.teamName).join(', ')}</b>{partnerPending ? ' e ' : '. '}</>}
+              {partnerPending && <>seu parceiro <b>{myDupla?.partnerName}</b>. </>}
+              O começo fica travado até todo mundo votar. O que você quer fazer?
             </p>
             <div className="space-y-2">
               <button onClick={() => setAskStart(null)}
                 className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>⏳ Aguardar mais um pouco</button>
               {pend.map(m => (
-                <button key={m.id} onClick={async () => { const k = askStart; setAskStart(null); if (!window.confirm(`Remover ${m.teamName} da partida?`)) return; kickPlayer(m.id); if (pend.length === 1) { await new Promise(r => setTimeout(r, 500)); k === 'mesmo' ? startMesmo() : startLeilao() } }}
-                  className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white" style={{ color: '#B23B2E', ...OSWALD }}>✂️ Excluir {m.teamName}{pend.length === 1 ? ' e começar' : ''}</button>
+                <button key={m.id} onClick={async () => { const k = askStart; setAskStart(null); if (!window.confirm(`Remover ${m.teamName} da partida?`)) return; kickPlayer(m.id); if (pend.length === 1 && !partnerPending) { await new Promise(r => setTimeout(r, 500)); k === 'mesmo' ? startMesmo() : startLeilao() } }}
+                  className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white" style={{ color: '#B23B2E', ...OSWALD }}>✂️ Excluir {m.teamName}{pend.length === 1 && !partnerPending ? ' e começar' : ''}</button>
               ))}
               {pend.length > 1 && (
-                <button onClick={async () => { const k = askStart; setAskStart(null); if (!window.confirm(`Remover ${pend.map(m => m.teamName).join(', ')} da partida?`)) return; pend.forEach(m => kickPlayer(m.id)); await new Promise(r => setTimeout(r, 500)); k === 'mesmo' ? startMesmo() : startLeilao() }}
-                  className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white" style={{ color: '#B23B2E', ...OSWALD }}>✂️ Excluir TODOS que faltam e começar</button>
+                <button onClick={async () => { const k = askStart; setAskStart(null); if (!window.confirm(`Remover ${pend.map(m => m.teamName).join(', ')} da partida?`)) return; pend.forEach(m => kickPlayer(m.id)); if (!partnerPending) { await new Promise(r => setTimeout(r, 500)); k === 'mesmo' ? startMesmo() : startLeilao() } }}
+                  className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white" style={{ color: '#B23B2E', ...OSWALD }}>✂️ Excluir TODOS que faltam{partnerPending ? '' : ' e começar'}</button>
+              )}
+              {/* 🤝 parceiro não é "excluído" — é o time do próprio host. Só dá pra
+                  esperar ou assumir e começar mesmo assim (nunca trava o jogo).
+                  Só aparece quando o parceiro é a ÚNICA pendência — se ainda falta
+                  gente de fora, resolve isso primeiro (reabre este modal depois). */}
+              {partnerPending && pend.length === 0 && (
+                <button onClick={() => { const k = askStart; setAskStart(null); k === 'mesmo' ? startMesmo() : startLeilao() }}
+                  className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white" style={{ color: '#92600A', ...OSWALD }}>
+                  ▶️ Começar mesmo assim (sem esperar {myDupla?.partnerName})
+                </button>
               )}
             </div>
           </div>
