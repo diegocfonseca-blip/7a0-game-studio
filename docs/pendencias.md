@@ -61,11 +61,20 @@ DECISÕES NOVAS DO DIEGO (rodada v2 dos mockups, mesma noite):
   é estrutura/status; bate com o funil, status vende). Distribuição:
   🆓 grátis = nada · 🎫 sócio = olheiro de BASE (💎 promessas + 🪵 ex-
   profissionais) · ⭐ Craque = de craque pra baixo (tudo menos lendas) ·
-  👑 Lenda = TODOS · 🖋️ Batismo = todos (tudo da Lenda) + ESCUDO À MÃO do
-  time batizado. Elenco misto (parte colorida, parte "?") vira vitrine: quem
-  vê metade quer o resto → upsell natural Craque→Lenda. Sócio pra Lenda fica
-  como clube de torcida (votação, cobertura, moedas, escudo, mural, 2,99
-  simbólico). AGUARDANDO o "fecha" final do Diego nessa distribuição.
+  👑 Lenda = TODOS · 🖋️ Batismo = todos (tudo da Lenda, SEM escudo — Diego
+  devolveu o escudo à mão pro SÓCIO). Elenco misto (parte colorida, parte
+  "?") vira vitrine: quem vê metade quer o resto → upsell natural
+  Craque→Lenda. Sócio pra Lenda fica como clube de torcida (votação,
+  cobertura, moedas, escudo, mural, 2,99 simbólico). AGUARDANDO o "fecha"
+  final do Diego nessa distribuição.
+- 💡 IDEIAS PESQUISADAS pra engordar o sócio (programas reais: Nação/Avanti/
+  Fiel, socios do Barça, fan tokens — enviadas ao Diego, aguardando ele
+  escolher quais entram): placas de publicidade do campinho com nome dos
+  sócios · aniversário do sócio (moedas + manchete no jornal) · sócios
+  BATIZAM o próximo folclórico da Série D (enquete) · desconto/bônus de
+  fichas no Banco · "recado do presidente" na área do sócio · faixa da
+  torcida na simulação (frase aprovada pelo Diego) · conselho mensal "o que
+  o presidente constrói primeiro" (orienta).
 PERGUNTA ABERTA (segue sem resposta): voto dos sócios DECIDE ou só orienta?
 Depois do OK: ordem combinada = loja nova → trava do Manual 2 botões →
 olheiros (só elenco) → votação/área do sócio → cobertura retrátil (mockup
