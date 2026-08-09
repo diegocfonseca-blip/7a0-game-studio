@@ -328,6 +328,11 @@ entrega = commit isolado, buildar antes, main = deploy):
    · 9,90/mês (grátis): https://mpago.la/2G3nmQq
    · 2,90/mês (Lenda): https://mpago.la/2CGoqiJ
    · 4,90/mês (Craque): https://mpago.la/1jqtK38
+   ✔️ 09/08: telas INTERNAS (cores/manual/dream/batismo) corrigidas pro mundo novo:
+   Promessa 💎 fora da vitrine (roxo agora é cor do Sócio; quem tinha, mantém),
+   FUNDADOR só via batismo (saiu do Lenda; contador de vagas foi pro dream),
+   sem "pra sempre" no batismo, preços 59,90 (A/B/C/Várzea) e 69,90 (Série D)
+   explicados, Sócio incluso citado no dream/batismo.
    (⚠️ 09/08: Diego trocou — os links antigos 32tTjqE/1BiaXQ6/2xzZmiC estavam ERRADOS, era por isso que o botão "Pagar assinatura" ficava cinza)
    ⚠️ NUNCA usar 4,99/2,99 em arte/código — é 4,90/2,90. Artes de referência
    (m1/m2/olheiro-porta/portas-ex) já corrigidas; m1 também ganhou a
