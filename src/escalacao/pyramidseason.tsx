@@ -523,12 +523,24 @@ const COPA_SCORER_BONUS = 16 // caixa do time pelo artilheiro da Copa (o PISO de
 // prestígio por divisão na Copa: A favorita, D azarão (soma no ataque e defesa).
 const COPA_DIV_STRENGTH: Record<Div, number> = { A: 10, B: 6, C: 3, D: 0, V: 0 } // Várzea não joga a Copa (só A-D)
 
-export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false): CopaResult {
+export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}): CopaResult {
   const rng = mulberry((seed ^ (seasonNo * 0x9E3779B1) ^ 0xC0FA5EED) >>> 0)
   let field: { t: SimTeam; div: Div }[] = []
   // 🌱 a VÁRZEA fica FORA da Copa (peladeiro não joga mata-mata nacional 🍺) — o
   // campo segue sendo o top-4 das séries A-D, 16 times como sempre.
-  for (const d of DIVS) { if (d === 'V') continue; for (const t of (tables[d] ?? []).slice(0, 4)) field.push({ t, div: d }) }
+  // 🐛 (09/08) time HUMANO entra na Copa com a escalação DE VERDADE (a mesma que
+  // valeu no fim da liga, via lineupAt) — antes usava sempre o `bestXI` cru do
+  // squad inteiro, que ignorava qualquer substituição feita e podia bater com
+  // um jogador diferente do que o técnico escolheu (parecia "reserva fazendo gol").
+  // Fixo (não muda de fase pra fase): a Copa toda já sai pronta de uma vez só
+  // (só é REVELADA fase a fase depois), então trocar o time NO MEIO da Copa
+  // reabriria o que já foi mostrado — a escalação vale a mesma do fim da liga.
+  for (const d of DIVS) {
+    if (d === 'V') continue
+    for (const t of (tables[d] ?? []).slice(0, 4)) {
+      field.push({ t: t.human ? { ...t, xi: lineupAt(lineups, t.teamId, 38, t.squad, t.formation) } : t, div: d })
+    }
+  }
   if (field.length < 2) return { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }
   field = shuffle(field, rng)
   const scorers = new Map<string, SeasonScorer>()
@@ -2882,7 +2894,7 @@ export function PyramidSeasonScreen() {
   // COPA LEGENDS: no fim da temporada, o mata-mata dos 16 (determinístico da
   // classificação final + semente + temporada). Alimenta a aba Tabelas (chave),
   // a aba Rank (artilharia da Copa) e os prêmios da virada.
-  const copa = useMemo(() => done ? computeCopa(tables, state.seed, state.seasonNo, capElite, realGoals) : null, [done, tables, state.seed, state.seasonNo, capElite, realGoals])
+  const copa = useMemo(() => done ? computeCopa(tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup) : null, [done, tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup])
   // a Copa TOCA fase por fase (oitavas → quartas → semi → final), como a liga.
   // copaRound = fase ao vivo agora (0=oitavas). Zera a cada temporada nova.
   // se o save já assistiu a Copa desta temporada, começa JÁ finalizada (999 >= nº de

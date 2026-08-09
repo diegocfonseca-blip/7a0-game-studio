@@ -1,5 +1,27 @@
 # 📌 Pendências combinadas com o Diego (atualizado 09/08/2026)
 
+## ⚽ COPA LEGENDS (carreira): reserva fazendo gol + substituição não valia (09/08) ✅ NO AR
+Diego repassou relato de usuário: "reserva fazendo gol" na Copa (só valem os
+11 titulares — reserva só entra COM troca) e "não dá pra substituir na Copa".
+- **Causa (uma só, pros dois relatos)**: a Copa Legends (mata-mata dos 16, fim
+  de temporada) é calculada TODA DE UMA VEZ (`computeCopa`), diferente da liga
+  (que já usava a escalação certa por rodada, `lineupAt`). A Copa sempre usava
+  o `bestXI` cru do elenco inteiro — o "melhor 11 pelo nível" recalculado do
+  zero — ignorando por completo a escalação que o técnico realmente montou
+  (`careerLineup`). Por isso: (1) quem aparecia jogando podia ser diferente de
+  quem o usuário escalou (parecia reserva fazendo gol) e (2) qualquer troca
+  feita não tinha efeito nenhum na Copa — daí "não dá pra substituir".
+- **Corrigido** (`pyramidseason.tsx`, `computeCopa`): agora o time HUMANO
+  entra na Copa com a escalação DE VERDADE (a mesma que valeu no fim da liga,
+  via `lineupAt`), não mais o `bestXI` cru.
+- **Por que a troca não muda fase a fase**: a Copa inteira já sai pronta de
+  uma vez (só é REVELADA fase a fase depois, pra não dar spoiler) — trocar o
+  time NO MEIO da Copa reabriria resultado que já foi mostrado. Por isso a
+  escalação usada é fixa: a mesma que valeu no fim da liga (rodada 38). Pra
+  mudar quem joga a Copa, o técnico troca no Elenco ANTES da liga acabar (ou
+  no fim, antes de entrar na Copa) — vale pra ela inteira.
+- Reversível: `git revert` no commit desse fix.
+
 ## 🎁 CARTA DO CAMPEÃO: achado o motivo de sumir mesmo campeão de verdade (09/08) ✅ NO AR
 Diego relatou um usuário que foi campeão DUAS vezes e não recebeu carta
 NENHUMA das duas — pediu pra analisar a fundo os dois pontos possíveis: (1)
