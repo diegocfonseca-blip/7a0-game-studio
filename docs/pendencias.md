@@ -21,17 +21,18 @@ TIME (`from === youIdx`) — numa dupla os dois COMPARTILHAM o mesmo time,
 então a msg do parceiro batia como sendo seguida. `ChatMsg` ganhou um
 campo `uid` (a pessoa de verdade, não o time); a checagem agora usa esse
 uid quando existe. Reversível com `git revert 9bc346e`.
-**(3) AINDA EM ABERTO ⚠️**: Diego relatou que o host conseguiu iniciar o
-"novo leilão" sem ele (o PARCEIRO) ter votado — os outros times da sala
-saíram e o host achou que "todo mundo decidiu". Causa: a tela de votação
-do fim de jogo (`OnlineEndVote`) conta voto por TIME, e numa dupla o
-parceiro nunca aparece como alguém separado pro host — ele é invisível na
-lista de "quem falta votar". Isso NÃO foi mexido ainda (é uma mudança
-maior, estrutural, na forma como a votação conta gente — quero ir com
-calma nisso, é área sensível de identidade online). Próxima sessão: fazer
-essa tela também exigir o OK do parceiro antes do host poder começar, do
-mesmo jeito que já existe (aprovado pelo Diego) na tela de reinício
-OFFLINE (`restartReadyUids`).
+**(3) host podia começar sem o parceiro votar — CORRIGIDO ✅ (09/08)**: a
+tela de votação do fim de jogo (`OnlineEndVote`) conta voto por TIME, e
+numa dupla o parceiro do host compartilha o mesmo time — nunca aparecia
+na lista de pendência do host, que achava "só falta gente de fora" e
+destravava sozinho. Corrigido: o host agora enxerga se tem parceiro
+(`state.duplas`) e usa a MESMA chave (`votes[youId]`, que só o parceiro
+escreve — o host nunca vota, decide) pra saber se ele já confirmou.
+Botões travam com aviso "🤝 Aguardando seu parceiro [nome] votar…", igual
+já acontecia pros outros times. O modal "nem todo mundo votou" ganhou
+opção própria pro parceiro (não dá pra "excluir" ele — só esperar ou
+"▶️ Começar mesmo assim", nunca trava o jogo). Reversível com
+`git revert 3f4dfba`.
 Também relatado, ainda **NÃO confirmado/investigado**: um amigo que entrou
 pra ser dupla do Diego não apareceu no nome da dupla (apareceu o nome de
 OUTRA pessoa) — pode ser sintoma do mesmo bug (1) com dado velho no
