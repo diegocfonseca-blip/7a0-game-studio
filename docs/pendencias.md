@@ -121,6 +121,11 @@ inclusive pode ser convocada pros 22 ativos), só a RENDA em moedas fica
 "🔒 destrava: [requisito]" até desbloquear aquela categoria — nunca esconde
 nem perde a carta, só a moeda que ela renderia.
 
+## 📰 ESTÁDIO NO JORNAL — NO AR (09/08, commit 3298204): a capa do jornal
+de fim de temporada (na tela E na imagem compartilhada pro zap/IG) agora
+fecha o subtítulo com "Direto do 🏟️ {nome batizado}." quando o sócio tem
+estádio batizado. Propaganda do batismo de estádio em toda capa postada.
+
 ## 🚪 PORTA DOS OLHEIROS NO AR (09/08, commit 95119d0): no topo do elenco
 da carreira, quem NÃO tem tier vê o convite discreto "🕵️ Quer ver o
 overall? ⭐ vê até craque · 👑 vê TUDO — toca aqui" → abre o APOIE (tela
