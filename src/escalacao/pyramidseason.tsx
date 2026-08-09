@@ -26,6 +26,7 @@ import { useAgenciaLiberada, useEscadaLiberada } from './sport'
 import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
+import { meuManto, mantoStripes } from './manto'
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -1860,6 +1861,9 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contr
     return { txt: `📝 ${anos} anos`, color: 'rgba(0,0,0,0.45)' }
   }
   const goalsOf = (c: WonCard) => goals?.[c.id] ?? 0
+  // 🎽 manto do coração (aprovado 09/08): faixinha listrada no topo das fichinhas
+  // do campinho — só pra conta com manto (o elenco aqui é sempre o do próprio usuário)
+  const manto = meuManto()
   const salaryOn = (seasonNo ?? 1) >= 4 // 🔓 salário/folha só aparecem a partir da 4ª temporada
   const sel = selId ? mgr.squad.find(c => c.id === selId) ?? null : null
   const isTarget = (c: WonCard) => !!sel && sel.id !== c.id && sel.pos === c.pos && (xiIds.has(sel.id) !== xiIds.has(c.id))
@@ -1924,7 +1928,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contr
             // pra caber lado a lado — a linha de trás fica reta, como um 4-3-3 de verdade.
             <div key={r.key} style={{ display: 'flex', justifyContent: 'center', gap: 5, flexWrap: 'nowrap' }}>
               {r.cards.map(c => { const st = stateOf(c); return (
-                <button key={c.id} onClick={() => onTap?.(c.id)} disabled={!onTap} style={{ position: 'relative', flex: '1 1 0', minWidth: 0, border: `2px solid ${borderOf(st)}`, borderRadius: 8, background: st === 'sel' ? '#FFF6D6' : '#fff', padding: '3px 6px', maxWidth: 96, textAlign: 'center', cursor: onTap ? 'pointer' : 'default', opacity: st === 'dim' ? 0.5 : 1, boxShadow: st === 'target' ? `0 0 0 2px ${GREEN}` : 'none', ...OSWALD }}>
+                <button key={c.id} onClick={() => onTap?.(c.id)} disabled={!onTap} style={{ position: 'relative', flex: '1 1 0', minWidth: 0, border: `2px solid ${borderOf(st)}`, borderRadius: 8, background: st === 'sel' ? '#FFF6D6' : '#fff', padding: manto ? '8px 6px 3px' : '3px 6px', maxWidth: 96, textAlign: 'center', cursor: onTap ? 'pointer' : 'default', opacity: st === 'dim' ? 0.5 : 1, boxShadow: st === 'target' ? `0 0 0 2px ${GREEN}` : 'none', overflow: 'hidden', ...OSWALD }}>
+                  {manto && <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 5, background: mantoStripes(manto) }} />}
                   {c.emprestado && <EmpTag mini />}
                   <span style={{ display: 'block', fontSize: 8, fontWeight: 900, color: col.solid }}>{c.pos}</span>
                   <span style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: INK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</span>
