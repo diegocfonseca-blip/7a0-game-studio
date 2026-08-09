@@ -1,5 +1,37 @@
 # 📌 Pendências combinadas com o Diego (atualizado 09/08/2026)
 
+## 🐛 AGÊNCIA: carta de campeão podia não entrar (relato do Diego sobre o Luiz Filipe Maia, campeão da Série D) ✅ NO AR
+Print do jogador: ganhou a Série D (troféu confirmado no Hall), álbum tem a
+carta certinha, mas "Seus agenciados" tava vazio (0/22, busca sem resultado).
+Perguntei se era travado por tier (Lenda/Craque) — **não é**: `AGENCIA_GERAL
+= true`, liberada geral, comentário antigo dizia "só o Diego" mas isso mudou
+em 03/08. Achei a causa de verdade: `CardCollectPrompt` já GARANTIA a carta
+no ÁLBUM na hora (efeito "conta mesmo sem abrir"), mas o aviso pra Agência
+(`ADD_EMPRESARIO_CARD`) só disparava dentro de `openPack()` — ou seja, só se
+a pessoa tocasse no pacote OU esperasse o timer acabar. Quem avança rápido
+pra próxima temporada antes disso: álbum ok, Agência vazia.
+**Regra confirmada pelo Diego (nesta conversa)**: "deve qualquer título
+ganhar carta... serve pra qualquer modo rápido/carreira/online/offline...
+até na várzea... e qualquer outro novo que eu invente." Ou seja: card da
+Agência tem que ser GARANTIDO igual o álbum, sem depender de interação.
+**Corrigido**: novo callback `onGuaranteed` no `CardCollectPrompt`, disparado
+no MESMO instante da garantia do álbum. Trocado nos 4 lugares que alimentam
+a Agência: liga (solo/online), Copa Legends, multiclube pendente e Copa do
+Mundo. `onClaimed` continua como estava (o broadcast pros outros da sala
+online ainda espera a revelação de verdade — sem spoiler pra ninguém, regra
+separada e não mexida). Reversível com `git revert da5c24a`.
+⚠️ **Não corrigido retroativamente**: a Série D do Luiz já passou (ele tá na
+Série C agora) — a carta dele NÃO vai aparecer na Agência sozinha, porque a
+tela daquele título específico não existe mais pra remontar. Se quiser
+compensar ele, precisa de um ajuste manual no save dele (não fiz — precisa
+acesso ao Supabase, que essa sessão não tinha liberado).
+✅ **Segunda pergunta do Diego, respondida**: e se o prêmio sortear uma carta
+de categoria ainda TRANCADA (ex.: 👑 Lenda antes de comprar a SAF)? Já
+funciona do jeito certo: a carta APARECE e CONTA (mostra no "Sua Agência",
+inclusive pode ser convocada pros 22 ativos), só a RENDA em moedas fica
+"🔒 destrava: [requisito]" até desbloquear aquela categoria — nunca esconde
+nem perde a carta, só a moeda que ela renderia.
+
 ## 🏗️ PLANO DE OBRA DA LOJA/SÓCIO — "pode implementar" dado pelo Diego (09/08)
 Ele aprovou as carteirinhas ("Perfeito") e mandou construir TUDO que foi
 decidido + um PERFIL COMPLETO do usuário. Ordem de obra combinada (cada
