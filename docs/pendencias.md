@@ -237,6 +237,14 @@ CAMPEÃO compartilhável (motor do shareElenco já existe) · 🐐 camisa
 aposentada/ídolo eterno no museu do clube (gols já são contados) · 🧣 batizar
 a torcida organizada + o clássico (careerRivals já existe; manchetes usam).
 AGUARDANDO escolha.
+→ Diego perguntou como seria a MASCOTE ("apareceria aonde? dançando fazendo
+o quê?"). Mockup enviado (scratchpad/mascote-ex.png, alface brava de corpo
+inteiro): (1) mora na ÁREA DO CLUBE ao lado do escudo, abaixo do StadiumSvg,
+com balancinho leve (sem dança maluca — 2 poses 2D); (2) na FESTA DE
+CAMPEÃO de qualquer modo, pose levantando a taça no confete, SÓ pós-apito
+(zero spoiler), só o dono vê a sua; (3) sairia na capa de campeão se essa
+entrar; (4) NUNCA no leilão. Feita à mão pelo Diego igual o escudo
+(2 desenhos por mascote: parada + com taça). Aguardando o veredito dele.
 📌 STATUS FINAL DA RODADA (08/08, noite): Diego travou na dúvida olheiros-
 no-sócio vs escadinha ("só sei que quero que venda MT"). RECOMENDAÇÃO FIRME
 enviada: ESCADINHA por tier (4 produtos, 4 desejos: sócio=jogo do seu
