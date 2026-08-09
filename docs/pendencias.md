@@ -20,6 +20,16 @@ DECISÕES NOVAS DO DIEGO (08/08 à noite):
   do time MUDA de dono. (Craque/Lenda vitalícios seguem permanentes.)
 - Ele pediu mockup completo incluindo COMO O NOME aparece "na sala online,
   carreira e todos os modos" → por isso a proposta dos bots batizados no m4.
+DECISÕES NOVAS DO DIEGO (rodada v2 dos mockups, mesma noite):
+- 💜 ROXO É A COR DO SÓCIO (mensal). Língua de cores: dourado = Lenda E
+  Batismo · prata = Craque · roxo = sócio · bege = grátis. (No banco o único
+  tier roxo era conta de teste pessoa@email.com — cor livre, sem conflito.)
+- 🖋️ BATISMO GANHA TUDO DA LENDA incluso (ouro/qualquer cor com brilho,
+  selo, grupo VIP) — escrito no card do batismo.
+- 🛡️ ESCUDO À MÃO já no 1º MÊS de sócio (era 3 meses — ele cortou a espera).
+- Lenda+sócio ao mesmo tempo: PROPOSTA enviada (cor mais alta manda — ouro
+  continua em todo canto — e o sócio vira selinho 🎫 ao lado do nome; sócio
+  puro fica roxo). Aguardando OK dele nessa regra.
 PERGUNTA ABERTA (segue sem resposta): voto dos sócios DECIDE ou só orienta?
 Depois do OK: ordem combinada = loja nova → trava do Manual 2 botões →
 olheiros (só elenco) → votação/área do sócio → cobertura retrátil (mockup
