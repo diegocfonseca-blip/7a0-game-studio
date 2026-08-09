@@ -143,6 +143,12 @@ entrega = commit isolado, buildar antes, main = deploy):
    · os rivais escolhidos pra te enfrentar" (bullet longo do porquê saiu;
    header do card virou só "uma vez"). ⚠️ NOVO: batismo agora inclui
    VÁRZEA na faixa de 59,90.
+   v14 (Diego reafirmou 09/08): overall NUNCA no leilão — SÓ no elenco da
+   pessoa, APÓS contratação, e SÓ no modo carreira. Regra já era lei; agora
+   os cards DIZEM isso na cara ("no leilão segue todo mundo às cegas — a
+   emoção não muda"), pra ninguém comprar esperando ver overall no pregão.
+   ⚠️ NA IMPLEMENTAÇÃO: overall aparece apenas em ElencoField/carreira,
+   jamais em YourPitch/leilão/monte/online.
    🕵️→🎨 PEDIDO DO DIEGO (09/08, madrugada): nos cards de Craque/Lenda o
    olheiro tem que DIZER "overall do jogador" e MOSTRAR mini-amostra visual
    (chip colorido tipo "Djalminha 82–91") — feito na v9 do m2 (Craque:
