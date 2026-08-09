@@ -12,6 +12,7 @@ import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, emailProblema, myFundadorN } from './apoio'
+import type { ApoioTier } from './apoio'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
@@ -5483,9 +5484,20 @@ export function EscRanking() {
   // é UMA carreira, o álbum mostra os dois totais — só esta carreira × conta toda
   const [viewScope, setViewScope] = useState<'carreira' | 'conta'>('carreira')
 
+  // 🪪 tier + nº de fundador do técnico tocado — via RPC esc_perfil (a ponte
+  // segura: o servidor casa user_id → e-mail → tier/fundador e devolve SÓ o
+  // público; o e-mail nunca chega ao aparelho de ninguém).
+  const [viewPerfil, setViewPerfil] = useState<{ tier: ApoioTier | null; fundadorN: number | null } | null>(null)
+
   // abre o PERFIL de QUALQUER técnico (user_cards tem leitura pública)
   async function openAlbum(userId: string, name: string, careerKey?: string, stats?: { titles: number; scorers: number; goals: number; cards: number }) {
     setViewUser({ id: userId, name, careerKey: careerKey || undefined, stats }); setViewCards(null); setViewScope('carreira')
+    setViewPerfil(null)
+    supabase.rpc('esc_perfil', { p_user: userId }).then(({ data }) => {
+      const row = (Array.isArray(data) ? data[0] : data) as { tier?: string | null; fundador_n?: number | null } | undefined
+      const t = (row?.tier ?? null) as ApoioTier | null
+      setViewPerfil({ tier: t && t in APOIO_PERKS ? t : null, fundadorN: row?.fundador_n ?? null })
+    }, () => setViewPerfil({ tier: null, fundadorN: null }))
     try {
       const { data } = await supabase.from('user_cards')
         .select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at, season_key')
@@ -5638,13 +5650,20 @@ export function EscRanking() {
       {viewUser && (
         <div className="fixed inset-0 z-50 flex flex-col p-4" style={{ background: 'rgba(0,0,0,.7)' }} onClick={() => setViewUser(null)}>
           <div className="max-w-md w-full mx-auto my-auto max-h-[85vh] flex flex-col rounded-2xl border-[3px] border-black overflow-hidden" style={{ background: CREAM }} onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-4 py-3 border-b-[3px] border-black" style={{ background: GOLD }}>
-              <div className="min-w-0">
-                <p className="font-black text-black text-lg leading-tight truncate" style={OSWALD}>👤 {viewUser.name}</p>
-                <p className="text-black/60 text-xs font-bold">perfil do técnico</p>
-              </div>
-              <button onClick={() => setViewUser(null)} className="shrink-0 w-8 h-8 rounded-full border-2 border-black bg-white font-black text-black active:translate-y-0.5">✕</button>
-            </div>
+            {(() => {
+              // 🎨 header na cor do PRÓPRIO tier (fidelidade sagrada): grátis = bege
+              const pk = viewPerfil ? APOIO_PERKS[viewPerfil.tier ?? 'bege'] : null
+              const selos = pk ? `${pk.selo}${viewPerfil?.fundadorN != null ? '🖋️' : ''}` : ''
+              return (
+                <div className="flex items-center justify-between px-4 py-3 border-b-[3px] border-black" style={{ background: pk?.grad ?? GOLD }}>
+                  <div className="min-w-0">
+                    <p className="font-black text-black text-lg leading-tight truncate" style={OSWALD}>👤 {viewUser.name}{selos ? ` ${selos}` : ''}</p>
+                    <p className="text-black/60 text-xs font-bold">perfil do técnico</p>
+                  </div>
+                  <button onClick={() => setViewUser(null)} className="shrink-0 w-8 h-8 rounded-full border-2 border-black bg-white font-black text-black active:translate-y-0.5">✕</button>
+                </div>
+              )
+            })()}
             {/* 👤 PERFIL (mockup aprovado 09/08): stats + documentos + troféus antes do álbum */}
             {viewUser.stats && (
               <div className="flex gap-1.5 px-4 pt-3">
@@ -5656,19 +5675,22 @@ export function EscRanking() {
                 ))}
               </div>
             )}
-            {/* 🪪 Documentos: por enquanto SÓ no próprio perfil (fundador vem do
-                FUNDADOR_N por e-mail, local). Pros outros entra quando a infra do
-                sócio expuser via RPC. 1 carteirinha só = tamanho GRANDE (regra do
-                Diego 09/08: "amplia pro tamanho do modal que tá as duas"). */}
-            {viewUser.id === meId && myFundadorN() != null && (
-              <div className="px-4 pt-3">
-                <div className="relative overflow-hidden border-[3px] border-black rounded-xl px-3 py-3" style={{ background: 'linear-gradient(150deg,#241d0c,#141414 55%,#2b230e)', boxShadow: `3px 3px 0 ${INK}` }}>
-                  <span className="absolute right-2.5 top-2.5 font-black text-sm border-2 border-black rounded-lg px-2 py-0.5" style={{ ...OSWALD, background: 'linear-gradient(150deg,#FFE79A,#FFC400)' }}>Nº {myFundadorN()}</span>
-                  <p className="font-black text-base uppercase" style={{ ...OSWALD, color: GOLD }}>🖋️ Fundador do Leilão Legends</p>
-                  <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.75)' }}>{myFundadorN()} dos 100 primeiros · pra sempre</p>
+            {/* 🪪 Documentos: fundador de QUALQUER perfil (via RPC esc_perfil; o
+                próprio ainda tem o fallback local). 1 carteirinha só = tamanho
+                GRANDE (regra do Diego 09/08) — a de sócio entra na infra do sócio. */}
+            {(() => {
+              const fN = viewPerfil?.fundadorN ?? (viewUser.id === meId ? myFundadorN() : null)
+              if (fN == null) return null
+              return (
+                <div className="px-4 pt-3">
+                  <div className="relative overflow-hidden border-[3px] border-black rounded-xl px-3 py-3" style={{ background: 'linear-gradient(150deg,#241d0c,#141414 55%,#2b230e)', boxShadow: `3px 3px 0 ${INK}` }}>
+                    <span className="absolute right-2.5 top-2.5 font-black text-sm border-2 border-black rounded-lg px-2 py-0.5" style={{ ...OSWALD, background: 'linear-gradient(150deg,#FFE79A,#FFC400)' }}>Nº {fN}</span>
+                    <p className="font-black text-base uppercase" style={{ ...OSWALD, color: GOLD }}>🖋️ Fundador do Leilão Legends</p>
+                    <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.75)' }}>{fN} dos 100 primeiros · pra sempre</p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )
+            })()}
             {viewUser.stats && (viewUser.stats.titles > 0 || viewUser.stats.scorers > 0) && (
               <div className="px-4 pt-3">
                 <p className="font-black text-[11px] uppercase tracking-wide mb-1.5" style={OSWALD}>🏆 Sala de troféus</p>
