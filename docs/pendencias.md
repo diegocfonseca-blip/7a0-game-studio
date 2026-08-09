@@ -363,6 +363,11 @@ entrega = commit isolado, buildar antes, main = deploy):
    · 4,90/mês (Craque): https://mpago.la/1jqtK38
    ✔️ 09/08: eltonfrossard45@gmail.com virou LENDA (ouro+manual) + FUNDADOR nº 36
    + SÓCIO nº 12 (origem batismo, validade 2099) — direto no banco.
+   ✔️ 09/08: REGRA DO CLONE no ar — nunca dois times com o mesmo nome na mesma
+   competição: humano jogando com o nome do próprio batizado esconde o robô
+   homônimo DAQUELA partida/carreira (reserva entra; batizado segue normal pro
+   resto do mundo). Pontos: makeManagers (online/rápido, c/ backfill),
+   initCareerRivals, soloRivalDefs e fillerDefs. Saves em andamento intocados.
    📌 REGRA PRA TODA SESSÃO (09/08): liberar Craque/Lenda = setar user_colors
    (tier + manual). Essa é a CHAVE-MESTRA — overall dos olheiros, fichas de
    carreira e preço do sócio derivam dela sozinhos, não existe trava separada.

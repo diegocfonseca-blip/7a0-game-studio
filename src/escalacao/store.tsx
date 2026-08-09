@@ -1413,10 +1413,11 @@ export interface CareerSave {
 // rivais fixos da carreira: começam TODOS na Série D (com você). Depois cada um
 // tem vida própria na pirâmide. `chosen` = times escolhidos pela pessoa (por
 // nome do time); o que faltar completa com os primeiros da Série D.
-function initCareerRivals(count: number, chosen?: string[]): CareerRival[] {
-  const pool = DIVISION_TEAMS['D']
+function initCareerRivals(count: number, chosen?: string[], humanTeam?: string): CareerRival[] {
+  // 🪞 regra do clone: o robô homônimo do time do jogador não entra como rival
+  const pool = humanTeam ? tiraClones(DIVISION_TEAMS['D'], [humanTeam]) : DIVISION_TEAMS['D']
   const pickNames = (chosen && chosen.length > 0)
-    ? [...chosen, ...pool.map(t => t.team).filter(t => !chosen.includes(t))].slice(0, count)
+    ? [...chosen.filter(c => !humanTeam || !mesmoNomeTime(c, humanTeam)), ...pool.map(t => t.team).filter(t => !chosen.includes(t))].slice(0, count)
     : pool.slice(0, count).map(t => t.team)
   return pickNames.map(team => {
     const def = pool.find(t => t.team === team) ?? { name: team, team }
@@ -1722,7 +1723,7 @@ function makeCareerManagers(teamName: string, formation: FormationKey, div: Divi
   const human: Manager = { id: 0, name: teamName, teamName, isHuman: true, auctionRival: true, formation, money: START_MONEY, squad: [], aggression: 0.5, starHunger: 0.5 }
   const usedTeams = new Set(rivalDefs.map(r => r.team))
   const fillerNeeded = LEAGUE_SIZE - 1 - rivalDefs.length
-  const fillerDefs = DIVISION_TEAMS[div === 'V' ? 'D' : div].filter(t => !usedTeams.has(t.team)).slice(0, fillerNeeded)
+  const fillerDefs = tiraClones(DIVISION_TEAMS[div === 'V' ? 'D' : div], [teamName]).filter(t => !usedTeams.has(t.team)).slice(0, fillerNeeded)
   const cpus: Manager[] = []
   const botPlans: BotPlan[] = []
   let id = 1
@@ -2340,6 +2341,15 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
 //     a artilharia mostra o campeonato inteiro (igual solo e online).
 // Devolve os "planos" dos bots de preenchimento pra montar o baralho do leilão
 // PRIMEIRO (reservando os reais pros que disputam) e só depois escalar o resto.
+// 🪞 REGRA DO CLONE (Diego 09/08): NUNCA dois times com o mesmo nome na mesma
+// competição. Se um humano joga com o nome do próprio time batizado (ex.: o
+// Manfré jogando de "Manfré FC"), o robô homônimo sai DAQUELA competição e um
+// reserva entra — nas partidas de todo o resto do mundo o batizado segue normal.
+const mesmoNomeTime = (a: string, b: string) => stripEmoji(a).trim().toLowerCase() === stripEmoji(b).trim().toLowerCase()
+function tiraClones(defs: { team: string; name: string }[], humanNames: string[]): { team: string; name: string }[] {
+  return defs.filter(d => !humanNames.some(h => mesmoNomeTime(d.team, h)))
+}
+
 type BotPlan = { id: number; tier: Tier; formation: FormationKey }
 function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus: number, leagueSize: number, rng: () => number, cpuNameOrder?: { team: string; name: string }[]): { managers: Manager[]; botPlans: BotPlan[] } {
   const forms: FormationKey[] = ['4-3-3', '4-4-2']
@@ -2359,7 +2369,17 @@ function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus
   // divisão de base, pra não aparecer nome velho tipo "Nininho EC").
   // ordem dos nomes de CPU: padrão = Série D; solo pode passar os rivais escolhidos
   // PRIMEIRO (viram os auction-rivals nomeados), depois o resto da D (sem repetir).
-  const names = (cpuNameOrder ?? DIVISION_TEAMS['D']).slice(0, totalCpus)
+  // 🪞 regra do clone: tira da lista o robô com nome de humano da sala e, se a
+  // conta não fechar, completa com reservas de outras divisões (sem clone também).
+  const poolBase = tiraClones(cpuNameOrder ?? DIVISION_TEAMS['D'], humanNames)
+  if (poolBase.length < totalCpus) {
+    const reservas = tiraClones([...DIVISION_TEAMS['D'], ...DIVISION_TEAMS['C'], ...DIVISION_TEAMS['B'], ...DIVISION_TEAMS['A']], humanNames)
+    for (const r of reservas) {
+      if (poolBase.length >= totalCpus) break
+      if (!poolBase.some(t => t.team === r.team)) poolBase.push(r)
+    }
+  }
+  const names = poolBase.slice(0, totalCpus)
   // QUAIS times são fortes/fracos é SORTEADO (não a ordem fixa da lista) — senão
   // são sempre os mesmos nomes brigando (ex.: Paixandu Magrão, Biriba United). A
   // quantidade de cada nível não muda; só varia quem calha de ser forte/fraco.
@@ -3097,12 +3117,12 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerTitlesA = 0
       s.copaMode = action.copaMode ?? 'liga_copa' // 🏆 padrão: liga + copa dos 8 (rápido)
       s.careerRivalCount = action.rivals
-      s.careerRivals = action.career ? initCareerRivals(action.rivals, action.rivalTeams) : []
+      s.careerRivals = action.career ? initCareerRivals(action.rivals, action.rivalTeams, action.teamName) : []
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0 // recalculado na cerimônia (quando os elencos existem)
       // carreira E partida rápida usam o MESMO elenco da Série D (lista única).
       // A diferença é só a pirâmide/save da carreira — a rápida é uma temporada
       // avulsa. Rivais = os escolhidos (carreira) ou os primeiros da D (rápida).
-      const soloRivalDefs = action.career ? coDivRivalDefs(s.careerRivals, 'D') : DIVISION_TEAMS['D'].slice(0, action.rivals)
+      const soloRivalDefs = action.career ? coDivRivalDefs(s.careerRivals, 'D') : tiraClones(DIVISION_TEAMS['D'], [action.teamName || 'Meu Time']).slice(0, action.rivals)
       // na Série D todos os rivais começam com você — sem "auction-only".
       const { managers: soloManagers, botPlans: soloPlans } = makeCareerManagers(action.teamName || 'Meu Time', action.formation, 'D', soloRivalDefs, [], rng)
       s.managers = soloManagers
