@@ -262,6 +262,16 @@ de temporada quicando POR CIMA da UI (tabela, botão de voto), com um pulão
 no meio, sombra no chão, rotação de gingado, banner CAMPEÃO pulsando e
 confete caindo em loop. Na implementação real: CSS/JS a 60fps, ~4s,
 toque pula. AGUARDANDO veredito do GIF.
+→ 🪪 CARTEIRINHAS — mockup enviado a pedido dele (scratchpad/
+carteirinhas.png): (1) SÓCIO roxa — nome grande, nº de sócio, tempo de casa,
+escudo à mão + chips do manto (❤️🖤) e do nome do estádio; tier pago leva o
+selo sem perder o roxo; (2) FUNDADOR preta-e-ouro — PRA SEMPRE, independe de
+assinatura: nº gravado (ex. 34) + carimbo redondo "dos 100 primeiros", faixa
+dourada, nome do batismo, e chip-lembrete "sócio por R$ 2,99". As duas moram
+na área do apoiador e são COMPARTILHÁVEIS como imagem (motor do shareElenco).
+Resposta ao medo do ciúme Lenda/Batismo também dada: eles pagam 2,99 (o
+menor preço), artesanal contínuo só existe com mensalidade, e a carteirinha
+de fundador é presente de prestígio pra eles SEM assinar. AGUARDANDO OK.
 → ✅ APROVADO PELO DIEGO (09/08): "Gostei desse pra quem é sócio torcedor".
 A MASCOTE ENTRA NO SÓCIO como benefício oficial: desenhada à mão pelo Diego
 (entrega manual, tipo escudo), mora na área do clube (carreira) e faz o
