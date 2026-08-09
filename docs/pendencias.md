@@ -130,6 +130,12 @@ entrega = commit isolado, buildar antes, main = deploy):
    na boca), mini-amostra visual na linha (chip do overall), letras
    miúdas viram chips. APLICAR esse formato em TODA a loja final
    (m1/m3 idem quando virarem código).
+   v12 (5 ajustes do Diego, 09/08): chip "⭐→👑 depois vira Lenda por +20"
+   TAMBÉM no card do Craque · bullet "Por que a Série D custa mais?"
+   (série dos RIVAIS, todo mundo começa lá) · SEM "pra sempre" no nome do
+   batismo · bullet do sócio incluso sem o "mesmo se perder o nome" (a
+   regra do barão embaixo já explica, não repetir) · linha da Carreira
+   Online/Ligas Fechadas na Lenda com DESTAQUE (caixa dourada).
    🕵️→🎨 PEDIDO DO DIEGO (09/08, madrugada): nos cards de Craque/Lenda o
    olheiro tem que DIZER "overall do jogador" e MOSTRAR mini-amostra visual
    (chip colorido tipo "Djalminha 82–91") — feito na v9 do m2 (Craque:
