@@ -1,7 +1,7 @@
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { Card, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
+import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
 import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, MAX_CAREER_SLOTS, syncCareersWithCloud } from './store'
 import type { CareerSlot } from './store'
@@ -602,7 +602,10 @@ export function ChatWidget() {
                   {chat.length === 0
                     ? <p style={{ textAlign: 'center', color: '#8a7d59', fontWeight: 700, fontSize: 12, marginTop: 10 }}>Manda a primeira zoeira 😎</p>
                     : chat.map(m => {
-                      const mine = m.from === state.youIdx
+                      // 🤝 DUPLA: os dois dividem o mesmo `from` (time) — usa o `uid` da
+                      // PESSOA quando existe, senão cai no `from` de sempre (mensagem
+                      // antiga guardada no aparelho, ou sala sem dupla).
+                      const mine = m.uid ? m.uid === state.youUid : m.from === state.youIdx
                       return (
                         <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
                           <span style={{ width: 11, height: 11, borderRadius: 999, border: '1.5px solid #000', background: dot(m.from), marginTop: 4, flexShrink: 0 }} />
@@ -6223,17 +6226,35 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
     if (!state.roomId) { dispatch({ type: 'REMATCH' }); return }
     try {
       const { data: auth } = await supabase.auth.getUser()
-      const { data: pls } = await supabase.from('room_players').select('user_id, manager_name, player_index').eq('room_id', state.roomId).order('player_index')
+      const { data: pls } = await supabase.from('room_players').select('user_id, manager_name, player_index, dupla_partner_of, dupla_categories, dupla_name').eq('room_id', state.roomId).order('player_index')
       // 🛟 DEDUPLICA por usuário (reconexão/refresh no meio do jogo pode ter deixado
       // vaga DUPLICADA no banco) e usa a POSIÇÃO na lista limpa como número do
       // técnico — EXATAMENTE como o INÍCIO da sala faz. Sem isso, o "novo leilão"
       // montava os assentos numa ordem diferente do jogo 1 e o "quem sou eu" (youIdx)
       // deslizava pra um BOT (o bug do "virei o Biriba United"). Assim a ordem dos
       // assentos é IDÊNTICA à do jogo anterior e ninguém desliza.
-      const sorted = ((pls ?? []) as { user_id: string; manager_name: string; player_index: number }[])
+      const sorted = ((pls ?? []) as { user_id: string; manager_name: string; player_index: number; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_name?: string | null }[])
+      // 🤝 DUPLA (08/08, relato do Diego: "virei rival do meu parceiro no novo
+      // leilão"): esse rebuild ignorava dupla_partner_of e transformava a linha do
+      // PARCEIRO num time próprio — EXATAMENTE o mesmo cano que a sala de espera já
+      // resolve. Espelhando aquele código: só DONO de assento vira time.
+      const temDono = (uid?: string | null) => !!uid && sorted.some(d => d.user_id === uid && !d.dupla_partner_of)
+      const donos = state.duplasMode ? sorted.filter(p => !temDono(p.dupla_partner_of)) : sorted
       const seen = new Set<string>()
-      const uniq = sorted.filter(p => (seen.has(p.user_id) ? false : (seen.add(p.user_id), true)))
-      const playerNames = uniq.map(p => p.manager_name)
+      const uniq = donos.filter(p => (seen.has(p.user_id) ? false : (seen.add(p.user_id), true)))
+      const duplas: Record<number, DuplaSeat> = {}
+      const playerNames = uniq.map((p, i) => {
+        if (!state.duplasMode) return p.manager_name
+        const par = sorted.find(x => x.dupla_partner_of === p.user_id && x.user_id !== p.user_id)
+        duplas[i] = {
+          ownerUid: p.user_id, ownerName: p.manager_name,
+          ...(par ? { partnerUid: par.user_id, partnerName: par.manager_name } : {}),
+          ...(p.dupla_categories ? { cats: p.dupla_categories as DuplaSeat['cats'] } : {}),
+        }
+        if (!par) return p.manager_name
+        const corta = (n: string) => { const c = n.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2B00}-\u{2BFF}]/gu, '').trim(); return c.length > 11 ? c.slice(0, 11).trim() : c }
+        return (p.dupla_name || `${corta(p.manager_name)}|${corta(par.manager_name)}`)
+      })
       // sobrou só o host na sala (ex.: excluiu o único convidado)? Leilão novo
       // precisa de 2+ — volta pra sala de espera pra chamar gente, sem travar.
       if (playerNames.length < 2) {
@@ -6243,12 +6264,17 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         return
       }
       await supabase.from('game_rooms').update({ status: 'started' }).eq('id', state.roomId)
-      const myPos = auth?.user ? uniq.findIndex(p => p.user_id === auth.user!.id) : -1
+      // meu assento = a posição do meu DONO (se eu for parceiro, é o assento dele —
+      // o time é o mesmo dos dois, igual a sala de espera já resolve).
+      const meuUid = auth?.user?.id
+      const meuDonoUid = meuUid && temDono(sorted.find(p => p.user_id === meuUid)?.dupla_partner_of) ? sorted.find(p => p.user_id === meuUid)!.dupla_partner_of! : meuUid
+      const myPos = meuDonoUid ? uniq.findIndex(p => p.user_id === meuDonoUid) : -1
       dispatch({
         type: 'START_ONLINE',
         roomId: state.roomId, roomCode: state.roomCode, roomName: state.roomName,
         isHost: state.isHost, playerIndex: myPos >= 0 ? myPos : state.youIdx, // meu assento = minha posição na lista limpa
         playerNames, formation: state.managers[state.youIdx]?.formation ?? '4-3-3',
+        duplasMode: state.duplasMode, duplas: state.duplasMode ? duplas : undefined, youUid: meuUid ?? state.youUid,
         deck: state.deckLeague, varzea: state.varzea, rematch: Date.now(), copaMode: state.copaMode, // 🥅 mantém a escolha da sala (deck E modo várzea — senão o "novo leilão" caía no padrão)
         // 🎥 08/08 (relato do Diego): o "novo leilão" ESQUECIA o modo stream — a sala
         // começou com valores escondidos e, na revanche, os lances apareciam. O
