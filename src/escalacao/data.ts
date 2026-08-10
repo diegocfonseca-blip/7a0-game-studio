@@ -2138,13 +2138,13 @@ export const OLD_NAME: Record<string, string> = {
   'White Thigs do GuGu': 'Astronáutico',
   'Nightfull FC': 'Pelado FR', // ⚽ batismo do Guilherme: em save antigo, o Pelado FR vira Nightfull FC ao carregar
   'Murriz FC': 'Robertão United', // ⚽ batismo do msb102010: save antigo com Robertão United vira Murriz FC ao carregar
-  'Tokyo City Esperion': 'FC Galáticos', // ⚽ batismo do denilson.stifler10: save antigo com FC Galáticos vira Tokyo City Esperion ao carregar
+  'Xurupitas FC': 'Tokyo City Esperion', // ⚽ 10/08 (Diego): o batismo do denilson.stifler10 virou XURUPITAS FC (ex-Tokyo City Esperion, ex-FC Galáticos) — porco/Palmeiras. Com FC pra bater com o nome que ele já usa na carreira/ranking.
+  'Tokyo City Esperion': 'FC Galáticos', // ⚽ elo da corrente do denilson: FC Galáticos → Tokyo City Esperion → Xurupitas FC
   'Tôka10': 'Biriba United', // ⚽ batismo do ofc.toka10: save antigo com Biriba United vira Tôka10 ao carregar
   'Skyy FC': 'Fortuna SAF', // ⚽ batismo do matheusncruz1: save antigo com Fortuna SAF vira Skyy FC ao carregar
   'SC Ferrari': 'Painitto FC', // ⚽ batismo do adriano.ferrari: save antigo com Painitto FC vira SC Ferrari ao carregar
   'Barcenite FC': 'Milanesa FC', // ⚽ batismo do ricardopessoafreire: save antigo com Milanesa FC vira Barcenite FC ao carregar
-  'Bicho da Seda': 'Xurupitas FC', // ⚽ CORREÇÃO 10/08 (Diego): o batismo do davisantana1312 (Davi) É o Bicho da Seda — o rename pra "Xurupitas" de 09/08 foi confusão ("Xurupitas" é só o nome que o denilson usa jogando). Saves da janela 09-10/08 com Xurupitas FC voltam a achar o clube.
-  'Xurupitas FC': 'Red Bull Diet', // ⚽ elo da corrente: Red Bull Diet → (Xurupitas FC, janela de 1 dia) → Bicho da Seda
+  'Bicho da Seda': 'Red Bull Diet', // ⚽ batismo do davisantana1312 (Davi) — mariposa. Corrente direta Red Bull Diet → Bicho da Seda (o elo "Xurupitas FC" saiu em 10/08: esse nome agora é do denilson).
   'Neymarzetti': 'Paixandu', // ⚽ time do Diego 09/08: save antigo com Paixandu vira Neymarzetti ao carregar
   'Manfré FC': 'Livre-pool', // ⚽ batismo do danielmanfre5: save antigo com Livre-pool (ou Xandão EC) vira Manfré FC ao carregar
   'La Bestia Negra': 'River Prato', // ⚽ batismo do eltonfrossard45: save antigo com River Prato vira La Bestia Negra ao carregar
@@ -2242,7 +2242,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Biriba', team: 'Tôka10' }, // ⚽ clube BATIZADO por apoiador (ofc.toka10 — Tôka10, ex-Biriba United)
     { name: 'Duda Fortuna', team: 'Skyy FC' }, // ⚽ clube BATIZADO por apoiador (matheusncruz1 — Skyy FC, ex-Fortuna SAF)
     { name: 'PC Magrão', team: 'Vasco da Grana' }, // ⚽ clube BATIZADO (pedido do Diego 03/08 — Vasco da Grana, ex-Magrão EC)
-    { name: 'Neguinho do Apito', team: 'Tokyo City Esperion' }, // ⚽ clube BATIZADO por apoiador (denilson.stifler10 — Tokyo City Esperion, ex-FC Galáticos)
+    { name: 'Neguinho do Apito', team: 'Xurupitas FC' }, // ⚽ clube BATIZADO por apoiador (denilson.stifler10 — Xurupitas FC, ex-Tokyo City Esperion, ex-FC Galáticos; porco/Palmeiras)
     { name: 'Dedé Bigode', team: 'Marreco FC' }, // ⚽ clube BATIZADO por apoiador (lucasigorbortoliniii — Marreco FC, ex-Inter Estadual)
     { name: 'Tião Bagre', team: 'Império Samambaia' }, // ⚽ clube BATIZADO por apoiador (jorgericardo777 — Império Samambaia, ex-Cuiabagre)
     { name: 'Cabeção da Vila', team: 'Paris São Geraldo' },

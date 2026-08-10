@@ -13,6 +13,42 @@ const INK = '#0C0C0C'
 // registro das mascotes prontas (chave → desenho). Cada sócio que pedir ganha
 // a dele aqui — 1ª da casa: a alface brava do Alfacehh FC.
 export const MASCOTES: Record<string, ReactNode> = {
+  // 🐷 o PORCÃO (Xurupitas FC — denilson.stifler10, aprovado 10/08 v5): porco
+  // forte verde/branco (Palmeiras), presas pra cima, punhos fechados. No FESTÃO
+  // atravessa a tela fuçando o gramado, roncando e chutando barro pra torcida.
+  porco: (
+    <svg width="160" height="200" viewBox="0 0 150 182">
+      <g transform="translate(0,4)">
+        <ellipse cx="75" cy="170" rx="52" ry="10" fill="rgba(0,0,0,.15)" />
+        <path d="M58 134 l-3 22 M92 134 l3 22" stroke="#2E9E5B" strokeWidth="17" strokeLinecap="round" />
+        <path d="M44 152 q-5 9 5 14 l20 -1 -1 -14 Z" fill="#fff" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M83 151 l-1 14 20 1 q9 -5 5 -14 Z" fill="#fff" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M42 112 H108 L110 140 88 135 86 140 64 140 62 135 40 140 Z" fill="#fff" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M34 76 Q14 96 22 122 L44 112" fill="#2E9E5B" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+        <circle cx="24" cy="124" r="14" fill="#2E9E5B" stroke={INK} strokeWidth="5" />
+        <path d="M116 76 Q136 96 128 122 L106 112" fill="#2E9E5B" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+        <circle cx="126" cy="124" r="14" fill="#2E9E5B" stroke={INK} strokeWidth="5" />
+        <path d="M38 72 Q75 64 112 72 L108 116 42 116 Z" fill="#0B4D2C" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+        <path d="M64 70 86 70 83 82 75 87 67 82 Z" fill="#1E7A45" stroke={INK} strokeWidth="3" />
+        <g transform="translate(28,6) scale(0.46)">
+          <path d="M56 76 Q42 40 58 36 Q74 42 82 74 Z" fill="#2E9E5B" stroke={INK} strokeWidth="7" strokeLinejoin="round" />
+          <path d="M144 76 Q158 40 142 36 Q126 42 118 74 Z" fill="#2E9E5B" stroke={INK} strokeWidth="7" strokeLinejoin="round" />
+          <path d="M100 44 Q93 60 100 74 Q107 60 100 44 Z" fill="#2E9E5B" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+          <path d="M56 90 Q56 62 100 60 Q144 62 144 90 L144 122 Q144 156 100 162 Q56 156 56 122 Z" fill="#2E9E5B" stroke={INK} strokeWidth="7" strokeLinejoin="round" />
+          <path d="M66 96 L96 108 M134 96 L104 108" stroke={INK} strokeWidth="10" strokeLinecap="round" />
+          <path d="M72 110 Q84 105 96 112 Q86 124 74 119 Z" fill="#fff" stroke={INK} strokeWidth="4" />
+          <path d="M128 110 Q116 105 104 112 Q114 124 126 119 Z" fill="#fff" stroke={INK} strokeWidth="4" />
+          <circle cx="86" cy="114" r="5.5" fill={INK} /><circle cx="114" cy="114" r="5.5" fill={INK} />
+          <ellipse cx="100" cy="136" rx="28" ry="19" fill="#1E7A45" stroke={INK} strokeWidth="7" />
+          <ellipse cx="90" cy="136" rx="4.5" ry="7" fill={INK} /><ellipse cx="110" cy="136" rx="4.5" ry="7" fill={INK} />
+          <path d="M76 150 Q60 142 62 118 Q72 138 86 148 Z" fill="#fff" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+          <path d="M124 150 Q140 142 138 118 Q128 138 114 148 Z" fill="#fff" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+          <path d="M88 154 l0 8 M100 156 l0 8 M112 154 l0 8" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
+          <path d="M86 152 Q100 159 114 152" stroke={INK} strokeWidth="5" fill="none" strokeLinecap="round" />
+        </g>
+      </g>
+    </svg>
+  ),
   // 🧢 o MENINO DA TOUCA (Tôka10 — ofc.toka10, aprovado 10/08): arte própria do
   // dono em imagem (webp 15 KB, exceção aprovada — ver nota em escudos.tsx).
   // Corpo inteiro: touca azul, oclinhos, piscadinha, joinha, camisa 10 e bola.

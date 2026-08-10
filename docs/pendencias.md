@@ -1,4 +1,22 @@
-# 📌 Pendências combinadas com o Diego (atualizado 09/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 10/08/2026)
+
+## 🐷 KIT: Xurupitas FC (batismo do denilson.stifler10) (10/08) ✅ NO AR
+O denilson (sócio nº14, ouro) trocou o time de batismo "Tokyo City Esperion"
+por **Xurupitas FC** — nome escolhido pra BATER com o "Xurupitas" que ele já
+usa na carreira/ranking. Kit aprovado pelo Diego: **porco** verde/branco
+(Palmeiras de coração), com as presas apontadas PRA CIMA (igual foto que o
+Diego mandou), cabeça colada no corpo, porco forte.
+- **escudos.tsx**: `'Xurupitas FC'` em LOGOS_PRONTAS (SVG do porco, presas p/ cima).
+- **mascotes.tsx**: `porco` (corpo inteiro, camisa verde, short/tênis brancos).
+- **data.ts**: ponte de renome `'Xurupitas FC' → 'Tokyo City Esperion' → 'FC Galáticos'`;
+  desmanchei o elo velho da corrente do Davi (`'Bicho da Seda' → 'Red Bull Diet'`,
+  sem passar mais pelo Xurupitas). CPU manager "Neguinho do Apito" agora joga
+  pelo Xurupitas FC.
+- **Banco**: `esc_socios` do denilson (escudo_time='Xurupitas FC', mascote_key='porco',
+  manto_c1='#0B4D2C', manto_c2='#FFFFFF', time_coracao='Palmeiras');
+  `esc_nomes_batismo` reserva **Xurupitas FC** pra ele (mantive "Tokyo City
+  Esperion" reservado também, pra ninguém pegar o nome antigo).
+- Reversível: `git revert` no commit + trocar de volta os campos no banco.
 
 ## 🖼️ PATROCÍNIO: logo da Vadico/ERO saía BRANCA quando selecionada (09/08) ✅ NO AR
 Achado ao fazer o mockup do banner de fidelidade (pedido do Diego pra usar a
