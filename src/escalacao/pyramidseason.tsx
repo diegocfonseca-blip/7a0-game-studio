@@ -4239,6 +4239,7 @@ export function ReserveListScreen() {
         {/* mesmo layout da aba Elenco (Titulares/Reservas), mas em modo listagem —
             "mesmo time" não tem leilão, então nem mostra o botão de listar/vender */}
         <SquadTab mgr={mgr} col={col} coins={state.careerCoins?.[youId] ?? 0} olheiros={state.onlineMode !== 'online'} xiIds={myXIids} xi={myXI as WonCard[]}
+          seasonNo={state.seasonNo} contratosOn={!!state.contratosOn}
           list={state.reserveListMesmo ? undefined : { listed, canList, onList: (id) => dispatch({ type: 'TOGGLE_RESERVE_LIST', mgrId: youId, cardId: id }) }} />
         {!state.reserveListMesmo && marketUnlocked && (
           <EnsinoPilula k="listar" pill="ℹ️ como funciona a venda" seasonNo={state.seasonNo}>

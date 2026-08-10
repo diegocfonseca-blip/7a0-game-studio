@@ -3020,3 +3020,17 @@ sócio com manto, cada um nas SUAS cores.
 + ONLINE (mesmo dia): os campinhos dos OUTROS times da sala também vestem o
 manto do dono — RPC esc_mantos_sala(p_room) devolve SÓ assento→cores (e-mail
 nunca viaja; manager.id === room_players.player_index). Bot fica sem manto.
+
+## 📝 CONTRATOS "não aparecem" (10/08 — investigação do caso pedrohenriquedasilva315)
+DIAGNÓSTICO (2 causas separadas):
+1. BUG REAL (consertado agora): a tela "📝 CONTRATOS · MESMO TIME"
+   (ReserveListScreen → SquadTab, pyramidseason.tsx:4241) NÃO passava
+   contratosOn/seasonNo → os selos ❗vencido/⏳último ano/📝N anos e o chip 💸
+   sumiam JUSTO na tela de decidir contratos. Uma linha, corrigida.
+2. CASO DO PEDRO: save dele está na TEMPORADA 178 — carreira ANTIGA (criada
+   antes de 02/08). Carreira antiga NÃO tem contratos por decisão de produto
+   (contratosOn só nasce em START_CAREER_SOLO/START_ONLINE; sem backfill).
+   Não é bug — mas o usuário não tem como saber. PROPOSTO ao Diego (aguardando
+   decisão): avisinho na carreira antiga tipo "📝 contratos são das carreiras
+   novas — comece uma nova pra ter" OU backfill (arriscado em save T178).
+   Comentário desatualizado do types.ts:108 corrigido junto.

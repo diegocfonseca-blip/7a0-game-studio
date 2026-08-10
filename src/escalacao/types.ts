@@ -105,7 +105,7 @@ export interface AgEvento { emoji: string; texto: string; coins: number; nome?: 
 export interface WonCard extends Card {
   paid: number
   via: Acquisition
-  contratoAte?: number // 📝 CONTRATOS (carreira): temporada em que o contrato ENCERRA (vence no FIM dela). Sorteado 5-10 na chegada; renovação = 10 anos (valor cheio) ou 5 (metade). Ausente = save antigo (ganha na próxima cerimônia)
+  contratoAte?: number // 📝 CONTRATOS (carreira): temporada em que o contrato ENCERRA (vence no FIM dela). Sorteado 5-10 na chegada; renovação = 10 anos (valor cheio) ou 5 (metade). Ausente em carreira COM contratosOn = ganha na próxima cerimônia; carreira ANTIGA (sem contratosOn) NUNCA ganha — contratos são só de carreira criada depois de 02/08 (decisão de produto, ver diário)
   reforco?: boolean // carreira online: comprado no leilão de reservas/mercado (não é do elenco original) — usado pras frases de "como vão as contratações"
   emprestado?: 'saf' | 'dono' // 🏢 SAF: jogador de EMPRÉSTIMO (propriedade não mudou) — 'saf' = veio da SAF pro dono; 'dono' = veio do dono pra SAF. Nunca pode ser vendido/listado; volta sozinho na virada de temporada.
   byClub?: number // 🏛️ MULTICLUBES: qual dos SEUS clubes fez este empréstimo (id do manager). Só usado quando há 2º clube — pra devolver o empréstimo pro clube certo na virada. Ausente = carreira normal (1 clube).
