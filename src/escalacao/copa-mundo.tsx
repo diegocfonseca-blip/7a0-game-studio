@@ -90,7 +90,12 @@ const COPA_ANCHOR = 100
 function ensureSave(seed: number): CopaSave {
   const cur = loadCopaSave(seed)
   if (cur) {
-    if ((cur.played?.length ?? 0) === 0 && cur.anchor !== COPA_ANCHOR) { cur.anchor = COPA_ANCHOR; saveCopaSave(seed, cur) }
+    // 🧯 blob antigo/parcial: garante os campos (sem isso, save sem played/mural
+    // dava tela branca no fim de temporada inteiro — bug 10/08)
+    if (!Array.isArray(cur.played)) cur.played = []
+    if (!Array.isArray(cur.mural)) cur.mural = []
+    if (cur.played.length === 0 && cur.anchor !== COPA_ANCHOR) { cur.anchor = COPA_ANCHOR }
+    saveCopaSave(seed, cur)
     return cur
   }
   const fresh: CopaSave = { anchor: COPA_ANCHOR, mural: [], played: [] }
@@ -124,7 +129,7 @@ function scorerPick(r: () => number, xi: PoolCard[]): string {
     const w = c.sec === 'ATA' ? 4 : c.sec === 'MEI' ? 2 : c.sec === 'GOL' ? 0 : 1
     for (let i = 0; i < w; i++) pool.push(c)
   }
-  return (pool[Math.floor(r() * pool.length)] ?? xi[xi.length - 1]).name
+  return (pool[Math.floor(r() * pool.length)] ?? xi[xi.length - 1])?.name ?? 'Craque Misterioso'
 }
 // minutos + autores dos gols (seedado): alimenta o LiveScoreCard — o gol pinga
 // no minuto certo do relógio, com o NOME de quem fez (as lendas convocadas!)
@@ -247,6 +252,19 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, a
   )
 }
 
+// 🧯 BUG 10/08 ("a Copa recomeçou sozinha / não termina"): o Modal era declarado
+// DENTRO do CopaMundo — função nova a cada render → o React desmontava e
+// REMONTAVA a árvore inteira (CupScreen voltava pra rodada 1, convocação sumia,
+// e o prêmio re-disparava em loop). Movido pra fora: identidade estável, fim do
+// reinício. NADA visual mudou.
+const CMModal = ({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) => createPortal(
+  <div style={{ position: 'fixed', inset: 0, zIndex: 99996, background: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10, overflowY: 'auto' }}>
+    <style>{'@keyframes cmSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
+    <div style={{ ...box('#F4ECD6'), color: INK, width: '100%', maxWidth: wide ? 430 : 400, maxHeight: '95vh', overflowY: 'auto', padding: 14, margin: 'auto', borderRadius: 18 }}>
+      {children}
+    </div>
+  </div>, document.body)
+
 function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCard, agenciaOn, onClose }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onPrize?: () => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onClose: () => void }) {
   // (o gerador do torneio mora DENTRO do CupScreen agora — ver comentário lá:
   // um gerador compartilhado com estado fazia o resultado mudar sozinho)
@@ -264,7 +282,7 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
     top16.forEach((c, i) => {
       if (c.you) { list.push({ club: c.name, you: true, pais: myPais, xi: myXI, str: xiStrength(myXI) }); return }
       let pais = paises16.slice(i).find(p => !taken.has(p)) ?? paises16.find(p => !taken.has(p))
-      if (!pais) pais = paises16[i]
+      if (!pais) pais = paises16[i] ?? paises16[0] ?? 'Brasil' // nunca deixa seleção sem país (XI vazio quebrava o gol)
       taken.add(pais)
       const pool = countryPool(pais)
       const f: Formation = formationFits(pool, '4-3-3') ? '4-3-3' : '4-4-2'
@@ -274,28 +292,20 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
     return list
   }, [myPais, myXI, top16, paises16])
 
-  const Modal = ({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) => createPortal(
-    <div style={{ position: 'fixed', inset: 0, zIndex: 99996, background: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10, overflowY: 'auto' }}>
-      <style>{'@keyframes cmSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
-      <div style={{ ...box('#F4ECD6'), color: INK, width: '100%', maxWidth: wide ? 430 : 400, maxHeight: '95vh', overflowY: 'auto', padding: 14, margin: 'auto', borderRadius: 18 }}>
-        {children}
-      </div>
-    </div>, document.body)
-
   if (phase === 'select') return (
-    <Modal>
+    <CMModal>
       <SelecaoScreen paises16={paises16} myPos={myPos} myClub={top16[myPos]?.name ?? 'Você'} onPick={p => { setMyPais(p); setPhase('convoke') }} onClose={onClose} />
-    </Modal>
+    </CMModal>
   )
   if (phase === 'convoke' && myPais) return (
-    <Modal>
+    <CMModal>
       <ConvocacaoScreen pais={myPais} onBack={() => setPhase('select')} onDone={(xi, f) => { setMyXI(xi); setMyForm(f); setPhase('cup') }} />
-    </Modal>
+    </CMModal>
   )
   if (phase === 'cup' && entrants) return (
-    <Modal wide>
+    <CMModal wide>
       <CupScreen entrants={entrants} seasonNo={seasonNo} seed={seed} save={save} myForm={myForm} onPrize={onPrize} onCard={onCard} agenciaOn={agenciaOn} onClose={onClose} />
-    </Modal>
+    </CMModal>
   )
   return null
 }
@@ -345,8 +355,12 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
     setSel(prev => {
       const nx = { ...prev }
       if (nx[k]) { delete nx[k]; return nx }
-      if (bySec(c.sec).length >= need[c.sec]) return prev            // posição cheia
-      if (usedNames.has(c.name)) return prev                        // outra versão da MESMA pessoa
+      // 🧯 10/08: as guardas liam o `sel` do RENDER (velho) — dois toques rápidos
+      // passavam do limite da posição e travavam o botão sem explicação. Agora
+      // contam no `prev` (o estado de verdade do momento).
+      const vals = Object.values(prev)
+      if (vals.filter(x => x.sec === c.sec).length >= need[c.sec]) return prev // posição cheia
+      if (vals.some(x => x.name === c.name)) return prev                       // outra versão da MESMA pessoa
       nx[k] = c; return nx
     })
   }

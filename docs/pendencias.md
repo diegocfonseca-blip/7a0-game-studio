@@ -3034,3 +3034,33 @@ DIAGNÓSTICO (2 causas separadas):
    decisão): avisinho na carreira antiga tipo "📝 contratos são das carreiras
    novas — comece uma nova pra ter" OU backfill (arriscado em save T178).
    Comentário desatualizado do types.ts:108 corrigido junto.
+
+## 🌍 COPA DO MUNDO — auditoria profunda + consertos (10/08)
+RELATOS: "tá dando erro" (sem detalhe) + "ganhei com o Brasil escalando os
+piores" (carreira antiga).
+CONSERTADO (commit único, reversível):
+1. 🔴 CAUSA MAIS PROVÁVEL DO "ERRO": o Modal era declarado DENTRO do
+   componente CopaMundo → todo re-render do pai REMONTAVA a Copa inteira
+   (voltava pros grupos, perdia convocação) e no título entrava em LOOP
+   (prêmio→re-render→remonta→prêmio). Modal movido pra fora (CMModal).
+2. Save llcopa antigo sem played/mural dava tela branca no fim de temporada —
+   ensureSave agora normaliza; ?.mural?.find no jornal.
+3. scorerPick com XI vazio e país undefined não quebram mais (guardas).
+4. Convocação: 2 toques rápidos furavam o limite da posição (guardas liam
+   estado velho) → agora contam no prev; travava o botão sem explicação.
+5. Título da CdM sumia do Rank após rename do clube (cmTitles sem ponte
+   oldChain) → ponte aplicada (Neymarzetti/Tôka10/etc mantêm a estrela).
+VEREDITO DO "ganhei com os piores" (Monte Carlo 2.000 copas no motor real):
+escalação PESA SIM — 11 piores do Brasil = 0,0% de título (nem sai do grupo);
+11 melhores = 34,8%. O que engana: a tela de convocação NÃO mostra
+overall/fama (de propósito), então "escalar desconhecidos" ≈ força média ≈
+level dos bots. OU o usuário viu o bug 1 (copa dupla). Carreira antiga × nova:
+motor IDÊNTICO; só a gravação do título no ranking é gated (agenciaOn).
+PENDENTE (decisões do Diego):
+- Mostrar nível (fama/estrelas) na convocação? Hoje é escolha às cegas de
+  propósito — mas o resultado depende 100% disso.
+- Aviso em carreira ANTIGA de que contratos são só das novas (proposto).
+- Multiclube na Copa: 2 clubes seus no top-20 = duas seleções IGUAIS no
+  torneio (Brasil × Brasil possível) — visual estranho, prêmio ok.
+- esc_results da CdM usa season_key/mode de solo mesmo em carreira online
+  (inconsistência anotada, sem mexer).

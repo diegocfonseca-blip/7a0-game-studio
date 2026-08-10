@@ -2196,7 +2196,8 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
     const olds = oldChain(key) // save antigo pode ter caixa/títulos em QUALQUER nome velho da corrente
     const pick = <V,>(rec: Record<string, V>): V | undefined => rec[key] ?? olds.map(o => rec[o]).find(v => v !== undefined)
     const money = t.human ? (coins[t.teamId] ?? 0) : Math.round(pick(clubCash) ?? 0)
-    return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, money, wc: cmTitles[t.name] ?? 0 }
+    // 🌍 título da Copa do Mundo acompanha o clube mesmo depois de rename (ponte oldChain — 10/08)
+    return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, money, wc: [...new Set([t.name, key, ...olds])].reduce((n, o) => n + (cmTitles[o] ?? 0), 0) }
   })
   // ordem: Série A · Copa do Mundo · Copa Legends · Série B · Série C · Série D · Dinheiro
   rows.sort((a, b) => b.h.A - a.h.A || b.wc - a.wc || b.copas - a.copas || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
@@ -3273,7 +3274,7 @@ export function PyramidSeasonScreen() {
                temporada exata (pedido do Diego 05/08). */
             mundial={(() => {
               if (state.seed == null) return undefined
-              const m = loadCopaSave(state.seed)?.mural.find(x => x.season === state.seasonNo)
+              const m = loadCopaSave(state.seed)?.mural?.find(x => x.season === state.seasonNo)
               return m ? { campeao: m.campeao, selecao: m.selecao, voce: m.voce } : undefined
             })()}
             /* 🎭 EVENTOS: manchetes do "Aconteceu na temporada" (página própria do jornal) */
