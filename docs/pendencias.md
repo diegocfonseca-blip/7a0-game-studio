@@ -3017,3 +3017,6 @@ a POSIÇÃO num selinho preto por cima; altura total igual). Aplicado nos DOIS
 campinhos: screens.tsx (Campinho do leilão/jogo, variantes small/normal) e
 pyramidseason.tsx (campinho da temporada — o do print dele). Vale pra todo
 sócio com manto, cada um nas SUAS cores.
++ ONLINE (mesmo dia): os campinhos dos OUTROS times da sala também vestem o
+manto do dono — RPC esc_mantos_sala(p_room) devolve SÓ assento→cores (e-mail
+nunca viaja; manager.id === room_players.player_index). Bot fica sem manto.

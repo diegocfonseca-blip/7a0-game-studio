@@ -3768,6 +3768,21 @@ export function EscSeason() {
   const LS = (pt: string, en: string) => (bbS && seasonLang === 'en') ? en : pt
   const you = state.managers[state.youIdx]
   const online = state.onlineMode === 'online'
+  // 🎽 mantos da SALA (pedido do Diego 10/08): os campinhos dos OUTROS também
+  // vestem o manto do dono (sócio/batismo). O servidor devolve SÓ assento →
+  // cores (esc_mantos_sala) — e-mail nunca viaja. Falhou? Fica sem manto.
+  const [mantosSala, setMantosSala] = useState<Record<number, [string, string]>>({})
+  useEffect(() => {
+    if (!online || !state.roomId) { setMantosSala({}); return }
+    let alive = true
+    supabase.rpc('esc_mantos_sala', { p_room: state.roomId }).then(({ data }) => {
+      if (!alive || !Array.isArray(data)) return
+      const m: Record<number, [string, string]> = {}
+      for (const r of data as { player_index: number; manto_c1: string; manto_c2: string }[]) m[r.player_index] = [r.manto_c1, r.manto_c2]
+      setMantosSala(m)
+    }, () => {})
+    return () => { alive = false }
+  }, [online, state.roomId])
   const canAdvance = !online || state.isHost
   // ritmo manual: nos modos solo (rápido offline, carreira, dinastia) E quando o
   // HOST controla o passo online — sala em STREAM ou sala criada no modo MANUAL.
@@ -4302,7 +4317,7 @@ export function EscSeason() {
           já acabou, os elencos são públicos (tabela/artilharia já mostram tudo).
           Offline/carreira: nada muda. */}
       {online && !state.careerOnline && state.managers.filter(mm => mm.id !== you.id && !mm.auctionOnly && mm.squad.length > 0).map(mm => (
-        <Campinho key={mm.id} m={mm} small title={`${mm.isHuman ? '👤' : '🤖'} ${mm.teamName}`} />
+        <Campinho key={mm.id} m={mm} small title={`${mm.isHuman ? '👤' : '🤖'} ${mm.teamName}`} manto={mm.isHuman ? mantosSala[mm.id] ?? null : null} />
       ))}
       {state.careerDivision && <RivalTracker />}
       <CreditLine className="pt-4 pb-2" />
