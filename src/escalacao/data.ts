@@ -1234,7 +1234,48 @@ const NOVOS_BR_ZAG: C[] = [
   { name: 'Lucão', club: 'São Paulo', year: 2016, fame: 1, lo: 55, hi: 76, bio: 'Zagueiro da base do São Paulo, firme na marcação.' },
   { name: 'Bressan', club: 'Grêmio', year: 2014, fame: 1, lo: 54, hi: 75, folk: true, bio: 'Zagueiro folclórico do Grêmio — a torcida prendia a respiração a cada recuo.' },
 ]
-export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA] }
+
+// 🆕 leva 2 de cartas novas (baralho BR) — pedidas pelo Diego, ago/2026.
+const NOVOS_BR2_GOL: C[] = [
+  { name: "Lucas Arcanjo", club: "Vitória", year: 2022, fame: 2, lo: 66, hi: 82, bio: "Goleiro cria da base do Athletico-PR que fez história emprestado ao Vitória — pegou pênaltis decisivos e virou herói do acesso rubro-negro." },
+  { name: "Marcelo Lomba", club: "Bahia", year: 2012, fame: 1, lo: 58, hi: 78, bio: "Goleiro gaúcho que começou a carreira no Esquadrão antes de virar ídolo e capitão do Internacional." },
+]
+const NOVOS_BR2_LAT: C[] = [
+  { name: "Cuiabano", club: "Botafogo", year: 2023, fame: 3, lo: 76, hi: 85, bio: "Lateral-esquerdo raçudo do Botafogo campeão brasileiro e da Libertadores em 2023/24 — força física e chegada ao ataque." },
+  { name: "Matheuzinho", club: "Vitória", year: 2023, fame: 2, lo: 66, hi: 82, bio: "Lateral-direito de apoio constante e cruzamento afiado — titular do Vitória na volta à elite." },
+  { name: "Natanael", club: "Coritiba", year: 2021, fame: 2, lo: 68, hi: 83, bio: "Lateral-esquerdo canhoto revelado no Coritiba — velocidade e cruzamento que chamaram atenção da Europa." },
+]
+const NOVOS_BR2_ZAG: C[] = [
+  { name: "Félix Torres", club: "Corinthians", year: 2023, fame: 3, lo: 76, hi: 85, bio: "Zagueiro equatoriano forte no jogo aéreo e na saída de bola — titular do Corinthians antes de rumar ao futebol mexicano." },
+  { name: "Gabriel Mercado", club: "Internacional", year: 2021, fame: 2, lo: 66, hi: 82, bio: "Zagueiro argentino experiente, ex-Sevilla e Seleção Albiceleste — liderança e postura na defesa do Inter." },
+  { name: "Titi", club: "Bahia", year: 2023, fame: 3, lo: 74, hi: 84, bio: "Zagueiro-capitão do Bahia da nova era — liderança, bola aérea e a braçadeira que rendeu a convocação pra Seleção." },
+  { name: "Jemerson", club: "Atlético-MG", year: 2015, fame: 2, lo: 68, hi: 83, bio: "Zagueiro forte e elegante na saída de bola — titular do Atlético-MG antes de brilhar no Monaco." },
+  { name: "Rafael Tolói", club: "São Paulo", year: 2011, fame: 2, lo: 66, hi: 82, bio: "Zagueiro revelado no São Paulo — foi pra Itália ainda jovem e virou capitão histórico da Atalanta." },
+]
+const NOVOS_BR2_MEI: C[] = [
+  { name: "Rodrigo Garro", club: "Corinthians", year: 2023, fame: 3, lo: 76, hi: 85, bio: "Meia argentino de drible e categoria — ídolo rápido do Corinthians, cobranças de falta e assistências de gala." },
+  { name: "Breno Bidon", club: "Corinthians", year: 2024, fame: 1, lo: 58, hi: 76, promessa: true, bio: "Volante-joia da base do Corinthians — chegada de área, personalidade e a braçadeira que virou promessa da Seleção." },
+  { name: "Arthur", club: "Grêmio", year: 2017, fame: 3, lo: 78, hi: 86, bio: "Meia-camisa 8 de toque fino e visão de jogo — o auge tricolor antes da badalada ida ao Barcelona." },
+  { name: "Bitello", club: "Grêmio", year: 2022, fame: 2, lo: 68, hi: 83, bio: "Meia-atacante de drible e faro de gol — peça de criação do Grêmio antes de rodar a Rússia." },
+  { name: "Juan Cazares", club: "Atlético-MG", year: 2016, fame: 2, lo: 68, hi: 82, bio: "Meia equatoriano de categoria e visão de jogo — cérebro criativo do Atlético-MG por vários anos." },
+  { name: "Edu", club: "Corinthians", year: 1997, fame: 3, lo: 76, hi: 85, bio: "Meia-artista revelado no Corinthians — brilhou na Europa (Valencia, Deportivo) antes de voltar pra encantar o Brasil de novo." },
+  { name: "Gabriel Bontempo", club: "Santos", year: 2024, fame: 1, lo: 56, hi: 76, promessa: true, bio: "Meia-joia da base do Santos — visão de jogo e talento que já rendem comparações e moral de futuro camisa 10." },
+  { name: "Lucas Crispim", club: "Fortaleza", year: 2023, fame: 2, lo: 68, hi: 83, bio: "Meia-atacante de passe certo e faro de assistência — peça-chave do Fortaleza nos anos de ouro no Nordeste." },
+  { name: "Lucho González", club: "Athletico-PR", year: 2005, fame: 3, lo: 78, hi: 86, bio: "Meia argentino elegante do Athletico Paranaense — categoria e passe que renderam a ida ao Porto de Mourinho." },
+]
+const NOVOS_BR2_ATA: C[] = [
+  { name: "Gabriel Pec", club: "Vasco", year: 2022, fame: 2, lo: 68, hi: 83, bio: "Ponta-atacante de velocidade e faro de gol — xodó recente de São Januário antes de rumar aos Estados Unidos." },
+  { name: "Lingard", club: "Corinthians", year: 2023, fame: 2, lo: 68, hi: 82, bio: "Meia-atacante inglês, ex-Manchester United — passagem curta e badalada pelo Corinthians." },
+  { name: "Elkeson", club: "Botafogo", year: 2010, fame: 2, lo: 64, hi: 80, bio: "Centroavante de faro de gol revelado no Botafogo — foi pra China, virou ídolo e até defendeu a seleção chinesa." },
+  { name: "Rafael Borré", club: "Internacional", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Centroavante colombiano de finalização e faro de área — reforço de peso pro ataque do Internacional." },
+  { name: "Dirceu Lopes", club: "Cruzeiro", year: 1976, fame: 4, lo: 84, hi: 90, bio: "Craque do \u0022Cruzeiro Show de Bola\u0022 — categoria e passe que fizeram dele um dos maiores ídolos da história celeste, campeão da Libertadores de 1976." },
+  { name: "Nikão", club: "Athletico-PR", year: 2019, fame: 3, lo: 76, hi: 85, bio: "Ponta-canhota de categoria — ídolo do Athletico Paranaense campeão da Sul-Americana e Recopa." },
+  { name: "Marcelo Cirino", club: "Athletico-PR", year: 2015, fame: 1, lo: 54, hi: 74, bio: "Atacante andarilho que passou pelo Athletico Paranaense — carreira de muitas malas, sempre em busca de espaço." },
+  { name: "Jesé Rodríguez", club: "Coritiba", year: 2022, fame: 1, lo: 48, hi: 66, bio: "Ex-joia do Real Madrid e do PSG — chegou badalado ao Coritiba mas o auge já tinha ficado pra trás. Passagem que virou piada." },
+  { name: "Alex Alves", club: "Cruzeiro", year: 2013, fame: 2, lo: 66, hi: 82, bio: "Centroavante goleador e andarilho — passou pelo Cruzeiro deixando faro de gol por onde jogou." },
+  { name: "Osvaldo", club: "Ceará", year: 2019, fame: 2, lo: 64, hi: 80, bio: "Centroavante de área — passagem de bons números artilheiros pelo Ceará." },
+]
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
@@ -1800,6 +1841,7 @@ const NOVOS_EU_MEI: C[] = [
   { name: 'Arda Güler', club: 'Real Madrid', year: 2024, fame: 3, lo: 76, hi: 85, promessa: true, bio: 'Joia turca do Real Madrid — canhota refinada, passe e chute de fora da área. A promessa que a Europa toda cobiçava.' },
   { name: 'Brahim Díaz', club: 'Milan', year: 2022, fame: 2, lo: 72, hi: 83, bio: 'Meia-atacante veloz e driblador — foi no Milan que virou titular e brilhou, com arranques e gols, antes de voltar ao Real Madrid.' },
   { name: 'Danny Drinkwater', club: 'Leicester', year: 2016, fame: 2, lo: 68, hi: 82, bio: 'Volante inglês de marcação e passe certo — peça-chave do Leicester campeão inglês de 2016, o maior conto de fadas da Premier League.' },
+  { name: 'Jobe Bellingham', club: 'Dortmund', year: 2025, fame: 2, lo: 68, hi: 82, promessa: true, bio: 'Irmão mais novo do Jude — também saiu cedo da Inglaterra, ganhou moral no Sunderland e foi contratado pelo Borussia Dortmund.' },
 ]
 const NOVOS_EU_ATA: C[] = [
   { name: "Theo Walcott", club: "Arsenal", year: 2013, fame: 3, lo: 78, hi: 86, bio: "Ponta inglês raio do Arsenal — velocidade pura pela direita." },

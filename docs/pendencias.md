@@ -3257,3 +3257,31 @@ mexer muda semântica/arrisca; NÃO mexidos):
   o bot pagar (conservação)? ✅ RESOLVIDO 10/08: Diego escolheu "robô paga" —
   o bot debita o próprio caixa quando fica com carta LISTADA (conservação 100%).
   Banner da carreira antiga ganhou botão ✕ (fecha e não volta, por aparelho).
+
+## ⚽ NOVOS JOGADORES ADICIONADOS (10/08 — lista grande do Diego)
+Adicionadas 25 cartas novas reais no baralho BR (+ 1 no baralho EU) em
+`data.ts` (blocos `NOVOS_BR2_*`), build ok. Conferido no catálogo o que já
+existia antes de adicionar (evitar duplicata):
+- JÁ ESTAVAM no jogo (Diego pode conferir in-game): Kaio Jorge (Cruzeiro),
+  Alan Patrick (Inter), Bernabei (Inter), Robgol (Bahia), Luciano Juba (Bahia),
+  Nino (Fluminense), Nonato (Bahia), Ronaldo Giovanelli (Corinthians),
+  Diego Tardelli (Atlético-MG), Tinga (Inter), Dario Conca (Fluminense),
+  Thorgan Hazard (irmão do Eden, baralho EU).
+- NOVOS adicionados: Lucas Arcanjo e Marcelo Lomba (gol); Cuiabano,
+  Matheuzinho, Natanael (lat); Félix Torres, Gabriel Mercado, Titi, Jemerson,
+  Rafael Tolói (zag); Rodrigo Garro, Breno Bidon (promessa), Arthur (Grêmio),
+  Bitello, Juan Cazares, Edu (Corinthians), Gabriel Bontempo (promessa),
+  Lucas Crispim, Lucho González (mei); Gabriel Pec, Lingard, Elkeson,
+  Rafael Borré, Dirceu Lopes, Nikão, Marcelo Cirino, Jesé Rodríguez,
+  Alex Alves, Osvaldo (ata); Jobe Bellingham (baralho EU, irmão do Jude).
+
+PENDENTE — Diego mandou mais nomes que eu não consegui identificar com
+segurança (risco de errar clube/época de gente real), perguntei pra ele no
+chat, aguardando resposta antes de adicionar:
+Viveros (Athletico-PR atual), zagueiro Barbosa (Botafogo), Willian Bigode,
+Leozinho (Athletico-PR, ex-futsal, promessa), Marcelino Moreno (Coritiba),
+Allan Delon (Vitória), Alex Dias (Goiás), Boiadeiro (Goiás), Acosta
+(Náutico), lateral Cedric (São Paulo), "Valdivia apelido Poko Pika"
+(Internacional), Roger Machado como jogador (clube/época incerta), Mancini
+(qual auge: Atlético-MG ou Roma — e categoria), Mariano lateral (melhor em
+Fluminense-promessa ou Atlético-MG-bom jogador).
