@@ -20,10 +20,17 @@ Dois batismos novos publicados juntos:
 - **Banco**: 2 linhas em esc_socios + nomes reservados em esc_nomes_batismo.
 - Reversível: `git revert` no commit + apagar as 2 linhas do banco.
 
-## ⏳ Kits aguardando OK/dados do Diego
-- 🐷⚓ **Marinheiros AS** (feehcamp11@gmail.com, Palmeiras, 1ª ASSINATURA —
-  NÃO é batismo, só personaliza a conta) — arte pronta (porco marujo estressado,
-  boina branca), aguardando o "pode publicar".
+## 🐷⚓ KIT: Marinheiros AS — 1ª ASSINATURA (10/08) ✅ NO AR
+Primeira ASSINATURA do jogo (feehcamp11@gmail.com)! NÃO é batismo — é
+personalização da conta do assinante (origem='assinatura', sócio nº15).
+- Porco marinheiro ESTRESSADO (boina branca, vapor, dentes trincados), verde e
+  branco (Palmeiras). Escudo = brasão verde + boia salva-vidas + porco de boina;
+  mascote `porco_marinheiro`; manto verde/branco HORIZONTAL (marujo).
+- **Código**: `escudos.tsx` ('Marinheiros AS'), `mascotes.tsx`
+  (`porco_marinheiro`), `manto.ts` (porco_marinheiro=0° horizontal).
+- **Banco**: 1 linha em esc_socios (origem assinatura, valido_ate 2099 — Diego
+  ajusta se a assinatura vencer; não há hook de cobrança automático).
+- Reversível: `git revert` + apagar a linha do banco.
 
 ## 🖤🤍 KIT: Bicho da Seda vira PRETO E BRANCO (Davi/davisantana1312) (10/08) ✅ NO AR
 Diego corrigiu: o coração do Davi é **BOTAFOGO**, não Palmeiras. Então o

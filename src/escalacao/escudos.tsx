@@ -396,6 +396,45 @@ export function escudoDe(nomeCru: string): EscudoDesign {
 // 💰 LOGOS ARTESANAIS (pagas): nome do time → desenho próprio, entra no lugar do
 // automático. É só adicionar aqui quando alguém comprar.
 export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
+  // ⭐ 1ª ASSINATURA (personalização de conta, NÃO é batismo/time fixo)
+  'Marinheiros AS': (size: number) => {
+    const w = Math.round(size * 200 / 240)
+    return (
+      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Marinheiros AS" role="img" style={{ flex: 'none', display: 'block' }}>
+        <defs><clipPath id="mrMar"><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z"/></clipPath></defs>
+              <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="#1B7A3D"/>
+              <g clipPath="url(#mrMar)"><path d="M-20 150 L210 30 v40 L10 180 Z" fill="#2A8f4d" opacity=".5"/></g>
+              <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
+              <g clipPath="url(#mrMar)">
+                <circle cx="100" cy="128" r="60" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="6"/>
+              <path d="M40 128 a60 60 0 0 1 60 -60" fill="none" stroke="#1B7A3D" strokeWidth="12"/>
+              <path d="M160 128 a60 60 0 0 1 -60 60" fill="none" stroke="#1B7A3D" strokeWidth="12"/>
+              <circle cx="100" cy="128" r="47" fill="#1B7A3D" stroke="#0C0C0C" strokeWidth="5"/>
+                <g transform="translate(38 58) scale(0.62)">
+              <g fill="#EAF7EE" stroke="#0C0C0C" strokeWidth="3">
+                <circle cx="34" cy="74" r="8"/><circle cx="22" cy="62" r="6"/>
+                <circle cx="166" cy="74" r="8"/><circle cx="178" cy="62" r="6"/>
+              </g>
+              <path d="M56 82 Q40 46 58 42 Q76 50 84 82 Z" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
+              <path d="M144 82 Q160 46 142 42 Q124 50 116 82 Z" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
+              <path d="M56 92 Q56 64 100 62 Q144 64 144 92 L144 124 Q144 158 100 164 Q56 158 56 124 Z" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
+              <path d="M64 98 L98 112 M136 98 L102 112" stroke="#0C0C0C" strokeWidth="11" strokeLinecap="round"/>
+              <path d="M72 114 Q84 108 96 116 Q86 126 74 122 Z" fill="#fff" stroke="#0C0C0C" strokeWidth="4"/>
+              <path d="M128 114 Q116 108 104 116 Q114 126 126 122 Z" fill="#fff" stroke="#0C0C0C" strokeWidth="4"/>
+              <circle cx="86" cy="117" r="5" fill="#0C0C0C"/><circle cx="114" cy="117" r="5" fill="#0C0C0C"/>
+              <ellipse cx="100" cy="138" rx="28" ry="18" fill="#1E7A45" stroke="#0C0C0C" strokeWidth="7"/>
+              <ellipse cx="90" cy="138" rx="4.5" ry="7" fill="#0C0C0C"/><ellipse cx="110" cy="138" rx="4.5" ry="7" fill="#0C0C0C"/>
+              <rect x="80" y="150" width="40" height="13" rx="3" fill="#7a1410" stroke="#0C0C0C" strokeWidth="4"/>
+              <path d="M86 150 L86 163 M94 150 L94 163 M102 150 L102 163 M110 150 L110 163 M118 150 L118 163" stroke="#fff" strokeWidth="3"/>
+              <path d="M150 96 q7 12 0 18 q-7 -6 0 -18 Z" fill="#7FD3F0" stroke="#0C0C0C" strokeWidth="3"/>
+              <ellipse cx="100" cy="62" rx="62" ry="17" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="6"/>
+              <path d="M44 62 Q100 14 156 62 Q130 76 100 76 Q70 76 44 62 Z" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="6" strokeLinejoin="round"/>
+              <circle cx="100" cy="26" r="8" fill="#E5271C" stroke="#0C0C0C" strokeWidth="4"/>
+            </g>
+              </g>
+      </svg>
+    )
+  },
   // ⬇️ kit de batismo (arte própria em código — cores + símbolo folclórico, sem escudo real)
   'Murriz FC': (size: number) => {
     const w = Math.round(size * 200 / 240)

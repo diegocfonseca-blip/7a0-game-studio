@@ -82,8 +82,9 @@ export const mantoStripes = (c: [string, string], w = 9, angle = 90) =>
 // 🎽 direção da listra por mascote do clube (pedido do Diego 10/08). Batismo que
 // pediu listra diferente entra aqui; quem não está aqui fica vertical (padrão).
 const MANTO_ANGLE: Record<string, number> = {
-  samambaia: 45,     // 🌿 Império Samambaia — diagonais (Rio Branco)
-  careca_ruivo: 0,   // 🔴⚫ Murriz FC — horizontais (marujo/rubro-negro)
+  samambaia: 45,        // 🌿 Império Samambaia — diagonais (Rio Branco)
+  careca_ruivo: 0,      // 🔴⚫ Murriz FC — horizontais (rubro-negro)
+  porco_marinheiro: 0,  // 🐷⚓ Marinheiros AS — horizontais (marujo/Palmeiras)
 }
 // ângulo da listra do MEU manto (pelo meu mascote). Só o próprio dono decora o seu.
 export function meuMantoAngle(): number {

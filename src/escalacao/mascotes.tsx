@@ -13,6 +13,50 @@ const INK = '#0C0C0C'
 // registro das mascotes prontas (chave → desenho). Cada sócio que pedir ganha
 // a dele aqui — 1ª da casa: a alface brava do Alfacehh FC.
 export const MASCOTES: Record<string, ReactNode> = {
+  // 🐷⚓ porco marinheiro ESTRESSADO (Marinheiros AS — feehcamp11, 1ª assinatura, Palmeiras)
+  porco_marinheiro: (
+    <svg width={150} height={195} viewBox="0 0 200 300">
+      <defs><clipPath id="shirt"><path d="M60 150 Q100 142 140 150 L146 210 54 210 Z"/></clipPath></defs>
+            <ellipse cx="100" cy="284" rx="60" ry="10" fill="rgba(0,0,0,.15)"/>
+            <rect x="74" y="206" width="20" height="46" rx="7" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="5"/>
+            <rect x="106" y="206" width="20" height="46" rx="7" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="5"/>
+            <path d="M66 246 q-8 10 4 16 l26 0 0 -16 Z" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
+            <path d="M104 246 l0 16 26 0 q12 -6 4 -16 Z" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
+            <path d="M64 158 Q40 168 44 200" fill="none" stroke="#3FAF6A" strokeWidth="17" strokeLinecap="round"/>
+            <path d="M136 158 Q160 168 156 200" fill="none" stroke="#3FAF6A" strokeWidth="17" strokeLinecap="round"/>
+            <circle cx="44" cy="206" r="14" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="5"/>
+            <circle cx="156" cy="206" r="14" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="5"/>
+            <path d="M60 150 Q100 142 140 150 L146 210 54 210 Z" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
+            <g clipPath="url(#shirt)">
+              <rect x="50" y="150" width="100" height="11" fill="#1B7A3D"/>
+              <rect x="50" y="172" width="100" height="11" fill="#1B7A3D"/>
+              <rect x="50" y="194" width="100" height="11" fill="#1B7A3D"/>
+            </g>
+            <path d="M60 150 Q100 142 140 150 L146 210 54 210 Z" fill="none" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
+            <path d="M84 146 L100 160 116 146 L108 140 92 140 Z" fill="#1B7A3D" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
+            <g transform="translate(8 -6) scale(0.92)">
+            <g fill="#EAF7EE" stroke="#0C0C0C" strokeWidth="3">
+              <circle cx="34" cy="74" r="8"/><circle cx="22" cy="62" r="6"/>
+              <circle cx="166" cy="74" r="8"/><circle cx="178" cy="62" r="6"/>
+            </g>
+            <path d="M56 82 Q40 46 58 42 Q76 50 84 82 Z" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
+            <path d="M144 82 Q160 46 142 42 Q124 50 116 82 Z" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
+            <path d="M56 92 Q56 64 100 62 Q144 64 144 92 L144 124 Q144 158 100 164 Q56 158 56 124 Z" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
+            <path d="M64 98 L98 112 M136 98 L102 112" stroke="#0C0C0C" strokeWidth="11" strokeLinecap="round"/>
+            <path d="M72 114 Q84 108 96 116 Q86 126 74 122 Z" fill="#fff" stroke="#0C0C0C" strokeWidth="4"/>
+            <path d="M128 114 Q116 108 104 116 Q114 126 126 122 Z" fill="#fff" stroke="#0C0C0C" strokeWidth="4"/>
+            <circle cx="86" cy="117" r="5" fill="#0C0C0C"/><circle cx="114" cy="117" r="5" fill="#0C0C0C"/>
+            <ellipse cx="100" cy="138" rx="28" ry="18" fill="#1E7A45" stroke="#0C0C0C" strokeWidth="7"/>
+            <ellipse cx="90" cy="138" rx="4.5" ry="7" fill="#0C0C0C"/><ellipse cx="110" cy="138" rx="4.5" ry="7" fill="#0C0C0C"/>
+            <rect x="80" y="150" width="40" height="13" rx="3" fill="#7a1410" stroke="#0C0C0C" strokeWidth="4"/>
+            <path d="M86 150 L86 163 M94 150 L94 163 M102 150 L102 163 M110 150 L110 163 M118 150 L118 163" stroke="#fff" strokeWidth="3"/>
+            <path d="M150 96 q7 12 0 18 q-7 -6 0 -18 Z" fill="#7FD3F0" stroke="#0C0C0C" strokeWidth="3"/>
+            <ellipse cx="100" cy="62" rx="62" ry="17" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="6"/>
+            <path d="M44 62 Q100 14 156 62 Q130 76 100 76 Q70 76 44 62 Z" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="6" strokeLinejoin="round"/>
+            <circle cx="100" cy="26" r="8" fill="#E5271C" stroke="#0C0C0C" strokeWidth="4"/>
+          </g>
+    </svg>
+  ),
   // 🧔 careca de barba ruiva ESTRESSADO (Murriz FC — msb102010, rubro-negro)
   careca_ruivo: (
     <svg width={150} height={195} viewBox="0 0 200 260">
