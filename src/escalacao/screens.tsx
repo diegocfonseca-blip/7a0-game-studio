@@ -5578,7 +5578,10 @@ interface RankRow { user_id: string; name: string; career_key: string; titles: n
 // POR MODO: cartas online ↔ títulos online, cartas CPU ↔ títulos CPU. Falta →
 // cria título; sobra → rebaixa (champion=false, sem apagar a linha nem a
 // artilharia). Roda como o usuário (passa no RLS), sem eu tocar no banco.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function reconcileCardsToTitles() {
+  return // 🚫 desativada 10/08 (ver comentário na chamada) — mantida só pra histórico
+  // eslint-disable-next-line no-unreachable
   try {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -5679,15 +5682,13 @@ export function EscRanking() {
     setRows(null); setDown(false)
     ;(async () => {
       try {
-        // 🧾 acerto cartas↔títulos: 1× POR DIA por aparelho (rodava a cada abertura
-        // — decisão do Diego 04/08, junto com o ranking diário)
-        try {
-          const hoje = new Date().toISOString().slice(0, 10)
-          if (localStorage.getItem('esc-reconcile-dia') !== hoje) {
-            await reconcileCardsToTitles()
-            localStorage.setItem('esc-reconcile-dia', hoje)
-          }
-        } catch { /* localStorage bloqueado — segue sem o acerto */ }
+        // 🚫 DESATIVADO (10/08): o acerto cartas↔títulos partia de "todo campeão
+        // gera carta E título juntos" — premissa que QUEBROU com a trava do Falido
+        // FC (09/08: só carreira NOVA/agenciaOn grava título no ranking). Como a
+        // carta é garantida em QUALQUER carreira, a rotina recriava (fix:) os
+        // títulos que a trava tirou (INFLA) e ainda rebaixava título real quando 2
+        // títulos davam a MESMA carta (APAGA). Rodava 1×/dia, então corrompia sempre.
+        // O ranking passa a refletir só o que o jogo grava de verdade. Ver diário.
         const pmode = mode
         // 🕐 RANKING DIÁRIO: lê a foto pronta (esc_ranking_cache, servidor atualiza
         // 1×/dia) — a conta pesada não roda mais pra cada visitante. Sem foto
