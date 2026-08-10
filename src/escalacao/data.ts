@@ -1279,6 +1279,7 @@ const NOVOS_BR3_MEI: C[] = [
 ]
 const NOVOS_BR3_ATA: C[] = [
   { name: "Kevin Viveros", club: "Athletico-PR", year: 2026, fame: 3, lo: 78, hi: 87, bio: "Ponta colombiano veloz — artilheiro de TODO o Brasileirão de 2026 vestindo o Furacão." },
+  { name: "Leozinho", club: "Athletico-PR", year: 2025, fame: 1, lo: 58, hi: 76, promessa: true, bio: "Veio do futsal — foi eleito o melhor do mundo na categoria antes de trocar de esporte contrariando os conselhos. Deu certo: virou reforço e renovou com o Furacão até 2028." },
   { name: "Willian Bigode", club: "Cruzeiro", year: 2014, fame: 3, lo: 76, hi: 85, bio: "Centroavante bicampeão brasileiro pelo Cruzeiro (2013 e 2014) — o bigode virou marca registrada e depois brilhou também no Palmeiras." },
   { name: "Alex Dias", club: "Goiás", year: 2004, fame: 3, lo: 76, hi: 85, bio: "O \u0022Pantaneiro\u0022 — vice-artilheiro do Brasileirão de 2004 com 22 gols vestindo o Goiás, faro de área que rendeu a ida pro Vasco ao lado do Romário." },
   { name: "Beto Acosta", club: "Náutico", year: 2007, fame: 3, lo: 76, hi: 85, bio: "Centroavante uruguaio artilheiro — vice-artilheiro do Brasileirão de 2007 pelo Náutico, um dos maiores ídolos recentes dos Aflitos." },
