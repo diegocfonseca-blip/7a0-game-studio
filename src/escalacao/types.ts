@@ -417,7 +417,7 @@ export interface EscState {
   // Bate a meta escolhida → ganha o valor dela; fica AQUÉM → zero; supera → só o
   // valor apostado mesmo assim (vale pra solo E online — chave é sempre o mgrId).
   careerSponsorBet?: Record<number, { tier: 1 | 2 | 3; brandId: string; season: number }> // aposta da temporada ATUAL (pro banner de início não mostrar de novo se já escolheu)
-  careerSponsorResult?: Record<number, { season: number; tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number }> // resultado da temporada PASSADA (bateu?/quanto rendeu) — pro banner de resultado
+  careerSponsorResult?: Record<number, { season: number; tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }> // resultado da temporada PASSADA (bateu?/quanto rendeu) — pro banner de resultado. floored = não bateu mas a garantia de fidelidade pagou o mínimo mesmo assim
   empresarioCards?: EmpCard[] // 💼 carreira SOLO: agência do Empresário — cartas ganhas no pacote de campeão desta carreira (começa vazia). Rende por temporada por raridade (categorias destravam com estádio/SAF). Aceita REPETIDAS (o álbum geral ignora; a agência do save conta).
   empresarioClaimKeys?: string[] // 💼 idempotência: seasonKeys dos pacotes já registrados na agência (o pacote reoferece a carta no reload, então dedup por temporada, não por carta).
   careerEmpresario?: Record<number, EmpCard[]> // 💼 carreira ONLINE: agência do Empresário por técnico (mgrId → cartas). Offline usa empresarioCards.

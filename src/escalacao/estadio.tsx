@@ -119,20 +119,57 @@ export function SponsorBetStatus({ bet }: { bet?: { tier: SponsorBetTier; brandI
   )
 }
 // 🏁 resultado da aposta da temporada PASSADA (bateu/não bateu) — banner no fim.
-export function SponsorBetResultCard({ result, div }: { result: { tier: SponsorBetTier; brandId: string; hit: boolean; amount: number }; div: string }) {
+// floored = não bateu a meta, mas a garantia de fidelidade (mesma marca do
+// acerto anterior) pagou o mínimo mesmo assim — mostra diferente do "🚫" seco.
+export function SponsorBetResultCard({ result, div }: { result: { tier: SponsorBetTier; brandId: string; hit: boolean; amount: number; floored?: boolean }; div: string }) {
   const meta = SPONSOR_BET_META[result.tier]
   const brand = sponsorBrandOf(result.brandId)
   const cap = SPONSOR_BET_PAY[div]?.[2] ?? 0
   const superou = result.hit && result.tier < 3 && result.amount < cap
+  const paid = result.hit || result.floored
   return (
     <div style={{ ...box('#fff'), padding: 14, marginBottom: 10, textAlign: 'center' }}>
-      <span style={{ fontSize: 32 }}>{result.hit ? meta.emoji : '🚫'}</span>
-      <p style={{ ...OSW, fontWeight: 900, fontSize: 15, margin: '4px 0 2px' }}>{result.hit ? 'Aposta certeira!' : 'Meta não batida'}</p>
+      <span style={{ fontSize: 32 }}>{result.hit ? meta.emoji : result.floored ? '🎖️' : '🚫'}</span>
+      <p style={{ ...OSW, fontWeight: 900, fontSize: 15, margin: '4px 0 2px' }}>{result.hit ? 'Aposta certeira!' : result.floored ? 'Meta não batida — mas a fidelidade pagou!' : 'Meta não batida'}</p>
       <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', lineHeight: 1.4, margin: 0 }}>
-        Você apostou em <b>{meta.emoji} {meta.label}</b> com a <b>{brand?.name}</b> — {result.hit ? 'e bateu a meta! O patrocínio pagou.' : 'mas não bateu a meta. A aposta não vingou.'}
+        Você apostou em <b>{meta.emoji} {meta.label}</b> com a <b>{brand?.name}</b> — {result.hit ? 'e bateu a meta! O patrocínio pagou.' : result.floored ? 'não bateu dessa vez, mas por ter acertado com essa marca na temporada passada, o patrocínio garantiu o mínimo mesmo assim.' : 'mas não bateu a meta. A aposta não vingou.'}
       </p>
-      <span style={{ display: 'inline-block', marginTop: 8, ...OSW, fontWeight: 900, fontSize: 15, background: result.hit ? GREEN : '#B23A2A', color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 16px' }}>{result.hit ? '+' : ''}{result.amount} 🪙 no caixa</span>
+      <span style={{ display: 'inline-block', marginTop: 8, ...OSW, fontWeight: 900, fontSize: 15, background: paid ? GREEN : '#B23A2A', color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 16px' }}>{paid ? '+' : ''}{result.amount} 🪙 no caixa</span>
       {superou && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#8a6d00', margin: '7px 0 0' }}>Você foi além da meta — mas o prêmio é só o do nível apostado. 😉</p>}
+    </div>
+  )
+}
+// 🎖️ FIDELIDADE (09/08): bateu a meta com uma marca → aparece ANTES da escolha
+// da temporada seguinte, oferecendo garantir o mínimo se escolher a MESMA marca
+// de novo (mesmo que não bata a meta dessa vez). Só some se o técnico escolher
+// outra marca ou virar a temporada (a garantia em si é aplicada em
+// sponsorBetRewards, olhando pro careerSponsorResult da temporada anterior).
+export function SponsorLoyaltyBanner({ result, div }: { result: { tier: SponsorBetTier; brandId: string; hit: boolean }; div: string }) {
+  if (!result.hit) return null
+  const brand = sponsorBrandOf(result.brandId)
+  if (!brand) return null
+  const minVal = (SPONSOR_BET_PAY[div] ?? [0, 0, 0])[0]
+  const logo = sponsorLogoSrc(brand)
+  return (
+    <div style={{ ...box('#fff'), overflow: 'hidden', marginBottom: 12 }}>
+      <div style={{ background: `linear-gradient(150deg, ${GREEN}, #0f4f26)`, padding: '11px 13px', textAlign: 'center' }}>
+        <p style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: '#BFF2D3', margin: '0 0 2px' }}>🎖️ fidelidade</p>
+        <p style={{ ...OSW, fontWeight: 900, fontSize: 15, color: '#fff', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+          {logo ? <img alt={brand.name} src={logo} style={{ height: 20, filter: 'brightness(0) invert(1)' }} /> : <span>{brand.emoji}</span>} {brand.name} quer continuar
+        </p>
+      </div>
+      <div style={{ padding: '11px 13px 4px' }}>
+        <div style={{ background: '#F4ECD6', border: `2.5px solid ${INK}`, borderRadius: '12px 12px 12px 3px', padding: '9px 11px' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 700, fontStyle: 'italic', margin: 0, lineHeight: 1.4 }}>"Parabéns pelo resultado da temporada passada! A gente gostou de ver o nome da {brand.name} junto do seu time — bora continuar juntos?"</p>
+        </div>
+        <p style={{ fontSize: 9.5, fontWeight: 800, color: 'rgba(0,0,0,.5)', margin: '6px 2px 0' }}>— Diretoria Comercial · {brand.name}</p>
+      </div>
+      <div style={{ margin: '10px 13px 0', background: '#FFF6DE', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 11px' }}>
+        <p style={{ fontSize: 9.5, fontWeight: 900, textTransform: 'uppercase', color: '#8a6d00', margin: '0 0 3px' }}>🤝 proposta</p>
+        <p style={{ fontSize: 11.5, fontWeight: 700, margin: 0, lineHeight: 1.4 }}>Escolha a <b>{brand.name}</b> de novo agora e, mesmo que não bata a meta dessa vez, o patrocínio garante um mínimo:</p>
+        <span style={{ display: 'inline-block', marginTop: 7, ...OSW, fontWeight: 900, fontSize: 13, background: INK, color: GOLD, borderRadius: 8, padding: '4px 10px' }}>🛡️ garantido: {minVal} 🪙</span>
+      </div>
+      <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 13px 12px', lineHeight: 1.4 }}>Vale só pra ESSA temporada. Se escolher outra marca agora, a proposta não volta.</p>
     </div>
   )
 }

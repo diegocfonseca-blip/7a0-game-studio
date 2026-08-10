@@ -18,7 +18,7 @@ import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
-import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, SponsorBetResultCard } from './estadio'
+import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, SponsorBetResultCard, SponsorLoyaltyBanner } from './estadio'
 import { Escudo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave } from './copa-mundo'
 import { supabase } from '../lib/supabase'
@@ -305,9 +305,15 @@ export function clubRewards(tables: Record<Div, SimTeam[]>): Record<string, numb
 // temporada bateu — e quanto rende. Bateu = valor do nível escolhido; não bateu
 // (ficou aquém, ex.: apostou "não cair" e caiu) = ZERO. Superou a meta escolhida
 // (ex.: apostou "não cair" e foi campeão) NÃO rende o nível maior — só o apostado.
-export function sponsorBetRewards(tables: Record<Div, SimTeam[]>, bets: Record<number, { tier: SponsorBetTier; brandId: string; season: number }> | undefined, copaChampionTeamId?: number | null): { rewards: Record<number, number>; results: Record<number, { tier: SponsorBetTier; brandId: string; hit: boolean; amount: number }> } {
+// 🎖️ FIDELIDADE (09/08, pedido do Diego): bateu a meta com uma marca → na
+// temporada SEGUINTE, se escolher a MESMA marca de novo, ganha uma garantia de
+// piso — mesmo que não bata a meta dessa vez, recebe pelo menos o nível 1
+// (mínimo) em vez de zero. Só vale a temporada imediatamente seguinte ao
+// acerto (não acumula/expira se não usar na hora). `lastResults` é o
+// `careerSponsorResult` de ANTES desta virada (ainda não sobrescrito).
+export function sponsorBetRewards(tables: Record<Div, SimTeam[]>, bets: Record<number, { tier: SponsorBetTier; brandId: string; season: number }> | undefined, copaChampionTeamId?: number | null, lastResults?: Record<number, { tier: SponsorBetTier; brandId: string; hit: boolean; amount: number; season: number }>): { rewards: Record<number, number>; results: Record<number, { tier: SponsorBetTier; brandId: string; hit: boolean; amount: number; floored?: boolean }> } {
   const rewards: Record<number, number> = {}
-  const results: Record<number, { tier: SponsorBetTier; brandId: string; hit: boolean; amount: number }> = {}
+  const results: Record<number, { tier: SponsorBetTier; brandId: string; hit: boolean; amount: number; floored?: boolean }> = {}
   for (const d of DIVS) tables[d].forEach((t, i) => {
     if (!t.human || t.teamId < 0) return
     const bet = bets?.[t.teamId]
@@ -316,9 +322,17 @@ export function sponsorBetRewards(tables: Record<Div, SimTeam[]>, bets: Record<n
     const champDiv = i === 0
     const champCopa = copaChampionTeamId != null && copaChampionTeamId === t.teamId
     const hit = sponsorBetHit(bet.tier, pos, champDiv, champCopa)
-    const amount = hit ? sponsorBetValue(d, bet.tier) : 0
+    let amount = hit ? sponsorBetValue(d, bet.tier) : 0
+    let floored = false
+    if (!hit) {
+      const last = lastResults?.[t.teamId]
+      if (last?.hit && last.brandId === bet.brandId && last.season === bet.season - 1) {
+        amount = sponsorBetValue(d, 1) // garantia de fidelidade: pelo menos o mínimo
+        floored = true
+      }
+    }
     rewards[t.teamId] = amount
-    results[t.teamId] = { tier: bet.tier, brandId: bet.brandId, hit, amount }
+    results[t.teamId] = { tier: bet.tier, brandId: bet.brandId, hit, amount, ...(floored ? { floored: true } : {}) }
   })
   return { rewards, results }
 }
@@ -2964,7 +2978,7 @@ export function PyramidSeasonScreen() {
     const sb = scorerRewards(divTop)
     const cr = copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] })
     const mrg = (a: Record<number, number>, b: Record<number, number>) => { const o = { ...a }; for (const k in b) o[+k] = (o[+k] ?? 0) + b[+k]; return o }
-    const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null)
+    const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult)
     dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), sponsorRewards: spb.rewards, sponsorResults: spb.results })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished, state.booksSeason, state.seasonNo])
@@ -3331,9 +3345,13 @@ export function PyramidSeasonScreen() {
         {round === 0 && me && (() => {
           const myBet = state.careerSponsorBet?.[youId]
           const myResult = state.careerSponsorResult?.[youId]
+          const jaEscolheu = !!(myBet && myBet.season === state.seasonNo)
+          const resultFresh = myResult && myResult.season === (state.seasonNo ?? 1) - 1
           return (
             <>
-              {myResult && myResult.season === (state.seasonNo ?? 1) - 1 && <SponsorBetResultCard result={myResult} div={me.div} />}
+              {resultFresh && <SponsorBetResultCard result={myResult!} div={me.div} />}
+              {/* 🎖️ FIDELIDADE: só antes de escolher de novo (some depois de decidir) */}
+              {resultFresh && !jaEscolheu && <SponsorLoyaltyBanner result={myResult!} div={me.div} />}
               <SponsorBetBanner div={me.div}
                 chosen={myBet && myBet.season === state.seasonNo ? myBet : undefined}
                 onPick={(tier, brandId) => dispatch({ type: 'SET_SPONSOR_BET', tier, brandId, mgrId: youId })} />
@@ -3419,7 +3437,7 @@ export function PyramidSeasonScreen() {
           const sb = scorerRewards(divTop)
           const cr = copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }) // campeão +25 · vice +15 · artilheiro +16 (caixa+piso)
           const mrg = (a: Record<string | number, number>, b: Record<string | number, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
-          const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null) // 🤝 aposta do patrocínio (por técnico) da temporada que ACABOU
+          const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult) // 🤝 aposta do patrocínio (por técnico) da temporada que ACABOU
           const args = () => ({ placements: computePromotions(tables), rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, sponsorRewards: spb.rewards, sponsorResults: spb.results })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que

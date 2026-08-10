@@ -1,5 +1,29 @@
 # 📌 Pendências combinadas com o Diego (atualizado 09/08/2026)
 
+## 🎖️ PATROCÍNIO: garantia de fidelidade (09/08, mockup aprovado) ✅ NO AR
+Bateu a meta do patrocínio com uma marca → na temporada SEGUINTE, antes de
+escolher de novo, aparece um banner da <b>Diretoria Comercial</b> da própria
+marca (nome da empresa aparece), parabenizando e propondo: escolha a MESMA
+marca de novo essa temporada e, mesmo que não bata a meta dessa vez, o
+patrocínio garante pelo menos o mínimo (nível 1) em vez de zero. Só vale
+UMA temporada (a que vem logo depois do acerto) — se não usar na hora, some.
+Combinado com o Diego: **não usar a palavra "aposta" nesse banner novo**
+(o resto da tela de patrocínio continua com "aposta" normal, só esse banner
+evita).
+- **Lógica** (`pyramidseason.tsx`, `sponsorBetRewards`): novo parâmetro
+  `lastResults` (o `careerSponsorResult` de ANTES da virada, ainda não
+  sobrescrito) — se não bateu a meta mas bateu na temporada anterior E
+  escolheu a MESMA marca, aplica o piso (`sponsorBetValue(div, 1)`) e marca
+  `floored: true` no resultado. Os 2 call-sites (`CLOSE_SEASON_BOOKS` solo e
+  o builder de `args()` do online) passam `state.careerSponsorResult`.
+- **UI** (`estadio.tsx`): `SponsorLoyaltyBanner` novo (só aparece quando
+  `result.hit`, antes do técnico escolher de novo — some depois que ele
+  decide). `SponsorBetResultCard` ganhou o caso `floored` (ícone 🎖️, texto
+  explicando que a fidelidade pagou o mínimo, pílula verde em vez de
+  vermelha) — sem isso a pessoa não entenderia de onde veio o dinheiro numa
+  temporada que "não bateu".
+- Reversível: `git revert` no commit desse fix.
+
 ## 💰 CARREIRA: prêmio de acesso da D/Várzea + campeão da Várzea subiram (09/08) ✅ NO AR
 Contexto: investiguei relato de "carreira tá difícil" e achei que o handicap
 subiu MUITO exatamente na Várzea/D (04/08) — é a primeira coisa que todo
