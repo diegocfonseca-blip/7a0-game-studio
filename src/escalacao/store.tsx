@@ -2972,6 +2972,13 @@ export function reducer(state: EscState, action: Action): EscState {
       youUid: action.youUid ?? state.youUid, // 🤝 crachá da dupla: local, sobrevive à reconexão
       pendingEnvelopes: {},
       tiebreakPending: {},
+      // 🧯 host recarregou no meio da coleta de lances (bug 10/08): os envelopes
+      // secretos NÃO são persistidos (sanitize os tira, senão vazariam). Se eu
+      // mantivesse `submitted`, os guests que já lacraram ficariam presos como
+      // "enviado" e o setor resolveria com lance ZERO. Zerando `submitted` só nas
+      // fases de coleta, eles reabrem o input e reenviam o lance. (Fora dessas
+      // fases, mantém — pra não bagunçar revelação/desempate.)
+      submitted: (action.state.phase === 'envelope' || action.state.phase === 'resq_envelope') ? [] : action.state.submitted,
       presence: [],
     })
   }
