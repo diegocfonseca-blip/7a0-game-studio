@@ -3059,7 +3059,9 @@ motor IDÊNTICO; só a gravação do título no ranking é gated (agenciaOn).
 PENDENTE (decisões do Diego):
 - Mostrar nível (fama/estrelas) na convocação? Hoje é escolha às cegas de
   propósito — mas o resultado depende 100% disso.
-- Aviso em carreira ANTIGA de que contratos são só das novas (proposto).
+- ~~Aviso em carreira ANTIGA de que contratos são só das novas~~ ✅ FEITO
+  10/08 (Diego aprovou): caixinha "📝 Cadê os contratos?" na aba Elenco da
+  carreira sem contratosOn — o porquê e o caminho (começar carreira nova).
 - Multiclube na Copa: 2 clubes seus no top-20 = duas seleções IGUAIS no
   torneio (Brasil × Brasil possível) — visual estranho, prêmio ok.
 - esc_results da CdM usa season_key/mode de solo mesmo em carreira online

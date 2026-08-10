@@ -3836,6 +3836,15 @@ export function PyramidSeasonScreen() {
               </>
             )}
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={f => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId })} olheiros={state.onlineMode !== 'online'} />
+            {/* 📝 aviso pra carreira ANTIGA (aprovado pelo Diego 10/08): contratos são
+                só das carreiras criadas depois de 02/08 — sem isso o jogador acha que
+                está bugado ("não aparece contrato nenhum"). Aviso com o porquê e o
+                caminho, no lugar exato onde ele procuraria. */}
+            {!state.contratosOn && (
+              <div style={{ ...box('#CBBF9E'), padding: '8px 11px', marginTop: 8, boxShadow: `2px 2px 0 0 ${INK}` }}>
+                <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.65)', margin: 0, lineHeight: 1.45 }}>📝 <b>Cadê os contratos?</b> Contratos de jogadores chegaram nas carreiras <b>novas</b>. Esta carreira é raiz (começou antes da novidade) — aqui seus jogadores são seus pra sempre, sem renovação. Quer viver contratos, vencimentos e crias da base? É só começar uma carreira nova (a atual fica guardada em Minhas Carreiras).</p>
+              </div>
+            )}
             {me && (
               <ShareElencoBtn mgr={state.managers[state.youIdx]} col={myCol} xi={myXI as WonCard[]} xiIds={myXIids}
                 goals={goalsByCard} divName={DIV_NAME[me.div]} tablePos={me.pos} seasonNo={state.seasonNo}
