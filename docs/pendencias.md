@@ -2973,3 +2973,21 @@ Diego mandar a arte final pronta (print). Fica a lição: batismo com referênci
 de imagem → pedir/usar o arquivo, não desenhar de olho.
 ~~PENDENTE: time_coracao do ofc.toka10~~ ✅ FEITO 10/08: Santos (Diego
 confirmou; gravado direto em esc_socios.time_coracao).
+
+## 🦋 CORREÇÃO FINAL Xurupitas/Bicho da Seda/Tokyo (10/08 — Diego esclareceu)
+QUEM É QUEM (gravar com e-mail pra NUNCA mais confundir):
+- davisantana1312@gmail.com (Davi) = batismo BICHO DA SEDA 🦋 → dono da
+  mariposa + manto verde/branco + coração Palmeiras + sócio nº 5.
+- denilson.stifler10@gmail.com (Denilson) = batismo TOKYO CITY ESPERION →
+  ganhou sócio PRÓPRIO nº 14 (batismo é vitalício). Joga online com o NOME
+  "Xurupitas" (camisa livre, não é clube batizado).
+FEITO: clube volta a se chamar 'Bicho da Seda' em data.ts (corrente de nomes:
+Red Bull Diet → Xurupitas FC [janela 09-10/08] → Bicho da Seda; saves das 3
+épocas acham o clube); mariposa em LOGOS_PRONTAS mudou de chave pra 'Bicho da
+Seda'; comentários de apoio.tsx/mascotes.tsx corrigidos; DB: pacote inteiro
+movido de volta pro Davi (escudo_time='Bicho da Seda') + linha nova do
+Denilson (nº 14, sem kit ainda).
+LIÇÃO: escudo artesanal segue o NOME do time ("camisa"); perfil/mascote seguem
+a CONTA ("tatuagem"). Explicado pro Diego de novo nesse episódio.
+PENDENTE: kit do TOKYO CITY ESPERION (escudo+mascote+manto do Denilson) —
+Diego vai perguntar o tema pro dono; time_coracao do Denilson idem.

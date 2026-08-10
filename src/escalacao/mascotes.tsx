@@ -123,7 +123,7 @@ export const MASCOTES: Record<string, ReactNode> = {
       </g>
     </svg>
   ),
-  // 🦋 mariposa-da-seda NERVOSA do Xurupitas FC (Davi Santana, aprovada 09/08):
+  // 🦋 mariposa-da-seda NERVOSA do Bicho da Seda (Davi Santana — davisantana1312, aprovada 09/08; correção de dono 10/08):
   // inteira (asas de cima + de baixo com caudinha) — no festão ela "voa".
   mariposa: (
     <svg width="140" height="168" viewBox="0 0 200 240">

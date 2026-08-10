@@ -66,10 +66,10 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'feeriibeiro25@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'jorgericardo777@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Império Samambaia, ex-Cuiabagre) (era Craque, subiu pra Lenda)
   'dasilva1227br@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
-  'davisantana1312@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR (batismo do Xurupitas era registro TROCADO — corrigido 09/08, é da conta denilson.stifler10)
+  'davisantana1312@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Bicho da Seda 🦋 — CORREÇÃO FINAL 10/08: a mariposa/Palmeiras são do Davi)
   'ambielvictor@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'cesar.verissimo27@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
-  'denilson.stifler10@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Xurupitas FC, ex-Bicho da Seda — confirmado pelo Diego 09/08; é a conta que joga de Xurupitas)
+  'denilson.stifler10@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Tokyo City Esperion — CORREÇÃO FINAL 10/08; joga online com o nome \"Xurupitas\", kit próprio pendente)
   'filipeabraaodasilva@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro, SEM fundador (não entra no FUNDADOR_N)
   'taylorsenachek2@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'pedrohmbispo@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR

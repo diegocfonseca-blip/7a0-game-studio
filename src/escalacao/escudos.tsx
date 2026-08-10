@@ -408,14 +408,16 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
       style={{ flex: 'none', display: 'block', objectFit: 'contain' }}
     />
   ),
-  // 🦋 Xurupitas FC (batismo do davisantana1312, aprovado pelo Diego 09/08):
+  // 🦋 Bicho da Seda (batismo do davisantana1312/Davi — CORREÇÃO 10/08: a
+  // mariposa é do clube Bicho da Seda; "Xurupitas" era só o nome que o
+  // denilson usa jogando e ganhará kit próprio do Tokyo City Esperion):
   // mariposa-da-seda NERVOSA — só as asas superiores no escudo (pedido dele);
   // a versão inteira (com as asas de baixo) vive na mascote do festão.
-  'Xurupitas FC': (size: number) => {
+  'Bicho da Seda': (size: number) => {
     const mini = size < 40
     const w = Math.round(size * 200 / 240)
     return (
-      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Xurupitas FC" role="img" style={{ flex: 'none', display: 'block' }}>
+      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Bicho da Seda" role="img" style={{ flex: 'none', display: 'block' }}>
         <defs><clipPath id="xurClip"><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" /></clipPath></defs>
         <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="#1B7A3D" />
         <g clipPath="url(#xurClip)">
