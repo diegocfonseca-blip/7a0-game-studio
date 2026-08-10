@@ -77,3 +77,24 @@ export function useMeuSocio(): MeuSocio | null {
 // listras verticais (padrão camisa) pra usar como background
 export const mantoStripes = (c: [string, string], w = 9) =>
   `repeating-linear-gradient(90deg, ${c[0]} 0 ${w}px, ${c[1]} ${w}px ${w * 2}px)`
+
+// ─── 🔒 NOME DE TIME ÚNICO (tipo @ do Instagram — pedido do Diego 10/08) ───
+// Antes de gravar um nome novo de técnico/time, pergunta ao servidor se está
+// livre. Regras lá: nome em uso por OUTRA conta → bloqueia; nome de clube de
+// BATISMO → reservado pro dono. Quem JÁ tem nome repetido de antes, mantém
+// (a trava só pega troca/cadastro novos). Servidor fora do ar → deixa passar
+// (não trava o jogo — padrão da casa).
+export async function nomeLivre(nome: string): Promise<{ livre: boolean; motivo?: string }> {
+  const nm = nome.trim()
+  if (!nm) return { livre: true }
+  try {
+    const { data, error } = await supabase.rpc('esc_nome_livre', { p_nome: nm })
+    if (error || !data) return { livre: true }
+    return data as { livre: boolean; motivo?: string }
+  } catch { return { livre: true } }
+}
+// mensagens prontas (aviso claro: o PORQUÊ e o CAMINHO)
+export const NOME_MSG: Record<string, string> = {
+  em_uso: '⚠️ Já existe um técnico com esse nome — nome de time é único, tipo @ do Instagram. Tenta uma variação: acrescenta FC, um número ou teu apelido.',
+  batismo: '🔒 Esse nome é de um clube de BATISMO e fica reservado pro dono dele. Se o clube é teu, entra com a conta do batismo; senão, escolhe outro nome.',
+}

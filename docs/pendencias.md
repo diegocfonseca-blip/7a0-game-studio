@@ -2991,3 +2991,20 @@ LIÇÃO: escudo artesanal segue o NOME do time ("camisa"); perfil/mascote seguem
 a CONTA ("tatuagem"). Explicado pro Diego de novo nesse episódio.
 PENDENTE: kit do TOKYO CITY ESPERION (escudo+mascote+manto do Denilson) —
 Diego vai perguntar o tema pro dono; time_coracao do Denilson idem.
+
+## 🔒 NOME DE TIME ÚNICO — tipo @ do Instagram (10/08, pedido do Diego)
+REGRA: nome de time/técnico agora é único. (1) Nome já usado por OUTRA conta →
+novo jogador não consegue pegar (quem JÁ tinha repetido, mantém — sem mexer nos
+antigos). (2) Nome de clube de BATISMO fica RESERVADO pro dono — só a conta
+dona pode usar, mesmo que ainda não use (ex.: denilson pode virar "Tokyo City
+Esperion" quando quiser; mais ninguém pode).
+COMO: RPC esc_nome_livre(p_nome) (SECURITY DEFINER; normaliza lower/trim;
+consulta reservas + display_name de auth.users) + tabela esc_nomes_batismo
+(nome_norm→email dono, 14 batismos semeados). Cliente checa nos 4 pontos que
+gravam display_name: setup do jogo (screens.tsx start), dinastia, chip ✏️ do
+lobby e CADASTRO (signUp) — aviso claro embaixo do campo com o porquê e o
+caminho (mensagens em NOME_MSG no manto.ts). Servidor fora → deixa passar
+(padrão "não trava o jogo").
+⚠️ White Thigs do GuGu ficou FORA das reservas (dono desconhecido) — se o
+Diego souber a conta, é só inserir em esc_nomes_batismo.
+📌 BATISMO NOVO = lembrar de inserir a reserva em esc_nomes_batismo!

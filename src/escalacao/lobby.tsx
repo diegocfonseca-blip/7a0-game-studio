@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { nomeLivre, NOME_MSG } from './manto'
 import { useEsc } from './store'
 import { AdminButton, useCanCareerOnline } from './admin'
 import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, emailProblema } from './apoio'
@@ -463,6 +464,7 @@ export function EscLobby() {
   // edição rápida do nome de técnico (na home)
   const [editingName, setEditingName] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
+  const [nameErr, setNameErr] = useState('') // 🔒 nome único: aviso quando o nome já tem dono
   // 💬 CHAT DA SALA DE ESPERA: igual ao chat do leilão — mensagens que FICAM
   // (lista rolável, não somem), caixa pra digitar e as frases prontas. Trafegado
   // por broadcast no MESMO canal realtime da sala (esclobby). Badge de não-lidas
@@ -918,7 +920,14 @@ export function EscLobby() {
   async function saveName() {
     const nm = stripEmoji(nameDraft).trim()
     if (!nm) return
-    setLoading(true)
+    setLoading(true); setNameErr('')
+    // 🔒 nome único (tipo @ do Instagram): manter o próprio nome passa; nome de
+    // outra conta ou de clube de batismo alheio, não.
+    const atual = stripEmoji((user?.user_metadata?.display_name as string | undefined) ?? '').trim()
+    if (nm.toLowerCase() !== atual.toLowerCase()) {
+      const chk = await nomeLivre(nm)
+      if (!chk.livre) { setNameErr(NOME_MSG[chk.motivo ?? 'em_uso']); setLoading(false); return }
+    }
     const { data, error } = await supabase.auth.updateUser({ data: { display_name: nm } })
     if (!error && data.user) setUser(data.user)
     setEditingName(false); setLoading(false)
@@ -935,6 +944,9 @@ export function EscLobby() {
         // ✉️ trava anti-bounce: e-mail com cara de erro de digitação/temporário não cadastra
         const prob = emailProblema(email)
         if (prob) { setAuthError(prob); setLoading(false); return }
+        // 🔒 nome único (tipo @ do Instagram): não deixa cadastrar com nome que já tem dono
+        const chk = await nomeLivre(stripEmoji(displayName).trim())
+        if (!chk.livre) { setAuthError(NOME_MSG[chk.motivo ?? 'em_uso']); setLoading(false); return }
         const { error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: stripEmoji(displayName).trim() } } })
         setAuthError(error ? friendlyAuthErr(error.message) : '✅ Conta criada! Guarde bem esse e-mail — é ele que recupera sua senha.')
       }
@@ -1562,8 +1574,9 @@ export function EscLobby() {
                 className="flex-1 min-w-0 border-2 border-black rounded-md px-2 py-1 font-black text-black text-xs bg-white" />
               <button onClick={saveName} disabled={loading || !nameDraft.trim()}
                 className="border-2 border-black rounded-md px-2 font-black text-xs" style={{ background: GREEN, color: '#fff', ...OSWALD }}>OK</button>
-              <button onClick={() => setEditingName(false)}
+              <button onClick={() => { setEditingName(false); setNameErr('') }}
                 className="border-2 border-black rounded-md px-2 font-black text-xs bg-white text-black">✕</button>
+              {nameErr && <p className="w-full font-bold text-[11px] leading-tight mt-1" style={{ color: '#FFD9A0' }}>{nameErr}</p>}
             </div>
           ) : (
             <button onClick={() => { setNameDraft(user?.user_metadata?.display_name ?? ''); setEditingName(true) }}

@@ -20,6 +20,7 @@ import { useEsc, sortedTable } from './store'
 import { stripEmoji } from './apoio'
 import { useCanManager } from './admin'
 import { supabase } from '../lib/supabase'
+import { nomeLivre, NOME_MSG } from './manto'
 
 // ─── visual (mesmos valores do resto do jogo — neubrutalista) ────────
 const CREAM = '#F4ECD6'
@@ -846,9 +847,14 @@ function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: stri
     const { data: sub } = supabase.auth.onAuthStateChange((_, s) => apply(s?.user))
     return () => { alive = false; sub.subscription.unsubscribe() }
   }, [])
+  const [nameErr, setNameErr] = useState('') // 🔒 nome único: aviso quando o nome já tem dono
   const start = async () => {
     const clean = stripEmoji(name).trim()
     if (accountName !== null && clean && clean !== accountName) {
+      // 🔒 nome único (tipo @ do Instagram): nome de outra conta ou batismo alheio não passa
+      const chk = await nomeLivre(clean)
+      if (!chk.livre) { setNameErr(NOME_MSG[chk.motivo ?? 'em_uso']); return }
+      setNameErr('')
       try { await supabase.auth.updateUser({ data: { display_name: clean } }) } catch { /* não trava o jogo */ }
     }
     const picks = [...picked, ...pool.filter(t => !picked.includes(t))].slice(0, count)
@@ -871,8 +877,9 @@ function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: stri
       <div style={{ ...box(), padding: 16 }} className="space-y-4">
         <div>
           <p style={label}>Nome do seu clube</p>
-          <input value={name} onChange={e => setName(stripEmoji(e.target.value))} placeholder="Ex.: Bagres do Asfalto" maxLength={22}
+          <input value={name} onChange={e => { setName(stripEmoji(e.target.value)); if (nameErr) setNameErr('') }} placeholder="Ex.: Bagres do Asfalto" maxLength={22}
             className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-bold bg-white" />
+          {nameErr && <p className="text-[11px] font-bold mt-1" style={{ color: '#C2452F' }}>{nameErr}</p>}
           {accountName !== null && <p className="text-[11px] font-semibold text-black/55 mt-1">🔗 É o nome da sua conta — vale no CPU, na carreira e no online. Se editar aqui, troca em todos os lugares (e nas estatísticas).</p>}
         </div>
         <div>

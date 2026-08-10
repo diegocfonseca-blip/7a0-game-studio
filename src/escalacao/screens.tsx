@@ -23,7 +23,7 @@ import { Escudo, LOGOS_PRONTAS } from './escudos' // 🛡️ brasão do clube (d
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, getSport, escadaLiberada, type Sport } from './sport'
 import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
-import { meuManto, mantoStripes, useMeuSocio } from './manto'
+import { meuManto, mantoStripes, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
 import { MASCOTES, FestaoMascote } from './mascotes'
 
 // 🏀/⚽ rótulo do SETOR conforme esporte + idioma (futebol = igual a SECTOR_LABEL;
@@ -1748,6 +1748,7 @@ export function EscSetup() {
   // (mesmo do online) e é editável aqui; ao começar, sincroniza de volta pra
   // conta — então trocar num lugar troca em todos (CPU, carreira, online, stats).
   const [accountName, setAccountName] = useState<string | null>(null) // null = deslogado
+  const [nameErr, setNameErr] = useState('') // 🔒 nome único: aviso quando o nome já tem dono
   useEffect(() => {
     let alive = true
     const apply = (u: { user_metadata?: Record<string, unknown> } | null | undefined) => {
@@ -1766,6 +1767,10 @@ export function EscSetup() {
     const clean = stripEmoji(name).trim()
     // logado e o nome mudou? sincroniza o cadastro → vale no online e nas stats
     if (accountName !== null && clean && clean !== accountName) {
+      // 🔒 nome único (tipo @ do Instagram): nome de outra conta ou batismo alheio não passa
+      const chk = await nomeLivre(clean)
+      if (!chk.livre) { setNameErr(NOME_MSG[chk.motivo ?? 'em_uso']); return }
+      setNameErr('')
       try { await supabase.auth.updateUser({ data: { display_name: clean } }) } catch { /* não trava o jogo */ }
     }
     // rivais escolhidos + completa com os padrões da Série D se faltar
@@ -1846,10 +1851,11 @@ export function EscSetup() {
           <p className="text-xs font-black uppercase mb-1">Nome do seu time</p>
           <input
             value={name}
-            onChange={e => setName(stripEmoji(e.target.value))}
+            onChange={e => { setName(stripEmoji(e.target.value)); if (nameErr) setNameErr('') }}
             placeholder="Ex.: Bagres do Asfalto"
             className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-bold bg-white"
           />
+          {nameErr && <p className="text-[11px] font-bold mt-1" style={{ color: '#C2452F' }}>{nameErr}</p>}
           {accountName !== null && (
             <p className="text-[11px] font-semibold text-black/55 mt-1">🔗 É o nome da sua conta — vale no CPU, na carreira e no online. Se editar aqui, troca em todos os lugares (e nas estatísticas).</p>
           )}
