@@ -2214,8 +2214,11 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
     const olds = oldChain(key) // save antigo pode ter caixa/títulos em QUALQUER nome velho da corrente
     const pick = <V,>(rec: Record<string, V>): V | undefined => rec[key] ?? olds.map(o => rec[o]).find(v => v !== undefined)
     const money = t.human ? (coins[t.teamId] ?? 0) : Math.round(pick(clubCash) ?? 0)
-    // 🌍 título da Copa do Mundo acompanha o clube mesmo depois de rename (ponte oldChain — 10/08)
-    return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, money, wc: [...new Set([t.name, key, ...olds])].reduce((n, o) => n + (cmTitles[o] ?? 0), 0) }
+    // 🌍 título da Copa do Mundo acompanha o clube no rename: o mural guarda o
+    // campeão pelo NOME, então a ponte tem que ser pela corrente de NOMES
+    // (oldChain do NOME) — antes usava só oldChain(key)='m{id}' (vazio p/ humano),
+    // e o 🌍 sumia da linha ao renomear (bug 10/08).
+    return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, money, wc: [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitles[o] ?? 0), 0) }
   })
   // ordem: Série A · Copa do Mundo · Copa Legends · Série B · Série C · Série D · Dinheiro
   rows.sort((a, b) => b.h.A - a.h.A || b.wc - a.wc || b.copas - a.copas || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
@@ -3455,14 +3458,23 @@ export function PyramidSeasonScreen() {
             const hn = (state.careerHonors ?? {}) as Record<string, Honors>
             const ch = state.careerCopaHonors ?? {}
             const cc = state.clubCash ?? {}
+            // 🌍 mesma base de Copa do Mundo do RANKING (mural) — pra a vaga/ordem
+            // da Copa BATER com o que o jogador vê no Rank (bug 10/08: o gate
+            // ignorava wc/copas e ordenava só por A→B→C→D→dinheiro, então a
+            // colocação exibida ≠ a colocação que qualificava).
+            const cmMuralG = state.seed != null ? (loadCopaSave(state.seed)?.mural ?? []) : []
+            const cmTitlesG: Record<string, number> = {}
+            for (const m of cmMuralG) cmTitlesG[m.campeao] = (cmTitlesG[m.campeao] ?? 0) + 1
             const rws = DIVS.flatMap(d => tables[d]).map(t => {
               const key = teamKey(t)
               const olds = oldChain(key)
               const pick = <V,>(rec: Record<string, V>): V | undefined => rec[key] ?? olds.map(o => rec[o]).find(v => v !== undefined)
               const money = t.human ? (state.careerCoins?.[t.teamId] ?? 0) : Math.round(pick(cc) ?? 0)
-              return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, money }
+              const wc = [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitlesG[o] ?? 0), 0)
+              return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, money, wc }
             })
-            rws.sort((a, b) => b.h.A - a.h.A || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
+            // ordem IDÊNTICA à do Rank: A · Copa do Mundo · Copa Legends · B · C · D · dinheiro
+            rws.sort((a, b) => b.h.A - a.h.A || b.wc - a.wc || b.copas - a.copas || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
             // 🏛️ MULTICLUBES (regra do Diego 04/08): os DOIS clubes seus contam —
             // qualquer um deles no top-20 marca "você", e o prêmio vai pra CADA
             // clube seu classificado (independentes até na Copa do Mundo).
