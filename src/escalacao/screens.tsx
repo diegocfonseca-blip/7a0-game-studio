@@ -2831,14 +2831,14 @@ function Tiebreak() {
   function send(v: number) {
     pendingAmtRef.current = v
     setPending(true)
-    dispatch({ type: 'SUBMIT_TIEBREAK', mgrId: you.id, amount: v })
+    dispatch({ type: 'SUBMIT_TIEBREAK', mgrId: you.id, amount: v, by: state.youUid })
   }
   // confirmação do host chegou
   useEffect(() => { if (iSubmitted) setPending(false) }, [iSubmitted])
   // reenvia enquanto não confirma (online)
   useEffect(() => {
     if (!online || !pending || iSubmitted) return
-    const iv = setInterval(() => dispatch({ type: 'SUBMIT_TIEBREAK', mgrId: you.id, amount: pendingAmtRef.current }), 4000)
+    const iv = setInterval(() => dispatch({ type: 'SUBMIT_TIEBREAK', mgrId: you.id, amount: pendingAmtRef.current, by: state.youUid }), 4000)
     return () => clearInterval(iv)
   }, [online, pending, iSubmitted, dispatch, you.id])
   // auto-envia ao zerar o timer (cobre o solo e o próprio jogador)

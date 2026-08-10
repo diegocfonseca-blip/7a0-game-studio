@@ -3489,7 +3489,7 @@ export function PyramidSeasonScreen() {
               {/* 💰 FECHAMENTO DA TEMPORADA — o que entrou e o que saiu, na hora em
                   que a temporada (liga + copas) acabou. Sem surpresa depois no leilão. */}
               {state.booksSeason === state.seasonNo && (() => {
-                const led = (state.careerLedger ?? []).filter(e => e.season === state.seasonNo && ['reward', 'gate', 'salary', 'sponsor', 'empresario'].includes(e.kind))
+                const led = (state.careerLedger ?? []).filter(e => e.season === state.seasonNo && ['reward', 'gate', 'salary', 'sponsor', 'empresario', 'saf'].includes(e.kind))
                 if (!led.length) return null
                 const total = led.reduce((n, e) => n + e.amount, 0)
                 return (

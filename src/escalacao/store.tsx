@@ -383,7 +383,7 @@ function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Re
 // caixa-base por divisão (clubes de cima mais ricos) + os LUCROS das vendas do
 // mercado (persistidos no fim de cada leilão) + prêmios de título/acesso. Assim o
 // caixa é a base da divisão MAIS a história real de transações.
-const DIV_BASE_CASH: Record<string, number> = { A: 230, B: 190, C: 150, D: 100 }
+const DIV_BASE_CASH: Record<string, number> = { A: 230, B: 190, C: 150, D: 100, V: 60 } // V add 10/08: sem ela a várzea caía no fallback 100 (devia 60)
 // monta o clubCash a partir da colocação (teamKey → divisão): todo time ganha a
 // base da divisão dele. Só cria quem ainda não tem (não zera quem já acumulou).
 function seedClubCash(cash: Record<string, number>, placements: Record<string, string> | null | undefined): Record<string, number> {
@@ -2508,7 +2508,7 @@ type Action =
   | { type: 'ADVANCE_REVEAL' }
   | { type: 'FORCE_SEAL' }
   | { type: 'SET_MANUAL_ROOM'; on: boolean } // 🎮 host troca o ritmo (auto/manual) no meio da carreira online — sincroniza pra todos
-  | { type: 'SUBMIT_TIEBREAK'; mgrId: number; amount: number }
+  | { type: 'SUBMIT_TIEBREAK'; mgrId: number; amount: number; by?: string } // by = 🤝 crachá de quem mandou (dupla)
   | { type: 'FORCE_TIEBREAK' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'MONTE_TIMEOUT' }
@@ -3670,6 +3670,9 @@ export function reducer(state: EscState, action: Action): EscState {
       const tb = s.tiebreaks[s.tiebreakIdx]
       if (!tb || tb.winner !== null) return s
       if (!tb.managers.includes(action.mgrId) || tb.submitted.includes(action.mgrId)) return s
+      // 🤝 dupla: só quem MANDA na categoria da carta empatada pode relançar (mesma
+      // trava do envelope/monte — fecha o "dei lance por outro" no re-lance). 10/08.
+      if (!duplaPodeAgir(s.duplas, action.mgrId, tb.card.pos, action.by)) return s
       s.tiebreakPending[action.mgrId] = action.amount
       tb.submitted = [...tb.submitted, action.mgrId]
       maybeResolveTiebreak(s)
