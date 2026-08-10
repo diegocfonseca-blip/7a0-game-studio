@@ -255,13 +255,17 @@ export function computePromotions(tables: Record<Div, SimTeam[]>): Record<string
 // moedas da temporada por técnico — SEM base recorrente (o técnico já começou
 // com 100). Só desempenho, com valores DIFERENTES por série (reforçados por causa
 // do salário — o campeão/artilheiro precisa bancar a folha):
-//   campeão: A 65 · B 50 · C 35 · D 20
-//   top 4 (zona/acesso): A 30 · B 25 · C 20 · D 0 — nas de baixo é acesso (sobe);
-//     na A é "manter entre os 4". Sair da D é de graça (0). Campeão da A = 65 + 30 = 95.
+//   campeão: A 65 · B 50 · C 35 · D 20 · Várzea 15
+//   top 4 (zona/acesso): A 30 · B 25 · C 20 · D 15 · Várzea 10 — nas de baixo é
+//     acesso (sobe); na A é "manter entre os 4". Campeão da A = 65 + 30 = 95;
+//     campeão da Várzea = 15 + 10 = 25. (09/08, pedido do Diego: dar uma força
+//     de caixa logo na entrada da pirâmide — D e Várzea eram os únicos SEM
+//     bônus de acesso, o que travava quem tava começando.)
 //   queda (caiu, pela série de onde caiu): mesmo valor da zona — A 30 · B 25 · C 20
+//   (D e Várzea NÃO têm queda — mesmo caindo da D pra Várzea, não desconta nada)
 const DIV_RANK: Record<Div, number> = { A: 4, B: 3, C: 2, D: 1, V: 0 }
-const CAMPEAO: Record<Div, number> = { A: 65, B: 50, C: 35, D: 20, V: 12 }
-const ZONA: Record<Div, number> = { A: 30, B: 25, C: 20, D: 0, V: 0 }
+const CAMPEAO: Record<Div, number> = { A: 65, B: 50, C: 35, D: 20, V: 15 }
+const ZONA: Record<Div, number> = { A: 30, B: 25, C: 20, D: 15, V: 10 }
 const QUEDA: Record<Div, number> = { A: 30, B: 25, C: 20, D: 0, V: 0 }
 export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, number> {
   const newPl = computePromotions(tables)
@@ -2309,7 +2313,7 @@ function PrizesBox() {
                 <td style={{ ...td, textAlign: 'left' }}>{DIV_NAME[d]}</td>
                 <td style={{ ...td, color: '#1B7A3D' }}>+{CAMPEAO[d]}</td>
                 <td style={{ ...td, color: ZONA[d] > 0 ? '#1B7A3D' : 'rgba(0,0,0,0.35)' }}>{ZONA[d] > 0 ? `+${ZONA[d]}` : '—'}</td>
-                <td style={{ ...td, color: d === 'D' ? 'rgba(0,0,0,0.35)' : '#E8503A' }}>{d === 'D' ? '—' : `−${QUEDA[d]}`}</td>
+                <td style={{ ...td, color: QUEDA[d] > 0 ? '#E8503A' : 'rgba(0,0,0,0.35)' }}>{QUEDA[d] > 0 ? `−${QUEDA[d]}` : '—'}</td>
                 <td style={{ ...td, color: '#8a6d1f' }}>+{DIV_SCORER_BONUS[d]}</td>
               </tr>
             ))}
@@ -2317,8 +2321,8 @@ function PrizesBox() {
         </table>
       </div>
       <ul style={{ margin: '8px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,0.7)', lineHeight: 1.5 }}>
-        <li><b>Top-4</b>: nas séries de baixo é <b>acesso</b> (sobe de divisão); na A é "manter entre os 4". Campeão da A leva os dois: <b>65 + 30 = 95</b>. <b>Sair da Série D é de graça</b> (sem bônus de acesso).</li>
-        <li><b>Queda</b>: perde moedas ao cair (mesmo valor do acesso). <b>Da Série D ninguém cai</b> (é a última).</li>
+        <li><b>Top-4</b>: nas séries de baixo é <b>acesso</b> (sobe de divisão); na A é "manter entre os 4". Campeão da A leva os dois: <b>65 + 30 = 95</b>; campeão da Várzea leva <b>15 + 10 = 25</b>.</li>
+        <li><b>Queda</b>: perde moedas ao cair (mesmo valor do acesso) — vale de A até C. <b>Caindo da Série D pra Várzea não desconta nada</b> (a Várzea já é o fundo da pirâmide).</li>
         <li><b>⚽ Artilheiro</b> de cada divisão (e da Copa): o valor vai pro <b>caixa do clube</b>; e o <b>piso (valor)</b> do jogador sobe <b>+10 fixo</b> pro próximo leilão.</li>
       </ul>
     </div>

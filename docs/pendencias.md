@@ -1,5 +1,28 @@
 # 📌 Pendências combinadas com o Diego (atualizado 09/08/2026)
 
+## 💰 CARREIRA: prêmio de acesso da D/Várzea + campeão da Várzea subiram (09/08) ✅ NO AR
+Contexto: investiguei relato de "carreira tá difícil" e achei que o handicap
+subiu MUITO exatamente na Várzea/D (04/08) — é a primeira coisa que todo
+mundo enfrenta. Diego decidiu dar uma força de caixa logo na entrada:
+- **Acesso (top-4) da Série D**: 0 → **15**
+- **Acesso (top-4) da Várzea**: 0 → **10**
+- **Campeão da Várzea**: 12 → **15** (campeão da Várzea agora leva 15+10=25)
+- `pyramidseason.tsx`: constantes `CAMPEAO`/`ZONA`. Vale carreira em andamento
+  (não precisa começar save novo).
+- **Bug de exibição achado e corrigido junto** (o Diego reparou sozinho e
+  pediu pra conferir): o painel "🏆 Prêmios da temporada" (aba Tabelas)
+  tratava a Série D como especial no "Queda" (mostrava "—" hardcoded pro "D"
+  só), mas não fazia o mesmo pra Várzea — a Várzea mostrava "−0" em vermelho
+  (parece penalidade, mas o valor real sempre foi zero). Trocado pra checar
+  `QUEDA[d] > 0` (mesmo padrão que a coluna Top-4 já usava), corrige as duas.
+  Textos da legenda também tavam desatualizados ("Da Série D ninguém cai — é
+  a última") — isso ficou errado desde que a Várzea existe (os últimos 4 da D
+  caem pra Várzea todo ano, só que sem desconto). Reescrito.
+- **Os NÚMEROS pagos sempre bateram certo** (o painel lê a mesma constante
+  que o jogo usa pra pagar) — o problema era só a aparência/texto do "—", não
+  o dinheiro em si.
+- Reversível: `git revert` no commit desse fix.
+
 ## 💰 BATIZA TEU CLUBE: Pix da Série D não copiava o valor certo (09/08) ✅ NO AR
 Diego reparou que os dois cards de preço (Série A·B·C·Várzea R$59,90 · Série
 D R$69,90) eram só enfeite fixo — o botão "COPIAR PIX" sempre gravava 59,90,
