@@ -1970,10 +1970,14 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contr
             // pra caber lado a lado — a linha de trás fica reta, como um 4-3-3 de verdade.
             <div key={r.key} style={{ display: 'flex', justifyContent: 'center', gap: 5, flexWrap: 'nowrap' }}>
               {r.cards.map(c => { const st = stateOf(c); return (
-                <button key={c.id} onClick={() => onTap?.(c.id)} disabled={!onTap} style={{ position: 'relative', flex: '1 1 0', minWidth: 0, border: `2px solid ${borderOf(st)}`, borderRadius: 8, background: st === 'sel' ? '#FFF6D6' : '#fff', padding: manto ? '8px 6px 3px' : '3px 6px', maxWidth: 96, textAlign: 'center', cursor: onTap ? 'pointer' : 'default', opacity: st === 'dim' ? 0.5 : 1, boxShadow: st === 'target' ? `0 0 0 2px ${GREEN}` : 'none', overflow: 'hidden', ...OSWALD }}>
-                  {manto && <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 5, background: mantoStripes(manto) }} />}
+                <button key={c.id} onClick={() => onTap?.(c.id)} disabled={!onTap} style={{ position: 'relative', flex: '1 1 0', minWidth: 0, border: `2px solid ${borderOf(st)}`, borderRadius: 8, background: st === 'sel' ? '#FFF6D6' : '#fff', padding: manto ? '17px 6px 3px' : '3px 6px', maxWidth: 96, textAlign: 'center', cursor: onTap ? 'pointer' : 'default', opacity: st === 'dim' ? 0.5 : 1, boxShadow: st === 'target' ? `0 0 0 2px ${GREEN}` : 'none', overflow: 'hidden', ...OSWALD }}>
+                  {/* 🎽 Opção C (aprovada 10/08): topo do card vira manto com a posição
+                      no selinho — altura igual (a linha da posição foi pra dentro). */}
+                  {manto && <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 14, background: mantoStripes(manto), borderBottom: `2px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: 7, fontWeight: 900, color: '#fff', background: 'rgba(0,0,0,.42)', borderRadius: 5, padding: '0 4px', letterSpacing: .5, lineHeight: '1.6' }}>{c.pos}</span>
+                  </span>}
                   {c.emprestado && <EmpTag mini />}
-                  <span style={{ display: 'block', fontSize: 8, fontWeight: 900, color: col.solid }}>{c.pos}</span>
+                  {!manto && <span style={{ display: 'block', fontSize: 8, fontWeight: 900, color: col.solid }}>{c.pos}</span>}
                   <span style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: INK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</span>
                   {goalsOf(c) > 0 && <span style={{ display: 'block', fontSize: 8.5, fontWeight: 900, color: GREEN }}>⚽ {goalsOf(c)}</span>}
                 </button>

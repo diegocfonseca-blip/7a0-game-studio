@@ -3008,3 +3008,12 @@ caminho (mensagens em NOME_MSG no manto.ts). Servidor fora → deixa passar
 ⚠️ White Thigs do GuGu ficou FORA das reservas (dono desconhecido) — se o
 Diego souber a conta, é só inserir em esc_nomes_batismo.
 📌 BATISMO NOVO = lembrar de inserir a reserva em esc_nomes_batismo!
+
+## 🎽 MANTO NO CARD — Opção C aprovada (10/08)
+Diego achou a faixinha de 5-7px tímida ("tá MT pouco o detalhe"). Mockup A/B/C
+mostrado; ele escolheu a C perguntando se aumentava o card — NÃO aumenta: a
+linha da posição foi PRA DENTRO da faixa (topo do card vira manto ~14-16px com
+a POSIÇÃO num selinho preto por cima; altura total igual). Aplicado nos DOIS
+campinhos: screens.tsx (Campinho do leilão/jogo, variantes small/normal) e
+pyramidseason.tsx (campinho da temporada — o do print dele). Vale pra todo
+sócio com manto, cada um nas SUAS cores.

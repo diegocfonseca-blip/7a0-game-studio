@@ -955,10 +955,17 @@ function Campinho({ m, small = false, bench = false, title, manto }: { m: Manage
               <div
                 key={i}
                 className={`campinho-slot border-2 border-black rounded-lg text-center ${small ? 'px-1.5 py-1 min-w-[56px]' : 'px-2.5 py-1.5 min-w-[76px]'}`}
-                style={{ backgroundColor: slot.card ? '#fff' : 'rgba(255,255,255,0.25)', ...(manto && slot.card ? { position: 'relative', overflow: 'hidden', paddingTop: small ? 9 : 11 } : {}) }}
+                style={{ backgroundColor: slot.card ? '#fff' : 'rgba(255,255,255,0.25)', ...(manto && slot.card ? { position: 'relative', overflow: 'hidden', paddingTop: small ? 16 : 20 } : {}) }}
               >
-                {manto && slot.card && <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 5, background: mantoStripes(manto) }} />}
-                <p className="text-[9px] font-black" style={{ color: slot.card ? RED : '#fff' }}>{slot.pos}</p>
+                {/* 🎽 Opção C (aprovada 10/08): o topo do card É o manto e a posição
+                    entra por cima num selinho — mesma altura de antes (a linha da
+                    posição foi PRA DENTRO da faixa, nada cresce). */}
+                {manto && slot.card && (
+                  <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: small ? 13 : 16, background: mantoStripes(manto), borderBottom: `2px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="font-black" style={{ ...OSWALD, fontSize: small ? 7 : 8, color: '#fff', background: 'rgba(0,0,0,.42)', borderRadius: 6, padding: '0 5px', letterSpacing: .5, lineHeight: '1.5' }}>{slot.pos}</span>
+                  </span>
+                )}
+                {!(manto && slot.card) && <p className="text-[9px] font-black" style={{ color: slot.card ? RED : '#fff' }}>{slot.pos}</p>}
                 <p className={`font-bold leading-tight ${small ? 'text-[9px]' : 'text-[11px]'}`} style={{ color: slot.card ? INK : 'rgba(255,255,255,0.95)' }}>
                   {slot.card ? slot.card.name : 'Vazio'}
                 </p>
