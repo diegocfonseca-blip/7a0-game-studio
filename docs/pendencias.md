@@ -2971,4 +2971,5 @@ de hospedagem 1 GB). Desenho em código continua o padrão dos demais.
 do transcript da sessão (imagens do chat ficam no .jsonl em base64) e depois o
 Diego mandar a arte final pronta (print). Fica a lição: batismo com referência
 de imagem → pedir/usar o arquivo, não desenhar de olho.
-PENDENTE: time_coracao do ofc.toka10 (Diego vai perguntar pro dono).
+~~PENDENTE: time_coracao do ofc.toka10~~ ✅ FEITO 10/08: Santos (Diego
+confirmou; gravado direto em esc_socios.time_coracao).
