@@ -3049,6 +3049,14 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'COPA_MUNDO_PRIZE': {
       // 🌍 +100 por clube SEU classificado (Diego 04/08: dormindo recebe igual —
       // independência total). logFin roteia o extrato do dormindo pro stash.
+      // 🧯 IDEMPOTÊNCIA (bug 10/08): trava por `${mgrId}:${temporada}` no estado
+      // do jogo (persiste no autosave). Assim, se o app fechar entre creditar e
+      // marcar a Copa como "já joguei", reabrir e re-disparar NÃO dobra o prêmio —
+      // e como agora creditamos ANTES de marcar (ver copa-mundo.tsx), também não
+      // some. Pior caso: não credita 2×.
+      const chave = `${action.mgrId}:${s.seasonNo}`
+      if (s.copaPrizeDone?.[chave]) return s
+      s.copaPrizeDone = { ...(s.copaPrizeDone ?? {}), [chave]: true }
       s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: (s.careerCoins?.[action.mgrId] ?? 0) + 100 }
       logFin(s, 'reward', '🌍 Prêmio da Copa do Mundo Legends', 100, undefined, action.mgrId)
       return s

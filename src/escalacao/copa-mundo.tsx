@@ -612,8 +612,12 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, agenciaOn,
     const cur = loadCopaSave(seed) ?? save
     if (cur.played.includes(seasonNo)) return
     const c = world.final.champion
-    saveCopaSave(seed, { ...cur, played: [...cur.played, seasonNo], mural: [...cur.mural, { season: seasonNo, selecao: entrants[c].pais, campeao: entrants[c].club, voce: isYou(c) }] })
+    // 🧯 CREDITA ANTES de marcar "já joguei" (bug 10/08): se o app fechar entre os
+    // dois, o prêmio não some — o reducer é idempotente por temporada, então
+    // re-disparar no reload não dobra. A ordem inversa (played antes) fazia as
+    // 100 moedas se perderem pra sempre.
     if (isYou(c)) onPrize?.() // 💰 +100 moedas (só solo — no online o caixa é do host)
+    saveCopaSave(seed, { ...cur, played: [...cur.played, seasonNo], mural: [...cur.mural, { season: seasonNo, selecao: entrants[c].pais, campeao: entrants[c].club, voce: isYou(c) }] })
     // 🏆 REGRA DO DIEGO (04/08): campeão do MUNDO também é TÍTULO no ranking
     // Carreira — grava a linha co:solo…:copamundo (mesmo padrão da liga/Copa).
     // 🔒 09/08: só carreira NOVA (agenciaOn) conta pro ranking — mesma regra da
