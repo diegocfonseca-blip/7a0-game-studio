@@ -4489,10 +4489,19 @@ export function reducer(state: EscState, action: Action): EscState {
       const need = FORMATIONS[action.formation]
       if (!need) return s // formação desconhecida (save/rota estranha) — nunca quebra
       for (const pos of SECTORS) if (real.filter(c => c.pos === pos && !c.emprestado).length < need[pos]) return s // falta jogador real na posição
+      // 🧯 CONGELA O PASSADO (bug 10/08 — "gols mudam ao trocar formação"): a
+      // temporada inteira nasce da semente, e as rodadas JÁ JOGADAS que não tinham
+      // escalação manual caíam no bestXI da formação GLOBAL — então trocar agora
+      // re-simulava o passado e mudava os gols dos jogadores. Antes de virar a
+      // formação, gravo o XI das rodadas passadas na formação ANTIGA (idêntico ao
+      // que a simulação já usava), preenchendo só os buracos. A nova formação vale
+      // da rodada atual em diante — igual a escalação e os eventos já fazem.
+      const antiga = m.formation
+      const mineCl = { ...((s.careerLineup ?? {})[m.id] ?? {}) }
+      for (let r = 0; r < s.round; r++) if (mineCl[r] == null) mineCl[r] = bestXIids(m.squad, antiga)
       m.formation = action.formation
-      const cl = { ...(s.careerLineup ?? {}) }
-      cl[m.id] = { ...(cl[m.id] ?? {}), [s.round]: bestXIids(m.squad, action.formation) }
-      s.careerLineup = cl
+      mineCl[s.round] = bestXIids(m.squad, action.formation)
+      s.careerLineup = { ...(s.careerLineup ?? {}), [m.id]: mineCl }
       return s
     }
     case 'FORMATION_UNLOCK': {
