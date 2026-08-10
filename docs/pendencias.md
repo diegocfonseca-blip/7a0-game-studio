@@ -3132,3 +3132,32 @@ PENDENTE (decisões do Diego):
   torneio (Brasil × Brasil possível) — visual estranho, prêmio ok.
 - esc_results da CdM usa season_key/mode de solo mesmo em carreira online
   (inconsistência anotada, sem mexer).
+
+## 🔍 AUDITORIA PROFUNDA DO JOGO (10/08 — Diego cobrou "acha os que eu NÃO peço")
+5 frentes (finanças, leilão, online, telas, carreira) + 150 temporadas rodadas
+no motor real. NÚCLEO LIMPO (div sempre 20, ninguém some, 0 carta duplicada, 0
+dinheiro NaN/negativo, sobe4/desce4, determinístico, cerimônia conserta XI de
+bot). CONFIRMADO pelo Diego: Agência 2.0 JÁ está solta pra geral (AGENCIA_GERAL
+= true) — de propósito. Doc/tasks antigas que diziam "só Diego" estão obsoletas.
+
+BUGS ENCONTRADOS — aguardando o Diego escolher a ordem (NADA foi mexido):
+🔴 ALTO 1. Gols mudam ao trocar formação (re-simula o passado; formação não é
+   congelada por rodada como escalação/eventos). pyramidseason: world usa
+   mgrMe.formation global → lineupAt refaz todas as rodadas. [o que o Diego viu]
+🔴 ALTO 2. OPEN_RESERVE_LIST não idempotente: double-tap credita 2× + folha 2× +
+   pula temporada. store.tsx:4637 (fix: `if s.screen==='reserveList' return s`).
+🔴 ALTO 3. Modal inline em ApoieButton (screens.tsx:297): campo "nome do clube"
+   do batismo perde foco a cada letra. MESMO bug da Copa (mover Modal p/ módulo).
+🟠 MÉD 4. COPA_MUNDO_PRIZE: +100 pode se perder se app fecha na hora do título
+   (idempotência terceirizada ao localStorage, fora do caixa).
+🟠 MÉD 5. Host recarrega na fase de envelope → sanitize tira pendingEnvelopes
+   também na persistência DB; RESTORE_ONLINE zera envelopes mas mantém submitted
+   → lances somem. (fix: limpar submitted ao restaurar em envelope).
+🟡 6. Sala host-manual/stream ainda força tiebreak(30s)/monte(45s) escondido.
+🟡 7. Copa do Mundo multiclube paga +100 por clube classificado (confirmar).
+🟡 8. SUBMIT_TIEBREAK não checa duplaPodeAgir (parceiro errado relança).
+🟡 9. DIV_BASE_CASH sem 'V' → várzea nasce com 100 (devia 60). store.tsx:386.
+🟢 higiene: key={i} no álbum; resumo de fechamento esconde kind 'saf'; componentes
+   inline (Stat/Face/PickList/Team) sem bug hoje mas mesmo padrão do #3.
+🟣 LATENTE: restart-ready e voto de fim de temporada mistura youIdx×manager.id
+   (ok hoje pq batem; trava sala se algum dia reordenar os times). Blindar.
