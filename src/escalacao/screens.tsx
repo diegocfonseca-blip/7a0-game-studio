@@ -262,6 +262,23 @@ function AreaSocioBody({ socioN }: { socioN: number | null }) {
 // abre o modal já na cor OURO. Também vale ?apoie=craque (manual) e ?apoie=1 (tela geral).
 // consumido UMA vez só (vários ApoieButton montam ao mesmo tempo — só o primeiro abre).
 let apoieLinkConsumido = false
+// 🧯 Modal do apoio FORA do componente (bug 10/08): quando ele era declarado
+// DENTRO do ApoieButton, virava função nova a cada tecla → o React remontava o
+// modal e o campo "nome do clube" do batismo PERDIA O FOCO a cada letra (mesmo
+// bug da Copa). Fora daqui, identidade estável — digitar funciona normal.
+function ApoieModal({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+  return createPortal(
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99997, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14, overflowY: 'auto' }}>
+      <style>{'@keyframes escSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
+      <div onClick={e => e.stopPropagation()} className="border-[3px] border-black rounded-2xl p-5 w-full my-auto"
+        style={{ background: '#F4ECD6', color: INK, maxWidth: 390, boxShadow: `6px 6px 0 0 ${INK}`, maxHeight: '94vh', overflowY: 'auto' }}>
+        {children}
+        <p className="text-center mt-3"><button onClick={onClose} className="text-xs font-black underline text-black/50">fechar</button></p>
+      </div>
+    </div>,
+    document.body
+  )
+}
 export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { big?: boolean; startScreen?: 'choice' | 'manual'; trigger?: (open: () => void) => React.ReactNode }) {
   const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'pay' | 'batismo' | 'manual' | 'socio'>('off')
   const meuSoc = useMeuSocio() // 🎫 sócio ativo vê a ÁREA dele no lugar da propaganda
@@ -294,17 +311,6 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
     try { await navigator.clipboard.writeText(msg) } catch { /* segue o baile */ }
     window.open(APOIO_IG, '_blank', 'noopener')
   }
-  const Modal = ({ children }: { children: React.ReactNode }) => createPortal(
-    <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 99997, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14, overflowY: 'auto' }}>
-      <style>{'@keyframes escSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
-      <div onClick={e => e.stopPropagation()} className="border-[3px] border-black rounded-2xl p-5 w-full my-auto"
-        style={{ background: '#F4ECD6', color: INK, maxWidth: 390, boxShadow: `6px 6px 0 0 ${INK}`, maxHeight: '94vh', overflowY: 'auto' }}>
-        {children}
-        <p className="text-center mt-3"><button onClick={close} className="text-xs font-black underline text-black/50">fechar</button></p>
-      </div>
-    </div>,
-    document.body
-  )
   return (
     <>
       {trigger ? trigger(openApoio) : big ? (
@@ -341,7 +347,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           </div>
         )
         return (
-        <Modal>
+        <ApoieModal onClose={close}>
           <p className="font-black text-2xl text-center" style={OSWALD}>💛 APOIAR O LEILÃO LEGENDS</p>
           <p className="text-[11.5px] font-bold text-black/65 text-center mt-1.5 leading-snug">Aqui é tudo de coração: o jogo é <b>grátis pra jogar</b>, nada é removido de ninguém e nenhum apoio dá vantagem em campo — quem apoia leva cor, brilho e história. Dentro das quatro linhas, o jogo é igual pra todos. 🔨</p>
           <p className="text-[10px] font-black text-black/45 text-center mt-1.5">👇 toca num pacote pra ver TUDO que tem dentro</p>
@@ -486,30 +492,30 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
               <span className="text-[10px] font-bold" style={{ color: 'rgba(255,255,255,.6)' }}>pelo Luca: obrigado por estar aqui 💛</span>
             </p>
           </div>
-        </Modal>
+        </ApoieModal>
         )
       })()}
 
       {screen === 'socio' && (
-        <Modal>
+        <ApoieModal onClose={close}>
           <AreaSocioBody socioN={meuSoc?.socioN ?? null} />
           <p className="text-center mt-3"><button onClick={() => setScreen('choice')} className="text-[11px] font-black underline text-black/45">← voltar pros apoios</button></p>
-        </Modal>
+        </ApoieModal>
       )}
 
       {screen === 'pix' && (
-        <Modal>
+        <ApoieModal onClose={close}>
           <p className="font-black text-2xl text-center" style={OSWALD}>💛 Valeu por apoiar!</p>
           <p className="text-[13px] font-bold text-black/70 mt-2 leading-snug text-center">
             Qualquer valor ajuda a pagar o servidor e a manter tudo de graça pra geral. 🔨
           </p>
           <div className="mt-3.5"><PixBox label="copiar chave Pix" ctx="só apoiar" /></div>
           <p className="text-[11px] font-bold text-black/45 mt-3 text-center">Cola no app do teu banco e pronto. Qualquer valor vira mais jogo. 💛</p>
-        </Modal>
+        </ApoieModal>
       )}
 
       {screen === 'manual' && (
-        <Modal>
+        <ApoieModal onClose={close}>
           <p className="font-black text-2xl text-center" style={OSWALD}>🎮 MODO MANUAL</p>
           <p className="text-[12px] font-bold text-black/65 text-center mt-1.5 leading-snug">Na Carreira, a temporada roda sozinha. Com o <b>Modo Manual</b>, <b>o controle é seu</b>: você decide o ritmo de cada rodada.</p>
 
@@ -593,13 +599,13 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
               <span className="text-[10px] font-bold" style={{ color: 'rgba(255,255,255,.6)' }}>pelo Luca: obrigado por estar aqui 💛</span>
             </p>
           </div>
-        </Modal>
+        </ApoieModal>
       )}
 
       {screen === 'pay' && (() => {
         const ouro = payTier === 'ouro'
         return (
-        <Modal>
+        <ApoieModal onClose={close}>
           <p className="font-black text-xl text-center" style={OSWALD}>{ouro ? '👑 LENDA · R$ 39,90' : '⭐ CRAQUE · R$ 19,90'}</p>
           <p className="text-[10.5px] font-bold text-black/55 text-center mt-1 leading-snug">{ouro ? 'ouro (ou qualquer cor) com brilho + selo + 🎮 Manual + 📲 grupo VIP + overall de tudo + 💾 6 fichas' : 'cor prata com brilho + 🎮 Modo Manual + overall até ⭐ + 💾 4 fichas'}</p>
           <div className="mt-3.5"><PixBox label="copiar Pix" ctx={ouro ? 'lenda' : 'craque (manual + cor)'} amount={ouro ? 39.9 : 19.9} /></div>
@@ -610,12 +616,12 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           </button>
           <p className="text-[10px] font-bold text-black/45 text-center mt-1.5">a mensagem já vai copiada · liberamos em até 24h no seu e-mail · upgrade depois? paga só a diferença 😉</p>
           <p className="text-center mt-3"><button onClick={() => setScreen('choice')} className="text-[11px] font-black underline text-black/45">← voltar pros pacotes</button></p>
-        </Modal>
+        </ApoieModal>
         )
       })()}
 
       {screen === 'batismo' && (
-        <Modal>
+        <ApoieModal onClose={close}>
           <p className="font-black text-2xl text-center" style={OSWALD}>⚽ BATIZA TEU CLUBE</p>
           <p className="text-xs font-bold text-black/60 text-center mt-1">3 coisinhas e teu time entra em campo:</p>
           <p className="font-black text-[13px] mt-3" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>1</span>Escolhe o nome do clube</p>
@@ -647,7 +653,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <p className="font-black text-[12px] tracking-wide" style={{ color: GOLD, ...OSWALD }}>🤫 DISCRIÇÃO TOTAL</p>
             <p className="text-[10.5px] font-bold mt-1 leading-snug" style={{ color: 'rgba(255,255,255,0.75)' }}>Nenhum valor aparece pra ninguém, nunca. Quanto cada um apoiou fica só entre você e a gente. No jogo, só existe o nome do clube.</p>
           </div>
-        </Modal>
+        </ApoieModal>
       )}
     </>
   )
