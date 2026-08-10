@@ -2564,6 +2564,11 @@ function sweepMonteToBackstops(st: EscState) {
     const paid = (card as { paid?: number }).paid ?? 0
     const listed = (card as { seller?: number }).seller != null
     creditSeller(st, card, paid, bot.id) // o vendedor recebe (também na varredura do bot)
+    // 💰 CONSERVAÇÃO (Diego 10/08, "robô paga sim"): se a carta era LISTADA por
+    // alguém (tem vendedor) e tem preço, o bot que a scoopa PAGA do caixa dele —
+    // antes o vendedor recebia sem ninguém debitar (moeda criada). Agora fecha a
+    // conta: bot paga = vendedor recebe. (Carta nova/sem vendedor segue grátis.)
+    if (listed && paid > 0) bot.money = (bot.money ?? 0) - paid
     agenciaTransacao(st, card) // 🕴️ agenciado indo pra bot também é negócio → comissão
     bot.squad.push({ ...card, paid, via: 'monte', semContrato: undefined, contratoAte: undefined })
     if (paid > 0) recordPrice(st, card, paid)

@@ -3224,4 +3224,6 @@ mexer muda semântica/arrisca; NÃO mexidos):
 - #8 Bot-fiador varrendo o monte credita o vendedor SEM se debitar (cria
   graninha na caixa do humano-vendedor). É o que GARANTE que quem lista carta
   sempre recebe. Impacto ínfimo. Deixar como está (garante pagamento) ou fazer
-  o bot pagar (conservação)?
+  o bot pagar (conservação)? ✅ RESOLVIDO 10/08: Diego escolheu "robô paga" —
+  o bot debita o próprio caixa quando fica com carta LISTADA (conservação 100%).
+  Banner da carreira antiga ganhou botão ✕ (fecha e não volta, por aparelho).
