@@ -3192,3 +3192,36 @@ PENDENTE (precisa de decisão/UI nova — NÃO mexido):
   ok hoje pq batem; blindar preventivamente antes de qualquer reorder de times.
 - Copa do Mundo multiclube paga +100 por clube classificado (Diego confirmar se
   é isso mesmo — comentário diz intencional "independência dos 2 clubes").
+
+## ✅ CONSERTOS DA AUDITORIA DE DINHEIRO & DADOS (10/08 — Diego: "conserte todos")
+FEITOS E NO AR (commits isolados, buildados, reversíveis):
+🔴 1. Removida a rotina reconcileCardsToTitles: ela igualava títulos ao nº de
+   cartas e, com a trava do Falido FC, FABRICAVA título de carreira antiga e
+   APAGAVA título real (2 títulos c/ a mesma carta). Rodava 1×/dia → corrompia
+   sempre. Ranking agora reflete só o que o jogo grava. (screens.tsx)
+🔴 2. Vaga/ordem da Copa do Mundo agora usa a MESMA ordenação do Rank
+   (A·Mundo·Legends·B·C·D·dinheiro) — antes o gate ignorava wc/copas e a
+   colocação exibida ≠ a que qualificava. (pyramidseason copaGate)
+🟠 4. Título de Copa do Mundo sobrevive ao rename: ponte pela corrente de NOMES
+   (oldChain(t.name)), não oldChain('m{id}') que era vazio. (pyramidseason mural+gate)
+🟠 3. Artilheiro de todos os tempos separa xarás: chave nome+cardId (94 nomes
+   repetidos no baralho somavam junto). Teto subiu 300→1000 (menos perda de
+   quem sai/volta ao top). (store RECORD_SEASON_STATS)
+🟠 5. Álbum conta por AUGE (nome|clube|ano), não só nome — 2 versões da mesma
+   lenda contam separado, bate com o servidor. (screens dedupByName)
+🟡 9. REAUCTION_ONLINE (caminho legado) blindado contra toque-dublado.
+
+✅ CONFIRMADO REDONDO (150 temporadas + leitura): dinheiro conservado nas
+transferências (comprador debita = vendedor credita), premiações no momento
+certo e 1×, folha piso÷10 por jogador só da 4ª, renovação bate com a tela,
+transfer ban trava compra, campeão 1/divisão sem dobrar, idempotência OK.
+
+DEIXADOS PRA CONFIRMAÇÃO DO DIEGO (são DECISÃO DE DESIGN, não bug claro —
+mexer muda semântica/arrisca; NÃO mexidos):
+- #7 "Artilharia" na Sala de Troféus conta só o artilheiro GERAL da pirâmide
+  (scorers[0]), não o de cada divisão (B/C/D). Contar por divisão inflaria o
+  nº de artilharias de todo mundo. Quer contar por divisão?
+- #8 Bot-fiador varrendo o monte credita o vendedor SEM se debitar (cria
+  graninha na caixa do humano-vendedor). É o que GARANTE que quem lista carta
+  sempre recebe. Impacto ínfimo. Deixar como está (garante pagamento) ou fazer
+  o bot pagar (conservação)?
