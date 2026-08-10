@@ -5651,7 +5651,10 @@ export function EscRanking() {
     [rows])
   const inList = !!meId && shown.some(r => r.user_id === meId)
   // 📖 as duas visões do álbum tocado: cada uma deduplica por nome POR SI
-  const dedupByName = (cs: AlbumCard[]) => { const seen = new Set<string>(); return cs.filter(c => (seen.has(c.name) ? false : (seen.add(c.name), true))) }
+  // 🃏 dedup pelo AUGE único (nome|clube|ano), não só pelo nome (10/08): quem tem
+  // "Ronaldo 2002" E "Ronaldo 1998" via UMA carta só e a contagem divergia do
+  // servidor. Agora cada versão conta como a carta que é (igual ao packPool).
+  const dedupByName = (cs: AlbumCard[]) => { const seen = new Set<string>(); return cs.filter(c => { const k = `${c.name}|${c.club}|${c.year}`; return seen.has(k) ? false : (seen.add(k), true) }) }
   const albumCk = viewUser?.careerKey
   const albumConta = viewCards ? dedupByName(viewCards) : null
   const albumCarreira = viewCards && albumCk ? dedupByName(viewCards.filter(c => c.sk?.startsWith(albumCk + ':'))) : null

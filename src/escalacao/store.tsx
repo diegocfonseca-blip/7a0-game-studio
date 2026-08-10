@@ -4547,16 +4547,21 @@ export function reducer(state: EscState, action: Action): EscState {
       // nome). Idempotente: só grava uma vez por temporada.
       if (!s.careerOnline) return s
       if ((s.statsSeason ?? 0) >= s.seasonNo) return s
+      // 🔑 chave por NOME + carta (10/08): antes era só o nome, então dois
+      // jogadores DIFERENTES com o mesmo nome (94 casos no baralho) somavam gols
+      // num registro só — número inflado. O cardId separa os xarás. (Sem cardId,
+      // cai no nome, como antes.) A exibição continua mostrando só o nome.
+      const skey = (x: { name: string; cardId?: string }) => x.cardId ? `${x.name}|${x.cardId}` : x.name
       const all = { ...(s.careerScorersAll ?? {}) }
       for (const sc of action.scorers) {
-        const prev = all[sc.name]
-        all[sc.name] = { ...sc, goals: (prev?.goals ?? 0) + sc.goals } // teamName/div = os da última temporada (display)
+        const prev = all[skey(sc)]
+        all[skey(sc)] = { ...sc, goals: (prev?.goals ?? 0) + sc.goals } // teamName/div = os da última temporada (display)
       }
-      // guarda os 300 MELHORES de todos os tempos: o ranking mostra só 20, então
-      // 300 é folga de sobra (cobre quem está perto de entrar) e evita o save
-      // crescer sem fim. Ninguém relevante pro ranking é cortado.
-      const top = Object.values(all).sort((a, b) => b.goals - a.goals).slice(0, 300)
-      s.careerScorersAll = Object.fromEntries(top.map(x => [x.name, x]))
+      // guarda os 1000 MELHORES de todos os tempos (era 300): o ranking mostra 20,
+      // mas o teto maior evita que o total histórico de quem sai e volta ao top
+      // "encolha" — antes ~40% dos gols de quem caía do top-300 sumiam.
+      const top = Object.values(all).sort((a, b) => b.goals - a.goals).slice(0, 1000)
+      s.careerScorersAll = Object.fromEntries(top.map(x => [skey(x), x]))
       s.statsSeason = s.seasonNo
       return s
     }
@@ -4631,6 +4636,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // — mesmos técnicos (ids/times preservados), elencos zerados, orçamento
       // parelho pra todos. A divisão só importa na hora de jogar a temporada.
       if (!s.careerOnline) return s
+      // 🧯 anti-toque-dublado (10/08): sem isso, um 2º disparo dobrava títulos/
+      // Copa/valores (applyHonors/careerCopaHonors/applyScorerValues não têm trava
+      // própria). A UI atual nem usa mais este caminho, mas fica blindado.
+      if (s.screen === 'auction') return s
       s.seasonVotes = {} // temporada nova: zera a votação
       setActiveCatalog(s.deckLeague) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
       applySeasonMoney(s, action.rewards, action.sponsorRewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES de zerar/refazer o leilão
