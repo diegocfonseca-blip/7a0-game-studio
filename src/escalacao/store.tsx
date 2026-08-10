@@ -4639,6 +4639,12 @@ export function reducer(state: EscState, action: Action): EscState {
       // títulos) e abre a tela de VENDA — "Listar pra leilão" (45s). A compra vem
       // depois (RESERVE_AUCTION_ONLINE), quando o host começa o leilão.
       if (!s.careerOnline) return s
+      // 🧯 ANTI-TOQUE-DUBLADO (bug 10/08): tocar 2× rápido no "Abrir leilão"/"Mesmo
+      // time" rodava este case DE NOVO — creditava prêmio/bilheteria/patrocínio 2×,
+      // cobrava a folha 2× e pulava a temporada de 2 em 2 (o guard de applySeasonMoney
+      // não pegava porque o seasonNo já tinha subido). Se já estamos na tela de
+      // reservas, o 2º toque não faz nada.
+      if (s.screen === 'reserveList') return s
       pinHumanLineups(s) // fixa o SEU XI ANTES do leilão — reforço novo vai pro banco
       s.seasonVotes = {} // temporada nova: zera a votação
       applySeasonMoney(s, action.rewards, action.sponsorRewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES da venda/leilão de reservas
