@@ -1,5 +1,17 @@
 # 📌 Pendências combinadas com o Diego (atualizado 10/08/2026)
 
+## 🖤🤍 KIT: Bicho da Seda vira PRETO E BRANCO (Davi/davisantana1312) (10/08) ✅ NO AR
+Diego corrigiu: o coração do Davi é **BOTAFOGO**, não Palmeiras. Então o
+Bicho da Seda trocou de verde pra **preto e branco (alvinegro)**.
+- **escudos.tsx** `'Bicho da Seda'`: brasão PRETO (#141414) com listras brancas
+  + mariposa BRANCA (#F4F4F4) com pintas/veias/tufos pretos.
+- **mascotes.tsx** `mariposa`: idem, branca com detalhes pretos.
+- **Banco** `esc_socios` do Davi: manto_c1='#141414', manto_c2='#FFFFFF',
+  time_coracao='Botafogo'.
+- PENDENTE (perguntei ao Diego): botar ou não uma estrelinha branca no escudo
+  (cara de Botafogo do Rio) — só se ele pedir.
+- Reversível: `git revert` + voltar os campos no banco.
+
 ## 🐷 KIT: Xurupitas FC (batismo do denilson.stifler10) (10/08) ✅ NO AR
 O denilson (sócio nº14, ouro) trocou o time de batismo "Tokyo City Esperion"
 por **Xurupitas FC** — nome escolhido pra BATER com o "Xurupitas" que ele já
