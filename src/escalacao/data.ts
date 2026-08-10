@@ -909,7 +909,7 @@ const MEI: C[] = [
   { name: "Paulo Baier", club: "Goiás", year: 2005, fame: 4, lo: 84, hi: 91 },
   { name: "Thiago Almada", club: "Botafogo", year: 2024, fame: 3, lo: 74, hi: 82, promessa: true },
   { name: "Philippe Coutinho", club: "Vasco", year: 2009, fame: 3, lo: 74, hi: 82, promessa: true },
-  { name: "Andrade", club: "Flamengo", year: 1981, fame: 5, lo: 88, hi: 93 },
+  { name: "Andrade", club: "Flamengo", year: 1981, fame: 4, lo: 83, hi: 90 },
   { name: "Carlos Alberto", club: "Fluminense", year: 2002, fame: 3, lo: 73, hi: 85, promessa: true, bio: "Revelação de ouro do Fluminense e campeão do Mundo aos 16 (Corinthians, 2000) — a promessa que brilhou jovem e ainda decidiu uma final de Champions na Europa." },
   { name: "Ibson", club: "Flamengo", year: 2006, fame: 2, lo: 64, hi: 80 },
   { name: "Fábio Baiano", club: "Flamengo", year: 1996, fame: 2, lo: 66, hi: 82 },
@@ -1253,12 +1253,12 @@ const NOVOS_BR2_ZAG: C[] = [
   { name: "Rafael Tolói", club: "São Paulo", year: 2011, fame: 2, lo: 66, hi: 82, bio: "Zagueiro revelado no São Paulo — foi pra Itália ainda jovem e virou capitão histórico da Atalanta." },
 ]
 const NOVOS_BR2_MEI: C[] = [
-  { name: "Rodrigo Garro", club: "Corinthians", year: 2023, fame: 3, lo: 76, hi: 85, bio: "Meia argentino de drible e categoria — ídolo rápido do Corinthians, cobranças de falta e assistências de gala." },
+  { name: "Rodrigo Garro", club: "Corinthians", year: 2023, fame: 4, lo: 82, hi: 89, bio: "Meia argentino de drible e categoria — ídolo rápido do Corinthians, cobranças de falta e assistências de gala." },
   { name: "Breno Bidon", club: "Corinthians", year: 2024, fame: 1, lo: 58, hi: 76, promessa: true, bio: "Volante-joia da base do Corinthians — chegada de área, personalidade e a braçadeira que virou promessa da Seleção." },
-  { name: "Arthur", club: "Grêmio", year: 2017, fame: 3, lo: 78, hi: 86, bio: "Meia-camisa 8 de toque fino e visão de jogo — o auge tricolor antes da badalada ida ao Barcelona." },
+  { name: "Arthur", club: "Grêmio", year: 2017, fame: 4, lo: 83, hi: 90, bio: "Meia-camisa 8 de toque fino e visão de jogo — o auge tricolor antes da badalada ida ao Barcelona." },
   { name: "Bitello", club: "Grêmio", year: 2022, fame: 2, lo: 68, hi: 83, bio: "Meia-atacante de drible e faro de gol — peça de criação do Grêmio antes de rodar a Rússia." },
   { name: "Juan Cazares", club: "Atlético-MG", year: 2016, fame: 2, lo: 68, hi: 82, bio: "Meia equatoriano de categoria e visão de jogo — cérebro criativo do Atlético-MG por vários anos." },
-  { name: "Edu", club: "Corinthians", year: 1997, fame: 3, lo: 76, hi: 85, bio: "Meia-artista revelado no Corinthians — brilhou na Europa (Valencia, Deportivo) antes de voltar pra encantar o Brasil de novo." },
+  { name: "Edu", club: "Corinthians", year: 1997, fame: 4, lo: 82, hi: 89, bio: "Meia-artista revelado no Corinthians — brilhou na Europa (Valencia, Deportivo) antes de voltar pra encantar o Brasil de novo." },
   { name: "Gabriel Bontempo", club: "Santos", year: 2024, fame: 1, lo: 56, hi: 76, promessa: true, bio: "Meia-joia da base do Santos — visão de jogo e talento que já rendem comparações e moral de futuro camisa 10." },
   { name: "Lucas Crispim", club: "Fortaleza", year: 2023, fame: 2, lo: 68, hi: 83, bio: "Meia-atacante de passe certo e faro de assistência — peça-chave do Fortaleza nos anos de ouro no Nordeste." },
   { name: "Lucho González", club: "Athletico-PR", year: 2005, fame: 3, lo: 78, hi: 86, bio: "Meia argentino elegante do Athletico Paranaense — categoria e passe que renderam a ida ao Porto de Mourinho." },
@@ -1266,10 +1266,10 @@ const NOVOS_BR2_MEI: C[] = [
 const NOVOS_BR3_LAT: C[] = [
   { name: "Roger Machado", club: "Grêmio", year: 1996, fame: 3, lo: 74, hi: 84, bio: "Lateral-esquerdo raçudo dos anos 90 — 10 anos de Grêmio e 6 títulos (Libertadores 95, Brasileirão 96, 3 Copas do Brasil), hoje um dos maiores ídolos tricolores. Antes de virar treinador, foi decisivo em campo." },
   { name: "Mariano", club: "Fluminense", year: 2010, fame: 3, lo: 76, hi: 85, bio: "Lateral-direito que virou um dos melhores do país sob o Muricy — peça-chave do título brasileiro do Fluminense em 2010, antes de rodar a Europa e voltar multicampeão pelo Atlético-MG." },
-  { name: "Cédric Soares", club: "São Paulo", year: 2025, fame: 2, lo: 68, hi: 84, bio: "Lateral-direito português, campeão da Eurocopa 2016 e ex-Arsenal — chegou de grife pro São Paulo." },
+  { name: "Cédric Soares", club: "São Paulo", year: 2025, fame: 1, lo: 56, hi: 76, bio: "Lateral-direito português, campeão da Eurocopa 2016 e ex-Arsenal — chegou de grife pro São Paulo." },
 ]
 const NOVOS_BR3_ZAG: C[] = [
-  { name: "Alexander Barboza", club: "Botafogo", year: 2024, fame: 4, lo: 83, hi: 90, bio: "Zagueirão argentino, muralha do Botafogo campeão da Libertadores e do Brasileiro em 2024 — na seleção da Libertadores e do Brasileirão daquele ano." },
+  { name: "Alexander Barboza", club: "Botafogo", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Zagueirão argentino, muralha do Botafogo campeão da Libertadores e do Brasileiro em 2024 — na seleção da Libertadores e do Brasileirão daquele ano." },
 ]
 const NOVOS_BR3_MEI: C[] = [
   { name: "Newton", club: "Botafogo", year: 2024, fame: 2, lo: 66, hi: 82, bio: "Volante de marcação do elenco do Botafogo campeão da Libertadores de 2024 — força no meio-campo e pouca visibilidade fora do Rio." },
@@ -1286,10 +1286,10 @@ const NOVOS_BR3_ATA: C[] = [
 ]
 const NOVOS_BR2_ATA: C[] = [
   { name: "Gabriel Pec", club: "Vasco", year: 2022, fame: 2, lo: 68, hi: 83, bio: "Ponta-atacante de velocidade e faro de gol — xodó recente de São Januário antes de rumar aos Estados Unidos." },
-  { name: "Lingard", club: "Corinthians", year: 2023, fame: 2, lo: 68, hi: 82, bio: "Meia-atacante inglês, ex-Manchester United — passagem curta e badalada pelo Corinthians." },
+  { name: "Lingard", club: "Corinthians", year: 2023, fame: 1, lo: 56, hi: 76, bio: "Meia-atacante inglês, ex-Manchester United — passagem curta e badalada pelo Corinthians." },
   { name: "Elkeson", club: "Botafogo", year: 2010, fame: 2, lo: 64, hi: 80, bio: "Centroavante de faro de gol revelado no Botafogo — foi pra China, virou ídolo e até defendeu a seleção chinesa." },
   { name: "Rafael Borré", club: "Internacional", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Centroavante colombiano de finalização e faro de área — reforço de peso pro ataque do Internacional." },
-  { name: "Dirceu Lopes", club: "Cruzeiro", year: 1976, fame: 4, lo: 84, hi: 90, bio: "Craque do \u0022Cruzeiro Show de Bola\u0022 — categoria e passe que fizeram dele um dos maiores ídolos da história celeste, campeão da Libertadores de 1976." },
+  { name: "Dirceu Lopes", club: "Cruzeiro", year: 1976, fame: 5, lo: 88, hi: 94, bio: "Craque do \u0022Cruzeiro Show de Bola\u0022 — categoria e passe que fizeram dele um dos maiores ídolos da história celeste, campeão da Libertadores de 1976." },
   { name: "Nikão", club: "Athletico-PR", year: 2019, fame: 3, lo: 76, hi: 85, bio: "Ponta-canhota de categoria — ídolo do Athletico Paranaense campeão da Sul-Americana e Recopa." },
   { name: "Marcelo Cirino", club: "Athletico-PR", year: 2015, fame: 1, lo: 54, hi: 74, bio: "Atacante andarilho que passou pelo Athletico Paranaense — carreira de muitas malas, sempre em busca de espaço." },
   { name: "Jesé Rodríguez", club: "Coritiba", year: 2022, fame: 1, lo: 48, hi: 66, bio: "Ex-joia do Real Madrid e do PSG — chegou badalado ao Coritiba mas o auge já tinha ficado pra trás. Passagem que virou piada." },
@@ -1879,7 +1879,7 @@ const NOVOS_EU_ATA: C[] = [
   { name: 'Quincy Promes', club: 'Spartak Moscou', year: 2018, fame: 3, lo: 74, hi: 84, bio: 'Ponta holandês veloz e goleador — brilhou no Spartak Moscou, passou por Sevilla e Ajax e defendeu a Holanda. Fora dos gramados, foi condenado na Justiça por tráfico de drogas e cumpre pena.' },
   { name: 'Cacau', club: 'Stuttgart', year: 2009, fame: 3, lo: 74, hi: 84, bio: 'Atacante brasileiro naturalizado alemão — artilheiro querido do Stuttgart na Bundesliga (307 jogos, 88 gols entre Stuttgart e Nuremberg) e da seleção da Alemanha na Copa de 2010.' },
   { name: 'Rummenigge', club: 'Bayern', year: 1981, fame: 5, lo: 90, hi: 95, bio: 'Karl-Heinz Rummenigge — atacante alemão duas vezes Bola de Ouro (1980 e 1981), craque elegante e ídolo máximo do Bayern de Munique, vice-campeão do mundo com a Alemanha.' },
-  { name: 'Mancini', club: 'Roma', year: 2006, fame: 3, lo: 76, hi: 85, bio: 'Lateral brasileiro que virou ala na Itália — auge vestindo a Roma (2003-2008), ídolo da torcida com o golaço de calcanhar que virou "Tacco di Dio". Começou como lateral-direito no Atlético-MG, onde chegou a fazer 15 gols numa única Brasileirão.' },
+  { name: 'Mancini', club: 'Roma', year: 2006, fame: 4, lo: 82, hi: 89, bio: 'Lateral brasileiro que virou ala na Itália — auge vestindo a Roma (2003-2008), ídolo da torcida com o golaço de calcanhar que virou "Tacco di Dio". Começou como lateral-direito no Atlético-MG, onde chegou a fazer 15 gols numa única Brasileirão.' },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL], LAT: LAT_EU, ZAG: ZAG_EU, MEI: [...MEI_EU, ...NOVOS_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA] }
 
