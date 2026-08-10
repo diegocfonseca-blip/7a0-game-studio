@@ -3161,3 +3161,34 @@ BUGS ENCONTRADOS — aguardando o Diego escolher a ordem (NADA foi mexido):
    inline (Stat/Face/PickList/Team) sem bug hoje mas mesmo padrão do #3.
 🟣 LATENTE: restart-ready e voto de fim de temporada mistura youIdx×manager.id
    (ok hoje pq batem; trava sala se algum dia reordenar os times). Blindar.
+
+## ✅ CONSERTOS DA AUDITORIA (10/08 — Diego mandou "faça os 3 que doem, depois médios, depois menores")
+FEITOS E NO AR (cada um commit isolado, buildado, reversível):
+🔴 1. Campo "nome do clube" do batismo não perde mais o foco (ApoieModal movido
+   pra fora do componente — mesmo padrão do fix da Copa).
+🔴 2. Anti-toque-dublado no fim de temporada: OPEN_RESERVE_LIST ignora 2º toque
+   (`if s.screen==='reserveList' return s`) — não dobra mais dinheiro/folha/temporada.
+🔴 3. Gols não mudam mais ao trocar formação: CHANGE_FORMATION congela o XI das
+   rodadas já jogadas na formação ANTIGA (bestXIids por rodada); a nova vale do
+   jogo atual em diante. Provado com teste (XI da rodada passada fica idêntico).
+🟠 4. Prêmio da Copa do Mundo (+100) não some mais: credita ANTES de marcar
+   played + trava idempotente por `${mgrId}:${temporada}` (copaPrizeDone no
+   estado). Anti-perda e anti-dobro.
+🟠 5. Host recarrega na coleta de lances → zera `submitted` só nas fases de
+   envelope no RESTORE_ONLINE (guests reabrem input e reenviam; não resolve mais
+   com lance zero).
+🟡 6. Várzea nasce com 60 (DIV_BASE_CASH ganhou 'V'). 🟡 7. Prêmio da SAF aparece
+   no resumo de fim de temporada (kind 'saf' no filtro). 🟡 8. Desempate em dupla
+   respeita o dono da categoria (SUBMIT_TIEBREAK ganhou `by` + duplaPodeAgir).
+
+PENDENTE (precisa de decisão/UI nova — NÃO mexido):
+- ⏱️ Timer escondido do DESEMPATE/MONTE em sala host-manual/stream: setar "sem
+  tempo" TRAVA (não há botão de host pra fechar o desempate, só o envelope tem).
+  Pra consertar direito = adicionar botão "fechar desempate e avançar" na UI do
+  online. Item menos urgente (não corrompe estado, só contraria o "show pausado").
+- 🟢 Cosméticos deixados: álbum key={i} (risco de key duplicada se mexer);
+  componentes inline sem bug hoje (Stat/Face/PickList/Team).
+- 🟣 LATENTE de assento (restart-ready/voto de fim de temporada usam youIdx×id):
+  ok hoje pq batem; blindar preventivamente antes de qualquer reorder de times.
+- Copa do Mundo multiclube paga +100 por clube classificado (Diego confirmar se
+  é isso mesmo — comentário diz intencional "independência dos 2 clubes").
