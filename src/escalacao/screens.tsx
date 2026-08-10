@@ -5556,74 +5556,8 @@ export function EscAlbum() {
 type RankMode = 'carreira' | 'ronline' | 'rcpu' // 🏆 decisão do Diego (04/08): sem 'Geral'; Carreira (em breve, zerada) · Rápido online · Rápido offline
 interface RankRow { user_id: string; name: string; career_key: string; titles: number; scorer_titles: number; goals: number; cards: number }
 
-// ACERTO AUTOMÁTICO cartas↔ranking. Regra do Diego: cada usuário tem que ter a
-// MESMA quantidade de cartas (álbum) e de títulos (ranking). A carta é a verdade
-// e nunca se mexe nela; o título é o lado flexível — pode faltar ou sobrar.
-//
-// Por que desencontra:
-//  • FALTA título: modos antigos (ex.: carreira online antiga) davam a carta mas
-//    não gravavam o título no ranking.
-//  • SOBRA título: o álbum conta AUGES ÚNICOS (nome|clube|ano) — foi campeão 2x
-//    e ganhou a carta repetida de um craque que já tinha, o álbum não duplica,
-//    mas os 2 títulos contam. Aí sobra título.
-//
-// IMPORTANTE: isto é uma LIMPEZA ÚNICA (one-shot), não um igualador permanente.
-// Daqui pra frente o jogo já nasce certo — carta repetida é bloqueada na hora de
-// escolher e todo campeão gera carta + título — então título e carta batem
-// sozinhos. Por isso este acerto roda UMA VEZ por técnico (guardado num flag) só
-// pra regularizar o acumulado antigo (contas que desencontraram por modos legados
-// ou cartas repetidas de antes) e PARA. Nunca mais fica somando/tirando título.
-//
-// Ao rodar (uma vez), o navegador do próprio técnico (logado) iguala as contagens
-// POR MODO: cartas online ↔ títulos online, cartas CPU ↔ títulos CPU. Falta →
-// cria título; sobra → rebaixa (champion=false, sem apagar a linha nem a
-// artilharia). Roda como o usuário (passa no RLS), sem eu tocar no banco.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function reconcileCardsToTitles() {
-  return // 🚫 desativada 10/08 (ver comentário na chamada) — mantida só pra histórico
-  // eslint-disable-next-line no-unreachable
-  try {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const flag = `esc-cards-titles-fix-v1:${user.id}`
-    if (localStorage.getItem(flag)) return // já regularizou este técnico — não repete
-    const [{ data: cards }, { data: results }] = await Promise.all([
-      supabase.from('user_cards').select('card_name, card_club, card_year, origin').eq('user_id', user.id),
-      supabase.from('esc_results').select('season_key, mode, champion, top_scorer, display_name').eq('user_id', user.id),
-    ])
-    if (!cards) return
-    const rows = (results ?? []) as { season_key: string; mode: string; champion: boolean; top_scorer: boolean; display_name: string | null }[]
-    const displayName = rows.find(r => r.display_name)?.display_name
-      ?? user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? 'Técnico'
-    // cartas ÚNICAS por auge, por modo — exatamente como o álbum conta.
-    const cardKey = (c: { card_name: string; card_club: string; card_year: number }) => `${c.card_name}|${c.card_club}|${c.card_year}`
-    const want: Record<'cpu' | 'online', Set<string>> = { cpu: new Set(), online: new Set() }
-    for (const c of cards as { card_name: string; card_club: string; card_year: number; origin: string }[]) {
-      want[c.origin === 'online' ? 'online' : 'cpu'].add(cardKey(c))
-    }
-    for (const mode of ['cpu', 'online'] as const) {
-      const target = want[mode].size
-      const champ = rows.filter(r => r.mode === mode && r.champion)
-      if (champ.length === target) continue
-      if (champ.length < target) {
-        // FALTA: cria títulos sintéticos estáveis (fix:) até bater com as cartas.
-        const add: Record<string, unknown>[] = []
-        for (let i = champ.length; i < target; i++) {
-          add.push({ user_id: user.id, display_name: displayName, mode, season_key: `fix:${mode}:${i}`, champion: true, top_scorer: false, goals: 0 })
-        }
-        await supabase.from('esc_results').upsert(add, { onConflict: 'user_id,season_key' })
-      } else {
-        // SOBRA: rebaixa champion=false. Ordem de preferência pra rebaixar: 1º os
-        // sintéticos (fix:), 2º os que são SÓ título, e por último os que também
-        // são artilharia (pra preservar o máximo de conquista real).
-        const prio = (r: { season_key: string; top_scorer: boolean }) => r.season_key?.startsWith('fix:') ? 0 : r.top_scorer ? 2 : 1
-        const demote = [...champ].sort((a, b) => prio(a) - prio(b)).slice(0, champ.length - target).map(r => r.season_key)
-        await supabase.from('esc_results').update({ champion: false }).eq('user_id', user.id).in('season_key', demote)
-      }
-    }
-    localStorage.setItem(flag, '1') // regularizado — não roda de novo pra este técnico
-  } catch { /* nunca trava a tela */ }
-}
+// (removida 10/08: a rotina de acerto cartas↔títulos corrompia a contagem —
+// inflava títulos de carreira antiga e apagava título real; ver diário)
 
 export function EscRanking() {
   const { dispatch } = useEsc()
