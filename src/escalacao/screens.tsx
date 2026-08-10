@@ -23,7 +23,7 @@ import { Escudo, LOGOS_PRONTAS } from './escudos' // 🛡️ brasão do clube (d
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, getSport, escadaLiberada, type Sport } from './sport'
 import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
-import { meuManto, mantoStripes, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
+import { meuManto, mantoStripes, meuMantoAngle, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
 import { MASCOTES, FestaoMascote } from './mascotes'
 
 // 🏀/⚽ rótulo do SETOR conforme esporte + idioma (futebol = igual a SECTOR_LABEL;
@@ -919,7 +919,7 @@ function turfColors(state: EscState): [string, string] {
 // 🎽 `manto`: cores do coração do DONO do time (só o próprio usuário vê o seu) —
 // faixinha listrada no topo das fichinhas + barrinha de título nas cores.
 // Aprovado pelo Diego 09/08 (arte manto-real.png). Sem manto, nada muda.
-function Campinho({ m, small = false, bench = false, title, manto }: { m: Manager; small?: boolean; bench?: boolean; title?: string; manto?: [string, string] | null }) {
+function Campinho({ m, small = false, bench = false, title, manto, mantoDir = 90 }: { m: Manager; small?: boolean; bench?: boolean; title?: string; manto?: [string, string] | null; mantoDir?: number }) {
   const { state } = useEsc()
   const [g1, g2] = turfColors(state)
   const rows: { key: string; slots: { pos: Sector; card: WonCard | null }[] }[] = useMemo(() => {
@@ -950,7 +950,7 @@ function Campinho({ m, small = false, bench = false, title, manto }: { m: Manage
   return (
     <div className="border-[3px] border-black rounded-2xl overflow-hidden" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
       {title && (
-        <div style={{ background: manto ? mantoStripes(manto, 14) : INK, color: '#fff', borderBottom: `3px solid ${INK}`, height: small ? 22 : 26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ background: manto ? mantoStripes(manto, 14, mantoDir) : INK, color: '#fff', borderBottom: `3px solid ${INK}`, height: small ? 22 : 26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span className="font-black uppercase tracking-wide" style={{ ...OSWALD, fontSize: small ? 10 : 12, textShadow: manto ? '1px 1px 0 rgba(0,0,0,.85)' : undefined }}>{title}</span>
         </div>
       )}
@@ -967,7 +967,7 @@ function Campinho({ m, small = false, bench = false, title, manto }: { m: Manage
                     entra por cima num selinho — mesma altura de antes (a linha da
                     posição foi PRA DENTRO da faixa, nada cresce). */}
                 {manto && slot.card && (
-                  <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: small ? 13 : 16, background: mantoStripes(manto), borderBottom: `2px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: small ? 13 : 16, background: mantoStripes(manto, 9, mantoDir), borderBottom: `2px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span className="font-black" style={{ ...OSWALD, fontSize: small ? 7 : 8, color: '#fff', background: 'rgba(0,0,0,.42)', borderRadius: 6, padding: '0 5px', letterSpacing: .5, lineHeight: '1.5' }}>{slot.pos}</span>
                   </span>
                 )}
@@ -1075,18 +1075,19 @@ function YourPitch({ small = false }: { small?: boolean }) {
   if (state.sport === 'basquete') return <NbaCourt m={shown} />
   // 🎽 manto do coração: só decora o PRÓPRIO time de quem está vendo
   const manto = meuManto()
+  const mantoAng = meuMantoAngle()
   if (state.reserveAuction) {
     // "Reservas" só na 2ª temporada (quando se monta o banco); da 3ª em diante é
     // o mercado, então o campinho de baixo é só o "Banco".
     const benchTitle = state.seasonNo === 2 ? '🔁 Reservas (banco)' : '🔁 Banco'
     return (
       <div className="space-y-2">
-        <Campinho m={shown} small={small} bench title={benchTitle} manto={manto} />
-        <Campinho m={shown} small={small} title="⭐ Titulares" manto={manto} />
+        <Campinho m={shown} small={small} bench title={benchTitle} manto={manto} mantoDir={mantoAng} />
+        <Campinho m={shown} small={small} title="⭐ Titulares" manto={manto} mantoDir={mantoAng} />
       </div>
     )
   }
-  return <Campinho m={shown} small={small} manto={manto} />
+  return <Campinho m={shown} small={small} manto={manto} mantoDir={mantoAng} />
 }
 
 function CardFace({ c, big = false, surprise = false, highlight = false }: { c: Card; big?: boolean; surprise?: boolean; highlight?: boolean }) {

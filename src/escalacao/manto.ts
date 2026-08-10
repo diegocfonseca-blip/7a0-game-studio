@@ -74,9 +74,22 @@ export function useMeuSocio(): MeuSocio | null {
   return meu
 }
 
-// listras verticais (padrão camisa) pra usar como background
-export const mantoStripes = (c: [string, string], w = 9) =>
-  `repeating-linear-gradient(90deg, ${c[0]} 0 ${w}px, ${c[1]} ${w}px ${w * 2}px)`
+// listras do manto pra usar como background. `angle` = direção das listras
+// (90 = verticais, padrão camisa; 0 = horizontais/marujo; 45 = diagonais).
+export const mantoStripes = (c: [string, string], w = 9, angle = 90) =>
+  `repeating-linear-gradient(${angle}deg, ${c[0]} 0 ${w}px, ${c[1]} ${w}px ${w * 2}px)`
+
+// 🎽 direção da listra por mascote do clube (pedido do Diego 10/08). Batismo que
+// pediu listra diferente entra aqui; quem não está aqui fica vertical (padrão).
+const MANTO_ANGLE: Record<string, number> = {
+  samambaia: 45,     // 🌿 Império Samambaia — diagonais (Rio Branco)
+  careca_ruivo: 0,   // 🔴⚫ Murriz FC — horizontais (marujo/rubro-negro)
+}
+// ângulo da listra do MEU manto (pelo meu mascote). Só o próprio dono decora o seu.
+export function meuMantoAngle(): number {
+  const k = meu?.ativo ? meu.mascoteKey : null
+  return (k && MANTO_ANGLE[k] != null) ? MANTO_ANGLE[k] : 90
+}
 
 // ─── 🔒 NOME DE TIME ÚNICO (tipo @ do Instagram — pedido do Diego 10/08) ───
 // Antes de gravar um nome novo de técnico/time, pergunta ao servidor se está

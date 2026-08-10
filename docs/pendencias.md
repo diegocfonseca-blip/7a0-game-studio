@@ -1,5 +1,30 @@
 # 📌 Pendências combinadas com o Diego (atualizado 10/08/2026)
 
+## 🔴⚫🌿 KITS: Murriz FC + Império Samambaia (batismo) (10/08) ✅ NO AR
+Dois batismos novos publicados juntos:
+- **Murriz FC** (msb102010@hotmail.com, sócio nº7) — careca de barba ruiva
+  ESTRESSADO, rubro-negro (Flamengo). Escudo faixas HORIZONTAIS + cabeça;
+  mascote `careca_ruivo` corpo inteiro; manto vermelho/preto HORIZONTAL.
+- **Império Samambaia** (jorgericardo777@gmail.com, sócio nº4) — samambaia BRABA
+  coroada (cara de bravo + coroinha), verde sobre diagonais vermelho/branco
+  (Rio Branco). Escudo + mascote `samambaia` (cabeça-vaso, corpo, punhos);
+  manto vermelho/branco DIAGONAL; **festão CHOVE FOLHA** no lugar do confete.
+- **Código**: `escudos.tsx` (2 entradas em LOGOS_PRONTAS), `mascotes.tsx`
+  (`careca_ruivo` + `samambaia` + folhas no FestaoMascote), `manto.ts`
+  (`mantoStripes` ganhou ângulo + `meuMantoAngle()` por mascote:
+  samambaia=45° diagonal, careca_ruivo=0° horizontal, resto 90° vertical),
+  `screens.tsx`/`pyramidseason.tsx` passam o ângulo só pro time do próprio dono.
+- ⚠️ No online (manto dos OUTROS na sala) a listra sai VERTICAL por enquanto
+  (o RPC esc_mantos_sala só devolve cor, não o mascote) — detalhe pequeno na
+  faixinha de 14px; dá pra evoluir depois se o Diego quiser.
+- **Banco**: 2 linhas em esc_socios + nomes reservados em esc_nomes_batismo.
+- Reversível: `git revert` no commit + apagar as 2 linhas do banco.
+
+## ⏳ Kits aguardando OK/dados do Diego
+- 🐷⚓ **Marinheiros AS** (feehcamp11@gmail.com, Palmeiras, 1ª ASSINATURA —
+  NÃO é batismo, só personaliza a conta) — arte pronta (porco marujo estressado,
+  boina branca), aguardando o "pode publicar".
+
 ## 🖤🤍 KIT: Bicho da Seda vira PRETO E BRANCO (Davi/davisantana1312) (10/08) ✅ NO AR
 Diego corrigiu: o coração do Davi é **BOTAFOGO**, não Palmeiras. Então o
 Bicho da Seda trocou de verde pra **preto e branco (alvinegro)**.
