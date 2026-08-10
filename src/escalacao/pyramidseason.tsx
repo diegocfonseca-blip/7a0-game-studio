@@ -2931,6 +2931,9 @@ export function PyramidSeasonScreen() {
   // ⏸️ passo é seu (SOLO + manual): usado tanto na liga quanto na Copa. Declarado
   // aqui em cima porque o efeito da Copa (logo abaixo) precisa saber se é manual.
   const [manualPref, toggleSim] = useSimMode()
+  // 📣 banner "migre pra carreira nova" (só carreira antiga): o jogador pode
+  // FECHAR e não vê mais (por aparelho). Diego 10/08.
+  const [bannerAntigaOff, setBannerAntigaOff] = useState(() => { try { return localStorage.getItem('esc-banner-antiga-off') === '1' } catch { return false } })
   // 🎮 MODO MANUAL (carreira solo): liberado se (a) a carreira é ANTIGA — sem
   // careerEra, começou antes da cobrança → grandfather, nunca mexe em save antigo;
   // ou (b) a pessoa tem o Modo Manual/Lenda. Online segue de graça (outra tela).
@@ -3875,10 +3878,13 @@ export function PyramidSeasonScreen() {
                 Agenciados aqui do lado) tem agenciaOn=true e NÃO vê este banner
                 (pra não empurrar quem já está na nova a criar outra). Avisa que a
                 nova tem mais funções e que a ANTIGA não conta mais pro ranking. */}
-            {!state.agenciaOn && (
-              <div style={{ background: 'linear-gradient(150deg,#1a1712,#0C0C0C)', border: `3px solid ${INK}`, borderRadius: 16, padding: '12px 14px', marginTop: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
-                <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, color: GOLD, margin: '0 0 5px', textTransform: 'uppercase' }}>📣 Depois das atualizações, a carreira nova tem MAIS coisa</p>
+            {!state.agenciaOn && !bannerAntigaOff && (
+              <div style={{ position: 'relative', background: 'linear-gradient(150deg,#1a1712,#0C0C0C)', border: `3px solid ${INK}`, borderRadius: 16, padding: '12px 14px', marginTop: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
+                <button onClick={() => { setBannerAntigaOff(true); try { localStorage.setItem('esc-banner-antiga-off', '1') } catch { /* ignora */ } }}
+                  aria-label="Fechar aviso" style={{ position: 'absolute', top: 6, right: 8, width: 26, height: 26, borderRadius: 999, border: `2px solid ${GOLD}`, background: 'rgba(255,255,255,.08)', color: GOLD, fontWeight: 900, fontSize: 14, lineHeight: 1, cursor: 'pointer' }}>✕</button>
+                <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, color: GOLD, margin: '0 26px 5px 0', textTransform: 'uppercase' }}>📣 Depois das atualizações, a carreira nova tem MAIS coisa</p>
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.9)', margin: 0, lineHeight: 1.5 }}>Esta é uma <b>carreira antiga</b> — <b style={{ color: GOLD }}>fica tranquilo, ela não vai ser interrompida</b> e você pode terminá-la à vontade. Mas a carreira nova ganhou <b>contratos e renovações 📝, Agência 2.0 👔, crias da base 🌱, eventos de jogador 🎭</b> e mais. E tem uma diferença importante: <b style={{ color: '#FFB4A6' }}>a carreira antiga NÃO conta mais pro ranking</b> — só a nova pontua. Quer valer no ranking e ter tudo? <b>Comece uma carreira nova</b> — esta fica guardada em Minhas Carreiras.</p>
+                <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.4)', margin: '7px 0 0' }}>toque no ✕ pra não ver mais este aviso</p>
               </div>
             )}
             {me && (
