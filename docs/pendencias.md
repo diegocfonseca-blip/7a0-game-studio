@@ -1,5 +1,22 @@
 # 📌 Pendências combinadas com o Diego (atualizado 09/08/2026)
 
+## 🖼️ PATROCÍNIO: logo da Vadico/ERO saía BRANCA quando selecionada (09/08) ✅ NO AR
+Achado ao fazer o mockup do banner de fidelidade (pedido do Diego pra usar a
+Vadico no lugar do Açougue): a logo virava um retângulo branco liso. Causa: o
+PNG da Vadico e da ERO não tem fundo transparente (é RGB puro, fundo branco
+"colado" na imagem) — o filtro que deixava a logo branca em cima do fundo
+verde/preto (`brightness(0) invert(1)`) inverte a imagem TODA, não só o
+desenho, e sem transparência isso vira um bloco branco sem nada visível.
+A MaxJoias não tinha esse problema (o PNG dela tem transparência).
+- **Confirmado que também acontecia na tela REAL** (não só no mockup): no
+  cartão de escolha do patrocínio (`SponsorTierCard`), ao SELECIONAR a Vadico
+  ou a ERO, a logo sumia (virava branco).
+- **Corrigido** (`estadio.tsx`, 2 lugares — `SponsorTierCard` e o
+  `SponsorLoyaltyBanner` novo de hoje): troquei o filtro de inverter cor por
+  uma "chapinha branca" atrás da logo — funciona com QUALQUER logo, tenha ou
+  não transparência, selecionada ou não.
+- Reversível: `git revert` no commit desse fix.
+
 ## 🎖️ PATROCÍNIO: garantia de fidelidade (09/08, mockup aprovado) ✅ NO AR
 Bateu a meta do patrocínio com uma marca → na temporada SEGUINTE, antes de
 escolher de novo, aparece um banner da <b>Diretoria Comercial</b> da própria

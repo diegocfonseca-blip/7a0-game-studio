@@ -56,7 +56,16 @@ function SponsorTierCard({ tier, div, chosen, onPick }: { tier: SponsorBetTier; 
             <button key={b.id} onClick={() => onPick(b.id)}
               style={{ flex: 1, minWidth: 0, background: on ? INK : '#FBF6E9', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 5px', textAlign: 'center', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, boxShadow: on ? `0 0 0 3px ${GOLD} inset` : 'none' }}>
               <div style={{ height: 46, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {logo ? <img alt={b.name} src={logo} style={{ maxHeight: 44, maxWidth: '100%', objectFit: 'contain', filter: on ? 'brightness(0) invert(1)' : undefined }} /> : <span style={{ fontSize: 30 }}>{b.emoji}</span>}
+                {/* 🖼️ logo em CHAPA BRANCA sempre (não inverte cor): o PNG de
+                    algumas marcas (Vadico/ERO) não tem fundo transparente — o
+                    filtro "brightness(0) invert(1)" de antes virava um retângulo
+                    branco liso quando selecionado. Chapa branca funciona igual
+                    selecionado ou não, pra QUALQUER logo (com ou sem transparência). */}
+                {logo ? (
+                  <div style={{ background: '#fff', borderRadius: 8, padding: '5px 7px', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img alt={b.name} src={logo} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                  </div>
+                ) : <span style={{ fontSize: 30 }}>{b.emoji}</span>}
               </div>
               <span style={{ ...OSW, fontWeight: 900, fontSize: 10, lineHeight: 1.1, color: on ? '#fff' : INK }}>{b.name}</span>
             </button>
@@ -155,7 +164,7 @@ export function SponsorLoyaltyBanner({ result, div }: { result: { tier: SponsorB
       <div style={{ background: `linear-gradient(150deg, ${GREEN}, #0f4f26)`, padding: '11px 13px', textAlign: 'center' }}>
         <p style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: '#BFF2D3', margin: '0 0 2px' }}>🎖️ fidelidade</p>
         <p style={{ ...OSW, fontWeight: 900, fontSize: 15, color: '#fff', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-          {logo ? <img alt={brand.name} src={logo} style={{ height: 20, filter: 'brightness(0) invert(1)' }} /> : <span>{brand.emoji}</span>} {brand.name} quer continuar
+          {logo ? <span style={{ background: '#fff', borderRadius: 6, padding: '3px 7px', display: 'inline-flex', alignItems: 'center' }}><img alt={brand.name} src={logo} style={{ height: 16 }} /></span> : <span>{brand.emoji}</span>} {brand.name} quer continuar
         </p>
       </div>
       <div style={{ padding: '11px 13px 4px' }}>
