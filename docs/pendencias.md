@@ -2954,3 +2954,21 @@ Cartas copamundo: antigas (chave legada) não migram — só as novas contam.
 sim 150 temporadas: golpes 0, monte-grátis 0, XI humano 0, vencidos 0,
 duplicatas 0, NaN 0. (Métrica "bots XI furado" do sim usa 4-3-3 fixo pra todo
 bot — artefato de medição; a régua real é a da auditoria/xiHoles.)
+
+## 🧢 KIT TÔKA10 PUBLICADO (10/08 — aprovado pelo Diego "Ok publica aí")
+FEITO: escudo + mascote do Tôka10 (ofc.toka10) com ARTE PRÓPRIA do dono em
+IMAGEM (webp): `src/escalacao/img/toka10-{escudo,mascote}.webp` — escudo 22 KB
+(entrada 'Tôka10' em LOGOS_PRONTAS via <img>), mascote 15 KB (chave `toka` em
+MASCOTES). DB: esc_socios do ofc.toka10 → manto #F0CD23/#1B7A3D (canarinho),
+mascote_key 'toka', escudo_time 'Tôka10'. Time já existia em data.ts
+('Tôka10', ex-Biriba United, ponte OLD_NAME ok).
+📌 REGRA NOVA (decisão do Diego, anotada em escudos.tsx): batismo PODE usar
+imagem quando o dono manda a arte — webp comprimido, kit ≤ ~40 KB. O medo de
+"estourar KB" foi desfeito com números (37 KB = 1,2% do site de 3,2 MB; limite
+de hospedagem 1 GB). Desenho em código continua o padrão dos demais.
+🗒️ HISTÓRIA (pra não repetir): 6 versões desenhadas em código foram rejeitadas
+("não parece o menino") — o que destravou foi recuperar o ARQUIVO da referência
+do transcript da sessão (imagens do chat ficam no .jsonl em base64) e depois o
+Diego mandar a arte final pronta (print). Fica a lição: batismo com referência
+de imagem → pedir/usar o arquivo, não desenhar de olho.
+PENDENTE: time_coracao do ofc.toka10 (Diego vai perguntar pro dono).

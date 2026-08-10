@@ -6,12 +6,25 @@
 // esc_socios.mascote_key (Diego seta pelo painel).
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
+import tokaMascoteImg from './img/toka10-mascote.webp'
 
 const INK = '#0C0C0C'
 
 // registro das mascotes prontas (chave → desenho). Cada sócio que pedir ganha
 // a dele aqui — 1ª da casa: a alface brava do Alfacehh FC.
 export const MASCOTES: Record<string, ReactNode> = {
+  // 🧢 o MENINO DA TOUCA (Tôka10 — ofc.toka10, aprovado 10/08): arte própria do
+  // dono em imagem (webp 15 KB, exceção aprovada — ver nota em escudos.tsx).
+  // Corpo inteiro: touca azul, oclinhos, piscadinha, joinha, camisa 10 e bola.
+  toka: (
+    <img
+      src={tokaMascoteImg}
+      height={176}
+      width={92}
+      alt="Tôka10"
+      style={{ flex: 'none', display: 'block', objectFit: 'contain' }}
+    />
+  ),
   // 🐓🌙 o GALO BALADEIRO (Nightfull FC — guilhermevictor539, aprovado 09/08):
   // alvinegro de óculos escuro, corrente de ouro e pose Travolta da night.
   galo: (

@@ -11,7 +11,12 @@
 //
 // 💰 LOGO ARTESANAL: quem paga entra em LOGOS_PRONTAS (nome → desenho próprio) e
 // passa na frente do automático. É só acrescentar no mapa lá embaixo.
+//
+// 🖼️ EXCEÇÃO APROVADA (Diego, 10/08): batismo pode usar ARTE PRÓPRIA em imagem
+// quando o dono manda o arquivo (caso Tôka10). Regra prática: webp comprimido,
+// kit inteiro ≤ ~40 KB (o site tem ~3 MB, então isso é ~1% — irrelevante).
 import type { ReactNode } from 'react'
+import tokaEscudoImg from './img/toka10-escudo.webp'
 
 const INK = '#0C0C0C'
 
@@ -391,6 +396,18 @@ export function escudoDe(nomeCru: string): EscudoDesign {
 // 💰 LOGOS ARTESANAIS (pagas): nome do time → desenho próprio, entra no lugar do
 // automático. É só adicionar aqui quando alguém comprar.
 export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
+  // 🧢 Tôka10 (batismo do ofc.toka10, aprovado pelo Diego 10/08): o menino da
+  // touca — ARTE PRÓPRIA do dono (imagem webp 22 KB, exceção aprovada; ver nota
+  // no topo). Selo redondo já vem no desenho; fundo é transparente.
+  'Tôka10': (size: number) => (
+    <img
+      src={tokaEscudoImg}
+      height={size}
+      width={Math.round(size * 322 / 340)}
+      alt="Tôka10"
+      style={{ flex: 'none', display: 'block', objectFit: 'contain' }}
+    />
+  ),
   // 🦋 Xurupitas FC (batismo do davisantana1312, aprovado pelo Diego 09/08):
   // mariposa-da-seda NERVOSA — só as asas superiores no escudo (pedido dele);
   // a versão inteira (com as asas de baixo) vive na mascote do festão.
