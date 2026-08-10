@@ -3870,13 +3870,15 @@ export function PyramidSeasonScreen() {
               </>
             )}
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={f => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId })} olheiros={state.onlineMode !== 'online'} />
-            {/* 🌱 aviso pra carreira ANTIGA (Diego 10/08, texto ampliado): primeiro
-                acalma ("ninguém vai interromper sua carreira") e depois conta que as
-                novas nasceram com mais coisas — o porquê e o caminho, no lugar exato
-                onde o jogador procuraria os contratos/agência. */}
-            {!state.contratosOn && (
-              <div style={{ ...box('#CBBF9E'), padding: '8px 11px', marginTop: 8, boxShadow: `2px 2px 0 0 ${INK}` }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.65)', margin: 0, lineHeight: 1.45 }}>🌱 <b>Carreira raiz (das antigas)</b> — fica tranquilo: ela <b>continua valendo e NÃO vai ser interrompida</b>. Só que as carreiras novas nasceram com mais coisas: 📝 contratos e renovações, 👔 Agência 2.0 aqui na aba Elenco, 🌱 crias da base... Quer as novidades? Comece uma carreira nova — esta fica guardada em Minhas Carreiras.</p>
+            {/* 📣 BANNER só pra carreira ANTIGA (Diego 10/08): a condição é
+                `!state.agenciaOn` — a carreira NOVA (Agência 2.0, com a sub-aba
+                Agenciados aqui do lado) tem agenciaOn=true e NÃO vê este banner
+                (pra não empurrar quem já está na nova a criar outra). Avisa que a
+                nova tem mais funções e que a ANTIGA não conta mais pro ranking. */}
+            {!state.agenciaOn && (
+              <div style={{ background: 'linear-gradient(150deg,#1a1712,#0C0C0C)', border: `3px solid ${INK}`, borderRadius: 16, padding: '12px 14px', marginTop: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
+                <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, color: GOLD, margin: '0 0 5px', textTransform: 'uppercase' }}>📣 Depois das atualizações, a carreira nova tem MAIS coisa</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.9)', margin: 0, lineHeight: 1.5 }}>Esta é uma <b>carreira antiga</b> — <b style={{ color: GOLD }}>fica tranquilo, ela não vai ser interrompida</b> e você pode terminá-la à vontade. Mas a carreira nova ganhou <b>contratos e renovações 📝, Agência 2.0 👔, crias da base 🌱, eventos de jogador 🎭</b> e mais. E tem uma diferença importante: <b style={{ color: '#FFB4A6' }}>a carreira antiga NÃO conta mais pro ranking</b> — só a nova pontua. Quer valer no ranking e ter tudo? <b>Comece uma carreira nova</b> — esta fica guardada em Minhas Carreiras.</p>
               </div>
             )}
             {me && (
