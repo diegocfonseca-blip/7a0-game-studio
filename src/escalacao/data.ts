@@ -1263,6 +1263,26 @@ const NOVOS_BR2_MEI: C[] = [
   { name: "Lucas Crispim", club: "Fortaleza", year: 2023, fame: 2, lo: 68, hi: 83, bio: "Meia-atacante de passe certo e faro de assistência — peça-chave do Fortaleza nos anos de ouro no Nordeste." },
   { name: "Lucho González", club: "Athletico-PR", year: 2005, fame: 3, lo: 78, hi: 86, bio: "Meia argentino elegante do Athletico Paranaense — categoria e passe que renderam a ida ao Porto de Mourinho." },
 ]
+const NOVOS_BR3_LAT: C[] = [
+  { name: "Roger Machado", club: "Grêmio", year: 1996, fame: 3, lo: 74, hi: 84, bio: "Lateral-esquerdo raçudo dos anos 90 — 10 anos de Grêmio e 6 títulos (Libertadores 95, Brasileirão 96, 3 Copas do Brasil), hoje um dos maiores ídolos tricolores. Antes de virar treinador, foi decisivo em campo." },
+  { name: "Mariano", club: "Fluminense", year: 2010, fame: 3, lo: 76, hi: 85, bio: "Lateral-direito que virou um dos melhores do país sob o Muricy — peça-chave do título brasileiro do Fluminense em 2010, antes de rodar a Europa e voltar multicampeão pelo Atlético-MG." },
+  { name: "Cédric Soares", club: "São Paulo", year: 2025, fame: 2, lo: 68, hi: 84, bio: "Lateral-direito português, campeão da Eurocopa 2016 e ex-Arsenal — chegou de grife pro São Paulo." },
+]
+const NOVOS_BR3_ZAG: C[] = [
+  { name: "Alexander Barboza", club: "Botafogo", year: 2024, fame: 4, lo: 83, hi: 90, bio: "Zagueirão argentino, muralha do Botafogo campeão da Libertadores e do Brasileiro em 2024 — na seleção da Libertadores e do Brasileirão daquele ano." },
+]
+const NOVOS_BR3_MEI: C[] = [
+  { name: "Newton", club: "Botafogo", year: 2024, fame: 2, lo: 66, hi: 82, bio: "Volante de marcação do elenco do Botafogo campeão da Libertadores de 2024 — força no meio-campo e pouca visibilidade fora do Rio." },
+  { name: "Marcelino Moreno", club: "Coritiba", year: 2023, fame: 2, lo: 68, hi: 82, bio: "Meia-camisa 10 argentino do Coritiba — categoria e passe que chamaram a atenção de times grandes do Brasil." },
+  { name: "Allan Delon", club: "Vitória", year: 2002, fame: 2, lo: 66, hi: 82, folk: true, bio: "Meia-artilheiro ídolo do Vitória — 6 temporadas rubro-negras e campeão baiano de 2002 ao lado do Aristizábal. O nome é uma homenagem ao ator francês." },
+  { name: "Valdívia (Poko Pika)", club: "Internacional", year: 2015, fame: 2, lo: 66, hi: 82, bio: "Meia do Inter apelidado de \u0022Poko Pika\u0022 — foi o meio-campista que mais fez gols no Brasil em 2015, seu auge de vermelho." },
+]
+const NOVOS_BR3_ATA: C[] = [
+  { name: "Kevin Viveros", club: "Athletico-PR", year: 2026, fame: 3, lo: 78, hi: 87, bio: "Ponta colombiano veloz — artilheiro de TODO o Brasileirão de 2026 vestindo o Furacão." },
+  { name: "Willian Bigode", club: "Cruzeiro", year: 2014, fame: 3, lo: 76, hi: 85, bio: "Centroavante bicampeão brasileiro pelo Cruzeiro (2013 e 2014) — o bigode virou marca registrada e depois brilhou também no Palmeiras." },
+  { name: "Alex Dias", club: "Goiás", year: 2004, fame: 3, lo: 76, hi: 85, bio: "O \u0022Pantaneiro\u0022 — vice-artilheiro do Brasileirão de 2004 com 22 gols vestindo o Goiás, faro de área que rendeu a ida pro Vasco ao lado do Romário." },
+  { name: "Beto Acosta", club: "Náutico", year: 2007, fame: 3, lo: 76, hi: 85, bio: "Centroavante uruguaio artilheiro — vice-artilheiro do Brasileirão de 2007 pelo Náutico, um dos maiores ídolos recentes dos Aflitos." },
+]
 const NOVOS_BR2_ATA: C[] = [
   { name: "Gabriel Pec", club: "Vasco", year: 2022, fame: 2, lo: 68, hi: 83, bio: "Ponta-atacante de velocidade e faro de gol — xodó recente de São Januário antes de rumar aos Estados Unidos." },
   { name: "Lingard", club: "Corinthians", year: 2023, fame: 2, lo: 68, hi: 82, bio: "Meia-atacante inglês, ex-Manchester United — passagem curta e badalada pelo Corinthians." },
@@ -1275,7 +1295,7 @@ const NOVOS_BR2_ATA: C[] = [
   { name: "Alex Alves", club: "Cruzeiro", year: 2013, fame: 2, lo: 66, hi: 82, bio: "Centroavante goleador e andarilho — passou pelo Cruzeiro deixando faro de gol por onde jogou." },
   { name: "Osvaldo", club: "Ceará", year: 2019, fame: 2, lo: 64, hi: 80, bio: "Centroavante de área — passagem de bons números artilheiros pelo Ceará." },
 ]
-export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA] }
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
@@ -1858,6 +1878,7 @@ const NOVOS_EU_ATA: C[] = [
   { name: 'Quincy Promes', club: 'Spartak Moscou', year: 2018, fame: 3, lo: 74, hi: 84, bio: 'Ponta holandês veloz e goleador — brilhou no Spartak Moscou, passou por Sevilla e Ajax e defendeu a Holanda. Fora dos gramados, foi condenado na Justiça por tráfico de drogas e cumpre pena.' },
   { name: 'Cacau', club: 'Stuttgart', year: 2009, fame: 3, lo: 74, hi: 84, bio: 'Atacante brasileiro naturalizado alemão — artilheiro querido do Stuttgart na Bundesliga (307 jogos, 88 gols entre Stuttgart e Nuremberg) e da seleção da Alemanha na Copa de 2010.' },
   { name: 'Rummenigge', club: 'Bayern', year: 1981, fame: 5, lo: 90, hi: 95, bio: 'Karl-Heinz Rummenigge — atacante alemão duas vezes Bola de Ouro (1980 e 1981), craque elegante e ídolo máximo do Bayern de Munique, vice-campeão do mundo com a Alemanha.' },
+  { name: 'Mancini', club: 'Roma', year: 2006, fame: 3, lo: 76, hi: 85, bio: 'Lateral brasileiro que virou ala na Itália — auge vestindo a Roma (2003-2008), ídolo da torcida com o golaço de calcanhar que virou "Tacco di Dio". Começou como lateral-direito no Atlético-MG, onde chegou a fazer 15 gols numa única Brasileirão.' },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL], LAT: LAT_EU, ZAG: ZAG_EU, MEI: [...MEI_EU, ...NOVOS_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA] }
 

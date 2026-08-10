@@ -3275,13 +3275,33 @@ existia antes de adicionar (evitar duplicata):
   Rafael Borré, Dirceu Lopes, Nikão, Marcelo Cirino, Jesé Rodríguez,
   Alex Alves, Osvaldo (ata); Jobe Bellingham (baralho EU, irmão do Jude).
 
-PENDENTE — Diego mandou mais nomes que eu não consegui identificar com
-segurança (risco de errar clube/época de gente real), perguntei pra ele no
-chat, aguardando resposta antes de adicionar:
-Viveros (Athletico-PR atual), zagueiro Barbosa (Botafogo), Willian Bigode,
-Leozinho (Athletico-PR, ex-futsal, promessa), Marcelino Moreno (Coritiba),
-Allan Delon (Vitória), Alex Dias (Goiás), Boiadeiro (Goiás), Acosta
-(Náutico), lateral Cedric (São Paulo), "Valdivia apelido Poko Pika"
-(Internacional), Roger Machado como jogador (clube/época incerta), Mancini
-(qual auge: Atlético-MG ou Roma — e categoria), Mariano lateral (melhor em
-Fluminense-promessa ou Atlético-MG-bom jogador).
+RESOLVIDO (10/08, 2ª leva): Diego confirmou 3 (Kevin Viveros Athletico-PR,
+zagueiro é Alexander BARBOZA não "Barbosa" — do Botafogo campeão da
+Libertadores 2024, Willian Bigode é atacante do Cruzeiro bicampeão 13/14) e
+mandou pesquisar o resto a fundo (usei WebSearch). Todos entraram em
+`data.ts` (blocos `NOVOS_BR3_*` + 1 no baralho EU):
+Kevin Viveros (Athletico-PR, artilheiro do Brasileirão 2026), Alexander
+Barboza (Botafogo, zag, seleção da Libertadores/Brasileirão 2024), Willian
+Bigode (Cruzeiro, ata, bi 13/14), Newton (Botafogo, volante do elenco campeão
+2024), Leozinho (Athletico-PR, ex-futsal, promessa confirmada), Marcelino
+Moreno (Coritiba, meia camisa 10), Allan Delon (Vitória, meia-artilheiro,
+campeão baiano 2002), Alex Dias "Pantaneiro" (Goiás, vice-artilheiro
+Brasileirão 2004 c/ 22 gols), Beto Acosta (Náutico, vice-artilheiro 2007),
+Cédric Soares (São Paulo, lateral, campeão Euro 2016 — bem mais forte que
+"foi profissional", ajustei o nível), Valdívia "Poko Pika" (Internacional,
+NÃO é o Mago do Palmeiras — outro Valdívia, top de gols entre meias do
+Brasil em 2015; nome da carta ficou "Valdívia (Poko Pika)" pra não confundir
+com o outro), Roger Machado (Grêmio, lateral-esquerdo, 10 anos e 6 títulos —
+achei bem mais decorado do que a pergunta original sugeria), Mariano
+(Fluminense 2010 — foi o AUGE real dele, campeão brasileiro e um dos
+melhores laterais do país no ano, não "promessa"; passagem de 2008 no
+Atlético-MG foi curta e sem brilho, não usei essa), Mancini (foi pro baralho
+EU, clube Roma — pesquisa confirmou que o auge mesmo foi lá, 222 jogos/59
+gols, ídolo da torcida, "Tacco di Dio"; começou no Atlético-MG onde fez 15
+gols numa Brasileirão como lateral, citado na bio).
+
+PENDENTE — só sobrou 1 sem confiança suficiente pra não arriscar errar:
+"Boiadeiro" do Goiás — achei o Ricardo Boiadeiro (atacante, mas o Wikipédia
+lista Atlético-GO, não Goiás EC) e outros 2 jogadores diferentes com esse
+apelido ligados ao futebol goiano — preciso do nome completo ou ano pra
+saber qual dos 3 é.
