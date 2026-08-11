@@ -15,7 +15,7 @@ import { paisDe, rankingSelecoes, type Baralho } from './paises'
 // placar AO VIVO oficial (relógio 0→90', GOOOL, bump) + pênaltis com suspense —
 // os MESMOS componentes da liga/copa da carreira. Import circular com
 // pyramidseason é seguro: são function declarations usadas só no render.
-import { LiveScoreCard, PensShootout, pensRevealDelay, type ScoreGoal } from './pyramidseason'
+import { LiveScoreCard, PensShootout, pensRevealDelay, type ScoreGoal, copaSideColor, _inkFor, CopaHalves, copaCenterChip, type CopaFill } from './pyramidseason'
 // controles de ritmo OFICIAIS (mesmos da liga/copa): auto por padrão, Manual
 // (🐢/⚡ + pular + próxima fase) pra quem tem o tier — cadeado do APOIE pro resto.
 import { SimControls, SpeedControls, useSimMode, QuickManualLock, CardCollectPrompt } from './screens'
@@ -187,15 +187,43 @@ function useLiveMin(roundKey: number, roundMs: number, finished: boolean): numbe
   }, [roundKey, finished, roundMs])
   return min
 }
-// linha compacta de jogo dos BOTS rolando (padrão Copa Legends: todo confronto
-// aparece sendo simulado — placar sobe no minuto do gol, FIM no apito)
+// jogo dos BOTS rolando (mesma linguagem visual da Copa Legends/Copa dos 8,
+// pedido do Diego 11/08: cor real de cada seleção — nada de time apagado —
+// + barra de progresso + flash quando alguém acaba de marcar). A cor de cada
+// lado vem do NOME (flag+país já entra no hash, cada seleção fica única).
 function MiniLive({ nmH, nmA, ev, min, bold }: { nmH: string; nmA: string; ev: ScoreGoal[]; min: number; bold?: boolean }) {
   const gh = ev.filter(e => e.home && e.min <= min).length
   const ga = ev.filter(e => !e.home && e.min <= min).length
+  const done = min >= 93
+  const fill = (nm: string): CopaFill => { const hex = copaSideColor(nm); return { bg: hex, ink: _inkFor(hex), holo: 0, mark: '' } }
+  const fH = fill(nmH), fA = fill(nmA)
+  // ⚡ "acabou de fazer gol": só olha pro que JÁ tá no placar (min<=min atual) —
+  // é destaque visual de algo já revelado, nunca antecipa nada.
+  const lastGoalMin = !done ? Math.max(-1, ...ev.filter(e => e.min <= min).map(e => e.min)) : -1
+  const justScored = !done && lastGoalMin >= 0 && min - lastGoalMin <= 1
+  const barPct = Math.max(0, Math.min(100, Math.round((min / 90) * 100)))
   return (
-    <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: bold ? 900 : 700, display: 'flex', justifyContent: 'space-between', gap: 6 }}>
-      <span>{nmH} <b>{gh}×{ga}</b> {nmA}</span>
-      <span style={{ color: min >= 93 ? '#1B7A3D' : 'rgba(0,0,0,.45)', fontWeight: 900, fontSize: 10 }}>{min >= 93 ? 'FIM' : `${Math.min(90, min)}'`}</span>
+    <div style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${justScored ? GOLD : INK}`, borderRadius: 12, boxShadow: `2px 2px 0 0 ${INK}`, padding: '5px 8px', margin: '5px 0' }}>
+      <CopaHalves fL={fH} fR={fA} />
+      {justScored && (
+        <>
+          <style>{'@keyframes cmGoalFlash{0%{opacity:1}100%{opacity:0}}'}</style>
+          <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'radial-gradient(circle, rgba(255,255,255,.4), transparent 70%)', animation: 'cmGoalFlash 1.1s ease', pointerEvents: 'none' }} />
+        </>
+      )}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {!done && <div style={{ height: 3, borderRadius: 2, background: 'rgba(0,0,0,.28)', margin: '0 0 4px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${barPct}%`, background: 'rgba(255,255,255,.85)' }} /></div>}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, fontSize: 11, fontWeight: bold ? 900 : 700 }}>
+          <span style={{ color: fH.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nmH}</span>
+          <span style={{ ...copaCenterChip, fontWeight: 900, fontSize: 11, flex: 'none' }}>{gh}×{ga}</span>
+          <span style={{ color: fA.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{nmA}</span>
+        </div>
+        <p style={{ textAlign: 'center', margin: '3px 0 0' }}>
+          <span style={{ ...copaCenterChip, fontWeight: 900, fontSize: 9, color: done ? '#8ff0a8' : justScored ? '#FFD778' : '#ff9a8f' }}>
+            {done ? 'FIM' : justScored ? '⚽ GOOOL agora!' : `🔴 ${Math.min(90, min)}'`}
+          </span>
+        </p>
+      </div>
     </div>
   )
 }
@@ -652,13 +680,21 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, agenciaOn,
   // 🚫 winDelay > 0 (SÓ o seu confronto que foi pra pênaltis): segura o placar dos
   // pênaltis + o "avança" até a última cobrança pipocar na disputa animada de cima
   // — senão o chaveamento entregava quem passou antes de você ver a decisão.
-  const tieRow = (t: KoTie, showVolta: boolean, showPens = true, winDelay = 0) => (
-    <div style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: isYou(t.h) || isYou(t.a) ? 900 : 700 }}>
-      {winDelay > 0 && <style>{'@keyframes cmWinPop{from{opacity:0}to{opacity:1}}'}</style>}
-      <span>{nm(t.h)} {t.g1![0]}×{t.g1![1]} {nm(t.a)}</span>
-      {showVolta && <span style={{ display: 'block', color: 'rgba(0,0,0,.6)' }}>volta: {t.g2![0]}×{t.g2![1]}<span style={winDelay > 0 ? { opacity: 0, animation: `cmWinPop .35s ease ${winDelay.toFixed(2)}s forwards` } : undefined}>{showPens && t.pen ? ` · pênaltis ${t.pen[0]}×${t.pen[1]}` : ''} → <b style={{ color: GREEN }}>{nm(t.winner!)} avança</b></span></span>}
-    </div>
-  )
+  const tieRow = (t: KoTie, showVolta: boolean, showPens = true, winDelay = 0) => {
+    const mine = isYou(t.h) || isYou(t.a)
+    const fH = { bg: copaSideColor(nm(t.h)), ink: _inkFor(copaSideColor(nm(t.h))), holo: 0, mark: '' } as CopaFill
+    const fA = { bg: copaSideColor(nm(t.a)), ink: _inkFor(copaSideColor(nm(t.a))), holo: 0, mark: '' } as CopaFill
+    return (
+      <div style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${mine ? '#B23B2E' : INK}`, borderRadius: 12, boxShadow: `2px 2px 0 0 ${INK}`, padding: '5px 8px', margin: '5px 0', fontSize: 11, fontWeight: mine ? 900 : 700 }}>
+        <CopaHalves fL={fH} fR={fA} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {winDelay > 0 && <style>{'@keyframes cmWinPop{from{opacity:0}to{opacity:1}}'}</style>}
+          <span style={{ color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,.45)' }}>{nm(t.h)} {t.g1![0]}×{t.g1![1]} {nm(t.a)}</span>
+          {showVolta && <span style={{ display: 'block', color: 'rgba(255,255,255,.85)', textShadow: '0 1px 2px rgba(0,0,0,.45)' }}>volta: {t.g2![0]}×{t.g2![1]}<span style={winDelay > 0 ? { opacity: 0, animation: `cmWinPop .35s ease ${winDelay.toFixed(2)}s forwards` } : undefined}>{showPens && t.pen ? ` · pênaltis ${t.pen[0]}×${t.pen[1]}` : ''} → <b style={{ color: '#8ff0a8' }}>{nm(t.winner!)} avança</b></span></span>}
+        </div>
+      </div>
+    )
+  }
   // o MEU confronto de volta: placar ao vivo + pênaltis com o suspense OFICIAL
   const myTieVolta = (t: KoTie) => (
     <div key={`v${t.h}`}>
@@ -731,21 +767,25 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, agenciaOn,
             )}
             <div style={{ ...box('#fff'), padding: 10, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>🎲 MATA-MATA (sorteio livre — ida e volta)</p>
-              {world.qf.map((t, i) => {
-                const mine = isYou(t.h) || isYou(t.a)
-                if (step === GR + 2) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} ev={t.ev1!} min={liveMin} /> : null}</div>
-                if (step === GR + 3) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
-                if (step === GR + 1) return <div key={i} style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: mine ? 900 : 700 }}>{nm(t.h)} × {nm(t.a)}</div>
-                return <div key={i}>{tieRow(t, true)}</div>
-              })}
-              {step >= GR + 4 && (<>
-                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px' }}>SEMIFINAIS</p>
-                {world.sf.map((t, i) => {
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 6 }}>
+                {world.qf.map((t, i) => {
                   const mine = isYou(t.h) || isYou(t.a)
-                  if (step === GR + 4) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} ev={t.ev1!} min={liveMin} /> : null}</div>
-                  if (step === GR + 5) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
+                  if (step === GR + 2) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} ev={t.ev1!} min={liveMin} /> : null}</div>
+                  if (step === GR + 3) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
+                  if (step === GR + 1) return <div key={i} style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: mine ? 900 : 700 }}>{nm(t.h)} × {nm(t.a)}</div>
                   return <div key={i}>{tieRow(t, true)}</div>
                 })}
+              </div>
+              {step >= GR + 4 && (<>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px' }}>SEMIFINAIS</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 6 }}>
+                  {world.sf.map((t, i) => {
+                    const mine = isYou(t.h) || isYou(t.a)
+                    if (step === GR + 4) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} ev={t.ev1!} min={liveMin} /> : null}</div>
+                    if (step === GR + 5) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
+                    return <div key={i}>{tieRow(t, true)}</div>
+                  })}
+                </div>
               </>)}
               {step === GR + 6 && liveDone && (
                 <>

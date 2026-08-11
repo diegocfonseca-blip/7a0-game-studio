@@ -670,36 +670,36 @@ export function copaRewards(copa: CopaResult): { rewards: Record<number, number>
 const box = (bg = '#fff'): React.CSSProperties => ({ background: bg, border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}` })
 // 🎨 COR SÓLIDA de cada lado do placar da Copa (estilo Brasfoot). A cor DIZ quem é
 // o time: VOCÊ e sua SAF = cor do seu TIER (com brilho); RIVAL = cor fixa do jogo
-// (paleta FORA dos tiers); BOT = mesma paleta porém APAGADA (dois bots se distinguem
-// pelo matiz); outro humano (online) = a cor de login dele. `mark` = selo do lado.
-const COPA_SIDE_COLORS = ['#C2452F', '#2E6FC2', '#123A63', '#B5541F', '#9C1F2E', '#0E7C86', '#3A5A8A', '#7A3E2A', '#8A3560', '#B0491F', '#155E73', '#963D2E']
-const copaSideColor = (name: string): string => { let h = 0; for (let i = 0; i < name.length; i++) h = (Math.imul(31, h) + name.charCodeAt(i)) >>> 0; return COPA_SIDE_COLORS[h % COPA_SIDE_COLORS.length] }
-type CopaFill = { bg: string; ink: string; holo: number; mark: string }
+// (paleta FORA dos tiers); BOT = cor viva própria também (Diego 11/08: era
+// apagada e ficava tudo parecido — agora usa a MESMA paleta cheia do rival,
+// só sem o selo ⚔️); outro humano (online) = a cor de login dele. `mark` = selo.
+export const COPA_SIDE_COLORS = ['#C2452F', '#2E6FC2', '#123A63', '#B5541F', '#9C1F2E', '#0E7C86', '#3A5A8A', '#7A3E2A', '#8A3560', '#B0491F', '#155E73', '#963D2E']
+export const copaSideColor = (name: string): string => { let h = 0; for (let i = 0; i < name.length; i++) h = (Math.imul(31, h) + name.charCodeAt(i)) >>> 0; return COPA_SIDE_COLORS[h % COPA_SIDE_COLORS.length] }
+export type CopaFill = { bg: string; ink: string; holo: number; mark: string }
 const _lum = (r: number, g: number, b: number) => 0.3 * r + 0.59 * g + 0.11 * b
-const _inkFor = (hex: string) => { const n = parseInt(hex.slice(1), 16); return _lum((n >> 16) & 255, (n >> 8) & 255, n & 255) > 150 ? '#0c0c0c' : '#ffffff' }
+export const _inkFor = (hex: string) => { const n = parseInt(hex.slice(1), 16); return _lum((n >> 16) & 255, (n >> 8) & 255, n & 255) > 150 ? '#0c0c0c' : '#ffffff' }
 const TIER_INK: Record<string, string> = { bege: '#0c0c0c', verde: '#ffffff', roxo: '#ffffff', prata: '#0c0c0c', ouro: '#0c0c0c' }
 type TeamKind = 'you' | 'saf' | 'human' | 'rival' | 'bot'
 function fillFor(kind: TeamKind, name: string, humanColor?: string): CopaFill {
   if (kind === 'you' || kind === 'saf') { const p = myApoioPerk() ?? APOIO_PERKS.bege; return { bg: p.grad, ink: TIER_INK[p.tier], holo: p.holo, mark: kind === 'you' ? '👤' : '💼' } }
   if (kind === 'human') { const solid = humanColor ?? '#3A7CA5'; return { bg: solid, ink: _inkFor(solid), holo: 0, mark: '🔥' } }
-  const hex = copaSideColor(name), n = parseInt(hex.slice(1), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
+  const hex = copaSideColor(name)
   if (kind === 'rival') return { bg: hex, ink: _inkFor(hex), holo: 0, mark: '⚔️' }
-  const mx = (v: number) => Math.round(v * 0.4 + 170 * 0.6), mr = mx(r), mg = mx(g), mb = mx(b) // bot: dessaturado
-  return { bg: `rgb(${mr},${mg},${mb})`, ink: _lum(mr, mg, mb) > 150 ? '#0c0c0c' : '#ffffff', holo: 0, mark: '' }
+  return { bg: hex, ink: _inkFor(hex), holo: 0, mark: '' }
 }
 function copaSideFill(t: SimTeam, colors: Record<number, FCol>, safName?: string): CopaFill {
   const kind: TeamKind = t.you ? 'you' : (safName && t.name === safName) ? 'saf' : t.human ? 'human' : t.rival ? 'rival' : 'bot'
   return fillFor(kind, t.name, colors[t.teamId]?.solid)
 }
 // os DOIS lados coloridos como fundo do card (com o brilho do tier quando houver)
-const CopaHalves = ({ fL, fR }: { fL: CopaFill; fR: CopaFill }) => (
+export const CopaHalves = ({ fL, fR }: { fL: CopaFill; fR: CopaFill }) => (
   <div style={{ position: 'absolute', inset: 0, display: 'flex', zIndex: 0 }}>
     <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: fL.bg }}>{fL.holo > 0 && <ApoioSheen holo={fL.holo} />}</div>
     <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: fR.bg }}>{fR.holo > 0 && <ApoioSheen holo={fR.holo} />}</div>
   </div>
 )
 // pílula translúcida escura pra textos centrais (relógio/artilheiro/ida-volta) ficarem legíveis sobre qualquer cor
-const copaCenterChip: React.CSSProperties = { background: 'rgba(8,8,10,.55)', borderRadius: 7, padding: '1px 7px', color: '#fff' }
+export const copaCenterChip: React.CSSProperties = { background: 'rgba(8,8,10,.55)', borderRadius: 7, padding: '1px 7px', color: '#fff' }
 
 // ── 💰 FINANÇAS (aba Clube › Finanças): Extrato (tudo que entra/sai) +
 //    Transferências (compras/vendas com lucro). Lê o livro-caixa (careerLedger),
@@ -2518,18 +2518,34 @@ function CopaLiveMatch({ tie, pos, big, colors = {}, safName }: { tie: CopaTie; 
     if (pensDelay > 0) return { animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` }
     return { opacity: 0.6 }
   }
+  // ⚡ "acabou de fazer gol": olha só pro que JÁ apareceu no placar (min <=
+  // legMin) — nunca antecipa nada, só destaca visualmente o que o placar já
+  // mostrou. Janela de 1' (mesmo passo do relógio da Copa).
+  const justScored = !done && lastG != null && legMin - lastG.min <= 1
+  const barPct = Math.max(0, Math.min(100, Math.round((legMin / 90) * 100)))
   return (
-    <div style={{ ...box('transparent'), position: 'relative', overflow: 'hidden', border: `${big ? 3 : 2}px solid ${you ? '#B23B2E' : INK}`, boxShadow: `${big ? 4 : 2}px ${big ? 4 : 2}px 0 0 ${INK}`, padding: big ? '9px 12px' : '6px 9px', marginBottom: big ? 9 : 6 }}>
+    <div style={{ ...box('transparent'), position: 'relative', overflow: 'hidden', border: `${big ? 3 : 2}px solid ${justScored ? GOLD : you ? '#B23B2E' : INK}`, boxShadow: `${big ? 4 : 2}px ${big ? 4 : 2}px 0 0 ${INK}`, padding: big ? '9px 12px' : '6px 9px', marginBottom: big ? 9 : 6 }}>
       <CopaHalves fL={L.f} fR={R.f} />
+      {justScored && (
+        <>
+          <style>{'@keyframes copaGoalFlash{0%{opacity:1}100%{opacity:0}}'}</style>
+          <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'radial-gradient(circle, rgba(255,255,255,.4), transparent 70%)', animation: 'copaGoalFlash 1.1s ease', pointerEvents: 'none' }} />
+        </>
+      )}
       <div style={{ position: 'relative', zIndex: 1 }}>
-        {!done && <p style={{ textAlign: 'center', margin: '0 0 4px' }}><span style={{ ...copaCenterChip, fontSize: big ? 10 : 9, fontWeight: 900, color: '#ff9a8f', ...OSWALD }}>🔴 {phaseLbl ? phaseLbl + ' · ' : ''}{legMin}'</span></p>}
+        {!done && (
+          <>
+            <p style={{ textAlign: 'center', margin: '0 0 4px' }}><span style={{ ...copaCenterChip, fontSize: big ? 10 : 9, fontWeight: 900, color: '#ff9a8f', ...OSWALD }}>🔴 {phaseLbl ? phaseLbl + ' · ' : ''}{legMin}'</span></p>
+            <div style={{ height: 3, borderRadius: 2, background: 'rgba(0,0,0,.28)', margin: '0 1px 6px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${barPct}%`, background: 'rgba(255,255,255,.85)' }} /></div>
+          </>
+        )}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}><span style={{ flex: 'none', display: 'flex', ...escDim(L) }}><Escudo nome={L.name} size={big ? 18 : 15} /></span><span style={{ fontSize: 10 }}>{L.f.mark}</span><span style={nameStyle(L)}>{L.name}</span></span>
           <span style={{ fontWeight: 900, fontSize: big ? 18 : 13, ...OSWALD, background: INK, color: '#fff', borderRadius: 7, padding: big ? '3px 11px' : '2px 8px', whiteSpace: 'nowrap' }}>{L.score} × {R.score}</span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: 'flex-end' }}><span style={nameStyle(R)}>{R.name}</span><span style={{ fontSize: 10 }}>{R.f.mark}</span><span style={{ flex: 'none', display: 'flex', ...escDim(R) }}><Escudo nome={R.name} size={big ? 18 : 15} /></span></span>
         </div>
         {!done
-          ? (lastG ? <p style={{ textAlign: 'center', margin: '4px 0 0' }}><span style={{ ...copaCenterChip, fontSize: big ? 10 : 9, fontWeight: 800, ...OSWALD }}>⚽ {lastG.name}</span></p> : null)
+          ? (lastG ? <p style={{ textAlign: 'center', margin: '4px 0 0' }}><span style={{ ...copaCenterChip, fontSize: big ? 10 : 9, fontWeight: 900, ...OSWALD, color: justScored ? '#FFD778' : '#fff' }}>⚽ {justScored ? 'GOOOL! ' : ''}{lastG.name}</span></p> : null)
           : <>
               {nLegs === 2 && <p style={{ textAlign: 'center', margin: '4px 0 0' }}><span style={{ ...copaCenterChip, fontSize: 9, fontWeight: 800 }}>ida {tie.legs[0][0]}×{tie.legs[0][1]} · volta {tie.legs[1][1]}×{tie.legs[1][0]}</span></p>}
               {tie.pens && <style>{'@keyframes copaLoserFade{to{opacity:.6;text-decoration:line-through}}'}</style>}
@@ -3909,7 +3925,9 @@ export function PyramidSeasonScreen() {
                como os jogos das outras divisões apareciam na liga. */
             <>
               <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.5)', margin: '2px 0 7px' }}>🏆 Copa · {copaFaseName} · {copaNLegs === 1 ? 'jogo único' : 'ida e volta'}</p>
-              {otherCopaTies.map((t, i) => <CopaLiveMatch key={i} tie={t} pos={copaPos} colors={colors} safName={safTeamName} />)}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
+                {otherCopaTies.map((t, i) => <CopaLiveMatch key={i} tie={t} pos={copaPos} colors={colors} safName={safTeamName} />)}
+              </div>
             </>
           ) : (
           <>
