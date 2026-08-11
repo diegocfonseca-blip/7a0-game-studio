@@ -475,14 +475,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
       </svg>
     )
   },
-  // 🛡️ Desportivo Montreal (batismo do nevesgabriel95 — Lenda + fundador, aprovado 11/08):
+  // 🛡️ Deportivo Montreal (batismo do nevesgabriel95 — Lenda + fundador, aprovado 11/08):
   // recriação do escudo verde (estrela-bússola + faixas DEPORTIVO/MONTREAL + 2026 + bola),
   // ex-Titan Capital (Série A). SVG estilo da casa, com versão MINI pra tabela.
-  'Desportivo Montreal': (size: number) => {
+  'Deportivo Montreal': (size: number) => {
     const mini = size < 40
     const w = Math.round(size * 200 / 240)
     return (
-      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Desportivo Montreal" role="img" style={{ flex: 'none', display: 'block' }}>
+      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Deportivo Montreal" role="img" style={{ flex: 'none', display: 'block' }}>
         <defs><clipPath id="dmS"><path d="M100 20 L174 38 C178 92 176 140 166 168 C154 200 130 222 100 232 C70 222 46 200 34 168 C24 140 22 92 26 38 Z" /></clipPath></defs>
         {mini ? (
           <><path d="M100 20 L174 38 C178 92 176 140 166 168 C154 200 130 222 100 232 C70 222 46 200 34 168 C24 140 22 92 26 38 Z" fill="#0C0C0C"/><g transform="translate(100 126) scale(0.955) translate(-100 -126)"><path d="M100 20 L174 38 C178 92 176 140 166 168 C154 200 130 222 100 232 C70 222 46 200 34 168 C24 140 22 92 26 38 Z" fill="#ffffff"/></g><g transform="translate(100 126) scale(0.90) translate(-100 -126)"><path d="M100 20 L174 38 C178 92 176 140 166 168 C154 200 130 222 100 232 C70 222 46 200 34 168 C24 140 22 92 26 38 Z" fill="#1BA34C"/></g><g clipPath="url(#dmS)"><path d="M100.0 32.0 L110.7 98.1 L165.1 58.9 L125.9 113.3 L192.0 124.0 L125.9 134.7 L165.1 189.1 L110.7 149.9 L100.0 216.0 L89.3 149.9 L34.9 189.1 L74.1 134.7 L8.0 124.0 L74.1 113.3 L34.9 58.9 L89.3 98.1 Z" fill="#ffffff" stroke="#0C0C0C" strokeWidth="2.5" strokeLinejoin="round" opacity=".97"/></g><g transform="translate(100 126) scale(0.90) translate(-100 -126)"><path d="M100 20 L174 38 C178 92 176 140 166 168 C154 200 130 222 100 232 C70 222 46 200 34 168 C24 140 22 92 26 38 Z" fill="none" stroke="#0C0C0C" strokeWidth="3"/></g><circle cx="100" cy="190" r="26" fill="#ffffff" stroke="#0C0C0C" strokeWidth="3"/><path d="M100.0 181.2 L108.4 187.3 L105.2 197.2 L94.8 197.2 L91.6 187.3 Z" fill="#0C0C0C"/><path d="M100.0 181.2 L100.0 166.1" stroke="#0C0C0C" strokeWidth="2.4"/><circle cx="113.1" cy="171.9" r="4.2" fill="#0C0C0C"/><path d="M108.4 187.3 L122.7 182.6" stroke="#0C0C0C" strokeWidth="2.4"/><circle cx="121.3" cy="196.9" r="4.2" fill="#0C0C0C"/><path d="M105.2 197.2 L114.1 209.4" stroke="#0C0C0C" strokeWidth="2.4"/><circle cx="100.0" cy="212.4" r="4.2" fill="#0C0C0C"/><path d="M94.8 197.2 L85.9 209.4" stroke="#0C0C0C" strokeWidth="2.4"/><circle cx="78.7" cy="196.9" r="4.2" fill="#0C0C0C"/><path d="M91.6 187.3 L77.3 182.6" stroke="#0C0C0C" strokeWidth="2.4"/><circle cx="86.9" cy="171.9" r="4.2" fill="#0C0C0C"/><circle cx="100" cy="190" r="26" fill="none" stroke="#0C0C0C" strokeWidth="3"/></>
