@@ -13,6 +13,50 @@ const INK = '#0C0C0C'
 // registro das mascotes prontas (chave → desenho). Cada sócio que pedir ganha
 // a dele aqui — 1ª da casa: a alface brava do Alfacehh FC.
 export const MASCOTES: Record<string, ReactNode> = {
+  // 👶😎 Desportivo Montreal (batismo do nevesgabriel95): a MAITÊ — bebê BRAVA de óculos
+  // escuros, homenagem do Gabriel à filha. Aparece no festão do gol. mascote_key = "maite".
+  maite: (
+    <svg width="150" height="188" viewBox="0 0 200 250">
+      <ellipse cx="100" cy="242" rx="54" ry="9" fill="rgba(0,0,0,.15)"/>
+  <g fill="none" stroke="#BFC6CC" strokeWidth="5" strokeLinecap="round" opacity=".8">
+    <path d="M46 60 q-8 -8 0 -16 q8 -8 0 -16"/><path d="M154 60 q8 -8 0 -16 q-8 -8 0 -16"/>
+  </g>
+  <path d="M66 196 Q60 168 82 158 L118 158 Q140 168 134 196 Q138 228 100 234 Q62 228 66 196 Z" fill="#1BA34C" stroke="#0C0C0C" strokeWidth="6" strokeLinejoin="round"/>
+  <path d="M80 160 Q100 150 120 160 Q116 172 100 172 Q84 172 80 160 Z" fill="#ffffff" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
+  <path d="M100 174 L100 220 M84 196 h32" stroke="#0F7A37" strokeWidth="4" strokeLinecap="round"/>
+  <path d="M70 172 Q44 176 40 158" fill="none" stroke="#1BA34C" strokeWidth="15" strokeLinecap="round"/>
+  <path d="M130 172 Q156 176 160 158" fill="none" stroke="#1BA34C" strokeWidth="15" strokeLinecap="round"/>
+  <circle cx="38" cy="150" r="12" fill="#F1C39B" stroke="#0C0C0C" strokeWidth="5"/>
+  <circle cx="162" cy="150" r="12" fill="#F1C39B" stroke="#0C0C0C" strokeWidth="5"/>
+  <path d="M84 232 l-2 12 M116 232 l2 12" stroke="#F1C39B" strokeWidth="13" strokeLinecap="round"/>
+  <ellipse cx="80" cy="246" rx="12" ry="7" fill="#ffffff" stroke="#0C0C0C" strokeWidth="4"/>
+  <ellipse cx="120" cy="246" rx="12" ry="7" fill="#ffffff" stroke="#0C0C0C" strokeWidth="4"/>
+  <circle cx="100" cy="104" r="60" fill="#F1C39B" stroke="#0C0C0C" strokeWidth="6"/>
+  <ellipse cx="42" cy="108" rx="10" ry="13" fill="#F1C39B" stroke="#0C0C0C" strokeWidth="5"/>
+  <ellipse cx="158" cy="108" rx="10" ry="13" fill="#F1C39B" stroke="#0C0C0C" strokeWidth="5"/>
+  <path d="M92 48 Q100 34 108 48 Q104 44 100 44 Q96 44 92 48 Z" fill="#5A3A22" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
+  <path d="M74 60 Q86 48 100 52 Q114 48 126 60 Q112 54 100 56 Q88 54 74 60 Z" fill="#5A3A22" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
+  <g transform="translate(132 62) rotate(18)">
+    <path d="M0 0 L-20 -12 L-20 12 Z" fill="#E8509A" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
+    <path d="M0 0 L20 -12 L20 12 Z" fill="#E8509A" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
+    <circle cx="0" cy="0" r="6" fill="#C23B7C" stroke="#0C0C0C" strokeWidth="4"/>
+  </g>
+  <circle cx="64" cy="122" r="11" fill="#E86A6A" opacity=".8"/>
+  <circle cx="136" cy="122" r="11" fill="#E86A6A" opacity=".8"/>
+  <path d="M66 82 L92 92" stroke="#0C0C0C" strokeWidth="7" strokeLinecap="round"/>
+  <path d="M134 82 L108 92" stroke="#0C0C0C" strokeWidth="7" strokeLinecap="round"/>
+  <circle cx="80" cy="104" r="18" fill="#18181C" stroke="#0C0C0C" strokeWidth="5"/>
+  <circle cx="120" cy="104" r="18" fill="#18181C" stroke="#0C0C0C" strokeWidth="5"/>
+  <path d="M98 103 h4" stroke="#0C0C0C" strokeWidth="6"/>
+  <path d="M62 101 L44 104 M138 101 L156 104" stroke="#0C0C0C" strokeWidth="5" strokeLinecap="round"/>
+  <path d="M72 97 Q78 92 86 95" stroke="#ffffff" strokeWidth="3.5" fill="none" strokeLinecap="round" opacity=".65"/>
+  <path d="M112 97 Q118 92 126 95" stroke="#ffffff" strokeWidth="3.5" fill="none" strokeLinecap="round" opacity=".65"/>
+  <path d="M84 132 Q100 126 116 132 Q118 150 100 154 Q82 150 84 132 Z" fill="#7A1B1B" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
+  <path d="M88 134 Q100 130 112 134 Q108 138 100 137 Q92 138 88 134 Z" fill="#ffffff"/>
+  <ellipse cx="100" cy="148" rx="6" ry="4" fill="#E86A6A"/>
+  <path d="M150 96 q6 8 0 14 q-6 -6 0 -14 Z" fill="#7FC6E8" stroke="#0C0C0C" strokeWidth="3" strokeLinejoin="round"/>
+    </svg>
+  ),
   // 🦍🦂 Scorporila FC (batismo do lucassrribeiroo2023): o GORILA-ESCORPIÃO de corpo
   // inteiro rugindo — cauda de escorpião com ferrão e mãos-pinças. No FESTÃO atravessa
   // a tela. Vetor leve (estilo Nightfull). mascote_key = "scorporila".

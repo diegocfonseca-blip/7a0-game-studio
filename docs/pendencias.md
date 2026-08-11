@@ -1,5 +1,26 @@
 # 📌 Pendências combinadas com o Diego (atualizado 11/08/2026)
 
+## 🛡️ BATISMO: Desportivo Montreal (nevesgabriel95) — Série A ✅ FEITO (código)
+Batismo do Gabriel (nevesgabriel95@gmail.com), aprovado 11/08. Recriação em SVG
+(estilo da casa) do escudo real do clube dele (verde, estrela-bússola, faixas
+DEPORTIVO/MONTREAL, **2026**, bola). Entrou no lugar do **Titan Capital** na Série A.
+Gabriel: **Craque(prata) → Lenda(ouro) + FUNDADOR nº 37**.
+- ✅ `data.ts`: DIVISION_TEAMS.A Titan Capital → Desportivo Montreal + OLD_NAME.
+- ✅ `apoio.tsx`: FOUNDERS ouro + FUNDADOR_N 37.
+- ✅ `escudos.tsx`: `LOGOS_PRONTAS['Desportivo Montreal']` (full + mini).
+- ✅ `mascotes.tsx`: `MASCOTES.maite` — a MAITÊ, bebê brava de óculos escuros
+  (homenagem do Gabriel à filha). Festão "É GOL DA MAITÊ!".
+- ✅ **Manto 3 cores** (preto/branco/verde): `manto.ts` ganhou `MANTO_TRI` + `meuMantoC3()`
+  e `mantoStripes` aceita 3ª cor opcional. Passado como prop SÓ nos renders do DONO
+  (screens.tsx Campinho + pyramidseason) — NÃO pinta o manto dos outros na sala.
+- ⏳ FALTA: DB `esc_socios` do Gabriel (escudo_time='Desportivo Montreal', mascote_key='maite',
+  manto_c1='#0C0C0C' manto_c2='#FFFFFF', time_coracao='Internacional', origem='batismo') + `esc_fundadores`.
+- Reversível: `git revert` + apagar linha do banco. Manto 2-cores dos outros intocado.
+
+## ⏸️ PAUSADOS (esperando email do Diego pra publicar):
+- **Allan Stag** (arte pronta: escudo-foto/arte + cobra Dibrados) — falta email + batismo/person.
+- **Ligeiro FC** (Artur; escudo-arte + robô-TV, homenagem Túlio Ligeiro) — falta email + batismo/person.
+
 ## 🦍🦂 BATISMO: Scorporila FC (lucassrribeiroo2023) — kit visual (11/08)
 Escudo + mascote + manto do batismo (ex-Realeza FC, Série A). O Diego rejeitou
 várias tentativas SVG e TAMBÉM a imagem do Gemini (pesada: PNG cru ~275KB; webp

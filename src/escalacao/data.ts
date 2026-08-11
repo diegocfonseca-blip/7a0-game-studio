@@ -2213,6 +2213,7 @@ export const OLD_NAME: Record<string, string> = {
   'Manfré FC': 'Livre-pool', // ⚽ batismo do danielmanfre5: save antigo com Livre-pool (ou Xandão EC) vira Manfré FC ao carregar
   'La Bestia Negra': 'River Prato', // ⚽ batismo do eltonfrossard45: save antigo com River Prato vira La Bestia Negra ao carregar
   'Scorporila FC': 'Realeza FC', // ⚽ batismo do lucassrribeiroo2023: save antigo com Realeza FC vira Scorporila FC ao carregar
+  'Desportivo Montreal': 'Titan Capital', // ⚽ batismo do nevesgabriel95: save antigo com Titan Capital vira Desportivo Montreal ao carregar
 }
 // corrente de nomes antigos: 'White Thigs do GuGu' → ['Astronáutico', 'Sinhô Futebol']
 export const oldChain = (name: string): string[] => {
@@ -2349,7 +2350,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Imperador', team: 'Imperador SAF' },
     { name: 'Realeza', team: 'Scorporila FC' }, // ⚽ clube BATIZADO por apoiador (lucassrribeiroo2023 — Scorporila FC, ex-Realeza FC)
     { name: 'Fênix', team: 'Fênix Dourada' },
-    { name: 'Titã', team: 'Titan Capital' },
+    { name: 'Gabriel', team: 'Desportivo Montreal' }, // ⚽ clube BATIZADO por apoiador (nevesgabriel95 — Desportivo Montreal, ex-Titan Capital; Lenda + fundador, 11/08)
     { name: 'Olímpio', team: 'Olimpo FC' },
     { name: 'Continental', team: 'Continental Real' },
     { name: 'Monarca', team: 'Monarca EC' },

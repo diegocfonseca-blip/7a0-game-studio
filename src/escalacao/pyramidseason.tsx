@@ -26,7 +26,7 @@ import { useAgenciaLiberada, useEscadaLiberada } from './sport'
 import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
-import { meuManto, mantoStripes, meuMantoAngle, useMeuSocio } from './manto'
+import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, useMeuSocio } from './manto'
 import { MASCOTES, FestaoMascote } from './mascotes'
 
 const INK = '#0C0C0C'
@@ -2008,7 +2008,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contr
                 <button key={c.id} onClick={() => onTap?.(c.id)} disabled={!onTap} style={{ position: 'relative', flex: '1 1 0', minWidth: 0, border: `2px solid ${borderOf(st)}`, borderRadius: 8, background: st === 'sel' ? '#FFF6D6' : '#fff', padding: manto ? '17px 6px 3px' : '3px 6px', maxWidth: 96, textAlign: 'center', cursor: onTap ? 'pointer' : 'default', opacity: st === 'dim' ? 0.5 : 1, boxShadow: st === 'target' ? `0 0 0 2px ${GREEN}` : 'none', overflow: 'hidden', ...OSWALD }}>
                   {/* 🎽 Opção C (aprovada 10/08): topo do card vira manto com a posição
                       no selinho — altura igual (a linha da posição foi pra dentro). */}
-                  {manto && <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 14, background: mantoStripes(manto, 9, meuMantoAngle()), borderBottom: `2px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {manto && <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 14, background: mantoStripes(manto, 9, meuMantoAngle(), meuMantoC3()), borderBottom: `2px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ fontSize: 7, fontWeight: 900, color: '#fff', background: 'rgba(0,0,0,.42)', borderRadius: 5, padding: '0 4px', letterSpacing: .5, lineHeight: '1.6' }}>{c.pos}</span>
                   </span>}
                   {c.emprestado && <EmpTag mini />}

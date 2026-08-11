@@ -60,7 +60,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'venturakaua2@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'luancamposreal@hotmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'juniormelocdm@hotmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
-  'nevesgabriel95@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual
+  'nevesgabriel95@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Desportivo Montreal, homenagem à filha Maitê) (11/08)
   'valentinnavitoria165@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual
   'mmmartins246@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR (era Craque, subiu pra Lenda)
   'feeriibeiro25@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
@@ -138,6 +138,7 @@ const FUNDADOR_N: Record<string, number> = {
   'danielmanfre5@gmail.com': 34,
   'luiz.maia.luiz@gmail.com': 35,
   'lucassrribeiroo2023@gmail.com': 36,
+  'nevesgabriel95@gmail.com': 37, // 🖋️ Gabriel — batismo Desportivo Montreal (11/08)
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null

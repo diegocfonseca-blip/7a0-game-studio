@@ -76,8 +76,12 @@ export function useMeuSocio(): MeuSocio | null {
 
 // listras do manto pra usar como background. `angle` = direção das listras
 // (90 = verticais, padrão camisa; 0 = horizontais/marujo; 45 = diagonais).
-export const mantoStripes = (c: [string, string], w = 9, angle = 90) =>
-  `repeating-linear-gradient(${angle}deg, ${c[0]} 0 ${w}px, ${c[1]} ${w}px ${w * 2}px)`
+// `c3` (opcional) = 3ª cor: quando passado, a listra vira de 3 cores (ex.: Desportivo
+// Montreal preto/branco/verde). Sem c3, segue o padrão de 2 cores de sempre.
+export const mantoStripes = (c: [string, string], w = 9, angle = 90, c3?: string | null) =>
+  c3
+    ? `repeating-linear-gradient(${angle}deg, ${c[0]} 0 ${w}px, ${c[1]} ${w}px ${w * 2}px, ${c3} ${w * 2}px ${w * 3}px)`
+    : `repeating-linear-gradient(${angle}deg, ${c[0]} 0 ${w}px, ${c[1]} ${w}px ${w * 2}px)`
 
 // 🎽 direção da listra por mascote do clube (pedido do Diego 10/08). Batismo que
 // pediu listra diferente entra aqui; quem não está aqui fica vertical (padrão).
@@ -90,6 +94,18 @@ const MANTO_ANGLE: Record<string, number> = {
 export function meuMantoAngle(): number {
   const k = meu?.ativo ? meu.mascoteKey : null
   return (k && MANTO_ANGLE[k] != null) ? MANTO_ANGLE[k] : 90
+}
+
+// 🎽 3ª COR do manto por mascote (caso especial pedido pelo Diego): manto de 3
+// cores. Ex.: Desportivo Montreal (mascote "maite") = preto + branco + VERDE.
+// Só o PRÓPRIO dono vê a 3ª cor no seu manto (igual o ângulo) — não afeta os
+// outros times. Quem não está aqui segue com manto de 2 cores normal.
+const MANTO_TRI: Record<string, string> = {
+  maite: '#1BA34C', // 🟢 Desportivo Montreal — 3ª cor verde (preto/branco/verde)
+}
+export function meuMantoC3(): string | null {
+  const k = meu?.ativo ? meu.mascoteKey : null
+  return (k && MANTO_TRI[k]) ? MANTO_TRI[k] : null
 }
 
 // ─── 🔒 NOME DE TIME ÚNICO (tipo @ do Instagram — pedido do Diego 10/08) ───
