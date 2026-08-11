@@ -2380,7 +2380,7 @@ export function pensRevealDelay(pens: [number, number]): number {
   const kicks = Math.min(10, pens[0] + pens[1] + (5 - Math.min(pens[0], pens[1])) * 2 + 2)
   return 0.7 + kicks * 0.85 + 0.6
 }
-export function PensShootout({ pens, aName, bName }: { pens: [number, number]; aName: string; bName: string }) {
+export function PensShootout({ pens, aName, bName, colorOf }: { pens: [number, number]; aName: string; bName: string; colorOf?: (name: string) => string }) {
   // REGRA REAL: 5 cobranças alternadas; PARA na hora que decide (quem não
   // alcança mais nem batendo todas, acabou — as bolinhas restantes ficam
   // vazias). 6×5 = foi perfeito até o fim e decidiu na morte súbita.
@@ -2417,11 +2417,20 @@ export function PensShootout({ pens, aName, bName }: { pens: [number, number]; a
     }
   }
   const nSlots = Math.max(pens[0], pens[1]) > 5 ? 6 : 5
+  const suddenDeath = nSlots === 6
   const step = 0.85, lead = 0.7
   // resultado de cada time na ORDEM das cobranças dele + índice global (delay)
   const rows: { ok: boolean; at: number }[][] = [[], []]
   seq.forEach((k, gi) => rows[k.side].push({ ok: k.ok, at: gi }))
   const totalDelay = lead + seq.length * step + 0.25
+  const colFn = colorOf ?? copaSideColor
+  const colA = colFn(aName), colB = colFn(bName)
+  const winCol = win === 0 ? colA : colB
+  const CONFETTI = [
+    { l: 6, t: 4, r: 12, c: GOLD }, { l: 20, t: -2, r: -18, c: GREEN }, { l: 34, t: 8, r: 40, c: FIN_RED },
+    { l: 48, t: -4, r: -10, c: '#7C3AED' }, { l: 62, t: 6, r: 25, c: colA }, { l: 76, t: -1, r: -32, c: colB },
+    { l: 90, t: 7, r: 15, c: GOLD }, { l: 14, t: 16, r: 55, c: '#7C3AED' }, { l: 82, t: 14, r: -20, c: GREEN },
+  ]
   const row = (name: string, r: { ok: boolean; at: number }[]) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 3.5, justifyContent: 'center' }}>
       <span style={{ fontSize: 9, fontWeight: 900, ...OSWALD, maxWidth: 74, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right', flexShrink: 0 }}>{name}</span>
@@ -2436,14 +2445,36 @@ export function PensShootout({ pens, aName, bName }: { pens: [number, number]; a
     </div>
   )
   return (
-    <div style={{ margin: '4px 0 0' }}>
-      <style>{'@keyframes pensPop{0%{opacity:0;transform:scale(0)}70%{opacity:1;transform:scale(1.35)}100%{opacity:1;transform:scale(1)}}'}</style>
-      <p style={{ fontSize: 9, fontWeight: 900, ...OSWALD, textAlign: 'center', color: '#B23B2E', margin: '0 0 3px', letterSpacing: 0.5 }}>🎯 DISPUTA DE PÊNALTIS{nSlots === 6 ? ' · MORTE SÚBITA' : ''}</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <div style={{ margin: '4px 0 0', position: 'relative', animation: `pensShake .4s ease ${totalDelay.toFixed(2)}s` }}>
+      <style>{'@keyframes pensPop{0%{opacity:0;transform:scale(0)}70%{opacity:1;transform:scale(1.35)}100%{opacity:1;transform:scale(1)}}@keyframes pensShake{0%,100%{transform:translate(0,0)}20%{transform:translate(-3px,1px)}40%{transform:translate(3px,-1px)}60%{transform:translate(-2px,1px)}80%{transform:translate(2px,-1px)}}@keyframes pensConfetti{0%{opacity:0;transform:translateY(-6px) rotate(0deg)}15%{opacity:1}100%{opacity:0;transform:translateY(48px) rotate(220deg)}}@keyframes telaoPop{0%{opacity:0;transform:scale(.88)}100%{opacity:1;transform:scale(1)}}'}</style>
+      {/* 💥 confete no instante que o resultado sai — só nesse momento, cai e some, não atrapalha o resto */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'visible', zIndex: 2 }}>
+        {CONFETTI.map((p, i) => (
+          <span key={i} style={{ position: 'absolute', left: `${p.l}%`, top: `${p.t}px`, width: 6, height: 10, background: p.c, border: `1px solid ${INK}`, opacity: 0, transform: `rotate(${p.r}deg)`, animation: `pensConfetti .9s ease-out ${totalDelay.toFixed(2)}s forwards` }} />
+        ))}
+      </div>
+      <p style={{
+        fontSize: 9, fontWeight: 900, ...OSWALD, textAlign: 'center', margin: '0 0 3px', letterSpacing: 0.5,
+        color: suddenDeath ? '#fff' : '#B23B2E',
+        ...(suddenDeath ? { background: FIN_RED, borderRadius: 6, padding: '3px 0', border: `2px solid ${INK}` } : {}),
+      }}>{suddenDeath ? '⚠️ MORTE SÚBITA' : '🎯 DISPUTA DE PÊNALTIS'}</p>
+      <div style={{
+        display: 'flex', flexDirection: 'column', gap: 3, padding: suddenDeath ? '6px 4px' : 0,
+        ...(suddenDeath ? { border: `2px solid ${FIN_RED}`, borderRadius: 8, background: 'repeating-linear-gradient(135deg,rgba(194,69,47,.06),rgba(194,69,47,.06) 10px,transparent 10px,transparent 20px)' } : {}),
+      }}>
         {row(aName, rows[0])}
         {row(bName, rows[1])}
       </div>
-      <p style={{ fontSize: 9.5, fontWeight: 900, ...OSWALD, textAlign: 'center', color: INK, margin: '3px 0 0', opacity: 0, animation: `pensPop .35s ease ${totalDelay.toFixed(2)}s forwards` }}>{score[0]} × {score[1]} {win === 0 ? 'pro ' + aName : 'pro ' + bName}</p>
+      {/* 📺 telão do resultado final — mesmo instante de antes (totalDelay), só que agora chamativo */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, margin: '5px 0 0', padding: '5px 10px', borderRadius: 8,
+        background: INK, border: `2px solid ${GOLD}`, opacity: 0, animation: `telaoPop .3s ease ${totalDelay.toFixed(2)}s forwards`,
+      }}>
+        <span style={{ width: 16, height: 16, borderRadius: 4, background: colA, border: `1.5px solid ${win === 0 ? GOLD : 'rgba(255,255,255,.3)'}`, flexShrink: 0 }} />
+        <span style={{ fontSize: 15, fontWeight: 900, ...OSWALD, color: GOLD }}>{score[0]} × {score[1]}</span>
+        <span style={{ width: 16, height: 16, borderRadius: 4, background: colB, border: `1.5px solid ${win === 1 ? GOLD : 'rgba(255,255,255,.3)'}`, flexShrink: 0 }} />
+      </div>
+      <p style={{ fontSize: 9, fontWeight: 800, ...OSWALD, textAlign: 'center', color: winCol, margin: '2px 0 0', opacity: 0, animation: `telaoPop .3s ease ${totalDelay.toFixed(2)}s forwards` }}>🏆 {win === 0 ? aName : bName}</p>
     </div>
   )
 }

@@ -721,7 +721,7 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, agenciaOn,
       {liveDone && t.pen && (
         <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 AGREGADO {t.g1![0] + t.g2![1]}×{t.g1![1] + t.g2![0]} — DECISÃO NOS PÊNALTIS</p>
-          <PensShootout pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} />
+          <PensShootout pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} colorOf={paisColor} />
         </div>
       )}
     </div>
@@ -787,7 +787,7 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, agenciaOn,
             {step === GR + 6 && liveDone && world.final.pen && (
               <div style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 8, marginBottom: 8 }}>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center', color: GOLD }}>🥅 FINAL DECIDIDA NOS PÊNALTIS</p>
-                <PensShootout pens={world.final.pen} aName={entrants[world.final.h].pais} bName={entrants[world.final.a].pais} />
+                <PensShootout pens={world.final.pen} aName={entrants[world.final.h].pais} bName={entrants[world.final.a].pais} colorOf={paisColor} />
               </div>
             )}
             <div style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
