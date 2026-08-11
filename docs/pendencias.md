@@ -3462,3 +3462,19 @@ próxima Copa dele e avisar se tiver algo estranho (reversão é 1 commit).
 Pendente ainda combinado, não mexido: melhorar visual da disputa de
 pênaltis (ideias sugeridas no chat: ⚽/🧤 em vez de ✓/✕, destaque na
 cobrança decisiva, cor diferente na morte súbita).
+
+## 🏆 Copa do Mundo: visual preto e dourado + cor real das seleções (11/08)
+Mockup aprovado pelo Diego ("ficou perfeito"). Aplicado de verdade em
+`copa-mundo.tsx`: cabeçalho do torneio, caixas de grupo e caixa do
+mata-mata agora em preto com detalhe dourado (tema de troféu). Criada
+`PAIS_COLORS` com a cor real de cada uma das 16 seleções que já jogam
+(Brasil amarelo, Argentina celeste, Alemanha preto, Holanda laranja
+etc.) — usada em `MiniLive`/`tieRow` no lugar do hash genérico
+(`copaSideColor`, que era o mesmo dos outros dois sistemas de copa).
+Build ok, no ar. Não dava pra testar ao vivo de qualquer forma (Copa do
+Mundo só destrava na temporada 100 da carreira — não rola simular até lá
+numa sessão de teste rápida), então fica pro Diego conferir na conta dele
+quando chegar lá (ele já tem carreiras avançadas, deve ser em breve).
+Se aparecer alguma seleção nova no futuro, falta adicionar a cor dela em
+`PAIS_COLORS` (cai no fallback do hash automático, só não vai ser a cor
+real até alguém completar).
