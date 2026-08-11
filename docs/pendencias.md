@@ -3618,3 +3618,25 @@ hora: o brilho holográfico do tier pago (ApoioSheen, aparece no lado
 versão da troca — recolocado nos 3 lugares que precisavam (Copa dos 8,
 Copa Legends card grande, Copa Legends lista). Build ok, no ar em `main`.
 Revertível (1 commit: `d6b7346` no main).
+
+## 🎨 Identidade da Copa dos 8 (roxo) e Copa Legends (verde-escuro) (11/08) ✅ NO AR
+Diego pediu identidade visual por copa (tinha mostrado um mockup antigo da
+"Glória Eterna" Libertadores — CONFIRMADO que não existe no código, é só
+mockup salvo, expliquei de novo). 1ª tentativa com nomes novos ("Copa
+Relâmpago", "Hall da Fama") foi REJEITADA — ele quer os nomes ORIGINAIS
+(Copa dos 8, Copa Legends), só a cor entrando mais. 2ª versão aprovada
+("Isso aí!! Pode aprovar"):
+- **Copa dos 8** (`screens.tsx`): roxo `PURPLE` (#7C3AED) no cabeçalho da
+  fase + no aviso "Chegou a Copa dos 8!".
+- **Copa Legends** (`pyramidseason.tsx`): verde-escuro `COPA_LEG_GREEN`
+  (#14401f) + dourado no cabeçalho da temporada (só na fase da Copa) e no
+  painel do chaveamento "🏆 COPA LEGENDS".
+- **Card de partida** (nos 2 sistemas): pedido do Diego — escudo agora fica
+  EM CIMA do nome (não mais lado a lado, dá mais espaço pra ler); barra de
+  progresso ao vivo subiu pro TOPO do card (antes ficava embaixo, entre
+  placar e infos); moldura do card ganha a cor do tema (roxo/verde) SÓ
+  enquanto tá rolando ao vivo — decidido volta pro preto normal, "seu jogo"
+  continua vermelho (prioridade sobre o tema).
+Copa do Mundo (preto/dourado) e Glória Eterna Libertadores (mockup, não
+programada) ficam de fora dessa rodada — não foram pedidas dessa vez.
+Build ok, no ar em `main`.
