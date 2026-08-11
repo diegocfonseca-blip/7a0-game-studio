@@ -536,11 +536,10 @@ export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { 
 export interface CopaTie { a: SimTeam; b: SimTeam; aDiv: Div; bDiv: Div; aggA: number; aggB: number; pens?: [number, number]; win: 'a' | 'b'; goals: Goal[]; legs: [number, number][]; legGoals: Goal[][] }
 export interface CopaRound { name: string; ties: CopaTie[] }
 export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; vice: SimTeam | null; viceDiv: Div | null; scorers: SeasonScorer[]; topScorer?: SeasonScorer }
-// 🏆 Copa Legends PAGA POR FASE (Diego 11/08): TOTAL do campeão por divisão;
-// quem cai antes leva uma FRAÇÃO (participação → final). Antes só campeão/vice
-// levavam — agora, tipo Copa do Brasil, cada fase alcançada já rende algo.
-const COPA_TOT: Record<Div, number> = { A: 30, B: 20, C: 15, D: 10, V: 0 } // Várzea não joga a Copa
-const COPA_FASE_FRAC = { camp: 1.0, vice: 0.8, sf: 0.65, qf: 0.4, resto: 0.2 } // fração do total pela fase alcançada
+// 🏆 Copa Legends PAGA POR FASE (Diego 11/08) — valores FIXOS, IGUAIS em toda
+// divisão (não escala por série): participação 2 · quartas 4 · semi 8 · vice 10
+// · campeão 30. Antes só campeão/vice levavam; agora cada fase já rende algo.
+const COPA_PAY = { resto: 2, qf: 4, sf: 8, vice: 10, camp: 30 }
 const COPA_SCORER_BONUS = 16 // caixa do time pelo artilheiro da Copa (o PISO dele sobe +10 fixo, ver copaRewards)
 // prestígio por divisão na Copa: A favorita, D azarão (soma no ataque e defesa).
 const COPA_DIV_STRENGTH: Record<Div, number> = { A: 10, B: 6, C: 3, D: 0, V: 0 } // Várzea não joga a Copa (só A-D)
@@ -659,21 +658,21 @@ export function copaRewards(copa: CopaResult): { rewards: Record<number, number>
     if (tm.human && tm.teamId >= 0) rewards[tm.teamId] = (rewards[tm.teamId] ?? 0) + val
     else clubRewards[teamKey(tm)] = (clubRewards[teamKey(tm)] ?? 0) + val
   }
-  const fundo: Record<string, { tm: SimTeam; div: Div; depth: number }> = {}
+  const fundo: Record<string, { tm: SimTeam; depth: number }> = {}
   copa.rounds.forEach((rd, ri) => {
     for (const t of rd.ties) {
-      const put = (tm: SimTeam, div: Div) => { const k = teamKey(tm); if (!fundo[k] || ri > fundo[k].depth) fundo[k] = { tm, div, depth: ri } }
-      put(t.a, t.aDiv); put(t.b, t.bDiv)
+      const put = (tm: SimTeam) => { const k = teamKey(tm); if (!fundo[k] || ri > fundo[k].depth) fundo[k] = { tm, depth: ri } }
+      put(t.a); put(t.b)
     }
   })
   for (const k in fundo) {
-    const { tm, div, depth } = fundo[k]
-    const frac = (championKey && k === championKey) ? COPA_FASE_FRAC.camp
-      : depth === nR - 1 ? COPA_FASE_FRAC.vice   // perdeu a final
-      : depth === nR - 2 ? COPA_FASE_FRAC.sf     // semifinal
-      : depth === nR - 3 ? COPA_FASE_FRAC.qf     // quartas
-      : COPA_FASE_FRAC.resto                     // caiu antes / participação
-    paga(tm, Math.round((COPA_TOT[div] ?? 0) * frac))
+    const { tm, depth } = fundo[k]
+    const pay = (championKey && k === championKey) ? COPA_PAY.camp
+      : depth === nR - 1 ? COPA_PAY.vice   // perdeu a final
+      : depth === nR - 2 ? COPA_PAY.sf     // semifinal
+      : depth === nR - 3 ? COPA_PAY.qf     // quartas
+      : COPA_PAY.resto                     // caiu antes / participação
+    paga(tm, pay)
   }
   const ts = copa.topScorer
   if (ts) {
