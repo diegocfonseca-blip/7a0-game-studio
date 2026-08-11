@@ -1,5 +1,14 @@
 # 📌 Pendências combinadas com o Diego (atualizado 11/08/2026)
 
+## ⚠️ LIÇÃO (11/08): batismo TEM que entrar em `esc_nomes_batismo` também!
+A trava de nome único (`esc_nome_livre`) reserva o nome do batismo pro dono
+**pela tabela `esc_nomes_batismo`** (colunas: nome_norm, nome, email). Publiquei
+Scorporila/Montreal/Marolados só no `esc_socios` e ESQUECI dessa tabela → o dono
+do Marolados não conseguia salvar o nome (batia no lucasjogomes, que já usava o
+nome por coincidência). CORRIGIDO: registrei os 3 em `esc_nomes_batismo`.
+👉 CHECKLIST batismo daqui pra frente: data.ts (OLD_NAME + CPU) · apoio.tsx (ouro
++ FUNDADOR_N) · escudos/mascotes · `esc_socios` (kit) · **`esc_nomes_batismo` (reserva do nome)**.
+
 ## 🌱🤙 BATISMO: Marolados FC (paisagensetrilha) — Série D ✅ FEITO
 Batismo do paisagensetrilha@gmail.com, aprovado 11/08. Ideia da casa: a molecada de
 periferia que joga na várzea ("fumaçou o campo"), coração Palmeiras. Entrou no lugar
