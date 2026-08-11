@@ -3428,3 +3428,13 @@ Todas as correções já buildadas e no `main` (ao vivo). Conferido também se
 Então a duplicata que o Diego viu no leilão não é erro de dado — pedi pra
 ele mandar print/mais detalhe pra caçar se é bug de embaralhamento
 (store.tsx) ou só duas telas mostrando a mesma carta (normal).
+
+## 💰 GRANA MAIS FÁCIL NO CARREIRA (10/08, à noite)
+Diego: "pessoal reclamando que tá difícil fazer grana no carreira" — 2 ajustes:
+- Agência 2.0: carta LENDA sobe de 5→6 moedas/temporada (bate com o valor que
+  o Empresário clássico já pagava).
+- Patrocínio por aposta: tabela inteira DOBROU. Várzea 1/2/3→2/4/6, D
+  2/4/6→4/8/12, C 4/8/12→8/16/24, B 8/16/24→16/32/48, A 16/32/48→32/64/96.
+  Mira ajudar quem tá começando (Várzea/D), onde a bilheteria-base (20 fixo)
+  ainda é quase a única renda garantida.
+Ambos já no ar em `main`, build ok, reversível (só valor de tabela).
