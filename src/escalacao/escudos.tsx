@@ -396,6 +396,85 @@ export function escudoDe(nomeCru: string): EscudoDesign {
 // 💰 LOGOS ARTESANAIS (pagas): nome do time → desenho próprio, entra no lugar do
 // automático. É só adicionar aqui quando alguém comprar.
 export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
+  // 🛡️🌱 Marolados FC (batismo do paisagensetrilha — Lenda + fundador, aprovado 11/08):
+  // a molecada da várzea. Cabeça do moleque RASTAFARI (dreadlocks + touca rasta) no
+  // escudo verde ("AQUI É RAIZ") + fumaça. ex-Real Madruga (Série D). SVG + mini.
+  'Marolados FC': (size: number) => {
+    const mini = size < 40
+    const w = Math.round(size * 200 / 240)
+    return (
+      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Marolados FC" role="img" style={{ flex: 'none', display: 'block' }}>
+        <defs><clipPath id="mrS"><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" /></clipPath></defs>
+        {mini ? (
+          <><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="#0E5A2B"/><g clipPath="url(#mrS)"><path d="M-20 150 L210 30 v42 L10 182 Z" fill="#2E9E5B" opacity=".45"/><path d="M18 176 H182 V196 H18 Z" fill="#0E5A2B"/></g><g clipPath="url(#mrS)"><g transform="translate(100 122) scale(1.25) translate(-100 -92)">
+      
+      <g stroke="#16110E" strokeWidth="10" strokeLinecap="round" fill="none">
+        <path d="M58 70 q-12 20 -4 40 q6 16 0 34"/>
+        <path d="M72 66 q-12 18 -6 38 q5 16 -1 32"/>
+        <path d="M142 70 q12 20 4 40 q-6 16 0 34"/>
+        <path d="M128 66 q12 18 6 38 q-5 16 1 32"/>
+      </g>
+      <g fill="#C2452F" stroke="#141414" strokeWidth="2">
+        <circle cx="54" cy="146" r="4.5"/><circle cx="146" cy="146" r="4.5"/>
+      </g>
+      <g fill="#FFC400" stroke="#141414" strokeWidth="2">
+        <circle cx="71" cy="138" r="4"/><circle cx="129" cy="138" r="4"/>
+      </g>
+      
+      <circle cx="100" cy="92" r="40" fill="#B07A4E" stroke="#141414" strokeWidth="6"/>
+      <ellipse cx="62" cy="94" rx="7" ry="9" fill="#B07A4E" stroke="#141414" strokeWidth="5"/>
+      <ellipse cx="138" cy="94" rx="7" ry="9" fill="#B07A4E" stroke="#141414" strokeWidth="5"/>
+      
+      <path d="M58 80 Q58 44 100 42 Q142 44 142 80 Q100 71 58 80 Z" fill="#1B7A3D" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
+      <path d="M62 66 Q62 50 100 48 Q138 50 138 66 Q100 59 62 66 Z" fill="#FFC400" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/>
+      <path d="M68 55 Q68 45 100 44 Q132 45 132 55 Q100 50 68 55 Z" fill="#C2452F" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/>
+      <path d="M56 78 Q100 88 144 78 L142 86 Q100 96 58 86 Z" fill="#1B7A3D" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
+      <circle cx="100" cy="42" r="5" fill="#FFC400" stroke="#141414" strokeWidth="3"/>
+      
+      <path d="M74 94 q10 8 20 0" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
+      <path d="M106 94 q10 8 20 0" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
+      <circle cx="84" cy="97" r="3" fill="#141414"/><circle cx="116" cy="97" r="3" fill="#141414"/>
+      
+      <path d="M86 110 Q100 120 114 110" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
+      <path d="M97 122 q3 7 6 0 q-3 9 -6 0 Z" fill="#16110E"/>
+    </g></g><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke="#141414" strokeWidth="9" strokeLinejoin="round"/></>
+        ) : (
+          <><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="#0E5A2B"/><g clipPath="url(#mrS)"><path d="M-20 150 L210 30 v42 L10 182 Z" fill="#2E9E5B" opacity=".45"/><path d="M18 176 H182 V196 H18 Z" fill="#0E5A2B"/></g><g clipPath="url(#mrS)"><path d="M70 150 q-21.0 -15.0 -3.0 -33.0 q18.0 -15.0 -3.0 -33.0 q-18.0 -12.0 3.0 -30.0" fill="none" stroke="#EAF0E7" strokeWidth="10.5" strokeLinecap="round" opacity="0.7"/><path d="M132 150 q-22.400000000000002 -16.0 -3.2 -35.2 q19.200000000000003 -16.0 -3.2 -35.2 q-19.200000000000003 -12.8 3.2 -32.0" fill="none" stroke="#EAF0E7" strokeWidth="11.200000000000001" strokeLinecap="round" opacity="0.7"/><path d="M100 120 q-18.2 -13.0 -2.6 -28.6 q15.600000000000001 -13.0 -2.6 -28.6 q-15.600000000000001 -10.4 2.6 -26.0" fill="none" stroke="#EAF0E7" strokeWidth="9.1" strokeLinecap="round" opacity="0.55"/></g><g clipPath="url(#mrS)"><g transform="translate(100 118) scale(1.06) translate(-100 -92)">
+      
+      <g stroke="#16110E" strokeWidth="10" strokeLinecap="round" fill="none">
+        <path d="M58 70 q-12 20 -4 40 q6 16 0 34"/>
+        <path d="M72 66 q-12 18 -6 38 q5 16 -1 32"/>
+        <path d="M142 70 q12 20 4 40 q-6 16 0 34"/>
+        <path d="M128 66 q12 18 6 38 q-5 16 1 32"/>
+      </g>
+      <g fill="#C2452F" stroke="#141414" strokeWidth="2">
+        <circle cx="54" cy="146" r="4.5"/><circle cx="146" cy="146" r="4.5"/>
+      </g>
+      <g fill="#FFC400" stroke="#141414" strokeWidth="2">
+        <circle cx="71" cy="138" r="4"/><circle cx="129" cy="138" r="4"/>
+      </g>
+      
+      <circle cx="100" cy="92" r="40" fill="#B07A4E" stroke="#141414" strokeWidth="6"/>
+      <ellipse cx="62" cy="94" rx="7" ry="9" fill="#B07A4E" stroke="#141414" strokeWidth="5"/>
+      <ellipse cx="138" cy="94" rx="7" ry="9" fill="#B07A4E" stroke="#141414" strokeWidth="5"/>
+      
+      <path d="M58 80 Q58 44 100 42 Q142 44 142 80 Q100 71 58 80 Z" fill="#1B7A3D" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
+      <path d="M62 66 Q62 50 100 48 Q138 50 138 66 Q100 59 62 66 Z" fill="#FFC400" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/>
+      <path d="M68 55 Q68 45 100 44 Q132 45 132 55 Q100 50 68 55 Z" fill="#C2452F" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/>
+      <path d="M56 78 Q100 88 144 78 L142 86 Q100 96 58 86 Z" fill="#1B7A3D" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
+      <circle cx="100" cy="42" r="5" fill="#FFC400" stroke="#141414" strokeWidth="3"/>
+      
+      <path d="M74 94 q10 8 20 0" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
+      <path d="M106 94 q10 8 20 0" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
+      <circle cx="84" cy="97" r="3" fill="#141414"/><circle cx="116" cy="97" r="3" fill="#141414"/>
+      
+      <path d="M86 110 Q100 120 114 110" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
+      <path d="M97 122 q3 7 6 0 q-3 9 -6 0 Z" fill="#16110E"/>
+    </g></g><text x="100" y="190" textAnchor="middle" fontFamily="Oswald, Arial, sans-serif" fontWeight="800" fontSize="13.5" letterSpacing="1" fill="#ffffff">AQUI É RAIZ</text><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke="#141414" strokeWidth="7" strokeLinejoin="round"/></>
+        )}
+      </svg>
+    )
+  },
   // 🛡️ Desportivo Montreal (batismo do nevesgabriel95 — Lenda + fundador, aprovado 11/08):
   // recriação do escudo verde (estrela-bússola + faixas DEPORTIVO/MONTREAL + 2026 + bola),
   // ex-Titan Capital (Série A). SVG estilo da casa, com versão MINI pra tabela.

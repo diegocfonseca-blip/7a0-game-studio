@@ -2214,6 +2214,7 @@ export const OLD_NAME: Record<string, string> = {
   'La Bestia Negra': 'River Prato', // ⚽ batismo do eltonfrossard45: save antigo com River Prato vira La Bestia Negra ao carregar
   'Scorporila FC': 'Realeza FC', // ⚽ batismo do lucassrribeiroo2023: save antigo com Realeza FC vira Scorporila FC ao carregar
   'Desportivo Montreal': 'Titan Capital', // ⚽ batismo do nevesgabriel95: save antigo com Titan Capital vira Desportivo Montreal ao carregar
+  'Marolados FC': 'Real Madruga', // ⚽ batismo do paisagensetrilha: save antigo com Real Madruga vira Marolados FC ao carregar
 }
 // corrente de nomes antigos: 'White Thigs do GuGu' → ['Astronáutico', 'Sinhô Futebol']
 export const oldChain = (name: string): string[] => {
@@ -2302,7 +2303,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Zé Ruela', team: 'Neymarzetti' }, // ⚽ clube BATIZADO (time do Diego, dono do jogo — ex-Paixandu)
     { name: 'Guilherme', team: 'Nightfull FC' }, // ⚽ clube BATIZADO por apoiador (Guilherme)
     { name: 'GuGu', team: 'White Thigs do GuGu' }, // ⚽ clube BATIZADO por apoiador (1º da história!)
-    { name: 'Serjão', team: 'Real Madruga' },
+    { name: 'Serjão', team: 'Marolados FC' }, // ⚽ clube BATIZADO por apoiador (paisagensetrilha — Marolados FC, ex-Real Madruga; molecada da várzea, Lenda + fundador, 11/08)
     { name: 'Painitto', team: 'SC Ferrari' }, // ⚽ clube BATIZADO por apoiador (adriano.ferrari — SC Ferrari, ex-Painitto FC)
     { name: 'Robertão', team: 'Murriz FC' }, // ⚽ clube BATIZADO por apoiador (msb102010 — Murriz FC, ex-Robertão United)
     { name: 'Biriba', team: 'Tôka10' }, // ⚽ clube BATIZADO por apoiador (ofc.toka10 — Tôka10, ex-Biriba United)

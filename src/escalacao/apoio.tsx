@@ -103,6 +103,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'luiz.maia.luiz@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR (08/08)
   'souzact12@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual (11/08)
   'lucassrribeiroo2023@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Scorporila FC) (11/08)
+  'paisagensetrilha@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Marolados FC — molecada da várzea) (11/08)
 }
 
 // 🖋️ FUNDADORES (os 100 primeiros Lendas): e-mail → número do fundador.
@@ -139,6 +140,7 @@ const FUNDADOR_N: Record<string, number> = {
   'luiz.maia.luiz@gmail.com': 35,
   'lucassrribeiroo2023@gmail.com': 36,
   'nevesgabriel95@gmail.com': 37, // 🖋️ Gabriel — batismo Desportivo Montreal (11/08)
+  'paisagensetrilha@gmail.com': 38, // 🖋️ Marolados FC — molecada da várzea (11/08)
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null

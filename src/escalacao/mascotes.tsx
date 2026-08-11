@@ -13,6 +13,80 @@ const INK = '#0C0C0C'
 // registro das mascotes prontas (chave → desenho). Cada sócio que pedir ganha
 // a dele aqui — 1ª da casa: a alface brava do Alfacehh FC.
 export const MASCOTES: Record<string, ReactNode> = {
+  // 🤙🌱 Marolados FC (batismo do paisagensetrilha): o MOLEQUE de boa da várzea —
+  // rastafari (dreadlocks + touca rasta), descalço, com a bola rasgada, fazendo joia.
+  // Homenagem à molecada de periferia que joga na várzea. mascote_key = "marolado".
+  marolado: (
+    <svg width="150" height="192" viewBox="0 0 200 255">
+      <ellipse cx="100" cy="246" rx="56" ry="9" fill="rgba(0,0,0,.15)"/>
+  
+  <g><path d="M150 120 q-21.0 -15.0 -3.0 -33.0 q18.0 -15.0 -3.0 -33.0 q-18.0 -12.0 3.0 -30.0" fill="none" stroke="#EAF0E7" strokeWidth="10.5" strokeLinecap="round" opacity="0.8"/><path d="M52 116 q-19.599999999999998 -14.0 -2.8 -30.799999999999997 q16.799999999999997 -14.0 -2.8 -30.799999999999997 q-16.799999999999997 -11.2 2.8 -28.0" fill="none" stroke="#EAF0E7" strokeWidth="9.799999999999999" strokeLinecap="round" opacity="0.7"/></g>
+  
+  <path d="M78 196 H122 V214 H78 Z" fill="#ffffff" stroke="#141414" strokeWidth="5" strokeLinejoin="round"/>
+  <path d="M100 198 L100 214" stroke="#1B7A3D" strokeWidth="3"/>
+  <path d="M82 214 l-2 18 M118 214 l2 18" stroke="#B07A4E" strokeWidth="14" strokeLinecap="round"/>
+  
+  <path d="M74 228 q-10 3 -8 10 q2 5 13 4 l10 -1 -3 -15 Z" fill="#B07A4E" stroke="#141414" strokeWidth="4" strokeLinejoin="round"/>
+  <path d="M126 228 q10 3 8 10 q-2 5 -13 4 l-10 -1 3 -15 Z" fill="#B07A4E" stroke="#141414" strokeWidth="4" strokeLinejoin="round"/>
+  <path d="M66 238 h10 M124 238 h10" stroke="#8C5E38" strokeWidth="1.6"/>
+  
+  <g>
+      <path d="M131 230 Q131 215 150 215 Q169 215 169 230 Q169 248.82 150 248.82 Q131 248.82 131 230 Z" fill="#ffffff" stroke="#141414" strokeWidth="4" strokeLinejoin="round"/>
+      <path d="M147.15 227.35 l7.6000000000000005 5.32 l-2.85 7.9799999999999995 h-9.5 l-2.85 -7.9799999999999995 Z" fill="#141414"/>
+      <path d="M139.55 236.85 l7.6000000000000005 1.9000000000000001 M160.45 236.85 l-7.6000000000000005 1.9000000000000001" stroke="#141414" strokeWidth="2.5" opacity=".5"/>
+      
+      <path d="M156.65 220.32 l3.42 4.18 l-2.28 1.9000000000000001 l3.04 3.04 l-4.94 0.76 l-1.14 -9.5 Z" fill="#2A2A2A" stroke="#141414" strokeWidth="2.5" strokeLinejoin="round"/>
+      
+      <rect x="136.32" y="234.38" width="7.9799999999999995" height="6.460000000000001" rx="2" transform="rotate(-12 140.5 237.8)" fill="#C9B89A" stroke="#141414" strokeWidth="2.5"/>
+      <path d="M136.7 235.9 l7.6000000000000005 1.14 M137.07999999999998 238.18 l7.22 1.14" stroke="#141414" strokeWidth="1.6" strokeDasharray="2 2"/>
+    </g>
+  
+  <path d="M74 150 Q70 138 86 134 L114 134 Q130 138 126 150 L128 196 72 196 Z" fill="#1B7A3D" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
+  <path d="M88 138 L88 196 M112 138 L112 196" stroke="#ffffff" strokeWidth="7"/>
+  <path d="M80 140 Q100 132 120 140" stroke="#0E5A2B" strokeWidth="4" fill="none"/>
+  
+  <path d="M78 150 Q54 158 52 186" fill="none" stroke="#B07A4E" strokeWidth="14" strokeLinecap="round"/>
+  <circle cx="52" cy="190" r="9" fill="#B07A4E" stroke="#141414" strokeWidth="4"/>
+  
+  <path d="M122 150 Q150 150 154 128" fill="none" stroke="#B07A4E" strokeWidth="14" strokeLinecap="round"/>
+  <circle cx="156" cy="122" r="11" fill="#B07A4E" stroke="#141414" strokeWidth="4"/>
+  <path d="M156 111 q7 -9 3 -18 q-8 2 -6 12" fill="#B07A4E" stroke="#141414" strokeWidth="4" strokeLinejoin="round"/>
+  
+  <rect x="92" y="120" width="16" height="18" fill="#B07A4E" stroke="#141414" strokeWidth="5"/>
+  <g transform="translate(100 92) scale(1.0) translate(-100 -92)">
+      
+      <g stroke="#16110E" strokeWidth="10" strokeLinecap="round" fill="none">
+        <path d="M58 70 q-12 20 -4 40 q6 16 0 34"/>
+        <path d="M72 66 q-12 18 -6 38 q5 16 -1 32"/>
+        <path d="M142 70 q12 20 4 40 q-6 16 0 34"/>
+        <path d="M128 66 q12 18 6 38 q-5 16 1 32"/>
+      </g>
+      <g fill="#C2452F" stroke="#141414" strokeWidth="2">
+        <circle cx="54" cy="146" r="4.5"/><circle cx="146" cy="146" r="4.5"/>
+      </g>
+      <g fill="#FFC400" stroke="#141414" strokeWidth="2">
+        <circle cx="71" cy="138" r="4"/><circle cx="129" cy="138" r="4"/>
+      </g>
+      
+      <circle cx="100" cy="92" r="40" fill="#B07A4E" stroke="#141414" strokeWidth="6"/>
+      <ellipse cx="62" cy="94" rx="7" ry="9" fill="#B07A4E" stroke="#141414" strokeWidth="5"/>
+      <ellipse cx="138" cy="94" rx="7" ry="9" fill="#B07A4E" stroke="#141414" strokeWidth="5"/>
+      
+      <path d="M58 80 Q58 44 100 42 Q142 44 142 80 Q100 71 58 80 Z" fill="#1B7A3D" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
+      <path d="M62 66 Q62 50 100 48 Q138 50 138 66 Q100 59 62 66 Z" fill="#FFC400" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/>
+      <path d="M68 55 Q68 45 100 44 Q132 45 132 55 Q100 50 68 55 Z" fill="#C2452F" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/>
+      <path d="M56 78 Q100 88 144 78 L142 86 Q100 96 58 86 Z" fill="#1B7A3D" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
+      <circle cx="100" cy="42" r="5" fill="#FFC400" stroke="#141414" strokeWidth="3"/>
+      
+      <path d="M74 94 q10 8 20 0" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
+      <path d="M106 94 q10 8 20 0" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
+      <circle cx="84" cy="97" r="3" fill="#141414"/><circle cx="116" cy="97" r="3" fill="#141414"/>
+      
+      <path d="M86 110 Q100 120 114 110" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
+      <path d="M97 122 q3 7 6 0 q-3 9 -6 0 Z" fill="#16110E"/>
+    </g>
+    </svg>
+  ),
   // 👶😎 Desportivo Montreal (batismo do nevesgabriel95): a MAITÊ — bebê BRAVA de óculos
   // escuros, homenagem do Gabriel à filha. Aparece no festão do gol. mascote_key = "maite".
   maite: (

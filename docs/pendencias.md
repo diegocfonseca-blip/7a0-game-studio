@@ -1,5 +1,20 @@
 # 📌 Pendências combinadas com o Diego (atualizado 11/08/2026)
 
+## 🌱🤙 BATISMO: Marolados FC (paisagensetrilha) — Série D ✅ FEITO
+Batismo do paisagensetrilha@gmail.com, aprovado 11/08. Ideia da casa: a molecada de
+periferia que joga na várzea ("fumaçou o campo"), coração Palmeiras. Entrou no lugar
+do **Real Madruga** na Série D. Craque? não — direto **Lenda(ouro) + FUNDADOR nº 38**.
+- ✅ `data.ts`: DIVISION_TEAMS.D Real Madruga → Marolados FC + OLD_NAME.
+- ✅ `apoio.tsx`: FOUNDERS ouro + FUNDADOR_N 38.
+- ✅ `escudos.tsx`: `LOGOS_PRONTAS['Marolados FC']` — cabeça do moleque RASTAFARI
+  (dreadlocks + touca rasta, sem blush) no escudo verde "AQUI É RAIZ" + fumaça (full+mini).
+- ✅ `mascotes.tsx`: `MASCOTES.marolado` — moleque rasta descalço com bola RASGADA,
+  fazendo joia. Festão "É GOL, FIRMEZA!".
+- ✅ Manto verde/branco (Palmeiras) — 2 cores normais.
+- ⏳ FALTA: DB `esc_socios` do paisagensetrilha (escudo_time='Marolados FC',
+  mascote_key='marolado', manto_c1='#1B7A3D' manto_c2='#FFFFFF', time_coracao='Palmeiras').
+- Reversível: `git revert` + apagar linha do banco.
+
 ## 🛡️ BATISMO: Desportivo Montreal (nevesgabriel95) — Série A ✅ FEITO (código)
 Batismo do Gabriel (nevesgabriel95@gmail.com), aprovado 11/08. Recriação em SVG
 (estilo da casa) do escudo real do clube dele (verde, estrela-bússola, faixas
