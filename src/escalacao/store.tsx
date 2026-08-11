@@ -246,12 +246,32 @@ function escadaAfterPlacements(s: EscState) {
 // 💰 VIRA-TEMPORADA: aplica prêmios + bilheteria + folha na caixa do técnico e
 // REGISTRA cada um no extrato pela VARIAÇÃO REAL da caixa do humano. Mantém a
 // mesma ordem/efeito de antes (prêmios → bilheteria → folha) — só soma o registro.
+// 📺 COTA DE TV (Diego 11/08): renda por PARTICIPAÇÃO na divisão, todo fim de
+// temporada. Cresce quanto mais alto você está; Várzea 0 (ninguém transmite a
+// pelada). Creditada ANTES dos snapshots do extrato pra não entrar em outra
+// linha — e logada com linha própria "📺 Cota de TV".
+const TV_COTA: Record<string, number> = { A: 20, B: 15, C: 10, D: 5, V: 0 }
+function applyTVIncome(s: EscState) {
+  const online = s.onlineMode === 'online'
+  const y = s.managers[s.youIdx]?.id ?? s.youIdx
+  const dorm = (!online && s.multiClube && s.multiClube.id !== y) ? s.multiClube.id : null
+  const ids = online ? s.managers.filter(m => m.isHuman).map(h => h.id) : (dorm != null ? [y, dorm] : [y])
+  for (const id of ids) {
+    const div = s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V'
+    const cota = TV_COTA[div] ?? 0
+    if (cota > 0) {
+      s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + cota }
+      logFin(s, 'reward', '📺 Cota de TV', cota, undefined, id, true)
+    }
+  }
+}
 function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsorRewards?: Record<number, number>) {
   // 🔒 UMA VEZ POR TEMPORADA: o fechamento acontece assim que a temporada (liga +
   // copas) termina. Se já foi lançado, qualquer chamada depois (abrir o leilão,
   // refazer o leilão) NÃO repete nada — o caixa nunca é creditado duas vezes.
   if (s.booksSeason === (s.seasonNo ?? 1)) return
   s.booksSeason = s.seasonNo ?? 1
+  applyTVIncome(s) // 📺 cota de TV por divisão (antes dos snapshots — linha própria no extrato)
   const online = s.onlineMode === 'online'
   const humans = s.managers.filter(m => m.isHuman)
   // snapshot da caixa de cada humano — pra registrar o extrato pela VARIAÇÃO REAL
