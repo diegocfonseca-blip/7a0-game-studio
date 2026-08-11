@@ -35,6 +35,16 @@ const FLAG: Record<string, string> = {
   'Portugal': '🇵🇹', 'México': '🇲🇽', 'Colômbia': '🇨🇴', 'Uruguai': '🇺🇾',
   'Chile': '🇨🇱', 'Bélgica': '🇧🇪', 'EUA': '🇺🇸', 'Coreia do Sul': '🇰🇷', 'Paraguai': '🇵🇾',
 }
+// 🎨 COR REAL de cada seleção (pedido do Diego 11/08: "tipo França azul
+// vermelho e branco, Japão vermelho e branco" — a cor mais icônica do manto
+// de cada país, não mais um hash genérico). Usada nos jogos e nas tabelas.
+const PAIS_COLORS: Record<string, string> = {
+  'Brasil': '#FFDF00', 'Argentina': '#75AADB', 'França': '#002395', 'Espanha': '#C60B1E',
+  'Inglaterra': '#C8102E', 'Itália': '#0066CC', 'Alemanha': '#0a0a0a', 'Holanda': '#F36C21',
+  'Portugal': '#C8102E', 'México': '#006341', 'Colômbia': '#FCD116', 'Uruguai': '#6CACE4',
+  'Chile': '#D52B1E', 'Bélgica': '#ED2939', 'EUA': '#002868', 'Coreia do Sul': '#C60C30', 'Paraguai': '#D52B1E',
+}
+const paisColor = (pais: string): string => PAIS_COLORS[pais] ?? copaSideColor(pais)
 
 type Sec = 'GOL' | 'LAT' | 'ZAG' | 'MEI' | 'ATA'
 const SECS: Sec[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
@@ -191,19 +201,19 @@ function useLiveMin(roundKey: number, roundMs: number, finished: boolean): numbe
 // pedido do Diego 11/08: cor real de cada seleção — nada de time apagado —
 // + barra de progresso + flash quando alguém acaba de marcar). A cor de cada
 // lado vem do NOME (flag+país já entra no hash, cada seleção fica única).
-function MiniLive({ nmH, nmA, ev, min, bold }: { nmH: string; nmA: string; ev: ScoreGoal[]; min: number; bold?: boolean }) {
+function MiniLive({ nmH, nmA, hPais, aPais, ev, min, bold }: { nmH: string; nmA: string; hPais: string; aPais: string; ev: ScoreGoal[]; min: number; bold?: boolean }) {
   const gh = ev.filter(e => e.home && e.min <= min).length
   const ga = ev.filter(e => !e.home && e.min <= min).length
   const done = min >= 93
-  const fill = (nm: string): CopaFill => { const hex = copaSideColor(nm); return { bg: hex, ink: _inkFor(hex), holo: 0, mark: '' } }
-  const fH = fill(nmH), fA = fill(nmA)
+  const fill = (pais: string): CopaFill => { const hex = paisColor(pais); return { bg: hex, ink: _inkFor(hex), holo: 0, mark: '' } }
+  const fH = fill(hPais), fA = fill(aPais)
   // ⚡ "acabou de fazer gol": só olha pro que JÁ tá no placar (min<=min atual) —
   // é destaque visual de algo já revelado, nunca antecipa nada.
   const lastGoalMin = !done ? Math.max(-1, ...ev.filter(e => e.min <= min).map(e => e.min)) : -1
   const justScored = !done && lastGoalMin >= 0 && min - lastGoalMin <= 1
   const barPct = Math.max(0, Math.min(100, Math.round((min / 90) * 100)))
   return (
-    <div style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${justScored ? GOLD : INK}`, borderRadius: 12, boxShadow: `2px 2px 0 0 ${INK}`, padding: '5px 8px', margin: '5px 0' }}>
+    <div style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${justScored ? GOLD : '#000'}`, borderRadius: 12, boxShadow: `2px 2px 0 0 #000`, padding: '5px 8px', margin: '5px 0' }}>
       <CopaHalves fL={fH} fR={fA} />
       {justScored && (
         <>
@@ -682,10 +692,10 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, agenciaOn,
   // — senão o chaveamento entregava quem passou antes de você ver a decisão.
   const tieRow = (t: KoTie, showVolta: boolean, showPens = true, winDelay = 0) => {
     const mine = isYou(t.h) || isYou(t.a)
-    const fH = { bg: copaSideColor(nm(t.h)), ink: _inkFor(copaSideColor(nm(t.h))), holo: 0, mark: '' } as CopaFill
-    const fA = { bg: copaSideColor(nm(t.a)), ink: _inkFor(copaSideColor(nm(t.a))), holo: 0, mark: '' } as CopaFill
+    const fH = { bg: paisColor(entrants[t.h].pais), ink: _inkFor(paisColor(entrants[t.h].pais)), holo: 0, mark: '' } as CopaFill
+    const fA = { bg: paisColor(entrants[t.a].pais), ink: _inkFor(paisColor(entrants[t.a].pais)), holo: 0, mark: '' } as CopaFill
     return (
-      <div style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${mine ? '#B23B2E' : INK}`, borderRadius: 12, boxShadow: `2px 2px 0 0 ${INK}`, padding: '5px 8px', margin: '5px 0', fontSize: 11, fontWeight: mine ? 900 : 700 }}>
+      <div style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${mine ? GOLD : '#000'}`, borderRadius: 12, boxShadow: `2px 2px 0 0 #000`, padding: '5px 8px', margin: '5px 0', fontSize: 11, fontWeight: mine ? 900 : 700 }}>
         <CopaHalves fL={fH} fR={fA} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           {winDelay > 0 && <style>{'@keyframes cmWinPop{from{opacity:0}to{opacity:1}}'}</style>}
@@ -710,8 +720,13 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, agenciaOn,
 
   return (
     <>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 18, margin: 0, textAlign: 'center', textTransform: 'uppercase' }}>🌍 Copa do Mundo Legends · temporada {seasonNo}</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', textAlign: 'center', margin: '3px 0 10px' }}>Você: <b>{nm(myIdx)}</b> ({club(myIdx)})</p>
+      <div style={{ position: 'relative', overflow: 'hidden', border: '3px solid #000', borderRadius: 16, boxShadow: '4px 4px 0 0 #000', padding: '16px 12px', marginBottom: 12, textAlign: 'center', background: 'linear-gradient(155deg,#1a1a1a,#0a0a0a 55%,#000)' }}>
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .5, background: 'radial-gradient(circle at 15% 20%, rgba(255,196,0,.25), transparent 22%), radial-gradient(circle at 85% 75%, rgba(255,196,0,.2), transparent 25%)' }} />
+        <p style={{ position: 'relative', fontSize: 30, lineHeight: 1, margin: 0 }}>🏆</p>
+        <p style={{ position: 'relative', ...OSWALD, fontWeight: 900, fontSize: 19, margin: '4px 0 0', textTransform: 'uppercase', letterSpacing: .4, background: 'linear-gradient(180deg,#FFE79A,#FFC400 55%,#B8860B)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>Copa do Mundo Legends</p>
+        <p style={{ position: 'relative', fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.6)', margin: '4px 0 0' }}>temporada {seasonNo} · Você: <b style={{ color: GOLD }}>{nm(myIdx)}</b> ({club(myIdx)})</p>
+        <div style={{ position: 'relative', height: 2, margin: '9px auto 0', width: '65%', background: 'linear-gradient(90deg,transparent,#FFC400,transparent)' }} />
+      </div>
 
       {/* GRUPOS: SEU jogo ao vivo em cima (relógio da liga); tabela e os outros
           resultados só entram DEPOIS do apito — zero spoiler. */}
@@ -720,25 +735,26 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, agenciaOn,
         const m = g?.matches[gRound - 1]?.find(mm => mm.h === myIdx || mm.a === myIdx)
         // 🛌 grupo de 5 → cada seleção FOLGA uma rodada (bye). Sem jogo meu, mostra o aviso.
         if (m) return live(m.h, m.a, m.ev ?? [])
-        return <div style={{ ...box('#FFF6D6'), padding: '8px 11px', marginBottom: 8, textAlign: 'center', fontWeight: 800, fontSize: 11, ...OSWALD }}>🛌 {nm(myIdx)} folga nesta rodada — os outros jogos rolam abaixo.</div>
+        return <div style={{ border: '3px solid #000', borderRadius: 14, boxShadow: '4px 4px 0 0 #000', background: '#111', padding: '8px 11px', marginBottom: 8, textAlign: 'center', fontWeight: 800, fontSize: 11, color: GOLD, ...OSWALD }}>🛌 {nm(myIdx)} folga nesta rodada — os outros jogos rolam abaixo.</div>
       })()}
       {step <= GR + 1 && (
         <>
           {world.groups.map((g, gi) => (
-            <div key={gi} style={{ ...box('#fff'), padding: 10, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
-              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>GRUPO {'ABCD'[gi]}</p>
+            <div key={gi} style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>🏴 GRUPO {'ABCD'[gi]}<span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
               {groupTable(g, shownRounds).map((r, i) => (
-                <div key={r.t} style={{ display: 'flex', gap: 6, fontSize: 10.5, fontWeight: isYou(r.t) ? 900 : 600, background: isYou(r.t) ? '#FFE9B0' : i < 2 ? '#F0F7F1' : 'transparent', borderRadius: 6, padding: '2px 5px' }}>
-                  <span style={{ width: 12, color: 'rgba(0,0,0,.45)' }}>{i + 1}</span>
-                  <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nm(r.t)} <span style={{ color: 'rgba(0,0,0,.4)', fontSize: 8.5 }}>· {club(r.t)}</span></span>
-                  <span style={{ fontWeight: 900 }}>{r.pts}pt</span><span>{r.w}V</span><span>{r.sg > 0 ? '+' : ''}{r.sg}</span>
+                <div key={r.t} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, fontWeight: isYou(r.t) ? 900 : 600, background: isYou(r.t) ? 'rgba(255,196,0,.18)' : i < 2 ? 'rgba(255,255,255,.06)' : 'transparent', borderRadius: 8, padding: '4px 6px', marginBottom: 3 }}>
+                  <span style={{ width: 12, color: 'rgba(255,255,255,.4)' }}>{i + 1}</span>
+                  <span style={{ width: 10, height: 10, borderRadius: 3, flex: 'none', background: paisColor(entrants[r.t].pais), border: '1px solid rgba(255,255,255,.35)' }} />
+                  <span style={{ flex: 1, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nm(r.t)} <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 8.5 }}>· {club(r.t)}</span></span>
+                  <span style={{ fontWeight: 900, color: '#fff' }}>{r.pts}pt</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.w}V</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.sg > 0 ? '+' : ''}{r.sg}</span>
                 </div>
               ))}
               {step >= 1 && step <= GR && !liveDone && g.matches[gRound - 1]?.filter(m => m.h !== myIdx && m.a !== myIdx).map((m, k) => (
-                <MiniLive key={k} nmH={nm(m.h)} nmA={nm(m.a)} ev={m.ev ?? []} min={liveMin} />
+                <MiniLive key={k} nmH={nm(m.h)} nmA={nm(m.a)} hPais={entrants[m.h].pais} aPais={entrants[m.a].pais} ev={m.ev ?? []} min={liveMin} />
               ))}
               {shownRounds > 0 && liveDone && (
-                <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 0 0' }}>
+                <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.5)', margin: '4px 0 0' }}>
                   rodada {shownRounds}: {g.matches[shownRounds - 1].map(m => `${FLAG[entrants[m.h].pais]} ${m.gh}×${m.ga} ${FLAG[entrants[m.a].pais]}`).join(' · ')}
                 </p>
               )}
@@ -760,38 +776,38 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, agenciaOn,
             {step === GR + 5 && mySf && myTieVolta(mySf)}
             {step === GR + 6 && live(world.final.h, world.final.a, world.final.ev)}
             {step === GR + 6 && liveDone && world.final.pen && (
-              <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
-                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 FINAL DECIDIDA NOS PÊNALTIS</p>
+              <div style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 8, marginBottom: 8 }}>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center', color: GOLD }}>🥅 FINAL DECIDIDA NOS PÊNALTIS</p>
                 <PensShootout pens={world.final.pen} aName={entrants[world.final.h].pais} bName={entrants[world.final.a].pais} />
               </div>
             )}
-            <div style={{ ...box('#fff'), padding: 10, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
-              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>🎲 MATA-MATA (sorteio livre — ida e volta)</p>
+            <div style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>⚔️ MATA-MATA <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.5)', textTransform: 'none' }}>(sorteio livre — ida e volta)</span><span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 6 }}>
                 {world.qf.map((t, i) => {
                   const mine = isYou(t.h) || isYou(t.a)
-                  if (step === GR + 2) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} ev={t.ev1!} min={liveMin} /> : null}</div>
-                  if (step === GR + 3) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
-                  if (step === GR + 1) return <div key={i} style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: mine ? 900 : 700 }}>{nm(t.h)} × {nm(t.a)}</div>
+                  if (step === GR + 2) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} hPais={entrants[t.h].pais} aPais={entrants[t.a].pais} ev={t.ev1!} min={liveMin} /> : null}</div>
+                  if (step === GR + 3) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} hPais={entrants[t.a].pais} aPais={entrants[t.h].pais} ev={t.ev2!} min={liveMin} />}</div>
+                  if (step === GR + 1) return <div key={i} style={{ borderTop: '2px solid rgba(255,255,255,.12)', padding: '5px 2px', fontSize: 11, fontWeight: mine ? 900 : 700, color: '#fff' }}>{nm(t.h)} × {nm(t.a)}</div>
                   return <div key={i}>{tieRow(t, true)}</div>
                 })}
               </div>
               {step >= GR + 4 && (<>
-                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px' }}>SEMIFINAIS</p>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px', color: GOLD }}>SEMIFINAIS</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 6 }}>
                   {world.sf.map((t, i) => {
                     const mine = isYou(t.h) || isYou(t.a)
-                    if (step === GR + 4) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} ev={t.ev1!} min={liveMin} /> : null}</div>
-                    if (step === GR + 5) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} ev={t.ev2!} min={liveMin} />}</div>
+                    if (step === GR + 4) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive nmH={nm(t.h)} nmA={nm(t.a)} hPais={entrants[t.h].pais} aPais={entrants[t.a].pais} ev={t.ev1!} min={liveMin} /> : null}</div>
+                    if (step === GR + 5) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive nmH={nm(t.a)} nmA={nm(t.h)} hPais={entrants[t.a].pais} aPais={entrants[t.h].pais} ev={t.ev2!} min={liveMin} />}</div>
                     return <div key={i}>{tieRow(t, true)}</div>
                   })}
                 </div>
               </>)}
               {step === GR + 6 && liveDone && (
                 <>
-                  <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px' }}>🏆 FINAL ÚNICA</p>
+                  <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px', color: GOLD }}>🏆 FINAL ÚNICA</p>
                   {world.final.pen && <style>{'@keyframes cmWinPop{from{opacity:0}to{opacity:1}}'}</style>}
-                  <p style={{ fontSize: 12, fontWeight: 900, margin: 0 }}>{nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? <span style={{ opacity: 0, animation: `cmWinPop .35s ease ${pensRevealDelay(world.final.pen).toFixed(2)}s forwards` }}> · pênaltis {world.final.pen[0]}×{world.final.pen[1]}</span> : ''}</p>
+                  <p style={{ fontSize: 12, fontWeight: 900, margin: 0, color: '#fff' }}>{nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? <span style={{ opacity: 0, animation: `cmWinPop .35s ease ${pensRevealDelay(world.final.pen).toFixed(2)}s forwards` }}> · pênaltis {world.final.pen[0]}×{world.final.pen[1]}</span> : ''}</p>
                 </>
               )}
             </div>
