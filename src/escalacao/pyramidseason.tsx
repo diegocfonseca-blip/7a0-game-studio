@@ -32,6 +32,7 @@ import { MASCOTES, FestaoMascote } from './mascotes'
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
 const GREEN = '#1B7A3D'
+const COPA_LEG_GREEN = '#14401f' // 🎨 identidade da Copa Legends (Diego 11/08): verde escuro + dourado
 const SLATE = '#3E4A5A' // 🔄 marca de EMPRÉSTIMO (cinza-ardósia): NEUTRA de propósito — cor é sagrada dos tiers, então o emprestado não empresta cor de tier nenhum
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
@@ -2484,30 +2485,26 @@ function CopaTieRow({ tie, colors = {}, safName }: { tie: CopaTie; colors?: Reco
   const winDiv = aWin ? tie.aDiv : tie.bDiv, loseDiv = aWin ? tie.bDiv : tie.aDiv
   const zebra = DIV_RANKN[winDiv] < DIV_RANKN[loseDiv]
   const fA = copaSideFill(tie.a, colors, safName), fB = copaSideFill(tie.b, colors, safName)
-  const side = (t: SimTeam, win: boolean, away: boolean, f: CopaFill) => {
+  const side = (t: SimTeam, win: boolean, f: CopaFill) => {
     // mesmo dim do nome (anti-spoiler: só risca/apaga o perdedor quando os pênaltis
     // terminam de animar). Aplicado também ao escudo pra não entregar o resultado.
     const dim = win ? {} : pensDelay > 0 ? { animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` } : { opacity: 0.62, textDecoration: 'line-through' as const }
-    // 🛡️ escudo (gerado do nome) no confronto da Copa Legends — igual ao placar grande
-    const esc = <span style={{ flex: 'none', display: 'flex', ...dim }}><Escudo nome={copaName(t)} size={15} /></span>
+    // 🛡️ escudo em cima, nome embaixo (Diego 11/08) — igual ao card ao vivo
     return (
-      <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: away ? 'flex-end' : 'flex-start' }}>
-        {!away && esc}
-        {!away && <span style={{ fontSize: 10 }}>{f.mark}</span>}
-        <span style={{ fontWeight: 800, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: f.ink, ...dim }}>{copaName(t)}</span>
-        {away && <span style={{ fontSize: 10 }}>{f.mark}</span>}
-        {away && esc}
+      <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, minWidth: 0 }}>
+        <span style={{ ...dim }}><Escudo nome={copaName(t)} size={20} /></span>
+        <span style={{ fontWeight: 800, fontSize: 10.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%', textAlign: 'center', color: f.ink, ...dim }}>{f.mark}{copaName(t)}</span>
       </span>
     )
   }
   return (
     <div style={{ ...box('transparent'), position: 'relative', overflow: 'hidden', border: `2.5px solid ${you ? '#B23B2E' : INK}`, boxShadow: `3px 3px 0 0 ${INK}`, marginBottom: 7 }}>
-      {/* 🎨 faixa branca no meio com o placar (Diego 11/08) — mesmo padrão do
-          resto da Copa: cor cheia só nas laterais, placar em cima do branco. */}
-      <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch', overflow: 'hidden', borderTopLeftRadius: 13, borderTopRightRadius: 13 }}>
-        <div style={{ position: 'relative', overflow: 'hidden', background: fA.bg, padding: '6px 8px', minWidth: 0 }}>{fA.holo > 0 && <ApoioSheen holo={fA.holo} />}{side(tie.a, aWin, false, fA)}</div>
+      {/* 🎨 faixa branca no meio com o placar, escudo em cima e nome embaixo
+          (Diego 11/08) — mesmo padrão do resto da Copa. */}
+      <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch', overflow: 'hidden' }}>
+        <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: fA.bg, padding: '7px 6px', minWidth: 0 }}>{fA.holo > 0 && <ApoioSheen holo={fA.holo} />}{side(tie.a, aWin, fA)}</div>
         <div style={{ background: '#fff', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3px 10px', fontWeight: 900, fontSize: 13, ...OSWALD, whiteSpace: 'nowrap' }}>{tie.aggA} × {tie.aggB}</div>
-        <div style={{ position: 'relative', overflow: 'hidden', background: fB.bg, padding: '6px 8px', minWidth: 0 }}>{fB.holo > 0 && <ApoioSheen holo={fB.holo} />}{side(tie.b, !aWin, true, fB)}</div>
+        <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: fB.bg, padding: '7px 6px', minWidth: 0 }}>{fB.holo > 0 && <ApoioSheen holo={fB.holo} />}{side(tie.b, !aWin, fB)}</div>
       </div>
       <div style={{ padding: '5px 9px 7px' }}>
         <p style={{ fontSize: 9, fontWeight: 800, textAlign: 'center', margin: 0 }}><span style={copaCenterChip}>{tie.legs.length === 2 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}` : 'jogo único'}</span></p>
@@ -2567,22 +2564,30 @@ function CopaLiveMatch({ tie, pos, big, colors = {}, safName }: { tie: CopaTie; 
   const justScored = !done && lastG != null && legMin - lastG.min <= 1
   const barPct = Math.max(0, Math.min(100, Math.round((legMin / 90) * 100)))
   return (
-    <div style={{ ...box('transparent'), position: 'relative', overflow: 'hidden', border: `${big ? 3 : 2}px solid ${justScored ? GOLD : you ? '#B23B2E' : INK}`, boxShadow: `${big ? 4 : 2}px ${big ? 4 : 2}px 0 0 ${INK}`, marginBottom: big ? 9 : 6 }}>
-      {/* 🎨 faixa branca no meio com o placar (Diego 11/08) — cor cheia só nas
-          laterais (nome+escudo), placar em cima do branco, igual ao card do
-          próprio jogo dele (fundo colorido/branco/colorido). */}
-      <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch', overflow: 'hidden', borderTopLeftRadius: 13, borderTopRightRadius: 13 }}>
-        <div style={{ position: 'relative', overflow: 'hidden', background: L.f.bg, display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, padding: big ? '8px 10px' : '6px 8px' }}>
+    <div style={{ ...box('transparent'), position: 'relative', overflow: 'hidden', border: `${big ? 3 : 2}px solid ${justScored ? GOLD : you ? '#B23B2E' : !done ? COPA_LEG_GREEN : INK}`, boxShadow: `${big ? 4 : 2}px ${big ? 4 : 2}px 0 0 ${INK}`, marginBottom: big ? 9 : 6 }}>
+      {/* 🎨 identidade da Copa Legends (Diego 11/08): moldura verde-escura só
+          enquanto o jogo tá AO VIVO; barra de progresso no TOPO do card. */}
+      {!done && (
+        <div style={{ height: 4, background: 'rgba(0,0,0,.15)' }}>
+          <div style={{ height: '100%', width: `${barPct}%`, background: COPA_LEG_GREEN }} />
+        </div>
+      )}
+      {/* 🎨 faixa branca no meio com o placar, escudo em cima e nome embaixo —
+          cor cheia só nas laterais. */}
+      <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch', overflow: 'hidden' }}>
+        <div style={{ position: 'relative', overflow: 'hidden', background: L.f.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, minWidth: 0, padding: big ? '8px 8px' : '6px 6px' }}>
           {L.f.holo > 0 && <ApoioSheen holo={L.f.holo} />}
-          <span style={{ flex: 'none', display: 'flex', ...escDim(L) }}><Escudo nome={L.name} size={big ? 18 : 15} /></span><span style={{ fontSize: 10 }}>{L.f.mark}</span><span style={nameStyle(L)}>{L.name}</span>
+          <span style={{ ...escDim(L) }}><Escudo nome={L.name} size={big ? 22 : 17} /></span>
+          <span style={{ ...nameStyle(L), textAlign: 'center', maxWidth: '100%' }}>{L.f.mark}{L.name}</span>
         </div>
         <div style={{ background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: big ? '4px 11px' : '3px 9px', gap: 1 }}>
           {!done && <span style={{ fontSize: big ? 9 : 8, fontWeight: 900, color: '#C2452F', ...OSWALD }}>🔴 {phaseLbl ? phaseLbl + ' · ' : ''}{legMin}'</span>}
           <span style={{ fontWeight: 900, fontSize: big ? 18 : 13, ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>{L.score} × {R.score}</span>
         </div>
-        <div style={{ position: 'relative', overflow: 'hidden', background: R.f.bg, display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, justifyContent: 'flex-end', padding: big ? '8px 10px' : '6px 8px' }}>
+        <div style={{ position: 'relative', overflow: 'hidden', background: R.f.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, minWidth: 0, padding: big ? '8px 8px' : '6px 6px' }}>
           {R.f.holo > 0 && <ApoioSheen holo={R.f.holo} />}
-          <span style={nameStyle(R)}>{R.name}</span><span style={{ fontSize: 10 }}>{R.f.mark}</span><span style={{ flex: 'none', display: 'flex', ...escDim(R) }}><Escudo nome={R.name} size={big ? 18 : 15} /></span>
+          <span style={{ ...escDim(R) }}><Escudo nome={R.name} size={big ? 22 : 17} /></span>
+          <span style={{ ...nameStyle(R), textAlign: 'center', maxWidth: '100%' }}>{R.f.mark}{R.name}</span>
         </div>
         {justScored && (
           <>
@@ -2592,9 +2597,6 @@ function CopaLiveMatch({ tie, pos, big, colors = {}, safName }: { tie: CopaTie; 
         )}
       </div>
       <div style={{ padding: big ? '6px 12px 9px' : '5px 9px 7px' }}>
-        {!done && (
-          <div style={{ height: 3, borderRadius: 2, background: 'rgba(0,0,0,.15)', margin: '0 1px 6px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${barPct}%`, background: GOLD }} /></div>
-        )}
         {!done
           ? (lastG ? <p style={{ textAlign: 'center', margin: 0 }}><span style={{ ...copaCenterChip, fontSize: big ? 10 : 9, fontWeight: 900, ...OSWALD, color: justScored ? '#FFD778' : '#fff' }}>⚽ {justScored ? 'GOOOL! ' : ''}{lastG.name}</span></p> : null)
           : <>
@@ -2645,9 +2647,9 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers,
   // em destaque). Sem toggle — as duas ficam empilhadas na mesma aba.
   return (
     <div>
-      <div style={{ ...box('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)'), padding: '11px 12px', marginBottom: 10, textAlign: 'center' }}>
-        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>🏆 COPA LEGENDS</p>
-        <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.62)', margin: '2px 0 0' }}>Mata-mata dos 16 · top-4 de cada divisão · sorteio aleatório</p>
+      <div style={{ ...box(`linear-gradient(150deg,${COPA_LEG_GREEN},#0a1f13)`), padding: '11px 12px', marginBottom: 10, textAlign: 'center' }}>
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0, color: GOLD }}>🏆 COPA LEGENDS</p>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.72)', margin: '2px 0 0' }}>Mata-mata dos 16 · top-4 de cada divisão · sorteio aleatório</p>
       </div>
       {finished && champ && (
         <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, textAlign: 'center' }}>
@@ -3324,7 +3326,8 @@ export function PyramidSeasonScreen() {
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
         <SocioBaraoBanner />
-        <div style={{ ...box(INK), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 8 }}>
+        {/* 🎨 identidade da Copa Legends (Diego 11/08): verde escuro na fase da Copa */}
+        <div style={{ ...box(copaPlaying ? `linear-gradient(100deg,${COPA_LEG_GREEN},#0a1f13)` : INK), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 8 }}>
           <div style={{ padding: '12px 14px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD }}>{copaPlaying ? `Temporada ${state.seasonNo} · 🏆 Copa Legends` : <>Temporada {state.seasonNo}{me ? ` · ${DIV_NAME[me.div]}` : ''}</>}</div>
