@@ -185,7 +185,7 @@ export function empCatUnlocked(cat: EmpCat, st: StadiumSave | undefined, hasFili
 // Valores por categoria decididos pelo Diego: lenda vale 5 AQUI (o empresário
 // clássico dos saves antigos segue com 6) + carta FOLCLÓRICA ganha +1 por cima.
 // Os desbloqueios são os MESMOS do empresário clássico (estádio/SAF).
-export const AG_VALUES: Record<EmpCat, number> = { lenda: 5, craque: 4, promessa: 3, bom: 2, prof: 1 }
+export const AG_VALUES: Record<EmpCat, number> = { lenda: 6, craque: 4, promessa: 3, bom: 2, prof: 1 }
 export const AG_FOLK_BONUS = 1
 export function agenciaRenda(cards: { fame?: number; promessa?: boolean; folk?: boolean }[] | undefined, st: StadiumSave | undefined, hasFilial: boolean): { total: number; by: Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }>; folkCount: number; folkIncome: number } {
   const by = {} as Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }>
