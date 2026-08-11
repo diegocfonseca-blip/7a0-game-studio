@@ -2994,7 +2994,20 @@ export function PyramidSeasonScreen() {
   // copaRound = fase ao vivo agora (0=oitavas). Zera a cada temporada nova.
   // se o save já assistiu a Copa desta temporada, começa JÁ finalizada (999 >= nº de
   // fases) — não re-anima do zero ao retomar; mostra direto os campeões/decisão.
-  const [copaRound, setCopaRound] = useState(() => state.copaDoneSeason === state.seasonNo ? 999 : 0)
+  // 🌐 ONLINE (Diego 11/08, relato de jogadores): antes `copaRound` era um useState
+  // LOCAL — cada convidado avançava a fase sozinho no seu relógio, e um F5/reconexão
+  // podia mostrar uma fase (e placar) diferente do que o host via na mesma sala. Agora,
+  // em carreira ONLINE, a fase vem de `state.copaRound` (sincronizada, só o host
+  // escreve — igual ao `state.round` da liga). Em SOLO continua 100% local, sem risco.
+  const copaOnline = state.careerOnline && state.onlineMode === 'online'
+  const [localCopaRound, setLocalCopaRound] = useState(() => state.copaDoneSeason === state.seasonNo ? 999 : 0)
+  const copaRound = copaOnline ? (state.copaRound ?? (state.copaDoneSeason === state.seasonNo ? 999 : 0)) : localCopaRound
+  const setCopaRound = (upd: number | ((r: number) => number)) => {
+    if (copaOnline) {
+      if (!state.isHost) return // só o host decide a fase — convidado só observa o estado sincronizado
+      dispatch({ type: 'SET_COPA_ROUND', round: typeof upd === 'function' ? upd(copaRound) : upd })
+    } else setLocalCopaRound(upd)
+  }
   const [copaPos, setCopaPos] = useState(0) // relógio da fase (0..nLegs*90) no nível da TELA (o placar fica em cima das abas)
   const [copaReady, setCopaReady] = useState(false) // 🎮 no manual, libera a "Próxima fase" quando a fase acaba de animar
   // ⏸️ passo é seu (SOLO + manual): usado tanto na liga quanto na Copa. Declarado

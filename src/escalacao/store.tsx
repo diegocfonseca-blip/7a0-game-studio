@@ -2514,6 +2514,7 @@ type Action =
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[]; uids?: string[] } // uids = 🤝 quem está online pelo crachá (numa dupla, os dois dividem o mesmo assento)
   | { type: 'MARK_COPA_DONE' }
+  | { type: 'SET_COPA_ROUND'; round: number }
   | { type: 'CLOSE_SEASON_BOOKS'; rewards?: Record<number, number>; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }> } // 💰 fecha as contas da temporada (prêmios + bilheteria + patrocínio + empresário − folha) assim que liga+copas acabam
   | { type: 'SET_CHAT'; off: boolean } // 💬 host liga/desliga o chat da sala
   | { type: 'SET_SIM_SPEED'; speed: number } // ⏩ velocidade da simulação (host/solo)
@@ -3025,6 +3026,9 @@ export function reducer(state: EscState, action: Action): EscState {
     // pirâmide: a Copa da temporada atual terminou de animar → marca, pra o save
     // não re-animar a Copa do zero ao retomar (mostra direto os campeões/decisão).
     case 'MARK_COPA_DONE': { s.copaDoneSeason = s.seasonNo; return s }
+    // 🌐 ONLINE: fase da Copa Legends ao vivo — SÓ o host dispara isto (gate na
+    // tela), pra não ter cada convidado avançando sozinho e vendo fase diferente.
+    case 'SET_COPA_ROUND': { s.copaRound = action.round; return s }
     // 💰 FECHAMENTO DA TEMPORADA (solo): acabou a liga E as copas → contabiliza
     // TUDO de uma vez (prêmios, bilheteria, patrocínio, renda do empresário,
     // menos a folha salarial). Antes isso só caía quando você abria o leilão —
