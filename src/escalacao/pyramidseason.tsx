@@ -261,12 +261,13 @@ export function computePromotions(tables: Record<Div, SimTeam[]>): Record<string
 //     campeão da Várzea = 15 + 10 = 25. (09/08, pedido do Diego: dar uma força
 //     de caixa logo na entrada da pirâmide — D e Várzea eram os únicos SEM
 //     bônus de acesso, o que travava quem tava começando.)
-//   queda (caiu, pela série de onde caiu): mesmo valor da zona — A 30 · B 25 · C 20
-//   (D e Várzea NÃO têm queda — mesmo caindo da D pra Várzea, não desconta nada)
+//   queda (caiu, pela série de onde caiu): ALIVIADA (Diego 11/08, pra não punir
+//     demais quem cai) — A 20 · B 15 · C 10 (D e Várzea NÃO têm queda: mesmo
+//     caindo da D pra Várzea, não desconta nada)
 const DIV_RANK: Record<Div, number> = { A: 4, B: 3, C: 2, D: 1, V: 0 }
 const CAMPEAO: Record<Div, number> = { A: 65, B: 50, C: 35, D: 20, V: 15 }
 const ZONA: Record<Div, number> = { A: 30, B: 25, C: 20, D: 15, V: 10 }
-const QUEDA: Record<Div, number> = { A: 30, B: 25, C: 20, D: 0, V: 0 }
+const QUEDA: Record<Div, number> = { A: 20, B: 15, C: 10, D: 0, V: 0 }
 export function seasonRewards(tables: Record<Div, SimTeam[]>): Record<number, number> {
   const newPl = computePromotions(tables)
   const out: Record<number, number> = {}
@@ -535,8 +536,11 @@ export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { 
 export interface CopaTie { a: SimTeam; b: SimTeam; aDiv: Div; bDiv: Div; aggA: number; aggB: number; pens?: [number, number]; win: 'a' | 'b'; goals: Goal[]; legs: [number, number][]; legGoals: Goal[][] }
 export interface CopaRound { name: string; ties: CopaTie[] }
 export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; vice: SimTeam | null; viceDiv: Div | null; scorers: SeasonScorer[]; topScorer?: SeasonScorer }
-const COPA_CHAMP_COINS = 25 // caixa do campeão da Copa
-const COPA_VICE_COINS = 15 // vice-campeão (10 a menos que o campeão)
+// 🏆 Copa Legends PAGA POR FASE (Diego 11/08): TOTAL do campeão por divisão;
+// quem cai antes leva uma FRAÇÃO (participação → final). Antes só campeão/vice
+// levavam — agora, tipo Copa do Brasil, cada fase alcançada já rende algo.
+const COPA_TOT: Record<Div, number> = { A: 30, B: 20, C: 15, D: 10, V: 0 } // Várzea não joga a Copa
+const COPA_FASE_FRAC = { camp: 1.0, vice: 0.8, sf: 0.65, qf: 0.4, resto: 0.2 } // fração do total pela fase alcançada
 const COPA_SCORER_BONUS = 16 // caixa do time pelo artilheiro da Copa (o PISO dele sobe +10 fixo, ver copaRewards)
 // prestígio por divisão na Copa: A favorita, D azarão (soma no ataque e defesa).
 const COPA_DIV_STRENGTH: Record<Div, number> = { A: 10, B: 6, C: 3, D: 0, V: 0 } // Várzea não joga a Copa (só A-D)
@@ -644,18 +648,32 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
 // pra fundir nos args da virada de temporada.
 export function copaRewards(copa: CopaResult): { rewards: Record<number, number>; clubRewards: Record<string, number>; values: Record<string, number>; championKey: string | null } {
   const rewards: Record<number, number> = {}, clubRewards: Record<string, number> = {}, values: Record<string, number> = {}
-  let championKey: string | null = null
   const ch = copa.champion
-  if (ch) {
-    championKey = teamKey(ch)
-    if (ch.human && ch.teamId >= 0) rewards[ch.teamId] = (rewards[ch.teamId] ?? 0) + COPA_CHAMP_COINS
-    else clubRewards[championKey] = (clubRewards[championKey] ?? 0) + COPA_CHAMP_COINS
+  const championKey: string | null = ch ? teamKey(ch) : null
+  // 🏆 PAGA POR FASE: acha até onde cada time foi (a rodada mais funda em que ele
+  // apareceu) e paga a fração do total da SUA divisão. Campeão leva 100%, vice 80%,
+  // semi 65%, quartas 40%, quem caiu antes leva 20% (participação).
+  const nR = copa.rounds.length
+  const paga = (tm: SimTeam, val: number) => {
+    if (val <= 0) return
+    if (tm.human && tm.teamId >= 0) rewards[tm.teamId] = (rewards[tm.teamId] ?? 0) + val
+    else clubRewards[teamKey(tm)] = (clubRewards[teamKey(tm)] ?? 0) + val
   }
-  const vc = copa.vice
-  if (vc) {
-    const vk = teamKey(vc)
-    if (vc.human && vc.teamId >= 0) rewards[vc.teamId] = (rewards[vc.teamId] ?? 0) + COPA_VICE_COINS
-    else clubRewards[vk] = (clubRewards[vk] ?? 0) + COPA_VICE_COINS
+  const fundo: Record<string, { tm: SimTeam; div: Div; depth: number }> = {}
+  copa.rounds.forEach((rd, ri) => {
+    for (const t of rd.ties) {
+      const put = (tm: SimTeam, div: Div) => { const k = teamKey(tm); if (!fundo[k] || ri > fundo[k].depth) fundo[k] = { tm, div, depth: ri } }
+      put(t.a, t.aDiv); put(t.b, t.bDiv)
+    }
+  })
+  for (const k in fundo) {
+    const { tm, div, depth } = fundo[k]
+    const frac = (championKey && k === championKey) ? COPA_FASE_FRAC.camp
+      : depth === nR - 1 ? COPA_FASE_FRAC.vice   // perdeu a final
+      : depth === nR - 2 ? COPA_FASE_FRAC.sf     // semifinal
+      : depth === nR - 3 ? COPA_FASE_FRAC.qf     // quartas
+      : COPA_FASE_FRAC.resto                     // caiu antes / participação
+    paga(tm, Math.round((COPA_TOT[div] ?? 0) * frac))
   }
   const ts = copa.topScorer
   if (ts) {
